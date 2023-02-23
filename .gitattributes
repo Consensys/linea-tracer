@@ -1,0 +1,2 @@
+arithmetization/src/test/resources/replays/legacy/** filter=lfs diff=lfs merge=lfs -text
+arithmetization/src/test/resources/replays/** filter=lfs diff=lfs merge=lfs -text

@@ -173,6 +173,12 @@ public class ShfTracer implements ModuleTracer {
     return builder.build();
   }
 
+  @Override
+  public int lineCount(OpCode opCode, Bytes32 arg1, Bytes32 arg2) {
+    final Bytes16 arg1Hi = Bytes16.wrap(arg1.slice(0, 16));
+    return maxCt(isOneLineInstruction(opCode, arg1Hi));
+  }
+
   private int maxCt(final boolean isOneLineInstruction) {
     return isOneLineInstruction ? 1 : LIMB_SIZE;
   }

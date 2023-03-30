@@ -16,6 +16,7 @@ package net.consensys.zktracer.module;
 
 import java.util.List;
 import net.consensys.zktracer.OpCode;
+import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public interface ModuleTracer {
@@ -24,4 +25,6 @@ public interface ModuleTracer {
   List<OpCode> supportedOpCodes();
 
   Object trace(MessageFrame frame);
+
+  int lineCount(OpCode opCode, Bytes32 arg1, Bytes32 arg2);
 }

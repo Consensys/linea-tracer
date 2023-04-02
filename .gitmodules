@@ -1,0 +1,3 @@
+[submodule "src/reference-test/resources"]
+	path = src/reference-test/resources
+	url = https://github.com/ethereum/tests.git

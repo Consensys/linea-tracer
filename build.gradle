@@ -464,6 +464,18 @@ tasks.register("verifyDistributions") {
   }
 }
 
+if (file('src/reference-test').directory) {
+  sourceSets {
+    referenceTest {
+      java {
+        compileClasspath += main.output
+        runtimeClasspath += main.output
+        srcDir file('src/reference-test/java')
+      }
+      resources.srcDir file('src/reference-test/resources')
+    }
+  }
+}
 
 check.dependsOn checkSpdxHeader
 apply plugin: 'groovy'

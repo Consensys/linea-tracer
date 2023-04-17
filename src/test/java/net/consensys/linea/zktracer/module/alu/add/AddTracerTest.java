@@ -12,7 +12,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.zktracer.module.shf;
+package net.consensys.linea.zktracer.module.alu.add;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.when;
@@ -43,8 +43,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ExtendWith(MockitoExtension.class)
-class ShfTracerTest {
-  private static final Logger LOG = LoggerFactory.getLogger(ShfTracerTest.class);
+class AddTracerTest {
+  private static final Logger LOG = LoggerFactory.getLogger(AddTracerTest.class);
 
   private static final Random rand = new Random();
   private static final int TEST_REPETITIONS = 4;
@@ -58,18 +58,18 @@ class ShfTracerTest {
   @BeforeEach
   void setUp() {
     zkTraceBuilder = new ZkTraceBuilder();
-    zkTracer = new ZkTracer(zkTraceBuilder, List.of(new ShfTracer()));
+    zkTracer = new ZkTracer(zkTraceBuilder, List.of(new AddTracer()));
 
     when(mockFrame.getCurrentOperation()).thenReturn(mockOperation);
   }
 
   @ParameterizedTest(name = "{0}")
-  @MethodSource("provideShiftOperators")
+  @MethodSource("provideAddOperators")
   void testFailingBlockchainBlock(final int opCodeValue) {
     when(mockOperation.getOpcode()).thenReturn(opCodeValue);
 
-    when(mockFrame.getStackItem(0)).thenReturn(Bytes32.rightPad(Bytes.fromHexString("0x08")));
-    when(mockFrame.getStackItem(1)).thenReturn(Bytes32.fromHexString("0x01"));
+    when(mockFrame.getStackItem(0)).thenReturn(Bytes32.rightPad(Bytes.fromHexString("0x80")));
+    when(mockFrame.getStackItem(1)).thenReturn(Bytes32.leftPad(Bytes.fromHexString("0x01")));
 
     zkTracer.tracePreExecution(mockFrame);
 
@@ -77,11 +77,32 @@ class ShfTracerTest {
   }
 
   @ParameterizedTest(name = "{0}")
-  @MethodSource("provideRandomSarArguments")
-  void testRandomSar(final Bytes32[] payload) {
+  @MethodSource("provideRandomAddArguments")
+  void testRandomAdd(final Bytes32[] payload) {
     LOG.info(
-        "value: " + payload[0].toShortHexString() + ", shift by: " + payload[1].toShortHexString());
-    when(mockOperation.getOpcode()).thenReturn((int) OpCode.SAR.value);
+        "addArg1: "
+            + payload[0].toShortHexString()
+            + ", addArg2: "
+            + payload[1].toShortHexString());
+    when(mockOperation.getOpcode()).thenReturn((int) OpCode.ADD.value);
+
+    when(mockFrame.getStackItem(0)).thenReturn(payload[0]);
+    when(mockFrame.getStackItem(1)).thenReturn(payload[1]);
+
+    zkTracer.tracePreExecution(mockFrame);
+
+    assertThat(CorsetValidator.isValid(zkTraceBuilder.build().toJson())).isTrue();
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("provideNonRandomAddArguments")
+  void testNonRandomAdd(final Bytes32[] payload) {
+    LOG.info(
+        "addArg1: "
+            + payload[0].toShortHexString()
+            + ", addArg2: "
+            + payload[1].toShortHexString());
+    when(mockOperation.getOpcode()).thenReturn((int) OpCode.ADD.value);
 
     when(mockFrame.getStackItem(0)).thenReturn(payload[0]);
     when(mockFrame.getStackItem(1)).thenReturn(payload[1]);
@@ -92,8 +113,8 @@ class ShfTracerTest {
   }
 
   @Test
-  void testTmp() {
-    when(mockOperation.getOpcode()).thenReturn((int) OpCode.SAR.value);
+  void testSimpleAdd() {
+    when(mockOperation.getOpcode()).thenReturn((int) OpCode.ADD.value);
 
     when(mockFrame.getStackItem(0))
         .thenReturn(Bytes32.fromHexStringLenient("0x54fda4f3c1452c8c58df4fb1e9d6de"));
@@ -104,55 +125,47 @@ class ShfTracerTest {
     assertThat(CorsetValidator.isValid(zkTraceBuilder.build().toJson())).isTrue();
   }
 
-  public static Stream<Arguments> provideRandomSarArguments() {
+  public static Stream<Arguments> provideAddOperators() {
+    return Stream.of(
+        Arguments.of(Named.of("ADD", (int) OpCode.ADD.value)),
+        Arguments.of(Named.of("SUB", (int) OpCode.SUB.value)));
+  }
+
+  public static Stream<Arguments> provideNonRandomAddArguments() {
     final Arguments[] arguments = new Arguments[TEST_REPETITIONS];
 
     for (int i = 0; i < TEST_REPETITIONS; i++) {
-      final boolean signBit = rand.nextInt(2) == 1;
-
-      // leave the first byte untouched
-      final int k = 1 + rand.nextInt(31);
-
-      final byte[] randomBytes = new byte[k];
-      rand.nextBytes(randomBytes);
-
-      final byte[] signBytes = new byte[32 - k];
-      if (signBit) {
-        signBytes[0] = (byte) 0x80; // 0b1000_0000, i.e. sign bit == 1
-      }
-
-      final byte[] bytes = concatenateArrays(signBytes, randomBytes);
-      byte shiftBy = (byte) rand.nextInt(256);
-
       Bytes32[] payload = new Bytes32[2];
-      payload[0] = Bytes32.wrap(bytes);
-      payload[1] = Bytes32.leftPad(Bytes.of(shiftBy));
-
+      payload[0] = Bytes32.leftPad(Bytes.of(i));
+      payload[1] = Bytes32.leftPad(Bytes.of(i + 1));
       arguments[i] =
-          Arguments.of(
-              Named.of(
-                  "value: "
-                      + payload[0].toHexString()
-                      + ", shiftBy: "
-                      + payload[1].toShortHexString(),
-                  payload));
+          Arguments.of(Named.of("addArg1: " + payload[0] + ", addArg2: " + payload[1], payload));
     }
 
     return Stream.of(arguments);
   }
 
-  public static Stream<Arguments> provideShiftOperators() {
-    return Stream.of(
-        Arguments.of(Named.of("SAR", (int) OpCode.SAR.value)),
-        Arguments.of(Named.of("SHL", (int) OpCode.SHL.value)),
-        Arguments.of(Named.of("SHR", (int) OpCode.SHR.value)));
-  }
+  public static Stream<Arguments> provideRandomAddArguments() {
+    final Arguments[] arguments = new Arguments[TEST_REPETITIONS];
 
-  private static byte[] concatenateArrays(byte[] a, byte[] b) {
-    int length = a.length + b.length;
-    byte[] result = new byte[length];
-    System.arraycopy(a, 0, result, 0, a.length);
-    System.arraycopy(b, 0, result, a.length, b.length);
-    return result;
+    for (int i = 0; i < TEST_REPETITIONS; i++) {
+
+      final byte[] randomBytes1 = new byte[32];
+      rand.nextBytes(randomBytes1);
+      final byte[] randomBytes2 = new byte[32];
+      rand.nextBytes(randomBytes2);
+
+      Bytes32[] payload = new Bytes32[2];
+      payload[0] = Bytes32.wrap(randomBytes1);
+      payload[1] = Bytes32.wrap(randomBytes2);
+
+      arguments[i] =
+          Arguments.of(
+              Named.of(
+                  "addArg1: " + payload[0].toHexString() + ", addArg2: " + payload[1].toHexString(),
+                  payload));
+    }
+
+    return Stream.of(arguments);
   }
 }

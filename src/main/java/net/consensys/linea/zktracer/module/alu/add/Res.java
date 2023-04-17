@@ -12,18 +12,32 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.zktracer.module;
-
-import org.hyperledger.besu.evm.frame.MessageFrame;
-
-import java.util.List;
+package net.consensys.linea.zktracer.module.alu.add;
 
 import net.consensys.linea.zktracer.OpCode;
+import net.consensys.linea.zktracer.bytes.Bytes16;
+import org.apache.tuweni.bytes.Bytes32;
 
-public interface ModuleTracer {
-  String jsonKey();
+public class Res {
+  final Bytes16 resHi;
+  final Bytes16 resLo;
 
-  List<OpCode> supportedOpCodes();
+  private Res(Bytes16 resHi, Bytes16 resLo) {
+    this.resHi = resHi;
+    this.resLo = resLo;
+  }
 
-  Object trace(MessageFrame frame);
+  public Bytes16 getResHi() {
+    return resHi;
+  }
+
+  public Bytes16 getResLo() {
+    return resLo;
+  }
+
+  public static Res create(final OpCode opCode, final Bytes32 arg1, final Bytes32 arg2) {
+    final Bytes32 result = Adder.addSub(opCode, arg1, arg2);
+
+    return new Res(Bytes16.wrap(result.slice(0, 16)), Bytes16.wrap(result.slice(16)));
+  }
 }

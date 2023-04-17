@@ -14,25 +14,35 @@
  */
 package net.consensys.linea.zktracer;
 
+import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.evm.tracing.OperationTracer;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import net.consensys.linea.zktracer.module.ModuleTracer;
+import net.consensys.linea.zktracer.module.alu.add.AddTracer;
+import net.consensys.linea.zktracer.module.alu.mod.ModTracer;
 import net.consensys.linea.zktracer.module.shf.ShfTracer;
-import org.hyperledger.besu.evm.frame.MessageFrame;
-import org.hyperledger.besu.evm.tracing.OperationTracer;
+import net.consensys.linea.zktracer.module.wcp.WcpTracer;
 
 public class ZkTracer implements OperationTracer {
-  private final List<ModuleTracer> tracers = List.of(new ShfTracer());
+  private final List<ModuleTracer> tracers;
   private final Map<OpCode, List<ModuleTracer>> opCodeTracerMap = new HashMap<>();
 
   private final ZkTraceBuilder zkTraceBuilder;
 
-  public ZkTracer(final ZkTraceBuilder zkTraceBuilder) {
+  public ZkTracer(final ZkTraceBuilder zkTraceBuilder, final List<ModuleTracer> tracers) {
+    this.tracers = tracers;
     this.zkTraceBuilder = zkTraceBuilder;
-
     setupTracers();
+  }
+
+  public ZkTracer(final ZkTraceBuilder zkTraceBuilder) {
+    this(
+        zkTraceBuilder,
+        List.of(new ShfTracer(), new WcpTracer(), new AddTracer(), new ModTracer()));
   }
 
   @Override

@@ -92,6 +92,19 @@ allprojects {
     mavenCentral()
   }
 
+  if (file('src/reference-test').directory) {
+    sourceSets {
+      referenceTest {
+        java {
+          compileClasspath += main.output
+          runtimeClasspath += main.output
+          srcDir file('src/reference-test/java')
+        }
+        resources.srcDir file('src/reference-test/resources')
+      }
+    }
+  }
+
   dependencies {
     api 'org.slf4j:slf4j-api'
     api 'org.apache.logging.log4j:log4j-api'
@@ -131,6 +144,19 @@ allprojects {
 
     testImplementation 'org.mockito:mockito-core:5.1.1'
     testImplementation 'org.mockito:mockito-junit-jupiter:5.1.1'
+
+    referenceTestImplementation 'com.fasterxml.jackson.core:jackson-databind:2.14.2'
+    referenceTestImplementation 'org.apache.tuweni:tuweni-bytes:2.3.1'
+    referenceTestImplementation 'org.apache.tuweni:tuweni-units:2.3.1'
+    referenceTestImplementation 'org.assertj:assertj-core:3.24.2'
+    referenceTestImplementation "org.hyperledger.besu:besu-datatypes:$besuVersion"
+    referenceTestImplementation "org.hyperledger.besu:evm:$besuVersion"
+    referenceTestImplementation "org.hyperledger.besu.internal:core:$besuVersion"
+    referenceTestImplementation "org.hyperledger.besu.internal:crypto:$besuVersion"
+    referenceTestImplementation "org.hyperledger.besu.internal:referencetests:$besuVersion"
+    referenceTestImplementation "org.hyperledger.besu.internal:rlp:$besuVersion"
+    referenceTestImplementation "org.hyperledger.besu.internal:testutil:$besuVersion"
+    referenceTestImplementation "org.hyperledger.besu:plugin-api:$besuVersion"
   }
 
   tasks.withType(JavaCompile) {
@@ -468,7 +494,7 @@ spotless {
   java {
     // This path needs to be relative to each project
     target 'src/**/*.java'
-    targetExclude '**/src/reference-test/**', '**/src/main/generated/**', '**/src/test/generated/**', '**/src/jmh/generated/**'
+    targetExclude '**/src/reference-test/**', '**/src/main/generated/**', '**/src/test/generated/**', '**/src/jmh/generated/**', '**/resources/**/LegacyTests'
     removeUnusedImports()
     googleJavaFormat('1.15.0')
     importOrder 'org.hyperledger', 'java', ''
@@ -496,6 +522,52 @@ if (file('src/reference-test').directory) {
       }
       resources.srcDir file('src/reference-test/resources')
     }
+  }
+}
+
+def blockchainReferenceTests = tasks.register("blockchainReferenceTests")  {
+  final referenceTestsPath = 'src/reference-test/resources/BlockchainTests'
+  final generatedTestsPath = "$buildDir/generated/sources/reference-test/$name/java"
+  inputs.files fileTree(referenceTestsPath),
+          fileTree(generatedTestsPath)
+  outputs.files generatedTestsPath
+  generateTestFiles(
+          fileTree(referenceTestsPath),
+          file("src/reference-test/templates/BlockchainReferenceTest.java.template"),
+          "BlockchainTests",
+          "$generatedTestsPath/org/hyperledger/besu/ethereum/vm/blockchain",
+          "BlockchainReferenceTest",
+          ("BlockchainTests/InvalidBlocks/bcExpectSection") // exclude test for test filling tool
+  )
+}
+
+def generateTestFiles(FileTree jsonPath, File templateFile, String pathstrip, String destination, String namePrefix, String ... excludedPath) {
+  mkdir(destination)
+  def referenceTestTemplate = templateFile.text
+
+  // This is how many json files to include in each test file
+  def fileSets = jsonPath.getFiles().collate(5)
+
+  fileSets.eachWithIndex { fileSet, idx ->
+    def paths = []
+    fileSet.each { testJsonFile ->
+      def parentFile = testJsonFile.getParentFile()
+      def parentPathFile = parentFile.getPath().substring(parentFile.getPath().indexOf(pathstrip))
+      if (!testJsonFile.getName().toString().startsWith(".") && !excludedPath.contains(parentPathFile)) {
+        def pathFile = testJsonFile.getPath()
+        paths << pathFile.substring(pathFile.indexOf(pathstrip))
+      }
+    }
+
+    def testFile = file(destination + "/" + namePrefix + "_" + idx + ".java")
+
+
+    def allPaths = '"' + paths.join('", "') + '"'
+
+    def testFileContents = referenceTestTemplate
+            .replaceAll("%%TESTS_FILE%%", allPaths)
+            .replaceAll("%%TESTS_NAME%%", namePrefix + "_" + idx)
+    testFile.newWriter().withWriter { w -> w << testFileContents }
   }
 }
 

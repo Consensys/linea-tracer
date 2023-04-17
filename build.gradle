@@ -61,5 +61,64 @@ configurations {
   }
 }
 
+if (file('src/reference-test').directory) {
+    sourceSets {
+        referenceTest {
+            java {
+                compileClasspath += main.output
+                runtimeClasspath += main.output
+                srcDir file('src/reference-test/java')
+            }
+            resources.srcDir file('src/reference-test/resources')
+        }
+    }
+}
+
+def blockchainReferenceTests = tasks.register("blockchainReferenceTests")  {
+    final referenceTestsPath = 'src/reference-test/resources/BlockchainTests'
+    final generatedTestsPath = "$buildDir/generated/sources/reference-test/$name/java"
+    inputs.files fileTree(referenceTestsPath),
+            fileTree(generatedTestsPath)
+    outputs.files generatedTestsPath
+    generateTestFiles(
+            fileTree(referenceTestsPath),
+            file("src/reference-test/templates/BlockchainReferenceTest.java.template"),
+            "BlockchainTests",
+            "$generatedTestsPath/org/hyperledger/besu/ethereum/vm/blockchain",
+            "BlockchainReferenceTest",
+            ("BlockchainTests/InvalidBlocks/bcExpectSection") // exclude test for test filling tool
+    )
+}
+
+def generateTestFiles(FileTree jsonPath, File templateFile, String pathstrip, String destination, String namePrefix, String ... excludedPath) {
+    mkdir(destination)
+    def referenceTestTemplate = templateFile.text
+
+    // This is how many json files to include in each test file
+    def fileSets = jsonPath.getFiles().collate(5)
+
+    fileSets.eachWithIndex { fileSet, idx ->
+        def paths = []
+        fileSet.each { testJsonFile ->
+            def parentFile = testJsonFile.getParentFile()
+            def parentPathFile = parentFile.getPath().substring(parentFile.getPath().indexOf(pathstrip))
+            if (!testJsonFile.getName().toString().startsWith(".") && !excludedPath.contains(parentPathFile)) {
+                def pathFile = testJsonFile.getPath()
+                paths << pathFile.substring(pathFile.indexOf(pathstrip))
+            }
+        }
+
+        def testFile = file(destination + "/" + namePrefix + "_" + idx + ".java")
+
+
+        def allPaths = '"' + paths.join('", "') + '"'
+
+        def testFileContents = referenceTestTemplate
+                .replaceAll("%%TESTS_FILE%%", allPaths)
+                .replaceAll("%%TESTS_NAME%%", namePrefix + "_" + idx)
+        testFile.newWriter().withWriter { w -> w << testFileContents }
+    }
+}
+
 apply from: rootProject.file("gradle/dist.gradle")
 apply from: rootProject.file("gradle/publishing.gradle")

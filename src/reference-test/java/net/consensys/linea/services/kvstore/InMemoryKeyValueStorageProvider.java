@@ -18,6 +18,7 @@ import org.hyperledger.besu.ethereum.storage.keyvalue.WorldStatePreimageKeyValue
 import org.hyperledger.besu.ethereum.worldstate.DataStorageFormat;
 import org.hyperledger.besu.ethereum.worldstate.DefaultMutableWorldState;
 import org.hyperledger.besu.ethereum.worldstate.DefaultWorldStateArchive;
+import org.hyperledger.besu.metrics.noop.NoOpMetricsSystem;
 
 public class InMemoryKeyValueStorageProvider extends KeyValueStorageProvider {
 

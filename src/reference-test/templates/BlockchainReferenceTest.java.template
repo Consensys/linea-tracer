@@ -1,9 +1,9 @@
-package net.consensys.linea.zktracer.blockchain;
+package net.consensys.linea.generated.vm.blockchain;
 
-import static org.hyperledger.besu.ethereum.vm.BlockchainReferenceTestTools.executeTest;
-import static org.hyperledger.besu.ethereum.vm.BlockchainReferenceTestTools.generateTestParametersForConfig;
+import static net.consensys.linea.BlockchainReferenceTestTools.executeTest;
+import static net.consensys.linea.BlockchainReferenceTestTools.generateTestParametersForConfig;
 
-import org.hyperledger.besu.ethereum.referencetests.BlockchainReferenceTestCaseSpec;
+import net.consensys.linea.BlockchainReferenceTestCaseSpec;
 
 import java.util.stream.Stream;
 

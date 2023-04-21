@@ -39,9 +39,9 @@ import static org.hyperledger.besu.ethereum.core.BlockHeader.readFrom;
 public class BlockchainReferenceTestCaseSpec {
   private final String network;
 
-  private final org.hyperledger.besu.ethereum.referencetests.BlockchainReferenceTestCaseSpec.CandidateBlock[] candidateBlocks;
+  private final BlockchainReferenceTestCaseSpec.CandidateBlock[] candidateBlocks;
 
-  private final org.hyperledger.besu.ethereum.referencetests.BlockchainReferenceTestCaseSpec.ReferenceTestBlockHeader genesisBlockHeader;
+  private final BlockchainReferenceTestCaseSpec.ReferenceTestBlockHeader genesisBlockHeader;
 
   private final Hash lastBlockHash;
 
@@ -78,8 +78,8 @@ public class BlockchainReferenceTestCaseSpec {
   @JsonCreator
   public BlockchainReferenceTestCaseSpec(
       @JsonProperty("network") final String network,
-      @JsonProperty("blocks") final org.hyperledger.besu.ethereum.referencetests.BlockchainReferenceTestCaseSpec.CandidateBlock[] candidateBlocks,
-      @JsonProperty("genesisBlockHeader") final org.hyperledger.besu.ethereum.referencetests.BlockchainReferenceTestCaseSpec.ReferenceTestBlockHeader genesisBlockHeader,
+      @JsonProperty("blocks") final BlockchainReferenceTestCaseSpec.CandidateBlock[] candidateBlocks,
+      @JsonProperty("genesisBlockHeader") final BlockchainReferenceTestCaseSpec.ReferenceTestBlockHeader genesisBlockHeader,
       @SuppressWarnings("unused") @JsonProperty("genesisRLP") final String genesisRLP,
       @JsonProperty("pre") final Map<String, ReferenceTestWorldState.AccountMock> accounts,
       @JsonProperty("lastblockhash") final String lastBlockHash,
@@ -98,7 +98,7 @@ public class BlockchainReferenceTestCaseSpec {
     return network;
   }
 
-  public org.hyperledger.besu.ethereum.referencetests.BlockchainReferenceTestCaseSpec.CandidateBlock[] getCandidateBlocks() {
+  public BlockchainReferenceTestCaseSpec.CandidateBlock[] getCandidateBlocks() {
     return candidateBlocks;
   }
 

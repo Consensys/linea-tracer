@@ -1,10 +1,10 @@
 package net.consensys.linea.zktracer.generalstate;
 
-import static org.hyperledger.besu.ethereum.vm.GeneralStateReferenceTestTools.executeTest;
-import static org.hyperledger.besu.ethereum.vm.GeneralStateReferenceTestTools.generateTestParametersForConfig;
+import static net.consensys.linea.GeneralStateReferenceTestTools.executeTest;
+import static net.consensys.linea.GeneralStateReferenceTestTools.generateTestParametersForConfig;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-import org.hyperledger.besu.ethereum.referencetests.GeneralStateTestCaseEipSpec;
+import net.consensys.linea.GeneralStateTestCaseEipSpec;
 
 import java.util.stream.Stream;
 

@@ -26,3 +26,5 @@ tmp/
 build/
 out/
 site/
+src/reference-test/java/net/consensys/linea/generated/*
+!src/reference-test/java/net/consensys/linea/generated/.gitkeep

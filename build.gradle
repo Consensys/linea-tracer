@@ -23,6 +23,7 @@ plugins {
   id 'io.spring.dependency-management' version '1.1.0'
   id "de.undercouch.download" version '5.3.1'
   id "maven-publish"
+  id 'java-test-fixtures'
 }
 
 
@@ -81,6 +82,9 @@ allprojects {
   version '1.0.0-SNAPSHOT'
 
   repositories {
+    flatDir {
+      dirs 'src/test'
+    }
     maven {
       url 'https://hyperledger.jfrog.io/hyperledger/besu-maven'
       content { includeGroupByRegex('org\\.hyperledger\\..*') }
@@ -92,15 +96,33 @@ allprojects {
     mavenCentral()
   }
 
+  def blockchainReferenceTests = tasks.register("blockchainReferenceTests")  {
+    final referenceTestsPath = 'src/reference-test/resources/BlockchainTests'
+    final generatedTestsPath = "src/reference-test/java/net/consensys/linea/generated/"
+    inputs.files fileTree(referenceTestsPath),
+      fileTree(generatedTestsPath)
+    outputs.files generatedTestsPath
+    generateTestFiles(
+      fileTree(referenceTestsPath),
+      file("src/reference-test/templates/BlockchainReferenceTest.java.template"),
+      "BlockchainTests",
+      "$generatedTestsPath/vm/blockchain",
+      "BlockchainReferenceTest",
+      ("BlockchainTests/InvalidBlocks/bcExpectSection") // exclude test for test filling tool
+      )
+  }
+
   if (file('src/reference-test').directory) {
     sourceSets {
       referenceTest {
         java {
           compileClasspath += main.output
           runtimeClasspath += main.output
-          srcDir file('src/reference-test/java')
+          srcDirs 'src/reference-test/java',
+            blockchainReferenceTests
         }
-        resources.srcDir file('src/reference-test/resources')
+        resources.srcDirs 'src/reference-test/resources',
+                'src/reference-test/templates'
       }
     }
   }
@@ -131,6 +153,7 @@ allprojects {
     implementation 'org.apache.tuweni:tuweni-bytes:2.3.1'
     implementation 'org.apache.tuweni:tuweni-units:2.3.1'
 
+    testImplementation(testFixtures(project(":")))
     testImplementation "org.hyperledger.besu:besu-datatypes:$besuVersion"
     testImplementation "org.hyperledger.besu:evm:$besuVersion"
     testImplementation "org.hyperledger.besu.internal:core:$besuVersion"
@@ -145,18 +168,29 @@ allprojects {
     testImplementation 'org.mockito:mockito-core:5.1.1'
     testImplementation 'org.mockito:mockito-junit-jupiter:5.1.1'
 
+    referenceTestImplementation(testFixtures(project(":")))
     referenceTestImplementation 'com.fasterxml.jackson.core:jackson-databind:2.14.2'
+    referenceTestImplementation 'org.apache.logging.log4j:log4j-api:2.20.0'
     referenceTestImplementation 'org.apache.tuweni:tuweni-bytes:2.3.1'
     referenceTestImplementation 'org.apache.tuweni:tuweni-units:2.3.1'
     referenceTestImplementation 'org.assertj:assertj-core:3.24.2'
     referenceTestImplementation "org.hyperledger.besu:besu-datatypes:$besuVersion"
     referenceTestImplementation "org.hyperledger.besu:evm:$besuVersion"
+    referenceTestImplementation "org.hyperledger.besu.internal:config:$besuVersion"
     referenceTestImplementation "org.hyperledger.besu.internal:core:$besuVersion"
-    referenceTestImplementation "org.hyperledger.besu.internal:crypto:$besuVersion"
+    referenceTestImplementation "org.hyperledger.besu.internal:metrics-core:$besuVersion"
     referenceTestImplementation "org.hyperledger.besu.internal:referencetests:$besuVersion"
     referenceTestImplementation "org.hyperledger.besu.internal:rlp:$besuVersion"
     referenceTestImplementation "org.hyperledger.besu.internal:testutil:$besuVersion"
     referenceTestImplementation "org.hyperledger.besu:plugin-api:$besuVersion"
+    referenceTestImplementation "org.hyperledger.besu.internal:crypto:23.1.3"
+    referenceTestImplementation 'com.google.guava:guava:31.1-jre'
+    referenceTestImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
+    referenceTestImplementation 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
+    referenceTestImplementation'org.junit.jupiter:junit-jupiter-params:5.9.2'
+
+    testFixturesImplementation 'org.apache.logging.log4j:log4j-api:2.20.0'
+    testFixturesImplementation 'commons-io:commons-io:2.11.0'
   }
 
   tasks.withType(JavaCompile) {
@@ -489,6 +523,19 @@ tasks.register("verifyDistributions") {
   }
 }
 
+tasks.register('referenceTests', Test) {
+  useJUnitPlatform()
+  description = 'Runs ETH reference tests.'
+  beforeTest {
+    if (!file("src/reference-test/resources/README.md").exists()) {
+      throw new GradleException("src/reference-test/resources/README.md missing: please update the submodules (git submodule update --init --recursive)")
+    }
+  }
+
+  testClassesDirs = sourceSets.referenceTest.output.classesDirs
+  classpath = sourceSets.referenceTest.runtimeClasspath
+}
+
 apply plugin: 'com.diffplug.spotless'
 spotless {
   java {
@@ -510,35 +557,6 @@ spotless {
   format 'groovy', { target '**/src/*/grovy/**/*.groovy' }
   format 'bash', { target '**/*.sh' }
   format 'sol', { target '**/*.sol' }
-}
-
-if (file('src/reference-test').directory) {
-  sourceSets {
-    referenceTest {
-      java {
-        compileClasspath += main.output
-        runtimeClasspath += main.output
-        srcDir file('src/reference-test/java')
-      }
-      resources.srcDir file('src/reference-test/resources')
-    }
-  }
-}
-
-def blockchainReferenceTests = tasks.register("blockchainReferenceTests")  {
-  final referenceTestsPath = 'src/reference-test/resources/BlockchainTests'
-  final generatedTestsPath = "$buildDir/generated/sources/reference-test/$name/java"
-  inputs.files fileTree(referenceTestsPath),
-          fileTree(generatedTestsPath)
-  outputs.files generatedTestsPath
-  generateTestFiles(
-          fileTree(referenceTestsPath),
-          file("src/reference-test/templates/BlockchainReferenceTest.java.template"),
-          "BlockchainTests",
-          "$generatedTestsPath/org/hyperledger/besu/ethereum/vm/blockchain",
-          "BlockchainReferenceTest",
-          ("BlockchainTests/InvalidBlocks/bcExpectSection") // exclude test for test filling tool
-  )
 }
 
 def generateTestFiles(FileTree jsonPath, File templateFile, String pathstrip, String destination, String namePrefix, String ... excludedPath) {
@@ -565,11 +583,13 @@ def generateTestFiles(FileTree jsonPath, File templateFile, String pathstrip, St
     def allPaths = '"' + paths.join('", "') + '"'
 
     def testFileContents = referenceTestTemplate
-            .replaceAll("%%TESTS_FILE%%", allPaths)
-            .replaceAll("%%TESTS_NAME%%", namePrefix + "_" + idx)
+      .replaceAll("%%TESTS_FILE%%", allPaths)
+      .replaceAll("%%TESTS_NAME%%", namePrefix + "_" + idx)
     testFile.newWriter().withWriter { w -> w << testFileContents }
   }
 }
+
+
 
 check.dependsOn checkSpdxHeader
 apply plugin: 'groovy'

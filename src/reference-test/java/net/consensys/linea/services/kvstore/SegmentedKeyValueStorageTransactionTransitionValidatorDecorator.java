@@ -15,7 +15,6 @@
 package net.consensys.linea.services.kvstore;
 
 import org.hyperledger.besu.plugin.services.exception.StorageException;
-import org.hyperledger.besu.services.kvstore.SegmentedKeyValueStorage.Transaction;
 
 import static com.google.common.base.Preconditions.checkState;
 
@@ -25,9 +24,9 @@ import static com.google.common.base.Preconditions.checkState;
  * @param <S> the type parameter
  */
 public class SegmentedKeyValueStorageTransactionTransitionValidatorDecorator<S>
-    implements Transaction<S> {
+    implements SegmentedKeyValueStorage.Transaction<S> {
 
-  private final Transaction<S> transaction;
+  private final SegmentedKeyValueStorage.Transaction<S> transaction;
   private boolean active = true;
 
   /**
@@ -36,7 +35,7 @@ public class SegmentedKeyValueStorageTransactionTransitionValidatorDecorator<S>
    * @param toDecorate the to decorate
    */
   public SegmentedKeyValueStorageTransactionTransitionValidatorDecorator(
-      final Transaction<S> toDecorate) {
+      final SegmentedKeyValueStorage.Transaction<S> toDecorate) {
     this.transaction = toDecorate;
   }
 

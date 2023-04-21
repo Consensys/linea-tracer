@@ -22,11 +22,12 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
+import org.hyperledger.besu.crypto.KeyPair;
+import org.hyperledger.besu.crypto.SignatureAlgorithm;
+import org.hyperledger.besu.crypto.SignatureAlgorithmFactory;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
-import org.hyperledger.besu.ethereum.referencetests.GeneralStateTestCaseSpec;
-import org.hyperledger.besu.ethereum.referencetests.StateTestAccessListDeserializer;
 import org.hyperledger.besu.evm.AccessListEntry;
 
 import javax.annotation.Nullable;
@@ -47,10 +48,10 @@ import java.util.function.Function;
  *   <li>in the state test json, gas, value and data for the transaction are arrays. This is how
  *       state tests deal with milestone versioning: for a given milestone, the actual value to use
  *       is defined by the indexes of the "post" section of the json. Those indexes are passed to
- *       this class in {@link #get(org.hyperledger.besu.ethereum.referencetests.GeneralStateTestCaseSpec.Indexes)}.
+ *       this class in {@link #get(GeneralStateTestCaseSpec.Indexes)}.
  *   <li>the signature of the transaction is not provided in the json directly. Instead, the private
  *       key of the sender is provided, and the transaction must thus be signed (also in {@link
- *       #get(org.hyperledger.besu.ethereum.referencetests.GeneralStateTestCaseSpec.Indexes)}) through {@link
+ *       #get(GeneralStateTestCaseSpec.Indexes)}) through {@link
  *       Transaction.Builder#signAndBuild(KeyPair)}.
  * </ul>
  */

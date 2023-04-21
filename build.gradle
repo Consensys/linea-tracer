@@ -61,6 +61,19 @@ configurations {
   }
 }
 
+tasks.register('referenceTests', Test) {
+    useJUnitPlatform()
+    description = 'Runs ETH reference tests.'
+    beforeTest {
+        if (!file("src/reference-test/resources/README.md").exists()) {
+            throw new GradleException("src/reference-test/resources/README.md missing: please update the submodules (git submodule update --init --recursive)")
+        }
+    }
+
+    testClassesDirs = sourceSets.referenceTest.output.classesDirs
+    classpath = sourceSets.referenceTest.runtimeClasspath
+}
+
 if (file('src/reference-test').directory) {
     sourceSets {
         referenceTest {

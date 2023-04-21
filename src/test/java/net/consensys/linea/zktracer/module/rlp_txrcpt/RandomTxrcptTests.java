@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Random;
 
 import net.consensys.linea.zktracer.ZkTraceBuilder;
-import net.consensys.linea.zktracer.corset.CorsetValidator;
+import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.zktracer.opcode.OpCodes;
 import net.consensys.linea.zktracer.testing.ToyAccount;
 import net.consensys.linea.zktracer.testing.ToyTransaction;

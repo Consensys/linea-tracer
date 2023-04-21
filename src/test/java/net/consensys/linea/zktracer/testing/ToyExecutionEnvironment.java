@@ -27,7 +27,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Singular;
 import net.consensys.linea.zktracer.ZkBlockAwareOperationTracer;
 import net.consensys.linea.zktracer.ZkTracer;
-import net.consensys.linea.zktracer.corset.CorsetValidator;
+import net.consensys.linea.corset.CorsetValidator;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.SECP256K1;
 import org.hyperledger.besu.datatypes.*;

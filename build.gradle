@@ -122,7 +122,7 @@ allprojects {
             blockchainReferenceTests
         }
         resources.srcDirs 'src/reference-test/resources',
-                'src/reference-test/templates'
+          'src/reference-test/templates'
       }
     }
   }

@@ -102,12 +102,12 @@ public class CorsetValidator {
           Runtime.getRuntime()
               .exec(
                   new String[] {
-                      CORSET_BIN,
-                      "check",
-                      "-T",
-                      traceFile.toFile().getAbsolutePath(),
-                      "-v",
-                      ZK_EVM_BIN
+                    CORSET_BIN,
+                    "check",
+                    "-T",
+                    traceFile.toFile().getAbsolutePath(),
+                    "-v",
+                    ZK_EVM_BIN
                   });
     } catch (IOException e) {
       LOG.error("Corset validation has thrown  an exception: " + e.getMessage());

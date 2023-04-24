@@ -25,6 +25,7 @@ import net.consensys.linea.zktracer.module.ModuleTracer;
 import net.consensys.linea.zktracer.module.alu.add.AddTracer;
 import net.consensys.linea.zktracer.module.alu.mod.ModTracer;
 import net.consensys.linea.zktracer.module.shf.ShfTracer;
+import net.consensys.linea.zktracer.module.trm.TrmTracer;
 import net.consensys.linea.zktracer.module.wcp.WcpTracer;
 
 public class ZkTracer implements OperationTracer {
@@ -42,7 +43,8 @@ public class ZkTracer implements OperationTracer {
   public ZkTracer(final ZkTraceBuilder zkTraceBuilder) {
     this(
         zkTraceBuilder,
-        List.of(new ShfTracer(), new WcpTracer(), new AddTracer(), new ModTracer()));
+        List.of(
+            new ShfTracer(), new WcpTracer(), new AddTracer(), new ModTracer(), new TrmTracer()));
   }
 
   @Override

@@ -38,6 +38,7 @@ public enum OpCode {
   SHL(0x1b),
   SHR(0x1c),
   SAR(0x1d),
+  // trm
   BALANCE(0x31),
   EXTCODESIZE(0x3b),
   EXTCODECOPY(0x3c),

@@ -38,7 +38,7 @@ public record TrmTrace(
     "IS_PREC",
     "PBIT", // BINARY PLATEAU CONSTRAINT
     "ACC_T", // ACC_T
-    "SPECIAL_ONE", // [[1]]
+    "ONES", // [[1]]
     "TRM_STAMP"
   })
   @SuppressWarnings("unused")
@@ -54,7 +54,7 @@ public record TrmTrace(
       @JsonProperty("IS_PREC") List<Boolean> IS_PREC,
       @JsonProperty("PBIT") List<Boolean> PBIT,
       @JsonProperty("ACC_T") List<BigInteger> ACC_T,
-      @JsonProperty("SPECIAL_ONE") List<Boolean> SPECIAL_ONE,
+      @JsonProperty("ONES") List<Boolean> ONES,
       @JsonProperty("TRM_STAMP") List<Integer> TRM_STAMP) {
 
     public static class Builder {
@@ -69,7 +69,7 @@ public record TrmTrace(
       private final List<Boolean> isPrec = new ArrayList<>();
       private final List<Boolean> pbit = new ArrayList<>();
       private final List<BigInteger> accT = new ArrayList<>();
-      private final List<Boolean> specialOne = new ArrayList<>();
+      private final List<Boolean> ones = new ArrayList<>();
       private final List<Integer> trmStamp = new ArrayList<>();
       private int stamp = 0;
 
@@ -134,8 +134,8 @@ public record TrmTrace(
         return this;
       }
 
-      public TrmTrace.Trace.Builder appendSpecialOne(final Boolean b) {
-        specialOne.add(b);
+      public TrmTrace.Trace.Builder appendOnes(final Boolean b) {
+        ones.add(b);
         return this;
       }
 
@@ -163,7 +163,7 @@ public record TrmTrace(
                 isPrec,
                 pbit,
                 accT,
-                specialOne,
+                    ones,
                 trmStamp),
             stamp);
       }

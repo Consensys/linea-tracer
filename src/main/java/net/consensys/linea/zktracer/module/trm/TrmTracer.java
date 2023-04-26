@@ -55,8 +55,12 @@ public class TrmTracer implements ModuleTracer {
     for (int ct = 0; ct < 16; ct++) {
       builder
           .appendCounter(ct)
+          .appendIsPrec(data.isPrec())
+          .appendPbit(data.getPBit(ct))
           .appendArg1Hi(data.getArg1().getHigh().toUnsignedBigInteger())
-          .appendArg1Lo(data.getArg1().getLow().toUnsignedBigInteger());
+          .appendArg1Lo(data.getArg1().getLow().toUnsignedBigInteger())
+          .appendTrmAddr(data.getTrimmedAddressHi().toUnsignedBigInteger())
+          .appendOnes(data.getOnes()[ct]);
     }
     builder.setStamp(stamp);
 

@@ -19,6 +19,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 import java.util.List;
 
 import net.consensys.linea.zktracer.OpCode;
+import net.consensys.linea.zktracer.bytes.UnsignedByte;
 import net.consensys.linea.zktracer.module.ModuleTracer;
 import org.apache.tuweni.bytes.Bytes32;
 
@@ -52,18 +53,35 @@ public class TrmTracer implements ModuleTracer {
     final TrmData data = new TrmData(arg1);
     final TrmTrace.Trace.Builder builder = TrmTrace.Trace.Builder.newInstance();
     stamp++;
-    for (int ct = 0; ct < 16; ct++) {
+    for (int ct = 0; ct < maxCounter(data); ct++) {
       builder
           .appendCounter(ct)
           .appendIsPrec(data.isPrec())
           .appendPbit(data.getPBit(ct))
+          .appendByteHi(UnsignedByte.of(data.getArg1().getHigh().get(ct)))
+          .appendByteLo(UnsignedByte.of(data.getArg1().getLow().get(ct)))
           .appendArg1Hi(data.getArg1().getHigh().toUnsignedBigInteger())
           .appendArg1Lo(data.getArg1().getLow().toUnsignedBigInteger())
           .appendTrmAddr(data.getTrimmedAddressHi().toUnsignedBigInteger())
           .appendOnes(data.getOnes()[ct]);
+
+      // the accumulator values for i depend on the values for i-1
+      data.setAccumulators(ct);
+      builder
+          .appendAccT(data.getAccT()[ct])
+          .appendAcc1(data.getAccHi()[ct])
+          .appendAcc2(data.getAccLo()[ct]);
     }
     builder.setStamp(stamp);
 
     return builder.build();
+  }
+
+  private int maxCounter(TrmData data) {
+    if (data.getTrimmedAddressHi().isZero()) {
+      return 1;
+    } else {
+      return TrmData.MAX_COUNTER;
+    }
   }
 }

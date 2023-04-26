@@ -27,19 +27,18 @@ import net.consensys.linea.zktracer.bytes.UnsignedByte;
 public record TrmTrace(
     @JsonProperty("Trace") TrmTrace.Trace trace, @JsonProperty("Stamp") int stamp) {
   @JsonPropertyOrder({
-    "ACC_HI", // ACC_HI
-    "ACC_LO", // ACC_LO
+    "ACC_HI",
+    "ACC_LO",
     "ADDR_HI",
     "ADDR_LO",
     "TRM_ADDR_HI",
-    "BYTE_HI", // BYTE_HI
-    "BYTE_LO", // BYTE_LO
+    "BYTE_HI",
+    "BYTE_LO",
     "CT",
     "IS_PREC",
     "PBIT", // BINARY PLATEAU CONSTRAINT
-    "ACC_T", // ACC_T
-    "ONES", // [[1]]
-    "TRM_STAMP"
+    "ACC_T",
+    "ONES"
   })
   @SuppressWarnings("unused")
   public record Trace(
@@ -54,8 +53,7 @@ public record TrmTrace(
       @JsonProperty("IS_PREC") List<Boolean> IS_PREC,
       @JsonProperty("PBIT") List<Boolean> PBIT,
       @JsonProperty("ACC_T") List<BigInteger> ACC_T,
-      @JsonProperty("ONES") List<Boolean> ONES,
-      @JsonProperty("TRM_STAMP") List<Integer> TRM_STAMP) {
+      @JsonProperty("ONES") List<Boolean> ONES) {
 
     public static class Builder {
       private final List<BigInteger> acc1 = new ArrayList<>();
@@ -70,7 +68,6 @@ public record TrmTrace(
       private final List<Boolean> pbit = new ArrayList<>();
       private final List<BigInteger> accT = new ArrayList<>();
       private final List<Boolean> ones = new ArrayList<>();
-      private final List<Integer> trmStamp = new ArrayList<>();
       private int stamp = 0;
 
       private Builder() {}
@@ -104,12 +101,12 @@ public record TrmTrace(
         return this;
       }
 
-      public TrmTrace.Trace.Builder appendByte1(final UnsignedByte b) {
+      public TrmTrace.Trace.Builder appendByteHi(final UnsignedByte b) {
         byteHi.add(b);
         return this;
       }
 
-      public TrmTrace.Trace.Builder appendByte2(final UnsignedByte b) {
+      public TrmTrace.Trace.Builder appendByteLo(final UnsignedByte b) {
         byteLo.add(b);
         return this;
       }
@@ -139,11 +136,6 @@ public record TrmTrace(
         return this;
       }
 
-      public TrmTrace.Trace.Builder appendStamp(final Integer b) {
-        trmStamp.add(b);
-        return this;
-      }
-
       public TrmTrace.Trace.Builder setStamp(final int stamp) {
         this.stamp = stamp;
         return this;
@@ -153,7 +145,7 @@ public record TrmTrace(
         return new TrmTrace(
             new TrmTrace.Trace(
                 acc1, acc2, arg1Hi, arg1Lo, trmAddr, byteHi, byteLo, counter, isPrec, pbit, accT,
-                ones, trmStamp),
+                ones),
             stamp);
       }
     }

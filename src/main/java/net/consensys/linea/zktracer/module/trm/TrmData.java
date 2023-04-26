@@ -14,15 +14,23 @@
  */
 package net.consensys.linea.zktracer.module.trm;
 
+import java.math.BigInteger;
+
 import net.consensys.linea.zktracer.bytestheta.BaseBytes;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 
 public class TrmData {
+  public static final int MAX_COUNTER = 16;
+
   private final BaseBytes arg1;
   private final Bytes trimmedAddressHi;
   private final boolean isPrec;
-  private final boolean[] ones = new boolean[8];
+  // (9 - arg1.Hi[15]) in binary form IFF is_precompile. otherwise, all zeros
+  private final boolean[] ones = new boolean[MAX_COUNTER];
+  private final BigInteger[] accT = new BigInteger[MAX_COUNTER];
+  private final BigInteger[] accHi = new BigInteger[MAX_COUNTER];
+  private final BigInteger[] accLo = new BigInteger[MAX_COUNTER];
 
   public TrmData(final Bytes32 arg1) {
     this.arg1 = BaseBytes.fromBytes32(arg1);
@@ -69,5 +77,38 @@ public class TrmData {
 
   public Bytes getTrimmedAddressHi() {
     return trimmedAddressHi;
+  }
+
+  public void setAccumulators(final int i) {
+    if (i == 0) {
+      accHi[i] = BigInteger.valueOf(arg1.getHigh().get(i));
+      accLo[i] = BigInteger.valueOf(arg1.getLow().get(i));
+      accT[i] = BigInteger.ZERO;
+    } else {
+      accHi[i] =
+          accHi[i - 1]
+              .multiply(BigInteger.valueOf(256))
+              .add(BigInteger.valueOf(arg1.getHigh().get(i)));
+      accLo[i] =
+          accLo[i - 1]
+              .multiply(BigInteger.valueOf(256))
+              .add(BigInteger.valueOf(arg1.getLow().get(i)));
+      accT[i] =
+          accT[i - 1]
+              .multiply(BigInteger.valueOf(256))
+              .add(BigInteger.valueOf((getPBit(i) ? arg1.getHigh().get(i) : 0)));
+    }
+  }
+
+  public BigInteger[] getAccT() {
+    return accT;
+  }
+
+  public BigInteger[] getAccHi() {
+    return accHi;
+  }
+
+  public BigInteger[] getAccLo() {
+    return accLo;
   }
 }

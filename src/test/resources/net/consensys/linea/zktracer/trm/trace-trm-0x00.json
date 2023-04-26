@@ -1,0 +1,25 @@
+{
+  "input":{
+    "opcode":"BALANCE",
+    "params":[
+      "0x00"
+    ]
+  },
+  "output":{
+    "Trace" : {
+      "ACC_HI" : [ 0 ],
+      "ACC_LO" : [ 0 ],
+      "ADDR_HI" : [ 0 ],
+      "ADDR_LO" : [ 0 ],
+      "TRM_ADDR_HI" : [ 0 ],
+      "BYTE_HI" : [ 0 ],
+      "BYTE_LO" : [ 0 ],
+      "CT" : [ 0 ],
+      "IS_PREC" : [ 0 ],
+      "PBIT" : [ 0 ],
+      "ACC_T" : [ 0 ],
+      "ONES" : [ 0 ]
+    },
+    "Stamp" : 1
+  }
+}

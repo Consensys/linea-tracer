@@ -46,7 +46,7 @@ jobs:
     needs: build
     strategy:
       matrix:
-        task: [unitTests, checkCorsetPreConditionsAndRunTests]
+        task: [unitTests, corsetTests]
     runs-on: ubuntu-latest
 
     steps:

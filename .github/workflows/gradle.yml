@@ -20,7 +20,7 @@ jobs:
         uses: actions/setup-java@v2
         with:
           java-version: '17'
-          distribution: 'corretto'
+          distribution: 'adopt'
 
       - name: Cache Gradle dependencies
         uses: actions/cache@v2
@@ -57,7 +57,7 @@ jobs:
         uses: actions/setup-java@v2
         with:
           java-version: '17'
-          distribution: 'corretto'
+          distribution: 'adopt'
 
       - name: Download build artifacts
         uses: actions/download-artifact@v2

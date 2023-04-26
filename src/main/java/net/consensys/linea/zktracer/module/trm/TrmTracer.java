@@ -52,7 +52,7 @@ public class TrmTracer implements ModuleTracer {
     final TrmData data = new TrmData(arg1);
     final TrmTrace.Trace.Builder builder = TrmTrace.Trace.Builder.newInstance();
     stamp++;
-    for (int ct = 0; ct < 15; ct++) {
+    for (int ct = 0; ct < 16; ct++) {
       builder
           .appendCounter(ct)
           .appendArg1Hi(data.getArg1().getHigh().toUnsignedBigInteger())
@@ -60,6 +60,6 @@ public class TrmTracer implements ModuleTracer {
     }
     builder.setStamp(stamp);
 
-    return null;
+    return builder.build();
   }
 }

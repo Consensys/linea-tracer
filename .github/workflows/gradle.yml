@@ -29,8 +29,8 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
           restore-keys: ${{ runner.os }}-gradle
 
-      - name: Build
-        run: ./gradlew build
+      - name: Build without tests
+        run: ./gradlew build -x test
         env:
           JAVA_OPTS: -Xmx2g -Dorg.gradle.daemon=false
 

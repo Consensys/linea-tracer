@@ -20,8 +20,10 @@ import java.util.List;
 
 import net.consensys.linea.zktracer.OpCode;
 import net.consensys.linea.zktracer.module.ModuleTracer;
+import org.apache.tuweni.bytes.Bytes32;
 
 public class TrmTracer implements ModuleTracer {
+  private int stamp = 0;
 
   @Override
   public String jsonKey() {
@@ -44,6 +46,20 @@ public class TrmTracer implements ModuleTracer {
 
   @Override
   public Object trace(MessageFrame frame) {
+
+    final Bytes32 arg1 = Bytes32.wrap(frame.getStackItem(0));
+
+    final TrmData data = new TrmData(arg1);
+    final TrmTrace.Trace.Builder builder = TrmTrace.Trace.Builder.newInstance();
+    stamp++;
+    for (int ct = 0; ct < 15; ct++) {
+      builder
+          .appendCounter(ct)
+          .appendArg1Hi(data.getArg1().getHigh().toUnsignedBigInteger())
+          .appendArg1Lo(data.getArg1().getLow().toUnsignedBigInteger());
+    }
+    builder.setStamp(stamp);
+
     return null;
   }
 }

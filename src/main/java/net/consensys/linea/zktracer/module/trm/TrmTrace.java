@@ -152,19 +152,8 @@ public record TrmTrace(
       public TrmTrace build() {
         return new TrmTrace(
             new TrmTrace.Trace(
-                acc1,
-                acc2,
-                arg1Hi,
-                arg1Lo,
-                trmAddr,
-                byteHi,
-                byteLo,
-                counter,
-                isPrec,
-                pbit,
-                accT,
-                    ones,
-                trmStamp),
+                acc1, acc2, arg1Hi, arg1Lo, trmAddr, byteHi, byteLo, counter, isPrec, pbit, accT,
+                ones, trmStamp),
             stamp);
       }
     }

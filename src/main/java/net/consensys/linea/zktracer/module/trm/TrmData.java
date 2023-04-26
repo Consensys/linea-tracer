@@ -20,12 +20,14 @@ import org.apache.tuweni.bytes.Bytes32;
 
 public class TrmData {
   private final BaseBytes arg1;
+  private final Bytes trimmedAddressHi;
   private final boolean isPrec;
-  private final boolean[] pBit = new boolean[8];
   private final boolean[] ones = new boolean[8];
 
   public TrmData(final Bytes32 arg1) {
     this.arg1 = BaseBytes.fromBytes32(arg1);
+    // trimmed version of the high part of the address arg
+    this.trimmedAddressHi = this.arg1.getHigh().trimLeadingZeros();
     this.isPrec = getIsPrec();
   }
 
@@ -56,11 +58,16 @@ public class TrmData {
     return isPrec;
   }
 
-  public boolean[] getpBit() {
-    return pBit;
+  public boolean getPBit(int i) {
+    // zero for the first 12 rows
+    return i > 11;
   }
 
   public boolean[] getOnes() {
     return ones;
+  }
+
+  public Bytes getTrimmedAddressHi() {
+    return trimmedAddressHi;
   }
 }

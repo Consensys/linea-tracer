@@ -53,7 +53,7 @@ jobs:
           restore-keys: ${{ runner.os }}-gradle
 
       - name: Run unitTests
-        run: ./gradlew unitTests
+        run: ./gradlew unitTests --info
         env:
           JAVA_OPTS: -Xmx2g -Dorg.gradle.daemon=false
 
@@ -96,7 +96,7 @@ jobs:
           restore-keys: ${{ runner.os }}-gradle
 
       - name: Run corset tests
-        run: ./gradlew corsetTests
+        run: ./gradlew corsetTests --info
         env:
           JAVA_OPTS: -Xmx2g -Dorg.gradle.daemon=false
 

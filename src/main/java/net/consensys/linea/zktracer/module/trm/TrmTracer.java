@@ -28,6 +28,8 @@ import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 
 public class TrmTracer implements ModuleTracer {
+  public static final String TRM_JSON_KEY = "trm";
+
   private int stamp = 0;
 
   @Override
@@ -70,17 +72,10 @@ public class TrmTracer implements ModuleTracer {
           .appendTrmAddr(data.getTrimmedAddressHi().toUnsignedBigInteger())
           .appendOnes(data.getOnes()[ct]);
 
-      // the accumulator values for i depend on the values for i-1
-      data.setAccumulators(ct);
       builder
           // accT(i) = 256 * accT(i-1) + pBit(i) * byteHi(i)
           // same as accHi but only after pBit flips to true
-          .appendAccT(
-              ct >= P_BIT_FLIPS_TO_TRUE && data.getPBit(ct)
-                  ? Bytes.wrap(data.getArg1().getHigh())
-                      .slice(P_BIT_FLIPS_TO_TRUE, ct - P_BIT_FLIPS_TO_TRUE + 1)
-                      .toUnsignedBigInteger()
-                  : BigInteger.ZERO)
+          .appendAccT(getAccT(data, ct))
           .appendAcc1(Bytes.wrap(data.getArg1().getHigh()).slice(0, ct + 1).toUnsignedBigInteger())
           .appendAcc2(Bytes.wrap(data.getArg1().getLow()).slice(0, ct + 1).toUnsignedBigInteger());
     }
@@ -89,8 +84,18 @@ public class TrmTracer implements ModuleTracer {
     return builder.build();
   }
 
+  private BigInteger getAccT(final TrmData data, final int ct) {
+    boolean pBit = ct >= P_BIT_FLIPS_TO_TRUE && data.getPBit(ct);
+    if (pBit) {
+      Bytes.wrap(data.getArg1().getHigh())
+          .slice(P_BIT_FLIPS_TO_TRUE, ct - P_BIT_FLIPS_TO_TRUE + 1)
+          .toUnsignedBigInteger();
+    }
+    return BigInteger.ZERO;
+  }
+
   private int maxCounter(TrmData data) {
-    if (data.getTrimmedAddressHi().isZero()) {
+    if (data.getArg1().isZero()) {
       return 1;
     } else {
       return TrmData.MAX_COUNTER;

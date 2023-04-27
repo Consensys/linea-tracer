@@ -14,7 +14,7 @@
  */
 package net.consensys.linea.zktracer.module.trm;
 
-import java.math.BigInteger;
+import java.util.Arrays;
 
 import net.consensys.linea.zktracer.bytestheta.BaseBytes;
 import org.apache.tuweni.bytes.Bytes;
@@ -28,16 +28,14 @@ public class TrmData {
   private final Bytes trimmedAddressHi;
   private final boolean isPrec;
   // (9 - arg1.Hi[15]) in binary form IFF is_precompile. otherwise, all zeros
-  private final boolean[] ones = new boolean[MAX_COUNTER];
-  private final BigInteger[] accT = new BigInteger[MAX_COUNTER];
-  private final BigInteger[] accHi = new BigInteger[MAX_COUNTER];
-  private final BigInteger[] accLo = new BigInteger[MAX_COUNTER];
+  private boolean[] ones = new boolean[MAX_COUNTER];
 
   public TrmData(final Bytes32 arg1) {
+    Arrays.fill(ones, false);
     this.arg1 = BaseBytes.fromBytes32(arg1);
     // trimmed version of the high part of the address arg
     this.trimmedAddressHi = this.arg1.getHigh().trimLeadingZeros();
-    this.isPrec = getIsPrec();
+    this.isPrec = getIsPrec(); // also sets ones
   }
 
   public boolean getIsPrec() {
@@ -54,9 +52,21 @@ public class TrmData {
     // single byte
     // if 01 - 09 then return true
     if (leastSignificantBytes.compareTo(Bytes.fromHexString("0x09")) <= 0) {
+      // this means we set the ones ie the difference, in binary
+      int b = leastSignificantBytes.get(leastSignificantBytes.size() - 1);
+      ones = getOnesFromDiff(9 - b);
       return true;
     }
     return false;
+  }
+
+  public boolean[] getOnesFromDiff(int diff) {
+    boolean[] bitDecomposition = new boolean[MAX_COUNTER];
+    char[] binaryDiff = Integer.toBinaryString(diff).toCharArray();
+    for (int i = 1; i <= binaryDiff.length; i++) {
+      bitDecomposition[MAX_COUNTER - i] = '0' != binaryDiff[binaryDiff.length - i];
+    }
+    return bitDecomposition;
   }
 
   public BaseBytes getArg1() {
@@ -72,45 +82,11 @@ public class TrmData {
     return i > 11;
   }
 
-  public boolean[] getOnes() {
-    return ones;
-  }
-
   public Bytes getTrimmedAddressHi() {
     return trimmedAddressHi;
   }
 
-  public void setAccumulators(final int i) {
-
-    if (i == 0) {
-      accHi[i] = BigInteger.valueOf(arg1.getHigh().get(i));
-      accLo[i] = BigInteger.valueOf(arg1.getLow().get(i));
-      accT[i] = BigInteger.ZERO;
-    } else {
-      accHi[i] =
-          accHi[i - 1]
-              .multiply(BigInteger.valueOf(256))
-              .add(BigInteger.valueOf(arg1.getHigh().get(i)));
-      accLo[i] =
-          accLo[i - 1]
-              .multiply(BigInteger.valueOf(256))
-              .add(BigInteger.valueOf(arg1.getLow().get(i)));
-      accT[i] =
-          accT[i - 1]
-              .multiply(BigInteger.valueOf(256))
-              .add(BigInteger.valueOf((getPBit(i) ? arg1.getHigh().get(i) : 0)));
-    }
-  }
-
-  public BigInteger[] getAccT() {
-    return accT;
-  }
-
-  public BigInteger[] getAccHi() {
-    return accHi;
-  }
-
-  public BigInteger[] getAccLo() {
-    return accLo;
+  public boolean[] getOnes() {
+    return ones;
   }
 }

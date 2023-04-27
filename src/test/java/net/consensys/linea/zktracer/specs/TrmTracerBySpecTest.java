@@ -20,14 +20,12 @@ import net.consensys.linea.zktracer.module.trm.TrmTracer;
 
 public class TrmTracerBySpecTest extends AbstractModuleTracerBySpecTest {
 
-  static ModuleTracer tracer = new TrmTracer();
-
   public static Object[][] specs() {
-    return findSpecFiles(new String[] {tracer.jsonKey()});
+    return findSpecFiles(new String[] {TrmTracer.TRM_JSON_KEY});
   }
 
   @Override
   protected ModuleTracer getModuleTracer() {
-    return tracer;
+    return new TrmTracer();
   }
 }

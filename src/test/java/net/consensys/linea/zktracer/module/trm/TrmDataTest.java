@@ -39,4 +39,24 @@ public class TrmDataTest {
     assertThat(new TrmData(Bytes32.leftPad(Address.BLS12_G1ADD)).getIsPrec())
         .isFalse(); // only true for 1-9
   }
+
+  @Test
+  public void getBinary() {
+    // bytes 32 not used
+    TrmData data = new TrmData(Bytes32.ZERO);
+    assertThat(data.getOnesFromDiff(3))
+        .isEqualTo(
+            new boolean[] {
+              false, false, false, false, false, false, false, false, false, false, false, false,
+              false, false, true, true
+            });
+    assertThat(data.getOnesFromDiff(5))
+        .isEqualTo(
+            new boolean[] {
+              false, false, false, false, false, false, false, false, false, false, false, false,
+              false, true, false, true
+            });
+    //    assertThat(data.getOnesFromDiffAsChar(3)).isEqualTo(new char[]{1,1});
+    //    assertThat(data.getOnesFromDiffAsChar(5)).isEqualTo(new char[]{1,0,1});
+  }
 }

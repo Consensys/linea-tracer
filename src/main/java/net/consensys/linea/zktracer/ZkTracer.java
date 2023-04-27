@@ -45,7 +45,12 @@ public class ZkTracer implements OperationTracer {
     this(
         zkTraceBuilder,
         List.of(
-            new MulTracer(), new ShfTracer(), new WcpTracer(), new AddTracer(), new ModTracer(), new TrmTracer()));
+            new MulTracer(),
+            new ShfTracer(),
+            new WcpTracer(),
+            new AddTracer(),
+            new ModTracer(),
+            new TrmTracer()));
   }
 
   @Override

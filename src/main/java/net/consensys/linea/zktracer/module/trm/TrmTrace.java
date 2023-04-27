@@ -50,6 +50,7 @@ public record TrmTrace(
       @JsonProperty("BYTE_HI") List<UnsignedByte> BYTE_HI,
       @JsonProperty("BYTE_LO") List<UnsignedByte> BYTE_LO,
       @JsonProperty("CT") List<Integer> COUNTER,
+      @JsonProperty("TRM_STAMP") List<Integer> TRM_STAMP,
       @JsonProperty("IS_PREC") List<Boolean> IS_PREC,
       @JsonProperty("PBIT") List<Boolean> PBIT,
       @JsonProperty("ACC_T") List<BigInteger> ACC_T,
@@ -64,6 +65,7 @@ public record TrmTrace(
       private final List<UnsignedByte> byteHi = new ArrayList<>();
       private final List<UnsignedByte> byteLo = new ArrayList<>();
       private final List<Integer> counter = new ArrayList<>();
+      private final List<Integer> trmStamp = new ArrayList<>();
       private final List<Boolean> isPrec = new ArrayList<>();
       private final List<Boolean> pbit = new ArrayList<>();
       private final List<BigInteger> accT = new ArrayList<>();
@@ -116,6 +118,11 @@ public record TrmTrace(
         return this;
       }
 
+      public TrmTrace.Trace.Builder appendStamp(final Integer b) {
+        trmStamp.add(b);
+        return this;
+      }
+
       public TrmTrace.Trace.Builder appendIsPrec(final Boolean b) {
         isPrec.add(b);
         return this;
@@ -144,8 +151,8 @@ public record TrmTrace(
       public TrmTrace build() {
         return new TrmTrace(
             new TrmTrace.Trace(
-                acc1, acc2, arg1Hi, arg1Lo, trmAddr, byteHi, byteLo, counter, isPrec, pbit, accT,
-                ones),
+                acc1, acc2, arg1Hi, arg1Lo, trmAddr, byteHi, byteLo, counter, trmStamp, isPrec,
+                pbit, accT, ones),
             stamp);
       }
     }

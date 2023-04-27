@@ -85,7 +85,14 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
           restore-keys: ${{ runner.os }}-gradle
 
+      - name: Check Corset
+        id: corset-check
+        run: ./gradlew checkCorsetPreConditions
+        env:
+          JAVA_OPTS: -Xmx2g -Dorg.gradle.daemon=false
+
       - name: Run Test Suite
         run: ./gradlew ${{ matrix.task }}
+        if: always() && needs.corset-check.result == 'success'
         env:
           JAVA_OPTS: -Xmx2g -Dorg.gradle.daemon=false

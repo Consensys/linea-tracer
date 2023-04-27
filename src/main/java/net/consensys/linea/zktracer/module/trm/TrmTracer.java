@@ -34,7 +34,7 @@ public class TrmTracer implements ModuleTracer {
 
   @Override
   public String jsonKey() {
-    return "trm";
+    return TRM_JSON_KEY;
   }
 
   @Override

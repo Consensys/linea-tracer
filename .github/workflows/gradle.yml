@@ -52,10 +52,17 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
           restore-keys: ${{ runner.os }}-gradle
 
-      - name: Run Test Suite
+      - name: Run unitTests
         run: ./gradlew unitTests
         env:
           JAVA_OPTS: -Xmx2g -Dorg.gradle.daemon=false
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-report
+          path: build/reports/tests/
 
   corsetTest:
     runs-on: ubuntu-latest
@@ -88,7 +95,14 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
           restore-keys: ${{ runner.os }}-gradle
 
-      - name: Run Test Suite
+      - name: Run corset tests
         run: ./gradlew corsetTests
         env:
           JAVA_OPTS: -Xmx2g -Dorg.gradle.daemon=false
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-report
+          path: build/reports/tests/

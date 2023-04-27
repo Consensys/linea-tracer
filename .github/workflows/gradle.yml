@@ -98,6 +98,6 @@ jobs:
 
       - name: Run Test Suite
         run: ./gradlew ${{ matrix.task }}
-        if: always && (steps.corset.result == 'success')
+        if: ${{ always() && (steps.corset.result == 'success') }}
         env:
           JAVA_OPTS: -Xmx2g -Dorg.gradle.daemon=false

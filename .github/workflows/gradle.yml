@@ -30,7 +30,7 @@ jobs:
           restore-keys: ${{ runner.os }}-gradle
 
       - name: Build without tests
-        run: ./gradlew build -x test
+        run: ./gradlew build -x test -x spotlessCheck
         env:
           JAVA_OPTS: -Xmx2g -Dorg.gradle.daemon=false
 

@@ -11,7 +11,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -35,11 +34,7 @@ jobs:
           JAVA_OPTS: -Xmx2g -Dorg.gradle.daemon=false
 
   unitTests:
-    strategy:
-      matrix:
-        task: [unitTests]
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -58,14 +53,11 @@ jobs:
           restore-keys: ${{ runner.os }}-gradle
 
       - name: Run Test Suite
-        run: ./gradlew ${{ matrix.task }}
+        run: ./gradlew unitTests
         env:
           JAVA_OPTS: -Xmx2g -Dorg.gradle.daemon=false
 
   corsetTest:
-    strategy:
-      matrix:
-        task: [corsetTests]
     runs-on: ubuntu-latest
 
     steps:
@@ -97,7 +89,7 @@ jobs:
           restore-keys: ${{ runner.os }}-gradle
 
       - name: Run Test Suite
-        run: ./gradlew ${{ matrix.task }}
-        if: ${{ always() && (steps.corset.result == 'success') }}
+        run: ./gradlew corsetTests
+        if: always() && steps.corset.result == 'success')
         env:
           JAVA_OPTS: -Xmx2g -Dorg.gradle.daemon=false

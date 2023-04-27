@@ -87,7 +87,7 @@ public class TrmTracer implements ModuleTracer {
   private BigInteger getAccT(final TrmData data, final int ct) {
     boolean pBit = ct >= P_BIT_FLIPS_TO_TRUE && data.getPBit(ct);
     if (pBit) {
-      Bytes.wrap(data.getArg1().getHigh())
+      return Bytes.wrap(data.getArg1().getHigh())
           .slice(P_BIT_FLIPS_TO_TRUE, ct - P_BIT_FLIPS_TO_TRUE + 1)
           .toUnsignedBigInteger();
     }

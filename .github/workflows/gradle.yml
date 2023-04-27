@@ -85,15 +85,15 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
           restore-keys: ${{ runner.os }}-gradle
 
-      - name: Check if corset is installed and ZK_EVM_BIN is set
-          run: |
-            if sh -c 'command -v corset' &> /dev/null && [ ! -z "$ZK_EVM_BIN" ]; then
-            echo "Library corset is installed and $ZK_EVM_BIN is set";
-            exit 0;
-            else
-            echo "Either corset is not installed or $ZK_EVM_BIN is not set";
-            exit 1;
-            fi
+      - name: Check corset
+        run: |
+          if sh -c 'command -v corset' &> /dev/null && [ ! -z "$ZK_EVM_BIN" ]; then
+          echo "Library corset is installed and $ZK_EVM_BIN is set";
+          exit 0;
+          else
+          echo "Either corset is not installed or $ZK_EVM_BIN is not set";
+          exit 1;
+          fi
 
       - name: Run Test Suite
         run: ./gradlew ${{ matrix.task }}

@@ -240,7 +240,7 @@ allprojects {
       if (libraryInstalled && envVariable) {
         println 'CORSET is installed and ZK_EVM_BIN is set, running corset tests'
       } else {
-        throw new GradleException('Skipping corsetTests  due to either CORSET not installed or ZK_EVM_BIN not set')
+        throw new GradleException('Skipping corsetTests due to either CORSET not installed or ZK_EVM_BIN not set')
       }
     }
   }

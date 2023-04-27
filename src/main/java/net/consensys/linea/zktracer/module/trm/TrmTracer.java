@@ -14,14 +14,18 @@
  */
 package net.consensys.linea.zktracer.module.trm;
 
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
+import java.math.BigInteger;
 import java.util.List;
 
 import net.consensys.linea.zktracer.OpCode;
 import net.consensys.linea.zktracer.bytes.UnsignedByte;
 import net.consensys.linea.zktracer.module.ModuleTracer;
 import org.apache.tuweni.bytes.Bytes32;
+
+import static net.consensys.linea.zktracer.module.trm.TrmData.P_BIT_FLIPS_TO_TRUE;
 
 public class TrmTracer implements ModuleTracer {
   private int stamp = 0;
@@ -68,9 +72,12 @@ public class TrmTracer implements ModuleTracer {
       // the accumulator values for i depend on the values for i-1
       data.setAccumulators(ct);
       builder
-          .appendAccT(data.getAccT()[ct])
-          .appendAcc1(data.getAccHi()[ct])
-          .appendAcc2(data.getAccLo()[ct]);
+              // accT(i) = 256 * accT(i-1) + pBit(i) * byteHi(i)
+              // same as accHi but only after pBit flips to true
+          .appendAccT(ct >= P_BIT_FLIPS_TO_TRUE && data.getPBit(ct)?
+                  Bytes.wrap(data.getArg1().getHigh()).slice(P_BIT_FLIPS_TO_TRUE, ct - P_BIT_FLIPS_TO_TRUE + 1).toUnsignedBigInteger(): BigInteger.ZERO)
+          .appendAcc1(Bytes.wrap(data.getArg1().getHigh()).slice(0, ct + 1).toUnsignedBigInteger())
+          .appendAcc2(Bytes.wrap(data.getArg1().getLow()).slice(0, ct + 1).toUnsignedBigInteger());
     }
     builder.setStamp(stamp);
 

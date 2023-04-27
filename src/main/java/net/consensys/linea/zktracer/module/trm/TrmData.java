@@ -22,6 +22,7 @@ import org.apache.tuweni.bytes.Bytes32;
 
 public class TrmData {
   public static final int MAX_COUNTER = 16;
+  public static final int P_BIT_FLIPS_TO_TRUE = 12;
 
   private final BaseBytes arg1;
   private final Bytes trimmedAddressHi;
@@ -80,6 +81,7 @@ public class TrmData {
   }
 
   public void setAccumulators(final int i) {
+
     if (i == 0) {
       accHi[i] = BigInteger.valueOf(arg1.getHigh().get(i));
       accLo[i] = BigInteger.valueOf(arg1.getLow().get(i));

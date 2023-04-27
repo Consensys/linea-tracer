@@ -90,6 +90,5 @@ jobs:
 
       - name: Run Test Suite
         run: ./gradlew corsetTests
-        if: always() && steps.corset.result == 'success')
         env:
           JAVA_OPTS: -Xmx2g -Dorg.gradle.daemon=false

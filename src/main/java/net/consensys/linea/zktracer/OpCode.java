@@ -48,6 +48,10 @@ public enum OpCode {
   EXTCODESIZE(0x3b),
   EXTCODECOPY(0x3c),
   EXTCODEHASH(0x3f),
+  // mxp
+  MLOAD(0x51),
+  MSTORE(0x52),
+  MSTORE8(0x53),
   CALL(0xf1),
   CALLCODE(0xf2),
   DELEGATECALL(0xf4),

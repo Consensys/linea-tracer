@@ -136,4 +136,13 @@ public class Util {
     }
     return 0;
   }
+
+  /**
+   * Greater than or equal to
+   *
+   * @return true if a is >= b
+   */
+  public static boolean gte(UInt256 a, UInt256 b) {
+    return a.greaterOrEqualThan(b);
+  }
 }

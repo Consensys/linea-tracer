@@ -14,8 +14,8 @@
  */
 package net.consensys.linea.sequencer;
 
+import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.plugin.data.Log;
-import org.hyperledger.besu.plugin.data.Transaction;
 import org.hyperledger.besu.plugin.data.TransactionSelectionResult;
 import org.hyperledger.besu.plugin.services.txselection.TransactionSelector;
 

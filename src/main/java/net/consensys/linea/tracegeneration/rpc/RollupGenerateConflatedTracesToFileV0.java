@@ -14,7 +14,6 @@
  */
 package net.consensys.linea.tracegeneration.rpc;
 
-import org.hyperledger.besu.evm.tracing.OperationTracer;
 import org.hyperledger.besu.plugin.BesuContext;
 import org.hyperledger.besu.plugin.data.BlockContext;
 import org.hyperledger.besu.plugin.services.BlockchainService;
@@ -81,8 +80,8 @@ public class RollupGenerateConflatedTracesToFileV0 {
         jsonFactory.createGenerator(outputStream, JsonEncoding.UTF8)) {
       jsonGenerator.useDefaultPrettyPrinter();
 
-      ZkTraceBuilder builder = new ZkTraceBuilder();
-      OperationTracer tracer = new ZkTracer(builder);
+      final ZkTraceBuilder builder = new ZkTraceBuilder();
+      final ZkTracer tracer = new ZkTracer(builder);
 
       traceService.traceBlock(block.getBlockHeader().getNumber(), tracer);
 

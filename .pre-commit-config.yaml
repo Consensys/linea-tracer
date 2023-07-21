@@ -13,8 +13,6 @@ repos:
     hooks:
       - id: commitizen
         stages: [ commit-msg ]
-      - id: commitizen-branch
-        stages: [ push ]
   - repo: https://github.com/jguttman94/pre-commit-gradle
     rev: v0.3.0  # Use the ref you want to point at
     hooks:

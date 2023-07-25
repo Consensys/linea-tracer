@@ -13,28 +13,37 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub;
+package net.consensys.linea.zktracer.module.trm;
 
 import java.util.List;
 
 import net.consensys.linea.zktracer.OpCode;
-import net.consensys.linea.zktracer.module.ModuleTracer;
+import net.consensys.linea.zktracer.module.Module;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
-public class HubTracer implements ModuleTracer {
+public class Trm implements Module {
+
   @Override
   public String jsonKey() {
-    return "hub";
+    return "trm";
   }
 
   @Override
   public List<OpCode> supportedOpCodes() {
-    return List.of(OpCode.LT, OpCode.GT, OpCode.SLT, OpCode.SGT, OpCode.EQ, OpCode.ISZERO);
+    return List.of(
+        OpCode.BALANCE,
+        OpCode.EXTCODESIZE,
+        OpCode.EXTCODECOPY,
+        OpCode.EXTCODEHASH,
+        OpCode.CALL,
+        OpCode.CALLCODE,
+        OpCode.DELEGATECALL,
+        OpCode.STATICCALL,
+        OpCode.SELFDESTRUCT);
   }
 
   @Override
-  public Object trace(final MessageFrame frame) {
-    //      final OpCode opCode = OpCode.of(famelgetcurrentOperation().getOpcode());
+  public Object trace(MessageFrame frame) {
     return null;
   }
 }

@@ -19,23 +19,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.consensys.linea.zktracer.module.ModuleTracer;
-import net.consensys.linea.zktracer.module.alu.add.AddTracer;
-import net.consensys.linea.zktracer.module.alu.mod.ModTracer;
-import net.consensys.linea.zktracer.module.alu.mul.MulTracer;
-import net.consensys.linea.zktracer.module.hub.HubTracer;
-import net.consensys.linea.zktracer.module.shf.ShfTracer;
-import net.consensys.linea.zktracer.module.wcp.WcpTracer;
+import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.module.alu.add.Add;
+import net.consensys.linea.zktracer.module.alu.mod.Mod;
+import net.consensys.linea.zktracer.module.alu.mul.Mul;
+import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.shf.Shf;
+import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.plugin.services.tracer.BlockAwareOperationTracer;
 
 public class ZkTracer implements BlockAwareOperationTracer {
-  private final List<ModuleTracer> tracers;
-  private final Map<OpCode, List<ModuleTracer>> opCodeTracerMap = new HashMap<>();
+  private final List<Module> tracers;
+  private final Map<OpCode, List<Module>> opCodeTracerMap = new HashMap<>();
 
   private final ZkTraceBuilder zkTraceBuilder;
 
-  public ZkTracer(final ZkTraceBuilder zkTraceBuilder, final List<ModuleTracer> tracers) {
+  public ZkTracer(final ZkTraceBuilder zkTraceBuilder, final List<Module> tracers) {
     this.tracers = tracers;
     this.zkTraceBuilder = zkTraceBuilder;
     setupTracers();
@@ -45,17 +45,17 @@ public class ZkTracer implements BlockAwareOperationTracer {
     this(
         zkTraceBuilder,
         List.of(
-            new HubTracer(),
-            new MulTracer(),
-            new ShfTracer(),
-            new WcpTracer(),
-            new AddTracer(),
-            new ModTracer()));
+            new Hub(),
+            new Mul(),
+            new Shf(),
+            new Wcp(),
+            new Add(),
+            new Mod()));
   }
 
   @Override
   public void tracePreExecution(final MessageFrame frame) {
-    for (ModuleTracer tracer :
+    for (Module tracer :
         opCodeTracerMap.get(OpCode.of(frame.getCurrentOperation().getOpcode()))) {
       if (tracer != null) {
         zkTraceBuilder.addTrace(tracer.jsonKey(), tracer.trace(frame));
@@ -64,16 +64,16 @@ public class ZkTracer implements BlockAwareOperationTracer {
   }
 
   private void setupTracers() {
-    for (ModuleTracer tracer : tracers) {
+    for (Module tracer : tracers) {
       for (OpCode opCode : tracer.supportedOpCodes()) {
-        List<ModuleTracer> moduleTracers = opCodeTracerMap.get(opCode);
-        if (moduleTracers == null) {
-          moduleTracers = List.of(tracer);
+        List<Module> modules = opCodeTracerMap.get(opCode);
+        if (modules == null) {
+          modules = List.of(tracer);
         } else {
-          moduleTracers.add(tracer);
+          modules.add(tracer);
         }
 
-        opCodeTracerMap.put(opCode, moduleTracers);
+        opCodeTracerMap.put(opCode, modules);
       }
     }
   }

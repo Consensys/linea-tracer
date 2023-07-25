@@ -19,11 +19,11 @@ import java.util.List;
 
 import net.consensys.linea.zktracer.OpCode;
 import net.consensys.linea.zktracer.bytes.UnsignedByte;
-import net.consensys.linea.zktracer.module.ModuleTracer;
+import net.consensys.linea.zktracer.module.Module;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
-public class ExtTracer implements ModuleTracer {
+public class Ext implements Module {
   private int stamp = 0;
 
   private static final int MMEDIUM = 8;

@@ -22,11 +22,11 @@ import java.util.List;
 import net.consensys.linea.zktracer.OpCode;
 import net.consensys.linea.zktracer.bytes.Bytes16;
 import net.consensys.linea.zktracer.bytes.UnsignedByte;
-import net.consensys.linea.zktracer.module.ModuleTracer;
+import net.consensys.linea.zktracer.module.Module;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
-public class ShfTracer implements ModuleTracer {
+public class Shf implements Module {
   private static final int LIMB_SIZE = 16;
 
   private int stamp = 0;

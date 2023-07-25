@@ -58,7 +58,7 @@ class ShfTracerTest {
   @BeforeEach
   void setUp() {
     zkTraceBuilder = new ZkTraceBuilder();
-    zkTracer = new ZkTracer(zkTraceBuilder, List.of(new ShfTracer()));
+    zkTracer = new ZkTracer(zkTraceBuilder, List.of(new Shf()));
 
     when(mockFrame.getCurrentOperation()).thenReturn(mockOperation);
   }

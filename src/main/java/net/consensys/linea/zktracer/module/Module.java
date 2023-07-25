@@ -20,7 +20,7 @@ import java.util.List;
 import net.consensys.linea.zktracer.OpCode;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
-public interface ModuleTracer {
+public interface Module {
   String jsonKey();
 
   List<OpCode> supportedOpCodes();

@@ -33,7 +33,7 @@ public class Wcp implements Module {
   }
 
   @Override
-  public List<OpCode> supportedOpCodes() {
+  public final List<OpCode> supportedOpCodes() {
     return List.of(OpCode.LT, OpCode.GT, OpCode.SLT, OpCode.SGT, OpCode.EQ, OpCode.ISZERO);
   }
 

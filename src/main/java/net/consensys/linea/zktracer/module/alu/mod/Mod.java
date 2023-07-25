@@ -34,7 +34,7 @@ public class Mod implements Module {
   }
 
   @Override
-  public List<OpCode> supportedOpCodes() {
+  public final List<OpCode> supportedOpCodes() {
     return List.of(OpCode.DIV, OpCode.SDIV, OpCode.MOD, OpCode.SMOD);
   }
 

@@ -26,10 +26,13 @@ public class ZkTraceBuilder {
   private final Map<String, Object> traceResults = new HashMap<>();
 
   public void addTrace(final String moduleName, final Object traceResult) {
-    traceResults.put(moduleName, traceResult);
+    if (traceResult != null) {
+      traceResults.put(moduleName, traceResult);
+    }
   }
 
   public ZkTrace build() {
+    // TODO: add other reference tables
     if (!traceResults.containsKey("shfRT")) {
       traceResults.put("shfRT", ShfRtTrace.generate());
     }

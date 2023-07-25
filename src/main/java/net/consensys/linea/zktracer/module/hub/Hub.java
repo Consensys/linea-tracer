@@ -29,12 +29,6 @@ public class Hub implements Module {
 
   @Override
   public List<OpCode> supportedOpCodes() {
-    return List.of(OpCode.LT, OpCode.GT, OpCode.SLT, OpCode.SGT, OpCode.EQ, OpCode.ISZERO);
-  }
-
-  @Override
-  public Object trace(final MessageFrame frame) {
-    //      final OpCode opCode = OpCode.of(famelgetcurrentOperation().getOpcode());
-    return null;
+    return List.of(OpCode.values());
   }
 }

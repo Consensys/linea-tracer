@@ -34,7 +34,7 @@ public class Ext implements Module {
   }
 
   @Override
-  public List<OpCode> supportedOpCodes() {
+  public final List<OpCode> supportedOpCodes() {
     return List.of(OpCode.MULMOD, OpCode.ADDMOD);
   }
 

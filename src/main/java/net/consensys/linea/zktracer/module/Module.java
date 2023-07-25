@@ -18,12 +18,41 @@ package net.consensys.linea.zktracer.module;
 import java.util.List;
 
 import net.consensys.linea.zktracer.OpCode;
+import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.plugin.data.BlockBody;
+import org.hyperledger.besu.plugin.data.BlockHeader;
 
 public interface Module {
   String jsonKey();
 
+  default Object traceStartBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
+    return null;
+  }
+
+  default Object traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
+    return null;
+  }
+
+  default Object traceStartTx(Transaction tx) {
+    return null;
+  }
+
+  default Object traceEndTx() {
+    return null;
+  }
+
+  default Object traceContextStart(Transaction tx) {
+    return false;
+  }
+
+  default Object traceContextEnd(Transaction tx) {
+    return false;
+  }
+
   List<OpCode> supportedOpCodes();
 
-  Object trace(MessageFrame frame);
+  default Object trace(MessageFrame frame) {
+    return null;
+  }
 }

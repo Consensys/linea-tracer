@@ -34,7 +34,7 @@ public class Mul implements Module {
   }
 
   @Override
-  public List<OpCode> supportedOpCodes() {
+  public final List<OpCode> supportedOpCodes() {
     return List.of(OpCode.MUL, OpCode.EXP);
   }
 
@@ -51,9 +51,7 @@ public class Mul implements Module {
     final Trace.TraceBuilder builder = Trace.builder();
 
     switch (data.getRegime()) {
-      case EXPONENT_ZERO_RESULT -> {
-        trace(builder, data);
-      }
+      case EXPONENT_ZERO_RESULT -> trace(builder, data);
 
       case EXPONENT_NON_ZERO_RESULT -> {
         if (data.carryOn()) {

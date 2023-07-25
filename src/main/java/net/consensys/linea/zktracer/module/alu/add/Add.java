@@ -37,7 +37,7 @@ public class Add implements Module {
   }
 
   @Override
-  public List<OpCode> supportedOpCodes() {
+  public final List<OpCode> supportedOpCodes() {
     return List.of(OpCode.ADD, OpCode.SUB);
   }
 

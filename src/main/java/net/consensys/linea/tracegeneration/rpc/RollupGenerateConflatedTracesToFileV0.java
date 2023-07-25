@@ -32,7 +32,6 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import net.consensys.linea.zktracer.ZkTraceBuilder;
 import net.consensys.linea.zktracer.ZkTracer;
-import org.hyperledger.besu.evm.tracing.OperationTracer;
 import org.hyperledger.besu.plugin.BesuContext;
 import org.hyperledger.besu.plugin.data.BlockContext;
 import org.hyperledger.besu.plugin.services.BlockchainService;

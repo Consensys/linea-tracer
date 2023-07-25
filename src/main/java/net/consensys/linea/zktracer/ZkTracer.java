@@ -30,6 +30,7 @@ import net.consensys.linea.zktracer.opcode.OpCodes;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 import org.hyperledger.besu.plugin.services.tracer.BlockAwareOperationTracer;
@@ -37,13 +38,19 @@ import org.hyperledger.besu.plugin.services.tracer.BlockAwareOperationTracer;
 @RequiredArgsConstructor
 public class ZkTracer implements BlockAwareOperationTracer {
   private final ZkTraceBuilder zkTraceBuilder = new ZkTraceBuilder();
+  private final Hub hub;
   private final List<Module> modules;
 
   public ZkTracer() {
-    this(List.of(new Hub(), new Mul(), new Shf(), new Wcp(), new Add(), new Mod()));
-
+    this.hub = new Hub();
+    this.modules = List.of(new Mul(), new Shf(), new Wcp(), new Add(), new Mod());
     // Load opcodes configured in src/main/resources/opcodes.yml.
     OpCodes.load();
+  }
+
+  public ZkTracer(List<Module> modules) {
+    this.hub = new Hub();
+    this.modules = modules;
   }
 
   public ZkTrace getTrace() {
@@ -67,6 +74,7 @@ public class ZkTracer implements BlockAwareOperationTracer {
 
   @Override
   public void traceStartBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
+    this.hub.traceStartBlock(blockHeader, blockBody);
     for (Module module : this.modules) {
       module.traceStartBlock(blockHeader, blockBody);
     }
@@ -74,6 +82,7 @@ public class ZkTracer implements BlockAwareOperationTracer {
 
   @Override
   public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
+    this.hub.traceEndBlock(blockHeader, blockBody);
     for (Module module : this.modules) {
       module.traceEndBlock(blockHeader, blockBody);
     }
@@ -81,6 +90,7 @@ public class ZkTracer implements BlockAwareOperationTracer {
 
   @Override
   public void traceStartTransaction(final Transaction transaction) {
+    this.hub.traceStartTx(transaction);
     for (Module module : this.modules) {
       module.traceStartTx(transaction);
     }
@@ -88,6 +98,7 @@ public class ZkTracer implements BlockAwareOperationTracer {
 
   @Override
   public void traceEndTransaction(final Bytes output, final long gasUsed, final long timeNs) {
+    this.hub.traceEndTx();
     for (Module module : this.modules) {
       module.traceEndTx();
     }
@@ -98,10 +109,19 @@ public class ZkTracer implements BlockAwareOperationTracer {
   @Override
   public void tracePreExecution(final MessageFrame frame) {
     OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
-    for (Module module : this.modules) {
-      if (module.supportedOpCodes().contains(opCode)) {
-        module.trace(frame);
+    this.hub.trace(frame);
+
+    if (!this.hub.isError()) {
+      for (Module module : this.modules) {
+        if (module.supportedOpCodes().contains(opCode)) {
+          module.trace(frame);
+        }
       }
     }
+  }
+
+  @Override
+  public void tracePostExecution(MessageFrame frame, Operation.OperationResult operationResult) {
+    this.hub.tracePostExecution(frame, operationResult);
   }
 }

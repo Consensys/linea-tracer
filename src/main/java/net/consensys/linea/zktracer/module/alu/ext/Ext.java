@@ -185,7 +185,6 @@ public class Ext implements Module {
 
   @Override
   public Object commit() {
-    Trace trace = builder.build();
     return new ExtTrace(builder.build(), stamp);
   }
 

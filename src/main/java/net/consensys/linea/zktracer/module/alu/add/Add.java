@@ -111,8 +111,7 @@ public class Add implements Module {
 
   @Override
   public Object commit() {
-    Trace trace = builder.build();
-    return new AddTrace(trace, stamp);
+    return new AddTrace(builder.build(), stamp);
   }
 
   private boolean overflowBit(

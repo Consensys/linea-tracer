@@ -26,33 +26,21 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 public interface Module {
   String jsonKey();
 
-  default Object traceStartBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
-    return null;
-  }
-
-  default Object traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
-    return null;
-  }
-
-  default Object traceStartTx(Transaction tx) {
-    return null;
-  }
-
-  default Object traceEndTx() {
-    return null;
-  }
-
-  default Object traceContextStart(Transaction tx) {
-    return false;
-  }
-
-  default Object traceContextEnd(Transaction tx) {
-    return false;
-  }
-
   List<OpCode> supportedOpCodes();
 
-  default Object trace(MessageFrame frame) {
-    return null;
-  }
+  default void traceStartBlock(final BlockHeader blockHeader, final BlockBody blockBody) {}
+
+  default void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {}
+
+  default void traceStartTx(Transaction tx) {}
+
+  default void traceEndTx() {}
+
+  default void traceContextStart(Transaction tx) {}
+
+  default void traceContextEnd(Transaction tx) {}
+
+  default void trace(MessageFrame frame) {}
+
+  Object commit();
 }

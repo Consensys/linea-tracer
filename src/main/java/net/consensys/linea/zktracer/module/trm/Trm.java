@@ -22,7 +22,6 @@ import net.consensys.linea.zktracer.module.Module;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public class Trm implements Module {
-
   @Override
   public String jsonKey() {
     return "trm";
@@ -43,7 +42,10 @@ public class Trm implements Module {
   }
 
   @Override
-  public Object trace(MessageFrame frame) {
+  public void trace(MessageFrame frame) {}
+
+  @Override
+  public Object commit() {
     return null;
   }
 }

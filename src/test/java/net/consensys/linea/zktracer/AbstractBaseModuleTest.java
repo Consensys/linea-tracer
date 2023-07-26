@@ -37,7 +37,6 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 @TestInstance(Lifecycle.PER_CLASS)
 public abstract class AbstractBaseModuleTest {
   private ZkTracer zkTracer;
-  private ZkTraceBuilder zkTraceBuilder;
   MessageFrame mockFrame;
   Operation mockOperation;
   static Module module;
@@ -48,7 +47,7 @@ public abstract class AbstractBaseModuleTest {
       when(mockFrame.getStackItem(i)).thenReturn(arguments.get(i));
     }
     zkTracer.tracePreExecution(mockFrame);
-    assertThat(CorsetValidator.isValid(zkTraceBuilder.build().toJson())).isTrue();
+    assertThat(CorsetValidator.isValid(zkTracer.getTrace().toJson())).isTrue();
   }
 
   protected String generateTrace(OpCode opCode, List<Bytes32> arguments) {
@@ -57,14 +56,14 @@ public abstract class AbstractBaseModuleTest {
       when(mockFrame.getStackItem(i)).thenReturn(arguments.get(i));
     }
     zkTracer.tracePreExecution(mockFrame);
-    return zkTraceBuilder.build().toJson();
+    return zkTracer.getTrace().toJson();
   }
 
   @BeforeEach
   void setUp() {
-    zkTraceBuilder = new ZkTraceBuilder();
+    ZkTraceBuilder zkTraceBuilder = new ZkTraceBuilder();
     module = getModuleTracer();
-    zkTracer = new ZkTracer(zkTraceBuilder, List.of(module));
+    zkTracer = new ZkTracer(List.of(module));
     mockFrame = mock(MessageFrame.class);
     mockOperation = mock(Operation.class);
     when(mockFrame.getCurrentOperation()).thenReturn(mockOperation);

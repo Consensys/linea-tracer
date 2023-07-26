@@ -25,6 +25,7 @@ import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public class Mul implements Module {
+  final Trace.TraceBuilder builder = Trace.builder();
 
   private int stamp = 0;
 
@@ -40,7 +41,7 @@ public class Mul implements Module {
 
   @SuppressWarnings("UnusedVariable")
   @Override
-  public Object trace(MessageFrame frame) {
+  public void trace(MessageFrame frame) {
     final Bytes32 arg1 = Bytes32.wrap(frame.getStackItem(0));
     final Bytes32 arg2 = Bytes32.wrap(frame.getStackItem(1));
 
@@ -48,7 +49,6 @@ public class Mul implements Module {
 
     // argument order is reversed ??
     final MulData data = new MulData(opCode, arg2, arg1);
-    final Trace.TraceBuilder builder = Trace.builder();
 
     switch (data.getRegime()) {
       case EXPONENT_ZERO_RESULT -> trace(builder, data);
@@ -71,10 +71,11 @@ public class Mul implements Module {
     //    captureBlockEnd();
     MulData finalZeroToTheZero = new MulData(OpCode.EXP, Bytes32.ZERO, Bytes32.ZERO);
     trace(builder, finalZeroToTheZero);
+  }
 
-    Trace trace = builder.build();
-
-    return new MulTrace(trace, stamp);
+  @Override
+  public Object commit() {
+    return new MulTrace(builder.build(), stamp);
   }
 
   private void trace(final Trace.TraceBuilder builder, final MulData data) {

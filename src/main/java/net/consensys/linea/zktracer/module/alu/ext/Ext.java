@@ -24,9 +24,10 @@ import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public class Ext implements Module {
-  private int stamp = 0;
-
   private static final int MMEDIUM = 8;
+
+  final Trace.TraceBuilder builder = Trace.builder();
+  private int stamp = 0;
 
   @Override
   public String jsonKey() {
@@ -39,14 +40,13 @@ public class Ext implements Module {
   }
 
   @Override
-  public Object trace(final MessageFrame frame) {
+  public void trace(final MessageFrame frame) {
     final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
     final Bytes32 arg1 = Bytes32.wrap(frame.getStackItem(0));
     final Bytes32 arg2 = Bytes32.wrap(frame.getStackItem(1));
     final Bytes32 arg3 = Bytes32.wrap(frame.getStackItem(2));
 
     final ExtData data = new ExtData(opCode, arg1, arg2, arg3);
-    final Trace.TraceBuilder builder = Trace.builder();
     stamp++;
 
     for (int ct = 0; ct < maxCounter(data); ct++) {
@@ -181,7 +181,11 @@ public class Ext implements Module {
           .bit2Arg(data.getBit2())
           .bit3Arg(data.getBit3());
     }
+  }
 
+  @Override
+  public Object commit() {
+    Trace trace = builder.build();
     return new ExtTrace(builder.build(), stamp);
   }
 

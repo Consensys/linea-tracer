@@ -29,6 +29,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 /** Implementation of a {@link Module} for addition/subtraction. */
 public class Add implements Module {
   public static final String ADD_JSON_KEY = "add";
+  final Trace.TraceBuilder builder = Trace.builder();
   private int stamp = 0;
 
   @Override
@@ -42,7 +43,7 @@ public class Add implements Module {
   }
 
   @Override
-  public Object trace(MessageFrame frame) {
+  public void trace(MessageFrame frame) {
     final Bytes32 arg1 = Bytes32.wrap(frame.getStackItem(0));
     final Bytes32 arg2 = Bytes32.wrap(frame.getStackItem(1));
 
@@ -59,8 +60,6 @@ public class Add implements Module {
 
     final Bytes16 resHi = res.getHigh();
     final Bytes16 resLo = res.getLow();
-
-    final Trace.TraceBuilder builder = Trace.builder();
 
     UInt256 arg1Int = UInt256.fromBytes(arg1);
     UInt256 arg2Int = UInt256.fromBytes(arg2);
@@ -108,9 +107,11 @@ public class Add implements Module {
           .resLoArg(resLo.toUnsignedBigInteger())
           .addStampArg(stamp);
     }
+  }
 
+  @Override
+  public Object commit() {
     Trace trace = builder.build();
-
     return new AddTrace(trace, stamp);
   }
 

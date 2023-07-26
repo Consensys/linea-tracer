@@ -30,4 +30,9 @@ public class Hub implements Module {
   public List<OpCode> supportedOpCodes() {
     return List.of(OpCode.values());
   }
+
+  @Override
+  public Object commit() {
+    return null;
+  }
 }

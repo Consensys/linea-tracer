@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer;
 
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.alu.add.Add;
 import net.consensys.linea.zktracer.module.alu.mod.Mod;
@@ -31,25 +32,27 @@ import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 import org.hyperledger.besu.plugin.services.tracer.BlockAwareOperationTracer;
 
+@RequiredArgsConstructor
 public class ZkTracer implements BlockAwareOperationTracer {
+  private final ZkTraceBuilder zkTraceBuilder = new ZkTraceBuilder();
   private final List<Module> modules;
 
-  private final ZkTraceBuilder zkTraceBuilder;
-
-  public ZkTracer(final ZkTraceBuilder zkTraceBuilder, final List<Module> modules) {
-    this.modules = modules;
-    this.zkTraceBuilder = zkTraceBuilder;
+  public ZkTracer() {
+    this(List.of(new Hub(), new Mul(), new Shf(), new Wcp(), new Add(), new Mod()));
   }
 
-  public ZkTracer(final ZkTraceBuilder zkTraceBuilder) {
-    this(zkTraceBuilder, List.of(new Hub(), new Mul(), new Shf(), new Wcp(), new Add(), new Mod()));
+  public ZkTrace getTrace() {
+    for (Module module : this.modules) {
+      zkTraceBuilder.addTrace(module);
+    }
+    return zkTraceBuilder.build();
   }
 
   @Override
   public void tracePreExecution(final MessageFrame frame) {
     for (Module module : this.modules) {
       if (module.supportedOpCodes().contains(OpCode.of(frame.getCurrentOperation().getOpcode()))) {
-        zkTraceBuilder.addTrace(module.jsonKey(), module.trace(frame));
+        module.trace(frame);
       }
     }
   }
@@ -57,28 +60,28 @@ public class ZkTracer implements BlockAwareOperationTracer {
   @Override
   public void traceStartBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
     for (Module module : this.modules) {
-      zkTraceBuilder.addTrace(module.jsonKey(), module.traceStartBlock(blockHeader, blockBody));
+      module.traceStartBlock(blockHeader, blockBody);
     }
   }
 
   @Override
   public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
     for (Module module : this.modules) {
-      zkTraceBuilder.addTrace(module.jsonKey(), module.traceEndBlock(blockHeader, blockBody));
+      module.traceEndBlock(blockHeader, blockBody);
     }
   }
 
   @Override
   public void traceStartTransaction(final Transaction transaction) {
     for (Module module : this.modules) {
-      zkTraceBuilder.addTrace(module.jsonKey(), module.traceStartTx(transaction));
+      module.traceStartTx(transaction);
     }
   }
 
   @Override
   public void traceEndTransaction(final Bytes output, final long gasUsed, final long timeNs) {
     for (Module module : this.modules) {
-      zkTraceBuilder.addTrace(module.jsonKey(), module.traceEndTx());
+      module.traceEndTx();
     }
   }
 

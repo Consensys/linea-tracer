@@ -25,6 +25,8 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public class Wcp implements Module {
   private static final int LIMB_SIZE = 16;
+
+  final Trace.TraceBuilder builder = Trace.builder();
   private int stamp = 0;
 
   @Override
@@ -38,13 +40,11 @@ public class Wcp implements Module {
   }
 
   @Override
-  public Object trace(final MessageFrame frame) {
+  public void trace(final MessageFrame frame) {
     final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
     final Bytes32 arg1 = Bytes32.wrap(frame.getStackItem(0));
     final Bytes32 arg2 = Bytes32.wrap(frame.getStackItem(1));
-
     final WcpData data = new WcpData(opCode, arg1, arg2);
-    final Trace.TraceBuilder builder = Trace.builder();
 
     stamp++;
 
@@ -80,10 +80,11 @@ public class Wcp implements Module {
           .bit3Arg(data.getBit3())
           .bit4Arg(data.getBit4());
     }
+  }
 
-    Trace trace = builder.build();
-
-    return new WcpTrace(trace, stamp);
+  @Override
+  public Object commit() {
+    return new WcpTrace(builder.build(), stamp);
   }
 
   private int maxCt(final boolean isOneLineInstruction) {

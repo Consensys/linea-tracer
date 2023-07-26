@@ -29,6 +29,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 public class Shf implements Module {
   private static final int LIMB_SIZE = 16;
 
+  final Trace.TraceBuilder builder = Trace.builder();
   private int stamp = 0;
 
   @Override
@@ -42,7 +43,7 @@ public class Shf implements Module {
   }
 
   @Override
-  public Object trace(MessageFrame frame) {
+  public void trace(MessageFrame frame) {
     final Bytes32 arg1 = Bytes32.wrap(frame.getStackItem(0));
     final Bytes32 arg2 = Bytes32.wrap(frame.getStackItem(1));
 
@@ -85,8 +86,6 @@ public class Shf implements Module {
     final boolean isBitB5 = lsbBits[2];
     final boolean isBitB6 = lsbBits[1];
     final boolean isBitB7 = lsbBits[0];
-
-    final Trace.TraceBuilder builder = Trace.builder();
 
     stamp++;
     for (int i = 0; i < maxCt(isOneLineInstruction); i++) {
@@ -165,10 +164,11 @@ public class Shf implements Module {
           .isDataArg(stamp != 0)
           .shiftStampArg(stamp);
     }
+  }
 
-    Trace trace = builder.build();
-
-    return new ShfTrace(trace, stamp);
+  @Override
+  public Object commit() {
+    return new ShfTrace(builder.build(), stamp);
   }
 
   private int maxCt(final boolean isOneLineInstruction) {

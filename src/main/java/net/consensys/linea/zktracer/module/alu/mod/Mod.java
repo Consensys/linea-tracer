@@ -28,6 +28,8 @@ public class Mod implements Module {
   private int stamp = 0;
   private static final int MMEDIUM = 8;
 
+  final Trace.TraceBuilder builder = Trace.builder();
+
   @Override
   public String jsonKey() {
     return "mod";
@@ -39,14 +41,12 @@ public class Mod implements Module {
   }
 
   @Override
-  public Object trace(final MessageFrame frame) {
-
+  public void trace(final MessageFrame frame) {
     final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
     final Bytes32 arg1 = Bytes32.wrap(frame.getStackItem(0));
     final Bytes32 arg2 = Bytes32.wrap(frame.getStackItem(1));
 
     final ModData data = new ModData(opCode, arg1, arg2);
-    final Trace.TraceBuilder builder = Trace.builder();
 
     stamp++;
 
@@ -116,10 +116,11 @@ public class Mod implements Module {
           .msb1Arg(data.getMsb1()[ct])
           .msb2Arg(data.getMsb2()[ct]);
     }
+  }
 
-    Trace trace = builder.build();
-
-    return new ModTrace(trace, stamp);
+  @Override
+  public Object commit() {
+    return new ModTrace(builder.build(), stamp);
   }
 
   private int maxCounter(ModData data) {

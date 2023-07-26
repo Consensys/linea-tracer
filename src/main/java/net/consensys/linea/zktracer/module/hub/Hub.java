@@ -19,7 +19,6 @@ import java.util.List;
 
 import net.consensys.linea.zktracer.OpCode;
 import net.consensys.linea.zktracer.module.Module;
-import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public class Hub implements Module {
   @Override

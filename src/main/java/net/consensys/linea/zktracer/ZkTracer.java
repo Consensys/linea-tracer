@@ -50,8 +50,9 @@ public class ZkTracer implements BlockAwareOperationTracer {
 
   @Override
   public void tracePreExecution(final MessageFrame frame) {
+    OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
     for (Module module : this.modules) {
-      if (module.supportedOpCodes().contains(OpCode.of(frame.getCurrentOperation().getOpcode()))) {
+      if (module.supportedOpCodes().contains(opCode)) {
         module.trace(frame);
       }
     }

@@ -5,13 +5,13 @@ an [existing implementation in Go](https://github.com/ConsenSys/zk-evm/).
 
 ## Development Setup
 
-### Install Java 17:
+### Install Java 17
 
 ```
 brew install openjdk@17
 ```
 
-### Install Rust:
+### Install Rust
 
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
@@ -20,19 +20,19 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 echo "net.git-fetch-with-cli=true" >> .cargo/config.toml
 ```
 
-### Install Corset:
+### Install Corset
 
 ```shell
 cargo install --git ssh://git@github.com/ConsenSys/corset
 ```
 
-### Ensure that the constraints [submodule](https://github.com/ConsenSys/zkevm-constraints/) is up-to-date
+### Update Constraints [Submodule](https://github.com/ConsenSys/zkevm-constraints/)
 
 ```shell
 git submodule update --init
 ```
 
-### Install [pre-commit](https://pre-commit.com/):
+### Install [pre-commit](https://pre-commit.com/)
 
 ```shell
 pip install --user pre-commit
@@ -69,12 +69,12 @@ ______________________________________________________________________
 
 ## IntelliJ IDEA Setup
 
-### Enable annotation processing setting:
+### Enable Annotation Processing
 
 - Go to `Settings | Build, Execution, Deployment | Compiler | Annotation Processors` and tick the following
   checkbox:
 
-![idea_enable_annotation_processing_setting.png](images/idea_enable_annotation_processing_setting.png)
+  ![idea_enable_annotation_processing_setting.png](images/idea_enable_annotation_processing_setting.png)
 
 ______________________________________________________________________
 
@@ -95,18 +95,21 @@ NOTE
 
 ______________________________________________________________________
 
-### Install [Checkstyle](https://plugins.jetbrains.com/plugin/1065-checkstyle-idea) plugin and set IDE code
-reformatting to comply with the project's Checkstyle configuration:
+### Set Up IDE Code Re-formatting
 
-- Go to `Settings | Editor | Code Style | Java | <hamburger menu> | Import Scheme | Checkstyle configuration`:
+- Install [Checkstyle](https://plugins.jetbrains.com/plugin/1065-checkstyle-idea) plugin and set IDE code
+  reformatting to comply with the project's Checkstyle configuration:
 
-  ![idea_checkstyle_reformat.png](images/idea_checkstyle_reformat.png)
+  - Go to `Settings | Editor | Code Style | Java | <hamburger menu> | Import Scheme | Checkstyle configuration`:
 
-  and select `<project_root>/config/checkstyle.xml`.
+    ![idea_checkstyle_reformat.png](images/idea_checkstyle_reformat.png)
 
-### OPTIONAL: Install [Spotless Gradle](https://plugins.jetbrains.com/plugin/18321-spotless-gradle) plugins
-for code linting capabilities
-within the IDE.
+    and select `<project_root>/config/checkstyle.xml`.
+
+### Install Optional Plugins
+
+- Install [Spotless Gradle](https://plugins.jetbrains.com/plugin/18321-spotless-gradle) plugin to re-format through
+  the IDE according to spotless configuration.
 
 ## Debugging Traces
 

@@ -249,7 +249,7 @@ allprojects {
 
   tasks.buildZkevmBin.dependsOn(checkCorsetPreConditions)
   tasks.corsetTests.dependsOn(buildZkevmBin)
-
+  tasks.test.dependsOn(buildZkevmBin)
 
 
   javadoc {

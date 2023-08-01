@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.consensys.linea.zktracer.OpCode;
+import net.consensys.linea.zktracer.bytes.UnsignedByte;
 import net.consensys.linea.zktracer.module.Module;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -73,12 +74,53 @@ public class RlpTxn implements Module {
     /** Phase 14 : s */
   }
 
+  /** Define each phase's constraints */
+  private RlpTxnToTrace HandlePhaseGlobalRlpPrefix(RlpTxnToTrace data) {
+    int phase =0;
+    /** First, trace the Type prefix of the transaction */
+    data = data.PartialReset(data, phase, 1, true, true);
+    if (data.TYPE != 0){
+      data.LIMB_CONSTRUCTED=true;
+      data.LIMB=Bytes.ofUnsignedShort(data.TYPE);
+      data.nBYTES=1;
+      data = trace(data);
+    } else {
+      data.is_padding=true;
+      data = trace(data);
+    }
+
+    /** RLP prefix of RLP(LT) */
+    int nbstep =8;
+    boolean isbytesize=true;
+    boolean islist = true;
+    boolean lt = true;
+    boolean lx= false;
+    boolean endphase = false;
+    boolean isprefix =false;
+    boolean depth1 = false;
+    boolean depth2 = false;
+    data = HandleInt(data, phase, BigInteger.valueOf(data.RLP_LT_BYTESIZE), nbstep, isbytesize, islist, lt, lx,
+      endphase, isprefix, depth1, depth2);
+
+    /** RLP prefix of RLP(LT) */
+    lt = false;
+    lx= true;
+    endphase = true;
+    data = HandleInt(data, phase, BigInteger.valueOf(data.RLP_LX_BYTESIZE), nbstep, isbytesize, islist, lt, lx,
+      endphase, isprefix, depth1, depth2);
+
+    return data;
+  }
+
   /** Define the constraint patterns functions */
   private RlpTxnToTrace HandleInt(RlpTxnToTrace data, int phase, BigInteger input, int nb_step, boolean is_bytesize,
                                   boolean is_list, boolean lt, boolean lx, boolean end_phase, boolean is_prefix,
                                   boolean depth1, boolean depth2) {
+    Bytes inputByte = Bytes.ofUnsignedShort(input.byteValue());
+    int inputByteLen = inputByte.size();
+
     data = data.PartialReset(data, phase, nb_step, lt, lx);
-    data.INPUT_1 = input.toByteArray();
+    data.INPUT_1 = inputByte;
     data.is_bytesize = is_bytesize;
     data.is_list = is_list;
     data.is_prefix = is_prefix;
@@ -112,20 +154,218 @@ public class RlpTxn implements Module {
         acc2LastRowValue = BigInteger.valueOf(55).subtract(input);
       }
       Byte[] acc2LastRowBytes = ArrayUtils.toObject(acc2LastRowValue.toByteArray());
-      /** TODO : give the good size and format */
+      /** TODO : give the good size and format for acc2LastRowBytes (we want Bytes)*/
+
+      /** Compute the bit decomposition of the last input's byte */
+      Byte lastByte = inputByte.get(inputByteLen-1);
+      RlpTxnBitDecOutput bitDecomposition = BitDecomposition(lastByte, nb_step);
+
+      /** Compute the bytesize and Power columns */
+      RlpTxnByteCountingOutput byteCounting = ByteCounting(inputByteLen, nb_step);
+
+      /** Now, Trace */
+      data.number_step=nb_step;
+      Bytes inputBytePadded = inputByte.shiftLeft(8*(nb_step-inputByteLen));
+
+      for (int ct=0; ct< nb_step; ct++) {
+        data.COUNTER=ct;
+        data.BYTE_1=inputBytePadded.get(ct);
+        data.ACC_1=inputBytePadded.slice(0,ct);
+        data.ACC_BYTESIZE = byteCounting.AccByteSizeList.get(ct);
+        data.POWER = byteCounting.PowerList.get(ct);
+        data.BIT = bitDecomposition.BitDecList.get(ct);
+        data.BIT_ACC = bitDecomposition.BitAccList.get(ct);
+        data.BYTE_2 = acc2LastRowBytes.get(ct);
+        data.ACC_2 = acc2LastRowBytes.slice(0,ct);
+
+        if (ct== nb_step-2) {
+          if (!is_bytesize){
+            if (input.compareTo(BigInteger.valueOf(128))>=0) {
+              data.LIMB_CONSTRUCTED = true;
+              data.LIMB = Bytes.ofUnsignedShort(prefix_short_int+byteCounting.AccByteSizeList.get(nb_step-1));
+              data.nBYTES =1;
+            } else {
+              if (!data.COMP){
+                data.LIMB_CONSTRUCTED=false;
+                data.LIMB= Bytes.EMPTY;
+                data.nBYTES=0;
+              } else {
+                if (!data.is_list){
+                  data.LIMB_CONSTRUCTED=true;
+                  data.LIMB=Bytes.ofUnsignedShort(prefix_long_int+byteCounting.AccByteSizeList.get(nb_step-1));
+                  data.nBYTES=1;
+                } else {
+                  data.LIMB_CONSTRUCTED=true;
+                  data.LIMB = Bytes.ofUnsignedShort(prefix_long_list+byteCounting.AccByteSizeList.get(nb_step-1));
+                  data.nBYTES=1;
+                }
+              }
+            }
+          }
+        }
+
+        if (ct == nb_step-1) {
+          data.LIMB_CONSTRUCTED=true;
+          data.end_phase = end_phase;
+          if (!data.is_bytesize){
+            data.LIMB=inputByte;
+            data.nBYTES=inputByteLen;
+          } else {
+            if (data.COMP){
+              data.LIMB=inputByte;
+              data.nBYTES = inputByteLen;
+            } else {
+              if (!data.is_list){
+                data.LIMB= input.add(BigInteger.valueOf(prefix_short_int)).toByteArray();
+                data.nBYTES=1;
+              } else {
+                data.LIMB= input.add(BigInteger.valueOf(prefix_short_list)).toByteArray();
+                data.nBYTES=1;
+              }
+            }
+          }
+        }
+      data = trace(data);
+      }
     }
     return data;
   }
 
-  private Pair<int[], int[]> BitDecomposition(byte inputByte, int nb_step){
+  private RlpTxnToTrace Handle32BytesInteger(RlpTxnToTrace data, int phase, BigInteger input){
+    data = data.PartialReset(data, phase, llarge, true, false);
+    if (input.equals(BigInteger.ZERO)){
+      /** Trivial case */
+      data.number_step=1;
+      data.LIMB_CONSTRUCTED=true;
+      data.LIMB=Bytes.ofUnsignedShort(prefix_short_int);
+      data.nBYTES=1;
+      data.end_phase=true;
+      data = trace(data);
+    } else {
+      /** General case */
+      Bytes inputByte = input.toByteArray(); /** TODO make it a 32 byte */
+      int inputLen = inputByte.size(); /** TODO have the bytesize of the input before left padding */
+      data.INPUT_1=inputByte.slice(0,llarge);
+      data.INPUT_2=inputByte.slice(llarge,llarge);
+
+      if (inputLen<= data.number_step){
+        RlpTxnByteCountingOutput byteCounting = ByteCounting(inputLen, data.number_step);
+        RlpTxnBitDecOutput bitDec = BitDecomposition(inputByte.get(inputByte.size()-1), data.number_step);
+
+        for (int ct=0; ct < data.number_step; ct ++){
+          data.COUNTER=ct;
+          data.BYTE_2=data.INPUT_2.get(ct);
+          data.ACC_2=data.INPUT_2.slice(0,ct);
+          data.ACC_BYTESIZE= byteCounting.AccByteSizeList.get(ct);
+          data.POWER = byteCounting.PowerList.get(ct);
+          data.BIT = bitDec.BitDecList.get(ct);
+          data.BIT_ACC = bitDec.BitAccList.get(ct);
+
+          /** if input >= 128, there is a RLP prefix, nothing if 0 < input < 128*/
+          if (ct == data.number_step-2 && input.compareTo(BigInteger.valueOf(128))>=0){
+            data.LIMB_CONSTRUCTED = true;
+            data.LIMB = Bytes.ofUnsignedShort(prefix_short_int+inputLen);
+            data.nBYTES=1;
+          }
+          if (ct == data.number_step-1){
+            data.LIMB_CONSTRUCTED=true;
+            data.LIMB=data.INPUT_2.slice(llarge-inputLen,inputLen);
+            data.nBYTES=1;
+            data.end_phase=true;
+          }
+          data = trace(data);
+        }
+      } else {
+        inputLen -= data.number_step;
+        RlpTxnByteCountingOutput byteCounting = ByteCounting(inputLen, data.number_step);
+
+        for (int ct=0; ct<data.number_step; ct++){
+          data.COUNTER=ct;
+          data.BYTE_1=data.INPUT_1.get(ct);
+          data.ACC_1=data.INPUT_1.slice(0,ct);
+          data.BYTE_2=data.INPUT_2.get(ct);
+          data.ACC_2=data.INPUT_2.slice(0,ct);
+          data.ACC_BYTESIZE=byteCounting.AccByteSizeList.get(ct);
+          data.POWER=byteCounting.PowerList.get(ct);
+
+          if (ct== data.number_step-3) {
+            data.LIMB_CONSTRUCTED=true;
+            data.LIMB=Bytes.ofUnsignedShort(prefix_short_int+llarge+inputLen);
+            data.nBYTES=1;
+          }
+          if (ct==data.number_step-2){
+            data.LIMB=data.INPUT_1.slice(llarge-inputLen,inputLen);
+            data.nBYTES=inputLen;
+          }
+          if (ct==data.number_step-1){
+            data.LIMB=data.INPUT_2;
+            data.nBYTES=llarge;
+            data.end_phase=true;
+          }
+          data = trace(data);
+        }
+      }
+
+    }
+    return data;
+  }
+
+  private RlpTxnBitDecOutput BitDecomposition(Byte inputByte, int nb_step){
   /** TODO panic if nb_step<8 */
-    ArrayList<Integer> bitDecList = new ArrayList<Integer>(nb_step);
-    ArrayList<Integer> bitAccList = new ArrayList<Integer>(nb_step);
+   RlpTxnBitDecOutput output = new RlpTxnBitDecOutput();
 
-    []int new
+    int input=inputByte.intValue();
 
+    int bitAcc = 0;
+    int bitDec = 0;
+    double div =0;
 
-    return Pair <bitDecList ; bitAccList >;
+    for (int i =7; i>=0; i--) {
+      div=Math.pow(2,i);
+
+      if (input>=div) {
+        bitDec = 1;
+        input -= div;
+      } else {
+        bitDec = 0;
+      }
+
+      bitAcc = 2*bitAcc + bitDec;
+      output.BitDecList.set(nb_step-i-1, bitDec);
+      output.BitAccList.set(nb_step-i-1, bitAcc);
+    }
+    return output;
+  }
+
+  private RlpTxnByteCountingOutput ByteCounting(int inputByteLen, int nb_step) {
+    /** inputByteLen represents the number of meaningfull byte of inputByte, ie without the zero left padding */
+    RlpTxnByteCountingOutput output = new RlpTxnByteCountingOutput();
+
+    BigInteger power = BigInteger.ZERO;
+    int accByteSize = 0;
+    int baseOffset = 16- nb_step;
+
+    if (inputByteLen==nb_step) {
+      power = BigInteger.valueOf((long) Math.pow(256, baseOffset));
+      accByteSize = 1;
+    } else {
+      baseOffset +=1;
+      power = BigInteger.valueOf((long) Math.pow(256, baseOffset));
+      accByteSize = 0;
+    }
+    output.PowerList.set(0, power);
+    output.AccByteSizeList.set(0, accByteSize);
+
+    for (int i=1; i<nb_step; i++) {
+      if (inputByteLen+i<nb_step) {
+        power.multiply(BigInteger.valueOf(256));
+      } else {
+        accByteSize +=1;
+      }
+      output.PowerList.set(i, power);
+      output.AccByteSizeList.set(i, accByteSize);
+    }
+    return output;
   }
 
   private RlpTxnToTrace HandleAddress(
@@ -171,7 +411,6 @@ public class RlpTxn implements Module {
     }
     return data;
   }
-
 
   private RlpTxnToTrace HandleStorageKey(RlpTxnToTrace data, boolean end_phase, Hash storage_key) {
     data = data.PartialReset(data, 10, llarge, true, true);
@@ -237,58 +476,58 @@ public class RlpTxn implements Module {
     this.trace
         .absTxNum(BigInteger.valueOf(data.ABS_TX_NUM))
         .absTxNumInfiny(BigInteger.valueOf(data.ABS_TX_NUM_INFINY))
-        .acc1(BigInteger.valueOf(data.ACC_1))
-        .acc2(BigInteger.valueOf(data.ACC_2))
+        .acc1(data.ACC_1)
+        .acc2(data.ACC_2)
         .accBytesize(BigInteger.valueOf(data.ACC_BYTESIZE))
         .accessTupleBytesize(BigInteger.valueOf(data.ACCESS_TUPLE_BYTESIZE))
-        .addrHi(BigInteger.valueOf(data.ADDR_HI))
-        .addrLo(BigInteger.valueOf(data.ADDR_LO))
-        .bit(Boolean.valueOf(data.BIT))
-        .bitAcc(BigInteger.valueOf(data.BIT_ACC))
-        .byte1(Byte.valueOf(data.BYTE_1))
-        .byte2(Byte.valueOf(data.BYTE_2))
+        .addrHi(data.ADDR_HI)
+        .addrLo(data.ADDR_LO)
+        .bit(data.BIT)
+        .bitAcc(UnsignedByte.of(data.BIT_ACC))
+        .byte1(UnsignedByte.of(data.BYTE_1))
+        .byte2(UnsignedByte.of(data.BYTE_2))
         .codeFragmentIndex(BigInteger.valueOf(data.CODE_FRAGMENT_INDEX))
-        .comp(Boolean.valueOf(data.COMP))
+        .comp(data.COMP)
         .counter(BigInteger.valueOf(data.COUNTER))
         .dataHi(BigInteger.valueOf(data.DATA_HI))
         .dataLo(BigInteger.valueOf(data.DATA_LO))
         .datagascost(BigInteger.valueOf(data.DATAGASCOST))
-        .depth1(Boolean.valueOf(data.DEPTH_1))
-        .depth2(Boolean.valueOf(data.DEPTH_2));
+        .depth1(data.DEPTH_1)
+        .depth2(data.DEPTH_2);
     if (data.COUNTER == data.number_step - 1) {
       this.trace.done(Boolean.TRUE);
     } else {
       this.trace.done(Boolean.FALSE);
     }
     this.trace
-        .endPhase(Boolean.valueOf(data.end_phase))
+        .endPhase(data.end_phase)
         .indexData(BigInteger.valueOf(data.INDEX_DATA))
         .indexLt(BigInteger.valueOf(data.INDEX_LT))
         .indexLx(BigInteger.valueOf(data.INDEX_LX))
-        .input1(BigInteger.valueOf(data.INPUT_1))
-        .input2(BigInteger.valueOf(data.INPUT_2))
-        .isBytesize(Boolean.valueOf(data.is_bytesize))
-        .isList(Boolean.valueOf(data.is_list))
-        .isPadding(Boolean.valueOf(data.is_padding))
-        .isPrefix(Boolean.valueOf(data.is_prefix))
-        .limb(BigInteger.valueOf(data.LIMB))
-        .limbConstructed(Boolean.valueOf(data.LIMB_CONSTRUCTED))
-        .lt(Boolean.valueOf(data.LT))
-        .lx(Boolean.valueOf(data.LX))
-        .nBytes(BigInteger.valueOf(data.nBYTES))
+        .input1(data.INPUT_1)
+        .input2(data.INPUT_2)
+        .isBytesize(data.is_bytesize)
+        .isList(data.is_list)
+        .isPadding(data.is_padding)
+        .isPrefix(data.is_prefix)
+        .limb(data.LIMB) /** TODO make the left padding here */
+        .limbConstructed(data.LIMB_CONSTRUCTED)
+        .lt(data.LT)
+        .lx(data.LX)
+        .nBytes(UnsignedByte.of(data.nBYTES))
         .nbAddr(BigInteger.valueOf(data.nb_Addr))
         .nbSto(BigInteger.valueOf(data.nb_Sto))
         .nbStoPerAddr(BigInteger.valueOf(data.nb_Sto_per_Addr))
-        .numberStep(BigInteger.valueOf(data.number_step));
+        .numberStep(UnsignedByte.of(data.number_step));
 
     /** list phase */
     this.trace
         .phaseBytesize(BigInteger.valueOf(data.PHASE_BYTESIZE))
-        .power(BigInteger.valueOf(data.POWER))
-        .requiresEvmExecution(Boolean.valueOf(data.REQUIRES_EVM_EXECUTION))
+        .power(data.POWER)
+        .requiresEvmExecution(data.REQUIRES_EVM_EXECUTION)
         .rlpLtBytesize(BigInteger.valueOf(data.RLP_LT_BYTESIZE))
         .rlpLxBytesize(BigInteger.valueOf(data.RLP_LX_BYTESIZE))
-        .type(BigInteger.valueOf(data.TYPE))
+        .type(UnsignedByte.of(data.TYPE))
         .validateRow();
 
     /** Increments Index */
@@ -309,9 +548,9 @@ public class RlpTxn implements Module {
       if (data.PHASE_BYTESIZE != 0 && !data.is_prefix) {
         data.PHASE_BYTESIZE -= 1;
         if (data.BYTE_1 == 0) {
-          data.DATAGASCOST -= G_txdatanonzero;
+          data.DATAGASCOST -= Trace.G_txdatanonzero.intValue();
         } else {
-          data.DATAGASCOST -= G_txdatazero;
+          data.DATAGASCOST -= Trace.G_txdatazero.intValue();
         }
       }
     }

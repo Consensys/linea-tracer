@@ -22,6 +22,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import net.consensys.linea.zktracer.bytes.UnsignedByte;
+import org.apache.tuweni.bytes.Bytes;
 
 /**
  * WARNING: This code is generated automatically. Any modifications to this code may be overwritten
@@ -205,7 +206,7 @@ record Trace(
       return this;
     }
 
-    public TraceBuilder acc1(final BigInteger b) {
+    public TraceBuilder acc1(final Bytes b) {
       if (filled.get(59)) {
         throw new IllegalStateException("ACC_1 already set");
       } else {
@@ -217,7 +218,7 @@ record Trace(
       return this;
     }
 
-    public TraceBuilder acc2(final BigInteger b) {
+    public TraceBuilder acc2(final Bytes b) {
       if (filled.get(23)) {
         throw new IllegalStateException("ACC_2 already set");
       } else {
@@ -241,7 +242,7 @@ record Trace(
       return this;
     }
 
-    public TraceBuilder addrHi(final BigInteger b) {
+    public TraceBuilder addrHi(final Bytes b) {
       if (filled.get(0)) {
         throw new IllegalStateException("ADDR_HI already set");
       } else {
@@ -253,7 +254,7 @@ record Trace(
       return this;
     }
 
-    public TraceBuilder addrLo(final BigInteger b) {
+    public TraceBuilder addrLo(final Bytes b) {
       if (filled.get(28)) {
         throw new IllegalStateException("ADDR_LO already set");
       } else {
@@ -337,7 +338,7 @@ record Trace(
       return this;
     }
 
-    public TraceBuilder counter(final UnsignedByte b) {
+    public TraceBuilder counter(final BigInteger b) {
       if (filled.get(16)) {
         throw new IllegalStateException("COUNTER already set");
       } else {
@@ -457,7 +458,7 @@ record Trace(
       return this;
     }
 
-    public TraceBuilder input1(final BigInteger b) {
+    public TraceBuilder input1(final Bytes b) {
       if (filled.get(13)) {
         throw new IllegalStateException("INPUT_1 already set");
       } else {
@@ -469,7 +470,7 @@ record Trace(
       return this;
     }
 
-    public TraceBuilder input2(final BigInteger b) {
+    public TraceBuilder input2(final Bytes b) {
       if (filled.get(19)) {
         throw new IllegalStateException("INPUT_2 already set");
       } else {
@@ -481,7 +482,7 @@ record Trace(
       return this;
     }
 
-    public TraceBuilder limb(final BigInteger b) {
+    public TraceBuilder limb(final Bytes b) {
       if (filled.get(40)) {
         throw new IllegalStateException("LIMB already set");
       } else {

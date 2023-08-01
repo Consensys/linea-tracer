@@ -62,8 +62,8 @@ public class RlpTxnToTrace {
 
     /** Set to default local values */
     data.LIMB_CONSTRUCTED = false;
-    data.ACC_1 = 0;
-    data.ACC_2 = 0;
+    data.ACC_1 = Bytes.EMPTY;
+    data.ACC_2 = Bytes.EMPTY;
     data.ACC_BYTESIZE = 0;
     data.ADDR_HI = Bytes.ofUnsignedShort(0);
     data.ADDR_LO = Bytes.ofUnsignedShort(0);
@@ -76,13 +76,13 @@ public class RlpTxnToTrace {
     data.DEPTH_1 = false;
     data.DEPTH_2 = false;
     data.end_phase = false;
-    data.INPUT_1 = 0;
-    data.INPUT_2 = 0;
+    data.INPUT_1 = Bytes.EMPTY;
+    data.INPUT_2 = Bytes.EMPTY;
     data.is_bytesize = false;
     data.is_list = false;
     data.is_padding = false;
     data.is_prefix = false;
-    data.LIMB = 0;
+    data.LIMB = Bytes.EMPTY;
     data.nBYTES = 0;
     data.POWER = BigInteger.ZERO;
 

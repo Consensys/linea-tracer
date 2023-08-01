@@ -15,8 +15,6 @@
 
 package net.consensys.linea.zktracer.module.shf;
 
-import static net.consensys.linea.zktracer.module.Util.unsignedByteToBigInteger;
-
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -134,8 +132,8 @@ public class Shf implements Module {
           ByteChunks.fromBytes(UnsignedByte.of(arg2Hi.get(i)), mshp);
 
       builder
-          .leftAlignedSuffixHigh(unsignedByteToBigInteger(arg2HiByteChunks.la()))
-          .rightAlignedPrefixHigh(unsignedByteToBigInteger(arg2HiByteChunks.ra()))
+          .leftAlignedSuffixHigh(arg2HiByteChunks.la().toBigInteger())
+          .rightAlignedPrefixHigh(arg2HiByteChunks.ra().toBigInteger())
           .ones(BigInteger.valueOf(arg2HiByteChunks.ones().toInteger()));
 
       final ByteChunks arg2LoByteChunks =
@@ -156,13 +154,14 @@ public class Shf implements Module {
           .shb7Lo(shb.getShbLo()[7 - 3][i].toBigInteger())
           .shiftDirection(isShiftRight)
           .isData(stamp != 0)
-          .shiftStamp(BigInteger.valueOf(stamp));
+          .shiftStamp(BigInteger.valueOf(stamp))
+          .validateRow();
     }
   }
 
   @Override
   public Object commit() {
-    return new ShfTrace(builder.build(), stamp);
+    return new ShfTrace(builder.build());
   }
 
   private int maxCt(final boolean isOneLineInstruction) {

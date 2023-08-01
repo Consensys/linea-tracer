@@ -133,13 +133,6 @@ public class Util {
    * @return A byte representing the input boolean value.
    */
   public static byte boolToByte(boolean b) {
-    if (b) {
-      return 1;
-    }
-    return 0;
-  }
-
-  public static BigInteger unsignedByteToBigInteger(UnsignedByte b) {
-    return BigInteger.valueOf(b.toInteger());
+    return (byte) (b ? 1 : 0);
   }
 }

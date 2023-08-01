@@ -112,6 +112,37 @@ public class RlpTxn implements Module {
     return data;
   }
 
+  private RlpTxnToTrace HandlePhaseInteger(RlpTxnToTrace data, int phase, BigInteger input, int nbstep, boolean lt,
+                                           boolean lx){
+    boolean isbytesize = false;
+    boolean islist = false;
+    boolean isprefix = false;
+    boolean depth1 = false;
+    boolean depth2 = false;
+    boolean endphase = true;
+    data = HandleInt(data, phase, input, nbstep, isbytesize, islist, lt, lx, endphase, isprefix, depth1,depth2);
+  return data;
+  }
+
+  private RlpTxnToTrace HandlePhaseTo(RlpTxnToTrace data){
+    int phase = 7;
+    boolean lt = true;
+    boolean lx = true;
+
+    if (isdeployement /** TODO */){
+      data = data.PartialReset(data, phase, 1, lt, lx);
+      data.LIMB_CONSTRUCTED=true;
+      data.LIMB= Bytes.ofUnsignedShort(prefix_short_int);
+      data.nBYTES=1;
+      data.end_phase=true;
+      data = Trace(data);
+    } else {
+      data = HandleAddress(data, phase, TO /** TODO */);
+    }
+
+    return data;
+  }
+
   /** Define the constraint patterns functions */
   private RlpTxnToTrace HandleInt(RlpTxnToTrace data, int phase, BigInteger input, int nb_step, boolean is_bytesize,
                                   boolean is_list, boolean lt, boolean lx, boolean end_phase, boolean is_prefix,
@@ -138,7 +169,7 @@ public class RlpTxn implements Module {
       } else {
         data.LIMB=Bytes.ofUnsignedShort(prefix_short_int).shiftLeft(8*llargemo);
       }
-      data = trace(data);
+      data = Trace(data);
     } else {
       /** General case */
 
@@ -225,10 +256,121 @@ public class RlpTxn implements Module {
             }
           }
         }
-      data = trace(data);
+      data = Trace(data);
       }
     }
     return data;
+  }
+
+  private RlpTxnToTrace HandlePhaseData(RlpTxnToTrace traceData){
+    int phase=9;
+    boolean lt =true;
+    boolean lx =true;
+
+    /** Initialise  DataSize and DataGasCost*/
+    Bytes data = Bytes.EMPTY;/** TODO */
+    traceData = traceData.PartialReset(traceData, phase, 1, lt, lx);
+    traceData.PHASE_BYTESIZE=data.size();
+    for (int i =0; i < traceData.PHASE_BYTESIZE; i++){
+      if (data.get(i)==0){
+        traceData.DATAGASCOST += Trace.G_txdatazero.intValue();
+      } else {
+        traceData.DATAGASCOST += Trace.G_txdatanonzero.intValue();
+      }
+    }
+
+    /** Trace */
+    if (traceData.PHASE_BYTESIZE==0){
+      /** TRivial case*/
+      traceData.LIMB_CONSTRUCTED=true;
+      traceData.LIMB=Bytes.ofUnsignedShort(prefix_short_int);
+      traceData.nBYTES=1;
+      traceData.is_prefix=true;
+      traceData.is_bytesize=true;
+      traceData = Trace(traceData);
+
+      /** One row of padding */
+      traceData = traceData.PartialReset(traceData, phase, 1, lt, lx);
+      traceData.is_padding=true;
+      traceData.end_phase=true;
+      traceData = Trace(traceData);
+    } else {
+      /** General case */
+
+      /** RLP prefix */
+      if (traceData.PHASE_BYTESIZE==1){
+        /** Special case with 1 byte of data */
+        traceData = traceData.PartialReset(traceData, phase, 8, lt, lx);
+        traceData.is_prefix=true;
+        traceData.INPUT_1=data;
+        RlpTxnBitDecOutput bitDecomposition = BitDecomposition(traceData.INPUT_1.get(0), traceData.number_step);
+        if (traceData.INPUT_1.get(0) < 128){
+          traceData.is_padding=true;
+        } else {
+          traceData.is_padding=false;
+        }
+        for (int ct =0; ct< traceData.number_step; ct++){
+          traceData.COUNTER=ct;
+          traceData.BIT=bitDecomposition.BitDecList.get(ct);
+          traceData.BIT_ACC=bitDecomposition.BitAccList.get(ct);
+          if (ct== traceData.number_step-1){
+            traceData.BYTE_1= traceData.INPUT_1.get(0);
+            traceData.ACC_1= traceData.INPUT_1;
+            if (traceData.INPUT_1.get(0) >= 128){
+              traceData.LIMB_CONSTRUCTED=true;
+              traceData.LIMB=Bytes.ofUnsignedShort(prefix_short_int+1);
+              traceData.nBYTES=1;
+            }
+          }
+          traceData = Trace(traceData);
+        }
+      } else {
+        /** General case */
+        boolean isbytesize = true;
+        boolean islist=false;
+        boolean endphase=false;
+        boolean isprefix=true;
+        boolean depth1=false;
+        boolean depth2 = false;
+        traceData = HandleInt(traceData, phase, BigInteger.valueOf(traceData.PHASE_BYTESIZE), 8, isbytesize, islist, lt, lx,
+          endphase,isprefix,depth1,depth2);
+      }
+      /** 16-rows ct-loop to write all the data */
+      int nbstep = 16;
+      int nbloop = (traceData.PHASE_BYTESIZE-1)/16+1;
+      data.shiftLeft(8*(16*nbloop- traceData.PHASE_BYTESIZE));
+      for (int i=0; i<nbloop;i++){
+        traceData = traceData.PartialReset(traceData, phase, nbstep, lt, lx);
+        traceData.INPUT_1=data.slice(llarge*i, llarge);
+        int accByteSize = 0;
+        for (int ct =0; ct<llarge;ct++){
+          traceData.COUNTER=ct;
+          if (traceData.PHASE_BYTESIZE!=0){
+            accByteSize+=1;
+          }
+          traceData.BYTE_1= traceData.INPUT_1.get(ct);
+          traceData.ACC_1= traceData.INPUT_1.slice(0,ct);
+          traceData.ACC_BYTESIZE=accByteSize;
+          if (ct==nbstep-1){
+            traceData.LIMB_CONSTRUCTED=true;
+            traceData.LIMB= traceData.INPUT_1;
+            traceData.nBYTES=accByteSize;
+          }
+          traceData = Trace(traceData);
+        }
+      }
+      /** Two rows of padding */
+      traceData.PartialReset(traceData, phase, 2, lt, lx);
+      traceData.is_padding=true;
+      traceData = Trace(traceData);
+      traceData.COUNTER=1;
+      traceData.end_phase=true;
+      traceData = Trace(traceData);
+    }
+
+    /** TODO add check that phasebytesize and datagascost is zero*/
+    traceData.INDEX_DATA=0;
+    return traceData;
   }
 
   private RlpTxnToTrace Handle32BytesInteger(RlpTxnToTrace data, int phase, BigInteger input){
@@ -273,7 +415,7 @@ public class RlpTxn implements Module {
             data.nBYTES=1;
             data.end_phase=true;
           }
-          data = trace(data);
+          data = Trace(data);
         }
       } else {
         inputLen -= data.number_step;
@@ -302,7 +444,7 @@ public class RlpTxn implements Module {
             data.nBYTES=llarge;
             data.end_phase=true;
           }
-          data = trace(data);
+          data = Trace(data);
         }
       }
 
@@ -369,14 +511,12 @@ public class RlpTxn implements Module {
   }
 
   private RlpTxnToTrace HandleAddress(
-      RlpTxnToTrace data, int phase, Address address, Address warmed_address) {
+      RlpTxnToTrace data, int phase, Address address) {
     boolean lt = true;
     boolean lx = true;
     data = data.PartialReset(data, phase, llarge, lt, lx);
     data.INPUT_1 = address.slice(0, 4).shiftRight(8*11);
     data.INPUT_2 = address.slice(4, llarge);
-    data.ADDR_HI = warmed_address.slice(0, 4);
-    data.ADDR_LO = warmed_address.slice(4, llarge);
 
     if (phase == 10) {
       data.DEPTH_1 = true;
@@ -407,7 +547,7 @@ public class RlpTxn implements Module {
           data.end_phase = true;
         }
       }
-      data = trace(data);
+      data = Trace(data);
     }
     return data;
   }
@@ -442,14 +582,14 @@ public class RlpTxn implements Module {
         data.end_phase = end_phase;
       }
 
-      data = trace(data);
+      data = Trace(data);
     }
 
     return data;
   }
 
   /** Define the Tracer */
-  private RlpTxnToTrace trace(RlpTxnToTrace data) {
+  private RlpTxnToTrace Trace(RlpTxnToTrace data) {
 
     /** Decrements RLP_BYTESIZE */
     if (data.phase != 0) {

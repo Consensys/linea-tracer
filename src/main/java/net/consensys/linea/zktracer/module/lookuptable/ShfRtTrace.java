@@ -35,10 +35,10 @@ public record ShfRtTrace(@JsonProperty("Trace") Trace trace) {
       for (int uShp = 0; uShp <= 8; uShp++) {
         bytes.add(BigInteger.valueOf(a));
         // rt.Trace.PushByte(LAS.Name(), a<<(8-µShp))
-        las.add((Bytes.of((byte) a).shiftLeft(8 - uShp)).toBigInteger());
+        las.add(BigInteger.valueOf(Bytes.of((byte) a).shiftLeft(8 - uShp).toInt()));
         mshp.add(BigInteger.valueOf(uShp));
-        rap.add(Bytes.ofUnsignedShort(a).shiftRight(uShp).toBigInteger());
-        ones.add((Bytes.fromHexString("0xFF").shiftRight(uShp)).not().toBigInteger());
+        rap.add(BigInteger.valueOf(Bytes.ofUnsignedShort(a).shiftRight(uShp).toInt()));
+        ones.add(BigInteger.valueOf((Bytes.fromHexString("0xFF").shiftRight(uShp)).not().toInt()));
         isInRt.add(BigInteger.ONE);
       }
     }

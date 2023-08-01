@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.alu.add;
 
+import java.math.BigInteger;
 import java.util.List;
 
 import net.consensys.linea.zktracer.OpCode;
@@ -92,26 +93,27 @@ public class Add implements Module {
       overflowLo = (addRes.compareTo(twoToThe128) >= 0);
 
       builder
-          .acc1Arg(resHi.slice(0, 1 + i).toUnsignedBigInteger())
-          .acc2Arg(resLo.slice(0, 1 + i).toUnsignedBigInteger())
-          .arg1HiArg(arg1Hi.toUnsignedBigInteger())
-          .arg1LoArg(arg1Lo.toUnsignedBigInteger())
-          .arg2HiArg(arg2Hi.toUnsignedBigInteger())
-          .arg2LoArg(arg2Lo.toUnsignedBigInteger())
-          .byte1Arg(UnsignedByte.of(resHi.get(i)))
-          .byte2Arg(UnsignedByte.of(resLo.get(i)))
-          .counterArg(i)
-          .instArg(UnsignedByte.of(opCode.value))
-          .overflowArg(overflowBit(i, overflowHi, overflowLo))
-          .resHiArg(resHi.toUnsignedBigInteger())
-          .resLoArg(resLo.toUnsignedBigInteger())
-          .addStampArg(stamp);
+          .acc1(resHi.slice(0, 1 + i).toUnsignedBigInteger())
+          .acc2(resLo.slice(0, 1 + i).toUnsignedBigInteger())
+          .arg1Hi(arg1Hi.toUnsignedBigInteger())
+          .arg1Lo(arg1Lo.toUnsignedBigInteger())
+          .arg2Hi(arg2Hi.toUnsignedBigInteger())
+          .arg2Lo(arg2Lo.toUnsignedBigInteger())
+          .byte1(UnsignedByte.of(resHi.get(i)))
+          .byte2(UnsignedByte.of(resLo.get(i)))
+          .ct(BigInteger.valueOf(i))
+          .inst(BigInteger.valueOf(opCode.value))
+          .overflow(overflowBit(i, overflowHi, overflowLo))
+          .resHi(resHi.toUnsignedBigInteger())
+          .resLo(resLo.toUnsignedBigInteger())
+          .stamp(BigInteger.valueOf(stamp))
+          .validateRow();
     }
   }
 
   @Override
   public Object commit() {
-    return new AddTrace(builder.build(), stamp);
+    return new AddTrace(builder.build());
   }
 
   private boolean overflowBit(

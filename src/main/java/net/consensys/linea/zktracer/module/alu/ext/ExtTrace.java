@@ -16,7 +16,5 @@
 package net.consensys.linea.zktracer.module.alu.ext;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@JsonPropertyOrder({"Trace", "Stamp"})
 public record ExtTrace(@JsonProperty("Trace") Trace trace, @JsonProperty("Stamp") int stamp) {}

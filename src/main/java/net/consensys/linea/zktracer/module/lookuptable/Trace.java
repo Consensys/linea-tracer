@@ -15,16 +15,25 @@
 
 package net.consensys.linea.zktracer.module.lookuptable;
 
+import java.math.BigInteger;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import lombok.Builder;
+import lombok.Singular;
+import net.consensys.linea.zktracer.module.RowValidator;
 
-@JsonPropertyOrder({"BYTE", "IS_IN_RT", "LAS", "MSHP", "ONES", "RAP"})
+@Builder
 record Trace(
-    @JsonProperty("BYTE") List<Integer> bytes,
-    @JsonProperty("IS_IN_RT") List<Integer> isInRt,
-    @JsonProperty("LAS") List<Integer> las,
-    @JsonProperty("MSHP") List<Integer> mshp,
-    @JsonProperty("ONES") List<Integer> ones,
-    @JsonProperty("RAP") List<Integer> rap) {}
+    @Singular("byte") @JsonProperty("BYTE") List<BigInteger> byteA,
+    @Singular("isInRt") @JsonProperty("IS_IN_RT") List<BigInteger> isInRt,
+    @Singular("las") @JsonProperty("LAS") List<BigInteger> las,
+    @Singular("mshp") @JsonProperty("MSHP") List<BigInteger> mshp,
+    @Singular("ones") @JsonProperty("ONES") List<BigInteger> ones,
+    @Singular("rap") @JsonProperty("RAP") List<BigInteger> rap) {
+  static class TraceBuilder {
+    public void validateRow(int rowIndex) {
+      RowValidator.validate(Trace.class, this.build(), rowIndex);
+    }
+  }
+}

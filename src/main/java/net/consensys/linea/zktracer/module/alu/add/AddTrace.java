@@ -15,14 +15,17 @@
 
 package net.consensys.linea.zktracer.module.alu.add;
 
+import java.math.BigInteger;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 /**
- * Holds an execution trace and a module stamp for an addition/subtraction operation.
- *
- * @param trace a trace consisting of addition/subtraction related columns.
- * @param stamp a module stamp (counts calls to a given module).
+ * WARNING: This code is generated automatically. Any modifications to this code may be overwritten
+ * and could lead to unexpected behavior. Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
-@JsonPropertyOrder({"Trace", "Stamp"})
-public record AddTrace(@JsonProperty("Trace") Trace trace, @JsonProperty("Stamp") int stamp) {}
+record AddTrace(@JsonProperty("Trace") Trace trace) {
+  static final BigInteger ADD = new BigInteger("1");
+  static final BigInteger LLARGEMO = new BigInteger("15");
+  static final BigInteger SUB = new BigInteger("3");
+  static final BigInteger THETA = new BigInteger("340282366920938463463374607431768211456");
+}

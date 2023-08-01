@@ -138,4 +138,8 @@ public class Util {
     }
     return 0;
   }
+
+  public static BigInteger unsignedByteToBigInteger(UnsignedByte b) {
+    return BigInteger.valueOf(b.toInteger());
+  }
 }

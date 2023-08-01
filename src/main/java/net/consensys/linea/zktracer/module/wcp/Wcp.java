@@ -49,8 +49,6 @@ public class Wcp implements Module {
             ? Bytes32.wrap(frame.getStackItem(1))
             : Bytes32.repeat((byte) 0x00);
 
-    // frame.safeGetStackItem(k, opCode); // opcode has N params, should take item from stack if 0 <= k < N, otherwise return 0
-
     final WcpData data = new WcpData(opCode, arg1, arg2);
 
     stamp++;

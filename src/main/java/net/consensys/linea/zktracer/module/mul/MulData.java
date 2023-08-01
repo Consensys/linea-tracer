@@ -93,7 +93,7 @@ public class MulData {
       case NON_TRIVIAL_MUL -> cBytes = BaseTheta.fromBytes32(res.getBytes32());
       case EXPONENT_ZERO_RESULT -> setArraysForZeroResultCase();
       case EXPONENT_NON_ZERO_RESULT -> {
-        this.exponentBits = arg2.toBigInteger().toString();
+        this.exponentBits = arg2.toBigInteger().toString(2);
         snm = false;
       }
       case IOTA -> throw new RuntimeException("alu/mul regime was never set");

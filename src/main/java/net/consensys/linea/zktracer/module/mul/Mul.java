@@ -137,9 +137,9 @@ public class Mul implements Module {
         .accH2(data.hBytes.getRange(2, 0, i + 1).toUnsignedBigInteger())
         .accH1(data.hBytes.getRange(1, 0, i + 1).toUnsignedBigInteger())
         .accH0(data.hBytes.getRange(0, 0, i + 1).toUnsignedBigInteger())
-        .exponentBit(data.exponentBit())
+        .exponentBit(data.isExponentBitSet())
         .exponentBitAccumulator(data.expAcc.toUnsignedBigInteger())
-        .exponentBitSource(data.exponentSource())
+        .exponentBitSource(data.isExponentInSource())
         .squareAndMultiply(data.squareAndMultiply)
         .bitNum(BigInteger.valueOf(data.getBitNum()))
         .validateRow();

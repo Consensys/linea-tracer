@@ -190,11 +190,11 @@ public class MulData {
     return (byte) (x - k);
   }
 
-  public boolean exponentBit() {
+  public boolean isExponentBitSet() {
     return exponentBits.charAt(index) == '1';
   }
 
-  public boolean exponentSource() {
+  public boolean isExponentInSource() {
     return this.index + 128 >= exponentBits.length();
   }
 
@@ -259,7 +259,7 @@ public class MulData {
       return true;
     }
 
-    if (squareAndMultiply == exponentBit()) {
+    if (squareAndMultiply == isExponentBitSet()) {
       hiToLoExponentBitAccumulatorReset();
       index++;
       squareAndMultiply = false;
@@ -379,8 +379,8 @@ public class MulData {
   //   - SQUARE_AND_MULTIPLY == EXPONENT_BIT
   //   - the exponent bit accumulator coincides with the high part of the exponent
   private void hiToLoExponentBitAccumulatorReset() {
-    if (!exponentSource()) {
-      if (squareAndMultiply == exponentBit()) { // note: when called this is already assumed
+    if (!isExponentInSource()) {
+      if (squareAndMultiply == isExponentBitSet()) { // note: when called this is already assumed
         Bytes32 arg2Copy = arg2.copy();
         if (arg2Copy.shiftRight(128).equals(expAcc)) {
           expAcc = UInt256.MIN_VALUE;

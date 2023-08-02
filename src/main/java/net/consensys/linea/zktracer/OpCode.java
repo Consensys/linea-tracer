@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -185,14 +184,6 @@ public enum OpCode {
     }
 
     return BY_VALUE.get(value);
-  }
-
-  public boolean isEqual(final long opCode) {
-    return this.value == opCode;
-  }
-
-  public boolean isElementOf(OpCode... opCodeSet) {
-    return Arrays.asList(opCodeSet).contains(this);
   }
 
   public int numberOfArguments() {

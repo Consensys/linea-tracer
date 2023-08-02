@@ -109,7 +109,7 @@ public class WcpData {
   }
 
   private boolean isOneLineInstruction(final OpCode opCode) {
-    return opCode.isElementOf(OpCode.EQ, OpCode.ISZERO);
+    return List.of(OpCode.EQ, OpCode.ISZERO).contains(opCode);
   }
 
   private boolean calculateResLow(OpCode opCode, Bytes32 arg1, Bytes32 arg2) {

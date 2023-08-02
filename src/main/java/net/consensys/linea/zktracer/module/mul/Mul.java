@@ -73,9 +73,8 @@ public class Mul implements Module {
     }
   }
 
-  // TODO: should be traceEndConflation
   @Override
-  public void traceEndBlock(BlockHeader blockHeader, BlockBody blockBody) {
+  public void traceEndConflation() {
     stamp++;
     MulData finalZeroToTheZero = new MulData(OpCode.EXP, Bytes32.ZERO, Bytes32.ZERO);
     traceSubOp(builder, finalZeroToTheZero);
@@ -87,7 +86,6 @@ public class Mul implements Module {
   }
 
   private void traceSubOp(final Trace.TraceBuilder builder, final MulData data) {
-
     for (int ct = 0; ct < data.maxCt(); ct++) {
       traceRow(builder, data, ct);
     }

@@ -400,7 +400,7 @@ public enum OpCode {
       ),
   CALLER(
       0x33,
-      f),
+      ),
   CALLVALUE(
       0x34,
       ),
@@ -412,7 +412,7 @@ public enum OpCode {
       ),
   CALLDATACOPY(
       0x37,
-      s,
+    ),
   CODESIZE(
       0x38,
       flags,

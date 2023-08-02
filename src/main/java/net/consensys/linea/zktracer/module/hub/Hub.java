@@ -17,8 +17,8 @@ package net.consensys.linea.zktracer.module.hub;
 
 import java.util.List;
 
-import net.consensys.linea.zktracer.OpCode;
 import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.opcode.OpCode;
 
 public class Hub implements Module {
   @Override

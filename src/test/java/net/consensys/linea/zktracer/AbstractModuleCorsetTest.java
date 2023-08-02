@@ -64,8 +64,8 @@ public abstract class AbstractModuleCorsetTest extends AbstractBaseModuleTest {
         List<Bytes32> args = new ArrayList<>();
         for (int j = 0; j < opCode.numberOfArguments(); j++) {
           args.add(Bytes32.random(rand));
-          arguments.add(Arguments.of(opCode, args));
         }
+        arguments.add(Arguments.of(opCode, args));
       }
     }
 

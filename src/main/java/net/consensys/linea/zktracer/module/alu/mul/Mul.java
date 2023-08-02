@@ -23,6 +23,8 @@ import net.consensys.linea.zktracer.module.Module;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.plugin.data.BlockBody;
+import org.hyperledger.besu.plugin.data.BlockHeader;
 
 public class Mul implements Module {
   final Trace.TraceBuilder builder = Trace.builder();
@@ -48,29 +50,34 @@ public class Mul implements Module {
     final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
 
     // argument order is reversed ??
-    final MulData data = new MulData(opCode, arg2, arg1);
+    final MulData data = new MulData(opCode, arg1, arg2);
 
+    stamp++;
     switch (data.getRegime()) {
-      case EXPONENT_ZERO_RESULT -> trace(builder, data);
+      case EXPONENT_ZERO_RESULT -> traceSubOp(builder, data);
 
       case EXPONENT_NON_ZERO_RESULT -> {
         while (data.carryOn()) {
           data.update();
-          trace(builder, data);
+          traceSubOp(builder, data);
         }
       }
 
       case TRIVIAL_MUL, NON_TRIVIAL_MUL -> {
         data.setHsAndBits(UInt256.fromBytes(arg1), UInt256.fromBytes(arg2));
-        trace(builder, data);
+        traceSubOp(builder, data);
       }
 
       default -> throw new RuntimeException("regime not supported");
     }
-    // TODO captureBlockEnd should be called from elsewhere - not within messageFrame
-    //    captureBlockEnd();
+  }
+
+  // TODO: should be traceEndConflation
+  @Override
+  public void traceEndBlock(BlockHeader blockHeader, BlockBody blockBody) {
+    stamp++;
     MulData finalZeroToTheZero = new MulData(OpCode.EXP, Bytes32.ZERO, Bytes32.ZERO);
-    trace(builder, finalZeroToTheZero);
+    traceSubOp(builder, finalZeroToTheZero);
   }
 
   @Override
@@ -78,15 +85,14 @@ public class Mul implements Module {
     return new MulTrace(builder.build(), stamp);
   }
 
-  private void trace(final Trace.TraceBuilder builder, final MulData data) {
-    stamp++;
+  private void traceSubOp(final Trace.TraceBuilder builder, final MulData data) {
 
     for (int ct = 0; ct < data.maxCt(); ct++) {
-      trace(builder, data, ct);
+      traceRow(builder, data, ct);
     }
   }
 
-  private void trace(final Trace.TraceBuilder builder, final MulData data, final int i) {
+  private void traceRow(final Trace.TraceBuilder builder, final MulData data, final int i) {
     builder
         .mulStampArg(stamp)
         .counterArg(i)
@@ -137,7 +143,7 @@ public class Mul implements Module {
         .exponentBitArg(data.exponentBit())
         .exponentBitAccumulatorArg(data.expAcc.toUnsignedBigInteger())
         .exponentBitSourceArg(data.exponentSource())
-        .squareAndMultiplyArg(data.snm)
+        .squareAndMultiplyArg(data.squareAndMultiply)
         .bitNumArg(data.getBitNum());
   }
 }

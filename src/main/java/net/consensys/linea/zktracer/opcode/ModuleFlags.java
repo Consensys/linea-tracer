@@ -12,7 +12,7 @@ public enum ModuleFlags {
   MemoryExpansion,
   Ram,
   Shift,
-  Shaving,
+  Trimming,
   Storage,
   Warmth,
   WordComparison,

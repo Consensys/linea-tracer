@@ -2,14 +2,17 @@ package net.consensys.linea.zktracer.opcode.stack;
 
 public enum Pattern {
   ZeroZero,
-  OneItem,
-  TwoItems,
-  ThreeItems,
+  OneZero,
+  TwoZero,
+  ZeroOne,
+  OneOne,
+  TwoOne,
+  ThreeOne,
+  LoadStore,
   Dup,
   Swap,
-  ReturnReverse,
-  Copy,
   Log,
+  Copy,
   Call,
   Create,
 }

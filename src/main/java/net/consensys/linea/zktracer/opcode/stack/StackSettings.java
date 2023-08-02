@@ -8,6 +8,9 @@ public record StackSettings(
     int nbRemoved,
     int staticGas,
     boolean twoLinesInstruction,
+    boolean staticInstruction,
+    boolean oobFlag,
     boolean flag1,
     boolean flag2,
-    boolean flag3) {}
+    boolean flag3,
+    boolean flag4) {}

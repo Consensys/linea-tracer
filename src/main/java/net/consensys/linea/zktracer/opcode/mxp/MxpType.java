@@ -1,6 +1,7 @@
 package net.consensys.linea.zktracer.opcode.mxp;
 
 public enum MxpType {
+  None,
   Type1,
   Type2,
   Type3,

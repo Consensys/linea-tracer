@@ -97,10 +97,10 @@ record Trace(
     private TraceBuilder() {}
 
     TraceBuilder acc1(final BigInteger b) {
-      if (filled.get(17)) {
+      if (filled.get(18)) {
         throw new IllegalStateException("ACC_1 already set");
       } else {
-        filled.set(17);
+        filled.set(18);
       }
 
       acc1.add(b);
@@ -109,10 +109,10 @@ record Trace(
     }
 
     TraceBuilder acc2(final BigInteger b) {
-      if (filled.get(6)) {
+      if (filled.get(10)) {
         throw new IllegalStateException("ACC_2 already set");
       } else {
-        filled.set(6);
+        filled.set(10);
       }
 
       acc2.add(b);
@@ -121,10 +121,10 @@ record Trace(
     }
 
     TraceBuilder acc3(final BigInteger b) {
-      if (filled.get(15)) {
+      if (filled.get(22)) {
         throw new IllegalStateException("ACC_3 already set");
       } else {
-        filled.set(15);
+        filled.set(22);
       }
 
       acc3.add(b);
@@ -133,10 +133,10 @@ record Trace(
     }
 
     TraceBuilder acc4(final BigInteger b) {
-      if (filled.get(26)) {
+      if (filled.get(4)) {
         throw new IllegalStateException("ACC_4 already set");
       } else {
-        filled.set(26);
+        filled.set(4);
       }
 
       acc4.add(b);
@@ -145,10 +145,10 @@ record Trace(
     }
 
     TraceBuilder acc5(final BigInteger b) {
-      if (filled.get(27)) {
+      if (filled.get(12)) {
         throw new IllegalStateException("ACC_5 already set");
       } else {
-        filled.set(27);
+        filled.set(12);
       }
 
       acc5.add(b);
@@ -169,10 +169,10 @@ record Trace(
     }
 
     TraceBuilder argument1Hi(final BigInteger b) {
-      if (filled.get(25)) {
+      if (filled.get(9)) {
         throw new IllegalStateException("ARGUMENT_1_HI already set");
       } else {
-        filled.set(25);
+        filled.set(9);
       }
 
       argument1Hi.add(b);
@@ -181,10 +181,10 @@ record Trace(
     }
 
     TraceBuilder argument1Lo(final BigInteger b) {
-      if (filled.get(4)) {
+      if (filled.get(7)) {
         throw new IllegalStateException("ARGUMENT_1_LO already set");
       } else {
-        filled.set(4);
+        filled.set(7);
       }
 
       argument1Lo.add(b);
@@ -193,10 +193,10 @@ record Trace(
     }
 
     TraceBuilder argument2Hi(final BigInteger b) {
-      if (filled.get(16)) {
+      if (filled.get(25)) {
         throw new IllegalStateException("ARGUMENT_2_HI already set");
       } else {
-        filled.set(16);
+        filled.set(25);
       }
 
       argument2Hi.add(b);
@@ -205,10 +205,10 @@ record Trace(
     }
 
     TraceBuilder argument2Lo(final BigInteger b) {
-      if (filled.get(1)) {
+      if (filled.get(24)) {
         throw new IllegalStateException("ARGUMENT_2_LO already set");
       } else {
-        filled.set(1);
+        filled.set(24);
       }
 
       argument2Lo.add(b);
@@ -217,10 +217,10 @@ record Trace(
     }
 
     TraceBuilder bits(final Boolean b) {
-      if (filled.get(23)) {
+      if (filled.get(26)) {
         throw new IllegalStateException("BITS already set");
       } else {
-        filled.set(23);
+        filled.set(26);
       }
 
       bits.add(b);
@@ -229,10 +229,10 @@ record Trace(
     }
 
     TraceBuilder bit1(final Boolean b) {
-      if (filled.get(18)) {
+      if (filled.get(8)) {
         throw new IllegalStateException("BIT_1 already set");
       } else {
-        filled.set(18);
+        filled.set(8);
       }
 
       bit1.add(b);
@@ -241,10 +241,10 @@ record Trace(
     }
 
     TraceBuilder bit2(final Boolean b) {
-      if (filled.get(2)) {
+      if (filled.get(15)) {
         throw new IllegalStateException("BIT_2 already set");
       } else {
-        filled.set(2);
+        filled.set(15);
       }
 
       bit2.add(b);
@@ -253,10 +253,10 @@ record Trace(
     }
 
     TraceBuilder bit3(final Boolean b) {
-      if (filled.get(3)) {
+      if (filled.get(20)) {
         throw new IllegalStateException("BIT_3 already set");
       } else {
-        filled.set(3);
+        filled.set(20);
       }
 
       bit3.add(b);
@@ -265,10 +265,10 @@ record Trace(
     }
 
     TraceBuilder bit4(final Boolean b) {
-      if (filled.get(8)) {
+      if (filled.get(5)) {
         throw new IllegalStateException("BIT_4 already set");
       } else {
-        filled.set(8);
+        filled.set(5);
       }
 
       bit4.add(b);
@@ -277,10 +277,10 @@ record Trace(
     }
 
     TraceBuilder byte1(final UnsignedByte b) {
-      if (filled.get(12)) {
+      if (filled.get(28)) {
         throw new IllegalStateException("BYTE_1 already set");
       } else {
-        filled.set(12);
+        filled.set(28);
       }
 
       byte1.add(b);
@@ -289,10 +289,10 @@ record Trace(
     }
 
     TraceBuilder byte2(final UnsignedByte b) {
-      if (filled.get(10)) {
+      if (filled.get(27)) {
         throw new IllegalStateException("BYTE_2 already set");
       } else {
-        filled.set(10);
+        filled.set(27);
       }
 
       byte2.add(b);
@@ -313,10 +313,10 @@ record Trace(
     }
 
     TraceBuilder byte4(final UnsignedByte b) {
-      if (filled.get(19)) {
+      if (filled.get(3)) {
         throw new IllegalStateException("BYTE_4 already set");
       } else {
-        filled.set(19);
+        filled.set(3);
       }
 
       byte4.add(b);
@@ -325,10 +325,10 @@ record Trace(
     }
 
     TraceBuilder byte5(final UnsignedByte b) {
-      if (filled.get(5)) {
+      if (filled.get(23)) {
         throw new IllegalStateException("BYTE_5 already set");
       } else {
-        filled.set(5);
+        filled.set(23);
       }
 
       byte5.add(b);
@@ -337,10 +337,10 @@ record Trace(
     }
 
     TraceBuilder byte6(final UnsignedByte b) {
-      if (filled.get(9)) {
+      if (filled.get(17)) {
         throw new IllegalStateException("BYTE_6 already set");
       } else {
-        filled.set(9);
+        filled.set(17);
       }
 
       byte6.add(b);
@@ -349,10 +349,10 @@ record Trace(
     }
 
     TraceBuilder counter(final BigInteger b) {
-      if (filled.get(7)) {
+      if (filled.get(14)) {
         throw new IllegalStateException("COUNTER already set");
       } else {
-        filled.set(7);
+        filled.set(14);
       }
 
       counter.add(b);
@@ -361,10 +361,10 @@ record Trace(
     }
 
     TraceBuilder inst(final BigInteger b) {
-      if (filled.get(21)) {
+      if (filled.get(6)) {
         throw new IllegalStateException("INST already set");
       } else {
-        filled.set(21);
+        filled.set(6);
       }
 
       inst.add(b);
@@ -373,10 +373,10 @@ record Trace(
     }
 
     TraceBuilder neg1(final Boolean b) {
-      if (filled.get(24)) {
+      if (filled.get(1)) {
         throw new IllegalStateException("NEG_1 already set");
       } else {
-        filled.set(24);
+        filled.set(1);
       }
 
       neg1.add(b);
@@ -385,10 +385,10 @@ record Trace(
     }
 
     TraceBuilder neg2(final Boolean b) {
-      if (filled.get(22)) {
+      if (filled.get(19)) {
         throw new IllegalStateException("NEG_2 already set");
       } else {
-        filled.set(22);
+        filled.set(19);
       }
 
       neg2.add(b);
@@ -397,10 +397,10 @@ record Trace(
     }
 
     TraceBuilder oneLineInstruction(final Boolean b) {
-      if (filled.get(0)) {
+      if (filled.get(21)) {
         throw new IllegalStateException("ONE_LINE_INSTRUCTION already set");
       } else {
-        filled.set(0);
+        filled.set(21);
       }
 
       oneLineInstruction.add(b);
@@ -409,10 +409,10 @@ record Trace(
     }
 
     TraceBuilder resultHi(final BigInteger b) {
-      if (filled.get(14)) {
+      if (filled.get(16)) {
         throw new IllegalStateException("RESULT_HI already set");
       } else {
-        filled.set(14);
+        filled.set(16);
       }
 
       resultHi.add(b);
@@ -421,10 +421,10 @@ record Trace(
     }
 
     TraceBuilder resultLo(final BigInteger b) {
-      if (filled.get(20)) {
+      if (filled.get(0)) {
         throw new IllegalStateException("RESULT_LO already set");
       } else {
-        filled.set(20);
+        filled.set(0);
       }
 
       resultLo.add(b);
@@ -433,10 +433,10 @@ record Trace(
     }
 
     TraceBuilder wordComparisonStamp(final BigInteger b) {
-      if (filled.get(28)) {
+      if (filled.get(2)) {
         throw new IllegalStateException("WORD_COMPARISON_STAMP already set");
       } else {
-        filled.set(28);
+        filled.set(2);
       }
 
       wordComparisonStamp.add(b);
@@ -793,23 +793,23 @@ record Trace(
     }
 
     TraceBuilder validateRow() {
-      if (!filled.get(17)) {
+      if (!filled.get(18)) {
         throw new IllegalStateException("ACC_1 has not been filled");
       }
 
-      if (!filled.get(6)) {
+      if (!filled.get(10)) {
         throw new IllegalStateException("ACC_2 has not been filled");
       }
 
-      if (!filled.get(15)) {
+      if (!filled.get(22)) {
         throw new IllegalStateException("ACC_3 has not been filled");
       }
 
-      if (!filled.get(26)) {
+      if (!filled.get(4)) {
         throw new IllegalStateException("ACC_4 has not been filled");
       }
 
-      if (!filled.get(27)) {
+      if (!filled.get(12)) {
         throw new IllegalStateException("ACC_5 has not been filled");
       }
 
@@ -817,47 +817,47 @@ record Trace(
         throw new IllegalStateException("ACC_6 has not been filled");
       }
 
-      if (!filled.get(25)) {
+      if (!filled.get(9)) {
         throw new IllegalStateException("ARGUMENT_1_HI has not been filled");
       }
 
-      if (!filled.get(4)) {
+      if (!filled.get(7)) {
         throw new IllegalStateException("ARGUMENT_1_LO has not been filled");
       }
 
-      if (!filled.get(16)) {
+      if (!filled.get(25)) {
         throw new IllegalStateException("ARGUMENT_2_HI has not been filled");
       }
 
-      if (!filled.get(1)) {
+      if (!filled.get(24)) {
         throw new IllegalStateException("ARGUMENT_2_LO has not been filled");
       }
 
-      if (!filled.get(18)) {
+      if (!filled.get(8)) {
         throw new IllegalStateException("BIT_1 has not been filled");
       }
 
-      if (!filled.get(2)) {
+      if (!filled.get(15)) {
         throw new IllegalStateException("BIT_2 has not been filled");
       }
 
-      if (!filled.get(3)) {
+      if (!filled.get(20)) {
         throw new IllegalStateException("BIT_3 has not been filled");
       }
 
-      if (!filled.get(8)) {
+      if (!filled.get(5)) {
         throw new IllegalStateException("BIT_4 has not been filled");
       }
 
-      if (!filled.get(23)) {
+      if (!filled.get(26)) {
         throw new IllegalStateException("BITS has not been filled");
       }
 
-      if (!filled.get(12)) {
+      if (!filled.get(28)) {
         throw new IllegalStateException("BYTE_1 has not been filled");
       }
 
-      if (!filled.get(10)) {
+      if (!filled.get(27)) {
         throw new IllegalStateException("BYTE_2 has not been filled");
       }
 
@@ -865,47 +865,47 @@ record Trace(
         throw new IllegalStateException("BYTE_3 has not been filled");
       }
 
-      if (!filled.get(19)) {
+      if (!filled.get(3)) {
         throw new IllegalStateException("BYTE_4 has not been filled");
       }
 
-      if (!filled.get(5)) {
+      if (!filled.get(23)) {
         throw new IllegalStateException("BYTE_5 has not been filled");
       }
 
-      if (!filled.get(9)) {
+      if (!filled.get(17)) {
         throw new IllegalStateException("BYTE_6 has not been filled");
       }
 
-      if (!filled.get(7)) {
+      if (!filled.get(14)) {
         throw new IllegalStateException("COUNTER has not been filled");
       }
 
-      if (!filled.get(21)) {
+      if (!filled.get(6)) {
         throw new IllegalStateException("INST has not been filled");
       }
 
-      if (!filled.get(24)) {
+      if (!filled.get(1)) {
         throw new IllegalStateException("NEG_1 has not been filled");
       }
 
-      if (!filled.get(22)) {
+      if (!filled.get(19)) {
         throw new IllegalStateException("NEG_2 has not been filled");
       }
 
-      if (!filled.get(0)) {
+      if (!filled.get(21)) {
         throw new IllegalStateException("ONE_LINE_INSTRUCTION has not been filled");
       }
 
-      if (!filled.get(14)) {
+      if (!filled.get(16)) {
         throw new IllegalStateException("RESULT_HI has not been filled");
       }
 
-      if (!filled.get(20)) {
+      if (!filled.get(0)) {
         throw new IllegalStateException("RESULT_LO has not been filled");
       }
 
-      if (!filled.get(28)) {
+      if (!filled.get(2)) {
         throw new IllegalStateException("WORD_COMPARISON_STAMP has not been filled");
       }
 
@@ -914,7 +914,11 @@ record Trace(
       return this;
     }
 
-    Trace build() {
+    public Trace build() {
+      if (!filled.isEmpty()) {
+        throw new IllegalStateException("Cannot build trace with a non-validated row.");
+      }
+
       return new Trace(
           acc1,
           acc2,

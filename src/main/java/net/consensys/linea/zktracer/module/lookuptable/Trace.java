@@ -50,10 +50,10 @@ record Trace(
     private TraceBuilder() {}
 
     TraceBuilder byteField(final BigInteger b) {
-      if (filled.get(3)) {
+      if (filled.get(0)) {
         throw new IllegalStateException("BYTE already set");
       } else {
-        filled.set(3);
+        filled.set(0);
       }
 
       byteField.add(b);
@@ -62,10 +62,10 @@ record Trace(
     }
 
     TraceBuilder isInRt(final BigInteger b) {
-      if (filled.get(0)) {
+      if (filled.get(5)) {
         throw new IllegalStateException("IS_IN_RT already set");
       } else {
-        filled.set(0);
+        filled.set(5);
       }
 
       isInRt.add(b);
@@ -74,10 +74,10 @@ record Trace(
     }
 
     TraceBuilder las(final BigInteger b) {
-      if (filled.get(2)) {
+      if (filled.get(1)) {
         throw new IllegalStateException("LAS already set");
       } else {
-        filled.set(2);
+        filled.set(1);
       }
 
       las.add(b);
@@ -86,10 +86,10 @@ record Trace(
     }
 
     TraceBuilder mshp(final BigInteger b) {
-      if (filled.get(1)) {
+      if (filled.get(4)) {
         throw new IllegalStateException("MSHP already set");
       } else {
-        filled.set(1);
+        filled.set(4);
       }
 
       mshp.add(b);
@@ -98,10 +98,10 @@ record Trace(
     }
 
     TraceBuilder ones(final BigInteger b) {
-      if (filled.get(5)) {
+      if (filled.get(3)) {
         throw new IllegalStateException("ONES already set");
       } else {
-        filled.set(5);
+        filled.set(3);
       }
 
       ones.add(b);
@@ -110,10 +110,10 @@ record Trace(
     }
 
     TraceBuilder rap(final BigInteger b) {
-      if (filled.get(4)) {
+      if (filled.get(2)) {
         throw new IllegalStateException("RAP already set");
       } else {
-        filled.set(4);
+        filled.set(2);
       }
 
       rap.add(b);
@@ -194,27 +194,27 @@ record Trace(
     }
 
     TraceBuilder validateRow() {
-      if (!filled.get(3)) {
+      if (!filled.get(0)) {
         throw new IllegalStateException("BYTE has not been filled");
       }
 
-      if (!filled.get(0)) {
+      if (!filled.get(5)) {
         throw new IllegalStateException("IS_IN_RT has not been filled");
       }
 
-      if (!filled.get(2)) {
+      if (!filled.get(1)) {
         throw new IllegalStateException("LAS has not been filled");
       }
 
-      if (!filled.get(1)) {
+      if (!filled.get(4)) {
         throw new IllegalStateException("MSHP has not been filled");
       }
 
-      if (!filled.get(5)) {
+      if (!filled.get(3)) {
         throw new IllegalStateException("ONES has not been filled");
       }
 
-      if (!filled.get(4)) {
+      if (!filled.get(2)) {
         throw new IllegalStateException("RAP has not been filled");
       }
 
@@ -223,7 +223,11 @@ record Trace(
       return this;
     }
 
-    Trace build() {
+    public Trace build() {
+      if (!filled.isEmpty()) {
+        throw new IllegalStateException("Cannot build trace with a non-validated row.");
+      }
+
       return new Trace(byteField, isInRt, las, mshp, ones, rap);
     }
   }

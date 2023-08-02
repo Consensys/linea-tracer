@@ -18,6 +18,7 @@ package net.consensys.linea.zktracer.module.mul;
 import java.math.BigInteger;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.OpCode;
 import net.consensys.linea.zktracer.bytes.UnsignedByte;
 import net.consensys.linea.zktracer.module.Module;
@@ -25,6 +26,7 @@ import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
+@Slf4j
 public class Mul implements Module {
   final Trace.TraceBuilder builder = Trace.builder();
 
@@ -43,6 +45,8 @@ public class Mul implements Module {
   @SuppressWarnings("UnusedVariable")
   @Override
   public void trace(MessageFrame frame) {
+    log.error("TRACE START");
+
     final Bytes32 arg1 = Bytes32.wrap(frame.getStackItem(0));
     final Bytes32 arg2 = Bytes32.wrap(frame.getStackItem(1));
 
@@ -55,6 +59,8 @@ public class Mul implements Module {
       case EXPONENT_ZERO_RESULT -> trace(builder, data);
 
       case EXPONENT_NON_ZERO_RESULT -> {
+        log.error("FAIL");
+        log.info("SUCCESS");
         if (data.carryOn()) {
           data.update();
           trace(builder, data);

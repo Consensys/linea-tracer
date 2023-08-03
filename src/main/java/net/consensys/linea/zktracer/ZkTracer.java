@@ -28,6 +28,7 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 import org.hyperledger.besu.plugin.services.tracer.BlockAwareOperationTracer;
@@ -88,7 +89,19 @@ public class ZkTracer implements BlockAwareOperationTracer {
     }
   }
 
-  // TODO: missing ContextEnter/Exit
+  @Override
+  public void traceContextEnter(final MessageFrame frame) {
+    for (Module module : this.modules) {
+      // TODO
+    }
+  }
+
+  @Override
+  public void traceContextExit(final Operation.OperationResult operationResult) {
+    for (Module module : this.modules) {
+      // TODO
+    }
+  }
 
   @Override
   public void tracePreExecution(final MessageFrame frame) {

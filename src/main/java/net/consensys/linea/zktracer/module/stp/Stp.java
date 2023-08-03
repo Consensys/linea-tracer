@@ -47,6 +47,7 @@ public abstract class Stp implements Module {
     final Bytes32 arg2 = Bytes32.wrap(frame.getStackItem(1));
     final Bytes16 gasHi = Bytes16.wrap(gas.slice(0, 16));
     final Bytes16 gasLo = Bytes16.wrap(gas.slice(16));
+    final Bytes16 arg2Lo = Bytes16.wrap(arg2.slice(16));
     final BigInteger remainingGas = BigInteger.valueOf(frame.getRemainingGas());
     final boolean cctv = isCCTV(opCode);
     final Bytes32 value =
@@ -56,15 +57,23 @@ public abstract class Stp implements Module {
     final boolean call = isCall(opCode);
 
     stamp++;
-    for (int ct = 0; ct < 4; ct++) {
-      boolean modFlag = ct == 1;
+    for (int counter = 0; counter < 4; counter++) {
+      boolean modFlag = counter == 1;
       boolean wcpFlag = !modFlag;
+      OpCode exoInst;
+      exoInst =
+          switch (counter) {
+            case 0, 2 -> OpCode.LT;
+            case 1 -> OpCode.DIV;
+            case 3 -> OpCode.ISZERO;
+            default -> throw new RuntimeException("Stipend module counter misbehaving");
+          };
       builder
           .stamp(BigInteger.valueOf(stamp))
-          .ct(BigInteger.valueOf(ct))
+          .ct(BigInteger.valueOf(counter))
           .inst(BigInteger.valueOf(opCode.value))
           .extType(!isCall(opCode))
-          .cctv(Boolean.valueOf(cctv))
+          .cctv(cctv)
           .gasActl(remainingGas)
           .gasCost(BigInteger.valueOf(0)) // todo
           .gasStpd(BigInteger.valueOf(0)) // todo
@@ -72,12 +81,12 @@ public abstract class Stp implements Module {
           .gasLo(gasLo.toUnsignedBigInteger())
           .valueHi(valueHi.toUnsignedBigInteger())
           .valueLo(valueLo.toUnsignedBigInteger())
-          .wcpFlag(Boolean.valueOf(Boolean.valueOf(wcpFlag)))
-          .modFlag(Boolean.valueOf(Boolean.valueOf(modFlag)))
-          .exoInst(BigInteger.valueOf(0)) // todo
+          .wcpFlag(wcpFlag)
+          .modFlag(modFlag)
+          .exoInst(BigInteger.valueOf(exoInst.value))
           .arg1Hi(BigInteger.valueOf(0)) // todo
           .arg1Lo(BigInteger.valueOf(0)) // todo
-          .arg2Lo(BigInteger.valueOf(0)) // todo
+          .arg2Lo(arg2Lo.toUnsignedBigInteger()) // todo fix
           .zeroConst(BigInteger.valueOf(0));
     }
   }

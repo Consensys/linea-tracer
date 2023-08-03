@@ -20,8 +20,8 @@ public class RlpTxnToTrace {
   public int CODE_FRAGMENT_INDEX;
   public boolean COMP;
   public int COUNTER;
-  public int DATA_HI;
-  public int DATA_LO;
+  public BigInteger DATA_HI;
+  public BigInteger DATA_LO;
   public int DATAGASCOST;
   public boolean DEPTH_1;
   public boolean DEPTH_2;
@@ -53,39 +53,41 @@ public class RlpTxnToTrace {
   public int RLP_LX_BYTESIZE;
   public int TYPE;
 
-  public RlpTxnToTrace PartialReset(
-      RlpTxnToTrace data, int phase, int number_step, boolean LT, boolean LX) {
-    data.phase = phase;
-    data.number_step = number_step;
-    data.LT = LT;
-    data.LX = LX;
+  public void PartialReset(int phase, int number_step, boolean LT, boolean LX) {
+    this.phase = phase;
+    this.number_step = number_step;
+    this.LT = LT;
+    this.LX = LX;
 
     /** Set to default local values */
-    data.LIMB_CONSTRUCTED = false;
-    data.ACC_1 = Bytes.EMPTY;
-    data.ACC_2 = Bytes.EMPTY;
-    data.ACC_BYTESIZE = 0;
-    data.ADDR_HI = Bytes.ofUnsignedShort(0);
-    data.ADDR_LO = Bytes.ofUnsignedShort(0);
-    data.BIT = false;
-    data.BIT_ACC = 0;
-    data.BYTE_1 = 0;
-    data.BYTE_2 = 0;
-    data.COMP = false;
-    data.COUNTER = 0;
-    data.DEPTH_1 = false;
-    data.DEPTH_2 = false;
-    data.end_phase = false;
-    data.INPUT_1 = Bytes.EMPTY;
-    data.INPUT_2 = Bytes.EMPTY;
-    data.is_bytesize = false;
-    data.is_list = false;
-    data.is_padding = false;
-    data.is_prefix = false;
-    data.LIMB = Bytes.EMPTY;
-    data.nBYTES = 0;
-    data.POWER = BigInteger.ZERO;
+    this.LIMB_CONSTRUCTED = false;
+    this.ACC_1 = Bytes.EMPTY;
+    this.ACC_2 = Bytes.EMPTY;
+    this.ACC_BYTESIZE = 0;
+    this.ADDR_HI = Bytes.ofUnsignedShort(0);
+    this.ADDR_LO = Bytes.ofUnsignedShort(0);
+    this.BIT = false;
+    this.BIT_ACC = 0;
+    this.BYTE_1 = 0;
+    this.BYTE_2 = 0;
+    this.COMP = false;
+    this.COUNTER = 0;
+    this.DEPTH_1 = false;
+    this.DEPTH_2 = false;
+    this.end_phase = false;
+    this.INPUT_1 = Bytes.EMPTY;
+    this.INPUT_2 = Bytes.EMPTY;
+    this.is_bytesize = false;
+    this.is_list = false;
+    this.is_padding = false;
+    this.is_prefix = false;
+    this.LIMB = Bytes.EMPTY;
+    this.nBYTES = 0;
+    this.POWER = BigInteger.ZERO;
+  }
 
-    return data;
+  public void DataHiLoReset() {
+    this.DATA_HI = BigInteger.ZERO;
+    this.DATA_LO = BigInteger.ZERO;
   }
 }

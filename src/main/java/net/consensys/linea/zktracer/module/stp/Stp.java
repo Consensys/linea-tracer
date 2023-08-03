@@ -52,6 +52,8 @@ public abstract class Stp implements Module {
 
     stamp++;
     for (int ct = 0; ct < 4; ct++) {
+      boolean modFlag = ct == 1;
+      boolean wcpFlag = !modFlag;
       builder
           .stamp(BigInteger.valueOf(stamp))
           .ct(BigInteger.valueOf(ct))
@@ -65,8 +67,8 @@ public abstract class Stp implements Module {
           .gasLo(gasLo.toUnsignedBigInteger())
           .valueHi(BigInteger.valueOf(0)) // todo
           .valueLo(BigInteger.valueOf(0)) // todo
-          .wcpFlag(Boolean.valueOf(true)) // todo
-          .modFlag(Boolean.valueOf(true)) // todo
+          .wcpFlag(Boolean.valueOf(Boolean.valueOf(wcpFlag)))
+          .modFlag(Boolean.valueOf(Boolean.valueOf(modFlag)))
           .exoInst(BigInteger.valueOf(0)) // todo
           .arg1Hi(BigInteger.valueOf(0)) // todo
           .arg1Lo(BigInteger.valueOf(0)) // todo

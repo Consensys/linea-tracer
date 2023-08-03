@@ -33,15 +33,15 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 
 /** Implementation of a {@link Module} for addition/subtraction. */
 public class RlpTxn implements Module {
-
+  final Trace.TraceBuilder trace = Trace.builder();
   int llarge = Trace.LLARGE.intValue();
   int llargemo = Trace.LLARGEMO.intValue();
   int prefix_short_int = Trace.int_short.intValue();
   int prefix_long_int = Trace.int_long.intValue();
   int prefix_short_list = Trace.list_short.intValue();
   int prefix_long_list = Trace.list_long.intValue();
-  final Trace.TraceBuilder trace = Trace.builder();
 
+  int absolute_transaction_number;
   private Transaction transaction;
 
   @Override
@@ -56,13 +56,21 @@ public class RlpTxn implements Module {
 
   @Override
   public void traceStartBlock(BlockHeader blockHeader, BlockBody blockBody) {
+    absolute_transaction_number += 1;
+
+    /** Rewrite the ABS_TX_NUM_INFINY column with the new absolute_transaction_number*/
+    /** TODO */
 
     RlpTxnToTrace data = new RlpTxnToTrace();
+    data.ABS_TX_NUM = absolute_transaction_number;
+    data.ABS_TX_NUM_INFINY = absolute_transaction_number; /** TODO */
     if (transaction.getType() == TransactionType.FRONTIER) {
       data.TYPE = 0;
     } else {
       data.TYPE = transaction.getType().getSerializedType();
     }
+    data.CODE_FRAGMENT_INDEX = ; /** TODO */
+    data.REQUIRES_EVM_EXECUTION = ; /** TODO */
 
     /** Phase 0 : Golbal RLP prefix */
     data.DATA_LO = BigInteger.valueOf(data.TYPE);
@@ -134,14 +142,19 @@ public class RlpTxn implements Module {
     data = HandlePhaseData(data);
 
     /** Phase 10 : AccessList */
+    data = HandlePhaseAccessList(data);
 
     /** Phase 11 : Beta / w */
+    data = HandlePhaseBeta(data);
 
     /** Phase 12 : y */
+    data = HandlePhaseY(data);
 
     /** Phase 13 : r */
+    data = Handle32BytesInteger(data, 13, transaction.getR());
 
     /** Phase 14 : s */
+    data = Handle32BytesInteger(data, 14, transaction.getS());
   }
 
   /** Define each phase's constraints */
@@ -378,6 +391,81 @@ public class RlpTxn implements Module {
     return traceData;
   }
 
+  private RlpTxnToTrace HandlePhaseAccessList(RlpTxnToTrace data){
+    int phase = 10;
+    boolean lt = true;
+    boolean lx = true;
+
+    /** Initialise data */
+    int nbAddr = 0;
+    int nbSto = 0;
+    int[] nbStoPerAddrList ;
+    int[] accessTupleByteSizeList ;
+
+
+
+
+    return data;
+  }
+
+  private RlpTxnToTrace HandlePhaseBeta(RlpTxnToTrace data){
+    int phase = 11;
+    BigInteger V= transaction.getV();
+    /** add check v is a 8 bytes int */
+
+    /** Rlp(w) */
+    boolean isbytesize =false;
+    boolean islist =false;
+    boolean lt = true;
+    boolean lx = false;
+    boolean endphase =false;
+    boolean isprefix = false;
+    boolean depth1 = false;
+    boolean depth2 = false ;
+    data = HandleInt(data, phase, V, 8, isbytesize, islist, lt, lx, endphase, isprefix, depth1, depth2);
+
+    if (V.equals(BigInteger.valueOf(27))||V.equals(BigInteger.valueOf(28))){
+      /** One row of padding */
+      data.PartialReset(phase, 1, lt, lx);
+      data.is_padding=true;
+      data.end_phase=true;
+      data = TraceRow(data);
+    } else {
+      /** RLP(ChainID) then one row of padding */
+      lt = false;
+      lx =true;
+      data = HandleInt(data, phase, transaction.getChainId().get(), 8, isbytesize, islist, lt, lx, endphase,
+        isprefix, depth1, depth2);
+
+      data.PartialReset(phase, 1, lt, lx);
+      data.LIMB_CONSTRUCTED=true;
+      data.LIMB=Bytes.ofUnsignedShort(256*prefix_short_int+prefix_short_int);
+      data.nBYTES=2;
+      data.end_phase=true;
+      data = TraceRow(data);
+    }
+    return data;
+  }
+
+  private RlpTxnToTrace HandlePhaseY(RlpTxnToTrace data){
+    int phase = 12;
+    boolean lt = true;
+    boolean lx = false;
+    BigInteger y = transaction.getV();
+
+    if (y.equals(BigInteger.ZERO)){
+      data.PartialReset(phase, 1, lt, lx);
+      data.LIMB_CONSTRUCTED=true;
+      data.LIMB=Bytes.ofUnsignedShort(prefix_short_int);
+      data.nBYTES=1;
+      data.end_phase=true;
+      data = TraceRow(data);
+    }  else {
+      data = HandleInt(data, phase, y, 8, false, false, lt, lx, true, false, false, false);
+    }
+    return data;
+  }
+
   /** Define the constraint patterns functions */
   private RlpTxnToTrace HandleInt(
       RlpTxnToTrace data,
@@ -428,8 +516,8 @@ public class RlpTxn implements Module {
       } else {
         acc2LastRowValue = BigInteger.valueOf(55).subtract(input);
       }
-      Byte[] acc2LastRowBytes = ArrayUtils.toObject(acc2LastRowValue.toByteArray());
-      /** TODO : give the good size and format for acc2LastRowBytes (we want Bytes) */
+      Bytes acc2LastRowBytes = Bytes.wrap(acc2LastRowValue.toByteArray());
+      acc2LastRowBytes.shiftLeft(8*(nb_step-acc2LastRowBytes.size()));
 
       /** Compute the bit decomposition of the last input's byte */
       Byte lastByte = inputByte.get(inputByteLen - 1);
@@ -497,10 +585,10 @@ public class RlpTxn implements Module {
               data.nBYTES = inputByteLen;
             } else {
               if (!data.is_list) {
-                data.LIMB = input.add(BigInteger.valueOf(prefix_short_int)).toByteArray();
+                data.LIMB = Bytes.wrap(input.add(BigInteger.valueOf(prefix_short_int)).toByteArray());
                 data.nBYTES = 1;
               } else {
-                data.LIMB = input.add(BigInteger.valueOf(prefix_short_list)).toByteArray();
+                data.LIMB = Bytes.wrap(input.add(BigInteger.valueOf(prefix_short_list)).toByteArray());
                 data.nBYTES = 1;
               }
             }
@@ -524,7 +612,8 @@ public class RlpTxn implements Module {
       data = TraceRow(data);
     } else {
       /** General case */
-      Bytes32 inputByte = Bytes32.fromHexString(input);
+
+      Bytes32 inputByte = Bytes32.wrap(input.toByteArray());
       /** TODO make it a 32 byte */
       int inputLen = inputByte.size();
       /** TODO have the bytesize of the input before left padding */
@@ -678,20 +767,21 @@ public class RlpTxn implements Module {
     int input = inputByte.intValue();
 
     int bitAcc = 0;
-    int bitDec = 0;
+    boolean bitDec = false;
     double div = 0;
 
     for (int i = 7; i >= 0; i--) {
       div = Math.pow(2, i);
+      bitAcc *= 2;
 
       if (input >= div) {
-        bitDec = 1;
+        bitDec = true;
+        bitAcc +=1;
         input -= div;
       } else {
-        bitDec = 0;
+        bitDec = false;
       }
 
-      bitAcc = 2 * bitAcc + bitDec;
       output.BitDecList.set(nb_step - i - 1, bitDec);
       output.BitAccList.set(nb_step - i - 1, bitAcc);
     }
@@ -772,7 +862,6 @@ public class RlpTxn implements Module {
 
   /** Define the Tracer */
   private RlpTxnToTrace TraceRow(RlpTxnToTrace data) {
-
     /** Decrements RLP_BYTESIZE */
     if (data.phase != 0) {
       if (data.LIMB_CONSTRUCTED && data.LT) {
@@ -811,8 +900,8 @@ public class RlpTxn implements Module {
         .codeFragmentIndex(BigInteger.valueOf(data.CODE_FRAGMENT_INDEX))
         .comp(data.COMP)
         .counter(BigInteger.valueOf(data.COUNTER))
-        .dataHi(BigInteger.valueOf(data.DATA_HI))
-        .dataLo(BigInteger.valueOf(data.DATA_LO))
+        .dataHi(data.DATA_HI)
+        .dataLo(data.DATA_LO)
         .datagascost(BigInteger.valueOf(data.DATAGASCOST))
         .depth1(data.DEPTH_1)
         .depth2(data.DEPTH_2);
@@ -832,8 +921,7 @@ public class RlpTxn implements Module {
         .isList(data.is_list)
         .isPadding(data.is_padding)
         .isPrefix(data.is_prefix)
-        .limb(data.LIMB)
-        /** TODO make the left padding here */
+        .limb(data.LIMB.shiftLeft(8*(llarge-data.nBYTES)))
         .limbConstructed(data.LIMB_CONSTRUCTED)
         .lt(data.LT)
         .lx(data.LX)
@@ -842,8 +930,7 @@ public class RlpTxn implements Module {
         .nbSto(BigInteger.valueOf(data.nb_Sto))
         .nbStoPerAddr(BigInteger.valueOf(data.nb_Sto_per_Addr))
         .numberStep(UnsignedByte.of(data.number_step));
-
-    /** list phase */
+    /** TODO list phase */
     this.trace
         .phaseBytesize(BigInteger.valueOf(data.PHASE_BYTESIZE))
         .power(data.POWER)

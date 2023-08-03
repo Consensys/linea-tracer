@@ -21,6 +21,7 @@ import java.util.List;
 import net.consensys.linea.zktracer.OpCode;
 import net.consensys.linea.zktracer.bytes.Bytes16;
 import net.consensys.linea.zktracer.module.Module;
+import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
@@ -47,8 +48,12 @@ public abstract class Stp implements Module {
     final Bytes16 gasHi = Bytes16.wrap(gas.slice(0, 16));
     final Bytes16 gasLo = Bytes16.wrap(gas.slice(16));
     final BigInteger remainingGas = BigInteger.valueOf(frame.getRemainingGas());
-    boolean cctv = isCCTV(opCode);
-    boolean call = isCall(opCode);
+    final boolean cctv = isCCTV(opCode);
+    final Bytes32 value =
+        cctv ? Bytes32.wrap(frame.getStackItem(2)) : Bytes32.wrap(Bytes.ofUnsignedShort(0));
+    final Bytes16 valueHi = Bytes16.wrap(value.slice(0, 16));
+    final Bytes16 valueLo = Bytes16.wrap(value.slice(16));
+    final boolean call = isCall(opCode);
 
     stamp++;
     for (int ct = 0; ct < 4; ct++) {
@@ -65,8 +70,8 @@ public abstract class Stp implements Module {
           .gasStpd(BigInteger.valueOf(0)) // todo
           .gasHi(gasHi.toUnsignedBigInteger())
           .gasLo(gasLo.toUnsignedBigInteger())
-          .valueHi(BigInteger.valueOf(0)) // todo
-          .valueLo(BigInteger.valueOf(0)) // todo
+          .valueHi(valueHi.toUnsignedBigInteger())
+          .valueLo(valueLo.toUnsignedBigInteger())
           .wcpFlag(Boolean.valueOf(Boolean.valueOf(wcpFlag)))
           .modFlag(Boolean.valueOf(Boolean.valueOf(modFlag)))
           .exoInst(BigInteger.valueOf(0)) // todo
@@ -83,6 +88,8 @@ public abstract class Stp implements Module {
       case CALLCODE -> true;
       case DELEGATECALL -> false;
       case STATICCALL -> false;
+      case CREATE -> false;
+      case CREATE2 -> false;
       default -> throw new RuntimeException("Stipend module was given the wrong opcode");
     };
   }

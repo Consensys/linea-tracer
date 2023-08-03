@@ -72,8 +72,8 @@ public abstract class Stp implements Module {
           .exoInst(BigInteger.valueOf(0)) // todo
           .arg1Hi(BigInteger.valueOf(0)) // todo
           .arg1Lo(BigInteger.valueOf(0)) // todo
-          .arg2Lo(BigInteger.valueOf(0)) // todo;
-      ;
+          .arg2Lo(BigInteger.valueOf(0)) // todo
+          .zeroConst(BigInteger.valueOf(0));
     }
   }
 

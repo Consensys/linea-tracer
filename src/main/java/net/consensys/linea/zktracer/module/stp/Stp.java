@@ -62,10 +62,31 @@ public abstract class Stp implements Module {
     } else if (op instanceof StaticCallOperation staticCallOperation) {
       cost = staticCallOperation.cost(frame);
     } else {
-      throw new RuntimeException("Neither call nor create in cost stipend calculation");
+      throw new RuntimeException("Neither call nor create in cost calculation");
     }
 
     return cost;
+  }
+
+  private long fetchStpd(MessageFrame frame, Operation op) {
+    long stpd;
+    if (op instanceof CreateOperation createOperation) {
+      stpd = createOperation.cost(frame);
+    } else if (op instanceof Create2Operation create2Operation) {
+      stpd = create2Operation.cost(frame);
+    } else if (op instanceof CallOperation callOperation) {
+      stpd = callOperation.gasAvailableForChildCall(frame);
+    } else if (op instanceof CallCodeOperation callCodeOperation) {
+      stpd = callCodeOperation.gasAvailableForChildCall(frame);
+    } else if (op instanceof DelegateCallOperation delegateCallOperation) {
+      stpd = delegateCallOperation.gasAvailableForChildCall(frame);
+    } else if (op instanceof StaticCallOperation staticCallOperation) {
+      stpd = staticCallOperation.gasAvailableForChildCall(frame);
+    } else {
+      throw new RuntimeException("Neither call nor create in stipend calculation");
+    }
+
+    return stpd;
   }
 
   BigInteger one64thFloorSub(BigInteger remainingGas, long gasCost) {
@@ -135,7 +156,7 @@ public abstract class Stp implements Module {
           .cctv(cctv)
           .gasActl(remainingGas)
           .gasCost(BigInteger.valueOf(gasCost))
-          .gasStpd(BigInteger.valueOf(0)) // todo
+          .gasStpd(BigInteger.valueOf(fetchStpd(frame, op)))
           .gasHi(gasHi.toUnsignedBigInteger())
           .gasLo(gasLo.toUnsignedBigInteger())
           .valueHi(valueHi.toUnsignedBigInteger())

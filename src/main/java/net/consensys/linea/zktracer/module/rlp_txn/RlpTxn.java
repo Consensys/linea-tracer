@@ -16,7 +16,9 @@
 package net.consensys.linea.zktracer.module.rlp_txn;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 import net.consensys.linea.zktracer.OpCode;
 import net.consensys.linea.zktracer.bytes.UnsignedByte;
@@ -34,12 +36,12 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 /** Implementation of a {@link Module} for addition/subtraction. */
 public class RlpTxn implements Module {
   final Trace.TraceBuilder trace = Trace.builder();
-  int llarge = Trace.LLARGE.intValue();
-  int llargemo = Trace.LLARGEMO.intValue();
-  int prefix_short_int = Trace.int_short.intValue();
-  int prefix_long_int = Trace.int_long.intValue();
-  int prefix_short_list = Trace.list_short.intValue();
-  int prefix_long_list = Trace.list_long.intValue();
+  int llarge = TxnrlpTrace.LLARGE.intValue();
+  int llargemo = TxnrlpTrace.LLARGEMO.intValue();
+  int prefix_short_int = TxnrlpTrace.int_short.intValue();
+  int prefix_long_int = TxnrlpTrace.int_long.intValue();
+  int prefix_short_list = TxnrlpTrace.list_short.intValue();
+  int prefix_long_list = TxnrlpTrace.list_long.intValue();
 
   int absolute_transaction_number;
   private Transaction transaction;
@@ -58,19 +60,27 @@ public class RlpTxn implements Module {
   public void traceStartBlock(BlockHeader blockHeader, BlockBody blockBody) {
     absolute_transaction_number += 1;
 
-    /** Rewrite the ABS_TX_NUM_INFINY column with the new absolute_transaction_number*/
-    /** TODO */
-
+    /** Specify transaction constant columns */
     RlpTxnToTrace data = new RlpTxnToTrace();
     data.ABS_TX_NUM = absolute_transaction_number;
-    data.ABS_TX_NUM_INFINY = absolute_transaction_number; /** TODO */
+    data.ABS_TX_NUM_INFINY = absolute_transaction_number;
     if (transaction.getType() == TransactionType.FRONTIER) {
       data.TYPE = 0;
     } else {
       data.TYPE = transaction.getType().getSerializedType();
     }
-    data.CODE_FRAGMENT_INDEX = ; /** TODO */
-    data.REQUIRES_EVM_EXECUTION = ; /** TODO */
+    /** data.CODE_FRAGMENT_INDEX = ; TODO */
+
+    /** RREQUIRES_EVM_EXECUTION is set to true in case of a non-empty initcode for contract creation, and non-empty
+     * code for message call*/
+    if (transaction.getTo().isEmpty() && transaction.getData().isPresent() /** && TODO non empty msg call*/){
+      data.REQUIRES_EVM_EXECUTION=true;
+    }
+
+    /** Rewrite the ABS_TX_NUM_INFINY column with the new absolute_transaction_number*/
+    for (int i =0; i<this.trace.size();i++){
+        this.trace.setAbsTxNumInfinyAt(BigInteger.valueOf(data.ABS_TX_NUM_INFINY),i);
+    }
 
     /** Phase 0 : Golbal RLP prefix */
     data.DATA_LO = BigInteger.valueOf(data.TYPE);
@@ -143,6 +153,7 @@ public class RlpTxn implements Module {
 
     /** Phase 10 : AccessList */
     data = HandlePhaseAccessList(data);
+    /** TODO add check on nullity of accesstuplebytesize, nbaddr, nbsto, nbstoperaddr ?*/
 
     /** Phase 11 : Beta / w */
     data = HandlePhaseBeta(data);
@@ -292,9 +303,9 @@ public class RlpTxn implements Module {
       traceData.PHASE_BYTESIZE = data.size();
       for (int i = 0; i < traceData.PHASE_BYTESIZE; i++) {
         if (data.get(i) == 0) {
-          traceData.DATAGASCOST += Trace.G_txdatazero.intValue();
+          traceData.DATAGASCOST += TxnrlpTrace.G_txdatazero.intValue();
         } else {
-          traceData.DATAGASCOST += Trace.G_txdatanonzero.intValue();
+          traceData.DATAGASCOST += TxnrlpTrace.G_txdatanonzero.intValue();
         }
       }
       traceData.DATA_HI = BigInteger.valueOf(traceData.DATAGASCOST);
@@ -396,15 +407,95 @@ public class RlpTxn implements Module {
     boolean lt = true;
     boolean lx = true;
 
-    /** Initialise data */
-    int nbAddr = 0;
-    int nbSto = 0;
-    int[] nbStoPerAddrList ;
-    int[] accessTupleByteSizeList ;
+    /** Trivial case */
+    if (transaction.AccessList.isEmpty()){
+      data.PartialReset(phase, 1, lt, lx);
+      data.LIMB_CONSTRUCTED=true;
+      data.LIMB=Bytes.ofUnsignedShort(prefix_short_list);
+      data.nBYTES=1;
+      data.is_bytesize=true;
+      data.is_list=true;
+      data.is_prefix=true;
+      data.end_phase=true;
+      data = TraceRow(data);
+
+    } else {
+      /** Initialise data */
+      int nbAddr = 0;
+      int nbSto = 0;
+      List<Integer> nbStoPerAddrList = new ArrayList<>();
+      List<Integer> accessTupleByteSizeList = new ArrayList<>();
+      int phaseByteSize =0;
+      /** TODO finalise initialisation*/
+
+      data.PartialReset(phase, 0, lt, lx);
+      data.nb_Addr=nbAddr;
+      data.DATA_LO=BigInteger.valueOf(nbAddr);
+      data.nb_Sto=nbSto;
+      data.DATA_HI=BigInteger.valueOf(nbSto);
+      data.PHASE_BYTESIZE=phaseByteSize;
 
 
+      /** Trace */
+      /** Trace RLP(Phase Byte Size) */
+      int numberstep = 8;
+      boolean isbytesize = true;
+      boolean islist = true;
+      boolean endphase = false;
+      boolean isprefix = true;
+      boolean depth1 = false;
+      boolean depth2 = false;
+      data = HandleInt(data, phase, BigInteger.valueOf(data.PHASE_BYTESIZE), numberstep, isbytesize, islist, lt, lx,
+        endphase, isprefix, depth1, depth2);
 
+      /** Loop Over AccessTuple */
+      for (int i=0; i<nbAddr;i++){
 
+        /** Update columns at the begining of an AccessTuple entry */
+        data.nb_Addr -= 1;
+        data.nb_Sto_per_Addr=nbStoPerAddrList.get(i);
+        /** TODO data.ADDR_HI */
+        /** TODO data.ADDR_LO */
+        data.ACCESS_TUPLE_BYTESIZE = accessTupleByteSizeList.get(i);
+
+        /** Rlp(AccessTupleByteSize) */
+        numberstep = 8;
+        isbytesize = true;
+        islist = true;
+        endphase=false;
+        isprefix=true;
+        depth1=true;
+        depth2=false;
+        data = HandleInt(data, phase, BigInteger.valueOf(data.ACCESS_TUPLE_BYTESIZE), numberstep, isbytesize, islist,
+          lt, lx, endphase, isprefix, depth1,depth2);
+
+        /** RLP (address) */
+        data = HandleAddress(data, phase, address);
+
+        /** Rlp prefix of the list of storage key */
+        if (nbStoPerAddrList.get(i)==0){
+          numberstep=1;
+        } else{
+          numberstep=8;
+        }
+        isbytesize = true;
+        islist = true;
+        endphase = data.nb_Sto==0;
+        isprefix=true;
+        depth1=true;
+        depth2=true;
+        data = HandleInt(data, phase, BigInteger.valueOf(data.ACCESS_TUPLE_BYTESIZE), numberstep, isbytesize, islist,
+          lt, lx, endphase, isprefix, depth1, depth2);
+
+        /** Loop over StorageKey */
+        for (int j=0; j<nbStoPerAddrList.get(i); j++){
+          data.nb_Sto-=1;
+          data.nb_Sto_per_Addr-=1;
+          endphase = data.nb_Sto==0;
+          data = HandleStorageKey(data, endphase, StorageKey);
+        }
+      }
+    }
     return data;
   }
 
@@ -823,7 +914,7 @@ public class RlpTxn implements Module {
   }
 
   private int OuterRlpSize(int inputSize) {
-    /** Returns the size of RLP(something) where something is of size inputSize (>1). */
+    /** Returns the size of RLP(something) where something is of size inputSize (!=1). */
     int rlpSize = inputSize;
     if (inputSize == 1) {
       /** TODO panic */
@@ -930,7 +1021,26 @@ public class RlpTxn implements Module {
         .nbSto(BigInteger.valueOf(data.nb_Sto))
         .nbStoPerAddr(BigInteger.valueOf(data.nb_Sto_per_Addr))
         .numberStep(UnsignedByte.of(data.number_step));
-    /** TODO list phase */
+    List<Function<Boolean, Trace.TraceBuilder>> phaseColumns =
+        List.of(
+            this.trace::phase0,
+            this.trace::phase1,
+            this.trace::phase2,
+            this.trace::phase3,
+            this.trace::phase4,
+            this.trace::phase5,
+            this.trace::phase6,
+            this.trace::phase7,
+            this.trace::phase8,
+            this.trace::phase9,
+            this.trace::phase10,
+            this.trace::phase11,
+            this.trace::phase12,
+            this.trace::phase13,
+            this.trace::phase14);
+for(int i = 0; i < phaseColumns.size(); i++) {
+  phaseColumns.get(i).apply(i == data.phase);
+}
     this.trace
         .phaseBytesize(BigInteger.valueOf(data.PHASE_BYTESIZE))
         .power(data.POWER)
@@ -958,9 +1068,9 @@ public class RlpTxn implements Module {
       if (data.PHASE_BYTESIZE != 0 && !data.is_prefix) {
         data.PHASE_BYTESIZE -= 1;
         if (data.BYTE_1 == 0) {
-          data.DATAGASCOST -= Trace.G_txdatanonzero.intValue();
+          data.DATAGASCOST -= TxnrlpTrace.G_txdatazero.intValue();
         } else {
-          data.DATAGASCOST -= Trace.G_txdatazero.intValue();
+          data.DATAGASCOST -= TxnrlpTrace.G_txdatanonzero.intValue();
         }
       }
     }

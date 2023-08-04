@@ -21,6 +21,7 @@ import java.util.List;
 import net.consensys.linea.zktracer.OpCode;
 import net.consensys.linea.zktracer.bytes.Bytes16;
 import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -34,6 +35,13 @@ public abstract class Stp implements Module {
   }
 
   private int stamp = 0;
+
+  private final Wcp wcpModule;
+
+  public Stp(Wcp wcpModule) {
+    super();
+    this.wcpModule = wcpModule;
+  }
 
   public List<OpCode> supportedOpCodes() {
     return List.of(
@@ -103,6 +111,7 @@ public abstract class Stp implements Module {
     final Bytes16 gasHi = Bytes16.wrap(gas.slice(0, 16));
     final Bytes16 gasLo = Bytes16.wrap(gas.slice(16));
     final Bytes16 arg2Lo = Bytes16.wrap(arg2.slice(16));
+    final long remainingGas1 = frame.getRemainingGas();
     final BigInteger remainingGas = BigInteger.valueOf(frame.getRemainingGas());
     final long gasCost = fetchCost(frame, op);
     final boolean cctv = isCCTV(opCode);
@@ -148,6 +157,29 @@ public abstract class Stp implements Module {
             case 3 -> valueLo.toUnsignedBigInteger();
             default -> throw new RuntimeException("Stipend module counter misbehaving");
           };
+      if (wcpFlag) {
+        switch (exoInst) {
+          case LT -> {
+            if (counter == 0) {
+              wcpModule.callLT(
+                  Bytes32.wrap(Bytes.ofUnsignedInt(remainingGas1)),
+                  Bytes32.wrap(Bytes.ofUnsignedInt(gasCost)));
+            } else {
+              // (remainingGas - gasCost) - (remainingGas - GasCost)/64
+              Bytes32 interimArg =
+                  Bytes32.wrap(
+                      Bytes.ofUnsignedInt(
+                          remainingGas1 - gasCost - (remainingGas1 - gasCost) / 64));
+              wcpModule.callLT(gas, interimArg);
+            }
+          }
+          case ISZERO -> wcpModule.callISZERO(value);
+          default -> throw new RuntimeException("Stipend module mismatch wcp exoinst");
+        }
+      }
+      if (modFlag) {
+        throw new RuntimeException("DIV call not implemented"); // todo implement div function call
+      }
       builder
           .stamp(BigInteger.valueOf(stamp))
           .ct(BigInteger.valueOf(counter))

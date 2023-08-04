@@ -9,6 +9,7 @@ public record StackSettings(
     int staticGas,
     boolean twoLinesInstruction,
     boolean staticInstruction,
+    boolean addressTrimmingInstruction,
     boolean oobFlag,
     boolean flag1,
     boolean flag2,

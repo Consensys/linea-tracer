@@ -23,15 +23,12 @@ import java.util.function.Function;
 import net.consensys.linea.zktracer.OpCode;
 import net.consensys.linea.zktracer.bytes.UnsignedByte;
 import net.consensys.linea.zktracer.module.Module;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.TransactionType;
-import org.hyperledger.besu.plugin.data.BlockBody;
-import org.hyperledger.besu.plugin.data.BlockHeader;
 
 /** Implementation of a {@link Module} for addition/subtraction. */
 public class RlpTxn implements Module {
@@ -44,7 +41,6 @@ public class RlpTxn implements Module {
   int prefix_long_list = TxnrlpTrace.list_long.intValue();
 
   int absolute_transaction_number;
-  private Transaction transaction;
 
   @Override
   public String jsonKey() {
@@ -57,49 +53,52 @@ public class RlpTxn implements Module {
   }
 
   @Override
-  public void traceStartBlock(BlockHeader blockHeader, BlockBody blockBody) {
-    absolute_transaction_number += 1;
+  public final void traceEndConflation() {
+    /** Rewrite the ABS_TX_NUM_INFINY column with the last absolute_transaction_number*/
+    for (int i =0; i<this.trace.size();i++){
+      this.trace.setAbsTxNumInfinyAt(BigInteger.valueOf(this.absolute_transaction_number),i);
+    }
+  }
+
+  @Override
+  public void traceStartTx(Transaction tx) {
+    this.absolute_transaction_number += 1;
 
     /** Specify transaction constant columns */
     RlpTxnToTrace data = new RlpTxnToTrace();
     data.ABS_TX_NUM = absolute_transaction_number;
     data.ABS_TX_NUM_INFINY = absolute_transaction_number;
-    if (transaction.getType() == TransactionType.FRONTIER) {
+    if (tx.getType() == TransactionType.FRONTIER) {
       data.TYPE = 0;
     } else {
-      data.TYPE = transaction.getType().getSerializedType();
+      data.TYPE = tx.getType().getSerializedType();
     }
-    /** data.CODE_FRAGMENT_INDEX = ; TODO */
+    data.CODE_FRAGMENT_INDEX = data.ABS_TX_NUM; /** TODO */
 
     /** RREQUIRES_EVM_EXECUTION is set to true in case of a non-empty initcode for contract creation, and non-empty
      * code for message call*/
-    if (transaction.getTo().isEmpty() && transaction.getData().isPresent() /** && TODO non empty msg call*/){
+    if (tx.getTo().isEmpty() && tx.getData().isPresent() /** && TODO non empty msg call*/){
       data.REQUIRES_EVM_EXECUTION=true;
-    }
-
-    /** Rewrite the ABS_TX_NUM_INFINY column with the new absolute_transaction_number*/
-    for (int i =0; i<this.trace.size();i++){
-        this.trace.setAbsTxNumInfinyAt(BigInteger.valueOf(data.ABS_TX_NUM_INFINY),i);
     }
 
     /** Phase 0 : Golbal RLP prefix */
     data.DATA_LO = BigInteger.valueOf(data.TYPE);
-    /** TODO */
+    data = HandlePhaseGlobalRlpPrefix(data);
 
     /** Phase 1 : ChainId */
     if (data.TYPE == 1 || data.TYPE == 2) {
       /** TODO check that chainID is an 8 bytes int */
-      data = HandlePhaseInteger(data, 1, transaction.getChainId().get(), 8, true, true);
+      data = HandlePhaseInteger(data, 1, tx.getChainId().get(), 8, true, true);
     }
 
     /** Phase 2 : Nonce */
-    BigInteger nonce = BigInteger.valueOf(transaction.getNonce());
+    BigInteger nonce = BigInteger.valueOf(tx.getNonce());
     data.DATA_LO = nonce;
     data = HandlePhaseInteger(data, 2, nonce, 8, true, true);
 
     /** Phase 3 : GasPrice */
     if (data.TYPE == 0 || data.TYPE == 1) {
-      BigInteger gasPrice = transaction.getGasPrice().get().getAsBigInteger();
+      BigInteger gasPrice = tx.getGasPrice().get().getAsBigInteger();
       /** TODO check that gasPrice is an 8 bytes int */
       data.DATA_LO = gasPrice;
       data = HandlePhaseInteger(data, 3, gasPrice, 8, true, true);
@@ -108,7 +107,7 @@ public class RlpTxn implements Module {
     /** Phase 4 : max priority fee per gas (GasTipCap) */
     if (data.TYPE == 2) {
       BigInteger maxPriorityFeePerGas =
-          transaction.getMaxPriorityFeePerGas().get().getAsBigInteger();
+          tx.getMaxPriorityFeePerGas().get().getAsBigInteger();
       data.DATA_HI = maxPriorityFeePerGas;
       /** TODO check that max priority fee per gas is an 8 bytes int */
       data = HandlePhaseInteger(data, 4, maxPriorityFeePerGas, 8, true, true);
@@ -116,32 +115,32 @@ public class RlpTxn implements Module {
 
     /** Phase 5 : max fee per gas (GasFeeCap) */
     if (data.TYPE == 2) {
-      BigInteger maxFeePerGas = transaction.getMaxFeePerGas().get().getAsBigInteger();
+      BigInteger maxFeePerGas = tx.getMaxFeePerGas().get().getAsBigInteger();
       /** TODO check that max fee per gas is an 8 bytes int */
       data.DATA_LO = maxFeePerGas;
       data = HandlePhaseInteger(data, 6, maxFeePerGas, 8, true, true);
     }
 
     /** Phase 6 : GasLimit */
-    BigInteger gasLimit = BigInteger.valueOf(transaction.getGasLimit());
+    BigInteger gasLimit = BigInteger.valueOf(tx.getGasLimit());
     data.DATA_LO = gasLimit;
     data = HandlePhaseInteger(data, 6, gasLimit, 8, true, true);
 
     /** Phase 7 : To */
-    if (transaction.getTo().isPresent()) {
-      data.DATA_HI = transaction.getTo().get().slice(0, 4).toBigInteger();
-      data.DATA_LO = transaction.getTo().get().slice(4, 16).toBigInteger();
+    if (tx.getTo().isPresent()) {
+      data.DATA_HI = tx.getTo().get().slice(0, 4).toBigInteger();
+      data.DATA_LO = tx.getTo().get().slice(4, 16).toBigInteger();
     } else {
       data.DATA_HI = BigInteger.ZERO;
       data.DATA_LO = BigInteger.ZERO;
     }
-    data = HandlePhaseTo(data);
+    data = HandlePhaseTo(data, tx);
 
     /** Phase 8 : Value */
-    BigInteger value = transaction.getValue().getAsBigInteger();
+    BigInteger value = tx.getValue().getAsBigInteger();
     /** TODO add check that value is a 12 bytes int */
     data.DATA_LO = value;
-    if (transaction.getTo().isEmpty()) {
+    if (tx.getTo().isEmpty()) {
       data.DATA_HI = BigInteger.ONE;
     } else {
       data.DATA_HI = BigInteger.ZERO;
@@ -149,23 +148,23 @@ public class RlpTxn implements Module {
     data = HandlePhaseInteger(data, 8, value, 12, true, true);
 
     /** Phase 9 : Data */
-    data = HandlePhaseData(data);
+    data = HandlePhaseData(data, tx);
 
     /** Phase 10 : AccessList */
-    data = HandlePhaseAccessList(data);
+    data = HandlePhaseAccessList(data, tx);
     /** TODO add check on nullity of accesstuplebytesize, nbaddr, nbsto, nbstoperaddr ?*/
 
     /** Phase 11 : Beta / w */
-    data = HandlePhaseBeta(data);
+    data = HandlePhaseBeta(data, tx);
 
     /** Phase 12 : y */
-    data = HandlePhaseY(data);
+    data = HandlePhaseY(data, tx);
 
     /** Phase 13 : r */
-    data = Handle32BytesInteger(data, 13, transaction.getR());
+    data = Handle32BytesInteger(data, 13, tx.getR());
 
     /** Phase 14 : s */
-    data = Handle32BytesInteger(data, 14, transaction.getS());
+    data = Handle32BytesInteger(data, 14, tx.getS());
   }
 
   /** Define each phase's constraints */
@@ -255,12 +254,12 @@ public class RlpTxn implements Module {
     return data;
   }
 
-  private RlpTxnToTrace HandlePhaseTo(RlpTxnToTrace data) {
+  private RlpTxnToTrace HandlePhaseTo(RlpTxnToTrace data, Transaction tx) {
     int phase = 7;
     boolean lt = true;
     boolean lx = true;
 
-    if (transaction.getTo().isEmpty()) {
+    if (tx.getTo().isEmpty()) {
       data.PartialReset(phase, 1, lt, lx);
       data.LIMB_CONSTRUCTED = true;
       data.LIMB = Bytes.ofUnsignedShort(prefix_short_int);
@@ -268,18 +267,18 @@ public class RlpTxn implements Module {
       data.end_phase = true;
       data = TraceRow(data);
     } else {
-      data = HandleAddress(data, phase, transaction.getTo().get());
+      data = HandleAddress(data, phase, tx.getTo().get());
     }
 
     return data;
   }
 
-  private RlpTxnToTrace HandlePhaseData(RlpTxnToTrace traceData) {
+  private RlpTxnToTrace HandlePhaseData(RlpTxnToTrace traceData, Transaction tx) {
     int phase = 9;
     boolean lt = true;
     boolean lx = true;
 
-    if (transaction.getData().isEmpty()) {
+    if (tx.getData().isEmpty()) {
       /** Trivial case */
       traceData.PartialReset(phase, 1, lt, lx);
       traceData.LIMB_CONSTRUCTED = true;
@@ -298,7 +297,7 @@ public class RlpTxn implements Module {
       /** General case */
 
       /** Initialise DataSize and DataGasCost */
-      Bytes data = transaction.getData().get();
+      Bytes data = tx.getData().get();
       traceData.PartialReset(phase, 8, lt, lx);
       traceData.PHASE_BYTESIZE = data.size();
       for (int i = 0; i < traceData.PHASE_BYTESIZE; i++) {
@@ -402,13 +401,13 @@ public class RlpTxn implements Module {
     return traceData;
   }
 
-  private RlpTxnToTrace HandlePhaseAccessList(RlpTxnToTrace data){
+  private RlpTxnToTrace HandlePhaseAccessList(RlpTxnToTrace data, Transaction tx){
     int phase = 10;
     boolean lt = true;
     boolean lx = true;
 
     /** Trivial case */
-    if (transaction.AccessList.isEmpty()){
+    if (tx.AccessList.isEmpty()){
       data.PartialReset(phase, 1, lt, lx);
       data.LIMB_CONSTRUCTED=true;
       data.LIMB=Bytes.ofUnsignedShort(prefix_short_list);
@@ -499,9 +498,9 @@ public class RlpTxn implements Module {
     return data;
   }
 
-  private RlpTxnToTrace HandlePhaseBeta(RlpTxnToTrace data){
+  private RlpTxnToTrace HandlePhaseBeta(RlpTxnToTrace data, Transaction tx){
     int phase = 11;
-    BigInteger V= transaction.getV();
+    BigInteger V= tx.getV();
     /** add check v is a 8 bytes int */
 
     /** Rlp(w) */
@@ -525,7 +524,7 @@ public class RlpTxn implements Module {
       /** RLP(ChainID) then one row of padding */
       lt = false;
       lx =true;
-      data = HandleInt(data, phase, transaction.getChainId().get(), 8, isbytesize, islist, lt, lx, endphase,
+      data = HandleInt(data, phase, tx.getChainId().get(), 8, isbytesize, islist, lt, lx, endphase,
         isprefix, depth1, depth2);
 
       data.PartialReset(phase, 1, lt, lx);
@@ -538,11 +537,11 @@ public class RlpTxn implements Module {
     return data;
   }
 
-  private RlpTxnToTrace HandlePhaseY(RlpTxnToTrace data){
+  private RlpTxnToTrace HandlePhaseY(RlpTxnToTrace data, Transaction tx){
     int phase = 12;
     boolean lt = true;
     boolean lx = false;
-    BigInteger y = transaction.getV();
+    BigInteger y = tx.getV();
 
     if (y.equals(BigInteger.ZERO)){
       data.PartialReset(phase, 1, lt, lx);
@@ -1077,6 +1076,7 @@ for(int i = 0; i < phaseColumns.size(); i++) {
     if (data.end_phase) {
       data.DataHiLoReset();
     }
+    this.commit(); /** TODO CHECK IF USEFUL */
     return data;
   }
 

@@ -141,4 +141,9 @@ public class Mod implements Module {
     ModData data = new ModData(OpCode.DIV, arg1, arg2);
     this.traceModData(data);
   }
+
+  public void callMOD(Bytes32 arg1, Bytes32 arg2) {
+    ModData data = new ModData(OpCode.MOD, arg1, arg2);
+    this.traceModData(data);
+  }
 }

@@ -132,17 +132,29 @@ public class Mod implements Module {
   private int maxCounter(ModData data) {
     if (data.isOli()) {
       return 1;
+    } else {
+      return MMEDIUM;
     }
-
-    return MMEDIUM;
   }
 
-  public void callDIV(Bytes32 arg1, Bytes32 arg2) {
+  /**
+   * Performs a context-free call to the DIV opcode in the current trace
+   *
+   * @param arg1 the divider
+   * @param arg2 the dividend
+   */
+  public void callDiv(Bytes32 arg1, Bytes32 arg2) {
     ModData data = new ModData(OpCode.DIV, arg1, arg2);
     this.traceModData(data);
   }
 
-  public void callMOD(Bytes32 arg1, Bytes32 arg2) {
+  /**
+   * Performs a context-free call to the MOD opcode in the current trace
+   *
+   * @param arg1 the number
+   * @param arg2 the module
+   */
+  public void callMod(Bytes32 arg1, Bytes32 arg2) {
     ModData data = new ModData(OpCode.MOD, arg1, arg2);
     this.traceModData(data);
   }

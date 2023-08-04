@@ -12,12 +12,10 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-
-import net.ltgt.gradle.errorprone.CheckSeverity
-
 plugins {
+  id 'checkstyle'
+  id 'io.freefair.lombok' version '8.1.0'
   id 'com.diffplug.spotless' version '6.16.0'
-  id("net.ltgt.errorprone") version "3.0.1"
   id 'com.github.ben-manes.versions' version '0.26.0'
   id 'com.github.hierynomus.license' version '0.16.1'
   id 'io.spring.dependency-management' version '1.1.0'
@@ -34,7 +32,6 @@ if (!JavaVersion.current().java11Compatible) {
 
 allprojects {
   apply plugin: 'java-library'
-  apply plugin: 'net.ltgt.errorprone'
   apply plugin: 'jacoco'
   apply plugin: 'io.spring.dependency-management'
   apply from: "${rootDir}/gradle/versions.gradle"
@@ -65,12 +62,14 @@ allprojects {
     toolVersion = '0.8.8'
   }
 
-  task sourcesJar(type: Jar, dependsOn: classes) {
+  tasks.register('sourcesJar', Jar) {
+    dependsOn classes
     archiveClassifier = 'sources'
     from sourceSets.main.allSource
   }
 
-  task javadocJar(type: Jar, dependsOn: javadoc) {
+  tasks.register('javadocJar', Jar) {
+    dependsOn javadoc
     archiveClassifier = 'javadoc'
     from javadoc.destinationDir
   }
@@ -92,6 +91,10 @@ allprojects {
     maven {
       url 'https://artifacts.consensys.net/public/maven/maven/'
       content { includeGroupByRegex('tech\\.pegasys(\\..*)?') }
+    }
+    maven {
+      url 'https://splunk.jfrog.io/splunk/ext-releases-local'
+      content { includeGroupByRegex('com\\.splunk\\..*') }
     }
     mavenCentral()
   }
@@ -139,22 +142,24 @@ allprojects {
 
     implementation "org.hyperledger.besu:plugin-api:$besuVersion"
 
-    compileOnly 'com.fasterxml.jackson.core:jackson-databind'
-
-    errorprone("com.google.errorprone:error_prone_core")
+    implementation 'info.picocli:picocli'
 
     compileOnly 'io.vertx:vertx-core:4.3.8'
 
     implementation 'org.apache.logging.log4j:log4j-api:2.20.0'
     implementation 'org.apache.logging.log4j:log4j-core:2.20.0'
 
-    compileOnly 'com.fasterxml.jackson.core:jackson-databind:2.14.2'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.2'
 
     implementation 'org.apache.tuweni:tuweni-bytes:2.3.1'
     implementation 'org.apache.tuweni:tuweni-units:2.3.1'
 
+
     testImplementation(testFixtures(project(":")))
     testImplementation "org.hyperledger.besu:besu-datatypes:$besuVersion"
+
+    implementation "org.hyperledger.besu:besu-datatypes:$besuVersion"
+
     testImplementation "org.hyperledger.besu:evm:$besuVersion"
     testImplementation "org.hyperledger.besu.internal:core:$besuVersion"
 
@@ -163,7 +168,7 @@ allprojects {
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
-    testImplementation'org.junit.jupiter:junit-jupiter-params:5.9.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.9.2'
 
     testImplementation 'org.mockito:mockito-core:5.1.1'
     testImplementation 'org.mockito:mockito-junit-jupiter:5.1.1'
@@ -193,6 +198,21 @@ allprojects {
     testFixturesImplementation 'commons-io:commons-io:2.11.0'
   }
 
+  checkstyle {
+    toolVersion = '10.12.1'
+    // Following settings will be activated once the entire project complies with the checkstyle rules
+    // and once achieved all future code that does not comply with the rules will fail the build of the project.
+    //    maxWarnings = 0
+    //    ignoreFailures = false
+  }
+
+  tasks.withType(Checkstyle) {
+    reports {
+      xml.required = true
+      html.required = true
+    }
+  }
+
   tasks.withType(JavaCompile) {
     options.compilerArgs += [
       '-Xlint:unchecked',
@@ -204,33 +224,6 @@ allprojects {
       '-Xlint:static',
       '-Werror',
     ]
-
-    options.errorprone {
-      excludedPaths = '.*/(generated/*.*|.*ReferenceTest_.*)'
-
-      // Our equals need to be symmetric, this checker doesn't respect that.
-      check('EqualsGetClass', CheckSeverity.OFF)
-      // We like to use futures with no return values.
-      check('FutureReturnValueIgnored', CheckSeverity.OFF)
-      // We use the JSR-305 annotations instead of the Google annotations.
-      check('ImmutableEnumChecker', CheckSeverity.OFF)
-      // This is a style check instead of an error-prone pattern.
-      check('UnnecessaryParentheses', CheckSeverity.OFF)
-      // Lazy impl causes excess CPU usage O(n) of non-final field when it should be O(1).
-      check('FieldCanBeFinal', CheckSeverity.OFF)
-
-      // This check is broken in Java 12.  See https://github.com/google/error-prone/issues/1257
-      if (JavaVersion.current() == JavaVersion.VERSION_12) {
-        check('Finally', CheckSeverity.OFF)
-      }
-      // This check is broken after Java 12.  See https://github.com/google/error-prone/issues/1352
-      if (JavaVersion.current() > JavaVersion.VERSION_12) {
-        check('TypeParameterUnusedInFormals', CheckSeverity.OFF)
-      }
-
-      check('InsecureCryptoUsage', CheckSeverity.WARN)
-      check('WildcardImport', CheckSeverity.WARN)
-    }
 
     options.encoding = 'UTF-8'
   }
@@ -277,6 +270,52 @@ allprojects {
     useJUnitPlatform()
   }
 
+  tasks.register('unitTests', Test) {
+    useJUnitPlatform {
+      excludeTags("CorsetTest")
+      excludeTags("AcceptanceTest")
+    }
+  }
+
+  tasks.register('corsetTests', Test) {
+    useJUnitPlatform {
+      includeTags("CorsetTest")
+    }
+  }
+
+  tasks.register('checkCorsetPreConditions') {
+    doLast {
+      def stdout = new ByteArrayOutputStream()
+      exec {
+        commandLine 'sh', '-c', 'command -v corset || true'
+        standardOutput = stdout
+      }
+      def corsetInstalled = stdout.toString().trim()
+
+      if (corsetInstalled) {
+        println 'CORSET found, running corset tests'
+      } else {
+        throw new GradleException('Corset not found, skipping corsetTests')
+      }
+    }
+  }
+
+  tasks.register('buildZkevmBin', Exec) {
+    workingDir "${project.rootDir}/zkevm-constraints/"
+    commandLine 'make', 'zkevm.bin'
+
+    //store the output instead of printing to the console
+    standardOutput = new ByteArrayOutputStream()
+    ext.output = {
+      return standardOutput.toString()
+    }
+  }
+
+  tasks.buildZkevmBin.dependsOn(checkCorsetPreConditions)
+  tasks.corsetTests.dependsOn(buildZkevmBin)
+  tasks.test.dependsOn(buildZkevmBin)
+
+
   javadoc {
     options.addStringOption('Xdoclint:all', '-quiet')
     options.addStringOption('Xwerror', '-html5')
@@ -306,12 +345,12 @@ javadoc {
   options.encoding = 'UTF-8'
 }
 
-configurations { installedJars{ transitive = false } }
+configurations { installedJars { transitive = false } }
 
-task downloadLatestBesu(type: Download) {
+tasks.register('downloadLatestBesu', Download) {
   ext.besuIdentifier = "besu-" + besuVersion
   def besuFilename = besuIdentifier + ".tar.gz"
-  def besuUrl = distributionBaseUrl + besuVersion+"/"+besuFilename;
+  def besuUrl = distributionBaseUrl + besuVersion + "/" + besuFilename
 
   src besuUrl
   dest new File(buildDir, besuFilename)
@@ -320,7 +359,7 @@ task downloadLatestBesu(type: Download) {
 
 ext.besuPluginsIdentifier = distributionIdentifier + "-" + version
 
-task distTar(type: Tar) {
+tasks.register('distTar', Tar) {
   dependsOn jar
   dependsOn downloadLatestBesu
 
@@ -377,9 +416,9 @@ task checkSpdxHeader(type: CheckSpdxHeader) {
     "(.*/build/.*)",
     "(.*/src/[^/]+/generated/.*)",
   ].join("|")
-
 }
-task installDist(type: Copy) {
+
+tasks.register('installDist', Copy) {
   dependsOn distTar
 
   from(tarTree(distTar.outputs.getFiles().getSingleFile()), {
@@ -390,7 +429,7 @@ task installDist(type: Copy) {
   duplicatesStrategy(DuplicatesStrategy.INCLUDE)
 }
 
-task distZip(type: Zip) {
+tasks.register('distZip', Zip) {
   dependsOn installDist
 
   archiveBaseName = distributionIdentifier
@@ -401,15 +440,16 @@ task distZip(type: Zip) {
 }
 
 
-task deployPlugins(type: Copy) {
+tasks.register('deployPlugins', Copy) {
   dependsOn jar
+  dependsOn installDist
 
   from(configurations.installedJars) {
     into new File(distributionIdentifier, "plugins")
     exclude "**/common*.jar"
   }
 
-  into tasks.getByName("installDist").destinationDir
+  into installDist.destinationDir
 }
 
 // Takes the version, and if -SNAPSHOT is part of it replaces SNAPSHOT
@@ -438,7 +478,7 @@ def getCheckedOutGitCommitHash() {
   def head = new File(gitFolder + "HEAD").text.split(":") // .git/HEAD
   def isCommit = head.length == 1 // e5a7c79edabbf7dd39888442df081b1c9d8e88fd
 
-  if(isCommit) return head[0].trim().take(takeFromHash) // e5a7c79edabb
+  if (isCommit) return head[0].trim().take(takeFromHash) // e5a7c79edabb
 
   def refHead = new File(gitFolder + head[1].trim()) // .git/refs/heads/master
   refHead.text.trim().take takeFromHash
@@ -495,7 +535,7 @@ artifacts {
   archives tasks.distZip
 }
 
-task cloudsmithUpload {
+tasks.register('cloudsmithUpload') {
   dependsOn([distTar, distZip])
   doLast {
     exec {
@@ -544,7 +584,7 @@ spotless {
     targetExclude '**/src/reference-test/**', '**/src/main/generated/**', '**/src/test/generated/**', '**/src/jmh/generated/**', '**/resources/**/LegacyTests'
     removeUnusedImports()
     googleJavaFormat('1.15.0')
-    importOrder 'org.hyperledger', 'java', ''
+    importOrder '\\#', 'java', 'javax', ''
     trimTrailingWhitespace()
     endWithNewline()
   }

@@ -1,3 +1,6 @@
 [submodule "src/reference-test/resources"]
 	path = src/reference-test/resources
 	url = https://github.com/ethereum/tests.git
+[submodule "zkevm-constraints"]
+	path = zkevm-constraints
+	url = git@github.com:Consensys/zkevm-constraints.git

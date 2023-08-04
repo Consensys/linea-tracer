@@ -1,49 +1,120 @@
-# Besu zkBesu-tracer Plugin
+# Besu zkBesu/tracer Plugin
 
-A zk-evm tracing implementation for [Hyperledger Besu](https://github.com/hyperledger/besu) based on an [existing implementation in Go](https://github.com/ConsenSys/zk-evm/).
+A Linea tracing implementation for [Hyperledger Besu](https://github.com/hyperledger/besu) based on
+an [existing implementation in Go](https://github.com/ConsenSys/zk-evm/).
 
-## Prerequisites
+## Development Setup
 
-* Java 17
+### Install Java 17
+
 ```
 brew install openjdk@17
 ```
-* Install Go
-```
-brew install go
-```
-* Install Rust
+
+### Install Rust
+
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 # Use local git executable to fetch from repos (needed for private repos)
 echo "net.git-fetch-with-cli=true" >> .cargo/config.toml
 ```
-* Install Corset
-```
+
+### Install Corset
+
+```shell
 cargo install --git ssh://git@github.com/ConsenSys/corset
 ```
 
-* Clone zk-geth & compile zkevm.bin
-```
-git clone git@github.com:ConsenSys/zk-geth.git --recursive
+### Update Constraints [Submodule](https://github.com/ConsenSys/zkevm-constraints/)
 
-cd zk-geth/zk-evm
-make zkevm.bin 
-```
-* Set environment with path to zkevm.bin
-```
-export ZK_EVM_BIN=PATH_TO_ZK_GETH/zk-evm/zkevm.bin
+```shell
+git submodule update --init
 ```
 
-## Run tests
-```
-./gradlew test
+### Install [pre-commit](https://pre-commit.com/)
+
+```shell
+pip install --user pre-commit
+
+# For macOS users.
+brew install pre-commit
 ```
 
-## Debugging traces
+Then run `pre-commit install` to set up git hook scripts.
+Used hooks can be found [here](.pre-commit-config.yaml).
 
-JSON files can be debugged with the following command:
+______________________________________________________________________
+
+NOTE
+
+> `pre-commit` aids in running checks (end of file fixing,
+> markdown linting, linting, runs tests, json validation, etc.)
+> before you perform your git commits.
+
+______________________________________________________________________
+
+### Run tests
+
+```shell
+# Run all tests
+./gradlew clean test
+
+# Run only unit tests
+./gradlew clean unitTests
+
+# Run only acceptance tests
+./gradlew clean corsetTests
 ```
-corset check -T JSON_FILE -v $ZK_EVM_BIN
+
+## IntelliJ IDEA Setup
+
+### Enable Annotation Processing
+
+- Go to `Settings | Build, Execution, Deployment | Compiler | Annotation Processors` and tick the following
+  checkbox:
+
+  ![idea_enable_annotation_processing_setting.png](images/idea_enable_annotation_processing_setting.png)
+
+______________________________________________________________________
+
+NOTE
+
+> This setting is required to avoid IDE compilation errors because of the [Lombok](https://projectlombok.org/features/)
+> library used for code generation of boilerplate Java code such as:
+>
+> - Getters/Setters (via [`@Getter/@Setter`](https://projectlombok.org/features/GetterSetter))
+> - Class log instances (via [`@Slf4j`](https://projectlombok.org/features/log))
+> - Builder classes (via [`@Builder`](https://projectlombok.org/features/Builder))
+> - Constructors (
+>   via [`@NoArgsConstructor/@RequiredArgsConstructor/@AllArgsConstructor`](https://projectlombok.org/features/constructor))
+> - etc.
+>
+> Learn more about how Java annotation processing
+> works [here](https://www.baeldung.com/java-annotation-processing-builder).
+
+______________________________________________________________________
+
+### Set Up IDE Code Re-formatting
+
+- Install [Checkstyle](https://plugins.jetbrains.com/plugin/1065-checkstyle-idea) plugin and set IDE code
+  reformatting to comply with the project's Checkstyle configuration:
+
+  - Go to `Settings | Editor | Code Style | Java | <hamburger menu> | Import Scheme | Checkstyle configuration`:
+
+    ![idea_checkstyle_reformat.png](images/idea_checkstyle_reformat.png)
+
+    and select `<project_root>/config/checkstyle.xml`.
+
+### Install Optional Plugins
+
+- Install [Spotless Gradle](https://plugins.jetbrains.com/plugin/18321-spotless-gradle) plugin to re-format through
+  the IDE according to spotless configuration.
+
+## Debugging Traces
+
+- JSON files can be debugged with the following command:
+
+```shell
+corset check -T <JSON_FILE> -v zkevm-constraints/zkevm.bin
 ```

@@ -45,17 +45,34 @@ dependencyManagement {
         dependency "org.hyperledger.besu.internal:core:${besuVersion}"
 
         // Logging dependencies
-        dependency 'org.slf4j:slf4j-api:1.7.36'
+        dependency 'org.slf4j:slf4j-api:2.0.7'
 
         // auto service
         dependency 'com.google.auto.service:auto-service:1.0.1'
 
+
         dependencySet(group:'org.junit.jupiter', version:'5.9.2') {
             entry 'junit-jupiter-api'
             entry 'junit-jupiter-engine'
-            entry'junit-jupiter-params'
+            entry 'junit-jupiter-params'
         }
 
+        dependencySet(group: 'info.picocli', version: '4.7.1') {
+            entry 'picocli'
+            entry 'picocli-codegen'
+        }
+
+        dependencySet(group: 'org.web3j', version: '4.9.7') {
+            entry 'abi'
+            entry 'besu'
+            entry 'core'
+            entry 'crypto'
+        }
+
+        dependency 'junit:junit:4.13.2'
         dependency 'org.assertj:assertj-core:3.24.2'
+        dependency 'org.awaitility:awaitility:4.2.0'
+
+        dependency 'com.splunk.logging:splunk-library-javalogging:1.11.5'
     }
 }

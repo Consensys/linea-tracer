@@ -12,78 +12,91 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+
 package net.consensys.linea.zktracer;
 
-import org.hyperledger.besu.evm.frame.MessageFrame;
-import org.hyperledger.besu.evm.tracing.OperationTracer;
-
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import net.consensys.linea.zktracer.module.ModuleTracer;
-import net.consensys.linea.zktracer.module.alu.add.AddTracer;
-import net.consensys.linea.zktracer.module.alu.mod.ModTracer;
-import net.consensys.linea.zktracer.module.shf.ShfTracer;
-import net.consensys.linea.zktracer.module.wcp.WcpTracer;
+import lombok.RequiredArgsConstructor;
+import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.module.add.Add;
+import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.mod.Mod;
+import net.consensys.linea.zktracer.module.mul.Mul;
+import net.consensys.linea.zktracer.module.shf.Shf;
+import net.consensys.linea.zktracer.module.wcp.Wcp;
+import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.datatypes.Transaction;
+import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.plugin.data.BlockBody;
+import org.hyperledger.besu.plugin.data.BlockHeader;
+import org.hyperledger.besu.plugin.services.tracer.BlockAwareOperationTracer;
 
-public class ZkTracer implements OperationTracer {
-  private final List<ModuleTracer> tracers;
-  private final Map<OpCode, List<ModuleTracer>> opCodeTracerMap = new HashMap<>();
+@RequiredArgsConstructor
+public class ZkTracer implements BlockAwareOperationTracer {
+  private final ZkTraceBuilder zkTraceBuilder = new ZkTraceBuilder();
+  private final List<Module> modules;
 
-  private final ZkTraceBuilder zkTraceBuilder;
-
-  public ZkTracer(final ZkTraceBuilder zkTraceBuilder, final List<ModuleTracer> tracers) {
-    this.tracers = tracers;
-    this.zkTraceBuilder = zkTraceBuilder;
-    setupTracers();
+  public ZkTracer() {
+    this(List.of(new Hub(), new Mul(), new Shf(), new Wcp(), new Add(), new Mod()));
   }
 
-  public ZkTracer(final ZkTraceBuilder zkTraceBuilder) {
-    this(
-        zkTraceBuilder,
-        List.of(new ShfTracer(), new WcpTracer(), new AddTracer(), new ModTracer()));
+  public ZkTrace getTrace() {
+    for (Module module : this.modules) {
+      zkTraceBuilder.addTrace(module);
+    }
+    return zkTraceBuilder.build();
+  }
+
+  public void traceStartConflation(final long numBlocksInConflation) {
+    for (Module module : this.modules) {
+      module.traceStartConflation(numBlocksInConflation);
+    }
+  }
+
+  public void traceEndConflation() {
+    for (Module module : this.modules) {
+      module.traceEndConflation();
+    }
   }
 
   @Override
-  public void tracePreExecution(final MessageFrame frame) {
-
-    opCodeTracerMap
-        .get(OpCode.of(frame.getCurrentOperation().getOpcode()))
-        .forEach(
-            tracer -> {
-              if (tracer != null) {
-                zkTraceBuilder.addTrace(tracer.jsonKey(), tracer.trace(frame));
-              }
-            });
+  public void traceStartBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
+    for (Module module : this.modules) {
+      module.traceStartBlock(blockHeader, blockBody);
+    }
   }
 
-  private void setupTracers() {
-    tracers.forEach(
-        tracer ->
-            tracer
-                .supportedOpCodes()
-                .forEach(
-                    opCode -> {
-                      if (opCodeTracerMap.containsKey(opCode)) {
-                        throw new AssertionError(
-                            "OpCode "
-                                + opCode.name()
-                                + " supported by more than one Tracer: "
-                                + opCodeTracerMap.get(opCode).getClass().getSimpleName()
-                                + " ,"
-                                + tracer.getClass().getSimpleName());
-                      }
+  @Override
+  public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
+    for (Module module : this.modules) {
+      module.traceEndBlock(blockHeader, blockBody);
+    }
+  }
 
-                      List<ModuleTracer> moduleTracers = opCodeTracerMap.get(opCode);
+  @Override
+  public void traceStartTransaction(final Transaction transaction) {
+    for (Module module : this.modules) {
+      module.traceStartTx(transaction);
+    }
+  }
 
-                      if (moduleTracers == null) {
-                        moduleTracers = List.of(tracer);
-                      } else {
-                        moduleTracers.add(tracer);
-                      }
+  @Override
+  public void traceEndTransaction(final Bytes output, final long gasUsed, final long timeNs) {
+    for (Module module : this.modules) {
+      module.traceEndTx();
+    }
+  }
 
-                      opCodeTracerMap.put(opCode, moduleTracers);
-                    }));
+  // TODO: missing ContextEnter/Exit
+
+  @Override
+  public void tracePreExecution(final MessageFrame frame) {
+    OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
+    for (Module module : this.modules) {
+      if (module.supportedOpCodes().contains(opCode)) {
+        module.trace(frame);
+      }
+    }
   }
 }

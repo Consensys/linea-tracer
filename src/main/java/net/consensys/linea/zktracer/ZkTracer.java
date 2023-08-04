@@ -24,6 +24,7 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.mul.Mul;
 import net.consensys.linea.zktracer.module.shf.Shf;
+import net.consensys.linea.zktracer.module.stp.Stp;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
@@ -39,7 +40,9 @@ public class ZkTracer implements BlockAwareOperationTracer {
   private final List<Module> modules;
 
   public ZkTracer() {
-    this(List.of(new Hub(), new Mul(), new Shf(), new Wcp(), new Add(), new Mod()));
+    Mod mod = new Mod();
+    Wcp wcp = new Wcp();
+    this.modules = List.of(new Hub(), new Mul(), new Shf(), wcp, new Add(), mod, new Stp(wcp));
   }
 
   public ZkTrace getTrace() {

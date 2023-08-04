@@ -27,19 +27,18 @@ import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.operation.*;
 
-public abstract class Stp implements Module {
-
+public class Stp implements Module {
   @Override
   public String jsonKey() {
     return "stp";
   }
 
-  private int stamp = 0;
+  private final Trace.TraceBuilder trace = Trace.builder();
 
+  private int stamp = 0;
   private final Wcp wcpModule;
 
   public Stp(Wcp wcpModule) {
-    super();
     this.wcpModule = wcpModule;
   }
 
@@ -52,8 +51,6 @@ public abstract class Stp implements Module {
         OpCode.CREATE,
         OpCode.CREATE2);
   }
-
-  final Trace.TraceBuilder builder = Trace.builder();
 
   private long fetchCost(MessageFrame frame, Operation op) {
     long cost;
@@ -97,7 +94,7 @@ public abstract class Stp implements Module {
     return stpd;
   }
 
-  BigInteger one64thFloorSub(BigInteger remainingGas, long gasCost) {
+  private BigInteger one64thFloorSub(BigInteger remainingGas, long gasCost) {
     BigInteger subtraction = remainingGas.subtract(BigInteger.valueOf(gasCost));
     return subtraction.divide(BigInteger.valueOf(64));
   }
@@ -106,11 +103,11 @@ public abstract class Stp implements Module {
   public void trace(MessageFrame frame) {
     final Operation op = frame.getCurrentOperation();
     final OpCode opCode = OpCode.of(op.getOpcode());
+
     final Bytes32 gas = Bytes32.wrap(frame.getStackItem(0));
-    final Bytes32 arg2 = Bytes32.wrap(frame.getStackItem(1));
     final Bytes16 gasHi = Bytes16.wrap(gas.slice(0, 16));
     final Bytes16 gasLo = Bytes16.wrap(gas.slice(16));
-    final Bytes16 arg2Lo = Bytes16.wrap(arg2.slice(16));
+
     final long remainingGas1 = frame.getRemainingGas();
     final BigInteger remainingGas = BigInteger.valueOf(frame.getRemainingGas());
     final long gasCost = fetchCost(frame, op);
@@ -121,7 +118,9 @@ public abstract class Stp implements Module {
     final Bytes16 valueLo = Bytes16.wrap(value.slice(16));
     final boolean call = isCall(opCode);
     final BigInteger arg1Lo_iP1 = remainingGas.subtract(BigInteger.valueOf(gasCost));
-    stamp++;
+
+    this.stamp++;
+
     for (int counter = 0; counter < 4; counter++) {
       boolean modFlag = counter == 1;
       boolean wcpFlag = !modFlag;
@@ -161,7 +160,7 @@ public abstract class Stp implements Module {
         switch (exoInst) {
           case LT -> {
             if (counter == 0) {
-              wcpModule.callLT(
+              wcpModule.callLt(
                   Bytes32.wrap(Bytes.ofUnsignedInt(remainingGas1)),
                   Bytes32.wrap(Bytes.ofUnsignedInt(gasCost)));
             } else {
@@ -170,17 +169,17 @@ public abstract class Stp implements Module {
                   Bytes32.wrap(
                       Bytes.ofUnsignedInt(
                           remainingGas1 - gasCost - (remainingGas1 - gasCost) / 64));
-              wcpModule.callLT(gas, interimArg);
+              wcpModule.callLt(gas, interimArg);
             }
           }
-          case ISZERO -> wcpModule.callISZERO(value);
+          case ISZERO -> wcpModule.callIsZero(value);
           default -> throw new RuntimeException("Stipend module mismatch wcp exoinst");
         }
       }
       if (modFlag) {
         throw new RuntimeException("DIV call not implemented"); // todo implement div function call
       }
-      builder
+      trace
           .stamp(BigInteger.valueOf(stamp))
           .ct(BigInteger.valueOf(counter))
           .inst(BigInteger.valueOf(opCode.value))
@@ -212,10 +211,9 @@ public abstract class Stp implements Module {
   }
 
   /**
-   * Returns true if opCode is a call Returns false if opCode is a create Throws an exception
-   * otherwise
+   * Returns true if opCode is a CALL, false if opCode is CREATE. Throws an exception otherwise
    *
-   * @param opCode the opcode
+   * @param opCode the opCode
    */
   private boolean isCall(OpCode opCode) {
     return switch (opCode) {
@@ -223,5 +221,10 @@ public abstract class Stp implements Module {
       case CALL, CALLCODE, DELEGATECALL, STATICCALL -> true;
       default -> throw new RuntimeException("Stipend module was given the wrong opcode");
     };
+  }
+
+  @Override
+  public Object commit() {
+    return new StpTrace(this.trace.build());
   }
 }

@@ -101,17 +101,34 @@ public class Wcp implements Module {
     return isOneLineInstruction ? 1 : LIMB_SIZE;
   }
 
-  public void callLT(Bytes32 arg1, Bytes32 arg2) {
+  /**
+   * Performs a context-free call to LT in the current trace
+   *
+   * @param arg1 first operand
+   * @param arg2 second operand
+   */
+  public void callLt(Bytes32 arg1, Bytes32 arg2) {
     WcpData data = new WcpData(OpCode.LT, arg1, arg2);
     this.traceWcpData(data);
   }
 
-  public void callEQ(Bytes32 arg1, Bytes32 arg2) {
+  /**
+   * Performs a context-free call to EQ in the current trace
+   *
+   * @param arg1 first operand
+   * @param arg2 second operand
+   */
+  public void callEq(Bytes32 arg1, Bytes32 arg2) {
     WcpData data = new WcpData(OpCode.EQ, arg1, arg2);
     this.traceWcpData(data);
   }
 
-  public void callISZERO(Bytes32 arg1) {
+  /**
+   * Performs a context-free call to ISZERO in the current trace
+   *
+   * @param arg1 operand
+   */
+  public void callIsZero(Bytes32 arg1) {
     Bytes32 zero = Bytes32.repeat((byte) 0x00);
     WcpData data = new WcpData(OpCode.ISZERO, arg1, zero);
     this.traceWcpData(data);

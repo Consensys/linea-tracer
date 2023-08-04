@@ -51,13 +51,17 @@ public class Mod implements Module {
 
     stamp++;
 
+    this.traceModData(data);
+  }
+
+  public void traceModData(ModData data) {
     for (int i = 0; i < maxCounter(data); i++) {
       final int accLength = i + 1;
       builder
           .stamp(BigInteger.valueOf(stamp))
           .oli(data.isOli())
           .ct(BigInteger.valueOf(i))
-          .inst(BigInteger.valueOf(opCode.value))
+          .inst(BigInteger.valueOf(data.getOpCode().value))
           .decSigned(data.isSigned())
           .decOutput(data.isDiv())
           .arg1Hi(data.getArg1().getHigh().toUnsignedBigInteger())
@@ -131,5 +135,10 @@ public class Mod implements Module {
     }
 
     return MMEDIUM;
+  }
+
+  public void callDIV(Bytes32 arg1, Bytes32 arg2) {
+    ModData data = new ModData(OpCode.DIV, arg1, arg2);
+    this.traceModData(data);
   }
 }

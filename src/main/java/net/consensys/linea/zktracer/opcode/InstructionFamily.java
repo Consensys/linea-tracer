@@ -12,7 +12,7 @@ public enum InstructionFamily {
   Context,
   Account,
   Copy,
-  Txn,
+  Transaction,
   Batch,
   StackRam,
   Storage,

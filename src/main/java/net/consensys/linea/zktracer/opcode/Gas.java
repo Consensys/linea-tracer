@@ -1,46 +1,63 @@
 package net.consensys.linea.zktracer.opcode;
 
-public class Gas {
-  public static final int gZero = 0;
-  public static final int gJumpDest = 0;
-  public static final int gBase = 2;
-  public static final int gVeryLow = 3;
-  public static final int gLow = 5;
-  public static final int gMid = 8;
-  public static final int gHigh = 10;
-  public static final int gWarmAccess = 100;
-  public static final int gAccessListAddress = 2400;
-  public static final int gAccessListStorage = 1900;
-  public static final int gColdAccountAccess = 2600;
-  public static final int gColdSLoad = 2100;
-  public static final int gSSet = 20000;
-  public static final int gSReset = 2900;
-  public static final int rSClear = 15000;
-  public static final int rSelfDestruct = 24000;
-  public static final int gSelfDestruct = 5000;
-  public static final int gCreate = 32000;
-  public static final int gCodeDeposit = 200;
-  public static final int gCallValue = 9000;
-  public static final int gCallStipend = 2300;
-  public static final int gNewAccount = 25000;
-  public static final int gExp = 10;
-  public static final int gExpByte = 50;
-  public static final int gMemory = 3;
-  public static final int gTxCreate = 32000;
-  public static final int gTxDataZero = 4;
-  public static final int gTxDataNonZero = 16;
-  public static final int gTransaction = 21000;
-  public static final int gLog = 375;
-  public static final int gLogData = 8;
-  public static final int gLogTopic = 375;
-  public static final int gKeccak256 = 30;
-  public static final int gKeccak256Word = 6;
-  public static final int gCopy = 3;
-  public static final int gBlockHash = 20;
+public enum Gas {
+
+  gZero(0),
+  gJumpDest(0),
+  gBase(2),
+  gVeryLow(3),
+  gLow(5),
+  gMid(8),
+  gHigh(10),
+  gWarmAccess(100),
+  gAccessListAddress(2400),
+  gAccessListStorage(1900),
+  gColdAccountAccess(2600),
+  gColdSLoad(2100),
+  gSSet(20000),
+  gSReset(2900),
+  rSClear(15000),
+  rSelfDestruct(24000),
+  gSelfDestruct(5000),
+  gCreate(32000),
+  gCodeDeposit(200),
+  gCallValue(9000),
+  gCallStipend(2300),
+  gNewAccount(25000),
+  gExp(10),
+  gExpByte(50),
+  gMemory(3),
+  gTxCreate(32000),
+  gTxDataZero(4),
+  gTxDataNonZero(16),
+  gTransaction(21000),
+  gLog0(Constants.log),
+  gLog1(Constants.log + Constants.logTopic),
+  gLog2(Constants.log + 2*Constants.logTopic),
+  gLog3(Constants.log + 3*Constants.logTopic),
+  gLog4(Constants.log + 4*Constants.logTopic),
+  gLogData(8),
+  gLogTopic(375),
+  gKeccak256(30),
+  gKeccak256Word(6),
+  gCopy(3),
+  gBlockHash(20),
   // below are markers for gas that is computed in other modules
   // that is: hub, memory expansion, stipend, precompile info
-  public static final int sMxp = 0;
-  public static final int sHub = 0;
-  public static final int sStp = 0;
-  public static final int sPrecInfo = 0;
+  sMxp(0),
+  sHub(0),
+  sStp(0),
+  sPrecInfo(0);
+
+
+
+  private final int cost;
+  Gas(int cost) {this.cost = cost;}
+
+  int cost() {return this.cost();}
+
+  private static class Constants {
+    private static final int log = 375;
+    private static final int logTopic = 375;
+  }
 }

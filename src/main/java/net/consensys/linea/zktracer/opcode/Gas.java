@@ -1,7 +1,6 @@
 package net.consensys.linea.zktracer.opcode;
 
 public enum Gas {
-
   gZero(0),
   gJumpDest(0),
   gBase(2),
@@ -33,9 +32,9 @@ public enum Gas {
   gTransaction(21000),
   gLog0(Constants.log),
   gLog1(Constants.log + Constants.logTopic),
-  gLog2(Constants.log + 2*Constants.logTopic),
-  gLog3(Constants.log + 3*Constants.logTopic),
-  gLog4(Constants.log + 4*Constants.logTopic),
+  gLog2(Constants.log + 2 * Constants.logTopic),
+  gLog3(Constants.log + 3 * Constants.logTopic),
+  gLog4(Constants.log + 4 * Constants.logTopic),
   gLogData(8),
   gLogTopic(375),
   gKeccak256(30),
@@ -49,12 +48,15 @@ public enum Gas {
   sStp(0),
   sPrecInfo(0);
 
-
-
   private final int cost;
-  Gas(int cost) {this.cost = cost;}
 
-  int cost() {return this.cost();}
+  Gas(int cost) {
+    this.cost = cost;
+  }
+
+  int cost() {
+    return this.cost();
+  }
 
   private static class Constants {
     private static final int log = 375;

@@ -554,7 +554,7 @@ public enum OpCode {
           2,
           1,
           2,
-          Gas.gZero, // actual gas computed in MXP module
+          Gas.sMxp, // actual gas computed in MXP module
           false,
           false,
           false,
@@ -594,7 +594,7 @@ public enum OpCode {
           1,
           1,
           1,
-          Gas.gZero, // TODO: should be set to zero ... the real value is set in the
+          Gas.sHub, // TODO: should be set to zero ... the real value is set in the
           // arithmetization (depends on warmth ...)
           false,
           false,
@@ -795,8 +795,8 @@ public enum OpCode {
           1,
           1,
           1,
-          Gas.gZero, // TODO: should be set to zero ... the real value is set in the
-          // arithmetization (depends on warmth ...)
+          Gas.sHub, // TODO: should be set to zero ... the real value is set in the arithmetization
+          // (depends on warmth ...)
           false,
           false,
           true,
@@ -850,7 +850,7 @@ public enum OpCode {
           1,
           1,
           1,
-          Gas.gZero, // TODO: should be zero: it's all dynamic i.e. depends on account warmth
+          Gas.sHub, // TODO: should be zero: it's all dynamic i.e. depends on account warmth
           false,
           false,
           true,
@@ -1130,7 +1130,7 @@ public enum OpCode {
           1,
           1,
           1,
-          Gas.gZero, // complex computation done in the hub
+          Gas.sHub, // complex computation done in the hub
           false,
           false,
           false,
@@ -1150,7 +1150,7 @@ public enum OpCode {
           2,
           0,
           2,
-          Gas.gZero, // complex computation done in the hub
+          Gas.sHub, // complex computation done in the hub
           false,
           true,
           false,
@@ -2632,7 +2632,7 @@ public enum OpCode {
           7,
           1,
           7,
-          Gas.gZero, // TODO: computed in STP module
+          Gas.sCall, // TODO: computed in STP module
           true,
           true,
           true,
@@ -2652,7 +2652,7 @@ public enum OpCode {
           7,
           1,
           7,
-          Gas.gZero, // TODO: computed in STP module
+          Gas.sCall, // TODO: computed in STP module
           true,
           false,
           true,
@@ -2692,7 +2692,7 @@ public enum OpCode {
           7,
           1,
           7,
-          Gas.gZero, // TODO: computed in STP module
+          Gas.sCall, // TODO: computed in STP module
           true,
           false,
           true,
@@ -2732,7 +2732,7 @@ public enum OpCode {
           6,
           1,
           6,
-          Gas.gZero, // TODO: computed in STP module
+          Gas.sCall, // TODO: computed in STP module
           true,
           false,
           true,

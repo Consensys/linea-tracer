@@ -44,6 +44,8 @@ public enum Gas {
   // below are markers for gas that is computed in other modules
   // that is: hub, memory expansion, stipend, precompile info
   sMxp(0),
+  sCall(0), // computing the cost of a CALL requires HUB data (warmth, account existence, ...), MXP
+  // data for memory expansion, STP data for gas stipend <- made it its own type
   sHub(0),
   sStp(0),
   sPrecInfo(0);

@@ -666,7 +666,24 @@ public enum OpCode {
           new MxpSettings()),
   CALLDATALOAD(
           0x35,
-          ),
+          InstructionFamily.StackRam,
+          new StackSettings(
+                  Pattern.LoadStore,
+                  1,
+                  1,
+                  1,
+                  1,
+                  Gas.gVeryLow,
+                  false,
+                  false,
+                  false,
+                  true,
+                  false,
+                  true,
+                  false,
+                  false),
+          new RamSettings(),
+          new MxpSettings()),
   CALLDATASIZE(
           0x36,
           InstructionFamily.Context,
@@ -712,6 +729,15 @@ public enum OpCode {
           new MxpSettings()),
   CODECOPY(
           0x39,
+          InstructionFamily.Copy,
+          new StackSettings(
+                  Pattern.Copy,
+                  0,
+                  2,
+                  0,
+                  2,
+                  Gas
+          )
           ),
   GASPRICE(
           0x3a,
@@ -1101,10 +1127,44 @@ public enum OpCode {
           new MxpSettings()),
   JUMP(
           0x56,
-          ),
+          InstructionFamily.Jump,
+          new StackSettings(
+                  Pattern.OneZero,
+                  0,
+                  2,
+                  0,
+                  2,
+                  Gas.gMid,
+                  false,
+                  false,
+                  false,
+                  true,
+                  true,
+                  false,
+                  false,
+                  false),
+          new RamSettings(),
+          new MxpSettings()),
   JUMPI(
           0x57,
-          ),
+          InstructionFamily.Jump,
+          new StackSettings(
+                  Pattern.OneZero,
+                  0,
+                  1,
+                  0,
+                  1,
+                  Gas.gMid,
+                  false,
+                  false,
+                  false,
+                  true,
+                  false,
+                  false,
+                  false,
+                  false),
+          new RamSettings(),
+          new MxpSettings()),
   PC(
           0x58,
           InstructionFamily.MachineState,
@@ -2698,11 +2758,10 @@ public enum OpCode {
   }
 
   public static OpCode of(final long value) {
-    if (!BY_VALUE.containsKey(value)) {
+    if (value > 255) {
       throw new AssertionError("No OpCode with value " + value + " is defined.");
     }
-
-    return BY_VALUE.get(value);
+    return BY_VALUE.getOrDefault(value, OpCode.INVALID);
   }
 
   public int numberOfArguments() {

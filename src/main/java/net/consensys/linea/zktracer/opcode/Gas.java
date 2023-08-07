@@ -37,4 +37,10 @@ public class Gas {
   public static final int gKeccak256Word = 6;
   public static final int gCopy = 3;
   public static final int gBlockHash = 20;
+  // below are markers for gas that is computed in other modules
+  // that is: hub, memory expansion, stipend, precompile info
+  public static final int sMxp = 0;
+  public static final int sHub = 0;
+  public static final int sStp = 0;
+  public static final int sPrecInfo = 0;
 }

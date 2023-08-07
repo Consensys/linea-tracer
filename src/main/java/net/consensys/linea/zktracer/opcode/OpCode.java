@@ -2919,6 +2919,10 @@ public enum OpCode {
     this.mxpSettings = mxpSettings;
   }
 
+  public boolean IsPush() {
+    return (0x60 <= this.value) && (this.value < 0x80);
+  }
+
   public static OpCode of(final long value) {
     if (value > 255) {
       throw new AssertionError("No OpCode with value " + value + " is defined.");

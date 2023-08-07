@@ -18,7 +18,10 @@ package net.consensys.linea.zktracer.opcode;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.consensys.linea.zktracer.opcode.mxp.Billing;
+import net.consensys.linea.zktracer.opcode.mxp.BillingRate;
 import net.consensys.linea.zktracer.opcode.mxp.MxpSettings;
+import net.consensys.linea.zktracer.opcode.mxp.MxpType;
 import net.consensys.linea.zktracer.opcode.stack.Pattern;
 import net.consensys.linea.zktracer.opcode.stack.StackSettings;
 
@@ -563,7 +566,9 @@ public enum OpCode {
                   false,
                   false),
           new RamSettings(), // TODO
-          new MxpSettings()), // TODO
+          new MxpSettings(
+                  MxpType.Type4,
+                  Billing.byWord(Gas.gKeccak256Word))),
   ADDRESS(
           0x30,
           InstructionFamily.Context,
@@ -723,7 +728,9 @@ public enum OpCode {
                   false,
                   false),
           new RamSettings(), // TODO
-          new MxpSettings()), // TODO
+          new MxpSettings(
+                  MxpType.Type4,
+                  Billing.byWord(Gas.gCopy))),
   CODESIZE(
           0x38,
           InstructionFamily.Account,
@@ -763,7 +770,9 @@ public enum OpCode {
                   false,
                   false),
           new RamSettings(), // TODO
-          new MxpSettings()), // TODO
+          new MxpSettings(
+                  MxpType.Type4,
+                  Billing.byWord(Gas.gCopy))),
   GASPRICE(
           0x3a,
           InstructionFamily.Transaction,
@@ -823,7 +832,9 @@ public enum OpCode {
                   false,
                   false),
           new RamSettings(), // TODO
-          new MxpSettings()), // TODO
+          new MxpSettings(
+                  MxpType.Type4,
+                  Billing.byWord(Gas.gCopy))),
   RETURNDATASIZE(
           0x3d,
           InstructionFamily.Context,
@@ -863,7 +874,9 @@ public enum OpCode {
                   true,
                   false),
           new RamSettings(), // TODO
-          new MxpSettings()), // TODO
+          new MxpSettings(
+                  MxpType.Type4,
+                  Billing.byWord(Gas.gCopy))),
   EXTCODEHASH(
           0x3f,
           InstructionFamily.Account,
@@ -1103,7 +1116,9 @@ public enum OpCode {
                   false,
                   false),
           new RamSettings(),  // TODO
-          new MxpSettings()), // TODO
+          new MxpSettings(
+                  MxpType.Type2,
+                  new Billing())),
   MSTORE(
           0x52,
           InstructionFamily.StackRam,
@@ -1123,7 +1138,9 @@ public enum OpCode {
                   false,
                   false),
           new RamSettings(),  // TODO
-          new MxpSettings()), // TODO
+          new MxpSettings(
+                  MxpType.Type2,
+                  new Billing())),
   MSTORE8(
           0x53,
           InstructionFamily.StackRam,
@@ -1143,7 +1160,9 @@ public enum OpCode {
                   false,
                   false),
           new RamSettings(),  // TODO
-          new MxpSettings()), // TODO
+          new MxpSettings(
+                  MxpType.Type3,
+                  new Billing())),
   SLOAD(
           0x54,
           InstructionFamily.Storage,
@@ -1263,7 +1282,9 @@ public enum OpCode {
                   false,
                   false),
           new RamSettings(),
-          new MxpSettings()), // TODO
+          new MxpSettings(
+                  MxpType.Type1,
+                  new Billing())), // TODO
   GAS(
           0x5a,
           InstructionFamily.MachineState,
@@ -2610,7 +2631,9 @@ public enum OpCode {
                   false,
                   false),
           new RamSettings(), // TODO
-          new MxpSettings()), // TODO
+          new MxpSettings(
+                  MxpType.Type4,
+                  Billing.byByte(Gas.gLogData))),
   LOG1(
           0xa1,
           InstructionFamily.Log,
@@ -2630,7 +2653,9 @@ public enum OpCode {
                   false,
                   false),
           new RamSettings(), // TODO
-          new MxpSettings()), // TODO
+          new MxpSettings(
+                  MxpType.Type4,
+                  Billing.byByte(Gas.gLogData))),
   LOG2(
           0xa2,
           InstructionFamily.Log,
@@ -2650,7 +2675,9 @@ public enum OpCode {
                   true,
                   false),
           new RamSettings(), // TODO
-          new MxpSettings()), // TODO
+          new MxpSettings(
+                  MxpType.Type4,
+                  Billing.byByte(Gas.gLogData))),
   LOG3(
           0xa3,
           InstructionFamily.Log,
@@ -2670,7 +2697,9 @@ public enum OpCode {
                   false,
                   false),
           new RamSettings(), // TODO
-          new MxpSettings()), // TODO
+          new MxpSettings(
+                  MxpType.Type4,
+                  Billing.byByte(Gas.gLogData))),
   LOG4(
           0xa4,
           InstructionFamily.Log,
@@ -2690,7 +2719,9 @@ public enum OpCode {
                   true,
                   false),
           new RamSettings(), // TODO
-          new MxpSettings()), // TODO
+          new MxpSettings(
+                  MxpType.Type4,
+                  Billing.byByte(Gas.gLogData))),
   CREATE(
           0xf0,
           InstructionFamily.Create,
@@ -2710,7 +2741,9 @@ public enum OpCode {
                   false,
                   false),
           new RamSettings(), // TODO
-          new MxpSettings()), // TODO
+          new MxpSettings(
+                  MxpType.Type4,
+                  new Billing())),
   CALL(
           0xf1,
           InstructionFamily.Call,
@@ -2730,7 +2763,9 @@ public enum OpCode {
                   false,
                   false),
           new RamSettings(),
-          new MxpSettings()),
+          new MxpSettings(
+                  MxpType.Type5,
+                  new Billing())),
   CALLCODE(
           0xf2,
           InstructionFamily.Call,
@@ -2750,7 +2785,9 @@ public enum OpCode {
                   false,
                   false),
           new RamSettings(), // TODO
-          new MxpSettings()), // TODO
+          new MxpSettings(
+                  MxpType.Type5,
+                  new Billing())),
   RETURN(
           0xf3,
           InstructionFamily.Halt,
@@ -2770,7 +2807,9 @@ public enum OpCode {
                   false,
                   false),
           new RamSettings(), // TODO
-          new MxpSettings()), // TODO
+          new MxpSettings(
+                  MxpType.Type4,
+                  new Billing())),
   DELEGATECALL(
           0xf4,
           InstructionFamily.Call,
@@ -2790,7 +2829,9 @@ public enum OpCode {
                   true,
                   false),
           new RamSettings(), // TODO
-          new MxpSettings()), // TODO
+          new MxpSettings(
+                  MxpType.Type5,
+                  new Billing())),
   CREATE2(
           0xf5,
           InstructionFamily.Create,
@@ -2810,7 +2851,9 @@ public enum OpCode {
                   false,
                   false),
           new RamSettings(), // TODO
-          new MxpSettings()), // TODO
+          new MxpSettings(
+                  MxpType.Type4,
+                  Billing.byWord(Gas.gKeccak256Word))),
   STATICCALL(
           0xfa,
           InstructionFamily.Call,
@@ -2830,7 +2873,9 @@ public enum OpCode {
                   false,
                   true),
           new RamSettings(), // TODO
-          new MxpSettings()), // TODO
+          new MxpSettings(
+                  MxpType.Type5,
+                  new Billing())),
   REVERT(
           0xfd,
           InstructionFamily.Halt,
@@ -2850,7 +2895,9 @@ public enum OpCode {
                   false,
                   false),
           new RamSettings(), // TODO
-          new MxpSettings()), // TODO
+          new MxpSettings(
+                  MxpType.Type4,
+                  new Billing())),
   INVALID(
           0xfe,
           InstructionFamily.Invalid,

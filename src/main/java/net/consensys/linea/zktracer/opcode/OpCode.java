@@ -18,12 +18,13 @@ package net.consensys.linea.zktracer.opcode;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.consensys.linea.zktracer.opcode.gas.Gas;
 import net.consensys.linea.zktracer.opcode.mxp.Billing;
 import net.consensys.linea.zktracer.opcode.mxp.MxpType;
 import net.consensys.linea.zktracer.opcode.stack.Pattern;
 import net.consensys.linea.zktracer.opcode.stack.StackSettings;
 
-/** Contains information pertaining to each opcode that are required by the arithmetization */
+/** Contains information pertaining to each opcode that are required by the arithmetization. */
 public enum OpCode {
   STOP(
       0x00,
@@ -2805,18 +2806,18 @@ public enum OpCode {
       new RamSettings(), // TODO
       new Billing()); // TODO
 
-  /** a long -> OpCode mapping from opcode value to {@link OpCode} instances */
+  /** A long -> OpCode mapping from opcode value to {@link OpCode} instances. */
   private static final Map<Long, OpCode> BY_VALUE = new HashMap<>(values().length);
 
-  /** the actual unsigned byte value of the opcode */
+  /** The actual unsigned byte value of the opcode. */
   public final long value;
-  /** the {@link InstructionFamily to which the opcode belongs} */
+  /** The {@link InstructionFamily} to which the opcode belongs. */
   public final InstructionFamily family;
-  /** a {@link StackSettings} instance describing how the opcode alters the EVM stack */
+  /** A {@link StackSettings} instance describing how the opcode alters the EVM stack. */
   public final StackSettings stackSettings;
-  /** a {@link RamSettings} instance describing how the opcode alters the memory */
+  /** A {@link RamSettings} instance describing how the opcode alters the memory. */
   public final RamSettings ramSettings;
-  /** a {@link Billing} instance describing the billing scheme of the instruction */
+  /** A {@link Billing} instance describing the billing scheme of the instruction. */
   public final Billing billing;
 
   static {
@@ -2839,17 +2840,25 @@ public enum OpCode {
   }
 
   /**
-   * @return whether this opcode is a PUSHx
+   * A method singling out <code>PUSHx</code> instructions.
+   *
+   * @return <code>true</code> if this opcode is a <code>PUSHx</code>
    */
   boolean isPush() {
     return (0x60 <= this.value) && (this.value < 0x80);
   }
 
-  public static OpCode of(final long value) {
-    if (value < 0 || value > 255) {
-      throw new AssertionError("No OpCode with value " + value + " is defined.");
+  /**
+   * Converts a numeric value to an Opcode. Throws if the value is not an unsigned byte.
+   *
+   * @param code
+   * @return the corresponding {@link OpCode}
+   */
+  public static OpCode of(final long code) {
+    if (code < 0 || code > 255) {
+      throw new AssertionError("No OpCode with value " + code + " is defined.");
     }
-    return BY_VALUE.getOrDefault(value, OpCode.INVALID);
+    return BY_VALUE.getOrDefault(code, OpCode.INVALID);
   }
 
   public int numberOfArguments() {

@@ -13,33 +13,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.opcode;
+package net.consensys.linea.zktracer.opcode.gas;
 
-/** All the instruction families, as used by the hub. */
-public enum InstructionFamily {
-  Add,
-  Mod,
-  Mul,
-  Ext,
-  Wcp,
-  Bin,
-  Shf,
-  Kec,
-  Context,
-  Account,
-  Copy,
-  Transaction,
-  Batch,
-  StackRam,
-  Storage,
-  Jump,
-  MachineState,
-  PushPop,
-  Dup,
-  Swap,
-  Log,
-  Create,
-  Call,
-  Halt,
-  Invalid,
+/** The unit used to bill the gas usage of an instruction. */
+public enum BillingRate {
+  ByWord,
+  ByByte,
 }

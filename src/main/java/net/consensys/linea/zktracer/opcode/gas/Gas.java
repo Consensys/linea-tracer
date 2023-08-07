@@ -1,6 +1,21 @@
-package net.consensys.linea.zktracer.opcode;
+/*
+ * Copyright ConsenSys AG.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
-/** All the classes of gas prices per instruction used in the EVM */
+package net.consensys.linea.zktracer.opcode.gas;
+
+/** All the classes of gas prices per instruction used in the EVM. */
 public enum Gas {
   gZero(0),
   gJumpDest(0),
@@ -51,7 +66,7 @@ public enum Gas {
   sStp(0),
   sPrecInfo(0);
 
-  /** the gas price of the instruction family */
+  /** The gas price of the instruction family. */
   private final int cost;
 
   Gas(int cost) {
@@ -62,11 +77,11 @@ public enum Gas {
     return this.cost();
   }
 
-  /** Constants required to compute some instruction families base price */
+  /** Constants required to compute some instruction families base price. */
   private static class Constants {
-    /** base price for a LOGx call */
+    /** Base price for a LOGx call. */
     private static final int log = 375;
-    /** additional price per topic for a LOGx call */
+    /** Additional price per topic for a LOGx call. */
     private static final int logTopic = 375;
   }
 }

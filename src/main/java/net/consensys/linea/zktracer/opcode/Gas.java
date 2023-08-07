@@ -1,5 +1,6 @@
 package net.consensys.linea.zktracer.opcode;
 
+/** All the classes of gas prices per instruction used in the EVM */
 public enum Gas {
   gZero(0),
   gJumpDest(0),
@@ -50,6 +51,7 @@ public enum Gas {
   sStp(0),
   sPrecInfo(0);
 
+  /** the gas price of the instruction family */
   private final int cost;
 
   Gas(int cost) {
@@ -60,8 +62,11 @@ public enum Gas {
     return this.cost();
   }
 
+  /** Constants required to compute some instruction families base price */
   private static class Constants {
+    /** base price for a LOGx call */
     private static final int log = 375;
+    /** additional price per topic for a LOGx call */
     private static final int logTopic = 375;
   }
 }

@@ -2,7 +2,7 @@ package net.consensys.linea.zktracer.opcode.mxp;
 
 import net.consensys.linea.zktracer.opcode.Gas;
 
-/** Represents the unit used to bill the gas usage of an instruction */
+/** The unit used to bill the gas usage of an instruction */
 enum BillingRate {
   ByWord,
   ByByte,
@@ -19,15 +19,35 @@ public record Billing(Gas perUnit, BillingRate billingRate, MxpType type) {
     this(null, null, MxpType.None);
   }
 
+  /**
+   * Create a billing scheme only dependent on the {@link Mxp}
+   *
+   * @param type the MXP type
+   * @return the billing scheme
+   */
   public static Billing byMxp(MxpType type) {
     return new Billing(null, null, type);
   }
 
-  public static Billing byWord(MxpType type, Gas perUnit) {
-    return new Billing(perUnit, BillingRate.ByWord, type);
+  /**
+   * Create a per-word billing scheme
+   *
+   * @param type the MXP type
+   * @param wordPrice gas cost of a word
+   * @return the billing scheme
+   */
+  public static Billing byWord(MxpType type, Gas wordPrice) {
+    return new Billing(wordPrice, BillingRate.ByWord, type);
   }
 
-  public static Billing byByte(MxpType type, Gas perUnit) {
-    return new Billing(perUnit, BillingRate.ByByte, type);
+  /**
+   * Create a per-byte billing scheme
+   *
+   * @param type the MXP type
+   * @param bytePrice gas cost of a byte
+   * @return the billing scheme
+   */
+  public static Billing byByte(MxpType type, Gas bytePrice) {
+    return new Billing(bytePrice, BillingRate.ByByte, type);
   }
 }

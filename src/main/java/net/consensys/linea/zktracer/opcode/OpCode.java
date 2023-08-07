@@ -706,7 +706,24 @@ public enum OpCode {
           new MxpSettings()),
   CALLDATACOPY(
           0x37,
-          ),
+          InstructionFamily.Copy,
+          new StackSettings(
+                  Pattern.Copy,
+                  0,
+                  3,
+                  0,
+                  3,
+                  Gas.sMxp,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false),
+          new RamSettings(), // TODO
+          new MxpSettings()), // TODO
   CODESIZE(
           0x38,
           InstructionFamily.Account,
@@ -733,12 +750,20 @@ public enum OpCode {
           new StackSettings(
                   Pattern.Copy,
                   0,
-                  2,
+                  3,
                   0,
-                  2,
-                  Gas
-          )
-          ),
+                  3,
+                  Gas.sMxp,
+                  false,
+                  false,
+                  false,
+                  false,
+                  true,
+                  false,
+                  false,
+                  false),
+          new RamSettings(), // TODO
+          new MxpSettings()), // TODO
   GASPRICE(
           0x3a,
           InstructionFamily.Transaction,
@@ -781,7 +806,24 @@ public enum OpCode {
           new MxpSettings()),
   EXTCODECOPY(
           0x3c,
-          ),
+          InstructionFamily.Copy,
+          new StackSettings(
+                  Pattern.Copy,
+                  0,
+                  4,
+                  0,
+                  4,
+                  Gas.sMxp,
+                  false,
+                  false,
+                  true,
+                  false,
+                  true,
+                  true,
+                  false,
+                  false),
+          new RamSettings(), // TODO
+          new MxpSettings()), // TODO
   RETURNDATASIZE(
           0x3d,
           InstructionFamily.Context,
@@ -804,7 +846,24 @@ public enum OpCode {
           new MxpSettings()),
   RETURNDATACOPY(
           0x3e,
-          ),
+          InstructionFamily.Copy,
+          new StackSettings(
+                  Pattern.Copy,
+                  0,
+                  3,
+                  0,
+                  3,
+                  Gas.sMxp,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  true,
+                  true,
+                  false),
+          new RamSettings(), // TODO
+          new MxpSettings()), // TODO
   EXTCODEHASH(
           0x3f,
           InstructionFamily.Account,
@@ -2634,7 +2693,24 @@ public enum OpCode {
           new MxpSettings()), // TODO
   CREATE(
           0xf0,
-          ),
+          InstructionFamily.Create,
+          new StackSettings(
+                  Pattern.Create,
+                  1,
+                  3,
+                  1,
+                  3,
+                  Gas.gCreate,
+                  true,
+                  true,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false),
+          new RamSettings(), // TODO
+          new MxpSettings()), // TODO
   CALL(
           0xf1,
           InstructionFamily.Call,
@@ -2677,7 +2753,24 @@ public enum OpCode {
           new MxpSettings()), // TODO
   RETURN(
           0xf3,
-          ),
+          InstructionFamily.Halt,
+          new StackSettings(
+                  Pattern.TwoZero,
+                  0,
+                  2,
+                  0,
+                  2,
+                  Gas.sMxp,
+                  false,
+                  false,
+                  false,
+                  false,
+                  true,
+                  false,
+                  false,
+                  false),
+          new RamSettings(), // TODO
+          new MxpSettings()), // TODO
   DELEGATECALL(
           0xf4,
           InstructionFamily.Call,
@@ -2700,7 +2793,24 @@ public enum OpCode {
           new MxpSettings()), // TODO
   CREATE2(
           0xf5,
-          ),
+          InstructionFamily.Create,
+          new StackSettings(
+                  Pattern.Create,
+                  1,
+                  4,
+                  1,
+                  4,
+                  Gas.gCreate,
+                  true,
+                  true,
+                  false,
+                  false,
+                  true,
+                  false,
+                  false,
+                  false),
+          new RamSettings(), // TODO
+          new MxpSettings()), // TODO
   STATICCALL(
           0xfa,
           InstructionFamily.Call,
@@ -2723,12 +2833,64 @@ public enum OpCode {
           new MxpSettings()), // TODO
   REVERT(
           0xfd,
-          ),
+          InstructionFamily.Halt,
+          new StackSettings(
+                  Pattern.TwoZero,
+                  0,
+                  2,
+                  0,
+                  2,
+                  Gas.sMxp,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  true,
+                  false,
+                  false),
+          new RamSettings(), // TODO
+          new MxpSettings()), // TODO
   INVALID(
           0xfe,
-          ),
+          InstructionFamily.Invalid,
+          new StackSettings(
+                  Pattern.ZeroZero,
+                  0,
+                  0,
+                  0,
+                  0,
+                  Gas.gZero,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false),
+          new RamSettings(),
+          new MxpSettings()),
   SELFDESTRUCT(
-          0xff,);
+          0xff,
+          InstructionFamily.Halt,
+          new StackSettings(
+                  Pattern.TwoZero,
+                  0,
+                  1,
+                  0,
+                  1,
+                  Gas.sMxp,
+                  false,
+                  true,
+                  true,
+                  false,
+                  false,
+                  false,
+                  false,
+                  true),
+          new RamSettings(), // TODO
+          new MxpSettings()); // TODO
 
   public final long value;
   public final InstructionFamily family;

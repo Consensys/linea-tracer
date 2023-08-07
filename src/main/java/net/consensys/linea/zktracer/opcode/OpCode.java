@@ -2825,8 +2825,6 @@ public enum OpCode {
     }
   }
 
-
-
   OpCode(
       final int value,
       InstructionFamily family,

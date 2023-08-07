@@ -2805,7 +2805,7 @@ public enum OpCode {
       new RamSettings(), // TODO
       new Billing()); // TODO
 
-  /** a long -> OpCode mapping from opode value to {@link OpCode} instances */
+  /** a long -> OpCode mapping from opcode value to {@link OpCode} instances */
   private static final Map<Long, OpCode> BY_VALUE = new HashMap<>(values().length);
 
   /** the actual unsigned byte value of the opcode */

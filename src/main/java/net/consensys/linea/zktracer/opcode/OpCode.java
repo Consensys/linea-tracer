@@ -2919,7 +2919,7 @@ public enum OpCode {
     this.mxpSettings = mxpSettings;
   }
 
-  public boolean IsPush() {
+  boolean isPush() {
     return (0x60 <= this.value) && (this.value < 0x80);
   }
 

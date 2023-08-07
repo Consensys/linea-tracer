@@ -23,6 +23,7 @@ import net.consensys.linea.zktracer.opcode.mxp.MxpType;
 import net.consensys.linea.zktracer.opcode.stack.Pattern;
 import net.consensys.linea.zktracer.opcode.stack.StackSettings;
 
+/** Contains information pertaining to each opcode that are required by the arithmetization */
 public enum OpCode {
   STOP(
       0x00,
@@ -2804,19 +2805,27 @@ public enum OpCode {
       new RamSettings(), // TODO
       new Billing()); // TODO
 
-  public final long value;
-  public final InstructionFamily family;
-  public final StackSettings stackSettings;
-  public final RamSettings ramSettings;
-  public final Billing billing;
-
+  /** a long -> OpCode mapping from opode value to {@link OpCode} instances */
   private static final Map<Long, OpCode> BY_VALUE = new HashMap<>(values().length);
+
+  /** the actual unsigned byte value of the opcode */
+  public final long value;
+  /** the {@link InstructionFamily to which the opcode belongs} */
+  public final InstructionFamily family;
+  /** a {@link StackSettings} instance describing how the opcode alters the EVM stack */
+  public final StackSettings stackSettings;
+  /** a {@link RamSettings} instance describing how the opcode alters the memory */
+  public final RamSettings ramSettings;
+  /** a {@link Billing} instance describing the billing scheme of the instruction */
+  public final Billing billing;
 
   static {
     for (OpCode o : values()) {
       BY_VALUE.put(o.value, o);
     }
   }
+
+
 
   OpCode(
       final int value,
@@ -2831,12 +2840,15 @@ public enum OpCode {
     this.billing = billing;
   }
 
+  /**
+   * @return whether this opcode is a PUSHx
+   */
   boolean isPush() {
     return (0x60 <= this.value) && (this.value < 0x80);
   }
 
   public static OpCode of(final long value) {
-    if (value > 255) {
+    if (value < 0 || value > 255) {
       throw new AssertionError("No OpCode with value " + value + " is defined.");
     }
     return BY_VALUE.getOrDefault(value, OpCode.INVALID);

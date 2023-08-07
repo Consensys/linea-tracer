@@ -2,6 +2,7 @@ package net.consensys.linea.zktracer.opcode.stack;
 
 import net.consensys.linea.zktracer.opcode.Gas;
 
+// TODO: maybe a builder?
 public record StackSettings(
     Pattern pattern,
     int alpha,

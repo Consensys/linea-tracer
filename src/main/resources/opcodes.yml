@@ -1,0 +1,813 @@
+opcodes:
+  - type: STOP
+    value: 0x00
+    instructionFamily: HALT
+    stackSettings:
+      pattern: ZERO_ZERO
+      alpha: 0
+      delta: 0
+      nbAdded: 0
+      nbRemoved: 0
+      staticGas: G_ZERO
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: false
+      flag2: false
+      flag3: true
+      flag4: false
+  - type: ADD
+    value: 0x01
+    instructionFamily: ADD
+    stackSettings:
+      pattern: TWO_ONE
+      alpha: 1
+      delta: 2
+      nbAdded: 1
+      nbRemoved: 2
+      staticGas: G_VERY_LOW
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: false
+      flag2: false
+      flag3: false
+      flag4: false
+  - type: MUL
+    value: 0x02
+    instructionFamily: MUL
+    stackSettings:
+      pattern: TWO_ONE
+      alpha: 1
+      delta: 2
+      nbAdded: 1
+      nbRemoved: 2
+      staticGas: G_LOW
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: false
+      flag2: false
+      flag3: false
+      flag4: false
+  - type: SUB
+    value: 0x03
+    instructionFamily: ADD
+    stackSettings:
+      pattern: TWO_ONE
+      alpha: 1
+      delta: 2
+      nbAdded: 1
+      nbRemoved: 2
+      staticGas: G_VERY_LOW
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: false
+      flag2: false
+      flag3: false
+      flag4: false
+  - type: DIV
+    value: 0x04
+    instructionFamily: MUL
+    stackSettings:
+      pattern: TWO_ONE
+      alpha: 1
+      delta: 2
+      nbAdded: 1
+      nbRemoved: 2
+      staticGas: G_LOW
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: false
+      flag2: false
+      flag3: false
+      flag4: false
+  - type: SDIV
+    value: 0x05
+    instructionFamily: MOD
+    stackSettings:
+      pattern: TWO_ONE
+      alpha: 1
+      delta: 2
+      nbAdded: 1
+      nbRemoved: 2
+      staticGas: G_LOW
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: false
+      flag2: false
+      flag3: false
+      flag4: false
+  - type: MOD
+    value: 0x06
+    instructionFamily: MOD
+    stackSettings:
+      pattern: TWO_ONE
+      alpha: 1
+      delta: 2
+      nbAdded: 1
+      nbRemoved: 2
+      staticGas: G_LOW
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: false
+      flag2: false
+      flag3: false
+      flag4: false
+  - type: SMOD
+    value: 0x07
+    instructionFamily: MOD
+    stackSettings:
+      pattern: TWO_ONE
+      alpha: 1
+      delta: 2
+      nbAdded: 1
+      nbRemoved: 2
+      staticGas: G_LOW
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: false
+      flag2: false
+      flag3: false
+      flag4: false
+  - type: ADDMOD
+    value: 0x8
+    instructionFamily: EXT
+    stackSettings:
+      pattern: THREE_ONE
+      alpha: 1
+      delta: 3
+      nbAdded: 1
+      nbRemoved: 3
+      staticGas: G_LOW
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: false
+      flag2: false
+      flag3: false
+      flag4: false
+  - type: MULMOD
+    value: 0x9
+    instructionFamily: EXT
+    stackSettings:
+      pattern: THREE_ONE
+      alpha: 1
+      delta: 3
+      nbAdded: 1
+      nbRemoved: 3
+      staticGas: G_LOW
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: false
+      flag2: false
+      flag3: false
+      flag4: false
+  - type: EXP
+    value: 0xa
+    instructionFamily: MUL
+    stackSettings:
+      pattern: TWO_ONE
+      alpha: 1
+      delta: 2
+      nbAdded: 1
+      nbRemoved: 2
+      staticGas: G_EXP
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: false
+      flag2: false
+      flag3: false
+      flag4: false
+  - type: SIGNEXTEND
+    value: 0xb
+    instructionFamily: BIN
+    stackSettings:
+      pattern: TWO_ONE
+      alpha: 1
+      delta: 2
+      nbAdded: 1
+      nbRemoved: 2
+      staticGas: G_VERY_LOW
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: false
+      flag2: false
+      flag3: false
+      flag4: false
+  - type: LT
+    value: 0x10
+    instructionFamily: WCP
+    stackSettings:
+      pattern: TWO_ONE
+      alpha: 1
+      delta: 2
+      nbAdded: 1
+      nbRemoved: 2
+      staticGas: G_VERY_LOW
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: false
+      flag2: false
+      flag3: false
+      flag4: false
+  - type: GT
+    value: 0x11
+    instructionFamily: WCP
+    stackSettings:
+      pattern: TWO_ONE
+      alpha: 1
+      delta: 2
+      nbAdded: 1
+      nbRemoved: 2
+      staticGas: G_VERY_LOW
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: false
+      flag2: false
+      flag3: false
+      flag4: false
+  - type: SLT
+    value: 0x12
+    instructionFamily: WCP
+    stackSettings:
+      pattern: TWO_ONE
+      alpha: 1
+      delta: 2
+      nbAdded: 1
+      nbRemoved: 2
+      staticGas: G_VERY_LOW
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: false
+      flag2: false
+      flag3: false
+      flag4: false
+  - type: SGT
+    value: 0x13
+    instructionFamily: WCP
+    stackSettings:
+      pattern: TWO_ONE
+      alpha: 1
+      delta: 2
+      nbAdded: 1
+      nbRemoved: 2
+      staticGas: G_VERY_LOW
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: false
+      flag2: false
+      flag3: false
+      flag4: false
+  - type: EQ
+    value: 0x14
+    instructionFamily: WCP
+    stackSettings:
+      pattern: TWO_ONE
+      alpha: 1
+      delta: 2
+      nbAdded: 1
+      nbRemoved: 2
+      staticGas: G_VERY_LOW
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: false
+      flag2: false
+      flag3: false
+      flag4: false
+  - type: ISZERO
+    value: 0x15
+    instructionFamily: WCP
+    stackSettings:
+      pattern: ONE_ONE
+      alpha: 1
+      delta: 1
+      nbAdded: 1
+      nbRemoved: 1
+      staticGas: G_VERY_LOW
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: true
+      flag2: false
+      flag3: false
+      flag4: false
+  - type: AND
+    value: 0x16
+    instructionFamily: BIN
+    stackSettings:
+      pattern: TWO_ONE
+      alpha: 1
+      delta: 2
+      nbAdded: 1
+      nbRemoved: 2
+      staticGas: G_VERY_LOW
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: false
+      flag2: false
+      flag3: false
+      flag4: false
+  - type: OR
+    value: 0x17
+    instructionFamily: BIN
+    stackSettings:
+      pattern: TWO_ONE
+      alpha: 1
+      delta: 2
+      nbAdded: 1
+      nbRemoved: 2
+      staticGas: G_VERY_LOW
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: false
+      flag2: false
+      flag3: false
+      flag4: false
+  - type: XOR
+    value: 0x18
+    instructionFamily: BIN
+    stackSettings:
+      pattern: TWO_ONE
+      alpha: 1
+      delta: 2
+      nbAdded: 1
+      nbRemoved: 2
+      staticGas: G_VERY_LOW
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: false
+      flag2: false
+      flag3: false
+      flag4: false
+  - type: NOT
+    value: 0x19
+    instructionFamily: BIN
+    stackSettings:
+      pattern: ONE_ONE
+      alpha: 1
+      delta: 1
+      nbAdded: 1
+      nbRemoved: 1
+      staticGas: G_VERY_LOW
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: true
+      flag2: false
+      flag3: false
+      flag4: false
+  - type: BYTE
+    value: 0x1a
+    instructionFamily: BIN
+    stackSettings:
+      pattern: TWO_ONE
+      alpha: 1
+      delta: 2
+      nbAdded: 1
+      nbRemoved: 2
+      staticGas: G_VERY_LOW
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: false
+      flag2: false
+      flag3: false
+      flag4: false
+  - type: SHL
+    value: 0x1b
+    instructionFamily: SHF
+    stackSettings:
+      pattern: TWO_ONE
+      alpha: 1
+      delta: 2
+      nbAdded: 1
+      nbRemoved: 2
+      staticGas: G_VERY_LOW
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: false
+      flag2: false
+      flag3: false
+      flag4: false
+  - type: SHR
+    value: 0x1c
+    instructionFamily: SHF
+    stackSettings:
+      pattern: TWO_ONE
+      alpha: 1
+      delta: 2
+      nbAdded: 1
+      nbRemoved: 2
+      staticGas: G_VERY_LOW
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: false
+      flag2: false
+      flag3: false
+      flag4: false
+  - type: SAR
+    value: 0x1d
+    instructionFamily: SHF
+    stackSettings:
+      pattern: TWO_ONE
+      alpha: 1
+      delta: 2
+      nbAdded: 1
+      nbRemoved: 2
+      staticGas: G_VERY_LOW
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: false
+      flag2: false
+      flag3: false
+      flag4: false
+  - type: SHA3
+    value: 0x20
+    instructionFamily: KEC
+    stackSettings:
+      pattern: TWO_ONE
+      alpha: 1
+      delta: 2
+      nbAdded: 1
+      nbRemoved: 2
+      staticGas: S_MXP
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: false
+      flag2: false
+      flag3: false
+      flag4: false
+    billing:
+      byWord:
+        type: TYPE_4
+        wordPrice: G_KECCAK_256_WORD
+  - type: ADDRESS
+    value: 0x30
+    instructionFamily: CONTEXT
+    stackSettings:
+      pattern: ZERO_ONE
+      alpha: 1
+      delta: 0
+      nbAdded: 1
+      nbRemoved: 0
+      staticGas: G_BASE
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: false
+      flag2: false
+      flag3: false
+      flag4: false
+  - type: BALANCE
+    value: 0x31
+    instructionFamily: ACCOUNT
+    stackSettings:
+      pattern: ONE_ONE
+      alpha: 1
+      delta: 1
+      nbAdded: 1
+      nbRemoved: 1
+      staticGas: S_HUB
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: true
+      oobFlag: false
+      flag1: false
+      flag2: false
+      flag3: false
+      flag4: true
+  - type: ORIGIN
+    value: 0x32
+    instructionFamily: TRANSACTION
+    stackSettings:
+      pattern: ZERO_ONE
+      alpha: 1
+      delta: 0
+      nbAdded: 1
+      nbRemoved: 0
+      staticGas: G_BASE
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: false
+      flag2: false
+      flag3: false
+      flag4: false
+  - type: CALLER
+    value: 0x33
+    instructionFamily: CONTEXT
+    stackSettings:
+      pattern: ZERO_ONE
+      alpha: 1
+      delta: 0
+      nbAdded: 1
+      nbRemoved: 0
+      staticGas: G_BASE
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: false
+      flag2: true
+      flag3: false
+      flag4: false
+  - type: CALLVALUE
+    value: 0x34
+    instructionFamily: CONTEXT
+    stackSettings:
+      pattern: ZERO_ONE
+      alpha: 1
+      delta: 0
+      nbAdded: 1
+      nbRemoved: 0
+      staticGas: G_BASE
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: true
+      flag2: false
+      flag3: false
+      flag4: false
+  - type: CALLDATALOAD
+    value: 0x35
+    instructionFamily: STACK_RAM
+    stackSettings:
+      pattern: LOAD_STORE
+      alpha: 1
+      delta: 1
+      nbAdded: 1
+      nbRemoved: 1
+      staticGas: G_VERY_LOW
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: true
+      flag1: false
+      flag2: true
+      flag3: false
+      flag4: false
+  - type: CALLDATASIZE
+    value: 0x36
+    instructionFamily: CONTEXT
+    stackSettings:
+      pattern: ZERO_ONE
+      alpha: 1
+      delta: 0
+      nbAdded: 1
+      nbRemoved: 0
+      staticGas: G_BASE
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: true
+      flag2: false
+      flag3: true
+      flag4: false
+  - type: CALLDATACOPY
+    value: 0x37
+    instructionFamily: COPY
+    stackSettings:
+      pattern: COPY
+      alpha: 0
+      delta: 3
+      nbAdded: 0
+      nbRemoved: 3
+      staticGas: S_MXP
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: false
+      flag2: false
+      flag3: false
+      flag4: false
+    billing:
+      byWord:
+        type: TYPE_4
+        wordPrice: G_COPY
+  - type: CODESIZE
+    value: 0x38
+    instructionFamily: ACCOUNT
+    stackSettings:
+      pattern: ZERO_ONE
+      alpha: 1
+      delta: 0
+      nbAdded: 1
+      nbRemoved: 0
+      staticGas: G_BASE
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: true
+      flag2: false
+      flag3: false
+      flag4: false
+  - type: CODECOPY
+    value: 0x39
+    instructionFamily: COPY
+    stackSettings:
+      pattern: COPY
+      alpha: 0
+      delta: 3
+      nbAdded: 0
+      nbRemoved: 3
+      staticGas: S_MXP
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: true
+      flag2: false
+      flag3: false
+      flag4: false
+    billing:
+      byWord:
+        type: TYPE_4
+        wordPrice: G_COPY
+  - type: GASPRICE
+    value: 0x3a
+    instructionFamily: TRANSACTION
+    stackSettings:
+      pattern: ZERO_ONE
+      alpha: 1
+      delta: 0
+      nbAdded: 1
+      nbRemoved: 0
+      staticGas: G_BASE
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: true
+      flag2: false
+      flag3: false
+      flag4: false
+  - type: EXTCODESIZE
+    value: 0x3b
+    instructionFamily: ACCOUNT
+    stackSettings:
+      pattern: ONE_ONE
+      alpha: 1
+      delta: 1
+      nbAdded: 1
+      nbRemoved: 1
+      staticGas: S_HUB
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: true
+      oobFlag: false
+      flag1: true
+      flag2: false
+      flag3: true
+      flag4: false
+  - type: EXTCODECOPY
+    value: 0x3c
+    instructionFamily: COPY
+    stackSettings:
+      pattern: COPY
+      alpha: 0
+      delta: 4
+      nbAdded: 0
+      nbRemoved: 4
+      staticGas: S_MXP
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: true
+      oobFlag: false
+      flag1: true
+      flag2: true
+      flag3: false
+      flag4: false
+    billing:
+      byWord:
+        type: TYPE_4
+        wordPrice: G_COPY
+  - type: RETURNDATASIZE
+    value: 0x3d
+    instructionFamily: CONTEXT
+    stackSettings:
+      pattern: ZERO_ONE
+      alpha: 1
+      delta: 0
+      nbAdded: 1
+      nbRemoved: 0
+      staticGas: G_BASE
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: true
+      flag2: true
+      flag3: false
+      flag4: false
+  - type: RETURNDATACOPY
+    value: 0x3e
+    instructionFamily: COPY
+    stackSettings:
+      pattern: COPY
+      alpha: 0
+      delta: 3
+      nbAdded: 0
+      nbRemoved: 3
+      staticGas: S_MXP
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: false
+      flag2: true
+      flag3: true
+      flag4: false
+    billing:
+      byWord:
+        type: TYPE_4
+        wordPrice: G_COPY
+  - type: EXTCODEHASH
+    value: 0x3f
+    instructionFamily: ACCOUNT
+    stackSettings:
+      pattern: ONE_ONE
+      alpha: 1
+      delta: 1
+      nbAdded: 1
+      nbRemoved: 1
+      staticGas: S_HUB
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: true
+      oobFlag: false
+      flag1: false
+      flag2: true
+      flag3: false
+      flag4: false
+  - type: BLOCKHASH
+    value: 0x40
+    instructionFamily: BATCH
+    stackSettings:
+      pattern: ZERO_ONE
+      alpha: 1
+      delta: 0
+      nbAdded: 1
+      nbRemoved: 0
+      staticGas: G_BLOCK_HASH
+      twoLinesInstruction: false
+      staticInstruction: false
+      addressTrimmingInstruction: false
+      oobFlag: false
+      flag1: true
+      flag2: false
+      flag3: false
+      flag4: false

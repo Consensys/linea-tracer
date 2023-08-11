@@ -15,8 +15,13 @@
 
 package net.consensys.linea.zktracer.opcode;
 
-public record RamSettings(boolean enabled, DataLocation source, DataLocation target) {
-  public RamSettings() {
-    this(false, DataLocation.NONE, DataLocation.NONE);
-  }
-}
+import net.consensys.linea.zktracer.opcode.gas.Billing;
+import net.consensys.linea.zktracer.opcode.stack.StackSettings;
+
+public record OpCodeData(
+    OpCode type,
+    long value,
+    InstructionFamily instructionFamily,
+    StackSettings stackSettings,
+    RamSettings ramSettings,
+    Billing billing) {}

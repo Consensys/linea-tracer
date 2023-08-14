@@ -95,7 +95,7 @@ public class BillingDeserializer extends StdDeserializer<Billing> {
             .orElseThrow(
                 () ->
                     new IllegalArgumentException(
-                        "'type' is a mandatory property when declaring '%s' billing"
+                        "'mnemonic' is a mandatory property when declaring '%s' billing"
                             .formatted(billingRate)));
 
     return MxpType.valueOf(typeNode.textValue());

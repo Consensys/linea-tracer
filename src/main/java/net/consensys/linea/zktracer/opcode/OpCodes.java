@@ -47,7 +47,8 @@ public class OpCodes {
     List<OpCodeData> opCodes = MAPPER.treeToValue(rootNode, typeReference);
 
     valueToOpCodeDataMap = opCodes.stream().collect(Collectors.toMap(OpCodeData::value, e -> e));
-    opCodeToOpCodeDataMap = opCodes.stream().collect(Collectors.toMap(OpCodeData::type, e -> e));
+    opCodeToOpCodeDataMap =
+        opCodes.stream().collect(Collectors.toMap(OpCodeData::mnemonic, e -> e));
   }
 
   public static OpCodeData of(final long value) {
@@ -61,6 +62,8 @@ public class OpCodes {
   public static OpCodeData of(final OpCode code) {
     return Optional.ofNullable(opCodeToOpCodeDataMap.get(code))
         .orElseThrow(
-            () -> new IllegalArgumentException("No OpCode of type %s is defined.".formatted(code)));
+            () ->
+                new IllegalArgumentException(
+                    "No OpCode of mnemonic %s is defined.".formatted(code)));
   }
 }

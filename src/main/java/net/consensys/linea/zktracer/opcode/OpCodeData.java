@@ -19,7 +19,7 @@ import net.consensys.linea.zktracer.opcode.gas.Billing;
 import net.consensys.linea.zktracer.opcode.stack.StackSettings;
 
 public record OpCodeData(
-    OpCode type,
+    OpCode mnemonic,
     long value,
     InstructionFamily instructionFamily,
     StackSettings stackSettings,

@@ -1,5 +1,5 @@
 opcodes:
-  - type: STOP
+  - mnemonic: STOP
     value: 0x00
     instructionFamily: HALT
     stackSettings:
@@ -9,15 +9,8 @@ opcodes:
       nbAdded: 0
       nbRemoved: 0
       staticGas: G_ZERO
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
       flag3: true
-      flag4: false
-  - type: ADD
+  - mnemonic: ADD
     value: 0x01
     instructionFamily: ADD
     stackSettings:
@@ -27,15 +20,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 2
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: MUL
+  - mnemonic: MUL
     value: 0x02
     instructionFamily: MUL
     stackSettings:
@@ -45,15 +30,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 2
       staticGas: G_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: SUB
+  - mnemonic: SUB
     value: 0x03
     instructionFamily: ADD
     stackSettings:
@@ -63,15 +40,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 2
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: DIV
+  - mnemonic: DIV
     value: 0x04
     instructionFamily: MUL
     stackSettings:
@@ -81,15 +50,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 2
       staticGas: G_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: SDIV
+  - mnemonic: SDIV
     value: 0x05
     instructionFamily: MOD
     stackSettings:
@@ -99,15 +60,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 2
       staticGas: G_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: MOD
+  - mnemonic: MOD
     value: 0x06
     instructionFamily: MOD
     stackSettings:
@@ -117,15 +70,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 2
       staticGas: G_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: SMOD
+  - mnemonic: SMOD
     value: 0x07
     instructionFamily: MOD
     stackSettings:
@@ -135,15 +80,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 2
       staticGas: G_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: ADDMOD
+  - mnemonic: ADDMOD
     value: 0x8
     instructionFamily: EXT
     stackSettings:
@@ -153,15 +90,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 3
       staticGas: G_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: MULMOD
+  - mnemonic: MULMOD
     value: 0x9
     instructionFamily: EXT
     stackSettings:
@@ -171,15 +100,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 3
       staticGas: G_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: EXP
+  - mnemonic: EXP
     value: 0xa
     instructionFamily: MUL
     stackSettings:
@@ -189,15 +110,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 2
       staticGas: G_EXP
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: SIGNEXTEND
+  - mnemonic: SIGNEXTEND
     value: 0xb
     instructionFamily: BIN
     stackSettings:
@@ -207,15 +120,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 2
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: LT
+  - mnemonic: LT
     value: 0x10
     instructionFamily: WCP
     stackSettings:
@@ -225,15 +130,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 2
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: GT
+  - mnemonic: GT
     value: 0x11
     instructionFamily: WCP
     stackSettings:
@@ -243,15 +140,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 2
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: SLT
+  - mnemonic: SLT
     value: 0x12
     instructionFamily: WCP
     stackSettings:
@@ -261,15 +150,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 2
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: SGT
+  - mnemonic: SGT
     value: 0x13
     instructionFamily: WCP
     stackSettings:
@@ -279,15 +160,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 2
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: EQ
+  - mnemonic: EQ
     value: 0x14
     instructionFamily: WCP
     stackSettings:
@@ -297,15 +170,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 2
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: ISZERO
+  - mnemonic: ISZERO
     value: 0x15
     instructionFamily: WCP
     stackSettings:
@@ -315,15 +180,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 1
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: AND
+  - mnemonic: AND
     value: 0x16
     instructionFamily: BIN
     stackSettings:
@@ -333,15 +191,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 2
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: OR
+  - mnemonic: OR
     value: 0x17
     instructionFamily: BIN
     stackSettings:
@@ -351,15 +201,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 2
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: XOR
+  - mnemonic: XOR
     value: 0x18
     instructionFamily: BIN
     stackSettings:
@@ -369,15 +211,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 2
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: NOT
+  - mnemonic: NOT
     value: 0x19
     instructionFamily: BIN
     stackSettings:
@@ -387,15 +221,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 1
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: BYTE
+  - mnemonic: BYTE
     value: 0x1a
     instructionFamily: BIN
     stackSettings:
@@ -405,15 +232,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 2
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: SHL
+  - mnemonic: SHL
     value: 0x1b
     instructionFamily: SHF
     stackSettings:
@@ -423,15 +242,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 2
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: SHR
+  - mnemonic: SHR
     value: 0x1c
     instructionFamily: SHF
     stackSettings:
@@ -441,15 +252,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 2
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: SAR
+  - mnemonic: SAR
     value: 0x1d
     instructionFamily: SHF
     stackSettings:
@@ -459,15 +262,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 2
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: SHA3
+  - mnemonic: SHA3
     value: 0x20
     instructionFamily: KEC
     stackSettings:
@@ -477,19 +272,11 @@ opcodes:
       nbAdded: 1
       nbRemoved: 2
       staticGas: S_MXP
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
     billing:
       byWord:
         type: TYPE_4
         wordPrice: G_KECCAK_256_WORD
-  - type: ADDRESS
+  - mnemonic: ADDRESS
     value: 0x30
     instructionFamily: CONTEXT
     stackSettings:
@@ -499,15 +286,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_BASE
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: BALANCE
+  - mnemonic: BALANCE
     value: 0x31
     instructionFamily: ACCOUNT
     stackSettings:
@@ -517,15 +296,9 @@ opcodes:
       nbAdded: 1
       nbRemoved: 1
       staticGas: S_HUB
-      twoLinesInstruction: false
-      staticInstruction: false
       addressTrimmingInstruction: true
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
       flag4: true
-  - type: ORIGIN
+  - mnemonic: ORIGIN
     value: 0x32
     instructionFamily: TRANSACTION
     stackSettings:
@@ -535,15 +308,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_BASE
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: CALLER
+  - mnemonic: CALLER
     value: 0x33
     instructionFamily: CONTEXT
     stackSettings:
@@ -553,15 +318,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_BASE
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
       flag2: true
-      flag3: false
-      flag4: false
-  - type: CALLVALUE
+  - mnemonic: CALLVALUE
     value: 0x34
     instructionFamily: CONTEXT
     stackSettings:
@@ -571,15 +329,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_BASE
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: CALLDATALOAD
+  - mnemonic: CALLDATALOAD
     value: 0x35
     instructionFamily: STACK_RAM
     stackSettings:
@@ -589,15 +340,10 @@ opcodes:
       nbAdded: 1
       nbRemoved: 1
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
       oobFlag: true
-      flag1: false
+
       flag2: true
-      flag3: false
-      flag4: false
-  - type: CALLDATASIZE
+  - mnemonic: CALLDATASIZE
     value: 0x36
     instructionFamily: CONTEXT
     stackSettings:
@@ -607,15 +353,11 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_BASE
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
+
       flag3: true
-      flag4: false
-  - type: CALLDATACOPY
+
+  - mnemonic: CALLDATACOPY
     value: 0x37
     instructionFamily: COPY
     stackSettings:
@@ -625,19 +367,11 @@ opcodes:
       nbAdded: 0
       nbRemoved: 3
       staticGas: S_MXP
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
     billing:
       byWord:
         type: TYPE_4
         wordPrice: G_COPY
-  - type: CODESIZE
+  - mnemonic: CODESIZE
     value: 0x38
     instructionFamily: ACCOUNT
     stackSettings:
@@ -647,15 +381,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_BASE
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: CODECOPY
+  - mnemonic: CODECOPY
     value: 0x39
     instructionFamily: COPY
     stackSettings:
@@ -665,19 +392,12 @@ opcodes:
       nbAdded: 0
       nbRemoved: 3
       staticGas: S_MXP
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
     billing:
       byWord:
         type: TYPE_4
         wordPrice: G_COPY
-  - type: GASPRICE
+  - mnemonic: GASPRICE
     value: 0x3a
     instructionFamily: TRANSACTION
     stackSettings:
@@ -687,15 +407,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_BASE
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: EXTCODESIZE
+  - mnemonic: EXTCODESIZE
     value: 0x3b
     instructionFamily: ACCOUNT
     stackSettings:
@@ -705,15 +418,13 @@ opcodes:
       nbAdded: 1
       nbRemoved: 1
       staticGas: S_HUB
-      twoLinesInstruction: false
-      staticInstruction: false
       addressTrimmingInstruction: true
-      oobFlag: false
+
       flag1: true
-      flag2: false
+
       flag3: true
-      flag4: false
-  - type: EXTCODECOPY
+
+  - mnemonic: EXTCODECOPY
     value: 0x3c
     instructionFamily: COPY
     stackSettings:
@@ -723,19 +434,15 @@ opcodes:
       nbAdded: 0
       nbRemoved: 4
       staticGas: S_MXP
-      twoLinesInstruction: false
-      staticInstruction: false
       addressTrimmingInstruction: true
-      oobFlag: false
+
       flag1: true
       flag2: true
-      flag3: false
-      flag4: false
     billing:
       byWord:
         type: TYPE_4
         wordPrice: G_COPY
-  - type: RETURNDATASIZE
+  - mnemonic: RETURNDATASIZE
     value: 0x3d
     instructionFamily: CONTEXT
     stackSettings:
@@ -745,15 +452,9 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_BASE
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
       flag2: true
-      flag3: false
-      flag4: false
-  - type: RETURNDATACOPY
+  - mnemonic: RETURNDATACOPY
     value: 0x3e
     instructionFamily: COPY
     stackSettings:
@@ -763,19 +464,14 @@ opcodes:
       nbAdded: 0
       nbRemoved: 3
       staticGas: S_MXP
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
       flag2: true
       flag3: true
-      flag4: false
+
     billing:
       byWord:
         type: TYPE_4
         wordPrice: G_COPY
-  - type: EXTCODEHASH
+  - mnemonic: EXTCODEHASH
     value: 0x3f
     instructionFamily: ACCOUNT
     stackSettings:
@@ -785,15 +481,9 @@ opcodes:
       nbAdded: 1
       nbRemoved: 1
       staticGas: S_HUB
-      twoLinesInstruction: false
-      staticInstruction: false
       addressTrimmingInstruction: true
-      oobFlag: false
-      flag1: false
       flag2: true
-      flag3: false
-      flag4: false
-  - type: BLOCKHASH
+  - mnemonic: BLOCKHASH
     value: 0x40
     instructionFamily: BATCH
     stackSettings:
@@ -803,15 +493,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_BLOCK_HASH
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: COINBASE
+  - mnemonic: COINBASE
     value: 0x41
     instructionFamily: BATCH
     stackSettings:
@@ -821,15 +504,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_BLOCK_HASH
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: TIMESTAMP
+  - mnemonic: TIMESTAMP
     value: 0x42
     instructionFamily: BATCH
     stackSettings:
@@ -839,15 +515,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_BLOCK_HASH
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: NUMBER
+  - mnemonic: NUMBER
     value: 0x43
     instructionFamily: BATCH
     stackSettings:
@@ -857,15 +526,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_BLOCK_HASH
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: DIFFICULTY
+  - mnemonic: DIFFICULTY
     value: 0x44
     instructionFamily: BATCH
     stackSettings:
@@ -875,15 +537,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_BLOCK_HASH
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: GASLIMIT
+  - mnemonic: GASLIMIT
     value: 0x45
     instructionFamily: BATCH
     stackSettings:
@@ -893,15 +548,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_BLOCK_HASH
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: CHAINID
+  - mnemonic: CHAINID
     value: 0x46
     instructionFamily: BATCH
     stackSettings:
@@ -911,15 +559,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_BLOCK_HASH
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: SELFBALANCE
+  - mnemonic: SELFBALANCE
     value: 0x47
     instructionFamily: ACCOUNT
     stackSettings:
@@ -929,15 +570,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: BASEFEE
+  - mnemonic: BASEFEE
     value: 0x48
     instructionFamily: BATCH
     stackSettings:
@@ -947,15 +581,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_BLOCK_HASH
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: POP
+  - mnemonic: POP
     value: 0x50
     instructionFamily: PUSH_POP
     stackSettings:
@@ -965,15 +592,7 @@ opcodes:
       nbAdded: 0
       nbRemoved: 1
       staticGas: G_BASE
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: MLOAD
+  - mnemonic: MLOAD
     value: 0x51
     instructionFamily: STACK_RAM
     stackSettings:
@@ -983,18 +602,10 @@ opcodes:
       nbAdded: 1
       nbRemoved: 1
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
     billing:
       byMxp:
         type: TYPE_2
-  - type: MSTORE
+  - mnemonic: MSTORE
     value: 0x52
     instructionFamily: STACK_RAM
     stackSettings:
@@ -1004,18 +615,11 @@ opcodes:
       nbAdded: 0
       nbRemoved: 2
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
     billing:
       byMxp:
         type: TYPE_2
-  - type: MSTORE8
+  - mnemonic: MSTORE8
     value: 0x53
     instructionFamily: STACK_RAM
     stackSettings:
@@ -1025,18 +629,11 @@ opcodes:
       nbAdded: 0
       nbRemoved: 2
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
     billing:
       byMxp:
         type: TYPE_3
-  - type: SLOAD
+  - mnemonic: SLOAD
     value: 0x54
     instructionFamily: STORAGE
     stackSettings:
@@ -1046,15 +643,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 1
       staticGas: S_HUB
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: SSTORE
+  - mnemonic: SSTORE
     value: 0x55
     instructionFamily: STORAGE
     stackSettings:
@@ -1064,15 +653,10 @@ opcodes:
       nbAdded: 1
       nbRemoved: 1
       staticGas: S_HUB
-      twoLinesInstruction: false
+
       staticInstruction: true
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: JUMP
+  - mnemonic: JUMP
     value: 0x56
     instructionFamily: JUMP
     stackSettings:
@@ -1082,15 +666,9 @@ opcodes:
       nbAdded: 0
       nbRemoved: 1
       staticGas: G_MID
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
       oobFlag: true
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: JUMPI
+  - mnemonic: JUMPI
     value: 0x57
     instructionFamily: JUMP
     stackSettings:
@@ -1100,15 +678,9 @@ opcodes:
       nbAdded: 0
       nbRemoved: 1
       staticGas: G_MID
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
       oobFlag: true
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: PC
+  - mnemonic: PC
     value: 0x58
     instructionFamily: MACHINE_STATE
     stackSettings:
@@ -1118,15 +690,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_BASE
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: MSIZE
+  - mnemonic: MSIZE
     value: 0x59
     instructionFamily: MACHINE_STATE
     stackSettings:
@@ -1136,18 +701,11 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_BASE
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
       flag2: true
-      flag3: false
-      flag4: false
     billing:
       byMxp:
         type: TYPE_1
-  - type: GAS
+  - mnemonic: GAS
     value: 0x5a
     instructionFamily: MACHINE_STATE
     stackSettings:
@@ -1157,15 +715,9 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_BASE
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
       flag3: true
-      flag4: false
-  - type: JUMPDEST
+
+  - mnemonic: JUMPDEST
     value: 0x5b
     instructionFamily: MACHINE_STATE
     stackSettings:
@@ -1175,15 +727,8 @@ opcodes:
       nbAdded: 0
       nbRemoved: 0
       staticGas: G_JUMP_DEST
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
       flag4: true
-  - type: PUSH1
+  - mnemonic: PUSH1
     value: 0x60
     instructionFamily: PUSH_POP
     stackSettings:
@@ -1193,15 +738,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: PUSH2
+  - mnemonic: PUSH2
     value: 0x61
     instructionFamily: PUSH_POP
     stackSettings:
@@ -1211,15 +749,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: PUSH3
+  - mnemonic: PUSH3
     value: 0x62
     instructionFamily: PUSH_POP
     stackSettings:
@@ -1229,15 +760,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: PUSH4
+  - mnemonic: PUSH4
     value: 0x63
     instructionFamily: PUSH_POP
     stackSettings:
@@ -1247,15 +771,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: PUSH5
+  - mnemonic: PUSH5
     value: 0x64
     instructionFamily: PUSH_POP
     stackSettings:
@@ -1265,15 +782,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: PUSH6
+  - mnemonic: PUSH6
     value: 0x65
     instructionFamily: PUSH_POP
     stackSettings:
@@ -1283,15 +793,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: PUSH7
+  - mnemonic: PUSH7
     value: 0x66
     instructionFamily: PUSH_POP
     stackSettings:
@@ -1301,15 +804,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: PUSH8
+  - mnemonic: PUSH8
     value: 0x67
     instructionFamily: PUSH_POP
     stackSettings:
@@ -1319,15 +815,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: PUSH9
+  - mnemonic: PUSH9
     value: 0x68
     instructionFamily: PUSH_POP
     stackSettings:
@@ -1337,15 +826,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: PUSH10
+  - mnemonic: PUSH10
     value: 0x69
     instructionFamily: PUSH_POP
     stackSettings:
@@ -1355,15 +837,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: PUSH11
+  - mnemonic: PUSH11
     value: 0x6a
     instructionFamily: PUSH_POP
     stackSettings:
@@ -1373,15 +848,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: PUSH12
+  - mnemonic: PUSH12
     value: 0x6b
     instructionFamily: PUSH_POP
     stackSettings:
@@ -1391,15 +859,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: PUSH13
+  - mnemonic: PUSH13
     value: 0x6c
     instructionFamily: PUSH_POP
     stackSettings:
@@ -1409,15 +870,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: PUSH14
+  - mnemonic: PUSH14
     value: 0x6d
     instructionFamily: PUSH_POP
     stackSettings:
@@ -1427,15 +881,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: PUSH15
+  - mnemonic: PUSH15
     value: 0x6e
     instructionFamily: PUSH_POP
     stackSettings:
@@ -1445,15 +892,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: PUSH16
+  - mnemonic: PUSH16
     value: 0x6f
     instructionFamily: PUSH_POP
     stackSettings:
@@ -1463,15 +903,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: PUSH17
+  - mnemonic: PUSH17
     value: 0x70
     instructionFamily: PUSH_POP
     stackSettings:
@@ -1481,15 +914,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: PUSH18
+  - mnemonic: PUSH18
     value: 0x71
     instructionFamily: PUSH_POP
     stackSettings:
@@ -1499,15 +925,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: PUSH19
+  - mnemonic: PUSH19
     value: 0x72
     instructionFamily: PUSH_POP
     stackSettings:
@@ -1517,15 +936,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: PUSH20
+  - mnemonic: PUSH20
     value: 0x73
     instructionFamily: PUSH_POP
     stackSettings:
@@ -1535,15 +947,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: PUSH21
+  - mnemonic: PUSH21
     value: 0x74
     instructionFamily: PUSH_POP
     stackSettings:
@@ -1553,15 +958,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: PUSH22
+  - mnemonic: PUSH22
     value: 0x75
     instructionFamily: PUSH_POP
     stackSettings:
@@ -1571,15 +969,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: PUSH23
+  - mnemonic: PUSH23
     value: 0x76
     instructionFamily: PUSH_POP
     stackSettings:
@@ -1589,15 +980,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: PUSH24
+  - mnemonic: PUSH24
     value: 0x77
     instructionFamily: PUSH_POP
     stackSettings:
@@ -1607,15 +991,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: PUSH25
+  - mnemonic: PUSH25
     value: 0x78
     instructionFamily: PUSH_POP
     stackSettings:
@@ -1625,15 +1002,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: PUSH26
+  - mnemonic: PUSH26
     value: 0x79
     instructionFamily: PUSH_POP
     stackSettings:
@@ -1643,15 +1013,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: PUSH27
+  - mnemonic: PUSH27
     value: 0x7a
     instructionFamily: PUSH_POP
     stackSettings:
@@ -1661,15 +1024,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: PUSH28
+  - mnemonic: PUSH28
     value: 0x7b
     instructionFamily: PUSH_POP
     stackSettings:
@@ -1679,15 +1035,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: PUSH29
+  - mnemonic: PUSH29
     value: 0x7c
     instructionFamily: PUSH_POP
     stackSettings:
@@ -1697,15 +1046,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: PUSH30
+  - mnemonic: PUSH30
     value: 0x7d
     instructionFamily: PUSH_POP
     stackSettings:
@@ -1715,15 +1057,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: PUSH31
+  - mnemonic: PUSH31
     value: 0x7e
     instructionFamily: PUSH_POP
     stackSettings:
@@ -1733,15 +1068,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: PUSH32
+  - mnemonic: PUSH32
     value: 0x7f
     instructionFamily: PUSH_POP
     stackSettings:
@@ -1751,15 +1079,8 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
       flag1: true
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: DUP1
+  - mnemonic: DUP1
     value: 0x80
     instructionFamily: DUP
     stackSettings:
@@ -1769,15 +1090,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: DUP2
+  - mnemonic: DUP2
     value: 0x81
     instructionFamily: DUP
     stackSettings:
@@ -1787,15 +1100,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: DUP3
+  - mnemonic: DUP3
     value: 0x82
     instructionFamily: DUP
     stackSettings:
@@ -1805,15 +1110,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: DUP4
+  - mnemonic: DUP4
     value: 0x83
     instructionFamily: DUP
     stackSettings:
@@ -1823,15 +1120,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: DUP5
+  - mnemonic: DUP5
     value: 0x84
     instructionFamily: DUP
     stackSettings:
@@ -1841,15 +1130,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: DUP6
+  - mnemonic: DUP6
     value: 0x85
     instructionFamily: DUP
     stackSettings:
@@ -1859,15 +1140,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: DUP7
+  - mnemonic: DUP7
     value: 0x86
     instructionFamily: DUP
     stackSettings:
@@ -1877,15 +1150,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: DUP8
+  - mnemonic: DUP8
     value: 0x87
     instructionFamily: DUP
     stackSettings:
@@ -1895,15 +1160,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: DUP9
+  - mnemonic: DUP9
     value: 0x88
     instructionFamily: DUP
     stackSettings:
@@ -1913,15 +1170,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: DUP10
+  - mnemonic: DUP10
     value: 0x89
     instructionFamily: DUP
     stackSettings:
@@ -1931,15 +1180,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: DUP11
+  - mnemonic: DUP11
     value: 0x8a
     instructionFamily: DUP
     stackSettings:
@@ -1949,15 +1190,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: DUP12
+  - mnemonic: DUP12
     value: 0x8b
     instructionFamily: DUP
     stackSettings:
@@ -1967,15 +1200,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: DUP13
+  - mnemonic: DUP13
     value: 0x8c
     instructionFamily: DUP
     stackSettings:
@@ -1985,15 +1210,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: DUP14
+  - mnemonic: DUP14
     value: 0x8d
     instructionFamily: DUP
     stackSettings:
@@ -2003,15 +1220,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: DUP15
+  - mnemonic: DUP15
     value: 0x8e
     instructionFamily: DUP
     stackSettings:
@@ -2021,15 +1230,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false
-  - type: DUP16
+  - mnemonic: DUP16
     value: 0x8f
     instructionFamily: DUP
     stackSettings:
@@ -2039,11 +1240,3 @@ opcodes:
       nbAdded: 1
       nbRemoved: 0
       staticGas: G_VERY_LOW
-      twoLinesInstruction: false
-      staticInstruction: false
-      addressTrimmingInstruction: false
-      oobFlag: false
-      flag1: false
-      flag2: false
-      flag3: false
-      flag4: false

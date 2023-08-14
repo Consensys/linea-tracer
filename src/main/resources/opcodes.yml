@@ -1380,3 +1380,239 @@ opcodes:
       nbAdded: 0
       nbRemoved: 0
       staticGas: G_VERY_LOW
+  - mnemonic: LOG0
+    value: 0xa0
+    instructionFamily: LOG
+    stackSettings:
+      pattern: LOG
+      alpha: 0
+      delta: 2
+      nbAdded: 0
+      nbRemoved: 2
+      staticGas: G_LOG_0
+      twoLinesInstruction: true
+      staticInstruction: true
+    billing:
+      byByte:
+        type: TYPE_4
+        bytePrice: G_LOG_DATA
+  - mnemonic: LOG1
+    value: 0xa1
+    instructionFamily: LOG
+    stackSettings:
+      pattern: LOG
+      alpha: 0
+      delta: 3
+      nbAdded: 0
+      nbRemoved: 3
+      staticGas: G_LOG_1
+      twoLinesInstruction: true
+      staticInstruction: true
+      flag1: true
+    billing:
+      byByte:
+        type: TYPE_4
+        bytePrice: G_LOG_DATA
+  - mnemonic: LOG2
+    value: 0xa2
+    instructionFamily: LOG
+    stackSettings:
+      pattern: LOG
+      alpha: 0
+      delta: 4
+      nbAdded: 0
+      nbRemoved: 4
+      staticGas: G_LOG_2
+      twoLinesInstruction: true
+      staticInstruction: true
+      flag1: true
+      flag3: true
+    billing:
+      byByte:
+        type: TYPE_4
+        bytePrice: G_LOG_DATA
+  - mnemonic: LOG3
+    value: 0xa3
+    instructionFamily: LOG
+    stackSettings:
+      pattern: LOG
+      alpha: 0
+      delta: 5
+      nbAdded: 0
+      nbRemoved: 5
+      staticGas: G_LOG_3
+      twoLinesInstruction: true
+      staticInstruction: true
+      flag1: true
+      flag3: true
+    billing:
+      byByte:
+        type: TYPE_4
+        bytePrice: G_LOG_DATA
+  - mnemonic: LOG4
+    value: 0xa4
+    instructionFamily: LOG
+    stackSettings:
+      pattern: LOG
+      alpha: 0
+      delta: 6
+      nbAdded: 0
+      nbRemoved: 6
+      staticGas: G_LOG_4
+      twoLinesInstruction: true
+      staticInstruction: true
+      flag1: true
+      flag2: true
+      flag3: true
+    billing:
+      byByte:
+        type: TYPE_4
+        bytePrice: G_LOG_DATA
+  - mnemonic: CREATE
+    value: 0xf0
+    instructionFamily: CREATE
+    stackSettings:
+      pattern: CREATE
+      alpha: 1
+      delta: 3
+      nbAdded: 1
+      nbRemoved: 3
+      staticGas: G_CREATE
+      twoLinesInstruction: true
+      staticInstruction: true
+    billing:
+      byMxp:
+        type: TYPE_4
+  - mnemonic: CALL
+    value: 0xf1
+    instructionFamily: CALL
+    stackSettings:
+      pattern: CALL
+      alpha: 1
+      delta: 7
+      nbAdded: 1
+      nbRemoved: 7
+      staticGas: S_CALL
+      twoLinesInstruction: true
+      staticInstruction: true
+      addressTrimmingInstruction: true
+      flag1: true
+    billing:
+      byMxp:
+        type: TYPE_5
+  - mnemonic: CALLCODE
+    value: 0xf2
+    instructionFamily: CALL
+    stackSettings:
+      pattern: CALL
+      alpha: 1
+      delta: 7
+      nbAdded: 1
+      nbRemoved: 7
+      staticGas: S_CALL
+      twoLinesInstruction: true
+      addressTrimmingInstruction: true
+      flag2: true
+    billing:
+      byMxp:
+        type: TYPE_5
+  - mnemonic: RETURN
+    value: 0xf3
+    instructionFamily: HALT
+    stackSettings:
+      pattern: TWO_ZERO
+      alpha: 0
+      delta: 2
+      nbAdded: 0
+      nbRemoved: 2
+      staticGas: S_MXP
+      flag1: true
+    billing:
+      byMxp:
+        type: TYPE_4
+  - mnemonic: DELEGATECALL
+    value: 0xf4
+    instructionFamily: CALL
+    stackSettings:
+      pattern: CALL
+      alpha: 1
+      delta: 7
+      nbAdded: 1
+      nbRemoved: 7
+      staticGas: S_CALL
+      twoLinesInstruction: true
+      addressTrimmingInstruction: true
+      flag3: true
+    billing:
+      byMxp:
+        type: TYPE_5
+  - mnemonic: CREATE2
+    value: 0xf5
+    instructionFamily: CREATE
+    stackSettings:
+      pattern: CREATE
+      alpha: 1
+      delta: 4
+      nbAdded: 1
+      nbRemoved: 4
+      staticGas: G_CREATE
+      twoLinesInstruction: true
+      staticInstruction: true
+      flag1: true
+    billing:
+      byWord:
+        type: TYPE_4
+        wordPrice: G_KECCAK_256_WORD
+  - mnemonic: STATICCALL
+    value: 0xfa
+    instructionFamily: CALL
+    stackSettings:
+      pattern: CALL
+      alpha: 1
+      delta: 6
+      nbAdded: 1
+      nbRemoved: 6
+      staticGas: S_CALL
+      twoLinesInstruction: true
+      addressTrimmingInstruction: true
+      flag4: true
+    billing:
+      byMxp:
+        type: TYPE_5
+  - mnemonic: REVERT
+    value: 0xfd
+    instructionFamily: HALT
+    stackSettings:
+      pattern: TWO_ZERO
+      alpha: 0
+      delta: 2
+      nbAdded: 0
+      nbRemoved: 2
+      staticGas: S_MXP
+      flag2: true
+    billing:
+      byMxp:
+        type: TYPE_4
+  - mnemonic: INVALID
+    value: 0xfe
+    instructionFamily: INVALID
+    stackSettings:
+      pattern: ZERO_ZERO
+      alpha: 0
+      delta: 0
+      nbAdded: 0
+      nbRemoved: 0
+      staticGas: G_ZERO
+  - mnemonic: SELFDESTRUCT
+    value: 0xff
+    instructionFamily: HALT
+    stackSettings:
+      pattern: TWO_ZERO
+      alpha: 0
+      delta: 1
+      nbAdded: 0
+      nbRemoved: 1
+      staticGas: S_MXP
+      staticInstruction: true
+      addressTrimmingInstruction: true
+      flag4: true

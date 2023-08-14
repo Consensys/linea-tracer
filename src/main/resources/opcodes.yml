@@ -341,7 +341,6 @@ opcodes:
       nbRemoved: 1
       staticGas: G_VERY_LOW
       oobFlag: true
-
       flag2: true
   - mnemonic: CALLDATASIZE
     value: 0x36
@@ -354,9 +353,7 @@ opcodes:
       nbRemoved: 0
       staticGas: G_BASE
       flag1: true
-
       flag3: true
-
   - mnemonic: CALLDATACOPY
     value: 0x37
     instructionFamily: COPY
@@ -419,11 +416,8 @@ opcodes:
       nbRemoved: 1
       staticGas: S_HUB
       addressTrimmingInstruction: true
-
       flag1: true
-
       flag3: true
-
   - mnemonic: EXTCODECOPY
     value: 0x3c
     instructionFamily: COPY
@@ -435,7 +429,6 @@ opcodes:
       nbRemoved: 4
       staticGas: S_MXP
       addressTrimmingInstruction: true
-
       flag1: true
       flag2: true
     billing:
@@ -466,7 +459,6 @@ opcodes:
       staticGas: S_MXP
       flag2: true
       flag3: true
-
     billing:
       byWord:
         type: TYPE_4
@@ -653,7 +645,6 @@ opcodes:
       nbAdded: 1
       nbRemoved: 1
       staticGas: S_HUB
-
       staticInstruction: true
       flag1: true
   - mnemonic: JUMP
@@ -716,7 +707,6 @@ opcodes:
       nbRemoved: 0
       staticGas: G_BASE
       flag3: true
-
   - mnemonic: JUMPDEST
     value: 0x5b
     instructionFamily: MACHINE_STATE
@@ -1238,5 +1228,155 @@ opcodes:
       alpha: 17
       delta: 16
       nbAdded: 1
+      nbRemoved: 0
+      staticGas: G_VERY_LOW
+  - mnemonic: SWAP1
+    value: 0x90
+    instructionFamily: SWAP
+    stackSettings:
+      pattern: SWAP
+      alpha: 2
+      delta: 2
+      nbAdded: 0
+      nbRemoved: 0
+      staticGas: G_VERY_LOW
+  - mnemonic: SWAP2
+    value: 0x91
+    instructionFamily: SWAP
+    stackSettings:
+      pattern: SWAP
+      alpha: 3
+      delta: 3
+      nbAdded: 0
+      nbRemoved: 0
+      staticGas: G_VERY_LOW
+  - mnemonic: SWAP3
+    value: 0x92
+    instructionFamily: SWAP
+    stackSettings:
+      pattern: SWAP
+      alpha: 4
+      delta: 4
+      nbAdded: 0
+      nbRemoved: 0
+      staticGas: G_VERY_LOW
+  - mnemonic: SWAP4
+    value: 0x93
+    instructionFamily: SWAP
+    stackSettings:
+      pattern: SWAP
+      alpha: 5
+      delta: 5
+      nbAdded: 0
+      nbRemoved: 0
+      staticGas: G_VERY_LOW
+  - mnemonic: SWAP6
+    value: 0x95
+    instructionFamily: SWAP
+    stackSettings:
+      pattern: SWAP
+      alpha: 7
+      delta: 7
+      nbAdded: 0
+      nbRemoved: 0
+      staticGas: G_VERY_LOW
+  - mnemonic: SWAP7
+    value: 0x96
+    instructionFamily: SWAP
+    stackSettings:
+      pattern: SWAP
+      alpha: 8
+      delta: 8
+      nbAdded: 0
+      nbRemoved: 0
+      staticGas: G_VERY_LOW
+  - mnemonic: SWAP8
+    value: 0x97
+    instructionFamily: SWAP
+    stackSettings:
+      pattern: SWAP
+      alpha: 9
+      delta: 9
+      nbAdded: 0
+      nbRemoved: 0
+      staticGas: G_VERY_LOW
+  - mnemonic: SWAP9
+    value: 0x98
+    instructionFamily: SWAP
+    stackSettings:
+      pattern: SWAP
+      alpha: 10
+      delta: 10
+      nbAdded: 0
+      nbRemoved: 0
+      staticGas: G_VERY_LOW
+  - mnemonic: SWAP10
+    value: 0x99
+    instructionFamily: SWAP
+    stackSettings:
+      pattern: SWAP
+      alpha: 11
+      delta: 11
+      nbAdded: 0
+      nbRemoved: 0
+      staticGas: G_VERY_LOW
+  - mnemonic: SWAP11
+    value: 0x9a
+    instructionFamily: SWAP
+    stackSettings:
+      pattern: SWAP
+      alpha: 12
+      delta: 12
+      nbAdded: 0
+      nbRemoved: 0
+      staticGas: G_VERY_LOW
+  - mnemonic: SWAP12
+    value: 0x9b
+    instructionFamily: SWAP
+    stackSettings:
+      pattern: SWAP
+      alpha: 13
+      delta: 13
+      nbAdded: 0
+      nbRemoved: 0
+      staticGas: G_VERY_LOW
+  - mnemonic: SWAP13
+    value: 0x9c
+    instructionFamily: SWAP
+    stackSettings:
+      pattern: SWAP
+      alpha: 14
+      delta: 14
+      nbAdded: 0
+      nbRemoved: 0
+      staticGas: G_VERY_LOW
+  - mnemonic: SWAP14
+    value: 0x9d
+    instructionFamily: SWAP
+    stackSettings:
+      pattern: SWAP
+      alpha: 15
+      delta: 15
+      nbAdded: 0
+      nbRemoved: 0
+      staticGas: G_VERY_LOW
+  - mnemonic: SWAP15
+    value: 0x9e
+    instructionFamily: SWAP
+    stackSettings:
+      pattern: SWAP
+      alpha: 16
+      delta: 16
+      nbAdded: 0
+      nbRemoved: 0
+      staticGas: G_VERY_LOW
+  - mnemonic: SWAP16
+    value: 0x9f
+    instructionFamily: SWAP
+    stackSettings:
+      pattern: SWAP
+      alpha: 17
+      delta: 17
+      nbAdded: 0
       nbRemoved: 0
       staticGas: G_VERY_LOW

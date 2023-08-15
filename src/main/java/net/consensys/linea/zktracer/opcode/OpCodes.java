@@ -16,41 +16,53 @@
 package net.consensys.linea.zktracer.opcode;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import lombok.SneakyThrows;
+import net.consensys.linea.zktracer.json.JsonConverter;
 
+/** Responsible for managing opcode loading and opcode metadata retrieval. */
 public class OpCodes {
-  private static final ObjectMapper MAPPER = new ObjectMapper(new YAMLFactory());
+  private static final JsonConverter YAML_CONVERTER = JsonConverter.builder().enableYaml().build();
 
   private static Map<Long, OpCodeData> valueToOpCodeDataMap;
   private static Map<OpCode, OpCodeData> opCodeToOpCodeDataMap;
 
+  /** Loads all opcode metadata from src/main/resources/opcodes.yml. */
   @SneakyThrows(IOException.class)
   public static void load() {
     ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
     JsonNode rootNode =
-        MAPPER.readTree(classLoader.getResourceAsStream("opcodes.yml")).get("opcodes");
+        YAML_CONVERTER
+            .getObjectMapper()
+            .readTree(classLoader.getResourceAsStream("opcodes.yml"))
+            .get("opcodes");
 
     CollectionType typeReference =
         TypeFactory.defaultInstance().constructCollectionType(List.class, OpCodeData.class);
 
-    List<OpCodeData> opCodes = MAPPER.treeToValue(rootNode, typeReference);
+    List<OpCodeData> opCodes =
+        YAML_CONVERTER.getObjectMapper().treeToValue(rootNode, typeReference);
 
     valueToOpCodeDataMap = opCodes.stream().collect(Collectors.toMap(OpCodeData::value, e -> e));
     opCodeToOpCodeDataMap =
         opCodes.stream().collect(Collectors.toMap(OpCodeData::mnemonic, e -> e));
   }
 
+  /**
+   * Get opcode metadata per opcode long value.
+   *
+   * @param value opcode long value.
+   * @return an instance of {@link OpCodeData} corresponding to the numeric (long) value.
+   */
   public static OpCodeData of(final long value) {
     if (value < 0 || value > 255) {
       throw new IllegalArgumentException("No OpCode with value %s is defined.".formatted(value));
@@ -59,11 +71,28 @@ public class OpCodes {
     return valueToOpCodeDataMap.getOrDefault(value, of(OpCode.INVALID));
   }
 
+  /**
+   * Get opcode metadata per opcode mnemonic of type {@link OpCode}.
+   *
+   * @param code opcode mnemonic of type {@link OpCode}.
+   * @return an instance of {@link OpCodeData} corresponding to mnemonic of type {@link OpCode}.
+   */
   public static OpCodeData of(final OpCode code) {
     return Optional.ofNullable(opCodeToOpCodeDataMap.get(code))
         .orElseThrow(
             () ->
                 new IllegalArgumentException(
                     "No OpCode of mnemonic %s is defined.".formatted(code)));
+  }
+
+  /**
+   * Get opcode metadata for a list of {@link OpCode}s.
+   *
+   * @param codes a list of opcode mnemonics of type {@link OpCode}.
+   * @return a list of {@link OpCodeData} items corresponding their mnemonics of type {@link
+   *     OpCode}.
+   */
+  public static List<OpCodeData> of(final OpCode... codes) {
+    return Arrays.stream(codes).map(OpCodes::of).toList();
   }
 }

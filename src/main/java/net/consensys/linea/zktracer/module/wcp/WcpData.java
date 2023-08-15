@@ -27,12 +27,17 @@ import lombok.Getter;
 import net.consensys.linea.zktracer.bytes.Bytes16;
 import net.consensys.linea.zktracer.bytes.UnsignedByte;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.opcode.OpCodeData;
+import net.consensys.linea.zktracer.opcode.OpCodes;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 
 public class WcpData {
+
+  @Getter private final OpCodeData opCodeData;
+
   @Getter private final boolean isOneLineInstruction;
-  @Getter private final OpCode opCode;
+
   @Getter private final Bytes16 arg1Hi;
   @Getter private final Bytes16 arg1Lo;
   @Getter private final Bytes16 arg2Hi;
@@ -52,9 +57,13 @@ public class WcpData {
 
   @Getter final List<Boolean> bits;
 
+  public WcpData(OpCodeData opCodeData, Bytes32 arg1, Bytes32 arg2) {
+    this(opCodeData.mnemonic(), arg1, arg2);
+  }
+
   public WcpData(OpCode opCode, Bytes32 arg1, Bytes32 arg2) {
+    this.opCodeData = OpCodes.of(opCode);
     this.isOneLineInstruction = isOneLineInstruction(opCode);
-    this.opCode = opCode;
 
     // maybe ?
     // Bytes32[] args

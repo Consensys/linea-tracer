@@ -18,10 +18,40 @@ package net.consensys.linea.zktracer.opcode;
 import net.consensys.linea.zktracer.opcode.gas.Billing;
 import net.consensys.linea.zktracer.opcode.stack.StackSettings;
 
+/**
+ * Contains the {@link OpCode} and its related metadata.
+ *
+ * @param mnemonic The type of the opcode represented by {@link OpCode}.
+ * @param value The actual unsigned byte value of the opcode.
+ * @param instructionFamily The {@link InstructionFamily} to which the opcode belongs.
+ * @param stackSettings A {@link StackSettings} instance describing how the opcode alters the EVM
+ *     stack.
+ * @param ramSettings A {@link RamSettings} instance describing how the opcode alters the memory.
+ * @param billing A {@link Billing} instance describing the billing scheme of the instruction.
+ */
 public record OpCodeData(
     OpCode mnemonic,
     long value,
     InstructionFamily instructionFamily,
     StackSettings stackSettings,
     RamSettings ramSettings,
-    Billing billing) {}
+    Billing billing) {
+
+  /**
+   * Returns the number of arguments supported by the given opcode.
+   *
+   * @return number of arguments supported by the given opcode.
+   */
+  public int numberOfArguments() {
+    return this.stackSettings.nbRemoved();
+  }
+
+  /**
+   * A method singling out <code>PUSHx</code> instructions.
+   *
+   * @return <code>true</code> if this opcode is a <code>PUSHx</code>
+   */
+  boolean isPush() {
+    return (0x60 <= this.value) && (this.value < 0x80);
+  }
+}

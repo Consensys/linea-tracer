@@ -16,7 +16,6 @@
 package net.consensys.linea.zktracer.opcode.gas;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import net.consensys.linea.zktracer.opcode.BillingDeserializer;
 
 /**
  * An ancillary class to compute gas billing of some instructions.

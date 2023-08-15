@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.opcode;
+package net.consensys.linea.zktracer.opcode.gas;
 
 import java.util.Optional;
 
@@ -22,9 +22,6 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import lombok.SneakyThrows;
-import net.consensys.linea.zktracer.opcode.gas.Billing;
-import net.consensys.linea.zktracer.opcode.gas.Gas;
-import net.consensys.linea.zktracer.opcode.gas.MxpType;
 
 /** Custom Jackson deserializer for handling {@link Billing} properties. */
 public class BillingDeserializer extends StdDeserializer<Billing> {

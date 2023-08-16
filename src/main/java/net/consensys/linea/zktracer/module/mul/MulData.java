@@ -31,7 +31,6 @@ import net.consensys.linea.zktracer.bytestheta.BaseBytes;
 import net.consensys.linea.zktracer.bytestheta.BaseTheta;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
-import net.consensys.linea.zktracer.opcode.OpCodes;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
@@ -39,7 +38,7 @@ import org.apache.tuweni.units.bigints.UInt256;
 public class MulData {
   private static final int MMEDIUM = 8;
 
-  @Getter private final OpCodeData opCodeData;
+  @Getter private final OpCode opCode;
 
   @Getter private final Bytes32 arg1;
   @Getter private final Bytes32 arg2;
@@ -74,7 +73,7 @@ public class MulData {
 
   @SuppressWarnings("checkstyle:WhitespaceAround")
   public MulData(OpCode opCode, Bytes32 arg1, Bytes32 arg2) {
-    this.opCodeData = OpCodes.of(opCode);
+    this.opCode = opCode;
     this.arg1 = arg1;
     this.arg2 = arg2;
     this.aBytes = BaseTheta.fromBytes32(arg1);
@@ -235,8 +234,6 @@ public class MulData {
   }
 
   public Regime getRegime() {
-    OpCode opCode = opCodeData.mnemonic();
-
     if (isOneLineInstruction()) {
       return Regime.TRIVIAL_MUL;
     }

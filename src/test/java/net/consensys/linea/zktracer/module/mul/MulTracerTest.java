@@ -24,7 +24,6 @@ import net.consensys.linea.zktracer.AbstractModuleCorsetTest;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
-import net.consensys.linea.zktracer.opcode.OpCodes;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
@@ -81,7 +80,7 @@ class MulTracerTest extends AbstractModuleCorsetTest {
 
     Bytes32 bytes1 = Bytes32.leftPad(Bytes.fromHexString("0x13"));
     Bytes32 bytes2 = Bytes32.leftPad(Bytes.fromHexString("0x02"));
-    arguments.add(Arguments.of(OpCodes.of(OpCode.EXP), bytes1, bytes2));
+    arguments.add(Arguments.of(OpCode.EXP.getData(), bytes1, bytes2));
 
     return arguments.stream();
   }
@@ -120,7 +119,7 @@ class MulTracerTest extends AbstractModuleCorsetTest {
     payload[1] =
         Bytes32.fromHexString("0x59b635fec894caa3ed6817b1e67b3cbaeb8757fd6c7b03119b795303b7cd72c1");
 
-    return Stream.of(Arguments.of(OpCodes.of(OpCode.MUL), payload[0], payload[1]));
+    return Stream.of(Arguments.of(OpCode.MUL.getData(), payload[0], payload[1]));
   }
 
   public Stream<Arguments> provideRandomNonTinyArguments() {
@@ -159,7 +158,7 @@ class MulTracerTest extends AbstractModuleCorsetTest {
       Bytes32 bytes1 = Bytes32.ZERO;
       Bytes32 bytes2 = UInt256.valueOf(i);
 
-      OpCodeData mulOpCode = OpCodes.of(OpCode.MUL);
+      OpCodeData mulOpCode = OpCode.MUL.getData();
       arguments.add(Arguments.of(mulOpCode, bytes1, bytes2));
       arguments.add(Arguments.of(mulOpCode, bytes2, bytes1));
     }

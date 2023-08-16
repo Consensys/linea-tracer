@@ -28,13 +28,12 @@ import net.consensys.linea.zktracer.bytes.Bytes16;
 import net.consensys.linea.zktracer.bytes.UnsignedByte;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
-import net.consensys.linea.zktracer.opcode.OpCodes;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 
 public class WcpData {
 
-  @Getter private final OpCodeData opCodeData;
+  @Getter private final OpCode opCode;
 
   @Getter private final boolean isOneLineInstruction;
 
@@ -62,7 +61,7 @@ public class WcpData {
   }
 
   public WcpData(OpCode opCode, Bytes32 arg1, Bytes32 arg2) {
-    this.opCodeData = OpCodes.of(opCode);
+    this.opCode = opCode;
     this.isOneLineInstruction = isOneLineInstruction(opCode);
 
     // maybe ?

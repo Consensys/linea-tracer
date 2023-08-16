@@ -166,5 +166,14 @@ public enum OpCode {
   STATICCALL,
   REVERT,
   INVALID,
-  SELFDESTRUCT
+  SELFDESTRUCT;
+
+  /**
+   * Retrieves {@link OpCode} metadata of type {@link OpCodeData}.
+   *
+   * @return the current {@link OpCode}'s {@link OpCodeData}
+   */
+  public OpCodeData getData() {
+    return OpCodes.of(this);
+  }
 }

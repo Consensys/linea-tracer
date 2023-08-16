@@ -21,7 +21,6 @@ import java.util.stream.Stream;
 import net.consensys.linea.zktracer.AbstractModuleCorsetTest;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.opcode.OpCodes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.provider.Arguments;
@@ -42,6 +41,6 @@ class WcpTracerTest extends AbstractModuleCorsetTest {
     Bytes32 arg2 =
         Bytes32.fromHexString("0x0479484af4a59464a48818b3980174687661bafb13d06f49537995fa6c02159e");
 
-    return Stream.of(Arguments.of(OpCodes.of(OpCode.GT), List.of(arg1, arg2)));
+    return Stream.of(Arguments.of(OpCode.GT.getData(), List.of(arg1, arg2)));
   }
 }

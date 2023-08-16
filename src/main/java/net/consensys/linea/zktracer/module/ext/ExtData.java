@@ -24,13 +24,11 @@ import net.consensys.linea.zktracer.bytestheta.BytesArray;
 import net.consensys.linea.zktracer.module.ext.calculator.AbstractExtCalculator;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
-import net.consensys.linea.zktracer.opcode.OpCodes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
 
 public class ExtData {
-  private OpCode opCode;
-  @Getter private OpCodeData opCodeData;
+  @Getter private OpCode opCode;
 
   @Getter private final boolean oli;
 
@@ -76,7 +74,6 @@ public class ExtData {
 
   public ExtData(OpCode opCode, Bytes32 arg1, Bytes32 arg2, Bytes32 arg3) {
     this.opCode = opCode;
-    this.opCodeData = OpCodes.of(opCode);
     this.arg1 = BaseBytes.fromBytes32(arg1);
     this.arg2 = BaseBytes.fromBytes32(arg2);
     this.arg3 = BaseBytes.fromBytes32(arg3);

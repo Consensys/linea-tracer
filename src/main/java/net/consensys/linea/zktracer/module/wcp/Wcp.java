@@ -64,7 +64,7 @@ public class Wcp implements Module {
           .wordComparisonStamp(BigInteger.valueOf(stamp))
           .oneLineInstruction(data.isOneLineInstruction())
           .counter(BigInteger.valueOf(i))
-          .inst(BigInteger.valueOf(data.getOpCodeData().value()))
+          .inst(BigInteger.valueOf(data.getOpCode().getData().value()))
           .argument1Hi(data.getArg1Hi().toUnsignedBigInteger())
           .argument1Lo(data.getArg1Lo().toUnsignedBigInteger())
           .argument2Hi(data.getArg2Hi().toUnsignedBigInteger())

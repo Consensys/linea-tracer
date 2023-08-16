@@ -58,13 +58,13 @@ public class MulUtilsTest {
   @Test
   void multiplyByZero() {
     Bytes32 arg1 = Bytes32.random();
-    OpCodeData mul = OpCodes.of(OpCode.MUL);
+    OpCodeData mul = OpCode.MUL.getData();
     MulData oxo = new MulData(mul, arg1, Bytes32.ZERO);
 
     assertThat(oxo.getArg2Hi().isZero()).isTrue();
     assertThat(oxo.getArg2Lo()).isEqualTo(Bytes16.ZERO);
     assertThat(oxo.getArg2Hi()).isEqualTo(Bytes16.ZERO);
-    assertThat(oxo.getOpCodeData()).isEqualTo(mul);
+    assertThat(oxo.getOpCode().getData()).isEqualTo(mul);
     assertThat(oxo.isTinyExponent()).isTrue();
     assertThat(oxo.isOneLineInstruction()).isTrue();
     assertThat(oxo.bits[0]).isFalse();
@@ -73,13 +73,13 @@ public class MulUtilsTest {
   @Test
   void zeroExp() {
     Bytes32 arg1 = Bytes32.random();
-    OpCodeData exp = OpCodes.of(OpCode.EXP);
+    OpCodeData exp = OpCode.EXP.getData();
     MulData oxo = new MulData(exp, arg1, Bytes32.ZERO);
 
     assertThat(oxo.getArg2Hi().isZero()).isTrue();
     assertThat(oxo.getArg2Lo()).isEqualTo(Bytes16.ZERO);
     assertThat(oxo.getArg2Hi()).isEqualTo(Bytes16.ZERO);
-    assertThat(oxo.getOpCodeData()).isEqualTo(exp);
+    assertThat(oxo.getOpCode().getData()).isEqualTo(exp);
     assertThat(oxo.isTinyExponent()).isTrue();
     assertThat(oxo.isOneLineInstruction()).isTrue();
     assertThat(oxo.bits[0]).isFalse();

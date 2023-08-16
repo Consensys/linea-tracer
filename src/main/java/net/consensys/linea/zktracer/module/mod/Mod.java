@@ -64,7 +64,7 @@ public class Mod implements Module {
           .stamp(BigInteger.valueOf(stamp))
           .oli(data.isOli())
           .ct(BigInteger.valueOf(i))
-          .inst(BigInteger.valueOf(data.getOpCodeData().value()))
+          .inst(BigInteger.valueOf(data.getOpCode().getData().value()))
           .decSigned(data.isSigned())
           .decOutput(data.isDiv())
           .arg1Hi(data.getArg1().getHigh().toUnsignedBigInteger())

@@ -36,7 +36,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.opcode.OpCodes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -72,11 +71,11 @@ public abstract class AbstractModuleBySpecTest extends AbstractBaseModuleTest {
 
   private JsonNode generateTrace(String moduleName, JsonNode jsonNodeParams)
       throws JsonProcessingException {
-    OpCode opcode = OpCode.valueOf(jsonNodeParams.get("opcode").asText());
+    OpCode opCode = OpCode.valueOf(jsonNodeParams.get("opcode").asText());
     List<Bytes32> arguments = new ArrayList<>();
     JsonNode arg = jsonNodeParams.get("params");
     arg.forEach(bytes -> arguments.add(Bytes32.fromHexString(bytes.asText())));
-    String trace = generateTrace(OpCodes.of(opcode), arguments);
+    String trace = generateTrace(opCode.getData(), arguments);
 
     return MAPPER.readTree(trace).get(moduleName);
   }

@@ -24,7 +24,6 @@ import net.consensys.linea.zktracer.AbstractModuleCorsetTest;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
-import net.consensys.linea.zktracer.opcode.OpCodes;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
@@ -71,8 +70,7 @@ class AddTracerTest extends AbstractModuleCorsetTest {
     Bytes32 bytes1 = Bytes32.rightPad(Bytes.fromHexString("0x80"));
     Bytes32 bytes2 = Bytes32.leftPad(Bytes.fromHexString("0x01"));
 
-    OpCodeData opCode = OpCodes.of(OpCode.SUB);
-    arguments.add(Arguments.of(opCode, bytes1, bytes2));
+    arguments.add(Arguments.of(OpCode.SUB.getData(), bytes1, bytes2));
 
     return arguments.stream();
   }

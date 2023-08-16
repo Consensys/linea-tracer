@@ -99,7 +99,7 @@ public class Mul implements Module {
         .tinyBase(data.isTinyBase())
         .tinyExponent(data.isTinyExponent())
         .resultVanishes(data.res.isZero())
-        .instruction(BigInteger.valueOf(data.getOpCodeData().value()))
+        .instruction(BigInteger.valueOf(data.getOpCode().getData().value()))
         .arg1Hi(data.getArg1Hi().toUnsignedBigInteger())
         .arg1Lo(data.getArg1Lo().toUnsignedBigInteger())
         .arg2Hi(data.getArg2Hi().toUnsignedBigInteger())

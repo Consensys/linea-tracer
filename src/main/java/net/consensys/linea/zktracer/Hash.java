@@ -13,21 +13,18 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-dependencies {
-  api 'org.slf4j:slf4j-api'
-  api 'org.bouncycastle:bcprov-jdk18on'
+package net.consensys.linea.zktracer;
 
-  implementation 'ch.qos.logback:logback-core'
-  implementation 'ch.qos.logback:logback-classic'
+import java.security.MessageDigest;
 
-  testImplementation 'commons-io:commons-io'
-  testImplementation 'org.apache.commons:commons-lang3'
-  testImplementation 'org.assertj:assertj-core'
+import org.apache.tuweni.bytes.Bytes;
+import org.apache.tuweni.bytes.Bytes32;
+import org.bouncycastle.jcajce.provider.digest.Keccak;
 
-  testImplementation 'org.junit.jupiter:junit-jupiter-api'
-  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
-  testImplementation 'org.junit.jupiter:junit-jupiter-params'
-
-  testImplementation 'org.mockito:mockito-core'
-  testImplementation 'org.mockito:mockito-junit-jupiter'
+public class Hash {
+  public static Bytes32 keccak256(final Bytes input) {
+    final MessageDigest digest = new Keccak.Digest256();
+    input.update(digest);
+    return Bytes32.wrap(digest.digest());
+  }
 }

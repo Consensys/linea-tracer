@@ -20,10 +20,17 @@ import java.security.MessageDigest;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.bouncycastle.jcajce.provider.digest.Keccak;
+import org.bouncycastle.jcajce.provider.digest.RIPEMD160
 
 public class Hash {
   public static Bytes32 keccak256(final Bytes input) {
     final MessageDigest digest = new Keccak.Digest256();
+    input.update(digest);
+    return Bytes32.wrap(digest.digest());
+  }
+
+  public static Bytes32 ripemd160(final Bytes input) {
+    final MessageDigest digest = new RIPEMD160.Digest();
     input.update(digest);
     return Bytes32.wrap(digest.digest());
   }

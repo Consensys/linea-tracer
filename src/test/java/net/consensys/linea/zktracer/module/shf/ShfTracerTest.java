@@ -85,7 +85,7 @@ class ShfTracerTest {
   void testRandomSar(final Bytes32[] payload) {
     log.info(
         "value: " + payload[0].toShortHexString() + ", shift by: " + payload[1].toShortHexString());
-    when(mockOperation.getOpcode()).thenReturn((int) OpCodes.of(OpCode.SAR).value());
+    when(mockOperation.getOpcode()).thenReturn(OpCodes.of(OpCode.SAR).value().intValue());
 
     when(mockFrame.getStackItem(0)).thenReturn(payload[0]);
     when(mockFrame.getStackItem(1)).thenReturn(payload[1]);
@@ -97,7 +97,7 @@ class ShfTracerTest {
 
   @Test
   void testTmp() {
-    when(mockOperation.getOpcode()).thenReturn((int) OpCodes.of(OpCode.SAR).value());
+    when(mockOperation.getOpcode()).thenReturn(OpCodes.of(OpCode.SAR).value().intValue());
 
     when(mockFrame.getStackItem(0))
         .thenReturn(Bytes32.fromHexStringLenient("0x54fda4f3c1452c8c58df4fb1e9d6de"));
@@ -147,9 +147,9 @@ class ShfTracerTest {
 
   public static Stream<Arguments> provideShiftOperators() {
     return Stream.of(
-        Arguments.of(Named.of("SAR", (int) OpCodes.of(OpCode.SAR).value())),
-        Arguments.of(Named.of("SHL", (int) OpCodes.of(OpCode.SHL).value())),
-        Arguments.of(Named.of("SHR", (int) OpCodes.of(OpCode.SHR).value())));
+        Arguments.of(Named.of("SAR", OpCodes.of(OpCode.SAR).value().intValue())),
+        Arguments.of(Named.of("SHL", OpCodes.of(OpCode.SHL).value().intValue())),
+        Arguments.of(Named.of("SHR", OpCodes.of(OpCode.SHR).value().intValue())));
   }
 
   private static byte[] concatenateArrays(byte[] a, byte[] b) {

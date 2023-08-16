@@ -50,7 +50,7 @@ public abstract class AbstractBaseModuleTest {
   }
 
   protected String generateTrace(OpCodeData opCodeData, List<Bytes32> arguments) {
-    when(mockOperation.getOpcode()).thenReturn((int) opCodeData.value());
+    when(mockOperation.getOpcode()).thenReturn(opCodeData.value().intValue());
 
     for (int i = 0; i < arguments.size(); i++) {
       when(mockFrame.getStackItem(i)).thenReturn(arguments.get(i));

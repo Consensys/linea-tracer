@@ -42,7 +42,7 @@ opcodes:
       staticGas: G_VERY_LOW
   - mnemonic: DIV
     value: 0x04
-    instructionFamily: MUL
+    instructionFamily: MOD
     stackSettings:
       pattern: TWO_ONE
       alpha: 1

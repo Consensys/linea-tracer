@@ -87,7 +87,7 @@ public class JsonConverter {
       return this;
     }
 
-    public <T> Builder enableYaml() {
+    public Builder enableYaml() {
       objectMapper = new ObjectMapper(new YAMLFactory());
       return this;
     }

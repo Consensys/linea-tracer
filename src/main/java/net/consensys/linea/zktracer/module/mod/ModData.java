@@ -59,6 +59,7 @@ public class ModData {
     this.arg2 = BaseBytes.fromBytes32(arg2);
 
     this.opCodeData = OpCodes.of(opCode);
+    this.opCode = opCode;
     this.oli = arg2.isZero();
 
     Arrays.fill(msb1, false);

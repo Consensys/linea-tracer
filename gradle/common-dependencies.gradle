@@ -15,7 +15,6 @@
 
 dependencies {
   api 'org.slf4j:slf4j-api'
-  api 'org.bouncycastle:bcprov-jdk18on'
 
   implementation 'ch.qos.logback:logback-core'
   implementation 'ch.qos.logback:logback-classic'

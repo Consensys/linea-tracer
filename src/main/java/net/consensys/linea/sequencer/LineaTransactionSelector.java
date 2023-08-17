@@ -31,7 +31,6 @@ import org.hyperledger.besu.plugin.services.txselection.TransactionSelector;
 @Slf4j
 @RequiredArgsConstructor
 public class LineaTransactionSelector implements TransactionSelector {
-  private final int maxTxCalldataSize;
   private final int maxBlockCalldataSize;
   private int blockCalldataSum;
 
@@ -40,17 +39,10 @@ public class LineaTransactionSelector implements TransactionSelector {
       final Transaction transaction,
       final boolean isSuccessful,
       final List<Log> logs,
-      final long commulativeGasUsed) {
+      final long cumulativeGasUsed) {
 
     final int txCalldataSize = transaction.getPayload().size();
 
-    if (txCalldataSize > maxTxCalldataSize) {
-      log.warn(
-          "Not adding transaction {} because calldata size {} is too big",
-          transaction,
-          txCalldataSize);
-      return TransactionSelectionResult.invalid("Calldata too big");
-    }
     try {
       blockCalldataSum = Math.addExact(blockCalldataSum, txCalldataSize);
     } catch (final ArithmeticException e) {

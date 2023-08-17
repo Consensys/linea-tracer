@@ -29,7 +29,6 @@ public class LineaTransactionSelectorFactory implements TransactionSelectorFacto
   @Override
   public TransactionSelector create() {
     final LineaConfiguration lineaConfiguration = options.toDomainObject();
-    return new LineaTransactionSelector(
-        lineaConfiguration.maxTxCalldataSize(), lineaConfiguration.maxBlockCalldataSize());
+    return new LineaTransactionSelector(lineaConfiguration.maxBlockCalldataSize());
   }
 }

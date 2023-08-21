@@ -12,22 +12,21 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+package net.consensys.linea.zktracer.toy;
 
-dependencies {
-  api 'org.slf4j:slf4j-api'
+import picocli.CommandLine;
 
-  implementation 'ch.qos.logback:logback-core'
-  implementation 'ch.qos.logback:logback-classic'
+public final class EvmToy {
+  private static final int SUCCESS_EXIT_CODE = 0;
+  private static final int ERROR_EXIT_CODE = 1;
 
-  testImplementation 'commons-io:commons-io'
-  testImplementation 'org.apache.commons:commons-lang3'
-  testImplementation 'com.google.guava:guava'
-  testImplementation 'org.assertj:assertj-core'
+  public static void main(final String... args) {
 
-  testImplementation 'org.junit.jupiter:junit-jupiter-api'
-  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
-  testImplementation 'org.junit.jupiter:junit-jupiter-params'
+    final EvmToyCommand evmToolCommand = new EvmToyCommand();
 
-  testImplementation 'org.mockito:mockito-core'
-  testImplementation 'org.mockito:mockito-junit-jupiter'
+    evmToolCommand.parse(
+        new CommandLine.RunLast().andExit(SUCCESS_EXIT_CODE),
+        CommandLine.defaultExceptionHandler().andExit(ERROR_EXIT_CODE),
+        args);
+  }
 }

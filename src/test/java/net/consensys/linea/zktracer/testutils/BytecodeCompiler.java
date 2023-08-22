@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.utils;
+package net.consensys.linea.zktracer.testutils;
 
 import java.util.ArrayList;
 import java.util.List;

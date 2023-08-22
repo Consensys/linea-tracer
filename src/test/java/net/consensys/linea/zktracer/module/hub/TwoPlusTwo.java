@@ -17,7 +17,7 @@ package net.consensys.linea.zktracer.module.hub;
 
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.testutils.TestCodeExecutor;
-import net.consensys.linea.zktracer.utils.BytecodeCompiler;
+import net.consensys.linea.zktracer.testutils.BytecodeCompiler;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 

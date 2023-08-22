@@ -15,9 +15,7 @@
 
 package net.consensys.linea.zktracer.testutils;
 
-import net.consensys.linea.zktracer.opcode.OpCodes;
 import org.apache.tuweni.bytes.Bytes;
-import org.junit.jupiter.api.BeforeAll;
 
 public class PureTestCodeExecutor extends TestCodeExecutor {
   private final Bytes byteCode;

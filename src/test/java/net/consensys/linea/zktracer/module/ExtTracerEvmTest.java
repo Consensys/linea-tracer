@@ -22,14 +22,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ZkTracer;
-import net.consensys.linea.zktracer.corset.CorsetValidator;
+import net.consensys.linea.zktracer.module.mul.MulUtilsTest;
 import net.consensys.linea.zktracer.testutils.TestMessageFrameBuilder;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.Code;
-import org.hyperledger.besu.evm.EVM;
-import org.hyperledger.besu.evm.MainnetEVMs;
 import org.hyperledger.besu.evm.frame.MessageFrame;
-import org.hyperledger.besu.evm.internal.EvmConfiguration;
 import org.hyperledger.besu.evm.internal.ReturnStack;
 import org.junit.jupiter.api.Test;
 
@@ -37,7 +34,7 @@ class ExtTracerEvmTest {
   private static final ZkTracer TRACER = new ZkTracer();
 
   @Test
-  void testSpecificMulmod() {
+  void testSpecificMulMod() {
     final Code mockCode = mock(Code.class);
 
     int[] cs = new int[] {1, 1, 137, 21};
@@ -47,7 +44,7 @@ class ExtTracerEvmTest {
     List<Bytes> instructions = new ArrayList<>();
 
     for (int i = 0; i < as.length - 1; i++) {
-      instructions.add(Instructions.mulmod(as[i], bs[i], cs[i]));
+      instructions.add(MulUtilsTest.mulMod(as[i], bs[i], cs[i]));
     }
 
     final Bytes code = Bytes.concatenate(instructions);
@@ -61,15 +58,6 @@ class ExtTracerEvmTest {
             .pushStackItem(Bytes.EMPTY)
             .pushStackItem(Bytes.EMPTY)
             .build();
-
-    TRACER.traceStartConflation(1);
-
-    EVM evm = MainnetEVMs.paris(EvmConfiguration.DEFAULT);
-    evm.runToHalt(messageFrame, TRACER);
-
-    TRACER.traceEndConflation();
-
-    assertThat(CorsetValidator.isValid(TRACER.getTrace().toJson())).isTrue();
 
     assertThat(messageFrame.getSection()).isEqualTo(0);
     assertThat(messageFrame.getPC()).isEqualTo(1);

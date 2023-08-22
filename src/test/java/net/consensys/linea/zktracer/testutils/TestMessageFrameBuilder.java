@@ -153,7 +153,6 @@ public class TestMessageFrameBuilder {
     final MessageFrame frame =
         MessageFrame.builder()
             .type(MessageFrame.Type.MESSAGE_CALL)
-            .messageFrameStack(messageFrameStack)
             .worldUpdater(worldUpdater.orElseGet(this::createDefaultWorldUpdater))
             .initialGas(initialGas)
             .address(address)
@@ -166,7 +165,6 @@ public class TestMessageFrameBuilder {
             .contract(contract)
             .code(code)
             .blockValues(blockValues.orElseGet(() -> new FakeBlockValues(1337)))
-            .depth(depth)
             .completer(c -> {})
             .miningBeneficiary(Address.ZERO)
             .blockHashLookup(blockHashLookup.orElse(number -> Hash.hash(Words.longBytes(number))))

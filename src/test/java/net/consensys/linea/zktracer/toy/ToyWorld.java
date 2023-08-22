@@ -1,5 +1,5 @@
 /*
- * Copyright ConsenSys AG.
+ * Copyright contributors to Hyperledger Besu
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -11,6 +11,7 @@
  * specific language governing permissions and limitations under the License.
  *
  * SPDX-License-Identifier: Apache-2.0
+ *
  */
 package net.consensys.linea.zktracer.toy;
 
@@ -51,9 +52,9 @@ public class ToyWorld implements WorldUpdater {
       return accounts.get(address);
     } else if (parent != null) {
       return parent.get(address);
+    } else {
+      return null;
     }
-
-    return null;
   }
 
   @Override
@@ -69,7 +70,6 @@ public class ToyWorld implements WorldUpdater {
       final Bytes code) {
     ToyAccount account = new ToyAccount(parentAccount, address, nonce, balance, code);
     accounts.put(address, account);
-
     return account;
   }
 

@@ -14,9 +14,10 @@
  */
 package net.consensys.linea.zktracer.testutils;
 
-import java.util.Deque;
-import java.util.function.Consumer;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import net.consensys.linea.zktracer.ZkTracer;
+import net.consensys.linea.zktracer.corset.CorsetValidator;
 import net.consensys.linea.zktracer.toy.ToyWorld;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
@@ -24,80 +25,113 @@ import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.Code;
 import org.hyperledger.besu.evm.EVM;
+import org.hyperledger.besu.evm.MainnetEVMs;
 import org.hyperledger.besu.evm.account.MutableAccount;
 import org.hyperledger.besu.evm.frame.BlockValues;
 import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.evm.internal.EvmConfiguration;
 import org.hyperledger.besu.evm.precompile.PrecompileContractRegistry;
 import org.hyperledger.besu.evm.processor.MessageCallProcessor;
-import org.hyperledger.besu.evm.tracing.OperationTracer;
 import org.hyperledger.besu.evm.worldstate.WorldUpdater;
+import org.junit.jupiter.api.Test;
 
-public class TestCodeExecutor {
-
+public abstract class TestCodeExecutor {
   private final BlockValues blockValues = new FakeBlockValues(13);
   private static final Address SENDER_ADDRESS = Address.fromHexString("0xe8f1b89");
   private final EVM evm;
+  private final ZkTracer tracer;
+  private final ToyWorld world = new ToyWorld();
+
+  public void setupSenderAccount(MutableAccount senderAccount) {}
+
+  public void setupFrame(MessageFrame frame) {}
+
+  public void postTest(MessageFrame frame) {}
+
+  public abstract Bytes getBytecode();
+
+  public Address getSenderAddress() {
+    return SENDER_ADDRESS;
+  }
+
+  public Wei getValue() {
+    return Wei.ZERO;
+  }
+
+  public Bytes getInputData() {
+    return Bytes.EMPTY;
+  }
+
+  public long getGasLimit() {
+    return 1_000_000;
+  }
+
+  public TestCodeExecutor() {
+    this.evm = MainnetEVMs.paris(EvmConfiguration.DEFAULT);
+    this.tracer = new ZkTracer();
+  }
 
   public TestCodeExecutor(final EVM evm) {
     this.evm = evm;
+    this.tracer = new ZkTracer();
   }
 
-  public MessageFrame executeCode(
-      final String codeHexString,
-      final long gasLimit,
-      final Consumer<MutableAccount> accountSetup) {
-    final WorldUpdater worldUpdater = createInitialWorldState(accountSetup);
-    return executeCode(codeHexString, gasLimit, worldUpdater);
+  public TestCodeExecutor(final EVM evm, ZkTracer tracer) {
+    this.evm = evm;
+    this.tracer = tracer;
   }
 
-  public MessageFrame executeCode(
-      final String codeHexString, final long gasLimit, final WorldUpdater worldUpdater) {
+  private MessageFrame prepareFrame() {
+    final Code code = evm.getCode(Hash.hash(this.getBytecode()), this.getBytecode());
+
+    return new TestMessageFrameBuilder()
+        .worldUpdater(this.world.updater())
+        .initialGas(this.getGasLimit())
+        .address(this.getSenderAddress())
+        .originator(this.getSenderAddress())
+        .contract(this.getSenderAddress())
+        .gasPrice(Wei.ZERO)
+        .inputData(this.getInputData())
+        .sender(this.getSenderAddress())
+        .value(this.getValue())
+        .code(code)
+        .blockValues(blockValues)
+        .build();
+  }
+
+  @Test
+  public void executeCode() {
     final MessageCallProcessor messageCallProcessor =
         new MessageCallProcessor(evm, new PrecompileContractRegistry());
-    final Bytes codeBytes = Bytes.fromHexString(codeHexString.replaceAll("\\s", ""));
-    final Code code = evm.getCode(Hash.hash(codeBytes), codeBytes);
 
-    final MessageFrame initialFrame =
-        new TestMessageFrameBuilder()
-            .worldUpdater(worldUpdater)
-            .initialGas(gasLimit)
-            .address(SENDER_ADDRESS)
-            .originator(SENDER_ADDRESS)
-            .contract(SENDER_ADDRESS)
-            .gasPrice(Wei.ZERO)
-            .inputData(Bytes.EMPTY)
-            .sender(SENDER_ADDRESS)
-            .value(Wei.ZERO)
-            .code(code)
-            .blockValues(blockValues)
-            .build();
+    final MessageFrame frame = this.prepareFrame();
+    setupFrame(frame);
 
-    final Deque<MessageFrame> messageFrameStack = initialFrame.getMessageFrameStack();
-    while (!messageFrameStack.isEmpty()) {
-      messageCallProcessor.process(messageFrameStack.peekFirst(), OperationTracer.NO_TRACING);
-    }
-    return initialFrame;
+    tracer.traceStartConflation(1);
+    messageCallProcessor.process(frame, this.tracer);
+    tracer.traceEndConflation();
+
+    assertThat(CorsetValidator.isValid(tracer.getTrace().toJson())).isTrue();
+
+    this.postTest(frame);
   }
 
-  public static void deployContract(
-      final WorldUpdater worldUpdater, final Address contractAddress, final String codeHexString) {
-    var updater = worldUpdater.updater();
+  public void deployContract(final Address contractAddress, final Bytes codeBytes) {
+    var updater = this.world.updater();
     final MutableAccount contract = updater.getOrCreate(contractAddress).getMutable();
 
     contract.setNonce(0);
     contract.clearStorage();
-    contract.setCode(Bytes.fromHexStringLenient(codeHexString));
+    contract.setCode(codeBytes);
     updater.commit();
   }
 
-  public static WorldUpdater createInitialWorldState(final Consumer<MutableAccount> accountSetup) {
-    ToyWorld toyWorld = new ToyWorld();
-
-    final WorldUpdater worldState = toyWorld.updater();
+  public void createInitialWorldState() {
+    final WorldUpdater worldState = this.world.updater();
     final MutableAccount senderAccount =
-        worldState.getOrCreate(TestCodeExecutor.SENDER_ADDRESS).getMutable();
-    accountSetup.accept(senderAccount);
+        worldState.getOrCreate(this.getSenderAddress()).getMutable();
+
+    setupSenderAccount(senderAccount);
     worldState.commit();
-    return toyWorld.updater();
   }
 }

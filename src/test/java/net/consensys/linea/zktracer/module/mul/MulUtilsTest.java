@@ -38,6 +38,18 @@ public class MulUtilsTest {
     OpCodes.load();
   }
 
+  public static Bytes mulMod(final int a, final int b, final int c) {
+    return Bytes.of(
+        OpCode.PUSH1.byteValue(),
+        c,
+        OpCode.PUSH1.byteValue(),
+        b,
+        OpCode.PUSH1.byteValue(),
+        a,
+        OpCode.MULMOD.byteValue(),
+        OpCode.POP.byteValue());
+  }
+
   @Test
   void isTiny() {
     // tiny means zero or one

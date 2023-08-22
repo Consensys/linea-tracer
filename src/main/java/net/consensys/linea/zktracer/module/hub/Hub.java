@@ -25,7 +25,6 @@ import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.opcode.InstructionFamily;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
-import net.consensys.linea.zktracer.opcode.OpCodes;
 import net.consensys.linea.zktracer.opcode.gas.MxpType;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Quantity;
@@ -67,6 +66,10 @@ public class Hub implements Module {
   private int pc;
   private OpCode opCode;
   private Exceptions exceptions;
+  
+  private OpCodeData opCodeData() {
+    return this.opCode.getData();
+  }
 
   TxState txState;
   Transaction currentTx;
@@ -93,16 +96,16 @@ public class Hub implements Module {
     this.exceptions =
         new Exceptions(
             this.opCode == OpCode.INVALID,
-            frame.stackSize() < this.opCode.stackSettings.nbRemoved(),
+            frame.stackSize() < this.opCodeData().stackSettings().nbRemoved(),
             frame.stackSize()
-                    + this.opCode.stackSettings.nbAdded()
-                    - this.opCode.stackSettings.nbRemoved()
+                    + this.opCodeData().stackSettings().nbAdded()
+                    - this.opCodeData().stackSettings().nbRemoved()
                 > 1024,
             false, // TODO mxp
             frame.getRemainingGas() < 0,
             false, // TODO
             false, // TODO
-            frame.isStatic() && !this.opCode.stackSettings.staticInstruction(),
+            frame.isStatic() && !this.opCodeData().stackSettings().staticInstruction(),
             false, // TODO
             false, // TODO
             false // TODO
@@ -291,8 +294,8 @@ public class Hub implements Module {
 
     final var stack = currentFrame().stack;
 
-    final var alpha = this.opCode.stackSettings.alpha();
-    final var delta = this.opCode.stackSettings.delta();
+    final var alpha = this.opCodeData().stackSettings().alpha();
+    final var delta = this.opCodeData().stackSettings().delta();
     var heightUnder = stack.height - delta;
     var heightOver = 0;
 
@@ -328,12 +331,12 @@ public class Hub implements Module {
         .pStackHeightUnder(BigInteger.valueOf(heightUnder))
         .pStackHeightOver(BigInteger.valueOf(heightOver))
         // Instruction details
-        .pStackInstruction(BigInteger.valueOf(this.opCode.value))
+        .pStackInstruction(BigInteger.valueOf(this.opCodeData().value()))
         .pStackStaticGas(BigInteger.ZERO) // TODO
-        .pStackDecodedFlag1(this.opCode.stackSettings.flag1())
-        .pStackDecodedFlag2(this.opCode.stackSettings.flag2())
-        .pStackDecodedFlag3(this.opCode.stackSettings.flag3())
-        .pStackDecodedFlag4(this.opCode.stackSettings.flag4())
+        .pStackDecodedFlag1(this.opCodeData().stackSettings().flag1())
+        .pStackDecodedFlag2(this.opCodeData().stackSettings().flag2())
+        .pStackDecodedFlag3(this.opCodeData().stackSettings().flag3())
+        .pStackDecodedFlag4(this.opCodeData().stackSettings().flag4())
         // Exception flag
         .pStackOpcx(false) // TODO
         .pStackSux(stack.isUnderflow())
@@ -347,34 +350,34 @@ public class Hub implements Module {
         .pStackInvprex(false) // TODO
         .pStackMaxcsx(false) // TODO
         // Opcode families
-        .pStackAddFlag(this.opCode.family == InstructionFamily.Add)
-        .pStackModFlag(this.opCode.family == InstructionFamily.Mod)
-        .pStackMulFlag(this.opCode.family == InstructionFamily.Mul)
-        .pStackExtFlag(this.opCode.family == InstructionFamily.Ext)
-        .pStackWcpFlag(this.opCode.family == InstructionFamily.Wcp)
-        .pStackBinFlag(this.opCode.family == InstructionFamily.Bin)
-        .pStackShfFlag(this.opCode.family == InstructionFamily.Shf)
-        .pStackKecFlag(this.opCode.family == InstructionFamily.Kec)
-        .pStackConFlag(this.opCode.family == InstructionFamily.Context)
-        .pStackAccFlag(this.opCode.family == InstructionFamily.Account)
-        .pStackCopyFlag(this.opCode.family == InstructionFamily.Copy)
-        .pStackTxnFlag(this.opCode.family == InstructionFamily.Transaction)
-        .pStackBtcFlag(this.opCode.family == InstructionFamily.Batch)
-        .pStackStackramFlag(this.opCode.family == InstructionFamily.StackRam)
-        .pStackStoFlag(this.opCode.family == InstructionFamily.Storage)
-        .pStackJumpFlag(this.opCode.family == InstructionFamily.Jump)
-        .pStackPushpopFlag(this.opCode.family == InstructionFamily.PushPop)
-        .pStackDupFlag(this.opCode.family == InstructionFamily.Dup)
-        .pStackSwapFlag(this.opCode.family == InstructionFamily.Swap)
-        .pStackLogFlag(this.opCode.family == InstructionFamily.Log)
-        .pStackCreateFlag(this.opCode.family == InstructionFamily.Create)
-        .pStackCallFlag(this.opCode.family == InstructionFamily.Call)
-        .pStackHaltFlag(this.opCode.family == InstructionFamily.Halt)
-        .pStackInvalidFlag(this.opCode.family == InstructionFamily.Invalid)
-        .pStackMxpFlag(this.opCode.billing.type() != MxpType.None)
-        .pStackTrmFlag(this.opCode.stackSettings.addressTrimmingInstruction())
-        .pStackStaticFlag(this.opCode.stackSettings.staticInstruction())
-        .pStackOobFlag(this.opCode.stackSettings.oobFlag());
+        .pStackAddFlag(this.opCodeData().instructionFamily() == InstructionFamily.ADD)
+        .pStackModFlag(this.opCodeData().instructionFamily() == InstructionFamily.MOD)
+        .pStackMulFlag(this.opCodeData().instructionFamily() == InstructionFamily.MUL)
+        .pStackExtFlag(this.opCodeData().instructionFamily() == InstructionFamily.EXT)
+        .pStackWcpFlag(this.opCodeData().instructionFamily() == InstructionFamily.WCP)
+        .pStackBinFlag(this.opCodeData().instructionFamily() == InstructionFamily.BIN)
+        .pStackShfFlag(this.opCodeData().instructionFamily() == InstructionFamily.SHF)
+        .pStackKecFlag(this.opCodeData().instructionFamily() == InstructionFamily.KEC)
+        .pStackConFlag(this.opCodeData().instructionFamily() == InstructionFamily.CONTEXT)
+        .pStackAccFlag(this.opCodeData().instructionFamily() == InstructionFamily.ACCOUNT)
+        .pStackCopyFlag(this.opCodeData().instructionFamily() == InstructionFamily.COPY)
+        .pStackTxnFlag(this.opCodeData().instructionFamily() == InstructionFamily.TRANSACTION)
+        .pStackBtcFlag(this.opCodeData().instructionFamily() == InstructionFamily.BATCH)
+        .pStackStackramFlag(this.opCodeData().instructionFamily() == InstructionFamily.STACK_RAM)
+        .pStackStoFlag(this.opCodeData().instructionFamily() == InstructionFamily.STORAGE)
+        .pStackJumpFlag(this.opCodeData().instructionFamily() == InstructionFamily.JUMP)
+        .pStackPushpopFlag(this.opCodeData().instructionFamily() == InstructionFamily.PUSH_POP)
+        .pStackDupFlag(this.opCodeData().instructionFamily() == InstructionFamily.DUP)
+        .pStackSwapFlag(this.opCodeData().instructionFamily() == InstructionFamily.SWAP)
+        .pStackLogFlag(this.opCodeData().instructionFamily() == InstructionFamily.LOG)
+        .pStackCreateFlag(this.opCodeData().instructionFamily() == InstructionFamily.CREATE)
+        .pStackCallFlag(this.opCodeData().instructionFamily() == InstructionFamily.CALL)
+        .pStackHaltFlag(this.opCodeData().instructionFamily() == InstructionFamily.HALT)
+        .pStackInvalidFlag(this.opCodeData().instructionFamily() == InstructionFamily.INVALID)
+        .pStackMxpFlag(this.opCodeData().billing().type() != MxpType.NONE)
+        .pStackTrmFlag(this.opCodeData().stackSettings().addressTrimmingInstruction())
+        .pStackStaticFlag(this.opCodeData().stackSettings().staticInstruction())
+        .pStackOobFlag(this.opCodeData().stackSettings().oobFlag());
   }
 
   void processStateWarm() {

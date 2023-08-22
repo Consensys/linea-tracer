@@ -16,7 +16,9 @@
 package net.consensys.linea.zktracer.testutils;
 
 import org.apache.tuweni.bytes.Bytes;
+import org.junit.jupiter.api.Disabled;
 
+@Disabled("Shall not be tested by itself")
 public class PureTestCodeExecutor extends TestCodeExecutor {
   private final Bytes byteCode;
 

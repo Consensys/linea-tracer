@@ -14,20 +14,35 @@
  */
 
 package net.consensys.linea.zktracer.module.hub;
-;
-import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.testutils.BytecodeCompiler;
-import net.consensys.linea.zktracer.testutils.TestCodeExecutor;
-import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.evm.frame.MessageFrame;
 
-public class TwoPlusTwo extends TestCodeExecutor {
-  public Bytes getBytecode() {
-    return new BytecodeCompiler().push(32).push(27).op(OpCode.ADD).compile();
+import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.opcode.OpCodes;
+import net.consensys.linea.zktracer.testutils.BytecodeCompiler;
+import net.consensys.linea.zktracer.testutils.PureTestCodeExecutor;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+public class OtherTests {
+  @Test
+  public void testMul() {
+    new PureTestCodeExecutor(new BytecodeCompiler().push(32).push(7).op(OpCode.MUL).compile())
+        .run();
   }
 
-  @Override
-  public void postTest(MessageFrame frame) {
-    assert frame.getState() == MessageFrame.State.COMPLETED_SUCCESS;
+  @Test
+  public void testDiv() {
+    new PureTestCodeExecutor(new BytecodeCompiler().push(32).push(7).op(OpCode.DIV).compile())
+        .run();
+  }
+
+  @Test
+  public void testSDiv() {
+    new PureTestCodeExecutor(new BytecodeCompiler().push(32).push(7).op(OpCode.SDIV).compile())
+        .run();
+  }
+
+  @BeforeAll
+  static void beforeAll() {
+    OpCodes.load();
   }
 }

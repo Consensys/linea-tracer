@@ -13,21 +13,25 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub;
-;
-import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.testutils.BytecodeCompiler;
-import net.consensys.linea.zktracer.testutils.TestCodeExecutor;
-import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.evm.frame.MessageFrame;
+package net.consensys.linea.zktracer.testutils;
 
-public class TwoPlusTwo extends TestCodeExecutor {
-  public Bytes getBytecode() {
-    return new BytecodeCompiler().push(32).push(27).op(OpCode.ADD).compile();
+import net.consensys.linea.zktracer.opcode.OpCodes;
+import org.apache.tuweni.bytes.Bytes;
+import org.junit.jupiter.api.BeforeAll;
+
+public class PureTestCodeExecutor extends TestCodeExecutor {
+  private final Bytes byteCode;
+
+  public PureTestCodeExecutor(Bytes byteCode) {
+    this.byteCode = byteCode;
   }
 
   @Override
-  public void postTest(MessageFrame frame) {
-    assert frame.getState() == MessageFrame.State.COMPLETED_SUCCESS;
+  public Bytes getBytecode() {
+    return this.byteCode;
+  }
+
+  public void run() {
+    this.executeCode();
   }
 }

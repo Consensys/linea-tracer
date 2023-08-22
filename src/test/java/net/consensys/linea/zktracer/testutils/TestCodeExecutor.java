@@ -16,6 +16,8 @@ package net.consensys.linea.zktracer.testutils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.ArrayList;
+
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.corset.CorsetValidator;
 import net.consensys.linea.zktracer.toy.ToyWorld;
@@ -23,6 +25,8 @@ import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Wei;
+import org.hyperledger.besu.ethereum.core.BlockBody;
+import org.hyperledger.besu.ethereum.core.BlockHeaderBuilder;
 import org.hyperledger.besu.evm.Code;
 import org.hyperledger.besu.evm.EVM;
 import org.hyperledger.besu.evm.MainnetEVMs;
@@ -33,6 +37,7 @@ import org.hyperledger.besu.evm.internal.EvmConfiguration;
 import org.hyperledger.besu.evm.precompile.PrecompileContractRegistry;
 import org.hyperledger.besu.evm.processor.MessageCallProcessor;
 import org.hyperledger.besu.evm.worldstate.WorldUpdater;
+import org.hyperledger.besu.plugin.data.BlockHeader;
 import org.junit.jupiter.api.Test;
 
 public abstract class TestCodeExecutor {
@@ -53,6 +58,21 @@ public abstract class TestCodeExecutor {
   public Address getSenderAddress() {
     return SENDER_ADDRESS;
   }
+
+  //  public List<Transaction> getTransactions() {
+  //    return List.of(
+  //        new Transaction(
+  //            123,
+  //            Wei.of(1500),
+  //            this.getGasLimit(),
+  //            Optional.of(Address.fromHexString("0x1234567890")),
+  //            this.getValue(),
+  //            SECPSignature.create(),
+  //            this.getInputData(),
+  //            this.getSenderAddress(),
+  //            Optional.of(23),
+  //            Optional.empty()));
+  //  }
 
   public Wei getValue() {
     return Wei.ZERO;
@@ -106,9 +126,14 @@ public abstract class TestCodeExecutor {
 
     final MessageFrame frame = this.prepareFrame();
     setupFrame(frame);
+    BlockHeader mockBlockHeader = BlockHeaderBuilder.createDefault().buildBlockHeader();
 
+    BlockBody mockBlockBody =
+        new BlockBody(new ArrayList<>() /* transactions */, new ArrayList<>() /* ommers */);
     tracer.traceStartConflation(1);
+    tracer.traceStartBlock(mockBlockHeader, mockBlockBody);
     messageCallProcessor.process(frame, this.tracer);
+    tracer.traceEndBlock(mockBlockHeader, mockBlockBody);
     tracer.traceEndConflation();
 
     assertThat(CorsetValidator.isValid(tracer.getTrace().toJson())).isTrue();

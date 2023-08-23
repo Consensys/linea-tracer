@@ -42,47 +42,6 @@ import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 
-enum TxState {
-  // A state marking the first trace of the current tx, required to set up some things
-  TxPreInit,
-  TxExec,
-  TxFinal,
-  TxInit,
-  TxSkip,
-  TxWarm,
-}
-
-record Exceptions(
-    boolean InvalidOpcode,
-    boolean StackUnderflow,
-    boolean StackOverflow,
-    boolean OutOfMemoryExpansion,
-    boolean OutOfGas,
-    boolean ReturnDataCopyFault,
-    boolean JumpFault,
-    boolean StaticViolation,
-    boolean OutOfSStore,
-    boolean InvalidCodePrefix,
-    boolean CodeSizeOverflow) {
-  public boolean noStackException() {
-    return !this.StackOverflow() && !this.StackUnderflow();
-  }
-
-  public boolean failure() {
-    return this.InvalidOpcode
-        || this.StackUnderflow
-        || this.StackOverflow
-        || this.OutOfMemoryExpansion
-        || this.OutOfGas
-        || this.ReturnDataCopyFault
-        || this.JumpFault
-        || this.StaticViolation
-        || this.OutOfSStore
-        || this.InvalidCodePrefix
-        || this.CodeSizeOverflow;
-  }
-}
-
 @Slf4j
 public class Hub implements Module {
   private static final Address ADDRESS_ZERO = Address.fromHexString("0x0");
@@ -174,30 +133,6 @@ public class Hub implements Module {
   public final List<OpCode> supportedOpCodes() {
     // The Hub wants to catch all opcodes
     return List.of(OpCode.values());
-  }
-
-  private void updateExceptions(MessageFrame frame) {
-    this.exceptions =
-        new Exceptions(
-            this.opCode == OpCode.INVALID,
-            frame.stackSize() < this.opCodeData().stackSettings().nbRemoved(),
-            frame.stackSize()
-                    + this.opCodeData().stackSettings().nbAdded()
-                    - this.opCodeData().stackSettings().nbRemoved()
-                > 1024,
-            false, // TODO mxp
-            frame.getRemainingGas() < 0,
-            false, // TODO
-            false, // TODO
-            frame.isStatic() && !this.opCodeData().stackSettings().staticInstruction(),
-            false, // TODO
-            false, // TODO
-            false // TODO
-            );
-  }
-
-  public boolean isError() {
-    return false;
   }
 
   private static boolean isPrecompile(Address to) {
@@ -515,7 +450,7 @@ public class Hub implements Module {
     this.opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
     this.pc = frame.getPC();
     this.stamp++;
-    this.updateExceptions(frame);
+    this.exceptions = Exceptions.fromFrame(frame);
     this.triggerModules(frame);
     boolean noXFlow = this.handleStack(frame);
 

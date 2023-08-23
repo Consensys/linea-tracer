@@ -122,8 +122,7 @@ public abstract class TestCodeExecutor {
         .build();
   }
 
-  @Test
-  public void executeCode() {
+  protected MessageFrame executeCode() {
     final MessageCallProcessor messageCallProcessor =
         new MessageCallProcessor(evm, new PrecompileContractRegistry());
 
@@ -154,9 +153,20 @@ public abstract class TestCodeExecutor {
     tracer.traceEndBlock(mockBlockHeader, mockBlockBody);
     tracer.traceEndConflation();
 
-    assertThat(CorsetValidator.isValid(tracer.getTrace().toJson())).isTrue();
+    return frame;
+  }
 
+  @Test
+  public void testCode() {
+    MessageFrame frame = executeCode();
     this.postTest(frame);
+    assertThat(CorsetValidator.isValid(tracer.getTrace().toJson())).isTrue();
+  }
+
+  public String traceCode() {
+    MessageFrame frame = executeCode();
+    this.postTest(frame);
+    return tracer.getTrace().toJson();
   }
 
   public void deployContract(final Address contractAddress, final Bytes codeBytes) {

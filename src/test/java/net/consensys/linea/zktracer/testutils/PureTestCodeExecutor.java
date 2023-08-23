@@ -34,4 +34,8 @@ public class PureTestCodeExecutor extends TestCodeExecutor {
   public void run() {
     this.executeCode();
   }
+
+  public String trace() {
+    return this.traceCode();
+  }
 }

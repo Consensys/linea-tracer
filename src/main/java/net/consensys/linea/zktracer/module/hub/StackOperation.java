@@ -23,8 +23,9 @@ import net.consensys.linea.zktracer.EWord;
 import net.consensys.linea.zktracer.opcode.OpCode;
 
 enum Action {
-  Push,
-  Pop
+  NONE,
+  PUSH,
+  POP
 }
 
 /**
@@ -51,6 +52,13 @@ final class StackOperation {
    */
   private final int stackStamp;
 
+  StackOperation() {
+    this.height = 0;
+    this.value = EWord.ZERO;
+    this.action = Action.NONE;
+    this.stackStamp = 0;
+  }
+
   StackOperation(int height, EWord value, Action action, int stackStamp) {
     this.height = height;
     this.value = value;
@@ -59,15 +67,19 @@ final class StackOperation {
   }
 
   public static StackOperation pop(int height, EWord value, int stackStamp) {
-    return new StackOperation(height, value, Action.Pop, stackStamp);
+    return new StackOperation(height, value, Action.POP, stackStamp);
   }
 
   public static StackOperation push(int height, int stackStamp) {
-    return new StackOperation(height, null, Action.Push, stackStamp);
+    return new StackOperation(
+        height,
+        EWord.of(0xDEADBEEFL) /* marker value, erased on unlatching */,
+        Action.PUSH,
+        stackStamp);
   }
 
   public static StackOperation pushImmediate(int height, EWord val, int stackStamp) {
-    return new StackOperation(height, val.copy(), Action.Push, stackStamp);
+    return new StackOperation(height, val.copy(), Action.PUSH, stackStamp);
   }
 
   public void setValue(EWord x) {
@@ -146,6 +158,11 @@ record StackLine(
     this(new ArrayList<>(), 0, -1);
   }
 
+  /** The default constructor, an empty stack line at a given counter */
+  StackLine(int ct) {
+    this(new ArrayList<>(), ct, -1);
+  }
+
   /**
    * Build a stack line from a set of {@link StackOperation}
    *
@@ -160,7 +177,10 @@ record StackLine(
    * @return a consolidated 4-elements array of the {@link StackOperation} – or no-ops
    */
   List<StackOperation> asStackOperations() {
-    StackOperation[] r = new StackOperation[4];
+    StackOperation[] r =
+        new StackOperation[] {
+          new StackOperation(), new StackOperation(), new StackOperation(), new StackOperation()
+        };
     for (IndexedStackOperation item : this.items) {
       r[item.i()] = item.it();
     }

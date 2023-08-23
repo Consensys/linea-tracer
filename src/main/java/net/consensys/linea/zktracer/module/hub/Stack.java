@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.module.hub;
 
 import net.consensys.linea.zktracer.EWord;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.opcode.OpCodeData;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 class Stack {
@@ -34,7 +35,7 @@ class Stack {
 
   int height;
   int heightNew;
-  OpCode currentOp;
+  OpCodeData currentOpcodeData;
   Status status;
   int stamp;
 
@@ -98,7 +99,7 @@ class Stack {
   }
 
   private void loadStore(MessageFrame frame, StackContext pending) {
-    if (this.currentOp.stackSettings.flag1()) {
+    if (this.currentOpcodeData.stackSettings().flag1()) {
       EWord val1 = getStack(frame, 0);
       EWord val2 = getStack(frame, 1);
 
@@ -115,7 +116,7 @@ class Stack {
   }
 
   private void dup(MessageFrame frame, StackContext pending) {
-    int depth = this.currentOp.stackSettings.delta() - 1;
+    int depth = this.currentOpcodeData.stackSettings().delta() - 1;
     EWord val = getStack(frame, depth);
 
     pending.addLine(
@@ -127,7 +128,7 @@ class Stack {
   }
 
   private void swap(MessageFrame frame, StackContext pending) {
-    int depth = this.currentOp.stackSettings.delta() - 1;
+    int depth = this.currentOpcodeData.stackSettings().delta() - 1;
     EWord val1 = getStack(frame, 0);
     EWord val2 = getStack(frame, depth);
 
@@ -151,7 +152,7 @@ class Stack {
 
     // Stack line 2
     IndexedStackOperation[] line2 = new IndexedStackOperation[] {};
-    switch (this.currentOp) {
+    switch (this.currentOpcodeData.mnemonic()) {
       case LOG0 -> {}
       case LOG1 -> {
         EWord topic1 = getStack(frame, 2);
@@ -213,7 +214,7 @@ class Stack {
   }
 
   private void copy(MessageFrame frame, StackContext pending) {
-    if (this.currentOp.stackSettings.addressTrimmingInstruction()) {
+    if (this.currentOpcodeData.stackSettings().addressTrimmingInstruction()) {
       EWord val0 = getStack(frame, 0);
       EWord val1 = getStack(frame, 1);
       EWord val2 = getStack(frame, 2);
@@ -245,7 +246,8 @@ class Stack {
     EWord val6 = getStack(frame, 5);
 
     boolean sevenItems =
-        this.currentOp.stackSettings.flag1() || this.currentOp.stackSettings.flag2();
+        this.currentOpcodeData.stackSettings().flag1()
+            || this.currentOpcodeData.stackSettings().flag2();
     if (sevenItems) {
       EWord val7 = getStack(frame, 6);
 
@@ -281,7 +283,7 @@ class Stack {
     pending.addLine(
         new IndexedStackOperation(1, StackOperation.pop(this.height - 1, val1, this.stamp + 1)),
         new IndexedStackOperation(2, StackOperation.pop(this.height - 2, val2, this.stamp + 2)));
-    if (this.currentOp.stackSettings.flag1()) {
+    if (this.currentOpcodeData.stackSettings().flag1()) {
       EWord val3 = getStack(frame, 3);
       EWord val4 = getStack(frame, 0);
 
@@ -322,14 +324,15 @@ class Stack {
   boolean processInstruction(MessageFrame frame, CallFrame callFrame, int stackStamp) {
     this.stamp = stackStamp;
     this.height = this.heightNew;
-    this.currentOp = OpCode.of(frame.getCurrentOperation().getOpcode());
-    callFrame.pending = new StackContext(this.currentOp);
+    this.currentOpcodeData = OpCode.of(frame.getCurrentOperation().getOpcode()).getData();
+    callFrame.pending = new StackContext(this.currentOpcodeData.mnemonic());
 
     assert this.height == frame.stackSize();
-    this.heightNew += this.currentOp.stackSettings.nbAdded();
-    this.heightNew -= this.currentOp.stackSettings.nbRemoved();
+    this.heightNew += this.currentOpcodeData.stackSettings().nbAdded();
+    this.heightNew -= this.currentOpcodeData.stackSettings().nbRemoved();
 
-    if (frame.stackSize() < this.currentOp.stackSettings.delta()) { // Testing for underflow
+    if (frame.stackSize()
+        < this.currentOpcodeData.stackSettings().delta()) { // Testing for underflow
       this.status = Status.Underflow;
     } else if (this.heightNew > MAX_STACK_SIZE) { // Testing for overflow
       this.status = Status.Overflow;
@@ -338,7 +341,7 @@ class Stack {
     if (this.status.isFailure()) {
       this.heightNew = 0;
 
-      if (this.currentOp.stackSettings.twoLinesInstruction()) {
+      if (this.currentOpcodeData.stackSettings().twoLinesInstruction()) {
         this.stamp += callFrame.pending.addEmptyLines(2);
       } else {
         this.stamp += callFrame.pending.addEmptyLines(1);
@@ -347,21 +350,21 @@ class Stack {
       return false;
     }
 
-    switch (this.currentOp.stackSettings.pattern()) {
-      case ZeroZero -> this.stamp += callFrame.pending.addEmptyLines(1);
-      case OneZero -> this.oneZero(frame, callFrame.pending);
-      case TwoZero -> this.twoZero(frame, callFrame.pending);
-      case ZeroOne -> this.zeroOne(frame, callFrame.pending);
-      case OneOne -> this.oneOne(frame, callFrame.pending);
-      case TwoOne -> this.twoOne(frame, callFrame.pending);
-      case ThreeOne -> this.threeOne(frame, callFrame.pending);
-      case LoadStore -> this.loadStore(frame, callFrame.pending);
-      case Dup -> this.dup(frame, callFrame.pending);
-      case Swap -> this.swap(frame, callFrame.pending);
-      case Log -> this.log(frame, callFrame.pending);
-      case Copy -> this.copy(frame, callFrame.pending);
-      case Call -> this.call(frame, callFrame.pending);
-      case Create -> this.create(frame, callFrame.pending);
+    switch (this.currentOpcodeData.stackSettings().pattern()) {
+      case ZERO_ZERO -> this.stamp += callFrame.pending.addEmptyLines(1);
+      case ONE_ZERO -> this.oneZero(frame, callFrame.pending);
+      case TWO_ZERO -> this.twoZero(frame, callFrame.pending);
+      case ZERO_ONE -> this.zeroOne(frame, callFrame.pending);
+      case ONE_ONE -> this.oneOne(frame, callFrame.pending);
+      case TWO_ONE -> this.twoOne(frame, callFrame.pending);
+      case THREE_ONE -> this.threeOne(frame, callFrame.pending);
+      case LOAD_STORE -> this.loadStore(frame, callFrame.pending);
+      case DUP -> this.dup(frame, callFrame.pending);
+      case SWAP -> this.swap(frame, callFrame.pending);
+      case LOG -> this.log(frame, callFrame.pending);
+      case COPY -> this.copy(frame, callFrame.pending);
+      case CALL -> this.call(frame, callFrame.pending);
+      case CREATE -> this.create(frame, callFrame.pending);
     }
 
     return this.status == Status.Normal;

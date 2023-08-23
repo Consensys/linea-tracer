@@ -53,7 +53,7 @@ public abstract class AbstractBaseModuleTest {
   @BeforeEach
   void beforeEach() {
     module = getModuleTracer();
-    zkTracer = new ZkTracer(List.of(module));
+    zkTracer = new ZkTracer();
     mockFrame = mock(MessageFrame.class);
     mockOperation = mock(Operation.class);
     when(mockFrame.getCurrentOperation()).thenReturn(mockOperation);

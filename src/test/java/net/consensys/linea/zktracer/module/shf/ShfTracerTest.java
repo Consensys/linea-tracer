@@ -18,7 +18,6 @@ package net.consensys.linea.zktracer.module.shf;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.when;
 
-import java.util.List;
 import java.util.Random;
 import java.util.stream.Stream;
 
@@ -62,7 +61,7 @@ class ShfTracerTest {
 
   @BeforeEach
   void setUp() {
-    zkTracer = new ZkTracer(List.of(new Shf()));
+    zkTracer = new ZkTracer();
 
     when(mockFrame.getCurrentOperation()).thenReturn(mockOperation);
   }

@@ -20,12 +20,19 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.EWord;
 import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.module.add.Add;
+import net.consensys.linea.zktracer.module.ext.Ext;
+import net.consensys.linea.zktracer.module.mod.Mod;
+import net.consensys.linea.zktracer.module.mul.Mul;
+import net.consensys.linea.zktracer.module.shf.Shf;
+import net.consensys.linea.zktracer.module.trm.Trm;
+import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.InstructionFamily;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
-import net.consensys.linea.zktracer.opcode.gas.MxpType;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Quantity;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -56,17 +63,78 @@ record Exceptions(
     boolean StaticViolation,
     boolean OutOfSStore,
     boolean InvalidCodePrefix,
-    boolean CodeSizeOverflow) {}
+    boolean CodeSizeOverflow) {
+  public boolean noStackException() {
+    return !this.StackOverflow() && !this.StackUnderflow();
+  }
 
+  public boolean failure() {
+    return this.InvalidOpcode
+        || this.StackUnderflow
+        || this.StackOverflow
+        || this.OutOfMemoryExpansion
+        || this.OutOfGas
+        || this.ReturnDataCopyFault
+        || this.JumpFault
+        || this.StaticViolation
+        || this.OutOfSStore
+        || this.InvalidCodePrefix
+        || this.CodeSizeOverflow;
+  }
+}
+
+@Slf4j
 public class Hub implements Module {
   private static final Address ADDRESS_ZERO = Address.fromHexString("0x0");
   private static final int TAU = 8;
 
   final Trace.TraceBuilder trace = Trace.builder();
+  private final List<BiFunction<BigInteger, Integer, Trace.TraceBuilder>> valHiSetters =
+      List.of(
+          this.trace::setPStackStackItemValueHi1At,
+          this.trace::setPStackStackItemValueHi2At,
+          this.trace::setPStackStackItemValueHi3At,
+          this.trace::setPStackStackItemValueHi4At);
+  private final List<BiFunction<BigInteger, Integer, Trace.TraceBuilder>> valLoSetters =
+      List.of(
+          this.trace::setPStackStackItemValueLo1At,
+          this.trace::setPStackStackItemValueLo2At,
+          this.trace::setPStackStackItemValueLo3At,
+          this.trace::setPStackStackItemValueLo4At);
+  private final List<Function<BigInteger, Trace.TraceBuilder>> valHiTracers =
+      List.of(
+          this.trace::pStackStackItemValueHi1,
+          this.trace::pStackStackItemValueHi2,
+          this.trace::pStackStackItemValueHi3,
+          this.trace::pStackStackItemValueHi4);
+  private final List<Function<BigInteger, Trace.TraceBuilder>> valLoTracers =
+      List.of(
+          this.trace::pStackStackItemValueLo1,
+          this.trace::pStackStackItemValueLo2,
+          this.trace::pStackStackItemValueLo3,
+          this.trace::pStackStackItemValueLo4);
+  private final List<Function<Boolean, Trace.TraceBuilder>> popTracers =
+      List.of(
+          this.trace::pStackStackItemPop1,
+          this.trace::pStackStackItemPop2,
+          this.trace::pStackStackItemPop3,
+          this.trace::pStackStackItemPop4);
+  private final List<Function<BigInteger, Trace.TraceBuilder>> heightTracers =
+      List.of(
+          this.trace::pStackStackItemHeight1,
+          this.trace::pStackStackItemHeight2,
+          this.trace::pStackStackItemHeight3,
+          this.trace::pStackStackItemHeight4);
+  private final List<Function<BigInteger, Trace.TraceBuilder>> stampTracers =
+      List.of(
+          this.trace::pStackStackItemStamp1,
+          this.trace::pStackStackItemStamp2,
+          this.trace::pStackStackItemStamp3,
+          this.trace::pStackStackItemStamp4);
   private int pc;
   private OpCode opCode;
   private Exceptions exceptions;
-  
+
   private OpCodeData opCodeData() {
     return this.opCode.getData();
   }
@@ -79,7 +147,23 @@ public class Hub implements Module {
   int blockNumber = 0;
   int stamp = 0;
 
-  public Hub() {}
+  private final Module add;
+  private final Module ext;
+  private final Module mod;
+  private final Module mul;
+  private final Module shf;
+  private final Module trm;
+  private final Module wcp;
+
+  public Hub(Add add, Ext ext, Mod mod, Mul mul, Shf shf, Trm trm, Wcp wcp) {
+    this.add = add;
+    this.ext = ext;
+    this.mod = mod;
+    this.mul = mul;
+    this.shf = shf;
+    this.trm = trm;
+    this.wcp = wcp;
+  }
 
   @Override
   public String jsonKey() {
@@ -92,7 +176,7 @@ public class Hub implements Module {
     return List.of(OpCode.values());
   }
 
-  private void checkExceptions(MessageFrame frame, Operation.OperationResult result) {
+  private void updateExceptions(MessageFrame frame) {
     this.exceptions =
         new Exceptions(
             this.opCode == OpCode.INVALID,
@@ -260,38 +344,6 @@ public class Hub implements Module {
    * @return the partially filled trace row
    */
   private Trace.TraceBuilder traceStackLine(StackLine line) {
-    List<Function<BigInteger, Trace.TraceBuilder>> heightSetters =
-        List.of(
-            this.trace::pStackStackItemHeight1,
-            this.trace::pStackStackItemHeight2,
-            this.trace::pStackStackItemHeight3,
-            this.trace::pStackStackItemHeight4);
-    List<Function<BigInteger, Trace.TraceBuilder>> valHiSetters =
-        List.of(
-            this.trace::pStackStackItemValueHi1,
-            this.trace::pStackStackItemValueHi2,
-            this.trace::pStackStackItemValueHi3,
-            this.trace::pStackStackItemValueHi4);
-    List<Function<BigInteger, Trace.TraceBuilder>> valLoSetters =
-        List.of(
-            this.trace::pStackStackItemValueLo1,
-            this.trace::pStackStackItemValueLo2,
-            this.trace::pStackStackItemValueLo3,
-            this.trace::pStackStackItemValueLo4);
-
-    List<Function<Boolean, Trace.TraceBuilder>> popSetters =
-        List.of(
-            this.trace::pStackStackItemPop1,
-            this.trace::pStackStackItemPop2,
-            this.trace::pStackStackItemPop3,
-            this.trace::pStackStackItemPop4);
-    List<Function<BigInteger, Trace.TraceBuilder>> stampSetters =
-        List.of(
-            this.trace::pStackStackItemStamp1,
-            this.trace::pStackStackItemStamp2,
-            this.trace::pStackStackItemStamp3,
-            this.trace::pStackStackItemStamp4);
-
     final var stack = currentFrame().stack;
 
     final var alpha = this.opCodeData().stackSettings().alpha();
@@ -317,11 +369,11 @@ public class Hub implements Module {
       var i = it.nextIndex();
       var op = it.next();
 
-      heightSetters.get(i).apply(BigInteger.valueOf(op.height()));
-      valLoSetters.get(i).apply(op.value().loBigInt());
-      valHiSetters.get(i).apply(op.value().hiBigInt());
-      popSetters.get(i).apply(op.action() == Action.Pop);
-      stampSetters.get(i).apply(BigInteger.valueOf(op.stackStamp()));
+      heightTracers.get(i).apply(BigInteger.valueOf(op.height()));
+      valLoTracers.get(i).apply(op.value().loBigInt());
+      valHiTracers.get(i).apply(op.value().hiBigInt());
+      popTracers.get(i).apply(op.action() == Action.POP);
+      stampTracers.get(i).apply(BigInteger.valueOf(op.stackStamp()));
     }
 
     return this.trace
@@ -374,7 +426,9 @@ public class Hub implements Module {
         .pStackCallFlag(this.opCodeData().instructionFamily() == InstructionFamily.CALL)
         .pStackHaltFlag(this.opCodeData().instructionFamily() == InstructionFamily.HALT)
         .pStackInvalidFlag(this.opCodeData().instructionFamily() == InstructionFamily.INVALID)
-        .pStackMxpFlag(this.opCodeData().billing().type() != MxpType.NONE)
+        //      .pStackMxpFlag(this.opCodeData().billing().type() != MxpType.NONE) // TODO: billing
+        // not yet specified
+        .pStackMxpFlag(false)
         .pStackTrmFlag(this.opCodeData().stackSettings().addressTrimmingInstruction())
         .pStackStaticFlag(this.opCodeData().stackSettings().staticInstruction())
         .pStackOobFlag(this.opCodeData().stackSettings().oobFlag());
@@ -403,10 +457,66 @@ public class Hub implements Module {
     return stackOk;
   }
 
+  void triggerModules(MessageFrame frame) {
+    switch (this.opCodeData().instructionFamily()) {
+      case ADD -> {
+        if (this.exceptions.noStackException()) {
+          this.add.trace(frame);
+        }
+      }
+      case MOD -> {
+        if (this.exceptions.noStackException()) {
+          this.mod.trace(frame);
+        }
+      }
+      case MUL -> {
+        if (this.exceptions.noStackException()) {
+          this.mul.trace(frame);
+        }
+      }
+      case EXT -> {
+        if (this.exceptions.noStackException()) {
+          this.ext.trace(frame);
+        }
+      }
+      case WCP -> {
+        if (this.exceptions.noStackException()) {
+          this.wcp.trace(frame);
+        }
+      }
+      case BIN -> {}
+      case SHF -> {
+        if (this.exceptions.noStackException()) {
+          this.shf.trace(frame);
+        }
+      }
+      case KEC -> {}
+      case CONTEXT -> {}
+      case ACCOUNT -> {}
+      case COPY -> {}
+      case TRANSACTION -> {}
+      case BATCH -> {}
+      case STACK_RAM -> {}
+      case STORAGE -> {}
+      case JUMP -> {}
+      case MACHINE_STATE -> {}
+      case PUSH_POP -> {}
+      case DUP -> {}
+      case SWAP -> {}
+      case LOG -> {}
+      case CREATE -> {}
+      case CALL -> {}
+      case HALT -> {}
+      case INVALID -> {}
+    }
+  }
+
   void processStateExec(MessageFrame frame) {
     this.opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
     this.pc = frame.getPC();
     this.stamp++;
+    this.updateExceptions(frame);
+    this.triggerModules(frame);
     boolean noXFlow = this.handleStack(frame);
 
     if (this.currentFrame().stack.isOk()) {
@@ -417,7 +527,7 @@ public class Hub implements Module {
        */
     }
 
-    // this.updateTrace();
+    this.updateTrace();
 
     if (false /* frame.isError() */) {
       // ...
@@ -481,20 +591,6 @@ public class Hub implements Module {
       return;
     }
 
-    List<BiFunction<BigInteger, Integer, Trace.TraceBuilder>> valHiSetters =
-        List.of(
-            this.trace::setPStackStackItemValueHi1At,
-            this.trace::setPStackStackItemValueHi2At,
-            this.trace::setPStackStackItemValueHi3At,
-            this.trace::setPStackStackItemValueHi4At);
-    List<BiFunction<BigInteger, Integer, Trace.TraceBuilder>> valLoSetters =
-        List.of(
-            this.trace::setPStackStackItemValueLo1At,
-            this.trace::setPStackStackItemValueLo2At,
-            this.trace::setPStackStackItemValueLo3At,
-            this.trace::setPStackStackItemValueLo4At);
-
-    boolean isFirstLine = true;
     StackContext pending = this.currentFrame().pending;
 
     for (StackLine line : this.currentFrame().pending.lines) {
@@ -505,20 +601,14 @@ public class Hub implements Module {
         }
 
         int startLine = pending.startInTrace;
-        // The fuck... first line is never expecting a value.
-        //        if (isFirstLine) {
-        //          line.setResult(result);
-        //          // self.Mmu.handleMmu(...)
-        //        }
 
         valHiSetters
-            .get(line.resultColumn())
+            .get(line.resultColumn() - 1)
             .apply(result.hi().toUnsignedBigInteger(), startLine + line.ct());
         valLoSetters
-            .get(line.resultColumn())
+            .get(line.resultColumn() - 1)
             .apply(result.lo().toUnsignedBigInteger(), startLine + line.ct());
       }
-      isFirstLine = false;
     }
   }
 
@@ -556,9 +646,9 @@ public class Hub implements Module {
   }
 
   public void tracePostExecution(MessageFrame frame, Operation.OperationResult operationResult) {
+    this.trace.fillAndValidateRow();
     boolean mxpx = false;
     this.unlatchStack(frame, false, mxpx);
-    this.checkExceptions(frame, operationResult);
   }
 
   @Override
@@ -575,5 +665,21 @@ public class Hub implements Module {
   @Override
   public Object commit() {
     return new HubTrace(trace.build());
+  }
+
+  void updateTrace() {
+    this.traceStack();
+  }
+
+  void traceStack() {
+    if (this.currentFrame().pending.lines.isEmpty()) {
+      for (int i = 0; i < (this.opCodeData().stackSettings().twoLinesInstruction() ? 2 : 1); i++) {
+        this.traceStackLine(new StackLine(i));
+      }
+    } else {
+      for (StackLine line : this.currentFrame().pending.lines) {
+        this.traceStackLine(line);
+      }
+    }
   }
 }

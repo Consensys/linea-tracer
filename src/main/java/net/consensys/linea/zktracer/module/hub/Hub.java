@@ -25,6 +25,10 @@ import net.consensys.linea.zktracer.EWord;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.ext.Ext;
+import net.consensys.linea.zktracer.module.hub.stack.Action;
+import net.consensys.linea.zktracer.module.hub.stack.Stack;
+import net.consensys.linea.zktracer.module.hub.stack.StackContext;
+import net.consensys.linea.zktracer.module.hub.stack.StackLine;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.mul.Mul;
 import net.consensys.linea.zktracer.module.shf.Shf;
@@ -283,14 +287,14 @@ public class Hub implements Module {
 
     final var alpha = this.opCodeData().stackSettings().alpha();
     final var delta = this.opCodeData().stackSettings().delta();
-    var heightUnder = stack.height - delta;
+    var heightUnder = stack.getHeight() - delta;
     var heightOver = 0;
 
     var overflow = stack.isOverflow() ? 1 : 0;
 
     if (!stack.isUnderflow()) {
-      if (alpha == 1 && delta == 0 && stack.height == Stack.MAX_STACK_SIZE) {
-        heightOver = stack.height + alpha - delta - Stack.MAX_STACK_SIZE - 1;
+      if (alpha == 1 && delta == 0 && stack.getHeight() == Stack.MAX_STACK_SIZE) {
+        heightOver = stack.getHeight() + alpha - delta - Stack.MAX_STACK_SIZE - 1;
       } else {
         heightOver = (2 * overflow - 1) * (heightUnder + alpha - Stack.MAX_STACK_SIZE) - overflow;
       }
@@ -313,8 +317,8 @@ public class Hub implements Module {
 
     return this.trace
         // Stack height
-        .pStackHeight(BigInteger.valueOf(stack.height))
-        .pStackHeightNew(BigInteger.valueOf(stack.heightNew))
+        .pStackHeight(BigInteger.valueOf(stack.getHeight()))
+        .pStackHeightNew(BigInteger.valueOf(stack.getHeightNew()))
         .pStackHeightUnder(BigInteger.valueOf(heightUnder))
         .pStackHeightOver(BigInteger.valueOf(heightOver))
         // Instruction details
@@ -388,7 +392,7 @@ public class Hub implements Module {
   private boolean handleStack(MessageFrame frame) {
     boolean stackOk =
         this.currentFrame().stack.processInstruction(frame, this.currentFrame(), TAU * this.stamp);
-    this.currentFrame().pending.startInTrace = this.currentLine();
+    this.currentFrame().pending.setStartInTrace(this.currentLine());
     return stackOk;
   }
 
@@ -528,14 +532,14 @@ public class Hub implements Module {
 
     StackContext pending = this.currentFrame().pending;
 
-    for (StackLine line : this.currentFrame().pending.lines) {
+    for (StackLine line : this.currentFrame().pending.getLines()) {
       if (line.needsResult()) {
         EWord result = EWord.ZERO;
         if (!failureState) {
           result = EWord.of(stack.getStackItem(0));
         }
 
-        int startLine = pending.startInTrace;
+        int startLine = pending.getStartInTrace();
 
         valHiSetters
             .get(line.resultColumn() - 1)
@@ -607,12 +611,12 @@ public class Hub implements Module {
   }
 
   void traceStack() {
-    if (this.currentFrame().pending.lines.isEmpty()) {
+    if (this.currentFrame().pending.getLines().isEmpty()) {
       for (int i = 0; i < (this.opCodeData().stackSettings().twoLinesInstruction() ? 2 : 1); i++) {
         this.traceStackLine(new StackLine(i));
       }
     } else {
-      for (StackLine line : this.currentFrame().pending.lines) {
+      for (StackLine line : this.currentFrame().pending.getLines()) {
         this.traceStackLine(line);
       }
     }

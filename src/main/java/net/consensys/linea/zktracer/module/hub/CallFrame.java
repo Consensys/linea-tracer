@@ -18,13 +18,16 @@ package net.consensys.linea.zktracer.module.hub;
 import java.util.List;
 
 import lombok.Getter;
+import lombok.Setter;
 import net.consensys.linea.zktracer.EWord;
+import net.consensys.linea.zktracer.module.hub.stack.Stack;
+import net.consensys.linea.zktracer.module.hub.stack.StackContext;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.Code;
 
-class CallFrame {
+public class CallFrame {
   /** the associated context number in the {@link Hub} */
   @Getter int contextNumber;
   /** the associated deployment number in the {@link Hub} */
@@ -70,7 +73,7 @@ class CallFrame {
   @Getter final Stack stack = new Stack();
 
   /** the latched context of this callframe stack */
-  StackContext pending;
+  @Getter @Setter StackContext pending;
 
   /** Create a root call frame */
   CallFrame() {

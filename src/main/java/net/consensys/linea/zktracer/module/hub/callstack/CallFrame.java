@@ -13,13 +13,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub;
+package net.consensys.linea.zktracer.module.hub.callstack;
 
 import java.util.List;
 
 import lombok.Getter;
 import lombok.Setter;
 import net.consensys.linea.zktracer.EWord;
+import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.stack.Stack;
 import net.consensys.linea.zktracer.module.hub.stack.StackContext;
 import org.apache.tuweni.bytes.Bytes;

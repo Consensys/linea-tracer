@@ -25,6 +25,9 @@ import net.consensys.linea.zktracer.EWord;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.ext.Ext;
+import net.consensys.linea.zktracer.module.hub.callstack.CallFrame;
+import net.consensys.linea.zktracer.module.hub.callstack.CallFrameType;
+import net.consensys.linea.zktracer.module.hub.callstack.CallStack;
 import net.consensys.linea.zktracer.module.hub.stack.Action;
 import net.consensys.linea.zktracer.module.hub.stack.Stack;
 import net.consensys.linea.zktracer.module.hub.stack.StackContext;
@@ -259,7 +262,7 @@ public class Hub implements Module {
         .failureConditionFlag(false) // TODO
 
         // Context data
-        .contextNumber(BigInteger.valueOf(this.currentFrame().contextNumber))
+        .contextNumber(BigInteger.valueOf(this.currentFrame().getContextNumber()))
         .contextNumberNew(BigInteger.ZERO) // TODO
         .contextRevertStamp(BigInteger.ZERO) // TODO
         .contextWillRevertFlag(false) // TODO
@@ -271,9 +274,9 @@ public class Hub implements Module {
         // Bytecode metadata
         .codeAddressHi(this.currentFrame().addressAsEWord().hiBigInt())
         .codeAddressLo(this.currentFrame().addressAsEWord().loBigInt())
-        .codeDeploymentNumber(BigInteger.valueOf(this.currentFrame().deploymentNumber))
+        .codeDeploymentNumber(BigInteger.valueOf(this.currentFrame().getDeploymentNumber()))
         .codeDeploymentStatus(false) // TODO
-        .callerContextNumber(BigInteger.valueOf(this.callStack.caller().deploymentNumber));
+        .callerContextNumber(BigInteger.valueOf(this.callStack.caller().getDeploymentNumber()));
   }
 
   /**
@@ -283,7 +286,7 @@ public class Hub implements Module {
    * @return the partially filled trace row
    */
   private Trace.TraceBuilder traceStackLine(StackLine line) {
-    final var stack = currentFrame().stack;
+    final var stack = currentFrame().getStack();
 
     final var alpha = this.opCodeData().stackSettings().alpha();
     final var delta = this.opCodeData().stackSettings().delta();
@@ -391,8 +394,10 @@ public class Hub implements Module {
 
   private boolean handleStack(MessageFrame frame) {
     boolean stackOk =
-        this.currentFrame().stack.processInstruction(frame, this.currentFrame(), TAU * this.stamp);
-    this.currentFrame().pending.setStartInTrace(this.currentLine());
+        this.currentFrame()
+            .getStack()
+            .processInstruction(frame, this.currentFrame(), TAU * this.stamp);
+    this.currentFrame().getPending().setStartInTrace(this.currentLine());
     return stackOk;
   }
 
@@ -458,7 +463,7 @@ public class Hub implements Module {
     this.triggerModules(frame);
     boolean noXFlow = this.handleStack(frame);
 
-    if (this.currentFrame().stack.isOk()) {
+    if (this.currentFrame().getStack().isOk()) {
       /*
       this.handleCallReturnData
       this.handleMemory
@@ -526,13 +531,12 @@ public class Hub implements Module {
   }
 
   private void unlatchStack(MessageFrame stack, boolean failureState, boolean mxpx) {
-    if (this.currentFrame().pending == null) {
+    if (this.currentFrame().getPending() == null) {
       return;
     }
 
-    StackContext pending = this.currentFrame().pending;
-
-    for (StackLine line : this.currentFrame().pending.getLines()) {
+    StackContext pending = this.currentFrame().getPending();
+    for (StackLine line : pending.getLines()) {
       if (line.needsResult()) {
         EWord result = EWord.ZERO;
         if (!failureState) {
@@ -611,12 +615,12 @@ public class Hub implements Module {
   }
 
   void traceStack() {
-    if (this.currentFrame().pending.getLines().isEmpty()) {
+    if (this.currentFrame().getPending().getLines().isEmpty()) {
       for (int i = 0; i < (this.opCodeData().stackSettings().twoLinesInstruction() ? 2 : 1); i++) {
         this.traceStackLine(new StackLine(i));
       }
     } else {
-      for (StackLine line : this.currentFrame().pending.getLines()) {
+      for (StackLine line : this.currentFrame().getPending().getLines()) {
         this.traceStackLine(line);
       }
     }

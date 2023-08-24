@@ -13,16 +13,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub;
+package net.consensys.linea.zktracer.module.hub.callstack;
 
 import java.util.List;
 
+import net.consensys.linea.zktracer.module.hub.Hub;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.Code;
 
-class CallStack {
+public final class CallStack {
   /** the maximal depth of the call stack (as defined by Ethereum) */
   static final int CALLSTACK_SIZE = 1024;
   /** a never-pruned-tree of the {@link CallFrame} executed by the {@link Hub} */
@@ -32,17 +33,17 @@ class CallStack {
   /** a "pointer" to the current {@link CallFrame} in <code>frames</code> */
   private int current;
 
-  CallStack() {
+  public CallStack() {
     this.frames = List.of(new CallFrame());
     this.current = 0;
     this.depth = 0;
   }
 
-  CallFrame top() {
+  public CallFrame top() {
     return this.frames.get(this.current);
   }
 
-  CallFrame enter(
+  public CallFrame enter(
       Address address,
       Code code,
       CallFrameType type,
@@ -91,7 +92,7 @@ class CallStack {
    * @param currentLine the current line in the hub trace
    * @param returnData the return data of the current frame
    */
-  void exit(int currentLine, Bytes returnData) {
+  public void exit(int currentLine, Bytes returnData) {
     this.depth -= 1;
     assert this.depth >= 0;
 
@@ -105,14 +106,14 @@ class CallStack {
   /**
    * @return whether the call stack is in an overflow state
    */
-  boolean isOverflow() {
+  public boolean isOverflow() {
     return this.depth > CALLSTACK_SIZE;
   }
 
   /**
    * @return whether the current frame is a static context
    */
-  boolean isStatic() {
+  public boolean isStatic() {
     return this.top().type == CallFrameType.Static;
   }
 
@@ -121,7 +122,7 @@ class CallStack {
    *
    * @return the caller of the current frame
    */
-  CallFrame caller() {
+  public CallFrame caller() {
     return this.frames.get(this.top().parentFrame);
   }
 
@@ -130,7 +131,7 @@ class CallStack {
    *
    * @return the latest child
    */
-  CallFrame callee() {
+  public CallFrame callee() {
     return this.frames.get(this.top().lastCalled);
   }
 }

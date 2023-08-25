@@ -52,5 +52,14 @@ public interface Module {
 
   default void trace(MessageFrame frame) {}
 
+  default void traceEndTransaction(
+      WorldView worldView,
+      Transaction tx,
+      boolean status,
+      Bytes output,
+      List<org.hyperledger.besu.plugin.data.Log> logList,
+      Long gasUsed,
+      long TomeNS) {}
+
   Object commit();
 }

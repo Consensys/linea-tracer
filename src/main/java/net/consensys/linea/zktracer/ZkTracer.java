@@ -122,6 +122,7 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
   public void tracePreExecution(final MessageFrame frame) {
     this.hub.trace(frame);
   }
+  // TODO ADd RlpAddr module in trcaePreExecution
 
   @Override
   public void tracePostExecution(MessageFrame frame, Operation.OperationResult operationResult) {

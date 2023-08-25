@@ -25,6 +25,7 @@ import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
+import org.hyperledger.besu.plugin.data.TransactionReceipt;
 
 public interface Module {
   String jsonKey();
@@ -32,6 +33,8 @@ public interface Module {
   List<OpCode> supportedOpCodes();
 
   default void traceStartConflation(final long blockCount) {}
+
+  default void traceEndTx(TransactionReceipt txrcpt, Transaction tx) {}
 
   default void traceEndConflation() {}
 

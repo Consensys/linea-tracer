@@ -80,6 +80,7 @@ import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
+import org.hyperledger.besu.plugin.data.TransactionReceipt;
 
 @Slf4j
 @Accessors(fluent = true)
@@ -608,6 +609,11 @@ public class Hub implements Module {
   @Override
   public void traceStartBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
     this.block.update(blockHeader);
+  }
+
+  @Override
+  public void traceEndBlock(BlockHeader blockHeader, BlockBody blockBody) {
+    Module.super.traceEndBlock(blockHeader, blockBody);
   }
 
   @Override

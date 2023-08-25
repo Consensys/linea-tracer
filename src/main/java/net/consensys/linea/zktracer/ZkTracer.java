@@ -24,6 +24,7 @@ import net.consensys.linea.zktracer.module.ext.Ext;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.mul.Mul;
+import net.consensys.linea.zktracer.module.rlp_txrcpt.RlpTxrcpt;
 import net.consensys.linea.zktracer.module.shf.Shf;
 import net.consensys.linea.zktracer.module.trm.Trm;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
@@ -41,6 +42,8 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 public class ZkTracer implements ZkBlockAwareOperationTracer {
   private final ZkTraceBuilder zkTraceBuilder = new ZkTraceBuilder();
   private final Hub hub;
+
+  public final RlpTxrcpt rlpTxrcpt = new RlpTxrcpt();
   private final List<Module> modules;
 
   public ZkTracer() {
@@ -51,6 +54,7 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
     Shf shf = new Shf();
     Trm trm = new Trm();
     Wcp wcp = new Wcp();
+    RlpTxrcpt rlpTxrcpt = new RlpTxrcpt();
 
     this.hub = new Hub(add, ext, mod, mul, shf, trm, wcp);
     this.modules = hub.getModules();
@@ -61,8 +65,9 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
 
   public ZkTrace getTrace() {
     zkTraceBuilder.addTrace(this.hub);
+    zkTraceBuilder.addTrace(this.rlpTxrcpt);
     for (Module module : this.modules) {
-      zkTraceBuilder.addTrace(module);
+      // zkTraceBuilder.addTrace(module);
     }
 
     return zkTraceBuilder.build();

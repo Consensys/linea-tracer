@@ -22,6 +22,13 @@ import static net.consensys.linea.zktracer.module.rlppatterns.pattern.outerRlpSi
 import static net.consensys.linea.zktracer.module.rlppatterns.pattern.padToGivenSizeWithLeftZero;
 import static net.consensys.linea.zktracer.module.rlppatterns.pattern.padToGivenSizeWithRightZero;
 
+import static net.consensys.linea.zktracer.module.rlppatterns.pattern.bigIntegerToBytes;
+import static net.consensys.linea.zktracer.module.rlppatterns.pattern.bitDecomposition;
+import static net.consensys.linea.zktracer.module.rlppatterns.pattern.byteCounting;
+import static net.consensys.linea.zktracer.module.rlppatterns.pattern.outerRlpSize;
+import static net.consensys.linea.zktracer.module.rlppatterns.pattern.padToGivenSizeWithLeftZero;
+import static net.consensys.linea.zktracer.module.rlppatterns.pattern.padToGivenSizeWithRightZero;
+
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +45,9 @@ import org.hyperledger.besu.datatypes.TransactionType;
 import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.log.LogsBloomFilter;
 import org.hyperledger.besu.evm.worldstate.WorldView;
+import org.hyperledger.besu.evm.log.LogsBloomFilter;
+import org.hyperledger.besu.evm.worldstate.WorldView;
+import org.hyperledger.besu.plugin.data.Log;
 
 public class RlpTxrcpt implements Module {
   public static final int llarge = RlpTxrcptTrace.LLARGE.intValue();
@@ -69,6 +79,20 @@ public class RlpTxrcpt implements Module {
       List<org.hyperledger.besu.evm.log.Log> logList,
       long gasUsed) {
 
+    this.absLogNumMax += logList.size();
+    RlpTxrcptChunk chunk = new RlpTxrcptChunk(tx.getType(), status, gasUsed, logList);
+    this.chunkList.add(chunk);
+  }
+
+  @Override
+  public void traceEndTransaction(
+      WorldView worldView,
+      Transaction tx,
+      boolean status,
+      Bytes output,
+      List<Log> logList,
+      Long gasUsed,
+      long TomeNS) {
     this.absLogNumMax += logList.size();
     RlpTxrcptChunk chunk = new RlpTxrcptChunk(tx.getType(), status, gasUsed, logList);
     this.chunkList.add(chunk);

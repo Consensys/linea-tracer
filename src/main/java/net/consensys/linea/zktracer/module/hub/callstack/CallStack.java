@@ -23,6 +23,12 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.Code;
 
+/**
+ * This class represents the call hierarchy of a transaction.
+ *
+ * <p>Although it is accessible in a stack-like manner, it is a ctually a tree, the stack access
+ * representing the path from the latest leaf to the root context.
+ */
 public final class CallStack {
   /** the maximal depth of the call stack (as defined by Ethereum) */
   static final int CALLSTACK_SIZE = 1024;
@@ -39,10 +45,28 @@ public final class CallStack {
     this.depth = 0;
   }
 
+  /**
+   * @return the currently executing {@link CallFrame}
+   */
   public CallFrame top() {
     return this.frames.get(this.current);
   }
 
+  /**
+   * Creates a new call frame
+   *
+   * @param address the {@link Address} of the bytecode being executed
+   * @param code the {@link Code} being executed
+   * @param type the execution type of call frame
+   * @param value the value given to this call frame
+   * @param gas the gas provided to this call frame
+   * @param currentLine where the trace relative to this call frame starts within the {@link Hub}
+   *     trace
+   * @param input the call data sent to this call frame
+   * @param contextNumber the context number associated to this frame in the {@link Hub}
+   * @param deploymentNumber if applicable, the deployment number associated to this frame in the
+   *     {@link Hub}
+   */
   public void enter(
       Address address,
       Code code,

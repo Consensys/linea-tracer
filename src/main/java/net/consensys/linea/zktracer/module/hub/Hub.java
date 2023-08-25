@@ -21,6 +21,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.BiFunction;
 
 import lombok.Getter;
@@ -83,7 +86,6 @@ public class Hub implements Module {
 
   private int pc;
   private OpCode opCode;
-  private Exceptions exceptions;
 
   private OpCodeData opCodeData() {
     return this.opCode.getData();
@@ -93,6 +95,8 @@ public class Hub implements Module {
   private Map<Address, Boolean> deploymentStatus = new HashMap<>();
 
   private List<TraceChunk> traceChunks = new ArrayList<>();
+  private Exceptions exceptions;
+
   TxState txState;
   @Getter Transaction currentTx;
   CallStack callStack = new CallStack();
@@ -481,10 +485,6 @@ public class Hub implements Module {
     }
 
     this.updateTrace();
-
-    if (false /* frame.isError() */) {
-      // ...
-    }
   }
 
   void processStateFinal() {
@@ -561,23 +561,23 @@ public class Hub implements Module {
   }
 
   @Override
-  public void traceContextStart(MessageFrame frame) {
-
-    var type = CallFrameType.Root; // TODO
+  public void traceContextEnter(MessageFrame frame) {
+    this.maxContextNumber += 1;
+    var type = CallFrameType.Root;
     this.callStack.enter(
         frame.getContractAddress(),
         frame.getCode(),
-        type,
+        CallFrameType.ofOpCode(OpCode.of(frame.getCurrentOperation().getOpcode())),
         frame.getValue(),
         frame.getRemainingGas(),
         this.trace.size(),
         frame.getInputData(),
-        0,
-        0);
+        this.maxContextNumber,
+        this.deploymentNumbers.getOrDefault(frame.getContractAddress(), 0));
   }
 
   @Override
-  public void traceContextEnd(MessageFrame frame) {
+  public void traceContextExit(MessageFrame frame) {
     this.callStack.exit(this.trace.size() - 1, frame.getReturnData());
   }
 
@@ -598,6 +598,14 @@ public class Hub implements Module {
     this.trace.fillAndValidateRow();
     boolean mxpx = false;
     this.unlatchStack(frame, false, mxpx);
+
+    if (this.opCode.isCreate() && operationResult.getHaltReason() == null) {
+      this.handleCreate(Address.wrap(frame.getStackItem(0)));
+    }
+  }
+
+  private void handleCreate(Address target) {
+    this.deploymentNumbers.put(target, this.deploymentNumbers.getOrDefault(target, 0) + 1);
   }
 
   @Override

@@ -18,20 +18,35 @@ package net.consensys.linea.zktracer.module.hub.callstack;
 import net.consensys.linea.zktracer.opcode.OpCode;
 
 public enum CallFrameType {
+  /** Executing deployment code */
   InitCode,
+  /** Executing standard contract */
   Standard,
+  /** Within a delegate call */
   Delegate,
+  /** Within a static call */
   Static,
+  /** Within a call code */
   CallCode,
+  /** The bedrock context */
   Root;
 
-  public CallFrameType ofOpCode(OpCode opCode) {
+  /**
+   * Returns the kind of {@link CallFrameType} context that an opcode will create; throws if the
+   * opcode does not create a new context.
+   *
+   * @param opCode a context-changing {@link OpCode}
+   * @return the associated {@link CallFrameType}
+   */
+  public static CallFrameType ofOpCode(OpCode opCode) {
     return switch (opCode) {
       case CREATE, CREATE2 -> InitCode;
       case DELEGATECALL -> Delegate;
       case CALLCODE -> CallCode;
       case STATICCALL -> Static;
-      default -> Standard;
+      default -> {
+        throw new IllegalStateException(String.valueOf(opCode));
+      }
     };
   }
 

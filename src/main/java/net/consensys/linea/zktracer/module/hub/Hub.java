@@ -82,6 +82,7 @@ import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
+import org.hyperledger.besu.plugin.data.TransactionReceipt;
 
 @Slf4j
 @Accessors(fluent = true)
@@ -624,6 +625,11 @@ public class Hub implements Module {
   }
 
   @Override
+  public void traceEndBlock(BlockHeader blockHeader, BlockBody blockBody) {
+    Module.super.traceEndBlock(blockHeader, blockBody);
+  }
+
+  @Override
   public void traceStartConflation(long blockCount) {
     this.conflation.update();
   }
@@ -633,6 +639,14 @@ public class Hub implements Module {
     for (TxTrace txTrace : this.traceSections) {
       txTrace.postConflationRetcon(this, null /* TODO WorldView */);
     }
+  }
+
+  @Override
+  public void traceEndTx(TransactionReceipt txrcpt, Transaction tx) {}
+
+  @Override
+  public void traceEndConflation() {
+    Module.super.traceEndConflation();
   }
 
   @Override

@@ -301,6 +301,8 @@ class Stack {
   }
 
   /**
+   * ok means no exceptions.
+   *
    * @return true if no stack exception has been raised
    */
   boolean isOk() {
@@ -308,6 +310,8 @@ class Stack {
   }
 
   /**
+   * is there an underflow.
+   *
    * @return true if a stack underflow exception has been raised
    */
   boolean isUnderflow() {
@@ -315,7 +319,9 @@ class Stack {
   }
 
   /**
-   * @return true if a stack underflow exception has been raised
+   * is there an overflow.
+   *
+   * @return true if a stack overflow exception has been raised
    */
   boolean isOverflow() {
     return this.status == Status.Overflow;

@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.opcode.stack;
 
+/** opcode patterns. */
 public enum Pattern {
   ZERO_ZERO,
   ONE_ZERO,

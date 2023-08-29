@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
+/** boolean serializer to numeric representation. */
 public class NumericBooleanSerializer extends StdSerializer<Boolean> {
   public NumericBooleanSerializer() {
     this(null);

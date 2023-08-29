@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.opcode;
 
+/** opcode data location. */
 public enum DataLocation {
   NONE,
   ROM,

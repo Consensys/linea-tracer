@@ -36,12 +36,14 @@ import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 import org.hyperledger.besu.plugin.services.tracer.BlockAwareOperationTracer;
 
+/** ZkTracer class. */
 @RequiredArgsConstructor
 public class ZkTracer implements BlockAwareOperationTracer {
   private final ZkTraceBuilder zkTraceBuilder = new ZkTraceBuilder();
   private final Hub hub;
   private final List<Module> modules;
 
+  /** default constructor. */
   public ZkTracer() {
     Add add = new Add();
     Ext ext = new Ext();
@@ -58,6 +60,7 @@ public class ZkTracer implements BlockAwareOperationTracer {
     OpCodes.load();
   }
 
+  /** get the trace. */
   public ZkTrace getTrace() {
     zkTraceBuilder.addTrace(this.hub);
     for (Module module : this.modules) {
@@ -66,12 +69,14 @@ public class ZkTracer implements BlockAwareOperationTracer {
     return zkTraceBuilder.build();
   }
 
+  /** start conflation of traces. */
   public void traceStartConflation(final long numBlocksInConflation) {
     for (Module module : this.modules) {
       module.traceStartConflation(numBlocksInConflation);
     }
   }
 
+  /** end conflation of traces. */
   public void traceEndConflation() {
     for (Module module : this.modules) {
       module.traceEndConflation();

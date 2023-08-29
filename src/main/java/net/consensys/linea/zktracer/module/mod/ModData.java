@@ -31,6 +31,7 @@ import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
 import org.apache.tuweni.units.bigints.UInt64;
 
+/** MOD module data object. */
 public class ModData {
   @Getter private OpCode opCode;
   @Getter private final boolean oli;
@@ -52,6 +53,7 @@ public class ModData {
     this(opCodeData.mnemonic(), arg1, arg2);
   }
 
+  /** construct data object from given params. */
   public ModData(OpCode opCode, Bytes32 arg1, Bytes32 arg2) {
     this.arg1 = BaseBytes.fromBytes32(arg1);
     this.arg2 = BaseBytes.fromBytes32(arg2);

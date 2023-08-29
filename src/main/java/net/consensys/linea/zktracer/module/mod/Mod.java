@@ -27,6 +27,7 @@ import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
+/** MOD module. */
 public class Mod implements Module {
   private int stamp = 0;
   private static final int MMEDIUM = 8;
@@ -57,6 +58,7 @@ public class Mod implements Module {
     this.traceModData(data);
   }
 
+  /** extract the trace data from the given ModData object. */
   public void traceModData(ModData data) {
     for (int i = 0; i < maxCounter(data); i++) {
       final int accLength = i + 1;

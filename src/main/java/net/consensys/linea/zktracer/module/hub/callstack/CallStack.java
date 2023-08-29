@@ -43,7 +43,7 @@ public final class CallStack {
     return this.frames.get(this.current);
   }
 
-  public CallFrame enter(
+  public void enter(
       Address address,
       Code code,
       CallFrameType type,
@@ -51,8 +51,10 @@ public final class CallStack {
       long gas,
       int currentLine,
       Bytes input,
-      int maxContextNumber,
-      int deploymentNumber) {
+      int contextNumber,
+      int accountDeploymentNumber,
+      int codeDeploymentNumber,
+      boolean codeDeploymentStatus) {
     final int caller = this.current;
     final int newTop = this.frames.size();
     Bytes callData;
@@ -64,12 +66,14 @@ public final class CallStack {
 
     CallFrame newFrame =
         new CallFrame(
-            maxContextNumber,
-            deploymentNumber,
+            contextNumber,
+            accountDeploymentNumber,
+            codeDeploymentNumber,
+            codeDeploymentStatus,
             newTop,
             address,
             code,
-            type,
+            this.top().getType().isStatic() ? CallFrameType.Static : type,
             caller,
             this.frames.get(caller).address,
             value,
@@ -81,8 +85,6 @@ public final class CallStack {
     this.current = newTop;
     this.depth += 1;
     this.frames.get(caller).childFrames.add(newTop);
-
-    return this.top();
   }
 
   /**
@@ -98,7 +100,7 @@ public final class CallStack {
 
     this.top().close(currentLine);
     final int parent = this.top().parentFrame;
-    this.frames.get(parent).lastCalled = this.current;
+    this.frames.get(parent).childFrames.add(this.current);
     this.frames.get(parent).returnData = returnData;
     this.current = parent;
   }
@@ -118,7 +120,7 @@ public final class CallStack {
   }
 
   /**
-   * Get the caller of the current frame
+   * Get the {@link CallFrame} representing the caller of the current frame
    *
    * @return the caller of the current frame
    */
@@ -127,11 +129,24 @@ public final class CallStack {
   }
 
   /**
-   * Get the last frame called by the current frame
+   * Returns the ith {@link CallFrame} in this call stack.
    *
-   * @return the latest child
+   * @param i ID of the call frame to fetch
+   * @return the ith call frame
+   * @throws IndexOutOfBoundsException if the index is out of range
    */
-  public CallFrame callee() {
-    return this.frames.get(this.top().lastCalled);
+  public CallFrame get(int i) {
+    return this.frames.get(i);
+  }
+
+  /**
+   * Returns the parent of the ith {@link CallFrame} in this call stack.
+   *
+   * @param i ID of the call frame whose parent to fetch
+   * @return the ith call frame parent
+   * @throws IndexOutOfBoundsException if the index is out of range
+   */
+  public CallFrame getParentOf(int i) {
+    return this.get(this.frames.get(i).getParentFrame());
   }
 }

@@ -13,29 +13,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.callstack;
+package net.consensys.linea.zktracer.module.hub.chunks;
 
-import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.module.hub.Trace;
 
-public enum CallFrameType {
-  InitCode,
-  Standard,
-  Delegate,
-  Static,
-  CallCode,
-  Root;
-
-  public CallFrameType ofOpCode(OpCode opCode) {
-    return switch (opCode) {
-      case CREATE, CREATE2 -> InitCode;
-      case DELEGATECALL -> Delegate;
-      case CALLCODE -> CallCode;
-      case STATICCALL -> Static;
-      default -> Standard;
-    };
-  }
-
-  public boolean isStatic() {
-    return this == Static;
+public record StorageChunk() implements TraceChunk {
+  @Override
+  public Trace.TraceBuilder trace(Trace.TraceBuilder trace) {
+    return trace.peekAtStorage(true);
   }
 }

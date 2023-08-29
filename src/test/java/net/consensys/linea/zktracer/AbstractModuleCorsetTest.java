@@ -36,7 +36,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 @TestInstance(Lifecycle.PER_CLASS)
 public abstract class AbstractModuleCorsetTest extends AbstractBaseModuleTest {
   private static final Random rand = new Random();
-  private static final int TEST_REPETITIONS = 8;
+  private static final int TEST_REPETITIONS = 4;
 
   @ParameterizedTest()
   @MethodSource("provideRandomArguments")

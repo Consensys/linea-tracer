@@ -61,20 +61,19 @@ public class Mxp implements Module {
 
   @Override
   public void trace(MessageFrame frame) {
-
-    final Bytes32 arg1 = Bytes32.leftPad(frame.getStackItem(0));
-    final Bytes32 arg2 = Bytes32.leftPad(frame.getStackItem(1));
-
-    final Bytes16 arg1Hi = Bytes16.wrap(arg1.slice(0, 16));
-    final Bytes32 arg1Lo = Bytes32.leftPad(arg1.slice(16));
-    final Bytes16 arg2Hi = Bytes16.wrap(arg2.slice(0, 16));
-    final Bytes16 arg2Lo = Bytes16.wrap(arg2.slice(16));
-
-    boolean overflowHi = false;
-    boolean overflowLo;
-
     final OpCodeData opCodeData = OpCodes.of(frame.getCurrentOperation().getOpcode());
     final OpCode opCode = opCodeData.mnemonic();
+
+    final Bytes32 arg1 = Bytes32.leftPad(frame.getStackItem(0));
+    final Bytes16 arg1Hi = Bytes16.wrap(arg1.slice(0, 16));
+    final Bytes32 arg1Lo = Bytes32.leftPad(arg1.slice(16));
+
+    Bytes32 arg2 = Bytes32.ZERO;
+    if (opCode.getData().numberOfArguments() > 1) {
+      arg2 = Bytes32.leftPad(frame.getStackItem(1));
+    }
+    final Bytes16 arg2Hi = Bytes16.wrap(arg2.slice(0, 16));
+    final Bytes16 arg2Lo = Bytes16.wrap(arg2.slice(16));
 
     this.typeMxp = getTypeFromOpCode(opCode);
     setSizesAndOffsets();
@@ -184,7 +183,10 @@ public class Mxp implements Module {
           maxOffset2 = offset2.add(size2).subtract(UInt256.ONE);
         }
       }
-      default -> {}
+      default -> {
+        maxOffset1 = UInt256.ZERO;
+        maxOffset2 = UInt256.ZERO;
+      }
     }
   }
 

@@ -24,6 +24,7 @@ import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.OpCodes;
+import net.consensys.linea.zktracer.opcode.gas.MxpType;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -37,7 +38,7 @@ public class Mxp implements Module {
   final Trace.TraceBuilder builder = Trace.builder();
   private int stamp = 0;
 
-  private int typeMxp;
+  private MxpType typeMxp;
   private UInt256 offset1;
   private UInt256 size1;
   private UInt256 offset2;
@@ -75,7 +76,7 @@ public class Mxp implements Module {
     final Bytes16 arg2Hi = Bytes16.wrap(arg2.slice(0, 16));
     final Bytes16 arg2Lo = Bytes16.wrap(arg2.slice(16));
 
-    this.typeMxp = getTypeFromOpCode(opCode);
+    this.typeMxp = opCode.getData().billing().type();
     setSizesAndOffsets();
     setMaxOffset1and2();
     this.roob = getRoob(typeMxp, offset1, size1, offset2, size2);
@@ -127,27 +128,18 @@ public class Mxp implements Module {
     maxOffset = UInt256.ZERO;
   }
 
-  private int getTypeFromOpCode(final OpCode opCode) {
-    int t = InstructionDecoder.get(opCode, Columns.MXP_TYPE_1.name());
-    t += 2 * InstructionDecoder.get(opCode, Columns.MXP_TYPE_2.name());
-    t += 3 * InstructionDecoder.get(opCode, Columns.MXP_TYPE_3.name());
-    t += 4 * InstructionDecoder.get(opCode, Columns.MXP_TYPE_4.name());
-    t += 5 * InstructionDecoder.get(opCode, Columns.MXP_TYPE_5.name());
-    return t;
-  }
-
   /** get ridiculously out of bounds. */
   public static boolean getRoob(
-      final int typeMxp,
+      final MxpType typeMxp,
       final UInt256 offset1,
       final UInt256 size1,
       final UInt256 offset2,
       final UInt256 size2) {
     return switch (typeMxp) {
-      case 2, 3 -> offset1.greaterOrEqualThan(TWO_POW_128);
-      case 4 -> size1.greaterOrEqualThan(TWO_POW_128)
+      case TYPE_2 , TYPE_3 -> offset1.greaterOrEqualThan(TWO_POW_128);
+      case TYPE_4 -> size1.greaterOrEqualThan(TWO_POW_128)
           || (offset1.greaterOrEqualThan(TWO_POW_128) && !size1.isZero());
-      case 5 -> size1.greaterOrEqualThan(TWO_POW_128)
+      case TYPE_5 -> size1.greaterOrEqualThan(TWO_POW_128)
           || (offset1.greaterOrEqualThan(TWO_POW_128) && !size1.isZero())
           || (size2.greaterOrEqualThan(TWO_POW_128)
               || (offset2.greaterOrEqualThan(TWO_POW_128) && !size2.isZero()));
@@ -157,14 +149,14 @@ public class Mxp implements Module {
 
   /** get no op. */
   public static boolean getNoop(
-      final boolean roob, final int typeMxp, final UInt256 size1, final UInt256 size2) {
+      final boolean roob, final MxpType typeMxp, final UInt256 size1, final UInt256 size2) {
     if (roob) {
       return false;
     }
     return switch (typeMxp) {
-      case 1 -> true;
-      case 4 -> size1.isZero();
-      case 5 -> size1.isZero() && size2.isZero();
+      case TYPE_1 -> true;
+      case TYPE_4 -> size1.isZero();
+      case TYPE_5 -> size1.isZero() && size2.isZero();
       default -> false;
     };
   }
@@ -172,10 +164,10 @@ public class Mxp implements Module {
   /** set max offsets 1 and 2. */
   public void setMaxOffset1and2() {
     switch (typeMxp) {
-      case 2 -> maxOffset1 = offset1.add(UInt256.valueOf(31));
-      case 3 -> maxOffset1 = offset1;
-      case 4 -> maxOffset1 = offset1.add(size1).subtract(UInt256.ONE);
-      case 5 -> {
+      case TYPE_2 -> maxOffset1 = offset1.add(UInt256.valueOf(31));
+      case TYPE_3 -> maxOffset1 = offset1;
+      case TYPE_4 -> maxOffset1 = offset1.add(size1).subtract(UInt256.ONE);
+      case TYPE_5 -> {
         if (!size1.isZero()) {
           maxOffset1 = offset1.add(size1).subtract(UInt256.ONE);
         }

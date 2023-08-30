@@ -27,6 +27,7 @@ import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.ext.Ext;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.mul.Mul;
+import net.consensys.linea.zktracer.module.mxp.Mxp;
 import net.consensys.linea.zktracer.module.shf.Shf;
 import net.consensys.linea.zktracer.module.trm.Trm;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
@@ -154,6 +155,7 @@ public class Hub implements Module {
   private final Module shf;
   private final Module trm;
   private final Module wcp;
+  private final Module mxp;
 
   public Hub(Add add, Ext ext, Mod mod, Mul mul, Shf shf, Trm trm, Wcp wcp) {
     this.add = add;
@@ -163,6 +165,7 @@ public class Hub implements Module {
     this.shf = shf;
     this.trm = trm;
     this.wcp = wcp;
+    this.mxp = new Mxp();
   }
 
   @Override
@@ -496,7 +499,11 @@ public class Hub implements Module {
       case COPY -> {}
       case TRANSACTION -> {}
       case BATCH -> {}
-      case STACK_RAM -> {}
+      case STACK_RAM -> {
+        if (this.exceptions.noStackException()) {
+          this.mxp.trace(frame);
+        }
+      }
       case STORAGE -> {}
       case JUMP -> {}
       case MACHINE_STATE -> {}

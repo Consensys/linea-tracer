@@ -136,7 +136,7 @@ public class Mxp implements Module {
       final UInt256 offset2,
       final UInt256 size2) {
     return switch (typeMxp) {
-      case TYPE_2 , TYPE_3 -> offset1.greaterOrEqualThan(TWO_POW_128);
+      case TYPE_2, TYPE_3 -> offset1.greaterOrEqualThan(TWO_POW_128);
       case TYPE_4 -> size1.greaterOrEqualThan(TWO_POW_128)
           || (offset1.greaterOrEqualThan(TWO_POW_128) && !size1.isZero());
       case TYPE_5 -> size1.greaterOrEqualThan(TWO_POW_128)

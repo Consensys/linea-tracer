@@ -572,7 +572,7 @@ record Trace(
 
     TraceBuilder abortFlag(final Boolean b) {
       if (filled.get(41)) {
-        throw new IllegalStateException("ABORT_FLAG already set");
+        // throw new IllegalStateException("ABORT_FLAG already set");
       } else {
         filled.set(41);
       }
@@ -584,7 +584,7 @@ record Trace(
 
     TraceBuilder absoluteTransactionNumber(final BigInteger b) {
       if (filled.get(4)) {
-        throw new IllegalStateException("ABSOLUTE_TRANSACTION_NUMBER already set");
+        // throw new IllegalStateException("ABSOLUTE_TRANSACTION_NUMBER already set");
       } else {
         filled.set(4);
       }
@@ -596,7 +596,7 @@ record Trace(
 
     TraceBuilder batchNumber(final BigInteger b) {
       if (filled.get(14)) {
-        throw new IllegalStateException("BATCH_NUMBER already set");
+        // throw new IllegalStateException("BATCH_NUMBER already set");
       } else {
         filled.set(14);
       }
@@ -608,7 +608,7 @@ record Trace(
 
     TraceBuilder callerContextNumber(final BigInteger b) {
       if (filled.get(23)) {
-        throw new IllegalStateException("CALLER_CONTEXT_NUMBER already set");
+        // throw new IllegalStateException("CALLER_CONTEXT_NUMBER already set");
       } else {
         filled.set(23);
       }
@@ -620,7 +620,7 @@ record Trace(
 
     TraceBuilder codeAddressHi(final BigInteger b) {
       if (filled.get(9)) {
-        throw new IllegalStateException("CODE_ADDRESS_HI already set");
+        // throw new IllegalStateException("CODE_ADDRESS_HI already set");
       } else {
         filled.set(9);
       }
@@ -632,7 +632,7 @@ record Trace(
 
     TraceBuilder codeAddressLo(final BigInteger b) {
       if (filled.get(40)) {
-        throw new IllegalStateException("CODE_ADDRESS_LO already set");
+        // throw new IllegalStateException("CODE_ADDRESS_LO already set");
       } else {
         filled.set(40);
       }
@@ -644,7 +644,7 @@ record Trace(
 
     TraceBuilder codeDeploymentNumber(final BigInteger b) {
       if (filled.get(28)) {
-        throw new IllegalStateException("CODE_DEPLOYMENT_NUMBER already set");
+        // throw new IllegalStateException("CODE_DEPLOYMENT_NUMBER already set");
       } else {
         filled.set(28);
       }
@@ -656,7 +656,7 @@ record Trace(
 
     TraceBuilder codeDeploymentStatus(final Boolean b) {
       if (filled.get(26)) {
-        throw new IllegalStateException("CODE_DEPLOYMENT_STATUS already set");
+        // throw new IllegalStateException("CODE_DEPLOYMENT_STATUS already set");
       } else {
         filled.set(26);
       }
@@ -668,7 +668,7 @@ record Trace(
 
     TraceBuilder contextGetsRevrtdFlag(final Boolean b) {
       if (filled.get(13)) {
-        throw new IllegalStateException("CONTEXT_GETS_REVRTD_FLAG already set");
+        // throw new IllegalStateException("CONTEXT_GETS_REVRTD_FLAG already set");
       } else {
         filled.set(13);
       }
@@ -680,7 +680,7 @@ record Trace(
 
     TraceBuilder contextMayChangeFlag(final Boolean b) {
       if (filled.get(24)) {
-        throw new IllegalStateException("CONTEXT_MAY_CHANGE_FLAG already set");
+        // throw new IllegalStateException("CONTEXT_MAY_CHANGE_FLAG already set");
       } else {
         filled.set(24);
       }
@@ -692,7 +692,7 @@ record Trace(
 
     TraceBuilder contextNumber(final BigInteger b) {
       if (filled.get(20)) {
-        throw new IllegalStateException("CONTEXT_NUMBER already set");
+        // throw new IllegalStateException("CONTEXT_NUMBER already set");
       } else {
         filled.set(20);
       }
@@ -704,7 +704,7 @@ record Trace(
 
     TraceBuilder contextNumberNew(final BigInteger b) {
       if (filled.get(3)) {
-        throw new IllegalStateException("CONTEXT_NUMBER_NEW already set");
+        // throw new IllegalStateException("CONTEXT_NUMBER_NEW already set");
       } else {
         filled.set(3);
       }
@@ -716,7 +716,7 @@ record Trace(
 
     TraceBuilder contextRevertStamp(final BigInteger b) {
       if (filled.get(30)) {
-        throw new IllegalStateException("CONTEXT_REVERT_STAMP already set");
+        // throw new IllegalStateException("CONTEXT_REVERT_STAMP already set");
       } else {
         filled.set(30);
       }
@@ -728,7 +728,7 @@ record Trace(
 
     TraceBuilder contextSelfRevrtsFlag(final Boolean b) {
       if (filled.get(0)) {
-        throw new IllegalStateException("CONTEXT_SELF_REVRTS_FLAG already set");
+        // throw new IllegalStateException("CONTEXT_SELF_REVRTS_FLAG already set");
       } else {
         filled.set(0);
       }
@@ -740,7 +740,7 @@ record Trace(
 
     TraceBuilder contextWillRevertFlag(final Boolean b) {
       if (filled.get(12)) {
-        throw new IllegalStateException("CONTEXT_WILL_REVERT_FLAG already set");
+        // throw new IllegalStateException("CONTEXT_WILL_REVERT_FLAG already set");
       } else {
         filled.set(12);
       }
@@ -752,7 +752,7 @@ record Trace(
 
     TraceBuilder counterNsr(final BigInteger b) {
       if (filled.get(34)) {
-        throw new IllegalStateException("COUNTER_NSR already set");
+        // throw new IllegalStateException("COUNTER_NSR already set");
       } else {
         filled.set(34);
       }
@@ -764,7 +764,7 @@ record Trace(
 
     TraceBuilder counterTli(final Boolean b) {
       if (filled.get(18)) {
-        throw new IllegalStateException("COUNTER_TLI already set");
+        // throw new IllegalStateException("COUNTER_TLI already set");
       } else {
         filled.set(18);
       }
@@ -776,7 +776,7 @@ record Trace(
 
     TraceBuilder exceptionAhoyFlag(final Boolean b) {
       if (filled.get(36)) {
-        throw new IllegalStateException("EXCEPTION_AHOY_FLAG already set");
+        // throw new IllegalStateException("EXCEPTION_AHOY_FLAG already set");
       } else {
         filled.set(36);
       }
@@ -788,7 +788,7 @@ record Trace(
 
     TraceBuilder failureConditionFlag(final Boolean b) {
       if (filled.get(37)) {
-        throw new IllegalStateException("FAILURE_CONDITION_FLAG already set");
+        // throw new IllegalStateException("FAILURE_CONDITION_FLAG already set");
       } else {
         filled.set(37);
       }
@@ -800,7 +800,7 @@ record Trace(
 
     TraceBuilder gasActual(final BigInteger b) {
       if (filled.get(31)) {
-        throw new IllegalStateException("GAS_ACTUAL already set");
+        // throw new IllegalStateException("GAS_ACTUAL already set");
       } else {
         filled.set(31);
       }
@@ -812,7 +812,7 @@ record Trace(
 
     TraceBuilder gasCost(final BigInteger b) {
       if (filled.get(22)) {
-        throw new IllegalStateException("GAS_COST already set");
+        // throw new IllegalStateException("GAS_COST already set");
       } else {
         filled.set(22);
       }
@@ -824,7 +824,7 @@ record Trace(
 
     TraceBuilder gasExpected(final BigInteger b) {
       if (filled.get(15)) {
-        throw new IllegalStateException("GAS_EXPECTED already set");
+        // throw new IllegalStateException("GAS_EXPECTED already set");
       } else {
         filled.set(15);
       }
@@ -836,7 +836,7 @@ record Trace(
 
     TraceBuilder gasMemoryExpansion(final BigInteger b) {
       if (filled.get(8)) {
-        throw new IllegalStateException("GAS_MEMORY_EXPANSION already set");
+        // throw new IllegalStateException("GAS_MEMORY_EXPANSION already set");
       } else {
         filled.set(8);
       }
@@ -848,7 +848,7 @@ record Trace(
 
     TraceBuilder gasNext(final BigInteger b) {
       if (filled.get(1)) {
-        throw new IllegalStateException("GAS_NEXT already set");
+        // throw new IllegalStateException("GAS_NEXT already set");
       } else {
         filled.set(1);
       }
@@ -860,7 +860,7 @@ record Trace(
 
     TraceBuilder gasRefund(final BigInteger b) {
       if (filled.get(21)) {
-        throw new IllegalStateException("GAS_REFUND already set");
+        // throw new IllegalStateException("GAS_REFUND already set");
       } else {
         filled.set(21);
       }
@@ -872,7 +872,7 @@ record Trace(
 
     TraceBuilder hubStamp(final BigInteger b) {
       if (filled.get(2)) {
-        throw new IllegalStateException("HUB_STAMP already set");
+        // throw new IllegalStateException("HUB_STAMP already set");
       } else {
         filled.set(2);
       }
@@ -884,7 +884,7 @@ record Trace(
 
     TraceBuilder numberOfNonStackRows(final BigInteger b) {
       if (filled.get(29)) {
-        throw new IllegalStateException("NUMBER_OF_NON_STACK_ROWS already set");
+        // throw new IllegalStateException("NUMBER_OF_NON_STACK_ROWS already set");
       } else {
         filled.set(29);
       }
@@ -896,7 +896,7 @@ record Trace(
 
     TraceBuilder pAccountAddressHi(final BigInteger b) {
       if (filled.get(54)) {
-        throw new IllegalStateException("ADDRESS_HI already set");
+        // throw new IllegalStateException("ADDRESS_HI already set");
       } else {
         filled.set(54);
       }
@@ -908,7 +908,7 @@ record Trace(
 
     TraceBuilder pAccountAddressLo(final BigInteger b) {
       if (filled.get(43)) {
-        throw new IllegalStateException("ADDRESS_LO already set");
+        // throw new IllegalStateException("ADDRESS_LO already set");
       } else {
         filled.set(43);
       }
@@ -920,7 +920,7 @@ record Trace(
 
     TraceBuilder pAccountBalance(final BigInteger b) {
       if (filled.get(52)) {
-        throw new IllegalStateException("BALANCE already set");
+        // throw new IllegalStateException("BALANCE already set");
       } else {
         filled.set(52);
       }
@@ -932,7 +932,7 @@ record Trace(
 
     TraceBuilder pAccountBalanceNew(final BigInteger b) {
       if (filled.get(45)) {
-        throw new IllegalStateException("BALANCE_NEW already set");
+        // throw new IllegalStateException("BALANCE_NEW already set");
       } else {
         filled.set(45);
       }
@@ -944,7 +944,7 @@ record Trace(
 
     TraceBuilder pAccountCodeHashHi(final BigInteger b) {
       if (filled.get(53)) {
-        throw new IllegalStateException("CODE_HASH_HI already set");
+        // throw new IllegalStateException("CODE_HASH_HI already set");
       } else {
         filled.set(53);
       }
@@ -956,7 +956,7 @@ record Trace(
 
     TraceBuilder pAccountCodeHashHiNew(final BigInteger b) {
       if (filled.get(49)) {
-        throw new IllegalStateException("CODE_HASH_HI_NEW already set");
+        // throw new IllegalStateException("CODE_HASH_HI_NEW already set");
       } else {
         filled.set(49);
       }
@@ -969,7 +969,7 @@ record Trace(
 
     TraceBuilder pAccountCodeHashLo(final BigInteger b) {
       if (filled.get(48)) {
-        throw new IllegalStateException("CODE_HASH_LO already set");
+        // throw new IllegalStateException("CODE_HASH_LO already set");
       } else {
         filled.set(48);
       }
@@ -981,7 +981,7 @@ record Trace(
 
     TraceBuilder pAccountCodeHashLoNew(final BigInteger b) {
       if (filled.get(55)) {
-        throw new IllegalStateException("CODE_HASH_LO_NEW already set");
+        // throw new IllegalStateException("CODE_HASH_LO_NEW already set");
       } else {
         filled.set(55);
       }
@@ -993,7 +993,7 @@ record Trace(
 
     TraceBuilder pAccountCodeSize(final BigInteger b) {
       if (filled.get(57)) {
-        throw new IllegalStateException("CODE_SIZE already set");
+        // throw new IllegalStateException("CODE_SIZE already set");
       } else {
         filled.set(57);
       }
@@ -1005,7 +1005,7 @@ record Trace(
 
     TraceBuilder pAccountCodeSizeNew(final BigInteger b) {
       if (filled.get(42)) {
-        throw new IllegalStateException("CODE_SIZE_NEW already set");
+        // throw new IllegalStateException("CODE_SIZE_NEW already set");
       } else {
         filled.set(42);
       }
@@ -1017,7 +1017,7 @@ record Trace(
 
     TraceBuilder pAccountDeploymentNumber(final BigInteger b) {
       if (filled.get(46)) {
-        throw new IllegalStateException("DEPLOYMENT_NUMBER already set");
+        // throw new IllegalStateException("DEPLOYMENT_NUMBER already set");
       } else {
         filled.set(46);
       }
@@ -1029,7 +1029,7 @@ record Trace(
 
     TraceBuilder pAccountDeploymentNumberInfty(final BigInteger b) {
       if (filled.get(47)) {
-        throw new IllegalStateException("DEPLOYMENT_NUMBER_INFTY already set");
+        // throw new IllegalStateException("DEPLOYMENT_NUMBER_INFTY already set");
       } else {
         filled.set(47);
       }
@@ -1042,7 +1042,7 @@ record Trace(
 
     TraceBuilder pAccountDeploymentNumberNew(final BigInteger b) {
       if (filled.get(51)) {
-        throw new IllegalStateException("DEPLOYMENT_NUMBER_NEW already set");
+        // throw new IllegalStateException("DEPLOYMENT_NUMBER_NEW already set");
       } else {
         filled.set(51);
       }
@@ -1055,7 +1055,7 @@ record Trace(
 
     TraceBuilder pAccountDeploymentStatus(final BigInteger b) {
       if (filled.get(58)) {
-        throw new IllegalStateException("DEPLOYMENT_STATUS already set");
+        // throw new IllegalStateException("DEPLOYMENT_STATUS already set");
       } else {
         filled.set(58);
       }
@@ -1067,7 +1067,7 @@ record Trace(
 
     TraceBuilder pAccountDeploymentStatusInfty(final Boolean b) {
       if (filled.get(70)) {
-        throw new IllegalStateException("DEPLOYMENT_STATUS_INFTY already set");
+        // throw new IllegalStateException("DEPLOYMENT_STATUS_INFTY already set");
       } else {
         filled.set(70);
       }
@@ -1079,7 +1079,7 @@ record Trace(
 
     TraceBuilder pAccountDeploymentStatusNew(final BigInteger b) {
       if (filled.get(56)) {
-        throw new IllegalStateException("DEPLOYMENT_STATUS_NEW already set");
+        // throw new IllegalStateException("DEPLOYMENT_STATUS_NEW already set");
       } else {
         filled.set(56);
       }
@@ -1091,7 +1091,7 @@ record Trace(
 
     TraceBuilder pAccountExists(final Boolean b) {
       if (filled.get(67)) {
-        throw new IllegalStateException("EXISTS already set");
+        // throw new IllegalStateException("EXISTS already set");
       } else {
         filled.set(67);
       }
@@ -1103,7 +1103,7 @@ record Trace(
 
     TraceBuilder pAccountExistsNew(final Boolean b) {
       if (filled.get(66)) {
-        throw new IllegalStateException("EXISTS_NEW already set");
+        // throw new IllegalStateException("EXISTS_NEW already set");
       } else {
         filled.set(66);
       }
@@ -1115,7 +1115,7 @@ record Trace(
 
     TraceBuilder pAccountHasCode(final Boolean b) {
       if (filled.get(69)) {
-        throw new IllegalStateException("HAS_CODE already set");
+        // throw new IllegalStateException("HAS_CODE already set");
       } else {
         filled.set(69);
       }
@@ -1127,7 +1127,7 @@ record Trace(
 
     TraceBuilder pAccountHasCodeNew(final Boolean b) {
       if (filled.get(68)) {
-        throw new IllegalStateException("HAS_CODE_NEW already set");
+        // throw new IllegalStateException("HAS_CODE_NEW already set");
       } else {
         filled.set(68);
       }
@@ -1139,7 +1139,7 @@ record Trace(
 
     TraceBuilder pAccountIsPrecompile(final Boolean b) {
       if (filled.get(73)) {
-        throw new IllegalStateException("IS_PRECOMPILE already set");
+        // throw new IllegalStateException("IS_PRECOMPILE already set");
       } else {
         filled.set(73);
       }
@@ -1151,7 +1151,7 @@ record Trace(
 
     TraceBuilder pAccountNonce(final BigInteger b) {
       if (filled.get(44)) {
-        throw new IllegalStateException("NONCE already set");
+        // throw new IllegalStateException("NONCE already set");
       } else {
         filled.set(44);
       }
@@ -1163,7 +1163,7 @@ record Trace(
 
     TraceBuilder pAccountNonceNew(final BigInteger b) {
       if (filled.get(50)) {
-        throw new IllegalStateException("NONCE_NEW already set");
+        // throw new IllegalStateException("NONCE_NEW already set");
       } else {
         filled.set(50);
       }
@@ -1175,7 +1175,7 @@ record Trace(
 
     TraceBuilder pAccountSufficientBalance(final Boolean b) {
       if (filled.get(74)) {
-        throw new IllegalStateException("SUFFICIENT_BALANCE already set");
+        // throw new IllegalStateException("SUFFICIENT_BALANCE already set");
       } else {
         filled.set(74);
       }
@@ -1187,7 +1187,7 @@ record Trace(
 
     TraceBuilder pAccountWarm(final Boolean b) {
       if (filled.get(71)) {
-        throw new IllegalStateException("WARM already set");
+        // throw new IllegalStateException("WARM already set");
       } else {
         filled.set(71);
       }
@@ -1199,7 +1199,7 @@ record Trace(
 
     TraceBuilder pAccountWarmNew(final Boolean b) {
       if (filled.get(72)) {
-        throw new IllegalStateException("WARM_NEW already set");
+        // throw new IllegalStateException("WARM_NEW already set");
       } else {
         filled.set(72);
       }
@@ -1211,7 +1211,7 @@ record Trace(
 
     TraceBuilder pContextAccountAddressHi(final BigInteger b) {
       if (filled.get(53)) {
-        throw new IllegalStateException("ACCOUNT_ADDRESS_HI already set");
+        // throw new IllegalStateException("ACCOUNT_ADDRESS_HI already set");
       } else {
         filled.set(53);
       }
@@ -1223,7 +1223,7 @@ record Trace(
 
     TraceBuilder pContextAccountAddressLo(final BigInteger b) {
       if (filled.get(51)) {
-        throw new IllegalStateException("ACCOUNT_ADDRESS_LO already set");
+        // throw new IllegalStateException("ACCOUNT_ADDRESS_LO already set");
       } else {
         filled.set(51);
       }
@@ -1236,7 +1236,7 @@ record Trace(
 
     TraceBuilder pContextAccountDeploymentNumber(final BigInteger b) {
       if (filled.get(46)) {
-        throw new IllegalStateException("ACCOUNT_DEPLOYMENT_NUMBER already set");
+        // throw new IllegalStateException("ACCOUNT_DEPLOYMENT_NUMBER already set");
       } else {
         filled.set(46);
       }
@@ -1248,7 +1248,7 @@ record Trace(
 
     TraceBuilder pContextByteCodeAddressHi(final BigInteger b) {
       if (filled.get(52)) {
-        throw new IllegalStateException("BYTE_CODE_ADDRESS_HI already set");
+        // throw new IllegalStateException("BYTE_CODE_ADDRESS_HI already set");
       } else {
         filled.set(52);
       }
@@ -1260,7 +1260,7 @@ record Trace(
 
     TraceBuilder pContextByteCodeAddressLo(final BigInteger b) {
       if (filled.get(63)) {
-        throw new IllegalStateException("BYTE_CODE_ADDRESS_LO already set");
+        // throw new IllegalStateException("BYTE_CODE_ADDRESS_LO already set");
       } else {
         filled.set(63);
       }
@@ -1272,7 +1272,7 @@ record Trace(
 
     TraceBuilder pContextByteCodeDeploymentNumber(final BigInteger b) {
       if (filled.get(54)) {
-        throw new IllegalStateException("BYTE_CODE_DEPLOYMENT_NUMBER already set");
+        // throw new IllegalStateException("BYTE_CODE_DEPLOYMENT_NUMBER already set");
       } else {
         filled.set(54);
       }
@@ -1284,7 +1284,7 @@ record Trace(
 
     TraceBuilder pContextByteCodeDeploymentStatus(final BigInteger b) {
       if (filled.get(47)) {
-        throw new IllegalStateException("BYTE_CODE_DEPLOYMENT_STATUS already set");
+        // throw new IllegalStateException("BYTE_CODE_DEPLOYMENT_STATUS already set");
       } else {
         filled.set(47);
       }
@@ -1297,7 +1297,7 @@ record Trace(
 
     TraceBuilder pContextCallDataOffset(final BigInteger b) {
       if (filled.get(57)) {
-        throw new IllegalStateException("CALL_DATA_OFFSET already set");
+        // throw new IllegalStateException("CALL_DATA_OFFSET already set");
       } else {
         filled.set(57);
       }
@@ -1309,7 +1309,7 @@ record Trace(
 
     TraceBuilder pContextCallDataSize(final BigInteger b) {
       if (filled.get(44)) {
-        throw new IllegalStateException("CALL_DATA_SIZE already set");
+        // throw new IllegalStateException("CALL_DATA_SIZE already set");
       } else {
         filled.set(44);
       }
@@ -1321,7 +1321,7 @@ record Trace(
 
     TraceBuilder pContextCallStackDepth(final BigInteger b) {
       if (filled.get(45)) {
-        throw new IllegalStateException("CALL_STACK_DEPTH already set");
+        // throw new IllegalStateException("CALL_STACK_DEPTH already set");
       } else {
         filled.set(45);
       }
@@ -1333,7 +1333,7 @@ record Trace(
 
     TraceBuilder pContextCallValue(final BigInteger b) {
       if (filled.get(55)) {
-        throw new IllegalStateException("CALL_VALUE already set");
+        // throw new IllegalStateException("CALL_VALUE already set");
       } else {
         filled.set(55);
       }
@@ -1345,7 +1345,7 @@ record Trace(
 
     TraceBuilder pContextCallerAddressHi(final BigInteger b) {
       if (filled.get(43)) {
-        throw new IllegalStateException("CALLER_ADDRESS_HI already set");
+        // throw new IllegalStateException("CALLER_ADDRESS_HI already set");
       } else {
         filled.set(43);
       }
@@ -1357,7 +1357,7 @@ record Trace(
 
     TraceBuilder pContextCallerAddressLo(final BigInteger b) {
       if (filled.get(49)) {
-        throw new IllegalStateException("CALLER_ADDRESS_LO already set");
+        // throw new IllegalStateException("CALLER_ADDRESS_LO already set");
       } else {
         filled.set(49);
       }
@@ -1370,7 +1370,7 @@ record Trace(
 
     TraceBuilder pContextCallerContextNumber(final BigInteger b) {
       if (filled.get(61)) {
-        throw new IllegalStateException("CALLER_CONTEXT_NUMBER already set");
+        // throw new IllegalStateException("CALLER_CONTEXT_NUMBER already set");
       } else {
         filled.set(61);
       }
@@ -1382,7 +1382,7 @@ record Trace(
 
     TraceBuilder pContextContextNumber(final BigInteger b) {
       if (filled.get(50)) {
-        throw new IllegalStateException("CONTEXT_NUMBER already set");
+        // throw new IllegalStateException("CONTEXT_NUMBER already set");
       } else {
         filled.set(50);
       }
@@ -1394,7 +1394,7 @@ record Trace(
 
     TraceBuilder pContextIsStatic(final BigInteger b) {
       if (filled.get(56)) {
-        throw new IllegalStateException("IS_STATIC already set");
+        // throw new IllegalStateException("IS_STATIC already set");
       } else {
         filled.set(56);
       }
@@ -1406,7 +1406,7 @@ record Trace(
 
     TraceBuilder pContextReturnAtOffset(final BigInteger b) {
       if (filled.get(59)) {
-        throw new IllegalStateException("RETURN_AT_OFFSET already set");
+        // throw new IllegalStateException("RETURN_AT_OFFSET already set");
       } else {
         filled.set(59);
       }
@@ -1418,7 +1418,7 @@ record Trace(
 
     TraceBuilder pContextReturnAtSize(final BigInteger b) {
       if (filled.get(58)) {
-        throw new IllegalStateException("RETURN_AT_SIZE already set");
+        // throw new IllegalStateException("RETURN_AT_SIZE already set");
       } else {
         filled.set(58);
       }
@@ -1430,7 +1430,7 @@ record Trace(
 
     TraceBuilder pContextReturnDataOffset(final BigInteger b) {
       if (filled.get(62)) {
-        throw new IllegalStateException("RETURN_DATA_OFFSET already set");
+        // throw new IllegalStateException("RETURN_DATA_OFFSET already set");
       } else {
         filled.set(62);
       }
@@ -1442,7 +1442,7 @@ record Trace(
 
     TraceBuilder pContextReturnDataSize(final BigInteger b) {
       if (filled.get(48)) {
-        throw new IllegalStateException("RETURN_DATA_SIZE already set");
+        // throw new IllegalStateException("RETURN_DATA_SIZE already set");
       } else {
         filled.set(48);
       }
@@ -1454,7 +1454,7 @@ record Trace(
 
     TraceBuilder pContextReturnerContextNumber(final BigInteger b) {
       if (filled.get(42)) {
-        throw new IllegalStateException("RETURNER_CONTEXT_NUMBER already set");
+        // throw new IllegalStateException("RETURNER_CONTEXT_NUMBER already set");
       } else {
         filled.set(42);
       }
@@ -1466,7 +1466,7 @@ record Trace(
 
     TraceBuilder pContextReturnerIsPrecompile(final BigInteger b) {
       if (filled.get(60)) {
-        throw new IllegalStateException("RETURNER_IS_PRECOMPILE already set");
+        // throw new IllegalStateException("RETURNER_IS_PRECOMPILE already set");
       } else {
         filled.set(60);
       }
@@ -1478,7 +1478,7 @@ record Trace(
 
     TraceBuilder pContextUpdate(final Boolean b) {
       if (filled.get(66)) {
-        throw new IllegalStateException("UPDATE already set");
+        // throw new IllegalStateException("UPDATE already set");
       } else {
         filled.set(66);
       }
@@ -1490,7 +1490,7 @@ record Trace(
 
     TraceBuilder pStackAccFlag(final Boolean b) {
       if (filled.get(71)) {
-        throw new IllegalStateException("ACC_FLAG already set");
+        // throw new IllegalStateException("ACC_FLAG already set");
       } else {
         filled.set(71);
       }
@@ -1502,7 +1502,7 @@ record Trace(
 
     TraceBuilder pStackAddFlag(final Boolean b) {
       if (filled.get(88)) {
-        throw new IllegalStateException("ADD_FLAG already set");
+        // throw new IllegalStateException("ADD_FLAG already set");
       } else {
         filled.set(88);
       }
@@ -1514,7 +1514,7 @@ record Trace(
 
     TraceBuilder pStackBinFlag(final Boolean b) {
       if (filled.get(91)) {
-        throw new IllegalStateException("BIN_FLAG already set");
+        // throw new IllegalStateException("BIN_FLAG already set");
       } else {
         filled.set(91);
       }
@@ -1526,7 +1526,7 @@ record Trace(
 
     TraceBuilder pStackBtcFlag(final Boolean b) {
       if (filled.get(94)) {
-        throw new IllegalStateException("BTC_FLAG already set");
+        // throw new IllegalStateException("BTC_FLAG already set");
       } else {
         filled.set(94);
       }
@@ -1538,7 +1538,7 @@ record Trace(
 
     TraceBuilder pStackCallFlag(final Boolean b) {
       if (filled.get(90)) {
-        throw new IllegalStateException("CALL_FLAG already set");
+        // throw new IllegalStateException("CALL_FLAG already set");
       } else {
         filled.set(90);
       }
@@ -1550,7 +1550,7 @@ record Trace(
 
     TraceBuilder pStackConFlag(final Boolean b) {
       if (filled.get(112)) {
-        throw new IllegalStateException("CON_FLAG already set");
+        // throw new IllegalStateException("CON_FLAG already set");
       } else {
         filled.set(112);
       }
@@ -1562,7 +1562,7 @@ record Trace(
 
     TraceBuilder pStackCopyFlag(final Boolean b) {
       if (filled.get(92)) {
-        throw new IllegalStateException("COPY_FLAG already set");
+        // throw new IllegalStateException("COPY_FLAG already set");
       } else {
         filled.set(92);
       }
@@ -1574,7 +1574,7 @@ record Trace(
 
     TraceBuilder pStackCreateFlag(final Boolean b) {
       if (filled.get(105)) {
-        throw new IllegalStateException("CREATE_FLAG already set");
+        // throw new IllegalStateException("CREATE_FLAG already set");
       } else {
         filled.set(105);
       }
@@ -1586,7 +1586,7 @@ record Trace(
 
     TraceBuilder pStackDecodedFlag1(final Boolean b) {
       if (filled.get(81)) {
-        throw new IllegalStateException("DECODED_FLAG_1 already set");
+        // throw new IllegalStateException("DECODED_FLAG_1 already set");
       } else {
         filled.set(81);
       }
@@ -1598,7 +1598,7 @@ record Trace(
 
     TraceBuilder pStackDecodedFlag2(final Boolean b) {
       if (filled.get(69)) {
-        throw new IllegalStateException("DECODED_FLAG_2 already set");
+        // throw new IllegalStateException("DECODED_FLAG_2 already set");
       } else {
         filled.set(69);
       }
@@ -1610,7 +1610,7 @@ record Trace(
 
     TraceBuilder pStackDecodedFlag3(final Boolean b) {
       if (filled.get(103)) {
-        throw new IllegalStateException("DECODED_FLAG_3 already set");
+        // throw new IllegalStateException("DECODED_FLAG_3 already set");
       } else {
         filled.set(103);
       }
@@ -1622,7 +1622,7 @@ record Trace(
 
     TraceBuilder pStackDecodedFlag4(final Boolean b) {
       if (filled.get(108)) {
-        throw new IllegalStateException("DECODED_FLAG_4 already set");
+        // throw new IllegalStateException("DECODED_FLAG_4 already set");
       } else {
         filled.set(108);
       }
@@ -1634,7 +1634,7 @@ record Trace(
 
     TraceBuilder pStackDupFlag(final Boolean b) {
       if (filled.get(73)) {
-        throw new IllegalStateException("DUP_FLAG already set");
+        // throw new IllegalStateException("DUP_FLAG already set");
       } else {
         filled.set(73);
       }
@@ -1646,7 +1646,7 @@ record Trace(
 
     TraceBuilder pStackExtFlag(final Boolean b) {
       if (filled.get(86)) {
-        throw new IllegalStateException("EXT_FLAG already set");
+        // throw new IllegalStateException("EXT_FLAG already set");
       } else {
         filled.set(86);
       }
@@ -1658,7 +1658,7 @@ record Trace(
 
     TraceBuilder pStackHaltFlag(final Boolean b) {
       if (filled.get(99)) {
-        throw new IllegalStateException("HALT_FLAG already set");
+        // throw new IllegalStateException("HALT_FLAG already set");
       } else {
         filled.set(99);
       }
@@ -1670,7 +1670,7 @@ record Trace(
 
     TraceBuilder pStackHeight(final BigInteger b) {
       if (filled.get(58)) {
-        throw new IllegalStateException("HEIGHT already set");
+        //        throw new IllegalStateException("HEIGHT already set");
       } else {
         filled.set(58);
       }
@@ -1682,7 +1682,7 @@ record Trace(
 
     TraceBuilder pStackHeightNew(final BigInteger b) {
       if (filled.get(44)) {
-        throw new IllegalStateException("HEIGHT_NEW already set");
+        //        throw new IllegalStateException("HEIGHT_NEW already set");
       } else {
         filled.set(44);
       }
@@ -1694,7 +1694,7 @@ record Trace(
 
     TraceBuilder pStackHeightOver(final BigInteger b) {
       if (filled.get(46)) {
-        throw new IllegalStateException("HEIGHT_OVER already set");
+        //        throw new IllegalStateException("HEIGHT_OVER already set");
       } else {
         filled.set(46);
       }
@@ -1706,7 +1706,7 @@ record Trace(
 
     TraceBuilder pStackHeightUnder(final BigInteger b) {
       if (filled.get(48)) {
-        throw new IllegalStateException("HEIGHT_UNDER already set");
+        //        throw new IllegalStateException("HEIGHT_UNDER already set");
       } else {
         filled.set(48);
       }
@@ -1718,7 +1718,7 @@ record Trace(
 
     TraceBuilder pStackInstruction(final BigInteger b) {
       if (filled.get(56)) {
-        throw new IllegalStateException("INSTRUCTION already set");
+        //        throw new IllegalStateException("INSTRUCTION already set");
       } else {
         filled.set(56);
       }
@@ -1730,7 +1730,7 @@ record Trace(
 
     TraceBuilder pStackInvalidFlag(final Boolean b) {
       if (filled.get(93)) {
-        throw new IllegalStateException("INVALID_FLAG already set");
+        //        throw new IllegalStateException("INVALID_FLAG already set");
       } else {
         filled.set(93);
       }
@@ -1742,7 +1742,7 @@ record Trace(
 
     TraceBuilder pStackInvprex(final Boolean b) {
       if (filled.get(109)) {
-        throw new IllegalStateException("INVPREX already set");
+        //        throw new IllegalStateException("INVPREX already set");
       } else {
         filled.set(109);
       }
@@ -1754,7 +1754,7 @@ record Trace(
 
     TraceBuilder pStackJumpFlag(final Boolean b) {
       if (filled.get(95)) {
-        throw new IllegalStateException("JUMP_FLAG already set");
+        //        throw new IllegalStateException("JUMP_FLAG already set");
       } else {
         filled.set(95);
       }
@@ -1766,7 +1766,7 @@ record Trace(
 
     TraceBuilder pStackJumpx(final Boolean b) {
       if (filled.get(80)) {
-        throw new IllegalStateException("JUMPX already set");
+        //        throw new IllegalStateException("JUMPX already set");
       } else {
         filled.set(80);
       }
@@ -1778,7 +1778,7 @@ record Trace(
 
     TraceBuilder pStackKecFlag(final Boolean b) {
       if (filled.get(75)) {
-        throw new IllegalStateException("KEC_FLAG already set");
+        //        throw new IllegalStateException("KEC_FLAG already set");
       } else {
         filled.set(75);
       }
@@ -1790,7 +1790,7 @@ record Trace(
 
     TraceBuilder pStackLogFlag(final Boolean b) {
       if (filled.get(104)) {
-        throw new IllegalStateException("LOG_FLAG already set");
+        //        throw new IllegalStateException("LOG_FLAG already set");
       } else {
         filled.set(104);
       }
@@ -1802,7 +1802,7 @@ record Trace(
 
     TraceBuilder pStackMaxcsx(final Boolean b) {
       if (filled.get(70)) {
-        throw new IllegalStateException("MAXCSX already set");
+        //        throw new IllegalStateException("MAXCSX already set");
       } else {
         filled.set(70);
       }
@@ -1814,7 +1814,7 @@ record Trace(
 
     TraceBuilder pStackModFlag(final Boolean b) {
       if (filled.get(111)) {
-        throw new IllegalStateException("MOD_FLAG already set");
+        //        throw new IllegalStateException("MOD_FLAG already set");
       } else {
         filled.set(111);
       }
@@ -1826,7 +1826,7 @@ record Trace(
 
     TraceBuilder pStackMulFlag(final Boolean b) {
       if (filled.get(84)) {
-        throw new IllegalStateException("MUL_FLAG already set");
+        //        throw new IllegalStateException("MUL_FLAG already set");
       } else {
         filled.set(84);
       }
@@ -1838,7 +1838,7 @@ record Trace(
 
     TraceBuilder pStackMxpFlag(final Boolean b) {
       if (filled.get(107)) {
-        throw new IllegalStateException("MXP_FLAG already set");
+        //        throw new IllegalStateException("MXP_FLAG already set");
       } else {
         filled.set(107);
       }
@@ -1850,7 +1850,7 @@ record Trace(
 
     TraceBuilder pStackMxpx(final Boolean b) {
       if (filled.get(79)) {
-        throw new IllegalStateException("MXPX already set");
+        //        throw new IllegalStateException("MXPX already set");
       } else {
         filled.set(79);
       }
@@ -1862,7 +1862,7 @@ record Trace(
 
     TraceBuilder pStackOobFlag(final Boolean b) {
       if (filled.get(76)) {
-        throw new IllegalStateException("OOB_FLAG already set");
+        //        throw new IllegalStateException("OOB_FLAG already set");
       } else {
         filled.set(76);
       }
@@ -1874,7 +1874,7 @@ record Trace(
 
     TraceBuilder pStackOogx(final Boolean b) {
       if (filled.get(67)) {
-        throw new IllegalStateException("OOGX already set");
+        //        throw new IllegalStateException("OOGX already set");
       } else {
         filled.set(67);
       }
@@ -1886,7 +1886,7 @@ record Trace(
 
     TraceBuilder pStackOpcx(final Boolean b) {
       if (filled.get(82)) {
-        throw new IllegalStateException("OPCX already set");
+        //        throw new IllegalStateException("OPCX already set");
       } else {
         filled.set(82);
       }
@@ -1898,7 +1898,7 @@ record Trace(
 
     TraceBuilder pStackPushValueHi(final BigInteger b) {
       if (filled.get(59)) {
-        throw new IllegalStateException("PUSH_VALUE_HI already set");
+        //        throw new IllegalStateException("PUSH_VALUE_HI already set");
       } else {
         filled.set(59);
       }
@@ -1910,7 +1910,7 @@ record Trace(
 
     TraceBuilder pStackPushValueLo(final BigInteger b) {
       if (filled.get(61)) {
-        throw new IllegalStateException("PUSH_VALUE_LO already set");
+        //        throw new IllegalStateException("PUSH_VALUE_LO already set");
       } else {
         filled.set(61);
       }
@@ -1922,7 +1922,7 @@ record Trace(
 
     TraceBuilder pStackPushpopFlag(final Boolean b) {
       if (filled.get(72)) {
-        throw new IllegalStateException("PUSHPOP_FLAG already set");
+        //        throw new IllegalStateException("PUSHPOP_FLAG already set");
       } else {
         filled.set(72);
       }
@@ -1934,7 +1934,7 @@ record Trace(
 
     TraceBuilder pStackRdcx(final Boolean b) {
       if (filled.get(77)) {
-        throw new IllegalStateException("RDCX already set");
+        //        throw new IllegalStateException("RDCX already set");
       } else {
         filled.set(77);
       }
@@ -1946,7 +1946,7 @@ record Trace(
 
     TraceBuilder pStackShfFlag(final Boolean b) {
       if (filled.get(98)) {
-        throw new IllegalStateException("SHF_FLAG already set");
+        //        throw new IllegalStateException("SHF_FLAG already set");
       } else {
         filled.set(98);
       }
@@ -1958,7 +1958,7 @@ record Trace(
 
     TraceBuilder pStackSox(final Boolean b) {
       if (filled.get(78)) {
-        throw new IllegalStateException("SOX already set");
+        //        throw new IllegalStateException("SOX already set");
       } else {
         filled.set(78);
       }
@@ -1970,7 +1970,7 @@ record Trace(
 
     TraceBuilder pStackSstorex(final Boolean b) {
       if (filled.get(96)) {
-        throw new IllegalStateException("SSTOREX already set");
+        //        throw new IllegalStateException("SSTOREX already set");
       } else {
         filled.set(96);
       }
@@ -1982,7 +1982,7 @@ record Trace(
 
     TraceBuilder pStackStackItemHeight1(final BigInteger b) {
       if (filled.get(43)) {
-        throw new IllegalStateException("STACK_ITEM_HEIGHT_1 already set");
+        //        throw new IllegalStateException("STACK_ITEM_HEIGHT_1 already set");
       } else {
         filled.set(43);
       }
@@ -1994,7 +1994,7 @@ record Trace(
 
     TraceBuilder pStackStackItemHeight2(final BigInteger b) {
       if (filled.get(50)) {
-        throw new IllegalStateException("STACK_ITEM_HEIGHT_2 already set");
+        //        throw new IllegalStateException("STACK_ITEM_HEIGHT_2 already set");
       } else {
         filled.set(50);
       }
@@ -2006,7 +2006,7 @@ record Trace(
 
     TraceBuilder pStackStackItemHeight3(final BigInteger b) {
       if (filled.get(53)) {
-        throw new IllegalStateException("STACK_ITEM_HEIGHT_3 already set");
+        //        throw new IllegalStateException("STACK_ITEM_HEIGHT_3 already set");
       } else {
         filled.set(53);
       }
@@ -2018,7 +2018,7 @@ record Trace(
 
     TraceBuilder pStackStackItemHeight4(final BigInteger b) {
       if (filled.get(60)) {
-        throw new IllegalStateException("STACK_ITEM_HEIGHT_4 already set");
+        //        throw new IllegalStateException("STACK_ITEM_HEIGHT_4 already set");
       } else {
         filled.set(60);
       }
@@ -2030,7 +2030,7 @@ record Trace(
 
     TraceBuilder pStackStackItemPop1(final Boolean b) {
       if (filled.get(100)) {
-        throw new IllegalStateException("STACK_ITEM_POP_1 already set");
+        //        throw new IllegalStateException("STACK_ITEM_POP_1 already set");
       } else {
         filled.set(100);
       }
@@ -2042,7 +2042,7 @@ record Trace(
 
     TraceBuilder pStackStackItemPop2(final Boolean b) {
       if (filled.get(110)) {
-        throw new IllegalStateException("STACK_ITEM_POP_2 already set");
+        //        throw new IllegalStateException("STACK_ITEM_POP_2 already set");
       } else {
         filled.set(110);
       }
@@ -2054,7 +2054,7 @@ record Trace(
 
     TraceBuilder pStackStackItemPop3(final Boolean b) {
       if (filled.get(106)) {
-        throw new IllegalStateException("STACK_ITEM_POP_3 already set");
+        //        throw new IllegalStateException("STACK_ITEM_POP_3 already set");
       } else {
         filled.set(106);
       }
@@ -2066,7 +2066,7 @@ record Trace(
 
     TraceBuilder pStackStackItemPop4(final Boolean b) {
       if (filled.get(97)) {
-        throw new IllegalStateException("STACK_ITEM_POP_4 already set");
+        //        throw new IllegalStateException("STACK_ITEM_POP_4 already set");
       } else {
         filled.set(97);
       }
@@ -2078,7 +2078,7 @@ record Trace(
 
     TraceBuilder pStackStackItemStamp1(final BigInteger b) {
       if (filled.get(55)) {
-        throw new IllegalStateException("STACK_ITEM_STAMP_1 already set");
+        //        throw new IllegalStateException("STACK_ITEM_STAMP_1 already set");
       } else {
         filled.set(55);
       }
@@ -2090,7 +2090,7 @@ record Trace(
 
     TraceBuilder pStackStackItemStamp2(final BigInteger b) {
       if (filled.get(57)) {
-        throw new IllegalStateException("STACK_ITEM_STAMP_2 already set");
+        //        throw new IllegalStateException("STACK_ITEM_STAMP_2 already set");
       } else {
         filled.set(57);
       }
@@ -2102,7 +2102,7 @@ record Trace(
 
     TraceBuilder pStackStackItemStamp3(final BigInteger b) {
       if (filled.get(62)) {
-        throw new IllegalStateException("STACK_ITEM_STAMP_3 already set");
+        //        throw new IllegalStateException("STACK_ITEM_STAMP_3 already set");
       } else {
         filled.set(62);
       }
@@ -2114,7 +2114,7 @@ record Trace(
 
     TraceBuilder pStackStackItemStamp4(final BigInteger b) {
       if (filled.get(63)) {
-        throw new IllegalStateException("STACK_ITEM_STAMP_4 already set");
+        //        throw new IllegalStateException("STACK_ITEM_STAMP_4 already set");
       } else {
         filled.set(63);
       }
@@ -2126,7 +2126,7 @@ record Trace(
 
     TraceBuilder pStackStackItemValueHi1(final BigInteger b) {
       if (filled.get(51)) {
-        throw new IllegalStateException("STACK_ITEM_VALUE_HI_1 already set");
+        //        throw new IllegalStateException("STACK_ITEM_VALUE_HI_1 already set");
       } else {
         filled.set(51);
       }
@@ -2139,7 +2139,7 @@ record Trace(
 
     TraceBuilder pStackStackItemValueHi2(final BigInteger b) {
       if (filled.get(65)) {
-        throw new IllegalStateException("STACK_ITEM_VALUE_HI_2 already set");
+        //        throw new IllegalStateException("STACK_ITEM_VALUE_HI_2 already set");
       } else {
         filled.set(65);
       }
@@ -2151,7 +2151,7 @@ record Trace(
 
     TraceBuilder pStackStackItemValueHi3(final BigInteger b) {
       if (filled.get(64)) {
-        throw new IllegalStateException("STACK_ITEM_VALUE_HI_3 already set");
+        //        throw new IllegalStateException("STACK_ITEM_VALUE_HI_3 already set");
       } else {
         filled.set(64);
       }
@@ -2163,7 +2163,7 @@ record Trace(
 
     TraceBuilder pStackStackItemValueHi4(final BigInteger b) {
       if (filled.get(47)) {
-        throw new IllegalStateException("STACK_ITEM_VALUE_HI_4 already set");
+        //        throw new IllegalStateException("STACK_ITEM_VALUE_HI_4 already set");
       } else {
         filled.set(47);
       }
@@ -2176,7 +2176,7 @@ record Trace(
 
     TraceBuilder pStackStackItemValueLo1(final BigInteger b) {
       if (filled.get(54)) {
-        throw new IllegalStateException("STACK_ITEM_VALUE_LO_1 already set");
+        //        throw new IllegalStateException("STACK_ITEM_VALUE_LO_1 already set");
       } else {
         filled.set(54);
       }
@@ -2188,7 +2188,7 @@ record Trace(
 
     TraceBuilder pStackStackItemValueLo2(final BigInteger b) {
       if (filled.get(45)) {
-        throw new IllegalStateException("STACK_ITEM_VALUE_LO_2 already set");
+        //        throw new IllegalStateException("STACK_ITEM_VALUE_LO_2 already set");
       } else {
         filled.set(45);
       }
@@ -2200,7 +2200,7 @@ record Trace(
 
     TraceBuilder pStackStackItemValueLo3(final BigInteger b) {
       if (filled.get(49)) {
-        throw new IllegalStateException("STACK_ITEM_VALUE_LO_3 already set");
+        //        throw new IllegalStateException("STACK_ITEM_VALUE_LO_3 already set");
       } else {
         filled.set(49);
       }
@@ -2213,7 +2213,7 @@ record Trace(
 
     TraceBuilder pStackStackItemValueLo4(final BigInteger b) {
       if (filled.get(52)) {
-        throw new IllegalStateException("STACK_ITEM_VALUE_LO_4 already set");
+        //        throw new IllegalStateException("STACK_ITEM_VALUE_LO_4 already set");
       } else {
         filled.set(52);
       }
@@ -2225,7 +2225,7 @@ record Trace(
 
     TraceBuilder pStackStackramFlag(final Boolean b) {
       if (filled.get(87)) {
-        throw new IllegalStateException("STACKRAM_FLAG already set");
+        //        throw new IllegalStateException("STACKRAM_FLAG already set");
       } else {
         filled.set(87);
       }
@@ -2237,7 +2237,7 @@ record Trace(
 
     TraceBuilder pStackStaticFlag(final Boolean b) {
       if (filled.get(68)) {
-        throw new IllegalStateException("STATIC_FLAG already set");
+        //        throw new IllegalStateException("STATIC_FLAG already set");
       } else {
         filled.set(68);
       }
@@ -2249,7 +2249,7 @@ record Trace(
 
     TraceBuilder pStackStaticGas(final BigInteger b) {
       if (filled.get(42)) {
-        throw new IllegalStateException("STATIC_GAS already set");
+        //        throw new IllegalStateException("STATIC_GAS already set");
       } else {
         filled.set(42);
       }
@@ -2261,7 +2261,7 @@ record Trace(
 
     TraceBuilder pStackStaticx(final Boolean b) {
       if (filled.get(66)) {
-        throw new IllegalStateException("STATICX already set");
+        //        throw new IllegalStateException("STATICX already set");
       } else {
         filled.set(66);
       }
@@ -2273,7 +2273,7 @@ record Trace(
 
     TraceBuilder pStackStoFlag(final Boolean b) {
       if (filled.get(85)) {
-        throw new IllegalStateException("STO_FLAG already set");
+        //        throw new IllegalStateException("STO_FLAG already set");
       } else {
         filled.set(85);
       }
@@ -2285,7 +2285,7 @@ record Trace(
 
     TraceBuilder pStackSux(final Boolean b) {
       if (filled.get(83)) {
-        throw new IllegalStateException("SUX already set");
+        //        throw new IllegalStateException("SUX already set");
       } else {
         filled.set(83);
       }
@@ -2297,7 +2297,7 @@ record Trace(
 
     TraceBuilder pStackSwapFlag(final Boolean b) {
       if (filled.get(89)) {
-        throw new IllegalStateException("SWAP_FLAG already set");
+        //        throw new IllegalStateException("SWAP_FLAG already set");
       } else {
         filled.set(89);
       }
@@ -2309,7 +2309,7 @@ record Trace(
 
     TraceBuilder pStackTrmFlag(final Boolean b) {
       if (filled.get(74)) {
-        throw new IllegalStateException("TRM_FLAG already set");
+        //        throw new IllegalStateException("TRM_FLAG already set");
       } else {
         filled.set(74);
       }
@@ -2321,7 +2321,7 @@ record Trace(
 
     TraceBuilder pStackTxnFlag(final Boolean b) {
       if (filled.get(101)) {
-        throw new IllegalStateException("TXN_FLAG already set");
+        //        throw new IllegalStateException("TXN_FLAG already set");
       } else {
         filled.set(101);
       }
@@ -2333,7 +2333,7 @@ record Trace(
 
     TraceBuilder pStackWcpFlag(final Boolean b) {
       if (filled.get(102)) {
-        throw new IllegalStateException("WCP_FLAG already set");
+        //        throw new IllegalStateException("WCP_FLAG already set");
       } else {
         filled.set(102);
       }
@@ -2345,7 +2345,7 @@ record Trace(
 
     TraceBuilder pStorageAddressHi(final BigInteger b) {
       if (filled.get(46)) {
-        throw new IllegalStateException("ADDRESS_HI already set");
+        //        throw new IllegalStateException("ADDRESS_HI already set");
       } else {
         filled.set(46);
       }
@@ -2357,7 +2357,7 @@ record Trace(
 
     TraceBuilder pStorageAddressLo(final BigInteger b) {
       if (filled.get(49)) {
-        throw new IllegalStateException("ADDRESS_LO already set");
+        // throw new IllegalStateException("ADDRESS_LO already set");
       } else {
         filled.set(49);
       }
@@ -2370,7 +2370,7 @@ record Trace(
 
     TraceBuilder pStorageDeploymentNumber(final BigInteger b) {
       if (filled.get(47)) {
-        throw new IllegalStateException("DEPLOYMENT_NUMBER already set");
+        // throw new IllegalStateException("DEPLOYMENT_NUMBER already set");
       } else {
         filled.set(47);
       }
@@ -2383,7 +2383,7 @@ record Trace(
 
     TraceBuilder pStorageStorageKeyHi(final BigInteger b) {
       if (filled.get(52)) {
-        throw new IllegalStateException("STORAGE_KEY_HI already set");
+        // throw new IllegalStateException("STORAGE_KEY_HI already set");
       } else {
         filled.set(52);
       }
@@ -2395,7 +2395,7 @@ record Trace(
 
     TraceBuilder pStorageStorageKeyLo(final BigInteger b) {
       if (filled.get(51)) {
-        throw new IllegalStateException("STORAGE_KEY_LO already set");
+        // throw new IllegalStateException("STORAGE_KEY_LO already set");
       } else {
         filled.set(51);
       }
@@ -2408,7 +2408,7 @@ record Trace(
 
     TraceBuilder pStorageValCurrChanges(final Boolean b) {
       if (filled.get(66)) {
-        throw new IllegalStateException("VAL_CURR_CHANGES already set");
+        // throw new IllegalStateException("VAL_CURR_CHANGES already set");
       } else {
         filled.set(66);
       }
@@ -2420,7 +2420,7 @@ record Trace(
 
     TraceBuilder pStorageValCurrHi(final BigInteger b) {
       if (filled.get(45)) {
-        throw new IllegalStateException("VAL_CURR_HI already set");
+        // throw new IllegalStateException("VAL_CURR_HI already set");
       } else {
         filled.set(45);
       }
@@ -2432,7 +2432,7 @@ record Trace(
 
     TraceBuilder pStorageValCurrIsOrig(final Boolean b) {
       if (filled.get(72)) {
-        throw new IllegalStateException("VAL_CURR_IS_ORIG already set");
+        // throw new IllegalStateException("VAL_CURR_IS_ORIG already set");
       } else {
         filled.set(72);
       }
@@ -2444,7 +2444,7 @@ record Trace(
 
     TraceBuilder pStorageValCurrIsZero(final Boolean b) {
       if (filled.get(74)) {
-        throw new IllegalStateException("VAL_CURR_IS_ZERO already set");
+        // throw new IllegalStateException("VAL_CURR_IS_ZERO already set");
       } else {
         filled.set(74);
       }
@@ -2456,7 +2456,7 @@ record Trace(
 
     TraceBuilder pStorageValCurrLo(final BigInteger b) {
       if (filled.get(43)) {
-        throw new IllegalStateException("VAL_CURR_LO already set");
+        // throw new IllegalStateException("VAL_CURR_LO already set");
       } else {
         filled.set(43);
       }
@@ -2468,7 +2468,7 @@ record Trace(
 
     TraceBuilder pStorageValNextHi(final BigInteger b) {
       if (filled.get(50)) {
-        throw new IllegalStateException("VAL_NEXT_HI already set");
+        // throw new IllegalStateException("VAL_NEXT_HI already set");
       } else {
         filled.set(50);
       }
@@ -2480,7 +2480,7 @@ record Trace(
 
     TraceBuilder pStorageValNextIsCurr(final Boolean b) {
       if (filled.get(71)) {
-        throw new IllegalStateException("VAL_NEXT_IS_CURR already set");
+        // throw new IllegalStateException("VAL_NEXT_IS_CURR already set");
       } else {
         filled.set(71);
       }
@@ -2492,7 +2492,7 @@ record Trace(
 
     TraceBuilder pStorageValNextIsOrig(final Boolean b) {
       if (filled.get(73)) {
-        throw new IllegalStateException("VAL_NEXT_IS_ORIG already set");
+        // throw new IllegalStateException("VAL_NEXT_IS_ORIG already set");
       } else {
         filled.set(73);
       }
@@ -2504,7 +2504,7 @@ record Trace(
 
     TraceBuilder pStorageValNextIsZero(final Boolean b) {
       if (filled.get(67)) {
-        throw new IllegalStateException("VAL_NEXT_IS_ZERO already set");
+        // throw new IllegalStateException("VAL_NEXT_IS_ZERO already set");
       } else {
         filled.set(67);
       }
@@ -2516,7 +2516,7 @@ record Trace(
 
     TraceBuilder pStorageValNextLo(final BigInteger b) {
       if (filled.get(42)) {
-        throw new IllegalStateException("VAL_NEXT_LO already set");
+        // throw new IllegalStateException("VAL_NEXT_LO already set");
       } else {
         filled.set(42);
       }
@@ -2528,7 +2528,7 @@ record Trace(
 
     TraceBuilder pStorageValOrigHi(final BigInteger b) {
       if (filled.get(48)) {
-        throw new IllegalStateException("VAL_ORIG_HI already set");
+        // throw new IllegalStateException("VAL_ORIG_HI already set");
       } else {
         filled.set(48);
       }
@@ -2540,7 +2540,7 @@ record Trace(
 
     TraceBuilder pStorageValOrigIsZero(final Boolean b) {
       if (filled.get(69)) {
-        throw new IllegalStateException("VAL_ORIG_IS_ZERO already set");
+        // throw new IllegalStateException("VAL_ORIG_IS_ZERO already set");
       } else {
         filled.set(69);
       }
@@ -2552,7 +2552,7 @@ record Trace(
 
     TraceBuilder pStorageValOrigLo(final BigInteger b) {
       if (filled.get(44)) {
-        throw new IllegalStateException("VAL_ORIG_LO already set");
+        // throw new IllegalStateException("VAL_ORIG_LO already set");
       } else {
         filled.set(44);
       }
@@ -2564,7 +2564,7 @@ record Trace(
 
     TraceBuilder pStorageWarm(final Boolean b) {
       if (filled.get(68)) {
-        throw new IllegalStateException("WARM already set");
+        // throw new IllegalStateException("WARM already set");
       } else {
         filled.set(68);
       }
@@ -2576,7 +2576,7 @@ record Trace(
 
     TraceBuilder pStorageWarmNew(final Boolean b) {
       if (filled.get(70)) {
-        throw new IllegalStateException("WARM_NEW already set");
+        // throw new IllegalStateException("WARM_NEW already set");
       } else {
         filled.set(70);
       }
@@ -2588,7 +2588,7 @@ record Trace(
 
     TraceBuilder pTransactionAbsoluteTransactionNumber(final BigInteger b) {
       if (filled.get(49)) {
-        throw new IllegalStateException("ABSOLUTE_TRANSACTION_NUMBER already set");
+        // throw new IllegalStateException("ABSOLUTE_TRANSACTION_NUMBER already set");
       } else {
         filled.set(49);
       }
@@ -2601,7 +2601,7 @@ record Trace(
 
     TraceBuilder pTransactionBatchNumber(final BigInteger b) {
       if (filled.get(48)) {
-        throw new IllegalStateException("BATCH_NUMBER already set");
+        // throw new IllegalStateException("BATCH_NUMBER already set");
       } else {
         filled.set(48);
       }
@@ -2613,7 +2613,7 @@ record Trace(
 
     TraceBuilder pTransactionFromAddressHi(final BigInteger b) {
       if (filled.get(43)) {
-        throw new IllegalStateException("FROM_ADDRESS_HI already set");
+        // throw new IllegalStateException("FROM_ADDRESS_HI already set");
       } else {
         filled.set(43);
       }
@@ -2625,7 +2625,7 @@ record Trace(
 
     TraceBuilder pTransactionFromAddressLo(final BigInteger b) {
       if (filled.get(47)) {
-        throw new IllegalStateException("FROM_ADDRESS_LO already set");
+        // throw new IllegalStateException("FROM_ADDRESS_LO already set");
       } else {
         filled.set(47);
       }
@@ -2638,7 +2638,7 @@ record Trace(
 
     TraceBuilder pTransactionGasFee(final BigInteger b) {
       if (filled.get(52)) {
-        throw new IllegalStateException("GAS_FEE already set");
+        // throw new IllegalStateException("GAS_FEE already set");
       } else {
         filled.set(52);
       }
@@ -2650,7 +2650,7 @@ record Trace(
 
     TraceBuilder pTransactionGasMaxfee(final BigInteger b) {
       if (filled.get(44)) {
-        throw new IllegalStateException("GAS_MAXFEE already set");
+        // throw new IllegalStateException("GAS_MAXFEE already set");
       } else {
         filled.set(44);
       }
@@ -2662,7 +2662,7 @@ record Trace(
 
     TraceBuilder pTransactionGasTip(final BigInteger b) {
       if (filled.get(45)) {
-        throw new IllegalStateException("GAS_TIP already set");
+        // throw new IllegalStateException("GAS_TIP already set");
       } else {
         filled.set(45);
       }
@@ -2674,7 +2674,7 @@ record Trace(
 
     TraceBuilder pTransactionInitGas(final BigInteger b) {
       if (filled.get(46)) {
-        throw new IllegalStateException("INIT_GAS already set");
+        // throw new IllegalStateException("INIT_GAS already set");
       } else {
         filled.set(46);
       }
@@ -2686,7 +2686,7 @@ record Trace(
 
     TraceBuilder pTransactionIsDeployment(final Boolean b) {
       if (filled.get(66)) {
-        throw new IllegalStateException("IS_DEPLOYMENT already set");
+        // throw new IllegalStateException("IS_DEPLOYMENT already set");
       } else {
         filled.set(66);
       }
@@ -2698,7 +2698,7 @@ record Trace(
 
     TraceBuilder pTransactionNonce(final BigInteger b) {
       if (filled.get(53)) {
-        throw new IllegalStateException("NONCE already set");
+        // throw new IllegalStateException("NONCE already set");
       } else {
         filled.set(53);
       }
@@ -2710,7 +2710,7 @@ record Trace(
 
     TraceBuilder pTransactionToAddressHi(final BigInteger b) {
       if (filled.get(51)) {
-        throw new IllegalStateException("TO_ADDRESS_HI already set");
+        // throw new IllegalStateException("TO_ADDRESS_HI already set");
       } else {
         filled.set(51);
       }
@@ -2723,7 +2723,7 @@ record Trace(
 
     TraceBuilder pTransactionToAddressLo(final BigInteger b) {
       if (filled.get(50)) {
-        throw new IllegalStateException("TO_ADDRESS_LO already set");
+        // throw new IllegalStateException("TO_ADDRESS_LO already set");
       } else {
         filled.set(50);
       }
@@ -2735,7 +2735,7 @@ record Trace(
 
     TraceBuilder pTransactionValue(final BigInteger b) {
       if (filled.get(42)) {
-        throw new IllegalStateException("VALUE already set");
+        // throw new IllegalStateException("VALUE already set");
       } else {
         filled.set(42);
       }
@@ -2747,7 +2747,7 @@ record Trace(
 
     TraceBuilder peekAtAccount(final Boolean b) {
       if (filled.get(32)) {
-        throw new IllegalStateException("PEEK_AT_ACCOUNT already set");
+        // throw new IllegalStateException("PEEK_AT_ACCOUNT already set");
       } else {
         filled.set(32);
       }
@@ -2759,7 +2759,7 @@ record Trace(
 
     TraceBuilder peekAtContext(final Boolean b) {
       if (filled.get(39)) {
-        throw new IllegalStateException("PEEK_AT_CONTEXT already set");
+        // throw new IllegalStateException("PEEK_AT_CONTEXT already set");
       } else {
         filled.set(39);
       }
@@ -2771,7 +2771,7 @@ record Trace(
 
     TraceBuilder peekAtStack(final Boolean b) {
       if (filled.get(35)) {
-        throw new IllegalStateException("PEEK_AT_STACK already set");
+        // throw new IllegalStateException("PEEK_AT_STACK already set");
       } else {
         filled.set(35);
       }
@@ -2783,7 +2783,7 @@ record Trace(
 
     TraceBuilder peekAtStorage(final Boolean b) {
       if (filled.get(7)) {
-        throw new IllegalStateException("PEEK_AT_STORAGE already set");
+        // throw new IllegalStateException("PEEK_AT_STORAGE already set");
       } else {
         filled.set(7);
       }
@@ -2795,7 +2795,7 @@ record Trace(
 
     TraceBuilder peekAtTransaction(final Boolean b) {
       if (filled.get(17)) {
-        throw new IllegalStateException("PEEK_AT_TRANSACTION already set");
+        // throw new IllegalStateException("PEEK_AT_TRANSACTION already set");
       } else {
         filled.set(17);
       }
@@ -2807,7 +2807,7 @@ record Trace(
 
     TraceBuilder programCounter(final BigInteger b) {
       if (filled.get(38)) {
-        throw new IllegalStateException("PROGRAM_COUNTER already set");
+        // throw new IllegalStateException("PROGRAM_COUNTER already set");
       } else {
         filled.set(38);
       }
@@ -2819,7 +2819,7 @@ record Trace(
 
     TraceBuilder programCounterNew(final BigInteger b) {
       if (filled.get(10)) {
-        throw new IllegalStateException("PROGRAM_COUNTER_NEW already set");
+        // throw new IllegalStateException("PROGRAM_COUNTER_NEW already set");
       } else {
         filled.set(10);
       }
@@ -2831,7 +2831,7 @@ record Trace(
 
     TraceBuilder transactionEndStamp(final BigInteger b) {
       if (filled.get(11)) {
-        throw new IllegalStateException("TRANSACTION_END_STAMP already set");
+        // throw new IllegalStateException("TRANSACTION_END_STAMP already set");
       } else {
         filled.set(11);
       }
@@ -2843,7 +2843,7 @@ record Trace(
 
     TraceBuilder transactionReverts(final BigInteger b) {
       if (filled.get(33)) {
-        throw new IllegalStateException("TRANSACTION_REVERTS already set");
+        // throw new IllegalStateException("TRANSACTION_REVERTS already set");
       } else {
         filled.set(33);
       }
@@ -2855,7 +2855,7 @@ record Trace(
 
     TraceBuilder twoLineInstruction(final Boolean b) {
       if (filled.get(27)) {
-        throw new IllegalStateException("TWO_LINE_INSTRUCTION already set");
+        // throw new IllegalStateException("TWO_LINE_INSTRUCTION already set");
       } else {
         filled.set(27);
       }
@@ -2867,7 +2867,7 @@ record Trace(
 
     TraceBuilder txExec(final Boolean b) {
       if (filled.get(6)) {
-        throw new IllegalStateException("TX_EXEC already set");
+        // throw new IllegalStateException("TX_EXEC already set");
       } else {
         filled.set(6);
       }
@@ -2879,7 +2879,7 @@ record Trace(
 
     TraceBuilder txFinl(final Boolean b) {
       if (filled.get(5)) {
-        throw new IllegalStateException("TX_FINL already set");
+        // throw new IllegalStateException("TX_FINL already set");
       } else {
         filled.set(5);
       }
@@ -2891,7 +2891,7 @@ record Trace(
 
     TraceBuilder txInit(final Boolean b) {
       if (filled.get(16)) {
-        throw new IllegalStateException("TX_INIT already set");
+        // throw new IllegalStateException("TX_INIT already set");
       } else {
         filled.set(16);
       }
@@ -2903,7 +2903,7 @@ record Trace(
 
     TraceBuilder txSkip(final Boolean b) {
       if (filled.get(19)) {
-        throw new IllegalStateException("TX_SKIP already set");
+        // throw new IllegalStateException("TX_SKIP already set");
       } else {
         filled.set(19);
       }
@@ -2915,7 +2915,7 @@ record Trace(
 
     TraceBuilder txWarm(final Boolean b) {
       if (filled.get(25)) {
-        throw new IllegalStateException("TX_WARM already set");
+        // throw new IllegalStateException("TX_WARM already set");
       } else {
         filled.set(25);
       }

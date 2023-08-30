@@ -38,16 +38,20 @@ public enum CallFrameType {
    * @param opCode a context-changing {@link OpCode}
    * @return the associated {@link CallFrameType}
    */
-  public static CallFrameType ofOpCode(OpCode opCode) {
-    return switch (opCode) {
-      case CREATE, CREATE2 -> InitCode;
-      case DELEGATECALL -> Delegate;
-      case CALLCODE -> CallCode;
-      case STATICCALL -> Static;
-      default -> {
-        throw new IllegalStateException(String.valueOf(opCode));
-      }
-    };
+  public CallFrameType ofOpCode(OpCode opCode) {
+    if (this.isStatic()) {
+      return Static;
+    } else {
+      return switch (opCode) {
+        case CREATE, CREATE2 -> InitCode;
+        case DELEGATECALL -> Delegate;
+        case CALLCODE -> CallCode;
+        case STATICCALL -> Static;
+        default -> {
+          throw new IllegalStateException(String.valueOf(opCode));
+        }
+      };
+    }
   }
 
   public boolean isStatic() {

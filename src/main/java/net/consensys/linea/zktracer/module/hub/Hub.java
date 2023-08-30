@@ -21,9 +21,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.function.BiFunction;
 
 import lombok.Getter;
@@ -35,12 +32,8 @@ import net.consensys.linea.zktracer.module.ext.Ext;
 import net.consensys.linea.zktracer.module.hub.callstack.CallFrame;
 import net.consensys.linea.zktracer.module.hub.callstack.CallFrameType;
 import net.consensys.linea.zktracer.module.hub.callstack.CallStack;
-import net.consensys.linea.zktracer.module.hub.chunks.AccountChunk;
-import net.consensys.linea.zktracer.module.hub.chunks.ContextChunk;
 import net.consensys.linea.zktracer.module.hub.chunks.StackChunk;
-import net.consensys.linea.zktracer.module.hub.chunks.StorageChunk;
 import net.consensys.linea.zktracer.module.hub.chunks.TraceChunk;
-import net.consensys.linea.zktracer.module.hub.chunks.TransactionChunk;
 import net.consensys.linea.zktracer.module.hub.stack.StackContext;
 import net.consensys.linea.zktracer.module.hub.stack.StackLine;
 import net.consensys.linea.zktracer.module.mod.Mod;
@@ -86,6 +79,7 @@ public class Hub implements Module {
 
   private int pc;
   private OpCode opCode;
+  private int maxContextNumber;
 
   private OpCodeData opCodeData() {
     return this.opCode.getData();
@@ -104,12 +98,6 @@ public class Hub implements Module {
   @Getter int batchNumber = 0;
   @Getter int blockNumber = 0;
   int stamp = 0;
-
-  private List<Integer> retconTxs;
-
-  public void markTxRetcon(int i) {
-    this.retconTxs.add(i);
-  }
 
   private final Module add;
   private final Module ext;
@@ -207,7 +195,7 @@ public class Hub implements Module {
     // To account information
     Address deploymentAddress =
         ADDRESS_ZERO; // TODO: replace with deployment address = Keccak(fromAddress, fromNonce)
-    Address toAddress = this.currentTx.getTo().or(deploymentAddress);
+    Address toAddress = this.currentTx.getTo().map(x -> (Address) x).orElse(deploymentAddress);
     EWord eToAddress = EWord.of(toAddress);
     Optional<Account> toAccount = Optional.of(frame.getWorldUpdater().get(toAddress));
     Optional<Long> toNonce = toAccount.map(Account::getNonce);
@@ -567,13 +555,15 @@ public class Hub implements Module {
     this.callStack.enter(
         frame.getContractAddress(),
         frame.getCode(),
-        CallFrameType.ofOpCode(OpCode.of(frame.getCurrentOperation().getOpcode())),
+        this.callStack.top().getType().ofOpCode(OpCode.of(frame.getCurrentOperation().getOpcode())),
         frame.getValue(),
         frame.getRemainingGas(),
         this.trace.size(),
         frame.getInputData(),
         this.maxContextNumber,
-        this.deploymentNumbers.getOrDefault(frame.getContractAddress(), 0));
+        0,
+        this.deploymentNumber.getOrDefault(frame.getContractAddress(), 0),
+        false);
   }
 
   @Override
@@ -605,7 +595,7 @@ public class Hub implements Module {
   }
 
   private void handleCreate(Address target) {
-    this.deploymentNumbers.put(target, this.deploymentNumbers.getOrDefault(target, 0) + 1);
+    this.deploymentNumber.put(target, this.deploymentNumber.getOrDefault(target, 0) + 1);
   }
 
   @Override
@@ -646,47 +636,46 @@ public class Hub implements Module {
         this.stackChunks();
       }
       case CONTEXT, LOG -> {
-//        this.traceChunks.add(new ContextChunk());
+        //        this.traceChunks.add(new ContextChunk());
       }
       case ACCOUNT -> {
         if (this.opCodeData().stackSettings().flag1()) {
-//          this.traceChunks.add(new ContextChunk());
-//          this.traceChunks.add(new AccountChunk());
+          //          this.traceChunks.add(new ContextChunk());
+          //          this.traceChunks.add(new AccountChunk());
         } else {
-//          this.traceChunks.add(new AccountChunk());
+          //          this.traceChunks.add(new AccountChunk());
         }
       }
       case COPY -> {
         if (this.opCodeData().stackSettings().flag1()) {
-//          this.traceChunks.add(new AccountChunk());
+          //          this.traceChunks.add(new AccountChunk());
         } else {
-//          this.traceChunks.add(new ContextChunk());
+          //          this.traceChunks.add(new ContextChunk());
         }
       }
       case TRANSACTION -> {
-//        this.traceChunks.add(new TransactionChunk());
+        //        this.traceChunks.add(new TransactionChunk());
       }
       case STACK_RAM -> {
         if (this.opCodeData().stackSettings().flag2()) {
-//          this.traceChunks.add(new ContextChunk());
+          //          this.traceChunks.add(new ContextChunk());
         }
       }
       case STORAGE -> {
-//        this.traceChunks.add(new ContextChunk());
-//        this.traceChunks.add(new StorageChunk());
+        //        this.traceChunks.add(new ContextChunk());
+        //        this.traceChunks.add(new StorageChunk());
       }
       case CREATE, CALL -> {
-//        this.traceChunks.add(new ContextChunk());
-//        this.traceChunks.add(new AccountChunk());
-//        this.traceChunks.add(new AccountChunk());
-//        this.traceChunks.add(new AccountChunk());
+        //        this.traceChunks.add(new ContextChunk());
+        //        this.traceChunks.add(new AccountChunk());
+        //        this.traceChunks.add(new AccountChunk());
+        //        this.traceChunks.add(new AccountChunk());
       }
       case JUMP -> {
-//        this.traceChunks.add(new ContextChunk());
-//        this.traceChunks.add(new AccountChunk());
+        //        this.traceChunks.add(new ContextChunk());
+        //        this.traceChunks.add(new AccountChunk());
       }
     }
-    throw new IllegalStateException("Unexpected instruction family");
   }
 
   void stackChunks() {

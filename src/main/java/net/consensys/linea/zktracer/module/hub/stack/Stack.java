@@ -37,7 +37,7 @@ public class Stack {
 
   @Getter int height;
   @Getter int heightNew;
-  OpCodeData currentOpcodeData;
+  @Getter OpCodeData currentOpcodeData;
   Status status;
   int stamp;
 
@@ -45,6 +45,15 @@ public class Stack {
     this.height = 0;
     this.heightNew = 0;
     this.status = Status.Normal;
+  }
+
+  public Stack snapshot() {
+    var r = new Stack();
+    r.height = this.height;
+    r.heightNew = this.heightNew;
+    r.currentOpcodeData = this.currentOpcodeData;
+    r.status = this.status;
+    return r;
   }
 
   private EWord getStack(MessageFrame frame, int i) {

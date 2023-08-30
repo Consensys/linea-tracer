@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -39,8 +38,6 @@ import net.consensys.linea.zktracer.module.hub.chunks.StackChunk;
 import net.consensys.linea.zktracer.module.hub.chunks.StorageChunk;
 import net.consensys.linea.zktracer.module.hub.chunks.TraceChunk;
 import net.consensys.linea.zktracer.module.hub.chunks.TransactionChunk;
-import net.consensys.linea.zktracer.module.hub.stack.Action;
-import net.consensys.linea.zktracer.module.hub.stack.Stack;
 import net.consensys.linea.zktracer.module.hub.stack.StackContext;
 import net.consensys.linea.zktracer.module.hub.stack.StackLine;
 import net.consensys.linea.zktracer.module.mod.Mod;
@@ -48,7 +45,6 @@ import net.consensys.linea.zktracer.module.mul.Mul;
 import net.consensys.linea.zktracer.module.shf.Shf;
 import net.consensys.linea.zktracer.module.trm.Trm;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import net.consensys.linea.zktracer.opcode.InstructionFamily;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import org.apache.tuweni.bytes.Bytes;
@@ -84,36 +80,7 @@ public class Hub implements Module {
           this.trace::setPStackStackItemValueLo2At,
           this.trace::setPStackStackItemValueLo3At,
           this.trace::setPStackStackItemValueLo4At);
-  private final List<Function<BigInteger, Trace.TraceBuilder>> valHiTracers =
-      List.of(
-          this.trace::pStackStackItemValueHi1,
-          this.trace::pStackStackItemValueHi2,
-          this.trace::pStackStackItemValueHi3,
-          this.trace::pStackStackItemValueHi4);
-  private final List<Function<BigInteger, Trace.TraceBuilder>> valLoTracers =
-      List.of(
-          this.trace::pStackStackItemValueLo1,
-          this.trace::pStackStackItemValueLo2,
-          this.trace::pStackStackItemValueLo3,
-          this.trace::pStackStackItemValueLo4);
-  private final List<Function<Boolean, Trace.TraceBuilder>> popTracers =
-      List.of(
-          this.trace::pStackStackItemPop1,
-          this.trace::pStackStackItemPop2,
-          this.trace::pStackStackItemPop3,
-          this.trace::pStackStackItemPop4);
-  private final List<Function<BigInteger, Trace.TraceBuilder>> heightTracers =
-      List.of(
-          this.trace::pStackStackItemHeight1,
-          this.trace::pStackStackItemHeight2,
-          this.trace::pStackStackItemHeight3,
-          this.trace::pStackStackItemHeight4);
-  private final List<Function<BigInteger, Trace.TraceBuilder>> stampTracers =
-      List.of(
-          this.trace::pStackStackItemStamp1,
-          this.trace::pStackStackItemStamp2,
-          this.trace::pStackStackItemStamp3,
-          this.trace::pStackStackItemStamp4);
+
   private int pc;
   private OpCode opCode;
   private Exceptions exceptions;
@@ -236,7 +203,7 @@ public class Hub implements Module {
     // To account information
     Address deploymentAddress =
         ADDRESS_ZERO; // TODO: replace with deployment address = Keccak(fromAddress, fromNonce)
-    Address toAddress = this.currentTx.getTo().orElse(deploymentAddress);
+    Address toAddress = this.currentTx.getTo().or(deploymentAddress);
     EWord eToAddress = EWord.of(toAddress);
     Optional<Account> toAccount = Optional.of(frame.getWorldUpdater().get(toAddress));
     Optional<Long> toNonce = toAccount.map(Account::getNonce);
@@ -412,96 +379,7 @@ public class Hub implements Module {
    * @param line the stack line to trace
    * @return the partially filled trace row
    */
-  private Trace.TraceBuilder traceStackLine(StackLine line) {
-    final var stack = currentFrame().getStack();
-
-    final var alpha = this.opCodeData().stackSettings().alpha();
-    final var delta = this.opCodeData().stackSettings().delta();
-    var heightUnder = stack.getHeight() - delta;
-    var heightOver = 0;
-
-    var overflow = stack.isOverflow() ? 1 : 0;
-
-    if (!stack.isUnderflow()) {
-      if (alpha == 1 && delta == 0 && stack.getHeight() == Stack.MAX_STACK_SIZE) {
-        heightOver = stack.getHeight() + alpha - delta - Stack.MAX_STACK_SIZE - 1;
-      } else {
-        heightOver = (2 * overflow - 1) * (heightUnder + alpha - Stack.MAX_STACK_SIZE) - overflow;
-      }
-    } else {
-      heightUnder = -heightUnder - 1;
-    }
-
-    final var stackOps = line.asStackOperations();
-    var it = stackOps.listIterator();
-    while (it.hasNext()) {
-      var i = it.nextIndex();
-      var op = it.next();
-
-      heightTracers.get(i).apply(BigInteger.valueOf(op.height()));
-      valLoTracers.get(i).apply(op.value().loBigInt());
-      valHiTracers.get(i).apply(op.value().hiBigInt());
-      popTracers.get(i).apply(op.action() == Action.POP);
-      stampTracers.get(i).apply(BigInteger.valueOf(op.stackStamp()));
-    }
-
-    return this.trace
-        // Stack height
-        .pStackHeight(BigInteger.valueOf(stack.getHeight()))
-        .pStackHeightNew(BigInteger.valueOf(stack.getHeightNew()))
-        .pStackHeightUnder(BigInteger.valueOf(heightUnder))
-        .pStackHeightOver(BigInteger.valueOf(heightOver))
-        // Instruction details
-        .pStackInstruction(BigInteger.valueOf(this.opCodeData().value()))
-        .pStackStaticGas(BigInteger.ZERO) // TODO
-        .pStackDecodedFlag1(this.opCodeData().stackSettings().flag1())
-        .pStackDecodedFlag2(this.opCodeData().stackSettings().flag2())
-        .pStackDecodedFlag3(this.opCodeData().stackSettings().flag3())
-        .pStackDecodedFlag4(this.opCodeData().stackSettings().flag4())
-        // Exception flag
-        .pStackOpcx(false) // TODO
-        .pStackSux(stack.isUnderflow())
-        .pStackSox(stack.isOverflow())
-        .pStackOogx(false) // TODO
-        .pStackMxpx(false) // TODO
-        .pStackRdcx(false) // TODO
-        .pStackJumpx(false) // TODO
-        .pStackStaticx(false) // TODO
-        .pStackSstorex(false) // TODO
-        .pStackInvprex(false) // TODO
-        .pStackMaxcsx(false) // TODO
-        // Opcode families
-        .pStackAddFlag(this.opCodeData().instructionFamily() == InstructionFamily.ADD)
-        .pStackModFlag(this.opCodeData().instructionFamily() == InstructionFamily.MOD)
-        .pStackMulFlag(this.opCodeData().instructionFamily() == InstructionFamily.MUL)
-        .pStackExtFlag(this.opCodeData().instructionFamily() == InstructionFamily.EXT)
-        .pStackWcpFlag(this.opCodeData().instructionFamily() == InstructionFamily.WCP)
-        .pStackBinFlag(this.opCodeData().instructionFamily() == InstructionFamily.BIN)
-        .pStackShfFlag(this.opCodeData().instructionFamily() == InstructionFamily.SHF)
-        .pStackKecFlag(this.opCodeData().instructionFamily() == InstructionFamily.KEC)
-        .pStackConFlag(this.opCodeData().instructionFamily() == InstructionFamily.CONTEXT)
-        .pStackAccFlag(this.opCodeData().instructionFamily() == InstructionFamily.ACCOUNT)
-        .pStackCopyFlag(this.opCodeData().instructionFamily() == InstructionFamily.COPY)
-        .pStackTxnFlag(this.opCodeData().instructionFamily() == InstructionFamily.TRANSACTION)
-        .pStackBtcFlag(this.opCodeData().instructionFamily() == InstructionFamily.BATCH)
-        .pStackStackramFlag(this.opCodeData().instructionFamily() == InstructionFamily.STACK_RAM)
-        .pStackStoFlag(this.opCodeData().instructionFamily() == InstructionFamily.STORAGE)
-        .pStackJumpFlag(this.opCodeData().instructionFamily() == InstructionFamily.JUMP)
-        .pStackPushpopFlag(this.opCodeData().instructionFamily() == InstructionFamily.PUSH_POP)
-        .pStackDupFlag(this.opCodeData().instructionFamily() == InstructionFamily.DUP)
-        .pStackSwapFlag(this.opCodeData().instructionFamily() == InstructionFamily.SWAP)
-        .pStackLogFlag(this.opCodeData().instructionFamily() == InstructionFamily.LOG)
-        .pStackCreateFlag(this.opCodeData().instructionFamily() == InstructionFamily.CREATE)
-        .pStackCallFlag(this.opCodeData().instructionFamily() == InstructionFamily.CALL)
-        .pStackHaltFlag(this.opCodeData().instructionFamily() == InstructionFamily.HALT)
-        .pStackInvalidFlag(this.opCodeData().instructionFamily() == InstructionFamily.INVALID)
-        //      .pStackMxpFlag(this.opCodeData().billing().type() != MxpType.NONE) // TODO: billing
-        // not yet specified
-        .pStackMxpFlag(false)
-        .pStackTrmFlag(this.opCodeData().stackSettings().addressTrimmingInstruction())
-        .pStackStaticFlag(this.opCodeData().stackSettings().staticInstruction())
-        .pStackOobFlag(this.opCodeData().stackSettings().oobFlag());
-  }
+  private void traceStackLine(StackLine line) {}
 
   void processStateWarm() {
     this.stamp++;
@@ -739,6 +617,8 @@ public class Hub implements Module {
   }
 
   void updateTrace() {
+    this.stackChunks();
+
     switch (this.opCodeData().instructionFamily()) {
       case ADD,
           MOD,
@@ -755,72 +635,64 @@ public class Hub implements Module {
           SWAP,
           HALT,
           INVALID -> {
-        this.traceChunks.add(new StackChunk());
+        this.stackChunks();
       }
       case CONTEXT, LOG -> {
-        this.traceChunks.add(new StackChunk());
-        this.traceChunks.add(new ContextChunk());
+//        this.traceChunks.add(new ContextChunk());
       }
       case ACCOUNT -> {
-        if (op.stackSettings().flag1()) {
-          this.traceChunks.add(new StackChunk());
-          this.traceChunks.add(new ContextChunk());
-          this.traceChunks.add(new AccountChunk());
+        if (this.opCodeData().stackSettings().flag1()) {
+//          this.traceChunks.add(new ContextChunk());
+//          this.traceChunks.add(new AccountChunk());
         } else {
-          this.traceChunks.add(new StackChunk());
-          this.traceChunks.add(new AccountChunk());
+//          this.traceChunks.add(new AccountChunk());
         }
       }
       case COPY -> {
         if (this.opCodeData().stackSettings().flag1()) {
-          this.traceChunks.add(new StackChunk());
-          this.traceChunks.add(new AccountChunk());
+//          this.traceChunks.add(new AccountChunk());
         } else {
-          this.traceChunks.add(new StackChunk());
-          this.traceChunks.add(new ContextChunk());
+//          this.traceChunks.add(new ContextChunk());
         }
       }
       case TRANSACTION -> {
-        this.traceChunks.add(new StackChunk());
-        this.traceChunks.add(new TransactionChunk());
+//        this.traceChunks.add(new TransactionChunk());
       }
       case STACK_RAM -> {
         if (this.opCodeData().stackSettings().flag2()) {
-          this.traceChunks.add(new StackChunk());
-          this.traceChunks.add(new ContextChunk());
-        } else {
-          this.traceChunks.add(new StackChunk());
+//          this.traceChunks.add(new ContextChunk());
         }
       }
       case STORAGE -> {
-        this.traceChunks.add(new StackChunk());
-        this.traceChunks.add(new ContextChunk());
-        this.traceChunks.add(new StorageChunk());
+//        this.traceChunks.add(new ContextChunk());
+//        this.traceChunks.add(new StorageChunk());
       }
       case CREATE, CALL -> {
-        this.traceChunks.add(new StackChunk());
-        this.traceChunks.add(new ContextChunk());
+//        this.traceChunks.add(new ContextChunk());
+//        this.traceChunks.add(new AccountChunk());
+//        this.traceChunks.add(new AccountChunk());
+//        this.traceChunks.add(new AccountChunk());
       }
       case JUMP -> {
-        this.traceChunks.add(new StackChunk());
-        this.traceChunks.add(new ContextChunk());
-        this.traceChunks.add(new AccountChunk());
+//        this.traceChunks.add(new ContextChunk());
+//        this.traceChunks.add(new AccountChunk());
       }
     }
     throw new IllegalStateException("Unexpected instruction family");
   }
 
-  void traceStackBlock() {
+  void stackChunks() {
     if (this.currentFrame().getPending().getLines().isEmpty()) {
       for (int i = 0; i < (this.opCodeData().stackSettings().twoLinesInstruction() ? 2 : 1); i++) {
-        this.traceStackLine(new StackLine(i));
+        this.traceChunks.add(
+            new StackChunk(
+                this.currentFrame().getStack().snapshot(), new StackLine(i).asStackOperations()));
       }
     } else {
       for (StackLine line : this.currentFrame().getPending().getLines()) {
-        this.traceStackLine(line);
+        this.traceChunks.add(
+            new StackChunk(this.currentFrame().getStack().snapshot(), line.asStackOperations()));
       }
     }
   }
-
-  void traceContextBlock() {}
 }

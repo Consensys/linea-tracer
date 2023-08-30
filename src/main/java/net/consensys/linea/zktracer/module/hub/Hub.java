@@ -85,15 +85,15 @@ public class Hub implements Module {
     return this.opCode.getData();
   }
 
-  private Map<Address, Integer> deploymentNumber = new HashMap<>();
-  private Map<Address, Boolean> deploymentStatus = new HashMap<>();
+  private final Map<Address, Integer> deploymentNumber = new HashMap<>();
+  private final Map<Address, Boolean> deploymentStatus = new HashMap<>();
 
-  private List<TraceChunk> traceChunks = new ArrayList<>();
+  private final List<TraceChunk> traceChunks = new ArrayList<>();
   private Exceptions exceptions;
 
   TxState txState;
   @Getter Transaction currentTx;
-  CallStack callStack = new CallStack();
+  CallStack callStack;
   int txNumber = 0;
   @Getter int batchNumber = 0;
   @Getter int blockNumber = 0;
@@ -494,6 +494,19 @@ public class Hub implements Module {
 
     // impossible to do the pre-init here -- missing information from the MessageFrame
     this.txState = TxState.TxPreInit;
+
+    this.callStack = new CallStack(
+        frame.getContractAddress(),
+        frame.getCode(),
+        this.callStack.top().getType().ofOpCode(OpCode.of(frame.getCurrentOperation().getOpcode())),
+        frame.getValue(),
+        frame.getRemainingGas(),
+        this.trace.size(),
+        frame.getInputData(),
+        this.maxContextNumber,
+        0,
+        this.deploymentNumber.getOrDefault(frame.getContractAddress(), 0),
+        false);
   }
 
   @Override
@@ -606,11 +619,17 @@ public class Hub implements Module {
   @Override
   public void traceStartConflation(long blockCount) {
     this.batchNumber++;
-    this.callStack = new CallStack();
   }
 
   @Override
   public Object commit() {
+    //    for(List<TraceChunk> opChunks: traceChunks) {
+    for (TraceChunk chunk : traceChunks) {
+      this.traceCommon();
+      chunk.trace(this.trace);
+      this.trace.fillAndValidateRow();
+    }
+    //    }
     return new HubTrace(trace.build());
   }
 

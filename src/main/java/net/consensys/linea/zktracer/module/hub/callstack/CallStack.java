@@ -22,6 +22,7 @@ import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.Code;
+import org.hyperledger.besu.evm.code.CodeV0;
 
 /**
  * This class represents the call hierarchy of a transaction.
@@ -39,10 +40,32 @@ public final class CallStack {
   /** a "pointer" to the current {@link CallFrame} in <code>frames</code> */
   private int current;
 
-  public CallStack() {
+  public CallStack(
+      Address to,
+      CallFrameType type,
+      Code toCode,
+      Wei value,
+      long gas,
+      Bytes calldata,
+      int contextNumber,
+      int accountDeploymentNumber,
+      int codeDeploymentNumber,
+      boolean codeDeploymentStatus) {
     this.frames = List.of(new CallFrame());
     this.current = 0;
     this.depth = 0;
+    this.enter(
+        to,
+        toCode == null ? CodeV0.EMPTY_CODE : toCode,
+        type,
+        value,
+        gas,
+        0,
+        calldata,
+        contextNumber,
+        accountDeploymentNumber,
+        codeDeploymentNumber,
+        codeDeploymentStatus);
   }
 
   /**
@@ -64,8 +87,9 @@ public final class CallStack {
    *     trace
    * @param input the call data sent to this call frame
    * @param contextNumber the context number associated to this frame in the {@link Hub}
-   * @param deploymentNumber if applicable, the deployment number associated to this frame in the
-   *     {@link Hub}
+   * @param accountDeploymentNumber
+   * @param codeDeploymentNumber
+   * @param codeDeploymentStatus
    */
   public void enter(
       Address address,

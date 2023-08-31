@@ -52,11 +52,13 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 @Builder
 @RequiredArgsConstructor
 public class TestCodeExecutor {
-  private static final Address SENDER_ADDRESS = Address.fromHexString("0xe8f1b89");
-  private static final EVM DEFAULT_EVM = MainnetEVMs.paris(EvmConfiguration.DEFAULT);
-  private static final ZkBlockAwareOperationTracer DEFAULT_TRACER = new ZkTracer();
+  private static final Address DEFAULT_SENDER_ADDRESS = Address.fromHexString("0xe8f1b89");
+  public static final Wei DEFAULT_VALUE = Wei.ZERO;
+  public static final Bytes DEFAULT_INPUT_DATA = Bytes.EMPTY;
+  public static final long DEFAULT_GAS_LIMIT = 1_000_000;
+
   private final BlockValues blockValues = new FakeBlockValues(13);
-  private final WorldUpdater world = new ToyWorld();
+  private final WorldUpdater toyWorld = new ToyWorld();
 
   private final EVM evm;
   private final ZkBlockAwareOperationTracer tracer;
@@ -65,20 +67,22 @@ public class TestCodeExecutor {
   private final Consumer<MessageFrame> customFrameSetup;
   private final Consumer<MutableAccount> senderAccountSetup;
 
-  public Address getSenderAddress() {
-    return SENDER_ADDRESS;
+  /**
+   * Gets the default EVM implementation.
+   *
+   * @return default EVM implementation
+   */
+  public static EVM defaultEvm() {
+    return MainnetEVMs.paris(EvmConfiguration.DEFAULT);
   }
 
-  public Wei getValue() {
-    return Wei.ZERO;
-  }
-
-  public Bytes getInputData() {
-    return Bytes.EMPTY;
-  }
-
-  public long getGasLimit() {
-    return 1_000_000;
+  /**
+   * Gets the default tracer implementation.
+   *
+   * @return the default tracer implementation
+   */
+  public static ZkBlockAwareOperationTracer defaultTracer() {
+    return new ZkTracer();
   }
 
   /**
@@ -95,8 +99,8 @@ public class TestCodeExecutor {
       final Consumer<MessageFrame> customFrameSetup,
       final Consumer<MutableAccount> senderAccountSetup) {
     this(
-        DEFAULT_EVM,
-        DEFAULT_TRACER,
+        defaultEvm(),
+        defaultTracer(),
         byteCode,
         frameAssertions,
         customFrameSetup,
@@ -118,7 +122,7 @@ public class TestCodeExecutor {
       final Consumer<MessageFrame> frameAssertions,
       final Consumer<MessageFrame> customFrameSetup,
       final Consumer<MutableAccount> senderAccountSetup) {
-    this(evm, DEFAULT_TRACER, byteCode, frameAssertions, customFrameSetup, senderAccountSetup);
+    this(evm, defaultTracer(), byteCode, frameAssertions, customFrameSetup, senderAccountSetup);
   }
 
   /**
@@ -136,7 +140,7 @@ public class TestCodeExecutor {
       final Consumer<MessageFrame> frameAssertions,
       final Consumer<MessageFrame> customFrameSetup,
       final Consumer<MutableAccount> senderAccountSetup) {
-    this(DEFAULT_EVM, tracer, byteCode, frameAssertions, customFrameSetup, senderAccountSetup);
+    this(defaultEvm(), tracer, byteCode, frameAssertions, customFrameSetup, senderAccountSetup);
   }
 
   /**
@@ -166,7 +170,7 @@ public class TestCodeExecutor {
    * @param codeBytes bytecode of the contract
    */
   public void deployContract(final Address contractAddress, final Bytes codeBytes) {
-    var updater = this.world.updater();
+    var updater = this.toyWorld.updater();
     final MutableAccount contract = updater.getOrCreate(contractAddress).getMutable();
 
     contract.setNonce(0);
@@ -178,9 +182,9 @@ public class TestCodeExecutor {
 
   /** Create the initial world state of the EVM. */
   public void createInitialWorldState() {
-    final WorldUpdater worldState = this.world.updater();
+    final WorldUpdater worldState = this.toyWorld.updater();
     final MutableAccount senderAccount =
-        worldState.getOrCreate(this.getSenderAddress()).getMutable();
+        worldState.getOrCreate(DEFAULT_SENDER_ADDRESS).getMutable();
 
     setupSenderAccount(senderAccount);
 
@@ -191,15 +195,15 @@ public class TestCodeExecutor {
     final Code code = evm.getCode(Hash.hash(this.byteCode), this.byteCode);
 
     return new TestMessageFrameBuilder()
-        .worldUpdater(this.world.updater())
-        .initialGas(this.getGasLimit())
-        .address(this.getSenderAddress())
-        .originator(this.getSenderAddress())
-        .contract(this.getSenderAddress())
+        .worldUpdater(this.toyWorld.updater())
+        .initialGas(DEFAULT_GAS_LIMIT)
+        .address(DEFAULT_SENDER_ADDRESS)
+        .originator(DEFAULT_SENDER_ADDRESS)
+        .contract(DEFAULT_SENDER_ADDRESS)
         .gasPrice(Wei.ZERO)
-        .inputData(this.getInputData())
-        .sender(this.getSenderAddress())
-        .value(this.getValue())
+        .inputData(DEFAULT_INPUT_DATA)
+        .sender(DEFAULT_SENDER_ADDRESS)
+        .value(DEFAULT_VALUE)
         .code(code)
         .blockValues(blockValues)
         .build();
@@ -249,16 +253,16 @@ public class TestCodeExecutor {
     return frame;
   }
 
-  private Transaction defaultTransaction() {
+  private static Transaction defaultTransaction() {
     return new Transaction(
         123L,
         Wei.of(1500),
-        this.getGasLimit(),
+        DEFAULT_GAS_LIMIT,
         Optional.of(Address.fromHexString("0x1234567890")),
-        this.getValue(),
+        DEFAULT_VALUE,
         null, // TODO
-        this.getInputData(),
-        this.getSenderAddress(),
+        DEFAULT_INPUT_DATA,
+        DEFAULT_SENDER_ADDRESS,
         Optional.of(BigInteger.valueOf(23)),
         Optional.empty());
   }

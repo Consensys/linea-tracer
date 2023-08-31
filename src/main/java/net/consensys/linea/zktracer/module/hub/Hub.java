@@ -107,7 +107,7 @@ public class Hub implements Module {
 
   @Override
   public String jsonKey() {
-    return "hub_v2";
+    return "hub_v2_off";
   }
 
   @Override

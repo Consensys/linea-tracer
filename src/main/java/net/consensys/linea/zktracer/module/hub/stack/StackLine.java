@@ -36,18 +36,18 @@ public record StackLine(
     int ct, // TODO: could probably be inferred at trace-time
     int resultColumn) {
 
-  /** The default constructor, an empty stack line */
+  /** The default constructor, an empty stack line. */
   StackLine() {
     this(new ArrayList<>(), 0, -1);
   }
 
-  /** The default constructor, an empty stack line at a given counter */
+  /** The default constructor, an empty stack line at a given counter. */
   public StackLine(int ct) {
     this(new ArrayList<>(), ct, -1);
   }
 
   /**
-   * Build a stack line from a set of {@link StackOperation}
+   * Build a stack line from a set of {@link StackOperation}.
    *
    * @param ct the index of this line within the parent {@link StackContext}
    * @param items the {@link IndexedStackOperation} to include in this line

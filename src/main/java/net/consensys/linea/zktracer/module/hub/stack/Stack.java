@@ -25,16 +25,6 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 public class Stack {
   public static final int MAX_STACK_SIZE = 1024;
 
-  enum Status {
-    Normal,
-    Underflow,
-    Overflow;
-
-    boolean isFailure() {
-      return this != Status.Normal;
-    }
-  }
-
   @Getter int height;
   @Getter int heightNew;
   @Getter OpCodeData currentOpcodeData;
@@ -44,7 +34,7 @@ public class Stack {
   public Stack() {
     this.height = 0;
     this.heightNew = 0;
-    this.status = Status.Normal;
+    this.status = Status.NORMAL;
   }
 
   public Stack snapshot() {
@@ -53,6 +43,7 @@ public class Stack {
     r.heightNew = this.heightNew;
     r.currentOpcodeData = this.currentOpcodeData;
     r.status = this.status;
+
     return r;
   }
 
@@ -315,21 +306,21 @@ public class Stack {
    * @return true if no stack exception has been raised
    */
   public boolean isOk() {
-    return this.status == Status.Normal;
+    return this.status == Status.NORMAL;
   }
 
   /**
    * @return true if a stack underflow exception has been raised
    */
   public boolean isUnderflow() {
-    return this.status == Status.Underflow;
+    return this.status == Status.UNDERFLOW;
   }
 
   /**
    * @return true if a stack underflow exception has been raised
    */
   public boolean isOverflow() {
-    return this.status == Status.Overflow;
+    return this.status == Status.OVERFLOW;
   }
 
   public boolean processInstruction(MessageFrame frame, CallFrame callFrame, int stackStamp) {
@@ -344,9 +335,9 @@ public class Stack {
 
     if (frame.stackSize()
         < this.currentOpcodeData.stackSettings().delta()) { // Testing for underflow
-      this.status = Status.Underflow;
+      this.status = Status.UNDERFLOW;
     } else if (this.heightNew > MAX_STACK_SIZE) { // Testing for overflow
-      this.status = Status.Overflow;
+      this.status = Status.OVERFLOW;
     }
 
     if (this.status.isFailure()) {
@@ -378,6 +369,6 @@ public class Stack {
       case CREATE -> this.create(frame, callFrame.getPending());
     }
 
-    return this.status == Status.Normal;
+    return this.status == Status.NORMAL;
   }
 }

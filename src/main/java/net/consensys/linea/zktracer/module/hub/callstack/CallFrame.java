@@ -32,66 +32,67 @@ import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.Code;
 
 public class CallFrame {
-  /** the position of this {@link CallFrame} in the {@link CallStack} */
-  @Getter int id;
-  /** the associated context number in the {@link Hub} */
-  @Getter int contextNumber;
+  /** the position of this {@link CallFrame} in the {@link CallStack}. */
+  @Getter private int id;
+  /** the associated context number in the {@link Hub}. */
+  @Getter private int contextNumber;
   /** */
-  @Getter int accountDeploymentNumber;
+  @Getter private int accountDeploymentNumber;
   /** */
-  @Getter int codeDeploymentNumber;
+  @Getter private int codeDeploymentNumber;
   /** */
-  @Getter boolean codeDeploymentStatus;
-  /** the position of this {@link CallFrame} parent in the {@link CallStack} */
-  @Getter int parentFrame;
-  /** all the {@link CallFrame} that have been called by this frame */
-  @Getter List<Integer> childFrames = new ArrayList<>();
+  @Getter private boolean codeDeploymentStatus;
+  /** the position of this {@link CallFrame} parent in the {@link CallStack}. */
+  @Getter private int parentFrame;
+  /** all the {@link CallFrame} that have been called by this frame. */
+  @Getter private List<Integer> childFrames = new ArrayList<>();
 
-  /** the {@link Address} of the account executing this {@link CallFrame} */
-  @Getter Address address;
-  /** the {@link Address} of the code executed in this {@link CallFrame} */
-  @Getter Address codeAddress;
+  /** the {@link Address} of the account executing this {@link CallFrame}. */
+  @Getter private Address address;
+  /** the {@link Address} of the code executed in this {@link CallFrame}. */
+  @Getter private Address codeAddress;
 
-  /** the {@link CallFrameType} of this frame */
-  @Getter CallFrameType type;
-  /** the {@link Code} executing within this frame */
-  Code code;
+  /** the {@link CallFrameType} of this frame. */
+  @Getter private CallFrameType type;
 
-  /** the ether amount given to this frame */
-  @Getter Wei value;
-  /** the gas given to this frame */
-  @Getter long gasEndowment;
+  /** the {@link Code} executing within this frame. */
+  private Code code;
+
+  /** the ether amount given to this frame. */
+  @Getter private Wei value;
+  /** the gas given to this frame. */
+  @Getter private long gasEndowment;
   // @Getter RevertReason revertReason;
 
-  /** where does this frame start in the {@link Hub} trace */
-  int startLine;
-  /** where does this frame end in the {@link Hub} trace */
-  int endLine;
+  /** where does this frame start in the {@link Hub} trace. */
+  private int startLine;
+  /** where does this frame end in the {@link Hub} trace. */
+  private int endLine;
 
-  /** the call data given to this frame */
-  @Getter Bytes callData;
-  /** the call data span in the parent memory */
-  @Getter MemorySpan callDataPointer;
-  /** the data returned by the latest callee */
-  @Getter Bytes returnData;
-  /** returnData position within the latest callee memory space */
-  @Getter MemorySpan returnDataPointer;
-  /** where this frame is expected to write its returnData within its parent's memory space */
-  @Getter MemorySpan returnDataTarget;
+  /** the call data given to this frame. */
+  @Getter private Bytes callData;
+  /** the call data span in the parent memory. */
+  @Getter private MemorySpan callDataPointer;
+  /** the data returned by the latest callee. */
+  @Getter @Setter private Bytes returnData;
+  /** returnData position within the latest callee memory space. */
+  @Getter private MemorySpan returnDataPointer;
+  /** where this frame is expected to write its returnData within its parent's memory space. */
+  @Getter private MemorySpan returnDataTarget;
 
-  /** this frame {@link Stack} */
-  @Getter final Stack stack = new Stack();
+  /** this frame {@link Stack}. */
+  @Getter private final Stack stack = new Stack();
 
-  /** the latched context of this callframe stack */
-  @Getter @Setter StackContext pending;
+  /** the latched context of this callframe stack. */
+  @Getter @Setter private StackContext pending;
 
-  /** Create a root call frame */
+  /** Create a root call frame. */
   CallFrame() {
     this.type = CallFrameType.BEDROCK;
   }
 
   /**
-   * Create a normal (non-root) call frame
+   * Create a normal (non-root) call frame.
    *
    * @param contextNumber the CN of this frame in the {@link Hub}
    * @param accountDeploymentNumber the DN of this frame in the {@link Hub}

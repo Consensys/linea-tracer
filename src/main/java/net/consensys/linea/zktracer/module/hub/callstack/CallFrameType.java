@@ -18,17 +18,17 @@ package net.consensys.linea.zktracer.module.hub.callstack;
 import net.consensys.linea.zktracer.opcode.OpCode;
 
 public enum CallFrameType {
-  /** Executing deployment code */
+  /** Executing deployment code. */
   INIT_CODE,
-  /** Executing standard contract */
+  /** Executing standard contract. */
   STANDARD,
-  /** Within a delegate call */
+  /** Within a delegate call. */
   DELEGATE,
-  /** Within a static call */
+  /** Within a static call. */
   STATIC,
-  /** Within a call code */
+  /** Within a call code. */
   CALL_CODE,
-  /** The bedrock context */
+  /** The bedrock context. */
   BEDROCK;
 
   /**
@@ -47,9 +47,7 @@ public enum CallFrameType {
         case DELEGATECALL -> DELEGATE;
         case CALLCODE -> CALL_CODE;
         case STATICCALL -> STATIC;
-        default -> {
-          throw new IllegalStateException(String.valueOf(opCode));
-        }
+        default -> throw new IllegalStateException(String.valueOf(opCode));
       };
     }
   }

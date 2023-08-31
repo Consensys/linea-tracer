@@ -17,25 +17,15 @@ package net.consensys.linea.zktracer.module.hub.chunks;
 
 import java.math.BigInteger;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Function;
 
-import lombok.Getter;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.stack.Action;
 import net.consensys.linea.zktracer.module.hub.stack.Stack;
 import net.consensys.linea.zktracer.module.hub.stack.StackOperation;
 import net.consensys.linea.zktracer.opcode.InstructionFamily;
 
-public final class StackChunk implements TraceChunk {
-  @Getter private final Stack stack;
-  @Getter private final List<StackOperation> stackOps;
-
-  public StackChunk(Stack stack, List<StackOperation> stackOps) {
-    this.stack = stack;
-    this.stackOps = stackOps;
-  }
-
+public record StackChunk(Stack stack, List<StackOperation> stackOps) implements TraceChunk {
   @Override
   public Trace.TraceBuilder trace(Trace.TraceBuilder trace) {
     final List<Function<BigInteger, Trace.TraceBuilder>> valHiTracers =
@@ -44,24 +34,28 @@ public final class StackChunk implements TraceChunk {
             trace::pStackStackItemValueHi2,
             trace::pStackStackItemValueHi3,
             trace::pStackStackItemValueHi4);
+
     final List<Function<BigInteger, Trace.TraceBuilder>> valLoTracers =
         List.of(
             trace::pStackStackItemValueLo1,
             trace::pStackStackItemValueLo2,
             trace::pStackStackItemValueLo3,
             trace::pStackStackItemValueLo4);
+
     final List<Function<Boolean, Trace.TraceBuilder>> popTracers =
         List.of(
             trace::pStackStackItemPop1,
             trace::pStackStackItemPop2,
             trace::pStackStackItemPop3,
             trace::pStackStackItemPop4);
+
     final List<Function<BigInteger, Trace.TraceBuilder>> heightTracers =
         List.of(
             trace::pStackStackItemHeight1,
             trace::pStackStackItemHeight2,
             trace::pStackStackItemHeight3,
             trace::pStackStackItemHeight4);
+
     final List<Function<BigInteger, Trace.TraceBuilder>> stampTracers =
         List.of(
             trace::pStackStackItemStamp1,
@@ -69,8 +63,8 @@ public final class StackChunk implements TraceChunk {
             trace::pStackStackItemStamp3,
             trace::pStackStackItemStamp4);
 
-    final var alpha = this.stack.getCurrentOpcodeData().stackSettings().alpha();
-    final var delta = this.stack.getCurrentOpcodeData().stackSettings().delta();
+    final int alpha = this.stack.getCurrentOpcodeData().stackSettings().alpha();
+    final int delta = this.stack.getCurrentOpcodeData().stackSettings().delta();
 
     var heightUnder = stack.getHeight() - delta;
     var heightOver = 0;
@@ -97,6 +91,7 @@ public final class StackChunk implements TraceChunk {
       popTracers.get(i).apply(op.action() == Action.POP);
       stampTracers.get(i).apply(BigInteger.valueOf(op.stackStamp()));
     }
+
     return trace
         .peekAtStack(true)
         // Stack height

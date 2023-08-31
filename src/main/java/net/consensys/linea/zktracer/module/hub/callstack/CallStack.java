@@ -29,7 +29,7 @@ import org.hyperledger.besu.evm.code.CodeV0;
 /**
  * This class represents the call hierarchy of a transaction.
  *
- * <p>Although it is accessible in a stack-like manner, it is a ctually a tree, the stack access
+ * <p>Although it is accessible in a stack-like manner, it is actually a tree, the stack access
  * representing the path from the latest leaf to the root context.
  */
 public final class CallStack {
@@ -37,9 +37,9 @@ public final class CallStack {
   static final int CALLSTACK_SIZE = 1024;
   /** a never-pruned-tree of the {@link CallFrame} executed by the {@link Hub} */
   private List<CallFrame> frames = new ArrayList<>();
-  /** the current depth of the call stack */
+  /** the current depth of the call stack. */
   private int depth;
-  /** a "pointer" to the current {@link CallFrame} in <code>frames</code> */
+  /** a "pointer" to the current {@link CallFrame} in <code>frames</code>. */
   private int current;
 
   public CallStack(
@@ -80,8 +80,9 @@ public final class CallStack {
   public Optional<CallFrame> maybeTop() {
     return this.frames.isEmpty() ? Optional.empty() : Optional.of(this.top());
   }
+
   /**
-   * Creates a new call frame
+   * Creates a new call frame.
    *
    * @param address the {@link Address} of the bytecode being executed
    * @param code the {@link Code} being executed
@@ -136,12 +137,12 @@ public final class CallStack {
     this.frames.add(newFrame);
     this.current = newTop;
     this.depth += 1;
-    this.frames.get(caller).childFrames.add(newTop);
+    this.frames.get(caller).getChildFrames().add(newTop);
   }
 
   /**
    * Exit the current context, sets it return data for the caller to read, and marks its last
-   * position in the hub traces
+   * position in the hub traces.
    *
    * @param currentLine the current line in the hub trace
    * @param returnData the return data of the current frame
@@ -151,9 +152,9 @@ public final class CallStack {
     assert this.depth >= 0;
 
     this.top().close(currentLine);
-    final int parent = this.top().parentFrame;
-    this.frames.get(parent).childFrames.add(this.current);
-    this.frames.get(parent).returnData = returnData;
+    final int parent = this.top().getParentFrame();
+    this.frames.get(parent).getChildFrames().add(this.current);
+    this.frames.get(parent).setReturnData(returnData);
     this.current = parent;
   }
 
@@ -168,7 +169,7 @@ public final class CallStack {
    * @return whether the current frame is a static context
    */
   public boolean isStatic() {
-    return this.top().type == CallFrameType.STATIC;
+    return this.top().getType() == CallFrameType.STATIC;
   }
 
   /**
@@ -177,7 +178,7 @@ public final class CallStack {
    * @return the caller of the current frame
    */
   public CallFrame caller() {
-    return this.frames.get(this.top().parentFrame);
+    return this.frames.get(this.top().getParentFrame());
   }
 
   /**

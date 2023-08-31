@@ -27,17 +27,17 @@ import net.consensys.linea.zktracer.EWord;
  */
 public final class StackOperation {
   /**
-   * the relative height of the element with regard to the stack height just before executing the
-   * linked EVM instruction
+   * The relative height of the element with regard to the stack height just before executing the
+   * linked EVM instruction.
    */
   private final int height;
-  /** the value having been popped from/pushed on the stack */
+  /** The value having been popped from/pushed on the stack. */
   private EWord value;
-  /** whether this action is a push or a pop */
+  /** whether this action is a push or a pop. */
   private final Action action;
   /**
-   * the stamp of this operation relative to the stack stamp before executing the linked EVM
-   * instruction
+   * The stamp of this operation relative to the stack stamp before executing the linked EVM
+   * instruction.
    */
   private final int stackStamp;
 

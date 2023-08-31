@@ -111,7 +111,7 @@ public final class CallStack {
     final int caller = this.current;
     final int newTop = this.frames.size();
     Bytes callData;
-    if (type != CallFrameType.InitCode) {
+    if (type != CallFrameType.INIT_CODE) {
       callData = input;
     } else {
       callData = Bytes.EMPTY;
@@ -168,7 +168,7 @@ public final class CallStack {
    * @return whether the current frame is a static context
    */
   public boolean isStatic() {
-    return this.top().type == CallFrameType.Static;
+    return this.top().type == CallFrameType.STATIC;
   }
 
   /**

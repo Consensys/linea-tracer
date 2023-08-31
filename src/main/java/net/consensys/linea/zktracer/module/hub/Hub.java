@@ -310,11 +310,11 @@ public class Hub implements Module {
     return this.trace
         .absoluteTransactionNumber(BigInteger.valueOf(this.txNumber))
         .batchNumber(BigInteger.valueOf(this.batchNumber))
-        .txSkip(this.txState == TxState.TxSkip)
-        .txWarm(this.txState == TxState.TxWarm)
-        .txInit(this.txState == TxState.TxInit)
-        .txExec(this.txState == TxState.TxExec)
-        .txFinl(this.txState == TxState.TxFinal)
+        .txSkip(this.txState == TxState.TX_SKIP)
+        .txWarm(this.txState == TxState.TX_WARM)
+        .txInit(this.txState == TxState.TX_INIT)
+        .txExec(this.txState == TxState.TX_STATE)
+        .txFinl(this.txState == TxState.TX_FINAL)
         .hubStamp(BigInteger.valueOf(this.stamp))
         .transactionEndStamp(BigInteger.ZERO) // TODO
         .transactionReverts(BigInteger.ZERO) // TODO
@@ -454,7 +454,7 @@ public class Hub implements Module {
     // if no revert: 2 account rows (sender, coinbase) + 1 tx row
     // otherwise 4 account rows (sender, coinbase, sender, recipient) + 1 tx row
 
-    this.txState = TxState.TxPreInit;
+    this.txState = TxState.TX_PRE_INIT;
   }
 
   /**
@@ -481,12 +481,12 @@ public class Hub implements Module {
     this.currentTx = tx;
 
     // impossible to do the pre-init here -- missing information from the MessageFrame
-    this.txState = TxState.TxPreInit;
+    this.txState = TxState.TX_PRE_INIT;
   }
 
   @Override
   public void traceEndTx() {
-    this.txState = TxState.TxFinal;
+    this.txState = TxState.TX_FINAL;
     this.processStateFinal();
   }
 
@@ -496,7 +496,7 @@ public class Hub implements Module {
             && frame.getCode().getSize() == 0) // pure transaction
         || (frame.getRecipientAddress().equals(ADDRESS_ZERO)
             && frame.getInputData().isEmpty())) { // contract creation without initcode
-      this.txState = TxState.TxSkip;
+      this.txState = TxState.TX_SKIP;
       this.traceSkippedTx(frame);
       return;
     }
@@ -508,7 +508,7 @@ public class Hub implements Module {
     this.callStack =
         new CallStack(
             toAddress,
-            isDeployment ? CallFrameType.InitCode : CallFrameType.Standard,
+            isDeployment ? CallFrameType.INIT_CODE : CallFrameType.STANDARD,
             CodeV0.EMPTY_CODE, // TODO
             Wei.of(this.currentTx.getValue().getAsBigInteger()),
             this.currentTx.getGasLimit(),
@@ -522,7 +522,7 @@ public class Hub implements Module {
       this.processStateWarm();
     }
     this.processStateInit();
-    this.txState = TxState.TxExec;
+    this.txState = TxState.TX_STATE;
   }
 
   private void unlatchStack(MessageFrame frame, boolean failureState, boolean mxpx) {
@@ -571,11 +571,11 @@ public class Hub implements Module {
 
   @Override
   public void trace(final MessageFrame frame) {
-    if (this.txState == TxState.TxPreInit) {
+    if (this.txState == TxState.TX_PRE_INIT) {
       this.txInit(frame);
     }
 
-    if (this.txState == TxState.TxSkip) {
+    if (this.txState == TxState.TX_SKIP) {
       return;
     }
 

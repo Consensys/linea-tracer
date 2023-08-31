@@ -20,39 +20,39 @@ import net.consensys.linea.zktracer.opcode.OpCodeData;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 record Exceptions(
-    boolean InvalidOpcode,
-    boolean StackUnderflow,
-    boolean StackOverflow,
-    boolean OutOfMemoryExpansion,
-    boolean OutOfGas,
-    boolean ReturnDataCopyFault,
-    boolean JumpFault,
-    boolean StaticViolation,
-    boolean OutOfSStore,
-    boolean InvalidCodePrefix,
-    boolean CodeSizeOverflow) {
+    boolean invalidOpcode,
+    boolean stackUnderflow,
+    boolean stackOverflow,
+    boolean outOfMemoryExpansion,
+    boolean outOfGas,
+    boolean returnDataCopyFault,
+    boolean jumpFault,
+    boolean staticViolation,
+    boolean outOfSStore,
+    boolean invalidCodePrefix,
+    boolean codeSizeOverflow) {
   /**
    * @return true if no stack exception has been raised
    */
   public boolean noStackException() {
-    return !this.StackOverflow() && !this.StackUnderflow();
+    return !this.stackOverflow() && !this.stackUnderflow();
   }
 
   /**
    * @return true if any exception flag has been raised
    */
   public boolean any() {
-    return this.InvalidOpcode
-        || this.StackUnderflow
-        || this.StackOverflow
-        || this.OutOfMemoryExpansion
-        || this.OutOfGas
-        || this.ReturnDataCopyFault
-        || this.JumpFault
-        || this.StaticViolation
-        || this.OutOfSStore
-        || this.InvalidCodePrefix
-        || this.CodeSizeOverflow;
+    return this.invalidOpcode
+        || this.stackUnderflow
+        || this.stackOverflow
+        || this.outOfMemoryExpansion
+        || this.outOfGas
+        || this.returnDataCopyFault
+        || this.jumpFault
+        || this.staticViolation
+        || this.outOfSStore
+        || this.invalidCodePrefix
+        || this.codeSizeOverflow;
   }
 
   /**

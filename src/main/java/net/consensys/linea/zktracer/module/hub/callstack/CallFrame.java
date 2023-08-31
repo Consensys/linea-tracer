@@ -87,7 +87,7 @@ public class CallFrame {
 
   /** Create a root call frame */
   CallFrame() {
-    this.type = CallFrameType.Root;
+    this.type = CallFrameType.BEDROCK;
   }
 
   /**
@@ -166,8 +166,8 @@ public class CallFrame {
   public Optional<Integer> lastCallee() {
     if (this.childFrames.isEmpty()) {
       return Optional.empty();
-    } else {
-      return Optional.of(this.childFrames.get(this.childFrames.size() - 1));
     }
+
+    return Optional.of(this.childFrames.get(this.childFrames.size() - 1));
   }
 }

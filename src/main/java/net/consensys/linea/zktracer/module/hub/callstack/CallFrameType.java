@@ -19,17 +19,17 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 
 public enum CallFrameType {
   /** Executing deployment code */
-  InitCode,
+  INIT_CODE,
   /** Executing standard contract */
-  Standard,
+  STANDARD,
   /** Within a delegate call */
-  Delegate,
+  DELEGATE,
   /** Within a static call */
-  Static,
+  STATIC,
   /** Within a call code */
-  CallCode,
+  CALL_CODE,
   /** The bedrock context */
-  Root;
+  BEDROCK;
 
   /**
    * Returns the kind of {@link CallFrameType} context that an opcode will create; throws if the
@@ -40,13 +40,13 @@ public enum CallFrameType {
    */
   public CallFrameType ofOpCode(OpCode opCode) {
     if (this.isStatic()) {
-      return Static;
+      return STATIC;
     } else {
       return switch (opCode) {
-        case CREATE, CREATE2 -> InitCode;
-        case DELEGATECALL -> Delegate;
-        case CALLCODE -> CallCode;
-        case STATICCALL -> Static;
+        case CREATE, CREATE2 -> INIT_CODE;
+        case DELEGATECALL -> DELEGATE;
+        case CALLCODE -> CALL_CODE;
+        case STATICCALL -> STATIC;
         default -> {
           throw new IllegalStateException(String.valueOf(opCode));
         }
@@ -55,6 +55,6 @@ public enum CallFrameType {
   }
 
   public boolean isStatic() {
-    return this == Static;
+    return this == STATIC;
   }
 }

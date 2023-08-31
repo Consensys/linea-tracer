@@ -90,21 +90,4 @@ public final class StackOperation {
   public int stackStamp() {
     return stackStamp;
   }
-
-  @Override
-  public String toString() {
-    return "StackOperation["
-        + "height="
-        + height
-        + ", "
-        + "value="
-        + value
-        + ", "
-        + "action="
-        + action
-        + ", "
-        + "stackStamp="
-        + stackStamp
-        + ']';
-  }
 }

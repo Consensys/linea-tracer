@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.testutils;
+package net.consensys.linea.zktracer.testing;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -25,6 +25,7 @@ import java.util.function.Consumer;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import net.consensys.linea.zktracer.ZkBlockAwareOperationTracer;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.corset.CorsetValidator;
 import net.consensys.linea.zktracer.toy.ToyWorld;
@@ -51,53 +52,22 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 @Builder
 @RequiredArgsConstructor
 public class TestCodeExecutor {
-  private final BlockValues blockValues = new FakeBlockValues(13);
   private static final Address SENDER_ADDRESS = Address.fromHexString("0xe8f1b89");
-  private final ToyWorld world = new ToyWorld();
+  private static final EVM DEFAULT_EVM = MainnetEVMs.paris(EvmConfiguration.DEFAULT);
+  private static final ZkBlockAwareOperationTracer DEFAULT_TRACER = new ZkTracer();
+  private final BlockValues blockValues = new FakeBlockValues(13);
+  private final WorldUpdater world = new ToyWorld();
 
   private final EVM evm;
-  private final ZkTracer tracer;
+  private final ZkBlockAwareOperationTracer tracer;
   @Getter private final Bytes byteCode;
   private final Consumer<MessageFrame> frameAssertions;
   private final Consumer<MessageFrame> customFrameSetup;
   private final Consumer<MutableAccount> senderAccountSetup;
 
-  private void setupSenderAccount(MutableAccount senderAccount) {
-    if (senderAccountSetup != null) {
-      senderAccountSetup.accept(senderAccount);
-    }
-  }
-
-  private void setupFrame(MessageFrame frame) {
-    if (customFrameSetup != null) {
-      customFrameSetup.accept(frame);
-    }
-  }
-
-  private void postTest(MessageFrame frame) {
-    if (frameAssertions != null) {
-      frameAssertions.accept(frame);
-    }
-  }
-
   public Address getSenderAddress() {
     return SENDER_ADDRESS;
   }
-
-  //  public List<Transaction> getTransactions() {
-  //    return List.of(
-  //        new Transaction(
-  //            123,
-  //            Wei.of(1500),
-  //            this.getGasLimit(),
-  //            Optional.of(Address.fromHexString("0x1234567890")),
-  //            this.getValue(),
-  //            SECPSignature.create(),
-  //            this.getInputData(),
-  //            this.getSenderAddress(),
-  //            Optional.of(23),
-  //            Optional.empty()));
-  //  }
 
   public Wei getValue() {
     return Wei.ZERO;
@@ -125,25 +95,100 @@ public class TestCodeExecutor {
       final Consumer<MessageFrame> customFrameSetup,
       final Consumer<MutableAccount> senderAccountSetup) {
     this(
-        MainnetEVMs.paris(EvmConfiguration.DEFAULT),
-        new ZkTracer(),
+        DEFAULT_EVM,
+        DEFAULT_TRACER,
         byteCode,
         frameAssertions,
         customFrameSetup,
         senderAccountSetup);
   }
 
+  /**
+   * Constructor with predefined tracer.
+   *
+   * @param evm custom EVM type and configuration
+   * @param byteCode constructed bytecode
+   * @param frameAssertions a collections of assertions on {@link MessageFrame}
+   * @param customFrameSetup optional customization on the {@link MessageFrame}
+   * @param senderAccountSetup optional customization on {@link MutableAccount}
+   */
   public TestCodeExecutor(
       final EVM evm,
       final Bytes byteCode,
       final Consumer<MessageFrame> frameAssertions,
       final Consumer<MessageFrame> customFrameSetup,
       final Consumer<MutableAccount> senderAccountSetup) {
-    this(evm, new ZkTracer(), byteCode, frameAssertions, customFrameSetup, senderAccountSetup);
+    this(evm, DEFAULT_TRACER, byteCode, frameAssertions, customFrameSetup, senderAccountSetup);
+  }
+
+  /**
+   * Constructor with a predefined EVM.
+   *
+   * @param tracer custom tracer implementation
+   * @param byteCode constructed bytecode
+   * @param frameAssertions a collections of assertions on {@link MessageFrame}
+   * @param customFrameSetup optional customization on the {@link MessageFrame}
+   * @param senderAccountSetup optional customization on {@link MutableAccount}
+   */
+  public TestCodeExecutor(
+      final ZkBlockAwareOperationTracer tracer,
+      final Bytes byteCode,
+      final Consumer<MessageFrame> frameAssertions,
+      final Consumer<MessageFrame> customFrameSetup,
+      final Consumer<MutableAccount> senderAccountSetup) {
+    this(DEFAULT_EVM, tracer, byteCode, frameAssertions, customFrameSetup, senderAccountSetup);
+  }
+
+  /**
+   * Execute constructed EVM bytecode and return a JSON trace.
+   *
+   * @return the generated JSON trace
+   */
+  public String traceCode() {
+    MessageFrame frame = executeCode();
+    this.postTest(frame);
+
+    return tracer.getJsonTrace();
+  }
+
+  /** Execute constructed EVM bytecode and perform Corset trace validation. */
+  public void run() {
+    MessageFrame frame = executeCode();
+    this.postTest(frame);
+
+    assertThat(CorsetValidator.isValid(tracer.getJsonTrace())).isTrue();
+  }
+
+  /**
+   * Deploy a contract.
+   *
+   * @param contractAddress address of the contract
+   * @param codeBytes bytecode of the contract
+   */
+  public void deployContract(final Address contractAddress, final Bytes codeBytes) {
+    var updater = this.world.updater();
+    final MutableAccount contract = updater.getOrCreate(contractAddress).getMutable();
+
+    contract.setNonce(0);
+    contract.clearStorage();
+    contract.setCode(codeBytes);
+
+    updater.commit();
+  }
+
+  /** Create the initial world state of the EVM. */
+  public void createInitialWorldState() {
+    final WorldUpdater worldState = this.world.updater();
+    final MutableAccount senderAccount =
+        worldState.getOrCreate(this.getSenderAddress()).getMutable();
+
+    setupSenderAccount(senderAccount);
+
+    worldState.commit();
   }
 
   private MessageFrame prepareFrame() {
-    final Code code = evm.getCode(Hash.hash(byteCode), byteCode);
+    final Code code = evm.getCode(Hash.hash(this.byteCode), this.byteCode);
 
     return new TestMessageFrameBuilder()
         .worldUpdater(this.world.updater())
@@ -158,6 +203,24 @@ public class TestCodeExecutor {
         .code(code)
         .blockValues(blockValues)
         .build();
+  }
+
+  private void setupSenderAccount(MutableAccount senderAccount) {
+    if (senderAccountSetup != null) {
+      senderAccountSetup.accept(senderAccount);
+    }
+  }
+
+  private void setupFrame(MessageFrame frame) {
+    if (customFrameSetup != null) {
+      customFrameSetup.accept(frame);
+    }
+  }
+
+  private void postTest(MessageFrame frame) {
+    if (frameAssertions != null) {
+      frameAssertions.accept(frame);
+    }
   }
 
   private MessageFrame executeCode() {
@@ -200,54 +263,6 @@ public class TestCodeExecutor {
         Optional.empty());
   }
 
-  /** Execute constructed EVM bytecode and perform Corset trace validation. */
-  public void run() {
-    MessageFrame frame = executeCode();
-    this.postTest(frame);
-
-    assertThat(CorsetValidator.isValid(tracer.getTrace().toJson())).isTrue();
-  }
-
-  /**
-   * Execute constructed EVM bytecode and return a JSON trace.
-   *
-   * @return the generated JSON trace
-   */
-  public String traceCode() {
-    MessageFrame frame = executeCode();
-    this.postTest(frame);
-
-    return tracer.getTrace().toJson();
-  }
-
-  /**
-   * Deploy a contract.
-   *
-   * @param contractAddress address of the contract
-   * @param codeBytes bytecode of the contract
-   */
-  public void deployContract(final Address contractAddress, final Bytes codeBytes) {
-    var updater = this.world.updater();
-    final MutableAccount contract = updater.getOrCreate(contractAddress).getMutable();
-
-    contract.setNonce(0);
-    contract.clearStorage();
-    contract.setCode(codeBytes);
-
-    updater.commit();
-  }
-
-  /** Create the initial world state of the EVM. */
-  public void createInitialWorldState() {
-    final WorldUpdater worldState = this.world.updater();
-    final MutableAccount senderAccount =
-        worldState.getOrCreate(this.getSenderAddress()).getMutable();
-
-    setupSenderAccount(senderAccount);
-
-    worldState.commit();
-  }
-
   /** Customizations performed on the Lombok generated builder. */
   public static class TestCodeExecutorBuilder {
 
@@ -263,6 +278,9 @@ public class TestCodeExecutor {
       } else if (evm != null) {
         return new TestCodeExecutor(
             evm, byteCode, frameAssertions, customFrameSetup, senderAccountSetup);
+      } else if (tracer != null) {
+        return new TestCodeExecutor(
+            tracer, byteCode, frameAssertions, customFrameSetup, senderAccountSetup);
       }
 
       return new TestCodeExecutor(byteCode, frameAssertions, customFrameSetup, senderAccountSetup);

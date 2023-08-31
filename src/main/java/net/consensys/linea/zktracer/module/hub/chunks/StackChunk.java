@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.module.hub.chunks;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 
 import net.consensys.linea.zktracer.module.hub.Trace;
@@ -25,7 +26,15 @@ import net.consensys.linea.zktracer.module.hub.stack.Stack;
 import net.consensys.linea.zktracer.module.hub.stack.StackOperation;
 import net.consensys.linea.zktracer.opcode.InstructionFamily;
 
-public record StackChunk(Stack stack, List<StackOperation> stackOps) implements TraceChunk {
+public final class StackChunk implements TraceChunk {
+  private final Stack stack;
+  private final List<StackOperation> stackOps;
+
+  public StackChunk(Stack stack, List<StackOperation> stackOps) {
+    this.stack = stack;
+    this.stackOps = stackOps;
+  }
+
   @Override
   public Trace.TraceBuilder trace(Trace.TraceBuilder trace) {
     final List<Function<BigInteger, Trace.TraceBuilder>> valHiTracers =
@@ -170,5 +179,35 @@ public record StackChunk(Stack stack, List<StackOperation> stackOps) implements 
             this.stack.getCurrentOpcodeData().stackSettings().addressTrimmingInstruction())
         .pStackStaticFlag(this.stack.getCurrentOpcodeData().stackSettings().staticInstruction())
         .pStackOobFlag(this.stack.getCurrentOpcodeData().stackSettings().oobFlag());
+  }
+
+  public Stack stack() {
+    return stack;
+  }
+
+  public List<StackOperation> stackOps() {
+    return stackOps;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == this) {
+      return true;
+    }
+    if (obj == null || obj.getClass() != this.getClass()) {
+      return false;
+    }
+    var that = (StackChunk) obj;
+    return Objects.equals(this.stack, that.stack) && Objects.equals(this.stackOps, that.stackOps);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(stack, stackOps);
+  }
+
+  @Override
+  public String toString() {
+    return "StackChunk[" + "stack=" + stack + ", " + "stackOps=" + stackOps + ']';
   }
 }

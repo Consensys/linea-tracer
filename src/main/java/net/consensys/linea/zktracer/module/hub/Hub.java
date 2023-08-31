@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.BiFunction;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -51,6 +50,7 @@ import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.Code;
 import org.hyperledger.besu.evm.account.Account;
+import org.hyperledger.besu.evm.code.CodeV0;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.gascalculator.GasCalculator;
 import org.hyperledger.besu.evm.gascalculator.LondonGasCalculator;
@@ -64,18 +64,6 @@ public class Hub implements Module {
   private static final int TAU = 8;
 
   public final Trace.TraceBuilder trace = Trace.builder();
-  private final List<BiFunction<BigInteger, Integer, Trace.TraceBuilder>> valHiSetters =
-      List.of(
-          this.trace::setPStackStackItemValueHi1At,
-          this.trace::setPStackStackItemValueHi2At,
-          this.trace::setPStackStackItemValueHi3At,
-          this.trace::setPStackStackItemValueHi4At);
-  private final List<BiFunction<BigInteger, Integer, Trace.TraceBuilder>> valLoSetters =
-      List.of(
-          this.trace::setPStackStackItemValueLo1At,
-          this.trace::setPStackStackItemValueLo2At,
-          this.trace::setPStackStackItemValueLo3At,
-          this.trace::setPStackStackItemValueLo4At);
 
   private int pc;
   private OpCode opCode;
@@ -88,7 +76,7 @@ public class Hub implements Module {
   private final Map<Address, Integer> deploymentNumber = new HashMap<>();
   private final Map<Address, Boolean> deploymentStatus = new HashMap<>();
 
-  private final List<TraceChunk> traceChunks = new ArrayList<>();
+  private final List<List<TraceChunk>> traceChunks = new ArrayList<>();
   private Exceptions exceptions;
 
   TxState txState;
@@ -119,7 +107,7 @@ public class Hub implements Module {
 
   @Override
   public String jsonKey() {
-    return "hub";
+    return "hub_v2";
   }
 
   @Override
@@ -193,9 +181,7 @@ public class Hub implements Module {
         .fillAndValidateRow();
 
     // To account information
-    Address deploymentAddress =
-        ADDRESS_ZERO; // TODO: replace with deployment address = Keccak(fromAddress, fromNonce)
-    Address toAddress = this.currentTx.getTo().map(x -> (Address) x).orElse(deploymentAddress);
+    Address toAddress = effectiveToAddress(this.currentTx, fromAccount);
     EWord eToAddress = EWord.of(toAddress);
     Optional<Account> toAccount = Optional.of(frame.getWorldUpdater().get(toAddress));
     Optional<Long> toNonce = toAccount.map(Account::getNonce);
@@ -236,7 +222,7 @@ public class Hub implements Module {
     // Basecoin/miner information
     Address minerAddress = frame.getMiningBeneficiary();
     EWord eMinerAddress = EWord.of(minerAddress);
-    Optional<Account> minerAccount = Optional.of(frame.getWorldUpdater().get(minerAddress));
+    Optional<Account> minerAccount = Optional.ofNullable(frame.getWorldUpdater().get(minerAddress));
     Optional<Long> minerNonce = minerAccount.map(Account::getNonce);
     Bytes minerCode = minerAccount.map(Account::getCode).orElse(Bytes.EMPTY);
     EWord minerCodeHash = EWord.of(minerAccount.map(Account::getCodeHash).orElse(Hash.EMPTY));
@@ -365,14 +351,6 @@ public class Hub implements Module {
         .counterNsr(BigInteger.ZERO);
   }
 
-  /**
-   * Trace the stack-related perspective columns for a given {@link StackLine}
-   *
-   * @param line the stack line to trace
-   * @return the partially filled trace row
-   */
-  private void traceStackLine(StackLine line) {}
-
   void processStateWarm() {
     this.stamp++;
     // x lines - warm addresses
@@ -393,13 +371,9 @@ public class Hub implements Module {
     return this.callStack.top();
   }
 
-  private boolean handleStack(MessageFrame frame) {
-    boolean stackOk =
-        this.currentFrame()
-            .getStack()
-            .processInstruction(frame, this.currentFrame(), TAU * this.stamp);
+  private void handleStack(MessageFrame frame) {
+    this.currentFrame().getStack().processInstruction(frame, this.currentFrame(), TAU * this.stamp);
     this.currentFrame().getPending().setStartInTrace(this.currentLine());
-    return stackOk;
   }
 
   void triggerModules(MessageFrame frame) {
@@ -461,8 +435,8 @@ public class Hub implements Module {
     this.pc = frame.getPC();
     this.stamp++;
     this.exceptions = Exceptions.fromFrame(frame);
+    this.handleStack(frame);
     this.triggerModules(frame);
-    boolean noXFlow = this.handleStack(frame);
 
     if (this.currentFrame().getStack().isOk()) {
       /*
@@ -483,6 +457,20 @@ public class Hub implements Module {
     this.txState = TxState.TxPreInit;
   }
 
+  /**
+   * Compute the effective address of a transaction target, i.e. the specified target if explicitely
+   * set, or the to-be-deployed address otherwise.
+   *
+   * @param tx the transaction to find the target for
+   * @param senderAccount the transaction sender account
+   * @return the effective target address of tx
+   */
+  private static Address effectiveToAddress(Transaction tx, Account senderAccount) {
+    return tx.getTo()
+        .map(x -> (Address) x)
+        .orElse(Address.contractAddress(senderAccount.getAddress(), senderAccount.getNonce()));
+  }
+
   @Override
   public void traceStartTx(Transaction tx) {
     if (tx.getTo().isPresent() && isPrecompile(tx.getTo().get())) {
@@ -494,19 +482,6 @@ public class Hub implements Module {
 
     // impossible to do the pre-init here -- missing information from the MessageFrame
     this.txState = TxState.TxPreInit;
-
-    this.callStack = new CallStack(
-        frame.getContractAddress(),
-        frame.getCode(),
-        this.callStack.top().getType().ofOpCode(OpCode.of(frame.getCurrentOperation().getOpcode())),
-        frame.getValue(),
-        frame.getRemainingGas(),
-        this.trace.size(),
-        frame.getInputData(),
-        this.maxContextNumber,
-        0,
-        this.deploymentNumber.getOrDefault(frame.getContractAddress(), 0),
-        false);
   }
 
   @Override
@@ -524,19 +499,33 @@ public class Hub implements Module {
       this.txState = TxState.TxSkip;
       this.traceSkippedTx(frame);
       return;
-    } else {
-      // TODO: only if warmed stuff present
-      this.txState = TxState.TxWarm;
     }
 
-    this.processStateWarm();
-    this.txState = TxState.TxInit;
+    var to = this.currentTx.getTo();
+    boolean isDeployment = to.isEmpty();
+    Address toAddress =
+        effectiveToAddress(this.currentTx, frame.getWorldUpdater().getSenderAccount(frame));
+    this.callStack =
+        new CallStack(
+            toAddress,
+            isDeployment ? CallFrameType.InitCode : CallFrameType.Standard,
+            CodeV0.EMPTY_CODE, // TODO
+            Wei.of(this.currentTx.getValue().getAsBigInteger()),
+            this.currentTx.getGasLimit(),
+            this.currentTx.getData().orElse(Bytes.EMPTY),
+            this.maxContextNumber,
+            0, // TODO
+            to.isEmpty() ? 0 : this.deploymentNumber.getOrDefault(to.get(), 0),
+            false); // TODO
 
+    if (false /* doWarm */) {
+      this.processStateWarm();
+    }
     this.processStateInit();
     this.txState = TxState.TxExec;
   }
 
-  private void unlatchStack(MessageFrame stack, boolean failureState, boolean mxpx) {
+  private void unlatchStack(MessageFrame frame, boolean failureState, boolean mxpx) {
     if (this.currentFrame().getPending() == null) {
       return;
     }
@@ -546,17 +535,14 @@ public class Hub implements Module {
       if (line.needsResult()) {
         EWord result = EWord.ZERO;
         if (!failureState) {
-          result = EWord.of(stack.getStackItem(0));
+          result = EWord.of(frame.getStackItem(0));
         }
 
-        int startLine = pending.getStartInTrace();
-
-        valHiSetters
+        // This works because we are certain that the stack chunks are the first.
+        ((StackChunk) traceChunks.get(traceChunks.size() - 1).get(line.ct()))
+            .stackOps()
             .get(line.resultColumn() - 1)
-            .apply(result.hi().toUnsignedBigInteger(), startLine + line.ct());
-        valLoSetters
-            .get(line.resultColumn() - 1)
-            .apply(result.lo().toUnsignedBigInteger(), startLine + line.ct());
+            .setValue(result);
       }
     }
   }
@@ -564,7 +550,6 @@ public class Hub implements Module {
   @Override
   public void traceContextEnter(MessageFrame frame) {
     this.maxContextNumber += 1;
-    var type = CallFrameType.Root;
     this.callStack.enter(
         frame.getContractAddress(),
         frame.getCode(),
@@ -598,7 +583,6 @@ public class Hub implements Module {
   }
 
   public void tracePostExecution(MessageFrame frame, Operation.OperationResult operationResult) {
-    this.trace.fillAndValidateRow();
     boolean mxpx = false;
     this.unlatchStack(frame, false, mxpx);
 
@@ -623,18 +607,19 @@ public class Hub implements Module {
 
   @Override
   public Object commit() {
-    //    for(List<TraceChunk> opChunks: traceChunks) {
-    for (TraceChunk chunk : traceChunks) {
-      this.traceCommon();
-      chunk.trace(this.trace);
-      this.trace.fillAndValidateRow();
+    for (List<TraceChunk> opChunks : traceChunks) {
+      for (TraceChunk chunk : opChunks) {
+        this.traceCommon();
+        chunk.trace(this.trace);
+        this.trace.fillAndValidateRow();
+      }
     }
-    //    }
     return new HubTrace(trace.build());
   }
 
   void updateTrace() {
-    this.stackChunks();
+    var opChunks = new ArrayList<TraceChunk>();
+    this.makeStackChunks(opChunks);
 
     switch (this.opCodeData().instructionFamily()) {
       case ADD,
@@ -651,62 +636,62 @@ public class Hub implements Module {
           DUP,
           SWAP,
           HALT,
-          INVALID -> {
-        this.stackChunks();
-      }
+          INVALID -> {}
       case CONTEXT, LOG -> {
-        //        this.traceChunks.add(new ContextChunk());
+        //        opChunks.add(new ContextChunk());
       }
       case ACCOUNT -> {
         if (this.opCodeData().stackSettings().flag1()) {
-          //          this.traceChunks.add(new ContextChunk());
-          //          this.traceChunks.add(new AccountChunk());
+          //          opChunks.add(new ContextChunk());
+          //          opChunks.add(new AccountChunk());
         } else {
-          //          this.traceChunks.add(new AccountChunk());
+          //          opChunks.add(new AccountChunk());
         }
       }
       case COPY -> {
         if (this.opCodeData().stackSettings().flag1()) {
-          //          this.traceChunks.add(new AccountChunk());
+          //          opChunks.add(new AccountChunk());
         } else {
-          //          this.traceChunks.add(new ContextChunk());
+          //          opChunks.add(new ContextChunk());
         }
       }
       case TRANSACTION -> {
-        //        this.traceChunks.add(new TransactionChunk());
+        //        opChunks.add(new TransactionChunk());
       }
       case STACK_RAM -> {
         if (this.opCodeData().stackSettings().flag2()) {
-          //          this.traceChunks.add(new ContextChunk());
+          //          opChunks.add(new ContextChunk());
         }
       }
       case STORAGE -> {
-        //        this.traceChunks.add(new ContextChunk());
-        //        this.traceChunks.add(new StorageChunk());
+        //        opChunks.add(new ContextChunk());
+        //        opChunks.add(new StorageChunk());
       }
       case CREATE, CALL -> {
-        //        this.traceChunks.add(new ContextChunk());
-        //        this.traceChunks.add(new AccountChunk());
-        //        this.traceChunks.add(new AccountChunk());
-        //        this.traceChunks.add(new AccountChunk());
+        //        opChunks.add(new ContextChunk());
+        //        opChunks.add(new AccountChunk());
+        //        opChunks.add(new AccountChunk());
+        //        opChunks.add(new AccountChunk());
       }
       case JUMP -> {
-        //        this.traceChunks.add(new ContextChunk());
-        //        this.traceChunks.add(new AccountChunk());
+        //        opChunks.add(new ContextChunk());
+        //        opChunks.add(new AccountChunk());
       }
     }
+
+    this.traceChunks.add(opChunks);
   }
 
-  void stackChunks() {
+  void makeStackChunks(List<TraceChunk> currentChunks) {
     if (this.currentFrame().getPending().getLines().isEmpty()) {
       for (int i = 0; i < (this.opCodeData().stackSettings().twoLinesInstruction() ? 2 : 1); i++) {
-        this.traceChunks.add(
+        currentChunks.add(
             new StackChunk(
                 this.currentFrame().getStack().snapshot(), new StackLine(i).asStackOperations()));
       }
     } else {
       for (StackLine line : this.currentFrame().getPending().getLines()) {
-        this.traceChunks.add(
+        currentChunks.add(
             new StackChunk(this.currentFrame().getStack().snapshot(), line.asStackOperations()));
       }
     }

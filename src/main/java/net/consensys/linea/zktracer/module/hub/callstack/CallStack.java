@@ -15,7 +15,9 @@
 
 package net.consensys.linea.zktracer.module.hub.callstack;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
 import org.apache.tuweni.bytes.Bytes;
@@ -34,7 +36,7 @@ public final class CallStack {
   /** the maximal depth of the call stack (as defined by Ethereum) */
   static final int CALLSTACK_SIZE = 1024;
   /** a never-pruned-tree of the {@link CallFrame} executed by the {@link Hub} */
-  private List<CallFrame> frames;
+  private List<CallFrame> frames = new ArrayList<>();
   /** the current depth of the call stack */
   private int depth;
   /** a "pointer" to the current {@link CallFrame} in <code>frames</code> */
@@ -51,9 +53,9 @@ public final class CallStack {
       int accountDeploymentNumber,
       int codeDeploymentNumber,
       boolean codeDeploymentStatus) {
-    this.frames = List.of(new CallFrame());
     this.current = 0;
     this.depth = 0;
+    this.frames.add(new CallFrame());
     this.enter(
         to,
         toCode == null ? CodeV0.EMPTY_CODE : toCode,
@@ -75,6 +77,9 @@ public final class CallStack {
     return this.frames.get(this.current);
   }
 
+  public Optional<CallFrame> maybeTop() {
+    return this.frames.isEmpty() ? Optional.empty() : Optional.of(this.top());
+  }
   /**
    * Creates a new call frame
    *
@@ -121,9 +126,8 @@ public final class CallStack {
             newTop,
             address,
             code,
-            this.top().getType().isStatic() ? CallFrameType.Static : type,
+            type,
             caller,
-            this.frames.get(caller).address,
             value,
             gas,
             currentLine,

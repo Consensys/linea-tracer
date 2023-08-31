@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.callstack;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,14 +45,12 @@ public class CallFrame {
   /** the position of this {@link CallFrame} parent in the {@link CallStack} */
   @Getter int parentFrame;
   /** all the {@link CallFrame} that have been called by this frame */
-  @Getter List<Integer> childFrames;
+  @Getter List<Integer> childFrames = new ArrayList<>();
 
   /** the {@link Address} of the account executing this {@link CallFrame} */
   @Getter Address address;
   /** the {@link Address} of the code executed in this {@link CallFrame} */
   @Getter Address codeAddress;
-  /** the {@link Address} of the parent context of this {@link CallFrame} */
-  @Getter Address parentAddress;
 
   /** the {@link CallFrameType} of this frame */
   @Getter CallFrameType type;
@@ -102,7 +101,6 @@ public class CallFrame {
    * @param address the {@link Address} of this frame executor
    * @param type the {@link CallFrameType} of this frame
    * @param caller the ID of this frame caller in the {@link CallStack}
-   * @param parentAddress the address of this frame caller
    * @param value how much ether was given to this frame
    * @param gas how much gas was given to this frame
    * @param currentLine where does this frame start in the {@link Hub} trace
@@ -118,7 +116,6 @@ public class CallFrame {
       Code code,
       CallFrameType type,
       int caller,
-      Address parentAddress,
       Wei value,
       long gas,
       int currentLine,
@@ -132,7 +129,6 @@ public class CallFrame {
     this.code = code;
     this.type = type;
     this.parentFrame = caller;
-    this.parentAddress = parentAddress;
     this.value = value;
     this.gasEndowment = gas;
     this.startLine = currentLine;

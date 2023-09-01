@@ -97,7 +97,7 @@ public class CallFrame {
    * @param contextNumber the CN of this frame in the {@link Hub}
    * @param accountDeploymentNumber the DN of this frame in the {@link Hub}
    * @param codeDeploymentNumber the DN of this frame in the {@link Hub}
-   * @param codeDeploymentStatus the DN of this frame in the {@link Hub}
+   * @param isDeployment whether the executing code is initcode
    * @param id the ID of this frame in the {@link CallStack}
    * @param address the {@link Address} of this frame executor
    * @param type the {@link CallFrameType} of this frame
@@ -111,7 +111,7 @@ public class CallFrame {
       int contextNumber,
       int accountDeploymentNumber,
       int codeDeploymentNumber,
-      boolean codeDeploymentStatus,
+      boolean isDeployment,
       int id,
       Address address,
       Code code,
@@ -124,7 +124,7 @@ public class CallFrame {
     this.contextNumber = contextNumber;
     this.accountDeploymentNumber = accountDeploymentNumber;
     this.codeDeploymentNumber = codeDeploymentNumber;
-    this.codeDeploymentStatus = codeDeploymentStatus;
+    this.codeDeploymentStatus = isDeployment;
     this.id = id;
     this.address = address;
     this.code = code;

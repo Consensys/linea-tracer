@@ -95,7 +95,7 @@ public final class CallStack {
    * @param contextNumber the context number associated to this frame in the {@link Hub}
    * @param accountDeploymentNumber
    * @param codeDeploymentNumber
-   * @param codeDeploymentStatus
+   * @param isDeployment
    */
   public void enter(
       Address address,
@@ -108,7 +108,7 @@ public final class CallStack {
       int contextNumber,
       int accountDeploymentNumber,
       int codeDeploymentNumber,
-      boolean codeDeploymentStatus) {
+      boolean isDeployment) {
     final int caller = this.current;
     final int newTop = this.frames.size();
     Bytes callData;
@@ -123,7 +123,7 @@ public final class CallStack {
             contextNumber,
             accountDeploymentNumber,
             codeDeploymentNumber,
-            codeDeploymentStatus,
+            isDeployment,
             newTop,
             address,
             code,

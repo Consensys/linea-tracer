@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -31,10 +30,11 @@ import net.consensys.linea.zktracer.module.ext.Ext;
 import net.consensys.linea.zktracer.module.hub.callstack.CallFrame;
 import net.consensys.linea.zktracer.module.hub.callstack.CallFrameType;
 import net.consensys.linea.zktracer.module.hub.callstack.CallStack;
-import net.consensys.linea.zktracer.module.hub.chunks.AccountChunk;
 import net.consensys.linea.zktracer.module.hub.chunks.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.chunks.StackChunk;
 import net.consensys.linea.zktracer.module.hub.chunks.TraceChunk;
+import net.consensys.linea.zktracer.module.hub.defer.SkippedTransaction;
+import net.consensys.linea.zktracer.module.hub.defer.TransactionDefer;
 import net.consensys.linea.zktracer.module.hub.stack.StackContext;
 import net.consensys.linea.zktracer.module.hub.stack.StackLine;
 import net.consensys.linea.zktracer.module.mod.Mod;
@@ -46,17 +46,15 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
-import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Quantity;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
-import org.hyperledger.besu.evm.Code;
-import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.code.CodeV0;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.gascalculator.GasCalculator;
 import org.hyperledger.besu.evm.gascalculator.LondonGasCalculator;
 import org.hyperledger.besu.evm.operation.Operation;
+import org.hyperledger.besu.evm.worldstate.WorldUpdater;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 
@@ -75,10 +73,9 @@ public class Hub implements Module {
     return this.opCode.getData();
   }
 
-  private final Map<Address, Integer> deploymentNumber = new HashMap<>();
-  private final Map<Address, Boolean> deploymentStatus = new HashMap<>();
+  public final Map<Address, Integer> deploymentNumber = new HashMap<>();
 
-  private final List<List<TraceChunk>> traceChunks = new ArrayList<>();
+  @Getter private final List<List<TraceChunk>> traceChunks = new ArrayList<>();
   private Exceptions exceptions;
 
   TxState txState;
@@ -89,16 +86,10 @@ public class Hub implements Module {
   @Getter int blockNumber = 0;
   int stamp = 0;
 
-
-  /**
-   * A list of latches deferred until the end of the current transaction
-   */
-  private final List<Latch> transactionLatches = new ArrayList<>();
-  /**
-   * Defers a latch to be executed at the end of the current transaction.
-   *
-   */
-  private void deferTx(Latch latch) {
+  /** A list of latches deferred until the end of the current transaction */
+  private final List<TransactionDefer> transactionLatches = new ArrayList<>();
+  /** Defers a latch to be executed at the end of the current transaction. */
+  private void deferPostTx(TransactionDefer latch) {
     this.transactionLatches.add(latch);
   }
 
@@ -150,151 +141,55 @@ public class Hub implements Module {
    *
    * @param frame the frame of the transaction
    */
-  void traceSkippedTx(MessageFrame frame) {
-    List<TraceChunk> currentChunk = new ArrayList<>();
+  void processStateSkip(MessageFrame frame) {
     this.stamp++;
-    Quantity value = this.currentTx.getValue();
+    var world = frame.getWorldUpdater();
     boolean isDeployment = this.currentTx.getTo().isEmpty();
 
+    //
     // 3 lines -- account changes
+    //
     // From account information
-    EWord from = EWord.of(this.currentTx.getSender());
     Address fromAddress = this.currentTx.getSender();
-    Account fromAccount = frame.getWorldUpdater().get(fromAddress);
-    long fromNonce = fromAccount.getNonce();
-    Wei currentFromBalance = fromAccount.getBalance();
-    Wei newFromBalance = currentFromBalance.subtract((Wei) value);
-    Code fromCode = frame.getCode();
-    EWord fromCodeHash = EWord.of(fromCode.getCodeHash());
-
     AccountSnapshot oldFromAccount =
         AccountSnapshot.fromAccount(
-            frame.getWorldUpdater().get(fromAddress),
-            CodeV0.EMPTY_CODE, // From can't have code
-            false, // TODO
-            0, // TODO
-            false // TODO
-            );
-    AccountSnapshot newFromAccount =
-        AccountSnapshot.fromAccount(
-            frame.getWorldUpdater().get(fromAddress),
-            CodeV0.EMPTY_CODE, // From can't have code
-            false, // TODO
-            0, // TODO
-            false // TODO
-            );
+            world.get(fromAddress),
+            Bytecode.EMPTY, // From can't have code
+            false,
+            this.deploymentNumber.getOrDefault(fromAddress, 0),
+            false);
 
     // To account information
-    Address toAddress = effectiveToAddress(this.currentTx, fromAccount);
-    EWord eToAddress = EWord.of(toAddress);
+    Address toAddress = effectiveToAddress(this.currentTx, fromAddress, 0);
+    boolean toIsWarm =
+        (fromAddress == toAddress)
+            || isPrecompile(toAddress); // should never happen – no TX to PC allowed
     AccountSnapshot oldToAccount =
         AccountSnapshot.fromAccount(
-            frame.getWorldUpdater().get(fromAddress),
-            frame.getCode(),
-            false, // TODO
-            0, // TODO
-            false // TODO
-            );
-    AccountSnapshot newToAccount =
-        AccountSnapshot.fromAccount(
-            frame.getWorldUpdater().get(fromAddress),
-            frame.getCode(), // TODO: deployments?
-            false, // TODO
-            0, // TODO
-            false // TODO
-            );
+            world.get(toAddress),
+            new Bytecode(world.get(toAddress).getCode()),
+            toIsWarm,
+            this.deploymentNumber.getOrDefault(toAddress, 0),
+            false);
 
-    currentChunk.add(
-        new AccountChunk(
-            fromAddress, oldFromAccount, newFromAccount, false, 0, false, 0, false)); // TODO
-    currentChunk.add(
-        new AccountChunk(toAddress, oldToAccount, newToAccount, false, 0, false, 0, false)); // TODO
-
-    // Basecoin/miner information
+    // Miner account information
     Address minerAddress = frame.getMiningBeneficiary();
-    EWord eMinerAddress = EWord.of(minerAddress);
-    Account minerAccount = frame.getWorldUpdater().get(minerAddress);
-    Bytes minerCode = minerAccount.map(Account::getCode).orElse(Bytes.EMPTY);
-    EWord minerCodeHash = EWord.of(minerAccount.map(Account::getCodeHash).orElse(Hash.EMPTY));
+    boolean minerIsWarm =
+        (minerAddress == fromAddress) || (minerAddress == toAddress) || isPrecompile(minerAddress);
     AccountSnapshot oldMinerAccount =
-      AccountSnapshot.fromAccount(
-        frame.getWorldUpdater().get(minerAddress),
-        frame.getCode(),
-        false, // TODO
-        0, // TODO
-        false // TODO
-      );
-    AccountSnapshot newMinerAccount =
-      AccountSnapshot.fromAccount(
-        frame.getWorldUpdater().get(minerAddress),
-        frame.getCode(), // TODO: deployments?
-        false, // TODO
-        0, // TODO
-        false // TODO
-      );
+        AccountSnapshot.fromAccount(
+            world.get(minerAddress),
+            new Bytecode(world.get(minerAddress).getCode()),
+            minerIsWarm,
+            this.deploymentNumber.getOrDefault(minerAddress, 0),
+            false);
 
-    Wei currentMinerBalance =
-        frame.getWorldUpdater().get(frame.getMiningBeneficiary()).getBalance();
-    Wei newMinerBalance = Wei.ZERO; // TODO: latch it
-    this.traceCommon()
-        .peekAtAccount(true)
-        .pAccountAddressHi(eMinerAddress.hiBigInt())
-        .pAccountAddressLo(eMinerAddress.loBigInt())
-        .pAccountIsPrecompile(isPrecompile(minerAddress))
-        .pAccountNonce(
-            BigInteger.valueOf(
-                (isDeployment && minerAddress == toAddress)
-                    ? 1L
-                    : minerAddress == fromAddress
-                        ? fromNonce + 1
-                        : minerNonce.orElse(0L))) // TODO: check == behaviour
-        .pAccountNonceNew(
-            BigInteger.valueOf(
-                (isDeployment && minerAddress == toAddress)
-                    ? 1L
-                    : minerAddress == fromAddress ? fromNonce + 1 : minerNonce.orElse(0L)))
-        .pAccountBalance(currentMinerBalance.toUnsignedBigInteger())
-        .pAccountBalanceNew(newMinerBalance.toUnsignedBigInteger())
-        .pAccountCodeSize(BigInteger.valueOf(minerCode.size()))
-        .pAccountCodeSizeNew(BigInteger.valueOf(minerCode.size()))
-        .pAccountCodeHashHi(minerCodeHash.hiBigInt())
-        .pAccountCodeHashLo(minerCodeHash.loBigInt())
-        .pAccountCodeHashHiNew(minerCodeHash.hiBigInt())
-        .pAccountCodeHashLoNew(minerCodeHash.loBigInt())
-        .pAccountHasCode(!minerCode.isEmpty())
-        .pAccountHasCodeNew(!minerCode.isEmpty())
-        .pAccountExists(minerAccount.isPresent() || (isDeployment && minerAddress == toAddress))
-        .pAccountExistsNew(
-            minerAccount.isPresent()
-                || this.currentTx
-                    .getGasPrice()
-                    .map(g -> g.getAsBigInteger() != BigInteger.ZERO)
-                    .orElse(false)) // TODO: latch it?
-        .pAccountWarm(
-            isPrecompile(minerAddress) || minerAddress == fromAddress || minerAddress == toAddress)
-        .pAccountWarmNew(true)
-        .pAccountDeploymentNumber(BigInteger.ZERO)
-        .pAccountDeploymentNumberNew(BigInteger.ZERO)
-        .pAccountDeploymentStatus(BigInteger.ZERO)
-        .pAccountDeploymentStatusNew(BigInteger.ZERO)
-        .pAccountSufficientBalance(true)
-        .pAccountDeploymentStatusInfty(false)
-        .fillAndValidateRow();
+    // Putatively update deployment number
+    if (isDeployment) {
+      this.deploymentNumber.put(toAddress, this.deploymentNumber.getOrDefault(toAddress, 0) + 1);
+    }
 
-    // 1 line -- tx data
-    this.traceCommon()
-        .peekAtTransaction(true)
-        .pTransactionBatchNumber(BigInteger.valueOf(this.batchNumber))
-        .pTransactionNonce(BigInteger.valueOf(this.currentTx.getNonce()))
-        .pTransactionIsDeployment(isDeployment)
-        .pTransactionFromAddressHi(from.hiBigInt())
-        .pTransactionFromAddressLo(from.loBigInt())
-        .pTransactionToAddressHi(eToAddress.hiBigInt())
-        .pTransactionToAddressLo(eToAddress.loBigInt())
-        .pTransactionInitGas(computeInitGas(this.currentTx))
-        .pTransactionValue(value.getAsBigInteger())
-        .pTransactionGasFee(frame.getGasPrice().toUnsignedBigInteger())
-        .fillAndValidateRow();
+    this.deferPostTx(new SkippedTransaction(oldFromAccount, oldToAccount, oldMinerAccount));
   }
 
   public static BigInteger computeInitGas(Transaction tx) {
@@ -464,17 +359,13 @@ public class Hub implements Module {
   }
 
   /**
-   * Compute the effective address of a transaction target, i.e. the specified target if explicitely
+   * Compute the effective address of a transaction target, i.e. the specified target if explicitly
    * set, or the to-be-deployed address otherwise.
    *
-   * @param tx the transaction to find the target for
-   * @param senderAccount the transaction sender account
    * @return the effective target address of tx
    */
   private static Address effectiveToAddress(Transaction tx, Address fromAddress, long fromNonce) {
-    return tx.getTo()
-        .map(x -> (Address) x)
-        .orElse(Address.contractAddress(fromAddress, fromNonce));
+    return tx.getTo().map(x -> (Address) x).orElse(Address.contractAddress(fromAddress, fromNonce));
   }
 
   @Override
@@ -491,12 +382,12 @@ public class Hub implements Module {
   }
 
   @Override
-  public void traceEndTx() {
+  public void traceEndTx(final Bytes output, final long gasUsed) {
     this.txState = TxState.TX_FINAL;
     this.processStateFinal();
 
-    for (Latch l: this.transactionLatches) {
-      l.execute(this);
+    for (TransactionDefer defer : this.transactionLatches) {
+      defer.run(this, null, null); // TODO
     }
     this.transactionLatches.clear();
   }
@@ -508,14 +399,13 @@ public class Hub implements Module {
         || (frame.getRecipientAddress().equals(ADDRESS_ZERO)
             && frame.getInputData().isEmpty())) { // contract creation without initcode
       this.txState = TxState.TX_SKIP;
-      this.traceSkippedTx(frame);
+      this.processStateSkip(frame);
       return;
     }
 
     var to = this.currentTx.getTo();
     boolean isDeployment = to.isEmpty();
-    Address toAddress =
-        effectiveToAddress(this.currentTx, frame.getWorldUpdater().getSenderAccount(frame));
+    Address toAddress = effectiveToAddress(this.currentTx, to.get(), 0);
     this.callStack =
         new CallStack(
             toAddress,
@@ -561,18 +451,28 @@ public class Hub implements Module {
   @Override
   public void traceContextEnter(MessageFrame frame) {
     this.maxContextNumber += 1;
+
+    final boolean isDeployment = frame.getType() == MessageFrame.Type.CONTRACT_CREATION;
+    final Address codeAddress = frame.getContractAddress();
+    final CallFrameType frameType =
+        frame.isStatic() ? CallFrameType.STATIC : CallFrameType.STANDARD;
+    if (isDeployment) {
+      this.deploymentNumber.put(
+          codeAddress, this.deploymentNumber.getOrDefault(codeAddress, 0) + 1);
+    }
+    final int codeDeploymentNumber = this.deploymentNumber.getOrDefault(codeAddress, 0);
     this.callStack.enter(
         frame.getContractAddress(),
         frame.getCode(),
-        this.callStack.top().getType().ofOpCode(OpCode.of(frame.getCurrentOperation().getOpcode())),
+        frameType,
         frame.getValue(),
         frame.getRemainingGas(),
         this.trace.size(),
         frame.getInputData(),
-        this.maxContextNumber,
-        0,
-        this.deploymentNumber.getOrDefault(frame.getContractAddress(), 0),
-        false);
+        this.deploymentNumber.getOrDefault(this.currentFrame().getAddress(), 0),
+        this.deploymentNumber.getOrDefault(codeAddress, 0),
+        codeDeploymentNumber,
+        isDeployment);
   }
 
   @Override

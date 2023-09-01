@@ -111,9 +111,9 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
 
   @Override
   public void traceEndTransaction(final Bytes output, final long gasUsed, final long timeNs) {
-    this.hub.traceEndTx();
+    this.hub.traceEndTx(output, gasUsed);
     for (Module module : this.modules) {
-      module.traceEndTx();
+      module.traceEndTx(output, gasUsed);
     }
   }
 

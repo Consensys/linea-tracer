@@ -22,17 +22,16 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
-import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public record TransactionChunk(
-    int batchNumber, MessageFrame frame, Transaction tx, boolean evmExecutes)
+    int batchNumber, Address minerAddress, Transaction tx, boolean evmExecutes)
     implements TraceChunk {
   @Override
   public Trace.TraceBuilder trace(Trace.TraceBuilder trace) {
     final EWord deploymentAddress = EWord.of(Address.EMPTY); // TODO compute deployment address
     final EWord to = tx.getTo().map(EWord::of).orElse(deploymentAddress);
     final EWord from = EWord.of(tx.getSender());
-    final EWord miner = EWord.of(frame.getMiningBeneficiary());
+    final EWord miner = EWord.of(minerAddress);
 
     return trace
         .peekAtTransaction(true)

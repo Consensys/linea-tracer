@@ -444,7 +444,7 @@ public class RlpTxrcpt implements Module {
     traceValue.isTopic = isTopic;
     traceValue.isData = isData;
 
-    Bytes input1RightShift = padToGivenSizeWithLeftZero(traceValue.input1, 8);
+    Bytes input1RightShift = toGivenSize(traceValue.input1, 8);
     long acc2LastRow = 0;
 
     if (length >= 56) {
@@ -453,11 +453,11 @@ public class RlpTxrcpt implements Module {
       acc2LastRow = 55 - length;
     }
 
-    Bytes acc2LastRowShift = padToGivenSizeWithLeftZero(Bytes.ofUnsignedInt(acc2LastRow), 8);
+    Bytes acc2LastRowShift = toGivenSize(Bytes.ofUnsignedInt(acc2LastRow), 8);
     for (int ct = 0; ct < 8; ct++) {
       traceValue.counter = ct;
-      traceValue.accSize = byteCountingOutput.getAccByteSizeList().get(ct);
-      traceValue.power = byteCountingOutput.getPowerList().get(ct);
+      traceValue.accSize = byteCountingOutput.accByteSizeList.get(ct);
+      traceValue.power = byteCountingOutput.powerList.get(ct);
       traceValue.byte1 = input1RightShift.get(ct);
       traceValue.acc1 = input1RightShift.slice(0, ct + 1);
       traceValue.byte2 = acc2LastRowShift.get(ct);
@@ -521,7 +521,7 @@ public class RlpTxrcpt implements Module {
         Bytes.ofUnsignedInt(input).size() - Bytes.ofUnsignedInt(input).numberOfLeadingZeroBytes();
     RlpByteCountAndPowerOutput byteCountingOutput = byteCounting(inputSize, 8);
 
-    Bytes inputBytes = padToGivenSizeWithLeftZero(Bytes.ofUnsignedInt(input), 8);
+    Bytes inputBytes = toGivenSize(Bytes.ofUnsignedInt(input), 8);
     RlpBitDecOutput bitDecOutput =
         bitDecomposition(0xff & inputBytes.get(inputBytes.size() - 1), 8);
 
@@ -531,10 +531,10 @@ public class RlpTxrcpt implements Module {
       traceValue.counter = ct;
       traceValue.byte1 = inputBytes.get(ct);
       traceValue.acc1 = inputBytes.slice(0, ct + 1);
-      traceValue.power = byteCountingOutput.getPowerList().get(ct);
-      traceValue.accSize = byteCountingOutput.getAccByteSizeList().get(ct);
-      traceValue.bit = bitDecOutput.getBitDecList().get(ct);
-      traceValue.bitAcc = bitDecOutput.getBitAccList().get(ct);
+      traceValue.power = byteCountingOutput.powerList.get(ct);
+      traceValue.accSize = byteCountingOutput.accByteSizeList.get(ct);
+      traceValue.bit = bitDecOutput.bitDecList.get(ct);
+      traceValue.bitAcc = bitDecOutput.bitAccList.get(ct);
 
       if (input >= 128 && ct == 6) {
         traceValue.limbConstructed = true;
@@ -643,7 +643,7 @@ public class RlpTxrcpt implements Module {
    * Returns the size of RLP(something) where something is of size inputSize (!=1) (it can be ZERO
    * though).
    */
-  public static int outerRlpSize(int inputSize) {
+  public int outerRlpSize(int inputSize) {
     int rlpSize = inputSize;
     if (inputSize == 1) {
       // TODO panic
@@ -723,33 +723,11 @@ public class RlpTxrcpt implements Module {
    * @param wantedSize
    * @return
    */
-  public static Bytes padToGivenSizeWithLeftZero(Bytes input, int wantedSize) {
-    Preconditions.checkArgument(
-        wantedSize >= input.size(), "wantedSize can't be shorter than the input size");
+  public Bytes toGivenSize(Bytes input, int wantedSize) {
+    assert wantedSize >= input.size() : " wantedSize can't be shorter than the input size";
     byte nullByte = 0;
 
     return Bytes.concatenate(Bytes.repeat(nullByte, wantedSize - input.size()), input);
-  }
-
-  public static Bytes bigIntegerToBytes(BigInteger big) {
-    byte[] byteArray;
-    byteArray = big.toByteArray();
-    Bytes bytes;
-    if (byteArray[0] == 0) {
-      Bytes tmp = Bytes.wrap(byteArray);
-      bytes = Bytes.wrap(tmp.slice(1, tmp.size() - 1));
-    } else {
-      bytes = Bytes.wrap(byteArray);
-    }
-    return bytes;
-  }
-
-  public static Bytes padToGivenSizeWithRightZero(Bytes input, int wantedSize) {
-    Preconditions.checkArgument(
-        wantedSize >= input.size(), "wantedSize can't be shorter than the input size");
-    byte nullByte = 0;
-
-    return Bytes.concatenate(input, Bytes.repeat(nullByte, wantedSize - input.size()));
   }
 
   /**

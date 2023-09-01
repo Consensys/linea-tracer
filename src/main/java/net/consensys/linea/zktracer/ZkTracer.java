@@ -24,8 +24,7 @@ import net.consensys.linea.zktracer.module.ext.Ext;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.mul.Mul;
-import net.consensys.linea.zktracer.module.rlp_txn.RlpTxn;
-import net.consensys.linea.zktracer.module.rlp_txrcpt.RlpTxrcpt;
+import net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxrcpt;
 import net.consensys.linea.zktracer.module.shf.Shf;
 import net.consensys.linea.zktracer.module.trm.Trm;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
@@ -44,7 +43,6 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
   private final ZkTraceBuilder zkTraceBuilder = new ZkTraceBuilder();
   private final Hub hub;
 
-  public final RlpTxrcpt rlpTxrcpt = new RlpTxrcpt();
   private final List<Module> modules;
 
   public ZkTracer() {
@@ -69,9 +67,8 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
 
   public ZkTrace getTrace() {
     zkTraceBuilder.addTrace(this.hub);
-    zkTraceBuilder.addTrace(this.rlpTxrcpt);
     for (Module module : this.modules) {
-      // zkTraceBuilder.addTrace(module);
+      zkTraceBuilder.addTrace(module);
     }
 
     return zkTraceBuilder.build();
@@ -87,7 +84,6 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
 
   @Override
   public void traceEndConflation() {
-    this.rlpTxrcpt.traceEndConflation();
     for (Module module : this.modules) {
       module.traceEndConflation();
     }

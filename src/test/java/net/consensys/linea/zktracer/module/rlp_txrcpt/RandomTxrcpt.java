@@ -27,7 +27,8 @@ public class RandomTxrcpt {
             List.of(
                 new Log(
                     Address.wrap(Bytes.random(20)),
-                    Bytes.random(16),
+                    Bytes.random(134),
+                 // Bytes.ofUnsignedInt(234),
                     List.of(LogTopic.of(Bytes.random(32)), LogTopic.of(Bytes.random(32))))),
             Optional.empty());
     // TransactionReceipt randomTxrcpt = new

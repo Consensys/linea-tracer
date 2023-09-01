@@ -87,6 +87,7 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
 
   @Override
   public void traceEndConflation() {
+    this.rlpTxrcpt.traceEndConflation();
     for (Module module : this.modules) {
       module.traceEndConflation();
     }

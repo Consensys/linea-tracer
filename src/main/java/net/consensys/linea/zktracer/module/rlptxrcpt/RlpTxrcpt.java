@@ -456,8 +456,8 @@ public class RlpTxrcpt implements Module {
     Bytes acc2LastRowShift = toGivenSize(Bytes.ofUnsignedInt(acc2LastRow), 8);
     for (int ct = 0; ct < 8; ct++) {
       traceValue.counter = ct;
-      traceValue.accSize = byteCountingOutput.accByteSizeList.get(ct);
-      traceValue.power = byteCountingOutput.powerList.get(ct);
+      traceValue.accSize = byteCountingOutput.getAccByteSizeList().get(ct);
+      traceValue.power = byteCountingOutput.getPowerList().get(ct);
       traceValue.byte1 = input1RightShift.get(ct);
       traceValue.acc1 = input1RightShift.slice(0, ct + 1);
       traceValue.byte2 = acc2LastRowShift.get(ct);
@@ -531,10 +531,10 @@ public class RlpTxrcpt implements Module {
       traceValue.counter = ct;
       traceValue.byte1 = inputBytes.get(ct);
       traceValue.acc1 = inputBytes.slice(0, ct + 1);
-      traceValue.power = byteCountingOutput.powerList.get(ct);
-      traceValue.accSize = byteCountingOutput.accByteSizeList.get(ct);
-      traceValue.bit = bitDecOutput.bitDecList.get(ct);
-      traceValue.bitAcc = bitDecOutput.bitAccList.get(ct);
+      traceValue.power = byteCountingOutput.getPowerList().get(ct);
+      traceValue.accSize = byteCountingOutput.getAccByteSizeList().get(ct);
+      traceValue.bit = bitDecOutput.getBitDecList().get(ct);
+      traceValue.bitAcc = bitDecOutput.getBitAccList().get(ct);
 
       if (input >= 128 && ct == 6) {
         traceValue.limbConstructed = true;
@@ -724,7 +724,8 @@ public class RlpTxrcpt implements Module {
    * @return
    */
   public Bytes toGivenSize(Bytes input, int wantedSize) {
-    assert wantedSize >= input.size() : " wantedSize can't be shorter than the input size";
+    Preconditions.checkArgument(
+        wantedSize >= input.size(), "wantedSize can't be shorter than the input size");
     byte nullByte = 0;
 
     return Bytes.concatenate(Bytes.repeat(nullByte, wantedSize - input.size()), input);

@@ -236,7 +236,8 @@ public class RlpTxrcpt implements Module {
         TraceRow(traceValue);
 
         traceValue.COUNTER = 2;
-        traceValue.LIMB = txrcpt.getLogs().get(i).getLogger().slice(4, LLARGE).toUnsignedBigInteger();
+        traceValue.LIMB =
+            txrcpt.getLogs().get(i).getLogger().slice(4, LLARGE).toUnsignedBigInteger();
         traceValue.nBYTES = LLARGE;
         TraceRow(traceValue);
 
@@ -353,7 +354,8 @@ public class RlpTxrcpt implements Module {
         /** Tracing the Data */
         if (!txrcpt.getLogs().get(i).getData().isEmpty()) {
           int nbDataSlice = 1 + (txrcpt.getLogs().get(i).getData().size() - 1) / 16;
-          int sizeDataLastSlice = txrcpt.getLogs().get(i).getData().size() - LLARGE*(nbDataSlice-1);
+          int sizeDataLastSlice =
+              txrcpt.getLogs().get(i).getData().size() - LLARGE * (nbDataSlice - 1);
           if (sizeDataLastSlice == 0) {
             sizeDataLastSlice = LLARGE;
           }
@@ -370,20 +372,22 @@ public class RlpTxrcpt implements Module {
               traceValue.LIMB = traceValue.INPUT_1.toUnsignedBigInteger();
               traceValue.nBYTES = LLARGE;
               traceValue.LOCAL_SIZE -= LLARGE;
+              TraceRow(traceValue);
             } else {
               traceValue.INPUT_1 =
-                  txrcpt
-                      .getLogs()
-                      .get(i)
-                      .getData()
-                      .slice(LLARGE * ct, sizeDataLastSlice)
-                      .shiftLeft(LLARGE - sizeDataLastSlice);
+                  txrcpt.getLogs().get(i).getData().slice(LLARGE * ct, sizeDataLastSlice);
               traceValue.LIMB = traceValue.INPUT_1.toUnsignedBigInteger();
               traceValue.nBYTES = sizeDataLastSlice;
               traceValue.LOCAL_SIZE -= sizeDataLastSlice;
               traceValue.PHASE_END = (i == nbLog - 1);
+              TraceRow(traceValue);
+              this.trace.setInput1Relative(
+                  traceValue
+                      .INPUT_1
+                      .toUnsignedBigInteger()
+                      .shiftLeft(8 * (LLARGE - traceValue.nBYTES)),
+                  0);
             }
-            TraceRow(traceValue);
           }
         }
       }
@@ -410,14 +414,14 @@ public class RlpTxrcpt implements Module {
     traceValue.DEPTH_1 = depth1;
     traceValue.IS_TOPIC = isTopic;
     traceValue.IS_DATA = isData;
-    Bytes INPUT1_rightshift = ToGivenSize(traceValue.INPUT_1, 8);
+    Bytes INPUT1_rightshift = addLeftZeroToGivenSize(traceValue.INPUT_1, 8);
     long ACC2LastRow = 0;
     if (length >= 56) {
       ACC2LastRow = length - 56;
     } else {
       ACC2LastRow = 55 - length;
     }
-    Bytes Acc2LastRowShift = ToGivenSize(Bytes.ofUnsignedInt(ACC2LastRow), 8);
+    Bytes Acc2LastRowShift = addLeftZeroToGivenSize(Bytes.ofUnsignedInt(ACC2LastRow), 8);
     for (int ct = 0; ct < 8; ct++) {
       traceValue.COUNTER = ct;
       traceValue.ACC_SIZE = byteCountingOutput.AccByteSizeList.get(ct);
@@ -474,7 +478,7 @@ public class RlpTxrcpt implements Module {
     int inputSize =
         Bytes.ofUnsignedInt(input).size() - Bytes.ofUnsignedInt(input).numberOfLeadingZeroBytes();
     traceValue.PartialReset(phase, 8);
-    Bytes inputBytes = ToGivenSize(Bytes.ofUnsignedInt(input), 8);
+    Bytes inputBytes = addLeftZeroToGivenSize(Bytes.ofUnsignedInt(input), 8);
     traceValue.IS_PREFIX = isPrefix;
     traceValue.DEPTH_1 = depth1;
     traceValue.IS_TOPIC = isTopic;
@@ -596,15 +600,15 @@ public class RlpTxrcpt implements Module {
    * though).
    */
   public int OuterRlpSize(int inputSize) {
-    int rlpSize = inputSize;
-    if (inputSize == 1) {
-      /** TODO panic */
-    } else {
-      rlpSize += 1;
-      if (inputSize >= 56) {
-        rlpSize += Bytes.ofUnsignedShort(inputSize).size();
-      }
+    assert (inputSize != 1);
+    int rlpSize = inputSize + 1;
+
+    if (inputSize >= 56) {
+      rlpSize +=
+          Bytes.ofUnsignedShort(inputSize).size()
+              - Bytes.ofUnsignedShort(inputSize).numberOfLeadingZeroBytes();
     }
+
     return rlpSize;
   }
 
@@ -664,7 +668,7 @@ public class RlpTxrcpt implements Module {
    * Add 0's to the left of the Bytes to create a Bytes of the given size. The wantedSize must be at
    * least the size of the Bytes
    */
-  public Bytes ToGivenSize(Bytes input, int wantedSize) {
+  public Bytes addLeftZeroToGivenSize(Bytes input, int wantedSize) {
     assert wantedSize >= input.size() : " wantedSize can't be shorter than the input size";
     byte nullbyte = 0;
     Bytes output = Bytes.concatenate(Bytes.repeat(nullbyte, wantedSize - input.size()), input);

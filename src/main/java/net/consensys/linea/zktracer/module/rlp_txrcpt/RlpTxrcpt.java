@@ -19,11 +19,11 @@ import org.hyperledger.besu.plugin.data.TransactionReceipt;
 
 public class RlpTxrcpt implements Module {
 
-  int LLARGE = RlpTxRcptTrace.LLARGE.intValue();
-  int int_short = RlpTxRcptTrace.int_short.intValue();
-  int int_long = RlpTxRcptTrace.int_long.intValue();
-  int list_short = RlpTxRcptTrace.list_short.intValue();
-  int list_long = RlpTxRcptTrace.list_long.intValue();
+  int LLARGE = RlpTxrcptTrace.LLARGE.intValue();
+  int int_short = RlpTxrcptTrace.int_short.intValue();
+  int int_long = RlpTxrcptTrace.int_long.intValue();
+  int list_short = RlpTxrcptTrace.list_short.intValue();
+  int list_long = RlpTxrcptTrace.list_long.intValue();
 
   int abs_tx_num = 0;
   int abs_log_num = 0;
@@ -149,25 +149,25 @@ public class RlpTxrcpt implements Module {
         switch (ct) {
           case 12:
             traceValue.LIMB_CONSTRUCTED = true;
-            traceValue.LIMB = traceValue.INPUT_1.toBigInteger();
+            traceValue.LIMB = traceValue.INPUT_1.toUnsignedBigInteger();
             traceValue.nBYTES = LLARGE;
             break;
 
           case 13:
             traceValue.LIMB_CONSTRUCTED = true;
-            traceValue.LIMB = traceValue.INPUT_2.toBigInteger();
+            traceValue.LIMB = traceValue.INPUT_2.toUnsignedBigInteger();
             traceValue.nBYTES = LLARGE;
             break;
 
           case 14:
             traceValue.LIMB_CONSTRUCTED = true;
-            traceValue.LIMB = traceValue.INPUT_3.toBigInteger();
+            traceValue.LIMB = traceValue.INPUT_3.toUnsignedBigInteger();
             traceValue.nBYTES = LLARGE;
             break;
 
           case 15:
             traceValue.LIMB_CONSTRUCTED = true;
-            traceValue.LIMB = traceValue.INPUT_4.toBigInteger();
+            traceValue.LIMB = traceValue.INPUT_4.toUnsignedBigInteger();
             traceValue.nBYTES = LLARGE;
             traceValue.PHASE_END = (i == 3);
             break;
@@ -231,12 +231,12 @@ public class RlpTxrcpt implements Module {
         TraceRow(traceValue);
 
         traceValue.COUNTER = 1;
-        traceValue.LIMB = txrcpt.getLogs().get(i).getLogger().slice(0, 4).toBigInteger();
+        traceValue.LIMB = txrcpt.getLogs().get(i).getLogger().slice(0, 4).toUnsignedBigInteger();
         traceValue.nBYTES = 4;
         TraceRow(traceValue);
 
         traceValue.COUNTER = 2;
-        traceValue.LIMB = txrcpt.getLogs().get(i).getLogger().slice(4, LLARGE).toBigInteger();
+        traceValue.LIMB = txrcpt.getLogs().get(i).getLogger().slice(4, LLARGE).toUnsignedBigInteger();
         traceValue.nBYTES = LLARGE;
         TraceRow(traceValue);
 
@@ -276,13 +276,13 @@ public class RlpTxrcpt implements Module {
             TraceRow(traceValue);
 
             traceValue.COUNTER = 1;
-            traceValue.LIMB = traceValue.INPUT_1.toBigInteger();
+            traceValue.LIMB = traceValue.INPUT_1.toUnsignedBigInteger();
             traceValue.nBYTES = LLARGE;
             traceValue.LOCAL_SIZE -= traceValue.nBYTES;
             TraceRow(traceValue);
 
             traceValue.COUNTER = 2;
-            traceValue.LIMB = traceValue.INPUT_2.toBigInteger();
+            traceValue.LIMB = traceValue.INPUT_2.toUnsignedBigInteger();
             traceValue.nBYTES = LLARGE;
             traceValue.LOCAL_SIZE -= traceValue.nBYTES;
             TraceRow(traceValue);
@@ -367,7 +367,7 @@ public class RlpTxrcpt implements Module {
             traceValue.INDEX_LOCAL = ct;
             if (!(ct == nbDataSlice - 1)) {
               traceValue.INPUT_1 = txrcpt.getLogs().get(i).getData().slice(LLARGE * ct, LLARGE);
-              traceValue.LIMB = traceValue.INPUT_1.toBigInteger();
+              traceValue.LIMB = traceValue.INPUT_1.toUnsignedBigInteger();
               traceValue.nBYTES = LLARGE;
               traceValue.LOCAL_SIZE -= LLARGE;
             } else {
@@ -378,7 +378,7 @@ public class RlpTxrcpt implements Module {
                       .getData()
                       .slice(LLARGE * ct, sizeDataLastSlice)
                       .shiftLeft(LLARGE - sizeDataLastSlice);
-              traceValue.LIMB = traceValue.INPUT_1.toBigInteger();
+              traceValue.LIMB = traceValue.INPUT_1.toUnsignedBigInteger();
               traceValue.nBYTES = sizeDataLastSlice;
               traceValue.LOCAL_SIZE -= sizeDataLastSlice;
               traceValue.PHASE_END = (i == nbLog - 1);
@@ -538,10 +538,10 @@ public class RlpTxrcpt implements Module {
         .absLogNumMax(BigInteger.ONE)
         .absTxNum(BigInteger.valueOf(this.abs_tx_num))
         .absTxNumMax(BigInteger.ONE)
-        .acc1(traceValue.ACC_1.toBigInteger())
-        .acc2(traceValue.ACC_2.toBigInteger())
-        .acc3(traceValue.ACC_3.toBigInteger())
-        .acc4(traceValue.ACC_4.toBigInteger())
+        .acc1(traceValue.ACC_1.toUnsignedBigInteger())
+        .acc2(traceValue.ACC_2.toUnsignedBigInteger())
+        .acc3(traceValue.ACC_3.toUnsignedBigInteger())
+        .acc4(traceValue.ACC_4.toUnsignedBigInteger())
         .accSize(BigInteger.valueOf(traceValue.ACC_SIZE))
         .bit(traceValue.BIT)
         .bitAcc(UnsignedByte.of(traceValue.BIT_ACC))
@@ -554,10 +554,10 @@ public class RlpTxrcpt implements Module {
         .done(traceValue.COUNTER == traceValue.nSTEP - 1)
         .index(BigInteger.valueOf(traceValue.INDEX))
         .indexLocal(BigInteger.valueOf(traceValue.INDEX_LOCAL))
-        .input1(traceValue.INPUT_1.toBigInteger())
-        .input2(traceValue.INPUT_2.toBigInteger())
-        .input3(traceValue.INPUT_3.toBigInteger())
-        .input4(traceValue.INPUT_4.toBigInteger())
+        .input1(traceValue.INPUT_1.toUnsignedBigInteger())
+        .input2(traceValue.INPUT_2.toUnsignedBigInteger())
+        .input3(traceValue.INPUT_3.toUnsignedBigInteger())
+        .input4(traceValue.INPUT_4.toUnsignedBigInteger())
         .isData(traceValue.IS_DATA)
         .isPrefix(traceValue.IS_PREFIX)
         .isTopic(traceValue.IS_TOPIC)

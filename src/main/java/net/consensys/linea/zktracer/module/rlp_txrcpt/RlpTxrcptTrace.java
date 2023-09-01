@@ -23,7 +23,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * WARNING: This code is generated automatically. Any modifications to this code may be overwritten
  * and could lead to unexpected behavior. Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
-record RlpTxRcptTrace(@JsonProperty("Trace") Trace trace) {
+record RlpTxrcptTrace(@JsonProperty("Trace") Trace trace) {
   static final BigInteger LLARGE = new BigInteger("16");
   static final BigInteger LLARGEMO = new BigInteger("15");
   static final BigInteger int_long = new BigInteger("183");

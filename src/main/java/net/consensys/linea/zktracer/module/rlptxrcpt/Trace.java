@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.rlp_txrcpt;
+package net.consensys.linea.zktracer.module.rlptxrcpt;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -207,7 +207,7 @@ record Trace(
     @JsonProperty("TXRCPT_SIZE")
     private final List<BigInteger> txrcptSize = new ArrayList<>();
 
-    TraceBuilder() {}
+    private TraceBuilder() {}
 
     int size() {
       if (!filled.isEmpty()) {
@@ -218,10 +218,10 @@ record Trace(
     }
 
     TraceBuilder absLogNum(final BigInteger b) {
-      if (filled.get(27)) {
+      if (filled.get(39)) {
         throw new IllegalStateException("ABS_LOG_NUM already set");
       } else {
-        filled.set(27);
+        filled.set(39);
       }
 
       absLogNum.add(b);
@@ -230,10 +230,10 @@ record Trace(
     }
 
     TraceBuilder absLogNumMax(final BigInteger b) {
-      if (filled.get(20)) {
+      if (filled.get(2)) {
         throw new IllegalStateException("ABS_LOG_NUM_MAX already set");
       } else {
-        filled.set(20);
+        filled.set(2);
       }
 
       absLogNumMax.add(b);
@@ -242,10 +242,10 @@ record Trace(
     }
 
     TraceBuilder absTxNum(final BigInteger b) {
-      if (filled.get(33)) {
+      if (filled.get(11)) {
         throw new IllegalStateException("ABS_TX_NUM already set");
       } else {
-        filled.set(33);
+        filled.set(11);
       }
 
       absTxNum.add(b);
@@ -254,10 +254,10 @@ record Trace(
     }
 
     TraceBuilder absTxNumMax(final BigInteger b) {
-      if (filled.get(23)) {
+      if (filled.get(25)) {
         throw new IllegalStateException("ABS_TX_NUM_MAX already set");
       } else {
-        filled.set(23);
+        filled.set(25);
       }
 
       absTxNumMax.add(b);
@@ -266,10 +266,10 @@ record Trace(
     }
 
     TraceBuilder acc1(final BigInteger b) {
-      if (filled.get(17)) {
+      if (filled.get(21)) {
         throw new IllegalStateException("ACC_1 already set");
       } else {
-        filled.set(17);
+        filled.set(21);
       }
 
       acc1.add(b);
@@ -278,10 +278,10 @@ record Trace(
     }
 
     TraceBuilder acc2(final BigInteger b) {
-      if (filled.get(31)) {
+      if (filled.get(4)) {
         throw new IllegalStateException("ACC_2 already set");
       } else {
-        filled.set(31);
+        filled.set(4);
       }
 
       acc2.add(b);
@@ -290,10 +290,10 @@ record Trace(
     }
 
     TraceBuilder acc3(final BigInteger b) {
-      if (filled.get(41)) {
+      if (filled.get(9)) {
         throw new IllegalStateException("ACC_3 already set");
       } else {
-        filled.set(41);
+        filled.set(9);
       }
 
       acc3.add(b);
@@ -302,10 +302,10 @@ record Trace(
     }
 
     TraceBuilder acc4(final BigInteger b) {
-      if (filled.get(19)) {
+      if (filled.get(36)) {
         throw new IllegalStateException("ACC_4 already set");
       } else {
-        filled.set(19);
+        filled.set(36);
       }
 
       acc4.add(b);
@@ -314,10 +314,10 @@ record Trace(
     }
 
     TraceBuilder accSize(final BigInteger b) {
-      if (filled.get(30)) {
+      if (filled.get(16)) {
         throw new IllegalStateException("ACC_SIZE already set");
       } else {
-        filled.set(30);
+        filled.set(16);
       }
 
       accSize.add(b);
@@ -326,10 +326,10 @@ record Trace(
     }
 
     TraceBuilder bit(final Boolean b) {
-      if (filled.get(6)) {
+      if (filled.get(10)) {
         throw new IllegalStateException("BIT already set");
       } else {
-        filled.set(6);
+        filled.set(10);
       }
 
       bit.add(b);
@@ -338,10 +338,10 @@ record Trace(
     }
 
     TraceBuilder bitAcc(final UnsignedByte b) {
-      if (filled.get(13)) {
+      if (filled.get(23)) {
         throw new IllegalStateException("BIT_ACC already set");
       } else {
-        filled.set(13);
+        filled.set(23);
       }
 
       bitAcc.add(b);
@@ -350,10 +350,10 @@ record Trace(
     }
 
     TraceBuilder byte1(final UnsignedByte b) {
-      if (filled.get(0)) {
+      if (filled.get(29)) {
         throw new IllegalStateException("BYTE_1 already set");
       } else {
-        filled.set(0);
+        filled.set(29);
       }
 
       byte1.add(b);
@@ -362,10 +362,10 @@ record Trace(
     }
 
     TraceBuilder byte2(final UnsignedByte b) {
-      if (filled.get(40)) {
+      if (filled.get(34)) {
         throw new IllegalStateException("BYTE_2 already set");
       } else {
-        filled.set(40);
+        filled.set(34);
       }
 
       byte2.add(b);
@@ -374,10 +374,10 @@ record Trace(
     }
 
     TraceBuilder byte3(final UnsignedByte b) {
-      if (filled.get(1)) {
+      if (filled.get(19)) {
         throw new IllegalStateException("BYTE_3 already set");
       } else {
-        filled.set(1);
+        filled.set(19);
       }
 
       byte3.add(b);
@@ -386,10 +386,10 @@ record Trace(
     }
 
     TraceBuilder byte4(final UnsignedByte b) {
-      if (filled.get(11)) {
+      if (filled.get(22)) {
         throw new IllegalStateException("BYTE_4 already set");
       } else {
-        filled.set(11);
+        filled.set(22);
       }
 
       byte4.add(b);
@@ -398,10 +398,10 @@ record Trace(
     }
 
     TraceBuilder counter(final UnsignedByte b) {
-      if (filled.get(29)) {
+      if (filled.get(32)) {
         throw new IllegalStateException("COUNTER already set");
       } else {
-        filled.set(29);
+        filled.set(32);
       }
 
       counter.add(b);
@@ -410,10 +410,10 @@ record Trace(
     }
 
     TraceBuilder depth1(final Boolean b) {
-      if (filled.get(37)) {
+      if (filled.get(24)) {
         throw new IllegalStateException("DEPTH_1 already set");
       } else {
-        filled.set(37);
+        filled.set(24);
       }
 
       depth1.add(b);
@@ -422,10 +422,10 @@ record Trace(
     }
 
     TraceBuilder done(final Boolean b) {
-      if (filled.get(9)) {
+      if (filled.get(38)) {
         throw new IllegalStateException("DONE already set");
       } else {
-        filled.set(9);
+        filled.set(38);
       }
 
       done.add(b);
@@ -434,10 +434,10 @@ record Trace(
     }
 
     TraceBuilder index(final BigInteger b) {
-      if (filled.get(10)) {
+      if (filled.get(27)) {
         throw new IllegalStateException("INDEX already set");
       } else {
-        filled.set(10);
+        filled.set(27);
       }
 
       index.add(b);
@@ -446,10 +446,10 @@ record Trace(
     }
 
     TraceBuilder indexLocal(final BigInteger b) {
-      if (filled.get(25)) {
+      if (filled.get(37)) {
         throw new IllegalStateException("INDEX_LOCAL already set");
       } else {
-        filled.set(25);
+        filled.set(37);
       }
 
       indexLocal.add(b);
@@ -458,10 +458,10 @@ record Trace(
     }
 
     TraceBuilder input1(final BigInteger b) {
-      if (filled.get(8)) {
+      if (filled.get(41)) {
         throw new IllegalStateException("INPUT_1 already set");
       } else {
-        filled.set(8);
+        filled.set(41);
       }
 
       input1.add(b);
@@ -470,10 +470,10 @@ record Trace(
     }
 
     TraceBuilder input2(final BigInteger b) {
-      if (filled.get(28)) {
+      if (filled.get(7)) {
         throw new IllegalStateException("INPUT_2 already set");
       } else {
-        filled.set(28);
+        filled.set(7);
       }
 
       input2.add(b);
@@ -482,10 +482,10 @@ record Trace(
     }
 
     TraceBuilder input3(final BigInteger b) {
-      if (filled.get(36)) {
+      if (filled.get(3)) {
         throw new IllegalStateException("INPUT_3 already set");
       } else {
-        filled.set(36);
+        filled.set(3);
       }
 
       input3.add(b);
@@ -494,10 +494,10 @@ record Trace(
     }
 
     TraceBuilder input4(final BigInteger b) {
-      if (filled.get(22)) {
+      if (filled.get(8)) {
         throw new IllegalStateException("INPUT_4 already set");
       } else {
-        filled.set(22);
+        filled.set(8);
       }
 
       input4.add(b);
@@ -506,10 +506,10 @@ record Trace(
     }
 
     TraceBuilder isData(final Boolean b) {
-      if (filled.get(38)) {
+      if (filled.get(6)) {
         throw new IllegalStateException("IS_DATA already set");
       } else {
-        filled.set(38);
+        filled.set(6);
       }
 
       isData.add(b);
@@ -518,10 +518,10 @@ record Trace(
     }
 
     TraceBuilder isPrefix(final Boolean b) {
-      if (filled.get(26)) {
+      if (filled.get(0)) {
         throw new IllegalStateException("IS_PREFIX already set");
       } else {
-        filled.set(26);
+        filled.set(0);
       }
 
       isPrefix.add(b);
@@ -530,10 +530,10 @@ record Trace(
     }
 
     TraceBuilder isTopic(final Boolean b) {
-      if (filled.get(3)) {
+      if (filled.get(5)) {
         throw new IllegalStateException("IS_TOPIC already set");
       } else {
-        filled.set(3);
+        filled.set(5);
       }
 
       isTopic.add(b);
@@ -542,10 +542,10 @@ record Trace(
     }
 
     TraceBuilder lcCorrection(final Boolean b) {
-      if (filled.get(15)) {
+      if (filled.get(1)) {
         throw new IllegalStateException("LC_CORRECTION already set");
       } else {
-        filled.set(15);
+        filled.set(1);
       }
 
       lcCorrection.add(b);
@@ -554,10 +554,10 @@ record Trace(
     }
 
     TraceBuilder limb(final BigInteger b) {
-      if (filled.get(5)) {
+      if (filled.get(40)) {
         throw new IllegalStateException("LIMB already set");
       } else {
-        filled.set(5);
+        filled.set(40);
       }
 
       limb.add(b);
@@ -566,10 +566,10 @@ record Trace(
     }
 
     TraceBuilder limbConstructed(final Boolean b) {
-      if (filled.get(24)) {
+      if (filled.get(18)) {
         throw new IllegalStateException("LIMB_CONSTRUCTED already set");
       } else {
-        filled.set(24);
+        filled.set(18);
       }
 
       limbConstructed.add(b);
@@ -578,10 +578,10 @@ record Trace(
     }
 
     TraceBuilder localSize(final BigInteger b) {
-      if (filled.get(16)) {
+      if (filled.get(13)) {
         throw new IllegalStateException("LOCAL_SIZE already set");
       } else {
-        filled.set(16);
+        filled.set(13);
       }
 
       localSize.add(b);
@@ -590,10 +590,10 @@ record Trace(
     }
 
     TraceBuilder logEntrySize(final BigInteger b) {
-      if (filled.get(42)) {
+      if (filled.get(28)) {
         throw new IllegalStateException("LOG_ENTRY_SIZE already set");
       } else {
-        filled.set(42);
+        filled.set(28);
       }
 
       logEntrySize.add(b);
@@ -602,10 +602,10 @@ record Trace(
     }
 
     TraceBuilder nBytes(final UnsignedByte b) {
-      if (filled.get(4)) {
+      if (filled.get(12)) {
         throw new IllegalStateException("nBYTES already set");
       } else {
-        filled.set(4);
+        filled.set(12);
       }
 
       nBytes.add(b);
@@ -614,10 +614,10 @@ record Trace(
     }
 
     TraceBuilder nStep(final UnsignedByte b) {
-      if (filled.get(21)) {
+      if (filled.get(15)) {
         throw new IllegalStateException("nSTEP already set");
       } else {
-        filled.set(21);
+        filled.set(15);
       }
 
       nStep.add(b);
@@ -626,10 +626,10 @@ record Trace(
     }
 
     TraceBuilder phase0(final Boolean b) {
-      if (filled.get(2)) {
+      if (filled.get(14)) {
         throw new IllegalStateException("PHASE_0 already set");
       } else {
-        filled.set(2);
+        filled.set(14);
       }
 
       phase0.add(b);
@@ -638,10 +638,10 @@ record Trace(
     }
 
     TraceBuilder phase1(final Boolean b) {
-      if (filled.get(34)) {
+      if (filled.get(17)) {
         throw new IllegalStateException("PHASE_1 already set");
       } else {
-        filled.set(34);
+        filled.set(17);
       }
 
       phase1.add(b);
@@ -650,10 +650,10 @@ record Trace(
     }
 
     TraceBuilder phase2(final Boolean b) {
-      if (filled.get(39)) {
+      if (filled.get(35)) {
         throw new IllegalStateException("PHASE_2 already set");
       } else {
-        filled.set(39);
+        filled.set(35);
       }
 
       phase2.add(b);
@@ -662,10 +662,10 @@ record Trace(
     }
 
     TraceBuilder phase3(final Boolean b) {
-      if (filled.get(12)) {
+      if (filled.get(30)) {
         throw new IllegalStateException("PHASE_3 already set");
       } else {
-        filled.set(12);
+        filled.set(30);
       }
 
       phase3.add(b);
@@ -674,10 +674,10 @@ record Trace(
     }
 
     TraceBuilder phase4(final Boolean b) {
-      if (filled.get(7)) {
+      if (filled.get(31)) {
         throw new IllegalStateException("PHASE_4 already set");
       } else {
-        filled.set(7);
+        filled.set(31);
       }
 
       phase4.add(b);
@@ -686,10 +686,10 @@ record Trace(
     }
 
     TraceBuilder phaseEnd(final Boolean b) {
-      if (filled.get(35)) {
+      if (filled.get(42)) {
         throw new IllegalStateException("PHASE_END already set");
       } else {
-        filled.set(35);
+        filled.set(42);
       }
 
       phaseEnd.add(b);
@@ -698,10 +698,10 @@ record Trace(
     }
 
     TraceBuilder phaseSize(final BigInteger b) {
-      if (filled.get(18)) {
+      if (filled.get(20)) {
         throw new IllegalStateException("PHASE_SIZE already set");
       } else {
-        filled.set(18);
+        filled.set(20);
       }
 
       phaseSize.add(b);
@@ -710,10 +710,10 @@ record Trace(
     }
 
     TraceBuilder power(final BigInteger b) {
-      if (filled.get(14)) {
+      if (filled.get(26)) {
         throw new IllegalStateException("POWER already set");
       } else {
-        filled.set(14);
+        filled.set(26);
       }
 
       power.add(b);
@@ -722,10 +722,10 @@ record Trace(
     }
 
     TraceBuilder txrcptSize(final BigInteger b) {
-      if (filled.get(32)) {
+      if (filled.get(33)) {
         throw new IllegalStateException("TXRCPT_SIZE already set");
       } else {
-        filled.set(32);
+        filled.set(33);
       }
 
       txrcptSize.add(b);
@@ -1250,175 +1250,175 @@ record Trace(
     }
 
     TraceBuilder validateRow() {
-      if (!filled.get(27)) {
+      if (!filled.get(39)) {
         throw new IllegalStateException("ABS_LOG_NUM has not been filled");
       }
 
-      if (!filled.get(20)) {
+      if (!filled.get(2)) {
         throw new IllegalStateException("ABS_LOG_NUM_MAX has not been filled");
       }
 
-      if (!filled.get(33)) {
+      if (!filled.get(11)) {
         throw new IllegalStateException("ABS_TX_NUM has not been filled");
       }
 
-      if (!filled.get(23)) {
+      if (!filled.get(25)) {
         throw new IllegalStateException("ABS_TX_NUM_MAX has not been filled");
       }
 
-      if (!filled.get(17)) {
+      if (!filled.get(21)) {
         throw new IllegalStateException("ACC_1 has not been filled");
       }
 
-      if (!filled.get(31)) {
+      if (!filled.get(4)) {
         throw new IllegalStateException("ACC_2 has not been filled");
       }
 
-      if (!filled.get(41)) {
+      if (!filled.get(9)) {
         throw new IllegalStateException("ACC_3 has not been filled");
       }
 
-      if (!filled.get(19)) {
+      if (!filled.get(36)) {
         throw new IllegalStateException("ACC_4 has not been filled");
       }
 
-      if (!filled.get(30)) {
+      if (!filled.get(16)) {
         throw new IllegalStateException("ACC_SIZE has not been filled");
       }
 
-      if (!filled.get(6)) {
+      if (!filled.get(10)) {
         throw new IllegalStateException("BIT has not been filled");
       }
 
-      if (!filled.get(13)) {
+      if (!filled.get(23)) {
         throw new IllegalStateException("BIT_ACC has not been filled");
       }
 
-      if (!filled.get(0)) {
+      if (!filled.get(29)) {
         throw new IllegalStateException("BYTE_1 has not been filled");
       }
 
-      if (!filled.get(40)) {
+      if (!filled.get(34)) {
         throw new IllegalStateException("BYTE_2 has not been filled");
       }
 
-      if (!filled.get(1)) {
+      if (!filled.get(19)) {
         throw new IllegalStateException("BYTE_3 has not been filled");
       }
 
-      if (!filled.get(11)) {
+      if (!filled.get(22)) {
         throw new IllegalStateException("BYTE_4 has not been filled");
       }
 
-      if (!filled.get(29)) {
+      if (!filled.get(32)) {
         throw new IllegalStateException("COUNTER has not been filled");
       }
 
-      if (!filled.get(37)) {
+      if (!filled.get(24)) {
         throw new IllegalStateException("DEPTH_1 has not been filled");
       }
 
-      if (!filled.get(9)) {
+      if (!filled.get(38)) {
         throw new IllegalStateException("DONE has not been filled");
       }
 
-      if (!filled.get(10)) {
+      if (!filled.get(27)) {
         throw new IllegalStateException("INDEX has not been filled");
       }
 
-      if (!filled.get(25)) {
+      if (!filled.get(37)) {
         throw new IllegalStateException("INDEX_LOCAL has not been filled");
       }
 
-      if (!filled.get(8)) {
+      if (!filled.get(41)) {
         throw new IllegalStateException("INPUT_1 has not been filled");
       }
 
-      if (!filled.get(28)) {
+      if (!filled.get(7)) {
         throw new IllegalStateException("INPUT_2 has not been filled");
       }
 
-      if (!filled.get(36)) {
+      if (!filled.get(3)) {
         throw new IllegalStateException("INPUT_3 has not been filled");
       }
 
-      if (!filled.get(22)) {
+      if (!filled.get(8)) {
         throw new IllegalStateException("INPUT_4 has not been filled");
       }
 
-      if (!filled.get(38)) {
+      if (!filled.get(6)) {
         throw new IllegalStateException("IS_DATA has not been filled");
       }
 
-      if (!filled.get(26)) {
+      if (!filled.get(0)) {
         throw new IllegalStateException("IS_PREFIX has not been filled");
       }
 
-      if (!filled.get(3)) {
+      if (!filled.get(5)) {
         throw new IllegalStateException("IS_TOPIC has not been filled");
       }
 
-      if (!filled.get(15)) {
+      if (!filled.get(1)) {
         throw new IllegalStateException("LC_CORRECTION has not been filled");
       }
 
-      if (!filled.get(5)) {
+      if (!filled.get(40)) {
         throw new IllegalStateException("LIMB has not been filled");
       }
 
-      if (!filled.get(24)) {
+      if (!filled.get(18)) {
         throw new IllegalStateException("LIMB_CONSTRUCTED has not been filled");
       }
 
-      if (!filled.get(16)) {
+      if (!filled.get(13)) {
         throw new IllegalStateException("LOCAL_SIZE has not been filled");
       }
 
-      if (!filled.get(42)) {
+      if (!filled.get(28)) {
         throw new IllegalStateException("LOG_ENTRY_SIZE has not been filled");
       }
 
-      if (!filled.get(4)) {
+      if (!filled.get(12)) {
         throw new IllegalStateException("nBYTES has not been filled");
       }
 
-      if (!filled.get(21)) {
+      if (!filled.get(15)) {
         throw new IllegalStateException("nSTEP has not been filled");
       }
 
-      if (!filled.get(2)) {
+      if (!filled.get(14)) {
         throw new IllegalStateException("PHASE_0 has not been filled");
       }
 
-      if (!filled.get(34)) {
+      if (!filled.get(17)) {
         throw new IllegalStateException("PHASE_1 has not been filled");
       }
 
-      if (!filled.get(39)) {
+      if (!filled.get(35)) {
         throw new IllegalStateException("PHASE_2 has not been filled");
       }
 
-      if (!filled.get(12)) {
+      if (!filled.get(30)) {
         throw new IllegalStateException("PHASE_3 has not been filled");
       }
 
-      if (!filled.get(7)) {
+      if (!filled.get(31)) {
         throw new IllegalStateException("PHASE_4 has not been filled");
       }
 
-      if (!filled.get(35)) {
+      if (!filled.get(42)) {
         throw new IllegalStateException("PHASE_END has not been filled");
       }
 
-      if (!filled.get(18)) {
+      if (!filled.get(20)) {
         throw new IllegalStateException("PHASE_SIZE has not been filled");
       }
 
-      if (!filled.get(14)) {
+      if (!filled.get(26)) {
         throw new IllegalStateException("POWER has not been filled");
       }
 
-      if (!filled.get(32)) {
+      if (!filled.get(33)) {
         throw new IllegalStateException("TXRCPT_SIZE has not been filled");
       }
 
@@ -1428,177 +1428,177 @@ record Trace(
     }
 
     TraceBuilder fillAndValidateRow() {
-      if (!filled.get(27)) {
-        absLogNum.add(BigInteger.ZERO);
-        this.filled.set(27);
-      }
-      if (!filled.get(20)) {
-        absLogNumMax.add(BigInteger.ZERO);
-        this.filled.set(20);
-      }
-      if (!filled.get(33)) {
-        absTxNum.add(BigInteger.ZERO);
-        this.filled.set(33);
-      }
-      if (!filled.get(23)) {
-        absTxNumMax.add(BigInteger.ZERO);
-        this.filled.set(23);
-      }
-      if (!filled.get(17)) {
-        acc1.add(BigInteger.ZERO);
-        this.filled.set(17);
-      }
-      if (!filled.get(31)) {
-        acc2.add(BigInteger.ZERO);
-        this.filled.set(31);
-      }
-      if (!filled.get(41)) {
-        acc3.add(BigInteger.ZERO);
-        this.filled.set(41);
-      }
-      if (!filled.get(19)) {
-        acc4.add(BigInteger.ZERO);
-        this.filled.set(19);
-      }
-      if (!filled.get(30)) {
-        accSize.add(BigInteger.ZERO);
-        this.filled.set(30);
-      }
-      if (!filled.get(6)) {
-        bit.add(false);
-        this.filled.set(6);
-      }
-      if (!filled.get(13)) {
-        bitAcc.add(UnsignedByte.of(0));
-        this.filled.set(13);
-      }
-      if (!filled.get(0)) {
-        byte1.add(UnsignedByte.of(0));
-        this.filled.set(0);
-      }
-      if (!filled.get(40)) {
-        byte2.add(UnsignedByte.of(0));
-        this.filled.set(40);
-      }
-      if (!filled.get(1)) {
-        byte3.add(UnsignedByte.of(0));
-        this.filled.set(1);
-      }
-      if (!filled.get(11)) {
-        byte4.add(UnsignedByte.of(0));
-        this.filled.set(11);
-      }
-      if (!filled.get(29)) {
-        counter.add(UnsignedByte.of(0));
-        this.filled.set(29);
-      }
-      if (!filled.get(37)) {
-        depth1.add(false);
-        this.filled.set(37);
-      }
-      if (!filled.get(9)) {
-        done.add(false);
-        this.filled.set(9);
-      }
-      if (!filled.get(10)) {
-        index.add(BigInteger.ZERO);
-        this.filled.set(10);
-      }
-      if (!filled.get(25)) {
-        indexLocal.add(BigInteger.ZERO);
-        this.filled.set(25);
-      }
-      if (!filled.get(8)) {
-        input1.add(BigInteger.ZERO);
-        this.filled.set(8);
-      }
-      if (!filled.get(28)) {
-        input2.add(BigInteger.ZERO);
-        this.filled.set(28);
-      }
-      if (!filled.get(36)) {
-        input3.add(BigInteger.ZERO);
-        this.filled.set(36);
-      }
-      if (!filled.get(22)) {
-        input4.add(BigInteger.ZERO);
-        this.filled.set(22);
-      }
-      if (!filled.get(38)) {
-        isData.add(false);
-        this.filled.set(38);
-      }
-      if (!filled.get(26)) {
-        isPrefix.add(false);
-        this.filled.set(26);
-      }
-      if (!filled.get(3)) {
-        isTopic.add(false);
-        this.filled.set(3);
-      }
-      if (!filled.get(15)) {
-        lcCorrection.add(false);
-        this.filled.set(15);
-      }
-      if (!filled.get(5)) {
-        limb.add(BigInteger.ZERO);
-        this.filled.set(5);
-      }
-      if (!filled.get(24)) {
-        limbConstructed.add(false);
-        this.filled.set(24);
-      }
-      if (!filled.get(16)) {
-        localSize.add(BigInteger.ZERO);
-        this.filled.set(16);
-      }
-      if (!filled.get(42)) {
-        logEntrySize.add(BigInteger.ZERO);
-        this.filled.set(42);
-      }
-      if (!filled.get(4)) {
-        nBytes.add(UnsignedByte.of(0));
-        this.filled.set(4);
-      }
-      if (!filled.get(21)) {
-        nStep.add(UnsignedByte.of(0));
-        this.filled.set(21);
-      }
-      if (!filled.get(2)) {
-        phase0.add(false);
-        this.filled.set(2);
-      }
-      if (!filled.get(34)) {
-        phase1.add(false);
-        this.filled.set(34);
-      }
       if (!filled.get(39)) {
-        phase2.add(false);
+        absLogNum.add(BigInteger.ZERO);
         this.filled.set(39);
       }
-      if (!filled.get(12)) {
-        phase3.add(false);
-        this.filled.set(12);
+      if (!filled.get(2)) {
+        absLogNumMax.add(BigInteger.ZERO);
+        this.filled.set(2);
       }
-      if (!filled.get(7)) {
-        phase4.add(false);
-        this.filled.set(7);
+      if (!filled.get(11)) {
+        absTxNum.add(BigInteger.ZERO);
+        this.filled.set(11);
       }
-      if (!filled.get(35)) {
-        phaseEnd.add(false);
-        this.filled.set(35);
+      if (!filled.get(25)) {
+        absTxNumMax.add(BigInteger.ZERO);
+        this.filled.set(25);
       }
-      if (!filled.get(18)) {
-        phaseSize.add(BigInteger.ZERO);
-        this.filled.set(18);
+      if (!filled.get(21)) {
+        acc1.add(BigInteger.ZERO);
+        this.filled.set(21);
       }
-      if (!filled.get(14)) {
-        power.add(BigInteger.ZERO);
-        this.filled.set(14);
+      if (!filled.get(4)) {
+        acc2.add(BigInteger.ZERO);
+        this.filled.set(4);
+      }
+      if (!filled.get(9)) {
+        acc3.add(BigInteger.ZERO);
+        this.filled.set(9);
+      }
+      if (!filled.get(36)) {
+        acc4.add(BigInteger.ZERO);
+        this.filled.set(36);
+      }
+      if (!filled.get(16)) {
+        accSize.add(BigInteger.ZERO);
+        this.filled.set(16);
+      }
+      if (!filled.get(10)) {
+        bit.add(false);
+        this.filled.set(10);
+      }
+      if (!filled.get(23)) {
+        bitAcc.add(UnsignedByte.of(0));
+        this.filled.set(23);
+      }
+      if (!filled.get(29)) {
+        byte1.add(UnsignedByte.of(0));
+        this.filled.set(29);
+      }
+      if (!filled.get(34)) {
+        byte2.add(UnsignedByte.of(0));
+        this.filled.set(34);
+      }
+      if (!filled.get(19)) {
+        byte3.add(UnsignedByte.of(0));
+        this.filled.set(19);
+      }
+      if (!filled.get(22)) {
+        byte4.add(UnsignedByte.of(0));
+        this.filled.set(22);
       }
       if (!filled.get(32)) {
-        txrcptSize.add(BigInteger.ZERO);
+        counter.add(UnsignedByte.of(0));
         this.filled.set(32);
+      }
+      if (!filled.get(24)) {
+        depth1.add(false);
+        this.filled.set(24);
+      }
+      if (!filled.get(38)) {
+        done.add(false);
+        this.filled.set(38);
+      }
+      if (!filled.get(27)) {
+        index.add(BigInteger.ZERO);
+        this.filled.set(27);
+      }
+      if (!filled.get(37)) {
+        indexLocal.add(BigInteger.ZERO);
+        this.filled.set(37);
+      }
+      if (!filled.get(41)) {
+        input1.add(BigInteger.ZERO);
+        this.filled.set(41);
+      }
+      if (!filled.get(7)) {
+        input2.add(BigInteger.ZERO);
+        this.filled.set(7);
+      }
+      if (!filled.get(3)) {
+        input3.add(BigInteger.ZERO);
+        this.filled.set(3);
+      }
+      if (!filled.get(8)) {
+        input4.add(BigInteger.ZERO);
+        this.filled.set(8);
+      }
+      if (!filled.get(6)) {
+        isData.add(false);
+        this.filled.set(6);
+      }
+      if (!filled.get(0)) {
+        isPrefix.add(false);
+        this.filled.set(0);
+      }
+      if (!filled.get(5)) {
+        isTopic.add(false);
+        this.filled.set(5);
+      }
+      if (!filled.get(1)) {
+        lcCorrection.add(false);
+        this.filled.set(1);
+      }
+      if (!filled.get(40)) {
+        limb.add(BigInteger.ZERO);
+        this.filled.set(40);
+      }
+      if (!filled.get(18)) {
+        limbConstructed.add(false);
+        this.filled.set(18);
+      }
+      if (!filled.get(13)) {
+        localSize.add(BigInteger.ZERO);
+        this.filled.set(13);
+      }
+      if (!filled.get(28)) {
+        logEntrySize.add(BigInteger.ZERO);
+        this.filled.set(28);
+      }
+      if (!filled.get(12)) {
+        nBytes.add(UnsignedByte.of(0));
+        this.filled.set(12);
+      }
+      if (!filled.get(15)) {
+        nStep.add(UnsignedByte.of(0));
+        this.filled.set(15);
+      }
+      if (!filled.get(14)) {
+        phase0.add(false);
+        this.filled.set(14);
+      }
+      if (!filled.get(17)) {
+        phase1.add(false);
+        this.filled.set(17);
+      }
+      if (!filled.get(35)) {
+        phase2.add(false);
+        this.filled.set(35);
+      }
+      if (!filled.get(30)) {
+        phase3.add(false);
+        this.filled.set(30);
+      }
+      if (!filled.get(31)) {
+        phase4.add(false);
+        this.filled.set(31);
+      }
+      if (!filled.get(42)) {
+        phaseEnd.add(false);
+        this.filled.set(42);
+      }
+      if (!filled.get(20)) {
+        phaseSize.add(BigInteger.ZERO);
+        this.filled.set(20);
+      }
+      if (!filled.get(26)) {
+        power.add(BigInteger.ZERO);
+        this.filled.set(26);
+      }
+      if (!filled.get(33)) {
+        txrcptSize.add(BigInteger.ZERO);
+        this.filled.set(33);
       }
 
       return this.validateRow();

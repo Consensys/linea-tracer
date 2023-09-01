@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.rlp_txrcpt;
+package net.consensys.linea.zktracer.module.rlptxrcpt;
 
 import java.math.BigInteger;
 
@@ -26,8 +26,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 record RlpTxrcptTrace(@JsonProperty("Trace") Trace trace) {
   static final BigInteger LLARGE = new BigInteger("16");
   static final BigInteger LLARGEMO = new BigInteger("15");
-  static final BigInteger int_long = new BigInteger("183");
-  static final BigInteger int_short = new BigInteger("128");
-  static final BigInteger list_long = new BigInteger("247");
-  static final BigInteger list_short = new BigInteger("192");
+  static final BigInteger INT_LONG = new BigInteger("183");
+  static final BigInteger INT_SHORT = new BigInteger("128");
+  static final BigInteger LIST_LONG = new BigInteger("247");
+  static final BigInteger LIST_SHORT = new BigInteger("192");
 }

@@ -31,6 +31,8 @@ import net.consensys.linea.zktracer.module.ext.Ext;
 import net.consensys.linea.zktracer.module.hub.callstack.CallFrame;
 import net.consensys.linea.zktracer.module.hub.callstack.CallFrameType;
 import net.consensys.linea.zktracer.module.hub.callstack.CallStack;
+import net.consensys.linea.zktracer.module.hub.chunks.AccountChunk;
+import net.consensys.linea.zktracer.module.hub.chunks.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.chunks.StackChunk;
 import net.consensys.linea.zktracer.module.hub.chunks.TraceChunk;
 import net.consensys.linea.zktracer.module.hub.stack.StackContext;
@@ -87,6 +89,19 @@ public class Hub implements Module {
   @Getter int blockNumber = 0;
   int stamp = 0;
 
+
+  /**
+   * A list of latches deferred until the end of the current transaction
+   */
+  private final List<Latch> transactionLatches = new ArrayList<>();
+  /**
+   * Defers a latch to be executed at the end of the current transaction.
+   *
+   */
+  private void deferTx(Latch latch) {
+    this.transactionLatches.add(latch);
+  }
+
   private final Module add;
   private final Module ext;
   private final Module mod;
@@ -136,6 +151,7 @@ public class Hub implements Module {
    * @param frame the frame of the transaction
    */
   void traceSkippedTx(MessageFrame frame) {
+    List<TraceChunk> currentChunk = new ArrayList<>();
     this.stamp++;
     Quantity value = this.currentTx.getValue();
     boolean isDeployment = this.currentTx.getTo().isEmpty();
@@ -150,82 +166,72 @@ public class Hub implements Module {
     Wei newFromBalance = currentFromBalance.subtract((Wei) value);
     Code fromCode = frame.getCode();
     EWord fromCodeHash = EWord.of(fromCode.getCodeHash());
-    this.traceCommon()
-        .peekAtAccount(true)
-        .pAccountAddressHi(from.hiBigInt())
-        .pAccountAddressLo(from.loBigInt())
-        .pAccountBalance(currentFromBalance.toUnsignedBigInteger())
-        .pAccountBalanceNew(newFromBalance.toUnsignedBigInteger())
-        .pAccountCodeHashHi(fromCodeHash.hiBigInt())
-        .pAccountCodeHashLo(fromCodeHash.loBigInt())
-        .pAccountCodeHashHiNew(fromCodeHash.hiBigInt())
-        .pAccountCodeHashLoNew(fromCodeHash.loBigInt())
-        .pAccountCodeSize(BigInteger.valueOf(fromCode.getSize()))
-        .pAccountCodeSizeNew(BigInteger.valueOf(fromCode.getSize()))
-        .pAccountDeploymentNumber(BigInteger.ZERO)
-        .pAccountDeploymentNumberInfty(BigInteger.ZERO)
-        .pAccountDeploymentNumberNew(BigInteger.ZERO)
-        .pAccountDeploymentStatus(BigInteger.ZERO)
-        .pAccountDeploymentStatusInfty(false)
-        .pAccountDeploymentStatusNew(BigInteger.ZERO)
-        .pAccountExists(true)
-        .pAccountExistsNew(true)
-        .pAccountSufficientBalance(true)
-        .pAccountHasCode(false)
-        .pAccountHasCodeNew(false)
-        .pAccountIsPrecompile(false)
-        .pAccountNonce(BigInteger.valueOf(fromNonce))
-        .pAccountNonceNew(BigInteger.valueOf(fromNonce + 1))
-        .pAccountWarm(false)
-        .pAccountWarmNew(true)
-        .fillAndValidateRow();
+
+    AccountSnapshot oldFromAccount =
+        AccountSnapshot.fromAccount(
+            frame.getWorldUpdater().get(fromAddress),
+            CodeV0.EMPTY_CODE, // From can't have code
+            false, // TODO
+            0, // TODO
+            false // TODO
+            );
+    AccountSnapshot newFromAccount =
+        AccountSnapshot.fromAccount(
+            frame.getWorldUpdater().get(fromAddress),
+            CodeV0.EMPTY_CODE, // From can't have code
+            false, // TODO
+            0, // TODO
+            false // TODO
+            );
 
     // To account information
     Address toAddress = effectiveToAddress(this.currentTx, fromAccount);
     EWord eToAddress = EWord.of(toAddress);
-    Optional<Account> toAccount = Optional.of(frame.getWorldUpdater().get(toAddress));
-    Optional<Long> toNonce = toAccount.map(Account::getNonce);
-    Wei currentToBalance = frame.getWorldUpdater().getAccount(toAddress).getBalance();
-    Wei newToBalance = currentToBalance.add((Wei) value);
-    Bytes toCode = toAccount.map(Account::getCode).orElse(Bytes.EMPTY);
-    EWord toCodeHash = EWord.of(toAccount.map(Account::getCodeHash).orElse(Hash.EMPTY));
-    this.traceCommon()
-        .peekAtAccount(true)
-        .pAccountAddressHi(eToAddress.hiBigInt())
-        .pAccountAddressLo(eToAddress.loBigInt())
-        .pAccountBalance(currentToBalance.toUnsignedBigInteger())
-        .pAccountBalanceNew(newToBalance.toUnsignedBigInteger())
-        .pAccountCodeHashHi(toCodeHash.hiBigInt())
-        .pAccountCodeHashLo(toCodeHash.loBigInt())
-        .pAccountCodeHashHiNew(toCodeHash.hiBigInt())
-        .pAccountCodeHashLoNew(toCodeHash.loBigInt())
-        .pAccountCodeSize(BigInteger.valueOf(toCode.size()))
-        .pAccountCodeSizeNew(BigInteger.valueOf(toCode.size()))
-        .pAccountDeploymentNumber(BigInteger.ZERO)
-        .pAccountDeploymentNumberInfty(BigInteger.ZERO)
-        .pAccountDeploymentNumberNew(BigInteger.ZERO)
-        .pAccountDeploymentStatus(BigInteger.ZERO)
-        .pAccountDeploymentStatusInfty(false)
-        .pAccountDeploymentStatusNew(BigInteger.ZERO)
-        .pAccountExists(!isDeployment)
-        .pAccountExistsNew(true)
-        .pAccountSufficientBalance(true)
-        .pAccountHasCode(!toCode.isEmpty())
-        .pAccountHasCodeNew(!toCode.isEmpty())
-        .pAccountIsPrecompile(false)
-        .pAccountNonce(BigInteger.valueOf(isDeployment ? 0L : toNonce.orElse(0L)))
-        .pAccountNonceNew(BigInteger.valueOf(isDeployment ? 1L : toNonce.orElse(0L)))
-        .pAccountWarm(false)
-        .pAccountWarmNew(true)
-        .fillAndValidateRow();
+    AccountSnapshot oldToAccount =
+        AccountSnapshot.fromAccount(
+            frame.getWorldUpdater().get(fromAddress),
+            frame.getCode(),
+            false, // TODO
+            0, // TODO
+            false // TODO
+            );
+    AccountSnapshot newToAccount =
+        AccountSnapshot.fromAccount(
+            frame.getWorldUpdater().get(fromAddress),
+            frame.getCode(), // TODO: deployments?
+            false, // TODO
+            0, // TODO
+            false // TODO
+            );
+
+    currentChunk.add(
+        new AccountChunk(
+            fromAddress, oldFromAccount, newFromAccount, false, 0, false, 0, false)); // TODO
+    currentChunk.add(
+        new AccountChunk(toAddress, oldToAccount, newToAccount, false, 0, false, 0, false)); // TODO
 
     // Basecoin/miner information
     Address minerAddress = frame.getMiningBeneficiary();
     EWord eMinerAddress = EWord.of(minerAddress);
-    Optional<Account> minerAccount = Optional.ofNullable(frame.getWorldUpdater().get(minerAddress));
-    Optional<Long> minerNonce = minerAccount.map(Account::getNonce);
+    Account minerAccount = frame.getWorldUpdater().get(minerAddress);
     Bytes minerCode = minerAccount.map(Account::getCode).orElse(Bytes.EMPTY);
     EWord minerCodeHash = EWord.of(minerAccount.map(Account::getCodeHash).orElse(Hash.EMPTY));
+    AccountSnapshot oldMinerAccount =
+      AccountSnapshot.fromAccount(
+        frame.getWorldUpdater().get(minerAddress),
+        frame.getCode(),
+        false, // TODO
+        0, // TODO
+        false // TODO
+      );
+    AccountSnapshot newMinerAccount =
+      AccountSnapshot.fromAccount(
+        frame.getWorldUpdater().get(minerAddress),
+        frame.getCode(), // TODO: deployments?
+        false, // TODO
+        0, // TODO
+        false // TODO
+      );
 
     Wei currentMinerBalance =
         frame.getWorldUpdater().get(frame.getMiningBeneficiary()).getBalance();
@@ -465,10 +471,10 @@ public class Hub implements Module {
    * @param senderAccount the transaction sender account
    * @return the effective target address of tx
    */
-  private static Address effectiveToAddress(Transaction tx, Account senderAccount) {
+  private static Address effectiveToAddress(Transaction tx, Address fromAddress, long fromNonce) {
     return tx.getTo()
         .map(x -> (Address) x)
-        .orElse(Address.contractAddress(senderAccount.getAddress(), senderAccount.getNonce()));
+        .orElse(Address.contractAddress(fromAddress, fromNonce));
   }
 
   @Override
@@ -488,6 +494,11 @@ public class Hub implements Module {
   public void traceEndTx() {
     this.txState = TxState.TX_FINAL;
     this.processStateFinal();
+
+    for (Latch l: this.transactionLatches) {
+      l.execute(this);
+    }
+    this.transactionLatches.clear();
   }
 
   private void txInit(final MessageFrame frame) {

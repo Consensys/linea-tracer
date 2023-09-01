@@ -22,28 +22,11 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
-import org.hyperledger.besu.evm.account.Account;
-import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public record AccountChunk(
-    MessageFrame frame,
     Address who,
-    int deploymentNumber,
-    boolean deploymentStatus,
-    long oldNonce,
-    long newNonce,
-    long oldBalance,
-    long newBalance,
-    Hash oldCodeHash,
-    Hash newCodeHash,
-    long oldCodeSize,
-    long newCodeSize,
-    boolean oldWarm,
-    boolean newWarm,
-    int oldDeploymentNumber,
-    int newDeploymentNumber,
-    boolean oldDeploymentStatus,
-    boolean newDeploymentStatus,
+    AccountSnapshot oldState,
+    AccountSnapshot newState,
     boolean debit,
     long cost,
     boolean createAddress,
@@ -52,39 +35,44 @@ public record AccountChunk(
     implements TraceChunk {
   @Override
   public Trace.TraceBuilder trace(Trace.TraceBuilder trace) {
-    final Account account = frame.getWorldUpdater().getAccount(who);
     final EWord eWho = EWord.of(who);
-    final EWord eCodeHash = EWord.of(oldCodeHash);
-    final EWord eCodeHashNew = EWord.of(newCodeHash);
+    final EWord eCodeHash = EWord.of(oldState.codeHash());
+    final EWord eCodeHashNew = EWord.of(newState.codeHash());
 
     return trace
         .peekAtAccount(true)
         .pAccountAddressHi(eWho.hiBigInt())
         .pAccountAddressLo(eWho.loBigInt())
         .pAccountIsPrecompile(Hub.isPrecompile(who))
-        .pAccountNonce(BigInteger.valueOf(oldNonce))
-        .pAccountNonceNew(BigInteger.valueOf(newNonce))
-        .pAccountBalance(BigInteger.valueOf(oldBalance))
-        .pAccountBalanceNew(BigInteger.valueOf(newBalance))
-        .pAccountCodeSize(BigInteger.valueOf(oldCodeSize))
-        .pAccountCodeSizeNew(BigInteger.valueOf(newCodeSize))
+        .pAccountNonce(BigInteger.valueOf(oldState.nonce()))
+        .pAccountNonceNew(BigInteger.valueOf(newState.nonce()))
+        .pAccountBalance(oldState.balance().getAsBigInteger())
+        .pAccountBalanceNew(newState.balance().getAsBigInteger())
+        .pAccountCodeSize(BigInteger.valueOf(oldState().codeSize()))
+        .pAccountCodeSizeNew(BigInteger.valueOf(newState.codeSize()))
         .pAccountCodeHashHi(eCodeHash.hiBigInt())
         .pAccountCodeHashLo(eCodeHash.loBigInt())
         .pAccountCodeHashHiNew(eCodeHashNew.hiBigInt())
         .pAccountCodeHashLoNew(eCodeHashNew.loBigInt())
-        .pAccountHasCode(oldCodeHash != Hash.EMPTY)
-        .pAccountHasCodeNew(newCodeHash != Hash.EMPTY)
-        .pAccountExists(oldNonce > 0 || oldCodeHash != Hash.EMPTY || oldBalance > 0)
-        .pAccountExistsNew(newNonce > 0 || newCodeHash != Hash.EMPTY || newBalance > 0)
-        .pAccountWarm(oldWarm)
-        .pAccountWarmNew(newWarm)
-        .pAccountDeploymentNumber(BigInteger.valueOf(oldDeploymentNumber))
-        .pAccountDeploymentNumberNew(BigInteger.valueOf(newDeploymentNumber))
-        .pAccountDeploymentStatus(oldDeploymentStatus ? BigInteger.ONE : BigInteger.ZERO)
-        .pAccountDeploymentStatusNew(newDeploymentStatus ? BigInteger.ONE : BigInteger.ZERO)
+        .pAccountHasCode(oldState.codeHash() != Hash.EMPTY)
+        .pAccountHasCodeNew(newState.codeHash() != Hash.EMPTY)
+        .pAccountExists(
+            oldState.nonce() > 0
+                || oldState.codeHash() != Hash.EMPTY
+                || !oldState().balance().isZero())
+        .pAccountExistsNew(
+            newState.nonce() > 0
+                || newState.codeHash() != Hash.EMPTY
+                || !newState().balance().isZero())
+        .pAccountWarm(oldState.warm())
+        .pAccountWarmNew(newState.warm())
+        .pAccountDeploymentNumber(BigInteger.valueOf(oldState().deploymentNumber()))
+        .pAccountDeploymentNumberNew(BigInteger.valueOf(newState().deploymentNumber()))
+        .pAccountDeploymentStatus(oldState.deploymentStatus() ? BigInteger.ONE : BigInteger.ZERO)
+        .pAccountDeploymentStatusNew(newState.deploymentStatus() ? BigInteger.ONE : BigInteger.ZERO)
         //      .pAccountDebit(debit)
         //      .pAccountCost(cost)
-        .pAccountSufficientBalance(!debit || cost <= oldBalance)
+        .pAccountSufficientBalance(!debit || cost <= oldState.balance().toLong()) //
         //      .pAccountCreateAddress(createAddress)
         .pAccountDeploymentNumberInfty(BigInteger.valueOf(deploymentNumberInfnty))
     //    .pAccountExistsInfty(existsInfinity)

@@ -17,22 +17,43 @@ package net.consensys.linea.zktracer.module.hub.chunks;
 
 import java.math.BigInteger;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.EWord;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 
-public record AccountChunk(
-    Address who,
-    AccountSnapshot oldState,
-    AccountSnapshot newState,
-    boolean debit,
-    long cost,
-    boolean createAddress,
-    int deploymentNumberInfnty,
-    boolean existsInfinity)
-    implements TraceChunk {
+@Accessors(fluent = true)
+public final class AccountChunk implements TraceChunk {
+  @Getter private final Address who;
+  private final AccountSnapshot oldState;
+  private final AccountSnapshot newState;
+  private final boolean debit;
+  private final long cost;
+  private final boolean createAddress;
+  @Setter private int deploymentNumberInfnty;
+  @Setter private boolean existsInfinity;
+
+  public AccountChunk(
+      Address who,
+      AccountSnapshot oldState,
+      AccountSnapshot newState,
+      boolean debit,
+      long cost,
+      boolean createAddress) {
+    this.who = who;
+    this.oldState = oldState;
+    this.newState = newState;
+    this.debit = debit;
+    this.cost = cost;
+    this.createAddress = createAddress;
+    this.deploymentNumberInfnty = 0; // will be retconned on conflation end
+    this.existsInfinity = false; // will be retconned on conflation end
+  }
+
   @Override
   public Trace.TraceBuilder trace(Trace.TraceBuilder trace) {
     final EWord eWho = EWord.of(who);
@@ -48,7 +69,7 @@ public record AccountChunk(
         .pAccountNonceNew(BigInteger.valueOf(newState.nonce()))
         .pAccountBalance(oldState.balance().getAsBigInteger())
         .pAccountBalanceNew(newState.balance().getAsBigInteger())
-        .pAccountCodeSize(BigInteger.valueOf(oldState().code().getSize()))
+        .pAccountCodeSize(BigInteger.valueOf(oldState.code().getSize()))
         .pAccountCodeSizeNew(BigInteger.valueOf(newState.code().getSize()))
         .pAccountCodeHashHi(eCodeHash.hiBigInt())
         .pAccountCodeHashLo(eCodeHash.loBigInt())
@@ -59,15 +80,15 @@ public record AccountChunk(
         .pAccountExists(
             oldState.nonce() > 0
                 || oldState.code().getCodeHash() != Hash.EMPTY
-                || !oldState().balance().isZero())
+                || !oldState.balance().isZero())
         .pAccountExistsNew(
             newState.nonce() > 0
                 || newState.code().getCodeHash() != Hash.EMPTY
-                || !newState().balance().isZero())
+                || !newState.balance().isZero())
         .pAccountWarm(oldState.warm())
         .pAccountWarmNew(newState.warm())
-        .pAccountDeploymentNumber(BigInteger.valueOf(oldState().deploymentNumber()))
-        .pAccountDeploymentNumberNew(BigInteger.valueOf(newState().deploymentNumber()))
+        .pAccountDeploymentNumber(BigInteger.valueOf(oldState.deploymentNumber()))
+        .pAccountDeploymentNumberNew(BigInteger.valueOf(newState.deploymentNumber()))
         .pAccountDeploymentStatus(oldState.deploymentStatus() ? BigInteger.ONE : BigInteger.ZERO)
         .pAccountDeploymentStatusNew(newState.deploymentStatus() ? BigInteger.ONE : BigInteger.ZERO)
         //      .pAccountDebit(debit)

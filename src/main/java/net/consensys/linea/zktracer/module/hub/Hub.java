@@ -46,7 +46,6 @@ import net.consensys.linea.zktracer.module.mul.Mul;
 import net.consensys.linea.zktracer.module.shf.Shf;
 import net.consensys.linea.zktracer.module.trm.Trm;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import net.consensys.linea.zktracer.opcode.InstructionFamily;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import org.apache.tuweni.bytes.Bytes;
@@ -195,6 +194,20 @@ public class Hub implements Module {
             Address.ALTBN128_PAIRING,
             Address.BLAKE2B_F_COMPRESSION)
         .contains(to);
+  }
+
+  public static boolean isValidPrecompileCall(MessageFrame frame) {
+    return switch (OpCode.of(frame.getCurrentOperation().getOpcode())) {
+      case CALL, CALLCODE, STATICCALL, DELEGATECALL -> {
+        if (frame.stackSize() < 2) {
+          yield false; // invalid stack for a *CALL
+        }
+
+        Address targetAddress = Words.toAddress(frame.getStackItem(1));
+        yield isPrecompile(targetAddress);
+      }
+      default -> false;
+    };
   }
 
   /**
@@ -442,9 +455,11 @@ public class Hub implements Module {
       return;
     }
 
-    var to = this.currentTx.getTo();
-    boolean isDeployment = to.isEmpty();
-    Address toAddress = effectiveToAddress(this.currentTx, to.get(), 0);
+    var fromAddress = this.currentTx.getSender();
+    boolean isDeployment = this.currentTx.getTo().isEmpty();
+    Address toAddress =
+        effectiveToAddress(
+            this.currentTx, fromAddress, frame.getWorldUpdater().get(fromAddress).getNonce());
     this.callStack =
         new CallStack(
             toAddress,
@@ -455,7 +470,7 @@ public class Hub implements Module {
             this.currentTx.getData().orElse(Bytes.EMPTY),
             this.maxContextNumber,
             0, // TODO
-            to.isEmpty() ? 0 : this.deploymentNumber.getOrDefault(to.get(), 0),
+            toAddress.isEmpty() ? 0 : this.deploymentNumber.getOrDefault(toAddress, 0),
             false); // TODO
 
     if (false /* doWarm */) { // TODO
@@ -556,6 +571,11 @@ public class Hub implements Module {
   }
 
   @Override
+  public void traceEndConflation() {
+    this.retconChunks();
+  }
+
+  @Override
   public Object commit() {
     for (var txChunks : traceChunks) {
       for (List<TraceChunk> opChunks : txChunks) {
@@ -572,11 +592,10 @@ public class Hub implements Module {
     this.chunkNewOpcode();
     this.makeStackChunks();
     boolean updateReturnData =
-        this.opCodeData().instructionFamily() == InstructionFamily.HALT
-            || this.opCodeData().instructionFamily() == InstructionFamily.INVALID
+        this.opCodeData().isHalt()
+            || this.opCodeData().isInvalid()
             || exceptions.any()
-        // TODO: or call to a precompile
-        ;
+            || isValidPrecompileCall(frame);
 
     switch (this.opCodeData().instructionFamily()) {
       case ADD,
@@ -624,16 +643,7 @@ public class Hub implements Module {
                   this.isDeploying(targetAddress));
 
           this.addChunk(
-              new AccountChunk(
-                  targetAddress,
-                  accountSnapshot,
-                  accountSnapshot,
-                  false,
-                  0,
-                  false,
-                  0, // TODO retcon
-                  false // TODO retcon
-                  ));
+              new AccountChunk(targetAddress, accountSnapshot, accountSnapshot, false, 0, false));
           //          this.addChunk(new AccountChunk());
         } else {
           this.addChunk(new ContextChunk(this.callStack, this.currentFrame(), updateReturnData));
@@ -674,10 +684,7 @@ public class Hub implements Module {
                 codeAccountSnapshot,
                 false,
                 0,
-                false,
-                0, // TODO retcon
-                false // TODO retcon
-                ));
+                false));
       }
     }
   }
@@ -693,6 +700,25 @@ public class Hub implements Module {
       for (StackLine line : this.currentFrame().getPending().getLines()) {
         this.addChunk(
             new StackChunk(this.currentFrame().getStack().snapshot(), line.asStackOperations()));
+      }
+    }
+  }
+
+  private void retconAccountChunk(AccountChunk chunk) {
+    Address address = chunk.who();
+    chunk.deploymentNumberInfnty(this.deploymentNumber(address)).existsInfinity(false);
+    // TODO should be account != null; see with Besu team if we can get a view on
+    // the state in traceEndConflation
+  }
+
+  private void retconChunks() {
+    for (List<List<TraceChunk>> txChunk : this.traceChunks) {
+      for (List<TraceChunk> opChunks : txChunk) {
+        for (TraceChunk chunk : opChunks) {
+          if (chunk instanceof AccountChunk) {
+            this.retconAccountChunk((AccountChunk) chunk);
+          }
+        }
       }
     }
   }

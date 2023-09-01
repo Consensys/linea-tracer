@@ -57,12 +57,12 @@ public record SkippedTransaction(
     hub.addChunk(
         // 3 lines -- account changes
         // From
-        new AccountChunk(fromAddress, oldFromAccount, newFromAccount, false, 0, false, 0, false),
+        new AccountChunk(fromAddress, oldFromAccount, newFromAccount, false, 0, false),
         // To
 
-        new AccountChunk(toAddress, oldToAccount, newToAccount, false, 0, false, 0, false),
+        new AccountChunk(toAddress, oldToAccount, newToAccount, false, 0, false),
         // Miner
-        new AccountChunk(minerAddress, oldMinerAccount, newMinerAccount, false, 0, false, 0, false)
+        new AccountChunk(minerAddress, oldMinerAccount, newMinerAccount, false, 0, falsep p)
 
         // 1 line -- transaction data
         //        new TransactionChunk(hub.getBatchNumber(), minerAddress, tx, false) // TODO

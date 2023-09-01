@@ -18,7 +18,9 @@ package net.consensys.linea.zktracer.module.rlppatterns;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.Getter;
+
 public class RlpBitDecOutput {
-  public List<Boolean> bitDecList = new ArrayList<>();
-  public List<Integer> bitAccList = new ArrayList<>();
+  @Getter private List<Boolean> bitDecList = new ArrayList<>();
+  @Getter private List<Integer> bitAccList = new ArrayList<>();
 }

@@ -19,6 +19,7 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.function.Function;
 
+import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.bytes.UnsignedByte;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.rlppatterns.RlpBitDecOutput;
@@ -332,7 +333,7 @@ public class RlpTxrcpt implements Module {
             traceValue.nBytes = 1;
             traceValue.phaseEnd = (i == nbLog - 1);
             traceRow(traceValue);
-
+            break;
           case 1:
             traceValue.partialReset(4, 8);
             rlpInt(
@@ -353,7 +354,7 @@ public class RlpTxrcpt implements Module {
               this.builder.setInput3Relative(
                   BigInteger.valueOf(txrcpt.getLogs().get(i).getData().get(0)), k);
             }
-
+            break;
           default:
             traceValue.partialReset(4, 8);
             traceValue.localSize = txrcpt.getLogs().get(i).getData().size();
@@ -371,6 +372,7 @@ public class RlpTxrcpt implements Module {
               this.builder.setInput2Relative(
                   BigInteger.valueOf(txrcpt.getLogs().get(i).getTopics().size()), k);
             }
+            break;
         }
 
         // Tracing the Data
@@ -454,8 +456,8 @@ public class RlpTxrcpt implements Module {
     Bytes acc2LastRowShift = toGivenSize(Bytes.ofUnsignedInt(acc2LastRow), 8);
     for (int ct = 0; ct < 8; ct++) {
       traceValue.counter = ct;
-      traceValue.accSize = byteCountingOutput.accByteSizeList.get(ct);
-      traceValue.power = byteCountingOutput.powerList.get(ct);
+      traceValue.accSize = byteCountingOutput.getAccByteSizeList().get(ct);
+      traceValue.power = byteCountingOutput.getPowerList().get(ct);
       traceValue.byte1 = input1RightShift.get(ct);
       traceValue.acc1 = input1RightShift.slice(0, ct + 1);
       traceValue.byte2 = acc2LastRowShift.get(ct);
@@ -529,10 +531,10 @@ public class RlpTxrcpt implements Module {
       traceValue.counter = ct;
       traceValue.byte1 = inputBytes.get(ct);
       traceValue.acc1 = inputBytes.slice(0, ct + 1);
-      traceValue.power = byteCountingOutput.powerList.get(ct);
-      traceValue.accSize = byteCountingOutput.accByteSizeList.get(ct);
-      traceValue.bit = bitDecOutput.bitDecList.get(ct);
-      traceValue.bitAcc = bitDecOutput.bitAccList.get(ct);
+      traceValue.power = byteCountingOutput.getPowerList().get(ct);
+      traceValue.accSize = byteCountingOutput.getAccByteSizeList().get(ct);
+      traceValue.bit = bitDecOutput.getBitDecList().get(ct);
+      traceValue.bitAcc = bitDecOutput.getBitAccList().get(ct);
 
       if (input >= 128 && ct == 6) {
         traceValue.limbConstructed = true;
@@ -722,7 +724,8 @@ public class RlpTxrcpt implements Module {
    * @return
    */
   public Bytes toGivenSize(Bytes input, int wantedSize) {
-    assert wantedSize >= input.size() : " wantedSize can't be shorter than the input size";
+    Preconditions.checkArgument(
+        wantedSize >= input.size(), "wantedSize can't be shorter than the input size");
     byte nullByte = 0;
 
     return Bytes.concatenate(Bytes.repeat(nullByte, wantedSize - input.size()), input);
@@ -751,8 +754,8 @@ public class RlpTxrcpt implements Module {
       power = BigInteger.valueOf(256).pow(offset);
     }
 
-    output.powerList.add(0, power);
-    output.accByteSizeList.add(0, accByteSize);
+    output.getPowerList().add(0, power);
+    output.getAccByteSizeList().add(0, accByteSize);
 
     for (int i = 1; i < nbStep; i++) {
       if (inputByteLen + i < nbStep) {
@@ -760,8 +763,8 @@ public class RlpTxrcpt implements Module {
       } else {
         accByteSize += 1;
       }
-      output.powerList.add(i, power);
-      output.accByteSizeList.add(i, accByteSize);
+      output.getPowerList().add(i, power);
+      output.getAccByteSizeList().add(i, accByteSize);
     }
     return output;
   }
@@ -774,7 +777,7 @@ public class RlpTxrcpt implements Module {
    * @return
    */
   public RlpBitDecOutput bitDecomposition(int input, int nbStep) {
-    assert (nbStep >= 8);
+    Preconditions.checkArgument(nbStep >= 8, "Number of steps must not exceed 8");
 
     RlpBitDecOutput output = new RlpBitDecOutput();
 
@@ -794,8 +797,8 @@ public class RlpTxrcpt implements Module {
         bitDec = false;
       }
 
-      output.bitDecList.add(nbStep - i - 1, bitDec);
-      output.bitAccList.add(nbStep - i - 1, bitAcc);
+      output.getBitDecList().add(nbStep - i - 1, bitDec);
+      output.getBitAccList().add(nbStep - i - 1, bitAcc);
     }
     return output;
   }

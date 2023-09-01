@@ -19,7 +19,9 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.Getter;
+
 public class RlpByteCountAndPowerOutput {
-  public List<BigInteger> powerList = new ArrayList<>();
-  public List<Integer> accByteSizeList = new ArrayList<>();
+  @Getter private List<BigInteger> powerList = new ArrayList<>();
+  @Getter private List<Integer> accByteSizeList = new ArrayList<>();
 }

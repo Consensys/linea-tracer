@@ -14,11 +14,7 @@ public record AccountSnapshot(
     int deploymentNumber,
     boolean deploymentStatus) {
   public static AccountSnapshot fromAccount(
-      Account account,
-      Bytecode code,
-      boolean warm,
-      int deploymentNumber,
-      boolean deploymentStatus) {
+      Account account, boolean warm, int deploymentNumber, boolean deploymentStatus) {
     if (account == null) {
       return new AccountSnapshot(
           Address.ZERO, 0, Wei.ZERO, warm, Bytecode.EMPTY, deploymentNumber, deploymentStatus);
@@ -29,7 +25,7 @@ public record AccountSnapshot(
         account.getNonce(),
         account.getBalance(),
         warm,
-        code,
+        new Bytecode(account.getCode()),
         deploymentNumber,
         deploymentStatus);
   }

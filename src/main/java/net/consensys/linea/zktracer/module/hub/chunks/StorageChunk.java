@@ -20,6 +20,6 @@ import net.consensys.linea.zktracer.module.hub.Trace;
 public record StorageChunk() implements TraceChunk {
   @Override
   public Trace.TraceBuilder trace(Trace.TraceBuilder trace) {
-    return trace.peekAtStorage(true);
+    return trace.peekAtStorage(true).fillAndValidateRow();
   }
 }

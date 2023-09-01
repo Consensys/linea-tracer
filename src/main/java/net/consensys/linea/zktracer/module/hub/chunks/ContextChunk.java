@@ -58,6 +58,7 @@ public record ContextChunk(CallStack callStack, CallFrame callFrame, boolean upd
             BigInteger.valueOf(
                 callFrame.lastCallee().map(c -> callStack.get(c).getContextNumber()).orElse(0)))
         .pContextReturnDataOffset(BigInteger.valueOf(callFrame.getReturnDataPointer().offset()))
-        .pContextReturnDataSize(BigInteger.valueOf(callFrame.getReturnDataPointer().length()));
+        .pContextReturnDataSize(BigInteger.valueOf(callFrame.getReturnDataPointer().length()))
+        .fillAndValidateRow();
   }
 }

@@ -36,8 +36,8 @@ public record AccountChunk(
   @Override
   public Trace.TraceBuilder trace(Trace.TraceBuilder trace) {
     final EWord eWho = EWord.of(who);
-    final EWord eCodeHash = EWord.of(oldState.codeHash());
-    final EWord eCodeHashNew = EWord.of(newState.codeHash());
+    final EWord eCodeHash = EWord.of(oldState.code().getCodeHash());
+    final EWord eCodeHashNew = EWord.of(newState.code().getCodeHash());
 
     return trace
         .peekAtAccount(true)
@@ -48,21 +48,21 @@ public record AccountChunk(
         .pAccountNonceNew(BigInteger.valueOf(newState.nonce()))
         .pAccountBalance(oldState.balance().getAsBigInteger())
         .pAccountBalanceNew(newState.balance().getAsBigInteger())
-        .pAccountCodeSize(BigInteger.valueOf(oldState().codeSize()))
-        .pAccountCodeSizeNew(BigInteger.valueOf(newState.codeSize()))
+        .pAccountCodeSize(BigInteger.valueOf(oldState().code().getSize()))
+        .pAccountCodeSizeNew(BigInteger.valueOf(newState.code().getSize()))
         .pAccountCodeHashHi(eCodeHash.hiBigInt())
         .pAccountCodeHashLo(eCodeHash.loBigInt())
         .pAccountCodeHashHiNew(eCodeHashNew.hiBigInt())
         .pAccountCodeHashLoNew(eCodeHashNew.loBigInt())
-        .pAccountHasCode(oldState.codeHash() != Hash.EMPTY)
-        .pAccountHasCodeNew(newState.codeHash() != Hash.EMPTY)
+        .pAccountHasCode(oldState.code().getCodeHash() != Hash.EMPTY)
+        .pAccountHasCodeNew(newState.code().getCodeHash() != Hash.EMPTY)
         .pAccountExists(
             oldState.nonce() > 0
-                || oldState.codeHash() != Hash.EMPTY
+                || oldState.code().getCodeHash() != Hash.EMPTY
                 || !oldState().balance().isZero())
         .pAccountExistsNew(
             newState.nonce() > 0
-                || newState.codeHash() != Hash.EMPTY
+                || newState.code().getCodeHash() != Hash.EMPTY
                 || !newState().balance().isZero())
         .pAccountWarm(oldState.warm())
         .pAccountWarmNew(newState.warm())
@@ -75,7 +75,7 @@ public record AccountChunk(
         .pAccountSufficientBalance(!debit || cost <= oldState.balance().toLong()) //
         //      .pAccountCreateAddress(createAddress)
         .pAccountDeploymentNumberInfty(BigInteger.valueOf(deploymentNumberInfnty))
-    //    .pAccountExistsInfty(existsInfinity)
-    ;
+        //    .pAccountExistsInfty(existsInfinity)
+        .fillAndValidateRow();
   }
 }

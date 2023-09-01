@@ -174,6 +174,7 @@ public record StackChunk(Stack stack, List<StackOperation> stackOps) implements 
         .pStackTrmFlag(
             this.stack.getCurrentOpcodeData().stackSettings().addressTrimmingInstruction())
         .pStackStaticFlag(this.stack.getCurrentOpcodeData().stackSettings().staticInstruction())
-        .pStackOobFlag(this.stack.getCurrentOpcodeData().stackSettings().oobFlag());
+        .pStackOobFlag(this.stack.getCurrentOpcodeData().stackSettings().oobFlag())
+        .fillAndValidateRow();
   }
 }

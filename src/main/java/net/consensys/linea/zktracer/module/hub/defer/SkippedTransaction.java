@@ -15,18 +15,11 @@
 
 package net.consensys.linea.zktracer.module.hub.defer;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import net.consensys.linea.zktracer.module.hub.Bytecode;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.chunks.AccountChunk;
 import net.consensys.linea.zktracer.module.hub.chunks.AccountSnapshot;
-import net.consensys.linea.zktracer.module.hub.chunks.TraceChunk;
-import net.consensys.linea.zktracer.module.hub.chunks.TransactionChunk;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
-import org.hyperledger.besu.evm.code.CodeV0;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 /**
@@ -43,51 +36,36 @@ public record SkippedTransaction(
     implements TransactionDefer {
   @Override
   public void run(Hub hub, WorldView state, Transaction tx) {
-    List<TraceChunk> currentChunk = new ArrayList<>();
-
     Address fromAddress = this.oldFromAccount.address();
     Address toAddress = this.oldToAccount.address();
     Address minerAddress = this.oldMinerAccount.address();
+    hub.unmarkDeploying(toAddress);
 
     AccountSnapshot newFromAccount =
         AccountSnapshot.fromAccount(
-            state.get(fromAddress),
-            new Bytecode(CodeV0.EMPTY_CODE), // From can't have code
-            true,
-            hub.deploymentNumber.getOrDefault(fromAddress, 0),
-            false);
+            state.get(fromAddress), true, hub.deploymentNumber(fromAddress), false);
 
     AccountSnapshot newToAccount =
         AccountSnapshot.fromAccount(
-            state.get(fromAddress),
-            new Bytecode(state.get(fromAddress).getCode()),
-            true,
-            hub.deploymentNumber.getOrDefault(toAddress, 0),
-            false);
+            state.get(fromAddress), true, hub.deploymentNumber(toAddress), false);
 
     AccountSnapshot newMinerAccount =
         AccountSnapshot.fromAccount(
-            state.get(minerAddress),
-            new Bytecode(state.get(minerAddress).getCode()),
-            true,
-            hub.deploymentNumber.getOrDefault(minerAddress, 0),
-            false);
-
-    // 3 lines -- account changes
-    // From
-    currentChunk.add(
-        new AccountChunk(fromAddress, oldFromAccount, newFromAccount, false, 0, false, 0, false));
-    // To
-    currentChunk.add(
-        new AccountChunk(toAddress, oldToAccount, newToAccount, false, 0, false, 0, false));
-    // Miner
-    currentChunk.add(
-        new AccountChunk(
-            minerAddress, oldMinerAccount, newMinerAccount, false, 0, false, 0, false));
-    // 1 line -- transaction data
-    currentChunk.add(new TransactionChunk(hub.getBatchNumber(), minerAddress, tx, false));
+            state.get(minerAddress), true, hub.deploymentNumber(minerAddress), false);
 
     // Append the final chunk to the hub chunks
-    hub.getTraceChunks().add(currentChunk);
+    hub.addChunk(
+        // 3 lines -- account changes
+        // From
+        new AccountChunk(fromAddress, oldFromAccount, newFromAccount, false, 0, false, 0, false),
+        // To
+
+        new AccountChunk(toAddress, oldToAccount, newToAccount, false, 0, false, 0, false),
+        // Miner
+        new AccountChunk(minerAddress, oldMinerAccount, newMinerAccount, false, 0, false, 0, false)
+
+        // 1 line -- transaction data
+        //        new TransactionChunk(hub.getBatchNumber(), minerAddress, tx, false) // TODO
+        );
   }
 }

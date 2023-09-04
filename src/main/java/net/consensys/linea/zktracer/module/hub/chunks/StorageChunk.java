@@ -15,11 +15,53 @@
 
 package net.consensys.linea.zktracer.module.hub.chunks;
 
-import net.consensys.linea.zktracer.module.hub.Trace;
+import java.math.BigInteger;
 
-public record StorageChunk() implements TraceChunk {
+import net.consensys.linea.zktracer.EWord;
+import net.consensys.linea.zktracer.module.hub.Trace;
+import org.hyperledger.besu.datatypes.Address;
+
+/**
+ * @param address target storage address
+ * @param deploymentNumber storage account deployment number
+ * @param key target storage slot
+ * @param valOrig value @key at the beginning of *transaction*
+ * @param valCurr value @key at the beginning of *opcode*
+ */
+public record StorageChunk(
+    Address address,
+    int deploymentNumber,
+    EWord key,
+    EWord valOrig,
+    EWord valCurr,
+    EWord valNext,
+    boolean oldWarmth,
+    boolean newWarmth)
+    implements TraceChunk {
   @Override
   public Trace.TraceBuilder trace(Trace.TraceBuilder trace) {
-    return trace.peekAtStorage(true).fillAndValidateRow();
+    EWord eAddress = EWord.of(address);
+
+    return trace
+        .peekAtStorage(true)
+        .pStorageAddressHi(eAddress.hiBigInt())
+        .pStorageAddressLo(eAddress.loBigInt())
+        .pStorageDeploymentNumber(BigInteger.valueOf(deploymentNumber))
+        .pStorageStorageKeyHi(key.hiBigInt())
+        .pStorageStorageKeyLo(key.loBigInt())
+        .pStorageValOrigHi(valOrig.hiBigInt())
+        .pStorageValOrigLo(valOrig.loBigInt())
+        .pStorageValCurrHi(valCurr.hiBigInt())
+        .pStorageValCurrLo(valCurr.loBigInt())
+        .pStorageValNextHi(valNext.hiBigInt())
+        .pStorageValNextLo(valNext.loBigInt())
+        .pStorageWarm(oldWarmth)
+        .pStorageWarmNew(newWarmth)
+        .pStorageValOrigIsZero(valOrig.isZero())
+        .pStorageValCurrIsZero(valCurr.isZero())
+        .pStorageValNextIsZero(valNext.isZero())
+        .pStorageValNextIsOrig(valNext == valOrig)
+        .pStorageValNextIsCurr(valNext == valOrig)
+        .fillAndValidateRow();
   }
 }

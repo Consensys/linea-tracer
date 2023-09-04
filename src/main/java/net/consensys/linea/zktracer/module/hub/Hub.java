@@ -88,6 +88,23 @@ public class Hub implements Module {
     return this.opCode.getData();
   }
 
+  final Map<Address, Map<EWord, EWord>> valOrigs = new HashMap<>();
+
+  private EWord getValOrigOrUpdate(Address address, EWord key, EWord value) {
+    EWord r = this.valOrigs.getOrDefault(address, new HashMap<>()).putIfAbsent(key, value);
+    if (r == null) {
+      return value;
+    }
+    return r;
+  }
+  private EWord getValOrigOrUpdate(Address address, EWord key) {
+    EWord r = this.valOrigs.getOrDefault(address, new HashMap<>()).putIfAbsent(key, EWord.ZERO);
+    if (r == null) {
+      return EWord.ZERO;
+    }
+    return r;
+  }
+
   public final Map<Address, Integer> deploymentNumber = new HashMap<>();
 
   public final int deploymentNumber(Address address) {
@@ -603,97 +620,185 @@ public class Hub implements Module {
             || exceptions.any()
             || isValidPrecompileCall(frame);
 
-    TraceSection section =
-        switch (this.opCodeData().instructionFamily()) {
-          case ADD,
-              MOD,
-              MUL,
-              SHF,
-              BIN,
-              WCP,
-              EXT,
-              KEC,
-              BATCH,
-              MACHINE_STATE,
-              PUSH_POP,
-              DUP,
-              SWAP,
-              HALT,
-              INVALID -> new StackOnlySection(this);
-          case CONTEXT, LOG -> new ContextLogSection(
+    switch (this.opCodeData().instructionFamily()) {
+      case ADD,
+          MOD,
+          MUL,
+          SHF,
+          BIN,
+          WCP,
+          EXT,
+          KEC,
+          BATCH,
+          MACHINE_STATE,
+          PUSH_POP,
+          DUP,
+          SWAP,
+          HALT,
+          INVALID -> this.addTraceSection(new StackOnlySection(this));
+      case CONTEXT, LOG -> this.addTraceSection(
+          new ContextLogSection(
+              this, new ContextChunk(this.callStack, this.currentFrame(), updateReturnData)));
+      case ACCOUNT -> {
+        TraceSection accountSection = new AccountSection(this);
+        if (this.opCodeData().stackSettings().flag1()) {
+          accountSection.addChunk(
               this, new ContextChunk(this.callStack, this.currentFrame(), updateReturnData));
-          case ACCOUNT -> {
-            TraceSection accountSection = new AccountSection(this);
-            if (this.opCodeData().stackSettings().flag1()) {
-              accountSection.addChunk(
-                  this, new ContextChunk(this.callStack, this.currentFrame(), updateReturnData));
-              //          new AccountChunk();
-            } else {
-              //          new AccountChunk();
-            }
-            yield accountSection;
-          }
-          case COPY -> {
-            TraceSection copySection = new CopySection(this);
-            if (this.opCodeData().stackSettings().flag1()) {
-              Address targetAddress =
-                  switch (this.opCode) {
-                    case CODECOPY -> this.currentFrame().getCodeAddress();
-                    case EXTCODECOPY -> Words.toAddress(frame.getStackItem(0));
-                    default -> {
-                      throw new IllegalStateException("unexpected opcode");
-                    }
-                  };
-              Account targetAccount = frame.getWorldUpdater().getAccount(targetAddress);
-              AccountSnapshot accountSnapshot =
-                  AccountSnapshot.fromAccount(
-                      targetAccount,
-                      frame.isAddressWarm(targetAddress),
-                      this.deploymentNumber(targetAddress),
-                      this.isDeploying(targetAddress));
+          // own account
+          //          new AccountChunk();
+        } else {
+          // fetch account from stack -- BALANCE, EXTCODESIZE or EXTCODEHASH
+          //          new AccountChunk();
+        }
+        this.addTraceSection(accountSection);
+      }
+      case COPY -> {
+        TraceSection copySection = new CopySection(this);
+        if (this.opCodeData().stackSettings().flag1()) {
+          Address targetAddress =
+              switch (this.opCode) {
+                case CODECOPY -> this.currentFrame().getCodeAddress();
+                case EXTCODECOPY -> Words.toAddress(frame.getStackItem(0));
+                default -> {
+                  throw new IllegalStateException("unexpected opcode");
+                }
+              };
+          Account targetAccount = frame.getWorldUpdater().getAccount(targetAddress);
+          AccountSnapshot accountSnapshot =
+              AccountSnapshot.fromAccount(
+                  targetAccount,
+                  frame.isAddressWarm(targetAddress),
+                  this.deploymentNumber(targetAddress),
+                  this.isDeploying(targetAddress));
 
-              copySection.addChunk(
-                  this,
-                  new AccountChunk(
-                      targetAddress, accountSnapshot, accountSnapshot, false, 0, false));
-              //          new AccountChunk()
-            } else {
-              copySection.addChunk(
-                  this, new ContextChunk(this.callStack, this.currentFrame(), updateReturnData));
-            }
-            yield copySection;
-          }
-          case TRANSACTION -> new TransactionSection(
+          copySection.addChunk(
+              this,
+              new AccountChunk(targetAddress, accountSnapshot, accountSnapshot, false, 0, false));
+        } else {
+          copySection.addChunk(
+              this, new ContextChunk(this.callStack, this.currentFrame(), updateReturnData));
+        }
+        this.addTraceSection(copySection);
+      }
+      case TRANSACTION -> this.addTraceSection(
+          new TransactionSection(
               this
               //        new TransactionChunk(this);
-              );
+              ));
 
-          case STACK_RAM -> {
-            TraceSection stackRamSection = new StackRam(this);
-            if (this.opCodeData().stackSettings().flag2()) {
-              stackRamSection.addChunk(
-                  this, new ContextChunk(this.callStack, this.currentFrame(), updateReturnData));
-            }
-            yield stackRamSection;
+      case STACK_RAM -> {
+        TraceSection stackRamSection = new StackRam(this);
+        if (this.opCodeData().stackSettings().flag2()) {
+          stackRamSection.addChunk(
+              this, new ContextChunk(this.callStack, this.currentFrame(), updateReturnData));
+        }
+        this.addTraceSection(stackRamSection);
+      }
+      case STORAGE -> {
+        Address address = this.currentFrame().getAddress();
+        EWord key = EWord.of(frame.getStackItem(0));
+        switch (this.opCode) {
+          case SSTORE -> {
+            EWord valNext = EWord.of(frame.getStackItem(0));
+            this.addTraceSection(
+                new StorageSection(
+                    this,
+                    new ContextChunk(this.callStack, this.currentFrame(), updateReturnData),
+                    new StorageChunk(
+                        address,
+                        this.currentFrame().getAccountDeploymentNumber(),
+                        key,
+                        getValOrigOrUpdate(address, key, valNext),
+                        EWord.of(frame.getTransientStorageValue(address, key)),
+                        valNext,
+                        frame.isStorageWarm(address, key),
+                        true)));
           }
-          case STORAGE -> new StorageSection(
-              this,
-              new ContextChunk(this.callStack, this.currentFrame(), updateReturnData),
-              new StorageChunk());
-          case CREATE, CALL -> new CreateCallSection(
-              this, new ContextChunk(this.callStack, this.currentFrame(), updateReturnData)
-              //        opChunks.add(new AccountChunk());
-              //        opChunks.add(new AccountChunk());
-              //        opChunks.add(new AccountChunk());
-              );
-          case JUMP -> {
-            AccountSnapshot codeAccountSnapshot =
-                AccountSnapshot.fromAccount(
-                    frame.getWorldUpdater().getAccount(this.currentFrame().getCodeAddress()),
-                    true,
-                    this.deploymentNumber(this.currentFrame().getCodeAddress()),
-                    this.currentFrame().isCodeDeploymentStatus());
+          case SLOAD -> {
+            EWord valCurrent = EWord.of(frame.getTransientStorageValue(address, key));
+            this.addTraceSection(
+                new StorageSection(
+                    this,
+                    new ContextChunk(this.callStack, this.currentFrame(), updateReturnData),
+                    new StorageChunk(
+                        address,
+                        this.currentFrame().getAccountDeploymentNumber(),
+                        key,
+                        getValOrigOrUpdate(address, key),
+                        valCurrent,
+                        valCurrent,
+                        frame.isStorageWarm(address, key),
+                        true)));
+          }
+          default -> throw new IllegalStateException("invalid operation in family STORAGE");
+        }
+      }
+      case CREATE -> {
+        Address myAddress = this.currentFrame().getAddress();
+        Account myAccount = frame.getWorldUpdater().getAccount(myAddress);
+        AccountSnapshot myAccountSnapshot =
+            AccountSnapshot.fromAccount(
+                myAccount,
+                frame.isAddressWarm(myAddress),
+                this.deploymentNumber(myAddress),
+                this.isDeploying(myAddress));
 
+        Address createdAddress = this.currentFrame().getAddress();
+        Account createdAccount = frame.getWorldUpdater().getAccount(createdAddress);
+        AccountSnapshot createdAccountSnapshot =
+            AccountSnapshot.fromAccount(
+                createdAccount,
+                frame.isAddressWarm(myAddress),
+                this.deploymentNumber(myAddress),
+                this.isDeploying(myAddress));
+
+        this.addTraceSection(
+            new CreateSection(
+                this,
+                new ContextChunk(this.callStack, this.currentFrame(), updateReturnData),
+                // 3× own account TODO: defer newState post-exec
+                new AccountChunk(myAddress, myAccountSnapshot, myAccountSnapshot, false, 0, false),
+                new AccountChunk(myAddress, myAccountSnapshot, myAccountSnapshot, false, 0, false),
+                new AccountChunk(myAddress, myAccountSnapshot, myAccountSnapshot, false, 0, false)
+                // 2×created account TODO: snapshot for oldState, defer in post-exec for newState
+                //        opChunks.add(new AccountChunk());
+                //        opChunks.add(new AccountChunk());
+                ));
+      }
+      case CALL -> {
+        Address myAddress = this.currentFrame().getAddress();
+        Account myAccount = frame.getWorldUpdater().getAccount(myAddress);
+        AccountSnapshot myAccountSnapshot =
+            AccountSnapshot.fromAccount(
+                myAccount,
+                frame.isAddressWarm(myAddress),
+                this.deploymentNumber(myAddress),
+                this.isDeploying(myAddress));
+
+        this.addTraceSection(
+            new CreateSection(
+                this,
+                new ContextChunk(this.callStack, this.currentFrame(), updateReturnData),
+                // 2× own account
+                new AccountChunk(myAddress, myAccountSnapshot, myAccountSnapshot, false, 0, false),
+                new AccountChunk(myAddress, myAccountSnapshot, myAccountSnapshot, false, 0, false)
+                // 2× target call account
+                //        opChunks.add(new AccountChunk());
+                //        opChunks.add(new AccountChunk());
+                // TODO: defer context in post-new-callframe; describes the initcode execution
+                // context
+                //  this, new ContextChunk(this.callStack, this.currentFrame(), updateReturnData)
+                ));
+      }
+      case JUMP -> {
+        AccountSnapshot codeAccountSnapshot =
+            AccountSnapshot.fromAccount(
+                frame.getWorldUpdater().getAccount(this.currentFrame().getCodeAddress()),
+                true,
+                this.deploymentNumber(this.currentFrame().getCodeAddress()),
+                this.currentFrame().isCodeDeploymentStatus());
+
+        this.addTraceSection(
             new JumpSection(
                 this,
                 new ContextChunk(this.callStack, this.currentFrame(), updateReturnData),
@@ -703,10 +808,9 @@ public class Hub implements Module {
                     codeAccountSnapshot,
                     false,
                     0,
-                    false));
-          }
-        };
-    this.addTraceSection(section);
+                    false)));
+      }
+    }
   }
 
   public List<TraceChunk> makeStackChunks() {

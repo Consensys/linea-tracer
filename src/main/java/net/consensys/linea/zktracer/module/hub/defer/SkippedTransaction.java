@@ -19,6 +19,7 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.chunks.AccountChunk;
 import net.consensys.linea.zktracer.module.hub.chunks.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.chunks.TransactionChunk;
+import net.consensys.linea.zktracer.module.hub.section.TxSkippedSection;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
@@ -60,18 +61,18 @@ public record SkippedTransaction(
             state.get(minerAddress), true, hub.deploymentNumber(minerAddress), false);
 
     // Append the final chunk to the hub chunks
-    hub.addChunk(
-        // 3 lines -- account changes
-        // From
-        new AccountChunk(fromAddress, oldFromAccount, newFromAccount, false, 0, false),
-        // To
-        new AccountChunk(toAddress, oldToAccount, newToAccount, false, 0, false),
-        // Miner
-        new AccountChunk(minerAddress, oldMinerAccount, newMinerAccount, false, 0, false),
+    hub.addTraceSection(
+        new TxSkippedSection(
+            // 3 lines -- account changes
+            // From
+            new AccountChunk(fromAddress, oldFromAccount, newFromAccount, false, 0, false),
+            // To
+            new AccountChunk(toAddress, oldToAccount, newToAccount, false, 0, false),
+            // Miner
+            new AccountChunk(minerAddress, oldMinerAccount, newMinerAccount, false, 0, false),
 
-        // 1 line -- transaction data
-        new TransactionChunk(
-            hub.getBatchNumber(), minerAddress, tx, false, gasPrice, baseFee)
-        );
+            // 1 line -- transaction data
+            new TransactionChunk(
+                hub.getBatchNumber(), minerAddress, tx, false, gasPrice, baseFee)));
   }
 }

@@ -39,6 +39,16 @@ import net.consensys.linea.zktracer.module.hub.chunks.StorageChunk;
 import net.consensys.linea.zktracer.module.hub.chunks.TraceChunk;
 import net.consensys.linea.zktracer.module.hub.defer.SkippedTransaction;
 import net.consensys.linea.zktracer.module.hub.defer.TransactionDefer;
+import net.consensys.linea.zktracer.module.hub.section.AccountSection;
+import net.consensys.linea.zktracer.module.hub.section.ContextLogSection;
+import net.consensys.linea.zktracer.module.hub.section.CopySection;
+import net.consensys.linea.zktracer.module.hub.section.CreateCallSection;
+import net.consensys.linea.zktracer.module.hub.section.JumpSection;
+import net.consensys.linea.zktracer.module.hub.section.StackOnlySection;
+import net.consensys.linea.zktracer.module.hub.section.StackRam;
+import net.consensys.linea.zktracer.module.hub.section.StorageSection;
+import net.consensys.linea.zktracer.module.hub.section.TraceSection;
+import net.consensys.linea.zktracer.module.hub.section.TransactionSection;
 import net.consensys.linea.zktracer.module.hub.stack.StackContext;
 import net.consensys.linea.zktracer.module.hub.stack.StackLine;
 import net.consensys.linea.zktracer.module.mod.Mod;
@@ -102,38 +112,31 @@ public class Hub implements Module {
   public final void unmarkDeploying(Address address) {
     this.isDeploying.put(address, false);
   }
-  // Tx -> Opcode -> [Chunks]
-  private final List<List<List<TraceChunk>>> traceChunks = new ArrayList<>();
+  // Tx -> Opcode -> TraceSection
+  private final List<List<TraceSection>> traceSections = new ArrayList<>();
 
   int txChunksCount() {
-    return this.traceChunks.size();
+    return this.traceSections.size();
   }
 
   int opcodeChunksCount() {
-    return this.traceChunks.get(this.txChunksCount() - 1).size();
+    return this.traceSections.get(this.txChunksCount() - 1).size();
   }
 
-  List<List<TraceChunk>> currentTxChunks() {
-    return this.traceChunks.get(this.txChunksCount() - 1);
+  List<TraceSection> currentTxTrace() {
+    return this.traceSections.get(this.txChunksCount() - 1);
   }
 
-  List<TraceChunk> currentOpCodeChunks() {
-    return this.traceChunks.get(this.txChunksCount() - 1).get(this.opcodeChunksCount() - 1);
+  TraceSection currentTraceSection() {
+    return this.traceSections.get(this.txChunksCount() - 1).get(this.opcodeChunksCount() - 1);
+  }
+
+  public void addTraceSection(TraceSection section) {
+    this.currentTxTrace().add(section);
   }
 
   void chunkNewTransaction() {
-    this.traceChunks.add(new ArrayList<>());
-  }
-
-  void chunkNewOpcode() {
-    this.currentTxChunks().add(new ArrayList<>());
-  }
-
-  public void addChunk(TraceChunk... chunks) {
-    for (TraceChunk chunk : chunks) {
-      this.currentOpCodeChunks().add(traceCommon());
-      this.currentOpCodeChunks().add(chunk);
-    }
+    this.traceSections.add(new ArrayList<>());
   }
 
   private Exceptions exceptions;
@@ -500,7 +503,7 @@ public class Hub implements Module {
         }
 
         // This works because we are certain that the stack chunks are the first.
-        ((StackChunk) this.currentOpCodeChunks().get(2 * line.ct() + 1))
+        ((StackChunk) this.currentTraceSection().getChunks().get(2 * line.ct() + 1))
             .stackOps()
             .get(line.resultColumn() - 1)
             .setValue(result);
@@ -583,9 +586,9 @@ public class Hub implements Module {
 
   @Override
   public Object commit() {
-    for (var txChunks : traceChunks) {
-      for (List<TraceChunk> opChunks : txChunks) {
-        for (TraceChunk chunk : opChunks) {
+    for (var txChunks : traceSections) {
+      for (TraceSection section : txChunks) {
+        for (TraceChunk chunk : section.getChunks()) {
           chunk.trace(this.trace);
         }
       }
@@ -594,119 +597,132 @@ public class Hub implements Module {
   }
 
   void traceOperation(MessageFrame frame) {
-    this.chunkNewOpcode();
-    this.makeStackChunks();
     boolean updateReturnData =
         this.opCodeData().isHalt()
             || this.opCodeData().isInvalid()
             || exceptions.any()
             || isValidPrecompileCall(frame);
 
-    switch (this.opCodeData().instructionFamily()) {
-      case ADD,
-          MOD,
-          MUL,
-          SHF,
-          BIN,
-          WCP,
-          EXT,
-          KEC,
-          BATCH,
-          MACHINE_STATE,
-          PUSH_POP,
-          DUP,
-          SWAP,
-          HALT,
-          INVALID -> {}
-      case CONTEXT, LOG -> {
-        this.addChunk(new ContextChunk(this.callStack, this.currentFrame(), updateReturnData));
-      }
-      case ACCOUNT -> {
-        if (this.opCodeData().stackSettings().flag1()) {
-          this.addChunk(new ContextChunk(this.callStack, this.currentFrame(), updateReturnData));
-          //          opChunks.add(new AccountChunk());
-        } else {
-          //          opChunks.add(new AccountChunk());
-        }
-      }
-      case COPY -> {
-        if (this.opCodeData().stackSettings().flag1()) {
-          Address targetAddress =
-              switch (this.opCode) {
-                case CODECOPY -> this.currentFrame().getCodeAddress();
-                case EXTCODECOPY -> Words.toAddress(frame.getStackItem(0));
-                default -> {
-                  throw new IllegalStateException("unexpected opcode");
-                }
-              };
-          Account targetAccount = frame.getWorldUpdater().getAccount(targetAddress);
-          AccountSnapshot accountSnapshot =
-              AccountSnapshot.fromAccount(
-                  targetAccount,
-                  frame.isAddressWarm(targetAddress),
-                  this.deploymentNumber(targetAddress),
-                  this.isDeploying(targetAddress));
+    TraceSection section =
+        switch (this.opCodeData().instructionFamily()) {
+          case ADD,
+              MOD,
+              MUL,
+              SHF,
+              BIN,
+              WCP,
+              EXT,
+              KEC,
+              BATCH,
+              MACHINE_STATE,
+              PUSH_POP,
+              DUP,
+              SWAP,
+              HALT,
+              INVALID -> new StackOnlySection(this);
+          case CONTEXT, LOG -> new ContextLogSection(
+              this, new ContextChunk(this.callStack, this.currentFrame(), updateReturnData));
+          case ACCOUNT -> {
+            TraceSection accountSection = new AccountSection(this);
+            if (this.opCodeData().stackSettings().flag1()) {
+              accountSection.addChunk(
+                  this, new ContextChunk(this.callStack, this.currentFrame(), updateReturnData));
+              //          new AccountChunk();
+            } else {
+              //          new AccountChunk();
+            }
+            yield accountSection;
+          }
+          case COPY -> {
+            TraceSection copySection = new CopySection(this);
+            if (this.opCodeData().stackSettings().flag1()) {
+              Address targetAddress =
+                  switch (this.opCode) {
+                    case CODECOPY -> this.currentFrame().getCodeAddress();
+                    case EXTCODECOPY -> Words.toAddress(frame.getStackItem(0));
+                    default -> {
+                      throw new IllegalStateException("unexpected opcode");
+                    }
+                  };
+              Account targetAccount = frame.getWorldUpdater().getAccount(targetAddress);
+              AccountSnapshot accountSnapshot =
+                  AccountSnapshot.fromAccount(
+                      targetAccount,
+                      frame.isAddressWarm(targetAddress),
+                      this.deploymentNumber(targetAddress),
+                      this.isDeploying(targetAddress));
 
-          this.addChunk(
-              new AccountChunk(targetAddress, accountSnapshot, accountSnapshot, false, 0, false));
-          //          this.addChunk(new AccountChunk());
-        } else {
-          this.addChunk(new ContextChunk(this.callStack, this.currentFrame(), updateReturnData));
-        }
-      }
-      case TRANSACTION -> {
-        //        opChunks.add(new TransactionChunk());
-      }
-      case STACK_RAM -> {
-        if (this.opCodeData().stackSettings().flag2()) {
-          this.addChunk(new ContextChunk(this.callStack, this.currentFrame(), updateReturnData));
-        }
-      }
-      case STORAGE -> {
-        this.addChunk(
-            new ContextChunk(this.callStack, this.currentFrame(), updateReturnData),
-            new StorageChunk());
-      }
-      case CREATE, CALL -> {
-        this.addChunk(new ContextChunk(this.callStack, this.currentFrame(), updateReturnData));
-        //        opChunks.add(new AccountChunk());
-        //        opChunks.add(new AccountChunk());
-        //        opChunks.add(new AccountChunk());
-      }
-      case JUMP -> {
-        AccountSnapshot codeAccountSnapshot =
-            AccountSnapshot.fromAccount(
-                frame.getWorldUpdater().getAccount(this.currentFrame().getCodeAddress()),
-                true,
-                this.deploymentNumber(this.currentFrame().getCodeAddress()),
-                this.currentFrame().isCodeDeploymentStatus());
+              copySection.addChunk(
+                  this,
+                  new AccountChunk(
+                      targetAddress, accountSnapshot, accountSnapshot, false, 0, false));
+              //          new AccountChunk()
+            } else {
+              copySection.addChunk(
+                  this, new ContextChunk(this.callStack, this.currentFrame(), updateReturnData));
+            }
+            yield copySection;
+          }
+          case TRANSACTION -> new TransactionSection(
+              this
+              //        new TransactionChunk(this);
+              );
 
-        this.addChunk(
-            new ContextChunk(this.callStack, this.currentFrame(), updateReturnData),
-            new AccountChunk(
-                this.currentFrame().getCodeAddress(),
-                codeAccountSnapshot,
-                codeAccountSnapshot,
-                false,
-                0,
-                false));
-      }
-    }
+          case STACK_RAM -> {
+            TraceSection stackRamSection = new StackRam(this);
+            if (this.opCodeData().stackSettings().flag2()) {
+              stackRamSection.addChunk(
+                  this, new ContextChunk(this.callStack, this.currentFrame(), updateReturnData));
+            }
+            yield stackRamSection;
+          }
+          case STORAGE -> new StorageSection(
+              this,
+              new ContextChunk(this.callStack, this.currentFrame(), updateReturnData),
+              new StorageChunk());
+          case CREATE, CALL -> new CreateCallSection(
+              this, new ContextChunk(this.callStack, this.currentFrame(), updateReturnData)
+              //        opChunks.add(new AccountChunk());
+              //        opChunks.add(new AccountChunk());
+              //        opChunks.add(new AccountChunk());
+              );
+          case JUMP -> {
+            AccountSnapshot codeAccountSnapshot =
+                AccountSnapshot.fromAccount(
+                    frame.getWorldUpdater().getAccount(this.currentFrame().getCodeAddress()),
+                    true,
+                    this.deploymentNumber(this.currentFrame().getCodeAddress()),
+                    this.currentFrame().isCodeDeploymentStatus());
+
+            new JumpSection(
+                this,
+                new ContextChunk(this.callStack, this.currentFrame(), updateReturnData),
+                new AccountChunk(
+                    this.currentFrame().getCodeAddress(),
+                    codeAccountSnapshot,
+                    codeAccountSnapshot,
+                    false,
+                    0,
+                    false));
+          }
+        };
+    this.addTraceSection(section);
   }
 
-  void makeStackChunks() {
+  public List<TraceChunk> makeStackChunks() {
+    List<TraceChunk> r = new ArrayList<>();
     if (this.currentFrame().getPending().getLines().isEmpty()) {
       for (int i = 0; i < (this.opCodeData().stackSettings().twoLinesInstruction() ? 2 : 1); i++) {
-        this.addChunk(
+        r.add(
             new StackChunk(
                 this.currentFrame().getStack().snapshot(), new StackLine(i).asStackOperations()));
       }
     } else {
       for (StackLine line : this.currentFrame().getPending().getLines()) {
-        this.addChunk(
-            new StackChunk(this.currentFrame().getStack().snapshot(), line.asStackOperations()));
+        r.add(new StackChunk(this.currentFrame().getStack().snapshot(), line.asStackOperations()));
       }
     }
+    return r;
   }
 
   private void retconAccountChunk(AccountChunk chunk) {
@@ -717,9 +733,9 @@ public class Hub implements Module {
   }
 
   private void retconChunks() {
-    for (List<List<TraceChunk>> txChunk : this.traceChunks) {
-      for (List<TraceChunk> opChunks : txChunk) {
-        for (TraceChunk chunk : opChunks) {
+    for (List<TraceSection> section : this.traceSections) {
+      for (TraceSection opChunks : section) {
+        for (TraceChunk chunk : opChunks.getChunks()) {
           if (chunk instanceof AccountChunk) {
             this.retconAccountChunk((AccountChunk) chunk);
           }

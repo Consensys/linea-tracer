@@ -1,2 +1,13 @@
-package net.consensys.linea.zktracer.module.hub.section;public class CallSection {
+package net.consensys.linea.zktracer.module.hub.section;
+
+import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.chunks.TraceChunk;
+
+public class CallSection extends TraceSection {
+  public CallSection(Hub hub, TraceChunk... chunks) {
+    super(hub, chunks);
+  }
+
+  @Override
+  void retcon(Hub hub) {}
 }

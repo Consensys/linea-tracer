@@ -22,6 +22,7 @@ import java.util.Optional;
 import lombok.Getter;
 import lombok.Setter;
 import net.consensys.linea.zktracer.EWord;
+import net.consensys.linea.zktracer.module.hub.Bytecode;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.memory.MemorySpan;
 import net.consensys.linea.zktracer.module.hub.stack.Stack;
@@ -29,7 +30,6 @@ import net.consensys.linea.zktracer.module.hub.stack.StackContext;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
-import org.hyperledger.besu.evm.Code;
 
 public class CallFrame {
   /** the position of this {@link CallFrame} in the {@link CallStack}. */
@@ -55,8 +55,8 @@ public class CallFrame {
   /** the {@link CallFrameType} of this frame. */
   @Getter private CallFrameType type;
 
-  /** the {@link Code} executing within this frame. */
-  private Code code;
+  /** the {@link Bytecode} executing within this frame. */
+  private Bytecode code;
 
   /** the ether amount given to this frame. */
   @Getter private Wei value;
@@ -114,7 +114,7 @@ public class CallFrame {
       boolean isDeployment,
       int id,
       Address address,
-      Code code,
+      Bytecode code,
       CallFrameType type,
       int caller,
       Wei value,

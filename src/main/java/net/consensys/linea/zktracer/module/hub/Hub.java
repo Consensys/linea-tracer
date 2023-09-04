@@ -37,12 +37,16 @@ import net.consensys.linea.zktracer.module.hub.chunks.ContextChunk;
 import net.consensys.linea.zktracer.module.hub.chunks.StackChunk;
 import net.consensys.linea.zktracer.module.hub.chunks.StorageChunk;
 import net.consensys.linea.zktracer.module.hub.chunks.TraceChunk;
+import net.consensys.linea.zktracer.module.hub.chunks.TransactionChunk;
+import net.consensys.linea.zktracer.module.hub.defer.Create;
+import net.consensys.linea.zktracer.module.hub.defer.NextContextDefer;
+import net.consensys.linea.zktracer.module.hub.defer.PostExecDefer;
 import net.consensys.linea.zktracer.module.hub.defer.SkippedTransaction;
 import net.consensys.linea.zktracer.module.hub.defer.TransactionDefer;
 import net.consensys.linea.zktracer.module.hub.section.AccountSection;
 import net.consensys.linea.zktracer.module.hub.section.ContextLogSection;
 import net.consensys.linea.zktracer.module.hub.section.CopySection;
-import net.consensys.linea.zktracer.module.hub.section.CreateCallSection;
+import net.consensys.linea.zktracer.module.hub.section.CreateSection;
 import net.consensys.linea.zktracer.module.hub.section.JumpSection;
 import net.consensys.linea.zktracer.module.hub.section.StackOnlySection;
 import net.consensys.linea.zktracer.module.hub.section.StackRam;
@@ -63,7 +67,6 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.account.Account;
-import org.hyperledger.besu.evm.code.CodeV0;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.gascalculator.GasCalculator;
 import org.hyperledger.besu.evm.gascalculator.LondonGasCalculator;
@@ -97,6 +100,7 @@ public class Hub implements Module {
     }
     return r;
   }
+
   private EWord getValOrigOrUpdate(Address address, EWord key) {
     EWord r = this.valOrigs.getOrDefault(address, new HashMap<>()).putIfAbsent(key, EWord.ZERO);
     if (r == null) {
@@ -167,10 +171,24 @@ public class Hub implements Module {
   int stamp = 0;
 
   /** A list of latches deferred until the end of the current transaction */
-  private final List<TransactionDefer> transactionLatches = new ArrayList<>();
+  private final List<TransactionDefer> txDefers = new ArrayList<>();
   /** Defers a latch to be executed at the end of the current transaction. */
   private void deferPostTx(TransactionDefer latch) {
-    this.transactionLatches.add(latch);
+    this.txDefers.add(latch);
+  }
+
+  /** A list of latches deferred until the end of the current opcode execution */
+  private final List<PostExecDefer> postExecDefers = new ArrayList<>();
+  /** Defers a latch to be executed after the completion of the current opcode. */
+  private void deferPostExec(PostExecDefer latch) {
+    this.postExecDefers.add(latch);
+  }
+
+  /** A list of latches deferred until the end of the current opcode execution */
+  private final List<NextContextDefer> nextContextDefers = new ArrayList<>();
+  /** Defers a latch to be executed after the completion of the current opcode. */
+  private void deferNextContext(NextContextDefer latch) {
+    this.nextContextDefers.add(latch);
   }
 
   private final Module add;
@@ -345,7 +363,7 @@ public class Hub implements Module {
     return this.trace.size();
   }
 
-  private CallFrame currentFrame() {
+  public CallFrame currentFrame() {
     return this.callStack.top();
   }
 
@@ -417,14 +435,15 @@ public class Hub implements Module {
     this.triggerModules(frame);
 
     if (this.currentFrame().getStack().isOk()) {
+      this.traceOperation(frame);
       /*
       this.handleCallReturnData
       this.handleMemory
       this.handleRam
        */
+    } else {
+      this.addTraceSection(new StackOnlySection(this));
     }
-
-    this.traceOperation(frame);
   }
 
   void processStateFinal() {
@@ -464,10 +483,10 @@ public class Hub implements Module {
     this.txState = TxState.TX_FINAL;
     this.processStateFinal();
 
-    for (TransactionDefer defer : this.transactionLatches) {
-      defer.run(this, null, null); // TODO
+    for (TransactionDefer defer : this.txDefers) {
+      defer.run(this, null, this.currentTx); // TODO
     }
-    this.transactionLatches.clear();
+    this.txDefers.clear();
   }
 
   private void txInit(final MessageFrame frame) {
@@ -490,14 +509,14 @@ public class Hub implements Module {
         new CallStack(
             toAddress,
             isDeployment ? CallFrameType.INIT_CODE : CallFrameType.STANDARD,
-            CodeV0.EMPTY_CODE, // TODO
+            new Bytecode(frame.getWorldUpdater().getAccount(toAddress).getCode()),
             Wei.of(this.currentTx.getValue().getAsBigInteger()),
             this.currentTx.getGasLimit(),
             this.currentTx.getData().orElse(Bytes.EMPTY),
             this.maxContextNumber,
-            0, // TODO
+            this.deploymentNumber(toAddress),
             toAddress.isEmpty() ? 0 : this.deploymentNumber.getOrDefault(toAddress, 0),
-            false); // TODO
+            this.isDeploying(toAddress));
 
     if (false /* doWarm */) { // TODO
       this.processStateWarm();
@@ -542,7 +561,7 @@ public class Hub implements Module {
     final int codeDeploymentNumber = this.deploymentNumber.getOrDefault(codeAddress, 0);
     this.callStack.enter(
         frame.getContractAddress(),
-        frame.getCode(),
+        new Bytecode(frame.getCode().getBytes()),
         frameType,
         frame.getValue(),
         frame.getRemainingGas(),
@@ -552,6 +571,11 @@ public class Hub implements Module {
         this.deploymentNumber.getOrDefault(codeAddress, 0),
         codeDeploymentNumber,
         isDeployment);
+
+    for (NextContextDefer defer : this.nextContextDefers) {
+      defer.run(this, frame);
+    }
+    this.nextContextDefers.clear();
   }
 
   @Override
@@ -580,6 +604,11 @@ public class Hub implements Module {
     if (this.opCode.isCreate() && operationResult.getHaltReason() == null) {
       this.handleCreate(Address.wrap(frame.getStackItem(0)));
     }
+
+    for (PostExecDefer defer : this.postExecDefers) {
+      defer.run(this, frame, operationResult);
+    }
+    this.postExecDefers.clear();
   }
 
   private void handleCreate(Address target) {
@@ -682,9 +711,14 @@ public class Hub implements Module {
       }
       case TRANSACTION -> this.addTraceSection(
           new TransactionSection(
-              this
-              //        new TransactionChunk(this);
-              ));
+              this,
+              new TransactionChunk(
+                  this.batchNumber,
+                  frame.getMiningBeneficiary(),
+                  this.currentTx,
+                  true,
+                  frame.getGasPrice(),
+                  frame.getBlockValues().getBaseFee().orElse(Wei.ZERO))));
 
       case STACK_RAM -> {
         TraceSection stackRamSection = new StackRam(this);
@@ -752,18 +786,16 @@ public class Hub implements Module {
                 this.deploymentNumber(myAddress),
                 this.isDeploying(myAddress));
 
-        this.addTraceSection(
-            new CreateSection(
-                this,
-                new ContextChunk(this.callStack, this.currentFrame(), updateReturnData),
-                // 3× own account TODO: defer newState post-exec
-                new AccountChunk(myAddress, myAccountSnapshot, myAccountSnapshot, false, 0, false),
-                new AccountChunk(myAddress, myAccountSnapshot, myAccountSnapshot, false, 0, false),
-                new AccountChunk(myAddress, myAccountSnapshot, myAccountSnapshot, false, 0, false)
-                // 2×created account TODO: snapshot for oldState, defer in post-exec for newState
-                //        opChunks.add(new AccountChunk());
-                //        opChunks.add(new AccountChunk());
-                ));
+        Create protoCreateSection =
+            new Create(
+                myAddress,
+                createdAddress,
+                myAccountSnapshot,
+                createdAccountSnapshot,
+                new ContextChunk(this.callStack, this.currentFrame(), updateReturnData));
+        // Will be traced in one (and only one!) of these depending on the success of the operation
+        this.deferPostExec(protoCreateSection);
+        this.deferNextContext(protoCreateSection);
       }
       case CALL -> {
         Address myAddress = this.currentFrame().getAddress();

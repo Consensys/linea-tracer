@@ -19,12 +19,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import net.consensys.linea.zktracer.module.hub.Bytecode;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.Code;
-import org.hyperledger.besu.evm.code.CodeV0;
 
 /**
  * This class represents the call hierarchy of a transaction.
@@ -45,7 +45,7 @@ public final class CallStack {
   public CallStack(
       Address to,
       CallFrameType type,
-      Code toCode,
+      Bytecode toCode,
       Wei value,
       long gas,
       Bytes calldata,
@@ -58,7 +58,7 @@ public final class CallStack {
     this.frames.add(new CallFrame());
     this.enter(
         to,
-        toCode == null ? CodeV0.EMPTY_CODE : toCode,
+        toCode == null ? Bytecode.EMPTY : toCode,
         type,
         value,
         gas,
@@ -99,7 +99,7 @@ public final class CallStack {
    */
   public void enter(
       Address address,
-      Code code,
+      Bytecode code,
       CallFrameType type,
       Wei value,
       long gas,

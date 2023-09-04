@@ -24,10 +24,14 @@ import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
-import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public record TransactionChunk(
-    int batchNumber, Address minerAddress, Transaction tx, boolean evmExecutes, MessageFrame frame)
+    int batchNumber,
+    Address minerAddress,
+    Transaction tx,
+    boolean evmExecutes,
+    Wei gasPrice,
+    Wei baseFee)
     implements TraceChunk {
   @Override
   public Trace.TraceBuilder trace(Trace.TraceBuilder trace) {
@@ -44,9 +48,8 @@ public record TransactionChunk(
         .pTransactionFromAddressLo(from.loBigInt())
         .pTransactionToAddressHi(to.hiBigInt())
         .pTransactionToAddressLo(to.loBigInt())
-        .pTransactionGasPrice(frame.getGasPrice().toUnsignedBigInteger())
-        .pTransactionBasefee(
-            frame.getBlockValues().getBaseFee().orElse(Wei.ZERO).toUnsignedBigInteger())
+        .pTransactionGasPrice(gasPrice.toUnsignedBigInteger())
+        .pTransactionBasefee(baseFee.toUnsignedBigInteger())
         .pTransactionInitGas(Hub.computeInitGas(tx))
         .pTransactionInitialBalance(BigInteger.ZERO) // TODO save the init balance from TX_INIT
         .pTransactionValue(tx.getValue().getAsBigInteger())

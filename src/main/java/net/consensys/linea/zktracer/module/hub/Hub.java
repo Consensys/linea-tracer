@@ -251,7 +251,13 @@ public class Hub implements Module {
       this.increaseDeploymentNumber(toAddress);
     }
 
-    this.deferPostTx(new SkippedTransaction(oldFromAccount, oldToAccount, oldMinerAccount));
+    this.deferPostTx(
+        new SkippedTransaction(
+            oldFromAccount,
+            oldToAccount,
+            oldMinerAccount,
+            frame.getGasPrice(),
+            frame.getBlockValues().getBaseFee().orElse(Wei.ZERO)));
   }
 
   public static BigInteger computeInitGas(Transaction tx) {
@@ -581,7 +587,6 @@ public class Hub implements Module {
       for (List<TraceChunk> opChunks : txChunks) {
         for (TraceChunk chunk : opChunks) {
           chunk.trace(this.trace);
-          this.trace.fillAndValidateRow();
         }
       }
     }

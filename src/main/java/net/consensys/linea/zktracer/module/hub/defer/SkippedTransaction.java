@@ -18,8 +18,10 @@ package net.consensys.linea.zktracer.module.hub.defer;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.chunks.AccountChunk;
 import net.consensys.linea.zktracer.module.hub.chunks.AccountSnapshot;
+import net.consensys.linea.zktracer.module.hub.chunks.TransactionChunk;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
+import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 /**
@@ -32,7 +34,11 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
  * @param oldMinerAccount
  */
 public record SkippedTransaction(
-    AccountSnapshot oldFromAccount, AccountSnapshot oldToAccount, AccountSnapshot oldMinerAccount)
+    AccountSnapshot oldFromAccount,
+    AccountSnapshot oldToAccount,
+    AccountSnapshot oldMinerAccount,
+    Wei gasPrice,
+    Wei baseFee)
     implements TransactionDefer {
   @Override
   public void run(Hub hub, WorldView state, Transaction tx) {
@@ -59,13 +65,13 @@ public record SkippedTransaction(
         // From
         new AccountChunk(fromAddress, oldFromAccount, newFromAccount, false, 0, false),
         // To
-
         new AccountChunk(toAddress, oldToAccount, newToAccount, false, 0, false),
         // Miner
-        new AccountChunk(minerAddress, oldMinerAccount, newMinerAccount, false, 0, falsep p)
+        new AccountChunk(minerAddress, oldMinerAccount, newMinerAccount, false, 0, false),
 
         // 1 line -- transaction data
-        //        new TransactionChunk(hub.getBatchNumber(), minerAddress, tx, false) // TODO
+        new TransactionChunk(
+            hub.getBatchNumber(), minerAddress, tx, false, gasPrice, baseFee)
         );
   }
 }

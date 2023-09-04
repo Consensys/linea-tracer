@@ -88,7 +88,6 @@ public record CommonChunk(
         .twoLineInstruction(twoLinesInstruction)
         .counterTli(twoLinesInstructionCounter)
         .numberOfNonStackRows(BigInteger.valueOf(numberOfNonStackRows))
-        .counterNsr(BigInteger.valueOf(nonStackRowsCounter))
-        .fillAndValidateRow();
+        .counterNsr(BigInteger.valueOf(nonStackRowsCounter));
   }
 }

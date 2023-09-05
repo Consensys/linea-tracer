@@ -38,7 +38,11 @@ public class JsonConverter {
    * @return a JSON string representing the object's data
    * @throws JsonProcessingException n case of a serialization failure
    */
-  public String toJson(Object object) throws JsonProcessingException {
+  public String toJson(Object object, boolean... prettyPrint) throws JsonProcessingException {
+    if (prettyPrint.length > 0 && prettyPrint[0]) {
+      return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(object);
+    }
+
     return objectMapper.writeValueAsString(object);
   }
 
@@ -89,6 +93,11 @@ public class JsonConverter {
 
     public Builder enableYaml() {
       objectMapper = new ObjectMapper(new YAMLFactory());
+      return this;
+    }
+
+    public Builder enablePrettyPrint() {
+      objectMapper.writerWithDefaultPrettyPrinter();
       return this;
     }
 

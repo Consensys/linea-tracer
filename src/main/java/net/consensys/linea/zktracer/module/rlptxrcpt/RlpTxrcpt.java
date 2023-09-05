@@ -34,11 +34,11 @@ import org.hyperledger.besu.plugin.data.Log;
 import org.hyperledger.besu.plugin.data.TransactionReceipt;
 
 public class RlpTxrcpt implements Module {
-  private static final int LLARGE_INTEGER = RlpTxrcptTrace.LLARGE.intValue();
-  private static final int INT_SHORT_INTEGER = RlpTxrcptTrace.INT_SHORT.intValue();
-  private static final int INT_LONG_INTEGER = RlpTxrcptTrace.INT_LONG.intValue();
-  private static final int LIST_SHORT_INTEGER = RlpTxrcptTrace.LIST_SHORT.intValue();
-  private static final int LIST_LONG_INTEGER = RlpTxrcptTrace.LIST_LONG.intValue();
+  public static final int LLARGE_INTEGER = RlpTxrcptTrace.LLARGE.intValue();
+  public static final int INT_SHORT_INTEGER = RlpTxrcptTrace.INT_SHORT.intValue();
+  public static final int INT_LONG_INTEGER = RlpTxrcptTrace.INT_LONG.intValue();
+  public static final int LIST_SHORT_INTEGER = RlpTxrcptTrace.LIST_SHORT.intValue();
+  public static final int LIST_LONG_INTEGER = RlpTxrcptTrace.LIST_LONG.intValue();
   private int absTxNum = 0;
   private int absLogNum = 0;
   private final Trace.TraceBuilder builder = Trace.builder();
@@ -643,7 +643,7 @@ public class RlpTxrcpt implements Module {
    * Returns the size of RLP(something) where something is of size inputSize (!=1) (it can be ZERO
    * though).
    */
-  public int outerRlpSize(int inputSize) {
+  public static int outerRlpSize(int inputSize) {
     int rlpSize = inputSize;
     if (inputSize == 1) {
       // TODO panic
@@ -723,7 +723,7 @@ public class RlpTxrcpt implements Module {
    * @param wantedSize
    * @return
    */
-  public Bytes toGivenSize(Bytes input, int wantedSize) {
+  public static Bytes toGivenSize(Bytes input, int wantedSize) {
     Preconditions.checkArgument(
         wantedSize >= input.size(), "wantedSize can't be shorter than the input size");
     byte nullByte = 0;
@@ -739,7 +739,7 @@ public class RlpTxrcpt implements Module {
    * @param nbStep
    * @return
    */
-  public RlpByteCountAndPowerOutput byteCounting(int inputByteLen, int nbStep) {
+  public static RlpByteCountAndPowerOutput byteCounting(int inputByteLen, int nbStep) {
     RlpByteCountAndPowerOutput output = new RlpByteCountAndPowerOutput();
 
     BigInteger power;
@@ -776,7 +776,7 @@ public class RlpTxrcpt implements Module {
    * @param nbStep
    * @return
    */
-  public RlpBitDecOutput bitDecomposition(int input, int nbStep) {
+  public static RlpBitDecOutput bitDecomposition(int input, int nbStep) {
     Preconditions.checkArgument(nbStep >= 8, "Number of steps must not exceed 8");
 
     RlpBitDecOutput output = new RlpBitDecOutput();

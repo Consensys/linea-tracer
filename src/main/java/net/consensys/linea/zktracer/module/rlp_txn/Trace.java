@@ -43,7 +43,6 @@ record Trace(
   @JsonProperty("BYTE_1") List<UnsignedByte> byte1,
   @JsonProperty("BYTE_2") List<UnsignedByte> byte2,
   @JsonProperty("CODE_FRAGMENT_INDEX") List<BigInteger> codeFragmentIndex,
-  @JsonProperty("COMP") List<Boolean> comp,
   @JsonProperty("COUNTER") List<UnsignedByte> counter,
   @JsonProperty("DATA_HI") List<BigInteger> dataHi,
   @JsonProperty("DATA_LO") List<BigInteger> dataLo,
@@ -57,8 +56,6 @@ record Trace(
   @JsonProperty("INDEX_LX") List<BigInteger> indexLx,
   @JsonProperty("INPUT_1") List<BigInteger> input1,
   @JsonProperty("INPUT_2") List<BigInteger> input2,
-  @JsonProperty("is_bytesize") List<Boolean> isBytesize,
-  @JsonProperty("is_list") List<Boolean> isList,
   @JsonProperty("is_padding") List<Boolean> isPadding,
   @JsonProperty("is_prefix") List<Boolean> isPrefix,
   @JsonProperty("LIMB") List<BigInteger> limb,
@@ -124,8 +121,6 @@ record Trace(
     private final List<UnsignedByte> byte2 = new ArrayList<>();
     @JsonProperty("CODE_FRAGMENT_INDEX")
     private final List<BigInteger> codeFragmentIndex = new ArrayList<>();
-    @JsonProperty("COMP")
-    private final List<Boolean> comp = new ArrayList<>();
     @JsonProperty("COUNTER")
     private final List<UnsignedByte> counter = new ArrayList<>();
     @JsonProperty("DATA_HI")
@@ -152,10 +147,6 @@ record Trace(
     private final List<BigInteger> input1 = new ArrayList<>();
     @JsonProperty("INPUT_2")
     private final List<BigInteger> input2 = new ArrayList<>();
-    @JsonProperty("is_bytesize")
-    private final List<Boolean> isBytesize = new ArrayList<>();
-    @JsonProperty("is_list")
-    private final List<Boolean> isList = new ArrayList<>();
     @JsonProperty("is_padding")
     private final List<Boolean> isPadding = new ArrayList<>();
     @JsonProperty("is_prefix")
@@ -387,18 +378,6 @@ record Trace(
       return this;
     }
 
-    TraceBuilder comp(final Boolean b) {
-      if (filled.get(14)) {
-        throw new IllegalStateException("COMP already set");
-      } else {
-        filled.set(14);
-      }
-
-      comp.add(b);
-
-      return this;
-    }
-
     TraceBuilder counter(final BigInteger b) {
       if (filled.get(35)) {
         throw new IllegalStateException("COUNTER already set");
@@ -555,30 +534,6 @@ record Trace(
       return this;
     }
 
-    TraceBuilder isBytesize(final Boolean b) {
-      if (filled.get(44)) {
-        throw new IllegalStateException("is_bytesize already set");
-      } else {
-        filled.set(44);
-      }
-
-      isBytesize.add(b);
-
-      return this;
-    }
-
-    TraceBuilder isList(final Boolean b) {
-      if (filled.get(29)) {
-        throw new IllegalStateException("is_list already set");
-      } else {
-        filled.set(29);
-      }
-
-      isList.add(b);
-
-      return this;
-    }
-
     TraceBuilder isPadding(final Boolean b) {
       if (filled.get(54)) {
         throw new IllegalStateException("is_padding already set");
@@ -603,7 +558,7 @@ record Trace(
       return this;
     }
 
-    TraceBuilder limb(final Bytes b) {
+    TraceBuilder limb(final BigInteger b) {
       if (filled.get(4)) {
         throw new IllegalStateException("LIMB already set");
       } else {
@@ -1041,12 +996,6 @@ record Trace(
       return this;
     }
 
-    TraceBuilder setCompAt(final Boolean b, int i) {
-      comp.set(i, b);
-
-      return this;
-    }
-
     TraceBuilder setCounterAt(final UnsignedByte b, int i) {
       counter.set(i, b);
 
@@ -1121,18 +1070,6 @@ record Trace(
 
     TraceBuilder setInput2At(final BigInteger b, int i) {
       input2.set(i, b);
-
-      return this;
-    }
-
-    TraceBuilder setIsBytesizeAt(final Boolean b, int i) {
-      isBytesize.set(i, b);
-
-      return this;
-    }
-
-    TraceBuilder setIsListAt(final Boolean b, int i) {
-      isList.set(i, b);
 
       return this;
     }
@@ -1407,12 +1344,6 @@ record Trace(
       return this;
     }
 
-    TraceBuilder setCompRelative(final Boolean b, int i) {
-      comp.set(comp.size() - 1 - i, b);
-
-      return this;
-    }
-
     TraceBuilder setCounterRelative(final UnsignedByte b, int i) {
       counter.set(counter.size() - 1 - i, b);
 
@@ -1487,18 +1418,6 @@ record Trace(
 
     TraceBuilder setInput2Relative(final BigInteger b, int i) {
       input2.set(input2.size() - 1 - i, b);
-
-      return this;
-    }
-
-    TraceBuilder setIsBytesizeRelative(final Boolean b, int i) {
-      isBytesize.set(isBytesize.size() - 1 - i, b);
-
-      return this;
-    }
-
-    TraceBuilder setIsListRelative(final Boolean b, int i) {
-      isList.set(isList.size() - 1 - i, b);
 
       return this;
     }
@@ -1748,10 +1667,6 @@ record Trace(
         throw new IllegalStateException("CODE_FRAGMENT_INDEX has not been filled");
       }
 
-      if (!filled.get(14)) {
-        throw new IllegalStateException("COMP has not been filled");
-      }
-
       if (!filled.get(35)) {
         throw new IllegalStateException("COUNTER has not been filled");
       }
@@ -1802,14 +1717,6 @@ record Trace(
 
       if (!filled.get(17)) {
         throw new IllegalStateException("INPUT_2 has not been filled");
-      }
-
-      if (!filled.get(44)) {
-        throw new IllegalStateException("is_bytesize has not been filled");
-      }
-
-      if (!filled.get(29)) {
-        throw new IllegalStateException("is_list has not been filled");
       }
 
       if (!filled.get(54)) {
@@ -1999,10 +1906,6 @@ record Trace(
           codeFragmentIndex.add(BigInteger.ZERO);
           this.filled.set(36);
       }
-      if (!filled.get(14)) {
-          comp.add(false);
-          this.filled.set(14);
-      }
       if (!filled.get(35)) {
           counter.add(UnsignedByte.of(0));
           this.filled.set(35);
@@ -2054,14 +1957,6 @@ record Trace(
       if (!filled.get(17)) {
           input2.add(BigInteger.ZERO);
           this.filled.set(17);
-      }
-      if (!filled.get(44)) {
-          isBytesize.add(false);
-          this.filled.set(44);
-      }
-      if (!filled.get(29)) {
-          isList.add(false);
-          this.filled.set(29);
       }
       if (!filled.get(54)) {
           isPadding.add(false);
@@ -2214,7 +2109,6 @@ record Trace(
         byte1,
         byte2,
         codeFragmentIndex,
-        comp,
         counter,
         dataHi,
         dataLo,
@@ -2228,8 +2122,6 @@ record Trace(
         indexLx,
         input1,
         input2,
-        isBytesize,
-        isList,
         isPadding,
         isPrefix,
         limb,

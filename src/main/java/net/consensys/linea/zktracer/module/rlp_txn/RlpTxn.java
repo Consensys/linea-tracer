@@ -20,9 +20,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-import net.consensys.linea.zktracer.OpCode;
 import net.consensys.linea.zktracer.bytes.UnsignedByte;
 import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
@@ -65,121 +65,121 @@ public class RlpTxn implements Module {
     this.absolute_transaction_number += 1;
 
     /** Specify transaction constant columns */
-    RlpTxnToTrace data = new RlpTxnToTrace();
-    data.ABS_TX_NUM = absolute_transaction_number;
-    data.ABS_TX_NUM_INFINY = absolute_transaction_number;
+    RlpTxnColumnsValue traceValue = new RlpTxnColumnsValue();
+    traceValue.ABS_TX_NUM = absolute_transaction_number;
+    traceValue.ABS_TX_NUM_INFINY = absolute_transaction_number;
     if (tx.getType() == TransactionType.FRONTIER) {
-      data.TYPE = 0;
+      traceValue.TYPE = 0;
     } else {
-      data.TYPE = tx.getType().getSerializedType();
+      traceValue.TYPE = tx.getType().getSerializedType();
     }
-    data.CODE_FRAGMENT_INDEX = data.ABS_TX_NUM; /** TODO */
+    traceValue.CODE_FRAGMENT_INDEX = 0; /** TODO */
 
     /** RREQUIRES_EVM_EXECUTION is set to true in case of a non-empty initcode for contract creation, and non-empty
      * code for message call*/
     if (tx.getTo().isEmpty() && tx.getData().isPresent() /** && TODO non empty msg call*/){
-      data.REQUIRES_EVM_EXECUTION=true;
+      traceValue.REQUIRES_EVM_EXECUTION=true;
     }
 
     /** Phase 0 : Golbal RLP prefix */
-    data.DATA_LO = BigInteger.valueOf(data.TYPE);
-    data = HandlePhaseGlobalRlpPrefix(data);
+    traceValue.DATA_LO = BigInteger.valueOf(traceValue.TYPE);
+    handlePhaseGlobalRlpPrefix(traceValue);
 
     /** Phase 1 : ChainId */
-    if (data.TYPE == 1 || data.TYPE == 2) {
+    if (traceValue.TYPE == 1 || traceValue.TYPE == 2) {
       /** TODO check that chainID is an 8 bytes int */
-      data = HandlePhaseInteger(data, 1, tx.getChainId().get(), 8, true, true);
+      handlePhaseInteger(traceValue, 1, tx.getChainId().get(), 8, true, true);
     }
 
     /** Phase 2 : Nonce */
     BigInteger nonce = BigInteger.valueOf(tx.getNonce());
-    data.DATA_LO = nonce;
-    data = HandlePhaseInteger(data, 2, nonce, 8, true, true);
+    traceValue.DATA_LO = nonce;
+    handlePhaseInteger(traceValue, 2, nonce, 8, true, true);
 
     /** Phase 3 : GasPrice */
-    if (data.TYPE == 0 || data.TYPE == 1) {
+    if (traceValue.TYPE == 0 || traceValue.TYPE == 1) {
       BigInteger gasPrice = tx.getGasPrice().get().getAsBigInteger();
       /** TODO check that gasPrice is an 8 bytes int */
-      data.DATA_LO = gasPrice;
-      data = HandlePhaseInteger(data, 3, gasPrice, 8, true, true);
+      traceValue.DATA_LO = gasPrice;
+      handlePhaseInteger(traceValue, 3, gasPrice, 8, true, true);
     }
 
     /** Phase 4 : max priority fee per gas (GasTipCap) */
-    if (data.TYPE == 2) {
+    if (traceValue.TYPE == 2) {
       BigInteger maxPriorityFeePerGas =
           tx.getMaxPriorityFeePerGas().get().getAsBigInteger();
-      data.DATA_HI = maxPriorityFeePerGas;
+      traceValue.DATA_HI = maxPriorityFeePerGas;
       /** TODO check that max priority fee per gas is an 8 bytes int */
-      data = HandlePhaseInteger(data, 4, maxPriorityFeePerGas, 8, true, true);
+      handlePhaseInteger(traceValue, 4, maxPriorityFeePerGas, 8, true, true);
     }
 
     /** Phase 5 : max fee per gas (GasFeeCap) */
-    if (data.TYPE == 2) {
+    if (traceValue.TYPE == 2) {
       BigInteger maxFeePerGas = tx.getMaxFeePerGas().get().getAsBigInteger();
       /** TODO check that max fee per gas is an 8 bytes int */
-      data.DATA_LO = maxFeePerGas;
-      data = HandlePhaseInteger(data, 6, maxFeePerGas, 8, true, true);
+      traceValue.DATA_LO = maxFeePerGas;
+      handlePhaseInteger(traceValue, 6, maxFeePerGas, 8, true, true);
     }
 
     /** Phase 6 : GasLimit */
     BigInteger gasLimit = BigInteger.valueOf(tx.getGasLimit());
-    data.DATA_LO = gasLimit;
-    data = HandlePhaseInteger(data, 6, gasLimit, 8, true, true);
+    traceValue.DATA_LO = gasLimit;
+    handlePhaseInteger(traceValue, 6, gasLimit, 8, true, true);
 
     /** Phase 7 : To */
     if (tx.getTo().isPresent()) {
-      data.DATA_HI = tx.getTo().get().slice(0, 4).toBigInteger();
-      data.DATA_LO = tx.getTo().get().slice(4, 16).toBigInteger();
+      traceValue.DATA_HI = tx.getTo().get().slice(0, 4).toBigInteger();
+      traceValue.DATA_LO = tx.getTo().get().slice(4, 16).toBigInteger();
     } else {
-      data.DATA_HI = BigInteger.ZERO;
-      data.DATA_LO = BigInteger.ZERO;
+      traceValue.DATA_HI = BigInteger.ZERO;
+      traceValue.DATA_LO = BigInteger.ZERO;
     }
-    data = HandlePhaseTo(data, tx);
+    handlePhaseTo(traceValue, tx);
 
     /** Phase 8 : Value */
     BigInteger value = tx.getValue().getAsBigInteger();
     /** TODO add check that value is a 12 bytes int */
-    data.DATA_LO = value;
+    traceValue.DATA_LO = value;
     if (tx.getTo().isEmpty()) {
-      data.DATA_HI = BigInteger.ONE;
+      traceValue.DATA_HI = BigInteger.ONE;
     } else {
-      data.DATA_HI = BigInteger.ZERO;
+      traceValue.DATA_HI = BigInteger.ZERO;
     }
-    data = HandlePhaseInteger(data, 8, value, 12, true, true);
+    handlePhaseInteger(traceValue, 8, value, 12, true, true);
 
     /** Phase 9 : Data */
-    data = HandlePhaseData(data, tx);
+    handlePhaseData(traceValue, tx);
 
     /** Phase 10 : AccessList */
-    data = HandlePhaseAccessList(data, tx);
+    handlePhaseAccessList(traceValue, tx);
     /** TODO add check on nullity of accesstuplebytesize, nbaddr, nbsto, nbstoperaddr ?*/
 
     /** Phase 11 : Beta / w */
-    data = HandlePhaseBeta(data, tx);
+    traceValue = HandlePhaseBeta(traceValue, tx);
 
     /** Phase 12 : y */
-    data = HandlePhaseY(data, tx);
+    traceValue = HandlePhaseY(traceValue, tx);
 
     /** Phase 13 : r */
-    data = Handle32BytesInteger(data, 13, tx.getR());
+    traceValue = Handle32BytesInteger(traceValue, 13, tx.getR());
 
     /** Phase 14 : s */
-    data = Handle32BytesInteger(data, 14, tx.getS());
+    traceValue = Handle32BytesInteger(traceValue, 14, tx.getS());
   }
 
   /** Define each phase's constraints */
-  private RlpTxnToTrace HandlePhaseGlobalRlpPrefix(RlpTxnToTrace data) {
+  private void handlePhaseGlobalRlpPrefix(RlpTxnColumnsValue traceValue) {
     int phase = 0;
     /** First, trace the Type prefix of the transaction */
-    data.PartialReset(phase, 1, true, true);
-    if (data.TYPE != 0) {
-      data.LIMB_CONSTRUCTED = true;
-      data.LIMB = Bytes.ofUnsignedShort(data.TYPE);
-      data.nBYTES = 1;
-      data = TraceRow(data);
+    traceValue.partialReset(phase, 1, true, true);
+    if (traceValue.TYPE != 0) {
+      traceValue.LIMB_CONSTRUCTED = true;
+      traceValue.LIMB = Bytes.ofUnsignedShort(traceValue.TYPE);
+      traceValue.nBYTES = 1;
+      traceRow(traceValue);
     } else {
-      data.is_padding = true;
-      data = TraceRow(data);
+      traceValue.is_padding = true;
+      traceRow(traceValue);
     }
 
     /** RLP prefix of RLP(LT) */
@@ -192,11 +192,10 @@ public class RlpTxn implements Module {
     boolean isprefix = false;
     boolean depth1 = false;
     boolean depth2 = false;
-    data =
-        HandleInt(
-            data,
+    handleInt(
+            traceValue,
             phase,
-            BigInteger.valueOf(data.RLP_LT_BYTESIZE),
+            BigInteger.valueOf(traceValue.RLP_LT_BYTESIZE),
             nbstep,
             isbytesize,
             islist,
@@ -211,11 +210,10 @@ public class RlpTxn implements Module {
     lt = false;
     lx = true;
     endphase = true;
-    data =
-        HandleInt(
-            data,
+    handleInt(
+            traceValue,
             phase,
-            BigInteger.valueOf(data.RLP_LX_BYTESIZE),
+            BigInteger.valueOf(traceValue.RLP_LX_BYTESIZE),
             nbstep,
             isbytesize,
             islist,
@@ -225,21 +223,18 @@ public class RlpTxn implements Module {
             isprefix,
             depth1,
             depth2);
-
-    return data;
   }
 
-  private RlpTxnToTrace HandlePhaseInteger(
-      RlpTxnToTrace data, int phase, BigInteger input, int nbstep, boolean lt, boolean lx) {
+  private void handlePhaseInteger(
+    RlpTxnColumnsValue traceValue, int phase, BigInteger input, int nbstep, boolean lt, boolean lx) {
     boolean isbytesize = false;
     boolean islist = false;
     boolean isprefix = false;
     boolean depth1 = false;
     boolean depth2 = false;
     boolean endphase = true;
-    data =
-        HandleInt(
-            data,
+    handleInt(
+            traceValue,
             phase,
             input,
             nbstep,
@@ -251,94 +246,91 @@ public class RlpTxn implements Module {
             isprefix,
             depth1,
             depth2);
-    return data;
   }
 
-  private RlpTxnToTrace HandlePhaseTo(RlpTxnToTrace data, Transaction tx) {
+  private void handlePhaseTo(RlpTxnColumnsValue traceValue, Transaction tx) {
     int phase = 7;
     boolean lt = true;
     boolean lx = true;
 
     if (tx.getTo().isEmpty()) {
-      data.PartialReset(phase, 1, lt, lx);
-      data.LIMB_CONSTRUCTED = true;
-      data.LIMB = Bytes.ofUnsignedShort(prefix_short_int);
-      data.nBYTES = 1;
-      data.end_phase = true;
-      data = TraceRow(data);
+      traceValue.partialReset(phase, 1, lt, lx);
+      traceValue.LIMB_CONSTRUCTED = true;
+      traceValue.LIMB = Bytes.ofUnsignedShort(prefix_short_int);
+      traceValue.nBYTES = 1;
+      traceValue.end_phase = true;
+      traceRow(traceValue);
     } else {
-      data = HandleAddress(data, phase, tx.getTo().get());
+      handleAddress(traceValue, phase, tx.getTo().get());
     }
-
-    return data;
   }
 
-  private RlpTxnToTrace HandlePhaseData(RlpTxnToTrace traceData, Transaction tx) {
+  private void handlePhaseData(RlpTxnColumnsValue traceValue, Transaction tx) {
     int phase = 9;
     boolean lt = true;
     boolean lx = true;
 
     if (tx.getData().isEmpty()) {
       /** Trivial case */
-      traceData.PartialReset(phase, 1, lt, lx);
-      traceData.LIMB_CONSTRUCTED = true;
-      traceData.LIMB = Bytes.ofUnsignedShort(prefix_short_int);
-      traceData.nBYTES = 1;
-      traceData.is_prefix = true;
-      traceData.is_bytesize = true;
-      traceData = TraceRow(traceData);
+      traceValue.partialReset(phase, 1, lt, lx);
+      traceValue.LIMB_CONSTRUCTED = true;
+      traceValue.LIMB = Bytes.ofUnsignedShort(prefix_short_int);
+      traceValue.nBYTES = 1;
+      traceValue.is_prefix = true;
+      traceValue.is_bytesize = true;
+      traceRow(traceValue);
 
       /** One row of padding */
-      traceData.PartialReset(phase, 1, lt, lx);
-      traceData.is_padding = true;
-      traceData.end_phase = true;
-      traceData = TraceRow(traceData);
+      traceValue.partialReset(phase, 1, lt, lx);
+      traceValue.is_padding = true;
+      traceValue.end_phase = true;
+      traceRow(traceValue);
     } else {
       /** General case */
 
       /** Initialise DataSize and DataGasCost */
       Bytes data = tx.getData().get();
-      traceData.PartialReset(phase, 8, lt, lx);
-      traceData.PHASE_BYTESIZE = data.size();
-      for (int i = 0; i < traceData.PHASE_BYTESIZE; i++) {
+      traceValue.partialReset(phase, 8, lt, lx);
+      traceValue.PHASE_BYTESIZE = data.size();
+      for (int i = 0; i < traceValue.PHASE_BYTESIZE; i++) {
         if (data.get(i) == 0) {
-          traceData.DATAGASCOST += TxnrlpTrace.G_txdatazero.intValue();
+          traceValue.DATAGASCOST += TxnrlpTrace.G_txdatazero.intValue();
         } else {
-          traceData.DATAGASCOST += TxnrlpTrace.G_txdatanonzero.intValue();
+          traceValue.DATAGASCOST += TxnrlpTrace.G_txdatanonzero.intValue();
         }
       }
-      traceData.DATA_HI = BigInteger.valueOf(traceData.DATAGASCOST);
-      traceData.DATA_LO = BigInteger.valueOf(traceData.PHASE_BYTESIZE);
+      traceValue.DATA_HI = BigInteger.valueOf(traceValue.DATAGASCOST);
+      traceValue.DATA_LO = BigInteger.valueOf(traceValue.PHASE_BYTESIZE);
 
       /** Trace */
 
       /** RLP prefix */
-      if (traceData.PHASE_BYTESIZE == 1) {
+      if (traceValue.PHASE_BYTESIZE == 1) {
         /** Special case with 1 byte of data */
-        traceData.PartialReset(phase, 8, lt, lx);
-        traceData.is_prefix = true;
-        traceData.INPUT_1 = data;
+        traceValue.partialReset(phase, 8, lt, lx);
+        traceValue.is_prefix = true;
+        traceValue.INPUT_1 = data;
         RlpTxnBitDecOutput bitDecomposition =
-            BitDecomposition(traceData.INPUT_1.get(0), traceData.number_step);
-        if (traceData.INPUT_1.get(0) < 128) {
-          traceData.is_padding = true;
+            BitDecomposition(traceValue.INPUT_1.get(0), traceValue.number_step);
+        if (traceValue.INPUT_1.get(0) < 128) {
+          traceValue.is_padding = true;
         } else {
-          traceData.is_padding = false;
+          traceValue.is_padding = false;
         }
-        for (int ct = 0; ct < traceData.number_step; ct++) {
-          traceData.COUNTER = ct;
-          traceData.BIT = bitDecomposition.BitDecList.get(ct);
-          traceData.BIT_ACC = bitDecomposition.BitAccList.get(ct);
-          if (ct == traceData.number_step - 1) {
-            traceData.BYTE_1 = traceData.INPUT_1.get(0);
-            traceData.ACC_1 = traceData.INPUT_1;
-            if (traceData.INPUT_1.get(0) >= 128) {
-              traceData.LIMB_CONSTRUCTED = true;
-              traceData.LIMB = Bytes.ofUnsignedShort(prefix_short_int + 1);
-              traceData.nBYTES = 1;
+        for (int ct = 0; ct < traceValue.number_step; ct++) {
+          traceValue.COUNTER = ct;
+          traceValue.BIT = bitDecomposition.BitDecList.get(ct);
+          traceValue.BIT_ACC = bitDecomposition.BitAccList.get(ct);
+          if (ct == traceValue.number_step - 1) {
+            traceValue.BYTE_1 = traceValue.INPUT_1.get(0);
+            traceValue.ACC_1 = traceValue.INPUT_1;
+            if (traceValue.INPUT_1.get(0) >= 128) {
+              traceValue.LIMB_CONSTRUCTED = true;
+              traceValue.LIMB = Bytes.ofUnsignedShort(prefix_short_int + 1);
+              traceValue.nBYTES = 1;
             }
           }
-          traceData = TraceRow(traceData);
+          traceRow(traceValue);
         }
       } else {
         /** General case */
@@ -348,11 +340,10 @@ public class RlpTxn implements Module {
         boolean isprefix = true;
         boolean depth1 = false;
         boolean depth2 = false;
-        traceData =
-            HandleInt(
-                traceData,
+        handleInt(
+                traceValue,
                 phase,
-                BigInteger.valueOf(traceData.PHASE_BYTESIZE),
+                BigInteger.valueOf(traceValue.PHASE_BYTESIZE),
                 8,
                 isbytesize,
                 islist,
@@ -365,74 +356,81 @@ public class RlpTxn implements Module {
       }
       /** 16-rows ct-loop to write all the data */
       int nbstep = 16;
-      int nbloop = (traceData.PHASE_BYTESIZE - 1) / 16 + 1;
-      data.shiftLeft(8 * (16 * nbloop - traceData.PHASE_BYTESIZE));
+      int nbloop = (traceValue.PHASE_BYTESIZE - 1) / 16 + 1;
+      data.shiftLeft(8 * (16 * nbloop - traceValue.PHASE_BYTESIZE));
       for (int i = 0; i < nbloop; i++) {
-        traceData.PartialReset(phase, nbstep, lt, lx);
-        traceData.INPUT_1 = data.slice(llarge * i, llarge);
+        traceValue.partialReset(phase, nbstep, lt, lx);
+        traceValue.INPUT_1 = data.slice(llarge * i, llarge);
         int accByteSize = 0;
         for (int ct = 0; ct < llarge; ct++) {
-          traceData.COUNTER = ct;
-          if (traceData.PHASE_BYTESIZE != 0) {
+          traceValue.COUNTER = ct;
+          if (traceValue.PHASE_BYTESIZE != 0) {
             accByteSize += 1;
           }
-          traceData.BYTE_1 = traceData.INPUT_1.get(ct);
-          traceData.ACC_1 = traceData.INPUT_1.slice(0, ct);
-          traceData.ACC_BYTESIZE = accByteSize;
+          traceValue.BYTE_1 = traceValue.INPUT_1.get(ct);
+          traceValue.ACC_1 = traceValue.INPUT_1.slice(0, ct);
+          traceValue.ACC_BYTESIZE = accByteSize;
           if (ct == nbstep - 1) {
-            traceData.LIMB_CONSTRUCTED = true;
-            traceData.LIMB = traceData.INPUT_1;
-            traceData.nBYTES = accByteSize;
+            traceValue.LIMB_CONSTRUCTED = true;
+            traceValue.LIMB = traceValue.INPUT_1;
+            traceValue.nBYTES = accByteSize;
           }
-          traceData = TraceRow(traceData);
+          traceRow(traceValue);
         }
       }
       /** Two rows of padding */
-      traceData.PartialReset(phase, 2, lt, lx);
-      traceData.is_padding = true;
-      traceData = TraceRow(traceData);
-      traceData.COUNTER = 1;
-      traceData.end_phase = true;
-      traceData = TraceRow(traceData);
+      traceValue.partialReset(phase, 2, lt, lx);
+      traceValue.is_padding = true;
+      traceRow(traceValue);
+
+      traceValue.COUNTER = 1;
+      traceValue.end_phase = true;
+      traceRow(traceValue);
     }
 
     /** TODO add check that phasebytesize and datagascost is zero */
-    traceData.INDEX_DATA = 0;
-    return traceData;
+    traceValue.INDEX_DATA = 0;
   }
 
-  private RlpTxnToTrace HandlePhaseAccessList(RlpTxnToTrace data, Transaction tx){
+  private void handlePhaseAccessList(RlpTxnColumnsValue traceValue, Transaction tx){
     int phase = 10;
     boolean lt = true;
     boolean lx = true;
 
     /** Trivial case */
-    if (tx.AccessList.isEmpty()){
-      data.PartialReset(phase, 1, lt, lx);
-      data.LIMB_CONSTRUCTED=true;
-      data.LIMB=Bytes.ofUnsignedShort(prefix_short_list);
-      data.nBYTES=1;
-      data.is_bytesize=true;
-      data.is_list=true;
-      data.is_prefix=true;
-      data.end_phase=true;
-      data = TraceRow(data);
+    if (tx.getAccessList().isEmpty()){
+      traceValue.partialReset(phase, 1, lt, lx);
+      traceValue.LIMB_CONSTRUCTED=true;
+      traceValue.LIMB=Bytes.ofUnsignedShort(prefix_short_list);
+      traceValue.nBYTES=1;
+      traceValue.is_bytesize=true;
+      traceValue.is_list=true;
+      traceValue.is_prefix=true;
+      traceValue.end_phase=true;
+      traceRow(traceValue);
 
     } else {
-      /** Initialise data */
+      /** Initialise traceValue */
       int nbAddr = 0;
       int nbSto = 0;
       List<Integer> nbStoPerAddrList = new ArrayList<>();
       List<Integer> accessTupleByteSizeList = new ArrayList<>();
       int phaseByteSize =0;
-      /** TODO finalise initialisation*/
+      for (int i = 0; i < tx.getAccessList().get().size(); i++) {
+        nbAddr +=1;
+        nbSto +=tx.getAccessList().get().get(i).storageKeys().size();
+        nbStoPerAddrList.set(i,tx.getAccessList().get().get(i).storageKeys().size());
+        accessTupleByteSizeList.set(i, outerRlpSize(33*tx.getAccessList().get().get(i).storageKeys().size()));
+        phaseByteSize += outerRlpSize(33*tx.getAccessList().get().get(i).storageKeys().size());
+      }
+      phaseByteSize = outerRlpSize(phaseByteSize);
 
-      data.PartialReset(phase, 0, lt, lx);
-      data.nb_Addr=nbAddr;
-      data.DATA_LO=BigInteger.valueOf(nbAddr);
-      data.nb_Sto=nbSto;
-      data.DATA_HI=BigInteger.valueOf(nbSto);
-      data.PHASE_BYTESIZE=phaseByteSize;
+      traceValue.partialReset(phase, 0, lt, lx);
+      traceValue.nb_Addr=nbAddr;
+      traceValue.DATA_LO=BigInteger.valueOf(nbAddr);
+      traceValue.nb_Sto=nbSto;
+      traceValue.DATA_HI=BigInteger.valueOf(nbSto);
+      traceValue.PHASE_BYTESIZE=phaseByteSize;
 
 
       /** Trace */
@@ -444,18 +442,18 @@ public class RlpTxn implements Module {
       boolean isprefix = true;
       boolean depth1 = false;
       boolean depth2 = false;
-      data = HandleInt(data, phase, BigInteger.valueOf(data.PHASE_BYTESIZE), numberstep, isbytesize, islist, lt, lx,
+      handleInt(traceValue, phase, BigInteger.valueOf(traceValue.PHASE_BYTESIZE), numberstep, isbytesize, islist, lt, lx,
         endphase, isprefix, depth1, depth2);
 
       /** Loop Over AccessTuple */
       for (int i=0; i<nbAddr;i++){
 
         /** Update columns at the begining of an AccessTuple entry */
-        data.nb_Addr -= 1;
-        data.nb_Sto_per_Addr=nbStoPerAddrList.get(i);
-        /** TODO data.ADDR_HI */
-        /** TODO data.ADDR_LO */
-        data.ACCESS_TUPLE_BYTESIZE = accessTupleByteSizeList.get(i);
+        traceValue.nb_Addr -= 1;
+        traceValue.nb_Sto_per_Addr=nbStoPerAddrList.get(i);
+        /** TODO traceValue.ADDR_HI */
+        /** TODO traceValue.ADDR_LO */
+        traceValue.ACCESS_TUPLE_BYTESIZE = accessTupleByteSizeList.get(i);
 
         /** Rlp(AccessTupleByteSize) */
         numberstep = 8;
@@ -465,11 +463,11 @@ public class RlpTxn implements Module {
         isprefix=true;
         depth1=true;
         depth2=false;
-        data = HandleInt(data, phase, BigInteger.valueOf(data.ACCESS_TUPLE_BYTESIZE), numberstep, isbytesize, islist,
+        handleInt(traceValue, phase, BigInteger.valueOf(traceValue.ACCESS_TUPLE_BYTESIZE), numberstep, isbytesize, islist,
           lt, lx, endphase, isprefix, depth1,depth2);
 
         /** RLP (address) */
-        data = HandleAddress(data, phase, address);
+        handleAddress(traceValue, phase, tx.getAccessList().get().get(i).address());
 
         /** Rlp prefix of the list of storage key */
         if (nbStoPerAddrList.get(i)==0){
@@ -479,26 +477,25 @@ public class RlpTxn implements Module {
         }
         isbytesize = true;
         islist = true;
-        endphase = data.nb_Sto==0;
+        endphase = traceValue.nb_Sto==0;
         isprefix=true;
         depth1=true;
         depth2=true;
-        data = HandleInt(data, phase, BigInteger.valueOf(data.ACCESS_TUPLE_BYTESIZE), numberstep, isbytesize, islist,
+        handleInt(traceValue, phase, BigInteger.valueOf(traceValue.ACCESS_TUPLE_BYTESIZE), numberstep, isbytesize, islist,
           lt, lx, endphase, isprefix, depth1, depth2);
 
         /** Loop over StorageKey */
         for (int j=0; j<nbStoPerAddrList.get(i); j++){
-          data.nb_Sto-=1;
-          data.nb_Sto_per_Addr-=1;
-          endphase = data.nb_Sto==0;
-          data = HandleStorageKey(data, endphase, StorageKey);
+          traceValue.nb_Sto-=1;
+          traceValue.nb_Sto_per_Addr-=1;
+          endphase = traceValue.nb_Sto==0;
+          handleStorageKey(traceValue, endphase, (Hash) tx.getAccessList().get().get(i).storageKeys().get(j));
         }
       }
     }
-    return data;
   }
 
-  private RlpTxnToTrace HandlePhaseBeta(RlpTxnToTrace data, Transaction tx){
+  private RlpTxnColumnsValue HandlePhaseBeta(RlpTxnColumnsValue traceValue, Transaction tx){
     int phase = 11;
     BigInteger V= tx.getV();
     /** add check v is a 8 bytes int */
@@ -512,53 +509,53 @@ public class RlpTxn implements Module {
     boolean isprefix = false;
     boolean depth1 = false;
     boolean depth2 = false ;
-    data = HandleInt(data, phase, V, 8, isbytesize, islist, lt, lx, endphase, isprefix, depth1, depth2);
+    handleInt(traceValue, phase, V, 8, isbytesize, islist, lt, lx, endphase, isprefix, depth1, depth2);
 
     if (V.equals(BigInteger.valueOf(27))||V.equals(BigInteger.valueOf(28))){
       /** One row of padding */
-      data.PartialReset(phase, 1, lt, lx);
-      data.is_padding=true;
-      data.end_phase=true;
-      data = TraceRow(data);
+      traceValue.partialReset(phase, 1, lt, lx);
+      traceValue.is_padding=true;
+      traceValue.end_phase=true;
+      traceRow(traceValue);
     } else {
       /** RLP(ChainID) then one row of padding */
       lt = false;
       lx =true;
-      data = HandleInt(data, phase, tx.getChainId().get(), 8, isbytesize, islist, lt, lx, endphase,
+      handleInt(traceValue, phase, tx.getChainId().get(), 8, isbytesize, islist, lt, lx, endphase,
         isprefix, depth1, depth2);
 
-      data.PartialReset(phase, 1, lt, lx);
-      data.LIMB_CONSTRUCTED=true;
-      data.LIMB=Bytes.ofUnsignedShort(256*prefix_short_int+prefix_short_int);
-      data.nBYTES=2;
-      data.end_phase=true;
-      data = TraceRow(data);
+      traceValue.partialReset(phase, 1, lt, lx);
+      traceValue.LIMB_CONSTRUCTED=true;
+      traceValue.LIMB=Bytes.ofUnsignedShort(256*prefix_short_int+prefix_short_int);
+      traceValue.nBYTES=2;
+      traceValue.end_phase=true;
+      traceRow(traceValue);
     }
-    return data;
+    return traceValue;
   }
 
-  private RlpTxnToTrace HandlePhaseY(RlpTxnToTrace data, Transaction tx){
+  private RlpTxnColumnsValue HandlePhaseY(RlpTxnColumnsValue traceValue, Transaction tx){
     int phase = 12;
     boolean lt = true;
     boolean lx = false;
     BigInteger y = tx.getV();
 
     if (y.equals(BigInteger.ZERO)){
-      data.PartialReset(phase, 1, lt, lx);
-      data.LIMB_CONSTRUCTED=true;
-      data.LIMB=Bytes.ofUnsignedShort(prefix_short_int);
-      data.nBYTES=1;
-      data.end_phase=true;
-      data = TraceRow(data);
+      traceValue.partialReset(phase, 1, lt, lx);
+      traceValue.LIMB_CONSTRUCTED=true;
+      traceValue.LIMB=Bytes.ofUnsignedShort(prefix_short_int);
+      traceValue.nBYTES=1;
+      traceValue.end_phase=true;
+      traceRow(traceValue);
     }  else {
-      data = HandleInt(data, phase, y, 8, false, false, lt, lx, true, false, false, false);
+      handleInt(traceValue, phase, y, 8, false, false, lt, lx, true, false, false, false);
     }
-    return data;
+    return traceValue;
   }
 
   /** Define the constraint patterns functions */
-  private RlpTxnToTrace HandleInt(
-      RlpTxnToTrace data,
+  private void handleInt(
+      RlpTxnColumnsValue traceValue,
       int phase,
       BigInteger input,
       int nb_step,
@@ -573,35 +570,35 @@ public class RlpTxn implements Module {
     Bytes inputByte = Bytes.ofUnsignedShort(input.byteValue());
     int inputByteLen = inputByte.size();
 
-    data.PartialReset(phase, nb_step, lt, lx);
-    data.INPUT_1 = inputByte;
-    data.is_bytesize = is_bytesize;
-    data.is_list = is_list;
-    data.is_prefix = is_prefix;
-    data.DEPTH_1 = depth1;
-    data.DEPTH_2 = depth2;
+    traceValue.partialReset(phase, nb_step, lt, lx);
+    traceValue.INPUT_1 = inputByte;
+    traceValue.is_bytesize = is_bytesize;
+    traceValue.is_list = is_list;
+    traceValue.is_prefix = is_prefix;
+    traceValue.DEPTH_1 = depth1;
+    traceValue.DEPTH_2 = depth2;
 
     /** Trivial case */
     if (input.equals(BigInteger.ZERO)) {
-      data.number_step = 1;
-      data.LIMB_CONSTRUCTED = true;
-      data.nBYTES = 1;
-      data.end_phase = end_phase;
+      traceValue.number_step = 1;
+      traceValue.LIMB_CONSTRUCTED = true;
+      traceValue.nBYTES = 1;
+      traceValue.end_phase = end_phase;
       if (is_list) {
-        data.LIMB = Bytes.ofUnsignedShort(prefix_short_list).shiftLeft(8 * llargemo);
+        traceValue.LIMB = Bytes.ofUnsignedShort(prefix_short_list).shiftLeft(8 * llargemo);
       } else {
-        data.LIMB = Bytes.ofUnsignedShort(prefix_short_int).shiftLeft(8 * llargemo);
+        traceValue.LIMB = Bytes.ofUnsignedShort(prefix_short_int).shiftLeft(8 * llargemo);
       }
-      data = TraceRow(data);
+      traceRow(traceValue);
     } else {
       /** General case */
 
       /** Compute the COMP bit column */
-      data.COMP = (input.compareTo(BigInteger.valueOf(56)) >= 0);
+      traceValue.COMP = (input.compareTo(BigInteger.valueOf(56)) >= 0);
 
       /** Compute acc2LastRowValue, the value of the last row of ACC2 */
       BigInteger acc2LastRowValue = null;
-      if (data.COMP) {
+      if (traceValue.COMP) {
         acc2LastRowValue = input.subtract(BigInteger.valueOf(56));
       } else {
         acc2LastRowValue = BigInteger.valueOf(55).subtract(input);
@@ -617,46 +614,46 @@ public class RlpTxn implements Module {
       RlpTxnByteCountingOutput byteCounting = ByteCounting(inputByteLen, nb_step);
 
       /** Now, Trace */
-      data.number_step = nb_step;
+      traceValue.number_step = nb_step;
       Bytes inputBytePadded = inputByte.shiftLeft(8 * (nb_step - inputByteLen));
 
       for (int ct = 0; ct < nb_step; ct++) {
-        data.COUNTER = ct;
-        data.BYTE_1 = inputBytePadded.get(ct);
-        data.ACC_1 = inputBytePadded.slice(0, ct);
-        data.ACC_BYTESIZE = byteCounting.AccByteSizeList.get(ct);
-        data.POWER = byteCounting.PowerList.get(ct);
-        data.BIT = bitDecomposition.BitDecList.get(ct);
-        data.BIT_ACC = bitDecomposition.BitAccList.get(ct);
-        data.BYTE_2 = acc2LastRowBytes.get(ct);
-        data.ACC_2 = acc2LastRowBytes.slice(0, ct);
+        traceValue.COUNTER = ct;
+        traceValue.BYTE_1 = inputBytePadded.get(ct);
+        traceValue.ACC_1 = inputBytePadded.slice(0, ct);
+        traceValue.ACC_BYTESIZE = byteCounting.AccByteSizeList.get(ct);
+        traceValue.POWER = byteCounting.PowerList.get(ct);
+        traceValue.BIT = bitDecomposition.BitDecList.get(ct);
+        traceValue.BIT_ACC = bitDecomposition.BitAccList.get(ct);
+        traceValue.BYTE_2 = acc2LastRowBytes.get(ct);
+        traceValue.ACC_2 = acc2LastRowBytes.slice(0, ct);
 
         if (ct == nb_step - 2) {
           if (!is_bytesize) {
             if (input.compareTo(BigInteger.valueOf(128)) >= 0) {
-              data.LIMB_CONSTRUCTED = true;
-              data.LIMB =
+              traceValue.LIMB_CONSTRUCTED = true;
+              traceValue.LIMB =
                   Bytes.ofUnsignedShort(
                       prefix_short_int + byteCounting.AccByteSizeList.get(nb_step - 1));
-              data.nBYTES = 1;
+              traceValue.nBYTES = 1;
             } else {
-              if (!data.COMP) {
-                data.LIMB_CONSTRUCTED = false;
-                data.LIMB = Bytes.EMPTY;
-                data.nBYTES = 0;
+              if (!traceValue.COMP) {
+                traceValue.LIMB_CONSTRUCTED = false;
+                traceValue.LIMB = Bytes.EMPTY;
+                traceValue.nBYTES = 0;
               } else {
-                if (!data.is_list) {
-                  data.LIMB_CONSTRUCTED = true;
-                  data.LIMB =
+                if (!traceValue.is_list) {
+                  traceValue.LIMB_CONSTRUCTED = true;
+                  traceValue.LIMB =
                       Bytes.ofUnsignedShort(
                           prefix_long_int + byteCounting.AccByteSizeList.get(nb_step - 1));
-                  data.nBYTES = 1;
+                  traceValue.nBYTES = 1;
                 } else {
-                  data.LIMB_CONSTRUCTED = true;
-                  data.LIMB =
+                  traceValue.LIMB_CONSTRUCTED = true;
+                  traceValue.LIMB =
                       Bytes.ofUnsignedShort(
                           prefix_long_list + byteCounting.AccByteSizeList.get(nb_step - 1));
-                  data.nBYTES = 1;
+                  traceValue.nBYTES = 1;
                 }
               }
             }
@@ -664,42 +661,41 @@ public class RlpTxn implements Module {
         }
 
         if (ct == nb_step - 1) {
-          data.LIMB_CONSTRUCTED = true;
-          data.end_phase = end_phase;
-          if (!data.is_bytesize) {
-            data.LIMB = inputByte;
-            data.nBYTES = inputByteLen;
+          traceValue.LIMB_CONSTRUCTED = true;
+          traceValue.end_phase = end_phase;
+          if (!traceValue.is_bytesize) {
+            traceValue.LIMB = inputByte;
+            traceValue.nBYTES = inputByteLen;
           } else {
-            if (data.COMP) {
-              data.LIMB = inputByte;
-              data.nBYTES = inputByteLen;
+            if (traceValue.COMP) {
+              traceValue.LIMB = inputByte;
+              traceValue.nBYTES = inputByteLen;
             } else {
-              if (!data.is_list) {
-                data.LIMB = Bytes.wrap(input.add(BigInteger.valueOf(prefix_short_int)).toByteArray());
-                data.nBYTES = 1;
+              if (!traceValue.is_list) {
+                traceValue.LIMB = Bytes.wrap(input.add(BigInteger.valueOf(prefix_short_int)).toByteArray());
+                traceValue.nBYTES = 1;
               } else {
-                data.LIMB = Bytes.wrap(input.add(BigInteger.valueOf(prefix_short_list)).toByteArray());
-                data.nBYTES = 1;
+                traceValue.LIMB = Bytes.wrap(input.add(BigInteger.valueOf(prefix_short_list)).toByteArray());
+                traceValue.nBYTES = 1;
               }
             }
           }
         }
-        data = TraceRow(data);
+        traceRow(traceValue);
       }
     }
-    return data;
   }
 
-  private RlpTxnToTrace Handle32BytesInteger(RlpTxnToTrace data, int phase, BigInteger input) {
-    data.PartialReset(phase, llarge, true, false);
+  private RlpTxnColumnsValue Handle32BytesInteger(RlpTxnColumnsValue traceValue, int phase, BigInteger input) {
+    traceValue.partialReset(phase, llarge, true, false);
     if (input.equals(BigInteger.ZERO)) {
       /** Trivial case */
-      data.number_step = 1;
-      data.LIMB_CONSTRUCTED = true;
-      data.LIMB = Bytes.ofUnsignedShort(prefix_short_int);
-      data.nBYTES = 1;
-      data.end_phase = true;
-      data = TraceRow(data);
+      traceValue.number_step = 1;
+      traceValue.LIMB_CONSTRUCTED = true;
+      traceValue.LIMB = Bytes.ofUnsignedShort(prefix_short_int);
+      traceValue.nBYTES = 1;
+      traceValue.end_phase = true;
+      traceRow(traceValue);
     } else {
       /** General case */
 
@@ -707,146 +703,143 @@ public class RlpTxn implements Module {
       /** TODO make it a 32 byte */
       int inputLen = inputByte.size();
       /** TODO have the bytesize of the input before left padding */
-      data.INPUT_1 = inputByte.slice(0, llarge);
-      data.INPUT_2 = inputByte.slice(llarge, llarge);
+      traceValue.INPUT_1 = inputByte.slice(0, llarge);
+      traceValue.INPUT_2 = inputByte.slice(llarge, llarge);
 
-      if (inputLen <= data.number_step) {
-        RlpTxnByteCountingOutput byteCounting = ByteCounting(inputLen, data.number_step);
+      if (inputLen <= traceValue.number_step) {
+        RlpTxnByteCountingOutput byteCounting = ByteCounting(inputLen, traceValue.number_step);
         RlpTxnBitDecOutput bitDec =
-            BitDecomposition(inputByte.get(inputByte.size() - 1), data.number_step);
+            BitDecomposition(inputByte.get(inputByte.size() - 1), traceValue.number_step);
 
-        for (int ct = 0; ct < data.number_step; ct++) {
-          data.COUNTER = ct;
-          data.BYTE_2 = data.INPUT_2.get(ct);
-          data.ACC_2 = data.INPUT_2.slice(0, ct);
-          data.ACC_BYTESIZE = byteCounting.AccByteSizeList.get(ct);
-          data.POWER = byteCounting.PowerList.get(ct);
-          data.BIT = bitDec.BitDecList.get(ct);
-          data.BIT_ACC = bitDec.BitAccList.get(ct);
+        for (int ct = 0; ct < traceValue.number_step; ct++) {
+          traceValue.COUNTER = ct;
+          traceValue.BYTE_2 = traceValue.INPUT_2.get(ct);
+          traceValue.ACC_2 = traceValue.INPUT_2.slice(0, ct);
+          traceValue.ACC_BYTESIZE = byteCounting.AccByteSizeList.get(ct);
+          traceValue.POWER = byteCounting.PowerList.get(ct);
+          traceValue.BIT = bitDec.BitDecList.get(ct);
+          traceValue.BIT_ACC = bitDec.BitAccList.get(ct);
 
           /** if input >= 128, there is a RLP prefix, nothing if 0 < input < 128 */
-          if (ct == data.number_step - 2 && input.compareTo(BigInteger.valueOf(128)) >= 0) {
-            data.LIMB_CONSTRUCTED = true;
-            data.LIMB = Bytes.ofUnsignedShort(prefix_short_int + inputLen);
-            data.nBYTES = 1;
+          if (ct == traceValue.number_step - 2 && input.compareTo(BigInteger.valueOf(128)) >= 0) {
+            traceValue.LIMB_CONSTRUCTED = true;
+            traceValue.LIMB = Bytes.ofUnsignedShort(prefix_short_int + inputLen);
+            traceValue.nBYTES = 1;
           }
-          if (ct == data.number_step - 1) {
-            data.LIMB_CONSTRUCTED = true;
-            data.LIMB = data.INPUT_2.slice(llarge - inputLen, inputLen);
-            data.nBYTES = 1;
-            data.end_phase = true;
+          if (ct == traceValue.number_step - 1) {
+            traceValue.LIMB_CONSTRUCTED = true;
+            traceValue.LIMB = traceValue.INPUT_2.slice(llarge - inputLen, inputLen);
+            traceValue.nBYTES = 1;
+            traceValue.end_phase = true;
           }
-          data = TraceRow(data);
+          traceRow(traceValue);
         }
       } else {
-        inputLen -= data.number_step;
-        RlpTxnByteCountingOutput byteCounting = ByteCounting(inputLen, data.number_step);
+        inputLen -= traceValue.number_step;
+        RlpTxnByteCountingOutput byteCounting = ByteCounting(inputLen, traceValue.number_step);
 
-        for (int ct = 0; ct < data.number_step; ct++) {
-          data.COUNTER = ct;
-          data.BYTE_1 = data.INPUT_1.get(ct);
-          data.ACC_1 = data.INPUT_1.slice(0, ct);
-          data.BYTE_2 = data.INPUT_2.get(ct);
-          data.ACC_2 = data.INPUT_2.slice(0, ct);
-          data.ACC_BYTESIZE = byteCounting.AccByteSizeList.get(ct);
-          data.POWER = byteCounting.PowerList.get(ct);
+        for (int ct = 0; ct < traceValue.number_step; ct++) {
+          traceValue.COUNTER = ct;
+          traceValue.BYTE_1 = traceValue.INPUT_1.get(ct);
+          traceValue.ACC_1 = traceValue.INPUT_1.slice(0, ct);
+          traceValue.BYTE_2 = traceValue.INPUT_2.get(ct);
+          traceValue.ACC_2 = traceValue.INPUT_2.slice(0, ct);
+          traceValue.ACC_BYTESIZE = byteCounting.AccByteSizeList.get(ct);
+          traceValue.POWER = byteCounting.PowerList.get(ct);
 
-          if (ct == data.number_step - 3) {
-            data.LIMB_CONSTRUCTED = true;
-            data.LIMB = Bytes.ofUnsignedShort(prefix_short_int + llarge + inputLen);
-            data.nBYTES = 1;
+          if (ct == traceValue.number_step - 3) {
+            traceValue.LIMB_CONSTRUCTED = true;
+            traceValue.LIMB = Bytes.ofUnsignedShort(prefix_short_int + llarge + inputLen);
+            traceValue.nBYTES = 1;
           }
-          if (ct == data.number_step - 2) {
-            data.LIMB = data.INPUT_1.slice(llarge - inputLen, inputLen);
-            data.nBYTES = inputLen;
+          if (ct == traceValue.number_step - 2) {
+            traceValue.LIMB = traceValue.INPUT_1.slice(llarge - inputLen, inputLen);
+            traceValue.nBYTES = inputLen;
           }
-          if (ct == data.number_step - 1) {
-            data.LIMB = data.INPUT_2;
-            data.nBYTES = llarge;
-            data.end_phase = true;
+          if (ct == traceValue.number_step - 1) {
+            traceValue.LIMB = traceValue.INPUT_2;
+            traceValue.nBYTES = llarge;
+            traceValue.end_phase = true;
           }
-          data = TraceRow(data);
+          traceRow(traceValue);
         }
       }
     }
-    return data;
+    return traceValue;
   }
 
-  private RlpTxnToTrace HandleAddress(RlpTxnToTrace data, int phase, Address address) {
+  private void handleAddress(RlpTxnColumnsValue traceValue, int phase, Address address) {
     boolean lt = true;
     boolean lx = true;
-    data.PartialReset(phase, llarge, lt, lx);
-    data.INPUT_1 = address.slice(0, 4).shiftRight(8 * 11);
-    data.INPUT_2 = address.slice(4, llarge);
+    traceValue.partialReset(phase, llarge, lt, lx);
+    traceValue.INPUT_1 = address.slice(0, 4).shiftRight(8 * 11);
+    traceValue.INPUT_2 = address.slice(4, llarge);
 
     if (phase == 10) {
-      data.DEPTH_1 = true;
+      traceValue.DEPTH_1 = true;
     }
 
-    for (int ct = 0; ct < data.number_step; ct++) {
-      data.COUNTER = ct;
-      data.BYTE_1 = data.INPUT_1.get(ct);
-      data.ACC_1 = data.INPUT_1.slice(0, ct);
-      data.BYTE_2 = data.INPUT_2.get(ct);
-      data.ACC_2 = data.INPUT_2.slice(0, ct);
+    for (int ct = 0; ct < traceValue.number_step; ct++) {
+      traceValue.COUNTER = ct;
+      traceValue.BYTE_1 = traceValue.INPUT_1.get(ct);
+      traceValue.ACC_1 = traceValue.INPUT_1.slice(0, ct);
+      traceValue.BYTE_2 = traceValue.INPUT_2.get(ct);
+      traceValue.ACC_2 = traceValue.INPUT_2.slice(0, ct);
 
-      if (ct == data.number_step - 3) {
-        data.LIMB_CONSTRUCTED = true;
-        data.LIMB = Bytes.ofUnsignedInt(prefix_short_int + 20).shiftLeft(8 * llargemo);
-        data.nBYTES = 1;
+      if (ct == traceValue.number_step - 3) {
+        traceValue.LIMB_CONSTRUCTED = true;
+        traceValue.LIMB = Bytes.ofUnsignedInt(prefix_short_int + 20).shiftLeft(8 * llargemo);
+        traceValue.nBYTES = 1;
       }
 
-      if (ct == data.number_step - 2) {
-        data.LIMB = data.INPUT_1;
-        data.nBYTES = 4;
+      if (ct == traceValue.number_step - 2) {
+        traceValue.LIMB = traceValue.INPUT_1;
+        traceValue.nBYTES = 4;
       }
-      if (ct == data.number_step - 1) {
-        data.LIMB = data.INPUT_2;
-        data.nBYTES = llarge;
+      if (ct == traceValue.number_step - 1) {
+        traceValue.LIMB = traceValue.INPUT_2;
+        traceValue.nBYTES = llarge;
 
         if (phase == 7) {
-          data.end_phase = true;
+          traceValue.end_phase = true;
         }
       }
-      data = TraceRow(data);
+      traceRow(traceValue);
     }
-    return data;
   }
 
-  private RlpTxnToTrace HandleStorageKey(RlpTxnToTrace data, boolean end_phase, Hash storage_key) {
-    data.PartialReset(10, llarge, true, true);
-    data.DEPTH_1 = true;
-    data.DEPTH_2 = true;
-    data.INPUT_1 = storage_key.slice(0, llarge);
-    data.INPUT_2 = storage_key.slice(llarge, llarge);
+  private void handleStorageKey(RlpTxnColumnsValue traceValue, boolean end_phase, Hash storage_key) {
+    traceValue.partialReset(10, llarge, true, true);
+    traceValue.DEPTH_1 = true;
+    traceValue.DEPTH_2 = true;
+    traceValue.INPUT_1 = storage_key.slice(0, llarge);
+    traceValue.INPUT_2 = storage_key.slice(llarge, llarge);
 
-    for (int ct = 0; ct < data.number_step; ct++) {
-      data.COUNTER = ct;
-      data.BYTE_1 = data.INPUT_1.get(ct);
-      data.ACC_1 = data.INPUT_1.slice(0, ct);
-      data.BYTE_2 = data.INPUT_2.get(ct);
-      data.ACC_2 = data.INPUT_2.slice(0, ct);
+    for (int ct = 0; ct < traceValue.number_step; ct++) {
+      traceValue.COUNTER = ct;
+      traceValue.BYTE_1 = traceValue.INPUT_1.get(ct);
+      traceValue.ACC_1 = traceValue.INPUT_1.slice(0, ct);
+      traceValue.BYTE_2 = traceValue.INPUT_2.get(ct);
+      traceValue.ACC_2 = traceValue.INPUT_2.slice(0, ct);
 
-      if (ct == data.number_step - 3) {
-        data.LIMB_CONSTRUCTED = true;
-        data.LIMB = Bytes.ofUnsignedShort(prefix_short_int + 32).shiftLeft(8 * llargemo);
-        data.nBYTES = 1;
+      if (ct == traceValue.number_step - 3) {
+        traceValue.LIMB_CONSTRUCTED = true;
+        traceValue.LIMB = Bytes.ofUnsignedShort(prefix_short_int + 32).shiftLeft(8 * llargemo);
+        traceValue.nBYTES = 1;
       }
 
-      if (ct == data.number_step - 2) {
-        data.LIMB = data.INPUT_1;
-        data.nBYTES = llarge;
+      if (ct == traceValue.number_step - 2) {
+        traceValue.LIMB = traceValue.INPUT_1;
+        traceValue.nBYTES = llarge;
       }
 
-      if (ct == data.number_step - 1) {
-        data.LIMB = data.INPUT_2;
-        data.end_phase = end_phase;
+      if (ct == traceValue.number_step - 1) {
+        traceValue.LIMB = traceValue.INPUT_2;
+        traceValue.end_phase = end_phase;
       }
 
-      data = TraceRow(data);
+      traceRow(traceValue);
     }
-
-    return data;
   }
 
   /** Define side functions */
@@ -912,7 +905,7 @@ public class RlpTxn implements Module {
     return output;
   }
 
-  private int OuterRlpSize(int inputSize) {
+  private int outerRlpSize(int inputSize) {
     /** Returns the size of RLP(something) where something is of size inputSize (!=1). */
     int rlpSize = inputSize;
     if (inputSize == 1) {
@@ -951,7 +944,7 @@ public class RlpTxn implements Module {
   }
 
   /** Define the Tracer */
-  private RlpTxnToTrace TraceRow(RlpTxnToTrace data) {
+  private void traceRow(RlpTxnColumnsValue data) {
     /** Decrements RLP_BYTESIZE */
     if (data.phase != 0) {
       if (data.LIMB_CONSTRUCTED && data.LT) {
@@ -1076,8 +1069,7 @@ for(int i = 0; i < phaseColumns.size(); i++) {
     if (data.end_phase) {
       data.DataHiLoReset();
     }
-    this.commit(); /** TODO CHECK IF USEFUL */
-    return data;
+    this.builder.validateRow();
   }
 
   @Override

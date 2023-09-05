@@ -4,7 +4,7 @@ import java.math.BigInteger;
 
 import org.apache.tuweni.bytes.Bytes;
 
-public class RlpTxnToTrace {
+public class RlpTxnColumnsValue {
   public int ABS_TX_NUM;
   public int ABS_TX_NUM_INFINY;
   public Bytes ACC_1;
@@ -53,7 +53,7 @@ public class RlpTxnToTrace {
   public int RLP_LX_BYTESIZE;
   public int TYPE;
 
-  public void PartialReset(int phase, int number_step, boolean LT, boolean LX) {
+  public void partialReset(int phase, int number_step, boolean LT, boolean LX) {
     this.phase = phase;
     this.number_step = number_step;
     this.LT = LT;

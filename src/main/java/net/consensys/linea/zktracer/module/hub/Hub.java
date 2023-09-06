@@ -349,8 +349,7 @@ public class Hub implements Module {
 
   void processStateWarm() {
     this.stamp++;
-    // x lines - warm addresses
-    // y lines - warm storage keys
+    // reproduction ordonnée des préchauffages de la Tx
   }
 
   void processStateInit() {
@@ -448,8 +447,12 @@ public class Hub implements Module {
 
   void processStateFinal() {
     this.stamp++;
-    // if no revert: 2 account rows (sender, coinbase) + 1 tx row
-    // otherwise 4 account rows (sender, coinbase, sender, recipient) + 1 tx row
+    if (statusCode == 1) {
+      // if no revert: 2 account rows (sender, coinbase) + 1 tx row
+
+    } else {
+      // otherwise 4 account rows (sender, coinbase, sender, recipient) + 1 tx row
+    }
 
     this.txState = TxState.TX_PRE_INIT;
   }

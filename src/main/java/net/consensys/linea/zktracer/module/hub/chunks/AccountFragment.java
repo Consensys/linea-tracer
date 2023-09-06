@@ -27,7 +27,7 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 
 @Accessors(fluent = true)
-public final class AccountChunk implements TraceChunk {
+public final class AccountFragment implements TraceFragment {
   @Getter private final Address who;
   private final AccountSnapshot oldState;
   private final AccountSnapshot newState;
@@ -37,14 +37,14 @@ public final class AccountChunk implements TraceChunk {
   @Setter private int deploymentNumberInfnty;
   @Setter private boolean existsInfinity;
 
-  public AccountChunk(
-      Address who,
+  public AccountFragment(
       AccountSnapshot oldState,
       AccountSnapshot newState,
       boolean debit,
       long cost,
       boolean createAddress) {
-    this.who = who;
+    assert oldState.address() == newState.address();
+    this.who = oldState.address();
     this.oldState = oldState;
     this.newState = newState;
     this.debit = debit;
@@ -96,7 +96,15 @@ public final class AccountChunk implements TraceChunk {
         .pAccountSufficientBalance(!debit || cost <= oldState.balance().toLong()) //
         //      .pAccountCreateAddress(createAddress)
         .pAccountDeploymentNumberInfty(BigInteger.valueOf(deploymentNumberInfnty))
-        //    .pAccountExistsInfty(existsInfinity)
-        .fillAndValidateRow();
+    //    .pAccountExistsInfty(existsInfinity)
+    ;
+  }
+
+  @Override
+  public void retcon(Hub hub /* TODO WorldState state */) {
+    this.deploymentNumberInfnty = hub.deploymentNumber(this.who);
+    this.existsInfinity =
+        false; // TODO should be account != null; see with Besu team if we can get a view on
+    // the state in traceEndConflation
   }
 }

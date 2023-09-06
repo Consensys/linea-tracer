@@ -30,23 +30,24 @@ import net.consensys.linea.zktracer.module.ext.Ext;
 import net.consensys.linea.zktracer.module.hub.callstack.CallFrame;
 import net.consensys.linea.zktracer.module.hub.callstack.CallFrameType;
 import net.consensys.linea.zktracer.module.hub.callstack.CallStack;
-import net.consensys.linea.zktracer.module.hub.chunks.AccountChunk;
+import net.consensys.linea.zktracer.module.hub.chunks.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.chunks.AccountSnapshot;
-import net.consensys.linea.zktracer.module.hub.chunks.CommonChunk;
-import net.consensys.linea.zktracer.module.hub.chunks.ContextChunk;
-import net.consensys.linea.zktracer.module.hub.chunks.StackChunk;
-import net.consensys.linea.zktracer.module.hub.chunks.StorageChunk;
-import net.consensys.linea.zktracer.module.hub.chunks.TraceChunk;
-import net.consensys.linea.zktracer.module.hub.chunks.TransactionChunk;
-import net.consensys.linea.zktracer.module.hub.defer.Create;
+import net.consensys.linea.zktracer.module.hub.chunks.CommonFragment;
+import net.consensys.linea.zktracer.module.hub.chunks.ContextFragment;
+import net.consensys.linea.zktracer.module.hub.chunks.StackFragment;
+import net.consensys.linea.zktracer.module.hub.chunks.StorageFragment;
+import net.consensys.linea.zktracer.module.hub.chunks.TraceFragment;
+import net.consensys.linea.zktracer.module.hub.chunks.TransactionFragment;
+import net.consensys.linea.zktracer.module.hub.defer.CallDefer;
+import net.consensys.linea.zktracer.module.hub.defer.CreateDefer;
 import net.consensys.linea.zktracer.module.hub.defer.NextContextDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostExecDefer;
-import net.consensys.linea.zktracer.module.hub.defer.SkippedTransaction;
+import net.consensys.linea.zktracer.module.hub.defer.SkippedTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.defer.TransactionDefer;
 import net.consensys.linea.zktracer.module.hub.section.AccountSection;
 import net.consensys.linea.zktracer.module.hub.section.ContextLogSection;
 import net.consensys.linea.zktracer.module.hub.section.CopySection;
-import net.consensys.linea.zktracer.module.hub.section.CreateSection;
+import net.consensys.linea.zktracer.module.hub.section.EndTransaction;
 import net.consensys.linea.zktracer.module.hub.section.JumpSection;
 import net.consensys.linea.zktracer.module.hub.section.StackOnlySection;
 import net.consensys.linea.zktracer.module.hub.section.StackRam;
@@ -153,6 +154,13 @@ public class Hub implements Module {
   }
 
   public void addTraceSection(TraceSection section) {
+    if (!this.currentTxTrace().isEmpty()) {
+      section.setContextNumber(
+          this.currentTxTrace().get(this.currentTxTrace().size() - 1).contextNumber());
+      section.setNewPc(this.currentTxTrace().get(this.currentTxTrace().size() - 1).pc());
+    }
+    section.seal(this);
+
     this.currentTxTrace().add(section);
   }
 
@@ -164,11 +172,11 @@ public class Hub implements Module {
 
   TxState txState;
   @Getter Transaction currentTx;
-  CallStack callStack;
+  @Getter CallStack callStack;
   int txNumber = 0;
   @Getter int batchNumber = 0;
   @Getter int blockNumber = 0;
-  int stamp = 0;
+  @Getter int stamp = 0;
 
   /** A list of latches deferred until the end of the current transaction */
   private final List<TransactionDefer> txDefers = new ArrayList<>();
@@ -290,7 +298,7 @@ public class Hub implements Module {
     }
 
     this.deferPostTx(
-        new SkippedTransaction(
+        new SkippedTransactionDefer(
             oldFromAccount,
             oldToAccount,
             oldMinerAccount,
@@ -311,26 +319,26 @@ public class Hub implements Module {
    *
    * @return a chunk representing the share columns
    */
-  public TraceChunk traceCommon() {
-    return new CommonChunk(
+  public CommonFragment traceCommon() {
+    return new CommonFragment(
         this.txNumber,
         this.batchNumber,
         this.txState,
         this.stamp,
-        0, // TODO
+        0,
         false, // TODO
         this.opCodeData().instructionFamily(),
         this.exceptions.snapshot(),
         false, // TODO
         false, // TODO
         this.currentFrame().getContextNumber(),
-        0, // TODO
+        this.currentFrame().getContextNumber(),
         0, // TODO
         false, // TODO
         false, // TODO
         false, // TODO
         this.pc,
-        0, // TODO
+        this.pc,
         this.currentFrame().addressAsEWord(),
         this.currentFrame().getCodeDeploymentNumber(),
         this.currentFrame().isCodeDeploymentStatus(),
@@ -341,9 +349,9 @@ public class Hub implements Module {
         0,
         0, // TODO
         this.opCodeData().stackSettings().twoLinesInstruction(),
-        false, // TODO
-        0, // TODO
-        0 // TODO
+        false, // TODO -- retcon with stack
+        0, // TODO -- do it now
+        0 // TODO -- do it now
         );
   }
 
@@ -447,11 +455,48 @@ public class Hub implements Module {
 
   void processStateFinal() {
     this.stamp++;
-    if (statusCode == 1) {
-      // if no revert: 2 account rows (sender, coinbase) + 1 tx row
 
+    Address fromAddress = this.currentTx.getSender();
+    Account fromAccount; // TODO
+    AccountSnapshot fromSnapshot =
+        AccountSnapshot.fromAccount(
+            fromAccount, true, this.deploymentNumber(fromAddress), this.isDeploying(fromAddress));
+
+    Address minerAddress = this.currentTx.getMinerAddress();
+    Account minerAccount; // TODO
+    AccountSnapshot minerSnapshot =
+        AccountSnapshot.fromAccount(
+            minerAccount,
+            true,
+            this.deploymentNumber(minerAddress),
+            this.isDeploying(minerAddress));
+
+    if (true /* TODO: statusCode == 1 */) {
+      // if no revert: 2 account rows (sender, coinbase) + 1 tx row
+      this.addTraceSection(
+          new EndTransaction(
+              new AccountFragment(fromSnapshot, fromSnapshot, false, 0, false),
+              new AccountFragment(minerSnapshot, minerSnapshot, false, 0, false),
+              new TransactionFragment(
+                  this.batchNumber,
+                  minerAddress,
+                  this.currentTx,
+                  true,
+                  this.gasPrice,
+                  this.baseFee)));
     } else {
+      Address toAddress = this.currentTx.getSender();
+      Account toAccount; // TODO
+      AccountSnapshot toSnapshot =
+          AccountSnapshot.fromAccount(
+              toAccount, true, this.deploymentNumber(toAddress), this.isDeploying(toAddress));
       // otherwise 4 account rows (sender, coinbase, sender, recipient) + 1 tx row
+      this.addTraceSection(
+          new EndTransaction(
+              new AccountFragment(fromSnapshot, fromSnapshot, false, 0, false),
+              new AccountFragment(minerSnapshot, minerSnapshot, false, 0, false),
+              new AccountFragment(fromSnapshot, fromSnapshot, false, 0, false),
+              new AccountFragment(toSnapshot, toSnapshot, false, 0, false)));
     }
 
     this.txState = TxState.TX_PRE_INIT;
@@ -521,9 +566,7 @@ public class Hub implements Module {
             toAddress.isEmpty() ? 0 : this.deploymentNumber.getOrDefault(toAddress, 0),
             this.isDeploying(toAddress));
 
-    if (false /* doWarm */) { // TODO
-      this.processStateWarm();
-    }
+    this.processStateWarm();
     this.processStateInit();
     this.txState = TxState.TX_STATE;
   }
@@ -542,7 +585,7 @@ public class Hub implements Module {
         }
 
         // This works because we are certain that the stack chunks are the first.
-        ((StackChunk) this.currentTraceSection().getChunks().get(2 * line.ct() + 1))
+        ((StackFragment) this.currentTraceSection().getChunks().get(2 * line.ct() + 1).specific())
             .stackOps()
             .get(line.resultColumn() - 1)
             .setValue(result);
@@ -630,14 +673,18 @@ public class Hub implements Module {
 
   @Override
   public void traceEndConflation() {
-    this.retconChunks();
+    for (List<TraceSection> txSections : this.traceSections) {
+      for (TraceSection section : txSections) {
+        section.retcon(this);
+      }
+    }
   }
 
   @Override
   public Object commit() {
     for (var txChunks : traceSections) {
       for (TraceSection section : txChunks) {
-        for (TraceChunk chunk : section.getChunks()) {
+        for (TraceSection.TraceChunk chunk : section.getChunks()) {
           chunk.trace(this.trace);
         }
       }
@@ -670,18 +717,29 @@ public class Hub implements Module {
           INVALID -> this.addTraceSection(new StackOnlySection(this));
       case CONTEXT, LOG -> this.addTraceSection(
           new ContextLogSection(
-              this, new ContextChunk(this.callStack, this.currentFrame(), updateReturnData)));
+              this, new ContextFragment(this.callStack, this.currentFrame(), updateReturnData)));
       case ACCOUNT -> {
         TraceSection accountSection = new AccountSection(this);
         if (this.opCodeData().stackSettings().flag1()) {
           accountSection.addChunk(
-              this, new ContextChunk(this.callStack, this.currentFrame(), updateReturnData));
-          // own account
-          //          new AccountChunk();
-        } else {
-          // fetch account from stack -- BALANCE, EXTCODESIZE or EXTCODEHASH
-          //          new AccountChunk();
+              this, new ContextFragment(this.callStack, this.currentFrame(), updateReturnData));
         }
+
+        Address targetAddress =
+            switch (this.opCode) {
+              case BALANCE, EXTCODESIZE, EXTCODEHASH -> Address.wrap(frame.getStackItem(0));
+              default -> Address.wrap(this.currentFrame().getAddress());
+            };
+        Account targetAccount = frame.getWorldUpdater().getAccount(targetAddress);
+        AccountSnapshot accountSnapshot =
+            AccountSnapshot.fromAccount(
+                targetAccount,
+                frame.isAddressWarm(targetAddress),
+                this.deploymentNumber(targetAddress),
+                this.isDeploying(targetAddress));
+        accountSection.addChunk(
+            this, new AccountFragment(accountSnapshot, accountSnapshot, false, 0, false));
+
         this.addTraceSection(accountSection);
       }
       case COPY -> {
@@ -704,18 +762,17 @@ public class Hub implements Module {
                   this.isDeploying(targetAddress));
 
           copySection.addChunk(
-              this,
-              new AccountChunk(targetAddress, accountSnapshot, accountSnapshot, false, 0, false));
+              this, new AccountFragment(accountSnapshot, accountSnapshot, false, 0, false));
         } else {
           copySection.addChunk(
-              this, new ContextChunk(this.callStack, this.currentFrame(), updateReturnData));
+              this, new ContextFragment(this.callStack, this.currentFrame(), updateReturnData));
         }
         this.addTraceSection(copySection);
       }
       case TRANSACTION -> this.addTraceSection(
           new TransactionSection(
               this,
-              new TransactionChunk(
+              new TransactionFragment(
                   this.batchNumber,
                   frame.getMiningBeneficiary(),
                   this.currentTx,
@@ -727,7 +784,7 @@ public class Hub implements Module {
         TraceSection stackRamSection = new StackRam(this);
         if (this.opCodeData().stackSettings().flag2()) {
           stackRamSection.addChunk(
-              this, new ContextChunk(this.callStack, this.currentFrame(), updateReturnData));
+              this, new ContextFragment(this.callStack, this.currentFrame(), updateReturnData));
         }
         this.addTraceSection(stackRamSection);
       }
@@ -740,8 +797,8 @@ public class Hub implements Module {
             this.addTraceSection(
                 new StorageSection(
                     this,
-                    new ContextChunk(this.callStack, this.currentFrame(), updateReturnData),
-                    new StorageChunk(
+                    new ContextFragment(this.callStack, this.currentFrame(), updateReturnData),
+                    new StorageFragment(
                         address,
                         this.currentFrame().getAccountDeploymentNumber(),
                         key,
@@ -756,8 +813,8 @@ public class Hub implements Module {
             this.addTraceSection(
                 new StorageSection(
                     this,
-                    new ContextChunk(this.callStack, this.currentFrame(), updateReturnData),
-                    new StorageChunk(
+                    new ContextFragment(this.callStack, this.currentFrame(), updateReturnData),
+                    new StorageFragment(
                         address,
                         this.currentFrame().getAccountDeploymentNumber(),
                         key,
@@ -789,13 +846,11 @@ public class Hub implements Module {
                 this.deploymentNumber(myAddress),
                 this.isDeploying(myAddress));
 
-        Create protoCreateSection =
-            new Create(
-                myAddress,
-                createdAddress,
+        CreateDefer protoCreateSection =
+            new CreateDefer(
                 myAccountSnapshot,
                 createdAccountSnapshot,
-                new ContextChunk(this.callStack, this.currentFrame(), updateReturnData));
+                new ContextFragment(this.callStack, this.currentFrame(), updateReturnData));
         // Will be traced in one (and only one!) of these depending on the success of the operation
         this.deferPostExec(protoCreateSection);
         this.deferNextContext(protoCreateSection);
@@ -810,20 +865,23 @@ public class Hub implements Module {
                 this.deploymentNumber(myAddress),
                 this.isDeploying(myAddress));
 
-        this.addTraceSection(
-            new CreateSection(
-                this,
-                new ContextChunk(this.callStack, this.currentFrame(), updateReturnData),
-                // 2× own account
-                new AccountChunk(myAddress, myAccountSnapshot, myAccountSnapshot, false, 0, false),
-                new AccountChunk(myAddress, myAccountSnapshot, myAccountSnapshot, false, 0, false)
-                // 2× target call account
-                //        opChunks.add(new AccountChunk());
-                //        opChunks.add(new AccountChunk());
-                // TODO: defer context in post-new-callframe; describes the initcode execution
-                // context
-                //  this, new ContextChunk(this.callStack, this.currentFrame(), updateReturnData)
-                ));
+        Address calledAddress = Address.wrap(frame.getStackItem(1));
+        Account calledAccount = frame.getWorldUpdater().getAccount(calledAddress);
+        AccountSnapshot calledAccountSnapshot =
+            AccountSnapshot.fromAccount(
+                calledAccount,
+                frame.isAddressWarm(myAddress),
+                this.deploymentNumber(myAddress),
+                this.isDeploying(myAddress));
+
+        CallDefer protoCallSection =
+            new CallDefer(
+                myAccountSnapshot,
+                calledAccountSnapshot,
+                new ContextFragment(this.callStack, this.currentFrame(), updateReturnData));
+
+        this.deferPostExec(protoCallSection);
+        this.deferNextContext(protoCallSection);
       }
       case JUMP -> {
         AccountSnapshot codeAccountSnapshot =
@@ -836,50 +894,26 @@ public class Hub implements Module {
         this.addTraceSection(
             new JumpSection(
                 this,
-                new ContextChunk(this.callStack, this.currentFrame(), updateReturnData),
-                new AccountChunk(
-                    this.currentFrame().getCodeAddress(),
-                    codeAccountSnapshot,
-                    codeAccountSnapshot,
-                    false,
-                    0,
-                    false)));
+                new ContextFragment(this.callStack, this.currentFrame(), updateReturnData),
+                new AccountFragment(codeAccountSnapshot, codeAccountSnapshot, false, 0, false)));
       }
     }
   }
 
-  public List<TraceChunk> makeStackChunks() {
-    List<TraceChunk> r = new ArrayList<>();
+  public List<TraceFragment> makeStackChunks() {
+    List<TraceFragment> r = new ArrayList<>();
     if (this.currentFrame().getPending().getLines().isEmpty()) {
       for (int i = 0; i < (this.opCodeData().stackSettings().twoLinesInstruction() ? 2 : 1); i++) {
         r.add(
-            new StackChunk(
+            new StackFragment(
                 this.currentFrame().getStack().snapshot(), new StackLine(i).asStackOperations()));
       }
     } else {
       for (StackLine line : this.currentFrame().getPending().getLines()) {
-        r.add(new StackChunk(this.currentFrame().getStack().snapshot(), line.asStackOperations()));
+        r.add(
+            new StackFragment(this.currentFrame().getStack().snapshot(), line.asStackOperations()));
       }
     }
     return r;
-  }
-
-  private void retconAccountChunk(AccountChunk chunk) {
-    Address address = chunk.who();
-    chunk.deploymentNumberInfnty(this.deploymentNumber(address)).existsInfinity(false);
-    // TODO should be account != null; see with Besu team if we can get a view on
-    // the state in traceEndConflation
-  }
-
-  private void retconChunks() {
-    for (List<TraceSection> section : this.traceSections) {
-      for (TraceSection opChunks : section) {
-        for (TraceChunk chunk : opChunks.getChunks()) {
-          if (chunk instanceof AccountChunk) {
-            this.retconAccountChunk((AccountChunk) chunk);
-          }
-        }
-      }
-    }
   }
 }

@@ -1,13 +1,13 @@
 package net.consensys.linea.zktracer.module.hub.section;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.chunks.TraceChunk;
+import net.consensys.linea.zktracer.module.hub.chunks.TraceFragment;
 
 public class AccountSection extends TraceSection {
-  public AccountSection(Hub hub, TraceChunk... chunks) {
+  public AccountSection(Hub hub, TraceFragment... chunks) {
     super(hub, chunks);
   }
 
   @Override
-  void retcon(Hub hub) {}
+  void seal(Hub hub) {}
 }

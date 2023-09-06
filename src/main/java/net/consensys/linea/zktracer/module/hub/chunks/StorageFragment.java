@@ -28,7 +28,7 @@ import org.hyperledger.besu.datatypes.Address;
  * @param valOrig value @key at the beginning of *transaction*
  * @param valCurr value @key at the beginning of *opcode*
  */
-public record StorageChunk(
+public record StorageFragment(
     Address address,
     int deploymentNumber,
     EWord key,
@@ -37,7 +37,7 @@ public record StorageChunk(
     EWord valNext,
     boolean oldWarmth,
     boolean newWarmth)
-    implements TraceChunk {
+    implements TraceFragment {
   @Override
   public Trace.TraceBuilder trace(Trace.TraceBuilder trace) {
     EWord eAddress = EWord.of(address);
@@ -61,7 +61,6 @@ public record StorageChunk(
         .pStorageValCurrIsZero(valCurr.isZero())
         .pStorageValNextIsZero(valNext.isZero())
         .pStorageValNextIsOrig(valNext == valOrig)
-        .pStorageValNextIsCurr(valNext == valOrig)
-        .fillAndValidateRow();
+        .pStorageValNextIsCurr(valNext == valOrig);
   }
 }

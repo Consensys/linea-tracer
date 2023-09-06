@@ -25,14 +25,14 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
 
-public record TransactionChunk(
+public record TransactionFragment(
     int batchNumber,
     Address minerAddress,
     Transaction tx,
     boolean evmExecutes,
     Wei gasPrice,
     Wei baseFee)
-    implements TraceChunk {
+    implements TraceFragment {
   @Override
   public Trace.TraceBuilder trace(Trace.TraceBuilder trace) {
     final EWord deploymentAddress = EWord.of(Address.EMPTY); // TODO compute deployment address
@@ -60,7 +60,6 @@ public record TransactionChunk(
         .pTransactionLeftoverGas(BigInteger.ZERO) // TODO defer/retcon
         .pTransactionGasRefundCounterFinal(BigInteger.ZERO) // TODO defer/retcon
         .pTransactionGasRefundAmount(BigInteger.ZERO) // TODO retcon
-        .pTransactionStatusCode(false) // TODO defer/retcon false si exception ou revert
-        .fillAndValidateRow();
+        .pTransactionStatusCode(false); // TODO defer/retcon false si exception ou revert
   }
 }

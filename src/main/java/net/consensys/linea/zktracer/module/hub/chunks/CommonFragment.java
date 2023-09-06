@@ -2,45 +2,51 @@ package net.consensys.linea.zktracer.module.hub.chunks;
 
 import java.math.BigInteger;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.EWord;
 import net.consensys.linea.zktracer.module.hub.Exceptions;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.TxState;
 import net.consensys.linea.zktracer.opcode.InstructionFamily;
 
-public record CommonChunk(
-    int txNumber,
-    int batchNumber,
-    TxState txState,
-    int stamp,
-    int txEndStamp,
-    boolean txReverts,
-    InstructionFamily instructionFamily,
-    Exceptions exceptions,
-    boolean abortFlag,
-    boolean failureConditionFlag,
-    int contextNumber,
-    int newContextNumber,
-    int revertStamp,
-    boolean willRevert,
-    boolean getsReverted,
-    boolean selfReverts,
-    int pc,
-    int newPc,
-    EWord codeAddress,
-    int codeDeploymentNumber,
-    boolean codeDeploymentStatus,
-    int callerContextNumber,
-    long gasExpected,
-    long gasActual,
-    long gasCost,
-    long gasNext,
-    long gasRefund,
-    boolean twoLinesInstruction,
-    boolean twoLinesInstructionCounter,
-    int numberOfNonStackRows,
-    int nonStackRowsCounter)
-    implements TraceChunk {
+@Accessors(fluent = true, chain = false)
+@AllArgsConstructor
+public final class CommonFragment implements TraceFragment {
+  private final int txNumber;
+  private final int batchNumber;
+  private final TxState txState;
+  private final int stamp;
+  @Setter private int txEndStamp;
+  private final boolean txReverts;
+  private final InstructionFamily instructionFamily;
+  private final Exceptions exceptions;
+  private final boolean abortFlag;
+  private final boolean failureConditionFlag;
+  @Getter private final int contextNumber;
+  @Setter private int newContextNumber;
+  private final int revertStamp;
+  private final boolean willRevert;
+  private final boolean getsReverted;
+  private final boolean selfReverts;
+  @Getter private final int pc;
+  @Setter private int newPc;
+  private final EWord codeAddress;
+  private int codeDeploymentNumber;
+  private final boolean codeDeploymentStatus;
+  private final int callerContextNumber;
+  private final long gasExpected;
+  private final long gasActual;
+  private final long gasCost;
+  private final long gasNext;
+  private final long gasRefund;
+  @Getter @Setter private boolean twoLinesInstruction;
+  @Getter @Setter private boolean twoLinesInstructionCounter;
+  @Getter @Setter private int numberOfNonStackRows;
+  @Getter @Setter private int nonStackRowsCounter;
+
   @Override
   public Trace.TraceBuilder trace(Trace.TraceBuilder trace) {
     return trace

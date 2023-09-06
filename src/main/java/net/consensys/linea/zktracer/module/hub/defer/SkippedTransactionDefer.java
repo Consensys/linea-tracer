@@ -16,9 +16,9 @@
 package net.consensys.linea.zktracer.module.hub.defer;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.chunks.AccountChunk;
+import net.consensys.linea.zktracer.module.hub.chunks.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.chunks.AccountSnapshot;
-import net.consensys.linea.zktracer.module.hub.chunks.TransactionChunk;
+import net.consensys.linea.zktracer.module.hub.chunks.TransactionFragment;
 import net.consensys.linea.zktracer.module.hub.section.TxSkippedSection;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -34,7 +34,7 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
  * @param oldToAccount
  * @param oldMinerAccount
  */
-public record SkippedTransaction(
+public record SkippedTransactionDefer(
     AccountSnapshot oldFromAccount,
     AccountSnapshot oldToAccount,
     AccountSnapshot oldMinerAccount,
@@ -65,14 +65,14 @@ public record SkippedTransaction(
         new TxSkippedSection(
             // 3 lines -- account changes
             // From
-            new AccountChunk(fromAddress, oldFromAccount, newFromAccount, false, 0, false),
+            new AccountFragment(fromAddress, oldFromAccount, newFromAccount, false, 0, false),
             // To
-            new AccountChunk(toAddress, oldToAccount, newToAccount, false, 0, false),
+            new AccountFragment(toAddress, oldToAccount, newToAccount, false, 0, false),
             // Miner
-            new AccountChunk(minerAddress, oldMinerAccount, newMinerAccount, false, 0, false),
+            new AccountFragment(minerAddress, oldMinerAccount, newMinerAccount, false, 0, false),
 
             // 1 line -- transaction data
-            new TransactionChunk(
+            new TransactionFragment(
                 hub.getBatchNumber(), minerAddress, tx, false, gasPrice, baseFee)));
   }
 }

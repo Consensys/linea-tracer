@@ -15,8 +15,11 @@
 
 package net.consensys.linea.zktracer.module.hub.chunks;
 
+import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
 
-public interface TraceChunk {
+public interface TraceFragment {
   Trace.TraceBuilder trace(Trace.TraceBuilder trace);
+
+  default void retcon(Hub hub) {}
 }

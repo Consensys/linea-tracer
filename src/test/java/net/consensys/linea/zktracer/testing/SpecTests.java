@@ -39,7 +39,8 @@ import org.apache.tuweni.bytes.Bytes32;
 
 /** Base class used for parsing JSON trace specs. */
 public class SpecTests {
-  private static final JsonConverter JSON_CONVERTER = JsonConverter.builder().build();
+  private static final JsonConverter JSON_CONVERTER =
+      JsonConverter.builder().enablePrettyPrint().build();
 
   /**
    * Runs a test that parses a JSON spec, specifying trace params and compares then against the
@@ -93,7 +94,7 @@ public class SpecTests {
     JsonNode traceJsonNode =
         JSON_CONVERTER.getObjectMapper().readTree(String.valueOf(actualTrace)).findValue("Trace");
 
-    return JSON_CONVERTER.toJson(traceJsonNode, true);
+    return JSON_CONVERTER.toJson(traceJsonNode);
   }
 
   private static JsonNode generateTraceFromSpecParams(String moduleName, JsonNode jsonNodeParams)

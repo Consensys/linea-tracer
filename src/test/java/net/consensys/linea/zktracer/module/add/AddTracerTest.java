@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.add;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.Random;
 import java.util.stream.Stream;
@@ -51,7 +50,7 @@ class AddTracerTest {
 
   @ParameterizedTest(name = "{index} {0}")
   @MethodSource("provideTraceSpecs")
-  void traceWithSpecFile(final String ignored, URL specUrl) throws IOException {
+  void traceWithSpecFile(final String ignored, URL specUrl) {
     SpecTests.runSpecTestWithTraceComparison(specUrl, MODULE.jsonKey());
   }
 

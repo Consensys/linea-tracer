@@ -45,6 +45,7 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
   private final Hub hub;
 
   private final List<Module> modules;
+  public RlpTxrcpt rlpTxn;
 
   public ZkTracer() {
     Add add = new Add();

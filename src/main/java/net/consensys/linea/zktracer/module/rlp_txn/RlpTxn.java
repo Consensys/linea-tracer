@@ -38,7 +38,7 @@ import org.hyperledger.besu.datatypes.TransactionType;
 
 /** Implementation of a {@link Module} for addition/subtraction. */
 public class RlpTxn implements Module {
-  final Trace.TraceBuilder trace = Trace.builder();
+  final Trace.TraceBuilder builder = Trace.builder();
   int llarge = TxnrlpTrace.LLARGE.intValue();
   int llargemo = TxnrlpTrace.LLARGEMO.intValue();
   int prefix_short_int = TxnrlpTrace.int_short.intValue();
@@ -47,6 +47,10 @@ public class RlpTxn implements Module {
   int prefix_long_list = TxnrlpTrace.list_long.intValue();
 
   int absolute_transaction_number;
+
+  // Used to check the reconstruction of RLPs
+  Bytes reconstructedRlpLt;
+  Bytes reconstructedRlpLx;
 
   @Override
   public String jsonKey() {
@@ -61,14 +65,16 @@ public class RlpTxn implements Module {
   @Override
   public final void traceEndConflation() {
     /** Rewrite the ABS_TX_NUM_INFINY column with the last absolute_transaction_number*/
-    for (int i =0; i<this.trace.size();i++){
-      this.trace.setAbsTxNumInfinyAt(BigInteger.valueOf(this.absolute_transaction_number),i);
+    for (int i =0; i<this.builder.size();i++){
+      this.builder.setAbsTxNumInfinyAt(BigInteger.valueOf(this.absolute_transaction_number),i);
     }
   }
 
   @Override
   public void traceStartTx(Transaction tx) {
     this.absolute_transaction_number += 1;
+    reconstructedRlpLt = Bytes.EMPTY;
+    reconstructedRlpLx = Bytes.EMPTY;
 
     /** Specify transaction constant columns */
     RlpTxnColumnsValue traceValue = new RlpTxnColumnsValue();
@@ -759,7 +765,7 @@ public class RlpTxn implements Module {
       }
     }
 
-    this.trace
+    this.builder
         .absTxNum(BigInteger.valueOf(traceValue.ABS_TX_NUM))
         .absTxNumInfiny(BigInteger.valueOf(traceValue.ABS_TX_NUM_INFINY))
         .acc1(traceValue.ACC_1)
@@ -780,11 +786,11 @@ public class RlpTxn implements Module {
         .depth1(traceValue.DEPTH_1)
         .depth2(traceValue.DEPTH_2);
     if (traceValue.COUNTER == traceValue.nSTEP - 1) {
-      this.trace.done(Boolean.TRUE);
+      this.builder.done(Boolean.TRUE);
     } else {
-      this.trace.done(Boolean.FALSE);
+      this.builder.done(Boolean.FALSE);
     }
-    this.trace
+    this.builder
         .endPhase(traceValue.PHASE_END)
         .indexData(BigInteger.valueOf(traceValue.INDEX_DATA))
         .indexLt(BigInteger.valueOf(traceValue.INDEX_LT))
@@ -804,25 +810,25 @@ public class RlpTxn implements Module {
         .numberStep(UnsignedByte.of(traceValue.nSTEP));
     List<Function<Boolean, Trace.TraceBuilder>> phaseColumns =
         List.of(
-            this.trace::phase0,
-            this.trace::phase1,
-            this.trace::phase2,
-            this.trace::phase3,
-            this.trace::phase4,
-            this.trace::phase5,
-            this.trace::phase6,
-            this.trace::phase7,
-            this.trace::phase8,
-            this.trace::phase9,
-            this.trace::phase10,
-            this.trace::phase11,
-            this.trace::phase12,
-            this.trace::phase13,
-            this.trace::phase14);
+            this.builder::phase0,
+            this.builder::phase1,
+            this.builder::phase2,
+            this.builder::phase3,
+            this.builder::phase4,
+            this.builder::phase5,
+            this.builder::phase6,
+            this.builder::phase7,
+            this.builder::phase8,
+            this.builder::phase9,
+            this.builder::phase10,
+            this.builder::phase11,
+            this.builder::phase12,
+            this.builder::phase13,
+            this.builder::phase14);
 for(int i = 0; i < phaseColumns.size(); i++) {
   phaseColumns.get(i).apply(i == traceValue.phase);
 }
-    this.trace
+    this.builder
         .phaseBytesize(BigInteger.valueOf(traceValue.PHASE_BYTESIZE))
         .power(traceValue.POWER)
         .requiresEvmExecution(traceValue.REQUIRES_EVM_EXECUTION)
@@ -831,7 +837,7 @@ for(int i = 0; i < phaseColumns.size(); i++) {
         .type(UnsignedByte.of(traceValue.TYPE))
         .validateRow();
 
-    /** Increments Index */
+    // Increments Index
     if (traceValue.LIMB_CONSTRUCTED && traceValue.LT) {
       traceValue.INDEX_LT += 1;
     }
@@ -839,12 +845,12 @@ for(int i = 0; i < phaseColumns.size(); i++) {
       traceValue.INDEX_LX += 1;
     }
 
-    /** Increments IndexData (Phase 9) */
+    // Increments IndexData (Phase 9)
     if (traceValue.phase == 9 && !traceValue.IS_PREFIX && (traceValue.LIMB_CONSTRUCTED || traceValue.LC_CORRECTION)) {
       traceValue.INDEX_DATA += 1;
     }
 
-    /** Decrements PhaseByteSize and DataGasCost in Data phase (phase 9) */
+    // Decrements PhaseByteSize and DataGasCost in Data phase (phase 9)
     if (traceValue.phase == 9) {
       if (traceValue.PHASE_BYTESIZE != 0 && !traceValue.IS_PREFIX) {
         traceValue.PHASE_BYTESIZE -= 1;
@@ -859,10 +865,18 @@ for(int i = 0; i < phaseColumns.size(); i++) {
       traceValue.DataHiLoReset();
     }
     this.builder.validateRow();
+
+    //reconstruct RLPs
+    if (traceValue.LT){
+      this.reconstructedRlpLt = Bytes.concatenate(this.reconstructedRlpLt, Bytes.of(traceValue.LIMB.toByteArray()).slice(0,traceValue.nBYTES));
+    }
+    if (traceValue.LX){
+      this.reconstructedRlpLx = Bytes.concatenate(this.reconstructedRlpLx,Bytes.of(traceValue.LIMB.toByteArray()).slice(0,traceValue.nBYTES));
+    }
   }
 
   @Override
   public Object commit() {
-    return new RlpTxnTrace(trace.build());
+    return new RlpTxnTrace(builder.build());
   }
 }

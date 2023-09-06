@@ -253,7 +253,7 @@ record Trace(
         filled.set(56);
       }
 
-      acc1.add(b);
+      acc1.add(b.toUnsignedBigInteger());
 
       return this;
     }
@@ -265,7 +265,7 @@ record Trace(
         filled.set(32);
       }
 
-      acc2.add(b);
+      acc2.add(b.toUnsignedBigInteger());
 
       return this;
     }
@@ -301,7 +301,7 @@ record Trace(
         filled.set(46);
       }
 
-      addrHi.add(b);
+      addrHi.add(b.toUnsignedBigInteger());
 
       return this;
     }
@@ -313,7 +313,7 @@ record Trace(
         filled.set(22);
       }
 
-      addrLo.add(b);
+      addrLo.add(b.toUnsignedBigInteger());
 
       return this;
     }
@@ -385,7 +385,7 @@ record Trace(
         filled.set(35);
       }
 
-      counter.add(b);
+      counter.add(UnsignedByte.of(b.longValueExact()));
 
       return this;
     }
@@ -517,7 +517,7 @@ record Trace(
         filled.set(49);
       }
 
-      input1.add(b);
+      input1.add(b.toUnsignedBigInteger());
 
       return this;
     }
@@ -529,7 +529,7 @@ record Trace(
         filled.set(17);
       }
 
-      input2.add(b);
+      input2.add(b.toUnsignedBigInteger());
 
       return this;
     }

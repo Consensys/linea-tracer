@@ -35,7 +35,9 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 public class Add implements Module {
   public static final String ADD_JSON_KEY = "add";
   private int stamp = 0;
-  final Trace.TraceBuilder builder = Trace.builder();
+  final Trace.TraceBuilder trace = Trace.builder();
+
+  private final UInt256 twoToThe128 = UInt256.ONE.shiftLeft(128);
 
   /** A deduplicated list of the operations to trace */
   private final Map<OpCode, Map<Bytes32, Bytes32>> chunks = new HashMap<>();
@@ -121,9 +123,6 @@ public class Add implements Module {
       }
     }
 
-    // check if the result is greater than 2^128
-    final UInt256 twoToThe128 = UInt256.ONE.shiftLeft(128);
-
     for (int i = 0; i < 16; i++) {
       Bytes32 addRes;
       if (opCode == OpCode.ADD) {
@@ -134,7 +133,7 @@ public class Add implements Module {
 
       overflowLo = (addRes.compareTo(twoToThe128) >= 0);
 
-      builder
+      trace
           .acc1(resHi.slice(0, 1 + i).toUnsignedBigInteger())
           .acc2(resLo.slice(0, 1 + i).toUnsignedBigInteger())
           .arg1Hi(arg1Hi.toUnsignedBigInteger())
@@ -162,6 +161,6 @@ public class Add implements Module {
       }
     }
 
-    return new AddTrace(builder.build());
+    return new AddTrace(trace.build());
   }
 }

@@ -38,6 +38,8 @@ import org.apache.tuweni.units.bigints.UInt256;
 public class MulData {
   private static final int MMEDIUM = 8;
 
+  @Getter int stamp;
+
   @Getter private final OpCode opCode;
 
   @Getter private final Bytes32 arg1;
@@ -67,12 +69,12 @@ public class MulData {
 
   BaseBytes res;
 
-  public MulData(OpCodeData opCodeData, Bytes32 arg1, Bytes32 arg2) {
-    this(opCodeData.mnemonic(), arg1, arg2);
+  public MulData(OpCodeData opCodeData, Bytes32 arg1, Bytes32 arg2, int stamp) {
+    this(opCodeData.mnemonic(), arg1, arg2, stamp);
   }
 
-  @SuppressWarnings("checkstyle:WhitespaceAround")
-  public MulData(OpCode opCode, Bytes32 arg1, Bytes32 arg2) {
+  public MulData(OpCode opCode, Bytes32 arg1, Bytes32 arg2, int stamp) {
+    this.stamp = stamp;
     this.opCode = opCode;
     this.arg1 = arg1;
     this.arg2 = arg2;

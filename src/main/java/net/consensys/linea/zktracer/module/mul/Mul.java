@@ -16,7 +16,9 @@
 package net.consensys.linea.zktracer.module.mul;
 
 import java.math.BigInteger;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import net.consensys.linea.zktracer.bytes.UnsignedByte;
 import net.consensys.linea.zktracer.module.Module;
@@ -42,6 +44,9 @@ public class Mul implements Module {
     return List.of(OpCode.MUL, OpCode.EXP);
   }
 
+  /** A deduplicated list of the operations to trace */
+  private final Map<OpCode, Map<Bytes32, Bytes32>> chunks = new HashMap<>();
+
   @SuppressWarnings("UnusedVariable")
   @Override
   public void trace(MessageFrame frame) {
@@ -51,7 +56,7 @@ public class Mul implements Module {
     final OpCodeData opCode = OpCodes.of(frame.getCurrentOperation().getOpcode());
 
     // argument order is reversed ??
-    final MulData data = new MulData(opCode, arg1, arg2);
+    final MulData data = new MulData(opCode, arg1, arg2, this.stamp);
 
     stamp++;
     switch (data.getRegime()) {
@@ -76,7 +81,7 @@ public class Mul implements Module {
   @Override
   public void traceEndConflation() {
     stamp++;
-    MulData finalZeroToTheZero = new MulData(OpCode.EXP, Bytes32.ZERO, Bytes32.ZERO);
+    MulData finalZeroToTheZero = new MulData(OpCode.EXP, Bytes32.ZERO, Bytes32.ZERO, this.stamp);
     traceSubOp(builder, finalZeroToTheZero);
   }
 
@@ -91,9 +96,9 @@ public class Mul implements Module {
     }
   }
 
-  private void traceRow(final Trace.TraceBuilder builder, final MulData data, final int i) {
+  private static void traceRow(final Trace.TraceBuilder builder, final MulData data, final int i) {
     builder
-        .mulStamp(BigInteger.valueOf(stamp))
+        .mulStamp(BigInteger.valueOf(data.stamp))
         .counter(BigInteger.valueOf(i))
         .oli(data.isOneLineInstruction())
         .tinyBase(data.isTinyBase())

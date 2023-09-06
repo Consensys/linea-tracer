@@ -5,8 +5,6 @@ import java.math.BigInteger;
 import org.apache.tuweni.bytes.Bytes;
 
 public class RlpTxnColumnsValue {
-  public int ABS_TX_NUM;
-  public int ABS_TX_NUM_INFINY;
   public Bytes ACC_1;
   public Bytes ACC_2;
   public int ACC_BYTESIZE;
@@ -17,7 +15,6 @@ public class RlpTxnColumnsValue {
   public int BIT_ACC;
   public byte BYTE_1;
   public byte BYTE_2;
-  public int CODE_FRAGMENT_INDEX;
   public int COUNTER;
   public BigInteger DATA_HI;
   public BigInteger DATA_LO;
@@ -44,10 +41,8 @@ public class RlpTxnColumnsValue {
   public int phase;
   public int PHASE_BYTESIZE;
   public BigInteger POWER;
-  public boolean REQUIRES_EVM_EXECUTION;
   public int RLP_LT_BYTESIZE;
   public int RLP_LX_BYTESIZE;
-  public int TYPE;
 
   public void partialReset(int phase, int number_step, boolean LT, boolean LX) {
     this.phase = phase;
@@ -55,7 +50,7 @@ public class RlpTxnColumnsValue {
     this.LT = LT;
     this.LX = LX;
 
-    /** Set to default local values */
+    // Set to default local values
     this.LIMB_CONSTRUCTED = false;
     this.ACC_1 = Bytes.EMPTY;
     this.ACC_2 = Bytes.EMPTY;

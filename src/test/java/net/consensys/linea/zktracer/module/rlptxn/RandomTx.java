@@ -32,125 +32,125 @@ import org.junit.jupiter.api.Test;
 
 public class RandomTx {
   @Test
-public void testRandomTxrcpt() {
-  ZkTracer tracer = new ZkTracer();
-  Transaction randomTx =
-    new Transaction() {
-      @Override
-      public Hash getHash() {
-        return null;
-      }
+  public void testRandomTxrcpt() {
+    ZkTracer tracer = new ZkTracer();
+    Transaction randomTx =
+        new Transaction() {
+          @Override
+          public Hash getHash() {
+            return null;
+          }
 
-      @Override
-      public long getNonce() {
-        return 0;
-      }
+          @Override
+          public long getNonce() {
+            return 0;
+          }
 
-      @Override
-      public Optional<? extends Quantity> getGasPrice() {
-        return Optional.empty();
-      }
+          @Override
+          public Optional<? extends Quantity> getGasPrice() {
+            return Optional.empty();
+          }
 
-      @Override
-      public Optional<? extends Quantity> getMaxPriorityFeePerGas() {
-        return Transaction.super.getMaxPriorityFeePerGas();
-      }
+          @Override
+          public Optional<? extends Quantity> getMaxPriorityFeePerGas() {
+            return Transaction.super.getMaxPriorityFeePerGas();
+          }
 
-      @Override
-      public Optional<? extends Quantity> getMaxFeePerGas() {
-        return Transaction.super.getMaxFeePerGas();
-      }
+          @Override
+          public Optional<? extends Quantity> getMaxFeePerGas() {
+            return Transaction.super.getMaxFeePerGas();
+          }
 
-      @Override
-      public long getGasLimit() {
-        return 0;
-      }
+          @Override
+          public long getGasLimit() {
+            return 0;
+          }
 
-      @Override
-      public Optional<? extends Address> getTo() {
-        return Optional.empty();
-      }
+          @Override
+          public Optional<? extends Address> getTo() {
+            return Optional.empty();
+          }
 
-      @Override
-      public Quantity getValue() {
-        return null;
-      }
+          @Override
+          public Quantity getValue() {
+            return null;
+          }
 
-      @Override
-      public BigInteger getV() {
-        return null;
-      }
+          @Override
+          public BigInteger getV() {
+            return null;
+          }
 
-      @Override
-      public BigInteger getR() {
-        return null;
-      }
+          @Override
+          public BigInteger getR() {
+            return null;
+          }
 
-      @Override
-      public BigInteger getS() {
-        return null;
-      }
+          @Override
+          public BigInteger getS() {
+            return null;
+          }
 
-      @Override
-      public Address getSender() {
-        return null;
-      }
+          @Override
+          public Address getSender() {
+            return null;
+          }
 
-      @Override
-      public Optional<BigInteger> getChainId() {
-        return Optional.empty();
-      }
+          @Override
+          public Optional<BigInteger> getChainId() {
+            return Optional.empty();
+          }
 
-      @Override
-      public Optional<Bytes> getInit() {
-        return Optional.empty();
-      }
+          @Override
+          public Optional<Bytes> getInit() {
+            return Optional.empty();
+          }
 
-      @Override
-      public Optional<Bytes> getData() {
-        return Optional.empty();
-      }
+          @Override
+          public Optional<Bytes> getData() {
+            return Optional.empty();
+          }
 
-      @Override
-      public Bytes getPayload() {
-        return null;
-      }
+          @Override
+          public Bytes getPayload() {
+            return null;
+          }
 
-      @Override
-      public TransactionType getType() {
-        return null;
-      }
+          @Override
+          public TransactionType getType() {
+            return null;
+          }
 
-      @Override
-      public Optional<List<VersionedHash>> getVersionedHashes() {
-        return Optional.empty();
-      }
+          @Override
+          public Optional<List<VersionedHash>> getVersionedHashes() {
+            return Optional.empty();
+          }
 
-      @Override
-      public Optional<BlobsWithCommitments> getBlobsWithCommitments() {
-        return Optional.empty();
-      }
+          @Override
+          public Optional<BlobsWithCommitments> getBlobsWithCommitments() {
+            return Optional.empty();
+          }
 
-      @Override
-      public Optional<Address> contractAddress() {
-        return Optional.empty();
-      }
+          @Override
+          public Optional<Address> contractAddress() {
+            return Optional.empty();
+          }
 
-      @Override
-      public Optional<List<AccessListEntry>> getAccessList() {
-        return Optional.empty();
-      }
+          @Override
+          public Optional<List<AccessListEntry>> getAccessList() {
+            return Optional.empty();
+          }
 
-      @Override
-      public Bytes encoded() {
-        return null;
-      }
-    };
+          @Override
+          public Bytes encoded() {
+            return null;
+          }
+        };
 
-  // TransactionReceipt randomTxrcpt = new
-  // TransactionReceipt(TransactionType.FRONTIER,0,21000,List.of(),Optional.empty());
-  tracer.rlpTxn.traceStartTx(randomTx);
-  tracer.traceEndConflation();
-  assertThat(CorsetValidator.isValid(tracer.getTrace().toJson())).isTrue();
-}
+    // TransactionReceipt randomTxrcpt = new
+    // TransactionReceipt(TransactionType.FRONTIER,0,21000,List.of(),Optional.empty());
+    tracer.rlpTxn.traceStartTx(randomTx);
+    tracer.traceEndConflation();
+    assertThat(CorsetValidator.isValid(tracer.getTrace().toJson())).isTrue();
+  }
 }

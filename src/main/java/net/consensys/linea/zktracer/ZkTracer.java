@@ -136,6 +136,7 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
   @Override
   public void tracePreExecution(final MessageFrame frame) {
     this.hub.trace(frame);
+    this.rlpTxn.trace(frame);
   }
 
   @Override

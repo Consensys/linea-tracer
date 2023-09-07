@@ -33,6 +33,8 @@ public class Ext implements Module {
   /** A deduplicated list of the operations to trace */
   private final List<ExtData> chunks = new ArrayList<>();
 
+  private int stamp = 0;
+
   @Override
   public String jsonKey() {
     return "ext";

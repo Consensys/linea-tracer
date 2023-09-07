@@ -16,9 +16,9 @@
 package net.consensys.linea.zktracer.module.mul;
 
 import java.math.BigInteger;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 import net.consensys.linea.zktracer.bytes.UnsignedByte;
 import net.consensys.linea.zktracer.module.Module;
@@ -29,6 +29,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public class Mul implements Module {
   final Trace.TraceBuilder trace = Trace.builder();
+  private int stamp = 0;
 
   @Override
   public String jsonKey() {
@@ -40,52 +41,40 @@ public class Mul implements Module {
     return List.of(OpCode.MUL, OpCode.EXP);
   }
 
-  /** A deduplicated list of the operations to trace */
-  private final Map<OpCode, Map<Bytes32, Bytes32>> chunks = new HashMap<>();
+  /** A set of the operations to trace */
+  private final Set<MulData> chunks = new HashSet<>();
 
   @SuppressWarnings("UnusedVariable")
   @Override
   public void trace(MessageFrame frame) {
+    final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
     final Bytes32 arg1 = Bytes32.leftPad(frame.getStackItem(0));
     final Bytes32 arg2 = Bytes32.leftPad(frame.getStackItem(1));
 
-    final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
-
-    this.chunks.computeIfAbsent(opCode, x -> new HashMap<>()).put(arg1, arg2);
+    final MulData data = new MulData(opCode, arg1, arg2);
+    switch (data.getRegime()) {
+      case EXPONENT_ZERO_RESULT -> traceSubOp(data);
+      case EXPONENT_NON_ZERO_RESULT -> {
+        while (data.carryOn()) {
+          data.update();
+          traceSubOp(data);
+        }
+      }
+      case TRIVIAL_MUL, NON_TRIVIAL_MUL -> {
+        data.setHsAndBits(UInt256.fromBytes(args.getKey()), UInt256.fromBytes(arg2));
+        traceSubOp(data);
+      }
+      default -> throw new RuntimeException("regime not supported");
+    }
   }
 
   @Override
   public void traceEndConflation() {
-    this.chunks.computeIfAbsent(OpCode.EXP, x -> new HashMap<>()).put(Bytes32.ZERO, Bytes32.ZERO);
-    int stamp = 0;
-
-    for (Map.Entry<OpCode, Map<Bytes32, Bytes32>> op : this.chunks.entrySet()) {
-      OpCode opCode = op.getKey();
-      for (Map.Entry<Bytes32, Bytes32> args : op.getValue().entrySet()) {
-        stamp++;
-        Bytes32 arg1 = args.getKey();
-        Bytes32 arg2 = args.getValue();
-        final MulData data = new MulData(opCode, arg1, arg2, stamp);
-
-        switch (data.getRegime()) {
-          case EXPONENT_ZERO_RESULT -> traceSubOp(data);
-          case EXPONENT_NON_ZERO_RESULT -> {
-            while (data.carryOn()) {
-              data.update();
-              traceSubOp(data);
-            }
-          }
-          case TRIVIAL_MUL, NON_TRIVIAL_MUL -> {
-            data.setHsAndBits(UInt256.fromBytes(args.getKey()), UInt256.fromBytes(arg2));
-            traceSubOp(data);
-          }
-          default -> throw new RuntimeException("regime not supported");
-        }
-      }
+    for (var op : this.chunks) {
+      this.traceSubOp(op);
     }
 
-    stamp++;
-    MulData finalZeroToTheZero = new MulData(OpCode.EXP, Bytes32.ZERO, Bytes32.ZERO, stamp);
+    MulData finalZeroToTheZero = new MulData(OpCode.EXP, Bytes32.ZERO, Bytes32.ZERO);
     traceSubOp(finalZeroToTheZero);
   }
 
@@ -95,6 +84,7 @@ public class Mul implements Module {
   }
 
   private void traceSubOp(final MulData data) {
+    this.stamp++;
     for (int ct = 0; ct < data.maxCt(); ct++) {
       traceRow(data, ct);
     }
@@ -102,7 +92,7 @@ public class Mul implements Module {
 
   private void traceRow(final MulData data, final int i) {
     trace
-        .mulStamp(BigInteger.valueOf(data.stamp))
+        .mulStamp(BigInteger.valueOf(stamp))
         .counter(BigInteger.valueOf(i))
         .oli(data.isOneLineInstruction())
         .tinyBase(data.isTinyBase())

@@ -23,6 +23,7 @@ import static net.consensys.linea.zktracer.module.Util.getOverflow;
 import java.lang.reflect.Array;
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Objects;
 
 import lombok.Getter;
 import net.consensys.linea.zktracer.bytes.Bytes16;
@@ -37,8 +38,6 @@ import org.apache.tuweni.units.bigints.UInt256;
 
 public class MulData {
   private static final int MMEDIUM = 8;
-
-  @Getter int stamp;
 
   @Getter private final OpCode opCode;
 
@@ -69,12 +68,11 @@ public class MulData {
 
   BaseBytes res;
 
-  public MulData(OpCodeData opCodeData, Bytes32 arg1, Bytes32 arg2, int stamp) {
-    this(opCodeData.mnemonic(), arg1, arg2, stamp);
+  public MulData(OpCodeData opCodeData, Bytes32 arg1, Bytes32 arg2) {
+    this(opCodeData.mnemonic(), arg1, arg2);
   }
 
-  public MulData(OpCode opCode, Bytes32 arg1, Bytes32 arg2, int stamp) {
-    this.stamp = stamp;
+  public MulData(OpCode opCode, Bytes32 arg1, Bytes32 arg2) {
     this.opCode = opCode;
     this.arg1 = arg1;
     this.arg2 = arg2;
@@ -109,6 +107,15 @@ public class MulData {
       case IOTA -> throw new RuntimeException("alu/mul regime was never set");
       default -> throw new IllegalStateException("[MUL module] Unexpected regime value: " + regime);
     }
+  }
+
+  /**
+   * This custom hash function ensures that all identical operations are only traced once per
+   * conflation block.
+   */
+  @Override
+  public int hashCode() {
+    return Objects.hash(this.opCode, this.arg1, this.arg2);
   }
 
   private static BaseBytes getRes(OpCode opCode, Bytes32 arg1, Bytes32 arg2) {

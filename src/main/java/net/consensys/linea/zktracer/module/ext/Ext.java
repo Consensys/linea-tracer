@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.ext;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 
 import net.consensys.linea.zktracer.bytes.UnsignedByte;
@@ -27,10 +28,10 @@ import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public class Ext implements Module {
-  private static final int MMEDIUM = 8;
+  final Trace.TraceBuilder trace = Trace.builder();
 
-  final Trace.TraceBuilder builder = Trace.builder();
-  private int stamp = 0;
+  /** A deduplicated list of the operations to trace */
+  private final List<ExtData> chunks = new ArrayList<>();
 
   @Override
   public String jsonKey() {
@@ -49,13 +50,20 @@ public class Ext implements Module {
     final Bytes32 arg2 = Bytes32.wrap(frame.getStackItem(1));
     final Bytes32 arg3 = Bytes32.wrap(frame.getStackItem(2));
 
-    final ExtData data = new ExtData(opCode, arg1, arg2, arg3);
+    this.chunks.add(new ExtData(opCode, arg1, arg2, arg3));
+  }
 
-    stamp++;
+  @Override
+  public void traceEndConflation() {
+    for (int i = 0; i < this.chunks.size(); i++) {
+      this.traceOne(this.chunks.get(i), i + 1);
+    }
+  }
 
-    for (int i = 0; i < maxCounter(data); i++) {
+  public void traceOne(ExtData data, int stamp) {
+    for (int i = 0; i < data.maxCounter(); i++) {
       final int accLength = i + 1;
-      builder
+      trace
           // Byte A and Acc A
           .byteA0(UnsignedByte.of(data.getABytes().get(0).get(i)))
           .byteA1(UnsignedByte.of(data.getABytes().get(1).get(i)))
@@ -178,7 +186,7 @@ public class Ext implements Module {
           .ofI(data.getOverflowI()[i])
           .ofRes(data.getOverflowRes()[i])
           .ct(BigInteger.valueOf(i))
-          .inst(BigInteger.valueOf(opCode.value()))
+          .inst(BigInteger.valueOf(data.getOpCode().byteValue()))
           .oli(data.isOli())
           .bit1(data.getBit1())
           .bit2(data.getBit2())
@@ -190,14 +198,6 @@ public class Ext implements Module {
 
   @Override
   public Object commit() {
-    return new ExtTrace(builder.build());
-  }
-
-  private int maxCounter(ExtData data) {
-    if (data.isOli()) {
-      return 1;
-    }
-
-    return MMEDIUM;
+    return new ExtTrace(trace.build());
   }
 }

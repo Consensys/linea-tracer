@@ -28,7 +28,9 @@ import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
 
 public class ExtData {
-  @Getter private OpCode opCode;
+  private static final int MMEDIUM = 8;
+
+  @Getter private final OpCode opCode;
 
   @Getter private final boolean oli;
 
@@ -124,6 +126,14 @@ public class ExtData {
   /** Returns true if any of the bit1, bit2, or bit3 flags are set. */
   private boolean isOneLineInstruction() {
     return getBit1() || getBit2() || getBit3();
+  }
+
+  public int maxCounter() {
+    if (this.isOli()) {
+      return 1;
+    }
+
+    return MMEDIUM;
   }
 
   private UInt256 getSigma() {

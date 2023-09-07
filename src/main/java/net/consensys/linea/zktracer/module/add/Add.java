@@ -39,7 +39,7 @@ public class Add implements Module {
 
   private final UInt256 twoToThe128 = UInt256.ONE.shiftLeft(128);
 
-  /** A deduplicated list of the operations to trace */
+  /** A set of the operations to trace */
   private final Map<OpCode, Map<Bytes32, Bytes32>> chunks = new HashMap<>();
 
   @Override
@@ -90,7 +90,7 @@ public class Add implements Module {
    * @param arg1 first operand
    * @param arg2 second operand
    */
-  private void traceChunk(OpCode opCode, Bytes32 arg1, Bytes32 arg2) {
+  private void traceAddOperation(OpCode opCode, Bytes32 arg1, Bytes32 arg2) {
     this.stamp++;
 
     final Bytes16 arg1Hi = Bytes16.wrap(arg1.slice(0, 16));
@@ -157,7 +157,7 @@ public class Add implements Module {
     for (Map.Entry<OpCode, Map<Bytes32, Bytes32>> op : this.chunks.entrySet()) {
       OpCode opCode = op.getKey();
       for (Map.Entry<Bytes32, Bytes32> args : op.getValue().entrySet()) {
-        this.traceChunk(opCode, args.getKey(), args.getValue());
+        this.traceAddOperation(opCode, args.getKey(), args.getValue());
       }
     }
 

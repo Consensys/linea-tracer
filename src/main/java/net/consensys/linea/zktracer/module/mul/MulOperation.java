@@ -36,7 +36,7 @@ import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
 
-public class MulData {
+public class MulOperation {
   private static final int MMEDIUM = 8;
 
   @Getter private final OpCode opCode;
@@ -68,11 +68,20 @@ public class MulData {
 
   BaseBytes res;
 
-  public MulData(OpCodeData opCodeData, Bytes32 arg1, Bytes32 arg2) {
+  /**
+   * This custom hash function ensures that all identical operations are only traced once per
+   * conflation block.
+   */
+  @Override
+  public int hashCode() {
+    return Objects.hash(this.opCode, this.arg1, this.arg2);
+  }
+
+  public MulOperation(OpCodeData opCodeData, Bytes32 arg1, Bytes32 arg2) {
     this(opCodeData.mnemonic(), arg1, arg2);
   }
 
-  public MulData(OpCode opCode, Bytes32 arg1, Bytes32 arg2) {
+  public MulOperation(OpCode opCode, Bytes32 arg1, Bytes32 arg2) {
     this.opCode = opCode;
     this.arg1 = arg1;
     this.arg2 = arg2;
@@ -107,15 +116,6 @@ public class MulData {
       case IOTA -> throw new RuntimeException("alu/mul regime was never set");
       default -> throw new IllegalStateException("[MUL module] Unexpected regime value: " + regime);
     }
-  }
-
-  /**
-   * This custom hash function ensures that all identical operations are only traced once per
-   * conflation block.
-   */
-  @Override
-  public int hashCode() {
-    return Objects.hash(this.opCode, this.arg1, this.arg2);
   }
 
   private static BaseBytes getRes(OpCode opCode, Bytes32 arg1, Bytes32 arg2) {
@@ -233,10 +233,6 @@ public class MulData {
 
     return 0;
   }
-  //
-  //  private boolean largeExponent() {
-  //    return exponentBits.length() > 128;
-  //  }
 
   public boolean isOneLineInstruction() {
     return tinyBase || tinyExponent;

@@ -23,16 +23,12 @@ import java.util.Map;
 import net.consensys.linea.zktracer.bytes.UnsignedByte;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.opcode.OpCodeData;
-import net.consensys.linea.zktracer.opcode.OpCodes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public class Mul implements Module {
-  final Trace.TraceBuilder builder = Trace.builder();
-
-  private int stamp = 0;
+  final Trace.TraceBuilder trace = Trace.builder();
 
   @Override
   public String jsonKey() {
@@ -53,51 +49,59 @@ public class Mul implements Module {
     final Bytes32 arg1 = Bytes32.leftPad(frame.getStackItem(0));
     final Bytes32 arg2 = Bytes32.leftPad(frame.getStackItem(1));
 
-    final OpCodeData opCode = OpCodes.of(frame.getCurrentOperation().getOpcode());
+    final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
 
-    // argument order is reversed ??
-    final MulData data = new MulData(opCode, arg1, arg2, this.stamp);
-
-    stamp++;
-    switch (data.getRegime()) {
-      case EXPONENT_ZERO_RESULT -> traceSubOp(builder, data);
-
-      case EXPONENT_NON_ZERO_RESULT -> {
-        while (data.carryOn()) {
-          data.update();
-          traceSubOp(builder, data);
-        }
-      }
-
-      case TRIVIAL_MUL, NON_TRIVIAL_MUL -> {
-        data.setHsAndBits(UInt256.fromBytes(arg1), UInt256.fromBytes(arg2));
-        traceSubOp(builder, data);
-      }
-
-      default -> throw new RuntimeException("regime not supported");
-    }
+    this.chunks.computeIfAbsent(opCode, x -> new HashMap<>()).put(arg1, arg2);
   }
 
   @Override
   public void traceEndConflation() {
+    this.chunks.computeIfAbsent(OpCode.EXP, x -> new HashMap<>()).put(Bytes32.ZERO, Bytes32.ZERO);
+    int stamp = 0;
+
+    for (Map.Entry<OpCode, Map<Bytes32, Bytes32>> op : this.chunks.entrySet()) {
+      OpCode opCode = op.getKey();
+      for (Map.Entry<Bytes32, Bytes32> args : op.getValue().entrySet()) {
+        stamp++;
+        Bytes32 arg1 = args.getKey();
+        Bytes32 arg2 = args.getValue();
+        final MulData data = new MulData(opCode, arg1, arg2, stamp);
+
+        switch (data.getRegime()) {
+          case EXPONENT_ZERO_RESULT -> traceSubOp(data);
+          case EXPONENT_NON_ZERO_RESULT -> {
+            while (data.carryOn()) {
+              data.update();
+              traceSubOp(data);
+            }
+          }
+          case TRIVIAL_MUL, NON_TRIVIAL_MUL -> {
+            data.setHsAndBits(UInt256.fromBytes(args.getKey()), UInt256.fromBytes(arg2));
+            traceSubOp(data);
+          }
+          default -> throw new RuntimeException("regime not supported");
+        }
+      }
+    }
+
     stamp++;
-    MulData finalZeroToTheZero = new MulData(OpCode.EXP, Bytes32.ZERO, Bytes32.ZERO, this.stamp);
-    traceSubOp(builder, finalZeroToTheZero);
+    MulData finalZeroToTheZero = new MulData(OpCode.EXP, Bytes32.ZERO, Bytes32.ZERO, stamp);
+    traceSubOp(finalZeroToTheZero);
   }
 
   @Override
   public Object commit() {
-    return new MulTrace(builder.build());
+    return new MulTrace(trace.build());
   }
 
-  private void traceSubOp(final Trace.TraceBuilder builder, final MulData data) {
+  private void traceSubOp(final MulData data) {
     for (int ct = 0; ct < data.maxCt(); ct++) {
-      traceRow(builder, data, ct);
+      traceRow(data, ct);
     }
   }
 
-  private static void traceRow(final Trace.TraceBuilder builder, final MulData data, final int i) {
-    builder
+  private void traceRow(final MulData data, final int i) {
+    trace
         .mulStamp(BigInteger.valueOf(data.stamp))
         .counter(BigInteger.valueOf(i))
         .oli(data.isOneLineInstruction())

@@ -55,7 +55,7 @@ public class MulUtilsTest {
   void multiplyByZero() {
     Bytes32 arg1 = Bytes32.random();
     OpCodeData mul = OpCode.MUL.getData();
-    MulData oxo = new MulData(mul, arg1, Bytes32.ZERO);
+    MulData oxo = new MulData(mul, arg1, Bytes32.ZERO, 1);
 
     assertThat(oxo.getArg2Hi().isZero()).isTrue();
     assertThat(oxo.getArg2Lo()).isEqualTo(Bytes16.ZERO);
@@ -70,7 +70,7 @@ public class MulUtilsTest {
   void zeroExp() {
     Bytes32 arg1 = Bytes32.random();
     OpCodeData exp = OpCode.EXP.getData();
-    MulData oxo = new MulData(exp, arg1, Bytes32.ZERO);
+    MulData oxo = new MulData(exp, arg1, Bytes32.ZERO, 1);
 
     assertThat(oxo.getArg2Hi().isZero()).isTrue();
     assertThat(oxo.getArg2Lo()).isEqualTo(Bytes16.ZERO);
@@ -93,7 +93,7 @@ public class MulUtilsTest {
   void hBytesAllZeros() {
     Bytes32 arg1 = Bytes32.ZERO;
     Bytes32 arg2 = Bytes32.ZERO;
-    MulData mulData = new MulData(OpCode.EXP, arg1, arg2);
+    MulData mulData = new MulData(OpCode.EXP, arg1, arg2, 1);
     mulData.setHsAndBitsFromBaseThetas(
         BaseTheta.fromBytes32(UInt256.ZERO), BaseTheta.fromBytes32(UInt256.ZERO));
 
@@ -109,7 +109,7 @@ public class MulUtilsTest {
   void hBytesWhereOneArgIsZero() {
     Bytes32 arg1 = Bytes32.ZERO;
     Bytes32 arg2 = Bytes32.ZERO;
-    MulData mulData = new MulData(OpCode.EXP, arg1, arg2);
+    MulData mulData = new MulData(OpCode.EXP, arg1, arg2, 1);
     mulData.setHsAndBitsFromBaseThetas(
         BaseTheta.fromBytes32(UInt256.ZERO), BaseTheta.fromBytes32(UInt256.valueOf(1)));
 
@@ -125,7 +125,7 @@ public class MulUtilsTest {
   void hBytes_5_5() {
     Bytes32 arg1 = Bytes32.fromHexString("0x05");
     Bytes32 arg2 = Bytes32.fromHexString("0x05");
-    MulData mulData = new MulData(OpCode.EXP, arg1, arg2);
+    MulData mulData = new MulData(OpCode.EXP, arg1, arg2, 1);
     mulData.setHsAndBitsFromBaseThetas(BaseTheta.fromBytes32(arg1), BaseTheta.fromBytes32(arg2));
 
     assertThat(mulData.hBytes.get(0).isZero()).isTrue();
@@ -149,7 +149,7 @@ public class MulUtilsTest {
 
     BaseTheta bBaseTheta = BaseTheta.fromBytes32(b2uint);
 
-    MulData mulData = new MulData(OpCode.EXP, arg1, arg2);
+    MulData mulData = new MulData(OpCode.EXP, arg1, arg2, 1);
     mulData.setHsAndBitsFromBaseThetas(aBaseTheta, bBaseTheta);
 
     Bytes h0 = Bytes.fromHexString("0x00000e9b37bfd908");
@@ -172,7 +172,7 @@ public class MulUtilsTest {
     BaseTheta aBaseTheta = BaseTheta.fromBytes32(b4uint);
     BaseTheta bBaseTheta = BaseTheta.fromBytes32(b4uint);
 
-    MulData mulData = new MulData(OpCode.EXP, arg1, arg2);
+    MulData mulData = new MulData(OpCode.EXP, arg1, arg2, 1);
     mulData.setHsAndBitsFromBaseThetas(aBaseTheta, bBaseTheta);
 
     Bytes h0 = Bytes.fromHexString("0xe9e4064d86460000");
@@ -196,7 +196,7 @@ public class MulUtilsTest {
     BaseTheta aBaseTheta = BaseTheta.fromBytes32(b4uint);
     BaseTheta bBaseTheta = BaseTheta.fromBytes32(b4uint);
 
-    MulData mulData = new MulData(OpCode.EXP, arg1, arg2);
+    MulData mulData = new MulData(OpCode.EXP, arg1, arg2, 1);
     mulData.setHsAndBitsFromBaseThetas(aBaseTheta, bBaseTheta);
 
     Bytes h0 = Bytes.fromHexString("0x8d222c056a351fb0");
@@ -232,7 +232,7 @@ public class MulUtilsTest {
     BaseTheta aBaseTheta = BaseTheta.fromBytes32(b1uint);
     BaseTheta bBaseTheta = BaseTheta.fromBytes32(b2uint);
 
-    final MulData mulData = new MulData(OpCode.EXP, arg1, arg2);
+    final MulData mulData = new MulData(OpCode.EXP, arg1, arg2, 1);
     mulData.setHsAndBitsFromBaseThetas(aBaseTheta, bBaseTheta);
 
     BigInteger sum010 = new BigInteger("375860551383434850958895718584879559103");

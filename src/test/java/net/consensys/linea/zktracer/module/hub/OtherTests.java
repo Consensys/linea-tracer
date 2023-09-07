@@ -16,33 +16,35 @@
 package net.consensys.linea.zktracer.module.hub;
 
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.opcode.OpCodes;
-import net.consensys.linea.zktracer.testutils.BytecodeCompiler;
-import net.consensys.linea.zktracer.testutils.PureTestCodeExecutor;
-import org.junit.jupiter.api.BeforeAll;
+import net.consensys.linea.zktracer.testing.BytecodeCompiler;
+import net.consensys.linea.zktracer.testing.BytecodeExecutor;
+import net.consensys.linea.zktracer.testing.EvmExtension;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
+@ExtendWith(EvmExtension.class)
 public class OtherTests {
   @Test
   public void testMul() {
-    new PureTestCodeExecutor(new BytecodeCompiler().push(32).push(7).op(OpCode.MUL).compile())
+    BytecodeExecutor.builder()
+        .byteCode(BytecodeCompiler.newProgram().push(32).push(7).op(OpCode.MUL).compile())
+        .build()
         .run();
   }
 
   @Test
   public void testDiv() {
-    new PureTestCodeExecutor(new BytecodeCompiler().push(32).push(7).op(OpCode.DIV).compile())
+    BytecodeExecutor.builder()
+        .byteCode(BytecodeCompiler.newProgram().push(32).push(7).op(OpCode.DIV).compile())
+        .build()
         .run();
   }
 
   @Test
   public void testSDiv() {
-    new PureTestCodeExecutor(new BytecodeCompiler().push(32).push(7).op(OpCode.SDIV).compile())
+    BytecodeExecutor.builder()
+        .byteCode(BytecodeCompiler.newProgram().push(32).push(7).op(OpCode.SDIV).compile())
+        .build()
         .run();
-  }
-
-  @BeforeAll
-  static void beforeAll() {
-    OpCodes.load();
   }
 }

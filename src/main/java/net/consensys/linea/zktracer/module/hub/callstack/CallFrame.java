@@ -13,80 +13,95 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub;
+package net.consensys.linea.zktracer.module.hub.callstack;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import lombok.Getter;
+import lombok.Setter;
 import net.consensys.linea.zktracer.EWord;
+import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.memory.MemorySpan;
+import net.consensys.linea.zktracer.module.hub.stack.Stack;
+import net.consensys.linea.zktracer.module.hub.stack.StackContext;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.Code;
 
-class CallFrame {
-  /** the associated context number in the {@link Hub}. */
-  @Getter int contextNumber;
-  /** the associated deployment number in the {@link Hub}. */
-  @Getter int deploymentNumber;
+public class CallFrame {
   /** the position of this {@link CallFrame} in the {@link CallStack}. */
-  @Getter int id;
+  @Getter private int id;
+  /** the associated context number in the {@link Hub}. */
+  @Getter private int contextNumber;
+  /** */
+  @Getter private int accountDeploymentNumber;
+  /** */
+  @Getter private int codeDeploymentNumber;
+  /** */
+  @Getter private boolean codeDeploymentStatus;
   /** the position of this {@link CallFrame} parent in the {@link CallStack}. */
-  @Getter int parentFrame;
-  /** the ID of the latest {@link CallFrame} this frame called. */
-  @Getter int lastCalled;
+  @Getter private int parentFrame;
   /** all the {@link CallFrame} that have been called by this frame. */
-  @Getter List<Integer> childFrames;
+  @Getter private List<Integer> childFrames = new ArrayList<>();
 
   /** the {@link Address} of the account executing this {@link CallFrame}. */
-  @Getter Address address;
+  @Getter private Address address;
   /** the {@link Address} of the code executed in this {@link CallFrame}. */
-  @Getter Address codeAddress;
-  /** the {@link Address} of the parent context of this {@link CallFrame}. */
-  @Getter Address parentAddress;
+  @Getter private Address codeAddress;
 
   /** the {@link CallFrameType} of this frame. */
-  @Getter CallFrameType type;
+  @Getter private CallFrameType type;
+
   /** the {@link Code} executing within this frame. */
-  Code code;
+  private Code code;
 
   /** the ether amount given to this frame. */
-  @Getter Wei value;
+  @Getter private Wei value;
   /** the gas given to this frame. */
-  @Getter long gasEndowment;
+  @Getter private long gasEndowment;
   // @Getter RevertReason revertReason;
 
   /** where does this frame start in the {@link Hub} trace. */
-  int startLine;
+  private int startLine;
   /** where does this frame end in the {@link Hub} trace. */
-  int endLine;
+  private int endLine;
 
   /** the call data given to this frame. */
-  @Getter Bytes callData;
-  /** the data this frame will return. */
-  @Getter Bytes returnData;
+  @Getter private Bytes callData;
+  /** the call data span in the parent memory. */
+  @Getter private MemorySpan callDataPointer;
+  /** the data returned by the latest callee. */
+  @Getter @Setter private Bytes returnData;
+  /** returnData position within the latest callee memory space. */
+  @Getter private MemorySpan returnDataPointer;
+  /** where this frame is expected to write its returnData within its parent's memory space. */
+  @Getter private MemorySpan returnDataTarget;
 
   /** this frame {@link Stack}. */
-  @Getter final Stack stack = new Stack();
+  @Getter private final Stack stack = new Stack();
 
   /** the latched context of this callframe stack. */
-  StackContext pending;
+  @Getter @Setter private StackContext pending;
 
   /** Create a root call frame. */
   CallFrame() {
-    this.type = CallFrameType.Root;
+    this.type = CallFrameType.BEDROCK;
   }
 
   /**
    * Create a normal (non-root) call frame.
    *
    * @param contextNumber the CN of this frame in the {@link Hub}
-   * @param deploymentNumber the DN of this frame in the {@link Hub}
+   * @param accountDeploymentNumber the DN of this frame in the {@link Hub}
+   * @param codeDeploymentNumber the DN of this frame in the {@link Hub}
+   * @param codeDeploymentStatus the DN of this frame in the {@link Hub}
    * @param id the ID of this frame in the {@link CallStack}
    * @param address the {@link Address} of this frame executor
    * @param type the {@link CallFrameType} of this frame
    * @param caller the ID of this frame caller in the {@link CallStack}
-   * @param parentAddress the address of this frame caller
    * @param value how much ether was given to this frame
    * @param gas how much gas was given to this frame
    * @param currentLine where does this frame start in the {@link Hub} trace
@@ -94,25 +109,27 @@ class CallFrame {
    */
   CallFrame(
       int contextNumber,
-      int deploymentNumber,
+      int accountDeploymentNumber,
+      int codeDeploymentNumber,
+      boolean codeDeploymentStatus,
       int id,
       Address address,
       Code code,
       CallFrameType type,
       int caller,
-      Address parentAddress,
       Wei value,
       long gas,
       int currentLine,
       Bytes callData) {
     this.contextNumber = contextNumber;
-    this.deploymentNumber = deploymentNumber;
+    this.accountDeploymentNumber = accountDeploymentNumber;
+    this.codeDeploymentNumber = codeDeploymentNumber;
+    this.codeDeploymentStatus = codeDeploymentStatus;
     this.id = id;
     this.address = address;
     this.code = code;
     this.type = type;
     this.parentFrame = caller;
-    this.parentAddress = parentAddress;
     this.value = value;
     this.gasEndowment = gas;
     this.startLine = currentLine;
@@ -131,5 +148,27 @@ class CallFrame {
    */
   public EWord addressAsEWord() {
     return EWord.of(this.address);
+  }
+
+  /**
+   * Return the address of the code executed within this callframe as an {@link EWord}.
+   *
+   * @return the address
+   */
+  public EWord codeAddressAsEWord() {
+    return EWord.of(this.codeAddress);
+  }
+
+  /**
+   * If any, returns the ID of the latest callee of this frame.
+   *
+   * @return the ID of the latest callee
+   */
+  public Optional<Integer> lastCallee() {
+    if (this.childFrames.isEmpty()) {
+      return Optional.empty();
+    }
+
+    return Optional.of(this.childFrames.get(this.childFrames.size() - 1));
   }
 }

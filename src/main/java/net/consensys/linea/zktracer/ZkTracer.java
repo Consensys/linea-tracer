@@ -34,16 +34,13 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
-import org.hyperledger.besu.plugin.services.tracer.BlockAwareOperationTracer;
 
-/** ZkTracer class. */
 @RequiredArgsConstructor
-public class ZkTracer implements BlockAwareOperationTracer {
+public class ZkTracer implements ZkBlockAwareOperationTracer {
   private final ZkTraceBuilder zkTraceBuilder = new ZkTraceBuilder();
   private final Hub hub;
   private final List<Module> modules;
 
-  /** default constructor. */
   public ZkTracer() {
     Add add = new Add();
     Ext ext = new Ext();
@@ -60,27 +57,32 @@ public class ZkTracer implements BlockAwareOperationTracer {
     OpCodes.load();
   }
 
-  /** get the trace. */
   public ZkTrace getTrace() {
     zkTraceBuilder.addTrace(this.hub);
     for (Module module : this.modules) {
       zkTraceBuilder.addTrace(module);
     }
+
     return zkTraceBuilder.build();
   }
 
-  /** start conflation of traces. */
+  @Override
   public void traceStartConflation(final long numBlocksInConflation) {
     for (Module module : this.modules) {
       module.traceStartConflation(numBlocksInConflation);
     }
   }
 
-  /** end conflation of traces. */
+  @Override
   public void traceEndConflation() {
     for (Module module : this.modules) {
       module.traceEndConflation();
     }
+  }
+
+  @Override
+  public String getJsonTrace() {
+    return getTrace().toJson();
   }
 
   @Override
@@ -125,5 +127,15 @@ public class ZkTracer implements BlockAwareOperationTracer {
   @Override
   public void tracePostExecution(MessageFrame frame, Operation.OperationResult operationResult) {
     this.hub.tracePostExecution(frame, operationResult);
+  }
+
+  @Override
+  public void traceContextEnter(MessageFrame frame) {
+    this.hub.traceContextEnter(frame);
+  }
+
+  @Override
+  public void traceContextExit(MessageFrame frame) {
+    this.hub.traceContextExit(frame);
   }
 }

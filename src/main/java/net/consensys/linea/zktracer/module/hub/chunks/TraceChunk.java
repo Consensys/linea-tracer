@@ -13,19 +13,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.testutils;
+package net.consensys.linea.zktracer.module.hub.chunks;
 
-import net.consensys.linea.zktracer.opcode.OpCodes;
-import org.junit.jupiter.api.extension.BeforeAllCallback;
-import org.junit.jupiter.api.extension.ExtensionContext;
+import net.consensys.linea.zktracer.module.hub.Trace;
 
-/**
- * A JUnit {@link org.junit.jupiter.api.extension.Extension} handling the test lifecycle for EVM
- * tests.
- */
-public class EvmExtension implements BeforeAllCallback {
-  @Override
-  public void beforeAll(ExtensionContext context) {
-    OpCodes.load();
-  }
+public interface TraceChunk {
+  Trace.TraceBuilder trace(Trace.TraceBuilder trace);
 }

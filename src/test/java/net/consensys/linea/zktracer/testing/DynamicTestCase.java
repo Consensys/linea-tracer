@@ -13,23 +13,23 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.specs;
+package net.consensys.linea.zktracer.testing;
 
-import net.consensys.linea.zktracer.AbstractModuleBySpecTest;
-import net.consensys.linea.zktracer.module.Module;
-import net.consensys.linea.zktracer.module.mod.Mod;
+import java.util.List;
+import java.util.function.BiConsumer;
 
-/** Implementation of a module tracer by spec class for the MOD module. */
-public class ModTracerBySpecTest extends AbstractModuleBySpecTest {
+import com.google.common.collect.Multimap;
+import net.consensys.linea.zktracer.opcode.OpCode;
+import org.apache.tuweni.bytes.Bytes32;
 
-  static Module tracer = new Mod();
-
-  public static Object[][] specs() {
-    return findSpecFiles(tracer.jsonKey());
-  }
-
-  @Override
-  protected Module getModuleTracer() {
-    return tracer;
-  }
-}
+/**
+ * Dynamic test case data structure.
+ *
+ * @param name name of the test case
+ * @param arguments arguments for the test case
+ * @param customAssertions optional custom assertions per test case
+ */
+public record DynamicTestCase(
+    String name,
+    Multimap<OpCode, Bytes32> arguments,
+    BiConsumer<OpCode, List<Bytes32>> customAssertions) {}

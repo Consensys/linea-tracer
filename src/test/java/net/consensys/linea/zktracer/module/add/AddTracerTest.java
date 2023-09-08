@@ -15,86 +15,89 @@
 
 package net.consensys.linea.zktracer.module.add;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.net.URL;
 import java.util.Random;
 import java.util.stream.Stream;
 
-import net.consensys.linea.zktracer.AbstractModuleCorsetTest;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.opcode.OpCodeData;
+import net.consensys.linea.zktracer.testing.DynamicTests;
+import net.consensys.linea.zktracer.testing.SpecTests;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith(MockitoExtension.class)
-class AddTracerTest extends AbstractModuleCorsetTest {
-  private static final Random rand = new Random();
-
+class AddTracerTest {
+  private static final Random RAND = new Random();
   private static final int TEST_ADD_REPETITIONS = 16;
+  private static final Module MODULE = new Add();
+  private static final DynamicTests DYN_TESTS = DynamicTests.forModule(MODULE);
 
-  @ParameterizedTest()
-  @MethodSource("provideRandomAluAddArguments")
-  void aluAddTest(OpCodeData opCode, List<Bytes32> args) {
-    runTest(opCode, args);
+  @TestFactory
+  Stream<DynamicTest> runDynamicTests() {
+    return DYN_TESTS
+        .testCase("non random arguments test", provideNonRandomArguments())
+        .testCase("simple alu add arguments test", provideSimpleAluAddArguments())
+        .testCase("random alu add arguments test", provideRandomAluAddArguments())
+        .run();
   }
 
-  @ParameterizedTest()
-  @MethodSource("provideSimpleAluAddArguments")
-  void simpleAddTest(OpCodeData opCode, final Bytes32 arg1, Bytes32 arg2) {
-    runTest(opCode, List.of(arg1, arg2));
+  @ParameterizedTest(name = "{index} {0}")
+  @MethodSource("provideTraceSpecs")
+  void traceWithSpecFile(final String ignored, URL specUrl) {
+    SpecTests.runSpecTestWithTraceComparison(specUrl, MODULE.jsonKey());
   }
 
-  @Override
-  protected Stream<Arguments> provideNonRandomArguments() {
-    List<Arguments> arguments = new ArrayList<>();
-    for (OpCode opCode : getModuleTracer().supportedOpCodes()) {
-      for (int k = 1; k <= 4; k++) {
-        for (int i = 1; i <= 4; i++) {
-          arguments.add(
-              Arguments.of(opCode.getData(), List.of(UInt256.valueOf(i), UInt256.valueOf(k))));
-        }
-      }
-    }
-    return arguments.stream();
+  private static Object[][] provideTraceSpecs() {
+    return SpecTests.findSpecFiles(MODULE.jsonKey());
   }
 
-  public Stream<Arguments> provideSimpleAluAddArguments() {
-    List<Arguments> arguments = new ArrayList<>();
+  private Multimap<OpCode, Bytes32> provideNonRandomArguments() {
+    return DYN_TESTS.newModuleArgumentsProvider(
+        (arguments, opCode) -> {
+          for (int k = 1; k <= 4; k++) {
+            for (int i = 1; i <= 4; i++) {
+              arguments.put(opCode, UInt256.valueOf(i));
+              arguments.put(opCode, UInt256.valueOf(k));
+            }
+          }
+        });
+  }
+
+  public Multimap<OpCode, Bytes32> provideRandomAluAddArguments() {
+    return DYN_TESTS.newModuleArgumentsProvider(
+        (arguments, opCode) -> {
+          for (int i = 0; i < TEST_ADD_REPETITIONS; i++) {
+            addRandomAluAddInstruction(arguments, RAND.nextInt(32) + 1, RAND.nextInt(32) + 1);
+          }
+        });
+  }
+
+  private Multimap<OpCode, Bytes32> provideSimpleAluAddArguments() {
+    Multimap<OpCode, Bytes32> arguments = ArrayListMultimap.create();
 
     Bytes32 bytes1 = Bytes32.rightPad(Bytes.fromHexString("0x80"));
     Bytes32 bytes2 = Bytes32.leftPad(Bytes.fromHexString("0x01"));
 
-    arguments.add(Arguments.of(OpCode.SUB.getData(), bytes1, bytes2));
+    arguments.put(OpCode.SUB, bytes1);
+    arguments.put(OpCode.SUB, bytes2);
 
-    return arguments.stream();
+    return arguments;
   }
 
-  public Stream<Arguments> provideRandomAluAddArguments() {
-    List<Arguments> arguments = new ArrayList<>();
-
-    for (int i = 0; i < TEST_ADD_REPETITIONS; i++) {
-      arguments.add(getRandomAluAddInstruction(rand.nextInt(32) + 1, rand.nextInt(32) + 1));
-    }
-    return arguments.stream();
-  }
-
-  private Arguments getRandomAluAddInstruction(int sizeArg1MinusOne, int sizeArg2MinusOne) {
+  private void addRandomAluAddInstruction(
+      Multimap<OpCode, Bytes32> arguments, int sizeArg1MinusOne, int sizeArg2MinusOne) {
     Bytes32 bytes1 = UInt256.valueOf(sizeArg1MinusOne);
     Bytes32 bytes2 = UInt256.valueOf(sizeArg2MinusOne);
-    OpCodeData opCode = getRandomSupportedOpcode().getData();
+    OpCode opCode = DYN_TESTS.getRandomSupportedOpcode();
 
-    return Arguments.of(opCode, List.of(bytes1, bytes2));
-  }
-
-  @Override
-  protected Module getModuleTracer() {
-    return new Add();
+    arguments.put(opCode, bytes1);
+    arguments.put(opCode, bytes2);
   }
 }

@@ -40,8 +40,10 @@ public class RlpTxrcpt implements Module {
   public static final int LIST_SHORT_INTEGER = RlpTxrcptTrace.LIST_SHORT.intValue();
   public static final int LIST_LONG_INTEGER = RlpTxrcptTrace.LIST_LONG.intValue();
   private int absTxNum = 0;
+  private int absLogNumMax = 0;
   private int absLogNum = 0;
   private final Trace.TraceBuilder builder = Trace.builder();
+  List <RlpTxrcptChunk>  chunkList;
 
   @Override
   public String jsonKey() {
@@ -56,38 +58,32 @@ public class RlpTxrcpt implements Module {
   @Override
   public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
     for (Transaction tx : blockBody.getTransactions()) {
-      // this.traceTransaction(tx);
+      this.absTxNumMax+=1;
+      this.absLogNumMax+= txrcpt.getLog().size();
+      RlpTxrcptChunk chunk = new RlpTxrcptChunk(txrcpt, txType);
+      this.chunkList.set(this.absTxNumMax-1, chunk);
     }
   }
 
-  public void traceTransaction(TransactionReceipt txrcpt, TransactionType txType) {
+  public void traceChunk(RlpTxrcptChunk chunk) {
     this.absTxNum += 1;
     RlpTxrcptColumns traceValue = new RlpTxrcptColumns();
-    traceValue.txrcptSize = txRcptSize(txrcpt);
+    traceValue.txrcptSize = txRcptSize(chunk.getTxrcpt());
 
     // PHASE 0: RLP Prefix.
-    phase0(traceValue, txType);
+    phase0(traceValue, chunk.getTxType());
 
     // PHASE 1: Status code Rz.
-    phase1(traceValue, txrcpt);
+    phase1(traceValue, chunk.getTxrcpt());
 
     // PHASE 2: Cumulative gas Ru.
-    phase2(traceValue, txrcpt);
+    phase2(traceValue, chunk.getTxrcpt());
 
     // PHASE 3: Bloom Filter Rb.
-    phase3(traceValue, txrcpt);
+    phase3(traceValue, chunk.getTxrcpt());
 
     // Phase 4: log series Rl.
-    phase4(traceValue, txrcpt);
-  }
-
-  @Override
-  public void traceEndConflation() {
-    // Rewrite the ABS_TX_NUM_MAX and ABS_LOG_NUM_MAX columns.
-    for (int i = 0; i < this.builder.size(); i++) {
-      this.builder.setAbsTxNumMaxAt(BigInteger.valueOf(this.absTxNum), i);
-      this.builder.setAbsLogNumMaxAt(BigInteger.valueOf(this.absLogNum), i);
-    }
+    phase4(traceValue, chunk.getTxrcpt());
   }
 
   private void phase0(RlpTxrcptColumns traceValue, TransactionType txType) {
@@ -579,9 +575,9 @@ public class RlpTxrcpt implements Module {
 
     builder
         .absLogNum(BigInteger.valueOf(this.absLogNum))
-        .absLogNumMax(BigInteger.ONE)
+        .absLogNumMax(BigInteger.valueOf(this.absLogNumMax))
         .absTxNum(BigInteger.valueOf(this.absTxNum))
-        .absTxNumMax(BigInteger.ONE)
+        .absTxNumMax(BigInteger.valueOf(this.absTxNumMax))
         .acc1(traceValue.acc1.toUnsignedBigInteger())
         .acc2(traceValue.acc2.toUnsignedBigInteger())
         .acc3(traceValue.acc3.toUnsignedBigInteger())
@@ -810,6 +806,9 @@ public class RlpTxrcpt implements Module {
 
   @Override
   public Object commit() {
+    for (int i = 0; i < this.chunkList.size(); i++) {
+      traceChunk(this.chunkList.get(i));
+    }
     return new RlpTxrcptTrace(builder.build());
   }
 }

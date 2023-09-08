@@ -47,16 +47,17 @@ public class RlpTxn implements Module {
   int prefix_short_list = TxnrlpTrace.list_short.intValue();
   int prefix_long_list = TxnrlpTrace.list_long.intValue();
 
-  int absolute_transaction_number;
-  boolean requiresEVMexecution;
+  int absTxNumMax;
+  int absTxNum;
   int txType;
   int codeFragmentIndex;
-
-  Transaction tx;
+  boolean requiresEvmExecution;
+  List<RlpTxnChunk> chunkList;
 
   // Used to check the reconstruction of RLPs
   Bytes reconstructedRlpLt;
   Bytes reconstructedRlpLx;
+  // TODO tester qu'on reconstruit bien les bons RLP
 
   @Override
   public String jsonKey() {
@@ -68,40 +69,34 @@ public class RlpTxn implements Module {
     return List.of();
   }
 
-  @Override
-  public final void traceEndConflation() {
-    /** Rewrite the ABS_TX_NUM_INFINY column with the last absolute_transaction_number */
-    for (int i = 0; i < this.builder.size(); i++) {
-      this.builder.setAbsTxNumInfinyAt(BigInteger.valueOf(this.absolute_transaction_number), i);
-    }
 
-    // TODO CODE_FRAGMENT_INDEX
 
-  }
 
-  @Override
-  public void tracePreExecution(final MessageFrame frame) {
-    if (tx.getTo().isEmpty()) {
-      this.requiresEVMexecution = tx.getInit().isPresent();
-    } else {
-      this.requiresEVMexecution =
-        frame.getWorldUpdater().getAccount(tx.getTo().get()).hasCode();
-    }
-  }
 
   @Override
   public void traceStartTx(Transaction tx) {
-    this.tx=tx;
+    this.absTxNumMax +=1;
+    // TODO set requireEvmExecution here
+    boolean tmp = false;
+    //   if (tx.getTo().isEmpty()) {
+    //     tmp = tx.getInit().isPresent();
+    //   } else {
+    //     tmp =
+    //       frame.getWorldUpdater().getAccount(tx.getTo().get()).hasCode();
+    //   }
+    RlpTxnChunk chunk = new RlpTxnChunk(tx, tmp);
+    this.chunkList.set(this.absTxNumMax -1,chunk);
+  }
 
+  public void traceChunk(RlpTxnChunk chunk) {
     reconstructedRlpLt = Bytes.EMPTY;
     reconstructedRlpLx = Bytes.EMPTY;
 
     /** Specify transaction constant columns */
-    this.absolute_transaction_number += 1;
-    if (tx.getType() == TransactionType.FRONTIER) {
+    if (chunk.getTx().getType() == TransactionType.FRONTIER) {
       this.txType = 0;
     } else {
-      this.txType = tx.getType().getSerializedType();
+      this.txType = chunk.getTx().getType().getSerializedType();
     }
 
     // Create the local row storage
@@ -114,17 +109,17 @@ public class RlpTxn implements Module {
     // Phase 1 : ChainId
     if (this.txType == 1 || this.txType == 2) {
       /** TODO check that chainID is an 8 bytes int */
-      handlePhaseInteger(traceValue, 1, tx.getChainId().get(), 8);
+      handlePhaseInteger(traceValue, 1, chunk.getTx().getChainId().get(), 8);
     }
 
     // Phase 2 : Nonce
-    BigInteger nonce = BigInteger.valueOf(tx.getNonce());
+    BigInteger nonce = BigInteger.valueOf(chunk.getTx().getNonce());
     traceValue.DATA_LO = nonce;
     handlePhaseInteger(traceValue, 2, nonce, 8);
 
     // Phase 3 : GasPrice
     if (this.txType == 0 || this.txType == 1) {
-      BigInteger gasPrice = tx.getGasPrice().get().getAsBigInteger();
+      BigInteger gasPrice = chunk.getTx().getGasPrice().get().getAsBigInteger();
       /** TODO check that gasPrice is an 8 bytes int */
       traceValue.DATA_LO = gasPrice;
       handlePhaseInteger(traceValue, 3, gasPrice, 8);
@@ -132,7 +127,7 @@ public class RlpTxn implements Module {
 
     // Phase 4 : max priority fee per gas (GasTipCap)
     if (this.txType == 2) {
-      BigInteger maxPriorityFeePerGas = tx.getMaxPriorityFeePerGas().get().getAsBigInteger();
+      BigInteger maxPriorityFeePerGas = chunk.getTx().getMaxPriorityFeePerGas().get().getAsBigInteger();
       traceValue.DATA_HI = maxPriorityFeePerGas;
       /** TODO check that max priority fee per gas is an 8 bytes int */
       handlePhaseInteger(traceValue, 4, maxPriorityFeePerGas, 8);
@@ -140,31 +135,31 @@ public class RlpTxn implements Module {
 
     // Phase 5 : max fee per gas (GasFeeCap)
     if (this.txType == 2) {
-      BigInteger maxFeePerGas = tx.getMaxFeePerGas().get().getAsBigInteger();
+      BigInteger maxFeePerGas = chunk.getTx().getMaxFeePerGas().get().getAsBigInteger();
       /** TODO check that max fee per gas is an 8 bytes int */
       traceValue.DATA_LO = maxFeePerGas;
       handlePhaseInteger(traceValue, 6, maxFeePerGas, 8);
     }
 
     // Phase 6 : GasLimit
-    BigInteger gasLimit = BigInteger.valueOf(tx.getGasLimit());
+    BigInteger gasLimit = BigInteger.valueOf(chunk.getTx().getGasLimit());
     traceValue.DATA_LO = gasLimit;
     handlePhaseInteger(traceValue, 6, gasLimit, 8);
 
     // Phase 7 : To
-    if (tx.getTo().isPresent()) {
-      traceValue.DATA_HI = tx.getTo().get().slice(0, 4).toBigInteger();
-      traceValue.DATA_LO = tx.getTo().get().slice(4, 16).toBigInteger();
+    if (chunk.getTx().getTo().isPresent()) {
+      traceValue.DATA_HI = chunk.getTx().getTo().get().slice(0, 4).toBigInteger();
+      traceValue.DATA_LO = chunk.getTx().getTo().get().slice(4, 16).toBigInteger();
     } else {
       traceValue.DATA_HI = BigInteger.ZERO;
       traceValue.DATA_LO = BigInteger.ZERO;
     }
-    handlePhaseTo(traceValue, tx);
+    handlePhaseTo(traceValue, chunk.getTx());
 
     // Phase 8 : Value
-    BigInteger value = tx.getValue().getAsBigInteger();
+    BigInteger value = chunk.getTx().getValue().getAsBigInteger();
     traceValue.DATA_LO = value;
-    if (tx.getTo().isEmpty()) {
+    if (chunk.getTx().getTo().isEmpty()) {
       traceValue.DATA_HI = BigInteger.ONE;
     } else {
       traceValue.DATA_HI = BigInteger.ZERO;
@@ -172,22 +167,22 @@ public class RlpTxn implements Module {
     handlePhaseInteger(traceValue, 8, value, llarge);
 
     // Phase 9 : Data
-    handlePhaseData(traceValue, tx);
+    handlePhaseData(traceValue, chunk.getTx());
 
     // Phase 10 : AccessList
-    handlePhaseAccessList(traceValue, tx);
+    handlePhaseAccessList(traceValue, chunk.getTx());
 
     // Phase 11 : Beta / w
-    handlePhaseBeta(traceValue, tx);
+    handlePhaseBeta(traceValue, chunk.getTx());
 
     // Phase 12 : y
-    handlePhaseY(traceValue, tx);
+    handlePhaseY(traceValue, chunk.getTx());
 
     // Phase 13 : r
-    handle32BytesInteger(traceValue, 13, tx.getR());
+    handle32BytesInteger(traceValue, 13, chunk.getTx().getR());
 
     // Phase 14 : s
-    handle32BytesInteger(traceValue, 14, tx.getS());
+    handle32BytesInteger(traceValue, 14, chunk.getTx().getS());
   }
 
   /** Define each phase's constraints */
@@ -826,8 +821,8 @@ public class RlpTxn implements Module {
     }
 
     this.builder
-        .absTxNum(BigInteger.valueOf(this.absolute_transaction_number))
-        .absTxNumInfiny(BigInteger.ZERO)
+        .absTxNum(BigInteger.valueOf(this.absTxNum))
+        .absTxNumInfiny(BigInteger.valueOf(this.absTxNumMax))
         .acc1(traceValue.ACC_1)
         .acc2(traceValue.ACC_2)
         .accBytesize(BigInteger.valueOf(traceValue.ACC_BYTESIZE))
@@ -891,7 +886,7 @@ public class RlpTxn implements Module {
     this.builder
         .phaseBytesize(BigInteger.valueOf(traceValue.PHASE_BYTESIZE))
         .power(traceValue.POWER)
-        .requiresEvmExecution(this.requiresEVMexecution)
+        .requiresEvmExecution(this.requiresEvmExecution)
         .rlpLtBytesize(BigInteger.valueOf(traceValue.RLP_LT_BYTESIZE))
         .rlpLxBytesize(BigInteger.valueOf(traceValue.RLP_LX_BYTESIZE))
         .type(UnsignedByte.of(this.txType))
@@ -945,6 +940,12 @@ public class RlpTxn implements Module {
 
   @Override
   public Object commit() {
+    for (int i = 0; i < this.chunkList.size(); i++) {
+      this.absTxNum=i+1;
+      this.requiresEvmExecution=this.chunkList.get(i).isRequireEvmExecution();
+      // TODO recuperer les codeFragmentIndex ici
+      traceChunk(chunkList.get(i));
+    }
     return new RlpTxnTrace(builder.build());
   }
 }

@@ -34,15 +34,11 @@ public interface Module {
 
   default void traceStartConflation(final long blockCount) {}
 
-  default void traceEndTx(TransactionReceipt txrcpt, Transaction tx) {}
-
   default void traceEndConflation() {}
 
   default void traceStartBlock(final BlockHeader blockHeader, final BlockBody blockBody) {}
 
   default void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {}
-
-  default void tracePreExecution(MessageFrame frame) {}
 
   default void traceStartTx(Transaction tx) {}
 

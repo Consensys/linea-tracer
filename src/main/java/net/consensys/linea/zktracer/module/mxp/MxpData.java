@@ -31,6 +31,7 @@ public class MxpData {
   public static final BigInteger TWO_POW_32 = BigInteger.ONE.shiftLeft(32);
 
   // constants from protocol_params.go
+
   // Times the address of the (highest referenced byte in memory + 1). NOTE: referencing
   // happens on read, write and in instructions such as RETURN and CALL.
   public static final int MEMORY_GAS = 3;
@@ -42,28 +43,28 @@ public class MxpData {
   private int cn;
   private BigInteger words;
   private BigInteger wordsNew;
-  @Getter protected BigInteger offset1;
+  @Getter private BigInteger offset1;
   @Getter private BigInteger size1;
-  @Getter protected BigInteger offset2;
+  @Getter private BigInteger offset2;
   @Getter private BigInteger size2;
   @Getter private BigInteger maxOffset1;
   @Getter private BigInteger maxOffset2;
   @Getter private BigInteger maxOffset;
-  private boolean mxpx;
+  @Getter private boolean mxpx;
   @Getter private boolean roob;
   @Getter private boolean noop;
-  private boolean comp;
-  private boolean mxpe;
-  private BigInteger mxpc;
-  private BigInteger mxpcNew;
-  private BigInteger mxpcDelta;
-  private BigInteger acc1;
-  private BigInteger acc2;
-  private BigInteger acc3;
-  private BigInteger acc4;
-  private BigInteger accA;
-  private BigInteger accW;
-  private BigInteger accQ;
+  @Getter private boolean comp;
+  @Getter private boolean mxpe;
+  @Getter private BigInteger mxpc;
+  @Getter private BigInteger mxpcNew;
+  @Getter private BigInteger mxpcDelta;
+  @Getter private BigInteger acc1;
+  @Getter private BigInteger acc2;
+  @Getter private BigInteger acc3;
+  @Getter private BigInteger acc4;
+  @Getter private BigInteger accA;
+  @Getter private BigInteger accW;
+  @Getter private BigInteger accQ;
   private byte[] byte1 = new byte[17];
   private byte[] byte2 = new byte[17];
   private byte[] byte3 = new byte[17];

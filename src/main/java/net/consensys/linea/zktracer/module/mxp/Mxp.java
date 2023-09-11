@@ -22,11 +22,13 @@ import java.util.Map;
 
 import net.consensys.linea.zktracer.bytes.Bytes16;
 import net.consensys.linea.zktracer.bytes.UnsignedByte;
+import net.consensys.linea.zktracer.bytestheta.BaseBytes;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.OpCodes;
 import net.consensys.linea.zktracer.opcode.gas.MxpType;
+import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -84,24 +86,40 @@ public class Mxp implements Module {
     this.chunks
         .computeIfAbsent(OpCode.of(frame.getCurrentOperation().getOpcode()), x -> new HashMap<>())
         .put(arg1, arg2);
+    BaseBytes off1 =
+        BaseBytes.fromBytes32(Bytes32.leftPad(Bytes.wrap(mxpData.getOffset1().toByteArray())));
+    BaseBytes off2 =
+        BaseBytes.fromBytes32(Bytes32.leftPad(Bytes.wrap(mxpData.getOffset2().toByteArray())));
+    BaseBytes s1 =
+        BaseBytes.fromBytes32(Bytes32.leftPad(Bytes.wrap(mxpData.getSize1().toByteArray())));
+    BaseBytes s2 =
+        BaseBytes.fromBytes32(Bytes32.leftPad(Bytes.wrap(mxpData.getSize2().toByteArray())));
+    Bytes32 acc1Bytes32 = Bytes32.leftPad(Bytes.wrap(mxpData.getAcc1().toByteArray()));
+    Bytes32 acc2Bytes32 = Bytes32.leftPad(Bytes.wrap(mxpData.getAcc2().toByteArray()));
+    Bytes32 acc3Bytes32 = Bytes32.leftPad(Bytes.wrap(mxpData.getAcc3().toByteArray()));
+    Bytes32 acc4Bytes32 = Bytes32.leftPad(Bytes.wrap(mxpData.getAcc4().toByteArray()));
 
     for (int i = 0; i < 16; i++) {
 
       trace
           .counter(BigInteger.valueOf(i))
           .mxpInst(BigInteger.valueOf(opCodeData.value()))
-          .offset1Hi(mxpData.offset1)
-          .offset1Lo(mxpData.offset1)
-          .offset2Hi(mxpData.offset2)
-          .offset2Lo(mxpData.offset2)
-          //              .size1Hi()
-          //              .size1Lo()
-          //              .size2Hi()
-          //              .size2Lo()
-          //          .acc1(acc.slice(0, 1 + i).toUnsignedBigInteger())
-          .acc2(arg1Lo.slice(0, 1 + i).toUnsignedBigInteger())
-          .acc3(arg2Hi.slice(0, 1 + i).toUnsignedBigInteger())
-          .acc4(arg2Lo.slice(0, 1 + i).toUnsignedBigInteger())
+          .offset1Hi(off1.getHigh().toUnsignedBigInteger())
+          .offset1Lo(off1.getLow().toUnsignedBigInteger())
+          .offset2Hi(off2.getHigh().toUnsignedBigInteger())
+          .offset2Lo(off2.getLow().toUnsignedBigInteger())
+          .size1Hi(s1.getHigh().toUnsignedBigInteger())
+          .size1Lo(s1.getLow().toUnsignedBigInteger())
+          .size2Hi(s2.getHigh().toUnsignedBigInteger())
+          .size2Lo(s2.getLow().toUnsignedBigInteger())
+          .memoryExpansionException(mxpData.isMxpx())
+          .ridiculouslyOutOfBound(mxpData.isRoob())
+          .noop(mxpData.isNoop())
+          //              .comp(mxpData.isComp()) // TODO comp is boolean
+          .acc1(acc1Bytes32.slice(0, 1 + i).toUnsignedBigInteger())
+          .acc2(acc2Bytes32.slice(0, 1 + i).toUnsignedBigInteger())
+          .acc3(acc3Bytes32.slice(0, 1 + i).toUnsignedBigInteger())
+          .acc4(acc4Bytes32.slice(0, 1 + i).toUnsignedBigInteger())
           //              .accA()
           .byte1(UnsignedByte.of(arg1Hi.get(i)))
           .byte2(UnsignedByte.of(arg1Lo.get(i)))

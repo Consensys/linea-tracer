@@ -16,7 +16,9 @@
 package net.consensys.linea.zktracer.module.mxp;
 
 import java.math.BigInteger;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import net.consensys.linea.zktracer.bytes.Bytes16;
 import net.consensys.linea.zktracer.bytes.UnsignedByte;
@@ -35,20 +37,13 @@ public class Mxp implements Module {
   public static final UInt256 TWO_POW_32 = UInt256.ONE.shiftLeft(32);
 
   public static final String MXP_JSON_KEY = "mxp";
-  final Trace.TraceBuilder builder = Trace.builder();
+  final Trace.TraceBuilder trace = Trace.builder();
   private int stamp = 0;
 
+  /** A set of the operations to trace */
+  private final Map<OpCode, Map<Bytes32, Bytes32>> chunks = new HashMap<>();
+
   private MxpType typeMxp;
-  private UInt256 offset1;
-  private UInt256 size1;
-  private UInt256 offset2;
-  private UInt256 size2;
-  private UInt256 maxOffset1;
-  private UInt256 maxOffset2;
-  private UInt256 maxOffset;
-  private boolean roob;
-  private boolean noop;
-  private boolean mxpx;
 
   @Override
   public String jsonKey() {
@@ -65,6 +60,12 @@ public class Mxp implements Module {
     final OpCodeData opCodeData = OpCodes.of(frame.getCurrentOperation().getOpcode());
     final OpCode opCode = opCodeData.mnemonic();
 
+    // create a data object to do the work
+    final MxpData mxpData = new MxpData(opCodeData);
+
+    // sanity check
+    //    sanityCheck(opCode, scope, mxpData);
+
     final Bytes32 arg1 = Bytes32.leftPad(frame.getStackItem(0));
     final Bytes16 arg1Hi = Bytes16.wrap(arg1.slice(0, 16));
     final Bytes32 arg1Lo = Bytes32.leftPad(arg1.slice(16));
@@ -77,23 +78,22 @@ public class Mxp implements Module {
     final Bytes16 arg2Lo = Bytes16.wrap(arg2.slice(16));
 
     this.typeMxp = opCode.getData().billing().type();
-    setSizesAndOffsets();
-    setMaxOffset1and2();
-    this.roob = getRoob(typeMxp, offset1, size1, offset2, size2);
-    this.noop = getNoop(roob, typeMxp, size1, size2);
-    setMaxOffsetAndMxpx();
 
     stamp++;
+    // TODO what if no arg2
+    this.chunks
+        .computeIfAbsent(OpCode.of(frame.getCurrentOperation().getOpcode()), x -> new HashMap<>())
+        .put(arg1, arg2);
 
     for (int i = 0; i < 16; i++) {
 
-      builder
+      trace
           .counter(BigInteger.valueOf(i))
           .mxpInst(BigInteger.valueOf(opCodeData.value()))
-          .offset1Hi(offset1.toUnsignedBigInteger())
-          .offset1Lo(offset1.toUnsignedBigInteger())
-          .offset2Hi(offset2.toUnsignedBigInteger())
-          .offset2Lo(offset2.toUnsignedBigInteger())
+          .offset1Hi(mxpData.offset1)
+          .offset1Lo(mxpData.offset1)
+          .offset2Hi(mxpData.offset2)
+          .offset2Lo(mxpData.offset2)
           //              .size1Hi()
           //              .size1Lo()
           //              .size2Hi()
@@ -114,87 +114,28 @@ public class Mxp implements Module {
 
   @Override
   public Object commit() {
-    return new MxpTrace(builder.build());
-  }
-
-  private void setSizesAndOffsets() {
-    offset1 = UInt256.ZERO;
-    offset2 = UInt256.ZERO;
-    size1 = UInt256.ZERO;
-    size2 = UInt256.ZERO;
-
-    maxOffset1 = UInt256.ZERO;
-    maxOffset2 = UInt256.ZERO;
-    maxOffset = UInt256.ZERO;
-  }
-
-  /** get ridiculously out of bounds. */
-  public static boolean getRoob(
-      final MxpType typeMxp,
-      final UInt256 offset1,
-      final UInt256 size1,
-      final UInt256 offset2,
-      final UInt256 size2) {
-    return switch (typeMxp) {
-      case TYPE_2, TYPE_3 -> offset1.greaterOrEqualThan(TWO_POW_128);
-      case TYPE_4 -> size1.greaterOrEqualThan(TWO_POW_128)
-          || (offset1.greaterOrEqualThan(TWO_POW_128) && !size1.isZero());
-      case TYPE_5 -> size1.greaterOrEqualThan(TWO_POW_128)
-          || (offset1.greaterOrEqualThan(TWO_POW_128) && !size1.isZero())
-          || (size2.greaterOrEqualThan(TWO_POW_128)
-              || (offset2.greaterOrEqualThan(TWO_POW_128) && !size2.isZero()));
-      default -> false;
-    };
-  }
-
-  /** get no op. */
-  public static boolean getNoop(
-      final boolean roob, final MxpType typeMxp, final UInt256 size1, final UInt256 size2) {
-    if (roob) {
-      return false;
-    }
-    return switch (typeMxp) {
-      case TYPE_1 -> true;
-      case TYPE_4 -> size1.isZero();
-      case TYPE_5 -> size1.isZero() && size2.isZero();
-      default -> false;
-    };
-  }
-
-  /** set max offsets 1 and 2. */
-  public void setMaxOffset1and2() {
-    switch (typeMxp) {
-      case TYPE_2 -> maxOffset1 = offset1.add(UInt256.valueOf(31));
-      case TYPE_3 -> maxOffset1 = offset1;
-      case TYPE_4 -> maxOffset1 = offset1.add(size1).subtract(UInt256.ONE);
-      case TYPE_5 -> {
-        if (!size1.isZero()) {
-          maxOffset1 = offset1.add(size1).subtract(UInt256.ONE);
-        }
-        if (!size2.isZero()) {
-          maxOffset2 = offset2.add(size2).subtract(UInt256.ONE);
-        }
-      }
-      default -> {
-        maxOffset1 = UInt256.ZERO;
-        maxOffset2 = UInt256.ZERO;
+    for (Map.Entry<OpCode, Map<Bytes32, Bytes32>> op : this.chunks.entrySet()) {
+      OpCode opCode = op.getKey();
+      for (Map.Entry<Bytes32, Bytes32> args : op.getValue().entrySet()) {
+        // TODO implement this with dynamic args
+        //        this.traceOperation(opCode, args.getKey(), args.getValue());
       }
     }
+    return new MxpTrace(trace.build());
   }
 
-  /** compare max offsets 1 and 2. */
-  public static boolean getComp(final UInt256 maxOffset1, final UInt256 maxOffset2) {
-    return !(maxOffset1.lessThan(maxOffset2));
-  }
-
-  /** set max offset and mxpx. */
-  public void setMaxOffsetAndMxpx() {
-    if (roob || noop) {
-      mxpx = roob;
-    } else {
-      // choose the max value
-      maxOffset = maxOffset1.greaterThan(maxOffset2) ? maxOffset1 : maxOffset2;
-      mxpx = maxOffset.greaterOrEqualThan(TWO_POW_32);
-    }
-  }
+  //  public void sanityCheck(OpCode op, ScopeContext scope, MxpData data) {
+  ////    boolean gasExceptionInGeth = err instanceof ErrOutOfGas || err instanceof
+  // ErrGasUintOverflow;
+  //    if (data.roob || data.mxpx) {
+  //      if (!gasExceptionInGeth) {
+  //        throw new RuntimeException("MXP: data.roob || data.mxpx should lead to a gas error in
+  // geth");
+  //      }
+  //      return;
+  //    }
+  //
+  //    // The following code needs the correct implementation of the missing methods and classes
+  //    // ...
+  //  }
 }

@@ -143,7 +143,7 @@ public class Util {
    * @param y the second BigInteger to compare
    * @return the maximum of x and y. If x is less than y, it returns y, otherwise it returns x.
    */
-  public static BigInteger max256(final BigInteger x, final BigInteger y) {
+  public static BigInteger max(final BigInteger x, final BigInteger y) {
     if (x.compareTo(y) < 0) {
       return y;
     }

@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.rlptxrcpt;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
@@ -43,7 +44,7 @@ public class RlpTxrcpt implements Module {
   private int absLogNumMax = 0;
   private int absLogNum = 0;
   private final Trace.TraceBuilder builder = Trace.builder();
-  List <RlpTxrcptChunk>  chunkList;
+  List <RlpTxrcptChunk>  chunkList =new ArrayList<>();
 
   @Override
   public String jsonKey() {
@@ -60,12 +61,11 @@ public class RlpTxrcpt implements Module {
     for (Transaction tx : blockBody.getTransactions()) {
       this.absTxNumMax+=1;
       this.absLogNumMax+= txrcpt.getLog().size();
-      RlpTxrcptChunk chunk = new RlpTxrcptChunk(txrcpt, txType);
-      this.chunkList.set(this.absTxNumMax-1, chunk);
+      this.chunkList.add(new RlpTxrcptChunk(txrcpt, txType));
     }
   }
 
-  public void traceChunk(RlpTxrcptChunk chunk) {
+  public void traceChunk(final RlpTxrcptChunk chunk) {
     this.absTxNum += 1;
     RlpTxrcptColumns traceValue = new RlpTxrcptColumns();
     traceValue.txrcptSize = txRcptSize(chunk.getTxrcpt());
@@ -806,8 +806,8 @@ public class RlpTxrcpt implements Module {
 
   @Override
   public Object commit() {
-    for (int i = 0; i < this.chunkList.size(); i++) {
-      traceChunk(this.chunkList.get(i));
+    for (RlpTxrcptChunk chunk: this.chunkList) {
+      traceChunk(chunk);
     }
     return new RlpTxrcptTrace(builder.build());
   }

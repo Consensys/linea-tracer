@@ -25,7 +25,6 @@ import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
-import org.hyperledger.besu.plugin.data.TransactionReceipt;
 
 public interface Module {
   String jsonKey();

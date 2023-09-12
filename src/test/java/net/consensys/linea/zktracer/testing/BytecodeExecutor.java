@@ -56,9 +56,9 @@ public class BytecodeExecutor {
   public static final Bytes DEFAULT_INPUT_DATA = Bytes.EMPTY;
   public static final long DEFAULT_GAS_LIMIT = 1_000_000;
 
-  private final BlockValues blockValues = new FakeBlockValues(13);
-  private final WorldUpdater toyWorld = new ToyWorld();
+  private final BlockValues blockValues = ToyBlockValues.builder().number(13L).build();
 
+  private final WorldUpdater toyWorld;
   private final EVM evm;
   private final ZkBlockAwareOperationTracer tracer;
   @Getter private final Bytes byteCode;
@@ -82,64 +82,6 @@ public class BytecodeExecutor {
    */
   public static ZkBlockAwareOperationTracer defaultTracer() {
     return new ZkTracer();
-  }
-
-  /**
-   * Constructor with a predefined EVM and tracer.
-   *
-   * @param byteCode constructed bytecode
-   * @param frameAssertions a collections of assertions on {@link MessageFrame}
-   * @param customFrameSetup optional customization on the {@link MessageFrame}
-   * @param senderAccountSetup optional customization on {@link MutableAccount}
-   */
-  public BytecodeExecutor(
-      final Bytes byteCode,
-      final Consumer<MessageFrame> frameAssertions,
-      final Consumer<MessageFrame> customFrameSetup,
-      final Consumer<MutableAccount> senderAccountSetup) {
-    this(
-        defaultEvm(),
-        defaultTracer(),
-        byteCode,
-        frameAssertions,
-        customFrameSetup,
-        senderAccountSetup);
-  }
-
-  /**
-   * Constructor with predefined tracer.
-   *
-   * @param evm custom EVM type and configuration
-   * @param byteCode constructed bytecode
-   * @param frameAssertions a collections of assertions on {@link MessageFrame}
-   * @param customFrameSetup optional customization on the {@link MessageFrame}
-   * @param senderAccountSetup optional customization on {@link MutableAccount}
-   */
-  public BytecodeExecutor(
-      final EVM evm,
-      final Bytes byteCode,
-      final Consumer<MessageFrame> frameAssertions,
-      final Consumer<MessageFrame> customFrameSetup,
-      final Consumer<MutableAccount> senderAccountSetup) {
-    this(evm, defaultTracer(), byteCode, frameAssertions, customFrameSetup, senderAccountSetup);
-  }
-
-  /**
-   * Constructor with a predefined EVM.
-   *
-   * @param tracer custom tracer implementation
-   * @param byteCode constructed bytecode
-   * @param frameAssertions a collections of assertions on {@link MessageFrame}
-   * @param customFrameSetup optional customization on the {@link MessageFrame}
-   * @param senderAccountSetup optional customization on {@link MutableAccount}
-   */
-  public BytecodeExecutor(
-      final ZkBlockAwareOperationTracer tracer,
-      final Bytes byteCode,
-      final Consumer<MessageFrame> frameAssertions,
-      final Consumer<MessageFrame> customFrameSetup,
-      final Consumer<MutableAccount> senderAccountSetup) {
-    this(defaultEvm(), tracer, byteCode, frameAssertions, customFrameSetup, senderAccountSetup);
   }
 
   /**
@@ -208,19 +150,19 @@ public class BytecodeExecutor {
         .build();
   }
 
-  private void setupSenderAccount(MutableAccount senderAccount) {
+  private void setupSenderAccount(final MutableAccount senderAccount) {
     if (senderAccountSetup != null) {
       senderAccountSetup.accept(senderAccount);
     }
   }
 
-  private void setupFrame(MessageFrame frame) {
+  private void setupFrame(final MessageFrame frame) {
     if (customFrameSetup != null) {
       customFrameSetup.accept(frame);
     }
   }
 
-  private void postTest(MessageFrame frame) {
+  private void postTest(final MessageFrame frame) {
     if (frameAssertions != null) {
       frameAssertions.accept(frame);
     }
@@ -253,20 +195,21 @@ public class BytecodeExecutor {
   }
 
   private static Transaction defaultTransaction() {
-    return new Transaction(
-        123L,
-        Wei.of(1500),
-        DEFAULT_GAS_LIMIT,
-        Optional.of(Address.fromHexString("0x1234567890")),
-        DEFAULT_VALUE,
-        null, // TODO
-        DEFAULT_INPUT_DATA,
-        DEFAULT_SENDER_ADDRESS,
-        Optional.of(BigInteger.valueOf(23)),
-        Optional.empty());
+    return Transaction.builder()
+        .nonce(123L)
+        .gasPrice(Wei.of(1500))
+        .gasLimit(DEFAULT_GAS_LIMIT)
+        .to(Address.fromHexString("0x1234567890"))
+        .value(DEFAULT_VALUE)
+        .signature(null)
+        .payload(DEFAULT_INPUT_DATA)
+        .sender(DEFAULT_SENDER_ADDRESS)
+        .chainId(BigInteger.valueOf(23))
+        //      .versionedHashes(List.of())
+        .build();
   }
 
-  /** Customizations performed on the Lombok generated builder. */
+  /** Customizations applied to the Lombok generated builder. */
   public static class BytecodeExecutorBuilder {
 
     /**
@@ -275,18 +218,14 @@ public class BytecodeExecutor {
      * @return an instance of {@link BytecodeExecutor}
      */
     public BytecodeExecutor build() {
-      if (evm != null && tracer != null) {
-        return new BytecodeExecutor(
-            evm, tracer, byteCode, frameAssertions, customFrameSetup, senderAccountSetup);
-      } else if (evm != null) {
-        return new BytecodeExecutor(
-            evm, byteCode, frameAssertions, customFrameSetup, senderAccountSetup);
-      } else if (tracer != null) {
-        return new BytecodeExecutor(
-            tracer, byteCode, frameAssertions, customFrameSetup, senderAccountSetup);
-      }
-
-      return new BytecodeExecutor(byteCode, frameAssertions, customFrameSetup, senderAccountSetup);
+      return new BytecodeExecutor(
+          Optional.ofNullable(toyWorld).orElse(ToyWorld.empty()),
+          Optional.ofNullable(evm).orElse(defaultEvm()),
+          Optional.ofNullable(tracer).orElse(defaultTracer()),
+          byteCode,
+          frameAssertions,
+          customFrameSetup,
+          senderAccountSetup);
     }
   }
 }

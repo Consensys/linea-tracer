@@ -16,12 +16,17 @@
 
 package net.consensys.linea.zktracer.testing;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Singular;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
@@ -30,16 +35,23 @@ import org.hyperledger.besu.evm.account.EvmAccount;
 import org.hyperledger.besu.evm.worldstate.WorldUpdater;
 
 public class ToyWorld implements WorldUpdater {
+  @Getter private ToyWorld parent;
+  @Getter private List<ToyAccount> accounts;
+  private Map<Address, ToyAccount> addressAccountMap;
 
-  ToyWorld parent;
-  Map<Address, ToyAccount> accounts = new HashMap<>();
-
-  public ToyWorld() {
-    this(null);
+  private ToyWorld(final ToyWorld parent) {
+    this(parent, new ArrayList<>());
   }
 
-  public ToyWorld(final ToyWorld parent) {
+  @Builder
+  private ToyWorld(final ToyWorld parent, @Singular final List<ToyAccount> accounts) {
     this.parent = parent;
+    this.accounts = accounts;
+    this.addressAccountMap = new HashMap<>();
+  }
+
+  public static ToyWorld empty() {
+    return builder().build();
   }
 
   @Override
@@ -49,8 +61,8 @@ public class ToyWorld implements WorldUpdater {
 
   @Override
   public Account get(final Address address) {
-    if (accounts.containsKey(address)) {
-      return accounts.get(address);
+    if (addressAccountMap.containsKey(address)) {
+      return addressAccountMap.get(address);
     } else if (parent != null) {
       return parent.get(address);
     }
@@ -63,22 +75,31 @@ public class ToyWorld implements WorldUpdater {
     return createAccount(null, address, nonce, balance, Bytes.EMPTY);
   }
 
-  public EvmAccount createAccount(
+  private EvmAccount createAccount(
       final Account parentAccount,
       final Address address,
       final long nonce,
       final Wei balance,
       final Bytes code) {
-    ToyAccount account = new ToyAccount(parentAccount, address, nonce, balance, code);
-    accounts.put(address, account);
+
+    ToyAccount account =
+        ToyAccount.builder()
+            .parent(parentAccount)
+            .code(code)
+            .address(address)
+            .nonce(nonce)
+            .balance(balance)
+            .build();
+
+    addressAccountMap.put(address, account);
 
     return account;
   }
 
   @Override
   public EvmAccount getAccount(final Address address) {
-    if (accounts.containsKey(address)) {
-      return accounts.get(address);
+    if (addressAccountMap.containsKey(address)) {
+      return addressAccountMap.get(address);
     } else if (parent != null) {
       Account parentAccount = parent.getAccount(address);
       if (parentAccount != null) {
@@ -96,17 +117,17 @@ public class ToyWorld implements WorldUpdater {
 
   @Override
   public void deleteAccount(final Address address) {
-    accounts.put(address, null);
+    addressAccountMap.put(address, null);
   }
 
   @Override
   public Collection<? extends Account> getTouchedAccounts() {
-    return accounts.values();
+    return addressAccountMap.values();
   }
 
   @Override
   public Collection<Address> getDeletedAccountAddresses() {
-    return accounts.entrySet().stream()
+    return addressAccountMap.entrySet().stream()
         .filter(e -> e.getValue() == null)
         .map(Map.Entry::getKey)
         .collect(Collectors.toList());
@@ -114,13 +135,13 @@ public class ToyWorld implements WorldUpdater {
 
   @Override
   public void revert() {
-    accounts = new HashMap<>();
+    addressAccountMap = new HashMap<>();
   }
 
   @Override
   public void commit() {
     if (parent != null) {
-      parent.accounts.putAll(accounts);
+      parent.addressAccountMap.putAll(addressAccountMap);
     }
   }
 

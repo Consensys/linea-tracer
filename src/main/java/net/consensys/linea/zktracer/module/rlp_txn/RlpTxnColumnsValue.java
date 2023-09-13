@@ -43,6 +43,10 @@ public class RlpTxnColumnsValue {
   public BigInteger POWER;
   public int RLP_LT_BYTESIZE;
   public int RLP_LX_BYTESIZE;
+  public boolean requiresEvmExecution;
+  public int absTxNum;
+  public int codeFragmentIndex;
+  public int txType;
 
   public void partialReset(int phase, int number_step, boolean LT, boolean LX) {
     this.phase = phase;

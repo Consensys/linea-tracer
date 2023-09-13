@@ -46,9 +46,8 @@ public class RlpTxn implements Module {
   int prefix_short_list = TxnrlpTrace.list_short.intValue();
   int prefix_long_list = TxnrlpTrace.list_long.intValue();
 
-  int txType;
-  int codeFragmentIndex;
   private final List<RlpTxnChunk> chunkList = new ArrayList<>();
+  public int traceRowSize;
 
   // Used to check the reconstruction of RLPs
   Bytes reconstructedRlpLt;
@@ -67,7 +66,7 @@ public class RlpTxn implements Module {
 
   @Override
   public void traceStartTx(Transaction tx) {
-    // TODO set requireEvmExecution here
+    // TODO: set requireEvmExecution here
     boolean tmp = false;
     // TODO:
     //   if (tx.getTo().isEmpty()) {
@@ -76,29 +75,32 @@ public class RlpTxn implements Module {
     //     tmp =
     //       frame.getWorldUpdater().getAccount(tx.getTo().get()).hasCode();
     //   }
-    this.chunkList.add(new RlpTxnChunk(tx, tmp, this.chunkList.size()+1));
+    this.chunkList.add(new RlpTxnChunk(tx, tmp, this.chunkList.size() + 1));
   }
 
-  public void traceChunk(RlpTxnChunk chunk) {
+  public void traceChunk(RlpTxnChunk chunk, int absTxNum, int codeFragmentIndex) {
     reconstructedRlpLt = Bytes.EMPTY;
     reconstructedRlpLx = Bytes.EMPTY;
 
-    /** Specify transaction constant columns */
-    if (chunk.tx().getType() == TransactionType.FRONTIER) {
-      this.txType = 0;
-    } else {
-      this.txType = chunk.tx().getType().getSerializedType();
-    }
-
     // Create the local row storage
     RlpTxnColumnsValue traceValue = new RlpTxnColumnsValue();
+    traceValue.absTxNum = absTxNum;
+    traceValue.requiresEvmExecution = chunk.requireEvmExecution();
+    traceValue.codeFragmentIndex = codeFragmentIndex;
+
+    /** Specify transaction constant columns */
+    if (chunk.tx().getType() == TransactionType.FRONTIER) {
+      traceValue.txType = 0;
+    } else {
+      traceValue.txType = chunk.tx().getType().getSerializedType();
+    }
 
     // Phase 0 : Golbal RLP prefix
-    traceValue.DATA_LO = BigInteger.valueOf(this.txType);
+    traceValue.DATA_LO = BigInteger.valueOf(traceValue.txType);
     handlePhaseGlobalRlpPrefix(traceValue);
 
     // Phase 1 : ChainId
-    if (this.txType == 1 || this.txType == 2) {
+    if (traceValue.txType == 1 || traceValue.txType == 2) {
       /** TODO check that chainID is an 8 bytes int */
       handlePhaseInteger(traceValue, 1, chunk.tx().getChainId().get(), 8);
     }
@@ -109,7 +111,7 @@ public class RlpTxn implements Module {
     handlePhaseInteger(traceValue, 2, nonce, 8);
 
     // Phase 3 : GasPrice
-    if (this.txType == 0 || this.txType == 1) {
+    if (traceValue.txType == 0 || traceValue.txType == 1) {
       BigInteger gasPrice = chunk.tx().getGasPrice().get().getAsBigInteger();
       /** TODO check that gasPrice is an 8 bytes int */
       traceValue.DATA_LO = gasPrice;
@@ -117,7 +119,7 @@ public class RlpTxn implements Module {
     }
 
     // Phase 4 : max priority fee per gas (GasTipCap)
-    if (this.txType == 2) {
+    if (traceValue.txType == 2) {
       BigInteger maxPriorityFeePerGas =
           chunk.tx().getMaxPriorityFeePerGas().get().getAsBigInteger();
       traceValue.DATA_HI = maxPriorityFeePerGas;
@@ -126,7 +128,7 @@ public class RlpTxn implements Module {
     }
 
     // Phase 5 : max fee per gas (GasFeeCap)
-    if (this.txType == 2) {
+    if (traceValue.txType == 2) {
       BigInteger maxFeePerGas = chunk.tx().getMaxFeePerGas().get().getAsBigInteger();
       /** TODO check that max fee per gas is an 8 bytes int */
       traceValue.DATA_LO = maxFeePerGas;
@@ -182,9 +184,9 @@ public class RlpTxn implements Module {
     int phase = 0;
     /** First, trace the Type prefix of the transaction */
     traceValue.partialReset(phase, 1, true, true);
-    if (this.txType != 0) {
+    if (traceValue.txType != 0) {
       traceValue.LIMB_CONSTRUCTED = true;
-      traceValue.LIMB = BigInteger.valueOf(this.txType);
+      traceValue.LIMB = BigInteger.valueOf(traceValue.txType);
       traceValue.nBYTES = 1;
       traceRow(traceValue);
     } else {
@@ -814,8 +816,7 @@ public class RlpTxn implements Module {
     }
 
     this.builder
-      // TODO: remetrer le absTxNum et requireves evm exec from chunk
-        .absTxNum(BigInteger.valueOf(0))
+        .absTxNum(BigInteger.valueOf(traceValue.absTxNum))
         .absTxNumInfiny(BigInteger.valueOf(this.chunkList.size()))
         .acc1(traceValue.ACC_1)
         .acc2(traceValue.ACC_2)
@@ -827,7 +828,7 @@ public class RlpTxn implements Module {
         .bitAcc(UnsignedByte.of(traceValue.BIT_ACC))
         .byte1(UnsignedByte.of(traceValue.BYTE_1))
         .byte2(UnsignedByte.of(traceValue.BYTE_2))
-        .codeFragmentIndex(BigInteger.valueOf(this.codeFragmentIndex))
+        .codeFragmentIndex(BigInteger.valueOf(traceValue.codeFragmentIndex))
         .counter(BigInteger.valueOf(traceValue.COUNTER))
         .dataHi(traceValue.DATA_HI)
         .dataLo(traceValue.DATA_LO)
@@ -880,11 +881,10 @@ public class RlpTxn implements Module {
     this.builder
         .phaseBytesize(BigInteger.valueOf(traceValue.PHASE_BYTESIZE))
         .power(traceValue.POWER)
-      // TODO: todo
-        .requiresEvmExecution(true)
+        .requiresEvmExecution(traceValue.requiresEvmExecution)
         .rlpLtBytesize(BigInteger.valueOf(traceValue.RLP_LT_BYTESIZE))
         .rlpLxBytesize(BigInteger.valueOf(traceValue.RLP_LX_BYTESIZE))
-        .type(UnsignedByte.of(this.txType))
+        .type(UnsignedByte.of(traceValue.txType))
         .validateRow();
 
     // Increments Index
@@ -933,11 +933,143 @@ public class RlpTxn implements Module {
     }
   }
 
+  private int ChunkRowSize(RlpTxnChunk chunk) {
+    int txType;
+    if (chunk.tx().getType() == TransactionType.FRONTIER) {
+      txType = 0;
+    } else {
+      txType = chunk.tx().getType().getSerializedType();
+    }
+    // Phase 0 is always 17 rows long
+    int rowSize = 17;
+
+    // Phase 1: chainID
+    if (txType == 1 || txType == 2) {
+      if (chunk.tx().getChainId().get().equals(BigInteger.ZERO)) {
+        rowSize += 1;
+      } else {
+        rowSize += 8;
+      }
+    }
+
+    // Phase 2: nonce
+    if (chunk.tx().getNonce() == 0) {
+      rowSize += 1;
+    } else {
+      rowSize += 8;
+    }
+
+    // Phase 3: gasPrice
+    if (txType == 0 || txType == 1) {
+      rowSize += 8;
+    }
+
+    // Phase 4: MaxPriorityFeeperGas
+    if (txType == 2) {
+      if (chunk.tx().getMaxPriorityFeePerGas().get().getAsBigInteger().equals(BigInteger.ZERO)) {
+        rowSize += 1;
+      } else {
+        rowSize += 8;
+      }
+    }
+
+    // Phase 5: MaxFeePerGas
+    if (txType == 2) {
+      if (chunk.tx().getMaxFeePerGas().get().getAsBigInteger().equals(BigInteger.ZERO)) {
+        rowSize += 1;
+      } else {
+        rowSize += 8;
+      }
+    }
+
+    // Phase 6: GasLimit
+    rowSize += 8;
+
+    // Phase 7: To
+    if (chunk.tx().getTo().isPresent()) {
+      rowSize += 16;
+    } else {
+      rowSize += 1;
+    }
+
+    // Phase 8: Value
+    if (chunk.tx().getValue().getAsBigInteger().equals(BigInteger.ZERO)) {
+      rowSize += 1;
+    } else {
+      rowSize += 16;
+    }
+
+    // Phase 9: Data
+    if (chunk.tx().getData().isEmpty() || chunk.tx().getInit().isEmpty()) {
+      rowSize += 1;
+    } else {
+      int dataSize = 0;
+      if (chunk.tx().getData().isPresent()) {
+        dataSize = chunk.tx().getData().get().size();
+      } else {
+        dataSize = chunk.tx().getInit().get().size();
+      }
+      rowSize += 8 + (dataSize - 1) / 16 + 1;
+    }
+
+    // Phase 10: AccessList
+    if (txType == 1 || txType == 2) {
+      if (chunk.tx().getAccessList().isEmpty()) {
+        rowSize += 1;
+      } else {
+        // Rlp prefix of the AccessList list
+        rowSize += 8;
+        for (int i = 0; i < chunk.tx().getAccessList().get().size(); i++) {
+          rowSize += 8 + 16;
+          if (chunk.tx().getAccessList().get().get(i).storageKeys().isEmpty()) {
+            rowSize += 1;
+          } else {
+            rowSize += 8 + 16 * chunk.tx().getAccessList().get().get(i).storageKeys().size();
+          }
+        }
+      }
+    }
+
+    // Phase 11: beta
+    if (txType == 0) {
+      rowSize += 8;
+      if (chunk.tx().getChainId().get().equals(BigInteger.ZERO)) {
+        rowSize += 1;
+      } else {
+        rowSize += 9;
+      }
+    }
+
+    // Phase 12: y
+    if (txType == 1 || txType == 2) {
+      rowSize += 1;
+    }
+
+    // Phase 13: r
+    if (chunk.tx().getR().equals(BigInteger.ZERO)) {
+      rowSize += 1;
+    } else {
+      rowSize += 16;
+    }
+
+    // Phase 14: s
+    if (chunk.tx().getS().equals(BigInteger.ZERO)) {
+      rowSize += 1;
+    } else {
+      rowSize += 16;
+    }
+    return rowSize;
+  }
+
   @Override
   public Object commit() {
-    for (RlpTxnChunk chunk: this.chunkList) {
-      // TODO recuperer les codeFragmentIndex ici
-      traceChunk(chunk);
+    int absTxNum = 0;
+    for (RlpTxnChunk chunk : this.chunkList) {
+      absTxNum += 1;
+      // TODO: recuperer les codeFragmentIndex ici
+      int codeFragmentIndex = 0;
+      traceChunk(chunk, absTxNum, codeFragmentIndex);
+      this.traceRowSize += ChunkRowSize(chunk);
     }
     return new RlpTxnTrace(builder.build());
   }

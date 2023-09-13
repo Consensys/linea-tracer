@@ -658,6 +658,10 @@ public class Hub implements Module {
   }
 
   public void tracePostExecution(MessageFrame frame, Operation.OperationResult operationResult) {
+    if (txState == TxState.TX_SKIP) {
+      return;
+    }
+
     boolean mxpx = false;
     this.unlatchStack(frame, mxpx);
 

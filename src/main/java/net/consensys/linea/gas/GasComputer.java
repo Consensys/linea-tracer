@@ -2,11 +2,23 @@ package net.consensys.linea.gas;
 
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.evm.gascalculator.GasCalculator;
+
+public record StopGas(GasCalculator gc) implements GasCost {
+  @Override
+  public long staticGas() {
+    return gc.getZeroTierGasCost();
+  }
+}
 
 public final class GasComputer {
-  public static GasCost of(MessageFrame frame, OpCode opCode) {
+  private final GasCalculator gc;
+  public GasComputer(GasCalculator gc) {this.gc = gc;}
+
+  public GasCost of(MessageFrame frame, OpCode opCode) {
     switch (opCode) {
       case STOP -> {
+        return new StopGas(gc);
       }
       case ADD -> {
       }
@@ -293,5 +305,6 @@ public final class GasComputer {
       case SELFDESTRUCT -> {
       }
     }
+    throw new IllegalStateException();
   }
 }

@@ -43,7 +43,6 @@ public class RlpTxrcpt implements Module {
   private int absTxNum = 0;
   private int absLogNumMax = 0;
   private int absLogNum = 0;
-  public int traceRowSize = 0;
   private final Trace.TraceBuilder builder = Trace.builder();
   List<RlpTxrcptChunk> chunkList = new ArrayList<>();
 
@@ -838,13 +837,20 @@ public class RlpTxrcpt implements Module {
     return rowSize;
   }
 
+  public int TraceRowSize() {
+    int traceRowSize = 0;
+    for (RlpTxrcptChunk chunk : this.chunkList) {
+      traceRowSize += ChunkRowSize(chunk);
+    }
+    return traceRowSize;
+  }
+
   @Override
   public Object commit() {
     int absTxNum = 0;
     for (RlpTxrcptChunk chunk : this.chunkList) {
       absTxNum += 1;
       traceChunk(chunk, absTxNum);
-      this.traceRowSize += ChunkRowSize(chunk);
     }
     return new RlpTxrcptTrace(builder.build());
   }

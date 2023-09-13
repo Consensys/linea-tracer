@@ -59,7 +59,7 @@ public class BytecodeExecutor {
             .balance(Wei.ONE)
             .nonce(6)
             .address(Address.fromHexString("0x111111"))
-            .code(BytecodeCompiler.newProgram().push(2).push(2).op(OpCode.ADD).compile())
+            .code(byteCode)
             .build();
 
     Transaction tx =

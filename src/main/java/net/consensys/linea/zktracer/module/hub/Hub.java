@@ -582,7 +582,7 @@ public class Hub implements Module {
 
     this.processStateWarm();
     this.processStateInit();
-    this.txState = TxState.TX_STATE;
+    this.txState = TxState.TX_EXEC;
   }
 
   private void unlatchStack(MessageFrame frame, boolean mxpx) {

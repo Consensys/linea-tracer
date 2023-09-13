@@ -103,11 +103,7 @@ public class Hub implements Module {
   }
 
   private EWord getValOrigOrUpdate(Address address, EWord key) {
-    EWord r = this.valOrigs.getOrDefault(address, new HashMap<>()).putIfAbsent(key, EWord.ZERO);
-    if (r == null) {
-      return EWord.ZERO;
-    }
-    return r;
+    return this.getValOrigOrUpdate(address, key, EWord.ZERO);
   }
 
   public final Map<Address, Integer> deploymentNumber = new HashMap<>();
@@ -137,15 +133,15 @@ public class Hub implements Module {
   // Tx -> Opcode -> TraceSection
   private final List<List<TraceSection>> traceSections = new ArrayList<>();
 
-  int txChunksCount() {
+  private int txChunksCount() {
     return this.traceSections.size();
   }
 
-  int opcodeChunksCount() {
+  private int opcodeChunksCount() {
     return this.traceSections.get(this.txChunksCount() - 1).size();
   }
 
-  List<TraceSection> currentTxTrace() {
+  private List<TraceSection> currentTxTrace() {
     return this.traceSections.get(this.txChunksCount() - 1);
   }
 

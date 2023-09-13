@@ -47,7 +47,6 @@ public class RlpTxn implements Module {
   int prefix_long_list = TxnrlpTrace.list_long.intValue();
 
   private final List<RlpTxnChunk> chunkList = new ArrayList<>();
-  public int traceRowSize;
 
   // Used to check the reconstruction of RLPs
   Bytes reconstructedRlpLt;
@@ -1061,6 +1060,14 @@ public class RlpTxn implements Module {
     return rowSize;
   }
 
+  public int TraceRowSize() {
+    int traceRowSize = 0;
+    for (RlpTxnChunk chunk : this.chunkList) {
+      traceRowSize += ChunkRowSize(chunk);
+    }
+    return traceRowSize;
+  }
+
   @Override
   public Object commit() {
     int absTxNum = 0;
@@ -1069,7 +1076,6 @@ public class RlpTxn implements Module {
       // TODO: recuperer les codeFragmentIndex ici
       int codeFragmentIndex = 0;
       traceChunk(chunk, absTxNum, codeFragmentIndex);
-      this.traceRowSize += ChunkRowSize(chunk);
     }
     return new RlpTxnTrace(builder.build());
   }

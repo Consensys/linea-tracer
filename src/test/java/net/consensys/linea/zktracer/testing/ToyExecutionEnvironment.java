@@ -24,7 +24,6 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 import lombok.Builder;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Singular;
 import net.consensys.linea.zktracer.ZkBlockAwareOperationTracer;
@@ -42,13 +41,11 @@ import org.hyperledger.besu.ethereum.core.Transaction;
 import org.hyperledger.besu.evm.Code;
 import org.hyperledger.besu.evm.EVM;
 import org.hyperledger.besu.evm.MainnetEVMs;
-import org.hyperledger.besu.evm.account.MutableAccount;
 import org.hyperledger.besu.evm.frame.BlockValues;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.EvmConfiguration;
 import org.hyperledger.besu.evm.precompile.PrecompileContractRegistry;
 import org.hyperledger.besu.evm.processor.MessageCallProcessor;
-import org.hyperledger.besu.evm.worldstate.WorldUpdater;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 
 /** Fluent API for executing EVM transactions in tests. */
@@ -62,17 +59,13 @@ public class ToyExecutionEnvironment {
   private static final long DEFAULT_GAS_LIMIT = 1_000_000;
   private static final ToyWorld DEFAULT_TOY_WORLD = ToyWorld.empty();
 
-
   private final BlockValues blockValues = ToyBlockValues.builder().number(13L).build();
-
   private final ToyWorld toyWorld;
   private final EVM evm;
   private final ZkBlockAwareOperationTracer tracer;
   @Singular private final List<Transaction> transactions;
-  @Getter private final Bytes byteCode;
   private final Consumer<MessageFrame> frameAssertions;
   private final Consumer<MessageFrame> customFrameSetup;
-  private final Consumer<MutableAccount> senderAccountSetup;
 
   /**
    * Gets the default EVM implementation.
@@ -98,51 +91,30 @@ public class ToyExecutionEnvironment {
    * @return the generated JSON trace
    */
   public String traceCode() {
-    MessageFrame frame = executeCode();
-    this.postTest(frame);
+    executeCode();
 
     return tracer.getJsonTrace();
   }
 
   /** Execute constructed EVM bytecode and perform Corset trace validation. */
   public void run() {
-    MessageFrame frame = executeCode();
-    this.postTest(frame);
+    executeCode();
 
     assertThat(CorsetValidator.isValid(tracer.getJsonTrace())).isTrue();
   }
 
-  /**
-   * Deploy a contract.
-   *
-   * @param contractAddress address of the contract
-   * @param codeBytes bytecode of the contract
-   */
-  public void deployContract(final Address contractAddress, final Bytes codeBytes) {
-    var updater = this.toyWorld.updater();
-    final MutableAccount contract = updater.getOrCreate(contractAddress).getMutable();
+  private MessageFrame prepareFrame(final Transaction tx) {
+    final Bytes byteCode =
+        toyWorld
+            .get(
+                tx.getTo()
+                    .orElseThrow(
+                        () ->
+                            new IllegalArgumentException(
+                                "Cannot fetch receiver account address from transaction")))
+            .getCode();
 
-    contract.setNonce(0);
-    contract.clearStorage();
-    contract.setCode(codeBytes);
-
-    updater.commit();
-  }
-
-  /** Create the initial world state of the EVM. */
-  public void createInitialWorldState() {
-    final WorldUpdater worldState = this.toyWorld.updater();
-    final MutableAccount senderAccount =
-        worldState.getOrCreate(DEFAULT_SENDER_ADDRESS).getMutable();
-
-    setupSenderAccount(senderAccount);
-
-    worldState.commit();
-  }
-
-  private MessageFrame prepareFrame() {
-    final Bytes currentByteCode = Optional.ofNullable(this.byteCode).orElse(DEFAULT_BYTECODE);
-    final Code code = evm.getCode(Hash.hash(currentByteCode), currentByteCode);
+    final Code code = evm.getCode(Hash.hash(byteCode), byteCode);
 
     return new TestMessageFrameBuilder()
         .worldUpdater(this.toyWorld.updater())
@@ -159,12 +131,6 @@ public class ToyExecutionEnvironment {
         .build();
   }
 
-  private void setupSenderAccount(final MutableAccount senderAccount) {
-    if (senderAccountSetup != null) {
-      senderAccountSetup.accept(senderAccount);
-    }
-  }
-
   private void setupFrame(final MessageFrame frame) {
     if (customFrameSetup != null) {
       customFrameSetup.accept(frame);
@@ -177,12 +143,9 @@ public class ToyExecutionEnvironment {
     }
   }
 
-  private MessageFrame executeCode() {
+  private void executeCode() {
     final MessageCallProcessor messageCallProcessor =
         new MessageCallProcessor(evm, new PrecompileContractRegistry());
-
-    final MessageFrame frame = this.prepareFrame();
-    setupFrame(frame);
 
     BlockHeader mockBlockHeader = BlockHeaderBuilder.createDefault().buildBlockHeader();
     BlockBody mockBlockBody = new BlockBody(transactions, new ArrayList<>());
@@ -191,15 +154,18 @@ public class ToyExecutionEnvironment {
     tracer.traceStartBlock(mockBlockHeader, mockBlockBody);
 
     for (Transaction tx : mockBlockBody.getTransactions()) {
+      MessageFrame frame = this.prepareFrame(tx);
+      setupFrame(frame);
+
       tracer.traceStartTransaction(tx);
       messageCallProcessor.process(frame, this.tracer);
       tracer.traceEndTransaction(Bytes.EMPTY, 0, 0); // TODO
+
+      postTest(frame);
     }
 
     tracer.traceEndBlock(mockBlockHeader, mockBlockBody);
     tracer.traceEndConflation();
-
-    return frame;
   }
 
   private static Transaction defaultTransaction() {
@@ -233,11 +199,8 @@ public class ToyExecutionEnvironment {
           Optional.ofNullable(evm).orElse(defaultEvm()),
           Optional.ofNullable(tracer).orElse(defaultTracer()),
           Optional.ofNullable(transactions).orElse(defaultTxList),
-          byteCode,
           frameAssertions,
-          customFrameSetup,
-          senderAccountSetup
-      );
+          customFrameSetup);
     }
   }
 }

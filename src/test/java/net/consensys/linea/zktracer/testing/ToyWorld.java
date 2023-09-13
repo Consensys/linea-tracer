@@ -13,7 +13,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-
 package net.consensys.linea.zktracer.testing;
 
 import java.util.ArrayList;
@@ -75,7 +74,7 @@ public class ToyWorld implements WorldUpdater {
     return createAccount(null, address, nonce, balance, Bytes.EMPTY);
   }
 
-  private EvmAccount createAccount(
+  public EvmAccount createAccount(
       final Account parentAccount,
       final Address address,
       final long nonce,
@@ -156,7 +155,12 @@ public class ToyWorld implements WorldUpdater {
       ToyWorld toyWorld = new ToyWorld(parent);
       if (accounts != null) {
         for (ToyAccount account : accounts) {
-          toyWorld.createAccount(account.getAddress(), account.getNonce(), account.getBalance());
+          toyWorld.createAccount(
+              null,
+              account.getAddress(),
+              account.getNonce(),
+              account.getBalance(),
+              account.getCode());
         }
       }
 

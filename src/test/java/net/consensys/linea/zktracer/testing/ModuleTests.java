@@ -33,7 +33,7 @@ public class ModuleTests {
   public static void runTestWithOpCodeArgs(final OpCode opCode, final List<Bytes32> arguments) {
     Bytes bytecode = BytecodeCompiler.newProgram().opAnd32ByteArgs(opCode, arguments).compile();
 
-    ToyExecutionEnvironment.builder().byteCode(bytecode).build().run();
+    BytecodeExecutor.builder().byteCode(bytecode).build().run();
   }
 
   /**
@@ -46,6 +46,6 @@ public class ModuleTests {
   public static String generateTrace(final OpCode opCode, final List<Bytes32> arguments) {
     Bytes bytecode = BytecodeCompiler.newProgram().opAnd32ByteArgs(opCode, arguments).compile();
 
-    return ToyExecutionEnvironment.builder().byteCode(bytecode).build().traceCode();
+    return BytecodeExecutor.builder().byteCode(bytecode).build().traceCode();
   }
 }

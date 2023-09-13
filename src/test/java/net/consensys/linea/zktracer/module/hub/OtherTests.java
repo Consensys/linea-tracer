@@ -17,7 +17,7 @@ package net.consensys.linea.zktracer.module.hub;
 
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.testing.BytecodeCompiler;
-import net.consensys.linea.zktracer.testing.ToyExecutionEnvironment;
+import net.consensys.linea.zktracer.testing.BytecodeExecutor;
 import net.consensys.linea.zktracer.testing.EvmExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,7 +26,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 public class OtherTests {
   @Test
   public void testMul() {
-    ToyExecutionEnvironment.builder()
+    BytecodeExecutor.builder()
         .byteCode(BytecodeCompiler.newProgram().push(32).push(7).op(OpCode.MUL).compile())
         .build()
         .run();
@@ -34,7 +34,7 @@ public class OtherTests {
 
   @Test
   public void testDiv() {
-    ToyExecutionEnvironment.builder()
+    BytecodeExecutor.builder()
         .byteCode(BytecodeCompiler.newProgram().push(32).push(7).op(OpCode.DIV).compile())
         .build()
         .run();
@@ -42,7 +42,7 @@ public class OtherTests {
 
   @Test
   public void testSDiv() {
-    ToyExecutionEnvironment.builder()
+    BytecodeExecutor.builder()
         .byteCode(BytecodeCompiler.newProgram().push(32).push(7).op(OpCode.SDIV).compile())
         .build()
         .run();

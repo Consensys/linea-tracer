@@ -16,22 +16,38 @@
 package net.consensys.linea.zktracer.testing;
 
 import java.util.List;
+import java.util.function.Consumer;
 
+import com.google.common.base.Preconditions;
+import lombok.Builder;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.opcode.OpCodes;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.KeyPair;
 import org.hyperledger.besu.crypto.SECP256K1;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
-import org.junit.jupiter.api.Test;
+import org.hyperledger.besu.evm.frame.MessageFrame;
 
-class ExampleTxTest {
+@Builder
+public class BytecodeExecutor {
 
-  @Test
-  void test() {
-    OpCodes.load();
+  private final Bytes byteCode;
+
+  private final Consumer<MessageFrame> frameAssertions;
+
+  public void run() {
+    buildExecEnvironment().run();
+  }
+
+  public String traceCode() {
+    return buildExecEnvironment().traceCode();
+  }
+
+  private ToyExecutionEnvironment buildExecEnvironment() {
+    Preconditions.checkArgument(byteCode != null, "byteCode cannot be empty");
+
     KeyPair keyPair = new SECP256K1().generateKeyPair();
     Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
 
@@ -52,6 +68,10 @@ class ExampleTxTest {
     ToyWorld toyWorld =
         ToyWorld.builder().accounts(List.of(senderAccount, receiverAccount)).build();
 
-    ToyExecutionEnvironment.builder().toyWorld(toyWorld).transaction(tx).build().run();
+    return ToyExecutionEnvironment.builder()
+        .toyWorld(toyWorld)
+        .frameAssertions(frameAssertions)
+        .transaction(tx)
+        .build();
   }
 }

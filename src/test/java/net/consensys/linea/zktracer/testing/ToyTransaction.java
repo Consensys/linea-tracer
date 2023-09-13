@@ -21,7 +21,6 @@ import java.util.Optional;
 import lombok.Builder;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.KeyPair;
-import org.hyperledger.besu.crypto.SECP256K1;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.TransactionType;
 import org.hyperledger.besu.datatypes.Wei;
@@ -29,11 +28,12 @@ import org.hyperledger.besu.ethereum.core.Transaction;
 
 @Builder
 public class ToyTransaction {
-  private static final ToyAccount DEFAULT_SENDER = ToyAccount.builder()
-    .nonce(1L)
-    .address(Address.fromHexString("0xe8f1b89"))
-    .balance(Wei.ONE)
-    .build();
+  private static final ToyAccount DEFAULT_SENDER =
+      ToyAccount.builder()
+          .nonce(1L)
+          .address(Address.fromHexString("0xe8f1b89"))
+          .balance(Wei.ONE)
+          .build();
 
   private static final Wei DEFAULT_VALUE = Wei.ZERO;
   private static final Bytes DEFAULT_INPUT_DATA = Bytes.EMPTY;
@@ -63,17 +63,17 @@ public class ToyTransaction {
     public Transaction build() {
 
       return Transaction.builder()
-        .to(to.getAddress())
-//        .sender(sender != null ? sender.getAddress() : DEFAULT_SENDER.getAddress())
-//        .nonce(sender != null ? sender.getNonce() : DEFAULT_SENDER.getNonce())
-        .nonce(sender.getNonce())
-        .type(Optional.ofNullable(transactionType).orElse(DEFAULT_TX_TYPE))
-        .gasPrice(Optional.ofNullable(gasPrice).orElse(DEFAULT_GAS_PRICE))
-        .gasLimit(Optional.ofNullable(gasLimit).orElse(DEFAULT_GAS_LIMIT))
-        .value(Optional.ofNullable(value).orElse(DEFAULT_VALUE))
-        .payload(Optional.ofNullable(payload).orElse(DEFAULT_INPUT_DATA))
-        .chainId(Optional.ofNullable(chainId).orElse(DEFAULT_CHAIN_ID))
-        .signAndBuild(keyPair);
+          .to(to.getAddress())
+          //        .sender(sender != null ? sender.getAddress() : DEFAULT_SENDER.getAddress())
+          //        .nonce(sender != null ? sender.getNonce() : DEFAULT_SENDER.getNonce())
+          .nonce(sender.getNonce())
+          .type(Optional.ofNullable(transactionType).orElse(DEFAULT_TX_TYPE))
+          .gasPrice(Optional.ofNullable(gasPrice).orElse(DEFAULT_GAS_PRICE))
+          .gasLimit(Optional.ofNullable(gasLimit).orElse(DEFAULT_GAS_LIMIT))
+          .value(Optional.ofNullable(value).orElse(DEFAULT_VALUE))
+          .payload(Optional.ofNullable(payload).orElse(DEFAULT_INPUT_DATA))
+          .chainId(Optional.ofNullable(chainId).orElse(DEFAULT_CHAIN_ID))
+          .signAndBuild(keyPair);
     }
   }
 }

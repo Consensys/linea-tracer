@@ -5,9 +5,9 @@ import net.consensys.linea.zktracer.module.hub.chunks.TraceFragment;
 
 public class JumpSection extends TraceSection {
   public JumpSection(Hub hub, TraceFragment... chunks) {
-    super(hub, chunks);
+    this.addChunksAndStack(hub, chunks);
   }
 
   @Override
-  void seal(Hub hub) {}
+  public void seal(Hub hub) {}
 }

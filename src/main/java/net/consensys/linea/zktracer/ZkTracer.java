@@ -51,7 +51,7 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
     Wcp wcp = new Wcp();
 
     this.hub = new Hub(add, ext, mod, mul, shf, trm, wcp);
-    this.modules = List.of(add, ext, mod, mul, shf, trm, wcp);
+    this.modules = hub.getModules();
 
     // Load opcodes configured in src/main/resources/opcodes.yml.
     OpCodes.load();

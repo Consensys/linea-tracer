@@ -11,45 +11,72 @@ import net.consensys.linea.zktracer.module.hub.chunks.TraceFragment;
 
 /** A TraceSection gather the trace lines linked to a single operation */
 public abstract class TraceSection {
-  public record TraceChunk(CommonFragment common, TraceFragment specific) {
+  /**
+   * A TraceLine stores the information required to generate a trace line.
+   *
+   * @param common data required to trace shared columns
+   * @param specific data required to trace perspective-specific columns
+   */
+  public record TraceLine(CommonFragment common, TraceFragment specific) {
+    /**
+     * Trace the line encoded within this chunk in the given trace builder.
+     *
+     * @param trace where to trace the line
+     * @return the trace builder
+     */
     public Trace.TraceBuilder trace(Trace.TraceBuilder trace) {
-      if (common != null) {
-        common.trace(trace);
-      }
-      if (specific != null) {
-        specific.trace(trace);
-      }
+      assert common != null;
+      assert specific != null;
+
+      common.trace(trace);
+      specific.trace(trace);
 
       return trace.fillAndValidateRow();
     }
   }
 
-  @Getter List<TraceChunk> chunks = new ArrayList<>();
+  /** A list of {@link TraceLine} representing the trace lines associated with this section. */
+  @Getter List<TraceLine> lines = new ArrayList<>();
 
-  public TraceSection(TraceFragment... chunks) {
-    for (TraceFragment chunk : chunks) {
-      this.chunks.add(new TraceChunk(null, chunk));
+  /** Default creator for an empty section. */
+  public TraceSection() {}
+
+  /**
+   * Add a fragment to the section while pairing it to its common piece.
+   *
+   * @param hub the execution context
+   * @param fragment the fragment to insert
+   */
+  public final void addChunk(Hub hub, TraceFragment fragment) {
+    assert !(fragment instanceof CommonFragment);
+
+    this.lines.add(new TraceLine(hub.traceCommon(), fragment));
+  }
+
+  /**
+   * Create several {@link TraceLine} within this section for the specified fragments.
+   *
+   * @param hub the Hub linked to fragments execution
+   * @param fragments the fragments to add to the section
+   */
+  public final void addChunks(Hub hub, TraceFragment... fragments) {
+    for (TraceFragment chunk : fragments) {
+      this.addChunk(hub, chunk);
     }
   }
 
-  public TraceSection(Hub hub, TraceFragment... chunks) {
-    this.chunks = new ArrayList<>();
+  /**
+   * Insert {@link TraceLine} related to the current state of the stack, then insert the provided
+   * fragments in a single swoop.
+   *
+   * @param hub the execution context
+   * @param fragments the fragments to insert
+   */
+  public final void addChunksAndStack(Hub hub, TraceFragment... fragments) {
     for (var stackChunk : hub.makeStackChunks()) {
       this.addChunk(hub, stackChunk);
     }
-    this.addChunks(hub, chunks);
-  }
-
-  public final void addChunk(Hub hub, TraceFragment chunk) {
-    assert !(chunk instanceof CommonFragment);
-
-    this.chunks.add(new TraceChunk(hub.traceCommon(), chunk));
-  }
-
-  public final void addChunks(Hub hub, TraceFragment... chunks) {
-    for (TraceFragment chunk : chunks) {
-      this.addChunk(hub, chunk);
-    }
+    this.addChunks(hub, fragments);
   }
 
   /**
@@ -58,7 +85,7 @@ public abstract class TraceSection {
    * @return the CN
    */
   public final int contextNumber() {
-    return this.chunks.get(0).common.contextNumber();
+    return this.lines.get(0).common.contextNumber();
   }
 
   /**
@@ -67,7 +94,7 @@ public abstract class TraceSection {
    * @param contextNumber the new CN
    */
   public final void setContextNumber(int contextNumber) {
-    for (TraceChunk chunk : this.chunks) {
+    for (TraceLine chunk : this.lines) {
       chunk.common.newContextNumber(contextNumber);
     }
   }
@@ -78,7 +105,7 @@ public abstract class TraceSection {
    * @return the PC
    */
   public final int pc() {
-    return this.chunks.get(0).common.pc();
+    return this.lines.get(0).common.pc();
   }
 
   /**
@@ -87,30 +114,31 @@ public abstract class TraceSection {
    * @param contextNumber the new PC
    */
   public final void setNewPc(int contextNumber) {
-    for (TraceChunk chunk : this.chunks) {
+    for (TraceLine chunk : this.lines) {
       chunk.common.newPc(contextNumber);
     }
   }
 
   /**
-   * This method is called when the TraceChunk is finished to build required information post-hoc
+   * This method is called when the TraceChunk is finished, to build required information post-hoc.
    *
    * @param hub the linked {@link Hub} context
    */
   public void seal(Hub hub) {
-    for (TraceChunk chunk : this.chunks) {
+    for (TraceLine chunk : this.lines) {
       chunk.common.txEndStamp(hub.getStamp());
     }
   }
 
   /**
-   * This method is called when the conflation is finished to build required information post-hoc
+   * This method is called when the conflation is finished to build required information post-hoc.
+   *
+   * <p>W A R N I N G - - - If overriden, super *MUST* be called.
    *
    * @param hub the linked {@link Hub} context
-   *     <p>W A R N I N G - - - If overriden, super *MUST* be called
    */
   public void retcon(Hub hub) {
-    for (TraceSection.TraceChunk chunk : chunks) {
+    for (TraceLine chunk : lines) {
       chunk.common().retcon(hub);
       chunk.specific().retcon(hub);
     }

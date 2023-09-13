@@ -18,8 +18,18 @@ package net.consensys.linea.zktracer.module.hub.chunks;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
 
+/**
+ * A TraceFragment represents a piece of a trace line; either a {@link CommonFragment} present in
+ * each line, or a perspective-specific fragment.
+ */
 public interface TraceFragment {
   Trace.TraceBuilder trace(Trace.TraceBuilder trace);
 
+  /**
+   * This hook is called by the {@link Hub} at the end of the conflation to retrofit information if
+   * required.
+   *
+   * @param hub a reference to the hub
+   */
   default void retcon(Hub hub) {}
 }

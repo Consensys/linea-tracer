@@ -63,13 +63,14 @@ public record SkippedTransactionDefer(
     // Append the final chunk to the hub chunks
     hub.addTraceSection(
         new TxSkippedSection(
+            hub,
             // 3 lines -- account changes
             // From
-            new AccountFragment(fromAddress, oldFromAccount, newFromAccount, false, 0, false),
+            new AccountFragment(oldFromAccount, newFromAccount, false, 0, false),
             // To
-            new AccountFragment(toAddress, oldToAccount, newToAccount, false, 0, false),
+            new AccountFragment(oldToAccount, newToAccount, false, 0, false),
             // Miner
-            new AccountFragment(minerAddress, oldMinerAccount, newMinerAccount, false, 0, false),
+            new AccountFragment(oldMinerAccount, newMinerAccount, false, 0, false),
 
             // 1 line -- transaction data
             new TransactionFragment(

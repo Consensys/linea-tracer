@@ -47,7 +47,6 @@ import net.consensys.linea.zktracer.module.hub.defer.TransactionDefer;
 import net.consensys.linea.zktracer.module.hub.section.AccountSection;
 import net.consensys.linea.zktracer.module.hub.section.ContextLogSection;
 import net.consensys.linea.zktracer.module.hub.section.CopySection;
-import net.consensys.linea.zktracer.module.hub.section.EndTransaction;
 import net.consensys.linea.zktracer.module.hub.section.JumpSection;
 import net.consensys.linea.zktracer.module.hub.section.StackOnlySection;
 import net.consensys.linea.zktracer.module.hub.section.StackRam;
@@ -64,6 +63,7 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.datatypes.AccessListEntry;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
@@ -217,6 +217,10 @@ public class Hub implements Module {
     this.wcp = wcp;
   }
 
+  public List<Module> getModules() {
+    return List.of(add, ext, mod, mul, shf, trm, wcp);
+  }
+
   @Override
   public String jsonKey() {
     return "hub_v2_off";
@@ -358,6 +362,14 @@ public class Hub implements Module {
   void processStateWarm() {
     this.stamp++;
     // reproduction ordonnée des préchauffages de la Tx
+    this.currentTx
+        .getAccessList()
+        .ifPresent(
+            preWarmed -> {
+              for (AccessListEntry entry : preWarmed) {
+                // TODO
+              }
+            });
   }
 
   void processStateInit() {
@@ -443,11 +455,6 @@ public class Hub implements Module {
 
     if (this.currentFrame().getStack().isOk()) {
       this.traceOperation(frame);
-      /*
-      this.handleCallReturnData
-      this.handleMemory
-      this.handleRam
-       */
     } else {
       this.addTraceSection(new StackOnlySection(this));
     }
@@ -456,48 +463,51 @@ public class Hub implements Module {
   void processStateFinal() {
     this.stamp++;
 
-    Address fromAddress = this.currentTx.getSender();
-    Account fromAccount; // TODO
-    AccountSnapshot fromSnapshot =
-        AccountSnapshot.fromAccount(
-            fromAccount, true, this.deploymentNumber(fromAddress), this.isDeploying(fromAddress));
+    // TODO: waiting on Besu PR
 
-    Address minerAddress = this.currentTx.getMinerAddress();
-    Account minerAccount; // TODO
-    AccountSnapshot minerSnapshot =
-        AccountSnapshot.fromAccount(
-            minerAccount,
-            true,
-            this.deploymentNumber(minerAddress),
-            this.isDeploying(minerAddress));
-
-    if (true /* TODO: statusCode == 1 */) {
-      // if no revert: 2 account rows (sender, coinbase) + 1 tx row
-      this.addTraceSection(
-          new EndTransaction(
-              new AccountFragment(fromSnapshot, fromSnapshot, false, 0, false),
-              new AccountFragment(minerSnapshot, minerSnapshot, false, 0, false),
-              new TransactionFragment(
-                  this.batchNumber,
-                  minerAddress,
-                  this.currentTx,
-                  true,
-                  this.gasPrice,
-                  this.baseFee)));
-    } else {
-      Address toAddress = this.currentTx.getSender();
-      Account toAccount; // TODO
-      AccountSnapshot toSnapshot =
-          AccountSnapshot.fromAccount(
-              toAccount, true, this.deploymentNumber(toAddress), this.isDeploying(toAddress));
-      // otherwise 4 account rows (sender, coinbase, sender, recipient) + 1 tx row
-      this.addTraceSection(
-          new EndTransaction(
-              new AccountFragment(fromSnapshot, fromSnapshot, false, 0, false),
-              new AccountFragment(minerSnapshot, minerSnapshot, false, 0, false),
-              new AccountFragment(fromSnapshot, fromSnapshot, false, 0, false),
-              new AccountFragment(toSnapshot, toSnapshot, false, 0, false)));
-    }
+    //    Address fromAddress = this.currentTx.getSender();
+    //    Account fromAccount; // TODO
+    //    AccountSnapshot fromSnapshot =
+    //        AccountSnapshot.fromAccount(
+    //            fromAccount, true, this.deploymentNumber(fromAddress),
+    // this.isDeploying(fromAddress));
+    //
+    //    Address minerAddress;
+    //    Account minerAccount; // TODO
+    //    AccountSnapshot minerSnapshot =
+    //        AccountSnapshot.fromAccount(
+    //            minerAccount,
+    //            true,
+    //            this.deploymentNumber(minerAddress),
+    //            this.isDeploying(minerAddress));
+    //
+    //    if (true /* TODO: statusCode == 1 */) {
+    //      // if no revert: 2 account rows (sender, coinbase) + 1 tx row
+    //      this.addTraceSection(
+    //          new EndTransaction(
+    //              new AccountFragment(fromSnapshot, fromSnapshot, false, 0, false),
+    //              new AccountFragment(minerSnapshot, minerSnapshot, false, 0, false),
+    //              new TransactionFragment(
+    //                  this.batchNumber,
+    //                  minerAddress,
+    //                  this.currentTx,
+    //                  true,
+    //                  this.currentTx.getGasPrice(),
+    //                  this.baseFee)));
+    //    } else {
+    //      Address toAddress = this.currentTx.getSender();
+    //      Account toAccount; // TODO
+    //      AccountSnapshot toSnapshot =
+    //          AccountSnapshot.fromAccount(
+    //              toAccount, true, this.deploymentNumber(toAddress), this.isDeploying(toAddress));
+    //      // otherwise 4 account rows (sender, coinbase, sender, recipient) + 1 tx row
+    //      this.addTraceSection(
+    //          new EndTransaction(
+    //              new AccountFragment(fromSnapshot, fromSnapshot, false, 0, false),
+    //              new AccountFragment(minerSnapshot, minerSnapshot, false, 0, false),
+    //              new AccountFragment(fromSnapshot, fromSnapshot, false, 0, false),
+    //              new AccountFragment(toSnapshot, toSnapshot, false, 0, false)));
+    //    }
 
     this.txState = TxState.TX_PRE_INIT;
   }
@@ -585,7 +595,7 @@ public class Hub implements Module {
         }
 
         // This works because we are certain that the stack chunks are the first.
-        ((StackFragment) this.currentTraceSection().getChunks().get(2 * line.ct() + 1).specific())
+        ((StackFragment) this.currentTraceSection().getLines().get(2 * line.ct() + 1).specific())
             .stackOps()
             .get(line.resultColumn() - 1)
             .setValue(result);
@@ -682,14 +692,24 @@ public class Hub implements Module {
 
   @Override
   public Object commit() {
-    for (var txChunks : traceSections) {
-      for (TraceSection section : txChunks) {
-        for (TraceSection.TraceChunk chunk : section.getChunks()) {
-          chunk.trace(this.trace);
+    for (var txSection : this.traceSections) {
+      for (TraceSection opSection : txSection) {
+        for (TraceSection.TraceLine line : opSection.getLines()) {
+          line.trace(this.trace);
         }
       }
     }
     return new HubTrace(trace.build());
+  }
+
+  public int lineCount() {
+    int count = 0;
+    for (var txSection : this.traceSections) {
+      for (TraceSection opSection : txSection) {
+        count += opSection.getLines().size();
+      }
+    }
+    return count;
   }
 
   void traceOperation(MessageFrame frame) {

@@ -4,10 +4,10 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.chunks.TraceFragment;
 
 public class EndTransaction extends TraceSection {
-  public EndTransaction(TraceFragment... chunks) {
-    super(chunks);
+  public EndTransaction(Hub hub, TraceFragment... fragments) {
+    this.addChunks(hub, fragments);
   }
 
   @Override
-  void seal(Hub hub) {}
+  public void seal(Hub hub) {}
 }

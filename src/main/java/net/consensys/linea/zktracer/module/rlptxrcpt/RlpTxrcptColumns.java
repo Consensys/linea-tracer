@@ -20,6 +20,7 @@ import java.math.BigInteger;
 import org.apache.tuweni.bytes.Bytes;
 
 class RlpTxrcptColumns {
+  int absTxNum;
   Bytes acc1;
   Bytes acc2;
   Bytes acc3;

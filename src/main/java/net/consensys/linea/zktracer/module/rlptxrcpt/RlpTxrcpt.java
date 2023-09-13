@@ -43,8 +43,9 @@ public class RlpTxrcpt implements Module {
   private int absTxNum = 0;
   private int absLogNumMax = 0;
   private int absLogNum = 0;
+  public int traceRowSize = 0;
   private final Trace.TraceBuilder builder = Trace.builder();
-  List <RlpTxrcptChunk>  chunkList =new ArrayList<>();
+  List<RlpTxrcptChunk> chunkList = new ArrayList<>();
 
   @Override
   public String jsonKey() {
@@ -59,16 +60,15 @@ public class RlpTxrcpt implements Module {
   @Override
   public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
     for (Transaction tx : blockBody.getTransactions()) {
-      this.absTxNumMax+=1;
-      this.absLogNumMax+= txrcpt.getLog().size();
+      this.absLogNumMax += txrcpt.getLog().size();
       this.chunkList.add(new RlpTxrcptChunk(txrcpt, txType));
     }
   }
 
-  public void traceChunk(final RlpTxrcptChunk chunk) {
-    this.absTxNum += 1;
+  public void traceChunk(final RlpTxrcptChunk chunk, int absTxNum) {
     RlpTxrcptColumns traceValue = new RlpTxrcptColumns();
     traceValue.txrcptSize = txRcptSize(chunk.getTxrcpt());
+    traceValue.absTxNum = absTxNum;
 
     // PHASE 0: RLP Prefix.
     phase0(traceValue, chunk.getTxType());
@@ -576,8 +576,8 @@ public class RlpTxrcpt implements Module {
     builder
         .absLogNum(BigInteger.valueOf(this.absLogNum))
         .absLogNumMax(BigInteger.valueOf(this.absLogNumMax))
-        .absTxNum(BigInteger.valueOf(this.absTxNum))
-        .absTxNumMax(BigInteger.valueOf(this.absTxNumMax))
+        .absTxNum(BigInteger.valueOf(traceValue.absTxNum))
+        .absTxNumMax(BigInteger.valueOf(this.chunkList.size()))
         .acc1(traceValue.acc1.toUnsignedBigInteger())
         .acc2(traceValue.acc2.toUnsignedBigInteger())
         .acc3(traceValue.acc3.toUnsignedBigInteger())
@@ -804,10 +804,47 @@ public class RlpTxrcpt implements Module {
     return output;
   }
 
+  public int ChunkRowSize(RlpTxrcptChunk chunk) {
+    // Phase 0 is always 1+8=9 row long, Phase 1, 1 row long, Phase 2 8 row long, Phase 3 65 = 1 +
+    // 64 row long
+    int rowSize = 83;
+
+    // add the number of rows for Phase 4 : Log entry
+    if (chunk.txrcpt.getLogs().isEmpty()) {
+      rowSize += 1;
+    } else {
+      // Rlp prefix of the list of log entries is always 8 rows long
+      rowSize += 8;
+
+      for (int i = 0; i < chunk.txrcpt.getLogs().size(); i++) {
+        // Rlp prefix of a log entry is always 8, Log entry address is always 3 row long, Log topics
+        // rlp prefix always 1
+        rowSize += 12;
+
+        // Each log Topics is 3 rows long
+        rowSize += 3 * chunk.txrcpt.getLogs().get(i).getTopics().size();
+
+        // Row size of data is 1 if empty
+        if (chunk.txrcpt.getLogs().get(i).getData().isEmpty()) {
+          rowSize += 1;
+        }
+        // Row size of the data is 8 (RLP prefix)+ integer part (datasize - 1 /16) +1
+        else {
+          rowSize += 8 + (chunk.txrcpt.getLogs().get(i).getData().size() - 1) / 16 + 1;
+        }
+      }
+    }
+
+    return rowSize;
+  }
+
   @Override
   public Object commit() {
-    for (RlpTxrcptChunk chunk: this.chunkList) {
-      traceChunk(chunk);
+    int absTxNum = 0;
+    for (RlpTxrcptChunk chunk : this.chunkList) {
+      absTxNum += 1;
+      traceChunk(chunk, absTxNum);
+      this.traceRowSize += ChunkRowSize(chunk);
     }
     return new RlpTxrcptTrace(builder.build());
   }

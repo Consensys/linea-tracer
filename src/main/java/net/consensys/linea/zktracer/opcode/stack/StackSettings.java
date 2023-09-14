@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.opcode.stack;
 
-import net.consensys.linea.zktracer.opcode.gas.Gas;
+import net.consensys.linea.zktracer.opcode.gas.GasConstants;
 
 // TODO: maybe a builder?
 public record StackSettings(
@@ -24,7 +24,7 @@ public record StackSettings(
     int delta,
     int nbAdded,
     int nbRemoved,
-    Gas staticGas,
+    GasConstants staticGas,
     boolean twoLinesInstruction,
     boolean staticInstruction,
     boolean addressTrimmingInstruction,

@@ -19,7 +19,6 @@ import static net.consensys.linea.zktracer.module.rlputils.Pattern.padToGivenSiz
 
 import java.math.BigInteger;
 
-import net.consensys.linea.zktracer.bytes.UnsignedByte;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
 import net.consensys.linea.zktracer.module.romLex.RomChunk;

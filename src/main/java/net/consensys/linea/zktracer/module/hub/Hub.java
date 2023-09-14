@@ -599,7 +599,7 @@ public class Hub implements Module {
         }
 
         // This works because we are certain that the stack chunks are the first.
-        ((StackFragment) this.currentTraceSection().getLines().get(2 * line.ct() + 1).specific())
+        ((StackFragment) this.currentTraceSection().getLines().get(line.ct()).specific())
             .stackOps()
             .get(line.resultColumn() - 1)
             .setValue(result);

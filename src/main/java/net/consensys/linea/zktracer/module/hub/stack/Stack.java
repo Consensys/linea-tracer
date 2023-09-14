@@ -16,10 +16,10 @@
 package net.consensys.linea.zktracer.module.hub.stack;
 
 import lombok.Getter;
-import net.consensys.linea.zktracer.EWord;
 import net.consensys.linea.zktracer.module.hub.callstack.CallFrame;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
+import net.consensys.linea.zktracer.types.EWord;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public class Stack {

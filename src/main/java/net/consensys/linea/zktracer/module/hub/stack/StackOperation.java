@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.stack;
 
-import net.consensys.linea.zktracer.EWord;
+import net.consensys.linea.zktracer.types.EWord;
 
 /**
  * An atomic operation (read/pop or write/push) on the stack, indexed within a {@link

@@ -23,7 +23,6 @@ import java.util.Map;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import net.consensys.linea.zktracer.EWord;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.ext.Ext;
@@ -62,6 +61,7 @@ import net.consensys.linea.zktracer.module.trm.Trm;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
+import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.AccessListEntry;
 import org.hyperledger.besu.datatypes.Address;

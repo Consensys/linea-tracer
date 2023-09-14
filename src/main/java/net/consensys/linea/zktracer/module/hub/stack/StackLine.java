@@ -19,8 +19,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import net.consensys.linea.zktracer.EWord;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.types.EWord;
 
 /**
  * As the zkEVM spec can only handle up to four stack operations per trace line of the {@link Hub},

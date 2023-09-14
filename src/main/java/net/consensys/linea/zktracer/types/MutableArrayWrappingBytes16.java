@@ -13,29 +13,26 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.bytes;
+package net.consensys.linea.zktracer.types;
 
-import org.apache.tuweni.bytes.Bytes;
-import org.apache.tuweni.bytes.DelegatingBytes;
+final class MutableArrayWrappingBytes16 extends MutableArrayWrappingBytes
+    implements MutableBytes16 {
 
-/** Holds and delegates all operations to its inner bytes field of exactly 16 bytes. */
-public class DelegatingBytes16 extends DelegatingBytes implements Bytes16 {
-  protected DelegatingBytes16(Bytes delegate) {
-    super(delegate);
+  MutableArrayWrappingBytes16(byte[] bytes) {
+    this(bytes, 0);
   }
 
-  @Override
-  public int size() {
-    return Bytes16.SIZE;
+  MutableArrayWrappingBytes16(byte[] bytes, int offset) {
+    super(bytes, offset, SIZE);
   }
 
   @Override
   public Bytes16 copy() {
-    return Bytes16.wrap(toArray());
+    return new ArrayWrappingBytes16(toArray());
   }
 
   @Override
   public MutableBytes16 mutableCopy() {
-    return MutableBytes16.wrap(toArray());
+    return new MutableArrayWrappingBytes16(toArray());
   }
 }

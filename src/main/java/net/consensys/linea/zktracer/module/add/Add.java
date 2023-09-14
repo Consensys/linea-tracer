@@ -20,13 +20,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.consensys.linea.zktracer.bytes.Bytes16;
-import net.consensys.linea.zktracer.bytes.UnsignedByte;
 import net.consensys.linea.zktracer.bytestheta.BaseBytes;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.OpCodes;
+import net.consensys.linea.zktracer.types.Bytes16;
+import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.evm.frame.MessageFrame;

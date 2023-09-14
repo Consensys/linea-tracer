@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer;
+package net.consensys.linea.zktracer.types;
 
 import java.math.BigInteger;
 
@@ -164,6 +164,12 @@ public final class EWord extends BaseUInt256Value<EWord> implements Quantity {
    */
   public BigInteger loBigInt() {
     return this.lo().toUnsignedBigInteger();
+  }
+
+  public boolean isUInt64() {
+    UInt256 twoPow64 = UInt256.ONE.shiftLeft(64);
+
+    return this.toUInt256().greaterOrEqualThan(twoPow64);
   }
 
   /**

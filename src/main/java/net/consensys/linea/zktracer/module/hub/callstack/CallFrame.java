@@ -21,12 +21,12 @@ import java.util.Optional;
 
 import lombok.Getter;
 import lombok.Setter;
-import net.consensys.linea.zktracer.EWord;
 import net.consensys.linea.zktracer.module.hub.Bytecode;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.memory.MemorySpan;
 import net.consensys.linea.zktracer.module.hub.stack.Stack;
 import net.consensys.linea.zktracer.module.hub.stack.StackContext;
+import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;

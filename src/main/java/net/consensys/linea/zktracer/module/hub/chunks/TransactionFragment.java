@@ -17,9 +17,9 @@ package net.consensys.linea.zktracer.module.hub.chunks;
 
 import java.math.BigInteger;
 
-import net.consensys.linea.zktracer.EWord;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
+import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;

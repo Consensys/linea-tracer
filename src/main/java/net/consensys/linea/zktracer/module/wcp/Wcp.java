@@ -20,11 +20,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import net.consensys.linea.zktracer.bytes.UnsignedByte;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.OpCodes;
+import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 

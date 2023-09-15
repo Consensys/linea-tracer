@@ -13,9 +13,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.opcode.gas;
+package net.consensys.linea.zktracer.opcode.gas.projector;
 
-public interface GasCost {
+import org.hyperledger.besu.evm.internal.Words;
+
+public interface GasProjection {
+  default long linearCost(long a, long x, long unit) {
+    assert (unit == 1) || (unit == 32);
+    return Words.clampedMultiply(a, (Words.clampedAdd(x, unit) - 1) / unit);
+  }
+
   default long staticGas() {
     return 0;
   }

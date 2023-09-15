@@ -100,7 +100,6 @@ public final class AccountFragment implements TraceFragment {
     ;
   }
 
-
   @Override
   public void postConflationRetcon(Hub hub /* TODO WorldState state */) {
     this.deploymentNumberInfnty = hub.deploymentNumber(this.who);

@@ -41,6 +41,8 @@ import org.hyperledger.besu.ethereum.core.Transaction;
 import org.hyperledger.besu.evm.Code;
 import org.hyperledger.besu.evm.EVM;
 import org.hyperledger.besu.evm.MainnetEVMs;
+import org.hyperledger.besu.evm.account.Account;
+import org.hyperledger.besu.evm.code.CodeV0;
 import org.hyperledger.besu.evm.frame.BlockValues;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.EvmConfiguration;
@@ -104,17 +106,13 @@ public class ToyExecutionEnvironment {
   }
 
   private MessageFrame prepareFrame(final Transaction tx) {
-    final Bytes byteCode =
-        toyWorld
-            .get(
-                tx.getTo()
-                    .orElseThrow(
-                        () ->
-                            new IllegalArgumentException(
-                                "Cannot fetch receiver account address from transaction")))
-            .getCode();
+    final Account receiverAccount = toyWorld.get(tx.getTo().orElse(null));
 
-    final Code code = evm.getCode(Hash.hash(byteCode), byteCode);
+    final Optional<Bytes> byteCode =
+        Optional.ofNullable(receiverAccount != null ? receiverAccount.getCode() : Bytes.EMPTY);
+
+    final Code code =
+        byteCode.map(bytes -> evm.getCode(Hash.hash(bytes), bytes)).orElse(CodeV0.EMPTY_CODE);
 
     return new TestMessageFrameBuilder()
         .worldUpdater(this.toyWorld.updater())
@@ -147,8 +145,7 @@ public class ToyExecutionEnvironment {
     final MessageCallProcessor messageCallProcessor =
         new MessageCallProcessor(evm, new PrecompileContractRegistry());
 
-    BlockHeader mockBlockHeader =
-        BlockHeaderBuilder.createDefault().baseFee(Wei.of(7)).buildBlockHeader();
+    BlockHeader mockBlockHeader = BlockHeaderBuilder.createDefault().buildBlockHeader();
     BlockBody mockBlockBody = new BlockBody(transactions, new ArrayList<>());
 
     tracer.traceStartConflation(1);

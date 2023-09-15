@@ -415,18 +415,28 @@ public final class GasComputer {
 
           @Override
           public long refund() {
+            long rDirtyClear = 0;
+            if (!originalValue.isZero() && currentValue.isZero()) {
+              rDirtyClear = -GasConstants.R_S_CLEAR.cost();
+            }
+            if (!originalValue.isZero() && newValue.isZero()) {
+              rDirtyClear = GasConstants.R_S_CLEAR.cost();
+            }
+
+            long rDirtyReset = 0;
+            if (originalValue.equals(newValue) && originalValue.isZero()) {
+              rDirtyReset = GasConstants.G_S_SET.cost() - GasConstants.G_WARM_ACCESS.cost();
+            }
+            if (originalValue.equals(newValue) && !originalValue.isZero()) {
+              rDirtyReset = GasConstants.G_S_RESET.cost() - GasConstants.G_WARM_ACCESS.cost();
+            }
+
             long r = 0;
-
-            if (currentValue.equals(newValue)) {
-              r = 0;
-            } else {
-              if (originalValue.equals(currentValue)) {
-                if (newValue.isZero()) {
-                  return GasConstants.R_S_CLEAR.cost();
-                } else {
-
-                }
-              }
+            if (!currentValue.equals(newValue) && currentValue.equals(originalValue) && newValue.isZero()) {
+              r = GasConstants.R_S_CLEAR.cost();
+            }
+            if (!currentValue.equals(newValue) && !currentValue.equals(originalValue)) {
+              r = rDirtyClear + rDirtyReset;
             }
 
             return r;

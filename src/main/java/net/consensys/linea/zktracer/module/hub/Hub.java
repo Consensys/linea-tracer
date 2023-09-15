@@ -642,7 +642,7 @@ public class Hub implements Module {
     this.unlatchStack(frame);
 
     if (this.opCode.isCreate() && operationResult.getHaltReason() == null) {
-      this.handleCreate(Address.wrap(frame.getStackItem(0)));
+      this.handleCreate(Words.toAddress(frame.getStackItem(0)));
     }
 
     for (PostExecDefer defer : this.postExecDefers) {
@@ -733,7 +733,7 @@ public class Hub implements Module {
 
         Address targetAddress =
             switch (this.opCode) {
-              case BALANCE, EXTCODESIZE, EXTCODEHASH -> Address.wrap(frame.getStackItem(0));
+              case BALANCE, EXTCODESIZE, EXTCODEHASH -> Words.toAddress(frame.getStackItem(0));
               default -> Address.wrap(this.currentFrame().getAddress());
             };
         Account targetAccount = frame.getWorldUpdater().getAccount(targetAddress);
@@ -869,7 +869,7 @@ public class Hub implements Module {
                 this.deploymentNumber(myAddress),
                 this.isDeploying(myAddress));
 
-        Address calledAddress = Address.wrap(frame.getStackItem(1));
+        Address calledAddress = Words.toAddress(frame.getStackItem(1));
         Account calledAccount = frame.getWorldUpdater().getAccount(calledAddress);
         AccountSnapshot calledAccountSnapshot =
             AccountSnapshot.fromAccount(

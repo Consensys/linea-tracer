@@ -15,33 +15,6 @@
 
 package net.consensys.linea.zktracer.module.mmu;
 
-import java.util.List;
+import net.consensys.linea.zktracer.types.EWord;
 
-import net.consensys.linea.zktracer.module.Module;
-import net.consensys.linea.zktracer.opcode.OpCode;
-
-public class Mmu implements Module {
-  private Module mmio;
-  private OpCode opCode;
-  private int ramStamp;
-  private int microStamp;
-  private boolean isMicro;
-
-  private final Trace.TraceBuilder trace = Trace.builder();
-
-  @Override
-  public String jsonKey() {
-    return "mmu";
-  }
-
-  @Override
-  public List<OpCode> supportedOpCodes() {
-    return null;
-  }
-
-  @Override
-  public Object commit() {
-
-    return new MmuTrace(trace.build());
-  }
-}
+record Pointers(EWord stack1, EWord stack2, boolean oob) {}

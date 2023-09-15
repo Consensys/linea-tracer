@@ -15,9 +15,25 @@
 
 package net.consensys.linea.zktracer.types;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.experimental.Accessors;
+
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Accessors(fluent = true)
 public class MemoryRange {
-  private MemoryPoint start;
-  private MemoryPoint end;
+  @Getter private MemoryPoint start;
+  @Getter private MemoryPoint end;
+
+  public static MemoryRange newInstance(EWord offset, EWord length) {
+    EWord endWord = offset.add(length);
+
+    MemoryPoint start = MemoryPoint.newInstance(offset);
+    MemoryPoint end = MemoryPoint.newInstance(endWord);
+
+    return new MemoryRange(start, end);
+  }
 
   public EWord length() {
     return end.word()

@@ -85,6 +85,12 @@ tasks.register("hub", TraceFilesTask) {
         dependsOn corsetExists
 
         module = moduleName
-        files = ["${moduleName}/columns.lisp"]
+        def columnsFilePath = "${moduleName}/columns.lisp"
+        def constantsFilePath = "${moduleName}/constants.lisp"
+        files = [columnsFilePath]
+
+        if (new File("zkevm-constraints/${constantsFilePath}").exists()) {
+            files.add(constantsFilePath)
+        }
     }
 }

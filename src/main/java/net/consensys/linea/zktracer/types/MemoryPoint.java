@@ -26,14 +26,14 @@ public class MemoryPoint {
   @Getter private EWord word;
   @Getter private UnsignedByte uByte;
 
-  public static MemoryPoint newFromAbsolute64(long memAddr) {
+  public static MemoryPoint newInstance(long memAddr) {
     EWord word = EWord.of(memAddr).divide(EWord.of(32));
     UnsignedByte uByte = UnsignedByte.of(memAddr % 32);
 
     return new MemoryPoint(word, uByte);
   }
 
-  public static MemoryPoint newFromAbsolute256(EWord memAddr) {
+  public static MemoryPoint newInstance(EWord memAddr) {
     EWord word = memAddr.divide(EWord.of(32));
     EWord remainder = memAddr.mod(32);
     UnsignedByte uByte = UnsignedByte.of(remainder.toLong());

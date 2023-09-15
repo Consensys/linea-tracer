@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Bytecode;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import org.apache.tuweni.bytes.Bytes;
@@ -32,13 +34,14 @@ import org.hyperledger.besu.evm.Code;
  * <p>Although it is accessible in a stack-like manner, it is actually a tree, the stack access
  * representing the path from the latest leaf to the root context.
  */
+@Accessors(fluent = true)
 public final class CallStack {
   /** the maximal depth of the call stack (as defined by Ethereum) */
   static final int CALLSTACK_SIZE = 1024;
   /** a never-pruned-tree of the {@link CallFrame} executed by the {@link Hub} */
   private List<CallFrame> frames = new ArrayList<>();
   /** the current depth of the call stack. */
-  private int depth;
+  @Getter private int depth;
   /** a "pointer" to the current {@link CallFrame} in <code>frames</code>. */
   private int current;
 
@@ -48,7 +51,7 @@ public final class CallStack {
       Bytecode toCode,
       Wei value,
       long gas,
-      Bytes calldata,
+      Bytes callData,
       int contextNumber,
       int accountDeploymentNumber,
       int codeDeploymentNumber,
@@ -63,7 +66,7 @@ public final class CallStack {
         value,
         gas,
         0,
-        calldata,
+        callData,
         contextNumber,
         accountDeploymentNumber,
         codeDeploymentNumber,

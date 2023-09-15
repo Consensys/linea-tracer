@@ -116,21 +116,25 @@ public record Exceptions(
   }
 
   private static boolean isJumpFault(final MessageFrame frame, OpCode opCode) {
-    final long target = Words.clampedToLong(frame.getStackItem(0));
-    final boolean invalidDestination = frame.getCode().isJumpDestInvalid((int) target);
+    if (opCode == OpCode.JUMP || opCode == OpCode.JUMPI) {
+      final long target = Words.clampedToLong(frame.getStackItem(0));
+      final boolean invalidDestination = frame.getCode().isJumpDestInvalid((int) target);
 
-    switch (opCode) {
-      case JUMP -> {
-        return invalidDestination;
-      }
-      case JUMPI -> {
-        long condition = Words.clampedToLong(frame.getStackItem(1));
-        return (condition != 0) && invalidDestination;
-      }
-      default -> {
-        return false;
+      switch (opCode) {
+        case JUMP -> {
+          return invalidDestination;
+        }
+        case JUMPI -> {
+          long condition = Words.clampedToLong(frame.getStackItem(1));
+          return (condition != 0) && invalidDestination;
+        }
+        default -> {
+          return false;
+        }
       }
     }
+
+    return false;
   }
 
   private static boolean isStaticFault(final MessageFrame frame) {

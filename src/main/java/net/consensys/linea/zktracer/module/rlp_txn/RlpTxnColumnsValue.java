@@ -29,7 +29,7 @@ public class RlpTxnColumnsValue {
   public Bytes INPUT_2;
   public boolean LC_CORRECTION;
   public boolean IS_PREFIX;
-  public BigInteger LIMB;
+  public Bytes LIMB;
   public boolean LIMB_CONSTRUCTED;
   public boolean LT;
   public boolean LX;
@@ -56,8 +56,8 @@ public class RlpTxnColumnsValue {
 
     // Set to default local values
     this.LIMB_CONSTRUCTED = false;
-    this.ACC_1 = Bytes.EMPTY;
-    this.ACC_2 = Bytes.EMPTY;
+    this.ACC_1 = Bytes.of(0);
+    this.ACC_2 = Bytes.of(0);
     this.ACC_BYTESIZE = 0;
     this.ADDR_HI = Bytes.ofUnsignedShort(0);
     this.ADDR_LO = Bytes.ofUnsignedShort(0);
@@ -69,11 +69,11 @@ public class RlpTxnColumnsValue {
     this.DEPTH_1 = false;
     this.DEPTH_2 = false;
     this.PHASE_END = false;
-    this.INPUT_1 = Bytes.EMPTY;
-    this.INPUT_2 = Bytes.EMPTY;
+    this.INPUT_1 = Bytes.of(0);
+    this.INPUT_2 = Bytes.of(0);
     this.LC_CORRECTION = false;
     this.IS_PREFIX = false;
-    this.LIMB = BigInteger.ZERO;
+    this.LIMB = Bytes.of(0);
     this.nBYTES = 0;
     this.POWER = BigInteger.ZERO;
   }

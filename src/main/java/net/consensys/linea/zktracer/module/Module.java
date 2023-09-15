@@ -39,7 +39,7 @@ public interface Module {
 
   default void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {}
 
-  default void traceStartTx(Transaction tx) {}
+  default void traceStartTx(WorldView worldView, Transaction tx) {}
 
   default void traceEndTx(
       WorldView worldView,

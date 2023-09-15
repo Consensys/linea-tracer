@@ -19,6 +19,7 @@ import java.util.List;
 
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodes;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.KeyPair;
 import org.hyperledger.besu.crypto.SECP256K1;
 import org.hyperledger.besu.datatypes.Address;
@@ -33,6 +34,9 @@ class ExampleTxTest {
   void test() {
     OpCodes.load();
     KeyPair keyPair = new SECP256K1().generateKeyPair();
+    // Bytes32 bytes32 = Bytes32.repeat((byte) 1);
+    // SECPPrivateKey privateKey = new SECP256K1().createPrivateKey(bytes32);
+    // KeyPair keyPair = new SECP256K1().createKeyPair(privateKey);
     Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
 
     ToyAccount senderAccount =
@@ -42,7 +46,7 @@ class ExampleTxTest {
         ToyAccount.builder()
             .balance(Wei.ONE)
             .nonce(6)
-            .address(Address.fromHexString("0x111111"))
+            .address(Address.fromHexString("0x00112233445566778899aabbccddeeff00112233"))
             .code(
                 BytecodeCompiler.newProgram()
                     .push(32, 0xbeef)
@@ -52,7 +56,13 @@ class ExampleTxTest {
             .build();
 
     Transaction tx =
-        ToyTransaction.builder().sender(senderAccount).to(receiverAccount).keyPair(keyPair).build();
+        ToyTransaction.builder()
+            .sender(senderAccount)
+            .keyPair(keyPair)
+          .to(receiverAccount)
+            .value(Wei.of(1))
+          .payload(Bytes.minimalBytes(156))
+            .build();
 
     ToyWorld toyWorld =
         ToyWorld.builder().accounts(List.of(senderAccount, receiverAccount)).build();

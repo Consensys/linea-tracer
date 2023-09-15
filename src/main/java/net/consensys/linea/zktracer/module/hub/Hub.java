@@ -80,7 +80,6 @@ import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
-import org.hyperledger.besu.plugin.data.TransactionReceipt;
 
 @Slf4j
 @Accessors(fluent = true)
@@ -165,7 +164,8 @@ public class Hub implements Module {
   }
 
   public List<Module> getModules() {
-    return List.of(add, ext, mod, mul, shf, trm, wcp);
+    List<Module> r = new ArrayList<>();
+    return r;
   }
 
   @Override

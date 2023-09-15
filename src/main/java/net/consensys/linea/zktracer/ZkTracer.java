@@ -25,7 +25,6 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.mul.Mul;
 import net.consensys.linea.zktracer.module.rlp_txn.RlpTxn;
-import net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxrcpt;
 import net.consensys.linea.zktracer.module.shf.Shf;
 import net.consensys.linea.zktracer.module.trm.Trm;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
@@ -45,7 +44,6 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
   private final Hub hub;
 
   private final List<Module> modules;
-  public RlpTxrcpt rlpTxn;
 
   public ZkTracer() {
     Add add = new Add();
@@ -55,11 +53,12 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
     Shf shf = new Shf();
     Trm trm = new Trm();
     Wcp wcp = new Wcp();
-    RlpTxrcpt rlpTxrcpt = new RlpTxrcpt();
+
     RlpTxn rlpTxn = new RlpTxn();
 
     this.hub = new Hub(add, ext, mod, mul, shf, trm, wcp);
     this.modules = hub.getModules();
+    this.modules.add(rlpTxn);
 
     // Load opcodes configured in src/main/resources/opcodes.yml.
     OpCodes.load();
@@ -136,7 +135,6 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
   @Override
   public void tracePreExecution(final MessageFrame frame) {
     this.hub.trace(frame);
-    this.rlpTxn.trace(frame);
   }
 
   @Override

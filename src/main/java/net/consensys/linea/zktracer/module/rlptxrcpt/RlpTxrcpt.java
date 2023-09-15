@@ -444,7 +444,7 @@ public class RlpTxrcpt implements Module {
     traceValue.isTopic = isTopic;
     traceValue.isData = isData;
 
-    Bytes input1RightShift = toGivenSize(traceValue.input1, 8);
+    Bytes input1RightShift = padToGivenSizeWithLeftZero(traceValue.input1, 8);
     long acc2LastRow = 0;
 
     if (length >= 56) {
@@ -453,7 +453,7 @@ public class RlpTxrcpt implements Module {
       acc2LastRow = 55 - length;
     }
 
-    Bytes acc2LastRowShift = toGivenSize(Bytes.ofUnsignedInt(acc2LastRow), 8);
+    Bytes acc2LastRowShift = padToGivenSizeWithLeftZero(Bytes.ofUnsignedInt(acc2LastRow), 8);
     for (int ct = 0; ct < 8; ct++) {
       traceValue.counter = ct;
       traceValue.accSize = byteCountingOutput.getAccByteSizeList().get(ct);
@@ -521,7 +521,7 @@ public class RlpTxrcpt implements Module {
         Bytes.ofUnsignedInt(input).size() - Bytes.ofUnsignedInt(input).numberOfLeadingZeroBytes();
     RlpByteCountAndPowerOutput byteCountingOutput = byteCounting(inputSize, 8);
 
-    Bytes inputBytes = toGivenSize(Bytes.ofUnsignedInt(input), 8);
+    Bytes inputBytes = padToGivenSizeWithLeftZero(Bytes.ofUnsignedInt(input), 8);
     RlpBitDecOutput bitDecOutput =
         bitDecomposition(0xff & inputBytes.get(inputBytes.size() - 1), 8);
 
@@ -723,12 +723,33 @@ public class RlpTxrcpt implements Module {
    * @param wantedSize
    * @return
    */
-  public static Bytes toGivenSize(Bytes input, int wantedSize) {
+  public static Bytes padToGivenSizeWithLeftZero(Bytes input, int wantedSize) {
     Preconditions.checkArgument(
         wantedSize >= input.size(), "wantedSize can't be shorter than the input size");
     byte nullByte = 0;
 
     return Bytes.concatenate(Bytes.repeat(nullByte, wantedSize - input.size()), input);
+  }
+
+  public static Bytes bigIntegerToBytes(BigInteger big) {
+    byte[] byteArray;
+    byteArray = big.toByteArray();
+    Bytes bytes;
+    if (byteArray[0] == 0) {
+      Bytes tmp = Bytes.wrap(byteArray);
+      bytes = Bytes.wrap(tmp.slice(1, tmp.size() - 1));
+    } else {
+      bytes = Bytes.wrap(byteArray);
+    }
+    return bytes;
+  }
+
+  public static Bytes padToGivenSizeWithRightZero(Bytes input, int wantedSize) {
+    Preconditions.checkArgument(
+        wantedSize >= input.size(), "wantedSize can't be shorter than the input size");
+    byte nullByte = 0;
+
+    return Bytes.concatenate(input, Bytes.repeat(nullByte, wantedSize - input.size()));
   }
 
   /**
@@ -777,9 +798,14 @@ public class RlpTxrcpt implements Module {
    * @return
    */
   public static RlpBitDecOutput bitDecomposition(int input, int nbStep) {
-    Preconditions.checkArgument(nbStep >= 8, "Number of steps must not exceed 8");
+    Preconditions.checkArgument(nbStep >= 8, "Number of steps must be at least 8");
 
     RlpBitDecOutput output = new RlpBitDecOutput();
+    // Set to zero first value
+    for (int i = 0; i < nbStep; i++) {
+      output.getBitAccList().add(i, 0);
+      output.getBitDecList().add(i, false);
+    }
 
     int bitAcc = 0;
     boolean bitDec = false;

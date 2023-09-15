@@ -47,4 +47,8 @@ public record ContextExceptions(boolean invalidCodePrefix, boolean codeSizeOverf
       return new ContextExceptions(false, false);
     }
   }
+
+  public boolean any() {
+    return this.invalidCodePrefix || this.codeSizeOverflow;
+  }
 }

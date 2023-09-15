@@ -202,4 +202,8 @@ public final class CallStack {
   public CallFrame getParentOf(int i) {
     return this.get(this.frames.get(i).getParentFrame());
   }
+
+  public void revert(int stamp) {
+    this.top().revert(this, stamp);
+  }
 }

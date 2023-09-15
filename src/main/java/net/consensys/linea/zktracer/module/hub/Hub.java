@@ -443,6 +443,7 @@ public class Hub implements Module {
       case CALL -> {}
       case HALT -> {}
       case INVALID -> {}
+      default -> {}
     }
   }
 
@@ -453,6 +454,9 @@ public class Hub implements Module {
     this.exceptions = Exceptions.fromFrame(frame);
     this.handleStack(frame);
     this.triggerModules(frame);
+    if (this.exceptions.any() || this.opCode == OpCode.REVERT) {
+      this.callStack.revert(this.stamp);
+    }
 
     if (this.currentFrame().getStack().isOk()) {
       this.traceOperation(frame);
@@ -572,6 +576,7 @@ public class Hub implements Module {
     for (StackLine line : pending.getLines()) {
       if (line.needsResult()) {
         EWord result = EWord.ZERO;
+        // Only pop from the stack if no exceptions have been encountered
         if (!exceptions.any()) {
           result = EWord.of(frame.getStackItem(0));
         }
@@ -621,8 +626,11 @@ public class Hub implements Module {
     unmarkDeploying(this.currentFrame().getCodeAddress());
 
     ContextExceptions contextExceptions = ContextExceptions.fromFrame(this.currentFrame(), frame);
+    if (contextExceptions.any()) {
+      this.callStack.revert(this.stamp);
+    }
 
-    this.callStack.exit(this.trace.size() - 1, frame.getReturnData());
+    this.callStack.exit(this.trace.size() - 1, frame.getReturnData()); // TODO: or getOutputData?
   }
 
   @Override

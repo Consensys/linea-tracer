@@ -191,4 +191,8 @@ public class CallFrame {
       throw new RuntimeException("a context can not self-reverse twice");
     }
   }
+
+  public boolean hasReverted() {
+    return (this.selfReverts > 0) || (this.getsReverted > 0);
+  }
 }

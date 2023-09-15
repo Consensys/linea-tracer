@@ -87,11 +87,12 @@ public class Hub implements Module {
   public final Trace.TraceBuilder trace = Trace.builder();
 
   @Getter private int pc;
-  private OpCode opCode;
+  @Getter private OpCode opCode;
   private int maxContextNumber;
   private Address minerAddress;
   private Wei baseFee;
   private Boolean txResult;
+  @Getter private MessageFrame frame;
 
   public boolean getTxResult() {
     if (this.txResult == null) {
@@ -149,29 +150,25 @@ public class Hub implements Module {
     this.isDeploying.put(address, false);
   }
   // Tx -> Opcode -> TraceSection
-  private final List<List<TraceSection>> traceSections = new ArrayList<>();
+  private final List<TxTrace> traceSections = new ArrayList<>();
 
   private int txChunksCount() {
     return this.traceSections.size();
   }
 
-  private int opcodeChunksCount() {
-    return this.traceSections.get(this.txChunksCount() - 1).size();
-  }
-
-  private List<TraceSection> currentTxTrace() {
+  private TxTrace currentTxTrace() {
     return this.traceSections.get(this.txChunksCount() - 1);
   }
 
   TraceSection currentTraceSection() {
-    return this.traceSections.get(this.txChunksCount() - 1).get(this.opcodeChunksCount() - 1);
+    return this.currentTxTrace().currentSection();
   }
 
   public int lastPc() {
     if (this.currentTxTrace().isEmpty()) {
       return 0;
     } else {
-      return this.currentTxTrace().get(this.currentTxTrace().size() - 1).pc();
+      return this.currentTxTrace().currentSection().pc();
     }
   }
 
@@ -179,7 +176,7 @@ public class Hub implements Module {
     if (this.currentTxTrace().isEmpty()) {
       return 0;
     } else {
-      return this.currentTxTrace().get(this.currentTxTrace().size() - 1).contextNumber();
+      return this.currentTxTrace().currentSection().contextNumber();
     }
   }
 
@@ -189,7 +186,7 @@ public class Hub implements Module {
   }
 
   void chunkNewTransaction() {
-    this.traceSections.add(new ArrayList<>());
+    this.traceSections.add(new TxTrace());
   }
 
   @Getter private Exceptions exceptions;
@@ -452,6 +449,8 @@ public class Hub implements Module {
     this.pc = frame.getPC();
     this.stamp++;
     this.exceptions = Exceptions.fromFrame(frame);
+    this.frame = frame;
+
     this.handleStack(frame);
     this.triggerModules(frame);
     if (this.exceptions.any() || this.opCode == OpCode.REVERT) {
@@ -490,7 +489,7 @@ public class Hub implements Module {
               this,
               new AccountFragment(fromSnapshot, fromSnapshot, false, 0, false),
               new AccountFragment(minerSnapshot, minerSnapshot, false, 0, false),
-              new TransactionFragment(
+              TransactionFragment.prepare(
                   this.batchNumber, minerAddress, tx, true, this.gasPrice(), this.baseFee)));
     } else {
       // otherwise 4 account rows (sender, coinbase, sender, recipient) + 1 tx row
@@ -562,9 +561,7 @@ public class Hub implements Module {
     }
     this.txDefers.clear();
 
-    for (TraceSection section : this.currentTxTrace()) {
-      section.postTxRetcon(this);
-    }
+    this.currentTxTrace().postTxRetcon(this);
   }
 
   private void unlatchStack(MessageFrame frame) {
@@ -677,31 +674,23 @@ public class Hub implements Module {
 
   @Override
   public void traceEndConflation() {
-    for (List<TraceSection> txSections : this.traceSections) {
-      for (TraceSection section : txSections) {
-        section.postConflationRetcon(this);
-      }
+    for (TxTrace txTrace : this.traceSections) {
+      txTrace.postConflationRetcon(this);
     }
   }
 
   @Override
   public Object commit() {
-    for (var txSection : this.traceSections) {
-      for (TraceSection opSection : txSection) {
-        for (TraceSection.TraceLine line : opSection.getLines()) {
-          line.trace(this.trace);
-        }
-      }
+    for (TxTrace txTrace : this.traceSections) {
+      txTrace.commit(this.trace);
     }
     return new HubTrace(trace.build());
   }
 
   public int lineCount() {
     int count = 0;
-    for (var txSection : this.traceSections) {
-      for (TraceSection opSection : txSection) {
-        count += opSection.getLines().size();
-      }
+    for (TxTrace txSection : this.traceSections) {
+      count += txSection.lineCount();
     }
     return count;
   }
@@ -784,7 +773,7 @@ public class Hub implements Module {
       case TRANSACTION -> this.addTraceSection(
           new TransactionSection(
               this,
-              new TransactionFragment(
+              TransactionFragment.prepare(
                   this.batchNumber,
                   frame.getMiningBeneficiary(),
                   this.currentTx,

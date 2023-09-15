@@ -60,6 +60,7 @@ public class ToyExecutionEnvironment {
   private static final Bytes DEFAULT_BYTECODE = Bytes.EMPTY;
   private static final long DEFAULT_GAS_LIMIT = 1_000_000;
   private static final ToyWorld DEFAULT_TOY_WORLD = ToyWorld.empty();
+  private static final Wei DEFAULT_BASE_FEE = Wei.of(7_000_000_000L);
 
   private final BlockValues blockValues = ToyBlockValues.builder().number(13L).build();
   private final ToyWorld toyWorld;
@@ -145,7 +146,9 @@ public class ToyExecutionEnvironment {
     final MessageCallProcessor messageCallProcessor =
         new MessageCallProcessor(evm, new PrecompileContractRegistry());
 
-    BlockHeader mockBlockHeader = BlockHeaderBuilder.createDefault().buildBlockHeader();
+    BlockHeader mockBlockHeader =
+        BlockHeaderBuilder.createDefault().baseFee(DEFAULT_BASE_FEE).buildBlockHeader();
+
     BlockBody mockBlockBody = new BlockBody(transactions, new ArrayList<>());
 
     tracer.traceStartConflation(1);

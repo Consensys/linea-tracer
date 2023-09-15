@@ -15,14 +15,16 @@
 
 package net.consensys.linea.zktracer.module.mmu;
 
+import java.math.BigInteger;
 import java.util.Arrays;
 
 import lombok.AllArgsConstructor;
-import net.consensys.linea.zktracer.module.hub.callstack.CallFrameType;
-import net.consensys.linea.zktracer.module.hub.callstack.CallStack;
+import net.consensys.linea.zktracer.module.runtime.callstack.CallFrameType;
+import net.consensys.linea.zktracer.module.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
+import org.apache.commons.lang3.NotImplementedException;
 
 @AllArgsConstructor
 class MicroData {
@@ -50,7 +52,7 @@ class MicroData {
   // stack element
   private Offsets offsets;
   // precomputation type
-  private int precomputation;
+  private BigInteger precomputation;
   // < 1.000.000
   private int min;
   private UnsignedByte ternary;
@@ -91,7 +93,7 @@ class MicroData {
         null,
         null,
         null,
-        0,
+        BigInteger.valueOf(0),
         0,
         UnsignedByte.of(0),
         null,
@@ -210,4 +212,52 @@ class MicroData {
       info = callStack.depth() == 1;
     }
   }
+
+  //  void setContext(boolean isMicro, CallStack callStack) {
+  //    contexts
+  //  }
+
+  void preProcessing(CallStack callStack) {
+    if (precomputation.equals(MmuTrace.type1)) {
+      type1PreProcessing();
+      return;
+    } else if (precomputation.equals(MmuTrace.type2)) {
+      type2PreProcessing();
+      return;
+    } else if (precomputation.equals(MmuTrace.type3)) {
+      type3PreProcessing();
+      return;
+    } else if (Arrays.asList(MmuTrace.type4CC, MmuTrace.type4CD, MmuTrace.type4RD)
+        .contains(precomputation)) {
+      type4PreProcessing(callStack);
+      return;
+    } else if (precomputation.equals(MmuTrace.type5)) {
+      type5PreProcessing();
+      return;
+    }
+
+    throw new NotImplementedException();
+  }
+
+  private void type5PreProcessing() {}
+
+  private void type4PreProcessing(final CallStack callStack) {}
+
+  private void type3PreProcessing() {
+    switch (opCode) {
+      case SHA3 -> exoIsHash = true;
+      case LOG0, LOG1, LOG2, LOG3, LOG4 -> exoIsLog = true;
+      case CREATE, RETURN -> exoIsRom = true;
+      case CREATE2 -> {
+        exoIsRom = true;
+        exoIsHash = true;
+      }
+      default -> throw new UnsupportedOperationException(
+          "OpCode.%s is not supported for MMU type 3 pre-processing.".formatted(opCode));
+    }
+  }
+
+  private void type2PreProcessing() {}
+
+  private void type1PreProcessing() {}
 }

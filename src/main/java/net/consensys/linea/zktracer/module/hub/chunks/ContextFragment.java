@@ -18,8 +18,8 @@ package net.consensys.linea.zktracer.module.hub.chunks;
 import java.math.BigInteger;
 
 import net.consensys.linea.zktracer.module.hub.Trace;
-import net.consensys.linea.zktracer.module.hub.callstack.CallFrame;
-import net.consensys.linea.zktracer.module.hub.callstack.CallStack;
+import net.consensys.linea.zktracer.module.runtime.callstack.CallFrame;
+import net.consensys.linea.zktracer.module.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.types.EWord;
 
 public record ContextFragment(CallStack callStack, CallFrame callFrame, boolean update)

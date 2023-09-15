@@ -22,8 +22,10 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Exceptions;
+import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.TxState;
+import net.consensys.linea.zktracer.module.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.opcode.InstructionFamily;
 import net.consensys.linea.zktracer.types.EWord;
 
@@ -35,17 +37,14 @@ public final class CommonFragment implements TraceFragment {
   private final TxState txState;
   private final int stamp;
   @Setter private int txEndStamp;
-  private final boolean txReverts;
+  @Getter @Setter private boolean txReverts;
   private final InstructionFamily instructionFamily;
   private final Exceptions exceptions;
-  private final boolean abortFlag;
-  private final boolean failureConditionFlag;
   @Getter private final int contextNumber;
   @Setter private int newContextNumber;
   private final int revertStamp;
-  private final boolean willRevert;
-  private final boolean getsReverted;
-  private final boolean selfReverts;
+  private boolean getsReverted;
+  private boolean selfReverts;
   @Getter private final int pc;
   @Setter private int newPc;
   private final EWord codeAddress;
@@ -56,7 +55,8 @@ public final class CommonFragment implements TraceFragment {
   private final long gasActual;
   private final long gasCost;
   private final long gasNext;
-  private final long gasRefund;
+  @Getter private final long refundDelta;
+  @Setter private long gasRefund;
   @Getter @Setter private boolean twoLinesInstruction;
   @Getter @Setter private boolean twoLinesInstructionCounter;
   @Getter @Setter private int numberOfNonStackRows;
@@ -82,14 +82,12 @@ public final class CommonFragment implements TraceFragment {
                     || instructionFamily == InstructionFamily.INVALID)
                 || exceptions.any())
         .exceptionAhoyFlag(exceptions.any())
-        .abortFlag(abortFlag)
-        .failureConditionFlag(failureConditionFlag)
 
         // Context data
         .contextNumber(BigInteger.valueOf(contextNumber))
         .contextNumberNew(BigInteger.valueOf(newContextNumber))
         .contextRevertStamp(BigInteger.valueOf(revertStamp))
-        .contextWillRevertFlag(willRevert)
+        .contextWillRevertFlag(getsReverted || selfReverts)
         .contextGetsRevrtdFlag(getsReverted)
         .contextSelfRevrtsFlag(selfReverts)
         .programCounter(BigInteger.valueOf(pc))
@@ -110,5 +108,15 @@ public final class CommonFragment implements TraceFragment {
         .counterTli(twoLinesInstructionCounter)
         .numberOfNonStackRows(BigInteger.valueOf(numberOfNonStackRows))
         .counterNsr(BigInteger.valueOf(nonStackRowsCounter));
+  }
+
+  @Override
+  public void postTxRetcon(Hub hub) {
+    CallFrame frame = hub.getCallStack().get(this.contextNumber);
+
+    this.txEndStamp = hub.getStamp();
+    this.txReverts = hub.getTxResult();
+    this.selfReverts = frame.getSelfReverts() > 0;
+    this.getsReverted = frame.getGetsReverted() > 0;
   }
 }

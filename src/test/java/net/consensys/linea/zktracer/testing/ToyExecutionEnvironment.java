@@ -42,6 +42,7 @@ import org.hyperledger.besu.evm.Code;
 import org.hyperledger.besu.evm.EVM;
 import org.hyperledger.besu.evm.MainnetEVMs;
 import org.hyperledger.besu.evm.account.Account;
+import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.code.CodeV0;
 import org.hyperledger.besu.evm.frame.BlockValues;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -110,7 +111,7 @@ public class ToyExecutionEnvironment {
     final Account receiverAccount = toyWorld.get(tx.getTo().orElse(null));
 
     final Optional<Bytes> byteCode =
-        Optional.ofNullable(receiverAccount != null ? receiverAccount.getCode() : Bytes.EMPTY);
+        Optional.ofNullable(receiverAccount).map(AccountState::getCode);
 
     final Code code =
         byteCode.map(bytes -> evm.getCode(Hash.hash(bytes), bytes)).orElse(CodeV0.EMPTY_CODE);

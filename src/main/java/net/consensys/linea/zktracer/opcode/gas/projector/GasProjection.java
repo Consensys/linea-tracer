@@ -71,7 +71,7 @@ public interface GasProjection {
     return 0;
   }
 
-  default long codeReturn() {
+  default long deploymentCost() {
     return 0;
   }
 
@@ -100,6 +100,6 @@ public interface GasProjection {
         + linearPerByte()
         + storageWarmth()
         + sStoreValue()
-        + codeReturn();
+        + deploymentCost();
   }
 }

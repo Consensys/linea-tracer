@@ -619,6 +619,9 @@ public class Hub implements Module {
   @Override
   public void traceContextExit(MessageFrame frame) {
     unmarkDeploying(this.currentFrame().getCodeAddress());
+
+    ContextExceptions contextExceptions = ContextExceptions.fromFrame(this.currentFrame(), frame);
+
     this.callStack.exit(this.trace.size() - 1, frame.getReturnData());
   }
 

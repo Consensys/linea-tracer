@@ -39,7 +39,7 @@ public record Return(GasCalculator gc, MessageFrame frame) implements GasProject
   }
 
   @Override
-  public long codeReturn() {
+  public long deploymentCost() {
     final long length = clampedToLong(frame.getStackItem(1));
 
     if (length > 24_576) {

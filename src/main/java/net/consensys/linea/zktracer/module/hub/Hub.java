@@ -384,7 +384,6 @@ public class Hub implements Module {
               }
               this.addTraceSection(new WarmupSection(this, fragments));
             });
-
   }
 
   void processStateInit(WorldView world) {

@@ -234,6 +234,11 @@ public abstract class TraceSection {
     }
   }
 
+  /**
+   * Update this section with the current refunded gas as computed by the hub.
+   *
+   * @param refundedGas the refunded gas provided by the hub
+   */
   public void setFinalGasRefundCounter(long refundedGas) {
     for (TraceLine chunk : lines) {
       if (chunk.specific instanceof TransactionFragment fragment) {

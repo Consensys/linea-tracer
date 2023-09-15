@@ -26,14 +26,8 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.gascalculator.GasCalculator;
 import org.hyperledger.besu.evm.internal.Words;
 
-public final class GasProjector {
-  private final GasCalculator gc;
-
-  public GasProjector(GasCalculator gc) {
-    this.gc = gc;
-  }
-
-  public GasProjection of(MessageFrame frame, OpCode opCode) {
+public record GasProjector() {
+  public static GasProjection of(MessageFrame frame, OpCode opCode, GasCalculator gc) {
     switch (opCode) {
       case STOP -> new Zero(gc);
       case ADD,

@@ -128,7 +128,7 @@ public abstract class TraceSection {
    * @param hub the Hub linked to fragments execution
    * @param fragments the fragments to add to the section
    */
-  public final void addChunks(Hub hub, TraceFragment... fragments) {
+  public final void addChunksWithoutStack(Hub hub, TraceFragment... fragments) {
     for (TraceFragment chunk : fragments) {
       this.addChunk(hub, chunk);
     }
@@ -145,7 +145,7 @@ public abstract class TraceSection {
     for (var stackChunk : hub.makeStackChunks()) {
       this.addChunk(hub, stackChunk);
     }
-    this.addChunks(hub, fragments);
+    this.addChunksWithoutStack(hub, fragments);
   }
 
   /**

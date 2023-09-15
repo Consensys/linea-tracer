@@ -15,14 +15,13 @@
 
 package net.consensys.linea.zktracer.module.hub.section;
 
+import java.util.List;
+
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.chunks.TraceFragment;
 
-public class EndTransaction extends TraceSection {
-  public EndTransaction(Hub hub, TraceFragment... fragments) {
-    this.addChunksWithoutStack(hub, fragments);
+public class WarmupSection extends TraceSection {
+  public WarmupSection(Hub hub, List<TraceFragment> fragments) {
+    this.addChunksWithoutStack(hub, fragments.toArray(new TraceFragment[0]));
   }
-
-  @Override
-  public void seal(Hub hub) {}
 }

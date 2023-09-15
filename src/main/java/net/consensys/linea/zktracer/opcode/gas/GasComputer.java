@@ -3,7 +3,6 @@ package net.consensys.linea.zktracer.opcode.gas;
 import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.opcode.gas.GasConstants;
 import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
@@ -64,7 +63,8 @@ public final class GasComputer {
       long returnDataOffset,
       long returnDataLength,
       Wei value,
-      Account recipient) {
+      Account recipient,
+      Address to) {
     return new GasCost() {
       @Override
       public long memoryExpansion() {
@@ -75,7 +75,7 @@ public final class GasComputer {
 
       @Override
       public long accountAccess() {
-        if (frame.isAddressWarm(recipient.getAddress())) {
+        if (frame.isAddressWarm(to)) {
           return GasConstants.G_WARM_ACCESS.cost();
         } else {
           return GasConstants.G_COLD_ACCOUNT_ACCESS.cost();
@@ -412,6 +412,25 @@ public final class GasComputer {
                   : GasConstants.G_S_RESET.cost();
             }
           }
+
+          @Override
+          public long refund() {
+            long r = 0;
+
+            if (currentValue.equals(newValue)) {
+              r = 0;
+            } else {
+              if (originalValue.equals(currentValue)) {
+                if (newValue.isZero()) {
+                  return GasConstants.R_S_CLEAR.cost();
+                } else {
+
+                }
+              }
+            }
+
+            return r;
+          }
         };
       }
       case JUMPI -> new GasCost() {
@@ -521,6 +540,7 @@ public final class GasComputer {
         final long stipend = clampedToLong(frame.getStackItem(0));
         final Account recipient =
             frame.getWorldUpdater().get(Words.toAddress(frame.getStackItem(1)));
+        final Address to = recipient.getAddress();
         final Wei value = Wei.wrap(frame.getStackItem(2));
         final long inputDataOffset = clampedToLong(frame.getStackItem(3));
         final long inputDataLength = clampedToLong(frame.getStackItem(4));
@@ -534,11 +554,13 @@ public final class GasComputer {
             returnDataOffset,
             returnDataLength,
             value,
-            recipient);
+            recipient,
+            to);
       }
       case CALLCODE -> {
         final long stipend = clampedToLong(frame.getStackItem(0));
         final Account recipient = frame.getWorldUpdater().get(frame.getRecipientAddress());
+        final Address to = Words.toAddress(frame.getStackItem(1));
         final Wei value = Wei.wrap(frame.getStackItem(2));
         final long inputDataOffset = clampedToLong(frame.getStackItem(3));
         final long inputDataLength = clampedToLong(frame.getStackItem(4));
@@ -552,13 +574,13 @@ public final class GasComputer {
             returnDataOffset,
             returnDataLength,
             value,
-            recipient);
+            recipient,
+            to);
       }
-      case DELEGATECALL, STATICCALL -> {
+      case DELEGATECALL -> {
         final long stipend = clampedToLong(frame.getStackItem(0));
-        final Account recipient =
-            frame.getWorldUpdater().get(Words.toAddress(frame.getStackItem(1)));
-        final Wei value = Wei.ZERO;
+        final Account recipient = frame.getWorldUpdater().get(frame.getRecipientAddress());
+        final Address to = Words.toAddress(frame.getStackItem(1));
         final long inputDataOffset = clampedToLong(frame.getStackItem(2));
         final long inputDataLength = clampedToLong(frame.getStackItem(3));
         final long returnDataOffset = clampedToLong(frame.getStackItem(4));
@@ -570,8 +592,29 @@ public final class GasComputer {
             inputDataLength,
             returnDataOffset,
             returnDataLength,
-            value,
-            recipient);
+            Wei.ZERO,
+            recipient,
+            to);
+      }
+      case STATICCALL -> {
+        final long stipend = clampedToLong(frame.getStackItem(0));
+        final Account recipient =
+            frame.getWorldUpdater().get(Words.toAddress(frame.getStackItem(1)));
+        final Address to = recipient.getAddress();
+        final long inputDataOffset = clampedToLong(frame.getStackItem(2));
+        final long inputDataLength = clampedToLong(frame.getStackItem(3));
+        final long returnDataOffset = clampedToLong(frame.getStackItem(4));
+        final long returnDataLength = clampedToLong(frame.getStackItem(5));
+        return callCost(
+            frame,
+            stipend,
+            inputDataOffset,
+            inputDataLength,
+            returnDataOffset,
+            returnDataLength,
+            Wei.ZERO,
+            recipient,
+            to);
       }
       case RETURN -> {
         return new GasCost() {
@@ -635,6 +678,11 @@ public final class GasComputer {
           } else {
             return 0L;
           }
+        }
+
+        @Override
+        public long refund() {
+          return GasConstants.R_SELF_DESTRUCT.cost();
         }
       };
       default -> throw new IllegalStateException("Unexpected value: " + opCode);

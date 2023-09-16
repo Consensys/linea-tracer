@@ -31,10 +31,8 @@ import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.ext.Ext;
 import net.consensys.linea.zktracer.module.hub.defer.CallDefer;
 import net.consensys.linea.zktracer.module.hub.defer.CreateDefer;
-import net.consensys.linea.zktracer.module.hub.defer.NextContextDefer;
-import net.consensys.linea.zktracer.module.hub.defer.PostExecDefer;
+import net.consensys.linea.zktracer.module.hub.defer.DeferRegistry;
 import net.consensys.linea.zktracer.module.hub.defer.SkippedTransactionDefer;
-import net.consensys.linea.zktracer.module.hub.defer.TransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
@@ -98,6 +96,7 @@ public class Hub implements Module {
   @Getter TxInfo tx = new TxInfo();
   @Getter CallStack callStack = new CallStack();
 
+  private final DeferRegistry defers = new DeferRegistry();
   @Getter private Exceptions exceptions;
   @Getter int stamp = 0;
   @Getter private int pc;
@@ -144,27 +143,6 @@ public class Hub implements Module {
 
   void createNewTxTrace() {
     this.traceSections.add(new TxTrace());
-  }
-
-  /** A list of latches deferred until the end of the current transaction */
-  private final List<TransactionDefer> txDefers = new ArrayList<>();
-  /** Defers a latch to be executed at the end of the current transaction. */
-  private void deferPostTx(TransactionDefer latch) {
-    this.txDefers.add(latch);
-  }
-
-  /** A list of latches deferred until the end of the current opcode execution */
-  private final List<PostExecDefer> postExecDefers = new ArrayList<>();
-  /** Defers a latch to be executed after the completion of the current opcode. */
-  private void deferPostExec(PostExecDefer latch) {
-    this.postExecDefers.add(latch);
-  }
-
-  /** A list of latches deferred until the end of the current opcode execution */
-  private final List<NextContextDefer> nextContextDefers = new ArrayList<>();
-  /** Defers a latch to be executed after the completion of the current opcode. */
-  private void deferNextContext(NextContextDefer latch) {
-    this.nextContextDefers.add(latch);
   }
 
   private final Module add;
@@ -279,7 +257,7 @@ public class Hub implements Module {
       this.conflation.deploymentInfo().deploy(toAddress);
     }
 
-    this.deferPostTx(
+    this.defers.postTx(
         new SkippedTransactionDefer(
             oldFromAccount, oldToAccount, oldMinerAccount, this.tx.gasPrice(), this.block.baseFee));
   }
@@ -522,12 +500,9 @@ public class Hub implements Module {
       WorldView world, Transaction tx, boolean status, Bytes output, List<Log> logs, long gasUsed) {
     this.tx.state(TxState.TX_FINAL);
     this.tx.status(status);
-
     this.processStateFinal(world, tx, status);
-    for (TransactionDefer defer : this.txDefers) {
-      defer.run(this, world, this.tx.transaction());
-    }
-    this.txDefers.clear();
+
+    this.defers.runPostTx(this, world, tx);
 
     this.currentTxTrace().postTxRetcon(this);
   }
@@ -579,10 +554,7 @@ public class Hub implements Module {
         codeDeploymentNumber,
         isDeployment);
 
-    for (NextContextDefer defer : this.nextContextDefers) {
-      defer.run(this, frame);
-    }
-    this.nextContextDefers.clear();
+    this.defers.runNextContext(this, frame);
   }
 
   @Override
@@ -626,10 +598,7 @@ public class Hub implements Module {
       this.handleCreate(Words.toAddress(frame.getStackItem(0)));
     }
 
-    for (PostExecDefer defer : this.postExecDefers) {
-      defer.run(this, frame, operationResult);
-    }
-    this.postExecDefers.clear();
+    this.defers.runPostExec(this, frame, operationResult);
   }
 
   private void handleCreate(Address target) {
@@ -828,8 +797,8 @@ public class Hub implements Module {
                 createdAccountSnapshot,
                 new ContextFragment(this.callStack, this.currentFrame(), updateReturnData));
         // Will be traced in one (and only one!) of these depending on the success of the operation
-        this.deferPostExec(protoCreateSection);
-        this.deferNextContext(protoCreateSection);
+        this.defers.postExec(protoCreateSection);
+        this.defers.nextContext(protoCreateSection);
       }
       case CALL -> {
         Address myAddress = this.currentFrame().getAddress();
@@ -856,8 +825,8 @@ public class Hub implements Module {
                 calledAccountSnapshot,
                 new ContextFragment(this.callStack, this.currentFrame(), updateReturnData));
 
-        this.deferPostExec(protoCallSection);
-        this.deferNextContext(protoCallSection);
+        this.defers.postExec(protoCallSection);
+        this.defers.nextContext(protoCallSection);
       }
       case JUMP -> {
         AccountSnapshot codeAccountSnapshot =

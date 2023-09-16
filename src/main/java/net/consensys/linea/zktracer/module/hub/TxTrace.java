@@ -40,17 +40,21 @@ public class TxTrace {
     this.trace.add(section);
   }
 
-  public void postTxRetcon(Hub hub) {
-    long leftoverGas = hub.frame().getRemainingGas();
+  public long refundedGas() {
     long refundedGas = 0;
     for (TraceSection section : this.trace) {
       if (!section.hasReverted()) {
         refundedGas += section.refundDelta();
       }
-      section.postTxRetcon(hub, leftoverGas, refundedGas);
     }
+    return refundedGas;
+  }
 
+  public void postTxRetcon(Hub hub) {
+    long leftoverGas = hub.frame().getRemainingGas();
+    long refundedGas = this.refundedGas();
     for (TraceSection section : this.trace) {
+      section.postTxRetcon(hub, leftoverGas, refundedGas);
       section.setFinalGasRefundCounter(refundedGas);
     }
   }

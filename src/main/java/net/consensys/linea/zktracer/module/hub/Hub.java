@@ -630,6 +630,14 @@ public class Hub implements Module {
     return new HubTrace(trace.build());
   }
 
+  public long refundedGas() {
+    return this.currentTxTrace().refundedGas();
+  }
+
+  public long remainingGas() {
+    return this.frame.getRemainingGas();
+  }
+
   public int lineCount() {
     int count = 0;
     for (TxTrace txSection : this.traceSections) {

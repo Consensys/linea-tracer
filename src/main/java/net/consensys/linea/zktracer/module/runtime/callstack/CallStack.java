@@ -36,24 +36,23 @@ public final class CallStack {
   /** the maximal depth of the call stack (as defined by Ethereum) */
   static final int CALLSTACK_SIZE = 1024;
   /** a never-pruned-tree of the {@link CallFrame} executed by the {@link Hub} */
-  private List<CallFrame> frames = new ArrayList<>();
+  private final List<CallFrame> frames = new ArrayList<>();
   /** the current depth of the call stack. */
   private int depth;
   /** a "pointer" to the current {@link CallFrame} in <code>frames</code>. */
   private int current;
 
-  public CallStack(
+  public void newBedrock(
       Address to,
       CallFrameType type,
       Bytecode toCode,
       Wei value,
       long gas,
-      Bytes calldata,
+      Bytes callData,
       int contextNumber,
       int accountDeploymentNumber,
       int codeDeploymentNumber,
       boolean codeDeploymentStatus) {
-    this.current = 0;
     this.depth = 0;
     this.frames.add(new CallFrame());
     this.enter(
@@ -62,11 +61,12 @@ public final class CallStack {
         type,
         value,
         gas,
-        calldata,
+        callData,
         contextNumber,
         accountDeploymentNumber,
         codeDeploymentNumber,
         codeDeploymentStatus);
+    this.current = this.frames.size() - 1;
   }
 
   /**

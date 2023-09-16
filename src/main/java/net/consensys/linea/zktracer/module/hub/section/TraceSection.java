@@ -22,10 +22,10 @@ import lombok.Getter;
 import net.consensys.linea.zktracer.module.hub.ContextExceptions;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
-import net.consensys.linea.zktracer.module.hub.chunks.CommonFragment;
-import net.consensys.linea.zktracer.module.hub.chunks.StackFragment;
-import net.consensys.linea.zktracer.module.hub.chunks.TraceFragment;
-import net.consensys.linea.zktracer.module.hub.chunks.TransactionFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.CommonFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.StackFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.TransactionFragment;
 import net.consensys.linea.zktracer.opcode.OpCode;
 
 /** A TraceSection gather the trace lines linked to a single operation */
@@ -68,23 +68,23 @@ public abstract class TraceSection {
    * @return a chunk representing the share columns
    */
   private CommonFragment traceCommon(Hub hub) {
-    OpCode opCode = hub.getOpCode();
+    OpCode opCode = hub.opCode();
     return new CommonFragment(
-        hub.getTxNumber(),
-        hub.getBatchNumber(),
-        hub.getTxState(),
-        hub.getStamp(),
+        hub.tx().number(),
+        hub.conflation().number(),
+        hub.tx().state(),
+        hub.stamp(),
         0, // retconned
         false, // retconned
         hub.opCodeData().instructionFamily(),
-        hub.getExceptions().snapshot(),
+        hub.exceptions().snapshot(),
         hub.currentFrame().getContextNumber(),
         hub.currentFrame().getContextNumber(),
         0, // retconned
         false, // retconned
         false, // retconned
-        hub.getPc(),
-        hub.getPc(), // retconned later on
+        hub.pc(),
+        hub.pc(), // retconned later on
         hub.currentFrame().addressAsEWord(),
         hub.currentFrame().getCodeDeploymentNumber(),
         hub.currentFrame().isCodeDeploymentStatus(),
@@ -93,7 +93,7 @@ public abstract class TraceSection {
         0,
         0,
         0,
-        hub.gp.of(hub.getFrame(), opCode).refund(),
+        Hub.gp.of(hub.frame(), opCode).refund(),
         0,
         hub.opCodeData().stackSettings().twoLinesInstruction(),
         this.stackRowsCounter == 1,
@@ -263,7 +263,7 @@ public abstract class TraceSection {
    *
    * @param contEx the computed exceptions
    */
-  public void setContexExceptions(ContextExceptions contEx) {
+  public void setContextExceptions(ContextExceptions contEx) {
     for (TraceLine chunk : lines) {
       if (chunk.specific instanceof StackFragment fragment) {
         fragment.contextExceptions(contEx);

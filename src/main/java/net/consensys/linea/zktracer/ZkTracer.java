@@ -70,6 +70,7 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
 
   @Override
   public void traceStartConflation(final long numBlocksInConflation) {
+    hub.traceStartConflation(numBlocksInConflation);
     for (Module module : this.modules) {
       module.traceStartConflation(numBlocksInConflation);
     }

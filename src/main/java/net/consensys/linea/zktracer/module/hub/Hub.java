@@ -659,7 +659,16 @@ public class Hub implements Module {
       this.callStack.revert(this.stamp);
     }
 
-    this.callStack.exit(this.trace.size() - 1, frame.getReturnData()); // TODO: or getOutputData?
+    if (!frame.getReturnData().isEmpty() && !frame.getOutputData().isEmpty()) {
+      throw new RuntimeException("both return data and output data set");
+    }
+
+    if (!frame.getOutputData().isEmpty()) {
+      this.callStack.exit(this.trace.size() - 1, frame.getOutputData());
+    } else {
+      this.callStack.exit(this.trace.size() - 1, frame.getReturnData());
+    }
+
   }
 
   @Override

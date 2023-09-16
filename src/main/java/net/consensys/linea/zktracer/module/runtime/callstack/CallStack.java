@@ -62,7 +62,6 @@ public final class CallStack {
         type,
         value,
         gas,
-        0,
         calldata,
         contextNumber,
         accountDeploymentNumber,
@@ -89,8 +88,6 @@ public final class CallStack {
    * @param type the execution type of call frame
    * @param value the value given to this call frame
    * @param gas the gas provided to this call frame
-   * @param currentLine where the trace relative to this call frame starts within the {@link Hub}
-   *     trace
    * @param input the call data sent to this call frame
    * @param contextNumber the context number associated to this frame in the {@link Hub}
    * @param accountDeploymentNumber
@@ -103,7 +100,6 @@ public final class CallStack {
       CallFrameType type,
       Wei value,
       long gas,
-      int currentLine,
       Bytes input,
       int contextNumber,
       int accountDeploymentNumber,
@@ -118,6 +114,7 @@ public final class CallStack {
       callData = Bytes.EMPTY;
     }
 
+    this.depth += 1;
     CallFrame newFrame =
         new CallFrame(
             contextNumber,
@@ -131,12 +128,11 @@ public final class CallStack {
             caller,
             value,
             gas,
-            currentLine,
-            callData);
+            callData,
+            this.depth);
 
     this.frames.add(newFrame);
     this.current = newTop;
-    this.depth += 1;
     this.frames.get(caller).getChildFrames().add(newTop);
   }
 
@@ -151,7 +147,6 @@ public final class CallStack {
     this.depth -= 1;
     assert this.depth >= 0;
 
-    this.top().close(currentLine);
     final int parent = this.top().getParentFrame();
     this.frames.get(parent).getChildFrames().add(this.current);
     this.frames.get(parent).setReturnData(returnData);

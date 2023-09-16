@@ -640,7 +640,6 @@ public class Hub implements Module {
         frameType,
         frame.getValue(),
         frame.getRemainingGas(),
-        this.trace.size(),
         frame.getInputData(),
         this.stamp + 1,
         this.deploymentNumber(codeAddress),

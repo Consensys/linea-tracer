@@ -17,7 +17,11 @@ package net.consensys.linea.zktracer.module.hub;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
@@ -319,7 +323,7 @@ public class Hub implements Module {
                   fragments.add(
                       new StorageFragment(
                           address,
-                          this.deploymentNumber(address),
+                          this.conflation.deploymentInfo().number(address),
                           EWord.of(key),
                           value,
                           value,

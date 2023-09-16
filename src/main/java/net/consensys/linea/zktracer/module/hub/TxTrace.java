@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class TxTrace {
   private final List<TraceSection> trace = new ArrayList<>();
@@ -54,9 +55,9 @@ public class TxTrace {
     }
   }
 
-  public void postConflationRetcon(Hub hub) {
+  public void postConflationRetcon(Hub hub, WorldView world) {
     for (TraceSection section : this.trace) {
-      section.postConflationRetcon(hub);
+      section.postConflationRetcon(hub, world);
     }
   }
 

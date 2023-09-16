@@ -618,7 +618,7 @@ public class Hub implements Module {
   @Override
   public void traceEndConflation() {
     for (TxTrace txTrace : this.traceSections) {
-      txTrace.postConflationRetcon(this);
+      txTrace.postConflationRetcon(this, null /* TODO WorldView */);
     }
   }
 

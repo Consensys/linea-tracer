@@ -80,14 +80,6 @@ public class RollupGenerateConflatedTracesToFileV0 {
                       traceBlockAndReturnPath(blockContext, params.runtimeVersion(), tracer)));
       tracer.traceEndConflation();
 
-      //      trace(fromBlock, toBlock,
-      //        worldStateBeforeTracing -> {
-      //          //before tracing
-      //          tracer.traceStartConflation(toBlock - fromBlock + 1);
-      //        },worldStateAfterTracing -> {
-      //          //after tracing
-      //          tracer.traceEndConflation();
-      //        }, tracer);
 
       return new FileTrace(params.runtimeVersion(), paths);
     } catch (Exception ex) {

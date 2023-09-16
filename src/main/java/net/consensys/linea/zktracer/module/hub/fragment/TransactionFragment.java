@@ -19,8 +19,8 @@ import java.math.BigInteger;
 
 import lombok.Setter;
 import net.consensys.linea.zktracer.EWord;
-import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
+import net.consensys.linea.zktracer.module.hub.TxInfo;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -36,6 +36,7 @@ public final class TransactionFragment implements TraceFragment {
   private final boolean txSuccess;
   @Setter private long gasRefundFinalCounter;
   @Setter private long gasRefundAmount;
+  private long initialGas;
 
   private TransactionFragment(
       int batchNumber,
@@ -46,7 +47,8 @@ public final class TransactionFragment implements TraceFragment {
       Wei baseFee,
       boolean txSuccess,
       long gasRefundFinalCounter,
-      long gasRefundAmount) {
+      long gasRefundAmount,
+      long initialGas) {
     this.batchNumber = batchNumber;
     this.minerAddress = minerAddress;
     this.tx = tx;
@@ -56,6 +58,7 @@ public final class TransactionFragment implements TraceFragment {
     this.txSuccess = txSuccess;
     this.gasRefundFinalCounter = gasRefundFinalCounter;
     this.gasRefundAmount = gasRefundAmount;
+    this.initialGas = initialGas;
   }
 
   public static TransactionFragment prepare(
@@ -64,9 +67,10 @@ public final class TransactionFragment implements TraceFragment {
       Transaction tx,
       boolean evmExecutes,
       Wei gasPrice,
-      Wei baseFee) {
+      Wei baseFee,
+      long initialGas) {
     return new TransactionFragment(
-        batchNumber, minerAddress, tx, evmExecutes, gasPrice, baseFee, false, 0, 0);
+        batchNumber, minerAddress, tx, evmExecutes, gasPrice, baseFee, false, 0, 0, initialGas);
   }
 
   @Override
@@ -86,8 +90,8 @@ public final class TransactionFragment implements TraceFragment {
         .pTransactionToAddressLo(to.loBigInt())
         .pTransactionGasPrice(gasPrice.toUnsignedBigInteger())
         .pTransactionBasefee(baseFee.toUnsignedBigInteger())
-        .pTransactionInitGas(Hub.computeInitGas(tx))
-        .pTransactionInitialBalance(BigInteger.ZERO) // TODO: save the init balance from TX_INIT
+        .pTransactionInitGas(TxInfo.computeInitGas(tx))
+        .pTransactionInitialBalance(BigInteger.valueOf(initialGas))
         .pTransactionValue(tx.getValue().getAsBigInteger())
         .pTransactionCoinbaseAddressHi(miner.hiBigInt())
         .pTransactionCoinbaseAddressLo(miner.loBigInt())

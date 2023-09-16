@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -77,8 +76,6 @@ import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.frame.MessageFrame;
-import org.hyperledger.besu.evm.gascalculator.GasCalculator;
-import org.hyperledger.besu.evm.gascalculator.LondonGasCalculator;
 import org.hyperledger.besu.evm.internal.Words;
 import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.operation.Operation;
@@ -90,7 +87,6 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 @Accessors(fluent = true)
 public class Hub implements Module {
   private static final int TAU = 8;
-  private static final GasCalculator gc = new LondonGasCalculator();
   public static final GasProjector gp = new GasProjector();
 
   public final Trace.TraceBuilder trace = Trace.builder();
@@ -288,14 +284,6 @@ public class Hub implements Module {
             oldFromAccount, oldToAccount, oldMinerAccount, this.tx.gasPrice(), this.block.baseFee));
   }
 
-  public static BigInteger computeInitGas(Transaction tx) {
-    boolean isDeployment = tx.getTo().isEmpty();
-    return BigInteger.valueOf(
-        tx.getGasLimit()
-            - gc.transactionIntrinsicGasCost(tx.getPayload(), isDeployment)
-            - tx.getAccessList().map(gc::accessListGasCost).orElse(0L));
-  }
-
   void processStateWarm(WorldView world) {
     this.stamp++;
     // reproduction ordonnée des préchauffages de la Tx
@@ -480,7 +468,8 @@ public class Hub implements Module {
                   tx,
                   true,
                   this.tx.gasPrice(),
-                  this.block.baseFee)));
+                  this.block.baseFee,
+                  this.tx.initialGas())));
     } else {
       // otherwise 4 account rows (sender, coinbase, sender, recipient) + 1 tx row
       Address toAddress = this.tx.transaction().getSender();
@@ -764,7 +753,8 @@ public class Hub implements Module {
                   this.tx.transaction(),
                   true,
                   frame.getGasPrice(),
-                  frame.getBlockValues().getBaseFee().orElse(Wei.ZERO))));
+                  frame.getBlockValues().getBaseFee().orElse(Wei.ZERO),
+                  this.tx.initialGas())));
 
       case STACK_RAM -> {
         TraceSection stackRamSection = new StackRam(this);

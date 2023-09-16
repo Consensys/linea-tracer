@@ -83,6 +83,12 @@ public record SkippedTransactionDefer(
 
             // 1 line -- transaction data
             TransactionFragment.prepare(
-                hub.conflation().number(), minerAddress, tx, false, gasPrice, baseFee)));
+                hub.conflation().number(),
+                minerAddress,
+                tx,
+                false,
+                gasPrice,
+                baseFee,
+                hub.tx().initialGas())));
   }
 }

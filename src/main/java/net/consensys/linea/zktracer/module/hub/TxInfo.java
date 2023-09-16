@@ -23,12 +23,16 @@ import lombok.experimental.Accessors;
 import org.hyperledger.besu.datatypes.Quantity;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
+import org.hyperledger.besu.evm.gascalculator.GasCalculator;
+import org.hyperledger.besu.evm.gascalculator.LondonGasCalculator;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 /** Stores transaction-specific information. */
 @Accessors(fluent = true)
 @Getter
 public class TxInfo {
+  private static final GasCalculator gc = new LondonGasCalculator();
+
   private int number = 0;
   private Transaction transaction;
   @Setter private TxState state;
@@ -60,6 +64,14 @@ public class TxInfo {
   public Wei gasPrice() {
     return Wei.of(
         this.transaction.getGasPrice().map(Quantity::getAsBigInteger).orElse(BigInteger.ZERO));
+  }
+
+  public static BigInteger computeInitGas(Transaction tx) {
+    boolean isDeployment = tx.getTo().isEmpty();
+    return BigInteger.valueOf(
+        tx.getGasLimit()
+            - gc.transactionIntrinsicGasCost(tx.getPayload(), isDeployment)
+            - tx.getAccessList().map(gc::accessListGasCost).orElse(0L));
   }
 
   /**

@@ -615,7 +615,6 @@ public class Hub implements Module {
     } else {
       this.callStack.exit(this.trace.size() - 1, frame.getReturnData());
     }
-
   }
 
   @Override

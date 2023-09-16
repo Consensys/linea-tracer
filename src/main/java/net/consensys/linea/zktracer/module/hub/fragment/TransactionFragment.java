@@ -36,6 +36,7 @@ public final class TransactionFragment implements TraceFragment {
   private final boolean txSuccess;
   @Setter private long gasRefundFinalCounter;
   @Setter private long gasRefundAmount;
+  @Setter private long leftoverGas;
   private long initialGas;
 
   private TransactionFragment(
@@ -97,9 +98,9 @@ public final class TransactionFragment implements TraceFragment {
         .pTransactionCoinbaseAddressLo(miner.loBigInt())
         .pTransactionCallDataSize(BigInteger.valueOf(tx.getData().map(Bytes::size).orElse(0)))
         .pTransactionTxnRequiresEvmExecution(evmExecutes)
-        .pTransactionLeftoverGas(BigInteger.ZERO) // TODO: defer/retcon
+        .pTransactionLeftoverGas(BigInteger.valueOf(leftoverGas))
         .pTransactionGasRefundCounterFinal(BigInteger.valueOf(gasRefundFinalCounter))
-        .pTransactionGasRefundAmount(BigInteger.valueOf(gasRefundAmount)) // TODO: retcon
+        .pTransactionGasRefundAmount(BigInteger.valueOf(gasRefundAmount))
         .pTransactionStatusCode(txSuccess);
   }
 }

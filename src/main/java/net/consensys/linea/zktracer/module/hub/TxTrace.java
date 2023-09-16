@@ -40,12 +40,13 @@ public class TxTrace {
   }
 
   public void postTxRetcon(Hub hub) {
+    long leftoverGas = hub.frame().getRemainingGas();
     long refundedGas = 0;
     for (TraceSection section : this.trace) {
       if (!section.hasReverted()) {
         refundedGas += section.refundDelta();
       }
-      section.postTxRetcon(hub, refundedGas);
+      section.postTxRetcon(hub, leftoverGas, refundedGas);
     }
 
     for (TraceSection section : this.trace) {

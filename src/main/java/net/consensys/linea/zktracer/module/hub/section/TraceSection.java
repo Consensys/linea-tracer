@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lombok.Getter;
+import net.consensys.linea.zktracer.module.hub.ContextExceptions;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.chunks.CommonFragment;
@@ -26,8 +27,6 @@ import net.consensys.linea.zktracer.module.hub.chunks.StackFragment;
 import net.consensys.linea.zktracer.module.hub.chunks.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.chunks.TransactionFragment;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.opcode.gas.projector.GasProjector;
-import org.hyperledger.besu.evm.gascalculator.LondonGasCalculator;
 
 /** A TraceSection gather the trace lines linked to a single operation */
 public abstract class TraceSection {
@@ -94,7 +93,7 @@ public abstract class TraceSection {
         0,
         0,
         0,
-        GasProjector.of(hub.getFrame(), opCode, new LondonGasCalculator()).refund(),
+        hub.gp.of(hub.getFrame(), opCode).refund(),
         0,
         hub.opCodeData().stackSettings().twoLinesInstruction(),
         this.stackRowsCounter == 1,
@@ -256,6 +255,19 @@ public abstract class TraceSection {
     for (TraceLine chunk : lines) {
       chunk.common().postConflationRetcon(hub);
       chunk.specific().postConflationRetcon(hub);
+    }
+  }
+
+  /**
+   * Update the stack fragments of the section with the provided {@link ContextExceptions}.
+   *
+   * @param contEx the computed exceptions
+   */
+  public void setContexExceptions(ContextExceptions contEx) {
+    for (TraceLine chunk : lines) {
+      if (chunk.specific instanceof StackFragment fragment) {
+        fragment.contextExceptions(contEx);
+      }
     }
   }
 }

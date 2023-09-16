@@ -65,6 +65,7 @@ import net.consensys.linea.zktracer.module.trm.Trm;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
+import net.consensys.linea.zktracer.opcode.gas.projector.GasProjector;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
@@ -91,6 +92,7 @@ public class Hub implements Module {
 
   public final Trace.TraceBuilder trace = Trace.builder();
 
+  public final GasProjector gp = new GasProjector();
   @Getter private int pc;
   @Getter private OpCode opCode;
   private int maxContextNumber;
@@ -111,7 +113,7 @@ public class Hub implements Module {
     return this.opCode.getData();
   }
 
-  final Map<Address, Map<EWord, EWord>> valOrigs = new HashMap<>();
+  final Map<Address, Map<EWord, EWord>> originalStorageValues = new HashMap<>();
 
   private Wei gasPrice() {
     return Wei.of(
@@ -119,7 +121,8 @@ public class Hub implements Module {
   }
 
   private EWord getValOrigOrUpdate(Address address, EWord key, EWord value) {
-    EWord r = this.valOrigs.computeIfAbsent(address, x -> new HashMap<>()).putIfAbsent(key, value);
+    EWord r =
+        this.originalStorageValues.computeIfAbsent(address, new HashMap<>()).putIfAbsent(key, value);
     if (r == null) {
       return value;
     }
@@ -480,7 +483,7 @@ public class Hub implements Module {
     this.opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
     this.pc = frame.getPC();
     this.stamp++;
-    this.exceptions = Exceptions.fromFrame(frame);
+    this.exceptions = Exceptions.fromFrame(frame, this.gp);
     this.frame = frame;
 
     this.handleStack(frame);
@@ -655,6 +658,7 @@ public class Hub implements Module {
     unmarkDeploying(this.currentFrame().getCodeAddress());
 
     ContextExceptions contextExceptions = ContextExceptions.fromFrame(this.currentFrame(), frame);
+    this.currentTraceSection().setContexExceptions(contextExceptions);
     if (contextExceptions.any()) {
       this.callStack.revert(this.stamp);
     }
@@ -947,13 +951,20 @@ public class Hub implements Module {
     if (this.currentFrame().getPending().getLines().isEmpty()) {
       for (int i = 0; i < (this.opCodeData().stackSettings().twoLinesInstruction() ? 2 : 1); i++) {
         r.add(
-            new StackFragment(
-                this.currentFrame().getStack().snapshot(), new StackLine(i).asStackOperations()));
+            StackFragment.prepare(
+                this.currentFrame().getStack().snapshot(),
+                new StackLine(i).asStackOperations(),
+                this.exceptions.snapshot(),
+                gp.of(frame, this.opCode).staticGas()));
       }
     } else {
       for (StackLine line : this.currentFrame().getPending().getLines()) {
         r.add(
-            new StackFragment(this.currentFrame().getStack().snapshot(), line.asStackOperations()));
+            StackFragment.prepare(
+                this.currentFrame().getStack().snapshot(),
+                line.asStackOperations(),
+                this.exceptions.snapshot(),
+                gp.of(frame, this.opCode).staticGas()));
       }
     }
     return r;

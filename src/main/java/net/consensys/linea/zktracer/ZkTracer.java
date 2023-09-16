@@ -126,8 +126,6 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
     }
   }
 
-  // TODO: missing ContextEnter/Exit
-
   @Override
   public void tracePreExecution(final MessageFrame frame) {
     this.hub.trace(frame);

@@ -264,7 +264,6 @@ public class Hub implements Module {
 
   void processStateWarm(WorldView world) {
     this.stamp++;
-    // reproduction ordonnée des préchauffages de la Tx
     this.tx
         .transaction()
         .getAccessList()
@@ -306,10 +305,8 @@ public class Hub implements Module {
 
   void processStateInit(WorldView world) {
     this.stamp++;
-    var fromAddress = this.tx.transaction().getSender();
     boolean isDeployment = this.tx.transaction().getTo().isEmpty();
-    Address toAddress =
-        effectiveToAddress(this.tx.transaction());
+    Address toAddress = effectiveToAddress(this.tx.transaction());
     this.callStack.newBedrock(
         toAddress,
         isDeployment ? CallFrameType.INIT_CODE : CallFrameType.STANDARD,
@@ -475,7 +472,9 @@ public class Hub implements Module {
    * @return the effective target address of tx
    */
   public static Address effectiveToAddress(Transaction tx) {
-    return tx.getTo().map(x -> (Address) x).orElse(Address.contractAddress(tx.getSender(), tx.getNonce()));
+    return tx.getTo()
+        .map(x -> (Address) x)
+        .orElse(Address.contractAddress(tx.getSender(), tx.getNonce()));
   }
 
   @Override
@@ -513,7 +512,8 @@ public class Hub implements Module {
     }
 
     StackContext pending = this.currentFrame().getPending();
-    for (StackLine line : pending.getLines()) {
+    for (int i = 0; i < pending.getLines().size(); i++) {
+      StackLine line = pending.getLines().get(i);
       if (line.needsResult()) {
         EWord result = EWord.ZERO;
         // Only pop from the stack if no exceptions have been encountered
@@ -522,7 +522,7 @@ public class Hub implements Module {
         }
 
         // This works because we are certain that the stack chunks are the first.
-        ((StackFragment) this.currentTraceSection().getLines().get(line.ct()).specific())
+        ((StackFragment) this.currentTraceSection().getLines().get(i).specific())
             .stackOps()
             .get(line.resultColumn() - 1)
             .setValue(result);
@@ -852,7 +852,7 @@ public class Hub implements Module {
         r.add(
             StackFragment.prepare(
                 this.currentFrame().getStack().snapshot(),
-                new StackLine(i).asStackOperations(),
+                new StackLine().asStackOperations(),
                 this.exceptions.snapshot(),
                 gp.of(frame, this.opCode).staticGas()));
       }

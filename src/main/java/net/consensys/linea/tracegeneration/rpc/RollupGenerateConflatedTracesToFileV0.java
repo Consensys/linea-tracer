@@ -80,7 +80,6 @@ public class RollupGenerateConflatedTracesToFileV0 {
                       traceBlockAndReturnPath(blockContext, params.runtimeVersion(), tracer)));
       tracer.traceEndConflation();
 
-
       return new FileTrace(params.runtimeVersion(), paths);
     } catch (Exception ex) {
       throw new PluginRpcEndpointException(ex.getMessage());

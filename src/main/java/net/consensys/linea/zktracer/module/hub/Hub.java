@@ -229,7 +229,7 @@ public class Hub implements Module {
             false);
 
     // To account information
-    Address toAddress = effectiveToAddress(this.tx.transaction(), fromAddress, 0);
+    Address toAddress = effectiveToAddress(this.tx.transaction());
     boolean toIsWarm =
         (fromAddress == toAddress)
             || isPrecompile(toAddress); // should never happen – no TX to PC allowed
@@ -309,7 +309,7 @@ public class Hub implements Module {
     var fromAddress = this.tx.transaction().getSender();
     boolean isDeployment = this.tx.transaction().getTo().isEmpty();
     Address toAddress =
-        effectiveToAddress(this.tx.transaction(), fromAddress, world.get(fromAddress).getNonce());
+        effectiveToAddress(this.tx.transaction());
     this.callStack.newBedrock(
         toAddress,
         isDeployment ? CallFrameType.INIT_CODE : CallFrameType.STANDARD,
@@ -474,8 +474,8 @@ public class Hub implements Module {
    *
    * @return the effective target address of tx
    */
-  private static Address effectiveToAddress(Transaction tx, Address fromAddress, long fromNonce) {
-    return tx.getTo().map(x -> (Address) x).orElse(Address.contractAddress(fromAddress, fromNonce));
+  public static Address effectiveToAddress(Transaction tx) {
+    return tx.getTo().map(x -> (Address) x).orElse(Address.contractAddress(tx.getSender(), tx.getNonce()));
   }
 
   @Override

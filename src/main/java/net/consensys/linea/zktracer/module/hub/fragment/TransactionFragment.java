@@ -19,6 +19,7 @@ import java.math.BigInteger;
 
 import lombok.Setter;
 import net.consensys.linea.zktracer.EWord;
+import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.TxInfo;
 import org.apache.tuweni.bytes.Bytes;
@@ -37,7 +38,7 @@ public final class TransactionFragment implements TraceFragment {
   @Setter private long gasRefundFinalCounter;
   @Setter private long gasRefundAmount;
   @Setter private long leftoverGas;
-  private long initialGas;
+  private final long initialGas;
 
   private TransactionFragment(
       int batchNumber,
@@ -76,8 +77,7 @@ public final class TransactionFragment implements TraceFragment {
 
   @Override
   public Trace.TraceBuilder trace(Trace.TraceBuilder trace) {
-    final EWord deploymentAddress = EWord.of(Address.EMPTY); // TODO compute deployment address
-    final EWord to = tx.getTo().map(EWord::of).orElse(deploymentAddress);
+    final EWord to = EWord.of(Hub.effectiveToAddress(tx));
     final EWord from = EWord.of(tx.getSender());
     final EWord miner = EWord.of(minerAddress);
 

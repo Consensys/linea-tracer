@@ -41,7 +41,6 @@ import org.hyperledger.besu.ethereum.core.Transaction;
 import org.hyperledger.besu.evm.Code;
 import org.hyperledger.besu.evm.EVM;
 import org.hyperledger.besu.evm.MainnetEVMs;
-import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.code.CodeV0;
 import org.hyperledger.besu.evm.frame.BlockValues;
@@ -108,9 +107,9 @@ public class ToyExecutionEnvironment {
   }
 
   private MessageFrame prepareFrame(final Transaction tx) {
-     final Bytes byteCode =
+    final Bytes byteCode =
         toyWorld
-          .get(
+            .get(
                 tx.getTo()
                     .orElseThrow(
                         () ->

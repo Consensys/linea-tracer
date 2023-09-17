@@ -606,7 +606,6 @@ public class RlpTxn implements Module {
         }
 
         if (ct == 7) {
-          // traceValue.LIMB_CONSTRUCTED = true;
           traceValue.LIMB = bigIntegerToBytes(BigInteger.valueOf(length));
           traceValue.nBYTES = lengthSize;
           traceValue.BIT = true;
@@ -861,11 +860,13 @@ public class RlpTxn implements Module {
     if (rlpSize < 57) {
       output -= 1;
     } else if (rlpSize == 57) {
-      throw new RuntimeException("can't be of this 57");
+      throw new RuntimeException("can't be of size 57");
     } else if (57 < rlpSize && rlpSize < 258) {
       output -= 2;
+    } else if (rlpSize == 258) {
+      throw new RuntimeException("can't be of size 258");
     } else {
-      for (int i = 0; i < 8; i++) {
+      for (int i = 1; i < 8; i++) {
         if ((rlpSize - 2 - i >= Math.pow(2, 8 * i))
             && (rlpSize - i - 1 <= Math.pow(2, 8 * (i + 1)))) {
           output -= (2 + i);

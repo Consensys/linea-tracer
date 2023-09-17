@@ -104,11 +104,12 @@ class RandomTxn {
             // .value(Wei.of(randBigIntSixteenBytes))
 
             // TODO: Choose the data
-            .payload(Bytes.EMPTY)
+            // .payload(Bytes.EMPTY)
             // .payload(Bytes.minimalBytes(randLongSmall))
-            // .payload(Bytes.minimalBytes(randLongMedium))
+            //.payload(Bytes.minimalBytes(randLongMedium))
             // .payload(Bytes.random(randIntLEFiveFive))
             // .payload(Bytes.random(randIntGEFiveSix))
+          .payload(Bytes.random(140))
             .build();
 
     ToyWorld toyWorld =

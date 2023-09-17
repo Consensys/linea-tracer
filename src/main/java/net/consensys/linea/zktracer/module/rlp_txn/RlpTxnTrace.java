@@ -13,7 +13,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-
 package net.consensys.linea.zktracer.module.rlp_txn;
 
 import com.fasterxml.jackson.annotation.JsonProperty;

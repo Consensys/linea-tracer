@@ -108,17 +108,15 @@ public class ToyExecutionEnvironment {
   }
 
   private MessageFrame prepareFrame(final Transaction tx) {
-    // final Bytes byteCode =
-    //    toyWorld
-    //        .get(
-    //            tx.getTo()
-    //                .orElseThrow(
-    //                    () ->
-    //                        new IllegalArgumentException(
-    //                            "Cannot fetch receiver account address from transaction")))
-    //        .getCode();
-    //
-    final Bytes byteCode = toyWorld.get(tx.getTo().get()).getCode();
+     final Bytes byteCode =
+        toyWorld
+          .get(
+                tx.getTo()
+                    .orElseThrow(
+                        () ->
+                            new IllegalArgumentException(
+                                "Cannot fetch receiver account address from transaction")))
+            .getCode();
 
     final Optional<Bytes> byteCode =
         Optional.ofNullable(receiverAccount).map(AccountState::getCode);

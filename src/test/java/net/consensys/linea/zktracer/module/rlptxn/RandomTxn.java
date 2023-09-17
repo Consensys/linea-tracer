@@ -60,11 +60,12 @@ class RandomTxn {
         ToyAccount.builder()
             .balance(Wei.of(5))
 
-            // TODO: Choose the value of the sender's nonce
-            // .nonce(0)
+            // Choose the value of the sender's nonce
+            .nonce(0)
             // .nonce(randLongSmall)
-            .nonce(randLongLong)
-            .address(senderAddress)
+            //.nonce(randLongLong)
+
+          .address(senderAddress)
             .build();
 
     ToyAccount receiverAccount =
@@ -72,7 +73,7 @@ class RandomTxn {
             .balance(Wei.ONE)
             .nonce(6)
 
-            // TODO: Choose the receiver's address
+            // Choose the receiver's address
             // .address(Address.fromHexString("0x00112233445566778899aabbccddeeff00112233"))
             // .address(Address.fromHexString("0x0"))
             .address(Address.wrap(Bytes.random(20)))
@@ -90,26 +91,28 @@ class RandomTxn {
             .keyPair(keyPair)
             .to(receiverAccount)
 
-            // TODO: Choose the type of transaction
+            // Choose the type of transaction
             .transactionType(TransactionType.FRONTIER)
             // .transactionType(TransactionType.ACCESS_LIST)
             // .transactionType(TransactionType.EIP1559)
 
-            // TODO: Choose the value of GasLimit
+            // Choose the value of GasLimit
             // .gasLimit(0L)
             // .gasLimit(randLongSmall)
             .gasLimit(randLongLong)
+
+          // Choose the value of the value
             .value(Wei.of(BigInteger.ZERO))
             // .value(Wei.of(randBigIntSmall))
             // .value(Wei.of(randBigIntSixteenBytes))
 
-            // TODO: Choose the data
-            // .payload(Bytes.EMPTY)
+            // Choose the data
+             .payload(Bytes.EMPTY)
             // .payload(Bytes.minimalBytes(randLongSmall))
-            //.payload(Bytes.minimalBytes(randLongMedium))
+            // .payload(Bytes.minimalBytes(randLongMedium))
             // .payload(Bytes.random(randIntLEFiveFive))
             // .payload(Bytes.random(randIntGEFiveSix))
-          .payload(Bytes.random(140))
+            //.payload(Bytes.random(140))
             .build();
 
     ToyWorld toyWorld =

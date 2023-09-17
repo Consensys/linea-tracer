@@ -288,12 +288,7 @@ public class RlpTxn implements Module {
   private void handlePhaseInteger(
       RlpTxnColumnsValue traceValue, int phase, BigInteger input, int nbstep) {
     if (input.equals(BigInteger.ZERO)) {
-      traceValue.partialReset(phase, 1, true, true);
-      traceValue.LIMB_CONSTRUCTED = true;
-      traceValue.LIMB = prefix_short_int;
-      traceValue.nBYTES = 1;
-      traceValue.PHASE_END = true;
-      traceRow(traceValue);
+      traceZeroInt(traceValue, phase, true, true, false, true);
     } else {
       rlpInt(phase, input, nbstep, true, true, false, true, false, traceValue);
     }
@@ -305,12 +300,7 @@ public class RlpTxn implements Module {
     boolean lx = true;
 
     if (tx.getTo().isEmpty()) {
-      traceValue.partialReset(phase, 1, lt, lx);
-      traceValue.LIMB_CONSTRUCTED = true;
-      traceValue.LIMB = prefix_short_int;
-      traceValue.nBYTES = 1;
-      traceValue.PHASE_END = true;
-      traceRow(traceValue);
+      traceZeroInt(traceValue, phase, lt, lx, false, true);
     } else {
       handleAddress(traceValue, phase, tx.getTo().get());
     }
@@ -323,12 +313,7 @@ public class RlpTxn implements Module {
 
     if (tx.getPayload().isEmpty()) {
       // Trivial case
-      traceValue.partialReset(phase, 1, lt, lx);
-      traceValue.LIMB_CONSTRUCTED = true;
-      traceValue.LIMB = prefix_short_int;
-      traceValue.nBYTES = 1;
-      traceValue.IS_PREFIX = true;
-      traceRow(traceValue);
+      traceZeroInt(traceValue, phase, lt, lx, true, false);
 
       // One row of padding
       traceValue.partialReset(phase, 1, lt, lx);
@@ -406,14 +391,7 @@ public class RlpTxn implements Module {
 
     /** Trivial case */
     if (tx.getAccessList().isEmpty()) {
-      traceValue.partialReset(phase, 1, lt, lx);
-      traceValue.LIMB_CONSTRUCTED = true;
-      traceValue.LIMB = prefix_short_list;
-      traceValue.nBYTES = 1;
-      traceValue.IS_PREFIX = true;
-      traceValue.PHASE_END = true;
-      traceRow(traceValue);
-
+      traceVoidList(traceValue, phase, lt, lx, true, false, false, true);
     } else {
       // Initialise traceValue
       int nbAddr = 0;
@@ -470,15 +448,7 @@ public class RlpTxn implements Module {
 
         // Rlp prefix of the list of storage key
         if (nbStoPerAddrList.get(i) == 0) {
-          traceValue.partialReset(10, 1, lt, lx);
-          traceValue.IS_PREFIX = true;
-          traceValue.DEPTH_1 = true;
-          traceValue.DEPTH_2 = true;
-          traceValue.LIMB_CONSTRUCTED = true;
-          traceValue.LIMB = prefix_short_list;
-          traceValue.nBYTES = 1;
-          traceValue.PHASE_END = (traceValue.nb_Sto == 0);
-          traceRow(traceValue);
+          traceVoidList(traceValue, phase, lt, lx, true, true, true, (traceValue.nb_Sto == 0));
         } else {
           rlpByteString(
               phase,
@@ -692,12 +662,7 @@ public class RlpTxn implements Module {
     traceValue.partialReset(phase, llarge, true, false);
     if (input.equals(BigInteger.ZERO)) {
       // Trivial case
-      traceValue.nSTEP = 1;
-      traceValue.LIMB_CONSTRUCTED = true;
-      traceValue.LIMB = prefix_short_int;
-      traceValue.nBYTES = 1;
-      traceValue.PHASE_END = true;
-      traceRow(traceValue);
+      traceZeroInt(traceValue, phase, true, false, false, true);
     } else {
       // General case
       Bytes inputByte = bigIntegerToBytes(input);
@@ -976,6 +941,41 @@ public class RlpTxn implements Module {
     AccessListTransactionEncoder.writeAccessList(rlpOutput, accessList);
   }
 
+  private void traceZeroInt(
+      RlpTxnColumnsValue traceValue,
+      int phase,
+      boolean lt,
+      boolean lx,
+      boolean isPrefix,
+      boolean phaseEnd) {
+    traceValue.partialReset(phase, 1, lt, lx);
+    traceValue.LIMB_CONSTRUCTED = true;
+    traceValue.LIMB = prefix_short_int;
+    traceValue.nBYTES = 1;
+    traceValue.IS_PREFIX = true;
+    traceValue.PHASE_END = phaseEnd;
+    traceRow(traceValue);
+  }
+
+  private void traceVoidList(
+      RlpTxnColumnsValue traceValue,
+      int phase,
+      boolean lt,
+      boolean lx,
+      boolean isPrefix,
+      boolean depth1,
+      boolean depth2,
+      boolean phaseEnd) {
+    traceValue.partialReset(phase, 1, lt, lx);
+    traceValue.LIMB_CONSTRUCTED = true;
+    traceValue.LIMB = prefix_short_list;
+    traceValue.nBYTES = 1;
+    traceValue.IS_PREFIX = isPrefix;
+    traceValue.DEPTH_1 = depth1;
+    traceValue.DEPTH_2 = depth2;
+    traceValue.PHASE_END = phaseEnd;
+    traceRow(traceValue);
+  }
   // Define the Tracer
   private void traceRow(RlpTxnColumnsValue traceValue) {
     // Decrements RLP_BYTESIZE

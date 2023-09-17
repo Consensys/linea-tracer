@@ -41,6 +41,7 @@ import org.hyperledger.besu.ethereum.core.Transaction;
 import org.hyperledger.besu.evm.Code;
 import org.hyperledger.besu.evm.EVM;
 import org.hyperledger.besu.evm.MainnetEVMs;
+import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.code.CodeV0;
 import org.hyperledger.besu.evm.frame.BlockValues;
@@ -107,15 +108,7 @@ public class ToyExecutionEnvironment {
   }
 
   private MessageFrame prepareFrame(final Transaction tx) {
-    final Bytes byteCode =
-        toyWorld
-            .get(
-                tx.getTo()
-                    .orElseThrow(
-                        () ->
-                            new IllegalArgumentException(
-                                "Cannot fetch receiver account address from transaction")))
-            .getCode();
+    final Account receiverAccount = toyWorld.get(tx.getTo().orElse(null));
 
     final Optional<Bytes> byteCode =
         Optional.ofNullable(receiverAccount).map(AccountState::getCode);

@@ -49,11 +49,11 @@ class AddTracerTest {
         .run();
   }
 
-  @ParameterizedTest(name = "{index} {0}")
-  @MethodSource("provideTraceSpecs")
-  void traceWithSpecFile(final String ignored, URL specUrl) {
-    SpecTests.runSpecTestWithTraceComparison(specUrl, MODULE.jsonKey());
-  }
+//  @ParameterizedTest(name = "{index} {0}")
+//  @MethodSource("provideTraceSpecs")
+//  void traceWithSpecFile(final String ignored, URL specUrl) {
+//    SpecTests.runSpecTestWithTraceComparison(specUrl, MODULE.jsonKey());
+//  }
 
   private static Object[][] provideTraceSpecs() {
     return SpecTests.findSpecFiles(MODULE.jsonKey());

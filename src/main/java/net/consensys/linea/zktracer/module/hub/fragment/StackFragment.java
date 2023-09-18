@@ -26,11 +26,11 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.ContextExceptions;
 import net.consensys.linea.zktracer.module.hub.Exceptions;
 import net.consensys.linea.zktracer.module.hub.Trace;
-import net.consensys.linea.zktracer.module.hub.stack.Action;
-import net.consensys.linea.zktracer.module.hub.stack.Stack;
-import net.consensys.linea.zktracer.module.hub.stack.StackOperation;
 import net.consensys.linea.zktracer.opcode.InstructionFamily;
 import net.consensys.linea.zktracer.opcode.gas.MxpType;
+import net.consensys.linea.zktracer.stack.Action;
+import net.consensys.linea.zktracer.stack.Stack;
+import net.consensys.linea.zktracer.stack.StackOperation;
 
 @Accessors(fluent = true)
 public final class StackFragment implements TraceFragment {

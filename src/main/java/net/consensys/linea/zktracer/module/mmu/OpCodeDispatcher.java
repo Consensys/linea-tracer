@@ -13,10 +13,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.stack;
+package net.consensys.linea.zktracer.module.mmu;
 
-public enum Action {
-  NONE,
-  PUSH,
-  POP
+import java.util.Map;
+
+import net.consensys.linea.zktracer.module.runtime.callstack.CallStack;
+import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.stack.StackOperation;
+
+interface OpCodeDispatcher {
+  void dispatch(OpCode opCode, Map<Integer, StackOperation> stackOps, CallStack callStack);
 }

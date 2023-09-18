@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.stack;
+package net.consensys.linea.zktracer.stack;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;

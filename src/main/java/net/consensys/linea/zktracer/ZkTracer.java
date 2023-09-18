@@ -15,7 +15,9 @@
 
 package net.consensys.linea.zktracer;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.Module;
@@ -150,5 +152,13 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
   @Override
   public void traceContextExit(MessageFrame frame) {
     this.hub.traceContextExit(frame);
+  }
+
+  public Map<String, Long> getTracesCounters(long fromBlock) {
+    Map<String, Long> counters = new HashMap<>();
+    for (Module module : this.modules) {
+      counters.put(module.jsonKey(), module.getTracesCounters(fromBlock));
+    }
+    return counters;
   }
 }

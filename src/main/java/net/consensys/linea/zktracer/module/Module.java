@@ -56,4 +56,8 @@ public interface Module {
   default void trace(MessageFrame frame) {}
 
   Object commit();
+
+  default long getTracesCounters(long fromBlock) {
+    return 0;
+  }
 }

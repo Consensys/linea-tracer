@@ -15,7 +15,9 @@
 
 package net.consensys.linea.zktracer;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.Module;

@@ -15,4 +15,14 @@
 
 package net.consensys.linea.zktracer.module.mmu;
 
-record Contexts(int source, int target) {}
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
+@Accessors(fluent = true)
+@EqualsAndHashCode
+class Contexts {
+  @Getter @Setter private int source;
+  @Getter @Setter private int target;
+}

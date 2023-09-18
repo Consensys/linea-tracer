@@ -55,7 +55,7 @@ class MicroData {
   private BigInteger precomputation;
   // < 1.000.000
   private int min;
-  private UnsignedByte ternary;
+  private BigInteger ternary;
   private StackFrames stackFrames;
   private Contexts contexts;
   // every acc is actually on 16 bytes
@@ -93,9 +93,9 @@ class MicroData {
         null,
         null,
         null,
-        BigInteger.valueOf(0),
+        BigInteger.ZERO,
         0,
-        UnsignedByte.of(0),
+        BigInteger.ZERO,
         null,
         null,
         new UnsignedByte[9],
@@ -204,7 +204,7 @@ class MicroData {
     return offsets.target().uByte();
   }
 
-  void setInfo(CallStack callStack) {
+  void setInfo(final CallStack callStack) {
     if (Arrays.asList(OpCode.CODECOPY, OpCode.RETURN).contains(opCode)) {
       info = callStack.top().getType() == CallFrameType.INIT_CODE;
       // TODO: settle EXTCODEDOPY info for CODECOPY
@@ -213,11 +213,100 @@ class MicroData {
     }
   }
 
-  //  void setContext(boolean isMicro, CallStack callStack) {
-  //    contexts
-  //  }
+  void setContext(final boolean isMicro, final CallStack callStack) {
+    contexts.target(callStack.top().getContextNumber());
 
-  void preProcessing(CallStack callStack) {
+    switch (opCode) {
+      case RETURNDATACOPY -> {
+        exoIsHash = false;
+        exoIsLog = false;
+        exoIsRom = false;
+        exoIsTxcd = false;
+      }
+      case CALLDATACOPY -> {
+        exoIsHash = false;
+        exoIsLog = false;
+        exoIsRom = false;
+
+        if (isMicro && isRead()) {
+          exoIsTxcd = info;
+        } else {
+          exoIsTxcd = false;
+        }
+
+        if (callStackDepth != 1) {
+          contexts.source(callStack.caller().getContextNumber());
+        } else {
+          contexts.source(0);
+        }
+      }
+      case CODECOPY, EXTCODECOPY -> {
+        exoIsHash = false;
+        exoIsLog = false;
+
+        exoIsRom = isMicro && isRead();
+        exoIsTxcd = false;
+
+        contexts.source(0);
+      }
+      default -> throw new UnsupportedOperationException(
+          "OpCode.%s is not supported for MMU type 4 pre-processing and/or processing"
+              .formatted(opCode));
+    }
+  }
+
+  void processing(final CallStack callStack) {
+    if (precomputation.equals(MmuTrace.type1)) {
+      type1Processing();
+      return;
+    } else if (precomputation.equals(MmuTrace.type2)) {
+      type2Processing();
+      return;
+    } else if (precomputation.equals(MmuTrace.type3)) {
+      type3Processing();
+      return;
+    } else if (Arrays.asList(MmuTrace.type4CC, MmuTrace.type4CD, MmuTrace.type4RD)
+        .contains(precomputation)) {
+      type4Processing(callStack);
+      return;
+    } else if (precomputation.equals(MmuTrace.type5)) {
+      type5Processing(callStack);
+      return;
+    }
+
+    throw new NotImplementedException();
+  }
+
+  private void type5Processing(final CallStack callStack) {
+    updateMicroOpType5(callStack);
+    updateOffsetType5(callStack);
+  }
+
+  private void updateOffsetType5(final CallStack callStack) {}
+
+  private void updateMicroOpType5(final CallStack callStack) {}
+
+  private void type3Processing() {
+    updateMicroOpType3();
+    updateOffsetType3();
+  }
+
+  private void updateOffsetType3() {}
+
+  private void updateMicroOpType3() {}
+
+  private void type2Processing() {
+    updateMicroOpType2();
+    updateOffsetType2();
+  }
+
+  private void updateOffsetType2() {}
+
+  private void updateMicroOpType2() {}
+
+  private void type1Processing() {}
+
+  void preProcessing(final CallStack callStack) {
     if (precomputation.equals(MmuTrace.type1)) {
       type1PreProcessing();
       return;
@@ -241,7 +330,43 @@ class MicroData {
 
   private void type5PreProcessing() {}
 
-  private void type4PreProcessing(final CallStack callStack) {}
+  private void type4PreProcessing(final CallStack callStack) {
+    setContext(false, callStack);
+  }
+
+  private void type4Processing(final CallStack callStack) {
+    setContext(true, callStack);
+
+    if (ternary.equals(MmuTrace.tern0)) {
+      updateTern0();
+    } else if (ternary.equals(MmuTrace.tern1)) {
+      updateMicroOpType4Tern1();
+      updateOffsetType4Tern1();
+    } else if (ternary.equals(MmuTrace.tern2)) {
+      updateMicroOpType4Tern2();
+      updateOffsetType4Tern2();
+    }
+  }
+
+  private void updateOffsetType4Tern2() {}
+
+  private void updateMicroOpType4Tern2() {}
+
+  private void updateOffsetType4Tern1() {}
+
+  private void updateMicroOpType4Tern1() {}
+
+  private void updateTern0() {
+    if (bits[2]) {
+      type4Tern0SingleMicroInstruction();
+    } else {
+      type4Tern0MultipleMicroInstruction();
+    }
+  }
+
+  private void type4Tern0MultipleMicroInstruction() {}
+
+  private void type4Tern0SingleMicroInstruction() {}
 
   private void type3PreProcessing() {
     switch (opCode) {

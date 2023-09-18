@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Bytecode;
@@ -39,13 +40,13 @@ public final class CallStack {
   /** the maximal depth of the call stack (as defined by Ethereum) */
   static final int CALLSTACK_SIZE = 1024;
   /** a never-pruned-tree of the {@link CallFrame} executed by the {@link Hub} */
-  private List<CallFrame> frames = new ArrayList<>();
+  private final List<CallFrame> frames = new ArrayList<>();
   /** the current depth of the call stack. */
   @Getter private int depth;
   /** a "pointer" to the current {@link CallFrame} in <code>frames</code>. */
   private int current;
 
-  public CallStack(
+  public void newBedrock(
       Address to,
       CallFrameType type,
       Bytecode toCode,
@@ -56,7 +57,6 @@ public final class CallStack {
       int accountDeploymentNumber,
       int codeDeploymentNumber,
       boolean codeDeploymentStatus) {
-    this.current = 0;
     this.depth = 0;
     this.frames.add(new CallFrame());
     this.enter(
@@ -65,12 +65,12 @@ public final class CallStack {
         type,
         value,
         gas,
-        0,
         callData,
         contextNumber,
         accountDeploymentNumber,
         codeDeploymentNumber,
         codeDeploymentStatus);
+    this.current = this.frames.size() - 1;
   }
 
   /**
@@ -92,8 +92,6 @@ public final class CallStack {
    * @param type the execution type of call frame
    * @param value the value given to this call frame
    * @param gas the gas provided to this call frame
-   * @param currentLine where the trace relative to this call frame starts within the {@link Hub}
-   *     trace
    * @param input the call data sent to this call frame
    * @param contextNumber the context number associated to this frame in the {@link Hub}
    * @param accountDeploymentNumber
@@ -106,7 +104,6 @@ public final class CallStack {
       CallFrameType type,
       Wei value,
       long gas,
-      int currentLine,
       Bytes input,
       int contextNumber,
       int accountDeploymentNumber,
@@ -121,6 +118,7 @@ public final class CallStack {
       callData = Bytes.EMPTY;
     }
 
+    this.depth += 1;
     CallFrame newFrame =
         new CallFrame(
             contextNumber,
@@ -134,12 +132,11 @@ public final class CallStack {
             caller,
             value,
             gas,
-            currentLine,
-            callData);
+            callData,
+            this.depth);
 
     this.frames.add(newFrame);
     this.current = newTop;
-    this.depth += 1;
     this.frames.get(caller).getChildFrames().add(newTop);
   }
 
@@ -152,9 +149,8 @@ public final class CallStack {
    */
   public void exit(int currentLine, Bytes returnData) {
     this.depth -= 1;
-    assert this.depth >= 0;
+    Preconditions.checkState(this.depth >= 0);
 
-    this.top().close(currentLine);
     final int parent = this.top().getParentFrame();
     this.frames.get(parent).getChildFrames().add(this.current);
     this.frames.get(parent).setReturnData(returnData);

@@ -19,15 +19,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lombok.Getter;
+import net.consensys.linea.zktracer.module.hub.ContextExceptions;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
-import net.consensys.linea.zktracer.module.hub.chunks.CommonFragment;
-import net.consensys.linea.zktracer.module.hub.chunks.StackFragment;
-import net.consensys.linea.zktracer.module.hub.chunks.TraceFragment;
-import net.consensys.linea.zktracer.module.hub.chunks.TransactionFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.CommonFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.StackFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.TransactionFragment;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.opcode.gas.projector.GasProjector;
-import org.hyperledger.besu.evm.gascalculator.LondonGasCalculator;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 
 /** A TraceSection gather the trace lines linked to a single operation */
 public abstract class TraceSection {
@@ -69,23 +69,23 @@ public abstract class TraceSection {
    * @return a chunk representing the share columns
    */
   private CommonFragment traceCommon(Hub hub) {
-    OpCode opCode = hub.getOpCode();
+    OpCode opCode = hub.opCode();
     return new CommonFragment(
-        hub.getTxNumber(),
-        hub.getBatchNumber(),
-        hub.getTxState(),
-        hub.getStamp(),
+        hub.tx().number(),
+        hub.conflation().number(),
+        hub.tx().state(),
+        hub.stamp(),
         0, // retconned
         false, // retconned
         hub.opCodeData().instructionFamily(),
-        hub.getExceptions().snapshot(),
+        hub.exceptions().snapshot(),
         hub.currentFrame().getContextNumber(),
         hub.currentFrame().getContextNumber(),
         0, // retconned
         false, // retconned
         false, // retconned
-        hub.getPc(),
-        hub.getPc(), // retconned later on
+        hub.pc(),
+        hub.pc(), // retconned later on
         hub.currentFrame().addressAsEWord(),
         hub.currentFrame().getCodeDeploymentNumber(),
         hub.currentFrame().isCodeDeploymentStatus(),
@@ -94,7 +94,7 @@ public abstract class TraceSection {
         0,
         0,
         0,
-        GasProjector.of(hub.getFrame(), opCode, new LondonGasCalculator()).refund(),
+        Hub.gp.of(hub.frame(), opCode).refund(),
         0,
         hub.opCodeData().stackSettings().twoLinesInstruction(),
         this.stackRowsCounter == 1,
@@ -128,7 +128,7 @@ public abstract class TraceSection {
    * @param hub the Hub linked to fragments execution
    * @param fragments the fragments to add to the section
    */
-  public final void addChunks(Hub hub, TraceFragment... fragments) {
+  public final void addChunksWithoutStack(Hub hub, TraceFragment... fragments) {
     for (TraceFragment chunk : fragments) {
       this.addChunk(hub, chunk);
     }
@@ -145,7 +145,7 @@ public abstract class TraceSection {
     for (var stackChunk : hub.makeStackChunks()) {
       this.addChunk(hub, stackChunk);
     }
-    this.addChunks(hub, fragments);
+    this.addChunksWithoutStack(hub, fragments);
   }
 
   /**
@@ -219,21 +219,10 @@ public abstract class TraceSection {
   }
 
   /**
-   * This method is called when the transaction is finished to build required information post-hoc.
+   * Update this section with the current refunded gas as computed by the hub.
    *
-   * @param hub the linked {@link Hub} context
+   * @param refundedGas the refunded gas provided by the hub
    */
-  public final void postTxRetcon(Hub hub, long gasRefund) {
-    for (TraceLine chunk : lines) {
-      chunk.common().postTxRetcon(hub);
-      chunk.common().gasRefund(gasRefund);
-      chunk.specific().postTxRetcon(hub);
-      if (chunk.specific instanceof TransactionFragment fragment) {
-        fragment.setGasRefundAmount(gasRefund);
-      }
-    }
-  }
-
   public void setFinalGasRefundCounter(long refundedGas) {
     for (TraceLine chunk : lines) {
       if (chunk.specific instanceof TransactionFragment fragment) {
@@ -243,11 +232,41 @@ public abstract class TraceSection {
   }
 
   /**
+   * Update the stack fragments of the section with the provided {@link ContextExceptions}.
+   *
+   * @param contEx the computed exceptions
+   */
+  public void setContextExceptions(ContextExceptions contEx) {
+    for (TraceLine chunk : lines) {
+      if (chunk.specific instanceof StackFragment fragment) {
+        fragment.contextExceptions(contEx);
+      }
+    }
+  }
+
+  /**
+   * This method is called when the transaction is finished to build required information post-hoc.
+   *
+   * @param hub the linked {@link Hub} context
+   */
+  public final void postTxRetcon(Hub hub, long leftoverGas, long gasRefund) {
+    for (TraceLine chunk : lines) {
+      chunk.common().postTxRetcon(hub);
+      chunk.common().gasRefund(gasRefund);
+      chunk.specific().postTxRetcon(hub);
+      if (chunk.specific instanceof TransactionFragment fragment) {
+        fragment.setGasRefundAmount(gasRefund);
+        fragment.setLeftoverGas(leftoverGas);
+      }
+    }
+  }
+
+  /**
    * This method is called when the conflation is finished to build required information post-hoc.
    *
    * @param hub the linked {@link Hub} context
    */
-  public final void postConflationRetcon(Hub hub) {
+  public final void postConflationRetcon(Hub hub, WorldView world) {
     for (TraceLine chunk : lines) {
       chunk.common().postConflationRetcon(hub);
       chunk.specific().postConflationRetcon(hub);

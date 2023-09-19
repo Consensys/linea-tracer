@@ -38,7 +38,7 @@ public class RollupGetTracesCountersByBlockNumberV0 {
   }
 
   public String getName() {
-    return "generateConflatedTracesToFileV0";
+    return "generateTracesCountersByBlockNumberV0";
   }
 
   /**

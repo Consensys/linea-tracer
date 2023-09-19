@@ -15,9 +15,6 @@
 
 package net.consensys.linea.tracegeneration.rpc;
 
-import java.util.Map;
-
-import com.fasterxml.jackson.core.JsonFactory;
 import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.plugin.BesuContext;
 import org.hyperledger.besu.plugin.services.exception.PluginRpcEndpointException;
@@ -27,7 +24,6 @@ import org.hyperledger.besu.plugin.services.rpc.PluginRpcRequest;
 public class RollupGetTracesCountersByBlockNumberV0 {
 
   private final BesuContext context;
-  private final JsonFactory jsonFactory = new JsonFactory();
 
   public RollupGetTracesCountersByBlockNumberV0(final BesuContext context) {
     this.context = context;
@@ -47,14 +43,15 @@ public class RollupGetTracesCountersByBlockNumberV0 {
    * @param request holds parameters of the RPC request.
    * @return traces counts by module for the given block.
    */
-  public Map<String, Long> execute(final PluginRpcRequest request) {
+  public TracesCounters execute(final PluginRpcRequest request) {
     try {
       final TracesCountersRequestParams params =
           TracesCountersRequestParams.createParams(request.getParams());
 
       final ZkTracer tracer = new ZkTracer();
 
-      return tracer.getTracesCounters(params.fromBlock());
+      return new TracesCounters(
+          params.runtimeVersion(), tracer.getTracesCounters(params.fromBlock()));
     } catch (Exception ex) {
       throw new PluginRpcEndpointException(ex.getMessage());
     }

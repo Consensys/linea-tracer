@@ -596,6 +596,12 @@ public class Hub implements Module {
     this.processStateExec(frame);
   }
 
+  @Override
+  public void traceEndTransaction(WorldView worldView, Transaction tx, boolean status, Bytes output,
+                                  List<org.hyperledger.besu.plugin.data.Log> logList, Long gasUsed, long TomeNS) {
+
+  }
+
   public void tracePostExecution(MessageFrame frame, Operation.OperationResult operationResult) {
     if (this.tx.state() == TxState.TX_SKIP) {
       return;
@@ -619,15 +625,6 @@ public class Hub implements Module {
     this.block.update(blockHeader);
   }
 
-  @Override
-  public void traceEndBlock(BlockHeader blockHeader, BlockBody blockBody) {
-    Module.super.traceEndBlock(blockHeader, blockBody);
-  }
-
-  @Override
-  public void traceEndBlock(BlockHeader blockHeader, BlockBody blockBody) {
-    Module.super.traceEndBlock(blockHeader, blockBody);
-  }
 
   @Override
   public void traceStartConflation(long blockCount) {
@@ -639,14 +636,6 @@ public class Hub implements Module {
     for (TxTrace txTrace : this.traceSections) {
       txTrace.postConflationRetcon(this, null /* TODO WorldView */);
     }
-  }
-
-  @Override
-  public void traceEndTx(TransactionReceipt txrcpt, Transaction tx) {}
-
-  @Override
-  public void traceEndConflation() {
-    Module.super.traceEndConflation();
   }
 
   @Override

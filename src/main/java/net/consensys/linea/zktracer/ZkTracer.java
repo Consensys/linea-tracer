@@ -24,6 +24,7 @@ import net.consensys.linea.zktracer.module.ext.Ext;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.mul.Mul;
+import net.consensys.linea.zktracer.module.rlp_txn.RlpTxn;
 import net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxrcpt;
 import net.consensys.linea.zktracer.module.shf.Shf;
 import net.consensys.linea.zktracer.module.trm.Trm;
@@ -53,12 +54,12 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
     Shf shf = new Shf();
     Trm trm = new Trm();
     Wcp wcp = new Wcp();
-    RlpTxrcpt rlpTxrcpt = new RlpTxrcpt();
-
     RlpTxn rlpTxn = new RlpTxn();
+    RlpTxrcpt rlpTxrcpt = new RlpTxrcpt();
 
     this.hub = new Hub(add, ext, mod, mul, shf, trm, wcp);
     this.modules = hub.getModules();
+    this.modules.add(rlpTxrcpt);
     this.modules.add(rlpTxn);
 
     // Load opcodes configured in src/main/resources/opcodes.yml.

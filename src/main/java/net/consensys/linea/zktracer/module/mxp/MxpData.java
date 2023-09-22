@@ -15,7 +15,8 @@
 
 package net.consensys.linea.zktracer.module.mxp;
 
-import static net.consensys.linea.zktracer.module.Util.max256;
+
+import static net.consensys.linea.zktracer.module.Util.max;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -177,7 +178,7 @@ public class MxpData {
       mxpx = roob;
     } else {
       // choose the max value
-      maxOffset = max256(maxOffset1, maxOffset2);
+      maxOffset = max(maxOffset1, maxOffset2);
       mxpx = maxOffset.compareTo(TWO_POW_32) >= 0;
     }
   }
@@ -208,7 +209,7 @@ public class MxpData {
       if (noop) {
         wordsNew = words;
       } else {
-        wordsNew = max256(words, accA);
+        wordsNew = max(words, accA);
       }
     }
   }

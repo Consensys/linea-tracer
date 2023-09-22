@@ -17,15 +17,13 @@ package net.consensys.linea.zktracer.module.mxp;
 
 import static net.consensys.linea.zktracer.opcode.OpCode.MLOAD;
 import static net.consensys.linea.zktracer.opcode.OpCode.MSTORE;
-import static net.consensys.linea.zktracer.opcode.OpCode.MSTORE8;
 
+import java.util.List;
 import java.util.stream.Stream;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
 import net.consensys.linea.zktracer.module.Module;
-import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.testing.DynamicTests;
+import net.consensys.linea.zktracer.testing.OpcodeCall;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
 import org.junit.jupiter.api.DynamicTest;
@@ -46,33 +44,30 @@ public class MxpTracerTest {
         .run();
   }
 
-  private Multimap<OpCode, Bytes32> provideNonRandomArguments() {
+  private List<OpcodeCall> provideNonRandomArguments() {
     return DYN_TESTS.newModuleArgumentsProvider(
         (arguments, opCode) -> {
           for (int i = 0; i < TEST_REPETITIONS; i++) {
             for (int j = 0; j < opCode.getData().numberOfArguments(); j++) {
-              arguments.put(opCode, UInt256.valueOf(j));
+              arguments.add(new OpcodeCall(opCode, List.of(UInt256.valueOf(j))));
             }
           }
         });
   }
 
-  protected Multimap<OpCode, Bytes32> simpleMloadArgs() {
-    Multimap<OpCode, Bytes32> arguments = ArrayListMultimap.create();
+  protected List<OpcodeCall> simpleMloadArgs() {
     Bytes32 arg1 =
         Bytes32.fromHexString("0xdcd5cf52e4daec5389587d0d0e996e6ce2d0546b63d3ea0a0dc48ad984d180a9");
-    arguments.put(MLOAD, arg1);
-    return arguments;
+    return List.of(new OpcodeCall(MLOAD, List.of(arg1)));
   }
 
-  protected Multimap<OpCode, Bytes32> simpleType1Args() {
+  protected List<OpcodeCall> simpleType1Args() {
     // one of each type1 instruction MLOAD, MSTORE, MSTORE8
-    Multimap<OpCode, Bytes32> arguments = ArrayListMultimap.create();
     Bytes32 arg1 =
         Bytes32.fromHexString("0xdcd5cf52e4daec5389587d0d0e996e6ce2d0546b63d3ea0a0dc48ad984d180a9");
-    arguments.put(MLOAD, arg1);
-    arguments.put(MSTORE, arg1);
-    arguments.put(MSTORE8, arg1);
-    return arguments;
+    return List.of(
+        new OpcodeCall(MLOAD, List.of(arg1)),
+        new OpcodeCall(MSTORE, List.of(arg1)),
+        new OpcodeCall(MSTORE, List.of(arg1)));
   }
 }

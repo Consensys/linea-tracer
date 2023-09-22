@@ -40,6 +40,7 @@ import net.consensys.linea.zktracer.module.hub.stack.StackContext;
 import net.consensys.linea.zktracer.module.hub.stack.StackLine;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.mul.Mul;
+import net.consensys.linea.zktracer.module.mxp.Mxp;
 import net.consensys.linea.zktracer.module.rlpAddr.RlpAddr;
 import net.consensys.linea.zktracer.module.rlp_txn.RlpTxn;
 import net.consensys.linea.zktracer.module.rlp_txrcpt.RlpTxrcpt;
@@ -134,6 +135,7 @@ public class Hub implements Module {
   private final Module shf = new Shf();
   private final Module wcp = new Wcp();
   private final RlpTxn rlpTxn;
+  private final Module mxp;
   private final RlpTxrcpt rlpTxrcpt = new RlpTxrcpt();
   private final RlpAddr rlpAddr = new RlpAddr();
   private final Rom rom;
@@ -142,6 +144,7 @@ public class Hub implements Module {
   private final List<Module> modules;
 
   public Hub() {
+    this.mxp = new Mxp(this);
     this.romLex = new RomLex(this);
     this.rom = new Rom(this.romLex);
     this.rlpTxn = new RlpTxn(this.romLex);
@@ -175,6 +178,7 @@ public class Hub implements Module {
         this.mul,
         this.shf,
         this.wcp,
+        this.mxp,
         this.rlpTxn,
         this.rlpTxrcpt,
         this.rlpAddr,
@@ -333,6 +337,7 @@ public class Hub implements Module {
     Address toAddress = effectiveToAddress(this.tx.transaction());
     this.callStack.newBedrock(
         this.state.stamps().hub(),
+        this.tx.transaction().getSender(),
         toAddress,
         isDeployment ? CallFrameType.INIT_CODE : CallFrameType.STANDARD,
         new Bytecode(
@@ -401,26 +406,55 @@ public class Hub implements Module {
           this.shf.tracePreOpcode(frame);
         }
       }
-      case KEC -> {}
+      case KEC -> {
+        if (this.exceptions.noStackException()) {
+          this.mxp.tracePreOpcode(frame);
+        }
+      }
       case CONTEXT -> {}
       case ACCOUNT -> {}
       case COPY -> {
-        // TODO: check this is the right exception
         if (!this.exceptions.any() && this.callStack().getDepth() < 1024) {
           this.romLex.tracePreOpcode(frame);
+        }
+        if (this.exceptions.noStackException()) {
+          if (this.currentFrame().opCode() == OpCode.RETURNDATACOPY) {
+            if (!this.exceptions.returnDataCopyFault()) {
+              this.mxp.tracePreOpcode(frame);
+            }
+          } else {
+            this.mxp.tracePreOpcode(frame);
+          }
         }
       }
       case TRANSACTION -> {}
       case BATCH -> {}
-      case STACK_RAM -> {}
+      case STACK_RAM -> {
+        if (this.exceptions.noStackException()
+            && this.currentFrame().opCode() != OpCode.CALLDATALOAD) {
+          this.mxp.tracePreOpcode(frame);
+        }
+      }
       case STORAGE -> {}
       case JUMP -> {}
-      case MACHINE_STATE -> {}
+      case MACHINE_STATE -> {
+        if (this.exceptions.noStackException() && this.currentFrame().opCode() == OpCode.MSIZE) {
+          this.mxp.tracePreOpcode(frame);
+        }
+      }
       case PUSH_POP -> {}
       case DUP -> {}
       case SWAP -> {}
-      case LOG -> {}
+      case LOG -> {
+        if (this.exceptions.noStackException() && !this.exceptions.staticViolation()) {
+          this.mxp.tracePreOpcode(frame);
+        }
+      }
       case CREATE -> {
+        if (this.exceptions.noStackException() && !this.exceptions.staticViolation()) {
+          this.mxp.tracePreOpcode(frame); // TODO: trigger in OoG
+        }
+
         if (!this.exceptions.any() && this.callStack().getDepth() < 1024) {
           // TODO: check for failure: non empty byte code or non zero nonce (for the Deployed
           // Address)
@@ -437,15 +471,18 @@ public class Hub implements Module {
         }
       }
       case CALL -> {
-        // TODO: check this is the right exception
         if (!this.exceptions.any() && this.callStack().getDepth() < 1024) {
           this.romLex.tracePreOpcode(frame);
         }
       }
       case HALT -> {
-        // TODO: check this is the right exception
         if (!this.exceptions.any() && this.callStack().getDepth() < 1024) {
           this.romLex.tracePreOpcode(frame);
+        }
+        if (this.exceptions.noStackException()
+            && this.currentFrame().opCode() != OpCode.STOP
+            && this.currentFrame().opCode() != OpCode.SELFDESTRUCT) {
+          this.mxp.tracePreOpcode(frame);
         }
       }
       case INVALID -> {}
@@ -651,6 +688,7 @@ public class Hub implements Module {
     final int codeDeploymentNumber = this.conflation.deploymentInfo().number(codeAddress);
     this.callStack.enter(
         this.state.stamps().hub(),
+        frame.getOriginatorAddress(), // TODO: check for all call types that it is correct
         frame.getContractAddress(),
         new Bytecode(frame.getCode().getBytes()),
         frameType,
@@ -715,6 +753,63 @@ public class Hub implements Module {
     this.defers.runPostExec(this, frame, operationResult);
 
     this.unlatchStack(frame);
+
+    switch (this.opCodeData().instructionFamily()) {
+      case ADD -> {
+        if (this.exceptions.noStackException()) {
+          this.add.tracePostOp(frame);
+        }
+      }
+      case MOD -> {
+        if (this.exceptions.noStackException()) {
+          this.mod.tracePostOp(frame);
+        }
+      }
+      case MUL -> {
+        if (this.exceptions.noStackException()) {
+          this.mul.tracePostOp(frame);
+        }
+      }
+      case EXT -> {
+        if (this.exceptions.noStackException()) {
+          this.ext.tracePostOp(frame);
+        }
+      }
+      case WCP -> {
+        if (this.exceptions.noStackException()) {
+          this.wcp.tracePostOp(frame);
+        }
+      }
+      case BIN -> {}
+      case SHF -> {
+        if (this.exceptions.noStackException()) {
+          this.shf.tracePostOp(frame);
+        }
+      }
+      case KEC -> {}
+      case CONTEXT -> {}
+      case ACCOUNT -> {}
+      case COPY -> {}
+      case TRANSACTION -> {}
+      case BATCH -> {}
+      case STACK_RAM -> {
+        if (this.exceptions.noStackException()) {
+          this.mxp.tracePostOp(frame);
+        }
+      }
+      case STORAGE -> {}
+      case JUMP -> {}
+      case MACHINE_STATE -> {}
+      case PUSH_POP -> {}
+      case DUP -> {}
+      case SWAP -> {}
+      case LOG -> {}
+      case CREATE -> {}
+      case CALL -> {}
+      case HALT -> {}
+      case INVALID -> {}
+      default -> {}
+    }
   }
 
   private void handleCreate(Address target) {

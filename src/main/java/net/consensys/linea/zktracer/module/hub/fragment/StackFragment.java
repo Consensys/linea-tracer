@@ -235,7 +235,7 @@ public final class StackFragment implements TraceFragment {
                 .orElse(false))
         .pStackTrmFlag(
             this.stack.getCurrentOpcodeData().stackSettings().addressTrimmingInstruction())
-        .pStackStaticFlag(this.stack.getCurrentOpcodeData().stackSettings().staticInstruction())
+        .pStackStaticFlag(this.stack.getCurrentOpcodeData().stackSettings().forbiddenInStatic())
         .pStackOobFlag(this.stack.getCurrentOpcodeData().stackSettings().oobFlag())
         // Hash data
         .pStackHashInfoSize(BigInteger.valueOf(hashInfoSize))

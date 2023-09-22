@@ -32,7 +32,7 @@ public final class ExtCodeCopy implements GasProjection {
   public ExtCodeCopy(MessageFrame frame) {
     this.frame = frame;
     if (frame.stackSize() > 3) {
-      this.target = Address.wrap(frame.getStackItem(0));
+      this.target = Words.toAddress(frame.getStackItem(0));
       this.offset = clampedToLong(frame.getStackItem(1));
       this.size = clampedToLong(frame.getStackItem(3));
       this.bitSize = frame.getStackItem(3).bitLength();

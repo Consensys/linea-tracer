@@ -152,11 +152,11 @@ public record Exceptions(
 
   private static boolean isStaticFault(final MessageFrame frame) {
     final OpCodeData opCode = OpCode.of(frame.getCurrentOperation().getOpcode()).getData();
-    return frame.isStatic() && !opCode.stackSettings().staticInstruction();
+    return frame.isStatic() && opCode.stackSettings().forbiddenInStatic();
   }
 
-  private static boolean isOutOfSStore(MessageFrame frame) {
-    return frame.getRemainingGas() <= GasConstants.G_CALL_STIPEND.cost();
+  private static boolean isOutOfSStore(MessageFrame frame, OpCode opCode) {
+    return opCode == OpCode.SSTORE && frame.getRemainingGas() <= GasConstants.G_CALL_STIPEND.cost();
   }
 
   /**
@@ -191,7 +191,7 @@ public record Exceptions(
         returnDataCopyFault,
         jumpFault,
         isStaticFault(frame),
-        isOutOfSStore(frame));
+        isOutOfSStore(frame, opCode));
   }
 
   public static Exceptions empty() {

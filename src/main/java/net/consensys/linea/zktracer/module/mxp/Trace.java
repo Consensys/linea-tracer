@@ -15,67 +15,71 @@
 
 package net.consensys.linea.zktracer.module.mxp;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import net.consensys.linea.zktracer.bytes.UnsignedByte;
+
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import net.consensys.linea.zktracer.bytes.UnsignedByte;
-
 /**
- * WARNING: This code is generated automatically. Any modifications to this code may be overwritten
- * and could lead to unexpected behavior. Please DO NOT ATTEMPT TO MODIFY this code directly.
+ * WARNING: This code is generated automatically.
+ * Any modifications to this code may be overwritten and could lead to unexpected behavior.
+ * Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
 public record Trace(
-    @JsonProperty("ACC_1") List<BigInteger> acc1,
-    @JsonProperty("ACC_2") List<BigInteger> acc2,
-    @JsonProperty("ACC_3") List<BigInteger> acc3,
-    @JsonProperty("ACC_4") List<BigInteger> acc4,
-    @JsonProperty("ACC_A") List<BigInteger> accA,
-    @JsonProperty("ACC_Q") List<BigInteger> accQ,
-    @JsonProperty("ACC_W") List<BigInteger> accW,
-    @JsonProperty("BYTE_1") List<UnsignedByte> byte1,
-    @JsonProperty("BYTE_2") List<UnsignedByte> byte2,
-    @JsonProperty("BYTE_3") List<UnsignedByte> byte3,
-    @JsonProperty("BYTE_4") List<UnsignedByte> byte4,
-    @JsonProperty("BYTE_A") List<UnsignedByte> byteA,
-    @JsonProperty("BYTE_Q") List<UnsignedByte> byteQ,
-    @JsonProperty("BYTE_QQ") List<BigInteger> byteQq,
-    @JsonProperty("BYTE_R") List<BigInteger> byteR,
-    @JsonProperty("BYTE_W") List<UnsignedByte> byteW,
-    @JsonProperty("CN") List<BigInteger> cn,
-    @JsonProperty("COMP") List<BigInteger> comp,
-    @JsonProperty("COUNTER") List<BigInteger> counter,
-    @JsonProperty("DELTA_MXPC") List<BigInteger> deltaMxpc,
-    @JsonProperty("MAX_OFFSET") List<BigInteger> maxOffset,
-    @JsonProperty("MAX_OFFSET_1") List<BigInteger> maxOffset1,
-    @JsonProperty("MAX_OFFSET_2") List<BigInteger> maxOffset2,
-    @JsonProperty("MEMORY_EXPANSION_EVENT") List<Boolean> memoryExpansionEvent,
-    @JsonProperty("MEMORY_EXPANSION_EXCEPTION") List<Boolean> memoryExpansionException,
-    @JsonProperty("MXP_GBYTE") List<BigInteger> mxpGbyte,
-    @JsonProperty("MXP_GWORD") List<BigInteger> mxpGword,
-    @JsonProperty("MXP_INST") List<BigInteger> mxpInst,
-    @JsonProperty("MXP_TYPE_1") List<Boolean> mxpType1,
-    @JsonProperty("MXP_TYPE_2") List<Boolean> mxpType2,
-    @JsonProperty("MXP_TYPE_3") List<Boolean> mxpType3,
-    @JsonProperty("MXP_TYPE_4") List<Boolean> mxpType4,
-    @JsonProperty("MXP_TYPE_5") List<Boolean> mxpType5,
-    @JsonProperty("MXPC") List<BigInteger> mxpc,
-    @JsonProperty("MXPC_NEW") List<BigInteger> mxpcNew,
-    @JsonProperty("NOOP") List<Boolean> noop,
-    @JsonProperty("OFFSET_1_HI") List<BigInteger> offset1Hi,
-    @JsonProperty("OFFSET_1_LO") List<BigInteger> offset1Lo,
-    @JsonProperty("OFFSET_2_HI") List<BigInteger> offset2Hi,
-    @JsonProperty("OFFSET_2_LO") List<BigInteger> offset2Lo,
-    @JsonProperty("RIDICULOUSLY_OUT_OF_BOUND") List<Boolean> ridiculouslyOutOfBound,
-    @JsonProperty("SIZE_1_HI") List<BigInteger> size1Hi,
-    @JsonProperty("SIZE_1_LO") List<BigInteger> size1Lo,
-    @JsonProperty("SIZE_2_HI") List<BigInteger> size2Hi,
-    @JsonProperty("SIZE_2_LO") List<BigInteger> size2Lo,
-    @JsonProperty("STAMP") List<BigInteger> stamp,
-    @JsonProperty("WORDS") List<BigInteger> words,
-    @JsonProperty("WORDS_NEW") List<BigInteger> wordsNew) {
+  @JsonProperty("ACC_1") List<BigInteger> acc1,
+  @JsonProperty("ACC_2") List<BigInteger> acc2,
+  @JsonProperty("ACC_3") List<BigInteger> acc3,
+  @JsonProperty("ACC_4") List<BigInteger> acc4,
+  @JsonProperty("ACC_A") List<BigInteger> accA,
+  @JsonProperty("ACC_Q") List<BigInteger> accQ,
+  @JsonProperty("ACC_W") List<BigInteger> accW,
+  @JsonProperty("BYTE_1") List<UnsignedByte> byte1,
+  @JsonProperty("BYTE_2") List<UnsignedByte> byte2,
+  @JsonProperty("BYTE_3") List<UnsignedByte> byte3,
+  @JsonProperty("BYTE_4") List<UnsignedByte> byte4,
+  @JsonProperty("BYTE_A") List<UnsignedByte> byteA,
+  @JsonProperty("BYTE_Q") List<UnsignedByte> byteQ,
+  @JsonProperty("BYTE_QQ") List<BigInteger> byteQq,
+  @JsonProperty("BYTE_R") List<BigInteger> byteR,
+  @JsonProperty("BYTE_W") List<UnsignedByte> byteW,
+  @JsonProperty("C_MEM") List<BigInteger> cMem,
+  @JsonProperty("C_MEM_NEW") List<BigInteger> cMemNew,
+  @JsonProperty("CN") List<BigInteger> cn,
+  @JsonProperty("COMP") List<Boolean> comp,
+  @JsonProperty("CT") List<BigInteger> ct,
+  @JsonProperty("DEPLOYS") List<Boolean> deploys,
+  @JsonProperty("EXPANDS") List<Boolean> expands,
+  @JsonProperty("GAS_MXP") List<BigInteger> gasMxp,
+  @JsonProperty("GBYTE") List<BigInteger> gbyte,
+  @JsonProperty("GWORD") List<BigInteger> gword,
+  @JsonProperty("INST") List<BigInteger> inst,
+  @JsonProperty("LIN_COST") List<BigInteger> linCost,
+  @JsonProperty("MAX_OFFSET") List<BigInteger> maxOffset,
+  @JsonProperty("MAX_OFFSET_1") List<BigInteger> maxOffset1,
+  @JsonProperty("MAX_OFFSET_2") List<BigInteger> maxOffset2,
+  @JsonProperty("MXP_TYPE_1") List<Boolean> mxpType1,
+  @JsonProperty("MXP_TYPE_2") List<Boolean> mxpType2,
+  @JsonProperty("MXP_TYPE_3") List<Boolean> mxpType3,
+  @JsonProperty("MXP_TYPE_4") List<Boolean> mxpType4,
+  @JsonProperty("MXP_TYPE_5") List<Boolean> mxpType5,
+  @JsonProperty("MXPX") List<Boolean> mxpx,
+  @JsonProperty("NOOP") List<Boolean> noop,
+  @JsonProperty("OFFSET_1_HI") List<BigInteger> offset1Hi,
+  @JsonProperty("OFFSET_1_LO") List<BigInteger> offset1Lo,
+  @JsonProperty("OFFSET_2_HI") List<BigInteger> offset2Hi,
+  @JsonProperty("OFFSET_2_LO") List<BigInteger> offset2Lo,
+  @JsonProperty("QUAD_COST") List<BigInteger> quadCost,
+  @JsonProperty("ROOB") List<Boolean> roob,
+  @JsonProperty("SIZE_1_HI") List<BigInteger> size1Hi,
+  @JsonProperty("SIZE_1_LO") List<BigInteger> size1Lo,
+  @JsonProperty("SIZE_2_HI") List<BigInteger> size2Hi,
+  @JsonProperty("SIZE_2_LO") List<BigInteger> size2Lo,
+  @JsonProperty("STAMP") List<BigInteger> stamp,
+  @JsonProperty("WORDS") List<BigInteger> words,
+  @JsonProperty("WORDS_NEW") List<BigInteger> wordsNew) { 
   static TraceBuilder builder() {
     return new TraceBuilder();
   }
@@ -85,145 +89,104 @@ public record Trace(
 
     @JsonProperty("ACC_1")
     private final List<BigInteger> acc1 = new ArrayList<>();
-
     @JsonProperty("ACC_2")
     private final List<BigInteger> acc2 = new ArrayList<>();
-
     @JsonProperty("ACC_3")
     private final List<BigInteger> acc3 = new ArrayList<>();
-
     @JsonProperty("ACC_4")
     private final List<BigInteger> acc4 = new ArrayList<>();
-
     @JsonProperty("ACC_A")
     private final List<BigInteger> accA = new ArrayList<>();
-
     @JsonProperty("ACC_Q")
     private final List<BigInteger> accQ = new ArrayList<>();
-
     @JsonProperty("ACC_W")
     private final List<BigInteger> accW = new ArrayList<>();
-
     @JsonProperty("BYTE_1")
     private final List<UnsignedByte> byte1 = new ArrayList<>();
-
     @JsonProperty("BYTE_2")
     private final List<UnsignedByte> byte2 = new ArrayList<>();
-
     @JsonProperty("BYTE_3")
     private final List<UnsignedByte> byte3 = new ArrayList<>();
-
     @JsonProperty("BYTE_4")
     private final List<UnsignedByte> byte4 = new ArrayList<>();
-
     @JsonProperty("BYTE_A")
     private final List<UnsignedByte> byteA = new ArrayList<>();
-
     @JsonProperty("BYTE_Q")
     private final List<UnsignedByte> byteQ = new ArrayList<>();
-
     @JsonProperty("BYTE_QQ")
     private final List<BigInteger> byteQq = new ArrayList<>();
-
     @JsonProperty("BYTE_R")
     private final List<BigInteger> byteR = new ArrayList<>();
-
     @JsonProperty("BYTE_W")
     private final List<UnsignedByte> byteW = new ArrayList<>();
-
+    @JsonProperty("C_MEM")
+    private final List<BigInteger> cMem = new ArrayList<>();
+    @JsonProperty("C_MEM_NEW")
+    private final List<BigInteger> cMemNew = new ArrayList<>();
     @JsonProperty("CN")
     private final List<BigInteger> cn = new ArrayList<>();
-
     @JsonProperty("COMP")
-    private final List<BigInteger> comp = new ArrayList<>();
-
-    @JsonProperty("COUNTER")
-    private final List<BigInteger> counter = new ArrayList<>();
-
-    @JsonProperty("DELTA_MXPC")
-    private final List<BigInteger> deltaMxpc = new ArrayList<>();
-
+    private final List<Boolean> comp = new ArrayList<>();
+    @JsonProperty("CT")
+    private final List<BigInteger> ct = new ArrayList<>();
+    @JsonProperty("DEPLOYS")
+    private final List<Boolean> deploys = new ArrayList<>();
+    @JsonProperty("EXPANDS")
+    private final List<Boolean> expands = new ArrayList<>();
+    @JsonProperty("GAS_MXP")
+    private final List<BigInteger> gasMxp = new ArrayList<>();
+    @JsonProperty("GBYTE")
+    private final List<BigInteger> gbyte = new ArrayList<>();
+    @JsonProperty("GWORD")
+    private final List<BigInteger> gword = new ArrayList<>();
+    @JsonProperty("INST")
+    private final List<BigInteger> inst = new ArrayList<>();
+    @JsonProperty("LIN_COST")
+    private final List<BigInteger> linCost = new ArrayList<>();
     @JsonProperty("MAX_OFFSET")
     private final List<BigInteger> maxOffset = new ArrayList<>();
-
     @JsonProperty("MAX_OFFSET_1")
     private final List<BigInteger> maxOffset1 = new ArrayList<>();
-
     @JsonProperty("MAX_OFFSET_2")
     private final List<BigInteger> maxOffset2 = new ArrayList<>();
-
-    @JsonProperty("MEMORY_EXPANSION_EVENT")
-    private final List<Boolean> memoryExpansionEvent = new ArrayList<>();
-
-    @JsonProperty("MEMORY_EXPANSION_EXCEPTION")
-    private final List<Boolean> memoryExpansionException = new ArrayList<>();
-
-    @JsonProperty("MXP_GBYTE")
-    private final List<BigInteger> mxpGbyte = new ArrayList<>();
-
-    @JsonProperty("MXP_GWORD")
-    private final List<BigInteger> mxpGword = new ArrayList<>();
-
-    @JsonProperty("MXP_INST")
-    private final List<BigInteger> mxpInst = new ArrayList<>();
-
     @JsonProperty("MXP_TYPE_1")
     private final List<Boolean> mxpType1 = new ArrayList<>();
-
     @JsonProperty("MXP_TYPE_2")
     private final List<Boolean> mxpType2 = new ArrayList<>();
-
     @JsonProperty("MXP_TYPE_3")
     private final List<Boolean> mxpType3 = new ArrayList<>();
-
     @JsonProperty("MXP_TYPE_4")
     private final List<Boolean> mxpType4 = new ArrayList<>();
-
     @JsonProperty("MXP_TYPE_5")
     private final List<Boolean> mxpType5 = new ArrayList<>();
-
-    @JsonProperty("MXPC")
-    private final List<BigInteger> mxpc = new ArrayList<>();
-
-    @JsonProperty("MXPC_NEW")
-    private final List<BigInteger> mxpcNew = new ArrayList<>();
-
+    @JsonProperty("MXPX")
+    private final List<Boolean> mxpx = new ArrayList<>();
     @JsonProperty("NOOP")
     private final List<Boolean> noop = new ArrayList<>();
-
     @JsonProperty("OFFSET_1_HI")
     private final List<BigInteger> offset1Hi = new ArrayList<>();
-
     @JsonProperty("OFFSET_1_LO")
     private final List<BigInteger> offset1Lo = new ArrayList<>();
-
     @JsonProperty("OFFSET_2_HI")
     private final List<BigInteger> offset2Hi = new ArrayList<>();
-
     @JsonProperty("OFFSET_2_LO")
     private final List<BigInteger> offset2Lo = new ArrayList<>();
-
-    @JsonProperty("RIDICULOUSLY_OUT_OF_BOUND")
-    private final List<Boolean> ridiculouslyOutOfBound = new ArrayList<>();
-
+    @JsonProperty("QUAD_COST")
+    private final List<BigInteger> quadCost = new ArrayList<>();
+    @JsonProperty("ROOB")
+    private final List<Boolean> roob = new ArrayList<>();
     @JsonProperty("SIZE_1_HI")
     private final List<BigInteger> size1Hi = new ArrayList<>();
-
     @JsonProperty("SIZE_1_LO")
     private final List<BigInteger> size1Lo = new ArrayList<>();
-
     @JsonProperty("SIZE_2_HI")
     private final List<BigInteger> size2Hi = new ArrayList<>();
-
     @JsonProperty("SIZE_2_LO")
     private final List<BigInteger> size2Lo = new ArrayList<>();
-
     @JsonProperty("STAMP")
     private final List<BigInteger> stamp = new ArrayList<>();
-
     @JsonProperty("WORDS")
     private final List<BigInteger> words = new ArrayList<>();
-
     @JsonProperty("WORDS_NEW")
     private final List<BigInteger> wordsNew = new ArrayList<>();
 
@@ -429,6 +392,30 @@ public record Trace(
       return this;
     }
 
+    public TraceBuilder cMem(final BigInteger b) {
+      if (filled.get(19)) {
+        throw new IllegalStateException("C_MEM already set");
+      } else {
+        filled.set(19);
+      }
+
+      cMem.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder cMemNew(final BigInteger b) {
+      if (filled.get(20)) {
+        throw new IllegalStateException("C_MEM_NEW already set");
+      } else {
+        filled.set(20);
+      }
+
+      cMemNew.add(b);
+
+      return this;
+    }
+
     public TraceBuilder cn(final BigInteger b) {
       if (filled.get(16)) {
         throw new IllegalStateException("CN already set");
@@ -441,7 +428,7 @@ public record Trace(
       return this;
     }
 
-    public TraceBuilder comp(final BigInteger b) {
+    public TraceBuilder comp(final Boolean b) {
       if (filled.get(17)) {
         throw new IllegalStateException("COMP already set");
       } else {
@@ -453,35 +440,107 @@ public record Trace(
       return this;
     }
 
-    public TraceBuilder counter(final BigInteger b) {
+    public TraceBuilder ct(final BigInteger b) {
       if (filled.get(18)) {
-        throw new IllegalStateException("COUNTER already set");
+        throw new IllegalStateException("CT already set");
       } else {
         filled.set(18);
       }
 
-      counter.add(b);
+      ct.add(b);
 
       return this;
     }
 
-    public TraceBuilder deltaMxpc(final BigInteger b) {
-      if (filled.get(19)) {
-        throw new IllegalStateException("DELTA_MXPC already set");
+    public TraceBuilder deploys(final Boolean b) {
+      if (filled.get(21)) {
+        throw new IllegalStateException("DEPLOYS already set");
       } else {
-        filled.set(19);
+        filled.set(21);
       }
 
-      deltaMxpc.add(b);
+      deploys.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder expands(final Boolean b) {
+      if (filled.get(22)) {
+        throw new IllegalStateException("EXPANDS already set");
+      } else {
+        filled.set(22);
+      }
+
+      expands.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder gasMxp(final BigInteger b) {
+      if (filled.get(23)) {
+        throw new IllegalStateException("GAS_MXP already set");
+      } else {
+        filled.set(23);
+      }
+
+      gasMxp.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder gbyte(final BigInteger b) {
+      if (filled.get(24)) {
+        throw new IllegalStateException("GBYTE already set");
+      } else {
+        filled.set(24);
+      }
+
+      gbyte.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder gword(final BigInteger b) {
+      if (filled.get(25)) {
+        throw new IllegalStateException("GWORD already set");
+      } else {
+        filled.set(25);
+      }
+
+      gword.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder inst(final BigInteger b) {
+      if (filled.get(26)) {
+        throw new IllegalStateException("INST already set");
+      } else {
+        filled.set(26);
+      }
+
+      inst.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder linCost(final BigInteger b) {
+      if (filled.get(27)) {
+        throw new IllegalStateException("LIN_COST already set");
+      } else {
+        filled.set(27);
+      }
+
+      linCost.add(b);
 
       return this;
     }
 
     public TraceBuilder maxOffset(final BigInteger b) {
-      if (filled.get(20)) {
+      if (filled.get(28)) {
         throw new IllegalStateException("MAX_OFFSET already set");
       } else {
-        filled.set(20);
+        filled.set(28);
       }
 
       maxOffset.add(b);
@@ -490,10 +549,10 @@ public record Trace(
     }
 
     public TraceBuilder maxOffset1(final BigInteger b) {
-      if (filled.get(21)) {
+      if (filled.get(29)) {
         throw new IllegalStateException("MAX_OFFSET_1 already set");
       } else {
-        filled.set(21);
+        filled.set(29);
       }
 
       maxOffset1.add(b);
@@ -502,10 +561,10 @@ public record Trace(
     }
 
     public TraceBuilder maxOffset2(final BigInteger b) {
-      if (filled.get(22)) {
+      if (filled.get(30)) {
         throw new IllegalStateException("MAX_OFFSET_2 already set");
       } else {
-        filled.set(22);
+        filled.set(30);
       }
 
       maxOffset2.add(b);
@@ -513,71 +572,11 @@ public record Trace(
       return this;
     }
 
-    public TraceBuilder memoryExpansionEvent(final Boolean b) {
-      if (filled.get(23)) {
-        throw new IllegalStateException("MEMORY_EXPANSION_EVENT already set");
-      } else {
-        filled.set(23);
-      }
-
-      memoryExpansionEvent.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder memoryExpansionException(final Boolean b) {
-      if (filled.get(24)) {
-        throw new IllegalStateException("MEMORY_EXPANSION_EXCEPTION already set");
-      } else {
-        filled.set(24);
-      }
-
-      memoryExpansionException.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder mxpGbyte(final BigInteger b) {
-      if (filled.get(27)) {
-        throw new IllegalStateException("MXP_GBYTE already set");
-      } else {
-        filled.set(27);
-      }
-
-      mxpGbyte.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder mxpGword(final BigInteger b) {
-      if (filled.get(28)) {
-        throw new IllegalStateException("MXP_GWORD already set");
-      } else {
-        filled.set(28);
-      }
-
-      mxpGword.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder mxpInst(final BigInteger b) {
-      if (filled.get(29)) {
-        throw new IllegalStateException("MXP_INST already set");
-      } else {
-        filled.set(29);
-      }
-
-      mxpInst.add(b);
-
-      return this;
-    }
-
     public TraceBuilder mxpType1(final Boolean b) {
-      if (filled.get(30)) {
+      if (filled.get(32)) {
         throw new IllegalStateException("MXP_TYPE_1 already set");
       } else {
-        filled.set(30);
+        filled.set(32);
       }
 
       mxpType1.add(b);
@@ -586,10 +585,10 @@ public record Trace(
     }
 
     public TraceBuilder mxpType2(final Boolean b) {
-      if (filled.get(31)) {
+      if (filled.get(33)) {
         throw new IllegalStateException("MXP_TYPE_2 already set");
       } else {
-        filled.set(31);
+        filled.set(33);
       }
 
       mxpType2.add(b);
@@ -598,10 +597,10 @@ public record Trace(
     }
 
     public TraceBuilder mxpType3(final Boolean b) {
-      if (filled.get(32)) {
+      if (filled.get(34)) {
         throw new IllegalStateException("MXP_TYPE_3 already set");
       } else {
-        filled.set(32);
+        filled.set(34);
       }
 
       mxpType3.add(b);
@@ -610,10 +609,10 @@ public record Trace(
     }
 
     public TraceBuilder mxpType4(final Boolean b) {
-      if (filled.get(33)) {
+      if (filled.get(35)) {
         throw new IllegalStateException("MXP_TYPE_4 already set");
       } else {
-        filled.set(33);
+        filled.set(35);
       }
 
       mxpType4.add(b);
@@ -622,10 +621,10 @@ public record Trace(
     }
 
     public TraceBuilder mxpType5(final Boolean b) {
-      if (filled.get(34)) {
+      if (filled.get(36)) {
         throw new IllegalStateException("MXP_TYPE_5 already set");
       } else {
-        filled.set(34);
+        filled.set(36);
       }
 
       mxpType5.add(b);
@@ -633,35 +632,23 @@ public record Trace(
       return this;
     }
 
-    public TraceBuilder mxpc(final BigInteger b) {
-      if (filled.get(25)) {
-        throw new IllegalStateException("MXPC already set");
+    public TraceBuilder mxpx(final Boolean b) {
+      if (filled.get(31)) {
+        throw new IllegalStateException("MXPX already set");
       } else {
-        filled.set(25);
+        filled.set(31);
       }
 
-      mxpc.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder mxpcNew(final BigInteger b) {
-      if (filled.get(26)) {
-        throw new IllegalStateException("MXPC_NEW already set");
-      } else {
-        filled.set(26);
-      }
-
-      mxpcNew.add(b);
+      mxpx.add(b);
 
       return this;
     }
 
     public TraceBuilder noop(final Boolean b) {
-      if (filled.get(35)) {
+      if (filled.get(37)) {
         throw new IllegalStateException("NOOP already set");
       } else {
-        filled.set(35);
+        filled.set(37);
       }
 
       noop.add(b);
@@ -670,10 +657,10 @@ public record Trace(
     }
 
     public TraceBuilder offset1Hi(final BigInteger b) {
-      if (filled.get(36)) {
+      if (filled.get(38)) {
         throw new IllegalStateException("OFFSET_1_HI already set");
       } else {
-        filled.set(36);
+        filled.set(38);
       }
 
       offset1Hi.add(b);
@@ -682,10 +669,10 @@ public record Trace(
     }
 
     public TraceBuilder offset1Lo(final BigInteger b) {
-      if (filled.get(37)) {
+      if (filled.get(39)) {
         throw new IllegalStateException("OFFSET_1_LO already set");
       } else {
-        filled.set(37);
+        filled.set(39);
       }
 
       offset1Lo.add(b);
@@ -694,10 +681,10 @@ public record Trace(
     }
 
     public TraceBuilder offset2Hi(final BigInteger b) {
-      if (filled.get(38)) {
+      if (filled.get(40)) {
         throw new IllegalStateException("OFFSET_2_HI already set");
       } else {
-        filled.set(38);
+        filled.set(40);
       }
 
       offset2Hi.add(b);
@@ -706,10 +693,10 @@ public record Trace(
     }
 
     public TraceBuilder offset2Lo(final BigInteger b) {
-      if (filled.get(39)) {
+      if (filled.get(41)) {
         throw new IllegalStateException("OFFSET_2_LO already set");
       } else {
-        filled.set(39);
+        filled.set(41);
       }
 
       offset2Lo.add(b);
@@ -717,23 +704,35 @@ public record Trace(
       return this;
     }
 
-    public TraceBuilder ridiculouslyOutOfBound(final Boolean b) {
-      if (filled.get(40)) {
-        throw new IllegalStateException("RIDICULOUSLY_OUT_OF_BOUND already set");
+    public TraceBuilder quadCost(final BigInteger b) {
+      if (filled.get(42)) {
+        throw new IllegalStateException("QUAD_COST already set");
       } else {
-        filled.set(40);
+        filled.set(42);
       }
 
-      ridiculouslyOutOfBound.add(b);
+      quadCost.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder roob(final Boolean b) {
+      if (filled.get(43)) {
+        throw new IllegalStateException("ROOB already set");
+      } else {
+        filled.set(43);
+      }
+
+      roob.add(b);
 
       return this;
     }
 
     public TraceBuilder size1Hi(final BigInteger b) {
-      if (filled.get(41)) {
+      if (filled.get(44)) {
         throw new IllegalStateException("SIZE_1_HI already set");
       } else {
-        filled.set(41);
+        filled.set(44);
       }
 
       size1Hi.add(b);
@@ -742,10 +741,10 @@ public record Trace(
     }
 
     public TraceBuilder size1Lo(final BigInteger b) {
-      if (filled.get(42)) {
+      if (filled.get(45)) {
         throw new IllegalStateException("SIZE_1_LO already set");
       } else {
-        filled.set(42);
+        filled.set(45);
       }
 
       size1Lo.add(b);
@@ -754,10 +753,10 @@ public record Trace(
     }
 
     public TraceBuilder size2Hi(final BigInteger b) {
-      if (filled.get(43)) {
+      if (filled.get(46)) {
         throw new IllegalStateException("SIZE_2_HI already set");
       } else {
-        filled.set(43);
+        filled.set(46);
       }
 
       size2Hi.add(b);
@@ -766,10 +765,10 @@ public record Trace(
     }
 
     public TraceBuilder size2Lo(final BigInteger b) {
-      if (filled.get(44)) {
+      if (filled.get(47)) {
         throw new IllegalStateException("SIZE_2_LO already set");
       } else {
-        filled.set(44);
+        filled.set(47);
       }
 
       size2Lo.add(b);
@@ -778,10 +777,10 @@ public record Trace(
     }
 
     public TraceBuilder stamp(final BigInteger b) {
-      if (filled.get(45)) {
+      if (filled.get(48)) {
         throw new IllegalStateException("STAMP already set");
       } else {
-        filled.set(45);
+        filled.set(48);
       }
 
       stamp.add(b);
@@ -790,10 +789,10 @@ public record Trace(
     }
 
     public TraceBuilder words(final BigInteger b) {
-      if (filled.get(46)) {
+      if (filled.get(49)) {
         throw new IllegalStateException("WORDS already set");
       } else {
-        filled.set(46);
+        filled.set(49);
       }
 
       words.add(b);
@@ -802,10 +801,10 @@ public record Trace(
     }
 
     public TraceBuilder wordsNew(final BigInteger b) {
-      if (filled.get(47)) {
+      if (filled.get(50)) {
         throw new IllegalStateException("WORDS_NEW already set");
       } else {
-        filled.set(47);
+        filled.set(50);
       }
 
       wordsNew.add(b);
@@ -909,26 +908,74 @@ public record Trace(
       return this;
     }
 
+    public TraceBuilder setCMemAt(final BigInteger b, int i) {
+      cMem.set(i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setCMemNewAt(final BigInteger b, int i) {
+      cMemNew.set(i, b);
+
+      return this;
+    }
+
     public TraceBuilder setCnAt(final BigInteger b, int i) {
       cn.set(i, b);
 
       return this;
     }
 
-    public TraceBuilder setCompAt(final BigInteger b, int i) {
+    public TraceBuilder setCompAt(final Boolean b, int i) {
       comp.set(i, b);
 
       return this;
     }
 
-    public TraceBuilder setCounterAt(final BigInteger b, int i) {
-      counter.set(i, b);
+    public TraceBuilder setCtAt(final BigInteger b, int i) {
+      ct.set(i, b);
 
       return this;
     }
 
-    public TraceBuilder setDeltaMxpcAt(final BigInteger b, int i) {
-      deltaMxpc.set(i, b);
+    public TraceBuilder setDeploysAt(final Boolean b, int i) {
+      deploys.set(i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setExpandsAt(final Boolean b, int i) {
+      expands.set(i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setGasMxpAt(final BigInteger b, int i) {
+      gasMxp.set(i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setGbyteAt(final BigInteger b, int i) {
+      gbyte.set(i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setGwordAt(final BigInteger b, int i) {
+      gword.set(i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setInstAt(final BigInteger b, int i) {
+      inst.set(i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setLinCostAt(final BigInteger b, int i) {
+      linCost.set(i, b);
 
       return this;
     }
@@ -947,36 +994,6 @@ public record Trace(
 
     public TraceBuilder setMaxOffset2At(final BigInteger b, int i) {
       maxOffset2.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setMemoryExpansionEventAt(final Boolean b, int i) {
-      memoryExpansionEvent.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setMemoryExpansionExceptionAt(final Boolean b, int i) {
-      memoryExpansionException.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setMxpGbyteAt(final BigInteger b, int i) {
-      mxpGbyte.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setMxpGwordAt(final BigInteger b, int i) {
-      mxpGword.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setMxpInstAt(final BigInteger b, int i) {
-      mxpInst.set(i, b);
 
       return this;
     }
@@ -1011,14 +1028,8 @@ public record Trace(
       return this;
     }
 
-    public TraceBuilder setMxpcAt(final BigInteger b, int i) {
-      mxpc.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setMxpcNewAt(final BigInteger b, int i) {
-      mxpcNew.set(i, b);
+    public TraceBuilder setMxpxAt(final Boolean b, int i) {
+      mxpx.set(i, b);
 
       return this;
     }
@@ -1053,8 +1064,14 @@ public record Trace(
       return this;
     }
 
-    public TraceBuilder setRidiculouslyOutOfBoundAt(final Boolean b, int i) {
-      ridiculouslyOutOfBound.set(i, b);
+    public TraceBuilder setQuadCostAt(final BigInteger b, int i) {
+      quadCost.set(i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setRoobAt(final Boolean b, int i) {
+      roob.set(i, b);
 
       return this;
     }
@@ -1197,26 +1214,74 @@ public record Trace(
       return this;
     }
 
+    public TraceBuilder setCMemRelative(final BigInteger b, int i) {
+      cMem.set(cMem.size() - 1 - i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setCMemNewRelative(final BigInteger b, int i) {
+      cMemNew.set(cMemNew.size() - 1 - i, b);
+
+      return this;
+    }
+
     public TraceBuilder setCnRelative(final BigInteger b, int i) {
       cn.set(cn.size() - 1 - i, b);
 
       return this;
     }
 
-    public TraceBuilder setCompRelative(final BigInteger b, int i) {
+    public TraceBuilder setCompRelative(final Boolean b, int i) {
       comp.set(comp.size() - 1 - i, b);
 
       return this;
     }
 
-    public TraceBuilder setCounterRelative(final BigInteger b, int i) {
-      counter.set(counter.size() - 1 - i, b);
+    public TraceBuilder setCtRelative(final BigInteger b, int i) {
+      ct.set(ct.size() - 1 - i, b);
 
       return this;
     }
 
-    public TraceBuilder setDeltaMxpcRelative(final BigInteger b, int i) {
-      deltaMxpc.set(deltaMxpc.size() - 1 - i, b);
+    public TraceBuilder setDeploysRelative(final Boolean b, int i) {
+      deploys.set(deploys.size() - 1 - i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setExpandsRelative(final Boolean b, int i) {
+      expands.set(expands.size() - 1 - i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setGasMxpRelative(final BigInteger b, int i) {
+      gasMxp.set(gasMxp.size() - 1 - i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setGbyteRelative(final BigInteger b, int i) {
+      gbyte.set(gbyte.size() - 1 - i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setGwordRelative(final BigInteger b, int i) {
+      gword.set(gword.size() - 1 - i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setInstRelative(final BigInteger b, int i) {
+      inst.set(inst.size() - 1 - i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setLinCostRelative(final BigInteger b, int i) {
+      linCost.set(linCost.size() - 1 - i, b);
 
       return this;
     }
@@ -1235,36 +1300,6 @@ public record Trace(
 
     public TraceBuilder setMaxOffset2Relative(final BigInteger b, int i) {
       maxOffset2.set(maxOffset2.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setMemoryExpansionEventRelative(final Boolean b, int i) {
-      memoryExpansionEvent.set(memoryExpansionEvent.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setMemoryExpansionExceptionRelative(final Boolean b, int i) {
-      memoryExpansionException.set(memoryExpansionException.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setMxpGbyteRelative(final BigInteger b, int i) {
-      mxpGbyte.set(mxpGbyte.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setMxpGwordRelative(final BigInteger b, int i) {
-      mxpGword.set(mxpGword.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setMxpInstRelative(final BigInteger b, int i) {
-      mxpInst.set(mxpInst.size() - 1 - i, b);
 
       return this;
     }
@@ -1299,14 +1334,8 @@ public record Trace(
       return this;
     }
 
-    public TraceBuilder setMxpcRelative(final BigInteger b, int i) {
-      mxpc.set(mxpc.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setMxpcNewRelative(final BigInteger b, int i) {
-      mxpcNew.set(mxpcNew.size() - 1 - i, b);
+    public TraceBuilder setMxpxRelative(final Boolean b, int i) {
+      mxpx.set(mxpx.size() - 1 - i, b);
 
       return this;
     }
@@ -1341,8 +1370,14 @@ public record Trace(
       return this;
     }
 
-    public TraceBuilder setRidiculouslyOutOfBoundRelative(final Boolean b, int i) {
-      ridiculouslyOutOfBound.set(ridiculouslyOutOfBound.size() - 1 - i, b);
+    public TraceBuilder setQuadCostRelative(final BigInteger b, int i) {
+      quadCost.set(quadCost.size() - 1 - i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setRoobRelative(final Boolean b, int i) {
+      roob.set(roob.size() - 1 - i, b);
 
       return this;
     }
@@ -1454,6 +1489,14 @@ public record Trace(
         throw new IllegalStateException("BYTE_W has not been filled");
       }
 
+      if (!filled.get(19)) {
+        throw new IllegalStateException("C_MEM has not been filled");
+      }
+
+      if (!filled.get(20)) {
+        throw new IllegalStateException("C_MEM_NEW has not been filled");
+      }
+
       if (!filled.get(16)) {
         throw new IllegalStateException("CN has not been filled");
       }
@@ -1463,124 +1506,129 @@ public record Trace(
       }
 
       if (!filled.get(18)) {
-        throw new IllegalStateException("COUNTER has not been filled");
-      }
-
-      if (!filled.get(19)) {
-        throw new IllegalStateException("DELTA_MXPC has not been filled");
-      }
-
-      if (!filled.get(20)) {
-        throw new IllegalStateException("MAX_OFFSET has not been filled");
+        throw new IllegalStateException("CT has not been filled");
       }
 
       if (!filled.get(21)) {
-        throw new IllegalStateException("MAX_OFFSET_1 has not been filled");
+        throw new IllegalStateException("DEPLOYS has not been filled");
       }
 
       if (!filled.get(22)) {
-        throw new IllegalStateException("MAX_OFFSET_2 has not been filled");
+        throw new IllegalStateException("EXPANDS has not been filled");
       }
 
       if (!filled.get(23)) {
-        throw new IllegalStateException("MEMORY_EXPANSION_EVENT has not been filled");
+        throw new IllegalStateException("GAS_MXP has not been filled");
       }
 
       if (!filled.get(24)) {
-        throw new IllegalStateException("MEMORY_EXPANSION_EXCEPTION has not been filled");
-      }
-
-      if (!filled.get(27)) {
-        throw new IllegalStateException("MXP_GBYTE has not been filled");
-      }
-
-      if (!filled.get(28)) {
-        throw new IllegalStateException("MXP_GWORD has not been filled");
-      }
-
-      if (!filled.get(29)) {
-        throw new IllegalStateException("MXP_INST has not been filled");
-      }
-
-      if (!filled.get(30)) {
-        throw new IllegalStateException("MXP_TYPE_1 has not been filled");
-      }
-
-      if (!filled.get(31)) {
-        throw new IllegalStateException("MXP_TYPE_2 has not been filled");
-      }
-
-      if (!filled.get(32)) {
-        throw new IllegalStateException("MXP_TYPE_3 has not been filled");
-      }
-
-      if (!filled.get(33)) {
-        throw new IllegalStateException("MXP_TYPE_4 has not been filled");
-      }
-
-      if (!filled.get(34)) {
-        throw new IllegalStateException("MXP_TYPE_5 has not been filled");
+        throw new IllegalStateException("GBYTE has not been filled");
       }
 
       if (!filled.get(25)) {
-        throw new IllegalStateException("MXPC has not been filled");
+        throw new IllegalStateException("GWORD has not been filled");
       }
 
       if (!filled.get(26)) {
-        throw new IllegalStateException("MXPC_NEW has not been filled");
+        throw new IllegalStateException("INST has not been filled");
+      }
+
+      if (!filled.get(27)) {
+        throw new IllegalStateException("LIN_COST has not been filled");
+      }
+
+      if (!filled.get(28)) {
+        throw new IllegalStateException("MAX_OFFSET has not been filled");
+      }
+
+      if (!filled.get(29)) {
+        throw new IllegalStateException("MAX_OFFSET_1 has not been filled");
+      }
+
+      if (!filled.get(30)) {
+        throw new IllegalStateException("MAX_OFFSET_2 has not been filled");
+      }
+
+      if (!filled.get(32)) {
+        throw new IllegalStateException("MXP_TYPE_1 has not been filled");
+      }
+
+      if (!filled.get(33)) {
+        throw new IllegalStateException("MXP_TYPE_2 has not been filled");
+      }
+
+      if (!filled.get(34)) {
+        throw new IllegalStateException("MXP_TYPE_3 has not been filled");
       }
 
       if (!filled.get(35)) {
-        throw new IllegalStateException("NOOP has not been filled");
+        throw new IllegalStateException("MXP_TYPE_4 has not been filled");
       }
 
       if (!filled.get(36)) {
-        throw new IllegalStateException("OFFSET_1_HI has not been filled");
+        throw new IllegalStateException("MXP_TYPE_5 has not been filled");
+      }
+
+      if (!filled.get(31)) {
+        throw new IllegalStateException("MXPX has not been filled");
       }
 
       if (!filled.get(37)) {
-        throw new IllegalStateException("OFFSET_1_LO has not been filled");
+        throw new IllegalStateException("NOOP has not been filled");
       }
 
       if (!filled.get(38)) {
-        throw new IllegalStateException("OFFSET_2_HI has not been filled");
+        throw new IllegalStateException("OFFSET_1_HI has not been filled");
       }
 
       if (!filled.get(39)) {
-        throw new IllegalStateException("OFFSET_2_LO has not been filled");
+        throw new IllegalStateException("OFFSET_1_LO has not been filled");
       }
 
       if (!filled.get(40)) {
-        throw new IllegalStateException("RIDICULOUSLY_OUT_OF_BOUND has not been filled");
+        throw new IllegalStateException("OFFSET_2_HI has not been filled");
       }
 
       if (!filled.get(41)) {
-        throw new IllegalStateException("SIZE_1_HI has not been filled");
+        throw new IllegalStateException("OFFSET_2_LO has not been filled");
       }
 
       if (!filled.get(42)) {
-        throw new IllegalStateException("SIZE_1_LO has not been filled");
+        throw new IllegalStateException("QUAD_COST has not been filled");
       }
 
       if (!filled.get(43)) {
-        throw new IllegalStateException("SIZE_2_HI has not been filled");
+        throw new IllegalStateException("ROOB has not been filled");
       }
 
       if (!filled.get(44)) {
-        throw new IllegalStateException("SIZE_2_LO has not been filled");
+        throw new IllegalStateException("SIZE_1_HI has not been filled");
       }
 
       if (!filled.get(45)) {
-        throw new IllegalStateException("STAMP has not been filled");
+        throw new IllegalStateException("SIZE_1_LO has not been filled");
       }
 
       if (!filled.get(46)) {
-        throw new IllegalStateException("WORDS has not been filled");
+        throw new IllegalStateException("SIZE_2_HI has not been filled");
       }
 
       if (!filled.get(47)) {
+        throw new IllegalStateException("SIZE_2_LO has not been filled");
+      }
+
+      if (!filled.get(48)) {
+        throw new IllegalStateException("STAMP has not been filled");
+      }
+
+      if (!filled.get(49)) {
+        throw new IllegalStateException("WORDS has not been filled");
+      }
+
+      if (!filled.get(50)) {
         throw new IllegalStateException("WORDS_NEW has not been filled");
       }
+
 
       filled.clear();
 
@@ -1589,196 +1637,208 @@ public record Trace(
 
     public TraceBuilder fillAndValidateRow() {
       if (!filled.get(0)) {
-        acc1.add(BigInteger.ZERO);
-        this.filled.set(0);
+          acc1.add(BigInteger.ZERO);
+          this.filled.set(0);
       }
       if (!filled.get(1)) {
-        acc2.add(BigInteger.ZERO);
-        this.filled.set(1);
+          acc2.add(BigInteger.ZERO);
+          this.filled.set(1);
       }
       if (!filled.get(2)) {
-        acc3.add(BigInteger.ZERO);
-        this.filled.set(2);
+          acc3.add(BigInteger.ZERO);
+          this.filled.set(2);
       }
       if (!filled.get(3)) {
-        acc4.add(BigInteger.ZERO);
-        this.filled.set(3);
+          acc4.add(BigInteger.ZERO);
+          this.filled.set(3);
       }
       if (!filled.get(4)) {
-        accA.add(BigInteger.ZERO);
-        this.filled.set(4);
+          accA.add(BigInteger.ZERO);
+          this.filled.set(4);
       }
       if (!filled.get(5)) {
-        accQ.add(BigInteger.ZERO);
-        this.filled.set(5);
+          accQ.add(BigInteger.ZERO);
+          this.filled.set(5);
       }
       if (!filled.get(6)) {
-        accW.add(BigInteger.ZERO);
-        this.filled.set(6);
+          accW.add(BigInteger.ZERO);
+          this.filled.set(6);
       }
       if (!filled.get(7)) {
-        byte1.add(UnsignedByte.of(0));
-        this.filled.set(7);
+          byte1.add(UnsignedByte.of(0));
+          this.filled.set(7);
       }
       if (!filled.get(8)) {
-        byte2.add(UnsignedByte.of(0));
-        this.filled.set(8);
+          byte2.add(UnsignedByte.of(0));
+          this.filled.set(8);
       }
       if (!filled.get(9)) {
-        byte3.add(UnsignedByte.of(0));
-        this.filled.set(9);
+          byte3.add(UnsignedByte.of(0));
+          this.filled.set(9);
       }
       if (!filled.get(10)) {
-        byte4.add(UnsignedByte.of(0));
-        this.filled.set(10);
+          byte4.add(UnsignedByte.of(0));
+          this.filled.set(10);
       }
       if (!filled.get(11)) {
-        byteA.add(UnsignedByte.of(0));
-        this.filled.set(11);
+          byteA.add(UnsignedByte.of(0));
+          this.filled.set(11);
       }
       if (!filled.get(12)) {
-        byteQ.add(UnsignedByte.of(0));
-        this.filled.set(12);
+          byteQ.add(UnsignedByte.of(0));
+          this.filled.set(12);
       }
       if (!filled.get(13)) {
-        byteQq.add(BigInteger.ZERO);
-        this.filled.set(13);
+          byteQq.add(BigInteger.ZERO);
+          this.filled.set(13);
       }
       if (!filled.get(14)) {
-        byteR.add(BigInteger.ZERO);
-        this.filled.set(14);
+          byteR.add(BigInteger.ZERO);
+          this.filled.set(14);
       }
       if (!filled.get(15)) {
-        byteW.add(UnsignedByte.of(0));
-        this.filled.set(15);
-      }
-      if (!filled.get(16)) {
-        cn.add(BigInteger.ZERO);
-        this.filled.set(16);
-      }
-      if (!filled.get(17)) {
-        comp.add(BigInteger.ZERO);
-        this.filled.set(17);
-      }
-      if (!filled.get(18)) {
-        counter.add(BigInteger.ZERO);
-        this.filled.set(18);
+          byteW.add(UnsignedByte.of(0));
+          this.filled.set(15);
       }
       if (!filled.get(19)) {
-        deltaMxpc.add(BigInteger.ZERO);
-        this.filled.set(19);
+          cMem.add(BigInteger.ZERO);
+          this.filled.set(19);
       }
       if (!filled.get(20)) {
-        maxOffset.add(BigInteger.ZERO);
-        this.filled.set(20);
+          cMemNew.add(BigInteger.ZERO);
+          this.filled.set(20);
+      }
+      if (!filled.get(16)) {
+          cn.add(BigInteger.ZERO);
+          this.filled.set(16);
+      }
+      if (!filled.get(17)) {
+          comp.add(false);
+          this.filled.set(17);
+      }
+      if (!filled.get(18)) {
+          ct.add(BigInteger.ZERO);
+          this.filled.set(18);
       }
       if (!filled.get(21)) {
-        maxOffset1.add(BigInteger.ZERO);
-        this.filled.set(21);
+          deploys.add(false);
+          this.filled.set(21);
       }
       if (!filled.get(22)) {
-        maxOffset2.add(BigInteger.ZERO);
-        this.filled.set(22);
+          expands.add(false);
+          this.filled.set(22);
       }
       if (!filled.get(23)) {
-        memoryExpansionEvent.add(false);
-        this.filled.set(23);
+          gasMxp.add(BigInteger.ZERO);
+          this.filled.set(23);
       }
       if (!filled.get(24)) {
-        memoryExpansionException.add(false);
-        this.filled.set(24);
-      }
-      if (!filled.get(27)) {
-        mxpGbyte.add(BigInteger.ZERO);
-        this.filled.set(27);
-      }
-      if (!filled.get(28)) {
-        mxpGword.add(BigInteger.ZERO);
-        this.filled.set(28);
-      }
-      if (!filled.get(29)) {
-        mxpInst.add(BigInteger.ZERO);
-        this.filled.set(29);
-      }
-      if (!filled.get(30)) {
-        mxpType1.add(false);
-        this.filled.set(30);
-      }
-      if (!filled.get(31)) {
-        mxpType2.add(false);
-        this.filled.set(31);
-      }
-      if (!filled.get(32)) {
-        mxpType3.add(false);
-        this.filled.set(32);
-      }
-      if (!filled.get(33)) {
-        mxpType4.add(false);
-        this.filled.set(33);
-      }
-      if (!filled.get(34)) {
-        mxpType5.add(false);
-        this.filled.set(34);
+          gbyte.add(BigInteger.ZERO);
+          this.filled.set(24);
       }
       if (!filled.get(25)) {
-        mxpc.add(BigInteger.ZERO);
-        this.filled.set(25);
+          gword.add(BigInteger.ZERO);
+          this.filled.set(25);
       }
       if (!filled.get(26)) {
-        mxpcNew.add(BigInteger.ZERO);
-        this.filled.set(26);
+          inst.add(BigInteger.ZERO);
+          this.filled.set(26);
+      }
+      if (!filled.get(27)) {
+          linCost.add(BigInteger.ZERO);
+          this.filled.set(27);
+      }
+      if (!filled.get(28)) {
+          maxOffset.add(BigInteger.ZERO);
+          this.filled.set(28);
+      }
+      if (!filled.get(29)) {
+          maxOffset1.add(BigInteger.ZERO);
+          this.filled.set(29);
+      }
+      if (!filled.get(30)) {
+          maxOffset2.add(BigInteger.ZERO);
+          this.filled.set(30);
+      }
+      if (!filled.get(32)) {
+          mxpType1.add(false);
+          this.filled.set(32);
+      }
+      if (!filled.get(33)) {
+          mxpType2.add(false);
+          this.filled.set(33);
+      }
+      if (!filled.get(34)) {
+          mxpType3.add(false);
+          this.filled.set(34);
       }
       if (!filled.get(35)) {
-        noop.add(false);
-        this.filled.set(35);
+          mxpType4.add(false);
+          this.filled.set(35);
       }
       if (!filled.get(36)) {
-        offset1Hi.add(BigInteger.ZERO);
-        this.filled.set(36);
+          mxpType5.add(false);
+          this.filled.set(36);
+      }
+      if (!filled.get(31)) {
+          mxpx.add(false);
+          this.filled.set(31);
       }
       if (!filled.get(37)) {
-        offset1Lo.add(BigInteger.ZERO);
-        this.filled.set(37);
+          noop.add(false);
+          this.filled.set(37);
       }
       if (!filled.get(38)) {
-        offset2Hi.add(BigInteger.ZERO);
-        this.filled.set(38);
+          offset1Hi.add(BigInteger.ZERO);
+          this.filled.set(38);
       }
       if (!filled.get(39)) {
-        offset2Lo.add(BigInteger.ZERO);
-        this.filled.set(39);
+          offset1Lo.add(BigInteger.ZERO);
+          this.filled.set(39);
       }
       if (!filled.get(40)) {
-        ridiculouslyOutOfBound.add(false);
-        this.filled.set(40);
+          offset2Hi.add(BigInteger.ZERO);
+          this.filled.set(40);
       }
       if (!filled.get(41)) {
-        size1Hi.add(BigInteger.ZERO);
-        this.filled.set(41);
+          offset2Lo.add(BigInteger.ZERO);
+          this.filled.set(41);
       }
       if (!filled.get(42)) {
-        size1Lo.add(BigInteger.ZERO);
-        this.filled.set(42);
+          quadCost.add(BigInteger.ZERO);
+          this.filled.set(42);
       }
       if (!filled.get(43)) {
-        size2Hi.add(BigInteger.ZERO);
-        this.filled.set(43);
+          roob.add(false);
+          this.filled.set(43);
       }
       if (!filled.get(44)) {
-        size2Lo.add(BigInteger.ZERO);
-        this.filled.set(44);
+          size1Hi.add(BigInteger.ZERO);
+          this.filled.set(44);
       }
       if (!filled.get(45)) {
-        stamp.add(BigInteger.ZERO);
-        this.filled.set(45);
+          size1Lo.add(BigInteger.ZERO);
+          this.filled.set(45);
       }
       if (!filled.get(46)) {
-        words.add(BigInteger.ZERO);
-        this.filled.set(46);
+          size2Hi.add(BigInteger.ZERO);
+          this.filled.set(46);
       }
       if (!filled.get(47)) {
-        wordsNew.add(BigInteger.ZERO);
-        this.filled.set(47);
+          size2Lo.add(BigInteger.ZERO);
+          this.filled.set(47);
+      }
+      if (!filled.get(48)) {
+          stamp.add(BigInteger.ZERO);
+          this.filled.set(48);
+      }
+      if (!filled.get(49)) {
+          words.add(BigInteger.ZERO);
+          this.filled.set(49);
+      }
+      if (!filled.get(50)) {
+          wordsNew.add(BigInteger.ZERO);
+          this.filled.set(50);
       }
 
       return this.validateRow();
@@ -1790,54 +1850,57 @@ public record Trace(
       }
 
       return new Trace(
-          acc1,
-          acc2,
-          acc3,
-          acc4,
-          accA,
-          accQ,
-          accW,
-          byte1,
-          byte2,
-          byte3,
-          byte4,
-          byteA,
-          byteQ,
-          byteQq,
-          byteR,
-          byteW,
-          cn,
-          comp,
-          counter,
-          deltaMxpc,
-          maxOffset,
-          maxOffset1,
-          maxOffset2,
-          memoryExpansionEvent,
-          memoryExpansionException,
-          mxpGbyte,
-          mxpGword,
-          mxpInst,
-          mxpType1,
-          mxpType2,
-          mxpType3,
-          mxpType4,
-          mxpType5,
-          mxpc,
-          mxpcNew,
-          noop,
-          offset1Hi,
-          offset1Lo,
-          offset2Hi,
-          offset2Lo,
-          ridiculouslyOutOfBound,
-          size1Hi,
-          size1Lo,
-          size2Hi,
-          size2Lo,
-          stamp,
-          words,
-          wordsNew);
+        acc1,
+        acc2,
+        acc3,
+        acc4,
+        accA,
+        accQ,
+        accW,
+        byte1,
+        byte2,
+        byte3,
+        byte4,
+        byteA,
+        byteQ,
+        byteQq,
+        byteR,
+        byteW,
+        cMem,
+        cMemNew,
+        cn,
+        comp,
+        ct,
+        deploys,
+        expands,
+        gasMxp,
+        gbyte,
+        gword,
+        inst,
+        linCost,
+        maxOffset,
+        maxOffset1,
+        maxOffset2,
+        mxpType1,
+        mxpType2,
+        mxpType3,
+        mxpType4,
+        mxpType5,
+        mxpx,
+        noop,
+        offset1Hi,
+        offset1Lo,
+        offset2Hi,
+        offset2Lo,
+        quadCost,
+        roob,
+        size1Hi,
+        size1Lo,
+        size2Hi,
+        size2Lo,
+        stamp,
+        words,
+        wordsNew);
     }
   }
 }

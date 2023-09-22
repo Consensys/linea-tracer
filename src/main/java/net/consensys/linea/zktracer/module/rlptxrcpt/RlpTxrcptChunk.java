@@ -4,7 +4,7 @@ import java.util.List;
 
 import lombok.Getter;
 import org.hyperledger.besu.datatypes.TransactionType;
-import org.hyperledger.besu.plugin.data.Log;
+import org.hyperledger.besu.evm.log.Log;
 
 @Getter
 public class RlpTxrcptChunk {

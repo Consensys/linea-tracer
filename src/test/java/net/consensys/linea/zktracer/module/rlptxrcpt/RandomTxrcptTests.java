@@ -33,6 +33,7 @@ import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.TransactionType;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
+import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.log.LogTopic;
 import org.junit.jupiter.api.Test;
 
@@ -66,9 +67,9 @@ public class RandomTxrcptTests {
     //
     final Bytes output = Bytes.of(1, 2, 3, 4, 5);
     final boolean status = true;
-    final List<org.hyperledger.besu.plugin.data.Log> logs =
+    final List<Log> logs =
         List.of(
-            new LogWrapper(
+            new Log(
                 Address.wrap(Bytes.random(20)),
                 Bytes.random(16),
                 List.of(LogTopic.of(Bytes.random(32)), LogTopic.of(Bytes.random(32)))));
@@ -77,7 +78,7 @@ public class RandomTxrcptTests {
     //
     // Call the module
     //
-    rlpTxrcpt.traceEndTransaction(null, tx, status, output, logs, gasUsed, 0);
+    rlpTxrcpt.traceEndTx(null, tx, status, output, logs, gasUsed);
 
     //
     // Check the trace

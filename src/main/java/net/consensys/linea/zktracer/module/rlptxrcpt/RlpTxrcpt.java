@@ -36,9 +36,9 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.TransactionType;
+import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.log.LogsBloomFilter;
 import org.hyperledger.besu.evm.worldstate.WorldView;
-import org.hyperledger.besu.plugin.data.Log;
 
 public class RlpTxrcpt implements Module {
   public static final int llarge = RlpTxrcptTrace.LLARGE.intValue();
@@ -61,15 +61,11 @@ public class RlpTxrcpt implements Module {
     return List.of();
   }
 
+
   @Override
-  public void traceEndTransaction(
-      WorldView worldView,
-      Transaction tx,
-      boolean status,
-      Bytes output,
-      List<Log> logList,
-      Long gasUsed,
-      long TomeNS) {
+  public void traceEndTx(WorldView worldView, Transaction tx, boolean status, Bytes output,
+                         List<org.hyperledger.besu.evm.log.Log> logList, long gasUsed) {
+
     this.absLogNumMax += logList.size();
     RlpTxrcptChunk chunk = new RlpTxrcptChunk(tx.getType(), status, gasUsed, logList);
     this.chunkList.add(chunk);
@@ -660,9 +656,8 @@ public class RlpTxrcpt implements Module {
 
     // As the cumulative gas is Gtransaction=21000, its size is >1.
     size +=
-        outerRlpSize(
-            Bytes.ofUnsignedInt(chunk.GasUsed).size()
-                - Bytes.ofUnsignedInt(chunk.getGasUsed()).numberOfLeadingZeroBytes());
+        outerRlpSize(Bytes.minimalBytes(chunk.GasUsed).size());
+
 
     // RLP(Rb) is always 259 (256+3) long.
     size += 259;

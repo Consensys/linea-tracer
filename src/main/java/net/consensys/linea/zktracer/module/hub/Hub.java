@@ -595,15 +595,6 @@ public class Hub implements Module {
     this.processStateExec(frame);
   }
 
-  @Override
-  public void traceEndTransaction(
-      WorldView worldView,
-      Transaction tx,
-      boolean status,
-      Bytes output,
-      List<org.hyperledger.besu.plugin.data.Log> logList,
-      Long gasUsed,
-      long TomeNS) {}
 
   public void tracePostExecution(MessageFrame frame, Operation.OperationResult operationResult) {
     if (this.tx.state() == TxState.TX_SKIP) {

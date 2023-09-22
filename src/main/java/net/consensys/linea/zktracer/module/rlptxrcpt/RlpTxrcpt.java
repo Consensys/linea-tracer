@@ -61,10 +61,14 @@ public class RlpTxrcpt implements Module {
     return List.of();
   }
 
-
   @Override
-  public void traceEndTx(WorldView worldView, Transaction tx, boolean status, Bytes output,
-                         List<org.hyperledger.besu.evm.log.Log> logList, long gasUsed) {
+  public void traceEndTx(
+      WorldView worldView,
+      Transaction tx,
+      boolean status,
+      Bytes output,
+      List<org.hyperledger.besu.evm.log.Log> logList,
+      long gasUsed) {
 
     this.absLogNumMax += logList.size();
     RlpTxrcptChunk chunk = new RlpTxrcptChunk(tx.getType(), status, gasUsed, logList);
@@ -77,19 +81,19 @@ public class RlpTxrcpt implements Module {
     traceValue.absTxNum = absTxNum;
 
     // PHASE 0: RLP Prefix.
-    phase0(traceValue, chunk.getTxType());
+    phase0(traceValue, chunk.txType());
 
     // PHASE 1: Status code Rz.
-    phase1(traceValue, chunk.getStatus());
+    phase1(traceValue, chunk.status());
 
     // PHASE 2: Cumulative gas Ru.
-    phase2(traceValue, chunk.getGasUsed());
+    phase2(traceValue, chunk.gasUsed());
 
     // PHASE 3: Bloom Filter Rb.
-    phase3(traceValue, chunk.getLogs());
+    phase3(traceValue, chunk.logs());
 
     // Phase 4: log series Rl.
-    phase4(traceValue, chunk.getLogs());
+    phase4(traceValue, chunk.logs());
   }
 
   private void phase0(RlpTxrcptColumns traceValue, TransactionType txType) {
@@ -132,7 +136,7 @@ public class RlpTxrcpt implements Module {
   }
 
   private void phase2(RlpTxrcptColumns traceValue, Long cumulativeGasUsed) {
-    Preconditions.checkArgument(cumulativeGasUsed == 0, "Cumulative Gas Used can't be 0");
+    Preconditions.checkArgument(cumulativeGasUsed != 0, "Cumulative Gas Used can't be 0");
     rlpInt(2, cumulativeGasUsed, false, false, false, true, false, traceValue);
   }
 
@@ -276,7 +280,7 @@ public class RlpTxrcpt implements Module {
         traceValue.limbConstructed = true;
 
         if (logList.get(i).getTopics().isEmpty() || logList.get(i).getTopics().size() == 1) {
-          traceValue.limb = Bytes.ofUnsignedShort(rlpListShort.toInt() + traceValue.localSize);
+          traceValue.limb = bigIntegerToBytes(rlpListShort.toUnsignedBigInteger().add(BigInteger.valueOf(traceValue.localSize)));
           traceValue.nBytes = 1;
         } else {
           traceValue.limb =
@@ -285,7 +289,6 @@ public class RlpTxrcpt implements Module {
                   bigIntegerToBytes(BigInteger.valueOf(traceValue.localSize)));
           traceValue.nBytes = 2;
         }
-
         traceRow(traceValue);
 
         // RLP Log Topic (if exist).
@@ -382,18 +385,17 @@ public class RlpTxrcpt implements Module {
             traceValue.counter = ct;
             traceValue.indexLocal = ct;
 
-            if (!(ct == nbDataSlice - 1)) {
+            if (ct != nbDataSlice - 1) {
               traceValue.input1 = logList.get(i).getData().slice(llarge * ct, llarge);
               traceValue.limb = traceValue.input1;
               traceValue.nBytes = llarge;
               traceValue.localSize -= llarge;
             } else {
-              traceValue.input1 =
+              traceValue.input1 = padToGivenSizeWithRightZero(
                   logList
                       .get(i)
                       .getData()
-                      .slice(llarge * ct, sizeDataLastSlice)
-                      .shiftLeft(llarge - sizeDataLastSlice);
+                      .slice(llarge * ct, sizeDataLastSlice),llarge);
               traceValue.limb = traceValue.input1;
               traceValue.nBytes = sizeDataLastSlice;
               traceValue.localSize -= sizeDataLastSlice;
@@ -655,21 +657,19 @@ public class RlpTxrcpt implements Module {
     int size = 1;
 
     // As the cumulative gas is Gtransaction=21000, its size is >1.
-    size +=
-        outerRlpSize(Bytes.minimalBytes(chunk.GasUsed).size());
-
+    size += outerRlpSize(Bytes.minimalBytes(chunk.gasUsed()).size());
 
     // RLP(Rb) is always 259 (256+3) long.
     size += 259;
 
     // Add the size of the RLP(Log).
-    int nbLog = chunk.getLogs().size();
+    int nbLog = chunk.logs().size();
     if (nbLog == 0) {
       size += 1;
     } else {
       int tmp = 0;
       for (int i = 0; i < nbLog; i++) {
-        tmp += outerRlpSize(logSize(chunk.getLogs().get(i)));
+        tmp += outerRlpSize(logSize(chunk.logs().get(i)));
       }
       size += outerRlpSize(tmp);
     }
@@ -706,27 +706,27 @@ public class RlpTxrcpt implements Module {
     int rowSize = 83;
 
     // add the number of rows for Phase 4 : Log entry
-    if (chunk.getLogs().isEmpty()) {
+    if (chunk.logs().isEmpty()) {
       rowSize += 1;
     } else {
       // Rlp prefix of the list of log entries is always 8 rows long
       rowSize += 8;
 
-      for (int i = 0; i < chunk.getLogs().size(); i++) {
+      for (int i = 0; i < chunk.logs().size(); i++) {
         // Rlp prefix of a log entry is always 8, Log entry address is always 3 row long, Log topics
         // rlp prefix always 1
         rowSize += 12;
 
         // Each log Topics is 3 rows long
-        rowSize += 3 * chunk.getLogs().get(i).getTopics().size();
+        rowSize += 3 * chunk.logs().get(i).getTopics().size();
 
         // Row size of data is 1 if empty
-        if (chunk.getLogs().get(i).getData().isEmpty()) {
+        if (chunk.logs().get(i).getData().isEmpty()) {
           rowSize += 1;
         }
         // Row size of the data is 8 (RLP prefix)+ integer part (data-size - 1 /16) +1
         else {
-          rowSize += 8 + (chunk.getLogs().get(i).getData().size() - 1) / 16 + 1;
+          rowSize += 8 + (chunk.logs().get(i).getData().size() - 1) / 16 + 1;
         }
       }
     }

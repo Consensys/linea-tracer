@@ -79,6 +79,7 @@ public class RandomTxrcptTests {
     // Call the module
     //
     rlpTxrcpt.traceEndTx(null, tx, status, output, logs, gasUsed);
+    rlpTxrcpt.commit();
 
     //
     // Check the trace

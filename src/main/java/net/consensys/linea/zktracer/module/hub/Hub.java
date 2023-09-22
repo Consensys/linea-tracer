@@ -595,7 +595,6 @@ public class Hub implements Module {
     this.processStateExec(frame);
   }
 
-
   public void tracePostExecution(MessageFrame frame, Operation.OperationResult operationResult) {
     if (this.tx.state() == TxState.TX_SKIP) {
       return;

@@ -17,7 +17,7 @@ public class pattern {
     } else {
       rlpSize += 1;
       if (inputSize >= 56) {
-        rlpSize += Bytes.ofUnsignedShort(inputSize).size();
+        rlpSize += Bytes.minimalBytes(inputSize).size();
       }
     }
     return rlpSize;

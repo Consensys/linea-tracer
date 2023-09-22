@@ -18,7 +18,9 @@ package net.consensys.linea.zktracer.module.rlptxrcpt;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import net.consensys.linea.zktracer.ZkTraceBuilder;
 import net.consensys.linea.zktracer.corset.CorsetValidator;
@@ -38,6 +40,34 @@ import org.hyperledger.besu.evm.log.LogTopic;
 import org.junit.jupiter.api.Test;
 
 public class RandomTxrcptTests {
+
+  private Log randomLog(int dataType, int nbTopic) {
+    Bytes data =
+        switch (dataType) {
+          case 0 -> Bytes.EMPTY;
+          case 1 -> Bytes.ofUnsignedInt(0);
+          case 2 -> Bytes.ofUnsignedInt(new Random().nextInt(1, 127));
+          case 3 -> Bytes.ofUnsignedInt(new Random().nextInt(128, 255));
+          case 4 -> Bytes.random(55);
+          case 5 -> Bytes.random(666);
+          default -> null;
+        };
+
+    List<LogTopic> topics = new ArrayList<>();
+    for (int i = 0; i < nbTopic; i++) {
+      topics.add(LogTopic.of(Bytes.random(32)));
+    }
+    return new Log(Address.wrap(Bytes.random(20)), data, topics);
+  }
+
+  private List<Log> randomListLog(int nLog) {
+    List<Log> logs = new java.util.ArrayList<>(List.of());
+    for (int i = 0; i < nLog; i++) {
+      logs.add(randomLog(new Random().nextInt(0, 5), new Random().nextInt(0, 4)));
+    }
+    return logs;
+  }
+
   @Test
   public void testRandomTxrcpt() {
     RlpTxrcpt rlpTxrcpt = new RlpTxrcpt();
@@ -65,21 +95,16 @@ public class RandomTxrcptTests {
     //
     // Create a mock test receipt
     //
-    final Bytes output = Bytes.of(1, 2, 3, 4, 5);
-    final boolean status = true;
-    final List<Log> logs =
-        List.of(
-            new Log(
-                Address.wrap(Bytes.random(20)),
-                Bytes.random(16),
-                List.of(LogTopic.of(Bytes.random(32)), LogTopic.of(Bytes.random(32)))));
-    final long gasUsed = 2123006;
+    final Bytes output = Bytes.random(20);
+    final boolean status = new Random().nextBoolean();
+    final List<Log> logs = randomListLog(new Random().nextInt(10));
+
+    final long gasUsed = new Random().nextLong(21000, 0xfffffffffffffffL);
 
     //
     // Call the module
     //
     rlpTxrcpt.traceEndTx(null, tx, status, output, logs, gasUsed);
-    rlpTxrcpt.commit();
 
     //
     // Check the trace

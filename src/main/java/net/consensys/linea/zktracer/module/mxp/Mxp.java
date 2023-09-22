@@ -102,8 +102,8 @@ public class Mxp implements Module {
     for (int i = 0; i < 16; i++) {
 
       trace
-          .counter(BigInteger.valueOf(i))
-          .mxpInst(BigInteger.valueOf(opCodeData.value()))
+          .ct(BigInteger.valueOf(i))
+          .inst(BigInteger.valueOf(opCodeData.value()))
           .offset1Hi(off1.getHigh().toUnsignedBigInteger())
           .offset1Lo(off1.getLow().toUnsignedBigInteger())
           .offset2Hi(off2.getHigh().toUnsignedBigInteger())
@@ -112,8 +112,8 @@ public class Mxp implements Module {
           .size1Lo(s1.getLow().toUnsignedBigInteger())
           .size2Hi(s2.getHigh().toUnsignedBigInteger())
           .size2Lo(s2.getLow().toUnsignedBigInteger())
-          .memoryExpansionException(mxpData.isMxpx())
-          .ridiculouslyOutOfBound(mxpData.isRoob())
+          .mxpx(mxpData.isMxpx())
+          .roob(mxpData.isRoob())
           .noop(mxpData.isNoop())
           //              .comp(mxpData.isComp()) // TODO comp is boolean
           .acc1(acc1Bytes32.slice(0, 1 + i).toUnsignedBigInteger())

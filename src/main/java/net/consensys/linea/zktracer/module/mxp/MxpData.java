@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.mxp;
 
-
 import static net.consensys.linea.zktracer.module.Util.max;
 
 import java.math.BigInteger;

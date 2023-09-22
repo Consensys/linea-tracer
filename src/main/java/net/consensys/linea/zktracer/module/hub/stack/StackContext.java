@@ -22,7 +22,7 @@ import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.callstack.CallFrame;
+import net.consensys.linea.zktracer.module.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.opcode.OpCode;
 
 /**
@@ -81,8 +81,7 @@ public final class StackContext {
    * @param items the stack operations to execute
    */
   void addArmingLine(int posResult, IndexedStackOperation... items) {
-    int newPos = this.lines.size();
-    this.lines.add(new StackLine(Arrays.stream(items).toList(), newPos, posResult));
+    this.lines.add(new StackLine(Arrays.stream(items).toList(), posResult));
   }
 
   /**

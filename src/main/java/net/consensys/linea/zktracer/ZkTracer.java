@@ -24,6 +24,7 @@ import net.consensys.linea.zktracer.module.ext.Ext;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.mul.Mul;
+import net.consensys.linea.zktracer.module.rlp_txn.RlpTxn;
 import net.consensys.linea.zktracer.module.shf.Shf;
 import net.consensys.linea.zktracer.module.trm.Trm;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
@@ -31,7 +32,9 @@ import net.consensys.linea.zktracer.opcode.OpCodes;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.operation.Operation;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 
@@ -39,6 +42,7 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 public class ZkTracer implements ZkBlockAwareOperationTracer {
   private final ZkTraceBuilder zkTraceBuilder = new ZkTraceBuilder();
   private final Hub hub;
+
   private final List<Module> modules;
 
   public ZkTracer() {
@@ -50,8 +54,11 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
     Trm trm = new Trm();
     Wcp wcp = new Wcp();
 
+    RlpTxn rlpTxn = new RlpTxn();
+
     this.hub = new Hub(add, ext, mod, mul, shf, trm, wcp);
-    this.modules = List.of(add, ext, mod, mul, shf, trm, wcp);
+    this.modules = hub.getModules();
+    this.modules.add(rlpTxn);
 
     // Load opcodes configured in src/main/resources/opcodes.yml.
     OpCodes.load();
@@ -68,6 +75,7 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
 
   @Override
   public void traceStartConflation(final long numBlocksInConflation) {
+    hub.traceStartConflation(numBlocksInConflation);
     for (Module module : this.modules) {
       module.traceStartConflation(numBlocksInConflation);
     }
@@ -102,22 +110,27 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
   }
 
   @Override
-  public void traceStartTransaction(final Transaction transaction) {
-    this.hub.traceStartTx(transaction);
+  public void traceStartTransaction(WorldView worldView, Transaction transaction) {
+    this.hub.traceStartTx(worldView, transaction);
     for (Module module : this.modules) {
-      module.traceStartTx(transaction);
+      module.traceStartTx(worldView, transaction);
     }
   }
 
   @Override
-  public void traceEndTransaction(final Bytes output, final long gasUsed, final long timeNs) {
-    this.hub.traceEndTx();
+  public void traceEndTransaction(
+      WorldView worldView,
+      Transaction tx,
+      boolean status,
+      Bytes output,
+      List<Log> logs,
+      long gasUsed,
+      long timeNs) {
+    this.hub.traceEndTx(worldView, tx, status, output, logs, gasUsed);
     for (Module module : this.modules) {
-      module.traceEndTx();
+      module.traceEndTx(worldView, tx, status, output, logs, gasUsed);
     }
   }
-
-  // TODO: missing ContextEnter/Exit
 
   @Override
   public void tracePreExecution(final MessageFrame frame) {

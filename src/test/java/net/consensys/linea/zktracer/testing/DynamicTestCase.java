@@ -18,7 +18,6 @@ package net.consensys.linea.zktracer.testing;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-import com.google.common.collect.Multimap;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes32;
 
@@ -30,6 +29,4 @@ import org.apache.tuweni.bytes.Bytes32;
  * @param customAssertions optional custom assertions per test case
  */
 public record DynamicTestCase(
-    String name,
-    Multimap<OpCode, Bytes32> arguments,
-    BiConsumer<OpCode, List<Bytes32>> customAssertions) {}
+    String name, List<OpcodeCall> arguments, BiConsumer<OpCode, List<Bytes32>> customAssertions) {}

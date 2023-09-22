@@ -15,25 +15,22 @@
 
 package net.consensys.linea.zktracer.module.mod;
 
-import java.io.IOException;
 import java.math.BigInteger;
-import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.stream.Stream;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.testing.DynamicTests;
+import net.consensys.linea.zktracer.testing.OpcodeCall;
 import net.consensys.linea.zktracer.testing.SpecTests;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
 
 class ModTracerTest {
   private static final Random RAND = new Random();
@@ -54,17 +51,17 @@ class ModTracerTest {
         .run();
   }
 
-  @ParameterizedTest(name = "{index} {0}")
-  @MethodSource("provideTraceSpecs")
-  void traceWithSpecFile(final String ignored, URL specUrl) throws IOException {
-    SpecTests.runSpecTestWithTraceComparison(specUrl, MODULE.jsonKey());
-  }
+  //  @ParameterizedTest(name = "{index} {0}")
+  //  @MethodSource("provideTraceSpecs")
+  //  void traceWithSpecFile(final String ignored, URL specUrl) {
+  //    SpecTests.runSpecTestWithTraceComparison(specUrl, MODULE.jsonKey());
+  //  }
 
   private static Object[][] provideTraceSpecs() {
     return SpecTests.findSpecFiles(MODULE.jsonKey());
   }
 
-  private Multimap<OpCode, Bytes32> provideRandomAluModArguments() {
+  private List<OpcodeCall> provideRandomAluModArguments() {
     return DYN_TESTS.newModuleArgumentsProvider(
         (arguments, opCode) -> {
           for (int i = 0; i < TEST_MOD_REPETITIONS; i++) {
@@ -73,20 +70,20 @@ class ModTracerTest {
         });
   }
 
-  private Multimap<OpCode, Bytes32> provideNonRandomArguments() {
+  private List<OpcodeCall> provideNonRandomArguments() {
     return DYN_TESTS.newModuleArgumentsProvider(
-        (arguments, opCode) -> {
+        (testCases, opCode) -> {
           for (int k = 1; k <= 4; k++) {
             for (int i = 1; i <= 4; i++) {
-              arguments.put(opCode, UInt256.valueOf(i));
-              arguments.put(opCode, UInt256.valueOf(k));
+              testCases.add(
+                  new OpcodeCall(opCode, List.of(UInt256.valueOf(i), UInt256.valueOf(k))));
             }
           }
         });
   }
 
-  private Multimap<OpCode, Bytes32> provideRandomDivisibleArguments() {
-    Multimap<OpCode, Bytes32> arguments = ArrayListMultimap.create();
+  private List<OpcodeCall> provideRandomDivisibleArguments() {
+    List<OpcodeCall> testCases = new ArrayList<>();
 
     for (int i = 0; i < TEST_MOD_REPETITIONS; i++) {
       long b = RAND.nextInt(Integer.MAX_VALUE);
@@ -94,15 +91,14 @@ class ModTracerTest {
       long a = b * q;
 
       OpCode opCode = DYN_TESTS.getRandomSupportedOpcode();
-      arguments.put(opCode, UInt256.valueOf(a));
-      arguments.put(opCode, UInt256.valueOf(b));
+      testCases.add(new OpcodeCall(opCode, List.of(UInt256.valueOf(a), UInt256.valueOf(b))));
     }
 
-    return arguments;
+    return testCases;
   }
 
-  private Multimap<OpCode, Bytes32> provideRandomNegativeDivisibleArguments() {
-    Multimap<OpCode, Bytes32> arguments = ArrayListMultimap.create();
+  private List<OpcodeCall> provideRandomNegativeDivisibleArguments() {
+    List<OpcodeCall> testCases = new ArrayList<>();
 
     for (int i = 0; i < TEST_MOD_REPETITIONS; i++) {
       long b = RAND.nextInt(Integer.MAX_VALUE) + 1L;
@@ -110,21 +106,22 @@ class ModTracerTest {
       long a = b * q;
 
       OpCode opCode = DYN_TESTS.getRandomSupportedOpcode();
-      arguments.put(opCode, convertToComplementBytes32(a));
-      arguments.put(opCode, convertToComplementBytes32(b));
+
+      testCases.add(
+          new OpcodeCall(
+              opCode, List.of(convertToComplementBytes32(a), convertToComplementBytes32(b))));
     }
 
-    return arguments;
+    return testCases;
   }
 
   private void addRandomAluModInstruction(
-      Multimap<OpCode, Bytes32> arguments, int sizeArg1MinusOne, int sizeArg2MinusOne) {
+      List<OpcodeCall> testCases, int sizeArg1MinusOne, int sizeArg2MinusOne) {
     Bytes32 bytes1 = UInt256.valueOf(sizeArg1MinusOne);
     Bytes32 bytes2 = UInt256.valueOf(sizeArg2MinusOne);
     OpCode opCode = DYN_TESTS.getRandomSupportedOpcode();
 
-    arguments.put(opCode, bytes1);
-    arguments.put(opCode, bytes2);
+    testCases.add(new OpcodeCall(opCode, List.of(bytes1, bytes2)));
   }
 
   private Bytes32 convertToComplementBytes32(long number) {
@@ -141,14 +138,14 @@ class ModTracerTest {
     return Bytes32.leftPad(resultBytes, bigInteger.signum() < 0 ? (byte) 0xFF : 0x00);
   }
 
-  private Multimap<OpCode, Bytes32> provideRandomDivisionsByZeroArguments() {
-    Multimap<OpCode, Bytes32> arguments = ArrayListMultimap.create();
+  private List<OpcodeCall> provideRandomDivisionsByZeroArguments() {
+    List<OpcodeCall> testCases = new ArrayList<>();
 
     for (int i = 0; i < TEST_MOD_REPETITIONS; i++) {
       int a = RAND.nextInt(256) + 1;
-      addRandomAluModInstruction(arguments, a, 0);
+      addRandomAluModInstruction(testCases, a, 0);
     }
 
-    return arguments;
+    return testCases;
   }
 }

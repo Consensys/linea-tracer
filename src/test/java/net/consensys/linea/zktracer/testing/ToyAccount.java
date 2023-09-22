@@ -22,6 +22,7 @@ import java.util.NavigableMap;
 import java.util.function.Supplier;
 
 import com.google.common.base.Suppliers;
+import lombok.Builder;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
@@ -31,12 +32,13 @@ import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.ModificationNotAllowedException;
 import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.account.AccountStorageEntry;
-import org.hyperledger.besu.evm.account.EvmAccount;
 import org.hyperledger.besu.evm.account.MutableAccount;
 
-public class ToyAccount implements EvmAccount, MutableAccount {
+public class ToyAccount implements MutableAccount {
 
   private final Account parent;
+
+  private boolean mutable = true;
 
   private Address address;
   private final Supplier<Hash> addressHash =
@@ -48,6 +50,7 @@ public class ToyAccount implements EvmAccount, MutableAccount {
       Suppliers.memoize(() -> code == null ? Hash.EMPTY : Hash.hash(code));
   private final Map<UInt256, UInt256> storage = new HashMap<>();
 
+  @Builder
   public ToyAccount(
       final Account parent,
       final Address address,
@@ -106,9 +109,9 @@ public class ToyAccount implements EvmAccount, MutableAccount {
   public UInt256 getOriginalStorageValue(final UInt256 key) {
     if (parent != null) {
       return parent.getStorageValue(key);
+    } else {
+      return getStorageValue(key);
     }
-
-    return getStorageValue(key);
   }
 
   @Override
@@ -118,38 +121,53 @@ public class ToyAccount implements EvmAccount, MutableAccount {
   }
 
   @Override
-  public MutableAccount getMutable() throws ModificationNotAllowedException {
-    return this;
-  }
-
-  @Override
   public void setNonce(final long value) {
+    if (!mutable) {
+      throw new ModificationNotAllowedException();
+    }
     nonce = value;
   }
 
   @Override
   public void setBalance(final Wei value) {
+    if (!mutable) {
+      throw new ModificationNotAllowedException();
+    }
     balance = value;
   }
 
   @Override
   public void setCode(final Bytes code) {
+    if (!mutable) {
+      throw new ModificationNotAllowedException();
+    }
     this.code = code;
     this.codeHash = Suppliers.memoize(() -> this.code == null ? Hash.EMPTY : Hash.hash(this.code));
   }
 
   @Override
   public void setStorageValue(final UInt256 key, final UInt256 value) {
-    this.storage.put(key, value);
+    if (!mutable) {
+      throw new ModificationNotAllowedException();
+    }
+    storage.put(key, value);
   }
 
   @Override
   public void clearStorage() {
-    this.storage.clear();
+    if (!mutable) {
+      throw new ModificationNotAllowedException();
+    }
+    storage.clear();
   }
 
   @Override
   public Map<UInt256, UInt256> getUpdatedStorage() {
     return this.storage;
+  }
+
+  @Override
+  public void becomeImmutable() {
+    mutable = false;
   }
 }

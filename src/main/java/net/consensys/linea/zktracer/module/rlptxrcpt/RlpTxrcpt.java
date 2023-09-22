@@ -246,8 +246,7 @@ public class RlpTxrcpt implements Module {
         // Log Entry RLP Prefix.
         traceValue.partialReset(4, 8);
         traceValue.logEntrySize = logSize(logList.get(i));
-        rlpByteString(
-            4, traceValue.logEntrySize, true, true, true, false, false, traceValue);
+        rlpByteString(4, traceValue.logEntrySize, true, true, true, false, false, traceValue);
 
         // Logger's Address.
         traceValue.partialReset(4, 3);
@@ -347,15 +346,7 @@ public class RlpTxrcpt implements Module {
             break;
           case 1:
             traceValue.partialReset(4, 8);
-            rlpInt(
-                4,
-                logList.get(i).getData().get(0),
-                true,
-                true,
-              true,
-                false,
-                true,
-                traceValue);
+            rlpInt(4, logList.get(i).getData().get(0), true, true, true, false, true, traceValue);
 
             for (int k = 0; k < 8; k++) {
               this.builder.setInput1Relative(BigInteger.ONE, k);
@@ -369,14 +360,7 @@ public class RlpTxrcpt implements Module {
             traceValue.partialReset(4, 8);
             traceValue.localSize = logList.get(i).getData().size();
             rlpByteString(
-                4,
-                logList.get(i).getData().size(),
-                false,
-                true,
-                true,
-              true,
-                false,
-                traceValue);
+                4, logList.get(i).getData().size(), false, true, true, true, false, traceValue);
             for (int k = 0; k < 8; k++) {
               this.builder.setInput2Relative(
                   BigInteger.valueOf(logList.get(i).getTopics().size()), k);

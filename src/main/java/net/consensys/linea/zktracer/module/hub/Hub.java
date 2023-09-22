@@ -82,7 +82,6 @@ import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
-import org.hyperledger.besu.plugin.data.TransactionReceipt;
 
 @Slf4j
 @Accessors(fluent = true)
@@ -597,10 +596,14 @@ public class Hub implements Module {
   }
 
   @Override
-  public void traceEndTransaction(WorldView worldView, Transaction tx, boolean status, Bytes output,
-                                  List<org.hyperledger.besu.plugin.data.Log> logList, Long gasUsed, long TomeNS) {
-
-  }
+  public void traceEndTransaction(
+      WorldView worldView,
+      Transaction tx,
+      boolean status,
+      Bytes output,
+      List<org.hyperledger.besu.plugin.data.Log> logList,
+      Long gasUsed,
+      long TomeNS) {}
 
   public void tracePostExecution(MessageFrame frame, Operation.OperationResult operationResult) {
     if (this.tx.state() == TxState.TX_SKIP) {
@@ -624,7 +627,6 @@ public class Hub implements Module {
   public void traceStartBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
     this.block.update(blockHeader);
   }
-
 
   @Override
   public void traceStartConflation(long blockCount) {

@@ -1,4 +1,4 @@
-package net.consensys.linea.zktracer.module.rlptxrcpt;
+package net.consensys.linea.zktracer.module.rlp_txrcpt;
 
 import java.util.List;
 

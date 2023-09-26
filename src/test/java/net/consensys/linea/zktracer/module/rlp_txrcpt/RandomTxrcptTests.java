@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.rlptxrcpt;
+package net.consensys.linea.zktracer.module.rlp_txrcpt;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -45,11 +45,11 @@ public class RandomTxrcptTests {
     Bytes data =
         switch (dataType) {
           case 0 -> Bytes.EMPTY;
-          case 1 -> Bytes.ofUnsignedInt(0);
-          case 2 -> Bytes.ofUnsignedInt(new Random().nextInt(1, 127));
-          case 3 -> Bytes.ofUnsignedInt(new Random().nextInt(128, 255));
-          case 4 -> Bytes.random(55);
-          case 5 -> Bytes.random(666);
+          case 1 -> Bytes.minimalBytes(0);
+          case 2 -> Bytes.minimalBytes(new Random().nextInt(1, 128));
+          case 3 -> Bytes.minimalBytes(new Random().nextInt(128, 256));
+          case 4 -> Bytes.random(new Random().nextInt(2, 56));
+          case 5 -> Bytes.random(new Random().nextInt(56, 6666));
           default -> null;
         };
 
@@ -63,7 +63,7 @@ public class RandomTxrcptTests {
   private List<Log> randomListLog(int nLog) {
     List<Log> logs = new java.util.ArrayList<>(List.of());
     for (int i = 0; i < nLog; i++) {
-      logs.add(randomLog(new Random().nextInt(0, 5), new Random().nextInt(0, 4)));
+      logs.add(randomLog(new Random().nextInt(0, 6), new Random().nextInt(0, 5)));
     }
     return logs;
   }
@@ -82,29 +82,65 @@ public class RandomTxrcptTests {
     ToyAccount senderAccount =
         ToyAccount.builder().balance(Wei.of(5)).nonce(32).address(senderAddress).build();
 
-    final Transaction tx =
-        ToyTransaction.builder()
-            .sender(senderAccount)
-            .keyPair(keyPair)
-            .transactionType(TransactionType.FRONTIER)
-            .gasLimit(10_000_000L)
-            .value(Wei.of(BigInteger.valueOf(2_500)))
-            .payload(Bytes.EMPTY)
-            .build();
+    int txType = new Random().nextInt(0, 1);
+    Transaction tx = null;
+    switch (txType) {
+      case 0:
+        tx =
+            ToyTransaction.builder()
+                .sender(senderAccount)
+                .keyPair(keyPair)
+                .transactionType(TransactionType.FRONTIER)
+                .gasLimit(10_000_000L)
+                .value(Wei.of(BigInteger.valueOf(2_500)))
+                .payload(Bytes.EMPTY)
+                .build();
+        break;
 
-    //
-    // Create a mock test receipt
-    //
-    final Bytes output = Bytes.random(20);
-    final boolean status = new Random().nextBoolean();
-    final List<Log> logs = randomListLog(new Random().nextInt(10));
+      case 1:
+        tx =
+            ToyTransaction.builder()
+                .sender(senderAccount)
+                .keyPair(keyPair)
+                .transactionType(TransactionType.ACCESS_LIST)
+                .gasLimit(10_000_000L)
+                .value(Wei.of(BigInteger.valueOf(2_500)))
+                .payload(Bytes.EMPTY)
+                .build();
+        break;
 
-    final long gasUsed = new Random().nextLong(21000, 0xfffffffffffffffL);
+      case 2:
+        tx =
+            ToyTransaction.builder()
+                .sender(senderAccount)
+                .keyPair(keyPair)
+                .transactionType(TransactionType.EIP1559)
+                .gasLimit(10_000_000L)
+                .value(Wei.of(BigInteger.valueOf(2_500)))
+                .payload(Bytes.EMPTY)
+                .build();
+        break;
+    }
+    //
+    // Create few tx
+    //
 
-    //
-    // Call the module
-    //
-    rlpTxrcpt.traceEndTx(null, tx, status, output, logs, gasUsed);
+    for (int i = 0; i < new Random().nextInt(10, 200); i++) {
+
+      //
+      // Create a mock test receipt
+      //
+      final Bytes output = Bytes.random(20);
+      final boolean status = new Random().nextBoolean();
+      final List<Log> logs = randomListLog(new Random().nextInt(10));
+
+      final long gasUsed = new Random().nextLong(21000, 0xfffffffffffffffL);
+
+      //
+      // Call the module
+      //
+      rlpTxrcpt.traceEndTx(null, tx, status, output, logs, gasUsed);
+    }
 
     //
     // Check the trace

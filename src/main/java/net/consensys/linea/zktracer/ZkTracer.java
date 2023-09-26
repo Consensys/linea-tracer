@@ -25,7 +25,7 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.mul.Mul;
 import net.consensys.linea.zktracer.module.rlp_txn.RlpTxn;
-import net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxrcpt;
+import net.consensys.linea.zktracer.module.rlp_txrcpt.RlpTxrcpt;
 import net.consensys.linea.zktracer.module.shf.Shf;
 import net.consensys.linea.zktracer.module.trm.Trm;
 import net.consensys.linea.zktracer.module.wcp.Wcp;

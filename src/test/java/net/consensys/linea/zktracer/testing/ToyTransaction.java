@@ -40,7 +40,7 @@ public class ToyTransaction {
 
   private static final Wei DEFAULT_VALUE = Wei.ZERO;
   private static final Bytes DEFAULT_INPUT_DATA = Bytes.EMPTY;
-  private static final long DEFAULT_GAS_LIMIT = 21_000L;
+  private static final long DEFAULT_GAS_LIMIT = 50_000L; // i.e. 21 000 + a bit
   private static final Wei DEFAULT_GAS_PRICE = Wei.of(10_000_000L);
   private static final TransactionType DEFAULT_TX_TYPE = TransactionType.FRONTIER;
   private static final List<AccessListEntry> DEFAULT_ACCESS_LIST = new ArrayList<>();

@@ -141,7 +141,7 @@ public class RlpTxrcpt implements Module {
   }
 
   public static void insertLog(LogsBloomFilter.Builder bloomBuilder, final Log log) {
-    bloomBuilder.insertBytes((Bytes) log.getLogger());
+    bloomBuilder.insertBytes(log.getLogger());
 
     for (var topic : log.getTopics()) {
       bloomBuilder.insertBytes(topic);
@@ -352,14 +352,14 @@ public class RlpTxrcpt implements Module {
           case 1 -> { // Case with data is made of one byte
             traceValue.partialReset(4, 8);
             rlpInt(
-                    4,
-                    logList.get(i).getData().toUnsignedBigInteger().longValueExact(),
-                    true,
-                    true,
-                    true,
-                    false,
-                    true,
-                    traceValue);
+                4,
+                logList.get(i).getData().toUnsignedBigInteger().longValueExact(),
+                true,
+                true,
+                true,
+                false,
+                true,
+                traceValue);
             for (int k = 0; k < 8; k++) {
               // In INPUT_2 is stored the number of topics, stored in INDEX_LOCAL at the previous
               // row
@@ -371,7 +371,7 @@ public class RlpTxrcpt implements Module {
           }
           default -> { // Default case, data is made of >= 2 bytes
             rlpByteString(
-                    4, logList.get(i).getData().size(), false, true, true, true, false, traceValue);
+                4, logList.get(i).getData().size(), false, true, true, true, false, traceValue);
             // In INPUT_2 is stored the number of topics, stored in INDEX_LOCAL at the previous row
             for (int k = 0; k < 8; k++) {
               this.builder.setInput2Relative(BigInteger.valueOf(indexLocalEndTopic), k);

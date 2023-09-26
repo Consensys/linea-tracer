@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.testing;
 
+import static net.consensys.linea.zktracer.module.hub.stack.Stack.MAX_STACK_SIZE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigInteger;
@@ -30,19 +31,17 @@ import net.consensys.linea.zktracer.corset.CorsetValidator;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.SECP256K1;
 import org.hyperledger.besu.datatypes.*;
-import org.hyperledger.besu.ethereum.chain.Blockchain;
 import org.hyperledger.besu.ethereum.core.*;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.hyperledger.besu.ethereum.core.feemarket.CoinbaseFeePriceCalculator;
 import org.hyperledger.besu.ethereum.mainnet.LondonTargetingGasLimitCalculator;
+import org.hyperledger.besu.ethereum.mainnet.MainnetTransactionProcessor;
 import org.hyperledger.besu.ethereum.mainnet.TransactionValidatorFactory;
 import org.hyperledger.besu.ethereum.mainnet.feemarket.FeeMarket;
 import org.hyperledger.besu.ethereum.mainnet.feemarket.LondonFeeMarket;
 import org.hyperledger.besu.ethereum.processing.TransactionProcessingResult;
 import org.hyperledger.besu.evm.EVM;
 import org.hyperledger.besu.evm.MainnetEVMs;
-import org.hyperledger.besu.evm.frame.BlockValues;
-import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.gascalculator.GasCalculator;
 import org.hyperledger.besu.evm.gascalculator.LondonGasCalculator;
 import org.hyperledger.besu.evm.internal.EvmConfiguration;
@@ -65,21 +64,24 @@ public class ToyExecutionEnvironment {
   private static final ToyWorld DEFAULT_TOY_WORLD = ToyWorld.empty();
   private static final Wei DEFAULT_BASE_FEE = Wei.of(1_000_000L);
 
-
-  private final BlockValues blockValues = ToyBlockValues.builder().number(13L).build();
-  private final ToyWorld toyWorld;
-  private final EVM evm;
-  private final ZkBlockAwareOperationTracer tracer;
-  @Singular private final List<Transaction> transactions;
-  private final Consumer<MessageFrame> frameAssertions;
-  private final Consumer<MessageFrame> customFrameSetup;
-
-  private final FeeMarket feeMarket = FeeMarket.london(-1);
   private static final GasCalculator gasCalculator = new LondonGasCalculator();
   private static final Address minerAddress = Address.fromHexString("0x1234532342");
 
+  private final ToyWorld toyWorld;
+  private final EVM evm;
+  @Singular private final List<Transaction> transactions;
+
   /**
-   * Gets the default EVM implementation.
+   * A function applied to the {@link TransactionProcessingResult} of each transaction; by default,
+   * asserts that the transaction is successful.
+   */
+  private final Consumer<TransactionProcessingResult> testValidator;
+
+  private static final FeeMarket feeMarket = FeeMarket.london(-1);
+  private final ZkBlockAwareOperationTracer tracer = new ZkTracer();
+
+  /**
+   * Gets the default EVM implementation, i.e. London.
    *
    * @return default EVM implementation
    */
@@ -88,21 +90,12 @@ public class ToyExecutionEnvironment {
   }
 
   /**
-   * Gets the default tracer implementation.
-   *
-   * @return the default tracer implementation
-   */
-  public static ZkBlockAwareOperationTracer defaultTracer() {
-    return new ZkTracer();
-  }
-
-  /**
    * Execute constructed EVM bytecode and return a JSON trace.
    *
    * @return the generated JSON trace
    */
   public String traceCode() {
-    executeBlock();
+    execute();
     return tracer.getJsonTrace();
   }
 
@@ -111,46 +104,47 @@ public class ToyExecutionEnvironment {
     assertThat(CorsetValidator.isValid(traceCode())).isTrue();
   }
 
-  private void executeBlock() {
+  private void execute() {
     BlockHeader header =
         BlockHeaderBuilder.createDefault().baseFee(DEFAULT_BASE_FEE).buildBlockHeader();
     BlockBody mockBlockBody = new BlockBody(transactions, new ArrayList<>());
 
-    final MessageCallProcessor mcp =
+    final MessageCallProcessor messageCallProcessor =
         new MessageCallProcessor(evm, new PrecompileContractRegistry());
-    final ContractCreationProcessor ccp =
+    final ContractCreationProcessor contractCreationProcessor =
         new ContractCreationProcessor(evm.getGasCalculator(), evm, false, List.of(), 0);
-    final ToyTransactionProcessor ttp =
-        new ToyTransactionProcessor(
+    final MainnetTransactionProcessor transactionProcessor =
+        new MainnetTransactionProcessor(
             gasCalculator,
             new TransactionValidatorFactory(
                 gasCalculator,
                 new LondonTargetingGasLimitCalculator(0L, new LondonFeeMarket(0, Optional.empty())),
                 false,
                 Optional.of(CHAIN_ID)),
-            ccp,
-            mcp,
+            contractCreationProcessor,
+            messageCallProcessor,
             true,
             true,
-            1024,
+            MAX_STACK_SIZE,
             feeMarket,
             CoinbaseFeePriceCalculator.eip1559());
 
     tracer.traceStartConflation(1);
     tracer.traceStartBlock(header, mockBlockBody);
-
     for (Transaction tx : mockBlockBody.getTransactions()) {
       tracer.traceStartTransaction(toyWorld.updater(), tx);
 
       final TransactionProcessingResult result =
-          ttp.processTransaction(
-              (Blockchain) null,
+          transactionProcessor.processTransaction(
+              null,
               toyWorld.updater(),
-              (BlockValues) header,
+              (ProcessableBlockHeader) header,
               tx,
               minerAddress,
               tracer,
-              null,
+              blockId -> {
+                throw new RuntimeException("Block hash lookup not yet supported");
+              },
               false,
               Wei.ZERO);
 
@@ -161,10 +155,11 @@ public class ToyExecutionEnvironment {
           result.isSuccessful(),
           result.getOutput(),
           result.getLogs(),
-          transactionGasUsed, // TODO
+          transactionGasUsed,
           0);
-    }
 
+      this.testValidator.accept(result);
+    }
     tracer.traceEndBlock(header, mockBlockBody);
     tracer.traceEndConflation();
   }
@@ -196,10 +191,9 @@ public class ToyExecutionEnvironment {
       return new ToyExecutionEnvironment(
           Optional.ofNullable(toyWorld).orElse(DEFAULT_TOY_WORLD),
           Optional.ofNullable(evm).orElse(defaultEvm()),
-          Optional.ofNullable(tracer).orElse(defaultTracer()),
           Optional.ofNullable(transactions).orElse(defaultTxList),
-          frameAssertions,
-          customFrameSetup);
+          Optional.ofNullable(testValidator)
+              .orElse(result -> assertThat(result.isSuccessful()).isTrue()));
     }
   }
 }

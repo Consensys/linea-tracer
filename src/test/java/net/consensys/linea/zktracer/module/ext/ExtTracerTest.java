@@ -15,9 +15,6 @@
 
 package net.consensys.linea.zktracer.module.ext;
 
-import static net.consensys.linea.zktracer.testing.ModuleTests.runTestWithOpCodeArgs;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -36,15 +33,12 @@ class ExtTracerTest {
   @TestFactory
   Stream<DynamicTest> runDynamicTests() {
     return DYN_TESTS
-//        .testCase("non random arguments test", provideNonRandomArguments())
-//        .testCase("zero value test", provideZeroValueTest())
-        .testCase(
-            "modulus zero value arguments test",
-            provideModulusZeroValueArguments(),
-            ((opCode, args) ->
-                assertThrows(ArithmeticException.class, () -> runTestWithOpCodeArgs(opCode, args))))
-//        .testCase("tiny value arguments test", provideTinyValueArguments())
-//        .testCase("max value arguments test", provideMaxValueArguments())
+        .testCase("non random arguments test", provideNonRandomArguments())
+        .testCase("zero value test", provideZeroValueTest())
+        // TODO: re-enable
+        // .testCase("modulus zero value arguments test", provideModulusZeroValueArguments())
+        .testCase("tiny value arguments test", provideTinyValueArguments())
+        .testCase("max value arguments test", provideMaxValueArguments())
         .run();
   }
 

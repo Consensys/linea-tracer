@@ -436,24 +436,6 @@ public class RlpTxrcpt implements Module {
     traceRow(traceValue);
   }
 
-  private void traceEmptyByteString(
-      RlpTxrcptColumns traceValue,
-      int phase,
-      boolean isPrefix,
-      boolean depth1,
-      boolean isData,
-      boolean endPhase) {
-    traceValue.partialReset(phase, 1);
-    traceValue.limbConstructed = true;
-    traceValue.limb = rlpListShort;
-    traceValue.nBytes = 1;
-    traceValue.isPrefix = isPrefix;
-    traceValue.depth1 = depth1;
-    traceValue.isData = isData;
-    traceValue.phaseEnd = endPhase;
-    traceRow(traceValue);
-  }
-
   private void rlpByteString(
       int phase,
       long length,

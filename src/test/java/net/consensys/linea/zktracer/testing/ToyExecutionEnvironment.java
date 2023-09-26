@@ -34,7 +34,10 @@ import org.hyperledger.besu.ethereum.chain.Blockchain;
 import org.hyperledger.besu.ethereum.core.*;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.hyperledger.besu.ethereum.core.feemarket.CoinbaseFeePriceCalculator;
+import org.hyperledger.besu.ethereum.mainnet.LondonTargetingGasLimitCalculator;
+import org.hyperledger.besu.ethereum.mainnet.TransactionValidatorFactory;
 import org.hyperledger.besu.ethereum.mainnet.feemarket.FeeMarket;
+import org.hyperledger.besu.ethereum.mainnet.feemarket.LondonFeeMarket;
 import org.hyperledger.besu.ethereum.processing.TransactionProcessingResult;
 import org.hyperledger.besu.evm.EVM;
 import org.hyperledger.besu.evm.MainnetEVMs;
@@ -52,13 +55,16 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 @Builder
 @RequiredArgsConstructor
 public class ToyExecutionEnvironment {
+  public static final BigInteger CHAIN_ID = BigInteger.valueOf(1337);
+
   private static final Address DEFAULT_SENDER_ADDRESS = Address.fromHexString("0xe8f1b89");
   private static final Wei DEFAULT_VALUE = Wei.ZERO;
   private static final Bytes DEFAULT_INPUT_DATA = Bytes.EMPTY;
   private static final Bytes DEFAULT_BYTECODE = Bytes.EMPTY;
   private static final long DEFAULT_GAS_LIMIT = 1_000_000;
   private static final ToyWorld DEFAULT_TOY_WORLD = ToyWorld.empty();
-  private static final Wei DEFAULT_BASE_FEE = Wei.of(7_000_000_000L);
+  private static final Wei DEFAULT_BASE_FEE = Wei.of(1_000_000L);
+
 
   private final BlockValues blockValues = ToyBlockValues.builder().number(13L).build();
   private final ToyWorld toyWorld;
@@ -97,21 +103,12 @@ public class ToyExecutionEnvironment {
    */
   public String traceCode() {
     executeBlock();
-
     return tracer.getJsonTrace();
   }
 
   /** Execute constructed EVM bytecode and perform Corset trace validation. */
   public void run() {
-    executeBlock();
-
-    assertThat(CorsetValidator.isValid(tracer.getJsonTrace())).isTrue();
-  }
-
-  private void postTest(final MessageFrame frame) {
-    if (frameAssertions != null) {
-      frameAssertions.accept(frame);
-    }
+    assertThat(CorsetValidator.isValid(traceCode())).isTrue();
   }
 
   private void executeBlock() {
@@ -126,7 +123,11 @@ public class ToyExecutionEnvironment {
     final ToyTransactionProcessor ttp =
         new ToyTransactionProcessor(
             gasCalculator,
-            null,
+            new TransactionValidatorFactory(
+                gasCalculator,
+                new LondonTargetingGasLimitCalculator(0L, new LondonFeeMarket(0, Optional.empty())),
+                false,
+                Optional.of(CHAIN_ID)),
             ccp,
             mcp,
             true,
@@ -178,14 +179,12 @@ public class ToyExecutionEnvironment {
         .value(DEFAULT_VALUE)
         .payload(DEFAULT_INPUT_DATA)
         .sender(DEFAULT_SENDER_ADDRESS)
-        .chainId(BigInteger.valueOf(23))
-        //      .versionedHashes(List.of())
+        .chainId(CHAIN_ID)
         .signAndBuild(new SECP256K1().generateKeyPair());
   }
 
   /** Customizations applied to the Lombok generated builder. */
   public static class ToyExecutionEnvironmentBuilder {
-
     /**
      * Builder method returning an instance of {@link ToyExecutionEnvironment}.
      *

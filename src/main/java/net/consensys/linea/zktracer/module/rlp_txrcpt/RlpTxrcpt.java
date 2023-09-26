@@ -336,7 +336,7 @@ public class RlpTxrcpt implements Module {
         traceValue.localSize = logList.get(i).getData().size();
         // There are three cases for tracing the data RLP prefix:
         switch (logList.get(i).getData().size()) {
-          case 0: // Case  no data:
+          case 0 -> { // Case  no data:
             traceValue.partialReset(4, 1);
             // In INPUT_2 is stored the number of topics, stored in INDEX_LOCAL at the previous row
             traceValue.input2 = Bytes.ofUnsignedShort(indexLocalEndTopic);
@@ -348,20 +348,18 @@ public class RlpTxrcpt implements Module {
             traceValue.nBytes = 1;
             traceValue.phaseEnd = (i == nbLog - 1);
             traceRow(traceValue);
-            break;
-
-          case 1: // Case with data is made of one byte
+          }
+          case 1 -> { // Case with data is made of one byte
             traceValue.partialReset(4, 8);
             rlpInt(
-                4,
-                logList.get(i).getData().toUnsignedBigInteger().longValueExact(),
-                true,
-                true,
-                true,
-                false,
-                true,
-                traceValue);
-
+                    4,
+                    logList.get(i).getData().toUnsignedBigInteger().longValueExact(),
+                    true,
+                    true,
+                    true,
+                    false,
+                    true,
+                    traceValue);
             for (int k = 0; k < 8; k++) {
               // In INPUT_2 is stored the number of topics, stored in INDEX_LOCAL at the previous
               // row
@@ -370,16 +368,15 @@ public class RlpTxrcpt implements Module {
               this.builder.setInput1Relative(BigInteger.ONE, k);
               this.builder.setInput3Relative(logList.get(i).getData().toUnsignedBigInteger(), k);
             }
-            break;
-
-          default: // Default case, data is made of >= 2 bytes
+          }
+          default -> { // Default case, data is made of >= 2 bytes
             rlpByteString(
-                4, logList.get(i).getData().size(), false, true, true, true, false, traceValue);
+                    4, logList.get(i).getData().size(), false, true, true, true, false, traceValue);
             // In INPUT_2 is stored the number of topics, stored in INDEX_LOCAL at the previous row
             for (int k = 0; k < 8; k++) {
               this.builder.setInput2Relative(BigInteger.valueOf(indexLocalEndTopic), k);
             }
-            break;
+          }
         }
 
         // Tracing the Data
@@ -750,7 +747,7 @@ public class RlpTxrcpt implements Module {
     return rowSize;
   }
 
-  public int TraceRowSize() {
+  public int traceRowSize() {
     int traceRowSize = 0;
     for (RlpTxrcptChunk chunk : this.chunkList) {
       traceRowSize += ChunkRowSize(chunk);

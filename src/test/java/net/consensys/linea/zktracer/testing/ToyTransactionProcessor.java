@@ -12,6 +12,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+
 package net.consensys.linea.zktracer.testing;
 
 import static org.hyperledger.besu.ethereum.mainnet.PrivateStateUtils.KEY_IS_PERSISTING_PRIVATE_STATE;
@@ -33,6 +34,7 @@ import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.AccessListEntry;
 import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.chain.Blockchain;
 import org.hyperledger.besu.ethereum.core.ProcessableBlockHeader;
@@ -54,6 +56,7 @@ import org.hyperledger.besu.evm.frame.BlockValues;
 import org.hyperledger.besu.evm.frame.ExceptionalHaltReason;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.gascalculator.GasCalculator;
+import org.hyperledger.besu.evm.internal.Words;
 import org.hyperledger.besu.evm.processor.AbstractMessageProcessor;
 import org.hyperledger.besu.evm.tracing.OperationTracer;
 import org.hyperledger.besu.evm.worldstate.WorldUpdater;
@@ -235,237 +238,227 @@ public class ToyTransactionProcessor {
       final TransactionValidationParams transactionValidationParams,
       final PrivateMetadataUpdater privateMetadataUpdater,
       final Wei blobGasPrice) {
-    try {
-      final var transactionValidator = transactionValidatorFactory.get();
-      log.trace("Starting execution of {}", transaction);
-      ValidationResult<TransactionInvalidReason> validationResult =
-          transactionValidator.validate(
-              transaction, blockHeader.getBaseFee(), transactionValidationParams);
-      // Make sure the transaction is intrinsically valid before trying to
-      // compare against a sender account (because the transaction may not
-      // be signed correctly to extract the sender).
-      if (!validationResult.isValid()) {
-        log.debug("Invalid transaction: {}", validationResult.getErrorMessage());
-        return TransactionProcessingResult.invalid(validationResult);
+    final var transactionValidator = transactionValidatorFactory.get();
+    log.trace("Starting execution of {}", transaction);
+    ValidationResult<TransactionInvalidReason> validationResult =
+        transactionValidator.validate(
+            transaction, blockHeader.getBaseFee(), transactionValidationParams);
+    // Make sure the transaction is intrinsically valid before trying to
+    // compare against a sender account (because the transaction may not
+    // be signed correctly to extract the sender).
+    if (!validationResult.isValid()) {
+      log.debug("Invalid transaction: {}", validationResult.getErrorMessage());
+      return TransactionProcessingResult.invalid(validationResult);
+    }
+
+    final Address senderAddress = transaction.getSender();
+
+    final MutableAccount sender = worldState.getOrCreateSenderAccount(senderAddress);
+
+    validationResult =
+        transactionValidator.validateForSender(transaction, sender, transactionValidationParams);
+    if (!validationResult.isValid()) {
+      log.debug("Invalid transaction: {}", validationResult.getErrorMessage());
+      return TransactionProcessingResult.invalid(validationResult);
+    }
+
+    final long previousNonce = sender.incrementNonce();
+    log.trace(
+        "Incremented sender {} nonce ({} -> {})", senderAddress, previousNonce, sender.getNonce());
+
+    final Wei transactionGasPrice =
+        feeMarket.getTransactionPriceCalculator().price(transaction, blockHeader.getBaseFee());
+
+    final long blobGas = gasCalculator.blobGasCost(transaction.getBlobCount());
+
+    final Wei upfrontGasCost =
+        transaction.getUpfrontGasCost(transactionGasPrice, blobGasPrice, blobGas);
+    final Wei previousBalance = sender.decrementBalance(upfrontGasCost);
+    log.trace(
+        "Deducted sender {} upfront gas cost {} ({} -> {})",
+        senderAddress,
+        upfrontGasCost,
+        previousBalance,
+        sender.getBalance());
+
+    final List<AccessListEntry> accessListEntries = transaction.getAccessList().orElse(List.of());
+    // we need to keep a separate hash set of addresses in case they specify no storage.
+    // No-storage is a common pattern, especially for Externally Owned Accounts
+    final Set<Address> addressList = new HashSet<>();
+    final Multimap<Address, Bytes32> storageList = HashMultimap.create();
+    int accessListStorageCount = 0;
+    for (final var entry : accessListEntries) {
+      final Address address = entry.address();
+      addressList.add(address);
+      final List<Bytes32> storageKeys = entry.storageKeys();
+      storageList.putAll(address, storageKeys);
+      accessListStorageCount += storageKeys.size();
+    }
+    if (warmCoinbase) {
+      addressList.add(miningBeneficiary);
+    }
+
+    final long intrinsicGas =
+        gasCalculator.transactionIntrinsicGasCost(
+            transaction.getPayload(), transaction.isContractCreation());
+    final long accessListGas =
+        gasCalculator.accessListGasCost(accessListEntries.size(), accessListStorageCount);
+    final long gasAvailable = transaction.getGasLimit() - intrinsicGas - accessListGas;
+    log.trace(
+        "Gas available for execution {} = {} - {} - {} - {} (limit - intrinsic - accessList - data)",
+        gasAvailable,
+        transaction.getGasLimit(),
+        intrinsicGas,
+        accessListGas,
+        blobGas);
+
+    final WorldUpdater worldUpdater = worldState.updater();
+    final ImmutableMap.Builder<String, Object> contextVariablesBuilder =
+        ImmutableMap.<String, Object>builder()
+            .put(KEY_IS_PERSISTING_PRIVATE_STATE, isPersistingPrivateState)
+            .put(KEY_TRANSACTION, transaction)
+            .put(KEY_TRANSACTION_HASH, transaction.getHash());
+    if (privateMetadataUpdater != null) {
+      contextVariablesBuilder.put(KEY_PRIVATE_METADATA_UPDATER, privateMetadataUpdater);
+    }
+
+    final MessageFrame.Builder commonMessageFrameBuilder =
+        MessageFrame.builder()
+            .maxStackSize(maxStackSize)
+            .worldUpdater(worldUpdater.updater())
+            .initialGas(gasAvailable)
+            .originator(senderAddress)
+            .gasPrice(transactionGasPrice)
+            .blobGasPrice(blobGasPrice)
+            .sender(senderAddress)
+            .value(transaction.getValue())
+            .apparentValue(transaction.getValue())
+            .blockValues(blockHeader)
+            .completer(__ -> {})
+            .miningBeneficiary(miningBeneficiary)
+                .blockHashLookup(number -> Hash.hash(Words.longBytes(number)))
+                .contextVariables(contextVariablesBuilder.build())
+            .accessListWarmAddresses(addressList)
+            .accessListWarmStorage(storageList);
+
+    if (transaction.getVersionedHashes().isPresent()) {
+      commonMessageFrameBuilder.versionedHashes(
+          Optional.of(transaction.getVersionedHashes().get().stream().toList()));
+    } else {
+      commonMessageFrameBuilder.versionedHashes(Optional.empty());
+    }
+
+    final MessageFrame initialFrame;
+    if (transaction.isContractCreation()) {
+      final Address contractAddress =
+          Address.contractAddress(senderAddress, sender.getNonce() - 1L);
+
+      final Bytes initCodeBytes = transaction.getPayload();
+      initialFrame =
+          commonMessageFrameBuilder
+              .type(MessageFrame.Type.CONTRACT_CREATION)
+              .address(contractAddress)
+              .contract(contractAddress)
+              .inputData(Bytes.EMPTY)
+              .code(contractCreationProcessor.getCodeFromEVM(null, initCodeBytes))
+              .build();
+    } else {
+      @SuppressWarnings("OptionalGetWithoutIsPresent") // isContractCall tests isPresent
+      final Address to = transaction.getTo().get();
+      final Optional<Account> maybeContract = Optional.ofNullable(worldState.get(to));
+      initialFrame =
+          commonMessageFrameBuilder
+              .type(MessageFrame.Type.MESSAGE_CALL)
+              .address(to)
+              .contract(to)
+              .inputData(transaction.getPayload())
+              .code(
+                  maybeContract
+                      .map(c -> messageCallProcessor.getCodeFromEVM(c.getCodeHash(), c.getCode()))
+                      .orElse(CodeV0.EMPTY_CODE))
+              .build();
+    }
+    Deque<MessageFrame> messageFrameStack = initialFrame.getMessageFrameStack();
+
+    if (initialFrame.getCode().isValid()) {
+      while (!messageFrameStack.isEmpty()) {
+        process(messageFrameStack.peekFirst(), operationTracer);
       }
+    } else {
+      initialFrame.setState(MessageFrame.State.EXCEPTIONAL_HALT);
+      initialFrame.setExceptionalHaltReason(Optional.of(ExceptionalHaltReason.INVALID_CODE));
+    }
 
-      final Address senderAddress = transaction.getSender();
+    if (initialFrame.getState() == MessageFrame.State.COMPLETED_SUCCESS) {
+      worldUpdater.commit();
+    }
 
-      final MutableAccount sender = worldState.getOrCreateSenderAccount(senderAddress);
-
-      validationResult =
-          transactionValidator.validateForSender(transaction, sender, transactionValidationParams);
-      if (!validationResult.isValid()) {
-        log.debug("Invalid transaction: {}", validationResult.getErrorMessage());
-        return TransactionProcessingResult.invalid(validationResult);
-      }
-
-      final long previousNonce = sender.incrementNonce();
+    if (log.isTraceEnabled()) {
       log.trace(
-          "Incremented sender {} nonce ({} -> {})",
-          senderAddress,
-          previousNonce,
-          sender.getNonce());
+          "Gas used by transaction: {}, by message call/contract creation: {}",
+          transaction.getGasLimit() - initialFrame.getRemainingGas(),
+          gasAvailable - initialFrame.getRemainingGas());
+    }
 
-      final Wei transactionGasPrice =
-          feeMarket.getTransactionPriceCalculator().price(transaction, blockHeader.getBaseFee());
+    // Refund the sender by what we should and pay the miner fee (note that we're doing them one
+    // after the other so that if it is the same account somehow, we end up with the right result)
+    final long selfDestructRefund =
+        gasCalculator.getSelfDestructRefundAmount() * initialFrame.getSelfDestructs().size();
+    final long baseRefundGas = initialFrame.getGasRefund() + selfDestructRefund;
+    final long refundedGas = refunded(transaction, initialFrame.getRemainingGas(), baseRefundGas);
+    final Wei refundedWei = transactionGasPrice.multiply(refundedGas);
+    final Wei balancePriorToRefund = sender.getBalance();
+    sender.incrementBalance(refundedWei);
+    log.atTrace()
+        .setMessage("refunded sender {}  {} wei ({} -> {})")
+        .addArgument(senderAddress)
+        .addArgument(refundedWei)
+        .addArgument(balancePriorToRefund)
+        .addArgument(sender.getBalance())
+        .log();
+    final long gasUsedByTransaction = transaction.getGasLimit() - initialFrame.getRemainingGas();
 
-      final long blobGas = gasCalculator.blobGasCost(transaction.getBlobCount());
-
-      final Wei upfrontGasCost =
-          transaction.getUpfrontGasCost(transactionGasPrice, blobGasPrice, blobGas);
-      final Wei previousBalance = sender.decrementBalance(upfrontGasCost);
-      log.trace(
-          "Deducted sender {} upfront gas cost {} ({} -> {})",
-          senderAddress,
-          upfrontGasCost,
-          previousBalance,
-          sender.getBalance());
-
-      final List<AccessListEntry> accessListEntries = transaction.getAccessList().orElse(List.of());
-      // we need to keep a separate hash set of addresses in case they specify no storage.
-      // No-storage is a common pattern, especially for Externally Owned Accounts
-      final Set<Address> addressList = new HashSet<>();
-      final Multimap<Address, Bytes32> storageList = HashMultimap.create();
-      int accessListStorageCount = 0;
-      for (final var entry : accessListEntries) {
-        final Address address = entry.address();
-        addressList.add(address);
-        final List<Bytes32> storageKeys = entry.storageKeys();
-        storageList.putAll(address, storageKeys);
-        accessListStorageCount += storageKeys.size();
-      }
-      if (warmCoinbase) {
-        addressList.add(miningBeneficiary);
-      }
-
-      final long intrinsicGas =
-          gasCalculator.transactionIntrinsicGasCost(
-              transaction.getPayload(), transaction.isContractCreation());
-      final long accessListGas =
-          gasCalculator.accessListGasCost(accessListEntries.size(), accessListStorageCount);
-      final long gasAvailable = transaction.getGasLimit() - intrinsicGas - accessListGas;
-      log.trace(
-          "Gas available for execution {} = {} - {} - {} - {} (limit - intrinsic - accessList - data)",
-          gasAvailable,
-          transaction.getGasLimit(),
-          intrinsicGas,
-          accessListGas,
-          blobGas);
-
-      final WorldUpdater worldUpdater = worldState.updater();
-      final ImmutableMap.Builder<String, Object> contextVariablesBuilder =
-          ImmutableMap.<String, Object>builder()
-              .put(KEY_IS_PERSISTING_PRIVATE_STATE, isPersistingPrivateState)
-              .put(KEY_TRANSACTION, transaction)
-              .put(KEY_TRANSACTION_HASH, transaction.getHash());
-      if (privateMetadataUpdater != null) {
-        contextVariablesBuilder.put(KEY_PRIVATE_METADATA_UPDATER, privateMetadataUpdater);
-      }
-
-      final MessageFrame.Builder commonMessageFrameBuilder =
-          MessageFrame.builder()
-              .maxStackSize(maxStackSize)
-              .worldUpdater(worldUpdater.updater())
-              .initialGas(gasAvailable)
-              .originator(senderAddress)
-              .gasPrice(transactionGasPrice)
-              .blobGasPrice(blobGasPrice)
-              .sender(senderAddress)
-              .value(transaction.getValue())
-              .apparentValue(transaction.getValue())
-              .blockValues(blockHeader)
-              .completer(__ -> {})
-              .miningBeneficiary(miningBeneficiary)
-              //              .blockHashLookup(blockHashLookup)
-              .contextVariables(contextVariablesBuilder.build())
-              .accessListWarmAddresses(addressList)
-              .accessListWarmStorage(storageList);
-
-      if (transaction.getVersionedHashes().isPresent()) {
-        commonMessageFrameBuilder.versionedHashes(
-            Optional.of(transaction.getVersionedHashes().get().stream().toList()));
-      } else {
-        commonMessageFrameBuilder.versionedHashes(Optional.empty());
-      }
-
-      final MessageFrame initialFrame;
-      if (transaction.isContractCreation()) {
-        final Address contractAddress =
-            Address.contractAddress(senderAddress, sender.getNonce() - 1L);
-
-        final Bytes initCodeBytes = transaction.getPayload();
-        initialFrame =
-            commonMessageFrameBuilder
-                .type(MessageFrame.Type.CONTRACT_CREATION)
-                .address(contractAddress)
-                .contract(contractAddress)
-                .inputData(Bytes.EMPTY)
-                .code(contractCreationProcessor.getCodeFromEVM(null, initCodeBytes))
-                .build();
-      } else {
-        @SuppressWarnings("OptionalGetWithoutIsPresent") // isContractCall tests isPresent
-        final Address to = transaction.getTo().get();
-        final Optional<Account> maybeContract = Optional.ofNullable(worldState.get(to));
-        initialFrame =
-            commonMessageFrameBuilder
-                .type(MessageFrame.Type.MESSAGE_CALL)
-                .address(to)
-                .contract(to)
-                .inputData(transaction.getPayload())
-                .code(
-                    maybeContract
-                        .map(c -> messageCallProcessor.getCodeFromEVM(c.getCodeHash(), c.getCode()))
-                        .orElse(CodeV0.EMPTY_CODE))
-                .build();
-      }
-      Deque<MessageFrame> messageFrameStack = initialFrame.getMessageFrameStack();
-
-      if (initialFrame.getCode().isValid()) {
-        while (!messageFrameStack.isEmpty()) {
-          process(messageFrameStack.peekFirst(), operationTracer);
-        }
-      } else {
-        initialFrame.setState(MessageFrame.State.EXCEPTIONAL_HALT);
-        initialFrame.setExceptionalHaltReason(Optional.of(ExceptionalHaltReason.INVALID_CODE));
-      }
-
-      if (initialFrame.getState() == MessageFrame.State.COMPLETED_SUCCESS) {
-        worldUpdater.commit();
-      }
-
-      if (log.isTraceEnabled()) {
-        log.trace(
-            "Gas used by transaction: {}, by message call/contract creation: {}",
-            transaction.getGasLimit() - initialFrame.getRemainingGas(),
-            gasAvailable - initialFrame.getRemainingGas());
-      }
-
-      // Refund the sender by what we should and pay the miner fee (note that we're doing them one
-      // after the other so that if it is the same account somehow, we end up with the right result)
-      final long selfDestructRefund =
-          gasCalculator.getSelfDestructRefundAmount() * initialFrame.getSelfDestructs().size();
-      final long baseRefundGas = initialFrame.getGasRefund() + selfDestructRefund;
-      final long refundedGas = refunded(transaction, initialFrame.getRemainingGas(), baseRefundGas);
-      final Wei refundedWei = transactionGasPrice.multiply(refundedGas);
-      final Wei balancePriorToRefund = sender.getBalance();
-      sender.incrementBalance(refundedWei);
-      log.atTrace()
-          .setMessage("refunded sender {}  {} wei ({} -> {})")
-          .addArgument(senderAddress)
-          .addArgument(refundedWei)
-          .addArgument(balancePriorToRefund)
-          .addArgument(sender.getBalance())
-          .log();
-      final long gasUsedByTransaction = transaction.getGasLimit() - initialFrame.getRemainingGas();
-
-      // update the coinbase
-      final var coinbase = worldState.getOrCreate(miningBeneficiary);
-      final long usedGas = transaction.getGasLimit() - refundedGas;
-      final CoinbaseFeePriceCalculator coinbaseCalculator;
-      if (blockHeader.getBaseFee().isPresent()) {
-        final Wei baseFee = blockHeader.getBaseFee().get();
-        if (transactionGasPrice.compareTo(baseFee) < 0) {
-          return TransactionProcessingResult.failed(
-              gasUsedByTransaction,
-              refundedGas,
-              ValidationResult.invalid(
-                  TransactionInvalidReason.TRANSACTION_PRICE_TOO_LOW,
-                  "transaction price must be greater than base fee"),
-              Optional.empty());
-        }
-        coinbaseCalculator = coinbaseFeePriceCalculator;
-      } else {
-        coinbaseCalculator = CoinbaseFeePriceCalculator.frontier();
-      }
-
-      final Wei coinbaseWeiDelta =
-          coinbaseCalculator.price(usedGas, transactionGasPrice, blockHeader.getBaseFee());
-
-      coinbase.incrementBalance(coinbaseWeiDelta);
-
-      initialFrame.getSelfDestructs().forEach(worldState::deleteAccount);
-
-      if (clearEmptyAccounts) {
-        worldState.clearAccountsThatAreEmpty();
-      }
-
-      if (initialFrame.getState() == MessageFrame.State.COMPLETED_SUCCESS) {
-        return TransactionProcessingResult.successful(
-            initialFrame.getLogs(),
+    // update the coinbase
+    final var coinbase = worldState.getOrCreate(miningBeneficiary);
+    final long usedGas = transaction.getGasLimit() - refundedGas;
+    final CoinbaseFeePriceCalculator coinbaseCalculator;
+    if (blockHeader.getBaseFee().isPresent()) {
+      final Wei baseFee = blockHeader.getBaseFee().get();
+      if (transactionGasPrice.compareTo(baseFee) < 0) {
+        return TransactionProcessingResult.failed(
             gasUsedByTransaction,
             refundedGas,
-            initialFrame.getOutputData(),
-            validationResult);
-      } else {
-        return TransactionProcessingResult.failed(
-            gasUsedByTransaction, refundedGas, validationResult, initialFrame.getRevertReason());
+            ValidationResult.invalid(
+                TransactionInvalidReason.TRANSACTION_PRICE_TOO_LOW,
+                "transaction price must be greater than base fee"),
+            Optional.empty());
       }
-    } catch (final RuntimeException re) {
-      log.error("Critical Exception Processing Transaction", re);
-      return TransactionProcessingResult.invalid(
-          ValidationResult.invalid(
-              TransactionInvalidReason.INTERNAL_ERROR, "Internal Error in Besu - " + re));
+      coinbaseCalculator = coinbaseFeePriceCalculator;
+    } else {
+      coinbaseCalculator = CoinbaseFeePriceCalculator.frontier();
+    }
+
+    final Wei coinbaseWeiDelta =
+        coinbaseCalculator.price(usedGas, transactionGasPrice, blockHeader.getBaseFee());
+
+    coinbase.incrementBalance(coinbaseWeiDelta);
+
+    initialFrame.getSelfDestructs().forEach(worldState::deleteAccount);
+
+    if (clearEmptyAccounts) {
+      worldState.clearAccountsThatAreEmpty();
+    }
+
+    if (initialFrame.getState() == MessageFrame.State.COMPLETED_SUCCESS) {
+      return TransactionProcessingResult.successful(
+          initialFrame.getLogs(),
+          gasUsedByTransaction,
+          refundedGas,
+          initialFrame.getOutputData(),
+          validationResult);
+    } else {
+      return TransactionProcessingResult.failed(
+          gasUsedByTransaction, refundedGas, validationResult, initialFrame.getRevertReason());
     }
   }
 

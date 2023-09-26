@@ -51,7 +51,7 @@ public class BytecodeExecutor {
     Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
 
     ToyAccount senderAccount =
-        ToyAccount.builder().balance(Wei.of(5)).nonce(5).address(senderAddress).build();
+        ToyAccount.builder().balance(Wei.of(7_000_000_000_000_000L)).nonce(5).address(senderAddress).build();
 
     ToyAccount receiverAccount =
         ToyAccount.builder()

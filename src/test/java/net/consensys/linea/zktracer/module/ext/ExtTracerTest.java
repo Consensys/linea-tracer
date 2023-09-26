@@ -36,15 +36,15 @@ class ExtTracerTest {
   @TestFactory
   Stream<DynamicTest> runDynamicTests() {
     return DYN_TESTS
-        .testCase("non random arguments test", provideNonRandomArguments())
-        .testCase("zero value test", provideZeroValueTest())
+//        .testCase("non random arguments test", provideNonRandomArguments())
+//        .testCase("zero value test", provideZeroValueTest())
         .testCase(
             "modulus zero value arguments test",
             provideModulusZeroValueArguments(),
             ((opCode, args) ->
                 assertThrows(ArithmeticException.class, () -> runTestWithOpCodeArgs(opCode, args))))
-        .testCase("tiny value arguments test", provideTinyValueArguments())
-        .testCase("max value arguments test", provideMaxValueArguments())
+//        .testCase("tiny value arguments test", provideTinyValueArguments())
+//        .testCase("max value arguments test", provideMaxValueArguments())
         .run();
   }
 

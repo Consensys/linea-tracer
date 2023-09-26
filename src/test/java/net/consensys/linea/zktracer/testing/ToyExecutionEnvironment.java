@@ -18,9 +18,7 @@ package net.consensys.linea.zktracer.testing;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
 
 import lombok.Builder;
@@ -31,23 +29,22 @@ import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.corset.CorsetValidator;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.SECP256K1;
-import org.hyperledger.besu.datatypes.Address;
-import org.hyperledger.besu.datatypes.Hash;
-import org.hyperledger.besu.datatypes.TransactionType;
-import org.hyperledger.besu.datatypes.Wei;
-import org.hyperledger.besu.ethereum.core.BlockBody;
-import org.hyperledger.besu.ethereum.core.BlockHeaderBuilder;
+import org.hyperledger.besu.datatypes.*;
+import org.hyperledger.besu.ethereum.chain.Blockchain;
+import org.hyperledger.besu.ethereum.core.*;
 import org.hyperledger.besu.ethereum.core.Transaction;
-import org.hyperledger.besu.evm.Code;
+import org.hyperledger.besu.ethereum.core.feemarket.CoinbaseFeePriceCalculator;
+import org.hyperledger.besu.ethereum.mainnet.feemarket.FeeMarket;
+import org.hyperledger.besu.ethereum.processing.TransactionProcessingResult;
 import org.hyperledger.besu.evm.EVM;
 import org.hyperledger.besu.evm.MainnetEVMs;
-import org.hyperledger.besu.evm.account.Account;
-import org.hyperledger.besu.evm.account.AccountState;
-import org.hyperledger.besu.evm.code.CodeV0;
 import org.hyperledger.besu.evm.frame.BlockValues;
 import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.evm.gascalculator.GasCalculator;
+import org.hyperledger.besu.evm.gascalculator.LondonGasCalculator;
 import org.hyperledger.besu.evm.internal.EvmConfiguration;
 import org.hyperledger.besu.evm.precompile.PrecompileContractRegistry;
+import org.hyperledger.besu.evm.processor.ContractCreationProcessor;
 import org.hyperledger.besu.evm.processor.MessageCallProcessor;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 
@@ -70,6 +67,10 @@ public class ToyExecutionEnvironment {
   @Singular private final List<Transaction> transactions;
   private final Consumer<MessageFrame> frameAssertions;
   private final Consumer<MessageFrame> customFrameSetup;
+
+  private final FeeMarket feeMarket = FeeMarket.london(-1);
+  private static final GasCalculator gasCalculator = new LondonGasCalculator();
+  private static final Address minerAddress = Address.fromHexString("0x1234532342");
 
   /**
    * Gets the default EVM implementation.
@@ -95,46 +96,16 @@ public class ToyExecutionEnvironment {
    * @return the generated JSON trace
    */
   public String traceCode() {
-    executeCode();
+    executeBlock();
 
     return tracer.getJsonTrace();
   }
 
   /** Execute constructed EVM bytecode and perform Corset trace validation. */
   public void run() {
-    executeCode();
+    executeBlock();
 
     assertThat(CorsetValidator.isValid(tracer.getJsonTrace())).isTrue();
-  }
-
-  private MessageFrame prepareFrame(final Transaction tx) {
-    final Account receiverAccount = toyWorld.get(tx.getTo().orElse(null));
-
-    final Optional<Bytes> byteCode =
-        Optional.ofNullable(receiverAccount).map(AccountState::getCode);
-
-    final Code code =
-        byteCode.map(bytes -> evm.getCode(Hash.hash(bytes), bytes)).orElse(CodeV0.EMPTY_CODE);
-
-    return new TestMessageFrameBuilder()
-        .worldUpdater(this.toyWorld.updater())
-        .initialGas(DEFAULT_GAS_LIMIT)
-        .address(DEFAULT_SENDER_ADDRESS)
-        .originator(DEFAULT_SENDER_ADDRESS)
-        .contract(DEFAULT_SENDER_ADDRESS)
-        .gasPrice(Wei.ZERO)
-        .inputData(DEFAULT_INPUT_DATA)
-        .sender(DEFAULT_SENDER_ADDRESS)
-        .value(DEFAULT_VALUE)
-        .code(code)
-        .blockValues(blockValues)
-        .build();
-  }
-
-  private void setupFrame(final MessageFrame frame) {
-    if (customFrameSetup != null) {
-      customFrameSetup.accept(frame);
-    }
   }
 
   private void postTest(final MessageFrame frame) {
@@ -143,37 +114,57 @@ public class ToyExecutionEnvironment {
     }
   }
 
-  private void executeCode() {
-    final MessageCallProcessor messageCallProcessor =
-        new MessageCallProcessor(evm, new PrecompileContractRegistry());
-
-    BlockHeader mockBlockHeader =
+  private void executeBlock() {
+    BlockHeader header =
         BlockHeaderBuilder.createDefault().baseFee(DEFAULT_BASE_FEE).buildBlockHeader();
-
     BlockBody mockBlockBody = new BlockBody(transactions, new ArrayList<>());
 
+    final MessageCallProcessor mcp =
+        new MessageCallProcessor(evm, new PrecompileContractRegistry());
+    final ContractCreationProcessor ccp =
+        new ContractCreationProcessor(evm.getGasCalculator(), evm, false, List.of(), 0);
+    final ToyTransactionProcessor ttp =
+        new ToyTransactionProcessor(
+            gasCalculator,
+            null,
+            ccp,
+            mcp,
+            true,
+            true,
+            1024,
+            feeMarket,
+            CoinbaseFeePriceCalculator.eip1559());
+
     tracer.traceStartConflation(1);
-    tracer.traceStartBlock(mockBlockHeader, mockBlockBody);
+    tracer.traceStartBlock(header, mockBlockBody);
 
     for (Transaction tx : mockBlockBody.getTransactions()) {
-      MessageFrame frame = this.prepareFrame(tx);
-      setupFrame(frame);
-
       tracer.traceStartTransaction(toyWorld.updater(), tx);
-      messageCallProcessor.process(frame, this.tracer);
+
+      final TransactionProcessingResult result =
+          ttp.processTransaction(
+              (Blockchain) null,
+              toyWorld.updater(),
+              (BlockValues) header,
+              tx,
+              minerAddress,
+              tracer,
+              null,
+              false,
+              Wei.ZERO);
+
+      long transactionGasUsed = tx.getGasLimit() - result.getGasRemaining();
       tracer.traceEndTransaction(
           toyWorld.updater(),
           tx,
-          frame.getState() == MessageFrame.State.COMPLETED_SUCCESS,
-          frame.getOutputData(),
-          frame.getLogs(),
-          0, // TODO
+          result.isSuccessful(),
+          result.getOutput(),
+          result.getLogs(),
+          transactionGasUsed, // TODO
           0);
-
-      postTest(frame);
     }
 
-    tracer.traceEndBlock(mockBlockHeader, mockBlockBody);
+    tracer.traceEndBlock(header, mockBlockBody);
     tracer.traceEndConflation();
   }
 

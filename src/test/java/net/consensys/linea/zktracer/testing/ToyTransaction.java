@@ -66,7 +66,6 @@ public class ToyTransaction {
      * @return an instance of {@link Transaction}
      */
     public Transaction build() {
-
       return Transaction.builder()
           .to(to != null ? to.getAddress() : null)
           .nonce(sender.getNonce())

@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.google.common.base.Preconditions;
+import lombok.Getter;
 import net.consensys.linea.zktracer.module.hub.Bytecode;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import org.apache.tuweni.bytes.Bytes;
@@ -39,7 +40,7 @@ public final class CallStack {
   /** a never-pruned-tree of the {@link CallFrame} executed by the {@link Hub} */
   private final List<CallFrame> frames = new ArrayList<>();
   /** the current depth of the call stack. */
-  private int depth;
+  @Getter private int depth;
   /** a "pointer" to the current {@link CallFrame} in <code>frames</code>. */
   private int current;
 

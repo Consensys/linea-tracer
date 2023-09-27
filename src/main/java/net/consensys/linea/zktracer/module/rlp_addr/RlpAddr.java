@@ -55,11 +55,6 @@ public class RlpAddr implements Module {
   }
 
   @Override
-  public final List<OpCode> supportedOpCodes() {
-    return List.of(OpCode.CREATE, OpCode.CREATE2);
-  }
-
-  @Override
   public void traceStartTx(WorldView world, Transaction tx) {
     if (tx.getTo().isEmpty()) {
       RlpAddrChunk chunk = new RlpAddrChunk(OpCode.CREATE, tx.getNonce(), tx.getTo().get());

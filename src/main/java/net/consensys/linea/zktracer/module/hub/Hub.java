@@ -59,6 +59,7 @@ import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.mul.Mul;
 import net.consensys.linea.zktracer.module.rlp_txn.RlpTxn;
 import net.consensys.linea.zktracer.module.rlp_txrcpt.RlpTxrcpt;
+import net.consensys.linea.zktracer.module.rlp_addr.RlpAddr;
 import net.consensys.linea.zktracer.module.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.module.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.module.runtime.callstack.CallStack;
@@ -390,7 +391,15 @@ public class Hub implements Module {
       case DUP -> {}
       case SWAP -> {}
       case LOG -> {}
-      case CREATE -> {}
+      case CREATE -> {
+        if (!this.exceptions.any() && this.callStack().getDepth() < 1024) {
+          long value = Words.clampedToLong(frame.getStackItem(0));
+          if (frame.getWorldUpdater().get(this.tx.transaction().getSender()).getBalance().toLong()
+              < value) {
+            this.rlpAddr.trace(frame);
+          }
+        }
+      }
       case CALL -> {}
       case HALT -> {}
       case INVALID -> {}
@@ -493,6 +502,8 @@ public class Hub implements Module {
   @Override
   public void traceStartTx(final WorldView world, final Transaction tx) {
     this.exceptions = Exceptions.empty();
+    this.rlpAddr.traceStartTx(world, tx);
+
     this.tx.update(tx);
     this.createNewTxTrace();
 

@@ -30,11 +30,12 @@ import net.consensys.linea.zktracer.testing.ToyTransaction;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.KeyPair;
 import org.hyperledger.besu.crypto.SECP256K1;
+import org.hyperledger.besu.datatypes.AccessListEntry;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
+import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.TransactionType;
 import org.hyperledger.besu.datatypes.Wei;
-import org.hyperledger.besu.ethereum.core.Transaction;
 import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.log.LogTopic;
 import org.junit.jupiter.api.Test;
@@ -68,22 +69,9 @@ public class RandomTxrcptTests {
     return logs;
   }
 
-  @Test
-  public void testRandomTxrcpt() {
-    RlpTxrcpt rlpTxrcpt = new RlpTxrcpt();
-    OpCodes.load();
-
-    //
-    // SET UP THE WORLD
-    //
-    KeyPair keyPair = new SECP256K1().generateKeyPair();
-    Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
-
-    ToyAccount senderAccount =
-        ToyAccount.builder().balance(Wei.of(5)).nonce(32).address(senderAddress).build();
-
-    int txType = new Random().nextInt(0, 1);
-    Transaction tx = null;
+  private Transaction randTransaction(ToyAccount senderAccount, KeyPair keyPair) {
+    int txType = new Random().nextInt(0, 2);
+    org.hyperledger.besu.ethereum.core.Transaction tx = null;
     switch (txType) {
       case 0:
         tx =
@@ -98,6 +86,7 @@ public class RandomTxrcptTests {
         break;
 
       case 1:
+        final List<AccessListEntry> accessList = new ArrayList<>();
         tx =
             ToyTransaction.builder()
                 .sender(senderAccount)
@@ -106,6 +95,7 @@ public class RandomTxrcptTests {
                 .gasLimit(10_000_000L)
                 .value(Wei.of(BigInteger.valueOf(2_500)))
                 .payload(Bytes.EMPTY)
+                .accessList(accessList)
                 .build();
         break;
 
@@ -121,11 +111,30 @@ public class RandomTxrcptTests {
                 .build();
         break;
     }
+    return tx;
+  }
+
+  @Test
+  public void testRandomTxrcpt() {
+    RlpTxrcpt rlpTxrcpt = new RlpTxrcpt();
+    OpCodes.load();
+
+    //
+    // SET UP THE WORLD
+    //
+    KeyPair keyPair = new SECP256K1().generateKeyPair();
+    Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
+
+    ToyAccount senderAccount =
+        ToyAccount.builder().balance(Wei.of(5)).nonce(32).address(senderAddress).build();
+
     //
     // Create few tx
     //
 
-    for (int i = 0; i < new Random().nextInt(10, 200); i++) {
+    for (int i = 0; i < new Random().nextInt(50, 200); i++) {
+
+      final Transaction tx = randTransaction(senderAccount, keyPair);
 
       //
       // Create a mock test receipt

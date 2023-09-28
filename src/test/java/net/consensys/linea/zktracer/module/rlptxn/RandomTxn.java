@@ -37,6 +37,7 @@ import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
 
 class RandomTxn {
+  private final Random rndGenerator = new Random(12);
 
   @Test
   void test() {
@@ -68,7 +69,7 @@ class RandomTxn {
 
   final Transaction randTx(ToyAccount senderAccount, KeyPair keyPair, ToyAccount receiverAccount) {
 
-    int txType = new Random().nextInt(0, 1);
+    int txType = rndGenerator.nextInt(0, 1);
     boolean txCreate = new Random().nextBoolean();
 
     return switch (txType) {

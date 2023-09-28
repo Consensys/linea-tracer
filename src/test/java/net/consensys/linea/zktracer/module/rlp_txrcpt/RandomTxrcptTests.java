@@ -70,7 +70,7 @@ public class RandomTxrcptTests {
   }
 
   private Transaction randTransaction(ToyAccount senderAccount, KeyPair keyPair) {
-    int txType = new Random().nextInt(0, 2);
+    int txType = new Random().nextInt(0, 3);
     org.hyperledger.besu.ethereum.core.Transaction tx = null;
     switch (txType) {
       case 0:

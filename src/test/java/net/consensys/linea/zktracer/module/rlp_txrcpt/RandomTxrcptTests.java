@@ -81,7 +81,7 @@ public class RandomTxrcptTests {
     Bytes data =
         switch (dataType) {
           case 0 -> Bytes.EMPTY;
-          case 1 -> Bytes.minimalBytes(0);
+          case 1 -> Bytes.of(0x00);
           case 2 -> Bytes.minimalBytes(rnd.nextInt(1, 128));
           case 3 -> Bytes.minimalBytes(rnd.nextInt(128, 256));
           case 4 -> Bytes.random(rnd.nextInt(2, 56));

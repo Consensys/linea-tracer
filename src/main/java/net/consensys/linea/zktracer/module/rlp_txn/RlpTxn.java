@@ -330,23 +330,14 @@ public class RlpTxn implements Module {
       // Trace
       // RLP prefix
       if (traceValue.PHASE_BYTESIZE == 1) {
-        rlpInt(
-            phase,
-            tx.getPayload().toUnsignedBigInteger(),
-            8,
-            lt,
-            lx,
-            true,
-            false,
-            true,
-            traceValue);
+        rlpInt(phase, tx.getPayload().toUnsignedBigInteger(), 8, lt, lx, true, false, true, traceValue);
       } else {
         // General case
         rlpByteString(
             phase, traceValue.PHASE_BYTESIZE, false, lt, lx, true, false, false, false, traceValue);
       }
 
-      // Tracing the Data: several 16-rows ct-loop
+      //Tracing the Data: several 16-rows ct-loop
       int nbstep = 16;
       int nbloop = (traceValue.PHASE_BYTESIZE - 1) / nbstep + 1;
       data = padToGivenSizeWithRightZero(data, nbstep * nbloop);
@@ -614,15 +605,8 @@ public class RlpTxn implements Module {
     traceValue.partialReset(phase, nStep, lt, lx);
     traceValue.IS_PREFIX = isPrefix;
 
-    Bytes inputByte;
-    int inputSize;
-    if (input.equals(BigInteger.ZERO)) {
-      inputByte = Bytes.of(0x00);
-      inputSize = 1;
-    } else {
-      inputByte = bigIntegerToBytes(input);
-      inputSize = inputByte.size();
-    }
+    Bytes inputByte = bigIntegerToBytes(input);
+    int inputSize = inputByte.size();
     RlpByteCountAndPowerOutput byteCountingOutput = byteCounting(inputSize, nStep);
 
     Bytes inputBytePadded = padToGivenSizeWithLeftZero(inputByte, nStep);

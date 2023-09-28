@@ -344,7 +344,6 @@ public class RlpTxrcpt implements Module {
             traceRow(traceValue);
           }
           case 1 -> { // Case with data is made of one byte
-            traceValue.partialReset(4, 8);
             rlpInt(
                 4,
                 logList.get(i).getData().toUnsignedBigInteger().longValueExact(),
@@ -529,6 +528,7 @@ public class RlpTxrcpt implements Module {
     traceValue.depth1 = depth1;
     traceValue.isData = isData;
     traceValue.input1 = bigIntegerToBytes(BigInteger.valueOf(input));
+
 
     int inputSize = traceValue.input1.size();
     RlpByteCountAndPowerOutput byteCountingOutput = byteCounting(inputSize, 8);

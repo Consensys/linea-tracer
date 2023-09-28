@@ -73,19 +73,16 @@ public class RandomTxrcptTests {
     int txType = new Random().nextInt(0, 2);
     org.hyperledger.besu.ethereum.core.Transaction tx = null;
     switch (txType) {
-      case 0:
-        tx =
-            ToyTransaction.builder()
-                .sender(senderAccount)
-                .keyPair(keyPair)
-                .transactionType(TransactionType.FRONTIER)
-                .gasLimit(10_000_000L)
-                .value(Wei.of(BigInteger.valueOf(2_500)))
-                .payload(Bytes.EMPTY)
-                .build();
-        break;
-
-      case 1:
+      case 0 -> tx =
+          ToyTransaction.builder()
+              .sender(senderAccount)
+              .keyPair(keyPair)
+              .transactionType(TransactionType.FRONTIER)
+              .gasLimit(10_000_000L)
+              .value(Wei.of(BigInteger.valueOf(2_500)))
+              .payload(Bytes.EMPTY)
+              .build();
+      case 1 -> {
         final List<AccessListEntry> accessList = new ArrayList<>();
         tx =
             ToyTransaction.builder()
@@ -97,19 +94,16 @@ public class RandomTxrcptTests {
                 .payload(Bytes.EMPTY)
                 .accessList(accessList)
                 .build();
-        break;
-
-      case 2:
-        tx =
-            ToyTransaction.builder()
-                .sender(senderAccount)
-                .keyPair(keyPair)
-                .transactionType(TransactionType.EIP1559)
-                .gasLimit(10_000_000L)
-                .value(Wei.of(BigInteger.valueOf(2_500)))
-                .payload(Bytes.EMPTY)
-                .build();
-        break;
+      }
+      case 2 -> tx =
+          ToyTransaction.builder()
+              .sender(senderAccount)
+              .keyPair(keyPair)
+              .transactionType(TransactionType.EIP1559)
+              .gasLimit(10_000_000L)
+              .value(Wei.of(BigInteger.valueOf(2_500)))
+              .payload(Bytes.EMPTY)
+              .build();
     }
     return tx;
   }

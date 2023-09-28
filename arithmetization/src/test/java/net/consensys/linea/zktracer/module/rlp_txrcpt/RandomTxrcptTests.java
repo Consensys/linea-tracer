@@ -75,7 +75,9 @@ public class RandomTxrcptTests {
     //
     // Check the trace
     //
-    assertThat(CorsetValidator.isValid(new ZkTraceBuilder().addTrace(rlpTxrcpt).build().toJson()))
+    assertThat(
+            new CorsetValidator()
+                .isValid(new ZkTraceBuilder().addTrace(rlpTxrcpt).build().toJson()))
         .isTrue();
   }
 

@@ -29,7 +29,7 @@ import org.hyperledger.besu.plugin.services.RpcEndpointService;
 public class RollupRpcEndpointServicePlugin implements BesuPlugin {
 
   @Override
-  public void register(final BesuContext context) {
+  public void doRegister(final BesuContext context) {
     RollupGenerateConflatedTracesToFileV0 method =
         new RollupGenerateConflatedTracesToFileV0(context);
 

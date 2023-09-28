@@ -331,6 +331,10 @@ public class Hub implements Module {
     return Optional.of(this.callStack.top()).orElse(CallFrame.empty());
   }
 
+  public long getRemainingGas() {
+    return 0; // TODO:
+  }
+
   private void handleStack(MessageFrame frame) {
     this.currentFrame().getStack().processInstruction(frame, this.currentFrame(), TAU * this.stamp);
     this.currentFrame().getPending().setStartInTrace(this.currentLine());

@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.rlptxn;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -27,8 +28,10 @@ import net.consensys.linea.zktracer.testing.ToyExecutionEnvironment;
 import net.consensys.linea.zktracer.testing.ToyTransaction;
 import net.consensys.linea.zktracer.testing.ToyWorld;
 import org.apache.tuweni.bytes.Bytes;
+import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.crypto.KeyPair;
 import org.hyperledger.besu.crypto.SECP256K1;
+import org.hyperledger.besu.datatypes.AccessListEntry;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.TransactionType;
@@ -37,22 +40,13 @@ import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
 
 class RandomTxn {
-  private final Random rndGenerator = new Random(12);
+  private final Random rnd = new Random(666);
 
   @Test
   void test() {
     OpCodes.load();
 
-    // long randLongSmall = new Random().nextLong(1, 128);
-    // long randLongMedium = new Random().nextLong(128, 256);
-    // long randLongLong = new Random().nextLong(128, 0xfffffffffffffffL);
-    // BigInteger randBigIntSmall = new BigInteger(7, new Random());
-    // BigInteger randBigIntSixteenBytes = new BigInteger(16 * 8, new Random());
-    // BigInteger randBigIntThirtyTwoBytes = new BigInteger(32 * 8, new Random());
-    // int randIntLEFiveFive = new Random().nextInt(2, 55);
-    // int randIntGEFiveSix = new Random().nextInt(56, 1234);s
-
-    for (int i = 0; i < new Random().nextInt(100, 200); i++) {
+    for (int i = 0; i < rnd.nextInt(100, 200); i++) {
 
       KeyPair keyPair = new SECP256K1().generateKeyPair();
       Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
@@ -69,15 +63,14 @@ class RandomTxn {
 
   final Transaction randTx(ToyAccount senderAccount, KeyPair keyPair, ToyAccount receiverAccount) {
 
-    int txType = rndGenerator.nextInt(0, 1);
-    boolean txCreate = new Random().nextBoolean();
+    int txType = rnd.nextInt(0, 2);
 
     return switch (txType) {
       case 0 -> ToyTransaction.builder()
           .sender(senderAccount)
           .keyPair(keyPair)
           .transactionType(TransactionType.FRONTIER)
-          .gasLimit(randLong())
+          .gasLimit(rnd.nextLong(21000, 0xfffffffffffffL))
           .value(Wei.of(randBigInt(true)))
           .payload(randData())
           .build();
@@ -85,18 +78,50 @@ class RandomTxn {
       case 1 -> ToyTransaction.builder()
           .sender(senderAccount)
           .keyPair(keyPair)
-          .transactionType(TransactionType.ACCESS_LIST)
-          .gasLimit(randLong())
-          .value(Wei.of(randLong()))
+          .transactionType(TransactionType.FRONTIER)
+          .gasLimit(rnd.nextLong(21000, 0xfffffffffffffL))
+          .value(Wei.of(randBigInt(true)))
+          .to(receiverAccount)
           .payload(randData())
           .build();
 
       case 2 -> ToyTransaction.builder()
           .sender(senderAccount)
           .keyPair(keyPair)
+          .transactionType(TransactionType.ACCESS_LIST)
+          .gasLimit(randLong())
+          .value(Wei.of(randLong()))
+          .payload(randData())
+          .accessList(randAccessList())
+          .build();
+
+      case 3 -> ToyTransaction.builder()
+          .sender(senderAccount)
+          .keyPair(keyPair)
+          .transactionType(TransactionType.ACCESS_LIST)
+          .gasLimit(randLong())
+          .value(Wei.of(randLong()))
+          .to(receiverAccount)
+          .payload(randData())
+          .accessList(randAccessList())
+          .build();
+
+      case 4 -> ToyTransaction.builder()
+          .sender(senderAccount)
+          .keyPair(keyPair)
           .transactionType(TransactionType.EIP1559)
           .gasLimit(randLong())
           .value(Wei.of(randLong()))
+          .payload(randData())
+          .build();
+
+      case 5 -> ToyTransaction.builder()
+          .sender(senderAccount)
+          .keyPair(keyPair)
+          .transactionType(TransactionType.EIP1559)
+          .gasLimit(randLong())
+          .value(Wei.of(randLong()))
+          .to(receiverAccount)
           .payload(randData())
           .build();
 
@@ -109,38 +134,60 @@ class RandomTxn {
     if (!onlySixteenByte) {
       selectorBound += 1;
     }
-    int selector = new Random().nextInt(0, selectorBound);
+    int selector = rnd.nextInt(0, selectorBound);
 
     return switch (selector) {
       case 0 -> BigInteger.ZERO;
-      case 1 -> BigInteger.valueOf(new Random().nextInt(1, 128));
-      case 2 -> BigInteger.valueOf(new Random().nextInt(128, 256));
-      case 3 -> new BigInteger(16 * 8, new Random());
-      case 4 -> new BigInteger(32 * 8, new Random());
+      case 1 -> BigInteger.valueOf(rnd.nextInt(1, 128));
+      case 2 -> BigInteger.valueOf(rnd.nextInt(128, 256));
+      case 3 -> new BigInteger(16 * 8, rnd);
+      case 4 -> new BigInteger(32 * 8, rnd);
       default -> throw new IllegalStateException("Unexpected value: " + selector);
     };
   }
 
   final Bytes randData() {
-    int selector = new Random().nextInt(0, 6);
+    int selector = rnd.nextInt(0, 6);
     return switch (selector) {
       case 0 -> Bytes.EMPTY;
       case 1 -> Bytes.of(0x0);
-      case 2 -> Bytes.minimalBytes(new Random().nextLong(1, 128));
-      case 3 -> Bytes.minimalBytes(new Random().nextLong(128, 256));
-      case 4 -> Bytes.random(new Random().nextInt(1, 56));
-      case 5 -> Bytes.random(new Random().nextInt(56, 666));
+      case 2 -> Bytes.minimalBytes(rnd.nextLong(1, 128));
+      case 3 -> Bytes.minimalBytes(rnd.nextLong(128, 256));
+      case 4 -> Bytes.random(rnd.nextInt(1, 56));
+      case 5 -> Bytes.random(rnd.nextInt(56, 666));
       default -> throw new IllegalStateException("Unexpected value: " + selector);
     };
   }
 
+  final List<AccessListEntry> randAccessList() {
+    List<AccessListEntry> accessList = new ArrayList<>();
+    boolean entries = rnd.nextBoolean();
+    if (entries) {
+      for (int i = 0; i < rnd.nextInt(1, 25); i++) {
+        accessList.add(randAccessListEntry());
+      }
+    }
+    return accessList;
+  }
+
+  final AccessListEntry randAccessListEntry() {
+    List<Bytes32> keyList = new ArrayList<>();
+    boolean key = rnd.nextBoolean();
+    if (key) {
+      for (int nKey = 0; nKey < rnd.nextInt(1, 20); nKey++) {
+        keyList.add(Bytes32.random(rnd));
+      }
+    }
+    return new AccessListEntry(Address.wrap(Bytes.random(20)), keyList);
+  }
+
   final Long randLong() {
-    int selector = new Random().nextInt(0, 4);
+    int selector = rnd.nextInt(0, 4);
     return switch (selector) {
       case 0 -> 0L;
-      case 1 -> new Random().nextLong(1, 128);
-      case 2 -> new Random().nextLong(128, 256);
-      case 3 -> new Random().nextLong(256, 0xfffffffffffffffL);
+      case 1 -> rnd.nextLong(1, 128);
+      case 2 -> rnd.nextLong(128, 256);
+      case 3 -> rnd.nextLong(256, 0xfffffffffffffffL);
       default -> throw new IllegalStateException("Unexpected value: " + selector);
     };
   }
@@ -163,7 +210,7 @@ class RandomTxn {
   final ToyAccount randToyAccount(Address senderAddress) {
 
     return ToyAccount.builder()
-        .balance(Wei.fromEth(5))
+        .balance(Wei.of(BigInteger.ONE.shiftLeft(17 * 8)))
         .nonce(randLong())
         .address(senderAddress)
         .build();

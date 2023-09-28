@@ -316,7 +316,6 @@ public class RlpTxn implements Module {
 
       // Initialise DataSize and DataGasCost
       Bytes data = tx.getPayload();
-      traceValue.partialReset(phase, 8, lt, lx);
       traceValue.PHASE_BYTESIZE = data.size();
       for (int i = 0; i < traceValue.PHASE_BYTESIZE; i++) {
         if (data.get(i) == 0) {
@@ -331,16 +330,26 @@ public class RlpTxn implements Module {
       // Trace
       // RLP prefix
       if (traceValue.PHASE_BYTESIZE == 1) {
-        rlpInt(9, tx.getPayload().toUnsignedBigInteger(), 8, lt, lx, true, false, true, traceValue);
+        rlpInt(
+            phase,
+            tx.getPayload().toUnsignedBigInteger(),
+            8,
+            lt,
+            lx,
+            true,
+            false,
+            true,
+            traceValue);
       } else {
         // General case
         rlpByteString(
-            9, traceValue.PHASE_BYTESIZE, false, lt, lx, true, false, false, false, traceValue);
+            phase, traceValue.PHASE_BYTESIZE, false, lt, lx, true, false, false, false, traceValue);
       }
-      // 16-rows ct-loop to write all the data
+
+      // Tracing the Data: several 16-rows ct-loop
       int nbstep = 16;
-      int nbloop = (traceValue.PHASE_BYTESIZE - 1) / 16 + 1;
-      data = padToGivenSizeWithRightZero(data, 16 * nbloop);
+      int nbloop = (traceValue.PHASE_BYTESIZE - 1) / nbstep + 1;
+      data = padToGivenSizeWithRightZero(data, nbstep * nbloop);
       for (int i = 0; i < nbloop; i++) {
         traceValue.partialReset(phase, nbstep, lt, lx);
         traceValue.INPUT_1 = data.slice(llarge * i, llarge);
@@ -605,8 +614,15 @@ public class RlpTxn implements Module {
     traceValue.partialReset(phase, nStep, lt, lx);
     traceValue.IS_PREFIX = isPrefix;
 
-    Bytes inputByte = bigIntegerToBytes(input);
-    int inputSize = inputByte.size();
+    Bytes inputByte;
+    int inputSize;
+    if (input.equals(BigInteger.ZERO)) {
+      inputByte = Bytes.of(0x00);
+      inputSize = 1;
+    } else {
+      inputByte = bigIntegerToBytes(input);
+      inputSize = inputByte.size();
+    }
     RlpByteCountAndPowerOutput byteCountingOutput = byteCounting(inputSize, nStep);
 
     Bytes inputBytePadded = padToGivenSizeWithLeftZero(inputByte, nStep);
@@ -996,18 +1012,18 @@ public class RlpTxn implements Module {
     this.builder
         .absTxNum(BigInteger.valueOf(traceValue.absTxNum))
         .absTxNumInfiny(BigInteger.valueOf(this.chunkList.size()))
-        .acc1(traceValue.ACC_1)
-        .acc2(traceValue.ACC_2)
+        .acc1(traceValue.ACC_1.toUnsignedBigInteger())
+        .acc2(traceValue.ACC_2.toUnsignedBigInteger())
         .accBytesize(BigInteger.valueOf(traceValue.ACC_BYTESIZE))
         .accessTupleBytesize(BigInteger.valueOf(traceValue.ACCESS_TUPLE_BYTESIZE))
-        .addrHi(traceValue.ADDR_HI)
-        .addrLo(traceValue.ADDR_LO)
+        .addrHi(traceValue.ADDR_HI.toUnsignedBigInteger())
+        .addrLo(traceValue.ADDR_LO.toUnsignedBigInteger())
         .bit(traceValue.BIT)
         .bitAcc(UnsignedByte.of(traceValue.BIT_ACC))
         .byte1(UnsignedByte.of(traceValue.BYTE_1))
         .byte2(UnsignedByte.of(traceValue.BYTE_2))
         .codeFragmentIndex(BigInteger.valueOf(traceValue.codeFragmentIndex))
-        .counter(BigInteger.valueOf(traceValue.COUNTER))
+        .counter(UnsignedByte.of(traceValue.COUNTER))
         .dataHi(traceValue.DATA_HI)
         .dataLo(traceValue.DATA_LO)
         .datagascost(BigInteger.valueOf(traceValue.DATAGASCOST))
@@ -1019,23 +1035,23 @@ public class RlpTxn implements Module {
       this.builder.done(Boolean.FALSE);
     }
     this.builder
-        .endPhase(traceValue.PHASE_END)
+        .phaseEnd(traceValue.PHASE_END)
         .indexData(BigInteger.valueOf(traceValue.INDEX_DATA))
         .indexLt(BigInteger.valueOf(traceValue.INDEX_LT))
         .indexLx(BigInteger.valueOf(traceValue.INDEX_LX))
-        .input1(traceValue.INPUT_1)
-        .input2(traceValue.INPUT_2)
-        .isPadding(traceValue.LC_CORRECTION)
+        .input1(traceValue.INPUT_1.toUnsignedBigInteger())
+        .input2(traceValue.INPUT_2.toUnsignedBigInteger())
+        .lcCorrection(traceValue.LC_CORRECTION)
         .isPrefix(traceValue.IS_PREFIX)
         .limb(padToGivenSizeWithRightZero(traceValue.LIMB, llarge).toUnsignedBigInteger())
         .limbConstructed(traceValue.LIMB_CONSTRUCTED)
         .lt(traceValue.LT)
         .lx(traceValue.LX)
         .nBytes(UnsignedByte.of(traceValue.nBYTES))
-        .nbAddr(BigInteger.valueOf(traceValue.nb_Addr))
-        .nbSto(BigInteger.valueOf(traceValue.nb_Sto))
-        .nbStoPerAddr(BigInteger.valueOf(traceValue.nb_Sto_per_Addr))
-        .numberStep(UnsignedByte.of(traceValue.nSTEP));
+        .nAddr(BigInteger.valueOf(traceValue.nb_Addr))
+        .nKeys(BigInteger.valueOf(traceValue.nb_Sto))
+        .nKeysPerAddr(BigInteger.valueOf(traceValue.nb_Sto_per_Addr))
+        .nStep(UnsignedByte.of(traceValue.nSTEP));
     List<Function<Boolean, Trace.TraceBuilder>> phaseColumns =
         List.of(
             this.builder::phase0,
@@ -1057,7 +1073,7 @@ public class RlpTxn implements Module {
       phaseColumns.get(i).apply(i == traceValue.phase);
     }
     this.builder
-        .phaseBytesize(BigInteger.valueOf(traceValue.PHASE_BYTESIZE))
+        .phaseSize(BigInteger.valueOf(traceValue.PHASE_BYTESIZE))
         .power(traceValue.POWER)
         .requiresEvmExecution(traceValue.requiresEvmExecution)
         .rlpLtBytesize(BigInteger.valueOf(traceValue.RLP_LT_BYTESIZE))

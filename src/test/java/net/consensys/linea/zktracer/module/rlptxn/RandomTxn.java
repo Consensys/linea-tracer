@@ -46,7 +46,7 @@ class RandomTxn {
   void test() {
     OpCodes.load();
 
-    for (int i = 0; i < rnd.nextInt(100, 200); i++) {
+    for (int i = 0; i <  200; i++) {
 
       KeyPair keyPair = new SECP256K1().generateKeyPair();
       Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
@@ -63,7 +63,7 @@ class RandomTxn {
 
   final Transaction randTx(ToyAccount senderAccount, KeyPair keyPair, ToyAccount receiverAccount) {
 
-    int txType = rnd.nextInt(0, 2);
+    int txType = rnd.nextInt(0, 6);
 
     return switch (txType) {
       case 0 -> ToyTransaction.builder()

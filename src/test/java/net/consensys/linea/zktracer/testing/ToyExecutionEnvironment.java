@@ -119,7 +119,11 @@ public class ToyExecutionEnvironment {
                 gasCalculator,
                 new LondonTargetingGasLimitCalculator(0L, new LondonFeeMarket(0, Optional.empty())),
                 false,
-                Optional.of(CHAIN_ID)),
+                Optional.of(CHAIN_ID),
+                Set.of(
+                    TransactionType.FRONTIER,
+                    TransactionType.ACCESS_LIST,
+                    TransactionType.EIP1559)),
             contractCreationProcessor,
             messageCallProcessor,
             true,
@@ -192,7 +196,7 @@ public class ToyExecutionEnvironment {
           Optional.ofNullable(evm).orElse(defaultEvm()),
           Optional.ofNullable(transactions).orElse(defaultTxList),
           Optional.ofNullable(testValidator)
-              .orElse(result -> {assertThat(result.isSuccessful()).isTrue();}));
+              .orElse(result -> assertThat(result.isSuccessful()).isTrue()));
     }
   }
 }

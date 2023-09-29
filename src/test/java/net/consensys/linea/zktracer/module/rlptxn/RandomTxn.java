@@ -57,7 +57,12 @@ class RandomTxn {
       world.account(senderAccount).account(receiverAccount);
       txList.add(randTx(senderAccount, keyPair, receiverAccount));
     }
-    ToyExecutionEnvironment.builder().toyWorld(world.build()).transactions(txList).testValidator(x->{}).build().run();
+    ToyExecutionEnvironment.builder()
+        .toyWorld(world.build())
+        .transactions(txList)
+        .testValidator(x -> {})
+        .build()
+        .run();
   }
 
   final Transaction randTx(ToyAccount senderAccount, KeyPair keyPair, ToyAccount receiverAccount) {

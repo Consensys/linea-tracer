@@ -31,266 +31,270 @@ public class GasProjector {
   private final GasCalculator gc = ZkTracer.gasCalculator;
 
   public GasProjection of(MessageFrame frame, OpCode opCode) {
-    return switch (opCode) {
-      case STOP -> new Zero(gc);
-      case ADD,
-          SUB,
-          NOT,
-          LT,
-          GT,
-          SLT,
-          SGT,
-          EQ,
-          ISZERO,
-          AND,
-          OR,
-          XOR,
-          BYTE,
-          SHL,
-          SHR,
-          SAR,
-          CALLDATALOAD,
-          PUSH1,
-          PUSH2,
-          PUSH3,
-          PUSH4,
-          PUSH5,
-          PUSH6,
-          PUSH7,
-          PUSH8,
-          PUSH9,
-          PUSH10,
-          PUSH11,
-          PUSH12,
-          PUSH13,
-          PUSH14,
-          PUSH15,
-          PUSH16,
-          PUSH17,
-          PUSH18,
-          PUSH19,
-          PUSH20,
-          PUSH21,
-          PUSH22,
-          PUSH23,
-          PUSH24,
-          PUSH25,
-          PUSH26,
-          PUSH27,
-          PUSH28,
-          PUSH29,
-          PUSH30,
-          PUSH31,
-          PUSH32,
-          DUP1,
-          DUP2,
-          DUP3,
-          DUP4,
-          DUP5,
-          DUP6,
-          DUP7,
-          DUP8,
-          DUP9,
-          DUP10,
-          DUP11,
-          DUP12,
-          DUP13,
-          DUP14,
-          DUP15,
-          DUP16,
-          SWAP1,
-          SWAP2,
-          SWAP3,
-          SWAP4,
-          SWAP5,
-          SWAP6,
-          SWAP7,
-          SWAP8,
-          SWAP9,
-          SWAP10,
-          SWAP11,
-          SWAP12,
-          SWAP13,
-          SWAP14,
-          SWAP15,
-          SWAP16 -> new VeryLow(gc);
-      case MUL, DIV, SDIV, MOD, SMOD, SIGNEXTEND, SELFBALANCE -> new Low(gc);
-      case ADDMOD, MULMOD, JUMP -> new Mid(gc);
-      case EXP -> new Exp(gc, frame);
-      case SHA3 -> new Sha3(gc, frame);
-      case ADDRESS,
-          ORIGIN,
-          CALLER,
-          CALLVALUE,
-          CALLDATASIZE,
-          CODESIZE,
-          GASPRICE,
-          COINBASE,
-          TIMESTAMP,
-          NUMBER,
-          DIFFICULTY,
-          GASLIMIT,
-          CHAINID,
-          RETURNDATASIZE,
-          POP,
-          PC,
-          MSIZE,
-          GAS,
-          BASEFEE -> new Base(gc);
-      case BALANCE, EXTCODESIZE, EXTCODEHASH -> new AccountAccess(gc, frame);
-      case CALLDATACOPY, CODECOPY, RETURNDATACOPY -> new DataCopy(gc, frame);
-      case EXTCODECOPY -> new ExtCodeCopy(gc, frame);
-      case BLOCKHASH -> new BlockHash(gc);
-      case MLOAD, MSTORE -> new MLoadStore(gc, frame);
-      case MSTORE8 -> new MStore8(gc, frame);
-      case SLOAD -> new SLoad(gc, frame);
-      case SSTORE -> {
-        final UInt256 key = UInt256.fromBytes(frame.getStackItem(0));
-        final Account account = frame.getWorldUpdater().getAccount(frame.getRecipientAddress());
-        final UInt256 currentValue = account.getStorageValue(key);
-        final UInt256 originalValue = account.getOriginalStorageValue(key);
-        final UInt256 newValue = UInt256.fromBytes(frame.getStackItem(1));
+    try {
+      return switch (opCode) {
+        case STOP -> new Zero(gc);
+        case ADD,
+            SUB,
+            NOT,
+            LT,
+            GT,
+            SLT,
+            SGT,
+            EQ,
+            ISZERO,
+            AND,
+            OR,
+            XOR,
+            BYTE,
+            SHL,
+            SHR,
+            SAR,
+            CALLDATALOAD,
+            PUSH1,
+            PUSH2,
+            PUSH3,
+            PUSH4,
+            PUSH5,
+            PUSH6,
+            PUSH7,
+            PUSH8,
+            PUSH9,
+            PUSH10,
+            PUSH11,
+            PUSH12,
+            PUSH13,
+            PUSH14,
+            PUSH15,
+            PUSH16,
+            PUSH17,
+            PUSH18,
+            PUSH19,
+            PUSH20,
+            PUSH21,
+            PUSH22,
+            PUSH23,
+            PUSH24,
+            PUSH25,
+            PUSH26,
+            PUSH27,
+            PUSH28,
+            PUSH29,
+            PUSH30,
+            PUSH31,
+            PUSH32,
+            DUP1,
+            DUP2,
+            DUP3,
+            DUP4,
+            DUP5,
+            DUP6,
+            DUP7,
+            DUP8,
+            DUP9,
+            DUP10,
+            DUP11,
+            DUP12,
+            DUP13,
+            DUP14,
+            DUP15,
+            DUP16,
+            SWAP1,
+            SWAP2,
+            SWAP3,
+            SWAP4,
+            SWAP5,
+            SWAP6,
+            SWAP7,
+            SWAP8,
+            SWAP9,
+            SWAP10,
+            SWAP11,
+            SWAP12,
+            SWAP13,
+            SWAP14,
+            SWAP15,
+            SWAP16 -> new VeryLow(gc);
+        case MUL, DIV, SDIV, MOD, SMOD, SIGNEXTEND, SELFBALANCE -> new Low(gc);
+        case ADDMOD, MULMOD, JUMP -> new Mid(gc);
+        case EXP -> new Exp(gc, frame);
+        case SHA3 -> new Sha3(gc, frame);
+        case ADDRESS,
+            ORIGIN,
+            CALLER,
+            CALLVALUE,
+            CALLDATASIZE,
+            CODESIZE,
+            GASPRICE,
+            COINBASE,
+            TIMESTAMP,
+            NUMBER,
+            DIFFICULTY,
+            GASLIMIT,
+            CHAINID,
+            RETURNDATASIZE,
+            POP,
+            PC,
+            MSIZE,
+            GAS,
+            BASEFEE -> new Base(gc);
+        case BALANCE, EXTCODESIZE, EXTCODEHASH -> new AccountAccess(gc, frame);
+        case CALLDATACOPY, CODECOPY, RETURNDATACOPY -> new DataCopy(gc, frame);
+        case EXTCODECOPY -> new ExtCodeCopy(gc, frame);
+        case BLOCKHASH -> new BlockHash(gc);
+        case MLOAD, MSTORE -> new MLoadStore(gc, frame);
+        case MSTORE8 -> new MStore8(gc, frame);
+        case SLOAD -> new SLoad(gc, frame);
+        case SSTORE -> {
+          final UInt256 key = UInt256.fromBytes(frame.getStackItem(0));
+          final Account account = frame.getWorldUpdater().getAccount(frame.getRecipientAddress());
+          final UInt256 currentValue = account.getStorageValue(key);
+          final UInt256 originalValue = account.getOriginalStorageValue(key);
+          final UInt256 newValue = UInt256.fromBytes(frame.getStackItem(1));
 
-        yield new SStore(gc, frame, key, originalValue, currentValue, newValue);
-      }
-      case JUMPI -> new High(gc);
-      case JUMPDEST -> new JumpDest(gc);
-      case LOG0 -> {
-        long offset = clampedToLong(frame.getStackItem(0));
-        long size = clampedToLong(frame.getStackItem(1));
+          yield new SStore(gc, frame, key, originalValue, currentValue, newValue);
+        }
+        case JUMPI -> new High(gc);
+        case JUMPDEST -> new JumpDest(gc);
+        case LOG0 -> {
+          long offset = clampedToLong(frame.getStackItem(0));
+          long size = clampedToLong(frame.getStackItem(1));
 
-        yield new Log(gc, frame, offset, size, 0);
-      }
-      case LOG1 -> {
-        long offset = clampedToLong(frame.getStackItem(0));
-        long size = clampedToLong(frame.getStackItem(1));
+          yield new Log(gc, frame, offset, size, 0);
+        }
+        case LOG1 -> {
+          long offset = clampedToLong(frame.getStackItem(0));
+          long size = clampedToLong(frame.getStackItem(1));
 
-        yield new Log(gc, frame, offset, size, 1);
-      }
-      case LOG2 -> {
-        long offset = clampedToLong(frame.getStackItem(0));
-        long size = clampedToLong(frame.getStackItem(1));
+          yield new Log(gc, frame, offset, size, 1);
+        }
+        case LOG2 -> {
+          long offset = clampedToLong(frame.getStackItem(0));
+          long size = clampedToLong(frame.getStackItem(1));
 
-        yield new Log(gc, frame, offset, size, 2);
-      }
-      case LOG3 -> {
-        long offset = clampedToLong(frame.getStackItem(0));
-        long size = clampedToLong(frame.getStackItem(1));
+          yield new Log(gc, frame, offset, size, 2);
+        }
+        case LOG3 -> {
+          long offset = clampedToLong(frame.getStackItem(0));
+          long size = clampedToLong(frame.getStackItem(1));
 
-        yield new Log(gc, frame, offset, size, 3);
-      }
-      case LOG4 -> {
-        long offset = clampedToLong(frame.getStackItem(0));
-        long size = clampedToLong(frame.getStackItem(1));
+          yield new Log(gc, frame, offset, size, 3);
+        }
+        case LOG4 -> {
+          long offset = clampedToLong(frame.getStackItem(0));
+          long size = clampedToLong(frame.getStackItem(1));
 
-        yield new Log(gc, frame, offset, size, 4);
-      }
-      case CREATE -> {
-        final long initCodeOffset = clampedToLong(frame.getStackItem(1));
-        final long initCodeLength = clampedToLong(frame.getStackItem(2));
+          yield new Log(gc, frame, offset, size, 4);
+        }
+        case CREATE -> {
+          final long initCodeOffset = clampedToLong(frame.getStackItem(1));
+          final long initCodeLength = clampedToLong(frame.getStackItem(2));
 
-        yield new Create(gc, frame, initCodeOffset, initCodeLength);
-      }
-      case CREATE2 -> {
-        final long initCodeOffset = clampedToLong(frame.getStackItem(1));
-        final long initCodeLength = clampedToLong(frame.getStackItem(2));
+          yield new Create(gc, frame, initCodeOffset, initCodeLength);
+        }
+        case CREATE2 -> {
+          final long initCodeOffset = clampedToLong(frame.getStackItem(1));
+          final long initCodeLength = clampedToLong(frame.getStackItem(2));
 
-        yield new Create2(gc, frame, initCodeOffset, initCodeLength);
-      }
-      case CALL -> {
-        final long stipend = clampedToLong(frame.getStackItem(0));
-        final Account recipient =
-            frame.getWorldUpdater().get(Words.toAddress(frame.getStackItem(1)));
-        final Address to = recipient.getAddress();
-        final Wei value = Wei.wrap(frame.getStackItem(2));
-        final long inputDataOffset = clampedToLong(frame.getStackItem(3));
-        final long inputDataLength = clampedToLong(frame.getStackItem(4));
-        final long returnDataOffset = clampedToLong(frame.getStackItem(5));
-        final long returnDataLength = clampedToLong(frame.getStackItem(6));
-        yield new Call(
-            gc,
-            frame,
-            stipend,
-            inputDataOffset,
-            inputDataLength,
-            returnDataOffset,
-            returnDataLength,
-            value,
-            recipient,
-            to);
-      }
-      case CALLCODE -> {
-        final long stipend = clampedToLong(frame.getStackItem(0));
-        final Account recipient = frame.getWorldUpdater().get(frame.getRecipientAddress());
-        final Address to = Words.toAddress(frame.getStackItem(1));
-        final Wei value = Wei.wrap(frame.getStackItem(2));
-        final long inputDataOffset = clampedToLong(frame.getStackItem(3));
-        final long inputDataLength = clampedToLong(frame.getStackItem(4));
-        final long returnDataOffset = clampedToLong(frame.getStackItem(5));
-        final long returnDataLength = clampedToLong(frame.getStackItem(6));
-        yield new Call(
-            gc,
-            frame,
-            stipend,
-            inputDataOffset,
-            inputDataLength,
-            returnDataOffset,
-            returnDataLength,
-            value,
-            recipient,
-            to);
-      }
-      case DELEGATECALL -> {
-        final long stipend = clampedToLong(frame.getStackItem(0));
-        final Account recipient = frame.getWorldUpdater().get(frame.getRecipientAddress());
-        final Address to = Words.toAddress(frame.getStackItem(1));
-        final long inputDataOffset = clampedToLong(frame.getStackItem(2));
-        final long inputDataLength = clampedToLong(frame.getStackItem(3));
-        final long returnDataOffset = clampedToLong(frame.getStackItem(4));
-        final long returnDataLength = clampedToLong(frame.getStackItem(5));
-        yield new Call(
-            gc,
-            frame,
-            stipend,
-            inputDataOffset,
-            inputDataLength,
-            returnDataOffset,
-            returnDataLength,
-            Wei.ZERO,
-            recipient,
-            to);
-      }
-      case STATICCALL -> {
-        final long stipend = clampedToLong(frame.getStackItem(0));
-        final Account recipient =
-            frame.getWorldUpdater().get(Words.toAddress(frame.getStackItem(1)));
-        final Address to = recipient.getAddress();
-        final long inputDataOffset = clampedToLong(frame.getStackItem(2));
-        final long inputDataLength = clampedToLong(frame.getStackItem(3));
-        final long returnDataOffset = clampedToLong(frame.getStackItem(4));
-        final long returnDataLength = clampedToLong(frame.getStackItem(5));
-        yield new Call(
-            gc,
-            frame,
-            stipend,
-            inputDataOffset,
-            inputDataLength,
-            returnDataOffset,
-            returnDataLength,
-            Wei.ZERO,
-            recipient,
-            to);
-      }
-      case RETURN -> new Return(gc, frame);
-      case REVERT -> {
-        final long offset = clampedToLong(frame.getStackItem(0));
-        final long length = clampedToLong(frame.getStackItem(1));
+          yield new Create2(gc, frame, initCodeOffset, initCodeLength);
+        }
+        case CALL -> {
+          final long stipend = clampedToLong(frame.getStackItem(0));
+          final Account recipient =
+              frame.getWorldUpdater().get(Words.toAddress(frame.getStackItem(1)));
+          final Address to = recipient.getAddress();
+          final Wei value = Wei.wrap(frame.getStackItem(2));
+          final long inputDataOffset = clampedToLong(frame.getStackItem(3));
+          final long inputDataLength = clampedToLong(frame.getStackItem(4));
+          final long returnDataOffset = clampedToLong(frame.getStackItem(5));
+          final long returnDataLength = clampedToLong(frame.getStackItem(6));
+          yield new Call(
+              gc,
+              frame,
+              stipend,
+              inputDataOffset,
+              inputDataLength,
+              returnDataOffset,
+              returnDataLength,
+              value,
+              recipient,
+              to);
+        }
+        case CALLCODE -> {
+          final long stipend = clampedToLong(frame.getStackItem(0));
+          final Account recipient = frame.getWorldUpdater().get(frame.getRecipientAddress());
+          final Address to = Words.toAddress(frame.getStackItem(1));
+          final Wei value = Wei.wrap(frame.getStackItem(2));
+          final long inputDataOffset = clampedToLong(frame.getStackItem(3));
+          final long inputDataLength = clampedToLong(frame.getStackItem(4));
+          final long returnDataOffset = clampedToLong(frame.getStackItem(5));
+          final long returnDataLength = clampedToLong(frame.getStackItem(6));
+          yield new Call(
+              gc,
+              frame,
+              stipend,
+              inputDataOffset,
+              inputDataLength,
+              returnDataOffset,
+              returnDataLength,
+              value,
+              recipient,
+              to);
+        }
+        case DELEGATECALL -> {
+          final long stipend = clampedToLong(frame.getStackItem(0));
+          final Account recipient = frame.getWorldUpdater().get(frame.getRecipientAddress());
+          final Address to = Words.toAddress(frame.getStackItem(1));
+          final long inputDataOffset = clampedToLong(frame.getStackItem(2));
+          final long inputDataLength = clampedToLong(frame.getStackItem(3));
+          final long returnDataOffset = clampedToLong(frame.getStackItem(4));
+          final long returnDataLength = clampedToLong(frame.getStackItem(5));
+          yield new Call(
+              gc,
+              frame,
+              stipend,
+              inputDataOffset,
+              inputDataLength,
+              returnDataOffset,
+              returnDataLength,
+              Wei.ZERO,
+              recipient,
+              to);
+        }
+        case STATICCALL -> {
+          final long stipend = clampedToLong(frame.getStackItem(0));
+          final Account recipient =
+              frame.getWorldUpdater().get(Words.toAddress(frame.getStackItem(1)));
+          final Address to = recipient.getAddress();
+          final long inputDataOffset = clampedToLong(frame.getStackItem(2));
+          final long inputDataLength = clampedToLong(frame.getStackItem(3));
+          final long returnDataOffset = clampedToLong(frame.getStackItem(4));
+          final long returnDataLength = clampedToLong(frame.getStackItem(5));
+          yield new Call(
+              gc,
+              frame,
+              stipend,
+              inputDataOffset,
+              inputDataLength,
+              returnDataOffset,
+              returnDataLength,
+              Wei.ZERO,
+              recipient,
+              to);
+        }
+        case RETURN -> new Return(gc, frame);
+        case REVERT -> {
+          final long offset = clampedToLong(frame.getStackItem(0));
+          final long length = clampedToLong(frame.getStackItem(1));
 
-        yield new Revert(gc, frame, offset, length);
-      }
-      case INVALID -> new GasProjection() {};
-      case SELFDESTRUCT -> new SelfDestruct(gc, frame);
-      default -> throw new IllegalStateException("Unexpected value: " + opCode);
-    };
+          yield new Revert(gc, frame, offset, length);
+        }
+        case INVALID -> new GasProjection() {};
+        case SELFDESTRUCT -> new SelfDestruct(gc, frame);
+        default -> throw new IllegalStateException("Unexpected value: " + opCode);
+      };
+    } catch (Exception e) {
+      throw new RuntimeException(opCode.toString());
+    }
   }
 }

@@ -66,4 +66,9 @@ public class LineaTransactionSelectorPlugin extends LineaPlugin {
     transactionSelectionService.registerTransactionSelectorFactory(
         new LineaTransactionSelectorFactory(options));
   }
+
+  @Override
+  public void start() {
+    log.debug("Starting {} with configuration: {}", NAME, options);
+  }
 }

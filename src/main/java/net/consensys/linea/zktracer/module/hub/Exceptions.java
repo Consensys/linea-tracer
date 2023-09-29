@@ -169,6 +169,10 @@ public record Exceptions(
         isOutOfSStore(frame));
   }
 
+  public static Exceptions empty() {
+    return new Exceptions(false, false, false, false, false, false, false, false, false);
+  }
+
   /**
    * Generate the exceptions for a transaction whose execution was skipped from the beginning.
    * Should map to an OoG? TODO: cf. @Olivier

@@ -52,7 +52,7 @@ public class CallFrame {
   /** the {@link Address} of the account executing this {@link CallFrame}. */
   @Getter private Address address;
   /** the {@link Address} of the code executed in this {@link CallFrame}. */
-  @Getter private Address codeAddress;
+  @Getter private Address codeAddress=Address.ALTBN128_ADD;
 
   /** the {@link CallFrameType} of this frame. */
   @Getter private CallFrameType type;

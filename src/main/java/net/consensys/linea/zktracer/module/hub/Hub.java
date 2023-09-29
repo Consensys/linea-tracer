@@ -514,6 +514,7 @@ public class Hub implements Module {
   @Override
   public void traceEndTx(
       WorldView world, Transaction tx, boolean status, Bytes output, List<Log> logs, long gasUsed) {
+    this.opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
     this.tx.state(TxState.TX_FINAL);
     this.tx.status(status);
     this.processStateFinal(world, tx, status);

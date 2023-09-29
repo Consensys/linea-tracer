@@ -157,8 +157,8 @@ class RandomTxn {
       case 1 -> Bytes.of(0x0);
       case 2 -> Bytes.minimalBytes(rnd.nextLong(1, 128));
       case 3 -> Bytes.minimalBytes(rnd.nextLong(128, 256));
-      case 4 -> Bytes.random(rnd.nextInt(1, 56));
-      case 5 -> Bytes.random(rnd.nextInt(56, 666));
+      case 4 -> Bytes.random(rnd.nextInt(1, 56), rnd);
+      case 5 -> Bytes.random(rnd.nextInt(56, 666), rnd);
       default -> throw new IllegalStateException("Unexpected value: " + selector);
     };
   }
@@ -182,7 +182,7 @@ class RandomTxn {
         keyList.add(Bytes32.random(rnd));
       }
     }
-    return new AccessListEntry(Address.wrap(Bytes.random(20)), keyList);
+    return new AccessListEntry(Address.wrap(Bytes.random(20, rnd)), keyList);
   }
 
   final Long randLong() {
@@ -201,7 +201,7 @@ class RandomTxn {
     return ToyAccount.builder()
         .balance(Wei.ONE)
         .nonce(6)
-        .address(Address.wrap(Bytes.random(20)))
+        .address(Address.wrap(Bytes.random(20, rnd)))
         .code(
             BytecodeCompiler.newProgram()
                 .push(32, 0xbeef)

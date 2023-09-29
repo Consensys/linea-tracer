@@ -17,188 +17,140 @@ package net.consensys.linea.zktracer.opcode.gas.projector;
 
 import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
-import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.frame.MessageFrame;
-import org.hyperledger.besu.evm.gascalculator.GasCalculator;
 import org.hyperledger.besu.evm.internal.Words;
 
 public class GasProjector {
-  private final GasCalculator gc = ZkTracer.gasCalculator;
-
   public GasProjection of(MessageFrame frame, OpCode opCode) {
-    try {
-      return switch (opCode) {
-        case STOP -> new Zero(gc);
-        case ADD,
-            SUB,
-            NOT,
-            LT,
-            GT,
-            SLT,
-            SGT,
-            EQ,
-            ISZERO,
-            AND,
-            OR,
-            XOR,
-            BYTE,
-            SHL,
-            SHR,
-            SAR,
-            CALLDATALOAD,
-            PUSH1,
-            PUSH2,
-            PUSH3,
-            PUSH4,
-            PUSH5,
-            PUSH6,
-            PUSH7,
-            PUSH8,
-            PUSH9,
-            PUSH10,
-            PUSH11,
-            PUSH12,
-            PUSH13,
-            PUSH14,
-            PUSH15,
-            PUSH16,
-            PUSH17,
-            PUSH18,
-            PUSH19,
-            PUSH20,
-            PUSH21,
-            PUSH22,
-            PUSH23,
-            PUSH24,
-            PUSH25,
-            PUSH26,
-            PUSH27,
-            PUSH28,
-            PUSH29,
-            PUSH30,
-            PUSH31,
-            PUSH32,
-            DUP1,
-            DUP2,
-            DUP3,
-            DUP4,
-            DUP5,
-            DUP6,
-            DUP7,
-            DUP8,
-            DUP9,
-            DUP10,
-            DUP11,
-            DUP12,
-            DUP13,
-            DUP14,
-            DUP15,
-            DUP16,
-            SWAP1,
-            SWAP2,
-            SWAP3,
-            SWAP4,
-            SWAP5,
-            SWAP6,
-            SWAP7,
-            SWAP8,
-            SWAP9,
-            SWAP10,
-            SWAP11,
-            SWAP12,
-            SWAP13,
-            SWAP14,
-            SWAP15,
-            SWAP16 -> new VeryLow(gc);
-        case MUL, DIV, SDIV, MOD, SMOD, SIGNEXTEND, SELFBALANCE -> new Low(gc);
-        case ADDMOD, MULMOD, JUMP -> new Mid(gc);
-        case EXP -> new Exp(gc, frame);
-        case SHA3 -> new Sha3(gc, frame);
-        case ADDRESS,
-            ORIGIN,
-            CALLER,
-            CALLVALUE,
-            CALLDATASIZE,
-            CODESIZE,
-            GASPRICE,
-            COINBASE,
-            TIMESTAMP,
-            NUMBER,
-            DIFFICULTY,
-            GASLIMIT,
-            CHAINID,
-            RETURNDATASIZE,
-            POP,
-            PC,
-            MSIZE,
-            GAS,
-            BASEFEE -> new Base(gc);
-        case BALANCE, EXTCODESIZE, EXTCODEHASH -> new AccountAccess(gc, frame);
-        case CALLDATACOPY, CODECOPY, RETURNDATACOPY -> new DataCopy(gc, frame);
-        case EXTCODECOPY -> new ExtCodeCopy(gc, frame);
-        case BLOCKHASH -> new BlockHash(gc);
-        case MLOAD, MSTORE -> new MLoadStore(gc, frame);
-        case MSTORE8 -> new MStore8(gc, frame);
-        case SLOAD -> new SLoad(gc, frame);
-        case SSTORE -> {
-          final UInt256 key = UInt256.fromBytes(frame.getStackItem(0));
-          final Account account = frame.getWorldUpdater().getAccount(frame.getRecipientAddress());
-          final UInt256 currentValue = account.getStorageValue(key);
-          final UInt256 originalValue = account.getOriginalStorageValue(key);
-          final UInt256 newValue = UInt256.fromBytes(frame.getStackItem(1));
-
-          yield new SStore(gc, frame, key, originalValue, currentValue, newValue);
-        }
-        case JUMPI -> new High(gc);
-        case JUMPDEST -> new JumpDest(gc);
-        case LOG0 -> {
-          long offset = clampedToLong(frame.getStackItem(0));
-          long size = clampedToLong(frame.getStackItem(1));
-
-          yield new Log(gc, frame, offset, size, 0);
-        }
-        case LOG1 -> {
-          long offset = clampedToLong(frame.getStackItem(0));
-          long size = clampedToLong(frame.getStackItem(1));
-
-          yield new Log(gc, frame, offset, size, 1);
-        }
-        case LOG2 -> {
-          long offset = clampedToLong(frame.getStackItem(0));
-          long size = clampedToLong(frame.getStackItem(1));
-
-          yield new Log(gc, frame, offset, size, 2);
-        }
-        case LOG3 -> {
-          long offset = clampedToLong(frame.getStackItem(0));
-          long size = clampedToLong(frame.getStackItem(1));
-
-          yield new Log(gc, frame, offset, size, 3);
-        }
-        case LOG4 -> {
-          long offset = clampedToLong(frame.getStackItem(0));
-          long size = clampedToLong(frame.getStackItem(1));
-
-          yield new Log(gc, frame, offset, size, 4);
-        }
-        case CREATE -> {
-          final long initCodeOffset = clampedToLong(frame.getStackItem(1));
-          final long initCodeLength = clampedToLong(frame.getStackItem(2));
-
-          yield new Create(gc, frame, initCodeOffset, initCodeLength);
-        }
-        case CREATE2 -> {
-          final long initCodeOffset = clampedToLong(frame.getStackItem(1));
-          final long initCodeLength = clampedToLong(frame.getStackItem(2));
-
-          yield new Create2(gc, frame, initCodeOffset, initCodeLength);
-        }
-        case CALL -> {
+    return switch (opCode) {
+      case STOP -> new Zero();
+      case ADD,
+          SUB,
+          NOT,
+          LT,
+          GT,
+          SLT,
+          SGT,
+          EQ,
+          ISZERO,
+          AND,
+          OR,
+          XOR,
+          BYTE,
+          SHL,
+          SHR,
+          SAR,
+          CALLDATALOAD,
+          PUSH1,
+          PUSH2,
+          PUSH3,
+          PUSH4,
+          PUSH5,
+          PUSH6,
+          PUSH7,
+          PUSH8,
+          PUSH9,
+          PUSH10,
+          PUSH11,
+          PUSH12,
+          PUSH13,
+          PUSH14,
+          PUSH15,
+          PUSH16,
+          PUSH17,
+          PUSH18,
+          PUSH19,
+          PUSH20,
+          PUSH21,
+          PUSH22,
+          PUSH23,
+          PUSH24,
+          PUSH25,
+          PUSH26,
+          PUSH27,
+          PUSH28,
+          PUSH29,
+          PUSH30,
+          PUSH31,
+          PUSH32,
+          DUP1,
+          DUP2,
+          DUP3,
+          DUP4,
+          DUP5,
+          DUP6,
+          DUP7,
+          DUP8,
+          DUP9,
+          DUP10,
+          DUP11,
+          DUP12,
+          DUP13,
+          DUP14,
+          DUP15,
+          DUP16,
+          SWAP1,
+          SWAP2,
+          SWAP3,
+          SWAP4,
+          SWAP5,
+          SWAP6,
+          SWAP7,
+          SWAP8,
+          SWAP9,
+          SWAP10,
+          SWAP11,
+          SWAP12,
+          SWAP13,
+          SWAP14,
+          SWAP15,
+          SWAP16 -> new VeryLow();
+      case MUL, DIV, SDIV, MOD, SMOD, SIGNEXTEND, SELFBALANCE -> new Low();
+      case ADDMOD, MULMOD, JUMP -> new Mid();
+      case EXP -> new Exp(frame);
+      case SHA3 -> new Sha3(frame);
+      case ADDRESS,
+          ORIGIN,
+          CALLER,
+          CALLVALUE,
+          CALLDATASIZE,
+          CODESIZE,
+          GASPRICE,
+          COINBASE,
+          TIMESTAMP,
+          NUMBER,
+          DIFFICULTY,
+          GASLIMIT,
+          CHAINID,
+          RETURNDATASIZE,
+          POP,
+          PC,
+          MSIZE,
+          GAS,
+          BASEFEE -> new Base();
+      case BALANCE, EXTCODESIZE, EXTCODEHASH -> new AccountAccess(frame);
+      case CALLDATACOPY, CODECOPY, RETURNDATACOPY -> new DataCopy(frame);
+      case EXTCODECOPY -> new ExtCodeCopy(frame);
+      case BLOCKHASH -> new BlockHash();
+      case MLOAD, MSTORE -> new MLoadStore(frame);
+      case MSTORE8 -> new MStore8(frame);
+      case SLOAD -> new SLoad(frame);
+      case SSTORE -> new SStore(frame);
+      case JUMPI -> new High();
+      case JUMPDEST -> new JumpDest();
+      case LOG0 -> new Log(frame, 0);
+      case LOG1 -> new Log(frame, 1);
+      case LOG2 -> new Log(frame, 2);
+      case LOG3 -> new Log(frame, 3);
+      case LOG4 -> new Log(frame, 4);
+      case CREATE -> new Create(frame);
+      case CREATE2 -> new Create2(frame);
+      case CALL -> {
+        if (frame.stackSize() > 6) {
           final long stipend = clampedToLong(frame.getStackItem(0));
           final Account recipient =
               frame.getWorldUpdater().get(Words.toAddress(frame.getStackItem(1)));
@@ -209,7 +161,6 @@ public class GasProjector {
           final long returnDataOffset = clampedToLong(frame.getStackItem(5));
           final long returnDataLength = clampedToLong(frame.getStackItem(6));
           yield new Call(
-              gc,
               frame,
               stipend,
               inputDataOffset,
@@ -219,8 +170,12 @@ public class GasProjector {
               value,
               recipient,
               to);
+        } else {
+          yield Call.invalid();
         }
-        case CALLCODE -> {
+      }
+      case CALLCODE -> {
+        if (frame.stackSize() > 6) {
           final long stipend = clampedToLong(frame.getStackItem(0));
           final Account recipient = frame.getWorldUpdater().get(frame.getRecipientAddress());
           final Address to = Words.toAddress(frame.getStackItem(1));
@@ -230,7 +185,6 @@ public class GasProjector {
           final long returnDataOffset = clampedToLong(frame.getStackItem(5));
           final long returnDataLength = clampedToLong(frame.getStackItem(6));
           yield new Call(
-              gc,
               frame,
               stipend,
               inputDataOffset,
@@ -240,8 +194,12 @@ public class GasProjector {
               value,
               recipient,
               to);
+        } else {
+          yield Call.invalid();
         }
-        case DELEGATECALL -> {
+      }
+      case DELEGATECALL -> {
+        if (frame.stackSize() > 5) {
           final long stipend = clampedToLong(frame.getStackItem(0));
           final Account recipient = frame.getWorldUpdater().get(frame.getRecipientAddress());
           final Address to = Words.toAddress(frame.getStackItem(1));
@@ -250,7 +208,6 @@ public class GasProjector {
           final long returnDataOffset = clampedToLong(frame.getStackItem(4));
           final long returnDataLength = clampedToLong(frame.getStackItem(5));
           yield new Call(
-              gc,
               frame,
               stipend,
               inputDataOffset,
@@ -260,8 +217,12 @@ public class GasProjector {
               Wei.ZERO,
               recipient,
               to);
+        } else {
+          yield Call.invalid();
         }
-        case STATICCALL -> {
+      }
+      case STATICCALL -> {
+        if (frame.stackSize() > 5) {
           final long stipend = clampedToLong(frame.getStackItem(0));
           final Account recipient =
               frame.getWorldUpdater().get(Words.toAddress(frame.getStackItem(1)));
@@ -271,7 +232,6 @@ public class GasProjector {
           final long returnDataOffset = clampedToLong(frame.getStackItem(4));
           final long returnDataLength = clampedToLong(frame.getStackItem(5));
           yield new Call(
-              gc,
               frame,
               stipend,
               inputDataOffset,
@@ -281,20 +241,15 @@ public class GasProjector {
               Wei.ZERO,
               recipient,
               to);
+        } else {
+          yield Call.invalid();
         }
-        case RETURN -> new Return(gc, frame);
-        case REVERT -> {
-          final long offset = clampedToLong(frame.getStackItem(0));
-          final long length = clampedToLong(frame.getStackItem(1));
-
-          yield new Revert(gc, frame, offset, length);
-        }
-        case INVALID -> new GasProjection() {};
-        case SELFDESTRUCT -> new SelfDestruct(gc, frame);
-        default -> throw new IllegalStateException("Unexpected value: " + opCode);
-      };
-    } catch (Exception e) {
-      throw new RuntimeException(opCode.toString());
-    }
+      }
+      case RETURN -> new Return(frame);
+      case REVERT -> new Revert(frame);
+      case INVALID -> new GasProjection() {};
+      case SELFDESTRUCT -> new SelfDestruct(frame);
+      default -> throw new IllegalStateException("Unexpected value: " + opCode);
+    };
   }
 }

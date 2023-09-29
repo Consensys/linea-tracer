@@ -330,14 +330,23 @@ public class RlpTxn implements Module {
       // Trace
       // RLP prefix
       if (traceValue.PHASE_BYTESIZE == 1) {
-        rlpInt(phase, tx.getPayload().toUnsignedBigInteger(), 8, lt, lx, true, false, true, traceValue);
+        rlpInt(
+            phase,
+            tx.getPayload().toUnsignedBigInteger(),
+            8,
+            lt,
+            lx,
+            true,
+            false,
+            true,
+            traceValue);
       } else {
         // General case
         rlpByteString(
             phase, traceValue.PHASE_BYTESIZE, false, lt, lx, true, false, false, false, traceValue);
       }
 
-      //Tracing the Data: several 16-rows ct-loop
+      // Tracing the Data: several 16-rows ct-loop
       int nbstep = 16;
       int nbloop = (traceValue.PHASE_BYTESIZE - 1) / nbstep + 1;
       data = padToGivenSizeWithRightZero(data, nbstep * nbloop);

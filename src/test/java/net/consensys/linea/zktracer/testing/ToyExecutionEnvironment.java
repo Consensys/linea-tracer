@@ -192,7 +192,7 @@ public class ToyExecutionEnvironment {
           Optional.ofNullable(evm).orElse(defaultEvm()),
           Optional.ofNullable(transactions).orElse(defaultTxList),
           Optional.ofNullable(testValidator)
-              .orElse(result -> assertThat(result.isSuccessful()).isTrue()));
+              .orElse(result -> {assertThat(result.isSuccessful()).isTrue();}));
     }
   }
 }

@@ -529,7 +529,6 @@ public class RlpTxrcpt implements Module {
     traceValue.isData = isData;
     traceValue.input1 = bigIntegerToBytes(BigInteger.valueOf(input));
 
-
     int inputSize = traceValue.input1.size();
     RlpByteCountAndPowerOutput byteCountingOutput = byteCounting(inputSize, 8);
 

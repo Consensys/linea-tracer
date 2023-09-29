@@ -45,20 +45,19 @@ class RandomTxn {
   @Test
   void test() {
     OpCodes.load();
+    ToyWorld.ToyWorldBuilder world = ToyWorld.builder();
+    List<Transaction> txList = new ArrayList<>();
 
-    for (int i = 0; i <  200; i++) {
-
+    for (int i = 0; i < 200; i++) {
       KeyPair keyPair = new SECP256K1().generateKeyPair();
       Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
       ToyAccount senderAccount = randToyAccount(senderAddress);
       ToyAccount receiverAccount = receiverAccount();
-      Transaction tx = randTx(senderAccount, keyPair, receiverAccount);
 
-      ToyWorld toyWorld =
-          ToyWorld.builder().accounts(List.of(senderAccount, receiverAccount)).build();
-
-      ToyExecutionEnvironment.builder().toyWorld(toyWorld).transaction(tx).build().run();
+      world.account(senderAccount).account(receiverAccount);
+      txList.add(randTx(senderAccount, keyPair, receiverAccount));
     }
+    ToyExecutionEnvironment.builder().toyWorld(world.build()).transactions(txList).testValidator(x->{}).build().run();
   }
 
   final Transaction randTx(ToyAccount senderAccount, KeyPair keyPair, ToyAccount receiverAccount) {
@@ -210,7 +209,7 @@ class RandomTxn {
   final ToyAccount randToyAccount(Address senderAddress) {
 
     return ToyAccount.builder()
-        .balance(Wei.of(BigInteger.ONE.shiftLeft(17 * 8)))
+        .balance(Wei.MAX_WEI)
         .nonce(randLong())
         .address(senderAddress)
         .build();

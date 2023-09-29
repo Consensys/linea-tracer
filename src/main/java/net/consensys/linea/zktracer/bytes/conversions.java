@@ -7,7 +7,7 @@ import org.apache.tuweni.bytes.Bytes;
 public class conversions {
   public static Bytes bigIntegerToBytes(BigInteger big) {
     Bytes bytes;
-    if (big.equals(BigInteger.ZERO)){
+    if (big.equals(BigInteger.ZERO)) {
       bytes = Bytes.of(0x00);
     } else {
       byte[] byteArray;

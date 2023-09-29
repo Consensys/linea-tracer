@@ -50,7 +50,7 @@ public class CallFrame {
   @Getter private List<Integer> childFrames = new ArrayList<>();
 
   /** the {@link Address} of the account executing this {@link CallFrame}. */
-  @Getter private Address address;
+  @Getter private Address address = Address.ZERO; // TODO:
   /** the {@link Address} of the code executed in this {@link CallFrame}. */
   @Getter private Address codeAddress = Address.ALTBN128_ADD;
 

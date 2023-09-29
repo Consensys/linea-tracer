@@ -39,8 +39,8 @@ import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
 
-class RandomTxn {
-  private final Random rnd = new Random(666);
+class TestRandomTxns {
+  private final Random rnd = new Random(4);
 
   @Test
   void test() {
@@ -48,7 +48,7 @@ class RandomTxn {
     ToyWorld.ToyWorldBuilder world = ToyWorld.builder();
     List<Transaction> txList = new ArrayList<>();
 
-    for (int i = 0; i < 200; i++) {
+    for (int i = 0; i < 2000; i++) {
       KeyPair keyPair = new SECP256K1().generateKeyPair();
       Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
       ToyAccount senderAccount = randToyAccount(senderAddress);

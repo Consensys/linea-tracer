@@ -14,6 +14,8 @@
  */
 package net.consensys.linea.continoustracing;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.function.Supplier;
 
 import lombok.extern.slf4j.Slf4j;
@@ -42,8 +44,10 @@ public class ContinuousTracer {
     final ZkTracer zkTracer = zkTracerSupplier.get();
     traceService.traceBlock(blockHash, zkTracer);
 
+    final CorsetValidator.Result result;
     try {
-      if (!corsetValidator.isValid(zkTracer.getJsonTrace(), zkEvmBin)) {
+      result = corsetValidator.isValid(zkTracer.getJsonTrace(), zkEvmBin);
+      if (!result.isValid()) {
         log.error("Trace of block {} is not valid", blockHash.toHexString());
         throw new TraceVerificationException(blockHash);
       }
@@ -51,6 +55,12 @@ public class ContinuousTracer {
       log.error(
           "Error while validating trace of block {}: {}", blockHash.toHexString(), e.getMessage());
       throw new TraceVerificationException(blockHash, e.getMessage());
+    }
+
+    try {
+      Files.delete(result.traceFile());
+    } catch (IOException e) {
+      log.warn("Error while deleting trace file {}: {}", result.traceFile(), e.getMessage());
     }
 
     log.info("Trace of block {} is valid", blockHash.toHexString());

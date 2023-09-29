@@ -100,7 +100,8 @@ public class ToyExecutionEnvironment {
 
   /** Execute constructed EVM bytecode and perform Corset trace validation. */
   public void run() {
-    assertThat(new CorsetValidator().isValid(traceCode())).isTrue();
+    final CorsetValidator.Result result = new CorsetValidator().isValid(traceCode());
+    assertThat(result.isValid()).isTrue();
   }
 
   private void execute() {

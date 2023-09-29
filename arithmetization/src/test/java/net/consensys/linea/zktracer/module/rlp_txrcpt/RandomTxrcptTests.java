@@ -75,10 +75,9 @@ public class RandomTxrcptTests {
     //
     // Check the trace
     //
-    assertThat(
-            new CorsetValidator()
-                .isValid(new ZkTraceBuilder().addTrace(rlpTxrcpt).build().toJson()))
-        .isTrue();
+    final CorsetValidator.Result result =
+        new CorsetValidator().isValid(new ZkTraceBuilder().addTrace(rlpTxrcpt).build().toJson());
+    assertThat(result.isValid()).isTrue();
   }
 
   private Log randomLog(int nbTopic) {

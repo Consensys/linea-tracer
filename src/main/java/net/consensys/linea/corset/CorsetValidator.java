@@ -28,12 +28,9 @@ import org.apache.commons.io.IOUtils;
 
 @Slf4j
 public class CorsetValidator {
-<<<<<<<< HEAD:arithmetization/src/main/java/net/consensys/linea/corset/CorsetValidator.java
-  private static String CORSET_BIN;
-  private static final String ZK_EVM_BIN = "../zkevm-constraints/zkevm.bin";
-========
+  public record Result(boolean isValid, Path traceFile) {}
+
   private static final String DEFAULT_ZK_EVM_BIN = "zkevm-constraints/zkevm.bin";
->>>>>>>> a47a1634 (feat: add a continuous tracing plugin):src/main/java/net/consensys/linea/corset/CorsetValidator.java
 
   private String corsetBin;
 
@@ -83,11 +80,11 @@ public class CorsetValidator {
     }
   }
 
-  public boolean isValid(final String trace) throws RuntimeException {
+  public Result isValid(final String trace) throws RuntimeException {
     return isValid(trace, DEFAULT_ZK_EVM_BIN);
   }
 
-  public boolean isValid(final String trace, final String zkEvmBin) throws RuntimeException {
+  public Result isValid(final String trace, final String zkEvmBin) throws RuntimeException {
     final Path traceFile;
 
     try {
@@ -147,9 +144,9 @@ public class CorsetValidator {
 
     if (corsetValidationProcess.exitValue() != 0) {
       log.error("Validation failed: %s".formatted(corsetOutput));
-      return false;
+      return new Result(false, traceFile);
     }
 
-    return true;
+    return new Result(true, traceFile);
   }
 }

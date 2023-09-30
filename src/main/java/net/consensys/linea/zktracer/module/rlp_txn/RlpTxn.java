@@ -402,9 +402,8 @@ public class RlpTxn implements Module {
       for (int i = 0; i < tx.getAccessList().get().size(); i++) {
         nbAddr += 1;
         nbSto += tx.getAccessList().get().get(i).storageKeys().size();
-        nbStoPerAddrList.set(i, tx.getAccessList().get().get(i).storageKeys().size());
-        accessTupleByteSizeList.set(
-            i, outerRlpSize(33 * tx.getAccessList().get().get(i).storageKeys().size()));
+        nbStoPerAddrList.add(tx.getAccessList().get().get(i).storageKeys().size());
+        accessTupleByteSizeList.add(outerRlpSize(33 * tx.getAccessList().get().get(i).storageKeys().size()));
         phaseByteSize += outerRlpSize(33 * tx.getAccessList().get().get(i).storageKeys().size());
       }
       phaseByteSize = outerRlpSize(phaseByteSize);

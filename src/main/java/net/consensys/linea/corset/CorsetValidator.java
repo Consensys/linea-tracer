@@ -115,7 +115,7 @@ public class CorsetValidator {
                   "-d",
                   "-s",
                   "-t",
-                  "2",
+                  "32",
                   zkEvmBin)
               .redirectInput(ProcessBuilder.Redirect.INHERIT)
               .redirectErrorStream(true)

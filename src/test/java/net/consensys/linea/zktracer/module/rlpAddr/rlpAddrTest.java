@@ -1,9 +1,26 @@
+/*
+ * Copyright ConsenSys AG.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package net.consensys.linea.zktracer.module.rlpAddr;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.opcode.OpCodes;
 import net.consensys.linea.zktracer.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.testing.ToyAccount;
 import net.consensys.linea.zktracer.testing.ToyExecutionEnvironment;
@@ -23,26 +40,33 @@ public class rlpAddrTest {
 
   @Test
   void test() {
+    OpCodes.load();
+
+    ToyWorld.ToyWorldBuilder world =
+      ToyWorld.builder();
+    List<Transaction> txList = new ArrayList<>();
+
     for (int i = 0; i < 100; i++) {
 
       KeyPair keyPair = new SECP256K1().generateKeyPair();
       Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
       ToyAccount senderAccount = randSenderAccount(senderAddress);
-
       ToyAccount receiverAccount = randReceiverAccount();
 
-      Transaction tx =
-          ToyTransaction.builder()
-              .sender(senderAccount)
-              .to(receiverAccount)
-              .keyPair(keyPair)
-              .build();
+      world.account(senderAccount).account(receiverAccount);
+      txList.add(randTx(senderAccount, keyPair, receiverAccount));
 
-      ToyWorld toyWorld =
-          ToyWorld.builder().accounts(List.of(senderAccount, receiverAccount)).build();
-
-      ToyExecutionEnvironment.builder().toyWorld(toyWorld).transaction(tx).build().run();
     }
+    ToyExecutionEnvironment.builder()
+      .toyWorld(world.build())
+      .transactions(txList)
+      .testValidator(x -> {})
+      .build()
+      .run();
+  }
+  private Transaction randTx(ToyAccount senderAccount, KeyPair keyPair, ToyAccount receiverAccount) {
+    Transaction tx = new Transaction();
+    return tx;
   }
 
   final ToyAccount randReceiverAccount() {

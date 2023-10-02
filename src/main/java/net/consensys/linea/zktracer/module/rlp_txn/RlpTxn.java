@@ -21,6 +21,9 @@ import static net.consensys.linea.zktracer.module.rlppatterns.pattern.byteCounti
 import static net.consensys.linea.zktracer.module.rlppatterns.pattern.outerRlpSize;
 import static net.consensys.linea.zktracer.module.rlppatterns.pattern.padToGivenSizeWithLeftZero;
 import static net.consensys.linea.zktracer.module.rlppatterns.pattern.padToGivenSizeWithRightZero;
+import static org.hyperledger.besu.ethereum.core.encoding.EncodingContext.BLOCK_BODY;
+import static org.hyperledger.besu.ethereum.core.encoding.TransactionEncoder.encodeOpaqueBytes;
+import static org.hyperledger.besu.ethereum.core.encoding.TransactionEncoder.encodeRLP;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -48,18 +51,23 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class RlpTxn implements Module {
   final Trace.TraceBuilder builder = Trace.builder();
-  public final static int llarge = TxnrlpTrace.LLARGE.intValue();
-  public final static Bytes bytesPrefixShortInt =
+  public static final int llarge = TxnrlpTrace.LLARGE.intValue();
+  public static final Bytes bytesPrefixShortInt =
       bigIntegerToBytes(BigInteger.valueOf(TxnrlpTrace.int_short.intValue()));
-  public final static int intPrefixShortInt = bytesPrefixShortInt.toUnsignedBigInteger().intValueExact();
-  public final static Bytes bytesPrefixLongInt = bigIntegerToBytes(BigInteger.valueOf(TxnrlpTrace.int_long.intValue()));
-  public final static int intPrefixLongInt = bytesPrefixLongInt.toUnsignedBigInteger().intValueExact();
-  public final static Bytes bytesPrefixShortList =
+  public static final int intPrefixShortInt =
+      bytesPrefixShortInt.toUnsignedBigInteger().intValueExact();
+  public static final Bytes bytesPrefixLongInt =
+      bigIntegerToBytes(BigInteger.valueOf(TxnrlpTrace.int_long.intValue()));
+  public static final int intPrefixLongInt =
+      bytesPrefixLongInt.toUnsignedBigInteger().intValueExact();
+  public static final Bytes bytesPrefixShortList =
       bigIntegerToBytes(BigInteger.valueOf(TxnrlpTrace.list_short.intValue()));
-  public final static int intPrefixShortList = bytesPrefixShortList.toUnsignedBigInteger().intValueExact();
-  public final static Bytes bytesPrefixLongList =
+  public static final int intPrefixShortList =
+      bytesPrefixShortList.toUnsignedBigInteger().intValueExact();
+  public static final Bytes bytesPrefixLongList =
       bigIntegerToBytes(BigInteger.valueOf(TxnrlpTrace.list_long.intValue()));
-  public final static int intPrefixLongList = bytesPrefixLongList.toUnsignedBigInteger().intValueExact();
+  public static final int intPrefixLongList =
+      bytesPrefixLongList.toUnsignedBigInteger().intValueExact();
 
   private final List<RlpTxnChunk> chunkList = new ArrayList<>();
 
@@ -102,11 +110,13 @@ public class RlpTxn implements Module {
     // Initialise RLP_LT and RLP_LX byte size + verify that we construct the right RLP
     this.reconstructedRlpLt = Bytes.EMPTY;
     this.reconstructedRlpLx = Bytes.EMPTY;
-    Bytes besuRlpLt = chunk.tx().encoded();
-    traceValue.RLP_LT_BYTESIZE = innerRlpSize(besuRlpLt.size());
-    // For non-frontier Transaction, adding a first byte containing the type of the transaction
-    if (traceValue.txType != 0) {
-      besuRlpLt = Bytes.concatenate(Bytes.of(traceValue.txType), besuRlpLt);
+    Bytes besuRlpLt =
+        encodeOpaqueBytes((org.hyperledger.besu.ethereum.core.Transaction) chunk.tx(), BLOCK_BODY);
+    // the encodeOpaqueBytes method already concatenate with the first byte "transaction  type"
+    if (traceValue.txType == 0) {
+      traceValue.RLP_LT_BYTESIZE = innerRlpSize(besuRlpLt.size());
+    } else {
+      traceValue.RLP_LT_BYTESIZE = innerRlpSize(besuRlpLt.size() - 1);
     }
 
     Bytes besuRlpLx = Bytes.EMPTY;

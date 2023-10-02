@@ -48,18 +48,18 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class RlpTxn implements Module {
   final Trace.TraceBuilder builder = Trace.builder();
-  int llarge = TxnrlpTrace.LLARGE.intValue();
-  Bytes bytesPrefixShortInt =
+  public final static int llarge = TxnrlpTrace.LLARGE.intValue();
+  public final static Bytes bytesPrefixShortInt =
       bigIntegerToBytes(BigInteger.valueOf(TxnrlpTrace.int_short.intValue()));
-  int intPrefixShortInt = bytesPrefixShortInt.toUnsignedBigInteger().intValueExact();
-  Bytes bytesPrefixLongInt = bigIntegerToBytes(BigInteger.valueOf(TxnrlpTrace.int_long.intValue()));
-  int intPrefixLongInt = bytesPrefixLongInt.toUnsignedBigInteger().intValueExact();
-  Bytes bytesPrefixShortList =
+  public final static int intPrefixShortInt = bytesPrefixShortInt.toUnsignedBigInteger().intValueExact();
+  public final static Bytes bytesPrefixLongInt = bigIntegerToBytes(BigInteger.valueOf(TxnrlpTrace.int_long.intValue()));
+  public final static int intPrefixLongInt = bytesPrefixLongInt.toUnsignedBigInteger().intValueExact();
+  public final static Bytes bytesPrefixShortList =
       bigIntegerToBytes(BigInteger.valueOf(TxnrlpTrace.list_short.intValue()));
-  int intPrefixShortList = bytesPrefixShortList.toUnsignedBigInteger().intValueExact();
-  Bytes bytesPrefixLongList =
+  public final static int intPrefixShortList = bytesPrefixShortList.toUnsignedBigInteger().intValueExact();
+  public final static Bytes bytesPrefixLongList =
       bigIntegerToBytes(BigInteger.valueOf(TxnrlpTrace.list_long.intValue()));
-  int intPrefixLongList = bytesPrefixLongList.toUnsignedBigInteger().intValueExact();
+  public final static int intPrefixLongList = bytesPrefixLongList.toUnsignedBigInteger().intValueExact();
 
   private final List<RlpTxnChunk> chunkList = new ArrayList<>();
 

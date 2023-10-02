@@ -40,7 +40,7 @@ import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
 
 class TestRandomTxns {
-  private final Random rnd = new Random(4);
+  private final Random rnd = new Random(666);
 
   @Test
   void test() {

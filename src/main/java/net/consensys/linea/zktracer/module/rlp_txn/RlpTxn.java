@@ -49,11 +49,17 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 public class RlpTxn implements Module {
   final Trace.TraceBuilder builder = Trace.builder();
   int llarge = TxnrlpTrace.LLARGE.intValue();
-  Bytes prefix_short_int = bigIntegerToBytes(BigInteger.valueOf(TxnrlpTrace.int_short.intValue()));
-  Bytes prefix_long_int = bigIntegerToBytes(BigInteger.valueOf(TxnrlpTrace.int_long.intValue()));
-  Bytes prefix_short_list =
+  Bytes bytesPrefixShortInt =
+      bigIntegerToBytes(BigInteger.valueOf(TxnrlpTrace.int_short.intValue()));
+  int intPrefixShortInt = bytesPrefixShortInt.toUnsignedBigInteger().intValueExact();
+  Bytes bytesPrefixLongInt = bigIntegerToBytes(BigInteger.valueOf(TxnrlpTrace.int_long.intValue()));
+  int intPrefixLongInt = bytesPrefixLongInt.toUnsignedBigInteger().intValueExact();
+  Bytes bytesPrefixShortList =
       bigIntegerToBytes(BigInteger.valueOf(TxnrlpTrace.list_short.intValue()));
-  Bytes prefix_long_list = bigIntegerToBytes(BigInteger.valueOf(TxnrlpTrace.list_long.intValue()));
+  int intPrefixShortList = bytesPrefixShortList.toUnsignedBigInteger().intValueExact();
+  Bytes bytesPrefixLongList =
+      bigIntegerToBytes(BigInteger.valueOf(TxnrlpTrace.list_long.intValue()));
+  int intPrefixLongList = bytesPrefixLongList.toUnsignedBigInteger().intValueExact();
 
   private final List<RlpTxnChunk> chunkList = new ArrayList<>();
 
@@ -74,19 +80,19 @@ public class RlpTxn implements Module {
     } else {
       requiresEvmExecution = worldView.get(tx.getTo().get()).hasCode();
     }
-    this.chunkList.add(new RlpTxnChunk(tx, requiresEvmExecution, this.chunkList.size() + 1));
+    this.chunkList.add(new RlpTxnChunk(tx, requiresEvmExecution));
   }
 
   public void traceChunk(RlpTxnChunk chunk, int absTxNum, int codeFragmentIndex) {
 
-    // Create the local row storage
+    // Create the local row storage and specify transaction constant columns
     RlpTxnColumnsValue traceValue = new RlpTxnColumnsValue();
     traceValue.DataHiLoReset();
+    traceValue.ADDR_HI = bigIntegerToBytes(BigInteger.ZERO);
+    traceValue.ADDR_LO = bigIntegerToBytes(BigInteger.ZERO);
     traceValue.absTxNum = absTxNum;
     traceValue.requiresEvmExecution = chunk.requireEvmExecution();
     traceValue.codeFragmentIndex = codeFragmentIndex;
-
-    // Specify transaction constant columns
     if (chunk.tx().getType() == TransactionType.FRONTIER) {
       traceValue.txType = 0;
     } else {
@@ -98,15 +104,10 @@ public class RlpTxn implements Module {
     this.reconstructedRlpLx = Bytes.EMPTY;
     Bytes besuRlpLt = chunk.tx().encoded();
     traceValue.RLP_LT_BYTESIZE = innerRlpSize(besuRlpLt.size());
+    // For non-frontier Transaction, adding a first byte containing the type of the transaction
     if (traceValue.txType != 0) {
       besuRlpLt = Bytes.concatenate(Bytes.of(traceValue.txType), besuRlpLt);
     }
-
-    // if (traceValue.txType == 0) {
-    //  traceValue.RLP_LT_BYTESIZE = innerRlpSize(besuRlpLt.size());
-    // } else {
-    //  traceValue.RLP_LT_BYTESIZE = innerRlpSize(besuRlpLt.size()-1);
-    // }
 
     Bytes besuRlpLx = Bytes.EMPTY;
     switch (traceValue.txType) {
@@ -137,8 +138,8 @@ public class RlpTxn implements Module {
                 chunk.tx().getPayload(),
                 accessList,
                 chunk.tx().getChainId());
+        // the innerRlp method already concatenate with the first byte "transaction  type"
         traceValue.RLP_LX_BYTESIZE = innerRlpSize(besuRlpLx.size() - 1);
-        // besuRlpLx = Bytes.concatenate(Bytes.of(1), besuRlpLx);
       }
       case 2 -> {
         besuRlpLx =
@@ -152,9 +153,11 @@ public class RlpTxn implements Module {
                 chunk.tx().getPayload(),
                 chunk.tx().getChainId(),
                 chunk.tx().getAccessList());
+        // the innerRlp method already concatenate with the first byte "transaction  type"
         traceValue.RLP_LX_BYTESIZE = innerRlpSize(besuRlpLx.size() - 1);
-        // besuRlpLx = Bytes.concatenate(Bytes.of(2), besuRlpLx);
       }
+      default -> throw new IllegalStateException(
+          "Transaction Type not supported: " + traceValue.txType);
     }
 
     // Phase 0 : Global RLP prefix
@@ -187,7 +190,6 @@ public class RlpTxn implements Module {
     if (traceValue.txType == 2) {
       BigInteger maxPriorityFeePerGas =
           chunk.tx().getMaxPriorityFeePerGas().get().getAsBigInteger();
-      traceValue.DATA_HI = maxPriorityFeePerGas;
       Preconditions.checkArgument(
           bigIntegerToBytes(maxPriorityFeePerGas).size() <= 8,
           "Max Priority Fee per Gas is longer than 8 bytes");
@@ -196,11 +198,12 @@ public class RlpTxn implements Module {
 
     // Phase 5 : max fee per gas (GasFeeCap)
     if (traceValue.txType == 2) {
+      traceValue.DATA_HI = chunk.tx().getMaxPriorityFeePerGas().get().getAsBigInteger();
       BigInteger maxFeePerGas = chunk.tx().getMaxFeePerGas().get().getAsBigInteger();
       Preconditions.checkArgument(
           bigIntegerToBytes(maxFeePerGas).size() <= 8, "Max Fee per Gas is longer than 8 bytes");
       traceValue.DATA_LO = maxFeePerGas;
-      handlePhaseInteger(traceValue, 6, maxFeePerGas, 8);
+      handlePhaseInteger(traceValue, 5, maxFeePerGas, 8);
     }
 
     // Phase 6 : GasLimit
@@ -396,7 +399,7 @@ public class RlpTxn implements Module {
     boolean lx = true;
 
     // Trivial case
-    if (tx.getAccessList().isEmpty()) {
+    if (tx.getAccessList().get().isEmpty()) {
       traceVoidList(traceValue, phase, lt, lx, true, false, false, true);
     } else {
       // Initialise traceValue
@@ -410,10 +413,9 @@ public class RlpTxn implements Module {
         nbSto += tx.getAccessList().get().get(i).storageKeys().size();
         nbStoPerAddrList.add(tx.getAccessList().get().get(i).storageKeys().size());
         accessTupleByteSizeList.add(
-            outerRlpSize(33 * tx.getAccessList().get().get(i).storageKeys().size()));
-        phaseByteSize += outerRlpSize(33 * tx.getAccessList().get().get(i).storageKeys().size());
+            21 + outerRlpSize(33 * tx.getAccessList().get().get(i).storageKeys().size()));
+        phaseByteSize += outerRlpSize(accessTupleByteSizeList.get(i));
       }
-      phaseByteSize = outerRlpSize(phaseByteSize);
 
       traceValue.partialReset(phase, 0, lt, lx);
       traceValue.nb_Addr = nbAddr;
@@ -454,7 +456,15 @@ public class RlpTxn implements Module {
 
         // Rlp prefix of the list of storage key
         if (nbStoPerAddrList.get(i) == 0) {
-          traceVoidList(traceValue, phase, lt, lx, true, true, true, (traceValue.nb_Sto == 0));
+          traceVoidList(
+              traceValue,
+              phase,
+              lt,
+              lx,
+              true,
+              true,
+              true,
+              ((traceValue.nb_Sto == 0) && (traceValue.nb_Addr == 0)));
         } else {
           rlpByteString(
               phase,
@@ -467,17 +477,19 @@ public class RlpTxn implements Module {
               true,
               false,
               traceValue);
-        }
 
-        // Loop over StorageKey
-        for (int j = 0; j < nbStoPerAddrList.get(i); j++) {
-          traceValue.nb_Sto -= 1;
-          traceValue.nb_Sto_per_Addr -= 1;
-          handleStorageKey(
-              traceValue,
-              traceValue.nb_Sto == 0,
-              tx.getAccessList().get().get(i).storageKeys().get(j));
+          // Loop over StorageKey
+          for (int j = 0; j < nbStoPerAddrList.get(i); j++) {
+            traceValue.nb_Sto -= 1;
+            traceValue.nb_Sto_per_Addr -= 1;
+            handleStorageKey(
+                traceValue,
+                ((traceValue.nb_Sto == 0) && (traceValue.nb_Addr == 0)),
+                tx.getAccessList().get().get(i).storageKeys().get(j));
+          }
         }
+        traceValue.ADDR_HI = bigIntegerToBytes(BigInteger.ZERO);
+        traceValue.ADDR_LO = bigIntegerToBytes(BigInteger.ZERO);
       }
     }
   }
@@ -507,7 +519,7 @@ public class RlpTxn implements Module {
 
       traceValue.partialReset(phase, 1, lt, lx);
       traceValue.LIMB_CONSTRUCTED = true;
-      traceValue.LIMB = Bytes.concatenate(prefix_short_int, prefix_short_int);
+      traceValue.LIMB = Bytes.concatenate(bytesPrefixShortInt, bytesPrefixShortInt);
       traceValue.nBYTES = 2;
       traceValue.PHASE_END = true;
       traceRow(traceValue);
@@ -516,9 +528,10 @@ public class RlpTxn implements Module {
 
   private void handlePhaseY(RlpTxnColumnsValue traceValue, Transaction tx) {
     traceValue.partialReset(12, 1, true, false);
+    traceValue.INPUT_1 = bigIntegerToBytes(tx.getV());
     traceValue.LIMB_CONSTRUCTED = true;
     if (tx.getV().equals(BigInteger.ZERO)) {
-      traceValue.LIMB = prefix_short_int;
+      traceValue.LIMB = bytesPrefixShortInt;
     } else {
       traceValue.LIMB = bigIntegerToBytes(BigInteger.ONE);
     }
@@ -549,16 +562,16 @@ public class RlpTxn implements Module {
     traceValue.DEPTH_2 = depth2;
 
     Bytes input1RightShift = padToGivenSizeWithLeftZero(traceValue.INPUT_1, 8);
-    long acc2LastRow;
 
+    long acc2LastRow;
     if (length >= 56) {
       acc2LastRow = length - 56;
     } else {
       acc2LastRow = 55 - length;
     }
-
     Bytes acc2LastRowShift =
         padToGivenSizeWithLeftZero(bigIntegerToBytes(BigInteger.valueOf(acc2LastRow)), 8);
+
     for (int ct = 0; ct < 8; ct++) {
       traceValue.COUNTER = ct;
       traceValue.ACC_BYTESIZE = byteCountingOutput.getAccByteSizeList().get(ct);
@@ -574,15 +587,15 @@ public class RlpTxn implements Module {
           traceValue.nBYTES = 1;
           BigInteger tmp;
           if (isList) {
-            tmp = prefix_long_list.toUnsignedBigInteger().add(BigInteger.valueOf(lengthSize));
+            tmp = BigInteger.valueOf(intPrefixLongList + lengthSize);
           } else {
-            tmp = prefix_long_int.toUnsignedBigInteger().add(BigInteger.valueOf(lengthSize));
+            tmp = BigInteger.valueOf(intPrefixLongInt + lengthSize);
           }
           traceValue.LIMB = bigIntegerToBytes(tmp);
         }
 
         if (ct == 7) {
-          traceValue.LIMB = bigIntegerToBytes(BigInteger.valueOf(length));
+          traceValue.LIMB = traceValue.INPUT_1;
           traceValue.nBYTES = lengthSize;
           traceValue.BIT = true;
           traceValue.BIT_ACC = 1;
@@ -591,13 +604,13 @@ public class RlpTxn implements Module {
       } else {
         if (ct == 7) {
           traceValue.LIMB_CONSTRUCTED = true;
-          BigInteger tmp;
+          Bytes tmp;
           if (isList) {
-            tmp = prefix_short_list.toUnsignedBigInteger().add(BigInteger.valueOf(length));
+            tmp = bigIntegerToBytes(BigInteger.valueOf(intPrefixShortList + length));
           } else {
-            tmp = prefix_short_int.toUnsignedBigInteger().add(BigInteger.valueOf(length));
+            tmp = bigIntegerToBytes(BigInteger.valueOf(intPrefixShortInt + length));
           }
-          traceValue.LIMB = bigIntegerToBytes(tmp);
+          traceValue.LIMB = tmp;
           traceValue.nBYTES = 1;
           traceValue.PHASE_END = endPhase;
         }
@@ -641,9 +654,7 @@ public class RlpTxn implements Module {
 
       if (input.compareTo(BigInteger.valueOf(128)) >= 0 && ct == nStep - 2) {
         traceValue.LIMB_CONSTRUCTED = true;
-        BigInteger tmp = prefix_short_int.toUnsignedBigInteger();
-        tmp = tmp.add(BigInteger.valueOf(inputSize));
-        traceValue.LIMB = bigIntegerToBytes(tmp);
+        traceValue.LIMB = bigIntegerToBytes(BigInteger.valueOf(intPrefixShortInt + inputSize));
         traceValue.nBYTES = 1;
       }
 
@@ -695,9 +706,7 @@ public class RlpTxn implements Module {
           // if input >= 128, there is a RLP prefix, nothing if 0 < input < 128
           if (ct == traceValue.nSTEP - 2 && input.compareTo(BigInteger.valueOf(128)) >= 0) {
             traceValue.LIMB_CONSTRUCTED = true;
-            BigInteger tmp =
-                prefix_short_int.toUnsignedBigInteger().add(BigInteger.valueOf(inputLen));
-            traceValue.LIMB = bigIntegerToBytes(tmp);
+            traceValue.LIMB = bigIntegerToBytes(BigInteger.valueOf(intPrefixShortInt + inputLen));
             traceValue.nBYTES = 1;
           }
           if (ct == traceValue.nSTEP - 1) {
@@ -723,12 +732,8 @@ public class RlpTxn implements Module {
 
           if (ct == traceValue.nSTEP - 3) {
             traceValue.LIMB_CONSTRUCTED = true;
-            BigInteger tmp =
-                prefix_short_int
-                    .toUnsignedBigInteger()
-                    .add(BigInteger.valueOf(llarge))
-                    .add(BigInteger.valueOf(inputLen));
-            traceValue.LIMB = bigIntegerToBytes(tmp);
+            traceValue.LIMB =
+                bigIntegerToBytes(BigInteger.valueOf(intPrefixShortInt + llarge + inputLen));
             traceValue.nBYTES = 1;
           }
           if (ct == traceValue.nSTEP - 2) {
@@ -766,8 +771,7 @@ public class RlpTxn implements Module {
 
       if (ct == traceValue.nSTEP - 3) {
         traceValue.LIMB_CONSTRUCTED = true;
-        BigInteger tmp = prefix_short_int.toUnsignedBigInteger().add(BigInteger.valueOf(20));
-        traceValue.LIMB = bigIntegerToBytes(tmp);
+        traceValue.LIMB = bigIntegerToBytes(BigInteger.valueOf(intPrefixShortInt + 20));
         traceValue.nBYTES = 1;
       }
 
@@ -804,8 +808,7 @@ public class RlpTxn implements Module {
 
       if (ct == traceValue.nSTEP - 3) {
         traceValue.LIMB_CONSTRUCTED = true;
-        BigInteger tmp = prefix_short_int.toUnsignedBigInteger().add(BigInteger.valueOf(32));
-        traceValue.LIMB = bigIntegerToBytes(tmp);
+        traceValue.LIMB = bigIntegerToBytes(BigInteger.valueOf(intPrefixShortInt + 32));
         traceValue.nBYTES = 1;
       }
 
@@ -956,7 +959,7 @@ public class RlpTxn implements Module {
       boolean phaseEnd) {
     traceValue.partialReset(phase, 1, lt, lx);
     traceValue.LIMB_CONSTRUCTED = true;
-    traceValue.LIMB = prefix_short_int;
+    traceValue.LIMB = bytesPrefixShortInt;
     traceValue.nBYTES = 1;
     traceValue.IS_PREFIX = true;
     traceValue.PHASE_END = phaseEnd;
@@ -974,7 +977,7 @@ public class RlpTxn implements Module {
       boolean phaseEnd) {
     traceValue.partialReset(phase, 1, lt, lx);
     traceValue.LIMB_CONSTRUCTED = true;
-    traceValue.LIMB = prefix_short_list;
+    traceValue.LIMB = bytesPrefixShortList;
     traceValue.nBYTES = 1;
     traceValue.IS_PREFIX = isPrefix;
     traceValue.DEPTH_1 = depth1;

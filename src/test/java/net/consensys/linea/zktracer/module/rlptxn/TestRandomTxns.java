@@ -153,8 +153,7 @@ class TestRandomTxns {
   }
 
   final Bytes randData() {
-    // TDOD: set the bound to 6 to test all (RLP)-edge cases.
-    int selector = rnd.nextInt(0, 1);
+    int selector = rnd.nextInt(0, 6);
     return switch (selector) {
       case 0 -> Bytes.EMPTY;
       case 1 -> Bytes.of(0x0);
@@ -170,7 +169,7 @@ class TestRandomTxns {
     List<AccessListEntry> accessList = new ArrayList<>();
     boolean entries = rnd.nextBoolean();
     if (entries) {
-      for (int i = 0; i < rnd.nextInt(1, 25); i++) {
+      for (int i = 1; i < 25; i++) {
         accessList.add(randAccessListEntry());
       }
     }
@@ -181,7 +180,7 @@ class TestRandomTxns {
     List<Bytes32> keyList = new ArrayList<>();
     boolean key = rnd.nextBoolean();
     if (key) {
-      for (int nKey = 0; nKey < rnd.nextInt(1, 20); nKey++) {
+      for (int nKey = 1; nKey < rnd.nextInt(1, 20); nKey++) {
         keyList.add(Bytes32.random(rnd));
       }
     }

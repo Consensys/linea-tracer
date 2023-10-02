@@ -157,6 +157,7 @@ public class Hub implements Module {
   private final Module wcp = new Wcp();
   private final RlpTxn rlpTxn = new RlpTxn();
   private final RlpTxrcpt rlpTxrcpt = new RlpTxrcpt();
+  private final RlpAddr rlpAddr = new RlpAddr();
 
   public Hub() {}
 

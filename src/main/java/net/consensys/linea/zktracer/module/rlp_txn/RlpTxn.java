@@ -23,7 +23,6 @@ import static net.consensys.linea.zktracer.module.rlppatterns.pattern.padToGiven
 import static net.consensys.linea.zktracer.module.rlppatterns.pattern.padToGivenSizeWithRightZero;
 import static org.hyperledger.besu.ethereum.core.encoding.EncodingContext.BLOCK_BODY;
 import static org.hyperledger.besu.ethereum.core.encoding.TransactionEncoder.encodeOpaqueBytes;
-import static org.hyperledger.besu.ethereum.core.encoding.TransactionEncoder.encodeRLP;
 
 import java.math.BigInteger;
 import java.util.ArrayList;

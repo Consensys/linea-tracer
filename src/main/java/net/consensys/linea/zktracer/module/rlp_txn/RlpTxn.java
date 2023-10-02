@@ -34,10 +34,10 @@ import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.rlppatterns.RlpBitDecOutput;
 import net.consensys.linea.zktracer.module.rlppatterns.RlpByteCountAndPowerOutput;
 import org.apache.tuweni.bytes.Bytes;
+import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.datatypes.AccessListEntry;
 import org.hyperledger.besu.datatypes.Address;
-import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.TransactionType;
 import org.hyperledger.besu.datatypes.Wei;
@@ -96,16 +96,22 @@ public class RlpTxn implements Module {
     // Initialise RLP_LT and RLP_LX byte size + verify that we construct the right RLP
     this.reconstructedRlpLt = Bytes.EMPTY;
     this.reconstructedRlpLx = Bytes.EMPTY;
-    Bytes besuRlpLT = chunk.tx().encoded();
-    traceValue.RLP_LT_BYTESIZE = innerRlpSize(besuRlpLT.size());
+    Bytes besuRlpLt = chunk.tx().encoded();
+    traceValue.RLP_LT_BYTESIZE = innerRlpSize(besuRlpLt.size());
     if (traceValue.txType != 0) {
-      besuRlpLT = Bytes.concatenate(Bytes.of(traceValue.txType), besuRlpLT);
+      besuRlpLt = Bytes.concatenate(Bytes.of(traceValue.txType), besuRlpLt);
     }
 
-    Bytes besuRlpLX = Bytes.EMPTY;
+    // if (traceValue.txType == 0) {
+    //  traceValue.RLP_LT_BYTESIZE = innerRlpSize(besuRlpLt.size());
+    // } else {
+    //  traceValue.RLP_LT_BYTESIZE = innerRlpSize(besuRlpLt.size()-1);
+    // }
+
+    Bytes besuRlpLx = Bytes.EMPTY;
     switch (traceValue.txType) {
       case 0 -> {
-        besuRlpLX =
+        besuRlpLx =
             frontierPreimage(
                 chunk.tx().getNonce(),
                 (Wei) chunk.tx().getGasPrice().get(),
@@ -114,14 +120,14 @@ public class RlpTxn implements Module {
                 (Wei) chunk.tx().getValue(),
                 chunk.tx().getPayload(),
                 chunk.tx().getChainId());
-        traceValue.RLP_LX_BYTESIZE = innerRlpSize(besuRlpLX.size());
+        traceValue.RLP_LX_BYTESIZE = innerRlpSize(besuRlpLx.size());
       }
       case 1 -> {
         List<AccessListEntry> accessList = null;
         if (chunk.tx().getAccessList().isPresent()) {
           accessList = chunk.tx().getAccessList().get();
         }
-        besuRlpLX =
+        besuRlpLx =
             accessListPreimage(
                 chunk.tx().getNonce(),
                 (Wei) chunk.tx().getGasPrice().get(),
@@ -131,11 +137,11 @@ public class RlpTxn implements Module {
                 chunk.tx().getPayload(),
                 accessList,
                 chunk.tx().getChainId());
-        traceValue.RLP_LX_BYTESIZE = innerRlpSize(besuRlpLX.size());
-        besuRlpLX = Bytes.concatenate(Bytes.of(1), besuRlpLX);
+        traceValue.RLP_LX_BYTESIZE = innerRlpSize(besuRlpLx.size() - 1);
+        // besuRlpLx = Bytes.concatenate(Bytes.of(1), besuRlpLx);
       }
       case 2 -> {
-        besuRlpLX =
+        besuRlpLx =
             eip1559Preimage(
                 chunk.tx().getNonce(),
                 (Wei) chunk.tx().getMaxPriorityFeePerGas().get(),
@@ -146,8 +152,8 @@ public class RlpTxn implements Module {
                 chunk.tx().getPayload(),
                 chunk.tx().getChainId(),
                 chunk.tx().getAccessList());
-        traceValue.RLP_LX_BYTESIZE = innerRlpSize(besuRlpLX.size());
-        besuRlpLX = Bytes.concatenate(Bytes.of(2), besuRlpLX);
+        traceValue.RLP_LX_BYTESIZE = innerRlpSize(besuRlpLx.size() - 1);
+        // besuRlpLx = Bytes.concatenate(Bytes.of(2), besuRlpLx);
       }
     }
 
@@ -247,9 +253,9 @@ public class RlpTxn implements Module {
     handle32BytesInteger(traceValue, 14, chunk.tx().getS());
 
     Preconditions.checkArgument(
-        this.reconstructedRlpLt.equals(besuRlpLT), "Reconstructed RLP LT and Besu RLP LT differ");
+        this.reconstructedRlpLt.equals(besuRlpLt), "Reconstructed RLP LT and Besu RLP LT differ");
     Preconditions.checkArgument(
-        this.reconstructedRlpLx.equals(besuRlpLX), "Reconstructed RLP LX and Besu RLP LX differ");
+        this.reconstructedRlpLx.equals(besuRlpLx), "Reconstructed RLP LX and Besu RLP LX differ");
   }
 
   // Define each phase's constraints
@@ -403,7 +409,8 @@ public class RlpTxn implements Module {
         nbAddr += 1;
         nbSto += tx.getAccessList().get().get(i).storageKeys().size();
         nbStoPerAddrList.add(tx.getAccessList().get().get(i).storageKeys().size());
-        accessTupleByteSizeList.add(outerRlpSize(33 * tx.getAccessList().get().get(i).storageKeys().size()));
+        accessTupleByteSizeList.add(
+            outerRlpSize(33 * tx.getAccessList().get().get(i).storageKeys().size()));
         phaseByteSize += outerRlpSize(33 * tx.getAccessList().get().get(i).storageKeys().size());
       }
       phaseByteSize = outerRlpSize(phaseByteSize);
@@ -469,7 +476,7 @@ public class RlpTxn implements Module {
           handleStorageKey(
               traceValue,
               traceValue.nb_Sto == 0,
-              (Hash) tx.getAccessList().get().get(i).storageKeys().get(j));
+              tx.getAccessList().get().get(i).storageKeys().get(j));
         }
       }
     }
@@ -781,7 +788,7 @@ public class RlpTxn implements Module {
   }
 
   private void handleStorageKey(
-      RlpTxnColumnsValue traceValue, boolean end_phase, Hash storage_key) {
+      RlpTxnColumnsValue traceValue, boolean end_phase, Bytes32 storage_key) {
     traceValue.partialReset(10, llarge, true, true);
     traceValue.DEPTH_1 = true;
     traceValue.DEPTH_2 = true;

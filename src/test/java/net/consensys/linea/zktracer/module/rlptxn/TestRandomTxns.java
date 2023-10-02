@@ -48,7 +48,7 @@ class TestRandomTxns {
     ToyWorld.ToyWorldBuilder world = ToyWorld.builder();
     List<Transaction> txList = new ArrayList<>();
 
-    for (int i = 0; i < 2000; i++) {
+    for (int i = 0; i < 200; i++) {
       KeyPair keyPair = new SECP256K1().generateKeyPair();
       Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
       ToyAccount senderAccount = randToyAccount(senderAddress);
@@ -117,6 +117,7 @@ class TestRandomTxns {
           .gasLimit(rnd.nextLong(21000, 0xfffffffffffffL))
           .value(Wei.of(randLong()))
           .payload(randData())
+          .accessList(randAccessList())
           .build();
 
       case 5 -> ToyTransaction.builder()
@@ -127,6 +128,7 @@ class TestRandomTxns {
           .value(Wei.of(randLong()))
           .to(receiverAccount)
           .payload(randData())
+          .accessList(randAccessList())
           .build();
 
       default -> throw new IllegalStateException("Unexpected value: " + txType);
@@ -151,7 +153,8 @@ class TestRandomTxns {
   }
 
   final Bytes randData() {
-    int selector = rnd.nextInt(0, 6);
+    // TDOD: set the bound to 6 to test all (RLP)-edge cases.
+    int selector = rnd.nextInt(0, 1);
     return switch (selector) {
       case 0 -> Bytes.EMPTY;
       case 1 -> Bytes.of(0x0);

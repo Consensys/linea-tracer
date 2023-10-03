@@ -15,7 +15,10 @@
 
 package net.consensys.linea.zktracer.module.rlptxn;
 
-import java.math.BigInteger;
+import static net.consensys.linea.zktracer.module.rlpCommon.rlpRandEdgeCAse.randBigInt;
+import static net.consensys.linea.zktracer.module.rlpCommon.rlpRandEdgeCAse.randData;
+import static net.consensys.linea.zktracer.module.rlpCommon.rlpRandEdgeCAse.randLong;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -135,36 +138,6 @@ class TestRandomTxns {
     };
   }
 
-  final BigInteger randBigInt(boolean onlySixteenByte) {
-    int selectorBound = 4;
-    if (!onlySixteenByte) {
-      selectorBound += 1;
-    }
-    int selector = rnd.nextInt(0, selectorBound);
-
-    return switch (selector) {
-      case 0 -> BigInteger.ZERO;
-      case 1 -> BigInteger.valueOf(rnd.nextInt(1, 128));
-      case 2 -> BigInteger.valueOf(rnd.nextInt(128, 256));
-      case 3 -> new BigInteger(16 * 8, rnd);
-      case 4 -> new BigInteger(32 * 8, rnd);
-      default -> throw new IllegalStateException("Unexpected value: " + selector);
-    };
-  }
-
-  final Bytes randData() {
-    int selector = rnd.nextInt(0, 6);
-    return switch (selector) {
-      case 0 -> Bytes.EMPTY;
-      case 1 -> Bytes.of(0x0);
-      case 2 -> Bytes.minimalBytes(rnd.nextLong(1, 128));
-      case 3 -> Bytes.minimalBytes(rnd.nextLong(128, 256));
-      case 4 -> Bytes.random(rnd.nextInt(1, 56), rnd);
-      case 5 -> Bytes.random(rnd.nextInt(56, 666), rnd);
-      default -> throw new IllegalStateException("Unexpected value: " + selector);
-    };
-  }
-
   final List<AccessListEntry> randAccessList() {
     List<AccessListEntry> accessList = new ArrayList<>();
     boolean entries = rnd.nextBoolean();
@@ -185,17 +158,6 @@ class TestRandomTxns {
       }
     }
     return new AccessListEntry(Address.wrap(Bytes.random(20, rnd)), keyList);
-  }
-
-  final Long randLong() {
-    int selector = rnd.nextInt(0, 4);
-    return switch (selector) {
-      case 0 -> 0L;
-      case 1 -> rnd.nextLong(1, 128);
-      case 2 -> rnd.nextLong(128, 256);
-      case 3 -> rnd.nextLong(256, 0xfffffffffffffffL);
-      default -> throw new IllegalStateException("Unexpected value: " + selector);
-    };
   }
 
   final ToyAccount receiverAccount() {

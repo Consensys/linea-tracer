@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.module.rlp_addr;
 
-import static net.consensys.linea.zktracer.module.rlppatterns.pattern.bigIntegerToBytes;
+import static net.consensys.linea.zktracer.bytes.conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.module.rlppatterns.pattern.bitDecomposition;
 import static net.consensys.linea.zktracer.module.rlppatterns.pattern.byteCounting;
 import static net.consensys.linea.zktracer.module.rlppatterns.pattern.padToGivenSizeWithLeftZero;

@@ -166,7 +166,7 @@ public class RlpTxn implements Module {
         traceValue.RLP_LX_BYTESIZE = innerRlpSize(besuRlpLx.size() - 1);
       }
       default -> throw new IllegalStateException(
-        "Transaction Type not supported: " + traceValue.txType);
+          "Transaction Type not supported: " + traceValue.txType);
     }
 
     // Phase 0 : Global RLP prefix
@@ -1204,9 +1204,8 @@ public class RlpTxn implements Module {
       rowSize += 2; // 1 for prefix + 1 for padding
     } else {
       int dataSize = chunk.tx().getPayload().size();
-      rowSize += 8 + llarge*((dataSize - 1) / llarge + 1);
-      rowSize +=2; // 2 lines of padding
-
+      rowSize += 8 + llarge * ((dataSize - 1) / llarge + 1);
+      rowSize += 2; // 2 lines of padding
     }
 
     // Phase 10: AccessList
@@ -1269,7 +1268,7 @@ public class RlpTxn implements Module {
 
   @Override
   public Object commit() {
-    // int traceSize = 0;
+    int estTraceSize = 0;
     int absTxNum = 0;
     for (RlpTxnChunk chunk : this.chunkList) {
       absTxNum += 1;
@@ -1277,11 +1276,16 @@ public class RlpTxn implements Module {
       int codeFragmentIndex = 0;
       traceChunk(chunk, absTxNum, codeFragmentIndex);
 
-      // traceSize+=ChunkRowSize(chunk);
-      // if (this.builder.size()!=traceSize){
-      //   System.out.println(
-      //     "ChunkSize is not the right one, chunk n°: " + absTxNum + " calculated size =" + traceSize + " trace size =" + this.builder.size());
-      // }
+      estTraceSize += ChunkRowSize(chunk);
+      if (this.builder.size() != estTraceSize) {
+        throw new RuntimeException(
+            "ChunkSize is not the right one, chunk n°: "
+                + absTxNum
+                + " estimated size ="
+                + estTraceSize
+                + " trace size ="
+                + this.builder.size());
+      }
     }
     return new RlpTxnTrace(builder.build());
   }

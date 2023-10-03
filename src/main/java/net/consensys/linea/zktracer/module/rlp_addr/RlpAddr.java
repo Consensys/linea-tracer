@@ -70,7 +70,7 @@ public class RlpAddr implements Module {
       RlpAddrChunk chunk =
           new RlpAddrChunk(
               OpCode.CREATE,
-              frame.getWorldUpdater().getSenderAccount(frame).getNonce(),
+              frame.getWorldUpdater().getSenderAccount(frame).getNonce() - 1,
               frame.getSenderAddress());
       this.chunkList.add(chunk);
     }
@@ -91,10 +91,11 @@ public class RlpAddr implements Module {
   private void traceCreate2(int stamp, Address addr, Bytes32 salt, Bytes32 kec) {
 
     final Address deployementAddress =
-        (Address) keccak256(Bytes.concatenate(create2_shift, addr, salt, kec)).slice(12, 20);
+        Address.extract(keccak256(Bytes.concatenate(create2_shift, addr, salt, kec)));
 
     for (int ct = 0; ct < 6; ct++) {
       this.builder
+          .stamp(BigInteger.valueOf(stamp))
           .recipe(BigInteger.valueOf(2))
           .recipe1(false)
           .recipe2(true)
@@ -108,7 +109,6 @@ public class RlpAddr implements Module {
           .kecLo(kec.slice(llarge, llarge).toUnsignedBigInteger())
           .lc(true)
           .index(BigInteger.valueOf(ct))
-          .stamp(BigInteger.valueOf(stamp))
           .ct(BigInteger.valueOf(ct));
 
       switch (ct) {
@@ -195,19 +195,6 @@ public class RlpAddr implements Module {
       size_rlp_nonce += 1;
     }
 
-    // Bytes of the RLP Prefix
-    Bytes globalRlpPrefix =
-        bigIntegerToBytes(
-            BigInteger.valueOf(list_short)
-                .add(BigInteger.valueOf(21))
-                .add(BigInteger.valueOf(size_rlp_nonce)));
-
-    // Bytes Address RLP prefix + Addr HI and Addr LO
-    Bytes addrPrefixAndHi =
-        Bytes.concatenate(bigIntegerToBytes(BigInteger.valueOf(148)), addr.slice(0, 4));
-
-    Bytes addrLo = addr.slice(4, llarge);
-
     // Bytes RLP(nonce)
     Bytes rlpNonce;
     if (nonce.compareTo(BigInteger.ZERO) == 0) {
@@ -223,83 +210,92 @@ public class RlpAddr implements Module {
                         128 + byteCounting.getAccByteSizeList().get(recipe1CtMax - 1))),
                 bigIntegerToBytes(nonce));
       }
-
-      // Keccak of the Rlp to get the deployement address
-      final Address deployementAddress =
-          (Address)
-              keccak256(Bytes.concatenate(globalRlpPrefix, addrPrefixAndHi, addrLo, rlpNonce))
-                  .slice(12, 20);
-
-      for (int ct = 0; ct < 8; ct++) {
-        this.builder
-            .recipe(BigInteger.ONE)
-            .recipe1(true)
-            .recipe2(false)
-            .addrHi(addr.slice(0, 4).toUnsignedBigInteger())
-            .addrLo(addr.slice(4, llarge).toUnsignedBigInteger())
-            .depAddrHi(deployementAddress.slice(0, 4).toUnsignedBigInteger())
-            .depAddrLo(deployementAddress.slice(4, llarge).toUnsignedBigInteger())
-            .nonce(nonce)
-            .stamp(BigInteger.valueOf(stamp))
-            .ct(BigInteger.valueOf(ct))
-            .byte1(UnsignedByte.of(nonceShifted.get(ct)))
-            .acc(nonceShifted.slice(0, ct + 1).toUnsignedBigInteger())
-            .accBytesize(BigInteger.valueOf(byteCounting.getAccByteSizeList().get(ct)))
-            .power(byteCounting.getPowerList().get(ct))
-            .bit1(bitDecomposition.getBitDecList().get(ct))
-            .bitAcc(UnsignedByte.of(bitDecomposition.getBitAccList().get(ct)))
-            .tinyNonZeroNonce(tinyNonZeroNonce);
-
-        switch (ct) {
-          case 0, 1, 2, 3:
-            this.builder
-                .lc(false)
-                .limb(BigInteger.ZERO)
-                .nBytes(BigInteger.ZERO)
-                .index(BigInteger.ZERO);
-            break;
-
-          case 4:
-            this.builder
-                .lc(true)
-                .limb(padToGivenSizeWithRightZero(globalRlpPrefix, llarge).toUnsignedBigInteger())
-                .nBytes(BigInteger.ONE)
-                .index(BigInteger.ZERO);
-            break;
-
-          case 5:
-            this.builder
-                .lc(true)
-                .limb(padToGivenSizeWithRightZero(addrPrefixAndHi, llarge).toUnsignedBigInteger())
-                .nBytes(BigInteger.valueOf(5))
-                .index(BigInteger.ONE);
-            break;
-
-          case 6:
-            this.builder
-                .lc(true)
-                .limb(addrLo.toUnsignedBigInteger())
-                .nBytes(BigInteger.valueOf(16))
-                .index(BigInteger.valueOf(2));
-            break;
-
-          case 7:
-            this.builder
-                .lc(true)
-                .limb(padToGivenSizeWithRightZero(rlpNonce, llarge).toUnsignedBigInteger())
-                .nBytes(BigInteger.valueOf(size_rlp_nonce))
-                .index(BigInteger.valueOf(3));
-            break;
-        }
-      }
-      // Column not used fo recipe 1:
-      this.builder
-          .saltHi(BigInteger.ZERO)
-          .saltLo(BigInteger.ZERO)
-          .kecHi(BigInteger.ZERO)
-          .kecLo(BigInteger.ZERO);
-      this.builder.validateRow();
     }
+
+    // Keccak of the Rlp to get the deployment address
+    final Address deployementAddress = Address.contractAddress(addr, nonce.longValueExact());
+
+    for (int ct = 0; ct < 8; ct++) {
+      this.builder
+          .stamp(BigInteger.valueOf(stamp))
+          .recipe(BigInteger.ONE)
+          .recipe1(true)
+          .recipe2(false)
+          .addrHi(addr.slice(0, 4).toUnsignedBigInteger())
+          .addrLo(addr.slice(4, llarge).toUnsignedBigInteger())
+          .depAddrHi(deployementAddress.slice(0, 4).toUnsignedBigInteger())
+          .depAddrLo(deployementAddress.slice(4, llarge).toUnsignedBigInteger())
+          .nonce(nonce)
+          .ct(BigInteger.valueOf(ct))
+          .byte1(UnsignedByte.of(nonceShifted.get(ct)))
+          .acc(nonceShifted.slice(0, ct + 1).toUnsignedBigInteger())
+          .accBytesize(BigInteger.valueOf(byteCounting.getAccByteSizeList().get(ct)))
+          .power(byteCounting.getPowerList().get(ct))
+          .bit1(bitDecomposition.getBitDecList().get(ct))
+          .bitAcc(UnsignedByte.of(bitDecomposition.getBitAccList().get(ct)))
+          .tinyNonZeroNonce(tinyNonZeroNonce);
+
+      switch (ct) {
+        case 0, 1, 2, 3:
+          this.builder
+              .lc(false)
+              .limb(BigInteger.ZERO)
+              .nBytes(BigInteger.ZERO)
+              .index(BigInteger.ZERO);
+          break;
+
+        case 4:
+          this.builder
+              .lc(true)
+              .limb(
+                  padToGivenSizeWithRightZero(
+                          bigIntegerToBytes(
+                              BigInteger.valueOf(list_short)
+                                  .add(BigInteger.valueOf(21))
+                                  .add(BigInteger.valueOf(size_rlp_nonce))),
+                          llarge)
+                      .toUnsignedBigInteger())
+              .nBytes(BigInteger.ONE)
+              .index(BigInteger.ZERO);
+          break;
+
+        case 5:
+          this.builder
+              .lc(true)
+              .limb(
+                  padToGivenSizeWithRightZero(
+                          Bytes.concatenate(
+                              bigIntegerToBytes(BigInteger.valueOf(148)), addr.slice(0, 4)),
+                          llarge)
+                      .toUnsignedBigInteger())
+              .nBytes(BigInteger.valueOf(5))
+              .index(BigInteger.ONE);
+          break;
+
+        case 6:
+          this.builder
+              .lc(true)
+              .limb(addr.slice(4, llarge).toUnsignedBigInteger())
+              .nBytes(BigInteger.valueOf(16))
+              .index(BigInteger.valueOf(2));
+          break;
+
+        case 7:
+          this.builder
+              .lc(true)
+              .limb(padToGivenSizeWithRightZero(rlpNonce, llarge).toUnsignedBigInteger())
+              .nBytes(BigInteger.valueOf(size_rlp_nonce))
+              .index(BigInteger.valueOf(3));
+          break;
+      }
+    }
+    // Column not used fo recipe 1:
+    this.builder
+        .saltHi(BigInteger.ZERO)
+        .saltLo(BigInteger.ZERO)
+        .kecHi(BigInteger.ZERO)
+        .kecLo(BigInteger.ZERO);
+    this.builder.validateRow();
   }
 
   private void traceChunks(RlpAddrChunk chunk, int stamp) {
@@ -330,8 +326,19 @@ public class RlpAddr implements Module {
 
   @Override
   public Object commit() {
-    for (int i = 0; i < this.chunkList.size(); i++) {
+    int estTraceSize = 0;
+    for (int i = 1; i <= this.chunkList.size(); i++) {
       traceChunks(chunkList.get(i), i + 1);
+      estTraceSize += ChunkRowSize(chunkList.get(i));
+      if (this.builder.size() != estTraceSize) {
+        throw new RuntimeException(
+            "ChunkSize is not the right one, chunk n°: "
+                + i
+                + " calculated size ="
+                + estTraceSize
+                + " trace size ="
+                + this.builder.size());
+      }
     }
     return new RlpAddrTrace(builder.build());
   }

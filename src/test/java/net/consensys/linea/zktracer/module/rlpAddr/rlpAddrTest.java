@@ -118,7 +118,7 @@ public class rlpAddrTest {
         .code(
             BytecodeCompiler.newProgram()
                 .push(1)
-              .push(1)
+                .push(1)
                 .push(value.length, value)
                 .op(OpCode.CREATE)
                 .compile())
@@ -129,18 +129,18 @@ public class rlpAddrTest {
     byte[] salt = bigIntegerToBytes(randBigInt(false)).toArray();
     byte[] value = bigIntegerToBytes(BigInteger.valueOf(randLong())).toArray();
     return ToyAccount.builder()
-      .balance(Wei.MAX_WEI)
-      .nonce(randLong())
-      .address(Address.wrap(Bytes.repeat((byte) 0x02, 20)))
-      .code(
-        BytecodeCompiler.newProgram()
-          .push(salt.length, salt)
-          .push(1)
-          .push(1)
-          .push(value.length, value)
-          .op(OpCode.CREATE2)
-          .compile())
-      .build();
+        .balance(Wei.MAX_WEI)
+        .nonce(randLong())
+        .address(Address.wrap(Bytes.repeat((byte) 0x02, 20)))
+        .code(
+            BytecodeCompiler.newProgram()
+                .push(salt.length, salt)
+                .push(1)
+                .push(1)
+                .push(value.length, value)
+                .op(OpCode.CREATE2)
+                .compile())
+        .build();
   }
 
   final ToyAccount randSenderAccount(Address senderAddress) {

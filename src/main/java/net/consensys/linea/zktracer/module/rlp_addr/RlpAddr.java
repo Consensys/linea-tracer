@@ -288,14 +288,15 @@ public class RlpAddr implements Module {
               .index(BigInteger.valueOf(3));
           break;
       }
+
+      // Column not used fo recipe 1:
+      this.builder
+          .saltHi(BigInteger.ZERO)
+          .saltLo(BigInteger.ZERO)
+          .kecHi(BigInteger.ZERO)
+          .kecLo(BigInteger.ZERO);
+      this.builder.validateRow();
     }
-    // Column not used fo recipe 1:
-    this.builder
-        .saltHi(BigInteger.ZERO)
-        .saltLo(BigInteger.ZERO)
-        .kecHi(BigInteger.ZERO)
-        .kecLo(BigInteger.ZERO);
-    this.builder.validateRow();
   }
 
   private void traceChunks(RlpAddrChunk chunk, int stamp) {
@@ -327,7 +328,7 @@ public class RlpAddr implements Module {
   @Override
   public Object commit() {
     int estTraceSize = 0;
-    for (int i = 1; i <= this.chunkList.size(); i++) {
+    for (int i = 0; i < this.chunkList.size(); i++) {
       traceChunks(chunkList.get(i), i + 1);
       estTraceSize += ChunkRowSize(chunkList.get(i));
       if (this.builder.size() != estTraceSize) {

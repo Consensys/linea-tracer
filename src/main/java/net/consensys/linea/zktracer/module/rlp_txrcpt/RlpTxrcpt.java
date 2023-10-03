@@ -744,9 +744,20 @@ public class RlpTxrcpt implements Module {
   @Override
   public Object commit() {
     int absTxNum = 0;
+    int estTraceSize = 0;
     for (RlpTxrcptChunk chunk : this.chunkList) {
       absTxNum += 1;
       traceChunk(chunk, absTxNum);
+      estTraceSize += ChunkRowSize(chunk);
+      if (this.builder.size() != estTraceSize) {
+        throw new RuntimeException(
+            "ChunkSize is not the right one, chunk n°: "
+                + absTxNum
+                + " estimated size ="
+                + estTraceSize
+                + " trace size ="
+                + this.builder.size());
+      }
     }
     return new RlpTxrcptTrace(builder.build());
   }

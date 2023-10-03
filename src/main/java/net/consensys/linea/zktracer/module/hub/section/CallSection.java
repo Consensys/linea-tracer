@@ -17,10 +17,11 @@ package net.consensys.linea.zktracer.module.hub.section;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
+import net.consensys.linea.zktracer.module.runtime.callstack.CallFrame;
 
 public class CallSection extends TraceSection {
-  public CallSection(Hub hub, TraceFragment... chunks) {
-    this.addChunksAndStack(hub, chunks);
+  public CallSection(Hub hub, CallFrame callFrame, TraceFragment... chunks) {
+    this.addChunksAndStack(hub, callFrame, chunks);
   }
 
   @Override

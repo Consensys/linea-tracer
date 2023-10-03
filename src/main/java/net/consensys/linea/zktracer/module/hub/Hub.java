@@ -396,7 +396,7 @@ public class Hub implements Module {
         if (!this.exceptions.any() && this.callStack().getDepth() < 1024) {
           long value = Words.clampedToLong(frame.getStackItem(0));
           if (frame.getWorldUpdater().get(this.tx.transaction().getSender()).getBalance().toLong()
-              < value) {
+              >= value) {
             this.rlpAddr.trace(frame);
           }
         }

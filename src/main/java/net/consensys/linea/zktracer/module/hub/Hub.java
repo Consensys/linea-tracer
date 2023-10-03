@@ -165,6 +165,23 @@ public class Hub implements Module {
     return List.of(this.rlpTxn, rlpTxrcpt);
   }
 
+  /**
+   * @return a list of all modules for which to generate traces
+   */
+  public List<Module> getModulesToTrace() {
+    return List.of(
+        this,
+        this.add,
+        this.ext,
+        this.mod,
+        this.mul,
+        this.shf,
+        this.wcp,
+        this.rlpTxn,
+        this.rlpTxrcpt,
+        this.rlpAddr);
+  }
+
   @Override
   public String jsonKey() {
     return "hub_v2_off";

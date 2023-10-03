@@ -36,7 +36,10 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @Accessors(fluent = true)
 public class CallFrame {
-  /** the position of this {@link CallFrame} in the {@link CallStack}, also its associated context number in the {@link Hub}. */
+  /**
+   * the position of this {@link CallFrame} in the {@link CallStack}, also its associated context
+   * number in the {@link Hub}.
+   */
   @Getter private int id;
   /** the depth of this CallFrame within its call hierarchy. */
   @Getter private int depth;

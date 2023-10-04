@@ -51,11 +51,9 @@ public class PluginTest extends AcceptanceTestBase {
 
   private void setUpWithMaxCalldata() throws Exception {
 
-    System.setProperty("acctests.runBesuAsProcess", "false");
+// to debug into besu:
+// System.setProperty("acctests.runBesuAsProcess", "false");
 
-    final String pluginDir = System.getProperty("besu.plugins.dir");
-    System.out.println("****************************" + pluginDir);
-    System.setProperty("besu.plugins.dir", pluginDir);
     final List<String> cliOptions =
         List.of(
             "--plugin-linea-deny-list-path="
@@ -69,11 +67,9 @@ public class PluginTest extends AcceptanceTestBase {
 
   private void setUpWithDenyList() throws Exception {
 
-    System.setProperty("acctests.runBesuAsProcess", "false");
+    // To debug into besu:
+    // System.setProperty("acctests.runBesuAsProcess", "false");
 
-    final String pluginDir = System.getProperty("besu.plugins.dir");
-    System.out.println("****************************" + pluginDir);
-    System.setProperty("besu.plugins.dir", pluginDir);
     final List<String> cliOptions =
         List.of(
             "--plugin-linea-deny-list-path="
@@ -161,18 +157,15 @@ public class PluginTest extends AcceptanceTestBase {
   @Test
   public void deniedTransactionNotAddedToTxPool() throws Exception {
     setUpWithDenyList();
-    final TxPoolTransactions txPoolTransactions = new TxPoolTransactions();
-    final TxPoolConditions txPoolConditions = new TxPoolConditions(txPoolTransactions);
 
     final Credentials notDenied = Credentials.create(Accounts.GENESIS_ACCOUNT_ONE_PRIVATE_KEY);
     final Credentials denied = Credentials.create(Accounts.GENESIS_ACCOUNT_TWO_PRIVATE_KEY);
-    System.out.println("Address account one: " + denied.getAddress());
     final Web3j miner = minerNode.nodeRequests().eth();
 
     BigInteger gasPrice =
         Convert.toWei("20", Convert.Unit.GWEI)
-            .toBigInteger(); // Replace with your desired gas price
-    BigInteger gasLimit = BigInteger.valueOf(210000); // Replace with your desired gas limit
+            .toBigInteger();
+    BigInteger gasLimit = BigInteger.valueOf(210000);
 
     // Make sure a sender on the deny list cannot add transactions to the pool
     RawTransactionManager transactionManager = new RawTransactionManager(miner, denied);
@@ -195,15 +188,12 @@ public class PluginTest extends AcceptanceTestBase {
 
     // Make sure a transaction calling a contract on the deny list (e.g. precompile) is not added to
     // the pool
-    final SimpleStorage simpleStorage =
-        minerNode.execute(contractTransactions.createSmartContract(SimpleStorage.class));
-    final String txData = simpleStorage.set("hello").encodeFunctionCall();
     transactionResponse =
         transactionManager.sendTransaction(
             gasPrice,
             gasLimit,
             "0x000000000000000000000000000000000000000b",
-            txData,
+            "0xdeadbeef",
             BigInteger.ONE); // 1 wei
 
     Assertions.assertThat(transactionResponse.getTransactionHash()).isNull();

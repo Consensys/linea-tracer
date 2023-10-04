@@ -13,11 +13,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.opcode.gas.projector;
+package net.consensys.linea.zktracer.module.rlp_txrcpt;
 
-public final class BlockHash implements GasProjection {
-  @Override
-  public long staticGas() {
-    return gc.getBlockHashOperationGasCost();
-  }
-}
+import java.util.List;
+
+import org.hyperledger.besu.datatypes.TransactionType;
+import org.hyperledger.besu.evm.log.Log;
+
+record RlpTxrcptChunk(TransactionType txType, Boolean status, Long gasUsed, List<Log> logs) {}

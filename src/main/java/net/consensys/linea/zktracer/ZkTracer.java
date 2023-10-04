@@ -19,19 +19,13 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.Module;
-import net.consensys.linea.zktracer.module.add.Add;
-import net.consensys.linea.zktracer.module.ext.Ext;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.mod.Mod;
-import net.consensys.linea.zktracer.module.mul.Mul;
-import net.consensys.linea.zktracer.module.rlp_txn.RlpTxn;
-import net.consensys.linea.zktracer.module.shf.Shf;
-import net.consensys.linea.zktracer.module.trm.Trm;
-import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCodes;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.evm.gascalculator.GasCalculator;
+import org.hyperledger.besu.evm.gascalculator.LondonGasCalculator;
 import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
@@ -40,25 +34,17 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 
 @RequiredArgsConstructor
 public class ZkTracer implements ZkBlockAwareOperationTracer {
+  /** The {@link GasCalculator} used in this version of the arithmetization */
+  public static final GasCalculator gasCalculator = new LondonGasCalculator();
+
   private final ZkTraceBuilder zkTraceBuilder = new ZkTraceBuilder();
   private final Hub hub;
 
   private final List<Module> modules;
 
   public ZkTracer() {
-    Add add = new Add();
-    Ext ext = new Ext();
-    Mod mod = new Mod();
-    Mul mul = new Mul();
-    Shf shf = new Shf();
-    Trm trm = new Trm();
-    Wcp wcp = new Wcp();
-
-    RlpTxn rlpTxn = new RlpTxn();
-
-    this.hub = new Hub(add, ext, mod, mul, shf, trm, wcp);
-    this.modules = hub.getModules();
-    this.modules.add(rlpTxn);
+    this.hub = new Hub();
+    this.modules = hub.getSelfStandingModules();
 
     // Load opcodes configured in src/main/resources/opcodes.yml.
     OpCodes.load();

@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 
 import java.nio.file.Path;
 
+import net.consensys.linea.continoustracing.exception.TraceVerificationException;
 import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.datatypes.Hash;
@@ -52,7 +53,9 @@ public class ContinuousTracerTest {
   @Test
   void shouldDoNothingIfVerificationIsSuccessful() {
     when(corsetValidatorMock.isValid(ArgumentMatchers.any(), matches("testZkEvmBin")))
-        .thenReturn(new CorsetValidator.Result(true, Path.of("testTraceFile")));
+        .thenReturn(
+            new CorsetValidator.Result(
+                true, Path.of("testTraceFile").toFile(), "testCorsetOutput"));
     assertThatCode(() -> continuousTracer.verifyTraceOfBlock(Hash.ZERO, "testZkEvmBin"))
         .doesNotThrowAnyException();
   }
@@ -60,7 +63,9 @@ public class ContinuousTracerTest {
   @Test
   void shouldThrowTraceVerificationExceptionIfVerificationIsNotSuccessful() {
     when(corsetValidatorMock.isValid(ArgumentMatchers.any(), matches("testZkEvmBin")))
-        .thenReturn(new CorsetValidator.Result(false, Path.of("testTraceFile")));
+        .thenReturn(
+            new CorsetValidator.Result(
+                false, Path.of("testTraceFile").toFile(), "testCorsetOutput"));
 
     assertThrows(
         TraceVerificationException.class,

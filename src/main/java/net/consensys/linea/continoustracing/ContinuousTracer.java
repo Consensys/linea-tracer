@@ -14,11 +14,10 @@
  */
 package net.consensys.linea.continoustracing;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.function.Supplier;
 
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.continoustracing.exception.TraceVerificationException;
 import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.datatypes.Hash;
@@ -39,7 +38,7 @@ public class ContinuousTracer {
     this.zkTracerSupplier = zkTracerSupplier;
   }
 
-  public void verifyTraceOfBlock(final Hash blockHash, final String zkEvmBin)
+  public CorsetValidator.Result verifyTraceOfBlock(final Hash blockHash, final String zkEvmBin)
       throws TraceVerificationException {
     final ZkTracer zkTracer = zkTracerSupplier.get();
     traceService.traceBlock(blockHash, zkTracer);
@@ -49,7 +48,7 @@ public class ContinuousTracer {
       result = corsetValidator.isValid(zkTracer.getJsonTrace(), zkEvmBin);
       if (!result.isValid()) {
         log.error("Trace of block {} is not valid", blockHash.toHexString());
-        throw new TraceVerificationException(blockHash);
+        return result;
       }
     } catch (RuntimeException e) {
       log.error(
@@ -57,12 +56,13 @@ public class ContinuousTracer {
       throw new TraceVerificationException(blockHash, e.getMessage());
     }
 
-    try {
-      Files.delete(result.traceFile());
-    } catch (IOException e) {
-      log.warn("Error while deleting trace file {}: {}", result.traceFile(), e.getMessage());
-    }
+    //    try {
+    //      FileUtils.delete(result.traceFile());
+    //    } catch (IOException e) {
+    //      log.warn("Error while deleting trace file {}: {}", result.traceFile(), e.getMessage());
+    //    }
 
     log.info("Trace of block {} is valid", blockHash.toHexString());
+    return result;
   }
 }

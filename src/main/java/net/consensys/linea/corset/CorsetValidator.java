@@ -17,6 +17,7 @@ package net.consensys.linea.corset;
 
 import static java.nio.file.StandardOpenOption.WRITE;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -28,7 +29,7 @@ import org.apache.commons.io.IOUtils;
 
 @Slf4j
 public class CorsetValidator {
-  public record Result(boolean isValid, Path traceFile) {}
+  public record Result(boolean isValid, File traceFile, String corsetOutput) {}
 
   private static final String DEFAULT_ZK_EVM_BIN = "zkevm-constraints/zkevm.bin";
 
@@ -144,9 +145,9 @@ public class CorsetValidator {
 
     if (corsetValidationProcess.exitValue() != 0) {
       log.error("Validation failed: %s".formatted(corsetOutput));
-      return new Result(false, traceFile);
+      return new Result(false, traceFile.toFile(), corsetOutput);
     }
 
-    return new Result(true, traceFile);
+    return new Result(true, traceFile.toFile(), corsetOutput);
   }
 }

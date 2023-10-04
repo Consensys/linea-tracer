@@ -12,18 +12,10 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.continoustracing;
+package net.consensys.linea.continoustracing.exception;
 
-import org.hyperledger.besu.datatypes.Hash;
-
-public class TraceVerificationException extends Throwable {
-
-  public TraceVerificationException(final Hash blockHash) {
-    super("Verification of trace of block " + blockHash + " has failed.");
-  }
-
-  public TraceVerificationException(final Hash blockHash, final String message) {
-    super(
-        "Verification of trace of block " + blockHash + " has failed.\nError message: " + message);
+public class InvalidTraceHandlerException extends Throwable {
+  public InvalidTraceHandlerException(Throwable t) {
+    super(t);
   }
 }

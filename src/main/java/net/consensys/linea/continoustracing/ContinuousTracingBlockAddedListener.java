@@ -15,34 +15,46 @@
 package net.consensys.linea.continoustracing;
 
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.continoustracing.exception.InvalidTraceHandlerException;
+import net.consensys.linea.continoustracing.exception.TraceVerificationException;
+import net.consensys.linea.corset.CorsetValidator;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.plugin.data.AddedBlockContext;
+import org.hyperledger.besu.plugin.data.BlockHeader;
 import org.hyperledger.besu.plugin.services.BesuEvents;
 
 @Slf4j
 public class ContinuousTracingBlockAddedListener implements BesuEvents.BlockAddedListener {
-  final ContinuousTracingConfiguration config;
   final ContinuousTracer continuousTracer;
+  final InvalidTraceHandler invalidTraceHandler;
+  final String zkEvmBin;
 
   public ContinuousTracingBlockAddedListener(
-      final ContinuousTracingConfiguration config, final ContinuousTracer continuousTracer) {
-    this.config = config;
+      final ContinuousTracer continuousTracer,
+      final InvalidTraceHandler invalidTraceHandler,
+      final String zkEvmBin) {
     this.continuousTracer = continuousTracer;
+    this.invalidTraceHandler = invalidTraceHandler;
+    this.zkEvmBin = zkEvmBin;
   }
 
   @Override
   public void onBlockAdded(final AddedBlockContext addedBlockContext) {
-    if (!config.continuousTracing()) {
-      return;
-    }
-
-    final Hash blockHash = addedBlockContext.getBlockHeader().getBlockHash();
-    log.info("Tracing block " + blockHash.toHexString());
+    final BlockHeader blockHeader = addedBlockContext.getBlockHeader();
+    final Hash blockHash = blockHeader.getBlockHash();
+    log.info("Tracing block {} ({})", blockHeader.getNumber(), blockHash.toHexString());
 
     try {
-      continuousTracer.verifyTraceOfBlock(blockHash, config.zkEvmBin());
+      final CorsetValidator.Result traceResult =
+          continuousTracer.verifyTraceOfBlock(blockHash, zkEvmBin);
+
+      if (!traceResult.isValid()) {
+        invalidTraceHandler.handle(blockHeader, traceResult);
+      }
     } catch (TraceVerificationException e) {
       log.error(e.getMessage());
+    } catch (InvalidTraceHandlerException e) {
+      log.error("Error while handling invalid trace: {}", e.getMessage());
     }
   }
 }

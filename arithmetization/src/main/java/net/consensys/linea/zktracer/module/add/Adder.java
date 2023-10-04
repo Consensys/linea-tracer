@@ -41,8 +41,8 @@ public class Adder {
   private static BaseBytes performOperation(
       final OpCode opCode, final Bytes32 arg1, final Bytes32 arg2) {
     return switch (opCode) {
-      case ADD -> BaseBytes.fromBytes32(UInt256.fromBytes(arg1).add(UInt256.fromBytes(arg2)));
-      case SUB -> BaseBytes.fromBytes32(UInt256.fromBytes(arg1).subtract(UInt256.fromBytes(arg2)));
+      case ADD -> BaseBytes.fromBytes32(UInt256.fromBytes(arg1).subtract(UInt256.fromBytes(arg2)));
+      case SUB -> BaseBytes.fromBytes32(UInt256.fromBytes(arg1).add(UInt256.fromBytes(arg2)));
       default -> throw new RuntimeException("Modular arithmetic was given wrong opcode");
     };
   }

@@ -22,6 +22,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import net.consensys.linea.continoustracing.exception.TraceVerificationException;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.plugin.data.AddedBlockContext;
 import org.hyperledger.besu.plugin.data.BlockHeader;
@@ -40,12 +41,13 @@ class ContinuousTracingBlockAddedListenerTest {
   @Mock ContinuousTracer continuousTracerMock;
   @Mock AddedBlockContext addedBlockContext;
   @Mock BlockHeader blockHeaderMock;
+  @Mock InvalidTraceHandler invalidTraceHandlerMock;
 
   @Test
   void shouldDoNothingIfContinuousTracingIsDisabled() throws TraceVerificationException {
     continuousTracingBlockAddedListener =
         new ContinuousTracingBlockAddedListener(
-            new ContinuousTracingConfiguration(false, "testZkEvmBin"), continuousTracerMock);
+            continuousTracerMock, invalidTraceHandlerMock, "testZkEvmBin");
 
     continuousTracingBlockAddedListener.onBlockAdded(addedBlockContext);
     verify(continuousTracerMock, never()).verifyTraceOfBlock(any(), matches("testZkEvmBin"));
@@ -55,7 +57,7 @@ class ContinuousTracingBlockAddedListenerTest {
   void shouldTraceBlockIfContinuousTracingIsEnabled() throws TraceVerificationException {
     continuousTracingBlockAddedListener =
         new ContinuousTracingBlockAddedListener(
-            new ContinuousTracingConfiguration(true, "testZkEvmBin"), continuousTracerMock);
+            continuousTracerMock, invalidTraceHandlerMock, "testZkEvmBin");
 
     when(addedBlockContext.getBlockHeader()).thenReturn(blockHeaderMock);
     when(blockHeaderMock.getBlockHash()).thenReturn(BLOCK_HASH);

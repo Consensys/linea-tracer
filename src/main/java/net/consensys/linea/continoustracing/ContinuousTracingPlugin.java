@@ -30,6 +30,7 @@ import org.hyperledger.besu.plugin.services.TraceService;
 @AutoService(BesuPlugin.class)
 public class ContinuousTracingPlugin implements BesuPlugin {
   public static final String NAME = "linea-continuous";
+  public static final String ENV_WEBHOOK_URL = "SLACK_SHADOW_NODE_WEBHOOK_URL";
 
   private final ContinuousTracingCliOptions options;
   private BesuContext context;
@@ -77,10 +78,28 @@ public class ContinuousTracingPlugin implements BesuPlugin {
             .orElseThrow(
                 () -> new IllegalStateException("Expecting a TraceService, but none found."));
 
-    besuEvents.addBlockAddedListener(
-        new ContinuousTracingBlockAddedListener(
-            options.toDomainObject(),
-            new ContinuousTracer(traceService, new CorsetValidator(), ZkTracer::new)));
+    final ContinuousTracingConfiguration tracingConfiguration = options.toDomainObject();
+
+    if (tracingConfiguration.continuousTracing() && (tracingConfiguration.zkEvmBin() == null)) {
+      log.error("zkEvmBin must be specified when continuousTracing is enabled");
+      System.exit(1);
+    }
+
+    final String webHookUrl = System.getenv(ENV_WEBHOOK_URL);
+    if (tracingConfiguration.continuousTracing() && (webHookUrl == null)) {
+      log.error(
+          "Webhook URL must be specified as environment variable {} when continuousTracing is enabled",
+          ENV_WEBHOOK_URL);
+      System.exit(1);
+    }
+
+    if (tracingConfiguration.continuousTracing()) {
+      besuEvents.addBlockAddedListener(
+          new ContinuousTracingBlockAddedListener(
+              new ContinuousTracer(traceService, new CorsetValidator(), ZkTracer::new),
+              new InvalidTraceHandler(SlackNotificationService.create(webHookUrl)),
+              tracingConfiguration.zkEvmBin()));
+    }
   }
 
   @Override

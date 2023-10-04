@@ -27,9 +27,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.assertj.core.api.Assertions;
 import org.hyperledger.besu.tests.acceptance.dsl.AcceptanceTestBase;
 import org.hyperledger.besu.tests.acceptance.dsl.account.Accounts;
-import org.hyperledger.besu.tests.acceptance.dsl.condition.txpool.TxPoolConditions;
 import org.hyperledger.besu.tests.acceptance.dsl.node.BesuNode;
-import org.hyperledger.besu.tests.acceptance.dsl.transaction.txpool.TxPoolTransactions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.web3j.crypto.Credentials;
@@ -51,8 +49,8 @@ public class PluginTest extends AcceptanceTestBase {
 
   private void setUpWithMaxCalldata() throws Exception {
 
-// to debug into besu:
-// System.setProperty("acctests.runBesuAsProcess", "false");
+    // to debug into besu:
+    // System.setProperty("acctests.runBesuAsProcess", "false");
 
     final List<String> cliOptions =
         List.of(
@@ -162,9 +160,7 @@ public class PluginTest extends AcceptanceTestBase {
     final Credentials denied = Credentials.create(Accounts.GENESIS_ACCOUNT_TWO_PRIVATE_KEY);
     final Web3j miner = minerNode.nodeRequests().eth();
 
-    BigInteger gasPrice =
-        Convert.toWei("20", Convert.Unit.GWEI)
-            .toBigInteger();
+    BigInteger gasPrice = Convert.toWei("20", Convert.Unit.GWEI).toBigInteger();
     BigInteger gasLimit = BigInteger.valueOf(210000);
 
     // Make sure a sender on the deny list cannot add transactions to the pool

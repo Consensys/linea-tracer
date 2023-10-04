@@ -57,11 +57,12 @@ import net.consensys.linea.zktracer.module.hub.stack.StackContext;
 import net.consensys.linea.zktracer.module.hub.stack.StackLine;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.mul.Mul;
+import net.consensys.linea.zktracer.module.rlp_txn.RlpTxn;
+import net.consensys.linea.zktracer.module.rlp_txrcpt.RlpTxrcpt;
 import net.consensys.linea.zktracer.module.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.module.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.module.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.module.shf.Shf;
-import net.consensys.linea.zktracer.module.trm.Trm;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
@@ -102,7 +103,7 @@ public class Hub implements Module {
   @Getter private Exceptions exceptions;
   @Getter int stamp = 0;
   @Getter private int pc;
-  @Getter private OpCode opCode;
+  @Getter private OpCode opCode = OpCode.STOP;
   private int maxContextNumber;
   @Getter private MessageFrame frame;
 
@@ -147,38 +148,28 @@ public class Hub implements Module {
     this.traceSections.add(new TxTrace());
   }
 
-  private final Module add;
-  private final Module ext;
-  private final Module mod;
-  private final Module mul;
-  private final Module shf;
-  private final Module trm;
-  private final Module wcp;
+  private final Module add = new Add();
+  private final Module ext = new Ext();
+  private final Module mod = new Mod();
+  private final Module mul = new Mul();
+  private final Module shf = new Shf();
+  private final Module wcp = new Wcp();
+  private final RlpTxn rlpTxn = new RlpTxn();
+  private final RlpTxrcpt rlpTxrcpt = new RlpTxrcpt();
 
-  public Hub(Add add, Ext ext, Mod mod, Mul mul, Shf shf, Trm trm, Wcp wcp) {
-    this.add = add;
-    this.ext = ext;
-    this.mod = mod;
-    this.mul = mul;
-    this.shf = shf;
-    this.trm = trm;
-    this.wcp = wcp;
-  }
+  public Hub() {}
 
-  public List<Module> getModules() {
-    List<Module> r = new ArrayList<>();
-    return r;
+  /**
+   * @return the list of modules that need to be triggered in a self-standing way by the {@link
+   *     net.consensys.linea.zktracer.ZkTracer}
+   */
+  public List<Module> getSelfStandingModules() {
+    return List.of(this.rlpTxn, rlpTxrcpt);
   }
 
   @Override
   public String jsonKey() {
     return "hub_v2_off";
-  }
-
-  @Override
-  public final List<OpCode> supportedOpCodes() {
-    // The Hub wants to catch all opcodes
-    return List.of(OpCode.values());
   }
 
   public static boolean isPrecompile(Address to) {
@@ -272,36 +263,42 @@ public class Hub implements Module {
         .getAccessList()
         .ifPresent(
             preWarmed -> {
-              Set<Address> seenAddresses = new HashSet<>();
-              Map<Address, Set<Bytes32>> seenKeys = new HashMap<>();
-              List<TraceFragment> fragments = new ArrayList<>();
+              if (!preWarmed.isEmpty()) {
+                Set<Address> seenAddresses = new HashSet<>();
+                Map<Address, Set<Bytes32>> seenKeys = new HashMap<>();
+                List<TraceFragment> fragments = new ArrayList<>();
 
-              for (AccessListEntry entry : preWarmed) {
-                Address address = entry.address();
-                AccountSnapshot snapshot =
-                    AccountSnapshot.fromAccount(
-                        world.get(address), seenAddresses.contains(address), 0, false);
-                fragments.add(new AccountFragment(snapshot, snapshot, false, 0, false));
-                seenAddresses.add(address);
+                for (AccessListEntry entry : preWarmed) {
+                  Address address = entry.address();
+                  AccountSnapshot snapshot =
+                      AccountSnapshot.fromAccount(
+                          world.get(address), seenAddresses.contains(address), 0, false);
+                  fragments.add(new AccountFragment(snapshot, snapshot, false, 0, false));
+                  seenAddresses.add(address);
 
-                List<Bytes32> keys = entry.storageKeys();
-                for (Bytes32 key_ : keys) {
-                  UInt256 key = UInt256.fromBytes(key_);
-                  EWord value = EWord.of(world.get(address).getStorageValue(key));
-                  fragments.add(
-                      new StorageFragment(
-                          address,
-                          this.conflation.deploymentInfo().number(address),
-                          EWord.of(key),
-                          value,
-                          value,
-                          value,
-                          seenKeys.computeIfAbsent(address, x -> new HashSet<>()).contains(key),
-                          true));
-                  seenKeys.get(address).add(key);
+                  List<Bytes32> keys = entry.storageKeys();
+                  for (Bytes32 key_ : keys) {
+                    UInt256 key = UInt256.fromBytes(key_);
+                    EWord value =
+                        Optional.ofNullable(world.get(address))
+                            .map(account -> EWord.of(account.getStorageValue(key)))
+                            .orElse(EWord.ZERO);
+                    fragments.add(
+                        new StorageFragment(
+                            address,
+                            this.conflation.deploymentInfo().number(address),
+                            EWord.of(key),
+                            value,
+                            value,
+                            value,
+                            seenKeys.computeIfAbsent(address, x -> new HashSet<>()).contains(key),
+                            true));
+                    seenKeys.get(address).add(key);
+                  }
                 }
+
+                this.addTraceSection(new WarmupSection(this, fragments));
               }
-              this.addTraceSection(new WarmupSection(this, fragments));
             });
     this.tx.state(TxState.TX_INIT);
   }
@@ -334,7 +331,11 @@ public class Hub implements Module {
   }
 
   public CallFrame currentFrame() {
-    return this.callStack.top();
+    return Optional.of(this.callStack.top()).orElse(CallFrame.empty());
+  }
+
+  public long getRemainingGas() {
+    return 0; // TODO:
   }
 
   private void handleStack(MessageFrame frame) {
@@ -418,7 +419,6 @@ public class Hub implements Module {
   }
 
   void processStateFinal(WorldView worldView, Transaction tx, boolean isSuccess) {
-    log.error("TX_FINAL");
     this.stamp++;
 
     Address fromAddress = this.tx.transaction().getSender();
@@ -454,6 +454,11 @@ public class Hub implements Module {
                   this.block.baseFee,
                   this.tx.initialGas())));
     } else {
+      // Trace the exceptions of a transaction that could not even start
+      if (this.exceptions == null) {
+        this.exceptions = Exceptions.fromOutOfGas();
+      }
+
       // otherwise 4 account rows (sender, coinbase, sender, recipient) + 1 tx row
       Address toAddress = this.tx.transaction().getSender();
       Account toAccount = worldView.get(toAddress);
@@ -487,6 +492,7 @@ public class Hub implements Module {
 
   @Override
   public void traceStartTx(final WorldView world, final Transaction tx) {
+    this.exceptions = Exceptions.empty();
     this.tx.update(tx);
     this.createNewTxTrace();
 
@@ -505,6 +511,7 @@ public class Hub implements Module {
   @Override
   public void traceEndTx(
       WorldView world, Transaction tx, boolean status, Bytes output, List<Log> logs, long gasUsed) {
+    this.opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
     this.tx.state(TxState.TX_FINAL);
     this.tx.status(status);
     this.processStateFinal(world, tx, status);
@@ -619,11 +626,6 @@ public class Hub implements Module {
   }
 
   @Override
-  public void traceEndBlock(BlockHeader blockHeader, BlockBody blockBody) {
-    Module.super.traceEndBlock(blockHeader, blockBody);
-  }
-
-  @Override
   public void traceStartConflation(long blockCount) {
     this.conflation.update();
   }
@@ -651,12 +653,9 @@ public class Hub implements Module {
     return this.frame.getRemainingGas();
   }
 
+  @Override
   public int lineCount() {
-    int count = 0;
-    for (TxTrace txSection : this.traceSections) {
-      count += txSection.lineCount();
-    }
-    return count;
+    return this.traceSections.stream().mapToInt(TxTrace::lineCount).sum();
   }
 
   void traceOperation(MessageFrame frame) {

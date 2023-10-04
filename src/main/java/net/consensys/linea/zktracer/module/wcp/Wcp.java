@@ -17,7 +17,6 @@ package net.consensys.linea.zktracer.module.wcp;
 
 import java.math.BigInteger;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import net.consensys.linea.zktracer.bytes.UnsignedByte;
@@ -39,14 +38,9 @@ public class Wcp implements Module {
   }
 
   @Override
-  public final List<OpCode> supportedOpCodes() {
-    return List.of(OpCode.LT, OpCode.GT, OpCode.SLT, OpCode.SGT, OpCode.EQ, OpCode.ISZERO);
-  }
-
-  @Override
   public void trace(final MessageFrame frame) {
     final OpCodeData opCode = OpCodes.of(frame.getCurrentOperation().getOpcode());
-    final Bytes32 arg1 = Bytes32.wrap(frame.getStackItem(0));
+    final Bytes32 arg1 = Bytes32.leftPad(frame.getStackItem(0));
     final Bytes32 arg2 =
         (opCode.mnemonic() != OpCode.ISZERO) ? Bytes32.wrap(frame.getStackItem(1)) : Bytes32.ZERO;
 
@@ -97,6 +91,11 @@ public class Wcp implements Module {
     }
 
     return new WcpTrace(builder.build());
+  }
+
+  @Override
+  public int lineCount() {
+    return this.operations.stream().mapToInt(WcpOperation::maxCt).sum();
   }
 
   public void callLT(Bytes32 arg1, Bytes32 arg2) {

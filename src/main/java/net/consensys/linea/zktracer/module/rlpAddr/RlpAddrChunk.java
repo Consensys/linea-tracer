@@ -9,9 +9,9 @@ import org.hyperledger.besu.datatypes.Address;
 public record RlpAddrChunk(
     OpCode opCode,
     Optional<Long> nonce,
-    Address addr,
+    Address address,
     Optional<Bytes32> salt,
-    Optional<Bytes32> kec) {
+    Optional<Bytes32> keccak) {
   public RlpAddrChunk(OpCode opCode, long nonce, Address address) {
     this(opCode, Optional.of(nonce), address, Optional.empty(), Optional.empty());
   }

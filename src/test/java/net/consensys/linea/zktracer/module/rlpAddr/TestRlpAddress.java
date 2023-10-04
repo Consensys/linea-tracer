@@ -42,7 +42,8 @@ import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
 
-public class rlpAddrTest {
+public class TestRlpAddress {
+  private static final int TEST_TX_COUNT = 200;
   private final Random rnd = new Random(666);
 
   @Test
@@ -52,8 +53,7 @@ public class rlpAddrTest {
     ToyWorld.ToyWorldBuilder world = ToyWorld.builder();
     List<Transaction> txList = new ArrayList<>();
 
-    for (int i = 0; i < 200; i++) {
-
+    for (int i = 0; i < TEST_TX_COUNT; i++) {
       KeyPair keyPair = new SECP256K1().generateKeyPair();
       Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
       ToyAccount senderAccount = randSenderAccount(senderAddress);
@@ -64,48 +64,44 @@ public class rlpAddrTest {
       int trigger = rnd.nextInt(0, 3);
       ToyAccount receiverAccount;
       switch (trigger) {
-        case 0: // cretae with tx.To = null
-          Transaction tx =
+        case 0 -> { // create with tx.To = null
+          world.account(senderAccount);
+          txList.add(
               ToyTransaction.builder()
                   .sender(senderAccount)
                   .keyPair(keyPair)
                   .transactionType(TransactionType.FRONTIER)
                   .gasLimit(rnd.nextLong(21000, 0xfffffffffffffL))
                   .payload(initCode)
-                  .build();
-          world.account(senderAccount);
-          txList.add(tx);
-          break;
-
-        case 1: // Create OpCode
+                  .build());
+        }
+        case 1 -> { // Create OpCode
           receiverAccount = randCreate(initCodeSize);
-          tx =
+          world.account(senderAccount).account(receiverAccount);
+          txList.add(
               ToyTransaction.builder()
                   .sender(senderAccount)
                   .keyPair(keyPair)
                   .to(receiverAccount)
                   .transactionType(TransactionType.FRONTIER)
                   .gasLimit(rnd.nextLong(21000, 0xfffffffffffffL))
-                  .build();
-          world.account(senderAccount).account(receiverAccount);
-          txList.add(tx);
-          break;
-
-        case 2: // Create2 OpCode
+                  .build());
+        }
+        case 2 -> { // Create2 OpCode
           receiverAccount = randCreateTwo(initCodeSize);
-          tx =
+          world.account(senderAccount).account(receiverAccount);
+          txList.add(
               ToyTransaction.builder()
                   .sender(senderAccount)
                   .keyPair(keyPair)
                   .to(receiverAccount)
                   .transactionType(TransactionType.FRONTIER)
                   .gasLimit(rnd.nextLong(21000, 0xfffffffffffffL))
-                  .build();
-          world.account(senderAccount).account(receiverAccount);
-          txList.add(tx);
-          break;
+                  .build());
+        }
       }
     }
+
     ToyExecutionEnvironment.builder()
         .toyWorld(world.build())
         .transactions(txList)

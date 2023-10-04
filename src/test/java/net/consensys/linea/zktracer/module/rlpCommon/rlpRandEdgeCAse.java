@@ -40,8 +40,12 @@ public class rlpRandEdgeCAse {
     };
   }
 
-  public static Bytes randData() {
-    int selector = rnd.nextInt(0, 6);
+  public static Bytes randData(boolean nonEmpty) {
+    int selectorOrigin = 0;
+    if (nonEmpty) {
+      selectorOrigin += 1;
+    }
+    int selector = rnd.nextInt(selectorOrigin, 6);
     return switch (selector) {
       case 0 -> Bytes.EMPTY;
       case 1 -> Bytes.of(0x0);

@@ -1,4 +1,4 @@
-package net.consensys.linea.zktracer.module.rlp_addr;
+package net.consensys.linea.zktracer.module.rlpAddr;
 
 import java.util.Optional;
 

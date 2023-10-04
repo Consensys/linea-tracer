@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.module.rlpAddr;
 
 import static net.consensys.linea.zktracer.bytes.conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.module.rlpCommon.rlpRandEdgeCAse.randBigInt;
+import static net.consensys.linea.zktracer.module.rlpCommon.rlpRandEdgeCAse.randData;
 import static net.consensys.linea.zktracer.module.rlpCommon.rlpRandEdgeCAse.randLong;
 
 import java.math.BigInteger;
@@ -57,23 +58,27 @@ public class rlpAddrTest {
       Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
       ToyAccount senderAccount = randSenderAccount(senderAddress);
 
-      int trigger = rnd.nextInt(0, 3);
+      Bytes initCode = randData(true);
+      int initCodeSize = initCode.size();
 
+      int trigger = rnd.nextInt(0, 3);
+      ToyAccount receiverAccount;
       switch (trigger) {
-        case 0:
+        case 0: // cretae with tx.To = null
           Transaction tx =
               ToyTransaction.builder()
                   .sender(senderAccount)
                   .keyPair(keyPair)
                   .transactionType(TransactionType.FRONTIER)
                   .gasLimit(rnd.nextLong(21000, 0xfffffffffffffL))
+                  .payload(initCode)
                   .build();
           world.account(senderAccount);
           txList.add(tx);
           break;
 
-        case 1:
-          ToyAccount receiverAccount = randCreate();
+        case 1: // Create OpCode
+          receiverAccount = randCreate(initCodeSize);
           tx =
               ToyTransaction.builder()
                   .sender(senderAccount)
@@ -86,8 +91,8 @@ public class rlpAddrTest {
           txList.add(tx);
           break;
 
-        case 2:
-          receiverAccount = randCreateTwo();
+        case 2: // Create2 OpCode
+          receiverAccount = randCreateTwo(initCodeSize);
           tx =
               ToyTransaction.builder()
                   .sender(senderAccount)
@@ -109,7 +114,7 @@ public class rlpAddrTest {
         .run();
   }
 
-  private ToyAccount randCreate() {
+  private ToyAccount randCreate(int initCodeSize) {
     byte[] value = bigIntegerToBytes(BigInteger.valueOf(randLong())).toArray();
     return ToyAccount.builder()
         .balance(Wei.MAX_WEI)
@@ -117,7 +122,11 @@ public class rlpAddrTest {
         .address(Address.wrap(Bytes.repeat((byte) 0x01, 20)))
         .code(
             BytecodeCompiler.newProgram()
+                .push(initCodeSize)
                 .push(1)
+                .push(1)
+                .op(OpCode.CALLDATACOPY)
+                .push(initCodeSize)
                 .push(1)
                 .push(value.length, value)
                 .op(OpCode.CREATE)
@@ -125,15 +134,20 @@ public class rlpAddrTest {
         .build();
   }
 
-  private ToyAccount randCreateTwo() {
+  private ToyAccount randCreateTwo(int initCodeSize) {
     byte[] salt = bigIntegerToBytes(randBigInt(false)).toArray();
     byte[] value = bigIntegerToBytes(BigInteger.valueOf(randLong())).toArray();
+
     return ToyAccount.builder()
         .balance(Wei.MAX_WEI)
         .nonce(randLong())
         .address(Address.wrap(Bytes.repeat((byte) 0x02, 20)))
         .code(
             BytecodeCompiler.newProgram()
+                .push(initCodeSize)
+                .push(1)
+                .push(1)
+                .op(OpCode.CALLDATACOPY)
                 .push(salt.length, salt)
                 .push(1)
                 .push(1)

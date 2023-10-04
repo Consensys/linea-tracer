@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.rlp_addr;
+package net.consensys.linea.zktracer.module.rlpAddr;
 
 import static net.consensys.linea.zktracer.bytes.conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.module.rlppatterns.pattern.bitDecomposition;
@@ -40,7 +40,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class RlpAddr implements Module {
-  Bytes create2_shift = Bytes.ofUnsignedShort(0xff);
+  Bytes create2_shift = bigIntegerToBytes(BigInteger.valueOf(0xff));
   Bytes int_short = bigIntegerToBytes(BigInteger.valueOf(0x80));
   int list_short = 0xc0;
   int llarge = 16;
@@ -109,7 +109,7 @@ public class RlpAddr implements Module {
           .kecLo(kec.slice(llarge, llarge).toUnsignedBigInteger())
           .lc(true)
           .index(BigInteger.valueOf(ct))
-          .ct(BigInteger.valueOf(ct));
+          .counter(BigInteger.valueOf(ct));
 
       switch (ct) {
         case 0:
@@ -175,23 +175,18 @@ public class RlpAddr implements Module {
       tinyNonZeroNonce = false;
     }
     // Compute the bytesize and Power columns
-    int nonceByteSize = nonce.bitLength() / 8;
-    if (nonce.bitLength() % 8 != 0) {
-      nonceByteSize += 1;
+    int nonceByteSize = bigIntegerToBytes(nonce).size();
+    if (nonce.equals(BigInteger.ZERO)) {
+      nonceByteSize = 0;
     }
-    RlpByteCountAndPowerOutput byteCounting;
-    if (nonce.compareTo(BigInteger.ZERO) == 0) {
-      byteCounting = byteCounting(0, recipe1CtMax);
-    } else {
-      byteCounting = byteCounting(nonceByteSize, recipe1CtMax);
-    }
+    RlpByteCountAndPowerOutput byteCounting = byteCounting(nonceByteSize, recipe1CtMax);
 
     // Compute the bit decomposition of the last input's byte
-    Byte lastByte = nonceShifted.get(recipe1CtMax - 1);
-    RlpBitDecOutput bitDecomposition = bitDecomposition(lastByte, recipe1CtMax);
+    byte lastByte = nonceShifted.get(recipe1CtMax - 1);
+    RlpBitDecOutput bitDecomposition = bitDecomposition(0xff & lastByte, recipe1CtMax);
 
-    int size_rlp_nonce = byteCounting.getAccByteSizeList().get(recipe1CtMax - 1);
-    if (tinyNonZeroNonce) {
+    int size_rlp_nonce = nonceByteSize;
+    if (!tinyNonZeroNonce) {
       size_rlp_nonce += 1;
     }
 
@@ -226,11 +221,11 @@ public class RlpAddr implements Module {
           .depAddrHi(deployementAddress.slice(0, 4).toUnsignedBigInteger())
           .depAddrLo(deployementAddress.slice(4, llarge).toUnsignedBigInteger())
           .nonce(nonce)
-          .ct(BigInteger.valueOf(ct))
+          .counter(BigInteger.valueOf(ct))
           .byte1(UnsignedByte.of(nonceShifted.get(ct)))
           .acc(nonceShifted.slice(0, ct + 1).toUnsignedBigInteger())
           .accBytesize(BigInteger.valueOf(byteCounting.getAccByteSizeList().get(ct)))
-          .power(byteCounting.getPowerList().get(ct))
+          .power(byteCounting.getPowerList().get(ct).divide(BigInteger.valueOf(256)))
           .bit1(bitDecomposition.getBitDecList().get(ct))
           .bitAcc(UnsignedByte.of(bitDecomposition.getBitAccList().get(ct)))
           .tinyNonZeroNonce(tinyNonZeroNonce);

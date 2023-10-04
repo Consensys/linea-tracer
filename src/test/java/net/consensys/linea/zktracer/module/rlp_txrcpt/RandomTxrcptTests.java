@@ -79,7 +79,7 @@ public class RandomTxrcptTests {
   }
 
   private Log randomLog(int nbTopic) {
-    Bytes data = randData();
+    Bytes data = randData(false);
 
     List<LogTopic> topics = new ArrayList<>();
     for (int i = 0; i < nbTopic; i++) {

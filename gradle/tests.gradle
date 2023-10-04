@@ -70,6 +70,7 @@ tasks.register('unitTests', Test) {
 
 tasks.register('acceptanceTest', Test) {
   dependsOn rootProject.copyPluginJar
+  dependsOn rootProject.downloadLatestBesu
   inputs.property "integration.date", LocalTime.now() // so it runs at every invocation
   include '**'
 

@@ -13,14 +13,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.sequencer;
-
-import java.util.List;
+package net.consensys.linea.sequencer.txselection;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hyperledger.besu.datatypes.Transaction;
-import org.hyperledger.besu.plugin.data.Log;
+import org.hyperledger.besu.datatypes.PendingTransaction;
 import org.hyperledger.besu.plugin.data.TransactionSelectionResult;
 import org.hyperledger.besu.plugin.services.txselection.TransactionSelector;
 
@@ -36,18 +33,15 @@ public class LineaTransactionSelector implements TransactionSelector {
   private int blockCalldataSum;
 
   @Override
-  public TransactionSelectionResult selectTransaction(
-      final Transaction transaction,
-      final boolean isSuccessful,
-      final List<Log> logs,
-      final long commulativeGasUsed) {
+  public TransactionSelectionResult evaluateTransactionPreProcessing(
+      final PendingTransaction pendingTransaction) {
 
-    final int txCalldataSize = transaction.getPayload().size();
+    final int txCalldataSize = pendingTransaction.getTransaction().getPayload().size();
 
     if (txCalldataSize > maxTxCalldataSize) {
       log.warn(
           "Not adding transaction {} because calldata size {} is too big",
-          transaction,
+          pendingTransaction.getTransaction(),
           txCalldataSize);
       return TransactionSelectionResult.invalid("Calldata too big");
     }
@@ -57,7 +51,7 @@ public class LineaTransactionSelector implements TransactionSelector {
       // this should never happen
       log.warn(
           "Not adding transaction {} otherwise block calldata size {} overflows",
-          transaction,
+          pendingTransaction.getTransaction(),
           blockCalldataSum);
       return TransactionSelectionResult.BLOCK_FULL;
     }

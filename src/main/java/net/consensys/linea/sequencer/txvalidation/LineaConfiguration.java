@@ -13,12 +13,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.sequencer;
+package net.consensys.linea.sequencer.txvalidation;
 
 /**
  * The Linea configuration.
  *
- * @param maxTxCalldataSize the maximum calldata size for a transaction.
- * @param maxBlockCalldataSize the maximum calldata size for a block.
+ * @param denyListPath the path to the file containing the address that are denied.
  */
-public record LineaConfiguration(int maxTxCalldataSize, int maxBlockCalldataSize) {}
+public record LineaConfiguration(String denyListPath) {}

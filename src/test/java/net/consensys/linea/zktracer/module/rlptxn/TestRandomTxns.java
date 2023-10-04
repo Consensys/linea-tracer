@@ -79,7 +79,7 @@ class TestRandomTxns {
           .transactionType(TransactionType.FRONTIER)
           .gasLimit(rnd.nextLong(21000, 0xfffffffffffffL))
           .value(Wei.of(randBigInt(true)))
-          .payload(randData())
+          .payload(randData(false))
           .build();
 
       case 1 -> ToyTransaction.builder()
@@ -89,7 +89,7 @@ class TestRandomTxns {
           .gasLimit(rnd.nextLong(21000, 0xfffffffffffffL))
           .value(Wei.of(randBigInt(true)))
           .to(receiverAccount)
-          .payload(randData())
+          .payload(randData(false))
           .build();
 
       case 2 -> ToyTransaction.builder()
@@ -98,7 +98,7 @@ class TestRandomTxns {
           .transactionType(TransactionType.ACCESS_LIST)
           .gasLimit(rnd.nextLong(21000, 0xfffffffffffffL))
           .value(Wei.of(randLong()))
-          .payload(randData())
+          .payload(randData(false))
           .accessList(randAccessList())
           .build();
 
@@ -109,7 +109,7 @@ class TestRandomTxns {
           .gasLimit(rnd.nextLong(21000, 0xfffffffffffffL))
           .value(Wei.of(randLong()))
           .to(receiverAccount)
-          .payload(randData())
+          .payload(randData(false))
           .accessList(randAccessList())
           .build();
 
@@ -119,7 +119,7 @@ class TestRandomTxns {
           .transactionType(TransactionType.EIP1559)
           .gasLimit(rnd.nextLong(21000, 0xfffffffffffffL))
           .value(Wei.of(randLong()))
-          .payload(randData())
+          .payload(randData(false))
           .accessList(randAccessList())
           .build();
 
@@ -130,7 +130,7 @@ class TestRandomTxns {
           .gasLimit(rnd.nextLong(21000, 0xfffffffffffffL))
           .value(Wei.of(randLong()))
           .to(receiverAccount)
-          .payload(randData())
+          .payload(randData(false))
           .accessList(randAccessList())
           .build();
 

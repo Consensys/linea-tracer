@@ -61,6 +61,8 @@ import net.consensys.linea.zktracer.module.mul.Mul;
 import net.consensys.linea.zktracer.module.rlpAddr.RlpAddr;
 import net.consensys.linea.zktracer.module.rlp_txn.RlpTxn;
 import net.consensys.linea.zktracer.module.rlp_txrcpt.RlpTxrcpt;
+import net.consensys.linea.zktracer.module.rom.Rom;
+import net.consensys.linea.zktracer.module.romLex.RomLex;
 import net.consensys.linea.zktracer.module.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.module.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.module.runtime.callstack.CallStack;
@@ -157,6 +159,8 @@ public class Hub implements Module {
   private final RlpTxrcpt rlpTxrcpt = new RlpTxrcpt();
   private final RlpAddr rlpAddr = new RlpAddr();
   private final List<Module> modules;
+  private final Rom rom = new Rom();
+  private final RomLex romLex = new RomLex();
 
   public Hub() {
     this.modules =
@@ -194,7 +198,9 @@ public class Hub implements Module {
         this.wcp,
         this.rlpTxn,
         this.rlpTxrcpt,
-        this.rlpAddr);
+        this.rlpAddr,
+        this.rom,
+        this.romLex);
   }
 
   @Override
@@ -429,6 +435,7 @@ public class Hub implements Module {
               .toUInt256()
               .greaterOrEqualThan(value)) {
             this.rlpAddr.tracePreOpcode(frame);
+            this.romLex.tracePreOpcode(frame);
           }
         }
       }
@@ -546,6 +553,7 @@ public class Hub implements Module {
 
     this.exceptions = Exceptions.empty();
     this.rlpAddr.traceStartTx(world, tx);
+    this.romLex.traceStartTx(world, tx);
 
     this.tx.update(tx);
     this.createNewTxTrace();

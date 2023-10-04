@@ -41,7 +41,9 @@ public class ContinuousTracer {
   public CorsetValidator.Result verifyTraceOfBlock(final Hash blockHash, final String zkEvmBin)
       throws TraceVerificationException {
     final ZkTracer zkTracer = zkTracerSupplier.get();
+    zkTracer.traceStartConflation(1);
     traceService.traceBlock(blockHash, zkTracer);
+    zkTracer.traceEndConflation();
 
     final CorsetValidator.Result result;
     try {

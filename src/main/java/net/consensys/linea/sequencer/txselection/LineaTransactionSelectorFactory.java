@@ -15,6 +15,8 @@
 
 package net.consensys.linea.sequencer.txselection;
 
+import java.util.List;
+
 import org.hyperledger.besu.plugin.services.txselection.TransactionSelector;
 import org.hyperledger.besu.plugin.services.txselection.TransactionSelectorFactory;
 
@@ -27,9 +29,10 @@ public class LineaTransactionSelectorFactory implements TransactionSelectorFacto
   }
 
   @Override
-  public TransactionSelector create() {
+  public List<TransactionSelector> create() {
     final LineaTransactionSelectorConfiguration lineaConfiguration = options.toDomainObject();
-    return new LineaTransactionSelector(
-        lineaConfiguration.maxTxCalldataSize(), lineaConfiguration.maxBlockCalldataSize());
+    return List.of(
+        new LineaTransactionSelector(
+            lineaConfiguration.maxTxCalldataSize(), lineaConfiguration.maxBlockCalldataSize()));
   }
 }

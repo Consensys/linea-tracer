@@ -25,7 +25,7 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.plugin.services.txvalidator.PluginTransactionValidator;
 import org.hyperledger.besu.plugin.services.txvalidator.PluginTransactionValidatorFactory;
 
-/** Represents a factory for creating transaction selectors. */
+/** Represents a factory for creating transaction validators. */
 public class LineaTransactionValidatorFactory implements PluginTransactionValidatorFactory {
   private final LineaTransactionValidatorCliOptions options;
 

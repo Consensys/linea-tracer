@@ -58,10 +58,10 @@ public class LineaTransactionSelectorCliOptions {
   }
 
   /**
-   * Linea cli options from config.
+   * Cli options from config.
    *
    * @param config the config
-   * @return the Linea cli options
+   * @return the cli options
    */
   public static LineaTransactionSelectorCliOptions fromConfig(
       final LineaTransactionSelectorConfiguration config) {

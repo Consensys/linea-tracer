@@ -61,4 +61,11 @@ public class LineaTransactionSelector implements TransactionSelector {
 
     return TransactionSelectionResult.SELECTED;
   }
+
+  @Override
+  public TransactionSelectionResult evaluateTransactionPostProcessing(
+      final PendingTransaction pendingTransaction,
+      final org.hyperledger.besu.plugin.data.TransactionProcessingResult processingResult) {
+    return TransactionSelectionResult.SELECTED;
+  }
 }

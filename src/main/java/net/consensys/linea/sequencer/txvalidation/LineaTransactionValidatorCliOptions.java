@@ -44,10 +44,10 @@ public class LineaTransactionValidatorCliOptions {
   }
 
   /**
-   * Linea cli options from config.
+   * Cli options from config.
    *
    * @param config the config
-   * @return the Linea cli options
+   * @return the cli options
    */
   public static LineaTransactionValidatorCliOptions fromConfig(
       final LineaTransactionValidatorConfiguration config) {

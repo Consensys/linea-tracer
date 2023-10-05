@@ -19,6 +19,7 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hyperledger.besu.datatypes.PendingTransaction;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.plugin.data.Log;
 import org.hyperledger.besu.plugin.data.TransactionSelectionResult;
@@ -36,11 +37,9 @@ public class LineaTransactionSelector implements TransactionSelector {
   private int blockCalldataSum;
 
   @Override
-  public TransactionSelectionResult selectTransaction(
-      final Transaction transaction,
-      final boolean isSuccessful,
-      final List<Log> logs,
-      final long commulativeGasUsed) {
+  public TransactionSelectionResult evaluateTransactionPreProcessing(
+      final PendingTransaction pendingTransaction) {
+    final Transaction transaction = pendingTransaction.getTransaction();
 
     final int txCalldataSize = transaction.getPayload().size();
 

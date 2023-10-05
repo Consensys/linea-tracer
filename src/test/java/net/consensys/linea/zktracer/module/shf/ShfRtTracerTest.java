@@ -34,7 +34,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 @Slf4j
 @ExtendWith(EvmExtension.class)
-class ShfTracerTest {
+class ShfRtTracerTest {
   private static final Random RAND = new Random();
   private static final int TEST_REPETITIONS = 4;
 

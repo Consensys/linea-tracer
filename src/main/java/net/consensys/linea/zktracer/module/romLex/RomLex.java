@@ -25,6 +25,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
@@ -37,10 +38,15 @@ public class RomLex implements Module {
   final net.consensys.linea.zktracer.module.romLex.Trace.TraceBuilder builder = Trace.builder();
   final int llarge = 16;
   private static final Bytes CREATE2_SHIFT = bigIntegerToBytes(BigInteger.valueOf(0xff));
+  private Hub hub;
 
   @Override
   public String jsonKey() {
     return "romLex";
+  }
+
+  public RomLex(Hub hub) {
+    this.hub = hub;
   }
 
   static class RomChunkComparator implements Comparator<RomChunk> {
@@ -82,24 +88,30 @@ public class RomLex implements Module {
     if (tx.getInit().isPresent()) {
       // TODO: get the address from the evm ?
       final Address deployementAddress = Address.contractAddress(tx.getSender(), tx.getNonce() - 1);
-      int depNumber = 1; // TODO: put the right value
+      Integer depNumber =
+          hub.conflation().deploymentInfo().deploymentNumber().get(deployementAddress);
+      // TODO: deploymentStatus == isDeploying ??
+      boolean depStatus;
+      depStatus = hub.conflation().deploymentInfo().isDeploying(deployementAddress);
 
       final RomChunk chunk =
-          new RomChunk(deployementAddress, depNumber, true, true, false, true, tx.getInit().get());
-      // TODO: deploymentStatus might change, check at the end of the tx
+          new RomChunk(
+              deployementAddress, depNumber, depStatus, true, false, true, tx.getInit().get());
       chunkList.add(chunk);
     }
 
     // Call to an account with bytecode
     if (tx.getTo().isPresent()) {
       if (worldView.get(tx.getTo().get()).hasCode()) {
-        // TODO: get the DepNumber
-        int depNumber = 2;
+        Integer depNumber = hub.conflation().deploymentInfo().deploymentNumber().get(tx.getTo().get());
+        // TODO: deploymentStatus == isDeploying ??
+        boolean depStatus;
+        depStatus = hub.conflation().deploymentInfo().isDeploying(tx.getTo().get());
         final RomChunk chunk =
             new RomChunk(
                 tx.getTo().get(),
                 depNumber,
-                true,
+                depStatus,
                 false,
                 true,
                 false,
@@ -120,26 +132,31 @@ public class RomLex implements Module {
             Address.contractAddress(
                 frame.getSenderAddress(),
                 frame.getWorldUpdater().getSenderAccount(frame).getNonce());
-        int depNumber = 1; // TODO: put the right value
+
+        // TODO: get the byteCode from the hub
         final long offset = clampedToLong(frame.getStackItem(1));
         final long length = clampedToLong(frame.getStackItem(2));
         final Bytes initCode = frame.readMutableMemory(offset, length);
         if (!initCode.isEmpty()) {
-
-          // TODO: get the right status
+          Integer depNumber =
+              hub.conflation().deploymentInfo().deploymentNumber().get(deployementAddress);
+          // TODO: deploymentStatus == isDeploying ??
+          boolean depStatus;
+          depStatus = hub.conflation().deploymentInfo().isDeploying().get(deployementAddress);
           final RomChunk chunk =
-              new RomChunk(deployementAddress, depNumber, true, true, false, true, initCode);
+              new RomChunk(deployementAddress, depNumber, depStatus, true, false, true, initCode);
           chunkList.add(chunk);
         }
       }
 
       case CREATE2 -> {
-        // TODO: take the depAddress from the evm ?
+        // TODO: get the initCode from the HUB
         final long offset = clampedToLong(frame.getStackItem(1));
         final long length = clampedToLong(frame.getStackItem(2));
         final Bytes initCode = frame.readMutableMemory(offset, length);
 
         if (!initCode.isEmpty()) {
+          // TODO: take the depAddress from the evm ?
           final Bytes32 salt = Bytes32.leftPad(frame.getStackItem(3));
           final Bytes32 hash = keccak256(initCode);
           final Address deployementAddress =
@@ -147,19 +164,21 @@ public class RomLex implements Module {
                   keccak256(
                       Bytes.concatenate(CREATE2_SHIFT, frame.getSenderAddress(), salt, hash)));
 
-          // TODO: put the ridht DepNb
-          int depNumber = 1;
+          Integer depNumber =
+              hub.conflation().deploymentInfo().deploymentNumber().get(deployementAddress);
 
-          // TODO: put the right DepStatus
+          // TODO: deploymentStatus == isDeploying ??
+          boolean depStatus;
+          depStatus = hub.conflation().deploymentInfo().isDeploying().get(deployementAddress);
 
           final RomChunk chunk =
-              new RomChunk(deployementAddress, depNumber, true, true, false, true, initCode);
+              new RomChunk(deployementAddress, depNumber, depStatus, true, false, true, initCode);
           chunkList.add(chunk);
         }
       }
 
       case EXTCODECOPY -> {
-        // TODO: check we get the right code
+        // TODO: get the initCode from the HUB
         final int destOffset = frame.getStackItem(2).toUnsignedBigInteger().intValueExact();
         final int length = frame.getStackItem(4).toUnsignedBigInteger().intValueExact();
         final Bytes code = frame.readMutableMemory(destOffset, length);
@@ -167,10 +186,12 @@ public class RomLex implements Module {
         if (!code.isEmpty()) {
           // TODO: check the addr is ok
           final Address addr = Address.wrap(frame.getStackItem(1));
-          // TODO: take the right DepNb
-          int depNumber = 1;
+          Integer depNumber = hub.conflation().deploymentInfo().deploymentNumber().get(addr);
+          // TODO: deploymentStatus == isDeploying ??
+          boolean depStatus;
+          depStatus = hub.conflation().deploymentInfo().isDeploying().get(addr);
 
-          final RomChunk chunk = new RomChunk(addr, depNumber, true, false, true, false, code);
+          final RomChunk chunk = new RomChunk(addr, depNumber, depStatus, false, true, false, code);
           chunkList.add(chunk);
         }
       }
@@ -182,11 +203,16 @@ public class RomLex implements Module {
         final Bytes code = frame.readMutableMemory(destOffset, length);
 
         if (!code.isEmpty()) {
-          // TODO: depNumber
-          int depNumber = 1;
+          Integer depNumber =
+              hub.conflation().deploymentInfo().deploymentNumber().get(frame.getContractAddress());
+          // TODO: deploymentStatus == isDeploying ??
+          boolean depStatus;
+          depStatus =
+              hub.conflation().deploymentInfo().isDeploying().get(frame.getContractAddress());
 
           final RomChunk chunk =
-              new RomChunk(frame.getContractAddress(), depNumber, true, false, true, false, code);
+              new RomChunk(
+                  frame.getContractAddress(), depNumber, depStatus, false, true, false, code);
           chunkList.add(chunk);
         }
       }

@@ -160,7 +160,7 @@ public class Hub implements Module {
   private final RlpAddr rlpAddr = new RlpAddr();
   private final List<Module> modules;
   private final Rom rom = new Rom();
-  private final RomLex romLex = new RomLex();
+  private final RomLex romLex;
 
   public Hub() {
     this.modules =
@@ -174,6 +174,7 @@ public class Hub implements Module {
             this.rlpTxn,
             this.rlpTxrcpt,
             this.rlpAddr);
+    this.romLex = new RomLex(this);
   }
 
   /**

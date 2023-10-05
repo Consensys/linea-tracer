@@ -15,9 +15,7 @@
 
 package net.consensys.linea.sequencer.txvalidation;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

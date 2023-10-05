@@ -21,4 +21,5 @@ package net.consensys.linea.sequencer.txselection;
  * @param maxTxCalldataSize the maximum calldata size for a transaction.
  * @param maxBlockCalldataSize the maximum calldata size for a block.
  */
-public record LineaTransactionSelectorConfiguration(int maxTxCalldataSize, int maxBlockCalldataSize) {}
+public record LineaTransactionSelectorConfiguration(
+    int maxTxCalldataSize, int maxBlockCalldataSize) {}

@@ -63,7 +63,8 @@ public class LineaTransactionSelectorCliOptions {
    * @param config the config
    * @return the Linea cli options
    */
-  public static LineaTransactionSelectorCliOptions fromConfig(final LineaTransactionSelectorConfiguration config) {
+  public static LineaTransactionSelectorCliOptions fromConfig(
+      final LineaTransactionSelectorConfiguration config) {
     final LineaTransactionSelectorCliOptions options = create();
     options.maxTxCalldataSize = config.maxTxCalldataSize();
     options.maxBlockCalldataSize = config.maxBlockCalldataSize();

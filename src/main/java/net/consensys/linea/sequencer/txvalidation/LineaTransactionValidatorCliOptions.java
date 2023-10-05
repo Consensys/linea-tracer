@@ -49,7 +49,8 @@ public class LineaTransactionValidatorCliOptions {
    * @param config the config
    * @return the Linea cli options
    */
-  public static LineaTransactionValidatorCliOptions fromConfig(final LineaTransactionValidatorConfiguration config) {
+  public static LineaTransactionValidatorCliOptions fromConfig(
+      final LineaTransactionValidatorConfiguration config) {
     final LineaTransactionValidatorCliOptions options = create();
     options.denyListPath = config.denyListPath();
 

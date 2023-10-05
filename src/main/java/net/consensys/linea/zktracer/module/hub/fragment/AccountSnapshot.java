@@ -38,9 +38,9 @@ public record AccountSnapshot(
     return new AccountSnapshot(
         account.getAddress(),
         account.getNonce(),
-        account.getBalance(),
+        account.getBalance().copy(),
         warm,
-        new Bytecode(account.getCode()),
+        new Bytecode(account.getCode().copy()),
         deploymentNumber,
         deploymentStatus);
   }

@@ -31,28 +31,32 @@ import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.ext.Ext;
-import net.consensys.linea.zktracer.module.hub.defer.CallDefer;
 import net.consensys.linea.zktracer.module.hub.defer.CreateDefer;
 import net.consensys.linea.zktracer.module.hub.defer.DeferRegistry;
-import net.consensys.linea.zktracer.module.hub.defer.SkippedTransactionDefer;
+import net.consensys.linea.zktracer.module.hub.defer.SkippedPostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.AccountSnapshot;
+import net.consensys.linea.zktracer.module.hub.fragment.CallScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.MiscFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.StackFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.StorageFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TransactionFragment;
+import net.consensys.linea.zktracer.module.hub.section.AbortedCallSection;
 import net.consensys.linea.zktracer.module.hub.section.AccountSection;
 import net.consensys.linea.zktracer.module.hub.section.ContextLogSection;
 import net.consensys.linea.zktracer.module.hub.section.CopySection;
 import net.consensys.linea.zktracer.module.hub.section.EndTransaction;
 import net.consensys.linea.zktracer.module.hub.section.JumpSection;
+import net.consensys.linea.zktracer.module.hub.section.NoCodeCallSection;
 import net.consensys.linea.zktracer.module.hub.section.StackOnlySection;
 import net.consensys.linea.zktracer.module.hub.section.StackRam;
 import net.consensys.linea.zktracer.module.hub.section.StorageSection;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.section.TransactionSection;
 import net.consensys.linea.zktracer.module.hub.section.WarmupSection;
+import net.consensys.linea.zktracer.module.hub.section.WithCodeCallSection;
 import net.consensys.linea.zktracer.module.hub.stack.ConflationInfo;
 import net.consensys.linea.zktracer.module.hub.stack.StackContext;
 import net.consensys.linea.zktracer.module.hub.stack.StackLine;
@@ -288,7 +292,7 @@ public class Hub implements Module {
     }
 
     this.defers.postTx(
-        new SkippedTransactionDefer(
+        new SkippedPostTransactionDefer(
             oldFromAccount, oldToAccount, oldMinerAccount, this.tx.gasPrice(), this.block.baseFee));
   }
 
@@ -344,6 +348,7 @@ public class Hub implements Module {
     boolean isDeployment = this.tx.transaction().getTo().isEmpty();
     Address toAddress = effectiveToAddress(this.tx.transaction());
     this.callStack.newBedrock(
+        this.stamp,
         toAddress,
         isDeployment ? CallFrameType.INIT_CODE : CallFrameType.STANDARD,
         new Bytecode(
@@ -366,7 +371,7 @@ public class Hub implements Module {
   }
 
   public CallFrame currentFrame() {
-    return Optional.of(this.callStack.top()).orElse(CallFrame.empty());
+    return Optional.of(this.callStack.current()).orElse(CallFrame.empty());
   }
 
   public long getRemainingGas() {
@@ -478,6 +483,7 @@ public class Hub implements Module {
       this.traceOperation(frame);
     } else {
       this.addTraceSection(new StackOnlySection(this));
+      // TODO: ‶return″ context line
     }
   }
 
@@ -652,6 +658,7 @@ public class Hub implements Module {
     }
     final int codeDeploymentNumber = this.conflation.deploymentInfo().number(codeAddress);
     this.callStack.enter(
+        this.stamp,
         frame.getContractAddress(),
         new Bytecode(frame.getCode().getBytes()),
         frameType,
@@ -939,37 +946,96 @@ public class Hub implements Module {
                 this.currentFrame());
         // Will be traced in one (and only one!) of these depending on the success of the operation
         this.defers.postExec(protoCreateSection);
-        this.defers.nextContext(protoCreateSection);
+        this.defers.nextContext(protoCreateSection, currentFrame().id());
       }
+
       case CALL -> {
-        Address myAddress = this.currentFrame().address();
-        Account myAccount = frame.getWorldUpdater().getAccount(myAddress);
-        AccountSnapshot myAccountSnapshot =
+        final Address myAddress = this.currentFrame().address();
+        final Account myAccount = frame.getWorldUpdater().getAccount(myAddress);
+        final AccountSnapshot myAccountSnapshot =
             AccountSnapshot.fromAccount(
                 myAccount,
                 frame.isAddressWarm(myAddress),
                 this.conflation.deploymentInfo().number(myAddress),
                 this.conflation.deploymentInfo().isDeploying(myAddress));
 
-        Address calledAddress = Words.toAddress(frame.getStackItem(1));
-        Account calledAccount = frame.getWorldUpdater().getAccount(calledAddress);
-        AccountSnapshot calledAccountSnapshot =
+        final Address calledAddress = Words.toAddress(frame.getStackItem(1));
+        final Account calledAccount = frame.getWorldUpdater().getAccount(calledAddress);
+        final AccountSnapshot calledAccountSnapshot =
             AccountSnapshot.fromAccount(
                 calledAccount,
                 frame.isAddressWarm(myAddress),
                 this.conflation.deploymentInfo().number(myAddress),
                 this.conflation.deploymentInfo().isDeploying(myAddress));
 
-        CallDefer protoCallSection =
-            new CallDefer(
-                myAccountSnapshot,
-                calledAccountSnapshot,
-                new ContextFragment(this.callStack, this.currentFrame(), updateReturnData),
-                this.currentFrame());
+        boolean targetIsPrecompile = isPrecompile(calledAddress);
 
-        this.defers.postExec(protoCallSection);
-        this.defers.nextContext(protoCallSection);
+        if (this.exceptions.any()) {
+          if (this.exceptions.staticViolation()) {
+            this.addTraceSection(
+                new AbortedCallSection(
+                    this,
+                    this.currentFrame(),
+                    new ContextFragment(this.callStack, this.currentFrame(), false),
+                    new ContextFragment(this.callStack, this.callStack().parent(), true)));
+          } else if (this.exceptions.outOfMemoryExpansion()) {
+            this.addTraceSection(
+                new AbortedCallSection(
+                    this,
+                    this.currentFrame(),
+                    new MiscFragment(this),
+                    new ContextFragment(this.callStack, this.callStack().parent(), true)));
+          } else if (this.exceptions.outOfGas()) {
+            this.addTraceSection(
+                new AbortedCallSection(
+                    this,
+                    this.currentFrame(),
+                    new MiscFragment(this),
+                    new AccountFragment(calledAccountSnapshot, calledAccountSnapshot),
+                    new ContextFragment(this.callStack, this.callStack().parent(), true)));
+          }
+        } else {
+          Wei value = Wei.ZERO;
+          if (this.currentFrame().opCode() == OpCode.CALL
+              || this.currentFrame().opCode() == OpCode.CALLCODE) {
+            value = Wei.wrap(frame.getStackItem(2));
+          }
+          final boolean abort =
+              (myAccount.getBalance().lessThan(value)) || this.callStack().wouldOverflow();
+          if (abort) {
+            TraceSection abortedSection =
+                new AbortedCallSection(
+                    this,
+                    this.currentFrame(),
+                    new CallScenarioFragment(
+                        targetIsPrecompile,
+                        calledAccount.hasCode(),
+                        true,
+                        this.currentFrame().id(),
+                        this.callStack().futureId()),
+                    new ContextFragment(this.callStack, this.currentFrame(), false),
+                    new AccountFragment(myAccountSnapshot, myAccountSnapshot),
+                    new AccountFragment(calledAccountSnapshot, calledAccountSnapshot),
+                    new ContextFragment(this.callStack, this.currentFrame(), true));
+            this.addTraceSection(abortedSection);
+          } else {
+            if (calledAccount.hasCode()) {
+              final WithCodeCallSection section = new WithCodeCallSection(this, myAccountSnapshot, calledAccountSnapshot);
+              this.defers.postExec(section);
+              this.defers.nextContext(section, currentFrame().id());
+              this.defers.postTx(section);
+            } else {
+              final NoCodeCallSection section =
+                  new NoCodeCallSection(
+                      this, targetIsPrecompile, myAccountSnapshot, calledAccountSnapshot);
+              this.defers.postExec(section);
+              this.defers.postTx(section);
+              this.addTraceSection(section);
+            }
+          }
+        }
       }
+
       case JUMP -> {
         AccountSnapshot codeAccountSnapshot =
             AccountSnapshot.fromAccount(

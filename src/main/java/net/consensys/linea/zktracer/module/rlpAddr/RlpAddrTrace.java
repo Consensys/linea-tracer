@@ -13,15 +13,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.rlppatterns;
+package net.consensys.linea.zktracer.module.rlpAddr;
 
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import lombok.Getter;
-
-public class RlpByteCountAndPowerOutput {
-  @Getter private List<BigInteger> powerList = new ArrayList<>();
-  @Getter private List<Integer> accByteSizeList = new ArrayList<>();
-}
+/**
+ * WARNING: This code is generated automatically. Any modifications to this code may be overwritten
+ * and could lead to unexpected behavior. Please DO NOT ATTEMPT TO MODIFY this code directly.
+ */
+record RlpAddrTrace(@JsonProperty("Trace") Trace trace) {}

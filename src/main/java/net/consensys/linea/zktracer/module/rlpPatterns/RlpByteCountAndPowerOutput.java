@@ -13,17 +13,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.section;
+package net.consensys.linea.zktracer.module.rlpPatterns;
 
-import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
-import net.consensys.linea.zktracer.module.runtime.callstack.CallFrame;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 
-public class CallSection extends TraceSection {
-  public CallSection(Hub hub, CallFrame callFrame, TraceFragment... chunks) {
-    this.addChunksAndStack(hub, callFrame, chunks);
-  }
+import lombok.Getter;
 
-  @Override
-  public void seal(Hub hub) {}
+public class RlpByteCountAndPowerOutput {
+  @Getter private List<BigInteger> powerList = new ArrayList<>();
+  @Getter private List<Integer> accByteSizeList = new ArrayList<>();
 }

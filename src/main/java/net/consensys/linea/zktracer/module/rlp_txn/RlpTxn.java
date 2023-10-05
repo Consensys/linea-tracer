@@ -16,11 +16,11 @@
 package net.consensys.linea.zktracer.module.rlp_txn;
 
 import static net.consensys.linea.zktracer.bytes.conversions.bigIntegerToBytes;
-import static net.consensys.linea.zktracer.module.rlppatterns.pattern.bitDecomposition;
-import static net.consensys.linea.zktracer.module.rlppatterns.pattern.byteCounting;
-import static net.consensys.linea.zktracer.module.rlppatterns.pattern.outerRlpSize;
-import static net.consensys.linea.zktracer.module.rlppatterns.pattern.padToGivenSizeWithLeftZero;
-import static net.consensys.linea.zktracer.module.rlppatterns.pattern.padToGivenSizeWithRightZero;
+import static net.consensys.linea.zktracer.module.rlpPatterns.pattern.bitDecomposition;
+import static net.consensys.linea.zktracer.module.rlpPatterns.pattern.byteCounting;
+import static net.consensys.linea.zktracer.module.rlpPatterns.pattern.outerRlpSize;
+import static net.consensys.linea.zktracer.module.rlpPatterns.pattern.padToGivenSizeWithLeftZero;
+import static net.consensys.linea.zktracer.module.rlpPatterns.pattern.padToGivenSizeWithRightZero;
 import static org.hyperledger.besu.ethereum.core.encoding.EncodingContext.BLOCK_BODY;
 import static org.hyperledger.besu.ethereum.core.encoding.TransactionEncoder.encodeOpaqueBytes;
 
@@ -33,8 +33,8 @@ import java.util.function.Function;
 import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.bytes.UnsignedByte;
 import net.consensys.linea.zktracer.module.Module;
-import net.consensys.linea.zktracer.module.rlppatterns.RlpBitDecOutput;
-import net.consensys.linea.zktracer.module.rlppatterns.RlpByteCountAndPowerOutput;
+import net.consensys.linea.zktracer.module.rlpPatterns.RlpBitDecOutput;
+import net.consensys.linea.zktracer.module.rlpPatterns.RlpByteCountAndPowerOutput;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
@@ -1200,21 +1200,17 @@ public class RlpTxn implements Module {
     }
 
     // Phase 9: Data
-    if (chunk.tx().getData().isEmpty() || chunk.tx().getInit().isEmpty()) {
-      rowSize += 1;
+    if (chunk.tx().getPayload().isEmpty()) {
+      rowSize += 2; // 1 for prefix + 1 for padding
     } else {
-      int dataSize = 0;
-      if (chunk.tx().getData().isPresent()) {
-        dataSize = chunk.tx().getData().get().size();
-      } else {
-        dataSize = chunk.tx().getInit().get().size();
-      }
-      rowSize += 8 + (dataSize - 1) / 16 + 1;
+      int dataSize = chunk.tx().getPayload().size();
+      rowSize += 8 + llarge * ((dataSize - 1) / llarge + 1);
+      rowSize += 2; // 2 lines of padding
     }
 
     // Phase 10: AccessList
     if (txType == 1 || txType == 2) {
-      if (chunk.tx().getAccessList().isEmpty()) {
+      if (chunk.tx().getAccessList().get().isEmpty()) {
         rowSize += 1;
       } else {
         // Rlp prefix of the AccessList list
@@ -1272,12 +1268,24 @@ public class RlpTxn implements Module {
 
   @Override
   public Object commit() {
+    int estTraceSize = 0;
     int absTxNum = 0;
     for (RlpTxnChunk chunk : this.chunkList) {
       absTxNum += 1;
       // TODO: recuperer les codeFragmentIndex ici
       int codeFragmentIndex = 0;
       traceChunk(chunk, absTxNum, codeFragmentIndex);
+
+      estTraceSize += ChunkRowSize(chunk);
+      if (this.builder.size() != estTraceSize) {
+        throw new RuntimeException(
+            "ChunkSize is not the right one, chunk n°: "
+                + absTxNum
+                + " estimated size ="
+                + estTraceSize
+                + " trace size ="
+                + this.builder.size());
+      }
     }
     return new RlpTxnTrace(builder.build());
   }

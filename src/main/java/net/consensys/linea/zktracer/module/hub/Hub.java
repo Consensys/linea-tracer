@@ -415,7 +415,7 @@ public class Hub implements Module {
       case CONTEXT -> {}
       case ACCOUNT -> {}
       case COPY -> {
-        //TODO: put the right exception
+        // TODO: put the right exception
         this.romLex.trace(frame);
       }
       case TRANSACTION -> {}
@@ -443,7 +443,7 @@ public class Hub implements Module {
         }
       }
       case CALL -> {
-        //TODO: put the right exception
+        // TODO: put the right exception
         this.romLex.trace(frame);
       }
       case HALT -> {}

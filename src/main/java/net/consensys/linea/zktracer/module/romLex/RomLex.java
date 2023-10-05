@@ -114,7 +114,6 @@ public class RomLex implements Module {
     OpCode opcode = OpCode.of(frame.getCurrentOperation().getOpcode());
 
     switch (opcode) {
-
       case CREATE -> {
         // TODO: get the address from the evm ?
         final Address deployementAddress =
@@ -194,7 +193,7 @@ public class RomLex implements Module {
 
       case CALL -> {
         final Address addrCall = Address.wrap(frame.getStackItem(2));
-        //TODO: finish
+        // TODO: finish
 
       }
     }

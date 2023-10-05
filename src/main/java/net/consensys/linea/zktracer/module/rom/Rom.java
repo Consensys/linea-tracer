@@ -15,14 +15,19 @@
 
 package net.consensys.linea.zktracer.module.rom;
 
+import static net.consensys.linea.zktracer.module.rlppatterns.pattern.padToGivenSizeWithRightZero;
+
 import java.math.BigInteger;
 
+import net.consensys.linea.zktracer.bytes.UnsignedByte;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.romLex.RomChunk;
 import net.consensys.linea.zktracer.module.romLex.RomLex;
+import org.apache.tuweni.bytes.Bytes;
 
 public class Rom implements Module {
   final net.consensys.linea.zktracer.module.rom.Trace.TraceBuilder builder = Trace.builder();
+  final int llarge = 16;
 
   @Override
   public String jsonKey() {
@@ -39,15 +44,25 @@ public class Rom implements Module {
   }
 
   public int chunkRowSize(RomChunk chunk) {
-    int nbSlice = (chunk.byteCode().size() + 15) / 16;
-    return 16 * nbSlice + 32;
+    int nbSlice = (chunk.byteCode().size() + (llarge - 1)) / llarge;
+    return llarge * nbSlice + 2 * llarge;
   }
 
   private void traceChunk(RomChunk chunk, int cfi) {
-    for (int i = 0; i < chunkRowSize(chunk); i++) {
+    final int chunkRowSize = chunkRowSize(chunk);
+    final int codeSize = chunk.byteCode().size();
+    Bytes dataPadded = padToGivenSizeWithRightZero(chunk.byteCode(), chunkRowSize);
+    for (int i = 0; i < chunkRowSize; i++) {
       this.builder
           .codeFragmentIndex(BigInteger.valueOf(cfi))
-          .programmeCounter(BigInteger.valueOf(i));
+          .addressHi(chunk.address().slice(0, 4).toUnsignedBigInteger())
+          .addressLo(chunk.address().slice(4, llarge).toUnsignedBigInteger())
+          .programmeCounter(BigInteger.valueOf(i))
+          .paddedBytecodeByte(UnsignedByte.of(dataPadded.get(i)))
+          .counter(BigInteger.valueOf(i % llarge))
+          .limb(dataPadded.slice(i / llarge, llarge).toUnsignedBigInteger())
+          .codesizeReached(i < codeSize)
+          .codesize(BigInteger.valueOf(codeSize));
       this.builder.validateRow();
     }
   }

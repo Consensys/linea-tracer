@@ -414,7 +414,10 @@ public class Hub implements Module {
       case KEC -> {}
       case CONTEXT -> {}
       case ACCOUNT -> {}
-      case COPY -> {}
+      case COPY -> {
+        //TODO: put the right exception
+        this.romLex.trace(frame);
+      }
       case TRANSACTION -> {}
       case BATCH -> {}
       case STACK_RAM -> {}
@@ -439,7 +442,10 @@ public class Hub implements Module {
           }
         }
       }
-      case CALL -> {}
+      case CALL -> {
+        //TODO: put the right exception
+        this.romLex.trace(frame);
+      }
       case HALT -> {}
       case INVALID -> {}
       default -> {}

@@ -19,7 +19,7 @@ import com.google.common.base.MoreObjects;
 import picocli.CommandLine;
 
 /** The Linea CLI options. */
-public class LineaCliOptions {
+public class LineaTransactionSelectorCliOptions {
   public static final int DEFAULT_MAX_TX_CALLDATA_SIZE = 60000;
   public static final int DEFAULT_MAX_BLOCK_CALLDATA_SIZE = 70000;
 
@@ -46,15 +46,15 @@ public class LineaCliOptions {
               + ")")
   private int maxBlockCalldataSize = DEFAULT_MAX_BLOCK_CALLDATA_SIZE;
 
-  private LineaCliOptions() {}
+  private LineaTransactionSelectorCliOptions() {}
 
   /**
    * Create Linea cli options.
    *
    * @return the Linea cli options
    */
-  public static LineaCliOptions create() {
-    return new LineaCliOptions();
+  public static LineaTransactionSelectorCliOptions create() {
+    return new LineaTransactionSelectorCliOptions();
   }
 
   /**
@@ -63,8 +63,8 @@ public class LineaCliOptions {
    * @param config the config
    * @return the Linea cli options
    */
-  public static LineaCliOptions fromConfig(final LineaConfiguration config) {
-    final LineaCliOptions options = create();
+  public static LineaTransactionSelectorCliOptions fromConfig(final LineaTransactionSelectorConfiguration config) {
+    final LineaTransactionSelectorCliOptions options = create();
     options.maxTxCalldataSize = config.maxTxCalldataSize();
     options.maxBlockCalldataSize = config.maxBlockCalldataSize();
 
@@ -76,8 +76,8 @@ public class LineaCliOptions {
    *
    * @return the Linea factory configuration
    */
-  public LineaConfiguration toDomainObject() {
-    return new LineaConfiguration(maxTxCalldataSize, maxBlockCalldataSize);
+  public LineaTransactionSelectorConfiguration toDomainObject() {
+    return new LineaTransactionSelectorConfiguration(maxTxCalldataSize, maxBlockCalldataSize);
   }
 
   @Override

@@ -20,4 +20,4 @@ package net.consensys.linea.sequencer.txvalidation;
  *
  * @param denyListPath the path to the file containing the address that are denied.
  */
-public record LineaConfiguration(String denyListPath) {}
+public record LineaTransactionValidatorConfiguration(String denyListPath) {}

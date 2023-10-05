@@ -15,13 +15,9 @@
 
 package net.consensys.linea.sequencer.txvalidation;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Stream;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,17 +32,10 @@ import org.hyperledger.besu.plugin.services.txvalidator.PluginTransactionValidat
 @Slf4j
 @RequiredArgsConstructor
 public class LineaTransactionValidator implements PluginTransactionValidator {
-  private final LineaTransactionValidatorCliOptions options;
-  private final AtomicBoolean needsInitialization = new AtomicBoolean(true);
-  private final List<Address> denied = new ArrayList<>();
+  private final List<Address> denied;
 
   @Override
   public boolean validateTransaction(final Transaction transaction) {
-    // Currently the cli options are not set at the time when we create the factory.
-    // That is why we do the initialization here at first use
-    if (needsInitialization.compareAndSet(true, false)) {
-      initialize();
-    }
     if (denied.contains(transaction.getSender())) {
       log.debug("Sender {} is on the deny list", transaction.getSender());
       return false;
@@ -56,20 +45,5 @@ public class LineaTransactionValidator implements PluginTransactionValidator {
       return false;
     }
     return true;
-  }
-
-  private void initialize() {
-    final LineaConfiguration lineaConfiguration = options.toDomainObject();
-    Path filePath = Paths.get(lineaConfiguration.denyListPath());
-
-    try (Stream<String> lines = Files.lines(filePath)) {
-      lines.forEach(
-          l -> {
-            final Address address = Address.fromHexString(l.trim());
-            denied.add(address);
-          });
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
   }
 }

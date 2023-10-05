@@ -29,11 +29,11 @@ import org.hyperledger.besu.plugin.services.TransactionSelectionService;
 @AutoService(BesuPlugin.class)
 public class LineaTransactionSelectorPlugin implements BesuPlugin {
   public static final String NAME = "linea";
-  private final LineaCliOptions options;
+  private final LineaTransactionSelectorCliOptions options;
   private Optional<TransactionSelectionService> service;
 
   public LineaTransactionSelectorPlugin() {
-    options = LineaCliOptions.create();
+    options = LineaTransactionSelectorCliOptions.create();
   }
 
   @Override

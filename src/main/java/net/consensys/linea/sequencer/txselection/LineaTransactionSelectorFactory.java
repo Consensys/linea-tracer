@@ -20,15 +20,15 @@ import org.hyperledger.besu.plugin.services.txselection.TransactionSelectorFacto
 
 /** Represents a factory for creating transaction selectors. */
 public class LineaTransactionSelectorFactory implements TransactionSelectorFactory {
-  private final LineaCliOptions options;
+  private final LineaTransactionSelectorCliOptions options;
 
-  public LineaTransactionSelectorFactory(final LineaCliOptions options) {
+  public LineaTransactionSelectorFactory(final LineaTransactionSelectorCliOptions options) {
     this.options = options;
   }
 
   @Override
   public TransactionSelector create() {
-    final LineaConfiguration lineaConfiguration = options.toDomainObject();
+    final LineaTransactionSelectorConfiguration lineaConfiguration = options.toDomainObject();
     return new LineaTransactionSelector(
         lineaConfiguration.maxTxCalldataSize(), lineaConfiguration.maxBlockCalldataSize());
   }

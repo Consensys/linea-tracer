@@ -50,7 +50,6 @@ public class RomLex implements Module {
   }
 
   static class RomChunkComparator implements Comparator<RomChunk> {
-
     // Initialize the ChunkList
     public int compare(RomChunk chunk1, RomChunk chunk2) {
       // First sort by Address
@@ -84,8 +83,9 @@ public class RomLex implements Module {
 
   @Override
   public void traceStartTx(WorldView worldView, Transaction tx) {
+
     // Contract creation with InitCode
-    if (tx.getInit().isPresent()) {
+    if (tx.getInit().isPresent() && !tx.getInit().get().isEmpty()) {
       // TODO: get the address from the evm ?
       final Address deployementAddress = Address.contractAddress(tx.getSender(), tx.getNonce() - 1);
       int depNumber = hub.conflation().deploymentInfo().number(deployementAddress);
@@ -224,13 +224,13 @@ public class RomLex implements Module {
     this.builder
         .codeFragmentIndex(BigInteger.valueOf(cfi))
         .codeFragmentIndexInfty(BigInteger.valueOf(cfiInfty))
-        .addrHi(chunk.address().slice(0, 4).toUnsignedBigInteger())
-        .addrLo(chunk.address().slice(4, llarge).toUnsignedBigInteger())
-        .commitToState(chunk.commitToTheState())
-        .depNumber(BigInteger.valueOf(chunk.deploymentNumber()))
-        .depStatus(chunk.deploymentStatus())
+        .addrHi(chunk.getAddress().slice(0, 4).toUnsignedBigInteger())
+        .addrLo(chunk.getAddress().slice(4, llarge).toUnsignedBigInteger())
+        .commitToState(chunk.isCommitToTheState())
+        .depNumber(BigInteger.valueOf(chunk.getDeploymentNumber()))
+        .depStatus(chunk.isDeploymentStatus())
         .isInit(chunk.isInitCode())
-        .readFromState(chunk.readFromTheState());
+        .readFromState(chunk.isReadFromTheState());
     this.builder.validateRow();
   }
 

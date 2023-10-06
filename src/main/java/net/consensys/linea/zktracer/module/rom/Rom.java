@@ -44,25 +44,39 @@ public class Rom implements Module {
   }
 
   public int chunkRowSize(RomChunk chunk) {
-    int nbSlice = (chunk.byteCode().size() + (llarge - 1)) / llarge;
-    return llarge * nbSlice + 2 * llarge;
+    final int nPaddingRow = 32;
+    final int codeSize = chunk.getByteCode().size();
+    final int nbSlice = (codeSize + (llarge - 1)) / llarge;
+
+    return llarge * nbSlice + nPaddingRow;
   }
 
   private void traceChunk(RomChunk chunk, int cfi) {
     final int chunkRowSize = chunkRowSize(chunk);
-    final int codeSize = chunk.byteCode().size();
-    Bytes dataPadded = padToGivenSizeWithRightZero(chunk.byteCode(), chunkRowSize);
+    final int codeSize = chunk.getByteCode().size();
+    final int nbSlice = (codeSize + (llarge - 1)) / llarge;
+    Bytes dataPadded = padToGivenSizeWithRightZero(chunk.getByteCode(), chunkRowSize);
     for (int i = 0; i < chunkRowSize; i++) {
       this.builder
           .codeFragmentIndex(BigInteger.valueOf(cfi))
-          .addressHi(chunk.address().slice(0, 4).toUnsignedBigInteger())
-          .addressLo(chunk.address().slice(4, llarge).toUnsignedBigInteger())
+          .addressHi(chunk.getAddress().slice(0, 4).toUnsignedBigInteger())
+          .addressLo(chunk.getAddress().slice(4, llarge).toUnsignedBigInteger())
           .programmeCounter(BigInteger.valueOf(i))
-          .paddedBytecodeByte(UnsignedByte.of(dataPadded.get(i)))
-          .counter(BigInteger.valueOf(i % llarge))
           .limb(dataPadded.slice(i / llarge, llarge).toUnsignedBigInteger())
-          .codesizeReached(i < codeSize)
           .codesize(BigInteger.valueOf(codeSize));
+      if (i < codeSize) {
+        this.builder
+            .codesizeReached(false)
+            .paddedBytecodeByte(UnsignedByte.of(chunk.byteCode().get(i)));
+      } else {
+        this.builder.codesizeReached(true).paddedBytecodeByte(UnsignedByte.of(0));
+      }
+      final int nRowData = nbSlice * llarge;
+      if (i < nRowData) {
+        this.builder.counter(BigInteger.valueOf(i % llarge));
+      } else {
+        this.builder.counter(BigInteger.valueOf(i - nRowData));
+      }
       this.builder.validateRow();
     }
   }
@@ -72,6 +86,7 @@ public class Rom implements Module {
     int expectedTraceSize = 0;
     int cfi = 0;
     for (RomChunk chunk : RomLex.chunkList) {
+      cfi += 1;
       traceChunk(chunk, cfi);
       expectedTraceSize += chunkRowSize(chunk);
       if (this.builder.size() != expectedTraceSize) {

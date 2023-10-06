@@ -155,7 +155,7 @@ public class Hub implements Module {
   private final Module mul = new Mul();
   private final Module shf = new Shf();
   private final Module wcp = new Wcp();
-  private final RlpTxn rlpTxn = new RlpTxn();
+  private final RlpTxn rlpTxn;
   private final RlpTxrcpt rlpTxrcpt = new RlpTxrcpt();
   private final RlpAddr rlpAddr = new RlpAddr();
   private final List<Module> modules;
@@ -175,6 +175,7 @@ public class Hub implements Module {
             this.rlpTxrcpt,
             this.rlpAddr);
     this.romLex = new RomLex(this);
+    this.rlpTxn = new RlpTxn(this);
   }
 
   /**

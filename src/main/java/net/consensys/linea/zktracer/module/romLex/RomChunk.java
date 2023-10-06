@@ -15,10 +15,9 @@
 
 package net.consensys.linea.zktracer.module.romLex;
 
-import lombok.Getter;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
-@Getter
+
 public record RomChunk(
     Address address,
     int deploymentNumber,

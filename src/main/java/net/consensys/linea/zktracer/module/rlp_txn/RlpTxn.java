@@ -34,8 +34,11 @@ import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.bytes.UnsignedByte;
 import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.rlputils.BitDecOutput;
 import net.consensys.linea.zktracer.module.rlputils.ByteCountAndPowerOutput;
+import net.consensys.linea.zktracer.module.romLex.RomChunk;
+import net.consensys.linea.zktracer.module.romLex.RomLex;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
@@ -50,6 +53,12 @@ import org.hyperledger.besu.ethereum.rlp.RLPOutput;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class RlpTxn implements Module {
+  private final Hub hub;
+
+  public RlpTxn(Hub hub) {
+    this.hub = hub;
+  }
+
   final Trace.TraceBuilder builder = Trace.builder();
   public static final int llarge = TxnrlpTrace.LLARGE.intValue();
   public static final Bytes bytesPrefixShortInt =
@@ -66,6 +75,7 @@ public class RlpTxn implements Module {
       bytesPrefixShortList.toUnsignedBigInteger().intValueExact();
   public static final Bytes bytesPrefixLongList =
       bigIntegerToBytes(BigInteger.valueOf(TxnrlpTrace.list_long.intValue()));
+
   public static final int intPrefixLongList =
       bytesPrefixLongList.toUnsignedBigInteger().intValueExact();
 
@@ -73,6 +83,7 @@ public class RlpTxn implements Module {
 
   // Used to check the reconstruction of RLPs
   Bytes reconstructedRlpLt;
+
   Bytes reconstructedRlpLx;
 
   @Override
@@ -92,13 +103,43 @@ public class RlpTxn implements Module {
 
   @Override
   public void traceStartTx(WorldView worldView, Transaction tx) {
-    boolean requiresEvmExecution;
-    if (tx.getTo().isEmpty()) {
-      requiresEvmExecution = tx.getInit().isPresent();
-    } else {
-      requiresEvmExecution = worldView.get(tx.getTo().get()).hasCode();
+
+    // Contract Creation
+    if (tx.getTo().isEmpty() && !tx.getInit().get().isEmpty()) {
+      // TODO: get the address from the evm ?
+      Address address = Address.contractAddress(tx.getSender(), tx.getNonce() - 1);
+      int depNumber = hub.conflation().deploymentInfo().number(address);
+      // TODO: deploymentStatus == isDeploying ??
+      boolean depStatus = hub.conflation().deploymentInfo().isDeploying(address);
+
+      this.chunkList.add(
+          new RlpTxnChunk(
+              tx, true, address, depNumber, depStatus, true, false, false, tx.getInit().get()));
     }
-    this.chunkList.add(new RlpTxnChunk(tx, requiresEvmExecution));
+
+    // Call to a non-empty smart contract
+    else if (tx.getTo().isPresent() && worldView.get(tx.getTo().get()).hasCode()) {
+
+      int depNumber = hub.conflation().deploymentInfo().number(tx.getTo().get());
+      // TODO: deploymentStatus == isDeploying ??
+      boolean depStatus = hub.conflation().deploymentInfo().isDeploying(tx.getTo().get());
+      this.chunkList.add(
+          new RlpTxnChunk(
+              tx,
+              true,
+              tx.getTo().get(),
+              depNumber,
+              depStatus,
+              false,
+              true,
+              false,
+              worldView.get(tx.getTo().get()).getCode()));
+    }
+
+    // Contract doesn't require EVM execution
+    else {
+      this.chunkList.add(new RlpTxnChunk(tx, false));
+    }
   }
 
   public void traceChunk(RlpTxnChunk chunk, int absTxNum, int codeFragmentIndex) {
@@ -1283,8 +1324,21 @@ public class RlpTxn implements Module {
     int absTxNum = 0;
     for (RlpTxnChunk chunk : this.chunkList) {
       absTxNum += 1;
-      // TODO: recuperer les codeFragmentIndex ici
+
       int codeFragmentIndex = 0;
+      if (chunk.requireEvmExecution()) {
+        RomChunk romChunk =
+            new RomChunk(
+                chunk.addr().get(),
+                chunk.depNumber().get(),
+                chunk.depStatus().get(),
+                chunk.initCode().get(),
+                chunk.readFromState().get(),
+                chunk.commitToState().get(),
+                chunk.byteCode().get());
+        codeFragmentIndex = RomLex.chunkList.headSet(romChunk).size();
+      }
+      // TODO: recuperer les codeFragmentIndex ici
       traceChunk(chunk, absTxNum, codeFragmentIndex);
 
       estTraceSize += ChunkRowSize(chunk);

@@ -45,7 +45,7 @@ public class Rom implements Module {
 
   public int chunkRowSize(RomChunk chunk) {
     final int nPaddingRow = 32;
-    final int codeSize = chunk.getByteCode().size();
+    final int codeSize = chunk.byteCode().size();
     final int nbSlice = (codeSize + (llarge - 1)) / llarge;
 
     return llarge * nbSlice + nPaddingRow;
@@ -53,14 +53,14 @@ public class Rom implements Module {
 
   private void traceChunk(RomChunk chunk, int cfi) {
     final int chunkRowSize = chunkRowSize(chunk);
-    final int codeSize = chunk.getByteCode().size();
+    final int codeSize = chunk.byteCode().size();
     final int nbSlice = (codeSize + (llarge - 1)) / llarge;
-    Bytes dataPadded = padToGivenSizeWithRightZero(chunk.getByteCode(), chunkRowSize);
+    Bytes dataPadded = padToGivenSizeWithRightZero(chunk.byteCode(), chunkRowSize);
     for (int i = 0; i < chunkRowSize; i++) {
       this.builder
           .codeFragmentIndex(BigInteger.valueOf(cfi))
-          .addressHi(chunk.getAddress().slice(0, 4).toUnsignedBigInteger())
-          .addressLo(chunk.getAddress().slice(4, llarge).toUnsignedBigInteger())
+          .addressHi(chunk.address().slice(0, 4).toUnsignedBigInteger())
+          .addressLo(chunk.address().slice(4, llarge).toUnsignedBigInteger())
           .programmeCounter(BigInteger.valueOf(i))
           .limb(dataPadded.slice(i / llarge, llarge).toUnsignedBigInteger())
           .codesize(BigInteger.valueOf(codeSize));

@@ -90,12 +90,11 @@ public class RomLex implements Module {
       final Address deployementAddress = Address.contractAddress(tx.getSender(), tx.getNonce() - 1);
       int depNumber = hub.conflation().deploymentInfo().number(deployementAddress);
       // TODO: deploymentStatus == isDeploying ??
-      boolean depStatus;
-      depStatus = hub.conflation().deploymentInfo().isDeploying(deployementAddress);
+      boolean depStatus = hub.conflation().deploymentInfo().isDeploying(deployementAddress);
 
       final RomChunk chunk =
           new RomChunk(
-              deployementAddress, depNumber, depStatus, true, false, true, tx.getInit().get());
+              deployementAddress, depNumber, depStatus, true, false, false, tx.getInit().get());
       chunkList.add(chunk);
     }
 
@@ -224,13 +223,13 @@ public class RomLex implements Module {
     this.builder
         .codeFragmentIndex(BigInteger.valueOf(cfi))
         .codeFragmentIndexInfty(BigInteger.valueOf(cfiInfty))
-        .addrHi(chunk.getAddress().slice(0, 4).toUnsignedBigInteger())
-        .addrLo(chunk.getAddress().slice(4, llarge).toUnsignedBigInteger())
-        .commitToState(chunk.isCommitToTheState())
-        .depNumber(BigInteger.valueOf(chunk.getDeploymentNumber()))
-        .depStatus(chunk.isDeploymentStatus())
-        .isInit(chunk.isInitCode())
-        .readFromState(chunk.isReadFromTheState());
+        .addrHi(chunk.address().slice(0, 4).toUnsignedBigInteger())
+        .addrLo(chunk.address().slice(4, llarge).toUnsignedBigInteger())
+        .commitToState(chunk.commitToTheState())
+        .depNumber(BigInteger.valueOf(chunk.deploymentNumber()))
+        .depStatus(chunk.deploymentStatus())
+        .isInit(chunk.initCode())
+        .readFromState(chunk.readFromTheState());
     this.builder.validateRow();
   }
 

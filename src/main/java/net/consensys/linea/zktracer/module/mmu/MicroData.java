@@ -206,7 +206,7 @@ class MicroData {
 
   void setInfo(final CallStack callStack) {
     if (Arrays.asList(OpCode.CODECOPY, OpCode.RETURN).contains(opCode)) {
-      info = callStack.top().getType() == CallFrameType.INIT_CODE;
+      info = callStack.top().type() == CallFrameType.INIT_CODE;
       // TODO: settle EXTCODEDOPY info for CODECOPY
     } else if (opCode == OpCode.CALLDATACOPY) {
       info = callStack.depth() == 1;
@@ -214,7 +214,7 @@ class MicroData {
   }
 
   void setContext(final boolean isMicro, final CallStack callStack) {
-    contexts.target(callStack.top().getContextNumber());
+    contexts.target(callStack.top().contextNumber());
 
     switch (opCode) {
       case RETURNDATACOPY -> {
@@ -235,7 +235,7 @@ class MicroData {
         }
 
         if (callStackDepth != 1) {
-          contexts.source(callStack.caller().getContextNumber());
+          contexts.source(callStack.caller().contextNumber());
         } else {
           contexts.source(0);
         }

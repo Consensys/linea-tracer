@@ -53,7 +53,6 @@ public final class CallStack {
       Wei value,
       long gas,
       Bytes callData,
-      int contextNumber,
       int accountDeploymentNumber,
       int codeDeploymentNumber,
       boolean codeDeploymentStatus) {
@@ -66,7 +65,6 @@ public final class CallStack {
         value,
         gas,
         callData,
-        contextNumber,
         accountDeploymentNumber,
         codeDeploymentNumber,
         codeDeploymentStatus);
@@ -93,7 +91,6 @@ public final class CallStack {
    * @param value the value given to this call frame
    * @param gas the gas provided to this call frame
    * @param input the call data sent to this call frame
-   * @param contextNumber the context number associated to this frame in the {@link Hub}
    * @param accountDeploymentNumber
    * @param codeDeploymentNumber
    * @param isDeployment
@@ -105,7 +102,6 @@ public final class CallStack {
       Wei value,
       long gas,
       Bytes input,
-      int contextNumber,
       int accountDeploymentNumber,
       int codeDeploymentNumber,
       boolean isDeployment) {
@@ -121,7 +117,6 @@ public final class CallStack {
     this.depth += 1;
     CallFrame newFrame =
         new CallFrame(
-            contextNumber,
             accountDeploymentNumber,
             codeDeploymentNumber,
             isDeployment,
@@ -137,7 +132,7 @@ public final class CallStack {
 
     this.frames.add(newFrame);
     this.current = newTop;
-    this.frames.get(caller).getChildFrames().add(newTop);
+    this.frames.get(caller).childFrames().add(newTop);
   }
 
   /**
@@ -151,9 +146,9 @@ public final class CallStack {
     this.depth -= 1;
     Preconditions.checkState(this.depth >= 0);
 
-    final int parent = this.top().getParentFrame();
-    this.frames.get(parent).getChildFrames().add(this.current);
-    this.frames.get(parent).setReturnData(returnData);
+    final int parent = this.top().parentFrame();
+    this.frames.get(parent).childFrames().add(this.current);
+    this.frames.get(parent).returnData(returnData);
     this.current = parent;
   }
 
@@ -168,7 +163,7 @@ public final class CallStack {
    * @return whether the current frame is a static context
    */
   public boolean isStatic() {
-    return this.top().getType() == CallFrameType.STATIC;
+    return this.top().type() == CallFrameType.STATIC;
   }
 
   /**
@@ -177,7 +172,7 @@ public final class CallStack {
    * @return the caller of the current frame
    */
   public CallFrame caller() {
-    return this.frames.get(this.top().getParentFrame());
+    return this.frames.get(this.top().parentFrame());
   }
 
   /**
@@ -199,7 +194,7 @@ public final class CallStack {
    * @throws IndexOutOfBoundsException if the index is out of range
    */
   public CallFrame getParentOf(int i) {
-    return this.get(this.frames.get(i).getParentFrame());
+    return this.get(this.frames.get(i).parentFrame());
   }
 
   public void revert(int stamp) {

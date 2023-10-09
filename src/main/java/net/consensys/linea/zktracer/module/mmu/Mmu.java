@@ -15,8 +15,6 @@
 
 package net.consensys.linea.zktracer.module.mmu;
 
-import java.util.List;
-
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.opcode.OpCode;
 
@@ -35,8 +33,8 @@ public class Mmu implements Module {
   }
 
   @Override
-  public List<OpCode> supportedOpCodes() {
-    return null;
+  public int lineCount() {
+    return 0;
   }
 
   @Override

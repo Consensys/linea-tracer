@@ -17,7 +17,6 @@ package net.consensys.linea.zktracer.module.add;
 
 import java.math.BigInteger;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import net.consensys.linea.zktracer.bytestheta.BaseBytes;
@@ -45,11 +44,6 @@ public class Add implements Module {
   @Override
   public String jsonKey() {
     return ADD_JSON_KEY;
-  }
-
-  @Override
-  public final List<OpCode> supportedOpCodes() {
-    return List.of(OpCode.ADD, OpCode.SUB);
   }
 
   @Override
@@ -162,5 +156,16 @@ public class Add implements Module {
     }
 
     return new AddTrace(trace.build());
+  }
+
+  @Override
+  public int lineCount() {
+    int r = 0;
+    for (Map.Entry<OpCode, Map<Bytes32, Bytes32>> op : this.chunks.entrySet()) {
+      for (Map.Entry<Bytes32, Bytes32> ignored : op.getValue().entrySet()) {
+        r += 16;
+      }
+    }
+    return r;
   }
 }

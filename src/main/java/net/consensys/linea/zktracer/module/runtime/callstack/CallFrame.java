@@ -21,23 +21,28 @@ import java.util.Optional;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Bytecode;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.memory.MemorySpan;
+import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.stack.Stack;
 import net.consensys.linea.zktracer.stack.StackContext;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
+import org.hyperledger.besu.evm.frame.MessageFrame;
 
+@Accessors(fluent = true)
 public class CallFrame {
-  /** the position of this {@link CallFrame} in the {@link CallStack}. */
+  /**
+   * the position of this {@link CallFrame} in the {@link CallStack}, also its associated context
+   * number in the {@link Hub}.
+   */
   @Getter private int id;
   /** the depth of this CallFrame within its call hierarchy. */
   @Getter private int depth;
-  /** the associated context number in the {@link Hub}. */
-  @Getter private int contextNumber;
   /** */
   @Getter private int accountDeploymentNumber;
   /** */
@@ -50,15 +55,19 @@ public class CallFrame {
   @Getter private List<Integer> childFrames = new ArrayList<>();
 
   /** the {@link Address} of the account executing this {@link CallFrame}. */
-  @Getter private Address address;
+  @Getter private Address address = Address.ZERO; // TODO:
   /** the {@link Address} of the code executed in this {@link CallFrame}. */
-  @Getter private Address codeAddress;
+  @Getter private Address codeAddress = Address.ALTBN128_ADD;
 
   /** the {@link CallFrameType} of this frame. */
   @Getter private CallFrameType type;
 
   /** the {@link Bytecode} executing within this frame. */
   private Bytecode code;
+
+  @Getter @Setter private int pc;
+  @Getter @Setter private OpCode opCode = OpCode.STOP;
+  @Getter private MessageFrame frame;
 
   /** the ether amount given to this frame. */
   @Getter private Wei value;
@@ -68,16 +77,16 @@ public class CallFrame {
   /** the call data given to this frame. */
   @Getter private Bytes callData;
   /** the call data span in the parent memory. */
-  @Getter private MemorySpan callDataPointer;
+  @Getter private final MemorySpan callDataPointer = new MemorySpan(0, 0);
   /** the data returned by the latest callee. */
-  @Getter @Setter private Bytes returnData;
+  @Getter @Setter private Bytes returnData = Bytes.EMPTY;
   /** returnData position within the latest callee memory space. */
-  @Getter private MemorySpan returnDataPointer;
+  @Getter private MemorySpan returnDataPointer = new MemorySpan(0, 0);
   /** where this frame is expected to write its returnData within its parent's memory space. */
-  @Getter private MemorySpan returnDataTarget;
+  @Getter private MemorySpan returnDataTarget = new MemorySpan(0, 0);
 
-  @Getter @Setter private int selfReverts = 0;
-  @Getter @Setter private int getsReverted = 0;
+  @Getter @Setter private int selfRevertsAt = 0;
+  @Getter @Setter private int getsRevertedAt = 0;
 
   /** this frame {@link Stack}. */
   @Getter private final Stack stack = new Stack();
@@ -90,10 +99,13 @@ public class CallFrame {
     this.type = CallFrameType.BEDROCK;
   }
 
+  public static CallFrame empty() {
+    return new CallFrame();
+  }
+
   /**
    * Create a normal (non-root) call frame.
    *
-   * @param contextNumber the CN of this frame in the {@link Hub}
    * @param accountDeploymentNumber the DN of this frame in the {@link Hub}
    * @param codeDeploymentNumber the DN of this frame in the {@link Hub}
    * @param isDeployment whether the executing code is initcode
@@ -106,7 +118,6 @@ public class CallFrame {
    * @param callData {@link Bytes} containing this frame call data
    */
   CallFrame(
-      int contextNumber,
       int accountDeploymentNumber,
       int codeDeploymentNumber,
       boolean isDeployment,
@@ -119,7 +130,6 @@ public class CallFrame {
       long gas,
       Bytes callData,
       int depth) {
-    this.contextNumber = contextNumber;
     this.accountDeploymentNumber = accountDeploymentNumber;
     this.codeDeploymentNumber = codeDeploymentNumber;
     this.codeDeploymentStatus = isDeployment;
@@ -166,8 +176,8 @@ public class CallFrame {
   }
 
   private void revertChildren(CallStack callStack, int stamp) {
-    if (this.getsReverted == 0) {
-      this.getsReverted = stamp;
+    if (this.getsRevertedAt == 0) {
+      this.getsRevertedAt = stamp;
       this.childFrames.stream()
           .map(callStack::get)
           .forEach(frame -> frame.revertChildren(callStack, stamp));
@@ -175,8 +185,8 @@ public class CallFrame {
   }
 
   public void revert(CallStack callStack, int stamp) {
-    if (this.selfReverts == 0) {
-      this.selfReverts = stamp;
+    if (this.selfRevertsAt == 0) {
+      this.selfRevertsAt = stamp;
       this.revertChildren(callStack, stamp);
     } else {
       throw new RuntimeException("a context can not self-reverse twice");
@@ -184,6 +194,17 @@ public class CallFrame {
   }
 
   public boolean hasReverted() {
-    return (this.selfReverts > 0) || (this.getsReverted > 0);
+    return (this.selfRevertsAt > 0) || (this.getsRevertedAt > 0);
+  }
+
+  public void frame(MessageFrame frame) {
+    this.frame = frame;
+    this.opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
+    this.pc = frame.getPC();
+  }
+
+  // TODO: remove me when we ensured that ID == contextNumber
+  public int contextNumber() {
+    return this.id;
   }
 }

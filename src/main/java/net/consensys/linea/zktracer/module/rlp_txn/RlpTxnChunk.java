@@ -17,52 +17,15 @@ package net.consensys.linea.zktracer.module.rlp_txn;
 
 import java.util.Optional;
 
-import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 
 public record RlpTxnChunk(
-    Transaction tx,
-    boolean requireEvmExecution,
-    Optional<Address> addr,
-    Optional<Integer> depNumber,
-    Optional<Boolean> depStatus,
-    Optional<Boolean> initCode,
-    Optional<Boolean> readFromState,
-    Optional<Boolean> commitToState,
-    Optional<Bytes> byteCode) {
+    Transaction tx, boolean requireEvmExecution, Optional<Integer> codeIdentifierPreLexOrder) {
   public RlpTxnChunk(Transaction tx, boolean requireEvmExecution) {
-    this(
-        tx,
-        requireEvmExecution,
-        Optional.empty(),
-        Optional.empty(),
-        Optional.empty(),
-        Optional.empty(),
-        Optional.empty(),
-        Optional.empty(),
-        Optional.empty());
+    this(tx, requireEvmExecution, Optional.empty());
   }
 
-  public RlpTxnChunk(
-      Transaction tx,
-      boolean requireEvmExecution,
-      Address address,
-      Integer depNumber,
-      Boolean depStatus,
-      Boolean initCode,
-      Boolean readFromState,
-      Boolean commitToState,
-      Bytes byteCode) {
-    this(
-        tx,
-        requireEvmExecution,
-        Optional.of(address),
-        Optional.of(depNumber),
-        Optional.of(depStatus),
-        Optional.of(initCode),
-        Optional.of(readFromState),
-        Optional.of(commitToState),
-        Optional.of(byteCode));
+  public RlpTxnChunk(Transaction tx, boolean requireEvmExecution, int codeIdentifierPreLexOrder) {
+    this(tx, requireEvmExecution, Optional.of(codeIdentifierPreLexOrder));
   }
 }

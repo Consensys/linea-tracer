@@ -21,6 +21,8 @@ import static net.consensys.linea.zktracer.module.rlputils.Pattern.byteCounting;
 import static net.consensys.linea.zktracer.module.rlputils.Pattern.outerRlpSize;
 import static net.consensys.linea.zktracer.module.rlputils.Pattern.padToGivenSizeWithLeftZero;
 import static net.consensys.linea.zktracer.module.rlputils.Pattern.padToGivenSizeWithRightZero;
+import static net.consensys.linea.zktracer.module.romLex.RomLex.chunkMap;
+import static net.consensys.linea.zktracer.module.romLex.RomLex.getKeyByValue;
 import static org.hyperledger.besu.ethereum.core.encoding.EncodingContext.BLOCK_BODY;
 import static org.hyperledger.besu.ethereum.core.encoding.TransactionEncoder.encodeOpaqueBytes;
 
@@ -59,6 +61,11 @@ public class RlpTxn implements Module {
     this.hub = hub;
   }
 
+  @Override
+  public String jsonKey() {
+    return "rlpTxn";
+  }
+
   final Trace.TraceBuilder builder = Trace.builder();
   public static final int llarge = TxnrlpTrace.LLARGE.intValue();
   public static final Bytes bytesPrefixShortInt =
@@ -87,11 +94,6 @@ public class RlpTxn implements Module {
   Bytes reconstructedRlpLx;
 
   @Override
-  public String jsonKey() {
-    return "rlpTxn";
-  }
-
-  @Override
   public void enterTransaction() {
     this.chunkList.enter();
   }
@@ -106,34 +108,13 @@ public class RlpTxn implements Module {
 
     // Contract Creation
     if (tx.getTo().isEmpty() && !tx.getInit().get().isEmpty()) {
-      // TODO: get the address from the evm ?
-      Address address = Address.contractAddress(tx.getSender(), tx.getNonce() - 1);
-      int depNumber = hub.conflation().deploymentInfo().number(address);
-      // TODO: deploymentStatus == isDeploying ??
-      boolean depStatus = hub.conflation().deploymentInfo().isDeploying(address);
-
-      this.chunkList.add(
-          new RlpTxnChunk(
-              tx, true, address, depNumber, depStatus, true, false, false, tx.getInit().get()));
+      this.chunkList.add(new RlpTxnChunk(tx, true, RomLex.codeIdentifierBeforeLexOrder));
     }
 
     // Call to a non-empty smart contract
     else if (tx.getTo().isPresent() && worldView.get(tx.getTo().get()).hasCode()) {
 
-      int depNumber = hub.conflation().deploymentInfo().number(tx.getTo().get());
-      // TODO: deploymentStatus == isDeploying ??
-      boolean depStatus = hub.conflation().deploymentInfo().isDeploying(tx.getTo().get());
-      this.chunkList.add(
-          new RlpTxnChunk(
-              tx,
-              true,
-              tx.getTo().get(),
-              depNumber,
-              depStatus,
-              false,
-              true,
-              false,
-              worldView.get(tx.getTo().get()).getCode()));
+      this.chunkList.add(new RlpTxnChunk(tx, true, RomLex.codeIdentifierBeforeLexOrder));
     }
 
     // Contract doesn't require EVM execution
@@ -1326,19 +1307,11 @@ public class RlpTxn implements Module {
       absTxNum += 1;
 
       int codeFragmentIndex = 0;
-      if (chunk.requireEvmExecution()) {
-        RomChunk romChunk =
-            new RomChunk(
-                chunk.addr().get(),
-                chunk.depNumber().get(),
-                chunk.depStatus().get(),
-                chunk.initCode().get(),
-                chunk.readFromState().get(),
-                chunk.commitToState().get(),
-                chunk.byteCode().get());
-        codeFragmentIndex = RomLex.chunkList.headSet(romChunk).size();
+      if (chunk.codeIdentifierPreLexOrder().isPresent()) {
+        RomChunk romChunk = getKeyByValue(chunkMap, chunk.codeIdentifierPreLexOrder().get());
+        codeFragmentIndex = chunkMap.headMap(romChunk).size();
       }
-      // TODO: recuperer les codeFragmentIndex ici
+
       traceChunk(chunk, absTxNum, codeFragmentIndex);
 
       estTraceSize += ChunkRowSize(chunk);

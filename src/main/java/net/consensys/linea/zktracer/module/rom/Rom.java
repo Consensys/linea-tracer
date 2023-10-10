@@ -28,6 +28,11 @@ import org.apache.tuweni.bytes.Bytes;
 public class Rom implements Module {
   final net.consensys.linea.zktracer.module.rom.Trace.TraceBuilder builder = Trace.builder();
   final int llarge = 16;
+  final int llargeMO = 15;
+  final int evmWordMO = 31;
+  final int push0 = 0x60;
+  final int push32 = 0x7F;
+  final UnsignedByte invalid = UnsignedByte.of(0x00); // TODO put the right value
 
   @Override
   public String jsonKey() {
@@ -37,7 +42,7 @@ public class Rom implements Module {
   @Override
   public int lineCount() {
     int traceRowSize = 0;
-    for (RomChunk chunk : RomLex.chunkList) {
+    for (RomChunk chunk : RomLex.chunkMap.keySet()) {
       traceRowSize += chunkRowSize(chunk);
     }
     return traceRowSize;
@@ -55,28 +60,121 @@ public class Rom implements Module {
     final int chunkRowSize = chunkRowSize(chunk);
     final int codeSize = chunk.byteCode().size();
     final int nbSlice = (codeSize + (llarge - 1)) / llarge;
-    Bytes dataPadded = padToGivenSizeWithRightZero(chunk.byteCode(), chunkRowSize);
+    final Bytes dataPadded = padToGivenSizeWithRightZero(chunk.byteCode(), chunkRowSize);
+    final int nRowData = nbSlice * llarge;
+    final int nBytesLastRow = codeSize % llarge;
+    int pushParameter = 0;
+    int ctPush = 0;
+    Bytes pushValueHigh = Bytes.minimalBytes(0);
+    Bytes pushValueLow = Bytes.minimalBytes(0);
+
     for (int i = 0; i < chunkRowSize; i++) {
+      boolean codeSizeReached = i >= codeSize;
+      int sliceNumber = i / 16 + 1;
+      if (sliceNumber == nbSlice + 2) {
+        sliceNumber = nbSlice + 1;
+      }
+
+      // Fill Generic columns
       this.builder
           .codeFragmentIndex(BigInteger.valueOf(cfi))
-          .addressHi(chunk.address().slice(0, 4).toUnsignedBigInteger())
-          .addressLo(chunk.address().slice(4, llarge).toUnsignedBigInteger())
           .programmeCounter(BigInteger.valueOf(i))
           .limb(dataPadded.slice(i / llarge, llarge).toUnsignedBigInteger())
-          .codesize(BigInteger.valueOf(codeSize));
-      if (i < codeSize) {
-        this.builder
-            .codesizeReached(false)
-            .paddedBytecodeByte(UnsignedByte.of(chunk.byteCode().get(i)));
+          .codesize(BigInteger.valueOf(codeSize))
+          .paddedBytecodeByte(UnsignedByte.of(dataPadded.get(i)))
+          .acc(dataPadded.slice(sliceNumber * llarge, (i % llarge) + 1).toUnsignedBigInteger())
+          .codesizeReached(codeSizeReached)
+          .index(BigInteger.valueOf(sliceNumber));
+      if (sliceNumber <= nbSlice) {
+        this.builder.counterMax(BigInteger.valueOf(llargeMO));
       } else {
-        this.builder.codesizeReached(true).paddedBytecodeByte(UnsignedByte.of(0));
+        this.builder.counterMax(BigInteger.valueOf(evmWordMO));
       }
-      final int nRowData = nbSlice * llarge;
+
+      // Fill CT, nBYTES, nBYTES_ACC
       if (i < nRowData) {
         this.builder.counter(BigInteger.valueOf(i % llarge));
+        if (sliceNumber < nbSlice) {
+          this.builder
+              .nBytes(BigInteger.valueOf(llarge))
+              .nBytesAcc(BigInteger.valueOf((i % llarge) + 1));
+        } else {
+          this.builder
+              .nBytes(BigInteger.valueOf(nBytesLastRow))
+              .nBytesAcc(
+                  BigInteger.valueOf(nBytesLastRow).min(BigInteger.valueOf((i % llarge) + 1)));
+        }
+
       } else {
-        this.builder.counter(BigInteger.valueOf(i - nRowData));
+        this.builder
+            .counter(BigInteger.valueOf(i - nRowData))
+            .nBytes(BigInteger.ZERO)
+            .nBytesAcc(BigInteger.ZERO);
       }
+
+      // Deal when not in a PUSH instruction
+      if (pushParameter == 0) {
+        UnsignedByte opCode = UnsignedByte.of(dataPadded.get(i));
+        Boolean isPush = false;
+
+        // The OpCode is a PUSH instruction
+        if (push0 <= opCode.toInteger() && opCode.toInteger() < +push32) {
+          isPush = true;
+          pushParameter = opCode.toInteger() - push0 + 1;
+          if (pushParameter > llarge) {
+            pushValueHigh = dataPadded.slice(i + 1, pushParameter - llarge);
+            pushValueLow = dataPadded.slice(i + 1 + pushParameter - llarge, llarge);
+          } else {
+            pushValueLow = dataPadded.slice(i + 1, pushParameter);
+          }
+        }
+
+        this.builder
+            .isPush(isPush)
+            .isPushData(false)
+            .opcode(opCode)
+            .pushParameter(BigInteger.valueOf(pushParameter))
+            .counterPush(BigInteger.ZERO)
+            .pushValueAcc(BigInteger.ZERO)
+            .pushValueHigh(pushValueHigh.toUnsignedBigInteger())
+            .pushValueLow(pushValueLow.toUnsignedBigInteger())
+            .pushFunnelBit(false)
+            .validJumpDestination(opCode == invalid);
+      }
+
+      // Deal when in a PUSH instruction
+      else {
+        ctPush += 1;
+        this.builder
+            .isPush(false)
+            .isPushData(true)
+            .opcode(invalid)
+            .pushParameter(BigInteger.valueOf(pushParameter))
+            .pushValueHigh(pushValueHigh.toUnsignedBigInteger())
+            .pushValueLow(pushValueLow.toUnsignedBigInteger())
+            .counterPush(BigInteger.valueOf(ctPush))
+            .pushFunnelBit(ctPush > llarge)
+            .validJumpDestination(false);
+
+        if (pushParameter <= llarge) {
+          this.builder.pushValueAcc(pushValueLow.slice(0, ctPush).toUnsignedBigInteger());
+        } else {
+          if (ctPush <= llarge) {
+            this.builder.pushValueAcc(pushValueHigh.slice(0, ctPush).toUnsignedBigInteger());
+          } else {
+            this.builder.pushValueAcc(
+                pushValueLow.slice(0, ctPush - llarge).toUnsignedBigInteger());
+          }
+        }
+
+        // reinitialise push constant data
+        if (ctPush == pushParameter) {
+          pushParameter = 0;
+          pushValueHigh = Bytes.minimalBytes(0);
+          pushValueLow = Bytes.minimalBytes(0);
+        }
+      }
+
       this.builder.validateRow();
     }
   }
@@ -85,7 +183,7 @@ public class Rom implements Module {
   public Object commit() {
     int expectedTraceSize = 0;
     int cfi = 0;
-    for (RomChunk chunk : RomLex.chunkList) {
+    for (RomChunk chunk : RomLex.chunkMap.keySet()) {
       cfi += 1;
       traceChunk(chunk, cfi);
       expectedTraceSize += chunkRowSize(chunk);

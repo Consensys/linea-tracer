@@ -40,11 +40,15 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
   private final ZkTraceBuilder zkTraceBuilder = new ZkTraceBuilder();
   private final Hub hub;
 
-  private final List<Module> modulesToTrigger;
+  /**
+   * These modules are systematically called, independently of the hub execution flow. They must be
+   * called after the hub being executed.
+   */
+  private final List<Module> selfStandingModules;
 
   public ZkTracer() {
     this.hub = new Hub();
-    this.modulesToTrigger = hub.getSelfStandingModules();
+    this.selfStandingModules = hub.getSelfStandingModules();
 
     // Load opcodes configured in src/main/resources/opcodes.yml.
     OpCodes.load();
@@ -60,14 +64,14 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
   @Override
   public void traceStartConflation(final long numBlocksInConflation) {
     hub.traceStartConflation(numBlocksInConflation);
-    for (Module module : this.modulesToTrigger) {
+    for (Module module : this.selfStandingModules) {
       module.traceStartConflation(numBlocksInConflation);
     }
   }
 
   @Override
   public void traceEndConflation() {
-    for (Module module : this.modulesToTrigger) {
+    for (Module module : this.selfStandingModules) {
       module.traceEndConflation();
     }
   }
@@ -80,7 +84,7 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
   @Override
   public void traceStartBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
     this.hub.traceStartBlock(blockHeader, blockBody);
-    for (Module module : this.modulesToTrigger) {
+    for (Module module : this.selfStandingModules) {
       module.traceStartBlock(blockHeader, blockBody);
     }
   }
@@ -88,7 +92,7 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
   @Override
   public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
     this.hub.traceEndBlock(blockHeader, blockBody);
-    for (Module module : this.modulesToTrigger) {
+    for (Module module : this.selfStandingModules) {
       module.traceEndBlock(blockHeader, blockBody);
     }
   }
@@ -96,7 +100,7 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
   @Override
   public void traceStartTransaction(WorldView worldView, Transaction transaction) {
     this.hub.traceStartTx(worldView, transaction);
-    for (Module module : this.modulesToTrigger) {
+    for (Module module : this.selfStandingModules) {
       module.traceStartTx(worldView, transaction);
     }
   }
@@ -111,7 +115,7 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
       long gasUsed,
       long timeNs) {
     this.hub.traceEndTx(worldView, tx, status, output, logs, gasUsed);
-    for (Module module : this.modulesToTrigger) {
+    for (Module module : this.selfStandingModules) {
       module.traceEndTx(worldView, tx, status, output, logs, gasUsed);
     }
   }

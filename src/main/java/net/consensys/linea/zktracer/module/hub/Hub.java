@@ -155,7 +155,7 @@ public class Hub implements Module {
   private final Module mul = new Mul();
   private final Module shf = new Shf();
   private final Module wcp = new Wcp();
-  private final RlpTxn rlpTxn;
+  private final RlpTxn rlpTxn = new RlpTxn();
   private final RlpTxrcpt rlpTxrcpt = new RlpTxrcpt();
   private final RlpAddr rlpAddr = new RlpAddr();
   private final List<Module> modules;
@@ -175,7 +175,6 @@ public class Hub implements Module {
             this.rlpTxrcpt,
             this.rlpAddr);
     this.romLex = new RomLex(this);
-    this.rlpTxn = new RlpTxn(this);
   }
 
   /**
@@ -183,7 +182,7 @@ public class Hub implements Module {
    *     net.consensys.linea.zktracer.ZkTracer}
    */
   public List<Module> getSelfStandingModules() {
-    return List.of(this.rlpTxn, rlpTxrcpt);
+    return List.of(this.rlpTxrcpt, this.rlpTxn);
   }
 
   /**
@@ -432,6 +431,8 @@ public class Hub implements Module {
       case LOG -> {}
       case CREATE -> {
         if (!this.exceptions.any() && this.callStack().getDepth() < 1024) {
+          // TODO: check for failure: non empty byte code or non zero nonce (for the Deployed
+          // Address)
           UInt256 value = UInt256.fromBytes(frame.getStackItem(0));
           if (frame
               .getWorldUpdater()
@@ -448,7 +449,10 @@ public class Hub implements Module {
         // TODO: put the right exception
         this.romLex.trace(frame);
       }
-      case HALT -> {}
+      case HALT -> {
+        // TODO: put the right exception
+        this.romLex.trace(frame);
+      }
       case INVALID -> {}
       default -> {}
     }
@@ -560,8 +564,9 @@ public class Hub implements Module {
     this.enterTransaction();
 
     this.exceptions = Exceptions.empty();
-    this.rlpAddr.traceStartTx(world, tx);
     this.romLex.traceStartTx(world, tx);
+    this.rlpAddr.traceStartTx(world, tx);
+    // TODO: trigger the TxnData AFTER RomLex
 
     this.tx.update(tx);
     this.createNewTxTrace();
@@ -789,7 +794,7 @@ public class Hub implements Module {
 
         this.addTraceSection(accountSection);
       }
-      case COPY -> {
+      case COPY -> { // TODO: call RomLex
         TraceSection copySection = new CopySection(this);
         if (this.opCodeData().stackSettings().flag1()) {
           Address targetAddress =

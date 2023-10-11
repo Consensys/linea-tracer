@@ -32,7 +32,7 @@ public class Rom implements Module {
   final int evmWordMO = 31;
   final int push0 = 0x60;
   final int push32 = 0x7F;
-  final UnsignedByte invalid = UnsignedByte.of(0x00); // TODO put the right value
+  final UnsignedByte invalid = UnsignedByte.of(0xFE);
 
   @Override
   public String jsonKey() {
@@ -118,7 +118,7 @@ public class Rom implements Module {
         Boolean isPush = false;
 
         // The OpCode is a PUSH instruction
-        if (push0 <= opCode.toInteger() && opCode.toInteger() < +push32) {
+        if (push0 <= opCode.toInteger() && opCode.toInteger() < push32) {
           isPush = true;
           pushParameter = opCode.toInteger() - push0 + 1;
           if (pushParameter > llarge) {
@@ -153,22 +153,23 @@ public class Rom implements Module {
             .pushValueHigh(pushValueHigh.toUnsignedBigInteger())
             .pushValueLow(pushValueLow.toUnsignedBigInteger())
             .counterPush(BigInteger.valueOf(ctPush))
-            .pushFunnelBit(ctPush > llarge)
+            .pushFunnelBit(pushParameter > llarge && ctPush > pushParameter - llarge)
             .validJumpDestination(false);
 
         if (pushParameter <= llarge) {
           this.builder.pushValueAcc(pushValueLow.slice(0, ctPush).toUnsignedBigInteger());
         } else {
-          if (ctPush <= llarge) {
+          if (ctPush <= pushParameter - llarge) {
             this.builder.pushValueAcc(pushValueHigh.slice(0, ctPush).toUnsignedBigInteger());
           } else {
             this.builder.pushValueAcc(
-                pushValueLow.slice(0, ctPush - llarge).toUnsignedBigInteger());
+                pushValueLow.slice(0, ctPush + llarge - pushParameter).toUnsignedBigInteger());
           }
         }
 
         // reinitialise push constant data
         if (ctPush == pushParameter) {
+          ctPush = 0;
           pushParameter = 0;
           pushValueHigh = Bytes.minimalBytes(0);
           pushValueLow = Bytes.minimalBytes(0);

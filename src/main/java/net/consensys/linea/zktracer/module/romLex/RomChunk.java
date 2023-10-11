@@ -22,7 +22,6 @@ public record RomChunk(
     Address address,
     int deploymentNumber,
     boolean deploymentStatus,
-    boolean initCode,
     boolean readFromTheState,
     boolean commitToTheState,
     Bytes byteCode) {}

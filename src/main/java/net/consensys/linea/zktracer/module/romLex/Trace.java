@@ -34,7 +34,6 @@ public record Trace(
     @JsonProperty("COMMIT_TO_STATE") List<Boolean> commitToState,
     @JsonProperty("DEP_NUMBER") List<BigInteger> depNumber,
     @JsonProperty("DEP_STATUS") List<Boolean> depStatus,
-    @JsonProperty("IS_INIT") List<Boolean> isInit,
     @JsonProperty("READ_FROM_STATE") List<Boolean> readFromState) {
   static TraceBuilder builder() {
     return new TraceBuilder();
@@ -63,9 +62,6 @@ public record Trace(
 
     @JsonProperty("DEP_STATUS")
     private final List<Boolean> depStatus = new ArrayList<>();
-
-    @JsonProperty("IS_INIT")
-    private final List<Boolean> isInit = new ArrayList<>();
 
     @JsonProperty("READ_FROM_STATE")
     private final List<Boolean> readFromState = new ArrayList<>();
@@ -164,23 +160,11 @@ public record Trace(
       return this;
     }
 
-    public TraceBuilder isInit(final Boolean b) {
-      if (filled.get(7)) {
-        throw new IllegalStateException("IS_INIT already set");
-      } else {
-        filled.set(7);
-      }
-
-      isInit.add(b);
-
-      return this;
-    }
-
     public TraceBuilder readFromState(final Boolean b) {
-      if (filled.get(8)) {
+      if (filled.get(7)) {
         throw new IllegalStateException("READ_FROM_STATE already set");
       } else {
-        filled.set(8);
+        filled.set(7);
       }
 
       readFromState.add(b);
@@ -218,10 +202,6 @@ public record Trace(
       }
 
       if (!filled.get(7)) {
-        throw new IllegalStateException("IS_INIT has not been filled");
-      }
-
-      if (!filled.get(8)) {
         throw new IllegalStateException("READ_FROM_STATE has not been filled");
       }
 
@@ -260,12 +240,8 @@ public record Trace(
         this.filled.set(6);
       }
       if (!filled.get(7)) {
-        isInit.add(false);
-        this.filled.set(7);
-      }
-      if (!filled.get(8)) {
         readFromState.add(false);
-        this.filled.set(8);
+        this.filled.set(7);
       }
 
       return this.validateRow();
@@ -284,7 +260,6 @@ public record Trace(
           commitToState,
           depNumber,
           depStatus,
-          isInit,
           readFromState);
     }
   }

@@ -416,8 +416,10 @@ public class Hub implements Module {
       case CONTEXT -> {}
       case ACCOUNT -> {}
       case COPY -> {
-        // TODO: put the right exception
-        this.romLex.trace(frame);
+        // TODO: check this is the right exception
+        if (!this.exceptions.any() && this.callStack().getDepth() < 1024) {
+          this.romLex.trace(frame);
+        }
       }
       case TRANSACTION -> {}
       case BATCH -> {}
@@ -446,12 +448,16 @@ public class Hub implements Module {
         }
       }
       case CALL -> {
-        // TODO: put the right exception
-        this.romLex.trace(frame);
+        // TODO: check this is the right exception
+        if (!this.exceptions.any() && this.callStack().getDepth() < 1024) {
+          this.romLex.trace(frame);
+        }
       }
       case HALT -> {
-        // TODO: put the right exception
-        this.romLex.trace(frame);
+        // TODO: check this is the right exception
+        if (!this.exceptions.any() && this.callStack().getDepth() < 1024) {
+          this.romLex.trace(frame);
+        }
       }
       case INVALID -> {}
       default -> {}

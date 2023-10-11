@@ -114,7 +114,7 @@ public class RlpTxn implements Module {
     // Call to a non-empty smart contract
     else if (tx.getTo().isPresent() && worldView.get(tx.getTo().get()).hasCode()) {
 
-      this.chunkList.add(new RlpTxnChunk(tx, true, RomLex.codeIdentifierBeforeLexOrder));
+      this.chunkList.add(new RlpTxnChunk(tx, true));
     }
 
     // Contract doesn't require EVM execution

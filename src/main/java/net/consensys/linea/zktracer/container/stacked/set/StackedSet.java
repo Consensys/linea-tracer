@@ -21,58 +21,50 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.Stack;
 
-import net.consensys.linea.zktracer.container.StackedState;
+import net.consensys.linea.zktracer.container.StackedContainer;
 import org.jetbrains.annotations.NotNull;
 
-public class StackedSet<E> implements StackedState, java.util.Set<E> {
-  private final List<Set<E>> sets = new ArrayList<>();
-  private int head = -1;
-
-  private Set<E> top() {
-    return this.sets.get(head);
-  }
+/**
+ * Implements a system of nested sets behaving as a single on, where the current context
+ * modification can transparently be dropped.
+ *
+ * @param <E> the type of elements stored in the set
+ */
+public class StackedSet<E> implements StackedContainer, java.util.Set<E> {
+  private final Stack<Set<E>> sets = new Stack<>();
 
   @Override
-  public void push() {
-    head += 1;
-    if (head + 1 > this.sets.size()) {
-      this.sets.add(new HashSet<>());
-    } else {
-      this.sets.set(head, new HashSet<>());
-    }
+  public void enter() {
+    this.sets.push(new HashSet<>());
   }
 
   @Override
   public void pop() {
-    if (head >= 0) {
-      head -= 1;
-    }
+    this.sets.pop();
   }
 
   @Override
   public int size() {
-    var size = 0;
-    for (int i = 0; i < head; i++) {
-      size += this.sets.get(i).size();
-    }
-    return size;
+    return this.sets.stream().mapToInt(Set::size).sum();
   }
 
   @Override
   public boolean isEmpty() {
-    for (int i = 0; i < head; i++) {
-      if (!this.sets.get(i).isEmpty()) {
+    for (Set<E> set : this.sets) {
+      if (!set.isEmpty()) {
         return false;
       }
     }
+
     return true;
   }
 
   @Override
   public boolean contains(Object o) {
-    for (int i = head; i >= 0; i--) {
-      if (this.sets.get(i).contains(o)) {
+    for (Set<E> set : this.sets) {
+      if (set.contains(o)) {
         return true;
       }
     }
@@ -99,21 +91,17 @@ public class StackedSet<E> implements StackedState, java.util.Set<E> {
 
   @Override
   public boolean add(E e) {
+    // An element should *never* be duplicated, for it would appear twice in the iterator.
     if (this.contains(e)) {
       return false;
     }
 
-    return this.top().add(e);
+    return this.sets.peek().add(e);
   }
 
   @Override
   public boolean remove(Object o) {
-    for (int i = head; i >= 0; i--) {
-      if (this.sets.get(i).remove(o)) {
-        return true;
-      }
-    }
-    return false;
+    throw new RuntimeException("remove not supported");
   }
 
   @Override
@@ -130,7 +118,7 @@ public class StackedSet<E> implements StackedState, java.util.Set<E> {
   public boolean addAll(@NotNull Collection<? extends E> c) {
     boolean r = false;
     for (var x : c) {
-      r = r || this.top().add(x);
+      r |= this.sets.peek().add(x);
     }
     return r;
   }
@@ -142,15 +130,42 @@ public class StackedSet<E> implements StackedState, java.util.Set<E> {
 
   @Override
   public boolean removeAll(@NotNull Collection<?> c) {
-    boolean r = false;
-    for (var x : c) {
-      r = r || this.remove(x);
-    }
-    return r;
+    throw new RuntimeException("removeAll not supported");
   }
 
   @Override
   public void clear() {
-    this.head = -1;
+    this.sets.clear();
+  }
+
+  /** This class acts as an {@link Iterator} over a StackedSet. */
+  private static class StackedSetIterator<E> implements Iterator<E> {
+    private final List<Iterator<E>> iters = new ArrayList<>();
+
+    StackedSetIterator(List<Set<E>> sets) {
+      for (Set<E> set : sets) {
+        this.iters.add(set.iterator());
+      }
+    }
+
+    @Override
+    public boolean hasNext() {
+      for (Iterator<E> iter : iters) {
+        if (iter.hasNext()) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    @Override
+    public E next() {
+      for (Iterator<E> iter : iters) {
+        if (iter.hasNext()) {
+          return iter.next();
+        }
+      }
+      return null;
+    }
   }
 }

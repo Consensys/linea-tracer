@@ -42,7 +42,7 @@ public class Mod implements Module {
   private final StackedSet<ModOperation> chunks = new StackedSet<>();
 
   @Override
-  public void trace(final MessageFrame frame) {
+  public void tracePreOpcode(final MessageFrame frame) {
     final OpCodeData opCodeData = OpCodes.of(frame.getCurrentOperation().getOpcode());
     final Bytes32 arg1 = Bytes32.leftPad(frame.getStackItem(0));
     final Bytes32 arg2 = Bytes32.leftPad(frame.getStackItem(1));
@@ -51,13 +51,18 @@ public class Mod implements Module {
   }
 
   @Override
-  public void traceStartTx(WorldView worldView, Transaction tx) {
-    this.chunks.push();
+  public void enterTransaction() {
+    this.chunks.enter();
   }
 
   @Override
   public void popTransaction() {
     this.chunks.pop();
+  }
+
+  @Override
+  public void traceStartTx(WorldView worldView, Transaction tx) {
+    this.chunks.enter();
   }
 
   public void traceModOperation(ModOperation op) {

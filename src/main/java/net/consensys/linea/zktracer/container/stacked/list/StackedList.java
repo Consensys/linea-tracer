@@ -20,130 +20,338 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.NoSuchElementException;
+import java.util.Stack;
 
+import net.consensys.linea.zktracer.container.StackedContainer;
 import org.jetbrains.annotations.NotNull;
 
-public class StackedList<E> implements List<E> {
-  private final List<List<E>> lists = new ArrayList<>();
+/**
+ * Implements a system of nested lists behaving as a single on, where the current context
+ * modification can transparently be dropped.
+ *
+ * @param <E> the type of elements stored in the list
+ */
+public class StackedList<E> implements List<E>, StackedContainer {
+  private final Stack<List<E>> lists = new Stack<>();
+
+  @Override
+  public void enter() {
+    this.lists.push(new ArrayList<>());
+  }
+
+  @Override
+  public void pop() {
+    if (this.lists.isEmpty()) {
+      throw new RuntimeException("asymmetric pop");
+    }
+    this.lists.pop();
+  }
 
   @Override
   public int size() {
-    this.lists.iterator()
+    return this.lists.stream().mapToInt(List::size).sum();
   }
 
   @Override
   public boolean isEmpty() {
-    return false;
+    for (List<E> l : this.lists) {
+      if (!l.isEmpty()) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @Override
   public boolean contains(Object o) {
+    for (List<E> l : this.lists) {
+      if (l.contains(o)) {
+        return true;
+      }
+    }
     return false;
   }
 
   @NotNull
   @Override
   public Iterator<E> iterator() {
-    return null;
+    return new StackedListIterator<>(this);
   }
 
   @NotNull
   @Override
   public Object[] toArray() {
-    return new Object[0];
+    throw new RuntimeException("toArray is not supported");
   }
 
   @NotNull
   @Override
   public <T> T[] toArray(@NotNull T[] a) {
-    return null;
+    throw new RuntimeException("toArray is not supported");
   }
 
   @Override
   public boolean add(E e) {
-    return false;
+    return this.lists.get(this.lists.size() - 1).add(e);
   }
 
   @Override
   public boolean remove(Object o) {
-    return false;
+    throw new RuntimeException("remove not supported");
   }
 
   @Override
   public boolean containsAll(@NotNull Collection<?> c) {
-    return false;
+    for (var x : c) {
+      if (!this.contains(x)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @Override
   public boolean addAll(@NotNull Collection<? extends E> c) {
-    return false;
+    boolean r = false;
+    for (var x : c) {
+      r |= this.add(x);
+    }
+    return r;
   }
 
   @Override
   public boolean addAll(int index, @NotNull Collection<? extends E> c) {
-    return false;
+    throw new RuntimeException("addAll(int) not supported");
   }
 
   @Override
   public boolean removeAll(@NotNull Collection<?> c) {
-    return false;
+    boolean r = false;
+    for (var x : c) {
+      r |= this.remove(x);
+    }
+    return r;
   }
 
   @Override
   public boolean retainAll(@NotNull Collection<?> c) {
-    return false;
+    throw new RuntimeException("retainAll not supported");
   }
 
   @Override
   public void clear() {
-
+    this.lists.clear();
   }
 
   @Override
-  public E get(int index) {
+  public E get(int i) {
+    for (List<E> list : this.lists) {
+      if (i >= list.size()) {
+        i -= list.size();
+      } else {
+        return list.get(i);
+      }
+    }
     return null;
   }
 
   @Override
   public E set(int index, E element) {
-    return null;
+    throw new RuntimeException("set not supported");
   }
 
   @Override
   public void add(int index, E element) {
-
+    throw new RuntimeException("add(int) not supported");
   }
 
   @Override
   public E remove(int index) {
-    return null;
+    throw new RuntimeException("remove not supported");
   }
 
   @Override
   public int indexOf(Object o) {
-    return 0;
+    int i = 0;
+    for (List<E> l : this.lists) {
+      final int ii = l.indexOf(o);
+      if (ii != -1) {
+        return i + ii;
+      }
+      i += l.size();
+    }
+    return -1;
   }
 
   @Override
   public int lastIndexOf(Object o) {
-    return 0;
+    throw new RuntimeException("lastIndexOf not supported");
   }
 
   @NotNull
   @Override
   public ListIterator<E> listIterator() {
-    return null;
+    return new StackedListIterator<>(this);
   }
 
   @NotNull
   @Override
   public ListIterator<E> listIterator(int index) {
-    return null;
+    throw new RuntimeException("listIterator(int) not supported");
   }
 
   @NotNull
   @Override
   public List<E> subList(int fromIndex, int toIndex) {
-    return null;
+    throw new RuntimeException("subList not supported");
+  }
+
+  private static class StackedListIterator<F> implements Iterator<F>, ListIterator<F> {
+    private final StackedList<F> sl;
+    /** Position of the iterator in the list of lists */
+    private int head = 0;
+    /** Position of the iterator within the current list, i.e. this.sl.lists[head] */
+    private int offset = -1;
+
+    StackedListIterator(StackedList<F> lists) {
+      this.sl = lists;
+    }
+
+    private List<F> list() {
+      return this.sl.lists.get(this.head);
+    }
+
+    private List<F> list(int i) {
+      return this.sl.lists.get(i);
+    }
+
+    F read() {
+      return this.sl.lists.get(head).get(this.offset);
+    }
+
+    int toIndex() {
+      int idx = 0;
+      for (int i = 0; i < this.head; i++) {
+        idx += this.list(i).size();
+      }
+      return idx + this.offset;
+    }
+
+    boolean done() {
+      return this.head >= this.sl.lists.size() - 1 && this.offset >= this.list().size();
+    }
+
+    @Override
+    public boolean hasNext() {
+      // First check if the current list is done for
+      if (offset < this.list().size() - 1) {
+        return true;
+      }
+      // Then check for a next non-empty list
+      for (int i = this.head + 1; i < this.sl.lists.size(); i++) {
+        if (!this.list(i).isEmpty()) {
+          return true;
+        }
+      }
+      // We're empty
+      return false;
+    }
+
+    @Override
+    public F next() {
+      // If we are not yet at the end of the current list, return the natural next element
+      if (offset < this.list().size() - 1) {
+        this.offset++;
+        return this.read();
+      }
+
+      this.head++;
+      // Otherwise, jump to the next non-empty list if we can
+      for (int i = head; i < this.sl.lists.size(); i++) {
+        if (!this.list(i).isEmpty()) {
+          this.head = i;
+          this.offset = 0;
+          return this.read();
+        }
+      }
+
+      this.head = this.sl.lists.size() - 1;
+      this.offset = this.list().size() - 1;
+      throw new NoSuchElementException();
+    }
+
+    @Override
+    public boolean hasPrevious() {
+      if (offset > 0) {
+        return true;
+      }
+
+      if (head > 0) {
+        for (int i = head - 1; i >= 0; i--) {
+          if (!this.list(i).isEmpty()) {
+            return true;
+          }
+        }
+      }
+
+      return false;
+    }
+
+    @Override
+    public F previous() {
+      // If we are not yet at the very beginning of the current list, return the natural previous
+      // element
+      if (offset > 0) {
+        this.offset--;
+        return this.read();
+      }
+
+      // Otherwise, jump to the previous non-empty list if we can
+      for (int i = head - 1; i >= 0; i--) {
+        if (!this.list(i).isEmpty()) {
+          this.head = i;
+          this.offset = this.list().size() - 1;
+          return this.read();
+        }
+      }
+
+      this.head = 0;
+      this.offset = 0;
+      return null;
+    }
+
+    @Override
+    public int nextIndex() {
+      final int idx = this.toIndex();
+      if (this.done()) {
+        return idx;
+      }
+      return idx + 1;
+    }
+
+    @Override
+    public int previousIndex() {
+      final int idx = this.toIndex();
+      if (idx > 0) {
+        return idx - 1;
+      }
+      return 0;
+    }
+
+    @Override
+    public void remove() {
+      throw new RuntimeException("remove not supported");
+    }
+
+    @Override
+    public void set(F e) {
+      this.sl.lists.get(head).set(this.offset, e);
+    }
+
+    @Override
+    public void add(F f) {
+      throw new RuntimeException("add not supported");
+    }
   }
 }

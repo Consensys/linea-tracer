@@ -13,39 +13,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.container.stacked.set;
+package net.consensys.linea.zktracer.module.rlputils;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
-class StackedSetIterator<E> implements Iterator<E> {
-  private final List<Iterator<E>> iters = new ArrayList<>(10);
+import lombok.Getter;
 
-  StackedSetIterator(List<Set<E>> sets) {
-    for (Set<E> set : sets) {
-      this.iters.add(set.iterator());
-    }
-  }
-
-  @Override
-  public boolean hasNext() {
-    for (Iterator<E> iter : iters) {
-      if (iter.hasNext()) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @Override
-  public E next() {
-    for (Iterator<E> iter : iters) {
-      if (iter.hasNext()) {
-        return iter.next();
-      }
-    }
-    return null;
-  }
+public class ByteCountAndPowerOutput {
+  @Getter private List<BigInteger> powerList = new ArrayList<>();
+  @Getter private List<Integer> accByteSizeList = new ArrayList<>();
 }

@@ -13,15 +13,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.rlpPatterns;
+package net.consensys.linea.zktracer.module.rlputils;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
 import lombok.Getter;
 
-public class RlpByteCountAndPowerOutput {
-  @Getter private List<BigInteger> powerList = new ArrayList<>();
-  @Getter private List<Integer> accByteSizeList = new ArrayList<>();
+@Getter
+public class BitDecOutput {
+  @Getter private List<Boolean> bitDecList = new ArrayList<>();
+  @Getter private List<Integer> bitAccList = new ArrayList<>();
 }

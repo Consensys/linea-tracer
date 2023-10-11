@@ -15,8 +15,14 @@
 
 package net.consensys.linea.zktracer.container;
 
-public interface StackedState {
-  void push();
+/**
+ * A stacked container must behave as the container it emulates, all the while being able to enter
+ * nested modification contexts, that can be transparently reverted.
+ */
+public interface StackedContainer {
+  /** Enter a new modification context. */
+  void enter();
 
+  /** Erase the modifications brought while in the latest modification context. */
   void pop();
 }

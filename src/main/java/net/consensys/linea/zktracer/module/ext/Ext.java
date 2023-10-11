@@ -41,7 +41,12 @@ public class Ext implements Module {
 
   @Override
   public void traceStartTx(WorldView worldView, Transaction tx) {
-    this.operations.push();
+    this.operations.enter();
+  }
+
+  @Override
+  public void enterTransaction() {
+    this.operations.enter();
   }
 
   @Override
@@ -50,7 +55,7 @@ public class Ext implements Module {
   }
 
   @Override
-  public void trace(final MessageFrame frame) {
+  public void tracePreOpcode(final MessageFrame frame) {
     final OpCodeData opCode = OpCodes.of(frame.getCurrentOperation().getOpcode());
     final Bytes32 arg1 = Bytes32.wrap(frame.getStackItem(0));
     final Bytes32 arg2 = Bytes32.wrap(frame.getStackItem(1));

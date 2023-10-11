@@ -24,6 +24,16 @@ public class Trm implements Module {
   }
 
   @Override
+  public void enterTransaction() {
+    // TODO:
+  }
+
+  @Override
+  public void popTransaction() {
+    // TODO:
+  }
+
+  @Override
   public Object commit() {
     return null;
   }

@@ -40,7 +40,7 @@ public class Mul implements Module {
   }
 
   @Override
-  public void trace(MessageFrame frame) {
+  public void tracePreOpcode(MessageFrame frame) {
     final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
     final Bytes32 arg1 = Bytes32.leftPad(frame.getStackItem(0));
     final Bytes32 arg2 = Bytes32.leftPad(frame.getStackItem(1));
@@ -49,13 +49,18 @@ public class Mul implements Module {
   }
 
   @Override
-  public void traceStartTx(WorldView worldView, Transaction tx) {
-    this.operations.push();
+  public void enterTransaction() {
+    this.operations.enter();
   }
 
   @Override
   public void popTransaction() {
     this.operations.pop();
+  }
+
+  @Override
+  public void traceStartTx(WorldView worldView, Transaction tx) {
+    this.operations.enter();
   }
 
   @Override

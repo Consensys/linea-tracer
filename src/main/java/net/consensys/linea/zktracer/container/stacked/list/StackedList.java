@@ -82,13 +82,13 @@ public class StackedList<E> implements List<E>, StackedContainer {
   @NotNull
   @Override
   public Object[] toArray() {
-    throw new RuntimeException("toArray is not supported");
+    throw new UnsupportedOperationException("toArray is not supported");
   }
 
   @NotNull
   @Override
   public <T> T[] toArray(@NotNull T[] a) {
-    throw new RuntimeException("toArray is not supported");
+    throw new UnsupportedOperationException("toArray is not supported");
   }
 
   @Override
@@ -98,7 +98,7 @@ public class StackedList<E> implements List<E>, StackedContainer {
 
   @Override
   public boolean remove(Object o) {
-    throw new RuntimeException("remove not supported");
+    throw new UnsupportedOperationException("remove not supported");
   }
 
   @Override
@@ -122,7 +122,7 @@ public class StackedList<E> implements List<E>, StackedContainer {
 
   @Override
   public boolean addAll(int index, @NotNull Collection<? extends E> c) {
-    throw new RuntimeException("addAll(int) not supported");
+    throw new UnsupportedOperationException("addAll(int) not supported");
   }
 
   @Override
@@ -136,7 +136,7 @@ public class StackedList<E> implements List<E>, StackedContainer {
 
   @Override
   public boolean retainAll(@NotNull Collection<?> c) {
-    throw new RuntimeException("retainAll not supported");
+    throw new UnsupportedOperationException("retainAll not supported");
   }
 
   @Override
@@ -158,17 +158,17 @@ public class StackedList<E> implements List<E>, StackedContainer {
 
   @Override
   public E set(int index, E element) {
-    throw new RuntimeException("set not supported");
+    throw new UnsupportedOperationException("set not supported");
   }
 
   @Override
   public void add(int index, E element) {
-    throw new RuntimeException("add(int) not supported");
+    throw new UnsupportedOperationException("add(int) not supported");
   }
 
   @Override
   public E remove(int index) {
-    throw new RuntimeException("remove not supported");
+    throw new UnsupportedOperationException("remove not supported");
   }
 
   @Override
@@ -186,7 +186,7 @@ public class StackedList<E> implements List<E>, StackedContainer {
 
   @Override
   public int lastIndexOf(Object o) {
-    throw new RuntimeException("lastIndexOf not supported");
+    throw new UnsupportedOperationException("lastIndexOf not supported");
   }
 
   @NotNull
@@ -198,13 +198,13 @@ public class StackedList<E> implements List<E>, StackedContainer {
   @NotNull
   @Override
   public ListIterator<E> listIterator(int index) {
-    throw new RuntimeException("listIterator(int) not supported");
+    throw new UnsupportedOperationException("listIterator(int) not supported");
   }
 
   @NotNull
   @Override
   public List<E> subList(int fromIndex, int toIndex) {
-    throw new RuntimeException("subList not supported");
+    throw new UnsupportedOperationException("subList not supported");
   }
 
   private static class StackedListIterator<F> implements Iterator<F>, ListIterator<F> {
@@ -341,7 +341,7 @@ public class StackedList<E> implements List<E>, StackedContainer {
 
     @Override
     public void remove() {
-      throw new RuntimeException("remove not supported");
+      throw new UnsupportedOperationException("remove not supported");
     }
 
     @Override
@@ -351,7 +351,7 @@ public class StackedList<E> implements List<E>, StackedContainer {
 
     @Override
     public void add(F f) {
-      throw new RuntimeException("add not supported");
+      throw new UnsupportedOperationException("add not supported");
     }
   }
 }

@@ -80,13 +80,13 @@ public class StackedSet<E> implements StackedContainer, java.util.Set<E> {
   @NotNull
   @Override
   public Object[] toArray() {
-    throw new RuntimeException("toArray not supported");
+    throw new UnsupportedOperationException("toArray not supported");
   }
 
   @NotNull
   @Override
   public <T> T[] toArray(@NotNull T[] a) {
-    throw new RuntimeException("toArray not supported");
+    throw new UnsupportedOperationException("toArray not supported");
   }
 
   @Override
@@ -101,7 +101,7 @@ public class StackedSet<E> implements StackedContainer, java.util.Set<E> {
 
   @Override
   public boolean remove(Object o) {
-    throw new RuntimeException("remove not supported");
+    throw new UnsupportedOperationException("remove not supported");
   }
 
   @Override
@@ -125,12 +125,12 @@ public class StackedSet<E> implements StackedContainer, java.util.Set<E> {
 
   @Override
   public boolean retainAll(@NotNull Collection<?> c) {
-    throw new RuntimeException("retainAll not supported");
+    throw new UnsupportedOperationException("retainAll not supported");
   }
 
   @Override
   public boolean removeAll(@NotNull Collection<?> c) {
-    throw new RuntimeException("removeAll not supported");
+    throw new UnsupportedOperationException("removeAll not supported");
   }
 
   @Override

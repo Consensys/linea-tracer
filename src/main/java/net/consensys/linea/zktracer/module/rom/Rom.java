@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.module.rom;
 
-import static net.consensys.linea.zktracer.module.rlppatterns.pattern.padToGivenSizeWithRightZero;
+import static net.consensys.linea.zktracer.module.rlputils.Pattern.padToGivenSizeWithRightZero;
 
 import java.math.BigInteger;
 
@@ -23,16 +23,17 @@ import net.consensys.linea.zktracer.bytes.UnsignedByte;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.romLex.RomChunk;
 import net.consensys.linea.zktracer.module.romLex.RomLex;
+import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 
 public class Rom implements Module {
-  final net.consensys.linea.zktracer.module.rom.Trace.TraceBuilder builder = Trace.builder();
-  final int llarge = 16;
-  final int llargeMO = 15;
-  final int evmWordMO = 31;
-  final int push0 = 0x60;
-  final int push32 = 0x7F;
-  final UnsignedByte invalid = UnsignedByte.of(0xFE);
+  final Trace.TraceBuilder builder = Trace.builder();
+  private static final int LLARGE = 16;
+  private static final int LLARGE_MO = 15;
+  private static final int EVM_WORD_MO = 31;
+  private static final int PUSH_0 = OpCode.PUSH1.byteValue() - 1;
+  private static final int PUSH_32 = OpCode.PUSH32.byteValue();
+  private static final UnsignedByte invalid = UnsignedByte.of(0xFE);
 
   @Override
   public String jsonKey() {
@@ -57,18 +58,18 @@ public class Rom implements Module {
   public int chunkRowSize(RomChunk chunk) {
     final int nPaddingRow = 32;
     final int codeSize = chunk.byteCode().size();
-    final int nbSlice = (codeSize + (llarge - 1)) / llarge;
+    final int nbSlice = (codeSize + (LLARGE - 1)) / LLARGE;
 
-    return llarge * nbSlice + nPaddingRow;
+    return LLARGE * nbSlice + nPaddingRow;
   }
 
   private void traceChunk(RomChunk chunk, int cfi) {
     final int chunkRowSize = chunkRowSize(chunk);
     final int codeSize = chunk.byteCode().size();
-    final int nbSlice = (codeSize + (llarge - 1)) / llarge;
+    final int nbSlice = (codeSize + (LLARGE - 1)) / LLARGE;
     final Bytes dataPadded = padToGivenSizeWithRightZero(chunk.byteCode(), chunkRowSize);
-    final int nRowData = nbSlice * llarge;
-    final int nBytesLastRow = codeSize % llarge;
+    final int nRowData = nbSlice * LLARGE;
+    final int nBytesLastRow = codeSize % LLARGE;
     int pushParameter = 0;
     int ctPush = 0;
     Bytes pushValueHigh = Bytes.minimalBytes(0);
@@ -85,32 +86,27 @@ public class Rom implements Module {
       this.builder
           .codeFragmentIndex(BigInteger.valueOf(cfi))
           .programmeCounter(BigInteger.valueOf(i))
-          .limb(dataPadded.slice(i / llarge, llarge).toUnsignedBigInteger())
+          .limb(dataPadded.slice(i / LLARGE, LLARGE).toUnsignedBigInteger())
           .codesize(BigInteger.valueOf(codeSize))
           .paddedBytecodeByte(UnsignedByte.of(dataPadded.get(i)))
-          .acc(dataPadded.slice(sliceNumber * llarge, (i % llarge) + 1).toUnsignedBigInteger())
+          .acc(dataPadded.slice(sliceNumber * LLARGE, (i % LLARGE) + 1).toUnsignedBigInteger())
           .codesizeReached(codeSizeReached)
-          .index(BigInteger.valueOf(sliceNumber));
-      if (sliceNumber <= nbSlice) {
-        this.builder.counterMax(BigInteger.valueOf(llargeMO));
-      } else {
-        this.builder.counterMax(BigInteger.valueOf(evmWordMO));
-      }
+          .index(BigInteger.valueOf(sliceNumber))
+          .counterMax(BigInteger.valueOf(sliceNumber <= nbSlice ? LLARGE_MO : EVM_WORD_MO));
 
       // Fill CT, nBYTES, nBYTES_ACC
       if (i < nRowData) {
-        this.builder.counter(BigInteger.valueOf(i % llarge));
+        this.builder.counter(BigInteger.valueOf(i % LLARGE));
         if (sliceNumber < nbSlice) {
           this.builder
-              .nBytes(BigInteger.valueOf(llarge))
-              .nBytesAcc(BigInteger.valueOf((i % llarge) + 1));
+              .nBytes(BigInteger.valueOf(LLARGE))
+              .nBytesAcc(BigInteger.valueOf((i % LLARGE) + 1));
         } else {
           this.builder
               .nBytes(BigInteger.valueOf(nBytesLastRow))
               .nBytesAcc(
-                  BigInteger.valueOf(nBytesLastRow).min(BigInteger.valueOf((i % llarge) + 1)));
+                  BigInteger.valueOf(nBytesLastRow).min(BigInteger.valueOf((i % LLARGE) + 1)));
         }
-
       } else {
         this.builder
             .counter(BigInteger.valueOf(i - nRowData))
@@ -121,15 +117,15 @@ public class Rom implements Module {
       // Deal when not in a PUSH instruction
       if (pushParameter == 0) {
         UnsignedByte opCode = UnsignedByte.of(dataPadded.get(i));
-        Boolean isPush = false;
+        boolean isPush = false;
 
         // The OpCode is a PUSH instruction
-        if (push0 <= opCode.toInteger() && opCode.toInteger() < push32) {
+        if (PUSH_0 <= opCode.toInteger() && opCode.toInteger() < PUSH_32) {
           isPush = true;
-          pushParameter = opCode.toInteger() - push0 + 1;
-          if (pushParameter > llarge) {
-            pushValueHigh = dataPadded.slice(i + 1, pushParameter - llarge);
-            pushValueLow = dataPadded.slice(i + 1 + pushParameter - llarge, llarge);
+          pushParameter = opCode.toInteger() - PUSH_0 + 1;
+          if (pushParameter > LLARGE) {
+            pushValueHigh = dataPadded.slice(i + 1, pushParameter - LLARGE);
+            pushValueLow = dataPadded.slice(i + 1 + pushParameter - LLARGE, LLARGE);
           } else {
             pushValueLow = dataPadded.slice(i + 1, pushParameter);
           }
@@ -159,17 +155,17 @@ public class Rom implements Module {
             .pushValueHigh(pushValueHigh.toUnsignedBigInteger())
             .pushValueLow(pushValueLow.toUnsignedBigInteger())
             .counterPush(BigInteger.valueOf(ctPush))
-            .pushFunnelBit(pushParameter > llarge && ctPush > pushParameter - llarge)
+            .pushFunnelBit(pushParameter > LLARGE && ctPush > pushParameter - LLARGE)
             .validJumpDestination(false);
 
-        if (pushParameter <= llarge) {
+        if (pushParameter <= LLARGE) {
           this.builder.pushValueAcc(pushValueLow.slice(0, ctPush).toUnsignedBigInteger());
         } else {
-          if (ctPush <= pushParameter - llarge) {
+          if (ctPush <= pushParameter - LLARGE) {
             this.builder.pushValueAcc(pushValueHigh.slice(0, ctPush).toUnsignedBigInteger());
           } else {
             this.builder.pushValueAcc(
-                pushValueLow.slice(0, ctPush + llarge - pushParameter).toUnsignedBigInteger());
+                pushValueLow.slice(0, ctPush + LLARGE - pushParameter).toUnsignedBigInteger());
           }
         }
 
@@ -204,6 +200,7 @@ public class Rom implements Module {
                 + this.builder.size());
       }
     }
+
     return new RomTrace(builder.build());
   }
 }

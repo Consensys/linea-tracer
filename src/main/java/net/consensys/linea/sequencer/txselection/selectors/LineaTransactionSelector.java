@@ -71,7 +71,7 @@ public class LineaTransactionSelector implements TransactionSelector {
    * the transaction.
    *
    * @param pendingTransaction The processed transaction.
-   * @param processingResult The result of processing.
+   * @param processingResult The result of the transaction processing.
    * @return The first non-SELECTED result or SELECTED if all selectors select the transaction.
    */
   @Override

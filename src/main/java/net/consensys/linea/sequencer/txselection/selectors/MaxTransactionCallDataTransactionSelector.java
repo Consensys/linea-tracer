@@ -23,10 +23,9 @@ import org.hyperledger.besu.plugin.data.TransactionSelectionResult;
 import org.hyperledger.besu.plugin.services.txselection.TransactionSelector;
 
 /**
- * This class extends PreProcessingTransactionSelector and is used to select transactions based on
- * their call data size. If the call data size of a transaction exceeds the maximum limit, the
- * transaction is not selected. The maximum limit for the call data size is defined in the
- * LineaConfiguration.
+ * This class implements TransactionSelector and is used to select transactions based on their call
+ * data size. If the call data size of a transaction exceeds the maximum limit, the transaction is
+ * not selected. The maximum limit for the call data size is defined in the LineaConfiguration.
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -59,7 +58,7 @@ public class MaxTransactionCallDataTransactionSelector implements TransactionSel
   }
 
   /**
-   * No evaluation is performed here.
+   * No evaluation is performed post-processing.
    *
    * @param pendingTransaction The processed transaction.
    * @param processingResult The result of the transaction processing.

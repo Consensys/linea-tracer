@@ -23,10 +23,9 @@ import org.hyperledger.besu.plugin.data.TransactionSelectionResult;
 import org.hyperledger.besu.plugin.services.txselection.TransactionSelector;
 
 /**
- * This class extends PreProcessingTransactionSelector and provides a specific implementation for
- * evaluating transactions based on the size of the call data. It checks if the call data size of a
- * transaction or the total call data size of all transactions in a block exceeds the maximum
- * allowed size.
+ * This class implements TransactionSelector and provides a specific implementation for evaluating
+ * transactions based on the size of the call data. It checks if adding a transaction to the block
+ * pushes the call data size of the block over the limit.
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -36,12 +35,12 @@ public class MaxBlockCallDataTransactionSelector implements TransactionSelector 
   private int blockCallDataSize;
 
   /**
-   * Evaluates a transaction before processing. Checks if the call data size of the transaction or
-   * the total call data size of all transactions in a block exceeds the maximum allowed size.
+   * Evaluates a transaction before processing. Checks if adding the transaction to the block pushes
+   * the call data size of the block over the limit.
    *
    * @param pendingTransaction The transaction to evaluate.
-   * @return INVALID if the call data size of the transaction is too big, BLOCK_FULL if the total
-   *     call data size of all transactions in a block is too big, otherwise SELECTED.
+   * @return BLOCK_FULL if the call data size of a transactions pushes the size for the block over
+   *     the limit, otherwise SELECTED.
    */
   @Override
   public TransactionSelectionResult evaluateTransactionPreProcessing(
@@ -88,7 +87,7 @@ public class MaxBlockCallDataTransactionSelector implements TransactionSelector 
   }
 
   /**
-   * No evaluation is performed here.
+   * No evaluation is performed post-processing.
    *
    * @param pendingTransaction The processed transaction.
    * @param processingResult The result of the transaction processing.

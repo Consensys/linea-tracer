@@ -86,6 +86,11 @@ public class RomLex implements Module {
   private static final RomChunkComparator romChunkComparator = new RomChunkComparator();
 
   public static final SortedMap<RomChunk, Integer> chunkMap = new TreeMap<>(romChunkComparator);
+  @Override
+  public void enterTransaction() {}
+
+  @Override
+  public void popTransaction() {}
 
   public static <Integer> RomChunk getKeyByValue(SortedMap<RomChunk, Integer> map, Integer value) {
     for (Map.Entry<RomChunk, Integer> entry : map.entrySet()) {

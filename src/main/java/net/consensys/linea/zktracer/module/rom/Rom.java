@@ -40,6 +40,12 @@ public class Rom implements Module {
   }
 
   @Override
+  public void enterTransaction() {}
+
+  @Override
+  public void popTransaction() {}
+
+  @Override
   public int lineCount() {
     int traceRowSize = 0;
     for (RomChunk chunk : RomLex.chunkMap.keySet()) {

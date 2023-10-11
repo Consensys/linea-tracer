@@ -155,7 +155,7 @@ public class Hub implements Module {
   private final Module mul = new Mul();
   private final Module shf = new Shf();
   private final Module wcp = new Wcp();
-  private final RlpTxn rlpTxn = new RlpTxn();
+  private final RlpTxn rlpTxn;
   private final RlpTxrcpt rlpTxrcpt = new RlpTxrcpt();
   private final RlpAddr rlpAddr = new RlpAddr();
   private final List<Module> modules;
@@ -163,6 +163,9 @@ public class Hub implements Module {
   private final RomLex romLex;
 
   public Hub() {
+    this.rlpTxn = new RlpTxn(this);
+    this.romLex = new RomLex(this);
+
     this.modules =
         List.of(
             this.add,
@@ -173,8 +176,9 @@ public class Hub implements Module {
             this.wcp,
             this.rlpTxn,
             this.rlpTxrcpt,
-            this.rlpAddr);
-    this.romLex = new RomLex(this);
+            this.rlpAddr,
+            this.rom,
+            this.romLex);
   }
 
   /**
@@ -418,7 +422,7 @@ public class Hub implements Module {
       case COPY -> {
         // TODO: check this is the right exception
         if (!this.exceptions.any() && this.callStack().getDepth() < 1024) {
-          this.romLex.trace(frame);
+          this.romLex.tracePreOpcode(frame);
         }
       }
       case TRANSACTION -> {}
@@ -450,13 +454,13 @@ public class Hub implements Module {
       case CALL -> {
         // TODO: check this is the right exception
         if (!this.exceptions.any() && this.callStack().getDepth() < 1024) {
-          this.romLex.trace(frame);
+          this.romLex.tracePreOpcode(frame);
         }
       }
       case HALT -> {
         // TODO: check this is the right exception
         if (!this.exceptions.any() && this.callStack().getDepth() < 1024) {
-          this.romLex.trace(frame);
+          this.romLex.tracePreOpcode(frame);
         }
       }
       case INVALID -> {}

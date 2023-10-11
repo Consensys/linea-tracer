@@ -14,7 +14,6 @@
  */
 package net.consensys.linea.sequencer.txselection;
 
-import static net.consensys.linea.sequencer.txselection.selectors.MaxBlockCallDataTransactionSelector.CALL_DATA_TOO_BIG_INVALID_REASON;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -32,40 +31,17 @@ import org.junit.jupiter.api.Test;
 public class MaxBlockCallDataSizeTransactionSelectorTest {
   private static final int BLOCK_CALL_DATA_MAX_SIZE = 100;
   private static final int BLOCK_CALL_DATA_HALF_SIZE = 50;
-  private static final int MAX_TX_CALL_DATA_SIZE = 60;
+  private static final int TX_CALL_DATA_SIZE = BLOCK_CALL_DATA_HALF_SIZE + 1;
   private TransactionSelector transactionSelector;
 
   @BeforeEach
   public void initialize() {
     LineaConfiguration configuration =
         new LineaConfiguration.Builder()
-            .maxTxCallDataSize(MAX_TX_CALL_DATA_SIZE)
+            .maxTxCallDataSize(Integer.MAX_VALUE)
             .maxBlockCallDataSize(BLOCK_CALL_DATA_MAX_SIZE)
             .build();
     transactionSelector = new MaxBlockCallDataTransactionSelector(configuration);
-  }
-
-  @Test
-  public void shouldSelectTransactionWhen_CallDataSize_IsLessThan_MaxTxCallDataSize() {
-    var mockTransaction = mockTransactionOfCallDataSize(MAX_TX_CALL_DATA_SIZE - 1);
-    verifyTransactionSelection(
-        transactionSelector, mockTransaction, TransactionSelectionResult.SELECTED);
-  }
-
-  @Test
-  public void shouldSelectTransactionWhen_CallDataSize_IsEqualTo_MaxTxCallDataSize() {
-    var mockTransaction = mockTransactionOfCallDataSize(MAX_TX_CALL_DATA_SIZE);
-    verifyTransactionSelection(
-        transactionSelector, mockTransaction, TransactionSelectionResult.SELECTED);
-  }
-
-  @Test
-  public void shouldNotSelectTransactionWhen_CallDataSize_IsGreaterThan_MaxTxCallDataSize() {
-    var mockTransaction = mockTransactionOfCallDataSize(MAX_TX_CALL_DATA_SIZE + 1);
-    verifyTransactionSelection(
-        transactionSelector,
-        mockTransaction,
-        TransactionSelectionResult.invalid(CALL_DATA_TOO_BIG_INVALID_REASON));
   }
 
   @Test
@@ -101,9 +77,9 @@ public class MaxBlockCallDataSizeTransactionSelectorTest {
 
   @Test
   public void shouldNotSelectAdditionalTransactionOnceBlockIsFull() {
-    var firstTransaction = mockTransactionOfCallDataSize(MAX_TX_CALL_DATA_SIZE);
-    var secondTransaction = mockTransactionOfCallDataSize(MAX_TX_CALL_DATA_SIZE);
-    var thirdTransaction = mockTransactionOfCallDataSize(MAX_TX_CALL_DATA_SIZE);
+    var firstTransaction = mockTransactionOfCallDataSize(TX_CALL_DATA_SIZE);
+    var secondTransaction = mockTransactionOfCallDataSize(TX_CALL_DATA_SIZE);
+    var thirdTransaction = mockTransactionOfCallDataSize(TX_CALL_DATA_SIZE);
 
     verifyTransactionSelection(
         transactionSelector, firstTransaction, TransactionSelectionResult.SELECTED);

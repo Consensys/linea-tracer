@@ -42,8 +42,8 @@ public class LineaTransactionSelector implements TransactionSelector {
   private static List<TransactionSelector> createTransactionSelectors(
       final LineaConfiguration lineaConfiguration) {
     return List.of(
-        new MaxBlockCallDataTransactionSelector(lineaConfiguration),
-        new MaxBlockSizeTransactionSelector(lineaConfiguration));
+        new MaxTransactionCallDataTransactionSelector(lineaConfiguration),
+        new MaxBlockCallDataTransactionSelector(lineaConfiguration));
   }
 
   /**

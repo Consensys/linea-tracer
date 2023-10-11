@@ -29,9 +29,7 @@ import org.hyperledger.besu.plugin.data.TransactionSelectionResult;
 @Slf4j
 public class MaxBlockCallDataTransactionSelector extends PreProcessingTransactionSelector {
   private final int maxBlockCallDataSize;
-  private final int maxTxCallDataSize;
   private int blockCallDataSize;
-  public static String CALL_DATA_TOO_BIG_INVALID_REASON = "CallData too big";
 
   /**
    * Constructor that initializes the maximum allowed call data size for a transaction and a block.
@@ -40,7 +38,6 @@ public class MaxBlockCallDataTransactionSelector extends PreProcessingTransactio
    */
   public MaxBlockCallDataTransactionSelector(LineaConfiguration lineaConfiguration) {
     this.maxBlockCallDataSize = lineaConfiguration.maxBlockCallDataSize();
-    this.maxTxCallDataSize = lineaConfiguration.maxTxCallDataSize();
   }
 
   /**
@@ -54,30 +51,18 @@ public class MaxBlockCallDataTransactionSelector extends PreProcessingTransactio
   @Override
   public TransactionSelectionResult evaluateTransactionPreProcessing(
       final PendingTransaction pendingTransaction) {
+
     final Transaction transaction = pendingTransaction.getTransaction();
     final int transactionCallDataSize = transaction.getPayload().size();
 
-    if (isTransactionCallDataSizeTooBig(transactionCallDataSize)) {
-      logTransactionCallDataSizeTooBig(transaction, transactionCallDataSize);
-      return TransactionSelectionResult.invalid(CALL_DATA_TOO_BIG_INVALID_REASON);
-    }
-
-    if (isBlockCallDataSizeTooBig(transactionCallDataSize, transaction)) {
-      logBlockCallDataSizeTooBig(transaction, transactionCallDataSize);
+    if (isTransactionExceedingBlockCallDataSizeLimit(transactionCallDataSize)) {
+      log.trace(
+          "BlockCallData {} greater than {}, completing operation",
+          transactionCallDataSize,
+          maxBlockCallDataSize);
       return TransactionSelectionResult.BLOCK_FULL;
     }
-
     return TransactionSelectionResult.SELECTED;
-  }
-
-  /**
-   * Checks if the call data size of a transaction exceeds the maximum allowed size.
-   *
-   * @param transactionCallDataSize The call data size of the transaction.
-   * @return true if the call data size is too big, false otherwise.
-   */
-  private boolean isTransactionCallDataSizeTooBig(int transactionCallDataSize) {
-    return transactionCallDataSize > maxTxCallDataSize;
   }
 
   /**
@@ -85,48 +70,15 @@ public class MaxBlockCallDataTransactionSelector extends PreProcessingTransactio
    * allowed size if the given transaction were added.
    *
    * @param transactionCallDataSize The call data size of the transaction.
-   * @param transaction The transaction to be added.
    * @return true if the total call data size would be too big, false otherwise.
    */
-  private boolean isBlockCallDataSizeTooBig(int transactionCallDataSize, Transaction transaction) {
+  private boolean isTransactionExceedingBlockCallDataSizeLimit(int transactionCallDataSize) {
     try {
       return Math.addExact(blockCallDataSize, transactionCallDataSize) > maxBlockCallDataSize;
     } catch (final ArithmeticException e) {
-      // this should never happen
-      log.warn(
-          "Not adding transaction {} otherwise blockCallDataSum {} overflows",
-          transaction,
-          blockCallDataSize);
+      // Overflow won't occur as blockCallDataSize won't exceed Integer.MAX_VALUE
       return true;
     }
-  }
-
-  /**
-   * Logs a warning message indicating that the call data size of a transaction is too big.
-   *
-   * @param transaction The transaction with the too big call data size.
-   * @param transactionCallDataSize The call data size of the transaction.
-   */
-  private void logTransactionCallDataSizeTooBig(
-      Transaction transaction, int transactionCallDataSize) {
-    log.warn(
-        "Not adding transaction {} because callData size {} is too big",
-        transaction,
-        transactionCallDataSize);
-  }
-
-  /**
-   * Logs a trace message indicating that the total call data size of all transactions in a block
-   * would be too big if the given transaction were added.
-   *
-   * @param transaction The transaction to be added.
-   * @param transactionCallDataSize The call data size of the transaction.
-   */
-  private void logBlockCallDataSizeTooBig(Transaction transaction, int transactionCallDataSize) {
-    log.trace(
-        "BlockCallData {} greater than {}, completing operation",
-        transactionCallDataSize,
-        maxBlockCallDataSize);
   }
 
   /**
@@ -136,7 +88,7 @@ public class MaxBlockCallDataTransactionSelector extends PreProcessingTransactio
    */
   @Override
   public void onTransactionSelected(PendingTransaction pendingTransaction) {
-    blockCallDataSize =
-        Math.addExact(blockCallDataSize, pendingTransaction.getTransaction().getPayload().size());
+    final int transactionCallDataSize = pendingTransaction.getTransaction().getPayload().size();
+    blockCallDataSize = Math.addExact(blockCallDataSize, transactionCallDataSize);
   }
 }

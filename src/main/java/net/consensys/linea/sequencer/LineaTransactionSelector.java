@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hyperledger.besu.datatypes.PendingTransaction;
 import org.hyperledger.besu.datatypes.Transaction;
+import org.hyperledger.besu.plugin.data.TransactionProcessingResult;
 import org.hyperledger.besu.plugin.data.TransactionSelectionResult;
 import org.hyperledger.besu.plugin.services.txselection.TransactionSelector;
 
@@ -61,6 +62,13 @@ public class LineaTransactionSelector implements TransactionSelector {
       return TransactionSelectionResult.BLOCK_FULL;
     }
 
+    return TransactionSelectionResult.SELECTED;
+  }
+
+  @Override
+  public TransactionSelectionResult evaluateTransactionPostProcessing(
+      final PendingTransaction pendingTransaction,
+      final TransactionProcessingResult processingResult) {
     return TransactionSelectionResult.SELECTED;
   }
 }

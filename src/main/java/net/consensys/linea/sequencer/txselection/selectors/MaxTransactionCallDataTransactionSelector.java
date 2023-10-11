@@ -18,7 +18,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hyperledger.besu.datatypes.PendingTransaction;
 import org.hyperledger.besu.datatypes.Transaction;
+import org.hyperledger.besu.plugin.data.TransactionProcessingResult;
 import org.hyperledger.besu.plugin.data.TransactionSelectionResult;
+import org.hyperledger.besu.plugin.services.txselection.TransactionSelector;
 
 /**
  * This class extends PreProcessingTransactionSelector and is used to select transactions based on
@@ -28,7 +30,7 @@ import org.hyperledger.besu.plugin.data.TransactionSelectionResult;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class MaxTransactionCallDataTransactionSelector extends PreProcessingTransactionSelector {
+public class MaxTransactionCallDataTransactionSelector implements TransactionSelector {
 
   private final int maxTxCallDataSize;
   /** The reason for invalidation if the call data size is too big. */
@@ -53,6 +55,21 @@ public class MaxTransactionCallDataTransactionSelector extends PreProcessingTran
           transactionCallDataSize);
       return TransactionSelectionResult.invalid(CALL_DATA_TOO_BIG_INVALID_REASON);
     }
+    return TransactionSelectionResult.SELECTED;
+  }
+
+  /**
+   * No evaluation is performed here.
+   *
+   * @param pendingTransaction The processed transaction.
+   * @param processingResult The result of the transaction processing.
+   * @return Always returns SELECTED.
+   */
+  @Override
+  public TransactionSelectionResult evaluateTransactionPostProcessing(
+      final PendingTransaction pendingTransaction,
+      final TransactionProcessingResult processingResult) {
+    // Evaluation done in pre-processing, no action needed here.
     return TransactionSelectionResult.SELECTED;
   }
 }

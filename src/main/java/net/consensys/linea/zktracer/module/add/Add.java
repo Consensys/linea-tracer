@@ -31,7 +31,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 
 /** Implementation of a {@link Module} for addition/subtraction. */
 public class Add implements Module {
-  private static final UInt256 twoToThe128 = UInt256.ONE.shiftLeft(128);
+  private static final UInt256 TWO_TO_THE_128 = UInt256.ONE.shiftLeft(128);
 
   private int stamp = 0;
   final Trace.TraceBuilder trace = Trace.builder();
@@ -132,7 +132,7 @@ public class Add implements Module {
         addRes = Bytes32.wrap((UInt256.fromBytes(resLo)).add(UInt256.fromBytes(arg2Lo)));
       }
 
-      overflowLo = (addRes.compareTo(twoToThe128) >= 0);
+      overflowLo = (addRes.compareTo(TWO_TO_THE_128) >= 0);
 
       trace
           .acc1(resHi.slice(0, 1 + i).toUnsignedBigInteger())

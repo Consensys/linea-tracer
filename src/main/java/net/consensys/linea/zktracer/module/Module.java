@@ -36,7 +36,7 @@ public interface Module {
 
   default void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {}
 
-  default void traceStartTx(WorldView worldView, Transaction tx) {}
+  void traceStartTx(WorldView worldView, Transaction tx);
 
   default void traceEndTx(
       WorldView worldView,
@@ -51,6 +51,8 @@ public interface Module {
   default void traceContextExit(MessageFrame frame) {}
 
   default void trace(MessageFrame frame) {}
+
+  void popTransaction();
 
   int lineCount();
 

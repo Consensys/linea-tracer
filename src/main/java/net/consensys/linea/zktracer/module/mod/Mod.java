@@ -16,17 +16,18 @@
 package net.consensys.linea.zktracer.module.mod;
 
 import java.math.BigInteger;
-import java.util.HashSet;
-import java.util.Set;
 
 import net.consensys.linea.zktracer.bytes.UnsignedByte;
+import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.OpCodes;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
+import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class Mod implements Module {
   private int stamp = 0;
@@ -38,7 +39,7 @@ public class Mod implements Module {
     return "mod";
   }
 
-  private final Set<ModOperation> chunks = new HashSet<>();
+  private final StackedSet<ModOperation> chunks = new StackedSet<>();
 
   @Override
   public void trace(final MessageFrame frame) {
@@ -47,6 +48,16 @@ public class Mod implements Module {
     final Bytes32 arg2 = Bytes32.leftPad(frame.getStackItem(1));
 
     this.chunks.add(new ModOperation(opCodeData, arg1, arg2));
+  }
+
+  @Override
+  public void traceStartTx(WorldView worldView, Transaction tx) {
+    this.chunks.push();
+  }
+
+  @Override
+  public void popTransaction() {
+    this.chunks.pop();
   }
 
   public void traceModOperation(ModOperation op) {

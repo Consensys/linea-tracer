@@ -18,7 +18,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import net.consensys.linea.sequencer.LineaConfiguration;
 import net.consensys.linea.sequencer.txselection.selectors.MaxBlockCallDataTransactionSelector;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.PendingTransaction;
@@ -36,12 +35,7 @@ public class MaxBlockCallDataSizeTransactionSelectorTest {
 
   @BeforeEach
   public void initialize() {
-    LineaConfiguration configuration =
-        new LineaConfiguration.Builder()
-            .maxTxCallDataSize(Integer.MAX_VALUE)
-            .maxBlockCallDataSize(BLOCK_CALL_DATA_MAX_SIZE)
-            .build();
-    transactionSelector = new MaxBlockCallDataTransactionSelector(configuration);
+    transactionSelector = new MaxBlockCallDataTransactionSelector(BLOCK_CALL_DATA_MAX_SIZE);
   }
 
   @Test

@@ -14,8 +14,8 @@
  */
 package net.consensys.linea.sequencer.txselection.selectors;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.consensys.linea.sequencer.LineaConfiguration;
 import org.hyperledger.besu.datatypes.PendingTransaction;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.plugin.data.TransactionSelectionResult;
@@ -27,20 +27,12 @@ import org.hyperledger.besu.plugin.data.TransactionSelectionResult;
  * LineaConfiguration.
  */
 @Slf4j
+@RequiredArgsConstructor
 public class MaxTransactionCallDataTransactionSelector extends PreProcessingTransactionSelector {
+
   private final int maxTxCallDataSize;
   /** The reason for invalidation if the call data size is too big. */
   public static String CALL_DATA_TOO_BIG_INVALID_REASON = "Transaction Call Data is too big";
-
-  /**
-   * Constructor for MaxTransactionCallDataTransactionSelector.
-   *
-   * @param lineaConfiguration The configuration object from which the maximum transaction call data
-   *     size is obtained.
-   */
-  public MaxTransactionCallDataTransactionSelector(LineaConfiguration lineaConfiguration) {
-    this.maxTxCallDataSize = lineaConfiguration.maxTxCallDataSize();
-  }
 
   /**
    * Evaluates a pending transaction based on its call data size.

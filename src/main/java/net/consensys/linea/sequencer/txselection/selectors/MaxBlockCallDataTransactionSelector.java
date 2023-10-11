@@ -14,8 +14,8 @@
  */
 package net.consensys.linea.sequencer.txselection.selectors;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.consensys.linea.sequencer.LineaConfiguration;
 import org.hyperledger.besu.datatypes.PendingTransaction;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.plugin.data.TransactionSelectionResult;
@@ -27,18 +27,11 @@ import org.hyperledger.besu.plugin.data.TransactionSelectionResult;
  * allowed size.
  */
 @Slf4j
+@RequiredArgsConstructor
 public class MaxBlockCallDataTransactionSelector extends PreProcessingTransactionSelector {
+
   private final int maxBlockCallDataSize;
   private int blockCallDataSize;
-
-  /**
-   * Constructor that initializes the maximum allowed call data size for a transaction and a block.
-   *
-   * @param lineaConfiguration The configuration to use.
-   */
-  public MaxBlockCallDataTransactionSelector(LineaConfiguration lineaConfiguration) {
-    this.maxBlockCallDataSize = lineaConfiguration.maxBlockCallDataSize();
-  }
 
   /**
    * Evaluates a transaction before processing. Checks if the call data size of the transaction or

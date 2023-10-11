@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import net.consensys.linea.sequencer.LineaConfiguration;
 import net.consensys.linea.sequencer.txselection.selectors.MaxTransactionCallDataTransactionSelector;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.PendingTransaction;
@@ -35,9 +34,7 @@ public class MaxTransactionCallDataSizeTransactionSelectorTest {
 
   @BeforeEach
   public void initialize() {
-    LineaConfiguration configuration =
-        new LineaConfiguration.Builder().maxTxCallDataSize(MAX_TX_CALL_DATA_SIZE).build();
-    transactionSelector = new MaxTransactionCallDataTransactionSelector(configuration);
+    transactionSelector = new MaxTransactionCallDataTransactionSelector(MAX_TX_CALL_DATA_SIZE);
   }
 
   @Test

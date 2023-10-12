@@ -26,6 +26,7 @@ public record RomChunk(
     boolean deploymentStatus,
     boolean readFromTheState,
     boolean commitToTheState,
+    int id,
     Bytes byteCode) {
   @Override
   public int hashCode() {

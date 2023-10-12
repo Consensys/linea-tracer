@@ -21,8 +21,6 @@ import static net.consensys.linea.zktracer.module.rlputils.Pattern.byteCounting;
 import static net.consensys.linea.zktracer.module.rlputils.Pattern.outerRlpSize;
 import static net.consensys.linea.zktracer.module.rlputils.Pattern.padToGivenSizeWithLeftZero;
 import static net.consensys.linea.zktracer.module.rlputils.Pattern.padToGivenSizeWithRightZero;
-import static net.consensys.linea.zktracer.module.romLex.RomLex.chunkMap;
-import static net.consensys.linea.zktracer.module.romLex.RomLex.getKeyByValue;
 import static org.hyperledger.besu.ethereum.core.encoding.EncodingContext.BLOCK_BODY;
 import static org.hyperledger.besu.ethereum.core.encoding.TransactionEncoder.encodeOpaqueBytes;
 
@@ -36,10 +34,8 @@ import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.bytes.UnsignedByte;
 import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import net.consensys.linea.zktracer.module.Module;
-import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.rlputils.BitDecOutput;
 import net.consensys.linea.zktracer.module.rlputils.ByteCountAndPowerOutput;
-import net.consensys.linea.zktracer.module.romLex.RomChunk;
 import net.consensys.linea.zktracer.module.romLex.RomLex;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
@@ -55,10 +51,10 @@ import org.hyperledger.besu.ethereum.rlp.RLPOutput;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class RlpTxn implements Module {
-  private final Hub hub;
+  private final RomLex romLex;
 
-  public RlpTxn(Hub hub) {
-    this.hub = hub;
+  public RlpTxn(RomLex _romLex) {
+    this.romLex = _romLex;
   }
 
   @Override
@@ -108,12 +104,11 @@ public class RlpTxn implements Module {
 
     // Contract Creation
     if (tx.getTo().isEmpty() && !tx.getInit().get().isEmpty()) {
-      this.chunkList.add(new RlpTxnChunk(tx, true, RomLex.codeIdentifierBeforeLexOrder));
+      this.chunkList.add(new RlpTxnChunk(tx, true, romLex.codeIdentifierBeforeLexOrder));
     }
 
     // Call to a non-empty smart contract
     else if (tx.getTo().isPresent() && worldView.get(tx.getTo().get()).hasCode()) {
-
       this.chunkList.add(new RlpTxnChunk(tx, true));
     }
 
@@ -151,7 +146,7 @@ public class RlpTxn implements Module {
       traceValue.RLP_LT_BYTESIZE = innerRlpSize(besuRlpLt.size() - 1);
     }
 
-    Bytes besuRlpLx = Bytes.EMPTY;
+    Bytes besuRlpLx;
     switch (traceValue.txType) {
       case 0 -> {
         besuRlpLx =
@@ -877,7 +872,7 @@ public class RlpTxn implements Module {
       output -= 1;
     } else if (rlpSize == 57) {
       throw new RuntimeException("can't be of size 57");
-    } else if (57 < rlpSize && rlpSize < 258) {
+    } else if (rlpSize < 258) {
       output -= 2;
     } else if (rlpSize == 258) {
       throw new RuntimeException("can't be of size 258");
@@ -1306,12 +1301,8 @@ public class RlpTxn implements Module {
     for (RlpTxnChunk chunk : this.chunkList) {
       absTxNum += 1;
 
-      int codeFragmentIndex = 0;
-      if (chunk.codeIdentifierPreLexOrder().isPresent()) {
-        RomChunk romChunk = getKeyByValue(chunkMap, chunk.codeIdentifierPreLexOrder().get());
-        codeFragmentIndex = chunkMap.headMap(romChunk).size();
-      }
-
+      final int codeFragmentIndex =
+          chunk.id().map(romLex::getCFIById).orElse(0);
       traceChunk(chunk, absTxNum, codeFragmentIndex);
 
       estTraceSize += ChunkRowSize(chunk);

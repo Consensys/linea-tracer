@@ -35,6 +35,12 @@ public class Rom implements Module {
   private static final int PUSH_32 = OpCode.PUSH32.byteValue();
   private static final UnsignedByte invalid = UnsignedByte.of(0xFE);
 
+  private final RomLex romLex;
+
+  public Rom(RomLex _romLex) {
+    this.romLex = _romLex;
+  }
+
   @Override
   public String jsonKey() {
     return "rom";
@@ -49,7 +55,7 @@ public class Rom implements Module {
   @Override
   public int lineCount() {
     int traceRowSize = 0;
-    for (RomChunk chunk : RomLex.chunkMap.keySet()) {
+    for (RomChunk chunk : this.romLex.chunks) {
       traceRowSize += chunkRowSize(chunk);
     }
     return traceRowSize;
@@ -186,10 +192,11 @@ public class Rom implements Module {
   public Object commit() {
     int expectedTraceSize = 0;
     int cfi = 0;
-    for (RomChunk chunk : RomLex.chunkMap.keySet()) {
+    for (RomChunk chunk : this.romLex.sortedChunks) {
       cfi += 1;
       traceChunk(chunk, cfi);
       expectedTraceSize += chunkRowSize(chunk);
+
       if (this.builder.size() != expectedTraceSize) {
         throw new RuntimeException(
             "ChunkSize is not the right one, chunk n°: "

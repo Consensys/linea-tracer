@@ -20,7 +20,7 @@ import java.util.Optional;
 import org.hyperledger.besu.datatypes.Transaction;
 
 public record RlpTxnChunk(
-    Transaction tx, boolean requireEvmExecution, Optional<Integer> codeIdentifierPreLexOrder) {
+    Transaction tx, boolean requireEvmExecution, Optional<Integer> id) {
   public RlpTxnChunk(Transaction tx, boolean requireEvmExecution) {
     this(tx, requireEvmExecution, Optional.empty());
   }

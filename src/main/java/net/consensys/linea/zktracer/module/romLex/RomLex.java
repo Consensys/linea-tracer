@@ -26,6 +26,7 @@ import java.util.Objects;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -44,6 +45,9 @@ public class RomLex implements Module {
   public static int codeIdentifierBeforeLexOrder = 0;
 
   private static final RomChunkComparator romChunkComparator = new RomChunkComparator();
+
+  private final StackedSet<RomChunkWIdentifier> chunks = new StackedSet<>();
+
   public static final SortedMap<RomChunk, Integer> chunkMap = new TreeMap<>(romChunkComparator);
 
   static class RomChunkComparator implements Comparator<RomChunk> {
@@ -84,10 +88,10 @@ public class RomLex implements Module {
   }
 
   @Override
-  public void enterTransaction() {}
+  public void enterTransaction() {this.chunks.enter();}
 
   @Override
-  public void popTransaction() {}
+  public void popTransaction() {this.chunks.pop();}
 
   public static <Integer> RomChunk getKeyByValue(
       final SortedMap<RomChunk, Integer> map, Integer value) {
@@ -110,7 +114,7 @@ public class RomLex implements Module {
 
       final RomChunk chunk =
           new RomChunk(deployementAddress, depNumber, depStatus, true, false, tx.getInit().get());
-      chunkMap.put(chunk, codeIdentifierBeforeLexOrder);
+       this.chunks.add( new RomChunkWIdentifier(chunk,codeIdentifierBeforeLexOrder));
     }
 
     // Call to an account with bytecode
@@ -128,7 +132,7 @@ public class RomLex implements Module {
                 false,
                 true,
                 worldView.get(tx.getTo().get()).getCode());
-        chunkMap.put(chunk, codeIdentifierBeforeLexOrder);
+        this.chunks.add( new RomChunkWIdentifier(chunk,codeIdentifierBeforeLexOrder));
       }
     }
   }
@@ -154,7 +158,7 @@ public class RomLex implements Module {
               hub.conflation().deploymentInfo().isDeploying(deployementAddress);
           final RomChunk chunk =
               new RomChunk(deployementAddress, depNumber, depStatus, true, false, initCode);
-          chunkMap.put(chunk, codeIdentifierBeforeLexOrder);
+          this.chunks.add( new RomChunkWIdentifier(chunk,codeIdentifierBeforeLexOrder));
         }
       }
 
@@ -178,7 +182,7 @@ public class RomLex implements Module {
 
           final RomChunk chunk =
               new RomChunk(deployementAddress, depNumber, depStatus, true, false, initCode);
-          chunkMap.put(chunk, codeIdentifierBeforeLexOrder);
+          this.chunks.add( new RomChunkWIdentifier(chunk,codeIdentifierBeforeLexOrder));
         }
       }
 
@@ -196,7 +200,7 @@ public class RomLex implements Module {
 
           final RomChunk chunk =
               new RomChunk(sourceAddress, depNumber, deploymentStatus, false, true, code);
-          chunkMap.put(chunk, codeIdentifierBeforeLexOrder);
+          this.chunks.add( new RomChunkWIdentifier(chunk,codeIdentifierBeforeLexOrder));
         }
       }
 
@@ -213,7 +217,7 @@ public class RomLex implements Module {
 
           final RomChunk chunk =
               new RomChunk(frame.getContractAddress(), depNumber, depStatus, true, false, code);
-          chunkMap.put(chunk, codeIdentifierBeforeLexOrder);
+          this.chunks.add( new RomChunkWIdentifier(chunk,codeIdentifierBeforeLexOrder));
         }
       }
 
@@ -230,7 +234,7 @@ public class RomLex implements Module {
           codeIdentifierBeforeLexOrder += 1;
           final RomChunk chunk =
               new RomChunk(calledAddress, depNumber, depStatus, true, false, byteCode);
-          chunkMap.put(chunk, codeIdentifierBeforeLexOrder);
+          this.chunks.add( new RomChunkWIdentifier(chunk,codeIdentifierBeforeLexOrder));
         }
       }
 
@@ -247,7 +251,7 @@ public class RomLex implements Module {
           codeIdentifierBeforeLexOrder += 1;
           final RomChunk chunk =
               new RomChunk(addrCall, depNumber, depStatus, true, false, byteCode);
-          chunkMap.put(chunk, codeIdentifierBeforeLexOrder);
+          this.chunks.add( new RomChunkWIdentifier(chunk,codeIdentifierBeforeLexOrder));
         }
       }
     }
@@ -264,6 +268,13 @@ public class RomLex implements Module {
         .depStatus(chunk.deploymentStatus())
         .readFromState(chunk.readFromTheState())
         .validateRow();
+  }
+
+  @Override
+  public void traceEndConflation() {
+    for (RomChunkWIdentifier chunkWIdentifier : this.chunks){
+      chunkMap.put(chunkWIdentifier.chunk(), chunkWIdentifier.chunkIdentifierBeforeLex());
+    }
   }
 
   @Override

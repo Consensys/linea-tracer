@@ -15,20 +15,9 @@
 
 package net.consensys.linea.zktracer.module.romLex;
 
-import java.util.Objects;
-
-import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Address;
-
-public record RomChunk(
-    Address address,
-    int deploymentNumber,
-    boolean deploymentStatus,
-    boolean readFromTheState,
-    boolean commitToTheState,
-    Bytes byteCode) {
+public record RomChunkWIdentifier(RomChunk chunk, Integer chunkIdentifierBeforeLex) {
   @Override
   public int hashCode() {
-    return Objects.hash(this.address, this.deploymentNumber, this.deploymentStatus);
+    return (this.chunk().hashCode());
   }
 }

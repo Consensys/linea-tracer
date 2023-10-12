@@ -15,12 +15,15 @@
 
 package net.consensys.linea.sequencer.txselection;
 
+import com.google.common.base.MoreObjects;
+import picocli.CommandLine;
+
 /** The Linea configuration. */
-public final class LineaConfiguration {
+public final class LineaTransactionSelectionConfiguration {
   private final int maxTxCallDataSize;
   private final int maxBlockCallDataSize;
 
-  private LineaConfiguration(int maxTxCallDataSize, int maxBlockCallDataSize) {
+  private LineaTransactionSelectionConfiguration(int maxTxCallDataSize, int maxBlockCallDataSize) {
     this.maxTxCallDataSize = maxTxCallDataSize;
     this.maxBlockCallDataSize = maxBlockCallDataSize;
   }
@@ -47,8 +50,9 @@ public final class LineaConfiguration {
       return this;
     }
 
-    public LineaConfiguration build() {
-      return new LineaConfiguration(maxTxCallDataSize, maxBlockCallDataSize);
+    public LineaTransactionSelectionConfiguration build() {
+      return new LineaTransactionSelectionConfiguration(maxTxCallDataSize, maxBlockCallDataSize);
     }
   }
+
 }

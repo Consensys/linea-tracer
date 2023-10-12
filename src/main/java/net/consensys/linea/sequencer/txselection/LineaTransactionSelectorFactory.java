@@ -15,24 +15,23 @@
 
 package net.consensys.linea.sequencer.txselection;
 
-import java.util.List;
-
+import net.consensys.linea.sequencer.LineaCliOptions;
+import net.consensys.linea.sequencer.LineaConfiguration;
+import net.consensys.linea.sequencer.txselection.selectors.LineaTransactionSelector;
 import org.hyperledger.besu.plugin.services.txselection.TransactionSelector;
 import org.hyperledger.besu.plugin.services.txselection.TransactionSelectorFactory;
 
 /** Represents a factory for creating transaction selectors. */
 public class LineaTransactionSelectorFactory implements TransactionSelectorFactory {
-  private final LineaTransactionSelectorCliOptions options;
+  private final LineaCliOptions options;
 
-  public LineaTransactionSelectorFactory(final LineaTransactionSelectorCliOptions options) {
+  public LineaTransactionSelectorFactory(final LineaCliOptions options) {
     this.options = options;
   }
 
   @Override
-  public List<TransactionSelector> create() {
-    final LineaTransactionSelectorConfiguration lineaConfiguration = options.toDomainObject();
-    return List.of(
-        new LineaTransactionSelector(
-            lineaConfiguration.maxTxCalldataSize(), lineaConfiguration.maxBlockCalldataSize()));
+  public TransactionSelector create() {
+    final LineaConfiguration lineaConfiguration = options.toDomainObject();
+    return new LineaTransactionSelector(lineaConfiguration);
   }
 }

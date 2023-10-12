@@ -158,13 +158,15 @@ public class Hub implements Module {
   private final RlpTxn rlpTxn;
   private final RlpTxrcpt rlpTxrcpt = new RlpTxrcpt();
   private final RlpAddr rlpAddr = new RlpAddr();
-  private final List<Module> modules;
-  private final Rom rom = new Rom();
+  private final Rom rom;
   private final RomLex romLex;
 
+  private final List<Module> modules;
+
   public Hub() {
-    this.rlpTxn = new RlpTxn(this);
     this.romLex = new RomLex(this);
+    this.rom = new Rom(this.romLex);
+    this.rlpTxn = new RlpTxn(this.romLex);
 
     this.modules =
         List.of(
@@ -179,14 +181,6 @@ public class Hub implements Module {
             this.rlpAddr,
             this.rom,
             this.romLex);
-  }
-
-  /**
-   * @return the list of modules that need to be triggered in a self-standing way by the {@link
-   *     net.consensys.linea.zktracer.ZkTracer}
-   */
-  public List<Module> getSelfStandingModules() {
-    return List.of(this.rlpTxrcpt, this.rlpTxn);
   }
 
   /**
@@ -591,6 +585,10 @@ public class Hub implements Module {
 
     this.processStateWarm(world);
     this.processStateInit(world);
+
+    for (Module m : this.modules) {
+      m.traceStartTx(world, tx);
+    }
   }
 
   @Override
@@ -598,6 +596,7 @@ public class Hub implements Module {
     this.stamp = this.preTxStamp;
     this.tx.pop();
     this.traceSections.pop();
+
     for (Module m : this.modules) {
       m.popTransaction();
     }
@@ -614,6 +613,10 @@ public class Hub implements Module {
     this.defers.runPostTx(this, world, tx);
 
     this.currentTxTrace().postTxRetcon(this);
+
+    for (Module m : this.modules) {
+      m.traceEndTx(world, tx, status, output, logs, gasUsed);
+    }
   }
 
   private void unlatchStack(MessageFrame frame) {
@@ -662,6 +665,10 @@ public class Hub implements Module {
         isDeployment);
 
     this.defers.runNextContext(this, frame);
+
+    for (Module m : this.modules) {
+      m.traceContextEnter(frame);
+    }
   }
 
   @Override
@@ -682,6 +689,10 @@ public class Hub implements Module {
       this.callStack.exit(this.trace.size() - 1, frame.getOutputData());
     } else {
       this.callStack.exit(this.trace.size() - 1, frame.getReturnData());
+    }
+
+    for (Module m : this.modules) {
+      m.traceContextExit(frame);
     }
   }
 
@@ -715,15 +726,24 @@ public class Hub implements Module {
   @Override
   public void traceStartBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
     this.block.update(blockHeader);
+    for (Module m : this.modules) {
+      m.traceStartBlock(blockHeader, blockBody);
+    }
   }
 
   @Override
   public void traceStartConflation(long blockCount) {
     this.conflation.update();
+    for (Module m : this.modules) {
+      m.traceStartConflation(blockCount);
+    }
   }
 
   @Override
   public void traceEndConflation() {
+    for (Module m : this.modules) {
+      m.traceEndConflation();
+    }
     for (TxTrace txTrace : this.traceSections) {
       txTrace.postConflationRetcon(this, null /* TODO WorldView */);
     }

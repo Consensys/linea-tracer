@@ -1301,8 +1301,7 @@ public class RlpTxn implements Module {
     for (RlpTxnChunk chunk : this.chunkList) {
       absTxNum += 1;
 
-      final int codeFragmentIndex =
-          chunk.id().map(romLex::getCFIById).orElse(0);
+      final int codeFragmentIndex = chunk.id().map(romLex::getCFIById).orElse(0);
       traceChunk(chunk, absTxNum, codeFragmentIndex);
 
       estTraceSize += ChunkRowSize(chunk);

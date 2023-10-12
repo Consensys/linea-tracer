@@ -61,7 +61,10 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
 
   @Override
   public void traceEndConflation() {
-    hub.traceEndConflation();
+    this.hub.traceEndConflation();
+    for (Module module : this.modulesToTrigger) {
+      module.traceEndConflation();
+    }
   }
 
   @Override
@@ -108,7 +111,10 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
 
   @Override
   public void traceContextEnter(MessageFrame frame) {
-    this.hub.traceContextEnter(frame);
+    // We only want to trigger on creation of new contexts, not on re-entry in existing contexts
+    if (frame.getState() == MessageFrame.State.NOT_STARTED) {
+      this.hub.traceContextEnter(frame);
+    }
   }
 
   @Override

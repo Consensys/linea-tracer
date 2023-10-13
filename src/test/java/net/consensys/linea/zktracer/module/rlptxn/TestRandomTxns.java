@@ -44,6 +44,7 @@ import org.junit.jupiter.api.Test;
 
 class TestRandomTxns {
   private final Random rnd = new Random(666);
+  private final int nTxTest = 200;
 
   @Test
   void test() {
@@ -51,7 +52,7 @@ class TestRandomTxns {
     ToyWorld.ToyWorldBuilder world = ToyWorld.builder();
     List<Transaction> txList = new ArrayList<>();
 
-    for (int i = 0; i < 200; i++) {
+    for (int i = 0; i < nTxTest; i++) {
       KeyPair keyPair = new SECP256K1().generateKeyPair();
       Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
       ToyAccount senderAccount = randToyAccount(senderAddress);

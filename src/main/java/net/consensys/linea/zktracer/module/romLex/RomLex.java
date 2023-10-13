@@ -316,6 +316,7 @@ public class RomLex implements Module {
     this.builder
         .codeFragmentIndex(BigInteger.valueOf(cfi))
         .codeFragmentIndexInfty(BigInteger.valueOf(codeFragmentIndexInfinity))
+        .codesize(BigInteger.valueOf(chunk.byteCode().size()))
         .addrHi(chunk.address().slice(0, 4).toUnsignedBigInteger())
         .addrLo(chunk.address().slice(4, LLARGE).toUnsignedBigInteger())
         .commitToState(chunk.commitToTheState())

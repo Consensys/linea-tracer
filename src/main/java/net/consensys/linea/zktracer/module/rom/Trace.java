@@ -30,6 +30,7 @@ import net.consensys.linea.zktracer.bytes.UnsignedByte;
 public record Trace(
     @JsonProperty("ACC") List<BigInteger> acc,
     @JsonProperty("CODE_FRAGMENT_INDEX") List<BigInteger> codeFragmentIndex,
+    @JsonProperty("CODE_FRAGMENT_INDEX_INFTY") List<BigInteger> codeFragmentIndexInfty,
     @JsonProperty("CODESIZE") List<BigInteger> codesize,
     @JsonProperty("CODESIZE_REACHED") List<Boolean> codesizeReached,
     @JsonProperty("COUNTER") List<BigInteger> counter,
@@ -62,6 +63,9 @@ public record Trace(
 
     @JsonProperty("CODE_FRAGMENT_INDEX")
     private final List<BigInteger> codeFragmentIndex = new ArrayList<>();
+
+    @JsonProperty("CODE_FRAGMENT_INDEX_INFTY")
+    private final List<BigInteger> codeFragmentIndexInfty = new ArrayList<>();
 
     @JsonProperty("CODESIZE")
     private final List<BigInteger> codesize = new ArrayList<>();
@@ -157,6 +161,18 @@ public record Trace(
       return this;
     }
 
+    public TraceBuilder codeFragmentIndexInfty(final BigInteger b) {
+      if (filled.get(4)) {
+        throw new IllegalStateException("CODE_FRAGMENT_INDEX_INFTY already set");
+      } else {
+        filled.set(4);
+      }
+
+      codeFragmentIndexInfty.add(b);
+
+      return this;
+    }
+
     public TraceBuilder codesize(final BigInteger b) {
       if (filled.get(1)) {
         throw new IllegalStateException("CODESIZE already set");
@@ -182,10 +198,10 @@ public record Trace(
     }
 
     public TraceBuilder counter(final BigInteger b) {
-      if (filled.get(4)) {
+      if (filled.get(5)) {
         throw new IllegalStateException("COUNTER already set");
       } else {
-        filled.set(4);
+        filled.set(5);
       }
 
       counter.add(b);
@@ -194,10 +210,10 @@ public record Trace(
     }
 
     public TraceBuilder counterMax(final BigInteger b) {
-      if (filled.get(5)) {
+      if (filled.get(6)) {
         throw new IllegalStateException("COUNTER_MAX already set");
       } else {
-        filled.set(5);
+        filled.set(6);
       }
 
       counterMax.add(b);
@@ -206,10 +222,10 @@ public record Trace(
     }
 
     public TraceBuilder counterPush(final BigInteger b) {
-      if (filled.get(6)) {
+      if (filled.get(7)) {
         throw new IllegalStateException("COUNTER_PUSH already set");
       } else {
-        filled.set(6);
+        filled.set(7);
       }
 
       counterPush.add(b);
@@ -218,10 +234,10 @@ public record Trace(
     }
 
     public TraceBuilder index(final BigInteger b) {
-      if (filled.get(7)) {
+      if (filled.get(8)) {
         throw new IllegalStateException("INDEX already set");
       } else {
-        filled.set(7);
+        filled.set(8);
       }
 
       index.add(b);
@@ -230,10 +246,10 @@ public record Trace(
     }
 
     public TraceBuilder isPush(final Boolean b) {
-      if (filled.get(8)) {
+      if (filled.get(9)) {
         throw new IllegalStateException("IS_PUSH already set");
       } else {
-        filled.set(8);
+        filled.set(9);
       }
 
       isPush.add(b);
@@ -242,10 +258,10 @@ public record Trace(
     }
 
     public TraceBuilder isPushData(final Boolean b) {
-      if (filled.get(9)) {
+      if (filled.get(10)) {
         throw new IllegalStateException("IS_PUSH_DATA already set");
       } else {
-        filled.set(9);
+        filled.set(10);
       }
 
       isPushData.add(b);
@@ -254,10 +270,10 @@ public record Trace(
     }
 
     public TraceBuilder limb(final BigInteger b) {
-      if (filled.get(10)) {
+      if (filled.get(11)) {
         throw new IllegalStateException("LIMB already set");
       } else {
-        filled.set(10);
+        filled.set(11);
       }
 
       limb.add(b);
@@ -266,10 +282,10 @@ public record Trace(
     }
 
     public TraceBuilder nBytes(final BigInteger b) {
-      if (filled.get(20)) {
+      if (filled.get(21)) {
         throw new IllegalStateException("nBYTES already set");
       } else {
-        filled.set(20);
+        filled.set(21);
       }
 
       nBytes.add(b);
@@ -278,10 +294,10 @@ public record Trace(
     }
 
     public TraceBuilder nBytesAcc(final BigInteger b) {
-      if (filled.get(21)) {
+      if (filled.get(22)) {
         throw new IllegalStateException("nBYTES_ACC already set");
       } else {
-        filled.set(21);
+        filled.set(22);
       }
 
       nBytesAcc.add(b);
@@ -290,10 +306,10 @@ public record Trace(
     }
 
     public TraceBuilder opcode(final UnsignedByte b) {
-      if (filled.get(11)) {
+      if (filled.get(12)) {
         throw new IllegalStateException("OPCODE already set");
       } else {
-        filled.set(11);
+        filled.set(12);
       }
 
       opcode.add(b);
@@ -302,10 +318,10 @@ public record Trace(
     }
 
     public TraceBuilder paddedBytecodeByte(final UnsignedByte b) {
-      if (filled.get(12)) {
+      if (filled.get(13)) {
         throw new IllegalStateException("PADDED_BYTECODE_BYTE already set");
       } else {
-        filled.set(12);
+        filled.set(13);
       }
 
       paddedBytecodeByte.add(b);
@@ -314,10 +330,10 @@ public record Trace(
     }
 
     public TraceBuilder programmeCounter(final BigInteger b) {
-      if (filled.get(13)) {
+      if (filled.get(14)) {
         throw new IllegalStateException("PROGRAMME_COUNTER already set");
       } else {
-        filled.set(13);
+        filled.set(14);
       }
 
       programmeCounter.add(b);
@@ -326,10 +342,10 @@ public record Trace(
     }
 
     public TraceBuilder pushFunnelBit(final Boolean b) {
-      if (filled.get(14)) {
+      if (filled.get(15)) {
         throw new IllegalStateException("PUSH_FUNNEL_BIT already set");
       } else {
-        filled.set(14);
+        filled.set(15);
       }
 
       pushFunnelBit.add(b);
@@ -338,10 +354,10 @@ public record Trace(
     }
 
     public TraceBuilder pushParameter(final BigInteger b) {
-      if (filled.get(15)) {
+      if (filled.get(16)) {
         throw new IllegalStateException("PUSH_PARAMETER already set");
       } else {
-        filled.set(15);
+        filled.set(16);
       }
 
       pushParameter.add(b);
@@ -350,10 +366,10 @@ public record Trace(
     }
 
     public TraceBuilder pushValueAcc(final BigInteger b) {
-      if (filled.get(16)) {
+      if (filled.get(17)) {
         throw new IllegalStateException("PUSH_VALUE_ACC already set");
       } else {
-        filled.set(16);
+        filled.set(17);
       }
 
       pushValueAcc.add(b);
@@ -362,10 +378,10 @@ public record Trace(
     }
 
     public TraceBuilder pushValueHigh(final BigInteger b) {
-      if (filled.get(17)) {
+      if (filled.get(18)) {
         throw new IllegalStateException("PUSH_VALUE_HIGH already set");
       } else {
-        filled.set(17);
+        filled.set(18);
       }
 
       pushValueHigh.add(b);
@@ -374,10 +390,10 @@ public record Trace(
     }
 
     public TraceBuilder pushValueLow(final BigInteger b) {
-      if (filled.get(18)) {
+      if (filled.get(19)) {
         throw new IllegalStateException("PUSH_VALUE_LOW already set");
       } else {
-        filled.set(18);
+        filled.set(19);
       }
 
       pushValueLow.add(b);
@@ -386,10 +402,10 @@ public record Trace(
     }
 
     public TraceBuilder validJumpDestination(final Boolean b) {
-      if (filled.get(19)) {
+      if (filled.get(20)) {
         throw new IllegalStateException("VALID_JUMP_DESTINATION already set");
       } else {
-        filled.set(19);
+        filled.set(20);
       }
 
       validJumpDestination.add(b);
@@ -406,6 +422,10 @@ public record Trace(
         throw new IllegalStateException("CODE_FRAGMENT_INDEX has not been filled");
       }
 
+      if (!filled.get(4)) {
+        throw new IllegalStateException("CODE_FRAGMENT_INDEX_INFTY has not been filled");
+      }
+
       if (!filled.get(1)) {
         throw new IllegalStateException("CODESIZE has not been filled");
       }
@@ -414,75 +434,75 @@ public record Trace(
         throw new IllegalStateException("CODESIZE_REACHED has not been filled");
       }
 
-      if (!filled.get(4)) {
+      if (!filled.get(5)) {
         throw new IllegalStateException("COUNTER has not been filled");
       }
 
-      if (!filled.get(5)) {
+      if (!filled.get(6)) {
         throw new IllegalStateException("COUNTER_MAX has not been filled");
       }
 
-      if (!filled.get(6)) {
+      if (!filled.get(7)) {
         throw new IllegalStateException("COUNTER_PUSH has not been filled");
       }
 
-      if (!filled.get(7)) {
+      if (!filled.get(8)) {
         throw new IllegalStateException("INDEX has not been filled");
       }
 
-      if (!filled.get(8)) {
+      if (!filled.get(9)) {
         throw new IllegalStateException("IS_PUSH has not been filled");
       }
 
-      if (!filled.get(9)) {
+      if (!filled.get(10)) {
         throw new IllegalStateException("IS_PUSH_DATA has not been filled");
       }
 
-      if (!filled.get(10)) {
+      if (!filled.get(11)) {
         throw new IllegalStateException("LIMB has not been filled");
       }
 
-      if (!filled.get(20)) {
+      if (!filled.get(21)) {
         throw new IllegalStateException("nBYTES has not been filled");
       }
 
-      if (!filled.get(21)) {
+      if (!filled.get(22)) {
         throw new IllegalStateException("nBYTES_ACC has not been filled");
       }
 
-      if (!filled.get(11)) {
+      if (!filled.get(12)) {
         throw new IllegalStateException("OPCODE has not been filled");
       }
 
-      if (!filled.get(12)) {
+      if (!filled.get(13)) {
         throw new IllegalStateException("PADDED_BYTECODE_BYTE has not been filled");
       }
 
-      if (!filled.get(13)) {
+      if (!filled.get(14)) {
         throw new IllegalStateException("PROGRAMME_COUNTER has not been filled");
       }
 
-      if (!filled.get(14)) {
+      if (!filled.get(15)) {
         throw new IllegalStateException("PUSH_FUNNEL_BIT has not been filled");
       }
 
-      if (!filled.get(15)) {
+      if (!filled.get(16)) {
         throw new IllegalStateException("PUSH_PARAMETER has not been filled");
       }
 
-      if (!filled.get(16)) {
+      if (!filled.get(17)) {
         throw new IllegalStateException("PUSH_VALUE_ACC has not been filled");
       }
 
-      if (!filled.get(17)) {
+      if (!filled.get(18)) {
         throw new IllegalStateException("PUSH_VALUE_HIGH has not been filled");
       }
 
-      if (!filled.get(18)) {
+      if (!filled.get(19)) {
         throw new IllegalStateException("PUSH_VALUE_LOW has not been filled");
       }
 
-      if (!filled.get(19)) {
+      if (!filled.get(20)) {
         throw new IllegalStateException("VALID_JUMP_DESTINATION has not been filled");
       }
 
@@ -500,6 +520,10 @@ public record Trace(
         codeFragmentIndex.add(BigInteger.ZERO);
         this.filled.set(3);
       }
+      if (!filled.get(4)) {
+        codeFragmentIndexInfty.add(BigInteger.ZERO);
+        this.filled.set(4);
+      }
       if (!filled.get(1)) {
         codesize.add(BigInteger.ZERO);
         this.filled.set(1);
@@ -508,77 +532,77 @@ public record Trace(
         codesizeReached.add(false);
         this.filled.set(2);
       }
-      if (!filled.get(4)) {
-        counter.add(BigInteger.ZERO);
-        this.filled.set(4);
-      }
       if (!filled.get(5)) {
-        counterMax.add(BigInteger.ZERO);
+        counter.add(BigInteger.ZERO);
         this.filled.set(5);
       }
       if (!filled.get(6)) {
-        counterPush.add(BigInteger.ZERO);
+        counterMax.add(BigInteger.ZERO);
         this.filled.set(6);
       }
       if (!filled.get(7)) {
-        index.add(BigInteger.ZERO);
+        counterPush.add(BigInteger.ZERO);
         this.filled.set(7);
       }
       if (!filled.get(8)) {
-        isPush.add(false);
+        index.add(BigInteger.ZERO);
         this.filled.set(8);
       }
       if (!filled.get(9)) {
-        isPushData.add(false);
+        isPush.add(false);
         this.filled.set(9);
       }
       if (!filled.get(10)) {
-        limb.add(BigInteger.ZERO);
+        isPushData.add(false);
         this.filled.set(10);
       }
-      if (!filled.get(20)) {
-        nBytes.add(BigInteger.ZERO);
-        this.filled.set(20);
-      }
-      if (!filled.get(21)) {
-        nBytesAcc.add(BigInteger.ZERO);
-        this.filled.set(21);
-      }
       if (!filled.get(11)) {
-        opcode.add(UnsignedByte.of(0));
+        limb.add(BigInteger.ZERO);
         this.filled.set(11);
       }
+      if (!filled.get(21)) {
+        nBytes.add(BigInteger.ZERO);
+        this.filled.set(21);
+      }
+      if (!filled.get(22)) {
+        nBytesAcc.add(BigInteger.ZERO);
+        this.filled.set(22);
+      }
       if (!filled.get(12)) {
-        paddedBytecodeByte.add(UnsignedByte.of(0));
+        opcode.add(UnsignedByte.of(0));
         this.filled.set(12);
       }
       if (!filled.get(13)) {
-        programmeCounter.add(BigInteger.ZERO);
+        paddedBytecodeByte.add(UnsignedByte.of(0));
         this.filled.set(13);
       }
       if (!filled.get(14)) {
-        pushFunnelBit.add(false);
+        programmeCounter.add(BigInteger.ZERO);
         this.filled.set(14);
       }
       if (!filled.get(15)) {
-        pushParameter.add(BigInteger.ZERO);
+        pushFunnelBit.add(false);
         this.filled.set(15);
       }
       if (!filled.get(16)) {
-        pushValueAcc.add(BigInteger.ZERO);
+        pushParameter.add(BigInteger.ZERO);
         this.filled.set(16);
       }
       if (!filled.get(17)) {
-        pushValueHigh.add(BigInteger.ZERO);
+        pushValueAcc.add(BigInteger.ZERO);
         this.filled.set(17);
       }
       if (!filled.get(18)) {
-        pushValueLow.add(BigInteger.ZERO);
+        pushValueHigh.add(BigInteger.ZERO);
         this.filled.set(18);
       }
       if (!filled.get(19)) {
-        validJumpDestination.add(false);
+        pushValueLow.add(BigInteger.ZERO);
         this.filled.set(19);
+      }
+      if (!filled.get(20)) {
+        validJumpDestination.add(false);
+        this.filled.set(20);
       }
 
       return this.validateRow();
@@ -592,6 +616,7 @@ public record Trace(
       return new Trace(
           acc,
           codeFragmentIndex,
+          codeFragmentIndexInfty,
           codesize,
           codesizeReached,
           counter,

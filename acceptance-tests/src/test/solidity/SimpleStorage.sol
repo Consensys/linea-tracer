@@ -17,11 +17,19 @@ pragma solidity >=0.7.0 <0.9.0;
 contract SimpleStorage {
     string data;
 
+    uint sum;
+
     function set(string memory value) public {
         data = value;
     }
 
     function get() public view returns (string memory) {
         return data;
+    }
+
+    function add() public {
+        if (sum < 100000) {
+            sum = sum + sum;
+        }
     }
 }

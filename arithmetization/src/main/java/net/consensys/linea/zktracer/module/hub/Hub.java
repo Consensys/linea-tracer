@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -68,8 +69,6 @@ import org.hyperledger.besu.evm.internal.Words;
 import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
-import org.hyperledger.besu.plugin.data.BlockBody;
-import org.hyperledger.besu.plugin.data.BlockHeader;
 
 @Slf4j
 @Accessors(fluent = true)
@@ -845,10 +844,11 @@ public class Hub implements Module {
   }
 
   @Override
-  public void traceStartBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
-    this.block.update(blockHeader);
+  public void traceStartBlock(
+      final int blockNumber, final BigInteger baseFee, final Address coinbase) {
+    this.block.update(baseFee, coinbase);
     for (Module m : this.modules) {
-      m.traceStartBlock(blockHeader, blockBody);
+      m.traceStartBlock(0, null, null);
     }
   }
 

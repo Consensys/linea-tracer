@@ -42,7 +42,7 @@ public class OpCodes {
     JsonNode rootNode =
         YAML_CONVERTER
             .getObjectMapper()
-            .readTree(OpCodes.class.getClassLoader().getResourceAsStream("opcodes.yml"))
+            .readTree(classLoader.getResourceAsStream("opcodes.yml"))
             .get("opcodes");
 
     CollectionType typeReference =

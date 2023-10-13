@@ -22,9 +22,10 @@ import picocli.CommandLine;
 public class LineaCliOptions {
   public static final int DEFAULT_MAX_TX_CALLDATA_SIZE = 60000;
   public static final int DEFAULT_MAX_BLOCK_CALLDATA_SIZE = 70000;
-
+  public static final int DEFAULT_MAX_BLOCK_SIZE = Integer.MAX_VALUE;
   private static final String MAX_TX_CALLDATA_SIZE = "--plugin-linea-max-tx-calldata-size";
   private static final String MAX_BLOCK_CALLDATA_SIZE = "--plugin-linea-max-block-calldata-size";
+  private static final String MAX_BLOCK_SIZE = "--plugin-linea-max-block-size";
 
   @CommandLine.Option(
       names = {MAX_TX_CALLDATA_SIZE},
@@ -45,6 +46,14 @@ public class LineaCliOptions {
               + DEFAULT_MAX_BLOCK_CALLDATA_SIZE
               + ")")
   private int maxBlockCallDataSize = DEFAULT_MAX_BLOCK_CALLDATA_SIZE;
+
+  @CommandLine.Option(
+      names = {MAX_BLOCK_SIZE},
+      hidden = true,
+      paramLabel = "<INTEGER>",
+      description =
+          "Maximum size for the block size in bytes (default: " + DEFAULT_MAX_BLOCK_SIZE + ")")
+  private int maxBlockSize = DEFAULT_MAX_BLOCK_SIZE;
 
   private LineaCliOptions() {}
 
@@ -67,6 +76,7 @@ public class LineaCliOptions {
     final LineaCliOptions options = create();
     options.maxTxCallDataSize = config.maxTxCallDataSize();
     options.maxBlockCallDataSize = config.maxBlockCallDataSize();
+    options.maxBlockSize = config.maxBlockSize();
     return options;
   }
 
@@ -79,6 +89,7 @@ public class LineaCliOptions {
     return new LineaConfiguration.Builder()
         .maxTxCallDataSize(maxTxCallDataSize)
         .maxBlockCallDataSize(maxBlockCallDataSize)
+        .maxBlockSize(maxBlockSize)
         .build();
   }
 
@@ -87,6 +98,7 @@ public class LineaCliOptions {
     return MoreObjects.toStringHelper(this)
         .add(MAX_TX_CALLDATA_SIZE, maxTxCallDataSize)
         .add(MAX_BLOCK_CALLDATA_SIZE, maxBlockCallDataSize)
+        .add(MAX_BLOCK_SIZE, maxBlockSize)
         .toString();
   }
 }

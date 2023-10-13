@@ -19,10 +19,13 @@ package net.consensys.linea.sequencer;
 public final class LineaConfiguration {
   private final int maxTxCallDataSize;
   private final int maxBlockCallDataSize;
+  private final int maxBlockSize;
 
-  private LineaConfiguration(int maxTxCallDataSize, int maxBlockCallDataSize) {
+  private LineaConfiguration(
+      final int maxTxCallDataSize, final int maxBlockCallDataSize, final int maxBlockSize) {
     this.maxTxCallDataSize = maxTxCallDataSize;
     this.maxBlockCallDataSize = maxBlockCallDataSize;
+    this.maxBlockSize = maxBlockSize;
   }
 
   public int maxTxCallDataSize() {
@@ -33,9 +36,15 @@ public final class LineaConfiguration {
     return maxBlockCallDataSize;
   }
 
+  public int maxBlockSize() {
+    return maxBlockSize;
+  }
+
   public static class Builder {
     private int maxTxCallDataSize;
     private int maxBlockCallDataSize;
+
+    private int maxBlockSize;
 
     public Builder maxTxCallDataSize(int maxTxCallDataSize) {
       this.maxTxCallDataSize = maxTxCallDataSize;
@@ -47,8 +56,13 @@ public final class LineaConfiguration {
       return this;
     }
 
+    public Builder maxBlockSize(int maxBlockSize) {
+      this.maxBlockSize = maxBlockSize;
+      return this;
+    }
+
     public LineaConfiguration build() {
-      return new LineaConfiguration(maxTxCallDataSize, maxBlockCallDataSize);
+      return new LineaConfiguration(maxTxCallDataSize, maxBlockCallDataSize, maxBlockSize);
     }
   }
 }

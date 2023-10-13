@@ -15,7 +15,9 @@
 
 package net.consensys.linea.zktracer;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.Module;
@@ -139,5 +141,11 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
   /** When called, erase all tracing related to the last included transaction. */
   public void popTransaction() {
     hub.popTransaction();
+  }
+
+  public Map<String, Integer> getModulesLineCount() {
+    final HashMap<String, Integer> modulesLineCount = new HashMap<>();
+    hub.getModulesToTrace().forEach(m -> modulesLineCount.put(m.getClass().getCanonicalName(), m.lineCount()));
+    return modulesLineCount;
   }
 }

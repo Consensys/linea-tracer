@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.opcode;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -40,10 +41,11 @@ public class OpCodes {
   public static void load() {
     ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
+    final InputStream resourceAsStream = classLoader.getResourceAsStream("opcodes.yml");
     JsonNode rootNode =
         YAML_CONVERTER
             .getObjectMapper()
-            .readTree(classLoader.getResourceAsStream("opcodes.yml"))
+            .readTree(resourceAsStream)
             .get("opcodes");
 
     CollectionType typeReference =

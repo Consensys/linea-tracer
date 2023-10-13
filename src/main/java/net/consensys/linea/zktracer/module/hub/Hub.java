@@ -91,6 +91,16 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 public class Hub implements Module {
   private static final int TAU = 8;
   public static final GasProjector gp = new GasProjector();
+  public static final List<Address> PRECOMPILE_LIST = List.of(
+          Address.ECREC,
+          Address.SHA256,
+          Address.RIPEMD160,
+          Address.ID,
+          Address.MODEXP,
+          Address.ALTBN128_ADD,
+          Address.ALTBN128_MUL,
+          Address.ALTBN128_PAIRING,
+          Address.BLAKE2B_F_COMPRESSION);
 
   public final Trace.TraceBuilder trace = Trace.builder();
   // Tx -> Opcode -> TraceSection
@@ -203,17 +213,7 @@ public class Hub implements Module {
   }
 
   public static boolean isPrecompile(Address to) {
-    return List.of(
-            Address.ECREC,
-            Address.SHA256,
-            Address.RIPEMD160,
-            Address.ID,
-            Address.MODEXP,
-            Address.ALTBN128_ADD,
-            Address.ALTBN128_MUL,
-            Address.ALTBN128_PAIRING,
-            Address.BLAKE2B_F_COMPRESSION)
-        .contains(to);
+    return PRECOMPILE_LIST.contains(to);
   }
 
   public static boolean isValidPrecompileCall(MessageFrame frame) {

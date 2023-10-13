@@ -16,11 +16,15 @@ package net.consensys.linea.sequencer.txselection.selectors;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.zktracer.ZkTracer;
+import net.consensys.linea.zktracer.module.hub.Hub;
 import org.hyperledger.besu.datatypes.PendingTransaction;
-import org.hyperledger.besu.datatypes.Transaction;
+import org.hyperledger.besu.evm.tracing.OperationTracer;
 import org.hyperledger.besu.plugin.data.TransactionProcessingResult;
 import org.hyperledger.besu.plugin.data.TransactionSelectionResult;
 import org.hyperledger.besu.plugin.services.txselection.PluginTransactionSelector;
+
+import java.util.Map;
 
 /**
  * This class implements TransactionSelector and provides a specific implementation for evaluating
@@ -28,11 +32,14 @@ import org.hyperledger.besu.plugin.services.txselection.PluginTransactionSelecto
  * pushes the call data size of the block over the limit.
  */
 @Slf4j
-@RequiredArgsConstructor
-public class MaxBlockCallDataTransactionSelector implements PluginTransactionSelector {
+public class TraceLineLimitTransactionSelector implements PluginTransactionSelector {
 
-  private final int maxBlockCallDataSize;
-  private int blockCallDataSize;
+  private ZkTracer zkTracer;
+  private final Map<String, Integer> moduleLimits;
+
+  public TraceLineLimitTransactionSelector(final Map<String, Integer> moduleLimits) {
+    this.moduleLimits = moduleLimits;
+  }
 
   /**
    * Evaluates a transaction before processing. Checks if adding the transaction to the block pushes
@@ -45,45 +52,12 @@ public class MaxBlockCallDataTransactionSelector implements PluginTransactionSel
   @Override
   public TransactionSelectionResult evaluateTransactionPreProcessing(
       final PendingTransaction pendingTransaction) {
-
-    final Transaction transaction = pendingTransaction.getTransaction();
-    final int transactionCallDataSize = transaction.getPayload().size();
-
-    if (isTransactionExceedingBlockCallDataSizeLimit(transactionCallDataSize)) {
-      log.trace(
-          "BlockCallData {} greater than {}, completing operation",
-          transactionCallDataSize,
-          maxBlockCallDataSize);
-      return TransactionSelectionResult.BLOCK_FULL;
-    }
     return TransactionSelectionResult.SELECTED;
   }
 
-  /**
-   * Checks if the total call data size of all transactions in a block would exceed the maximum
-   * allowed size if the given transaction were added.
-   *
-   * @param transactionCallDataSize The call data size of the transaction.
-   * @return true if the total call data size would be too big, false otherwise.
-   */
-  private boolean isTransactionExceedingBlockCallDataSizeLimit(int transactionCallDataSize) {
-    try {
-      return Math.addExact(blockCallDataSize, transactionCallDataSize) > maxBlockCallDataSize;
-    } catch (final ArithmeticException e) {
-      // Overflow won't occur as blockCallDataSize won't exceed Integer.MAX_VALUE
-      return true;
-    }
-  }
-
-  /**
-   * Updates the total call data size of all transactions in a block when a transaction is selected.
-   *
-   * @param pendingTransaction The selected transaction.
-   */
   @Override
-  public void onTransactionSelected(final PendingTransaction pendingTransaction, final TransactionProcessingResult transactionProcessingResult) {
-    final int transactionCallDataSize = pendingTransaction.getTransaction().getPayload().size();
-    blockCallDataSize = Math.addExact(blockCallDataSize, transactionCallDataSize);
+  public void onTransactionNotSelected(final PendingTransaction pendingTransaction, final TransactionSelectionResult transactionSelectionResult) {
+    zkTracer.popTransaction();
   }
 
   /**
@@ -97,7 +71,19 @@ public class MaxBlockCallDataTransactionSelector implements PluginTransactionSel
   public TransactionSelectionResult evaluateTransactionPostProcessing(
       final PendingTransaction pendingTransaction,
       final TransactionProcessingResult processingResult) {
-    // Evaluation done in pre-processing, no action needed here.
-    return TransactionSelectionResult.SELECTED;
+      // check that we are not exceed line number for any module
+      final Map<String, Integer> lineCounts = zkTracer.getModulesLineCount();
+      for (var e:lineCounts.entrySet()) {
+        if (lineCounts.get(e.getKey()) > moduleLimits.get(e.getKey().getClass().getSimpleName())) {
+          return TransactionSelectionResult.BLOCK_FULL;
+        }
+      }
+      return TransactionSelectionResult.SELECTED;
   }
+
+  @Override
+    public OperationTracer getOperationTracer() {
+      zkTracer = new ZkTracer();
+      return zkTracer;
+    }
 }

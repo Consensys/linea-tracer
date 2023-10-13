@@ -19,10 +19,12 @@ package net.consensys.linea.sequencer;
 public final class LineaConfiguration {
   private final int maxTxCallDataSize;
   private final int maxBlockCallDataSize;
+  private final String moduleLimitsFilePath;
 
-  private LineaConfiguration(int maxTxCallDataSize, int maxBlockCallDataSize) {
+  private LineaConfiguration(int maxTxCallDataSize, int maxBlockCallDataSize, final String moduleLimitsFilePath) {
     this.maxTxCallDataSize = maxTxCallDataSize;
     this.maxBlockCallDataSize = maxBlockCallDataSize;
+    this.moduleLimitsFilePath = moduleLimitsFilePath;
   }
 
   public int maxTxCallDataSize() {
@@ -33,22 +35,32 @@ public final class LineaConfiguration {
     return maxBlockCallDataSize;
   }
 
-  public static class Builder {
+  public String moduleLimitsFilePath() {
+    return moduleLimitsFilePath;
+  }
+
+    public static class Builder {
     private int maxTxCallDataSize;
     private int maxBlockCallDataSize;
+      private String moduleLimitsFilePath;
 
-    public Builder maxTxCallDataSize(int maxTxCallDataSize) {
+      public Builder maxTxCallDataSize(final int maxTxCallDataSize) {
       this.maxTxCallDataSize = maxTxCallDataSize;
       return this;
     }
 
-    public Builder maxBlockCallDataSize(int maxBlockCallDataSize) {
+    public Builder maxBlockCallDataSize(final int maxBlockCallDataSize) {
       this.maxBlockCallDataSize = maxBlockCallDataSize;
       return this;
     }
 
+    public Builder moduleLimits(final String moduleLimitFilePath) {
+      this.moduleLimitsFilePath = moduleLimitFilePath;
+      return this;
+    }
+
     public LineaConfiguration build() {
-      return new LineaConfiguration(maxTxCallDataSize, maxBlockCallDataSize);
+      return new LineaConfiguration(maxTxCallDataSize, maxBlockCallDataSize, moduleLimitsFilePath);
     }
   }
 }

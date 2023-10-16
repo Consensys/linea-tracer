@@ -31,6 +31,7 @@ repositories {
     content { includeGroupByRegex('com\\.splunk\\..*') }
   }
   mavenCentral()
+  mavenLocal()
 }
 
 apply plugin: 'io.spring.dependency-management'
@@ -72,9 +73,9 @@ dependencyManagement {
 
     // Logging dependencies
     dependency 'org.slf4j:slf4j-api:2.0.7'
-    dependencySet(group: 'ch.qos.logback', version: '1.4.9') {
-      entry 'logback-core'
-      entry 'logback-classic'
+    dependencySet(group: 'org.apache.logging.log4j', version: '2.20.0') {
+      entry 'log4j-core'
+      entry 'log4j-slf4j-impl'
     }
 
     // auto service

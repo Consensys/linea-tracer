@@ -22,18 +22,20 @@ import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.continoustracing.exception.InvalidTraceHandlerException;
 import net.consensys.linea.corset.CorsetValidator;
 import org.apache.commons.io.FileUtils;
+import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 
 @Slf4j
-public class InvalidTraceHandler {
+public class TraceFailureHandler {
   final SlackNotificationService slackNotificationService;
   final File INVALID_TRACE_DIRECTORY = new File(FileUtils.getUserDirectory(), "invalid-traces");
 
-  public InvalidTraceHandler(final SlackNotificationService slackNotificationService) {
+  public TraceFailureHandler(final SlackNotificationService slackNotificationService) {
     this.slackNotificationService = slackNotificationService;
   }
 
-  public void handle(final BlockHeader blockHeader, final CorsetValidator.Result result)
+  public void handleCorsetFailure(
+      final BlockHeader blockHeader, final CorsetValidator.Result result)
       throws InvalidTraceHandlerException {
     final File traceFile =
         FileUtils.getFile(
@@ -66,11 +68,19 @@ public class InvalidTraceHandler {
     }
 
     try {
-      slackNotificationService.sendInvalidTraceNotification(
+      slackNotificationService.sendCorsetFailureNotification(
           blockHeader.getNumber(), blockHeader.getBlockHash().toHexString(), result);
     } catch (IOException e) {
       log.error("Error while sending slack notification: {}", e.getMessage());
       throw new InvalidTraceHandlerException(e);
+    }
+  }
+
+  public void handleBlockTraceFailure(final Hash txHash, final String errorMessage) {
+    try {
+      slackNotificationService.sendBlockTraceFailureNotification(txHash, errorMessage);
+    } catch (IOException e) {
+      log.error("Error while handling block trace failure: {}", e.getMessage());
     }
   }
 }

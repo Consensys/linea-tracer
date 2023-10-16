@@ -14,13 +14,18 @@
  */
 package net.consensys.linea.continoustracing;
 
+import java.io.IOException;
 import java.util.function.Supplier;
 
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.continoustracing.exception.InvalidBlockTraceException;
 import net.consensys.linea.continoustracing.exception.TraceVerificationException;
 import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.zktracer.ZkTracer;
+import org.apache.commons.io.FileUtils;
 import org.hyperledger.besu.datatypes.Hash;
+import org.hyperledger.besu.plugin.data.BlockTraceResult;
+import org.hyperledger.besu.plugin.data.TransactionTraceResult;
 import org.hyperledger.besu.plugin.services.TraceService;
 
 @Slf4j
@@ -39,11 +44,26 @@ public class ContinuousTracer {
   }
 
   public CorsetValidator.Result verifyTraceOfBlock(final Hash blockHash, final String zkEvmBin)
-      throws TraceVerificationException {
+      throws TraceVerificationException, InvalidBlockTraceException {
     final ZkTracer zkTracer = zkTracerSupplier.get();
     zkTracer.traceStartConflation(1);
-    traceService.traceBlock(blockHash, zkTracer);
+
+    final BlockTraceResult blockTraceResult;
+    try {
+      blockTraceResult = traceService.traceBlock(blockHash, zkTracer);
+    } catch (final Exception e) {
+      throw new TraceVerificationException(blockHash, e.getMessage());
+    }
     zkTracer.traceEndConflation();
+
+    for (final TransactionTraceResult transactionTraceResult :
+        blockTraceResult.transactionTraceResults()) {
+      if (transactionTraceResult.getStatus() != TransactionTraceResult.Status.SUCCESS) {
+        throw new InvalidBlockTraceException(
+            transactionTraceResult.getTxHash(),
+            transactionTraceResult.errorMessage().orElse("Unknown error"));
+      }
+    }
 
     final CorsetValidator.Result result;
     try {
@@ -58,11 +78,11 @@ public class ContinuousTracer {
       throw new TraceVerificationException(blockHash, e.getMessage());
     }
 
-    //    try {
-    //      FileUtils.delete(result.traceFile());
-    //    } catch (IOException e) {
-    //      log.warn("Error while deleting trace file {}: {}", result.traceFile(), e.getMessage());
-    //    }
+    try {
+      FileUtils.delete(result.traceFile());
+    } catch (IOException e) {
+      log.warn("Error while deleting trace file {}: {}", result.traceFile(), e.getMessage());
+    }
 
     log.info("Trace of block {} is valid", blockHash.toHexString());
     return result;

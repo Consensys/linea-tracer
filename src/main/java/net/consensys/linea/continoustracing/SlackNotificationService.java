@@ -25,6 +25,7 @@ import com.slack.api.Slack;
 import com.slack.api.webhook.Payload;
 import com.slack.api.webhook.WebhookResponse;
 import net.consensys.linea.corset.CorsetValidator;
+import org.hyperledger.besu.datatypes.Hash;
 
 public class SlackNotificationService {
   final Slack slack;
@@ -39,7 +40,7 @@ public class SlackNotificationService {
     return new SlackNotificationService(Slack.getInstance(), webHookUrl);
   }
 
-  public void sendInvalidTraceNotification(
+  public void sendCorsetFailureNotification(
       final long blockNumber, final String blockHash, final CorsetValidator.Result validationResult)
       throws IOException {
     final Payload messagePayload =
@@ -73,7 +74,39 @@ public class SlackNotificationService {
             .build();
 
     WebhookResponse response = slack.send(webHookUrl, messagePayload);
+    checkResponse(response);
+  }
 
+  public void sendBlockTraceFailureNotification(final Hash txHash, final String errorMessage)
+      throws IOException {
+    final Payload messagePayload =
+        Payload.builder()
+            .text("Slack couldn't properly display the message.")
+            .blocks(
+                asBlocks(
+                    section(
+                        section ->
+                            section.text(
+                                markdownText(
+                                    "*Error while tracing transaction "
+                                        + txHash.toHexString()
+                                        + "*"))),
+                    divider(),
+                    section(
+                        section ->
+                            section.text(
+                                markdownText(
+                                    "Trace generation failed with the following error:\n\n"
+                                        + "```"
+                                        + errorMessage
+                                        + "```")))))
+            .build();
+
+    WebhookResponse response = slack.send(webHookUrl, messagePayload);
+    checkResponse(response);
+  }
+
+  private void checkResponse(final WebhookResponse response) throws IOException {
     if (response.getCode() != 200) {
       throw new IOException(
           "Error while sending notification: status code: "

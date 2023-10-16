@@ -15,6 +15,7 @@
 package net.consensys.linea.continoustracing;
 
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.continoustracing.exception.InvalidBlockTraceException;
 import net.consensys.linea.continoustracing.exception.InvalidTraceHandlerException;
 import net.consensys.linea.continoustracing.exception.TraceVerificationException;
 import net.consensys.linea.corset.CorsetValidator;
@@ -26,15 +27,15 @@ import org.hyperledger.besu.plugin.services.BesuEvents;
 @Slf4j
 public class ContinuousTracingBlockAddedListener implements BesuEvents.BlockAddedListener {
   final ContinuousTracer continuousTracer;
-  final InvalidTraceHandler invalidTraceHandler;
+  final TraceFailureHandler traceFailureHandler;
   final String zkEvmBin;
 
   public ContinuousTracingBlockAddedListener(
       final ContinuousTracer continuousTracer,
-      final InvalidTraceHandler invalidTraceHandler,
+      final TraceFailureHandler traceFailureHandler,
       final String zkEvmBin) {
     this.continuousTracer = continuousTracer;
-    this.invalidTraceHandler = invalidTraceHandler;
+    this.traceFailureHandler = traceFailureHandler;
     this.zkEvmBin = zkEvmBin;
   }
 
@@ -49,8 +50,10 @@ public class ContinuousTracingBlockAddedListener implements BesuEvents.BlockAdde
           continuousTracer.verifyTraceOfBlock(blockHash, zkEvmBin);
 
       if (!traceResult.isValid()) {
-        invalidTraceHandler.handle(blockHeader, traceResult);
+        traceFailureHandler.handleCorsetFailure(blockHeader, traceResult);
       }
+    } catch (InvalidBlockTraceException e) {
+      traceFailureHandler.handleBlockTraceFailure(e.txHash(), e.getMessage());
     } catch (TraceVerificationException e) {
       log.error(e.getMessage());
     } catch (InvalidTraceHandlerException e) {

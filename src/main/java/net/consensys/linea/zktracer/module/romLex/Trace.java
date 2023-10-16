@@ -31,7 +31,7 @@ public record Trace(
     @JsonProperty("ADDR_LO") List<BigInteger> addrLo,
     @JsonProperty("CODE_FRAGMENT_INDEX") List<BigInteger> codeFragmentIndex,
     @JsonProperty("CODE_FRAGMENT_INDEX_INFTY") List<BigInteger> codeFragmentIndexInfty,
-    @JsonProperty("CODESIZE") List<BigInteger> codesize,
+    @JsonProperty("CODE_SIZE") List<BigInteger> codeSize,
     @JsonProperty("COMMIT_TO_STATE") List<Boolean> commitToState,
     @JsonProperty("DEP_NUMBER") List<BigInteger> depNumber,
     @JsonProperty("DEP_STATUS") List<Boolean> depStatus,
@@ -55,8 +55,8 @@ public record Trace(
     @JsonProperty("CODE_FRAGMENT_INDEX_INFTY")
     private final List<BigInteger> codeFragmentIndexInfty = new ArrayList<>();
 
-    @JsonProperty("CODESIZE")
-    private final List<BigInteger> codesize = new ArrayList<>();
+    @JsonProperty("CODE_SIZE")
+    private final List<BigInteger> codeSize = new ArrayList<>();
 
     @JsonProperty("COMMIT_TO_STATE")
     private final List<Boolean> commitToState = new ArrayList<>();
@@ -105,10 +105,10 @@ public record Trace(
     }
 
     public TraceBuilder codeFragmentIndex(final BigInteger b) {
-      if (filled.get(3)) {
+      if (filled.get(2)) {
         throw new IllegalStateException("CODE_FRAGMENT_INDEX already set");
       } else {
-        filled.set(3);
+        filled.set(2);
       }
 
       codeFragmentIndex.add(b);
@@ -117,10 +117,10 @@ public record Trace(
     }
 
     public TraceBuilder codeFragmentIndexInfty(final BigInteger b) {
-      if (filled.get(4)) {
+      if (filled.get(3)) {
         throw new IllegalStateException("CODE_FRAGMENT_INDEX_INFTY already set");
       } else {
-        filled.set(4);
+        filled.set(3);
       }
 
       codeFragmentIndexInfty.add(b);
@@ -128,14 +128,14 @@ public record Trace(
       return this;
     }
 
-    public TraceBuilder codesize(final BigInteger b) {
-      if (filled.get(2)) {
-        throw new IllegalStateException("CODESIZE already set");
+    public TraceBuilder codeSize(final BigInteger b) {
+      if (filled.get(4)) {
+        throw new IllegalStateException("CODE_SIZE already set");
       } else {
-        filled.set(2);
+        filled.set(4);
       }
 
-      codesize.add(b);
+      codeSize.add(b);
 
       return this;
     }
@@ -197,16 +197,16 @@ public record Trace(
         throw new IllegalStateException("ADDR_LO has not been filled");
       }
 
-      if (!filled.get(3)) {
+      if (!filled.get(2)) {
         throw new IllegalStateException("CODE_FRAGMENT_INDEX has not been filled");
       }
 
-      if (!filled.get(4)) {
+      if (!filled.get(3)) {
         throw new IllegalStateException("CODE_FRAGMENT_INDEX_INFTY has not been filled");
       }
 
-      if (!filled.get(2)) {
-        throw new IllegalStateException("CODESIZE has not been filled");
+      if (!filled.get(4)) {
+        throw new IllegalStateException("CODE_SIZE has not been filled");
       }
 
       if (!filled.get(5)) {
@@ -239,17 +239,17 @@ public record Trace(
         addrLo.add(BigInteger.ZERO);
         this.filled.set(1);
       }
-      if (!filled.get(3)) {
+      if (!filled.get(2)) {
         codeFragmentIndex.add(BigInteger.ZERO);
+        this.filled.set(2);
+      }
+      if (!filled.get(3)) {
+        codeFragmentIndexInfty.add(BigInteger.ZERO);
         this.filled.set(3);
       }
       if (!filled.get(4)) {
-        codeFragmentIndexInfty.add(BigInteger.ZERO);
+        codeSize.add(BigInteger.ZERO);
         this.filled.set(4);
-      }
-      if (!filled.get(2)) {
-        codesize.add(BigInteger.ZERO);
-        this.filled.set(2);
       }
       if (!filled.get(5)) {
         commitToState.add(false);
@@ -281,7 +281,7 @@ public record Trace(
           addrLo,
           codeFragmentIndex,
           codeFragmentIndexInfty,
-          codesize,
+          codeSize,
           commitToState,
           depNumber,
           depStatus,

@@ -94,7 +94,7 @@ public class Rom implements Module {
           .codeFragmentIndexInfty(BigInteger.valueOf(cfiInfty))
           .programmeCounter(BigInteger.valueOf(i))
           .limb(dataPadded.slice(sliceNumber * LLARGE, LLARGE).toUnsignedBigInteger())
-          .codesize(BigInteger.valueOf(codeSize))
+          .codeSize(BigInteger.valueOf(codeSize))
           .paddedBytecodeByte(UnsignedByte.of(dataPadded.get(i)))
           .acc(dataPadded.slice(sliceNumber * LLARGE, (i % LLARGE) + 1).toUnsignedBigInteger())
           .codesizeReached(codeSizeReached)

@@ -139,8 +139,7 @@ public class RomLex implements Module {
     if (tx.getTo().isPresent() && worldView.get(tx.getTo().get()).hasCode()) {
       codeIdentifierBeforeLexOrder += 1;
       int depNumber = hub.conflation().deploymentInfo().number(tx.getTo().get());
-      boolean depStatus;
-      depStatus = hub.conflation().deploymentInfo().isDeploying(tx.getTo().get());
+      boolean depStatus = hub.conflation().deploymentInfo().isDeploying(tx.getTo().get());
 
       this.chunks.add(
           new RomChunk(
@@ -314,7 +313,7 @@ public class RomLex implements Module {
     this.builder
         .codeFragmentIndex(BigInteger.valueOf(cfi))
         .codeFragmentIndexInfty(BigInteger.valueOf(codeFragmentIndexInfinity))
-        .codesize(BigInteger.valueOf(chunk.byteCode().size()))
+        .codeSize(BigInteger.valueOf(chunk.byteCode().size()))
         .addrHi(chunk.address().slice(0, 4).toUnsignedBigInteger())
         .addrLo(chunk.address().slice(4, LLARGE).toUnsignedBigInteger())
         .commitToState(chunk.commitToTheState())

@@ -31,7 +31,7 @@ public record Trace(
     @JsonProperty("ACC") List<BigInteger> acc,
     @JsonProperty("CODE_FRAGMENT_INDEX") List<BigInteger> codeFragmentIndex,
     @JsonProperty("CODE_FRAGMENT_INDEX_INFTY") List<BigInteger> codeFragmentIndexInfty,
-    @JsonProperty("CODESIZE") List<BigInteger> codesize,
+    @JsonProperty("CODE_SIZE") List<BigInteger> codeSize,
     @JsonProperty("CODESIZE_REACHED") List<Boolean> codesizeReached,
     @JsonProperty("COUNTER") List<BigInteger> counter,
     @JsonProperty("COUNTER_MAX") List<BigInteger> counterMax,
@@ -67,8 +67,8 @@ public record Trace(
     @JsonProperty("CODE_FRAGMENT_INDEX_INFTY")
     private final List<BigInteger> codeFragmentIndexInfty = new ArrayList<>();
 
-    @JsonProperty("CODESIZE")
-    private final List<BigInteger> codesize = new ArrayList<>();
+    @JsonProperty("CODE_SIZE")
+    private final List<BigInteger> codeSize = new ArrayList<>();
 
     @JsonProperty("CODESIZE_REACHED")
     private final List<Boolean> codesizeReached = new ArrayList<>();
@@ -150,10 +150,10 @@ public record Trace(
     }
 
     public TraceBuilder codeFragmentIndex(final BigInteger b) {
-      if (filled.get(3)) {
+      if (filled.get(2)) {
         throw new IllegalStateException("CODE_FRAGMENT_INDEX already set");
       } else {
-        filled.set(3);
+        filled.set(2);
       }
 
       codeFragmentIndex.add(b);
@@ -162,10 +162,10 @@ public record Trace(
     }
 
     public TraceBuilder codeFragmentIndexInfty(final BigInteger b) {
-      if (filled.get(4)) {
+      if (filled.get(3)) {
         throw new IllegalStateException("CODE_FRAGMENT_INDEX_INFTY already set");
       } else {
-        filled.set(4);
+        filled.set(3);
       }
 
       codeFragmentIndexInfty.add(b);
@@ -173,23 +173,23 @@ public record Trace(
       return this;
     }
 
-    public TraceBuilder codesize(final BigInteger b) {
-      if (filled.get(1)) {
-        throw new IllegalStateException("CODESIZE already set");
+    public TraceBuilder codeSize(final BigInteger b) {
+      if (filled.get(4)) {
+        throw new IllegalStateException("CODE_SIZE already set");
       } else {
-        filled.set(1);
+        filled.set(4);
       }
 
-      codesize.add(b);
+      codeSize.add(b);
 
       return this;
     }
 
     public TraceBuilder codesizeReached(final Boolean b) {
-      if (filled.get(2)) {
+      if (filled.get(1)) {
         throw new IllegalStateException("CODESIZE_REACHED already set");
       } else {
-        filled.set(2);
+        filled.set(1);
       }
 
       codesizeReached.add(b);
@@ -418,19 +418,19 @@ public record Trace(
         throw new IllegalStateException("ACC has not been filled");
       }
 
-      if (!filled.get(3)) {
+      if (!filled.get(2)) {
         throw new IllegalStateException("CODE_FRAGMENT_INDEX has not been filled");
       }
 
-      if (!filled.get(4)) {
+      if (!filled.get(3)) {
         throw new IllegalStateException("CODE_FRAGMENT_INDEX_INFTY has not been filled");
       }
 
-      if (!filled.get(1)) {
-        throw new IllegalStateException("CODESIZE has not been filled");
+      if (!filled.get(4)) {
+        throw new IllegalStateException("CODE_SIZE has not been filled");
       }
 
-      if (!filled.get(2)) {
+      if (!filled.get(1)) {
         throw new IllegalStateException("CODESIZE_REACHED has not been filled");
       }
 
@@ -516,21 +516,21 @@ public record Trace(
         acc.add(BigInteger.ZERO);
         this.filled.set(0);
       }
-      if (!filled.get(3)) {
+      if (!filled.get(2)) {
         codeFragmentIndex.add(BigInteger.ZERO);
+        this.filled.set(2);
+      }
+      if (!filled.get(3)) {
+        codeFragmentIndexInfty.add(BigInteger.ZERO);
         this.filled.set(3);
       }
       if (!filled.get(4)) {
-        codeFragmentIndexInfty.add(BigInteger.ZERO);
+        codeSize.add(BigInteger.ZERO);
         this.filled.set(4);
       }
       if (!filled.get(1)) {
-        codesize.add(BigInteger.ZERO);
-        this.filled.set(1);
-      }
-      if (!filled.get(2)) {
         codesizeReached.add(false);
-        this.filled.set(2);
+        this.filled.set(1);
       }
       if (!filled.get(5)) {
         counter.add(BigInteger.ZERO);
@@ -617,7 +617,7 @@ public record Trace(
           acc,
           codeFragmentIndex,
           codeFragmentIndexInfty,
-          codesize,
+          codeSize,
           codesizeReached,
           counter,
           counterMax,

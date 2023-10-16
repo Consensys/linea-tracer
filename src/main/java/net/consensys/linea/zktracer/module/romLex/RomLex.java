@@ -104,7 +104,7 @@ public class RomLex implements Module {
     int codeFragmentIndex = -1;
     for (int i = 0; i < this.sortedChunks.size(); i++) {
       if (this.sortedChunks.get(i).id() == value) {
-        codeFragmentIndex = i+1;
+        codeFragmentIndex = i + 1;
       }
     }
 
@@ -137,21 +137,21 @@ public class RomLex implements Module {
 
     // Call to an account with bytecode
     if (tx.getTo().isPresent() && worldView.get(tx.getTo().get()).hasCode()) {
-        codeIdentifierBeforeLexOrder += 1;
-        int depNumber = hub.conflation().deploymentInfo().number(tx.getTo().get());
-        boolean depStatus;
-        depStatus = hub.conflation().deploymentInfo().isDeploying(tx.getTo().get());
+      codeIdentifierBeforeLexOrder += 1;
+      int depNumber = hub.conflation().deploymentInfo().number(tx.getTo().get());
+      boolean depStatus;
+      depStatus = hub.conflation().deploymentInfo().isDeploying(tx.getTo().get());
 
-        this.chunks.add(
-            new RomChunk(
-                tx.getTo().get(),
-                depNumber,
-                depStatus,
-                false,
-                true,
-                codeIdentifierBeforeLexOrder,
-                worldView.get(tx.getTo().get()).getCode()));
-      }
+      this.chunks.add(
+          new RomChunk(
+              tx.getTo().get(),
+              depNumber,
+              depStatus,
+              false,
+              true,
+              codeIdentifierBeforeLexOrder,
+              worldView.get(tx.getTo().get()).getCode()));
+    }
   }
 
   @Override

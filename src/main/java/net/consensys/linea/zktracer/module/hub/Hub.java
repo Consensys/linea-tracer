@@ -170,7 +170,8 @@ public class Hub implements Module {
 
     this.modules =
         List.of(
-          this.romLex, //romLex must be traced before modules requiring CodeFragmentIndex, like RlpTxn, TxnData, etc
+            this.romLex, // romLex must be traced before modules requiring CodeFragmentIndex, like
+            // RlpTxn, TxnData, etc
             this.add,
             this.ext,
             this.mod,

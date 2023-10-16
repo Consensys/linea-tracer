@@ -104,7 +104,7 @@ public class RomLex implements Module {
     int codeFragmentIndex = -1;
     for (int i = 0; i < this.sortedChunks.size(); i++) {
       if (this.sortedChunks.get(i).id() == value) {
-        codeFragmentIndex = i;
+        codeFragmentIndex = i+1;
       }
     }
 
@@ -136,8 +136,7 @@ public class RomLex implements Module {
     }
 
     // Call to an account with bytecode
-    if (tx.getTo().isPresent()) {
-      if (worldView.get(tx.getTo().get()).hasCode()) {
+    if (tx.getTo().isPresent() && worldView.get(tx.getTo().get()).hasCode()) {
         codeIdentifierBeforeLexOrder += 1;
         int depNumber = hub.conflation().deploymentInfo().number(tx.getTo().get());
         boolean depStatus;
@@ -153,7 +152,6 @@ public class RomLex implements Module {
                 codeIdentifierBeforeLexOrder,
                 worldView.get(tx.getTo().get()).getCode()));
       }
-    }
   }
 
   @Override

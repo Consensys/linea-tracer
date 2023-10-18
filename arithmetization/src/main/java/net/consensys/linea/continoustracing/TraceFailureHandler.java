@@ -76,9 +76,10 @@ public class TraceFailureHandler {
     }
   }
 
-  public void handleBlockTraceFailure(final Hash txHash, final String errorMessage) {
+  public void handleBlockTraceFailure(
+      final long blockNumber, final Hash txHash, final Throwable throwable) {
     try {
-      slackNotificationService.sendBlockTraceFailureNotification(txHash, errorMessage);
+      slackNotificationService.sendBlockTraceFailureNotification(blockNumber, txHash, throwable);
     } catch (IOException e) {
       log.error("Error while handling block trace failure: {}", e.getMessage());
     }

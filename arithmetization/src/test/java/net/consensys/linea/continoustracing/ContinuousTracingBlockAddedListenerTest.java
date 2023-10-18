@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 
 import net.consensys.linea.continoustracing.exception.InvalidBlockTraceException;
 import net.consensys.linea.continoustracing.exception.TraceVerificationException;
+import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.plugin.data.AddedBlockContext;
 import org.hyperledger.besu.plugin.data.BlockHeader;
@@ -52,7 +53,8 @@ class ContinuousTracingBlockAddedListenerTest {
             continuousTracerMock, traceFailureHandlerMock, "testZkEvmBin");
 
     continuousTracingBlockAddedListener.onBlockAdded(addedBlockContext);
-    verify(continuousTracerMock, never()).verifyTraceOfBlock(any(), matches("testZkEvmBin"));
+    verify(continuousTracerMock, never())
+        .verifyTraceOfBlock(any(), matches("testZkEvmBin"), new ZkTracer());
   }
 
   @Test
@@ -67,6 +69,6 @@ class ContinuousTracingBlockAddedListenerTest {
 
     continuousTracingBlockAddedListener.onBlockAdded(addedBlockContext);
     verify(continuousTracerMock, times(1))
-        .verifyTraceOfBlock(eq(BLOCK_HASH), matches("testZkEvmBin"));
+        .verifyTraceOfBlock(eq(BLOCK_HASH), matches("testZkEvmBin"), new ZkTracer());
   }
 }

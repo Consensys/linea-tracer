@@ -19,6 +19,7 @@ import net.consensys.linea.continoustracing.exception.InvalidBlockTraceException
 import net.consensys.linea.continoustracing.exception.InvalidTraceHandlerException;
 import net.consensys.linea.continoustracing.exception.TraceVerificationException;
 import net.consensys.linea.corset.CorsetValidator;
+import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.plugin.data.AddedBlockContext;
 import org.hyperledger.besu.plugin.data.BlockHeader;
@@ -47,17 +48,24 @@ public class ContinuousTracingBlockAddedListener implements BesuEvents.BlockAdde
 
     try {
       final CorsetValidator.Result traceResult =
-          continuousTracer.verifyTraceOfBlock(blockHash, zkEvmBin);
+          continuousTracer.verifyTraceOfBlock(blockHash, zkEvmBin, new ZkTracer());
 
       if (!traceResult.isValid()) {
+        log.error("Corset returned and error for block {}", blockHeader.getNumber());
         traceFailureHandler.handleCorsetFailure(blockHeader, traceResult);
+        return;
       }
+
+      log.info("Trace for block {} verified successfully", blockHeader.getNumber());
     } catch (InvalidBlockTraceException e) {
-      traceFailureHandler.handleBlockTraceFailure(e.txHash(), e.getMessage());
+      log.error("Error while tracing block {}: {}", blockHeader.getNumber(), e.getMessage());
+      traceFailureHandler.handleBlockTraceFailure(blockHeader.getNumber(), e.txHash(), e);
     } catch (TraceVerificationException e) {
       log.error(e.getMessage());
     } catch (InvalidTraceHandlerException e) {
       log.error("Error while handling invalid trace: {}", e.getMessage());
+    } finally {
+      log.info("End of tracing block {}", blockHeader.getNumber());
     }
   }
 }

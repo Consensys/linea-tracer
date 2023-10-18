@@ -46,8 +46,7 @@ public class ContinuousTracerTest {
 
   @BeforeEach
   void setUp() {
-    continuousTracer =
-        new ContinuousTracer(traceServiceMock, corsetValidatorMock, () -> zkTracerMock);
+    continuousTracer = new ContinuousTracer(traceServiceMock, corsetValidatorMock);
   }
 
   @Test
@@ -56,7 +55,8 @@ public class ContinuousTracerTest {
         .thenReturn(
             new CorsetValidator.Result(
                 true, Path.of("testTraceFile").toFile(), "testCorsetOutput"));
-    assertThatCode(() -> continuousTracer.verifyTraceOfBlock(Hash.ZERO, "testZkEvmBin"))
+    assertThatCode(
+            () -> continuousTracer.verifyTraceOfBlock(Hash.ZERO, "testZkEvmBin", new ZkTracer()))
         .doesNotThrowAnyException();
   }
 
@@ -69,7 +69,7 @@ public class ContinuousTracerTest {
 
     assertThrows(
         TraceVerificationException.class,
-        () -> continuousTracer.verifyTraceOfBlock(BLOCK_HASH, "testZkEvmBin"));
+        () -> continuousTracer.verifyTraceOfBlock(BLOCK_HASH, "testZkEvmBin", new ZkTracer()));
   }
 
   @Test
@@ -79,6 +79,6 @@ public class ContinuousTracerTest {
 
     assertThrows(
         TraceVerificationException.class,
-        () -> continuousTracer.verifyTraceOfBlock(BLOCK_HASH, "testZkEvmBin"));
+        () -> continuousTracer.verifyTraceOfBlock(BLOCK_HASH, "testZkEvmBin", new ZkTracer()));
   }
 }

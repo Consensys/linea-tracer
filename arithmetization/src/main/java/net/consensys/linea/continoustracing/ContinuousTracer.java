@@ -15,7 +15,6 @@
 package net.consensys.linea.continoustracing;
 
 import java.io.IOException;
-import java.util.function.Supplier;
 
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.continoustracing.exception.InvalidBlockTraceException;
@@ -32,20 +31,15 @@ import org.hyperledger.besu.plugin.services.TraceService;
 public class ContinuousTracer {
   private final TraceService traceService;
   private final CorsetValidator corsetValidator;
-  private final Supplier<ZkTracer> zkTracerSupplier;
 
-  public ContinuousTracer(
-      final TraceService traceService,
-      final CorsetValidator corsetValidator,
-      final Supplier<ZkTracer> zkTracerSupplier) {
+  public ContinuousTracer(final TraceService traceService, final CorsetValidator corsetValidator) {
     this.traceService = traceService;
     this.corsetValidator = corsetValidator;
-    this.zkTracerSupplier = zkTracerSupplier;
   }
 
-  public CorsetValidator.Result verifyTraceOfBlock(final Hash blockHash, final String zkEvmBin)
+  public CorsetValidator.Result verifyTraceOfBlock(
+      final Hash blockHash, final String zkEvmBin, final ZkTracer zkTracer)
       throws TraceVerificationException, InvalidBlockTraceException {
-    final ZkTracer zkTracer = zkTracerSupplier.get();
     zkTracer.traceStartConflation(1);
 
     final BlockTraceResult blockTraceResult;
@@ -53,8 +47,9 @@ public class ContinuousTracer {
       blockTraceResult = traceService.traceBlock(blockHash, zkTracer);
     } catch (final Exception e) {
       throw new TraceVerificationException(blockHash, e.getMessage());
+    } finally {
+      zkTracer.traceEndConflation();
     }
-    zkTracer.traceEndConflation();
 
     for (final TransactionTraceResult transactionTraceResult :
         blockTraceResult.transactionTraceResults()) {

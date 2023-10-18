@@ -24,9 +24,11 @@ import java.io.IOException;
 import com.slack.api.Slack;
 import com.slack.api.webhook.Payload;
 import com.slack.api.webhook.WebhookResponse;
+import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.corset.CorsetValidator;
 import org.hyperledger.besu.datatypes.Hash;
 
+@Slf4j
 public class SlackNotificationService {
   final Slack slack;
   final String webHookUrl;
@@ -77,8 +79,11 @@ public class SlackNotificationService {
     checkResponse(response);
   }
 
-  public void sendBlockTraceFailureNotification(final Hash txHash, final String errorMessage)
-      throws IOException {
+  public void sendBlockTraceFailureNotification(
+      final long blockNumber, final Hash txHash, final Throwable throwable) throws IOException {
+
+    log.info("Throwable.getMessage(): {}", throwable.getMessage());
+
     final Payload messagePayload =
         Payload.builder()
             .text("Slack couldn't properly display the message.")
@@ -90,6 +95,8 @@ public class SlackNotificationService {
                                 markdownText(
                                     "*Error while tracing transaction "
                                         + txHash.toHexString()
+                                        + " in block "
+                                        + blockNumber
                                         + "*"))),
                     divider(),
                     section(
@@ -98,7 +105,9 @@ public class SlackNotificationService {
                                 markdownText(
                                     "Trace generation failed with the following error:\n\n"
                                         + "```"
-                                        + errorMessage
+                                        // more than 2000 characters will cause a 400 error when
+                                        // sending the message
+                                        + throwable.getMessage().substring(0, 2000)
                                         + "```")))))
             .build();
 
@@ -111,7 +120,7 @@ public class SlackNotificationService {
       throw new IOException(
           "Error while sending notification: status code: "
               + response.getCode()
-              + ", error: "
+              + ", body: "
               + response.getBody());
     }
   }

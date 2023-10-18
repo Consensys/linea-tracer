@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer;
 
+import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,7 @@ import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCodes;
 import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.gascalculator.GasCalculator;
@@ -43,10 +45,10 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
   private final Hub hub;
 
   public ZkTracer() {
-    this.hub = new Hub();
-
     // Load opcodes configured in src/main/resources/opcodes.yml.
     OpCodes.load();
+
+    this.hub = new Hub();
   }
 
   public ZkTrace getTrace() {
@@ -72,8 +74,9 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
   }
 
   @Override
-  public void traceStartBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
-    this.hub.traceStartBlock(blockHeader, blockBody);
+  public void traceStartBlock(
+      final int blockNumber, final BigInteger baseFee, final Address coinbase) {
+    this.hub.traceStartBlock(blockNumber, baseFee, coinbase);
   }
 
   @Override
@@ -128,7 +131,8 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
 
   public Map<String, Integer> getModulesLineCount() {
     final HashMap<String, Integer> modulesLineCount = new HashMap<>();
-    hub.getModulesToTrace().forEach(m -> modulesLineCount.put(m.getClass().getCanonicalName(), m.lineCount()));
+    hub.getModulesToTrace()
+        .forEach(m -> modulesLineCount.put(m.getClass().getCanonicalName(), m.lineCount()));
     return modulesLineCount;
   }
 }

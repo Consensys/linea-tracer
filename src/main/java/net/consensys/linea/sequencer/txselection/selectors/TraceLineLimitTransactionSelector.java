@@ -14,17 +14,15 @@
  */
 package net.consensys.linea.sequencer.txselection.selectors;
 
-import lombok.RequiredArgsConstructor;
+import java.util.Map;
+
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ZkTracer;
-import net.consensys.linea.zktracer.module.hub.Hub;
 import org.hyperledger.besu.datatypes.PendingTransaction;
-import org.hyperledger.besu.evm.tracing.OperationTracer;
 import org.hyperledger.besu.plugin.data.TransactionProcessingResult;
 import org.hyperledger.besu.plugin.data.TransactionSelectionResult;
+import org.hyperledger.besu.plugin.services.tracer.BlockAwareOperationTracer;
 import org.hyperledger.besu.plugin.services.txselection.PluginTransactionSelector;
-
-import java.util.Map;
 
 /**
  * This class implements TransactionSelector and provides a specific implementation for evaluating
@@ -56,7 +54,9 @@ public class TraceLineLimitTransactionSelector implements PluginTransactionSelec
   }
 
   @Override
-  public void onTransactionNotSelected(final PendingTransaction pendingTransaction, final TransactionSelectionResult transactionSelectionResult) {
+  public void onTransactionNotSelected(
+      final PendingTransaction pendingTransaction,
+      final TransactionSelectionResult transactionSelectionResult) {
     zkTracer.popTransaction();
   }
 
@@ -71,19 +71,20 @@ public class TraceLineLimitTransactionSelector implements PluginTransactionSelec
   public TransactionSelectionResult evaluateTransactionPostProcessing(
       final PendingTransaction pendingTransaction,
       final TransactionProcessingResult processingResult) {
-      // check that we are not exceed line number for any module
-      final Map<String, Integer> lineCounts = zkTracer.getModulesLineCount();
-      for (var e:lineCounts.entrySet()) {
-        if (lineCounts.get(e.getKey()) > moduleLimits.get(e.getKey().getClass().getSimpleName())) {
-          return TransactionSelectionResult.BLOCK_FULL;
-        }
+    // check that we are not exceed line number for any module
+    final Map<String, Integer> lineCounts = zkTracer.getModulesLineCount();
+    for (var e : lineCounts.entrySet()) {
+      if (lineCounts.get(e.getKey()) > moduleLimits.get(e.getKey().getClass().getSimpleName())) {
+        return TransactionSelectionResult.BLOCK_FULL;
       }
-      return TransactionSelectionResult.SELECTED;
+    }
+    return TransactionSelectionResult.SELECTED;
   }
 
   @Override
-    public OperationTracer getOperationTracer() {
-      zkTracer = new ZkTracer();
-      return zkTracer;
-    }
+  public BlockAwareOperationTracer getOperationTracer() {
+    zkTracer = new ZkTracer();
+    zkTracer.traceStartConflation(1L);
+    return zkTracer;
+  }
 }

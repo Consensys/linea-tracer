@@ -54,9 +54,9 @@ public class MiningTest extends AcceptanceTestBase {
     System.setProperty("besu.plugins.dir", pluginDir);
     final List<String> cliOptions =
         List.of(
-                "--plugin-linea-module-limit-file-path="
-                        + Objects.requireNonNull(MiningTest.class.getResource("/moduleLimits.json"))
-                        .getPath(),
+            "--plugin-linea-module-limit-file-path="
+                + Objects.requireNonNull(MiningTest.class.getResource("/moduleLimits.json"))
+                    .getPath(),
             "--plugin-linea-max-tx-calldata-size=" + MAX_CALLDATA_SIZE,
             "--plugin-linea-max-block-calldata-size=" + MAX_CALLDATA_SIZE);
     minerNode = besu.createMinerNodeWithExtraCliOptions("miner1", cliOptions);
@@ -135,44 +135,48 @@ public class MiningTest extends AcceptanceTestBase {
     Assertions.assertThat(receipt.getTransactionReceipt()).isEmpty();
   }
 
-    @Test
-    public void transactionIsNotMinedWhenTooManyTraceLines() throws IOException, TransactionException {
-        final SimpleStorage simpleStorage =
-                minerNode.execute(contractTransactions.createSmartContract(SimpleStorage.class));
-        final Web3j web3j = minerNode.nodeRequests().eth();
-        final String contractAddress = simpleStorage.getContractAddress();
-        final Credentials credentials = Credentials.create(Accounts.GENESIS_ACCOUNT_ONE_PRIVATE_KEY);
-        TransactionManager txManager = new RawTransactionManager(web3j, credentials);
+  @Test
+  public void transactionIsNotMinedWhenTooManyTraceLines()
+      throws IOException, TransactionException {
+    final SimpleStorage simpleStorage =
+        minerNode.execute(contractTransactions.createSmartContract(SimpleStorage.class));
+    final Web3j web3j = minerNode.nodeRequests().eth();
+    final String contractAddress = simpleStorage.getContractAddress();
+    final Credentials credentials = Credentials.create(Accounts.GENESIS_ACCOUNT_ONE_PRIVATE_KEY);
+    TransactionManager txManager = new RawTransactionManager(web3j, credentials);
 
-        final ArrayList<String> hashes = new ArrayList<>();
-        for (int i = 0; i < 20; i++) {
-            hashes.add(
-                    txManager
-                            .sendTransaction(
-                                    DefaultGasProvider.GAS_PRICE,
-                                    DefaultGasProvider.GAS_LIMIT,
-                                    contractAddress,
-                                    "",
-                                    BigInteger.ZERO)
-                            .getTransactionHash());
-        }
-
-        TransactionReceiptProcessor receiptProcessor =
-                new PollingTransactionReceiptProcessor(
-                        web3j,
-                        TransactionManager.DEFAULT_POLLING_FREQUENCY,
-                        TransactionManager.DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH);
-
-        // make sure that there are no more than one transaction per block, because the limit for the add module
-        // only allows for one of these transactions.
-        final HashSet<Long> blockNumbers = new HashSet<>();
-        for (String h : hashes) {
-            Assertions.assertThat(blockNumbers.add(receiptProcessor.waitForTransactionReceipt(h).getBlockNumber().longValue())).isEqualTo(true);
-        }
+    final ArrayList<String> hashes = new ArrayList<>();
+    for (int i = 0; i < 20; i++) {
+      hashes.add(
+          txManager
+              .sendTransaction(
+                  DefaultGasProvider.GAS_PRICE,
+                  DefaultGasProvider.GAS_LIMIT,
+                  contractAddress,
+                  "",
+                  BigInteger.ZERO)
+              .getTransactionHash());
     }
 
+    TransactionReceiptProcessor receiptProcessor =
+        new PollingTransactionReceiptProcessor(
+            web3j,
+            TransactionManager.DEFAULT_POLLING_FREQUENCY,
+            TransactionManager.DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH);
 
-    private void sendTransactionsWithGivenLengthPayload(
+    // make sure that there are no more than one transaction per block, because the limit for the
+    // add module
+    // only allows for one of these transactions.
+    final HashSet<Long> blockNumbers = new HashSet<>();
+    for (String h : hashes) {
+      Assertions.assertThat(
+              blockNumbers.add(
+                  receiptProcessor.waitForTransactionReceipt(h).getBlockNumber().longValue()))
+          .isEqualTo(true);
+    }
+  }
+
+  private void sendTransactionsWithGivenLengthPayload(
       final SimpleStorage simpleStorage,
       final List<String> accounts,
       final Web3j web3j,

@@ -49,13 +49,13 @@ public class LineaCliOptions {
   private int maxBlockCallDataSize = DEFAULT_MAX_BLOCK_CALLDATA_SIZE;
 
   @CommandLine.Option(
-          names = {MODULE_LIMIT_FILE_PATH},
-          hidden = true,
-          paramLabel = "<STRING>",
-          description =
-                  "Path to the json file containing the module limits (default: "
-                          + DEFAULT_MODULE_LIMIT_FILE_PATH
-                          + ")")
+      names = {MODULE_LIMIT_FILE_PATH},
+      hidden = true,
+      paramLabel = "<STRING>",
+      description =
+          "Path to the json file containing the module limits (default: "
+              + DEFAULT_MODULE_LIMIT_FILE_PATH
+              + ")")
   private String moduleLimitFilePath = DEFAULT_MODULE_LIMIT_FILE_PATH;
 
   private LineaCliOptions() {}

@@ -21,7 +21,8 @@ public final class LineaConfiguration {
   private final int maxBlockCallDataSize;
   private final String moduleLimitsFilePath;
 
-  private LineaConfiguration(int maxTxCallDataSize, int maxBlockCallDataSize, final String moduleLimitsFilePath) {
+  private LineaConfiguration(
+      int maxTxCallDataSize, int maxBlockCallDataSize, final String moduleLimitsFilePath) {
     this.maxTxCallDataSize = maxTxCallDataSize;
     this.maxBlockCallDataSize = maxBlockCallDataSize;
     this.moduleLimitsFilePath = moduleLimitsFilePath;
@@ -39,12 +40,12 @@ public final class LineaConfiguration {
     return moduleLimitsFilePath;
   }
 
-    public static class Builder {
+  public static class Builder {
     private int maxTxCallDataSize;
     private int maxBlockCallDataSize;
-      private String moduleLimitsFilePath;
+    private String moduleLimitsFilePath;
 
-      public Builder maxTxCallDataSize(final int maxTxCallDataSize) {
+    public Builder maxTxCallDataSize(final int maxTxCallDataSize) {
       this.maxTxCallDataSize = maxTxCallDataSize;
       return this;
     }

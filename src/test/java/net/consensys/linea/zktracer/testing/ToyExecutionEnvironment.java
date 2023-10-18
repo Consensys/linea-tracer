@@ -133,7 +133,11 @@ public class ToyExecutionEnvironment {
             CoinbaseFeePriceCalculator.eip1559());
 
     tracer.traceStartConflation(1);
-    tracer.traceStartBlock(header, mockBlockBody);
+    final BigInteger baseFee =
+        header.getBaseFee().isPresent()
+            ? header.getBaseFee().get().getAsBigInteger()
+            : BigInteger.ZERO;
+    tracer.traceStartBlock(Math.toIntExact(header.getNumber()), baseFee, header.getCoinbase());
     for (Transaction tx : mockBlockBody.getTransactions()) {
       tracer.traceStartTransaction(toyWorld.updater(), tx);
 

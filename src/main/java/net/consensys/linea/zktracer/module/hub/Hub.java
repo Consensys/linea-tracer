@@ -61,6 +61,8 @@ import net.consensys.linea.zktracer.module.mul.Mul;
 import net.consensys.linea.zktracer.module.rlpAddr.RlpAddr;
 import net.consensys.linea.zktracer.module.rlp_txn.RlpTxn;
 import net.consensys.linea.zktracer.module.rlp_txrcpt.RlpTxrcpt;
+import net.consensys.linea.zktracer.module.rom.Rom;
+import net.consensys.linea.zktracer.module.romLex.RomLex;
 import net.consensys.linea.zktracer.module.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.module.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.module.runtime.callstack.CallStack;
@@ -163,14 +165,23 @@ public class Hub implements Module {
   private final Module mul = new Mul();
   private final Module shf = new Shf();
   private final Module wcp = new Wcp();
-  private final RlpTxn rlpTxn = new RlpTxn();
+  private final RlpTxn rlpTxn;
   private final RlpTxrcpt rlpTxrcpt = new RlpTxrcpt();
   private final RlpAddr rlpAddr = new RlpAddr();
+  private final Rom rom;
+  private final RomLex romLex;
+
   private final List<Module> modules;
 
   public Hub() {
+    this.romLex = new RomLex(this);
+    this.rom = new Rom(this.romLex);
+    this.rlpTxn = new RlpTxn(this.romLex);
+
     this.modules =
         List.of(
+            this.romLex, // romLex must be traced before modules requiring CodeFragmentIndex, like
+            // RlpTxn, TxnData, etc
             this.add,
             this.ext,
             this.mod,
@@ -179,15 +190,8 @@ public class Hub implements Module {
             this.wcp,
             this.rlpTxn,
             this.rlpTxrcpt,
-            this.rlpAddr);
-  }
-
-  /**
-   * @return the list of modules that need to be triggered in a self-standing way by the {@link
-   *     net.consensys.linea.zktracer.ZkTracer}
-   */
-  public List<Module> getSelfStandingModules() {
-    return List.of(this.rlpTxn, rlpTxrcpt);
+            this.rlpAddr,
+            this.rom);
   }
 
   /**
@@ -196,6 +200,7 @@ public class Hub implements Module {
   public List<Module> getModulesToTrace() {
     return List.of(
         this,
+        this.romLex,
         this.add,
         this.ext,
         this.mod,
@@ -204,7 +209,8 @@ public class Hub implements Module {
         this.wcp,
         this.rlpTxn,
         this.rlpTxrcpt,
-        this.rlpAddr);
+        this.rlpAddr,
+        this.rom);
   }
 
   @Override
@@ -408,7 +414,12 @@ public class Hub implements Module {
       case KEC -> {}
       case CONTEXT -> {}
       case ACCOUNT -> {}
-      case COPY -> {}
+      case COPY -> {
+        // TODO: check this is the right exception
+        if (!this.exceptions.any() && this.callStack().getDepth() < 1024) {
+          this.romLex.tracePreOpcode(frame);
+        }
+      }
       case TRANSACTION -> {}
       case BATCH -> {}
       case STACK_RAM -> {}
@@ -421,6 +432,8 @@ public class Hub implements Module {
       case LOG -> {}
       case CREATE -> {
         if (!this.exceptions.any() && this.callStack().getDepth() < 1024) {
+          // TODO: check for failure: non empty byte code or non zero nonce (for the Deployed
+          // Address)
           UInt256 value = UInt256.fromBytes(frame.getStackItem(0));
           if (frame
               .getWorldUpdater()
@@ -429,11 +442,22 @@ public class Hub implements Module {
               .toUInt256()
               .greaterOrEqualThan(value)) {
             this.rlpAddr.tracePreOpcode(frame);
+            this.romLex.tracePreOpcode(frame);
           }
         }
       }
-      case CALL -> {}
-      case HALT -> {}
+      case CALL -> {
+        // TODO: check this is the right exception
+        if (!this.exceptions.any() && this.callStack().getDepth() < 1024) {
+          this.romLex.tracePreOpcode(frame);
+        }
+      }
+      case HALT -> {
+        // TODO: check this is the right exception
+        if (!this.exceptions.any() && this.callStack().getDepth() < 1024) {
+          this.romLex.tracePreOpcode(frame);
+        }
+      }
       case INVALID -> {}
       default -> {}
     }
@@ -545,7 +569,6 @@ public class Hub implements Module {
     this.enterTransaction();
 
     this.exceptions = Exceptions.empty();
-    this.rlpAddr.traceStartTx(world, tx);
 
     this.tx.update(tx);
     this.createNewTxTrace();
@@ -560,6 +583,10 @@ public class Hub implements Module {
 
     this.processStateWarm(world);
     this.processStateInit(world);
+
+    for (Module m : this.modules) {
+      m.traceStartTx(world, tx);
+    }
   }
 
   @Override
@@ -567,6 +594,7 @@ public class Hub implements Module {
     this.stamp = this.preTxStamp;
     this.tx.pop();
     this.traceSections.pop();
+
     for (Module m : this.modules) {
       m.popTransaction();
     }
@@ -583,6 +611,10 @@ public class Hub implements Module {
     this.defers.runPostTx(this, world, tx);
 
     this.currentTxTrace().postTxRetcon(this);
+
+    for (Module m : this.modules) {
+      m.traceEndTx(world, tx, status, output, logs, gasUsed);
+    }
   }
 
   private void unlatchStack(MessageFrame frame) {
@@ -631,6 +663,10 @@ public class Hub implements Module {
         isDeployment);
 
     this.defers.runNextContext(this, frame);
+
+    for (Module m : this.modules) {
+      m.traceContextEnter(frame);
+    }
   }
 
   @Override
@@ -651,6 +687,10 @@ public class Hub implements Module {
       this.callStack.exit(this.trace.size() - 1, frame.getOutputData());
     } else {
       this.callStack.exit(this.trace.size() - 1, frame.getReturnData());
+    }
+
+    for (Module m : this.modules) {
+      m.traceContextExit(frame);
     }
   }
 
@@ -684,15 +724,24 @@ public class Hub implements Module {
   @Override
   public void traceStartBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
     this.block.update(blockHeader);
+    for (Module m : this.modules) {
+      m.traceStartBlock(blockHeader, blockBody);
+    }
   }
 
   @Override
   public void traceStartConflation(long blockCount) {
     this.conflation.update();
+    for (Module m : this.modules) {
+      m.traceStartConflation(blockCount);
+    }
   }
 
   @Override
   public void traceEndConflation() {
+    for (Module m : this.modules) {
+      m.traceEndConflation();
+    }
     for (TxTrace txTrace : this.traceSections) {
       txTrace.postConflationRetcon(this, null /* TODO WorldView */);
     }
@@ -773,7 +822,7 @@ public class Hub implements Module {
 
         this.addTraceSection(accountSection);
       }
-      case COPY -> {
+      case COPY -> { // TODO: call RomLex
         TraceSection copySection = new CopySection(this);
         if (this.opCodeData().stackSettings().flag1()) {
           Address targetAddress =

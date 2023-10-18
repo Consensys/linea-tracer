@@ -14,24 +14,15 @@
  */
 package net.consensys.linea.sequencer.txselection.selectors;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.sequencer.LineaConfiguration;
-import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.datatypes.PendingTransaction;
-import org.hyperledger.besu.evm.tracing.OperationTracer;
 import org.hyperledger.besu.plugin.data.TransactionProcessingResult;
 import org.hyperledger.besu.plugin.data.TransactionSelectionResult;
 import org.hyperledger.besu.plugin.services.txselection.PluginTransactionSelector;
 
 /** Class for transaction selection using a list of selectors. */
-@Slf4j
 public class LineaTransactionSelector implements PluginTransactionSelector {
 
   final LineaConfiguration lineaConfiguration;
@@ -50,19 +41,9 @@ public class LineaTransactionSelector implements PluginTransactionSelector {
    */
   private static List<PluginTransactionSelector> createTransactionSelectors(
       final LineaConfiguration lineaConfiguration) {
-
-    ObjectMapper objectMapper = new ObjectMapper();
-    Map<String, Integer> limitsMap = null;
-    try {
-      limitsMap = objectMapper.readValue(new File(lineaConfiguration.moduleLimitsFilePath()), new TypeReference<Map<String, Integer>>(){});
-    } catch (Exception e) {
-      log.info("Problem reading the json file containing the limits for the modules: {}", lineaConfiguration.moduleLimitsFilePath());
-    }
-
     return List.of(
         new MaxTransactionCallDataTransactionSelector(lineaConfiguration.maxTxCallDataSize()),
-        new MaxBlockCallDataTransactionSelector(lineaConfiguration.maxBlockCallDataSize()),
-            new TraceLineLimitTransactionSelector(limitsMap));
+        new MaxBlockCallDataTransactionSelector(lineaConfiguration.maxBlockCallDataSize()));
   }
 
   /**
@@ -75,7 +56,14 @@ public class LineaTransactionSelector implements PluginTransactionSelector {
   @Override
   public TransactionSelectionResult evaluateTransactionPreProcessing(
       PendingTransaction pendingTransaction) {
-      return selectors.stream().map(selector -> selector.evaluateTransactionPreProcessing(pendingTransaction)).filter(result -> !result.equals(TransactionSelectionResult.SELECTED)).findFirst().orElse(TransactionSelectionResult.SELECTED);
+    for (var selector : selectors) {
+      TransactionSelectionResult result =
+          selector.evaluateTransactionPreProcessing(pendingTransaction);
+      if (!result.equals(TransactionSelectionResult.SELECTED)) {
+        return result;
+      }
+    }
+    return TransactionSelectionResult.SELECTED;
   }
 
   /**
@@ -103,10 +91,15 @@ public class LineaTransactionSelector implements PluginTransactionSelector {
    * Notifies all selectors when a transaction is selected.
    *
    * @param pendingTransaction The selected transaction.
+   * @param transactionProcessingResult The transaction processing result.
    */
   @Override
-  public void onTransactionSelected(final PendingTransaction pendingTransaction, final TransactionProcessingResult processingResult) {
-    selectors.forEach(selector -> selector.onTransactionSelected(pendingTransaction, processingResult));
+  public void onTransactionSelected(
+      final PendingTransaction pendingTransaction,
+      final TransactionProcessingResult transactionProcessingResult) {
+    selectors.forEach(
+        selector ->
+            selector.onTransactionSelected(pendingTransaction, transactionProcessingResult));
   }
 
   /**
@@ -122,10 +115,5 @@ public class LineaTransactionSelector implements PluginTransactionSelector {
     selectors.forEach(
         selector ->
             selector.onTransactionNotSelected(pendingTransaction, transactionSelectionResult));
-  }
-
-  @Override
-  public OperationTracer getOperationTracer() {
-    return new ZkTracer();
   }
 }

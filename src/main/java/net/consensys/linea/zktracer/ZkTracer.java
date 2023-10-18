@@ -42,11 +42,8 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
   private final ZkTraceBuilder zkTraceBuilder = new ZkTraceBuilder();
   private final Hub hub;
 
-  private final List<Module> modulesToTrigger;
-
   public ZkTracer() {
     this.hub = new Hub();
-    this.modulesToTrigger = hub.getSelfStandingModules();
 
     // Load opcodes configured in src/main/resources/opcodes.yml.
     OpCodes.load();
@@ -62,16 +59,11 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
   @Override
   public void traceStartConflation(final long numBlocksInConflation) {
     hub.traceStartConflation(numBlocksInConflation);
-    for (Module module : this.modulesToTrigger) {
-      module.traceStartConflation(numBlocksInConflation);
-    }
   }
 
   @Override
   public void traceEndConflation() {
-    for (Module module : this.modulesToTrigger) {
-      module.traceEndConflation();
-    }
+    this.hub.traceEndConflation();
   }
 
   @Override
@@ -82,25 +74,16 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
   @Override
   public void traceStartBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
     this.hub.traceStartBlock(blockHeader, blockBody);
-    for (Module module : this.modulesToTrigger) {
-      module.traceStartBlock(blockHeader, blockBody);
-    }
   }
 
   @Override
   public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
     this.hub.traceEndBlock(blockHeader, blockBody);
-    for (Module module : this.modulesToTrigger) {
-      module.traceEndBlock(blockHeader, blockBody);
-    }
   }
 
   @Override
   public void traceStartTransaction(WorldView worldView, Transaction transaction) {
     this.hub.traceStartTx(worldView, transaction);
-    for (Module module : this.modulesToTrigger) {
-      module.traceStartTx(worldView, transaction);
-    }
   }
 
   @Override
@@ -113,9 +96,6 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
       long gasUsed,
       long timeNs) {
     this.hub.traceEndTx(worldView, tx, status, output, logs, gasUsed);
-    for (Module module : this.modulesToTrigger) {
-      module.traceEndTx(worldView, tx, status, output, logs, gasUsed);
-    }
   }
 
   @Override
@@ -130,7 +110,10 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
 
   @Override
   public void traceContextEnter(MessageFrame frame) {
-    this.hub.traceContextEnter(frame);
+    // We only want to trigger on creation of new contexts, not on re-entry in existing contexts
+    if (frame.getState() == MessageFrame.State.NOT_STARTED) {
+      this.hub.traceContextEnter(frame);
+    }
   }
 
   @Override

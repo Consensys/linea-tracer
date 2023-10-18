@@ -33,16 +33,17 @@ public record Trace(
             "ADDR_HI_xor_ACCOUNT_ADDRESS_HI_xor_CCRS_STAMP_xor_HEIGHT_xor_ADDRESS_HI_xor_BASEFEE")
         List<BigInteger> addrHiXorAccountAddressHiXorCcrsStampXorHeightXorAddressHiXorBasefee,
     @JsonProperty(
-            "ADDR_LO_xor_ACCOUNT_ADDRESS_LO_xor_MMU___CN_S_xor_HEIGHT_NEW_xor_ADDRESS_LO_xor_CALL_DATA_SIZE")
-        List<BigInteger> addrLoXorAccountAddressLoXorMmuCnSXorHeightNewXorAddressLoXorCallDataSize,
-    @JsonProperty(
-            "BALANCE_NEW_xor_BYTE_CODE_ADDRESS_HI_xor_MMU___INST_xor_HEIGHT_UNDER_xor_STORAGE_KEY_HI_xor_COINBASE_ADDRESS_LO")
+            "ADDR_LO_xor_ACCOUNT_ADDRESS_LO_xor_EXP___DYNCOST_xor_HEIGHT_NEW_xor_ADDRESS_LO_xor_CALL_DATA_SIZE")
         List<BigInteger>
-            balanceNewXorByteCodeAddressHiXorMmuInstXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo,
+            addrLoXorAccountAddressLoXorExpDyncostXorHeightNewXorAddressLoXorCallDataSize,
     @JsonProperty(
-            "BALANCE_xor_ACCOUNT_DEPLOYMENT_NUMBER_xor_MMU___CN_T_xor_HEIGHT_OVER_xor_DEPLOYMENT_NUMBER_xor_COINBASE_ADDRESS_HI")
+            "BALANCE_NEW_xor_BYTE_CODE_ADDRESS_HI_xor_EXP___EXPONENT_LO_xor_HEIGHT_UNDER_xor_STORAGE_KEY_HI_xor_COINBASE_ADDRESS_LO")
         List<BigInteger>
-            balanceXorAccountDeploymentNumberXorMmuCnTXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi,
+            balanceNewXorByteCodeAddressHiXorExpExponentLoXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo,
+    @JsonProperty(
+            "BALANCE_xor_ACCOUNT_DEPLOYMENT_NUMBER_xor_EXP___EXPONENT_HI_xor_HEIGHT_OVER_xor_DEPLOYMENT_NUMBER_xor_COINBASE_ADDRESS_HI")
+        List<BigInteger>
+            balanceXorAccountDeploymentNumberXorExpExponentHiXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi,
     @JsonProperty("BATCH_NUMBER") List<BigInteger> batchNumber,
     @JsonProperty("CALLER_CONTEXT_NUMBER") List<BigInteger> callerContextNumber,
     @JsonProperty("CODE_ADDRESS_HI") List<BigInteger> codeAddressHi,
@@ -50,29 +51,29 @@ public record Trace(
     @JsonProperty("CODE_DEPLOYMENT_NUMBER") List<BigInteger> codeDeploymentNumber,
     @JsonProperty("CODE_DEPLOYMENT_STATUS") List<Boolean> codeDeploymentStatus,
     @JsonProperty(
-            "CODE_HASH_HI_NEW_xor_BYTE_CODE_DEPLOYMENT_NUMBER_xor_MMU___NUM_2_xor_PUSH_VALUE_HI_xor_VAL_CURR_HI_xor_FROM_ADDRESS_LO")
+            "CODE_HASH_HI_NEW_xor_BYTE_CODE_DEPLOYMENT_NUMBER_xor_MMU___CN_T_xor_PUSH_VALUE_HI_xor_VAL_CURR_HI_xor_FROM_ADDRESS_LO")
         List<BigInteger>
-            codeHashHiNewXorByteCodeDeploymentNumberXorMmuNum2XorPushValueHiXorValCurrHiXorFromAddressLo,
+            codeHashHiNewXorByteCodeDeploymentNumberXorMmuCnTXorPushValueHiXorValCurrHiXorFromAddressLo,
     @JsonProperty(
-            "CODE_HASH_HI_xor_BYTE_CODE_ADDRESS_LO_xor_MMU___NUM_1_xor_INSTRUCTION_xor_STORAGE_KEY_LO_xor_FROM_ADDRESS_HI")
+            "CODE_HASH_HI_xor_BYTE_CODE_ADDRESS_LO_xor_MMU___CN_S_xor_INSTRUCTION_xor_STORAGE_KEY_LO_xor_FROM_ADDRESS_HI")
         List<BigInteger>
-            codeHashHiXorByteCodeAddressLoXorMmuNum1XorInstructionXorStorageKeyLoXorFromAddressHi,
+            codeHashHiXorByteCodeAddressLoXorMmuCnSXorInstructionXorStorageKeyLoXorFromAddressHi,
     @JsonProperty(
-            "CODE_HASH_LO_NEW_xor_CALLER_ADDRESS_HI_xor_MMU___SIZE_xor_STACK_ITEM_HEIGHT_1_xor_VAL_NEXT_HI_xor_GAS_PRICE")
+            "CODE_HASH_LO_NEW_xor_CALLER_ADDRESS_HI_xor_MMU___NUM_1_xor_STACK_ITEM_HEIGHT_1_xor_VAL_NEXT_HI_xor_GAS_PRICE")
         List<BigInteger>
-            codeHashLoNewXorCallerAddressHiXorMmuSizeXorStackItemHeight1XorValNextHiXorGasPrice,
+            codeHashLoNewXorCallerAddressHiXorMmuNum1XorStackItemHeight1XorValNextHiXorGasPrice,
     @JsonProperty(
-            "CODE_HASH_LO_xor_BYTE_CODE_DEPLOYMENT_STATUS_xor_MMU___REFS_xor_PUSH_VALUE_LO_xor_VAL_CURR_LO_xor_GAS_LIMIT")
+            "CODE_HASH_LO_xor_BYTE_CODE_DEPLOYMENT_STATUS_xor_MMU___INST_xor_PUSH_VALUE_LO_xor_VAL_CURR_LO_xor_GAS_LIMIT")
         List<BigInteger>
-            codeHashLoXorByteCodeDeploymentStatusXorMmuRefsXorPushValueLoXorValCurrLoXorGasLimit,
+            codeHashLoXorByteCodeDeploymentStatusXorMmuInstXorPushValueLoXorValCurrLoXorGasLimit,
     @JsonProperty(
-            "CODE_SIZE_NEW_xor_CALLER_CONTEXT_NUMBER_xor_MMU___SOURCE_OFFSET_LO_xor_STACK_ITEM_HEIGHT_3_xor_VAL_ORIG_HI_xor_GAS_REFUND_COUNTER_FINAL")
+            "CODE_SIZE_NEW_xor_CALLER_CONTEXT_NUMBER_xor_MMU___REFS_xor_STACK_ITEM_HEIGHT_3_xor_VAL_ORIG_HI_xor_GAS_REFUND_COUNTER_FINAL")
         List<BigInteger>
-            codeSizeNewXorCallerContextNumberXorMmuSourceOffsetLoXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal,
+            codeSizeNewXorCallerContextNumberXorMmuRefsXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal,
     @JsonProperty(
-            "CODE_SIZE_xor_CALLER_ADDRESS_LO_xor_MMU___SOURCE_OFFSET_HI_xor_STACK_ITEM_HEIGHT_2_xor_VAL_NEXT_LO_xor_GAS_REFUND_AMOUNT")
+            "CODE_SIZE_xor_CALLER_ADDRESS_LO_xor_MMU___NUM_2_xor_STACK_ITEM_HEIGHT_2_xor_VAL_NEXT_LO_xor_GAS_REFUND_AMOUNT")
         List<BigInteger>
-            codeSizeXorCallerAddressLoXorMmuSourceOffsetHiXorStackItemHeight2XorValNextLoXorGasRefundAmount,
+            codeSizeXorCallerAddressLoXorMmuNum2XorStackItemHeight2XorValNextLoXorGasRefundAmount,
     @JsonProperty("CONTEXT_GETS_REVRTD_FLAG") List<Boolean> contextGetsRevrtdFlag,
     @JsonProperty("CONTEXT_MAY_CHANGE_FLAG") List<Boolean> contextMayChangeFlag,
     @JsonProperty("CONTEXT_NUMBER") List<BigInteger> contextNumber,
@@ -83,31 +84,35 @@ public record Trace(
     @JsonProperty("COUNTER_NSR") List<BigInteger> counterNsr,
     @JsonProperty("COUNTER_TLI") List<Boolean> counterTli,
     @JsonProperty(
-            "DEP_NUM_NEW_xor_CALL_STACK_DEPTH_xor_MMU___TARGET_OFFSET_HI_xor_STACK_ITEM_STAMP_2_xor_INIT_GAS")
-        List<BigInteger> depNumNewXorCallStackDepthXorMmuTargetOffsetHiXorStackItemStamp2XorInitGas,
+            "DEP_NUM_NEW_xor_CALL_STACK_DEPTH_xor_MMU___SOURCE_OFFSET_LO_xor_STACK_ITEM_STAMP_2_xor_INIT_GAS")
+        List<BigInteger> depNumNewXorCallStackDepthXorMmuSourceOffsetLoXorStackItemStamp2XorInitGas,
     @JsonProperty(
-            "DEP_NUM_xor_CALL_DATA_SIZE_xor_MMU___STACK_VAL_LO_xor_STACK_ITEM_STAMP_1_xor_INIT_CODE_SIZE")
-        List<BigInteger> depNumXorCallDataSizeXorMmuStackValLoXorStackItemStamp1XorInitCodeSize,
+            "DEP_NUM_xor_CALL_DATA_SIZE_xor_MMU___SOURCE_OFFSET_HI_xor_STACK_ITEM_STAMP_1_xor_INIT_CODE_SIZE")
+        List<BigInteger> depNumXorCallDataSizeXorMmuSourceOffsetHiXorStackItemStamp1XorInitCodeSize,
     @JsonProperty(
-            "DEP_STATUS_NEW_xor_FCOND_FLAG_xor_CODEDEPOSIT_xor_BIN_FLAG_xor_VAL_CURR_IS_ZERO_xor_STATUS_CODE")
-        List<Boolean> depStatusNewXorFcondFlagXorCodedepositXorBinFlagXorValCurrIsZeroXorStatusCode,
+            "DEP_STATUS_NEW_xor_EXP___FLAG_xor_CALL_EOA_SUCCESS_CALLER_WILL_REVERT_xor_BIN_FLAG_xor_VAL_CURR_IS_ZERO_xor_STATUS_CODE")
+        List<Boolean>
+            depStatusNewXorExpFlagXorCallEoaSuccessCallerWillRevertXorBinFlagXorValCurrIsZeroXorStatusCode,
     @JsonProperty(
-            "DEP_STATUS_xor_CCSR_FLAG_xor_CALL_xor_ADD_FLAG_xor_VAL_CURR_IS_ORIG_xor_IS_EIP1559")
-        List<Boolean> depStatusXorCcsrFlagXorCallXorAddFlagXorValCurrIsOrigXorIsEip1559,
+            "DEP_STATUS_xor_CCSR_FLAG_xor_CALL_ABORT_xor_ADD_FLAG_xor_VAL_CURR_IS_ORIG_xor_IS_EIP1559")
+        List<Boolean> depStatusXorCcsrFlagXorCallAbortXorAddFlagXorValCurrIsOrigXorIsEip1559,
     @JsonProperty(
-            "DEPLOYMENT_NUMBER_INFTY_xor_CALL_DATA_OFFSET_xor_MMU___STACK_VAL_HI_xor_STACK_ITEM_HEIGHT_4_xor_VAL_ORIG_LO_xor_INITIAL_BALANCE")
+            "DEPLOYMENT_NUMBER_INFTY_xor_CALL_DATA_OFFSET_xor_MMU___SIZE_xor_STACK_ITEM_HEIGHT_4_xor_VAL_ORIG_LO_xor_INITIAL_BALANCE")
         List<BigInteger>
-            deploymentNumberInftyXorCallDataOffsetXorMmuStackValHiXorStackItemHeight4XorValOrigLoXorInitialBalance,
+            deploymentNumberInftyXorCallDataOffsetXorMmuSizeXorStackItemHeight4XorValOrigLoXorInitialBalance,
     @JsonProperty(
             "DEPLOYMENT_STATUS_INFTY_xor_UPDATE_xor_ABORT_FLAG_xor_BLAKE2f_xor_ACC_FLAG_xor_VAL_CURR_CHANGES_xor_IS_DEPLOYMENT")
         List<Boolean>
             deploymentStatusInftyXorUpdateXorAbortFlagXorBlake2FXorAccFlagXorValCurrChangesXorIsDeployment,
     @JsonProperty("EXCEPTION_AHOY_FLAG") List<Boolean> exceptionAhoyFlag,
-    @JsonProperty("EXISTS_NEW_xor_MXP___DEPLOYS_xor_ECADD_xor_CALL_FLAG_xor_VAL_NEXT_IS_ORIG")
-        List<Boolean> existsNewXorMxpDeploysXorEcaddXorCallFlagXorValNextIsOrig,
     @JsonProperty(
-            "EXISTS_xor_MMU___FLAG_xor_CREATE_xor_BTC_FLAG_xor_VAL_NEXT_IS_CURR_xor_TXN_REQUIRES_EVM_EXECUTION")
-        List<Boolean> existsXorMmuFlagXorCreateXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution,
+            "EXISTS_NEW_xor_MMU___FLAG_xor_CALL_PRC_FAILURE_CALLER_WILL_REVERT_xor_CALL_FLAG_xor_VAL_NEXT_IS_ORIG")
+        List<Boolean>
+            existsNewXorMmuFlagXorCallPrcFailureCallerWillRevertXorCallFlagXorValNextIsOrig,
+    @JsonProperty(
+            "EXISTS_xor_FCOND_FLAG_xor_CALL_EOA_SUCCESS_CALLER_WONT_REVERT_xor_BTC_FLAG_xor_VAL_NEXT_IS_CURR_xor_TXN_REQUIRES_EVM_EXECUTION")
+        List<Boolean>
+            existsXorFcondFlagXorCallEoaSuccessCallerWontRevertXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution,
     @JsonProperty("FAILURE_CONDITION_FLAG") List<Boolean> failureConditionFlag,
     @JsonProperty("GAS_ACTUAL") List<BigInteger> gasActual,
     @JsonProperty("GAS_COST") List<BigInteger> gasCost,
@@ -115,41 +120,52 @@ public record Trace(
     @JsonProperty("GAS_MEMORY_EXPANSION") List<BigInteger> gasMemoryExpansion,
     @JsonProperty("GAS_NEXT") List<BigInteger> gasNext,
     @JsonProperty("GAS_REFUND") List<BigInteger> gasRefund,
-    @JsonProperty("HAS_CODE_NEW_xor_MXP___MXPX_xor_ECPAIRING_xor_COPY_FLAG_xor_VAL_ORIG_IS_ZERO")
-        List<Boolean> hasCodeNewXorMxpMxpxXorEcpairingXorCopyFlagXorValOrigIsZero,
-    @JsonProperty("HAS_CODE_xor_MXP___FLAG_xor_ECMUL_xor_CON_FLAG_xor_VAL_NEXT_IS_ZERO")
-        List<Boolean> hasCodeXorMxpFlagXorEcmulXorConFlagXorValNextIsZero,
-    @JsonProperty("HUB_STAMP") List<BigInteger> hubStamp,
-    @JsonProperty("IS_BLAKE2f_xor_OOB___EVENT_1_xor_ECRECOVER_xor_CREATE_FLAG_xor_WARM")
-        List<Boolean> isBlake2FXorOobEvent1XorEcrecoverXorCreateFlagXorWarm,
-    @JsonProperty("IS_ECADD_xor_OOB___EVENT_2_xor_IDENTITY_xor_DECODED_FLAG_1_xor_WARM_NEW")
-        List<Boolean> isEcaddXorOobEvent2XorIdentityXorDecodedFlag1XorWarmNew,
-    @JsonProperty("IS_ECMUL_xor_OOB___FLAG_xor_MODEXP_xor_DECODED_FLAG_2")
-        List<Boolean> isEcmulXorOobFlagXorModexpXorDecodedFlag2,
-    @JsonProperty("IS_ECPAIRING_xor_PRECINFO___FLAG_xor_RIPEMDsub160_xor_DECODED_FLAG_3")
-        List<Boolean> isEcpairingXorPrecinfoFlagXorRipemDsub160XorDecodedFlag3,
-    @JsonProperty("IS_ECRECOVER_xor_STP___EXISTS_xor_SCN_1_xor_DECODED_FLAG_4")
-        List<Boolean> isEcrecoverXorStpExistsXorScn1XorDecodedFlag4,
-    @JsonProperty("IS_IDENTITY_xor_STP___FLAG_xor_SCN_10_xor_DUP_FLAG")
-        List<Boolean> isIdentityXorStpFlagXorScn10XorDupFlag,
-    @JsonProperty("IS_MODEXP_xor_STP___OOGX_xor_SCN_11_xor_EXT_FLAG")
-        List<Boolean> isModexpXorStpOogxXorScn11XorExtFlag,
-    @JsonProperty("IS_PRECOMPILE_xor_STP___WARM_xor_SCN_12_xor_HALT_FLAG")
-        List<Boolean> isPrecompileXorStpWarmXorScn12XorHaltFlag,
-    @JsonProperty("IS_RIPEMDsub160_xor_SCN_2_xor_INVALID_FLAG")
-        List<Boolean> isRipemDsub160XorScn2XorInvalidFlag,
-    @JsonProperty("IS_SHA2sub256_xor_SCN_3_xor_INVPREX")
-        List<Boolean> isSha2Sub256XorScn3XorInvprex,
-    @JsonProperty("MXP_FLAG") List<Boolean> mxpFlag,
-    @JsonProperty("MXP___SIZE_2_LO_xor_STATIC_GAS") List<BigInteger> mxpSize2LoXorStaticGas,
-    @JsonProperty("MXP___WORDS") List<BigInteger> mxpWords,
-    @JsonProperty("NONCE_NEW_xor_CONTEXT_NUMBER_xor_MXP___GAS_MXP_xor_STACK_ITEM_STAMP_4_xor_NONCE")
-        List<BigInteger> nonceNewXorContextNumberXorMxpGasMxpXorStackItemStamp4XorNonce,
     @JsonProperty(
-            "NONCE_xor_CALL_VALUE_xor_MMU___TARGET_OFFSET_LO_xor_STACK_ITEM_STAMP_3_xor_LEFTOVER_GAS")
-        List<BigInteger> nonceXorCallValueXorMmuTargetOffsetLoXorStackItemStamp3XorLeftoverGas,
+            "HAS_CODE_NEW_xor_MXP___FLAG_xor_CALL_PRC_SUCCESS_CALLER_WILL_REVERT_xor_COPY_FLAG_xor_VAL_ORIG_IS_ZERO")
+        List<Boolean>
+            hasCodeNewXorMxpFlagXorCallPrcSuccessCallerWillRevertXorCopyFlagXorValOrigIsZero,
+    @JsonProperty(
+            "HAS_CODE_xor_MXP___DEPLOYS_xor_CALL_PRC_FAILURE_CALLER_WONT_REVERT_xor_CON_FLAG_xor_VAL_NEXT_IS_ZERO")
+        List<Boolean>
+            hasCodeXorMxpDeploysXorCallPrcFailureCallerWontRevertXorConFlagXorValNextIsZero,
+    @JsonProperty("HUB_STAMP") List<BigInteger> hubStamp,
+    @JsonProperty(
+            "IS_BLAKE2f_xor_MXP___MXPX_xor_CALL_PRC_SUCCESS_CALLER_WONT_REVERT_xor_CREATE_FLAG_xor_WARM")
+        List<Boolean> isBlake2FXorMxpMxpxXorCallPrcSuccessCallerWontRevertXorCreateFlagXorWarm,
+    @JsonProperty(
+            "IS_ECADD_xor_OOB___EVENT_1_xor_CALL_SMC_FAILURE_CALLER_WILL_REVERT_xor_DECODED_FLAG_1_xor_WARM_NEW")
+        List<Boolean> isEcaddXorOobEvent1XorCallSmcFailureCallerWillRevertXorDecodedFlag1XorWarmNew,
+    @JsonProperty(
+            "IS_ECMUL_xor_OOB___EVENT_2_xor_CALL_SMC_FAILURE_CALLER_WONT_REVERT_xor_DECODED_FLAG_2")
+        List<Boolean> isEcmulXorOobEvent2XorCallSmcFailureCallerWontRevertXorDecodedFlag2,
+    @JsonProperty(
+            "IS_ECPAIRING_xor_OOB___FLAG_xor_CALL_SMC_SUCCESS_CALLER_WILL_REVERT_xor_DECODED_FLAG_3")
+        List<Boolean> isEcpairingXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecodedFlag3,
+    @JsonProperty(
+            "IS_ECRECOVER_xor_PRECINFO___FLAG_xor_CALL_SMC_SUCCESS_CALLER_WONT_REVERT_xor_DECODED_FLAG_4")
+        List<Boolean> isEcrecoverXorPrecinfoFlagXorCallSmcSuccessCallerWontRevertXorDecodedFlag4,
+    @JsonProperty("IS_IDENTITY_xor_STP___EXISTS_xor_CODEDEPOSIT_xor_DUP_FLAG")
+        List<Boolean> isIdentityXorStpExistsXorCodedepositXorDupFlag,
+    @JsonProperty("IS_MODEXP_xor_STP___FLAG_xor_CODEDEPOSIT_INVALID_CODE_PREFIX_xor_EXT_FLAG")
+        List<Boolean> isModexpXorStpFlagXorCodedepositInvalidCodePrefixXorExtFlag,
+    @JsonProperty("IS_PRECOMPILE_xor_STP___OOGX_xor_CODEDEPOSIT_VALID_CODE_PREFIX_xor_HALT_FLAG")
+        List<Boolean> isPrecompileXorStpOogxXorCodedepositValidCodePrefixXorHaltFlag,
+    @JsonProperty("IS_RIPEMDsub160_xor_STP___WARM_xor_ECADD_xor_INVALID_FLAG")
+        List<Boolean> isRipemDsub160XorStpWarmXorEcaddXorInvalidFlag,
+    @JsonProperty("IS_SHA2sub256_xor_ECMUL_xor_INVPREX")
+        List<Boolean> isSha2Sub256XorEcmulXorInvprex,
+    @JsonProperty("MXP___SIZE_1_HI_xor_STATIC_GAS") List<BigInteger> mxpSize1HiXorStaticGas,
+    @JsonProperty("MXP___SIZE_1_LO") List<BigInteger> mxpSize1Lo,
+    @JsonProperty("MXP___SIZE_2_HI") List<BigInteger> mxpSize2Hi,
+    @JsonProperty("MXP___SIZE_2_LO") List<BigInteger> mxpSize2Lo,
+    @JsonProperty("MXP___WORDS") List<BigInteger> mxpWords,
+    @JsonProperty(
+            "NONCE_NEW_xor_CONTEXT_NUMBER_xor_MMU___STACK_VAL_LO_xor_STACK_ITEM_STAMP_4_xor_NONCE")
+        List<BigInteger> nonceNewXorContextNumberXorMmuStackValLoXorStackItemStamp4XorNonce,
+    @JsonProperty(
+            "NONCE_xor_CALL_VALUE_xor_MMU___STACK_VAL_HI_xor_STACK_ITEM_STAMP_3_xor_LEFTOVER_GAS")
+        List<BigInteger> nonceXorCallValueXorMmuStackValHiXorStackItemStamp3XorLeftoverGas,
     @JsonProperty("NUMBER_OF_NON_STACK_ROWS") List<BigInteger> numberOfNonStackRows,
-    @JsonProperty("OOB_FLAG") List<Boolean> oobFlag,
     @JsonProperty("OOB___INST") List<BigInteger> oobInst,
     @JsonProperty("OOB___OUTGOING_DATA_1") List<BigInteger> oobOutgoingData1,
     @JsonProperty("OOB___OUTGOING_DATA_2") List<BigInteger> oobOutgoingData2,
@@ -157,8 +173,6 @@ public record Trace(
     @JsonProperty("OOB___OUTGOING_DATA_4") List<BigInteger> oobOutgoingData4,
     @JsonProperty("OOB___OUTGOING_DATA_5") List<BigInteger> oobOutgoingData5,
     @JsonProperty("OOB___OUTGOING_DATA_6") List<BigInteger> oobOutgoingData6,
-    @JsonProperty("OOGX") List<Boolean> oogx,
-    @JsonProperty("OPCX") List<Boolean> opcx,
     @JsonProperty("PEEK_AT_ACCOUNT") List<Boolean> peekAtAccount,
     @JsonProperty("PEEK_AT_CONTEXT") List<Boolean> peekAtContext,
     @JsonProperty("PEEK_AT_MISCELLANEOUS") List<Boolean> peekAtMiscellaneous,
@@ -175,37 +189,42 @@ public record Trace(
     @JsonProperty("PRECINFO___TOUCHES_RAM") List<BigInteger> precinfoTouchesRam,
     @JsonProperty("PROGRAM_COUNTER") List<BigInteger> programCounter,
     @JsonProperty("PROGRAM_COUNTER_NEW") List<BigInteger> programCounterNew,
-    @JsonProperty("PUSHPOP_FLAG") List<Boolean> pushpopFlag,
-    @JsonProperty("RDCX") List<Boolean> rdcx,
+    @JsonProperty("RIPEMDsub160_xor_MAXCSX") List<Boolean> ripemDsub160XorMaxcsx,
     @JsonProperty(
-            "RLPADDR___DEP_ADDR_HI_xor_IS_STATIC_xor_MXP___INST_xor_STACK_ITEM_VALUE_HI_1_xor_TO_ADDRESS_HI")
-        List<BigInteger> rlpaddrDepAddrHiXorIsStaticXorMxpInstXorStackItemValueHi1XorToAddressHi,
-    @JsonProperty(
-            "RLPADDR___DEP_ADDR_LO_xor_RETURNER_CONTEXT_NUMBER_xor_MXP___OFFSET_1_HI_xor_STACK_ITEM_VALUE_HI_2_xor_TO_ADDRESS_LO")
+            "RLPADDR___DEP_ADDR_HI_xor_IS_STATIC_xor_MMU___TARGET_OFFSET_HI_xor_STACK_ITEM_VALUE_HI_1_xor_TO_ADDRESS_HI")
         List<BigInteger>
-            rlpaddrDepAddrLoXorReturnerContextNumberXorMxpOffset1HiXorStackItemValueHi2XorToAddressLo,
-    @JsonProperty("RLPADDR___FLAG_xor_SCN_4_xor_JUMPX") List<Boolean> rlpaddrFlagXorScn4XorJumpx,
+            rlpaddrDepAddrHiXorIsStaticXorMmuTargetOffsetHiXorStackItemValueHi1XorToAddressHi,
     @JsonProperty(
-            "RLPADDR___KEC_HI_xor_RETURNER_IS_PRECOMPILE_xor_MXP___OFFSET_1_LO_xor_STACK_ITEM_VALUE_HI_3_xor_VALUE")
+            "RLPADDR___DEP_ADDR_LO_xor_RETURNER_CONTEXT_NUMBER_xor_MMU___TARGET_OFFSET_LO_xor_STACK_ITEM_VALUE_HI_2_xor_TO_ADDRESS_LO")
         List<BigInteger>
-            rlpaddrKecHiXorReturnerIsPrecompileXorMxpOffset1LoXorStackItemValueHi3XorValue,
+            rlpaddrDepAddrLoXorReturnerContextNumberXorMmuTargetOffsetLoXorStackItemValueHi2XorToAddressLo,
+    @JsonProperty("RLPADDR___FLAG_xor_ECPAIRING_xor_JUMPX")
+        List<Boolean> rlpaddrFlagXorEcpairingXorJumpx,
     @JsonProperty(
-            "RLPADDR___KEC_LO_xor_RETURN_AT_OFFSET_xor_MXP___OFFSET_2_HI_xor_STACK_ITEM_VALUE_HI_4")
-        List<BigInteger> rlpaddrKecLoXorReturnAtOffsetXorMxpOffset2HiXorStackItemValueHi4,
+            "RLPADDR___KEC_HI_xor_RETURNER_IS_PRECOMPILE_xor_MXP___GAS_MXP_xor_STACK_ITEM_VALUE_HI_3_xor_VALUE")
+        List<BigInteger>
+            rlpaddrKecHiXorReturnerIsPrecompileXorMxpGasMxpXorStackItemValueHi3XorValue,
+    @JsonProperty("RLPADDR___KEC_LO_xor_RETURN_AT_OFFSET_xor_MXP___INST_xor_STACK_ITEM_VALUE_HI_4")
+        List<BigInteger> rlpaddrKecLoXorReturnAtOffsetXorMxpInstXorStackItemValueHi4,
     @JsonProperty(
-            "RLPADDR___RECIPE_xor_RETURN_AT_SIZE_xor_MXP___OFFSET_2_LO_xor_STACK_ITEM_VALUE_LO_1")
-        List<BigInteger> rlpaddrRecipeXorReturnAtSizeXorMxpOffset2LoXorStackItemValueLo1,
+            "RLPADDR___RECIPE_xor_RETURN_AT_SIZE_xor_MXP___OFFSET_1_HI_xor_STACK_ITEM_VALUE_LO_1")
+        List<BigInteger> rlpaddrRecipeXorReturnAtSizeXorMxpOffset1HiXorStackItemValueLo1,
     @JsonProperty(
-            "RLPADDR___SALT_HI_xor_RETURN_DATA_OFFSET_xor_MXP___SIZE_1_HI_xor_STACK_ITEM_VALUE_LO_2")
-        List<BigInteger> rlpaddrSaltHiXorReturnDataOffsetXorMxpSize1HiXorStackItemValueLo2,
+            "RLPADDR___SALT_HI_xor_RETURN_DATA_OFFSET_xor_MXP___OFFSET_1_LO_xor_STACK_ITEM_VALUE_LO_2")
+        List<BigInteger> rlpaddrSaltHiXorReturnDataOffsetXorMxpOffset1LoXorStackItemValueLo2,
     @JsonProperty(
-            "RLPADDR___SALT_LO_xor_RETURN_DATA_SIZE_xor_MXP___SIZE_1_LO_xor_STACK_ITEM_VALUE_LO_3")
-        List<BigInteger> rlpaddrSaltLoXorReturnDataSizeXorMxpSize1LoXorStackItemValueLo3,
-    @JsonProperty("SCN_8_xor_MAXCSX") List<Boolean> scn8XorMaxcsx,
-    @JsonProperty("SCN_9_xor_MOD_FLAG") List<Boolean> scn9XorModFlag,
-    @JsonProperty("SELFDESTRUCT_xor_MUL_FLAG") List<Boolean> selfdestructXorMulFlag,
-    @JsonProperty("SHA2sub256_xor_MXPX") List<Boolean> sha2Sub256XorMxpx,
-    @JsonProperty("SHF_FLAG") List<Boolean> shfFlag,
+            "RLPADDR___SALT_LO_xor_RETURN_DATA_SIZE_xor_MXP___OFFSET_2_HI_xor_STACK_ITEM_VALUE_LO_3")
+        List<BigInteger> rlpaddrSaltLoXorReturnDataSizeXorMxpOffset2HiXorStackItemValueLo3,
+    @JsonProperty("SCN_FAILURE_1_xor_MOD_FLAG") List<Boolean> scnFailure1XorModFlag,
+    @JsonProperty("SCN_FAILURE_2_xor_MUL_FLAG") List<Boolean> scnFailure2XorMulFlag,
+    @JsonProperty("SCN_FAILURE_3_xor_MXPX") List<Boolean> scnFailure3XorMxpx,
+    @JsonProperty("SCN_FAILURE_4_xor_MXP_FLAG") List<Boolean> scnFailure4XorMxpFlag,
+    @JsonProperty("SCN_SUCCESS_1_xor_OOB_FLAG") List<Boolean> scnSuccess1XorOobFlag,
+    @JsonProperty("SCN_SUCCESS_2_xor_OOGX") List<Boolean> scnSuccess2XorOogx,
+    @JsonProperty("SCN_SUCCESS_3_xor_OPCX") List<Boolean> scnSuccess3XorOpcx,
+    @JsonProperty("SCN_SUCCESS_4_xor_PUSHPOP_FLAG") List<Boolean> scnSuccess4XorPushpopFlag,
+    @JsonProperty("SELFDESTRUCT_xor_RDCX") List<Boolean> selfdestructXorRdcx,
+    @JsonProperty("SHA2sub256_xor_SHF_FLAG") List<Boolean> sha2Sub256XorShfFlag,
     @JsonProperty("SOX") List<Boolean> sox,
     @JsonProperty("SSTOREX") List<Boolean> sstorex,
     @JsonProperty("STACK_ITEM_POP_1") List<Boolean> stackItemPop1,
@@ -228,9 +247,10 @@ public record Trace(
     @JsonProperty("TRANSACTION_END_STAMP") List<BigInteger> transactionEndStamp,
     @JsonProperty("TRANSACTION_REVERTS") List<BigInteger> transactionReverts,
     @JsonProperty("TRM_FLAG") List<Boolean> trmFlag,
-    @JsonProperty("TRM___FLAG_xor_SCN_5_xor_JUMP_FLAG") List<Boolean> trmFlagXorScn5XorJumpFlag,
-    @JsonProperty("TRM___RAW_ADDR_HI_xor_MXP___SIZE_2_HI_xor_STACK_ITEM_VALUE_LO_4")
-        List<BigInteger> trmRawAddrHiXorMxpSize2HiXorStackItemValueLo4,
+    @JsonProperty("TRM___FLAG_xor_ECRECOVER_xor_JUMP_FLAG")
+        List<Boolean> trmFlagXorEcrecoverXorJumpFlag,
+    @JsonProperty("TRM___RAW_ADDR_HI_xor_MXP___OFFSET_2_LO_xor_STACK_ITEM_VALUE_LO_4")
+        List<BigInteger> trmRawAddrHiXorMxpOffset2LoXorStackItemValueLo4,
     @JsonProperty("TWO_LINE_INSTRUCTION") List<Boolean> twoLineInstruction,
     @JsonProperty("TX_EXEC") List<Boolean> txExec,
     @JsonProperty("TX_FINL") List<Boolean> txFinl,
@@ -238,10 +258,10 @@ public record Trace(
     @JsonProperty("TX_SKIP") List<Boolean> txSkip,
     @JsonProperty("TX_WARM") List<Boolean> txWarm,
     @JsonProperty("TXN_FLAG") List<Boolean> txnFlag,
-    @JsonProperty("WARM_NEW_xor_SCN_7_xor_LOG_FLAG") List<Boolean> warmNewXorScn7XorLogFlag,
-    @JsonProperty("WARM_xor_SCN_6_xor_KEC_FLAG") List<Boolean> warmXorScn6XorKecFlag,
+    @JsonProperty("WARM_NEW_xor_MODEXP_xor_LOG_FLAG") List<Boolean> warmNewXorModexpXorLogFlag,
+    @JsonProperty("WARM_xor_IDENTITY_xor_KEC_FLAG") List<Boolean> warmXorIdentityXorKecFlag,
     @JsonProperty("WCP_FLAG") List<Boolean> wcpFlag) {
-  public static TraceBuilder builder() {
+  static TraceBuilder builder() {
     return new TraceBuilder();
   }
 
@@ -260,21 +280,21 @@ public record Trace(
         addrHiXorAccountAddressHiXorCcrsStampXorHeightXorAddressHiXorBasefee = new ArrayList<>();
 
     @JsonProperty(
-        "ADDR_LO_xor_ACCOUNT_ADDRESS_LO_xor_MMU___CN_S_xor_HEIGHT_NEW_xor_ADDRESS_LO_xor_CALL_DATA_SIZE")
+        "ADDR_LO_xor_ACCOUNT_ADDRESS_LO_xor_EXP___DYNCOST_xor_HEIGHT_NEW_xor_ADDRESS_LO_xor_CALL_DATA_SIZE")
     private final List<BigInteger>
-        addrLoXorAccountAddressLoXorMmuCnSXorHeightNewXorAddressLoXorCallDataSize =
+        addrLoXorAccountAddressLoXorExpDyncostXorHeightNewXorAddressLoXorCallDataSize =
             new ArrayList<>();
 
     @JsonProperty(
-        "BALANCE_NEW_xor_BYTE_CODE_ADDRESS_HI_xor_MMU___INST_xor_HEIGHT_UNDER_xor_STORAGE_KEY_HI_xor_COINBASE_ADDRESS_LO")
+        "BALANCE_NEW_xor_BYTE_CODE_ADDRESS_HI_xor_EXP___EXPONENT_LO_xor_HEIGHT_UNDER_xor_STORAGE_KEY_HI_xor_COINBASE_ADDRESS_LO")
     private final List<BigInteger>
-        balanceNewXorByteCodeAddressHiXorMmuInstXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo =
+        balanceNewXorByteCodeAddressHiXorExpExponentLoXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo =
             new ArrayList<>();
 
     @JsonProperty(
-        "BALANCE_xor_ACCOUNT_DEPLOYMENT_NUMBER_xor_MMU___CN_T_xor_HEIGHT_OVER_xor_DEPLOYMENT_NUMBER_xor_COINBASE_ADDRESS_HI")
+        "BALANCE_xor_ACCOUNT_DEPLOYMENT_NUMBER_xor_EXP___EXPONENT_HI_xor_HEIGHT_OVER_xor_DEPLOYMENT_NUMBER_xor_COINBASE_ADDRESS_HI")
     private final List<BigInteger>
-        balanceXorAccountDeploymentNumberXorMmuCnTXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi =
+        balanceXorAccountDeploymentNumberXorExpExponentHiXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi =
             new ArrayList<>();
 
     @JsonProperty("BATCH_NUMBER")
@@ -296,39 +316,39 @@ public record Trace(
     private final List<Boolean> codeDeploymentStatus = new ArrayList<>();
 
     @JsonProperty(
-        "CODE_HASH_HI_NEW_xor_BYTE_CODE_DEPLOYMENT_NUMBER_xor_MMU___NUM_2_xor_PUSH_VALUE_HI_xor_VAL_CURR_HI_xor_FROM_ADDRESS_LO")
+        "CODE_HASH_HI_NEW_xor_BYTE_CODE_DEPLOYMENT_NUMBER_xor_MMU___CN_T_xor_PUSH_VALUE_HI_xor_VAL_CURR_HI_xor_FROM_ADDRESS_LO")
     private final List<BigInteger>
-        codeHashHiNewXorByteCodeDeploymentNumberXorMmuNum2XorPushValueHiXorValCurrHiXorFromAddressLo =
+        codeHashHiNewXorByteCodeDeploymentNumberXorMmuCnTXorPushValueHiXorValCurrHiXorFromAddressLo =
             new ArrayList<>();
 
     @JsonProperty(
-        "CODE_HASH_HI_xor_BYTE_CODE_ADDRESS_LO_xor_MMU___NUM_1_xor_INSTRUCTION_xor_STORAGE_KEY_LO_xor_FROM_ADDRESS_HI")
+        "CODE_HASH_HI_xor_BYTE_CODE_ADDRESS_LO_xor_MMU___CN_S_xor_INSTRUCTION_xor_STORAGE_KEY_LO_xor_FROM_ADDRESS_HI")
     private final List<BigInteger>
-        codeHashHiXorByteCodeAddressLoXorMmuNum1XorInstructionXorStorageKeyLoXorFromAddressHi =
+        codeHashHiXorByteCodeAddressLoXorMmuCnSXorInstructionXorStorageKeyLoXorFromAddressHi =
             new ArrayList<>();
 
     @JsonProperty(
-        "CODE_HASH_LO_NEW_xor_CALLER_ADDRESS_HI_xor_MMU___SIZE_xor_STACK_ITEM_HEIGHT_1_xor_VAL_NEXT_HI_xor_GAS_PRICE")
+        "CODE_HASH_LO_NEW_xor_CALLER_ADDRESS_HI_xor_MMU___NUM_1_xor_STACK_ITEM_HEIGHT_1_xor_VAL_NEXT_HI_xor_GAS_PRICE")
     private final List<BigInteger>
-        codeHashLoNewXorCallerAddressHiXorMmuSizeXorStackItemHeight1XorValNextHiXorGasPrice =
+        codeHashLoNewXorCallerAddressHiXorMmuNum1XorStackItemHeight1XorValNextHiXorGasPrice =
             new ArrayList<>();
 
     @JsonProperty(
-        "CODE_HASH_LO_xor_BYTE_CODE_DEPLOYMENT_STATUS_xor_MMU___REFS_xor_PUSH_VALUE_LO_xor_VAL_CURR_LO_xor_GAS_LIMIT")
+        "CODE_HASH_LO_xor_BYTE_CODE_DEPLOYMENT_STATUS_xor_MMU___INST_xor_PUSH_VALUE_LO_xor_VAL_CURR_LO_xor_GAS_LIMIT")
     private final List<BigInteger>
-        codeHashLoXorByteCodeDeploymentStatusXorMmuRefsXorPushValueLoXorValCurrLoXorGasLimit =
+        codeHashLoXorByteCodeDeploymentStatusXorMmuInstXorPushValueLoXorValCurrLoXorGasLimit =
             new ArrayList<>();
 
     @JsonProperty(
-        "CODE_SIZE_NEW_xor_CALLER_CONTEXT_NUMBER_xor_MMU___SOURCE_OFFSET_LO_xor_STACK_ITEM_HEIGHT_3_xor_VAL_ORIG_HI_xor_GAS_REFUND_COUNTER_FINAL")
+        "CODE_SIZE_NEW_xor_CALLER_CONTEXT_NUMBER_xor_MMU___REFS_xor_STACK_ITEM_HEIGHT_3_xor_VAL_ORIG_HI_xor_GAS_REFUND_COUNTER_FINAL")
     private final List<BigInteger>
-        codeSizeNewXorCallerContextNumberXorMmuSourceOffsetLoXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal =
+        codeSizeNewXorCallerContextNumberXorMmuRefsXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal =
             new ArrayList<>();
 
     @JsonProperty(
-        "CODE_SIZE_xor_CALLER_ADDRESS_LO_xor_MMU___SOURCE_OFFSET_HI_xor_STACK_ITEM_HEIGHT_2_xor_VAL_NEXT_LO_xor_GAS_REFUND_AMOUNT")
+        "CODE_SIZE_xor_CALLER_ADDRESS_LO_xor_MMU___NUM_2_xor_STACK_ITEM_HEIGHT_2_xor_VAL_NEXT_LO_xor_GAS_REFUND_AMOUNT")
     private final List<BigInteger>
-        codeSizeXorCallerAddressLoXorMmuSourceOffsetHiXorStackItemHeight2XorValNextLoXorGasRefundAmount =
+        codeSizeXorCallerAddressLoXorMmuNum2XorStackItemHeight2XorValNextLoXorGasRefundAmount =
             new ArrayList<>();
 
     @JsonProperty("CONTEXT_GETS_REVRTD_FLAG")
@@ -359,31 +379,32 @@ public record Trace(
     private final List<Boolean> counterTli = new ArrayList<>();
 
     @JsonProperty(
-        "DEP_NUM_NEW_xor_CALL_STACK_DEPTH_xor_MMU___TARGET_OFFSET_HI_xor_STACK_ITEM_STAMP_2_xor_INIT_GAS")
+        "DEP_NUM_NEW_xor_CALL_STACK_DEPTH_xor_MMU___SOURCE_OFFSET_LO_xor_STACK_ITEM_STAMP_2_xor_INIT_GAS")
     private final List<BigInteger>
-        depNumNewXorCallStackDepthXorMmuTargetOffsetHiXorStackItemStamp2XorInitGas =
+        depNumNewXorCallStackDepthXorMmuSourceOffsetLoXorStackItemStamp2XorInitGas =
             new ArrayList<>();
 
     @JsonProperty(
-        "DEP_NUM_xor_CALL_DATA_SIZE_xor_MMU___STACK_VAL_LO_xor_STACK_ITEM_STAMP_1_xor_INIT_CODE_SIZE")
+        "DEP_NUM_xor_CALL_DATA_SIZE_xor_MMU___SOURCE_OFFSET_HI_xor_STACK_ITEM_STAMP_1_xor_INIT_CODE_SIZE")
     private final List<BigInteger>
-        depNumXorCallDataSizeXorMmuStackValLoXorStackItemStamp1XorInitCodeSize = new ArrayList<>();
+        depNumXorCallDataSizeXorMmuSourceOffsetHiXorStackItemStamp1XorInitCodeSize =
+            new ArrayList<>();
 
     @JsonProperty(
-        "DEP_STATUS_NEW_xor_FCOND_FLAG_xor_CODEDEPOSIT_xor_BIN_FLAG_xor_VAL_CURR_IS_ZERO_xor_STATUS_CODE")
+        "DEP_STATUS_NEW_xor_EXP___FLAG_xor_CALL_EOA_SUCCESS_CALLER_WILL_REVERT_xor_BIN_FLAG_xor_VAL_CURR_IS_ZERO_xor_STATUS_CODE")
     private final List<Boolean>
-        depStatusNewXorFcondFlagXorCodedepositXorBinFlagXorValCurrIsZeroXorStatusCode =
+        depStatusNewXorExpFlagXorCallEoaSuccessCallerWillRevertXorBinFlagXorValCurrIsZeroXorStatusCode =
             new ArrayList<>();
 
     @JsonProperty(
-        "DEP_STATUS_xor_CCSR_FLAG_xor_CALL_xor_ADD_FLAG_xor_VAL_CURR_IS_ORIG_xor_IS_EIP1559")
-    private final List<Boolean> depStatusXorCcsrFlagXorCallXorAddFlagXorValCurrIsOrigXorIsEip1559 =
-        new ArrayList<>();
+        "DEP_STATUS_xor_CCSR_FLAG_xor_CALL_ABORT_xor_ADD_FLAG_xor_VAL_CURR_IS_ORIG_xor_IS_EIP1559")
+    private final List<Boolean>
+        depStatusXorCcsrFlagXorCallAbortXorAddFlagXorValCurrIsOrigXorIsEip1559 = new ArrayList<>();
 
     @JsonProperty(
-        "DEPLOYMENT_NUMBER_INFTY_xor_CALL_DATA_OFFSET_xor_MMU___STACK_VAL_HI_xor_STACK_ITEM_HEIGHT_4_xor_VAL_ORIG_LO_xor_INITIAL_BALANCE")
+        "DEPLOYMENT_NUMBER_INFTY_xor_CALL_DATA_OFFSET_xor_MMU___SIZE_xor_STACK_ITEM_HEIGHT_4_xor_VAL_ORIG_LO_xor_INITIAL_BALANCE")
     private final List<BigInteger>
-        deploymentNumberInftyXorCallDataOffsetXorMmuStackValHiXorStackItemHeight4XorValOrigLoXorInitialBalance =
+        deploymentNumberInftyXorCallDataOffsetXorMmuSizeXorStackItemHeight4XorValOrigLoXorInitialBalance =
             new ArrayList<>();
 
     @JsonProperty(
@@ -395,14 +416,16 @@ public record Trace(
     @JsonProperty("EXCEPTION_AHOY_FLAG")
     private final List<Boolean> exceptionAhoyFlag = new ArrayList<>();
 
-    @JsonProperty("EXISTS_NEW_xor_MXP___DEPLOYS_xor_ECADD_xor_CALL_FLAG_xor_VAL_NEXT_IS_ORIG")
-    private final List<Boolean> existsNewXorMxpDeploysXorEcaddXorCallFlagXorValNextIsOrig =
-        new ArrayList<>();
+    @JsonProperty(
+        "EXISTS_NEW_xor_MMU___FLAG_xor_CALL_PRC_FAILURE_CALLER_WILL_REVERT_xor_CALL_FLAG_xor_VAL_NEXT_IS_ORIG")
+    private final List<Boolean>
+        existsNewXorMmuFlagXorCallPrcFailureCallerWillRevertXorCallFlagXorValNextIsOrig =
+            new ArrayList<>();
 
     @JsonProperty(
-        "EXISTS_xor_MMU___FLAG_xor_CREATE_xor_BTC_FLAG_xor_VAL_NEXT_IS_CURR_xor_TXN_REQUIRES_EVM_EXECUTION")
+        "EXISTS_xor_FCOND_FLAG_xor_CALL_EOA_SUCCESS_CALLER_WONT_REVERT_xor_BTC_FLAG_xor_VAL_NEXT_IS_CURR_xor_TXN_REQUIRES_EVM_EXECUTION")
     private final List<Boolean>
-        existsXorMmuFlagXorCreateXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution =
+        existsXorFcondFlagXorCallEoaSuccessCallerWontRevertXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution =
             new ArrayList<>();
 
     @JsonProperty("FAILURE_CONDITION_FLAG")
@@ -426,73 +449,93 @@ public record Trace(
     @JsonProperty("GAS_REFUND")
     private final List<BigInteger> gasRefund = new ArrayList<>();
 
-    @JsonProperty("HAS_CODE_NEW_xor_MXP___MXPX_xor_ECPAIRING_xor_COPY_FLAG_xor_VAL_ORIG_IS_ZERO")
-    private final List<Boolean> hasCodeNewXorMxpMxpxXorEcpairingXorCopyFlagXorValOrigIsZero =
-        new ArrayList<>();
+    @JsonProperty(
+        "HAS_CODE_NEW_xor_MXP___FLAG_xor_CALL_PRC_SUCCESS_CALLER_WILL_REVERT_xor_COPY_FLAG_xor_VAL_ORIG_IS_ZERO")
+    private final List<Boolean>
+        hasCodeNewXorMxpFlagXorCallPrcSuccessCallerWillRevertXorCopyFlagXorValOrigIsZero =
+            new ArrayList<>();
 
-    @JsonProperty("HAS_CODE_xor_MXP___FLAG_xor_ECMUL_xor_CON_FLAG_xor_VAL_NEXT_IS_ZERO")
-    private final List<Boolean> hasCodeXorMxpFlagXorEcmulXorConFlagXorValNextIsZero =
-        new ArrayList<>();
+    @JsonProperty(
+        "HAS_CODE_xor_MXP___DEPLOYS_xor_CALL_PRC_FAILURE_CALLER_WONT_REVERT_xor_CON_FLAG_xor_VAL_NEXT_IS_ZERO")
+    private final List<Boolean>
+        hasCodeXorMxpDeploysXorCallPrcFailureCallerWontRevertXorConFlagXorValNextIsZero =
+            new ArrayList<>();
 
     @JsonProperty("HUB_STAMP")
     private final List<BigInteger> hubStamp = new ArrayList<>();
 
-    @JsonProperty("IS_BLAKE2f_xor_OOB___EVENT_1_xor_ECRECOVER_xor_CREATE_FLAG_xor_WARM")
-    private final List<Boolean> isBlake2FXorOobEvent1XorEcrecoverXorCreateFlagXorWarm =
+    @JsonProperty(
+        "IS_BLAKE2f_xor_MXP___MXPX_xor_CALL_PRC_SUCCESS_CALLER_WONT_REVERT_xor_CREATE_FLAG_xor_WARM")
+    private final List<Boolean>
+        isBlake2FXorMxpMxpxXorCallPrcSuccessCallerWontRevertXorCreateFlagXorWarm =
+            new ArrayList<>();
+
+    @JsonProperty(
+        "IS_ECADD_xor_OOB___EVENT_1_xor_CALL_SMC_FAILURE_CALLER_WILL_REVERT_xor_DECODED_FLAG_1_xor_WARM_NEW")
+    private final List<Boolean>
+        isEcaddXorOobEvent1XorCallSmcFailureCallerWillRevertXorDecodedFlag1XorWarmNew =
+            new ArrayList<>();
+
+    @JsonProperty(
+        "IS_ECMUL_xor_OOB___EVENT_2_xor_CALL_SMC_FAILURE_CALLER_WONT_REVERT_xor_DECODED_FLAG_2")
+    private final List<Boolean>
+        isEcmulXorOobEvent2XorCallSmcFailureCallerWontRevertXorDecodedFlag2 = new ArrayList<>();
+
+    @JsonProperty(
+        "IS_ECPAIRING_xor_OOB___FLAG_xor_CALL_SMC_SUCCESS_CALLER_WILL_REVERT_xor_DECODED_FLAG_3")
+    private final List<Boolean>
+        isEcpairingXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecodedFlag3 = new ArrayList<>();
+
+    @JsonProperty(
+        "IS_ECRECOVER_xor_PRECINFO___FLAG_xor_CALL_SMC_SUCCESS_CALLER_WONT_REVERT_xor_DECODED_FLAG_4")
+    private final List<Boolean>
+        isEcrecoverXorPrecinfoFlagXorCallSmcSuccessCallerWontRevertXorDecodedFlag4 =
+            new ArrayList<>();
+
+    @JsonProperty("IS_IDENTITY_xor_STP___EXISTS_xor_CODEDEPOSIT_xor_DUP_FLAG")
+    private final List<Boolean> isIdentityXorStpExistsXorCodedepositXorDupFlag = new ArrayList<>();
+
+    @JsonProperty("IS_MODEXP_xor_STP___FLAG_xor_CODEDEPOSIT_INVALID_CODE_PREFIX_xor_EXT_FLAG")
+    private final List<Boolean> isModexpXorStpFlagXorCodedepositInvalidCodePrefixXorExtFlag =
         new ArrayList<>();
 
-    @JsonProperty("IS_ECADD_xor_OOB___EVENT_2_xor_IDENTITY_xor_DECODED_FLAG_1_xor_WARM_NEW")
-    private final List<Boolean> isEcaddXorOobEvent2XorIdentityXorDecodedFlag1XorWarmNew =
+    @JsonProperty("IS_PRECOMPILE_xor_STP___OOGX_xor_CODEDEPOSIT_VALID_CODE_PREFIX_xor_HALT_FLAG")
+    private final List<Boolean> isPrecompileXorStpOogxXorCodedepositValidCodePrefixXorHaltFlag =
         new ArrayList<>();
 
-    @JsonProperty("IS_ECMUL_xor_OOB___FLAG_xor_MODEXP_xor_DECODED_FLAG_2")
-    private final List<Boolean> isEcmulXorOobFlagXorModexpXorDecodedFlag2 = new ArrayList<>();
+    @JsonProperty("IS_RIPEMDsub160_xor_STP___WARM_xor_ECADD_xor_INVALID_FLAG")
+    private final List<Boolean> isRipemDsub160XorStpWarmXorEcaddXorInvalidFlag = new ArrayList<>();
 
-    @JsonProperty("IS_ECPAIRING_xor_PRECINFO___FLAG_xor_RIPEMDsub160_xor_DECODED_FLAG_3")
-    private final List<Boolean> isEcpairingXorPrecinfoFlagXorRipemDsub160XorDecodedFlag3 =
-        new ArrayList<>();
+    @JsonProperty("IS_SHA2sub256_xor_ECMUL_xor_INVPREX")
+    private final List<Boolean> isSha2Sub256XorEcmulXorInvprex = new ArrayList<>();
 
-    @JsonProperty("IS_ECRECOVER_xor_STP___EXISTS_xor_SCN_1_xor_DECODED_FLAG_4")
-    private final List<Boolean> isEcrecoverXorStpExistsXorScn1XorDecodedFlag4 = new ArrayList<>();
+    @JsonProperty("MXP___SIZE_1_HI_xor_STATIC_GAS")
+    private final List<BigInteger> mxpSize1HiXorStaticGas = new ArrayList<>();
 
-    @JsonProperty("IS_IDENTITY_xor_STP___FLAG_xor_SCN_10_xor_DUP_FLAG")
-    private final List<Boolean> isIdentityXorStpFlagXorScn10XorDupFlag = new ArrayList<>();
+    @JsonProperty("MXP___SIZE_1_LO")
+    private final List<BigInteger> mxpSize1Lo = new ArrayList<>();
 
-    @JsonProperty("IS_MODEXP_xor_STP___OOGX_xor_SCN_11_xor_EXT_FLAG")
-    private final List<Boolean> isModexpXorStpOogxXorScn11XorExtFlag = new ArrayList<>();
+    @JsonProperty("MXP___SIZE_2_HI")
+    private final List<BigInteger> mxpSize2Hi = new ArrayList<>();
 
-    @JsonProperty("IS_PRECOMPILE_xor_STP___WARM_xor_SCN_12_xor_HALT_FLAG")
-    private final List<Boolean> isPrecompileXorStpWarmXorScn12XorHaltFlag = new ArrayList<>();
-
-    @JsonProperty("IS_RIPEMDsub160_xor_SCN_2_xor_INVALID_FLAG")
-    private final List<Boolean> isRipemDsub160XorScn2XorInvalidFlag = new ArrayList<>();
-
-    @JsonProperty("IS_SHA2sub256_xor_SCN_3_xor_INVPREX")
-    private final List<Boolean> isSha2Sub256XorScn3XorInvprex = new ArrayList<>();
-
-    @JsonProperty("MXP_FLAG")
-    private final List<Boolean> mxpFlag = new ArrayList<>();
-
-    @JsonProperty("MXP___SIZE_2_LO_xor_STATIC_GAS")
-    private final List<BigInteger> mxpSize2LoXorStaticGas = new ArrayList<>();
+    @JsonProperty("MXP___SIZE_2_LO")
+    private final List<BigInteger> mxpSize2Lo = new ArrayList<>();
 
     @JsonProperty("MXP___WORDS")
     private final List<BigInteger> mxpWords = new ArrayList<>();
 
-    @JsonProperty("NONCE_NEW_xor_CONTEXT_NUMBER_xor_MXP___GAS_MXP_xor_STACK_ITEM_STAMP_4_xor_NONCE")
-    private final List<BigInteger> nonceNewXorContextNumberXorMxpGasMxpXorStackItemStamp4XorNonce =
-        new ArrayList<>();
+    @JsonProperty(
+        "NONCE_NEW_xor_CONTEXT_NUMBER_xor_MMU___STACK_VAL_LO_xor_STACK_ITEM_STAMP_4_xor_NONCE")
+    private final List<BigInteger>
+        nonceNewXorContextNumberXorMmuStackValLoXorStackItemStamp4XorNonce = new ArrayList<>();
 
     @JsonProperty(
-        "NONCE_xor_CALL_VALUE_xor_MMU___TARGET_OFFSET_LO_xor_STACK_ITEM_STAMP_3_xor_LEFTOVER_GAS")
+        "NONCE_xor_CALL_VALUE_xor_MMU___STACK_VAL_HI_xor_STACK_ITEM_STAMP_3_xor_LEFTOVER_GAS")
     private final List<BigInteger>
-        nonceXorCallValueXorMmuTargetOffsetLoXorStackItemStamp3XorLeftoverGas = new ArrayList<>();
+        nonceXorCallValueXorMmuStackValHiXorStackItemStamp3XorLeftoverGas = new ArrayList<>();
 
     @JsonProperty("NUMBER_OF_NON_STACK_ROWS")
     private final List<BigInteger> numberOfNonStackRows = new ArrayList<>();
-
-    @JsonProperty("OOB_FLAG")
-    private final List<Boolean> oobFlag = new ArrayList<>();
 
     @JsonProperty("OOB___INST")
     private final List<BigInteger> oobInst = new ArrayList<>();
@@ -514,12 +557,6 @@ public record Trace(
 
     @JsonProperty("OOB___OUTGOING_DATA_6")
     private final List<BigInteger> oobOutgoingData6 = new ArrayList<>();
-
-    @JsonProperty("OOGX")
-    private final List<Boolean> oogx = new ArrayList<>();
-
-    @JsonProperty("OPCX")
-    private final List<Boolean> opcx = new ArrayList<>();
 
     @JsonProperty("PEEK_AT_ACCOUNT")
     private final List<Boolean> peekAtAccount = new ArrayList<>();
@@ -569,66 +606,78 @@ public record Trace(
     @JsonProperty("PROGRAM_COUNTER_NEW")
     private final List<BigInteger> programCounterNew = new ArrayList<>();
 
-    @JsonProperty("PUSHPOP_FLAG")
-    private final List<Boolean> pushpopFlag = new ArrayList<>();
-
-    @JsonProperty("RDCX")
-    private final List<Boolean> rdcx = new ArrayList<>();
+    @JsonProperty("RIPEMDsub160_xor_MAXCSX")
+    private final List<Boolean> ripemDsub160XorMaxcsx = new ArrayList<>();
 
     @JsonProperty(
-        "RLPADDR___DEP_ADDR_HI_xor_IS_STATIC_xor_MXP___INST_xor_STACK_ITEM_VALUE_HI_1_xor_TO_ADDRESS_HI")
+        "RLPADDR___DEP_ADDR_HI_xor_IS_STATIC_xor_MMU___TARGET_OFFSET_HI_xor_STACK_ITEM_VALUE_HI_1_xor_TO_ADDRESS_HI")
     private final List<BigInteger>
-        rlpaddrDepAddrHiXorIsStaticXorMxpInstXorStackItemValueHi1XorToAddressHi = new ArrayList<>();
-
-    @JsonProperty(
-        "RLPADDR___DEP_ADDR_LO_xor_RETURNER_CONTEXT_NUMBER_xor_MXP___OFFSET_1_HI_xor_STACK_ITEM_VALUE_HI_2_xor_TO_ADDRESS_LO")
-    private final List<BigInteger>
-        rlpaddrDepAddrLoXorReturnerContextNumberXorMxpOffset1HiXorStackItemValueHi2XorToAddressLo =
-            new ArrayList<>();
-
-    @JsonProperty("RLPADDR___FLAG_xor_SCN_4_xor_JUMPX")
-    private final List<Boolean> rlpaddrFlagXorScn4XorJumpx = new ArrayList<>();
-
-    @JsonProperty(
-        "RLPADDR___KEC_HI_xor_RETURNER_IS_PRECOMPILE_xor_MXP___OFFSET_1_LO_xor_STACK_ITEM_VALUE_HI_3_xor_VALUE")
-    private final List<BigInteger>
-        rlpaddrKecHiXorReturnerIsPrecompileXorMxpOffset1LoXorStackItemValueHi3XorValue =
+        rlpaddrDepAddrHiXorIsStaticXorMmuTargetOffsetHiXorStackItemValueHi1XorToAddressHi =
             new ArrayList<>();
 
     @JsonProperty(
-        "RLPADDR___KEC_LO_xor_RETURN_AT_OFFSET_xor_MXP___OFFSET_2_HI_xor_STACK_ITEM_VALUE_HI_4")
+        "RLPADDR___DEP_ADDR_LO_xor_RETURNER_CONTEXT_NUMBER_xor_MMU___TARGET_OFFSET_LO_xor_STACK_ITEM_VALUE_HI_2_xor_TO_ADDRESS_LO")
     private final List<BigInteger>
-        rlpaddrKecLoXorReturnAtOffsetXorMxpOffset2HiXorStackItemValueHi4 = new ArrayList<>();
+        rlpaddrDepAddrLoXorReturnerContextNumberXorMmuTargetOffsetLoXorStackItemValueHi2XorToAddressLo =
+            new ArrayList<>();
+
+    @JsonProperty("RLPADDR___FLAG_xor_ECPAIRING_xor_JUMPX")
+    private final List<Boolean> rlpaddrFlagXorEcpairingXorJumpx = new ArrayList<>();
 
     @JsonProperty(
-        "RLPADDR___RECIPE_xor_RETURN_AT_SIZE_xor_MXP___OFFSET_2_LO_xor_STACK_ITEM_VALUE_LO_1")
-    private final List<BigInteger> rlpaddrRecipeXorReturnAtSizeXorMxpOffset2LoXorStackItemValueLo1 =
+        "RLPADDR___KEC_HI_xor_RETURNER_IS_PRECOMPILE_xor_MXP___GAS_MXP_xor_STACK_ITEM_VALUE_HI_3_xor_VALUE")
+    private final List<BigInteger>
+        rlpaddrKecHiXorReturnerIsPrecompileXorMxpGasMxpXorStackItemValueHi3XorValue =
+            new ArrayList<>();
+
+    @JsonProperty("RLPADDR___KEC_LO_xor_RETURN_AT_OFFSET_xor_MXP___INST_xor_STACK_ITEM_VALUE_HI_4")
+    private final List<BigInteger> rlpaddrKecLoXorReturnAtOffsetXorMxpInstXorStackItemValueHi4 =
         new ArrayList<>();
 
     @JsonProperty(
-        "RLPADDR___SALT_HI_xor_RETURN_DATA_OFFSET_xor_MXP___SIZE_1_HI_xor_STACK_ITEM_VALUE_LO_2")
-    private final List<BigInteger>
-        rlpaddrSaltHiXorReturnDataOffsetXorMxpSize1HiXorStackItemValueLo2 = new ArrayList<>();
-
-    @JsonProperty(
-        "RLPADDR___SALT_LO_xor_RETURN_DATA_SIZE_xor_MXP___SIZE_1_LO_xor_STACK_ITEM_VALUE_LO_3")
-    private final List<BigInteger> rlpaddrSaltLoXorReturnDataSizeXorMxpSize1LoXorStackItemValueLo3 =
+        "RLPADDR___RECIPE_xor_RETURN_AT_SIZE_xor_MXP___OFFSET_1_HI_xor_STACK_ITEM_VALUE_LO_1")
+    private final List<BigInteger> rlpaddrRecipeXorReturnAtSizeXorMxpOffset1HiXorStackItemValueLo1 =
         new ArrayList<>();
 
-    @JsonProperty("SCN_8_xor_MAXCSX")
-    private final List<Boolean> scn8XorMaxcsx = new ArrayList<>();
+    @JsonProperty(
+        "RLPADDR___SALT_HI_xor_RETURN_DATA_OFFSET_xor_MXP___OFFSET_1_LO_xor_STACK_ITEM_VALUE_LO_2")
+    private final List<BigInteger>
+        rlpaddrSaltHiXorReturnDataOffsetXorMxpOffset1LoXorStackItemValueLo2 = new ArrayList<>();
 
-    @JsonProperty("SCN_9_xor_MOD_FLAG")
-    private final List<Boolean> scn9XorModFlag = new ArrayList<>();
+    @JsonProperty(
+        "RLPADDR___SALT_LO_xor_RETURN_DATA_SIZE_xor_MXP___OFFSET_2_HI_xor_STACK_ITEM_VALUE_LO_3")
+    private final List<BigInteger>
+        rlpaddrSaltLoXorReturnDataSizeXorMxpOffset2HiXorStackItemValueLo3 = new ArrayList<>();
 
-    @JsonProperty("SELFDESTRUCT_xor_MUL_FLAG")
-    private final List<Boolean> selfdestructXorMulFlag = new ArrayList<>();
+    @JsonProperty("SCN_FAILURE_1_xor_MOD_FLAG")
+    private final List<Boolean> scnFailure1XorModFlag = new ArrayList<>();
 
-    @JsonProperty("SHA2sub256_xor_MXPX")
-    private final List<Boolean> sha2Sub256XorMxpx = new ArrayList<>();
+    @JsonProperty("SCN_FAILURE_2_xor_MUL_FLAG")
+    private final List<Boolean> scnFailure2XorMulFlag = new ArrayList<>();
 
-    @JsonProperty("SHF_FLAG")
-    private final List<Boolean> shfFlag = new ArrayList<>();
+    @JsonProperty("SCN_FAILURE_3_xor_MXPX")
+    private final List<Boolean> scnFailure3XorMxpx = new ArrayList<>();
+
+    @JsonProperty("SCN_FAILURE_4_xor_MXP_FLAG")
+    private final List<Boolean> scnFailure4XorMxpFlag = new ArrayList<>();
+
+    @JsonProperty("SCN_SUCCESS_1_xor_OOB_FLAG")
+    private final List<Boolean> scnSuccess1XorOobFlag = new ArrayList<>();
+
+    @JsonProperty("SCN_SUCCESS_2_xor_OOGX")
+    private final List<Boolean> scnSuccess2XorOogx = new ArrayList<>();
+
+    @JsonProperty("SCN_SUCCESS_3_xor_OPCX")
+    private final List<Boolean> scnSuccess3XorOpcx = new ArrayList<>();
+
+    @JsonProperty("SCN_SUCCESS_4_xor_PUSHPOP_FLAG")
+    private final List<Boolean> scnSuccess4XorPushpopFlag = new ArrayList<>();
+
+    @JsonProperty("SELFDESTRUCT_xor_RDCX")
+    private final List<Boolean> selfdestructXorRdcx = new ArrayList<>();
+
+    @JsonProperty("SHA2sub256_xor_SHF_FLAG")
+    private final List<Boolean> sha2Sub256XorShfFlag = new ArrayList<>();
 
     @JsonProperty("SOX")
     private final List<Boolean> sox = new ArrayList<>();
@@ -696,11 +745,11 @@ public record Trace(
     @JsonProperty("TRM_FLAG")
     private final List<Boolean> trmFlag = new ArrayList<>();
 
-    @JsonProperty("TRM___FLAG_xor_SCN_5_xor_JUMP_FLAG")
-    private final List<Boolean> trmFlagXorScn5XorJumpFlag = new ArrayList<>();
+    @JsonProperty("TRM___FLAG_xor_ECRECOVER_xor_JUMP_FLAG")
+    private final List<Boolean> trmFlagXorEcrecoverXorJumpFlag = new ArrayList<>();
 
-    @JsonProperty("TRM___RAW_ADDR_HI_xor_MXP___SIZE_2_HI_xor_STACK_ITEM_VALUE_LO_4")
-    private final List<BigInteger> trmRawAddrHiXorMxpSize2HiXorStackItemValueLo4 =
+    @JsonProperty("TRM___RAW_ADDR_HI_xor_MXP___OFFSET_2_LO_xor_STACK_ITEM_VALUE_LO_4")
+    private final List<BigInteger> trmRawAddrHiXorMxpOffset2LoXorStackItemValueLo4 =
         new ArrayList<>();
 
     @JsonProperty("TWO_LINE_INSTRUCTION")
@@ -724,11 +773,11 @@ public record Trace(
     @JsonProperty("TXN_FLAG")
     private final List<Boolean> txnFlag = new ArrayList<>();
 
-    @JsonProperty("WARM_NEW_xor_SCN_7_xor_LOG_FLAG")
-    private final List<Boolean> warmNewXorScn7XorLogFlag = new ArrayList<>();
+    @JsonProperty("WARM_NEW_xor_MODEXP_xor_LOG_FLAG")
+    private final List<Boolean> warmNewXorModexpXorLogFlag = new ArrayList<>();
 
-    @JsonProperty("WARM_xor_SCN_6_xor_KEC_FLAG")
-    private final List<Boolean> warmXorScn6XorKecFlag = new ArrayList<>();
+    @JsonProperty("WARM_xor_IDENTITY_xor_KEC_FLAG")
+    private final List<Boolean> warmXorIdentityXorKecFlag = new ArrayList<>();
 
     @JsonProperty("WCP_FLAG")
     private final List<Boolean> wcpFlag = new ArrayList<>();
@@ -1086,7 +1135,7 @@ public record Trace(
         filled.set(92);
       }
 
-      addrLoXorAccountAddressLoXorMmuCnSXorHeightNewXorAddressLoXorCallDataSize.add(b);
+      addrLoXorAccountAddressLoXorExpDyncostXorHeightNewXorAddressLoXorCallDataSize.add(b);
 
       return this;
     }
@@ -1098,7 +1147,7 @@ public record Trace(
         filled.set(93);
       }
 
-      balanceXorAccountDeploymentNumberXorMmuCnTXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
+      balanceXorAccountDeploymentNumberXorExpExponentHiXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
           .add(b);
 
       return this;
@@ -1111,8 +1160,8 @@ public record Trace(
         filled.set(94);
       }
 
-      balanceNewXorByteCodeAddressHiXorMmuInstXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo.add(
-          b);
+      balanceNewXorByteCodeAddressHiXorExpExponentLoXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo
+          .add(b);
 
       return this;
     }
@@ -1124,7 +1173,7 @@ public record Trace(
         filled.set(95);
       }
 
-      codeHashHiXorByteCodeAddressLoXorMmuNum1XorInstructionXorStorageKeyLoXorFromAddressHi.add(b);
+      codeHashHiXorByteCodeAddressLoXorMmuCnSXorInstructionXorStorageKeyLoXorFromAddressHi.add(b);
 
       return this;
     }
@@ -1136,7 +1185,7 @@ public record Trace(
         filled.set(96);
       }
 
-      codeHashHiNewXorByteCodeDeploymentNumberXorMmuNum2XorPushValueHiXorValCurrHiXorFromAddressLo
+      codeHashHiNewXorByteCodeDeploymentNumberXorMmuCnTXorPushValueHiXorValCurrHiXorFromAddressLo
           .add(b);
 
       return this;
@@ -1149,7 +1198,7 @@ public record Trace(
         filled.set(97);
       }
 
-      codeHashLoXorByteCodeDeploymentStatusXorMmuRefsXorPushValueLoXorValCurrLoXorGasLimit.add(b);
+      codeHashLoXorByteCodeDeploymentStatusXorMmuInstXorPushValueLoXorValCurrLoXorGasLimit.add(b);
 
       return this;
     }
@@ -1161,7 +1210,7 @@ public record Trace(
         filled.set(98);
       }
 
-      codeHashLoNewXorCallerAddressHiXorMmuSizeXorStackItemHeight1XorValNextHiXorGasPrice.add(b);
+      codeHashLoNewXorCallerAddressHiXorMmuNum1XorStackItemHeight1XorValNextHiXorGasPrice.add(b);
 
       return this;
     }
@@ -1173,8 +1222,7 @@ public record Trace(
         filled.set(99);
       }
 
-      codeSizeXorCallerAddressLoXorMmuSourceOffsetHiXorStackItemHeight2XorValNextLoXorGasRefundAmount
-          .add(b);
+      codeSizeXorCallerAddressLoXorMmuNum2XorStackItemHeight2XorValNextLoXorGasRefundAmount.add(b);
 
       return this;
     }
@@ -1186,7 +1234,7 @@ public record Trace(
         filled.set(100);
       }
 
-      codeSizeNewXorCallerContextNumberXorMmuSourceOffsetLoXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
+      codeSizeNewXorCallerContextNumberXorMmuRefsXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
           .add(b);
 
       return this;
@@ -1199,7 +1247,7 @@ public record Trace(
         filled.set(102);
       }
 
-      depNumXorCallDataSizeXorMmuStackValLoXorStackItemStamp1XorInitCodeSize.add(b);
+      depNumXorCallDataSizeXorMmuSourceOffsetHiXorStackItemStamp1XorInitCodeSize.add(b);
 
       return this;
     }
@@ -1211,7 +1259,7 @@ public record Trace(
         filled.set(103);
       }
 
-      depNumNewXorCallStackDepthXorMmuTargetOffsetHiXorStackItemStamp2XorInitGas.add(b);
+      depNumNewXorCallStackDepthXorMmuSourceOffsetLoXorStackItemStamp2XorInitGas.add(b);
 
       return this;
     }
@@ -1223,7 +1271,7 @@ public record Trace(
         filled.set(45);
       }
 
-      depStatusXorCcsrFlagXorCallXorAddFlagXorValCurrIsOrigXorIsEip1559.add(b);
+      depStatusXorCcsrFlagXorCallAbortXorAddFlagXorValCurrIsOrigXorIsEip1559.add(b);
 
       return this;
     }
@@ -1235,7 +1283,8 @@ public record Trace(
         filled.set(46);
       }
 
-      depStatusNewXorFcondFlagXorCodedepositXorBinFlagXorValCurrIsZeroXorStatusCode.add(b);
+      depStatusNewXorExpFlagXorCallEoaSuccessCallerWillRevertXorBinFlagXorValCurrIsZeroXorStatusCode
+          .add(b);
 
       return this;
     }
@@ -1247,7 +1296,7 @@ public record Trace(
         filled.set(101);
       }
 
-      deploymentNumberInftyXorCallDataOffsetXorMmuStackValHiXorStackItemHeight4XorValOrigLoXorInitialBalance
+      deploymentNumberInftyXorCallDataOffsetXorMmuSizeXorStackItemHeight4XorValOrigLoXorInitialBalance
           .add(b);
 
       return this;
@@ -1273,7 +1322,8 @@ public record Trace(
         filled.set(47);
       }
 
-      existsXorMmuFlagXorCreateXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution.add(b);
+      existsXorFcondFlagXorCallEoaSuccessCallerWontRevertXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution
+          .add(b);
 
       return this;
     }
@@ -1285,7 +1335,7 @@ public record Trace(
         filled.set(48);
       }
 
-      existsNewXorMxpDeploysXorEcaddXorCallFlagXorValNextIsOrig.add(b);
+      existsNewXorMmuFlagXorCallPrcFailureCallerWillRevertXorCallFlagXorValNextIsOrig.add(b);
 
       return this;
     }
@@ -1297,7 +1347,7 @@ public record Trace(
         filled.set(49);
       }
 
-      hasCodeXorMxpFlagXorEcmulXorConFlagXorValNextIsZero.add(b);
+      hasCodeXorMxpDeploysXorCallPrcFailureCallerWontRevertXorConFlagXorValNextIsZero.add(b);
 
       return this;
     }
@@ -1309,7 +1359,7 @@ public record Trace(
         filled.set(50);
       }
 
-      hasCodeNewXorMxpMxpxXorEcpairingXorCopyFlagXorValOrigIsZero.add(b);
+      hasCodeNewXorMxpFlagXorCallPrcSuccessCallerWillRevertXorCopyFlagXorValOrigIsZero.add(b);
 
       return this;
     }
@@ -1321,7 +1371,7 @@ public record Trace(
         filled.set(51);
       }
 
-      isBlake2FXorOobEvent1XorEcrecoverXorCreateFlagXorWarm.add(b);
+      isBlake2FXorMxpMxpxXorCallPrcSuccessCallerWontRevertXorCreateFlagXorWarm.add(b);
 
       return this;
     }
@@ -1333,7 +1383,7 @@ public record Trace(
         filled.set(52);
       }
 
-      isEcaddXorOobEvent2XorIdentityXorDecodedFlag1XorWarmNew.add(b);
+      isEcaddXorOobEvent1XorCallSmcFailureCallerWillRevertXorDecodedFlag1XorWarmNew.add(b);
 
       return this;
     }
@@ -1345,7 +1395,7 @@ public record Trace(
         filled.set(53);
       }
 
-      isEcmulXorOobFlagXorModexpXorDecodedFlag2.add(b);
+      isEcmulXorOobEvent2XorCallSmcFailureCallerWontRevertXorDecodedFlag2.add(b);
 
       return this;
     }
@@ -1357,7 +1407,7 @@ public record Trace(
         filled.set(54);
       }
 
-      isEcpairingXorPrecinfoFlagXorRipemDsub160XorDecodedFlag3.add(b);
+      isEcpairingXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecodedFlag3.add(b);
 
       return this;
     }
@@ -1369,7 +1419,7 @@ public record Trace(
         filled.set(55);
       }
 
-      isEcrecoverXorStpExistsXorScn1XorDecodedFlag4.add(b);
+      isEcrecoverXorPrecinfoFlagXorCallSmcSuccessCallerWontRevertXorDecodedFlag4.add(b);
 
       return this;
     }
@@ -1381,7 +1431,7 @@ public record Trace(
         filled.set(56);
       }
 
-      isIdentityXorStpFlagXorScn10XorDupFlag.add(b);
+      isIdentityXorStpExistsXorCodedepositXorDupFlag.add(b);
 
       return this;
     }
@@ -1393,7 +1443,7 @@ public record Trace(
         filled.set(57);
       }
 
-      isModexpXorStpOogxXorScn11XorExtFlag.add(b);
+      isModexpXorStpFlagXorCodedepositInvalidCodePrefixXorExtFlag.add(b);
 
       return this;
     }
@@ -1405,7 +1455,7 @@ public record Trace(
         filled.set(58);
       }
 
-      isPrecompileXorStpWarmXorScn12XorHaltFlag.add(b);
+      isPrecompileXorStpOogxXorCodedepositValidCodePrefixXorHaltFlag.add(b);
 
       return this;
     }
@@ -1417,7 +1467,7 @@ public record Trace(
         filled.set(59);
       }
 
-      isRipemDsub160XorScn2XorInvalidFlag.add(b);
+      isRipemDsub160XorStpWarmXorEcaddXorInvalidFlag.add(b);
 
       return this;
     }
@@ -1429,7 +1479,7 @@ public record Trace(
         filled.set(60);
       }
 
-      isSha2Sub256XorScn3XorInvprex.add(b);
+      isSha2Sub256XorEcmulXorInvprex.add(b);
 
       return this;
     }
@@ -1441,7 +1491,7 @@ public record Trace(
         filled.set(104);
       }
 
-      nonceXorCallValueXorMmuTargetOffsetLoXorStackItemStamp3XorLeftoverGas.add(b);
+      nonceXorCallValueXorMmuStackValHiXorStackItemStamp3XorLeftoverGas.add(b);
 
       return this;
     }
@@ -1453,7 +1503,7 @@ public record Trace(
         filled.set(105);
       }
 
-      nonceNewXorContextNumberXorMxpGasMxpXorStackItemStamp4XorNonce.add(b);
+      nonceNewXorContextNumberXorMmuStackValLoXorStackItemStamp4XorNonce.add(b);
 
       return this;
     }
@@ -1465,7 +1515,7 @@ public record Trace(
         filled.set(106);
       }
 
-      rlpaddrDepAddrHiXorIsStaticXorMxpInstXorStackItemValueHi1XorToAddressHi.add(b);
+      rlpaddrDepAddrHiXorIsStaticXorMmuTargetOffsetHiXorStackItemValueHi1XorToAddressHi.add(b);
 
       return this;
     }
@@ -1477,8 +1527,8 @@ public record Trace(
         filled.set(107);
       }
 
-      rlpaddrDepAddrLoXorReturnerContextNumberXorMxpOffset1HiXorStackItemValueHi2XorToAddressLo.add(
-          b);
+      rlpaddrDepAddrLoXorReturnerContextNumberXorMmuTargetOffsetLoXorStackItemValueHi2XorToAddressLo
+          .add(b);
 
       return this;
     }
@@ -1490,7 +1540,7 @@ public record Trace(
         filled.set(61);
       }
 
-      rlpaddrFlagXorScn4XorJumpx.add(b);
+      rlpaddrFlagXorEcpairingXorJumpx.add(b);
 
       return this;
     }
@@ -1502,7 +1552,7 @@ public record Trace(
         filled.set(108);
       }
 
-      rlpaddrKecHiXorReturnerIsPrecompileXorMxpOffset1LoXorStackItemValueHi3XorValue.add(b);
+      rlpaddrKecHiXorReturnerIsPrecompileXorMxpGasMxpXorStackItemValueHi3XorValue.add(b);
 
       return this;
     }
@@ -1514,7 +1564,7 @@ public record Trace(
         filled.set(109);
       }
 
-      rlpaddrKecLoXorReturnAtOffsetXorMxpOffset2HiXorStackItemValueHi4.add(b);
+      rlpaddrKecLoXorReturnAtOffsetXorMxpInstXorStackItemValueHi4.add(b);
 
       return this;
     }
@@ -1526,7 +1576,7 @@ public record Trace(
         filled.set(110);
       }
 
-      rlpaddrRecipeXorReturnAtSizeXorMxpOffset2LoXorStackItemValueLo1.add(b);
+      rlpaddrRecipeXorReturnAtSizeXorMxpOffset1HiXorStackItemValueLo1.add(b);
 
       return this;
     }
@@ -1538,7 +1588,7 @@ public record Trace(
         filled.set(111);
       }
 
-      rlpaddrSaltHiXorReturnDataOffsetXorMxpSize1HiXorStackItemValueLo2.add(b);
+      rlpaddrSaltHiXorReturnDataOffsetXorMxpOffset1LoXorStackItemValueLo2.add(b);
 
       return this;
     }
@@ -1550,7 +1600,7 @@ public record Trace(
         filled.set(112);
       }
 
-      rlpaddrSaltLoXorReturnDataSizeXorMxpSize1LoXorStackItemValueLo3.add(b);
+      rlpaddrSaltLoXorReturnDataSizeXorMxpOffset2HiXorStackItemValueLo3.add(b);
 
       return this;
     }
@@ -1562,7 +1612,7 @@ public record Trace(
         filled.set(62);
       }
 
-      trmFlagXorScn5XorJumpFlag.add(b);
+      trmFlagXorEcrecoverXorJumpFlag.add(b);
 
       return this;
     }
@@ -1574,7 +1624,7 @@ public record Trace(
         filled.set(113);
       }
 
-      trmRawAddrHiXorMxpSize2HiXorStackItemValueLo4.add(b);
+      trmRawAddrHiXorMxpOffset2LoXorStackItemValueLo4.add(b);
 
       return this;
     }
@@ -1586,7 +1636,7 @@ public record Trace(
         filled.set(63);
       }
 
-      warmXorScn6XorKecFlag.add(b);
+      warmXorIdentityXorKecFlag.add(b);
 
       return this;
     }
@@ -1598,7 +1648,7 @@ public record Trace(
         filled.set(64);
       }
 
-      warmNewXorScn7XorLogFlag.add(b);
+      warmNewXorModexpXorLogFlag.add(b);
 
       return this;
     }
@@ -1622,7 +1672,7 @@ public record Trace(
         filled.set(92);
       }
 
-      addrLoXorAccountAddressLoXorMmuCnSXorHeightNewXorAddressLoXorCallDataSize.add(b);
+      addrLoXorAccountAddressLoXorExpDyncostXorHeightNewXorAddressLoXorCallDataSize.add(b);
 
       return this;
     }
@@ -1634,7 +1684,7 @@ public record Trace(
         filled.set(93);
       }
 
-      balanceXorAccountDeploymentNumberXorMmuCnTXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
+      balanceXorAccountDeploymentNumberXorExpExponentHiXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
           .add(b);
 
       return this;
@@ -1647,8 +1697,8 @@ public record Trace(
         filled.set(94);
       }
 
-      balanceNewXorByteCodeAddressHiXorMmuInstXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo.add(
-          b);
+      balanceNewXorByteCodeAddressHiXorExpExponentLoXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo
+          .add(b);
 
       return this;
     }
@@ -1660,7 +1710,7 @@ public record Trace(
         filled.set(95);
       }
 
-      codeHashHiXorByteCodeAddressLoXorMmuNum1XorInstructionXorStorageKeyLoXorFromAddressHi.add(b);
+      codeHashHiXorByteCodeAddressLoXorMmuCnSXorInstructionXorStorageKeyLoXorFromAddressHi.add(b);
 
       return this;
     }
@@ -1672,7 +1722,7 @@ public record Trace(
         filled.set(96);
       }
 
-      codeHashHiNewXorByteCodeDeploymentNumberXorMmuNum2XorPushValueHiXorValCurrHiXorFromAddressLo
+      codeHashHiNewXorByteCodeDeploymentNumberXorMmuCnTXorPushValueHiXorValCurrHiXorFromAddressLo
           .add(b);
 
       return this;
@@ -1685,7 +1735,7 @@ public record Trace(
         filled.set(97);
       }
 
-      codeHashLoXorByteCodeDeploymentStatusXorMmuRefsXorPushValueLoXorValCurrLoXorGasLimit.add(b);
+      codeHashLoXorByteCodeDeploymentStatusXorMmuInstXorPushValueLoXorValCurrLoXorGasLimit.add(b);
 
       return this;
     }
@@ -1697,7 +1747,7 @@ public record Trace(
         filled.set(101);
       }
 
-      deploymentNumberInftyXorCallDataOffsetXorMmuStackValHiXorStackItemHeight4XorValOrigLoXorInitialBalance
+      deploymentNumberInftyXorCallDataOffsetXorMmuSizeXorStackItemHeight4XorValOrigLoXorInitialBalance
           .add(b);
 
       return this;
@@ -1710,7 +1760,7 @@ public record Trace(
         filled.set(102);
       }
 
-      depNumXorCallDataSizeXorMmuStackValLoXorStackItemStamp1XorInitCodeSize.add(b);
+      depNumXorCallDataSizeXorMmuSourceOffsetHiXorStackItemStamp1XorInitCodeSize.add(b);
 
       return this;
     }
@@ -1722,7 +1772,7 @@ public record Trace(
         filled.set(103);
       }
 
-      depNumNewXorCallStackDepthXorMmuTargetOffsetHiXorStackItemStamp2XorInitGas.add(b);
+      depNumNewXorCallStackDepthXorMmuSourceOffsetLoXorStackItemStamp2XorInitGas.add(b);
 
       return this;
     }
@@ -1734,7 +1784,7 @@ public record Trace(
         filled.set(104);
       }
 
-      nonceXorCallValueXorMmuTargetOffsetLoXorStackItemStamp3XorLeftoverGas.add(b);
+      nonceXorCallValueXorMmuStackValHiXorStackItemStamp3XorLeftoverGas.add(b);
 
       return this;
     }
@@ -1746,7 +1796,7 @@ public record Trace(
         filled.set(98);
       }
 
-      codeHashLoNewXorCallerAddressHiXorMmuSizeXorStackItemHeight1XorValNextHiXorGasPrice.add(b);
+      codeHashLoNewXorCallerAddressHiXorMmuNum1XorStackItemHeight1XorValNextHiXorGasPrice.add(b);
 
       return this;
     }
@@ -1758,8 +1808,7 @@ public record Trace(
         filled.set(99);
       }
 
-      codeSizeXorCallerAddressLoXorMmuSourceOffsetHiXorStackItemHeight2XorValNextLoXorGasRefundAmount
-          .add(b);
+      codeSizeXorCallerAddressLoXorMmuNum2XorStackItemHeight2XorValNextLoXorGasRefundAmount.add(b);
 
       return this;
     }
@@ -1771,7 +1820,7 @@ public record Trace(
         filled.set(100);
       }
 
-      codeSizeNewXorCallerContextNumberXorMmuSourceOffsetLoXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
+      codeSizeNewXorCallerContextNumberXorMmuRefsXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
           .add(b);
 
       return this;
@@ -1784,7 +1833,7 @@ public record Trace(
         filled.set(105);
       }
 
-      nonceNewXorContextNumberXorMxpGasMxpXorStackItemStamp4XorNonce.add(b);
+      nonceNewXorContextNumberXorMmuStackValLoXorStackItemStamp4XorNonce.add(b);
 
       return this;
     }
@@ -1796,7 +1845,7 @@ public record Trace(
         filled.set(106);
       }
 
-      rlpaddrDepAddrHiXorIsStaticXorMxpInstXorStackItemValueHi1XorToAddressHi.add(b);
+      rlpaddrDepAddrHiXorIsStaticXorMmuTargetOffsetHiXorStackItemValueHi1XorToAddressHi.add(b);
 
       return this;
     }
@@ -1808,7 +1857,7 @@ public record Trace(
         filled.set(109);
       }
 
-      rlpaddrKecLoXorReturnAtOffsetXorMxpOffset2HiXorStackItemValueHi4.add(b);
+      rlpaddrKecLoXorReturnAtOffsetXorMxpInstXorStackItemValueHi4.add(b);
 
       return this;
     }
@@ -1820,7 +1869,7 @@ public record Trace(
         filled.set(110);
       }
 
-      rlpaddrRecipeXorReturnAtSizeXorMxpOffset2LoXorStackItemValueLo1.add(b);
+      rlpaddrRecipeXorReturnAtSizeXorMxpOffset1HiXorStackItemValueLo1.add(b);
 
       return this;
     }
@@ -1832,7 +1881,7 @@ public record Trace(
         filled.set(111);
       }
 
-      rlpaddrSaltHiXorReturnDataOffsetXorMxpSize1HiXorStackItemValueLo2.add(b);
+      rlpaddrSaltHiXorReturnDataOffsetXorMxpOffset1LoXorStackItemValueLo2.add(b);
 
       return this;
     }
@@ -1844,7 +1893,7 @@ public record Trace(
         filled.set(112);
       }
 
-      rlpaddrSaltLoXorReturnDataSizeXorMxpSize1LoXorStackItemValueLo3.add(b);
+      rlpaddrSaltLoXorReturnDataSizeXorMxpOffset2HiXorStackItemValueLo3.add(b);
 
       return this;
     }
@@ -1856,8 +1905,8 @@ public record Trace(
         filled.set(107);
       }
 
-      rlpaddrDepAddrLoXorReturnerContextNumberXorMxpOffset1HiXorStackItemValueHi2XorToAddressLo.add(
-          b);
+      rlpaddrDepAddrLoXorReturnerContextNumberXorMmuTargetOffsetLoXorStackItemValueHi2XorToAddressLo
+          .add(b);
 
       return this;
     }
@@ -1869,7 +1918,7 @@ public record Trace(
         filled.set(108);
       }
 
-      rlpaddrKecHiXorReturnerIsPrecompileXorMxpOffset1LoXorStackItemValueHi3XorValue.add(b);
+      rlpaddrKecHiXorReturnerIsPrecompileXorMxpGasMxpXorStackItemValueHi3XorValue.add(b);
 
       return this;
     }
@@ -1919,359 +1968,408 @@ public record Trace(
         filled.set(45);
       }
 
-      depStatusXorCcsrFlagXorCallXorAddFlagXorValCurrIsOrigXorIsEip1559.add(b);
+      depStatusXorCcsrFlagXorCallAbortXorAddFlagXorValCurrIsOrigXorIsEip1559.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder pMiscellaneousExpDyncost(final BigInteger b) {
+      if (filled.get(92)) {
+        throw new IllegalStateException("EXP___DYNCOST already set");
+      } else {
+        filled.set(92);
+      }
+
+      addrLoXorAccountAddressLoXorExpDyncostXorHeightNewXorAddressLoXorCallDataSize.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder pMiscellaneousExpExponentHi(final BigInteger b) {
+      if (filled.get(93)) {
+        throw new IllegalStateException("EXP___EXPONENT_HI already set");
+      } else {
+        filled.set(93);
+      }
+
+      balanceXorAccountDeploymentNumberXorExpExponentHiXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
+          .add(b);
+
+      return this;
+    }
+
+    public TraceBuilder pMiscellaneousExpExponentLo(final BigInteger b) {
+      if (filled.get(94)) {
+        throw new IllegalStateException("EXP___EXPONENT_LO already set");
+      } else {
+        filled.set(94);
+      }
+
+      balanceNewXorByteCodeAddressHiXorExpExponentLoXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo
+          .add(b);
+
+      return this;
+    }
+
+    public TraceBuilder pMiscellaneousExpFlag(final Boolean b) {
+      if (filled.get(46)) {
+        throw new IllegalStateException("EXP___FLAG already set");
+      } else {
+        filled.set(46);
+      }
+
+      depStatusNewXorExpFlagXorCallEoaSuccessCallerWillRevertXorBinFlagXorValCurrIsZeroXorStatusCode
+          .add(b);
 
       return this;
     }
 
     public TraceBuilder pMiscellaneousFcondFlag(final Boolean b) {
-      if (filled.get(46)) {
+      if (filled.get(47)) {
         throw new IllegalStateException("FCOND_FLAG already set");
       } else {
-        filled.set(46);
+        filled.set(47);
       }
 
-      depStatusNewXorFcondFlagXorCodedepositXorBinFlagXorValCurrIsZeroXorStatusCode.add(b);
+      existsXorFcondFlagXorCallEoaSuccessCallerWontRevertXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution
+          .add(b);
 
       return this;
     }
 
     public TraceBuilder pMiscellaneousMmuCnS(final BigInteger b) {
-      if (filled.get(92)) {
+      if (filled.get(95)) {
         throw new IllegalStateException("MMU___CN_S already set");
       } else {
-        filled.set(92);
+        filled.set(95);
       }
 
-      addrLoXorAccountAddressLoXorMmuCnSXorHeightNewXorAddressLoXorCallDataSize.add(b);
+      codeHashHiXorByteCodeAddressLoXorMmuCnSXorInstructionXorStorageKeyLoXorFromAddressHi.add(b);
 
       return this;
     }
 
     public TraceBuilder pMiscellaneousMmuCnT(final BigInteger b) {
-      if (filled.get(93)) {
+      if (filled.get(96)) {
         throw new IllegalStateException("MMU___CN_T already set");
       } else {
-        filled.set(93);
+        filled.set(96);
       }
 
-      balanceXorAccountDeploymentNumberXorMmuCnTXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
+      codeHashHiNewXorByteCodeDeploymentNumberXorMmuCnTXorPushValueHiXorValCurrHiXorFromAddressLo
           .add(b);
 
       return this;
     }
 
     public TraceBuilder pMiscellaneousMmuFlag(final Boolean b) {
-      if (filled.get(47)) {
+      if (filled.get(48)) {
         throw new IllegalStateException("MMU___FLAG already set");
       } else {
-        filled.set(47);
+        filled.set(48);
       }
 
-      existsXorMmuFlagXorCreateXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution.add(b);
+      existsNewXorMmuFlagXorCallPrcFailureCallerWillRevertXorCallFlagXorValNextIsOrig.add(b);
 
       return this;
     }
 
     public TraceBuilder pMiscellaneousMmuInst(final BigInteger b) {
-      if (filled.get(94)) {
+      if (filled.get(97)) {
         throw new IllegalStateException("MMU___INST already set");
       } else {
-        filled.set(94);
+        filled.set(97);
       }
 
-      balanceNewXorByteCodeAddressHiXorMmuInstXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo.add(
-          b);
+      codeHashLoXorByteCodeDeploymentStatusXorMmuInstXorPushValueLoXorValCurrLoXorGasLimit.add(b);
 
       return this;
     }
 
     public TraceBuilder pMiscellaneousMmuNum1(final BigInteger b) {
-      if (filled.get(95)) {
+      if (filled.get(98)) {
         throw new IllegalStateException("MMU___NUM_1 already set");
       } else {
-        filled.set(95);
+        filled.set(98);
       }
 
-      codeHashHiXorByteCodeAddressLoXorMmuNum1XorInstructionXorStorageKeyLoXorFromAddressHi.add(b);
+      codeHashLoNewXorCallerAddressHiXorMmuNum1XorStackItemHeight1XorValNextHiXorGasPrice.add(b);
 
       return this;
     }
 
     public TraceBuilder pMiscellaneousMmuNum2(final BigInteger b) {
-      if (filled.get(96)) {
+      if (filled.get(99)) {
         throw new IllegalStateException("MMU___NUM_2 already set");
       } else {
-        filled.set(96);
+        filled.set(99);
       }
 
-      codeHashHiNewXorByteCodeDeploymentNumberXorMmuNum2XorPushValueHiXorValCurrHiXorFromAddressLo
-          .add(b);
+      codeSizeXorCallerAddressLoXorMmuNum2XorStackItemHeight2XorValNextLoXorGasRefundAmount.add(b);
 
       return this;
     }
 
     public TraceBuilder pMiscellaneousMmuRefs(final BigInteger b) {
-      if (filled.get(97)) {
+      if (filled.get(100)) {
         throw new IllegalStateException("MMU___REFS already set");
       } else {
-        filled.set(97);
+        filled.set(100);
       }
 
-      codeHashLoXorByteCodeDeploymentStatusXorMmuRefsXorPushValueLoXorValCurrLoXorGasLimit.add(b);
+      codeSizeNewXorCallerContextNumberXorMmuRefsXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
+          .add(b);
 
       return this;
     }
 
     public TraceBuilder pMiscellaneousMmuSize(final BigInteger b) {
-      if (filled.get(98)) {
+      if (filled.get(101)) {
         throw new IllegalStateException("MMU___SIZE already set");
       } else {
-        filled.set(98);
+        filled.set(101);
       }
 
-      codeHashLoNewXorCallerAddressHiXorMmuSizeXorStackItemHeight1XorValNextHiXorGasPrice.add(b);
+      deploymentNumberInftyXorCallDataOffsetXorMmuSizeXorStackItemHeight4XorValOrigLoXorInitialBalance
+          .add(b);
 
       return this;
     }
 
     public TraceBuilder pMiscellaneousMmuSourceOffsetHi(final BigInteger b) {
-      if (filled.get(99)) {
+      if (filled.get(102)) {
         throw new IllegalStateException("MMU___SOURCE_OFFSET_HI already set");
       } else {
-        filled.set(99);
+        filled.set(102);
       }
 
-      codeSizeXorCallerAddressLoXorMmuSourceOffsetHiXorStackItemHeight2XorValNextLoXorGasRefundAmount
-          .add(b);
+      depNumXorCallDataSizeXorMmuSourceOffsetHiXorStackItemStamp1XorInitCodeSize.add(b);
 
       return this;
     }
 
     public TraceBuilder pMiscellaneousMmuSourceOffsetLo(final BigInteger b) {
-      if (filled.get(100)) {
+      if (filled.get(103)) {
         throw new IllegalStateException("MMU___SOURCE_OFFSET_LO already set");
       } else {
-        filled.set(100);
+        filled.set(103);
       }
 
-      codeSizeNewXorCallerContextNumberXorMmuSourceOffsetLoXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
-          .add(b);
+      depNumNewXorCallStackDepthXorMmuSourceOffsetLoXorStackItemStamp2XorInitGas.add(b);
 
       return this;
     }
 
     public TraceBuilder pMiscellaneousMmuStackValHi(final BigInteger b) {
-      if (filled.get(101)) {
+      if (filled.get(104)) {
         throw new IllegalStateException("MMU___STACK_VAL_HI already set");
       } else {
-        filled.set(101);
+        filled.set(104);
       }
 
-      deploymentNumberInftyXorCallDataOffsetXorMmuStackValHiXorStackItemHeight4XorValOrigLoXorInitialBalance
-          .add(b);
+      nonceXorCallValueXorMmuStackValHiXorStackItemStamp3XorLeftoverGas.add(b);
 
       return this;
     }
 
     public TraceBuilder pMiscellaneousMmuStackValLo(final BigInteger b) {
-      if (filled.get(102)) {
+      if (filled.get(105)) {
         throw new IllegalStateException("MMU___STACK_VAL_LO already set");
       } else {
-        filled.set(102);
+        filled.set(105);
       }
 
-      depNumXorCallDataSizeXorMmuStackValLoXorStackItemStamp1XorInitCodeSize.add(b);
+      nonceNewXorContextNumberXorMmuStackValLoXorStackItemStamp4XorNonce.add(b);
 
       return this;
     }
 
     public TraceBuilder pMiscellaneousMmuTargetOffsetHi(final BigInteger b) {
-      if (filled.get(103)) {
+      if (filled.get(106)) {
         throw new IllegalStateException("MMU___TARGET_OFFSET_HI already set");
       } else {
-        filled.set(103);
+        filled.set(106);
       }
 
-      depNumNewXorCallStackDepthXorMmuTargetOffsetHiXorStackItemStamp2XorInitGas.add(b);
+      rlpaddrDepAddrHiXorIsStaticXorMmuTargetOffsetHiXorStackItemValueHi1XorToAddressHi.add(b);
 
       return this;
     }
 
     public TraceBuilder pMiscellaneousMmuTargetOffsetLo(final BigInteger b) {
-      if (filled.get(104)) {
+      if (filled.get(107)) {
         throw new IllegalStateException("MMU___TARGET_OFFSET_LO already set");
       } else {
-        filled.set(104);
+        filled.set(107);
       }
 
-      nonceXorCallValueXorMmuTargetOffsetLoXorStackItemStamp3XorLeftoverGas.add(b);
+      rlpaddrDepAddrLoXorReturnerContextNumberXorMmuTargetOffsetLoXorStackItemValueHi2XorToAddressLo
+          .add(b);
 
       return this;
     }
 
     public TraceBuilder pMiscellaneousMxpDeploys(final Boolean b) {
-      if (filled.get(48)) {
+      if (filled.get(49)) {
         throw new IllegalStateException("MXP___DEPLOYS already set");
       } else {
-        filled.set(48);
+        filled.set(49);
       }
 
-      existsNewXorMxpDeploysXorEcaddXorCallFlagXorValNextIsOrig.add(b);
+      hasCodeXorMxpDeploysXorCallPrcFailureCallerWontRevertXorConFlagXorValNextIsZero.add(b);
 
       return this;
     }
 
     public TraceBuilder pMiscellaneousMxpFlag(final Boolean b) {
-      if (filled.get(49)) {
+      if (filled.get(50)) {
         throw new IllegalStateException("MXP___FLAG already set");
       } else {
-        filled.set(49);
+        filled.set(50);
       }
 
-      hasCodeXorMxpFlagXorEcmulXorConFlagXorValNextIsZero.add(b);
+      hasCodeNewXorMxpFlagXorCallPrcSuccessCallerWillRevertXorCopyFlagXorValOrigIsZero.add(b);
 
       return this;
     }
 
     public TraceBuilder pMiscellaneousMxpGasMxp(final BigInteger b) {
-      if (filled.get(105)) {
+      if (filled.get(108)) {
         throw new IllegalStateException("MXP___GAS_MXP already set");
       } else {
-        filled.set(105);
+        filled.set(108);
       }
 
-      nonceNewXorContextNumberXorMxpGasMxpXorStackItemStamp4XorNonce.add(b);
+      rlpaddrKecHiXorReturnerIsPrecompileXorMxpGasMxpXorStackItemValueHi3XorValue.add(b);
 
       return this;
     }
 
     public TraceBuilder pMiscellaneousMxpInst(final BigInteger b) {
-      if (filled.get(106)) {
+      if (filled.get(109)) {
         throw new IllegalStateException("MXP___INST already set");
       } else {
-        filled.set(106);
+        filled.set(109);
       }
 
-      rlpaddrDepAddrHiXorIsStaticXorMxpInstXorStackItemValueHi1XorToAddressHi.add(b);
+      rlpaddrKecLoXorReturnAtOffsetXorMxpInstXorStackItemValueHi4.add(b);
 
       return this;
     }
 
     public TraceBuilder pMiscellaneousMxpMxpx(final Boolean b) {
-      if (filled.get(50)) {
+      if (filled.get(51)) {
         throw new IllegalStateException("MXP___MXPX already set");
       } else {
-        filled.set(50);
+        filled.set(51);
       }
 
-      hasCodeNewXorMxpMxpxXorEcpairingXorCopyFlagXorValOrigIsZero.add(b);
+      isBlake2FXorMxpMxpxXorCallPrcSuccessCallerWontRevertXorCreateFlagXorWarm.add(b);
 
       return this;
     }
 
     public TraceBuilder pMiscellaneousMxpOffset1Hi(final BigInteger b) {
-      if (filled.get(107)) {
+      if (filled.get(110)) {
         throw new IllegalStateException("MXP___OFFSET_1_HI already set");
       } else {
-        filled.set(107);
+        filled.set(110);
       }
 
-      rlpaddrDepAddrLoXorReturnerContextNumberXorMxpOffset1HiXorStackItemValueHi2XorToAddressLo.add(
-          b);
+      rlpaddrRecipeXorReturnAtSizeXorMxpOffset1HiXorStackItemValueLo1.add(b);
 
       return this;
     }
 
     public TraceBuilder pMiscellaneousMxpOffset1Lo(final BigInteger b) {
-      if (filled.get(108)) {
+      if (filled.get(111)) {
         throw new IllegalStateException("MXP___OFFSET_1_LO already set");
       } else {
-        filled.set(108);
+        filled.set(111);
       }
 
-      rlpaddrKecHiXorReturnerIsPrecompileXorMxpOffset1LoXorStackItemValueHi3XorValue.add(b);
+      rlpaddrSaltHiXorReturnDataOffsetXorMxpOffset1LoXorStackItemValueLo2.add(b);
 
       return this;
     }
 
     public TraceBuilder pMiscellaneousMxpOffset2Hi(final BigInteger b) {
-      if (filled.get(109)) {
+      if (filled.get(112)) {
         throw new IllegalStateException("MXP___OFFSET_2_HI already set");
       } else {
-        filled.set(109);
+        filled.set(112);
       }
 
-      rlpaddrKecLoXorReturnAtOffsetXorMxpOffset2HiXorStackItemValueHi4.add(b);
+      rlpaddrSaltLoXorReturnDataSizeXorMxpOffset2HiXorStackItemValueLo3.add(b);
 
       return this;
     }
 
     public TraceBuilder pMiscellaneousMxpOffset2Lo(final BigInteger b) {
-      if (filled.get(110)) {
+      if (filled.get(113)) {
         throw new IllegalStateException("MXP___OFFSET_2_LO already set");
       } else {
-        filled.set(110);
+        filled.set(113);
       }
 
-      rlpaddrRecipeXorReturnAtSizeXorMxpOffset2LoXorStackItemValueLo1.add(b);
+      trmRawAddrHiXorMxpOffset2LoXorStackItemValueLo4.add(b);
 
       return this;
     }
 
     public TraceBuilder pMiscellaneousMxpSize1Hi(final BigInteger b) {
-      if (filled.get(111)) {
+      if (filled.get(114)) {
         throw new IllegalStateException("MXP___SIZE_1_HI already set");
       } else {
-        filled.set(111);
+        filled.set(114);
       }
 
-      rlpaddrSaltHiXorReturnDataOffsetXorMxpSize1HiXorStackItemValueLo2.add(b);
+      mxpSize1HiXorStaticGas.add(b);
 
       return this;
     }
 
     public TraceBuilder pMiscellaneousMxpSize1Lo(final BigInteger b) {
-      if (filled.get(112)) {
+      if (filled.get(115)) {
         throw new IllegalStateException("MXP___SIZE_1_LO already set");
       } else {
-        filled.set(112);
+        filled.set(115);
       }
 
-      rlpaddrSaltLoXorReturnDataSizeXorMxpSize1LoXorStackItemValueLo3.add(b);
+      mxpSize1Lo.add(b);
 
       return this;
     }
 
     public TraceBuilder pMiscellaneousMxpSize2Hi(final BigInteger b) {
-      if (filled.get(113)) {
+      if (filled.get(116)) {
         throw new IllegalStateException("MXP___SIZE_2_HI already set");
       } else {
-        filled.set(113);
+        filled.set(116);
       }
 
-      trmRawAddrHiXorMxpSize2HiXorStackItemValueLo4.add(b);
+      mxpSize2Hi.add(b);
 
       return this;
     }
 
     public TraceBuilder pMiscellaneousMxpSize2Lo(final BigInteger b) {
-      if (filled.get(114)) {
+      if (filled.get(117)) {
         throw new IllegalStateException("MXP___SIZE_2_LO already set");
       } else {
-        filled.set(114);
+        filled.set(117);
       }
 
-      mxpSize2LoXorStaticGas.add(b);
+      mxpSize2Lo.add(b);
 
       return this;
     }
 
     public TraceBuilder pMiscellaneousMxpWords(final BigInteger b) {
-      if (filled.get(115)) {
+      if (filled.get(118)) {
         throw new IllegalStateException("MXP___WORDS already set");
       } else {
-        filled.set(115);
+        filled.set(118);
       }
 
       mxpWords.add(b);
@@ -2280,46 +2378,46 @@ public record Trace(
     }
 
     public TraceBuilder pMiscellaneousOobEvent1(final Boolean b) {
-      if (filled.get(51)) {
+      if (filled.get(52)) {
         throw new IllegalStateException("OOB___EVENT_1 already set");
       } else {
-        filled.set(51);
+        filled.set(52);
       }
 
-      isBlake2FXorOobEvent1XorEcrecoverXorCreateFlagXorWarm.add(b);
+      isEcaddXorOobEvent1XorCallSmcFailureCallerWillRevertXorDecodedFlag1XorWarmNew.add(b);
 
       return this;
     }
 
     public TraceBuilder pMiscellaneousOobEvent2(final Boolean b) {
-      if (filled.get(52)) {
+      if (filled.get(53)) {
         throw new IllegalStateException("OOB___EVENT_2 already set");
       } else {
-        filled.set(52);
+        filled.set(53);
       }
 
-      isEcaddXorOobEvent2XorIdentityXorDecodedFlag1XorWarmNew.add(b);
+      isEcmulXorOobEvent2XorCallSmcFailureCallerWontRevertXorDecodedFlag2.add(b);
 
       return this;
     }
 
     public TraceBuilder pMiscellaneousOobFlag(final Boolean b) {
-      if (filled.get(53)) {
+      if (filled.get(54)) {
         throw new IllegalStateException("OOB___FLAG already set");
       } else {
-        filled.set(53);
+        filled.set(54);
       }
 
-      isEcmulXorOobFlagXorModexpXorDecodedFlag2.add(b);
+      isEcpairingXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecodedFlag3.add(b);
 
       return this;
     }
 
     public TraceBuilder pMiscellaneousOobInst(final BigInteger b) {
-      if (filled.get(116)) {
+      if (filled.get(119)) {
         throw new IllegalStateException("OOB___INST already set");
       } else {
-        filled.set(116);
+        filled.set(119);
       }
 
       oobInst.add(b);
@@ -2328,10 +2426,10 @@ public record Trace(
     }
 
     public TraceBuilder pMiscellaneousOobOutgoingData1(final BigInteger b) {
-      if (filled.get(117)) {
+      if (filled.get(120)) {
         throw new IllegalStateException("OOB___OUTGOING_DATA_1 already set");
       } else {
-        filled.set(117);
+        filled.set(120);
       }
 
       oobOutgoingData1.add(b);
@@ -2340,10 +2438,10 @@ public record Trace(
     }
 
     public TraceBuilder pMiscellaneousOobOutgoingData2(final BigInteger b) {
-      if (filled.get(118)) {
+      if (filled.get(121)) {
         throw new IllegalStateException("OOB___OUTGOING_DATA_2 already set");
       } else {
-        filled.set(118);
+        filled.set(121);
       }
 
       oobOutgoingData2.add(b);
@@ -2352,10 +2450,10 @@ public record Trace(
     }
 
     public TraceBuilder pMiscellaneousOobOutgoingData3(final BigInteger b) {
-      if (filled.get(119)) {
+      if (filled.get(122)) {
         throw new IllegalStateException("OOB___OUTGOING_DATA_3 already set");
       } else {
-        filled.set(119);
+        filled.set(122);
       }
 
       oobOutgoingData3.add(b);
@@ -2364,10 +2462,10 @@ public record Trace(
     }
 
     public TraceBuilder pMiscellaneousOobOutgoingData4(final BigInteger b) {
-      if (filled.get(120)) {
+      if (filled.get(123)) {
         throw new IllegalStateException("OOB___OUTGOING_DATA_4 already set");
       } else {
-        filled.set(120);
+        filled.set(123);
       }
 
       oobOutgoingData4.add(b);
@@ -2376,10 +2474,10 @@ public record Trace(
     }
 
     public TraceBuilder pMiscellaneousOobOutgoingData5(final BigInteger b) {
-      if (filled.get(121)) {
+      if (filled.get(124)) {
         throw new IllegalStateException("OOB___OUTGOING_DATA_5 already set");
       } else {
-        filled.set(121);
+        filled.set(124);
       }
 
       oobOutgoingData5.add(b);
@@ -2388,10 +2486,10 @@ public record Trace(
     }
 
     public TraceBuilder pMiscellaneousOobOutgoingData6(final BigInteger b) {
-      if (filled.get(122)) {
+      if (filled.get(125)) {
         throw new IllegalStateException("OOB___OUTGOING_DATA_6 already set");
       } else {
-        filled.set(122);
+        filled.set(125);
       }
 
       oobOutgoingData6.add(b);
@@ -2400,10 +2498,10 @@ public record Trace(
     }
 
     public TraceBuilder pMiscellaneousPrecinfoAddrLo(final BigInteger b) {
-      if (filled.get(123)) {
+      if (filled.get(126)) {
         throw new IllegalStateException("PRECINFO___ADDR_LO already set");
       } else {
-        filled.set(123);
+        filled.set(126);
       }
 
       precinfoAddrLo.add(b);
@@ -2412,10 +2510,10 @@ public record Trace(
     }
 
     public TraceBuilder pMiscellaneousPrecinfoCds(final BigInteger b) {
-      if (filled.get(124)) {
+      if (filled.get(127)) {
         throw new IllegalStateException("PRECINFO___CDS already set");
       } else {
-        filled.set(124);
+        filled.set(127);
       }
 
       precinfoCds.add(b);
@@ -2424,10 +2522,10 @@ public record Trace(
     }
 
     public TraceBuilder pMiscellaneousPrecinfoExecCost(final BigInteger b) {
-      if (filled.get(125)) {
+      if (filled.get(128)) {
         throw new IllegalStateException("PRECINFO___EXEC_COST already set");
       } else {
-        filled.set(125);
+        filled.set(128);
       }
 
       precinfoExecCost.add(b);
@@ -2436,22 +2534,22 @@ public record Trace(
     }
 
     public TraceBuilder pMiscellaneousPrecinfoFlag(final Boolean b) {
-      if (filled.get(54)) {
+      if (filled.get(55)) {
         throw new IllegalStateException("PRECINFO___FLAG already set");
       } else {
-        filled.set(54);
+        filled.set(55);
       }
 
-      isEcpairingXorPrecinfoFlagXorRipemDsub160XorDecodedFlag3.add(b);
+      isEcrecoverXorPrecinfoFlagXorCallSmcSuccessCallerWontRevertXorDecodedFlag4.add(b);
 
       return this;
     }
 
     public TraceBuilder pMiscellaneousPrecinfoProvidesReturnData(final BigInteger b) {
-      if (filled.get(126)) {
+      if (filled.get(129)) {
         throw new IllegalStateException("PRECINFO___PROVIDES_RETURN_DATA already set");
       } else {
-        filled.set(126);
+        filled.set(129);
       }
 
       precinfoProvidesReturnData.add(b);
@@ -2460,10 +2558,10 @@ public record Trace(
     }
 
     public TraceBuilder pMiscellaneousPrecinfoRds(final BigInteger b) {
-      if (filled.get(127)) {
+      if (filled.get(130)) {
         throw new IllegalStateException("PRECINFO___RDS already set");
       } else {
-        filled.set(127);
+        filled.set(130);
       }
 
       precinfoRds.add(b);
@@ -2472,10 +2570,10 @@ public record Trace(
     }
 
     public TraceBuilder pMiscellaneousPrecinfoSuccess(final BigInteger b) {
-      if (filled.get(128)) {
+      if (filled.get(131)) {
         throw new IllegalStateException("PRECINFO___SUCCESS already set");
       } else {
-        filled.set(128);
+        filled.set(131);
       }
 
       precinfoSuccess.add(b);
@@ -2484,10 +2582,10 @@ public record Trace(
     }
 
     public TraceBuilder pMiscellaneousPrecinfoTouchesRam(final BigInteger b) {
-      if (filled.get(129)) {
+      if (filled.get(132)) {
         throw new IllegalStateException("PRECINFO___TOUCHES_RAM already set");
       } else {
-        filled.set(129);
+        filled.set(132);
       }
 
       precinfoTouchesRam.add(b);
@@ -2496,34 +2594,34 @@ public record Trace(
     }
 
     public TraceBuilder pMiscellaneousStpExists(final Boolean b) {
-      if (filled.get(55)) {
+      if (filled.get(56)) {
         throw new IllegalStateException("STP___EXISTS already set");
       } else {
-        filled.set(55);
+        filled.set(56);
       }
 
-      isEcrecoverXorStpExistsXorScn1XorDecodedFlag4.add(b);
+      isIdentityXorStpExistsXorCodedepositXorDupFlag.add(b);
 
       return this;
     }
 
     public TraceBuilder pMiscellaneousStpFlag(final Boolean b) {
-      if (filled.get(56)) {
+      if (filled.get(57)) {
         throw new IllegalStateException("STP___FLAG already set");
       } else {
-        filled.set(56);
+        filled.set(57);
       }
 
-      isIdentityXorStpFlagXorScn10XorDupFlag.add(b);
+      isModexpXorStpFlagXorCodedepositInvalidCodePrefixXorExtFlag.add(b);
 
       return this;
     }
 
     public TraceBuilder pMiscellaneousStpGasHi(final BigInteger b) {
-      if (filled.get(130)) {
+      if (filled.get(133)) {
         throw new IllegalStateException("STP___GAS_HI already set");
       } else {
-        filled.set(130);
+        filled.set(133);
       }
 
       stpGasHi.add(b);
@@ -2532,10 +2630,10 @@ public record Trace(
     }
 
     public TraceBuilder pMiscellaneousStpGasLo(final BigInteger b) {
-      if (filled.get(131)) {
+      if (filled.get(134)) {
         throw new IllegalStateException("STP___GAS_LO already set");
       } else {
-        filled.set(131);
+        filled.set(134);
       }
 
       stpGasLo.add(b);
@@ -2544,10 +2642,10 @@ public record Trace(
     }
 
     public TraceBuilder pMiscellaneousStpGasOopkt(final BigInteger b) {
-      if (filled.get(132)) {
+      if (filled.get(135)) {
         throw new IllegalStateException("STP___GAS_OOPKT already set");
       } else {
-        filled.set(132);
+        filled.set(135);
       }
 
       stpGasOopkt.add(b);
@@ -2556,10 +2654,10 @@ public record Trace(
     }
 
     public TraceBuilder pMiscellaneousStpGasStpd(final BigInteger b) {
-      if (filled.get(133)) {
+      if (filled.get(136)) {
         throw new IllegalStateException("STP___GAS_STPD already set");
       } else {
-        filled.set(133);
+        filled.set(136);
       }
 
       stpGasStpd.add(b);
@@ -2568,10 +2666,10 @@ public record Trace(
     }
 
     public TraceBuilder pMiscellaneousStpInst(final BigInteger b) {
-      if (filled.get(134)) {
+      if (filled.get(137)) {
         throw new IllegalStateException("STP___INST already set");
       } else {
-        filled.set(134);
+        filled.set(137);
       }
 
       stpInst.add(b);
@@ -2580,22 +2678,22 @@ public record Trace(
     }
 
     public TraceBuilder pMiscellaneousStpOogx(final Boolean b) {
-      if (filled.get(57)) {
+      if (filled.get(58)) {
         throw new IllegalStateException("STP___OOGX already set");
       } else {
-        filled.set(57);
+        filled.set(58);
       }
 
-      isModexpXorStpOogxXorScn11XorExtFlag.add(b);
+      isPrecompileXorStpOogxXorCodedepositValidCodePrefixXorHaltFlag.add(b);
 
       return this;
     }
 
     public TraceBuilder pMiscellaneousStpValHi(final BigInteger b) {
-      if (filled.get(135)) {
+      if (filled.get(138)) {
         throw new IllegalStateException("STP___VAL_HI already set");
       } else {
-        filled.set(135);
+        filled.set(138);
       }
 
       stpValHi.add(b);
@@ -2604,10 +2702,10 @@ public record Trace(
     }
 
     public TraceBuilder pMiscellaneousStpValLo(final BigInteger b) {
-      if (filled.get(136)) {
+      if (filled.get(139)) {
         throw new IllegalStateException("STP___VAL_LO already set");
       } else {
-        filled.set(136);
+        filled.set(139);
       }
 
       stpValLo.add(b);
@@ -2616,13 +2714,13 @@ public record Trace(
     }
 
     public TraceBuilder pMiscellaneousStpWarm(final Boolean b) {
-      if (filled.get(58)) {
+      if (filled.get(59)) {
         throw new IllegalStateException("STP___WARM already set");
       } else {
-        filled.set(58);
+        filled.set(59);
       }
 
-      isPrecompileXorStpWarmXorScn12XorHaltFlag.add(b);
+      isRipemDsub160XorStpWarmXorEcaddXorInvalidFlag.add(b);
 
       return this;
     }
@@ -2640,290 +2738,376 @@ public record Trace(
       return this;
     }
 
-    public TraceBuilder pScenarioCall(final Boolean b) {
+    public TraceBuilder pScenarioCallAbort(final Boolean b) {
       if (filled.get(45)) {
-        throw new IllegalStateException("CALL already set");
+        throw new IllegalStateException("CALL_ABORT already set");
       } else {
         filled.set(45);
       }
 
-      depStatusXorCcsrFlagXorCallXorAddFlagXorValCurrIsOrigXorIsEip1559.add(b);
+      depStatusXorCcsrFlagXorCallAbortXorAddFlagXorValCurrIsOrigXorIsEip1559.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder pScenarioCallEoaSuccessCallerWillRevert(final Boolean b) {
+      if (filled.get(46)) {
+        throw new IllegalStateException("CALL_EOA_SUCCESS_CALLER_WILL_REVERT already set");
+      } else {
+        filled.set(46);
+      }
+
+      depStatusNewXorExpFlagXorCallEoaSuccessCallerWillRevertXorBinFlagXorValCurrIsZeroXorStatusCode
+          .add(b);
+
+      return this;
+    }
+
+    public TraceBuilder pScenarioCallEoaSuccessCallerWontRevert(final Boolean b) {
+      if (filled.get(47)) {
+        throw new IllegalStateException("CALL_EOA_SUCCESS_CALLER_WONT_REVERT already set");
+      } else {
+        filled.set(47);
+      }
+
+      existsXorFcondFlagXorCallEoaSuccessCallerWontRevertXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution
+          .add(b);
+
+      return this;
+    }
+
+    public TraceBuilder pScenarioCallPrcFailureCallerWillRevert(final Boolean b) {
+      if (filled.get(48)) {
+        throw new IllegalStateException("CALL_PRC_FAILURE_CALLER_WILL_REVERT already set");
+      } else {
+        filled.set(48);
+      }
+
+      existsNewXorMmuFlagXorCallPrcFailureCallerWillRevertXorCallFlagXorValNextIsOrig.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder pScenarioCallPrcFailureCallerWontRevert(final Boolean b) {
+      if (filled.get(49)) {
+        throw new IllegalStateException("CALL_PRC_FAILURE_CALLER_WONT_REVERT already set");
+      } else {
+        filled.set(49);
+      }
+
+      hasCodeXorMxpDeploysXorCallPrcFailureCallerWontRevertXorConFlagXorValNextIsZero.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder pScenarioCallPrcSuccessCallerWillRevert(final Boolean b) {
+      if (filled.get(50)) {
+        throw new IllegalStateException("CALL_PRC_SUCCESS_CALLER_WILL_REVERT already set");
+      } else {
+        filled.set(50);
+      }
+
+      hasCodeNewXorMxpFlagXorCallPrcSuccessCallerWillRevertXorCopyFlagXorValOrigIsZero.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder pScenarioCallPrcSuccessCallerWontRevert(final Boolean b) {
+      if (filled.get(51)) {
+        throw new IllegalStateException("CALL_PRC_SUCCESS_CALLER_WONT_REVERT already set");
+      } else {
+        filled.set(51);
+      }
+
+      isBlake2FXorMxpMxpxXorCallPrcSuccessCallerWontRevertXorCreateFlagXorWarm.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder pScenarioCallSmcFailureCallerWillRevert(final Boolean b) {
+      if (filled.get(52)) {
+        throw new IllegalStateException("CALL_SMC_FAILURE_CALLER_WILL_REVERT already set");
+      } else {
+        filled.set(52);
+      }
+
+      isEcaddXorOobEvent1XorCallSmcFailureCallerWillRevertXorDecodedFlag1XorWarmNew.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder pScenarioCallSmcFailureCallerWontRevert(final Boolean b) {
+      if (filled.get(53)) {
+        throw new IllegalStateException("CALL_SMC_FAILURE_CALLER_WONT_REVERT already set");
+      } else {
+        filled.set(53);
+      }
+
+      isEcmulXorOobEvent2XorCallSmcFailureCallerWontRevertXorDecodedFlag2.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder pScenarioCallSmcSuccessCallerWillRevert(final Boolean b) {
+      if (filled.get(54)) {
+        throw new IllegalStateException("CALL_SMC_SUCCESS_CALLER_WILL_REVERT already set");
+      } else {
+        filled.set(54);
+      }
+
+      isEcpairingXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecodedFlag3.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder pScenarioCallSmcSuccessCallerWontRevert(final Boolean b) {
+      if (filled.get(55)) {
+        throw new IllegalStateException("CALL_SMC_SUCCESS_CALLER_WONT_REVERT already set");
+      } else {
+        filled.set(55);
+      }
+
+      isEcrecoverXorPrecinfoFlagXorCallSmcSuccessCallerWontRevertXorDecodedFlag4.add(b);
 
       return this;
     }
 
     public TraceBuilder pScenarioCodedeposit(final Boolean b) {
-      if (filled.get(46)) {
+      if (filled.get(56)) {
         throw new IllegalStateException("CODEDEPOSIT already set");
       } else {
-        filled.set(46);
+        filled.set(56);
       }
 
-      depStatusNewXorFcondFlagXorCodedepositXorBinFlagXorValCurrIsZeroXorStatusCode.add(b);
+      isIdentityXorStpExistsXorCodedepositXorDupFlag.add(b);
 
       return this;
     }
 
-    public TraceBuilder pScenarioCreate(final Boolean b) {
-      if (filled.get(47)) {
-        throw new IllegalStateException("CREATE already set");
+    public TraceBuilder pScenarioCodedepositInvalidCodePrefix(final Boolean b) {
+      if (filled.get(57)) {
+        throw new IllegalStateException("CODEDEPOSIT_INVALID_CODE_PREFIX already set");
       } else {
-        filled.set(47);
+        filled.set(57);
       }
 
-      existsXorMmuFlagXorCreateXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution.add(b);
+      isModexpXorStpFlagXorCodedepositInvalidCodePrefixXorExtFlag.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder pScenarioCodedepositValidCodePrefix(final Boolean b) {
+      if (filled.get(58)) {
+        throw new IllegalStateException("CODEDEPOSIT_VALID_CODE_PREFIX already set");
+      } else {
+        filled.set(58);
+      }
+
+      isPrecompileXorStpOogxXorCodedepositValidCodePrefixXorHaltFlag.add(b);
 
       return this;
     }
 
     public TraceBuilder pScenarioEcadd(final Boolean b) {
-      if (filled.get(48)) {
+      if (filled.get(59)) {
         throw new IllegalStateException("ECADD already set");
       } else {
-        filled.set(48);
+        filled.set(59);
       }
 
-      existsNewXorMxpDeploysXorEcaddXorCallFlagXorValNextIsOrig.add(b);
+      isRipemDsub160XorStpWarmXorEcaddXorInvalidFlag.add(b);
 
       return this;
     }
 
     public TraceBuilder pScenarioEcmul(final Boolean b) {
-      if (filled.get(49)) {
+      if (filled.get(60)) {
         throw new IllegalStateException("ECMUL already set");
       } else {
-        filled.set(49);
+        filled.set(60);
       }
 
-      hasCodeXorMxpFlagXorEcmulXorConFlagXorValNextIsZero.add(b);
+      isSha2Sub256XorEcmulXorInvprex.add(b);
 
       return this;
     }
 
     public TraceBuilder pScenarioEcpairing(final Boolean b) {
-      if (filled.get(50)) {
+      if (filled.get(61)) {
         throw new IllegalStateException("ECPAIRING already set");
       } else {
-        filled.set(50);
+        filled.set(61);
       }
 
-      hasCodeNewXorMxpMxpxXorEcpairingXorCopyFlagXorValOrigIsZero.add(b);
+      rlpaddrFlagXorEcpairingXorJumpx.add(b);
 
       return this;
     }
 
     public TraceBuilder pScenarioEcrecover(final Boolean b) {
-      if (filled.get(51)) {
+      if (filled.get(62)) {
         throw new IllegalStateException("ECRECOVER already set");
       } else {
-        filled.set(51);
+        filled.set(62);
       }
 
-      isBlake2FXorOobEvent1XorEcrecoverXorCreateFlagXorWarm.add(b);
+      trmFlagXorEcrecoverXorJumpFlag.add(b);
 
       return this;
     }
 
     public TraceBuilder pScenarioIdentity(final Boolean b) {
-      if (filled.get(52)) {
+      if (filled.get(63)) {
         throw new IllegalStateException("IDENTITY already set");
       } else {
-        filled.set(52);
+        filled.set(63);
       }
 
-      isEcaddXorOobEvent2XorIdentityXorDecodedFlag1XorWarmNew.add(b);
+      warmXorIdentityXorKecFlag.add(b);
 
       return this;
     }
 
     public TraceBuilder pScenarioModexp(final Boolean b) {
-      if (filled.get(53)) {
+      if (filled.get(64)) {
         throw new IllegalStateException("MODEXP already set");
       } else {
-        filled.set(53);
+        filled.set(64);
       }
 
-      isEcmulXorOobFlagXorModexpXorDecodedFlag2.add(b);
+      warmNewXorModexpXorLogFlag.add(b);
 
       return this;
     }
 
     public TraceBuilder pScenarioRipemd160(final Boolean b) {
-      if (filled.get(54)) {
-        throw new IllegalStateException("RIPEMD-160 already set");
-      } else {
-        filled.set(54);
-      }
-
-      isEcpairingXorPrecinfoFlagXorRipemDsub160XorDecodedFlag3.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder pScenarioScn1(final Boolean b) {
-      if (filled.get(55)) {
-        throw new IllegalStateException("SCN_1 already set");
-      } else {
-        filled.set(55);
-      }
-
-      isEcrecoverXorStpExistsXorScn1XorDecodedFlag4.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder pScenarioScn10(final Boolean b) {
-      if (filled.get(56)) {
-        throw new IllegalStateException("SCN_10 already set");
-      } else {
-        filled.set(56);
-      }
-
-      isIdentityXorStpFlagXorScn10XorDupFlag.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder pScenarioScn11(final Boolean b) {
-      if (filled.get(57)) {
-        throw new IllegalStateException("SCN_11 already set");
-      } else {
-        filled.set(57);
-      }
-
-      isModexpXorStpOogxXorScn11XorExtFlag.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder pScenarioScn12(final Boolean b) {
-      if (filled.get(58)) {
-        throw new IllegalStateException("SCN_12 already set");
-      } else {
-        filled.set(58);
-      }
-
-      isPrecompileXorStpWarmXorScn12XorHaltFlag.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder pScenarioScn2(final Boolean b) {
-      if (filled.get(59)) {
-        throw new IllegalStateException("SCN_2 already set");
-      } else {
-        filled.set(59);
-      }
-
-      isRipemDsub160XorScn2XorInvalidFlag.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder pScenarioScn3(final Boolean b) {
-      if (filled.get(60)) {
-        throw new IllegalStateException("SCN_3 already set");
-      } else {
-        filled.set(60);
-      }
-
-      isSha2Sub256XorScn3XorInvprex.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder pScenarioScn4(final Boolean b) {
-      if (filled.get(61)) {
-        throw new IllegalStateException("SCN_4 already set");
-      } else {
-        filled.set(61);
-      }
-
-      rlpaddrFlagXorScn4XorJumpx.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder pScenarioScn5(final Boolean b) {
-      if (filled.get(62)) {
-        throw new IllegalStateException("SCN_5 already set");
-      } else {
-        filled.set(62);
-      }
-
-      trmFlagXorScn5XorJumpFlag.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder pScenarioScn6(final Boolean b) {
-      if (filled.get(63)) {
-        throw new IllegalStateException("SCN_6 already set");
-      } else {
-        filled.set(63);
-      }
-
-      warmXorScn6XorKecFlag.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder pScenarioScn7(final Boolean b) {
-      if (filled.get(64)) {
-        throw new IllegalStateException("SCN_7 already set");
-      } else {
-        filled.set(64);
-      }
-
-      warmNewXorScn7XorLogFlag.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder pScenarioScn8(final Boolean b) {
       if (filled.get(65)) {
-        throw new IllegalStateException("SCN_8 already set");
+        throw new IllegalStateException("RIPEMD-160 already set");
       } else {
         filled.set(65);
       }
 
-      scn8XorMaxcsx.add(b);
+      ripemDsub160XorMaxcsx.add(b);
 
       return this;
     }
 
-    public TraceBuilder pScenarioScn9(final Boolean b) {
+    public TraceBuilder pScenarioScnFailure1(final Boolean b) {
       if (filled.get(66)) {
-        throw new IllegalStateException("SCN_9 already set");
+        throw new IllegalStateException("SCN_FAILURE_1 already set");
       } else {
         filled.set(66);
       }
 
-      scn9XorModFlag.add(b);
+      scnFailure1XorModFlag.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder pScenarioScnFailure2(final Boolean b) {
+      if (filled.get(67)) {
+        throw new IllegalStateException("SCN_FAILURE_2 already set");
+      } else {
+        filled.set(67);
+      }
+
+      scnFailure2XorMulFlag.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder pScenarioScnFailure3(final Boolean b) {
+      if (filled.get(68)) {
+        throw new IllegalStateException("SCN_FAILURE_3 already set");
+      } else {
+        filled.set(68);
+      }
+
+      scnFailure3XorMxpx.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder pScenarioScnFailure4(final Boolean b) {
+      if (filled.get(69)) {
+        throw new IllegalStateException("SCN_FAILURE_4 already set");
+      } else {
+        filled.set(69);
+      }
+
+      scnFailure4XorMxpFlag.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder pScenarioScnSuccess1(final Boolean b) {
+      if (filled.get(70)) {
+        throw new IllegalStateException("SCN_SUCCESS_1 already set");
+      } else {
+        filled.set(70);
+      }
+
+      scnSuccess1XorOobFlag.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder pScenarioScnSuccess2(final Boolean b) {
+      if (filled.get(71)) {
+        throw new IllegalStateException("SCN_SUCCESS_2 already set");
+      } else {
+        filled.set(71);
+      }
+
+      scnSuccess2XorOogx.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder pScenarioScnSuccess3(final Boolean b) {
+      if (filled.get(72)) {
+        throw new IllegalStateException("SCN_SUCCESS_3 already set");
+      } else {
+        filled.set(72);
+      }
+
+      scnSuccess3XorOpcx.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder pScenarioScnSuccess4(final Boolean b) {
+      if (filled.get(73)) {
+        throw new IllegalStateException("SCN_SUCCESS_4 already set");
+      } else {
+        filled.set(73);
+      }
+
+      scnSuccess4XorPushpopFlag.add(b);
 
       return this;
     }
 
     public TraceBuilder pScenarioSelfdestruct(final Boolean b) {
-      if (filled.get(67)) {
+      if (filled.get(74)) {
         throw new IllegalStateException("SELFDESTRUCT already set");
       } else {
-        filled.set(67);
+        filled.set(74);
       }
 
-      selfdestructXorMulFlag.add(b);
+      selfdestructXorRdcx.add(b);
 
       return this;
     }
 
     public TraceBuilder pScenarioSha2256(final Boolean b) {
-      if (filled.get(68)) {
+      if (filled.get(75)) {
         throw new IllegalStateException("SHA2-256 already set");
       } else {
-        filled.set(68);
+        filled.set(75);
       }
 
-      sha2Sub256XorMxpx.add(b);
+      sha2Sub256XorShfFlag.add(b);
 
       return this;
     }
@@ -2948,7 +3132,7 @@ public record Trace(
         filled.set(45);
       }
 
-      depStatusXorCcsrFlagXorCallXorAddFlagXorValCurrIsOrigXorIsEip1559.add(b);
+      depStatusXorCcsrFlagXorCallAbortXorAddFlagXorValCurrIsOrigXorIsEip1559.add(b);
 
       return this;
     }
@@ -2960,7 +3144,8 @@ public record Trace(
         filled.set(46);
       }
 
-      depStatusNewXorFcondFlagXorCodedepositXorBinFlagXorValCurrIsZeroXorStatusCode.add(b);
+      depStatusNewXorExpFlagXorCallEoaSuccessCallerWillRevertXorBinFlagXorValCurrIsZeroXorStatusCode
+          .add(b);
 
       return this;
     }
@@ -2972,7 +3157,8 @@ public record Trace(
         filled.set(47);
       }
 
-      existsXorMmuFlagXorCreateXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution.add(b);
+      existsXorFcondFlagXorCallEoaSuccessCallerWontRevertXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution
+          .add(b);
 
       return this;
     }
@@ -2984,7 +3170,7 @@ public record Trace(
         filled.set(48);
       }
 
-      existsNewXorMxpDeploysXorEcaddXorCallFlagXorValNextIsOrig.add(b);
+      existsNewXorMmuFlagXorCallPrcFailureCallerWillRevertXorCallFlagXorValNextIsOrig.add(b);
 
       return this;
     }
@@ -2996,7 +3182,7 @@ public record Trace(
         filled.set(49);
       }
 
-      hasCodeXorMxpFlagXorEcmulXorConFlagXorValNextIsZero.add(b);
+      hasCodeXorMxpDeploysXorCallPrcFailureCallerWontRevertXorConFlagXorValNextIsZero.add(b);
 
       return this;
     }
@@ -3008,7 +3194,7 @@ public record Trace(
         filled.set(50);
       }
 
-      hasCodeNewXorMxpMxpxXorEcpairingXorCopyFlagXorValOrigIsZero.add(b);
+      hasCodeNewXorMxpFlagXorCallPrcSuccessCallerWillRevertXorCopyFlagXorValOrigIsZero.add(b);
 
       return this;
     }
@@ -3020,7 +3206,7 @@ public record Trace(
         filled.set(51);
       }
 
-      isBlake2FXorOobEvent1XorEcrecoverXorCreateFlagXorWarm.add(b);
+      isBlake2FXorMxpMxpxXorCallPrcSuccessCallerWontRevertXorCreateFlagXorWarm.add(b);
 
       return this;
     }
@@ -3032,7 +3218,7 @@ public record Trace(
         filled.set(52);
       }
 
-      isEcaddXorOobEvent2XorIdentityXorDecodedFlag1XorWarmNew.add(b);
+      isEcaddXorOobEvent1XorCallSmcFailureCallerWillRevertXorDecodedFlag1XorWarmNew.add(b);
 
       return this;
     }
@@ -3044,7 +3230,7 @@ public record Trace(
         filled.set(53);
       }
 
-      isEcmulXorOobFlagXorModexpXorDecodedFlag2.add(b);
+      isEcmulXorOobEvent2XorCallSmcFailureCallerWontRevertXorDecodedFlag2.add(b);
 
       return this;
     }
@@ -3056,7 +3242,7 @@ public record Trace(
         filled.set(54);
       }
 
-      isEcpairingXorPrecinfoFlagXorRipemDsub160XorDecodedFlag3.add(b);
+      isEcpairingXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecodedFlag3.add(b);
 
       return this;
     }
@@ -3068,7 +3254,7 @@ public record Trace(
         filled.set(55);
       }
 
-      isEcrecoverXorStpExistsXorScn1XorDecodedFlag4.add(b);
+      isEcrecoverXorPrecinfoFlagXorCallSmcSuccessCallerWontRevertXorDecodedFlag4.add(b);
 
       return this;
     }
@@ -3080,7 +3266,7 @@ public record Trace(
         filled.set(56);
       }
 
-      isIdentityXorStpFlagXorScn10XorDupFlag.add(b);
+      isIdentityXorStpExistsXorCodedepositXorDupFlag.add(b);
 
       return this;
     }
@@ -3092,7 +3278,7 @@ public record Trace(
         filled.set(57);
       }
 
-      isModexpXorStpOogxXorScn11XorExtFlag.add(b);
+      isModexpXorStpFlagXorCodedepositInvalidCodePrefixXorExtFlag.add(b);
 
       return this;
     }
@@ -3104,7 +3290,7 @@ public record Trace(
         filled.set(58);
       }
 
-      isPrecompileXorStpWarmXorScn12XorHaltFlag.add(b);
+      isPrecompileXorStpOogxXorCodedepositValidCodePrefixXorHaltFlag.add(b);
 
       return this;
     }
@@ -3128,7 +3314,7 @@ public record Trace(
         filled.set(92);
       }
 
-      addrLoXorAccountAddressLoXorMmuCnSXorHeightNewXorAddressLoXorCallDataSize.add(b);
+      addrLoXorAccountAddressLoXorExpDyncostXorHeightNewXorAddressLoXorCallDataSize.add(b);
 
       return this;
     }
@@ -3140,7 +3326,7 @@ public record Trace(
         filled.set(93);
       }
 
-      balanceXorAccountDeploymentNumberXorMmuCnTXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
+      balanceXorAccountDeploymentNumberXorExpExponentHiXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
           .add(b);
 
       return this;
@@ -3153,8 +3339,8 @@ public record Trace(
         filled.set(94);
       }
 
-      balanceNewXorByteCodeAddressHiXorMmuInstXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo.add(
-          b);
+      balanceNewXorByteCodeAddressHiXorExpExponentLoXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo
+          .add(b);
 
       return this;
     }
@@ -3166,7 +3352,7 @@ public record Trace(
         filled.set(95);
       }
 
-      codeHashHiXorByteCodeAddressLoXorMmuNum1XorInstructionXorStorageKeyLoXorFromAddressHi.add(b);
+      codeHashHiXorByteCodeAddressLoXorMmuCnSXorInstructionXorStorageKeyLoXorFromAddressHi.add(b);
 
       return this;
     }
@@ -3178,7 +3364,7 @@ public record Trace(
         filled.set(59);
       }
 
-      isRipemDsub160XorScn2XorInvalidFlag.add(b);
+      isRipemDsub160XorStpWarmXorEcaddXorInvalidFlag.add(b);
 
       return this;
     }
@@ -3190,7 +3376,7 @@ public record Trace(
         filled.set(60);
       }
 
-      isSha2Sub256XorScn3XorInvprex.add(b);
+      isSha2Sub256XorEcmulXorInvprex.add(b);
 
       return this;
     }
@@ -3202,7 +3388,7 @@ public record Trace(
         filled.set(62);
       }
 
-      trmFlagXorScn5XorJumpFlag.add(b);
+      trmFlagXorEcrecoverXorJumpFlag.add(b);
 
       return this;
     }
@@ -3214,7 +3400,7 @@ public record Trace(
         filled.set(61);
       }
 
-      rlpaddrFlagXorScn4XorJumpx.add(b);
+      rlpaddrFlagXorEcpairingXorJumpx.add(b);
 
       return this;
     }
@@ -3226,7 +3412,7 @@ public record Trace(
         filled.set(63);
       }
 
-      warmXorScn6XorKecFlag.add(b);
+      warmXorIdentityXorKecFlag.add(b);
 
       return this;
     }
@@ -3238,7 +3424,7 @@ public record Trace(
         filled.set(64);
       }
 
-      warmNewXorScn7XorLogFlag.add(b);
+      warmNewXorModexpXorLogFlag.add(b);
 
       return this;
     }
@@ -3250,7 +3436,7 @@ public record Trace(
         filled.set(65);
       }
 
-      scn8XorMaxcsx.add(b);
+      ripemDsub160XorMaxcsx.add(b);
 
       return this;
     }
@@ -3262,7 +3448,7 @@ public record Trace(
         filled.set(66);
       }
 
-      scn9XorModFlag.add(b);
+      scnFailure1XorModFlag.add(b);
 
       return this;
     }
@@ -3274,7 +3460,7 @@ public record Trace(
         filled.set(67);
       }
 
-      selfdestructXorMulFlag.add(b);
+      scnFailure2XorMulFlag.add(b);
 
       return this;
     }
@@ -3286,7 +3472,7 @@ public record Trace(
         filled.set(69);
       }
 
-      mxpFlag.add(b);
+      scnFailure4XorMxpFlag.add(b);
 
       return this;
     }
@@ -3298,7 +3484,7 @@ public record Trace(
         filled.set(68);
       }
 
-      sha2Sub256XorMxpx.add(b);
+      scnFailure3XorMxpx.add(b);
 
       return this;
     }
@@ -3310,7 +3496,7 @@ public record Trace(
         filled.set(70);
       }
 
-      oobFlag.add(b);
+      scnSuccess1XorOobFlag.add(b);
 
       return this;
     }
@@ -3322,7 +3508,7 @@ public record Trace(
         filled.set(71);
       }
 
-      oogx.add(b);
+      scnSuccess2XorOogx.add(b);
 
       return this;
     }
@@ -3334,7 +3520,7 @@ public record Trace(
         filled.set(72);
       }
 
-      opcx.add(b);
+      scnSuccess3XorOpcx.add(b);
 
       return this;
     }
@@ -3346,7 +3532,7 @@ public record Trace(
         filled.set(96);
       }
 
-      codeHashHiNewXorByteCodeDeploymentNumberXorMmuNum2XorPushValueHiXorValCurrHiXorFromAddressLo
+      codeHashHiNewXorByteCodeDeploymentNumberXorMmuCnTXorPushValueHiXorValCurrHiXorFromAddressLo
           .add(b);
 
       return this;
@@ -3359,7 +3545,7 @@ public record Trace(
         filled.set(97);
       }
 
-      codeHashLoXorByteCodeDeploymentStatusXorMmuRefsXorPushValueLoXorValCurrLoXorGasLimit.add(b);
+      codeHashLoXorByteCodeDeploymentStatusXorMmuInstXorPushValueLoXorValCurrLoXorGasLimit.add(b);
 
       return this;
     }
@@ -3371,7 +3557,7 @@ public record Trace(
         filled.set(73);
       }
 
-      pushpopFlag.add(b);
+      scnSuccess4XorPushpopFlag.add(b);
 
       return this;
     }
@@ -3383,7 +3569,7 @@ public record Trace(
         filled.set(74);
       }
 
-      rdcx.add(b);
+      selfdestructXorRdcx.add(b);
 
       return this;
     }
@@ -3395,7 +3581,7 @@ public record Trace(
         filled.set(75);
       }
 
-      shfFlag.add(b);
+      sha2Sub256XorShfFlag.add(b);
 
       return this;
     }
@@ -3431,7 +3617,7 @@ public record Trace(
         filled.set(98);
       }
 
-      codeHashLoNewXorCallerAddressHiXorMmuSizeXorStackItemHeight1XorValNextHiXorGasPrice.add(b);
+      codeHashLoNewXorCallerAddressHiXorMmuNum1XorStackItemHeight1XorValNextHiXorGasPrice.add(b);
 
       return this;
     }
@@ -3443,8 +3629,7 @@ public record Trace(
         filled.set(99);
       }
 
-      codeSizeXorCallerAddressLoXorMmuSourceOffsetHiXorStackItemHeight2XorValNextLoXorGasRefundAmount
-          .add(b);
+      codeSizeXorCallerAddressLoXorMmuNum2XorStackItemHeight2XorValNextLoXorGasRefundAmount.add(b);
 
       return this;
     }
@@ -3456,7 +3641,7 @@ public record Trace(
         filled.set(100);
       }
 
-      codeSizeNewXorCallerContextNumberXorMmuSourceOffsetLoXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
+      codeSizeNewXorCallerContextNumberXorMmuRefsXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
           .add(b);
 
       return this;
@@ -3469,7 +3654,7 @@ public record Trace(
         filled.set(101);
       }
 
-      deploymentNumberInftyXorCallDataOffsetXorMmuStackValHiXorStackItemHeight4XorValOrigLoXorInitialBalance
+      deploymentNumberInftyXorCallDataOffsetXorMmuSizeXorStackItemHeight4XorValOrigLoXorInitialBalance
           .add(b);
 
       return this;
@@ -3530,7 +3715,7 @@ public record Trace(
         filled.set(102);
       }
 
-      depNumXorCallDataSizeXorMmuStackValLoXorStackItemStamp1XorInitCodeSize.add(b);
+      depNumXorCallDataSizeXorMmuSourceOffsetHiXorStackItemStamp1XorInitCodeSize.add(b);
 
       return this;
     }
@@ -3542,7 +3727,7 @@ public record Trace(
         filled.set(103);
       }
 
-      depNumNewXorCallStackDepthXorMmuTargetOffsetHiXorStackItemStamp2XorInitGas.add(b);
+      depNumNewXorCallStackDepthXorMmuSourceOffsetLoXorStackItemStamp2XorInitGas.add(b);
 
       return this;
     }
@@ -3554,7 +3739,7 @@ public record Trace(
         filled.set(104);
       }
 
-      nonceXorCallValueXorMmuTargetOffsetLoXorStackItemStamp3XorLeftoverGas.add(b);
+      nonceXorCallValueXorMmuStackValHiXorStackItemStamp3XorLeftoverGas.add(b);
 
       return this;
     }
@@ -3566,7 +3751,7 @@ public record Trace(
         filled.set(105);
       }
 
-      nonceNewXorContextNumberXorMxpGasMxpXorStackItemStamp4XorNonce.add(b);
+      nonceNewXorContextNumberXorMmuStackValLoXorStackItemStamp4XorNonce.add(b);
 
       return this;
     }
@@ -3578,7 +3763,7 @@ public record Trace(
         filled.set(106);
       }
 
-      rlpaddrDepAddrHiXorIsStaticXorMxpInstXorStackItemValueHi1XorToAddressHi.add(b);
+      rlpaddrDepAddrHiXorIsStaticXorMmuTargetOffsetHiXorStackItemValueHi1XorToAddressHi.add(b);
 
       return this;
     }
@@ -3590,8 +3775,8 @@ public record Trace(
         filled.set(107);
       }
 
-      rlpaddrDepAddrLoXorReturnerContextNumberXorMxpOffset1HiXorStackItemValueHi2XorToAddressLo.add(
-          b);
+      rlpaddrDepAddrLoXorReturnerContextNumberXorMmuTargetOffsetLoXorStackItemValueHi2XorToAddressLo
+          .add(b);
 
       return this;
     }
@@ -3603,7 +3788,7 @@ public record Trace(
         filled.set(108);
       }
 
-      rlpaddrKecHiXorReturnerIsPrecompileXorMxpOffset1LoXorStackItemValueHi3XorValue.add(b);
+      rlpaddrKecHiXorReturnerIsPrecompileXorMxpGasMxpXorStackItemValueHi3XorValue.add(b);
 
       return this;
     }
@@ -3615,7 +3800,7 @@ public record Trace(
         filled.set(109);
       }
 
-      rlpaddrKecLoXorReturnAtOffsetXorMxpOffset2HiXorStackItemValueHi4.add(b);
+      rlpaddrKecLoXorReturnAtOffsetXorMxpInstXorStackItemValueHi4.add(b);
 
       return this;
     }
@@ -3627,7 +3812,7 @@ public record Trace(
         filled.set(110);
       }
 
-      rlpaddrRecipeXorReturnAtSizeXorMxpOffset2LoXorStackItemValueLo1.add(b);
+      rlpaddrRecipeXorReturnAtSizeXorMxpOffset1HiXorStackItemValueLo1.add(b);
 
       return this;
     }
@@ -3639,7 +3824,7 @@ public record Trace(
         filled.set(111);
       }
 
-      rlpaddrSaltHiXorReturnDataOffsetXorMxpSize1HiXorStackItemValueLo2.add(b);
+      rlpaddrSaltHiXorReturnDataOffsetXorMxpOffset1LoXorStackItemValueLo2.add(b);
 
       return this;
     }
@@ -3651,7 +3836,7 @@ public record Trace(
         filled.set(112);
       }
 
-      rlpaddrSaltLoXorReturnDataSizeXorMxpSize1LoXorStackItemValueLo3.add(b);
+      rlpaddrSaltLoXorReturnDataSizeXorMxpOffset2HiXorStackItemValueLo3.add(b);
 
       return this;
     }
@@ -3663,7 +3848,7 @@ public record Trace(
         filled.set(113);
       }
 
-      trmRawAddrHiXorMxpSize2HiXorStackItemValueLo4.add(b);
+      trmRawAddrHiXorMxpOffset2LoXorStackItemValueLo4.add(b);
 
       return this;
     }
@@ -3699,7 +3884,7 @@ public record Trace(
         filled.set(114);
       }
 
-      mxpSize2LoXorStaticGas.add(b);
+      mxpSize1HiXorStaticGas.add(b);
 
       return this;
     }
@@ -3807,7 +3992,7 @@ public record Trace(
         filled.set(92);
       }
 
-      addrLoXorAccountAddressLoXorMmuCnSXorHeightNewXorAddressLoXorCallDataSize.add(b);
+      addrLoXorAccountAddressLoXorExpDyncostXorHeightNewXorAddressLoXorCallDataSize.add(b);
 
       return this;
     }
@@ -3819,7 +4004,7 @@ public record Trace(
         filled.set(93);
       }
 
-      balanceXorAccountDeploymentNumberXorMmuCnTXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
+      balanceXorAccountDeploymentNumberXorExpExponentHiXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
           .add(b);
 
       return this;
@@ -3832,8 +4017,8 @@ public record Trace(
         filled.set(94);
       }
 
-      balanceNewXorByteCodeAddressHiXorMmuInstXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo.add(
-          b);
+      balanceNewXorByteCodeAddressHiXorExpExponentLoXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo
+          .add(b);
 
       return this;
     }
@@ -3845,7 +4030,7 @@ public record Trace(
         filled.set(95);
       }
 
-      codeHashHiXorByteCodeAddressLoXorMmuNum1XorInstructionXorStorageKeyLoXorFromAddressHi.add(b);
+      codeHashHiXorByteCodeAddressLoXorMmuCnSXorInstructionXorStorageKeyLoXorFromAddressHi.add(b);
 
       return this;
     }
@@ -3870,7 +4055,7 @@ public record Trace(
         filled.set(96);
       }
 
-      codeHashHiNewXorByteCodeDeploymentNumberXorMmuNum2XorPushValueHiXorValCurrHiXorFromAddressLo
+      codeHashHiNewXorByteCodeDeploymentNumberXorMmuCnTXorPushValueHiXorValCurrHiXorFromAddressLo
           .add(b);
 
       return this;
@@ -3883,7 +4068,7 @@ public record Trace(
         filled.set(45);
       }
 
-      depStatusXorCcsrFlagXorCallXorAddFlagXorValCurrIsOrigXorIsEip1559.add(b);
+      depStatusXorCcsrFlagXorCallAbortXorAddFlagXorValCurrIsOrigXorIsEip1559.add(b);
 
       return this;
     }
@@ -3895,7 +4080,8 @@ public record Trace(
         filled.set(46);
       }
 
-      depStatusNewXorFcondFlagXorCodedepositXorBinFlagXorValCurrIsZeroXorStatusCode.add(b);
+      depStatusNewXorExpFlagXorCallEoaSuccessCallerWillRevertXorBinFlagXorValCurrIsZeroXorStatusCode
+          .add(b);
 
       return this;
     }
@@ -3907,7 +4093,7 @@ public record Trace(
         filled.set(97);
       }
 
-      codeHashLoXorByteCodeDeploymentStatusXorMmuRefsXorPushValueLoXorValCurrLoXorGasLimit.add(b);
+      codeHashLoXorByteCodeDeploymentStatusXorMmuInstXorPushValueLoXorValCurrLoXorGasLimit.add(b);
 
       return this;
     }
@@ -3919,7 +4105,7 @@ public record Trace(
         filled.set(98);
       }
 
-      codeHashLoNewXorCallerAddressHiXorMmuSizeXorStackItemHeight1XorValNextHiXorGasPrice.add(b);
+      codeHashLoNewXorCallerAddressHiXorMmuNum1XorStackItemHeight1XorValNextHiXorGasPrice.add(b);
 
       return this;
     }
@@ -3931,7 +4117,8 @@ public record Trace(
         filled.set(47);
       }
 
-      existsXorMmuFlagXorCreateXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution.add(b);
+      existsXorFcondFlagXorCallEoaSuccessCallerWontRevertXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution
+          .add(b);
 
       return this;
     }
@@ -3943,7 +4130,7 @@ public record Trace(
         filled.set(48);
       }
 
-      existsNewXorMxpDeploysXorEcaddXorCallFlagXorValNextIsOrig.add(b);
+      existsNewXorMmuFlagXorCallPrcFailureCallerWillRevertXorCallFlagXorValNextIsOrig.add(b);
 
       return this;
     }
@@ -3955,7 +4142,7 @@ public record Trace(
         filled.set(49);
       }
 
-      hasCodeXorMxpFlagXorEcmulXorConFlagXorValNextIsZero.add(b);
+      hasCodeXorMxpDeploysXorCallPrcFailureCallerWontRevertXorConFlagXorValNextIsZero.add(b);
 
       return this;
     }
@@ -3967,8 +4154,7 @@ public record Trace(
         filled.set(99);
       }
 
-      codeSizeXorCallerAddressLoXorMmuSourceOffsetHiXorStackItemHeight2XorValNextLoXorGasRefundAmount
-          .add(b);
+      codeSizeXorCallerAddressLoXorMmuNum2XorStackItemHeight2XorValNextLoXorGasRefundAmount.add(b);
 
       return this;
     }
@@ -3980,7 +4166,7 @@ public record Trace(
         filled.set(100);
       }
 
-      codeSizeNewXorCallerContextNumberXorMmuSourceOffsetLoXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
+      codeSizeNewXorCallerContextNumberXorMmuRefsXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
           .add(b);
 
       return this;
@@ -3993,7 +4179,7 @@ public record Trace(
         filled.set(50);
       }
 
-      hasCodeNewXorMxpMxpxXorEcpairingXorCopyFlagXorValOrigIsZero.add(b);
+      hasCodeNewXorMxpFlagXorCallPrcSuccessCallerWillRevertXorCopyFlagXorValOrigIsZero.add(b);
 
       return this;
     }
@@ -4005,7 +4191,7 @@ public record Trace(
         filled.set(101);
       }
 
-      deploymentNumberInftyXorCallDataOffsetXorMmuStackValHiXorStackItemHeight4XorValOrigLoXorInitialBalance
+      deploymentNumberInftyXorCallDataOffsetXorMmuSizeXorStackItemHeight4XorValOrigLoXorInitialBalance
           .add(b);
 
       return this;
@@ -4018,7 +4204,7 @@ public record Trace(
         filled.set(51);
       }
 
-      isBlake2FXorOobEvent1XorEcrecoverXorCreateFlagXorWarm.add(b);
+      isBlake2FXorMxpMxpxXorCallPrcSuccessCallerWontRevertXorCreateFlagXorWarm.add(b);
 
       return this;
     }
@@ -4030,7 +4216,7 @@ public record Trace(
         filled.set(52);
       }
 
-      isEcaddXorOobEvent2XorIdentityXorDecodedFlag1XorWarmNew.add(b);
+      isEcaddXorOobEvent1XorCallSmcFailureCallerWillRevertXorDecodedFlag1XorWarmNew.add(b);
 
       return this;
     }
@@ -4054,7 +4240,7 @@ public record Trace(
         filled.set(92);
       }
 
-      addrLoXorAccountAddressLoXorMmuCnSXorHeightNewXorAddressLoXorCallDataSize.add(b);
+      addrLoXorAccountAddressLoXorExpDyncostXorHeightNewXorAddressLoXorCallDataSize.add(b);
 
       return this;
     }
@@ -4066,7 +4252,7 @@ public record Trace(
         filled.set(93);
       }
 
-      balanceXorAccountDeploymentNumberXorMmuCnTXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
+      balanceXorAccountDeploymentNumberXorExpExponentHiXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
           .add(b);
 
       return this;
@@ -4079,8 +4265,8 @@ public record Trace(
         filled.set(94);
       }
 
-      balanceNewXorByteCodeAddressHiXorMmuInstXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo.add(
-          b);
+      balanceNewXorByteCodeAddressHiXorExpExponentLoXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo
+          .add(b);
 
       return this;
     }
@@ -4092,7 +4278,7 @@ public record Trace(
         filled.set(95);
       }
 
-      codeHashHiXorByteCodeAddressLoXorMmuNum1XorInstructionXorStorageKeyLoXorFromAddressHi.add(b);
+      codeHashHiXorByteCodeAddressLoXorMmuCnSXorInstructionXorStorageKeyLoXorFromAddressHi.add(b);
 
       return this;
     }
@@ -4104,7 +4290,7 @@ public record Trace(
         filled.set(96);
       }
 
-      codeHashHiNewXorByteCodeDeploymentNumberXorMmuNum2XorPushValueHiXorValCurrHiXorFromAddressLo
+      codeHashHiNewXorByteCodeDeploymentNumberXorMmuCnTXorPushValueHiXorValCurrHiXorFromAddressLo
           .add(b);
 
       return this;
@@ -4117,7 +4303,7 @@ public record Trace(
         filled.set(97);
       }
 
-      codeHashLoXorByteCodeDeploymentStatusXorMmuRefsXorPushValueLoXorValCurrLoXorGasLimit.add(b);
+      codeHashLoXorByteCodeDeploymentStatusXorMmuInstXorPushValueLoXorValCurrLoXorGasLimit.add(b);
 
       return this;
     }
@@ -4129,7 +4315,7 @@ public record Trace(
         filled.set(98);
       }
 
-      codeHashLoNewXorCallerAddressHiXorMmuSizeXorStackItemHeight1XorValNextHiXorGasPrice.add(b);
+      codeHashLoNewXorCallerAddressHiXorMmuNum1XorStackItemHeight1XorValNextHiXorGasPrice.add(b);
 
       return this;
     }
@@ -4141,8 +4327,7 @@ public record Trace(
         filled.set(99);
       }
 
-      codeSizeXorCallerAddressLoXorMmuSourceOffsetHiXorStackItemHeight2XorValNextLoXorGasRefundAmount
-          .add(b);
+      codeSizeXorCallerAddressLoXorMmuNum2XorStackItemHeight2XorValNextLoXorGasRefundAmount.add(b);
 
       return this;
     }
@@ -4154,7 +4339,7 @@ public record Trace(
         filled.set(100);
       }
 
-      codeSizeNewXorCallerContextNumberXorMmuSourceOffsetLoXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
+      codeSizeNewXorCallerContextNumberXorMmuRefsXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
           .add(b);
 
       return this;
@@ -4167,7 +4352,7 @@ public record Trace(
         filled.set(102);
       }
 
-      depNumXorCallDataSizeXorMmuStackValLoXorStackItemStamp1XorInitCodeSize.add(b);
+      depNumXorCallDataSizeXorMmuSourceOffsetHiXorStackItemStamp1XorInitCodeSize.add(b);
 
       return this;
     }
@@ -4179,7 +4364,7 @@ public record Trace(
         filled.set(103);
       }
 
-      depNumNewXorCallStackDepthXorMmuTargetOffsetHiXorStackItemStamp2XorInitGas.add(b);
+      depNumNewXorCallStackDepthXorMmuSourceOffsetLoXorStackItemStamp2XorInitGas.add(b);
 
       return this;
     }
@@ -4191,7 +4376,7 @@ public record Trace(
         filled.set(101);
       }
 
-      deploymentNumberInftyXorCallDataOffsetXorMmuStackValHiXorStackItemHeight4XorValOrigLoXorInitialBalance
+      deploymentNumberInftyXorCallDataOffsetXorMmuSizeXorStackItemHeight4XorValOrigLoXorInitialBalance
           .add(b);
 
       return this;
@@ -4217,7 +4402,7 @@ public record Trace(
         filled.set(45);
       }
 
-      depStatusXorCcsrFlagXorCallXorAddFlagXorValCurrIsOrigXorIsEip1559.add(b);
+      depStatusXorCcsrFlagXorCallAbortXorAddFlagXorValCurrIsOrigXorIsEip1559.add(b);
 
       return this;
     }
@@ -4229,7 +4414,7 @@ public record Trace(
         filled.set(104);
       }
 
-      nonceXorCallValueXorMmuTargetOffsetLoXorStackItemStamp3XorLeftoverGas.add(b);
+      nonceXorCallValueXorMmuStackValHiXorStackItemStamp3XorLeftoverGas.add(b);
 
       return this;
     }
@@ -4241,7 +4426,7 @@ public record Trace(
         filled.set(105);
       }
 
-      nonceNewXorContextNumberXorMxpGasMxpXorStackItemStamp4XorNonce.add(b);
+      nonceNewXorContextNumberXorMmuStackValLoXorStackItemStamp4XorNonce.add(b);
 
       return this;
     }
@@ -4253,7 +4438,8 @@ public record Trace(
         filled.set(46);
       }
 
-      depStatusNewXorFcondFlagXorCodedepositXorBinFlagXorValCurrIsZeroXorStatusCode.add(b);
+      depStatusNewXorExpFlagXorCallEoaSuccessCallerWillRevertXorBinFlagXorValCurrIsZeroXorStatusCode
+          .add(b);
 
       return this;
     }
@@ -4265,7 +4451,7 @@ public record Trace(
         filled.set(106);
       }
 
-      rlpaddrDepAddrHiXorIsStaticXorMxpInstXorStackItemValueHi1XorToAddressHi.add(b);
+      rlpaddrDepAddrHiXorIsStaticXorMmuTargetOffsetHiXorStackItemValueHi1XorToAddressHi.add(b);
 
       return this;
     }
@@ -4277,8 +4463,8 @@ public record Trace(
         filled.set(107);
       }
 
-      rlpaddrDepAddrLoXorReturnerContextNumberXorMxpOffset1HiXorStackItemValueHi2XorToAddressLo.add(
-          b);
+      rlpaddrDepAddrLoXorReturnerContextNumberXorMmuTargetOffsetLoXorStackItemValueHi2XorToAddressLo
+          .add(b);
 
       return this;
     }
@@ -4290,7 +4476,8 @@ public record Trace(
         filled.set(47);
       }
 
-      existsXorMmuFlagXorCreateXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution.add(b);
+      existsXorFcondFlagXorCallEoaSuccessCallerWontRevertXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution
+          .add(b);
 
       return this;
     }
@@ -4302,7 +4489,7 @@ public record Trace(
         filled.set(108);
       }
 
-      rlpaddrKecHiXorReturnerIsPrecompileXorMxpOffset1LoXorStackItemValueHi3XorValue.add(b);
+      rlpaddrKecHiXorReturnerIsPrecompileXorMxpGasMxpXorStackItemValueHi3XorValue.add(b);
 
       return this;
     }
@@ -4680,92 +4867,93 @@ public record Trace(
     }
 
     public TraceBuilder setPAccountAddrLoAt(final BigInteger b, int i) {
-      addrLoXorAccountAddressLoXorMmuCnSXorHeightNewXorAddressLoXorCallDataSize.set(i, b);
+      addrLoXorAccountAddressLoXorExpDyncostXorHeightNewXorAddressLoXorCallDataSize.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountBalanceAt(final BigInteger b, int i) {
-      balanceXorAccountDeploymentNumberXorMmuCnTXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
+      balanceXorAccountDeploymentNumberXorExpExponentHiXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
           .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountBalanceNewAt(final BigInteger b, int i) {
-      balanceNewXorByteCodeAddressHiXorMmuInstXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo.set(
-          i, b);
+      balanceNewXorByteCodeAddressHiXorExpExponentLoXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo
+          .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountCodeHashHiAt(final BigInteger b, int i) {
-      codeHashHiXorByteCodeAddressLoXorMmuNum1XorInstructionXorStorageKeyLoXorFromAddressHi.set(
+      codeHashHiXorByteCodeAddressLoXorMmuCnSXorInstructionXorStorageKeyLoXorFromAddressHi.set(
           i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountCodeHashHiNewAt(final BigInteger b, int i) {
-      codeHashHiNewXorByteCodeDeploymentNumberXorMmuNum2XorPushValueHiXorValCurrHiXorFromAddressLo
+      codeHashHiNewXorByteCodeDeploymentNumberXorMmuCnTXorPushValueHiXorValCurrHiXorFromAddressLo
           .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountCodeHashLoAt(final BigInteger b, int i) {
-      codeHashLoXorByteCodeDeploymentStatusXorMmuRefsXorPushValueLoXorValCurrLoXorGasLimit.set(
+      codeHashLoXorByteCodeDeploymentStatusXorMmuInstXorPushValueLoXorValCurrLoXorGasLimit.set(
           i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountCodeHashLoNewAt(final BigInteger b, int i) {
-      codeHashLoNewXorCallerAddressHiXorMmuSizeXorStackItemHeight1XorValNextHiXorGasPrice.set(i, b);
+      codeHashLoNewXorCallerAddressHiXorMmuNum1XorStackItemHeight1XorValNextHiXorGasPrice.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountCodeSizeAt(final BigInteger b, int i) {
-      codeSizeXorCallerAddressLoXorMmuSourceOffsetHiXorStackItemHeight2XorValNextLoXorGasRefundAmount
-          .set(i, b);
+      codeSizeXorCallerAddressLoXorMmuNum2XorStackItemHeight2XorValNextLoXorGasRefundAmount.set(
+          i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountCodeSizeNewAt(final BigInteger b, int i) {
-      codeSizeNewXorCallerContextNumberXorMmuSourceOffsetLoXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
+      codeSizeNewXorCallerContextNumberXorMmuRefsXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
           .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountDepNumAt(final BigInteger b, int i) {
-      depNumXorCallDataSizeXorMmuStackValLoXorStackItemStamp1XorInitCodeSize.set(i, b);
+      depNumXorCallDataSizeXorMmuSourceOffsetHiXorStackItemStamp1XorInitCodeSize.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountDepNumNewAt(final BigInteger b, int i) {
-      depNumNewXorCallStackDepthXorMmuTargetOffsetHiXorStackItemStamp2XorInitGas.set(i, b);
+      depNumNewXorCallStackDepthXorMmuSourceOffsetLoXorStackItemStamp2XorInitGas.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountDepStatusAt(final Boolean b, int i) {
-      depStatusXorCcsrFlagXorCallXorAddFlagXorValCurrIsOrigXorIsEip1559.set(i, b);
+      depStatusXorCcsrFlagXorCallAbortXorAddFlagXorValCurrIsOrigXorIsEip1559.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountDepStatusNewAt(final Boolean b, int i) {
-      depStatusNewXorFcondFlagXorCodedepositXorBinFlagXorValCurrIsZeroXorStatusCode.set(i, b);
+      depStatusNewXorExpFlagXorCallEoaSuccessCallerWillRevertXorBinFlagXorValCurrIsZeroXorStatusCode
+          .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountDeploymentNumberInftyAt(final BigInteger b, int i) {
-      deploymentNumberInftyXorCallDataOffsetXorMmuStackValHiXorStackItemHeight4XorValOrigLoXorInitialBalance
+      deploymentNumberInftyXorCallDataOffsetXorMmuSizeXorStackItemHeight4XorValOrigLoXorInitialBalance
           .set(i, b);
 
       return this;
@@ -4779,170 +4967,171 @@ public record Trace(
     }
 
     public TraceBuilder setPAccountExistsAt(final Boolean b, int i) {
-      existsXorMmuFlagXorCreateXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution.set(i, b);
+      existsXorFcondFlagXorCallEoaSuccessCallerWontRevertXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution
+          .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountExistsNewAt(final Boolean b, int i) {
-      existsNewXorMxpDeploysXorEcaddXorCallFlagXorValNextIsOrig.set(i, b);
+      existsNewXorMmuFlagXorCallPrcFailureCallerWillRevertXorCallFlagXorValNextIsOrig.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountHasCodeAt(final Boolean b, int i) {
-      hasCodeXorMxpFlagXorEcmulXorConFlagXorValNextIsZero.set(i, b);
+      hasCodeXorMxpDeploysXorCallPrcFailureCallerWontRevertXorConFlagXorValNextIsZero.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountHasCodeNewAt(final Boolean b, int i) {
-      hasCodeNewXorMxpMxpxXorEcpairingXorCopyFlagXorValOrigIsZero.set(i, b);
+      hasCodeNewXorMxpFlagXorCallPrcSuccessCallerWillRevertXorCopyFlagXorValOrigIsZero.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountIsBlake2FAt(final Boolean b, int i) {
-      isBlake2FXorOobEvent1XorEcrecoverXorCreateFlagXorWarm.set(i, b);
+      isBlake2FXorMxpMxpxXorCallPrcSuccessCallerWontRevertXorCreateFlagXorWarm.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountIsEcaddAt(final Boolean b, int i) {
-      isEcaddXorOobEvent2XorIdentityXorDecodedFlag1XorWarmNew.set(i, b);
+      isEcaddXorOobEvent1XorCallSmcFailureCallerWillRevertXorDecodedFlag1XorWarmNew.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountIsEcmulAt(final Boolean b, int i) {
-      isEcmulXorOobFlagXorModexpXorDecodedFlag2.set(i, b);
+      isEcmulXorOobEvent2XorCallSmcFailureCallerWontRevertXorDecodedFlag2.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountIsEcpairingAt(final Boolean b, int i) {
-      isEcpairingXorPrecinfoFlagXorRipemDsub160XorDecodedFlag3.set(i, b);
+      isEcpairingXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecodedFlag3.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountIsEcrecoverAt(final Boolean b, int i) {
-      isEcrecoverXorStpExistsXorScn1XorDecodedFlag4.set(i, b);
+      isEcrecoverXorPrecinfoFlagXorCallSmcSuccessCallerWontRevertXorDecodedFlag4.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountIsIdentityAt(final Boolean b, int i) {
-      isIdentityXorStpFlagXorScn10XorDupFlag.set(i, b);
+      isIdentityXorStpExistsXorCodedepositXorDupFlag.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountIsModexpAt(final Boolean b, int i) {
-      isModexpXorStpOogxXorScn11XorExtFlag.set(i, b);
+      isModexpXorStpFlagXorCodedepositInvalidCodePrefixXorExtFlag.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountIsPrecompileAt(final Boolean b, int i) {
-      isPrecompileXorStpWarmXorScn12XorHaltFlag.set(i, b);
+      isPrecompileXorStpOogxXorCodedepositValidCodePrefixXorHaltFlag.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountIsRipemd160At(final Boolean b, int i) {
-      isRipemDsub160XorScn2XorInvalidFlag.set(i, b);
+      isRipemDsub160XorStpWarmXorEcaddXorInvalidFlag.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountIsSha2256At(final Boolean b, int i) {
-      isSha2Sub256XorScn3XorInvprex.set(i, b);
+      isSha2Sub256XorEcmulXorInvprex.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountNonceAt(final BigInteger b, int i) {
-      nonceXorCallValueXorMmuTargetOffsetLoXorStackItemStamp3XorLeftoverGas.set(i, b);
+      nonceXorCallValueXorMmuStackValHiXorStackItemStamp3XorLeftoverGas.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountNonceNewAt(final BigInteger b, int i) {
-      nonceNewXorContextNumberXorMxpGasMxpXorStackItemStamp4XorNonce.set(i, b);
+      nonceNewXorContextNumberXorMmuStackValLoXorStackItemStamp4XorNonce.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountRlpaddrDepAddrHiAt(final BigInteger b, int i) {
-      rlpaddrDepAddrHiXorIsStaticXorMxpInstXorStackItemValueHi1XorToAddressHi.set(i, b);
+      rlpaddrDepAddrHiXorIsStaticXorMmuTargetOffsetHiXorStackItemValueHi1XorToAddressHi.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountRlpaddrDepAddrLoAt(final BigInteger b, int i) {
-      rlpaddrDepAddrLoXorReturnerContextNumberXorMxpOffset1HiXorStackItemValueHi2XorToAddressLo.set(
-          i, b);
+      rlpaddrDepAddrLoXorReturnerContextNumberXorMmuTargetOffsetLoXorStackItemValueHi2XorToAddressLo
+          .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountRlpaddrFlagAt(final Boolean b, int i) {
-      rlpaddrFlagXorScn4XorJumpx.set(i, b);
+      rlpaddrFlagXorEcpairingXorJumpx.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountRlpaddrKecHiAt(final BigInteger b, int i) {
-      rlpaddrKecHiXorReturnerIsPrecompileXorMxpOffset1LoXorStackItemValueHi3XorValue.set(i, b);
+      rlpaddrKecHiXorReturnerIsPrecompileXorMxpGasMxpXorStackItemValueHi3XorValue.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountRlpaddrKecLoAt(final BigInteger b, int i) {
-      rlpaddrKecLoXorReturnAtOffsetXorMxpOffset2HiXorStackItemValueHi4.set(i, b);
+      rlpaddrKecLoXorReturnAtOffsetXorMxpInstXorStackItemValueHi4.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountRlpaddrRecipeAt(final BigInteger b, int i) {
-      rlpaddrRecipeXorReturnAtSizeXorMxpOffset2LoXorStackItemValueLo1.set(i, b);
+      rlpaddrRecipeXorReturnAtSizeXorMxpOffset1HiXorStackItemValueLo1.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountRlpaddrSaltHiAt(final BigInteger b, int i) {
-      rlpaddrSaltHiXorReturnDataOffsetXorMxpSize1HiXorStackItemValueLo2.set(i, b);
+      rlpaddrSaltHiXorReturnDataOffsetXorMxpOffset1LoXorStackItemValueLo2.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountRlpaddrSaltLoAt(final BigInteger b, int i) {
-      rlpaddrSaltLoXorReturnDataSizeXorMxpSize1LoXorStackItemValueLo3.set(i, b);
+      rlpaddrSaltLoXorReturnDataSizeXorMxpOffset2HiXorStackItemValueLo3.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountTrmFlagAt(final Boolean b, int i) {
-      trmFlagXorScn5XorJumpFlag.set(i, b);
+      trmFlagXorEcrecoverXorJumpFlag.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountTrmRawAddrHiAt(final BigInteger b, int i) {
-      trmRawAddrHiXorMxpSize2HiXorStackItemValueLo4.set(i, b);
+      trmRawAddrHiXorMxpOffset2LoXorStackItemValueLo4.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountWarmAt(final Boolean b, int i) {
-      warmXorScn6XorKecFlag.set(i, b);
+      warmXorIdentityXorKecFlag.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountWarmNewAt(final Boolean b, int i) {
-      warmNewXorScn7XorLogFlag.set(i, b);
+      warmNewXorModexpXorLogFlag.set(i, b);
 
       return this;
     }
@@ -4954,136 +5143,136 @@ public record Trace(
     }
 
     public TraceBuilder setPContextAccountAddressLoAt(final BigInteger b, int i) {
-      addrLoXorAccountAddressLoXorMmuCnSXorHeightNewXorAddressLoXorCallDataSize.set(i, b);
+      addrLoXorAccountAddressLoXorExpDyncostXorHeightNewXorAddressLoXorCallDataSize.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPContextAccountDeploymentNumberAt(final BigInteger b, int i) {
-      balanceXorAccountDeploymentNumberXorMmuCnTXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
+      balanceXorAccountDeploymentNumberXorExpExponentHiXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
           .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPContextByteCodeAddressHiAt(final BigInteger b, int i) {
-      balanceNewXorByteCodeAddressHiXorMmuInstXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo.set(
-          i, b);
+      balanceNewXorByteCodeAddressHiXorExpExponentLoXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo
+          .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPContextByteCodeAddressLoAt(final BigInteger b, int i) {
-      codeHashHiXorByteCodeAddressLoXorMmuNum1XorInstructionXorStorageKeyLoXorFromAddressHi.set(
+      codeHashHiXorByteCodeAddressLoXorMmuCnSXorInstructionXorStorageKeyLoXorFromAddressHi.set(
           i, b);
 
       return this;
     }
 
     public TraceBuilder setPContextByteCodeDeploymentNumberAt(final BigInteger b, int i) {
-      codeHashHiNewXorByteCodeDeploymentNumberXorMmuNum2XorPushValueHiXorValCurrHiXorFromAddressLo
+      codeHashHiNewXorByteCodeDeploymentNumberXorMmuCnTXorPushValueHiXorValCurrHiXorFromAddressLo
           .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPContextByteCodeDeploymentStatusAt(final BigInteger b, int i) {
-      codeHashLoXorByteCodeDeploymentStatusXorMmuRefsXorPushValueLoXorValCurrLoXorGasLimit.set(
+      codeHashLoXorByteCodeDeploymentStatusXorMmuInstXorPushValueLoXorValCurrLoXorGasLimit.set(
           i, b);
 
       return this;
     }
 
     public TraceBuilder setPContextCallDataOffsetAt(final BigInteger b, int i) {
-      deploymentNumberInftyXorCallDataOffsetXorMmuStackValHiXorStackItemHeight4XorValOrigLoXorInitialBalance
+      deploymentNumberInftyXorCallDataOffsetXorMmuSizeXorStackItemHeight4XorValOrigLoXorInitialBalance
           .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPContextCallDataSizeAt(final BigInteger b, int i) {
-      depNumXorCallDataSizeXorMmuStackValLoXorStackItemStamp1XorInitCodeSize.set(i, b);
+      depNumXorCallDataSizeXorMmuSourceOffsetHiXorStackItemStamp1XorInitCodeSize.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPContextCallStackDepthAt(final BigInteger b, int i) {
-      depNumNewXorCallStackDepthXorMmuTargetOffsetHiXorStackItemStamp2XorInitGas.set(i, b);
+      depNumNewXorCallStackDepthXorMmuSourceOffsetLoXorStackItemStamp2XorInitGas.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPContextCallValueAt(final BigInteger b, int i) {
-      nonceXorCallValueXorMmuTargetOffsetLoXorStackItemStamp3XorLeftoverGas.set(i, b);
+      nonceXorCallValueXorMmuStackValHiXorStackItemStamp3XorLeftoverGas.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPContextCallerAddressHiAt(final BigInteger b, int i) {
-      codeHashLoNewXorCallerAddressHiXorMmuSizeXorStackItemHeight1XorValNextHiXorGasPrice.set(i, b);
+      codeHashLoNewXorCallerAddressHiXorMmuNum1XorStackItemHeight1XorValNextHiXorGasPrice.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPContextCallerAddressLoAt(final BigInteger b, int i) {
-      codeSizeXorCallerAddressLoXorMmuSourceOffsetHiXorStackItemHeight2XorValNextLoXorGasRefundAmount
-          .set(i, b);
+      codeSizeXorCallerAddressLoXorMmuNum2XorStackItemHeight2XorValNextLoXorGasRefundAmount.set(
+          i, b);
 
       return this;
     }
 
     public TraceBuilder setPContextCallerContextNumberAt(final BigInteger b, int i) {
-      codeSizeNewXorCallerContextNumberXorMmuSourceOffsetLoXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
+      codeSizeNewXorCallerContextNumberXorMmuRefsXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
           .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPContextContextNumberAt(final BigInteger b, int i) {
-      nonceNewXorContextNumberXorMxpGasMxpXorStackItemStamp4XorNonce.set(i, b);
+      nonceNewXorContextNumberXorMmuStackValLoXorStackItemStamp4XorNonce.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPContextIsStaticAt(final BigInteger b, int i) {
-      rlpaddrDepAddrHiXorIsStaticXorMxpInstXorStackItemValueHi1XorToAddressHi.set(i, b);
+      rlpaddrDepAddrHiXorIsStaticXorMmuTargetOffsetHiXorStackItemValueHi1XorToAddressHi.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPContextReturnAtOffsetAt(final BigInteger b, int i) {
-      rlpaddrKecLoXorReturnAtOffsetXorMxpOffset2HiXorStackItemValueHi4.set(i, b);
+      rlpaddrKecLoXorReturnAtOffsetXorMxpInstXorStackItemValueHi4.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPContextReturnAtSizeAt(final BigInteger b, int i) {
-      rlpaddrRecipeXorReturnAtSizeXorMxpOffset2LoXorStackItemValueLo1.set(i, b);
+      rlpaddrRecipeXorReturnAtSizeXorMxpOffset1HiXorStackItemValueLo1.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPContextReturnDataOffsetAt(final BigInteger b, int i) {
-      rlpaddrSaltHiXorReturnDataOffsetXorMxpSize1HiXorStackItemValueLo2.set(i, b);
+      rlpaddrSaltHiXorReturnDataOffsetXorMxpOffset1LoXorStackItemValueLo2.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPContextReturnDataSizeAt(final BigInteger b, int i) {
-      rlpaddrSaltLoXorReturnDataSizeXorMxpSize1LoXorStackItemValueLo3.set(i, b);
+      rlpaddrSaltLoXorReturnDataSizeXorMxpOffset2HiXorStackItemValueLo3.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPContextReturnerContextNumberAt(final BigInteger b, int i) {
-      rlpaddrDepAddrLoXorReturnerContextNumberXorMxpOffset1HiXorStackItemValueHi2XorToAddressLo.set(
-          i, b);
+      rlpaddrDepAddrLoXorReturnerContextNumberXorMmuTargetOffsetLoXorStackItemValueHi2XorToAddressLo
+          .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPContextReturnerIsPrecompileAt(final BigInteger b, int i) {
-      rlpaddrKecHiXorReturnerIsPrecompileXorMxpOffset1LoXorStackItemValueHi3XorValue.set(i, b);
+      rlpaddrKecHiXorReturnerIsPrecompileXorMxpGasMxpXorStackItemValueHi3XorValue.set(i, b);
 
       return this;
     }
@@ -5109,184 +5298,210 @@ public record Trace(
     }
 
     public TraceBuilder setPMiscellaneousCcsrFlagAt(final Boolean b, int i) {
-      depStatusXorCcsrFlagXorCallXorAddFlagXorValCurrIsOrigXorIsEip1559.set(i, b);
+      depStatusXorCcsrFlagXorCallAbortXorAddFlagXorValCurrIsOrigXorIsEip1559.set(i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setPMiscellaneousExpDyncostAt(final BigInteger b, int i) {
+      addrLoXorAccountAddressLoXorExpDyncostXorHeightNewXorAddressLoXorCallDataSize.set(i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setPMiscellaneousExpExponentHiAt(final BigInteger b, int i) {
+      balanceXorAccountDeploymentNumberXorExpExponentHiXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
+          .set(i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setPMiscellaneousExpExponentLoAt(final BigInteger b, int i) {
+      balanceNewXorByteCodeAddressHiXorExpExponentLoXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo
+          .set(i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setPMiscellaneousExpFlagAt(final Boolean b, int i) {
+      depStatusNewXorExpFlagXorCallEoaSuccessCallerWillRevertXorBinFlagXorValCurrIsZeroXorStatusCode
+          .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousFcondFlagAt(final Boolean b, int i) {
-      depStatusNewXorFcondFlagXorCodedepositXorBinFlagXorValCurrIsZeroXorStatusCode.set(i, b);
+      existsXorFcondFlagXorCallEoaSuccessCallerWontRevertXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution
+          .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMmuCnSAt(final BigInteger b, int i) {
-      addrLoXorAccountAddressLoXorMmuCnSXorHeightNewXorAddressLoXorCallDataSize.set(i, b);
+      codeHashHiXorByteCodeAddressLoXorMmuCnSXorInstructionXorStorageKeyLoXorFromAddressHi.set(
+          i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMmuCnTAt(final BigInteger b, int i) {
-      balanceXorAccountDeploymentNumberXorMmuCnTXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
+      codeHashHiNewXorByteCodeDeploymentNumberXorMmuCnTXorPushValueHiXorValCurrHiXorFromAddressLo
           .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMmuFlagAt(final Boolean b, int i) {
-      existsXorMmuFlagXorCreateXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution.set(i, b);
+      existsNewXorMmuFlagXorCallPrcFailureCallerWillRevertXorCallFlagXorValNextIsOrig.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMmuInstAt(final BigInteger b, int i) {
-      balanceNewXorByteCodeAddressHiXorMmuInstXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo.set(
+      codeHashLoXorByteCodeDeploymentStatusXorMmuInstXorPushValueLoXorValCurrLoXorGasLimit.set(
           i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMmuNum1At(final BigInteger b, int i) {
-      codeHashHiXorByteCodeAddressLoXorMmuNum1XorInstructionXorStorageKeyLoXorFromAddressHi.set(
-          i, b);
+      codeHashLoNewXorCallerAddressHiXorMmuNum1XorStackItemHeight1XorValNextHiXorGasPrice.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMmuNum2At(final BigInteger b, int i) {
-      codeHashHiNewXorByteCodeDeploymentNumberXorMmuNum2XorPushValueHiXorValCurrHiXorFromAddressLo
-          .set(i, b);
+      codeSizeXorCallerAddressLoXorMmuNum2XorStackItemHeight2XorValNextLoXorGasRefundAmount.set(
+          i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMmuRefsAt(final BigInteger b, int i) {
-      codeHashLoXorByteCodeDeploymentStatusXorMmuRefsXorPushValueLoXorValCurrLoXorGasLimit.set(
-          i, b);
+      codeSizeNewXorCallerContextNumberXorMmuRefsXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
+          .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMmuSizeAt(final BigInteger b, int i) {
-      codeHashLoNewXorCallerAddressHiXorMmuSizeXorStackItemHeight1XorValNextHiXorGasPrice.set(i, b);
+      deploymentNumberInftyXorCallDataOffsetXorMmuSizeXorStackItemHeight4XorValOrigLoXorInitialBalance
+          .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMmuSourceOffsetHiAt(final BigInteger b, int i) {
-      codeSizeXorCallerAddressLoXorMmuSourceOffsetHiXorStackItemHeight2XorValNextLoXorGasRefundAmount
-          .set(i, b);
+      depNumXorCallDataSizeXorMmuSourceOffsetHiXorStackItemStamp1XorInitCodeSize.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMmuSourceOffsetLoAt(final BigInteger b, int i) {
-      codeSizeNewXorCallerContextNumberXorMmuSourceOffsetLoXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
-          .set(i, b);
+      depNumNewXorCallStackDepthXorMmuSourceOffsetLoXorStackItemStamp2XorInitGas.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMmuStackValHiAt(final BigInteger b, int i) {
-      deploymentNumberInftyXorCallDataOffsetXorMmuStackValHiXorStackItemHeight4XorValOrigLoXorInitialBalance
-          .set(i, b);
+      nonceXorCallValueXorMmuStackValHiXorStackItemStamp3XorLeftoverGas.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMmuStackValLoAt(final BigInteger b, int i) {
-      depNumXorCallDataSizeXorMmuStackValLoXorStackItemStamp1XorInitCodeSize.set(i, b);
+      nonceNewXorContextNumberXorMmuStackValLoXorStackItemStamp4XorNonce.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMmuTargetOffsetHiAt(final BigInteger b, int i) {
-      depNumNewXorCallStackDepthXorMmuTargetOffsetHiXorStackItemStamp2XorInitGas.set(i, b);
+      rlpaddrDepAddrHiXorIsStaticXorMmuTargetOffsetHiXorStackItemValueHi1XorToAddressHi.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMmuTargetOffsetLoAt(final BigInteger b, int i) {
-      nonceXorCallValueXorMmuTargetOffsetLoXorStackItemStamp3XorLeftoverGas.set(i, b);
+      rlpaddrDepAddrLoXorReturnerContextNumberXorMmuTargetOffsetLoXorStackItemValueHi2XorToAddressLo
+          .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMxpDeploysAt(final Boolean b, int i) {
-      existsNewXorMxpDeploysXorEcaddXorCallFlagXorValNextIsOrig.set(i, b);
+      hasCodeXorMxpDeploysXorCallPrcFailureCallerWontRevertXorConFlagXorValNextIsZero.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMxpFlagAt(final Boolean b, int i) {
-      hasCodeXorMxpFlagXorEcmulXorConFlagXorValNextIsZero.set(i, b);
+      hasCodeNewXorMxpFlagXorCallPrcSuccessCallerWillRevertXorCopyFlagXorValOrigIsZero.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMxpGasMxpAt(final BigInteger b, int i) {
-      nonceNewXorContextNumberXorMxpGasMxpXorStackItemStamp4XorNonce.set(i, b);
+      rlpaddrKecHiXorReturnerIsPrecompileXorMxpGasMxpXorStackItemValueHi3XorValue.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMxpInstAt(final BigInteger b, int i) {
-      rlpaddrDepAddrHiXorIsStaticXorMxpInstXorStackItemValueHi1XorToAddressHi.set(i, b);
+      rlpaddrKecLoXorReturnAtOffsetXorMxpInstXorStackItemValueHi4.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMxpMxpxAt(final Boolean b, int i) {
-      hasCodeNewXorMxpMxpxXorEcpairingXorCopyFlagXorValOrigIsZero.set(i, b);
+      isBlake2FXorMxpMxpxXorCallPrcSuccessCallerWontRevertXorCreateFlagXorWarm.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMxpOffset1HiAt(final BigInteger b, int i) {
-      rlpaddrDepAddrLoXorReturnerContextNumberXorMxpOffset1HiXorStackItemValueHi2XorToAddressLo.set(
-          i, b);
+      rlpaddrRecipeXorReturnAtSizeXorMxpOffset1HiXorStackItemValueLo1.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMxpOffset1LoAt(final BigInteger b, int i) {
-      rlpaddrKecHiXorReturnerIsPrecompileXorMxpOffset1LoXorStackItemValueHi3XorValue.set(i, b);
+      rlpaddrSaltHiXorReturnDataOffsetXorMxpOffset1LoXorStackItemValueLo2.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMxpOffset2HiAt(final BigInteger b, int i) {
-      rlpaddrKecLoXorReturnAtOffsetXorMxpOffset2HiXorStackItemValueHi4.set(i, b);
+      rlpaddrSaltLoXorReturnDataSizeXorMxpOffset2HiXorStackItemValueLo3.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMxpOffset2LoAt(final BigInteger b, int i) {
-      rlpaddrRecipeXorReturnAtSizeXorMxpOffset2LoXorStackItemValueLo1.set(i, b);
+      trmRawAddrHiXorMxpOffset2LoXorStackItemValueLo4.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMxpSize1HiAt(final BigInteger b, int i) {
-      rlpaddrSaltHiXorReturnDataOffsetXorMxpSize1HiXorStackItemValueLo2.set(i, b);
+      mxpSize1HiXorStaticGas.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMxpSize1LoAt(final BigInteger b, int i) {
-      rlpaddrSaltLoXorReturnDataSizeXorMxpSize1LoXorStackItemValueLo3.set(i, b);
+      mxpSize1Lo.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMxpSize2HiAt(final BigInteger b, int i) {
-      trmRawAddrHiXorMxpSize2HiXorStackItemValueLo4.set(i, b);
+      mxpSize2Hi.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMxpSize2LoAt(final BigInteger b, int i) {
-      mxpSize2LoXorStaticGas.set(i, b);
+      mxpSize2Lo.set(i, b);
 
       return this;
     }
@@ -5298,19 +5513,19 @@ public record Trace(
     }
 
     public TraceBuilder setPMiscellaneousOobEvent1At(final Boolean b, int i) {
-      isBlake2FXorOobEvent1XorEcrecoverXorCreateFlagXorWarm.set(i, b);
+      isEcaddXorOobEvent1XorCallSmcFailureCallerWillRevertXorDecodedFlag1XorWarmNew.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousOobEvent2At(final Boolean b, int i) {
-      isEcaddXorOobEvent2XorIdentityXorDecodedFlag1XorWarmNew.set(i, b);
+      isEcmulXorOobEvent2XorCallSmcFailureCallerWontRevertXorDecodedFlag2.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousOobFlagAt(final Boolean b, int i) {
-      isEcmulXorOobFlagXorModexpXorDecodedFlag2.set(i, b);
+      isEcpairingXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecodedFlag3.set(i, b);
 
       return this;
     }
@@ -5376,7 +5591,7 @@ public record Trace(
     }
 
     public TraceBuilder setPMiscellaneousPrecinfoFlagAt(final Boolean b, int i) {
-      isEcpairingXorPrecinfoFlagXorRipemDsub160XorDecodedFlag3.set(i, b);
+      isEcrecoverXorPrecinfoFlagXorCallSmcSuccessCallerWontRevertXorDecodedFlag4.set(i, b);
 
       return this;
     }
@@ -5406,13 +5621,13 @@ public record Trace(
     }
 
     public TraceBuilder setPMiscellaneousStpExistsAt(final Boolean b, int i) {
-      isEcrecoverXorStpExistsXorScn1XorDecodedFlag4.set(i, b);
+      isIdentityXorStpExistsXorCodedepositXorDupFlag.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousStpFlagAt(final Boolean b, int i) {
-      isIdentityXorStpFlagXorScn10XorDupFlag.set(i, b);
+      isModexpXorStpFlagXorCodedepositInvalidCodePrefixXorExtFlag.set(i, b);
 
       return this;
     }
@@ -5448,7 +5663,7 @@ public record Trace(
     }
 
     public TraceBuilder setPMiscellaneousStpOogxAt(final Boolean b, int i) {
-      isModexpXorStpOogxXorScn11XorExtFlag.set(i, b);
+      isPrecompileXorStpOogxXorCodedepositValidCodePrefixXorHaltFlag.set(i, b);
 
       return this;
     }
@@ -5466,7 +5681,7 @@ public record Trace(
     }
 
     public TraceBuilder setPMiscellaneousStpWarmAt(final Boolean b, int i) {
-      isPrecompileXorStpWarmXorScn12XorHaltFlag.set(i, b);
+      isRipemDsub160XorStpWarmXorEcaddXorInvalidFlag.set(i, b);
 
       return this;
     }
@@ -5478,146 +5693,190 @@ public record Trace(
       return this;
     }
 
-    public TraceBuilder setPScenarioCallAt(final Boolean b, int i) {
-      depStatusXorCcsrFlagXorCallXorAddFlagXorValCurrIsOrigXorIsEip1559.set(i, b);
+    public TraceBuilder setPScenarioCallAbortAt(final Boolean b, int i) {
+      depStatusXorCcsrFlagXorCallAbortXorAddFlagXorValCurrIsOrigXorIsEip1559.set(i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setPScenarioCallEoaSuccessCallerWillRevertAt(final Boolean b, int i) {
+      depStatusNewXorExpFlagXorCallEoaSuccessCallerWillRevertXorBinFlagXorValCurrIsZeroXorStatusCode
+          .set(i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setPScenarioCallEoaSuccessCallerWontRevertAt(final Boolean b, int i) {
+      existsXorFcondFlagXorCallEoaSuccessCallerWontRevertXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution
+          .set(i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setPScenarioCallPrcFailureCallerWillRevertAt(final Boolean b, int i) {
+      existsNewXorMmuFlagXorCallPrcFailureCallerWillRevertXorCallFlagXorValNextIsOrig.set(i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setPScenarioCallPrcFailureCallerWontRevertAt(final Boolean b, int i) {
+      hasCodeXorMxpDeploysXorCallPrcFailureCallerWontRevertXorConFlagXorValNextIsZero.set(i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setPScenarioCallPrcSuccessCallerWillRevertAt(final Boolean b, int i) {
+      hasCodeNewXorMxpFlagXorCallPrcSuccessCallerWillRevertXorCopyFlagXorValOrigIsZero.set(i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setPScenarioCallPrcSuccessCallerWontRevertAt(final Boolean b, int i) {
+      isBlake2FXorMxpMxpxXorCallPrcSuccessCallerWontRevertXorCreateFlagXorWarm.set(i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setPScenarioCallSmcFailureCallerWillRevertAt(final Boolean b, int i) {
+      isEcaddXorOobEvent1XorCallSmcFailureCallerWillRevertXorDecodedFlag1XorWarmNew.set(i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setPScenarioCallSmcFailureCallerWontRevertAt(final Boolean b, int i) {
+      isEcmulXorOobEvent2XorCallSmcFailureCallerWontRevertXorDecodedFlag2.set(i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setPScenarioCallSmcSuccessCallerWillRevertAt(final Boolean b, int i) {
+      isEcpairingXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecodedFlag3.set(i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setPScenarioCallSmcSuccessCallerWontRevertAt(final Boolean b, int i) {
+      isEcrecoverXorPrecinfoFlagXorCallSmcSuccessCallerWontRevertXorDecodedFlag4.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPScenarioCodedepositAt(final Boolean b, int i) {
-      depStatusNewXorFcondFlagXorCodedepositXorBinFlagXorValCurrIsZeroXorStatusCode.set(i, b);
+      isIdentityXorStpExistsXorCodedepositXorDupFlag.set(i, b);
 
       return this;
     }
 
-    public TraceBuilder setPScenarioCreateAt(final Boolean b, int i) {
-      existsXorMmuFlagXorCreateXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution.set(i, b);
+    public TraceBuilder setPScenarioCodedepositInvalidCodePrefixAt(final Boolean b, int i) {
+      isModexpXorStpFlagXorCodedepositInvalidCodePrefixXorExtFlag.set(i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setPScenarioCodedepositValidCodePrefixAt(final Boolean b, int i) {
+      isPrecompileXorStpOogxXorCodedepositValidCodePrefixXorHaltFlag.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPScenarioEcaddAt(final Boolean b, int i) {
-      existsNewXorMxpDeploysXorEcaddXorCallFlagXorValNextIsOrig.set(i, b);
+      isRipemDsub160XorStpWarmXorEcaddXorInvalidFlag.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPScenarioEcmulAt(final Boolean b, int i) {
-      hasCodeXorMxpFlagXorEcmulXorConFlagXorValNextIsZero.set(i, b);
+      isSha2Sub256XorEcmulXorInvprex.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPScenarioEcpairingAt(final Boolean b, int i) {
-      hasCodeNewXorMxpMxpxXorEcpairingXorCopyFlagXorValOrigIsZero.set(i, b);
+      rlpaddrFlagXorEcpairingXorJumpx.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPScenarioEcrecoverAt(final Boolean b, int i) {
-      isBlake2FXorOobEvent1XorEcrecoverXorCreateFlagXorWarm.set(i, b);
+      trmFlagXorEcrecoverXorJumpFlag.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPScenarioIdentityAt(final Boolean b, int i) {
-      isEcaddXorOobEvent2XorIdentityXorDecodedFlag1XorWarmNew.set(i, b);
+      warmXorIdentityXorKecFlag.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPScenarioModexpAt(final Boolean b, int i) {
-      isEcmulXorOobFlagXorModexpXorDecodedFlag2.set(i, b);
+      warmNewXorModexpXorLogFlag.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPScenarioRipemd160At(final Boolean b, int i) {
-      isEcpairingXorPrecinfoFlagXorRipemDsub160XorDecodedFlag3.set(i, b);
+      ripemDsub160XorMaxcsx.set(i, b);
 
       return this;
     }
 
-    public TraceBuilder setPScenarioScn1At(final Boolean b, int i) {
-      isEcrecoverXorStpExistsXorScn1XorDecodedFlag4.set(i, b);
+    public TraceBuilder setPScenarioScnFailure1At(final Boolean b, int i) {
+      scnFailure1XorModFlag.set(i, b);
 
       return this;
     }
 
-    public TraceBuilder setPScenarioScn10At(final Boolean b, int i) {
-      isIdentityXorStpFlagXorScn10XorDupFlag.set(i, b);
+    public TraceBuilder setPScenarioScnFailure2At(final Boolean b, int i) {
+      scnFailure2XorMulFlag.set(i, b);
 
       return this;
     }
 
-    public TraceBuilder setPScenarioScn11At(final Boolean b, int i) {
-      isModexpXorStpOogxXorScn11XorExtFlag.set(i, b);
+    public TraceBuilder setPScenarioScnFailure3At(final Boolean b, int i) {
+      scnFailure3XorMxpx.set(i, b);
 
       return this;
     }
 
-    public TraceBuilder setPScenarioScn12At(final Boolean b, int i) {
-      isPrecompileXorStpWarmXorScn12XorHaltFlag.set(i, b);
+    public TraceBuilder setPScenarioScnFailure4At(final Boolean b, int i) {
+      scnFailure4XorMxpFlag.set(i, b);
 
       return this;
     }
 
-    public TraceBuilder setPScenarioScn2At(final Boolean b, int i) {
-      isRipemDsub160XorScn2XorInvalidFlag.set(i, b);
+    public TraceBuilder setPScenarioScnSuccess1At(final Boolean b, int i) {
+      scnSuccess1XorOobFlag.set(i, b);
 
       return this;
     }
 
-    public TraceBuilder setPScenarioScn3At(final Boolean b, int i) {
-      isSha2Sub256XorScn3XorInvprex.set(i, b);
+    public TraceBuilder setPScenarioScnSuccess2At(final Boolean b, int i) {
+      scnSuccess2XorOogx.set(i, b);
 
       return this;
     }
 
-    public TraceBuilder setPScenarioScn4At(final Boolean b, int i) {
-      rlpaddrFlagXorScn4XorJumpx.set(i, b);
+    public TraceBuilder setPScenarioScnSuccess3At(final Boolean b, int i) {
+      scnSuccess3XorOpcx.set(i, b);
 
       return this;
     }
 
-    public TraceBuilder setPScenarioScn5At(final Boolean b, int i) {
-      trmFlagXorScn5XorJumpFlag.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setPScenarioScn6At(final Boolean b, int i) {
-      warmXorScn6XorKecFlag.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setPScenarioScn7At(final Boolean b, int i) {
-      warmNewXorScn7XorLogFlag.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setPScenarioScn8At(final Boolean b, int i) {
-      scn8XorMaxcsx.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setPScenarioScn9At(final Boolean b, int i) {
-      scn9XorModFlag.set(i, b);
+    public TraceBuilder setPScenarioScnSuccess4At(final Boolean b, int i) {
+      scnSuccess4XorPushpopFlag.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPScenarioSelfdestructAt(final Boolean b, int i) {
-      selfdestructXorMulFlag.set(i, b);
+      selfdestructXorRdcx.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPScenarioSha2256At(final Boolean b, int i) {
-      sha2Sub256XorMxpx.set(i, b);
+      sha2Sub256XorShfFlag.set(i, b);
 
       return this;
     }
@@ -5630,85 +5889,87 @@ public record Trace(
     }
 
     public TraceBuilder setPStackAddFlagAt(final Boolean b, int i) {
-      depStatusXorCcsrFlagXorCallXorAddFlagXorValCurrIsOrigXorIsEip1559.set(i, b);
+      depStatusXorCcsrFlagXorCallAbortXorAddFlagXorValCurrIsOrigXorIsEip1559.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackBinFlagAt(final Boolean b, int i) {
-      depStatusNewXorFcondFlagXorCodedepositXorBinFlagXorValCurrIsZeroXorStatusCode.set(i, b);
+      depStatusNewXorExpFlagXorCallEoaSuccessCallerWillRevertXorBinFlagXorValCurrIsZeroXorStatusCode
+          .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackBtcFlagAt(final Boolean b, int i) {
-      existsXorMmuFlagXorCreateXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution.set(i, b);
+      existsXorFcondFlagXorCallEoaSuccessCallerWontRevertXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution
+          .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackCallFlagAt(final Boolean b, int i) {
-      existsNewXorMxpDeploysXorEcaddXorCallFlagXorValNextIsOrig.set(i, b);
+      existsNewXorMmuFlagXorCallPrcFailureCallerWillRevertXorCallFlagXorValNextIsOrig.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackConFlagAt(final Boolean b, int i) {
-      hasCodeXorMxpFlagXorEcmulXorConFlagXorValNextIsZero.set(i, b);
+      hasCodeXorMxpDeploysXorCallPrcFailureCallerWontRevertXorConFlagXorValNextIsZero.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackCopyFlagAt(final Boolean b, int i) {
-      hasCodeNewXorMxpMxpxXorEcpairingXorCopyFlagXorValOrigIsZero.set(i, b);
+      hasCodeNewXorMxpFlagXorCallPrcSuccessCallerWillRevertXorCopyFlagXorValOrigIsZero.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackCreateFlagAt(final Boolean b, int i) {
-      isBlake2FXorOobEvent1XorEcrecoverXorCreateFlagXorWarm.set(i, b);
+      isBlake2FXorMxpMxpxXorCallPrcSuccessCallerWontRevertXorCreateFlagXorWarm.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackDecodedFlag1At(final Boolean b, int i) {
-      isEcaddXorOobEvent2XorIdentityXorDecodedFlag1XorWarmNew.set(i, b);
+      isEcaddXorOobEvent1XorCallSmcFailureCallerWillRevertXorDecodedFlag1XorWarmNew.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackDecodedFlag2At(final Boolean b, int i) {
-      isEcmulXorOobFlagXorModexpXorDecodedFlag2.set(i, b);
+      isEcmulXorOobEvent2XorCallSmcFailureCallerWontRevertXorDecodedFlag2.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackDecodedFlag3At(final Boolean b, int i) {
-      isEcpairingXorPrecinfoFlagXorRipemDsub160XorDecodedFlag3.set(i, b);
+      isEcpairingXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecodedFlag3.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackDecodedFlag4At(final Boolean b, int i) {
-      isEcrecoverXorStpExistsXorScn1XorDecodedFlag4.set(i, b);
+      isEcrecoverXorPrecinfoFlagXorCallSmcSuccessCallerWontRevertXorDecodedFlag4.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackDupFlagAt(final Boolean b, int i) {
-      isIdentityXorStpFlagXorScn10XorDupFlag.set(i, b);
+      isIdentityXorStpExistsXorCodedepositXorDupFlag.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackExtFlagAt(final Boolean b, int i) {
-      isModexpXorStpOogxXorScn11XorExtFlag.set(i, b);
+      isModexpXorStpFlagXorCodedepositInvalidCodePrefixXorExtFlag.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackHaltFlagAt(final Boolean b, int i) {
-      isPrecompileXorStpWarmXorScn12XorHaltFlag.set(i, b);
+      isPrecompileXorStpOogxXorCodedepositValidCodePrefixXorHaltFlag.set(i, b);
 
       return this;
     }
@@ -5720,144 +5981,144 @@ public record Trace(
     }
 
     public TraceBuilder setPStackHeightNewAt(final BigInteger b, int i) {
-      addrLoXorAccountAddressLoXorMmuCnSXorHeightNewXorAddressLoXorCallDataSize.set(i, b);
+      addrLoXorAccountAddressLoXorExpDyncostXorHeightNewXorAddressLoXorCallDataSize.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackHeightOverAt(final BigInteger b, int i) {
-      balanceXorAccountDeploymentNumberXorMmuCnTXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
+      balanceXorAccountDeploymentNumberXorExpExponentHiXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
           .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackHeightUnderAt(final BigInteger b, int i) {
-      balanceNewXorByteCodeAddressHiXorMmuInstXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo.set(
-          i, b);
+      balanceNewXorByteCodeAddressHiXorExpExponentLoXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo
+          .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackInstructionAt(final BigInteger b, int i) {
-      codeHashHiXorByteCodeAddressLoXorMmuNum1XorInstructionXorStorageKeyLoXorFromAddressHi.set(
+      codeHashHiXorByteCodeAddressLoXorMmuCnSXorInstructionXorStorageKeyLoXorFromAddressHi.set(
           i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackInvalidFlagAt(final Boolean b, int i) {
-      isRipemDsub160XorScn2XorInvalidFlag.set(i, b);
+      isRipemDsub160XorStpWarmXorEcaddXorInvalidFlag.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackInvprexAt(final Boolean b, int i) {
-      isSha2Sub256XorScn3XorInvprex.set(i, b);
+      isSha2Sub256XorEcmulXorInvprex.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackJumpFlagAt(final Boolean b, int i) {
-      trmFlagXorScn5XorJumpFlag.set(i, b);
+      trmFlagXorEcrecoverXorJumpFlag.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackJumpxAt(final Boolean b, int i) {
-      rlpaddrFlagXorScn4XorJumpx.set(i, b);
+      rlpaddrFlagXorEcpairingXorJumpx.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackKecFlagAt(final Boolean b, int i) {
-      warmXorScn6XorKecFlag.set(i, b);
+      warmXorIdentityXorKecFlag.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackLogFlagAt(final Boolean b, int i) {
-      warmNewXorScn7XorLogFlag.set(i, b);
+      warmNewXorModexpXorLogFlag.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackMaxcsxAt(final Boolean b, int i) {
-      scn8XorMaxcsx.set(i, b);
+      ripemDsub160XorMaxcsx.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackModFlagAt(final Boolean b, int i) {
-      scn9XorModFlag.set(i, b);
+      scnFailure1XorModFlag.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackMulFlagAt(final Boolean b, int i) {
-      selfdestructXorMulFlag.set(i, b);
+      scnFailure2XorMulFlag.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackMxpFlagAt(final Boolean b, int i) {
-      mxpFlag.set(i, b);
+      scnFailure4XorMxpFlag.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackMxpxAt(final Boolean b, int i) {
-      sha2Sub256XorMxpx.set(i, b);
+      scnFailure3XorMxpx.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackOobFlagAt(final Boolean b, int i) {
-      oobFlag.set(i, b);
+      scnSuccess1XorOobFlag.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackOogxAt(final Boolean b, int i) {
-      oogx.set(i, b);
+      scnSuccess2XorOogx.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackOpcxAt(final Boolean b, int i) {
-      opcx.set(i, b);
+      scnSuccess3XorOpcx.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackPushValueHiAt(final BigInteger b, int i) {
-      codeHashHiNewXorByteCodeDeploymentNumberXorMmuNum2XorPushValueHiXorValCurrHiXorFromAddressLo
+      codeHashHiNewXorByteCodeDeploymentNumberXorMmuCnTXorPushValueHiXorValCurrHiXorFromAddressLo
           .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackPushValueLoAt(final BigInteger b, int i) {
-      codeHashLoXorByteCodeDeploymentStatusXorMmuRefsXorPushValueLoXorValCurrLoXorGasLimit.set(
+      codeHashLoXorByteCodeDeploymentStatusXorMmuInstXorPushValueLoXorValCurrLoXorGasLimit.set(
           i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackPushpopFlagAt(final Boolean b, int i) {
-      pushpopFlag.set(i, b);
+      scnSuccess4XorPushpopFlag.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackRdcxAt(final Boolean b, int i) {
-      rdcx.set(i, b);
+      selfdestructXorRdcx.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackShfFlagAt(final Boolean b, int i) {
-      shfFlag.set(i, b);
+      sha2Sub256XorShfFlag.set(i, b);
 
       return this;
     }
@@ -5875,27 +6136,27 @@ public record Trace(
     }
 
     public TraceBuilder setPStackStackItemHeight1At(final BigInteger b, int i) {
-      codeHashLoNewXorCallerAddressHiXorMmuSizeXorStackItemHeight1XorValNextHiXorGasPrice.set(i, b);
+      codeHashLoNewXorCallerAddressHiXorMmuNum1XorStackItemHeight1XorValNextHiXorGasPrice.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackStackItemHeight2At(final BigInteger b, int i) {
-      codeSizeXorCallerAddressLoXorMmuSourceOffsetHiXorStackItemHeight2XorValNextLoXorGasRefundAmount
-          .set(i, b);
+      codeSizeXorCallerAddressLoXorMmuNum2XorStackItemHeight2XorValNextLoXorGasRefundAmount.set(
+          i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackStackItemHeight3At(final BigInteger b, int i) {
-      codeSizeNewXorCallerContextNumberXorMmuSourceOffsetLoXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
+      codeSizeNewXorCallerContextNumberXorMmuRefsXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
           .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackStackItemHeight4At(final BigInteger b, int i) {
-      deploymentNumberInftyXorCallDataOffsetXorMmuStackValHiXorStackItemHeight4XorValOrigLoXorInitialBalance
+      deploymentNumberInftyXorCallDataOffsetXorMmuSizeXorStackItemHeight4XorValOrigLoXorInitialBalance
           .set(i, b);
 
       return this;
@@ -5926,74 +6187,74 @@ public record Trace(
     }
 
     public TraceBuilder setPStackStackItemStamp1At(final BigInteger b, int i) {
-      depNumXorCallDataSizeXorMmuStackValLoXorStackItemStamp1XorInitCodeSize.set(i, b);
+      depNumXorCallDataSizeXorMmuSourceOffsetHiXorStackItemStamp1XorInitCodeSize.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackStackItemStamp2At(final BigInteger b, int i) {
-      depNumNewXorCallStackDepthXorMmuTargetOffsetHiXorStackItemStamp2XorInitGas.set(i, b);
+      depNumNewXorCallStackDepthXorMmuSourceOffsetLoXorStackItemStamp2XorInitGas.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackStackItemStamp3At(final BigInteger b, int i) {
-      nonceXorCallValueXorMmuTargetOffsetLoXorStackItemStamp3XorLeftoverGas.set(i, b);
+      nonceXorCallValueXorMmuStackValHiXorStackItemStamp3XorLeftoverGas.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackStackItemStamp4At(final BigInteger b, int i) {
-      nonceNewXorContextNumberXorMxpGasMxpXorStackItemStamp4XorNonce.set(i, b);
+      nonceNewXorContextNumberXorMmuStackValLoXorStackItemStamp4XorNonce.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackStackItemValueHi1At(final BigInteger b, int i) {
-      rlpaddrDepAddrHiXorIsStaticXorMxpInstXorStackItemValueHi1XorToAddressHi.set(i, b);
+      rlpaddrDepAddrHiXorIsStaticXorMmuTargetOffsetHiXorStackItemValueHi1XorToAddressHi.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackStackItemValueHi2At(final BigInteger b, int i) {
-      rlpaddrDepAddrLoXorReturnerContextNumberXorMxpOffset1HiXorStackItemValueHi2XorToAddressLo.set(
-          i, b);
+      rlpaddrDepAddrLoXorReturnerContextNumberXorMmuTargetOffsetLoXorStackItemValueHi2XorToAddressLo
+          .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackStackItemValueHi3At(final BigInteger b, int i) {
-      rlpaddrKecHiXorReturnerIsPrecompileXorMxpOffset1LoXorStackItemValueHi3XorValue.set(i, b);
+      rlpaddrKecHiXorReturnerIsPrecompileXorMxpGasMxpXorStackItemValueHi3XorValue.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackStackItemValueHi4At(final BigInteger b, int i) {
-      rlpaddrKecLoXorReturnAtOffsetXorMxpOffset2HiXorStackItemValueHi4.set(i, b);
+      rlpaddrKecLoXorReturnAtOffsetXorMxpInstXorStackItemValueHi4.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackStackItemValueLo1At(final BigInteger b, int i) {
-      rlpaddrRecipeXorReturnAtSizeXorMxpOffset2LoXorStackItemValueLo1.set(i, b);
+      rlpaddrRecipeXorReturnAtSizeXorMxpOffset1HiXorStackItemValueLo1.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackStackItemValueLo2At(final BigInteger b, int i) {
-      rlpaddrSaltHiXorReturnDataOffsetXorMxpSize1HiXorStackItemValueLo2.set(i, b);
+      rlpaddrSaltHiXorReturnDataOffsetXorMxpOffset1LoXorStackItemValueLo2.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackStackItemValueLo3At(final BigInteger b, int i) {
-      rlpaddrSaltLoXorReturnDataSizeXorMxpSize1LoXorStackItemValueLo3.set(i, b);
+      rlpaddrSaltLoXorReturnDataSizeXorMxpOffset2HiXorStackItemValueLo3.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackStackItemValueLo4At(final BigInteger b, int i) {
-      trmRawAddrHiXorMxpSize2HiXorStackItemValueLo4.set(i, b);
+      trmRawAddrHiXorMxpOffset2LoXorStackItemValueLo4.set(i, b);
 
       return this;
     }
@@ -6011,7 +6272,7 @@ public record Trace(
     }
 
     public TraceBuilder setPStackStaticGasAt(final BigInteger b, int i) {
-      mxpSize2LoXorStaticGas.set(i, b);
+      mxpSize1HiXorStaticGas.set(i, b);
 
       return this;
     }
@@ -6065,27 +6326,27 @@ public record Trace(
     }
 
     public TraceBuilder setPStorageAddressLoAt(final BigInteger b, int i) {
-      addrLoXorAccountAddressLoXorMmuCnSXorHeightNewXorAddressLoXorCallDataSize.set(i, b);
+      addrLoXorAccountAddressLoXorExpDyncostXorHeightNewXorAddressLoXorCallDataSize.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStorageDeploymentNumberAt(final BigInteger b, int i) {
-      balanceXorAccountDeploymentNumberXorMmuCnTXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
+      balanceXorAccountDeploymentNumberXorExpExponentHiXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
           .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStorageStorageKeyHiAt(final BigInteger b, int i) {
-      balanceNewXorByteCodeAddressHiXorMmuInstXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo.set(
-          i, b);
+      balanceNewXorByteCodeAddressHiXorExpExponentLoXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo
+          .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStorageStorageKeyLoAt(final BigInteger b, int i) {
-      codeHashHiXorByteCodeAddressLoXorMmuNum1XorInstructionXorStorageKeyLoXorFromAddressHi.set(
+      codeHashHiXorByteCodeAddressLoXorMmuCnSXorInstructionXorStorageKeyLoXorFromAddressHi.set(
           i, b);
 
       return this;
@@ -6099,90 +6360,92 @@ public record Trace(
     }
 
     public TraceBuilder setPStorageValCurrHiAt(final BigInteger b, int i) {
-      codeHashHiNewXorByteCodeDeploymentNumberXorMmuNum2XorPushValueHiXorValCurrHiXorFromAddressLo
+      codeHashHiNewXorByteCodeDeploymentNumberXorMmuCnTXorPushValueHiXorValCurrHiXorFromAddressLo
           .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStorageValCurrIsOrigAt(final Boolean b, int i) {
-      depStatusXorCcsrFlagXorCallXorAddFlagXorValCurrIsOrigXorIsEip1559.set(i, b);
+      depStatusXorCcsrFlagXorCallAbortXorAddFlagXorValCurrIsOrigXorIsEip1559.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStorageValCurrIsZeroAt(final Boolean b, int i) {
-      depStatusNewXorFcondFlagXorCodedepositXorBinFlagXorValCurrIsZeroXorStatusCode.set(i, b);
+      depStatusNewXorExpFlagXorCallEoaSuccessCallerWillRevertXorBinFlagXorValCurrIsZeroXorStatusCode
+          .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStorageValCurrLoAt(final BigInteger b, int i) {
-      codeHashLoXorByteCodeDeploymentStatusXorMmuRefsXorPushValueLoXorValCurrLoXorGasLimit.set(
+      codeHashLoXorByteCodeDeploymentStatusXorMmuInstXorPushValueLoXorValCurrLoXorGasLimit.set(
           i, b);
 
       return this;
     }
 
     public TraceBuilder setPStorageValNextHiAt(final BigInteger b, int i) {
-      codeHashLoNewXorCallerAddressHiXorMmuSizeXorStackItemHeight1XorValNextHiXorGasPrice.set(i, b);
+      codeHashLoNewXorCallerAddressHiXorMmuNum1XorStackItemHeight1XorValNextHiXorGasPrice.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStorageValNextIsCurrAt(final Boolean b, int i) {
-      existsXorMmuFlagXorCreateXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setPStorageValNextIsOrigAt(final Boolean b, int i) {
-      existsNewXorMxpDeploysXorEcaddXorCallFlagXorValNextIsOrig.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setPStorageValNextIsZeroAt(final Boolean b, int i) {
-      hasCodeXorMxpFlagXorEcmulXorConFlagXorValNextIsZero.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setPStorageValNextLoAt(final BigInteger b, int i) {
-      codeSizeXorCallerAddressLoXorMmuSourceOffsetHiXorStackItemHeight2XorValNextLoXorGasRefundAmount
+      existsXorFcondFlagXorCallEoaSuccessCallerWontRevertXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution
           .set(i, b);
 
       return this;
     }
 
+    public TraceBuilder setPStorageValNextIsOrigAt(final Boolean b, int i) {
+      existsNewXorMmuFlagXorCallPrcFailureCallerWillRevertXorCallFlagXorValNextIsOrig.set(i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setPStorageValNextIsZeroAt(final Boolean b, int i) {
+      hasCodeXorMxpDeploysXorCallPrcFailureCallerWontRevertXorConFlagXorValNextIsZero.set(i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setPStorageValNextLoAt(final BigInteger b, int i) {
+      codeSizeXorCallerAddressLoXorMmuNum2XorStackItemHeight2XorValNextLoXorGasRefundAmount.set(
+          i, b);
+
+      return this;
+    }
+
     public TraceBuilder setPStorageValOrigHiAt(final BigInteger b, int i) {
-      codeSizeNewXorCallerContextNumberXorMmuSourceOffsetLoXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
+      codeSizeNewXorCallerContextNumberXorMmuRefsXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
           .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStorageValOrigIsZeroAt(final Boolean b, int i) {
-      hasCodeNewXorMxpMxpxXorEcpairingXorCopyFlagXorValOrigIsZero.set(i, b);
+      hasCodeNewXorMxpFlagXorCallPrcSuccessCallerWillRevertXorCopyFlagXorValOrigIsZero.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStorageValOrigLoAt(final BigInteger b, int i) {
-      deploymentNumberInftyXorCallDataOffsetXorMmuStackValHiXorStackItemHeight4XorValOrigLoXorInitialBalance
+      deploymentNumberInftyXorCallDataOffsetXorMmuSizeXorStackItemHeight4XorValOrigLoXorInitialBalance
           .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStorageWarmAt(final Boolean b, int i) {
-      isBlake2FXorOobEvent1XorEcrecoverXorCreateFlagXorWarm.set(i, b);
+      isBlake2FXorMxpMxpxXorCallPrcSuccessCallerWontRevertXorCreateFlagXorWarm.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPStorageWarmNewAt(final Boolean b, int i) {
-      isEcaddXorOobEvent2XorIdentityXorDecodedFlag1XorWarmNew.set(i, b);
+      isEcaddXorOobEvent1XorCallSmcFailureCallerWillRevertXorDecodedFlag1XorWarmNew.set(i, b);
 
       return this;
     }
@@ -6194,80 +6457,80 @@ public record Trace(
     }
 
     public TraceBuilder setPTransactionCallDataSizeAt(final BigInteger b, int i) {
-      addrLoXorAccountAddressLoXorMmuCnSXorHeightNewXorAddressLoXorCallDataSize.set(i, b);
+      addrLoXorAccountAddressLoXorExpDyncostXorHeightNewXorAddressLoXorCallDataSize.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPTransactionCoinbaseAddressHiAt(final BigInteger b, int i) {
-      balanceXorAccountDeploymentNumberXorMmuCnTXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
+      balanceXorAccountDeploymentNumberXorExpExponentHiXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
           .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPTransactionCoinbaseAddressLoAt(final BigInteger b, int i) {
-      balanceNewXorByteCodeAddressHiXorMmuInstXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo.set(
-          i, b);
+      balanceNewXorByteCodeAddressHiXorExpExponentLoXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo
+          .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPTransactionFromAddressHiAt(final BigInteger b, int i) {
-      codeHashHiXorByteCodeAddressLoXorMmuNum1XorInstructionXorStorageKeyLoXorFromAddressHi.set(
+      codeHashHiXorByteCodeAddressLoXorMmuCnSXorInstructionXorStorageKeyLoXorFromAddressHi.set(
           i, b);
 
       return this;
     }
 
     public TraceBuilder setPTransactionFromAddressLoAt(final BigInteger b, int i) {
-      codeHashHiNewXorByteCodeDeploymentNumberXorMmuNum2XorPushValueHiXorValCurrHiXorFromAddressLo
+      codeHashHiNewXorByteCodeDeploymentNumberXorMmuCnTXorPushValueHiXorValCurrHiXorFromAddressLo
           .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPTransactionGasLimitAt(final BigInteger b, int i) {
-      codeHashLoXorByteCodeDeploymentStatusXorMmuRefsXorPushValueLoXorValCurrLoXorGasLimit.set(
+      codeHashLoXorByteCodeDeploymentStatusXorMmuInstXorPushValueLoXorValCurrLoXorGasLimit.set(
           i, b);
 
       return this;
     }
 
     public TraceBuilder setPTransactionGasPriceAt(final BigInteger b, int i) {
-      codeHashLoNewXorCallerAddressHiXorMmuSizeXorStackItemHeight1XorValNextHiXorGasPrice.set(i, b);
+      codeHashLoNewXorCallerAddressHiXorMmuNum1XorStackItemHeight1XorValNextHiXorGasPrice.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPTransactionGasRefundAmountAt(final BigInteger b, int i) {
-      codeSizeXorCallerAddressLoXorMmuSourceOffsetHiXorStackItemHeight2XorValNextLoXorGasRefundAmount
-          .set(i, b);
+      codeSizeXorCallerAddressLoXorMmuNum2XorStackItemHeight2XorValNextLoXorGasRefundAmount.set(
+          i, b);
 
       return this;
     }
 
     public TraceBuilder setPTransactionGasRefundCounterFinalAt(final BigInteger b, int i) {
-      codeSizeNewXorCallerContextNumberXorMmuSourceOffsetLoXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
+      codeSizeNewXorCallerContextNumberXorMmuRefsXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
           .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPTransactionInitCodeSizeAt(final BigInteger b, int i) {
-      depNumXorCallDataSizeXorMmuStackValLoXorStackItemStamp1XorInitCodeSize.set(i, b);
+      depNumXorCallDataSizeXorMmuSourceOffsetHiXorStackItemStamp1XorInitCodeSize.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPTransactionInitGasAt(final BigInteger b, int i) {
-      depNumNewXorCallStackDepthXorMmuTargetOffsetHiXorStackItemStamp2XorInitGas.set(i, b);
+      depNumNewXorCallStackDepthXorMmuSourceOffsetLoXorStackItemStamp2XorInitGas.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPTransactionInitialBalanceAt(final BigInteger b, int i) {
-      deploymentNumberInftyXorCallDataOffsetXorMmuStackValHiXorStackItemHeight4XorValOrigLoXorInitialBalance
+      deploymentNumberInftyXorCallDataOffsetXorMmuSizeXorStackItemHeight4XorValOrigLoXorInitialBalance
           .set(i, b);
 
       return this;
@@ -6281,50 +6544,52 @@ public record Trace(
     }
 
     public TraceBuilder setPTransactionIsEip1559At(final Boolean b, int i) {
-      depStatusXorCcsrFlagXorCallXorAddFlagXorValCurrIsOrigXorIsEip1559.set(i, b);
+      depStatusXorCcsrFlagXorCallAbortXorAddFlagXorValCurrIsOrigXorIsEip1559.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPTransactionLeftoverGasAt(final BigInteger b, int i) {
-      nonceXorCallValueXorMmuTargetOffsetLoXorStackItemStamp3XorLeftoverGas.set(i, b);
+      nonceXorCallValueXorMmuStackValHiXorStackItemStamp3XorLeftoverGas.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPTransactionNonceAt(final BigInteger b, int i) {
-      nonceNewXorContextNumberXorMxpGasMxpXorStackItemStamp4XorNonce.set(i, b);
+      nonceNewXorContextNumberXorMmuStackValLoXorStackItemStamp4XorNonce.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPTransactionStatusCodeAt(final Boolean b, int i) {
-      depStatusNewXorFcondFlagXorCodedepositXorBinFlagXorValCurrIsZeroXorStatusCode.set(i, b);
+      depStatusNewXorExpFlagXorCallEoaSuccessCallerWillRevertXorBinFlagXorValCurrIsZeroXorStatusCode
+          .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPTransactionToAddressHiAt(final BigInteger b, int i) {
-      rlpaddrDepAddrHiXorIsStaticXorMxpInstXorStackItemValueHi1XorToAddressHi.set(i, b);
+      rlpaddrDepAddrHiXorIsStaticXorMmuTargetOffsetHiXorStackItemValueHi1XorToAddressHi.set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPTransactionToAddressLoAt(final BigInteger b, int i) {
-      rlpaddrDepAddrLoXorReturnerContextNumberXorMxpOffset1HiXorStackItemValueHi2XorToAddressLo.set(
-          i, b);
+      rlpaddrDepAddrLoXorReturnerContextNumberXorMmuTargetOffsetLoXorStackItemValueHi2XorToAddressLo
+          .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPTransactionTxnRequiresEvmExecutionAt(final Boolean b, int i) {
-      existsXorMmuFlagXorCreateXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution.set(i, b);
+      existsXorFcondFlagXorCallEoaSuccessCallerWontRevertXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution
+          .set(i, b);
 
       return this;
     }
 
     public TraceBuilder setPTransactionValueAt(final BigInteger b, int i) {
-      rlpaddrKecHiXorReturnerIsPrecompileXorMxpOffset1LoXorStackItemValueHi3XorValue.set(i, b);
+      rlpaddrKecHiXorReturnerIsPrecompileXorMxpGasMxpXorStackItemValueHi3XorValue.set(i, b);
 
       return this;
     }
@@ -6601,17 +6866,19 @@ public record Trace(
     }
 
     public TraceBuilder setPAccountAddrLoRelative(final BigInteger b, int i) {
-      addrLoXorAccountAddressLoXorMmuCnSXorHeightNewXorAddressLoXorCallDataSize.set(
-          addrLoXorAccountAddressLoXorMmuCnSXorHeightNewXorAddressLoXorCallDataSize.size() - 1 - i,
+      addrLoXorAccountAddressLoXorExpDyncostXorHeightNewXorAddressLoXorCallDataSize.set(
+          addrLoXorAccountAddressLoXorExpDyncostXorHeightNewXorAddressLoXorCallDataSize.size()
+              - 1
+              - i,
           b);
 
       return this;
     }
 
     public TraceBuilder setPAccountBalanceRelative(final BigInteger b, int i) {
-      balanceXorAccountDeploymentNumberXorMmuCnTXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
+      balanceXorAccountDeploymentNumberXorExpExponentHiXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
           .set(
-              balanceXorAccountDeploymentNumberXorMmuCnTXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
+              balanceXorAccountDeploymentNumberXorExpExponentHiXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
                       .size()
                   - 1
                   - i,
@@ -6621,19 +6888,20 @@ public record Trace(
     }
 
     public TraceBuilder setPAccountBalanceNewRelative(final BigInteger b, int i) {
-      balanceNewXorByteCodeAddressHiXorMmuInstXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo.set(
-          balanceNewXorByteCodeAddressHiXorMmuInstXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo
-                  .size()
-              - 1
-              - i,
-          b);
+      balanceNewXorByteCodeAddressHiXorExpExponentLoXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo
+          .set(
+              balanceNewXorByteCodeAddressHiXorExpExponentLoXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo
+                      .size()
+                  - 1
+                  - i,
+              b);
 
       return this;
     }
 
     public TraceBuilder setPAccountCodeHashHiRelative(final BigInteger b, int i) {
-      codeHashHiXorByteCodeAddressLoXorMmuNum1XorInstructionXorStorageKeyLoXorFromAddressHi.set(
-          codeHashHiXorByteCodeAddressLoXorMmuNum1XorInstructionXorStorageKeyLoXorFromAddressHi
+      codeHashHiXorByteCodeAddressLoXorMmuCnSXorInstructionXorStorageKeyLoXorFromAddressHi.set(
+          codeHashHiXorByteCodeAddressLoXorMmuCnSXorInstructionXorStorageKeyLoXorFromAddressHi
                   .size()
               - 1
               - i,
@@ -6643,9 +6911,9 @@ public record Trace(
     }
 
     public TraceBuilder setPAccountCodeHashHiNewRelative(final BigInteger b, int i) {
-      codeHashHiNewXorByteCodeDeploymentNumberXorMmuNum2XorPushValueHiXorValCurrHiXorFromAddressLo
+      codeHashHiNewXorByteCodeDeploymentNumberXorMmuCnTXorPushValueHiXorValCurrHiXorFromAddressLo
           .set(
-              codeHashHiNewXorByteCodeDeploymentNumberXorMmuNum2XorPushValueHiXorValCurrHiXorFromAddressLo
+              codeHashHiNewXorByteCodeDeploymentNumberXorMmuCnTXorPushValueHiXorValCurrHiXorFromAddressLo
                       .size()
                   - 1
                   - i,
@@ -6655,8 +6923,8 @@ public record Trace(
     }
 
     public TraceBuilder setPAccountCodeHashLoRelative(final BigInteger b, int i) {
-      codeHashLoXorByteCodeDeploymentStatusXorMmuRefsXorPushValueLoXorValCurrLoXorGasLimit.set(
-          codeHashLoXorByteCodeDeploymentStatusXorMmuRefsXorPushValueLoXorValCurrLoXorGasLimit
+      codeHashLoXorByteCodeDeploymentStatusXorMmuInstXorPushValueLoXorValCurrLoXorGasLimit.set(
+          codeHashLoXorByteCodeDeploymentStatusXorMmuInstXorPushValueLoXorValCurrLoXorGasLimit
                   .size()
               - 1
               - i,
@@ -6666,8 +6934,8 @@ public record Trace(
     }
 
     public TraceBuilder setPAccountCodeHashLoNewRelative(final BigInteger b, int i) {
-      codeHashLoNewXorCallerAddressHiXorMmuSizeXorStackItemHeight1XorValNextHiXorGasPrice.set(
-          codeHashLoNewXorCallerAddressHiXorMmuSizeXorStackItemHeight1XorValNextHiXorGasPrice.size()
+      codeHashLoNewXorCallerAddressHiXorMmuNum1XorStackItemHeight1XorValNextHiXorGasPrice.set(
+          codeHashLoNewXorCallerAddressHiXorMmuNum1XorStackItemHeight1XorValNextHiXorGasPrice.size()
               - 1
               - i,
           b);
@@ -6676,21 +6944,20 @@ public record Trace(
     }
 
     public TraceBuilder setPAccountCodeSizeRelative(final BigInteger b, int i) {
-      codeSizeXorCallerAddressLoXorMmuSourceOffsetHiXorStackItemHeight2XorValNextLoXorGasRefundAmount
-          .set(
-              codeSizeXorCallerAddressLoXorMmuSourceOffsetHiXorStackItemHeight2XorValNextLoXorGasRefundAmount
-                      .size()
-                  - 1
-                  - i,
-              b);
+      codeSizeXorCallerAddressLoXorMmuNum2XorStackItemHeight2XorValNextLoXorGasRefundAmount.set(
+          codeSizeXorCallerAddressLoXorMmuNum2XorStackItemHeight2XorValNextLoXorGasRefundAmount
+                  .size()
+              - 1
+              - i,
+          b);
 
       return this;
     }
 
     public TraceBuilder setPAccountCodeSizeNewRelative(final BigInteger b, int i) {
-      codeSizeNewXorCallerContextNumberXorMmuSourceOffsetLoXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
+      codeSizeNewXorCallerContextNumberXorMmuRefsXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
           .set(
-              codeSizeNewXorCallerContextNumberXorMmuSourceOffsetLoXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
+              codeSizeNewXorCallerContextNumberXorMmuRefsXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
                       .size()
                   - 1
                   - i,
@@ -6700,41 +6967,44 @@ public record Trace(
     }
 
     public TraceBuilder setPAccountDepNumRelative(final BigInteger b, int i) {
-      depNumXorCallDataSizeXorMmuStackValLoXorStackItemStamp1XorInitCodeSize.set(
-          depNumXorCallDataSizeXorMmuStackValLoXorStackItemStamp1XorInitCodeSize.size() - 1 - i, b);
+      depNumXorCallDataSizeXorMmuSourceOffsetHiXorStackItemStamp1XorInitCodeSize.set(
+          depNumXorCallDataSizeXorMmuSourceOffsetHiXorStackItemStamp1XorInitCodeSize.size() - 1 - i,
+          b);
 
       return this;
     }
 
     public TraceBuilder setPAccountDepNumNewRelative(final BigInteger b, int i) {
-      depNumNewXorCallStackDepthXorMmuTargetOffsetHiXorStackItemStamp2XorInitGas.set(
-          depNumNewXorCallStackDepthXorMmuTargetOffsetHiXorStackItemStamp2XorInitGas.size() - 1 - i,
+      depNumNewXorCallStackDepthXorMmuSourceOffsetLoXorStackItemStamp2XorInitGas.set(
+          depNumNewXorCallStackDepthXorMmuSourceOffsetLoXorStackItemStamp2XorInitGas.size() - 1 - i,
           b);
 
       return this;
     }
 
     public TraceBuilder setPAccountDepStatusRelative(final Boolean b, int i) {
-      depStatusXorCcsrFlagXorCallXorAddFlagXorValCurrIsOrigXorIsEip1559.set(
-          depStatusXorCcsrFlagXorCallXorAddFlagXorValCurrIsOrigXorIsEip1559.size() - 1 - i, b);
+      depStatusXorCcsrFlagXorCallAbortXorAddFlagXorValCurrIsOrigXorIsEip1559.set(
+          depStatusXorCcsrFlagXorCallAbortXorAddFlagXorValCurrIsOrigXorIsEip1559.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountDepStatusNewRelative(final Boolean b, int i) {
-      depStatusNewXorFcondFlagXorCodedepositXorBinFlagXorValCurrIsZeroXorStatusCode.set(
-          depStatusNewXorFcondFlagXorCodedepositXorBinFlagXorValCurrIsZeroXorStatusCode.size()
-              - 1
-              - i,
-          b);
+      depStatusNewXorExpFlagXorCallEoaSuccessCallerWillRevertXorBinFlagXorValCurrIsZeroXorStatusCode
+          .set(
+              depStatusNewXorExpFlagXorCallEoaSuccessCallerWillRevertXorBinFlagXorValCurrIsZeroXorStatusCode
+                      .size()
+                  - 1
+                  - i,
+              b);
 
       return this;
     }
 
     public TraceBuilder setPAccountDeploymentNumberInftyRelative(final BigInteger b, int i) {
-      deploymentNumberInftyXorCallDataOffsetXorMmuStackValHiXorStackItemHeight4XorValOrigLoXorInitialBalance
+      deploymentNumberInftyXorCallDataOffsetXorMmuSizeXorStackItemHeight4XorValOrigLoXorInitialBalance
           .set(
-              deploymentNumberInftyXorCallDataOffsetXorMmuStackValHiXorStackItemHeight4XorValOrigLoXorInitialBalance
+              deploymentNumberInftyXorCallDataOffsetXorMmuSizeXorStackItemHeight4XorValOrigLoXorInitialBalance
                       .size()
                   - 1
                   - i,
@@ -6756,8 +7026,20 @@ public record Trace(
     }
 
     public TraceBuilder setPAccountExistsRelative(final Boolean b, int i) {
-      existsXorMmuFlagXorCreateXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution.set(
-          existsXorMmuFlagXorCreateXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution.size()
+      existsXorFcondFlagXorCallEoaSuccessCallerWontRevertXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution
+          .set(
+              existsXorFcondFlagXorCallEoaSuccessCallerWontRevertXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution
+                      .size()
+                  - 1
+                  - i,
+              b);
+
+      return this;
+    }
+
+    public TraceBuilder setPAccountExistsNewRelative(final Boolean b, int i) {
+      existsNewXorMmuFlagXorCallPrcFailureCallerWillRevertXorCallFlagXorValNextIsOrig.set(
+          existsNewXorMmuFlagXorCallPrcFailureCallerWillRevertXorCallFlagXorValNextIsOrig.size()
               - 1
               - i,
           b);
@@ -6765,138 +7047,145 @@ public record Trace(
       return this;
     }
 
-    public TraceBuilder setPAccountExistsNewRelative(final Boolean b, int i) {
-      existsNewXorMxpDeploysXorEcaddXorCallFlagXorValNextIsOrig.set(
-          existsNewXorMxpDeploysXorEcaddXorCallFlagXorValNextIsOrig.size() - 1 - i, b);
-
-      return this;
-    }
-
     public TraceBuilder setPAccountHasCodeRelative(final Boolean b, int i) {
-      hasCodeXorMxpFlagXorEcmulXorConFlagXorValNextIsZero.set(
-          hasCodeXorMxpFlagXorEcmulXorConFlagXorValNextIsZero.size() - 1 - i, b);
+      hasCodeXorMxpDeploysXorCallPrcFailureCallerWontRevertXorConFlagXorValNextIsZero.set(
+          hasCodeXorMxpDeploysXorCallPrcFailureCallerWontRevertXorConFlagXorValNextIsZero.size()
+              - 1
+              - i,
+          b);
 
       return this;
     }
 
     public TraceBuilder setPAccountHasCodeNewRelative(final Boolean b, int i) {
-      hasCodeNewXorMxpMxpxXorEcpairingXorCopyFlagXorValOrigIsZero.set(
-          hasCodeNewXorMxpMxpxXorEcpairingXorCopyFlagXorValOrigIsZero.size() - 1 - i, b);
+      hasCodeNewXorMxpFlagXorCallPrcSuccessCallerWillRevertXorCopyFlagXorValOrigIsZero.set(
+          hasCodeNewXorMxpFlagXorCallPrcSuccessCallerWillRevertXorCopyFlagXorValOrigIsZero.size()
+              - 1
+              - i,
+          b);
 
       return this;
     }
 
     public TraceBuilder setPAccountIsBlake2FRelative(final Boolean b, int i) {
-      isBlake2FXorOobEvent1XorEcrecoverXorCreateFlagXorWarm.set(
-          isBlake2FXorOobEvent1XorEcrecoverXorCreateFlagXorWarm.size() - 1 - i, b);
+      isBlake2FXorMxpMxpxXorCallPrcSuccessCallerWontRevertXorCreateFlagXorWarm.set(
+          isBlake2FXorMxpMxpxXorCallPrcSuccessCallerWontRevertXorCreateFlagXorWarm.size() - 1 - i,
+          b);
 
       return this;
     }
 
     public TraceBuilder setPAccountIsEcaddRelative(final Boolean b, int i) {
-      isEcaddXorOobEvent2XorIdentityXorDecodedFlag1XorWarmNew.set(
-          isEcaddXorOobEvent2XorIdentityXorDecodedFlag1XorWarmNew.size() - 1 - i, b);
+      isEcaddXorOobEvent1XorCallSmcFailureCallerWillRevertXorDecodedFlag1XorWarmNew.set(
+          isEcaddXorOobEvent1XorCallSmcFailureCallerWillRevertXorDecodedFlag1XorWarmNew.size()
+              - 1
+              - i,
+          b);
 
       return this;
     }
 
     public TraceBuilder setPAccountIsEcmulRelative(final Boolean b, int i) {
-      isEcmulXorOobFlagXorModexpXorDecodedFlag2.set(
-          isEcmulXorOobFlagXorModexpXorDecodedFlag2.size() - 1 - i, b);
+      isEcmulXorOobEvent2XorCallSmcFailureCallerWontRevertXorDecodedFlag2.set(
+          isEcmulXorOobEvent2XorCallSmcFailureCallerWontRevertXorDecodedFlag2.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountIsEcpairingRelative(final Boolean b, int i) {
-      isEcpairingXorPrecinfoFlagXorRipemDsub160XorDecodedFlag3.set(
-          isEcpairingXorPrecinfoFlagXorRipemDsub160XorDecodedFlag3.size() - 1 - i, b);
+      isEcpairingXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecodedFlag3.set(
+          isEcpairingXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecodedFlag3.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountIsEcrecoverRelative(final Boolean b, int i) {
-      isEcrecoverXorStpExistsXorScn1XorDecodedFlag4.set(
-          isEcrecoverXorStpExistsXorScn1XorDecodedFlag4.size() - 1 - i, b);
+      isEcrecoverXorPrecinfoFlagXorCallSmcSuccessCallerWontRevertXorDecodedFlag4.set(
+          isEcrecoverXorPrecinfoFlagXorCallSmcSuccessCallerWontRevertXorDecodedFlag4.size() - 1 - i,
+          b);
 
       return this;
     }
 
     public TraceBuilder setPAccountIsIdentityRelative(final Boolean b, int i) {
-      isIdentityXorStpFlagXorScn10XorDupFlag.set(
-          isIdentityXorStpFlagXorScn10XorDupFlag.size() - 1 - i, b);
+      isIdentityXorStpExistsXorCodedepositXorDupFlag.set(
+          isIdentityXorStpExistsXorCodedepositXorDupFlag.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountIsModexpRelative(final Boolean b, int i) {
-      isModexpXorStpOogxXorScn11XorExtFlag.set(
-          isModexpXorStpOogxXorScn11XorExtFlag.size() - 1 - i, b);
+      isModexpXorStpFlagXorCodedepositInvalidCodePrefixXorExtFlag.set(
+          isModexpXorStpFlagXorCodedepositInvalidCodePrefixXorExtFlag.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountIsPrecompileRelative(final Boolean b, int i) {
-      isPrecompileXorStpWarmXorScn12XorHaltFlag.set(
-          isPrecompileXorStpWarmXorScn12XorHaltFlag.size() - 1 - i, b);
+      isPrecompileXorStpOogxXorCodedepositValidCodePrefixXorHaltFlag.set(
+          isPrecompileXorStpOogxXorCodedepositValidCodePrefixXorHaltFlag.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountIsRipemd160Relative(final Boolean b, int i) {
-      isRipemDsub160XorScn2XorInvalidFlag.set(
-          isRipemDsub160XorScn2XorInvalidFlag.size() - 1 - i, b);
+      isRipemDsub160XorStpWarmXorEcaddXorInvalidFlag.set(
+          isRipemDsub160XorStpWarmXorEcaddXorInvalidFlag.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountIsSha2256Relative(final Boolean b, int i) {
-      isSha2Sub256XorScn3XorInvprex.set(isSha2Sub256XorScn3XorInvprex.size() - 1 - i, b);
+      isSha2Sub256XorEcmulXorInvprex.set(isSha2Sub256XorEcmulXorInvprex.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountNonceRelative(final BigInteger b, int i) {
-      nonceXorCallValueXorMmuTargetOffsetLoXorStackItemStamp3XorLeftoverGas.set(
-          nonceXorCallValueXorMmuTargetOffsetLoXorStackItemStamp3XorLeftoverGas.size() - 1 - i, b);
+      nonceXorCallValueXorMmuStackValHiXorStackItemStamp3XorLeftoverGas.set(
+          nonceXorCallValueXorMmuStackValHiXorStackItemStamp3XorLeftoverGas.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountNonceNewRelative(final BigInteger b, int i) {
-      nonceNewXorContextNumberXorMxpGasMxpXorStackItemStamp4XorNonce.set(
-          nonceNewXorContextNumberXorMxpGasMxpXorStackItemStamp4XorNonce.size() - 1 - i, b);
+      nonceNewXorContextNumberXorMmuStackValLoXorStackItemStamp4XorNonce.set(
+          nonceNewXorContextNumberXorMmuStackValLoXorStackItemStamp4XorNonce.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountRlpaddrDepAddrHiRelative(final BigInteger b, int i) {
-      rlpaddrDepAddrHiXorIsStaticXorMxpInstXorStackItemValueHi1XorToAddressHi.set(
-          rlpaddrDepAddrHiXorIsStaticXorMxpInstXorStackItemValueHi1XorToAddressHi.size() - 1 - i,
+      rlpaddrDepAddrHiXorIsStaticXorMmuTargetOffsetHiXorStackItemValueHi1XorToAddressHi.set(
+          rlpaddrDepAddrHiXorIsStaticXorMmuTargetOffsetHiXorStackItemValueHi1XorToAddressHi.size()
+              - 1
+              - i,
           b);
 
       return this;
     }
 
     public TraceBuilder setPAccountRlpaddrDepAddrLoRelative(final BigInteger b, int i) {
-      rlpaddrDepAddrLoXorReturnerContextNumberXorMxpOffset1HiXorStackItemValueHi2XorToAddressLo.set(
-          rlpaddrDepAddrLoXorReturnerContextNumberXorMxpOffset1HiXorStackItemValueHi2XorToAddressLo
-                  .size()
-              - 1
-              - i,
-          b);
+      rlpaddrDepAddrLoXorReturnerContextNumberXorMmuTargetOffsetLoXorStackItemValueHi2XorToAddressLo
+          .set(
+              rlpaddrDepAddrLoXorReturnerContextNumberXorMmuTargetOffsetLoXorStackItemValueHi2XorToAddressLo
+                      .size()
+                  - 1
+                  - i,
+              b);
 
       return this;
     }
 
     public TraceBuilder setPAccountRlpaddrFlagRelative(final Boolean b, int i) {
-      rlpaddrFlagXorScn4XorJumpx.set(rlpaddrFlagXorScn4XorJumpx.size() - 1 - i, b);
+      rlpaddrFlagXorEcpairingXorJumpx.set(rlpaddrFlagXorEcpairingXorJumpx.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountRlpaddrKecHiRelative(final BigInteger b, int i) {
-      rlpaddrKecHiXorReturnerIsPrecompileXorMxpOffset1LoXorStackItemValueHi3XorValue.set(
-          rlpaddrKecHiXorReturnerIsPrecompileXorMxpOffset1LoXorStackItemValueHi3XorValue.size()
+      rlpaddrKecHiXorReturnerIsPrecompileXorMxpGasMxpXorStackItemValueHi3XorValue.set(
+          rlpaddrKecHiXorReturnerIsPrecompileXorMxpGasMxpXorStackItemValueHi3XorValue.size()
               - 1
               - i,
           b);
@@ -6905,54 +7194,54 @@ public record Trace(
     }
 
     public TraceBuilder setPAccountRlpaddrKecLoRelative(final BigInteger b, int i) {
-      rlpaddrKecLoXorReturnAtOffsetXorMxpOffset2HiXorStackItemValueHi4.set(
-          rlpaddrKecLoXorReturnAtOffsetXorMxpOffset2HiXorStackItemValueHi4.size() - 1 - i, b);
+      rlpaddrKecLoXorReturnAtOffsetXorMxpInstXorStackItemValueHi4.set(
+          rlpaddrKecLoXorReturnAtOffsetXorMxpInstXorStackItemValueHi4.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountRlpaddrRecipeRelative(final BigInteger b, int i) {
-      rlpaddrRecipeXorReturnAtSizeXorMxpOffset2LoXorStackItemValueLo1.set(
-          rlpaddrRecipeXorReturnAtSizeXorMxpOffset2LoXorStackItemValueLo1.size() - 1 - i, b);
+      rlpaddrRecipeXorReturnAtSizeXorMxpOffset1HiXorStackItemValueLo1.set(
+          rlpaddrRecipeXorReturnAtSizeXorMxpOffset1HiXorStackItemValueLo1.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountRlpaddrSaltHiRelative(final BigInteger b, int i) {
-      rlpaddrSaltHiXorReturnDataOffsetXorMxpSize1HiXorStackItemValueLo2.set(
-          rlpaddrSaltHiXorReturnDataOffsetXorMxpSize1HiXorStackItemValueLo2.size() - 1 - i, b);
+      rlpaddrSaltHiXorReturnDataOffsetXorMxpOffset1LoXorStackItemValueLo2.set(
+          rlpaddrSaltHiXorReturnDataOffsetXorMxpOffset1LoXorStackItemValueLo2.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountRlpaddrSaltLoRelative(final BigInteger b, int i) {
-      rlpaddrSaltLoXorReturnDataSizeXorMxpSize1LoXorStackItemValueLo3.set(
-          rlpaddrSaltLoXorReturnDataSizeXorMxpSize1LoXorStackItemValueLo3.size() - 1 - i, b);
+      rlpaddrSaltLoXorReturnDataSizeXorMxpOffset2HiXorStackItemValueLo3.set(
+          rlpaddrSaltLoXorReturnDataSizeXorMxpOffset2HiXorStackItemValueLo3.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountTrmFlagRelative(final Boolean b, int i) {
-      trmFlagXorScn5XorJumpFlag.set(trmFlagXorScn5XorJumpFlag.size() - 1 - i, b);
+      trmFlagXorEcrecoverXorJumpFlag.set(trmFlagXorEcrecoverXorJumpFlag.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountTrmRawAddrHiRelative(final BigInteger b, int i) {
-      trmRawAddrHiXorMxpSize2HiXorStackItemValueLo4.set(
-          trmRawAddrHiXorMxpSize2HiXorStackItemValueLo4.size() - 1 - i, b);
+      trmRawAddrHiXorMxpOffset2LoXorStackItemValueLo4.set(
+          trmRawAddrHiXorMxpOffset2LoXorStackItemValueLo4.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountWarmRelative(final Boolean b, int i) {
-      warmXorScn6XorKecFlag.set(warmXorScn6XorKecFlag.size() - 1 - i, b);
+      warmXorIdentityXorKecFlag.set(warmXorIdentityXorKecFlag.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPAccountWarmNewRelative(final Boolean b, int i) {
-      warmNewXorScn7XorLogFlag.set(warmNewXorScn7XorLogFlag.size() - 1 - i, b);
+      warmNewXorModexpXorLogFlag.set(warmNewXorModexpXorLogFlag.size() - 1 - i, b);
 
       return this;
     }
@@ -6965,17 +7254,19 @@ public record Trace(
     }
 
     public TraceBuilder setPContextAccountAddressLoRelative(final BigInteger b, int i) {
-      addrLoXorAccountAddressLoXorMmuCnSXorHeightNewXorAddressLoXorCallDataSize.set(
-          addrLoXorAccountAddressLoXorMmuCnSXorHeightNewXorAddressLoXorCallDataSize.size() - 1 - i,
+      addrLoXorAccountAddressLoXorExpDyncostXorHeightNewXorAddressLoXorCallDataSize.set(
+          addrLoXorAccountAddressLoXorExpDyncostXorHeightNewXorAddressLoXorCallDataSize.size()
+              - 1
+              - i,
           b);
 
       return this;
     }
 
     public TraceBuilder setPContextAccountDeploymentNumberRelative(final BigInteger b, int i) {
-      balanceXorAccountDeploymentNumberXorMmuCnTXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
+      balanceXorAccountDeploymentNumberXorExpExponentHiXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
           .set(
-              balanceXorAccountDeploymentNumberXorMmuCnTXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
+              balanceXorAccountDeploymentNumberXorExpExponentHiXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
                       .size()
                   - 1
                   - i,
@@ -6985,19 +7276,20 @@ public record Trace(
     }
 
     public TraceBuilder setPContextByteCodeAddressHiRelative(final BigInteger b, int i) {
-      balanceNewXorByteCodeAddressHiXorMmuInstXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo.set(
-          balanceNewXorByteCodeAddressHiXorMmuInstXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo
-                  .size()
-              - 1
-              - i,
-          b);
+      balanceNewXorByteCodeAddressHiXorExpExponentLoXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo
+          .set(
+              balanceNewXorByteCodeAddressHiXorExpExponentLoXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo
+                      .size()
+                  - 1
+                  - i,
+              b);
 
       return this;
     }
 
     public TraceBuilder setPContextByteCodeAddressLoRelative(final BigInteger b, int i) {
-      codeHashHiXorByteCodeAddressLoXorMmuNum1XorInstructionXorStorageKeyLoXorFromAddressHi.set(
-          codeHashHiXorByteCodeAddressLoXorMmuNum1XorInstructionXorStorageKeyLoXorFromAddressHi
+      codeHashHiXorByteCodeAddressLoXorMmuCnSXorInstructionXorStorageKeyLoXorFromAddressHi.set(
+          codeHashHiXorByteCodeAddressLoXorMmuCnSXorInstructionXorStorageKeyLoXorFromAddressHi
                   .size()
               - 1
               - i,
@@ -7007,9 +7299,9 @@ public record Trace(
     }
 
     public TraceBuilder setPContextByteCodeDeploymentNumberRelative(final BigInteger b, int i) {
-      codeHashHiNewXorByteCodeDeploymentNumberXorMmuNum2XorPushValueHiXorValCurrHiXorFromAddressLo
+      codeHashHiNewXorByteCodeDeploymentNumberXorMmuCnTXorPushValueHiXorValCurrHiXorFromAddressLo
           .set(
-              codeHashHiNewXorByteCodeDeploymentNumberXorMmuNum2XorPushValueHiXorValCurrHiXorFromAddressLo
+              codeHashHiNewXorByteCodeDeploymentNumberXorMmuCnTXorPushValueHiXorValCurrHiXorFromAddressLo
                       .size()
                   - 1
                   - i,
@@ -7019,8 +7311,8 @@ public record Trace(
     }
 
     public TraceBuilder setPContextByteCodeDeploymentStatusRelative(final BigInteger b, int i) {
-      codeHashLoXorByteCodeDeploymentStatusXorMmuRefsXorPushValueLoXorValCurrLoXorGasLimit.set(
-          codeHashLoXorByteCodeDeploymentStatusXorMmuRefsXorPushValueLoXorValCurrLoXorGasLimit
+      codeHashLoXorByteCodeDeploymentStatusXorMmuInstXorPushValueLoXorValCurrLoXorGasLimit.set(
+          codeHashLoXorByteCodeDeploymentStatusXorMmuInstXorPushValueLoXorValCurrLoXorGasLimit
                   .size()
               - 1
               - i,
@@ -7030,9 +7322,9 @@ public record Trace(
     }
 
     public TraceBuilder setPContextCallDataOffsetRelative(final BigInteger b, int i) {
-      deploymentNumberInftyXorCallDataOffsetXorMmuStackValHiXorStackItemHeight4XorValOrigLoXorInitialBalance
+      deploymentNumberInftyXorCallDataOffsetXorMmuSizeXorStackItemHeight4XorValOrigLoXorInitialBalance
           .set(
-              deploymentNumberInftyXorCallDataOffsetXorMmuStackValHiXorStackItemHeight4XorValOrigLoXorInitialBalance
+              deploymentNumberInftyXorCallDataOffsetXorMmuSizeXorStackItemHeight4XorValOrigLoXorInitialBalance
                       .size()
                   - 1
                   - i,
@@ -7042,30 +7334,31 @@ public record Trace(
     }
 
     public TraceBuilder setPContextCallDataSizeRelative(final BigInteger b, int i) {
-      depNumXorCallDataSizeXorMmuStackValLoXorStackItemStamp1XorInitCodeSize.set(
-          depNumXorCallDataSizeXorMmuStackValLoXorStackItemStamp1XorInitCodeSize.size() - 1 - i, b);
+      depNumXorCallDataSizeXorMmuSourceOffsetHiXorStackItemStamp1XorInitCodeSize.set(
+          depNumXorCallDataSizeXorMmuSourceOffsetHiXorStackItemStamp1XorInitCodeSize.size() - 1 - i,
+          b);
 
       return this;
     }
 
     public TraceBuilder setPContextCallStackDepthRelative(final BigInteger b, int i) {
-      depNumNewXorCallStackDepthXorMmuTargetOffsetHiXorStackItemStamp2XorInitGas.set(
-          depNumNewXorCallStackDepthXorMmuTargetOffsetHiXorStackItemStamp2XorInitGas.size() - 1 - i,
+      depNumNewXorCallStackDepthXorMmuSourceOffsetLoXorStackItemStamp2XorInitGas.set(
+          depNumNewXorCallStackDepthXorMmuSourceOffsetLoXorStackItemStamp2XorInitGas.size() - 1 - i,
           b);
 
       return this;
     }
 
     public TraceBuilder setPContextCallValueRelative(final BigInteger b, int i) {
-      nonceXorCallValueXorMmuTargetOffsetLoXorStackItemStamp3XorLeftoverGas.set(
-          nonceXorCallValueXorMmuTargetOffsetLoXorStackItemStamp3XorLeftoverGas.size() - 1 - i, b);
+      nonceXorCallValueXorMmuStackValHiXorStackItemStamp3XorLeftoverGas.set(
+          nonceXorCallValueXorMmuStackValHiXorStackItemStamp3XorLeftoverGas.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPContextCallerAddressHiRelative(final BigInteger b, int i) {
-      codeHashLoNewXorCallerAddressHiXorMmuSizeXorStackItemHeight1XorValNextHiXorGasPrice.set(
-          codeHashLoNewXorCallerAddressHiXorMmuSizeXorStackItemHeight1XorValNextHiXorGasPrice.size()
+      codeHashLoNewXorCallerAddressHiXorMmuNum1XorStackItemHeight1XorValNextHiXorGasPrice.set(
+          codeHashLoNewXorCallerAddressHiXorMmuNum1XorStackItemHeight1XorValNextHiXorGasPrice.size()
               - 1
               - i,
           b);
@@ -7074,21 +7367,20 @@ public record Trace(
     }
 
     public TraceBuilder setPContextCallerAddressLoRelative(final BigInteger b, int i) {
-      codeSizeXorCallerAddressLoXorMmuSourceOffsetHiXorStackItemHeight2XorValNextLoXorGasRefundAmount
-          .set(
-              codeSizeXorCallerAddressLoXorMmuSourceOffsetHiXorStackItemHeight2XorValNextLoXorGasRefundAmount
-                      .size()
-                  - 1
-                  - i,
-              b);
+      codeSizeXorCallerAddressLoXorMmuNum2XorStackItemHeight2XorValNextLoXorGasRefundAmount.set(
+          codeSizeXorCallerAddressLoXorMmuNum2XorStackItemHeight2XorValNextLoXorGasRefundAmount
+                  .size()
+              - 1
+              - i,
+          b);
 
       return this;
     }
 
     public TraceBuilder setPContextCallerContextNumberRelative(final BigInteger b, int i) {
-      codeSizeNewXorCallerContextNumberXorMmuSourceOffsetLoXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
+      codeSizeNewXorCallerContextNumberXorMmuRefsXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
           .set(
-              codeSizeNewXorCallerContextNumberXorMmuSourceOffsetLoXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
+              codeSizeNewXorCallerContextNumberXorMmuRefsXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
                       .size()
                   - 1
                   - i,
@@ -7098,52 +7390,15 @@ public record Trace(
     }
 
     public TraceBuilder setPContextContextNumberRelative(final BigInteger b, int i) {
-      nonceNewXorContextNumberXorMxpGasMxpXorStackItemStamp4XorNonce.set(
-          nonceNewXorContextNumberXorMxpGasMxpXorStackItemStamp4XorNonce.size() - 1 - i, b);
+      nonceNewXorContextNumberXorMmuStackValLoXorStackItemStamp4XorNonce.set(
+          nonceNewXorContextNumberXorMmuStackValLoXorStackItemStamp4XorNonce.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPContextIsStaticRelative(final BigInteger b, int i) {
-      rlpaddrDepAddrHiXorIsStaticXorMxpInstXorStackItemValueHi1XorToAddressHi.set(
-          rlpaddrDepAddrHiXorIsStaticXorMxpInstXorStackItemValueHi1XorToAddressHi.size() - 1 - i,
-          b);
-
-      return this;
-    }
-
-    public TraceBuilder setPContextReturnAtOffsetRelative(final BigInteger b, int i) {
-      rlpaddrKecLoXorReturnAtOffsetXorMxpOffset2HiXorStackItemValueHi4.set(
-          rlpaddrKecLoXorReturnAtOffsetXorMxpOffset2HiXorStackItemValueHi4.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setPContextReturnAtSizeRelative(final BigInteger b, int i) {
-      rlpaddrRecipeXorReturnAtSizeXorMxpOffset2LoXorStackItemValueLo1.set(
-          rlpaddrRecipeXorReturnAtSizeXorMxpOffset2LoXorStackItemValueLo1.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setPContextReturnDataOffsetRelative(final BigInteger b, int i) {
-      rlpaddrSaltHiXorReturnDataOffsetXorMxpSize1HiXorStackItemValueLo2.set(
-          rlpaddrSaltHiXorReturnDataOffsetXorMxpSize1HiXorStackItemValueLo2.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setPContextReturnDataSizeRelative(final BigInteger b, int i) {
-      rlpaddrSaltLoXorReturnDataSizeXorMxpSize1LoXorStackItemValueLo3.set(
-          rlpaddrSaltLoXorReturnDataSizeXorMxpSize1LoXorStackItemValueLo3.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setPContextReturnerContextNumberRelative(final BigInteger b, int i) {
-      rlpaddrDepAddrLoXorReturnerContextNumberXorMxpOffset1HiXorStackItemValueHi2XorToAddressLo.set(
-          rlpaddrDepAddrLoXorReturnerContextNumberXorMxpOffset1HiXorStackItemValueHi2XorToAddressLo
-                  .size()
+      rlpaddrDepAddrHiXorIsStaticXorMmuTargetOffsetHiXorStackItemValueHi1XorToAddressHi.set(
+          rlpaddrDepAddrHiXorIsStaticXorMmuTargetOffsetHiXorStackItemValueHi1XorToAddressHi.size()
               - 1
               - i,
           b);
@@ -7151,9 +7406,49 @@ public record Trace(
       return this;
     }
 
+    public TraceBuilder setPContextReturnAtOffsetRelative(final BigInteger b, int i) {
+      rlpaddrKecLoXorReturnAtOffsetXorMxpInstXorStackItemValueHi4.set(
+          rlpaddrKecLoXorReturnAtOffsetXorMxpInstXorStackItemValueHi4.size() - 1 - i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setPContextReturnAtSizeRelative(final BigInteger b, int i) {
+      rlpaddrRecipeXorReturnAtSizeXorMxpOffset1HiXorStackItemValueLo1.set(
+          rlpaddrRecipeXorReturnAtSizeXorMxpOffset1HiXorStackItemValueLo1.size() - 1 - i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setPContextReturnDataOffsetRelative(final BigInteger b, int i) {
+      rlpaddrSaltHiXorReturnDataOffsetXorMxpOffset1LoXorStackItemValueLo2.set(
+          rlpaddrSaltHiXorReturnDataOffsetXorMxpOffset1LoXorStackItemValueLo2.size() - 1 - i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setPContextReturnDataSizeRelative(final BigInteger b, int i) {
+      rlpaddrSaltLoXorReturnDataSizeXorMxpOffset2HiXorStackItemValueLo3.set(
+          rlpaddrSaltLoXorReturnDataSizeXorMxpOffset2HiXorStackItemValueLo3.size() - 1 - i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setPContextReturnerContextNumberRelative(final BigInteger b, int i) {
+      rlpaddrDepAddrLoXorReturnerContextNumberXorMmuTargetOffsetLoXorStackItemValueHi2XorToAddressLo
+          .set(
+              rlpaddrDepAddrLoXorReturnerContextNumberXorMmuTargetOffsetLoXorStackItemValueHi2XorToAddressLo
+                      .size()
+                  - 1
+                  - i,
+              b);
+
+      return this;
+    }
+
     public TraceBuilder setPContextReturnerIsPrecompileRelative(final BigInteger b, int i) {
-      rlpaddrKecHiXorReturnerIsPrecompileXorMxpOffset1LoXorStackItemValueHi3XorValue.set(
-          rlpaddrKecHiXorReturnerIsPrecompileXorMxpOffset1LoXorStackItemValueHi3XorValue.size()
+      rlpaddrKecHiXorReturnerIsPrecompileXorMxpGasMxpXorStackItemValueHi3XorValue.set(
+          rlpaddrKecHiXorReturnerIsPrecompileXorMxpGasMxpXorStackItemValueHi3XorValue.size()
               - 1
               - i,
           b);
@@ -7193,15 +7488,15 @@ public record Trace(
     }
 
     public TraceBuilder setPMiscellaneousCcsrFlagRelative(final Boolean b, int i) {
-      depStatusXorCcsrFlagXorCallXorAddFlagXorValCurrIsOrigXorIsEip1559.set(
-          depStatusXorCcsrFlagXorCallXorAddFlagXorValCurrIsOrigXorIsEip1559.size() - 1 - i, b);
+      depStatusXorCcsrFlagXorCallAbortXorAddFlagXorValCurrIsOrigXorIsEip1559.set(
+          depStatusXorCcsrFlagXorCallAbortXorAddFlagXorValCurrIsOrigXorIsEip1559.size() - 1 - i, b);
 
       return this;
     }
 
-    public TraceBuilder setPMiscellaneousFcondFlagRelative(final Boolean b, int i) {
-      depStatusNewXorFcondFlagXorCodedepositXorBinFlagXorValCurrIsZeroXorStatusCode.set(
-          depStatusNewXorFcondFlagXorCodedepositXorBinFlagXorValCurrIsZeroXorStatusCode.size()
+    public TraceBuilder setPMiscellaneousExpDyncostRelative(final BigInteger b, int i) {
+      addrLoXorAccountAddressLoXorExpDyncostXorHeightNewXorAddressLoXorCallDataSize.set(
+          addrLoXorAccountAddressLoXorExpDyncostXorHeightNewXorAddressLoXorCallDataSize.size()
               - 1
               - i,
           b);
@@ -7209,18 +7504,69 @@ public record Trace(
       return this;
     }
 
+    public TraceBuilder setPMiscellaneousExpExponentHiRelative(final BigInteger b, int i) {
+      balanceXorAccountDeploymentNumberXorExpExponentHiXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
+          .set(
+              balanceXorAccountDeploymentNumberXorExpExponentHiXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
+                      .size()
+                  - 1
+                  - i,
+              b);
+
+      return this;
+    }
+
+    public TraceBuilder setPMiscellaneousExpExponentLoRelative(final BigInteger b, int i) {
+      balanceNewXorByteCodeAddressHiXorExpExponentLoXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo
+          .set(
+              balanceNewXorByteCodeAddressHiXorExpExponentLoXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo
+                      .size()
+                  - 1
+                  - i,
+              b);
+
+      return this;
+    }
+
+    public TraceBuilder setPMiscellaneousExpFlagRelative(final Boolean b, int i) {
+      depStatusNewXorExpFlagXorCallEoaSuccessCallerWillRevertXorBinFlagXorValCurrIsZeroXorStatusCode
+          .set(
+              depStatusNewXorExpFlagXorCallEoaSuccessCallerWillRevertXorBinFlagXorValCurrIsZeroXorStatusCode
+                      .size()
+                  - 1
+                  - i,
+              b);
+
+      return this;
+    }
+
+    public TraceBuilder setPMiscellaneousFcondFlagRelative(final Boolean b, int i) {
+      existsXorFcondFlagXorCallEoaSuccessCallerWontRevertXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution
+          .set(
+              existsXorFcondFlagXorCallEoaSuccessCallerWontRevertXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution
+                      .size()
+                  - 1
+                  - i,
+              b);
+
+      return this;
+    }
+
     public TraceBuilder setPMiscellaneousMmuCnSRelative(final BigInteger b, int i) {
-      addrLoXorAccountAddressLoXorMmuCnSXorHeightNewXorAddressLoXorCallDataSize.set(
-          addrLoXorAccountAddressLoXorMmuCnSXorHeightNewXorAddressLoXorCallDataSize.size() - 1 - i,
+      codeHashHiXorByteCodeAddressLoXorMmuCnSXorInstructionXorStorageKeyLoXorFromAddressHi.set(
+          codeHashHiXorByteCodeAddressLoXorMmuCnSXorInstructionXorStorageKeyLoXorFromAddressHi
+                  .size()
+              - 1
+              - i,
           b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMmuCnTRelative(final BigInteger b, int i) {
-      balanceXorAccountDeploymentNumberXorMmuCnTXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
+      codeHashHiNewXorByteCodeDeploymentNumberXorMmuCnTXorPushValueHiXorValCurrHiXorFromAddressLo
           .set(
-              balanceXorAccountDeploymentNumberXorMmuCnTXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
+              codeHashHiNewXorByteCodeDeploymentNumberXorMmuCnTXorPushValueHiXorValCurrHiXorFromAddressLo
                       .size()
                   - 1
                   - i,
@@ -7230,8 +7576,8 @@ public record Trace(
     }
 
     public TraceBuilder setPMiscellaneousMmuFlagRelative(final Boolean b, int i) {
-      existsXorMmuFlagXorCreateXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution.set(
-          existsXorMmuFlagXorCreateXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution.size()
+      existsNewXorMmuFlagXorCallPrcFailureCallerWillRevertXorCallFlagXorValNextIsOrig.set(
+          existsNewXorMmuFlagXorCallPrcFailureCallerWillRevertXorCallFlagXorValNextIsOrig.size()
               - 1
               - i,
           b);
@@ -7240,8 +7586,8 @@ public record Trace(
     }
 
     public TraceBuilder setPMiscellaneousMmuInstRelative(final BigInteger b, int i) {
-      balanceNewXorByteCodeAddressHiXorMmuInstXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo.set(
-          balanceNewXorByteCodeAddressHiXorMmuInstXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo
+      codeHashLoXorByteCodeDeploymentStatusXorMmuInstXorPushValueLoXorValCurrLoXorGasLimit.set(
+          codeHashLoXorByteCodeDeploymentStatusXorMmuInstXorPushValueLoXorValCurrLoXorGasLimit
                   .size()
               - 1
               - i,
@@ -7251,9 +7597,8 @@ public record Trace(
     }
 
     public TraceBuilder setPMiscellaneousMmuNum1Relative(final BigInteger b, int i) {
-      codeHashHiXorByteCodeAddressLoXorMmuNum1XorInstructionXorStorageKeyLoXorFromAddressHi.set(
-          codeHashHiXorByteCodeAddressLoXorMmuNum1XorInstructionXorStorageKeyLoXorFromAddressHi
-                  .size()
+      codeHashLoNewXorCallerAddressHiXorMmuNum1XorStackItemHeight1XorValNextHiXorGasPrice.set(
+          codeHashLoNewXorCallerAddressHiXorMmuNum1XorStackItemHeight1XorValNextHiXorGasPrice.size()
               - 1
               - i,
           b);
@@ -7262,20 +7607,8 @@ public record Trace(
     }
 
     public TraceBuilder setPMiscellaneousMmuNum2Relative(final BigInteger b, int i) {
-      codeHashHiNewXorByteCodeDeploymentNumberXorMmuNum2XorPushValueHiXorValCurrHiXorFromAddressLo
-          .set(
-              codeHashHiNewXorByteCodeDeploymentNumberXorMmuNum2XorPushValueHiXorValCurrHiXorFromAddressLo
-                      .size()
-                  - 1
-                  - i,
-              b);
-
-      return this;
-    }
-
-    public TraceBuilder setPMiscellaneousMmuRefsRelative(final BigInteger b, int i) {
-      codeHashLoXorByteCodeDeploymentStatusXorMmuRefsXorPushValueLoXorValCurrLoXorGasLimit.set(
-          codeHashLoXorByteCodeDeploymentStatusXorMmuRefsXorPushValueLoXorValCurrLoXorGasLimit
+      codeSizeXorCallerAddressLoXorMmuNum2XorStackItemHeight2XorValNextLoXorGasRefundAmount.set(
+          codeSizeXorCallerAddressLoXorMmuNum2XorStackItemHeight2XorValNextLoXorGasRefundAmount
                   .size()
               - 1
               - i,
@@ -7284,168 +7617,175 @@ public record Trace(
       return this;
     }
 
+    public TraceBuilder setPMiscellaneousMmuRefsRelative(final BigInteger b, int i) {
+      codeSizeNewXorCallerContextNumberXorMmuRefsXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
+          .set(
+              codeSizeNewXorCallerContextNumberXorMmuRefsXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
+                      .size()
+                  - 1
+                  - i,
+              b);
+
+      return this;
+    }
+
     public TraceBuilder setPMiscellaneousMmuSizeRelative(final BigInteger b, int i) {
-      codeHashLoNewXorCallerAddressHiXorMmuSizeXorStackItemHeight1XorValNextHiXorGasPrice.set(
-          codeHashLoNewXorCallerAddressHiXorMmuSizeXorStackItemHeight1XorValNextHiXorGasPrice.size()
-              - 1
-              - i,
-          b);
+      deploymentNumberInftyXorCallDataOffsetXorMmuSizeXorStackItemHeight4XorValOrigLoXorInitialBalance
+          .set(
+              deploymentNumberInftyXorCallDataOffsetXorMmuSizeXorStackItemHeight4XorValOrigLoXorInitialBalance
+                      .size()
+                  - 1
+                  - i,
+              b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMmuSourceOffsetHiRelative(final BigInteger b, int i) {
-      codeSizeXorCallerAddressLoXorMmuSourceOffsetHiXorStackItemHeight2XorValNextLoXorGasRefundAmount
-          .set(
-              codeSizeXorCallerAddressLoXorMmuSourceOffsetHiXorStackItemHeight2XorValNextLoXorGasRefundAmount
-                      .size()
-                  - 1
-                  - i,
-              b);
+      depNumXorCallDataSizeXorMmuSourceOffsetHiXorStackItemStamp1XorInitCodeSize.set(
+          depNumXorCallDataSizeXorMmuSourceOffsetHiXorStackItemStamp1XorInitCodeSize.size() - 1 - i,
+          b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMmuSourceOffsetLoRelative(final BigInteger b, int i) {
-      codeSizeNewXorCallerContextNumberXorMmuSourceOffsetLoXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
-          .set(
-              codeSizeNewXorCallerContextNumberXorMmuSourceOffsetLoXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
-                      .size()
-                  - 1
-                  - i,
-              b);
+      depNumNewXorCallStackDepthXorMmuSourceOffsetLoXorStackItemStamp2XorInitGas.set(
+          depNumNewXorCallStackDepthXorMmuSourceOffsetLoXorStackItemStamp2XorInitGas.size() - 1 - i,
+          b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMmuStackValHiRelative(final BigInteger b, int i) {
-      deploymentNumberInftyXorCallDataOffsetXorMmuStackValHiXorStackItemHeight4XorValOrigLoXorInitialBalance
-          .set(
-              deploymentNumberInftyXorCallDataOffsetXorMmuStackValHiXorStackItemHeight4XorValOrigLoXorInitialBalance
-                      .size()
-                  - 1
-                  - i,
-              b);
+      nonceXorCallValueXorMmuStackValHiXorStackItemStamp3XorLeftoverGas.set(
+          nonceXorCallValueXorMmuStackValHiXorStackItemStamp3XorLeftoverGas.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMmuStackValLoRelative(final BigInteger b, int i) {
-      depNumXorCallDataSizeXorMmuStackValLoXorStackItemStamp1XorInitCodeSize.set(
-          depNumXorCallDataSizeXorMmuStackValLoXorStackItemStamp1XorInitCodeSize.size() - 1 - i, b);
+      nonceNewXorContextNumberXorMmuStackValLoXorStackItemStamp4XorNonce.set(
+          nonceNewXorContextNumberXorMmuStackValLoXorStackItemStamp4XorNonce.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMmuTargetOffsetHiRelative(final BigInteger b, int i) {
-      depNumNewXorCallStackDepthXorMmuTargetOffsetHiXorStackItemStamp2XorInitGas.set(
-          depNumNewXorCallStackDepthXorMmuTargetOffsetHiXorStackItemStamp2XorInitGas.size() - 1 - i,
+      rlpaddrDepAddrHiXorIsStaticXorMmuTargetOffsetHiXorStackItemValueHi1XorToAddressHi.set(
+          rlpaddrDepAddrHiXorIsStaticXorMmuTargetOffsetHiXorStackItemValueHi1XorToAddressHi.size()
+              - 1
+              - i,
           b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMmuTargetOffsetLoRelative(final BigInteger b, int i) {
-      nonceXorCallValueXorMmuTargetOffsetLoXorStackItemStamp3XorLeftoverGas.set(
-          nonceXorCallValueXorMmuTargetOffsetLoXorStackItemStamp3XorLeftoverGas.size() - 1 - i, b);
+      rlpaddrDepAddrLoXorReturnerContextNumberXorMmuTargetOffsetLoXorStackItemValueHi2XorToAddressLo
+          .set(
+              rlpaddrDepAddrLoXorReturnerContextNumberXorMmuTargetOffsetLoXorStackItemValueHi2XorToAddressLo
+                      .size()
+                  - 1
+                  - i,
+              b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMxpDeploysRelative(final Boolean b, int i) {
-      existsNewXorMxpDeploysXorEcaddXorCallFlagXorValNextIsOrig.set(
-          existsNewXorMxpDeploysXorEcaddXorCallFlagXorValNextIsOrig.size() - 1 - i, b);
+      hasCodeXorMxpDeploysXorCallPrcFailureCallerWontRevertXorConFlagXorValNextIsZero.set(
+          hasCodeXorMxpDeploysXorCallPrcFailureCallerWontRevertXorConFlagXorValNextIsZero.size()
+              - 1
+              - i,
+          b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMxpFlagRelative(final Boolean b, int i) {
-      hasCodeXorMxpFlagXorEcmulXorConFlagXorValNextIsZero.set(
-          hasCodeXorMxpFlagXorEcmulXorConFlagXorValNextIsZero.size() - 1 - i, b);
+      hasCodeNewXorMxpFlagXorCallPrcSuccessCallerWillRevertXorCopyFlagXorValOrigIsZero.set(
+          hasCodeNewXorMxpFlagXorCallPrcSuccessCallerWillRevertXorCopyFlagXorValOrigIsZero.size()
+              - 1
+              - i,
+          b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMxpGasMxpRelative(final BigInteger b, int i) {
-      nonceNewXorContextNumberXorMxpGasMxpXorStackItemStamp4XorNonce.set(
-          nonceNewXorContextNumberXorMxpGasMxpXorStackItemStamp4XorNonce.size() - 1 - i, b);
+      rlpaddrKecHiXorReturnerIsPrecompileXorMxpGasMxpXorStackItemValueHi3XorValue.set(
+          rlpaddrKecHiXorReturnerIsPrecompileXorMxpGasMxpXorStackItemValueHi3XorValue.size()
+              - 1
+              - i,
+          b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMxpInstRelative(final BigInteger b, int i) {
-      rlpaddrDepAddrHiXorIsStaticXorMxpInstXorStackItemValueHi1XorToAddressHi.set(
-          rlpaddrDepAddrHiXorIsStaticXorMxpInstXorStackItemValueHi1XorToAddressHi.size() - 1 - i,
-          b);
+      rlpaddrKecLoXorReturnAtOffsetXorMxpInstXorStackItemValueHi4.set(
+          rlpaddrKecLoXorReturnAtOffsetXorMxpInstXorStackItemValueHi4.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMxpMxpxRelative(final Boolean b, int i) {
-      hasCodeNewXorMxpMxpxXorEcpairingXorCopyFlagXorValOrigIsZero.set(
-          hasCodeNewXorMxpMxpxXorEcpairingXorCopyFlagXorValOrigIsZero.size() - 1 - i, b);
+      isBlake2FXorMxpMxpxXorCallPrcSuccessCallerWontRevertXorCreateFlagXorWarm.set(
+          isBlake2FXorMxpMxpxXorCallPrcSuccessCallerWontRevertXorCreateFlagXorWarm.size() - 1 - i,
+          b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMxpOffset1HiRelative(final BigInteger b, int i) {
-      rlpaddrDepAddrLoXorReturnerContextNumberXorMxpOffset1HiXorStackItemValueHi2XorToAddressLo.set(
-          rlpaddrDepAddrLoXorReturnerContextNumberXorMxpOffset1HiXorStackItemValueHi2XorToAddressLo
-                  .size()
-              - 1
-              - i,
-          b);
+      rlpaddrRecipeXorReturnAtSizeXorMxpOffset1HiXorStackItemValueLo1.set(
+          rlpaddrRecipeXorReturnAtSizeXorMxpOffset1HiXorStackItemValueLo1.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMxpOffset1LoRelative(final BigInteger b, int i) {
-      rlpaddrKecHiXorReturnerIsPrecompileXorMxpOffset1LoXorStackItemValueHi3XorValue.set(
-          rlpaddrKecHiXorReturnerIsPrecompileXorMxpOffset1LoXorStackItemValueHi3XorValue.size()
-              - 1
-              - i,
-          b);
+      rlpaddrSaltHiXorReturnDataOffsetXorMxpOffset1LoXorStackItemValueLo2.set(
+          rlpaddrSaltHiXorReturnDataOffsetXorMxpOffset1LoXorStackItemValueLo2.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMxpOffset2HiRelative(final BigInteger b, int i) {
-      rlpaddrKecLoXorReturnAtOffsetXorMxpOffset2HiXorStackItemValueHi4.set(
-          rlpaddrKecLoXorReturnAtOffsetXorMxpOffset2HiXorStackItemValueHi4.size() - 1 - i, b);
+      rlpaddrSaltLoXorReturnDataSizeXorMxpOffset2HiXorStackItemValueLo3.set(
+          rlpaddrSaltLoXorReturnDataSizeXorMxpOffset2HiXorStackItemValueLo3.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMxpOffset2LoRelative(final BigInteger b, int i) {
-      rlpaddrRecipeXorReturnAtSizeXorMxpOffset2LoXorStackItemValueLo1.set(
-          rlpaddrRecipeXorReturnAtSizeXorMxpOffset2LoXorStackItemValueLo1.size() - 1 - i, b);
+      trmRawAddrHiXorMxpOffset2LoXorStackItemValueLo4.set(
+          trmRawAddrHiXorMxpOffset2LoXorStackItemValueLo4.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMxpSize1HiRelative(final BigInteger b, int i) {
-      rlpaddrSaltHiXorReturnDataOffsetXorMxpSize1HiXorStackItemValueLo2.set(
-          rlpaddrSaltHiXorReturnDataOffsetXorMxpSize1HiXorStackItemValueLo2.size() - 1 - i, b);
+      mxpSize1HiXorStaticGas.set(mxpSize1HiXorStaticGas.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMxpSize1LoRelative(final BigInteger b, int i) {
-      rlpaddrSaltLoXorReturnDataSizeXorMxpSize1LoXorStackItemValueLo3.set(
-          rlpaddrSaltLoXorReturnDataSizeXorMxpSize1LoXorStackItemValueLo3.size() - 1 - i, b);
+      mxpSize1Lo.set(mxpSize1Lo.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMxpSize2HiRelative(final BigInteger b, int i) {
-      trmRawAddrHiXorMxpSize2HiXorStackItemValueLo4.set(
-          trmRawAddrHiXorMxpSize2HiXorStackItemValueLo4.size() - 1 - i, b);
+      mxpSize2Hi.set(mxpSize2Hi.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousMxpSize2LoRelative(final BigInteger b, int i) {
-      mxpSize2LoXorStaticGas.set(mxpSize2LoXorStaticGas.size() - 1 - i, b);
+      mxpSize2Lo.set(mxpSize2Lo.size() - 1 - i, b);
 
       return this;
     }
@@ -7457,22 +7797,25 @@ public record Trace(
     }
 
     public TraceBuilder setPMiscellaneousOobEvent1Relative(final Boolean b, int i) {
-      isBlake2FXorOobEvent1XorEcrecoverXorCreateFlagXorWarm.set(
-          isBlake2FXorOobEvent1XorEcrecoverXorCreateFlagXorWarm.size() - 1 - i, b);
+      isEcaddXorOobEvent1XorCallSmcFailureCallerWillRevertXorDecodedFlag1XorWarmNew.set(
+          isEcaddXorOobEvent1XorCallSmcFailureCallerWillRevertXorDecodedFlag1XorWarmNew.size()
+              - 1
+              - i,
+          b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousOobEvent2Relative(final Boolean b, int i) {
-      isEcaddXorOobEvent2XorIdentityXorDecodedFlag1XorWarmNew.set(
-          isEcaddXorOobEvent2XorIdentityXorDecodedFlag1XorWarmNew.size() - 1 - i, b);
+      isEcmulXorOobEvent2XorCallSmcFailureCallerWontRevertXorDecodedFlag2.set(
+          isEcmulXorOobEvent2XorCallSmcFailureCallerWontRevertXorDecodedFlag2.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousOobFlagRelative(final Boolean b, int i) {
-      isEcmulXorOobFlagXorModexpXorDecodedFlag2.set(
-          isEcmulXorOobFlagXorModexpXorDecodedFlag2.size() - 1 - i, b);
+      isEcpairingXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecodedFlag3.set(
+          isEcpairingXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecodedFlag3.size() - 1 - i, b);
 
       return this;
     }
@@ -7538,8 +7881,9 @@ public record Trace(
     }
 
     public TraceBuilder setPMiscellaneousPrecinfoFlagRelative(final Boolean b, int i) {
-      isEcpairingXorPrecinfoFlagXorRipemDsub160XorDecodedFlag3.set(
-          isEcpairingXorPrecinfoFlagXorRipemDsub160XorDecodedFlag3.size() - 1 - i, b);
+      isEcrecoverXorPrecinfoFlagXorCallSmcSuccessCallerWontRevertXorDecodedFlag4.set(
+          isEcrecoverXorPrecinfoFlagXorCallSmcSuccessCallerWontRevertXorDecodedFlag4.size() - 1 - i,
+          b);
 
       return this;
     }
@@ -7570,15 +7914,15 @@ public record Trace(
     }
 
     public TraceBuilder setPMiscellaneousStpExistsRelative(final Boolean b, int i) {
-      isEcrecoverXorStpExistsXorScn1XorDecodedFlag4.set(
-          isEcrecoverXorStpExistsXorScn1XorDecodedFlag4.size() - 1 - i, b);
+      isIdentityXorStpExistsXorCodedepositXorDupFlag.set(
+          isIdentityXorStpExistsXorCodedepositXorDupFlag.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPMiscellaneousStpFlagRelative(final Boolean b, int i) {
-      isIdentityXorStpFlagXorScn10XorDupFlag.set(
-          isIdentityXorStpFlagXorScn10XorDupFlag.size() - 1 - i, b);
+      isModexpXorStpFlagXorCodedepositInvalidCodePrefixXorExtFlag.set(
+          isModexpXorStpFlagXorCodedepositInvalidCodePrefixXorExtFlag.size() - 1 - i, b);
 
       return this;
     }
@@ -7614,8 +7958,8 @@ public record Trace(
     }
 
     public TraceBuilder setPMiscellaneousStpOogxRelative(final Boolean b, int i) {
-      isModexpXorStpOogxXorScn11XorExtFlag.set(
-          isModexpXorStpOogxXorScn11XorExtFlag.size() - 1 - i, b);
+      isPrecompileXorStpOogxXorCodedepositValidCodePrefixXorHaltFlag.set(
+          isPrecompileXorStpOogxXorCodedepositValidCodePrefixXorHaltFlag.size() - 1 - i, b);
 
       return this;
     }
@@ -7633,8 +7977,8 @@ public record Trace(
     }
 
     public TraceBuilder setPMiscellaneousStpWarmRelative(final Boolean b, int i) {
-      isPrecompileXorStpWarmXorScn12XorHaltFlag.set(
-          isPrecompileXorStpWarmXorScn12XorHaltFlag.size() - 1 - i, b);
+      isRipemDsub160XorStpWarmXorEcaddXorInvalidFlag.set(
+          isRipemDsub160XorStpWarmXorEcaddXorInvalidFlag.size() - 1 - i, b);
 
       return this;
     }
@@ -7651,167 +7995,227 @@ public record Trace(
       return this;
     }
 
-    public TraceBuilder setPScenarioCallRelative(final Boolean b, int i) {
-      depStatusXorCcsrFlagXorCallXorAddFlagXorValCurrIsOrigXorIsEip1559.set(
-          depStatusXorCcsrFlagXorCallXorAddFlagXorValCurrIsOrigXorIsEip1559.size() - 1 - i, b);
+    public TraceBuilder setPScenarioCallAbortRelative(final Boolean b, int i) {
+      depStatusXorCcsrFlagXorCallAbortXorAddFlagXorValCurrIsOrigXorIsEip1559.set(
+          depStatusXorCcsrFlagXorCallAbortXorAddFlagXorValCurrIsOrigXorIsEip1559.size() - 1 - i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setPScenarioCallEoaSuccessCallerWillRevertRelative(final Boolean b, int i) {
+      depStatusNewXorExpFlagXorCallEoaSuccessCallerWillRevertXorBinFlagXorValCurrIsZeroXorStatusCode
+          .set(
+              depStatusNewXorExpFlagXorCallEoaSuccessCallerWillRevertXorBinFlagXorValCurrIsZeroXorStatusCode
+                      .size()
+                  - 1
+                  - i,
+              b);
+
+      return this;
+    }
+
+    public TraceBuilder setPScenarioCallEoaSuccessCallerWontRevertRelative(final Boolean b, int i) {
+      existsXorFcondFlagXorCallEoaSuccessCallerWontRevertXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution
+          .set(
+              existsXorFcondFlagXorCallEoaSuccessCallerWontRevertXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution
+                      .size()
+                  - 1
+                  - i,
+              b);
+
+      return this;
+    }
+
+    public TraceBuilder setPScenarioCallPrcFailureCallerWillRevertRelative(final Boolean b, int i) {
+      existsNewXorMmuFlagXorCallPrcFailureCallerWillRevertXorCallFlagXorValNextIsOrig.set(
+          existsNewXorMmuFlagXorCallPrcFailureCallerWillRevertXorCallFlagXorValNextIsOrig.size()
+              - 1
+              - i,
+          b);
+
+      return this;
+    }
+
+    public TraceBuilder setPScenarioCallPrcFailureCallerWontRevertRelative(final Boolean b, int i) {
+      hasCodeXorMxpDeploysXorCallPrcFailureCallerWontRevertXorConFlagXorValNextIsZero.set(
+          hasCodeXorMxpDeploysXorCallPrcFailureCallerWontRevertXorConFlagXorValNextIsZero.size()
+              - 1
+              - i,
+          b);
+
+      return this;
+    }
+
+    public TraceBuilder setPScenarioCallPrcSuccessCallerWillRevertRelative(final Boolean b, int i) {
+      hasCodeNewXorMxpFlagXorCallPrcSuccessCallerWillRevertXorCopyFlagXorValOrigIsZero.set(
+          hasCodeNewXorMxpFlagXorCallPrcSuccessCallerWillRevertXorCopyFlagXorValOrigIsZero.size()
+              - 1
+              - i,
+          b);
+
+      return this;
+    }
+
+    public TraceBuilder setPScenarioCallPrcSuccessCallerWontRevertRelative(final Boolean b, int i) {
+      isBlake2FXorMxpMxpxXorCallPrcSuccessCallerWontRevertXorCreateFlagXorWarm.set(
+          isBlake2FXorMxpMxpxXorCallPrcSuccessCallerWontRevertXorCreateFlagXorWarm.size() - 1 - i,
+          b);
+
+      return this;
+    }
+
+    public TraceBuilder setPScenarioCallSmcFailureCallerWillRevertRelative(final Boolean b, int i) {
+      isEcaddXorOobEvent1XorCallSmcFailureCallerWillRevertXorDecodedFlag1XorWarmNew.set(
+          isEcaddXorOobEvent1XorCallSmcFailureCallerWillRevertXorDecodedFlag1XorWarmNew.size()
+              - 1
+              - i,
+          b);
+
+      return this;
+    }
+
+    public TraceBuilder setPScenarioCallSmcFailureCallerWontRevertRelative(final Boolean b, int i) {
+      isEcmulXorOobEvent2XorCallSmcFailureCallerWontRevertXorDecodedFlag2.set(
+          isEcmulXorOobEvent2XorCallSmcFailureCallerWontRevertXorDecodedFlag2.size() - 1 - i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setPScenarioCallSmcSuccessCallerWillRevertRelative(final Boolean b, int i) {
+      isEcpairingXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecodedFlag3.set(
+          isEcpairingXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecodedFlag3.size() - 1 - i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setPScenarioCallSmcSuccessCallerWontRevertRelative(final Boolean b, int i) {
+      isEcrecoverXorPrecinfoFlagXorCallSmcSuccessCallerWontRevertXorDecodedFlag4.set(
+          isEcrecoverXorPrecinfoFlagXorCallSmcSuccessCallerWontRevertXorDecodedFlag4.size() - 1 - i,
+          b);
 
       return this;
     }
 
     public TraceBuilder setPScenarioCodedepositRelative(final Boolean b, int i) {
-      depStatusNewXorFcondFlagXorCodedepositXorBinFlagXorValCurrIsZeroXorStatusCode.set(
-          depStatusNewXorFcondFlagXorCodedepositXorBinFlagXorValCurrIsZeroXorStatusCode.size()
-              - 1
-              - i,
-          b);
+      isIdentityXorStpExistsXorCodedepositXorDupFlag.set(
+          isIdentityXorStpExistsXorCodedepositXorDupFlag.size() - 1 - i, b);
 
       return this;
     }
 
-    public TraceBuilder setPScenarioCreateRelative(final Boolean b, int i) {
-      existsXorMmuFlagXorCreateXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution.set(
-          existsXorMmuFlagXorCreateXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution.size()
-              - 1
-              - i,
-          b);
+    public TraceBuilder setPScenarioCodedepositInvalidCodePrefixRelative(final Boolean b, int i) {
+      isModexpXorStpFlagXorCodedepositInvalidCodePrefixXorExtFlag.set(
+          isModexpXorStpFlagXorCodedepositInvalidCodePrefixXorExtFlag.size() - 1 - i, b);
+
+      return this;
+    }
+
+    public TraceBuilder setPScenarioCodedepositValidCodePrefixRelative(final Boolean b, int i) {
+      isPrecompileXorStpOogxXorCodedepositValidCodePrefixXorHaltFlag.set(
+          isPrecompileXorStpOogxXorCodedepositValidCodePrefixXorHaltFlag.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPScenarioEcaddRelative(final Boolean b, int i) {
-      existsNewXorMxpDeploysXorEcaddXorCallFlagXorValNextIsOrig.set(
-          existsNewXorMxpDeploysXorEcaddXorCallFlagXorValNextIsOrig.size() - 1 - i, b);
+      isRipemDsub160XorStpWarmXorEcaddXorInvalidFlag.set(
+          isRipemDsub160XorStpWarmXorEcaddXorInvalidFlag.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPScenarioEcmulRelative(final Boolean b, int i) {
-      hasCodeXorMxpFlagXorEcmulXorConFlagXorValNextIsZero.set(
-          hasCodeXorMxpFlagXorEcmulXorConFlagXorValNextIsZero.size() - 1 - i, b);
+      isSha2Sub256XorEcmulXorInvprex.set(isSha2Sub256XorEcmulXorInvprex.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPScenarioEcpairingRelative(final Boolean b, int i) {
-      hasCodeNewXorMxpMxpxXorEcpairingXorCopyFlagXorValOrigIsZero.set(
-          hasCodeNewXorMxpMxpxXorEcpairingXorCopyFlagXorValOrigIsZero.size() - 1 - i, b);
+      rlpaddrFlagXorEcpairingXorJumpx.set(rlpaddrFlagXorEcpairingXorJumpx.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPScenarioEcrecoverRelative(final Boolean b, int i) {
-      isBlake2FXorOobEvent1XorEcrecoverXorCreateFlagXorWarm.set(
-          isBlake2FXorOobEvent1XorEcrecoverXorCreateFlagXorWarm.size() - 1 - i, b);
+      trmFlagXorEcrecoverXorJumpFlag.set(trmFlagXorEcrecoverXorJumpFlag.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPScenarioIdentityRelative(final Boolean b, int i) {
-      isEcaddXorOobEvent2XorIdentityXorDecodedFlag1XorWarmNew.set(
-          isEcaddXorOobEvent2XorIdentityXorDecodedFlag1XorWarmNew.size() - 1 - i, b);
+      warmXorIdentityXorKecFlag.set(warmXorIdentityXorKecFlag.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPScenarioModexpRelative(final Boolean b, int i) {
-      isEcmulXorOobFlagXorModexpXorDecodedFlag2.set(
-          isEcmulXorOobFlagXorModexpXorDecodedFlag2.size() - 1 - i, b);
+      warmNewXorModexpXorLogFlag.set(warmNewXorModexpXorLogFlag.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPScenarioRipemd160Relative(final Boolean b, int i) {
-      isEcpairingXorPrecinfoFlagXorRipemDsub160XorDecodedFlag3.set(
-          isEcpairingXorPrecinfoFlagXorRipemDsub160XorDecodedFlag3.size() - 1 - i, b);
+      ripemDsub160XorMaxcsx.set(ripemDsub160XorMaxcsx.size() - 1 - i, b);
 
       return this;
     }
 
-    public TraceBuilder setPScenarioScn1Relative(final Boolean b, int i) {
-      isEcrecoverXorStpExistsXorScn1XorDecodedFlag4.set(
-          isEcrecoverXorStpExistsXorScn1XorDecodedFlag4.size() - 1 - i, b);
+    public TraceBuilder setPScenarioScnFailure1Relative(final Boolean b, int i) {
+      scnFailure1XorModFlag.set(scnFailure1XorModFlag.size() - 1 - i, b);
 
       return this;
     }
 
-    public TraceBuilder setPScenarioScn10Relative(final Boolean b, int i) {
-      isIdentityXorStpFlagXorScn10XorDupFlag.set(
-          isIdentityXorStpFlagXorScn10XorDupFlag.size() - 1 - i, b);
+    public TraceBuilder setPScenarioScnFailure2Relative(final Boolean b, int i) {
+      scnFailure2XorMulFlag.set(scnFailure2XorMulFlag.size() - 1 - i, b);
 
       return this;
     }
 
-    public TraceBuilder setPScenarioScn11Relative(final Boolean b, int i) {
-      isModexpXorStpOogxXorScn11XorExtFlag.set(
-          isModexpXorStpOogxXorScn11XorExtFlag.size() - 1 - i, b);
+    public TraceBuilder setPScenarioScnFailure3Relative(final Boolean b, int i) {
+      scnFailure3XorMxpx.set(scnFailure3XorMxpx.size() - 1 - i, b);
 
       return this;
     }
 
-    public TraceBuilder setPScenarioScn12Relative(final Boolean b, int i) {
-      isPrecompileXorStpWarmXorScn12XorHaltFlag.set(
-          isPrecompileXorStpWarmXorScn12XorHaltFlag.size() - 1 - i, b);
+    public TraceBuilder setPScenarioScnFailure4Relative(final Boolean b, int i) {
+      scnFailure4XorMxpFlag.set(scnFailure4XorMxpFlag.size() - 1 - i, b);
 
       return this;
     }
 
-    public TraceBuilder setPScenarioScn2Relative(final Boolean b, int i) {
-      isRipemDsub160XorScn2XorInvalidFlag.set(
-          isRipemDsub160XorScn2XorInvalidFlag.size() - 1 - i, b);
+    public TraceBuilder setPScenarioScnSuccess1Relative(final Boolean b, int i) {
+      scnSuccess1XorOobFlag.set(scnSuccess1XorOobFlag.size() - 1 - i, b);
 
       return this;
     }
 
-    public TraceBuilder setPScenarioScn3Relative(final Boolean b, int i) {
-      isSha2Sub256XorScn3XorInvprex.set(isSha2Sub256XorScn3XorInvprex.size() - 1 - i, b);
+    public TraceBuilder setPScenarioScnSuccess2Relative(final Boolean b, int i) {
+      scnSuccess2XorOogx.set(scnSuccess2XorOogx.size() - 1 - i, b);
 
       return this;
     }
 
-    public TraceBuilder setPScenarioScn4Relative(final Boolean b, int i) {
-      rlpaddrFlagXorScn4XorJumpx.set(rlpaddrFlagXorScn4XorJumpx.size() - 1 - i, b);
+    public TraceBuilder setPScenarioScnSuccess3Relative(final Boolean b, int i) {
+      scnSuccess3XorOpcx.set(scnSuccess3XorOpcx.size() - 1 - i, b);
 
       return this;
     }
 
-    public TraceBuilder setPScenarioScn5Relative(final Boolean b, int i) {
-      trmFlagXorScn5XorJumpFlag.set(trmFlagXorScn5XorJumpFlag.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setPScenarioScn6Relative(final Boolean b, int i) {
-      warmXorScn6XorKecFlag.set(warmXorScn6XorKecFlag.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setPScenarioScn7Relative(final Boolean b, int i) {
-      warmNewXorScn7XorLogFlag.set(warmNewXorScn7XorLogFlag.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setPScenarioScn8Relative(final Boolean b, int i) {
-      scn8XorMaxcsx.set(scn8XorMaxcsx.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setPScenarioScn9Relative(final Boolean b, int i) {
-      scn9XorModFlag.set(scn9XorModFlag.size() - 1 - i, b);
+    public TraceBuilder setPScenarioScnSuccess4Relative(final Boolean b, int i) {
+      scnSuccess4XorPushpopFlag.set(scnSuccess4XorPushpopFlag.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPScenarioSelfdestructRelative(final Boolean b, int i) {
-      selfdestructXorMulFlag.set(selfdestructXorMulFlag.size() - 1 - i, b);
+      selfdestructXorRdcx.set(selfdestructXorRdcx.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPScenarioSha2256Relative(final Boolean b, int i) {
-      sha2Sub256XorMxpx.set(sha2Sub256XorMxpx.size() - 1 - i, b);
+      sha2Sub256XorShfFlag.set(sha2Sub256XorShfFlag.size() - 1 - i, b);
 
       return this;
     }
@@ -7829,25 +8233,39 @@ public record Trace(
     }
 
     public TraceBuilder setPStackAddFlagRelative(final Boolean b, int i) {
-      depStatusXorCcsrFlagXorCallXorAddFlagXorValCurrIsOrigXorIsEip1559.set(
-          depStatusXorCcsrFlagXorCallXorAddFlagXorValCurrIsOrigXorIsEip1559.size() - 1 - i, b);
+      depStatusXorCcsrFlagXorCallAbortXorAddFlagXorValCurrIsOrigXorIsEip1559.set(
+          depStatusXorCcsrFlagXorCallAbortXorAddFlagXorValCurrIsOrigXorIsEip1559.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackBinFlagRelative(final Boolean b, int i) {
-      depStatusNewXorFcondFlagXorCodedepositXorBinFlagXorValCurrIsZeroXorStatusCode.set(
-          depStatusNewXorFcondFlagXorCodedepositXorBinFlagXorValCurrIsZeroXorStatusCode.size()
-              - 1
-              - i,
-          b);
+      depStatusNewXorExpFlagXorCallEoaSuccessCallerWillRevertXorBinFlagXorValCurrIsZeroXorStatusCode
+          .set(
+              depStatusNewXorExpFlagXorCallEoaSuccessCallerWillRevertXorBinFlagXorValCurrIsZeroXorStatusCode
+                      .size()
+                  - 1
+                  - i,
+              b);
 
       return this;
     }
 
     public TraceBuilder setPStackBtcFlagRelative(final Boolean b, int i) {
-      existsXorMmuFlagXorCreateXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution.set(
-          existsXorMmuFlagXorCreateXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution.size()
+      existsXorFcondFlagXorCallEoaSuccessCallerWontRevertXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution
+          .set(
+              existsXorFcondFlagXorCallEoaSuccessCallerWontRevertXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution
+                      .size()
+                  - 1
+                  - i,
+              b);
+
+      return this;
+    }
+
+    public TraceBuilder setPStackCallFlagRelative(final Boolean b, int i) {
+      existsNewXorMmuFlagXorCallPrcFailureCallerWillRevertXorCallFlagXorValNextIsOrig.set(
+          existsNewXorMmuFlagXorCallPrcFailureCallerWillRevertXorCallFlagXorValNextIsOrig.size()
               - 1
               - i,
           b);
@@ -7855,79 +8273,83 @@ public record Trace(
       return this;
     }
 
-    public TraceBuilder setPStackCallFlagRelative(final Boolean b, int i) {
-      existsNewXorMxpDeploysXorEcaddXorCallFlagXorValNextIsOrig.set(
-          existsNewXorMxpDeploysXorEcaddXorCallFlagXorValNextIsOrig.size() - 1 - i, b);
-
-      return this;
-    }
-
     public TraceBuilder setPStackConFlagRelative(final Boolean b, int i) {
-      hasCodeXorMxpFlagXorEcmulXorConFlagXorValNextIsZero.set(
-          hasCodeXorMxpFlagXorEcmulXorConFlagXorValNextIsZero.size() - 1 - i, b);
+      hasCodeXorMxpDeploysXorCallPrcFailureCallerWontRevertXorConFlagXorValNextIsZero.set(
+          hasCodeXorMxpDeploysXorCallPrcFailureCallerWontRevertXorConFlagXorValNextIsZero.size()
+              - 1
+              - i,
+          b);
 
       return this;
     }
 
     public TraceBuilder setPStackCopyFlagRelative(final Boolean b, int i) {
-      hasCodeNewXorMxpMxpxXorEcpairingXorCopyFlagXorValOrigIsZero.set(
-          hasCodeNewXorMxpMxpxXorEcpairingXorCopyFlagXorValOrigIsZero.size() - 1 - i, b);
+      hasCodeNewXorMxpFlagXorCallPrcSuccessCallerWillRevertXorCopyFlagXorValOrigIsZero.set(
+          hasCodeNewXorMxpFlagXorCallPrcSuccessCallerWillRevertXorCopyFlagXorValOrigIsZero.size()
+              - 1
+              - i,
+          b);
 
       return this;
     }
 
     public TraceBuilder setPStackCreateFlagRelative(final Boolean b, int i) {
-      isBlake2FXorOobEvent1XorEcrecoverXorCreateFlagXorWarm.set(
-          isBlake2FXorOobEvent1XorEcrecoverXorCreateFlagXorWarm.size() - 1 - i, b);
+      isBlake2FXorMxpMxpxXorCallPrcSuccessCallerWontRevertXorCreateFlagXorWarm.set(
+          isBlake2FXorMxpMxpxXorCallPrcSuccessCallerWontRevertXorCreateFlagXorWarm.size() - 1 - i,
+          b);
 
       return this;
     }
 
     public TraceBuilder setPStackDecodedFlag1Relative(final Boolean b, int i) {
-      isEcaddXorOobEvent2XorIdentityXorDecodedFlag1XorWarmNew.set(
-          isEcaddXorOobEvent2XorIdentityXorDecodedFlag1XorWarmNew.size() - 1 - i, b);
+      isEcaddXorOobEvent1XorCallSmcFailureCallerWillRevertXorDecodedFlag1XorWarmNew.set(
+          isEcaddXorOobEvent1XorCallSmcFailureCallerWillRevertXorDecodedFlag1XorWarmNew.size()
+              - 1
+              - i,
+          b);
 
       return this;
     }
 
     public TraceBuilder setPStackDecodedFlag2Relative(final Boolean b, int i) {
-      isEcmulXorOobFlagXorModexpXorDecodedFlag2.set(
-          isEcmulXorOobFlagXorModexpXorDecodedFlag2.size() - 1 - i, b);
+      isEcmulXorOobEvent2XorCallSmcFailureCallerWontRevertXorDecodedFlag2.set(
+          isEcmulXorOobEvent2XorCallSmcFailureCallerWontRevertXorDecodedFlag2.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackDecodedFlag3Relative(final Boolean b, int i) {
-      isEcpairingXorPrecinfoFlagXorRipemDsub160XorDecodedFlag3.set(
-          isEcpairingXorPrecinfoFlagXorRipemDsub160XorDecodedFlag3.size() - 1 - i, b);
+      isEcpairingXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecodedFlag3.set(
+          isEcpairingXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecodedFlag3.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackDecodedFlag4Relative(final Boolean b, int i) {
-      isEcrecoverXorStpExistsXorScn1XorDecodedFlag4.set(
-          isEcrecoverXorStpExistsXorScn1XorDecodedFlag4.size() - 1 - i, b);
+      isEcrecoverXorPrecinfoFlagXorCallSmcSuccessCallerWontRevertXorDecodedFlag4.set(
+          isEcrecoverXorPrecinfoFlagXorCallSmcSuccessCallerWontRevertXorDecodedFlag4.size() - 1 - i,
+          b);
 
       return this;
     }
 
     public TraceBuilder setPStackDupFlagRelative(final Boolean b, int i) {
-      isIdentityXorStpFlagXorScn10XorDupFlag.set(
-          isIdentityXorStpFlagXorScn10XorDupFlag.size() - 1 - i, b);
+      isIdentityXorStpExistsXorCodedepositXorDupFlag.set(
+          isIdentityXorStpExistsXorCodedepositXorDupFlag.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackExtFlagRelative(final Boolean b, int i) {
-      isModexpXorStpOogxXorScn11XorExtFlag.set(
-          isModexpXorStpOogxXorScn11XorExtFlag.size() - 1 - i, b);
+      isModexpXorStpFlagXorCodedepositInvalidCodePrefixXorExtFlag.set(
+          isModexpXorStpFlagXorCodedepositInvalidCodePrefixXorExtFlag.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackHaltFlagRelative(final Boolean b, int i) {
-      isPrecompileXorStpWarmXorScn12XorHaltFlag.set(
-          isPrecompileXorStpWarmXorScn12XorHaltFlag.size() - 1 - i, b);
+      isPrecompileXorStpOogxXorCodedepositValidCodePrefixXorHaltFlag.set(
+          isPrecompileXorStpOogxXorCodedepositValidCodePrefixXorHaltFlag.size() - 1 - i, b);
 
       return this;
     }
@@ -7940,17 +8362,19 @@ public record Trace(
     }
 
     public TraceBuilder setPStackHeightNewRelative(final BigInteger b, int i) {
-      addrLoXorAccountAddressLoXorMmuCnSXorHeightNewXorAddressLoXorCallDataSize.set(
-          addrLoXorAccountAddressLoXorMmuCnSXorHeightNewXorAddressLoXorCallDataSize.size() - 1 - i,
+      addrLoXorAccountAddressLoXorExpDyncostXorHeightNewXorAddressLoXorCallDataSize.set(
+          addrLoXorAccountAddressLoXorExpDyncostXorHeightNewXorAddressLoXorCallDataSize.size()
+              - 1
+              - i,
           b);
 
       return this;
     }
 
     public TraceBuilder setPStackHeightOverRelative(final BigInteger b, int i) {
-      balanceXorAccountDeploymentNumberXorMmuCnTXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
+      balanceXorAccountDeploymentNumberXorExpExponentHiXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
           .set(
-              balanceXorAccountDeploymentNumberXorMmuCnTXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
+              balanceXorAccountDeploymentNumberXorExpExponentHiXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
                       .size()
                   - 1
                   - i,
@@ -7960,19 +8384,20 @@ public record Trace(
     }
 
     public TraceBuilder setPStackHeightUnderRelative(final BigInteger b, int i) {
-      balanceNewXorByteCodeAddressHiXorMmuInstXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo.set(
-          balanceNewXorByteCodeAddressHiXorMmuInstXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo
-                  .size()
-              - 1
-              - i,
-          b);
+      balanceNewXorByteCodeAddressHiXorExpExponentLoXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo
+          .set(
+              balanceNewXorByteCodeAddressHiXorExpExponentLoXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo
+                      .size()
+                  - 1
+                  - i,
+              b);
 
       return this;
     }
 
     public TraceBuilder setPStackInstructionRelative(final BigInteger b, int i) {
-      codeHashHiXorByteCodeAddressLoXorMmuNum1XorInstructionXorStorageKeyLoXorFromAddressHi.set(
-          codeHashHiXorByteCodeAddressLoXorMmuNum1XorInstructionXorStorageKeyLoXorFromAddressHi
+      codeHashHiXorByteCodeAddressLoXorMmuCnSXorInstructionXorStorageKeyLoXorFromAddressHi.set(
+          codeHashHiXorByteCodeAddressLoXorMmuCnSXorInstructionXorStorageKeyLoXorFromAddressHi
                   .size()
               - 1
               - i,
@@ -7982,94 +8407,94 @@ public record Trace(
     }
 
     public TraceBuilder setPStackInvalidFlagRelative(final Boolean b, int i) {
-      isRipemDsub160XorScn2XorInvalidFlag.set(
-          isRipemDsub160XorScn2XorInvalidFlag.size() - 1 - i, b);
+      isRipemDsub160XorStpWarmXorEcaddXorInvalidFlag.set(
+          isRipemDsub160XorStpWarmXorEcaddXorInvalidFlag.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackInvprexRelative(final Boolean b, int i) {
-      isSha2Sub256XorScn3XorInvprex.set(isSha2Sub256XorScn3XorInvprex.size() - 1 - i, b);
+      isSha2Sub256XorEcmulXorInvprex.set(isSha2Sub256XorEcmulXorInvprex.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackJumpFlagRelative(final Boolean b, int i) {
-      trmFlagXorScn5XorJumpFlag.set(trmFlagXorScn5XorJumpFlag.size() - 1 - i, b);
+      trmFlagXorEcrecoverXorJumpFlag.set(trmFlagXorEcrecoverXorJumpFlag.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackJumpxRelative(final Boolean b, int i) {
-      rlpaddrFlagXorScn4XorJumpx.set(rlpaddrFlagXorScn4XorJumpx.size() - 1 - i, b);
+      rlpaddrFlagXorEcpairingXorJumpx.set(rlpaddrFlagXorEcpairingXorJumpx.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackKecFlagRelative(final Boolean b, int i) {
-      warmXorScn6XorKecFlag.set(warmXorScn6XorKecFlag.size() - 1 - i, b);
+      warmXorIdentityXorKecFlag.set(warmXorIdentityXorKecFlag.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackLogFlagRelative(final Boolean b, int i) {
-      warmNewXorScn7XorLogFlag.set(warmNewXorScn7XorLogFlag.size() - 1 - i, b);
+      warmNewXorModexpXorLogFlag.set(warmNewXorModexpXorLogFlag.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackMaxcsxRelative(final Boolean b, int i) {
-      scn8XorMaxcsx.set(scn8XorMaxcsx.size() - 1 - i, b);
+      ripemDsub160XorMaxcsx.set(ripemDsub160XorMaxcsx.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackModFlagRelative(final Boolean b, int i) {
-      scn9XorModFlag.set(scn9XorModFlag.size() - 1 - i, b);
+      scnFailure1XorModFlag.set(scnFailure1XorModFlag.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackMulFlagRelative(final Boolean b, int i) {
-      selfdestructXorMulFlag.set(selfdestructXorMulFlag.size() - 1 - i, b);
+      scnFailure2XorMulFlag.set(scnFailure2XorMulFlag.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackMxpFlagRelative(final Boolean b, int i) {
-      mxpFlag.set(mxpFlag.size() - 1 - i, b);
+      scnFailure4XorMxpFlag.set(scnFailure4XorMxpFlag.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackMxpxRelative(final Boolean b, int i) {
-      sha2Sub256XorMxpx.set(sha2Sub256XorMxpx.size() - 1 - i, b);
+      scnFailure3XorMxpx.set(scnFailure3XorMxpx.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackOobFlagRelative(final Boolean b, int i) {
-      oobFlag.set(oobFlag.size() - 1 - i, b);
+      scnSuccess1XorOobFlag.set(scnSuccess1XorOobFlag.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackOogxRelative(final Boolean b, int i) {
-      oogx.set(oogx.size() - 1 - i, b);
+      scnSuccess2XorOogx.set(scnSuccess2XorOogx.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackOpcxRelative(final Boolean b, int i) {
-      opcx.set(opcx.size() - 1 - i, b);
+      scnSuccess3XorOpcx.set(scnSuccess3XorOpcx.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackPushValueHiRelative(final BigInteger b, int i) {
-      codeHashHiNewXorByteCodeDeploymentNumberXorMmuNum2XorPushValueHiXorValCurrHiXorFromAddressLo
+      codeHashHiNewXorByteCodeDeploymentNumberXorMmuCnTXorPushValueHiXorValCurrHiXorFromAddressLo
           .set(
-              codeHashHiNewXorByteCodeDeploymentNumberXorMmuNum2XorPushValueHiXorValCurrHiXorFromAddressLo
+              codeHashHiNewXorByteCodeDeploymentNumberXorMmuCnTXorPushValueHiXorValCurrHiXorFromAddressLo
                       .size()
                   - 1
                   - i,
@@ -8079,8 +8504,8 @@ public record Trace(
     }
 
     public TraceBuilder setPStackPushValueLoRelative(final BigInteger b, int i) {
-      codeHashLoXorByteCodeDeploymentStatusXorMmuRefsXorPushValueLoXorValCurrLoXorGasLimit.set(
-          codeHashLoXorByteCodeDeploymentStatusXorMmuRefsXorPushValueLoXorValCurrLoXorGasLimit
+      codeHashLoXorByteCodeDeploymentStatusXorMmuInstXorPushValueLoXorValCurrLoXorGasLimit.set(
+          codeHashLoXorByteCodeDeploymentStatusXorMmuInstXorPushValueLoXorValCurrLoXorGasLimit
                   .size()
               - 1
               - i,
@@ -8090,19 +8515,19 @@ public record Trace(
     }
 
     public TraceBuilder setPStackPushpopFlagRelative(final Boolean b, int i) {
-      pushpopFlag.set(pushpopFlag.size() - 1 - i, b);
+      scnSuccess4XorPushpopFlag.set(scnSuccess4XorPushpopFlag.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackRdcxRelative(final Boolean b, int i) {
-      rdcx.set(rdcx.size() - 1 - i, b);
+      selfdestructXorRdcx.set(selfdestructXorRdcx.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackShfFlagRelative(final Boolean b, int i) {
-      shfFlag.set(shfFlag.size() - 1 - i, b);
+      sha2Sub256XorShfFlag.set(sha2Sub256XorShfFlag.size() - 1 - i, b);
 
       return this;
     }
@@ -8120,8 +8545,8 @@ public record Trace(
     }
 
     public TraceBuilder setPStackStackItemHeight1Relative(final BigInteger b, int i) {
-      codeHashLoNewXorCallerAddressHiXorMmuSizeXorStackItemHeight1XorValNextHiXorGasPrice.set(
-          codeHashLoNewXorCallerAddressHiXorMmuSizeXorStackItemHeight1XorValNextHiXorGasPrice.size()
+      codeHashLoNewXorCallerAddressHiXorMmuNum1XorStackItemHeight1XorValNextHiXorGasPrice.set(
+          codeHashLoNewXorCallerAddressHiXorMmuNum1XorStackItemHeight1XorValNextHiXorGasPrice.size()
               - 1
               - i,
           b);
@@ -8130,21 +8555,20 @@ public record Trace(
     }
 
     public TraceBuilder setPStackStackItemHeight2Relative(final BigInteger b, int i) {
-      codeSizeXorCallerAddressLoXorMmuSourceOffsetHiXorStackItemHeight2XorValNextLoXorGasRefundAmount
-          .set(
-              codeSizeXorCallerAddressLoXorMmuSourceOffsetHiXorStackItemHeight2XorValNextLoXorGasRefundAmount
-                      .size()
-                  - 1
-                  - i,
-              b);
+      codeSizeXorCallerAddressLoXorMmuNum2XorStackItemHeight2XorValNextLoXorGasRefundAmount.set(
+          codeSizeXorCallerAddressLoXorMmuNum2XorStackItemHeight2XorValNextLoXorGasRefundAmount
+                  .size()
+              - 1
+              - i,
+          b);
 
       return this;
     }
 
     public TraceBuilder setPStackStackItemHeight3Relative(final BigInteger b, int i) {
-      codeSizeNewXorCallerContextNumberXorMmuSourceOffsetLoXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
+      codeSizeNewXorCallerContextNumberXorMmuRefsXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
           .set(
-              codeSizeNewXorCallerContextNumberXorMmuSourceOffsetLoXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
+              codeSizeNewXorCallerContextNumberXorMmuRefsXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
                       .size()
                   - 1
                   - i,
@@ -8154,9 +8578,9 @@ public record Trace(
     }
 
     public TraceBuilder setPStackStackItemHeight4Relative(final BigInteger b, int i) {
-      deploymentNumberInftyXorCallDataOffsetXorMmuStackValHiXorStackItemHeight4XorValOrigLoXorInitialBalance
+      deploymentNumberInftyXorCallDataOffsetXorMmuSizeXorStackItemHeight4XorValOrigLoXorInitialBalance
           .set(
-              deploymentNumberInftyXorCallDataOffsetXorMmuStackValHiXorStackItemHeight4XorValOrigLoXorInitialBalance
+              deploymentNumberInftyXorCallDataOffsetXorMmuSizeXorStackItemHeight4XorValOrigLoXorInitialBalance
                       .size()
                   - 1
                   - i,
@@ -8190,46 +8614,38 @@ public record Trace(
     }
 
     public TraceBuilder setPStackStackItemStamp1Relative(final BigInteger b, int i) {
-      depNumXorCallDataSizeXorMmuStackValLoXorStackItemStamp1XorInitCodeSize.set(
-          depNumXorCallDataSizeXorMmuStackValLoXorStackItemStamp1XorInitCodeSize.size() - 1 - i, b);
+      depNumXorCallDataSizeXorMmuSourceOffsetHiXorStackItemStamp1XorInitCodeSize.set(
+          depNumXorCallDataSizeXorMmuSourceOffsetHiXorStackItemStamp1XorInitCodeSize.size() - 1 - i,
+          b);
 
       return this;
     }
 
     public TraceBuilder setPStackStackItemStamp2Relative(final BigInteger b, int i) {
-      depNumNewXorCallStackDepthXorMmuTargetOffsetHiXorStackItemStamp2XorInitGas.set(
-          depNumNewXorCallStackDepthXorMmuTargetOffsetHiXorStackItemStamp2XorInitGas.size() - 1 - i,
+      depNumNewXorCallStackDepthXorMmuSourceOffsetLoXorStackItemStamp2XorInitGas.set(
+          depNumNewXorCallStackDepthXorMmuSourceOffsetLoXorStackItemStamp2XorInitGas.size() - 1 - i,
           b);
 
       return this;
     }
 
     public TraceBuilder setPStackStackItemStamp3Relative(final BigInteger b, int i) {
-      nonceXorCallValueXorMmuTargetOffsetLoXorStackItemStamp3XorLeftoverGas.set(
-          nonceXorCallValueXorMmuTargetOffsetLoXorStackItemStamp3XorLeftoverGas.size() - 1 - i, b);
+      nonceXorCallValueXorMmuStackValHiXorStackItemStamp3XorLeftoverGas.set(
+          nonceXorCallValueXorMmuStackValHiXorStackItemStamp3XorLeftoverGas.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackStackItemStamp4Relative(final BigInteger b, int i) {
-      nonceNewXorContextNumberXorMxpGasMxpXorStackItemStamp4XorNonce.set(
-          nonceNewXorContextNumberXorMxpGasMxpXorStackItemStamp4XorNonce.size() - 1 - i, b);
+      nonceNewXorContextNumberXorMmuStackValLoXorStackItemStamp4XorNonce.set(
+          nonceNewXorContextNumberXorMmuStackValLoXorStackItemStamp4XorNonce.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackStackItemValueHi1Relative(final BigInteger b, int i) {
-      rlpaddrDepAddrHiXorIsStaticXorMxpInstXorStackItemValueHi1XorToAddressHi.set(
-          rlpaddrDepAddrHiXorIsStaticXorMxpInstXorStackItemValueHi1XorToAddressHi.size() - 1 - i,
-          b);
-
-      return this;
-    }
-
-    public TraceBuilder setPStackStackItemValueHi2Relative(final BigInteger b, int i) {
-      rlpaddrDepAddrLoXorReturnerContextNumberXorMxpOffset1HiXorStackItemValueHi2XorToAddressLo.set(
-          rlpaddrDepAddrLoXorReturnerContextNumberXorMxpOffset1HiXorStackItemValueHi2XorToAddressLo
-                  .size()
+      rlpaddrDepAddrHiXorIsStaticXorMmuTargetOffsetHiXorStackItemValueHi1XorToAddressHi.set(
+          rlpaddrDepAddrHiXorIsStaticXorMmuTargetOffsetHiXorStackItemValueHi1XorToAddressHi.size()
               - 1
               - i,
           b);
@@ -8237,9 +8653,21 @@ public record Trace(
       return this;
     }
 
+    public TraceBuilder setPStackStackItemValueHi2Relative(final BigInteger b, int i) {
+      rlpaddrDepAddrLoXorReturnerContextNumberXorMmuTargetOffsetLoXorStackItemValueHi2XorToAddressLo
+          .set(
+              rlpaddrDepAddrLoXorReturnerContextNumberXorMmuTargetOffsetLoXorStackItemValueHi2XorToAddressLo
+                      .size()
+                  - 1
+                  - i,
+              b);
+
+      return this;
+    }
+
     public TraceBuilder setPStackStackItemValueHi3Relative(final BigInteger b, int i) {
-      rlpaddrKecHiXorReturnerIsPrecompileXorMxpOffset1LoXorStackItemValueHi3XorValue.set(
-          rlpaddrKecHiXorReturnerIsPrecompileXorMxpOffset1LoXorStackItemValueHi3XorValue.size()
+      rlpaddrKecHiXorReturnerIsPrecompileXorMxpGasMxpXorStackItemValueHi3XorValue.set(
+          rlpaddrKecHiXorReturnerIsPrecompileXorMxpGasMxpXorStackItemValueHi3XorValue.size()
               - 1
               - i,
           b);
@@ -8248,36 +8676,36 @@ public record Trace(
     }
 
     public TraceBuilder setPStackStackItemValueHi4Relative(final BigInteger b, int i) {
-      rlpaddrKecLoXorReturnAtOffsetXorMxpOffset2HiXorStackItemValueHi4.set(
-          rlpaddrKecLoXorReturnAtOffsetXorMxpOffset2HiXorStackItemValueHi4.size() - 1 - i, b);
+      rlpaddrKecLoXorReturnAtOffsetXorMxpInstXorStackItemValueHi4.set(
+          rlpaddrKecLoXorReturnAtOffsetXorMxpInstXorStackItemValueHi4.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackStackItemValueLo1Relative(final BigInteger b, int i) {
-      rlpaddrRecipeXorReturnAtSizeXorMxpOffset2LoXorStackItemValueLo1.set(
-          rlpaddrRecipeXorReturnAtSizeXorMxpOffset2LoXorStackItemValueLo1.size() - 1 - i, b);
+      rlpaddrRecipeXorReturnAtSizeXorMxpOffset1HiXorStackItemValueLo1.set(
+          rlpaddrRecipeXorReturnAtSizeXorMxpOffset1HiXorStackItemValueLo1.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackStackItemValueLo2Relative(final BigInteger b, int i) {
-      rlpaddrSaltHiXorReturnDataOffsetXorMxpSize1HiXorStackItemValueLo2.set(
-          rlpaddrSaltHiXorReturnDataOffsetXorMxpSize1HiXorStackItemValueLo2.size() - 1 - i, b);
+      rlpaddrSaltHiXorReturnDataOffsetXorMxpOffset1LoXorStackItemValueLo2.set(
+          rlpaddrSaltHiXorReturnDataOffsetXorMxpOffset1LoXorStackItemValueLo2.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackStackItemValueLo3Relative(final BigInteger b, int i) {
-      rlpaddrSaltLoXorReturnDataSizeXorMxpSize1LoXorStackItemValueLo3.set(
-          rlpaddrSaltLoXorReturnDataSizeXorMxpSize1LoXorStackItemValueLo3.size() - 1 - i, b);
+      rlpaddrSaltLoXorReturnDataSizeXorMxpOffset2HiXorStackItemValueLo3.set(
+          rlpaddrSaltLoXorReturnDataSizeXorMxpOffset2HiXorStackItemValueLo3.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPStackStackItemValueLo4Relative(final BigInteger b, int i) {
-      trmRawAddrHiXorMxpSize2HiXorStackItemValueLo4.set(
-          trmRawAddrHiXorMxpSize2HiXorStackItemValueLo4.size() - 1 - i, b);
+      trmRawAddrHiXorMxpOffset2LoXorStackItemValueLo4.set(
+          trmRawAddrHiXorMxpOffset2LoXorStackItemValueLo4.size() - 1 - i, b);
 
       return this;
     }
@@ -8295,7 +8723,7 @@ public record Trace(
     }
 
     public TraceBuilder setPStackStaticGasRelative(final BigInteger b, int i) {
-      mxpSize2LoXorStaticGas.set(mxpSize2LoXorStaticGas.size() - 1 - i, b);
+      mxpSize1HiXorStaticGas.set(mxpSize1HiXorStaticGas.size() - 1 - i, b);
 
       return this;
     }
@@ -8350,17 +8778,19 @@ public record Trace(
     }
 
     public TraceBuilder setPStorageAddressLoRelative(final BigInteger b, int i) {
-      addrLoXorAccountAddressLoXorMmuCnSXorHeightNewXorAddressLoXorCallDataSize.set(
-          addrLoXorAccountAddressLoXorMmuCnSXorHeightNewXorAddressLoXorCallDataSize.size() - 1 - i,
+      addrLoXorAccountAddressLoXorExpDyncostXorHeightNewXorAddressLoXorCallDataSize.set(
+          addrLoXorAccountAddressLoXorExpDyncostXorHeightNewXorAddressLoXorCallDataSize.size()
+              - 1
+              - i,
           b);
 
       return this;
     }
 
     public TraceBuilder setPStorageDeploymentNumberRelative(final BigInteger b, int i) {
-      balanceXorAccountDeploymentNumberXorMmuCnTXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
+      balanceXorAccountDeploymentNumberXorExpExponentHiXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
           .set(
-              balanceXorAccountDeploymentNumberXorMmuCnTXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
+              balanceXorAccountDeploymentNumberXorExpExponentHiXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
                       .size()
                   - 1
                   - i,
@@ -8370,19 +8800,20 @@ public record Trace(
     }
 
     public TraceBuilder setPStorageStorageKeyHiRelative(final BigInteger b, int i) {
-      balanceNewXorByteCodeAddressHiXorMmuInstXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo.set(
-          balanceNewXorByteCodeAddressHiXorMmuInstXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo
-                  .size()
-              - 1
-              - i,
-          b);
+      balanceNewXorByteCodeAddressHiXorExpExponentLoXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo
+          .set(
+              balanceNewXorByteCodeAddressHiXorExpExponentLoXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo
+                      .size()
+                  - 1
+                  - i,
+              b);
 
       return this;
     }
 
     public TraceBuilder setPStorageStorageKeyLoRelative(final BigInteger b, int i) {
-      codeHashHiXorByteCodeAddressLoXorMmuNum1XorInstructionXorStorageKeyLoXorFromAddressHi.set(
-          codeHashHiXorByteCodeAddressLoXorMmuNum1XorInstructionXorStorageKeyLoXorFromAddressHi
+      codeHashHiXorByteCodeAddressLoXorMmuCnSXorInstructionXorStorageKeyLoXorFromAddressHi.set(
+          codeHashHiXorByteCodeAddressLoXorMmuCnSXorInstructionXorStorageKeyLoXorFromAddressHi
                   .size()
               - 1
               - i,
@@ -8404,9 +8835,9 @@ public record Trace(
     }
 
     public TraceBuilder setPStorageValCurrHiRelative(final BigInteger b, int i) {
-      codeHashHiNewXorByteCodeDeploymentNumberXorMmuNum2XorPushValueHiXorValCurrHiXorFromAddressLo
+      codeHashHiNewXorByteCodeDeploymentNumberXorMmuCnTXorPushValueHiXorValCurrHiXorFromAddressLo
           .set(
-              codeHashHiNewXorByteCodeDeploymentNumberXorMmuNum2XorPushValueHiXorValCurrHiXorFromAddressLo
+              codeHashHiNewXorByteCodeDeploymentNumberXorMmuCnTXorPushValueHiXorValCurrHiXorFromAddressLo
                       .size()
                   - 1
                   - i,
@@ -8416,25 +8847,27 @@ public record Trace(
     }
 
     public TraceBuilder setPStorageValCurrIsOrigRelative(final Boolean b, int i) {
-      depStatusXorCcsrFlagXorCallXorAddFlagXorValCurrIsOrigXorIsEip1559.set(
-          depStatusXorCcsrFlagXorCallXorAddFlagXorValCurrIsOrigXorIsEip1559.size() - 1 - i, b);
+      depStatusXorCcsrFlagXorCallAbortXorAddFlagXorValCurrIsOrigXorIsEip1559.set(
+          depStatusXorCcsrFlagXorCallAbortXorAddFlagXorValCurrIsOrigXorIsEip1559.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPStorageValCurrIsZeroRelative(final Boolean b, int i) {
-      depStatusNewXorFcondFlagXorCodedepositXorBinFlagXorValCurrIsZeroXorStatusCode.set(
-          depStatusNewXorFcondFlagXorCodedepositXorBinFlagXorValCurrIsZeroXorStatusCode.size()
-              - 1
-              - i,
-          b);
+      depStatusNewXorExpFlagXorCallEoaSuccessCallerWillRevertXorBinFlagXorValCurrIsZeroXorStatusCode
+          .set(
+              depStatusNewXorExpFlagXorCallEoaSuccessCallerWillRevertXorBinFlagXorValCurrIsZeroXorStatusCode
+                      .size()
+                  - 1
+                  - i,
+              b);
 
       return this;
     }
 
     public TraceBuilder setPStorageValCurrLoRelative(final BigInteger b, int i) {
-      codeHashLoXorByteCodeDeploymentStatusXorMmuRefsXorPushValueLoXorValCurrLoXorGasLimit.set(
-          codeHashLoXorByteCodeDeploymentStatusXorMmuRefsXorPushValueLoXorValCurrLoXorGasLimit
+      codeHashLoXorByteCodeDeploymentStatusXorMmuInstXorPushValueLoXorValCurrLoXorGasLimit.set(
+          codeHashLoXorByteCodeDeploymentStatusXorMmuInstXorPushValueLoXorValCurrLoXorGasLimit
                   .size()
               - 1
               - i,
@@ -8444,8 +8877,8 @@ public record Trace(
     }
 
     public TraceBuilder setPStorageValNextHiRelative(final BigInteger b, int i) {
-      codeHashLoNewXorCallerAddressHiXorMmuSizeXorStackItemHeight1XorValNextHiXorGasPrice.set(
-          codeHashLoNewXorCallerAddressHiXorMmuSizeXorStackItemHeight1XorValNextHiXorGasPrice.size()
+      codeHashLoNewXorCallerAddressHiXorMmuNum1XorStackItemHeight1XorValNextHiXorGasPrice.set(
+          codeHashLoNewXorCallerAddressHiXorMmuNum1XorStackItemHeight1XorValNextHiXorGasPrice.size()
               - 1
               - i,
           b);
@@ -8454,33 +8887,9 @@ public record Trace(
     }
 
     public TraceBuilder setPStorageValNextIsCurrRelative(final Boolean b, int i) {
-      existsXorMmuFlagXorCreateXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution.set(
-          existsXorMmuFlagXorCreateXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution.size()
-              - 1
-              - i,
-          b);
-
-      return this;
-    }
-
-    public TraceBuilder setPStorageValNextIsOrigRelative(final Boolean b, int i) {
-      existsNewXorMxpDeploysXorEcaddXorCallFlagXorValNextIsOrig.set(
-          existsNewXorMxpDeploysXorEcaddXorCallFlagXorValNextIsOrig.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setPStorageValNextIsZeroRelative(final Boolean b, int i) {
-      hasCodeXorMxpFlagXorEcmulXorConFlagXorValNextIsZero.set(
-          hasCodeXorMxpFlagXorEcmulXorConFlagXorValNextIsZero.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setPStorageValNextLoRelative(final BigInteger b, int i) {
-      codeSizeXorCallerAddressLoXorMmuSourceOffsetHiXorStackItemHeight2XorValNextLoXorGasRefundAmount
+      existsXorFcondFlagXorCallEoaSuccessCallerWontRevertXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution
           .set(
-              codeSizeXorCallerAddressLoXorMmuSourceOffsetHiXorStackItemHeight2XorValNextLoXorGasRefundAmount
+              existsXorFcondFlagXorCallEoaSuccessCallerWontRevertXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution
                       .size()
                   - 1
                   - i,
@@ -8489,10 +8898,41 @@ public record Trace(
       return this;
     }
 
+    public TraceBuilder setPStorageValNextIsOrigRelative(final Boolean b, int i) {
+      existsNewXorMmuFlagXorCallPrcFailureCallerWillRevertXorCallFlagXorValNextIsOrig.set(
+          existsNewXorMmuFlagXorCallPrcFailureCallerWillRevertXorCallFlagXorValNextIsOrig.size()
+              - 1
+              - i,
+          b);
+
+      return this;
+    }
+
+    public TraceBuilder setPStorageValNextIsZeroRelative(final Boolean b, int i) {
+      hasCodeXorMxpDeploysXorCallPrcFailureCallerWontRevertXorConFlagXorValNextIsZero.set(
+          hasCodeXorMxpDeploysXorCallPrcFailureCallerWontRevertXorConFlagXorValNextIsZero.size()
+              - 1
+              - i,
+          b);
+
+      return this;
+    }
+
+    public TraceBuilder setPStorageValNextLoRelative(final BigInteger b, int i) {
+      codeSizeXorCallerAddressLoXorMmuNum2XorStackItemHeight2XorValNextLoXorGasRefundAmount.set(
+          codeSizeXorCallerAddressLoXorMmuNum2XorStackItemHeight2XorValNextLoXorGasRefundAmount
+                  .size()
+              - 1
+              - i,
+          b);
+
+      return this;
+    }
+
     public TraceBuilder setPStorageValOrigHiRelative(final BigInteger b, int i) {
-      codeSizeNewXorCallerContextNumberXorMmuSourceOffsetLoXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
+      codeSizeNewXorCallerContextNumberXorMmuRefsXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
           .set(
-              codeSizeNewXorCallerContextNumberXorMmuSourceOffsetLoXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
+              codeSizeNewXorCallerContextNumberXorMmuRefsXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
                       .size()
                   - 1
                   - i,
@@ -8502,16 +8942,19 @@ public record Trace(
     }
 
     public TraceBuilder setPStorageValOrigIsZeroRelative(final Boolean b, int i) {
-      hasCodeNewXorMxpMxpxXorEcpairingXorCopyFlagXorValOrigIsZero.set(
-          hasCodeNewXorMxpMxpxXorEcpairingXorCopyFlagXorValOrigIsZero.size() - 1 - i, b);
+      hasCodeNewXorMxpFlagXorCallPrcSuccessCallerWillRevertXorCopyFlagXorValOrigIsZero.set(
+          hasCodeNewXorMxpFlagXorCallPrcSuccessCallerWillRevertXorCopyFlagXorValOrigIsZero.size()
+              - 1
+              - i,
+          b);
 
       return this;
     }
 
     public TraceBuilder setPStorageValOrigLoRelative(final BigInteger b, int i) {
-      deploymentNumberInftyXorCallDataOffsetXorMmuStackValHiXorStackItemHeight4XorValOrigLoXorInitialBalance
+      deploymentNumberInftyXorCallDataOffsetXorMmuSizeXorStackItemHeight4XorValOrigLoXorInitialBalance
           .set(
-              deploymentNumberInftyXorCallDataOffsetXorMmuStackValHiXorStackItemHeight4XorValOrigLoXorInitialBalance
+              deploymentNumberInftyXorCallDataOffsetXorMmuSizeXorStackItemHeight4XorValOrigLoXorInitialBalance
                       .size()
                   - 1
                   - i,
@@ -8521,15 +8964,19 @@ public record Trace(
     }
 
     public TraceBuilder setPStorageWarmRelative(final Boolean b, int i) {
-      isBlake2FXorOobEvent1XorEcrecoverXorCreateFlagXorWarm.set(
-          isBlake2FXorOobEvent1XorEcrecoverXorCreateFlagXorWarm.size() - 1 - i, b);
+      isBlake2FXorMxpMxpxXorCallPrcSuccessCallerWontRevertXorCreateFlagXorWarm.set(
+          isBlake2FXorMxpMxpxXorCallPrcSuccessCallerWontRevertXorCreateFlagXorWarm.size() - 1 - i,
+          b);
 
       return this;
     }
 
     public TraceBuilder setPStorageWarmNewRelative(final Boolean b, int i) {
-      isEcaddXorOobEvent2XorIdentityXorDecodedFlag1XorWarmNew.set(
-          isEcaddXorOobEvent2XorIdentityXorDecodedFlag1XorWarmNew.size() - 1 - i, b);
+      isEcaddXorOobEvent1XorCallSmcFailureCallerWillRevertXorDecodedFlag1XorWarmNew.set(
+          isEcaddXorOobEvent1XorCallSmcFailureCallerWillRevertXorDecodedFlag1XorWarmNew.size()
+              - 1
+              - i,
+          b);
 
       return this;
     }
@@ -8542,17 +8989,19 @@ public record Trace(
     }
 
     public TraceBuilder setPTransactionCallDataSizeRelative(final BigInteger b, int i) {
-      addrLoXorAccountAddressLoXorMmuCnSXorHeightNewXorAddressLoXorCallDataSize.set(
-          addrLoXorAccountAddressLoXorMmuCnSXorHeightNewXorAddressLoXorCallDataSize.size() - 1 - i,
+      addrLoXorAccountAddressLoXorExpDyncostXorHeightNewXorAddressLoXorCallDataSize.set(
+          addrLoXorAccountAddressLoXorExpDyncostXorHeightNewXorAddressLoXorCallDataSize.size()
+              - 1
+              - i,
           b);
 
       return this;
     }
 
     public TraceBuilder setPTransactionCoinbaseAddressHiRelative(final BigInteger b, int i) {
-      balanceXorAccountDeploymentNumberXorMmuCnTXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
+      balanceXorAccountDeploymentNumberXorExpExponentHiXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
           .set(
-              balanceXorAccountDeploymentNumberXorMmuCnTXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
+              balanceXorAccountDeploymentNumberXorExpExponentHiXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
                       .size()
                   - 1
                   - i,
@@ -8562,19 +9011,20 @@ public record Trace(
     }
 
     public TraceBuilder setPTransactionCoinbaseAddressLoRelative(final BigInteger b, int i) {
-      balanceNewXorByteCodeAddressHiXorMmuInstXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo.set(
-          balanceNewXorByteCodeAddressHiXorMmuInstXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo
-                  .size()
-              - 1
-              - i,
-          b);
+      balanceNewXorByteCodeAddressHiXorExpExponentLoXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo
+          .set(
+              balanceNewXorByteCodeAddressHiXorExpExponentLoXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo
+                      .size()
+                  - 1
+                  - i,
+              b);
 
       return this;
     }
 
     public TraceBuilder setPTransactionFromAddressHiRelative(final BigInteger b, int i) {
-      codeHashHiXorByteCodeAddressLoXorMmuNum1XorInstructionXorStorageKeyLoXorFromAddressHi.set(
-          codeHashHiXorByteCodeAddressLoXorMmuNum1XorInstructionXorStorageKeyLoXorFromAddressHi
+      codeHashHiXorByteCodeAddressLoXorMmuCnSXorInstructionXorStorageKeyLoXorFromAddressHi.set(
+          codeHashHiXorByteCodeAddressLoXorMmuCnSXorInstructionXorStorageKeyLoXorFromAddressHi
                   .size()
               - 1
               - i,
@@ -8584,9 +9034,9 @@ public record Trace(
     }
 
     public TraceBuilder setPTransactionFromAddressLoRelative(final BigInteger b, int i) {
-      codeHashHiNewXorByteCodeDeploymentNumberXorMmuNum2XorPushValueHiXorValCurrHiXorFromAddressLo
+      codeHashHiNewXorByteCodeDeploymentNumberXorMmuCnTXorPushValueHiXorValCurrHiXorFromAddressLo
           .set(
-              codeHashHiNewXorByteCodeDeploymentNumberXorMmuNum2XorPushValueHiXorValCurrHiXorFromAddressLo
+              codeHashHiNewXorByteCodeDeploymentNumberXorMmuCnTXorPushValueHiXorValCurrHiXorFromAddressLo
                       .size()
                   - 1
                   - i,
@@ -8596,8 +9046,8 @@ public record Trace(
     }
 
     public TraceBuilder setPTransactionGasLimitRelative(final BigInteger b, int i) {
-      codeHashLoXorByteCodeDeploymentStatusXorMmuRefsXorPushValueLoXorValCurrLoXorGasLimit.set(
-          codeHashLoXorByteCodeDeploymentStatusXorMmuRefsXorPushValueLoXorValCurrLoXorGasLimit
+      codeHashLoXorByteCodeDeploymentStatusXorMmuInstXorPushValueLoXorValCurrLoXorGasLimit.set(
+          codeHashLoXorByteCodeDeploymentStatusXorMmuInstXorPushValueLoXorValCurrLoXorGasLimit
                   .size()
               - 1
               - i,
@@ -8607,8 +9057,8 @@ public record Trace(
     }
 
     public TraceBuilder setPTransactionGasPriceRelative(final BigInteger b, int i) {
-      codeHashLoNewXorCallerAddressHiXorMmuSizeXorStackItemHeight1XorValNextHiXorGasPrice.set(
-          codeHashLoNewXorCallerAddressHiXorMmuSizeXorStackItemHeight1XorValNextHiXorGasPrice.size()
+      codeHashLoNewXorCallerAddressHiXorMmuNum1XorStackItemHeight1XorValNextHiXorGasPrice.set(
+          codeHashLoNewXorCallerAddressHiXorMmuNum1XorStackItemHeight1XorValNextHiXorGasPrice.size()
               - 1
               - i,
           b);
@@ -8617,21 +9067,20 @@ public record Trace(
     }
 
     public TraceBuilder setPTransactionGasRefundAmountRelative(final BigInteger b, int i) {
-      codeSizeXorCallerAddressLoXorMmuSourceOffsetHiXorStackItemHeight2XorValNextLoXorGasRefundAmount
-          .set(
-              codeSizeXorCallerAddressLoXorMmuSourceOffsetHiXorStackItemHeight2XorValNextLoXorGasRefundAmount
-                      .size()
-                  - 1
-                  - i,
-              b);
+      codeSizeXorCallerAddressLoXorMmuNum2XorStackItemHeight2XorValNextLoXorGasRefundAmount.set(
+          codeSizeXorCallerAddressLoXorMmuNum2XorStackItemHeight2XorValNextLoXorGasRefundAmount
+                  .size()
+              - 1
+              - i,
+          b);
 
       return this;
     }
 
     public TraceBuilder setPTransactionGasRefundCounterFinalRelative(final BigInteger b, int i) {
-      codeSizeNewXorCallerContextNumberXorMmuSourceOffsetLoXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
+      codeSizeNewXorCallerContextNumberXorMmuRefsXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
           .set(
-              codeSizeNewXorCallerContextNumberXorMmuSourceOffsetLoXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
+              codeSizeNewXorCallerContextNumberXorMmuRefsXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
                       .size()
                   - 1
                   - i,
@@ -8641,24 +9090,25 @@ public record Trace(
     }
 
     public TraceBuilder setPTransactionInitCodeSizeRelative(final BigInteger b, int i) {
-      depNumXorCallDataSizeXorMmuStackValLoXorStackItemStamp1XorInitCodeSize.set(
-          depNumXorCallDataSizeXorMmuStackValLoXorStackItemStamp1XorInitCodeSize.size() - 1 - i, b);
+      depNumXorCallDataSizeXorMmuSourceOffsetHiXorStackItemStamp1XorInitCodeSize.set(
+          depNumXorCallDataSizeXorMmuSourceOffsetHiXorStackItemStamp1XorInitCodeSize.size() - 1 - i,
+          b);
 
       return this;
     }
 
     public TraceBuilder setPTransactionInitGasRelative(final BigInteger b, int i) {
-      depNumNewXorCallStackDepthXorMmuTargetOffsetHiXorStackItemStamp2XorInitGas.set(
-          depNumNewXorCallStackDepthXorMmuTargetOffsetHiXorStackItemStamp2XorInitGas.size() - 1 - i,
+      depNumNewXorCallStackDepthXorMmuSourceOffsetLoXorStackItemStamp2XorInitGas.set(
+          depNumNewXorCallStackDepthXorMmuSourceOffsetLoXorStackItemStamp2XorInitGas.size() - 1 - i,
           b);
 
       return this;
     }
 
     public TraceBuilder setPTransactionInitialBalanceRelative(final BigInteger b, int i) {
-      deploymentNumberInftyXorCallDataOffsetXorMmuStackValHiXorStackItemHeight4XorValOrigLoXorInitialBalance
+      deploymentNumberInftyXorCallDataOffsetXorMmuSizeXorStackItemHeight4XorValOrigLoXorInitialBalance
           .set(
-              deploymentNumberInftyXorCallDataOffsetXorMmuStackValHiXorStackItemHeight4XorValOrigLoXorInitialBalance
+              deploymentNumberInftyXorCallDataOffsetXorMmuSizeXorStackItemHeight4XorValOrigLoXorInitialBalance
                       .size()
                   - 1
                   - i,
@@ -8680,68 +9130,75 @@ public record Trace(
     }
 
     public TraceBuilder setPTransactionIsEip1559Relative(final Boolean b, int i) {
-      depStatusXorCcsrFlagXorCallXorAddFlagXorValCurrIsOrigXorIsEip1559.set(
-          depStatusXorCcsrFlagXorCallXorAddFlagXorValCurrIsOrigXorIsEip1559.size() - 1 - i, b);
+      depStatusXorCcsrFlagXorCallAbortXorAddFlagXorValCurrIsOrigXorIsEip1559.set(
+          depStatusXorCcsrFlagXorCallAbortXorAddFlagXorValCurrIsOrigXorIsEip1559.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPTransactionLeftoverGasRelative(final BigInteger b, int i) {
-      nonceXorCallValueXorMmuTargetOffsetLoXorStackItemStamp3XorLeftoverGas.set(
-          nonceXorCallValueXorMmuTargetOffsetLoXorStackItemStamp3XorLeftoverGas.size() - 1 - i, b);
+      nonceXorCallValueXorMmuStackValHiXorStackItemStamp3XorLeftoverGas.set(
+          nonceXorCallValueXorMmuStackValHiXorStackItemStamp3XorLeftoverGas.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPTransactionNonceRelative(final BigInteger b, int i) {
-      nonceNewXorContextNumberXorMxpGasMxpXorStackItemStamp4XorNonce.set(
-          nonceNewXorContextNumberXorMxpGasMxpXorStackItemStamp4XorNonce.size() - 1 - i, b);
+      nonceNewXorContextNumberXorMmuStackValLoXorStackItemStamp4XorNonce.set(
+          nonceNewXorContextNumberXorMmuStackValLoXorStackItemStamp4XorNonce.size() - 1 - i, b);
 
       return this;
     }
 
     public TraceBuilder setPTransactionStatusCodeRelative(final Boolean b, int i) {
-      depStatusNewXorFcondFlagXorCodedepositXorBinFlagXorValCurrIsZeroXorStatusCode.set(
-          depStatusNewXorFcondFlagXorCodedepositXorBinFlagXorValCurrIsZeroXorStatusCode.size()
-              - 1
-              - i,
-          b);
+      depStatusNewXorExpFlagXorCallEoaSuccessCallerWillRevertXorBinFlagXorValCurrIsZeroXorStatusCode
+          .set(
+              depStatusNewXorExpFlagXorCallEoaSuccessCallerWillRevertXorBinFlagXorValCurrIsZeroXorStatusCode
+                      .size()
+                  - 1
+                  - i,
+              b);
 
       return this;
     }
 
     public TraceBuilder setPTransactionToAddressHiRelative(final BigInteger b, int i) {
-      rlpaddrDepAddrHiXorIsStaticXorMxpInstXorStackItemValueHi1XorToAddressHi.set(
-          rlpaddrDepAddrHiXorIsStaticXorMxpInstXorStackItemValueHi1XorToAddressHi.size() - 1 - i,
+      rlpaddrDepAddrHiXorIsStaticXorMmuTargetOffsetHiXorStackItemValueHi1XorToAddressHi.set(
+          rlpaddrDepAddrHiXorIsStaticXorMmuTargetOffsetHiXorStackItemValueHi1XorToAddressHi.size()
+              - 1
+              - i,
           b);
 
       return this;
     }
 
     public TraceBuilder setPTransactionToAddressLoRelative(final BigInteger b, int i) {
-      rlpaddrDepAddrLoXorReturnerContextNumberXorMxpOffset1HiXorStackItemValueHi2XorToAddressLo.set(
-          rlpaddrDepAddrLoXorReturnerContextNumberXorMxpOffset1HiXorStackItemValueHi2XorToAddressLo
-                  .size()
-              - 1
-              - i,
-          b);
+      rlpaddrDepAddrLoXorReturnerContextNumberXorMmuTargetOffsetLoXorStackItemValueHi2XorToAddressLo
+          .set(
+              rlpaddrDepAddrLoXorReturnerContextNumberXorMmuTargetOffsetLoXorStackItemValueHi2XorToAddressLo
+                      .size()
+                  - 1
+                  - i,
+              b);
 
       return this;
     }
 
     public TraceBuilder setPTransactionTxnRequiresEvmExecutionRelative(final Boolean b, int i) {
-      existsXorMmuFlagXorCreateXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution.set(
-          existsXorMmuFlagXorCreateXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution.size()
-              - 1
-              - i,
-          b);
+      existsXorFcondFlagXorCallEoaSuccessCallerWontRevertXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution
+          .set(
+              existsXorFcondFlagXorCallEoaSuccessCallerWontRevertXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution
+                      .size()
+                  - 1
+                  - i,
+              b);
 
       return this;
     }
 
     public TraceBuilder setPTransactionValueRelative(final BigInteger b, int i) {
-      rlpaddrKecHiXorReturnerIsPrecompileXorMxpOffset1LoXorStackItemValueHi3XorValue.set(
-          rlpaddrKecHiXorReturnerIsPrecompileXorMxpOffset1LoXorStackItemValueHi3XorValue.size()
+      rlpaddrKecHiXorReturnerIsPrecompileXorMxpGasMxpXorStackItemValueHi3XorValue.set(
+          rlpaddrKecHiXorReturnerIsPrecompileXorMxpGasMxpXorStackItemValueHi3XorValue.size()
               - 1
               - i,
           b);
@@ -8867,17 +9324,17 @@ public record Trace(
 
       if (!filled.get(92)) {
         throw new IllegalStateException(
-            "ADDR_LO_xor_ACCOUNT_ADDRESS_LO_xor_MMU___CN_S_xor_HEIGHT_NEW_xor_ADDRESS_LO_xor_CALL_DATA_SIZE has not been filled");
+            "ADDR_LO_xor_ACCOUNT_ADDRESS_LO_xor_EXP___DYNCOST_xor_HEIGHT_NEW_xor_ADDRESS_LO_xor_CALL_DATA_SIZE has not been filled");
       }
 
       if (!filled.get(94)) {
         throw new IllegalStateException(
-            "BALANCE_NEW_xor_BYTE_CODE_ADDRESS_HI_xor_MMU___INST_xor_HEIGHT_UNDER_xor_STORAGE_KEY_HI_xor_COINBASE_ADDRESS_LO has not been filled");
+            "BALANCE_NEW_xor_BYTE_CODE_ADDRESS_HI_xor_EXP___EXPONENT_LO_xor_HEIGHT_UNDER_xor_STORAGE_KEY_HI_xor_COINBASE_ADDRESS_LO has not been filled");
       }
 
       if (!filled.get(93)) {
         throw new IllegalStateException(
-            "BALANCE_xor_ACCOUNT_DEPLOYMENT_NUMBER_xor_MMU___CN_T_xor_HEIGHT_OVER_xor_DEPLOYMENT_NUMBER_xor_COINBASE_ADDRESS_HI has not been filled");
+            "BALANCE_xor_ACCOUNT_DEPLOYMENT_NUMBER_xor_EXP___EXPONENT_HI_xor_HEIGHT_OVER_xor_DEPLOYMENT_NUMBER_xor_COINBASE_ADDRESS_HI has not been filled");
       }
 
       if (!filled.get(2)) {
@@ -8906,32 +9363,32 @@ public record Trace(
 
       if (!filled.get(96)) {
         throw new IllegalStateException(
-            "CODE_HASH_HI_NEW_xor_BYTE_CODE_DEPLOYMENT_NUMBER_xor_MMU___NUM_2_xor_PUSH_VALUE_HI_xor_VAL_CURR_HI_xor_FROM_ADDRESS_LO has not been filled");
+            "CODE_HASH_HI_NEW_xor_BYTE_CODE_DEPLOYMENT_NUMBER_xor_MMU___CN_T_xor_PUSH_VALUE_HI_xor_VAL_CURR_HI_xor_FROM_ADDRESS_LO has not been filled");
       }
 
       if (!filled.get(95)) {
         throw new IllegalStateException(
-            "CODE_HASH_HI_xor_BYTE_CODE_ADDRESS_LO_xor_MMU___NUM_1_xor_INSTRUCTION_xor_STORAGE_KEY_LO_xor_FROM_ADDRESS_HI has not been filled");
+            "CODE_HASH_HI_xor_BYTE_CODE_ADDRESS_LO_xor_MMU___CN_S_xor_INSTRUCTION_xor_STORAGE_KEY_LO_xor_FROM_ADDRESS_HI has not been filled");
       }
 
       if (!filled.get(98)) {
         throw new IllegalStateException(
-            "CODE_HASH_LO_NEW_xor_CALLER_ADDRESS_HI_xor_MMU___SIZE_xor_STACK_ITEM_HEIGHT_1_xor_VAL_NEXT_HI_xor_GAS_PRICE has not been filled");
+            "CODE_HASH_LO_NEW_xor_CALLER_ADDRESS_HI_xor_MMU___NUM_1_xor_STACK_ITEM_HEIGHT_1_xor_VAL_NEXT_HI_xor_GAS_PRICE has not been filled");
       }
 
       if (!filled.get(97)) {
         throw new IllegalStateException(
-            "CODE_HASH_LO_xor_BYTE_CODE_DEPLOYMENT_STATUS_xor_MMU___REFS_xor_PUSH_VALUE_LO_xor_VAL_CURR_LO_xor_GAS_LIMIT has not been filled");
+            "CODE_HASH_LO_xor_BYTE_CODE_DEPLOYMENT_STATUS_xor_MMU___INST_xor_PUSH_VALUE_LO_xor_VAL_CURR_LO_xor_GAS_LIMIT has not been filled");
       }
 
       if (!filled.get(100)) {
         throw new IllegalStateException(
-            "CODE_SIZE_NEW_xor_CALLER_CONTEXT_NUMBER_xor_MMU___SOURCE_OFFSET_LO_xor_STACK_ITEM_HEIGHT_3_xor_VAL_ORIG_HI_xor_GAS_REFUND_COUNTER_FINAL has not been filled");
+            "CODE_SIZE_NEW_xor_CALLER_CONTEXT_NUMBER_xor_MMU___REFS_xor_STACK_ITEM_HEIGHT_3_xor_VAL_ORIG_HI_xor_GAS_REFUND_COUNTER_FINAL has not been filled");
       }
 
       if (!filled.get(99)) {
         throw new IllegalStateException(
-            "CODE_SIZE_xor_CALLER_ADDRESS_LO_xor_MMU___SOURCE_OFFSET_HI_xor_STACK_ITEM_HEIGHT_2_xor_VAL_NEXT_LO_xor_GAS_REFUND_AMOUNT has not been filled");
+            "CODE_SIZE_xor_CALLER_ADDRESS_LO_xor_MMU___NUM_2_xor_STACK_ITEM_HEIGHT_2_xor_VAL_NEXT_LO_xor_GAS_REFUND_AMOUNT has not been filled");
       }
 
       if (!filled.get(8)) {
@@ -8972,27 +9429,27 @@ public record Trace(
 
       if (!filled.get(103)) {
         throw new IllegalStateException(
-            "DEP_NUM_NEW_xor_CALL_STACK_DEPTH_xor_MMU___TARGET_OFFSET_HI_xor_STACK_ITEM_STAMP_2_xor_INIT_GAS has not been filled");
+            "DEP_NUM_NEW_xor_CALL_STACK_DEPTH_xor_MMU___SOURCE_OFFSET_LO_xor_STACK_ITEM_STAMP_2_xor_INIT_GAS has not been filled");
       }
 
       if (!filled.get(102)) {
         throw new IllegalStateException(
-            "DEP_NUM_xor_CALL_DATA_SIZE_xor_MMU___STACK_VAL_LO_xor_STACK_ITEM_STAMP_1_xor_INIT_CODE_SIZE has not been filled");
+            "DEP_NUM_xor_CALL_DATA_SIZE_xor_MMU___SOURCE_OFFSET_HI_xor_STACK_ITEM_STAMP_1_xor_INIT_CODE_SIZE has not been filled");
       }
 
       if (!filled.get(46)) {
         throw new IllegalStateException(
-            "DEP_STATUS_NEW_xor_FCOND_FLAG_xor_CODEDEPOSIT_xor_BIN_FLAG_xor_VAL_CURR_IS_ZERO_xor_STATUS_CODE has not been filled");
+            "DEP_STATUS_NEW_xor_EXP___FLAG_xor_CALL_EOA_SUCCESS_CALLER_WILL_REVERT_xor_BIN_FLAG_xor_VAL_CURR_IS_ZERO_xor_STATUS_CODE has not been filled");
       }
 
       if (!filled.get(45)) {
         throw new IllegalStateException(
-            "DEP_STATUS_xor_CCSR_FLAG_xor_CALL_xor_ADD_FLAG_xor_VAL_CURR_IS_ORIG_xor_IS_EIP1559 has not been filled");
+            "DEP_STATUS_xor_CCSR_FLAG_xor_CALL_ABORT_xor_ADD_FLAG_xor_VAL_CURR_IS_ORIG_xor_IS_EIP1559 has not been filled");
       }
 
       if (!filled.get(101)) {
         throw new IllegalStateException(
-            "DEPLOYMENT_NUMBER_INFTY_xor_CALL_DATA_OFFSET_xor_MMU___STACK_VAL_HI_xor_STACK_ITEM_HEIGHT_4_xor_VAL_ORIG_LO_xor_INITIAL_BALANCE has not been filled");
+            "DEPLOYMENT_NUMBER_INFTY_xor_CALL_DATA_OFFSET_xor_MMU___SIZE_xor_STACK_ITEM_HEIGHT_4_xor_VAL_ORIG_LO_xor_INITIAL_BALANCE has not been filled");
       }
 
       if (!filled.get(44)) {
@@ -9006,12 +9463,12 @@ public record Trace(
 
       if (!filled.get(48)) {
         throw new IllegalStateException(
-            "EXISTS_NEW_xor_MXP___DEPLOYS_xor_ECADD_xor_CALL_FLAG_xor_VAL_NEXT_IS_ORIG has not been filled");
+            "EXISTS_NEW_xor_MMU___FLAG_xor_CALL_PRC_FAILURE_CALLER_WILL_REVERT_xor_CALL_FLAG_xor_VAL_NEXT_IS_ORIG has not been filled");
       }
 
       if (!filled.get(47)) {
         throw new IllegalStateException(
-            "EXISTS_xor_MMU___FLAG_xor_CREATE_xor_BTC_FLAG_xor_VAL_NEXT_IS_CURR_xor_TXN_REQUIRES_EVM_EXECUTION has not been filled");
+            "EXISTS_xor_FCOND_FLAG_xor_CALL_EOA_SUCCESS_CALLER_WONT_REVERT_xor_BTC_FLAG_xor_VAL_NEXT_IS_CURR_xor_TXN_REQUIRES_EVM_EXECUTION has not been filled");
       }
 
       if (!filled.get(18)) {
@@ -9044,12 +9501,12 @@ public record Trace(
 
       if (!filled.get(50)) {
         throw new IllegalStateException(
-            "HAS_CODE_NEW_xor_MXP___MXPX_xor_ECPAIRING_xor_COPY_FLAG_xor_VAL_ORIG_IS_ZERO has not been filled");
+            "HAS_CODE_NEW_xor_MXP___FLAG_xor_CALL_PRC_SUCCESS_CALLER_WILL_REVERT_xor_COPY_FLAG_xor_VAL_ORIG_IS_ZERO has not been filled");
       }
 
       if (!filled.get(49)) {
         throw new IllegalStateException(
-            "HAS_CODE_xor_MXP___FLAG_xor_ECMUL_xor_CON_FLAG_xor_VAL_NEXT_IS_ZERO has not been filled");
+            "HAS_CODE_xor_MXP___DEPLOYS_xor_CALL_PRC_FAILURE_CALLER_WONT_REVERT_xor_CON_FLAG_xor_VAL_NEXT_IS_ZERO has not been filled");
       }
 
       if (!filled.get(25)) {
@@ -9058,117 +9515,113 @@ public record Trace(
 
       if (!filled.get(51)) {
         throw new IllegalStateException(
-            "IS_BLAKE2f_xor_OOB___EVENT_1_xor_ECRECOVER_xor_CREATE_FLAG_xor_WARM has not been filled");
+            "IS_BLAKE2f_xor_MXP___MXPX_xor_CALL_PRC_SUCCESS_CALLER_WONT_REVERT_xor_CREATE_FLAG_xor_WARM has not been filled");
       }
 
       if (!filled.get(52)) {
         throw new IllegalStateException(
-            "IS_ECADD_xor_OOB___EVENT_2_xor_IDENTITY_xor_DECODED_FLAG_1_xor_WARM_NEW has not been filled");
+            "IS_ECADD_xor_OOB___EVENT_1_xor_CALL_SMC_FAILURE_CALLER_WILL_REVERT_xor_DECODED_FLAG_1_xor_WARM_NEW has not been filled");
       }
 
       if (!filled.get(53)) {
         throw new IllegalStateException(
-            "IS_ECMUL_xor_OOB___FLAG_xor_MODEXP_xor_DECODED_FLAG_2 has not been filled");
+            "IS_ECMUL_xor_OOB___EVENT_2_xor_CALL_SMC_FAILURE_CALLER_WONT_REVERT_xor_DECODED_FLAG_2 has not been filled");
       }
 
       if (!filled.get(54)) {
         throw new IllegalStateException(
-            "IS_ECPAIRING_xor_PRECINFO___FLAG_xor_RIPEMDsub160_xor_DECODED_FLAG_3 has not been filled");
+            "IS_ECPAIRING_xor_OOB___FLAG_xor_CALL_SMC_SUCCESS_CALLER_WILL_REVERT_xor_DECODED_FLAG_3 has not been filled");
       }
 
       if (!filled.get(55)) {
         throw new IllegalStateException(
-            "IS_ECRECOVER_xor_STP___EXISTS_xor_SCN_1_xor_DECODED_FLAG_4 has not been filled");
+            "IS_ECRECOVER_xor_PRECINFO___FLAG_xor_CALL_SMC_SUCCESS_CALLER_WONT_REVERT_xor_DECODED_FLAG_4 has not been filled");
       }
 
       if (!filled.get(56)) {
         throw new IllegalStateException(
-            "IS_IDENTITY_xor_STP___FLAG_xor_SCN_10_xor_DUP_FLAG has not been filled");
+            "IS_IDENTITY_xor_STP___EXISTS_xor_CODEDEPOSIT_xor_DUP_FLAG has not been filled");
       }
 
       if (!filled.get(57)) {
         throw new IllegalStateException(
-            "IS_MODEXP_xor_STP___OOGX_xor_SCN_11_xor_EXT_FLAG has not been filled");
+            "IS_MODEXP_xor_STP___FLAG_xor_CODEDEPOSIT_INVALID_CODE_PREFIX_xor_EXT_FLAG has not been filled");
       }
 
       if (!filled.get(58)) {
         throw new IllegalStateException(
-            "IS_PRECOMPILE_xor_STP___WARM_xor_SCN_12_xor_HALT_FLAG has not been filled");
+            "IS_PRECOMPILE_xor_STP___OOGX_xor_CODEDEPOSIT_VALID_CODE_PREFIX_xor_HALT_FLAG has not been filled");
       }
 
       if (!filled.get(59)) {
         throw new IllegalStateException(
-            "IS_RIPEMDsub160_xor_SCN_2_xor_INVALID_FLAG has not been filled");
+            "IS_RIPEMDsub160_xor_STP___WARM_xor_ECADD_xor_INVALID_FLAG has not been filled");
       }
 
       if (!filled.get(60)) {
-        throw new IllegalStateException("IS_SHA2sub256_xor_SCN_3_xor_INVPREX has not been filled");
-      }
-
-      if (!filled.get(69)) {
-        throw new IllegalStateException("MXP_FLAG has not been filled");
+        throw new IllegalStateException("IS_SHA2sub256_xor_ECMUL_xor_INVPREX has not been filled");
       }
 
       if (!filled.get(114)) {
-        throw new IllegalStateException("MXP___SIZE_2_LO_xor_STATIC_GAS has not been filled");
+        throw new IllegalStateException("MXP___SIZE_1_HI_xor_STATIC_GAS has not been filled");
       }
 
       if (!filled.get(115)) {
+        throw new IllegalStateException("MXP___SIZE_1_LO has not been filled");
+      }
+
+      if (!filled.get(116)) {
+        throw new IllegalStateException("MXP___SIZE_2_HI has not been filled");
+      }
+
+      if (!filled.get(117)) {
+        throw new IllegalStateException("MXP___SIZE_2_LO has not been filled");
+      }
+
+      if (!filled.get(118)) {
         throw new IllegalStateException("MXP___WORDS has not been filled");
       }
 
       if (!filled.get(105)) {
         throw new IllegalStateException(
-            "NONCE_NEW_xor_CONTEXT_NUMBER_xor_MXP___GAS_MXP_xor_STACK_ITEM_STAMP_4_xor_NONCE has not been filled");
+            "NONCE_NEW_xor_CONTEXT_NUMBER_xor_MMU___STACK_VAL_LO_xor_STACK_ITEM_STAMP_4_xor_NONCE has not been filled");
       }
 
       if (!filled.get(104)) {
         throw new IllegalStateException(
-            "NONCE_xor_CALL_VALUE_xor_MMU___TARGET_OFFSET_LO_xor_STACK_ITEM_STAMP_3_xor_LEFTOVER_GAS has not been filled");
+            "NONCE_xor_CALL_VALUE_xor_MMU___STACK_VAL_HI_xor_STACK_ITEM_STAMP_3_xor_LEFTOVER_GAS has not been filled");
       }
 
       if (!filled.get(26)) {
         throw new IllegalStateException("NUMBER_OF_NON_STACK_ROWS has not been filled");
       }
 
-      if (!filled.get(70)) {
-        throw new IllegalStateException("OOB_FLAG has not been filled");
-      }
-
-      if (!filled.get(116)) {
+      if (!filled.get(119)) {
         throw new IllegalStateException("OOB___INST has not been filled");
       }
 
-      if (!filled.get(117)) {
+      if (!filled.get(120)) {
         throw new IllegalStateException("OOB___OUTGOING_DATA_1 has not been filled");
       }
 
-      if (!filled.get(118)) {
+      if (!filled.get(121)) {
         throw new IllegalStateException("OOB___OUTGOING_DATA_2 has not been filled");
       }
 
-      if (!filled.get(119)) {
+      if (!filled.get(122)) {
         throw new IllegalStateException("OOB___OUTGOING_DATA_3 has not been filled");
       }
 
-      if (!filled.get(120)) {
+      if (!filled.get(123)) {
         throw new IllegalStateException("OOB___OUTGOING_DATA_4 has not been filled");
       }
 
-      if (!filled.get(121)) {
+      if (!filled.get(124)) {
         throw new IllegalStateException("OOB___OUTGOING_DATA_5 has not been filled");
       }
 
-      if (!filled.get(122)) {
+      if (!filled.get(125)) {
         throw new IllegalStateException("OOB___OUTGOING_DATA_6 has not been filled");
-      }
-
-      if (!filled.get(71)) {
-        throw new IllegalStateException("OOGX has not been filled");
-      }
-
-      if (!filled.get(72)) {
-        throw new IllegalStateException("OPCX has not been filled");
       }
 
       if (!filled.get(27)) {
@@ -9199,31 +9652,31 @@ public record Trace(
         throw new IllegalStateException("PEEK_AT_TRANSACTION has not been filled");
       }
 
-      if (!filled.get(123)) {
+      if (!filled.get(126)) {
         throw new IllegalStateException("PRECINFO___ADDR_LO has not been filled");
       }
 
-      if (!filled.get(124)) {
+      if (!filled.get(127)) {
         throw new IllegalStateException("PRECINFO___CDS has not been filled");
       }
 
-      if (!filled.get(125)) {
+      if (!filled.get(128)) {
         throw new IllegalStateException("PRECINFO___EXEC_COST has not been filled");
       }
 
-      if (!filled.get(126)) {
+      if (!filled.get(129)) {
         throw new IllegalStateException("PRECINFO___PROVIDES_RETURN_DATA has not been filled");
       }
 
-      if (!filled.get(127)) {
+      if (!filled.get(130)) {
         throw new IllegalStateException("PRECINFO___RDS has not been filled");
       }
 
-      if (!filled.get(128)) {
+      if (!filled.get(131)) {
         throw new IllegalStateException("PRECINFO___SUCCESS has not been filled");
       }
 
-      if (!filled.get(129)) {
+      if (!filled.get(132)) {
         throw new IllegalStateException("PRECINFO___TOUCHES_RAM has not been filled");
       }
 
@@ -9235,71 +9688,88 @@ public record Trace(
         throw new IllegalStateException("PROGRAM_COUNTER_NEW has not been filled");
       }
 
-      if (!filled.get(73)) {
-        throw new IllegalStateException("PUSHPOP_FLAG has not been filled");
-      }
-
-      if (!filled.get(74)) {
-        throw new IllegalStateException("RDCX has not been filled");
+      if (!filled.get(65)) {
+        throw new IllegalStateException("RIPEMDsub160_xor_MAXCSX has not been filled");
       }
 
       if (!filled.get(106)) {
         throw new IllegalStateException(
-            "RLPADDR___DEP_ADDR_HI_xor_IS_STATIC_xor_MXP___INST_xor_STACK_ITEM_VALUE_HI_1_xor_TO_ADDRESS_HI has not been filled");
+            "RLPADDR___DEP_ADDR_HI_xor_IS_STATIC_xor_MMU___TARGET_OFFSET_HI_xor_STACK_ITEM_VALUE_HI_1_xor_TO_ADDRESS_HI has not been filled");
       }
 
       if (!filled.get(107)) {
         throw new IllegalStateException(
-            "RLPADDR___DEP_ADDR_LO_xor_RETURNER_CONTEXT_NUMBER_xor_MXP___OFFSET_1_HI_xor_STACK_ITEM_VALUE_HI_2_xor_TO_ADDRESS_LO has not been filled");
+            "RLPADDR___DEP_ADDR_LO_xor_RETURNER_CONTEXT_NUMBER_xor_MMU___TARGET_OFFSET_LO_xor_STACK_ITEM_VALUE_HI_2_xor_TO_ADDRESS_LO has not been filled");
       }
 
       if (!filled.get(61)) {
-        throw new IllegalStateException("RLPADDR___FLAG_xor_SCN_4_xor_JUMPX has not been filled");
+        throw new IllegalStateException(
+            "RLPADDR___FLAG_xor_ECPAIRING_xor_JUMPX has not been filled");
       }
 
       if (!filled.get(108)) {
         throw new IllegalStateException(
-            "RLPADDR___KEC_HI_xor_RETURNER_IS_PRECOMPILE_xor_MXP___OFFSET_1_LO_xor_STACK_ITEM_VALUE_HI_3_xor_VALUE has not been filled");
+            "RLPADDR___KEC_HI_xor_RETURNER_IS_PRECOMPILE_xor_MXP___GAS_MXP_xor_STACK_ITEM_VALUE_HI_3_xor_VALUE has not been filled");
       }
 
       if (!filled.get(109)) {
         throw new IllegalStateException(
-            "RLPADDR___KEC_LO_xor_RETURN_AT_OFFSET_xor_MXP___OFFSET_2_HI_xor_STACK_ITEM_VALUE_HI_4 has not been filled");
+            "RLPADDR___KEC_LO_xor_RETURN_AT_OFFSET_xor_MXP___INST_xor_STACK_ITEM_VALUE_HI_4 has not been filled");
       }
 
       if (!filled.get(110)) {
         throw new IllegalStateException(
-            "RLPADDR___RECIPE_xor_RETURN_AT_SIZE_xor_MXP___OFFSET_2_LO_xor_STACK_ITEM_VALUE_LO_1 has not been filled");
+            "RLPADDR___RECIPE_xor_RETURN_AT_SIZE_xor_MXP___OFFSET_1_HI_xor_STACK_ITEM_VALUE_LO_1 has not been filled");
       }
 
       if (!filled.get(111)) {
         throw new IllegalStateException(
-            "RLPADDR___SALT_HI_xor_RETURN_DATA_OFFSET_xor_MXP___SIZE_1_HI_xor_STACK_ITEM_VALUE_LO_2 has not been filled");
+            "RLPADDR___SALT_HI_xor_RETURN_DATA_OFFSET_xor_MXP___OFFSET_1_LO_xor_STACK_ITEM_VALUE_LO_2 has not been filled");
       }
 
       if (!filled.get(112)) {
         throw new IllegalStateException(
-            "RLPADDR___SALT_LO_xor_RETURN_DATA_SIZE_xor_MXP___SIZE_1_LO_xor_STACK_ITEM_VALUE_LO_3 has not been filled");
-      }
-
-      if (!filled.get(65)) {
-        throw new IllegalStateException("SCN_8_xor_MAXCSX has not been filled");
+            "RLPADDR___SALT_LO_xor_RETURN_DATA_SIZE_xor_MXP___OFFSET_2_HI_xor_STACK_ITEM_VALUE_LO_3 has not been filled");
       }
 
       if (!filled.get(66)) {
-        throw new IllegalStateException("SCN_9_xor_MOD_FLAG has not been filled");
+        throw new IllegalStateException("SCN_FAILURE_1_xor_MOD_FLAG has not been filled");
       }
 
       if (!filled.get(67)) {
-        throw new IllegalStateException("SELFDESTRUCT_xor_MUL_FLAG has not been filled");
+        throw new IllegalStateException("SCN_FAILURE_2_xor_MUL_FLAG has not been filled");
       }
 
       if (!filled.get(68)) {
-        throw new IllegalStateException("SHA2sub256_xor_MXPX has not been filled");
+        throw new IllegalStateException("SCN_FAILURE_3_xor_MXPX has not been filled");
+      }
+
+      if (!filled.get(69)) {
+        throw new IllegalStateException("SCN_FAILURE_4_xor_MXP_FLAG has not been filled");
+      }
+
+      if (!filled.get(70)) {
+        throw new IllegalStateException("SCN_SUCCESS_1_xor_OOB_FLAG has not been filled");
+      }
+
+      if (!filled.get(71)) {
+        throw new IllegalStateException("SCN_SUCCESS_2_xor_OOGX has not been filled");
+      }
+
+      if (!filled.get(72)) {
+        throw new IllegalStateException("SCN_SUCCESS_3_xor_OPCX has not been filled");
+      }
+
+      if (!filled.get(73)) {
+        throw new IllegalStateException("SCN_SUCCESS_4_xor_PUSHPOP_FLAG has not been filled");
+      }
+
+      if (!filled.get(74)) {
+        throw new IllegalStateException("SELFDESTRUCT_xor_RDCX has not been filled");
       }
 
       if (!filled.get(75)) {
-        throw new IllegalStateException("SHF_FLAG has not been filled");
+        throw new IllegalStateException("SHA2sub256_xor_SHF_FLAG has not been filled");
       }
 
       if (!filled.get(76)) {
@@ -9342,31 +9812,31 @@ public record Trace(
         throw new IllegalStateException("STO_FLAG has not been filled");
       }
 
-      if (!filled.get(130)) {
+      if (!filled.get(133)) {
         throw new IllegalStateException("STP___GAS_HI has not been filled");
       }
 
-      if (!filled.get(131)) {
+      if (!filled.get(134)) {
         throw new IllegalStateException("STP___GAS_LO has not been filled");
       }
 
-      if (!filled.get(132)) {
+      if (!filled.get(135)) {
         throw new IllegalStateException("STP___GAS_OOPKT has not been filled");
       }
 
-      if (!filled.get(133)) {
+      if (!filled.get(136)) {
         throw new IllegalStateException("STP___GAS_STPD has not been filled");
       }
 
-      if (!filled.get(134)) {
+      if (!filled.get(137)) {
         throw new IllegalStateException("STP___INST has not been filled");
       }
 
-      if (!filled.get(135)) {
+      if (!filled.get(138)) {
         throw new IllegalStateException("STP___VAL_HI has not been filled");
       }
 
-      if (!filled.get(136)) {
+      if (!filled.get(139)) {
         throw new IllegalStateException("STP___VAL_LO has not been filled");
       }
 
@@ -9391,12 +9861,13 @@ public record Trace(
       }
 
       if (!filled.get(62)) {
-        throw new IllegalStateException("TRM___FLAG_xor_SCN_5_xor_JUMP_FLAG has not been filled");
+        throw new IllegalStateException(
+            "TRM___FLAG_xor_ECRECOVER_xor_JUMP_FLAG has not been filled");
       }
 
       if (!filled.get(113)) {
         throw new IllegalStateException(
-            "TRM___RAW_ADDR_HI_xor_MXP___SIZE_2_HI_xor_STACK_ITEM_VALUE_LO_4 has not been filled");
+            "TRM___RAW_ADDR_HI_xor_MXP___OFFSET_2_LO_xor_STACK_ITEM_VALUE_LO_4 has not been filled");
       }
 
       if (!filled.get(38)) {
@@ -9428,11 +9899,11 @@ public record Trace(
       }
 
       if (!filled.get(64)) {
-        throw new IllegalStateException("WARM_NEW_xor_SCN_7_xor_LOG_FLAG has not been filled");
+        throw new IllegalStateException("WARM_NEW_xor_MODEXP_xor_LOG_FLAG has not been filled");
       }
 
       if (!filled.get(63)) {
-        throw new IllegalStateException("WARM_xor_SCN_6_xor_KEC_FLAG has not been filled");
+        throw new IllegalStateException("WARM_xor_IDENTITY_xor_KEC_FLAG has not been filled");
       }
 
       if (!filled.get(90)) {
@@ -9458,17 +9929,17 @@ public record Trace(
         this.filled.set(91);
       }
       if (!filled.get(92)) {
-        addrLoXorAccountAddressLoXorMmuCnSXorHeightNewXorAddressLoXorCallDataSize.add(
+        addrLoXorAccountAddressLoXorExpDyncostXorHeightNewXorAddressLoXorCallDataSize.add(
             BigInteger.ZERO);
         this.filled.set(92);
       }
       if (!filled.get(94)) {
-        balanceNewXorByteCodeAddressHiXorMmuInstXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo
+        balanceNewXorByteCodeAddressHiXorExpExponentLoXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo
             .add(BigInteger.ZERO);
         this.filled.set(94);
       }
       if (!filled.get(93)) {
-        balanceXorAccountDeploymentNumberXorMmuCnTXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
+        balanceXorAccountDeploymentNumberXorExpExponentHiXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi
             .add(BigInteger.ZERO);
         this.filled.set(93);
       }
@@ -9497,33 +9968,33 @@ public record Trace(
         this.filled.set(7);
       }
       if (!filled.get(96)) {
-        codeHashHiNewXorByteCodeDeploymentNumberXorMmuNum2XorPushValueHiXorValCurrHiXorFromAddressLo
+        codeHashHiNewXorByteCodeDeploymentNumberXorMmuCnTXorPushValueHiXorValCurrHiXorFromAddressLo
             .add(BigInteger.ZERO);
         this.filled.set(96);
       }
       if (!filled.get(95)) {
-        codeHashHiXorByteCodeAddressLoXorMmuNum1XorInstructionXorStorageKeyLoXorFromAddressHi.add(
+        codeHashHiXorByteCodeAddressLoXorMmuCnSXorInstructionXorStorageKeyLoXorFromAddressHi.add(
             BigInteger.ZERO);
         this.filled.set(95);
       }
       if (!filled.get(98)) {
-        codeHashLoNewXorCallerAddressHiXorMmuSizeXorStackItemHeight1XorValNextHiXorGasPrice.add(
+        codeHashLoNewXorCallerAddressHiXorMmuNum1XorStackItemHeight1XorValNextHiXorGasPrice.add(
             BigInteger.ZERO);
         this.filled.set(98);
       }
       if (!filled.get(97)) {
-        codeHashLoXorByteCodeDeploymentStatusXorMmuRefsXorPushValueLoXorValCurrLoXorGasLimit.add(
+        codeHashLoXorByteCodeDeploymentStatusXorMmuInstXorPushValueLoXorValCurrLoXorGasLimit.add(
             BigInteger.ZERO);
         this.filled.set(97);
       }
       if (!filled.get(100)) {
-        codeSizeNewXorCallerContextNumberXorMmuSourceOffsetLoXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
+        codeSizeNewXorCallerContextNumberXorMmuRefsXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal
             .add(BigInteger.ZERO);
         this.filled.set(100);
       }
       if (!filled.get(99)) {
-        codeSizeXorCallerAddressLoXorMmuSourceOffsetHiXorStackItemHeight2XorValNextLoXorGasRefundAmount
-            .add(BigInteger.ZERO);
+        codeSizeXorCallerAddressLoXorMmuNum2XorStackItemHeight2XorValNextLoXorGasRefundAmount.add(
+            BigInteger.ZERO);
         this.filled.set(99);
       }
       if (!filled.get(8)) {
@@ -9563,24 +10034,26 @@ public record Trace(
         this.filled.set(16);
       }
       if (!filled.get(103)) {
-        depNumNewXorCallStackDepthXorMmuTargetOffsetHiXorStackItemStamp2XorInitGas.add(
+        depNumNewXorCallStackDepthXorMmuSourceOffsetLoXorStackItemStamp2XorInitGas.add(
             BigInteger.ZERO);
         this.filled.set(103);
       }
       if (!filled.get(102)) {
-        depNumXorCallDataSizeXorMmuStackValLoXorStackItemStamp1XorInitCodeSize.add(BigInteger.ZERO);
+        depNumXorCallDataSizeXorMmuSourceOffsetHiXorStackItemStamp1XorInitCodeSize.add(
+            BigInteger.ZERO);
         this.filled.set(102);
       }
       if (!filled.get(46)) {
-        depStatusNewXorFcondFlagXorCodedepositXorBinFlagXorValCurrIsZeroXorStatusCode.add(false);
+        depStatusNewXorExpFlagXorCallEoaSuccessCallerWillRevertXorBinFlagXorValCurrIsZeroXorStatusCode
+            .add(false);
         this.filled.set(46);
       }
       if (!filled.get(45)) {
-        depStatusXorCcsrFlagXorCallXorAddFlagXorValCurrIsOrigXorIsEip1559.add(false);
+        depStatusXorCcsrFlagXorCallAbortXorAddFlagXorValCurrIsOrigXorIsEip1559.add(false);
         this.filled.set(45);
       }
       if (!filled.get(101)) {
-        deploymentNumberInftyXorCallDataOffsetXorMmuStackValHiXorStackItemHeight4XorValOrigLoXorInitialBalance
+        deploymentNumberInftyXorCallDataOffsetXorMmuSizeXorStackItemHeight4XorValOrigLoXorInitialBalance
             .add(BigInteger.ZERO);
         this.filled.set(101);
       }
@@ -9594,11 +10067,12 @@ public record Trace(
         this.filled.set(17);
       }
       if (!filled.get(48)) {
-        existsNewXorMxpDeploysXorEcaddXorCallFlagXorValNextIsOrig.add(false);
+        existsNewXorMmuFlagXorCallPrcFailureCallerWillRevertXorCallFlagXorValNextIsOrig.add(false);
         this.filled.set(48);
       }
       if (!filled.get(47)) {
-        existsXorMmuFlagXorCreateXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution.add(false);
+        existsXorFcondFlagXorCallEoaSuccessCallerWontRevertXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution
+            .add(false);
         this.filled.set(47);
       }
       if (!filled.get(18)) {
@@ -9630,11 +10104,11 @@ public record Trace(
         this.filled.set(24);
       }
       if (!filled.get(50)) {
-        hasCodeNewXorMxpMxpxXorEcpairingXorCopyFlagXorValOrigIsZero.add(false);
+        hasCodeNewXorMxpFlagXorCallPrcSuccessCallerWillRevertXorCopyFlagXorValOrigIsZero.add(false);
         this.filled.set(50);
       }
       if (!filled.get(49)) {
-        hasCodeXorMxpFlagXorEcmulXorConFlagXorValNextIsZero.add(false);
+        hasCodeXorMxpDeploysXorCallPrcFailureCallerWontRevertXorConFlagXorValNextIsZero.add(false);
         this.filled.set(49);
       }
       if (!filled.get(25)) {
@@ -9642,108 +10116,104 @@ public record Trace(
         this.filled.set(25);
       }
       if (!filled.get(51)) {
-        isBlake2FXorOobEvent1XorEcrecoverXorCreateFlagXorWarm.add(false);
+        isBlake2FXorMxpMxpxXorCallPrcSuccessCallerWontRevertXorCreateFlagXorWarm.add(false);
         this.filled.set(51);
       }
       if (!filled.get(52)) {
-        isEcaddXorOobEvent2XorIdentityXorDecodedFlag1XorWarmNew.add(false);
+        isEcaddXorOobEvent1XorCallSmcFailureCallerWillRevertXorDecodedFlag1XorWarmNew.add(false);
         this.filled.set(52);
       }
       if (!filled.get(53)) {
-        isEcmulXorOobFlagXorModexpXorDecodedFlag2.add(false);
+        isEcmulXorOobEvent2XorCallSmcFailureCallerWontRevertXorDecodedFlag2.add(false);
         this.filled.set(53);
       }
       if (!filled.get(54)) {
-        isEcpairingXorPrecinfoFlagXorRipemDsub160XorDecodedFlag3.add(false);
+        isEcpairingXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecodedFlag3.add(false);
         this.filled.set(54);
       }
       if (!filled.get(55)) {
-        isEcrecoverXorStpExistsXorScn1XorDecodedFlag4.add(false);
+        isEcrecoverXorPrecinfoFlagXorCallSmcSuccessCallerWontRevertXorDecodedFlag4.add(false);
         this.filled.set(55);
       }
       if (!filled.get(56)) {
-        isIdentityXorStpFlagXorScn10XorDupFlag.add(false);
+        isIdentityXorStpExistsXorCodedepositXorDupFlag.add(false);
         this.filled.set(56);
       }
       if (!filled.get(57)) {
-        isModexpXorStpOogxXorScn11XorExtFlag.add(false);
+        isModexpXorStpFlagXorCodedepositInvalidCodePrefixXorExtFlag.add(false);
         this.filled.set(57);
       }
       if (!filled.get(58)) {
-        isPrecompileXorStpWarmXorScn12XorHaltFlag.add(false);
+        isPrecompileXorStpOogxXorCodedepositValidCodePrefixXorHaltFlag.add(false);
         this.filled.set(58);
       }
       if (!filled.get(59)) {
-        isRipemDsub160XorScn2XorInvalidFlag.add(false);
+        isRipemDsub160XorStpWarmXorEcaddXorInvalidFlag.add(false);
         this.filled.set(59);
       }
       if (!filled.get(60)) {
-        isSha2Sub256XorScn3XorInvprex.add(false);
+        isSha2Sub256XorEcmulXorInvprex.add(false);
         this.filled.set(60);
       }
-      if (!filled.get(69)) {
-        mxpFlag.add(false);
-        this.filled.set(69);
-      }
       if (!filled.get(114)) {
-        mxpSize2LoXorStaticGas.add(BigInteger.ZERO);
+        mxpSize1HiXorStaticGas.add(BigInteger.ZERO);
         this.filled.set(114);
       }
       if (!filled.get(115)) {
-        mxpWords.add(BigInteger.ZERO);
+        mxpSize1Lo.add(BigInteger.ZERO);
         this.filled.set(115);
       }
+      if (!filled.get(116)) {
+        mxpSize2Hi.add(BigInteger.ZERO);
+        this.filled.set(116);
+      }
+      if (!filled.get(117)) {
+        mxpSize2Lo.add(BigInteger.ZERO);
+        this.filled.set(117);
+      }
+      if (!filled.get(118)) {
+        mxpWords.add(BigInteger.ZERO);
+        this.filled.set(118);
+      }
       if (!filled.get(105)) {
-        nonceNewXorContextNumberXorMxpGasMxpXorStackItemStamp4XorNonce.add(BigInteger.ZERO);
+        nonceNewXorContextNumberXorMmuStackValLoXorStackItemStamp4XorNonce.add(BigInteger.ZERO);
         this.filled.set(105);
       }
       if (!filled.get(104)) {
-        nonceXorCallValueXorMmuTargetOffsetLoXorStackItemStamp3XorLeftoverGas.add(BigInteger.ZERO);
+        nonceXorCallValueXorMmuStackValHiXorStackItemStamp3XorLeftoverGas.add(BigInteger.ZERO);
         this.filled.set(104);
       }
       if (!filled.get(26)) {
         numberOfNonStackRows.add(BigInteger.ZERO);
         this.filled.set(26);
       }
-      if (!filled.get(70)) {
-        oobFlag.add(false);
-        this.filled.set(70);
-      }
-      if (!filled.get(116)) {
-        oobInst.add(BigInteger.ZERO);
-        this.filled.set(116);
-      }
-      if (!filled.get(117)) {
-        oobOutgoingData1.add(BigInteger.ZERO);
-        this.filled.set(117);
-      }
-      if (!filled.get(118)) {
-        oobOutgoingData2.add(BigInteger.ZERO);
-        this.filled.set(118);
-      }
       if (!filled.get(119)) {
-        oobOutgoingData3.add(BigInteger.ZERO);
+        oobInst.add(BigInteger.ZERO);
         this.filled.set(119);
       }
       if (!filled.get(120)) {
-        oobOutgoingData4.add(BigInteger.ZERO);
+        oobOutgoingData1.add(BigInteger.ZERO);
         this.filled.set(120);
       }
       if (!filled.get(121)) {
-        oobOutgoingData5.add(BigInteger.ZERO);
+        oobOutgoingData2.add(BigInteger.ZERO);
         this.filled.set(121);
       }
       if (!filled.get(122)) {
-        oobOutgoingData6.add(BigInteger.ZERO);
+        oobOutgoingData3.add(BigInteger.ZERO);
         this.filled.set(122);
       }
-      if (!filled.get(71)) {
-        oogx.add(false);
-        this.filled.set(71);
+      if (!filled.get(123)) {
+        oobOutgoingData4.add(BigInteger.ZERO);
+        this.filled.set(123);
       }
-      if (!filled.get(72)) {
-        opcx.add(false);
-        this.filled.set(72);
+      if (!filled.get(124)) {
+        oobOutgoingData5.add(BigInteger.ZERO);
+        this.filled.set(124);
+      }
+      if (!filled.get(125)) {
+        oobOutgoingData6.add(BigInteger.ZERO);
+        this.filled.set(125);
       }
       if (!filled.get(27)) {
         peekAtAccount.add(false);
@@ -9773,33 +10243,33 @@ public record Trace(
         peekAtTransaction.add(false);
         this.filled.set(33);
       }
-      if (!filled.get(123)) {
-        precinfoAddrLo.add(BigInteger.ZERO);
-        this.filled.set(123);
-      }
-      if (!filled.get(124)) {
-        precinfoCds.add(BigInteger.ZERO);
-        this.filled.set(124);
-      }
-      if (!filled.get(125)) {
-        precinfoExecCost.add(BigInteger.ZERO);
-        this.filled.set(125);
-      }
       if (!filled.get(126)) {
-        precinfoProvidesReturnData.add(BigInteger.ZERO);
+        precinfoAddrLo.add(BigInteger.ZERO);
         this.filled.set(126);
       }
       if (!filled.get(127)) {
-        precinfoRds.add(BigInteger.ZERO);
+        precinfoCds.add(BigInteger.ZERO);
         this.filled.set(127);
       }
       if (!filled.get(128)) {
-        precinfoSuccess.add(BigInteger.ZERO);
+        precinfoExecCost.add(BigInteger.ZERO);
         this.filled.set(128);
       }
       if (!filled.get(129)) {
-        precinfoTouchesRam.add(BigInteger.ZERO);
+        precinfoProvidesReturnData.add(BigInteger.ZERO);
         this.filled.set(129);
+      }
+      if (!filled.get(130)) {
+        precinfoRds.add(BigInteger.ZERO);
+        this.filled.set(130);
+      }
+      if (!filled.get(131)) {
+        precinfoSuccess.add(BigInteger.ZERO);
+        this.filled.set(131);
+      }
+      if (!filled.get(132)) {
+        precinfoTouchesRam.add(BigInteger.ZERO);
+        this.filled.set(132);
       }
       if (!filled.get(34)) {
         programCounter.add(BigInteger.ZERO);
@@ -9809,67 +10279,83 @@ public record Trace(
         programCounterNew.add(BigInteger.ZERO);
         this.filled.set(35);
       }
-      if (!filled.get(73)) {
-        pushpopFlag.add(false);
-        this.filled.set(73);
-      }
-      if (!filled.get(74)) {
-        rdcx.add(false);
-        this.filled.set(74);
+      if (!filled.get(65)) {
+        ripemDsub160XorMaxcsx.add(false);
+        this.filled.set(65);
       }
       if (!filled.get(106)) {
-        rlpaddrDepAddrHiXorIsStaticXorMxpInstXorStackItemValueHi1XorToAddressHi.add(
+        rlpaddrDepAddrHiXorIsStaticXorMmuTargetOffsetHiXorStackItemValueHi1XorToAddressHi.add(
             BigInteger.ZERO);
         this.filled.set(106);
       }
       if (!filled.get(107)) {
-        rlpaddrDepAddrLoXorReturnerContextNumberXorMxpOffset1HiXorStackItemValueHi2XorToAddressLo
+        rlpaddrDepAddrLoXorReturnerContextNumberXorMmuTargetOffsetLoXorStackItemValueHi2XorToAddressLo
             .add(BigInteger.ZERO);
         this.filled.set(107);
       }
       if (!filled.get(61)) {
-        rlpaddrFlagXorScn4XorJumpx.add(false);
+        rlpaddrFlagXorEcpairingXorJumpx.add(false);
         this.filled.set(61);
       }
       if (!filled.get(108)) {
-        rlpaddrKecHiXorReturnerIsPrecompileXorMxpOffset1LoXorStackItemValueHi3XorValue.add(
+        rlpaddrKecHiXorReturnerIsPrecompileXorMxpGasMxpXorStackItemValueHi3XorValue.add(
             BigInteger.ZERO);
         this.filled.set(108);
       }
       if (!filled.get(109)) {
-        rlpaddrKecLoXorReturnAtOffsetXorMxpOffset2HiXorStackItemValueHi4.add(BigInteger.ZERO);
+        rlpaddrKecLoXorReturnAtOffsetXorMxpInstXorStackItemValueHi4.add(BigInteger.ZERO);
         this.filled.set(109);
       }
       if (!filled.get(110)) {
-        rlpaddrRecipeXorReturnAtSizeXorMxpOffset2LoXorStackItemValueLo1.add(BigInteger.ZERO);
+        rlpaddrRecipeXorReturnAtSizeXorMxpOffset1HiXorStackItemValueLo1.add(BigInteger.ZERO);
         this.filled.set(110);
       }
       if (!filled.get(111)) {
-        rlpaddrSaltHiXorReturnDataOffsetXorMxpSize1HiXorStackItemValueLo2.add(BigInteger.ZERO);
+        rlpaddrSaltHiXorReturnDataOffsetXorMxpOffset1LoXorStackItemValueLo2.add(BigInteger.ZERO);
         this.filled.set(111);
       }
       if (!filled.get(112)) {
-        rlpaddrSaltLoXorReturnDataSizeXorMxpSize1LoXorStackItemValueLo3.add(BigInteger.ZERO);
+        rlpaddrSaltLoXorReturnDataSizeXorMxpOffset2HiXorStackItemValueLo3.add(BigInteger.ZERO);
         this.filled.set(112);
       }
-      if (!filled.get(65)) {
-        scn8XorMaxcsx.add(false);
-        this.filled.set(65);
-      }
       if (!filled.get(66)) {
-        scn9XorModFlag.add(false);
+        scnFailure1XorModFlag.add(false);
         this.filled.set(66);
       }
       if (!filled.get(67)) {
-        selfdestructXorMulFlag.add(false);
+        scnFailure2XorMulFlag.add(false);
         this.filled.set(67);
       }
       if (!filled.get(68)) {
-        sha2Sub256XorMxpx.add(false);
+        scnFailure3XorMxpx.add(false);
         this.filled.set(68);
       }
+      if (!filled.get(69)) {
+        scnFailure4XorMxpFlag.add(false);
+        this.filled.set(69);
+      }
+      if (!filled.get(70)) {
+        scnSuccess1XorOobFlag.add(false);
+        this.filled.set(70);
+      }
+      if (!filled.get(71)) {
+        scnSuccess2XorOogx.add(false);
+        this.filled.set(71);
+      }
+      if (!filled.get(72)) {
+        scnSuccess3XorOpcx.add(false);
+        this.filled.set(72);
+      }
+      if (!filled.get(73)) {
+        scnSuccess4XorPushpopFlag.add(false);
+        this.filled.set(73);
+      }
+      if (!filled.get(74)) {
+        selfdestructXorRdcx.add(false);
+        this.filled.set(74);
+      }
       if (!filled.get(75)) {
-        shfFlag.add(false);
+        sha2Sub256XorShfFlag.add(false);
         this.filled.set(75);
       }
       if (!filled.get(76)) {
@@ -9912,33 +10398,33 @@ public record Trace(
         stoFlag.add(false);
         this.filled.set(85);
       }
-      if (!filled.get(130)) {
-        stpGasHi.add(BigInteger.ZERO);
-        this.filled.set(130);
-      }
-      if (!filled.get(131)) {
-        stpGasLo.add(BigInteger.ZERO);
-        this.filled.set(131);
-      }
-      if (!filled.get(132)) {
-        stpGasOopkt.add(BigInteger.ZERO);
-        this.filled.set(132);
-      }
       if (!filled.get(133)) {
-        stpGasStpd.add(BigInteger.ZERO);
+        stpGasHi.add(BigInteger.ZERO);
         this.filled.set(133);
       }
       if (!filled.get(134)) {
-        stpInst.add(BigInteger.ZERO);
+        stpGasLo.add(BigInteger.ZERO);
         this.filled.set(134);
       }
       if (!filled.get(135)) {
-        stpValHi.add(BigInteger.ZERO);
+        stpGasOopkt.add(BigInteger.ZERO);
         this.filled.set(135);
       }
       if (!filled.get(136)) {
-        stpValLo.add(BigInteger.ZERO);
+        stpGasStpd.add(BigInteger.ZERO);
         this.filled.set(136);
+      }
+      if (!filled.get(137)) {
+        stpInst.add(BigInteger.ZERO);
+        this.filled.set(137);
+      }
+      if (!filled.get(138)) {
+        stpValHi.add(BigInteger.ZERO);
+        this.filled.set(138);
+      }
+      if (!filled.get(139)) {
+        stpValLo.add(BigInteger.ZERO);
+        this.filled.set(139);
       }
       if (!filled.get(86)) {
         sux.add(false);
@@ -9961,11 +10447,11 @@ public record Trace(
         this.filled.set(88);
       }
       if (!filled.get(62)) {
-        trmFlagXorScn5XorJumpFlag.add(false);
+        trmFlagXorEcrecoverXorJumpFlag.add(false);
         this.filled.set(62);
       }
       if (!filled.get(113)) {
-        trmRawAddrHiXorMxpSize2HiXorStackItemValueLo4.add(BigInteger.ZERO);
+        trmRawAddrHiXorMxpOffset2LoXorStackItemValueLo4.add(BigInteger.ZERO);
         this.filled.set(113);
       }
       if (!filled.get(38)) {
@@ -9997,11 +10483,11 @@ public record Trace(
         this.filled.set(89);
       }
       if (!filled.get(64)) {
-        warmNewXorScn7XorLogFlag.add(false);
+        warmNewXorModexpXorLogFlag.add(false);
         this.filled.set(64);
       }
       if (!filled.get(63)) {
-        warmXorScn6XorKecFlag.add(false);
+        warmXorIdentityXorKecFlag.add(false);
         this.filled.set(63);
       }
       if (!filled.get(90)) {
@@ -10021,21 +10507,21 @@ public record Trace(
           abortFlag,
           absoluteTransactionNumber,
           addrHiXorAccountAddressHiXorCcrsStampXorHeightXorAddressHiXorBasefee,
-          addrLoXorAccountAddressLoXorMmuCnSXorHeightNewXorAddressLoXorCallDataSize,
-          balanceNewXorByteCodeAddressHiXorMmuInstXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo,
-          balanceXorAccountDeploymentNumberXorMmuCnTXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi,
+          addrLoXorAccountAddressLoXorExpDyncostXorHeightNewXorAddressLoXorCallDataSize,
+          balanceNewXorByteCodeAddressHiXorExpExponentLoXorHeightUnderXorStorageKeyHiXorCoinbaseAddressLo,
+          balanceXorAccountDeploymentNumberXorExpExponentHiXorHeightOverXorDeploymentNumberXorCoinbaseAddressHi,
           batchNumber,
           callerContextNumber,
           codeAddressHi,
           codeAddressLo,
           codeDeploymentNumber,
           codeDeploymentStatus,
-          codeHashHiNewXorByteCodeDeploymentNumberXorMmuNum2XorPushValueHiXorValCurrHiXorFromAddressLo,
-          codeHashHiXorByteCodeAddressLoXorMmuNum1XorInstructionXorStorageKeyLoXorFromAddressHi,
-          codeHashLoNewXorCallerAddressHiXorMmuSizeXorStackItemHeight1XorValNextHiXorGasPrice,
-          codeHashLoXorByteCodeDeploymentStatusXorMmuRefsXorPushValueLoXorValCurrLoXorGasLimit,
-          codeSizeNewXorCallerContextNumberXorMmuSourceOffsetLoXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal,
-          codeSizeXorCallerAddressLoXorMmuSourceOffsetHiXorStackItemHeight2XorValNextLoXorGasRefundAmount,
+          codeHashHiNewXorByteCodeDeploymentNumberXorMmuCnTXorPushValueHiXorValCurrHiXorFromAddressLo,
+          codeHashHiXorByteCodeAddressLoXorMmuCnSXorInstructionXorStorageKeyLoXorFromAddressHi,
+          codeHashLoNewXorCallerAddressHiXorMmuNum1XorStackItemHeight1XorValNextHiXorGasPrice,
+          codeHashLoXorByteCodeDeploymentStatusXorMmuInstXorPushValueLoXorValCurrLoXorGasLimit,
+          codeSizeNewXorCallerContextNumberXorMmuRefsXorStackItemHeight3XorValOrigHiXorGasRefundCounterFinal,
+          codeSizeXorCallerAddressLoXorMmuNum2XorStackItemHeight2XorValNextLoXorGasRefundAmount,
           contextGetsRevrtdFlag,
           contextMayChangeFlag,
           contextNumber,
@@ -10045,15 +10531,15 @@ public record Trace(
           contextWillRevertFlag,
           counterNsr,
           counterTli,
-          depNumNewXorCallStackDepthXorMmuTargetOffsetHiXorStackItemStamp2XorInitGas,
-          depNumXorCallDataSizeXorMmuStackValLoXorStackItemStamp1XorInitCodeSize,
-          depStatusNewXorFcondFlagXorCodedepositXorBinFlagXorValCurrIsZeroXorStatusCode,
-          depStatusXorCcsrFlagXorCallXorAddFlagXorValCurrIsOrigXorIsEip1559,
-          deploymentNumberInftyXorCallDataOffsetXorMmuStackValHiXorStackItemHeight4XorValOrigLoXorInitialBalance,
+          depNumNewXorCallStackDepthXorMmuSourceOffsetLoXorStackItemStamp2XorInitGas,
+          depNumXorCallDataSizeXorMmuSourceOffsetHiXorStackItemStamp1XorInitCodeSize,
+          depStatusNewXorExpFlagXorCallEoaSuccessCallerWillRevertXorBinFlagXorValCurrIsZeroXorStatusCode,
+          depStatusXorCcsrFlagXorCallAbortXorAddFlagXorValCurrIsOrigXorIsEip1559,
+          deploymentNumberInftyXorCallDataOffsetXorMmuSizeXorStackItemHeight4XorValOrigLoXorInitialBalance,
           deploymentStatusInftyXorUpdateXorAbortFlagXorBlake2FXorAccFlagXorValCurrChangesXorIsDeployment,
           exceptionAhoyFlag,
-          existsNewXorMxpDeploysXorEcaddXorCallFlagXorValNextIsOrig,
-          existsXorMmuFlagXorCreateXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution,
+          existsNewXorMmuFlagXorCallPrcFailureCallerWillRevertXorCallFlagXorValNextIsOrig,
+          existsXorFcondFlagXorCallEoaSuccessCallerWontRevertXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution,
           failureConditionFlag,
           gasActual,
           gasCost,
@@ -10061,26 +10547,27 @@ public record Trace(
           gasMemoryExpansion,
           gasNext,
           gasRefund,
-          hasCodeNewXorMxpMxpxXorEcpairingXorCopyFlagXorValOrigIsZero,
-          hasCodeXorMxpFlagXorEcmulXorConFlagXorValNextIsZero,
+          hasCodeNewXorMxpFlagXorCallPrcSuccessCallerWillRevertXorCopyFlagXorValOrigIsZero,
+          hasCodeXorMxpDeploysXorCallPrcFailureCallerWontRevertXorConFlagXorValNextIsZero,
           hubStamp,
-          isBlake2FXorOobEvent1XorEcrecoverXorCreateFlagXorWarm,
-          isEcaddXorOobEvent2XorIdentityXorDecodedFlag1XorWarmNew,
-          isEcmulXorOobFlagXorModexpXorDecodedFlag2,
-          isEcpairingXorPrecinfoFlagXorRipemDsub160XorDecodedFlag3,
-          isEcrecoverXorStpExistsXorScn1XorDecodedFlag4,
-          isIdentityXorStpFlagXorScn10XorDupFlag,
-          isModexpXorStpOogxXorScn11XorExtFlag,
-          isPrecompileXorStpWarmXorScn12XorHaltFlag,
-          isRipemDsub160XorScn2XorInvalidFlag,
-          isSha2Sub256XorScn3XorInvprex,
-          mxpFlag,
-          mxpSize2LoXorStaticGas,
+          isBlake2FXorMxpMxpxXorCallPrcSuccessCallerWontRevertXorCreateFlagXorWarm,
+          isEcaddXorOobEvent1XorCallSmcFailureCallerWillRevertXorDecodedFlag1XorWarmNew,
+          isEcmulXorOobEvent2XorCallSmcFailureCallerWontRevertXorDecodedFlag2,
+          isEcpairingXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecodedFlag3,
+          isEcrecoverXorPrecinfoFlagXorCallSmcSuccessCallerWontRevertXorDecodedFlag4,
+          isIdentityXorStpExistsXorCodedepositXorDupFlag,
+          isModexpXorStpFlagXorCodedepositInvalidCodePrefixXorExtFlag,
+          isPrecompileXorStpOogxXorCodedepositValidCodePrefixXorHaltFlag,
+          isRipemDsub160XorStpWarmXorEcaddXorInvalidFlag,
+          isSha2Sub256XorEcmulXorInvprex,
+          mxpSize1HiXorStaticGas,
+          mxpSize1Lo,
+          mxpSize2Hi,
+          mxpSize2Lo,
           mxpWords,
-          nonceNewXorContextNumberXorMxpGasMxpXorStackItemStamp4XorNonce,
-          nonceXorCallValueXorMmuTargetOffsetLoXorStackItemStamp3XorLeftoverGas,
+          nonceNewXorContextNumberXorMmuStackValLoXorStackItemStamp4XorNonce,
+          nonceXorCallValueXorMmuStackValHiXorStackItemStamp3XorLeftoverGas,
           numberOfNonStackRows,
-          oobFlag,
           oobInst,
           oobOutgoingData1,
           oobOutgoingData2,
@@ -10088,8 +10575,6 @@ public record Trace(
           oobOutgoingData4,
           oobOutgoingData5,
           oobOutgoingData6,
-          oogx,
-          opcx,
           peekAtAccount,
           peekAtContext,
           peekAtMiscellaneous,
@@ -10106,21 +10591,25 @@ public record Trace(
           precinfoTouchesRam,
           programCounter,
           programCounterNew,
-          pushpopFlag,
-          rdcx,
-          rlpaddrDepAddrHiXorIsStaticXorMxpInstXorStackItemValueHi1XorToAddressHi,
-          rlpaddrDepAddrLoXorReturnerContextNumberXorMxpOffset1HiXorStackItemValueHi2XorToAddressLo,
-          rlpaddrFlagXorScn4XorJumpx,
-          rlpaddrKecHiXorReturnerIsPrecompileXorMxpOffset1LoXorStackItemValueHi3XorValue,
-          rlpaddrKecLoXorReturnAtOffsetXorMxpOffset2HiXorStackItemValueHi4,
-          rlpaddrRecipeXorReturnAtSizeXorMxpOffset2LoXorStackItemValueLo1,
-          rlpaddrSaltHiXorReturnDataOffsetXorMxpSize1HiXorStackItemValueLo2,
-          rlpaddrSaltLoXorReturnDataSizeXorMxpSize1LoXorStackItemValueLo3,
-          scn8XorMaxcsx,
-          scn9XorModFlag,
-          selfdestructXorMulFlag,
-          sha2Sub256XorMxpx,
-          shfFlag,
+          ripemDsub160XorMaxcsx,
+          rlpaddrDepAddrHiXorIsStaticXorMmuTargetOffsetHiXorStackItemValueHi1XorToAddressHi,
+          rlpaddrDepAddrLoXorReturnerContextNumberXorMmuTargetOffsetLoXorStackItemValueHi2XorToAddressLo,
+          rlpaddrFlagXorEcpairingXorJumpx,
+          rlpaddrKecHiXorReturnerIsPrecompileXorMxpGasMxpXorStackItemValueHi3XorValue,
+          rlpaddrKecLoXorReturnAtOffsetXorMxpInstXorStackItemValueHi4,
+          rlpaddrRecipeXorReturnAtSizeXorMxpOffset1HiXorStackItemValueLo1,
+          rlpaddrSaltHiXorReturnDataOffsetXorMxpOffset1LoXorStackItemValueLo2,
+          rlpaddrSaltLoXorReturnDataSizeXorMxpOffset2HiXorStackItemValueLo3,
+          scnFailure1XorModFlag,
+          scnFailure2XorMulFlag,
+          scnFailure3XorMxpx,
+          scnFailure4XorMxpFlag,
+          scnSuccess1XorOobFlag,
+          scnSuccess2XorOogx,
+          scnSuccess3XorOpcx,
+          scnSuccess4XorPushpopFlag,
+          selfdestructXorRdcx,
+          sha2Sub256XorShfFlag,
           sox,
           sstorex,
           stackItemPop1,
@@ -10143,8 +10632,8 @@ public record Trace(
           transactionEndStamp,
           transactionReverts,
           trmFlag,
-          trmFlagXorScn5XorJumpFlag,
-          trmRawAddrHiXorMxpSize2HiXorStackItemValueLo4,
+          trmFlagXorEcrecoverXorJumpFlag,
+          trmRawAddrHiXorMxpOffset2LoXorStackItemValueLo4,
           twoLineInstruction,
           txExec,
           txFinl,
@@ -10152,8 +10641,8 @@ public record Trace(
           txSkip,
           txWarm,
           txnFlag,
-          warmNewXorScn7XorLogFlag,
-          warmXorScn6XorKecFlag,
+          warmNewXorModexpXorLogFlag,
+          warmXorIdentityXorKecFlag,
           wcpFlag);
     }
   }

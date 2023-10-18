@@ -21,8 +21,9 @@ import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.MiscFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.ScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.misc.MiscFragment;
 import net.consensys.linea.zktracer.module.hub.subsection.PrecompileScenarioTraceSubsection;
 import net.consensys.linea.zktracer.module.runtime.callstack.CallFrame;
 import org.hyperledger.besu.datatypes.Address;
@@ -35,22 +36,26 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 public class NoCodeCallSection extends TraceSection implements PostTransactionDefer, PostExecDefer {
   private final boolean targetIsPrecompile;
   private final CallFrame callerCallFrame;
+  private final int calledCallFrameId;
   private final AccountSnapshot preCallCallerAccountSnapshot;
   private final AccountSnapshot preCallCalledAccountSnapshot;
 
   private AccountSnapshot postCallCallerAccountSnapshot;
   private AccountSnapshot postCallCalledAccountSnapshot;
-  private boolean successBit;
+  private final MiscFragment miscFragment;
 
   public NoCodeCallSection(
       Hub hub,
       boolean targetIsPrecompile,
       AccountSnapshot preCallCallerAccountSnapshot,
-      AccountSnapshot preCallCalledAccountSnapshot) {
+      AccountSnapshot preCallCalledAccountSnapshot,
+      MiscFragment miscFragment) {
     this.targetIsPrecompile = targetIsPrecompile;
     this.preCallCallerAccountSnapshot = preCallCallerAccountSnapshot;
     this.preCallCalledAccountSnapshot = preCallCalledAccountSnapshot;
     this.callerCallFrame = hub.currentFrame();
+    this.calledCallFrameId = hub.callStack().futureId();
+    this.miscFragment = miscFragment;
     for (var stackChunk : hub.makeStackChunks(hub.currentFrame())) {
       this.addChunk(hub, hub.currentFrame(), stackChunk);
     }
@@ -75,8 +80,6 @@ public class NoCodeCallSection extends TraceSection implements PostTransactionDe
             frame.isAddressWarm(calledAddress),
             hub.conflation().deploymentInfo().number(calledAddress),
             hub.conflation().deploymentInfo().isDeploying(calledAddress));
-
-    this.successBit = !frame.getStackItem(0).isZero();
   }
 
   @Override
@@ -84,11 +87,13 @@ public class NoCodeCallSection extends TraceSection implements PostTransactionDe
     this.addChunksWithoutStack(
         hub,
         callerCallFrame,
-        // new ScenarioFragment(), // TODO: oscour,
+        new ScenarioFragment(
+            targetIsPrecompile, false, false, this.callerCallFrame.id(), this.calledCallFrameId),
         new ContextFragment(hub.callStack(), hub.currentFrame(), false),
-        new MiscFragment(hub),
+        this.miscFragment,
         new AccountFragment(this.preCallCallerAccountSnapshot, this.postCallCallerAccountSnapshot),
         new AccountFragment(this.preCallCalledAccountSnapshot, this.postCallCalledAccountSnapshot));
+
     if (callerCallFrame.hasReverted()) {
       if (targetIsPrecompile) {
         this.addChunksWithoutStack(

@@ -36,13 +36,13 @@ import net.consensys.linea.zktracer.module.hub.defer.DeferRegistry;
 import net.consensys.linea.zktracer.module.hub.defer.SkippedPostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.AccountSnapshot;
-import net.consensys.linea.zktracer.module.hub.fragment.CallScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.MiscFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.ScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.StackFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.StorageFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TransactionFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.misc.MiscFragment;
 import net.consensys.linea.zktracer.module.hub.section.AbortedCallSection;
 import net.consensys.linea.zktracer.module.hub.section.AccountSection;
 import net.consensys.linea.zktracer.module.hub.section.ContextLogSection;
@@ -983,14 +983,14 @@ public class Hub implements Module {
                 new AbortedCallSection(
                     this,
                     this.currentFrame(),
-                    new MiscFragment(this),
+                    new MiscFragment(this, frame, false, true, false, false, false, false),
                     new ContextFragment(this.callStack, this.callStack().parent(), true)));
           } else if (this.exceptions.outOfGas()) {
             this.addTraceSection(
                 new AbortedCallSection(
                     this,
                     this.currentFrame(),
-                    new MiscFragment(this),
+                    new MiscFragment(this, frame, false, true, false, false, true, false),
                     new AccountFragment(calledAccountSnapshot, calledAccountSnapshot),
                     new ContextFragment(this.callStack, this.callStack().parent(), true)));
           }
@@ -1007,27 +1007,37 @@ public class Hub implements Module {
                 new AbortedCallSection(
                     this,
                     this.currentFrame(),
-                    new CallScenarioFragment(
+                    new ScenarioFragment(
                         targetIsPrecompile,
                         calledAccount.hasCode(),
                         true,
                         this.currentFrame().id(),
                         this.callStack().futureId()),
                     new ContextFragment(this.callStack, this.currentFrame(), false),
+                    new MiscFragment(this, frame, false, true, true, false, true, false),
                     new AccountFragment(myAccountSnapshot, myAccountSnapshot),
                     new AccountFragment(calledAccountSnapshot, calledAccountSnapshot),
                     new ContextFragment(this.callStack, this.currentFrame(), true));
             this.addTraceSection(abortedSection);
           } else {
+            final MiscFragment miscFragment =
+                new MiscFragment(this, frame, false, true, true, false, true, false);
+
             if (calledAccount.hasCode()) {
-              final WithCodeCallSection section = new WithCodeCallSection(this, myAccountSnapshot, calledAccountSnapshot);
+              final WithCodeCallSection section =
+                  new WithCodeCallSection(
+                      this, myAccountSnapshot, calledAccountSnapshot, miscFragment);
               this.defers.postExec(section);
               this.defers.nextContext(section, currentFrame().id());
               this.defers.postTx(section);
             } else {
               final NoCodeCallSection section =
                   new NoCodeCallSection(
-                      this, targetIsPrecompile, myAccountSnapshot, calledAccountSnapshot);
+                      this,
+                      targetIsPrecompile,
+                      myAccountSnapshot,
+                      calledAccountSnapshot,
+                      miscFragment);
               this.defers.postExec(section);
               this.defers.postTx(section);
               this.addTraceSection(section);

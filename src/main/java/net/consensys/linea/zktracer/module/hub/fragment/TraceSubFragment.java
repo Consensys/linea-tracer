@@ -13,15 +13,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub;
+package net.consensys.linea.zktracer.module.hub.fragment;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import net.consensys.linea.zktracer.module.hub.Trace;
 
-/**
- * WARNING: This code is generated automatically. Any modifications to this code may be overwritten
- * and could lead to unexpected behavior. Please DO NOT ATTEMPT TO MODIFY this code directly.
- */
-record HubTrace(@JsonProperty("Trace") Trace trace) {
-  static final int N_FAILURE = 4;
-  static final int N_SUCCESS = 4;
+public interface TraceSubFragment {
+  Trace.TraceBuilder trace(Trace.TraceBuilder trace);
 }

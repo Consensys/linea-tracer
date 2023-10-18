@@ -15,28 +15,84 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment;
 
+import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
+import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
+import org.hyperledger.besu.datatypes.Transaction;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 
 /** This machine generates lines */
-public abstract class ScenarioFragment implements TraceFragment {
-  protected abstract boolean[] computeFlags();
+public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
+  private final boolean targetIsPrecompile;
+  private final boolean targetHasCode;
+  private final boolean abort;
+  private final int callerId;
+  private final int calleeId;
+  private boolean callerReverts = false;
+  private boolean calleeSelfReverts = false;
+
+  public ScenarioFragment(
+      boolean targetIsPrecompile,
+      boolean targetHasCode,
+      boolean abort,
+      int callerId,
+      int calleeId) {
+    this.targetIsPrecompile = targetIsPrecompile;
+    this.targetHasCode = targetHasCode;
+    this.abort = abort;
+    this.callerId = callerId;
+    this.calleeId = calleeId;
+  }
+
+  @Override
+  public void runPostTx(Hub hub, WorldView state, Transaction tx) {
+    this.callerReverts = hub.callStack().get(callerId).hasReverted();
+    this.calleeSelfReverts = hub.callStack().get(calleeId).hasReverted();
+  }
 
   @Override
   public Trace.TraceBuilder trace(Trace.TraceBuilder trace) {
-    final boolean[] flags = computeFlags();
     return trace
         .peekAtScenario(true)
-        .pScenarioScn1(flags[0])
-        .pScenarioScn2(flags[1])
-        .pScenarioScn3(flags[2])
-        .pScenarioScn4(flags[3])
-        .pScenarioScn5(flags[4])
-        .pScenarioScn6(flags[5])
-        .pScenarioScn7(flags[6])
-        .pScenarioScn8(flags[7])
-        .pScenarioScn9(flags[8])
-        .pScenarioScn10(flags[9])
-        .pScenarioScn11(flags[10])
-        .pScenarioScn12(flags[11]);
+        .pScenarioScnFailure1(false)
+        .pScenarioScnFailure2(false)
+        .pScenarioScnFailure3(false)
+        .pScenarioScnFailure4(false)
+        .pScenarioScnSuccess1(false)
+        .pScenarioScnSuccess2(false)
+        .pScenarioScnSuccess3(false)
+        .pScenarioScnSuccess4(false)
+        .pScenarioCallAbort(abort)
+        .pScenarioCallEoaSuccessCallerWillRevert(
+            !abort && !targetIsPrecompile && !targetHasCode && callerReverts)
+        .pScenarioCallEoaSuccessCallerWontRevert(
+            !abort && !targetIsPrecompile && !targetHasCode && !callerReverts)
+        .pScenarioCallSmcSuccessCallerWillRevert(
+            !abort && targetHasCode && callerReverts && !calleeSelfReverts)
+        .pScenarioCallSmcSuccessCallerWontRevert(
+            !abort && targetHasCode && !callerReverts && !calleeSelfReverts)
+        .pScenarioCallSmcFailureCallerWillRevert(
+            !abort && targetHasCode && callerReverts && calleeSelfReverts)
+        .pScenarioCallSmcFailureCallerWontRevert(
+            !abort && targetHasCode && !callerReverts && calleeSelfReverts)
+        .pScenarioCallPrcSuccessCallerWillRevert(
+            !abort && targetIsPrecompile && callerReverts && !calleeSelfReverts)
+        .pScenarioCallPrcSuccessCallerWontRevert(
+            !abort && targetIsPrecompile && !callerReverts && !calleeSelfReverts)
+        .pScenarioCallPrcFailureCallerWillRevert(
+            !abort && targetIsPrecompile && callerReverts && calleeSelfReverts)
+        .pScenarioCallPrcFailureCallerWontRevert(
+            !abort && targetIsPrecompile && !callerReverts && calleeSelfReverts)
+        .pScenarioBlake2F(false)
+        .pScenarioCodedeposit(false)
+        .pScenarioEcadd(false)
+        .pScenarioEcmul(false)
+        .pScenarioEcpairing(false)
+        .pScenarioEcrecover(false)
+        .pScenarioIdentity(false)
+        .pScenarioModexp(false)
+        .pScenarioRipemd160(false)
+        .pScenarioSha2256(false)
+        .pScenarioSelfdestruct(false);
   }
 }

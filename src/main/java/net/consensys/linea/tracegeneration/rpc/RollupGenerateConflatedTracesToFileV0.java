@@ -27,6 +27,8 @@ import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import net.consensys.linea.zktracer.ZkTracer;
+import org.hyperledger.besu.plugin.BesuContext;
+import org.hyperledger.besu.plugin.services.BesuConfiguration;
 import org.hyperledger.besu.plugin.services.TraceService;
 import org.hyperledger.besu.plugin.services.exception.PluginRpcEndpointException;
 import org.hyperledger.besu.plugin.services.rpc.PluginRpcRequest;
@@ -34,15 +36,15 @@ import org.hyperledger.besu.plugin.services.rpc.PluginRpcRequest;
 /** Responsible for conflated file traces generation. */
 public class RollupGenerateConflatedTracesToFileV0 {
 
-  private final Path tracesPath;
-  private final TraceService traceService;
+  private final BesuContext besuContext;
   private final JsonFactory jsonFactory = new JsonFactory();
   private final boolean isGzipEnabled = true;
 
-  public RollupGenerateConflatedTracesToFileV0(
-      final Path dataPath, final TraceService traceService) {
-    this.tracesPath = dataPath.resolve("traces");
-    this.traceService = traceService;
+  private Path tracesPath;
+  private TraceService traceService;
+
+  public RollupGenerateConflatedTracesToFileV0(final BesuContext besuContext) {
+    this.besuContext = besuContext;
   }
 
   public String getNamespace() {
@@ -60,6 +62,14 @@ public class RollupGenerateConflatedTracesToFileV0 {
    * @return an execution file trace.
    */
   public FileTrace execute(final PluginRpcRequest request) {
+    if (traceService == null) {
+      traceService = initTraceService();
+    }
+
+    if (tracesPath == null) {
+      tracesPath = initTracesPath();
+    }
+
     try {
       TraceRequestParams params = TraceRequestParams.createTraceParams(request.getParams());
 
@@ -86,6 +96,28 @@ public class RollupGenerateConflatedTracesToFileV0 {
     } catch (Exception ex) {
       throw new PluginRpcEndpointException(ex.getMessage());
     }
+  }
+
+  private Path initTracesPath() {
+    final Path dataPath =
+        besuContext
+            .getService(BesuConfiguration.class)
+            .map(BesuConfiguration::getDataPath)
+            .orElseThrow(
+                () ->
+                    new RuntimeException(
+                        "Unable to find data path. Please ensure BesuConfiguration is registered."));
+
+    return dataPath.resolve("traces");
+  }
+
+  private TraceService initTraceService() {
+    return besuContext
+        .getService(TraceService.class)
+        .orElseThrow(
+            () ->
+                new RuntimeException(
+                    "Unable to find trace service. Please ensure TraceService is registered."));
   }
 
   private String writeTraceToFile(final ZkTracer tracer, final String traceRuntimeVersion) {

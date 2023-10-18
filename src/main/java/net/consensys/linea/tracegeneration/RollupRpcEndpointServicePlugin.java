@@ -15,57 +15,38 @@
 
 package net.consensys.linea.tracegeneration;
 
-import java.nio.file.Path;
-
 import com.google.auto.service.AutoService;
+import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.tracegeneration.rpc.RollupGenerateConflatedTracesToFileV0;
+import net.consensys.linea.zktracer.opcode.OpCodes;
 import org.hyperledger.besu.plugin.BesuContext;
 import org.hyperledger.besu.plugin.BesuPlugin;
-import org.hyperledger.besu.plugin.services.BesuConfiguration;
 import org.hyperledger.besu.plugin.services.RpcEndpointService;
-import org.hyperledger.besu.plugin.services.TraceService;
 
 /** Test plugin with RPC endpoint. */
 @AutoService(BesuPlugin.class)
+@Slf4j
 public class RollupRpcEndpointServicePlugin implements BesuPlugin {
-  private BesuContext context;
 
   @Override
   public void register(final BesuContext context) {
-    this.context = context;
-  }
-
-  @Override
-  public void start() {
-    final Path dataPath =
-        context
-            .getService(BesuConfiguration.class)
-            .map(BesuConfiguration::getDataPath)
-            .orElseThrow(
-                () ->
-                    new RuntimeException(
-                        "Unable to find data path. Please ensure BesuConfiguration is registered."));
-
-    final TraceService traceService =
-        context
-            .getService(TraceService.class)
-            .orElseThrow(
-                () ->
-                    new RuntimeException(
-                        "Unable to find trace service. Please ensure TraceService is registered."));
-
     RollupGenerateConflatedTracesToFileV0 method =
-        new RollupGenerateConflatedTracesToFileV0(dataPath, traceService);
+        new RollupGenerateConflatedTracesToFileV0(context);
 
-    System.out.println("Registering RPC plugin");
+    log.info("Registering RPC plugin");
     context
         .getService(RpcEndpointService.class)
         .ifPresent(
             rpcEndpointService -> {
-              System.out.println("Registering RPC plugin endpoints");
+              log.info("Registering RPC plugin endpoints");
               rpcEndpointService.registerRPCEndpoint(
                   method.getNamespace(), method.getName(), method::execute);
             });
+  }
+
+  @Override
+  public void start() {
+    OpCodes.load();
   }
 
   @Override

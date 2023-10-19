@@ -241,8 +241,8 @@ public class RomLex implements Module {
 
       case RETURN -> {
         // TODO: check we get the right code
-        final int destOffset = frame.getStackItem(1).toUnsignedBigInteger().intValueExact();
-        final int length = frame.getStackItem(2).toUnsignedBigInteger().intValueExact();
+        final int destOffset = frame.getStackItem(0).toUnsignedBigInteger().intValueExact();
+        final int length = frame.getStackItem(1).toUnsignedBigInteger().intValueExact();
         final Bytes code = frame.readMemory(destOffset, length);
         final boolean depStatus =
             hub.conflation().deploymentInfo().isDeploying(frame.getContractAddress());

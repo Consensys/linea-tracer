@@ -673,7 +673,7 @@ opcodes:
       nbRemoved: 2
       staticGas: G_MID
       oobFlag: true
-      flag1: true
+      flag2: true
   - mnemonic: PC
     value: 0x58
     instructionFamily: MACHINE_STATE

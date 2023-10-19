@@ -6,10 +6,6 @@ an [existing implementation in Go](https://github.com/ConsenSys/zk-evm/).
 ## Quickstart - Running Besu with Linea Plugins
 * compile linea-plugins `gradlew installDist`
 * copy jar file to besu runtime plugins/ directory (where you will run besu from, not where you're building besu)
-* currently a known issue with loading `opcodes.yml` from within plugins
-  * workaround is to copy this file into besu resources and build besu
-  * `cp ./src/main/resources/opcodes.yml <besu-checked-out-dir>/config/src/main/resources`
-  * `cd <besu-checked-out-dir>; gradlew installDist`
 * add `ROLLUP` to besu config to enable the plugin RPC methods
   * rpc-http-api=["ADMIN","ETH","NET","WEB3","ROLLUP"]
 * start besu (command line or from IDE) and you should see plugins registered at startup

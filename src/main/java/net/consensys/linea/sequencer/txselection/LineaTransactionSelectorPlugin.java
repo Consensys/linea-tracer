@@ -19,6 +19,7 @@ import java.util.Optional;
 
 import com.google.auto.service.AutoService;
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.sequencer.LineaCliOptions;
 import org.hyperledger.besu.plugin.BesuContext;
 import org.hyperledger.besu.plugin.BesuPlugin;
 import org.hyperledger.besu.plugin.services.PicoCLIOptions;
@@ -29,11 +30,11 @@ import org.hyperledger.besu.plugin.services.TransactionSelectionService;
 @AutoService(BesuPlugin.class)
 public class LineaTransactionSelectorPlugin implements BesuPlugin {
   public static final String NAME = "linea";
-  private final LineaTransactionSelectionCliOptions options;
+  private final LineaCliOptions options;
   private Optional<TransactionSelectionService> service;
 
   public LineaTransactionSelectorPlugin() {
-    options = LineaTransactionSelectionCliOptions.create();
+    options = LineaCliOptions.create();
   }
 
   @Override

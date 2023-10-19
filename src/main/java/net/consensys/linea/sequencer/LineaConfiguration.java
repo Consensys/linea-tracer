@@ -13,17 +13,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.sequencer.txselection;
-
-import com.google.common.base.MoreObjects;
-import picocli.CommandLine;
+package net.consensys.linea.sequencer;
 
 /** The Linea configuration. */
-public final class LineaTransactionSelectionConfiguration {
+public final class LineaConfiguration {
   private final int maxTxCallDataSize;
   private final int maxBlockCallDataSize;
 
-  private LineaTransactionSelectionConfiguration(int maxTxCallDataSize, int maxBlockCallDataSize) {
+  private LineaConfiguration(int maxTxCallDataSize, int maxBlockCallDataSize) {
     this.maxTxCallDataSize = maxTxCallDataSize;
     this.maxBlockCallDataSize = maxBlockCallDataSize;
   }
@@ -50,9 +47,8 @@ public final class LineaTransactionSelectionConfiguration {
       return this;
     }
 
-    public LineaTransactionSelectionConfiguration build() {
-      return new LineaTransactionSelectionConfiguration(maxTxCallDataSize, maxBlockCallDataSize);
+    public LineaConfiguration build() {
+      return new LineaConfiguration(maxTxCallDataSize, maxBlockCallDataSize);
     }
   }
-
 }

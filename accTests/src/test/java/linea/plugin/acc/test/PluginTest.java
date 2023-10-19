@@ -170,8 +170,7 @@ public class PluginTest extends AcceptanceTestBase {
             gasPrice, gasLimit, notDenied.getAddress(), "", BigInteger.ONE); // 1 wei
 
     Assertions.assertThat(transactionResponse.getTransactionHash()).isNull();
-    // TODO: Do we want to have a better error message in that case?
-    Assertions.assertThat(transactionResponse.getError().getMessage()).isEqualTo("Internal error");
+    Assertions.assertThat(transactionResponse.getError().getMessage()).isEqualTo("sender 0x627306090abab3a6e1400e9345bc60c78a8bef57 is blocked as appearing on the SDN or other legally prohibited list");
 
     // Make sure a transaction with a recipient on the deny list cannot be added to the pool
     transactionManager = new RawTransactionManager(miner, notDenied);
@@ -180,7 +179,7 @@ public class PluginTest extends AcceptanceTestBase {
             gasPrice, gasLimit, denied.getAddress(), "", BigInteger.ONE); // 1 wei
 
     Assertions.assertThat(transactionResponse.getTransactionHash()).isNull();
-    Assertions.assertThat(transactionResponse.getError().getMessage()).isEqualTo("Internal error");
+    Assertions.assertThat(transactionResponse.getError().getMessage()).isEqualTo("recipient 0x627306090abab3a6e1400e9345bc60c78a8bef57 is blocked as appearing on the SDN or other legally prohibited list");
 
     // Make sure a transaction calling a contract on the deny list (e.g. precompile) is not added to
     // the pool
@@ -188,12 +187,12 @@ public class PluginTest extends AcceptanceTestBase {
         transactionManager.sendTransaction(
             gasPrice,
             gasLimit,
-            "0x000000000000000000000000000000000000000b",
+            "0x000000000000000000000000000000000000000a",
             "0xdeadbeef",
             BigInteger.ONE); // 1 wei
 
     Assertions.assertThat(transactionResponse.getTransactionHash()).isNull();
-    Assertions.assertThat(transactionResponse.getError().getMessage()).isEqualTo("Internal error");
+    Assertions.assertThat(transactionResponse.getError().getMessage()).isEqualTo("destination address is a precompile address and cannot receive transactions");
   }
 
   private void sendTransactionsWithGivenLengthPayload(

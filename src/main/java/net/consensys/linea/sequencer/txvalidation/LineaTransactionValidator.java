@@ -15,7 +15,9 @@
 
 package net.consensys.linea.sequencer.txvalidation;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,16 +34,36 @@ import org.hyperledger.besu.plugin.services.txvalidator.PluginTransactionValidat
 public class LineaTransactionValidator implements PluginTransactionValidator {
   private final List<Address> denied;
 
+  private static final List<Address> precompiles = Arrays.asList(Address.fromHexString("0x0000000000000000000000000000000000000001"),
+          Address.fromHexString("0x0000000000000000000000000000000000000002"),
+          Address.fromHexString("0x0000000000000000000000000000000000000003"),
+          Address.fromHexString("0x0000000000000000000000000000000000000004"),
+          Address.fromHexString("0x0000000000000000000000000000000000000005"),
+          Address.fromHexString("0x0000000000000000000000000000000000000006"),
+          Address.fromHexString("0x0000000000000000000000000000000000000007"),
+          Address.fromHexString("0x0000000000000000000000000000000000000008"),
+          Address.fromHexString("0x0000000000000000000000000000000000000009"),
+          Address.fromHexString("0x000000000000000000000000000000000000000a"));
+
   @Override
-  public boolean validateTransaction(final Transaction transaction) {
+  public Optional<String> validateTransaction(final Transaction transaction) {
     if (denied.contains(transaction.getSender())) {
-      log.debug("Sender {} is on the deny list", transaction.getSender());
-      return false;
+      final String errMsg = String.format("sender %s is blocked as appearing on the SDN or other legally prohibited list", transaction.getSender());
+      log.debug(errMsg);
+      return Optional.of(errMsg);
     }
-    if (transaction.getTo().isPresent() && denied.contains(transaction.getTo().get())) {
-      log.debug("To address {} is on the deny list", transaction.getTo().get());
-      return false;
+    if (transaction.getTo().isPresent()) {
+      final Address to = transaction.getTo().get();
+      if (denied.contains(to)) {
+        final String errMsg = String.format("recipient %s is blocked as appearing on the SDN or other legally prohibited list", to);
+        log.debug(errMsg);
+        return Optional.of(errMsg);
+      } else if (precompiles.contains(to)) {
+        final String errMsg = "destination address is a precompile address and cannot receive transactions";
+        log.debug(errMsg);
+        return Optional.of(errMsg);
+      }
     }
-    return true;
+    return Optional.empty(); // returning empty indicates that the transaction is valid
   }
 }

@@ -15,10 +15,16 @@
 
 package net.consensys.linea.sequencer.txvalidation;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import com.google.auto.service.AutoService;
 import lombok.extern.slf4j.Slf4j;
+import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.plugin.BesuContext;
 import org.hyperledger.besu.plugin.BesuPlugin;
 import org.hyperledger.besu.plugin.services.PicoCLIOptions;
@@ -30,7 +36,7 @@ import org.hyperledger.besu.plugin.services.PluginTransactionValidatorService;
 public class LineaTransactionValidatorPlugin implements BesuPlugin {
   public static final String NAME = "linea";
   private final LineaTransactionValidatorCliOptions options;
-  private Optional<PluginTransactionValidatorService> service;
+  private ArrayList<Address> denied = new ArrayList<>();;
 
   public LineaTransactionValidatorPlugin() {
     options = LineaTransactionValidatorCliOptions.create();
@@ -47,12 +53,12 @@ public class LineaTransactionValidatorPlugin implements BesuPlugin {
 
     if (cmdlineOptions.isEmpty()) {
       throw new IllegalStateException(
-          "Expecting a PicoCLI options to register CLI options with, but none found.");
+          "Expecting a PicoCLI options to be available, but none found.");
     }
 
-    cmdlineOptions.get().addPicoCLIOptions(getName().get(), options);
+    cmdlineOptions.get().addPicoCLIOptions(NAME, options);
 
-    service = context.getService(PluginTransactionValidatorService.class);
+    Optional<PluginTransactionValidatorService> service = context.getService(PluginTransactionValidatorService.class);
     if (service.isEmpty()) {
       log.error(
           "Failed to register TransactionSelectionService because it is not available from the BesuContext.");
@@ -62,6 +68,19 @@ public class LineaTransactionValidatorPlugin implements BesuPlugin {
 
   @Override
   public void start() {
+    final LineaTransactionValidatorConfiguration config = options.toDomainObject();
+    Path filePath = Paths.get(config.denyListPath());
+
+    try (Stream<String> lines = Files.lines(filePath)) {
+      lines.forEach(
+              l -> {
+                final Address address = Address.fromHexString(l.trim());
+                denied.add(address);
+              });
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+
     log.debug("Starting {} with configuration: {}", NAME, options);
   }
 
@@ -71,6 +90,6 @@ public class LineaTransactionValidatorPlugin implements BesuPlugin {
   private void createAndRegister(
       final PluginTransactionValidatorService transactionValidationService) {
     transactionValidationService.registerTransactionValidatorFactory(
-        new LineaTransactionValidatorFactory(options));
+        new LineaTransactionValidatorFactory(denied));
   }
 }

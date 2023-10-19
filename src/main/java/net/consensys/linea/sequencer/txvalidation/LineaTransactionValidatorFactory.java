@@ -15,11 +15,7 @@
 
 package net.consensys.linea.sequencer.txvalidation;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.stream.Stream;
 
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.plugin.services.txvalidator.PluginTransactionValidator;
@@ -27,28 +23,15 @@ import org.hyperledger.besu.plugin.services.txvalidator.PluginTransactionValidat
 
 /** Represents a factory for creating transaction validators. */
 public class LineaTransactionValidatorFactory implements PluginTransactionValidatorFactory {
-  private final LineaTransactionValidatorCliOptions options;
 
-  public LineaTransactionValidatorFactory(final LineaTransactionValidatorCliOptions options) {
-    this.options = options;
+  private final ArrayList<Address> denied;
+
+  public LineaTransactionValidatorFactory(final ArrayList<Address> denied) {
+    this.denied = denied;
   }
 
   @Override
   public PluginTransactionValidator create() {
-    final ArrayList<Address> denied = new ArrayList<>();
-    final LineaTransactionValidatorConfiguration config = options.toDomainObject();
-    Path filePath = Paths.get(config.denyListPath());
-
-    try (Stream<String> lines = Files.lines(filePath)) {
-      lines.forEach(
-          l -> {
-            final Address address = Address.fromHexString(l.trim());
-            denied.add(address);
-          });
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-
     return new LineaTransactionValidator(denied);
   }
 }

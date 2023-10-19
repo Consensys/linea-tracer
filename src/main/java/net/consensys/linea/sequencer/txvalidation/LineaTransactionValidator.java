@@ -34,7 +34,9 @@ import org.hyperledger.besu.plugin.services.txvalidator.PluginTransactionValidat
 public class LineaTransactionValidator implements PluginTransactionValidator {
   private final List<Address> denied;
 
-  private static final List<Address> precompiles = Arrays.asList(Address.fromHexString("0x0000000000000000000000000000000000000001"),
+  private static final List<Address> precompiles =
+      Arrays.asList(
+          Address.fromHexString("0x0000000000000000000000000000000000000001"),
           Address.fromHexString("0x0000000000000000000000000000000000000002"),
           Address.fromHexString("0x0000000000000000000000000000000000000003"),
           Address.fromHexString("0x0000000000000000000000000000000000000004"),
@@ -48,18 +50,25 @@ public class LineaTransactionValidator implements PluginTransactionValidator {
   @Override
   public Optional<String> validateTransaction(final Transaction transaction) {
     if (denied.contains(transaction.getSender())) {
-      final String errMsg = String.format("sender %s is blocked as appearing on the SDN or other legally prohibited list", transaction.getSender());
+      final String errMsg =
+          String.format(
+              "sender %s is blocked as appearing on the SDN or other legally prohibited list",
+              transaction.getSender());
       log.debug(errMsg);
       return Optional.of(errMsg);
     }
     if (transaction.getTo().isPresent()) {
       final Address to = transaction.getTo().get();
       if (denied.contains(to)) {
-        final String errMsg = String.format("recipient %s is blocked as appearing on the SDN or other legally prohibited list", to);
+        final String errMsg =
+            String.format(
+                "recipient %s is blocked as appearing on the SDN or other legally prohibited list",
+                to);
         log.debug(errMsg);
         return Optional.of(errMsg);
       } else if (precompiles.contains(to)) {
-        final String errMsg = "destination address is a precompile address and cannot receive transactions";
+        final String errMsg =
+            "destination address is a precompile address and cannot receive transactions";
         log.debug(errMsg);
         return Optional.of(errMsg);
       }

@@ -36,7 +36,8 @@ import org.hyperledger.besu.plugin.services.PluginTransactionValidatorService;
 public class LineaTransactionValidatorPlugin implements BesuPlugin {
   public static final String NAME = "linea";
   private final LineaTransactionValidatorCliOptions options;
-  private ArrayList<Address> denied = new ArrayList<>();;
+  private ArrayList<Address> denied = new ArrayList<>();
+  ;
 
   public LineaTransactionValidatorPlugin() {
     options = LineaTransactionValidatorCliOptions.create();
@@ -58,7 +59,8 @@ public class LineaTransactionValidatorPlugin implements BesuPlugin {
 
     cmdlineOptions.get().addPicoCLIOptions(NAME, options);
 
-    Optional<PluginTransactionValidatorService> service = context.getService(PluginTransactionValidatorService.class);
+    Optional<PluginTransactionValidatorService> service =
+        context.getService(PluginTransactionValidatorService.class);
     if (service.isEmpty()) {
       log.error(
           "Failed to register TransactionSelectionService because it is not available from the BesuContext.");
@@ -73,10 +75,10 @@ public class LineaTransactionValidatorPlugin implements BesuPlugin {
 
     try (Stream<String> lines = Files.lines(filePath)) {
       lines.forEach(
-              l -> {
-                final Address address = Address.fromHexString(l.trim());
-                denied.add(address);
-              });
+          l -> {
+            final Address address = Address.fromHexString(l.trim());
+            denied.add(address);
+          });
     } catch (Exception e) {
       throw new RuntimeException(e);
     }

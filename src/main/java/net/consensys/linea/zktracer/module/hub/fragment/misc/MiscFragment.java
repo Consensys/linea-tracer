@@ -21,14 +21,21 @@ import java.util.List;
 import net.consensys.linea.zktracer.EWord;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
+import net.consensys.linea.zktracer.module.hub.defer.PostExecDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.ExpSubFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.MmuSubFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.MxpSubFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.CalldataloadSubFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.JumpSubFragment;
 import net.consensys.linea.zktracer.opcode.InstructionFamily;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.evm.operation.Operation;
 
-public class MiscFragment implements TraceFragment {
+public class MiscFragment implements TraceFragment, PostExecDefer {
   private final boolean mmuFlag;
   private final boolean mxpFlag;
   private final boolean oobFlag;
@@ -64,7 +71,7 @@ public class MiscFragment implements TraceFragment {
       } else if (opCodeData.instructionFamily() == InstructionFamily.JUMP) {
         oobFlag = !hub.exceptions().stackUnderflow();
       } else if (opCodeData.mnemonic() == OpCode.RETURNDATACOPY) {
-        oobFlag = !hub.exceptions().stackUnderflow(); // TODO: update it
+        oobFlag = !hub.exceptions().stackUnderflow(); // TODO: updateCallerReturndata it
       } else if (opCodeData.instructionFamily() == InstructionFamily.CALL) {
         oobFlag = !hub.exceptions().any();
       } else if (opCodeData.instructionFamily() == InstructionFamily.CREATE) {
@@ -131,8 +138,28 @@ public class MiscFragment implements TraceFragment {
     this.expFlag = wantExp && canExp(hub, opCodeData);
 
     // TODO: the rest
+    if (this.mmuFlag) {
+      this.subFragments.add(new MmuSubFragment(hub, frame));
+    }
+
+    if (this.mxpFlag) {
+      this.subFragments.add(MxpSubFragment.build(hub));
+    }
+
+    if (this.oobFlag) {
+      switch (hub.currentFrame().opCode()) {
+        case JUMP, JUMPI -> this.subFragments.add(JumpSubFragment.build(hub, frame));
+        case CALLDATALOAD -> this.subFragments.add(CalldataloadSubFragment.build(hub, frame));
+        case CALL, DELEGATECALL, STATICCALL, CALLCODE -> {}
+        case CREATE, CREATE2 -> {}
+        case SSTORE -> {}
+        case RETURN -> {}
+        default -> throw new IllegalArgumentException("unexpected opcode for OoB");
+      }
+    }
+
     if (this.expFlag) {
-      this.subFragments.add(new MiscExpSubFragment(EWord.of(frame.getStackItem(1))));
+      this.subFragments.add(new ExpSubFragment(EWord.of(frame.getStackItem(1))));
     }
   }
 
@@ -151,6 +178,15 @@ public class MiscFragment implements TraceFragment {
       subFragment.trace(trace);
     }
 
-    return trace;
+    return trace.fillAndValidateRow();
+  }
+
+  @Override
+  public void runPostExec(Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
+    for (TraceSubFragment f : this.subFragments) {
+      if (f instanceof MmuSubFragment mmuSubFragment) {
+        mmuSubFragment.runPostExec(hub, frame, operationResult);
+      }
+    }
   }
 }

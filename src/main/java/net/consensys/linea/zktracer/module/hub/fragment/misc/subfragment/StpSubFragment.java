@@ -13,24 +13,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.fragment.misc;
+package net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment;
 
-import static net.consensys.linea.zktracer.opcode.gas.GasConstants.G_EXP_BYTE;
-
-import java.math.BigInteger;
-
-import net.consensys.linea.zktracer.EWord;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
+import org.apache.commons.lang3.NotImplementedException;
 
-public record MiscExpSubFragment(EWord exponent) implements TraceSubFragment {
-
+public record StpSubFragment() implements TraceSubFragment {
   @Override
   public Trace.TraceBuilder trace(Trace.TraceBuilder trace) {
-    return trace
-        .pMiscellaneousExpExponentHi(exponent.hiBigInt())
-        .pMiscellaneousExpExponentLo(this.exponent.loBigInt())
-        .pMiscellaneousExpDyncost(
-            BigInteger.valueOf((long) G_EXP_BYTE.cost() * exponent.byteLength()));
+    throw new NotImplementedException("Soon");
   }
 }

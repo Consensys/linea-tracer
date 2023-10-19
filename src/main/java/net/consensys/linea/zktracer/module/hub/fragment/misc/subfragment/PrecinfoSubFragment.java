@@ -13,13 +13,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.fragment.misc;
+package net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment;
 
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
 import org.apache.commons.lang3.NotImplementedException;
 
-public record MiscOobSubFragment() implements TraceSubFragment {
+public record PrecinfoSubFragment() implements TraceSubFragment {
   @Override
   public Trace.TraceBuilder trace(Trace.TraceBuilder trace) {
     throw new NotImplementedException("Soon");

@@ -261,7 +261,7 @@ public class Hub implements Module {
             this.conflation.deploymentInfo().number(this.block.minerAddress),
             false);
 
-    // Putatively update deployment number
+    // Putatively updateCallerReturndata deployment number
     if (isDeployment) {
       this.conflation.deploymentInfo().deploy(toAddress);
     }
@@ -846,14 +846,30 @@ public class Hub implements Module {
                   this.tx.initialGas())));
 
       case STACK_RAM -> {
-        TraceSection stackRamSection = new StackRam(this);
-        if (this.opCodeData().stackSettings().flag2()) {
-          stackRamSection.addChunk(
-              this,
-              this.currentFrame(),
-              new ContextFragment(this.callStack, this.currentFrame(), updateReturnData));
+        switch (this.currentFrame().opCode()) {
+          case CALLDATALOAD -> {
+            final long readOffset = Words.clampedToLong(frame.getStackItem(0));
+            final boolean isOob = readOffset > this.currentFrame().callData().size();
+            final boolean wantMmu = !isOob && this.exceptions.none();
+            final MiscFragment miscFragment =
+                new MiscFragment(this, frame, wantMmu, false, true, false, false, false);
+            this.defers.postExec(miscFragment);
+
+            this.addTraceSection(
+                new StackRam(
+                    this,
+                    miscFragment,
+                    new ContextFragment(this.callStack(), this.currentFrame(), false)));
+          }
+          case MLOAD, MSTORE, MSTORE8 -> {
+            final boolean wantMmu = this.exceptions.none();
+            this.addTraceSection(
+                new StackRam(
+                    this,
+                    new MiscFragment(this, frame, wantMmu, true, false, false, false, false)));
+          }
+          default -> throw new IllegalStateException("unexpected STACK_RAM opcode");
         }
-        this.addTraceSection(stackRamSection);
       }
       case STORAGE -> {
         Address address = this.currentFrame().address();
@@ -1029,12 +1045,24 @@ public class Hub implements Module {
                 this.conflation.deploymentInfo().number(this.currentFrame().codeAddress()),
                 this.currentFrame().codeDeploymentStatus());
 
-        this.addTraceSection(
+        JumpSection jumpSection =
             new JumpSection(
                 this,
                 new ContextFragment(this.callStack, this.currentFrame(), updateReturnData),
-                new AccountFragment(codeAccountSnapshot, codeAccountSnapshot, false, 0, false)));
+                new AccountFragment(codeAccountSnapshot, codeAccountSnapshot, false, 0, false),
+                new MiscFragment(this, frame, false, false, true, false, false, false));
+
+        this.addTraceSection(jumpSection);
       }
+    }
+
+    // In all cases, add a context fragment if an exception occurred
+    if (this.exceptions.any()) {
+      this.currentTraceSection()
+          .addChunk(
+              this,
+              this.currentFrame(),
+              new ContextFragment(this.callStack(), this.currentFrame(), true));
     }
   }
 

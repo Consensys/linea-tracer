@@ -41,12 +41,12 @@ public class ToyAccount implements MutableAccount {
 
   private Address address;
   private final Supplier<Hash> addressHash =
-      Suppliers.memoize(() -> address == null ? Hash.ZERO : address.addressHash());
+      Suppliers.memoize(() -> address.addressHash());
   private long nonce;
   private Wei balance;
   private Bytes code;
   private Supplier<Hash> codeHash =
-      Suppliers.memoize(() -> code == null ? Hash.EMPTY : Hash.hash(code));
+      Suppliers.memoize(() -> Hash.hash(code));
   private final Map<UInt256, UInt256> storage = new HashMap<>();
 
   @Builder
@@ -60,7 +60,7 @@ public class ToyAccount implements MutableAccount {
     this.address = address;
     this.nonce = nonce;
     this.balance = balance;
-    this.code = code;
+    this.code = code == null ? Bytes.EMPTY : code;
   }
 
   @Override

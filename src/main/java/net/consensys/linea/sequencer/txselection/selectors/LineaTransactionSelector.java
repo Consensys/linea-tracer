@@ -20,13 +20,13 @@ import net.consensys.linea.sequencer.txselection.LineaTransactionSelectionConfig
 import org.hyperledger.besu.datatypes.PendingTransaction;
 import org.hyperledger.besu.plugin.data.TransactionProcessingResult;
 import org.hyperledger.besu.plugin.data.TransactionSelectionResult;
-import org.hyperledger.besu.plugin.services.txselection.TransactionSelector;
+import org.hyperledger.besu.plugin.services.txselection.PluginTransactionSelector;
 
 /** Class for transaction selection using a list of selectors. */
-public class LineaTransactionSelector implements TransactionSelector {
+public class LineaTransactionSelector implements PluginTransactionSelector {
 
   final LineaTransactionSelectionConfiguration lineaConfiguration;
-  List<TransactionSelector> selectors;
+  List<PluginTransactionSelector> selectors;
 
   public LineaTransactionSelector(LineaTransactionSelectionConfiguration lineaConfiguration) {
     this.lineaConfiguration = lineaConfiguration;
@@ -39,7 +39,7 @@ public class LineaTransactionSelector implements TransactionSelector {
    * @param lineaConfiguration The configuration to use.
    * @return A list of selectors.
    */
-  private static List<TransactionSelector> createTransactionSelectors(
+  private static List<PluginTransactionSelector> createTransactionSelectors(
       final LineaTransactionSelectionConfiguration lineaConfiguration) {
     return List.of(
         new MaxTransactionCallDataTransactionSelector(lineaConfiguration.maxTxCallDataSize()),
@@ -91,10 +91,15 @@ public class LineaTransactionSelector implements TransactionSelector {
    * Notifies all selectors when a transaction is selected.
    *
    * @param pendingTransaction The selected transaction.
+   * @param transactionProcessingResult The transaction processing result.
    */
   @Override
-  public void onTransactionSelected(final PendingTransaction pendingTransaction) {
-    selectors.forEach(selector -> selector.onTransactionSelected(pendingTransaction));
+  public void onTransactionSelected(
+      final PendingTransaction pendingTransaction,
+      final TransactionProcessingResult transactionProcessingResult) {
+    selectors.forEach(
+        selector ->
+            selector.onTransactionSelected(pendingTransaction, transactionProcessingResult));
   }
 
   /**

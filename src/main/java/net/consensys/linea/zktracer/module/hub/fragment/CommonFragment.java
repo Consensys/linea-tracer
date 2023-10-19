@@ -74,7 +74,7 @@ public final class CommonFragment implements TraceFragment {
         .txExec(this.txState == TxState.TX_EXEC)
         .txFinl(this.txState == TxState.TX_FINAL)
         .hubStamp(BigInteger.valueOf(this.stamp))
-        .transactionEndStamp(BigInteger.valueOf(txEndStamp))
+        .hubStampTransactionEnd(BigInteger.valueOf(txEndStamp))
         .transactionReverts(BigInteger.valueOf(txReverts ? 1 : 0))
         .contextMayChangeFlag(
             (instructionFamily == InstructionFamily.CALL
@@ -89,8 +89,8 @@ public final class CommonFragment implements TraceFragment {
         .contextNumberNew(BigInteger.valueOf(newContextNumber))
         .contextRevertStamp(BigInteger.valueOf(revertStamp))
         .contextWillRevertFlag(getsReverted || selfReverts)
-        .contextGetsRevrtdFlag(getsReverted)
-        .contextSelfRevrtsFlag(selfReverts)
+        .contextGetsRevertedFlag(getsReverted)
+        .contextSelfRevertsFlag(selfReverts)
         .programCounter(BigInteger.valueOf(pc))
         .programCounterNew(BigInteger.valueOf(newPc))
 

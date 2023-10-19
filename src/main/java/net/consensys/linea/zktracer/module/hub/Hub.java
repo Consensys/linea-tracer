@@ -765,7 +765,6 @@ public class Hub implements Module {
           BIN,
           WCP,
           EXT,
-          KEC,
           BATCH,
           MACHINE_STATE,
           PUSH_POP,
@@ -773,6 +772,14 @@ public class Hub implements Module {
           SWAP,
           HALT,
           INVALID -> this.addTraceSection(new StackOnlySection(this));
+      case KEC -> {
+        final boolean needsMmu = this.exceptions.none() && !frame.getStackItem(1).isZero();
+        this.addTraceSection(
+            new KeccakSection(
+                this,
+                this.currentFrame(),
+                new MiscFragment(this, frame, needsMmu, true, false, false, false, false)));
+      }
       case CONTEXT, LOG -> this.addTraceSection(
           new ContextLogSection(
               this, new ContextFragment(this.callStack, this.currentFrame(), updateReturnData)));

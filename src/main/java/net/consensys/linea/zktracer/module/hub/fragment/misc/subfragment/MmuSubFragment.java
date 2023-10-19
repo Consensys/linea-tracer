@@ -25,6 +25,7 @@ import net.consensys.linea.zktracer.module.hub.defer.PostExecDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.evm.internal.Words;
 import org.hyperledger.besu.evm.operation.Operation;
 
 @Slf4j
@@ -46,6 +47,12 @@ public class MmuSubFragment implements TraceSubFragment, PostExecDefer {
     final OpCode opCode = hub.currentFrame().opCode();
 
     switch (opCode) {
+      case SHA3 -> {
+        offset1 = EWord.of(frame.getStackItem(0));
+        param1 = 0; // TODO: hash info stamp
+        size = Words.clampedToInt(Words.clampedToLong(frame.getStackItem(1)));
+        exoSum = 0; // TODO:
+      }
       case CALLDATALOAD -> {
         this.param1 = hub.tx().number();
         this.info = hub.callStack().getDepth() == 1;
@@ -67,7 +74,7 @@ public class MmuSubFragment implements TraceSubFragment, PostExecDefer {
   @Override
   public void runPostExec(Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
     switch (OpCode.of(this.opCode)) {
-      case MLOAD, CALLDATALOAD -> { // TODO: maybe SHA3?
+      case MLOAD, CALLDATALOAD -> {
         this.stackValue = EWord.of(frame.getStackItem(0));
       }
       default -> {}

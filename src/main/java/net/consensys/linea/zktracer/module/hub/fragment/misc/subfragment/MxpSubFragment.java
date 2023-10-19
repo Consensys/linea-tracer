@@ -60,7 +60,6 @@ public record MxpSubFragment(
 
   @Override
   public Trace.TraceBuilder trace(Trace.TraceBuilder trace) {
-
     return trace
         .pMiscellaneousMxpMxpx(this.mxpException)
         .pMiscellaneousMxpInst(BigInteger.valueOf(this.opCode))

@@ -58,6 +58,9 @@ public final class StackFragment implements TraceFragment {
       final List<StackOperation> stackOperations,
       final Exceptions exceptions,
       long staticGas) {
+    // TODO: needs
+    // - latch stack here
+    // - get size like in MMU from EVM stack
     return new StackFragment(
         stack, stackOperations, exceptions, ContextExceptions.empty(), staticGas);
   }
@@ -134,7 +137,7 @@ public final class StackFragment implements TraceFragment {
         .pStackHeightUnder(BigInteger.valueOf(heightUnder))
         .pStackHeightOver(BigInteger.valueOf(heightOver))
         // Instruction details
-        .pStackInstruction(BigInteger.valueOf(this.stack.getCurrentOpcodeData().value()))
+        .pStackInst(BigInteger.valueOf(this.stack.getCurrentOpcodeData().value()))
         .pStackStaticGas(BigInteger.valueOf(staticGas))
         .pStackDecodedFlag1(this.stack.getCurrentOpcodeData().stackSettings().flag1())
         .pStackDecodedFlag2(this.stack.getCurrentOpcodeData().stackSettings().flag2())

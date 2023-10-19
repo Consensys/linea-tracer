@@ -1,5 +1,6 @@
 package net.consensys.linea;
 
+import org.assertj.core.api.Assertions;
 import org.hyperledger.besu.ethereum.ProtocolContext;
 import org.hyperledger.besu.ethereum.chain.MutableBlockchain;
 import org.hyperledger.besu.ethereum.core.Block;
@@ -10,6 +11,7 @@ import org.hyperledger.besu.ethereum.mainnet.BlockImportResult;
 import org.hyperledger.besu.ethereum.mainnet.ProtocolSchedule;
 import org.hyperledger.besu.ethereum.mainnet.HeaderValidationMode;
 import org.hyperledger.besu.ethereum.mainnet.ProtocolSpec;
+import org.hyperledger.besu.ethereum.referencetests.BlockchainReferenceTestCaseSpec;
 import org.hyperledger.besu.ethereum.referencetests.ReferenceTestProtocolSchedules;
 import org.hyperledger.besu.ethereum.rlp.RLPException;
 import org.hyperledger.besu.testutil.JsonTestParameters;
@@ -21,28 +23,28 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class BlockchainReferenceTestTools {
-  private static final org.hyperledger.besu.ethereum.referencetests.ReferenceTestProtocolSchedules REFERENCE_TEST_PROTOCOL_SCHEDULES =
-      ReferenceTestProtocolSchedules.create();
+  private static final ReferenceTestProtocolSchedules REFERENCE_TEST_PROTOCOL_SCHEDULES =
+    ReferenceTestProtocolSchedules.create();
 
   private static final List<String> NETWORKS_TO_RUN;
 
   static {
     final String networks =
-        System.getProperty(
-            "test.ethereum.blockchain.eips",
-            "FrontierToHomesteadAt5,HomesteadToEIP150At5,HomesteadToDaoAt5,EIP158ToByzantiumAt5,"
-                + "Frontier,Homestead,EIP150,EIP158,Byzantium,Constantinople,ConstantinopleFix,Istanbul,Berlin,"
-                + "London,Merge,Shanghai,Cancun,Prague,Osaka,Bogota");
+      System.getProperty(
+        "test.ethereum.blockchain.eips",
+        "FrontierToHomesteadAt5,HomesteadToEIP150At5,HomesteadToDaoAt5,EIP158ToByzantiumAt5,"
+          + "Frontier,Homestead,EIP150,EIP158,Byzantium,Constantinople,ConstantinopleFix,Istanbul,Berlin,"
+          + "London" /*+ ",Merge,Shanghai,Cancun,Prague,Osaka,Bogota"*/);
     NETWORKS_TO_RUN = Arrays.asList(networks.split(","));
   }
 
   private static final JsonTestParameters<?, ?> params =
-      JsonTestParameters.create(org.hyperledger.besu.ethereum.referencetests.BlockchainReferenceTestCaseSpec.class)
-          .generator(
-              (testName, fullPath, spec, collector) -> {
-                final String eip = spec.getNetwork();
-                collector.add(testName + "[" + eip + "]", fullPath, spec, NETWORKS_TO_RUN.contains(eip));
-              });
+    JsonTestParameters.create(org.hyperledger.besu.ethereum.referencetests.BlockchainReferenceTestCaseSpec.class)
+      .generator(
+        (testName, fullPath, spec, collector) -> {
+          final String eip = spec.getNetwork();
+          collector.add(testName + "[" + eip + "]", fullPath, spec, NETWORKS_TO_RUN.contains(eip));
+        });
 
   static {
     if (NETWORKS_TO_RUN.isEmpty()) {
@@ -65,9 +67,15 @@ public class BlockchainReferenceTestTools {
     // Perfectly valid test pre-merge.
     params.ignore("UncleFromSideChain_(Merge|Shanghai|Cancun|Prague|Osaka|Bogota)");
 
-    // EIP tests are explicitly meant to be works-in-progress with known failing tests
-    // We want to however include withdrawals even though they are EIP tests
-    params.ignore("(?:/EIPTests/(?!\\bbc4895\\b))");
+    // Reference Tests are old.  Max blob count is 6.
+    params.ignore("blobhashListBounds5");
+    params.ignore("blockWithAllTransactionTypes");
+
+    // EIP-4788 is still in flux and the current fill is not against the final address
+    params.ignore("\\[Cancun\\]");
+
+    // EOF tests are written against an older version of the spec
+    params.ignore("/stEOF/");
   }
 
   private BlockchainReferenceTestTools() {
@@ -81,19 +89,19 @@ public class BlockchainReferenceTestTools {
   public static void executeTest(final BlockchainReferenceTestCaseSpec spec) {
     final BlockHeader genesisBlockHeader = spec.getGenesisBlockHeader();
     final MutableWorldState worldState =
-        spec.getWorldStateArchive()
-            .getMutable(genesisBlockHeader.getStateRoot(), genesisBlockHeader.getHash())
-            .get();
+      spec.getWorldStateArchive()
+        .getMutable(genesisBlockHeader.getStateRoot(), genesisBlockHeader.getHash())
+        .get();
     assertThat(worldState.rootHash()).isEqualTo(genesisBlockHeader.getStateRoot());
 
     final ProtocolSchedule schedule =
-        REFERENCE_TEST_PROTOCOL_SCHEDULES.getByName(spec.getNetwork());
+      REFERENCE_TEST_PROTOCOL_SCHEDULES.getByName(spec.getNetwork());
 
     final MutableBlockchain blockchain = spec.getBlockchain();
     final ProtocolContext context = spec.getProtocolContext();
 
     for (final BlockchainReferenceTestCaseSpec.CandidateBlock candidateBlock :
-        spec.getCandidateBlocks()) {
+      spec.getCandidateBlocks()) {
       if (!candidateBlock.isExecutable()) {
         return;
       }
@@ -104,11 +112,11 @@ public class BlockchainReferenceTestTools {
         final ProtocolSpec protocolSpec = schedule.getByBlockHeader(block.getHeader());
         final BlockImporter blockImporter = protocolSpec.getBlockImporter();
         final HeaderValidationMode validationMode =
-            "NoProof".equalsIgnoreCase(spec.getSealEngine())
-                ? HeaderValidationMode.LIGHT
-                : HeaderValidationMode.FULL;
+          "NoProof".equalsIgnoreCase(spec.getSealEngine())
+            ? HeaderValidationMode.LIGHT
+            : HeaderValidationMode.FULL;
         final BlockImportResult importResult =
-            blockImporter.importBlock(context, block, validationMode, validationMode);
+          blockImporter.importBlock(context, block, validationMode, validationMode);
 
         assertThat(importResult.isImported()).isEqualTo(candidateBlock.isValid());
       } catch (final RLPException e) {
@@ -116,6 +124,6 @@ public class BlockchainReferenceTestTools {
       }
     }
 
-    assertThat(blockchain.getChainHeadHash()).isEqualTo(spec.getLastBlockHash());
+    Assertions.assertThat(blockchain.getChainHeadHash()).isEqualTo(spec.getLastBlockHash());
   }
 }

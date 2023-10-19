@@ -20,14 +20,19 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.ethereum.core.BlockHeader;
+import org.hyperledger.besu.ethereum.core.BlockHeaderBuilder;
+import org.hyperledger.besu.ethereum.core.BlockHeaderFunctions;
 import org.hyperledger.besu.ethereum.core.Transaction;
+import org.hyperledger.besu.ethereum.mainnet.MainnetBlockHeaderFunctions;
+import org.hyperledger.besu.ethereum.referencetests.ReferenceTestEnv;
+import org.hyperledger.besu.ethereum.referencetests.ReferenceTestWorldState;
+import org.hyperledger.besu.ethereum.referencetests.StateTestVersionedTransaction;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -36,44 +41,50 @@ import java.util.function.Supplier;
 public class GeneralStateTestCaseSpec {
 
   private final Map<String, List<GeneralStateTestCaseEipSpec>> finalStateSpecs;
+  private static final BlockHeaderFunctions MAINNET_FUNCTIONS = new MainnetBlockHeaderFunctions();
 
   @JsonCreator
   public GeneralStateTestCaseSpec(
-      @JsonProperty("env") final ReferenceTestEnv blockHeader,
-      @JsonProperty("pre") final ReferenceTestWorldState initialWorldState,
-      @JsonProperty("post") final Map<String, List<PostSection>> postSection,
-      @JsonProperty("transaction") final StateTestVersionedTransaction versionedTransaction) {
+    @JsonProperty("env") final ReferenceTestEnv blockHeader,
+    @JsonProperty("pre") final ReferenceTestWorldState initialWorldState,
+    @JsonProperty("post") final Map<String, List<GeneralStateTestCaseSpec.PostSection>> postSection,
+    @JsonProperty("transaction") final StateTestVersionedTransaction versionedTransaction) {
     this.finalStateSpecs =
-        generate(blockHeader, initialWorldState, postSection, versionedTransaction);
+      generate(blockHeader, initialWorldState, postSection, versionedTransaction);
   }
 
   private Map<String, List<GeneralStateTestCaseEipSpec>> generate(
-      final BlockHeader blockHeader,
-      final ReferenceTestWorldState initialWorldState,
-      final Map<String, List<PostSection>> postSections,
-      final StateTestVersionedTransaction versionedTransaction) {
+    final BlockHeader rawBlockHeader,
+    final ReferenceTestWorldState initialWorldState,
+    final Map<String, List<GeneralStateTestCaseSpec.PostSection>> postSections,
+    final StateTestVersionedTransaction versionedTransaction) {
 
     initialWorldState.persist(null);
     final Map<String, List<GeneralStateTestCaseEipSpec>> res =
-        new LinkedHashMap<>(postSections.size());
-    for (final Map.Entry<String, List<PostSection>> entry : postSections.entrySet()) {
+      new LinkedHashMap<>(postSections.size());
+    for (final Map.Entry<String, List<GeneralStateTestCaseSpec.PostSection>> entry : postSections.entrySet()) {
       final String eip = entry.getKey();
-      final List<PostSection> post = entry.getValue();
+      final List<GeneralStateTestCaseSpec.PostSection> post = entry.getValue();
       final List<GeneralStateTestCaseEipSpec> specs = new ArrayList<>(post.size());
-      for (final PostSection p : post) {
+      for (final GeneralStateTestCaseSpec.PostSection p : post) {
+        final BlockHeader blockHeader =
+          BlockHeaderBuilder.fromHeader(rawBlockHeader)
+            .stateRoot(p.rootHash)
+            .blockHeaderFunctions(MAINNET_FUNCTIONS)
+            .buildBlockHeader();
         final Supplier<Transaction> txSupplier = () -> versionedTransaction.get(p.indexes);
         specs.add(
-            new GeneralStateTestCaseEipSpec(
-                eip,
-                txSupplier,
-                initialWorldState,
-                p.rootHash,
-                p.logsHash,
-                blockHeader,
-                p.indexes.data,
-                p.indexes.gas,
-                p.indexes.value,
-                p.expectException));
+          new GeneralStateTestCaseEipSpec(
+            eip,
+            txSupplier,
+            initialWorldState,
+            p.rootHash,
+            p.logsHash,
+            blockHeader,
+            p.indexes.data,
+            p.indexes.gas,
+            p.indexes.value,
+            p.expectException));
       }
       res.put(eip, specs);
     }
@@ -88,34 +99,14 @@ public class GeneralStateTestCaseSpec {
    * Indexes in the "transaction" part of the general state spec json, which allow tests to vary the
    * input transaction of the tests based on the hard-fork.
    */
-  public static class Indexes {
-
-    public final int gas;
-    public final int data;
-    public final int value;
+  public static class Indexes extends org.hyperledger.besu.ethereum.referencetests.GeneralStateTestCaseSpec.Indexes {
 
     @JsonCreator
     public Indexes(
-        @JsonProperty("gas") final int gas,
-        @JsonProperty("data") final int data,
-        @JsonProperty("value") final int value) {
-      this.gas = gas;
-      this.data = data;
-      this.value = value;
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-      if (this == obj) return true;
-      if (obj == null) return false;
-      if (getClass() != obj.getClass()) return false;
-      final Indexes other = (Indexes) obj;
-      return data == other.data && gas == other.gas && value == other.value;
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(data, gas, value);
+      @JsonProperty("gas") final int gas,
+      @JsonProperty("data") final int data,
+      @JsonProperty("value") final int value) {
+      super(gas, data, value);
     }
   }
 
@@ -125,16 +116,16 @@ public class GeneralStateTestCaseSpec {
 
     private final Hash rootHash;
     @Nullable private final Hash logsHash;
-    private final Indexes indexes;
+    private final GeneralStateTestCaseSpec.Indexes indexes;
     private final String expectException;
 
     @JsonCreator
     public PostSection(
-        @JsonProperty("expectException") final String expectException,
-        @JsonProperty("hash") final String hash,
-        @JsonProperty("indexes") final Indexes indexes,
-        @JsonProperty("logs") final String logs,
-        @JsonProperty("txbytes") final String txbytes) {
+      @JsonProperty("expectException") final String expectException,
+      @JsonProperty("hash") final String hash,
+      @JsonProperty("indexes") final GeneralStateTestCaseSpec.Indexes indexes,
+      @JsonProperty("logs") final String logs,
+      @JsonProperty("txbytes") final String txbytes) {
       this.rootHash = Hash.fromHexString(hash);
       this.logsHash = Optional.ofNullable(logs).map(Hash::fromHexString).orElse(null);
       this.indexes = indexes;

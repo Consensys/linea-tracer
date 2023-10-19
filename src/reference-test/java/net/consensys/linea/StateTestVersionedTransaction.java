@@ -25,10 +25,13 @@ import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.crypto.KeyPair;
 import org.hyperledger.besu.crypto.SignatureAlgorithm;
 import org.hyperledger.besu.crypto.SignatureAlgorithmFactory;
+import org.hyperledger.besu.datatypes.AccessListEntry;
 import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.datatypes.VersionedHash;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
-import org.hyperledger.besu.evm.AccessListEntry;
+import org.hyperledger.besu.ethereum.referencetests.GeneralStateTestCaseSpec;
+import org.hyperledger.besu.ethereum.referencetests.StateTestAccessListDeserializer;
 
 import javax.annotation.Nullable;
 import java.math.BigInteger;
@@ -48,10 +51,10 @@ import java.util.function.Function;
  *   <li>in the state test json, gas, value and data for the transaction are arrays. This is how
  *       state tests deal with milestone versioning: for a given milestone, the actual value to use
  *       is defined by the indexes of the "post" section of the json. Those indexes are passed to
- *       this class in {@link #get(GeneralStateTestCaseSpec.Indexes)}.
+ *       this class in {@link #get(org.hyperledger.besu.ethereum.referencetests.GeneralStateTestCaseSpec.Indexes)}.
  *   <li>the signature of the transaction is not provided in the json directly. Instead, the private
  *       key of the sender is provided, and the transaction must thus be signed (also in {@link
- *       #get(GeneralStateTestCaseSpec.Indexes)}) through {@link
+ *       #get(org.hyperledger.besu.ethereum.referencetests.GeneralStateTestCaseSpec.Indexes)}) through {@link
  *       Transaction.Builder#signAndBuild(KeyPair)}.
  * </ul>
  */
@@ -70,6 +73,9 @@ public class StateTestVersionedTransaction {
   private final List<Wei> values;
   private final List<Bytes> payloads;
   private final Optional<List<List<AccessListEntry>>> maybeAccessLists;
+  private final Wei maxFeePerBlobGas;
+  // String instead of VersionedHash because reference tests intentionally use bad hashes.
+  private final List<String> blobVersionedHashes;
 
   /**
    * Constructor for populating a mock transaction with json data.
@@ -87,37 +93,49 @@ public class StateTestVersionedTransaction {
    */
   @JsonCreator
   public StateTestVersionedTransaction(
-      @JsonProperty("nonce") final String nonce,
-      @JsonProperty("gasPrice") final String gasPrice,
-      @JsonProperty("maxFeePerGas") final String maxFeePerGas,
-      @JsonProperty("maxPriorityFeePerGas") final String maxPriorityFeePerGas,
-      @JsonProperty("gasLimit") final String[] gasLimit,
-      @JsonProperty("to") final String to,
-      @JsonProperty("value") final String[] value,
-      @JsonProperty("secretKey") final String secretKey,
-      @JsonProperty("data") final String[] data,
-      @JsonDeserialize(using = StateTestAccessListDeserializer.class) @JsonProperty("accessLists")
-          final List<List<AccessListEntry>> maybeAccessLists) {
+    @JsonProperty("nonce") final String nonce,
+    @JsonProperty("gasPrice") final String gasPrice,
+    @JsonProperty("maxFeePerGas") final String maxFeePerGas,
+    @JsonProperty("maxPriorityFeePerGas") final String maxPriorityFeePerGas,
+    @JsonProperty("gasLimit") final String[] gasLimit,
+    @JsonProperty("to") final String to,
+    @JsonProperty("value") final String[] value,
+    @JsonProperty("secretKey") final String secretKey,
+    @JsonProperty("data") final String[] data,
+    @JsonDeserialize(using = StateTestAccessListDeserializer.class) @JsonProperty("accessLists")
+    final List<List<AccessListEntry>> maybeAccessLists,
+    @JsonProperty("maxFeePerBlobGas") final String maxFeePerBlobGas,
+    @JsonProperty("maxFeePerDataGas") final String maxFeePerDataGas,
+    @JsonProperty("blobVersionedHashes") final List<String> blobVersionedHashes) {
 
     this.nonce = Bytes.fromHexStringLenient(nonce).toLong();
     this.gasPrice = Optional.ofNullable(gasPrice).map(Wei::fromHexString).orElse(null);
     this.maxFeePerGas = Optional.ofNullable(maxFeePerGas).map(Wei::fromHexString).orElse(null);
     this.maxPriorityFeePerGas =
-        Optional.ofNullable(maxPriorityFeePerGas).map(Wei::fromHexString).orElse(null);
+      Optional.ofNullable(maxPriorityFeePerGas).map(Wei::fromHexString).orElse(null);
     this.to = to.isEmpty() ? null : Address.fromHexString(to);
 
     SignatureAlgorithm signatureAlgorithm = SignatureAlgorithmFactory.getInstance();
     this.keys =
-        signatureAlgorithm.createKeyPair(
-            signatureAlgorithm.createPrivateKey(Bytes32.fromHexString(secretKey)));
+      signatureAlgorithm.createKeyPair(
+        signatureAlgorithm.createPrivateKey(Bytes32.fromHexString(secretKey)));
 
     this.gasLimits = parseArray(gasLimit, s -> UInt256.fromHexString(s).toLong());
     this.values = parseArray(value, Wei::fromHexString);
     this.payloads = parseArray(data, Bytes::fromHexString);
     this.maybeAccessLists = Optional.ofNullable(maybeAccessLists);
+    this.maxFeePerBlobGas =
+      Optional.ofNullable(maxFeePerBlobGas == null ? maxFeePerDataGas : maxFeePerBlobGas)
+        .map(Wei::fromHexString)
+        .orElse(null);
+    this.blobVersionedHashes = blobVersionedHashes;
   }
 
   private static <T> List<T> parseArray(final String[] array, final Function<String, T> parseFct) {
+    if (array == null) {
+      return null;
+    }
+
     final List<T> res = new ArrayList<>(array.length);
     for (final String str : array) {
       try {
@@ -140,13 +158,23 @@ public class StateTestVersionedTransaction {
     }
 
     final Transaction.Builder transactionBuilder =
-        Transaction.builder().nonce(nonce).gasLimit(gasLimit).to(to).value(value).payload(data);
+      Transaction.builder().nonce(nonce).gasLimit(gasLimit).to(to).value(value).payload(data);
 
     Optional.ofNullable(gasPrice).ifPresent(transactionBuilder::gasPrice);
     Optional.ofNullable(maxFeePerGas).ifPresent(transactionBuilder::maxFeePerGas);
     Optional.ofNullable(maxPriorityFeePerGas).ifPresent(transactionBuilder::maxPriorityFeePerGas);
     maybeAccessLists.ifPresent(
-        accessLists -> transactionBuilder.accessList(accessLists.get(indexes.data)));
+      accessLists -> transactionBuilder.accessList(accessLists.get(indexes.data)));
+    Optional.ofNullable(maxFeePerBlobGas).ifPresent(transactionBuilder::maxFeePerBlobGas);
+    try {
+      transactionBuilder.versionedHashes(
+        blobVersionedHashes == null
+          ? null
+          : blobVersionedHashes.stream().map(VersionedHash::fromHexString).toList());
+    } catch (IllegalArgumentException iae) {
+      // versioned hash string was bad, so this is an invalid transaction
+      return null;
+    }
 
     transactionBuilder.guessType();
     if (transactionBuilder.getTransactionType().requiresChainId()) {

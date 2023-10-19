@@ -23,10 +23,12 @@ import org.hyperledger.besu.plugin.services.exception.StorageException;
 import org.hyperledger.besu.plugin.services.storage.KeyValueStorage;
 import org.hyperledger.besu.plugin.services.storage.KeyValueStorageFactory;
 import org.hyperledger.besu.plugin.services.storage.SegmentIdentifier;
+import org.hyperledger.besu.plugin.services.storage.SegmentedKeyValueStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /** The In memory storage plugin. */
@@ -34,8 +36,8 @@ public class InMemoryStoragePlugin implements BesuPlugin {
 
   private static final Logger LOG = LoggerFactory.getLogger(InMemoryStoragePlugin.class);
   private BesuContext context;
-  private MemoryKeyValueStorageFactory factory;
-  private MemoryKeyValueStorageFactory privacyFactory;
+  private InMemoryKeyValueStorageFactory factory;
+  private InMemoryKeyValueStorageFactory privacyFactory;
 
   @Override
   public void register(final BesuContext context) {
@@ -72,8 +74,8 @@ public class InMemoryStoragePlugin implements BesuPlugin {
 
   private void createAndRegister(final StorageService service) {
 
-    factory = new MemoryKeyValueStorageFactory("memory");
-    privacyFactory = new MemoryKeyValueStorageFactory("memory-privacy");
+    factory = new InMemoryKeyValueStorageFactory("memory");
+    privacyFactory = new InMemoryKeyValueStorageFactory("memory-privacy");
 
     service.registerKeyValueStorage(factory);
     service.registerKeyValueStorage(privacyFactory);
@@ -81,24 +83,25 @@ public class InMemoryStoragePlugin implements BesuPlugin {
 
   private void createFactoriesAndRegisterWithStorageService() {
     context
-        .getService(StorageService.class)
-        .ifPresentOrElse(
-            this::createAndRegister,
-            () -> LOG.error("Failed to register KeyValueFactory due to missing StorageService."));
+      .getService(StorageService.class)
+      .ifPresentOrElse(
+        this::createAndRegister,
+        () -> LOG.error("Failed to register KeyValueFactory due to missing StorageService."));
   }
 
   /** The Memory key value storage factory. */
-  public static class MemoryKeyValueStorageFactory implements KeyValueStorageFactory {
+  public static class InMemoryKeyValueStorageFactory implements KeyValueStorageFactory {
 
     private final String name;
-    private final Map<SegmentIdentifier, InMemoryKeyValueStorage> storageMap = new HashMap<>();
+    private final Map<List<SegmentIdentifier>, SegmentedInMemoryKeyValueStorage> storageMap =
+      new HashMap<>();
 
     /**
      * Instantiates a new Memory key value storage factory.
      *
      * @param name the name
      */
-    public MemoryKeyValueStorageFactory(final String name) {
+    public InMemoryKeyValueStorageFactory(final String name) {
       this.name = name;
     }
 
@@ -109,15 +112,34 @@ public class InMemoryStoragePlugin implements BesuPlugin {
 
     @Override
     public KeyValueStorage create(
-        final SegmentIdentifier segment,
-        final BesuConfiguration configuration,
-        final MetricsSystem metricsSystem)
-        throws StorageException {
-      return storageMap.computeIfAbsent(segment, __ -> new InMemoryKeyValueStorage());
+      final SegmentIdentifier segment,
+      final BesuConfiguration configuration,
+      final MetricsSystem metricsSystem)
+      throws StorageException {
+      var kvStorage =
+        storageMap.computeIfAbsent(
+          List.of(segment), seg -> new SegmentedInMemoryKeyValueStorage(seg));
+      return new SegmentedKeyValueStorageAdapter(segment, kvStorage);
+    }
+
+    @Override
+    public SegmentedKeyValueStorage create(
+      final List<SegmentIdentifier> segments,
+      final BesuConfiguration configuration,
+      final MetricsSystem metricsSystem)
+      throws StorageException {
+      var kvStorage =
+        storageMap.computeIfAbsent(segments, __ -> new SegmentedInMemoryKeyValueStorage());
+      return kvStorage;
     }
 
     @Override
     public boolean isSegmentIsolationSupported() {
+      return true;
+    }
+
+    @Override
+    public boolean isSnapshotIsolationSupported() {
       return true;
     }
 

@@ -1,12 +1,15 @@
 package net.consensys.linea;
 
+import static net.consensys.linea.services.kvstore.InMemoryKeyValueStorageProvider.createInMemoryWorldStateArchive;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import net.consensys.linea.services.kvstore.InMemoryKeyValueStorageProvider;
 import org.apache.tuweni.bytes.Bytes;
+import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
-import org.hyperledger.besu.datatypes.DataGas;
+import org.hyperledger.besu.datatypes.BlobGas;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.ProtocolContext;
@@ -22,6 +25,7 @@ import org.hyperledger.besu.ethereum.core.ParsedExtraData;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.hyperledger.besu.ethereum.core.Withdrawal;
 import org.hyperledger.besu.ethereum.mainnet.MainnetBlockHeaderFunctions;
+import org.hyperledger.besu.ethereum.referencetests.ReferenceTestWorldState;
 import org.hyperledger.besu.ethereum.rlp.BytesValueRLPInput;
 import org.hyperledger.besu.ethereum.rlp.RLPInput;
 import org.hyperledger.besu.ethereum.worldstate.WorldStateArchive;
@@ -31,17 +35,15 @@ import org.hyperledger.besu.evm.worldstate.WorldUpdater;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.hyperledger.besu.datatypes.Hash.fromHexString;
-import static org.hyperledger.besu.ethereum.core.BlockBody.empty;
-import static org.hyperledger.besu.ethereum.core.BlockHeader.readFrom;
-
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class BlockchainReferenceTestCaseSpec {
+
   private final String network;
 
-  private final BlockchainReferenceTestCaseSpec.CandidateBlock[] candidateBlocks;
+  private final org.hyperledger.besu.ethereum.referencetests.BlockchainReferenceTestCaseSpec.CandidateBlock[] candidateBlocks;
 
-  private final BlockchainReferenceTestCaseSpec.ReferenceTestBlockHeader genesisBlockHeader;
+  private final org.hyperledger.besu.ethereum.referencetests.BlockchainReferenceTestCaseSpec.ReferenceTestBlockHeader
+    genesisBlockHeader;
 
   private final Hash lastBlockHash;
 
@@ -53,15 +55,15 @@ public class BlockchainReferenceTestCaseSpec {
   private final ProtocolContext protocolContext;
 
   private static WorldStateArchive buildWorldStateArchive(
-      final Map<String, ReferenceTestWorldState.AccountMock> accounts) {
-    final WorldStateArchive worldStateArchive = InMemoryKeyValueStorageProvider.createInMemoryWorldStateArchive();
+    final Map<String, org.hyperledger.besu.ethereum.referencetests.ReferenceTestWorldState.AccountMock> accounts) {
+    final WorldStateArchive worldStateArchive = createInMemoryWorldStateArchive();
 
     final MutableWorldState worldState = worldStateArchive.getMutable();
     final WorldUpdater updater = worldState.updater();
 
-    for (final Map.Entry<String, ReferenceTestWorldState.AccountMock> entry : accounts.entrySet()) {
-      ReferenceTestWorldState.insertAccount(
-          updater, Address.fromHexString(entry.getKey()), entry.getValue());
+    for (final Map.Entry<String, org.hyperledger.besu.ethereum.referencetests.ReferenceTestWorldState.AccountMock> entry : accounts.entrySet()) {
+      org.hyperledger.besu.ethereum.referencetests.ReferenceTestWorldState.insertAccount(
+        updater, Address.fromHexString(entry.getKey()), entry.getValue());
     }
 
     updater.commit();
@@ -71,34 +73,35 @@ public class BlockchainReferenceTestCaseSpec {
   }
 
   private static MutableBlockchain buildBlockchain(final BlockHeader genesisBlockHeader) {
-    final Block genesisBlock = new Block(genesisBlockHeader, empty());
+    final Block genesisBlock = new Block(genesisBlockHeader, BlockBody.empty());
     return InMemoryKeyValueStorageProvider.createInMemoryBlockchain(genesisBlock);
   }
 
   @JsonCreator
   public BlockchainReferenceTestCaseSpec(
-      @JsonProperty("network") final String network,
-      @JsonProperty("blocks") final BlockchainReferenceTestCaseSpec.CandidateBlock[] candidateBlocks,
-      @JsonProperty("genesisBlockHeader") final BlockchainReferenceTestCaseSpec.ReferenceTestBlockHeader genesisBlockHeader,
-      @SuppressWarnings("unused") @JsonProperty("genesisRLP") final String genesisRLP,
-      @JsonProperty("pre") final Map<String, ReferenceTestWorldState.AccountMock> accounts,
-      @JsonProperty("lastblockhash") final String lastBlockHash,
-      @JsonProperty("sealEngine") final String sealEngine) {
+    @JsonProperty("network") final String network,
+    @JsonProperty("blocks") final org.hyperledger.besu.ethereum.referencetests.BlockchainReferenceTestCaseSpec.CandidateBlock[] candidateBlocks,
+    @JsonProperty("genesisBlockHeader") final org.hyperledger.besu.ethereum.referencetests.BlockchainReferenceTestCaseSpec.ReferenceTestBlockHeader genesisBlockHeader,
+    @SuppressWarnings("unused") @JsonProperty("genesisRLP") final String genesisRLP,
+    @JsonProperty("pre") final Map<String, ReferenceTestWorldState.AccountMock> accounts,
+    @JsonProperty("lastblockhash") final String lastBlockHash,
+    @JsonProperty("sealEngine") final String sealEngine) {
     this.network = network;
     this.candidateBlocks = candidateBlocks;
     this.genesisBlockHeader = genesisBlockHeader;
-    this.lastBlockHash = fromHexString(lastBlockHash);
+    this.lastBlockHash = Hash.fromHexString(lastBlockHash);
     this.worldStateArchive = buildWorldStateArchive(accounts);
     this.blockchain = buildBlockchain(genesisBlockHeader);
     this.sealEngine = sealEngine;
-    this.protocolContext = new ProtocolContext(this.blockchain, this.worldStateArchive, null);
+    this.protocolContext =
+      new ProtocolContext(this.blockchain, this.worldStateArchive, null, Optional.empty());
   }
 
   public String getNetwork() {
     return network;
   }
 
-  public BlockchainReferenceTestCaseSpec.CandidateBlock[] getCandidateBlocks() {
+  public org.hyperledger.besu.ethereum.referencetests.BlockchainReferenceTestCaseSpec.CandidateBlock[] getCandidateBlocks() {
     return candidateBlocks;
   }
 
@@ -130,79 +133,92 @@ public class BlockchainReferenceTestCaseSpec {
 
     @JsonCreator
     public ReferenceTestBlockHeader(
-        @JsonProperty("parentHash") final String parentHash,
-        @JsonProperty("uncleHash") final String uncleHash,
-        @JsonProperty("coinbase") final String coinbase,
-        @JsonProperty("stateRoot") final String stateRoot,
-        @JsonProperty("transactionsTrie") final String transactionsTrie,
-        @JsonProperty("receiptTrie") final String receiptTrie,
-        @JsonProperty("bloom") final String bloom,
-        @JsonProperty("difficulty") final String difficulty,
-        @JsonProperty("number") final String number,
-        @JsonProperty("gasLimit") final String gasLimit,
-        @JsonProperty("gasUsed") final String gasUsed,
-        @JsonProperty("timestamp") final String timestamp,
-        @JsonProperty("extraData") final String extraData,
-        @JsonProperty("baseFeePerGas") final String baseFee,
-        @JsonProperty("mixHash") final String mixHash,
-        @JsonProperty("nonce") final String nonce,
-        @JsonProperty("withdrawalsRoot") final String withdrawalsRoot,
-        @JsonProperty("depositsRoot") final String depositsRoot,
-        @JsonProperty("excessDataGas") final String excessDataGas,
-        @JsonProperty("hash") final String hash) {
+      @JsonProperty("parentHash") final String parentHash,
+      @JsonProperty("uncleHash") final String uncleHash,
+      @JsonProperty("coinbase") final String coinbase,
+      @JsonProperty("stateRoot") final String stateRoot,
+      @JsonProperty("transactionsTrie") final String transactionsTrie,
+      @JsonProperty("receiptTrie") final String receiptTrie,
+      @JsonProperty("bloom") final String bloom,
+      @JsonProperty("difficulty") final String difficulty,
+      @JsonProperty("number") final String number,
+      @JsonProperty("gasLimit") final String gasLimit,
+      @JsonProperty("gasUsed") final String gasUsed,
+      @JsonProperty("timestamp") final String timestamp,
+      @JsonProperty("extraData") final String extraData,
+      @JsonProperty("baseFeePerGas") final String baseFee,
+      @JsonProperty("mixHash") final String mixHash,
+      @JsonProperty("nonce") final String nonce,
+      @JsonProperty("withdrawalsRoot") final String withdrawalsRoot,
+      @JsonProperty("depositsRoot") final String depositsRoot,
+      @JsonProperty("dataGasUsed")
+      final String dataGasUsed, // TODO: remove once reference tests have been updated
+      @JsonProperty("excessDataGas")
+      final String excessDataGas, // TODO: remove once reference tests have been updated
+      @JsonProperty("blobGasUsed") final String blobGasUsed,
+      @JsonProperty("excessBlobGas") final String excessBlobGas,
+      @JsonProperty("parentBeaconBlockRoot") final String parentBeaconBlockRoot,
+      @JsonProperty("hash") final String hash) {
       super(
-          fromHexString(parentHash), // parentHash
-          uncleHash == null ? Hash.EMPTY_LIST_HASH : fromHexString(uncleHash), // ommersHash
-          Address.fromHexString(coinbase), // coinbase
-          fromHexString(stateRoot), // stateRoot
-          transactionsTrie == null
-              ? Hash.EMPTY_TRIE_HASH
-              : fromHexString(transactionsTrie), // transactionsRoot
-          receiptTrie == null
-              ? Hash.EMPTY_TRIE_HASH
-              : fromHexString(receiptTrie), // receiptTrie
-          LogsBloomFilter.fromHexString(bloom), // bloom
-          Difficulty.fromHexString(difficulty), // difficulty
-          Long.decode(number), // number
-          Long.decode(gasLimit), // gasLimit
-          Long.decode(gasUsed), // gasUsed
-          Long.decode(timestamp), // timestamp
-          Bytes.fromHexString(extraData), // extraData
-          baseFee != null ? Wei.fromHexString(baseFee) : null, // baseFee
-          fromHexString(mixHash), // mixHash
-          Bytes.fromHexStringLenient(nonce).toLong(),
-          withdrawalsRoot != null ? fromHexString(withdrawalsRoot) : null,
-          excessDataGas != null ? DataGas.fromHexString(excessDataGas) : null,
-          depositsRoot != null ? fromHexString(depositsRoot) : null,
-          new BlockHeaderFunctions() {
-            @Override
-            public Hash hash(final BlockHeader header) {
-              return hash == null ? null : fromHexString(hash);
-            }
+        Hash.fromHexString(parentHash), // parentHash
+        uncleHash == null ? Hash.EMPTY_LIST_HASH : Hash.fromHexString(uncleHash), // ommersHash
+        Address.fromHexString(coinbase), // coinbase
+        Hash.fromHexString(stateRoot), // stateRoot
+        transactionsTrie == null
+          ? Hash.EMPTY_TRIE_HASH
+          : Hash.fromHexString(transactionsTrie), // transactionsRoot
+        receiptTrie == null
+          ? Hash.EMPTY_TRIE_HASH
+          : Hash.fromHexString(receiptTrie), // receiptTrie
+        LogsBloomFilter.fromHexString(bloom), // bloom
+        Difficulty.fromHexString(difficulty), // difficulty
+        Long.decode(number), // number
+        Long.decode(gasLimit), // gasLimit
+        Long.decode(gasUsed), // gasUsed
+        Long.decode(timestamp), // timestamp
+        Bytes.fromHexString(extraData), // extraData
+        baseFee != null ? Wei.fromHexString(baseFee) : null, // baseFee
+        Hash.fromHexString(mixHash), // mixHash
+        Bytes.fromHexStringLenient(nonce).toLong(),
+        withdrawalsRoot != null ? Hash.fromHexString(withdrawalsRoot) : null,
+        dataGasUsed != null
+          ? Long.decode(dataGasUsed)
+          : blobGasUsed != null ? Long.decode(blobGasUsed) : 0,
+        excessDataGas != null
+          ? BlobGas.fromHexString(excessDataGas)
+          : excessBlobGas != null ? BlobGas.fromHexString(excessBlobGas) : null,
+        parentBeaconBlockRoot != null ? Bytes32.fromHexString(parentBeaconBlockRoot) : null,
+        depositsRoot != null ? Hash.fromHexString(depositsRoot) : null,
+        new BlockHeaderFunctions() {
+          @Override
+          public Hash hash(final BlockHeader header) {
+            return hash == null ? null : Hash.fromHexString(hash);
+          }
 
-            @Override
-            public ParsedExtraData parseExtraData(final BlockHeader header) {
-              return null;
-            }
-          });
+          @Override
+          public ParsedExtraData parseExtraData(final BlockHeader header) {
+            return null;
+          }
+        });
     }
   }
 
   @JsonIgnoreProperties({
-      "expectExceptionByzantium",
-      "expectExceptionConstantinople",
-      "expectExceptionConstantinopleFix",
-      "expectExceptionIstanbul",
-      "expectExceptionEIP150",
-      "expectExceptionEIP158",
-      "expectExceptionFrontier",
-      "expectExceptionHomestead",
-      "expectException",
-      "blocknumber",
-      "chainname",
-      "expectExceptionALL",
-      "chainnetwork",
-      "transactionSequence"
+    "blocknumber",
+    "chainname",
+    "chainnetwork",
+    "expectException",
+    "expectExceptionByzantium",
+    "expectExceptionConstantinople",
+    "expectExceptionConstantinopleFix",
+    "expectExceptionIstanbul",
+    "expectExceptionEIP150",
+    "expectExceptionEIP158",
+    "expectExceptionFrontier",
+    "expectExceptionHomestead",
+    "expectExceptionALL",
+    "hasBigInt",
+    "transactionSequence"
   })
   public static class CandidateBlock {
 
@@ -212,11 +228,11 @@ public class BlockchainReferenceTestCaseSpec {
 
     @JsonCreator
     public CandidateBlock(
-        @JsonProperty("rlp") final String rlp,
-        @JsonProperty("blockHeader") final Object blockHeader,
-        @JsonProperty("transactions") final Object transactions,
-        @JsonProperty("uncleHeaders") final Object uncleHeaders,
-        @JsonProperty("withdrawals") final Object withdrawals) {
+      @JsonProperty("rlp") final String rlp,
+      @JsonProperty("blockHeader") final Object blockHeader,
+      @JsonProperty("transactions") final Object transactions,
+      @JsonProperty("uncleHeaders") final Object uncleHeaders,
+      @JsonProperty("withdrawals") final Object withdrawals) {
       boolean blockVaid = true;
       // The BLOCK__WrongCharAtRLP_0 test has an invalid character in its rlp string.
       Bytes rlpAttempt = null;
@@ -228,9 +244,9 @@ public class BlockchainReferenceTestCaseSpec {
       this.rlp = rlpAttempt;
 
       if (blockHeader == null
-          && transactions == null
-          && uncleHeaders == null
-          && withdrawals == null) {
+        && transactions == null
+        && uncleHeaders == null
+        && withdrawals == null) {
         blockVaid = false;
       }
 
@@ -249,17 +265,17 @@ public class BlockchainReferenceTestCaseSpec {
       final RLPInput input = new BytesValueRLPInput(rlp, false);
       input.enterList();
       final MainnetBlockHeaderFunctions blockHeaderFunctions = new MainnetBlockHeaderFunctions();
-      final BlockHeader header = readFrom(input, blockHeaderFunctions);
+      final BlockHeader header = BlockHeader.readFrom(input, blockHeaderFunctions);
       final BlockBody body =
-          new BlockBody(
-              input.readList(Transaction::readFrom),
-              input.readList(inputData -> readFrom(inputData, blockHeaderFunctions)),
-              input.isEndOfCurrentList()
-                  ? Optional.empty()
-                  : Optional.of(input.readList(Withdrawal::readFrom)),
-              input.isEndOfCurrentList()
-                  ? Optional.empty()
-                  : Optional.of(input.readList(Deposit::readFrom)));
+        new BlockBody(
+          input.readList(Transaction::readFrom),
+          input.readList(inputData -> BlockHeader.readFrom(inputData, blockHeaderFunctions)),
+          input.isEndOfCurrentList()
+            ? Optional.empty()
+            : Optional.of(input.readList(Withdrawal::readFrom)),
+          input.isEndOfCurrentList()
+            ? Optional.empty()
+            : Optional.of(input.readList(Deposit::readFrom)));
       return new Block(header, body);
     }
   }

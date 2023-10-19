@@ -85,6 +85,7 @@ public abstract class TraceSection {
         false, // retconned
         hub.opCodeData().instructionFamily(),
         hub.exceptions().snapshot(),
+        callFrame.id(),
         callFrame.contextNumber(),
         callFrame.contextNumber(),
         0, // retconned

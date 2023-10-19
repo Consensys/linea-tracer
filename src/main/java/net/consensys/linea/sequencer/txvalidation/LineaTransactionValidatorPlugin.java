@@ -63,7 +63,7 @@ public class LineaTransactionValidatorPlugin implements BesuPlugin {
         context.getService(PluginTransactionValidatorService.class);
     if (service.isEmpty()) {
       log.error(
-          "Failed to register TransactionSelectionService because it is not available from the BesuContext.");
+          "Failed to register TransactionValidatorService because it is not available from the BesuContext.");
     }
     createAndRegister(service.orElseThrow());
   }

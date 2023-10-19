@@ -40,13 +40,11 @@ public class ToyAccount implements MutableAccount {
   private boolean mutable = true;
 
   private Address address;
-  private final Supplier<Hash> addressHash =
-      Suppliers.memoize(() -> address.addressHash());
+  private final Supplier<Hash> addressHash = Suppliers.memoize(() -> address.addressHash());
   private long nonce;
   private Wei balance;
   private Bytes code;
-  private Supplier<Hash> codeHash =
-      Suppliers.memoize(() -> Hash.hash(code));
+  private Supplier<Hash> codeHash = Suppliers.memoize(() -> Hash.hash(code));
   private final Map<UInt256, UInt256> storage = new HashMap<>();
 
   @Builder

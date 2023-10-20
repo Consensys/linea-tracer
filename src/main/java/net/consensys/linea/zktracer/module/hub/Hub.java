@@ -623,9 +623,11 @@ public class Hub implements Module {
       }
     }
 
-    for (TraceSection.TraceLine line : this.currentTraceSection().getLines()) {
-      if (line.specific() instanceof StackFragment stackFragment) {
-        stackFragment.feedHashedValue(EWord.of(frame.getStackItem(0)));
+    if (this.exceptions.none()) {
+      for (TraceSection.TraceLine line : this.currentTraceSection().getLines()) {
+        if (line.specific() instanceof StackFragment stackFragment) {
+          stackFragment.feedHashedValue(frame);
+        }
       }
     }
   }

@@ -60,7 +60,7 @@ public final class Sha3 implements GasProjection {
   }
 
   @Override
-  public long hashedSize() {
-    return this.bitLength / 8;
+  public long messageSize() {
+    return (this.bitLength + 7) / 8;
   }
 }

@@ -67,7 +67,7 @@ public final class Create2 implements GasProjection {
   }
 
   @Override
-  public long hashedSize() {
+  public long messageSize() {
     return this.initCodeLength;
   }
 }

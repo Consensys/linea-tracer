@@ -75,7 +75,7 @@ public final class CommonFragment implements TraceFragment {
         .txFinl(this.txState == TxState.TX_FINAL)
         .hubStamp(BigInteger.valueOf(this.stamp))
         .hubStampTransactionEnd(BigInteger.valueOf(txEndStamp))
-        .transactionReverts(BigInteger.valueOf(txReverts ? 1 : 0))
+        .transactionReverts(txReverts)
         .contextMayChangeFlag(
             (instructionFamily == InstructionFamily.CALL
                     || instructionFamily == InstructionFamily.CREATE

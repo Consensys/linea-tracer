@@ -33,6 +33,7 @@ import net.consensys.linea.zktracer.module.hub.stack.StackOperation;
 import net.consensys.linea.zktracer.opcode.InstructionFamily;
 import net.consensys.linea.zktracer.opcode.gas.MxpType;
 import net.consensys.linea.zktracer.opcode.gas.projector.GasProjection;
+import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @Accessors(fluent = true)
 public final class StackFragment implements TraceFragment {
@@ -58,12 +59,12 @@ public final class StackFragment implements TraceFragment {
     this.contextExceptions = contextExceptions;
     this.hashInfoFlag =
         switch (stack.getCurrentOpcodeData().mnemonic()) {
-          case SHA3 -> exceptions.none() && gp.hashedSize() > 0;
-          case RETURN -> exceptions.none() && gp.hashedSize() > 0 && isDeploying;
-          case CREATE2 -> exceptions.none() && contextExceptions.none() && gp.hashedSize() > 0;
+          case SHA3 -> exceptions.none() && gp.messageSize() > 0;
+          case RETURN -> exceptions.none() && gp.messageSize() > 0 && isDeploying;
+          case CREATE2 -> exceptions.none() && contextExceptions.none() && gp.messageSize() > 0;
           default -> false;
         };
-    this.hashInfoSize = this.hashInfoFlag ? gp.hashedSize() : 0;
+    this.hashInfoSize = this.hashInfoFlag ? gp.messageSize() : 0;
     this.staticGas = gp.staticGas();
   }
 
@@ -77,9 +78,9 @@ public final class StackFragment implements TraceFragment {
         stack, stackOperations, exceptions, ContextExceptions.empty(), gp, isDeploying);
   }
 
-  public void feedHashedValue(EWord value) {
+  public void feedHashedValue(MessageFrame frame) {
     if (hashInfoFlag) {
-      this.hashInfoKeccak = value;
+      this.hashInfoKeccak = EWord.of(frame.getStackItem(0));
     }
   }
 
@@ -234,6 +235,6 @@ public final class StackFragment implements TraceFragment {
         .pStackHashInfoSize(BigInteger.valueOf(hashInfoSize))
         .pStackHashInfoKecHi(this.hashInfoKeccak.hiBigInt())
         .pStackHashInfoKecLo(this.hashInfoKeccak.loBigInt())
-        .pStackHashInfoFlag(this.hashInfoFlag ? BigInteger.ONE : BigInteger.ZERO);
+        .pStackHashInfoFlag(this.hashInfoFlag);
   }
 }

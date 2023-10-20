@@ -83,7 +83,7 @@ public interface GasProjection {
     return 0;
   }
 
-  default long hashedSize() {
+  default long messageSize() {
     return 0;
   }
 

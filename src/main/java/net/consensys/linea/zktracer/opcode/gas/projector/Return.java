@@ -54,7 +54,7 @@ public final class Return implements GasProjection {
   }
 
   @Override
-  public long hashedSize() {
+  public long messageSize() {
     return this.size;
   }
 }

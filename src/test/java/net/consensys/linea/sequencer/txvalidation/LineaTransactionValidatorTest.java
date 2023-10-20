@@ -25,10 +25,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-/**
- * Represents an implementation of a plugin transaction validator, which validates a transaction
- * before it can be added to the transaction pool.
- */
 @Slf4j
 @RequiredArgsConstructor
 public class LineaTransactionValidatorTest {

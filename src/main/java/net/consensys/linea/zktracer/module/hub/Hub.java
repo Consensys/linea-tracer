@@ -86,6 +86,7 @@ public class Hub implements Module {
 
   // These attributes are transient (opcode-specific) and do not need to be reversed.
   @Getter private Exceptions exceptions;
+  @Getter private Aborts aborts;
   @Getter private Signals signals;
 
   private void resetSignals() {
@@ -352,6 +353,10 @@ public class Hub implements Module {
     return Optional.of(this.callStack.current()).orElse(CallFrame.empty());
   }
 
+  public MessageFrame messageFrame() {
+    return this.callStack.current().frame();
+  }
+
   public long getRemainingGas() {
     return 0; // TODO:
   }
@@ -450,7 +455,8 @@ public class Hub implements Module {
   void processStateExec(MessageFrame frame) {
     this.currentFrame().frame(frame);
     this.state.stamps().stampHub();
-    this.exceptions = Exceptions.fromFrame(frame, Hub.gp);
+    this.exceptions = Exceptions.forFrame(frame, Hub.gp);
+    this.aborts = Aborts.forFrame(this);
 
     this.handleStack(frame);
     this.triggerModules(frame);
@@ -665,7 +671,8 @@ public class Hub implements Module {
   public void traceContextExit(MessageFrame frame) {
     conflation.deploymentInfo().unmarkDeploying(this.currentFrame().codeAddress());
 
-    ContextExceptions contextExceptions = ContextExceptions.fromFrame(this.currentFrame(), frame);
+    DeploymentExceptions contextExceptions =
+        DeploymentExceptions.fromFrame(this.currentFrame(), frame);
     this.currentTraceSection().setContextExceptions(contextExceptions);
     if (contextExceptions.any()) {
       this.callStack.revert(this.state.stamps().hub());
@@ -1090,6 +1097,7 @@ public class Hub implements Module {
                 this.currentFrame().stack().snapshot(),
                 new StackLine().asStackOperations(),
                 this.exceptions.snapshot(),
+                this.aborts.snapshot(),
                 gp.of(f.frame(), f.opCode()),
                 f.codeDeploymentStatus()));
       }
@@ -1100,6 +1108,7 @@ public class Hub implements Module {
                 f.stack().snapshot(),
                 line.asStackOperations(),
                 this.exceptions.snapshot(),
+                this.aborts.snapshot(),
                 gp.of(f.frame(), f.opCode()),
                 f.codeDeploymentStatus()));
       }

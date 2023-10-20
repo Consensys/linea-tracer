@@ -24,7 +24,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.EWord;
-import net.consensys.linea.zktracer.module.hub.ContextExceptions;
+import net.consensys.linea.zktracer.module.hub.Aborts;
+import net.consensys.linea.zktracer.module.hub.DeploymentExceptions;
 import net.consensys.linea.zktracer.module.hub.Exceptions;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.stack.Action;
@@ -40,7 +41,7 @@ public final class StackFragment implements TraceFragment {
   private final Stack stack;
   @Getter private final List<StackOperation> stackOps;
   private final Exceptions exceptions;
-  @Setter private ContextExceptions contextExceptions;
+  @Setter private DeploymentExceptions contextExceptions;
   private final long staticGas;
   private EWord hashInfoKeccak = EWord.ZERO;
   private final long hashInfoSize;
@@ -50,7 +51,8 @@ public final class StackFragment implements TraceFragment {
       Stack stack,
       List<StackOperation> stackOps,
       Exceptions exceptions,
-      ContextExceptions contextExceptions,
+      Aborts aborts,
+      DeploymentExceptions contextExceptions,
       GasProjection gp,
       boolean isDeploying) {
     this.stack = stack;
@@ -61,7 +63,10 @@ public final class StackFragment implements TraceFragment {
         switch (stack.getCurrentOpcodeData().mnemonic()) {
           case SHA3 -> exceptions.none() && gp.messageSize() > 0;
           case RETURN -> exceptions.none() && gp.messageSize() > 0 && isDeploying;
-          case CREATE2 -> exceptions.none() && contextExceptions.none() && gp.messageSize() > 0;
+          case CREATE2 -> exceptions.none()
+              && contextExceptions.none()
+              && aborts.none()
+              && gp.messageSize() > 0;
           default -> false;
         };
     this.hashInfoSize = this.hashInfoFlag ? gp.messageSize() : 0;
@@ -72,10 +77,11 @@ public final class StackFragment implements TraceFragment {
       final Stack stack,
       final List<StackOperation> stackOperations,
       final Exceptions exceptions,
-      GasProjection gp,
+      final Aborts aborts,
+      final GasProjection gp,
       boolean isDeploying) {
     return new StackFragment(
-        stack, stackOperations, exceptions, ContextExceptions.empty(), gp, isDeploying);
+        stack, stackOperations, exceptions, aborts, DeploymentExceptions.empty(), gp, isDeploying);
   }
 
   public void feedHashedValue(MessageFrame frame) {

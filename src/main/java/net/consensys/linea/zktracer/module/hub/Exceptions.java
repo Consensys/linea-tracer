@@ -166,7 +166,7 @@ public record Exceptions(
    * @param frame the context from which to compute the putative exceptions
    * @return all {@link Exceptions} relative to the given frame
    */
-  public static Exceptions fromFrame(final MessageFrame frame, GasProjector gp) {
+  public static Exceptions forFrame(final MessageFrame frame, GasProjector gp) {
     OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
     OpCodeData opCodeData = opCode.getData();
 

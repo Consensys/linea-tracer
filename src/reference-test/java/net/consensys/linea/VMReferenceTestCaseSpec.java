@@ -40,11 +40,11 @@ public class VMReferenceTestCaseSpec {
 
   private final long finalGas;
 
-  private final org.hyperledger.besu.ethereum.referencetests.ReferenceTestWorldState initialWorldState;
+  private final ReferenceTestWorldState initialWorldState;
 
   private final boolean exceptionalHaltExpected;
 
-  private final org.hyperledger.besu.ethereum.referencetests.ReferenceTestWorldState finalWorldState;
+  private final ReferenceTestWorldState finalWorldState;
 
   @JsonCreator
   public VMReferenceTestCaseSpec(
@@ -52,7 +52,7 @@ public class VMReferenceTestCaseSpec {
       @JsonProperty("env") final ReferenceTestEnv env,
       @JsonProperty("gas") final String finalGas,
       @JsonProperty("out") final String out,
-      @JsonProperty("pre") final org.hyperledger.besu.ethereum.referencetests.ReferenceTestWorldState initialWorldState,
+      @JsonProperty("pre") final ReferenceTestWorldState initialWorldState,
       @JsonProperty("post") final ReferenceTestWorldState finalWorldState) {
     this.exec = exec;
     this.initialWorldState = initialWorldState;

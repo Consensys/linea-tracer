@@ -24,9 +24,6 @@ import org.hyperledger.besu.ethereum.core.BlockHeaderBuilder;
 import org.hyperledger.besu.ethereum.core.BlockHeaderFunctions;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.hyperledger.besu.ethereum.mainnet.MainnetBlockHeaderFunctions;
-import org.hyperledger.besu.ethereum.referencetests.ReferenceTestEnv;
-import org.hyperledger.besu.ethereum.referencetests.ReferenceTestWorldState;
-import org.hyperledger.besu.ethereum.referencetests.StateTestVersionedTransaction;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;

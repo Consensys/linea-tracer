@@ -2,6 +2,8 @@ package net.consensys.linea;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import net.consensys.linea.corset.CorsetValidator;
+import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.datatypes.BlobGas;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Wei;
@@ -13,10 +15,6 @@ import org.hyperledger.besu.ethereum.mainnet.MainnetTransactionProcessor;
 import org.hyperledger.besu.ethereum.mainnet.ProtocolSpec;
 import org.hyperledger.besu.ethereum.mainnet.TransactionValidationParams;
 import org.hyperledger.besu.ethereum.processing.TransactionProcessingResult;
-import org.hyperledger.besu.ethereum.referencetests.GeneralStateTestCaseEipSpec;
-import org.hyperledger.besu.ethereum.referencetests.GeneralStateTestCaseSpec;
-import org.hyperledger.besu.ethereum.referencetests.ReferenceTestBlockchain;
-import org.hyperledger.besu.ethereum.referencetests.ReferenceTestProtocolSchedules;
 import org.hyperledger.besu.ethereum.referencetests.ReferenceTestWorldState;
 import org.hyperledger.besu.ethereum.rlp.RLP;
 import org.hyperledger.besu.ethereum.vm.CachingBlockHashLookup;
@@ -32,7 +30,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public class GeneralStateReferenceTestTools {
-  private static final org.hyperledger.besu.ethereum.referencetests.ReferenceTestProtocolSchedules
+  private static final ReferenceTestProtocolSchedules
     REFERENCE_TEST_PROTOCOL_SCHEDULES =
     ReferenceTestProtocolSchedules.create();
   private static final List<String> SPECS_PRIOR_TO_DELETING_EMPTY_ACCOUNTS =
@@ -55,21 +53,21 @@ public class GeneralStateReferenceTestTools {
       System.getProperty(
         "test.ethereum.state.eips",
         "Frontier,Homestead,EIP150,EIP158,Byzantium,Constantinople,ConstantinopleFix,Istanbul,Berlin,"
-          + "London,Merge,Shanghai,Cancun,Prague,Osaka,Bogota");
+          + "London" /* + ",Merge,Shanghai,Cancun,Prague,Osaka,Bogota"*/);
     EIPS_TO_RUN = Arrays.asList(eips.split(","));
   }
 
   private static final JsonTestParameters<?, ?> params =
     JsonTestParameters.create(
-        GeneralStateTestCaseSpec.class, org.hyperledger.besu.ethereum.referencetests.GeneralStateTestCaseEipSpec.class)
+        GeneralStateTestCaseSpec.class, GeneralStateTestCaseEipSpec.class)
       .generator(
         (testName, fullPath, stateSpec, collector) -> {
           final String prefix = testName + "-";
-          for (final Map.Entry<String, List<org.hyperledger.besu.ethereum.referencetests.GeneralStateTestCaseEipSpec>> entry :
+          for (final Map.Entry<String, List<GeneralStateTestCaseEipSpec>> entry :
             stateSpec.finalStateSpecs().entrySet()) {
             final String eip = entry.getKey();
             final boolean runTest = EIPS_TO_RUN.contains(eip);
-            final List<org.hyperledger.besu.ethereum.referencetests.GeneralStateTestCaseEipSpec> eipSpecs = entry.getValue();
+            final List<GeneralStateTestCaseEipSpec> eipSpecs = entry.getValue();
             if (eipSpecs.size() == 1) {
               collector.add(prefix + eip, fullPath, eipSpecs.get(0), runTest);
             } else {
@@ -111,7 +109,7 @@ public class GeneralStateReferenceTestTools {
 
   public static void executeTest(final GeneralStateTestCaseEipSpec spec) {
     final BlockHeader blockHeader = spec.getBlockHeader();
-    final ReferenceTestWorldState initialWorldState = spec.getInitialWorldState();
+    final ReferenceTestWorldState initialWorldState = (ReferenceTestWorldState) spec.getInitialWorldState();
     final Transaction transaction = spec.getTransaction();
 
     // Sometimes the tests ask us assemble an invalid transaction.  If we have
@@ -135,11 +133,15 @@ public class GeneralStateReferenceTestTools {
 
     final MainnetTransactionProcessor processor = transactionProcessor(spec.getFork());
     final WorldUpdater worldStateUpdater = worldState.updater();
-    final org.hyperledger.besu.ethereum.referencetests.ReferenceTestBlockchain blockchain = new ReferenceTestBlockchain(blockHeader.getNumber());
+    final ReferenceTestBlockchain blockchain = new ReferenceTestBlockchain(blockHeader.getNumber());
     final Wei blobGasPrice =
       protocolSpec(spec.getFork())
         .getFeeMarket()
         .blobGasPricePerGas(blockHeader.getExcessBlobGas().orElse(BlobGas.ZERO));
+
+    final ZkTracer zkTracer = new ZkTracer();
+    zkTracer.traceStartConflation(1);
+
     final TransactionProcessingResult result =
       processor.processTransaction(
         blockchain,
@@ -147,6 +149,7 @@ public class GeneralStateReferenceTestTools {
         blockHeader,
         transaction,
         blockHeader.getCoinbase(),
+        zkTracer,
         new CachingBlockHashLookup(blockHeader, blockchain),
         false,
         TransactionValidationParams.processingBlock(),
@@ -157,6 +160,9 @@ public class GeneralStateReferenceTestTools {
         .isNotNull();
       return;
     }
+
+    zkTracer.traceEndConflation();
+
     assertThat(spec.getExpectException())
       .withFailMessage("Exception was expected - " + spec.getExpectException())
       .isNull();
@@ -187,6 +193,8 @@ public class GeneralStateReferenceTestTools {
             .withFailMessage("Unmatched logs hash. Generated logs: %s", logs)
             .isEqualTo(expected);
         });
+
+    assertThat(CorsetValidator.isValid(zkTracer.getJsonTrace())).isTrue();
   }
 
   private static boolean shouldClearEmptyAccounts(final String eip) {

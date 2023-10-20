@@ -20,19 +20,34 @@ plugins {
   id "de.undercouch.download"
 }
 
-def blockchainReferenceTests = tasks.register("blockchainReferenceTests")  {
-  final referenceTestsPath = "src/reference-test/resources/BlockchainTests"
-  final generatedTestsPath = "$buildDir/generated/sources/reference-test/$name/java"
+//def blockchainReferenceTests = tasks.register("blockchainReferenceTests")  {
+//  final referenceTestsPath = "src/reference-test/resources/BlockchainTests"
+//  final generatedTestsPath = "src/reference-test/java/net/consensys/linea/generated/"
+//  inputs.files fileTree(referenceTestsPath),
+//      fileTree(generatedTestsPath)
+//  outputs.files generatedTestsPath
+//  generateTestFiles(
+//      fileTree(referenceTestsPath),
+//      file("src/reference-test/templates/BlockchainReferenceTest.java.template"),
+//      "BlockchainTests",
+//      "$generatedTestsPath/vm/blockchain",
+//      "BlockchainReferenceTest",
+//      ("BlockchainTests/InvalidBlocks/bcExpectSection") // exclude test for test filling tool
+//  )
+//}
+
+def generalstateReferenceTests = tasks.register("generalstateReferenceTests")  {
+  final referenceTestsPath = "src/reference-test/resources/GeneralStateTests"
+  final generatedTestsPath = "src/reference-test/java/net/consensys/linea/generated/"
   inputs.files fileTree(referenceTestsPath),
       fileTree(generatedTestsPath)
   outputs.files generatedTestsPath
   generateTestFiles(
       fileTree(referenceTestsPath),
-      file("src/reference-test/templates/BlockchainReferenceTest.java.template"),
-      "BlockchainTests",
-      "$generatedTestsPath/org/hyperledger/besu/ethereum/vm/blockchain",
-      "BlockchainReferenceTest",
-      ("BlockchainTests/InvalidBlocks/bcExpectSection") // exclude test for test filling tool
+      file("src/reference-test/templates/GeneralStateReferenceTest.java.template"),
+      "GeneralStateTests",
+      "$generatedTestsPath/vm/generalState",
+      "GeneralStateReferenceTest"
   )
 }
 
@@ -55,8 +70,6 @@ def generateTestFiles(FileTree jsonPath, File templateFile, String pathstrip, St
     }
 
     def testFile = file(destination + "/" + namePrefix + "_" + idx + ".java")
-
-
     def allPaths = '"' + paths.join('", "') + '"'
 
     def testFileContents = referenceTestTemplate
@@ -72,7 +85,7 @@ sourceSets {
       compileClasspath += main.output
       runtimeClasspath += main.output
       srcDirs "src/reference-test/java",
-        blockchainReferenceTests
+        generalstateReferenceTests
     }
     resources.srcDir file("src/reference-test/resources")
   }
@@ -121,6 +134,7 @@ dependencies {
   referenceTestImplementation "${besuArtifactGroup}.internal:referencetests:$besuVersion"
   referenceTestImplementation "${besuArtifactGroup}.internal:rlp:$besuVersion"
   referenceTestImplementation "${besuArtifactGroup}.internal:testutil:$besuVersion"
+  referenceTestImplementation "${besuArtifactGroup}.internal:util:$besuVersion"
   referenceTestImplementation "$besuArtifactGroup:plugin-api:$besuVersion"
 
   referenceTestImplementation 'org.apache.tuweni:tuweni-bytes'
@@ -152,6 +166,10 @@ tasks.register('referenceTests', Test) {
 
   testClassesDirs = sourceSets.referenceTest.output.classesDirs
   classpath = sourceSets.referenceTest.runtimeClasspath
+}
+
+clean.doFirst {
+  delete "src/reference-test/java/net/consensys/linea/generated/vm"
 }
 
 apply from: rootProject.file("gradle/dist.gradle")

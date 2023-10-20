@@ -1,5 +1,6 @@
 package net.consensys.linea;
 
+import static net.consensys.linea.ReferenceTestWorldState.insertAccount;
 import static net.consensys.linea.services.kvstore.InMemoryKeyValueStorageProvider.createInMemoryWorldStateArchive;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -40,10 +41,9 @@ public class BlockchainReferenceTestCaseSpec {
 
   private final String network;
 
-  private final org.hyperledger.besu.ethereum.referencetests.BlockchainReferenceTestCaseSpec.CandidateBlock[] candidateBlocks;
+  private final CandidateBlock[] candidateBlocks;
 
-  private final org.hyperledger.besu.ethereum.referencetests.BlockchainReferenceTestCaseSpec.ReferenceTestBlockHeader
-    genesisBlockHeader;
+  private final ReferenceTestBlockHeader genesisBlockHeader;
 
   private final Hash lastBlockHash;
 
@@ -55,14 +55,14 @@ public class BlockchainReferenceTestCaseSpec {
   private final ProtocolContext protocolContext;
 
   private static WorldStateArchive buildWorldStateArchive(
-    final Map<String, org.hyperledger.besu.ethereum.referencetests.ReferenceTestWorldState.AccountMock> accounts) {
+    final Map<String, ReferenceTestWorldState.AccountMock> accounts) {
     final WorldStateArchive worldStateArchive = createInMemoryWorldStateArchive();
 
     final MutableWorldState worldState = worldStateArchive.getMutable();
     final WorldUpdater updater = worldState.updater();
 
-    for (final Map.Entry<String, org.hyperledger.besu.ethereum.referencetests.ReferenceTestWorldState.AccountMock> entry : accounts.entrySet()) {
-      org.hyperledger.besu.ethereum.referencetests.ReferenceTestWorldState.insertAccount(
+    for (final Map.Entry<String, ReferenceTestWorldState.AccountMock> entry : accounts.entrySet()) {
+      insertAccount(
         updater, Address.fromHexString(entry.getKey()), entry.getValue());
     }
 
@@ -80,8 +80,8 @@ public class BlockchainReferenceTestCaseSpec {
   @JsonCreator
   public BlockchainReferenceTestCaseSpec(
     @JsonProperty("network") final String network,
-    @JsonProperty("blocks") final org.hyperledger.besu.ethereum.referencetests.BlockchainReferenceTestCaseSpec.CandidateBlock[] candidateBlocks,
-    @JsonProperty("genesisBlockHeader") final org.hyperledger.besu.ethereum.referencetests.BlockchainReferenceTestCaseSpec.ReferenceTestBlockHeader genesisBlockHeader,
+    @JsonProperty("blocks") final CandidateBlock[] candidateBlocks,
+    @JsonProperty("genesisBlockHeader") final ReferenceTestBlockHeader genesisBlockHeader,
     @SuppressWarnings("unused") @JsonProperty("genesisRLP") final String genesisRLP,
     @JsonProperty("pre") final Map<String, ReferenceTestWorldState.AccountMock> accounts,
     @JsonProperty("lastblockhash") final String lastBlockHash,
@@ -101,7 +101,7 @@ public class BlockchainReferenceTestCaseSpec {
     return network;
   }
 
-  public org.hyperledger.besu.ethereum.referencetests.BlockchainReferenceTestCaseSpec.CandidateBlock[] getCandidateBlocks() {
+  public CandidateBlock[] getCandidateBlocks() {
     return candidateBlocks;
   }
 

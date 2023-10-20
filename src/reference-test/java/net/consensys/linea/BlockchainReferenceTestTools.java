@@ -11,7 +11,6 @@ import org.hyperledger.besu.ethereum.mainnet.BlockImportResult;
 import org.hyperledger.besu.ethereum.mainnet.ProtocolSchedule;
 import org.hyperledger.besu.ethereum.mainnet.HeaderValidationMode;
 import org.hyperledger.besu.ethereum.mainnet.ProtocolSpec;
-import org.hyperledger.besu.ethereum.referencetests.BlockchainReferenceTestCaseSpec;
 import org.hyperledger.besu.ethereum.referencetests.ReferenceTestProtocolSchedules;
 import org.hyperledger.besu.ethereum.rlp.RLPException;
 import org.hyperledger.besu.testutil.JsonTestParameters;
@@ -39,7 +38,7 @@ public class BlockchainReferenceTestTools {
   }
 
   private static final JsonTestParameters<?, ?> params =
-    JsonTestParameters.create(org.hyperledger.besu.ethereum.referencetests.BlockchainReferenceTestCaseSpec.class)
+    JsonTestParameters.create(BlockchainReferenceTestCaseSpec.class)
       .generator(
         (testName, fullPath, spec, collector) -> {
           final String eip = spec.getNetwork();

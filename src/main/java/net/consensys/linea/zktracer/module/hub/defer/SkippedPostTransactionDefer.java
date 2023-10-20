@@ -15,9 +15,9 @@
 
 package net.consensys.linea.zktracer.module.hub.defer;
 
+import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.AccountFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.fragment.TransactionFragment;
 import net.consensys.linea.zktracer.module.hub.section.TxSkippedSection;
 import org.hyperledger.besu.datatypes.Address;

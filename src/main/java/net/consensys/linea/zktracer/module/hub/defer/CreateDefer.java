@@ -15,9 +15,9 @@
 
 package net.consensys.linea.zktracer.module.hub.defer;
 
+import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.AccountFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.section.CreateSection;
 import net.consensys.linea.zktracer.module.runtime.callstack.CallFrame;

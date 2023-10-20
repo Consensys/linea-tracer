@@ -27,7 +27,6 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.EWord;
-import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.ext.Ext;
@@ -74,58 +73,56 @@ public class Hub implements Module {
   public static final GasProjector gp = new GasProjector();
 
   public final Trace.TraceBuilder trace = Trace.builder();
-  // Tx -> Opcode -> TraceSection
-  private final StackedList<TxTrace> traceSections = new StackedList<>();
 
+  // Revertible state of the hub
+  private final State state = new State();
+
+  // Long-lived states
   @Getter ConflationInfo conflation = new ConflationInfo();
   @Getter BlockInfo block = new BlockInfo();
   @Getter TxInfo tx = new TxInfo();
   @Getter CallStack callStack = new CallStack();
-
   private final DeferRegistry defers = new DeferRegistry();
+
+  // These attributes are transient (opcode-specific) and do not need to be reversed.
   @Getter private Exceptions exceptions;
-  @Getter int stamp = 0;
-  private int preTxStamp;
+  @Getter private Signals signals;
+
+  private void resetSignals() {
+    this.signals = new Signals(this);
+  }
+
+  public int stamp() {
+    return this.state.stamps().hub();
+  }
 
   public OpCodeData opCodeData() {
     return this.currentFrame().opCode().getData();
   }
 
-  private int txChunksCount() {
-    return this.traceSections.size();
-  }
-
-  private TxTrace currentTxTrace() {
-    return this.traceSections.get(this.txChunksCount() - 1);
-  }
-
   TraceSection currentTraceSection() {
-    return this.currentTxTrace().currentSection();
+    return this.state.currentTxTrace().currentSection();
   }
 
   public int lastPc() {
-    if (this.currentTxTrace().isEmpty()) {
+    if (this.state.currentTxTrace().isEmpty()) {
       return 0;
     } else {
-      return this.currentTxTrace().currentSection().pc();
+      return this.state.currentTxTrace().currentSection().pc();
     }
   }
 
   public int lastContextNumber() {
-    if (this.currentTxTrace().isEmpty()) {
+    if (this.state.currentTxTrace().isEmpty()) {
       return 0;
     } else {
-      return this.currentTxTrace().currentSection().contextNumber();
+      return this.state.currentTxTrace().currentSection().contextNumber();
     }
   }
 
   public void addTraceSection(TraceSection section) {
     section.seal(this);
-    this.currentTxTrace().add(section);
-  }
-
-  void createNewTxTrace() {
-    this.traceSections.add(new TxTrace());
+    this.state.currentTxTrace().add(section);
   }
 
   private final Module add = new Add();
@@ -222,11 +219,11 @@ public class Hub implements Module {
    */
   void processStateSkip(WorldView world) {
     log.error("TX_SKIP");
-    this.stamp++;
+    this.state.stamps().stampHub();
     boolean isDeployment = this.tx.transaction().getTo().isEmpty();
 
     //
-    // 3 lines -- account changes
+    // 3 sections -- account changes
     //
     // From account information
     Address fromAddress = this.tx.transaction().getSender();
@@ -271,8 +268,13 @@ public class Hub implements Module {
             oldFromAccount, oldToAccount, oldMinerAccount, this.tx.gasPrice(), this.block.baseFee));
   }
 
+  /**
+   * Traces the warm-up information of a transaction
+   *
+   * @param world a view onto the state
+   */
   void processStateWarm(WorldView world) {
-    this.stamp++;
+    this.state.stamps().stampHub();
     this.tx
         .transaction()
         .getAccessList()
@@ -318,12 +320,17 @@ public class Hub implements Module {
     this.tx.state(TxState.TX_INIT);
   }
 
+  /**
+   * Trace the preamble of a transaction
+   *
+   * @param world a view onto the state
+   */
   void processStateInit(WorldView world) {
-    this.stamp++;
+    this.state.stamps().stampHub();
     boolean isDeployment = this.tx.transaction().getTo().isEmpty();
     Address toAddress = effectiveToAddress(this.tx.transaction());
     this.callStack.newBedrock(
-        this.stamp,
+        this.state.stamps().hub(),
         toAddress,
         isDeployment ? CallFrameType.INIT_CODE : CallFrameType.STANDARD,
         new Bytecode(
@@ -341,10 +348,6 @@ public class Hub implements Module {
     this.tx.state(TxState.TX_EXEC);
   }
 
-  private int currentLine() {
-    return this.trace.size();
-  }
-
   public CallFrame currentFrame() {
     return Optional.of(this.callStack.current()).orElse(CallFrame.empty());
   }
@@ -354,8 +357,9 @@ public class Hub implements Module {
   }
 
   private void handleStack(MessageFrame frame) {
-    this.currentFrame().stack().processInstruction(frame, this.currentFrame(), TAU * this.stamp);
-    this.currentFrame().pending().setStartInTrace(this.currentLine());
+    this.currentFrame()
+        .stack()
+        .processInstruction(frame, this.currentFrame(), TAU * this.state.stamps().hub());
   }
 
   void triggerModules(MessageFrame frame) {
@@ -445,25 +449,27 @@ public class Hub implements Module {
 
   void processStateExec(MessageFrame frame) {
     this.currentFrame().frame(frame);
-    this.stamp++;
+    this.state.stamps().stampHub();
     this.exceptions = Exceptions.fromFrame(frame, Hub.gp);
 
     this.handleStack(frame);
     this.triggerModules(frame);
     if (this.exceptions.any() || this.currentFrame().opCode() == OpCode.REVERT) {
-      this.callStack.revert(this.stamp);
+      this.callStack.revert(this.state.stamps().hub());
     }
 
+    this.resetSignals();
     if (this.currentFrame().stack().isOk()) {
       this.traceOperation(frame);
     } else {
       this.addTraceSection(new StackOnlySection(this));
       // TODO: ‶return″ context line
     }
+    this.state.stamps().stampSubmodules(this.signals());
   }
 
   void processStateFinal(WorldView worldView, Transaction tx, boolean isSuccess) {
-    this.stamp++;
+    this.state.stamps().stampHub();
 
     Address fromAddress = this.tx.transaction().getSender();
     Account fromAccount = worldView.get(fromAddress);
@@ -536,9 +542,8 @@ public class Hub implements Module {
 
   @Override
   public void enterTransaction() {
-    this.preTxStamp = this.stamp;
+    this.state.enter();
     this.tx.enter();
-    this.traceSections.enter();
 
     for (Module m : this.modules) {
       m.enterTransaction();
@@ -552,7 +557,6 @@ public class Hub implements Module {
     this.exceptions = Exceptions.empty();
 
     this.tx.update(tx);
-    this.createNewTxTrace();
 
     if (this.tx.shouldSkip(world)) {
       this.tx.state(TxState.TX_SKIP);
@@ -572,10 +576,8 @@ public class Hub implements Module {
 
   @Override
   public void popTransaction() {
-    this.stamp = this.preTxStamp;
     this.tx.pop();
-    this.traceSections.pop();
-
+    this.state.pop();
     for (Module m : this.modules) {
       m.popTransaction();
     }
@@ -591,7 +593,7 @@ public class Hub implements Module {
 
     this.defers.runPostTx(this, world, tx);
 
-    this.currentTxTrace().postTxRetcon(this);
+    this.state.currentTxTrace().postTxRetcon(this);
 
     for (Module m : this.modules) {
       m.traceEndTx(world, tx, status, output, logs, gasUsed);
@@ -633,7 +635,7 @@ public class Hub implements Module {
     }
     final int codeDeploymentNumber = this.conflation.deploymentInfo().number(codeAddress);
     this.callStack.enter(
-        this.stamp,
+        this.state.stamps().hub(),
         frame.getContractAddress(),
         new Bytecode(frame.getCode().getBytes()),
         frameType,
@@ -658,7 +660,7 @@ public class Hub implements Module {
     ContextExceptions contextExceptions = ContextExceptions.fromFrame(this.currentFrame(), frame);
     this.currentTraceSection().setContextExceptions(contextExceptions);
     if (contextExceptions.any()) {
-      this.callStack.revert(this.stamp);
+      this.callStack.revert(this.state.stamps().hub());
     }
 
     if (!frame.getReturnData().isEmpty() && !frame.getOutputData().isEmpty()) {
@@ -721,24 +723,19 @@ public class Hub implements Module {
 
   @Override
   public void traceEndConflation() {
+    this.state.postConflationRetcon(this);
     for (Module m : this.modules) {
       m.traceEndConflation();
-    }
-    for (TxTrace txTrace : this.traceSections) {
-      txTrace.postConflationRetcon(this, null /* TODO WorldView */);
     }
   }
 
   @Override
   public Object commit() {
-    for (TxTrace txTrace : this.traceSections) {
-      txTrace.commit(this.trace);
-    }
-    return new HubTrace(trace.build());
+    return new HubTrace(this.state.commit(this.trace).build());
   }
 
   public long refundedGas() {
-    return this.currentTxTrace().refundedGas();
+    return this.state.currentTxTrace().refundedGas();
   }
 
   public long remainingGas() {
@@ -747,7 +744,7 @@ public class Hub implements Module {
 
   @Override
   public int lineCount() {
-    return this.traceSections.stream().mapToInt(TxTrace::lineCount).sum();
+    return this.state.lineCount();
   }
 
   void traceOperation(MessageFrame frame) {
@@ -774,11 +771,10 @@ public class Hub implements Module {
           INVALID -> this.addTraceSection(new StackOnlySection(this));
       case KEC -> {
         final boolean needsMmu = this.exceptions.none() && !frame.getStackItem(1).isZero();
+        this.signals().wantMmu(needsMmu).wantMxp();
+
         this.addTraceSection(
-            new KeccakSection(
-                this,
-                this.currentFrame(),
-                new MiscFragment(this, frame, needsMmu, true, false, false, false, false)));
+            new KeccakSection(this, this.currentFrame(), new MiscFragment(this, frame)));
       }
       case CONTEXT, LOG -> this.addTraceSection(
           new ContextLogSection(
@@ -851,15 +847,14 @@ public class Hub implements Module {
                   frame.getGasPrice(),
                   frame.getBlockValues().getBaseFee().orElse(Wei.ZERO),
                   this.tx.initialGas())));
-
       case STACK_RAM -> {
         switch (this.currentFrame().opCode()) {
           case CALLDATALOAD -> {
             final long readOffset = Words.clampedToLong(frame.getStackItem(0));
             final boolean isOob = readOffset > this.currentFrame().callData().size();
-            final boolean wantMmu = !isOob && this.exceptions.none();
-            final MiscFragment miscFragment =
-                new MiscFragment(this, frame, wantMmu, false, true, false, false, false);
+            this.signals().wantMmu(!isOob && this.exceptions.none()).wantOob();
+
+            final MiscFragment miscFragment = new MiscFragment(this, frame);
             this.defers.postExec(miscFragment);
 
             this.addTraceSection(
@@ -869,11 +864,9 @@ public class Hub implements Module {
                     new ContextFragment(this.callStack(), this.currentFrame(), false)));
           }
           case MLOAD, MSTORE, MSTORE8 -> {
-            final boolean wantMmu = this.exceptions.none();
-            this.addTraceSection(
-                new StackRam(
-                    this,
-                    new MiscFragment(this, frame, wantMmu, true, false, false, false, false)));
+            this.signals().wantMmu(this.exceptions.none()).wantMxp();
+
+            this.addTraceSection(new StackRam(this, new MiscFragment(this, frame)));
           }
           default -> throw new IllegalStateException("unexpected STACK_RAM opcode");
         }
@@ -977,18 +970,22 @@ public class Hub implements Module {
                     new ContextFragment(this.callStack, this.currentFrame(), false),
                     new ContextFragment(this.callStack, this.callStack().parent(), true)));
           } else if (this.exceptions.outOfMemoryExpansion()) {
+            this.signals().wantMxp();
+
             this.addTraceSection(
                 new AbortedCallSection(
                     this,
                     this.currentFrame(),
-                    new MiscFragment(this, frame, false, true, false, false, false, false),
+                    new MiscFragment(this, frame),
                     new ContextFragment(this.callStack, this.callStack().parent(), true)));
           } else if (this.exceptions.outOfGas()) {
+            this.signals().wantMxp().wantStipend();
+
             this.addTraceSection(
                 new AbortedCallSection(
                     this,
                     this.currentFrame(),
-                    new MiscFragment(this, frame, false, true, false, false, true, false),
+                    new MiscFragment(this, frame),
                     new AccountFragment(calledAccountSnapshot, calledAccountSnapshot),
                     new ContextFragment(this.callStack, this.callStack().parent(), true)));
           }
@@ -1001,6 +998,7 @@ public class Hub implements Module {
           final boolean abort =
               (myAccount.getBalance().lessThan(value)) || this.callStack().wouldOverflow();
           if (abort) {
+            this.signals().wantMxp().wantOob().wantStipend();
             TraceSection abortedSection =
                 new AbortedCallSection(
                     this,
@@ -1012,14 +1010,14 @@ public class Hub implements Module {
                         this.currentFrame().id(),
                         this.callStack().futureId()),
                     new ContextFragment(this.callStack, this.currentFrame(), false),
-                    new MiscFragment(this, frame, false, true, true, false, true, false),
+                    new MiscFragment(this, frame),
                     new AccountFragment(myAccountSnapshot, myAccountSnapshot),
                     new AccountFragment(calledAccountSnapshot, calledAccountSnapshot),
                     new ContextFragment(this.callStack, this.currentFrame(), true));
             this.addTraceSection(abortedSection);
           } else {
-            final MiscFragment miscFragment =
-                new MiscFragment(this, frame, false, true, true, false, true, false);
+            this.signals().wantMxp().wantOob().wantStipend();
+            final MiscFragment miscFragment = new MiscFragment(this, frame);
 
             if (calledAccount.hasCode()) {
               final WithCodeCallSection section =
@@ -1045,6 +1043,8 @@ public class Hub implements Module {
       }
 
       case JUMP -> {
+        this.signals().wantOob();
+
         AccountSnapshot codeAccountSnapshot =
             AccountSnapshot.fromAccount(
                 frame.getWorldUpdater().getAccount(this.currentFrame().codeAddress()),
@@ -1057,7 +1057,7 @@ public class Hub implements Module {
                 this,
                 new ContextFragment(this.callStack, this.currentFrame(), updateReturnData),
                 new AccountFragment(codeAccountSnapshot, codeAccountSnapshot, false, 0, false),
-                new MiscFragment(this, frame, false, false, true, false, false, false));
+                new MiscFragment(this, frame));
 
         this.addTraceSection(jumpSection);
       }

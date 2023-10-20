@@ -4,15 +4,18 @@ import static net.consensys.linea.GeneralStateReferenceTestTools.executeTest;
 import static net.consensys.linea.GeneralStateReferenceTestTools.generateTestParametersForConfig;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
+import net.consensys.linea.EvmExtension;
 import net.consensys.linea.GeneralStateTestCaseEipSpec;
 
 import java.util.stream.Stream;
 
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 /** The general state test operation testing framework entry point. */
+@ExtendWith(EvmExtension.class)
 public class %%TESTS_NAME%% {
 
   private static final String[] TEST_CONFIG_FILE_DIR_PATH = new String[] {%%TESTS_FILE%%};

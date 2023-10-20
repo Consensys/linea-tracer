@@ -147,6 +147,7 @@ dependencies {
   referenceTestImplementation 'org.junit.jupiter:junit-jupiter-engine'
   referenceTestImplementation 'org.junit.jupiter:junit-jupiter-params'
   referenceTestImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
+  referenceTestImplementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
 }
 
 configurations {

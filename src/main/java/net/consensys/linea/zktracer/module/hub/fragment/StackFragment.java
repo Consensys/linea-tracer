@@ -23,6 +23,7 @@ import java.util.function.Function;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.EWord;
 import net.consensys.linea.zktracer.module.hub.ContextExceptions;
 import net.consensys.linea.zktracer.module.hub.Exceptions;
 import net.consensys.linea.zktracer.module.hub.Trace;
@@ -31,6 +32,7 @@ import net.consensys.linea.zktracer.module.hub.stack.Stack;
 import net.consensys.linea.zktracer.module.hub.stack.StackOperation;
 import net.consensys.linea.zktracer.opcode.InstructionFamily;
 import net.consensys.linea.zktracer.opcode.gas.MxpType;
+import net.consensys.linea.zktracer.opcode.gas.projector.GasProjection;
 
 @Accessors(fluent = true)
 public final class StackFragment implements TraceFragment {
@@ -39,30 +41,46 @@ public final class StackFragment implements TraceFragment {
   private final Exceptions exceptions;
   @Setter private ContextExceptions contextExceptions;
   private final long staticGas;
+  private EWord hashInfoKeccak = EWord.ZERO;
+  private final long hashInfoSize;
+  private final boolean hashInfoFlag;
 
   private StackFragment(
       Stack stack,
       List<StackOperation> stackOps,
       Exceptions exceptions,
       ContextExceptions contextExceptions,
-      long staticGas) {
+      GasProjection gp,
+      boolean isDeploying) {
     this.stack = stack;
     this.stackOps = stackOps;
     this.exceptions = exceptions;
     this.contextExceptions = contextExceptions;
-    this.staticGas = staticGas;
+    this.hashInfoFlag =
+        switch (stack.getCurrentOpcodeData().mnemonic()) {
+          case SHA3 -> exceptions.none() && gp.hashedSize() > 0;
+          case RETURN -> exceptions.none() && gp.hashedSize() > 0 && isDeploying;
+          case CREATE2 -> exceptions.none() && contextExceptions.none() && gp.hashedSize() > 0;
+          default -> false;
+        };
+    this.hashInfoSize = this.hashInfoFlag ? gp.hashedSize() : 0;
+    this.staticGas = gp.staticGas();
   }
 
   public static StackFragment prepare(
       final Stack stack,
       final List<StackOperation> stackOperations,
       final Exceptions exceptions,
-      long staticGas) {
-    // TODO: needs
-    // - latch stack here
-    // - get size like in MMU from EVM stack
+      GasProjection gp,
+      boolean isDeploying) {
     return new StackFragment(
-        stack, stackOperations, exceptions, ContextExceptions.empty(), staticGas);
+        stack, stackOperations, exceptions, ContextExceptions.empty(), gp, isDeploying);
+  }
+
+  public void feedHashedValue(EWord value) {
+    if (hashInfoFlag) {
+      this.hashInfoKeccak = value;
+    }
   }
 
   @Override
@@ -211,6 +229,11 @@ public final class StackFragment implements TraceFragment {
         .pStackTrmFlag(
             this.stack.getCurrentOpcodeData().stackSettings().addressTrimmingInstruction())
         .pStackStaticFlag(this.stack.getCurrentOpcodeData().stackSettings().staticInstruction())
-        .pStackOobFlag(this.stack.getCurrentOpcodeData().stackSettings().oobFlag());
+        .pStackOobFlag(this.stack.getCurrentOpcodeData().stackSettings().oobFlag())
+        // Hash data
+        .pStackHashInfoSize(BigInteger.valueOf(hashInfoSize))
+        .pStackHashInfoKecHi(this.hashInfoKeccak.hiBigInt())
+        .pStackHashInfoKecLo(this.hashInfoKeccak.loBigInt())
+        .pStackHashInfoFlag(this.hashInfoFlag ? BigInteger.ONE : BigInteger.ZERO);
   }
 }

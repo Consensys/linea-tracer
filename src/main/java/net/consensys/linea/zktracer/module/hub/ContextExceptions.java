@@ -55,4 +55,8 @@ public record ContextExceptions(boolean invalidCodePrefix, boolean codeSizeOverf
   public boolean any() {
     return this.invalidCodePrefix || this.codeSizeOverflow;
   }
+
+  public boolean none() {
+    return !this.any();
+  }
 }

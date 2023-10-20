@@ -622,6 +622,12 @@ public class Hub implements Module {
             .setValue(result);
       }
     }
+
+    for (TraceSection.TraceLine line : this.currentTraceSection().getLines()) {
+      if (line.specific() instanceof StackFragment stackFragment) {
+        stackFragment.feedHashedValue(EWord.of(frame.getStackItem(0)));
+      }
+    }
   }
 
   @Override
@@ -1082,7 +1088,8 @@ public class Hub implements Module {
                 this.currentFrame().stack().snapshot(),
                 new StackLine().asStackOperations(),
                 this.exceptions.snapshot(),
-                gp.of(f.frame(), f.opCode()).staticGas()));
+                gp.of(f.frame(), f.opCode()),
+                f.codeDeploymentStatus()));
       }
     } else {
       for (StackLine line : f.pending().getLines()) {
@@ -1091,7 +1098,8 @@ public class Hub implements Module {
                 f.stack().snapshot(),
                 line.asStackOperations(),
                 this.exceptions.snapshot(),
-                gp.of(f.frame(), f.opCode()).staticGas()));
+                gp.of(f.frame(), f.opCode()),
+                f.codeDeploymentStatus()));
       }
     }
     return r;

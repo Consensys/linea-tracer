@@ -301,7 +301,7 @@ public class MxpTest {
     boolean roob;
     boolean mxpx;
     BigInteger value = getRandomBigIntegerByBytesSize(0, 4);
-    BigInteger address = getRandomBigIntegerByBytesSize(19, 20);
+    BigInteger address = getRandomBigIntegerByBytesSize(20, 20);
     BigInteger salt = getRandomBigIntegerByBytesSize(0, 4);
 
     // Keep generating random values until we are in the !roob && !mxpx case
@@ -343,12 +343,16 @@ public class MxpTest {
         break;
       case MLOAD:
         appendOpCodeCall(List.of(offset1), opCode, program);
+        program.op(OpCode.POP);
         break;
       case MSTORE, MSTORE8:
         appendOpCodeCall(List.of(value, offset1), opCode, program);
         break;
       case LOG0, SHA3, RETURN, REVERT: // RETURN and REVERT are selected only when isHalting is true
         appendOpCodeCall(List.of(size1, offset1), opCode, program);
+        if (opCode == OpCode.SHA3) {
+          program.op(OpCode.POP);
+        }
         break;
       case LOG1:
         appendOpCodeCall(
@@ -591,7 +595,7 @@ public class MxpTest {
   // Generates a BigInteger that requires a random number of bytes to be represented in [minBytes,
   // maxBytes)
   private BigInteger getRandomBigIntegerByBytesSize(int minBytes, int maxBytes) {
-    if (minBytes < 0 || maxBytes > 32 || minBytes >= maxBytes) {
+    if (minBytes < 0 || maxBytes > 32 || minBytes > maxBytes) {
       throw new IllegalArgumentException("Invalid input values");
     }
     int minBits = 8 * minBytes;

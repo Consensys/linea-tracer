@@ -428,8 +428,10 @@ public class MxpTest {
     }
   }
 
-  private void triggerNonTrivialButMxpxOrRoob(BytecodeCompiler program, boolean isHalting, boolean triggerRoob) {
-    final int MAX_BYTE_SIZE = 32; // To trigger MXPX we need at least 5 bytes, while ROOB at least 17 bytes
+  private void triggerNonTrivialButMxpxOrRoob(
+      BytecodeCompiler program, boolean isHalting, boolean triggerRoob) {
+    final int MAX_BYTE_SIZE =
+        32; // To trigger MXPX we need at least 5 bytes, while ROOB at least 17 bytes
     MxpType mxpType = MxpType.NONE;
     OpCode opCode;
 
@@ -451,7 +453,8 @@ public class MxpTest {
     BigInteger address = getRandomBigIntegerByBytesSize(19, 20);
     BigInteger salt = getRandomBigIntegerByBytesSize(0, 4);
 
-    // Keep generating random values until we are in the mxpx && roob case or in the mxpx && !roob case
+    // Keep generating random values until we are in the mxpx && roob case or in the mxpx && !roob
+    // case
     do {
       size1 = getRandomBigIntegerByBytesSize(0, MAX_BYTE_SIZE);
       offset1 = getRandomBigIntegerByBytesSize(0, MAX_BYTE_SIZE);

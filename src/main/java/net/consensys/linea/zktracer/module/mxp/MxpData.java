@@ -52,7 +52,7 @@ public class MxpData {
   @Getter private BigInteger maxOffset = BigInteger.ZERO;
   @Getter private boolean mxpx;
   @Getter private boolean roob;
-  @Getter private boolean noop;
+  @Getter private boolean noOperation;
   @Getter private boolean comp;
   @Getter private BigInteger acc1 = BigInteger.ZERO;
   @Getter private BigInteger acc2 = BigInteger.ZERO;
@@ -92,7 +92,7 @@ public class MxpData {
 
     setOffsetsAndSizes(frame);
     setRoob();
-    setNoop();
+    setNoOperation();
     setMaxOffset1and2();
     setMaxOffsetAndMxpx();
 
@@ -189,11 +189,11 @@ public class MxpData {
   }
 
   /** get no op. */
-  protected void setNoop() {
+  protected void setNoOperation() {
     if (roob) {
-      noop = false;
+      noOperation = false;
     }
-    noop =
+    noOperation =
         switch (typeMxp) {
           case TYPE_1 -> true;
           case TYPE_4 -> size1.isZero();
@@ -227,7 +227,7 @@ public class MxpData {
 
   /** set max offset and mxpx. */
   protected void setMaxOffsetAndMxpx() {
-    if (roob || noop) {
+    if (roob || noOperation) {
       mxpx = roob;
     } else {
       // choose the max value
@@ -237,7 +237,7 @@ public class MxpData {
   }
 
   public void setExpands() {
-    if (!roob && !noop && !mxpx) {
+    if (!roob && !noOperation && !mxpx) {
       expands = accA.compareTo(BigInteger.valueOf(words)) > 0;
     }
   }
@@ -351,7 +351,7 @@ public class MxpData {
   }
 
   private mxpExecutionPath getMxpExecutionPath() {
-    if (this.isRoob() || this.isNoop()) {
+    if (this.isRoob() || this.isNoOperation()) {
       return mxpExecutionPath.TRIVIAL;
     }
     if (this.isMxpx()) {

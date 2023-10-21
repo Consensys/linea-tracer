@@ -96,7 +96,7 @@ public class Mxp implements Module {
           .cn(BigInteger.valueOf(hub.currentFrame().contextNumber()))
           .ct(BigInteger.valueOf(i))
           .roob(mxpData.isRoob())
-          .noop(mxpData.isNoop())
+          .noop(mxpData.isNoOperation())
           .mxpx(mxpData.isMxpx())
           .inst(BigInteger.valueOf(opCodeData.value()))
           .mxpType1(opCodeData.billing().type() == MxpType.TYPE_1)

@@ -65,27 +65,27 @@ public class CallFrame {
   @Getter private final CallFrameType type;
 
   /** the {@link Bytecode} executing within this frame. */
-  private Bytecode code;
+  private Bytecode code = Bytecode.EMPTY;
 
   @Getter @Setter private int pc;
   @Getter @Setter private OpCode opCode = OpCode.STOP;
   @Getter private MessageFrame frame;
 
   /** the ether amount given to this frame. */
-  @Getter private Wei value;
+  @Getter private Wei value = Wei.fromHexString("0xbadf00d"); // Marker for debugging
   /** the gas given to this frame. */
   @Getter private long gasEndowment;
 
   /** the call data given to this frame. */
-  @Getter private Bytes callData;
+  @Getter private Bytes callData = Bytes.EMPTY;
   /** the call data span in the parent memory. */
   @Getter private final MemorySpan callDataPointer;
   /** the data returned by the latest callee. */
   @Getter @Setter private Bytes returnData = Bytes.EMPTY;
   /** returnData position within the latest callee memory space. */
-  @Getter @Setter private MemorySpan returnDataPointer;
+  @Getter @Setter private MemorySpan returnDataPointer = new MemorySpan(0, 0);
   /** where this frame is expected to write its returnData within its parent's memory space. */
-  @Getter private MemorySpan returnDataTarget = new MemorySpan(0, 0);
+  @Getter private final MemorySpan returnDataTarget;
 
   @Getter @Setter private int selfRevertsAt = 0;
   @Getter @Setter private int getsRevertedAt = 0;
@@ -102,6 +102,7 @@ public class CallFrame {
     this.contextNumber = 0;
     this.address = address;
     this.callDataPointer = new MemorySpan(0, 0);
+    this.returnDataTarget = new MemorySpan(0, 0);
   }
 
   public static CallFrame empty() {

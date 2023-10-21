@@ -357,7 +357,7 @@ public class Hub implements Module {
   }
 
   public CallFrame currentFrame() {
-    return Optional.of(this.callStack.current()).orElse(CallFrame.empty());
+    return this.callStack.current();
   }
 
   public MessageFrame messageFrame() {

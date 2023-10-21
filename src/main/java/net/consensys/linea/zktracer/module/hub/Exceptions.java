@@ -120,9 +120,10 @@ public record Exceptions(
   private static boolean isReturnDataCopyFault(final MessageFrame frame) {
     if (OpCode.of(frame.getCurrentOperation().getOpcode()) == OpCode.RETURNDATACOPY) {
       long returnDataSize = frame.getReturnData().size();
+      long askedOffset = Words.clampedToLong(frame.getStackItem(1));
       long askedSize = Words.clampedToLong(frame.getStackItem(2));
 
-      return askedSize > returnDataSize;
+      return Words.clampedAdd(askedOffset, askedSize) >= returnDataSize;
     }
 
     return false;

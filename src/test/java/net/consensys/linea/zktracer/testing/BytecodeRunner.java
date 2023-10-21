@@ -59,7 +59,7 @@ public record BytecodeRunner(Bytes byteCode) {
             .sender(senderAccount)
             .to(receiverAccount)
             .keyPair(keyPair)
-            .gasLimit(1_000_000L)
+            .gasLimit(100_000_000L)
             .build();
 
     final ToyWorld toyWorld =

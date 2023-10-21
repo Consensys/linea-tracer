@@ -157,6 +157,7 @@ public class Hub implements Module {
             this.ext,
             this.mod,
             this.mul,
+            this.mxp,
             this.shf,
             this.wcp,
             this.rlpTxn,

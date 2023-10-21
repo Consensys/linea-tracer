@@ -451,7 +451,7 @@ public class MxpTest {
     boolean roob;
     boolean mxpx;
     EWord value = getRandomBigIntegerByBytesSize(0, 4);
-    Address address = Address.wrap(getRandomBigIntegerByBytesSize(20, 20));
+    Address address = getRandomBigIntegerByBytesSize(20, 20).toAddress();
     EWord salt = getRandomBigIntegerByBytesSize(0, 4);
 
     // Keep generating random values until we are in the mxpx && roob case or in the mxpx && !roob

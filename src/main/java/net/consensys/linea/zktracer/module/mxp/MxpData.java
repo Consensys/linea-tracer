@@ -28,6 +28,7 @@ import net.consensys.linea.zktracer.bytes.UnsignedByte;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
+import net.consensys.linea.zktracer.opcode.OpCodes;
 import net.consensys.linea.zktracer.opcode.gas.BillingRate;
 import net.consensys.linea.zktracer.opcode.gas.GasConstants;
 import net.consensys.linea.zktracer.opcode.gas.MxpType;
@@ -42,7 +43,7 @@ public class MxpData {
 
   // constants from protocol_params.go
 
-  private final OpCodeData opCodeData;
+  @Getter private final OpCodeData opCodeData;
   @Getter private EWord offset1 = EWord.ZERO;
   @Getter private EWord offset2 = EWord.ZERO;
   @Getter private EWord size1 = EWord.ZERO;
@@ -80,8 +81,8 @@ public class MxpData {
   @Getter private long linCost = 0;
   @Getter private final boolean deploys;
 
-  public MxpData(final OpCodeData opCodeData, MessageFrame frame, Hub hub) {
-    this.opCodeData = opCodeData;
+  public MxpData(final MessageFrame frame, final Hub hub) {
+    this.opCodeData = OpCodes.of(frame.getCurrentOperation().getOpcode());
     this.typeMxp = opCodeData.billing().type();
 
     this.words = frame.memoryWordSize();

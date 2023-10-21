@@ -21,8 +21,6 @@ import net.consensys.linea.zktracer.bytes.UnsignedByte;
 import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.opcode.OpCodeData;
-import net.consensys.linea.zktracer.opcode.OpCodes;
 import net.consensys.linea.zktracer.opcode.gas.BillingRate;
 import net.consensys.linea.zktracer.opcode.gas.MxpType;
 import org.apache.tuweni.bytes.Bytes;
@@ -31,18 +29,16 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 
 /** Implementation of a {@link Module} for memory expansion. */
 public class Mxp implements Module {
-  public static final String MXP_JSON_KEY = "mxp";
+  /** A list of the operations to trace */
+  private final StackedList<MxpData> chunks = new StackedList<>();
+
   final Trace.TraceBuilder trace = Trace.builder();
-  private int stamp = 0;
 
   private Hub hub;
 
-  /** A set of the operations to trace */
-  private final StackedList<Chunk> chunks = new StackedList<>();
-
   @Override
   public String jsonKey() {
-    return MXP_JSON_KEY;
+    return "mxp";
   }
 
   public Mxp(Hub hub) {
@@ -68,65 +64,62 @@ public class Mxp implements Module {
 
   @Override
   public void tracePreOpcode(MessageFrame frame) { // This will be renamed to tracePreOp
-    final OpCodeData opCodeData = OpCodes.of(frame.getCurrentOperation().getOpcode());
-
     // create a data object to do the work
-    final MxpData mxpData = new MxpData(opCodeData, frame, hub);
+    this.chunks.add(new MxpData(frame, hub));
 
     // sanity check
     //    sanityCheck(opCode, scope, mxpData);
+  }
 
-    stamp++;
+  final void traceChunk(final MxpData chunk, int stamp) {
+    Bytes32 acc1Bytes32 = Bytes32.leftPad(bigIntegerToBytes(chunk.getAcc1()));
+    Bytes32 acc2Bytes32 = Bytes32.leftPad(bigIntegerToBytes(chunk.getAcc2()));
+    Bytes32 acc3Bytes32 = Bytes32.leftPad(bigIntegerToBytes(chunk.getAcc3()));
+    Bytes32 acc4Bytes32 = Bytes32.leftPad(bigIntegerToBytes(chunk.getAcc4()));
+    Bytes32 accABytes32 = Bytes32.leftPad(bigIntegerToBytes(chunk.getAccA()));
+    Bytes32 accWBytes32 = Bytes32.leftPad(bigIntegerToBytes(chunk.getAccW()));
+    Bytes32 accQBytes32 = Bytes32.leftPad(bigIntegerToBytes(chunk.getAccQ()));
 
-    Bytes32 acc1Bytes32 = Bytes32.leftPad(bigIntegerToBytes(mxpData.getAcc1()));
-    Bytes32 acc2Bytes32 = Bytes32.leftPad(bigIntegerToBytes(mxpData.getAcc2()));
-    Bytes32 acc3Bytes32 = Bytes32.leftPad(bigIntegerToBytes(mxpData.getAcc3()));
-    Bytes32 acc4Bytes32 = Bytes32.leftPad(bigIntegerToBytes(mxpData.getAcc4()));
-    Bytes32 accABytes32 = Bytes32.leftPad(bigIntegerToBytes(mxpData.getAccA()));
-    Bytes32 accWBytes32 = Bytes32.leftPad(bigIntegerToBytes(mxpData.getAccW()));
-    Bytes32 accQBytes32 = Bytes32.leftPad(bigIntegerToBytes(mxpData.getAccQ()));
-
-    int maxCt = mxpData.maxCt();
+    int maxCt = chunk.maxCt();
     int maxCtComplement = 32 - maxCt;
 
     for (int i = 0; i < maxCt; i++) {
-
       trace
           .stamp(BigInteger.valueOf(stamp))
           .cn(BigInteger.valueOf(hub.currentFrame().contextNumber()))
           .ct(BigInteger.valueOf(i))
-          .roob(mxpData.isRoob())
-          .noop(mxpData.isNoOperation())
-          .mxpx(mxpData.isMxpx())
-          .inst(BigInteger.valueOf(opCodeData.value()))
-          .mxpType1(opCodeData.billing().type() == MxpType.TYPE_1)
-          .mxpType2(opCodeData.billing().type() == MxpType.TYPE_2)
-          .mxpType3(opCodeData.billing().type() == MxpType.TYPE_3)
-          .mxpType4(opCodeData.billing().type() == MxpType.TYPE_4)
-          .mxpType5(opCodeData.billing().type() == MxpType.TYPE_5)
+          .roob(chunk.isRoob())
+          .noop(chunk.isNoOperation())
+          .mxpx(chunk.isMxpx())
+          .inst(BigInteger.valueOf(chunk.getOpCodeData().value()))
+          .mxpType1(chunk.getOpCodeData().billing().type() == MxpType.TYPE_1)
+          .mxpType2(chunk.getOpCodeData().billing().type() == MxpType.TYPE_2)
+          .mxpType3(chunk.getOpCodeData().billing().type() == MxpType.TYPE_3)
+          .mxpType4(chunk.getOpCodeData().billing().type() == MxpType.TYPE_4)
+          .mxpType5(chunk.getOpCodeData().billing().type() == MxpType.TYPE_5)
           .gword(
               BigInteger.valueOf(
-                  opCodeData.billing().billingRate() == BillingRate.BY_WORD
-                      ? opCodeData.billing().perUnit().cost()
+                  chunk.getOpCodeData().billing().billingRate() == BillingRate.BY_WORD
+                      ? chunk.getOpCodeData().billing().perUnit().cost()
                       : 0))
           .gbyte(
               BigInteger.valueOf(
-                  opCodeData.billing().billingRate() == BillingRate.BY_BYTE
-                      ? opCodeData.billing().perUnit().cost()
+                  chunk.getOpCodeData().billing().billingRate() == BillingRate.BY_BYTE
+                      ? chunk.getOpCodeData().billing().perUnit().cost()
                       : 0))
-          .deploys(mxpData.isDeploys())
-          .offset1Hi(mxpData.getOffset1().hiBigInt())
-          .offset1Lo(mxpData.getOffset1().loBigInt())
-          .offset2Hi(mxpData.getOffset2().hiBigInt())
-          .offset2Lo(mxpData.getOffset2().loBigInt())
-          .size1Hi(mxpData.getSize1().hiBigInt())
-          .size1Lo(mxpData.getSize1().loBigInt())
-          .size2Hi(mxpData.getSize2().hiBigInt())
-          .size2Lo(mxpData.getSize2().loBigInt())
-          .maxOffset1(mxpData.getMaxOffset1())
-          .maxOffset2(mxpData.getMaxOffset2())
-          .maxOffset(mxpData.getMaxOffset())
-          .comp(mxpData.isComp())
+          .deploys(chunk.isDeploys())
+          .offset1Hi(chunk.getOffset1().hiBigInt())
+          .offset1Lo(chunk.getOffset1().loBigInt())
+          .offset2Hi(chunk.getOffset2().hiBigInt())
+          .offset2Lo(chunk.getOffset2().loBigInt())
+          .size1Hi(chunk.getSize1().hiBigInt())
+          .size1Lo(chunk.getSize1().loBigInt())
+          .size2Hi(chunk.getSize2().hiBigInt())
+          .size2Lo(chunk.getSize2().loBigInt())
+          .maxOffset1(chunk.getMaxOffset1())
+          .maxOffset2(chunk.getMaxOffset2())
+          .maxOffset(chunk.getMaxOffset())
+          .comp(chunk.isComp())
           .acc1(acc1Bytes32.slice(maxCtComplement, 1 + i).toUnsignedBigInteger())
           .acc2(acc2Bytes32.slice(maxCtComplement, 1 + i).toUnsignedBigInteger())
           .acc3(acc3Bytes32.slice(maxCtComplement, 1 + i).toUnsignedBigInteger())
@@ -141,17 +134,18 @@ public class Mxp implements Module {
           .byteA(UnsignedByte.of(accABytes32.get(maxCtComplement + i)))
           .byteW(UnsignedByte.of(accWBytes32.get(maxCtComplement + i)))
           .byteQ(UnsignedByte.of(accQBytes32.get(maxCtComplement + i)))
-          .byteQq(mxpData.getByteQQ()[i].toBigInteger())
-          .byteR(mxpData.getByteR()[i].toBigInteger())
-          .words(BigInteger.valueOf(mxpData.getWords()))
+          .byteQq(chunk.getByteQQ()[i].toBigInteger())
+          .byteR(chunk.getByteR()[i].toBigInteger())
+          .words(BigInteger.valueOf(chunk.getWords()))
           .wordsNew(
-              BigInteger.valueOf(mxpData.getWordsNew())) // Could (should?) be set in tracePostOp?
-          .cMem(BigInteger.valueOf(mxpData.getCMem())) // Returns current memory size in EVM words
-          .cMemNew(BigInteger.valueOf(mxpData.getCMemNew()))
-          .quadCost(BigInteger.valueOf(mxpData.getQuadCost()))
-          .linCost(BigInteger.valueOf(mxpData.getLinCost()))
-          .gasMxp(BigInteger.valueOf(mxpData.getQuadCost() + mxpData.getEffectiveLinCost()))
-          .expands(mxpData.isExpands())
+              BigInteger.valueOf(
+                  chunk.getWordsNew())) // TODO: Could (should?) be set in tracePostOp?
+          .cMem(BigInteger.valueOf(chunk.getCMem())) // Returns current memory size in EVM words
+          .cMemNew(BigInteger.valueOf(chunk.getCMemNew()))
+          .quadCost(BigInteger.valueOf(chunk.getQuadCost()))
+          .linCost(BigInteger.valueOf(chunk.getLinCost()))
+          .gasMxp(BigInteger.valueOf(chunk.getQuadCost() + chunk.getEffectiveLinCost()))
+          .expands(chunk.isExpands())
           .validateRow();
     }
   }
@@ -168,12 +162,14 @@ public class Mxp implements Module {
 
   @Override
   public int lineCount() {
-    throw new RuntimeException("not yet implemented"); // TODO: fixme @Lorenzo
+    return this.chunks.stream().mapToInt(MxpData::maxCt).sum();
   }
 
   @Override
   public Object commit() {
-    // TODO: @lorenzo
+    for (int i = 0; i < this.chunks.size(); i++) {
+      this.traceChunk(this.chunks.get(i), i + 1);
+    }
     return new MxpTrace(trace.build());
   }
 

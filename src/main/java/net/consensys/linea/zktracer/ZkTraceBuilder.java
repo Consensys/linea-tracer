@@ -30,7 +30,7 @@ public class ZkTraceBuilder {
         .ifPresent(
             v -> {
               if (v.length() != module.lineCount()) {
-                throw new RuntimeException(
+                throw new IllegalStateException(
                     "["
                         + module.jsonKey()
                         + "] lines expected: "

@@ -123,7 +123,7 @@ public record Exceptions(
       long askedOffset = Words.clampedToLong(frame.getStackItem(1));
       long askedSize = Words.clampedToLong(frame.getStackItem(2));
 
-      return Words.clampedAdd(askedOffset, askedSize) >= returnDataSize;
+      return Words.clampedAdd(askedOffset, askedSize) > returnDataSize;
     }
 
     return false;

@@ -50,7 +50,7 @@ public class CallFrame {
   /** */
   @Getter private int codeDeploymentNumber;
   /** */
-  @Getter private boolean codeDeploymentStatus;
+  @Getter private boolean underDeployment;
   /** the position of this {@link CallFrame} parent in the {@link CallStack}. */
   @Getter private int parentFrame;
   /** all the {@link CallFrame} that have been called by this frame. */
@@ -141,7 +141,7 @@ public class CallFrame {
       int depth) {
     this.accountDeploymentNumber = accountDeploymentNumber;
     this.codeDeploymentNumber = codeDeploymentNumber;
-    this.codeDeploymentStatus = isDeployment;
+    this.underDeployment = isDeployment;
     this.id = id;
     this.contextNumber = hubStamp + 1;
     this.address = address;

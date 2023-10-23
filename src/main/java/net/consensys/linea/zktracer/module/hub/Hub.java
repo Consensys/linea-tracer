@@ -1162,7 +1162,7 @@ public class Hub implements Module {
                 frame.getWorldUpdater().getAccount(this.currentFrame().codeAddress()),
                 true,
                 this.conflation.deploymentInfo().number(this.currentFrame().codeAddress()),
-                this.currentFrame().codeDeploymentStatus());
+                this.currentFrame().underDeployment());
 
         JumpSection jumpSection =
             new JumpSection(
@@ -1196,7 +1196,7 @@ public class Hub implements Module {
                 this.exceptions.snapshot(),
                 this.aborts.snapshot(),
                 gp.of(f.frame(), f.opCode()),
-                f.codeDeploymentStatus()));
+                f.underDeployment()));
       }
     } else {
       for (StackLine line : f.pending().getLines()) {
@@ -1207,7 +1207,7 @@ public class Hub implements Module {
                 this.exceptions.snapshot(),
                 this.aborts.snapshot(),
                 gp.of(f.frame(), f.opCode()),
-                f.codeDeploymentStatus()));
+                f.underDeployment()));
       }
     }
     return r;

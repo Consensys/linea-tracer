@@ -86,6 +86,7 @@ public final class StackFragment implements TraceFragment {
 
   public void feedHashedValue(MessageFrame frame) {
     if (hashInfoFlag) {
+      assert frame.stackSize() > 0;
       this.hashInfoKeccak = EWord.of(frame.getStackItem(0));
     }
   }

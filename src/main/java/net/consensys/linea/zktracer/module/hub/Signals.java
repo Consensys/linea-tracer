@@ -218,7 +218,7 @@ public class Signals {
       } else if (opCodeData.mnemonic() == OpCode.RETURN) {
         oobFlag =
             !hub.exceptions().stackUnderflow()
-                && hub.currentFrame().codeDeploymentStatus(); // TODO: see for the rest
+                && hub.currentFrame().underDeployment(); // TODO: see for the rest
       }
     }
 

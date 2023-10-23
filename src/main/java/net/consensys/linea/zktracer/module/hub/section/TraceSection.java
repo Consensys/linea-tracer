@@ -95,7 +95,7 @@ public abstract class TraceSection {
         callFrame.pc(), // retconned later on
         callFrame.addressAsEWord(),
         callFrame.codeDeploymentNumber(),
-        callFrame.codeDeploymentStatus(),
+        callFrame.underDeployment(),
         callFrame.accountDeploymentNumber(),
         0,
         0,

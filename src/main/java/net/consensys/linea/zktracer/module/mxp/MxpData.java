@@ -92,7 +92,7 @@ public class MxpData {
     this.wordsNew = frame.memoryWordSize();
     this.cMem = memoryCost(frame.memoryWordSize());
     this.cMemNew = memoryCost(frame.memoryWordSize());
-    this.deploys = hub.currentFrame().codeDeploymentStatus();
+    this.deploys = hub.currentFrame().underDeployment();
 
     setOffsetsAndSizes(frame);
     setRoob();

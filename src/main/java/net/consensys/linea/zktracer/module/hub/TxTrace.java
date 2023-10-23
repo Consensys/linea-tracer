@@ -42,6 +42,10 @@ public class TxTrace {
     return this.trace.get(this.size() - 1);
   }
 
+  public TraceSection getSection(int i) {
+    return this.trace.get(i);
+  }
+
   /**
    * @return whether this trace is empty
    */

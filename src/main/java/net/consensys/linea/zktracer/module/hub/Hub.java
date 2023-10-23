@@ -646,6 +646,10 @@ public class Hub implements Module {
   }
 
   private void unlatchStack(MessageFrame frame) {
+    this.unlatchStack(frame, this.currentTraceSection());
+  }
+
+  public void unlatchStack(MessageFrame frame, TraceSection section) {
     if (this.currentFrame().pending() == null) {
       return;
     }
@@ -661,7 +665,7 @@ public class Hub implements Module {
         }
 
         // This works because we are certain that the stack chunks are the first.
-        ((StackFragment) this.currentTraceSection().getLines().get(i).specific())
+        ((StackFragment) section.getLines().get(i).specific())
             .stackOps()
             .get(line.resultColumn() - 1)
             .setValue(result);
@@ -669,7 +673,7 @@ public class Hub implements Module {
     }
 
     if (this.exceptions.none()) {
-      for (TraceSection.TraceLine line : this.currentTraceSection().getLines()) {
+      for (TraceSection.TraceLine line : section.getLines()) {
         if (line.specific() instanceof StackFragment stackFragment) {
           stackFragment.feedHashedValue(frame);
         }
@@ -704,6 +708,13 @@ public class Hub implements Module {
 
     for (Module m : this.modules) {
       m.traceContextEnter(frame);
+    }
+  }
+
+  public void traceContextReEnter(MessageFrame frame) {
+    if (this.currentFrame().needsUnlatchingAtReEntry() != null) {
+      this.unlatchStack(frame, this.currentFrame().needsUnlatchingAtReEntry());
+      this.currentFrame().needsUnlatchingAtReEntry(null);
     }
   }
 
@@ -752,7 +763,9 @@ public class Hub implements Module {
 
     this.defers.runPostExec(this, frame, operationResult);
 
-    this.unlatchStack(frame);
+    if (this.currentFrame().needsUnlatchingAtReEntry() == null) {
+      this.unlatchStack(frame);
+    }
 
     switch (this.opCodeData().instructionFamily()) {
       case ADD -> {
@@ -1040,15 +1053,13 @@ public class Hub implements Module {
                 this.conflation.deploymentInfo().number(createdAddress),
                 this.conflation.deploymentInfo().isDeploying(createdAddress));
 
-        CreateDefer protoCreateSection =
-            new CreateDefer(
-                myAccountSnapshot,
-                createdAccountSnapshot,
-                new ContextFragment(this.callStack, this.currentFrame(), updateReturnData),
-                this.currentFrame());
+        CreateSection createSection =
+            new CreateSection(this, myAccountSnapshot, createdAccountSnapshot);
         // Will be traced in one (and only one!) of these depending on the success of the operation
-        this.defers.postExec(protoCreateSection);
-        this.defers.nextContext(protoCreateSection, currentFrame().id());
+        this.defers.postExec(createSection);
+        this.defers.nextContext(createSection, currentFrame().id());
+        this.addTraceSection(createSection);
+        this.currentFrame().needsUnlatchingAtReEntry(createSection);
       }
 
       case CALL -> {
@@ -1138,6 +1149,7 @@ public class Hub implements Module {
               this.defers.nextContext(section, currentFrame().id());
               this.defers.postTx(section);
               this.addTraceSection(section);
+              this.currentFrame().needsUnlatchingAtReEntry(section);
             } else {
               final NoCodeCallSection section =
                   new NoCodeCallSection(
@@ -1149,6 +1161,9 @@ public class Hub implements Module {
               this.defers.postExec(section);
               this.defers.postTx(section);
               this.addTraceSection(section);
+              this.currentFrame()
+                  .needsUnlatchingAtReEntry(
+                      section); // TODO: not sure there -- will we switch context?
             }
           }
         }

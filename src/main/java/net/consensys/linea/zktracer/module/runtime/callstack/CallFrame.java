@@ -26,6 +26,7 @@ import net.consensys.linea.zktracer.EWord;
 import net.consensys.linea.zktracer.module.hub.Bytecode;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.memory.MemorySpan;
+import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.stack.Stack;
 import net.consensys.linea.zktracer.module.hub.stack.StackContext;
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -51,6 +52,9 @@ public class CallFrame {
   @Getter private int codeDeploymentNumber;
   /** */
   @Getter private boolean underDeployment;
+
+  @Getter @Setter private TraceSection needsUnlatchingAtReEntry = null;
+
   /** the position of this {@link CallFrame} parent in the {@link CallStack}. */
   @Getter private int parentFrame;
   /** all the {@link CallFrame} that have been called by this frame. */

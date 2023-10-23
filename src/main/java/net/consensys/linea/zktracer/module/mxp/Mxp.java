@@ -20,6 +20,7 @@ import java.math.BigInteger;
 import net.consensys.linea.zktracer.bytes.UnsignedByte;
 import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.module.ModuleTrace;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.gas.BillingRate;
 import net.consensys.linea.zktracer.opcode.gas.MxpType;
@@ -166,7 +167,7 @@ public class Mxp implements Module {
   }
 
   @Override
-  public Object commit() {
+  public ModuleTrace commit() {
     for (int i = 0; i < this.chunks.size(); i++) {
       this.traceChunk(this.chunks.get(i), i + 1);
     }
@@ -176,19 +177,4 @@ public class Mxp implements Module {
   @Override
   public void tracePostOp(MessageFrame frame) { // This is paired with tracePreOp
   }
-
-  //  public void sanityCheck(OpCode op, ScopeContext scope, MxpData data) {
-  ////    boolean gasExceptionInGeth = err instanceof ErrOutOfGas || err instanceof
-  // ErrGasUintOverflow;
-  //    if (data.roob || data.mxpx) {
-  //      if (!gasExceptionInGeth) {
-  //        throw new RuntimeException("MXP: data.roob || data.mxpx should lead to a gas error in
-  // geth");
-  //      }
-  //      return;
-  //    }
-  //
-  //    // The following code needs the correct implementation of the missing methods and classes
-  //    // ...
-  //  }
 }

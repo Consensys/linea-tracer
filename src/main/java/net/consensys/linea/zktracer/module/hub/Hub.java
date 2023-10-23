@@ -1137,6 +1137,7 @@ public class Hub implements Module {
               this.defers.postExec(section);
               this.defers.nextContext(section, currentFrame().id());
               this.defers.postTx(section);
+              this.addTraceSection(section);
             } else {
               final NoCodeCallSection section =
                   new NoCodeCallSection(

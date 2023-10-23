@@ -23,6 +23,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
@@ -33,6 +34,7 @@ import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
+import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
@@ -263,26 +265,28 @@ public class RomLex implements Module {
       }
 
       case CALL, CALLCODE -> {
-        final Address calledAddress = Address.wrap(frame.getStackItem(1));
+        final Address calledAddress = Address.wrap(frame.getStackItem(1).slice(0, 20));
         final boolean depStatus =
             hub.conflation().deploymentInfo().isDeploying(frame.getContractAddress());
         final int depNumber = hub.conflation().deploymentInfo().number(frame.getContractAddress());
         final int argsOffset = frame.getStackItem(3).toUnsignedBigInteger().shortValueExact();
         final int argsLength = frame.getStackItem(4).toUnsignedBigInteger().shortValueExact();
-        final Bytes byteCode =
-            frame.getWorldUpdater().get(calledAddress).getCode().slice(argsOffset, argsLength);
-        if (!byteCode.isEmpty()) {
-          codeIdentifierBeforeLexOrder += 1;
-          this.chunks.add(
-              new RomChunk(
-                  calledAddress,
-                  depNumber,
-                  depStatus,
-                  true,
-                  false,
-                  codeIdentifierBeforeLexOrder,
-                  byteCode));
-        }
+        Optional.ofNullable(frame.getWorldUpdater().get(calledAddress))
+            .map(AccountState::getCode)
+            .map(code -> code.slice(argsOffset, argsLength))
+            .ifPresent(
+                byteCode -> {
+                  codeIdentifierBeforeLexOrder += 1;
+                  this.chunks.add(
+                      new RomChunk(
+                          calledAddress,
+                          depNumber,
+                          depStatus,
+                          true,
+                          false,
+                          codeIdentifierBeforeLexOrder,
+                          byteCode));
+                });
       }
 
       case DELEGATECALL, STATICCALL -> {

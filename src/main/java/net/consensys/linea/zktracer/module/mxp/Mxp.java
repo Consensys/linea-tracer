@@ -86,7 +86,7 @@ public class Mxp implements Module {
     for (int i = 0; i < maxCt; i++) {
       trace
           .stamp(BigInteger.valueOf(stamp))
-          .cn(BigInteger.valueOf(hub.currentFrame().contextNumber()))
+          .cn(BigInteger.valueOf(chunk.getContextNumber()))
           .ct(BigInteger.valueOf(i))
           .roob(chunk.isRoob())
           .noop(chunk.isNoOperation())

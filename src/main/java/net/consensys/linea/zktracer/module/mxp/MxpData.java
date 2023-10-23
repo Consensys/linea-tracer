@@ -37,52 +37,55 @@ import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 
+@Getter
 public class MxpData {
   public static final BigInteger TWO_POW_128 = BigInteger.ONE.shiftLeft(128);
   public static final BigInteger TWO_POW_32 = BigInteger.ONE.shiftLeft(32);
 
   // constants from protocol_params.go
 
-  @Getter private final OpCodeData opCodeData;
-  @Getter private EWord offset1 = EWord.ZERO;
-  @Getter private EWord offset2 = EWord.ZERO;
-  @Getter private EWord size1 = EWord.ZERO;
-  @Getter private EWord size2 = EWord.ZERO;
-  @Getter private BigInteger maxOffset1 = BigInteger.ZERO;
-  @Getter private BigInteger maxOffset2 = BigInteger.ZERO;
-  @Getter private BigInteger maxOffset = BigInteger.ZERO;
-  @Getter private boolean mxpx;
-  @Getter private boolean roob;
-  @Getter private boolean noOperation;
-  @Getter private boolean comp;
-  @Getter private BigInteger acc1 = BigInteger.ZERO;
-  @Getter private BigInteger acc2 = BigInteger.ZERO;
-  @Getter private BigInteger acc3 = BigInteger.ZERO;
-  @Getter private BigInteger acc4 = BigInteger.ZERO;
-  @Getter private BigInteger accA = BigInteger.ZERO;
-  @Getter private BigInteger accW = BigInteger.ZERO;
-  @Getter private BigInteger accQ = BigInteger.ZERO;
-  @Getter private UnsignedByte[] byte1;
-  @Getter private UnsignedByte[] byte2;
-  @Getter private UnsignedByte[] byte3;
-  @Getter private UnsignedByte[] byte4;
-  @Getter private UnsignedByte[] byteA;
-  @Getter private UnsignedByte[] byteW;
-  @Getter private UnsignedByte[] byteQ;
-  @Getter private UnsignedByte[] byteQQ;
-  @Getter private UnsignedByte[] byteR;
-  @Getter private boolean expands;
-  @Getter private final MxpType typeMxp;
-  @Getter private final long words;
-  @Getter private long wordsNew;
-  @Getter private final long cMem;
-  @Getter private long cMemNew;
-  @Getter private long quadCost = 0;
-  @Getter private long linCost = 0;
-  @Getter private final boolean deploys;
+  private final OpCodeData opCodeData;
+  private final int contextNumber;
+  private EWord offset1 = EWord.ZERO;
+  private EWord offset2 = EWord.ZERO;
+  private EWord size1 = EWord.ZERO;
+  private EWord size2 = EWord.ZERO;
+  private BigInteger maxOffset1 = BigInteger.ZERO;
+  private BigInteger maxOffset2 = BigInteger.ZERO;
+  private BigInteger maxOffset = BigInteger.ZERO;
+  private boolean mxpx;
+  private boolean roob;
+  private boolean noOperation;
+  private boolean comp;
+  private BigInteger acc1 = BigInteger.ZERO;
+  private BigInteger acc2 = BigInteger.ZERO;
+  private BigInteger acc3 = BigInteger.ZERO;
+  private BigInteger acc4 = BigInteger.ZERO;
+  private BigInteger accA = BigInteger.ZERO;
+  private BigInteger accW = BigInteger.ZERO;
+  private BigInteger accQ = BigInteger.ZERO;
+  private UnsignedByte[] byte1;
+  private UnsignedByte[] byte2;
+  private UnsignedByte[] byte3;
+  private UnsignedByte[] byte4;
+  private UnsignedByte[] byteA;
+  private UnsignedByte[] byteW;
+  private UnsignedByte[] byteQ;
+  private UnsignedByte[] byteQQ;
+  private UnsignedByte[] byteR;
+  private boolean expands;
+  private final MxpType typeMxp;
+  private final long words;
+  private long wordsNew;
+  private final long cMem;
+  private long cMemNew;
+  private long quadCost = 0;
+  private long linCost = 0;
+  private final boolean deploys;
 
   public MxpData(final MessageFrame frame, final Hub hub) {
     this.opCodeData = OpCodes.of(frame.getCurrentOperation().getOpcode());
+    this.contextNumber = hub.currentFrame().contextNumber();
     this.typeMxp = opCodeData.billing().type();
 
     this.words = frame.memoryWordSize();

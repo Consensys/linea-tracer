@@ -415,9 +415,6 @@ public class Hub implements Module {
       case CONTEXT -> {}
       case ACCOUNT -> {}
       case COPY -> {
-        if (!this.exceptions.any() && this.callStack().getDepth() < 1024) {
-          this.romLex.tracePreOpcode(frame);
-        }
         if (this.exceptions.noStackException()) {
           if (this.currentFrame().opCode() == OpCode.RETURNDATACOPY) {
             if (!this.exceptions.returnDataCopyFault()) {
@@ -426,6 +423,9 @@ public class Hub implements Module {
           } else {
             this.mxp.tracePreOpcode(frame);
           }
+        }
+        if (!this.exceptions.any() && this.callStack().getDepth() < 1024) {
+          this.romLex.tracePreOpcode(frame);
         }
       }
       case TRANSACTION -> {}
@@ -738,7 +738,6 @@ public class Hub implements Module {
     if (this.tx.state() == TxState.TX_SKIP) {
       return;
     }
-
     this.processStateExec(frame);
   }
 

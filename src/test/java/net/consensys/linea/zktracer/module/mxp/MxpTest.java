@@ -329,8 +329,8 @@ public class MxpTest {
       }
 
       // size2 is irrelevant for this case
-      mxpx = isMxpx(mxpType, size1, EWord.ZERO, offset1, offset2);
-      roob = isRoob(mxpType, size1, EWord.ZERO, offset1, offset2);
+      mxpx = isMxpx(mxpType, size1, offset1);
+      roob = isRoob(mxpType, size1, offset1);
       if (roob || mxpx) {
         throw new RuntimeException("Unexpected ROOB or MXPX");
       }
@@ -462,8 +462,8 @@ public class MxpTest {
       offset2 = getRandomBigIntegerByBytesSize(0, MAX_BYTE_SIZE);
 
       // size2 is irrelevant for this case
-      mxpx = isMxpx(mxpType, size1, EWord.ZERO, offset1, offset2);
-      roob = isRoob(mxpType, size1, EWord.ZERO, offset1, offset2);
+      mxpx = isMxpx(mxpType, size1, offset1);
+      roob = isRoob(mxpType, size1, offset1);
     } while (!(triggerRoob && mxpx && roob) && !(!triggerRoob && mxpx && !roob));
 
     switch (opCode) {
@@ -511,24 +511,19 @@ public class MxpTest {
     }
   }
 
-  private boolean isRoob(
-      MxpType randomMxpType, EWord size1, EWord size2, EWord offset1, EWord offset2) {
+  private boolean isRoob(MxpType randomMxpType, EWord size1, EWord offset1) {
 
     final boolean condition4And5 = offset1.compareTo(TWO_POW_128) >= 0 && !size1.isZero();
 
     return switch (randomMxpType) {
       case TYPE_2, TYPE_3 -> offset1.compareTo(TWO_POW_128) >= 0;
       case TYPE_4 -> size1.compareTo(TWO_POW_128) >= 0 || condition4And5;
-      case TYPE_5 -> size1.compareTo(TWO_POW_128) >= 0
-          || condition4And5
-          || (size2.compareTo(TWO_POW_128) >= 0
-              || (offset2.compareTo(TWO_POW_128) >= 0 && !size2.isZero()));
+        // We never test TYPE_5 in the randomized tests (CALLs)
       default -> false;
     };
   }
 
-  private boolean isMxpx(
-      MxpType randomMxpType, EWord size1, EWord size2, EWord offset1, EWord offset2) {
+  private boolean isMxpx(MxpType randomMxpType, EWord size1, EWord offset1) {
     EWord maxOffset1 = EWord.ZERO;
     EWord maxOffset2 = EWord.ZERO;
     EWord maxOffset;
@@ -541,14 +536,7 @@ public class MxpTest {
           maxOffset1 = offset1.add(size1).subtract(1);
         }
       }
-      case TYPE_5 -> {
-        if (!size1.isZero()) {
-          maxOffset1 = offset1.add(size1).subtract(1);
-        }
-        if (!size2.isZero()) {
-          maxOffset2 = offset2.add(size2).subtract(1);
-        }
-      }
+        // We never test TYPE_5 in the randomized tests (CALLs)
     }
 
     maxOffset = maxOffset1.greaterThan(maxOffset2) ? maxOffset1 : maxOffset2;
@@ -559,8 +547,6 @@ public class MxpTest {
     for (Bytes arg : args) {
       program.push(arg);
     }
-    System.out.println(
-        opCode.toString() + " " + args.stream().map(Bytes::toShortHexString).toList());
     program.op(opCode);
   }
 

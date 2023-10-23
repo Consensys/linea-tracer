@@ -219,6 +219,8 @@ public class RomLex implements Module {
       }
 
       case EXTCODECOPY -> {
+        // TODO: this code needs to be reviewed
+        /*
         final long offset = clampedToLong(frame.getStackItem(2));
         final long length = clampedToLong(frame.getStackItem(3));
         final Bytes code = frame.readMemory(offset, length);
@@ -240,6 +242,7 @@ public class RomLex implements Module {
                   codeIdentifierBeforeLexOrder,
                   code));
         }
+        */
       }
 
       case RETURN -> {

@@ -36,6 +36,7 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.evm.internal.Words;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class RomLex implements Module {
@@ -240,10 +241,36 @@ public class RomLex implements Module {
         }
       }
 
-      case EXTCODECOPY, CALL, CALLCODE, DELEGATECALL, STATICCALL -> {
+      case CALL, CALLCODE, DELEGATECALL, STATICCALL -> {
         final Address calledAddress = Address.wrap(frame.getStackItem(1).slice(0, 20));
         final boolean depStatus =
             hub.conflation().deploymentInfo().isDeploying(frame.getContractAddress());
+        final int depNumber = hub.conflation().deploymentInfo().number(frame.getContractAddress());
+        Optional.ofNullable(frame.getWorldUpdater().get(calledAddress))
+            .map(AccountState::getCode)
+            .ifPresent(
+                byteCode -> {
+                  codeIdentifierBeforeLexOrder += 1;
+                  this.chunks.add(
+                      new RomChunk(
+                          calledAddress,
+                          depNumber,
+                          depStatus,
+                          true,
+                          false,
+                          codeIdentifierBeforeLexOrder,
+                          byteCode));
+                });
+      }
+
+      case EXTCODECOPY -> {
+        final Address calledAddress = Address.wrap(frame.getStackItem(1).slice(0, 20));
+        final long size = Words.clampedToLong(frame.getStackItem(3));
+        final boolean isDeploying =
+            hub.conflation().deploymentInfo().isDeploying(frame.getContractAddress());
+        if (size == 0 || isDeploying) {
+          return;
+        }
         final int depNumber = hub.conflation().deploymentInfo().number(frame.getContractAddress());
         Optional.ofNullable(frame.getWorldUpdater().get(calledAddress))
             .map(AccountState::getCode)
@@ -255,7 +282,7 @@ public class RomLex implements Module {
                         new RomChunk(
                             calledAddress,
                             depNumber,
-                            depStatus,
+                            isDeploying,
                             true,
                             false,
                             codeIdentifierBeforeLexOrder,

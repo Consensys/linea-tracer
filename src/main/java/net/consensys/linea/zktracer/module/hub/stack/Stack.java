@@ -101,7 +101,8 @@ public class Stack {
   }
 
   private void loadStore(MessageFrame frame, StackContext pending) {
-    if (this.currentOpcodeData.stackSettings().flag1()) {
+    if (this.currentOpcodeData.stackSettings().flag3()
+        || this.currentOpcodeData.stackSettings().flag4()) {
       EWord val1 = getStack(frame, 0);
       EWord val2 = getStack(frame, 1);
 

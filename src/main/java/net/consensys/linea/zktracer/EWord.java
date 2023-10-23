@@ -127,7 +127,7 @@ public final class EWord extends BaseUInt256Value<EWord> implements Quantity {
   }
 
   public Address toAddress() {
-    return Address.wrap(this.slice(0, 20));
+    return Address.wrap(this.slice(12, 20));
   }
 
   @Override

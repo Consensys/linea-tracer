@@ -33,7 +33,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(EvmExtension.class)
 public class MxpTest {
-
   private static final Random RAND = new Random(123456789123456L);
   public static final EWord TWO_POW_128 = EWord.of(EWord.ONE.shiftLeft(128));
   public static final EWord TWO_POW_32 = EWord.of(EWord.ONE.shiftLeft(32));
@@ -90,7 +89,6 @@ public class MxpTest {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     final int INSTRUCTION_COUNT = 4096;
     for (int i = 0; i < INSTRUCTION_COUNT; i++) {
-      System.out.print(i + 1 + ": ");
       boolean isHalting = i == INSTRUCTION_COUNT - 1;
       triggerNonTrivialOrNoop(program, isHalting);
     }
@@ -103,7 +101,6 @@ public class MxpTest {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     final int INSTRUCTION_COUNT = 256;
     for (int i = 0; i < INSTRUCTION_COUNT; i++) {
-      System.out.print(i + 1 + ": ");
       boolean isHalting = i == INSTRUCTION_COUNT - 1;
       triggerNonTrivialOrNoop(program, isHalting);
     }
@@ -117,7 +114,6 @@ public class MxpTest {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     final int INSTRUCTION_COUNT = 256;
     for (int i = 0; i < INSTRUCTION_COUNT; i++) {
-      System.out.print(i + 1 + ": ");
       boolean isHalting = i == INSTRUCTION_COUNT - 1;
       triggerNonTrivialOrNoop(program, isHalting);
     }
@@ -145,7 +141,6 @@ public class MxpTest {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     int INSTRUCTION_COUNT = 256;
     for (int i = 0; i < INSTRUCTION_COUNT; i++) {
-      System.out.print(i + 1 + ": ");
       boolean isHalting = i == INSTRUCTION_COUNT - 1;
       triggerNonTrivialOrNoop(program, isHalting, INIT);
     }
@@ -268,7 +263,6 @@ public class MxpTest {
     final int INSTRUCTION_COUNT_INIT = 256;
     BytecodeCompiler INIT = BytecodeCompiler.newProgram();
     for (int i = 0; i < INSTRUCTION_COUNT_INIT; i++) {
-      System.out.print(i + 1 + ": ");
       boolean isHalting = i == INSTRUCTION_COUNT_INIT - 1;
       triggerNonTrivialOrNoop(INIT, isHalting);
     }
@@ -390,7 +384,6 @@ public class MxpTest {
       case CREATE, CREATE2:
         // CREATEs are added only if INIT is provided
         if (!INIT.isEmpty()) {
-          System.out.println("Non trivial CREATE/CREATE2");
           EWord INITCODEOFFSET =
               getRandomBigIntegerByBytesSize(
                   0, MAX_BYTE_SIZE); // roob or mxpx cannot be triggered this way

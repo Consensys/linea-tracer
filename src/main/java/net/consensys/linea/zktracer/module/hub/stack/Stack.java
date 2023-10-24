@@ -368,6 +368,5 @@ public class Stack {
       case CALL -> this.call(frame, callFrame.pending());
       case CREATE -> this.create(frame, callFrame.pending());
     }
-
   }
 }

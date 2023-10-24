@@ -34,6 +34,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public class StackedSet<E> implements StackedContainer, java.util.Set<E> {
   private final Stack<Set<E>> sets = new Stack<>();
+  /** The cached number of elements in this container */
+  private int count = 0;
 
   @Override
   public void enter() {
@@ -42,12 +44,12 @@ public class StackedSet<E> implements StackedContainer, java.util.Set<E> {
 
   @Override
   public void pop() {
-    this.sets.pop();
+    this.count -= this.sets.pop().size();
   }
 
   @Override
   public int size() {
-    return this.sets.stream().mapToInt(Set::size).sum();
+    return this.count;
   }
 
   @Override
@@ -104,7 +106,11 @@ public class StackedSet<E> implements StackedContainer, java.util.Set<E> {
       return false;
     }
 
-    return this.sets.peek().add(e);
+    final boolean alreadyExists = this.sets.peek().add(e);
+    if (alreadyExists) {
+      this.count++;
+    }
+    return alreadyExists;
   }
 
   @Override
@@ -126,7 +132,7 @@ public class StackedSet<E> implements StackedContainer, java.util.Set<E> {
   public boolean addAll(@NotNull Collection<? extends E> c) {
     boolean r = false;
     for (var x : c) {
-      r |= this.sets.peek().add(x);
+      r |= this.add(x);
     }
     return r;
   }

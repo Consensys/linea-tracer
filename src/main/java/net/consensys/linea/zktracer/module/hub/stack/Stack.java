@@ -324,13 +324,12 @@ public class Stack {
     return this.status == Status.OVERFLOW;
   }
 
-  public boolean processInstruction(MessageFrame frame, CallFrame callFrame, int stackStamp) {
+  public void processInstruction(MessageFrame frame, CallFrame callFrame, int stackStamp) {
     this.stamp = stackStamp;
     this.height = this.heightNew;
     this.currentOpcodeData = OpCode.of(frame.getCurrentOperation().getOpcode()).getData();
     callFrame.pending(new StackContext(this.currentOpcodeData.mnemonic()));
 
-    // Preconditions.checkState(this.height == frame.stackSize());
     this.heightNew += this.currentOpcodeData.stackSettings().nbAdded();
     this.heightNew -= this.currentOpcodeData.stackSettings().nbRemoved();
 
@@ -350,7 +349,7 @@ public class Stack {
         this.stamp += callFrame.pending().addEmptyLines(1);
       }
 
-      return false;
+      return;
     }
 
     switch (this.currentOpcodeData.stackSettings().pattern()) {
@@ -370,6 +369,5 @@ public class Stack {
       case CREATE -> this.create(frame, callFrame.pending());
     }
 
-    return this.status == Status.NORMAL;
   }
 }

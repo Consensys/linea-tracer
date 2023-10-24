@@ -140,9 +140,7 @@ public class PluginTest extends AcceptanceTestBase {
 
     TransactionReceiptProcessor receiptProcessor =
         new PollingTransactionReceiptProcessor(
-            web3j,
-            4000L,
-            TransactionManager.DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH);
+            web3j, 4000L, TransactionManager.DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH);
 
     // make sure that a transaction that is not too big was mined
     final TransactionReceipt transactionReceipt =
@@ -208,9 +206,7 @@ public class PluginTest extends AcceptanceTestBase {
 
     TransactionReceiptProcessor receiptProcessor =
         new PollingTransactionReceiptProcessor(
-            web3j,
-            4000L,
-            TransactionManager.DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH);
+            web3j, 4000L, TransactionManager.DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH);
 
     // make sure that a transaction that is not too big was mined
     final TransactionReceipt transactionReceipt =

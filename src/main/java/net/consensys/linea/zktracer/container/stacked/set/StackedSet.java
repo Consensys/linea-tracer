@@ -35,7 +35,7 @@ import org.jetbrains.annotations.NotNull;
 public class StackedSet<E> implements StackedContainer, java.util.Set<E> {
   private final Stack<Set<E>> sets = new Stack<>();
   /** The cached number of elements in this container */
-  private int count = 0;
+  private int totalSize = 0;
 
   @Override
   public void enter() {
@@ -44,23 +44,17 @@ public class StackedSet<E> implements StackedContainer, java.util.Set<E> {
 
   @Override
   public void pop() {
-    this.count -= this.sets.pop().size();
+    this.totalSize -= this.sets.pop().size();
   }
 
   @Override
   public int size() {
-    return this.count;
+    return this.totalSize;
   }
 
   @Override
   public boolean isEmpty() {
-    for (Set<E> set : this.sets) {
-      if (!set.isEmpty()) {
-        return false;
-      }
-    }
-
-    return true;
+    return this.totalSize == 0;
   }
 
   @Override
@@ -108,7 +102,7 @@ public class StackedSet<E> implements StackedContainer, java.util.Set<E> {
 
     final boolean alreadyExists = this.sets.peek().add(e);
     if (alreadyExists) {
-      this.count++;
+      this.totalSize++;
     }
     return alreadyExists;
   }

@@ -25,7 +25,7 @@ public class LineaTransactionValidatorCliOptions {
   public static final String DEFAULT_DENY_LIST_PATH = "lineaDenyList.txt";
 
   public static final String MAX_TX_GAS_LIMIT_OPTION = "--plugin-linea-max-tx-gas-limit";
-  public static final int DEFAULT_MAX_TRANSACTION_GAS_LIMIT = 30000000;
+  public static final int DEFAULT_MAX_TRANSACTION_GAS_LIMIT = 30_000_000;
 
   @CommandLine.Option(
       names = {DENY_LIST_PATH},

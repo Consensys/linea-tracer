@@ -225,7 +225,6 @@ public class Hub implements Module {
    * @param world a view onto the state
    */
   void processStateSkip(WorldView world) {
-    log.error("TX_SKIP");
     this.state.stamps().stampHub();
     boolean isDeployment = this.tx.transaction().getTo().isEmpty();
 
@@ -357,6 +356,10 @@ public class Hub implements Module {
   }
 
   public CallFrame currentFrame() {
+    // If the transaction is skipped, it has no relevant CF to trace.
+    if (this.tx.state() == TxState.TX_SKIP) {
+      return CallFrame.EMPTY;
+    }
     return this.callStack.current();
   }
 
@@ -631,10 +634,14 @@ public class Hub implements Module {
   @Override
   public void traceEndTx(
       WorldView world, Transaction tx, boolean status, Bytes output, List<Log> logs, long gasUsed) {
-    //    this.currentFrame().frame(frame);
-    this.tx.state(TxState.TX_FINAL);
+    if (this.tx.state() != TxState.TX_SKIP) {
+      this.tx.state(TxState.TX_FINAL);
+    }
     this.tx.status(status);
-    this.processStateFinal(world, tx, status);
+
+    if (this.tx.state() != TxState.TX_SKIP) {
+      this.processStateFinal(world, tx, status);
+    }
 
     this.defers.runPostTx(this, world, tx);
 
@@ -1066,6 +1073,9 @@ public class Hub implements Module {
 
         final Address calledAddress = Words.toAddress(frame.getStackItem(1));
         final Account calledAccount = frame.getWorldUpdater().getAccount(calledAddress);
+        final boolean hasCode =
+            Optional.ofNullable(calledAccount).map(AccountState::hasCode).orElse(false);
+
         final AccountSnapshot calledAccountSnapshot =
             AccountSnapshot.fromAccount(
                 calledAccount,
@@ -1119,7 +1129,7 @@ public class Hub implements Module {
                     this.currentFrame(),
                     new ScenarioFragment(
                         targetIsPrecompile,
-                        calledAccount.hasCode(),
+                        hasCode,
                         true,
                         this.currentFrame().id(),
                         this.callStack().futureId()),
@@ -1133,7 +1143,7 @@ public class Hub implements Module {
             this.signals().wantMxp().wantOob().wantStipend();
             final MiscFragment miscFragment = new MiscFragment(this, frame);
 
-            if (calledAccount.hasCode()) {
+            if (hasCode) {
               final WithCodeCallSection section =
                   new WithCodeCallSection(
                       this, myAccountSnapshot, calledAccountSnapshot, miscFragment);

@@ -19,6 +19,7 @@ import java.util.Optional;
 
 import com.google.auto.service.AutoService;
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.LineaRequiredPlugin;
 import net.consensys.linea.sequencer.LineaCliOptions;
 import net.consensys.linea.LineaPlugin;
 import org.hyperledger.besu.plugin.BesuContext;
@@ -29,7 +30,7 @@ import org.hyperledger.besu.plugin.services.TransactionSelectionService;
 /** Implementation of the base {@link BesuPlugin} interfaces for Linea. */
 @Slf4j
 @AutoService(BesuPlugin.class)
-public class LineaTransactionSelectorPlugin extends LineaPlugin {
+public class LineaTransactionSelectorPlugin extends LineaRequiredPlugin {
   public static final String NAME = "linea";
   private final LineaCliOptions options;
   private Optional<TransactionSelectionService> service;
@@ -48,18 +49,17 @@ public class LineaTransactionSelectorPlugin extends LineaPlugin {
     final Optional<PicoCLIOptions> cmdlineOptions = context.getService(PicoCLIOptions.class);
 
     if (cmdlineOptions.isEmpty()) {
-      throw new IllegalStateException(
-          "Expecting a PicoCLI options to register CLI options with, but none found.");
+      throw new IllegalStateException("Failed to obtain PicoCLI options from the BesuContext");
     }
 
     cmdlineOptions.get().addPicoCLIOptions(getName().get(), options);
 
     service = context.getService(TransactionSelectionService.class);
-    if (service.isEmpty()) {
-      log.error(
-          "Failed to register TransactionSelectionService because it is not available from the BesuContext.");
-    }
-    createAndRegister(service.orElseThrow());
+    createAndRegister(
+        service.orElseThrow(
+            () ->
+                new RuntimeException(
+                    "Failed to obtain TransactionSelectionService from the BesuContext.")));
   }
 
   private void createAndRegister(final TransactionSelectionService transactionSelectionService) {

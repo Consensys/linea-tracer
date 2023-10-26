@@ -63,6 +63,8 @@ public record Trace(
     @JsonProperty("FLAG3") List<Boolean> flag3,
     @JsonProperty("FLAG4") List<Boolean> flag4,
     @JsonProperty("FORBIDDEN_IN_STATIC") List<Boolean> forbiddenInStatic,
+    @JsonProperty("IS_JUMPDEST") List<Boolean> isJumpdest,
+    @JsonProperty("IS_PUSH") List<Boolean> isPush,
     @JsonProperty("MXP_TYPE_1") List<Boolean> mxpType1,
     @JsonProperty("MXP_TYPE_2") List<Boolean> mxpType2,
     @JsonProperty("MXP_TYPE_3") List<Boolean> mxpType3,
@@ -225,6 +227,12 @@ public record Trace(
 
     @JsonProperty("FORBIDDEN_IN_STATIC")
     private final List<Boolean> forbiddenInStatic = new ArrayList<>();
+
+    @JsonProperty("IS_JUMPDEST")
+    private final List<Boolean> isJumpdest = new ArrayList<>();
+
+    @JsonProperty("IS_PUSH")
+    private final List<Boolean> isPush = new ArrayList<>();
 
     @JsonProperty("MXP_TYPE_1")
     private final List<Boolean> mxpType1 = new ArrayList<>();
@@ -797,11 +805,35 @@ public record Trace(
       return this;
     }
 
-    public TraceBuilder mxpType1(final Boolean b) {
+    public TraceBuilder isJumpdest(final Boolean b) {
       if (filled.get(35)) {
-        throw new IllegalStateException("MXP_TYPE_1 already set");
+        throw new IllegalStateException("IS_JUMPDEST already set");
       } else {
         filled.set(35);
+      }
+
+      isJumpdest.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder isPush(final Boolean b) {
+      if (filled.get(36)) {
+        throw new IllegalStateException("IS_PUSH already set");
+      } else {
+        filled.set(36);
+      }
+
+      isPush.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder mxpType1(final Boolean b) {
+      if (filled.get(37)) {
+        throw new IllegalStateException("MXP_TYPE_1 already set");
+      } else {
+        filled.set(37);
       }
 
       mxpType1.add(b);
@@ -810,10 +842,10 @@ public record Trace(
     }
 
     public TraceBuilder mxpType2(final Boolean b) {
-      if (filled.get(36)) {
+      if (filled.get(38)) {
         throw new IllegalStateException("MXP_TYPE_2 already set");
       } else {
-        filled.set(36);
+        filled.set(38);
       }
 
       mxpType2.add(b);
@@ -822,10 +854,10 @@ public record Trace(
     }
 
     public TraceBuilder mxpType3(final Boolean b) {
-      if (filled.get(37)) {
+      if (filled.get(39)) {
         throw new IllegalStateException("MXP_TYPE_3 already set");
       } else {
-        filled.set(37);
+        filled.set(39);
       }
 
       mxpType3.add(b);
@@ -834,10 +866,10 @@ public record Trace(
     }
 
     public TraceBuilder mxpType4(final Boolean b) {
-      if (filled.get(38)) {
+      if (filled.get(40)) {
         throw new IllegalStateException("MXP_TYPE_4 already set");
       } else {
-        filled.set(38);
+        filled.set(40);
       }
 
       mxpType4.add(b);
@@ -846,10 +878,10 @@ public record Trace(
     }
 
     public TraceBuilder mxpType5(final Boolean b) {
-      if (filled.get(39)) {
+      if (filled.get(41)) {
         throw new IllegalStateException("MXP_TYPE_5 already set");
       } else {
-        filled.set(39);
+        filled.set(41);
       }
 
       mxpType5.add(b);
@@ -858,10 +890,10 @@ public record Trace(
     }
 
     public TraceBuilder nbAdded(final UnsignedByte b) {
-      if (filled.get(40)) {
+      if (filled.get(42)) {
         throw new IllegalStateException("NB_ADDED already set");
       } else {
-        filled.set(40);
+        filled.set(42);
       }
 
       nbAdded.add(b);
@@ -870,10 +902,10 @@ public record Trace(
     }
 
     public TraceBuilder nbRemoved(final UnsignedByte b) {
-      if (filled.get(41)) {
+      if (filled.get(43)) {
         throw new IllegalStateException("NB_REMOVED already set");
       } else {
-        filled.set(41);
+        filled.set(43);
       }
 
       nbRemoved.add(b);
@@ -882,10 +914,10 @@ public record Trace(
     }
 
     public TraceBuilder opcode(final BigInteger b) {
-      if (filled.get(42)) {
+      if (filled.get(44)) {
         throw new IllegalStateException("OPCODE already set");
       } else {
-        filled.set(42);
+        filled.set(44);
       }
 
       opcode.add(b);
@@ -894,10 +926,10 @@ public record Trace(
     }
 
     public TraceBuilder patternCall(final Boolean b) {
-      if (filled.get(43)) {
+      if (filled.get(45)) {
         throw new IllegalStateException("PATTERN_CALL already set");
       } else {
-        filled.set(43);
+        filled.set(45);
       }
 
       patternCall.add(b);
@@ -906,10 +938,10 @@ public record Trace(
     }
 
     public TraceBuilder patternCopy(final Boolean b) {
-      if (filled.get(44)) {
+      if (filled.get(46)) {
         throw new IllegalStateException("PATTERN_COPY already set");
       } else {
-        filled.set(44);
+        filled.set(46);
       }
 
       patternCopy.add(b);
@@ -918,10 +950,10 @@ public record Trace(
     }
 
     public TraceBuilder patternCreate(final Boolean b) {
-      if (filled.get(45)) {
+      if (filled.get(47)) {
         throw new IllegalStateException("PATTERN_CREATE already set");
       } else {
-        filled.set(45);
+        filled.set(47);
       }
 
       patternCreate.add(b);
@@ -930,10 +962,10 @@ public record Trace(
     }
 
     public TraceBuilder patternDup(final Boolean b) {
-      if (filled.get(46)) {
+      if (filled.get(48)) {
         throw new IllegalStateException("PATTERN_DUP already set");
       } else {
-        filled.set(46);
+        filled.set(48);
       }
 
       patternDup.add(b);
@@ -942,10 +974,10 @@ public record Trace(
     }
 
     public TraceBuilder patternLoadStore(final Boolean b) {
-      if (filled.get(47)) {
+      if (filled.get(49)) {
         throw new IllegalStateException("PATTERN_LOAD_STORE already set");
       } else {
-        filled.set(47);
+        filled.set(49);
       }
 
       patternLoadStore.add(b);
@@ -954,10 +986,10 @@ public record Trace(
     }
 
     public TraceBuilder patternLog(final Boolean b) {
-      if (filled.get(48)) {
+      if (filled.get(50)) {
         throw new IllegalStateException("PATTERN_LOG already set");
       } else {
-        filled.set(48);
+        filled.set(50);
       }
 
       patternLog.add(b);
@@ -966,10 +998,10 @@ public record Trace(
     }
 
     public TraceBuilder patternOneOne(final Boolean b) {
-      if (filled.get(49)) {
+      if (filled.get(51)) {
         throw new IllegalStateException("PATTERN_ONE_ONE already set");
       } else {
-        filled.set(49);
+        filled.set(51);
       }
 
       patternOneOne.add(b);
@@ -978,10 +1010,10 @@ public record Trace(
     }
 
     public TraceBuilder patternOneZero(final Boolean b) {
-      if (filled.get(50)) {
+      if (filled.get(52)) {
         throw new IllegalStateException("PATTERN_ONE_ZERO already set");
       } else {
-        filled.set(50);
+        filled.set(52);
       }
 
       patternOneZero.add(b);
@@ -990,10 +1022,10 @@ public record Trace(
     }
 
     public TraceBuilder patternSwap(final Boolean b) {
-      if (filled.get(51)) {
+      if (filled.get(53)) {
         throw new IllegalStateException("PATTERN_SWAP already set");
       } else {
-        filled.set(51);
+        filled.set(53);
       }
 
       patternSwap.add(b);
@@ -1002,10 +1034,10 @@ public record Trace(
     }
 
     public TraceBuilder patternThreeOne(final Boolean b) {
-      if (filled.get(52)) {
+      if (filled.get(54)) {
         throw new IllegalStateException("PATTERN_THREE_ONE already set");
       } else {
-        filled.set(52);
+        filled.set(54);
       }
 
       patternThreeOne.add(b);
@@ -1014,10 +1046,10 @@ public record Trace(
     }
 
     public TraceBuilder patternTwoOne(final Boolean b) {
-      if (filled.get(53)) {
+      if (filled.get(55)) {
         throw new IllegalStateException("PATTERN_TWO_ONE already set");
       } else {
-        filled.set(53);
+        filled.set(55);
       }
 
       patternTwoOne.add(b);
@@ -1026,10 +1058,10 @@ public record Trace(
     }
 
     public TraceBuilder patternTwoZero(final Boolean b) {
-      if (filled.get(54)) {
+      if (filled.get(56)) {
         throw new IllegalStateException("PATTERN_TWO_ZERO already set");
       } else {
-        filled.set(54);
+        filled.set(56);
       }
 
       patternTwoZero.add(b);
@@ -1038,10 +1070,10 @@ public record Trace(
     }
 
     public TraceBuilder patternZeroOne(final Boolean b) {
-      if (filled.get(55)) {
+      if (filled.get(57)) {
         throw new IllegalStateException("PATTERN_ZERO_ONE already set");
       } else {
-        filled.set(55);
+        filled.set(57);
       }
 
       patternZeroOne.add(b);
@@ -1050,10 +1082,10 @@ public record Trace(
     }
 
     public TraceBuilder patternZeroZero(final Boolean b) {
-      if (filled.get(56)) {
+      if (filled.get(58)) {
         throw new IllegalStateException("PATTERN_ZERO_ZERO already set");
       } else {
-        filled.set(56);
+        filled.set(58);
       }
 
       patternZeroZero.add(b);
@@ -1062,10 +1094,10 @@ public record Trace(
     }
 
     public TraceBuilder ramEnabled(final Boolean b) {
-      if (filled.get(57)) {
+      if (filled.get(59)) {
         throw new IllegalStateException("RAM_ENABLED already set");
       } else {
-        filled.set(57);
+        filled.set(59);
       }
 
       ramEnabled.add(b);
@@ -1074,10 +1106,10 @@ public record Trace(
     }
 
     public TraceBuilder ramSourceBlakeData(final Boolean b) {
-      if (filled.get(58)) {
+      if (filled.get(60)) {
         throw new IllegalStateException("RAM_SOURCE_BLAKE_DATA already set");
       } else {
-        filled.set(58);
+        filled.set(60);
       }
 
       ramSourceBlakeData.add(b);
@@ -1086,10 +1118,10 @@ public record Trace(
     }
 
     public TraceBuilder ramSourceEcData(final Boolean b) {
-      if (filled.get(59)) {
+      if (filled.get(61)) {
         throw new IllegalStateException("RAM_SOURCE_EC_DATA already set");
       } else {
-        filled.set(59);
+        filled.set(61);
       }
 
       ramSourceEcData.add(b);
@@ -1098,10 +1130,10 @@ public record Trace(
     }
 
     public TraceBuilder ramSourceEcInfo(final Boolean b) {
-      if (filled.get(60)) {
+      if (filled.get(62)) {
         throw new IllegalStateException("RAM_SOURCE_EC_INFO already set");
       } else {
-        filled.set(60);
+        filled.set(62);
       }
 
       ramSourceEcInfo.add(b);
@@ -1110,10 +1142,10 @@ public record Trace(
     }
 
     public TraceBuilder ramSourceHashData(final Boolean b) {
-      if (filled.get(61)) {
+      if (filled.get(63)) {
         throw new IllegalStateException("RAM_SOURCE_HASH_DATA already set");
       } else {
-        filled.set(61);
+        filled.set(63);
       }
 
       ramSourceHashData.add(b);
@@ -1122,10 +1154,10 @@ public record Trace(
     }
 
     public TraceBuilder ramSourceHashInfo(final Boolean b) {
-      if (filled.get(62)) {
+      if (filled.get(64)) {
         throw new IllegalStateException("RAM_SOURCE_HASH_INFO already set");
       } else {
-        filled.set(62);
+        filled.set(64);
       }
 
       ramSourceHashInfo.add(b);
@@ -1134,10 +1166,10 @@ public record Trace(
     }
 
     public TraceBuilder ramSourceLogData(final Boolean b) {
-      if (filled.get(63)) {
+      if (filled.get(65)) {
         throw new IllegalStateException("RAM_SOURCE_LOG_DATA already set");
       } else {
-        filled.set(63);
+        filled.set(65);
       }
 
       ramSourceLogData.add(b);
@@ -1146,10 +1178,10 @@ public record Trace(
     }
 
     public TraceBuilder ramSourceModexpData(final Boolean b) {
-      if (filled.get(64)) {
+      if (filled.get(66)) {
         throw new IllegalStateException("RAM_SOURCE_MODEXP_DATA already set");
       } else {
-        filled.set(64);
+        filled.set(66);
       }
 
       ramSourceModexpData.add(b);
@@ -1158,10 +1190,10 @@ public record Trace(
     }
 
     public TraceBuilder ramSourceRam(final Boolean b) {
-      if (filled.get(65)) {
+      if (filled.get(67)) {
         throw new IllegalStateException("RAM_SOURCE_RAM already set");
       } else {
-        filled.set(65);
+        filled.set(67);
       }
 
       ramSourceRam.add(b);
@@ -1170,10 +1202,10 @@ public record Trace(
     }
 
     public TraceBuilder ramSourceRom(final Boolean b) {
-      if (filled.get(66)) {
+      if (filled.get(68)) {
         throw new IllegalStateException("RAM_SOURCE_ROM already set");
       } else {
-        filled.set(66);
+        filled.set(68);
       }
 
       ramSourceRom.add(b);
@@ -1182,10 +1214,10 @@ public record Trace(
     }
 
     public TraceBuilder ramSourceStack(final Boolean b) {
-      if (filled.get(67)) {
+      if (filled.get(69)) {
         throw new IllegalStateException("RAM_SOURCE_STACK already set");
       } else {
-        filled.set(67);
+        filled.set(69);
       }
 
       ramSourceStack.add(b);
@@ -1194,10 +1226,10 @@ public record Trace(
     }
 
     public TraceBuilder ramSourceTxnData(final Boolean b) {
-      if (filled.get(68)) {
+      if (filled.get(70)) {
         throw new IllegalStateException("RAM_SOURCE_TXN_DATA already set");
       } else {
-        filled.set(68);
+        filled.set(70);
       }
 
       ramSourceTxnData.add(b);
@@ -1206,10 +1238,10 @@ public record Trace(
     }
 
     public TraceBuilder ramTargetBlakeData(final Boolean b) {
-      if (filled.get(69)) {
+      if (filled.get(71)) {
         throw new IllegalStateException("RAM_TARGET_BLAKE_DATA already set");
       } else {
-        filled.set(69);
+        filled.set(71);
       }
 
       ramTargetBlakeData.add(b);
@@ -1218,10 +1250,10 @@ public record Trace(
     }
 
     public TraceBuilder ramTargetEcData(final Boolean b) {
-      if (filled.get(70)) {
+      if (filled.get(72)) {
         throw new IllegalStateException("RAM_TARGET_EC_DATA already set");
       } else {
-        filled.set(70);
+        filled.set(72);
       }
 
       ramTargetEcData.add(b);
@@ -1230,10 +1262,10 @@ public record Trace(
     }
 
     public TraceBuilder ramTargetEcInfo(final Boolean b) {
-      if (filled.get(71)) {
+      if (filled.get(73)) {
         throw new IllegalStateException("RAM_TARGET_EC_INFO already set");
       } else {
-        filled.set(71);
+        filled.set(73);
       }
 
       ramTargetEcInfo.add(b);
@@ -1242,10 +1274,10 @@ public record Trace(
     }
 
     public TraceBuilder ramTargetHashData(final Boolean b) {
-      if (filled.get(72)) {
+      if (filled.get(74)) {
         throw new IllegalStateException("RAM_TARGET_HASH_DATA already set");
       } else {
-        filled.set(72);
+        filled.set(74);
       }
 
       ramTargetHashData.add(b);
@@ -1254,10 +1286,10 @@ public record Trace(
     }
 
     public TraceBuilder ramTargetHashInfo(final Boolean b) {
-      if (filled.get(73)) {
+      if (filled.get(75)) {
         throw new IllegalStateException("RAM_TARGET_HASH_INFO already set");
       } else {
-        filled.set(73);
+        filled.set(75);
       }
 
       ramTargetHashInfo.add(b);
@@ -1266,10 +1298,10 @@ public record Trace(
     }
 
     public TraceBuilder ramTargetLogData(final Boolean b) {
-      if (filled.get(74)) {
+      if (filled.get(76)) {
         throw new IllegalStateException("RAM_TARGET_LOG_DATA already set");
       } else {
-        filled.set(74);
+        filled.set(76);
       }
 
       ramTargetLogData.add(b);
@@ -1278,10 +1310,10 @@ public record Trace(
     }
 
     public TraceBuilder ramTargetModexpData(final Boolean b) {
-      if (filled.get(75)) {
+      if (filled.get(77)) {
         throw new IllegalStateException("RAM_TARGET_MODEXP_DATA already set");
       } else {
-        filled.set(75);
+        filled.set(77);
       }
 
       ramTargetModexpData.add(b);
@@ -1290,10 +1322,10 @@ public record Trace(
     }
 
     public TraceBuilder ramTargetRam(final Boolean b) {
-      if (filled.get(76)) {
+      if (filled.get(78)) {
         throw new IllegalStateException("RAM_TARGET_RAM already set");
       } else {
-        filled.set(76);
+        filled.set(78);
       }
 
       ramTargetRam.add(b);
@@ -1302,10 +1334,10 @@ public record Trace(
     }
 
     public TraceBuilder ramTargetRom(final Boolean b) {
-      if (filled.get(77)) {
+      if (filled.get(79)) {
         throw new IllegalStateException("RAM_TARGET_ROM already set");
       } else {
-        filled.set(77);
+        filled.set(79);
       }
 
       ramTargetRom.add(b);
@@ -1314,10 +1346,10 @@ public record Trace(
     }
 
     public TraceBuilder ramTargetStack(final Boolean b) {
-      if (filled.get(78)) {
+      if (filled.get(80)) {
         throw new IllegalStateException("RAM_TARGET_STACK already set");
       } else {
-        filled.set(78);
+        filled.set(80);
       }
 
       ramTargetStack.add(b);
@@ -1326,10 +1358,10 @@ public record Trace(
     }
 
     public TraceBuilder ramTargetTxnData(final Boolean b) {
-      if (filled.get(79)) {
+      if (filled.get(81)) {
         throw new IllegalStateException("RAM_TARGET_TXN_DATA already set");
       } else {
-        filled.set(79);
+        filled.set(81);
       }
 
       ramTargetTxnData.add(b);
@@ -1338,10 +1370,10 @@ public record Trace(
     }
 
     public TraceBuilder staticGas(final BigInteger b) {
-      if (filled.get(80)) {
+      if (filled.get(82)) {
         throw new IllegalStateException("STATIC_GAS already set");
       } else {
-        filled.set(80);
+        filled.set(82);
       }
 
       staticGas.add(b);
@@ -1350,10 +1382,10 @@ public record Trace(
     }
 
     public TraceBuilder twoLinesInstruction(final Boolean b) {
-      if (filled.get(81)) {
+      if (filled.get(83)) {
         throw new IllegalStateException("TWO_LINES_INSTRUCTION already set");
       } else {
-        filled.set(81);
+        filled.set(83);
       }
 
       twoLinesInstruction.add(b);
@@ -1503,190 +1535,198 @@ public record Trace(
       }
 
       if (!filled.get(35)) {
-        throw new IllegalStateException("MXP_TYPE_1 has not been filled");
+        throw new IllegalStateException("IS_JUMPDEST has not been filled");
       }
 
       if (!filled.get(36)) {
-        throw new IllegalStateException("MXP_TYPE_2 has not been filled");
+        throw new IllegalStateException("IS_PUSH has not been filled");
       }
 
       if (!filled.get(37)) {
-        throw new IllegalStateException("MXP_TYPE_3 has not been filled");
+        throw new IllegalStateException("MXP_TYPE_1 has not been filled");
       }
 
       if (!filled.get(38)) {
-        throw new IllegalStateException("MXP_TYPE_4 has not been filled");
+        throw new IllegalStateException("MXP_TYPE_2 has not been filled");
       }
 
       if (!filled.get(39)) {
-        throw new IllegalStateException("MXP_TYPE_5 has not been filled");
+        throw new IllegalStateException("MXP_TYPE_3 has not been filled");
       }
 
       if (!filled.get(40)) {
-        throw new IllegalStateException("NB_ADDED has not been filled");
+        throw new IllegalStateException("MXP_TYPE_4 has not been filled");
       }
 
       if (!filled.get(41)) {
-        throw new IllegalStateException("NB_REMOVED has not been filled");
+        throw new IllegalStateException("MXP_TYPE_5 has not been filled");
       }
 
       if (!filled.get(42)) {
-        throw new IllegalStateException("OPCODE has not been filled");
+        throw new IllegalStateException("NB_ADDED has not been filled");
       }
 
       if (!filled.get(43)) {
-        throw new IllegalStateException("PATTERN_CALL has not been filled");
+        throw new IllegalStateException("NB_REMOVED has not been filled");
       }
 
       if (!filled.get(44)) {
-        throw new IllegalStateException("PATTERN_COPY has not been filled");
+        throw new IllegalStateException("OPCODE has not been filled");
       }
 
       if (!filled.get(45)) {
-        throw new IllegalStateException("PATTERN_CREATE has not been filled");
+        throw new IllegalStateException("PATTERN_CALL has not been filled");
       }
 
       if (!filled.get(46)) {
-        throw new IllegalStateException("PATTERN_DUP has not been filled");
+        throw new IllegalStateException("PATTERN_COPY has not been filled");
       }
 
       if (!filled.get(47)) {
-        throw new IllegalStateException("PATTERN_LOAD_STORE has not been filled");
+        throw new IllegalStateException("PATTERN_CREATE has not been filled");
       }
 
       if (!filled.get(48)) {
-        throw new IllegalStateException("PATTERN_LOG has not been filled");
+        throw new IllegalStateException("PATTERN_DUP has not been filled");
       }
 
       if (!filled.get(49)) {
-        throw new IllegalStateException("PATTERN_ONE_ONE has not been filled");
+        throw new IllegalStateException("PATTERN_LOAD_STORE has not been filled");
       }
 
       if (!filled.get(50)) {
-        throw new IllegalStateException("PATTERN_ONE_ZERO has not been filled");
+        throw new IllegalStateException("PATTERN_LOG has not been filled");
       }
 
       if (!filled.get(51)) {
-        throw new IllegalStateException("PATTERN_SWAP has not been filled");
+        throw new IllegalStateException("PATTERN_ONE_ONE has not been filled");
       }
 
       if (!filled.get(52)) {
-        throw new IllegalStateException("PATTERN_THREE_ONE has not been filled");
+        throw new IllegalStateException("PATTERN_ONE_ZERO has not been filled");
       }
 
       if (!filled.get(53)) {
-        throw new IllegalStateException("PATTERN_TWO_ONE has not been filled");
+        throw new IllegalStateException("PATTERN_SWAP has not been filled");
       }
 
       if (!filled.get(54)) {
-        throw new IllegalStateException("PATTERN_TWO_ZERO has not been filled");
+        throw new IllegalStateException("PATTERN_THREE_ONE has not been filled");
       }
 
       if (!filled.get(55)) {
-        throw new IllegalStateException("PATTERN_ZERO_ONE has not been filled");
+        throw new IllegalStateException("PATTERN_TWO_ONE has not been filled");
       }
 
       if (!filled.get(56)) {
-        throw new IllegalStateException("PATTERN_ZERO_ZERO has not been filled");
+        throw new IllegalStateException("PATTERN_TWO_ZERO has not been filled");
       }
 
       if (!filled.get(57)) {
-        throw new IllegalStateException("RAM_ENABLED has not been filled");
+        throw new IllegalStateException("PATTERN_ZERO_ONE has not been filled");
       }
 
       if (!filled.get(58)) {
-        throw new IllegalStateException("RAM_SOURCE_BLAKE_DATA has not been filled");
+        throw new IllegalStateException("PATTERN_ZERO_ZERO has not been filled");
       }
 
       if (!filled.get(59)) {
-        throw new IllegalStateException("RAM_SOURCE_EC_DATA has not been filled");
+        throw new IllegalStateException("RAM_ENABLED has not been filled");
       }
 
       if (!filled.get(60)) {
-        throw new IllegalStateException("RAM_SOURCE_EC_INFO has not been filled");
+        throw new IllegalStateException("RAM_SOURCE_BLAKE_DATA has not been filled");
       }
 
       if (!filled.get(61)) {
-        throw new IllegalStateException("RAM_SOURCE_HASH_DATA has not been filled");
+        throw new IllegalStateException("RAM_SOURCE_EC_DATA has not been filled");
       }
 
       if (!filled.get(62)) {
-        throw new IllegalStateException("RAM_SOURCE_HASH_INFO has not been filled");
+        throw new IllegalStateException("RAM_SOURCE_EC_INFO has not been filled");
       }
 
       if (!filled.get(63)) {
-        throw new IllegalStateException("RAM_SOURCE_LOG_DATA has not been filled");
+        throw new IllegalStateException("RAM_SOURCE_HASH_DATA has not been filled");
       }
 
       if (!filled.get(64)) {
-        throw new IllegalStateException("RAM_SOURCE_MODEXP_DATA has not been filled");
+        throw new IllegalStateException("RAM_SOURCE_HASH_INFO has not been filled");
       }
 
       if (!filled.get(65)) {
-        throw new IllegalStateException("RAM_SOURCE_RAM has not been filled");
+        throw new IllegalStateException("RAM_SOURCE_LOG_DATA has not been filled");
       }
 
       if (!filled.get(66)) {
-        throw new IllegalStateException("RAM_SOURCE_ROM has not been filled");
+        throw new IllegalStateException("RAM_SOURCE_MODEXP_DATA has not been filled");
       }
 
       if (!filled.get(67)) {
-        throw new IllegalStateException("RAM_SOURCE_STACK has not been filled");
+        throw new IllegalStateException("RAM_SOURCE_RAM has not been filled");
       }
 
       if (!filled.get(68)) {
-        throw new IllegalStateException("RAM_SOURCE_TXN_DATA has not been filled");
+        throw new IllegalStateException("RAM_SOURCE_ROM has not been filled");
       }
 
       if (!filled.get(69)) {
-        throw new IllegalStateException("RAM_TARGET_BLAKE_DATA has not been filled");
+        throw new IllegalStateException("RAM_SOURCE_STACK has not been filled");
       }
 
       if (!filled.get(70)) {
-        throw new IllegalStateException("RAM_TARGET_EC_DATA has not been filled");
+        throw new IllegalStateException("RAM_SOURCE_TXN_DATA has not been filled");
       }
 
       if (!filled.get(71)) {
-        throw new IllegalStateException("RAM_TARGET_EC_INFO has not been filled");
+        throw new IllegalStateException("RAM_TARGET_BLAKE_DATA has not been filled");
       }
 
       if (!filled.get(72)) {
-        throw new IllegalStateException("RAM_TARGET_HASH_DATA has not been filled");
+        throw new IllegalStateException("RAM_TARGET_EC_DATA has not been filled");
       }
 
       if (!filled.get(73)) {
-        throw new IllegalStateException("RAM_TARGET_HASH_INFO has not been filled");
+        throw new IllegalStateException("RAM_TARGET_EC_INFO has not been filled");
       }
 
       if (!filled.get(74)) {
-        throw new IllegalStateException("RAM_TARGET_LOG_DATA has not been filled");
+        throw new IllegalStateException("RAM_TARGET_HASH_DATA has not been filled");
       }
 
       if (!filled.get(75)) {
-        throw new IllegalStateException("RAM_TARGET_MODEXP_DATA has not been filled");
+        throw new IllegalStateException("RAM_TARGET_HASH_INFO has not been filled");
       }
 
       if (!filled.get(76)) {
-        throw new IllegalStateException("RAM_TARGET_RAM has not been filled");
+        throw new IllegalStateException("RAM_TARGET_LOG_DATA has not been filled");
       }
 
       if (!filled.get(77)) {
-        throw new IllegalStateException("RAM_TARGET_ROM has not been filled");
+        throw new IllegalStateException("RAM_TARGET_MODEXP_DATA has not been filled");
       }
 
       if (!filled.get(78)) {
-        throw new IllegalStateException("RAM_TARGET_STACK has not been filled");
+        throw new IllegalStateException("RAM_TARGET_RAM has not been filled");
       }
 
       if (!filled.get(79)) {
-        throw new IllegalStateException("RAM_TARGET_TXN_DATA has not been filled");
+        throw new IllegalStateException("RAM_TARGET_ROM has not been filled");
       }
 
       if (!filled.get(80)) {
-        throw new IllegalStateException("STATIC_GAS has not been filled");
+        throw new IllegalStateException("RAM_TARGET_STACK has not been filled");
       }
 
       if (!filled.get(81)) {
+        throw new IllegalStateException("RAM_TARGET_TXN_DATA has not been filled");
+      }
+
+      if (!filled.get(82)) {
+        throw new IllegalStateException("STATIC_GAS has not been filled");
+      }
+
+      if (!filled.get(83)) {
         throw new IllegalStateException("TWO_LINES_INSTRUCTION has not been filled");
       }
 
@@ -1837,192 +1877,200 @@ public record Trace(
         this.filled.set(34);
       }
       if (!filled.get(35)) {
-        mxpType1.add(false);
+        isJumpdest.add(false);
         this.filled.set(35);
       }
       if (!filled.get(36)) {
-        mxpType2.add(false);
+        isPush.add(false);
         this.filled.set(36);
       }
       if (!filled.get(37)) {
-        mxpType3.add(false);
+        mxpType1.add(false);
         this.filled.set(37);
       }
       if (!filled.get(38)) {
-        mxpType4.add(false);
+        mxpType2.add(false);
         this.filled.set(38);
       }
       if (!filled.get(39)) {
-        mxpType5.add(false);
+        mxpType3.add(false);
         this.filled.set(39);
       }
       if (!filled.get(40)) {
-        nbAdded.add(UnsignedByte.of(0));
+        mxpType4.add(false);
         this.filled.set(40);
       }
       if (!filled.get(41)) {
-        nbRemoved.add(UnsignedByte.of(0));
+        mxpType5.add(false);
         this.filled.set(41);
       }
       if (!filled.get(42)) {
-        opcode.add(BigInteger.ZERO);
+        nbAdded.add(UnsignedByte.of(0));
         this.filled.set(42);
       }
       if (!filled.get(43)) {
-        patternCall.add(false);
+        nbRemoved.add(UnsignedByte.of(0));
         this.filled.set(43);
       }
       if (!filled.get(44)) {
-        patternCopy.add(false);
+        opcode.add(BigInteger.ZERO);
         this.filled.set(44);
       }
       if (!filled.get(45)) {
-        patternCreate.add(false);
+        patternCall.add(false);
         this.filled.set(45);
       }
       if (!filled.get(46)) {
-        patternDup.add(false);
+        patternCopy.add(false);
         this.filled.set(46);
       }
       if (!filled.get(47)) {
-        patternLoadStore.add(false);
+        patternCreate.add(false);
         this.filled.set(47);
       }
       if (!filled.get(48)) {
-        patternLog.add(false);
+        patternDup.add(false);
         this.filled.set(48);
       }
       if (!filled.get(49)) {
-        patternOneOne.add(false);
+        patternLoadStore.add(false);
         this.filled.set(49);
       }
       if (!filled.get(50)) {
-        patternOneZero.add(false);
+        patternLog.add(false);
         this.filled.set(50);
       }
       if (!filled.get(51)) {
-        patternSwap.add(false);
+        patternOneOne.add(false);
         this.filled.set(51);
       }
       if (!filled.get(52)) {
-        patternThreeOne.add(false);
+        patternOneZero.add(false);
         this.filled.set(52);
       }
       if (!filled.get(53)) {
-        patternTwoOne.add(false);
+        patternSwap.add(false);
         this.filled.set(53);
       }
       if (!filled.get(54)) {
-        patternTwoZero.add(false);
+        patternThreeOne.add(false);
         this.filled.set(54);
       }
       if (!filled.get(55)) {
-        patternZeroOne.add(false);
+        patternTwoOne.add(false);
         this.filled.set(55);
       }
       if (!filled.get(56)) {
-        patternZeroZero.add(false);
+        patternTwoZero.add(false);
         this.filled.set(56);
       }
       if (!filled.get(57)) {
-        ramEnabled.add(false);
+        patternZeroOne.add(false);
         this.filled.set(57);
       }
       if (!filled.get(58)) {
-        ramSourceBlakeData.add(false);
+        patternZeroZero.add(false);
         this.filled.set(58);
       }
       if (!filled.get(59)) {
-        ramSourceEcData.add(false);
+        ramEnabled.add(false);
         this.filled.set(59);
       }
       if (!filled.get(60)) {
-        ramSourceEcInfo.add(false);
+        ramSourceBlakeData.add(false);
         this.filled.set(60);
       }
       if (!filled.get(61)) {
-        ramSourceHashData.add(false);
+        ramSourceEcData.add(false);
         this.filled.set(61);
       }
       if (!filled.get(62)) {
-        ramSourceHashInfo.add(false);
+        ramSourceEcInfo.add(false);
         this.filled.set(62);
       }
       if (!filled.get(63)) {
-        ramSourceLogData.add(false);
+        ramSourceHashData.add(false);
         this.filled.set(63);
       }
       if (!filled.get(64)) {
-        ramSourceModexpData.add(false);
+        ramSourceHashInfo.add(false);
         this.filled.set(64);
       }
       if (!filled.get(65)) {
-        ramSourceRam.add(false);
+        ramSourceLogData.add(false);
         this.filled.set(65);
       }
       if (!filled.get(66)) {
-        ramSourceRom.add(false);
+        ramSourceModexpData.add(false);
         this.filled.set(66);
       }
       if (!filled.get(67)) {
-        ramSourceStack.add(false);
+        ramSourceRam.add(false);
         this.filled.set(67);
       }
       if (!filled.get(68)) {
-        ramSourceTxnData.add(false);
+        ramSourceRom.add(false);
         this.filled.set(68);
       }
       if (!filled.get(69)) {
-        ramTargetBlakeData.add(false);
+        ramSourceStack.add(false);
         this.filled.set(69);
       }
       if (!filled.get(70)) {
-        ramTargetEcData.add(false);
+        ramSourceTxnData.add(false);
         this.filled.set(70);
       }
       if (!filled.get(71)) {
-        ramTargetEcInfo.add(false);
+        ramTargetBlakeData.add(false);
         this.filled.set(71);
       }
       if (!filled.get(72)) {
-        ramTargetHashData.add(false);
+        ramTargetEcData.add(false);
         this.filled.set(72);
       }
       if (!filled.get(73)) {
-        ramTargetHashInfo.add(false);
+        ramTargetEcInfo.add(false);
         this.filled.set(73);
       }
       if (!filled.get(74)) {
-        ramTargetLogData.add(false);
+        ramTargetHashData.add(false);
         this.filled.set(74);
       }
       if (!filled.get(75)) {
-        ramTargetModexpData.add(false);
+        ramTargetHashInfo.add(false);
         this.filled.set(75);
       }
       if (!filled.get(76)) {
-        ramTargetRam.add(false);
+        ramTargetLogData.add(false);
         this.filled.set(76);
       }
       if (!filled.get(77)) {
-        ramTargetRom.add(false);
+        ramTargetModexpData.add(false);
         this.filled.set(77);
       }
       if (!filled.get(78)) {
-        ramTargetStack.add(false);
+        ramTargetRam.add(false);
         this.filled.set(78);
       }
       if (!filled.get(79)) {
-        ramTargetTxnData.add(false);
+        ramTargetRom.add(false);
         this.filled.set(79);
       }
       if (!filled.get(80)) {
-        staticGas.add(BigInteger.ZERO);
+        ramTargetStack.add(false);
         this.filled.set(80);
       }
       if (!filled.get(81)) {
-        twoLinesInstruction.add(false);
+        ramTargetTxnData.add(false);
         this.filled.set(81);
+      }
+      if (!filled.get(82)) {
+        staticGas.add(BigInteger.ZERO);
+        this.filled.set(82);
+      }
+      if (!filled.get(83)) {
+        twoLinesInstruction.add(false);
+        this.filled.set(83);
       }
 
       return this.validateRow();
@@ -2069,6 +2117,8 @@ public record Trace(
           flag3,
           flag4,
           forbiddenInStatic,
+          isJumpdest,
+          isPush,
           mxpType1,
           mxpType2,
           mxpType3,

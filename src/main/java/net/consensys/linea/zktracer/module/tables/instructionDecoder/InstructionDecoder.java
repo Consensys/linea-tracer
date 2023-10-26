@@ -144,7 +144,11 @@ public final class InstructionDecoder {
       traceStackSettings(op, trace);
       traceRamSettings(op, trace);
       traceBillingSettings(op, trace);
-      trace.opcode(BigInteger.valueOf(op.value())).validateRow();
+      trace
+          .opcode(BigInteger.valueOf(op.value()))
+          .isPush(op.pushFlag())
+          .isJumpdest(op.jumpFlag())
+          .validateRow();
     }
 
     return new InstructionDecoderTrace(trace.build());

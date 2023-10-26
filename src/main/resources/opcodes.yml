@@ -711,7 +711,7 @@ opcodes:
   - mnemonic: JUMPDEST
     value: 0x5b
     instructionFamily: MACHINE_STATE
-    jumpdestFlag: true
+    jumpFlag: true
     stackSettings:
       pattern: ZERO_ZERO
       alpha: 0

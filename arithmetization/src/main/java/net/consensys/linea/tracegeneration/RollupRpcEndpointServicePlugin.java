@@ -17,13 +17,14 @@ package net.consensys.linea.tracegeneration;
 
 import com.google.auto.service.AutoService;
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.LineaPlugin;
 import net.consensys.linea.tracegeneration.rpc.RollupGenerateConflatedTracesToFileV0;
 import net.consensys.linea.zktracer.opcode.OpCodes;
 import org.hyperledger.besu.plugin.BesuContext;
 import org.hyperledger.besu.plugin.BesuPlugin;
 import org.hyperledger.besu.plugin.services.RpcEndpointService;
 
-/** Test plugin with RPC endpoint. */
+/** Plugin with RPC endpoints. */
 @AutoService(BesuPlugin.class)
 @Slf4j
 public class RollupRpcEndpointServicePlugin implements BesuPlugin {

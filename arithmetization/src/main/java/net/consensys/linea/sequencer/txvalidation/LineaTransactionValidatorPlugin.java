@@ -23,6 +23,7 @@ import java.util.stream.Stream;
 
 import com.google.auto.service.AutoService;
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.LineaPlugin;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.plugin.BesuContext;
 import org.hyperledger.besu.plugin.BesuPlugin;
@@ -32,7 +33,7 @@ import org.hyperledger.besu.plugin.services.PluginTransactionValidatorService;
 /** Implementation of the base {@link BesuPlugin} interfaces for Linea. */
 @Slf4j
 @AutoService(BesuPlugin.class)
-public class LineaTransactionValidatorPlugin implements BesuPlugin {
+public class LineaTransactionValidatorPlugin extends LineaPlugin {
   public static final String NAME = "linea";
   private final LineaTransactionValidatorCliOptions options;
   private final ArrayList<Address> denied = new ArrayList<>();
@@ -47,7 +48,7 @@ public class LineaTransactionValidatorPlugin implements BesuPlugin {
   }
 
   @Override
-  public void register(final BesuContext context) {
+  public void doRegister(final BesuContext context) {
     final Optional<PicoCLIOptions> cmdlineOptions = context.getService(PicoCLIOptions.class);
 
     if (cmdlineOptions.isEmpty()) {
@@ -82,9 +83,6 @@ public class LineaTransactionValidatorPlugin implements BesuPlugin {
 
     log.debug("Starting {} with configuration: {}", NAME, options);
   }
-
-  @Override
-  public void stop() {}
 
   private void createAndRegister(
       final PluginTransactionValidatorService transactionValidationService) {

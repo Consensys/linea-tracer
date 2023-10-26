@@ -112,11 +112,9 @@ public class NoCodeCallSection extends TraceSection implements PostTransactionDe
       }
     } else {
       if (targetIsPrecompile) {
-        /* TODO: reenable when the precompiles are ready
         for (TraceFragment fragment : new PrecompileScenarioTraceSubsection().generate()) {
           this.addChunk(hub, callerCallFrame, fragment);
         }
-         */
       } else {
         this.addChunk(
             hub, callerCallFrame, new ContextFragment(hub.callStack(), this.callerCallFrame, true));

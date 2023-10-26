@@ -37,6 +37,7 @@ import net.consensys.linea.zktracer.module.hub.section.*;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.mul.Mul;
 import net.consensys.linea.zktracer.module.mxp.Mxp;
+import net.consensys.linea.zktracer.module.preclimits.Sha256;
 import net.consensys.linea.zktracer.module.rlpAddr.RlpAddr;
 import net.consensys.linea.zktracer.module.rlp_txn.RlpTxn;
 import net.consensys.linea.zktracer.module.rlp_txrcpt.RlpTxrcpt;
@@ -75,6 +76,18 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 @Accessors(fluent = true)
 public class Hub implements Module {
   private static final int TAU = 8;
+  private static final List<Address> PRECOMPILES =
+      List.of(
+          Address.ECREC,
+          Address.SHA256,
+          Address.RIPEMD160,
+          Address.ID,
+          Address.MODEXP,
+          Address.ALTBN128_ADD,
+          Address.ALTBN128_MUL,
+          Address.ALTBN128_PAIRING,
+          Address.BLAKE2B_F_COMPRESSION);
+
   public static final GasProjector gp = new GasProjector();
 
   // Revertible state of the hub
@@ -142,6 +155,9 @@ public class Hub implements Module {
   private final Rom rom;
   private final RomLex romLex;
   private final TxnData txnData;
+  // Precompile counters
+  private final Sha256 sha256 = new Sha256();
+  // ...and more to come
 
   private final List<Module> modules;
 
@@ -167,7 +183,8 @@ public class Hub implements Module {
             this.rlpTxrcpt,
             this.rlpAddr,
             this.rom,
-            this.txnData);
+            this.txnData,
+            this.sha256);
   }
 
   /**
@@ -197,17 +214,7 @@ public class Hub implements Module {
   }
 
   public static boolean isPrecompile(Address to) {
-    return List.of(
-            Address.ECREC,
-            Address.SHA256,
-            Address.RIPEMD160,
-            Address.ID,
-            Address.MODEXP,
-            Address.ALTBN128_ADD,
-            Address.ALTBN128_MUL,
-            Address.ALTBN128_PAIRING,
-            Address.BLAKE2B_F_COMPRESSION)
-        .contains(to);
+    return PRECOMPILES.contains(to);
   }
 
   public static boolean isValidPrecompileCall(MessageFrame frame) {
@@ -467,6 +474,9 @@ public class Hub implements Module {
       case CALL -> {
         if (!this.exceptions.any() && this.callStack().depth() < 1024) {
           this.romLex.tracePreOpcode(frame);
+          for (Module m : List.of(this.sha256 /* more to come */)) {
+            m.tracePreOpcode(frame);
+          }
         }
         if (!this.exceptions().stackUnderflow() && !this.exceptions().staticViolation()) {
           this.mxp.tracePreOpcode(frame);

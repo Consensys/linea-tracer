@@ -35,6 +35,8 @@ import net.consensys.linea.zktracer.opcode.stack.StackSettings;
 public record OpCodeData(
     OpCode mnemonic,
     int value,
+    boolean pushFlag,
+    boolean jumpFlag,
     InstructionFamily instructionFamily,
     StackSettings stackSettings,
     RamSettings ramSettings,

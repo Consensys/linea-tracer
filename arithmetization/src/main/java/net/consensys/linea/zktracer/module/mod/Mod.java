@@ -87,7 +87,7 @@ public class Mod implements Module {
    * @param arg1 the divider
    * @param arg2 the dividend
    */
-  public void callDiv(Bytes32 arg1, Bytes32 arg2) {
+  public void callDIV(Bytes32 arg1, Bytes32 arg2) {
     this.chunks.add(new ModOperation(OpCode.DIV, arg1, arg2));
   }
 
@@ -97,7 +97,7 @@ public class Mod implements Module {
    * @param arg1 the number
    * @param arg2 the module
    */
-  public void callMod(Bytes32 arg1, Bytes32 arg2) {
+  public void callMOD(Bytes32 arg1, Bytes32 arg2) {
     this.chunks.add(new ModOperation(OpCode.MOD, arg1, arg2));
   }
 }

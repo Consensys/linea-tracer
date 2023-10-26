@@ -22,6 +22,8 @@ import com.google.common.base.Preconditions;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ZkTracer;
+import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.oob.Oob;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.KeyPair;
 import org.hyperledger.besu.crypto.SECP256K1;
@@ -45,6 +47,8 @@ public final class BytecodeRunner {
     this.byteCode = byteCode;
   }
 
+  static ToyExecutionEnvironment toyExecutionEnvironment;
+
   public static BytecodeRunner of(Bytes byteCode) {
     return new BytecodeRunner(byteCode);
   }
@@ -52,13 +56,21 @@ public final class BytecodeRunner {
   @Setter private Consumer<ZkTracer> zkTracerValidator = zkTracer -> {};
 
   public void run() {
+    run(Wei.fromEth(1), 100_000_000L);
+  }
+
+  public void run(Long gasLimit) {
+    run(Wei.fromEth(1), gasLimit);
+  }
+
+  public void run(Wei senderBalance, Long gasLimit) {
     Preconditions.checkArgument(byteCode != null, "byteCode cannot be empty");
 
     KeyPair keyPair = new SECP256K1().generateKeyPair();
     Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
 
     final ToyAccount senderAccount =
-        ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
+        ToyAccount.builder().balance(senderBalance).nonce(5).address(senderAddress).build();
 
     final ToyAccount receiverAccount =
         ToyAccount.builder()
@@ -73,18 +85,27 @@ public final class BytecodeRunner {
             .sender(senderAccount)
             .to(receiverAccount)
             .keyPair(keyPair)
-            .gasLimit(100_000_000L)
+            .gasLimit(gasLimit)
             .build();
 
     final ToyWorld toyWorld =
         ToyWorld.builder().accounts(List.of(senderAccount, receiverAccount)).build();
 
-    ToyExecutionEnvironment.builder()
-        .testValidator(x -> {})
-        .toyWorld(toyWorld)
-        .zkTracerValidator(zkTracerValidator)
-        .transaction(tx)
-        .build()
-        .run();
+    toyExecutionEnvironment =
+        ToyExecutionEnvironment.builder()
+            .testValidator(x -> {})
+            .toyWorld(toyWorld)
+            .transaction(tx)
+            .build();
+
+    toyExecutionEnvironment.run();
+  }
+
+  public Hub getHub() {
+    return ((ZkTracer) toyExecutionEnvironment.getTracer()).getHub();
+  }
+
+  public Oob getOob() {
+    return toyExecutionEnvironment.getOob();
   }
 }

@@ -66,6 +66,7 @@ import net.consensys.linea.zktracer.module.mmu.Mmu;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.mul.Mul;
 import net.consensys.linea.zktracer.module.mxp.Mxp;
+import net.consensys.linea.zktracer.module.oob.Oob;
 import net.consensys.linea.zktracer.module.rlp.addr.RlpAddr;
 import net.consensys.linea.zktracer.module.rlp.txn.RlpTxn;
 import net.consensys.linea.zktracer.module.rlp.txrcpt.RlpTxrcpt;
@@ -131,6 +132,8 @@ public class Hub implements Module {
   /** stores all data related to failure states & module activation */
   @Getter private final PlatformController pch;
 
+  @Getter private DeploymentExceptions deploymentExceptions;
+
   public int stamp() {
     return this.state.stamps().hub();
   }
@@ -192,7 +195,7 @@ public class Hub implements Module {
   private final ModexpEffectiveCall modexp;
   private final Stp stp = new Stp(this, wcp, mod);
   private final L2Block l2Block;
-
+  @Getter private final Oob oob;
   private final List<Module> modules;
   /* Those modules are not traced, we just compute the number of calls to those precompile to meet the prover limits */
   private final List<Module> precompileLimitModules;
@@ -218,7 +221,7 @@ public class Hub implements Module {
     this.modexp = new ModexpEffectiveCall(this);
     final EcPairingCallEffectiveCall ecPairingCall = new EcPairingCallEffectiveCall(this);
     final L2Block l2Block = new L2Block(l2l1ContractAddress, LogTopic.of(l2l1Topic));
-
+    this.oob = new Oob(this, (Add) this.add, this.mod, this.wcp);
     this.precompileLimitModules =
         List.of(
             new Sha256Blocks(this),
@@ -260,7 +263,8 @@ public class Hub implements Module {
                     this.stp,
                     this.trm,
                     this.txnData,
-                    this.wcp),
+                    this.wcp,
+                    this.oob),
                 this.precompileLimitModules.stream())
             .toList();
   }
@@ -294,7 +298,8 @@ public class Hub implements Module {
                 this.shf,
                 this.stp,
                 this.txnData,
-                this.wcp))
+                this.wcp,
+                this.oob))
         .toList();
   }
 
@@ -329,7 +334,8 @@ public class Hub implements Module {
                 this.trm,
                 this.txnData,
                 this.wcp,
-                this.l2Block),
+                this.l2Block,
+                this.oob),
             this.precompileLimitModules.stream())
         .toList();
   }
@@ -579,12 +585,14 @@ public class Hub implements Module {
     if (this.pch.signals().mmu()) {
       this.mmu.tracePreOpcode(frame);
     }
-
+    if (this.pch.signals().romLex()) {
+      this.romLex.tracePreOpcode(frame);
+    }
     if (this.pch.signals().mxp()) {
       this.mxp.tracePreOpcode(frame);
     }
     if (this.pch.signals().oob()) {
-      // TODO: this.oob.tracePreOpcode(frame);
+      this.oob.tracePreOpcode(frame);
     }
     if (this.pch.signals().stp()) {
       this.stp.tracePreOpcode(frame);
@@ -602,6 +610,9 @@ public class Hub implements Module {
     }
     if (this.pch.signals().ecData()) {
       this.ecData.tracePreOpcode(frame);
+    }
+    if (this.pch.signals().logInfo()) {
+      // TODO: this.hashInfo.tracePreOpcode(frame);
     }
   }
 
@@ -887,10 +898,9 @@ public class Hub implements Module {
           .deploymentInfo()
           .unmarkDeploying(this.currentFrame().codeAddress());
 
-      DeploymentExceptions contextExceptions =
-          DeploymentExceptions.fromFrame(this.currentFrame(), frame);
-      this.currentTraceSection().setContextExceptions(contextExceptions);
-      if (contextExceptions.any()) {
+      this.deploymentExceptions = DeploymentExceptions.fromFrame(this.currentFrame(), frame);
+      this.currentTraceSection().setContextExceptions(this.deploymentExceptions());
+      if (this.deploymentExceptions().any()) {
         this.callStack.revert(this.state.stamps().hub());
       }
 

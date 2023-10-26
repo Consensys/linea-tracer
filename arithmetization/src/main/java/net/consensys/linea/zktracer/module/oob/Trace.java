@@ -293,7 +293,6 @@ public class Trace {
       data1.put((byte) 0);
     }
     data1.put(b.toArrayUnsafe());
-
     return this;
   }
 
@@ -364,6 +363,7 @@ public class Trace {
   public Trace data6(final Bytes b) {
     if (filled.get(8)) {
       throw new IllegalStateException("oob.DATA_6 already set");
+
     } else {
       filled.set(8);
     }
@@ -426,6 +426,7 @@ public class Trace {
   }
 
   public Trace isCall(final Boolean b) {
+
     if (filled.get(12)) {
       throw new IllegalStateException("oob.IS_CALL already set");
     } else {
@@ -438,6 +439,7 @@ public class Trace {
   }
 
   public Trace isCdl(final Boolean b) {
+
     if (filled.get(13)) {
       throw new IllegalStateException("oob.IS_CDL already set");
     } else {
@@ -450,6 +452,7 @@ public class Trace {
   }
 
   public Trace isCreate(final Boolean b) {
+
     if (filled.get(14)) {
       throw new IllegalStateException("oob.IS_CREATE already set");
     } else {
@@ -462,6 +465,7 @@ public class Trace {
   }
 
   public Trace isJump(final Boolean b) {
+
     if (filled.get(15)) {
       throw new IllegalStateException("oob.IS_JUMP already set");
     } else {
@@ -474,6 +478,7 @@ public class Trace {
   }
 
   public Trace isJumpi(final Boolean b) {
+
     if (filled.get(16)) {
       throw new IllegalStateException("oob.IS_JUMPI already set");
     } else {
@@ -486,6 +491,7 @@ public class Trace {
   }
 
   public Trace isRdc(final Boolean b) {
+
     if (filled.get(17)) {
       throw new IllegalStateException("oob.IS_RDC already set");
     } else {
@@ -498,6 +504,7 @@ public class Trace {
   }
 
   public Trace isReturn(final Boolean b) {
+
     if (filled.get(18)) {
       throw new IllegalStateException("oob.IS_RETURN already set");
     } else {
@@ -510,6 +517,7 @@ public class Trace {
   }
 
   public Trace isSstore(final Boolean b) {
+
     if (filled.get(19)) {
       throw new IllegalStateException("oob.IS_SSTORE already set");
     } else {
@@ -522,6 +530,7 @@ public class Trace {
   }
 
   public Trace isXcall(final Boolean b) {
+
     if (filled.get(20)) {
       throw new IllegalStateException("oob.IS_XCALL already set");
     } else {
@@ -534,6 +543,7 @@ public class Trace {
   }
 
   public Trace modFlag(final Boolean b) {
+
     if (filled.get(21)) {
       throw new IllegalStateException("oob.MOD_FLAG already set");
     } else {
@@ -640,6 +650,7 @@ public class Trace {
   public Trace prcBlake2FCds(final Boolean b) {
     if (filled.get(28)) {
       throw new IllegalStateException("oob.PRC_BLAKE2F_cds already set");
+
     } else {
       filled.set(28);
     }
@@ -652,6 +663,7 @@ public class Trace {
   public Trace prcBlake2FParams(final Boolean b) {
     if (filled.get(29)) {
       throw new IllegalStateException("oob.PRC_BLAKE2F_params already set");
+
     } else {
       filled.set(29);
     }
@@ -723,7 +735,9 @@ public class Trace {
 
   public Trace prcModexpBase(final Boolean b) {
     if (filled.get(35)) {
+
       throw new IllegalStateException("oob.PRC_MODEXP_base already set");
+
     } else {
       filled.set(35);
     }
@@ -735,7 +749,9 @@ public class Trace {
 
   public Trace prcModexpCds(final Boolean b) {
     if (filled.get(36)) {
+
       throw new IllegalStateException("oob.PRC_MODEXP_cds already set");
+
     } else {
       filled.set(36);
     }
@@ -747,7 +763,9 @@ public class Trace {
 
   public Trace prcModexpExponent(final Boolean b) {
     if (filled.get(37)) {
+
       throw new IllegalStateException("oob.PRC_MODEXP_exponent already set");
+
     } else {
       filled.set(37);
     }
@@ -759,7 +777,9 @@ public class Trace {
 
   public Trace prcModexpModulus(final Boolean b) {
     if (filled.get(38)) {
+
       throw new IllegalStateException("oob.PRC_MODEXP_modulus already set");
+
     } else {
       filled.set(38);
     }
@@ -771,7 +791,9 @@ public class Trace {
 
   public Trace prcModexpPricing(final Boolean b) {
     if (filled.get(39)) {
+
       throw new IllegalStateException("oob.PRC_MODEXP_pricing already set");
+
     } else {
       filled.set(39);
     }
@@ -847,6 +869,7 @@ public class Trace {
     }
 
     if (!filled.get(3)) {
+
       throw new IllegalStateException("oob.DATA_1 has not been filled");
     }
 

@@ -30,7 +30,7 @@ import org.hyperledger.besu.plugin.BesuPlugin;
 import org.hyperledger.besu.plugin.services.PicoCLIOptions;
 import org.hyperledger.besu.plugin.services.PluginTransactionValidatorService;
 
-/** Implementation of the base {@link BesuPlugin} interfaces for Linea. */
+/** Implementation of the base {@link BesuPlugin} interface for Linea Transaction Validation. */
 @Slf4j
 @AutoService(BesuPlugin.class)
 public class LineaTransactionValidatorPlugin extends LineaRequiredPlugin {

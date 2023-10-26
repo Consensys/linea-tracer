@@ -18,22 +18,17 @@ package net.consensys.linea.zktracer.module.tables.instructionDecoder;
 import java.math.BigInteger;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.opcode.OpCodeData;
+import net.consensys.linea.zktracer.module.ModuleTrace;
 
 /**
  * WARNING: This code is generated automatically.
  * Any modifications to this code may be overwritten and could lead to unexpected behavior.
  * Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
-record InstructionDecoderTrace(@JsonProperty("Trace") Trace trace) {
-  final Trace.TraceBuilder builder = Trace.builder();
+record InstructionDecoderTrace(@JsonProperty("Trace") Trace trace) implements ModuleTrace {
 
-  public InstructionDecoderTrace generate() {
-    for (OpCode opCode: OpCode.values()) {
-      final OpCodeData opCodeData = opCode.getData();
-    }
-
-    return new InstructionDecoderTrace(builder.build());
+  @Override
+  public int length() {
+      return this.trace.size();
   }
 }

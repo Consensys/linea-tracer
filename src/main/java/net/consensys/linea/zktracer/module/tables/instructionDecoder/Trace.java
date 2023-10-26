@@ -29,196 +29,263 @@ import java.util.List;
  * Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
 public record Trace(
-  @JsonProperty("ADD_FLAG") List<BigInteger> addFlag,
-  @JsonProperty("ADD_MOD_FLAG") List<BigInteger> addModFlag,
-  @JsonProperty("ALPHA") List<BigInteger> alpha,
-  @JsonProperty("ALU_ADD_INST") List<BigInteger> aluAddInst,
-  @JsonProperty("ALU_EXT_INST") List<BigInteger> aluExtInst,
-  @JsonProperty("ALU_MOD_INST") List<BigInteger> aluModInst,
-  @JsonProperty("ALU_MUL_INST") List<BigInteger> aluMulInst,
-  @JsonProperty("ARITHMETIC_INST") List<BigInteger> arithmeticInst,
-  @JsonProperty("BINARY_INST") List<BigInteger> binaryInst,
-  @JsonProperty("CALL_FLAG") List<BigInteger> callFlag,
-  @JsonProperty("CALLDATA_FLAG") List<BigInteger> calldataFlag,
-  @JsonProperty("CALLDATACOPY_FLAG") List<BigInteger> calldatacopyFlag,
-  @JsonProperty("DELTA") List<BigInteger> delta,
-  @JsonProperty("DIV_FLAG") List<BigInteger> divFlag,
-  @JsonProperty("EXODATA_IS_SOURCE") List<BigInteger> exodataIsSource,
-  @JsonProperty("EXOOP_FLAG") List<BigInteger> exoopFlag,
-  @JsonProperty("EXP_FLAG") List<BigInteger> expFlag,
-  @JsonProperty("FLAG_1") List<BigInteger> flag1,
-  @JsonProperty("FLAG_2") List<BigInteger> flag2,
-  @JsonProperty("FLAG_3") List<BigInteger> flag3,
-  @JsonProperty("HASH_INST") List<BigInteger> hashInst,
-  @JsonProperty("INST") List<BigInteger> inst,
-  @JsonProperty("INST_PARAM") List<BigInteger> instParam,
-  @JsonProperty("INVALID_INSTRUCTION") List<BigInteger> invalidInstruction,
-  @JsonProperty("JUMP_FLAG") List<BigInteger> jumpFlag,
-  @JsonProperty("LOG_INST") List<BigInteger> logInst,
-  @JsonProperty("MEMORY_EXPANSION_FLAG") List<BigInteger> memoryExpansionFlag,
-  @JsonProperty("MOD_FLAG") List<BigInteger> modFlag,
-  @JsonProperty("MUL_FLAG") List<BigInteger> mulFlag,
-  @JsonProperty("MUL_MOD_FLAG") List<BigInteger> mulModFlag,
-  @JsonProperty("MXP_GBYTE") List<BigInteger> mxpGbyte,
-  @JsonProperty("MXP_GWORD") List<BigInteger> mxpGword,
-  @JsonProperty("MXP_INST") List<BigInteger> mxpInst,
-  @JsonProperty("MXP_TYPE_1") List<BigInteger> mxpType1,
-  @JsonProperty("MXP_TYPE_2") List<BigInteger> mxpType2,
-  @JsonProperty("MXP_TYPE_3") List<BigInteger> mxpType3,
-  @JsonProperty("MXP_TYPE_4") List<BigInteger> mxpType4,
-  @JsonProperty("MXP_TYPE_5") List<BigInteger> mxpType5,
-  @JsonProperty("NB_ADDED") List<BigInteger> nbAdded,
-  @JsonProperty("NB_REMOVED") List<BigInteger> nbRemoved,
-  @JsonProperty("NON_STATIC_FLAG") List<BigInteger> nonStaticFlag,
-  @JsonProperty("OP") List<BigInteger> op,
-  @JsonProperty("PUSH_FLAG") List<BigInteger> pushFlag,
-  @JsonProperty("RAM_INST") List<BigInteger> ramInst,
-  @JsonProperty("RETURN_FLAG") List<BigInteger> returnFlag,
-  @JsonProperty("RETURNDATA_FLAG") List<BigInteger> returndataFlag,
-  @JsonProperty("REVERT_FLAG") List<BigInteger> revertFlag,
-  @JsonProperty("ROM_FLAG") List<BigInteger> romFlag,
-  @JsonProperty("SDIV_FLAG") List<BigInteger> sdivFlag,
-  @JsonProperty("SHIFT_INST") List<BigInteger> shiftInst,
-  @JsonProperty("SIZE") List<BigInteger> size,
-  @JsonProperty("SMOD_FLAG") List<BigInteger> smodFlag,
-  @JsonProperty("SPECIAL_PC_UPDATE") List<BigInteger> specialPcUpdate,
-  @JsonProperty("STACK_PATTERN") List<BigInteger> stackPattern,
+  @JsonProperty("ADDRESS_TRIMMING_INSTRUCTION") List<Boolean> addressTrimmingInstruction,
+  @JsonProperty("ALPHA") List<UnsignedByte> alpha,
+  @JsonProperty("BILLING_PER_BYTE") List<BigInteger> billingPerByte,
+  @JsonProperty("BILLING_PER_WORD") List<BigInteger> billingPerWord,
+  @JsonProperty("DELTA") List<UnsignedByte> delta,
+  @JsonProperty("FAMILY_ACCOUNT") List<Boolean> familyAccount,
+  @JsonProperty("FAMILY_ADD") List<Boolean> familyAdd,
+  @JsonProperty("FAMILY_BATCH") List<Boolean> familyBatch,
+  @JsonProperty("FAMILY_BIN") List<Boolean> familyBin,
+  @JsonProperty("FAMILY_CALL") List<Boolean> familyCall,
+  @JsonProperty("FAMILY_CONTEXT") List<Boolean> familyContext,
+  @JsonProperty("FAMILY_COPY") List<Boolean> familyCopy,
+  @JsonProperty("FAMILY_CREATE") List<Boolean> familyCreate,
+  @JsonProperty("FAMILY_DUP") List<Boolean> familyDup,
+  @JsonProperty("FAMILY_EXT") List<Boolean> familyExt,
+  @JsonProperty("FAMILY_HALT") List<Boolean> familyHalt,
+  @JsonProperty("FAMILY_INVALID") List<Boolean> familyInvalid,
+  @JsonProperty("FAMILY_JUMP") List<Boolean> familyJump,
+  @JsonProperty("FAMILY_KEC") List<Boolean> familyKec,
+  @JsonProperty("FAMILY_LOG") List<Boolean> familyLog,
+  @JsonProperty("FAMILY_MACHINE_STATE") List<Boolean> familyMachineState,
+  @JsonProperty("FAMILY_MOD") List<Boolean> familyMod,
+  @JsonProperty("FAMILY_MUL") List<Boolean> familyMul,
+  @JsonProperty("FAMILY_PUSH_POP") List<Boolean> familyPushPop,
+  @JsonProperty("FAMILY_SHF") List<Boolean> familyShf,
+  @JsonProperty("FAMILY_STACK_RAM") List<Boolean> familyStackRam,
+  @JsonProperty("FAMILY_STORAGE") List<Boolean> familyStorage,
+  @JsonProperty("FAMILY_SWAP") List<Boolean> familySwap,
+  @JsonProperty("FAMILY_TRANSACTION") List<Boolean> familyTransaction,
+  @JsonProperty("FAMILY_WCP") List<Boolean> familyWcp,
+  @JsonProperty("FLAG1") List<Boolean> flag1,
+  @JsonProperty("FLAG2") List<Boolean> flag2,
+  @JsonProperty("FLAG3") List<Boolean> flag3,
+  @JsonProperty("FLAG4") List<Boolean> flag4,
+  @JsonProperty("FORBIDDEN_IN_STATIC") List<Boolean> forbiddenInStatic,
+  @JsonProperty("MXP_TYPE_1") List<Boolean> mxpType1,
+  @JsonProperty("MXP_TYPE_2") List<Boolean> mxpType2,
+  @JsonProperty("MXP_TYPE_3") List<Boolean> mxpType3,
+  @JsonProperty("MXP_TYPE_4") List<Boolean> mxpType4,
+  @JsonProperty("MXP_TYPE_5") List<Boolean> mxpType5,
+  @JsonProperty("NB_ADDED") List<UnsignedByte> nbAdded,
+  @JsonProperty("NB_REMOVED") List<UnsignedByte> nbRemoved,
+  @JsonProperty("OPCODE") List<BigInteger> opcode,
+  @JsonProperty("PATTERN_CALL") List<Boolean> patternCall,
+  @JsonProperty("PATTERN_COPY") List<Boolean> patternCopy,
+  @JsonProperty("PATTERN_CREATE") List<Boolean> patternCreate,
+  @JsonProperty("PATTERN_DUP") List<Boolean> patternDup,
+  @JsonProperty("PATTERN_LOAD_STORE") List<Boolean> patternLoadStore,
+  @JsonProperty("PATTERN_LOG") List<Boolean> patternLog,
+  @JsonProperty("PATTERN_ONE_ONE") List<Boolean> patternOneOne,
+  @JsonProperty("PATTERN_ONE_ZERO") List<Boolean> patternOneZero,
+  @JsonProperty("PATTERN_SWAP") List<Boolean> patternSwap,
+  @JsonProperty("PATTERN_THREE_ONE") List<Boolean> patternThreeOne,
+  @JsonProperty("PATTERN_TWO_ONE") List<Boolean> patternTwoOne,
+  @JsonProperty("PATTERN_TWO_ZERO") List<Boolean> patternTwoZero,
+  @JsonProperty("PATTERN_ZERO_ONE") List<Boolean> patternZeroOne,
+  @JsonProperty("PATTERN_ZERO_ZERO") List<Boolean> patternZeroZero,
+  @JsonProperty("RAM_ENABLED") List<Boolean> ramEnabled,
+  @JsonProperty("RAM_SOURCE_BLAKE_DATA") List<Boolean> ramSourceBlakeData,
+  @JsonProperty("RAM_SOURCE_EC_DATA") List<Boolean> ramSourceEcData,
+  @JsonProperty("RAM_SOURCE_EC_INFO") List<Boolean> ramSourceEcInfo,
+  @JsonProperty("RAM_SOURCE_HASH_DATA") List<Boolean> ramSourceHashData,
+  @JsonProperty("RAM_SOURCE_HASH_INFO") List<Boolean> ramSourceHashInfo,
+  @JsonProperty("RAM_SOURCE_LOG_DATA") List<Boolean> ramSourceLogData,
+  @JsonProperty("RAM_SOURCE_MODEXP_DATA") List<Boolean> ramSourceModexpData,
+  @JsonProperty("RAM_SOURCE_RAM") List<Boolean> ramSourceRam,
+  @JsonProperty("RAM_SOURCE_ROM") List<Boolean> ramSourceRom,
+  @JsonProperty("RAM_SOURCE_STACK") List<Boolean> ramSourceStack,
+  @JsonProperty("RAM_SOURCE_TXN_DATA") List<Boolean> ramSourceTxnData,
+  @JsonProperty("RAM_TARGET_BLAKE_DATA") List<Boolean> ramTargetBlakeData,
+  @JsonProperty("RAM_TARGET_EC_DATA") List<Boolean> ramTargetEcData,
+  @JsonProperty("RAM_TARGET_EC_INFO") List<Boolean> ramTargetEcInfo,
+  @JsonProperty("RAM_TARGET_HASH_DATA") List<Boolean> ramTargetHashData,
+  @JsonProperty("RAM_TARGET_HASH_INFO") List<Boolean> ramTargetHashInfo,
+  @JsonProperty("RAM_TARGET_LOG_DATA") List<Boolean> ramTargetLogData,
+  @JsonProperty("RAM_TARGET_MODEXP_DATA") List<Boolean> ramTargetModexpData,
+  @JsonProperty("RAM_TARGET_RAM") List<Boolean> ramTargetRam,
+  @JsonProperty("RAM_TARGET_ROM") List<Boolean> ramTargetRom,
+  @JsonProperty("RAM_TARGET_STACK") List<Boolean> ramTargetStack,
+  @JsonProperty("RAM_TARGET_TXN_DATA") List<Boolean> ramTargetTxnData,
   @JsonProperty("STATIC_GAS") List<BigInteger> staticGas,
-  @JsonProperty("STOP_FLAG") List<BigInteger> stopFlag,
-  @JsonProperty("STORAGE_INST") List<BigInteger> storageInst,
-  @JsonProperty("SUB_FLAG") List<BigInteger> subFlag,
-  @JsonProperty("TWO_LINES_INSTRUCTION") List<BigInteger> twoLinesInstruction,
-  @JsonProperty("WARMTH_FLAG") List<BigInteger> warmthFlag,
-  @JsonProperty("WORD_COMPARISON_INST") List<BigInteger> wordComparisonInst) { 
+  @JsonProperty("TWO_LINES_INSTRUCTION") List<Boolean> twoLinesInstruction) { 
   static TraceBuilder builder() {
     return new TraceBuilder();
+  }
+
+  public int size() {
+      return this.addressTrimmingInstruction.size();
   }
 
   static class TraceBuilder {
     private final BitSet filled = new BitSet();
 
-    @JsonProperty("ADD_FLAG")
-    private final List<BigInteger> addFlag = new ArrayList<>();
-    @JsonProperty("ADD_MOD_FLAG")
-    private final List<BigInteger> addModFlag = new ArrayList<>();
+    @JsonProperty("ADDRESS_TRIMMING_INSTRUCTION")
+    private final List<Boolean> addressTrimmingInstruction = new ArrayList<>();
     @JsonProperty("ALPHA")
-    private final List<BigInteger> alpha = new ArrayList<>();
-    @JsonProperty("ALU_ADD_INST")
-    private final List<BigInteger> aluAddInst = new ArrayList<>();
-    @JsonProperty("ALU_EXT_INST")
-    private final List<BigInteger> aluExtInst = new ArrayList<>();
-    @JsonProperty("ALU_MOD_INST")
-    private final List<BigInteger> aluModInst = new ArrayList<>();
-    @JsonProperty("ALU_MUL_INST")
-    private final List<BigInteger> aluMulInst = new ArrayList<>();
-    @JsonProperty("ARITHMETIC_INST")
-    private final List<BigInteger> arithmeticInst = new ArrayList<>();
-    @JsonProperty("BINARY_INST")
-    private final List<BigInteger> binaryInst = new ArrayList<>();
-    @JsonProperty("CALL_FLAG")
-    private final List<BigInteger> callFlag = new ArrayList<>();
-    @JsonProperty("CALLDATA_FLAG")
-    private final List<BigInteger> calldataFlag = new ArrayList<>();
-    @JsonProperty("CALLDATACOPY_FLAG")
-    private final List<BigInteger> calldatacopyFlag = new ArrayList<>();
+    private final List<UnsignedByte> alpha = new ArrayList<>();
+    @JsonProperty("BILLING_PER_BYTE")
+    private final List<BigInteger> billingPerByte = new ArrayList<>();
+    @JsonProperty("BILLING_PER_WORD")
+    private final List<BigInteger> billingPerWord = new ArrayList<>();
     @JsonProperty("DELTA")
-    private final List<BigInteger> delta = new ArrayList<>();
-    @JsonProperty("DIV_FLAG")
-    private final List<BigInteger> divFlag = new ArrayList<>();
-    @JsonProperty("EXODATA_IS_SOURCE")
-    private final List<BigInteger> exodataIsSource = new ArrayList<>();
-    @JsonProperty("EXOOP_FLAG")
-    private final List<BigInteger> exoopFlag = new ArrayList<>();
-    @JsonProperty("EXP_FLAG")
-    private final List<BigInteger> expFlag = new ArrayList<>();
-    @JsonProperty("FLAG_1")
-    private final List<BigInteger> flag1 = new ArrayList<>();
-    @JsonProperty("FLAG_2")
-    private final List<BigInteger> flag2 = new ArrayList<>();
-    @JsonProperty("FLAG_3")
-    private final List<BigInteger> flag3 = new ArrayList<>();
-    @JsonProperty("HASH_INST")
-    private final List<BigInteger> hashInst = new ArrayList<>();
-    @JsonProperty("INST")
-    private final List<BigInteger> inst = new ArrayList<>();
-    @JsonProperty("INST_PARAM")
-    private final List<BigInteger> instParam = new ArrayList<>();
-    @JsonProperty("INVALID_INSTRUCTION")
-    private final List<BigInteger> invalidInstruction = new ArrayList<>();
-    @JsonProperty("JUMP_FLAG")
-    private final List<BigInteger> jumpFlag = new ArrayList<>();
-    @JsonProperty("LOG_INST")
-    private final List<BigInteger> logInst = new ArrayList<>();
-    @JsonProperty("MEMORY_EXPANSION_FLAG")
-    private final List<BigInteger> memoryExpansionFlag = new ArrayList<>();
-    @JsonProperty("MOD_FLAG")
-    private final List<BigInteger> modFlag = new ArrayList<>();
-    @JsonProperty("MUL_FLAG")
-    private final List<BigInteger> mulFlag = new ArrayList<>();
-    @JsonProperty("MUL_MOD_FLAG")
-    private final List<BigInteger> mulModFlag = new ArrayList<>();
-    @JsonProperty("MXP_GBYTE")
-    private final List<BigInteger> mxpGbyte = new ArrayList<>();
-    @JsonProperty("MXP_GWORD")
-    private final List<BigInteger> mxpGword = new ArrayList<>();
-    @JsonProperty("MXP_INST")
-    private final List<BigInteger> mxpInst = new ArrayList<>();
+    private final List<UnsignedByte> delta = new ArrayList<>();
+    @JsonProperty("FAMILY_ACCOUNT")
+    private final List<Boolean> familyAccount = new ArrayList<>();
+    @JsonProperty("FAMILY_ADD")
+    private final List<Boolean> familyAdd = new ArrayList<>();
+    @JsonProperty("FAMILY_BATCH")
+    private final List<Boolean> familyBatch = new ArrayList<>();
+    @JsonProperty("FAMILY_BIN")
+    private final List<Boolean> familyBin = new ArrayList<>();
+    @JsonProperty("FAMILY_CALL")
+    private final List<Boolean> familyCall = new ArrayList<>();
+    @JsonProperty("FAMILY_CONTEXT")
+    private final List<Boolean> familyContext = new ArrayList<>();
+    @JsonProperty("FAMILY_COPY")
+    private final List<Boolean> familyCopy = new ArrayList<>();
+    @JsonProperty("FAMILY_CREATE")
+    private final List<Boolean> familyCreate = new ArrayList<>();
+    @JsonProperty("FAMILY_DUP")
+    private final List<Boolean> familyDup = new ArrayList<>();
+    @JsonProperty("FAMILY_EXT")
+    private final List<Boolean> familyExt = new ArrayList<>();
+    @JsonProperty("FAMILY_HALT")
+    private final List<Boolean> familyHalt = new ArrayList<>();
+    @JsonProperty("FAMILY_INVALID")
+    private final List<Boolean> familyInvalid = new ArrayList<>();
+    @JsonProperty("FAMILY_JUMP")
+    private final List<Boolean> familyJump = new ArrayList<>();
+    @JsonProperty("FAMILY_KEC")
+    private final List<Boolean> familyKec = new ArrayList<>();
+    @JsonProperty("FAMILY_LOG")
+    private final List<Boolean> familyLog = new ArrayList<>();
+    @JsonProperty("FAMILY_MACHINE_STATE")
+    private final List<Boolean> familyMachineState = new ArrayList<>();
+    @JsonProperty("FAMILY_MOD")
+    private final List<Boolean> familyMod = new ArrayList<>();
+    @JsonProperty("FAMILY_MUL")
+    private final List<Boolean> familyMul = new ArrayList<>();
+    @JsonProperty("FAMILY_PUSH_POP")
+    private final List<Boolean> familyPushPop = new ArrayList<>();
+    @JsonProperty("FAMILY_SHF")
+    private final List<Boolean> familyShf = new ArrayList<>();
+    @JsonProperty("FAMILY_STACK_RAM")
+    private final List<Boolean> familyStackRam = new ArrayList<>();
+    @JsonProperty("FAMILY_STORAGE")
+    private final List<Boolean> familyStorage = new ArrayList<>();
+    @JsonProperty("FAMILY_SWAP")
+    private final List<Boolean> familySwap = new ArrayList<>();
+    @JsonProperty("FAMILY_TRANSACTION")
+    private final List<Boolean> familyTransaction = new ArrayList<>();
+    @JsonProperty("FAMILY_WCP")
+    private final List<Boolean> familyWcp = new ArrayList<>();
+    @JsonProperty("FLAG1")
+    private final List<Boolean> flag1 = new ArrayList<>();
+    @JsonProperty("FLAG2")
+    private final List<Boolean> flag2 = new ArrayList<>();
+    @JsonProperty("FLAG3")
+    private final List<Boolean> flag3 = new ArrayList<>();
+    @JsonProperty("FLAG4")
+    private final List<Boolean> flag4 = new ArrayList<>();
+    @JsonProperty("FORBIDDEN_IN_STATIC")
+    private final List<Boolean> forbiddenInStatic = new ArrayList<>();
     @JsonProperty("MXP_TYPE_1")
-    private final List<BigInteger> mxpType1 = new ArrayList<>();
+    private final List<Boolean> mxpType1 = new ArrayList<>();
     @JsonProperty("MXP_TYPE_2")
-    private final List<BigInteger> mxpType2 = new ArrayList<>();
+    private final List<Boolean> mxpType2 = new ArrayList<>();
     @JsonProperty("MXP_TYPE_3")
-    private final List<BigInteger> mxpType3 = new ArrayList<>();
+    private final List<Boolean> mxpType3 = new ArrayList<>();
     @JsonProperty("MXP_TYPE_4")
-    private final List<BigInteger> mxpType4 = new ArrayList<>();
+    private final List<Boolean> mxpType4 = new ArrayList<>();
     @JsonProperty("MXP_TYPE_5")
-    private final List<BigInteger> mxpType5 = new ArrayList<>();
+    private final List<Boolean> mxpType5 = new ArrayList<>();
     @JsonProperty("NB_ADDED")
-    private final List<BigInteger> nbAdded = new ArrayList<>();
+    private final List<UnsignedByte> nbAdded = new ArrayList<>();
     @JsonProperty("NB_REMOVED")
-    private final List<BigInteger> nbRemoved = new ArrayList<>();
-    @JsonProperty("NON_STATIC_FLAG")
-    private final List<BigInteger> nonStaticFlag = new ArrayList<>();
-    @JsonProperty("OP")
-    private final List<BigInteger> op = new ArrayList<>();
-    @JsonProperty("PUSH_FLAG")
-    private final List<BigInteger> pushFlag = new ArrayList<>();
-    @JsonProperty("RAM_INST")
-    private final List<BigInteger> ramInst = new ArrayList<>();
-    @JsonProperty("RETURN_FLAG")
-    private final List<BigInteger> returnFlag = new ArrayList<>();
-    @JsonProperty("RETURNDATA_FLAG")
-    private final List<BigInteger> returndataFlag = new ArrayList<>();
-    @JsonProperty("REVERT_FLAG")
-    private final List<BigInteger> revertFlag = new ArrayList<>();
-    @JsonProperty("ROM_FLAG")
-    private final List<BigInteger> romFlag = new ArrayList<>();
-    @JsonProperty("SDIV_FLAG")
-    private final List<BigInteger> sdivFlag = new ArrayList<>();
-    @JsonProperty("SHIFT_INST")
-    private final List<BigInteger> shiftInst = new ArrayList<>();
-    @JsonProperty("SIZE")
-    private final List<BigInteger> size = new ArrayList<>();
-    @JsonProperty("SMOD_FLAG")
-    private final List<BigInteger> smodFlag = new ArrayList<>();
-    @JsonProperty("SPECIAL_PC_UPDATE")
-    private final List<BigInteger> specialPcUpdate = new ArrayList<>();
-    @JsonProperty("STACK_PATTERN")
-    private final List<BigInteger> stackPattern = new ArrayList<>();
+    private final List<UnsignedByte> nbRemoved = new ArrayList<>();
+    @JsonProperty("OPCODE")
+    private final List<BigInteger> opcode = new ArrayList<>();
+    @JsonProperty("PATTERN_CALL")
+    private final List<Boolean> patternCall = new ArrayList<>();
+    @JsonProperty("PATTERN_COPY")
+    private final List<Boolean> patternCopy = new ArrayList<>();
+    @JsonProperty("PATTERN_CREATE")
+    private final List<Boolean> patternCreate = new ArrayList<>();
+    @JsonProperty("PATTERN_DUP")
+    private final List<Boolean> patternDup = new ArrayList<>();
+    @JsonProperty("PATTERN_LOAD_STORE")
+    private final List<Boolean> patternLoadStore = new ArrayList<>();
+    @JsonProperty("PATTERN_LOG")
+    private final List<Boolean> patternLog = new ArrayList<>();
+    @JsonProperty("PATTERN_ONE_ONE")
+    private final List<Boolean> patternOneOne = new ArrayList<>();
+    @JsonProperty("PATTERN_ONE_ZERO")
+    private final List<Boolean> patternOneZero = new ArrayList<>();
+    @JsonProperty("PATTERN_SWAP")
+    private final List<Boolean> patternSwap = new ArrayList<>();
+    @JsonProperty("PATTERN_THREE_ONE")
+    private final List<Boolean> patternThreeOne = new ArrayList<>();
+    @JsonProperty("PATTERN_TWO_ONE")
+    private final List<Boolean> patternTwoOne = new ArrayList<>();
+    @JsonProperty("PATTERN_TWO_ZERO")
+    private final List<Boolean> patternTwoZero = new ArrayList<>();
+    @JsonProperty("PATTERN_ZERO_ONE")
+    private final List<Boolean> patternZeroOne = new ArrayList<>();
+    @JsonProperty("PATTERN_ZERO_ZERO")
+    private final List<Boolean> patternZeroZero = new ArrayList<>();
+    @JsonProperty("RAM_ENABLED")
+    private final List<Boolean> ramEnabled = new ArrayList<>();
+    @JsonProperty("RAM_SOURCE_BLAKE_DATA")
+    private final List<Boolean> ramSourceBlakeData = new ArrayList<>();
+    @JsonProperty("RAM_SOURCE_EC_DATA")
+    private final List<Boolean> ramSourceEcData = new ArrayList<>();
+    @JsonProperty("RAM_SOURCE_EC_INFO")
+    private final List<Boolean> ramSourceEcInfo = new ArrayList<>();
+    @JsonProperty("RAM_SOURCE_HASH_DATA")
+    private final List<Boolean> ramSourceHashData = new ArrayList<>();
+    @JsonProperty("RAM_SOURCE_HASH_INFO")
+    private final List<Boolean> ramSourceHashInfo = new ArrayList<>();
+    @JsonProperty("RAM_SOURCE_LOG_DATA")
+    private final List<Boolean> ramSourceLogData = new ArrayList<>();
+    @JsonProperty("RAM_SOURCE_MODEXP_DATA")
+    private final List<Boolean> ramSourceModexpData = new ArrayList<>();
+    @JsonProperty("RAM_SOURCE_RAM")
+    private final List<Boolean> ramSourceRam = new ArrayList<>();
+    @JsonProperty("RAM_SOURCE_ROM")
+    private final List<Boolean> ramSourceRom = new ArrayList<>();
+    @JsonProperty("RAM_SOURCE_STACK")
+    private final List<Boolean> ramSourceStack = new ArrayList<>();
+    @JsonProperty("RAM_SOURCE_TXN_DATA")
+    private final List<Boolean> ramSourceTxnData = new ArrayList<>();
+    @JsonProperty("RAM_TARGET_BLAKE_DATA")
+    private final List<Boolean> ramTargetBlakeData = new ArrayList<>();
+    @JsonProperty("RAM_TARGET_EC_DATA")
+    private final List<Boolean> ramTargetEcData = new ArrayList<>();
+    @JsonProperty("RAM_TARGET_EC_INFO")
+    private final List<Boolean> ramTargetEcInfo = new ArrayList<>();
+    @JsonProperty("RAM_TARGET_HASH_DATA")
+    private final List<Boolean> ramTargetHashData = new ArrayList<>();
+    @JsonProperty("RAM_TARGET_HASH_INFO")
+    private final List<Boolean> ramTargetHashInfo = new ArrayList<>();
+    @JsonProperty("RAM_TARGET_LOG_DATA")
+    private final List<Boolean> ramTargetLogData = new ArrayList<>();
+    @JsonProperty("RAM_TARGET_MODEXP_DATA")
+    private final List<Boolean> ramTargetModexpData = new ArrayList<>();
+    @JsonProperty("RAM_TARGET_RAM")
+    private final List<Boolean> ramTargetRam = new ArrayList<>();
+    @JsonProperty("RAM_TARGET_ROM")
+    private final List<Boolean> ramTargetRom = new ArrayList<>();
+    @JsonProperty("RAM_TARGET_STACK")
+    private final List<Boolean> ramTargetStack = new ArrayList<>();
+    @JsonProperty("RAM_TARGET_TXN_DATA")
+    private final List<Boolean> ramTargetTxnData = new ArrayList<>();
     @JsonProperty("STATIC_GAS")
     private final List<BigInteger> staticGas = new ArrayList<>();
-    @JsonProperty("STOP_FLAG")
-    private final List<BigInteger> stopFlag = new ArrayList<>();
-    @JsonProperty("STORAGE_INST")
-    private final List<BigInteger> storageInst = new ArrayList<>();
-    @JsonProperty("SUB_FLAG")
-    private final List<BigInteger> subFlag = new ArrayList<>();
     @JsonProperty("TWO_LINES_INSTRUCTION")
-    private final List<BigInteger> twoLinesInstruction = new ArrayList<>();
-    @JsonProperty("WARMTH_FLAG")
-    private final List<BigInteger> warmthFlag = new ArrayList<>();
-    @JsonProperty("WORD_COMPARISON_INST")
-    private final List<BigInteger> wordComparisonInst = new ArrayList<>();
+    private final List<Boolean> twoLinesInstruction = new ArrayList<>();
 
     TraceBuilder() {}
 
@@ -227,38 +294,26 @@ public record Trace(
         throw new RuntimeException("Cannot measure a trace with a non-validated row.");
       }
 
-      return this.addFlag.size();
+      return this.addressTrimmingInstruction.size();
     }
 
-    public TraceBuilder addFlag(final BigInteger b) {
+    public TraceBuilder addressTrimmingInstruction(final Boolean b) {
       if (filled.get(0)) {
-        throw new IllegalStateException("ADD_FLAG already set");
+        throw new IllegalStateException("ADDRESS_TRIMMING_INSTRUCTION already set");
       } else {
         filled.set(0);
       }
 
-      addFlag.add(b);
+      addressTrimmingInstruction.add(b);
 
       return this;
     }
 
-    public TraceBuilder addModFlag(final BigInteger b) {
+    public TraceBuilder alpha(final UnsignedByte b) {
       if (filled.get(1)) {
-        throw new IllegalStateException("ADD_MOD_FLAG already set");
-      } else {
-        filled.set(1);
-      }
-
-      addModFlag.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder alpha(final BigInteger b) {
-      if (filled.get(2)) {
         throw new IllegalStateException("ALPHA already set");
       } else {
-        filled.set(2);
+        filled.set(1);
       }
 
       alpha.add(b);
@@ -266,119 +321,35 @@ public record Trace(
       return this;
     }
 
-    public TraceBuilder aluAddInst(final BigInteger b) {
+    public TraceBuilder billingPerByte(final BigInteger b) {
+      if (filled.get(2)) {
+        throw new IllegalStateException("BILLING_PER_BYTE already set");
+      } else {
+        filled.set(2);
+      }
+
+      billingPerByte.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder billingPerWord(final BigInteger b) {
       if (filled.get(3)) {
-        throw new IllegalStateException("ALU_ADD_INST already set");
+        throw new IllegalStateException("BILLING_PER_WORD already set");
       } else {
         filled.set(3);
       }
 
-      aluAddInst.add(b);
+      billingPerWord.add(b);
 
       return this;
     }
 
-    public TraceBuilder aluExtInst(final BigInteger b) {
+    public TraceBuilder delta(final UnsignedByte b) {
       if (filled.get(4)) {
-        throw new IllegalStateException("ALU_EXT_INST already set");
-      } else {
-        filled.set(4);
-      }
-
-      aluExtInst.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder aluModInst(final BigInteger b) {
-      if (filled.get(5)) {
-        throw new IllegalStateException("ALU_MOD_INST already set");
-      } else {
-        filled.set(5);
-      }
-
-      aluModInst.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder aluMulInst(final BigInteger b) {
-      if (filled.get(6)) {
-        throw new IllegalStateException("ALU_MUL_INST already set");
-      } else {
-        filled.set(6);
-      }
-
-      aluMulInst.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder arithmeticInst(final BigInteger b) {
-      if (filled.get(7)) {
-        throw new IllegalStateException("ARITHMETIC_INST already set");
-      } else {
-        filled.set(7);
-      }
-
-      arithmeticInst.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder binaryInst(final BigInteger b) {
-      if (filled.get(8)) {
-        throw new IllegalStateException("BINARY_INST already set");
-      } else {
-        filled.set(8);
-      }
-
-      binaryInst.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder callFlag(final BigInteger b) {
-      if (filled.get(11)) {
-        throw new IllegalStateException("CALL_FLAG already set");
-      } else {
-        filled.set(11);
-      }
-
-      callFlag.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder calldataFlag(final BigInteger b) {
-      if (filled.get(10)) {
-        throw new IllegalStateException("CALLDATA_FLAG already set");
-      } else {
-        filled.set(10);
-      }
-
-      calldataFlag.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder calldatacopyFlag(final BigInteger b) {
-      if (filled.get(9)) {
-        throw new IllegalStateException("CALLDATACOPY_FLAG already set");
-      } else {
-        filled.set(9);
-      }
-
-      calldatacopyFlag.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder delta(final BigInteger b) {
-      if (filled.get(12)) {
         throw new IllegalStateException("DELTA already set");
       } else {
-        filled.set(12);
+        filled.set(4);
       }
 
       delta.add(b);
@@ -386,59 +357,311 @@ public record Trace(
       return this;
     }
 
-    public TraceBuilder divFlag(final BigInteger b) {
+    public TraceBuilder familyAccount(final Boolean b) {
+      if (filled.get(5)) {
+        throw new IllegalStateException("FAMILY_ACCOUNT already set");
+      } else {
+        filled.set(5);
+      }
+
+      familyAccount.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder familyAdd(final Boolean b) {
+      if (filled.get(6)) {
+        throw new IllegalStateException("FAMILY_ADD already set");
+      } else {
+        filled.set(6);
+      }
+
+      familyAdd.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder familyBatch(final Boolean b) {
+      if (filled.get(7)) {
+        throw new IllegalStateException("FAMILY_BATCH already set");
+      } else {
+        filled.set(7);
+      }
+
+      familyBatch.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder familyBin(final Boolean b) {
+      if (filled.get(8)) {
+        throw new IllegalStateException("FAMILY_BIN already set");
+      } else {
+        filled.set(8);
+      }
+
+      familyBin.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder familyCall(final Boolean b) {
+      if (filled.get(9)) {
+        throw new IllegalStateException("FAMILY_CALL already set");
+      } else {
+        filled.set(9);
+      }
+
+      familyCall.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder familyContext(final Boolean b) {
+      if (filled.get(10)) {
+        throw new IllegalStateException("FAMILY_CONTEXT already set");
+      } else {
+        filled.set(10);
+      }
+
+      familyContext.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder familyCopy(final Boolean b) {
+      if (filled.get(11)) {
+        throw new IllegalStateException("FAMILY_COPY already set");
+      } else {
+        filled.set(11);
+      }
+
+      familyCopy.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder familyCreate(final Boolean b) {
+      if (filled.get(12)) {
+        throw new IllegalStateException("FAMILY_CREATE already set");
+      } else {
+        filled.set(12);
+      }
+
+      familyCreate.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder familyDup(final Boolean b) {
       if (filled.get(13)) {
-        throw new IllegalStateException("DIV_FLAG already set");
+        throw new IllegalStateException("FAMILY_DUP already set");
       } else {
         filled.set(13);
       }
 
-      divFlag.add(b);
+      familyDup.add(b);
 
       return this;
     }
 
-    public TraceBuilder exodataIsSource(final BigInteger b) {
+    public TraceBuilder familyExt(final Boolean b) {
       if (filled.get(14)) {
-        throw new IllegalStateException("EXODATA_IS_SOURCE already set");
+        throw new IllegalStateException("FAMILY_EXT already set");
       } else {
         filled.set(14);
       }
 
-      exodataIsSource.add(b);
+      familyExt.add(b);
 
       return this;
     }
 
-    public TraceBuilder exoopFlag(final BigInteger b) {
+    public TraceBuilder familyHalt(final Boolean b) {
       if (filled.get(15)) {
-        throw new IllegalStateException("EXOOP_FLAG already set");
+        throw new IllegalStateException("FAMILY_HALT already set");
       } else {
         filled.set(15);
       }
 
-      exoopFlag.add(b);
+      familyHalt.add(b);
 
       return this;
     }
 
-    public TraceBuilder expFlag(final BigInteger b) {
+    public TraceBuilder familyInvalid(final Boolean b) {
       if (filled.get(16)) {
-        throw new IllegalStateException("EXP_FLAG already set");
+        throw new IllegalStateException("FAMILY_INVALID already set");
       } else {
         filled.set(16);
       }
 
-      expFlag.add(b);
+      familyInvalid.add(b);
 
       return this;
     }
 
-    public TraceBuilder flag1(final BigInteger b) {
+    public TraceBuilder familyJump(final Boolean b) {
       if (filled.get(17)) {
-        throw new IllegalStateException("FLAG_1 already set");
+        throw new IllegalStateException("FAMILY_JUMP already set");
       } else {
         filled.set(17);
+      }
+
+      familyJump.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder familyKec(final Boolean b) {
+      if (filled.get(18)) {
+        throw new IllegalStateException("FAMILY_KEC already set");
+      } else {
+        filled.set(18);
+      }
+
+      familyKec.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder familyLog(final Boolean b) {
+      if (filled.get(19)) {
+        throw new IllegalStateException("FAMILY_LOG already set");
+      } else {
+        filled.set(19);
+      }
+
+      familyLog.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder familyMachineState(final Boolean b) {
+      if (filled.get(20)) {
+        throw new IllegalStateException("FAMILY_MACHINE_STATE already set");
+      } else {
+        filled.set(20);
+      }
+
+      familyMachineState.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder familyMod(final Boolean b) {
+      if (filled.get(21)) {
+        throw new IllegalStateException("FAMILY_MOD already set");
+      } else {
+        filled.set(21);
+      }
+
+      familyMod.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder familyMul(final Boolean b) {
+      if (filled.get(22)) {
+        throw new IllegalStateException("FAMILY_MUL already set");
+      } else {
+        filled.set(22);
+      }
+
+      familyMul.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder familyPushPop(final Boolean b) {
+      if (filled.get(23)) {
+        throw new IllegalStateException("FAMILY_PUSH_POP already set");
+      } else {
+        filled.set(23);
+      }
+
+      familyPushPop.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder familyShf(final Boolean b) {
+      if (filled.get(24)) {
+        throw new IllegalStateException("FAMILY_SHF already set");
+      } else {
+        filled.set(24);
+      }
+
+      familyShf.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder familyStackRam(final Boolean b) {
+      if (filled.get(25)) {
+        throw new IllegalStateException("FAMILY_STACK_RAM already set");
+      } else {
+        filled.set(25);
+      }
+
+      familyStackRam.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder familyStorage(final Boolean b) {
+      if (filled.get(26)) {
+        throw new IllegalStateException("FAMILY_STORAGE already set");
+      } else {
+        filled.set(26);
+      }
+
+      familyStorage.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder familySwap(final Boolean b) {
+      if (filled.get(27)) {
+        throw new IllegalStateException("FAMILY_SWAP already set");
+      } else {
+        filled.set(27);
+      }
+
+      familySwap.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder familyTransaction(final Boolean b) {
+      if (filled.get(28)) {
+        throw new IllegalStateException("FAMILY_TRANSACTION already set");
+      } else {
+        filled.set(28);
+      }
+
+      familyTransaction.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder familyWcp(final Boolean b) {
+      if (filled.get(29)) {
+        throw new IllegalStateException("FAMILY_WCP already set");
+      } else {
+        filled.set(29);
+      }
+
+      familyWcp.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder flag1(final Boolean b) {
+      if (filled.get(30)) {
+        throw new IllegalStateException("FLAG1 already set");
+      } else {
+        filled.set(30);
       }
 
       flag1.add(b);
@@ -446,11 +669,11 @@ public record Trace(
       return this;
     }
 
-    public TraceBuilder flag2(final BigInteger b) {
-      if (filled.get(18)) {
-        throw new IllegalStateException("FLAG_2 already set");
+    public TraceBuilder flag2(final Boolean b) {
+      if (filled.get(31)) {
+        throw new IllegalStateException("FLAG2 already set");
       } else {
-        filled.set(18);
+        filled.set(31);
       }
 
       flag2.add(b);
@@ -458,11 +681,11 @@ public record Trace(
       return this;
     }
 
-    public TraceBuilder flag3(final BigInteger b) {
-      if (filled.get(19)) {
-        throw new IllegalStateException("FLAG_3 already set");
+    public TraceBuilder flag3(final Boolean b) {
+      if (filled.get(32)) {
+        throw new IllegalStateException("FLAG3 already set");
       } else {
-        filled.set(19);
+        filled.set(32);
       }
 
       flag3.add(b);
@@ -470,167 +693,35 @@ public record Trace(
       return this;
     }
 
-    public TraceBuilder hashInst(final BigInteger b) {
-      if (filled.get(20)) {
-        throw new IllegalStateException("HASH_INST already set");
-      } else {
-        filled.set(20);
-      }
-
-      hashInst.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder inst(final BigInteger b) {
-      if (filled.get(21)) {
-        throw new IllegalStateException("INST already set");
-      } else {
-        filled.set(21);
-      }
-
-      inst.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder instParam(final BigInteger b) {
-      if (filled.get(22)) {
-        throw new IllegalStateException("INST_PARAM already set");
-      } else {
-        filled.set(22);
-      }
-
-      instParam.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder invalidInstruction(final BigInteger b) {
-      if (filled.get(23)) {
-        throw new IllegalStateException("INVALID_INSTRUCTION already set");
-      } else {
-        filled.set(23);
-      }
-
-      invalidInstruction.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder jumpFlag(final BigInteger b) {
-      if (filled.get(24)) {
-        throw new IllegalStateException("JUMP_FLAG already set");
-      } else {
-        filled.set(24);
-      }
-
-      jumpFlag.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder logInst(final BigInteger b) {
-      if (filled.get(25)) {
-        throw new IllegalStateException("LOG_INST already set");
-      } else {
-        filled.set(25);
-      }
-
-      logInst.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder memoryExpansionFlag(final BigInteger b) {
-      if (filled.get(26)) {
-        throw new IllegalStateException("MEMORY_EXPANSION_FLAG already set");
-      } else {
-        filled.set(26);
-      }
-
-      memoryExpansionFlag.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder modFlag(final BigInteger b) {
-      if (filled.get(27)) {
-        throw new IllegalStateException("MOD_FLAG already set");
-      } else {
-        filled.set(27);
-      }
-
-      modFlag.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder mulFlag(final BigInteger b) {
-      if (filled.get(28)) {
-        throw new IllegalStateException("MUL_FLAG already set");
-      } else {
-        filled.set(28);
-      }
-
-      mulFlag.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder mulModFlag(final BigInteger b) {
-      if (filled.get(29)) {
-        throw new IllegalStateException("MUL_MOD_FLAG already set");
-      } else {
-        filled.set(29);
-      }
-
-      mulModFlag.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder mxpGbyte(final BigInteger b) {
-      if (filled.get(30)) {
-        throw new IllegalStateException("MXP_GBYTE already set");
-      } else {
-        filled.set(30);
-      }
-
-      mxpGbyte.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder mxpGword(final BigInteger b) {
-      if (filled.get(31)) {
-        throw new IllegalStateException("MXP_GWORD already set");
-      } else {
-        filled.set(31);
-      }
-
-      mxpGword.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder mxpInst(final BigInteger b) {
-      if (filled.get(32)) {
-        throw new IllegalStateException("MXP_INST already set");
-      } else {
-        filled.set(32);
-      }
-
-      mxpInst.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder mxpType1(final BigInteger b) {
+    public TraceBuilder flag4(final Boolean b) {
       if (filled.get(33)) {
-        throw new IllegalStateException("MXP_TYPE_1 already set");
+        throw new IllegalStateException("FLAG4 already set");
       } else {
         filled.set(33);
+      }
+
+      flag4.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder forbiddenInStatic(final Boolean b) {
+      if (filled.get(34)) {
+        throw new IllegalStateException("FORBIDDEN_IN_STATIC already set");
+      } else {
+        filled.set(34);
+      }
+
+      forbiddenInStatic.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder mxpType1(final Boolean b) {
+      if (filled.get(35)) {
+        throw new IllegalStateException("MXP_TYPE_1 already set");
+      } else {
+        filled.set(35);
       }
 
       mxpType1.add(b);
@@ -638,11 +729,11 @@ public record Trace(
       return this;
     }
 
-    public TraceBuilder mxpType2(final BigInteger b) {
-      if (filled.get(34)) {
+    public TraceBuilder mxpType2(final Boolean b) {
+      if (filled.get(36)) {
         throw new IllegalStateException("MXP_TYPE_2 already set");
       } else {
-        filled.set(34);
+        filled.set(36);
       }
 
       mxpType2.add(b);
@@ -650,11 +741,11 @@ public record Trace(
       return this;
     }
 
-    public TraceBuilder mxpType3(final BigInteger b) {
-      if (filled.get(35)) {
+    public TraceBuilder mxpType3(final Boolean b) {
+      if (filled.get(37)) {
         throw new IllegalStateException("MXP_TYPE_3 already set");
       } else {
-        filled.set(35);
+        filled.set(37);
       }
 
       mxpType3.add(b);
@@ -662,11 +753,11 @@ public record Trace(
       return this;
     }
 
-    public TraceBuilder mxpType4(final BigInteger b) {
-      if (filled.get(36)) {
+    public TraceBuilder mxpType4(final Boolean b) {
+      if (filled.get(38)) {
         throw new IllegalStateException("MXP_TYPE_4 already set");
       } else {
-        filled.set(36);
+        filled.set(38);
       }
 
       mxpType4.add(b);
@@ -674,11 +765,11 @@ public record Trace(
       return this;
     }
 
-    public TraceBuilder mxpType5(final BigInteger b) {
-      if (filled.get(37)) {
+    public TraceBuilder mxpType5(final Boolean b) {
+      if (filled.get(39)) {
         throw new IllegalStateException("MXP_TYPE_5 already set");
       } else {
-        filled.set(37);
+        filled.set(39);
       }
 
       mxpType5.add(b);
@@ -686,11 +777,11 @@ public record Trace(
       return this;
     }
 
-    public TraceBuilder nbAdded(final BigInteger b) {
-      if (filled.get(38)) {
+    public TraceBuilder nbAdded(final UnsignedByte b) {
+      if (filled.get(40)) {
         throw new IllegalStateException("NB_ADDED already set");
       } else {
-        filled.set(38);
+        filled.set(40);
       }
 
       nbAdded.add(b);
@@ -698,11 +789,11 @@ public record Trace(
       return this;
     }
 
-    public TraceBuilder nbRemoved(final BigInteger b) {
-      if (filled.get(39)) {
+    public TraceBuilder nbRemoved(final UnsignedByte b) {
+      if (filled.get(41)) {
         throw new IllegalStateException("NB_REMOVED already set");
       } else {
-        filled.set(39);
+        filled.set(41);
       }
 
       nbRemoved.add(b);
@@ -710,179 +801,467 @@ public record Trace(
       return this;
     }
 
-    public TraceBuilder nonStaticFlag(final BigInteger b) {
-      if (filled.get(40)) {
-        throw new IllegalStateException("NON_STATIC_FLAG already set");
-      } else {
-        filled.set(40);
-      }
-
-      nonStaticFlag.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder op(final BigInteger b) {
-      if (filled.get(41)) {
-        throw new IllegalStateException("OP already set");
-      } else {
-        filled.set(41);
-      }
-
-      op.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder pushFlag(final BigInteger b) {
+    public TraceBuilder opcode(final BigInteger b) {
       if (filled.get(42)) {
-        throw new IllegalStateException("PUSH_FLAG already set");
+        throw new IllegalStateException("OPCODE already set");
       } else {
         filled.set(42);
       }
 
-      pushFlag.add(b);
+      opcode.add(b);
 
       return this;
     }
 
-    public TraceBuilder ramInst(final BigInteger b) {
+    public TraceBuilder patternCall(final Boolean b) {
       if (filled.get(43)) {
-        throw new IllegalStateException("RAM_INST already set");
+        throw new IllegalStateException("PATTERN_CALL already set");
       } else {
         filled.set(43);
       }
 
-      ramInst.add(b);
+      patternCall.add(b);
 
       return this;
     }
 
-    public TraceBuilder returnFlag(final BigInteger b) {
-      if (filled.get(45)) {
-        throw new IllegalStateException("RETURN_FLAG already set");
-      } else {
-        filled.set(45);
-      }
-
-      returnFlag.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder returndataFlag(final BigInteger b) {
+    public TraceBuilder patternCopy(final Boolean b) {
       if (filled.get(44)) {
-        throw new IllegalStateException("RETURNDATA_FLAG already set");
+        throw new IllegalStateException("PATTERN_COPY already set");
       } else {
         filled.set(44);
       }
 
-      returndataFlag.add(b);
+      patternCopy.add(b);
 
       return this;
     }
 
-    public TraceBuilder revertFlag(final BigInteger b) {
+    public TraceBuilder patternCreate(final Boolean b) {
+      if (filled.get(45)) {
+        throw new IllegalStateException("PATTERN_CREATE already set");
+      } else {
+        filled.set(45);
+      }
+
+      patternCreate.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder patternDup(final Boolean b) {
       if (filled.get(46)) {
-        throw new IllegalStateException("REVERT_FLAG already set");
+        throw new IllegalStateException("PATTERN_DUP already set");
       } else {
         filled.set(46);
       }
 
-      revertFlag.add(b);
+      patternDup.add(b);
 
       return this;
     }
 
-    public TraceBuilder romFlag(final BigInteger b) {
+    public TraceBuilder patternLoadStore(final Boolean b) {
       if (filled.get(47)) {
-        throw new IllegalStateException("ROM_FLAG already set");
+        throw new IllegalStateException("PATTERN_LOAD_STORE already set");
       } else {
         filled.set(47);
       }
 
-      romFlag.add(b);
+      patternLoadStore.add(b);
 
       return this;
     }
 
-    public TraceBuilder sdivFlag(final BigInteger b) {
+    public TraceBuilder patternLog(final Boolean b) {
       if (filled.get(48)) {
-        throw new IllegalStateException("SDIV_FLAG already set");
+        throw new IllegalStateException("PATTERN_LOG already set");
       } else {
         filled.set(48);
       }
 
-      sdivFlag.add(b);
+      patternLog.add(b);
 
       return this;
     }
 
-    public TraceBuilder shiftInst(final BigInteger b) {
+    public TraceBuilder patternOneOne(final Boolean b) {
       if (filled.get(49)) {
-        throw new IllegalStateException("SHIFT_INST already set");
+        throw new IllegalStateException("PATTERN_ONE_ONE already set");
       } else {
         filled.set(49);
       }
 
-      shiftInst.add(b);
+      patternOneOne.add(b);
 
       return this;
     }
 
-    public TraceBuilder size(final BigInteger b) {
+    public TraceBuilder patternOneZero(final Boolean b) {
       if (filled.get(50)) {
-        throw new IllegalStateException("SIZE already set");
+        throw new IllegalStateException("PATTERN_ONE_ZERO already set");
       } else {
         filled.set(50);
       }
 
-      size.add(b);
+      patternOneZero.add(b);
 
       return this;
     }
 
-    public TraceBuilder smodFlag(final BigInteger b) {
+    public TraceBuilder patternSwap(final Boolean b) {
       if (filled.get(51)) {
-        throw new IllegalStateException("SMOD_FLAG already set");
+        throw new IllegalStateException("PATTERN_SWAP already set");
       } else {
         filled.set(51);
       }
 
-      smodFlag.add(b);
+      patternSwap.add(b);
 
       return this;
     }
 
-    public TraceBuilder specialPcUpdate(final BigInteger b) {
+    public TraceBuilder patternThreeOne(final Boolean b) {
       if (filled.get(52)) {
-        throw new IllegalStateException("SPECIAL_PC_UPDATE already set");
+        throw new IllegalStateException("PATTERN_THREE_ONE already set");
       } else {
         filled.set(52);
       }
 
-      specialPcUpdate.add(b);
+      patternThreeOne.add(b);
 
       return this;
     }
 
-    public TraceBuilder stackPattern(final BigInteger b) {
+    public TraceBuilder patternTwoOne(final Boolean b) {
       if (filled.get(53)) {
-        throw new IllegalStateException("STACK_PATTERN already set");
+        throw new IllegalStateException("PATTERN_TWO_ONE already set");
       } else {
         filled.set(53);
       }
 
-      stackPattern.add(b);
+      patternTwoOne.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder patternTwoZero(final Boolean b) {
+      if (filled.get(54)) {
+        throw new IllegalStateException("PATTERN_TWO_ZERO already set");
+      } else {
+        filled.set(54);
+      }
+
+      patternTwoZero.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder patternZeroOne(final Boolean b) {
+      if (filled.get(55)) {
+        throw new IllegalStateException("PATTERN_ZERO_ONE already set");
+      } else {
+        filled.set(55);
+      }
+
+      patternZeroOne.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder patternZeroZero(final Boolean b) {
+      if (filled.get(56)) {
+        throw new IllegalStateException("PATTERN_ZERO_ZERO already set");
+      } else {
+        filled.set(56);
+      }
+
+      patternZeroZero.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder ramEnabled(final Boolean b) {
+      if (filled.get(57)) {
+        throw new IllegalStateException("RAM_ENABLED already set");
+      } else {
+        filled.set(57);
+      }
+
+      ramEnabled.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder ramSourceBlakeData(final Boolean b) {
+      if (filled.get(58)) {
+        throw new IllegalStateException("RAM_SOURCE_BLAKE_DATA already set");
+      } else {
+        filled.set(58);
+      }
+
+      ramSourceBlakeData.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder ramSourceEcData(final Boolean b) {
+      if (filled.get(59)) {
+        throw new IllegalStateException("RAM_SOURCE_EC_DATA already set");
+      } else {
+        filled.set(59);
+      }
+
+      ramSourceEcData.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder ramSourceEcInfo(final Boolean b) {
+      if (filled.get(60)) {
+        throw new IllegalStateException("RAM_SOURCE_EC_INFO already set");
+      } else {
+        filled.set(60);
+      }
+
+      ramSourceEcInfo.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder ramSourceHashData(final Boolean b) {
+      if (filled.get(61)) {
+        throw new IllegalStateException("RAM_SOURCE_HASH_DATA already set");
+      } else {
+        filled.set(61);
+      }
+
+      ramSourceHashData.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder ramSourceHashInfo(final Boolean b) {
+      if (filled.get(62)) {
+        throw new IllegalStateException("RAM_SOURCE_HASH_INFO already set");
+      } else {
+        filled.set(62);
+      }
+
+      ramSourceHashInfo.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder ramSourceLogData(final Boolean b) {
+      if (filled.get(63)) {
+        throw new IllegalStateException("RAM_SOURCE_LOG_DATA already set");
+      } else {
+        filled.set(63);
+      }
+
+      ramSourceLogData.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder ramSourceModexpData(final Boolean b) {
+      if (filled.get(64)) {
+        throw new IllegalStateException("RAM_SOURCE_MODEXP_DATA already set");
+      } else {
+        filled.set(64);
+      }
+
+      ramSourceModexpData.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder ramSourceRam(final Boolean b) {
+      if (filled.get(65)) {
+        throw new IllegalStateException("RAM_SOURCE_RAM already set");
+      } else {
+        filled.set(65);
+      }
+
+      ramSourceRam.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder ramSourceRom(final Boolean b) {
+      if (filled.get(66)) {
+        throw new IllegalStateException("RAM_SOURCE_ROM already set");
+      } else {
+        filled.set(66);
+      }
+
+      ramSourceRom.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder ramSourceStack(final Boolean b) {
+      if (filled.get(67)) {
+        throw new IllegalStateException("RAM_SOURCE_STACK already set");
+      } else {
+        filled.set(67);
+      }
+
+      ramSourceStack.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder ramSourceTxnData(final Boolean b) {
+      if (filled.get(68)) {
+        throw new IllegalStateException("RAM_SOURCE_TXN_DATA already set");
+      } else {
+        filled.set(68);
+      }
+
+      ramSourceTxnData.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder ramTargetBlakeData(final Boolean b) {
+      if (filled.get(69)) {
+        throw new IllegalStateException("RAM_TARGET_BLAKE_DATA already set");
+      } else {
+        filled.set(69);
+      }
+
+      ramTargetBlakeData.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder ramTargetEcData(final Boolean b) {
+      if (filled.get(70)) {
+        throw new IllegalStateException("RAM_TARGET_EC_DATA already set");
+      } else {
+        filled.set(70);
+      }
+
+      ramTargetEcData.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder ramTargetEcInfo(final Boolean b) {
+      if (filled.get(71)) {
+        throw new IllegalStateException("RAM_TARGET_EC_INFO already set");
+      } else {
+        filled.set(71);
+      }
+
+      ramTargetEcInfo.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder ramTargetHashData(final Boolean b) {
+      if (filled.get(72)) {
+        throw new IllegalStateException("RAM_TARGET_HASH_DATA already set");
+      } else {
+        filled.set(72);
+      }
+
+      ramTargetHashData.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder ramTargetHashInfo(final Boolean b) {
+      if (filled.get(73)) {
+        throw new IllegalStateException("RAM_TARGET_HASH_INFO already set");
+      } else {
+        filled.set(73);
+      }
+
+      ramTargetHashInfo.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder ramTargetLogData(final Boolean b) {
+      if (filled.get(74)) {
+        throw new IllegalStateException("RAM_TARGET_LOG_DATA already set");
+      } else {
+        filled.set(74);
+      }
+
+      ramTargetLogData.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder ramTargetModexpData(final Boolean b) {
+      if (filled.get(75)) {
+        throw new IllegalStateException("RAM_TARGET_MODEXP_DATA already set");
+      } else {
+        filled.set(75);
+      }
+
+      ramTargetModexpData.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder ramTargetRam(final Boolean b) {
+      if (filled.get(76)) {
+        throw new IllegalStateException("RAM_TARGET_RAM already set");
+      } else {
+        filled.set(76);
+      }
+
+      ramTargetRam.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder ramTargetRom(final Boolean b) {
+      if (filled.get(77)) {
+        throw new IllegalStateException("RAM_TARGET_ROM already set");
+      } else {
+        filled.set(77);
+      }
+
+      ramTargetRom.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder ramTargetStack(final Boolean b) {
+      if (filled.get(78)) {
+        throw new IllegalStateException("RAM_TARGET_STACK already set");
+      } else {
+        filled.set(78);
+      }
+
+      ramTargetStack.add(b);
+
+      return this;
+    }
+
+    public TraceBuilder ramTargetTxnData(final Boolean b) {
+      if (filled.get(79)) {
+        throw new IllegalStateException("RAM_TARGET_TXN_DATA already set");
+      } else {
+        filled.set(79);
+      }
+
+      ramTargetTxnData.add(b);
 
       return this;
     }
 
     public TraceBuilder staticGas(final BigInteger b) {
-      if (filled.get(54)) {
+      if (filled.get(80)) {
         throw new IllegalStateException("STATIC_GAS already set");
       } else {
-        filled.set(54);
+        filled.set(80);
       }
 
       staticGas.add(b);
@@ -890,47 +1269,11 @@ public record Trace(
       return this;
     }
 
-    public TraceBuilder stopFlag(final BigInteger b) {
-      if (filled.get(55)) {
-        throw new IllegalStateException("STOP_FLAG already set");
-      } else {
-        filled.set(55);
-      }
-
-      stopFlag.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder storageInst(final BigInteger b) {
-      if (filled.get(56)) {
-        throw new IllegalStateException("STORAGE_INST already set");
-      } else {
-        filled.set(56);
-      }
-
-      storageInst.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder subFlag(final BigInteger b) {
-      if (filled.get(57)) {
-        throw new IllegalStateException("SUB_FLAG already set");
-      } else {
-        filled.set(57);
-      }
-
-      subFlag.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder twoLinesInstruction(final BigInteger b) {
-      if (filled.get(58)) {
+    public TraceBuilder twoLinesInstruction(final Boolean b) {
+      if (filled.get(81)) {
         throw new IllegalStateException("TWO_LINES_INSTRUCTION already set");
       } else {
-        filled.set(58);
+        filled.set(81);
       }
 
       twoLinesInstruction.add(b);
@@ -938,1005 +1281,333 @@ public record Trace(
       return this;
     }
 
-    public TraceBuilder warmthFlag(final BigInteger b) {
-      if (filled.get(59)) {
-        throw new IllegalStateException("WARMTH_FLAG already set");
-      } else {
-        filled.set(59);
-      }
-
-      warmthFlag.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder wordComparisonInst(final BigInteger b) {
-      if (filled.get(60)) {
-        throw new IllegalStateException("WORD_COMPARISON_INST already set");
-      } else {
-        filled.set(60);
-      }
-
-      wordComparisonInst.add(b);
-
-      return this;
-    }
-
-    public TraceBuilder setAddFlagAt(final BigInteger b, int i) {
-      addFlag.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setAddModFlagAt(final BigInteger b, int i) {
-      addModFlag.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setAlphaAt(final BigInteger b, int i) {
-      alpha.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setAluAddInstAt(final BigInteger b, int i) {
-      aluAddInst.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setAluExtInstAt(final BigInteger b, int i) {
-      aluExtInst.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setAluModInstAt(final BigInteger b, int i) {
-      aluModInst.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setAluMulInstAt(final BigInteger b, int i) {
-      aluMulInst.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setArithmeticInstAt(final BigInteger b, int i) {
-      arithmeticInst.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setBinaryInstAt(final BigInteger b, int i) {
-      binaryInst.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setCallFlagAt(final BigInteger b, int i) {
-      callFlag.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setCalldataFlagAt(final BigInteger b, int i) {
-      calldataFlag.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setCalldatacopyFlagAt(final BigInteger b, int i) {
-      calldatacopyFlag.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setDeltaAt(final BigInteger b, int i) {
-      delta.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setDivFlagAt(final BigInteger b, int i) {
-      divFlag.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setExodataIsSourceAt(final BigInteger b, int i) {
-      exodataIsSource.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setExoopFlagAt(final BigInteger b, int i) {
-      exoopFlag.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setExpFlagAt(final BigInteger b, int i) {
-      expFlag.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setFlag1At(final BigInteger b, int i) {
-      flag1.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setFlag2At(final BigInteger b, int i) {
-      flag2.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setFlag3At(final BigInteger b, int i) {
-      flag3.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setHashInstAt(final BigInteger b, int i) {
-      hashInst.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setInstAt(final BigInteger b, int i) {
-      inst.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setInstParamAt(final BigInteger b, int i) {
-      instParam.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setInvalidInstructionAt(final BigInteger b, int i) {
-      invalidInstruction.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setJumpFlagAt(final BigInteger b, int i) {
-      jumpFlag.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setLogInstAt(final BigInteger b, int i) {
-      logInst.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setMemoryExpansionFlagAt(final BigInteger b, int i) {
-      memoryExpansionFlag.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setModFlagAt(final BigInteger b, int i) {
-      modFlag.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setMulFlagAt(final BigInteger b, int i) {
-      mulFlag.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setMulModFlagAt(final BigInteger b, int i) {
-      mulModFlag.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setMxpGbyteAt(final BigInteger b, int i) {
-      mxpGbyte.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setMxpGwordAt(final BigInteger b, int i) {
-      mxpGword.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setMxpInstAt(final BigInteger b, int i) {
-      mxpInst.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setMxpType1At(final BigInteger b, int i) {
-      mxpType1.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setMxpType2At(final BigInteger b, int i) {
-      mxpType2.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setMxpType3At(final BigInteger b, int i) {
-      mxpType3.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setMxpType4At(final BigInteger b, int i) {
-      mxpType4.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setMxpType5At(final BigInteger b, int i) {
-      mxpType5.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setNbAddedAt(final BigInteger b, int i) {
-      nbAdded.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setNbRemovedAt(final BigInteger b, int i) {
-      nbRemoved.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setNonStaticFlagAt(final BigInteger b, int i) {
-      nonStaticFlag.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setOpAt(final BigInteger b, int i) {
-      op.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setPushFlagAt(final BigInteger b, int i) {
-      pushFlag.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setRamInstAt(final BigInteger b, int i) {
-      ramInst.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setReturnFlagAt(final BigInteger b, int i) {
-      returnFlag.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setReturndataFlagAt(final BigInteger b, int i) {
-      returndataFlag.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setRevertFlagAt(final BigInteger b, int i) {
-      revertFlag.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setRomFlagAt(final BigInteger b, int i) {
-      romFlag.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setSdivFlagAt(final BigInteger b, int i) {
-      sdivFlag.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setShiftInstAt(final BigInteger b, int i) {
-      shiftInst.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setSizeAt(final BigInteger b, int i) {
-      size.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setSmodFlagAt(final BigInteger b, int i) {
-      smodFlag.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setSpecialPcUpdateAt(final BigInteger b, int i) {
-      specialPcUpdate.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setStackPatternAt(final BigInteger b, int i) {
-      stackPattern.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setStaticGasAt(final BigInteger b, int i) {
-      staticGas.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setStopFlagAt(final BigInteger b, int i) {
-      stopFlag.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setStorageInstAt(final BigInteger b, int i) {
-      storageInst.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setSubFlagAt(final BigInteger b, int i) {
-      subFlag.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setTwoLinesInstructionAt(final BigInteger b, int i) {
-      twoLinesInstruction.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setWarmthFlagAt(final BigInteger b, int i) {
-      warmthFlag.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setWordComparisonInstAt(final BigInteger b, int i) {
-      wordComparisonInst.set(i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setAddFlagRelative(final BigInteger b, int i) {
-      addFlag.set(addFlag.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setAddModFlagRelative(final BigInteger b, int i) {
-      addModFlag.set(addModFlag.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setAlphaRelative(final BigInteger b, int i) {
-      alpha.set(alpha.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setAluAddInstRelative(final BigInteger b, int i) {
-      aluAddInst.set(aluAddInst.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setAluExtInstRelative(final BigInteger b, int i) {
-      aluExtInst.set(aluExtInst.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setAluModInstRelative(final BigInteger b, int i) {
-      aluModInst.set(aluModInst.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setAluMulInstRelative(final BigInteger b, int i) {
-      aluMulInst.set(aluMulInst.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setArithmeticInstRelative(final BigInteger b, int i) {
-      arithmeticInst.set(arithmeticInst.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setBinaryInstRelative(final BigInteger b, int i) {
-      binaryInst.set(binaryInst.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setCallFlagRelative(final BigInteger b, int i) {
-      callFlag.set(callFlag.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setCalldataFlagRelative(final BigInteger b, int i) {
-      calldataFlag.set(calldataFlag.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setCalldatacopyFlagRelative(final BigInteger b, int i) {
-      calldatacopyFlag.set(calldatacopyFlag.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setDeltaRelative(final BigInteger b, int i) {
-      delta.set(delta.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setDivFlagRelative(final BigInteger b, int i) {
-      divFlag.set(divFlag.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setExodataIsSourceRelative(final BigInteger b, int i) {
-      exodataIsSource.set(exodataIsSource.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setExoopFlagRelative(final BigInteger b, int i) {
-      exoopFlag.set(exoopFlag.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setExpFlagRelative(final BigInteger b, int i) {
-      expFlag.set(expFlag.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setFlag1Relative(final BigInteger b, int i) {
-      flag1.set(flag1.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setFlag2Relative(final BigInteger b, int i) {
-      flag2.set(flag2.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setFlag3Relative(final BigInteger b, int i) {
-      flag3.set(flag3.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setHashInstRelative(final BigInteger b, int i) {
-      hashInst.set(hashInst.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setInstRelative(final BigInteger b, int i) {
-      inst.set(inst.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setInstParamRelative(final BigInteger b, int i) {
-      instParam.set(instParam.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setInvalidInstructionRelative(final BigInteger b, int i) {
-      invalidInstruction.set(invalidInstruction.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setJumpFlagRelative(final BigInteger b, int i) {
-      jumpFlag.set(jumpFlag.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setLogInstRelative(final BigInteger b, int i) {
-      logInst.set(logInst.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setMemoryExpansionFlagRelative(final BigInteger b, int i) {
-      memoryExpansionFlag.set(memoryExpansionFlag.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setModFlagRelative(final BigInteger b, int i) {
-      modFlag.set(modFlag.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setMulFlagRelative(final BigInteger b, int i) {
-      mulFlag.set(mulFlag.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setMulModFlagRelative(final BigInteger b, int i) {
-      mulModFlag.set(mulModFlag.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setMxpGbyteRelative(final BigInteger b, int i) {
-      mxpGbyte.set(mxpGbyte.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setMxpGwordRelative(final BigInteger b, int i) {
-      mxpGword.set(mxpGword.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setMxpInstRelative(final BigInteger b, int i) {
-      mxpInst.set(mxpInst.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setMxpType1Relative(final BigInteger b, int i) {
-      mxpType1.set(mxpType1.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setMxpType2Relative(final BigInteger b, int i) {
-      mxpType2.set(mxpType2.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setMxpType3Relative(final BigInteger b, int i) {
-      mxpType3.set(mxpType3.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setMxpType4Relative(final BigInteger b, int i) {
-      mxpType4.set(mxpType4.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setMxpType5Relative(final BigInteger b, int i) {
-      mxpType5.set(mxpType5.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setNbAddedRelative(final BigInteger b, int i) {
-      nbAdded.set(nbAdded.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setNbRemovedRelative(final BigInteger b, int i) {
-      nbRemoved.set(nbRemoved.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setNonStaticFlagRelative(final BigInteger b, int i) {
-      nonStaticFlag.set(nonStaticFlag.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setOpRelative(final BigInteger b, int i) {
-      op.set(op.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setPushFlagRelative(final BigInteger b, int i) {
-      pushFlag.set(pushFlag.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setRamInstRelative(final BigInteger b, int i) {
-      ramInst.set(ramInst.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setReturnFlagRelative(final BigInteger b, int i) {
-      returnFlag.set(returnFlag.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setReturndataFlagRelative(final BigInteger b, int i) {
-      returndataFlag.set(returndataFlag.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setRevertFlagRelative(final BigInteger b, int i) {
-      revertFlag.set(revertFlag.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setRomFlagRelative(final BigInteger b, int i) {
-      romFlag.set(romFlag.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setSdivFlagRelative(final BigInteger b, int i) {
-      sdivFlag.set(sdivFlag.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setShiftInstRelative(final BigInteger b, int i) {
-      shiftInst.set(shiftInst.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setSizeRelative(final BigInteger b, int i) {
-      size.set(size.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setSmodFlagRelative(final BigInteger b, int i) {
-      smodFlag.set(smodFlag.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setSpecialPcUpdateRelative(final BigInteger b, int i) {
-      specialPcUpdate.set(specialPcUpdate.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setStackPatternRelative(final BigInteger b, int i) {
-      stackPattern.set(stackPattern.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setStaticGasRelative(final BigInteger b, int i) {
-      staticGas.set(staticGas.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setStopFlagRelative(final BigInteger b, int i) {
-      stopFlag.set(stopFlag.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setStorageInstRelative(final BigInteger b, int i) {
-      storageInst.set(storageInst.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setSubFlagRelative(final BigInteger b, int i) {
-      subFlag.set(subFlag.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setTwoLinesInstructionRelative(final BigInteger b, int i) {
-      twoLinesInstruction.set(twoLinesInstruction.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setWarmthFlagRelative(final BigInteger b, int i) {
-      warmthFlag.set(warmthFlag.size() - 1 - i, b);
-
-      return this;
-    }
-
-    public TraceBuilder setWordComparisonInstRelative(final BigInteger b, int i) {
-      wordComparisonInst.set(wordComparisonInst.size() - 1 - i, b);
-
-      return this;
-    }
-
     public TraceBuilder validateRow() {
       if (!filled.get(0)) {
-        throw new IllegalStateException("ADD_FLAG has not been filled");
+        throw new IllegalStateException("ADDRESS_TRIMMING_INSTRUCTION has not been filled");
       }
 
       if (!filled.get(1)) {
-        throw new IllegalStateException("ADD_MOD_FLAG has not been filled");
-      }
-
-      if (!filled.get(2)) {
         throw new IllegalStateException("ALPHA has not been filled");
       }
 
+      if (!filled.get(2)) {
+        throw new IllegalStateException("BILLING_PER_BYTE has not been filled");
+      }
+
       if (!filled.get(3)) {
-        throw new IllegalStateException("ALU_ADD_INST has not been filled");
+        throw new IllegalStateException("BILLING_PER_WORD has not been filled");
       }
 
       if (!filled.get(4)) {
-        throw new IllegalStateException("ALU_EXT_INST has not been filled");
-      }
-
-      if (!filled.get(5)) {
-        throw new IllegalStateException("ALU_MOD_INST has not been filled");
-      }
-
-      if (!filled.get(6)) {
-        throw new IllegalStateException("ALU_MUL_INST has not been filled");
-      }
-
-      if (!filled.get(7)) {
-        throw new IllegalStateException("ARITHMETIC_INST has not been filled");
-      }
-
-      if (!filled.get(8)) {
-        throw new IllegalStateException("BINARY_INST has not been filled");
-      }
-
-      if (!filled.get(11)) {
-        throw new IllegalStateException("CALL_FLAG has not been filled");
-      }
-
-      if (!filled.get(10)) {
-        throw new IllegalStateException("CALLDATA_FLAG has not been filled");
-      }
-
-      if (!filled.get(9)) {
-        throw new IllegalStateException("CALLDATACOPY_FLAG has not been filled");
-      }
-
-      if (!filled.get(12)) {
         throw new IllegalStateException("DELTA has not been filled");
       }
 
+      if (!filled.get(5)) {
+        throw new IllegalStateException("FAMILY_ACCOUNT has not been filled");
+      }
+
+      if (!filled.get(6)) {
+        throw new IllegalStateException("FAMILY_ADD has not been filled");
+      }
+
+      if (!filled.get(7)) {
+        throw new IllegalStateException("FAMILY_BATCH has not been filled");
+      }
+
+      if (!filled.get(8)) {
+        throw new IllegalStateException("FAMILY_BIN has not been filled");
+      }
+
+      if (!filled.get(9)) {
+        throw new IllegalStateException("FAMILY_CALL has not been filled");
+      }
+
+      if (!filled.get(10)) {
+        throw new IllegalStateException("FAMILY_CONTEXT has not been filled");
+      }
+
+      if (!filled.get(11)) {
+        throw new IllegalStateException("FAMILY_COPY has not been filled");
+      }
+
+      if (!filled.get(12)) {
+        throw new IllegalStateException("FAMILY_CREATE has not been filled");
+      }
+
       if (!filled.get(13)) {
-        throw new IllegalStateException("DIV_FLAG has not been filled");
+        throw new IllegalStateException("FAMILY_DUP has not been filled");
       }
 
       if (!filled.get(14)) {
-        throw new IllegalStateException("EXODATA_IS_SOURCE has not been filled");
+        throw new IllegalStateException("FAMILY_EXT has not been filled");
       }
 
       if (!filled.get(15)) {
-        throw new IllegalStateException("EXOOP_FLAG has not been filled");
+        throw new IllegalStateException("FAMILY_HALT has not been filled");
       }
 
       if (!filled.get(16)) {
-        throw new IllegalStateException("EXP_FLAG has not been filled");
+        throw new IllegalStateException("FAMILY_INVALID has not been filled");
       }
 
       if (!filled.get(17)) {
-        throw new IllegalStateException("FLAG_1 has not been filled");
+        throw new IllegalStateException("FAMILY_JUMP has not been filled");
       }
 
       if (!filled.get(18)) {
-        throw new IllegalStateException("FLAG_2 has not been filled");
+        throw new IllegalStateException("FAMILY_KEC has not been filled");
       }
 
       if (!filled.get(19)) {
-        throw new IllegalStateException("FLAG_3 has not been filled");
+        throw new IllegalStateException("FAMILY_LOG has not been filled");
       }
 
       if (!filled.get(20)) {
-        throw new IllegalStateException("HASH_INST has not been filled");
+        throw new IllegalStateException("FAMILY_MACHINE_STATE has not been filled");
       }
 
       if (!filled.get(21)) {
-        throw new IllegalStateException("INST has not been filled");
+        throw new IllegalStateException("FAMILY_MOD has not been filled");
       }
 
       if (!filled.get(22)) {
-        throw new IllegalStateException("INST_PARAM has not been filled");
+        throw new IllegalStateException("FAMILY_MUL has not been filled");
       }
 
       if (!filled.get(23)) {
-        throw new IllegalStateException("INVALID_INSTRUCTION has not been filled");
+        throw new IllegalStateException("FAMILY_PUSH_POP has not been filled");
       }
 
       if (!filled.get(24)) {
-        throw new IllegalStateException("JUMP_FLAG has not been filled");
+        throw new IllegalStateException("FAMILY_SHF has not been filled");
       }
 
       if (!filled.get(25)) {
-        throw new IllegalStateException("LOG_INST has not been filled");
+        throw new IllegalStateException("FAMILY_STACK_RAM has not been filled");
       }
 
       if (!filled.get(26)) {
-        throw new IllegalStateException("MEMORY_EXPANSION_FLAG has not been filled");
+        throw new IllegalStateException("FAMILY_STORAGE has not been filled");
       }
 
       if (!filled.get(27)) {
-        throw new IllegalStateException("MOD_FLAG has not been filled");
+        throw new IllegalStateException("FAMILY_SWAP has not been filled");
       }
 
       if (!filled.get(28)) {
-        throw new IllegalStateException("MUL_FLAG has not been filled");
+        throw new IllegalStateException("FAMILY_TRANSACTION has not been filled");
       }
 
       if (!filled.get(29)) {
-        throw new IllegalStateException("MUL_MOD_FLAG has not been filled");
+        throw new IllegalStateException("FAMILY_WCP has not been filled");
       }
 
       if (!filled.get(30)) {
-        throw new IllegalStateException("MXP_GBYTE has not been filled");
+        throw new IllegalStateException("FLAG1 has not been filled");
       }
 
       if (!filled.get(31)) {
-        throw new IllegalStateException("MXP_GWORD has not been filled");
+        throw new IllegalStateException("FLAG2 has not been filled");
       }
 
       if (!filled.get(32)) {
-        throw new IllegalStateException("MXP_INST has not been filled");
+        throw new IllegalStateException("FLAG3 has not been filled");
       }
 
       if (!filled.get(33)) {
-        throw new IllegalStateException("MXP_TYPE_1 has not been filled");
+        throw new IllegalStateException("FLAG4 has not been filled");
       }
 
       if (!filled.get(34)) {
-        throw new IllegalStateException("MXP_TYPE_2 has not been filled");
+        throw new IllegalStateException("FORBIDDEN_IN_STATIC has not been filled");
       }
 
       if (!filled.get(35)) {
-        throw new IllegalStateException("MXP_TYPE_3 has not been filled");
+        throw new IllegalStateException("MXP_TYPE_1 has not been filled");
       }
 
       if (!filled.get(36)) {
-        throw new IllegalStateException("MXP_TYPE_4 has not been filled");
+        throw new IllegalStateException("MXP_TYPE_2 has not been filled");
       }
 
       if (!filled.get(37)) {
-        throw new IllegalStateException("MXP_TYPE_5 has not been filled");
+        throw new IllegalStateException("MXP_TYPE_3 has not been filled");
       }
 
       if (!filled.get(38)) {
-        throw new IllegalStateException("NB_ADDED has not been filled");
+        throw new IllegalStateException("MXP_TYPE_4 has not been filled");
       }
 
       if (!filled.get(39)) {
-        throw new IllegalStateException("NB_REMOVED has not been filled");
+        throw new IllegalStateException("MXP_TYPE_5 has not been filled");
       }
 
       if (!filled.get(40)) {
-        throw new IllegalStateException("NON_STATIC_FLAG has not been filled");
+        throw new IllegalStateException("NB_ADDED has not been filled");
       }
 
       if (!filled.get(41)) {
-        throw new IllegalStateException("OP has not been filled");
+        throw new IllegalStateException("NB_REMOVED has not been filled");
       }
 
       if (!filled.get(42)) {
-        throw new IllegalStateException("PUSH_FLAG has not been filled");
+        throw new IllegalStateException("OPCODE has not been filled");
       }
 
       if (!filled.get(43)) {
-        throw new IllegalStateException("RAM_INST has not been filled");
-      }
-
-      if (!filled.get(45)) {
-        throw new IllegalStateException("RETURN_FLAG has not been filled");
+        throw new IllegalStateException("PATTERN_CALL has not been filled");
       }
 
       if (!filled.get(44)) {
-        throw new IllegalStateException("RETURNDATA_FLAG has not been filled");
+        throw new IllegalStateException("PATTERN_COPY has not been filled");
+      }
+
+      if (!filled.get(45)) {
+        throw new IllegalStateException("PATTERN_CREATE has not been filled");
       }
 
       if (!filled.get(46)) {
-        throw new IllegalStateException("REVERT_FLAG has not been filled");
+        throw new IllegalStateException("PATTERN_DUP has not been filled");
       }
 
       if (!filled.get(47)) {
-        throw new IllegalStateException("ROM_FLAG has not been filled");
+        throw new IllegalStateException("PATTERN_LOAD_STORE has not been filled");
       }
 
       if (!filled.get(48)) {
-        throw new IllegalStateException("SDIV_FLAG has not been filled");
+        throw new IllegalStateException("PATTERN_LOG has not been filled");
       }
 
       if (!filled.get(49)) {
-        throw new IllegalStateException("SHIFT_INST has not been filled");
+        throw new IllegalStateException("PATTERN_ONE_ONE has not been filled");
       }
 
       if (!filled.get(50)) {
-        throw new IllegalStateException("SIZE has not been filled");
+        throw new IllegalStateException("PATTERN_ONE_ZERO has not been filled");
       }
 
       if (!filled.get(51)) {
-        throw new IllegalStateException("SMOD_FLAG has not been filled");
+        throw new IllegalStateException("PATTERN_SWAP has not been filled");
       }
 
       if (!filled.get(52)) {
-        throw new IllegalStateException("SPECIAL_PC_UPDATE has not been filled");
+        throw new IllegalStateException("PATTERN_THREE_ONE has not been filled");
       }
 
       if (!filled.get(53)) {
-        throw new IllegalStateException("STACK_PATTERN has not been filled");
+        throw new IllegalStateException("PATTERN_TWO_ONE has not been filled");
       }
 
       if (!filled.get(54)) {
-        throw new IllegalStateException("STATIC_GAS has not been filled");
+        throw new IllegalStateException("PATTERN_TWO_ZERO has not been filled");
       }
 
       if (!filled.get(55)) {
-        throw new IllegalStateException("STOP_FLAG has not been filled");
+        throw new IllegalStateException("PATTERN_ZERO_ONE has not been filled");
       }
 
       if (!filled.get(56)) {
-        throw new IllegalStateException("STORAGE_INST has not been filled");
+        throw new IllegalStateException("PATTERN_ZERO_ZERO has not been filled");
       }
 
       if (!filled.get(57)) {
-        throw new IllegalStateException("SUB_FLAG has not been filled");
+        throw new IllegalStateException("RAM_ENABLED has not been filled");
       }
 
       if (!filled.get(58)) {
-        throw new IllegalStateException("TWO_LINES_INSTRUCTION has not been filled");
+        throw new IllegalStateException("RAM_SOURCE_BLAKE_DATA has not been filled");
       }
 
       if (!filled.get(59)) {
-        throw new IllegalStateException("WARMTH_FLAG has not been filled");
+        throw new IllegalStateException("RAM_SOURCE_EC_DATA has not been filled");
       }
 
       if (!filled.get(60)) {
-        throw new IllegalStateException("WORD_COMPARISON_INST has not been filled");
+        throw new IllegalStateException("RAM_SOURCE_EC_INFO has not been filled");
+      }
+
+      if (!filled.get(61)) {
+        throw new IllegalStateException("RAM_SOURCE_HASH_DATA has not been filled");
+      }
+
+      if (!filled.get(62)) {
+        throw new IllegalStateException("RAM_SOURCE_HASH_INFO has not been filled");
+      }
+
+      if (!filled.get(63)) {
+        throw new IllegalStateException("RAM_SOURCE_LOG_DATA has not been filled");
+      }
+
+      if (!filled.get(64)) {
+        throw new IllegalStateException("RAM_SOURCE_MODEXP_DATA has not been filled");
+      }
+
+      if (!filled.get(65)) {
+        throw new IllegalStateException("RAM_SOURCE_RAM has not been filled");
+      }
+
+      if (!filled.get(66)) {
+        throw new IllegalStateException("RAM_SOURCE_ROM has not been filled");
+      }
+
+      if (!filled.get(67)) {
+        throw new IllegalStateException("RAM_SOURCE_STACK has not been filled");
+      }
+
+      if (!filled.get(68)) {
+        throw new IllegalStateException("RAM_SOURCE_TXN_DATA has not been filled");
+      }
+
+      if (!filled.get(69)) {
+        throw new IllegalStateException("RAM_TARGET_BLAKE_DATA has not been filled");
+      }
+
+      if (!filled.get(70)) {
+        throw new IllegalStateException("RAM_TARGET_EC_DATA has not been filled");
+      }
+
+      if (!filled.get(71)) {
+        throw new IllegalStateException("RAM_TARGET_EC_INFO has not been filled");
+      }
+
+      if (!filled.get(72)) {
+        throw new IllegalStateException("RAM_TARGET_HASH_DATA has not been filled");
+      }
+
+      if (!filled.get(73)) {
+        throw new IllegalStateException("RAM_TARGET_HASH_INFO has not been filled");
+      }
+
+      if (!filled.get(74)) {
+        throw new IllegalStateException("RAM_TARGET_LOG_DATA has not been filled");
+      }
+
+      if (!filled.get(75)) {
+        throw new IllegalStateException("RAM_TARGET_MODEXP_DATA has not been filled");
+      }
+
+      if (!filled.get(76)) {
+        throw new IllegalStateException("RAM_TARGET_RAM has not been filled");
+      }
+
+      if (!filled.get(77)) {
+        throw new IllegalStateException("RAM_TARGET_ROM has not been filled");
+      }
+
+      if (!filled.get(78)) {
+        throw new IllegalStateException("RAM_TARGET_STACK has not been filled");
+      }
+
+      if (!filled.get(79)) {
+        throw new IllegalStateException("RAM_TARGET_TXN_DATA has not been filled");
+      }
+
+      if (!filled.get(80)) {
+        throw new IllegalStateException("STATIC_GAS has not been filled");
+      }
+
+      if (!filled.get(81)) {
+        throw new IllegalStateException("TWO_LINES_INSTRUCTION has not been filled");
       }
 
 
@@ -1947,248 +1618,332 @@ public record Trace(
 
     public TraceBuilder fillAndValidateRow() {
       if (!filled.get(0)) {
-          addFlag.add(BigInteger.ZERO);
+          addressTrimmingInstruction.add(false);
           this.filled.set(0);
       }
       if (!filled.get(1)) {
-          addModFlag.add(BigInteger.ZERO);
+          alpha.add(UnsignedByte.of(0));
           this.filled.set(1);
       }
       if (!filled.get(2)) {
-          alpha.add(BigInteger.ZERO);
+          billingPerByte.add(BigInteger.ZERO);
           this.filled.set(2);
       }
       if (!filled.get(3)) {
-          aluAddInst.add(BigInteger.ZERO);
+          billingPerWord.add(BigInteger.ZERO);
           this.filled.set(3);
       }
       if (!filled.get(4)) {
-          aluExtInst.add(BigInteger.ZERO);
+          delta.add(UnsignedByte.of(0));
           this.filled.set(4);
       }
       if (!filled.get(5)) {
-          aluModInst.add(BigInteger.ZERO);
+          familyAccount.add(false);
           this.filled.set(5);
       }
       if (!filled.get(6)) {
-          aluMulInst.add(BigInteger.ZERO);
+          familyAdd.add(false);
           this.filled.set(6);
       }
       if (!filled.get(7)) {
-          arithmeticInst.add(BigInteger.ZERO);
+          familyBatch.add(false);
           this.filled.set(7);
       }
       if (!filled.get(8)) {
-          binaryInst.add(BigInteger.ZERO);
+          familyBin.add(false);
           this.filled.set(8);
       }
-      if (!filled.get(11)) {
-          callFlag.add(BigInteger.ZERO);
-          this.filled.set(11);
-      }
-      if (!filled.get(10)) {
-          calldataFlag.add(BigInteger.ZERO);
-          this.filled.set(10);
-      }
       if (!filled.get(9)) {
-          calldatacopyFlag.add(BigInteger.ZERO);
+          familyCall.add(false);
           this.filled.set(9);
       }
+      if (!filled.get(10)) {
+          familyContext.add(false);
+          this.filled.set(10);
+      }
+      if (!filled.get(11)) {
+          familyCopy.add(false);
+          this.filled.set(11);
+      }
       if (!filled.get(12)) {
-          delta.add(BigInteger.ZERO);
+          familyCreate.add(false);
           this.filled.set(12);
       }
       if (!filled.get(13)) {
-          divFlag.add(BigInteger.ZERO);
+          familyDup.add(false);
           this.filled.set(13);
       }
       if (!filled.get(14)) {
-          exodataIsSource.add(BigInteger.ZERO);
+          familyExt.add(false);
           this.filled.set(14);
       }
       if (!filled.get(15)) {
-          exoopFlag.add(BigInteger.ZERO);
+          familyHalt.add(false);
           this.filled.set(15);
       }
       if (!filled.get(16)) {
-          expFlag.add(BigInteger.ZERO);
+          familyInvalid.add(false);
           this.filled.set(16);
       }
       if (!filled.get(17)) {
-          flag1.add(BigInteger.ZERO);
+          familyJump.add(false);
           this.filled.set(17);
       }
       if (!filled.get(18)) {
-          flag2.add(BigInteger.ZERO);
+          familyKec.add(false);
           this.filled.set(18);
       }
       if (!filled.get(19)) {
-          flag3.add(BigInteger.ZERO);
+          familyLog.add(false);
           this.filled.set(19);
       }
       if (!filled.get(20)) {
-          hashInst.add(BigInteger.ZERO);
+          familyMachineState.add(false);
           this.filled.set(20);
       }
       if (!filled.get(21)) {
-          inst.add(BigInteger.ZERO);
+          familyMod.add(false);
           this.filled.set(21);
       }
       if (!filled.get(22)) {
-          instParam.add(BigInteger.ZERO);
+          familyMul.add(false);
           this.filled.set(22);
       }
       if (!filled.get(23)) {
-          invalidInstruction.add(BigInteger.ZERO);
+          familyPushPop.add(false);
           this.filled.set(23);
       }
       if (!filled.get(24)) {
-          jumpFlag.add(BigInteger.ZERO);
+          familyShf.add(false);
           this.filled.set(24);
       }
       if (!filled.get(25)) {
-          logInst.add(BigInteger.ZERO);
+          familyStackRam.add(false);
           this.filled.set(25);
       }
       if (!filled.get(26)) {
-          memoryExpansionFlag.add(BigInteger.ZERO);
+          familyStorage.add(false);
           this.filled.set(26);
       }
       if (!filled.get(27)) {
-          modFlag.add(BigInteger.ZERO);
+          familySwap.add(false);
           this.filled.set(27);
       }
       if (!filled.get(28)) {
-          mulFlag.add(BigInteger.ZERO);
+          familyTransaction.add(false);
           this.filled.set(28);
       }
       if (!filled.get(29)) {
-          mulModFlag.add(BigInteger.ZERO);
+          familyWcp.add(false);
           this.filled.set(29);
       }
       if (!filled.get(30)) {
-          mxpGbyte.add(BigInteger.ZERO);
+          flag1.add(false);
           this.filled.set(30);
       }
       if (!filled.get(31)) {
-          mxpGword.add(BigInteger.ZERO);
+          flag2.add(false);
           this.filled.set(31);
       }
       if (!filled.get(32)) {
-          mxpInst.add(BigInteger.ZERO);
+          flag3.add(false);
           this.filled.set(32);
       }
       if (!filled.get(33)) {
-          mxpType1.add(BigInteger.ZERO);
+          flag4.add(false);
           this.filled.set(33);
       }
       if (!filled.get(34)) {
-          mxpType2.add(BigInteger.ZERO);
+          forbiddenInStatic.add(false);
           this.filled.set(34);
       }
       if (!filled.get(35)) {
-          mxpType3.add(BigInteger.ZERO);
+          mxpType1.add(false);
           this.filled.set(35);
       }
       if (!filled.get(36)) {
-          mxpType4.add(BigInteger.ZERO);
+          mxpType2.add(false);
           this.filled.set(36);
       }
       if (!filled.get(37)) {
-          mxpType5.add(BigInteger.ZERO);
+          mxpType3.add(false);
           this.filled.set(37);
       }
       if (!filled.get(38)) {
-          nbAdded.add(BigInteger.ZERO);
+          mxpType4.add(false);
           this.filled.set(38);
       }
       if (!filled.get(39)) {
-          nbRemoved.add(BigInteger.ZERO);
+          mxpType5.add(false);
           this.filled.set(39);
       }
       if (!filled.get(40)) {
-          nonStaticFlag.add(BigInteger.ZERO);
+          nbAdded.add(UnsignedByte.of(0));
           this.filled.set(40);
       }
       if (!filled.get(41)) {
-          op.add(BigInteger.ZERO);
+          nbRemoved.add(UnsignedByte.of(0));
           this.filled.set(41);
       }
       if (!filled.get(42)) {
-          pushFlag.add(BigInteger.ZERO);
+          opcode.add(BigInteger.ZERO);
           this.filled.set(42);
       }
       if (!filled.get(43)) {
-          ramInst.add(BigInteger.ZERO);
+          patternCall.add(false);
           this.filled.set(43);
       }
-      if (!filled.get(45)) {
-          returnFlag.add(BigInteger.ZERO);
-          this.filled.set(45);
-      }
       if (!filled.get(44)) {
-          returndataFlag.add(BigInteger.ZERO);
+          patternCopy.add(false);
           this.filled.set(44);
       }
+      if (!filled.get(45)) {
+          patternCreate.add(false);
+          this.filled.set(45);
+      }
       if (!filled.get(46)) {
-          revertFlag.add(BigInteger.ZERO);
+          patternDup.add(false);
           this.filled.set(46);
       }
       if (!filled.get(47)) {
-          romFlag.add(BigInteger.ZERO);
+          patternLoadStore.add(false);
           this.filled.set(47);
       }
       if (!filled.get(48)) {
-          sdivFlag.add(BigInteger.ZERO);
+          patternLog.add(false);
           this.filled.set(48);
       }
       if (!filled.get(49)) {
-          shiftInst.add(BigInteger.ZERO);
+          patternOneOne.add(false);
           this.filled.set(49);
       }
       if (!filled.get(50)) {
-          size.add(BigInteger.ZERO);
+          patternOneZero.add(false);
           this.filled.set(50);
       }
       if (!filled.get(51)) {
-          smodFlag.add(BigInteger.ZERO);
+          patternSwap.add(false);
           this.filled.set(51);
       }
       if (!filled.get(52)) {
-          specialPcUpdate.add(BigInteger.ZERO);
+          patternThreeOne.add(false);
           this.filled.set(52);
       }
       if (!filled.get(53)) {
-          stackPattern.add(BigInteger.ZERO);
+          patternTwoOne.add(false);
           this.filled.set(53);
       }
       if (!filled.get(54)) {
-          staticGas.add(BigInteger.ZERO);
+          patternTwoZero.add(false);
           this.filled.set(54);
       }
       if (!filled.get(55)) {
-          stopFlag.add(BigInteger.ZERO);
+          patternZeroOne.add(false);
           this.filled.set(55);
       }
       if (!filled.get(56)) {
-          storageInst.add(BigInteger.ZERO);
+          patternZeroZero.add(false);
           this.filled.set(56);
       }
       if (!filled.get(57)) {
-          subFlag.add(BigInteger.ZERO);
+          ramEnabled.add(false);
           this.filled.set(57);
       }
       if (!filled.get(58)) {
-          twoLinesInstruction.add(BigInteger.ZERO);
+          ramSourceBlakeData.add(false);
           this.filled.set(58);
       }
       if (!filled.get(59)) {
-          warmthFlag.add(BigInteger.ZERO);
+          ramSourceEcData.add(false);
           this.filled.set(59);
       }
       if (!filled.get(60)) {
-          wordComparisonInst.add(BigInteger.ZERO);
+          ramSourceEcInfo.add(false);
           this.filled.set(60);
+      }
+      if (!filled.get(61)) {
+          ramSourceHashData.add(false);
+          this.filled.set(61);
+      }
+      if (!filled.get(62)) {
+          ramSourceHashInfo.add(false);
+          this.filled.set(62);
+      }
+      if (!filled.get(63)) {
+          ramSourceLogData.add(false);
+          this.filled.set(63);
+      }
+      if (!filled.get(64)) {
+          ramSourceModexpData.add(false);
+          this.filled.set(64);
+      }
+      if (!filled.get(65)) {
+          ramSourceRam.add(false);
+          this.filled.set(65);
+      }
+      if (!filled.get(66)) {
+          ramSourceRom.add(false);
+          this.filled.set(66);
+      }
+      if (!filled.get(67)) {
+          ramSourceStack.add(false);
+          this.filled.set(67);
+      }
+      if (!filled.get(68)) {
+          ramSourceTxnData.add(false);
+          this.filled.set(68);
+      }
+      if (!filled.get(69)) {
+          ramTargetBlakeData.add(false);
+          this.filled.set(69);
+      }
+      if (!filled.get(70)) {
+          ramTargetEcData.add(false);
+          this.filled.set(70);
+      }
+      if (!filled.get(71)) {
+          ramTargetEcInfo.add(false);
+          this.filled.set(71);
+      }
+      if (!filled.get(72)) {
+          ramTargetHashData.add(false);
+          this.filled.set(72);
+      }
+      if (!filled.get(73)) {
+          ramTargetHashInfo.add(false);
+          this.filled.set(73);
+      }
+      if (!filled.get(74)) {
+          ramTargetLogData.add(false);
+          this.filled.set(74);
+      }
+      if (!filled.get(75)) {
+          ramTargetModexpData.add(false);
+          this.filled.set(75);
+      }
+      if (!filled.get(76)) {
+          ramTargetRam.add(false);
+          this.filled.set(76);
+      }
+      if (!filled.get(77)) {
+          ramTargetRom.add(false);
+          this.filled.set(77);
+      }
+      if (!filled.get(78)) {
+          ramTargetStack.add(false);
+          this.filled.set(78);
+      }
+      if (!filled.get(79)) {
+          ramTargetTxnData.add(false);
+          this.filled.set(79);
+      }
+      if (!filled.get(80)) {
+          staticGas.add(BigInteger.ZERO);
+          this.filled.set(80);
+      }
+      if (!filled.get(81)) {
+          twoLinesInstruction.add(false);
+          this.filled.set(81);
       }
 
       return this.validateRow();
@@ -2200,39 +1955,41 @@ public record Trace(
       }
 
       return new Trace(
-        addFlag,
-        addModFlag,
+        addressTrimmingInstruction,
         alpha,
-        aluAddInst,
-        aluExtInst,
-        aluModInst,
-        aluMulInst,
-        arithmeticInst,
-        binaryInst,
-        callFlag,
-        calldataFlag,
-        calldatacopyFlag,
+        billingPerByte,
+        billingPerWord,
         delta,
-        divFlag,
-        exodataIsSource,
-        exoopFlag,
-        expFlag,
+        familyAccount,
+        familyAdd,
+        familyBatch,
+        familyBin,
+        familyCall,
+        familyContext,
+        familyCopy,
+        familyCreate,
+        familyDup,
+        familyExt,
+        familyHalt,
+        familyInvalid,
+        familyJump,
+        familyKec,
+        familyLog,
+        familyMachineState,
+        familyMod,
+        familyMul,
+        familyPushPop,
+        familyShf,
+        familyStackRam,
+        familyStorage,
+        familySwap,
+        familyTransaction,
+        familyWcp,
         flag1,
         flag2,
         flag3,
-        hashInst,
-        inst,
-        instParam,
-        invalidInstruction,
-        jumpFlag,
-        logInst,
-        memoryExpansionFlag,
-        modFlag,
-        mulFlag,
-        mulModFlag,
-        mxpGbyte,
-        mxpGword,
-        mxpInst,
+        flag4,
+        forbiddenInStatic,
         mxpType1,
         mxpType2,
         mxpType3,
@@ -2240,27 +1997,46 @@ public record Trace(
         mxpType5,
         nbAdded,
         nbRemoved,
-        nonStaticFlag,
-        op,
-        pushFlag,
-        ramInst,
-        returnFlag,
-        returndataFlag,
-        revertFlag,
-        romFlag,
-        sdivFlag,
-        shiftInst,
-        size,
-        smodFlag,
-        specialPcUpdate,
-        stackPattern,
+        opcode,
+        patternCall,
+        patternCopy,
+        patternCreate,
+        patternDup,
+        patternLoadStore,
+        patternLog,
+        patternOneOne,
+        patternOneZero,
+        patternSwap,
+        patternThreeOne,
+        patternTwoOne,
+        patternTwoZero,
+        patternZeroOne,
+        patternZeroZero,
+        ramEnabled,
+        ramSourceBlakeData,
+        ramSourceEcData,
+        ramSourceEcInfo,
+        ramSourceHashData,
+        ramSourceHashInfo,
+        ramSourceLogData,
+        ramSourceModexpData,
+        ramSourceRam,
+        ramSourceRom,
+        ramSourceStack,
+        ramSourceTxnData,
+        ramTargetBlakeData,
+        ramTargetEcData,
+        ramTargetEcInfo,
+        ramTargetHashData,
+        ramTargetHashInfo,
+        ramTargetLogData,
+        ramTargetModexpData,
+        ramTargetRam,
+        ramTargetRom,
+        ramTargetStack,
+        ramTargetTxnData,
         staticGas,
-        stopFlag,
-        storageInst,
-        subFlag,
-        twoLinesInstruction,
-        warmthFlag,
-        wordComparisonInst);
+        twoLinesInstruction);
     }
   }
 }

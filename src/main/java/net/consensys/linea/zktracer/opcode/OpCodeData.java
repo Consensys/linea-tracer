@@ -53,6 +53,10 @@ public record OpCodeData(
     return Objects.requireNonNullElse(this.ramSettings, RamSettings.DEFAULT);
   }
 
+  public Billing billing() {
+    return Objects.requireNonNullElse(this.billing, Billing.DEFAULT);
+  }
+
   /**
    * A method singling out <code>PUSHx</code> instructions.
    *

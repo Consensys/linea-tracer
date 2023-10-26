@@ -118,8 +118,16 @@ public final class InstructionDecoder {
 
   private static void traceBillingSettings(OpCodeData op, Trace.TraceBuilder trace) {
     trace
-        .billingPerWord(BigInteger.valueOf(op.billing().billingRate() == BillingRate.BY_WORD ? op.billing().perUnit().cost() : 0))
-        .billingPerByte(BigInteger.valueOf(op.billing().billingRate() == BillingRate.BY_BYTE ? op.billing().perUnit().cost() : 0))
+        .billingPerWord(
+            BigInteger.valueOf(
+                op.billing().billingRate() == BillingRate.BY_WORD
+                    ? op.billing().perUnit().cost()
+                    : 0))
+        .billingPerByte(
+            BigInteger.valueOf(
+                op.billing().billingRate() == BillingRate.BY_BYTE
+                    ? op.billing().perUnit().cost()
+                    : 0))
         .mxpType1(op.billing().type() == MxpType.TYPE_1)
         .mxpType2(op.billing().type() == MxpType.TYPE_2)
         .mxpType3(op.billing().type() == MxpType.TYPE_3)

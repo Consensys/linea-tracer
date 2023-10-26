@@ -15,108 +15,107 @@
 
 package net.consensys.linea.zktracer.module.tables.instructionDecoder;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import net.consensys.linea.zktracer.bytes.UnsignedByte;
-
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import net.consensys.linea.zktracer.bytes.UnsignedByte;
+
 /**
- * WARNING: This code is generated automatically.
- * Any modifications to this code may be overwritten and could lead to unexpected behavior.
- * Please DO NOT ATTEMPT TO MODIFY this code directly.
+ * WARNING: This code is generated automatically. Any modifications to this code may be overwritten
+ * and could lead to unexpected behavior. Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
 public record Trace(
-  @JsonProperty("ADDRESS_TRIMMING_INSTRUCTION") List<Boolean> addressTrimmingInstruction,
-  @JsonProperty("ALPHA") List<UnsignedByte> alpha,
-  @JsonProperty("BILLING_PER_BYTE") List<BigInteger> billingPerByte,
-  @JsonProperty("BILLING_PER_WORD") List<BigInteger> billingPerWord,
-  @JsonProperty("DELTA") List<UnsignedByte> delta,
-  @JsonProperty("FAMILY_ACCOUNT") List<Boolean> familyAccount,
-  @JsonProperty("FAMILY_ADD") List<Boolean> familyAdd,
-  @JsonProperty("FAMILY_BATCH") List<Boolean> familyBatch,
-  @JsonProperty("FAMILY_BIN") List<Boolean> familyBin,
-  @JsonProperty("FAMILY_CALL") List<Boolean> familyCall,
-  @JsonProperty("FAMILY_CONTEXT") List<Boolean> familyContext,
-  @JsonProperty("FAMILY_COPY") List<Boolean> familyCopy,
-  @JsonProperty("FAMILY_CREATE") List<Boolean> familyCreate,
-  @JsonProperty("FAMILY_DUP") List<Boolean> familyDup,
-  @JsonProperty("FAMILY_EXT") List<Boolean> familyExt,
-  @JsonProperty("FAMILY_HALT") List<Boolean> familyHalt,
-  @JsonProperty("FAMILY_INVALID") List<Boolean> familyInvalid,
-  @JsonProperty("FAMILY_JUMP") List<Boolean> familyJump,
-  @JsonProperty("FAMILY_KEC") List<Boolean> familyKec,
-  @JsonProperty("FAMILY_LOG") List<Boolean> familyLog,
-  @JsonProperty("FAMILY_MACHINE_STATE") List<Boolean> familyMachineState,
-  @JsonProperty("FAMILY_MOD") List<Boolean> familyMod,
-  @JsonProperty("FAMILY_MUL") List<Boolean> familyMul,
-  @JsonProperty("FAMILY_PUSH_POP") List<Boolean> familyPushPop,
-  @JsonProperty("FAMILY_SHF") List<Boolean> familyShf,
-  @JsonProperty("FAMILY_STACK_RAM") List<Boolean> familyStackRam,
-  @JsonProperty("FAMILY_STORAGE") List<Boolean> familyStorage,
-  @JsonProperty("FAMILY_SWAP") List<Boolean> familySwap,
-  @JsonProperty("FAMILY_TRANSACTION") List<Boolean> familyTransaction,
-  @JsonProperty("FAMILY_WCP") List<Boolean> familyWcp,
-  @JsonProperty("FLAG1") List<Boolean> flag1,
-  @JsonProperty("FLAG2") List<Boolean> flag2,
-  @JsonProperty("FLAG3") List<Boolean> flag3,
-  @JsonProperty("FLAG4") List<Boolean> flag4,
-  @JsonProperty("FORBIDDEN_IN_STATIC") List<Boolean> forbiddenInStatic,
-  @JsonProperty("MXP_TYPE_1") List<Boolean> mxpType1,
-  @JsonProperty("MXP_TYPE_2") List<Boolean> mxpType2,
-  @JsonProperty("MXP_TYPE_3") List<Boolean> mxpType3,
-  @JsonProperty("MXP_TYPE_4") List<Boolean> mxpType4,
-  @JsonProperty("MXP_TYPE_5") List<Boolean> mxpType5,
-  @JsonProperty("NB_ADDED") List<UnsignedByte> nbAdded,
-  @JsonProperty("NB_REMOVED") List<UnsignedByte> nbRemoved,
-  @JsonProperty("OPCODE") List<BigInteger> opcode,
-  @JsonProperty("PATTERN_CALL") List<Boolean> patternCall,
-  @JsonProperty("PATTERN_COPY") List<Boolean> patternCopy,
-  @JsonProperty("PATTERN_CREATE") List<Boolean> patternCreate,
-  @JsonProperty("PATTERN_DUP") List<Boolean> patternDup,
-  @JsonProperty("PATTERN_LOAD_STORE") List<Boolean> patternLoadStore,
-  @JsonProperty("PATTERN_LOG") List<Boolean> patternLog,
-  @JsonProperty("PATTERN_ONE_ONE") List<Boolean> patternOneOne,
-  @JsonProperty("PATTERN_ONE_ZERO") List<Boolean> patternOneZero,
-  @JsonProperty("PATTERN_SWAP") List<Boolean> patternSwap,
-  @JsonProperty("PATTERN_THREE_ONE") List<Boolean> patternThreeOne,
-  @JsonProperty("PATTERN_TWO_ONE") List<Boolean> patternTwoOne,
-  @JsonProperty("PATTERN_TWO_ZERO") List<Boolean> patternTwoZero,
-  @JsonProperty("PATTERN_ZERO_ONE") List<Boolean> patternZeroOne,
-  @JsonProperty("PATTERN_ZERO_ZERO") List<Boolean> patternZeroZero,
-  @JsonProperty("RAM_ENABLED") List<Boolean> ramEnabled,
-  @JsonProperty("RAM_SOURCE_BLAKE_DATA") List<Boolean> ramSourceBlakeData,
-  @JsonProperty("RAM_SOURCE_EC_DATA") List<Boolean> ramSourceEcData,
-  @JsonProperty("RAM_SOURCE_EC_INFO") List<Boolean> ramSourceEcInfo,
-  @JsonProperty("RAM_SOURCE_HASH_DATA") List<Boolean> ramSourceHashData,
-  @JsonProperty("RAM_SOURCE_HASH_INFO") List<Boolean> ramSourceHashInfo,
-  @JsonProperty("RAM_SOURCE_LOG_DATA") List<Boolean> ramSourceLogData,
-  @JsonProperty("RAM_SOURCE_MODEXP_DATA") List<Boolean> ramSourceModexpData,
-  @JsonProperty("RAM_SOURCE_RAM") List<Boolean> ramSourceRam,
-  @JsonProperty("RAM_SOURCE_ROM") List<Boolean> ramSourceRom,
-  @JsonProperty("RAM_SOURCE_STACK") List<Boolean> ramSourceStack,
-  @JsonProperty("RAM_SOURCE_TXN_DATA") List<Boolean> ramSourceTxnData,
-  @JsonProperty("RAM_TARGET_BLAKE_DATA") List<Boolean> ramTargetBlakeData,
-  @JsonProperty("RAM_TARGET_EC_DATA") List<Boolean> ramTargetEcData,
-  @JsonProperty("RAM_TARGET_EC_INFO") List<Boolean> ramTargetEcInfo,
-  @JsonProperty("RAM_TARGET_HASH_DATA") List<Boolean> ramTargetHashData,
-  @JsonProperty("RAM_TARGET_HASH_INFO") List<Boolean> ramTargetHashInfo,
-  @JsonProperty("RAM_TARGET_LOG_DATA") List<Boolean> ramTargetLogData,
-  @JsonProperty("RAM_TARGET_MODEXP_DATA") List<Boolean> ramTargetModexpData,
-  @JsonProperty("RAM_TARGET_RAM") List<Boolean> ramTargetRam,
-  @JsonProperty("RAM_TARGET_ROM") List<Boolean> ramTargetRom,
-  @JsonProperty("RAM_TARGET_STACK") List<Boolean> ramTargetStack,
-  @JsonProperty("RAM_TARGET_TXN_DATA") List<Boolean> ramTargetTxnData,
-  @JsonProperty("STATIC_GAS") List<BigInteger> staticGas,
-  @JsonProperty("TWO_LINES_INSTRUCTION") List<Boolean> twoLinesInstruction) { 
+    @JsonProperty("ADDRESS_TRIMMING_INSTRUCTION") List<Boolean> addressTrimmingInstruction,
+    @JsonProperty("ALPHA") List<UnsignedByte> alpha,
+    @JsonProperty("BILLING_PER_BYTE") List<BigInteger> billingPerByte,
+    @JsonProperty("BILLING_PER_WORD") List<BigInteger> billingPerWord,
+    @JsonProperty("DELTA") List<UnsignedByte> delta,
+    @JsonProperty("FAMILY_ACCOUNT") List<Boolean> familyAccount,
+    @JsonProperty("FAMILY_ADD") List<Boolean> familyAdd,
+    @JsonProperty("FAMILY_BATCH") List<Boolean> familyBatch,
+    @JsonProperty("FAMILY_BIN") List<Boolean> familyBin,
+    @JsonProperty("FAMILY_CALL") List<Boolean> familyCall,
+    @JsonProperty("FAMILY_CONTEXT") List<Boolean> familyContext,
+    @JsonProperty("FAMILY_COPY") List<Boolean> familyCopy,
+    @JsonProperty("FAMILY_CREATE") List<Boolean> familyCreate,
+    @JsonProperty("FAMILY_DUP") List<Boolean> familyDup,
+    @JsonProperty("FAMILY_EXT") List<Boolean> familyExt,
+    @JsonProperty("FAMILY_HALT") List<Boolean> familyHalt,
+    @JsonProperty("FAMILY_INVALID") List<Boolean> familyInvalid,
+    @JsonProperty("FAMILY_JUMP") List<Boolean> familyJump,
+    @JsonProperty("FAMILY_KEC") List<Boolean> familyKec,
+    @JsonProperty("FAMILY_LOG") List<Boolean> familyLog,
+    @JsonProperty("FAMILY_MACHINE_STATE") List<Boolean> familyMachineState,
+    @JsonProperty("FAMILY_MOD") List<Boolean> familyMod,
+    @JsonProperty("FAMILY_MUL") List<Boolean> familyMul,
+    @JsonProperty("FAMILY_PUSH_POP") List<Boolean> familyPushPop,
+    @JsonProperty("FAMILY_SHF") List<Boolean> familyShf,
+    @JsonProperty("FAMILY_STACK_RAM") List<Boolean> familyStackRam,
+    @JsonProperty("FAMILY_STORAGE") List<Boolean> familyStorage,
+    @JsonProperty("FAMILY_SWAP") List<Boolean> familySwap,
+    @JsonProperty("FAMILY_TRANSACTION") List<Boolean> familyTransaction,
+    @JsonProperty("FAMILY_WCP") List<Boolean> familyWcp,
+    @JsonProperty("FLAG1") List<Boolean> flag1,
+    @JsonProperty("FLAG2") List<Boolean> flag2,
+    @JsonProperty("FLAG3") List<Boolean> flag3,
+    @JsonProperty("FLAG4") List<Boolean> flag4,
+    @JsonProperty("FORBIDDEN_IN_STATIC") List<Boolean> forbiddenInStatic,
+    @JsonProperty("MXP_TYPE_1") List<Boolean> mxpType1,
+    @JsonProperty("MXP_TYPE_2") List<Boolean> mxpType2,
+    @JsonProperty("MXP_TYPE_3") List<Boolean> mxpType3,
+    @JsonProperty("MXP_TYPE_4") List<Boolean> mxpType4,
+    @JsonProperty("MXP_TYPE_5") List<Boolean> mxpType5,
+    @JsonProperty("NB_ADDED") List<UnsignedByte> nbAdded,
+    @JsonProperty("NB_REMOVED") List<UnsignedByte> nbRemoved,
+    @JsonProperty("OPCODE") List<BigInteger> opcode,
+    @JsonProperty("PATTERN_CALL") List<Boolean> patternCall,
+    @JsonProperty("PATTERN_COPY") List<Boolean> patternCopy,
+    @JsonProperty("PATTERN_CREATE") List<Boolean> patternCreate,
+    @JsonProperty("PATTERN_DUP") List<Boolean> patternDup,
+    @JsonProperty("PATTERN_LOAD_STORE") List<Boolean> patternLoadStore,
+    @JsonProperty("PATTERN_LOG") List<Boolean> patternLog,
+    @JsonProperty("PATTERN_ONE_ONE") List<Boolean> patternOneOne,
+    @JsonProperty("PATTERN_ONE_ZERO") List<Boolean> patternOneZero,
+    @JsonProperty("PATTERN_SWAP") List<Boolean> patternSwap,
+    @JsonProperty("PATTERN_THREE_ONE") List<Boolean> patternThreeOne,
+    @JsonProperty("PATTERN_TWO_ONE") List<Boolean> patternTwoOne,
+    @JsonProperty("PATTERN_TWO_ZERO") List<Boolean> patternTwoZero,
+    @JsonProperty("PATTERN_ZERO_ONE") List<Boolean> patternZeroOne,
+    @JsonProperty("PATTERN_ZERO_ZERO") List<Boolean> patternZeroZero,
+    @JsonProperty("RAM_ENABLED") List<Boolean> ramEnabled,
+    @JsonProperty("RAM_SOURCE_BLAKE_DATA") List<Boolean> ramSourceBlakeData,
+    @JsonProperty("RAM_SOURCE_EC_DATA") List<Boolean> ramSourceEcData,
+    @JsonProperty("RAM_SOURCE_EC_INFO") List<Boolean> ramSourceEcInfo,
+    @JsonProperty("RAM_SOURCE_HASH_DATA") List<Boolean> ramSourceHashData,
+    @JsonProperty("RAM_SOURCE_HASH_INFO") List<Boolean> ramSourceHashInfo,
+    @JsonProperty("RAM_SOURCE_LOG_DATA") List<Boolean> ramSourceLogData,
+    @JsonProperty("RAM_SOURCE_MODEXP_DATA") List<Boolean> ramSourceModexpData,
+    @JsonProperty("RAM_SOURCE_RAM") List<Boolean> ramSourceRam,
+    @JsonProperty("RAM_SOURCE_ROM") List<Boolean> ramSourceRom,
+    @JsonProperty("RAM_SOURCE_STACK") List<Boolean> ramSourceStack,
+    @JsonProperty("RAM_SOURCE_TXN_DATA") List<Boolean> ramSourceTxnData,
+    @JsonProperty("RAM_TARGET_BLAKE_DATA") List<Boolean> ramTargetBlakeData,
+    @JsonProperty("RAM_TARGET_EC_DATA") List<Boolean> ramTargetEcData,
+    @JsonProperty("RAM_TARGET_EC_INFO") List<Boolean> ramTargetEcInfo,
+    @JsonProperty("RAM_TARGET_HASH_DATA") List<Boolean> ramTargetHashData,
+    @JsonProperty("RAM_TARGET_HASH_INFO") List<Boolean> ramTargetHashInfo,
+    @JsonProperty("RAM_TARGET_LOG_DATA") List<Boolean> ramTargetLogData,
+    @JsonProperty("RAM_TARGET_MODEXP_DATA") List<Boolean> ramTargetModexpData,
+    @JsonProperty("RAM_TARGET_RAM") List<Boolean> ramTargetRam,
+    @JsonProperty("RAM_TARGET_ROM") List<Boolean> ramTargetRom,
+    @JsonProperty("RAM_TARGET_STACK") List<Boolean> ramTargetStack,
+    @JsonProperty("RAM_TARGET_TXN_DATA") List<Boolean> ramTargetTxnData,
+    @JsonProperty("STATIC_GAS") List<BigInteger> staticGas,
+    @JsonProperty("TWO_LINES_INSTRUCTION") List<Boolean> twoLinesInstruction) {
   static TraceBuilder builder() {
     return new TraceBuilder();
   }
 
   public int size() {
-      return this.addressTrimmingInstruction.size();
+    return this.addressTrimmingInstruction.size();
   }
 
   static class TraceBuilder {
@@ -124,166 +123,247 @@ public record Trace(
 
     @JsonProperty("ADDRESS_TRIMMING_INSTRUCTION")
     private final List<Boolean> addressTrimmingInstruction = new ArrayList<>();
+
     @JsonProperty("ALPHA")
     private final List<UnsignedByte> alpha = new ArrayList<>();
+
     @JsonProperty("BILLING_PER_BYTE")
     private final List<BigInteger> billingPerByte = new ArrayList<>();
+
     @JsonProperty("BILLING_PER_WORD")
     private final List<BigInteger> billingPerWord = new ArrayList<>();
+
     @JsonProperty("DELTA")
     private final List<UnsignedByte> delta = new ArrayList<>();
+
     @JsonProperty("FAMILY_ACCOUNT")
     private final List<Boolean> familyAccount = new ArrayList<>();
+
     @JsonProperty("FAMILY_ADD")
     private final List<Boolean> familyAdd = new ArrayList<>();
+
     @JsonProperty("FAMILY_BATCH")
     private final List<Boolean> familyBatch = new ArrayList<>();
+
     @JsonProperty("FAMILY_BIN")
     private final List<Boolean> familyBin = new ArrayList<>();
+
     @JsonProperty("FAMILY_CALL")
     private final List<Boolean> familyCall = new ArrayList<>();
+
     @JsonProperty("FAMILY_CONTEXT")
     private final List<Boolean> familyContext = new ArrayList<>();
+
     @JsonProperty("FAMILY_COPY")
     private final List<Boolean> familyCopy = new ArrayList<>();
+
     @JsonProperty("FAMILY_CREATE")
     private final List<Boolean> familyCreate = new ArrayList<>();
+
     @JsonProperty("FAMILY_DUP")
     private final List<Boolean> familyDup = new ArrayList<>();
+
     @JsonProperty("FAMILY_EXT")
     private final List<Boolean> familyExt = new ArrayList<>();
+
     @JsonProperty("FAMILY_HALT")
     private final List<Boolean> familyHalt = new ArrayList<>();
+
     @JsonProperty("FAMILY_INVALID")
     private final List<Boolean> familyInvalid = new ArrayList<>();
+
     @JsonProperty("FAMILY_JUMP")
     private final List<Boolean> familyJump = new ArrayList<>();
+
     @JsonProperty("FAMILY_KEC")
     private final List<Boolean> familyKec = new ArrayList<>();
+
     @JsonProperty("FAMILY_LOG")
     private final List<Boolean> familyLog = new ArrayList<>();
+
     @JsonProperty("FAMILY_MACHINE_STATE")
     private final List<Boolean> familyMachineState = new ArrayList<>();
+
     @JsonProperty("FAMILY_MOD")
     private final List<Boolean> familyMod = new ArrayList<>();
+
     @JsonProperty("FAMILY_MUL")
     private final List<Boolean> familyMul = new ArrayList<>();
+
     @JsonProperty("FAMILY_PUSH_POP")
     private final List<Boolean> familyPushPop = new ArrayList<>();
+
     @JsonProperty("FAMILY_SHF")
     private final List<Boolean> familyShf = new ArrayList<>();
+
     @JsonProperty("FAMILY_STACK_RAM")
     private final List<Boolean> familyStackRam = new ArrayList<>();
+
     @JsonProperty("FAMILY_STORAGE")
     private final List<Boolean> familyStorage = new ArrayList<>();
+
     @JsonProperty("FAMILY_SWAP")
     private final List<Boolean> familySwap = new ArrayList<>();
+
     @JsonProperty("FAMILY_TRANSACTION")
     private final List<Boolean> familyTransaction = new ArrayList<>();
+
     @JsonProperty("FAMILY_WCP")
     private final List<Boolean> familyWcp = new ArrayList<>();
+
     @JsonProperty("FLAG1")
     private final List<Boolean> flag1 = new ArrayList<>();
+
     @JsonProperty("FLAG2")
     private final List<Boolean> flag2 = new ArrayList<>();
+
     @JsonProperty("FLAG3")
     private final List<Boolean> flag3 = new ArrayList<>();
+
     @JsonProperty("FLAG4")
     private final List<Boolean> flag4 = new ArrayList<>();
+
     @JsonProperty("FORBIDDEN_IN_STATIC")
     private final List<Boolean> forbiddenInStatic = new ArrayList<>();
+
     @JsonProperty("MXP_TYPE_1")
     private final List<Boolean> mxpType1 = new ArrayList<>();
+
     @JsonProperty("MXP_TYPE_2")
     private final List<Boolean> mxpType2 = new ArrayList<>();
+
     @JsonProperty("MXP_TYPE_3")
     private final List<Boolean> mxpType3 = new ArrayList<>();
+
     @JsonProperty("MXP_TYPE_4")
     private final List<Boolean> mxpType4 = new ArrayList<>();
+
     @JsonProperty("MXP_TYPE_5")
     private final List<Boolean> mxpType5 = new ArrayList<>();
+
     @JsonProperty("NB_ADDED")
     private final List<UnsignedByte> nbAdded = new ArrayList<>();
+
     @JsonProperty("NB_REMOVED")
     private final List<UnsignedByte> nbRemoved = new ArrayList<>();
+
     @JsonProperty("OPCODE")
     private final List<BigInteger> opcode = new ArrayList<>();
+
     @JsonProperty("PATTERN_CALL")
     private final List<Boolean> patternCall = new ArrayList<>();
+
     @JsonProperty("PATTERN_COPY")
     private final List<Boolean> patternCopy = new ArrayList<>();
+
     @JsonProperty("PATTERN_CREATE")
     private final List<Boolean> patternCreate = new ArrayList<>();
+
     @JsonProperty("PATTERN_DUP")
     private final List<Boolean> patternDup = new ArrayList<>();
+
     @JsonProperty("PATTERN_LOAD_STORE")
     private final List<Boolean> patternLoadStore = new ArrayList<>();
+
     @JsonProperty("PATTERN_LOG")
     private final List<Boolean> patternLog = new ArrayList<>();
+
     @JsonProperty("PATTERN_ONE_ONE")
     private final List<Boolean> patternOneOne = new ArrayList<>();
+
     @JsonProperty("PATTERN_ONE_ZERO")
     private final List<Boolean> patternOneZero = new ArrayList<>();
+
     @JsonProperty("PATTERN_SWAP")
     private final List<Boolean> patternSwap = new ArrayList<>();
+
     @JsonProperty("PATTERN_THREE_ONE")
     private final List<Boolean> patternThreeOne = new ArrayList<>();
+
     @JsonProperty("PATTERN_TWO_ONE")
     private final List<Boolean> patternTwoOne = new ArrayList<>();
+
     @JsonProperty("PATTERN_TWO_ZERO")
     private final List<Boolean> patternTwoZero = new ArrayList<>();
+
     @JsonProperty("PATTERN_ZERO_ONE")
     private final List<Boolean> patternZeroOne = new ArrayList<>();
+
     @JsonProperty("PATTERN_ZERO_ZERO")
     private final List<Boolean> patternZeroZero = new ArrayList<>();
+
     @JsonProperty("RAM_ENABLED")
     private final List<Boolean> ramEnabled = new ArrayList<>();
+
     @JsonProperty("RAM_SOURCE_BLAKE_DATA")
     private final List<Boolean> ramSourceBlakeData = new ArrayList<>();
+
     @JsonProperty("RAM_SOURCE_EC_DATA")
     private final List<Boolean> ramSourceEcData = new ArrayList<>();
+
     @JsonProperty("RAM_SOURCE_EC_INFO")
     private final List<Boolean> ramSourceEcInfo = new ArrayList<>();
+
     @JsonProperty("RAM_SOURCE_HASH_DATA")
     private final List<Boolean> ramSourceHashData = new ArrayList<>();
+
     @JsonProperty("RAM_SOURCE_HASH_INFO")
     private final List<Boolean> ramSourceHashInfo = new ArrayList<>();
+
     @JsonProperty("RAM_SOURCE_LOG_DATA")
     private final List<Boolean> ramSourceLogData = new ArrayList<>();
+
     @JsonProperty("RAM_SOURCE_MODEXP_DATA")
     private final List<Boolean> ramSourceModexpData = new ArrayList<>();
+
     @JsonProperty("RAM_SOURCE_RAM")
     private final List<Boolean> ramSourceRam = new ArrayList<>();
+
     @JsonProperty("RAM_SOURCE_ROM")
     private final List<Boolean> ramSourceRom = new ArrayList<>();
+
     @JsonProperty("RAM_SOURCE_STACK")
     private final List<Boolean> ramSourceStack = new ArrayList<>();
+
     @JsonProperty("RAM_SOURCE_TXN_DATA")
     private final List<Boolean> ramSourceTxnData = new ArrayList<>();
+
     @JsonProperty("RAM_TARGET_BLAKE_DATA")
     private final List<Boolean> ramTargetBlakeData = new ArrayList<>();
+
     @JsonProperty("RAM_TARGET_EC_DATA")
     private final List<Boolean> ramTargetEcData = new ArrayList<>();
+
     @JsonProperty("RAM_TARGET_EC_INFO")
     private final List<Boolean> ramTargetEcInfo = new ArrayList<>();
+
     @JsonProperty("RAM_TARGET_HASH_DATA")
     private final List<Boolean> ramTargetHashData = new ArrayList<>();
+
     @JsonProperty("RAM_TARGET_HASH_INFO")
     private final List<Boolean> ramTargetHashInfo = new ArrayList<>();
+
     @JsonProperty("RAM_TARGET_LOG_DATA")
     private final List<Boolean> ramTargetLogData = new ArrayList<>();
+
     @JsonProperty("RAM_TARGET_MODEXP_DATA")
     private final List<Boolean> ramTargetModexpData = new ArrayList<>();
+
     @JsonProperty("RAM_TARGET_RAM")
     private final List<Boolean> ramTargetRam = new ArrayList<>();
+
     @JsonProperty("RAM_TARGET_ROM")
     private final List<Boolean> ramTargetRom = new ArrayList<>();
+
     @JsonProperty("RAM_TARGET_STACK")
     private final List<Boolean> ramTargetStack = new ArrayList<>();
+
     @JsonProperty("RAM_TARGET_TXN_DATA")
     private final List<Boolean> ramTargetTxnData = new ArrayList<>();
+
     @JsonProperty("STATIC_GAS")
     private final List<BigInteger> staticGas = new ArrayList<>();
+
     @JsonProperty("TWO_LINES_INSTRUCTION")
     private final List<Boolean> twoLinesInstruction = new ArrayList<>();
 
@@ -1610,7 +1690,6 @@ public record Trace(
         throw new IllegalStateException("TWO_LINES_INSTRUCTION has not been filled");
       }
 
-
       filled.clear();
 
       return this;
@@ -1618,332 +1697,332 @@ public record Trace(
 
     public TraceBuilder fillAndValidateRow() {
       if (!filled.get(0)) {
-          addressTrimmingInstruction.add(false);
-          this.filled.set(0);
+        addressTrimmingInstruction.add(false);
+        this.filled.set(0);
       }
       if (!filled.get(1)) {
-          alpha.add(UnsignedByte.of(0));
-          this.filled.set(1);
+        alpha.add(UnsignedByte.of(0));
+        this.filled.set(1);
       }
       if (!filled.get(2)) {
-          billingPerByte.add(BigInteger.ZERO);
-          this.filled.set(2);
+        billingPerByte.add(BigInteger.ZERO);
+        this.filled.set(2);
       }
       if (!filled.get(3)) {
-          billingPerWord.add(BigInteger.ZERO);
-          this.filled.set(3);
+        billingPerWord.add(BigInteger.ZERO);
+        this.filled.set(3);
       }
       if (!filled.get(4)) {
-          delta.add(UnsignedByte.of(0));
-          this.filled.set(4);
+        delta.add(UnsignedByte.of(0));
+        this.filled.set(4);
       }
       if (!filled.get(5)) {
-          familyAccount.add(false);
-          this.filled.set(5);
+        familyAccount.add(false);
+        this.filled.set(5);
       }
       if (!filled.get(6)) {
-          familyAdd.add(false);
-          this.filled.set(6);
+        familyAdd.add(false);
+        this.filled.set(6);
       }
       if (!filled.get(7)) {
-          familyBatch.add(false);
-          this.filled.set(7);
+        familyBatch.add(false);
+        this.filled.set(7);
       }
       if (!filled.get(8)) {
-          familyBin.add(false);
-          this.filled.set(8);
+        familyBin.add(false);
+        this.filled.set(8);
       }
       if (!filled.get(9)) {
-          familyCall.add(false);
-          this.filled.set(9);
+        familyCall.add(false);
+        this.filled.set(9);
       }
       if (!filled.get(10)) {
-          familyContext.add(false);
-          this.filled.set(10);
+        familyContext.add(false);
+        this.filled.set(10);
       }
       if (!filled.get(11)) {
-          familyCopy.add(false);
-          this.filled.set(11);
+        familyCopy.add(false);
+        this.filled.set(11);
       }
       if (!filled.get(12)) {
-          familyCreate.add(false);
-          this.filled.set(12);
+        familyCreate.add(false);
+        this.filled.set(12);
       }
       if (!filled.get(13)) {
-          familyDup.add(false);
-          this.filled.set(13);
+        familyDup.add(false);
+        this.filled.set(13);
       }
       if (!filled.get(14)) {
-          familyExt.add(false);
-          this.filled.set(14);
+        familyExt.add(false);
+        this.filled.set(14);
       }
       if (!filled.get(15)) {
-          familyHalt.add(false);
-          this.filled.set(15);
+        familyHalt.add(false);
+        this.filled.set(15);
       }
       if (!filled.get(16)) {
-          familyInvalid.add(false);
-          this.filled.set(16);
+        familyInvalid.add(false);
+        this.filled.set(16);
       }
       if (!filled.get(17)) {
-          familyJump.add(false);
-          this.filled.set(17);
+        familyJump.add(false);
+        this.filled.set(17);
       }
       if (!filled.get(18)) {
-          familyKec.add(false);
-          this.filled.set(18);
+        familyKec.add(false);
+        this.filled.set(18);
       }
       if (!filled.get(19)) {
-          familyLog.add(false);
-          this.filled.set(19);
+        familyLog.add(false);
+        this.filled.set(19);
       }
       if (!filled.get(20)) {
-          familyMachineState.add(false);
-          this.filled.set(20);
+        familyMachineState.add(false);
+        this.filled.set(20);
       }
       if (!filled.get(21)) {
-          familyMod.add(false);
-          this.filled.set(21);
+        familyMod.add(false);
+        this.filled.set(21);
       }
       if (!filled.get(22)) {
-          familyMul.add(false);
-          this.filled.set(22);
+        familyMul.add(false);
+        this.filled.set(22);
       }
       if (!filled.get(23)) {
-          familyPushPop.add(false);
-          this.filled.set(23);
+        familyPushPop.add(false);
+        this.filled.set(23);
       }
       if (!filled.get(24)) {
-          familyShf.add(false);
-          this.filled.set(24);
+        familyShf.add(false);
+        this.filled.set(24);
       }
       if (!filled.get(25)) {
-          familyStackRam.add(false);
-          this.filled.set(25);
+        familyStackRam.add(false);
+        this.filled.set(25);
       }
       if (!filled.get(26)) {
-          familyStorage.add(false);
-          this.filled.set(26);
+        familyStorage.add(false);
+        this.filled.set(26);
       }
       if (!filled.get(27)) {
-          familySwap.add(false);
-          this.filled.set(27);
+        familySwap.add(false);
+        this.filled.set(27);
       }
       if (!filled.get(28)) {
-          familyTransaction.add(false);
-          this.filled.set(28);
+        familyTransaction.add(false);
+        this.filled.set(28);
       }
       if (!filled.get(29)) {
-          familyWcp.add(false);
-          this.filled.set(29);
+        familyWcp.add(false);
+        this.filled.set(29);
       }
       if (!filled.get(30)) {
-          flag1.add(false);
-          this.filled.set(30);
+        flag1.add(false);
+        this.filled.set(30);
       }
       if (!filled.get(31)) {
-          flag2.add(false);
-          this.filled.set(31);
+        flag2.add(false);
+        this.filled.set(31);
       }
       if (!filled.get(32)) {
-          flag3.add(false);
-          this.filled.set(32);
+        flag3.add(false);
+        this.filled.set(32);
       }
       if (!filled.get(33)) {
-          flag4.add(false);
-          this.filled.set(33);
+        flag4.add(false);
+        this.filled.set(33);
       }
       if (!filled.get(34)) {
-          forbiddenInStatic.add(false);
-          this.filled.set(34);
+        forbiddenInStatic.add(false);
+        this.filled.set(34);
       }
       if (!filled.get(35)) {
-          mxpType1.add(false);
-          this.filled.set(35);
+        mxpType1.add(false);
+        this.filled.set(35);
       }
       if (!filled.get(36)) {
-          mxpType2.add(false);
-          this.filled.set(36);
+        mxpType2.add(false);
+        this.filled.set(36);
       }
       if (!filled.get(37)) {
-          mxpType3.add(false);
-          this.filled.set(37);
+        mxpType3.add(false);
+        this.filled.set(37);
       }
       if (!filled.get(38)) {
-          mxpType4.add(false);
-          this.filled.set(38);
+        mxpType4.add(false);
+        this.filled.set(38);
       }
       if (!filled.get(39)) {
-          mxpType5.add(false);
-          this.filled.set(39);
+        mxpType5.add(false);
+        this.filled.set(39);
       }
       if (!filled.get(40)) {
-          nbAdded.add(UnsignedByte.of(0));
-          this.filled.set(40);
+        nbAdded.add(UnsignedByte.of(0));
+        this.filled.set(40);
       }
       if (!filled.get(41)) {
-          nbRemoved.add(UnsignedByte.of(0));
-          this.filled.set(41);
+        nbRemoved.add(UnsignedByte.of(0));
+        this.filled.set(41);
       }
       if (!filled.get(42)) {
-          opcode.add(BigInteger.ZERO);
-          this.filled.set(42);
+        opcode.add(BigInteger.ZERO);
+        this.filled.set(42);
       }
       if (!filled.get(43)) {
-          patternCall.add(false);
-          this.filled.set(43);
+        patternCall.add(false);
+        this.filled.set(43);
       }
       if (!filled.get(44)) {
-          patternCopy.add(false);
-          this.filled.set(44);
+        patternCopy.add(false);
+        this.filled.set(44);
       }
       if (!filled.get(45)) {
-          patternCreate.add(false);
-          this.filled.set(45);
+        patternCreate.add(false);
+        this.filled.set(45);
       }
       if (!filled.get(46)) {
-          patternDup.add(false);
-          this.filled.set(46);
+        patternDup.add(false);
+        this.filled.set(46);
       }
       if (!filled.get(47)) {
-          patternLoadStore.add(false);
-          this.filled.set(47);
+        patternLoadStore.add(false);
+        this.filled.set(47);
       }
       if (!filled.get(48)) {
-          patternLog.add(false);
-          this.filled.set(48);
+        patternLog.add(false);
+        this.filled.set(48);
       }
       if (!filled.get(49)) {
-          patternOneOne.add(false);
-          this.filled.set(49);
+        patternOneOne.add(false);
+        this.filled.set(49);
       }
       if (!filled.get(50)) {
-          patternOneZero.add(false);
-          this.filled.set(50);
+        patternOneZero.add(false);
+        this.filled.set(50);
       }
       if (!filled.get(51)) {
-          patternSwap.add(false);
-          this.filled.set(51);
+        patternSwap.add(false);
+        this.filled.set(51);
       }
       if (!filled.get(52)) {
-          patternThreeOne.add(false);
-          this.filled.set(52);
+        patternThreeOne.add(false);
+        this.filled.set(52);
       }
       if (!filled.get(53)) {
-          patternTwoOne.add(false);
-          this.filled.set(53);
+        patternTwoOne.add(false);
+        this.filled.set(53);
       }
       if (!filled.get(54)) {
-          patternTwoZero.add(false);
-          this.filled.set(54);
+        patternTwoZero.add(false);
+        this.filled.set(54);
       }
       if (!filled.get(55)) {
-          patternZeroOne.add(false);
-          this.filled.set(55);
+        patternZeroOne.add(false);
+        this.filled.set(55);
       }
       if (!filled.get(56)) {
-          patternZeroZero.add(false);
-          this.filled.set(56);
+        patternZeroZero.add(false);
+        this.filled.set(56);
       }
       if (!filled.get(57)) {
-          ramEnabled.add(false);
-          this.filled.set(57);
+        ramEnabled.add(false);
+        this.filled.set(57);
       }
       if (!filled.get(58)) {
-          ramSourceBlakeData.add(false);
-          this.filled.set(58);
+        ramSourceBlakeData.add(false);
+        this.filled.set(58);
       }
       if (!filled.get(59)) {
-          ramSourceEcData.add(false);
-          this.filled.set(59);
+        ramSourceEcData.add(false);
+        this.filled.set(59);
       }
       if (!filled.get(60)) {
-          ramSourceEcInfo.add(false);
-          this.filled.set(60);
+        ramSourceEcInfo.add(false);
+        this.filled.set(60);
       }
       if (!filled.get(61)) {
-          ramSourceHashData.add(false);
-          this.filled.set(61);
+        ramSourceHashData.add(false);
+        this.filled.set(61);
       }
       if (!filled.get(62)) {
-          ramSourceHashInfo.add(false);
-          this.filled.set(62);
+        ramSourceHashInfo.add(false);
+        this.filled.set(62);
       }
       if (!filled.get(63)) {
-          ramSourceLogData.add(false);
-          this.filled.set(63);
+        ramSourceLogData.add(false);
+        this.filled.set(63);
       }
       if (!filled.get(64)) {
-          ramSourceModexpData.add(false);
-          this.filled.set(64);
+        ramSourceModexpData.add(false);
+        this.filled.set(64);
       }
       if (!filled.get(65)) {
-          ramSourceRam.add(false);
-          this.filled.set(65);
+        ramSourceRam.add(false);
+        this.filled.set(65);
       }
       if (!filled.get(66)) {
-          ramSourceRom.add(false);
-          this.filled.set(66);
+        ramSourceRom.add(false);
+        this.filled.set(66);
       }
       if (!filled.get(67)) {
-          ramSourceStack.add(false);
-          this.filled.set(67);
+        ramSourceStack.add(false);
+        this.filled.set(67);
       }
       if (!filled.get(68)) {
-          ramSourceTxnData.add(false);
-          this.filled.set(68);
+        ramSourceTxnData.add(false);
+        this.filled.set(68);
       }
       if (!filled.get(69)) {
-          ramTargetBlakeData.add(false);
-          this.filled.set(69);
+        ramTargetBlakeData.add(false);
+        this.filled.set(69);
       }
       if (!filled.get(70)) {
-          ramTargetEcData.add(false);
-          this.filled.set(70);
+        ramTargetEcData.add(false);
+        this.filled.set(70);
       }
       if (!filled.get(71)) {
-          ramTargetEcInfo.add(false);
-          this.filled.set(71);
+        ramTargetEcInfo.add(false);
+        this.filled.set(71);
       }
       if (!filled.get(72)) {
-          ramTargetHashData.add(false);
-          this.filled.set(72);
+        ramTargetHashData.add(false);
+        this.filled.set(72);
       }
       if (!filled.get(73)) {
-          ramTargetHashInfo.add(false);
-          this.filled.set(73);
+        ramTargetHashInfo.add(false);
+        this.filled.set(73);
       }
       if (!filled.get(74)) {
-          ramTargetLogData.add(false);
-          this.filled.set(74);
+        ramTargetLogData.add(false);
+        this.filled.set(74);
       }
       if (!filled.get(75)) {
-          ramTargetModexpData.add(false);
-          this.filled.set(75);
+        ramTargetModexpData.add(false);
+        this.filled.set(75);
       }
       if (!filled.get(76)) {
-          ramTargetRam.add(false);
-          this.filled.set(76);
+        ramTargetRam.add(false);
+        this.filled.set(76);
       }
       if (!filled.get(77)) {
-          ramTargetRom.add(false);
-          this.filled.set(77);
+        ramTargetRom.add(false);
+        this.filled.set(77);
       }
       if (!filled.get(78)) {
-          ramTargetStack.add(false);
-          this.filled.set(78);
+        ramTargetStack.add(false);
+        this.filled.set(78);
       }
       if (!filled.get(79)) {
-          ramTargetTxnData.add(false);
-          this.filled.set(79);
+        ramTargetTxnData.add(false);
+        this.filled.set(79);
       }
       if (!filled.get(80)) {
-          staticGas.add(BigInteger.ZERO);
-          this.filled.set(80);
+        staticGas.add(BigInteger.ZERO);
+        this.filled.set(80);
       }
       if (!filled.get(81)) {
-          twoLinesInstruction.add(false);
-          this.filled.set(81);
+        twoLinesInstruction.add(false);
+        this.filled.set(81);
       }
 
       return this.validateRow();
@@ -1955,88 +2034,88 @@ public record Trace(
       }
 
       return new Trace(
-        addressTrimmingInstruction,
-        alpha,
-        billingPerByte,
-        billingPerWord,
-        delta,
-        familyAccount,
-        familyAdd,
-        familyBatch,
-        familyBin,
-        familyCall,
-        familyContext,
-        familyCopy,
-        familyCreate,
-        familyDup,
-        familyExt,
-        familyHalt,
-        familyInvalid,
-        familyJump,
-        familyKec,
-        familyLog,
-        familyMachineState,
-        familyMod,
-        familyMul,
-        familyPushPop,
-        familyShf,
-        familyStackRam,
-        familyStorage,
-        familySwap,
-        familyTransaction,
-        familyWcp,
-        flag1,
-        flag2,
-        flag3,
-        flag4,
-        forbiddenInStatic,
-        mxpType1,
-        mxpType2,
-        mxpType3,
-        mxpType4,
-        mxpType5,
-        nbAdded,
-        nbRemoved,
-        opcode,
-        patternCall,
-        patternCopy,
-        patternCreate,
-        patternDup,
-        patternLoadStore,
-        patternLog,
-        patternOneOne,
-        patternOneZero,
-        patternSwap,
-        patternThreeOne,
-        patternTwoOne,
-        patternTwoZero,
-        patternZeroOne,
-        patternZeroZero,
-        ramEnabled,
-        ramSourceBlakeData,
-        ramSourceEcData,
-        ramSourceEcInfo,
-        ramSourceHashData,
-        ramSourceHashInfo,
-        ramSourceLogData,
-        ramSourceModexpData,
-        ramSourceRam,
-        ramSourceRom,
-        ramSourceStack,
-        ramSourceTxnData,
-        ramTargetBlakeData,
-        ramTargetEcData,
-        ramTargetEcInfo,
-        ramTargetHashData,
-        ramTargetHashInfo,
-        ramTargetLogData,
-        ramTargetModexpData,
-        ramTargetRam,
-        ramTargetRom,
-        ramTargetStack,
-        ramTargetTxnData,
-        staticGas,
-        twoLinesInstruction);
+          addressTrimmingInstruction,
+          alpha,
+          billingPerByte,
+          billingPerWord,
+          delta,
+          familyAccount,
+          familyAdd,
+          familyBatch,
+          familyBin,
+          familyCall,
+          familyContext,
+          familyCopy,
+          familyCreate,
+          familyDup,
+          familyExt,
+          familyHalt,
+          familyInvalid,
+          familyJump,
+          familyKec,
+          familyLog,
+          familyMachineState,
+          familyMod,
+          familyMul,
+          familyPushPop,
+          familyShf,
+          familyStackRam,
+          familyStorage,
+          familySwap,
+          familyTransaction,
+          familyWcp,
+          flag1,
+          flag2,
+          flag3,
+          flag4,
+          forbiddenInStatic,
+          mxpType1,
+          mxpType2,
+          mxpType3,
+          mxpType4,
+          mxpType5,
+          nbAdded,
+          nbRemoved,
+          opcode,
+          patternCall,
+          patternCopy,
+          patternCreate,
+          patternDup,
+          patternLoadStore,
+          patternLog,
+          patternOneOne,
+          patternOneZero,
+          patternSwap,
+          patternThreeOne,
+          patternTwoOne,
+          patternTwoZero,
+          patternZeroOne,
+          patternZeroZero,
+          ramEnabled,
+          ramSourceBlakeData,
+          ramSourceEcData,
+          ramSourceEcInfo,
+          ramSourceHashData,
+          ramSourceHashInfo,
+          ramSourceLogData,
+          ramSourceModexpData,
+          ramSourceRam,
+          ramSourceRom,
+          ramSourceStack,
+          ramSourceTxnData,
+          ramTargetBlakeData,
+          ramTargetEcData,
+          ramTargetEcInfo,
+          ramTargetHashData,
+          ramTargetHashInfo,
+          ramTargetLogData,
+          ramTargetModexpData,
+          ramTargetRam,
+          ramTargetRom,
+          ramTargetStack,
+          ramTargetTxnData,
+          staticGas,
+          twoLinesInstruction);
     }
   }
 }

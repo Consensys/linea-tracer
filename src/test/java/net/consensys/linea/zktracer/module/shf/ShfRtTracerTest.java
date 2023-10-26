@@ -115,9 +115,9 @@ class ShfRtTracerTest {
 
   public static Stream<Arguments> provideShiftOperators() {
     return Stream.of(
-        Arguments.of(Named.of("SAR", OpCode.SAR.getData().value().intValue())),
-        Arguments.of(Named.of("SHL", OpCode.SHL.getData().value().intValue())),
-        Arguments.of(Named.of("SHR", OpCode.SHR.getData().value().intValue())));
+        Arguments.of(Named.of("SAR", OpCode.SAR.getData().value())),
+        Arguments.of(Named.of("SHL", OpCode.SHL.getData().value())),
+        Arguments.of(Named.of("SHR", OpCode.SHR.getData().value())));
   }
 
   private static byte[] concatenateArrays(byte[] a, byte[] b) {

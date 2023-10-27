@@ -17,21 +17,14 @@ package net.consensys.linea;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.datatypes.BlobGas;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Wei;
-import org.hyperledger.besu.ethereum.core.BlockHeader;
-import org.hyperledger.besu.ethereum.core.BlockHeaderBuilder;
-import org.hyperledger.besu.ethereum.core.MutableWorldState;
-import org.hyperledger.besu.ethereum.core.Transaction;
+import org.hyperledger.besu.ethereum.core.*;
 import org.hyperledger.besu.ethereum.mainnet.MainnetTransactionProcessor;
 import org.hyperledger.besu.ethereum.mainnet.ProtocolSpec;
 import org.hyperledger.besu.ethereum.mainnet.TransactionValidationParams;
@@ -125,6 +118,7 @@ public class GeneralStateReferenceTestTools {
     final ReferenceTestWorldState initialWorldState =
         (ReferenceTestWorldState) spec.getInitialWorldState();
     final Transaction transaction = spec.getTransaction();
+    final BlockBody blockBody = new BlockBody(List.of(transaction), new ArrayList<>());
 
     // Sometimes the tests ask us assemble an invalid transaction.  If we have
     // no valid transaction then there is no test.  GeneralBlockChain tests
@@ -155,6 +149,8 @@ public class GeneralStateReferenceTestTools {
 
     final ZkTracer zkTracer = new ZkTracer();
     zkTracer.traceStartConflation(1);
+    zkTracer.traceStartBlock(blockHeader, blockBody);
+    zkTracer.traceStartTransaction(worldStateUpdater, transaction);
 
     final TransactionProcessingResult result =
         processor.processTransaction(
@@ -175,6 +171,15 @@ public class GeneralStateReferenceTestTools {
       return;
     }
 
+    zkTracer.traceEndTransaction(
+        worldStateUpdater,
+        transaction,
+        result.isSuccessful(),
+        result.getOutput(),
+        result.getLogs(),
+        transaction.getGasLimit() - result.getGasRemaining(),
+        0);
+    zkTracer.traceEndBlock(blockHeader, blockBody);
     zkTracer.traceEndConflation();
 
     assertThat(spec.getExpectException())

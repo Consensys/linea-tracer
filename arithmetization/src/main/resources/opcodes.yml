@@ -639,11 +639,11 @@ opcodes:
     value: 0x55
     instructionFamily: STORAGE
     stackSettings:
-      pattern: ONE_ONE
-      alpha: 1
-      delta: 1
-      nbAdded: 1
-      nbRemoved: 1
+      pattern: TWO_ZERO
+      alpha: 0
+      delta: 2
+      nbAdded: 0
+      nbRemoved: 2
       oobFlag: true
       staticGas: S_HUB
       forbiddenInStatic: true

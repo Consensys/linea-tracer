@@ -30,6 +30,7 @@ import net.consensys.linea.zktracer.EWord;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
 import net.consensys.linea.zktracer.module.add.Add;
+import net.consensys.linea.zktracer.module.bin.Bin;
 import net.consensys.linea.zktracer.module.ext.Ext;
 import net.consensys.linea.zktracer.module.hub.defer.*;
 import net.consensys.linea.zktracer.module.hub.fragment.*;
@@ -128,6 +129,7 @@ public class Hub implements Module {
   }
 
   private final Module add = new Add();
+  private final Module bin = new Bin();
   private final Module ext = new Ext();
   private final Module mod = new Mod();
   private final Module mul = new Mul();
@@ -409,7 +411,11 @@ public class Hub implements Module {
           this.wcp.tracePreOpcode(frame);
         }
       }
-      case BIN -> {}
+      case BIN -> {
+        if (this.exceptions.noStackException()) {
+          this.bin.tracePreOpcode(frame);
+        }
+      }
       case SHF -> {
         if (this.exceptions.noStackException()) {
           this.shf.tracePreOpcode(frame);

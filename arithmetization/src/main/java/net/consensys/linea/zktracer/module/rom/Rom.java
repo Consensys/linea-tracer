@@ -34,6 +34,7 @@ public class Rom implements Module {
   private static final int PUSH_1 = OpCode.PUSH1.byteValue();
   private static final int PUSH_32 = OpCode.PUSH32.byteValue();
   private static final UnsignedByte invalid = UnsignedByte.of(0xFE);
+  private static final UnsignedByte JUMPDEST = UnsignedByte.of(OpCode.JUMPDEST.byteValue());
 
   private final RomLex romLex;
 
@@ -147,7 +148,7 @@ public class Rom implements Module {
             .pushValueHigh(pushValueHigh.toUnsignedBigInteger())
             .pushValueLow(pushValueLow.toUnsignedBigInteger())
             .pushFunnelBit(false)
-            .validJumpDestination(opCode == invalid);
+            .validJumpDestination(opCode == JUMPDEST);
       }
 
       // Deal when in a PUSH instruction

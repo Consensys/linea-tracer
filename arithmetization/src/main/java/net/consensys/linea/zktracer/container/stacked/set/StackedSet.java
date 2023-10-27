@@ -34,8 +34,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public class StackedSet<E> implements StackedContainer, java.util.Set<E> {
   private final Stack<Set<E>> sets = new Stack<>();
-  /** The cached number of elements in this container */
-  private int totalSize = 0;
+  private Set<E> collapsed;
+  private boolean dirty = true;
 
   @Override
   public void enter() {
@@ -44,17 +44,18 @@ public class StackedSet<E> implements StackedContainer, java.util.Set<E> {
 
   @Override
   public void pop() {
-    this.totalSize -= this.sets.pop().size();
+    this.sets.pop();
+    this.dirty = true;
   }
 
   @Override
   public int size() {
-    return this.totalSize;
+    return this.collapse().size();
   }
 
   @Override
   public boolean isEmpty() {
-    return this.totalSize == 0;
+    throw new UnsupportedOperationException("empty not supported");
   }
 
   @Override
@@ -67,20 +68,33 @@ public class StackedSet<E> implements StackedContainer, java.util.Set<E> {
     return false;
   }
 
+  private Set<E> collapse() {
+    if (this.dirty) {
+      this.collapsed = new HashSet<>();
+      for (Set<E> set : this.sets) {
+        this.collapsed.addAll(set);
+      }
+      this.dirty = false;
+    }
+
+    return this.collapsed;
+  }
+
   @NotNull
   @Override
   public Iterator<E> iterator() {
-    return new StackedSetIterator<>(this.sets);
+    return this.collapse().iterator();
   }
 
   @NotNull
   @Override
   public Object[] toArray() {
-    int size = size();
+    final Set<E> collapsed = this.collapse();
+    int size = collapsed.size();
     Object[] array = new Object[size];
 
     int i = 0;
-    for (E e : this) {
+    for (E e : collapsed) {
       array[i] = e;
       i++;
     }
@@ -95,16 +109,8 @@ public class StackedSet<E> implements StackedContainer, java.util.Set<E> {
 
   @Override
   public boolean add(E e) {
-    // An element should *never* be duplicated, for it would appear twice in the iterator.
-    if (this.contains(e)) {
-      return false;
-    }
-
-    final boolean alreadyExists = this.sets.peek().add(e);
-    if (alreadyExists) {
-      this.totalSize++;
-    }
-    return alreadyExists;
+    this.dirty = true;
+    return this.sets.peek().add(e);
   }
 
   @Override
@@ -143,37 +149,7 @@ public class StackedSet<E> implements StackedContainer, java.util.Set<E> {
 
   @Override
   public void clear() {
+    this.dirty = true;
     this.sets.clear();
-  }
-
-  /** This class acts as an {@link Iterator} over a StackedSet. */
-  private static class StackedSetIterator<E> implements Iterator<E> {
-    private final List<Iterator<E>> iters = new ArrayList<>();
-
-    StackedSetIterator(List<Set<E>> sets) {
-      for (Set<E> set : sets) {
-        this.iters.add(set.iterator());
-      }
-    }
-
-    @Override
-    public boolean hasNext() {
-      for (Iterator<E> iter : iters) {
-        if (iter.hasNext()) {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    @Override
-    public E next() {
-      for (Iterator<E> iter : iters) {
-        if (iter.hasNext()) {
-          return iter.next();
-        }
-      }
-      return null;
-    }
   }
 }

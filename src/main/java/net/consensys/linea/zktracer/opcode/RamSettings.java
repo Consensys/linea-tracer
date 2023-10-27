@@ -15,8 +15,17 @@
 
 package net.consensys.linea.zktracer.opcode;
 
-public record RamSettings(boolean enabled, DataLocation source, DataLocation target) {
-  public RamSettings() {
-    this(false, DataLocation.NONE, DataLocation.NONE);
+import java.util.Objects;
+
+public record RamSettings(DataLocation source, DataLocation target) {
+  public static final RamSettings DEFAULT = new RamSettings(DataLocation.NONE, DataLocation.NONE);
+
+  public RamSettings(DataLocation source, DataLocation target) {
+    this.source = Objects.requireNonNullElse(source, DataLocation.NONE);
+    this.target = Objects.requireNonNullElse(target, DataLocation.NONE);
+  }
+
+  public boolean enabled() {
+    return this.source != DataLocation.NONE || this.target != DataLocation.NONE;
   }
 }

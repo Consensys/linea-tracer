@@ -15,30 +15,41 @@
 
 package net.consensys.linea.zktracer;
 
-import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 import net.consensys.linea.zktracer.module.Module;
-import net.consensys.linea.zktracer.module.lookuptable.ShfRtTrace;
-import org.apache.tuweni.bytes.Bytes32;
+import net.consensys.linea.zktracer.module.tables.instructionDecoder.InstructionDecoder;
+import net.consensys.linea.zktracer.module.tables.shf.ShfRtTrace;
 
 public class ZkTraceBuilder {
   private final Map<String, Object> traceResults = new HashMap<>();
 
   public ZkTraceBuilder addTrace(Module module) {
-    Optional.ofNullable(module.commit()).ifPresent(v -> traceResults.put(module.jsonKey(), v));
+    Optional.ofNullable(module.commit())
+        .ifPresent(
+            v -> {
+              if (v.length() != module.lineCount()) {
+                throw new IllegalStateException(
+                    "["
+                        + module.jsonKey()
+                        + "] lines expected: "
+                        + module.lineCount()
+                        + " -- lines found: "
+                        + v.length());
+              }
+              assert v.length() == module.lineCount();
+              traceResults.put(module.jsonKey(), v);
+            });
     return this;
   }
 
   public ZkTrace build() {
     // TODO: add other reference tables
-    if (!traceResults.containsKey("shfRT")) {
-      traceResults.put("shfRT", ShfRtTrace.generate());
-    }
+    traceResults.put("shfRT", ShfRtTrace.generate());
+    traceResults.put("instruction-decoder", InstructionDecoder.generate());
 
-    return new ZkTrace(
-        null, Bytes32.ZERO, BigInteger.ZERO, BigInteger.ZERO, BigInteger.ZERO, traceResults);
+    return new ZkTrace(traceResults);
   }
 }

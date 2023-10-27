@@ -20,6 +20,7 @@ import java.math.BigInteger;
 import net.consensys.linea.zktracer.bytes.UnsignedByte;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.module.ModuleTrace;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.OpCodes;
 import org.apache.tuweni.bytes.Bytes32;
@@ -57,9 +58,9 @@ public class Ext implements Module {
   @Override
   public void tracePreOpcode(final MessageFrame frame) {
     final OpCodeData opCode = OpCodes.of(frame.getCurrentOperation().getOpcode());
-    final Bytes32 arg1 = Bytes32.wrap(frame.getStackItem(0));
-    final Bytes32 arg2 = Bytes32.wrap(frame.getStackItem(1));
-    final Bytes32 arg3 = Bytes32.wrap(frame.getStackItem(2));
+    final Bytes32 arg1 = Bytes32.leftPad(frame.getStackItem(0));
+    final Bytes32 arg2 = Bytes32.leftPad(frame.getStackItem(1));
+    final Bytes32 arg3 = Bytes32.leftPad(frame.getStackItem(2));
 
     this.operations.add(new ExtOperation(opCode, arg1, arg2, arg3));
   }
@@ -203,7 +204,7 @@ public class Ext implements Module {
   }
 
   @Override
-  public Object commit() {
+  public ModuleTrace commit() {
     for (ExtOperation operation : this.operations) {
       this.traceExtOperation(operation);
     }

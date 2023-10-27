@@ -39,13 +39,18 @@ public class Signals {
   @Getter boolean stipend = false;
   @Getter boolean exp = false;
 
+  public Signals() {
+    this.hub = null;
+    this.opCodeData = null;
+  }
+
   public Signals(Hub hub) {
     this.hub = hub;
     this.opCodeData = hub.currentFrame().opCode().getData();
   }
 
   public Signals snapshot() {
-    var r = new Signals(null);
+    var r = new Signals();
     r.mmu = this.mmu;
     r.mxp = this.mxp;
     r.oob = this.oob;
@@ -211,7 +216,7 @@ public class Signals {
       } else if (opCodeData.mnemonic() == OpCode.RETURN) {
         oobFlag =
             !hub.exceptions().stackUnderflow()
-                && hub.currentFrame().codeDeploymentStatus(); // TODO: see for the rest
+                && hub.currentFrame().underDeployment(); // TODO: see for the rest
       }
     }
 

@@ -23,6 +23,7 @@ import com.google.common.base.Preconditions;
 import lombok.Getter;
 import net.consensys.linea.zktracer.module.hub.Bytecode;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.memory.MemorySpan;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
@@ -46,6 +47,7 @@ public final class CallStack {
 
   public void newBedrock(
       int hubStamp,
+      Address from,
       Address to,
       CallFrameType type,
       Bytecode toCode,
@@ -56,9 +58,10 @@ public final class CallStack {
       int codeDeploymentNumber,
       boolean codeDeploymentStatus) {
     this.depth = 0;
-    this.frames.add(new CallFrame());
+    this.frames.add(new CallFrame(from));
     this.enter(
         hubStamp,
+        to,
         to,
         toCode == null ? Bytecode.EMPTY : toCode,
         type,
@@ -110,6 +113,7 @@ public final class CallStack {
   public void enter(
       int hubStamp,
       Address address,
+      Address codeAddress,
       Bytecode code,
       CallFrameType type,
       Wei value,
@@ -136,6 +140,7 @@ public final class CallStack {
             newTop,
             hubStamp,
             address,
+            codeAddress,
             code,
             type,
             caller,
@@ -159,7 +164,7 @@ public final class CallStack {
   public void exit(int currentLine, Bytes returnData) {
     this.depth -= 1;
     Preconditions.checkState(this.depth >= 0);
-
+    this.current().returnDataPointer(new MemorySpan(0, 0)); // TODO: fix me Franklin
     final int parent = this.current().parentFrame();
     this.frames.get(parent).childFrames().add(this.current);
     this.frames.get(parent).returnData(returnData);
@@ -204,6 +209,12 @@ public final class CallStack {
    * @throws IndexOutOfBoundsException if the index is out of range
    */
   public CallFrame get(int i) {
+    // The case where the CF #0 is called on an empty stack stems from a skipped transaction, where
+    // no CF of interest is available to trace.
+    // TODO: use an explicit -1 as marker
+    if (i == 0 && this.frames.isEmpty()) {
+      return CallFrame.EMPTY;
+    }
     return this.frames.get(i);
   }
 

@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.opcode;
 
+import java.util.Objects;
+
 import net.consensys.linea.zktracer.opcode.gas.Billing;
 import net.consensys.linea.zktracer.opcode.gas.MxpType;
 import net.consensys.linea.zktracer.opcode.stack.StackSettings;
@@ -32,7 +34,9 @@ import net.consensys.linea.zktracer.opcode.stack.StackSettings;
  */
 public record OpCodeData(
     OpCode mnemonic,
-    Long value,
+    int value,
+    boolean pushFlag,
+    boolean jumpFlag,
     InstructionFamily instructionFamily,
     StackSettings stackSettings,
     RamSettings ramSettings,
@@ -45,6 +49,14 @@ public record OpCodeData(
    */
   public int numberOfArguments() {
     return this.stackSettings.nbRemoved();
+  }
+
+  public RamSettings ramSettings() {
+    return Objects.requireNonNullElse(this.ramSettings, RamSettings.DEFAULT);
+  }
+
+  public Billing billing() {
+    return Objects.requireNonNullElse(this.billing, Billing.DEFAULT);
   }
 
   /**

@@ -20,6 +20,7 @@ import java.math.BigInteger;
 import net.consensys.linea.zktracer.bytes.UnsignedByte;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.module.ModuleTrace;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -46,8 +47,8 @@ public class Shf implements Module {
 
   @Override
   public void tracePreOpcode(MessageFrame frame) {
-    final Bytes32 arg1 = Bytes32.wrap(frame.getStackItem(0));
-    final Bytes32 arg2 = Bytes32.wrap(frame.getStackItem(1));
+    final Bytes32 arg1 = Bytes32.leftPad(frame.getStackItem(0));
+    final Bytes32 arg2 = Bytes32.leftPad(frame.getStackItem(1));
     this.operations.add(
         new ShfOperation(OpCode.of(frame.getCurrentOperation().getOpcode()), arg1, arg2));
   }
@@ -122,7 +123,7 @@ public class Shf implements Module {
   }
 
   @Override
-  public Object commit() {
+  public ModuleTrace commit() {
     for (ShfOperation op : this.operations) {
       this.traceShfOperation(op);
     }

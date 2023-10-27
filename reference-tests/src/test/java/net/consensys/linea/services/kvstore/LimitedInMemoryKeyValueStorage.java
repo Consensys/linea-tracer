@@ -1,5 +1,5 @@
 /*
- * Copyright ConsenSys AG.
+ * Copyright Consensys Software Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -88,17 +88,17 @@ public class LimitedInMemoryKeyValueStorage implements KeyValueStorage {
   @Override
   public Set<byte[]> getAllKeysThat(final Predicate<byte[]> returnCondition) {
     return stream()
-      .filter(pair -> returnCondition.test(pair.getKey()))
-      .map(Pair::getKey)
-      .collect(toUnmodifiableSet());
+        .filter(pair -> returnCondition.test(pair.getKey()))
+        .map(Pair::getKey)
+        .collect(toUnmodifiableSet());
   }
 
   @Override
   public Set<byte[]> getAllValuesFromKeysThat(final Predicate<byte[]> returnCondition) {
     return stream()
-      .filter(pair -> returnCondition.test(pair.getKey()))
-      .map(Pair::getValue)
-      .collect(toUnmodifiableSet());
+        .filter(pair -> returnCondition.test(pair.getKey()))
+        .map(Pair::getValue)
+        .collect(toUnmodifiableSet());
   }
 
   @Override
@@ -107,7 +107,7 @@ public class LimitedInMemoryKeyValueStorage implements KeyValueStorage {
     lock.lock();
     try {
       return ImmutableSet.copyOf(storage.asMap().entrySet()).stream()
-        .map(bytesEntry -> Pair.of(bytesEntry.getKey().toArrayUnsafe(), bytesEntry.getValue()));
+          .map(bytesEntry -> Pair.of(bytesEntry.getKey().toArrayUnsafe(), bytesEntry.getValue()));
     } finally {
       lock.unlock();
     }
@@ -121,8 +121,8 @@ public class LimitedInMemoryKeyValueStorage implements KeyValueStorage {
   @Override
   public Stream<Pair<byte[], byte[]>> streamFromKey(final byte[] startKey, final byte[] endKey) {
     return stream()
-      .filter(e -> Bytes.wrap(startKey).compareTo(Bytes.wrap(e.getKey())) <= 0)
-      .takeWhile(e -> Bytes.wrap(endKey).compareTo(Bytes.wrap(e.getKey())) >= 0);
+        .filter(e -> Bytes.wrap(startKey).compareTo(Bytes.wrap(e.getKey())) <= 0)
+        .takeWhile(e -> Bytes.wrap(endKey).compareTo(Bytes.wrap(e.getKey())) >= 0);
   }
 
   @Override
@@ -131,7 +131,7 @@ public class LimitedInMemoryKeyValueStorage implements KeyValueStorage {
     lock.lock();
     try {
       return ImmutableSet.copyOf(storage.asMap().entrySet()).stream()
-        .map(bytesEntry -> bytesEntry.getKey().toArrayUnsafe());
+          .map(bytesEntry -> bytesEntry.getKey().toArrayUnsafe());
     } finally {
       lock.unlock();
     }
@@ -154,7 +154,7 @@ public class LimitedInMemoryKeyValueStorage implements KeyValueStorage {
   @Override
   public KeyValueStorageTransaction startTransaction() throws StorageException {
     return new KeyValueStorageTransactionValidatorDecorator(
-      new MemoryTransaction(), this::isClosed);
+        new MemoryTransaction(), this::isClosed);
   }
 
   @Override

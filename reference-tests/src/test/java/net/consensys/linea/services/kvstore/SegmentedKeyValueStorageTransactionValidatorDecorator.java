@@ -1,5 +1,5 @@
 /*
- * Copyright ConsenSys AG.
+ * Copyright Consensys Software Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -25,7 +25,7 @@ import org.hyperledger.besu.plugin.services.storage.SegmentedKeyValueStorageTran
 
 /** The Key value storage transaction validator decorator. */
 public class SegmentedKeyValueStorageTransactionValidatorDecorator
-  implements SegmentedKeyValueStorageTransaction {
+    implements SegmentedKeyValueStorageTransaction {
 
   private final SegmentedKeyValueStorageTransaction transaction;
   private final Supplier<Boolean> isClosed;
@@ -38,7 +38,7 @@ public class SegmentedKeyValueStorageTransactionValidatorDecorator
    * @param isClosed supplier function to determine if the storage is closed
    */
   public SegmentedKeyValueStorageTransactionValidatorDecorator(
-    final SegmentedKeyValueStorageTransaction toDecorate, final Supplier<Boolean> isClosed) {
+      final SegmentedKeyValueStorageTransaction toDecorate, final Supplier<Boolean> isClosed) {
     this.isClosed = isClosed;
     this.transaction = toDecorate;
   }

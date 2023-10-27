@@ -1,5 +1,5 @@
 /*
- * Copyright ConsenSys AG.
+ * Copyright Consensys Software Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -46,7 +46,8 @@ public class SegmentedKeyValueStorageAdapter implements KeyValueStorage {
    * @param storage the storage
    */
   public SegmentedKeyValueStorageAdapter(
-    final SegmentIdentifier segmentIdentifier, final org.hyperledger.besu.plugin.services.storage.SegmentedKeyValueStorage storage) {
+      final SegmentIdentifier segmentIdentifier,
+      final org.hyperledger.besu.plugin.services.storage.SegmentedKeyValueStorage storage) {
     this.segmentIdentifier = segmentIdentifier;
     this.storage = storage;
   }
@@ -93,7 +94,7 @@ public class SegmentedKeyValueStorageAdapter implements KeyValueStorage {
 
   @Override
   public Stream<Pair<byte[], byte[]>> streamFromKey(final byte[] startKeyHash)
-    throws StorageException {
+      throws StorageException {
     return storage.streamFromKey(segmentIdentifier, startKeyHash);
   }
 
@@ -148,7 +149,7 @@ public class SegmentedKeyValueStorageAdapter implements KeyValueStorage {
      * @param storage the storage
      */
     public KeyValueStorageTransactionAdapter(
-      final SegmentIdentifier segmentIdentifier, final SegmentedKeyValueStorage storage) {
+        final SegmentIdentifier segmentIdentifier, final SegmentedKeyValueStorage storage) {
       this.segmentedTransaction = storage.startTransaction();
       this.segmentIdentifier = segmentIdentifier;
     }

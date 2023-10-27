@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 
 /** Key value storage which stores in memory all updates to a parent worldstate storage. */
 public class LayeredKeyValueStorage extends SegmentedInMemoryKeyValueStorage
-  implements SnappedKeyValueStorage {
+    implements SnappedKeyValueStorage {
 
   private static final Logger LOG = LoggerFactory.getLogger(LayeredKeyValueStorage.class);
 
@@ -49,7 +49,8 @@ public class LayeredKeyValueStorage extends SegmentedInMemoryKeyValueStorage
    *
    * @param parent the parent key value storage for this layered storage.
    */
-  public LayeredKeyValueStorage(final org.hyperledger.besu.plugin.services.storage.SegmentedKeyValueStorage parent) {
+  public LayeredKeyValueStorage(
+      final org.hyperledger.besu.plugin.services.storage.SegmentedKeyValueStorage parent) {
     this(new ConcurrentHashMap<>(), parent);
   }
 
@@ -60,21 +61,21 @@ public class LayeredKeyValueStorage extends SegmentedInMemoryKeyValueStorage
    * @param parent the parent key value storage for this layered storage.
    */
   public LayeredKeyValueStorage(
-    final ConcurrentMap<SegmentIdentifier, Map<Bytes, Optional<byte[]>>> map,
-    final SegmentedKeyValueStorage parent) {
+      final ConcurrentMap<SegmentIdentifier, Map<Bytes, Optional<byte[]>>> map,
+      final SegmentedKeyValueStorage parent) {
     super(map);
     this.parent = parent;
   }
 
   @Override
   public boolean containsKey(final SegmentIdentifier segmentId, final byte[] key)
-    throws StorageException {
+      throws StorageException {
     return get(segmentId, key).isPresent();
   }
 
   @Override
   public Optional<byte[]> get(final SegmentIdentifier segmentId, final byte[] key)
-    throws StorageException {
+      throws StorageException {
     throwIfClosed();
 
     final Lock lock = rwLock.readLock();
@@ -82,7 +83,7 @@ public class LayeredKeyValueStorage extends SegmentedInMemoryKeyValueStorage
     try {
       Bytes wrapKey = Bytes.wrap(key);
       final Optional<byte[]> foundKey =
-        hashValueStore.computeIfAbsent(segmentId, __ -> new HashMap<>()).get(wrapKey);
+          hashValueStore.computeIfAbsent(segmentId, __ -> new HashMap<>()).get(wrapKey);
       if (foundKey == null) {
         return parent.get(segmentId, key);
       } else {
@@ -95,7 +96,7 @@ public class LayeredKeyValueStorage extends SegmentedInMemoryKeyValueStorage
 
   @Override
   public Optional<NearestKeyValue> getNearestTo(
-    final SegmentIdentifier segmentIdentifier, final Bytes key) throws StorageException {
+      final SegmentIdentifier segmentIdentifier, final Bytes key) throws StorageException {
     Optional<NearestKeyValue> ourNearest = super.getNearestTo(segmentIdentifier, key);
     Optional<NearestKeyValue> parentNearest = parent.getNearestTo(segmentIdentifier, key);
 
@@ -122,19 +123,19 @@ public class LayeredKeyValueStorage extends SegmentedInMemoryKeyValueStorage
     try {
       // copy of our in memory store to use for streaming and filtering:
       var ourLayerState =
-        Optional.ofNullable(hashValueStore.get(segmentId))
-          .map(HashMap::new)
-          .orElse(new HashMap<>());
+          Optional.ofNullable(hashValueStore.get(segmentId))
+              .map(HashMap::new)
+              .orElse(new HashMap<>());
 
       return Streams.concat(
-        ourLayerState.entrySet().stream()
-          .filter(entry -> entry.getValue().isPresent())
-          .map(
-            bytesEntry ->
-              Pair.of(bytesEntry.getKey().toArrayUnsafe(), bytesEntry.getValue().get()))
-        // since we are layered, concat a parent stream filtered by our map entries:
-        ,
-        parent.stream(segmentId).filter(e -> !ourLayerState.containsKey(Bytes.of(e.getLeft()))));
+          ourLayerState.entrySet().stream()
+              .filter(entry -> entry.getValue().isPresent())
+              .map(
+                  bytesEntry ->
+                      Pair.of(bytesEntry.getKey().toArrayUnsafe(), bytesEntry.getValue().get()))
+          // since we are layered, concat a parent stream filtered by our map entries:
+          ,
+          parent.stream(segmentId).filter(e -> !ourLayerState.containsKey(Bytes.of(e.getLeft()))));
     } finally {
       lock.unlock();
     }
@@ -142,19 +143,19 @@ public class LayeredKeyValueStorage extends SegmentedInMemoryKeyValueStorage
 
   @Override
   public Stream<Pair<byte[], byte[]>> streamFromKey(
-    final SegmentIdentifier segmentId, final byte[] startKey) {
+      final SegmentIdentifier segmentId, final byte[] startKey) {
     final Bytes startKeyBytes = Bytes.wrap(startKey);
     return stream(segmentId).filter(e -> startKeyBytes.compareTo(Bytes.wrap(e.getKey())) <= 0);
   }
 
   @Override
   public Stream<Pair<byte[], byte[]>> streamFromKey(
-    final SegmentIdentifier segmentId, final byte[] startKey, final byte[] endKey) {
+      final SegmentIdentifier segmentId, final byte[] startKey, final byte[] endKey) {
     final Bytes startKeyBytes = Bytes.wrap(startKey);
     final Bytes endKeyBytes = Bytes.wrap(endKey);
     return stream(segmentId)
-      .filter(e -> startKeyBytes.compareTo(Bytes.wrap(e.getKey())) <= 0)
-      .filter(e -> endKeyBytes.compareTo(Bytes.wrap(e.getKey())) >= 0);
+        .filter(e -> startKeyBytes.compareTo(Bytes.wrap(e.getKey())) <= 0)
+        .filter(e -> endKeyBytes.compareTo(Bytes.wrap(e.getKey())) >= 0);
   }
 
   @Override
@@ -166,17 +167,17 @@ public class LayeredKeyValueStorage extends SegmentedInMemoryKeyValueStorage
     try {
       // copy of our in memory store to use for streaming and filtering:
       var ourLayerState =
-        Optional.ofNullable(hashValueStore.get(segmentId))
-          .map(HashMap::new)
-          .orElse(new HashMap<>());
+          Optional.ofNullable(hashValueStore.get(segmentId))
+              .map(HashMap::new)
+              .orElse(new HashMap<>());
 
       return Streams.concat(
-        ourLayerState.entrySet().stream()
-          .filter(entry -> entry.getValue().isPresent())
-          .map(bytesEntry -> bytesEntry.getKey().toArrayUnsafe())
-        // since we are layered, concat a parent stream filtered by our map entries:
-        ,
-        parent.streamKeys(segmentId).filter(e -> !ourLayerState.containsKey(Bytes.of(e))));
+          ourLayerState.entrySet().stream()
+              .filter(entry -> entry.getValue().isPresent())
+              .map(bytesEntry -> bytesEntry.getKey().toArrayUnsafe())
+          // since we are layered, concat a parent stream filtered by our map entries:
+          ,
+          parent.streamKeys(segmentId).filter(e -> !ourLayerState.containsKey(Bytes.of(e))));
 
     } finally {
       lock.unlock();
@@ -186,8 +187,8 @@ public class LayeredKeyValueStorage extends SegmentedInMemoryKeyValueStorage
   @Override
   public boolean tryDelete(final SegmentIdentifier segmentId, final byte[] key) {
     hashValueStore
-      .computeIfAbsent(segmentId, __ -> new HashMap<>())
-      .put(Bytes.wrap(key), Optional.empty());
+        .computeIfAbsent(segmentId, __ -> new HashMap<>())
+        .put(Bytes.wrap(key), Optional.empty());
     return true;
   }
 
@@ -196,38 +197,38 @@ public class LayeredKeyValueStorage extends SegmentedInMemoryKeyValueStorage
     throwIfClosed();
 
     return new SegmentedKeyValueStorageTransactionValidatorDecorator(
-      new SegmentedInMemoryTransaction() {
-        @Override
-        public void commit() throws StorageException {
-          final Lock lock = rwLock.writeLock();
-          lock.lock();
-          try {
-            updatedValues.entrySet().stream()
-              .forEach(
-                entry ->
-                  hashValueStore
-                    .computeIfAbsent(entry.getKey(), __ -> new HashMap<>())
-                    .putAll(entry.getValue()));
+        new SegmentedInMemoryTransaction() {
+          @Override
+          public void commit() throws StorageException {
+            final Lock lock = rwLock.writeLock();
+            lock.lock();
+            try {
+              updatedValues.entrySet().stream()
+                  .forEach(
+                      entry ->
+                          hashValueStore
+                              .computeIfAbsent(entry.getKey(), __ -> new HashMap<>())
+                              .putAll(entry.getValue()));
 
-            // put empty rather than remove in order to not ask parent in case of deletion
-            removedKeys.entrySet().stream()
-              .forEach(
-                segmentEntry ->
-                  hashValueStore
-                    .computeIfAbsent(segmentEntry.getKey(), __ -> new HashMap<>())
-                    .putAll(
-                      segmentEntry.getValue().stream()
-                        .collect(
-                          Collectors.toMap(key -> key, __ -> Optional.empty()))));
+              // put empty rather than remove in order to not ask parent in case of deletion
+              removedKeys.entrySet().stream()
+                  .forEach(
+                      segmentEntry ->
+                          hashValueStore
+                              .computeIfAbsent(segmentEntry.getKey(), __ -> new HashMap<>())
+                              .putAll(
+                                  segmentEntry.getValue().stream()
+                                      .collect(
+                                          Collectors.toMap(key -> key, __ -> Optional.empty()))));
 
-            updatedValues.clear();
-            removedKeys.clear();
-          } finally {
-            lock.unlock();
+              updatedValues.clear();
+              removedKeys.clear();
+            } finally {
+              lock.unlock();
+            }
           }
-        }
-      },
-      this::isClosed);
+        },
+        this::isClosed);
   }
 
   @Override
@@ -247,4 +248,3 @@ public class LayeredKeyValueStorage extends SegmentedInMemoryKeyValueStorage
     }
   }
 }
-

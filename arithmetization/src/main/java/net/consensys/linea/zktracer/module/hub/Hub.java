@@ -335,28 +335,11 @@ public class Hub implements Module {
    */
   void processStateInit(WorldView world) {
     this.state.stamps().stampHub();
-    boolean isDeployment = this.tx.transaction().getTo().isEmpty();
-    Address toAddress = effectiveToAddress(this.tx.transaction());
+    final boolean isDeployment = this.tx.transaction().getTo().isEmpty();
+    final Address toAddress = effectiveToAddress(this.tx.transaction());
     if (isDeployment) {
       this.conflation().deploymentInfo().deploy(toAddress);
     }
-    this.callStack.newBedrock(
-        this.state.stamps().hub(),
-        this.tx.transaction().getSender(),
-        toAddress,
-        isDeployment ? CallFrameType.INIT_CODE : CallFrameType.STANDARD,
-        new Bytecode(
-            toAddress == null
-                ? this.tx.transaction().getData().orElse(Bytes.EMPTY)
-                : Optional.ofNullable(world.get(toAddress))
-                    .map(AccountState::getCode)
-                    .orElse(Bytes.EMPTY)), // TODO: see with Olivier
-        Wei.of(this.tx.transaction().getValue().getAsBigInteger()),
-        this.tx.transaction().getGasLimit(),
-        this.tx.transaction().getData().orElse(Bytes.EMPTY),
-        this.conflation.deploymentInfo().number(toAddress),
-        toAddress.isEmpty() ? 0 : this.conflation.deploymentInfo().number(toAddress),
-        this.conflation.deploymentInfo().isDeploying(toAddress));
     this.tx.state(TxState.TX_EXEC);
   }
 
@@ -696,31 +679,55 @@ public class Hub implements Module {
 
   @Override
   public void traceContextEnter(MessageFrame frame) {
-    final boolean isDeployment = frame.getType() == MessageFrame.Type.CONTRACT_CREATION;
-    final Address codeAddress = frame.getContractAddress();
-    final CallFrameType frameType =
-        frame.isStatic() ? CallFrameType.STATIC : CallFrameType.STANDARD;
-    if (isDeployment) {
-      this.conflation.deploymentInfo().markDeploying(codeAddress);
-    }
-    final int codeDeploymentNumber = this.conflation.deploymentInfo().number(codeAddress);
-    this.callStack.enter(
-        this.state.stamps().hub(),
-        frame.getOriginatorAddress(), // TODO: check for all call types that it is correct
-        frame.getContractAddress(),
-        new Bytecode(frame.getCode().getBytes()),
-        frameType,
-        frame.getValue(),
-        frame.getRemainingGas(),
-        frame.getInputData(),
-        this.conflation.deploymentInfo().number(codeAddress),
-        codeDeploymentNumber,
-        isDeployment);
+    if (frame.getDepth() == 0) {
+      // Bedrock...
+      final Address toAddress = effectiveToAddress(this.tx.transaction());
+      final boolean isDeployment = this.tx.transaction().getTo().isEmpty();
+      this.callStack.newBedrock(
+          this.state.stamps().hub(),
+          this.tx.transaction().getSender(),
+          toAddress,
+          isDeployment ? CallFrameType.INIT_CODE : CallFrameType.STANDARD,
+          new Bytecode(
+              toAddress == null
+                  ? this.tx.transaction().getData().orElse(Bytes.EMPTY)
+                  : Optional.ofNullable(frame.getWorldUpdater().get(toAddress))
+                      .map(AccountState::getCode)
+                      .orElse(Bytes.EMPTY)), // TODO: see with Olivier
+          Wei.of(this.tx.transaction().getValue().getAsBigInteger()),
+          this.tx.transaction().getGasLimit(),
+          this.tx.transaction().getData().orElse(Bytes.EMPTY),
+          this.conflation.deploymentInfo().number(toAddress),
+          toAddress.isEmpty() ? 0 : this.conflation.deploymentInfo().number(toAddress),
+          this.conflation.deploymentInfo().isDeploying(toAddress));
+    } else {
+      // ...or CALL
+      final boolean isDeployment = frame.getType() == MessageFrame.Type.CONTRACT_CREATION;
+      final Address codeAddress = frame.getContractAddress();
+      final CallFrameType frameType =
+          frame.isStatic() ? CallFrameType.STATIC : CallFrameType.STANDARD;
+      if (isDeployment) {
+        this.conflation.deploymentInfo().markDeploying(codeAddress);
+      }
+      final int codeDeploymentNumber = this.conflation.deploymentInfo().number(codeAddress);
+      this.callStack.enter(
+          this.state.stamps().hub(),
+          frame.getOriginatorAddress(), // TODO: check for all call types that it is correct
+          frame.getContractAddress(),
+          new Bytecode(frame.getCode().getBytes()),
+          frameType,
+          frame.getValue(),
+          frame.getRemainingGas(),
+          frame.getInputData(),
+          this.conflation.deploymentInfo().number(codeAddress),
+          codeDeploymentNumber,
+          isDeployment);
 
-    this.defers.runNextContext(this, frame);
+      this.defers.runNextContext(this, frame);
 
-    for (Module m : this.modules) {
-      m.traceContextEnter(frame);
+      for (Module m : this.modules) {
+        m.traceContextEnter(frame);
+      }
     }
   }
 

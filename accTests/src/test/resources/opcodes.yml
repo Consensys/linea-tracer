@@ -341,7 +341,7 @@ opcodes:
       nbRemoved: 1
       staticGas: G_VERY_LOW
       oobFlag: true
-      flag2: true
+      flag1: true
   - mnemonic: CALLDATASIZE
     value: 0x36
     instructionFamily: CONTEXT
@@ -594,6 +594,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 1
       staticGas: G_VERY_LOW
+      flag2: true
     billing:
       byMxp:
         type: TYPE_2
@@ -607,7 +608,7 @@ opcodes:
       nbAdded: 0
       nbRemoved: 2
       staticGas: G_VERY_LOW
-      flag1: true
+      flag3: true
     billing:
       byMxp:
         type: TYPE_2
@@ -621,7 +622,7 @@ opcodes:
       nbAdded: 0
       nbRemoved: 2
       staticGas: G_VERY_LOW
-      flag1: true
+      flag4: true
     billing:
       byMxp:
         type: TYPE_3
@@ -1267,6 +1268,16 @@ opcodes:
       pattern: SWAP
       alpha: 5
       delta: 5
+      nbAdded: 0
+      nbRemoved: 0
+      staticGas: G_VERY_LOW
+  - mnemonic: SWAP5
+    value: 0x94
+    instructionFamily: SWAP
+    stackSettings:
+      pattern: SWAP
+      alpha: 6
+      delta: 6
       nbAdded: 0
       nbRemoved: 0
       staticGas: G_VERY_LOW

@@ -1172,8 +1172,11 @@ public class RlpTxn implements Module {
     int rowSize = 17;
 
     // Phase 1: chainID
+    final Optional<BigInteger> chainId = chunk.tx().getChainId();
     if (txType == 1 || txType == 2) {
-      if (chunk.tx().getChainId().get().equals(BigInteger.ZERO)) {
+      if (chainId
+          .orElseThrow(() -> new RuntimeException("Transaction must have chainID"))
+          .equals(BigInteger.ZERO)) {
         rowSize += 1;
       } else {
         rowSize += 8;
@@ -1257,7 +1260,9 @@ public class RlpTxn implements Module {
     // Phase 11: beta
     if (txType == 0) {
       rowSize += 8;
-      if (chunk.tx().getChainId().get().equals(BigInteger.ZERO)) {
+      if (chainId
+          .orElseThrow(() -> new RuntimeException("Transaction must have chainID"))
+          .equals(BigInteger.ZERO)) {
         rowSize += 1;
       } else {
         rowSize += 9;

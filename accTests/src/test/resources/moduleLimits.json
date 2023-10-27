@@ -1,13 +1,15 @@
 {
   "Add": 31,
-  "Ext": 100,
-  "Hub": 100,
-  "Mod": 100,
-  "Mul": 100,
-  "RlpAddr": 100,
-  "RlpTxn": 100,
-  "RlpTxrcpt": 100,
-  "Shf": 100,
-  "Trm": 100,
-  "Wcp": 100
+  "Ext": 10000,
+  "Hub": 10000,
+  "Mod": 10000,
+  "Mul": 10000,
+  "RlpAddr": 10000,
+  "RlpTxn": 10000,
+  "RlpTxrcpt": 10000,
+  "Shf": 10000,
+  "Trm": 10000,
+  "Wcp": 10000,
+  "Rom": 10000,
+  "RomLex": 10000
 }

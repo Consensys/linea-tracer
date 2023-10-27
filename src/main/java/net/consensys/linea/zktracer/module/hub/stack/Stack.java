@@ -31,6 +31,7 @@ public class Stack {
   @Getter OpCodeData currentOpcodeData;
   Status status;
   int stamp;
+  private long counter;
 
   public Stack() {
     this.height = 0;
@@ -325,11 +326,13 @@ public class Stack {
   }
 
   public boolean processInstruction(MessageFrame frame, CallFrame callFrame, int stackStamp) {
+    this.counter++;
     this.stamp = stackStamp;
     this.height = this.heightNew;
     this.currentOpcodeData = OpCode.of(frame.getCurrentOperation().getOpcode()).getData();
     callFrame.pending(new StackContext(this.currentOpcodeData.mnemonic()));
 
+    System.out.println("Stefan");
     Preconditions.checkState(this.height == frame.stackSize());
     this.heightNew += this.currentOpcodeData.stackSettings().nbAdded();
     this.heightNew -= this.currentOpcodeData.stackSettings().nbRemoved();

@@ -1271,6 +1271,16 @@ opcodes:
       nbAdded: 0
       nbRemoved: 0
       staticGas: G_VERY_LOW
+  - mnemonic: SWAP5
+    value: 0x94
+    instructionFamily: SWAP
+    stackSettings:
+      pattern: SWAP
+      alpha: 6
+      delta: 6
+      nbAdded: 0
+      nbRemoved: 0
+      staticGas: G_VERY_LOW
   - mnemonic: SWAP6
     value: 0x95
     instructionFamily: SWAP

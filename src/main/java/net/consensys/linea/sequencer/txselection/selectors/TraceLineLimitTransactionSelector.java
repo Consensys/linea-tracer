@@ -74,7 +74,11 @@ public class TraceLineLimitTransactionSelector implements PluginTransactionSelec
     // check that we are not exceed line number for any module
     final Map<String, Integer> lineCounts = zkTracer.getModulesLineCount();
     for (var e : lineCounts.entrySet()) {
-      if (lineCounts.get(e.getKey()) > moduleLimits.get(e.getKey().getClass().getSimpleName())) {
+      final String module = e.getKey();
+      if (!moduleLimits.containsKey(module)) {
+        throw new RuntimeException("Module " + module + " does not exist in the limits file");
+      }
+      if (lineCounts.get(module) > moduleLimits.get(module)) {
         return TransactionSelectionResult.BLOCK_FULL;
       }
     }

@@ -87,16 +87,7 @@ public class StackedSet<E> implements StackedContainer, java.util.Set<E> {
   @NotNull
   @Override
   public Object[] toArray() {
-    final Set<E> collapsed = this.collapse();
-    int size = collapsed.size();
-    Object[] array = new Object[size];
-
-    int i = 0;
-    for (E e : collapsed) {
-      array[i] = e;
-      i++;
-    }
-    return array;
+    return this.collapse().toArray();
   }
 
   @NotNull
@@ -107,8 +98,9 @@ public class StackedSet<E> implements StackedContainer, java.util.Set<E> {
 
   @Override
   public boolean add(E e) {
+    final boolean r = this.sets.peek().add(e);
     this.dirty = true;
-    return this.sets.peek().add(e);
+    return r;
   }
 
   @Override
@@ -147,7 +139,7 @@ public class StackedSet<E> implements StackedContainer, java.util.Set<E> {
 
   @Override
   public void clear() {
-    this.dirty = true;
     this.sets.clear();
+    this.dirty = true;
   }
 }

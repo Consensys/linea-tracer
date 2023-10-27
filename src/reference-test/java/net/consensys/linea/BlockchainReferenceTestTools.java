@@ -1,13 +1,30 @@
+/*
+ * Copyright Consensys Software Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 package net.consensys.linea;
 
+import net.consensys.linea.corset.CorsetValidator;
+import net.consensys.linea.zktracer.ZkTracer;
 import org.assertj.core.api.Assertions;
+import org.hyperledger.besu.ethereum.MainnetBlockValidator;
 import org.hyperledger.besu.ethereum.ProtocolContext;
 import org.hyperledger.besu.ethereum.chain.MutableBlockchain;
 import org.hyperledger.besu.ethereum.core.Block;
 import org.hyperledger.besu.ethereum.core.BlockHeader;
-import org.hyperledger.besu.ethereum.core.BlockImporter;
 import org.hyperledger.besu.ethereum.core.MutableWorldState;
 import org.hyperledger.besu.ethereum.mainnet.BlockImportResult;
+import org.hyperledger.besu.ethereum.mainnet.MainnetBlockImporter;
 import org.hyperledger.besu.ethereum.mainnet.ProtocolSchedule;
 import org.hyperledger.besu.ethereum.mainnet.HeaderValidationMode;
 import org.hyperledger.besu.ethereum.mainnet.ProtocolSpec;
@@ -105,22 +122,43 @@ public class BlockchainReferenceTestTools {
         return;
       }
 
+      final ZkTracer zkTracer = new ZkTracer();
+
       try {
         final Block block = candidateBlock.getBlock();
 
         final ProtocolSpec protocolSpec = schedule.getByBlockHeader(block.getHeader());
-        final BlockImporter blockImporter = protocolSpec.getBlockImporter();
+
+        final CorsetBlockProcessor corsetBlockProcessor = new CorsetBlockProcessor(
+          protocolSpec.getTransactionProcessor(),
+          protocolSpec.getTransactionReceiptFactory(),
+          protocolSpec.getBlockReward(),
+          protocolSpec.getMiningBeneficiaryCalculator(),
+          protocolSpec.isSkipZeroBlockRewards(),
+          schedule,
+          zkTracer);
+
+        final MainnetBlockValidator blockValidator = new MainnetBlockValidator(protocolSpec.getBlockHeaderValidator(),
+          protocolSpec.getBlockBodyValidator(), corsetBlockProcessor, protocolSpec.getBadBlocksManager());
+        final MainnetBlockImporter blockImporter = new MainnetBlockImporter(blockValidator);
+
+
         final HeaderValidationMode validationMode =
           "NoProof".equalsIgnoreCase(spec.getSealEngine())
             ? HeaderValidationMode.LIGHT
             : HeaderValidationMode.FULL;
+
+        zkTracer.traceStartConflation(1);
         final BlockImportResult importResult =
           blockImporter.importBlock(context, block, validationMode, validationMode);
+        zkTracer.traceEndConflation();
 
         assertThat(importResult.isImported()).isEqualTo(candidateBlock.isValid());
       } catch (final RLPException e) {
         assertThat(candidateBlock.isValid()).isFalse();
       }
+
+      Assertions.assertThat(CorsetValidator.isValid(zkTracer.getJsonTrace())).isTrue();
     }
 
     Assertions.assertThat(blockchain.getChainHeadHash()).isEqualTo(spec.getLastBlockHash());

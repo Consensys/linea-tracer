@@ -1,5 +1,5 @@
 /*
- * Copyright ConsenSys AG.
+ * Copyright Consensys Software Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,7 +12,6 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-
 package net.consensys.linea.zktracer.testing;
 
 import static net.consensys.linea.zktracer.module.hub.stack.Stack.MAX_STACK_SIZE;
@@ -25,9 +24,9 @@ import java.util.function.Consumer;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.Singular;
+import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.zktracer.ZkBlockAwareOperationTracer;
 import net.consensys.linea.zktracer.ZkTracer;
-import net.consensys.linea.corset.CorsetValidator;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.SECP256K1;
 import org.hyperledger.besu.datatypes.*;

@@ -20,35 +20,35 @@ plugins {
   id "de.undercouch.download"
 }
 
-//def blockchainReferenceTests = tasks.register("blockchainReferenceTests")  {
-//  final referenceTestsPath = "src/reference-test/resources/BlockchainTests"
-//  final generatedTestsPath = "src/reference-test/java/net/consensys/linea/generated/"
-//  inputs.files fileTree(referenceTestsPath),
-//      fileTree(generatedTestsPath)
-//  outputs.files generatedTestsPath
-//  generateTestFiles(
-//      fileTree(referenceTestsPath),
-//      file("src/reference-test/templates/BlockchainReferenceTest.java.template"),
-//      "BlockchainTests",
-//      "$generatedTestsPath/vm/blockchain",
-//      "BlockchainReferenceTest",
-//      ("BlockchainTests/InvalidBlocks/bcExpectSection") // exclude test for test filling tool
-//  )
-//}
+def blockchainReferenceTests = tasks.register("blockchainReferenceTests")  {
+  final referenceTestsPath = "src/reference-test/resources/BlockchainTests"
+  final generatedTestsPath = "src/reference-test/java/net/consensys/linea/generated/"
+  inputs.files fileTree(referenceTestsPath),
+    fileTree(generatedTestsPath)
+  outputs.files generatedTestsPath
+  generateTestFiles(
+    fileTree(referenceTestsPath),
+    file("src/reference-test/templates/BlockchainReferenceTest.java.template"),
+    "BlockchainTests",
+    "$generatedTestsPath/vm/blockchain",
+    "BlockchainReferenceTest",
+    ("BlockchainTests/InvalidBlocks/bcExpectSection") // exclude test for test filling tool
+    )
+}
 
 def generalstateReferenceTests = tasks.register("generalstateReferenceTests")  {
   final referenceTestsPath = "src/reference-test/resources/GeneralStateTests"
   final generatedTestsPath = "src/reference-test/java/net/consensys/linea/generated/"
   inputs.files fileTree(referenceTestsPath),
-      fileTree(generatedTestsPath)
+    fileTree(generatedTestsPath)
   outputs.files generatedTestsPath
   generateTestFiles(
-      fileTree(referenceTestsPath),
-      file("src/reference-test/templates/GeneralStateReferenceTest.java.template"),
-      "GeneralStateTests",
-      "$generatedTestsPath/vm/generalState",
-      "GeneralStateReferenceTest"
-  )
+    fileTree(referenceTestsPath),
+    file("src/reference-test/templates/GeneralStateReferenceTest.java.template"),
+    "GeneralStateTests",
+    "$generatedTestsPath/vm/generalState",
+    "GeneralStateReferenceTest"
+    )
 }
 
 def generateTestFiles(FileTree jsonPath, File templateFile, String pathstrip, String destination, String namePrefix, String ... excludedPath) {
@@ -73,8 +73,8 @@ def generateTestFiles(FileTree jsonPath, File templateFile, String pathstrip, St
     def allPaths = '"' + paths.join('", "') + '"'
 
     def testFileContents = referenceTestTemplate
-        .replaceAll("%%TESTS_FILE%%", allPaths)
-        .replaceAll("%%TESTS_NAME%%", namePrefix + "_" + idx)
+      .replaceAll("%%TESTS_FILE%%", allPaths)
+      .replaceAll("%%TESTS_NAME%%", namePrefix + "_" + idx)
     testFile.newWriter().withWriter { w -> w << testFileContents }
   }
 }
@@ -85,7 +85,8 @@ sourceSets {
       compileClasspath += main.output
       runtimeClasspath += main.output
       srcDirs "src/reference-test/java",
-        generalstateReferenceTests
+        blockchainReferenceTests
+      generalstateReferenceTests
     }
     resources.srcDir file("src/reference-test/resources")
   }
@@ -134,6 +135,7 @@ dependencies {
   referenceTestImplementation "${besuArtifactGroup}.internal:referencetests:$besuVersion"
   referenceTestImplementation "${besuArtifactGroup}.internal:rlp:$besuVersion"
   referenceTestImplementation "${besuArtifactGroup}.internal:testutil:$besuVersion"
+  referenceTestImplementation "${besuArtifactGroup}.internal:trie:$besuVersion"
   referenceTestImplementation "${besuArtifactGroup}.internal:util:$besuVersion"
   referenceTestImplementation "$besuArtifactGroup:plugin-api:$besuVersion"
 

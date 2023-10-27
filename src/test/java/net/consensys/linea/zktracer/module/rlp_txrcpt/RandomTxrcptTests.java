@@ -1,5 +1,5 @@
 /*
- * Copyright ConsenSys AG.
+ * Copyright Consensys Software Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,7 +12,6 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-
 package net.consensys.linea.zktracer.module.rlp_txrcpt;
 
 import static net.consensys.linea.zktracer.module.rlpCommon.rlpRandEdgeCase.randData;
@@ -23,8 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import net.consensys.linea.zktracer.ZkTraceBuilder;
 import net.consensys.linea.corset.CorsetValidator;
+import net.consensys.linea.zktracer.ZkTraceBuilder;
 import net.consensys.linea.zktracer.opcode.OpCodes;
 import net.consensys.linea.zktracer.testing.ToyAccount;
 import net.consensys.linea.zktracer.testing.ToyTransaction;

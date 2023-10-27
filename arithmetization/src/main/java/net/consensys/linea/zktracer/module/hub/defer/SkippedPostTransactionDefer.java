@@ -57,10 +57,7 @@ public record SkippedPostTransactionDefer(
 
     AccountSnapshot newToAccount =
         AccountSnapshot.fromAccount(
-            state.get(fromAddress),
-            true,
-            hub.conflation().deploymentInfo().number(toAddress),
-            false);
+            state.get(toAddress), true, hub.conflation().deploymentInfo().number(toAddress), false);
 
     AccountSnapshot newMinerAccount =
         AccountSnapshot.fromAccount(

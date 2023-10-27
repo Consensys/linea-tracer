@@ -598,13 +598,11 @@ public class Hub implements Module {
     if (this.tx.shouldSkip(world)) {
       this.tx.state(TxState.TX_SKIP);
       this.processStateSkip(world);
-      return;
     } else {
       this.tx.state(TxState.TX_WARM);
+      this.processStateWarm(world);
+      this.processStateInit(world);
     }
-
-    this.processStateWarm(world);
-    this.processStateInit(world);
 
     for (Module m : this.modules) {
       m.traceStartTx(world, tx);
@@ -740,19 +738,21 @@ public class Hub implements Module {
 
   @Override
   public void traceContextExit(MessageFrame frame) {
-    conflation.deploymentInfo().unmarkDeploying(this.currentFrame().codeAddress());
+    if (frame.getDepth() > 0) {
+      conflation.deploymentInfo().unmarkDeploying(this.currentFrame().codeAddress());
 
-    DeploymentExceptions contextExceptions =
-        DeploymentExceptions.fromFrame(this.currentFrame(), frame);
-    this.currentTraceSection().setContextExceptions(contextExceptions);
-    if (contextExceptions.any()) {
-      this.callStack.revert(this.state.stamps().hub());
-    }
+      DeploymentExceptions contextExceptions =
+              DeploymentExceptions.fromFrame(this.currentFrame(), frame);
+      this.currentTraceSection().setContextExceptions(contextExceptions);
+      if (contextExceptions.any()) {
+        this.callStack.revert(this.state.stamps().hub());
+      }
 
-    this.callStack.exit(frame.getOutputData());
+      this.callStack.exit(frame.getOutputData());
 
-    for (Module m : this.modules) {
-      m.traceContextExit(frame);
+      for (Module m : this.modules) {
+        m.traceContextExit(frame);
+      }
     }
   }
 

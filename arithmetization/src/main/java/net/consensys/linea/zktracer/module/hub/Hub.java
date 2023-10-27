@@ -742,7 +742,7 @@ public class Hub implements Module {
       conflation.deploymentInfo().unmarkDeploying(this.currentFrame().codeAddress());
 
       DeploymentExceptions contextExceptions =
-              DeploymentExceptions.fromFrame(this.currentFrame(), frame);
+          DeploymentExceptions.fromFrame(this.currentFrame(), frame);
       this.currentTraceSection().setContextExceptions(contextExceptions);
       if (contextExceptions.any()) {
         this.callStack.revert(this.state.stamps().hub());

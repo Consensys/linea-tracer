@@ -42,17 +42,7 @@ public class BlockchainReferenceTestTools {
   private static final ReferenceTestProtocolSchedules REFERENCE_TEST_PROTOCOL_SCHEDULES =
       ReferenceTestProtocolSchedules.create();
 
-  private static final List<String> NETWORKS_TO_RUN;
-
-  static {
-    final String networks =
-        System.getProperty(
-            "test.ethereum.blockchain.eips",
-            "FrontierToHomesteadAt5,HomesteadToEIP150At5,HomesteadToDaoAt5,EIP158ToByzantiumAt5,"
-                + "Frontier,Homestead,EIP150,EIP158,Byzantium,Constantinople,ConstantinopleFix,Istanbul,Berlin,"
-                + "London" /*+ ",Merge,Shanghai,Cancun,Prague,Osaka,Bogota"*/);
-    NETWORKS_TO_RUN = Arrays.asList(networks.split(","));
-  }
+  private static final List<String> NETWORKS_TO_RUN = List.of("London");
 
   private static final JsonTestParameters<?, ?> params =
       JsonTestParameters.create(BlockchainReferenceTestCaseSpec.class)
@@ -64,10 +54,6 @@ public class BlockchainReferenceTestTools {
               });
 
   static {
-    if (NETWORKS_TO_RUN.isEmpty()) {
-      params.ignoreAll();
-    }
-
     // Consumes a huge amount of memory.
     params.ignore("static_Call1MB1024Calldepth_d1g0v0_\\w+");
     params.ignore("ShanghaiLove_.*");

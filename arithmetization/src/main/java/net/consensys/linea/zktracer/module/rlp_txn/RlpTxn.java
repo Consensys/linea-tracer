@@ -102,7 +102,6 @@ public class RlpTxn implements Module {
 
   @Override
   public void traceStartTx(WorldView worldView, Transaction tx) {
-
     // Contract Creation
     if (tx.getTo().isEmpty() && !tx.getInit().orElseThrow().isEmpty()) {
       this.chunkList.add(new RlpTxnChunk(tx, true, romLex.codeIdentifierBeforeLexOrder));

@@ -70,7 +70,7 @@ public class GeneralStateReferenceTestTools {
               (testName, fullPath, stateSpec, collector) -> {
                 final String prefix = testName + "-";
                 for (final Map.Entry<String, List<GeneralStateTestCaseEipSpec>> entry :
-                    stateSpec.finalStateSpecs().entrySet()) {
+                    stateSpec.finalStateSpecs().entrySet().stream().filter(e -> e.getKey().equalsIgnoreCase("London")).toList()) {
                   final String eip = entry.getKey();
                   final boolean runTest = EIPS_TO_RUN.contains(eip);
                   final List<GeneralStateTestCaseEipSpec> eipSpecs = entry.getValue();

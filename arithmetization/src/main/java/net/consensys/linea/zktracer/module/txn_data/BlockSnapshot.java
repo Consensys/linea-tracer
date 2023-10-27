@@ -75,11 +75,13 @@ public class BlockSnapshot {
    */
   void endTx(long cumulativeGasUsed, long leftoverGas, long refundCounter, boolean status) {
     final long effectiveGasRefund = this.getEffectiveGasRefund(leftoverGas, refundCounter);
-    this.currentTx().status(status);
-    this.currentTx().refundCounter(refundCounter);
-    this.currentTx().leftoverGas(leftoverGas);
-    this.currentTx().effectiveGasRefund(effectiveGasRefund);
-    this.currentTx().cumulativeGasConsumption(cumulativeGasUsed);
+    if (!this.txs.isEmpty()) {
+      this.currentTx().status(status);
+      this.currentTx().refundCounter(refundCounter);
+      this.currentTx().leftoverGas(leftoverGas);
+      this.currentTx().effectiveGasRefund(effectiveGasRefund);
+      this.currentTx().cumulativeGasConsumption(cumulativeGasUsed);
+    }
   }
 
   /**
@@ -90,7 +92,11 @@ public class BlockSnapshot {
    * @return
    */
   long getEffectiveGasRefund(long leftoverGas, long refundCounter) {
-    long gasLimitMinusLeftoverGasOverTwo = (this.currentTx().gasLimit() - leftoverGas) >> 1;
+    long gasLimitMinusLeftoverGasOverTwo = 0;
+    if (!this.txs.isEmpty()) {
+      gasLimitMinusLeftoverGasOverTwo = (this.currentTx().gasLimit() - leftoverGas) >> 1;
+    }
+
     return leftoverGas + Long.min(refundCounter, gasLimitMinusLeftoverGasOverTwo);
   }
 }

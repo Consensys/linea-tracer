@@ -98,7 +98,9 @@ public class TxnData implements Module {
     this.currentBlock().endTx(cumulativeGasUsed, leftoverGas, refundCounter, status);
 
     // Call the wcp module:
-    this.callWcp(this.currentBlock(), this.currentBlock().currentTx());
+    if (!this.currentBlock().getTxs().isEmpty()) {
+      this.callWcp(this.currentBlock(), this.currentBlock().currentTx());
+    }
   }
 
   public void callWcp(BlockSnapshot block, TransactionSnapshot tx) {

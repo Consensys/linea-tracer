@@ -15,6 +15,7 @@
 
 package net.consensys.linea.services.kvstore;
 
+
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -26,6 +27,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.plugin.services.storage.SegmentIdentifier;
 
+
 /**
  * InMemoryKeyValueStorage is just a wrapper around a single segment instance of
  * SegmentedInMemoryKeyValueStorage.
@@ -33,29 +35,29 @@ import org.hyperledger.besu.plugin.services.storage.SegmentIdentifier;
 public class InMemoryKeyValueStorage extends SegmentedKeyValueStorageAdapter {
 
   static final SegmentIdentifier SEGMENT_IDENTIFIER =
-      new SegmentIdentifier() {
-        private static final String NAME = "SEGMENT_IDENTIFIER";
+    new SegmentIdentifier() {
+      private static final String NAME = "SEGMENT_IDENTIFIER";
 
-        @Override
-        public String getName() {
-          return NAME;
-        }
+      @Override
+      public String getName() {
+        return NAME;
+      }
 
-        @Override
-        public byte[] getId() {
-          return NAME.getBytes(StandardCharsets.UTF_8);
-        }
+      @Override
+      public byte[] getId() {
+        return NAME.getBytes(StandardCharsets.UTF_8);
+      }
 
-        @Override
-        public boolean containsStaticData() {
-          return false;
-        }
-      };
+      @Override
+      public boolean containsStaticData() {
+        return false;
+      }
+    };
 
   private static ConcurrentMap<SegmentIdentifier, Map<Bytes, Optional<byte[]>>> asSegmentMap(
-      final Map<Bytes, Optional<byte[]>> initialMap) {
+    final Map<Bytes, Optional<byte[]>> initialMap) {
     final ConcurrentMap<SegmentIdentifier, Map<Bytes, Optional<byte[]>>> segmentMap =
-        new ConcurrentHashMap<>();
+      new ConcurrentHashMap<>();
     segmentMap.put(SEGMENT_IDENTIFIER, initialMap);
     return segmentMap;
   }

@@ -25,7 +25,7 @@ import org.hyperledger.besu.plugin.services.storage.SegmentedKeyValueStorageTran
 
 /** The Key value storage transaction validator decorator. */
 public class SegmentedKeyValueStorageTransactionValidatorDecorator
-    implements SegmentedKeyValueStorageTransaction {
+  implements SegmentedKeyValueStorageTransaction {
 
   private final SegmentedKeyValueStorageTransaction transaction;
   private final Supplier<Boolean> isClosed;
@@ -38,7 +38,7 @@ public class SegmentedKeyValueStorageTransactionValidatorDecorator
    * @param isClosed supplier function to determine if the storage is closed
    */
   public SegmentedKeyValueStorageTransactionValidatorDecorator(
-      final SegmentedKeyValueStorageTransaction toDecorate, final Supplier<Boolean> isClosed) {
+    final SegmentedKeyValueStorageTransaction toDecorate, final Supplier<Boolean> isClosed) {
     this.isClosed = isClosed;
     this.transaction = toDecorate;
   }

@@ -84,10 +84,10 @@ public class InMemoryStoragePlugin implements BesuPlugin {
 
   private void createFactoriesAndRegisterWithStorageService() {
     context
-        .getService(StorageService.class)
-        .ifPresentOrElse(
-            this::createAndRegister,
-            () -> LOG.error("Failed to register KeyValueFactory due to missing StorageService."));
+      .getService(StorageService.class)
+      .ifPresentOrElse(
+        this::createAndRegister,
+        () -> LOG.error("Failed to register KeyValueFactory due to missing StorageService."));
   }
 
   /** The Memory key value storage factory. */
@@ -95,7 +95,7 @@ public class InMemoryStoragePlugin implements BesuPlugin {
 
     private final String name;
     private final Map<List<SegmentIdentifier>, SegmentedInMemoryKeyValueStorage> storageMap =
-        new HashMap<>();
+      new HashMap<>();
 
     /**
      * Instantiates a new Memory key value storage factory.
@@ -113,24 +113,24 @@ public class InMemoryStoragePlugin implements BesuPlugin {
 
     @Override
     public KeyValueStorage create(
-        final SegmentIdentifier segment,
-        final BesuConfiguration configuration,
-        final MetricsSystem metricsSystem)
-        throws StorageException {
+      final SegmentIdentifier segment,
+      final BesuConfiguration configuration,
+      final MetricsSystem metricsSystem)
+      throws StorageException {
       var kvStorage =
-          storageMap.computeIfAbsent(
-              List.of(segment), seg -> new SegmentedInMemoryKeyValueStorage(seg));
+        storageMap.computeIfAbsent(
+          List.of(segment), seg -> new SegmentedInMemoryKeyValueStorage(seg));
       return new SegmentedKeyValueStorageAdapter(segment, kvStorage);
     }
 
     @Override
     public SegmentedKeyValueStorage create(
-        final List<SegmentIdentifier> segments,
-        final BesuConfiguration configuration,
-        final MetricsSystem metricsSystem)
-        throws StorageException {
+      final List<SegmentIdentifier> segments,
+      final BesuConfiguration configuration,
+      final MetricsSystem metricsSystem)
+      throws StorageException {
       var kvStorage =
-          storageMap.computeIfAbsent(segments, __ -> new SegmentedInMemoryKeyValueStorage());
+        storageMap.computeIfAbsent(segments, __ -> new SegmentedInMemoryKeyValueStorage());
       return kvStorage;
     }
 

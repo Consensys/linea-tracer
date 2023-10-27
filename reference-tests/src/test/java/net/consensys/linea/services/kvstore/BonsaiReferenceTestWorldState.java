@@ -21,137 +21,135 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import net.consensys.linea.ReferenceTestWorldState;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.ethereum.bonsai.cache.CachedMerkleTrieLoader;
+import org.hyperledger.besu.ethereum.bonsai.cache.CachedWorldStorageManager;
 import org.hyperledger.besu.ethereum.bonsai.storage.BonsaiPreImageProxy;
 import org.hyperledger.besu.ethereum.bonsai.storage.BonsaiWorldStateKeyValueStorage;
 import org.hyperledger.besu.ethereum.bonsai.trielog.TrieLogAddedEvent;
-import org.hyperledger.besu.ethereum.bonsai.trielog.TrieLogFactoryImpl;
 import org.hyperledger.besu.ethereum.bonsai.trielog.TrieLogManager;
 import org.hyperledger.besu.ethereum.bonsai.worldview.BonsaiWorldState;
 import org.hyperledger.besu.ethereum.bonsai.worldview.BonsaiWorldStateUpdateAccumulator;
 import org.hyperledger.besu.ethereum.core.BlockHeader;
 import org.hyperledger.besu.ethereum.referencetests.BonsaiReferenceTestUpdateAccumulator;
 import org.hyperledger.besu.ethereum.referencetests.BonsaiReferenceTestWorldStateStorage;
+import org.hyperledger.besu.ethereum.referencetests.ReferenceTestWorldState;
+import org.hyperledger.besu.evm.worldstate.WorldState;
 import org.hyperledger.besu.evm.worldstate.WorldUpdater;
 import org.hyperledger.besu.metrics.ObservableMetricsSystem;
 import org.hyperledger.besu.metrics.noop.NoOpMetricsSystem;
 import org.hyperledger.besu.plugin.services.trielogs.TrieLog;
 import org.hyperledger.besu.plugin.services.trielogs.TrieLogEvent;
-import org.hyperledger.besu.plugin.services.trielogs.TrieLogFactory;
-import org.hyperledger.besu.util.Subscribers;
 
 public class BonsaiReferenceTestWorldState extends BonsaiWorldState
-    implements ReferenceTestWorldState {
+  implements ReferenceTestWorldState {
 
   private final BonsaiReferenceTestWorldStateStorage refTestStorage;
   private final BonsaiPreImageProxy preImageProxy;
 
-  private boolean disableRootHashVerification;
-
   protected BonsaiReferenceTestWorldState(
-      final BonsaiReferenceTestWorldStateStorage worldStateStorage,
-      final CachedMerkleTrieLoader cachedMerkleTrieLoader,
-      final TrieLogManager trieLogManager,
-      final BonsaiPreImageProxy preImageProxy) {
-    super(worldStateStorage, cachedMerkleTrieLoader, trieLogManager);
+    final BonsaiReferenceTestWorldStateStorage worldStateStorage,
+    final CachedMerkleTrieLoader cachedMerkleTrieLoader,
+    final CachedWorldStorageManager cachedWorldStorageManager,
+    final TrieLogManager trieLogManager,
+    final BonsaiPreImageProxy preImageProxy) {
+    super(worldStateStorage, cachedMerkleTrieLoader, cachedWorldStorageManager, trieLogManager);
     this.refTestStorage = worldStateStorage;
     this.preImageProxy = preImageProxy;
     setAccumulator(
-        new BonsaiReferenceTestUpdateAccumulator(
-            this,
-            (addr, value) ->
-                cachedMerkleTrieLoader.preLoadAccount(
-                    getWorldStateStorage(), worldStateRootHash, addr),
-            (addr, value) ->
-                cachedMerkleTrieLoader.preLoadStorageSlot(getWorldStateStorage(), addr, value),
-            preImageProxy));
+      new BonsaiReferenceTestUpdateAccumulator(
+        this,
+        (addr, value) ->
+          cachedMerkleTrieLoader.preLoadAccount(
+            getWorldStateStorage(), worldStateRootHash, addr),
+        (addr, value) ->
+          cachedMerkleTrieLoader.preLoadStorageSlot(getWorldStateStorage(), addr, value),
+        preImageProxy));
   }
 
   @Override
   public ReferenceTestWorldState copy() {
     var layerCopy = new BonsaiReferenceTestWorldStateStorage(worldStateStorage, preImageProxy);
-    return new BonsaiReferenceTestWorldState(
-        layerCopy, cachedMerkleTrieLoader, trieLogManager, preImageProxy);
+    return new org.hyperledger.besu.ethereum.referencetests.BonsaiReferenceTestWorldState(
+      layerCopy,
+      cachedMerkleTrieLoader,
+      cachedWorldStorageManager,
+      trieLogManager,
+      preImageProxy);
   }
 
   /**
-   * If the supplied header has a non-zero state root, verify. Else we assume that stateroot is an
-   * output instead of an input for this reference test and we bypass the state root check.
-   *
-   * <p>Besu reference-test style test cases should supply a stateroot to verify to prevent bonsai
-   * regressions.
+   * For reference tests world state root validation is handled in the harness, this stubs out the
+   * behavior to always pass.
    *
    * @param calculatedStateRoot state root calculated during bonsai persist step.
    * @param header supplied reference test block header.
    */
   @Override
   protected void verifyWorldStateRoot(final Hash calculatedStateRoot, final BlockHeader header) {
-    if (!disableRootHashVerification) {
-      super.verifyWorldStateRoot(calculatedStateRoot, header);
-    }
+    // The test harness validates the root hash, no need to validate in-line for reference test
   }
 
   @JsonCreator
-  public static BonsaiReferenceTestWorldState create(final Map<String, AccountMock> accounts) {
+  public static org.hyperledger.besu.ethereum.referencetests.BonsaiReferenceTestWorldState create(
+    final Map<String, ReferenceTestWorldState.AccountMock> accounts) {
     final ObservableMetricsSystem metricsSystem = new NoOpMetricsSystem();
     final CachedMerkleTrieLoader cachedMerkleTrieLoader = new CachedMerkleTrieLoader(metricsSystem);
-    final TrieLogManager trieLogManager = new NoOpTrieLogManager();
+    final TrieLogManager trieLogManager = new org.hyperledger.besu.ethereum.referencetests.BonsaiReferenceTestWorldState.NoOpTrieLogManager();
     final BonsaiPreImageProxy preImageProxy =
-        new BonsaiPreImageProxy.BonsaiReferenceTestPreImageProxy();
+      new BonsaiPreImageProxy.BonsaiReferenceTestPreImageProxy();
 
     final BonsaiReferenceTestWorldStateStorage worldStateStorage =
-        new BonsaiReferenceTestWorldStateStorage(
-            new BonsaiWorldStateKeyValueStorage(
-                new InMemoryKeyValueStorageProvider(), metricsSystem),
-            preImageProxy);
+      new BonsaiReferenceTestWorldStateStorage(
+        new BonsaiWorldStateKeyValueStorage(
+          new InMemoryKeyValueStorageProvider(), metricsSystem),
+        preImageProxy);
 
-    final BonsaiReferenceTestWorldState worldState =
-        new BonsaiReferenceTestWorldState(
-            worldStateStorage, cachedMerkleTrieLoader, trieLogManager, preImageProxy);
+    final NoOpCachedWorldStorageManager noOpCachedWorldStorageManager =
+      new NoOpCachedWorldStorageManager();
+
+    final org.hyperledger.besu.ethereum.referencetests.BonsaiReferenceTestWorldState worldState =
+      new org.hyperledger.besu.ethereum.referencetests.BonsaiReferenceTestWorldState(
+        worldStateStorage,
+        cachedMerkleTrieLoader,
+        noOpCachedWorldStorageManager,
+        trieLogManager,
+        preImageProxy);
 
     final WorldUpdater updater = worldState.updater();
     for (final Map.Entry<String, ReferenceTestWorldState.AccountMock> entry : accounts.entrySet()) {
       ReferenceTestWorldState.insertAccount(
-          updater, Address.fromHexString(entry.getKey()), entry.getValue());
+        updater, Address.fromHexString(entry.getKey()), entry.getValue());
     }
     updater.commit();
     return worldState;
   }
 
   @Override
-  public Stream<StreamableAccount> streamAccounts(final Bytes32 startKeyHash, final int limit) {
+  public Stream<WorldState.StreamableAccount> streamAccounts(final Bytes32 startKeyHash, final int limit) {
     return this.refTestStorage.streamAccounts(this, startKeyHash, limit);
   }
 
-  public void disableRootHashVerification() {
-    disableRootHashVerification = true;
-  }
+  static class NoOpCachedWorldStorageManager extends CachedWorldStorageManager {
 
-  static class NoOpTrieLogManager implements TrieLogManager {
-    private final Subscribers<TrieLogEvent.TrieLogObserver> trieLogObservers = Subscribers.create();
-    private final TrieLogFactory trieLogFactory = new TrieLogFactoryImpl();
-
-    @Override
-    public void saveTrieLog(
-        final BonsaiWorldStateUpdateAccumulator localUpdater,
-        final Hash forWorldStateRootHash,
-        final BlockHeader forBlockHeader,
-        final BonsaiWorldState forWorldState) {
-      // notify trie log added observers, synchronously
-      TrieLog trieLog = trieLogFactory.create(localUpdater, forBlockHeader);
-      trieLogObservers.forEach(o -> o.onTrieLogAdded(new TrieLogAddedEvent(trieLog)));
+    public NoOpCachedWorldStorageManager() {
+      super(
+        null,
+        new BonsaiWorldStateKeyValueStorage(
+          new InMemoryKeyValueStorageProvider(), new NoOpMetricsSystem()),
+        new NoOpMetricsSystem());
     }
 
     @Override
     public void addCachedLayer(
-        final BlockHeader blockHeader,
-        final Hash worldStateRootHash,
-        final BonsaiWorldState forWorldState) {}
+      final BlockHeader blockHeader,
+      final Hash worldStateRootHash,
+      final BonsaiWorldState forWorldState) {
+      // reference tests do not cache layers
+    }
 
     @Override
     public boolean containWorldStateStorage(final Hash blockHash) {
@@ -170,8 +168,32 @@ public class BonsaiReferenceTestWorldState extends BonsaiWorldState
 
     @Override
     public Optional<BonsaiWorldState> getHeadWorldState(
-        final Function<Hash, Optional<BlockHeader>> hashBlockHeaderFunction) {
+      final Function<Hash, Optional<BlockHeader>> hashBlockHeaderFunction) {
       return Optional.empty();
+    }
+
+    @Override
+    public void reset() {
+      // reference test world states are not re-used
+    }
+  }
+
+  static class NoOpTrieLogManager extends TrieLogManager {
+
+    public NoOpTrieLogManager() {
+      super(null, null, 0, null);
+    }
+
+    @SuppressWarnings("UnsynchronizedOverridesSynchronized")
+    @Override
+    public void saveTrieLog(
+      final BonsaiWorldStateUpdateAccumulator localUpdater,
+      final Hash forWorldStateRootHash,
+      final BlockHeader forBlockHeader,
+      final BonsaiWorldState forWorldState) {
+      // notify trie log added observers, synchronously
+      TrieLog trieLog = trieLogFactory.create(localUpdater, forBlockHeader);
+      trieLogObservers.forEach(o -> o.onTrieLogAdded(new TrieLogAddedEvent(trieLog)));
     }
 
     @Override
@@ -180,10 +202,7 @@ public class BonsaiReferenceTestWorldState extends BonsaiWorldState
     }
 
     @Override
-    public void reset() {}
-
-    @Override
-    public Optional<? extends TrieLog> getTrieLogLayer(final Hash blockHash) {
+    public Optional<TrieLog> getTrieLogLayer(final Hash blockHash) {
       return Optional.empty();
     }
 

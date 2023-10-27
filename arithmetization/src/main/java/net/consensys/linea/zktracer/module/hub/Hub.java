@@ -870,7 +870,7 @@ public class Hub implements Module {
   }
 
   public long remainingGas() {
-    return this.currentFrame().frame().getRemainingGas();
+    return 0; // TODO:
   }
 
   @Override

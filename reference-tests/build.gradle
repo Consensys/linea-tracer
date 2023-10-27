@@ -53,6 +53,7 @@ dependencies {
   testImplementation "${besuArtifactGroup}.internal:referencetests:${besuVersion}"
   testImplementation "${besuArtifactGroup}.internal:rlp:${besuVersion}"
   testImplementation "${besuArtifactGroup}.internal:testutil:${besuVersion}"
+  testImplementation "${besuArtifactGroup}.internal:trie:$besuVersion"
   testImplementation "${besuArtifactGroup}.internal:util:${besuVersion}"
   testImplementation "${besuArtifactGroup}:plugin-api"
 

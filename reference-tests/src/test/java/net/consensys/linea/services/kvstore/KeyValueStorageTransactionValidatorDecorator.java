@@ -36,7 +36,7 @@ public class KeyValueStorageTransactionValidatorDecorator implements KeyValueSto
    * @param isClosed supplier function to determine if the storage is closed
    */
   public KeyValueStorageTransactionValidatorDecorator(
-      final KeyValueStorageTransaction toDecorate, final Supplier<Boolean> isClosed) {
+    final KeyValueStorageTransaction toDecorate, final Supplier<Boolean> isClosed) {
     this.isClosed = isClosed;
     this.transaction = toDecorate;
   }

@@ -41,9 +41,9 @@ public class InMemoryKeyValueStorageProvider extends KeyValueStorageProvider {
 
   public InMemoryKeyValueStorageProvider() {
     super(
-        segmentIdentifiers -> new SegmentedInMemoryKeyValueStorage(),
-        new InMemoryKeyValueStorage(),
-        new NoOpMetricsSystem());
+      segmentIdentifiers -> new SegmentedInMemoryKeyValueStorage(),
+      new InMemoryKeyValueStorage(),
+      new NoOpMetricsSystem());
   }
 
   public static MutableBlockchain createInMemoryBlockchain(final Block genesisBlock) {
@@ -51,55 +51,55 @@ public class InMemoryKeyValueStorageProvider extends KeyValueStorageProvider {
   }
 
   public static MutableBlockchain createInMemoryBlockchain(
-      final Block genesisBlock, final VariablesStorage variablesStorage) {
+    final Block genesisBlock, final VariablesStorage variablesStorage) {
     return createInMemoryBlockchain(
-        genesisBlock, new MainnetBlockHeaderFunctions(), variablesStorage);
+      genesisBlock, new MainnetBlockHeaderFunctions(), variablesStorage);
   }
 
   public static MutableBlockchain createInMemoryBlockchain(
-      final Block genesisBlock, final BlockHeaderFunctions blockHeaderFunctions) {
+    final Block genesisBlock, final BlockHeaderFunctions blockHeaderFunctions) {
     return createInMemoryBlockchain(
-        genesisBlock, blockHeaderFunctions, createInMemoryVariablesStorage());
+      genesisBlock, blockHeaderFunctions, createInMemoryVariablesStorage());
   }
 
   public static MutableBlockchain createInMemoryBlockchain(
-      final Block genesisBlock,
-      final BlockHeaderFunctions blockHeaderFunctions,
-      final VariablesStorage variablesStorage) {
+    final Block genesisBlock,
+    final BlockHeaderFunctions blockHeaderFunctions,
+    final VariablesStorage variablesStorage) {
     final InMemoryKeyValueStorage keyValueStorage = new InMemoryKeyValueStorage();
     return DefaultBlockchain.createMutable(
-        genesisBlock,
-        new KeyValueStoragePrefixedKeyBlockchainStorage(
-            keyValueStorage, variablesStorage, blockHeaderFunctions),
-        new NoOpMetricsSystem(),
-        0);
+      genesisBlock,
+      new KeyValueStoragePrefixedKeyBlockchainStorage(
+        keyValueStorage, variablesStorage, blockHeaderFunctions),
+      new NoOpMetricsSystem(),
+      0);
   }
 
   public static DefaultWorldStateArchive createInMemoryWorldStateArchive() {
     return new DefaultWorldStateArchive(
-        new WorldStateKeyValueStorage(new InMemoryKeyValueStorage()),
-        new WorldStatePreimageKeyValueStorage(new InMemoryKeyValueStorage()));
+      new WorldStateKeyValueStorage(new InMemoryKeyValueStorage()),
+      new WorldStatePreimageKeyValueStorage(new InMemoryKeyValueStorage()));
   }
 
   public static BonsaiWorldStateProvider createBonsaiInMemoryWorldStateArchive(
-      final Blockchain blockchain) {
+    final Blockchain blockchain) {
     final InMemoryKeyValueStorageProvider inMemoryKeyValueStorageProvider =
-        new InMemoryKeyValueStorageProvider();
+      new InMemoryKeyValueStorageProvider();
     final CachedMerkleTrieLoader cachedMerkleTrieLoader =
-        new CachedMerkleTrieLoader(new NoOpMetricsSystem());
+      new CachedMerkleTrieLoader(new NoOpMetricsSystem());
     return new BonsaiWorldStateProvider(
-        inMemoryKeyValueStorageProvider,
-        blockchain,
-        cachedMerkleTrieLoader,
-        new NoOpMetricsSystem(),
-        null);
+      inMemoryKeyValueStorageProvider,
+      blockchain,
+      cachedMerkleTrieLoader,
+      new NoOpMetricsSystem(),
+      null);
   }
 
   public static MutableWorldState createInMemoryWorldState() {
     final InMemoryKeyValueStorageProvider provider = new InMemoryKeyValueStorageProvider();
     return new DefaultMutableWorldState(
-        provider.createWorldStateStorage(DataStorageFormat.FOREST),
-        provider.createWorldStatePreimageStorage());
+      provider.createWorldStateStorage(DataStorageFormat.FOREST),
+      provider.createWorldStatePreimageStorage());
   }
 
   public static PrivateStateStorage createInMemoryPrivateStateStorage() {

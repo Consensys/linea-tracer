@@ -18,7 +18,6 @@ package net.consensys.linea.zktracer.module.txn_data;
 import java.util.Optional;
 
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -29,7 +28,6 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 /**
  * This class gathers the block-related information required to trace the {@link TxnData} module.
  */
-@Slf4j
 public class BlockSnapshot {
   /** Sequential ID of this block within a conflation */
   @Getter int id;
@@ -52,9 +50,6 @@ public class BlockSnapshot {
    * @return the latest {@link TransactionSnapshot}
    */
   TransactionSnapshot currentTx() {
-    if (this.txs.size() == 0) {
-      log.warn("txs: "+this.txs);
-    }
     return this.txs.get(this.txs.size() - 1);
   }
 
@@ -80,13 +75,11 @@ public class BlockSnapshot {
    */
   void endTx(long cumulativeGasUsed, long leftoverGas, long refundCounter, boolean status) {
     final long effectiveGasRefund = this.getEffectiveGasRefund(leftoverGas, refundCounter);
-    if (!this.txs.isEmpty()) {
       this.currentTx().status(status);
       this.currentTx().refundCounter(refundCounter);
       this.currentTx().leftoverGas(leftoverGas);
       this.currentTx().effectiveGasRefund(effectiveGasRefund);
       this.currentTx().cumulativeGasConsumption(cumulativeGasUsed);
-    }
   }
 
   /**

@@ -146,7 +146,7 @@ public final class InstructionDecoder {
       traceRamSettings(op, trace);
       traceBillingSettings(op, trace);
       trace
-          .opcode(BigInteger.valueOf(op.value()))
+          .opcode(BigInteger.valueOf(i))
           .isPush(op.pushFlag())
           .isJumpdest(op.jumpFlag())
           .validateRow();

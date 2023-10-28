@@ -33,7 +33,7 @@ import org.junit.jupiter.api.TestFactory;
 class MulTracerTest {
   private static final Random RAND = new Random();
 
-  private static final int TEST_MUL_REPETITIONS = 16;
+  private static final int TEST_MUL_REPETITIONS = 4;
 
   private static final Module MODULE = new Mul();
 

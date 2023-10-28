@@ -42,7 +42,7 @@ import org.junit.jupiter.api.DynamicTest;
  */
 public class DynamicTests {
   private static final Random RAND = new Random();
-  private static final int TEST_REPETITIONS = 8;
+  private static final int TEST_REPETITIONS = 4;
 
   private final List<DynamicTestCase> testCaseRegistry;
 

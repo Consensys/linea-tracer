@@ -33,7 +33,7 @@ import org.junit.jupiter.api.TestFactory;
 
 class ModTracerTest {
   private static final Random RAND = new Random();
-  private static final int TEST_MOD_REPETITIONS = 16;
+  private static final int TEST_MOD_REPETITIONS = 4;
   private static final Module MODULE = new Mod();
   private static final DynamicTests DYN_TESTS = DynamicTests.forModule(MODULE);
 

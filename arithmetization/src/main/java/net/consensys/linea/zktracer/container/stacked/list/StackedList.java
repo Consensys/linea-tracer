@@ -41,7 +41,7 @@ public class StackedList<E> implements List<E>, StackedContainer {
   public String toString() {
     StringBuffer r = new StringBuffer();
     r.append("[[");
-    for(var l: this.lists) {
+    for (var l : this.lists) {
       r.append(l.toString());
     }
     r.append("]]");

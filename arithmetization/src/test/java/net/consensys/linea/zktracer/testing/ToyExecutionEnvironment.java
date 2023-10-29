@@ -18,6 +18,7 @@ package net.consensys.linea.zktracer.testing;
 import static net.consensys.linea.zktracer.runtime.stack.Stack.MAX_STACK_SIZE;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.function.Consumer;
@@ -26,7 +27,6 @@ import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.Singular;
 import net.consensys.linea.corset.CorsetValidator;
-import net.consensys.linea.zktracer.ZkBlockAwareOperationTracer;
 import net.consensys.linea.zktracer.ZkTracer;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.SECP256K1;
@@ -79,7 +79,7 @@ public class ToyExecutionEnvironment {
   private final Consumer<ZkTracer> zkTracerValidator;
 
   private static final FeeMarket feeMarket = FeeMarket.london(-1);
-  private final ZkBlockAwareOperationTracer tracer = new ZkTracer();
+  private final ZkTracer tracer = new ZkTracer();
 
   /**
    * Gets the default EVM implementation, i.e. London.
@@ -100,9 +100,22 @@ public class ToyExecutionEnvironment {
     return tracer.getJsonTrace();
   }
 
+  public void binaryTraceCode() {
+    execute();
+    try {
+      tracer.writeToFile("asf");
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   /** Execute constructed EVM bytecode and perform Corset trace validation. */
-  public void run() {
+  public void runOld() {
     assertThat(CorsetValidator.isValid(traceCode())).isTrue();
+  }
+
+  public void run() {
+    binaryTraceCode();
   }
 
   private void execute() {

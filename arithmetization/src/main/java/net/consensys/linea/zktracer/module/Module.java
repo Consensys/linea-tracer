@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.module;
 
 import java.util.List;
 
+import net.consensys.linea.zktracer.ColumnHeader;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -77,6 +78,10 @@ public interface Module {
 
   default void tracePostExecution(
       final MessageFrame frame, final Operation.OperationResult operationResult) {}
+
+  default List<ColumnHeader> columnsHeaders() {
+    return List.of();
+  }
 
   ModuleTrace commit();
 }

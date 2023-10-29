@@ -15,6 +15,11 @@
 
 package net.consensys.linea.zktracer;
 
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +64,60 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
       zkTraceBuilder.addTrace(module);
     }
     return zkTraceBuilder.build();
+  }
+
+  public void hugeWriteToFile(String filename) throws IOException {
+    final List<ColumnHeader> traceMap =
+        this.hub.getModulesToTrace().stream().flatMap(m -> m.columnsHeaders().stream()).toList();
+    final long headerSize = traceMap.stream().mapToInt(ColumnHeader::headerSize).sum();
+    final long traceSize = traceMap.stream().mapToLong(ColumnHeader::cumulatedSize).sum();
+
+    assert traceSize < Integer.MAX_VALUE;
+    //    final Path path = Paths.get("/Users/franklin/pipo.hex");
+
+    //    try (ResourceScope scope = ResourceScope.newConfinedScope()) {
+    //      MemorySegment mmap = MemorySegment.mapFile(path, 0, traceSize,
+    // FileChannel.MapMode.READ_WRITE, scope);
+
+    // ByteBuffer header = mmap.asSlice(0, headerSize).asByteBuffer();
+    //      for (ColumnHeader h : traceMap) {
+    //        final String name = h.name();
+    //        assert h.name().length() < 128;
+    //        header.put((byte) name.length());
+    //        for (int i = 0; i < name.length(); i++) {
+    //          header.putChar(name.charAt(i));
+    //        }
+    //        header.put(h.bitPerElement());
+    //        header.putInt(h.length());
+    //      }
+
+    //      mmap.force();
+    //    }
+  }
+
+  public void writeToFile(String filename) throws IOException {
+    final List<ColumnHeader> traceMap =
+        this.hub.getModulesToTrace().stream().flatMap(m -> m.columnsHeaders().stream()).toList();
+    final long headerSize = traceMap.stream().mapToInt(ColumnHeader::headerSize).sum();
+    final long traceSize = traceMap.stream().mapToLong(ColumnHeader::cumulatedSize).sum();
+    assert traceSize < Integer.MAX_VALUE;
+
+    try (RandomAccessFile file = new RandomAccessFile("/Users/franklin/pipo.lt", "rw")) {
+      MappedByteBuffer mmap = file.getChannel().map(FileChannel.MapMode.READ_WRITE, 0, traceSize);
+      ByteBuffer header = mmap;
+
+      for (ColumnHeader h : traceMap) {
+        final String name = h.name();
+        header.putShort((short) name.length());
+        for (int i = 0; i < name.length(); i++) {
+          header.put((byte) name.charAt(i));
+        }
+        header.put((byte) h.bitsPerElement());
+        header.putInt(h.length());
+      }
+
+      mmap.force();
+    }
   }
 
   @Override

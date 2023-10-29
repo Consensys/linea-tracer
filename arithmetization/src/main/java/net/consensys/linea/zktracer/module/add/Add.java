@@ -16,7 +16,9 @@
 package net.consensys.linea.zktracer.module.add;
 
 import java.math.BigInteger;
+import java.util.List;
 
+import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.bytestheta.BaseBytes;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
@@ -152,6 +154,11 @@ public class Add implements Module {
           .stamp(BigInteger.valueOf(stamp))
           .validateRow();
     }
+  }
+
+  @Override
+  public List<ColumnHeader> columnsHeaders() {
+    return Trace.headers(this.lineCount());
   }
 
   @Override

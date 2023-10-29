@@ -21,6 +21,7 @@ import java.util.BitSet;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
 /**
@@ -44,6 +45,24 @@ public record Trace(
     @JsonProperty("STAMP") List<BigInteger> stamp) {
   static TraceBuilder builder(int length) {
     return new TraceBuilder(length);
+  }
+
+  public static List<ColumnHeader> headers(int size) {
+    return List.of(
+        new ColumnHeader("add.ACC_1", 128, size),
+        new ColumnHeader("add.ACC_2", 128, size),
+        new ColumnHeader("add.ARG_1_HI", 128, size),
+        new ColumnHeader("add.ARG_1_LO", 128, size),
+        new ColumnHeader("add.ARG_2_HI", 128, size),
+        new ColumnHeader("add.ARG_2_LO", 128, size),
+        new ColumnHeader("add.BYTE_1", 128, size),
+        new ColumnHeader("add.BYTE_2", 128, size),
+        new ColumnHeader("add.CT", 128, size),
+        new ColumnHeader("add.INST", 128, size),
+        new ColumnHeader("add.OVERFLOW", 128, size),
+        new ColumnHeader("add.RES_HI", 128, size),
+        new ColumnHeader("add.RES_LO", 128, size),
+        new ColumnHeader("add.STAMP", 128, size));
   }
 
   public int size() {

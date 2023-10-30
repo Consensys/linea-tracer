@@ -18,7 +18,10 @@ package net.consensys.linea.zktracer.module.mxp;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.util.List;
 
+import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
@@ -57,7 +60,7 @@ public class Mxp implements Module {
     //    sanityCheck(opCode, scope, mxpData);
   }
 
-  final void traceChunk(final MxpData chunk, int stamp, Trace.TraceBuilder trace) {
+  final void traceChunk(final MxpData chunk, int stamp, Trace.BufferTraceWriter trace) {
     Bytes32 acc1Bytes32 = Bytes32.leftPad(bigIntegerToBytes(chunk.getAcc1()));
     Bytes32 acc2Bytes32 = Bytes32.leftPad(bigIntegerToBytes(chunk.getAcc2()));
     Bytes32 acc3Bytes32 = Bytes32.leftPad(bigIntegerToBytes(chunk.getAcc3()));
@@ -155,12 +158,25 @@ public class Mxp implements Module {
   public ModuleTrace commit() {
     final Trace.TraceBuilder trace = Trace.builder(this.lineCount());
     for (int i = 0; i < this.chunks.size(); i++) {
-      this.traceChunk(this.chunks.get(i), i + 1, trace);
+//      this.traceChunk(this.chunks.get(i), i + 1, trace);
     }
     return new MxpTrace(trace.build());
   }
 
   @Override
   public void tracePostOp(MessageFrame frame) { // This is paired with tracePreOp
+  }
+
+  @Override
+  public List<ColumnHeader> columnsHeaders() {
+    return Trace.headers(this.lineCount());
+  }
+
+  @Override
+  public void commitToBuffer(ByteBuffer target) {
+    final Trace.BufferTraceWriter trace = new Trace.BufferTraceWriter(target, this.lineCount());
+    for (int i = 0; i < this.chunks.size(); i++) {
+      this.traceChunk(this.chunks.get(i), i + 1, trace);
+    }
   }
 }

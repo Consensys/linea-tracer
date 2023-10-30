@@ -74,6 +74,9 @@ public final class EWord extends BaseUInt256Value<EWord> implements Quantity {
    * @return the EVM word
    */
   public static EWord of(final BigInteger value) {
+    if (value.signum()<0) {
+      return EWord.ZERO;
+    }
     return new EWord(value);
   }
 

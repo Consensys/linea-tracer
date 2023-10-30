@@ -18,7 +18,10 @@ package net.consensys.linea.zktracer.module.rom;
 import static net.consensys.linea.zktracer.module.rlputils.Pattern.padToGivenSizeWithRightZero;
 
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.util.List;
 
+import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
 import net.consensys.linea.zktracer.module.romLex.RomChunk;
@@ -69,7 +72,7 @@ public class Rom implements Module {
     return LLARGE * nbSlice + nPaddingRow;
   }
 
-  private void traceChunk(RomChunk chunk, int cfi, int cfiInfty, Trace.TraceBuilder trace) {
+  private void traceChunk(RomChunk chunk, int cfi, int cfiInfty, Trace.BufferTraceWriter trace) {
     final int chunkRowSize = chunkRowSize(chunk);
     final int codeSize = chunk.byteCode().size();
     final int nLimbSlice = (codeSize + (LLARGE - 1)) / LLARGE;
@@ -194,9 +197,27 @@ public class Rom implements Module {
     final int cfiInfty = this.romLex.sortedChunks.size();
     for (RomChunk chunk : this.romLex.sortedChunks) {
       cfi += 1;
-      traceChunk(chunk, cfi, cfiInfty, trace);
+//      traceChunk(chunk, cfi, cfiInfty, trace);
     }
 
     return new RomTrace(trace.build());
+  }
+
+  @Override
+  public List<ColumnHeader> columnsHeaders() {
+    return Trace.headers(this.lineCount());
+  }
+
+  @Override
+  public void commitToBuffer(ByteBuffer target) {
+    final Trace.BufferTraceWriter trace = new Trace.BufferTraceWriter(target, this.lineCount());
+
+
+    int cfi = 0;
+    final int cfiInfty = this.romLex.sortedChunks.size();
+    for (RomChunk chunk : this.romLex.sortedChunks) {
+      cfi += 1;
+      traceChunk(chunk, cfi, cfiInfty, trace);
+    }
   }
 }

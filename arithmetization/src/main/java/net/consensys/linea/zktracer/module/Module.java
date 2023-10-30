@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module;
 
+import java.nio.ByteBuffer;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
@@ -78,4 +79,6 @@ public interface Module {
   }
 
   ModuleTrace commit();
+
+  default void commitToBuffer(ByteBuffer target) {}
 }

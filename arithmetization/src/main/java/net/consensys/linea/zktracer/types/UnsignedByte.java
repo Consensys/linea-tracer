@@ -122,6 +122,10 @@ public class UnsignedByte {
     return unsignedByte;
   }
 
+  public byte toByte() {
+    return (byte) this.toInteger();
+  }
+
   /**
    * Converts to {@link BigInteger} type.
    *

@@ -15,13 +15,13 @@
 
 package net.consensys.linea.zktracer;
 
-public record ColumnHeader(String name, int bitsPerElement, int length) {
-  private int bytesPerElement() {
+public record ColumnHeader(String name, int bitsPerElement, int eltCount) {
+  int bytesPerElement() {
     return (this.bitsPerElement + 8) / 8;
   }
 
   public int dataSize() {
-    return this.length() * this.bytesPerElement();
+    return this.eltCount() * this.bytesPerElement();
   }
 
   public int headerSize() {

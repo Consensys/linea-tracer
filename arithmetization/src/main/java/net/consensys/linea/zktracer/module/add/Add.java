@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.add;
 
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
@@ -94,7 +95,7 @@ public class Add implements Module {
    * @param arg2 second operand
    */
   private void traceAddOperation(
-      OpCode opCode, Bytes32 arg1, Bytes32 arg2, Trace.TraceBuilder trace) {
+      OpCode opCode, Bytes32 arg1, Bytes32 arg2, Trace.BufferTraceWriter trace) {
     this.stamp++;
 
     final Bytes16 arg1Hi = Bytes16.wrap(arg1.slice(0, 16));
@@ -165,10 +166,18 @@ public class Add implements Module {
   public ModuleTrace commit() {
     final Trace.TraceBuilder trace = new Trace.TraceBuilder(this.lineCount());
     for (AddOperation op : this.chunks) {
-      this.traceAddOperation(op.opCodem(), op.arg1(), op.arg2(), trace);
+//      this.traceAddOperation(op.opCodem(), op.arg1(), op.arg2(), trace);
     }
 
     return new AddTrace(trace.build());
+  }
+
+  @Override
+  public void commitToBuffer(ByteBuffer target) {
+    final Trace.BufferTraceWriter trace = new Trace.BufferTraceWriter(target, this.lineCount());
+    for (AddOperation op : this.chunks) {
+      this.traceAddOperation(op.opCodem(), op.arg1(), op.arg2(), trace);
+    }
   }
 
   @Override

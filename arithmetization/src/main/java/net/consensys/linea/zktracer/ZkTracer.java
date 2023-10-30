@@ -91,22 +91,30 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
   public void writeToFile(String filename) throws IOException {
     final List<ColumnHeader> traceMap =
         this.hub.getModulesToTrace().stream().flatMap(m -> m.columnsHeaders().stream()).toList();
-    final long headerSize = traceMap.stream().mapToInt(ColumnHeader::headerSize).sum();
+    final long headerSize = traceMap.stream().mapToInt(ColumnHeader::headerSize).sum() + 2;
     final long traceSize = traceMap.stream().mapToLong(ColumnHeader::cumulatedSize).sum();
     assert traceSize < Integer.MAX_VALUE;
 
-    try (RandomAccessFile file = new RandomAccessFile("/Users/franklin/pipo.lt", "rw")) {
-      MappedByteBuffer mmap = file.getChannel().map(FileChannel.MapMode.READ_WRITE, 0, traceSize);
+    try (RandomAccessFile file = new RandomAccessFile("/home/franklin/pipo.lt", "rw")) {
+      MappedByteBuffer mmap = file.getChannel().map(FileChannel.MapMode.READ_WRITE, 0, headerSize+traceSize);
       ByteBuffer header = mmap;
 
+      header.putShort((short) traceMap.size());
       for (ColumnHeader h : traceMap) {
         final String name = h.name();
         header.putShort((short) name.length());
         for (int i = 0; i < name.length(); i++) {
           header.put((byte) name.charAt(i));
         }
-        header.put((byte) h.bitsPerElement());
-        header.putInt(h.length());
+        header.put((byte) h.bytesPerElement());
+        header.putInt(h.eltCount());
+      }
+
+      int i = (int)headerSize;
+      for (Module m: this.hub.getModulesToTrace()) {
+        final int moduleSize = m.columnsHeaders().stream().mapToInt(ColumnHeader::dataSize).sum();
+        m.commitToBuffer(mmap.slice(i, moduleSize));
+        i+= moduleSize;
       }
 
       mmap.force();

@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -26,6 +27,7 @@ import java.util.Set;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
 import net.consensys.linea.zktracer.module.add.Add;
@@ -175,20 +177,19 @@ public class Hub implements Module {
    */
   public List<Module> getModulesToTrace() {
     return List.of(
-        this.add
-        //        this,
-        //        this.romLex,
-        //        this.add,
+                this,
+                this.romLex,
+                this.add,
         //        this.ext,
         //        this.mod,
         //        this.mul,
-        //        this.shf,
-        //        this.wcp,
-        //        this.mxp,
-        //        this.rlpTxn,
+//                this.shf,
+//                this.wcp,
+                this.mxp,
+//                this.rlpTxn,
         //        this.rlpTxrcpt,
         //        this.rlpAddr,
-        //        this.rom,
+                this.rom
         //        this.txnData
         );
   }
@@ -872,8 +873,9 @@ public class Hub implements Module {
 
   @Override
   public ModuleTrace commit() {
-    final Trace.TraceBuilder trace = Trace.builder(this.lineCount());
-    return new HubTrace(this.state.commit(trace).build());
+//    final Trace.OldTraceBuilder trace = Trace.builder(this.lineCount());
+//    return new HubTrace(this.state.commit(trace).build());
+    return null;
   }
 
   public long refundedGas() {
@@ -1247,5 +1249,16 @@ public class Hub implements Module {
       }
     }
     return r;
+  }
+
+  @Override
+  public List<ColumnHeader> columnsHeaders() {
+    return Trace.headers(this.lineCount());
+  }
+
+  @Override
+  public void commitToBuffer(ByteBuffer target) {
+    final Trace.TraceBuilder trace = new Trace.TraceBuilder(target, this.lineCount());
+    this.state.commit(trace);
   }
 }

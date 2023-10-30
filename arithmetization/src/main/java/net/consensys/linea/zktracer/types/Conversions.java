@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.stream.IntStream;
 
 import org.apache.tuweni.bytes.Bytes;
+import org.apache.tuweni.bytes.Bytes32;
 
 public class Conversions {
   public static Bytes bigIntegerToBytes(final BigInteger input) {

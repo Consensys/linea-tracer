@@ -168,8 +168,9 @@ public class Hub implements Module {
             this.rlpTxn,
             this.rlpTxrcpt,
             this.rlpAddr,
-            this.rom,
-            this.txnData);
+            this.rom
+//            this.txnData
+        );
   }
 
   /**
@@ -185,11 +186,11 @@ public class Hub implements Module {
         //        this.mul,
 //                this.shf,
 //                this.wcp,
-                this.mxp,
+                this.mxp
 //                this.rlpTxn,
         //        this.rlpTxrcpt,
         //        this.rlpAddr,
-                this.rom
+//                this.rom
         //        this.txnData
         );
   }
@@ -214,7 +215,7 @@ public class Hub implements Module {
   }
 
   public static boolean isValidPrecompileCall(MessageFrame frame) {
-    return switch (OpCode.of(frame.getCurrentOperation().getOpcode())) {
+     return switch (OpCode.of(frame.getCurrentOperation().getOpcode())) {
       case CALL, CALLCODE, STATICCALL, DELEGATECALL -> {
         if (frame.stackSize() < 2) {
           yield false; // invalid stack for a *CALL

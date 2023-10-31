@@ -20,11 +20,13 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.module.add.AvroAddTrace;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCodes;
 import org.apache.tuweni.bytes.Bytes;
@@ -60,7 +62,7 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
 //    }
 //    return zkTraceBuilder.build();
     try {
-      this.writeToFile("/home/franklin/asdf.lt");
+      this.writeToFile("franklin.lt");
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -123,11 +125,16 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
       }
 
       int i = (int)headerSize;
+      List<AvroAddTrace> addTraces = new ArrayList<>();
       for (Module m: this.hub.getModulesToTrace()) {
         final int moduleSize = m.columnsHeaders().stream().mapToInt(ColumnHeader::dataSize).sum();
-        m.commitToBuffer(mmap.slice(i, moduleSize));
+        addTraces = m.commitToBuffer(mmap.slice(i, moduleSize));
+        if(addTraces!=null){
+          ParquetWriter.write(m, addTraces);
+        }
         i+= moduleSize;
       }
+
 
       log.warn("COUCOU C'est fait");
       mmap.force();

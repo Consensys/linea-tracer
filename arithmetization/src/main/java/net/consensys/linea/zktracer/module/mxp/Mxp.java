@@ -25,6 +25,7 @@ import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
+import net.consensys.linea.zktracer.module.add.AvroAddTrace;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.gas.BillingRate;
 import net.consensys.linea.zktracer.opcode.gas.MxpType;
@@ -173,10 +174,11 @@ public class Mxp implements Module {
   }
 
   @Override
-  public void commitToBuffer(ByteBuffer target) {
+  public List<AvroAddTrace> commitToBuffer(ByteBuffer target) {
     final Trace.BufferTraceWriter trace = new Trace.BufferTraceWriter(target, this.lineCount());
     for (int i = 0; i < this.chunks.size(); i++) {
       this.traceChunk(this.chunks.get(i), i + 1, trace);
     }
+      return null;
   }
 }

@@ -19,6 +19,7 @@ import java.nio.ByteBuffer;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.module.add.AvroAddTrace;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -81,5 +82,7 @@ throw new NotImplementedException();
 
   ModuleTrace commit();
 
-  default void commitToBuffer(ByteBuffer target) {}
+  default List<AvroAddTrace> commitToBuffer(ByteBuffer target) {
+      return null;
+  }
 }

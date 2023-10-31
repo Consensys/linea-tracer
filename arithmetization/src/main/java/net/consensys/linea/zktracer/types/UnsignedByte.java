@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.types;
 
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 
@@ -140,4 +141,8 @@ public class UnsignedByte {
       throw new IllegalArgumentException("Unsigned byte value must be between 0 - 255. Is " + b);
     }
   }
+
+    public ByteBuffer getByteBuffer() {
+      return ByteBuffer.wrap(new byte[]{Short.valueOf(unsignedByte).byteValue()});
+    }
 }

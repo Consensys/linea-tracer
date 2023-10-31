@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.module.add;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
@@ -91,13 +92,14 @@ public class Add implements Module {
    * Generates the trace for a single instance of an operation.
    *
    * @param opCode the operations, ADD or SUB
-   * @param arg1 first operand
-   * @param arg2 second operand
+   * @param arg1   first operand
+   * @param arg2   second operand
+   * @return
    */
-  private void traceAddOperation(
+  private List<AvroAddTrace> traceAddOperation(
       OpCode opCode, Bytes32 arg1, Bytes32 arg2, Trace.BufferTraceWriter trace) {
     this.stamp++;
-
+    List<AvroAddTrace> result = new ArrayList<>(16);
     final Bytes16 arg1Hi = Bytes16.wrap(arg1.slice(0, 16));
     final Bytes32 arg1Lo = Bytes32.leftPad(arg1.slice(16));
     final Bytes16 arg2Hi = Bytes16.wrap(arg2.slice(0, 16));
@@ -137,7 +139,22 @@ public class Add implements Module {
       }
 
       overflowLo = (addRes.compareTo(TWO_TO_THE_128) >= 0);
-
+      result.add(new AvroAddTrace(
+              resHi.slice(0, 1 + i).toUnsignedBigInteger().longValue(),
+              resLo.slice(0, 1 + i).toUnsignedBigInteger().longValue(),
+              arg1Hi.toUnsignedBigInteger().longValue(),
+              arg1Lo.toUnsignedBigInteger().longValue(),
+              arg2Hi.toUnsignedBigInteger().longValue(),
+              arg2Lo.toUnsignedBigInteger().longValue(),
+              UnsignedByte.of(resHi.get(i)).getByteBuffer(),
+              UnsignedByte.of(resLo.get(i)).getByteBuffer(),
+              BigInteger.valueOf(i).longValue(),
+              BigInteger.valueOf(opCodeData.value()).longValue(),
+              overflowBit(i, overflowHi, overflowLo),
+              resHi.toUnsignedBigInteger().longValue(),
+              resLo.toUnsignedBigInteger().longValue(),
+              BigInteger.valueOf(stamp).longValue()
+      ));
       trace
           .acc1(resHi.slice(0, 1 + i).toUnsignedBigInteger())
           .acc2(resLo.slice(0, 1 + i).toUnsignedBigInteger())
@@ -155,6 +172,8 @@ public class Add implements Module {
           .stamp(BigInteger.valueOf(stamp))
           .validateRow();
     }
+
+    return result;
   }
 
   @Override
@@ -173,11 +192,14 @@ public class Add implements Module {
   }
 
   @Override
-  public void commitToBuffer(ByteBuffer target) {
+  public List<AvroAddTrace> commitToBuffer(ByteBuffer target) {
     final Trace.BufferTraceWriter trace = new Trace.BufferTraceWriter(target, this.lineCount());
+    List<AvroAddTrace> results = new ArrayList<>(this.chunks.size()*16);
     for (AddOperation op : this.chunks) {
-      this.traceAddOperation(op.opCodem(), op.arg1(), op.arg2(), trace);
+      results.addAll(this.traceAddOperation(op.opCodem(), op.arg1(), op.arg2(), trace));
     }
+
+    return results;
   }
 
   @Override

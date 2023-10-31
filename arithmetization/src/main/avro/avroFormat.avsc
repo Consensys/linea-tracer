@@ -1,0 +1,21 @@
+{
+  "type": "record",
+  "namespace": "net.consensys.linea.zktracer",
+  "name": "AvroAddTrace",
+  "fields": [
+    { "name": "ACC1", "type": "long"},
+    { "name": "ACC2", "type": "long"},
+    { "name": "ARG1HI", "type": "long"},
+    { "name": "ARG1LO", "type": "long"},
+    { "name": "ARG2HI", "type": "long"},
+    { "name": "ARG2LO", "type": "long"},
+    { "name": "BYTE1", "type": "bytes"},
+    { "name": "BYTE2", "type": "bytes"},
+    { "name": "CT", "type": "long"},
+    { "name": "INST", "type": "long"},
+    { "name": "OVERFLOW", "type": "boolean"},
+    { "name": "RESHI", "type": "long"},
+    { "name": "RESLO", "type": "long"},
+    { "name": "STAMP", "type": "long"}
+  ]
+}

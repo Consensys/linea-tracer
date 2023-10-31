@@ -31,6 +31,7 @@ import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
 import net.consensys.linea.zktracer.module.add.Add;
+import net.consensys.linea.zktracer.module.add.AvroAddTrace;
 import net.consensys.linea.zktracer.module.ext.Ext;
 import net.consensys.linea.zktracer.module.hub.defer.*;
 import net.consensys.linea.zktracer.module.hub.fragment.*;
@@ -1258,8 +1259,9 @@ public class Hub implements Module {
   }
 
   @Override
-  public void commitToBuffer(ByteBuffer target) {
+  public List<AvroAddTrace> commitToBuffer(ByteBuffer target) {
     final Trace.TraceBuilder trace = new Trace.TraceBuilder(target, this.lineCount());
     this.state.commit(trace);
+    return null;
   }
 }

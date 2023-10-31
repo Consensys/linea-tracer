@@ -30,7 +30,7 @@ import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
-import net.consensys.linea.zktracer.module.add.AddOperation;
+import net.consensys.linea.zktracer.module.add.AvroAddTrace;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
@@ -358,7 +358,7 @@ public class RomLex implements Module {
   }
 
   @Override
-  public void commitToBuffer(ByteBuffer target) {
+  public List<AvroAddTrace> commitToBuffer(ByteBuffer target) {
     final Trace.BufferTraceWriter trace = new Trace.BufferTraceWriter(target, this.lineCount());
     final int codeFragmentIndexInfinity = chunks.size();
 
@@ -367,6 +367,7 @@ public class RomLex implements Module {
       cfi += 1;
       traceChunk(chunk, cfi, codeFragmentIndexInfinity, trace);
     }
+      return null;
   }
 
 }

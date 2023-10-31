@@ -23,6 +23,7 @@ import java.nio.channels.FileChannel;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCodes;
@@ -38,6 +39,7 @@ import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 
 @RequiredArgsConstructor
+@Slf4j
 public class ZkTracer implements ZkBlockAwareOperationTracer {
   /** The {@link GasCalculator} used in this version of the arithmetization */
   public static final GasCalculator gasCalculator = new LondonGasCalculator();
@@ -53,8 +55,14 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
   }
 
   public ZkTrace getTrace() {
-    for (Module module : this.hub.getModulesToTrace()) {
-      zkTraceBuilder.addTrace(module);
+//    for (Module module : this.hub.getModulesToTrace()) {
+//      zkTraceBuilder.addTrace(module);
+//    }
+//    return zkTraceBuilder.build();
+    try {
+      this.writeToFile("/home/franklin/asdf.lt");
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
     return zkTraceBuilder.build();
   }
@@ -89,13 +97,17 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
   }
 
   public void writeToFile(String filename) throws IOException {
+    log.warn("COUCOU c'est parti");
     final List<ColumnHeader> traceMap =
         this.hub.getModulesToTrace().stream().flatMap(m -> m.columnsHeaders().stream()).toList();
     final long headerSize = traceMap.stream().mapToInt(ColumnHeader::headerSize).sum() + 2;
     final long traceSize = traceMap.stream().mapToLong(ColumnHeader::cumulatedSize).sum();
+    log.info("Headers: " + traceMap);
+    log.info("Header: " + headerSize);
+    log.info("Trace: " + traceSize);
     assert traceSize < Integer.MAX_VALUE;
 
-    try (RandomAccessFile file = new RandomAccessFile("/home/franklin/pipo.lt", "rw")) {
+    try (RandomAccessFile file = new RandomAccessFile(filename, "rw")) {
       MappedByteBuffer mmap = file.getChannel().map(FileChannel.MapMode.READ_WRITE, 0, headerSize+traceSize);
       ByteBuffer header = mmap;
 
@@ -117,6 +129,7 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
         i+= moduleSize;
       }
 
+      log.warn("COUCOU C'est fait");
       mmap.force();
     }
   }

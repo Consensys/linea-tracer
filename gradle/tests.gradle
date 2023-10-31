@@ -1,3 +1,5 @@
+import java.time.LocalTime
+
 /*
  * Copyright Consensys Software Inc.
  *
@@ -78,19 +80,17 @@ tasks.register('referenceTests', Test) {
 }
 
 test {
-  exclude '**/**ReferenceTest*'
+  exclude('**/**ReferenceTest*')
 }
 
 tasks.register('acceptanceTests', Test) {
-  dependsOn project(":arithmetization").copyPluginJar
-  inputs.property "integration.date", LocalTime.now() // so it runs at every invocation
-  include '**'
+  inputs.property("integration.date", LocalTime.now()) // so it runs at every invocation
 
-  useJUnitPlatform {}
-
-  doFirst {
-    systemProperty "besu.plugins.dir", project(":arithmetization").ext.pluginDir
+  useJUnitPlatform {
+    includeTags("AcceptanceTest")
   }
 
-  unitTests.enabled = false
+  doFirst {
+    systemProperty("besu.plugins.dir", rootProject.besuPluginDir)
+  }
 }

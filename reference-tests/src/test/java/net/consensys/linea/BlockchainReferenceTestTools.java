@@ -53,6 +53,8 @@ public class BlockchainReferenceTestTools {
                     testName + "[" + eip + "]", fullPath, spec, NETWORKS_TO_RUN.contains(eip));
               });
 
+  private static final CorsetValidator corsetValidator = new CorsetValidator();
+
   static {
     // Consumes a huge amount of memory.
     params.ignore("static_Call1MB1024Calldepth_d1g0v0_\\w+");
@@ -140,7 +142,7 @@ public class BlockchainReferenceTestTools {
         assertThat(candidateBlock.isValid()).isFalse();
       }
 
-      assertThat(CorsetValidator.isValid(zkTracer.getJsonTrace())).isTrue();
+      assertThat(corsetValidator.validate(zkTracer.getJsonTrace()).isValid()).isTrue();
     }
 
     assertThat(blockchain.getChainHeadHash()).isEqualTo(spec.getLastBlockHash());

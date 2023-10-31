@@ -31,61 +31,21 @@ import org.apache.commons.io.IOUtils;
 public class CorsetValidator {
   public record Result(boolean isValid, File traceFile, String corsetOutput) {}
 
-  private static final String DEFAULT_ZK_EVM_BIN = "zkevm-constraints/zkevm.bin";
+  private static final String ZK_EVM_RELATIVE_PATH = "/zkevm-constraints/zkevm.bin";
 
+  private String defaultZkEvm = null;
   private String corsetBin;
 
   public CorsetValidator() {
-    init();
+    initCorset();
+    initDefaultZkEvm();
   }
 
-  private void init() {
-    final Process whichCorsetProcess;
-
-    try {
-      whichCorsetProcess = Runtime.getRuntime().exec(new String[] {"which", "corset"});
-    } catch (IOException e) {
-      log.error("Error while searching for corset: %s".formatted(e.getMessage()));
-      throw new RuntimeException(e);
-    }
-
-    final String whichCorsetProcessOutput;
-    try {
-      whichCorsetProcessOutput =
-          IOUtils.toString(whichCorsetProcess.getInputStream(), Charset.defaultCharset());
-    } catch (IOException e) {
-      log.error("Error while catching output whichCorsetProcess: %s".formatted(e.getMessage()));
-      throw new RuntimeException(e);
-    }
-
-    try {
-      whichCorsetProcess.waitFor(5, TimeUnit.SECONDS);
-    } catch (InterruptedException e) {
-      log.error("Timeout while searching for corset: %s".formatted(e.getMessage()));
-      throw new RuntimeException(e);
-    }
-
-    if (whichCorsetProcess.exitValue() == 0) {
-      corsetBin = whichCorsetProcessOutput.trim();
-      return;
-    }
-
-    log.warn("Could not find corset executable: %s".formatted(whichCorsetProcessOutput));
-
-    final String homePath = System.getenv("HOME");
-    corsetBin = homePath + "/.cargo/bin/corset";
-    log.warn("Trying to use default corset path: %s".formatted(corsetBin));
-
-    if (!Files.isExecutable(Path.of(corsetBin))) {
-      throw new RuntimeException("Corset is not executable: %s".formatted(corsetBin));
-    }
+  public Result validate(final String trace) throws RuntimeException {
+    return validate(trace, defaultZkEvm);
   }
 
-  public Result isValid(final String trace) throws RuntimeException {
-    return isValid(trace, DEFAULT_ZK_EVM_BIN);
-  }
-
-  public Result isValid(final String trace, final String zkEvmBin) throws RuntimeException {
+  public Result validate(final String trace, final String zkEvmBin) throws RuntimeException {
     final Path traceFile;
 
     try {
@@ -149,5 +109,73 @@ public class CorsetValidator {
     }
 
     return new Result(true, traceFile.toFile(), corsetOutput);
+  }
+
+  private void initCorset() {
+    final Process whichCorsetProcess;
+
+    try {
+      whichCorsetProcess = Runtime.getRuntime().exec(new String[] {"which", "corset"});
+    } catch (IOException e) {
+      log.error("Error while searching for corset: %s".formatted(e.getMessage()));
+      throw new RuntimeException(e);
+    }
+
+    final String whichCorsetProcessOutput;
+    try {
+      whichCorsetProcessOutput =
+          IOUtils.toString(whichCorsetProcess.getInputStream(), Charset.defaultCharset());
+    } catch (IOException e) {
+      log.error("Error while catching output whichCorsetProcess: %s".formatted(e.getMessage()));
+      throw new RuntimeException(e);
+    }
+
+    try {
+      whichCorsetProcess.waitFor(5, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      log.error("Timeout while searching for corset: %s".formatted(e.getMessage()));
+      throw new RuntimeException(e);
+    }
+
+    if (whichCorsetProcess.exitValue() == 0) {
+      corsetBin = whichCorsetProcessOutput.trim();
+      return;
+    }
+
+    log.warn("Could not find corset executable: %s".formatted(whichCorsetProcessOutput));
+
+    final String homePath = System.getenv("HOME");
+    corsetBin = homePath + "/.cargo/bin/corset";
+    log.warn("Trying to use default corset path: %s".formatted(corsetBin));
+
+    if (!Files.isExecutable(Path.of(corsetBin))) {
+      throw new RuntimeException("Corset is not executable: %s".formatted(corsetBin));
+    }
+  }
+
+  private void initDefaultZkEvm() {
+    final String currentDir;
+
+    try {
+      currentDir = Path.of(".").toRealPath().toString();
+    } catch (final IOException e) {
+      log.error("Error while getting current directory: %s".formatted(e.getMessage()));
+      throw new RuntimeException(e);
+    }
+
+    final String zkEvmBinInCurrentDir = currentDir + ZK_EVM_RELATIVE_PATH;
+    if (new File(zkEvmBinInCurrentDir).exists()) {
+      defaultZkEvm = zkEvmBinInCurrentDir;
+      return;
+    }
+
+    final String zkEvmBinInDirAbove = currentDir + "/.." + ZK_EVM_RELATIVE_PATH;
+    if (new File(zkEvmBinInDirAbove).exists()) {
+      defaultZkEvm = zkEvmBinInDirAbove;
+      return;
+    }
+
+    log.error("Could not find default path for zkevm.bin");
+    throw new RuntimeException("Could not find default path for zkevm.bin");
   }
 }

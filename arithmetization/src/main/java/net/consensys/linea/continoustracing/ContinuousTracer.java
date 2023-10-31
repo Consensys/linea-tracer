@@ -62,7 +62,7 @@ public class ContinuousTracer {
 
     final CorsetValidator.Result result;
     try {
-      result = corsetValidator.isValid(zkTracer.getJsonTrace(), zkEvmBin);
+      result = corsetValidator.validate(zkTracer.getJsonTrace(), zkEvmBin);
       if (!result.isValid()) {
         log.error("Trace of block {} is not valid", blockHash.toHexString());
         return result;

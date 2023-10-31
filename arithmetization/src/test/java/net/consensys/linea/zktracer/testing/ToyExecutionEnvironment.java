@@ -54,6 +54,7 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 @RequiredArgsConstructor
 public class ToyExecutionEnvironment {
   public static final BigInteger CHAIN_ID = BigInteger.valueOf(1337);
+  private static final CorsetValidator corsetValidator = new CorsetValidator();
 
   private static final Address DEFAULT_SENDER_ADDRESS = Address.fromHexString("0xe8f1b89");
   private static final Wei DEFAULT_VALUE = Wei.ZERO;
@@ -100,7 +101,7 @@ public class ToyExecutionEnvironment {
 
   /** Execute constructed EVM bytecode and perform Corset trace validation. */
   public void run() {
-    final CorsetValidator.Result result = new CorsetValidator().isValid(traceCode());
+    final CorsetValidator.Result result = corsetValidator.validate(traceCode());
     assertThat(result.isValid()).isTrue();
   }
 

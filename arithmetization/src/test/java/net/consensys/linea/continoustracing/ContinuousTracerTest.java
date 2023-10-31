@@ -14,17 +14,21 @@
  */
 package net.consensys.linea.continoustracing;
 
-import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.matches;
 import static org.mockito.Mockito.when;
 
 import java.nio.file.Path;
+import java.util.List;
 
+import net.consensys.linea.continoustracing.exception.InvalidBlockTraceException;
 import net.consensys.linea.continoustracing.exception.TraceVerificationException;
 import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.datatypes.Hash;
+import org.hyperledger.besu.plugin.data.BlockTraceResult;
+import org.hyperledger.besu.plugin.data.TransactionTraceResult;
 import org.hyperledger.besu.plugin.services.TraceService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,35 +54,57 @@ public class ContinuousTracerTest {
   }
 
   @Test
-  void shouldDoNothingIfVerificationIsSuccessful() {
-    when(corsetValidatorMock.isValid(ArgumentMatchers.any(), matches("testZkEvmBin")))
+  void shouldReturnSuccessIfVerificationIsSuccessful()
+      throws InvalidBlockTraceException, TraceVerificationException {
+    final List<TransactionTraceResult> transactionTraceResults =
+        List.of(TransactionTraceResult.success(Hash.ZERO));
+    final BlockTraceResult blockTraceResult = new BlockTraceResult(transactionTraceResults);
+    when(traceServiceMock.traceBlock(ArgumentMatchers.any(), ArgumentMatchers.any()))
+        .thenReturn(blockTraceResult);
+
+    when(corsetValidatorMock.validate(ArgumentMatchers.any(), matches("testZkEvmBin")))
         .thenReturn(
             new CorsetValidator.Result(
                 true, Path.of("testTraceFile").toFile(), "testCorsetOutput"));
-    assertThatCode(
-            () -> continuousTracer.verifyTraceOfBlock(Hash.ZERO, "testZkEvmBin", new ZkTracer()))
-        .doesNotThrowAnyException();
+
+    when(zkTracerMock.getJsonTrace()).thenReturn("{}");
+
+    final CorsetValidator.Result validationResult =
+        continuousTracer.verifyTraceOfBlock(BLOCK_HASH, "testZkEvmBin", zkTracerMock);
+    assertThat(validationResult.isValid()).isTrue();
   }
 
   @Test
-  void shouldThrowTraceVerificationExceptionIfVerificationIsNotSuccessful() {
-    when(corsetValidatorMock.isValid(ArgumentMatchers.any(), matches("testZkEvmBin")))
+  void shouldReturnFailureIfVerificationIsNotSuccessful()
+      throws InvalidBlockTraceException, TraceVerificationException {
+    final List<TransactionTraceResult> transactionTraceResults =
+        List.of(TransactionTraceResult.success(Hash.ZERO));
+    final BlockTraceResult blockTraceResult = new BlockTraceResult(transactionTraceResults);
+    when(traceServiceMock.traceBlock(ArgumentMatchers.any(), ArgumentMatchers.any()))
+        .thenReturn(blockTraceResult);
+
+    when(zkTracerMock.getJsonTrace()).thenReturn("{}");
+
+    when(corsetValidatorMock.validate(ArgumentMatchers.any(), matches("testZkEvmBin")))
         .thenReturn(
             new CorsetValidator.Result(
                 false, Path.of("testTraceFile").toFile(), "testCorsetOutput"));
 
-    assertThrows(
-        TraceVerificationException.class,
-        () -> continuousTracer.verifyTraceOfBlock(BLOCK_HASH, "testZkEvmBin", new ZkTracer()));
+    final CorsetValidator.Result validationResult =
+        continuousTracer.verifyTraceOfBlock(BLOCK_HASH, "testZkEvmBin", zkTracerMock);
+    assertThat(validationResult.isValid()).isFalse();
   }
 
   @Test
-  void shouldThrowTraceVerificationExceptionIfVerificationThrowsException() {
-    when(corsetValidatorMock.isValid(ArgumentMatchers.any(), matches("testZkEvmBin")))
-        .thenThrow(new RuntimeException("error"));
+  void shouldThrowInvalidBlockTraceExceptionIfTracingHasInternalError() {
+    final List<TransactionTraceResult> transactionTraceResults =
+        List.of(TransactionTraceResult.error(Hash.ZERO, "errorMessage"));
+    final BlockTraceResult blockTraceResult = new BlockTraceResult(transactionTraceResults);
+    when(traceServiceMock.traceBlock(ArgumentMatchers.any(), ArgumentMatchers.any()))
+        .thenReturn(blockTraceResult);
 
     assertThrows(
-        TraceVerificationException.class,
+        InvalidBlockTraceException.class,
         () -> continuousTracer.verifyTraceOfBlock(BLOCK_HASH, "testZkEvmBin", new ZkTracer()));
   }
 }

@@ -9,6 +9,7 @@ import org.apache.avro.Schema;
 import org.apache.hadoop.fs.Path;
 
 // Generic Parquet dependencies
+import org.apache.parquet.hadoop.ParquetFileWriter;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.hadoop.metadata.CompressionCodecName;
 
@@ -28,12 +29,10 @@ public class ParquetWriter {
         int blockSize = 1024;
         int pageSize = 65535;
         try(
-                var parquetWriter = new AvroParquetWriter(
-                        filePath,
-                        avroSchema,
-                        CompressionCodecName.SNAPPY,
-                        blockSize,
-                        pageSize)
+                var parquetWriter = AvroParquetWriter.builder(filePath)
+                        .withWriteMode(ParquetFileWriter.Mode.OVERWRITE)
+                        .withSchema(avroSchema)
+                        .build()
         ){
             for(AvroAddTrace obj : traces){
                 parquetWriter.write(obj);

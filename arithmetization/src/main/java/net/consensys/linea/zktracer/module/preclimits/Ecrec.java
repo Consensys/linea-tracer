@@ -26,7 +26,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 
 @Slf4j
-public final class Sha256 implements Module {
+public final class Ecrec implements Module {
   private final Stack<Integer> counts = new Stack<Integer>();
 
   @Override
@@ -34,12 +34,7 @@ public final class Sha256 implements Module {
     return null;
   }
 
-  private final int precompileBaseGasFee = 60;
-  private final int precompileGasFeePerEWord = 12;
-  private final int sha256BlockSize = 64 * 8;
-  private final int sha256MaxDataLengthBitLength =
-      64; // The length of the data to be hashed is 2**64 maximum.
-  private final int sha256NbPaddedOne = 1;
+  private final int ecrecGasFee = 3000;
 
   @Override
   public void enterTransaction() {
@@ -59,26 +54,16 @@ public final class Sha256 implements Module {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
         if (target == Address.SHA256) {
-          long dataByteLength = 0;
+          long length = 0;
           switch (opCode) {
-            case CALL, CALLCODE -> dataByteLength = Words.clampedToLong(frame.getStackItem(4));
-            case DELEGATECALL, STATICCALL -> dataByteLength =
-                Words.clampedToLong(frame.getStackItem(3));
+            case CALL, CALLCODE -> length = Words.clampedToLong(frame.getStackItem(4));
+            case DELEGATECALL, STATICCALL -> length = Words.clampedToLong(frame.getStackItem(3));
           }
-          final int blockCount =
-              (int)
-                      (dataByteLength * 8
-                          + sha256NbPaddedOne
-                          + sha256MaxDataLengthBitLength
-                          + (sha256BlockSize - 1))
-                  / sha256BlockSize;
 
-          final long wordCount = (dataByteLength + 31) / 32;
           final long gasPaid = Words.clampedToLong(frame.getStackItem(0));
-          final long gasNeeded = precompileBaseGasFee + precompileGasFeePerEWord * wordCount;
-
-          if (gasNeeded <= gasPaid) {
-            this.counts.push(this.counts.pop() + blockCount);
+          // TODO: exclude case with invalid signature ?
+          if (ecrecGasFee <= gasPaid) {
+            this.counts.push(this.counts.pop() + 1);
           }
         }
       }

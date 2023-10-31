@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
@@ -37,6 +38,9 @@ import net.consensys.linea.zktracer.module.hub.section.*;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.mul.Mul;
 import net.consensys.linea.zktracer.module.mxp.Mxp;
+import net.consensys.linea.zktracer.module.preclimits.Ecrec;
+import net.consensys.linea.zktracer.module.preclimits.Expmod;
+import net.consensys.linea.zktracer.module.preclimits.Rip160;
 import net.consensys.linea.zktracer.module.preclimits.Sha256;
 import net.consensys.linea.zktracer.module.rlpAddr.RlpAddr;
 import net.consensys.linea.zktracer.module.rlp_txn.RlpTxn;
@@ -157,9 +161,14 @@ public class Hub implements Module {
   private final TxnData txnData;
   // Precompile counters
   private final Sha256 sha256 = new Sha256();
+  private final Ecrec ecrec = new Ecrec();
+  private final Rip160 rip160 = new Rip160();
+  private final Expmod expmod = new Expmod();
   // ...and more to come
 
   private final List<Module> modules;
+
+  private final List<Module> precompileModules;
 
   public Hub() {
     this.mxp = new Mxp(this);
@@ -168,23 +177,28 @@ public class Hub implements Module {
     this.rlpTxn = new RlpTxn(this.romLex);
     this.txnData = new TxnData(this, this.romLex, this.wcp);
 
+    this.precompileModules = List.of(this.sha256, this.ecrec, this.rip160, this.expmod);
+
     this.modules =
-        List.of(
-            this.romLex, // romLex must be traced before modules requiring CodeFragmentIndex, like
-            // RlpTxn, TxnData, etc
-            this.add,
-            this.ext,
-            this.mod,
-            this.mul,
-            this.mxp,
-            this.shf,
-            this.wcp,
-            this.rlpTxn,
-            this.rlpTxrcpt,
-            this.rlpAddr,
-            this.rom,
-            this.txnData,
-            this.sha256);
+        Stream.concat(
+                Stream.of(
+                    this.romLex, // romLex must be traced before modules requiring
+                    // CodeFragmentIndex, like
+                    // RlpTxn, TxnData, etc
+                    this.add,
+                    this.ext,
+                    this.mod,
+                    this.mul,
+                    this.mxp,
+                    this.shf,
+                    this.wcp,
+                    this.rlpTxn,
+                    this.rlpTxrcpt,
+                    this.rlpAddr,
+                    this.rom,
+                    this.txnData),
+                this.precompileModules.stream())
+            .toList();
   }
 
   /**
@@ -474,7 +488,7 @@ public class Hub implements Module {
       case CALL -> {
         if (!this.exceptions.any() && this.callStack().depth() < 1024) {
           this.romLex.tracePreOpcode(frame);
-          for (Module m : List.of(this.sha256 /* more to come */)) {
+          for (Module m : this.precompileModules) {
             m.tracePreOpcode(frame);
           }
         }

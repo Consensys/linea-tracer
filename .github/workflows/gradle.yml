@@ -56,7 +56,7 @@ jobs:
           restore-keys: ${{ runner.os }}-gradle
 
       - name: Run acceptanceTest
-        run: ./gradlew :acceptance-tests:acceptanceTest
+        run: ./gradlew :acceptance-tests:acceptanceTest --info
         env:
           JAVA_OPTS: -Xmx2g -Dorg.gradle.daemon=false
 

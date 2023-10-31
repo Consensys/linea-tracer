@@ -21,7 +21,6 @@ import com.google.auto.service.AutoService;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.LineaRequiredPlugin;
 import net.consensys.linea.sequencer.LineaCliOptions;
-import net.consensys.linea.LineaPlugin;
 import org.hyperledger.besu.plugin.BesuContext;
 import org.hyperledger.besu.plugin.BesuPlugin;
 import org.hyperledger.besu.plugin.services.PicoCLIOptions;

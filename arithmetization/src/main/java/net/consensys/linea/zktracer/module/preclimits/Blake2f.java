@@ -15,30 +15,26 @@
 
 package net.consensys.linea.zktracer.module.preclimits;
 
-import static net.consensys.linea.zktracer.module.Util.slice;
-
-import java.math.BigInteger;
 import java.util.Stack;
 
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 
 @Slf4j
-public class Expmod implements Module {
+public final class Blake2f implements Module {
   private final Stack<Integer> counts = new Stack<Integer>();
-  private final int proverMaxInputBitSize = 4096;
-  private final int ewordSize =32;
-  private final int gQuadDivisor =3;
+
   @Override
   public String jsonKey() {
     return null;
   }
+
+  private final int ripmdDataSize = 213;
 
   @Override
   public void enterTransaction() {
@@ -57,51 +53,38 @@ public class Expmod implements Module {
     switch (opCode) {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
-        if (target == Address.SHA256) {
+        if (target == Address.BLAKE2B_F_COMPRESSION) {
           long length = 0;
           long offset = 0;
           switch (opCode) {
             case CALL, CALLCODE -> {
               length = Words.clampedToLong(frame.getStackItem(4));
-              offset = Words.clampedToLong(frame.getStackItem(3));}
+              offset = Words.clampedToLong(frame.getStackItem(3));
+            }
             case DELEGATECALL, STATICCALL -> {
               length = Words.clampedToLong(frame.getStackItem(3));
               offset = Words.clampedToLong(frame.getStackItem(2));
+            }
           }
-          final Bytes inputData = frame.readMemory(offset, length); // TODO: use the shadow read
-
-            final int baseLength = slice(inputData, 0, ewordSize).toInt();
-            if (baseLength*8>proverMaxInputBitSize){
-              log.info("Too big argument, base bit length =" + baseLength + " > " + proverMaxInputBitSize);
-              return;
+          if (length == ripmdDataSize) {
+            final int f = frame.shadowReadMemory(offset, length).get(212) & 0xff;
+            if (f == 0 || f == 1) {
+              final int r = // TODO: stored as BigEndian + unsigned, to check
+                  frame
+                      .shadowReadMemory(offset, length)
+                      .slice(0, 4)
+                      .toInt(); // The number of round is equal to the gas to pay
+              final long gasPaid = Words.clampedToLong(frame.getStackItem(0));
+              if (gasPaid >= r) {
+                this.counts.push(this.counts.pop() + r);
+              }
             }
-            final int expLength = slice(inputData, ewordSize, ewordSize).toInt();
-            if (expLength*8>proverMaxInputBitSize){
-              log.info("Too big argument, exp bit length =" + expLength + " > " + proverMaxInputBitSize);
-              return;
-            }
-            final int moduloLength = slice(inputData, 2 * ewordSize, ewordSize).toInt();
-            if (expLength*8>proverMaxInputBitSize){
-              log.info("Too big argument, modulo bit length =" + moduloLength + " > " + proverMaxInputBitSize);
-              return;
-            }
-            // final BigInteger base = slice(inputData, 3*ewordSize, baseLength).toUnsignedBigInteger();
-            // final BigInteger exp = slice(inputData, 3*ewordSize+baseLength, expLength).toUnsignedBigInteger();
-            // final BigInteger modulo = slice(inputData, 3*ewordSize+baseLength+expLength, moduloLength).toUnsignedBigInteger();
-
-
-            final long gasPaid = Words.clampedToLong(frame.getStackItem(0));
-
-
-            if (<= gasPaid) {
-            this.counts.push(this.counts.pop() + 1);
           }
         }
       }
       default -> {}
     }
   }
-
 
   @Override
   public int lineCount() {
@@ -113,5 +96,3 @@ public class Expmod implements Module {
     return null;
   }
 }
-
-

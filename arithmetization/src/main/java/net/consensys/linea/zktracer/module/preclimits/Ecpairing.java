@@ -15,36 +15,33 @@
 
 package net.consensys.linea.zktracer.module.preclimits;
 
-import static net.consensys.linea.zktracer.module.Util.slice;
-
-import java.math.BigInteger;
 import java.util.Stack;
 
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 
 @Slf4j
-public final class Ecrec implements Module {
-  private final Stack<Integer> counts = new Stack<Integer>();
+public final class Ecpairing implements Module {
+  private final Stack<EcpairingLimit> counts = new Stack<>();
+  private final int precompileBaseGasFee = 45000; // cf EIP-1108
+  private final int precompileMillerLoopGasFee = 34000; // cf EIP-1108
+  private final int ecPairingNbBytesperMillerLoop = 192;
+  private final int maxPrecompileCall = 16; // prover's limit
+  private final int axMillerLoopCall = 64; // prover's limit
 
   @Override
   public String jsonKey() {
     return null;
   }
 
-  private final int ecrecGasFee = 3000;
-  private final int ewordSize = 32;
-  private final BigInteger secp256k1n = BigInteger.ZERO; // TODO
-
   @Override
   public void enterTransaction() {
-    counts.push(0);
+    counts.push(new EcpairingLimit(0, 0));
   }
 
   @Override
@@ -59,33 +56,26 @@ public final class Ecrec implements Module {
     switch (opCode) {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
-        if (target == Address.ECREC) {
+        if (target == Address.ALTBN128_PAIRING) {
           long length = 0;
-          long offset = 0;
           switch (opCode) {
-            case CALL, CALLCODE -> {
-              length = Words.clampedToLong(frame.getStackItem(4));
-              offset = Words.clampedToLong(frame.getStackItem(3));
-            }
-            case DELEGATECALL, STATICCALL -> {
-              length = Words.clampedToLong(frame.getStackItem(3));
-              offset = Words.clampedToLong(frame.getStackItem(2));
-            }
+            case CALL, CALLCODE -> length = Words.clampedToLong(frame.getStackItem(4));
+            case DELEGATECALL, STATICCALL -> length = Words.clampedToLong(frame.getStackItem(3));
           }
-          final Bytes inputData = frame.shadowReadMemory(offset, length);
-          final BigInteger h = slice(inputData, 0, ewordSize).toUnsignedBigInteger();
-          final BigInteger v = slice(inputData, ewordSize, ewordSize).toUnsignedBigInteger();
-          final BigInteger r = slice(inputData, ewordSize * 2, ewordSize).toUnsignedBigInteger();
-          final BigInteger s = slice(inputData, ewordSize * 3, ewordSize).toUnsignedBigInteger();
+
+          final int nMillerLoop = (int) (length / ecPairingNbBytesperMillerLoop);
+          if (nMillerLoop * ecPairingNbBytesperMillerLoop != length) {
+            log.info("Argument is not a right size: " + length);
+            return;
+          }
+
           final long gasPaid = Words.clampedToLong(frame.getStackItem(0));
-          // TODO: exclude case with invalid signature
-          if (gasPaid >= ecrecGasFee
-              && (v.equals(BigInteger.valueOf(27)) || v.equals(BigInteger.valueOf(28)))
-              && !r.equals(BigInteger.ZERO)
-              && r.compareTo(secp256k1n) < 0
-              && !s.equals(BigInteger.ZERO)
-              && s.compareTo(secp256k1n) < 0) {
-            this.counts.push(this.counts.pop() + 1);
+          if (gasPaid >= precompileBaseGasFee + precompileMillerLoopGasFee * nMillerLoop) {
+            final EcpairingLimit lastEcpairingLimit = this.counts.pop();
+            this.counts.push(
+                new EcpairingLimit(
+                    lastEcpairingLimit.nPrecompileCall() + 1,
+                    lastEcpairingLimit.nMillerLoop() + nMillerLoop));
           }
         }
       }
@@ -95,7 +85,15 @@ public final class Ecrec implements Module {
 
   @Override
   public int lineCount() {
-    return this.counts.stream().mapToInt(x -> x).sum();
+    int nCall = 0;
+    int nMillerLoop = 0;
+    for (EcpairingLimit chunk : this.counts) {
+      nCall += chunk.nPrecompileCall();
+      nMillerLoop += chunk.nMillerLoop();
+    }
+    return (nCall > maxPrecompileCall)
+        ? Integer.MAX_VALUE
+        : nMillerLoop; // TODO: not very clean and maintenance-horrible.
   }
 
   @Override

@@ -38,8 +38,12 @@ import net.consensys.linea.zktracer.module.hub.section.*;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.mul.Mul;
 import net.consensys.linea.zktracer.module.mxp.Mxp;
+import net.consensys.linea.zktracer.module.preclimits.Blake2f;
+import net.consensys.linea.zktracer.module.preclimits.Ecadd;
+import net.consensys.linea.zktracer.module.preclimits.Ecmul;
+import net.consensys.linea.zktracer.module.preclimits.Ecpairing;
 import net.consensys.linea.zktracer.module.preclimits.Ecrec;
-import net.consensys.linea.zktracer.module.preclimits.Expmod;
+import net.consensys.linea.zktracer.module.preclimits.Modexp;
 import net.consensys.linea.zktracer.module.preclimits.Rip160;
 import net.consensys.linea.zktracer.module.preclimits.Sha256;
 import net.consensys.linea.zktracer.module.rlpAddr.RlpAddr;
@@ -163,12 +167,16 @@ public class Hub implements Module {
   private final Sha256 sha256 = new Sha256();
   private final Ecrec ecrec = new Ecrec();
   private final Rip160 rip160 = new Rip160();
-  private final Expmod expmod = new Expmod();
-  // ...and more to come
-
+  private final Modexp modexp = new Modexp();
+  private final Ecadd ecadd = new Ecadd();
+  private final Ecmul ecmul = new Ecmul();
+  private final Ecpairing ecpairing = new Ecpairing();
+  private final Blake2f blake2 = new Blake2f();
   private final List<Module> modules;
 
-  private final List<Module> precompileModules;
+  private final List<Module>
+      precompileModules; // Those modules are not traced, we just compute the number of calls to
+  // those precompile to meet prover's limit
 
   public Hub() {
     this.mxp = new Mxp(this);
@@ -177,14 +185,22 @@ public class Hub implements Module {
     this.rlpTxn = new RlpTxn(this.romLex);
     this.txnData = new TxnData(this, this.romLex, this.wcp);
 
-    this.precompileModules = List.of(this.sha256, this.ecrec, this.rip160, this.expmod);
+    this.precompileModules =
+        List.of(
+            this.sha256,
+            this.ecrec,
+            this.rip160,
+            this.modexp,
+            this.ecadd,
+            this.ecmul,
+            this.ecpairing,
+            this.blake2);
 
     this.modules =
         Stream.concat(
                 Stream.of(
-                    this.romLex, // romLex must be traced before modules requiring
-                    // CodeFragmentIndex, like
-                    // RlpTxn, TxnData, etc
+                    this.romLex, // romLex must be called before modules requiring CodeFragmentIndex
+                    // (Rom, RlpTxn, TxnData, RAM, TODO: HUB)
                     this.add,
                     this.ext,
                     this.mod,

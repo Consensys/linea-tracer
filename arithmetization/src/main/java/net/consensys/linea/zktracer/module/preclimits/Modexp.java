@@ -30,17 +30,16 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 
 @Slf4j
-public final class Ecrec implements Module {
+public class Modexp implements Module {
   private final Stack<Integer> counts = new Stack<Integer>();
+  private final int proverMaxInputBitSize = 4096;
+  private final int ewordSize = 32;
+  private final int gQuadDivisor = 3;
 
   @Override
   public String jsonKey() {
     return null;
   }
-
-  private final int ecrecGasFee = 3000;
-  private final int ewordSize = 32;
-  private final BigInteger secp256k1n = BigInteger.ZERO; // TODO
 
   @Override
   public void enterTransaction() {
@@ -59,7 +58,7 @@ public final class Ecrec implements Module {
     switch (opCode) {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
-        if (target == Address.ECREC) {
+        if (target == Address.MODEXP) {
           long length = 0;
           long offset = 0;
           switch (opCode) {
@@ -73,23 +72,67 @@ public final class Ecrec implements Module {
             }
           }
           final Bytes inputData = frame.shadowReadMemory(offset, length);
-          final BigInteger h = slice(inputData, 0, ewordSize).toUnsignedBigInteger();
-          final BigInteger v = slice(inputData, ewordSize, ewordSize).toUnsignedBigInteger();
-          final BigInteger r = slice(inputData, ewordSize * 2, ewordSize).toUnsignedBigInteger();
-          final BigInteger s = slice(inputData, ewordSize * 3, ewordSize).toUnsignedBigInteger();
+
+          final int baseLength = slice(inputData, 0, ewordSize).toInt();
+          if (baseLength * 8 > proverMaxInputBitSize) {
+            log.info(
+                "Too big argument, base bit length =" + baseLength + " > " + proverMaxInputBitSize);
+            this.counts.pop();
+            this.counts.push(Integer.MAX_VALUE);
+            return;
+          }
+          final int expLength = slice(inputData, ewordSize, ewordSize).toInt();
+          if (expLength * 8 > proverMaxInputBitSize) {
+            log.info(
+                "Too big argument, exp bit length =" + expLength + " > " + proverMaxInputBitSize);
+            this.counts.pop();
+            this.counts.push(Integer.MAX_VALUE);
+            return;
+          }
+          final int moduloLength = slice(inputData, 2 * ewordSize, ewordSize).toInt();
+          if (expLength * 8 > proverMaxInputBitSize) {
+            log.info(
+                "Too big argument, modulo bit length ="
+                    + moduloLength
+                    + " > "
+                    + proverMaxInputBitSize);
+            this.counts.pop();
+            this.counts.push(Integer.MAX_VALUE);
+            return;
+          }
+          final Bytes exp = slice(inputData, 3 * ewordSize + baseLength, expLength);
+
           final long gasPaid = Words.clampedToLong(frame.getStackItem(0));
-          // TODO: exclude case with invalid signature
-          if (gasPaid >= ecrecGasFee
-              && (v.equals(BigInteger.valueOf(27)) || v.equals(BigInteger.valueOf(28)))
-              && !r.equals(BigInteger.ZERO)
-              && r.compareTo(secp256k1n) < 0
-              && !s.equals(BigInteger.ZERO)
-              && s.compareTo(secp256k1n) < 0) {
+
+          if (gasPaid >= gasPrice(baseLength, expLength, moduloLength, exp)) {
             this.counts.push(this.counts.pop() + 1);
           }
         }
       }
       default -> {}
+    }
+  }
+
+  private long gasPrice(int lB, int lE, int lM, Bytes e) {
+    final long maxLbLmSquarred = (long) Math.sqrt((double) (Math.max(lB, lM) + 7) / 8);
+    final long secondArg = (maxLbLmSquarred * expLengthPrime(lE, e)) / 3;
+    return Math.max(200, secondArg);
+  }
+
+  private int expLengthPrime(int lE, Bytes e) {
+    int output = 0;
+    if (lE <= 32) {
+      if (e.toUnsignedBigInteger().equals(BigInteger.ZERO)) {
+        return 0;
+      } else {
+        return (e.toUnsignedBigInteger().bitLength() - 1);
+      }
+    } else {
+      if (e.slice(0, ewordSize).toUnsignedBigInteger().compareTo(BigInteger.ZERO) != 0) {
+        return 8 * (lE - 32) + e.slice(0, ewordSize).toUnsignedBigInteger().bitLength() - 1;
+      } else {
+        return 8 * (lE - 32);
+      }
     }
   }
 

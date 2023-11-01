@@ -171,21 +171,23 @@ public class Util {
 
   /**
    * Return the
+   *
    * @param size Bytes of
    * @param data, right-padded with 0's if needed, starting from
    * @param positionStart
    */
-  public static Bytes slice(Bytes data, int positionStart, int size){
+  public static Bytes slice(Bytes data, int positionStart, int size) {
 
     final int dataSize = data.size();
     Bytes output = Bytes.repeat((byte) 0x0, size);
 
-    if (dataSize>=positionStart){
-      if (dataSize>=(positionStart+size)){
+    if (dataSize >= positionStart) {
+      if (dataSize >= (positionStart + size)) {
         output = EWord.of(data.slice(positionStart, size));
       } else {
         final int nbPresentBytes = dataSize - positionStart;
-        output = EWord.of(padToGivenSizeWithRightZero(data.slice(positionStart, nbPresentBytes), size));
+        output =
+            EWord.of(padToGivenSizeWithRightZero(data.slice(positionStart, nbPresentBytes), size));
       }
     }
     return output;

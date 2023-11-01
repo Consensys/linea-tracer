@@ -77,7 +77,7 @@ public final class Sha256 implements Module {
           final long gasPaid = Words.clampedToLong(frame.getStackItem(0));
           final long gasNeeded = precompileBaseGasFee + precompileGasFeePerEWord * wordCount;
 
-          if (gasNeeded <= gasPaid) {
+          if (gasPaid >= gasNeeded) {
             this.counts.push(this.counts.pop() + blockCount);
           }
         }

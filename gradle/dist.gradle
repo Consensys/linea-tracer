@@ -73,7 +73,7 @@ tasks.register('distTar', Tar) {
   dependsOn downloadLatestLineaBesu
 
   from(tarTree(downloadLatestLineaBesu.dest), {
-    eachFile { path = path.replaceFirst(downloadLatestLineaBesu.besuIdentifier, '') }
+    eachFile { path = path.replaceFirst(rootProject.besuIdentifier, '') }
     includeEmptyDirs = false
     exclude "**/LICENSE"
   })
@@ -118,7 +118,7 @@ tasks.register("copyPluginJar") {
 
   doLast {
     def copyInto = rootProject.besuPluginDir
-    def copyFrom = new File(getRootDir().toString() + "/build/libs")
+    def copyFrom = new File("${project(":arithmetization").buildDir}/libs")
 
     copy {
       from copyFrom.toString()

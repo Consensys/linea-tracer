@@ -7,5 +7,3 @@ buildscript {
     besuPluginDir = File.createTempDir("plugins")
   }
 }
-
-println(">>>>TTTTEST: ${ext.properties}}")

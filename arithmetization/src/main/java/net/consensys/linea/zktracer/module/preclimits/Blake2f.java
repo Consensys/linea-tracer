@@ -34,7 +34,7 @@ public final class Blake2f implements Module {
     return null;
   }
 
-  private final int ripmdDataSize = 213;
+  private final int black2fDataSize = 213;
 
   @Override
   public void enterTransaction() {
@@ -66,10 +66,10 @@ public final class Blake2f implements Module {
               offset = Words.clampedToLong(frame.getStackItem(2));
             }
           }
-          if (length == ripmdDataSize) {
-            final int f = frame.shadowReadMemory(offset, length).get(212) & 0xff;
+          if (length == black2fDataSize) {
+            final int f = frame.shadowReadMemory(offset, length).get(black2fDataSize - 1);
             if (f == 0 || f == 1) {
-              final int r = // TODO: stored as BigEndian + unsigned, to check
+              final int r =
                   frame
                       .shadowReadMemory(offset, length)
                       .slice(0, 4)

@@ -27,7 +27,7 @@ import org.hyperledger.besu.evm.internal.Words;
 
 @Slf4j
 public final class Rip160 implements Module {
-  private final Stack<Integer> counts = new Stack<Integer>(); // TODO
+  private final Stack<Integer> counts = new Stack<>();
 
   @Override
   public String jsonKey() {
@@ -36,10 +36,10 @@ public final class Rip160 implements Module {
 
   private final int precompileBaseGasFee = 600;
   private final int precompileGasFeePerEWord = 120;
-  private final int ripmd160BlockSize = 64 * 8; // TODO
-  private final int ripmd160MaxDataLengthBitLength =
-      64; // The length of the data to be hashed is 2**64 maximum. //TODO
-  private final int ripmd160NbPaddedOne = 1; // TODO
+  private final int ripmd160BlockSize = 64 * 8;
+  private final int ripmd160LengthAppend =
+      64; // If the length is > 2⁶4, we just use the lower 64 bits.
+  private final int ripmd160NbPaddedOne = 1;
 
   @Override
   public void enterTransaction() {
@@ -65,20 +65,24 @@ public final class Rip160 implements Module {
             case DELEGATECALL, STATICCALL -> dataByteLength =
                 Words.clampedToLong(frame.getStackItem(3));
           }
+
+          if (dataByteLength == 0) {
+            return;
+          } // skip trivial hash TODO: check the prover does skip it
           final int blockCount =
               (int)
                       (dataByteLength * 8
                           + ripmd160NbPaddedOne
-                          + ripmd160MaxDataLengthBitLength
+                          + ripmd160LengthAppend
                           + (ripmd160BlockSize - 1))
-                  / ripmd160BlockSize; // TODO
+                  / ripmd160BlockSize;
 
           final long wordCount = (dataByteLength + 31) / 32;
           final long gasPaid = Words.clampedToLong(frame.getStackItem(0));
           final long gasNeeded = precompileBaseGasFee + precompileGasFeePerEWord * wordCount;
 
           if (gasPaid >= gasNeeded) {
-            this.counts.push(this.counts.pop() + blockCount); // TODO
+            this.counts.push(this.counts.pop() + blockCount);
           }
         }
       }

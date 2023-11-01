@@ -40,7 +40,9 @@ public final class Ecrec implements Module {
 
   private final int ecrecGasFee = 3000;
   private final int ewordSize = 32;
-  private final BigInteger secp256k1n = BigInteger.ZERO; // TODO
+  private final BigInteger secp256k1n =
+      new BigInteger(
+          "115792089237316195423570985008687907852837564279074904382605163141518161494337");
 
   @Override
   public void enterTransaction() {
@@ -78,7 +80,7 @@ public final class Ecrec implements Module {
           final BigInteger r = slice(inputData, ewordSize * 2, ewordSize).toUnsignedBigInteger();
           final BigInteger s = slice(inputData, ewordSize * 3, ewordSize).toUnsignedBigInteger();
           final long gasPaid = Words.clampedToLong(frame.getStackItem(0));
-          // TODO: exclude case with invalid signature
+          // TODO: exclude case without valid signature
           if (gasPaid >= ecrecGasFee
               && (v.equals(BigInteger.valueOf(27)) || v.equals(BigInteger.valueOf(28)))
               && !r.equals(BigInteger.ZERO)

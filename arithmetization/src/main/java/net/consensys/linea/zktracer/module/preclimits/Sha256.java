@@ -37,7 +37,7 @@ public final class Sha256 implements Module {
   private final int precompileBaseGasFee = 60;
   private final int precompileGasFeePerEWord = 12;
   private final int sha256BlockSize = 64 * 8;
-  private final int sha256MaxDataLengthBitLength =
+  private final int sha256LengthPadding =
       64; // The length of the data to be hashed is 2**64 maximum.
   private final int sha256NbPaddedOne = 1;
 
@@ -65,11 +65,14 @@ public final class Sha256 implements Module {
             case DELEGATECALL, STATICCALL -> dataByteLength =
                 Words.clampedToLong(frame.getStackItem(3));
           }
+          if (dataByteLength == 0) {
+            return;
+          } // skip trivial hash TODO: check the prover does skip it
           final int blockCount =
               (int)
                       (dataByteLength * 8
                           + sha256NbPaddedOne
-                          + sha256MaxDataLengthBitLength
+                          + sha256LengthPadding
                           + (sha256BlockSize - 1))
                   / sha256BlockSize;
 

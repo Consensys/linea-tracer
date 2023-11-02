@@ -24,7 +24,7 @@ import java.util.List;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
-import net.consensys.linea.zktracer.module.add.AvroAddTrace;
+import net.consensys.linea.zktracer.AvroAddTrace;
 import net.consensys.linea.zktracer.module.romLex.RomChunk;
 import net.consensys.linea.zktracer.module.romLex.RomLex;
 import net.consensys.linea.zktracer.types.UnsignedByte;

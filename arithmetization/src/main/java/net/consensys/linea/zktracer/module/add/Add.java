@@ -20,6 +20,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.consensys.linea.zktracer.AvroAddTrace;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.bytestheta.BaseBytes;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;

@@ -90,7 +90,7 @@ public class ParquetWritterTest {
         var toBePersisted = Table.create(c1, c2, c3, c4, c5, c6);
 
         Stopwatch sw = Stopwatch.createStarted();
-        PARQUET_WRITER.write(toBePersisted, TablesawParquetWriteOptions.builder(FILE).withCompressionCode(CompressionCodec.SNAPPY)
+        PARQUET_WRITER.write(toBePersisted, TablesawParquetWriteOptions.builder(FILE).withCompressionCode(CompressionCodec.UNCOMPRESSED)
                 .build());
         System.out.println("Writing Parquet took " + sw);
         final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(FILE).build());

@@ -346,8 +346,7 @@ public class Hub implements Module {
   }
 
   public CallFrame currentFrame() {
-    // If the transaction is skipped, it has no relevant CF to trace.
-    if (this.tx.state() == TxState.TX_SKIP) {
+    if (this.callStack().isEmpty()) {
       return CallFrame.EMPTY;
     }
     return this.callStack.current();

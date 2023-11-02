@@ -468,6 +468,9 @@ public class Hub implements Module {
         if (!this.exceptions.any() && this.callStack().depth() < 1024) {
           this.romLex.tracePreOpcode(frame);
         }
+        if (!this.exceptions().stackUnderflow() && !this.exceptions().staticViolation()) {
+          this.mxp.tracePreOpcode(frame);
+        }
       }
       case HALT -> {
         if (!this.exceptions.any() && this.callStack().depth() < 1024) {

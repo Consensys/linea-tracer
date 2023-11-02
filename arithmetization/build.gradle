@@ -14,11 +14,11 @@
  */
 
 plugins {
-  id 'java'
-  id 'common-plugins'
-  id 'com.github.hierynomus.license'
-  id "de.undercouch.download"
-  id "com.github.davidmc24.gradle.plugin.avro" version "1.9.1"
+    id 'java'
+    id 'common-plugins'
+    id 'com.github.hierynomus.license'
+    id "de.undercouch.download"
+    id "com.github.davidmc24.gradle.plugin.avro" version "1.9.1"
 }
 //https://stackoverflow.com/questions/75015303/how-to-generate-java-classes-from-avro-schemas-as-part-of-a-gradle-build
 group = 'net.consensys.linea.besu.plugin'
@@ -34,47 +34,66 @@ apply from: rootProject.file("gradle/check-licenses.gradle")
 apply from: rootProject.file("gradle/lint.gradle")
 apply from: rootProject.file("gradle/trace-files.gradle")
 
+ext {
+    tablesawVersion = "0.43.1"
+    tablesawParquetVersion = "0.11.0"
+}
 
 dependencies {
-  // annotationProcessor generates the file META-INF/services/org.hyperledger.besu.plugin.BesuPlugin
-  annotationProcessor 'com.google.auto.service:auto-service'
-  compileOnly "${besuArtifactGroup}:evm"
-  compileOnly 'com.google.auto.service:auto-service'
-  compileOnly 'com.google.auto.service:auto-service-annotations'
+    // annotationProcessor generates the file META-INF/services/org.hyperledger.besu.plugin.BesuPlugin
+    annotationProcessor 'com.google.auto.service:auto-service'
+    compileOnly "${besuArtifactGroup}:evm"
+    compileOnly 'com.google.auto.service:auto-service'
+    compileOnly 'com.google.auto.service:auto-service-annotations'
 
-  implementation "${besuArtifactGroup}:evm"
-  implementation "${besuArtifactGroup}:plugin-api"
-  implementation "${besuArtifactGroup}:besu-datatypes"
-  implementation "${besuArtifactGroup}.internal:core:${besuVersion}"
-  implementation "${besuArtifactGroup}.internal:rlp:${besuVersion}"
-  implementation "${besuArtifactGroup}.internal:algorithms:${besuVersion}"
+    implementation "${besuArtifactGroup}:evm"
+    implementation "${besuArtifactGroup}:plugin-api"
+    implementation "${besuArtifactGroup}:besu-datatypes"
+    implementation "${besuArtifactGroup}.internal:core:${besuVersion}"
+    implementation "${besuArtifactGroup}.internal:rlp:${besuVersion}"
+    implementation "${besuArtifactGroup}.internal:algorithms:${besuVersion}"
 
-  implementation 'info.picocli:picocli'
 
-  compileOnly 'io.vertx:vertx-core'
+    implementation 'info.picocli:picocli'
 
-  implementation 'com.fasterxml.jackson.core:jackson-databind'
-  implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
+    compileOnly 'io.vertx:vertx-core'
 
-  implementation 'org.apache.tuweni:tuweni-bytes'
-  implementation 'org.apache.tuweni:tuweni-units'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
 
-  implementation 'org.bouncycastle:bcprov-jdk18on'
-  implementation 'org.apache.parquet:parquet-avro:1.13.1'
-  implementation 'org.apache.avro:avro:1.11.3'
-  implementation 'org.apache.hadoop:hadoop-core:1.2.1'
+    implementation 'org.apache.tuweni:tuweni-bytes'
+    implementation 'org.apache.tuweni:tuweni-units'
 
-  testImplementation "${besuArtifactGroup}:evm"
-  testImplementation "${besuArtifactGroup}:besu-datatypes"
-  testImplementation "${besuArtifactGroup}.internal:core:${besuVersion}"
-  testImplementation "${besuArtifactGroup}.internal:rlp:${besuVersion}"
-  testImplementation "${besuArtifactGroup}.internal:core:${besuVersion}"
+    implementation 'org.bouncycastle:bcprov-jdk18on'
+    implementation 'org.apache.parquet:parquet-avro:1.13.1'
+    implementation 'org.apache.avro:avro:1.11.3'
+
+    implementation("tech.tablesaw:tablesaw-core:${tablesawVersion}")
+    implementation("net.tlabs-data:tablesaw_${tablesawVersion}-parquet:${tablesawParquetVersion}")
+//  implementation 'org.apache.hadoop:hadoop-common:3.3.6'
+//  implementation 'org.apache.hadoop:hadoop-core:1.2.1'
+//  compileOnly 'org.kitesdk:kite-hadoop-cdh5-dependencies:1.1.0'
+//  compileOnly 'org.apache.hive:hive-exec:3.1.3'
+//  implementation 'org.kitesdk:kite-data-hive:1.1.0'
+//  implementation 'org.kitesdk:kite-data-core:1.1.0'
+//  implementation 'org.kitesdk:kite-data-core:1.1.0'
+//  implementation 'org.kitesdk:kite-data-crunch:1.1.0'
+//  implementation 'org.apache.crunch:crunch-core:1.0.0'
+    implementation 'org.apache.spark:spark-core_2.13:3.5.0'
+    implementation 'org.apache.spark:spark-sql_2.13:3.5.0'
+    implementation 'org.apache.spark:spark-avro_2.13:3.5.0'
+
+    testImplementation "${besuArtifactGroup}:evm"
+    testImplementation "${besuArtifactGroup}:besu-datatypes"
+    testImplementation "${besuArtifactGroup}.internal:core:${besuVersion}"
+    testImplementation "${besuArtifactGroup}.internal:rlp:${besuVersion}"
+    testImplementation "${besuArtifactGroup}.internal:core:${besuVersion}"
 }
 
 configurations {
-  installedJars {
-    transitive = false
-  }
+    installedJars {
+        transitive = false
+    }
 }
 
 apply from: rootProject.file("gradle/dist.gradle")

@@ -26,9 +26,9 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.module.Module;
-import net.consensys.linea.zktracer.module.add.AvroAddTrace;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCodes;
+import net.consensys.linea.zktracer.parquet.LocalParquetWriter;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -127,10 +127,13 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
       int i = (int)headerSize;
       List<AvroAddTrace> addTraces = new ArrayList<>();
       for (Module m: this.hub.getModulesToTrace()) {
+
         final int moduleSize = m.columnsHeaders().stream().mapToInt(ColumnHeader::dataSize).sum();
         addTraces = m.commitToBuffer(mmap.slice(i, moduleSize));
-        if(addTraces!=null){
-          ParquetWriter.write(m, addTraces);
+        try( LocalParquetWriter parquetWriter = new LocalParquetWriter(m.jsonKey())) {
+          if (addTraces != null) {
+            parquetWriter.write(addTraces);
+          }
         }
         i+= moduleSize;
       }

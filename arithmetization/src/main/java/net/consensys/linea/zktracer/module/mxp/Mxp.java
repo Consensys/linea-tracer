@@ -25,7 +25,7 @@ import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
-import net.consensys.linea.zktracer.module.add.AvroAddTrace;
+import net.consensys.linea.zktracer.AvroAddTrace;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.gas.BillingRate;
 import net.consensys.linea.zktracer.opcode.gas.MxpType;

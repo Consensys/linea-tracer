@@ -71,7 +71,8 @@ tasks.register('unitTests', Test) {
 
 tasks.register('referenceTests', Test) {
   useJUnitPlatform {
-    includeTags("ReferenceTest")
+    includeTags("BlockchainReferenceTest")
+    includeTags("GeneralStateReferenceTest")
   }
 
   description = 'Runs ETH reference tests.'

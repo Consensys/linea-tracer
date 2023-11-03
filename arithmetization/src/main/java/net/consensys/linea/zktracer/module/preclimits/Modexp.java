@@ -38,7 +38,7 @@ public class Modexp implements Module {
 
   @Override
   public String jsonKey() {
-    return null;
+    return "modexp";
   }
 
   @Override
@@ -143,6 +143,6 @@ public class Modexp implements Module {
 
   @Override
   public ModuleTrace commit() {
-    return null;
+    throw new IllegalStateException("should never be called");
   }
 }

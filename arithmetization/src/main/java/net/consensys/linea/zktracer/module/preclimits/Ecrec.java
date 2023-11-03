@@ -35,7 +35,7 @@ public final class Ecrec implements Module {
 
   @Override
   public String jsonKey() {
-    return null;
+    return "ecrecover";
   }
 
   private final int ecrecGasFee = 3000;
@@ -102,6 +102,6 @@ public final class Ecrec implements Module {
 
   @Override
   public ModuleTrace commit() {
-    return null;
+    throw new IllegalStateException("should never be called");
   }
 }

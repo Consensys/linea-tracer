@@ -29,7 +29,7 @@ public final class Ecadd implements Module {
 
   @Override
   public String jsonKey() {
-    return null;
+    return "ecadd";
   }
 
   private final int precompileGasFee = 150; // cf EIP-1108
@@ -69,6 +69,6 @@ public final class Ecadd implements Module {
 
   @Override
   public ModuleTrace commit() {
-    return null;
+    throw new IllegalStateException("should never be called");
   }
 }

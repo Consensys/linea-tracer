@@ -31,7 +31,7 @@ public final class Rip160 implements Module {
 
   @Override
   public String jsonKey() {
-    return null;
+    return "rip160";
   }
 
   private final int precompileBaseGasFee = 600;
@@ -97,6 +97,6 @@ public final class Rip160 implements Module {
 
   @Override
   public ModuleTrace commit() {
-    return null;
+    throw new IllegalStateException("should never be called");
   }
 }

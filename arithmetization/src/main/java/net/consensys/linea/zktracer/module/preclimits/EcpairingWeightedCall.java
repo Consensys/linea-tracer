@@ -18,16 +18,16 @@ package net.consensys.linea.zktracer.module.preclimits;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
 
-public final class EcpairingPonderedCall implements Module {
+public final class EcpairingWeightedCall implements Module {
   private final EcpairingCall ecpairingCall;
 
-  public EcpairingPonderedCall(EcpairingCall ecpairingCall) {
+  public EcpairingWeightedCall(EcpairingCall ecpairingCall) {
     this.ecpairingCall = ecpairingCall;
   }
 
   @Override
   public String jsonKey() {
-    return null;
+    return "ecpairingWeightedCall";
   }
 
   @Override
@@ -43,6 +43,6 @@ public final class EcpairingPonderedCall implements Module {
 
   @Override
   public ModuleTrace commit() {
-    return null;
+    throw new IllegalStateException("should never be called");
   }
 }

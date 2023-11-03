@@ -34,7 +34,7 @@ public final class EcpairingCall implements Module {
 
   @Override
   public String jsonKey() {
-    return null;
+    return "ecpairingCall";
   }
 
   @Override
@@ -88,6 +88,6 @@ public final class EcpairingCall implements Module {
 
   @Override
   public ModuleTrace commit() {
-    return null;
+    throw new IllegalStateException("should never be called");
   }
 }

@@ -31,7 +31,7 @@ public final class Sha256 implements Module {
 
   @Override
   public String jsonKey() {
-    return null;
+    return "sha256";
   }
 
   private final int precompileBaseGasFee = 60;
@@ -96,6 +96,6 @@ public final class Sha256 implements Module {
 
   @Override
   public ModuleTrace commit() {
-    return null;
+    throw new IllegalStateException("should never be called");
   }
 }

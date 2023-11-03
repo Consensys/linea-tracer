@@ -42,7 +42,7 @@ import net.consensys.linea.zktracer.module.preclimits.Blake2f;
 import net.consensys.linea.zktracer.module.preclimits.Ecadd;
 import net.consensys.linea.zktracer.module.preclimits.Ecmul;
 import net.consensys.linea.zktracer.module.preclimits.EcpairingCall;
-import net.consensys.linea.zktracer.module.preclimits.EcpairingPonderedCall;
+import net.consensys.linea.zktracer.module.preclimits.EcpairingWeightedCall;
 import net.consensys.linea.zktracer.module.preclimits.Ecrec;
 import net.consensys.linea.zktracer.module.preclimits.Modexp;
 import net.consensys.linea.zktracer.module.preclimits.Rip160;
@@ -172,7 +172,8 @@ public class Hub implements Module {
   private final Ecadd ecadd = new Ecadd();
   private final Ecmul ecmul = new Ecmul();
   private final EcpairingCall ecpairingCall = new EcpairingCall();
-  private final EcpairingPonderedCall ecpairingPondered = new EcpairingPonderedCall(ecpairingCall);
+  private final EcpairingWeightedCall ecpairingWeightedCall =
+      new EcpairingWeightedCall(ecpairingCall);
   private final Blake2f blake2 = new Blake2f();
   private final List<Module> modules;
 
@@ -196,7 +197,7 @@ public class Hub implements Module {
             this.ecadd,
             this.ecmul,
             this.ecpairingCall,
-            this.ecpairingPondered,
+            this.ecpairingWeightedCall,
             this.blake2);
 
     this.modules =

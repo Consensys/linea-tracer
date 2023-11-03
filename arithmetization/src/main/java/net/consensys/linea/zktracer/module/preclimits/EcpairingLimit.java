@@ -15,4 +15,4 @@
 
 package net.consensys.linea.zktracer.module.preclimits;
 
-public record EcpairingLimit(Integer nPrecompileCall, Integer nMillerLoop) {}
+record EcpairingLimit(Integer nPrecompileCall, Integer nMillerLoop) {}

@@ -26,13 +26,11 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 
 @Slf4j
-public final class Ecpairing implements Module {
-  private final Stack<EcpairingLimit> counts = new Stack<>();
+public final class EcpairingCall implements Module {
+  public final Stack<EcpairingLimit> counts = new Stack<>();
   private final int precompileBaseGasFee = 45000; // cf EIP-1108
   private final int precompileMillerLoopGasFee = 34000; // cf EIP-1108
   private final int ecPairingNbBytesperMillerLoop = 192;
-  private final int maxPrecompileCall = 16; // prover's limit
-  private final int axMillerLoopCall = 64; // prover's limit
 
   @Override
   public String jsonKey() {
@@ -85,15 +83,7 @@ public final class Ecpairing implements Module {
 
   @Override
   public int lineCount() {
-    int nCall = 0;
-    int nMillerLoop = 0;
-    for (EcpairingLimit chunk : this.counts) {
-      nCall += chunk.nPrecompileCall();
-      nMillerLoop += chunk.nMillerLoop();
-    }
-    return (nCall > maxPrecompileCall)
-        ? Integer.MAX_VALUE
-        : nMillerLoop; // TODO: not very clean and maintenance-horrible.
+    return this.counts.stream().mapToInt(EcpairingLimit::nPrecompileCall).sum();
   }
 
   @Override

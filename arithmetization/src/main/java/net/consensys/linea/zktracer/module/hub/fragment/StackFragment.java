@@ -188,7 +188,7 @@ public final class StackFragment implements TraceFragment {
         .pStackMxpx(exceptions.outOfMemoryExpansion())
         .pStackRdcx(exceptions.returnDataCopyFault())
         .pStackJumpx(exceptions.jumpFault())
-        .pStackStaticx(exceptions.staticViolation())
+        .pStackStaticx(exceptions.staticFault())
         .pStackSstorex(exceptions.outOfSStore())
         .pStackInvprex(contextExceptions.invalidCodePrefix())
         .pStackMaxcsx(contextExceptions.codeSizeOverflow())

@@ -72,7 +72,7 @@ public abstract class TraceSection {
   private CommonFragment traceCommon(Hub hub, CallFrame callFrame) {
     OpCode opCode = callFrame.opCode();
     long refund = 0;
-    if (hub.exceptions().noStackException()) {
+    if (hub.pch().exceptions().noStackException()) {
       refund = Hub.gp.of(callFrame.frame(), opCode).refund();
     }
 
@@ -84,7 +84,7 @@ public abstract class TraceSection {
         0, // retconned
         false, // retconned
         hub.opCodeData().instructionFamily(),
-        hub.exceptions().snapshot(),
+        hub.pch().exceptions().snapshot(),
         callFrame.id(),
         callFrame.contextNumber(),
         callFrame.contextNumber(),

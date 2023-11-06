@@ -15,7 +15,8 @@
 
 package net.consensys.linea.sequencer.txvalidation;
 
-import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.plugin.services.txvalidator.PluginTransactionValidator;
@@ -25,16 +26,16 @@ import org.hyperledger.besu.plugin.services.txvalidator.PluginTransactionValidat
 public class LineaTransactionValidatorFactory implements PluginTransactionValidatorFactory {
 
   private final LineaTransactionValidatorCliOptions options;
-  private final ArrayList<Address> denied;
+  private final List<Address> denied;
 
   public LineaTransactionValidatorFactory(
-      final LineaTransactionValidatorCliOptions options, final ArrayList<Address> denied) {
+      final LineaTransactionValidatorCliOptions options, final List<Address> denied) {
     this.options = options;
     this.denied = denied;
   }
 
   @Override
   public PluginTransactionValidator create() {
-    return new LineaTransactionValidator(options.toDomainObject(), denied);
+    return new LineaTransactionValidator(options.toDomainObject(), Set.copyOf(denied));
   }
 }

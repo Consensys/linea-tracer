@@ -15,11 +15,9 @@
 
 package net.consensys.linea.zktracer.module;
 
-import java.math.BigInteger;
 import java.util.List;
 
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.log.Log;
@@ -37,6 +35,8 @@ public interface Module {
   default void traceEndConflation() {}
 
   default void traceStartBlock(final ProcessableBlockHeader processableBlockHeader) {}
+
+  default void traceStartBlock(final BlockHeader blockHeader, final BlockBody blockBody) {}
 
   default void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {}
 

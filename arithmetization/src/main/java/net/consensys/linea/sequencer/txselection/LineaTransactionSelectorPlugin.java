@@ -67,11 +67,6 @@ public class LineaTransactionSelectorPlugin extends LineaRequiredPlugin {
                     "Failed to obtain TransactionSelectionService from the BesuContext.")));
   }
 
-  private void createAndRegister(final TransactionSelectionService transactionSelectionService) {
-    transactionSelectionService.registerTransactionSelectorFactory(
-        new LineaTransactionSelectorFactory(options));
-  }
-
   @Override
   public void start() {
     log.debug("Starting {} with configuration: {}", NAME, options);

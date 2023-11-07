@@ -10,6 +10,7 @@
   "RlpTxrcpt": 20000,
   "Shf": 20000,
   "Trm": 20000,
+  "TxnData": 20000,
   "Wcp": 20000,
   "Rom": 20000,
   "RomLex": 20000

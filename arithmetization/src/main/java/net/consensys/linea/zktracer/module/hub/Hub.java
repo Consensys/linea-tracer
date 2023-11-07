@@ -17,7 +17,6 @@ package net.consensys.linea.zktracer.module.hub;
 
 import static net.consensys.linea.zktracer.types.Address.isPrecompile;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -913,7 +912,9 @@ public class Hub implements Module {
 
   @Override
   public void traceStartBlock(final ProcessableBlockHeader processableBlockHeader) {
-    this.block.update(processableBlockHeader.getBaseFee().orElseThrow().getAsBigInteger(), processableBlockHeader.getCoinbase());
+    this.block.update(
+        processableBlockHeader.getBaseFee().orElseThrow().getAsBigInteger(),
+        processableBlockHeader.getCoinbase());
     for (Module m : this.modules) {
       m.traceStartBlock(processableBlockHeader);
     }

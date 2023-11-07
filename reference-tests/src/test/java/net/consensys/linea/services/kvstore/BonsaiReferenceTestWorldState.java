@@ -37,6 +37,7 @@ import org.hyperledger.besu.ethereum.bonsai.worldview.BonsaiWorldStateUpdateAccu
 import org.hyperledger.besu.ethereum.core.BlockHeader;
 import org.hyperledger.besu.ethereum.referencetests.BonsaiReferenceTestUpdateAccumulator;
 import org.hyperledger.besu.ethereum.referencetests.BonsaiReferenceTestWorldStateStorage;
+import org.hyperledger.besu.evm.internal.EvmConfiguration;
 import org.hyperledger.besu.evm.worldstate.WorldState;
 import org.hyperledger.besu.evm.worldstate.WorldUpdater;
 import org.hyperledger.besu.metrics.ObservableMetricsSystem;
@@ -56,7 +57,12 @@ public class BonsaiReferenceTestWorldState extends BonsaiWorldState
       final CachedWorldStorageManager cachedWorldStorageManager,
       final TrieLogManager trieLogManager,
       final BonsaiPreImageProxy preImageProxy) {
-    super(worldStateStorage, cachedMerkleTrieLoader, cachedWorldStorageManager, trieLogManager);
+    super(
+        worldStateStorage,
+        cachedMerkleTrieLoader,
+        cachedWorldStorageManager,
+        trieLogManager,
+        EvmConfiguration.DEFAULT);
     this.refTestStorage = worldStateStorage;
     this.preImageProxy = preImageProxy;
     setAccumulator(
@@ -67,7 +73,8 @@ public class BonsaiReferenceTestWorldState extends BonsaiWorldState
                     getWorldStateStorage(), worldStateRootHash, addr),
             (addr, value) ->
                 cachedMerkleTrieLoader.preLoadStorageSlot(getWorldStateStorage(), addr, value),
-            preImageProxy));
+            preImageProxy,
+            EvmConfiguration.DEFAULT));
   }
 
   @Override

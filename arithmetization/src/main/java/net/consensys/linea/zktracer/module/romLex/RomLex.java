@@ -121,7 +121,15 @@ public class RomLex implements Module {
     // Contract creation with InitCode
     if (tx.getInit().isPresent() && !tx.getInit().orElseThrow().isEmpty()) {
       codeIdentifierBeforeLexOrder += 1;
-      this.address = Address.contractAddress(tx.getSender(), tx.getNonce());
+      this.chunks.add(
+        new RomChunk(
+          Address.contractAddress(tx.getSender(), tx.getNonce()),
+          1,
+          true,
+          false,
+          false,
+          codeIdentifierBeforeLexOrder,
+          tx.getInit().get()));
     }
 
     // Call to an account with bytecode
@@ -272,36 +280,6 @@ public class RomLex implements Module {
                 codeIdentifierBeforeLexOrder,
                 this.byteCode));
       }
-    }
-  }
-
-  @Override
-  public void traceEndTx(
-      WorldView worldView,
-      Transaction tx,
-      boolean status,
-      Bytes output,
-      List<Log> logs,
-      long gasUsed) {
-    if (tx.getInit().isPresent() && !tx.getInit().orElseThrow().isEmpty()) {
-      int depNumber =
-          hub.conflation()
-              .deploymentInfo()
-              .number(this.address); // should be 1 (constrained by lookup from TxnData)
-      boolean depStatus =
-          hub.conflation()
-              .deploymentInfo()
-              .isDeploying(this.address); // should be true (constrained by lookup from TxnData)
-
-      this.chunks.add(
-          new RomChunk(
-              this.address,
-              depNumber,
-              depStatus,
-              false,
-              false,
-              codeIdentifierBeforeLexOrder,
-              tx.getInit().orElseThrow()));
     }
   }
 

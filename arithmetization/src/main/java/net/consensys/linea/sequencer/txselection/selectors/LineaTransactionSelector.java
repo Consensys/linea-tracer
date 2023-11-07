@@ -16,7 +16,7 @@ package net.consensys.linea.sequencer.txselection.selectors;
 
 import java.util.List;
 
-import net.consensys.linea.sequencer.LineaConfiguration;
+import net.consensys.linea.sequencer.txselection.LineaTransactionSelectorConfiguration;
 import org.hyperledger.besu.datatypes.PendingTransaction;
 import org.hyperledger.besu.plugin.data.TransactionProcessingResult;
 import org.hyperledger.besu.plugin.data.TransactionSelectionResult;
@@ -25,10 +25,10 @@ import org.hyperledger.besu.plugin.services.txselection.PluginTransactionSelecto
 /** Class for transaction selection using a list of selectors. */
 public class LineaTransactionSelector implements PluginTransactionSelector {
 
-  final LineaConfiguration lineaConfiguration;
+  final LineaTransactionSelectorConfiguration lineaConfiguration;
   List<PluginTransactionSelector> selectors;
 
-  public LineaTransactionSelector(LineaConfiguration lineaConfiguration) {
+  public LineaTransactionSelector(LineaTransactionSelectorConfiguration lineaConfiguration) {
     this.lineaConfiguration = lineaConfiguration;
     this.selectors = createTransactionSelectors(lineaConfiguration);
   }
@@ -40,9 +40,8 @@ public class LineaTransactionSelector implements PluginTransactionSelector {
    * @return A list of selectors.
    */
   private static List<PluginTransactionSelector> createTransactionSelectors(
-      final LineaConfiguration lineaConfiguration) {
+      final LineaTransactionSelectorConfiguration lineaConfiguration) {
     return List.of(
-        new MaxTransactionCallDataTransactionSelector(lineaConfiguration.maxTxCallDataSize()),
         new MaxBlockCallDataTransactionSelector(lineaConfiguration.maxBlockCallDataSize()));
   }
 

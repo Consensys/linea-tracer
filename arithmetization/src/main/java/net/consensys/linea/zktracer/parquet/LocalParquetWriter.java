@@ -38,7 +38,7 @@ public class LocalParquetWriter implements AutoCloseable{
                 .withWriteMode(ParquetFileWriter.Mode.OVERWRITE)
 //                        .withDataModel(GenericData.get()) <- likely to use to add BigInteger on 124 bits
                 //https://stackoverflow.com/questions/35789412/spark-sql-difference-between-gzip-vs-snappy-vs-lzo-compression-formats#:~:text=GZIP%20compresses%20data%2030%25%20more,GZip%20compression%20is%20still%20better
-                .withCompressionCodec(CompressionCodecName.SNAPPY)
+                .withCompressionCodec(CompressionCodecName.LZ4)
                 .withSchema(avroSchema)
                 .withRowGroupSize(size)
                 .build();
@@ -49,7 +49,7 @@ public class LocalParquetWriter implements AutoCloseable{
 
             for(AvroAddTrace obj : traces){
                 parquetWriter.write(obj);
-                System.out.println(parquetWriter.getDataSize());
+//                System.out.println(parquetWriter.getDataSize());
             }
         }catch(java.io.IOException e){
             System.out.printf("Error writing parquet file %s%n", e.getMessage());

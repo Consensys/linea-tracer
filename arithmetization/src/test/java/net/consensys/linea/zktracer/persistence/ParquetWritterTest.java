@@ -4,23 +4,11 @@ import net.tlabs.tablesaw.parquet.TablesawParquetWriteOptions.CompressionCodec;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Stopwatch;
 import net.consensys.linea.zktracer.AvroAddTrace;
-import net.consensys.linea.zktracer.parquet.LocalInputFile;
-import net.consensys.linea.zktracer.parquet.LocalOutputFile;
 import net.consensys.linea.zktracer.parquet.LocalParquetWriter;
 import net.tlabs.tablesaw.parquet.TablesawParquetReadOptions;
 import net.tlabs.tablesaw.parquet.TablesawParquetReader;
 import net.tlabs.tablesaw.parquet.TablesawParquetWriteOptions;
 import net.tlabs.tablesaw.parquet.TablesawParquetWriter;
-import org.apache.avro.Schema;
-import org.apache.avro.generic.GenericRecord;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.parquet.avro.AvroParquetReader;
-import org.apache.parquet.avro.AvroParquetWriter;
-import org.apache.parquet.hadoop.ParquetReader;
-import org.apache.parquet.hadoop.ParquetWriter;
-import org.apache.parquet.hadoop.metadata.CompressionCodecName;
-import org.apache.parquet.io.InputFile;
-import org.apache.parquet.io.OutputFile;
 //import org.apache.spark.sql.SaveMode;
 //import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.Dataset;
@@ -28,7 +16,6 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.SparkSession;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -41,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.LongStream;
 
-import org.apache.hadoop.conf.Configuration;
 import tech.tablesaw.api.LongColumn;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.columns.Column;
@@ -51,7 +37,7 @@ public class ParquetWritterTest {
     private static final TablesawParquetWriter PARQUET_WRITER = new TablesawParquetWriter();
     private static final TablesawParquetReader PARQUET_READER = new TablesawParquetReader();
 
-//    @Test
+    @Test
     public void tableSaw() throws IOException {
         // using the file name
         String FILENAME = "blablaTraces.parquet";
@@ -65,28 +51,13 @@ public class ParquetWritterTest {
 //                .read(TablesawParquetReadOptions.builder(FILENAME).build());
 
         System.out.println("----------------");
-        System.out.println("----------------");
-        System.out.println("----------------");
-        System.out.println("----------------");
-        System.out.println("----------------");
-        System.out.println("----------------");
-        System.out.println("----------------");
-        System.out.println("----------------");
-        System.out.println("----------------");
-        System.out.println("----------------");
-        System.out.println("----------------");
-        System.out.println("----------------");
-        System.out.println("----------------");
-        System.out.println("----------------");
-        System.out.println("----------------");
-        System.out.println("----------------");
 
-        Column c1 = LongColumn.create("testing1", LongStream.range(1L, 1_000));
-        Column c2 = LongColumn.create("testing2", LongStream.range(1L, 1_000));
-        Column c3 = LongColumn.create("testing3", LongStream.range(1L, 1_000));
-        Column c4 = LongColumn.create("testing4", LongStream.range(1L, 1_000));
-        Column c5 = LongColumn.create("testing5", LongStream.range(1L, 1_000));
-        Column c6 = LongColumn.create("testing6", LongStream.range(1L, 1_000));
+        Column c1 = LongColumn.create("testing1", LongStream.range(1L, 1_000_000));
+        Column c2 = LongColumn.create("testing2", LongStream.range(1L, 1_000_000));
+        Column c3 = LongColumn.create("testing3", LongStream.range(1L, 1_000_000));
+        Column c4 = LongColumn.create("testing4", LongStream.range(1L, 1_000_000));
+        Column c5 = LongColumn.create("testing5", LongStream.range(1L, 1_000_000));
+        Column c6 = LongColumn.create("testing6", LongStream.range(1L, 1_000_000));
         var toBePersisted = Table.create(c1, c2, c3, c4, c5, c6);
 
         Stopwatch sw = Stopwatch.createStarted();
@@ -109,6 +80,7 @@ public class ParquetWritterTest {
         parquetWriter.close();
     }
 
+
     @NotNull
     private List<AvroAddTrace> getAvroAddTraces() throws IOException {
         var addJson = Paths.get("./src/test/resources/trace_samples/addTrace_large.json").toFile();
@@ -120,20 +92,20 @@ public class ParquetWritterTest {
         for (int i = 0; i < size; i++) {
             addTraces.add(
                     new AvroAddTrace(
-                            toLong(((List) addMapTrace.get("ACC_1")).get(i)),
-                            toLong(((List) addMapTrace.get("ACC_2")).get(i)),
-                            toLong(((List) addMapTrace.get("ARG_1_HI")).get(i)),
-                            toLong(((List) addMapTrace.get("ARG_1_LO")).get(i)),
-                            toLong(((List) addMapTrace.get("ARG_2_HI")).get(i)),
-                            toLong(((List) addMapTrace.get("ARG_2_LO")).get(i)),
+                            toByteBuffer(((List) addMapTrace.get("ACC_1")).get(i)),
+                            toByteBuffer(((List) addMapTrace.get("ACC_2")).get(i)),
+                            toByteBuffer(((List) addMapTrace.get("ARG_1_HI")).get(i)),
+                            toByteBuffer(((List) addMapTrace.get("ARG_1_LO")).get(i)),
+                            toByteBuffer(((List) addMapTrace.get("ARG_2_HI")).get(i)),
+                            toByteBuffer(((List) addMapTrace.get("ARG_2_LO")).get(i)),
                             ByteBuffer.wrap(new byte[]{((Integer) ((List) addMapTrace.get("BYTE_1")).get(i)).byteValue()}),
                             ByteBuffer.wrap(new byte[]{((Integer) ((List) addMapTrace.get("BYTE_2")).get(i)).byteValue()}),
-                            toLong(((List) addMapTrace.get("CT")).get(i)),
-                            toLong(((List) addMapTrace.get("INST")).get(i)),
+                            toByteBuffer(((List) addMapTrace.get("CT")).get(i)),
+                            toByteBuffer(((List) addMapTrace.get("INST")).get(i)),
                             ((List) addMapTrace.get("OVERFLOW")).get(i).equals(1),
-                            toLong(((List) addMapTrace.get("RES_HI")).get(i)),
-                            toLong(((List) addMapTrace.get("RES_LO")).get(i)),
-                            toLong(((List) addMapTrace.get("STAMP")).get(i))
+                            toByteBuffer(((List) addMapTrace.get("RES_HI")).get(i)),
+                            toByteBuffer(((List) addMapTrace.get("RES_LO")).get(i)),
+                            toByteBuffer(((List) addMapTrace.get("STAMP")).get(i))
                     )
             );
 
@@ -141,47 +113,47 @@ public class ParquetWritterTest {
         return addTraces;
     }
 
-    public void writeThreeLines() throws IOException {
-        List<AvroAddTrace> addTraces = new ArrayList<>();
-        LocalParquetWriter parquetWriter = new LocalParquetWriter("test3Lines");
-        for (int i = 0; i < 3; i++) {
-            addTraces.add(
-                    new AvroAddTrace(
-                            ((Integer) i).longValue(),
-                            3L - ((Integer) i).longValue(),
-                            1L,
-                            1L,
-                            1L,
-                            1L,
-                            ByteBuffer.wrap(new byte[]{0}),
-                            ByteBuffer.wrap(new byte[]{0}),
-                            1L,
-                            1L,
-                            true,
-                            1L,
-                            1L,
-                            1L
-                    )
-            );
-            parquetWriter.write(addTraces);
-            addTraces.clear();
-        }
-        parquetWriter.write(addTraces);
-        parquetWriter.close();
+//    public void writeThreeLines() throws IOException {
+//        List<AvroAddTrace> addTraces = new ArrayList<>();
+//        LocalParquetWriter parquetWriter = new LocalParquetWriter("test3Lines");
+//        for (int i = 0; i < 3; i++) {
+//            addTraces.add(
+//                    new AvroAddTrace(
+//                            ((Integer) i).longValue(),
+//                            3L - ((Integer) i).longValue(),
+//                            1L,
+//                            1L,
+//                            1L,
+//                            1L,
+//                            ByteBuffer.wrap(new byte[]{0}),
+//                            ByteBuffer.wrap(new byte[]{0}),
+//                            1L,
+//                            1L,
+//                            true,
+//                            1L,
+//                            1L,
+//                            1L
+//                    )
+//            );
+//            parquetWriter.write(addTraces);
+//            addTraces.clear();
+//        }
+//        parquetWriter.write(addTraces);
+//        parquetWriter.close();
+//
+//        InputFile inputFile = new LocalInputFile(Paths.get("C:\\Users\\huc_c\\IdeaProjects\\linea-besu-plugin\\arithmetization\\test3LinesTraces.parquet"));
+//        ParquetReader<GenericRecord> reader = AvroParquetReader.<GenericRecord>builder(inputFile).build();
+//        Assertions.assertEquals(0L, reader.read().get("ACC1"));
+//        Assertions.assertEquals(1L, reader.read().get("ACC1"));
+//        Assertions.assertEquals(2L, reader.read().get("ACC1"));
+//    }
 
-        InputFile inputFile = new LocalInputFile(Paths.get("C:\\Users\\huc_c\\IdeaProjects\\linea-besu-plugin\\arithmetization\\test3LinesTraces.parquet"));
-        ParquetReader<GenericRecord> reader = AvroParquetReader.<GenericRecord>builder(inputFile).build();
-        Assertions.assertEquals(0L, reader.read().get("ACC1"));
-        Assertions.assertEquals(1L, reader.read().get("ACC1"));
-        Assertions.assertEquals(2L, reader.read().get("ACC1"));
-    }
 
-
-    private Long toLong(Object acc2) {
+    private ByteBuffer toByteBuffer(Object acc2) {
         if (acc2 instanceof Integer) {
-            return ((Integer) acc2).longValue();
+            return ByteBuffer.wrap(BigInteger.valueOf((Integer) acc2).toByteArray());
         } else if (acc2 instanceof String) {
-            return new BigInteger((String) acc2).longValue();
+            return ByteBuffer.wrap(new BigInteger((String) acc2).toByteArray());
         }
         throw new RuntimeException("Unsupported type " + acc2);
     }

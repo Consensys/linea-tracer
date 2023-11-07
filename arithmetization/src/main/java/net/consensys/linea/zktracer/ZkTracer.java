@@ -127,7 +127,7 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
       int i = (int)headerSize;
       List<AvroAddTrace> addTraces = new ArrayList<>();
       for (Module m: this.hub.getModulesToTrace()) {
-
+//129b-
         final int moduleSize = m.columnsHeaders().stream().mapToInt(ColumnHeader::dataSize).sum();
         addTraces = m.commitToBuffer(mmap.slice(i, moduleSize));
         try( LocalParquetWriter parquetWriter = new LocalParquetWriter(m.jsonKey())) {

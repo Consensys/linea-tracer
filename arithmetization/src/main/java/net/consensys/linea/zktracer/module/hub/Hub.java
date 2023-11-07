@@ -233,7 +233,7 @@ public class Hub implements Module {
    */
   public List<Module> getModulesToTrace() {
     return List.of(
-        this,
+        //        this,
         this.romLex,
         this.add,
         this.ext,

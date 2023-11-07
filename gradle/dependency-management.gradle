@@ -14,7 +14,6 @@
  */
 
 repositories {
-  mavenLocal()
   maven {
     url "https://artifacts.consensys.net/public/linea-besu/maven/"
     content { includeGroupByRegex('io\\.consensys\\..*') }

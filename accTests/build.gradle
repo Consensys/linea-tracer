@@ -47,6 +47,14 @@ dependencies {
   testImplementation 'com.splunk.logging:splunk-library-javalogging'
 }
 
+//sourceSets {
+//  main {
+//    resources {
+//      srcDirs '../src/main/resources'
+//    }
+//  }
+//}
+
 test.enabled = false
 
 unitTests.enabled = false

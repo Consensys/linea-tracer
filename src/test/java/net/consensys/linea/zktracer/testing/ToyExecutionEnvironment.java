@@ -137,7 +137,7 @@ public class ToyExecutionEnvironment {
         header.getBaseFee().isPresent()
             ? header.getBaseFee().get().getAsBigInteger()
             : BigInteger.ZERO;
-    tracer.traceStartBlock(Math.toIntExact(header.getNumber()), baseFee, header.getCoinbase());
+    tracer.traceStartBlock(header, mockBlockBody);
     for (Transaction tx : mockBlockBody.getTransactions()) {
       tracer.traceStartTransaction(toyWorld.updater(), tx);
 

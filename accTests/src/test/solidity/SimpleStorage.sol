@@ -27,9 +27,9 @@ contract SimpleStorage {
         return data;
     }
 
-    function add() public {
-        if (sum < 100000) {
-            sum = sum + sum;
+    function add(int count) public {
+        for (int i = 0; i < count; i++) {
+            sum++;
         }
     }
 }

@@ -66,6 +66,7 @@ import org.hyperledger.besu.evm.internal.Words;
 import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
+import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 @Slf4j
 @Accessors(fluent = true)
@@ -828,11 +829,10 @@ public class Hub implements Module {
   }
 
   @Override
-  public void traceStartBlock(
-      final int blockNumber, final BigInteger baseFee, final Address coinbase) {
-    this.block.update(baseFee, coinbase);
+  public void traceStartBlock(final ProcessableBlockHeader processableBlockHeader) {
+    this.block.update(processableBlockHeader.getBaseFee().orElseThrow().getAsBigInteger(), processableBlockHeader.getCoinbase());
     for (Module m : this.modules) {
-      m.traceStartBlock(0, null, null);
+      m.traceStartBlock(processableBlockHeader);
     }
   }
 

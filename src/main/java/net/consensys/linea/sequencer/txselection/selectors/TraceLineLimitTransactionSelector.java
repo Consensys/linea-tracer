@@ -15,6 +15,7 @@
 package net.consensys.linea.sequencer.txselection.selectors;
 
 import java.util.Map;
+import java.util.function.Supplier;
 
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ZkTracer;
@@ -32,11 +33,14 @@ import org.hyperledger.besu.plugin.services.txselection.PluginTransactionSelecto
 @Slf4j
 public class TraceLineLimitTransactionSelector implements PluginTransactionSelector {
 
+  private final Supplier<Map<String, Integer>> moduleLimitsProvider;
   private ZkTracer zkTracer;
-  private final Map<String, Integer> moduleLimits;
 
-  public TraceLineLimitTransactionSelector(final Map<String, Integer> moduleLimits) {
-    this.moduleLimits = moduleLimits;
+  public TraceLineLimitTransactionSelector(
+      final Supplier<Map<String, Integer>> moduleLimitsProvider) {
+    this.moduleLimitsProvider = moduleLimitsProvider;
+    zkTracer = new ZkTracer();
+    zkTracer.traceStartConflation(1L);
   }
 
   /**
@@ -57,7 +61,7 @@ public class TraceLineLimitTransactionSelector implements PluginTransactionSelec
   public void onTransactionNotSelected(
       final PendingTransaction pendingTransaction,
       final TransactionSelectionResult transactionSelectionResult) {
-    zkTracer.popTransaction();
+    zkTracer.popTransaction(pendingTransaction);
   }
 
   /**
@@ -71,6 +75,7 @@ public class TraceLineLimitTransactionSelector implements PluginTransactionSelec
   public TransactionSelectionResult evaluateTransactionPostProcessing(
       final PendingTransaction pendingTransaction,
       final TransactionProcessingResult processingResult) {
+    final Map<String, Integer> moduleLimits = moduleLimitsProvider.get();
     // check that we are not exceed line number for any module
     final Map<String, Integer> lineCounts = zkTracer.getModulesLineCount();
     for (var e : lineCounts.entrySet()) {
@@ -87,8 +92,6 @@ public class TraceLineLimitTransactionSelector implements PluginTransactionSelec
 
   @Override
   public BlockAwareOperationTracer getOperationTracer() {
-    zkTracer = new ZkTracer();
-    zkTracer.traceStartConflation(1L);
     return zkTracer;
   }
 }

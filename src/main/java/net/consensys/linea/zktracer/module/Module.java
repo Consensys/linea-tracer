@@ -26,6 +26,7 @@ import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
+import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 public interface Module {
   String jsonKey();
@@ -34,8 +35,7 @@ public interface Module {
 
   default void traceEndConflation() {}
 
-  default void traceStartBlock(
-      final int blockNumber, final BigInteger baseFee, final Address coinbase) {}
+  default void traceStartBlock(final ProcessableBlockHeader processableBlockHeader) {}
 
   default void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {}
 

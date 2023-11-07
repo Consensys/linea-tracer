@@ -14,12 +14,10 @@
  */
 package net.consensys.linea.sequencer.txselection.selectors;
 
-import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.sequencer.LineaConfiguration;
 import org.hyperledger.besu.datatypes.PendingTransaction;
@@ -33,12 +31,17 @@ import org.hyperledger.besu.plugin.services.txselection.PluginTransactionSelecto
 public class LineaTransactionSelector implements PluginTransactionSelector {
 
   private static TraceLineLimitTransactionSelector traceLineLimitTransactionSelector;
+  private static Map<String, Integer> limitsMap;
+  private static Supplier<Map<String, Integer>> limitsMapSupplier;
   final LineaConfiguration lineaConfiguration;
   List<PluginTransactionSelector> selectors;
 
-  public LineaTransactionSelector(LineaConfiguration lineaConfiguration) {
+  public LineaTransactionSelector(
+      LineaConfiguration lineaConfiguration,
+      final Supplier<Map<String, Integer>> limitsMapSupplier) {
     this.lineaConfiguration = lineaConfiguration;
     this.selectors = createTransactionSelectors(lineaConfiguration);
+    LineaTransactionSelector.limitsMapSupplier = limitsMapSupplier;
   }
 
   /**
@@ -50,20 +53,7 @@ public class LineaTransactionSelector implements PluginTransactionSelector {
   private static List<PluginTransactionSelector> createTransactionSelectors(
       final LineaConfiguration lineaConfiguration) {
 
-    ObjectMapper objectMapper = new ObjectMapper();
-    Map<String, Integer> limitsMap = null;
-    try {
-      limitsMap =
-          objectMapper.readValue(
-              new File(lineaConfiguration.moduleLimitsFilePath()),
-              new TypeReference<Map<String, Integer>>() {});
-    } catch (Exception e) {
-      log.info(
-          "Problem reading the json file containing the limits for the modules: {}",
-          lineaConfiguration.moduleLimitsFilePath());
-    }
-
-    traceLineLimitTransactionSelector = new TraceLineLimitTransactionSelector(limitsMap);
+    traceLineLimitTransactionSelector = new TraceLineLimitTransactionSelector(limitsMapSupplier);
     return List.of(
         new MaxTransactionCallDataTransactionSelector(lineaConfiguration.maxTxCallDataSize()),
         new MaxBlockCallDataTransactionSelector(lineaConfiguration.maxBlockCallDataSize()),

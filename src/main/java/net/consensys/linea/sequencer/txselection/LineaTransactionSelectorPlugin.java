@@ -15,11 +15,16 @@
 
 package net.consensys.linea.sequencer.txselection;
 
+import java.io.File;
+import java.util.Map;
 import java.util.Optional;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auto.service.AutoService;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.sequencer.LineaCliOptions;
+import net.consensys.linea.sequencer.LineaConfiguration;
 import org.hyperledger.besu.plugin.BesuContext;
 import org.hyperledger.besu.plugin.BesuPlugin;
 import org.hyperledger.besu.plugin.services.PicoCLIOptions;
@@ -32,6 +37,7 @@ public class LineaTransactionSelectorPlugin implements BesuPlugin {
   public static final String NAME = "linea";
   private final LineaCliOptions options;
   private Optional<TransactionSelectionService> service;
+  private Map<String, Integer> limitsMap;
 
   public LineaTransactionSelectorPlugin() {
     options = LineaCliOptions.create();
@@ -64,6 +70,19 @@ public class LineaTransactionSelectorPlugin implements BesuPlugin {
   @Override
   public void start() {
     log.debug("Starting {} with configuration: {}", NAME, options);
+    final LineaConfiguration lineaConfiguration = options.toDomainObject();
+    ObjectMapper objectMapper = new ObjectMapper();
+
+    try {
+      limitsMap =
+          objectMapper.readValue(
+              new File(lineaConfiguration.moduleLimitsFilePath()),
+              new TypeReference<Map<String, Integer>>() {});
+    } catch (Exception e) {
+      log.info(
+          "Problem reading the json file containing the limits for the modules: {}",
+          lineaConfiguration.moduleLimitsFilePath());
+    }
   }
 
   @Override
@@ -71,6 +90,6 @@ public class LineaTransactionSelectorPlugin implements BesuPlugin {
 
   private void createAndRegister(final TransactionSelectionService transactionSelectionService) {
     transactionSelectionService.registerTransactionSelectorFactory(
-        new LineaTransactionSelectorFactory(options));
+        new LineaTransactionSelectorFactory(options, () -> this.limitsMap));
   }
 }

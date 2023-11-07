@@ -111,10 +111,6 @@ public class ToyExecutionEnvironment {
     final MainnetTransactionProcessor transactionProcessor = getMainnetTransactionProcessor();
 
     tracer.traceStartConflation(1);
-    final BigInteger baseFee =
-        header.getBaseFee().isPresent()
-            ? header.getBaseFee().get().getAsBigInteger()
-            : BigInteger.ZERO;
     tracer.traceStartBlock(header, mockBlockBody);
 
     for (Transaction tx : mockBlockBody.getTransactions()) {

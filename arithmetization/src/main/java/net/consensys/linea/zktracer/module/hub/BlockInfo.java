@@ -15,12 +15,11 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
-import java.math.BigInteger;
-
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
+import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 /** Stores block-specific information. */
 @Accessors(fluent = true)
@@ -33,12 +32,11 @@ public class BlockInfo {
   /**
    * Update block-specific information on new block entrance.
    *
-   * @param baseFee the base fee of the block
-   * @param coinbase the coinbase of the block
+   * @param processableBlockHeader the processable block header
    */
-  void update(final BigInteger baseFee, final Address coinbase) {
+  public void update(final ProcessableBlockHeader processableBlockHeader) {
     this.blockNumber++;
-    this.minerAddress = coinbase;
-    this.baseFee = Wei.of(baseFee);
+    this.minerAddress = processableBlockHeader.getCoinbase();
+    this.baseFee = Wei.fromQuantity(processableBlockHeader.getBaseFee().orElseThrow());
   }
 }

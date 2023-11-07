@@ -37,7 +37,6 @@ import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
-import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
@@ -122,14 +121,14 @@ public class RomLex implements Module {
     if (tx.getInit().isPresent() && !tx.getInit().orElseThrow().isEmpty()) {
       codeIdentifierBeforeLexOrder += 1;
       this.chunks.add(
-        new RomChunk(
-          Address.contractAddress(tx.getSender(), tx.getNonce()),
-          1,
-          true,
-          false,
-          false,
-          codeIdentifierBeforeLexOrder,
-          tx.getInit().get()));
+          new RomChunk(
+              Address.contractAddress(tx.getSender(), tx.getNonce()),
+              1,
+              true,
+              false,
+              false,
+              codeIdentifierBeforeLexOrder,
+              tx.getInit().get()));
     }
 
     // Call to an account with bytecode

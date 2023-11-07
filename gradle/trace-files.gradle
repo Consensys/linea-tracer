@@ -1,5 +1,5 @@
 /*
- * Copyright ConsenSys AG.
+ * Copyright Consensys Software Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,32 +12,6 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-
-abstract class TraceFilesTask extends Exec {
-    @Input
-    abstract Property<String> getModule()
-    @Input
-    abstract ListProperty<String> getFiles()
-    @Input
-    @Optional
-    abstract Property<String> getModuleDir()
-
-    @Override
-    protected void exec() {
-        def arguments = ["besu",
-                         "-P", module.get(),
-                         "-o", "src/main/java/net/consensys/linea/zktracer/module/${moduleDir.getOrElse(module.get())}"
-        ]
-        arguments.addAll(files.get().collect({"zkevm-constraints/${it}"}))
-
-        workingDir project.rootDir
-        executable "corset"
-        args arguments
-
-        println "Generating traces for ${module.get()} from ${arguments}"
-        super.exec()
-    }
-}
 
 // Special case: ALU modules
 ['add', 'ext', 'mod', 'mul'].each { moduleName ->
@@ -89,9 +63,22 @@ tasks.register('instructionDecoder', TraceFilesTask) {
 }
 
 //
+// Modules requiring the library
+//
+['rlp_txrcpt', 'rlp_txn', 'rlpAddr', 'txn_data'].each {moduleName ->
+    tasks.register(moduleName, TraceFilesTask) {
+        group "Trace files generation"
+        dependsOn corsetExists
+
+        module = moduleName
+        files = ["${moduleName}/columns.lisp", "rlp_patterns/constraints.lisp"]
+    }
+}
+
+//
 // Put here modules following the conventional MODULE/columns.lisp naming scheme
 //
-['bin', 'ec_data', 'mxp', 'shf', 'wcp', 'rlp_txrcpt', 'rlp_txn', 'rlpAddr', 'rom', 'romLex'].each {moduleName ->
+['bin', 'ec_data', 'mmu', 'mxp', 'shf', 'wcp', 'rom', 'romLex', 'trm'].each {moduleName ->
     tasks.register(moduleName, TraceFilesTask) {
         group "Trace files generation"
         dependsOn corsetExists

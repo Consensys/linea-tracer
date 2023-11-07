@@ -1,5 +1,7 @@
+import java.time.LocalTime
+
 /*
- * Copyright ConsenSys AG.
+ * Copyright Consensys Software Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -63,20 +65,39 @@ test {
 tasks.test.dependsOn(buildZkevmBin)
 
 tasks.register('unitTests', Test) {
+  description = 'Runs unit tests.'
+
   useJUnitPlatform {
     excludeTags("AcceptanceTest")
+    excludeTags("ReferenceTest")
   }
 }
 
-tasks.register('acceptanceTest', Test) {
-  dependsOn rootProject.copyPluginJar
-  inputs.property "integration.date", LocalTime.now() // so it runs at every invocation
-  include '**'
+tasks.register('referenceTests', Test) {
+  description = 'Runs ETH reference tests.'
 
-  useJUnitPlatform {}
+  useJUnitPlatform {
+    includeTags("BlockchainReferenceTest")
+    includeTags("GeneralStateReferenceTest")
+  }
+}
+
+test {
+  exclude('**/**ReferenceTest*')
+}
+
+tasks.register('acceptanceTests', Test) {
+  description = 'Runs acceptance tests.'
+
+  dependsOn(project(":arithmetization").copyPluginJar)
+
+  inputs.property("integration.date", LocalTime.now()) // so it runs on every invocation
+
+  useJUnitPlatform {
+    includeTags("AcceptanceTest")
+  }
 
   doFirst {
-    systemProperty "besu.plugins.dir", rootProject.ext.pluginDir
+    systemProperty("besu.plugins.dir", rootProject.besuPluginDir)
   }
 }
-

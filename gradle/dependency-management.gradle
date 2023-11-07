@@ -1,5 +1,5 @@
 /*
- * Copyright ConsenSys AG.
+ * Copyright Consensys Software Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -56,13 +56,19 @@ dependencyManagement {
 
     dependency 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
     dependency 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.15.2'
+    dependency 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.15.2'
 
     dependency 'commons-io:commons-io:2.11.0'
     dependency 'org.apache.commons:commons-lang3:3.13.0'
     dependency 'com.google.guava:guava:32.1.2-jre'
 
     // Besu dependencies
-    dependency "$besuArtifactGroup:plugin-api:${besuVersion}"
+
+    dependencySet(group: "${besuArtifactGroup}", version: "${besuVersion}") {
+      entry "besu-datatypes"
+      entry "evm"
+      entry "plugin-api"
+    }
 
     // Logging dependencies
     dependency 'org.slf4j:slf4j-api:2.0.7'
@@ -87,7 +93,8 @@ dependencyManagement {
     }
 
     dependency 'junit:junit:4.13.2'
-    dependencySet(group: 'org.junit.jupiter', version: '5.9.3') {
+    dependency 'org.junit.vintage:junit-vintage-engine:5.10.0'
+    dependencySet(group: 'org.junit.jupiter', version: '5.10.0') {
       entry 'junit-jupiter-api'
       entry 'junit-jupiter-engine'
       entry 'junit-jupiter-params'

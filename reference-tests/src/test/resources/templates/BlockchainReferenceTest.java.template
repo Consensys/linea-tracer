@@ -24,6 +24,7 @@ import java.util.stream.Stream;
 
 import net.consensys.linea.EvmExtension;
 
+import org.hyperledger.besu.ethereum.referencetests.BlockchainReferenceTestCaseSpec;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;

@@ -18,8 +18,6 @@ package net.consensys.linea.generated.blockchain;
 import static net.consensys.linea.BlockchainReferenceTestTools.executeTest;
 import static net.consensys.linea.BlockchainReferenceTestTools.generateTestParametersForConfig;
 
-import net.consensys.linea.BlockchainReferenceTestCaseSpec;
-
 import java.util.stream.Stream;
 
 import net.consensys.linea.EvmExtension;

@@ -69,32 +69,7 @@ tasks.register('unitTests', Test) {
 
   useJUnitPlatform {
     excludeTags("AcceptanceTest")
-    excludeTags("ReferenceTest")
-  }
-}
-
-tasks.register('referenceBlockchainTests', Test) {
-  description = 'Runs ETH reference blockchain tests.'
-
-  useJUnitPlatform {
-    includeTags("BlockchainReferenceTest")
-  }
-}
-
-tasks.register('referenceGeneralStateTests', Test) {
-  description = 'Runs ETH reference general state tests.'
-
-  useJUnitPlatform {
-    includeTags("GeneralStateReferenceTest")
-  }
-}
-
-tasks.register('referenceTests', Test) {
-  description = 'Runs ETH reference tests.'
-
-  useJUnitPlatform {
-    includeTags("BlockchainReferenceTest")
-    includeTags("GeneralStateReferenceTest")
+    exclude('**/**ReferenceTest*')
   }
 }
 

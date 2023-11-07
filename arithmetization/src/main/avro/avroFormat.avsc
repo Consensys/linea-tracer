@@ -3,19 +3,19 @@
   "namespace": "net.consensys.linea.zktracer",
   "name": "AvroAddTrace",
   "fields": [
-    { "name": "ACC1", "type": "long"},
-    { "name": "ACC2", "type": "long"},
-    { "name": "ARG1HI", "type": "long"},
-    { "name": "ARG1LO", "type": "long"},
-    { "name": "ARG2HI", "type": "long"},
-    { "name": "ARG2LO", "type": "long"},
+    { "name": "ACC1", "type": "bytes"},
+    { "name": "ACC2", "type": "bytes"},
+    { "name": "ARG1HI", "type": "bytes"},
+    { "name": "ARG1LO", "type": "bytes"},
+    { "name": "ARG2HI", "type": "bytes"},
+    { "name": "ARG2LO", "type": "bytes"},
     { "name": "BYTE1", "type": "bytes"},
     { "name": "BYTE2", "type": "bytes"},
-    { "name": "CT", "type": "long"},
-    { "name": "INST", "type": "long"},
+    { "name": "CT", "type": "bytes"},
+    { "name": "INST", "type": "bytes"},
     { "name": "OVERFLOW", "type": "boolean"},
-    { "name": "RESHI", "type": "long"},
-    { "name": "RESLO", "type": "long"},
-    { "name": "STAMP", "type": "long"}
+    { "name": "RESHI", "type": "bytes"},
+    { "name": "RESLO", "type": "bytes"},
+    { "name": "STAMP", "type": "bytes"}
   ]
 }

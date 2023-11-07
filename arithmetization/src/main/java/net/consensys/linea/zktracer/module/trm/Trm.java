@@ -18,7 +18,7 @@ package net.consensys.linea.zktracer.module.trm;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
 
-public class Trm implements Module {
+public class Trm implements Module<Object> {
   @Override
   public String jsonKey() {
     return "trm";

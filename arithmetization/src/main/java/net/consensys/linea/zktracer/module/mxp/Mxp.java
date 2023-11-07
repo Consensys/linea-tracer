@@ -30,11 +30,12 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.gas.BillingRate;
 import net.consensys.linea.zktracer.opcode.gas.MxpType;
 import net.consensys.linea.zktracer.types.UnsignedByte;
+import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 /** Implementation of a {@link Module} for memory expansion. */
-public class Mxp implements Module {
+public class Mxp implements Module<Trace> {
   /** A list of the operations to trace */
   private final StackedList<MxpData> chunks = new StackedList<>();
 
@@ -173,12 +174,4 @@ public class Mxp implements Module {
     return Trace.headers(this.lineCount());
   }
 
-  @Override
-  public List<AvroAddTrace> commitToBuffer(ByteBuffer target) {
-    final Trace.BufferTraceWriter trace = new Trace.BufferTraceWriter(target, this.lineCount());
-    for (int i = 0; i < this.chunks.size(); i++) {
-      this.traceChunk(this.chunks.get(i), i + 1, trace);
-    }
-      return null;
-  }
 }

@@ -32,7 +32,7 @@ import org.junit.jupiter.api.TestFactory;
 public class MxpTracerTest {
   // private static final Random RAND = new Random();
   private static final int TEST_REPETITIONS = 2;
-  private static final Module MODULE = new Mxp();
+  private static final Mxp MODULE = new Mxp();
   private static final DynamicTests DYN_TESTS = DynamicTests.forModule(MODULE);
 
   @TestFactory

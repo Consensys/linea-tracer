@@ -76,7 +76,7 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 
 @Slf4j
 @Accessors(fluent = true)
-public class Hub implements Module {
+public class Hub implements Module<Trace> {
   private static final int TAU = 8;
   public static final GasProjector gp = new GasProjector();
 
@@ -132,21 +132,21 @@ public class Hub implements Module {
     this.state.currentTxTrace().add(section);
   }
 
-  private final Module add = new Add();
-  private final Module ext = new Ext();
-  private final Module mod = new Mod();
-  private final Module mul = new Mul();
-  private final Module shf = new Shf();
+  private final Add add = new Add();
+  private final Ext ext = new Ext();
+  private final Mod mod = new Mod();
+  private final Mul mul = new Mul();
+  private final Shf shf = new Shf();
   private final Wcp wcp = new Wcp();
   private final RlpTxn rlpTxn;
-  private final Module mxp;
+  private final Mxp mxp;
   private final RlpTxrcpt rlpTxrcpt = new RlpTxrcpt();
   private final RlpAddr rlpAddr = new RlpAddr();
   private final Rom rom;
   private final RomLex romLex;
   private final TxnData txnData;
 
-  private final List<Module> modules;
+  private final List<Module<?>> modules;
 
   public Hub() {
     this.mxp = new Mxp(this);
@@ -177,21 +177,21 @@ public class Hub implements Module {
   /**
    * @return a list of all modules for which to generate traces
    */
-  public List<Module> getModulesToTrace() {
+  public List<Module<?>> getModulesToTrace() {
     return List.of(
                 this,
                 this.romLex,
                 this.add,
-        //        this.ext,
+                this.ext,
         //        this.mod,
-        //        this.mul,
+                this.mul,
 //                this.shf,
 //                this.wcp,
-                this.mxp
+                this.mxp,
 //                this.rlpTxn,
         //        this.rlpTxrcpt,
         //        this.rlpAddr,
-//                this.rom
+                this.rom
         //        this.txnData
         );
   }
@@ -589,7 +589,7 @@ public class Hub implements Module {
     this.state.enter();
     this.tx.enter();
 
-    for (Module m : this.modules) {
+    for (Module<?> m : this.modules) {
       m.enterTransaction();
     }
   }
@@ -611,7 +611,7 @@ public class Hub implements Module {
       this.processStateInit(world);
     }
 
-    for (Module m : this.modules) {
+    for (Module<?> m : this.modules) {
       m.traceStartTx(world, tx);
     }
   }
@@ -620,7 +620,7 @@ public class Hub implements Module {
   public void popTransaction() {
     this.tx.pop();
     this.state.pop();
-    for (Module m : this.modules) {
+    for (Module<?> m : this.modules) {
       m.popTransaction();
     }
   }
@@ -641,7 +641,7 @@ public class Hub implements Module {
 
     this.state.currentTxTrace().postTxRetcon(this);
 
-    for (Module m : this.modules) {
+    for (Module<?> m : this.modules) {
       m.traceEndTx(world, tx, status, output, logs, gasUsed);
     }
   }
@@ -730,7 +730,7 @@ public class Hub implements Module {
 
       this.defers.runNextContext(this, frame);
 
-      for (Module m : this.modules) {
+      for (Module<?> m : this.modules) {
         m.traceContextEnter(frame);
       }
     }
@@ -757,7 +757,7 @@ public class Hub implements Module {
 
       this.callStack.exit(frame.getOutputData());
 
-      for (Module m : this.modules) {
+      for (Module<?> m : this.modules) {
         m.traceContextExit(frame);
       }
     }
@@ -852,7 +852,7 @@ public class Hub implements Module {
   @Override
   public void traceStartBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
     this.block.update(blockHeader);
-    for (Module m : this.modules) {
+    for (Module<?> m : this.modules) {
       m.traceStartBlock(blockHeader, blockBody);
     }
   }
@@ -860,7 +860,7 @@ public class Hub implements Module {
   @Override
   public void traceStartConflation(long blockCount) {
     this.conflation.update();
-    for (Module m : this.modules) {
+    for (Module<?> m : this.modules) {
       m.traceStartConflation(blockCount);
     }
   }
@@ -868,7 +868,7 @@ public class Hub implements Module {
   @Override
   public void traceEndConflation() {
     this.state.postConflationRetcon(this);
-    for (Module m : this.modules) {
+    for (Module<?> m : this.modules) {
       m.traceEndConflation();
     }
   }
@@ -1258,10 +1258,4 @@ public class Hub implements Module {
     return Trace.headers(this.lineCount());
   }
 
-  @Override
-  public List<AvroAddTrace> commitToBuffer(ByteBuffer target) {
-    final Trace.TraceBuilder trace = new Trace.TraceBuilder(target, this.lineCount());
-    this.state.commit(trace);
-    return null;
-  }
 }

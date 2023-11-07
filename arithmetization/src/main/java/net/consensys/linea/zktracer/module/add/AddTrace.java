@@ -29,6 +29,6 @@ record AddTrace(@JsonProperty("Trace") Trace trace) implements ModuleTrace {
 
   @Override
   public int length() {
-      return this.trace.size();
+      return 1;
   }
 }

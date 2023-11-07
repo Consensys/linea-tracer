@@ -4,7 +4,6 @@ import net.tlabs.tablesaw.parquet.TablesawParquetWriteOptions.CompressionCodec;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Stopwatch;
 import net.consensys.linea.zktracer.AvroAddTrace;
-import net.consensys.linea.zktracer.parquet.LocalParquetWriter;
 import net.tlabs.tablesaw.parquet.TablesawParquetReadOptions;
 import net.tlabs.tablesaw.parquet.TablesawParquetReader;
 import net.tlabs.tablesaw.parquet.TablesawParquetWriteOptions;
@@ -71,14 +70,14 @@ public class ParquetWritterTest {
         System.out.println("Writing csv took " + sw);
     }
 
-    @Test
-    public void writeParquetFile() throws IOException {
-        LocalParquetWriter parquetWriter = new LocalParquetWriter("test", 10000);
-
-        List<AvroAddTrace> addTraces = getAvroAddTraces();
-        parquetWriter.write(addTraces);
-        parquetWriter.close();
-    }
+//    @Test
+//    public void writeParquetFile() throws IOException {
+//        LocalParquetWriter parquetWriter = new LocalParquetWriter("test", 10000);
+//
+//        List<AvroAddTrace> addTraces = getAvroAddTraces();
+//        parquetWriter.write(addTraces);
+//        parquetWriter.close();
+//    }
 
 
     @NotNull

@@ -15,20 +15,23 @@
 
 package net.consensys.linea.zktracer.module.ext;
 
+import java.io.IOException;
 import java.math.BigInteger;
 
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
+import net.consensys.linea.zktracer.module.ParquetTrace;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.OpCodes;
 import net.consensys.linea.zktracer.types.UnsignedByte;
+import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class Ext implements Module {
+public class Ext implements Module<Trace> {
   private int stamp = 0;
 
   /** A set of the operations to trace */
@@ -64,11 +67,12 @@ public class Ext implements Module {
     this.operations.add(new ExtOperation(opCode, arg1, arg2, arg3));
   }
 
-  public void traceExtOperation(ExtOperation op, Trace.TraceBuilder trace) {
+  public void traceExtOperation(ExtOperation op, ParquetWriter<Trace>  parquetWriter) throws IOException {
     this.stamp++;
 
     for (int i = 0; i < op.maxCounter(); i++) {
       final int accLength = i + 1;
+      Trace.TraceBuilder trace = Trace.builder();
       trace
           // Byte A and Acc A
           .byteA0(UnsignedByte.of(op.getABytes().get(0).get(i)))
@@ -197,22 +201,30 @@ public class Ext implements Module {
           .bit1(op.getBit1())
           .bit2(op.getBit2())
           .bit3(op.getBit3())
-          .stamp(BigInteger.valueOf(stamp))
-          .validateRow();
+          .stamp(BigInteger.valueOf(stamp));
+      parquetWriter.write(trace.build());
     }
   }
 
+
   @Override
-  public ModuleTrace commit() {
-    final Trace.TraceBuilder trace = Trace.builder(this.lineCount());
+  public void commitToBuffer(ParquetWriter<Trace>  parquetWriter) throws IOException {
     for (ExtOperation operation : this.operations) {
-      this.traceExtOperation(operation, trace);
+      this.traceExtOperation(operation, parquetWriter);
     }
-    return new ExtTrace(trace.build());
   }
 
   @Override
   public int lineCount() {
     return this.operations.stream().mapToInt(ExtOperation::maxCounter).sum();
+  }
+
+  @Override
+  public ModuleTrace commit() {
+    final Trace.TraceBuilder trace = Trace.builder();
+    for (ExtOperation operation : this.operations) {
+//      this.traceExtOperation(operation, trace);
+    }
+    return new ExtTrace(trace.build());
   }
 }

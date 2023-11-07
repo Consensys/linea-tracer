@@ -15,20 +15,23 @@
 
 package net.consensys.linea.zktracer.module.mul;
 
+import java.io.IOException;
 import java.math.BigInteger;
 
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
+import net.consensys.linea.zktracer.module.ParquetTrace;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.UnsignedByte;
+import org.apache.parquet.hadoop.*;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class Mul implements Module {
+public class Mul implements Module<Trace> {
   /** A set of the operations to trace */
   private final StackedSet<MulOperation> operations = new StackedSet<>();
 
@@ -65,44 +68,54 @@ public class Mul implements Module {
 
   @Override
   public ModuleTrace commit() {
-    final Trace.TraceBuilder trace = Trace.builder(this.lineCount() + 16);
+    final Trace.TraceBuilder trace = Trace.builder();
     for (var op : this.operations) {
-      this.traceMulOperation(op, trace);
+//      this.traceMulOperation(op, trace);
     }
-    this.traceMulOperation(new MulOperation(OpCode.EXP, Bytes32.ZERO, Bytes32.ZERO), trace);
+//    this.traceMulOperation(new MulOperation(OpCode.EXP, Bytes32.ZERO, Bytes32.ZERO), trace);
 
     return new MulTrace(trace.build());
   }
 
-  private void traceMulOperation(final MulOperation op, Trace.TraceBuilder trace) {
+  @Override
+  public void commitToBuffer(ParquetWriter<Trace> parquetWriter) throws IOException {
+    for (var op : this.operations) {
+      this.traceMulOperation(op, parquetWriter);
+    }
+    this.traceMulOperation(new MulOperation(OpCode.EXP, Bytes32.ZERO, Bytes32.ZERO), parquetWriter);
+
+  }
+
+  private void traceMulOperation(final MulOperation op, ParquetWriter<Trace> parquetWriter) throws IOException {
     this.stamp++;
 
     switch (op.getRegime()) {
-      case EXPONENT_ZERO_RESULT -> traceSubOp(op, trace);
+      case EXPONENT_ZERO_RESULT -> traceSubOp(op, parquetWriter);
 
       case EXPONENT_NON_ZERO_RESULT -> {
         while (op.carryOn()) {
           op.update();
-          traceSubOp(op, trace);
+          traceSubOp(op, parquetWriter);
         }
       }
 
       case TRIVIAL_MUL, NON_TRIVIAL_MUL -> {
         op.setHsAndBits(UInt256.fromBytes(op.getArg1()), UInt256.fromBytes(op.getArg2()));
-        traceSubOp(op, trace);
+        traceSubOp(op, parquetWriter);
       }
 
       default -> throw new RuntimeException("regime not supported");
     }
   }
 
-  private void traceSubOp(final MulOperation data, Trace.TraceBuilder trace) {
+  private void traceSubOp(final MulOperation data, ParquetWriter<Trace> parquetWriter) throws IOException {
     for (int ct = 0; ct < data.maxCt(); ct++) {
-      traceRow(data, ct, trace);
+      traceRow(data, ct, parquetWriter);
     }
   }
 
-  private void traceRow(final MulOperation op, final int i, Trace.TraceBuilder trace) {
+  private void traceRow(final MulOperation op, final int i, ParquetWriter<Trace> parquetWriter) throws IOException {
+    Trace.TraceBuilder trace = Trace.builder();
     trace
         .mulStamp(BigInteger.valueOf(stamp))
         .counter(BigInteger.valueOf(i))
@@ -154,8 +167,9 @@ public class Mul implements Module {
         .exponentBitAccumulator(op.expAcc.toUnsignedBigInteger())
         .exponentBitSource(op.isExponentInSource())
         .squareAndMultiply(op.squareAndMultiply)
-        .bitNum(BigInteger.valueOf(op.getBitNum()))
-        .validateRow();
+        .bitNum(BigInteger.valueOf(op.getBitNum()));
+    var build = trace.build();
+    parquetWriter.write(build);
   }
 
   @Override

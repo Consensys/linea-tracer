@@ -15,22 +15,19 @@
 
 package net.consensys.linea.zktracer.module.add;
 
+import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
-
-import net.consensys.linea.zktracer.AvroAddTrace;
-import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.bytestheta.BaseBytes;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
+import net.consensys.linea.zktracer.module.ParquetTrace;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.OpCodes;
 import net.consensys.linea.zktracer.types.Bytes16;
 import net.consensys.linea.zktracer.types.UnsignedByte;
+import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -38,7 +35,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 /**
  * Implementation of a {@link Module} for addition/subtraction.
  */
-public class Add implements Module {
+public class Add implements Module<Trace> {
     private static final UInt256 TWO_TO_THE_128 = UInt256.ONE.shiftLeft(128);
 
     private int stamp = 0;
@@ -101,10 +98,9 @@ public class Add implements Module {
      * @param arg2   second operand
      * @return
      */
-    private List<AvroAddTrace> traceAddOperation(
-            OpCode opCode, Bytes32 arg1, Bytes32 arg2, Trace.BufferTraceWriter trace) {
+    private void traceAddOperation(
+            OpCode opCode, Bytes32 arg1, Bytes32 arg2, ParquetWriter<Trace> parquetWriter) throws IOException {
         this.stamp++;
-        List<AvroAddTrace> result = new ArrayList<>(16);
         final Bytes16 arg1Hi = Bytes16.wrap(arg1.slice(0, 16));
         final Bytes32 arg1Lo = Bytes32.leftPad(arg1.slice(16));
         final Bytes16 arg2Hi = Bytes16.wrap(arg2.slice(0, 16));
@@ -144,21 +140,7 @@ public class Add implements Module {
             }
 
             overflowLo = (addRes.compareTo(TWO_TO_THE_128) >= 0);
-            result.add(new AvroAddTrace(
-                    ByteBuffer.wrap(resHi.slice(0, 1 + i).toUnsignedBigInteger().toByteArray()),
-                    ByteBuffer.wrap(resLo.slice(0, 1 + i).toUnsignedBigInteger().toByteArray()),
-                    ByteBuffer.wrap(arg1Hi.toUnsignedBigInteger().toByteArray()),
-                    ByteBuffer.wrap(arg1Lo.toUnsignedBigInteger().toByteArray()),
-                    ByteBuffer.wrap(arg2Hi.toUnsignedBigInteger().toByteArray()),
-                    ByteBuffer.wrap(arg2Lo.toUnsignedBigInteger().toByteArray()),
-                    UnsignedByte.of(resHi.get(i)).getByteBuffer(),
-                    UnsignedByte.of(resLo.get(i)).getByteBuffer(),
-                    ByteBuffer.wrap(BigInteger.valueOf(i).toByteArray()),
-                    ByteBuffer.wrap(BigInteger.valueOf(opCodeData.value()).toByteArray()),
-                    overflowBit(i, overflowHi, overflowLo),
-                    ByteBuffer.wrap(resHi.toUnsignedBigInteger().toByteArray()), ByteBuffer.wrap(resLo.toUnsignedBigInteger().toByteArray()),
-                    ByteBuffer.wrap(BigInteger.valueOf(stamp).toByteArray())));
-            trace
+            Trace record = new Trace.TraceBuilder()
                     .acc1(resHi.slice(0, 1 + i).toUnsignedBigInteger())
                     .acc2(resLo.slice(0, 1 + i).toUnsignedBigInteger())
                     .arg1Hi(arg1Hi.toUnsignedBigInteger())
@@ -173,20 +155,15 @@ public class Add implements Module {
                     .resHi(resHi.toUnsignedBigInteger())
                     .resLo(resLo.toUnsignedBigInteger())
                     .stamp(BigInteger.valueOf(stamp))
-                    .validateRow();
+                    .build();
+
+            parquetWriter.write(record);
         }
-
-        return result;
-    }
-
-    @Override
-    public List<ColumnHeader> columnsHeaders() {
-        return Trace.headers(this.lineCount());
     }
 
     @Override
     public ModuleTrace commit() {
-        final Trace.TraceBuilder trace = new Trace.TraceBuilder(this.lineCount());
+        final Trace.TraceBuilder trace = new Trace.TraceBuilder();
         for (AddOperation op : this.chunks) {
 //      this.traceAddOperation(op.opCodem(), op.arg1(), op.arg2(), trace);
         }
@@ -195,14 +172,10 @@ public class Add implements Module {
     }
 
     @Override
-    public List<AvroAddTrace> commitToBuffer(ByteBuffer target) {
-        final Trace.BufferTraceWriter trace = new Trace.BufferTraceWriter(target, this.lineCount());
-        List<AvroAddTrace> results = new ArrayList<>(this.chunks.size() * 16);
+    public void commitToBuffer(ParquetWriter<Trace> parquetWriter) throws IOException {
         for (AddOperation op : this.chunks) {
-            results.addAll(this.traceAddOperation(op.opCodem(), op.arg1(), op.arg2(), trace));
+            this.traceAddOperation(op.opCodem(), op.arg1(), op.arg2(), parquetWriter);
         }
-
-        return results;
     }
 
     @Override

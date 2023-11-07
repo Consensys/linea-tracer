@@ -32,7 +32,7 @@ import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
-public class Trm implements Module {
+public class Trm implements Module<Object> {
   @Override
   public String jsonKey() {
     return "trm";

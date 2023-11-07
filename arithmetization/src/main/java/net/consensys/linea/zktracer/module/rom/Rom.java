@@ -17,20 +17,17 @@ package net.consensys.linea.zktracer.module.rom;
 
 import static net.consensys.linea.zktracer.module.rlputils.Pattern.padToGivenSizeWithRightZero;
 
+import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
-import java.util.List;
-
-import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
-import net.consensys.linea.zktracer.AvroAddTrace;
 import net.consensys.linea.zktracer.module.romLex.RomChunk;
 import net.consensys.linea.zktracer.module.romLex.RomLex;
 import net.consensys.linea.zktracer.types.UnsignedByte;
+import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.tuweni.bytes.Bytes;
 
-public class Rom implements Module {
+public class Rom implements Module<Trace> {
   private static final int LLARGE = 16;
   private static final int LLARGE_MO = 15;
   private static final int EVM_WORD_MO = 31;
@@ -73,7 +70,7 @@ public class Rom implements Module {
     return LLARGE * nbSlice + nPaddingRow;
   }
 
-  private void traceChunk(RomChunk chunk, int cfi, int cfiInfty, Trace.BufferTraceWriter trace) {
+  private void traceChunk(RomChunk chunk, int cfi, int cfiInfty, ParquetWriter<Trace> target) throws IOException {
     final int chunkRowSize = chunkRowSize(chunk);
     final int codeSize = chunk.byteCode().size();
     final int nLimbSlice = (codeSize + (LLARGE - 1)) / LLARGE;
@@ -91,7 +88,7 @@ public class Rom implements Module {
     for (int i = 0; i < chunkRowSize; i++) {
       boolean codeSizeReached = i >= codeSize;
       int sliceNumber = i / 16;
-
+      Trace.TraceBuilder trace = new Trace.TraceBuilder();
       // Fill Generic columns
       trace
           .codeFragmentIndex(BigInteger.valueOf(cfi))
@@ -186,13 +183,13 @@ public class Rom implements Module {
         }
       }
 
-      trace.validateRow();
+      target.write(trace.build());
     }
   }
 
   @Override
   public ModuleTrace commit() {
-    final Trace.TraceBuilder trace = Trace.builder(this.lineCount());
+    final Trace.TraceBuilder trace = Trace.builder();
 
     int cfi = 0;
     final int cfiInfty = this.romLex.sortedChunks.size();
@@ -205,21 +202,13 @@ public class Rom implements Module {
   }
 
   @Override
-  public List<ColumnHeader> columnsHeaders() {
-    return Trace.headers(this.lineCount());
-  }
-
-  @Override
-  public List<AvroAddTrace> commitToBuffer(ByteBuffer target) {
-    final Trace.BufferTraceWriter trace = new Trace.BufferTraceWriter(target, this.lineCount());
-
+  public void commitToBuffer(ParquetWriter<Trace> target) throws IOException {
 
     int cfi = 0;
     final int cfiInfty = this.romLex.sortedChunks.size();
     for (RomChunk chunk : this.romLex.sortedChunks) {
       cfi += 1;
-      traceChunk(chunk, cfi, cfiInfty, trace);
+      traceChunk(chunk, cfi, cfiInfty, target);
     }
-      return null;
   }
 }

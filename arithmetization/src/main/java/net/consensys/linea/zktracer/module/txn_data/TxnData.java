@@ -44,7 +44,7 @@ import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 
 @RequiredArgsConstructor
-public class TxnData implements Module {
+public class TxnData implements Module<Trace> {
   private final Hub hub;
   private final RomLex romLex;
   private final Wcp wcp;

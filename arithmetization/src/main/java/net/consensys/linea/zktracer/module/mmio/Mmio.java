@@ -18,7 +18,7 @@ package net.consensys.linea.zktracer.module.mmio;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
 
-public class Mmio implements Module {
+public class Mmio implements Module<Object> {
   @Override
   public String jsonKey() {
     return null;

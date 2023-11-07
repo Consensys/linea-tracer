@@ -30,7 +30,7 @@ import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class Mod implements Module {
+public class Mod implements Module<Trace> {
   private int stamp = 0;
 
   @Override

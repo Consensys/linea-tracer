@@ -26,7 +26,7 @@ import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
 class ExtTracerTest {
-  private static final Module MODULE = new Ext();
+  private static final Ext MODULE = new Ext();
 
   private static final DynamicTests DYN_TESTS = DynamicTests.forModule(MODULE);
 

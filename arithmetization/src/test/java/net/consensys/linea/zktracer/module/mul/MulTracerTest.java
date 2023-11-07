@@ -35,7 +35,7 @@ class MulTracerTest {
 
   private static final int TEST_MUL_REPETITIONS = 4;
 
-  private static final Module MODULE = new Mul();
+  private static final Mul MODULE = new Mul();
 
   private static final DynamicTests DYN_TESTS = DynamicTests.forModule(MODULE);
 

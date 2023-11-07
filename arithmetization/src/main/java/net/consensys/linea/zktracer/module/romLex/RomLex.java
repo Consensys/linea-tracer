@@ -19,20 +19,20 @@ import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static org.hyperledger.besu.crypto.Hash.keccak256;
 import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
+import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
-import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
-import net.consensys.linea.zktracer.AvroAddTrace;
+import net.consensys.linea.zktracer.module.ParquetTrace;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
@@ -44,7 +44,7 @@ import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class RomLex implements Module {
+public class RomLex implements Module<Trace> {
   private static final int LLARGE = 16;
   private static final Bytes CREATE2_SHIFT = bigIntegerToBytes(BigInteger.valueOf(0xff));
   private static final RomChunkComparator romChunkComparator = new RomChunkComparator();
@@ -309,18 +309,19 @@ public class RomLex implements Module {
   }
 
   private void traceChunk(
-      final RomChunk chunk, int cfi, int codeFragmentIndexInfinity, Trace.BufferTraceWriter trace) {
-    trace
-        .codeFragmentIndex(BigInteger.valueOf(cfi))
-        .codeFragmentIndexInfty(BigInteger.valueOf(codeFragmentIndexInfinity))
-        .codeSize(BigInteger.valueOf(chunk.byteCode().size()))
-        .addrHi(chunk.address().slice(0, 4).toUnsignedBigInteger())
-        .addrLo(chunk.address().slice(4, LLARGE).toUnsignedBigInteger())
-        .commitToState(chunk.commitToTheState())
-        .depNumber(BigInteger.valueOf(chunk.deploymentNumber()))
-        .depStatus(chunk.deploymentStatus())
-        .readFromState(chunk.readFromTheState())
-        .validateRow();
+      final RomChunk chunk, int cfi, int codeFragmentIndexInfinity, ParquetWriter<Trace>  target) throws IOException {
+    var trace = Trace.builder()
+            .codeFragmentIndex(BigInteger.valueOf(cfi))
+            .codeFragmentIndexInfty(BigInteger.valueOf(codeFragmentIndexInfinity))
+            .codeSize(BigInteger.valueOf(chunk.byteCode().size()))
+            .addrHi(chunk.address().slice(0, 4).toUnsignedBigInteger())
+            .addrLo(chunk.address().slice(4, LLARGE).toUnsignedBigInteger())
+            .commitToState(chunk.commitToTheState())
+            .depNumber(BigInteger.valueOf(chunk.deploymentNumber()))
+            .depStatus(chunk.deploymentStatus())
+            .readFromState(chunk.readFromTheState())
+            .build();
+    target.write(trace);
   }
 
   @Override
@@ -336,7 +337,7 @@ public class RomLex implements Module {
 
   @Override
   public ModuleTrace commit() {
-    final Trace.TraceBuilder trace = Trace.builder(this.lineCount());
+    final Trace.TraceBuilder trace = Trace.builder();
     final int codeFragmentIndexInfinity = chunks.size();
 
     int cfi = 0;
@@ -348,21 +349,14 @@ public class RomLex implements Module {
   }
 
   @Override
-  public List<ColumnHeader> columnsHeaders() {
-    return Trace.headers(this.lineCount());
-  }
-
-  @Override
-  public List<AvroAddTrace> commitToBuffer(ByteBuffer target) {
-    final Trace.BufferTraceWriter trace = new Trace.BufferTraceWriter(target, this.lineCount());
+  public void commitToBuffer(ParquetWriter<Trace>  target) throws IOException {
     final int codeFragmentIndexInfinity = chunks.size();
 
     int cfi = 0;
     for (RomChunk chunk : sortedChunks) {
       cfi += 1;
-      traceChunk(chunk, cfi, codeFragmentIndexInfinity, trace);
+      traceChunk(chunk, cfi, codeFragmentIndexInfinity, target);
     }
-      return null;
   }
 
 }

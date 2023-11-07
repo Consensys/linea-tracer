@@ -46,9 +46,9 @@ public class DynamicTests {
 
   private final List<DynamicTestCase> testCaseRegistry;
 
-  private final Module module;
+  private final Module<?> module;
 
-  private DynamicTests(Module module) {
+  private DynamicTests(Module<?> module) {
     OpCodes.load();
     this.module = module;
     this.testCaseRegistry = new LinkedList<>();
@@ -62,7 +62,7 @@ public class DynamicTests {
    * @param module module instance for which a dynamic test suite should be run
    * @return an instance of {@link DynamicTests}
    */
-  public static DynamicTests forModule(Module module) {
+  public static DynamicTests forModule(Module<?> module) {
     return new DynamicTests(module);
   }
 
@@ -107,7 +107,7 @@ public class DynamicTests {
         .flatMap(e -> generateTestCases(e.name(), e.arguments(), e.customAssertions()));
   }
 
-  private List<OpCode> supportedOpCodes(Module module) {
+  private List<OpCode> supportedOpCodes(Module<?> module) {
     if (module instanceof Add) {
       return List.of(OpCode.ADD, OpCode.SUB);
     } else if (module instanceof Ext) {

@@ -15,12 +15,12 @@
 
 package net.consensys.linea.zktracer.module;
 
-import java.nio.ByteBuffer;
+import java.io.IOException;
 import java.util.List;
 
-import net.consensys.linea.zktracer.AvroAddTrace;
 import net.consensys.linea.zktracer.ColumnHeader;
 import org.apache.commons.lang3.NotImplementedException;
+import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -30,7 +30,7 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 
-public interface Module {
+public interface Module<T> {
   String jsonKey();
 
   default void traceStartConflation(final long blockCount) {}
@@ -77,12 +77,11 @@ public interface Module {
       final MessageFrame frame, final Operation.OperationResult operationResult) {}
 
   default List<ColumnHeader> columnsHeaders() {
-throw new NotImplementedException();
+    throw new NotImplementedException();
   }
 
   ModuleTrace commit();
 
-  default List<AvroAddTrace> commitToBuffer(ByteBuffer target) {
-      return null;
+  default void commitToBuffer(ParquetWriter<T> target) throws IOException {
   }
 }

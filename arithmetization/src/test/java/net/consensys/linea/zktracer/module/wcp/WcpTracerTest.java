@@ -28,7 +28,7 @@ import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
 class WcpTracerTest {
-  private static final Module MODULE = new Wcp();
+  private static final Wcp MODULE = new Wcp();
 
   private static final DynamicTests DYN_TESTS = DynamicTests.forModule(MODULE);
 

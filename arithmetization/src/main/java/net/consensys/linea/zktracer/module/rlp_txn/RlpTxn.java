@@ -53,7 +53,7 @@ import org.hyperledger.besu.ethereum.rlp.RLPOutput;
 import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class RlpTxn implements Module {
+public class RlpTxn implements Module<Trace> {
   private final RomLex romLex;
 
   public RlpTxn(RomLex _romLex) {

@@ -31,7 +31,7 @@ import net.consensys.linea.zktracer.runtime.stack.StackOperation;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.commons.lang3.ArrayUtils;
 
-public class Mmu implements Module {
+public class Mmu implements Module<Trace> {
   private final StackedList<MicroData> state = new StackedList<>();
   private Mmio mmio;
   private int ramStamp;

@@ -23,9 +23,14 @@ import com.google.common.base.Stopwatch;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.module.add.ORCWriter;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCodes;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.orc.OrcFile;
+import org.apache.orc.Reader;
+import org.apache.orc.Writer;
 import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.MessageTypeParser;
@@ -103,61 +108,42 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
     @SuppressWarnings({"deprecation", "unchecked"})
     public void writeToFile(String filename) throws IOException {
         log.warn("COUCOU c'est parti");
-//    final List<ColumnHeader> traceMap =
-//        this.hub.getModulesToTrace().stream().flatMap(m -> m.columnsHeaders().stream()).toList();
-//    final long headerSize = traceMap.stream().mapToInt(ColumnHeader::headerSize).sum() + 2;
-//    final long traceSize = traceMap.stream().mapToLong(ColumnHeader::cumulatedSize).sum();
-//    log.info("Headers: " + traceMap);
-//    log.info("Header: " + headerSize);
-//    log.info("Trace: " + traceSize);
-//    assert traceSize < Integer.MAX_VALUE;
-
-//    try (RandomAccessFile file = new RandomAccessFile(filename, "rw")) {
-//      MappedByteBuffer mmap = file.getChannel().map(FileChannel.MapMode.READ_WRITE, 0, headerSize+traceSize);
-//      ByteBuffer header = mmap;
-//
-//      header.putShort((short) traceMap.size());
-//      for (ColumnHeader h : traceMap) {
-//        final String name = h.name();
-//        header.putShort((short) name.length());
-//        for (int i = 0; i < name.length(); i++) {
-//          header.put((byte) name.charAt(i));
-//        }
-//        header.put((byte) h.bytesPerElement());
-//        header.putInt(h.eltCount());
-//      }
 
 //      int i = (int)headerSize;
         for (Module<?> m : this.hub.getModulesToTrace()) {
             Stopwatch sw = Stopwatch.createStarted();
 
-            Path path = new Path(filename + m.jsonKey() + ".parquet");
             switch (m.jsonKey().toUpperCase()) {
                 case "ADD" -> {
-                    try (ParquetWriter<net.consensys.linea.zktracer.module.add.Trace> writer = new ParquetWriter<>(path, new net.consensys.linea.zktracer.module.add.WriteSupport())) {
-                        ((Module<net.consensys.linea.zktracer.module.add.Trace>) m).commitToBuffer(writer);
+                    try (Writer writer = ORCWriter.getWriter(filename)) {
+                        m.commitToBuffer(writer);
                     }
                 }
                 case "ROM" -> {
-                    try (ParquetWriter<net.consensys.linea.zktracer.module.rom.Trace> writer = new ParquetWriter<>(path, new net.consensys.linea.zktracer.module.rom.WriteSupport())) {
-                        ((Module<net.consensys.linea.zktracer.module.rom.Trace>) m).commitToBuffer(writer);
+                    try (Writer writer =  net.consensys.linea.zktracer.module.rom.ORCWriter.getWriter(filename)) {
+                        m.commitToBuffer(writer);
+                    }
+                    Configuration conf = new Configuration();
+                    try (Reader reader = OrcFile.createReader(new Path(filename + "_rom" + ".orc"),
+                            OrcFile.readerOptions(conf))) {
+                        System.out.println(reader.getNumberOfRows());
                     }
                 }
-                case "MUL" -> {
-                    try (ParquetWriter<net.consensys.linea.zktracer.module.mul.Trace> writer = new ParquetWriter<>(path, new net.consensys.linea.zktracer.module.mul.WriteSupport())) {
-                        ((Module<net.consensys.linea.zktracer.module.mul.Trace>) m).commitToBuffer(writer);
-                    }
-                }
-                case "ROMLEX" -> {
-                    try (ParquetWriter<net.consensys.linea.zktracer.module.romLex.Trace> writer = new ParquetWriter<>(path, new net.consensys.linea.zktracer.module.romLex.WriteSupport())) {
-                        ((Module<net.consensys.linea.zktracer.module.romLex.Trace>) m).commitToBuffer(writer);
-                    }
-                }
-                case "EXT" -> {
-                    try (ParquetWriter<net.consensys.linea.zktracer.module.ext.Trace> writer = new ParquetWriter<>(path, new net.consensys.linea.zktracer.module.ext.WriteSupport())) {
-                        ((Module<net.consensys.linea.zktracer.module.ext.Trace>) m).commitToBuffer(writer);
-                    }
-                }
+//                case "MUL" -> {
+//                    try (ParquetWriter<net.consensys.linea.zktracer.module.mul.Trace> writer = new ParquetWriter<>(path, new net.consensys.linea.zktracer.module.mul.WriteSupport())) {
+//                        ((Module<net.consensys.linea.zktracer.module.mul.Trace>) m).commitToBuffer(writer);
+//                    }
+//                }
+//                case "ROMLEX" -> {
+//                    try (ParquetWriter<net.consensys.linea.zktracer.module.romLex.Trace> writer = new ParquetWriter<>(path, new net.consensys.linea.zktracer.module.romLex.WriteSupport())) {
+//                        ((Module<net.consensys.linea.zktracer.module.romLex.Trace>) m).commitToBuffer(writer);
+//                    }
+//                }
+//                case "EXT" -> {
+//                    try (ParquetWriter<net.consensys.linea.zktracer.module.ext.Trace> writer = new ParquetWriter<>(path, new net.consensys.linea.zktracer.module.ext.WriteSupport())) {
+//                        ((Module<net.consensys.linea.zktracer.module.ext.Trace>) m).commitToBuffer(writer);
+//                    }
+//                }
 
                 default -> {
                 }

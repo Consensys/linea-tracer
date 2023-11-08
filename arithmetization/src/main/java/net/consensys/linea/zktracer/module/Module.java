@@ -20,6 +20,7 @@ import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
 import org.apache.commons.lang3.NotImplementedException;
+import org.apache.orc.Writer;
 import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -82,6 +83,6 @@ public interface Module<T> {
 
   ModuleTrace commit();
 
-  default void commitToBuffer(ParquetWriter<T> target) throws IOException {
+  default void commitToBuffer(Writer writer) throws IOException {
   }
 }

@@ -38,7 +38,7 @@ public class RollupGetTracesCountersByBlockNumberV0 {
   }
 
   public String getName() {
-    return "generateConflatedTracesToFileV0";
+    return "generateTracesCountersByBlockNumberV0";
   }
 
   /**
@@ -47,16 +47,15 @@ public class RollupGetTracesCountersByBlockNumberV0 {
    * @param request holds parameters of the RPC request.
    * @return traces counts by module for the given block.
    */
-  public Map<String, Long> execute(final PluginRpcRequest request) {
+  public TracesCounters execute(final PluginRpcRequest request) {
     try {
       final TracesCountersRequestParams params =
           TracesCountersRequestParams.createParams(request.getParams());
 
       final ZkTracer tracer = new ZkTracer();
 
-      // return tracer.getTracesCounters(params.fromBlock());
-      // TODO: iterate over zkTracer modules and collect their size
-      return null;
+      return new TracesCounters(
+          params.runtimeVersion(), tracer.getTracesCounters(params.fromBlock()));
     } catch (Exception ex) {
       throw new PluginRpcEndpointException(ex.getMessage());
     }

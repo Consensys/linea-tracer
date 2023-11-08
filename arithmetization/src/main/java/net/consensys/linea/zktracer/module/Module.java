@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys AG.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -73,4 +73,8 @@ public interface Module {
       final MessageFrame frame, final Operation.OperationResult operationResult) {}
 
   ModuleTrace commit();
+
+  default long getTracesCounters(long fromBlock) {
+    return 0;
+  }
 }

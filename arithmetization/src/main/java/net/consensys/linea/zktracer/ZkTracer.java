@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys AG.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -124,6 +124,14 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
   @Override
   public void traceContextExit(MessageFrame frame) {
     this.hub.traceContextExit(frame);
+  }
+
+  public Map<String, Long> getTracesCounters(long fromBlock) {
+    Map<String, Long> counters = new HashMap<>();
+    for (Module module : this.hub.getModulesToTrace()) {
+      counters.put(module.jsonKey(), module.getTracesCounters(fromBlock));
+    }
+    return counters;
   }
 
   /** When called, erase all tracing related to the last included transaction. */

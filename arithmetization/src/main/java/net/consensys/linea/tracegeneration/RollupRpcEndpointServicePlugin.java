@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys AG.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.tracegeneration.rpc.RollupGenerateConflatedTracesToFileV0;
 import net.consensys.linea.tracegeneration.rpc.RollupGetTracesCountersByBlockNumberV0;
 import net.consensys.linea.zktracer.opcode.OpCodes;
+import net.consensys.linea.tracegeneration.rpc.RollupGetTracesCountersByBlockNumberV0;
 import org.hyperledger.besu.plugin.BesuContext;
 import org.hyperledger.besu.plugin.BesuPlugin;
 import org.hyperledger.besu.plugin.services.RpcEndpointService;

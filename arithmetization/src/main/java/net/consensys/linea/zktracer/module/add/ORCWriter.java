@@ -22,14 +22,12 @@ import org.apache.orc.TypeDescription;
 import org.apache.orc.Writer;
 
 import java.io.IOException;
-
 /**
  * WARNING: This code is generated automatically.
  * Any modifications to this code may be overwritten and could lead to unexpected behavior.
  * Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
 public class ORCWriter {
-
 
     public static Writer getWriter(String fileName) throws IOException {
         Configuration conf = new Configuration();
@@ -47,11 +45,13 @@ public class ORCWriter {
                 .addField("OVERFLOW", getTypeDescription("Boolean"))
                 .addField("RES_HI", getTypeDescription("BigInteger"))
                 .addField("RES_LO", getTypeDescription("BigInteger"))
-                .addField("STAMP", getTypeDescription("BigInteger"));
+                .addField("STAMP", getTypeDescription("BigInteger"))
+                ;
 
-        return OrcFile.createWriter(new Path(fileName + "_add" + ".orc"),
-                OrcFile.writerOptions(conf)
-                        .setSchema(schema));
+        Writer writer = OrcFile.createWriter(new Path(fileName + "_add" +".orc"),
+                OrcFile.writerOptions(conf).setSchema(schema));
+
+        return writer;
     }
 
     private static TypeDescription getTypeDescription(String className) {

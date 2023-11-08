@@ -37,149 +37,160 @@ import java.io.IOException;
  * Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
 public class TraceBuilder {
+
+    private final int rowId;
+    private final VectorizedRowBatch batch;
+    private final Writer writer;
+
+    public TraceBuilder(int row, VectorizedRowBatch batch, Writer writer) {
+        this.writer = writer;
+        this.batch = batch;
+        this.rowId = row;
+    }
+
     private final BitSet filled = new BitSet();
-    public TraceBuilder acc1(VectorizedRowBatch batch, int rowId, BigInteger b) {
+    public TraceBuilder acc1(BigInteger b) {
 
         if (filled.get(0)) {
             throw new IllegalStateException("ACC_1 already set");
         } else {
             filled.set(0);
         }
-        processBigInteger(batch, b, 0, rowId);
+        processBigInteger(b, 0);
         return this;
     }
-    public TraceBuilder acc2(VectorizedRowBatch batch, int rowId, BigInteger b) {
+    public TraceBuilder acc2(BigInteger b) {
 
         if (filled.get(1)) {
             throw new IllegalStateException("ACC_2 already set");
         } else {
             filled.set(1);
         }
-        processBigInteger(batch, b, 1, rowId);
+        processBigInteger(b, 1);
         return this;
     }
-    public TraceBuilder arg1Hi(VectorizedRowBatch batch, int rowId, BigInteger b) {
+    public TraceBuilder arg1Hi(BigInteger b) {
 
         if (filled.get(2)) {
             throw new IllegalStateException("ARG_1_HI already set");
         } else {
             filled.set(2);
         }
-        processBigInteger(batch, b, 2, rowId);
+        processBigInteger(b, 2);
         return this;
     }
-    public TraceBuilder arg1Lo(VectorizedRowBatch batch, int rowId, BigInteger b) {
+    public TraceBuilder arg1Lo(BigInteger b) {
 
         if (filled.get(3)) {
             throw new IllegalStateException("ARG_1_LO already set");
         } else {
             filled.set(3);
         }
-        processBigInteger(batch, b, 3, rowId);
+        processBigInteger(b, 3);
         return this;
     }
-    public TraceBuilder arg2Hi(VectorizedRowBatch batch, int rowId, BigInteger b) {
+    public TraceBuilder arg2Hi(BigInteger b) {
 
         if (filled.get(4)) {
             throw new IllegalStateException("ARG_2_HI already set");
         } else {
             filled.set(4);
         }
-        processBigInteger(batch, b, 4, rowId);
+        processBigInteger(b, 4);
         return this;
     }
-    public TraceBuilder arg2Lo(VectorizedRowBatch batch, int rowId, BigInteger b) {
+    public TraceBuilder arg2Lo(BigInteger b) {
 
         if (filled.get(5)) {
             throw new IllegalStateException("ARG_2_LO already set");
         } else {
             filled.set(5);
         }
-        processBigInteger(batch, b, 5, rowId);
+        processBigInteger(b, 5);
         return this;
     }
-    public TraceBuilder byte1(VectorizedRowBatch batch, int rowId, UnsignedByte b) {
+    public TraceBuilder byte1(UnsignedByte b) {
 
         if (filled.get(6)) {
             throw new IllegalStateException("BYTE_1 already set");
         } else {
             filled.set(6);
         }
-        processUnsignedByte(batch, b, 6, rowId);
+        processUnsignedByte(b, 6);
         return this;
     }
-    public TraceBuilder byte2(VectorizedRowBatch batch, int rowId, UnsignedByte b) {
+    public TraceBuilder byte2(UnsignedByte b) {
 
         if (filled.get(7)) {
             throw new IllegalStateException("BYTE_2 already set");
         } else {
             filled.set(7);
         }
-        processUnsignedByte(batch, b, 7, rowId);
+        processUnsignedByte(b, 7);
         return this;
     }
-    public TraceBuilder ct(VectorizedRowBatch batch, int rowId, BigInteger b) {
+    public TraceBuilder ct(BigInteger b) {
 
         if (filled.get(8)) {
             throw new IllegalStateException("CT already set");
         } else {
             filled.set(8);
         }
-        processBigInteger(batch, b, 8, rowId);
+        processBigInteger(b, 8);
         return this;
     }
-    public TraceBuilder inst(VectorizedRowBatch batch, int rowId, BigInteger b) {
+    public TraceBuilder inst(BigInteger b) {
 
         if (filled.get(9)) {
             throw new IllegalStateException("INST already set");
         } else {
             filled.set(9);
         }
-        processBigInteger(batch, b, 9, rowId);
+        processBigInteger(b, 9);
         return this;
     }
-    public TraceBuilder overflow(VectorizedRowBatch batch, int rowId, Boolean b) {
+    public TraceBuilder overflow(Boolean b) {
 
         if (filled.get(10)) {
             throw new IllegalStateException("OVERFLOW already set");
         } else {
             filled.set(10);
         }
-        processBoolean(batch, b, 10, rowId);
+        processBoolean(b, 10);
         return this;
     }
-    public TraceBuilder resHi(VectorizedRowBatch batch, int rowId, BigInteger b) {
+    public TraceBuilder resHi(BigInteger b) {
 
         if (filled.get(11)) {
             throw new IllegalStateException("RES_HI already set");
         } else {
             filled.set(11);
         }
-        processBigInteger(batch, b, 11, rowId);
+        processBigInteger(b, 11);
         return this;
     }
-    public TraceBuilder resLo(VectorizedRowBatch batch, int rowId, BigInteger b) {
+    public TraceBuilder resLo(BigInteger b) {
 
         if (filled.get(12)) {
             throw new IllegalStateException("RES_LO already set");
         } else {
             filled.set(12);
         }
-        processBigInteger(batch, b, 12, rowId);
+        processBigInteger(b, 12);
         return this;
     }
-    public TraceBuilder stamp(VectorizedRowBatch batch, int rowId, BigInteger b) {
+    public TraceBuilder stamp(BigInteger b) {
 
         if (filled.get(13)) {
             throw new IllegalStateException("STAMP already set");
         } else {
             filled.set(13);
         }
-        processBigInteger(batch, b, 13, rowId);
+        processBigInteger(b, 13);
         return this;
     }
 
-    public void validateRowAndFlush(VectorizedRowBatch batch, Writer writer)  throws IOException {
+    public void validateRowAndFlush()  throws IOException {
         if (!filled.get(0)) {
             throw new IllegalStateException("ACC_1 has not been filled");
         }
@@ -245,17 +256,17 @@ public class TraceBuilder {
         }
     }
 
-    private void processBigInteger(VectorizedRowBatch batch, BigInteger b, int columnId, int rowId) {
+    private void processBigInteger(BigInteger b, int columnId) {
         BytesColumnVector columnVector = (BytesColumnVector) batch.cols[columnId];
         columnVector.setVal(rowId, b.toByteArray());
     }
 
-    private void processUnsignedByte(VectorizedRowBatch batch, UnsignedByte b, int columnId, int rowId) {
+    private void processUnsignedByte(UnsignedByte b, int columnId) {
         BytesColumnVector columnVector = (BytesColumnVector) batch.cols[columnId];
         columnVector.setVal(rowId, new byte[]{b.toByte()});
     }
 
-    private void processBoolean(VectorizedRowBatch batch, Boolean b, int columnId, int rowId) {
+    private void processBoolean(Boolean b, int columnId) {
         LongColumnVector columnVector = (LongColumnVector) batch.cols[columnId];
         columnVector.vector[rowId] = b ? 1L : 0L;
     }

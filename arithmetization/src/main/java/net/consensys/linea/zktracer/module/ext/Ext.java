@@ -25,6 +25,8 @@ import net.consensys.linea.zktracer.module.ParquetTrace;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.OpCodes;
 import net.consensys.linea.zktracer.types.UnsignedByte;
+import org.apache.hadoop.hive.ql.exec.vector.VectorizedRowBatch;
+import org.apache.orc.Writer;
 import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -67,12 +69,13 @@ public class Ext implements Module<Trace> {
     this.operations.add(new ExtOperation(opCode, arg1, arg2, arg3));
   }
 
-  public void traceExtOperation(ExtOperation op, ParquetWriter<Trace>  parquetWriter) throws IOException {
+  public void traceExtOperation(ExtOperation op, Writer writer, VectorizedRowBatch batch) throws IOException {
     this.stamp++;
 
     for (int i = 0; i < op.maxCounter(); i++) {
+      int row = batch.size++;
       final int accLength = i + 1;
-      Trace.TraceBuilder trace = Trace.builder();
+      TraceBuilder trace = new TraceBuilder(row, batch, writer);
       trace
           // Byte A and Acc A
           .byteA0(UnsignedByte.of(op.getABytes().get(0).get(i)))
@@ -83,7 +86,7 @@ public class Ext implements Module<Trace> {
           .accA1(op.getABytes().get(1).slice(0, accLength).toUnsignedBigInteger())
           .accA2(op.getABytes().get(2).slice(0, accLength).toUnsignedBigInteger())
           .accA3(op.getABytes().get(3).slice(0, accLength).toUnsignedBigInteger())
-          // Byte B and Acc B
+          //Byte B and Acc B
           .byteB0(UnsignedByte.of(op.getBBytes().get(0).get(i)))
           .byteB1(UnsignedByte.of(op.getBBytes().get(1).get(i)))
           .byteB2(UnsignedByte.of(op.getBBytes().get(2).get(i)))
@@ -92,7 +95,7 @@ public class Ext implements Module<Trace> {
           .accB1(op.getBBytes().get(1).slice(0, accLength).toUnsignedBigInteger())
           .accB2(op.getBBytes().get(2).slice(0, accLength).toUnsignedBigInteger())
           .accB3(op.getBBytes().get(3).slice(0, accLength).toUnsignedBigInteger())
-          // Byte C and Acc C
+          //Byte C and Acc C
           .byteC0(UnsignedByte.of(op.getCBytes().get(0).get(i)))
           .byteC1(UnsignedByte.of(op.getCBytes().get(1).get(i)))
           .byteC2(UnsignedByte.of(op.getCBytes().get(2).get(i)))
@@ -101,7 +104,7 @@ public class Ext implements Module<Trace> {
           .accC1(op.getCBytes().get(1).slice(0, accLength).toUnsignedBigInteger())
           .accC2(op.getCBytes().get(2).slice(0, accLength).toUnsignedBigInteger())
           .accC3(op.getCBytes().get(3).slice(0, accLength).toUnsignedBigInteger())
-          // Byte Delta and Acc Delta
+          //Byte Delta and Acc Delta
           .byteDelta0(UnsignedByte.of(op.getDeltaBytes().get(0).get(i)))
           .byteDelta1(UnsignedByte.of(op.getDeltaBytes().get(1).get(i)))
           .byteDelta2(UnsignedByte.of(op.getDeltaBytes().get(2).get(i)))
@@ -110,7 +113,7 @@ public class Ext implements Module<Trace> {
           .accDelta1(op.getDeltaBytes().get(1).slice(0, accLength).toUnsignedBigInteger())
           .accDelta2(op.getDeltaBytes().get(2).slice(0, accLength).toUnsignedBigInteger())
           .accDelta3(op.getDeltaBytes().get(3).slice(0, accLength).toUnsignedBigInteger())
-          // Byte H and Acc H
+          //Byte H and Acc H
           .byteH0(UnsignedByte.of(op.getHBytes().get(0).get(i)))
           .byteH1(UnsignedByte.of(op.getHBytes().get(1).get(i)))
           .byteH2(UnsignedByte.of(op.getHBytes().get(2).get(i)))
@@ -123,7 +126,7 @@ public class Ext implements Module<Trace> {
           .accH3(op.getHBytes().get(3).slice(0, accLength).toUnsignedBigInteger())
           .accH4(op.getHBytes().get(4).slice(0, accLength).toUnsignedBigInteger())
           .accH5(op.getHBytes().get(5).slice(0, accLength).toUnsignedBigInteger())
-          // Byte I and Acc I
+          //Byte I and Acc I
           .byteI0(UnsignedByte.of(op.getIBytes().get(0).get(i)))
           .byteI1(UnsignedByte.of(op.getIBytes().get(1).get(i)))
           .byteI2(UnsignedByte.of(op.getIBytes().get(2).get(i)))
@@ -138,7 +141,7 @@ public class Ext implements Module<Trace> {
           .accI4(op.getIBytes().get(4).slice(0, accLength).toUnsignedBigInteger())
           .accI5(op.getIBytes().get(5).slice(0, accLength).toUnsignedBigInteger())
           .accI6(op.getIBytes().get(6).slice(0, accLength).toUnsignedBigInteger())
-          // Byte J and Acc J
+          //Byte J and Acc J
           .byteJ0(UnsignedByte.of(op.getJBytes().get(0).get(i)))
           .byteJ1(UnsignedByte.of(op.getJBytes().get(1).get(i)))
           .byteJ2(UnsignedByte.of(op.getJBytes().get(2).get(i)))
@@ -155,7 +158,7 @@ public class Ext implements Module<Trace> {
           .accJ5(op.getJBytes().get(5).slice(0, accLength).toUnsignedBigInteger())
           .accJ6(op.getJBytes().get(6).slice(0, accLength).toUnsignedBigInteger())
           .accJ7(op.getJBytes().get(7).slice(0, accLength).toUnsignedBigInteger())
-          // Byte Q and Acc Q
+          //Byte Q and Acc Q
           .byteQ0(UnsignedByte.of(op.getQBytes().get(0).get(i)))
           .byteQ1(UnsignedByte.of(op.getQBytes().get(1).get(i)))
           .byteQ2(UnsignedByte.of(op.getQBytes().get(2).get(i)))
@@ -172,7 +175,7 @@ public class Ext implements Module<Trace> {
           .accQ5(op.getQBytes().get(5).slice(0, accLength).toUnsignedBigInteger())
           .accQ6(op.getQBytes().get(6).slice(0, accLength).toUnsignedBigInteger())
           .accQ7(op.getQBytes().get(7).slice(0, accLength).toUnsignedBigInteger())
-          // Byte R and Acc R
+          //Byte R and Acc R
           .byteR0(UnsignedByte.of(op.getRBytes().get(0).get(i)))
           .byteR1(UnsignedByte.of(op.getRBytes().get(1).get(i)))
           .byteR2(UnsignedByte.of(op.getRBytes().get(2).get(i)))
@@ -181,7 +184,7 @@ public class Ext implements Module<Trace> {
           .accR1(op.getRBytes().get(1).slice(0, accLength).toUnsignedBigInteger())
           .accR2(op.getRBytes().get(2).slice(0, accLength).toUnsignedBigInteger())
           .accR3(op.getRBytes().get(3).slice(0, accLength).toUnsignedBigInteger())
-          // other
+          //other
           .arg1Hi(op.getArg1().getHigh().toUnsignedBigInteger())
           .arg1Lo(op.getArg1().getLow().toUnsignedBigInteger())
           .arg2Hi(op.getArg2().getHigh().toUnsignedBigInteger())
@@ -202,17 +205,24 @@ public class Ext implements Module<Trace> {
           .bit2(op.getBit2())
           .bit3(op.getBit3())
           .stamp(BigInteger.valueOf(stamp));
-      parquetWriter.write(trace.build());
+      trace.validateRowAndFlush();
     }
   }
 
 
-//  @Override
-//  public void commitToBuffer(ParquetWriter<Trace>  parquetWriter) throws IOException {
-//    for (ExtOperation operation : this.operations) {
-//      this.traceExtOperation(operation, parquetWriter);
-//    }
-//  }
+  @Override
+  public void commitToBuffer(Writer writer) throws IOException {
+    VectorizedRowBatch batch = writer.getSchema().createRowBatch();
+
+    for (ExtOperation operation : this.operations) {
+      this.traceExtOperation(operation, writer, batch);
+    }
+
+    if (batch.size != 0) {
+      writer.addRowBatch(batch);
+      batch.reset();
+    }
+  }
 
   @Override
   public int lineCount() {

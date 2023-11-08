@@ -21,10 +21,10 @@ import java.math.BigInteger;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
-import net.consensys.linea.zktracer.module.ParquetTrace;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.UnsignedByte;
-import org.apache.parquet.hadoop.*;
+import org.apache.hadoop.hive.ql.exec.vector.VectorizedRowBatch;
+import org.apache.orc.Writer;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -77,45 +77,52 @@ public class Mul implements Module<Trace> {
     return new MulTrace(trace.build());
   }
 
-//  @Override
-//  public void commitToBuffer(ParquetWriter<Trace> parquetWriter) throws IOException {
-//    for (var op : this.operations) {
-//      this.traceMulOperation(op, parquetWriter);
-//    }
-//    this.traceMulOperation(new MulOperation(OpCode.EXP, Bytes32.ZERO, Bytes32.ZERO), parquetWriter);
-//
-//  }
+  @Override
+  public void commitToBuffer(Writer writer) throws IOException {
+    VectorizedRowBatch batch = writer.getSchema().createRowBatch();
 
-  private void traceMulOperation(final MulOperation op, ParquetWriter<Trace> parquetWriter) throws IOException {
+    for (var op : this.operations) {
+      this.traceMulOperation(op, writer, batch);
+    }
+    this.traceMulOperation(new MulOperation(OpCode.EXP, Bytes32.ZERO, Bytes32.ZERO), writer, batch);
+
+    if (batch.size != 0) {
+      writer.addRowBatch(batch);
+      batch.reset();
+    }
+  }
+
+  private void traceMulOperation(final MulOperation op, Writer writer, VectorizedRowBatch batch) throws IOException {
     this.stamp++;
 
     switch (op.getRegime()) {
-      case EXPONENT_ZERO_RESULT -> traceSubOp(op, parquetWriter);
+      case EXPONENT_ZERO_RESULT -> traceSubOp(op, writer, batch);
 
       case EXPONENT_NON_ZERO_RESULT -> {
         while (op.carryOn()) {
           op.update();
-          traceSubOp(op, parquetWriter);
+          traceSubOp(op, writer, batch);
         }
       }
 
       case TRIVIAL_MUL, NON_TRIVIAL_MUL -> {
         op.setHsAndBits(UInt256.fromBytes(op.getArg1()), UInt256.fromBytes(op.getArg2()));
-        traceSubOp(op, parquetWriter);
+        traceSubOp(op, writer, batch);
       }
 
       default -> throw new RuntimeException("regime not supported");
     }
   }
 
-  private void traceSubOp(final MulOperation data, ParquetWriter<Trace> parquetWriter) throws IOException {
+  private void traceSubOp(final MulOperation data, Writer writer, VectorizedRowBatch batch) throws IOException {
     for (int ct = 0; ct < data.maxCt(); ct++) {
-      traceRow(data, ct, parquetWriter);
+      traceRow(data, ct, writer, batch);
     }
   }
 
-  private void traceRow(final MulOperation op, final int i, ParquetWriter<Trace> parquetWriter) throws IOException {
-    Trace.TraceBuilder trace = Trace.builder();
+  private void traceRow(final MulOperation op, final int i, Writer writer, VectorizedRowBatch batch) throws IOException {
+    int row = batch.size++;
+    TraceBuilder trace = new TraceBuilder(row, batch, writer);
     trace
         .mulStamp(BigInteger.valueOf(stamp))
         .counter(BigInteger.valueOf(i))
@@ -168,8 +175,7 @@ public class Mul implements Module<Trace> {
         .exponentBitSource(op.isExponentInSource())
         .squareAndMultiply(op.squareAndMultiply)
         .bitNum(BigInteger.valueOf(op.getBitNum()));
-    var build = trace.build();
-    parquetWriter.write(build);
+    trace.validateRowAndFlush();
   }
 
   @Override

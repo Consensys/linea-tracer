@@ -109,7 +109,7 @@ public class RomLex implements Module {
     }
 
     if (codeFragmentIndex < 0) {
-      throw new RuntimeException("RomChunk not found");
+      throw new RuntimeException("RomChunk n°" + value + " not found");
     }
 
     return codeFragmentIndex;
@@ -159,10 +159,14 @@ public class RomLex implements Module {
 
     switch (opcode) {
       case CREATE -> {
+        final Address currentAddress = frame.getRecipientAddress();
         this.address =
             Address.contractAddress(
-                frame.getSenderAddress(),
-                frame.getWorldUpdater().getSenderAccount(frame).getNonce());
+                currentAddress,
+                frame
+                    .getWorldUpdater()
+                    .getAccount(currentAddress)
+                    .getNonce()); // TODO: use the method done by @Lorenzo in OOB module
 
         final long offset = clampedToLong(frame.getStackItem(1));
         final long length = clampedToLong(frame.getStackItem(2));
@@ -184,7 +188,7 @@ public class RomLex implements Module {
           this.address =
               Address.extract(
                   keccak256(
-                      Bytes.concatenate(CREATE2_SHIFT, frame.getSenderAddress(), salt, hash)));
+                      Bytes.concatenate(CREATE2_SHIFT, frame.getRecipientAddress(), salt, hash)));
         }
       }
 

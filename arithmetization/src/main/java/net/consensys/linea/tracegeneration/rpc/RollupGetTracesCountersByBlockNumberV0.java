@@ -15,8 +15,6 @@
 
 package net.consensys.linea.tracegeneration.rpc;
 
-import java.util.Map;
-
 import com.fasterxml.jackson.core.JsonFactory;
 import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.plugin.BesuContext;

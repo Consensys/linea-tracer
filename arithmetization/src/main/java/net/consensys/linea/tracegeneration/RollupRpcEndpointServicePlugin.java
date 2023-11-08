@@ -20,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.tracegeneration.rpc.RollupGenerateConflatedTracesToFileV0;
 import net.consensys.linea.tracegeneration.rpc.RollupGetTracesCountersByBlockNumberV0;
 import net.consensys.linea.zktracer.opcode.OpCodes;
-import net.consensys.linea.tracegeneration.rpc.RollupGetTracesCountersByBlockNumberV0;
 import org.hyperledger.besu.plugin.BesuContext;
 import org.hyperledger.besu.plugin.BesuPlugin;
 import org.hyperledger.besu.plugin.services.RpcEndpointService;

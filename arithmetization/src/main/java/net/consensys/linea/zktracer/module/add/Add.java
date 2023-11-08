@@ -142,22 +142,22 @@ public class Add implements Module<Trace> {
             }
 
             overflowLo = (addRes.compareTo(TWO_TO_THE_128) >= 0);
-            new TraceBuilder()
-                    .acc1(batch, row, resHi.slice(0, 1 + i).toUnsignedBigInteger())
-                    .acc2(batch, row, resLo.slice(0, 1 + i).toUnsignedBigInteger())
-                    .arg1Hi(batch, row, arg1Hi.toUnsignedBigInteger())
-                    .arg1Lo(batch, row, arg1Lo.toUnsignedBigInteger())
-                    .arg2Hi(batch, row, arg2Hi.toUnsignedBigInteger())
-                    .arg2Lo(batch, row, arg2Lo.toUnsignedBigInteger())
-                    .byte1(batch, row, UnsignedByte.of(resHi.get(i)))
-                    .byte2(batch, row, UnsignedByte.of(resLo.get(i)))
-                    .ct(batch, row, BigInteger.valueOf(i))
-                    .inst(batch, row, BigInteger.valueOf(opCodeData.value()))
-                    .overflow(batch, row, overflowBit(i, overflowHi, overflowLo))
-                    .resHi(batch, row, resHi.toUnsignedBigInteger())
-                    .resLo(batch, row, resLo.toUnsignedBigInteger())
-                    .stamp(batch, row, BigInteger.valueOf(stamp))
-                    .validateRowAndFlush(batch, writer);
+            new TraceBuilder(row, batch, writer)
+                    .acc1(resHi.slice(0, 1 + i).toUnsignedBigInteger())
+                    .acc2(resLo.slice(0, 1 + i).toUnsignedBigInteger())
+                    .arg1Hi(arg1Hi.toUnsignedBigInteger())
+                    .arg1Lo(arg1Lo.toUnsignedBigInteger())
+                    .arg2Hi(arg2Hi.toUnsignedBigInteger())
+                    .arg2Lo(arg2Lo.toUnsignedBigInteger())
+                    .byte1(UnsignedByte.of(resHi.get(i)))
+                    .byte2(UnsignedByte.of(resLo.get(i)))
+                    .ct(BigInteger.valueOf(i))
+                    .inst(BigInteger.valueOf(opCodeData.value()))
+                    .overflow(overflowBit(i, overflowHi, overflowLo))
+                    .resHi(resHi.toUnsignedBigInteger())
+                    .resLo(resLo.toUnsignedBigInteger())
+                    .stamp(BigInteger.valueOf(stamp))
+                    .validateRowAndFlush();
         }
     }
 

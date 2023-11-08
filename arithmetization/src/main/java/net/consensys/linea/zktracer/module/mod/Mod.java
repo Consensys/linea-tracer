@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.mod;
 
+import java.io.IOException;
 import java.math.BigInteger;
 
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
@@ -24,6 +25,8 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.OpCodes;
 import net.consensys.linea.zktracer.types.UnsignedByte;
+import org.apache.hadoop.hive.ql.exec.vector.VectorizedRowBatch;
+import org.apache.orc.Writer;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -64,10 +67,12 @@ public class Mod implements Module<Trace> {
     this.chunks.enter();
   }
 
-  public void traceModOperation(ModOperation op, Trace.TraceBuilder trace) {
+  public void traceModOperation(ModOperation op, Writer writer, VectorizedRowBatch batch) throws IOException {
     this.stamp++;
 
     for (int i = 0; i < op.maxCounter(); i++) {
+      int row = batch.size++;
+      TraceBuilder trace = new TraceBuilder(row, batch, writer);
       final int accLength = i + 1;
       trace
           .stamp(BigInteger.valueOf(stamp))
@@ -132,7 +137,7 @@ public class Mod implements Module<Trace> {
           .cmp2(op.getCmp2()[i])
           .msb1(op.getMsb1()[i])
           .msb2(op.getMsb2()[i])
-          .validateRow();
+          .validateRowAndFlush();
     }
   }
 
@@ -140,11 +145,23 @@ public class Mod implements Module<Trace> {
   public ModuleTrace commit() {
     final Trace.TraceBuilder trace = Trace.builder(this.lineCount());
     for (ModOperation op : this.chunks) {
-      this.traceModOperation(op, trace);
+//      this.traceModOperation(op, trace);
     }
     return new ModTrace(trace.build());
   }
 
+  @Override
+  public void commitToBuffer(Writer writer) throws IOException {
+    VectorizedRowBatch batch = writer.getSchema().createRowBatch();
+
+    for (ModOperation op : this.chunks) {
+      this.traceModOperation(op, writer, batch);
+    }
+    if (batch.size != 0) {
+      writer.addRowBatch(batch);
+      batch.reset();
+    }
+  }
   @Override
   public int lineCount() {
     return this.chunks.stream().mapToInt(ModOperation::maxCounter).sum();

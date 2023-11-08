@@ -17,20 +17,20 @@ package net.consensys.linea.zktracer.module.mxp;
 
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
+import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
-import net.consensys.linea.zktracer.AvroAddTrace;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.gas.BillingRate;
 import net.consensys.linea.zktracer.opcode.gas.MxpType;
 import net.consensys.linea.zktracer.types.UnsignedByte;
-import org.apache.parquet.hadoop.ParquetWriter;
+import org.apache.hadoop.hive.ql.exec.vector.VectorizedRowBatch;
+import org.apache.orc.Writer;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
@@ -62,7 +62,7 @@ public class Mxp implements Module<Trace> {
     //    sanityCheck(opCode, scope, mxpData);
   }
 
-  final void traceChunk(final MxpData chunk, int stamp, Trace.BufferTraceWriter trace) {
+  final void traceChunk(final MxpData chunk, int stamp, Writer writer, VectorizedRowBatch batch) throws IOException {
     Bytes32 acc1Bytes32 = Bytes32.leftPad(bigIntegerToBytes(chunk.getAcc1()));
     Bytes32 acc2Bytes32 = Bytes32.leftPad(bigIntegerToBytes(chunk.getAcc2()));
     Bytes32 acc3Bytes32 = Bytes32.leftPad(bigIntegerToBytes(chunk.getAcc3()));
@@ -75,6 +75,8 @@ public class Mxp implements Module<Trace> {
     int maxCtComplement = 32 - maxCt;
 
     for (int i = 0; i < maxCt; i++) {
+      int row = batch.size++;
+      TraceBuilder trace = new TraceBuilder(row, batch, writer);
       trace
           .stamp(BigInteger.valueOf(stamp))
           .cn(BigInteger.valueOf(chunk.getContextNumber()))
@@ -94,7 +96,7 @@ public class Mxp implements Module<Trace> {
                       ? chunk.getOpCodeData().billing().perUnit().cost()
                       : 0))
           .gbyte(
-              BigInteger.valueOf(
+                  BigInteger.valueOf(
                   chunk.getOpCodeData().billing().billingRate() == BillingRate.BY_BYTE
                       ? chunk.getOpCodeData().billing().perUnit().cost()
                       : 0))
@@ -129,7 +131,7 @@ public class Mxp implements Module<Trace> {
           .byteR(chunk.getByteR()[i].toBigInteger())
           .words(BigInteger.valueOf(chunk.getWords()))
           .wordsNew(
-              BigInteger.valueOf(
+                  BigInteger.valueOf(
                   chunk.getWordsNew())) // TODO: Could (should?) be set in tracePostOp?
           .cMem(BigInteger.valueOf(chunk.getCMem())) // Returns current memory size in EVM words
           .cMemNew(BigInteger.valueOf(chunk.getCMemNew()))
@@ -137,7 +139,7 @@ public class Mxp implements Module<Trace> {
           .linCost(BigInteger.valueOf(chunk.getLinCost()))
           .gasMxp(BigInteger.valueOf(chunk.getQuadCost() + chunk.getEffectiveLinCost()))
           .expands(chunk.isExpands())
-          .validateRow();
+          .validateRowAndFlush();
     }
   }
 
@@ -174,4 +176,16 @@ public class Mxp implements Module<Trace> {
     return Trace.headers(this.lineCount());
   }
 
+  @Override
+  public void commitToBuffer(Writer writer) throws IOException {
+    VectorizedRowBatch batch = writer.getSchema().createRowBatch();
+
+    for (int i = 0; i < this.chunks.size(); i++) {
+      this.traceChunk(this.chunks.get(i), i + 1, writer, batch);
+    }
+    if (batch.size != 0) {
+      writer.addRowBatch(batch);
+      batch.reset();
+    }
+  }
 }

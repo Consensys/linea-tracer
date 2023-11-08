@@ -25,6 +25,7 @@ import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static org.hyperledger.besu.ethereum.core.encoding.EncodingContext.BLOCK_BODY;
 import static org.hyperledger.besu.ethereum.core.encoding.TransactionEncoder.encodeOpaqueBytes;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +40,8 @@ import net.consensys.linea.zktracer.module.rlputils.BitDecOutput;
 import net.consensys.linea.zktracer.module.rlputils.ByteCountAndPowerOutput;
 import net.consensys.linea.zktracer.module.romLex.RomLex;
 import net.consensys.linea.zktracer.types.UnsignedByte;
+import org.apache.hadoop.hive.ql.exec.vector.VectorizedRowBatch;
+import org.apache.orc.Writer;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
@@ -123,7 +126,7 @@ public class RlpTxn implements Module<Trace> {
   }
 
   public void traceChunk(
-      RlpTxnChunk chunk, int absTxNum, int codeFragmentIndex, Trace.TraceBuilder trace) {
+          RlpTxnChunk chunk, int absTxNum, int codeFragmentIndex, Writer writer, VectorizedRowBatch batch) throws IOException {
 
     // Create the local row storage and specify transaction constant columns
     RlpTxnColumnsValue traceValue = new RlpTxnColumnsValue();
@@ -200,6 +203,7 @@ public class RlpTxn implements Module<Trace> {
 
     // Phase 0 : Global RLP prefix
     traceValue.DATA_LO = BigInteger.valueOf(traceValue.txType);
+    TraceBuilder trace = new TraceBuilder(batch.size++, batch, writer);
     handlePhaseGlobalRlpPrefix(traceValue, trace);
 
     // Phase 1 : ChainId
@@ -300,7 +304,7 @@ public class RlpTxn implements Module<Trace> {
   }
 
   // Define each phase's constraints
-  private void handlePhaseGlobalRlpPrefix(RlpTxnColumnsValue traceValue, Trace.TraceBuilder trace) {
+  private void handlePhaseGlobalRlpPrefix(RlpTxnColumnsValue traceValue, TraceBuilder trace) throws IOException {
     int phase = 0;
     // First, trace the Type prefix of the transaction
     traceValue.partialReset(phase, 1, true, true);
@@ -348,7 +352,7 @@ public class RlpTxn implements Module<Trace> {
       int phase,
       BigInteger input,
       int nbstep,
-      Trace.TraceBuilder trace) {
+      TraceBuilder trace) throws IOException {
     if (input.equals(BigInteger.ZERO)) {
       traceZeroInt(traceValue, phase, true, true, false, true, trace);
     } else {
@@ -357,7 +361,7 @@ public class RlpTxn implements Module<Trace> {
   }
 
   private void handlePhaseTo(
-      RlpTxnColumnsValue traceValue, Transaction tx, Trace.TraceBuilder trace) {
+      RlpTxnColumnsValue traceValue, Transaction tx, TraceBuilder trace) throws IOException {
     int phase = 7;
     boolean lt = true;
     boolean lx = true;
@@ -370,7 +374,7 @@ public class RlpTxn implements Module<Trace> {
   }
 
   private void handlePhaseData(
-      RlpTxnColumnsValue traceValue, Transaction tx, Trace.TraceBuilder trace) {
+      RlpTxnColumnsValue traceValue, Transaction tx, TraceBuilder trace) throws IOException {
     int phase = 9;
     boolean lt = true;
     boolean lx = true;
@@ -469,7 +473,7 @@ public class RlpTxn implements Module<Trace> {
   }
 
   private void handlePhaseAccessList(
-      RlpTxnColumnsValue traceValue, Transaction tx, Trace.TraceBuilder trace) {
+      RlpTxnColumnsValue traceValue, Transaction tx, TraceBuilder trace) throws IOException {
     int phase = 10;
     boolean lt = true;
     boolean lx = true;
@@ -585,7 +589,7 @@ public class RlpTxn implements Module<Trace> {
   }
 
   private void handlePhaseBeta(
-      RlpTxnColumnsValue traceValue, Transaction tx, Trace.TraceBuilder trace) {
+      RlpTxnColumnsValue traceValue, Transaction tx, TraceBuilder trace) throws IOException {
     int phase = 11;
     BigInteger V = tx.getV();
     Preconditions.checkArgument(bigIntegerToBytes(V).size() <= 8, "V is longer than 8 bytes");
@@ -618,7 +622,7 @@ public class RlpTxn implements Module<Trace> {
   }
 
   private void handlePhaseY(
-      RlpTxnColumnsValue traceValue, Transaction tx, Trace.TraceBuilder trace) {
+      RlpTxnColumnsValue traceValue, Transaction tx, TraceBuilder trace) throws IOException {
     traceValue.partialReset(12, 1, true, false);
     traceValue.INPUT_1 = bigIntegerToBytes(tx.getV());
     traceValue.LIMB_CONSTRUCTED = true;
@@ -643,7 +647,7 @@ public class RlpTxn implements Module<Trace> {
       boolean depth2,
       boolean endPhase,
       RlpTxnColumnsValue traceValue,
-      Trace.TraceBuilder trace) {
+      TraceBuilder trace) throws IOException {
     int lengthSize = bigIntegerToBytes(BigInteger.valueOf(length)).size();
 
     ByteCountAndPowerOutput byteCountingOutput = byteCounting(lengthSize, 8);
@@ -722,7 +726,7 @@ public class RlpTxn implements Module<Trace> {
       boolean endPhase,
       boolean onlyPrefix,
       RlpTxnColumnsValue traceValue,
-      Trace.TraceBuilder trace) {
+      TraceBuilder trace) throws IOException {
 
     traceValue.partialReset(phase, nStep, lt, lx);
     traceValue.IS_PREFIX = isPrefix;
@@ -770,7 +774,7 @@ public class RlpTxn implements Module<Trace> {
   }
 
   private void handle32BytesInteger(
-      RlpTxnColumnsValue traceValue, int phase, BigInteger input, Trace.TraceBuilder trace) {
+      RlpTxnColumnsValue traceValue, int phase, BigInteger input, TraceBuilder trace) throws IOException {
     traceValue.partialReset(phase, llarge, true, false);
     if (input.equals(BigInteger.ZERO)) {
       // Trivial case
@@ -847,7 +851,7 @@ public class RlpTxn implements Module<Trace> {
   }
 
   private void handleAddress(
-      RlpTxnColumnsValue traceValue, int phase, Address address, Trace.TraceBuilder trace) {
+      RlpTxnColumnsValue traceValue, int phase, Address address, TraceBuilder trace) throws IOException {
     boolean lt = true;
     boolean lx = true;
     traceValue.partialReset(phase, llarge, lt, lx);
@@ -891,7 +895,7 @@ public class RlpTxn implements Module<Trace> {
       RlpTxnColumnsValue traceValue,
       boolean end_phase,
       Bytes32 storage_key,
-      Trace.TraceBuilder trace) {
+      TraceBuilder trace) throws IOException {
     traceValue.partialReset(10, llarge, true, true);
     traceValue.DEPTH_1 = true;
     traceValue.DEPTH_2 = true;
@@ -1056,7 +1060,7 @@ public class RlpTxn implements Module<Trace> {
       boolean lx,
       boolean isPrefix,
       boolean phaseEnd,
-      Trace.TraceBuilder trace) {
+      TraceBuilder trace) throws IOException {
     traceValue.partialReset(phase, 1, lt, lx);
     traceValue.LIMB_CONSTRUCTED = true;
     traceValue.LIMB = bytesPrefixShortInt;
@@ -1075,7 +1079,7 @@ public class RlpTxn implements Module<Trace> {
       boolean depth1,
       boolean depth2,
       boolean phaseEnd,
-      Trace.TraceBuilder trace) {
+      TraceBuilder trace) throws IOException {
     traceValue.partialReset(phase, 1, lt, lx);
     traceValue.LIMB_CONSTRUCTED = true;
     traceValue.LIMB = bytesPrefixShortList;
@@ -1087,7 +1091,7 @@ public class RlpTxn implements Module<Trace> {
     traceRow(traceValue, trace);
   }
   // Define the Tracer
-  private void traceRow(RlpTxnColumnsValue traceValue, Trace.TraceBuilder builder) {
+  private void traceRow(RlpTxnColumnsValue traceValue, TraceBuilder builder) throws IOException {
     // Decrements RLP_BYTESIZE
     if (traceValue.phase != 0) {
       if (traceValue.LIMB_CONSTRUCTED && traceValue.LT) {
@@ -1155,7 +1159,7 @@ public class RlpTxn implements Module<Trace> {
         .nKeys(BigInteger.valueOf(traceValue.nb_Sto))
         .nKeysPerAddr(BigInteger.valueOf(traceValue.nb_Sto_per_Addr))
         .nStep(UnsignedByte.of(traceValue.nSTEP));
-    List<Function<Boolean, Trace.TraceBuilder>> phaseColumns =
+    List<Function<Boolean, TraceBuilder>> phaseColumns =
         List.of(
             builder::phase0,
             builder::phase1,
@@ -1212,7 +1216,7 @@ public class RlpTxn implements Module<Trace> {
     if (traceValue.PHASE_END) {
       traceValue.DataHiLoReset();
     }
-    builder.validateRow();
+    builder.validateRowAndFlush();
 
     // reconstruct RLPs
     if (traceValue.LIMB_CONSTRUCTED && traceValue.LT) {
@@ -1368,12 +1372,29 @@ public class RlpTxn implements Module<Trace> {
   public ModuleTrace commit() {
     final Trace.TraceBuilder trace = Trace.builder(this.lineCount());
     int absTxNum = 0;
+//    for (RlpTxnChunk chunk : this.chunkList) {
+//      absTxNum += 1;
+//
+//      final int codeFragmentIndex = chunk.id().map(romLex::getCFIById).orElse(0);
+//      traceChunk(chunk, absTxNum, codeFragmentIndex, trace);
+//    }
+    return new RlpTxnTrace(trace.build());
+  }
+
+  @Override
+  public void commitToBuffer(Writer writer) throws IOException {
+    VectorizedRowBatch batch = writer.getSchema().createRowBatch();
+
+    int absTxNum = 0;
     for (RlpTxnChunk chunk : this.chunkList) {
       absTxNum += 1;
 
       final int codeFragmentIndex = chunk.id().map(romLex::getCFIById).orElse(0);
-      traceChunk(chunk, absTxNum, codeFragmentIndex, trace);
+      traceChunk(chunk, absTxNum, codeFragmentIndex, writer, batch);
     }
-    return new RlpTxnTrace(trace.build());
+    if (batch.size != 0) {
+      writer.addRowBatch(batch);
+      batch.reset();
+    }
   }
 }

@@ -29,11 +29,8 @@ import java.io.IOException;
  */
 public class ORCWriter {
 
-
         public static Writer getWriter(String fileName) throws IOException {
                 Configuration conf = new Configuration();
-                conf.set("orc.create.index", "false");
-                conf.set("hive.exec.orc.default.stripe.size", "268435456");
                 TypeDescription schema = TypeDescription.createStruct()
                         .addField("ACC", getTypeDescription("BigInteger"))
                         .addField("CODESIZE_REACHED", getTypeDescription("Boolean"))
@@ -60,10 +57,8 @@ public class ORCWriter {
                         .addField("nBYTES_ACC", getTypeDescription("BigInteger"))
                         ;
 
-
                 Writer writer = OrcFile.createWriter(new Path(fileName + "_rom" +".orc"),
-                        OrcFile.writerOptions(conf)
-                                .setSchema(schema));
+                        OrcFile.writerOptions(conf).setSchema(schema));
 
                 return writer;
         }
@@ -77,3 +72,12 @@ public class ORCWriter {
         }
 
 }
+
+
+
+
+
+
+
+
+

@@ -92,7 +92,7 @@ public class ORCWriter {
       .addField("nSTEP", getTypeDescription("BigInteger"))
     ;
 
-    Writer writer = OrcFile.createWriter(new Path(fileName + "_mxp" +".orc"),
+    Writer writer = OrcFile.createWriter(new Path(fileName + "_rlp_txn" +".orc"),
                                          OrcFile.writerOptions(conf).setSchema(schema));
 
     return writer;

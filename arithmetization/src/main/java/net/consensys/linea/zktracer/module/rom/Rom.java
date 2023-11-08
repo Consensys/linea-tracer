@@ -24,7 +24,8 @@ import net.consensys.linea.zktracer.module.ModuleTrace;
 import net.consensys.linea.zktracer.module.romLex.RomChunk;
 import net.consensys.linea.zktracer.module.romLex.RomLex;
 import net.consensys.linea.zktracer.types.UnsignedByte;
-import org.apache.parquet.hadoop.ParquetWriter;
+import org.apache.hadoop.hive.ql.exec.vector.VectorizedRowBatch;
+import org.apache.orc.Writer;
 import org.apache.tuweni.bytes.Bytes;
 
 public class Rom implements Module<Trace> {
@@ -70,7 +71,7 @@ public class Rom implements Module<Trace> {
     return LLARGE * nbSlice + nPaddingRow;
   }
 
-  private void traceChunk(RomChunk chunk, int cfi, int cfiInfty, ParquetWriter<Trace> target) throws IOException {
+  private void traceChunk(RomChunk chunk, int cfi, int cfiInfty, Writer writer, VectorizedRowBatch batch) throws IOException {
     final int chunkRowSize = chunkRowSize(chunk);
     final int codeSize = chunk.byteCode().size();
     final int nLimbSlice = (codeSize + (LLARGE - 1)) / LLARGE;
@@ -86,39 +87,41 @@ public class Rom implements Module<Trace> {
     Bytes pushValueLow = Bytes.minimalBytes(0);
 
     for (int i = 0; i < chunkRowSize; i++) {
+      int row = batch.size++;
       boolean codeSizeReached = i >= codeSize;
       int sliceNumber = i / 16;
-      Trace.TraceBuilder trace = new Trace.TraceBuilder();
+      TraceBuilder trace = new TraceBuilder();
       // Fill Generic columns
       trace
-          .codeFragmentIndex(BigInteger.valueOf(cfi))
-          .codeFragmentIndexInfty(BigInteger.valueOf(cfiInfty))
-          .programmeCounter(BigInteger.valueOf(i))
-          .limb(dataPadded.slice(sliceNumber * LLARGE, LLARGE).toUnsignedBigInteger())
-          .codeSize(BigInteger.valueOf(codeSize))
-          .paddedBytecodeByte(UnsignedByte.of(dataPadded.get(i)))
-          .acc(dataPadded.slice(sliceNumber * LLARGE, (i % LLARGE) + 1).toUnsignedBigInteger())
-          .codesizeReached(codeSizeReached)
-          .index(BigInteger.valueOf(sliceNumber));
+          .codeFragmentIndex(batch, row, BigInteger.valueOf(cfi))
+          .codeFragmentIndexInfty(batch, row, BigInteger.valueOf(cfiInfty))
+          .programmeCounter(batch, row, BigInteger.valueOf(i))
+          .limb(batch, row, dataPadded.slice(sliceNumber * LLARGE, LLARGE).toUnsignedBigInteger())
+          .codeSize(batch, row, BigInteger.valueOf(codeSize))
+          .paddedBytecodeByte(batch, row, UnsignedByte.of(dataPadded.get(i)))
+          .acc(batch, row, dataPadded.slice(sliceNumber * LLARGE, (i % LLARGE) + 1).toUnsignedBigInteger())
+          .codesizeReached(batch, row, codeSizeReached)
+          .index(batch, row, BigInteger.valueOf(sliceNumber));
 
       // Fill CT, CTmax nBYTES, nBYTES_ACC
       if (sliceNumber < nLimbSlice) {
-        trace.counter(BigInteger.valueOf(i % LLARGE)).counterMax(BigInteger.valueOf(LLARGE_MO));
+        trace.counter(batch, row, BigInteger.valueOf(i % LLARGE))
+             .counterMax(batch, row, BigInteger.valueOf(LLARGE_MO));
         if (sliceNumber < nLimbSlice - 1) {
-          trace.nBytes(BigInteger.valueOf(LLARGE)).nBytesAcc(BigInteger.valueOf((i % LLARGE) + 1));
+          trace.nBytes(batch, row, BigInteger.valueOf(LLARGE))
+               .nBytesAcc(batch, row, BigInteger.valueOf((i % LLARGE) + 1));
         }
         if (sliceNumber == nLimbSlice - 1) {
           trace
-              .nBytes(BigInteger.valueOf(nBytesLastRow))
-              .nBytesAcc(
-                  BigInteger.valueOf(nBytesLastRow).min(BigInteger.valueOf((i % LLARGE) + 1)));
+              .nBytes(batch, row, BigInteger.valueOf(nBytesLastRow))
+              .nBytesAcc(batch, row, BigInteger.valueOf(nBytesLastRow).min(BigInteger.valueOf((i % LLARGE) + 1)));
         }
       } else if (sliceNumber == nLimbSlice || sliceNumber == nLimbSlice + 1) {
         trace
-            .counter(BigInteger.valueOf(i - nLimbSlice * LLARGE))
-            .counterMax(BigInteger.valueOf(EVM_WORD_MO))
-            .nBytes(BigInteger.ZERO)
-            .nBytesAcc(BigInteger.ZERO);
+            .counter(batch, row, BigInteger.valueOf(i - nLimbSlice * LLARGE))
+            .counterMax(batch, row, BigInteger.valueOf(EVM_WORD_MO))
+            .nBytes(batch, row, BigInteger.ZERO)
+            .nBytesAcc(batch, row, BigInteger.ZERO);
       }
 
       // Deal when not in a PUSH instruction
@@ -138,39 +141,39 @@ public class Rom implements Module<Trace> {
         }
 
         trace
-            .isPush(isPush)
-            .isPushData(false)
-            .opcode(opCode)
-            .pushParameter(BigInteger.valueOf(pushParameter))
-            .counterPush(BigInteger.ZERO)
-            .pushValueAcc(BigInteger.ZERO)
-            .pushValueHigh(pushValueHigh.toUnsignedBigInteger())
-            .pushValueLow(pushValueLow.toUnsignedBigInteger())
-            .pushFunnelBit(false)
-            .validJumpDestination(opCode.toInteger() == JUMPDEST);
+            .isPush(batch, row, isPush)
+            .isPushData(batch, row, false)
+            .opcode(batch, row, opCode)
+            .pushParameter(batch, row, BigInteger.valueOf(pushParameter))
+            .counterPush(batch, row, BigInteger.ZERO)
+            .pushValueAcc(batch, row, BigInteger.ZERO)
+            .pushValueHigh(batch, row, pushValueHigh.toUnsignedBigInteger())
+            .pushValueLow(batch, row, pushValueLow.toUnsignedBigInteger())
+            .pushFunnelBit(batch, row, false)
+            .validJumpDestination(batch, row, opCode.toInteger() == JUMPDEST);
       }
       // Deal when in a PUSH instruction
       else {
         ctPush += 1;
         trace
-            .isPush(false)
-            .isPushData(true)
-            .opcode(INVALID)
-            .pushParameter(BigInteger.valueOf(pushParameter))
-            .pushValueHigh(pushValueHigh.toUnsignedBigInteger())
-            .pushValueLow(pushValueLow.toUnsignedBigInteger())
-            .counterPush(BigInteger.valueOf(ctPush))
-            .pushFunnelBit(pushParameter > LLARGE && ctPush > pushParameter - LLARGE)
-            .validJumpDestination(false);
+            .isPush(batch, row, false)
+            .isPushData(batch, row, true)
+            .opcode(batch, row, INVALID)
+            .pushParameter(batch, row, BigInteger.valueOf(pushParameter))
+            .pushValueHigh(batch, row, pushValueHigh.toUnsignedBigInteger())
+            .pushValueLow(batch, row, pushValueLow.toUnsignedBigInteger())
+            .counterPush(batch, row, BigInteger.valueOf(ctPush))
+            .pushFunnelBit(batch, row, pushParameter > LLARGE && ctPush > pushParameter - LLARGE)
+            .validJumpDestination(batch, row, false);
 
         if (pushParameter <= LLARGE) {
-          trace.pushValueAcc(pushValueLow.slice(0, ctPush).toUnsignedBigInteger());
+          trace.pushValueAcc(batch, row, pushValueLow.slice(0, ctPush).toUnsignedBigInteger());
         } else {
           if (ctPush <= pushParameter - LLARGE) {
-            trace.pushValueAcc(pushValueHigh.slice(0, ctPush).toUnsignedBigInteger());
+            trace.pushValueAcc(batch, row, pushValueHigh.slice(0, ctPush).toUnsignedBigInteger());
           } else {
-            trace.pushValueAcc(
-                pushValueLow.slice(0, ctPush + LLARGE - pushParameter).toUnsignedBigInteger());
+            trace.pushValueAcc(batch, row,
+                    pushValueLow.slice(0, ctPush + LLARGE - pushParameter).toUnsignedBigInteger());
           }
         }
 
@@ -183,7 +186,8 @@ public class Rom implements Module<Trace> {
         }
       }
 
-      target.write(trace.build());
+
+      trace.validateRowAndFlush(batch, writer);
     }
   }
 
@@ -202,13 +206,22 @@ public class Rom implements Module<Trace> {
   }
 
   @Override
-  public void commitToBuffer(ParquetWriter<Trace> target) throws IOException {
+  public void commitToBuffer(Writer writer) throws IOException {
+    VectorizedRowBatch batch = writer.getSchema().createRowBatch(10000);
 
     int cfi = 0;
     final int cfiInfty = this.romLex.sortedChunks.size();
-    for (RomChunk chunk : this.romLex.sortedChunks) {
-      cfi += 1;
-      traceChunk(chunk, cfi, cfiInfty, target);
+    for(int i = 0; i< 500_000; i++) {
+      for (RomChunk chunk : this.romLex.sortedChunks) {
+        cfi += 1;
+        traceChunk(chunk, cfi, cfiInfty, writer, batch);
+      }
+    }
+    System.out.println("------------ cfi: "+cfi);
+    if (batch.size != 0) {
+      System.out.println("------------ final flush: "+batch.size);
+      writer.addRowBatch(batch);
+      batch.reset();
     }
   }
 }

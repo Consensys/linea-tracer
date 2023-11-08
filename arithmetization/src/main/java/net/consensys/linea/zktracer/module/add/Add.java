@@ -21,13 +21,13 @@ import net.consensys.linea.zktracer.bytestheta.BaseBytes;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
-import net.consensys.linea.zktracer.module.ParquetTrace;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.OpCodes;
 import net.consensys.linea.zktracer.types.Bytes16;
 import net.consensys.linea.zktracer.types.UnsignedByte;
-import org.apache.parquet.hadoop.ParquetWriter;
+import org.apache.hadoop.hive.ql.exec.vector.VectorizedRowBatch;
+import org.apache.orc.Writer;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -96,10 +96,11 @@ public class Add implements Module<Trace> {
      * @param opCode the operations, ADD or SUB
      * @param arg1   first operand
      * @param arg2   second operand
+     * @param batch
      * @return
      */
     private void traceAddOperation(
-            OpCode opCode, Bytes32 arg1, Bytes32 arg2, ParquetWriter<Trace> parquetWriter) throws IOException {
+            OpCode opCode, Bytes32 arg1, Bytes32 arg2, Writer writer, VectorizedRowBatch batch) throws IOException {
         this.stamp++;
         final Bytes16 arg1Hi = Bytes16.wrap(arg1.slice(0, 16));
         final Bytes32 arg1Lo = Bytes32.leftPad(arg1.slice(16));
@@ -132,6 +133,7 @@ public class Add implements Module<Trace> {
         }
 
         for (int i = 0; i < 16; i++) {
+            int row = batch.size++;
             Bytes32 addRes;
             if (opCode == OpCode.ADD) {
                 addRes = Bytes32.wrap((UInt256.fromBytes(arg1Lo)).add(UInt256.fromBytes(arg2Lo)));
@@ -140,24 +142,22 @@ public class Add implements Module<Trace> {
             }
 
             overflowLo = (addRes.compareTo(TWO_TO_THE_128) >= 0);
-            Trace record = new Trace.TraceBuilder()
-                    .acc1(resHi.slice(0, 1 + i).toUnsignedBigInteger())
-                    .acc2(resLo.slice(0, 1 + i).toUnsignedBigInteger())
-                    .arg1Hi(arg1Hi.toUnsignedBigInteger())
-                    .arg1Lo(arg1Lo.toUnsignedBigInteger())
-                    .arg2Hi(arg2Hi.toUnsignedBigInteger())
-                    .arg2Lo(arg2Lo.toUnsignedBigInteger())
-                    .byte1(UnsignedByte.of(resHi.get(i)))
-                    .byte2(UnsignedByte.of(resLo.get(i)))
-                    .ct(BigInteger.valueOf(i))
-                    .inst(BigInteger.valueOf(opCodeData.value()))
-                    .overflow(overflowBit(i, overflowHi, overflowLo))
-                    .resHi(resHi.toUnsignedBigInteger())
-                    .resLo(resLo.toUnsignedBigInteger())
-                    .stamp(BigInteger.valueOf(stamp))
-                    .build();
-
-            parquetWriter.write(record);
+            new TraceBuilder()
+                    .acc1(batch, row, resHi.slice(0, 1 + i).toUnsignedBigInteger())
+                    .acc2(batch, row, resLo.slice(0, 1 + i).toUnsignedBigInteger())
+                    .arg1Hi(batch, row, arg1Hi.toUnsignedBigInteger())
+                    .arg1Lo(batch, row, arg1Lo.toUnsignedBigInteger())
+                    .arg2Hi(batch, row, arg2Hi.toUnsignedBigInteger())
+                    .arg2Lo(batch, row, arg2Lo.toUnsignedBigInteger())
+                    .byte1(batch, row, UnsignedByte.of(resHi.get(i)))
+                    .byte2(batch, row, UnsignedByte.of(resLo.get(i)))
+                    .ct(batch, row, BigInteger.valueOf(i))
+                    .inst(batch, row, BigInteger.valueOf(opCodeData.value()))
+                    .overflow(batch, row, overflowBit(i, overflowHi, overflowLo))
+                    .resHi(batch, row, resHi.toUnsignedBigInteger())
+                    .resLo(batch, row, resLo.toUnsignedBigInteger())
+                    .stamp(batch, row, BigInteger.valueOf(stamp))
+                    .validateRowAndFlush(batch, writer);
         }
     }
 
@@ -172,9 +172,14 @@ public class Add implements Module<Trace> {
     }
 
     @Override
-    public void commitToBuffer(ParquetWriter<Trace> parquetWriter) throws IOException {
+    public void commitToBuffer(Writer writer) throws IOException {
+        VectorizedRowBatch batch = writer.getSchema().createRowBatch();
         for (AddOperation op : this.chunks) {
-            this.traceAddOperation(op.opCodem(), op.arg1(), op.arg2(), parquetWriter);
+            this.traceAddOperation(op.opCodem(), op.arg1(), op.arg2(), writer, batch);
+        }
+        if (batch.size != 0) {
+            writer.addRowBatch(batch);
+            batch.reset();
         }
     }
 

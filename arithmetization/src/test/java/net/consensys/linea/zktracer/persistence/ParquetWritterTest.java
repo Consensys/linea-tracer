@@ -27,13 +27,83 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.LongStream;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hive.ql.exec.vector.BytesColumnVector;
+import org.apache.hadoop.hive.ql.exec.vector.LongColumnVector;
+import org.apache.hadoop.hive.ql.exec.vector.VectorizedRowBatch;
+import org.apache.orc.OrcFile;
+import org.apache.orc.TypeDescription;
+import org.apache.orc.Writer;
+
+import java.util.Random;
+
 import tech.tablesaw.api.LongColumn;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.columns.Column;
 
 @SuppressWarnings("rawtypes")
 public class ParquetWritterTest {
+    @Test
+    public void orcTest() throws IOException {
+        var type = """
+                struct<ACC_1:binary,ACC_2:binary,ARG_1_HI:binary,ARG_1_LO:binary,ARG_2_HI:binary,ARG_2_LO:binary,BYTE_1:binary,BYTE_2:binary,CT:binary,INST:binary,OVERFLOW:boolean,RES_HI:binary,RES_LO:binary,STAMP:binary>""";
+        Configuration conf = new Configuration();
+        TypeDescription schema = TypeDescription.fromString(type);
+
+        Writer writer = OrcFile.createWriter(new Path("/tmp/my-file.orc"),
+                OrcFile.writerOptions(conf)
+                        .setSchema(schema));
+
+        VectorizedRowBatch batch = schema.createRowBatch();
+        BytesColumnVector acc1 = (BytesColumnVector) batch.cols[0];
+        BytesColumnVector acc2 = (BytesColumnVector) batch.cols[1];
+        BytesColumnVector arg1Hi = (BytesColumnVector) batch.cols[2];
+        BytesColumnVector arg1Lo = (BytesColumnVector) batch.cols[3];
+        BytesColumnVector arg2Hi = (BytesColumnVector) batch.cols[4];
+        BytesColumnVector arg2Lo = (BytesColumnVector) batch.cols[5];
+        BytesColumnVector byte1 = (BytesColumnVector) batch.cols[6];
+        BytesColumnVector byte2 = (BytesColumnVector) batch.cols[7];
+        BytesColumnVector ct = (BytesColumnVector) batch.cols[8];
+        BytesColumnVector inst = (BytesColumnVector) batch.cols[9];
+        LongColumnVector overflow = (LongColumnVector) batch.cols[10];
+        BytesColumnVector resHi = (BytesColumnVector) batch.cols[11];
+        BytesColumnVector resLo = (BytesColumnVector) batch.cols[12];
+        BytesColumnVector stamp = (BytesColumnVector) batch.cols[13];
+
+        Random rand = new Random();
+        Stopwatch sw = Stopwatch.createStarted();
+        for (int r = 0; r < 1_000_000; ++r) {
+            int row = batch.size++;
+            acc1.setVal(row, BigInteger.valueOf(rand.nextLong()).toByteArray());
+            acc2.setVal(row, BigInteger.valueOf(rand.nextLong()).toByteArray());
+            arg1Hi.setVal(row, BigInteger.valueOf(rand.nextLong()).toByteArray());
+            arg1Lo.setVal(row, BigInteger.valueOf(rand.nextLong()).toByteArray());
+            arg2Hi.setVal(row, BigInteger.valueOf(rand.nextLong()).toByteArray());
+            arg2Lo.setVal(row, BigInteger.valueOf(rand.nextLong()).toByteArray());
+            byte1.setVal(row, BigInteger.valueOf(rand.nextLong()).toByteArray());
+            byte2.setVal(row, BigInteger.valueOf(rand.nextLong()).toByteArray());
+            ct.setVal(row, BigInteger.valueOf(rand.nextLong()).toByteArray());
+            inst.setVal(row, BigInteger.valueOf(rand.nextLong()).toByteArray());
+            overflow.vector[row] = 0L;
+            resHi.setVal(row, BigInteger.valueOf(rand.nextLong()).toByteArray());
+            resLo.setVal(row, BigInteger.valueOf(rand.nextLong()).toByteArray());
+            stamp.setVal(row, BigInteger.valueOf(rand.nextLong()).toByteArray());
+
+            if (batch.size == batch.getMaxSize()) {
+                writer.addRowBatch(batch);
+                batch.reset();
+            }
+        }
+        if (batch.size != 0) {
+            writer.addRowBatch(batch);
+            batch.reset();
+        }
+        writer.close();
+        System.out.println(sw.elapsed());
+    }
     private static final TablesawParquetWriter PARQUET_WRITER = new TablesawParquetWriter();
+
     private static final TablesawParquetReader PARQUET_READER = new TablesawParquetReader();
 
     @Test
@@ -198,7 +268,7 @@ public class ParquetWritterTest {
 //        }
 
 
-//    @Test
+    //    @Test
     public void sparkTest() {
         SparkSession spark = SparkSession.builder()
                 .appName("parquet-test")

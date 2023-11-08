@@ -207,12 +207,12 @@ public class Ext implements Module<Trace> {
   }
 
 
-  @Override
-  public void commitToBuffer(ParquetWriter<Trace>  parquetWriter) throws IOException {
-    for (ExtOperation operation : this.operations) {
-      this.traceExtOperation(operation, parquetWriter);
-    }
-  }
+//  @Override
+//  public void commitToBuffer(ParquetWriter<Trace>  parquetWriter) throws IOException {
+//    for (ExtOperation operation : this.operations) {
+//      this.traceExtOperation(operation, parquetWriter);
+//    }
+//  }
 
   @Override
   public int lineCount() {

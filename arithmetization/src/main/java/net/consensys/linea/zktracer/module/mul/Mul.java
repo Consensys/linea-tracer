@@ -77,14 +77,14 @@ public class Mul implements Module<Trace> {
     return new MulTrace(trace.build());
   }
 
-  @Override
-  public void commitToBuffer(ParquetWriter<Trace> parquetWriter) throws IOException {
-    for (var op : this.operations) {
-      this.traceMulOperation(op, parquetWriter);
-    }
-    this.traceMulOperation(new MulOperation(OpCode.EXP, Bytes32.ZERO, Bytes32.ZERO), parquetWriter);
-
-  }
+//  @Override
+//  public void commitToBuffer(ParquetWriter<Trace> parquetWriter) throws IOException {
+//    for (var op : this.operations) {
+//      this.traceMulOperation(op, parquetWriter);
+//    }
+//    this.traceMulOperation(new MulOperation(OpCode.EXP, Bytes32.ZERO, Bytes32.ZERO), parquetWriter);
+//
+//  }
 
   private void traceMulOperation(final MulOperation op, ParquetWriter<Trace> parquetWriter) throws IOException {
     this.stamp++;

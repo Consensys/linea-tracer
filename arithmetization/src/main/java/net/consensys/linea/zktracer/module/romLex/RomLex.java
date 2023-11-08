@@ -348,15 +348,15 @@ public class RomLex implements Module<Trace> {
     return new RomLexTrace(trace.build());
   }
 
-  @Override
-  public void commitToBuffer(ParquetWriter<Trace>  target) throws IOException {
-    final int codeFragmentIndexInfinity = chunks.size();
-
-    int cfi = 0;
-    for (RomChunk chunk : sortedChunks) {
-      cfi += 1;
-      traceChunk(chunk, cfi, codeFragmentIndexInfinity, target);
-    }
-  }
+//  @Override
+//  public void commitToBuffer(ParquetWriter<Trace>  target) throws IOException {
+//    final int codeFragmentIndexInfinity = chunks.size();
+//
+//    int cfi = 0;
+//    for (RomChunk chunk : sortedChunks) {
+//      cfi += 1;
+//      traceChunk(chunk, cfi, codeFragmentIndexInfinity, target);
+//    }
+//  }
 
 }

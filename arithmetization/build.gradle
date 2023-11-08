@@ -67,7 +67,7 @@ dependencies {
     implementation 'org.bouncycastle:bcprov-jdk18on'
     implementation 'org.apache.parquet:parquet-avro:1.13.1'
     implementation 'org.apache.avro:avro:1.11.3'
-
+    implementation 'org.apache.orc:orc-core:1.9.1'
     implementation("tech.tablesaw:tablesaw-core:${tablesawVersion}")
     implementation("net.tlabs-data:tablesaw_${tablesawVersion}-parquet:${tablesawParquetVersion}")
 //  implementation 'org.apache.hadoop:hadoop-common:3.3.6'

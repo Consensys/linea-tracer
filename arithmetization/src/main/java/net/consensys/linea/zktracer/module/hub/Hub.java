@@ -183,14 +183,14 @@ public class Hub implements Module<Trace> {
                 this.romLex,
                 this.add,
                 this.ext,
-        //        this.mod,
+                this.mod,
                 this.mul,
 //                this.shf,
 //                this.wcp,
                 this.mxp,
-//                this.rlpTxn,
+                this.rlpTxn,
         //        this.rlpTxrcpt,
-        //        this.rlpAddr,
+                this.rlpAddr,
                 this.rom
         //        this.txnData
         );

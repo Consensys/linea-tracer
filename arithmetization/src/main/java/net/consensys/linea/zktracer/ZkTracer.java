@@ -112,42 +112,57 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
 //      int i = (int)headerSize;
         for (Module<?> m : this.hub.getModulesToTrace()) {
 
-
+            Stopwatch sw = Stopwatch.createStarted();
             switch (m.jsonKey().toUpperCase()) {
                 case "ADD" -> {
                     try (Writer writer = ORCWriter.getWriter(filename)) {
-                        Stopwatch sw = Stopwatch.createStarted();
                         m.commitToBuffer(writer);
-                        log.warn("COUCOU C'est fait pour {}, ca a pris {}", m.jsonKey(), sw.elapsed(TimeUnit.MILLISECONDS));
                     }
                 }
                 case "ROM" -> {
-                    Stopwatch sw = Stopwatch.createStarted();
                     try (Writer writer =  net.consensys.linea.zktracer.module.rom.ORCWriter.getWriter(filename)) {
                         m.commitToBuffer(writer);
                     }
-                    log.warn("COUCOU C'est fait pour {}, ca a pris {}", m.jsonKey(), sw.elapsed(TimeUnit.SECONDS));
                 }
-//                case "MUL" -> {
-//                    try (ParquetWriter<net.consensys.linea.zktracer.module.mul.Trace> writer = new ParquetWriter<>(path, new net.consensys.linea.zktracer.module.mul.WriteSupport())) {
-//                        ((Module<net.consensys.linea.zktracer.module.mul.Trace>) m).commitToBuffer(writer);
-//                    }
-//                }
-//                case "ROMLEX" -> {
-//                    try (ParquetWriter<net.consensys.linea.zktracer.module.romLex.Trace> writer = new ParquetWriter<>(path, new net.consensys.linea.zktracer.module.romLex.WriteSupport())) {
-//                        ((Module<net.consensys.linea.zktracer.module.romLex.Trace>) m).commitToBuffer(writer);
-//                    }
-//                }
-//                case "EXT" -> {
-//                    try (ParquetWriter<net.consensys.linea.zktracer.module.ext.Trace> writer = new ParquetWriter<>(path, new net.consensys.linea.zktracer.module.ext.WriteSupport())) {
-//                        ((Module<net.consensys.linea.zktracer.module.ext.Trace>) m).commitToBuffer(writer);
-//                    }
-//                }
-
+                case "MUL" -> {
+                    try (Writer writer =  net.consensys.linea.zktracer.module.mul.ORCWriter.getWriter(filename)) {
+                        m.commitToBuffer(writer);
+                    }
+                }
+                case "ROMLEX" -> {
+                    try (Writer writer =  net.consensys.linea.zktracer.module.romLex.ORCWriter.getWriter(filename)) {
+                        m.commitToBuffer(writer);
+                    }
+                }
+                case "EXT" -> {
+                    try (Writer writer =  net.consensys.linea.zktracer.module.ext.ORCWriter.getWriter(filename)) {
+                        m.commitToBuffer(writer);
+                    }
+                }
+                case "MOD" -> {
+                    try (Writer writer =  net.consensys.linea.zktracer.module.mod.ORCWriter.getWriter(filename)) {
+                        m.commitToBuffer(writer);
+                    }
+                }
+                case "MXP" -> {
+                    try (Writer writer =  net.consensys.linea.zktracer.module.mxp.ORCWriter.getWriter(filename)) {
+                        m.commitToBuffer(writer);
+                    }
+                }
+                case "RLPTXN" -> {
+                    try (Writer writer =  net.consensys.linea.zktracer.module.rlp_txn.ORCWriter.getWriter(filename)) {
+                        m.commitToBuffer(writer);
+                    }
+                }
+                case "RLPADDR" -> {
+                    try (Writer writer =  net.consensys.linea.zktracer.module.rlpAddr.ORCWriter.getWriter(filename)) {
+                        m.commitToBuffer(writer);
+                    }
+                }
                 default -> {
                 }
             }
-//            log.warn("COUCOU C'est fait pour {}, ca a pris {}", m.jsonKey(), sw.elapsed(TimeUnit.SECONDS));
+            log.warn("COUCOU C'est fait pour {}, ca a pris {}", m.jsonKey(), sw.elapsed(TimeUnit.MILLISECONDS));
         }
     }
 

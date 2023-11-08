@@ -20,12 +20,17 @@ public final class LineaConfiguration {
   private final int maxTxCallDataSize;
   private final int maxBlockCallDataSize;
   private final String moduleLimitsFilePath;
+  private final long maxBlockGas;
 
   private LineaConfiguration(
-      int maxTxCallDataSize, int maxBlockCallDataSize, final String moduleLimitsFilePath) {
+      int maxTxCallDataSize,
+      int maxBlockCallDataSize,
+      final String moduleLimitsFilePath,
+      long maxBlockGas) {
     this.maxTxCallDataSize = maxTxCallDataSize;
     this.maxBlockCallDataSize = maxBlockCallDataSize;
     this.moduleLimitsFilePath = moduleLimitsFilePath;
+    this.maxBlockGas = maxBlockGas;
   }
 
   public int maxTxCallDataSize() {
@@ -40,10 +45,15 @@ public final class LineaConfiguration {
     return moduleLimitsFilePath;
   }
 
+  public long maxBlockGas() {
+    return maxBlockGas;
+  }
+
   public static class Builder {
     private int maxTxCallDataSize;
     private int maxBlockCallDataSize;
     private String moduleLimitsFilePath;
+    private long maxBlockGas;
 
     public Builder maxTxCallDataSize(final int maxTxCallDataSize) {
       this.maxTxCallDataSize = maxTxCallDataSize;
@@ -60,8 +70,14 @@ public final class LineaConfiguration {
       return this;
     }
 
+    public Builder maxBlockGas(long maxBlockGas) {
+      this.maxBlockGas = maxBlockGas;
+      return this;
+    }
+
     public LineaConfiguration build() {
-      return new LineaConfiguration(maxTxCallDataSize, maxBlockCallDataSize, moduleLimitsFilePath);
+      return new LineaConfiguration(
+          maxTxCallDataSize, maxBlockCallDataSize, moduleLimitsFilePath, maxBlockGas);
     }
   }
 }

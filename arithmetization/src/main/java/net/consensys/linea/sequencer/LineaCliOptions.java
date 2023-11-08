@@ -23,10 +23,12 @@ public class LineaCliOptions {
   public static final int DEFAULT_MAX_TX_CALLDATA_SIZE = 60000;
   public static final int DEFAULT_MAX_BLOCK_CALLDATA_SIZE = 70000;
   private static final String DEFAULT_MODULE_LIMIT_FILE_PATH = "moduleLimitFile.json";
+  public static final long DEFAULT_MAX_BLOCK_GAS = Long.MAX_VALUE;
 
   private static final String MAX_TX_CALLDATA_SIZE = "--plugin-linea-max-tx-calldata-size";
   private static final String MAX_BLOCK_CALLDATA_SIZE = "--plugin-linea-max-block-calldata-size";
   private static final String MODULE_LIMIT_FILE_PATH = "--plugin-linea-module-limit-file-path";
+  private static final String MAX_BLOCK_GAS = "--plugin-linea-max-block-gas";
 
   @CommandLine.Option(
       names = {MAX_TX_CALLDATA_SIZE},
@@ -52,11 +54,19 @@ public class LineaCliOptions {
       names = {MODULE_LIMIT_FILE_PATH},
       hidden = true,
       paramLabel = "<STRING>",
+      required = true,
       description =
           "Path to the json file containing the module limits (default: "
               + DEFAULT_MODULE_LIMIT_FILE_PATH
               + ")")
   private String moduleLimitFilePath = DEFAULT_MODULE_LIMIT_FILE_PATH;
+
+  @CommandLine.Option(
+      names = {MAX_BLOCK_GAS},
+      hidden = true,
+      paramLabel = "<LONG>",
+      description = "Sets max gas limit per block.")
+  private Long maxBlockGas = DEFAULT_MAX_BLOCK_GAS;
 
   private LineaCliOptions() {}
 
@@ -80,6 +90,7 @@ public class LineaCliOptions {
     options.maxTxCallDataSize = config.maxTxCallDataSize();
     options.maxBlockCallDataSize = config.maxBlockCallDataSize();
     options.moduleLimitFilePath = config.moduleLimitsFilePath();
+    options.maxBlockGas = config.maxBlockGas();
     return options;
   }
 
@@ -93,6 +104,7 @@ public class LineaCliOptions {
         .maxTxCallDataSize(maxTxCallDataSize)
         .maxBlockCallDataSize(maxBlockCallDataSize)
         .moduleLimits(moduleLimitFilePath)
+        .maxBlockGas(maxBlockGas)
         .build();
   }
 
@@ -102,6 +114,7 @@ public class LineaCliOptions {
         .add(MAX_TX_CALLDATA_SIZE, maxTxCallDataSize)
         .add(MAX_BLOCK_CALLDATA_SIZE, maxBlockCallDataSize)
         .add(MODULE_LIMIT_FILE_PATH, moduleLimitFilePath)
+        .add(MAX_BLOCK_GAS, maxBlockGas)
         .toString();
   }
 }

@@ -137,6 +137,14 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
     this.hub.traceContextExit(frame);
   }
 
+  public Map<String, Long> getTracesCounters(long fromBlock) {
+    Map<String, Long> counters = new HashMap<>();
+    for (Module module : this.hub.getModulesToTrace()) {
+      counters.put(module.jsonKey(), module.getTracesCounters(fromBlock));
+    }
+    return counters;
+  }
+
   /** When called, erase all tracing related to the last included transaction. */
   public void popTransaction(final PendingTransaction pendingTransaction) {
     if (hashOfLastTransactionTraced.equals(pendingTransaction.getTransaction().getHash())) {

@@ -21,6 +21,8 @@ import com.google.auto.service.AutoService;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.LineaRequiredPlugin;
 import net.consensys.linea.tracegeneration.rpc.RollupGenerateConflatedTracesToFileV0;
+import net.consensys.linea.tracegeneration.rpc.RollupGetTracesCountersByBlockNumberV0;
+import net.consensys.linea.tracegeneration.rpc.RollupRpcMethod;
 import net.consensys.linea.zktracer.opcode.OpCodes;
 import org.hyperledger.besu.plugin.BesuContext;
 import org.hyperledger.besu.plugin.BesuPlugin;
@@ -32,20 +34,20 @@ import org.hyperledger.besu.plugin.services.RpcEndpointService;
 public class RollupRpcEndpointServicePlugin extends LineaRequiredPlugin {
   @Override
   public void doRegister(final BesuContext context) {
-    RollupGenerateConflatedTracesToFileV0 method =
-        new RollupGenerateConflatedTracesToFileV0(context);
+    RollupRpcMethod conflateMethod = new RollupGenerateConflatedTracesToFileV0(context);
+    RollupRpcMethod countersMethod = new RollupGetTracesCountersByBlockNumberV0(context);
 
     Optional<RpcEndpointService> service = context.getService(RpcEndpointService.class);
     createAndRegister(
-        method,
+        conflateMethod,
         service.orElseThrow(
             () ->
                 new RuntimeException("Failed to obtain RpcEndpointService from the BesuContext.")));
+    createAndRegister(countersMethod, service.get());
   }
 
   private void createAndRegister(
-      final RollupGenerateConflatedTracesToFileV0 method,
-      final RpcEndpointService rpcEndpointService) {
+      final RollupRpcMethod method, final RpcEndpointService rpcEndpointService) {
     rpcEndpointService.registerRPCEndpoint(
         method.getNamespace(), method.getName(), method::execute);
   }
@@ -54,7 +56,4 @@ public class RollupRpcEndpointServicePlugin extends LineaRequiredPlugin {
   public void start() {
     OpCodes.load();
   }
-
-  @Override
-  public void stop() {}
 }

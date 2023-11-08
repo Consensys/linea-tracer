@@ -76,4 +76,8 @@ public interface Module {
       final MessageFrame frame, final Operation.OperationResult operationResult) {}
 
   ModuleTrace commit();
+
+  default long getTracesCounters(long fromBlock) {
+    return 0;
+  }
 }

@@ -34,7 +34,7 @@ import org.hyperledger.besu.plugin.services.exception.PluginRpcEndpointException
 import org.hyperledger.besu.plugin.services.rpc.PluginRpcRequest;
 
 /** Responsible for conflated file traces generation. */
-public class RollupGenerateConflatedTracesToFileV0 {
+public class RollupGenerateConflatedTracesToFileV0 implements RollupRpcMethod {
 
   private final BesuContext besuContext;
   private final JsonFactory jsonFactory = new JsonFactory();
@@ -47,10 +47,12 @@ public class RollupGenerateConflatedTracesToFileV0 {
     this.besuContext = besuContext;
   }
 
+  @Override
   public String getNamespace() {
     return "rollup";
   }
 
+  @Override
   public String getName() {
     return "generateConflatedTracesToFileV0";
   }
@@ -61,6 +63,7 @@ public class RollupGenerateConflatedTracesToFileV0 {
    * @param request holds parameters of the RPC request.
    * @return an execution file trace.
    */
+  @Override
   public FileTrace execute(final PluginRpcRequest request) {
     if (traceService == null) {
       traceService = initTraceService();

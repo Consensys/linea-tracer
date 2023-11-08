@@ -111,23 +111,22 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
 
 //      int i = (int)headerSize;
         for (Module<?> m : this.hub.getModulesToTrace()) {
-            Stopwatch sw = Stopwatch.createStarted();
+
 
             switch (m.jsonKey().toUpperCase()) {
                 case "ADD" -> {
                     try (Writer writer = ORCWriter.getWriter(filename)) {
+                        Stopwatch sw = Stopwatch.createStarted();
                         m.commitToBuffer(writer);
+                        log.warn("COUCOU C'est fait pour {}, ca a pris {}", m.jsonKey(), sw.elapsed(TimeUnit.MILLISECONDS));
                     }
                 }
                 case "ROM" -> {
+                    Stopwatch sw = Stopwatch.createStarted();
                     try (Writer writer =  net.consensys.linea.zktracer.module.rom.ORCWriter.getWriter(filename)) {
                         m.commitToBuffer(writer);
                     }
-                    Configuration conf = new Configuration();
-                    try (Reader reader = OrcFile.createReader(new Path(filename + "_rom" + ".orc"),
-                            OrcFile.readerOptions(conf))) {
-                        System.out.println(reader.getNumberOfRows());
-                    }
+                    log.warn("COUCOU C'est fait pour {}, ca a pris {}", m.jsonKey(), sw.elapsed(TimeUnit.SECONDS));
                 }
 //                case "MUL" -> {
 //                    try (ParquetWriter<net.consensys.linea.zktracer.module.mul.Trace> writer = new ParquetWriter<>(path, new net.consensys.linea.zktracer.module.mul.WriteSupport())) {
@@ -148,7 +147,7 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
                 default -> {
                 }
             }
-            log.warn("COUCOU C'est fait pour {}, ca a pris {}", m.jsonKey(), sw.elapsed(TimeUnit.SECONDS));
+//            log.warn("COUCOU C'est fait pour {}, ca a pris {}", m.jsonKey(), sw.elapsed(TimeUnit.SECONDS));
         }
     }
 

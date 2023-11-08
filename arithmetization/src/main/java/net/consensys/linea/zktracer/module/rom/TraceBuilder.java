@@ -393,7 +393,7 @@ public class TraceBuilder {
         filled.clear();
 
         if (batch.size == batch.getMaxSize()) {
-            System.out.println("------------ flushing: "+batch.size);
+//            System.out.println("------------ flushing: "+batch.size);
             writer.addRowBatch(batch);
             batch.reset();
         }

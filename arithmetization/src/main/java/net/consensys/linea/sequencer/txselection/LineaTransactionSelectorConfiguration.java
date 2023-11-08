@@ -18,25 +18,38 @@ package net.consensys.linea.sequencer.txselection;
 /** The Linea configuration. */
 public final class LineaTransactionSelectorConfiguration {
   private final int maxBlockCallDataSize;
+  private final String moduleLimitsFilePath;
 
-  private LineaTransactionSelectorConfiguration(int maxBlockCallDataSize) {
+  private LineaTransactionSelectorConfiguration(
+      int maxBlockCallDataSize, final String moduleLimitsFilePath) {
     this.maxBlockCallDataSize = maxBlockCallDataSize;
+    this.moduleLimitsFilePath = moduleLimitsFilePath;
   }
 
   public int maxBlockCallDataSize() {
     return maxBlockCallDataSize;
   }
 
+  public String moduleLimitsFilePath() {
+    return moduleLimitsFilePath;
+  }
+
   public static class Builder {
     private int maxBlockCallDataSize;
+    private String moduleLimitsFilePath;
 
-    public Builder maxBlockCallDataSize(int maxBlockCallDataSize) {
+    public Builder maxBlockCallDataSize(final int maxBlockCallDataSize) {
       this.maxBlockCallDataSize = maxBlockCallDataSize;
       return this;
     }
 
+    public Builder moduleLimits(final String moduleLimitFilePath) {
+      this.moduleLimitsFilePath = moduleLimitFilePath;
+      return this;
+    }
+
     public LineaTransactionSelectorConfiguration build() {
-      return new LineaTransactionSelectorConfiguration(maxBlockCallDataSize);
+      return new LineaTransactionSelectorConfiguration(maxBlockCallDataSize, moduleLimitsFilePath);
     }
   }
 }

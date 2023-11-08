@@ -21,8 +21,10 @@ import picocli.CommandLine;
 /** The Linea CLI options. */
 public class LineaTransactionSelectorCliOptions {
   public static final int DEFAULT_MAX_BLOCK_CALLDATA_SIZE = 70000;
+  private static final String DEFAULT_MODULE_LIMIT_FILE_PATH = "moduleLimitFile.json";
 
   private static final String MAX_BLOCK_CALLDATA_SIZE = "--plugin-linea-max-block-calldata-size";
+  private static final String MODULE_LIMIT_FILE_PATH = "--plugin-linea-module-limit-file-path";
 
   @CommandLine.Option(
       names = {MAX_BLOCK_CALLDATA_SIZE},
@@ -33,6 +35,16 @@ public class LineaTransactionSelectorCliOptions {
               + DEFAULT_MAX_BLOCK_CALLDATA_SIZE
               + ")")
   private int maxBlockCallDataSize = DEFAULT_MAX_BLOCK_CALLDATA_SIZE;
+
+  @CommandLine.Option(
+      names = {MODULE_LIMIT_FILE_PATH},
+      hidden = true,
+      paramLabel = "<STRING>",
+      description =
+          "Path to the json file containing the module limits (default: "
+              + DEFAULT_MODULE_LIMIT_FILE_PATH
+              + ")")
+  private String moduleLimitFilePath = DEFAULT_MODULE_LIMIT_FILE_PATH;
 
   private LineaTransactionSelectorCliOptions() {}
 
@@ -55,6 +67,7 @@ public class LineaTransactionSelectorCliOptions {
       final LineaTransactionSelectorConfiguration config) {
     final LineaTransactionSelectorCliOptions options = create();
     options.maxBlockCallDataSize = config.maxBlockCallDataSize();
+    options.moduleLimitFilePath = config.moduleLimitsFilePath();
     return options;
   }
 
@@ -66,6 +79,7 @@ public class LineaTransactionSelectorCliOptions {
   public LineaTransactionSelectorConfiguration toDomainObject() {
     return new LineaTransactionSelectorConfiguration.Builder()
         .maxBlockCallDataSize(maxBlockCallDataSize)
+        .moduleLimits(moduleLimitFilePath)
         .build();
   }
 
@@ -73,6 +87,7 @@ public class LineaTransactionSelectorCliOptions {
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add(MAX_BLOCK_CALLDATA_SIZE, maxBlockCallDataSize)
+        .add(MODULE_LIMIT_FILE_PATH, moduleLimitFilePath)
         .toString();
   }
 }

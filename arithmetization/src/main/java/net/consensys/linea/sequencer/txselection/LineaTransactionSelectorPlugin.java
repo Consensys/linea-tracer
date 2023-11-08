@@ -78,10 +78,12 @@ public class LineaTransactionSelectorPlugin extends LineaRequiredPlugin {
           objectMapper.readValue(
               new File(lineaConfiguration.moduleLimitsFilePath()),
               new TypeReference<Map<String, Integer>>() {});
-    } catch (Exception e) {
-      log.info(
-          "Problem reading the json file containing the limits for the modules: {}",
-          lineaConfiguration.moduleLimitsFilePath());
+    } catch (final Exception e) {
+      final String errorMsg =
+          "Problem reading the json file containing the limits for the modules: "
+              + lineaConfiguration.moduleLimitsFilePath();
+      log.error(errorMsg);
+      throw new RuntimeException(errorMsg, e);
     }
   }
 

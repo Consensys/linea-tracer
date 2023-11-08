@@ -31,29 +31,28 @@ import org.hyperledger.besu.plugin.services.txselection.PluginTransactionSelecto
 public class LineaTransactionSelector implements PluginTransactionSelector {
 
   private static TraceLineLimitTransactionSelector traceLineLimitTransactionSelector;
-  private static Map<String, Integer> limitsMap;
-  private static Supplier<Map<String, Integer>> limitsMapSupplier;
-  final LineaConfiguration lineaConfiguration;
   List<PluginTransactionSelector> selectors;
 
   public LineaTransactionSelector(
       LineaConfiguration lineaConfiguration,
       final Supplier<Map<String, Integer>> limitsMapSupplier) {
-    this.lineaConfiguration = lineaConfiguration;
-    this.selectors = createTransactionSelectors(lineaConfiguration);
-    LineaTransactionSelector.limitsMapSupplier = limitsMapSupplier;
+    this.selectors = createTransactionSelectors(lineaConfiguration, limitsMapSupplier);
   }
 
   /**
    * Creates a list of selectors based on Linea configuration.
    *
    * @param lineaConfiguration The configuration to use.
+   * @param limitsMapSupplier The supplier for the limits map.
    * @return A list of selectors.
    */
   private static List<PluginTransactionSelector> createTransactionSelectors(
-      final LineaConfiguration lineaConfiguration) {
+      final LineaConfiguration lineaConfiguration,
+      final Supplier<Map<String, Integer>> limitsMapSupplier) {
 
-    traceLineLimitTransactionSelector = new TraceLineLimitTransactionSelector(limitsMapSupplier);
+    traceLineLimitTransactionSelector =
+        new TraceLineLimitTransactionSelector(
+            limitsMapSupplier, lineaConfiguration.moduleLimitsFilePath());
     return List.of(
         new MaxTransactionCallDataTransactionSelector(lineaConfiguration.maxTxCallDataSize()),
         new MaxBlockCallDataTransactionSelector(lineaConfiguration.maxBlockCallDataSize()),
@@ -127,6 +126,11 @@ public class LineaTransactionSelector implements PluginTransactionSelector {
             selector.onTransactionNotSelected(pendingTransaction, transactionSelectionResult));
   }
 
+  /**
+   * Returns the operation tracer to be used while processing the transactions for the block.
+   *
+   * @return the operation tracer
+   */
   @Override
   public BlockAwareOperationTracer getOperationTracer() {
     return traceLineLimitTransactionSelector.getOperationTracer();

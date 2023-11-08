@@ -27,29 +27,29 @@ import org.hyperledger.besu.plugin.services.txselection.PluginTransactionSelecto
 
 /**
  * This class implements TransactionSelector and provides a specific implementation for evaluating
- * transactions based on the size of the call data. It checks if adding a transaction to the block
- * pushes the call data size of the block over the limit.
+ * transactions based on the number of trace lines per module created by a transaction. It checks if
+ * adding a transaction to the block pushes the trace lines for a module over the limit.
  */
 @Slf4j
 public class TraceLineLimitTransactionSelector implements PluginTransactionSelector {
 
   private final Supplier<Map<String, Integer>> moduleLimitsProvider;
-  private ZkTracer zkTracer;
+  private final ZkTracer zkTracer;
+  private final String limitFilePath;
 
   public TraceLineLimitTransactionSelector(
-      final Supplier<Map<String, Integer>> moduleLimitsProvider) {
+      final Supplier<Map<String, Integer>> moduleLimitsProvider, final String limitFilePath) {
     this.moduleLimitsProvider = moduleLimitsProvider;
     zkTracer = new ZkTracer();
     zkTracer.traceStartConflation(1L);
+    this.limitFilePath = limitFilePath;
   }
 
   /**
-   * Evaluates a transaction before processing. Checks if adding the transaction to the block pushes
-   * the call data size of the block over the limit.
+   * No checking is done pre-processing.
    *
    * @param pendingTransaction The transaction to evaluate.
-   * @return BLOCK_FULL if the call data size of a transactions pushes the size for the block over
-   *     the limit, otherwise SELECTED.
+   * @return TransactionSelectionResult.SELECTED
    */
   @Override
   public TransactionSelectionResult evaluateTransactionPreProcessing(
@@ -65,11 +65,11 @@ public class TraceLineLimitTransactionSelector implements PluginTransactionSelec
   }
 
   /**
-   * No evaluation is performed post-processing.
+   * Checking the created trace lines is performed post-processing.
    *
    * @param pendingTransaction The processed transaction.
    * @param processingResult The result of the transaction processing.
-   * @return Always returns SELECTED.
+   * @return BLOCK_FULL if the trace lines for a module are over the limit, otherwise SELECTED.
    */
   @Override
   public TransactionSelectionResult evaluateTransactionPostProcessing(
@@ -81,7 +81,10 @@ public class TraceLineLimitTransactionSelector implements PluginTransactionSelec
     for (var e : lineCounts.entrySet()) {
       final String module = e.getKey();
       if (!moduleLimits.containsKey(module)) {
-        throw new RuntimeException("Module " + module + " does not exist in the limits file");
+        final String errorMsg =
+            "Module " + module + " does not exist in the limits file: " + limitFilePath;
+        log.error(errorMsg);
+        throw new RuntimeException(errorMsg);
       }
       if (lineCounts.get(module) > moduleLimits.get(module)) {
         return TransactionSelectionResult.BLOCK_FULL;

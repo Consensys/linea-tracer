@@ -211,15 +211,15 @@ public class Rom implements Module<Trace> {
 
     int cfi = 0;
     final int cfiInfty = this.romLex.sortedChunks.size();
-    for(int i = 0; i< 500_000; i++) {
+//    for(int i = 0; i< 500_000; i++) {
       for (RomChunk chunk : this.romLex.sortedChunks) {
         cfi += 1;
         traceChunk(chunk, cfi, cfiInfty, writer, batch);
       }
-    }
-    System.out.println("------------ cfi: "+cfi);
+//    }
+//    System.out.println("------------ cfi: "+cfi);
     if (batch.size != 0) {
-      System.out.println("------------ final flush: "+batch.size);
+//      System.out.println("------------ final flush: "+batch.size);
       writer.addRowBatch(batch);
       batch.reset();
     }

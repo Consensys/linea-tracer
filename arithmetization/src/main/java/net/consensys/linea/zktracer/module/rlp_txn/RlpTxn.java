@@ -591,24 +591,21 @@ public class RlpTxn implements Module {
     Preconditions.checkArgument(bigIntegerToBytes(V).size() <= 8, "V is longer than 8 bytes");
 
     // Rlp(w)
-    boolean lt = true;
-    boolean lx = false;
-    rlpInt(phase, V, 8, lt, lx, false, false, false, traceValue, trace);
+    rlpInt(phase, V, 8, true, false, false, false, false, traceValue, trace);
 
+    // if v == 27 or v == 28, one line of padding
     if (V.equals(BigInteger.valueOf(27)) || V.equals(BigInteger.valueOf(28))) {
       // One row of padding
-      traceValue.partialReset(phase, 1, lt, lx);
+      traceValue.partialReset(phase, 1, false, true);
       traceValue.IS_PREFIX = true;
       traceValue.LC_CORRECTION = true;
       traceValue.PHASE_END = true;
       traceRow(traceValue, trace);
     } else {
-      // RLP(ChainID) then one row with RLP().RLP()
-      lt = false;
-      lx = true;
-      rlpInt(phase, tx.getChainId().get(), 8, lt, lx, true, false, false, traceValue, trace);
+      // if v!= 27 or v!= 28 (ie ChainId !=0) then RLP(ChainID) and then one row with RLP().RLP()
+      rlpInt(phase, tx.getChainId().get(), 8, false, true, true, false, false, traceValue, trace);
 
-      traceValue.partialReset(phase, 1, lt, lx);
+      traceValue.partialReset(phase, 1, false, true);
       traceValue.LIMB_CONSTRUCTED = true;
       traceValue.LIMB = Bytes.concatenate(bytesPrefixShortInt, bytesPrefixShortInt);
       traceValue.nBYTES = 2;
@@ -1327,7 +1324,8 @@ public class RlpTxn implements Module {
     // Phase 11: beta
     if (txType == 0) {
       rowSize += 8;
-      if (chunk.tx().getChainId().orElseThrow().equals(BigInteger.ZERO)) {
+      if (chunk.tx().getV().equals(BigInteger.valueOf(27))
+          || chunk.tx().getV().equals(BigInteger.valueOf(28))) {
         rowSize += 1;
       } else {
         rowSize += 9;

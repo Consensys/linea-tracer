@@ -82,8 +82,8 @@ dependencies {
     implementation 'org.apache.spark:spark-core_2.13:3.5.0'
     implementation 'org.apache.spark:spark-sql_2.13:3.5.0'
     implementation 'org.apache.spark:spark-avro_2.13:3.5.0'
-// https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-hdfs
     implementation 'org.apache.hadoop:hadoop-aws:3.3.6'
+    implementation 'com.amazonaws:aws-java-sdk-bundle:1.12.583'
 
     testImplementation "${besuArtifactGroup}:evm"
     testImplementation "${besuArtifactGroup}:besu-datatypes"

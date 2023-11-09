@@ -21,11 +21,13 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
 import linea.plugin.acc.test.tests.web3j.generated.SimpleStorage;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.assertj.core.api.Assertions;
 import org.hyperledger.besu.tests.acceptance.dsl.AcceptanceTestBase;
 import org.hyperledger.besu.tests.acceptance.dsl.account.Accounts;
 import org.hyperledger.besu.tests.acceptance.dsl.node.BesuNode;
@@ -42,23 +44,20 @@ import org.web3j.tx.gas.DefaultGasProvider;
 import org.web3j.tx.response.PollingTransactionReceiptProcessor;
 import org.web3j.tx.response.TransactionReceiptProcessor;
 
-public class AbstractPluginTest extends AcceptanceTestBase {
+/** Base class for plugin tests. */
+public class LineaPluginTestBase extends AcceptanceTestBase {
   public static final int MAX_CALLDATA_SIZE = 1188; // contract has a call data size of 1160
   public static final long CHAIN_ID = 1337L;
   protected BesuNode minerNode;
 
   @BeforeEach
   public void setup() throws Exception {
-    // to debug into besu:
-    // System.setProperty("acctests.runBesuAsProcess", "false");
-    var cliOptions = getTestCliOptions();
-
-    minerNode = besu.createMinerNodeWithExtraCliOptions("miner1", cliOptions);
+    minerNode = besu.createMinerNodeWithExtraCliOptions("miner1", getTestCliOptions());
     cluster.start(minerNode);
   }
 
   public List<String> getTestCliOptions() {
-    return new TestCliOptions().build();
+    return new TestCommandLineOptionsBuilder().build();
   }
 
   @AfterEach
@@ -97,6 +96,10 @@ public class AbstractPluginTest extends AcceptanceTestBase {
           }
         });
 
+    assertTransactionsInCorrectBlocks(web3j, hashes, num);
+  }
+
+  private void assertTransactionsInCorrectBlocks(Web3j web3j, List<String> hashes, int num) {
     final HashMap<Long, Integer> txMap = new HashMap<>();
     TransactionReceiptProcessor receiptProcessor =
         new PollingTransactionReceiptProcessor(
@@ -111,7 +114,6 @@ public class AbstractPluginTest extends AcceptanceTestBase {
     hashes.forEach(
         h -> {
           final TransactionReceipt transactionReceipt;
-
           try {
             transactionReceipt = receiptProcessor.waitForTransactionReceipt(h);
           } catch (IOException | TransactionException e) {
@@ -119,15 +121,7 @@ public class AbstractPluginTest extends AcceptanceTestBase {
           }
 
           final long blockNumber = transactionReceipt.getBlockNumber().longValue();
-
-          txMap.compute(
-              blockNumber,
-              (b, n) -> {
-                if (n == null) {
-                  return 1;
-                }
-                return n + 1;
-              });
+          txMap.compute(blockNumber, (b, n) -> n == null ? 1 : n + 1);
 
           // make sure that no block contained more than maxTxs
           assertThat(txMap.get(blockNumber)).isLessThanOrEqualTo(maxTxs);
@@ -147,6 +141,23 @@ public class AbstractPluginTest extends AcceptanceTestBase {
   }
 
   public static String getResourcePath(String resource) {
-    return Objects.requireNonNull(AbstractPluginTest.class.getResource(resource)).getPath();
+    return Objects.requireNonNull(LineaPluginTestBase.class.getResource(resource)).getPath();
+  }
+
+  protected void assertTransactionsInSeparateBlocks(Web3j web3j, ArrayList<String> hashes)
+      throws Exception {
+    TransactionReceiptProcessor receiptProcessor =
+        new PollingTransactionReceiptProcessor(
+            web3j,
+            TransactionManager.DEFAULT_POLLING_FREQUENCY,
+            TransactionManager.DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH);
+
+    final HashSet<Long> blockNumbers = new HashSet<>();
+    for (String h : hashes) {
+      Assertions.assertThat(
+              blockNumbers.add(
+                  receiptProcessor.waitForTransactionReceipt(h).getBlockNumber().longValue()))
+          .isEqualTo(true);
+    }
   }
 }

@@ -18,13 +18,16 @@ import org.web3j.tx.gas.DefaultGasProvider;
 import org.web3j.tx.response.PollingTransactionReceiptProcessor;
 import org.web3j.tx.response.TransactionReceiptProcessor;
 
-public class MaxCallDataTest extends AbstractPluginTest {
+public class TransactionCallDataSizeLimitTest extends LineaPluginTestBase {
 
   public static final int MAX_CALLDATA_SIZE = 1188; // contract has a call data size of 1160
+  private static final BigInteger GAS_PRICE = DefaultGasProvider.GAS_PRICE;
+  private static final BigInteger GAS_LIMIT = DefaultGasProvider.GAS_LIMIT;
+  private static final BigInteger VALUE = BigInteger.ZERO;
 
   @Override
   public List<String> getTestCliOptions() {
-    return new TestCliOptions()
+    return new TestCommandLineOptionsBuilder()
         .set("--plugin-linea-max-tx-calldata-size=", String.valueOf(MAX_CALLDATA_SIZE))
         .set("--plugin-linea-max-block-calldata-size=", String.valueOf(MAX_CALLDATA_SIZE))
         .build();
@@ -32,7 +35,6 @@ public class MaxCallDataTest extends AbstractPluginTest {
 
   @Test
   public void shouldMineTransactions() throws Exception {
-    setup();
     final SimpleStorage simpleStorage = deploySimpleStorage();
 
     List<String> accounts =
@@ -46,8 +48,7 @@ public class MaxCallDataTest extends AbstractPluginTest {
   }
 
   @Test
-  public void transactionIsNotMinedWhenTooBig() throws Exception {
-    setup();
+  public void transactionIsMinedWhenNotTooBig() throws Exception {
     final SimpleStorage simpleStorage = deploySimpleStorage();
     final Web3j web3j = minerNode.nodeRequests().eth();
     final String contractAddress = simpleStorage.getContractAddress();
@@ -57,23 +58,7 @@ public class MaxCallDataTest extends AbstractPluginTest {
     final String txDataGood = simpleStorage.set("a".repeat(1200 - 80)).encodeFunctionCall();
     final String hashGood =
         txManager
-            .sendTransaction(
-                DefaultGasProvider.GAS_PRICE,
-                DefaultGasProvider.GAS_LIMIT,
-                contractAddress,
-                txDataGood,
-                BigInteger.ZERO)
-            .getTransactionHash();
-
-    final String txDataTooBig = simpleStorage.set("a".repeat(1200 - 79)).encodeFunctionCall();
-    final String hashTooBig =
-        txManager
-            .sendTransaction(
-                DefaultGasProvider.GAS_PRICE,
-                DefaultGasProvider.GAS_LIMIT,
-                contractAddress,
-                txDataTooBig,
-                BigInteger.ZERO)
+            .sendTransaction(GAS_PRICE, GAS_LIMIT, contractAddress, txDataGood, VALUE)
             .getTransactionHash();
 
     TransactionReceiptProcessor receiptProcessor =
@@ -84,6 +69,21 @@ public class MaxCallDataTest extends AbstractPluginTest {
     final TransactionReceipt transactionReceipt =
         receiptProcessor.waitForTransactionReceipt(hashGood);
     assertThat(transactionReceipt).isNotNull();
+  }
+
+  @Test
+  public void transactionIsNotMinedWhenTooBig() throws Exception {
+    final SimpleStorage simpleStorage = deploySimpleStorage();
+    final Web3j web3j = minerNode.nodeRequests().eth();
+    final String contractAddress = simpleStorage.getContractAddress();
+    final Credentials credentials = Credentials.create(Accounts.GENESIS_ACCOUNT_ONE_PRIVATE_KEY);
+    TransactionManager txManager = new RawTransactionManager(web3j, credentials, CHAIN_ID);
+
+    final String txDataTooBig = simpleStorage.set("a".repeat(1200 - 79)).encodeFunctionCall();
+    final String hashTooBig =
+        txManager
+            .sendTransaction(GAS_PRICE, GAS_LIMIT, contractAddress, txDataTooBig, VALUE)
+            .getTransactionHash();
 
     final EthGetTransactionReceipt receipt = web3j.ethGetTransactionReceipt(hashTooBig).send();
     assertThat(receipt.getTransactionReceipt()).isEmpty();

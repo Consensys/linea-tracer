@@ -1,6 +1,6 @@
 package linea.plugin.acc.test;
 
-import static linea.plugin.acc.test.AbstractPluginTest.getResourcePath;
+import static linea.plugin.acc.test.LineaPluginTestBase.getResourcePath;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,12 +8,13 @@ import java.util.Properties;
 
 import org.web3j.tx.gas.DefaultGasProvider;
 
-public class TestCliOptions {
+/** This class is used to build a list of command line options for testing. */
+public class TestCommandLineOptionsBuilder {
   private final Properties cliOptions = new Properties();
 
   private static final String MAX_VALUE = String.valueOf(Integer.MAX_VALUE);
 
-  public TestCliOptions() {
+  public TestCommandLineOptionsBuilder() {
     cliOptions.setProperty("--plugin-linea-max-tx-calldata-size=", MAX_VALUE);
     cliOptions.setProperty("--plugin-linea-max-block-calldata-size=", MAX_VALUE);
     cliOptions.setProperty(
@@ -23,7 +24,7 @@ public class TestCliOptions {
         "--plugin-linea-module-limit-file-path=", getResourcePath("/noModuleLimits.json"));
   }
 
-  public TestCliOptions set(String option, String value) {
+  public TestCommandLineOptionsBuilder set(String option, String value) {
     cliOptions.setProperty(option, value);
     return this;
   }

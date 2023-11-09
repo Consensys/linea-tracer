@@ -63,6 +63,9 @@ public class Mmu implements Module {
 
   @Override
   public int lineCount() {
+    if (this.state.size() == 0) {
+      return 0;
+    }
     return this.state.stream().mapToInt(m -> maxCounter(m.pointers().oob())).sum();
   }
 

@@ -88,6 +88,9 @@ public final class Blake2f implements Module {
 
   @Override
   public int lineCount() {
+    if (this.counts.size() == 0) {
+      return 0;
+    }
     return this.counts.stream().mapToInt(x -> x).sum();
   }
 

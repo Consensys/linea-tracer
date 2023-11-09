@@ -160,6 +160,9 @@ public class Mul implements Module {
 
   @Override
   public int lineCount() {
+    if (this.operations.size() == 0) {
+      return 1;
+    }
     return 1
         + this.operations.stream()
             .map(MulOperation::clone) // The counting operation is destructive, hence the clone

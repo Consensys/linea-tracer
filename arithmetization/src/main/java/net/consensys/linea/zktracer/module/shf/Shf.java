@@ -134,6 +134,9 @@ public class Shf implements Module {
 
   @Override
   public int lineCount() {
+    if (this.operations.size() == 0) {
+      return 0;
+    }
     return this.operations.stream().mapToInt(ShfOperation::maxCt).sum();
   }
 }

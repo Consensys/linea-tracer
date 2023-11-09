@@ -38,6 +38,9 @@ public final class EcpairingWeightedCall implements Module {
 
   @Override
   public int lineCount() {
+    if (this.ecpairingCall.counts.size() == 0) {
+      return 0;
+    }
     return ecpairingCall.counts.stream().mapToInt(EcpairingLimit::nMillerLoop).sum();
   }
 

@@ -147,6 +147,9 @@ public class Mod implements Module {
 
   @Override
   public int lineCount() {
+    if (this.chunks.size() == 0) {
+      return 0;
+    }
     return this.chunks.stream().mapToInt(ModOperation::maxCounter).sum();
   }
 

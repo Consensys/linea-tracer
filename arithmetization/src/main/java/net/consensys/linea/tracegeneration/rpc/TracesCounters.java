@@ -20,7 +20,8 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /** Traces Counters represents an execution trace. */
-public record TracesCounters(String tracesEngineVersion, Map<String, Long> tracesCountersByModule) {
+public record TracesCounters(
+    String tracesEngineVersion, Map<String, Integer> tracesCountersByModule) {
   @Override
   @JsonProperty("tracesEngineVersion")
   public String tracesEngineVersion() {
@@ -28,7 +29,7 @@ public record TracesCounters(String tracesEngineVersion, Map<String, Long> trace
   }
 
   @JsonProperty("tracesCountersByModule")
-  public Map<String, Long> tracesCountersByModule() {
+  public Map<String, Integer> tracesCountersByModule() {
     return tracesCountersByModule;
   }
 }

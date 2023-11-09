@@ -15,6 +15,7 @@
 
 package net.consensys.linea.tracegeneration.rpc;
 
+import net.consensys.linea.tracegeneration.LineCountsByBlockCache;
 import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.plugin.BesuContext;
 import org.hyperledger.besu.plugin.services.exception.PluginRpcEndpointException;
@@ -51,7 +52,7 @@ public class RollupGetTracesCountersByBlockNumberV0 implements RollupRpcMethod {
       final ZkTracer tracer = new ZkTracer();
 
       return new TracesCounters(
-          params.runtimeVersion(), tracer.getTracesCounters(params.fromBlock()));
+          params.runtimeVersion(), LineCountsByBlockCache.getBlockTraces(params.fromBlock()));
     } catch (Exception ex) {
       throw new PluginRpcEndpointException(ex.getMessage());
     }

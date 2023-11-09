@@ -586,24 +586,32 @@ public class RlpTxn implements Module {
 
   private void handlePhaseBeta(
       RlpTxnColumnsValue traceValue, Transaction tx, Trace.TraceBuilder trace) {
-    int phase = 11;
-    BigInteger V = tx.getV();
+    final int phase = 11;
+    final BigInteger V = tx.getV();
     Preconditions.checkArgument(bigIntegerToBytes(V).size() <= 8, "V is longer than 8 bytes");
+    final boolean betaIsZero =
+        V.equals(BigInteger.valueOf(27))
+            || V.equals(BigInteger.valueOf(28)); // beta = ChainId is zero if V == 27 or V == 28
 
     // Rlp(w)
-    rlpInt(phase, V, 8, true, false, false, false, false, traceValue, trace);
+    rlpInt(
+        phase,
+        V,
+        8,
+        true,
+        false,
+        false,
+        betaIsZero,
+        false,
+        traceValue,
+        trace); // end of the phase if beta == 0
 
-    // if v == 27 or v == 28, one line of padding
-    if (V.equals(BigInteger.valueOf(27)) || V.equals(BigInteger.valueOf(28))) {
-      // One row of padding
-      traceValue.partialReset(phase, 1, false, true);
-      traceValue.IS_PREFIX = true;
-      traceValue.LC_CORRECTION = true;
-      traceValue.PHASE_END = true;
-      traceRow(traceValue, trace);
-    } else {
-      // if v!= 27 or v!= 28 (ie ChainId !=0) then RLP(ChainID) and then one row with RLP().RLP()
-      rlpInt(phase, tx.getChainId().get(), 8, false, true, true, false, false, traceValue, trace);
+    // if beta != 0, then RLP(beta) and then one row with RLP().RLP ()
+    if (!betaIsZero) {
+      final BigInteger beta =
+          BigInteger.valueOf((V.longValueExact() - 35) / 2); // V = 2 beta + 35 or v = 2 beta + 36;
+
+      rlpInt(phase, beta, 8, false, true, true, false, false, traceValue, trace);
 
       traceValue.partialReset(phase, 1, false, true);
       traceValue.LIMB_CONSTRUCTED = true;
@@ -1324,10 +1332,7 @@ public class RlpTxn implements Module {
     // Phase 11: beta
     if (txType == 0) {
       rowSize += 8;
-      if (chunk.tx().getV().equals(BigInteger.valueOf(27))
-          || chunk.tx().getV().equals(BigInteger.valueOf(28))) {
-        rowSize += 1;
-      } else {
+      if (chunk.tx().getV().compareTo(BigInteger.valueOf(28)) > 1) {
         rowSize += 9;
       }
     }

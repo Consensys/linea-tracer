@@ -591,7 +591,7 @@ public class RlpTxn implements Module {
     Preconditions.checkArgument(bigIntegerToBytes(V).size() <= 8, "V is longer than 8 bytes");
     final boolean betaIsZero =
         V.equals(BigInteger.valueOf(27))
-            || V.equals(BigInteger.valueOf(28)); // beta = ChainId is zero if V == 27 or V == 28
+            || V.equals(BigInteger.valueOf(28)); // beta = ChainId = 0 iff (V == 27 or V == 28)
 
     // Rlp(w)
     rlpInt(
@@ -609,7 +609,8 @@ public class RlpTxn implements Module {
     // if beta != 0, then RLP(beta) and then one row with RLP().RLP ()
     if (!betaIsZero) {
       final BigInteger beta =
-          BigInteger.valueOf((V.longValueExact() - 35) / 2); // V = 2 beta + 35 or v = 2 beta + 36;
+          BigInteger.valueOf(
+              (V.longValueExact() - 35) / 2); // when b != 0, V = 2 beta + 35 or V = 2 beta + 36;
 
       rlpInt(phase, beta, 8, false, true, true, false, false, traceValue, trace);
 
@@ -1332,7 +1333,7 @@ public class RlpTxn implements Module {
     // Phase 11: beta
     if (txType == 0) {
       rowSize += 8;
-      if (chunk.tx().getV().compareTo(BigInteger.valueOf(28)) > 1) {
+      if (chunk.tx().getV().compareTo(BigInteger.valueOf(28)) > 0) {
         rowSize += 9;
       }
     }

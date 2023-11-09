@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 import lombok.RequiredArgsConstructor;
+import net.consensys.linea.tracegeneration.LineCountsByBlockCache;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCodes;
@@ -88,6 +89,10 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
   @Override
   public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
     this.hub.traceEndBlock(blockHeader, blockBody);
+
+    LineCountsByBlockCache.putBlockTraces(blockHeader.getNumber(), getModulesLineCount());
+    // TODO add traces to the cache eg last 1000? blocks (512)
+    // tracer version number as part of the cache key + block (number) hash
   }
 
   @Override
@@ -135,14 +140,6 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
   @Override
   public void traceContextExit(MessageFrame frame) {
     this.hub.traceContextExit(frame);
-  }
-
-  public Map<String, Long> getTracesCounters(long fromBlock) {
-    Map<String, Long> counters = new HashMap<>();
-    for (Module module : this.hub.getModulesToTrace()) {
-      counters.put(module.jsonKey(), module.getTracesCounters(fromBlock));
-    }
-    return counters;
   }
 
   /** When called, erase all tracing related to the last included transaction. */

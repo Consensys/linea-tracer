@@ -229,6 +229,9 @@ public class StackedList<E> implements List<E>, StackedContainer {
     }
 
     private List<F> list() {
+      if (sl.lists.size() == 0) {
+        return List.of();
+      }
       return this.sl.lists.get(this.head);
     }
 

@@ -37,7 +37,7 @@ jar {
   dependsOn downloadLatestLineaBesu
 
   archiveBaseName = distributionIdentifier
-
+  zip64 = true
   manifest {
     attributes(
       'Specification-Title': archiveBaseName.get(),

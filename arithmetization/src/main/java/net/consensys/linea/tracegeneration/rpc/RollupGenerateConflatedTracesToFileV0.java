@@ -90,12 +90,20 @@ public class RollupGenerateConflatedTracesToFileV0 {
           },
           tracer);
 
-      final String path = writeTraceToFile(tracer, params.runtimeVersion());
+      var file = generateOutputFile(params.runtimeVersion());
+    try {
+      tracer.writeToFile(file.getAbsolutePath());
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+//    final String path = writeTraceToFile(tracer, params.runtimeVersion());
 
-      return new FileTrace(params.runtimeVersion(), path);
+//      return new FileTrace(params.runtimeVersion(), path);
 //    } catch (Exception ex) {
 //      throw new PluginRpcEndpointException(ex.getMessage());
 //    }
+
+    return new FileTrace(params.runtimeVersion(), file.getAbsolutePath());
   }
 
   private Path initTracesPath() {

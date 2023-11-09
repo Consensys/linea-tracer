@@ -70,8 +70,8 @@ dependencies {
     implementation 'org.apache.orc:orc-core:1.9.1'
     implementation("tech.tablesaw:tablesaw-core:${tablesawVersion}")
     implementation("net.tlabs-data:tablesaw_${tablesawVersion}-parquet:${tablesawParquetVersion}")
-  implementation 'org.apache.hadoop:hadoop-common:3.3.6'
-  implementation 'org.apache.hadoop:hadoop-core:1.2.1'
+//  implementation 'org.apache.hadoop:hadoop-common:3.3.6'
+//  implementation 'org.apache.hadoop:hadoop-core:1.2.1'
 //  compileOnly 'org.kitesdk:kite-hadoop-cdh5-dependencies:1.1.0'
 //  compileOnly 'org.apache.hive:hive-exec:3.1.3'
 //  implementation 'org.kitesdk:kite-data-hive:1.1.0'

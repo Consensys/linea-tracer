@@ -8,8 +8,6 @@ import net.tlabs.tablesaw.parquet.TablesawParquetReadOptions;
 import net.tlabs.tablesaw.parquet.TablesawParquetReader;
 import net.tlabs.tablesaw.parquet.TablesawParquetWriteOptions;
 import net.tlabs.tablesaw.parquet.TablesawParquetWriter;
-//import org.apache.spark.sql.SaveMode;
-//import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SaveMode;

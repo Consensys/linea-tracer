@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.List;
 
 import org.hyperledger.besu.tests.acceptance.dsl.account.Accounts;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.web3j.protocol.Web3j;
 
@@ -33,6 +34,7 @@ public class BlockGasLimitTest extends LineaPluginTestBase {
   }
 
   @Override
+  @BeforeEach
   public void setup() throws Exception {
     minerNode = besu.createMinerNodeWithExtraCliOptions("miner1", getTestCliOptions());
     cluster.start(minerNode);

@@ -104,11 +104,8 @@ public class LineaPluginTestBase extends AcceptanceTestBase {
 
   private void assertTransactionsInCorrectBlocks(Web3j web3j, List<String> hashes, int num) {
     final HashMap<Long, Integer> txMap = new HashMap<>();
-    TransactionReceiptProcessor receiptProcessor =
-        new PollingTransactionReceiptProcessor(
-            web3j,
-            TransactionManager.DEFAULT_POLLING_FREQUENCY,
-            TransactionManager.DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH);
+    TransactionReceiptProcessor receiptProcessor = createReceiptProcessor(web3j);
+
     // CallData for the transaction for empty String is 68 and grows in steps of 32 with (String
     // size / 32)
     final int maxTxs = MAX_CALLDATA_SIZE / (68 + ((num + 31) / 32) * 32);

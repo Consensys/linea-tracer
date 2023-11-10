@@ -28,7 +28,7 @@ public record TraceRequestParams(long fromBlock, long toBlock, String runtimeVer
    * Parses a list of params to a {@link TraceRequestParams} object.
    *
    * @param params an array of parameters.
-   * @return a parsed {@link TraceRequestParams} object..
+   * @return a parsed {@link TraceRequestParams} object.
    */
   public static TraceRequestParams createTraceParams(final Object[] params) {
     // validate params size

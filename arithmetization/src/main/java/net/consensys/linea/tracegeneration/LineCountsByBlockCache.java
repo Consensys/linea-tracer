@@ -18,6 +18,9 @@ package net.consensys.linea.tracegeneration;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.consensys.linea.zktracer.ZkTracer;
+import org.hyperledger.besu.plugin.services.TraceService;
+
 public class LineCountsByBlockCache {
 
   // TODO limit the size of this cache
@@ -27,7 +30,18 @@ public class LineCountsByBlockCache {
     lineCountsByBlockNumber.put(blockNumber, lineCounts);
   }
 
-  public static Map<String, Integer> getBlockTraces(final long blockNumber) {
-    return lineCountsByBlockNumber.get(blockNumber);
+  public static Map<String, Integer> getBlockTraces(
+      final TraceService traceService, final long blockNumber) {
+    if (!lineCountsByBlockNumber.containsKey(blockNumber)) {
+      // trace the block, which will add the counters to the cache
+      traceService.traceBlock(blockNumber, new ZkTracer());
+    }
+    if (lineCountsByBlockNumber.containsKey(blockNumber)) {
+      return lineCountsByBlockNumber.get(blockNumber);
+
+    } else {
+      //      throw new RuntimeException("traceBlock() failed. Line counts do not exist in cache.");
+      return null;
+    }
   }
 }

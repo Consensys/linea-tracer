@@ -15,19 +15,22 @@
 
 package net.consensys.linea.tracegeneration.rpc;
 
+import com.google.common.annotations.VisibleForTesting;
 import net.consensys.linea.tracegeneration.LineCountsByBlockCache;
-import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.plugin.BesuContext;
+import org.hyperledger.besu.plugin.services.TraceService;
 import org.hyperledger.besu.plugin.services.exception.PluginRpcEndpointException;
 import org.hyperledger.besu.plugin.services.rpc.PluginRpcRequest;
 
 /** Responsible for getting trace counters. */
 public class RollupGetTracesCountersByBlockNumberV0 implements RollupRpcMethod {
 
-  private final BesuContext context;
+  private final BesuContext besuContext;
 
-  public RollupGetTracesCountersByBlockNumberV0(final BesuContext context) {
-    this.context = context;
+  private TraceService traceService;
+
+  public RollupGetTracesCountersByBlockNumberV0(final BesuContext besuContext) {
+    this.besuContext = besuContext;
   }
 
   public String getNamespace() {
@@ -35,7 +38,7 @@ public class RollupGetTracesCountersByBlockNumberV0 implements RollupRpcMethod {
   }
 
   public String getName() {
-    return "generateTracesCountersByBlockNumberV0";
+    return "getTracesCountersByBlockNumberV0";
   }
 
   /**
@@ -49,12 +52,28 @@ public class RollupGetTracesCountersByBlockNumberV0 implements RollupRpcMethod {
       final TracesCountersRequestParams params =
           TracesCountersRequestParams.createParams(request.getParams());
 
-      final ZkTracer tracer = new ZkTracer();
-
-      return new TracesCounters(
-          params.runtimeVersion(), LineCountsByBlockCache.getBlockTraces(params.fromBlock()));
+      return getTracesCounters(params);
     } catch (Exception ex) {
       throw new PluginRpcEndpointException(ex.getMessage());
     }
+  }
+
+  @VisibleForTesting
+  TracesCounters getTracesCounters(final TracesCountersRequestParams params) {
+    if (traceService == null) {
+      traceService = initTraceService();
+    }
+    return new TracesCounters(
+        params.runtimeVersion(),
+        LineCountsByBlockCache.getBlockTraces(traceService, params.fromBlock()));
+  }
+
+  private TraceService initTraceService() {
+    return besuContext
+        .getService(TraceService.class)
+        .orElseThrow(
+            () ->
+                new RuntimeException(
+                    "Unable to find trace service. Please ensure TraceService is registered."));
   }
 }

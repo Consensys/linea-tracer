@@ -15,16 +15,9 @@
 
 package net.consensys.linea.zktracer.module.wcp;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.protobuf.ByteString;
 import net.consensys.linea.zktracer.types.UnsignedByte;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import net.consensys.linea.zktracer.module.ParquetTrace;
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.List;
-import java.util.function.Consumer;
 import org.apache.hadoop.hive.ql.exec.vector.VectorizedRowBatch;
 import org.apache.hadoop.hive.ql.exec.vector.BytesColumnVector;
 import org.apache.hadoop.hive.ql.exec.vector.LongColumnVector;

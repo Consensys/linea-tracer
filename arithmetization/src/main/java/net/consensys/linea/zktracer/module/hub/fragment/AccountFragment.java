@@ -50,7 +50,7 @@ public final class AccountFragment implements TraceFragment {
       boolean debit,
       long cost,
       boolean createAddress) {
-    assert oldState.address() == newState.address();
+    assert oldState.address().equals(newState.address());
     this.who = oldState.address();
     this.oldState = oldState;
     this.newState = newState;

@@ -121,10 +121,6 @@ public class Hub implements Module {
   // reversed.
   @Getter private final PlatformController pch;
 
-  private void resetSignals() {
-    this.pch.reset();
-  }
-
   public int stamp() {
     return this.state.stamps().hub();
   }
@@ -435,7 +431,6 @@ public class Hub implements Module {
       this.callStack.revert(this.state.stamps().hub());
     }
 
-    this.resetSignals();
     if (this.currentFrame().stack().isOk()) {
       this.traceOperation(frame);
     } else {
@@ -617,6 +612,8 @@ public class Hub implements Module {
 
   @Override
   public void traceContextEnter(MessageFrame frame) {
+    this.pch.reset();
+
     if (frame.getDepth() == 0) {
       // Bedrock...
       final Address toAddress = effectiveToAddress(this.tx.transaction());

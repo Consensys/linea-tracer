@@ -37,7 +37,7 @@ public record TracesCountersRequestParams(long fromBlock, String runtimeVersion)
           String.format("Expected %d parameters but got %d", EXPECTED_PARAMS_SIZE, params.length));
     }
 
-    long fromBlock = Long.parseLong(params[0].toString());
+    long blockNumber = Long.parseLong(params[0].toString());
     String version = params[1].toString();
 
     if (!version.equals(getTracerRuntime())) {
@@ -47,7 +47,7 @@ public record TracesCountersRequestParams(long fromBlock, String runtimeVersion)
               getTracerRuntime(), version));
     }
 
-    return new TracesCountersRequestParams(fromBlock, version);
+    return new TracesCountersRequestParams(blockNumber, version);
   }
 
   private static String getTracerRuntime() {

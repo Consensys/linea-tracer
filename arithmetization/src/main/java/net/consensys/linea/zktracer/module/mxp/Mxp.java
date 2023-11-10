@@ -35,7 +35,7 @@ import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 /** Implementation of a {@link Module} for memory expansion. */
-public class Mxp implements Module<Trace> {
+public class Mxp implements Module {
   /** A list of the operations to trace */
   private final StackedList<MxpData> chunks = new StackedList<>();
 

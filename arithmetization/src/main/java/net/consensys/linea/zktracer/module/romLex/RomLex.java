@@ -41,7 +41,7 @@ import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class RomLex implements Module<Trace> {
+public class RomLex implements Module {
   private static final int LLARGE = 16;
   private static final Bytes CREATE2_SHIFT = bigIntegerToBytes(BigInteger.valueOf(0xff));
   private static final RomChunkComparator romChunkComparator = new RomChunkComparator();

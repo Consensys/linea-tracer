@@ -27,7 +27,7 @@ import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
-public class Wcp implements Module<Trace> {
+public class Wcp implements Module {
   private final StackedSet<WcpOperation> operations = new StackedSet<>();
   private int stamp = 0;
 

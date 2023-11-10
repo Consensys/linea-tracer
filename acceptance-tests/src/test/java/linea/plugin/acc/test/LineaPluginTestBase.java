@@ -144,7 +144,7 @@ public class LineaPluginTestBase extends AcceptanceTestBase {
     return Objects.requireNonNull(LineaPluginTestBase.class.getResource(resource)).getPath();
   }
 
-  protected void assertTransactionsInSeparateBlocks(Web3j web3j, ArrayList<String> hashes)
+  protected void assertTransactionsInSeparateBlocks(Web3j web3j, List<String> hashes)
       throws Exception {
     TransactionReceiptProcessor receiptProcessor =
         new PollingTransactionReceiptProcessor(

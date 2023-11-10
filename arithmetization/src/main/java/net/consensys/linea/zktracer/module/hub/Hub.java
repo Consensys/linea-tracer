@@ -97,6 +97,14 @@ public class Hub implements Module {
           Address.ALTBN128_PAIRING,
           Address.BLAKE2B_F_COMPRESSION);
 
+  public static Optional<Bytes> maybeStackItem(MessageFrame frame, int idx) {
+    if (frame.stackSize() > idx) {
+      return Optional.of(frame.getStackItem(idx));
+    } else {
+      return Optional.empty();
+    }
+  }
+
   public static final GasProjector gp = new GasProjector();
 
   // Revertible state of the hub

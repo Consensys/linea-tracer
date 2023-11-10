@@ -19,6 +19,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 /**
@@ -140,7 +141,7 @@ public class Signals {
 
       case RETURN -> {
         final boolean isDeployment = frame.getType() == MessageFrame.Type.CONTRACT_CREATION;
-        final boolean sizeNonZero = !frame.getStackItem(1).isZero();
+        final boolean sizeNonZero = Hub.maybeStackItem(frame, 1).map(size -> !size.isZero()).orElse(false);
 
         // WARN: Static part, other modules may be dynamically requested in the hub
         this.mxp =

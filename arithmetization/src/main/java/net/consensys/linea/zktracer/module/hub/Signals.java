@@ -157,6 +157,7 @@ public class Signals {
         this.romLex = this.hashInfo = isDeployment && ex.none() && sizeNonZero;
       }
 
+      // TODO: these opcodes
       case ADD -> {}
       case MUL -> {}
       case SUB -> {}

@@ -647,7 +647,7 @@ public class Hub implements Module {
       final int codeDeploymentNumber = this.conflation.deploymentInfo().number(codeAddress);
       this.callStack.enter(
           this.state.stamps().hub(),
-          frame.getOriginatorAddress(), // TODO: check for all call types that it is correct
+          frame.getRecipientAddress(), // TODO: check for all call types that it is correct
           frame.getContractAddress(),
           new Bytecode(frame.getCode().getBytes()),
           frameType,

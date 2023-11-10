@@ -95,7 +95,10 @@ public final class StackFragment implements TraceFragment {
         case RETURN -> this.hashInfoKeccak = EWord.ZERO; // TODO: fixme
         case CREATE2 -> {
           Address newAddress = EWord.of(frame.getStackItem(0)).toAddress();
-          this.hashInfoKeccak = EWord.of(frame.getWorldUpdater().get(newAddress).getCodeHash());
+          // zero address indicates a failed deployment
+          if (!newAddress.isZero()) {
+            this.hashInfoKeccak = EWord.of(frame.getWorldUpdater().get(newAddress).getCodeHash());
+          }
         }
         default -> throw new IllegalStateException("unexpected opcode");
       }

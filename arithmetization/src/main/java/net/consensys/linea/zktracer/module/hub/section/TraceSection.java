@@ -18,6 +18,7 @@ package net.consensys.linea.zktracer.module.hub.section;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.base.Preconditions;
 import lombok.Getter;
 import net.consensys.linea.zktracer.module.hub.DeploymentExceptions;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -46,8 +47,8 @@ public abstract class TraceSection {
      * @return the trace builder
      */
     public Trace.TraceBuilder trace(Trace.TraceBuilder trace) {
-      assert common != null;
-      assert specific != null;
+      Preconditions.checkNotNull(common);
+      Preconditions.checkNotNull(specific);
 
       common.trace(trace);
       specific.trace(trace);
@@ -119,7 +120,8 @@ public abstract class TraceSection {
    * @param fragment the fragment to insert
    */
   public final void addChunk(Hub hub, CallFrame callFrame, TraceFragment fragment) {
-    assert !(fragment instanceof CommonFragment);
+    Preconditions.checkArgument(!(fragment instanceof CommonFragment));
+
     if (fragment instanceof StackFragment) {
       this.stackRowsCounter++;
     } else {

@@ -19,6 +19,7 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
 
+import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -221,7 +222,7 @@ public final class TransactionSnapshot {
       initialCost += (long) this.prewarmedStorageKeysCount() * TxnDataTrace.G_accessliststorage;
     }
 
-    assert (this.gasLimit() >= initialCost) : "gasLimit < initialGasCost";
+    Preconditions.checkArgument(this.gasLimit() >= initialCost, "gasLimit < initialGasCost");
 
     return initialCost;
   }

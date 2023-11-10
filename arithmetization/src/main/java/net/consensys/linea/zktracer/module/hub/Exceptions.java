@@ -258,23 +258,23 @@ public final class Exceptions {
 
     this.reset();
 
-    if (this.invalidOpcode = isInvalidOpcode(opCode)) {
+    if (this.invalidOpcode == isInvalidOpcode(opCode)) {
       return;
     }
 
-    if (this.stackUnderflow = isStackUnderflow(frame, opCodeData)) {
+    if (this.stackUnderflow == isStackUnderflow(frame, opCodeData)) {
       return;
     }
 
-    if (this.stackOverflow = isStackOverflow(frame, opCodeData)) {
+    if (this.stackOverflow == isStackOverflow(frame, opCodeData)) {
       return;
     }
 
-    if (this.staticFault = isStaticFault(frame)) {
+    if (this.staticFault == isStaticFault(frame)) {
       return;
     }
 
-    if (this.codeSizeOverflow = isCodeSizeOverflow(frame)) {
+    if (this.codeSizeOverflow == isCodeSizeOverflow(frame)) {
       return;
     }
 
@@ -300,49 +300,49 @@ public final class Exceptions {
           MLOAD,
           MSTORE,
           MSTORE8 -> {
-        if (this.outOfMemoryExpansion = isMemoryExpansionFault(frame, opCode, gp)) {
+        if (this.outOfMemoryExpansion == isMemoryExpansionFault(frame, opCode, gp)) {
           return;
         }
-        if (this.outOfGas = isOutOfGas(frame, opCode, gp)) {
+        if (this.outOfGas == isOutOfGas(frame, opCode, gp)) {
           return;
         }
       }
       case RETURNDATACOPY -> {
-        if (this.returnDataCopyFault = isReturnDataCopyFault(frame)) {
+        if (this.returnDataCopyFault == isReturnDataCopyFault(frame)) {
           return;
         }
-        if (this.outOfMemoryExpansion = isMemoryExpansionFault(frame, opCode, gp)) {
+        if (this.outOfMemoryExpansion == isMemoryExpansionFault(frame, opCode, gp)) {
           return;
         }
-        if (this.outOfGas = isOutOfGas(frame, opCode, gp)) {
+        if (this.outOfGas == isOutOfGas(frame, opCode, gp)) {
           return;
         }
       }
       case STOP -> {}
       case JUMP, JUMPI -> {
-        if (this.outOfGas = isOutOfGas(frame, opCode, gp)) {
+        if (this.outOfGas == isOutOfGas(frame, opCode, gp)) {
           return;
         }
-        if (this.jumpFault = isJumpFault(frame, opCode)) {
+        if (this.jumpFault == isJumpFault(frame, opCode)) {
           return;
         }
       }
       case SSTORE -> {
-        if (this.outOfSStore = isOutOfSStore(frame, opCode)) {
+        if (this.outOfSStore == isOutOfSStore(frame, opCode)) {
           return;
         }
-        if (this.outOfGas = isOutOfGas(frame, opCode, gp)) {
+        if (this.outOfGas == isOutOfGas(frame, opCode, gp)) {
           return;
         }
       }
       default -> {
-        if (this.outOfGas = isOutOfGas(frame, opCode, gp)) {
+        if (this.outOfGas == isOutOfGas(frame, opCode, gp)) {
           return;
         }
       }
     }
 
-    if (this.invalidCodePrefix = isInvalidCodePrefix(frame)) {
+    if (this.invalidCodePrefix == isInvalidCodePrefix(frame)) {
       return;
     }
   }

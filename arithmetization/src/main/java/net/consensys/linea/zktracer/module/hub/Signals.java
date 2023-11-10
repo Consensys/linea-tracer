@@ -30,15 +30,16 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 @Accessors(fluent = true)
 @RequiredArgsConstructor
 public class Signals {
-  @Getter boolean mmu = false;
-  @Getter boolean mxp = false;
-  @Getter boolean oob = false;
-  @Getter boolean precompileInfo = false;
-  @Getter boolean stipend = false;
-  @Getter boolean exp = false;
-  @Getter boolean trm = false;
-  @Getter boolean hashInfo = false;
-  @Getter boolean romLex = false;
+  @Getter private boolean mmu;
+  @Getter private boolean mxp;
+  @Getter private boolean oob;
+  @Getter private boolean precompileInfo;
+  @Getter private boolean stipend;
+  @Getter private boolean exp;
+  @Getter private boolean trm;
+  @Getter private boolean hashInfo;
+  @Getter private boolean romLex;
+
   private final PlatformController platformController;
 
   public void reset() {
@@ -54,7 +55,7 @@ public class Signals {
   }
 
   public Signals snapshot() {
-    var r = new Signals(null);
+    Signals r = new Signals(null);
     r.mmu = this.mmu;
     r.mxp = this.mxp;
     r.oob = this.oob;
@@ -64,6 +65,7 @@ public class Signals {
     r.trm = this.trm;
     r.hashInfo = this.hashInfo;
     r.romLex = this.romLex;
+
     return r;
   }
 

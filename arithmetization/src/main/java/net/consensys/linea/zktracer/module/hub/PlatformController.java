@@ -29,12 +29,14 @@ public class PlatformController {
   /** What other modules should be triggered for the current operation */
   @Getter private final Signals signals;
   /** The exceptions raised during the execution of the current operation */
-  @Getter private final Exceptions exceptions = new Exceptions();
+  @Getter private final Exceptions exceptions;
   /** The aborting conditions raised during the execution of the current operation */
-  @Getter private final Aborts aborts = new Aborts();
+  @Getter private final Aborts aborts;
 
-  public PlatformController(Hub hub) {
+  public PlatformController(final Hub hub) {
     this.hub = hub;
+    this.exceptions = new Exceptions();
+    this.aborts = new Aborts();
     this.signals = new Signals(this);
   }
 
@@ -58,6 +60,7 @@ public class PlatformController {
     if (this.exceptions.none()) {
       this.aborts.prepare(hub);
     }
+
     this.signals.prepare(frame, this, this.hub);
   }
 }

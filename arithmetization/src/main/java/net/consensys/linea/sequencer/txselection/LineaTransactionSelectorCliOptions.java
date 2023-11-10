@@ -51,7 +51,7 @@ public class LineaTransactionSelectorCliOptions {
       names = {MAX_GAS_PER_BLOCK},
       hidden = true,
       paramLabel = "<LONG>",
-      description = "Sets max gas limit per block.")
+      description = "Sets max gas per block.")
   private Long maxGasPerBlock = DEFAULT_MAX_GAS_PER_BLOCK;
 
   private LineaTransactionSelectorCliOptions() {}

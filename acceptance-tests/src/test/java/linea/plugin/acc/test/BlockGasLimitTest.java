@@ -53,7 +53,7 @@ public class BlockGasLimitTest extends LineaPluginTestBase {
             Accounts.GENESIS_ACCOUNT_TWO_PRIVATE_KEY, web3j, MAX_CALLDATA_SIZE);
 
     final String transactionHash2 =
-        sendTransactionWithGivenLengthPayload(Accounts.GENESIS_ACCOUNT_ONE_PRIVATE_KEY, web3j, 0);
+        sendTransactionWithGivenLengthPayload(Accounts.GENESIS_ACCOUNT_ONE_PRIVATE_KEY, web3j, 10);
 
     // Assert that all three transactions are in the pool
     assertThat(minerNode.execute(txPoolTransactions.getTxPoolContents()).size()).isEqualTo(3);

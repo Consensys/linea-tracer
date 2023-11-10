@@ -28,7 +28,7 @@ public class MaxBlockGasTransactionSelector implements PluginTransactionSelector
   private final long maxGasPerBlock;
   private long cumulativeBlockGasUsed;
   public static String TRANSACTION_GAS_EXCEEDS_MAX_BLOCK_GAS =
-      "Gas used by transaction exceeds max block gas";
+      "Gas used by transaction exceeds max gas per block";
 
   @Override
   public TransactionSelectionResult evaluateTransactionPostProcessing(
@@ -39,7 +39,7 @@ public class MaxBlockGasTransactionSelector implements PluginTransactionSelector
 
     if (gasUsedByTransaction > maxGasPerBlock) {
       log.trace(
-          "Not selecting transaction, gas used {} greater than max block gas {}",
+          "Not selecting transaction, gas used {} greater than max gas per block {}",
           gasUsedByTransaction,
           maxGasPerBlock);
       return TransactionSelectionResult.invalid(TRANSACTION_GAS_EXCEEDS_MAX_BLOCK_GAS);

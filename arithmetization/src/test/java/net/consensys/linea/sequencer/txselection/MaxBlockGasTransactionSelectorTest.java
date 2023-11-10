@@ -41,7 +41,7 @@ public class MaxBlockGasTransactionSelectorTest {
   }
 
   @Test
-  public void shouldSelectWhen_GasUsedByTransaction_IsLessThan_MaxGasUsedPerBlock() {
+  public void shouldSelectWhen_GasUsedByTransaction_IsLessThan_MaxGasPerBlock() {
     var mockTransactionProcessingResult = mockTransactionProcessingResult(MAX_GAS_PER_BLOCK - 1);
     verifyTransactionSelection(
         transactionSelector,
@@ -51,7 +51,7 @@ public class MaxBlockGasTransactionSelectorTest {
   }
 
   @Test
-  public void shouldSelectWhen_GasUsedByTransaction_IsEqual_MaxGasUsedPerBlock() {
+  public void shouldSelectWhen_GasUsedByTransaction_IsEqual_MaxGasPerBlock() {
     var mockTransactionProcessingResult = mockTransactionProcessingResult(MAX_GAS_PER_BLOCK);
     verifyTransactionSelection(
         transactionSelector,
@@ -61,7 +61,7 @@ public class MaxBlockGasTransactionSelectorTest {
   }
 
   @Test
-  public void shouldNotSelectWhen_GasUsedByTransaction_IsGreaterThan_MaxGasUsedPerBlock() {
+  public void shouldNotSelectWhen_GasUsedByTransaction_IsGreaterThan_MaxGasPerBlock() {
     var mockTransactionProcessingResult = mockTransactionProcessingResult(MAX_GAS_PER_BLOCK + 1);
     verifyTransactionSelection(
         transactionSelector,
@@ -71,7 +71,7 @@ public class MaxBlockGasTransactionSelectorTest {
   }
 
   @Test
-  public void shouldNotSelectWhen_CumulativeGasUsed_IsGreaterThan_MaxGasUsedPerBlock() {
+  public void shouldNotSelectWhen_CumulativeGasUsed_IsGreaterThan_MaxGasPerBlock() {
     // block empty, transaction 80% max gas, should select
     verifyTransactionSelection(
         transactionSelector,

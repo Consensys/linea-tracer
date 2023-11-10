@@ -31,8 +31,8 @@ public class ORCWriter {
 
         public static Writer getWriter(String fileName) throws IOException {
                 Configuration conf = new Configuration();
-                conf.set("fs.hdfs.impl",org.apache.hadoop.hdfs.DistributedFileSystem.class.getName());
-                conf.set("fs.file.impl", org.apache.hadoop.fs.LocalFileSystem.class.getName());
+                conf.set("fs.hdfs.impl","org.apache.hadoop.hdfs.DistributedFileSystem");
+                conf.set("fs.file.impl", "org.apache.hadoop.fs.LocalFileSystem");
                 var hadoopConfig = new Configuration();
                 hadoopConfig.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
                 hadoopConfig.set("fs.file.impl", "org.apache.hadoop.fs.LocalFileSystem");

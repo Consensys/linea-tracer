@@ -100,7 +100,7 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
 
     @SuppressWarnings({"deprecation", "unchecked"})
     public void writeToFile(String filename) throws IOException {
-        log.warn("COUCOU c'est parti");
+        log.warn("[TRACING] starting trace to file");
 
 //      int i = (int)headerSize;
         for (Module m : this.hub.getModulesToTrace()) {
@@ -111,51 +111,52 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
                     try (Writer writer = ORCWriter.getWriter(filename)) {
                         m.commitToBuffer(writer);
                     }
+                    log.warn("[TRACING] done for {}, it took {}", m.jsonKey(), sw.elapsed(TimeUnit.MILLISECONDS));
                 }
                 case "ROM" -> {
                     try (Writer writer =  net.consensys.linea.zktracer.module.rom.ORCWriter.getWriter(filename)) {
                         m.commitToBuffer(writer);
                     }
+                    log.warn("[TRACING] done for {}, it took {}", m.jsonKey(), sw.elapsed(TimeUnit.MILLISECONDS));
                 }
-                case "MUL" -> {
-                    try (Writer writer =  net.consensys.linea.zktracer.module.mul.ORCWriter.getWriter(filename)) {
-                        m.commitToBuffer(writer);
-                    }
-                }
-                case "ROMLEX" -> {
-                    try (Writer writer =  net.consensys.linea.zktracer.module.romLex.ORCWriter.getWriter(filename)) {
-                        m.commitToBuffer(writer);
-                    }
-                }
-                case "EXT" -> {
-                    try (Writer writer =  net.consensys.linea.zktracer.module.ext.ORCWriter.getWriter(filename)) {
-                        m.commitToBuffer(writer);
-                    }
-                }
-                case "MOD" -> {
-                    try (Writer writer =  net.consensys.linea.zktracer.module.mod.ORCWriter.getWriter(filename)) {
-                        m.commitToBuffer(writer);
-                    }
-                }
-                case "MXP" -> {
-                    try (Writer writer =  net.consensys.linea.zktracer.module.mxp.ORCWriter.getWriter(filename)) {
-                        m.commitToBuffer(writer);
-                    }
-                }
-                case "RLPTXN" -> {
-                    try (Writer writer =  net.consensys.linea.zktracer.module.rlp_txn.ORCWriter.getWriter(filename)) {
-                        m.commitToBuffer(writer);
-                    }
-                }
-                case "RLPADDR" -> {
-                    try (Writer writer =  net.consensys.linea.zktracer.module.rlpAddr.ORCWriter.getWriter(filename)) {
-                        m.commitToBuffer(writer);
-                    }
-                }
+//                case "MUL" -> {
+//                    try (Writer writer =  net.consensys.linea.zktracer.module.mul.ORCWriter.getWriter(filename)) {
+//                        m.commitToBuffer(writer);
+//                    }
+//                }
+//                case "ROMLEX" -> {
+//                    try (Writer writer =  net.consensys.linea.zktracer.module.romLex.ORCWriter.getWriter(filename)) {
+//                        m.commitToBuffer(writer);
+//                    }
+//                }
+//                case "EXT" -> {
+//                    try (Writer writer =  net.consensys.linea.zktracer.module.ext.ORCWriter.getWriter(filename)) {
+//                        m.commitToBuffer(writer);
+//                    }
+//                }
+//                case "MOD" -> {
+//                    try (Writer writer =  net.consensys.linea.zktracer.module.mod.ORCWriter.getWriter(filename)) {
+//                        m.commitToBuffer(writer);
+//                    }
+//                }
+//                case "MXP" -> {
+//                    try (Writer writer =  net.consensys.linea.zktracer.module.mxp.ORCWriter.getWriter(filename)) {
+//                        m.commitToBuffer(writer);
+//                    }
+//                }
+//                case "RLPTXN" -> {
+//                    try (Writer writer =  net.consensys.linea.zktracer.module.rlp_txn.ORCWriter.getWriter(filename)) {
+//                        m.commitToBuffer(writer);
+//                    }
+//                }
+//                case "RLPADDR" -> {
+//                    try (Writer writer =  net.consensys.linea.zktracer.module.rlpAddr.ORCWriter.getWriter(filename)) {
+//                        m.commitToBuffer(writer);
+//                    }
+//                }
                 default -> {
                 }
             }
-            log.warn("COUCOU C'est fait pour {}, ca a pris {}", m.jsonKey(), sw.elapsed(TimeUnit.MILLISECONDS));
         }
     }
 

@@ -47,6 +47,8 @@
 //        var type = """
 //                struct<ACC_1:binary,ACC_2:binary,ARG_1_HI:binary,ARG_1_LO:binary,ARG_2_HI:binary,ARG_2_LO:binary,BYTE_1:binary,BYTE_2:binary,CT:binary,INST:binary,OVERFLOW:boolean,RES_HI:binary,RES_LO:binary,STAMP:binary>""";
 //        Configuration conf = new Configuration();
+                conf.set("fs.hdfs.impl","org.apache.hadoop.hdfs.DistributedFileSystem");
+                conf.set("fs.file.impl", org.apache.hadoop.fs.LocalFileSystem.class.getName());
 //        TypeDescription schema = TypeDescription.fromString(type);
 //
 //        Writer writer = OrcFile.createWriter(new Path("/tmp/my-file.orc"),

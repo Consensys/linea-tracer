@@ -70,6 +70,8 @@ dependencies {
     implementation 'org.apache.hadoop:hadoop-aws:3.3.6'
     implementation 'com.amazonaws:aws-java-sdk-bundle:1.12.583'
     implementation 'org.apache.hadoop:hadoop-common:3.3.6'
+    implementation 'org.apache.hadoop:hadoop-hdfs:3.3.6'
+    implementation 'org.apache.hadoop:hadoop-hdfs-client:3.3.6'
     testImplementation "${besuArtifactGroup}:evm"
     testImplementation "${besuArtifactGroup}:besu-datatypes"
     testImplementation "${besuArtifactGroup}.internal:core:${besuVersion}"

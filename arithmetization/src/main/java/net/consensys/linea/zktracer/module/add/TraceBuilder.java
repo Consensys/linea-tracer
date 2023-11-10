@@ -16,7 +16,7 @@
 package net.consensys.linea.zktracer.module.add;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.protobuf.ByteString;
+
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import net.consensys.linea.zktracer.module.ParquetTrace;

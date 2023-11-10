@@ -16,7 +16,7 @@
 package net.consensys.linea.zktracer.module.ext;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.protobuf.ByteString;
+
 import lombok.Builder;
 import lombok.Getter;
 import lombok.experimental.Accessors;

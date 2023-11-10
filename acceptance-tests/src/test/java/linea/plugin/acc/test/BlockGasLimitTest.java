@@ -60,8 +60,12 @@ public class BlockGasLimitTest extends LineaPluginTestBase {
 
     startMining();
 
+    // transactionHash1 and transactionHash2 do not exceed the block gas limit, hence will be in the
+    // same block.
     assertTransactionsMinedInSameBlock(web3j, List.of(transactionHash1, transactionHash2));
 
+    // largeGasTransactionHash exceeds the block gas limit when combined with another transaction,
+    // hence they are in separate blocks.
     assertTransactionsMinedInSeparateBlocks(
         web3j, List.of(largeGasTransactionHash, transactionHash2));
   }

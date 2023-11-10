@@ -1383,18 +1383,18 @@ public class RlpTxn implements Module {
 
   @Override
   public void commitToBuffer(Writer writer) throws IOException {
-    VectorizedRowBatch batch = writer.getSchema().createRowBatch();
-
-    int absTxNum = 0;
-    for (RlpTxnChunk chunk : this.chunkList) {
-      absTxNum += 1;
-
-      final int codeFragmentIndex = chunk.id().map(romLex::getCFIById).orElse(0);
-      traceChunk(chunk, absTxNum, codeFragmentIndex, writer, batch);
-    }
-    if (batch.size != 0) {
-      writer.addRowBatch(batch);
-      batch.reset();
-    }
+//    VectorizedRowBatch batch = writer.getSchema().createRowBatch();
+//
+//    int absTxNum = 0;
+//    for (RlpTxnChunk chunk : this.chunkList) {
+//      absTxNum += 1;
+//
+//      final int codeFragmentIndex = chunk.id().map(romLex::getCFIById).orElse(0);
+//      traceChunk(chunk, absTxNum, codeFragmentIndex, writer, batch);
+//    }
+//    if (batch.size != 0) {
+//      writer.addRowBatch(batch);
+//      batch.reset();
+//    }
   }
 }

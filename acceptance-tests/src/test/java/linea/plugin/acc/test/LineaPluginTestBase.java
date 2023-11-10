@@ -24,10 +24,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import linea.plugin.acc.test.tests.web3j.generated.SimpleStorage;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.assertj.core.api.Assertions;
 import org.hyperledger.besu.tests.acceptance.dsl.AcceptanceTestBase;
 import org.hyperledger.besu.tests.acceptance.dsl.account.Accounts;
 import org.hyperledger.besu.tests.acceptance.dsl.node.BesuNode;
@@ -144,20 +145,42 @@ public class LineaPluginTestBase extends AcceptanceTestBase {
     return Objects.requireNonNull(LineaPluginTestBase.class.getResource(resource)).getPath();
   }
 
-  protected void assertTransactionsInSeparateBlocks(Web3j web3j, ArrayList<String> hashes)
+  protected void assertTransactionsMinedInSeparateBlocks(Web3j web3j, List<String> hashes)
       throws Exception {
-    TransactionReceiptProcessor receiptProcessor =
-        new PollingTransactionReceiptProcessor(
-            web3j,
-            TransactionManager.DEFAULT_POLLING_FREQUENCY,
-            TransactionManager.DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH);
+    TransactionReceiptProcessor receiptProcessor = createReceiptProcessor(web3j);
 
     final HashSet<Long> blockNumbers = new HashSet<>();
-    for (String h : hashes) {
-      Assertions.assertThat(
-              blockNumbers.add(
-                  receiptProcessor.waitForTransactionReceipt(h).getBlockNumber().longValue()))
-          .isEqualTo(true);
+    for (String hash : hashes) {
+      TransactionReceipt receipt = receiptProcessor.waitForTransactionReceipt(hash);
+      assertThat(receipt).isNotNull();
+      boolean isAdded = blockNumbers.add(receipt.getBlockNumber().longValue());
+      assertThat(isAdded).isEqualTo(true);
     }
+  }
+
+  protected void assertTransactionsMinedInSameBlock(Web3j web3j, List<String> hashes) {
+    TransactionReceiptProcessor receiptProcessor = createReceiptProcessor(web3j);
+    Set<Long> blockNumbers =
+        hashes.stream()
+            .map(
+                hash -> {
+                  try {
+                    TransactionReceipt receipt = receiptProcessor.waitForTransactionReceipt(hash);
+                    assertThat(receipt).isNotNull();
+                    return receipt.getBlockNumber().longValue();
+                  } catch (IOException | TransactionException e) {
+                    throw new RuntimeException(e);
+                  }
+                })
+            .collect(Collectors.toSet());
+
+    assertThat(blockNumbers.size()).isEqualTo(1);
+  }
+
+  private TransactionReceiptProcessor createReceiptProcessor(Web3j web3j) {
+    return new PollingTransactionReceiptProcessor(
+        web3j,
+        TransactionManager.DEFAULT_POLLING_FREQUENCY,
+        TransactionManager.DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH);
   }
 }

@@ -22,11 +22,10 @@ import picocli.CommandLine;
 public class LineaTransactionSelectorCliOptions {
   public static final int DEFAULT_MAX_BLOCK_CALLDATA_SIZE = 70000;
   private static final String DEFAULT_MODULE_LIMIT_FILE_PATH = "moduleLimitFile.json";
-  public static final long DEFAULT_MAX_BLOCK_GAS = Long.MAX_VALUE;
-
+  public static final long DEFAULT_MAX_GAS_PER_BLOCK = Long.MAX_VALUE;
   private static final String MAX_BLOCK_CALLDATA_SIZE = "--plugin-linea-max-block-calldata-size";
   private static final String MODULE_LIMIT_FILE_PATH = "--plugin-linea-module-limit-file-path";
-  private static final String MAX_BLOCK_GAS = "--plugin-linea-max-block-gas";
+  private static final String MAX_GAS_PER_BLOCK = "--plugin-linea-max-block-gas";
 
   @CommandLine.Option(
       names = {MAX_BLOCK_CALLDATA_SIZE},
@@ -50,11 +49,11 @@ public class LineaTransactionSelectorCliOptions {
   private String moduleLimitFilePath = DEFAULT_MODULE_LIMIT_FILE_PATH;
 
   @CommandLine.Option(
-      names = {MAX_BLOCK_GAS},
+      names = {MAX_GAS_PER_BLOCK},
       hidden = true,
       paramLabel = "<LONG>",
       description = "Sets max gas limit per block.")
-  private Long maxBlockGas = DEFAULT_MAX_BLOCK_GAS;
+  private Long maxGasPerBlock = DEFAULT_MAX_GAS_PER_BLOCK;
 
   private LineaTransactionSelectorCliOptions() {}
 
@@ -78,7 +77,7 @@ public class LineaTransactionSelectorCliOptions {
     final LineaTransactionSelectorCliOptions options = create();
     options.maxBlockCallDataSize = config.maxBlockCallDataSize();
     options.moduleLimitFilePath = config.moduleLimitsFilePath();
-    options.maxBlockGas = config.maxBlockGas();
+    options.maxGasPerBlock = config.maxGasPerBlock();
     return options;
   }
 
@@ -91,7 +90,7 @@ public class LineaTransactionSelectorCliOptions {
     return new LineaTransactionSelectorConfiguration.Builder()
         .maxBlockCallDataSize(maxBlockCallDataSize)
         .moduleLimits(moduleLimitFilePath)
-        .maxBlockGas(maxBlockGas)
+        .maxGasPerBlock(maxGasPerBlock)
         .build();
   }
 
@@ -100,7 +99,7 @@ public class LineaTransactionSelectorCliOptions {
     return MoreObjects.toStringHelper(this)
         .add(MAX_BLOCK_CALLDATA_SIZE, maxBlockCallDataSize)
         .add(MODULE_LIMIT_FILE_PATH, moduleLimitFilePath)
-        .add(MAX_BLOCK_GAS, maxBlockGas)
+        .add(MAX_GAS_PER_BLOCK, maxGasPerBlock)
         .toString();
   }
 }

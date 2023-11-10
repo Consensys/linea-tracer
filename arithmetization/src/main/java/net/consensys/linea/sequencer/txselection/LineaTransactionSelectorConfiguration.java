@@ -19,13 +19,13 @@ package net.consensys.linea.sequencer.txselection;
 public final class LineaTransactionSelectorConfiguration {
   private final int maxBlockCallDataSize;
   private final String moduleLimitsFilePath;
-  private final long maxBlockGas;
+  private final long maxGasPerBlock;
 
   private LineaTransactionSelectorConfiguration(
-      int maxBlockCallDataSize, final String moduleLimitsFilePath, long maxBlockGas) {
+      int maxBlockCallDataSize, final String moduleLimitsFilePath, long maxGasPerBlock) {
     this.maxBlockCallDataSize = maxBlockCallDataSize;
     this.moduleLimitsFilePath = moduleLimitsFilePath;
-    this.maxBlockGas = maxBlockGas;
+    this.maxGasPerBlock = maxGasPerBlock;
   }
 
   public int maxBlockCallDataSize() {
@@ -36,14 +36,14 @@ public final class LineaTransactionSelectorConfiguration {
     return moduleLimitsFilePath;
   }
 
-  public long maxBlockGas() {
-    return maxBlockGas;
+  public long maxGasPerBlock() {
+    return maxGasPerBlock;
   }
 
   public static class Builder {
     private int maxBlockCallDataSize;
     private String moduleLimitsFilePath;
-    private long maxBlockGas;
+    private long maxGasPerBlock;
 
     public Builder maxBlockCallDataSize(final int maxBlockCallDataSize) {
       this.maxBlockCallDataSize = maxBlockCallDataSize;
@@ -55,14 +55,14 @@ public final class LineaTransactionSelectorConfiguration {
       return this;
     }
 
-    public Builder maxBlockGas(long maxBlockGas) {
-      this.maxBlockGas = maxBlockGas;
+    public Builder maxGasPerBlock(long maxGasPerBlock) {
+      this.maxGasPerBlock = maxGasPerBlock;
       return this;
     }
 
     public LineaTransactionSelectorConfiguration build() {
       return new LineaTransactionSelectorConfiguration(
-          maxBlockCallDataSize, moduleLimitsFilePath, maxBlockGas);
+          maxBlockCallDataSize, moduleLimitsFilePath, maxGasPerBlock);
     }
   }
 }

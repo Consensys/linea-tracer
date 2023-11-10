@@ -25,7 +25,7 @@ import org.hyperledger.besu.plugin.services.txselection.PluginTransactionSelecto
 @RequiredArgsConstructor
 public class MaxBlockGasTransactionSelector implements PluginTransactionSelector {
 
-  private final long maxBlockGas;
+  private final long maxGasPerBlock;
   private long cumulativeBlockGasUsed;
   public static String TRANSACTION_GAS_EXCEEDS_MAX_BLOCK_GAS =
       "Gas used by transaction exceeds max block gas";
@@ -37,11 +37,11 @@ public class MaxBlockGasTransactionSelector implements PluginTransactionSelector
 
     final long gasUsedByTransaction = processingResult.getEstimateGasUsedByTransaction();
 
-    if (gasUsedByTransaction > maxBlockGas) {
+    if (gasUsedByTransaction > maxGasPerBlock) {
       log.trace(
           "Not selecting transaction, gas used {} greater than max block gas {}",
           gasUsedByTransaction,
-          maxBlockGas);
+          maxGasPerBlock);
       return TransactionSelectionResult.invalid(TRANSACTION_GAS_EXCEEDS_MAX_BLOCK_GAS);
     }
 
@@ -49,7 +49,7 @@ public class MaxBlockGasTransactionSelector implements PluginTransactionSelector
       log.trace(
           "Not selecting transaction, cumulative gas used {} greater than max block gas {}",
           cumulativeBlockGasUsed,
-          maxBlockGas);
+          maxGasPerBlock);
       return TransactionSelectionResult.TX_TOO_LARGE_FOR_REMAINING_GAS;
     }
     return TransactionSelectionResult.SELECTED;
@@ -57,7 +57,7 @@ public class MaxBlockGasTransactionSelector implements PluginTransactionSelector
 
   private boolean isTransactionExceedingMaxBlockGasLimit(long transactionGasUsed) {
     try {
-      return Math.addExact(cumulativeBlockGasUsed, transactionGasUsed) > maxBlockGas;
+      return Math.addExact(cumulativeBlockGasUsed, transactionGasUsed) > maxGasPerBlock;
     } catch (final ArithmeticException e) {
       // Overflow won't occur as blockCallDataSize won't exceed Integer.MAX_VALUE
       return true;

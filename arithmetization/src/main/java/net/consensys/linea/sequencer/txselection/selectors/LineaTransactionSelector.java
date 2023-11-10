@@ -53,10 +53,11 @@ public class LineaTransactionSelector implements PluginTransactionSelector {
     traceLineLimitTransactionSelector =
         new TraceLineLimitTransactionSelector(
             limitsMapSupplier, lineaConfiguration.moduleLimitsFilePath());
+
     return List.of(
         new MaxBlockCallDataTransactionSelector(lineaConfiguration.maxBlockCallDataSize()),
-        traceLineLimitTransactionSelector,
-        new MaxBlockGasTransactionSelector(lineaConfiguration.maxBlockGas()));
+        new MaxBlockGasTransactionSelector(lineaConfiguration.maxGasPerBlock()),
+        traceLineLimitTransactionSelector);
   }
 
   /**

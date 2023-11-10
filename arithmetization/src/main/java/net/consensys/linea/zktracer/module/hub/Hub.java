@@ -85,8 +85,8 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 @Accessors(fluent = true)
 public class Hub implements Module {
   private static final int TAU = 8;
-  private static final List<Address> PRECOMPILES =
-      List.of(
+  private static final Set<Address> PRECOMPILES =
+      Set.of(
           Address.ECREC,
           Address.SHA256,
           Address.RIPEMD160,

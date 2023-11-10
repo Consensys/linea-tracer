@@ -19,7 +19,6 @@ import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static org.hyperledger.besu.crypto.Hash.keccak256;
 import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -29,10 +28,8 @@ import java.util.Optional;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
-import net.consensys.linea.zktracer.module.ParquetTrace;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
@@ -309,19 +306,19 @@ public class RomLex implements Module<Trace> {
   }
 
   private void traceChunk(
-      final RomChunk chunk, int cfi, int codeFragmentIndexInfinity, ParquetWriter<Trace>  target) throws IOException {
-    var trace = Trace.builder()
-            .codeFragmentIndex(BigInteger.valueOf(cfi))
-            .codeFragmentIndexInfty(BigInteger.valueOf(codeFragmentIndexInfinity))
-            .codeSize(BigInteger.valueOf(chunk.byteCode().size()))
-            .addrHi(chunk.address().slice(0, 4).toUnsignedBigInteger())
-            .addrLo(chunk.address().slice(4, LLARGE).toUnsignedBigInteger())
-            .commitToState(chunk.commitToTheState())
-            .depNumber(BigInteger.valueOf(chunk.deploymentNumber()))
-            .depStatus(chunk.deploymentStatus())
-            .readFromState(chunk.readFromTheState())
-            .build();
-    target.write(trace);
+      final RomChunk chunk, int cfi, int codeFragmentIndexInfinity, Trace.TraceBuilder trace) {
+    trace
+        .codeFragmentIndex(BigInteger.valueOf(cfi))
+        .codeFragmentIndexInfty(BigInteger.valueOf(codeFragmentIndexInfinity))
+        .codeSize(BigInteger.valueOf(chunk.byteCode().size()))
+        .addrHi(chunk.address().slice(0, 4).toUnsignedBigInteger())
+        .addrLo(chunk.address().slice(4, LLARGE).toUnsignedBigInteger())
+        .commitToState(chunk.commitToTheState())
+        .depNumber(BigInteger.valueOf(chunk.deploymentNumber()))
+        .depStatus(chunk.deploymentStatus())
+        .readFromState(chunk.readFromTheState())
+//        .validateRow()
+    ;
   }
 
   @Override

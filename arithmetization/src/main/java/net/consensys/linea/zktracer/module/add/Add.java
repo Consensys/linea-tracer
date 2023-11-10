@@ -35,7 +35,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 /**
  * Implementation of a {@link Module} for addition/subtraction.
  */
-public class Add implements Module<Trace> {
+public class Add implements Module {
     private static final UInt256 TWO_TO_THE_128 = UInt256.ONE.shiftLeft(128);
 
     private int stamp = 0;

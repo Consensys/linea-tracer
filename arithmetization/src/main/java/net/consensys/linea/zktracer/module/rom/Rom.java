@@ -29,7 +29,7 @@ import org.apache.hadoop.hive.ql.exec.vector.VectorizedRowBatch;
 import org.apache.orc.Writer;
 import org.apache.tuweni.bytes.Bytes;
 
-public class Rom implements Module<Trace> {
+public class Rom implements Module {
     private static final int LLARGE = 16;
     private static final int LLARGE_MO = 15;
     private static final int EVM_WORD_MO = 31;

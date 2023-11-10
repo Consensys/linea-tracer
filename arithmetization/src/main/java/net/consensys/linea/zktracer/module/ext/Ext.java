@@ -21,7 +21,6 @@ import java.math.BigInteger;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
-import net.consensys.linea.zktracer.module.ParquetTrace;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.OpCodes;
 import net.consensys.linea.zktracer.types.UnsignedByte;
@@ -32,7 +31,7 @@ import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class Ext implements Module<Trace> {
+public class Ext implements Module {
   private int stamp = 0;
 
   /** A set of the operations to trace */

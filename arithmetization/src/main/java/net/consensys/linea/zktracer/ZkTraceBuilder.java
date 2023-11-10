@@ -26,7 +26,7 @@ import net.consensys.linea.zktracer.module.tables.shf.ShfRtTrace;
 public class ZkTraceBuilder {
   private final Map<String, Object> traceResults = new HashMap<>();
 
-  public ZkTraceBuilder addTrace(Module<?> module) {
+  public ZkTraceBuilder addTrace(Module module) {
     Optional.ofNullable(module.commit())
         .ifPresent(
             v -> {

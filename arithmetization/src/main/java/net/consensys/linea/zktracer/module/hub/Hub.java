@@ -15,8 +15,6 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
-import static net.consensys.linea.zktracer.types.Address.isPrecompile;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -155,14 +153,14 @@ public class Hub implements Module {
     this.state.currentTxTrace().add(section);
   }
 
-  private final Module add = new Add();
-  private final Module ext = new Ext();
-  private final Module mod = new Mod();
-  private final Module mul = new Mul();
-  private final Module shf = new Shf();
+  private final Add add = new Add();
+  private final Ext ext = new Ext();
+  private final Mod mod = new Mod();
+  private final Mul mul = new Mul();
+  private final Shf shf = new Shf();
   private final Wcp wcp = new Wcp();
   private final RlpTxn rlpTxn;
-  private final Module mxp;
+  private final Mxp mxp;
   private final RlpTxrcpt rlpTxrcpt = new RlpTxrcpt();
   private final RlpAddr rlpAddr = new RlpAddr();
   private final Rom rom;
@@ -233,19 +231,18 @@ public class Hub implements Module {
    */
   public List<Module> getModulesToTrace() {
     return List.of(
-        this.add,
-        //        this,
+                this,
                 this.romLex,
-        //        this.add,
-        //        this.ext,
-        //        this.mod,
+                this.add,
+                this.ext,
+                this.mod,
                 this.mul,
-        //        this.shf,
-        //        this.wcp,
-        //        this.mxp,
+//                this.shf,
+//                this.wcp,
+                this.mxp,
                 this.rlpTxn,
         //        this.rlpTxrcpt,
-        //        this.rlpAddr,
+                this.rlpAddr,
                 this.rom
         //        this.txnData,
 //        this.trm
@@ -939,8 +936,9 @@ public class Hub implements Module {
 
   @Override
   public ModuleTrace commit() {
-    final Trace.TraceBuilder trace = Trace.builder(this.lineCount());
-    return new HubTrace(this.state.commit(trace).build());
+//    final Trace.TraceBuilder trace = Trace.builder(this.lineCount());
+//    return new HubTrace(this.state.commit(trace).build());
+    return null;
   }
 
   public long refundedGas() {

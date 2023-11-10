@@ -30,7 +30,7 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 
-public interface Module<T> {
+public interface Module {
   String jsonKey();
 
   default void traceStartConflation(final long blockCount) {}

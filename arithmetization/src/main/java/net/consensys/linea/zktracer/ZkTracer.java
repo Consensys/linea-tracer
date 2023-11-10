@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -43,7 +44,7 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
   public static final GasCalculator gasCalculator = new LondonGasCalculator();
 
   private final ZkTraceBuilder zkTraceBuilder = new ZkTraceBuilder();
-  private final Hub hub;
+  @Getter private final Hub hub;
   private Hash hashOfLastTransactionTraced = Hash.EMPTY;
 
   public ZkTracer() {

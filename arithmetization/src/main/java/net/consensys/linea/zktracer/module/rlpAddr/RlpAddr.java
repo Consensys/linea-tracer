@@ -39,7 +39,7 @@ import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class RlpAddr implements Module {
+public class RlpAddr implements Module<Trace> {
   private static final Bytes CREATE2_SHIFT = bigIntegerToBytes(BigInteger.valueOf(0xff));
   private static final Bytes INT_SHORT = bigIntegerToBytes(BigInteger.valueOf(0x80));
   private static final int LIST_SHORT = 0xc0;

@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -27,6 +28,7 @@ import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
 import net.consensys.linea.zktracer.module.add.Add;
@@ -259,7 +261,7 @@ public class Hub implements Module {
   }
 
   public static boolean isValidPrecompileCall(MessageFrame frame) {
-    return switch (OpCode.of(frame.getCurrentOperation().getOpcode())) {
+     return switch (OpCode.of(frame.getCurrentOperation().getOpcode())) {
       case CALL, CALLCODE, STATICCALL, DELEGATECALL -> {
         if (frame.stackSize() < 2) {
           yield false; // invalid stack for a *CALL
@@ -650,7 +652,7 @@ public class Hub implements Module {
     this.state.enter();
     this.tx.enter();
 
-    for (Module m : this.modules) {
+    for (Module<?> m : this.modules) {
       m.enterTransaction();
     }
   }
@@ -672,7 +674,7 @@ public class Hub implements Module {
       this.processStateInit(world);
     }
 
-    for (Module m : this.modules) {
+    for (Module<?> m : this.modules) {
       m.traceStartTx(world, tx);
     }
   }
@@ -681,7 +683,7 @@ public class Hub implements Module {
   public void popTransaction() {
     this.tx.pop();
     this.state.pop();
-    for (Module m : this.modules) {
+    for (Module<?> m : this.modules) {
       m.popTransaction();
     }
   }
@@ -702,7 +704,7 @@ public class Hub implements Module {
 
     this.state.currentTxTrace().postTxRetcon(this);
 
-    for (Module m : this.modules) {
+    for (Module<?> m : this.modules) {
       m.traceEndTx(world, tx, status, output, logs, gasUsed);
     }
   }
@@ -791,7 +793,7 @@ public class Hub implements Module {
 
       this.defers.runNextContext(this, frame);
 
-      for (Module m : this.modules) {
+      for (Module<?> m : this.modules) {
         m.traceContextEnter(frame);
       }
     }
@@ -818,7 +820,7 @@ public class Hub implements Module {
 
       this.callStack.exit(frame.getOutputData());
 
-      for (Module m : this.modules) {
+      for (Module<?> m : this.modules) {
         m.traceContextExit(frame);
       }
     }
@@ -913,7 +915,7 @@ public class Hub implements Module {
   @Override
   public void traceStartBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
     this.block.update(blockHeader);
-    for (Module m : this.modules) {
+    for (Module<?> m : this.modules) {
       m.traceStartBlock(blockHeader, blockBody);
     }
   }
@@ -921,7 +923,7 @@ public class Hub implements Module {
   @Override
   public void traceStartConflation(long blockCount) {
     this.conflation.update();
-    for (Module m : this.modules) {
+    for (Module<?> m : this.modules) {
       m.traceStartConflation(blockCount);
     }
   }
@@ -929,7 +931,7 @@ public class Hub implements Module {
   @Override
   public void traceEndConflation() {
     this.state.postConflationRetcon(this);
-    for (Module m : this.modules) {
+    for (Module<?> m : this.modules) {
       m.traceEndConflation();
     }
   }
@@ -1314,4 +1316,10 @@ public class Hub implements Module {
     }
     return r;
   }
+
+  @Override
+  public List<ColumnHeader> columnsHeaders() {
+    return Trace.headers(this.lineCount());
+  }
+
 }

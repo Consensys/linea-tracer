@@ -25,7 +25,7 @@ import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
-public class Shf implements Module {
+public class Shf implements Module<Trace> {
   private int stamp = 0;
   private final StackedSet<ShfOperation> operations = new StackedSet<>();
 

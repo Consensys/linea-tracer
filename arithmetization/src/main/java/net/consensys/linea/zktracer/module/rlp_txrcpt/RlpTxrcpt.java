@@ -40,7 +40,7 @@ import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.log.LogsBloomFilter;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class RlpTxrcpt implements Module {
+public class RlpTxrcpt implements Module<Trace> {
   private static final int LLARGE = RlpTxrcptTrace.LLARGE;
   private static final Bytes BYTES_RLP_INT_SHORT = Bytes.minimalBytes(RlpTxrcptTrace.INT_SHORT);
   private static final int INT_RLP_INT_SHORT = RlpTxrcptTrace.INT_SHORT;

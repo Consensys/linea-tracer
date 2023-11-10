@@ -100,7 +100,7 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
 
     @SuppressWarnings({"deprecation", "unchecked"})
     public void writeToFile(String filename) throws IOException {
-        log.warn("COUCOU c'est parti");
+        log.warn("[TRACING] starting tracing");
 
 //      int i = (int)headerSize;
         for (Module<?> m : this.hub.getModulesToTrace()) {
@@ -155,7 +155,7 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
                 default -> {
                 }
             }
-            log.warn("COUCOU C'est fait pour {}, ca a pris {}", m.jsonKey(), sw.elapsed(TimeUnit.MILLISECONDS));
+            log.warn("[TRACING] done for module {}, it took {}ms.", m.jsonKey(), sw.elapsed(TimeUnit.MILLISECONDS));
         }
     }
 

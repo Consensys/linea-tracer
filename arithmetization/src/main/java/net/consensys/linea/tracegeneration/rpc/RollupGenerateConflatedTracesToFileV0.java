@@ -26,6 +26,7 @@ import java.util.zip.GZIPOutputStream;
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
+import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.plugin.BesuContext;
 import org.hyperledger.besu.plugin.services.BesuConfiguration;
@@ -34,6 +35,7 @@ import org.hyperledger.besu.plugin.services.exception.PluginRpcEndpointException
 import org.hyperledger.besu.plugin.services.rpc.PluginRpcRequest;
 
 /** Responsible for conflated file traces generation. */
+@Slf4j
 public class RollupGenerateConflatedTracesToFileV0 {
 
   private final BesuContext besuContext;
@@ -77,6 +79,7 @@ public class RollupGenerateConflatedTracesToFileV0 {
       final long toBlock = params.toBlock();
       final ZkTracer tracer = new ZkTracer();
 
+    log.warn("[TRACING] starting tracing from {} to {}", fromBlock, toBlock);
       traceService.trace(
           fromBlock,
           toBlock,
@@ -90,7 +93,10 @@ public class RollupGenerateConflatedTracesToFileV0 {
           },
           tracer);
 
+
+
       var file = generateOutputFile(params.runtimeVersion());
+    log.warn("[TRACING] Using file {}", file.getAbsolutePath());
     try {
       tracer.writeToFile(file.getAbsolutePath());
     } catch (IOException e) {

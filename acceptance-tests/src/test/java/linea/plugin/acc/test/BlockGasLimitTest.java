@@ -24,7 +24,6 @@ import org.web3j.protocol.Web3j;
 
 /** This class tests the block gas limit functionality of the plugin. */
 public class BlockGasLimitTest extends LineaPluginTestBase {
-  public static final int MAX_CALLDATA_SIZE = 1092; // contract has a call data size of 979
 
   @Override
   public List<String> getTestCliOptions() {

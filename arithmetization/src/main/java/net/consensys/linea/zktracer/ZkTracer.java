@@ -110,19 +110,23 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
 
   @Override
   public void tracePreExecution(final MessageFrame frame) {
-    this.hub.tracePreOpcode(frame);
+    if (frame.getCode().getSize() > 0) {
+      this.hub.tracePreOpcode(frame);
+    }
   }
 
   @Override
   public void tracePostExecution(MessageFrame frame, Operation.OperationResult operationResult) {
-    this.hub.tracePostExecution(frame, operationResult);
+    if (frame.getCode().getSize() > 0) {
+      this.hub.tracePostExecution(frame, operationResult);
+    }
   }
 
   @Override
   public void traceContextEnter(MessageFrame frame) {
     // We only want to trigger on creation of new contexts, not on re-entry in
     // existing contexts
-    if (frame.getState() == MessageFrame.State.NOT_STARTED) {
+    if (frame.getState() == MessageFrame.State.NOT_STARTED && frame.getCode().getSize() > 0) {
       this.hub.traceContextEnter(frame);
     }
   }

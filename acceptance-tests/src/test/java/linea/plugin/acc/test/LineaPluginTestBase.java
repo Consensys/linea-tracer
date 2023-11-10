@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 
 import linea.plugin.acc.test.tests.web3j.generated.SimpleStorage;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.tests.acceptance.dsl.AcceptanceTestBase;
 import org.hyperledger.besu.tests.acceptance.dsl.account.Accounts;
 import org.hyperledger.besu.tests.acceptance.dsl.node.BesuNode;
@@ -48,6 +49,7 @@ import org.web3j.tx.response.TransactionReceiptProcessor;
 /** Base class for plugin tests. */
 public class LineaPluginTestBase extends AcceptanceTestBase {
   public static final int MAX_CALLDATA_SIZE = 1188; // contract has a call data size of 1160
+  public static final int MAX_TX_GAS_LIMIT = DefaultGasProvider.GAS_LIMIT.intValue();
   public static final long CHAIN_ID = 1337L;
   protected BesuNode minerNode;
 
@@ -182,5 +184,20 @@ public class LineaPluginTestBase extends AcceptanceTestBase {
         web3j,
         TransactionManager.DEFAULT_POLLING_FREQUENCY,
         TransactionManager.DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH);
+  }
+
+  protected String sendTransactionWithGivenLengthPayload(
+      final String account, final Web3j web3j, final int num) throws IOException {
+    String to = Address.fromHexString("fe3b557e8fb62b89f4916b721be55ceb828dbd73").toString();
+    TransactionManager txManager = new RawTransactionManager(web3j, Credentials.create(account));
+
+    return txManager
+        .sendTransaction(
+            DefaultGasProvider.GAS_PRICE,
+            BigInteger.valueOf(MAX_TX_GAS_LIMIT),
+            to,
+            RandomStringUtils.randomAlphabetic(num),
+            BigInteger.ZERO)
+        .getTransactionHash();
   }
 }

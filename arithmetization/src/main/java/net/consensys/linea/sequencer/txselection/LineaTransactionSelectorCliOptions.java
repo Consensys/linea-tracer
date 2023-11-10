@@ -41,7 +41,6 @@ public class LineaTransactionSelectorCliOptions {
       names = {MODULE_LIMIT_FILE_PATH},
       hidden = true,
       paramLabel = "<STRING>",
-      required = true,
       description =
           "Path to the json file containing the module limits (default: "
               + DEFAULT_MODULE_LIMIT_FILE_PATH

@@ -16,24 +16,15 @@ package linea.plugin.acc.test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.IOException;
-import java.math.BigInteger;
 import java.util.List;
 
-import org.apache.commons.lang3.RandomStringUtils;
-import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.tests.acceptance.dsl.account.Accounts;
 import org.junit.jupiter.api.Test;
-import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
-import org.web3j.tx.RawTransactionManager;
-import org.web3j.tx.TransactionManager;
-import org.web3j.tx.gas.DefaultGasProvider;
 
 /** This class tests the block gas limit functionality of the plugin. */
 public class BlockGasLimitTest extends LineaPluginTestBase {
   public static final int MAX_CALLDATA_SIZE = 1092; // contract has a call data size of 979
-  public static final int MAX_TX_GAS_LIMIT = DefaultGasProvider.GAS_LIMIT.intValue();
 
   @Override
   public List<String> getTestCliOptions() {
@@ -66,7 +57,6 @@ public class BlockGasLimitTest extends LineaPluginTestBase {
     // Assert that all three transactions are in the pool
     assertThat(minerNode.execute(txPoolTransactions.getTxPoolContents()).size()).isEqualTo(3);
 
-    // start mining
     startMining();
 
     assertTransactionsMinedInSameBlock(web3j, List.of(transactionHash1, transactionHash2));
@@ -77,20 +67,5 @@ public class BlockGasLimitTest extends LineaPluginTestBase {
 
   private void startMining() {
     minerNode.execute(minerTransactions.minerStart());
-  }
-
-  private String sendTransactionWithGivenLengthPayload(
-      final String account, final Web3j web3j, final int num) throws IOException {
-    String to = Address.fromHexString("fe3b557e8fb62b89f4916b721be55ceb828dbd73").toString();
-    TransactionManager txManager = new RawTransactionManager(web3j, Credentials.create(account));
-
-    return txManager
-        .sendTransaction(
-            DefaultGasProvider.GAS_PRICE,
-            BigInteger.valueOf(MAX_TX_GAS_LIMIT),
-            to,
-            RandomStringUtils.randomAlphabetic(num),
-            BigInteger.ZERO)
-        .getTransactionHash();
   }
 }

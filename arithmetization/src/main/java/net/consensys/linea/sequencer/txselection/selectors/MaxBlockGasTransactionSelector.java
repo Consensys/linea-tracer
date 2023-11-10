@@ -47,7 +47,7 @@ public class MaxBlockGasTransactionSelector implements PluginTransactionSelector
 
     if (isTransactionExceedingMaxBlockGasLimit(gasUsedByTransaction)) {
       log.trace(
-          "Not selecting transaction, cumulative gas used {} greater than max block gas {}",
+          "Not selecting transaction, cumulative gas used {} greater than max gas per block {}",
           cumulativeBlockGasUsed,
           maxGasPerBlock);
       return TransactionSelectionResult.TX_TOO_LARGE_FOR_REMAINING_GAS;
@@ -59,7 +59,7 @@ public class MaxBlockGasTransactionSelector implements PluginTransactionSelector
     try {
       return Math.addExact(cumulativeBlockGasUsed, transactionGasUsed) > maxGasPerBlock;
     } catch (final ArithmeticException e) {
-      // Overflow won't occur as blockCallDataSize won't exceed Integer.MAX_VALUE
+      // Overflow won't occur as cumulativeBlockGasUsed won't exceed Long.MAX_VALUE
       return true;
     }
   }

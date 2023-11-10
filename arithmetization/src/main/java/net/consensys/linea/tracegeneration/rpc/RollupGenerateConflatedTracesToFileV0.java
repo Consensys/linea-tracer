@@ -63,11 +63,11 @@ public class RollupGenerateConflatedTracesToFileV0 {
    */
   public FileTrace execute(final PluginRpcRequest request) {
     if (traceService == null) {
-      traceService = initTraceService();
+      traceService = getTraceService();
     }
 
     if (tracesPath == null) {
-      tracesPath = initTracesPath();
+      tracesPath = getTracesPath();
     }
 
     try {
@@ -98,7 +98,7 @@ public class RollupGenerateConflatedTracesToFileV0 {
     }
   }
 
-  private Path initTracesPath() {
+  private Path getTracesPath() {
     final Path dataPath =
         besuContext
             .getService(BesuConfiguration.class)
@@ -111,7 +111,7 @@ public class RollupGenerateConflatedTracesToFileV0 {
     return dataPath.resolve("traces");
   }
 
-  private TraceService initTraceService() {
+  private TraceService getTraceService() {
     return besuContext
         .getService(TraceService.class)
         .orElseThrow(

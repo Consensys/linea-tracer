@@ -27,7 +27,6 @@ import net.consensys.linea.zktracer.opcode.OpCodes;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.hadoop.hive.ql.exec.vector.VectorizedRowBatch;
 import org.apache.orc.Writer;
-import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;

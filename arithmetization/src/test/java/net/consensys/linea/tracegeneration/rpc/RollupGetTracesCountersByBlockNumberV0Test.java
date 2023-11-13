@@ -59,8 +59,7 @@ class RollupGetTracesCountersByBlockNumberV0Test {
   void getTracesCounters() {
 
     long blockNumber = 77;
-    TracesCounters tracesCounters0 =
-        method.getTracesCounters(new TracesCountersRequestParams(blockNumber, "v0"));
+    method.getTracesCounters(new TracesCountersRequestParams(blockNumber, "v0"));
     verifyTraceBlockCallAndAddTraceCountsToCache(blockNumber);
 
     // now it should exist in the cache

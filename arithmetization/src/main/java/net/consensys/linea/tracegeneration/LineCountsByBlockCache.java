@@ -15,29 +15,30 @@
 
 package net.consensys.linea.tracegeneration;
 
-import java.util.HashMap;
 import java.util.Map;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.plugin.services.TraceService;
 
 public class LineCountsByBlockCache {
-
-  // TODO limit the size of this cache
-  static final Map<Long, Map<String, Integer>> lineCountsByBlockNumber = new HashMap<>();
+  private static final int NUMBER_OF_BLOCKS_TO_CACHE = 10_000;
+  static final Cache<Long, Map<String, Integer>> lineCountsCache =
+      CacheBuilder.newBuilder().recordStats().maximumSize(NUMBER_OF_BLOCKS_TO_CACHE).build();
 
   public static void putBlockTraces(final long blockNumber, final Map<String, Integer> lineCounts) {
-    lineCountsByBlockNumber.put(blockNumber, lineCounts);
+    lineCountsCache.put(blockNumber, lineCounts);
   }
 
   public static Map<String, Integer> getBlockTraces(
       final TraceService traceService, final long blockNumber) {
-    if (!lineCountsByBlockNumber.containsKey(blockNumber)) {
+    if (!lineCountsCache.asMap().containsKey(blockNumber)) {
       // trace the block, which will add the counters to the cache
       traceService.traceBlock(blockNumber, new ZkTracer());
     }
-    if (lineCountsByBlockNumber.containsKey(blockNumber)) {
-      return lineCountsByBlockNumber.get(blockNumber);
+    if (lineCountsCache.asMap().containsKey(blockNumber)) {
+      return lineCountsCache.getIfPresent(blockNumber);
 
     } else {
       //      throw new RuntimeException("traceBlock() failed. Line counts do not exist in cache.");

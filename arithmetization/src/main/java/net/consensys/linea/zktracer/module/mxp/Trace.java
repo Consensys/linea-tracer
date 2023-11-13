@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys AG.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -15,76 +15,77 @@
 
 package net.consensys.linea.zktracer.module.mxp;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import net.consensys.linea.zktracer.types.UnsignedByte;
+
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import net.consensys.linea.zktracer.types.UnsignedByte;
-
 /**
- * WARNING: This code is generated automatically. Any modifications to this code may be overwritten
- * and could lead to unexpected behavior. Please DO NOT ATTEMPT TO MODIFY this code directly.
+ * WARNING: This code is generated automatically.
+ * Any modifications to this code may be overwritten and could lead to unexpected behavior.
+ * Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
 public record Trace(
-    @JsonProperty("ACC_1") List<BigInteger> acc1,
-    @JsonProperty("ACC_2") List<BigInteger> acc2,
-    @JsonProperty("ACC_3") List<BigInteger> acc3,
-    @JsonProperty("ACC_4") List<BigInteger> acc4,
-    @JsonProperty("ACC_A") List<BigInteger> accA,
-    @JsonProperty("ACC_Q") List<BigInteger> accQ,
-    @JsonProperty("ACC_W") List<BigInteger> accW,
-    @JsonProperty("BYTE_1") List<UnsignedByte> byte1,
-    @JsonProperty("BYTE_2") List<UnsignedByte> byte2,
-    @JsonProperty("BYTE_3") List<UnsignedByte> byte3,
-    @JsonProperty("BYTE_4") List<UnsignedByte> byte4,
-    @JsonProperty("BYTE_A") List<UnsignedByte> byteA,
-    @JsonProperty("BYTE_Q") List<UnsignedByte> byteQ,
-    @JsonProperty("BYTE_QQ") List<BigInteger> byteQq,
-    @JsonProperty("BYTE_R") List<BigInteger> byteR,
-    @JsonProperty("BYTE_W") List<UnsignedByte> byteW,
-    @JsonProperty("C_MEM") List<BigInteger> cMem,
-    @JsonProperty("C_MEM_NEW") List<BigInteger> cMemNew,
-    @JsonProperty("CN") List<BigInteger> cn,
-    @JsonProperty("COMP") List<Boolean> comp,
-    @JsonProperty("CT") List<BigInteger> ct,
-    @JsonProperty("DEPLOYS") List<Boolean> deploys,
-    @JsonProperty("EXPANDS") List<Boolean> expands,
-    @JsonProperty("GAS_MXP") List<BigInteger> gasMxp,
-    @JsonProperty("GBYTE") List<BigInteger> gbyte,
-    @JsonProperty("GWORD") List<BigInteger> gword,
-    @JsonProperty("INST") List<BigInteger> inst,
-    @JsonProperty("LIN_COST") List<BigInteger> linCost,
-    @JsonProperty("MAX_OFFSET") List<BigInteger> maxOffset,
-    @JsonProperty("MAX_OFFSET_1") List<BigInteger> maxOffset1,
-    @JsonProperty("MAX_OFFSET_2") List<BigInteger> maxOffset2,
-    @JsonProperty("MXP_TYPE_1") List<Boolean> mxpType1,
-    @JsonProperty("MXP_TYPE_2") List<Boolean> mxpType2,
-    @JsonProperty("MXP_TYPE_3") List<Boolean> mxpType3,
-    @JsonProperty("MXP_TYPE_4") List<Boolean> mxpType4,
-    @JsonProperty("MXP_TYPE_5") List<Boolean> mxpType5,
-    @JsonProperty("MXPX") List<Boolean> mxpx,
-    @JsonProperty("NOOP") List<Boolean> noop,
-    @JsonProperty("OFFSET_1_HI") List<BigInteger> offset1Hi,
-    @JsonProperty("OFFSET_1_LO") List<BigInteger> offset1Lo,
-    @JsonProperty("OFFSET_2_HI") List<BigInteger> offset2Hi,
-    @JsonProperty("OFFSET_2_LO") List<BigInteger> offset2Lo,
-    @JsonProperty("QUAD_COST") List<BigInteger> quadCost,
-    @JsonProperty("ROOB") List<Boolean> roob,
-    @JsonProperty("SIZE_1_HI") List<BigInteger> size1Hi,
-    @JsonProperty("SIZE_1_LO") List<BigInteger> size1Lo,
-    @JsonProperty("SIZE_2_HI") List<BigInteger> size2Hi,
-    @JsonProperty("SIZE_2_LO") List<BigInteger> size2Lo,
-    @JsonProperty("STAMP") List<BigInteger> stamp,
-    @JsonProperty("WORDS") List<BigInteger> words,
-    @JsonProperty("WORDS_NEW") List<BigInteger> wordsNew) {
+  @JsonProperty("ACC_1") List<BigInteger> acc1,
+  @JsonProperty("ACC_2") List<BigInteger> acc2,
+  @JsonProperty("ACC_3") List<BigInteger> acc3,
+  @JsonProperty("ACC_4") List<BigInteger> acc4,
+  @JsonProperty("ACC_A") List<BigInteger> accA,
+  @JsonProperty("ACC_Q") List<BigInteger> accQ,
+  @JsonProperty("ACC_W") List<BigInteger> accW,
+  @JsonProperty("BYTE_1") List<UnsignedByte> byte1,
+  @JsonProperty("BYTE_2") List<UnsignedByte> byte2,
+  @JsonProperty("BYTE_3") List<UnsignedByte> byte3,
+  @JsonProperty("BYTE_4") List<UnsignedByte> byte4,
+  @JsonProperty("BYTE_A") List<UnsignedByte> byteA,
+  @JsonProperty("BYTE_Q") List<UnsignedByte> byteQ,
+  @JsonProperty("BYTE_QQ") List<BigInteger> byteQq,
+  @JsonProperty("BYTE_R") List<BigInteger> byteR,
+  @JsonProperty("BYTE_W") List<UnsignedByte> byteW,
+  @JsonProperty("C_MEM") List<BigInteger> cMem,
+  @JsonProperty("C_MEM_NEW") List<BigInteger> cMemNew,
+  @JsonProperty("CN") List<BigInteger> cn,
+  @JsonProperty("COMP") List<Boolean> comp,
+  @JsonProperty("CT") List<BigInteger> ct,
+  @JsonProperty("DEPLOYS") List<Boolean> deploys,
+  @JsonProperty("EXPANDS") List<Boolean> expands,
+  @JsonProperty("GAS_MXP") List<BigInteger> gasMxp,
+  @JsonProperty("GBYTE") List<BigInteger> gbyte,
+  @JsonProperty("GWORD") List<BigInteger> gword,
+  @JsonProperty("INST") List<BigInteger> inst,
+  @JsonProperty("LIN_COST") List<BigInteger> linCost,
+  @JsonProperty("MAX_OFFSET") List<BigInteger> maxOffset,
+  @JsonProperty("MAX_OFFSET_1") List<BigInteger> maxOffset1,
+  @JsonProperty("MAX_OFFSET_2") List<BigInteger> maxOffset2,
+  @JsonProperty("MXP_TYPE_1") List<Boolean> mxpType1,
+  @JsonProperty("MXP_TYPE_2") List<Boolean> mxpType2,
+  @JsonProperty("MXP_TYPE_3") List<Boolean> mxpType3,
+  @JsonProperty("MXP_TYPE_4") List<Boolean> mxpType4,
+  @JsonProperty("MXP_TYPE_5") List<Boolean> mxpType5,
+  @JsonProperty("MXPX") List<Boolean> mxpx,
+  @JsonProperty("NOOP") List<Boolean> noop,
+  @JsonProperty("OFFSET_1_HI") List<BigInteger> offset1Hi,
+  @JsonProperty("OFFSET_1_LO") List<BigInteger> offset1Lo,
+  @JsonProperty("OFFSET_2_HI") List<BigInteger> offset2Hi,
+  @JsonProperty("OFFSET_2_LO") List<BigInteger> offset2Lo,
+  @JsonProperty("QUAD_COST") List<BigInteger> quadCost,
+  @JsonProperty("ROOB") List<Boolean> roob,
+  @JsonProperty("SIZE_1_HI") List<BigInteger> size1Hi,
+  @JsonProperty("SIZE_1_LO") List<BigInteger> size1Lo,
+  @JsonProperty("SIZE_2_HI") List<BigInteger> size2Hi,
+  @JsonProperty("SIZE_2_LO") List<BigInteger> size2Lo,
+  @JsonProperty("STAMP") List<BigInteger> stamp,
+  @JsonProperty("WORDS") List<BigInteger> words,
+  @JsonProperty("WORDS_NEW") List<BigInteger> wordsNew) { 
   static TraceBuilder builder(int length) {
     return new TraceBuilder(length);
   }
 
   public int size() {
-    return this.acc1.size();
+      return this.acc1.size();
   }
 
   static class TraceBuilder {
@@ -92,154 +93,104 @@ public record Trace(
 
     @JsonProperty("ACC_1")
     private final List<BigInteger> acc1;
-
     @JsonProperty("ACC_2")
     private final List<BigInteger> acc2;
-
     @JsonProperty("ACC_3")
     private final List<BigInteger> acc3;
-
     @JsonProperty("ACC_4")
     private final List<BigInteger> acc4;
-
     @JsonProperty("ACC_A")
     private final List<BigInteger> accA;
-
     @JsonProperty("ACC_Q")
     private final List<BigInteger> accQ;
-
     @JsonProperty("ACC_W")
     private final List<BigInteger> accW;
-
     @JsonProperty("BYTE_1")
     private final List<UnsignedByte> byte1;
-
     @JsonProperty("BYTE_2")
     private final List<UnsignedByte> byte2;
-
     @JsonProperty("BYTE_3")
     private final List<UnsignedByte> byte3;
-
     @JsonProperty("BYTE_4")
     private final List<UnsignedByte> byte4;
-
     @JsonProperty("BYTE_A")
     private final List<UnsignedByte> byteA;
-
     @JsonProperty("BYTE_Q")
     private final List<UnsignedByte> byteQ;
-
     @JsonProperty("BYTE_QQ")
     private final List<BigInteger> byteQq;
-
     @JsonProperty("BYTE_R")
     private final List<BigInteger> byteR;
-
     @JsonProperty("BYTE_W")
     private final List<UnsignedByte> byteW;
-
     @JsonProperty("C_MEM")
     private final List<BigInteger> cMem;
-
     @JsonProperty("C_MEM_NEW")
     private final List<BigInteger> cMemNew;
-
     @JsonProperty("CN")
     private final List<BigInteger> cn;
-
     @JsonProperty("COMP")
     private final List<Boolean> comp;
-
     @JsonProperty("CT")
     private final List<BigInteger> ct;
-
     @JsonProperty("DEPLOYS")
     private final List<Boolean> deploys;
-
     @JsonProperty("EXPANDS")
     private final List<Boolean> expands;
-
     @JsonProperty("GAS_MXP")
     private final List<BigInteger> gasMxp;
-
     @JsonProperty("GBYTE")
     private final List<BigInteger> gbyte;
-
     @JsonProperty("GWORD")
     private final List<BigInteger> gword;
-
     @JsonProperty("INST")
     private final List<BigInteger> inst;
-
     @JsonProperty("LIN_COST")
     private final List<BigInteger> linCost;
-
     @JsonProperty("MAX_OFFSET")
     private final List<BigInteger> maxOffset;
-
     @JsonProperty("MAX_OFFSET_1")
     private final List<BigInteger> maxOffset1;
-
     @JsonProperty("MAX_OFFSET_2")
     private final List<BigInteger> maxOffset2;
-
     @JsonProperty("MXP_TYPE_1")
     private final List<Boolean> mxpType1;
-
     @JsonProperty("MXP_TYPE_2")
     private final List<Boolean> mxpType2;
-
     @JsonProperty("MXP_TYPE_3")
     private final List<Boolean> mxpType3;
-
     @JsonProperty("MXP_TYPE_4")
     private final List<Boolean> mxpType4;
-
     @JsonProperty("MXP_TYPE_5")
     private final List<Boolean> mxpType5;
-
     @JsonProperty("MXPX")
     private final List<Boolean> mxpx;
-
     @JsonProperty("NOOP")
     private final List<Boolean> noop;
-
     @JsonProperty("OFFSET_1_HI")
     private final List<BigInteger> offset1Hi;
-
     @JsonProperty("OFFSET_1_LO")
     private final List<BigInteger> offset1Lo;
-
     @JsonProperty("OFFSET_2_HI")
     private final List<BigInteger> offset2Hi;
-
     @JsonProperty("OFFSET_2_LO")
     private final List<BigInteger> offset2Lo;
-
     @JsonProperty("QUAD_COST")
     private final List<BigInteger> quadCost;
-
     @JsonProperty("ROOB")
     private final List<Boolean> roob;
-
     @JsonProperty("SIZE_1_HI")
     private final List<BigInteger> size1Hi;
-
     @JsonProperty("SIZE_1_LO")
     private final List<BigInteger> size1Lo;
-
     @JsonProperty("SIZE_2_HI")
     private final List<BigInteger> size2Hi;
-
     @JsonProperty("SIZE_2_LO")
     private final List<BigInteger> size2Lo;
-
     @JsonProperty("STAMP")
     private final List<BigInteger> stamp;
-
     @JsonProperty("WORDS")
     private final List<BigInteger> words;
-
     @JsonProperty("WORDS_NEW")
     private final List<BigInteger> wordsNew;
 
@@ -1122,6 +1073,7 @@ public record Trace(
         throw new IllegalStateException("WORDS_NEW has not been filled");
       }
 
+
       filled.clear();
 
       return this;
@@ -1129,208 +1081,208 @@ public record Trace(
 
     public TraceBuilder fillAndValidateRow() {
       if (!filled.get(0)) {
-        acc1.add(BigInteger.ZERO);
-        this.filled.set(0);
+          acc1.add(BigInteger.ZERO);
+          this.filled.set(0);
       }
       if (!filled.get(1)) {
-        acc2.add(BigInteger.ZERO);
-        this.filled.set(1);
+          acc2.add(BigInteger.ZERO);
+          this.filled.set(1);
       }
       if (!filled.get(2)) {
-        acc3.add(BigInteger.ZERO);
-        this.filled.set(2);
+          acc3.add(BigInteger.ZERO);
+          this.filled.set(2);
       }
       if (!filled.get(3)) {
-        acc4.add(BigInteger.ZERO);
-        this.filled.set(3);
+          acc4.add(BigInteger.ZERO);
+          this.filled.set(3);
       }
       if (!filled.get(4)) {
-        accA.add(BigInteger.ZERO);
-        this.filled.set(4);
+          accA.add(BigInteger.ZERO);
+          this.filled.set(4);
       }
       if (!filled.get(5)) {
-        accQ.add(BigInteger.ZERO);
-        this.filled.set(5);
+          accQ.add(BigInteger.ZERO);
+          this.filled.set(5);
       }
       if (!filled.get(6)) {
-        accW.add(BigInteger.ZERO);
-        this.filled.set(6);
+          accW.add(BigInteger.ZERO);
+          this.filled.set(6);
       }
       if (!filled.get(7)) {
-        byte1.add(UnsignedByte.of(0));
-        this.filled.set(7);
+          byte1.add(UnsignedByte.of(0));
+          this.filled.set(7);
       }
       if (!filled.get(8)) {
-        byte2.add(UnsignedByte.of(0));
-        this.filled.set(8);
+          byte2.add(UnsignedByte.of(0));
+          this.filled.set(8);
       }
       if (!filled.get(9)) {
-        byte3.add(UnsignedByte.of(0));
-        this.filled.set(9);
+          byte3.add(UnsignedByte.of(0));
+          this.filled.set(9);
       }
       if (!filled.get(10)) {
-        byte4.add(UnsignedByte.of(0));
-        this.filled.set(10);
+          byte4.add(UnsignedByte.of(0));
+          this.filled.set(10);
       }
       if (!filled.get(11)) {
-        byteA.add(UnsignedByte.of(0));
-        this.filled.set(11);
+          byteA.add(UnsignedByte.of(0));
+          this.filled.set(11);
       }
       if (!filled.get(12)) {
-        byteQ.add(UnsignedByte.of(0));
-        this.filled.set(12);
+          byteQ.add(UnsignedByte.of(0));
+          this.filled.set(12);
       }
       if (!filled.get(13)) {
-        byteQq.add(BigInteger.ZERO);
-        this.filled.set(13);
+          byteQq.add(BigInteger.ZERO);
+          this.filled.set(13);
       }
       if (!filled.get(14)) {
-        byteR.add(BigInteger.ZERO);
-        this.filled.set(14);
+          byteR.add(BigInteger.ZERO);
+          this.filled.set(14);
       }
       if (!filled.get(15)) {
-        byteW.add(UnsignedByte.of(0));
-        this.filled.set(15);
+          byteW.add(UnsignedByte.of(0));
+          this.filled.set(15);
       }
       if (!filled.get(19)) {
-        cMem.add(BigInteger.ZERO);
-        this.filled.set(19);
+          cMem.add(BigInteger.ZERO);
+          this.filled.set(19);
       }
       if (!filled.get(20)) {
-        cMemNew.add(BigInteger.ZERO);
-        this.filled.set(20);
+          cMemNew.add(BigInteger.ZERO);
+          this.filled.set(20);
       }
       if (!filled.get(16)) {
-        cn.add(BigInteger.ZERO);
-        this.filled.set(16);
+          cn.add(BigInteger.ZERO);
+          this.filled.set(16);
       }
       if (!filled.get(17)) {
-        comp.add(false);
-        this.filled.set(17);
+          comp.add(false);
+          this.filled.set(17);
       }
       if (!filled.get(18)) {
-        ct.add(BigInteger.ZERO);
-        this.filled.set(18);
+          ct.add(BigInteger.ZERO);
+          this.filled.set(18);
       }
       if (!filled.get(21)) {
-        deploys.add(false);
-        this.filled.set(21);
+          deploys.add(false);
+          this.filled.set(21);
       }
       if (!filled.get(22)) {
-        expands.add(false);
-        this.filled.set(22);
+          expands.add(false);
+          this.filled.set(22);
       }
       if (!filled.get(23)) {
-        gasMxp.add(BigInteger.ZERO);
-        this.filled.set(23);
+          gasMxp.add(BigInteger.ZERO);
+          this.filled.set(23);
       }
       if (!filled.get(24)) {
-        gbyte.add(BigInteger.ZERO);
-        this.filled.set(24);
+          gbyte.add(BigInteger.ZERO);
+          this.filled.set(24);
       }
       if (!filled.get(25)) {
-        gword.add(BigInteger.ZERO);
-        this.filled.set(25);
+          gword.add(BigInteger.ZERO);
+          this.filled.set(25);
       }
       if (!filled.get(26)) {
-        inst.add(BigInteger.ZERO);
-        this.filled.set(26);
+          inst.add(BigInteger.ZERO);
+          this.filled.set(26);
       }
       if (!filled.get(27)) {
-        linCost.add(BigInteger.ZERO);
-        this.filled.set(27);
+          linCost.add(BigInteger.ZERO);
+          this.filled.set(27);
       }
       if (!filled.get(28)) {
-        maxOffset.add(BigInteger.ZERO);
-        this.filled.set(28);
+          maxOffset.add(BigInteger.ZERO);
+          this.filled.set(28);
       }
       if (!filled.get(29)) {
-        maxOffset1.add(BigInteger.ZERO);
-        this.filled.set(29);
+          maxOffset1.add(BigInteger.ZERO);
+          this.filled.set(29);
       }
       if (!filled.get(30)) {
-        maxOffset2.add(BigInteger.ZERO);
-        this.filled.set(30);
+          maxOffset2.add(BigInteger.ZERO);
+          this.filled.set(30);
       }
       if (!filled.get(32)) {
-        mxpType1.add(false);
-        this.filled.set(32);
+          mxpType1.add(false);
+          this.filled.set(32);
       }
       if (!filled.get(33)) {
-        mxpType2.add(false);
-        this.filled.set(33);
+          mxpType2.add(false);
+          this.filled.set(33);
       }
       if (!filled.get(34)) {
-        mxpType3.add(false);
-        this.filled.set(34);
+          mxpType3.add(false);
+          this.filled.set(34);
       }
       if (!filled.get(35)) {
-        mxpType4.add(false);
-        this.filled.set(35);
+          mxpType4.add(false);
+          this.filled.set(35);
       }
       if (!filled.get(36)) {
-        mxpType5.add(false);
-        this.filled.set(36);
+          mxpType5.add(false);
+          this.filled.set(36);
       }
       if (!filled.get(31)) {
-        mxpx.add(false);
-        this.filled.set(31);
+          mxpx.add(false);
+          this.filled.set(31);
       }
       if (!filled.get(37)) {
-        noop.add(false);
-        this.filled.set(37);
+          noop.add(false);
+          this.filled.set(37);
       }
       if (!filled.get(38)) {
-        offset1Hi.add(BigInteger.ZERO);
-        this.filled.set(38);
+          offset1Hi.add(BigInteger.ZERO);
+          this.filled.set(38);
       }
       if (!filled.get(39)) {
-        offset1Lo.add(BigInteger.ZERO);
-        this.filled.set(39);
+          offset1Lo.add(BigInteger.ZERO);
+          this.filled.set(39);
       }
       if (!filled.get(40)) {
-        offset2Hi.add(BigInteger.ZERO);
-        this.filled.set(40);
+          offset2Hi.add(BigInteger.ZERO);
+          this.filled.set(40);
       }
       if (!filled.get(41)) {
-        offset2Lo.add(BigInteger.ZERO);
-        this.filled.set(41);
+          offset2Lo.add(BigInteger.ZERO);
+          this.filled.set(41);
       }
       if (!filled.get(42)) {
-        quadCost.add(BigInteger.ZERO);
-        this.filled.set(42);
+          quadCost.add(BigInteger.ZERO);
+          this.filled.set(42);
       }
       if (!filled.get(43)) {
-        roob.add(false);
-        this.filled.set(43);
+          roob.add(false);
+          this.filled.set(43);
       }
       if (!filled.get(44)) {
-        size1Hi.add(BigInteger.ZERO);
-        this.filled.set(44);
+          size1Hi.add(BigInteger.ZERO);
+          this.filled.set(44);
       }
       if (!filled.get(45)) {
-        size1Lo.add(BigInteger.ZERO);
-        this.filled.set(45);
+          size1Lo.add(BigInteger.ZERO);
+          this.filled.set(45);
       }
       if (!filled.get(46)) {
-        size2Hi.add(BigInteger.ZERO);
-        this.filled.set(46);
+          size2Hi.add(BigInteger.ZERO);
+          this.filled.set(46);
       }
       if (!filled.get(47)) {
-        size2Lo.add(BigInteger.ZERO);
-        this.filled.set(47);
+          size2Lo.add(BigInteger.ZERO);
+          this.filled.set(47);
       }
       if (!filled.get(48)) {
-        stamp.add(BigInteger.ZERO);
-        this.filled.set(48);
+          stamp.add(BigInteger.ZERO);
+          this.filled.set(48);
       }
       if (!filled.get(49)) {
-        words.add(BigInteger.ZERO);
-        this.filled.set(49);
+          words.add(BigInteger.ZERO);
+          this.filled.set(49);
       }
       if (!filled.get(50)) {
-        wordsNew.add(BigInteger.ZERO);
-        this.filled.set(50);
+          wordsNew.add(BigInteger.ZERO);
+          this.filled.set(50);
       }
 
       return this.validateRow();
@@ -1342,57 +1294,57 @@ public record Trace(
       }
 
       return new Trace(
-          acc1,
-          acc2,
-          acc3,
-          acc4,
-          accA,
-          accQ,
-          accW,
-          byte1,
-          byte2,
-          byte3,
-          byte4,
-          byteA,
-          byteQ,
-          byteQq,
-          byteR,
-          byteW,
-          cMem,
-          cMemNew,
-          cn,
-          comp,
-          ct,
-          deploys,
-          expands,
-          gasMxp,
-          gbyte,
-          gword,
-          inst,
-          linCost,
-          maxOffset,
-          maxOffset1,
-          maxOffset2,
-          mxpType1,
-          mxpType2,
-          mxpType3,
-          mxpType4,
-          mxpType5,
-          mxpx,
-          noop,
-          offset1Hi,
-          offset1Lo,
-          offset2Hi,
-          offset2Lo,
-          quadCost,
-          roob,
-          size1Hi,
-          size1Lo,
-          size2Hi,
-          size2Lo,
-          stamp,
-          words,
-          wordsNew);
+        acc1,
+        acc2,
+        acc3,
+        acc4,
+        accA,
+        accQ,
+        accW,
+        byte1,
+        byte2,
+        byte3,
+        byte4,
+        byteA,
+        byteQ,
+        byteQq,
+        byteR,
+        byteW,
+        cMem,
+        cMemNew,
+        cn,
+        comp,
+        ct,
+        deploys,
+        expands,
+        gasMxp,
+        gbyte,
+        gword,
+        inst,
+        linCost,
+        maxOffset,
+        maxOffset1,
+        maxOffset2,
+        mxpType1,
+        mxpType2,
+        mxpType3,
+        mxpType4,
+        mxpType5,
+        mxpx,
+        noop,
+        offset1Hi,
+        offset1Lo,
+        offset2Hi,
+        offset2Lo,
+        quadCost,
+        roob,
+        size1Hi,
+        size1Lo,
+        size2Hi,
+        size2Lo,
+        stamp,
+        words,
+        wordsNew);
     }
   }
 }

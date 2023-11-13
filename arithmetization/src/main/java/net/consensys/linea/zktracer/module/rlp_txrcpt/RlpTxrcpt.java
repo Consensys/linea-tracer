@@ -49,8 +49,6 @@ public class RlpTxrcpt implements Module {
   private static final int INT_RLP_LIST_SHORT = RlpTxrcptTrace.LIST_SHORT;
   private static final int INT_RLP_LIST_LONG = RlpTxrcptTrace.LIST_LONG;
 
-  // TODO: this must be in the stacked state
-  private int absLogNumMax = 0;
   private int absLogNum = 0;
   StackedList<RlpTxrcptChunk> chunkList = new StackedList<>();
 
@@ -77,15 +75,15 @@ public class RlpTxrcpt implements Module {
       Bytes output,
       List<Log> logList,
       long gasUsed) {
-    this.absLogNumMax += logList.size();
     RlpTxrcptChunk chunk = new RlpTxrcptChunk(tx.getType(), status, gasUsed, logList);
     this.chunkList.add(chunk);
   }
 
-  public void traceChunk(final RlpTxrcptChunk chunk, int absTxNum, Trace.TraceBuilder trace) {
+  public void traceChunk(final RlpTxrcptChunk chunk, int absTxNum, int absLogNumMax, Trace.TraceBuilder trace) {
     RlpTxrcptColumns traceValue = new RlpTxrcptColumns();
     traceValue.txrcptSize = txRcptSize(chunk);
     traceValue.absTxNum = absTxNum;
+    traceValue.absLogNumMax = absLogNumMax;
 
     // PHASE 1: RLP Prefix.
     phase1(traceValue, chunk.txType(), trace);
@@ -613,7 +611,7 @@ public class RlpTxrcpt implements Module {
 
     trace
         .absLogNum(BigInteger.valueOf(this.absLogNum))
-        .absLogNumMax(BigInteger.valueOf(this.absLogNumMax))
+        .absLogNumMax(BigInteger.valueOf(traceValue.absLogNumMax))
         .absTxNum(BigInteger.valueOf(traceValue.absTxNum))
         .absTxNumMax(BigInteger.valueOf(this.chunkList.size()))
         .acc1(traceValue.acc1.toUnsignedBigInteger())
@@ -771,11 +769,15 @@ public class RlpTxrcpt implements Module {
   public ModuleTrace commit() {
     final Trace.TraceBuilder trace = Trace.builder(this.lineCount());
 
+    int absLogNumMax=0;
+    for (RlpTxrcptChunk chunk : this.chunkList) {
+      absLogNumMax += chunk.logs().size();
+    }
+
     int absTxNum = 0;
-    int estTraceSize = 0;
     for (RlpTxrcptChunk chunk : this.chunkList) {
       absTxNum += 1;
-      traceChunk(chunk, absTxNum, trace);
+      traceChunk(chunk, absTxNum, absLogNumMax, trace);
     }
     return new RlpTxrcptTrace(trace.build());
   }

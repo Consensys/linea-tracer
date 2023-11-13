@@ -22,7 +22,7 @@ import picocli.CommandLine;
 public class LineaTransactionSelectorCliOptions {
   public static final int DEFAULT_MAX_BLOCK_CALLDATA_SIZE = 70000;
   private static final String DEFAULT_MODULE_LIMIT_FILE_PATH = "moduleLimitFile.json";
-  public static final long DEFAULT_MAX_GAS_PER_BLOCK = Long.MAX_VALUE;
+  public static final long DEFAULT_MAX_GAS_PER_BLOCK = 30_000_000L;
   private static final String MAX_BLOCK_CALLDATA_SIZE = "--plugin-linea-max-block-calldata-size";
   private static final String MODULE_LIMIT_FILE_PATH = "--plugin-linea-module-limit-file-path";
   private static final String MAX_GAS_PER_BLOCK = "--plugin-linea-max-block-gas";

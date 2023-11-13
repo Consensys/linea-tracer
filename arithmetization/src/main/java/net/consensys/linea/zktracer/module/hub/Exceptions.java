@@ -258,23 +258,28 @@ public final class Exceptions {
 
     this.reset();
 
-    if (this.invalidOpcode == isInvalidOpcode(opCode)) {
+    this.invalidOpcode = isInvalidOpcode(opCode);
+    if (this.invalidOpcode) {
       return;
     }
 
-    if (this.stackUnderflow == isStackUnderflow(frame, opCodeData)) {
+    this.stackUnderflow = isStackUnderflow(frame, opCodeData);
+    if (this.stackUnderflow) {
       return;
     }
 
-    if (this.stackOverflow == isStackOverflow(frame, opCodeData)) {
+    this.stackOverflow = isStackOverflow(frame, opCodeData);
+    if (this.stackOverflow) {
       return;
     }
 
-    if (this.staticFault == isStaticFault(frame)) {
+    this.staticFault = isStaticFault(frame);
+    if (this.staticFault) {
       return;
     }
 
-    if (this.codeSizeOverflow == isCodeSizeOverflow(frame)) {
+    this.codeSizeOverflow = isCodeSizeOverflow(frame);
+    if (this.codeSizeOverflow) {
       return;
     }
 
@@ -308,35 +313,47 @@ public final class Exceptions {
         }
       }
       case RETURNDATACOPY -> {
-        if (this.returnDataCopyFault == isReturnDataCopyFault(frame)) {
+        this.returnDataCopyFault = isReturnDataCopyFault(frame);
+        if (this.returnDataCopyFault) {
           return;
         }
-        if (this.outOfMemoryExpansion == isMemoryExpansionFault(frame, opCode, gp)) {
+
+        this.outOfMemoryExpansion = isMemoryExpansionFault(frame, opCode, gp);
+        if (this.outOfMemoryExpansion) {
           return;
         }
-        if (this.outOfGas == isOutOfGas(frame, opCode, gp)) {
+
+        this.outOfGas = isOutOfGas(frame, opCode, gp);
+        if (this.outOfGas) {
           return;
         }
       }
       case STOP -> {}
       case JUMP, JUMPI -> {
-        if (this.outOfGas == isOutOfGas(frame, opCode, gp)) {
+        this.outOfGas = isOutOfGas(frame, opCode, gp);
+        if (this.outOfGas) {
           return;
         }
-        if (this.jumpFault == isJumpFault(frame, opCode)) {
+
+        this.jumpFault = isJumpFault(frame, opCode);
+        if (this.jumpFault) {
           return;
         }
       }
       case SSTORE -> {
-        if (this.outOfSStore == isOutOfSStore(frame, opCode)) {
+        this.outOfSStore = isOutOfSStore(frame, opCode);
+        if (this.outOfSStore) {
           return;
         }
-        if (this.outOfGas == isOutOfGas(frame, opCode, gp)) {
+
+        this.outOfGas = isOutOfGas(frame, opCode, gp);
+        if (this.outOfGas) {
           return;
         }
       }
       default -> {
-        if (this.outOfGas == isOutOfGas(frame, opCode, gp)) {
+        this.outOfGas = isOutOfGas(frame, opCode, gp);
+        if (this.outOfGas) {
           return;
         }
       }

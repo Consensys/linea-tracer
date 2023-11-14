@@ -569,16 +569,20 @@ public class RlpTxrcpt implements Module {
       RlpTxrcptColumns traceValue,
       Trace.TraceBuilder trace) {
 
+    final Bytes inputBytes = bigIntegerToBytes(BigInteger.valueOf(input));
+
     traceValue.partialReset(phase, 8);
 
     traceValue.isPrefix = isPrefix;
     traceValue.depth1 = depth1;
     traceValue.isData = isData;
     switch (inputToWrite) {
-      case 1 -> traceValue.input1 = bigIntegerToBytes(BigInteger.valueOf(input));
+      case 1 -> {
+        traceValue.input1 = inputBytes;
+      }
       case 3 -> {
         traceValue.input1 = Bytes.minimalBytes(1);
-        traceValue.input3 = bigIntegerToBytes(BigInteger.valueOf(input));
+        traceValue.input3 = inputBytes;
       }
       default -> throw new IllegalArgumentException(
           "should be called only to write Input1 or Input3, not Input" + inputToWrite);
@@ -587,16 +591,17 @@ public class RlpTxrcpt implements Module {
       traceValue.input2 = Bytes.minimalBytes(valueInput2);
     }
 
-    int inputSize = traceValue.input1.size();
+    final int inputSize = inputBytes.size();
     ByteCountAndPowerOutput byteCountingOutput = byteCounting(inputSize, 8);
 
-    Bytes inputBytes = padToGivenSizeWithLeftZero(traceValue.input1, 8);
-    BitDecOutput bitDecOutput = bitDecomposition(0xff & inputBytes.get(inputBytes.size() - 1), 8);
+    Bytes inputBytesPadded = padToGivenSizeWithLeftZero(inputBytes, 8);
+    BitDecOutput bitDecOutput =
+        bitDecomposition(0xff & inputBytesPadded.get(inputBytesPadded.size() - 1), 8);
 
     for (int ct = 0; ct < 8; ct++) {
       traceValue.counter = ct;
-      traceValue.byte1 = inputBytes.get(ct);
-      traceValue.acc1 = inputBytes.slice(0, ct + 1);
+      traceValue.byte1 = inputBytesPadded.get(ct);
+      traceValue.acc1 = inputBytesPadded.slice(0, ct + 1);
       traceValue.power = byteCountingOutput.powerList().get(ct);
       traceValue.accSize = byteCountingOutput.accByteSizeList().get(ct);
       traceValue.bit = bitDecOutput.bitDecList().get(ct);

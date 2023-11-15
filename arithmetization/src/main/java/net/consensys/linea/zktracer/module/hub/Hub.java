@@ -37,6 +37,8 @@ import net.consensys.linea.zktracer.module.hub.fragment.*;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.MiscFragment;
 import net.consensys.linea.zktracer.module.hub.section.*;
 import net.consensys.linea.zktracer.module.mmu.Mmu;
+import net.consensys.linea.zktracer.module.log_data.LogData;
+import net.consensys.linea.zktracer.module.log_info.LogInfo;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.mul.Mul;
 import net.consensys.linea.zktracer.module.mxp.Mxp;
@@ -89,17 +91,16 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 @Accessors(fluent = true)
 public class Hub implements Module {
   private static final int TAU = 8;
-  private static final Set<Address> PRECOMPILES =
-      Set.of(
-          Address.ECREC,
-          Address.SHA256,
-          Address.RIPEMD160,
-          Address.ID,
-          Address.MODEXP,
-          Address.ALTBN128_ADD,
-          Address.ALTBN128_MUL,
-          Address.ALTBN128_PAIRING,
-          Address.BLAKE2B_F_COMPRESSION);
+  private static final Set<Address> PRECOMPILES = Set.of(
+      Address.ECREC,
+      Address.SHA256,
+      Address.RIPEMD160,
+      Address.ID,
+      Address.MODEXP,
+      Address.ALTBN128_ADD,
+      Address.ALTBN128_MUL,
+      Address.ALTBN128_PAIRING,
+      Address.BLAKE2B_F_COMPRESSION);
 
   public static Optional<Bytes> maybeStackItem(MessageFrame frame, int idx) {
     if (frame.stackSize() > idx) {
@@ -112,18 +113,24 @@ public class Hub implements Module {
   public static final GasProjector gp = new GasProjector();
 
   // Revertible state of the hub
-  @Getter private final State state = new State();
+  @Getter
+  private final State state = new State();
 
   // Long-lived states
-  @Getter ConflationInfo conflation = new ConflationInfo();
-  @Getter BlockInfo block = new BlockInfo();
-  @Getter TxInfo tx = new TxInfo();
-  @Getter CallStack callStack = new CallStack();
+  @Getter
+  ConflationInfo conflation = new ConflationInfo();
+  @Getter
+  BlockInfo block = new BlockInfo();
+  @Getter
+  TxInfo tx = new TxInfo();
+  @Getter
+  CallStack callStack = new CallStack();
   private final DeferRegistry defers = new DeferRegistry();
 
   // These attributes are transient (opcode-specific) and do not need to be
   // reversed.
-  @Getter private final PlatformController pch;
+  @Getter
+  private final PlatformController pch;
 
   public int stamp() {
     return this.state.stamps().hub();
@@ -168,10 +175,14 @@ public class Hub implements Module {
   private final Module mxp;
   private final Module mmu;
   private final RlpTxrcpt rlpTxrcpt = new RlpTxrcpt();
+  private final LogInfo logInfo = new LogInfo(rlpTxrcpt);
+  private final LogData logData = new LogData(rlpTxrcpt);
   private final RlpAddr rlpAddr = new RlpAddr();
   private final Rom rom;
   private final RomLex romLex;
   private final TxnData txnData;
+  private final Trm trm = new Trm();
+
   // Precompile counters
   private final Sha256 sha256 = new Sha256();
   private final Ecrec ecrec = new Ecrec();
@@ -180,15 +191,13 @@ public class Hub implements Module {
   private final Ecadd ecadd = new Ecadd();
   private final Ecmul ecmul = new Ecmul();
   private final EcpairingCall ecpairingCall = new EcpairingCall();
-  private final EcpairingWeightedCall ecpairingWeightedCall =
-      new EcpairingWeightedCall(ecpairingCall);
+  private final EcpairingWeightedCall ecpairingWeightedCall = new EcpairingWeightedCall(ecpairingCall);
   private final Blake2f blake2 = new Blake2f();
-  private final Trm trm = new Trm();
 
   private final List<Module> modules;
 
-  private final List<Module>
-      precompileLimitModules; // Those modules are not traced, we just compute the number of calls
+  private final List<Module> precompileLimitModules; // Those modules are not traced, we just compute the number of
+                                                     // calls
   // to
   // those precompile to meet prover's limit
 
@@ -201,38 +210,38 @@ public class Hub implements Module {
     this.rlpTxn = new RlpTxn(this.romLex);
     this.txnData = new TxnData(this, this.romLex, this.wcp);
 
-    this.precompileLimitModules =
-        List.of(
-            this.sha256,
-            this.ecrec,
-            this.rip160,
-            this.modexp,
-            this.ecadd,
-            this.ecmul,
-            this.ecpairingCall,
-            this.ecpairingWeightedCall,
-            this.blake2);
+    this.precompileLimitModules = List.of(
+        this.sha256,
+        this.ecrec,
+        this.rip160,
+        this.modexp,
+        this.ecadd,
+        this.ecmul,
+        this.ecpairingCall,
+        this.ecpairingWeightedCall,
+        this.blake2);
 
-    this.modules =
-        Stream.concat(
-                Stream.of(
-                    this.romLex, // romLex must be called before modules requiring CodeFragmentIndex
-                    // (Rom, RlpTxn, TxnData, RAM, TODO: HUB)
-                    this.add,
-                    this.ext,
-                    this.mod,
-                    this.mul,
-                    this.mxp,
-                    this.shf,
-                    this.wcp,
-                    this.rlpTxn,
-                    this.rlpTxrcpt,
-                    this.rlpAddr,
-                    this.rom,
-                    this.txnData,
-                    this.trm),
-                this.precompileLimitModules.stream())
-            .toList();
+    this.modules = Stream.concat(
+        Stream.of(
+            this.romLex, // romLex must be called before modules requiring CodeFragmentIndex
+            // (Rom, RlpTxn, TxnData, RAM, TODO: HUB)
+            this.add,
+            this.ext,
+            this.mod,
+            this.mul,
+            this.mxp,
+            this.shf,
+            this.wcp,
+            this.rlpTxn,
+            this.rlpTxrcpt,
+            this.logData,
+            this.logInfo,
+            this.rlpAddr,
+            this.rom,
+            this.txnData,
+            this.trm),
+        this.precompileLimitModules.stream())
+        .toList();
   }
 
   /**
@@ -242,7 +251,7 @@ public class Hub implements Module {
     return List.of(
         new InstructionDecoder(),
         new ShfRt(),
-        //        this,
+        // this,
         this.romLex,
         this.add,
         this.ext,
@@ -253,6 +262,8 @@ public class Hub implements Module {
         this.mxp,
         this.rlpTxn,
         this.rlpTxrcpt,
+        this.logData,
+        this.logInfo,
         this.rlpAddr,
         this.rom,
         this.txnData);
@@ -282,7 +293,8 @@ public class Hub implements Module {
   }
 
   /**
-   * Traces a skipped transaction, i.e. a “pure” transaction without EVM execution.
+   * Traces a skipped transaction, i.e. a “pure” transaction without EVM
+   * execution.
    *
    * @param world a view onto the state
    */
@@ -295,39 +307,34 @@ public class Hub implements Module {
     //
     // From account information
     Address fromAddress = this.tx.transaction().getSender();
-    AccountSnapshot oldFromAccount =
-        AccountSnapshot.fromAccount(
-            world.get(fromAddress),
-            false,
-            this.conflation.deploymentInfo().number(fromAddress),
-            false);
+    AccountSnapshot oldFromAccount = AccountSnapshot.fromAccount(
+        world.get(fromAddress),
+        false,
+        this.conflation.deploymentInfo().number(fromAddress),
+        false);
 
     // To account information
     Address toAddress = effectiveToAddress(this.tx.transaction());
     if (isDeployment) {
       this.conflation().deploymentInfo().deploy(toAddress);
     }
-    boolean toIsWarm =
-        (fromAddress == toAddress)
-            || isPrecompile(toAddress); // should never happen – no TX to PC allowed
-    AccountSnapshot oldToAccount =
-        AccountSnapshot.fromAccount(
-            world.get(toAddress),
-            toIsWarm,
-            this.conflation.deploymentInfo().number(toAddress),
-            false);
+    boolean toIsWarm = (fromAddress == toAddress)
+        || isPrecompile(toAddress); // should never happen – no TX to PC allowed
+    AccountSnapshot oldToAccount = AccountSnapshot.fromAccount(
+        world.get(toAddress),
+        toIsWarm,
+        this.conflation.deploymentInfo().number(toAddress),
+        false);
 
     // Miner account information
-    boolean minerIsWarm =
-        (this.block.minerAddress == fromAddress)
-            || (this.block.minerAddress == toAddress)
-            || isPrecompile(this.block.minerAddress);
-    AccountSnapshot oldMinerAccount =
-        AccountSnapshot.fromAccount(
-            world.get(this.block.minerAddress),
-            minerIsWarm,
-            this.conflation.deploymentInfo().number(this.block.minerAddress),
-            false);
+    boolean minerIsWarm = (this.block.minerAddress == fromAddress)
+        || (this.block.minerAddress == toAddress)
+        || isPrecompile(this.block.minerAddress);
+    AccountSnapshot oldMinerAccount = AccountSnapshot.fromAccount(
+        world.get(this.block.minerAddress),
+        minerIsWarm,
+        this.conflation.deploymentInfo().number(this.block.minerAddress),
+        false);
 
     // Putatively updateCallerReturndata deployment number
     this.defers.postTx(
@@ -354,19 +361,17 @@ public class Hub implements Module {
 
                 for (AccessListEntry entry : preWarmed) {
                   Address address = entry.address();
-                  AccountSnapshot snapshot =
-                      AccountSnapshot.fromAccount(
-                          world.get(address), seenAddresses.contains(address), 0, false);
+                  AccountSnapshot snapshot = AccountSnapshot.fromAccount(
+                      world.get(address), seenAddresses.contains(address), 0, false);
                   fragments.add(new AccountFragment(snapshot, snapshot, false, 0, false));
                   seenAddresses.add(address);
 
                   List<Bytes32> keys = entry.storageKeys();
                   for (Bytes32 key_ : keys) {
                     UInt256 key = UInt256.fromBytes(key_);
-                    EWord value =
-                        Optional.ofNullable(world.get(address))
-                            .map(account -> EWord.of(account.getStorageValue(key)))
-                            .orElse(EWord.ZERO);
+                    EWord value = Optional.ofNullable(world.get(address))
+                        .map(account -> EWord.of(account.getStorageValue(key)))
+                        .orElse(EWord.ZERO);
                     fragments.add(
                         new StorageFragment(
                             address,
@@ -424,54 +429,54 @@ public class Hub implements Module {
   }
 
   void triggerModules(MessageFrame frame) {
-    //    switch (this.opCodeData().instructionFamily()) {
-    //      case CREATE -> {
-    //        if (this.pch().exceptions().noStackException() &&
+    // switch (this.opCodeData().instructionFamily()) {
+    // case CREATE -> {
+    // if (this.pch().exceptions().noStackException() &&
     // !this.pch().exceptions().staticFault()) {
-    //          this.mxp.tracePreOpcode(frame); // TODO: trigger in OoG
-    //        }
+    // this.mxp.tracePreOpcode(frame); // TODO: trigger in OoG
+    // }
     //
-    //        if (!this.pch().exceptions().any() && this.callStack().depth() < 1024) {
-    //          // TODO: check for failure: non empty byte code or non zero nonce (for the
-    //          // Deployed
-    //          // Address)
-    //          UInt256 value = UInt256.fromBytes(frame.getStackItem(0));
-    //          if (frame
-    //              .getWorldUpdater()
-    //              .get(this.tx.transaction().getSender())
-    //              .getBalance()
-    //              .toUInt256()
-    //              .greaterOrEqualThan(value)) {
-    //            this.rlpAddr.tracePreOpcode(frame);
-    //            this.romLex.tracePreOpcode(frame);
-    //          }
-    //        }
-    //      }
-    //      case CALL -> {
-    //        if (!this.pch().exceptions().any() && this.callStack().depth() < 1024) {
-    //          this.romLex.tracePreOpcode(frame);
-    //          for (Module m : this.precompileLimitModules) {
-    //            m.tracePreOpcode(frame);
-    //          }
-    //        }
-    //        if (!this.pch().exceptions().stackUnderflow() &&
+    // if (!this.pch().exceptions().any() && this.callStack().depth() < 1024) {
+    // // TODO: check for failure: non empty byte code or non zero nonce (for the
+    // // Deployed
+    // // Address)
+    // UInt256 value = UInt256.fromBytes(frame.getStackItem(0));
+    // if (frame
+    // .getWorldUpdater()
+    // .get(this.tx.transaction().getSender())
+    // .getBalance()
+    // .toUInt256()
+    // .greaterOrEqualThan(value)) {
+    // this.rlpAddr.tracePreOpcode(frame);
+    // this.romLex.tracePreOpcode(frame);
+    // }
+    // }
+    // }
+    // case CALL -> {
+    // if (!this.pch().exceptions().any() && this.callStack().depth() < 1024) {
+    // this.romLex.tracePreOpcode(frame);
+    // for (Module m : this.precompileLimitModules) {
+    // m.tracePreOpcode(frame);
+    // }
+    // }
+    // if (!this.pch().exceptions().stackUnderflow() &&
     // !this.pch().exceptions().staticFault()) {
-    //          this.mxp.tracePreOpcode(frame);
-    //        }
-    //        if (this.pch().exceptions().noStackException()) {
-    //          this.trm.tracePreOpcode(frame); // TODO refine the trigger
-    //        }
-    //      }
-    //      default -> {}
-    //    }
+    // this.mxp.tracePreOpcode(frame);
+    // }
+    // if (this.pch().exceptions().noStackException()) {
+    // this.trm.tracePreOpcode(frame); // TODO refine the trigger
+    // }
+    // }
+    // default -> {}
+    // }
 
     // TODO: coming soon
     if (this.pch.signals().add()) {
       this.add.tracePreOpcode(frame);
     }
-    //    if (this.pch.signals().bin()) {
-    //      this.bin.tracePreOpcode(frame);
-    //    }
+    // if (this.pch.signals().bin()) {
+    // this.bin.tracePreOpcode(frame);
+    // }
     if (this.pch.signals().mul()) {
       this.mul.tracePreOpcode(frame);
     }
@@ -542,20 +547,18 @@ public class Hub implements Module {
 
     Address fromAddress = this.tx.transaction().getSender();
     Account fromAccount = worldView.get(fromAddress);
-    AccountSnapshot fromSnapshot =
-        AccountSnapshot.fromAccount(
-            fromAccount,
-            true,
-            this.conflation.deploymentInfo().number(fromAddress),
-            this.conflation.deploymentInfo().isDeploying(fromAddress));
+    AccountSnapshot fromSnapshot = AccountSnapshot.fromAccount(
+        fromAccount,
+        true,
+        this.conflation.deploymentInfo().number(fromAddress),
+        this.conflation.deploymentInfo().isDeploying(fromAddress));
 
     Account minerAccount = worldView.get(this.block.minerAddress);
-    AccountSnapshot minerSnapshot =
-        AccountSnapshot.fromAccount(
-            minerAccount,
-            true,
-            this.conflation.deploymentInfo().number(this.block.minerAddress),
-            this.conflation.deploymentInfo().isDeploying(this.block.minerAddress));
+    AccountSnapshot minerSnapshot = AccountSnapshot.fromAccount(
+        minerAccount,
+        true,
+        this.conflation.deploymentInfo().number(this.block.minerAddress),
+        this.conflation.deploymentInfo().isDeploying(this.block.minerAddress));
 
     if (isSuccess) {
       // if no revert: 2 account rows (sender, coinbase) + 1 tx row
@@ -575,19 +578,18 @@ public class Hub implements Module {
     } else {
       // Trace the exceptions of a transaction that could not even start
       // TODO: integrate with PCH
-      //      if (this.exceptions == null) {
-      //        this.exceptions = Exceptions.fromOutOfGas();
-      //      }
+      // if (this.exceptions == null) {
+      // this.exceptions = Exceptions.fromOutOfGas();
+      // }
 
       // otherwise 4 account rows (sender, coinbase, sender, recipient) + 1 tx row
       Address toAddress = this.tx.transaction().getSender();
       Account toAccount = worldView.get(toAddress);
-      AccountSnapshot toSnapshot =
-          AccountSnapshot.fromAccount(
-              toAccount,
-              true,
-              this.conflation.deploymentInfo().number(toAddress),
-              this.conflation.deploymentInfo().isDeploying(toAddress));
+      AccountSnapshot toSnapshot = AccountSnapshot.fromAccount(
+          toAccount,
+          true,
+          this.conflation.deploymentInfo().number(toAddress),
+          this.conflation.deploymentInfo().isDeploying(toAddress));
       this.addTraceSection(
           new EndTransaction(
               this,
@@ -599,7 +601,8 @@ public class Hub implements Module {
   }
 
   /**
-   * Compute the effective address of a transaction target, i.e. the specified target if explicitly
+   * Compute the effective address of a transaction target, i.e. the specified
+   * target if explicitly
    * set, or the to-be-deployed address otherwise.
    *
    * @return the effective target address of tx
@@ -736,8 +739,7 @@ public class Hub implements Module {
       // ...or CALL
       final boolean isDeployment = frame.getType() == MessageFrame.Type.CONTRACT_CREATION;
       final Address codeAddress = frame.getContractAddress();
-      final CallFrameType frameType =
-          frame.isStatic() ? CallFrameType.STATIC : CallFrameType.STANDARD;
+      final CallFrameType frameType = frame.isStatic() ? CallFrameType.STATIC : CallFrameType.STANDARD;
       if (isDeployment) {
         this.conflation.deploymentInfo().markDeploying(codeAddress);
       }
@@ -775,8 +777,7 @@ public class Hub implements Module {
     if (frame.getDepth() > 0) {
       conflation.deploymentInfo().unmarkDeploying(this.currentFrame().codeAddress());
 
-      DeploymentExceptions contextExceptions =
-          DeploymentExceptions.fromFrame(this.currentFrame(), frame);
+      DeploymentExceptions contextExceptions = DeploymentExceptions.fromFrame(this.currentFrame(), frame);
       this.currentTraceSection().setContextExceptions(contextExceptions);
       if (contextExceptions.any()) {
         this.callStack.revert(this.state.stamps().hub());
@@ -840,35 +841,54 @@ public class Hub implements Module {
           this.wcp.tracePostOp(frame);
         }
       }
-      case BIN -> {}
+      case BIN -> {
+      }
       case SHF -> {
         if (this.pch.exceptions().noStackException()) {
           this.shf.tracePostOp(frame);
         }
       }
-      case KEC -> {}
-      case CONTEXT -> {}
-      case ACCOUNT -> {}
-      case COPY -> {}
-      case TRANSACTION -> {}
-      case BATCH -> {}
+      case KEC -> {
+      }
+      case CONTEXT -> {
+      }
+      case ACCOUNT -> {
+      }
+      case COPY -> {
+      }
+      case TRANSACTION -> {
+      }
+      case BATCH -> {
+      }
       case STACK_RAM -> {
         if (this.pch.exceptions().noStackException()) {
           this.mxp.tracePostOp(frame);
         }
       }
-      case STORAGE -> {}
-      case JUMP -> {}
-      case MACHINE_STATE -> {}
-      case PUSH_POP -> {}
-      case DUP -> {}
-      case SWAP -> {}
-      case LOG -> {}
-      case CREATE -> {}
-      case CALL -> {}
-      case HALT -> {}
-      case INVALID -> {}
-      default -> {}
+      case STORAGE -> {
+      }
+      case JUMP -> {
+      }
+      case MACHINE_STATE -> {
+      }
+      case PUSH_POP -> {
+      }
+      case DUP -> {
+      }
+      case SWAP -> {
+      }
+      case LOG -> {
+      }
+      case CREATE -> {
+      }
+      case CALL -> {
+      }
+      case HALT -> {
+      }
+      case INVALID -> {
+      }
+      default -> {
+      }
     }
   }
 
@@ -925,11 +945,10 @@ public class Hub implements Module {
   }
 
   void traceOperation(MessageFrame frame) {
-    boolean updateReturnData =
-        this.opCodeData().isHalt()
-            || this.opCodeData().isInvalid()
-            || this.pch().exceptions().any()
-            || isValidPrecompileCall(frame);
+    boolean updateReturnData = this.opCodeData().isHalt()
+        || this.opCodeData().isInvalid()
+        || this.pch().exceptions().any()
+        || isValidPrecompileCall(frame);
 
     switch (this.opCodeData().instructionFamily()) {
       case ADD,
@@ -945,7 +964,8 @@ public class Hub implements Module {
           DUP,
           SWAP,
           HALT,
-          INVALID -> this.addTraceSection(new StackOnlySection(this));
+          INVALID ->
+        this.addTraceSection(new StackOnlySection(this));
       case KEC -> {
         this.addTraceSection(
             new KeccakSection(this, this.currentFrame(), new MiscFragment(this, frame)));
@@ -962,18 +982,16 @@ public class Hub implements Module {
               new ContextFragment(this.callStack, this.currentFrame(), updateReturnData));
         }
 
-        Address targetAddress =
-            switch (this.currentFrame().opCode()) {
-              case BALANCE, EXTCODESIZE, EXTCODEHASH -> Words.toAddress(frame.getStackItem(0));
-              default -> Address.wrap(this.currentFrame().address());
-            };
+        Address targetAddress = switch (this.currentFrame().opCode()) {
+          case BALANCE, EXTCODESIZE, EXTCODEHASH -> Words.toAddress(frame.getStackItem(0));
+          default -> Address.wrap(this.currentFrame().address());
+        };
         Account targetAccount = frame.getWorldUpdater().get(targetAddress);
-        AccountSnapshot accountSnapshot =
-            AccountSnapshot.fromAccount(
-                targetAccount,
-                frame.isAddressWarm(targetAddress),
-                this.conflation.deploymentInfo().number(targetAddress),
-                this.conflation.deploymentInfo().isDeploying(targetAddress));
+        AccountSnapshot accountSnapshot = AccountSnapshot.fromAccount(
+            targetAccount,
+            frame.isAddressWarm(targetAddress),
+            this.conflation.deploymentInfo().number(targetAddress),
+            this.conflation.deploymentInfo().isDeploying(targetAddress));
         accountSection.addChunk(
             this,
             this.currentFrame(),
@@ -984,19 +1002,17 @@ public class Hub implements Module {
       case COPY -> { // TODO: call RomLex
         TraceSection copySection = new CopySection(this);
         if (this.opCodeData().stackSettings().flag1()) {
-          Address targetAddress =
-              switch (this.currentFrame().opCode()) {
-                case CODECOPY -> this.currentFrame().codeAddress();
-                case EXTCODECOPY -> Words.toAddress(frame.getStackItem(0));
-                default -> throw new IllegalStateException("unexpected opcode");
-              };
+          Address targetAddress = switch (this.currentFrame().opCode()) {
+            case CODECOPY -> this.currentFrame().codeAddress();
+            case EXTCODECOPY -> Words.toAddress(frame.getStackItem(0));
+            default -> throw new IllegalStateException("unexpected opcode");
+          };
           Account targetAccount = frame.getWorldUpdater().get(targetAddress);
-          AccountSnapshot accountSnapshot =
-              AccountSnapshot.fromAccount(
-                  targetAccount,
-                  frame.isAddressWarm(targetAddress),
-                  this.conflation.deploymentInfo().number(targetAddress),
-                  this.conflation.deploymentInfo().isDeploying(targetAddress));
+          AccountSnapshot accountSnapshot = AccountSnapshot.fromAccount(
+              targetAccount,
+              frame.isAddressWarm(targetAddress),
+              this.conflation.deploymentInfo().number(targetAddress),
+              this.conflation.deploymentInfo().isDeploying(targetAddress));
 
           copySection.addChunk(
               this,
@@ -1084,24 +1100,21 @@ public class Hub implements Module {
       case CREATE -> {
         Address myAddress = this.currentFrame().address();
         Account myAccount = frame.getWorldUpdater().get(myAddress);
-        AccountSnapshot myAccountSnapshot =
-            AccountSnapshot.fromAccount(
-                myAccount,
-                frame.isAddressWarm(myAddress),
-                this.conflation.deploymentInfo().number(myAddress),
-                this.conflation.deploymentInfo().isDeploying(myAddress));
+        AccountSnapshot myAccountSnapshot = AccountSnapshot.fromAccount(
+            myAccount,
+            frame.isAddressWarm(myAddress),
+            this.conflation.deploymentInfo().number(myAddress),
+            this.conflation.deploymentInfo().isDeploying(myAddress));
 
         Address createdAddress = this.currentFrame().address();
         Account createdAccount = frame.getWorldUpdater().get(createdAddress);
-        AccountSnapshot createdAccountSnapshot =
-            AccountSnapshot.fromAccount(
-                createdAccount,
-                frame.isAddressWarm(createdAddress),
-                this.conflation.deploymentInfo().number(createdAddress),
-                this.conflation.deploymentInfo().isDeploying(createdAddress));
+        AccountSnapshot createdAccountSnapshot = AccountSnapshot.fromAccount(
+            createdAccount,
+            frame.isAddressWarm(createdAddress),
+            this.conflation.deploymentInfo().number(createdAddress),
+            this.conflation.deploymentInfo().isDeploying(createdAddress));
 
-        CreateSection createSection =
-            new CreateSection(this, myAccountSnapshot, createdAccountSnapshot);
+        CreateSection createSection = new CreateSection(this, myAccountSnapshot, createdAccountSnapshot);
         // Will be traced in one (and only one!) of these depending on the success of
         // the operation
         this.defers.postExec(createSection);
@@ -1113,24 +1126,21 @@ public class Hub implements Module {
       case CALL -> {
         final Address myAddress = this.currentFrame().address();
         final Account myAccount = frame.getWorldUpdater().get(myAddress);
-        final AccountSnapshot myAccountSnapshot =
-            AccountSnapshot.fromAccount(
-                myAccount,
-                frame.isAddressWarm(myAddress),
-                this.conflation.deploymentInfo().number(myAddress),
-                this.conflation.deploymentInfo().isDeploying(myAddress));
+        final AccountSnapshot myAccountSnapshot = AccountSnapshot.fromAccount(
+            myAccount,
+            frame.isAddressWarm(myAddress),
+            this.conflation.deploymentInfo().number(myAddress),
+            this.conflation.deploymentInfo().isDeploying(myAddress));
 
         final Address calledAddress = Words.toAddress(frame.getStackItem(1));
         final Account calledAccount = frame.getWorldUpdater().get(calledAddress);
-        final boolean hasCode =
-            Optional.ofNullable(calledAccount).map(AccountState::hasCode).orElse(false);
+        final boolean hasCode = Optional.ofNullable(calledAccount).map(AccountState::hasCode).orElse(false);
 
-        final AccountSnapshot calledAccountSnapshot =
-            AccountSnapshot.fromAccount(
-                calledAccount,
-                frame.isAddressWarm(myAddress),
-                this.conflation.deploymentInfo().number(myAddress),
-                this.conflation.deploymentInfo().isDeploying(myAddress));
+        final AccountSnapshot calledAccountSnapshot = AccountSnapshot.fromAccount(
+            calledAccount,
+            frame.isAddressWarm(myAddress),
+            this.conflation.deploymentInfo().number(myAddress),
+            this.conflation.deploymentInfo().isDeploying(myAddress));
 
         boolean targetIsPrecompile = isPrecompile(calledAddress);
 
@@ -1163,42 +1173,39 @@ public class Hub implements Module {
         } else {
           this.pch().signals().wantMxp().wantOob().wantStipend();
           if (this.pch.aborts().any()) {
-            TraceSection abortedSection =
-                new AbortedCallSection(
-                    this,
-                    this.currentFrame(),
-                    new ScenarioFragment(
-                        targetIsPrecompile,
-                        hasCode,
-                        true,
-                        this.currentFrame().id(),
-                        this.callStack().futureId()),
-                    new ContextFragment(this.callStack, this.currentFrame(), false),
-                    new MiscFragment(this, frame),
-                    new AccountFragment(myAccountSnapshot, myAccountSnapshot),
-                    new AccountFragment(calledAccountSnapshot, calledAccountSnapshot),
-                    new ContextFragment(this.callStack, this.currentFrame(), true));
+            TraceSection abortedSection = new AbortedCallSection(
+                this,
+                this.currentFrame(),
+                new ScenarioFragment(
+                    targetIsPrecompile,
+                    hasCode,
+                    true,
+                    this.currentFrame().id(),
+                    this.callStack().futureId()),
+                new ContextFragment(this.callStack, this.currentFrame(), false),
+                new MiscFragment(this, frame),
+                new AccountFragment(myAccountSnapshot, myAccountSnapshot),
+                new AccountFragment(calledAccountSnapshot, calledAccountSnapshot),
+                new ContextFragment(this.callStack, this.currentFrame(), true));
             this.addTraceSection(abortedSection);
           } else {
             final MiscFragment miscFragment = new MiscFragment(this, frame);
 
             if (hasCode) {
-              final WithCodeCallSection section =
-                  new WithCodeCallSection(
-                      this, myAccountSnapshot, calledAccountSnapshot, miscFragment);
+              final WithCodeCallSection section = new WithCodeCallSection(
+                  this, myAccountSnapshot, calledAccountSnapshot, miscFragment);
               this.defers.postExec(section);
               this.defers.nextContext(section, currentFrame().id());
               this.defers.postTx(section);
               this.addTraceSection(section);
               this.currentFrame().needsUnlatchingAtReEntry(section);
             } else {
-              final NoCodeCallSection section =
-                  new NoCodeCallSection(
-                      this,
-                      targetIsPrecompile,
-                      myAccountSnapshot,
-                      calledAccountSnapshot,
-                      miscFragment);
+              final NoCodeCallSection section = new NoCodeCallSection(
+                  this,
+                  targetIsPrecompile,
+                  myAccountSnapshot,
+                  calledAccountSnapshot,
+                  miscFragment);
               this.defers.postExec(section);
               this.defers.postTx(section);
               this.addTraceSection(section);
@@ -1211,19 +1218,17 @@ public class Hub implements Module {
       }
 
       case JUMP -> {
-        AccountSnapshot codeAccountSnapshot =
-            AccountSnapshot.fromAccount(
-                frame.getWorldUpdater().get(this.currentFrame().codeAddress()),
-                true,
-                this.conflation.deploymentInfo().number(this.currentFrame().codeAddress()),
-                this.currentFrame().underDeployment());
+        AccountSnapshot codeAccountSnapshot = AccountSnapshot.fromAccount(
+            frame.getWorldUpdater().get(this.currentFrame().codeAddress()),
+            true,
+            this.conflation.deploymentInfo().number(this.currentFrame().codeAddress()),
+            this.currentFrame().underDeployment());
 
-        JumpSection jumpSection =
-            new JumpSection(
-                this,
-                new ContextFragment(this.callStack, this.currentFrame(), updateReturnData),
-                new AccountFragment(codeAccountSnapshot, codeAccountSnapshot, false, 0, false),
-                new MiscFragment(this, frame));
+        JumpSection jumpSection = new JumpSection(
+            this,
+            new ContextFragment(this.callStack, this.currentFrame(), updateReturnData),
+            new AccountFragment(codeAccountSnapshot, codeAccountSnapshot, false, 0, false),
+            new MiscFragment(this, frame));
 
         this.addTraceSection(jumpSection);
       }

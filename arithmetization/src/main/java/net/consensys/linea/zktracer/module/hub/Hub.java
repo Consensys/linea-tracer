@@ -481,14 +481,15 @@ public class Hub implements Module {
       case BATCH -> {}
       case STACK_RAM -> {
         if (this.pch().exceptions().noStackException()
-          && this.currentFrame().opCode() != OpCode.CALLDATALOAD) {
+            && this.currentFrame().opCode() != OpCode.CALLDATALOAD) {
           this.mxp.tracePreOpcode(frame);
         }
       }
       case STORAGE -> {}
       case JUMP -> {}
       case MACHINE_STATE -> {
-        if (this.pch().exceptions().noStackException() && this.currentFrame().opCode() == OpCode.MSIZE) {
+        if (this.pch().exceptions().noStackException()
+            && this.currentFrame().opCode() == OpCode.MSIZE) {
           this.mxp.tracePreOpcode(frame);
         }
       }
@@ -511,11 +512,11 @@ public class Hub implements Module {
           // Address)
           UInt256 value = UInt256.fromBytes(frame.getStackItem(0));
           if (frame
-            .getWorldUpdater()
-            .get(this.tx.transaction().getSender())
-            .getBalance()
-            .toUInt256()
-            .greaterOrEqualThan(value)) {
+              .getWorldUpdater()
+              .get(this.tx.transaction().getSender())
+              .getBalance()
+              .toUInt256()
+              .greaterOrEqualThan(value)) {
             this.rlpAddr.tracePreOpcode(frame);
             this.romLex.tracePreOpcode(frame);
           }
@@ -540,8 +541,8 @@ public class Hub implements Module {
           this.romLex.tracePreOpcode(frame);
         }
         if (this.pch().exceptions().noStackException()
-          && this.currentFrame().opCode() != OpCode.STOP
-          && this.currentFrame().opCode() != OpCode.SELFDESTRUCT) {
+            && this.currentFrame().opCode() != OpCode.STOP
+            && this.currentFrame().opCode() != OpCode.SELFDESTRUCT) {
           this.mxp.tracePreOpcode(frame);
         }
         if (this.pch().exceptions().noStackException()) {
@@ -553,33 +554,33 @@ public class Hub implements Module {
     }
 
     // TODO: coming soon
-//    if (this.pch.signals().mmu()) {
-//      // TODO:
-//    }
-//    if (this.pch.signals().mxp()) {
-//      this.mxp.tracePreOpcode(frame);
-//    }
-//    if (this.pch.signals().oob()) {
-//      // TODO: this.oob.tracePreOpcode(frame);
-//    }
-//    if (this.pch.signals().precompileInfo()) {
-//      // TODO:
-//    }
-//    if (this.pch.signals().stipend()) {
-//      // TODO:
-//    }
-//    if (this.pch.signals().exp()) {
-//      this.modexp.tracePreOpcode(frame);
-//    }
-//    if (this.pch.signals().trm()) {
-//      this.trm.tracePreOpcode(frame);
-//    }
-//    if (this.pch.signals().hashInfo()) {
-//      // TODO: this.hashInfo.tracePreOpcode(frame);
-//    }
-//    if (this.pch.signals().romLex()) {
-//      this.romLex.tracePreOpcode(frame);
-//    }
+    //    if (this.pch.signals().mmu()) {
+    //      // TODO:
+    //    }
+    //    if (this.pch.signals().mxp()) {
+    //      this.mxp.tracePreOpcode(frame);
+    //    }
+    //    if (this.pch.signals().oob()) {
+    //      // TODO: this.oob.tracePreOpcode(frame);
+    //    }
+    //    if (this.pch.signals().precompileInfo()) {
+    //      // TODO:
+    //    }
+    //    if (this.pch.signals().stipend()) {
+    //      // TODO:
+    //    }
+    //    if (this.pch.signals().exp()) {
+    //      this.modexp.tracePreOpcode(frame);
+    //    }
+    //    if (this.pch.signals().trm()) {
+    //      this.trm.tracePreOpcode(frame);
+    //    }
+    //    if (this.pch.signals().hashInfo()) {
+    //      // TODO: this.hashInfo.tracePreOpcode(frame);
+    //    }
+    //    if (this.pch.signals().romLex()) {
+    //      this.romLex.tracePreOpcode(frame);
+    //    }
   }
 
   void processStateExec(MessageFrame frame) {

@@ -51,7 +51,7 @@ public final class AccountFragment implements TraceFragment {
       boolean debit,
       long cost,
       boolean createAddress) {
-    Preconditions.checkArgument(oldState.address() == newState.address());
+    Preconditions.checkArgument(oldState.address().equals(newState.address()));
 
     this.who = oldState.address();
     this.oldState = oldState;

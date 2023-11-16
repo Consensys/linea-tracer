@@ -305,10 +305,13 @@ public final class Exceptions {
           MLOAD,
           MSTORE,
           MSTORE8 -> {
-        if (this.outOfMemoryExpansion == isMemoryExpansionFault(frame, opCode, gp)) {
+        this.outOfMemoryExpansion = isMemoryExpansionFault(frame, opCode, gp);
+        if (this.outOfMemoryExpansion) {
           return;
         }
-        if (this.outOfGas == isOutOfGas(frame, opCode, gp)) {
+
+        this.outOfGas = isOutOfGas(frame, opCode, gp);
+        if (this.outOfGas) {
           return;
         }
       }
@@ -359,8 +362,6 @@ public final class Exceptions {
       }
     }
 
-    if (this.invalidCodePrefix == isInvalidCodePrefix(frame)) {
-      return;
-    }
+    this.invalidCodePrefix = isInvalidCodePrefix(frame);
   }
 }

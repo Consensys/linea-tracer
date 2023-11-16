@@ -45,7 +45,8 @@ public final class Aborts {
   }
 
   public void prepare(Hub hub) {
-    if (this.callStackOverflow == hub.callStack().wouldOverflow()) {
+    this.callStackOverflow = hub.callStack().wouldOverflow();
+    if (this.callStackOverflow) {
       return;
     }
 

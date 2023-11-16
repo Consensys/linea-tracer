@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -90,32 +92,19 @@ public class ToyExecutionEnvironment {
     return MainnetEVMs.london(EvmConfiguration.DEFAULT);
   }
 
-  /**
-   * Execute constructed EVM bytecode and return a JSON trace.
-   *
-   * @return the generated JSON trace
-   */
-  public String traceCode() {
-    execute();
-    return tracer.getJsonTrace();
-  }
-
-  public void binaryTraceCode() {
-    execute();
+  public static void checkTracer(ZkTracer tracer) {
     try {
-      tracer.writeToFile("asf");
+      final Path traceFile = Files.createTempFile(null, ".lt");
+      tracer.writeToFile(traceFile);
+      assertThat(CorsetValidator.isValid(traceFile)).isTrue();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
 
-  /** Execute constructed EVM bytecode and perform Corset trace validation. */
-  public void runOld() {
-    assertThat(CorsetValidator.isValid(traceCode())).isTrue();
-  }
-
   public void run() {
-    binaryTraceCode();
+    execute();
+    checkTracer(this.tracer);
   }
 
   private void execute() {
@@ -157,7 +146,7 @@ public class ToyExecutionEnvironment {
           0);
 
       this.testValidator.accept(result);
-      this.zkTracerValidator.accept((ZkTracer) tracer);
+      this.zkTracerValidator.accept(tracer);
     }
 
     tracer.traceEndBlock(header, mockBlockBody);

@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.add;
 
 import java.math.BigInteger;
+import java.nio.MappedByteBuffer;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
@@ -169,6 +170,16 @@ public class Add implements Module {
     }
 
     return new AddTrace(trace.build());
+  }
+
+  @Override
+  public void commitToMmap(List<MappedByteBuffer> buffers) {
+    final Trace.TraceBuilder trace = new Trace.TraceBuilder(this.lineCount());
+    trace.setBuffers(buffers);
+
+    for (AddOperation op : this.chunks) {
+      this.traceAddOperation(op.opCodem(), op.arg1(), op.arg2(), trace);
+    }
   }
 
   @Override

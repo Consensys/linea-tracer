@@ -223,7 +223,7 @@ public class GeneralStateReferenceTestTools {
                   .isEqualTo(expected);
             });
 
-    assertThat(CorsetValidator.isValid(zkTracer.getJsonTrace())).isTrue();
+    assertThat(CorsetValidator.isValid(zkTracer.writeToFile())).isTrue();
   }
 
   private static boolean shouldClearEmptyAccounts(final String eip) {

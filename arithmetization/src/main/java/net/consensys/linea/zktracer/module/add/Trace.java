@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys AG.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -16,7 +16,7 @@
 package net.consensys.linea.zktracer.module.add;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
+import java.nio.MappedByteBuffer;
 import java.util.BitSet;
 import java.util.List;
 
@@ -29,415 +29,335 @@ import net.consensys.linea.zktracer.types.UnsignedByte;
  * and could lead to unexpected behavior. Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
 public record Trace(
-    @JsonProperty("ACC_1") List<BigInteger> acc1,
-    @JsonProperty("ACC_2") List<BigInteger> acc2,
-    @JsonProperty("ARG_1_HI") List<BigInteger> arg1Hi,
-    @JsonProperty("ARG_1_LO") List<BigInteger> arg1Lo,
-    @JsonProperty("ARG_2_HI") List<BigInteger> arg2Hi,
-    @JsonProperty("ARG_2_LO") List<BigInteger> arg2Lo,
-    @JsonProperty("BYTE_1") List<UnsignedByte> byte1,
-    @JsonProperty("BYTE_2") List<UnsignedByte> byte2,
-    @JsonProperty("CT") List<BigInteger> ct,
-    @JsonProperty("INST") List<BigInteger> inst,
-    @JsonProperty("OVERFLOW") List<Boolean> overflow,
-    @JsonProperty("RES_HI") List<BigInteger> resHi,
-    @JsonProperty("RES_LO") List<BigInteger> resLo,
-    @JsonProperty("STAMP") List<BigInteger> stamp) {
+    @JsonProperty("add.ACC_1") List<BigInteger> acc1,
+    @JsonProperty("add.ACC_2") List<BigInteger> acc2,
+    @JsonProperty("add.ARG_1_HI") List<BigInteger> arg1Hi,
+    @JsonProperty("add.ARG_1_LO") List<BigInteger> arg1Lo,
+    @JsonProperty("add.ARG_2_HI") List<BigInteger> arg2Hi,
+    @JsonProperty("add.ARG_2_LO") List<BigInteger> arg2Lo,
+    @JsonProperty("add.BYTE_1") List<UnsignedByte> byte1,
+    @JsonProperty("add.BYTE_2") List<UnsignedByte> byte2,
+    @JsonProperty("add.CT") List<BigInteger> ct,
+    @JsonProperty("add.INST") List<BigInteger> inst,
+    @JsonProperty("add.OVERFLOW") List<Boolean> overflow,
+    @JsonProperty("add.RES_HI") List<BigInteger> resHi,
+    @JsonProperty("add.RES_LO") List<BigInteger> resLo,
+    @JsonProperty("add.STAMP") List<BigInteger> stamp) {
   static TraceBuilder builder(int length) {
     return new TraceBuilder(length);
-  }
-
-  public static List<ColumnHeader> headers(int size) {
-    return List.of(
-        new ColumnHeader("add.ACC_1", 128, size),
-        new ColumnHeader("add.ACC_2", 128, size),
-        new ColumnHeader("add.ARG_1_HI", 128, size),
-        new ColumnHeader("add.ARG_1_LO", 128, size),
-        new ColumnHeader("add.ARG_2_HI", 128, size),
-        new ColumnHeader("add.ARG_2_LO", 128, size),
-        new ColumnHeader("add.BYTE_1", 128, size),
-        new ColumnHeader("add.BYTE_2", 128, size),
-        new ColumnHeader("add.CT", 128, size),
-        new ColumnHeader("add.INST", 128, size),
-        new ColumnHeader("add.OVERFLOW", 128, size),
-        new ColumnHeader("add.RES_HI", 128, size),
-        new ColumnHeader("add.RES_LO", 128, size),
-        new ColumnHeader("add.STAMP", 128, size));
   }
 
   public int size() {
     return this.acc1.size();
   }
 
+  public static List<ColumnHeader> headers(int size) {
+    return List.of(
+        new ColumnHeader("add.ACC_1", 32, size),
+        new ColumnHeader("add.ACC_2", 32, size),
+        new ColumnHeader("add.ARG_1_HI", 32, size),
+        new ColumnHeader("add.ARG_1_LO", 32, size),
+        new ColumnHeader("add.ARG_2_HI", 32, size),
+        new ColumnHeader("add.ARG_2_LO", 32, size),
+        new ColumnHeader("add.BYTE_1", 1, size),
+        new ColumnHeader("add.BYTE_2", 1, size),
+        new ColumnHeader("add.CT", 32, size),
+        new ColumnHeader("add.INST", 32, size),
+        new ColumnHeader("add.OVERFLOW", 1, size),
+        new ColumnHeader("add.RES_HI", 32, size),
+        new ColumnHeader("add.RES_LO", 32, size),
+        new ColumnHeader("add.STAMP", 32, size));
+  }
+
   static class TraceBuilder {
     private final BitSet filled = new BitSet();
+    private int currentLine = 0;
 
-    @JsonProperty("ACC_1")
-    private final List<BigInteger> acc1;
+    private MappedByteBuffer acc1;
+    private MappedByteBuffer acc2;
+    private MappedByteBuffer arg1Hi;
+    private MappedByteBuffer arg1Lo;
+    private MappedByteBuffer arg2Hi;
+    private MappedByteBuffer arg2Lo;
+    private MappedByteBuffer byte1;
+    private MappedByteBuffer byte2;
+    private MappedByteBuffer ct;
+    private MappedByteBuffer inst;
+    private MappedByteBuffer overflow;
+    private MappedByteBuffer resHi;
+    private MappedByteBuffer resLo;
+    private MappedByteBuffer stamp;
 
-    @JsonProperty("ACC_2")
-    private final List<BigInteger> acc2;
-
-    @JsonProperty("ARG_1_HI")
-    private final List<BigInteger> arg1Hi;
-
-    @JsonProperty("ARG_1_LO")
-    private final List<BigInteger> arg1Lo;
-
-    @JsonProperty("ARG_2_HI")
-    private final List<BigInteger> arg2Hi;
-
-    @JsonProperty("ARG_2_LO")
-    private final List<BigInteger> arg2Lo;
-
-    @JsonProperty("BYTE_1")
-    private final List<UnsignedByte> byte1;
-
-    @JsonProperty("BYTE_2")
-    private final List<UnsignedByte> byte2;
-
-    @JsonProperty("CT")
-    private final List<BigInteger> ct;
-
-    @JsonProperty("INST")
-    private final List<BigInteger> inst;
-
-    @JsonProperty("OVERFLOW")
-    private final List<Boolean> overflow;
-
-    @JsonProperty("RES_HI")
-    private final List<BigInteger> resHi;
-
-    @JsonProperty("RES_LO")
-    private final List<BigInteger> resLo;
-
-    @JsonProperty("STAMP")
-    private final List<BigInteger> stamp;
-
-    TraceBuilder(int length) {
-      this.acc1 = new ArrayList<>(length);
-      this.acc2 = new ArrayList<>(length);
-      this.arg1Hi = new ArrayList<>(length);
-      this.arg1Lo = new ArrayList<>(length);
-      this.arg2Hi = new ArrayList<>(length);
-      this.arg2Lo = new ArrayList<>(length);
-      this.byte1 = new ArrayList<>(length);
-      this.byte2 = new ArrayList<>(length);
-      this.ct = new ArrayList<>(length);
-      this.inst = new ArrayList<>(length);
-      this.overflow = new ArrayList<>(length);
-      this.resHi = new ArrayList<>(length);
-      this.resLo = new ArrayList<>(length);
-      this.stamp = new ArrayList<>(length);
-    }
+    TraceBuilder(int length) {}
 
     public int size() {
       if (!filled.isEmpty()) {
         throw new RuntimeException("Cannot measure a trace with a non-validated row.");
       }
 
-      return this.acc1.size();
+      return this.currentLine;
+    }
+
+    public void setBuffers(List<MappedByteBuffer> buffers) {
+      this.acc1 = buffers.get(0);
+      this.acc2 = buffers.get(1);
+      this.arg1Hi = buffers.get(2);
+      this.arg1Lo = buffers.get(3);
+      this.arg2Hi = buffers.get(4);
+      this.arg2Lo = buffers.get(5);
+      this.byte1 = buffers.get(6);
+      this.byte2 = buffers.get(7);
+      this.ct = buffers.get(8);
+      this.inst = buffers.get(9);
+      this.overflow = buffers.get(10);
+      this.resHi = buffers.get(11);
+      this.resLo = buffers.get(12);
+      this.stamp = buffers.get(13);
     }
 
     public TraceBuilder acc1(final BigInteger b) {
       if (filled.get(0)) {
-        throw new IllegalStateException("ACC_1 already set");
+        throw new IllegalStateException("add.ACC_1 already set");
       } else {
         filled.set(0);
       }
 
-      acc1.add(b);
+      acc1.put(b.toByteArray());
 
       return this;
     }
 
     public TraceBuilder acc2(final BigInteger b) {
       if (filled.get(1)) {
-        throw new IllegalStateException("ACC_2 already set");
+        throw new IllegalStateException("add.ACC_2 already set");
       } else {
         filled.set(1);
       }
 
-      acc2.add(b);
+      acc2.put(b.toByteArray());
 
       return this;
     }
 
     public TraceBuilder arg1Hi(final BigInteger b) {
       if (filled.get(2)) {
-        throw new IllegalStateException("ARG_1_HI already set");
+        throw new IllegalStateException("add.ARG_1_HI already set");
       } else {
         filled.set(2);
       }
 
-      arg1Hi.add(b);
+      arg1Hi.put(b.toByteArray());
 
       return this;
     }
 
     public TraceBuilder arg1Lo(final BigInteger b) {
       if (filled.get(3)) {
-        throw new IllegalStateException("ARG_1_LO already set");
+        throw new IllegalStateException("add.ARG_1_LO already set");
       } else {
         filled.set(3);
       }
 
-      arg1Lo.add(b);
+      arg1Lo.put(b.toByteArray());
 
       return this;
     }
 
     public TraceBuilder arg2Hi(final BigInteger b) {
       if (filled.get(4)) {
-        throw new IllegalStateException("ARG_2_HI already set");
+        throw new IllegalStateException("add.ARG_2_HI already set");
       } else {
         filled.set(4);
       }
 
-      arg2Hi.add(b);
+      arg2Hi.put(b.toByteArray());
 
       return this;
     }
 
     public TraceBuilder arg2Lo(final BigInteger b) {
       if (filled.get(5)) {
-        throw new IllegalStateException("ARG_2_LO already set");
+        throw new IllegalStateException("add.ARG_2_LO already set");
       } else {
         filled.set(5);
       }
 
-      arg2Lo.add(b);
+      arg2Lo.put(b.toByteArray());
 
       return this;
     }
 
     public TraceBuilder byte1(final UnsignedByte b) {
       if (filled.get(6)) {
-        throw new IllegalStateException("BYTE_1 already set");
+        throw new IllegalStateException("add.BYTE_1 already set");
       } else {
         filled.set(6);
       }
 
-      byte1.add(b);
+      byte1.put(b.toByte());
 
       return this;
     }
 
     public TraceBuilder byte2(final UnsignedByte b) {
       if (filled.get(7)) {
-        throw new IllegalStateException("BYTE_2 already set");
+        throw new IllegalStateException("add.BYTE_2 already set");
       } else {
         filled.set(7);
       }
 
-      byte2.add(b);
+      byte2.put(b.toByte());
 
       return this;
     }
 
     public TraceBuilder ct(final BigInteger b) {
       if (filled.get(8)) {
-        throw new IllegalStateException("CT already set");
+        throw new IllegalStateException("add.CT already set");
       } else {
         filled.set(8);
       }
 
-      ct.add(b);
+      ct.put(b.toByteArray());
 
       return this;
     }
 
     public TraceBuilder inst(final BigInteger b) {
       if (filled.get(9)) {
-        throw new IllegalStateException("INST already set");
+        throw new IllegalStateException("add.INST already set");
       } else {
         filled.set(9);
       }
 
-      inst.add(b);
+      inst.put(b.toByteArray());
 
       return this;
     }
 
     public TraceBuilder overflow(final Boolean b) {
       if (filled.get(10)) {
-        throw new IllegalStateException("OVERFLOW already set");
+        throw new IllegalStateException("add.OVERFLOW already set");
       } else {
         filled.set(10);
       }
 
-      overflow.add(b);
+      overflow.put((byte) (b ? 1 : 0));
 
       return this;
     }
 
     public TraceBuilder resHi(final BigInteger b) {
       if (filled.get(11)) {
-        throw new IllegalStateException("RES_HI already set");
+        throw new IllegalStateException("add.RES_HI already set");
       } else {
         filled.set(11);
       }
 
-      resHi.add(b);
+      resHi.put(b.toByteArray());
 
       return this;
     }
 
     public TraceBuilder resLo(final BigInteger b) {
       if (filled.get(12)) {
-        throw new IllegalStateException("RES_LO already set");
+        throw new IllegalStateException("add.RES_LO already set");
       } else {
         filled.set(12);
       }
 
-      resLo.add(b);
+      resLo.put(b.toByteArray());
 
       return this;
     }
 
     public TraceBuilder stamp(final BigInteger b) {
       if (filled.get(13)) {
-        throw new IllegalStateException("STAMP already set");
+        throw new IllegalStateException("add.STAMP already set");
       } else {
         filled.set(13);
       }
 
-      stamp.add(b);
+      stamp.put(b.toByteArray());
 
       return this;
     }
 
     public TraceBuilder validateRow() {
       if (!filled.get(0)) {
-        throw new IllegalStateException("ACC_1 has not been filled");
+        throw new IllegalStateException("add.ACC_1 has not been filled");
       }
 
       if (!filled.get(1)) {
-        throw new IllegalStateException("ACC_2 has not been filled");
+        throw new IllegalStateException("add.ACC_2 has not been filled");
       }
 
       if (!filled.get(2)) {
-        throw new IllegalStateException("ARG_1_HI has not been filled");
+        throw new IllegalStateException("add.ARG_1_HI has not been filled");
       }
 
       if (!filled.get(3)) {
-        throw new IllegalStateException("ARG_1_LO has not been filled");
+        throw new IllegalStateException("add.ARG_1_LO has not been filled");
       }
 
       if (!filled.get(4)) {
-        throw new IllegalStateException("ARG_2_HI has not been filled");
+        throw new IllegalStateException("add.ARG_2_HI has not been filled");
       }
 
       if (!filled.get(5)) {
-        throw new IllegalStateException("ARG_2_LO has not been filled");
+        throw new IllegalStateException("add.ARG_2_LO has not been filled");
       }
 
       if (!filled.get(6)) {
-        throw new IllegalStateException("BYTE_1 has not been filled");
+        throw new IllegalStateException("add.BYTE_1 has not been filled");
       }
 
       if (!filled.get(7)) {
-        throw new IllegalStateException("BYTE_2 has not been filled");
+        throw new IllegalStateException("add.BYTE_2 has not been filled");
       }
 
       if (!filled.get(8)) {
-        throw new IllegalStateException("CT has not been filled");
+        throw new IllegalStateException("add.CT has not been filled");
       }
 
       if (!filled.get(9)) {
-        throw new IllegalStateException("INST has not been filled");
+        throw new IllegalStateException("add.INST has not been filled");
       }
 
       if (!filled.get(10)) {
-        throw new IllegalStateException("OVERFLOW has not been filled");
+        throw new IllegalStateException("add.OVERFLOW has not been filled");
       }
 
       if (!filled.get(11)) {
-        throw new IllegalStateException("RES_HI has not been filled");
+        throw new IllegalStateException("add.RES_HI has not been filled");
       }
 
       if (!filled.get(12)) {
-        throw new IllegalStateException("RES_LO has not been filled");
+        throw new IllegalStateException("add.RES_LO has not been filled");
       }
 
       if (!filled.get(13)) {
-        throw new IllegalStateException("STAMP has not been filled");
+        throw new IllegalStateException("add.STAMP has not been filled");
       }
 
       filled.clear();
+      this.currentLine++;
 
       return this;
     }
 
     public TraceBuilder fillAndValidateRow() {
-      if (!filled.get(0)) {
-        acc1.add(BigInteger.ZERO);
-        this.filled.set(0);
-      }
-      if (!filled.get(1)) {
-        acc2.add(BigInteger.ZERO);
-        this.filled.set(1);
-      }
-      if (!filled.get(2)) {
-        arg1Hi.add(BigInteger.ZERO);
-        this.filled.set(2);
-      }
-      if (!filled.get(3)) {
-        arg1Lo.add(BigInteger.ZERO);
-        this.filled.set(3);
-      }
-      if (!filled.get(4)) {
-        arg2Hi.add(BigInteger.ZERO);
-        this.filled.set(4);
-      }
-      if (!filled.get(5)) {
-        arg2Lo.add(BigInteger.ZERO);
-        this.filled.set(5);
-      }
-      if (!filled.get(6)) {
-        byte1.add(UnsignedByte.of(0));
-        this.filled.set(6);
-      }
-      if (!filled.get(7)) {
-        byte2.add(UnsignedByte.of(0));
-        this.filled.set(7);
-      }
-      if (!filled.get(8)) {
-        ct.add(BigInteger.ZERO);
-        this.filled.set(8);
-      }
-      if (!filled.get(9)) {
-        inst.add(BigInteger.ZERO);
-        this.filled.set(9);
-      }
-      if (!filled.get(10)) {
-        overflow.add(false);
-        this.filled.set(10);
-      }
-      if (!filled.get(11)) {
-        resHi.add(BigInteger.ZERO);
-        this.filled.set(11);
-      }
-      if (!filled.get(12)) {
-        resLo.add(BigInteger.ZERO);
-        this.filled.set(12);
-      }
-      if (!filled.get(13)) {
-        stamp.add(BigInteger.ZERO);
-        this.filled.set(13);
-      }
+      filled.clear();
+      this.currentLine++;
 
-      return this.validateRow();
+      return this;
     }
 
     public Trace build() {
       if (!filled.isEmpty()) {
         throw new IllegalStateException("Cannot build trace with a non-validated row.");
       }
-
-      return new Trace(
-          acc1, acc2, arg1Hi, arg1Lo, arg2Hi, arg2Lo, byte1, byte2, ct, inst, overflow, resHi,
-          resLo, stamp);
+      return null;
     }
   }
 }

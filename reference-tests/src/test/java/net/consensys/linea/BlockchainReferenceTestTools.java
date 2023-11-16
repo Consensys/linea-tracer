@@ -135,7 +135,7 @@ public class BlockchainReferenceTestTools {
         assertThat(candidateBlock.isValid()).isFalse();
       }
 
-      assertThat(CorsetValidator.isValid(zkTracer.getJsonTrace())).isTrue();
+      assertThat(CorsetValidator.isValid(zkTracer.writeToFile())).isTrue();
     }
 
     assertThat(blockchain.getChainHeadHash()).isEqualTo(spec.getLastBlockHash());

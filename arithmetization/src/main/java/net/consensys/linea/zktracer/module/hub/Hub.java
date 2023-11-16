@@ -232,7 +232,7 @@ public class Hub implements Module {
    */
   public List<Module> getModulesToTrace() {
     return List.of(
-        this.add
+        this.add,
         //        this,
         //        this.romLex,
         //        this.add,
@@ -245,7 +245,7 @@ public class Hub implements Module {
         //        this.rlpTxn,
         //        this.rlpTxrcpt,
         //        this.rlpAddr,
-        //        this.rom,
+        this.rom
         //        this.txnData
         );
   }

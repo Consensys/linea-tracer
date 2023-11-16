@@ -18,7 +18,10 @@ package net.consensys.linea.zktracer.module.rom;
 import static net.consensys.linea.zktracer.module.rlputils.Pattern.padToGivenSizeWithRightZero;
 
 import java.math.BigInteger;
+import java.nio.MappedByteBuffer;
+import java.util.List;
 
+import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
 import net.consensys.linea.zktracer.module.romLex.RomChunk;
@@ -198,5 +201,23 @@ public class Rom implements Module {
     }
 
     return new RomTrace(trace.build());
+  }
+
+  @Override
+  public List<ColumnHeader> columnsHeaders() {
+    return Trace.headers(this.lineCount());
+  }
+
+  @Override
+  public void commitToMmap(List<MappedByteBuffer> buffers) {
+    final Trace.TraceBuilder trace = Trace.builder(this.lineCount());
+    trace.setBuffers(buffers);
+
+    int cfi = 0;
+    final int cfiInfty = this.romLex.sortedChunks.size();
+    for (RomChunk chunk : this.romLex.sortedChunks) {
+      cfi += 1;
+      traceChunk(chunk, cfi, cfiInfty, trace);
+    }
   }
 }

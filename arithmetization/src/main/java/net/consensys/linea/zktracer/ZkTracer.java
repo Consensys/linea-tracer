@@ -17,9 +17,10 @@ package net.consensys.linea.zktracer;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,57 +67,39 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
     return zkTraceBuilder.build();
   }
 
-  public void hugeWriteToFile(String filename) throws IOException {
+  @Override
+  public void writeToFile(final Path filename) {
+    final List<Module> modules = this.hub.getModulesToTrace();
     final List<ColumnHeader> traceMap =
-        this.hub.getModulesToTrace().stream().flatMap(m -> m.columnsHeaders().stream()).toList();
-    final long headerSize = traceMap.stream().mapToInt(ColumnHeader::headerSize).sum();
-    final long traceSize = traceMap.stream().mapToLong(ColumnHeader::cumulatedSize).sum();
+        modules.stream().flatMap(m -> m.columnsHeaders().stream()).toList();
+    final int headerSize = traceMap.stream().mapToInt(ColumnHeader::headerSize).sum() + 4;
 
-    assert traceSize < Integer.MAX_VALUE;
-    //    final Path path = Paths.get("/Users/franklin/pipo.hex");
+    try (RandomAccessFile file = new RandomAccessFile(filename.toString(), "rw")) {
+      file.setLength(traceMap.stream().mapToLong(ColumnHeader::cumulatedSize).sum());
+      MappedByteBuffer header =
+          file.getChannel().map(FileChannel.MapMode.READ_WRITE, 0, headerSize);
 
-    //    try (ResourceScope scope = ResourceScope.newConfinedScope()) {
-    //      MemorySegment mmap = MemorySegment.mapFile(path, 0, traceSize,
-    // FileChannel.MapMode.READ_WRITE, scope);
-
-    // ByteBuffer header = mmap.asSlice(0, headerSize).asByteBuffer();
-    //      for (ColumnHeader h : traceMap) {
-    //        final String name = h.name();
-    //        assert h.name().length() < 128;
-    //        header.put((byte) name.length());
-    //        for (int i = 0; i < name.length(); i++) {
-    //          header.putChar(name.charAt(i));
-    //        }
-    //        header.put(h.bitPerElement());
-    //        header.putInt(h.length());
-    //      }
-
-    //      mmap.force();
-    //    }
-  }
-
-  public void writeToFile(String filename) throws IOException {
-    final List<ColumnHeader> traceMap =
-        this.hub.getModulesToTrace().stream().flatMap(m -> m.columnsHeaders().stream()).toList();
-    final long headerSize = traceMap.stream().mapToInt(ColumnHeader::headerSize).sum();
-    final long traceSize = traceMap.stream().mapToLong(ColumnHeader::cumulatedSize).sum();
-    assert traceSize < Integer.MAX_VALUE;
-
-    try (RandomAccessFile file = new RandomAccessFile("/Users/franklin/pipo.lt", "rw")) {
-      MappedByteBuffer mmap = file.getChannel().map(FileChannel.MapMode.READ_WRITE, 0, traceSize);
-      ByteBuffer header = mmap;
-
+      header.putInt(traceMap.size());
       for (ColumnHeader h : traceMap) {
         final String name = h.name();
         header.putShort((short) name.length());
-        for (int i = 0; i < name.length(); i++) {
-          header.put((byte) name.charAt(i));
-        }
-        header.put((byte) h.bitsPerElement());
+        header.put(name.getBytes());
+        header.put((byte) h.bytesPerElement());
         header.putInt(h.length());
       }
 
-      mmap.force();
+      int offset = headerSize;
+      for (Module m : modules) {
+        List<MappedByteBuffer> buffers = new ArrayList<>();
+        for (ColumnHeader columnHeader : m.columnsHeaders()) {
+          final int columnLength = columnHeader.dataSize();
+          buffers.add(file.getChannel().map(FileChannel.MapMode.READ_WRITE, offset, columnLength));
+          offset += columnLength;
+        }
+        m.commitToMmap(buffers);
+      }
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -128,11 +111,6 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
   @Override
   public void traceEndConflation() {
     this.hub.traceEndConflation();
-  }
-
-  @Override
-  public String getJsonTrace() {
-    return getTrace().toJson();
   }
 
   @Override

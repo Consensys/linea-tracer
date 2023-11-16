@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module;
 
+import java.nio.MappedByteBuffer;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
@@ -84,4 +85,8 @@ public interface Module {
   }
 
   ModuleTrace commit();
+
+  default void commitToMmap(List<MappedByteBuffer> buffers) {
+    throw new UnsupportedOperationException();
+  }
 }

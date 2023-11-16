@@ -15,30 +15,25 @@
 
 package net.consensys.linea.zktracer;
 
-public record ColumnHeader(String name, int bitsPerElement, int length) {
-  private int bytesPerElement() {
-    return (this.bitsPerElement + 8) / 8;
-  }
-
+public record ColumnHeader(String name, int bytesPerElement, int length) {
   public int dataSize() {
     return this.length() * this.bytesPerElement();
   }
 
   public int headerSize() {
-    return this.name.length()
-        + 2
-        + // name encoding
-        1
-        + // bit per element
-        4; // element count
+    return 2
+        + // i16: name size
+        this.name.length() // [u8]: name bytes
+        + 1 // bytes per element
+        + 4; // element count
   }
 
   public long cumulatedSize() {
     return this.headerSize() + this.dataSize();
   }
 
-  public static ColumnHeader make(String name, int bitsPerElement, int length) {
+  public static ColumnHeader make(String name, int bytesPerElement, int length) {
     assert name.length() < Short.MAX_VALUE;
-    return new ColumnHeader(name, bitsPerElement, length);
+    return new ColumnHeader(name, bytesPerElement, length);
   }
 }

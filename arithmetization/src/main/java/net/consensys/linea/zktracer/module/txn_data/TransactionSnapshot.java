@@ -130,7 +130,10 @@ public final class TransactionSnapshot {
         tx.getTo().map(world::get).map(AccountState::hasCode).orElse(!tx.getPayload().isEmpty()),
         tx.getType(),
         codeIdBeforeLex,
-        world.get(tx.getSender()).getBalance().getAsBigInteger(),
+        Optional.ofNullable(tx.getSender())
+            .map(world::get)
+            .map(x -> x.getBalance().getAsBigInteger())
+            .orElse(BigInteger.ZERO),
         tx.getPayload().copy(),
         tx.getGasLimit(),
         computeEffectiveGasPrice(baseFee, tx),

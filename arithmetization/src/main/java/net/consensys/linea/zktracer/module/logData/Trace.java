@@ -15,34 +15,32 @@
 
 package net.consensys.linea.zktracer.module.logData;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import net.consensys.linea.zktracer.types.UnsignedByte;
-
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
- * WARNING: This code is generated automatically.
- * Any modifications to this code may be overwritten and could lead to unexpected behavior.
- * Please DO NOT ATTEMPT TO MODIFY this code directly.
+ * WARNING: This code is generated automatically. Any modifications to this code may be overwritten
+ * and could lead to unexpected behavior. Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
 public record Trace(
-  @JsonProperty("ABS_LOG_NUM") List<BigInteger> absLogNum,
-  @JsonProperty("ABS_LOG_NUM_MAX") List<BigInteger> absLogNumMax,
-  @JsonProperty("INDEX") List<BigInteger> index,
-  @JsonProperty("LIMB") List<BigInteger> limb,
-  @JsonProperty("LOGS_DATA") List<Boolean> logsData,
-  @JsonProperty("SIZE_ACC") List<BigInteger> sizeAcc,
-  @JsonProperty("SIZE_LIMB") List<BigInteger> sizeLimb,
-  @JsonProperty("SIZE_TOTAL") List<BigInteger> sizeTotal) { 
+    @JsonProperty("ABS_LOG_NUM") List<BigInteger> absLogNum,
+    @JsonProperty("ABS_LOG_NUM_MAX") List<BigInteger> absLogNumMax,
+    @JsonProperty("INDEX") List<BigInteger> index,
+    @JsonProperty("LIMB") List<BigInteger> limb,
+    @JsonProperty("LOGS_DATA") List<Boolean> logsData,
+    @JsonProperty("SIZE_ACC") List<BigInteger> sizeAcc,
+    @JsonProperty("SIZE_LIMB") List<BigInteger> sizeLimb,
+    @JsonProperty("SIZE_TOTAL") List<BigInteger> sizeTotal) {
   static TraceBuilder builder(int length) {
     return new TraceBuilder(length);
   }
 
   public int size() {
-      return this.absLogNum.size();
+    return this.absLogNum.size();
   }
 
   static class TraceBuilder {
@@ -50,18 +48,25 @@ public record Trace(
 
     @JsonProperty("ABS_LOG_NUM")
     private final List<BigInteger> absLogNum;
+
     @JsonProperty("ABS_LOG_NUM_MAX")
     private final List<BigInteger> absLogNumMax;
+
     @JsonProperty("INDEX")
     private final List<BigInteger> index;
+
     @JsonProperty("LIMB")
     private final List<BigInteger> limb;
+
     @JsonProperty("LOGS_DATA")
     private final List<Boolean> logsData;
+
     @JsonProperty("SIZE_ACC")
     private final List<BigInteger> sizeAcc;
+
     @JsonProperty("SIZE_LIMB")
     private final List<BigInteger> sizeLimb;
+
     @JsonProperty("SIZE_TOTAL")
     private final List<BigInteger> sizeTotal;
 
@@ -213,7 +218,6 @@ public record Trace(
         throw new IllegalStateException("SIZE_TOTAL has not been filled");
       }
 
-
       filled.clear();
 
       return this;
@@ -221,36 +225,36 @@ public record Trace(
 
     public TraceBuilder fillAndValidateRow() {
       if (!filled.get(0)) {
-          absLogNum.add(BigInteger.ZERO);
-          this.filled.set(0);
+        absLogNum.add(BigInteger.ZERO);
+        this.filled.set(0);
       }
       if (!filled.get(1)) {
-          absLogNumMax.add(BigInteger.ZERO);
-          this.filled.set(1);
+        absLogNumMax.add(BigInteger.ZERO);
+        this.filled.set(1);
       }
       if (!filled.get(2)) {
-          index.add(BigInteger.ZERO);
-          this.filled.set(2);
+        index.add(BigInteger.ZERO);
+        this.filled.set(2);
       }
       if (!filled.get(3)) {
-          limb.add(BigInteger.ZERO);
-          this.filled.set(3);
+        limb.add(BigInteger.ZERO);
+        this.filled.set(3);
       }
       if (!filled.get(4)) {
-          logsData.add(false);
-          this.filled.set(4);
+        logsData.add(false);
+        this.filled.set(4);
       }
       if (!filled.get(5)) {
-          sizeAcc.add(BigInteger.ZERO);
-          this.filled.set(5);
+        sizeAcc.add(BigInteger.ZERO);
+        this.filled.set(5);
       }
       if (!filled.get(6)) {
-          sizeLimb.add(BigInteger.ZERO);
-          this.filled.set(6);
+        sizeLimb.add(BigInteger.ZERO);
+        this.filled.set(6);
       }
       if (!filled.get(7)) {
-          sizeTotal.add(BigInteger.ZERO);
-          this.filled.set(7);
+        sizeTotal.add(BigInteger.ZERO);
+        this.filled.set(7);
       }
 
       return this.validateRow();
@@ -262,14 +266,7 @@ public record Trace(
       }
 
       return new Trace(
-        absLogNum,
-        absLogNumMax,
-        index,
-        limb,
-        logsData,
-        sizeAcc,
-        sizeLimb,
-        sizeTotal);
+          absLogNum, absLogNumMax, index, limb, logsData, sizeAcc, sizeLimb, sizeTotal);
     }
   }
 }

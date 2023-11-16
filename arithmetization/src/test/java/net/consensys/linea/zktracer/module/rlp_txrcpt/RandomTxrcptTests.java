@@ -44,14 +44,15 @@ public class RandomTxrcptTests {
   @Test
   public void testRandomTxrcpt() {
     RlpTxrcpt rlpTxrcpt = new RlpTxrcpt();
+    LogInfo logInfo = new LogInfo(rlpTxrcpt);
+    LogData logData = new LogData(rlpTxrcpt);
     OpCodes.load();
 
     // SET UP THE WORLD
     KeyPair keyPair = new SECP256K1().generateKeyPair();
     Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
 
-    ToyAccount senderAccount =
-        ToyAccount.builder().balance(Wei.of(5)).nonce(32).address(senderAddress).build();
+    ToyAccount senderAccount = ToyAccount.builder().balance(Wei.of(5)).nonce(32).address(senderAddress).build();
 
     // Create few tx
     for (int i = 0; i < 200; i++) {
@@ -72,11 +73,15 @@ public class RandomTxrcptTests {
     //
     // Check the trace
     //
-    // TODO:
-    //    ToyExecutionEnvironment.checkTracer(rlpTxrcpt);
-    //    assertThat(CorsetValidator.isValid(new
-    // ZkTraceBuilder().addTrace(rlpTxrcpt).build().toJson()))
-    //        .isTrue();
+    assertThat(
+        CorsetValidator.isValid(
+            new ZkTraceBuilder()
+                .addTrace(rlpTxrcpt)
+                .addTrace(logInfo)
+                .addTrace(logData)
+                .build()
+                .toJson()))
+        .isTrue();
   }
 
   private Log randomLog(int nbTopic) {

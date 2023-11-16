@@ -15,53 +15,51 @@
 
 package net.consensys.linea.zktracer.module.logInfo;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import net.consensys.linea.zktracer.types.UnsignedByte;
-
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
- * WARNING: This code is generated automatically.
- * Any modifications to this code may be overwritten and could lead to unexpected behavior.
- * Please DO NOT ATTEMPT TO MODIFY this code directly.
+ * WARNING: This code is generated automatically. Any modifications to this code may be overwritten
+ * and could lead to unexpected behavior. Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
 public record Trace(
-  @JsonProperty("ABS_LOG_NUM") List<BigInteger> absLogNum,
-  @JsonProperty("ABS_LOG_NUM_MAX") List<BigInteger> absLogNumMax,
-  @JsonProperty("ABS_TXN_NUM") List<BigInteger> absTxnNum,
-  @JsonProperty("ABS_TXN_NUM_MAX") List<BigInteger> absTxnNumMax,
-  @JsonProperty("ADDR_HI") List<BigInteger> addrHi,
-  @JsonProperty("ADDR_LO") List<BigInteger> addrLo,
-  @JsonProperty("CT") List<BigInteger> ct,
-  @JsonProperty("CT_MAX") List<BigInteger> ctMax,
-  @JsonProperty("DATA_HI") List<BigInteger> dataHi,
-  @JsonProperty("DATA_LO") List<BigInteger> dataLo,
-  @JsonProperty("DATA_SIZE") List<BigInteger> dataSize,
-  @JsonProperty("INST") List<BigInteger> inst,
-  @JsonProperty("IS_LOG_X_0") List<Boolean> isLogX0,
-  @JsonProperty("IS_LOG_X_1") List<Boolean> isLogX1,
-  @JsonProperty("IS_LOG_X_2") List<Boolean> isLogX2,
-  @JsonProperty("IS_LOG_X_3") List<Boolean> isLogX3,
-  @JsonProperty("IS_LOG_X_4") List<Boolean> isLogX4,
-  @JsonProperty("PHASE") List<BigInteger> phase,
-  @JsonProperty("TOPIC_HI_1") List<BigInteger> topicHi1,
-  @JsonProperty("TOPIC_HI_2") List<BigInteger> topicHi2,
-  @JsonProperty("TOPIC_HI_3") List<BigInteger> topicHi3,
-  @JsonProperty("TOPIC_HI_4") List<BigInteger> topicHi4,
-  @JsonProperty("TOPIC_LO_1") List<BigInteger> topicLo1,
-  @JsonProperty("TOPIC_LO_2") List<BigInteger> topicLo2,
-  @JsonProperty("TOPIC_LO_3") List<BigInteger> topicLo3,
-  @JsonProperty("TOPIC_LO_4") List<BigInteger> topicLo4,
-  @JsonProperty("TXN_EMITS_LOGS") List<Boolean> txnEmitsLogs) { 
+    @JsonProperty("ABS_LOG_NUM") List<BigInteger> absLogNum,
+    @JsonProperty("ABS_LOG_NUM_MAX") List<BigInteger> absLogNumMax,
+    @JsonProperty("ABS_TXN_NUM") List<BigInteger> absTxnNum,
+    @JsonProperty("ABS_TXN_NUM_MAX") List<BigInteger> absTxnNumMax,
+    @JsonProperty("ADDR_HI") List<BigInteger> addrHi,
+    @JsonProperty("ADDR_LO") List<BigInteger> addrLo,
+    @JsonProperty("CT") List<BigInteger> ct,
+    @JsonProperty("CT_MAX") List<BigInteger> ctMax,
+    @JsonProperty("DATA_HI") List<BigInteger> dataHi,
+    @JsonProperty("DATA_LO") List<BigInteger> dataLo,
+    @JsonProperty("DATA_SIZE") List<BigInteger> dataSize,
+    @JsonProperty("INST") List<BigInteger> inst,
+    @JsonProperty("IS_LOG_X_0") List<Boolean> isLogX0,
+    @JsonProperty("IS_LOG_X_1") List<Boolean> isLogX1,
+    @JsonProperty("IS_LOG_X_2") List<Boolean> isLogX2,
+    @JsonProperty("IS_LOG_X_3") List<Boolean> isLogX3,
+    @JsonProperty("IS_LOG_X_4") List<Boolean> isLogX4,
+    @JsonProperty("PHASE") List<BigInteger> phase,
+    @JsonProperty("TOPIC_HI_1") List<BigInteger> topicHi1,
+    @JsonProperty("TOPIC_HI_2") List<BigInteger> topicHi2,
+    @JsonProperty("TOPIC_HI_3") List<BigInteger> topicHi3,
+    @JsonProperty("TOPIC_HI_4") List<BigInteger> topicHi4,
+    @JsonProperty("TOPIC_LO_1") List<BigInteger> topicLo1,
+    @JsonProperty("TOPIC_LO_2") List<BigInteger> topicLo2,
+    @JsonProperty("TOPIC_LO_3") List<BigInteger> topicLo3,
+    @JsonProperty("TOPIC_LO_4") List<BigInteger> topicLo4,
+    @JsonProperty("TXN_EMITS_LOGS") List<Boolean> txnEmitsLogs) {
   static TraceBuilder builder(int length) {
     return new TraceBuilder(length);
   }
 
   public int size() {
-      return this.absLogNum.size();
+    return this.absLogNum.size();
   }
 
   static class TraceBuilder {
@@ -69,56 +67,82 @@ public record Trace(
 
     @JsonProperty("ABS_LOG_NUM")
     private final List<BigInteger> absLogNum;
+
     @JsonProperty("ABS_LOG_NUM_MAX")
     private final List<BigInteger> absLogNumMax;
+
     @JsonProperty("ABS_TXN_NUM")
     private final List<BigInteger> absTxnNum;
+
     @JsonProperty("ABS_TXN_NUM_MAX")
     private final List<BigInteger> absTxnNumMax;
+
     @JsonProperty("ADDR_HI")
     private final List<BigInteger> addrHi;
+
     @JsonProperty("ADDR_LO")
     private final List<BigInteger> addrLo;
+
     @JsonProperty("CT")
     private final List<BigInteger> ct;
+
     @JsonProperty("CT_MAX")
     private final List<BigInteger> ctMax;
+
     @JsonProperty("DATA_HI")
     private final List<BigInteger> dataHi;
+
     @JsonProperty("DATA_LO")
     private final List<BigInteger> dataLo;
+
     @JsonProperty("DATA_SIZE")
     private final List<BigInteger> dataSize;
+
     @JsonProperty("INST")
     private final List<BigInteger> inst;
+
     @JsonProperty("IS_LOG_X_0")
     private final List<Boolean> isLogX0;
+
     @JsonProperty("IS_LOG_X_1")
     private final List<Boolean> isLogX1;
+
     @JsonProperty("IS_LOG_X_2")
     private final List<Boolean> isLogX2;
+
     @JsonProperty("IS_LOG_X_3")
     private final List<Boolean> isLogX3;
+
     @JsonProperty("IS_LOG_X_4")
     private final List<Boolean> isLogX4;
+
     @JsonProperty("PHASE")
     private final List<BigInteger> phase;
+
     @JsonProperty("TOPIC_HI_1")
     private final List<BigInteger> topicHi1;
+
     @JsonProperty("TOPIC_HI_2")
     private final List<BigInteger> topicHi2;
+
     @JsonProperty("TOPIC_HI_3")
     private final List<BigInteger> topicHi3;
+
     @JsonProperty("TOPIC_HI_4")
     private final List<BigInteger> topicHi4;
+
     @JsonProperty("TOPIC_LO_1")
     private final List<BigInteger> topicLo1;
+
     @JsonProperty("TOPIC_LO_2")
     private final List<BigInteger> topicLo2;
+
     @JsonProperty("TOPIC_LO_3")
     private final List<BigInteger> topicLo3;
+
     @JsonProperty("TOPIC_LO_4")
     private final List<BigInteger> topicLo4;
+
     @JsonProperty("TXN_EMITS_LOGS")
     private final List<Boolean> txnEmitsLogs;
 
@@ -593,7 +617,6 @@ public record Trace(
         throw new IllegalStateException("TXN_EMITS_LOGS has not been filled");
       }
 
-
       filled.clear();
 
       return this;
@@ -601,112 +624,112 @@ public record Trace(
 
     public TraceBuilder fillAndValidateRow() {
       if (!filled.get(0)) {
-          absLogNum.add(BigInteger.ZERO);
-          this.filled.set(0);
+        absLogNum.add(BigInteger.ZERO);
+        this.filled.set(0);
       }
       if (!filled.get(1)) {
-          absLogNumMax.add(BigInteger.ZERO);
-          this.filled.set(1);
+        absLogNumMax.add(BigInteger.ZERO);
+        this.filled.set(1);
       }
       if (!filled.get(2)) {
-          absTxnNum.add(BigInteger.ZERO);
-          this.filled.set(2);
+        absTxnNum.add(BigInteger.ZERO);
+        this.filled.set(2);
       }
       if (!filled.get(3)) {
-          absTxnNumMax.add(BigInteger.ZERO);
-          this.filled.set(3);
+        absTxnNumMax.add(BigInteger.ZERO);
+        this.filled.set(3);
       }
       if (!filled.get(4)) {
-          addrHi.add(BigInteger.ZERO);
-          this.filled.set(4);
+        addrHi.add(BigInteger.ZERO);
+        this.filled.set(4);
       }
       if (!filled.get(5)) {
-          addrLo.add(BigInteger.ZERO);
-          this.filled.set(5);
+        addrLo.add(BigInteger.ZERO);
+        this.filled.set(5);
       }
       if (!filled.get(6)) {
-          ct.add(BigInteger.ZERO);
-          this.filled.set(6);
+        ct.add(BigInteger.ZERO);
+        this.filled.set(6);
       }
       if (!filled.get(7)) {
-          ctMax.add(BigInteger.ZERO);
-          this.filled.set(7);
+        ctMax.add(BigInteger.ZERO);
+        this.filled.set(7);
       }
       if (!filled.get(8)) {
-          dataHi.add(BigInteger.ZERO);
-          this.filled.set(8);
+        dataHi.add(BigInteger.ZERO);
+        this.filled.set(8);
       }
       if (!filled.get(9)) {
-          dataLo.add(BigInteger.ZERO);
-          this.filled.set(9);
+        dataLo.add(BigInteger.ZERO);
+        this.filled.set(9);
       }
       if (!filled.get(10)) {
-          dataSize.add(BigInteger.ZERO);
-          this.filled.set(10);
+        dataSize.add(BigInteger.ZERO);
+        this.filled.set(10);
       }
       if (!filled.get(11)) {
-          inst.add(BigInteger.ZERO);
-          this.filled.set(11);
+        inst.add(BigInteger.ZERO);
+        this.filled.set(11);
       }
       if (!filled.get(12)) {
-          isLogX0.add(false);
-          this.filled.set(12);
+        isLogX0.add(false);
+        this.filled.set(12);
       }
       if (!filled.get(13)) {
-          isLogX1.add(false);
-          this.filled.set(13);
+        isLogX1.add(false);
+        this.filled.set(13);
       }
       if (!filled.get(14)) {
-          isLogX2.add(false);
-          this.filled.set(14);
+        isLogX2.add(false);
+        this.filled.set(14);
       }
       if (!filled.get(15)) {
-          isLogX3.add(false);
-          this.filled.set(15);
+        isLogX3.add(false);
+        this.filled.set(15);
       }
       if (!filled.get(16)) {
-          isLogX4.add(false);
-          this.filled.set(16);
+        isLogX4.add(false);
+        this.filled.set(16);
       }
       if (!filled.get(17)) {
-          phase.add(BigInteger.ZERO);
-          this.filled.set(17);
+        phase.add(BigInteger.ZERO);
+        this.filled.set(17);
       }
       if (!filled.get(18)) {
-          topicHi1.add(BigInteger.ZERO);
-          this.filled.set(18);
+        topicHi1.add(BigInteger.ZERO);
+        this.filled.set(18);
       }
       if (!filled.get(19)) {
-          topicHi2.add(BigInteger.ZERO);
-          this.filled.set(19);
+        topicHi2.add(BigInteger.ZERO);
+        this.filled.set(19);
       }
       if (!filled.get(20)) {
-          topicHi3.add(BigInteger.ZERO);
-          this.filled.set(20);
+        topicHi3.add(BigInteger.ZERO);
+        this.filled.set(20);
       }
       if (!filled.get(21)) {
-          topicHi4.add(BigInteger.ZERO);
-          this.filled.set(21);
+        topicHi4.add(BigInteger.ZERO);
+        this.filled.set(21);
       }
       if (!filled.get(22)) {
-          topicLo1.add(BigInteger.ZERO);
-          this.filled.set(22);
+        topicLo1.add(BigInteger.ZERO);
+        this.filled.set(22);
       }
       if (!filled.get(23)) {
-          topicLo2.add(BigInteger.ZERO);
-          this.filled.set(23);
+        topicLo2.add(BigInteger.ZERO);
+        this.filled.set(23);
       }
       if (!filled.get(24)) {
-          topicLo3.add(BigInteger.ZERO);
-          this.filled.set(24);
+        topicLo3.add(BigInteger.ZERO);
+        this.filled.set(24);
       }
       if (!filled.get(25)) {
-          topicLo4.add(BigInteger.ZERO);
-          this.filled.set(25);
+        topicLo4.add(BigInteger.ZERO);
+        this.filled.set(25);
       }
       if (!filled.get(26)) {
-          txnEmitsLogs.add(false);
-          this.filled.set(26);
+        txnEmitsLogs.add(false);
+        this.filled.set(26);
       }
 
       return this.validateRow();
@@ -718,33 +741,33 @@ public record Trace(
       }
 
       return new Trace(
-        absLogNum,
-        absLogNumMax,
-        absTxnNum,
-        absTxnNumMax,
-        addrHi,
-        addrLo,
-        ct,
-        ctMax,
-        dataHi,
-        dataLo,
-        dataSize,
-        inst,
-        isLogX0,
-        isLogX1,
-        isLogX2,
-        isLogX3,
-        isLogX4,
-        phase,
-        topicHi1,
-        topicHi2,
-        topicHi3,
-        topicHi4,
-        topicLo1,
-        topicLo2,
-        topicLo3,
-        topicLo4,
-        txnEmitsLogs);
+          absLogNum,
+          absLogNumMax,
+          absTxnNum,
+          absTxnNumMax,
+          addrHi,
+          addrLo,
+          ct,
+          ctMax,
+          dataHi,
+          dataLo,
+          dataSize,
+          inst,
+          isLogX0,
+          isLogX1,
+          isLogX2,
+          isLogX3,
+          isLogX4,
+          phase,
+          topicHi1,
+          topicHi2,
+          topicHi3,
+          topicHi4,
+          topicLo1,
+          topicLo2,
+          topicLo3,
+          topicLo4,
+          txnEmitsLogs);
     }
   }
 }

@@ -15,15 +15,12 @@
 
 package net.consensys.linea.zktracer.module.rlp_txrcpt;
 
-import java.math.BigInteger;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import net.consensys.linea.zktracer.module.ModuleTrace;
 
 /**
- * WARNING: This code is generated automatically.
- * Any modifications to this code may be overwritten and could lead to unexpected behavior.
- * Please DO NOT ATTEMPT TO MODIFY this code directly.
+ * WARNING: This code is generated automatically. Any modifications to this code may be overwritten
+ * and could lead to unexpected behavior. Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
 record RlpTxrcptTrace(@JsonProperty("Trace") Trace trace) implements ModuleTrace {
   static final int CREATE2_SHIFT = 255;
@@ -49,6 +46,6 @@ record RlpTxrcptTrace(@JsonProperty("Trace") Trace trace) implements ModuleTrace
 
   @Override
   public int length() {
-      return this.trace.size();
+    return this.trace.size();
   }
 }

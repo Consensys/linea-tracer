@@ -15,9 +15,6 @@
 
 package net.consensys.linea.zktracer.module.rlp_txrcpt;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import net.consensys.linea.zktracer.types.UnsignedByte;
-
 import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.BitSet;

@@ -15,15 +15,24 @@
 
 package net.consensys.linea.zktracer.module.logData;
 
+import static net.consensys.linea.zktracer.module.rlputils.Pattern.padToGivenSizeWithRightZero;
+
+import java.math.BigInteger;
+
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
 import net.consensys.linea.zktracer.module.rlp_txrcpt.RlpTxrcpt;
 import net.consensys.linea.zktracer.module.rlp_txrcpt.RlpTxrcptChunk;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.log.Log;
 
 public class LogData implements Module {
   private final RlpTxrcpt rlpTxrcpt;
-  public LogData(RlpTxrcpt rlpTxrcpt){this.rlpTxrcpt=rlpTxrcpt;}
+
+  public LogData(RlpTxrcpt rlpTxrcpt) {
+    this.rlpTxrcpt = rlpTxrcpt;
+  }
+
   @Override
   public String jsonKey() {
     return "logData";
@@ -38,23 +47,26 @@ public class LogData implements Module {
   @Override
   public int lineCount() {
     int rowSize = 0;
-    for (RlpTxrcptChunk tx: this.rlpTxrcpt.chunkList) {
+    for (RlpTxrcptChunk tx : this.rlpTxrcpt.chunkList) {
       rowSize += txRowSize(tx);
     }
-    return  rowSize;
+    return rowSize;
   }
 
-  private int txRowSize(RlpTxrcptChunk tx){
+  private int txRowSize(RlpTxrcptChunk tx) {
     int txRowSize = 0;
-    if (tx.logs().isEmpty()){return 0;} else {
-      for (Log log: tx.logs()) {
-        txRowSize += indexMax(log)+1;
+    if (tx.logs().isEmpty()) {
+      return 0;
+    } else {
+      for (Log log : tx.logs()) {
+        txRowSize += indexMax(log) + 1;
       }
-      return  txRowSize;
-    }}
+      return txRowSize;
+    }
+  }
 
-  private int indexMax(Log log){
-    return log.getData().isEmpty()? 0 : log.getData().size()/16;
+  private int indexMax(Log log) {
+    return log.getData().isEmpty() ? 0 : (log.getData().size()-1) / 16;
   }
 
   @Override
@@ -62,18 +74,20 @@ public class LogData implements Module {
     final Trace.TraceBuilder trace = Trace.builder(this.lineCount());
 
     int absLogNumMax = 0;
-    for (RlpTxrcptChunk tx: this.rlpTxrcpt.chunkList) {
-      absLogNumMax+=tx.logs().size();
+    for (RlpTxrcptChunk tx : this.rlpTxrcpt.chunkList) {
+      absLogNumMax += tx.logs().size();
     }
 
     int absLogNum = 0;
-    for (RlpTxrcptChunk tx: this.rlpTxrcpt.chunkList) {
-      if (tx.logs().isEmpty()){
-        traceTxWoLog(absLogNum, absLogNumMax);
-      } else {
-        for (Log log:tx.logs()) {
-          absLogNum+=1;
-          traceLog(log, absLogNum, absLogNumMax);
+    for (RlpTxrcptChunk tx : this.rlpTxrcpt.chunkList) {
+      if (!tx.logs().isEmpty()) {
+        for (Log log : tx.logs()) {
+          if (log.getData().isEmpty()) {
+            traceLogWoData(absLogNum, absLogNumMax, trace);
+          } else {
+            absLogNum += 1;
+            traceLog(log, absLogNum, absLogNumMax, trace);
+          }
         }
       }
     }
@@ -81,15 +95,37 @@ public class LogData implements Module {
     return new LogDataTrace(trace.build());
   }
 
-  public void traceTxWoLog(int absLogNum, int absLogNumMax){
-
+  public void traceLogWoData(int absLogNum, int absLogNumMax, Trace.TraceBuilder trace) {
+    trace
+        .absLogNumMax(BigInteger.valueOf(absLogNumMax))
+        .absLogNum(BigInteger.valueOf(absLogNum))
+        .logsData(false)
+        .sizeTotal(BigInteger.ZERO)
+        .sizeAcc(BigInteger.ZERO)
+        .sizeLimb(BigInteger.ZERO)
+        .limb(BigInteger.ZERO)
+        .index(BigInteger.ZERO)
+        .validateRow();
   }
 
-  public void traceLog(Log log, int absLogNum, int absLogNumMax){
-final int indexMax = indexMax(log);
-    for (int index = 0; index < indexMax+1; index++) {
-
+  public void traceLog(Log log, int absLogNum, int absLogNumMax, Trace.TraceBuilder trace) {
+    final int indexMax = indexMax(log);
+    final Bytes dataPadded = padToGivenSizeWithRightZero(log.getData(), (indexMax + 1) * 16);
+    final int lastLimbSize = (log.getData().size() % 16 == 0) ? 16 : log.getData().size() % 16;
+    for (int index = 0; index < indexMax + 1; index++) {
+      trace
+          .absLogNumMax(BigInteger.valueOf(absLogNumMax))
+          .absLogNum(BigInteger.valueOf(absLogNum))
+          .logsData(true)
+          .sizeTotal(BigInteger.valueOf(log.getData().size()))
+          .sizeAcc(
+              index == indexMax
+                  ? BigInteger.valueOf(log.getData().size())
+                  : BigInteger.valueOf(16 * (index + 1)))
+          .sizeLimb(index == indexMax ? BigInteger.valueOf(lastLimbSize) : BigInteger.valueOf(16))
+          .limb(dataPadded.slice(16 * index, 16).toUnsignedBigInteger())
+          .index(BigInteger.valueOf(index))
+          .validateRow();
     }
   }
-
 }

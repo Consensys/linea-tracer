@@ -417,7 +417,169 @@ public class Hub implements Module {
   }
 
   void triggerModules(MessageFrame frame) {
-    // TODO: from the PCH
+    switch (this.opCodeData().instructionFamily()) {
+      case ADD -> {
+        if (this.pch().exceptions().noStackException()) {
+          this.add.tracePreOpcode(frame);
+        }
+      }
+      case MOD -> {
+        if (this.pch().exceptions().noStackException()) {
+          this.mod.tracePreOpcode(frame);
+        }
+      }
+      case MUL -> {
+        if (this.pch().exceptions().noStackException()) {
+          this.mul.tracePreOpcode(frame);
+        }
+      }
+      case EXT -> {
+        if (this.pch().exceptions().noStackException()) {
+          this.ext.tracePreOpcode(frame);
+        }
+      }
+      case WCP -> {
+        if (this.pch().exceptions().noStackException()) {
+          this.wcp.tracePreOpcode(frame);
+        }
+      }
+      case BIN -> {}
+      case SHF -> {
+        if (this.pch().exceptions().noStackException()) {
+          this.shf.tracePreOpcode(frame);
+        }
+      }
+      case KEC -> {
+        if (this.pch().exceptions().noStackException()) {
+          this.mxp.tracePreOpcode(frame);
+        }
+      }
+      case CONTEXT -> {}
+      case ACCOUNT -> {
+        if (this.pch().exceptions().noStackException()) {
+          this.trm.tracePreOpcode(frame); // TODO refine the trigger
+        }
+      }
+      case COPY -> {
+        if (this.pch().exceptions().noStackException()) {
+          if (this.currentFrame().opCode() == OpCode.RETURNDATACOPY) {
+            if (!this.pch().exceptions().returnDataCopyFault()) {
+              this.mxp.tracePreOpcode(frame);
+            }
+          } else {
+            this.mxp.tracePreOpcode(frame);
+          }
+        }
+        if (!this.pch().exceptions().any() && this.callStack().depth() < 1024) {
+          this.romLex.tracePreOpcode(frame);
+          if (this.pch().exceptions().noStackException()) {
+            this.trm.tracePreOpcode(frame); // TODO refine the trigger
+          }
+        }
+      }
+      case TRANSACTION -> {}
+      case BATCH -> {}
+      case STACK_RAM -> {
+        if (this.pch().exceptions().noStackException()
+          && this.currentFrame().opCode() != OpCode.CALLDATALOAD) {
+          this.mxp.tracePreOpcode(frame);
+        }
+      }
+      case STORAGE -> {}
+      case JUMP -> {}
+      case MACHINE_STATE -> {
+        if (this.pch().exceptions().noStackException() && this.currentFrame().opCode() == OpCode.MSIZE) {
+          this.mxp.tracePreOpcode(frame);
+        }
+      }
+      case PUSH_POP -> {}
+      case DUP -> {}
+      case SWAP -> {}
+      case LOG -> {
+        if (this.pch().exceptions().noStackException() && !this.pch().exceptions().staticFault()) {
+          this.mxp.tracePreOpcode(frame);
+        }
+      }
+      case CREATE -> {
+        if (this.pch().exceptions().noStackException() && !this.pch().exceptions().staticFault()) {
+          this.mxp.tracePreOpcode(frame); // TODO: trigger in OoG
+        }
+
+        if (!this.pch().exceptions().any() && this.callStack().depth() < 1024) {
+          // TODO: check for failure: non empty byte code or non zero nonce (for the
+          // Deployed
+          // Address)
+          UInt256 value = UInt256.fromBytes(frame.getStackItem(0));
+          if (frame
+            .getWorldUpdater()
+            .get(this.tx.transaction().getSender())
+            .getBalance()
+            .toUInt256()
+            .greaterOrEqualThan(value)) {
+            this.rlpAddr.tracePreOpcode(frame);
+            this.romLex.tracePreOpcode(frame);
+          }
+        }
+      }
+      case CALL -> {
+        if (!this.pch().exceptions().any() && this.callStack().depth() < 1024) {
+          this.romLex.tracePreOpcode(frame);
+          for (Module m : this.precompileModules) {
+            m.tracePreOpcode(frame);
+          }
+        }
+        if (!this.pch().exceptions().stackUnderflow() && !this.pch().exceptions().staticFault()) {
+          this.mxp.tracePreOpcode(frame);
+        }
+        if (this.pch().exceptions().noStackException()) {
+          this.trm.tracePreOpcode(frame); // TODO refine the trigger
+        }
+      }
+      case HALT -> {
+        if (!this.pch().exceptions().any() && this.callStack().depth() < 1024) {
+          this.romLex.tracePreOpcode(frame);
+        }
+        if (this.pch().exceptions().noStackException()
+          && this.currentFrame().opCode() != OpCode.STOP
+          && this.currentFrame().opCode() != OpCode.SELFDESTRUCT) {
+          this.mxp.tracePreOpcode(frame);
+        }
+        if (this.pch().exceptions().noStackException()) {
+          this.trm.tracePreOpcode(frame); // TODO refine the trigger
+        }
+      }
+      case INVALID -> {}
+      default -> {}
+    }
+
+    // TODO: coming soon
+//    if (this.pch.signals().mmu()) {
+//      // TODO:
+//    }
+//    if (this.pch.signals().mxp()) {
+//      this.mxp.tracePreOpcode(frame);
+//    }
+//    if (this.pch.signals().oob()) {
+//      // TODO: this.oob.tracePreOpcode(frame);
+//    }
+//    if (this.pch.signals().precompileInfo()) {
+//      // TODO:
+//    }
+//    if (this.pch.signals().stipend()) {
+//      // TODO:
+//    }
+//    if (this.pch.signals().exp()) {
+//      this.modexp.tracePreOpcode(frame);
+//    }
+//    if (this.pch.signals().trm()) {
+//      this.trm.tracePreOpcode(frame);
+//    }
+//    if (this.pch.signals().hashInfo()) {
+//      // TODO: this.hashInfo.tracePreOpcode(frame);
+//    }
+//    if (this.pch.signals().romLex()) {
+//      this.romLex.tracePreOpcode(frame);
+//    }
   }
 
   void processStateExec(MessageFrame frame) {

@@ -94,7 +94,7 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
         header.put((byte) h.bytesPerElement());
         header.putInt(h.length());
       }
-      int offset = headerSize;
+      long offset = headerSize;
       for (Module m : modules) {
         List<MappedByteBuffer> buffers = new ArrayList<>();
         for (ColumnHeader columnHeader : m.columnsHeaders()) {

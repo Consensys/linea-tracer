@@ -233,6 +233,14 @@ public class Rom implements Module {
                     throw new RuntimeException(e);
                 }
             });
+
+            foswriter.values().forEach(f -> {
+                try {
+                    f.close();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
         }
 //        VectorizedRowBatch batch = writer.getSchema().createRowBatch();
 //

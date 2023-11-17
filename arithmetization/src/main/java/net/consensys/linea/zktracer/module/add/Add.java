@@ -193,6 +193,14 @@ public class Add implements Module {
                 throw new RuntimeException(e);
             }
         });
+
+        foswriter.values().forEach(f -> {
+            try {
+                f.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @Override

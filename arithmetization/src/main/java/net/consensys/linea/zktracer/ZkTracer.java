@@ -72,7 +72,7 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
 
   @Override
   public void writeToFile(final Path filename) {
-    log.warn("[TRACING] Starting serialization to " + filename.toString());
+    log.warn("[TRACING] Starting serialization to " + filename.toAbsolutePath());
     Stopwatch sw = Stopwatch.createStarted();
 
     final List<Module> modules = this.hub.getModulesToTrace();

@@ -15,24 +15,22 @@
 
 package net.consensys.linea.zktracer.module.add;
 
-import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import net.consensys.linea.zktracer.bytestheta.BaseTheta;
+import net.consensys.linea.zktracer.module.FW;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.DataOutputStream;
-import java.io.FileWriter;
+import java.io.RandomAccessFile;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.Base64;
 import java.util.BitSet;
 import java.util.Map;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 /**
  * WARNING: This code is generated automatically.
@@ -50,10 +48,10 @@ public class TraceBuilder {
                 }
             });
     private final Map<String, Delta<?>> batch;
-    private final Map<String, FileChannel> writer;
+    private final Map<String, FW> writer;
 
-    public TraceBuilder(Map<String, FileChannel> writer, Map<String, Delta<?>> batch) {
-        this.writer = writer;
+    public TraceBuilder(Map<String, FW> writer, Map<String, Delta<?>> batch) {
+this.writer=writer;
         this.batch = batch;
     }
 
@@ -301,7 +299,7 @@ public class TraceBuilder {
     }
 
     private void processUnsignedByte(UnsignedByte b,
-                                     FileChannel writer, Delta<?>d) {
+                                     FW writer, Delta<?>d) {
         Delta<UnsignedByte> delta = (Delta<UnsignedByte>) d;
         if(delta.getPreviousValue() == null){
             delta.initialize(b);
@@ -310,9 +308,8 @@ public class TraceBuilder {
             delta.increment();
         } else {
             try {
-                ByteBuffer bf = ((ByteBuffer.allocate(5).putInt(delta.getSeenSoFar())));
-                bf.put(b.toByte());
-                writer.write(bf);
+                writer.writeInt(delta.getSeenSoFar());
+                writer.writeByte(b.toByte());
                 delta.setPreviousValue(b);
                 delta.lastIndex += delta.getSeenSoFar();
                 delta.setSeenSoFar(0);
@@ -322,7 +319,7 @@ public class TraceBuilder {
         }
     }
 
-    private void processBoolean(Boolean b,  FileChannel writer,Delta<?>d) {
+    private void processBoolean(Boolean b,  FW writer,Delta<?>d) {
         Delta<Boolean> delta = (Delta<Boolean>) d;
         if(delta.getPreviousValue() == null){
             delta.initialize(b);
@@ -331,9 +328,8 @@ public class TraceBuilder {
             delta.increment();
         } else {
             try {
-                ByteBuffer bf = ((ByteBuffer.allocate(5).putInt(delta.getSeenSoFar())));
-                bf.put(b?(byte)1:(byte)0);
-                writer.write(bf);
+                writer.writeInt(delta.getSeenSoFar());
+                writer.writeByte(b?(byte)1:(byte)0);
                 delta.setPreviousValue(b);
                 delta.lastIndex += delta.getSeenSoFar();
                 delta.setSeenSoFar(0);
@@ -344,7 +340,7 @@ public class TraceBuilder {
     }
 
 
-    private void processBigInteger(BigInteger b, FileChannel writer, Delta<?> d) {
+    private void processBigInteger(BigInteger b, FW writer, Delta<?> d) {
         Delta<BigInteger> delta = (Delta<BigInteger>) d;
         if(delta.getPreviousValue() == null){
             delta.initialize(b);
@@ -353,22 +349,10 @@ public class TraceBuilder {
             delta.increment();
         } else {
             try {
-                // Convert the BigIntegers to bytes
 
                 byte[] bytes2 = getByteArray(delta);
-                ByteBuffer bf = ((ByteBuffer.allocate(6 + bytes2.length).putInt(delta.getSeenSoFar())));
-                bf.putShort((short)bytes2.length);
-                bf.put(bytes2);
-
-                writer.write(bf);
-
-                // Encode the bytes to a Base64 string
-
-//
-//                writer.append(String.valueOf(delta.seenSoFar));
-//                writer.append(" ");
-//                writer.append(delta.previousValue.toString());
-//                writer.append("\n");
+                writer.writeShort((short)bytes2.length);
+                writer.write(bytes2);
                 delta.setPreviousValue(b);
                 delta.lastIndex += delta.getSeenSoFar();
                 delta.setSeenSoFar(1);

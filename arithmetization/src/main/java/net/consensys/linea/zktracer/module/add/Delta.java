@@ -1,11 +1,13 @@
 package net.consensys.linea.zktracer.module.add;
 
 import lombok.Data;
+import net.consensys.linea.zktracer.module.FW;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
 import java.io.DataOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -23,12 +25,10 @@ public class Delta<T> {
         seenSoFar+=1;
     }
 
-    public void close(FileChannel writer) throws IOException {
+    public void close(FW writer) throws IOException {
         byte[] bytes2 = getByte(previousValue);
-        ByteBuffer bf = ((ByteBuffer.allocate(6 + bytes2.length).putInt(seenSoFar)));
-        bf.putShort((short)bytes2.length);
-        bf.put(bytes2);
-        writer.write(bf);
+        writer.writeShort((short)bytes2.length);
+        writer.write(bytes2);
     }
 
     public byte[] getByte(T previousValue) {

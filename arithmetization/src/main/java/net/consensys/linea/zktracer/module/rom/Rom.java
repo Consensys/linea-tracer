@@ -17,13 +17,15 @@ package net.consensys.linea.zktracer.module.rom;
 
 import static net.consensys.linea.zktracer.module.rlputils.Pattern.padToGivenSizeWithRightZero;
 
-import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.math.BigInteger;
 import java.nio.channels.FileChannel;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import net.consensys.linea.zktracer.module.FW;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
 import net.consensys.linea.zktracer.module.add.Delta;
@@ -211,15 +213,20 @@ public class Rom implements Module {
     }
 
     @Override
-    public void commitToBuffer(Map<String, FileChannel> writer) throws IOException {
+    public void commitToBuffer(Map<String, RandomAccessFile> writero) throws IOException {
         {
+
+            var writer = writero.entrySet().stream().collect(Collectors.toMap(
+                    k->k.getKey(),
+                    k-> new FW(k.getValue())
+            ));
             Map<String, Delta<?>> counters = new HashMap<>();
 
             int cfi = 0;
             final int cfiInfty = this.romLex.sortedChunks.size();
             for (RomChunk chunk : this.romLex.sortedChunks) {
                 cfi += 1;
-                traceChunk(chunk, cfi, cfiInfty, writer, counters);
+//                traceChunk(chunk, cfi, cfiInfty, writer, counters);
             }
 
             counters.entrySet().forEach(c -> {
@@ -232,7 +239,7 @@ public class Rom implements Module {
 
             writer.values().forEach(f -> {
                 try {
-                    f.close();
+                    f.getFile().close();
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }

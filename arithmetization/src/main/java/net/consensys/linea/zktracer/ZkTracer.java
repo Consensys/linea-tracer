@@ -15,10 +15,7 @@
 
 package net.consensys.linea.zktracer;
 
-import java.io.DataOutputStream;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.channels.FileChannel;
 import java.util.List;
 import java.util.Map;
@@ -113,7 +110,7 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
             Stopwatch sw = Stopwatch.createStarted();
             switch (m.jsonKey().toUpperCase()) {
                 case "ADD" -> {
-                    Map<String, FileChannel> writer = ORCWriter.getWriter(filename);
+                    Map<String, RandomAccessFile> writer = ORCWriter.getWriter(filename);
                     m.commitToBuffer(writer);
                     writer.values().forEach(w -> {
                         try {
@@ -122,20 +119,21 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
                             throw new RuntimeException(e);
                         }
                     });
+
                     log.warn("[TRACING] done for {}, it took {}", m.jsonKey(), sw.elapsed(TimeUnit.MILLISECONDS));
                 }
-                case "ROM" -> {
-                    Map<String, FileChannel> writer = net.consensys.linea.zktracer.module.rom.ORCWriter.getWriter(filename);
-                    m.commitToBuffer(writer);
-                    writer.values().forEach(w -> {
-                        try {
-                            w.close();
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
-                    log.warn("[TRACING] done for {}, it took {}", m.jsonKey(), sw.elapsed(TimeUnit.MILLISECONDS));
-                }
+//                case "ROM" -> {
+//                    Map<String, FileChannel> writer = net.consensys.linea.zktracer.module.rom.ORCWriter.getWriter(filename);
+//                    m.commitToBuffer(writer);
+//                    writer.values().forEach(w -> {
+//                        try {
+//                            w.close();
+//                        } catch (IOException e) {
+//                            throw new RuntimeException(e);
+//                        }
+//                    });
+//                    log.warn("[TRACING] done for {}, it took {}", m.jsonKey(), sw.elapsed(TimeUnit.MILLISECONDS));
+//                }
 //                case "MUL" -> {
 //                    try (Writer writer =  net.consensys.linea.zktracer.module.mul.ORCWriter.getWriter(filename)) {
 //                        m.commitToBuffer(writer);

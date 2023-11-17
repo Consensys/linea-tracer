@@ -26,6 +26,7 @@ import java.util.zip.GZIPOutputStream;
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.google.common.base.Stopwatch;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.plugin.BesuContext;
@@ -78,7 +79,7 @@ public class RollupGenerateConflatedTracesToFileV0 {
       final long fromBlock = params.fromBlock();
       final long toBlock = params.toBlock();
       final ZkTracer tracer = new ZkTracer();
-
+    Stopwatch sw = Stopwatch.createStarted();
     log.warn("[TRACING] starting tracing from {} to {}", fromBlock, toBlock);
       traceService.trace(
           fromBlock,
@@ -109,6 +110,7 @@ public class RollupGenerateConflatedTracesToFileV0 {
 //      throw new PluginRpcEndpointException(ex.getMessage());
 //    }
 
+    log.warn("[TRACING] done in {}", sw.elapsed());
     return new FileTrace(params.runtimeVersion(), file.getAbsolutePath());
   }
 

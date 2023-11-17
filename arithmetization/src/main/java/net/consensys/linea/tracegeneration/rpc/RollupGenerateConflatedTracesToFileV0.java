@@ -131,7 +131,7 @@ public class RollupGenerateConflatedTracesToFileV0 {
               tracesPath.toAbsolutePath()));
     }
 
-    return Paths.get("data").resolve("besu").resolve("traces").resolve(
+    return Paths.get(
         String.format(
             "%.10s-%s.traces.%s",
             System.currentTimeMillis(), tracesEngineVersion, getFileFormat()));

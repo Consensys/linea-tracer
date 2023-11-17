@@ -85,8 +85,11 @@ public class TraceLineLimitTransactionSelector implements PluginTransactionSelec
             "Module " + module + " does not exist in the limits file: " + limitFilePath;
         log.error(errorMsg);
         throw new RuntimeException(errorMsg);
+      } else {
+        System.out.println("Module " + module + " : "+ moduleLimits.get(module));
       }
       if (lineCounts.get(module) > moduleLimits.get(module)) {
+        System.out.println("Block is Full because module "+module+"("+moduleLimits.get(module)+")");
         return TransactionSelectionResult.BLOCK_FULL;
       }
     }

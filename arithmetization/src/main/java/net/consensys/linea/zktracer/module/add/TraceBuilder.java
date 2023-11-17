@@ -23,6 +23,7 @@ import net.consensys.linea.zktracer.bytestheta.BaseTheta;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.DataOutputStream;
 import java.io.FileWriter;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -49,9 +50,9 @@ public class TraceBuilder {
                 }
             });
     private final Map<String, Delta<?>> batch;
-    private final Map<String, FileChannel> writer;
+    private final Map<String, DataOutputStream> writer;
 
-    public TraceBuilder(Map<String, FileChannel> writer, Map<String, Delta<?>> batch) {
+    public TraceBuilder(Map<String, DataOutputStream> writer, Map<String, Delta<?>> batch) {
         this.writer = writer;
         this.batch = batch;
     }
@@ -332,68 +333,87 @@ public class TraceBuilder {
         }
     }
 
+
+
     private void processUnsignedByte(UnsignedByte b,
-                                     FileChannel writer,Delta<?>d) {
+                                     DataOutputStream writer, Delta<?>d) {
         Delta<UnsignedByte> delta = (Delta<UnsignedByte>) d;
-        if(delta.previousValue == null){
+        if(delta.getPreviousValue() == null){
             delta.initialize(b);
         }
-        else if (delta.previousValue.equals(b)) {
+        else if (delta.getPreviousValue().equals(b)) {
             delta.increment();
         } else {
             try {
 
-                // Create a ByteBuffer with enough capacity
-                ByteBuffer buffer = ByteBuffer.allocate(8 + 1);
-                // Put the length of each byte array as a short, followed by the bytes themselves
-                buffer.putInt(delta.seenSoFar);
-                buffer.put(delta.previousValue.toByte());
-
-                // Encode the bytes to a Base64 string
-                writer.write(buffer);
-//                writer.append(Integer.toString(delta.seenSoFar));
-//                writer.append(" ");
-//                writer.append(delta.previousValue.toString());
-//                writer.append("\n");
-                delta.previousValue = b;
-                delta.lastIndex += delta.seenSoFar;
-                delta.seenSoFar = 0;
+                writer.writeInt(delta.getSeenSoFar());
+                writer.writeByte(delta.getPreviousValue().toByte());
+                delta.setPreviousValue(b);
+                delta.lastIndex += delta.getSeenSoFar();
+                delta.setSeenSoFar(0);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
     }
 
-    private void processBoolean(Boolean b,  FileChannel writer,Delta<?>d) {
+    private void processBoolean(Boolean b,  DataOutputStream writer,Delta<?>d) {
         Delta<Boolean> delta = (Delta<Boolean>) d;
-        if(delta.previousValue == null){
+        if(delta.getPreviousValue() == null){
             delta.initialize(b);
         }
-        else if (delta.previousValue.equals(b)) {
+        else if (delta.getPreviousValue().equals(b)) {
             delta.increment();
         } else {
             try {
 
-                // Create a ByteBuffer with enough capacity
-                ByteBuffer buffer = ByteBuffer.allocate(8 + 1);
-                // Put the length of each byte array as a short, followed by the bytes themselves
-                buffer.putInt(delta.seenSoFar);
-                buffer.put(delta.previousValue ? (byte)1: (byte)0);
-
-                // Encode the bytes to a Base64 string
-                writer.write(buffer);
+                writer.writeInt(delta.getSeenSoFar());
+                writer.writeBoolean(delta.getPreviousValue());
 ////
 //                writer.append(Integer.toString(delta.seenSoFar));
 //                writer.append(" ");
 //                writer.append(delta.previousValue.toString());
 //                writer.append("\n");
-                delta.previousValue = b;
-                delta.lastIndex += delta.seenSoFar;
-                delta.seenSoFar = 0;
+                delta.setPreviousValue(b);
+                delta.lastIndex += delta.getSeenSoFar();
+                delta.setSeenSoFar(0);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
     }
 
+
+    private void processBigInteger(BigInteger b, DataOutputStream writer, Delta<?> d) {
+        Delta<BigInteger> delta = (Delta<BigInteger>) d;
+        if(delta.getPreviousValue() == null){
+            delta.initialize(b);
+        }
+        else if (delta.getPreviousValue().equals(b)) {
+            delta.increment();
+        } else {
+            try {
+                // Convert the BigIntegers to bytes
+
+                writer.writeInt(delta.getSeenSoFar());
+                byte[] bytes2 = delta.getPreviousValue().toByteArray();//getByteArray(delta);
+                writer.writeShort(bytes2.length);
+                // Put the length of each byte array as a short, followed by the bytes themselves
+                writer.write(bytes2);
+
+                // Encode the bytes to a Base64 string
+
+//
+//                writer.append(String.valueOf(delta.seenSoFar));
+//                writer.append(" ");
+//                writer.append(delta.previousValue.toString());
+//                writer.append("\n");
+                delta.setPreviousValue(b);
+                delta.lastIndex += delta.getSeenSoFar();
+                delta.setSeenSoFar(1);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
 }

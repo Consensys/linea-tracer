@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.add;
 
+import java.io.DataOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -32,7 +33,7 @@ public class ORCWriter {
 
 
 
-    public static Map<String, FileOutputStream> getWriter(String path) throws IOException {
+    public static Map<String, DataOutputStream> getWriter(String path) throws IOException {
 
         List<String> files = new ArrayList<>();
 
@@ -51,9 +52,9 @@ public class ORCWriter {
         files.add("RES_LO");
         files.add("STAMP");
 
-        Map<String, FileOutputStream> f = new HashMap<>();
+        Map<String, DataOutputStream> f = new HashMap<>();
         for(String module: files){
-            var fos = new FileOutputStream(Paths.get(path+module).toFile());
+            var fos = new DataOutputStream(new FileOutputStream(Paths.get(path+module).toFile()));
             f.put(module, fos);
         }
         return f;

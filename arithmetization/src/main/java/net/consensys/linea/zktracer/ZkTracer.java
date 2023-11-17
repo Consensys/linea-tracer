@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer;
 
+import java.io.DataOutputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -112,7 +113,7 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
             Stopwatch sw = Stopwatch.createStarted();
             switch (m.jsonKey().toUpperCase()) {
                 case "ADD" -> {
-                    Map<String, FileOutputStream> writer = ORCWriter.getWriter(filename);
+                    Map<String, DataOutputStream> writer = ORCWriter.getWriter(filename);
                     m.commitToBuffer(writer);
                     writer.values().forEach(w -> {
                         try {
@@ -124,7 +125,7 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
                     log.warn("[TRACING] done for {}, it took {}", m.jsonKey(), sw.elapsed(TimeUnit.MILLISECONDS));
                 }
                 case "ROM" -> {
-                    Map<String, FileOutputStream> writer = net.consensys.linea.zktracer.module.rom.ORCWriter.getWriter(filename);
+                    Map<String, DataOutputStream> writer = net.consensys.linea.zktracer.module.rom.ORCWriter.getWriter(filename);
                     m.commitToBuffer(writer);
                     writer.values().forEach(w -> {
                         try {

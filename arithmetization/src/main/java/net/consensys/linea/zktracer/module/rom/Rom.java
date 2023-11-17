@@ -17,14 +17,11 @@ package net.consensys.linea.zktracer.module.rom;
 
 import static net.consensys.linea.zktracer.module.rlputils.Pattern.padToGivenSizeWithRightZero;
 
-import java.io.FileOutputStream;
-import java.io.FileWriter;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.channels.FileChannel;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
@@ -79,7 +76,7 @@ public class Rom implements Module {
         return LLARGE * nbSlice + nPaddingRow;
     }
 
-    private void traceChunk(RomChunk chunk, int cfi, int cfiInfty,Map<String, FileChannel> writer, Map<String, Delta<?>> batch) throws IOException {
+    private void traceChunk(RomChunk chunk, int cfi, int cfiInfty, Map<String, DataOutputStream> writer, Map<String, Delta<?>> batch) throws IOException {
         final int chunkRowSize = chunkRowSize(chunk);
         final int codeSize = chunk.byteCode().size();
         final int nLimbSlice = (codeSize + (LLARGE - 1)) / LLARGE;
@@ -213,11 +210,9 @@ public class Rom implements Module {
     }
 
     @Override
-    public void commitToBuffer(Map<String, FileOutputStream> foswriter) throws IOException {
+    public void commitToBuffer(Map<String, DataOutputStream> writer) throws IOException {
         {
             Map<String, Delta<?>> counters = new HashMap<>();
-            Map<String, FileChannel> writer = foswriter.entrySet().stream().collect(Collectors.toMap(
-                    k->k.getKey(),k->k.getValue().getChannel()));
 
             int cfi = 0;
             final int cfiInfty = this.romLex.sortedChunks.size();
@@ -234,7 +229,7 @@ public class Rom implements Module {
                 }
             });
 
-            foswriter.values().forEach(f -> {
+            writer.values().forEach(f -> {
                 try {
                     f.close();
                 } catch (IOException e) {

@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.module.mod;
 
-import java.io.FileOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Map;
@@ -153,7 +153,7 @@ public class Mod implements Module {
   }
 
   @Override
-  public void commitToBuffer(Map<String, FileOutputStream> writer) throws IOException {
+  public void commitToBuffer(Map<String, DataOutputStream> writer) throws IOException {
 //    VectorizedRowBatch batch = writer.getSchema().createRowBatch();
 //
 //    for (ModOperation op : this.chunks) {

@@ -3,6 +3,7 @@ package net.consensys.linea.zktracer.module.add;
 import lombok.Data;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
+import java.io.DataOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -22,19 +23,11 @@ public class Delta<T> {
         seenSoFar+=1;
     }
 
-    public void close(FileChannel writer) throws IOException {
+    public void close(DataOutputStream writer) throws IOException {
         byte[] bytes2 = getByte(previousValue);
-
-        // Create a ByteBuffer with enough capacity
-        ByteBuffer buffer = ByteBuffer.allocate(8 + 2 + bytes2.length);
-        // Put the length of each byte array as a short, followed by the bytes themselves
-        buffer.putInt(seenSoFar);
-        buffer.putShort((short) bytes2.length);
-        buffer.put(bytes2);
-
-        // Encode the bytes to a Base64 string
-        writer.write(buffer);
-//
+        writer.writeInt(seenSoFar);
+        writer.writeShort((short) bytes2.length);
+        writer.write(bytes2);
     }
 
     private byte[] getByte(T previousValue) {

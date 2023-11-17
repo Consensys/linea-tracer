@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.mul;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Map;
@@ -78,21 +77,21 @@ public class Mul implements Module {
 
     return new MulTrace(trace.build());
   }
-
-  @Override
-  public void commitToBuffer(Map<String, FileOutputStream> writer) throws IOException {
-//    VectorizedRowBatch batch = writer.getSchema().createRowBatch();
 //
-//    for (var op : this.operations) {
-//      this.traceMulOperation(op, writer, batch);
-//    }
-//    this.traceMulOperation(new MulOperation(OpCode.EXP, Bytes32.ZERO, Bytes32.ZERO), writer, batch);
-//
-//    if (batch.size != 0) {
-//      writer.addRowBatch(batch);
-//      batch.reset();
-//    }
-  }
+//  @Override
+//  public void commitToBuffer(Map<String, DataOutputStream> writer) throws IOException {
+////    VectorizedRowBatch batch = writer.getSchema().createRowBatch();
+////
+////    for (var op : this.operations) {
+////      this.traceMulOperation(op, writer, batch);
+////    }
+////    this.traceMulOperation(new MulOperation(OpCode.EXP, Bytes32.ZERO, Bytes32.ZERO), writer, batch);
+////
+////    if (batch.size != 0) {
+////      writer.addRowBatch(batch);
+////      batch.reset();
+////    }
+//  }
 
   private void traceMulOperation(final MulOperation op, Writer writer, VectorizedRowBatch batch) throws IOException {
     this.stamp++;

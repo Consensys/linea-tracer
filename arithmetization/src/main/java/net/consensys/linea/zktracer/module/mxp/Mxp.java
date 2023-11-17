@@ -17,7 +17,6 @@ package net.consensys.linea.zktracer.module.mxp;
 
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.List;
@@ -177,17 +176,17 @@ public class Mxp implements Module {
   public List<ColumnHeader> columnsHeaders() {
     return Trace.headers(this.lineCount());
   }
-
-  @Override
-  public void commitToBuffer(Map<String, FileOutputStream> writer) throws IOException {
-//    VectorizedRowBatch batch = writer.getSchema().createRowBatch();
 //
-//    for (int i = 0; i < this.chunks.size(); i++) {
-//      this.traceChunk(this.chunks.get(i), i + 1, writer, batch);
-//    }
-//    if (batch.size != 0) {
-//      writer.addRowBatch(batch);
-//      batch.reset();
-//    }
-  }
+//  @Override
+//  public void commitToBuffer(Map<String, DataOutputStream> writer) throws IOException {
+////    VectorizedRowBatch batch = writer.getSchema().createRowBatch();
+////
+////    for (int i = 0; i < this.chunks.size(); i++) {
+////      this.traceChunk(this.chunks.get(i), i + 1, writer, batch);
+////    }
+////    if (batch.size != 0) {
+////      writer.addRowBatch(batch);
+////      batch.reset();
+////    }
+//  }
 }

@@ -15,13 +15,17 @@
 
 package net.consensys.linea.zktracer.module.add;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
-import org.apache.orc.OrcFile;
 import org.apache.orc.TypeDescription;
-import org.apache.orc.Writer;
 
+import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 /**
  * WARNING: This code is generated automatically.
  * Any modifications to this code may be overwritten and could lead to unexpected behavior.
@@ -29,39 +33,32 @@ import java.io.IOException;
  */
 public class ORCWriter {
 
-    public static Writer getWriter(String fileName) throws IOException {
-        Configuration conf = new Configuration();
-                conf.set("fs.hdfs.impl","org.apache.hadoop.hdfs.DistributedFileSystem");
-                conf.set("fs.file.impl", "org.apache.hadoop.fs.LocalFileSystem");
-        TypeDescription schema = TypeDescription.createStruct()
-                .addField("ACC_1", getTypeDescription("BigInteger"))
-                .addField("ACC_2", getTypeDescription("BigInteger"))
-                .addField("ARG_1_HI", getTypeDescription("BigInteger"))
-                .addField("ARG_1_LO", getTypeDescription("BigInteger"))
-                .addField("ARG_2_HI", getTypeDescription("BigInteger"))
-                .addField("ARG_2_LO", getTypeDescription("BigInteger"))
-                .addField("BYTE_1", getTypeDescription("UnsignedByte"))
-                .addField("BYTE_2", getTypeDescription("UnsignedByte"))
-                .addField("CT", getTypeDescription("BigInteger"))
-                .addField("INST", getTypeDescription("BigInteger"))
-                .addField("OVERFLOW", getTypeDescription("Boolean"))
-                .addField("RES_HI", getTypeDescription("BigInteger"))
-                .addField("RES_LO", getTypeDescription("BigInteger"))
-                .addField("STAMP", getTypeDescription("BigInteger"))
-                ;
 
-        Writer writer = OrcFile.createWriter(new Path(fileName + "_add" +".orc"),
-                OrcFile.writerOptions(conf).setSchema(schema));
 
-        return writer;
-    }
+    public static Map<String, FileWriter> getWriter(String path) throws IOException {
 
-    private static TypeDescription getTypeDescription(String className) {
-        return switch (className) {
-            case "BigInteger", "UnsignedByte" -> TypeDescription.createBinary();
-            case "Boolean" -> TypeDescription.createLong();
-            default -> throw new UnsupportedOperationException("Unsuported type " + className);
-        };
+        List<String> files = new ArrayList<>();
+
+        files.add("ACC_1");
+        files.add("ACC_2");
+        files.add("ARG_1_HI");
+        files.add("ARG_1_LO");
+        files.add("ARG_2_HI");
+        files.add("ARG_2_LO");
+        files.add("BYTE_1");
+        files.add("BYTE_2");
+        files.add("CT");
+        files.add("INST");
+        files.add("OVERFLOW");
+        files.add("RES_HI");
+        files.add("RES_LO");
+        files.add("STAMP");
+
+        Map<String, FileWriter> f = new HashMap<>();
+        for(String module: files){
+            f.put(module, new FileWriter(Paths.get(path+module+".txt").toFile()));
+        }
+        return f;
     }
 
 }

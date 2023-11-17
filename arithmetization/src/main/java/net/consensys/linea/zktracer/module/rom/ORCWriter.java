@@ -15,13 +15,15 @@
 
 package net.consensys.linea.zktracer.module.rom;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
-import org.apache.orc.OrcFile;
-import org.apache.orc.TypeDescription;
-import org.apache.orc.Writer;
+import java.io.FileWriter;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * WARNING: This code is generated automatically.
  * Any modifications to this code may be overwritten and could lead to unexpected behavior.
@@ -29,51 +31,43 @@ import java.io.IOException;
  */
 public class ORCWriter {
 
-        public static Writer getWriter(String fileName) throws IOException {
-                Configuration conf = new Configuration();
-                conf.set("fs.hdfs.impl","org.apache.hadoop.hdfs.DistributedFileSystem");
-                conf.set("fs.file.impl", "org.apache.hadoop.fs.LocalFileSystem");
-                var hadoopConfig = new Configuration();
-                hadoopConfig.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
-                hadoopConfig.set("fs.file.impl", "org.apache.hadoop.fs.LocalFileSystem");
-                TypeDescription schema = TypeDescription.createStruct()
-                        .addField("ACC", getTypeDescription("BigInteger"))
-                        .addField("CODESIZE_REACHED", getTypeDescription("Boolean"))
-                        .addField("CODE_FRAGMENT_INDEX", getTypeDescription("BigInteger"))
-                        .addField("CODE_FRAGMENT_INDEX_INFTY", getTypeDescription("BigInteger"))
-                        .addField("CODE_SIZE", getTypeDescription("BigInteger"))
-                        .addField("COUNTER", getTypeDescription("BigInteger"))
-                        .addField("COUNTER_MAX", getTypeDescription("BigInteger"))
-                        .addField("COUNTER_PUSH", getTypeDescription("BigInteger"))
-                        .addField("INDEX", getTypeDescription("BigInteger"))
-                        .addField("IS_PUSH", getTypeDescription("Boolean"))
-                        .addField("IS_PUSH_DATA", getTypeDescription("Boolean"))
-                        .addField("LIMB", getTypeDescription("BigInteger"))
-                        .addField("OPCODE", getTypeDescription("UnsignedByte"))
-                        .addField("PADDED_BYTECODE_BYTE", getTypeDescription("UnsignedByte"))
-                        .addField("PROGRAMME_COUNTER", getTypeDescription("BigInteger"))
-                        .addField("PUSH_FUNNEL_BIT", getTypeDescription("Boolean"))
-                        .addField("PUSH_PARAMETER", getTypeDescription("BigInteger"))
-                        .addField("PUSH_VALUE_ACC", getTypeDescription("BigInteger"))
-                        .addField("PUSH_VALUE_HIGH", getTypeDescription("BigInteger"))
-                        .addField("PUSH_VALUE_LOW", getTypeDescription("BigInteger"))
-                        .addField("VALID_JUMP_DESTINATION", getTypeDescription("Boolean"))
-                        .addField("nBYTES", getTypeDescription("BigInteger"))
-                        .addField("nBYTES_ACC", getTypeDescription("BigInteger"))
-                        ;
 
-                Writer writer = OrcFile.createWriter(new Path(fileName + "_rom" +".orc"),
-                        OrcFile.writerOptions(conf).setSchema(schema));
 
-                return writer;
-        }
 
-        private static TypeDescription getTypeDescription(String className) {
-                return switch (className) {
-                        case "BigInteger", "UnsignedByte" -> TypeDescription.createBinary();
-                        case "Boolean" -> TypeDescription.createLong();
-                        default -> throw new UnsupportedOperationException("Unsuported type " + className);
-                };
+        public static Map<String, FileWriter> getWriter(String path) throws IOException {
+
+                List<String> files = new ArrayList<>();
+
+                files.add("ACC");
+                files.add("CODESIZE_REACHED");
+                files.add("CODE_FRAGMENT_INDEX");
+                files.add("CODE_FRAGMENT_INDEX_INFTY");
+                files.add("CODE_SIZE");
+                files.add("COUNTER");
+                files.add("COUNTER_MAX");
+                files.add("COUNTER_PUSH");
+                files.add("INDEX");
+                files.add("IS_PUSH");
+                files.add("IS_PUSH_DATA");
+                files.add("LIMB");
+                files.add("OPCODE");
+                files.add("PADDED_BYTECODE_BYTE");
+                files.add("PROGRAMME_COUNTER");
+                files.add("PUSH_FUNNEL_BIT");
+                files.add("PUSH_PARAMETER");
+                files.add("PUSH_VALUE_ACC");
+                files.add("PUSH_VALUE_HIGH");
+                files.add("PUSH_VALUE_LOW");
+                files.add("VALID_JUMP_DESTINATION");
+                files.add("nBYTES");
+                files.add("nBYTES_ACC");
+
+                Map<String, FileWriter> f = new HashMap<>();
+                for(String module: files){
+                        f.put(module, new FileWriter(Paths.get(path+module).toFile()));
+                }
+                return f;
+
         }
 
 }

@@ -15,12 +15,13 @@
 
 package net.consensys.linea.zktracer.module;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import net.consensys.linea.zktracer.ColumnHeader;
 import org.apache.commons.lang3.NotImplementedException;
-import org.apache.orc.Writer;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -82,6 +83,6 @@ public interface Module {
 
   ModuleTrace commit();
 
-  default void commitToBuffer(Writer writer) throws IOException {
+  default void commitToBuffer(Map<String, FileWriter> writer) throws IOException {
   }
 }

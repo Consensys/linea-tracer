@@ -145,4 +145,9 @@ public class UnsignedByte {
     public ByteBuffer getByteBuffer() {
       return ByteBuffer.wrap(new byte[]{Short.valueOf(unsignedByte).byteValue()});
     }
+
+  @Override
+  public String toString() {
+    return Short.toString(unsignedByte);
+  }
 }

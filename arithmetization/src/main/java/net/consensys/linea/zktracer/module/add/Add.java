@@ -15,8 +15,13 @@
 
 package net.consensys.linea.zktracer.module.add;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import net.consensys.linea.zktracer.bytestheta.BaseBytes;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
@@ -100,7 +105,7 @@ public class Add implements Module {
      * @return
      */
     private void traceAddOperation(
-            OpCode opCode, Bytes32 arg1, Bytes32 arg2, Writer writer, VectorizedRowBatch batch) throws IOException {
+            OpCode opCode, Bytes32 arg1, Bytes32 arg2, Map<String, FileWriter> writer, Map<String, Delta<?>> batch) throws IOException {
         this.stamp++;
         final Bytes16 arg1Hi = Bytes16.wrap(arg1.slice(0, 16));
         final Bytes32 arg1Lo = Bytes32.leftPad(arg1.slice(16));
@@ -133,7 +138,6 @@ public class Add implements Module {
         }
 
         for (int i = 0; i < 16; i++) {
-            int row = batch.size++;
             Bytes32 addRes;
             if (opCode == OpCode.ADD) {
                 addRes = Bytes32.wrap((UInt256.fromBytes(arg1Lo)).add(UInt256.fromBytes(arg2Lo)));
@@ -142,7 +146,7 @@ public class Add implements Module {
             }
 
             overflowLo = (addRes.compareTo(TWO_TO_THE_128) >= 0);
-            new TraceBuilder(row, batch, writer)
+            new TraceBuilder(writer, batch)
                     .acc1(resHi.slice(0, 1 + i).toUnsignedBigInteger())
                     .acc2(resLo.slice(0, 1 + i).toUnsignedBigInteger())
                     .arg1Hi(arg1Hi.toUnsignedBigInteger())
@@ -172,15 +176,19 @@ public class Add implements Module {
     }
 
     @Override
-    public void commitToBuffer(Writer writer) throws IOException {
-        VectorizedRowBatch batch = writer.getSchema().createRowBatch();
+    public void commitToBuffer(Map<String, FileWriter> writer) throws IOException {
+       Map<String, Delta<?>>counters = new HashMap<>();
         for (AddOperation op : this.chunks) {
-            this.traceAddOperation(op.opCodem(), op.arg1(), op.arg2(), writer, batch);
+            this.traceAddOperation(op.opCodem(), op.arg1(), op.arg2(), writer, counters);
         }
-        if (batch.size != 0) {
-            writer.addRowBatch(batch);
-            batch.reset();
-        }
+
+        counters.entrySet().forEach(c -> {
+            try {
+                c.getValue().close(writer.get(c.getKey()));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @Override

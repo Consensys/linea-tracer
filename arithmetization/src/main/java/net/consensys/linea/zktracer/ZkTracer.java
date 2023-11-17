@@ -15,8 +15,10 @@
 
 package net.consensys.linea.zktracer;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Stopwatch;
@@ -108,15 +110,27 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
             Stopwatch sw = Stopwatch.createStarted();
             switch (m.jsonKey().toUpperCase()) {
                 case "ADD" -> {
-                    try (Writer writer = ORCWriter.getWriter(filename)) {
-                        m.commitToBuffer(writer);
-                    }
+                    Map<String, FileWriter> writer = ORCWriter.getWriter(filename);
+                    m.commitToBuffer(writer);
+                    writer.values().forEach(w -> {
+                        try {
+                            w.close();
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
                     log.warn("[TRACING] done for {}, it took {}", m.jsonKey(), sw.elapsed(TimeUnit.MILLISECONDS));
                 }
                 case "ROM" -> {
-                    try (Writer writer =  net.consensys.linea.zktracer.module.rom.ORCWriter.getWriter(filename)) {
-                        m.commitToBuffer(writer);
-                    }
+                    Map<String, FileWriter> writer = net.consensys.linea.zktracer.module.rom.ORCWriter.getWriter(filename);
+                    m.commitToBuffer(writer);
+                    writer.values().forEach(w -> {
+                        try {
+                            w.close();
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
                     log.warn("[TRACING] done for {}, it took {}", m.jsonKey(), sw.elapsed(TimeUnit.MILLISECONDS));
                 }
 //                case "MUL" -> {

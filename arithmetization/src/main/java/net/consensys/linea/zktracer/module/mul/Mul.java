@@ -15,8 +15,10 @@
 
 package net.consensys.linea.zktracer.module.mul;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.Map;
 
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
@@ -78,18 +80,18 @@ public class Mul implements Module {
   }
 
   @Override
-  public void commitToBuffer(Writer writer) throws IOException {
-    VectorizedRowBatch batch = writer.getSchema().createRowBatch();
-
-    for (var op : this.operations) {
-      this.traceMulOperation(op, writer, batch);
-    }
-    this.traceMulOperation(new MulOperation(OpCode.EXP, Bytes32.ZERO, Bytes32.ZERO), writer, batch);
-
-    if (batch.size != 0) {
-      writer.addRowBatch(batch);
-      batch.reset();
-    }
+  public void commitToBuffer(Map<String, FileWriter> writer) throws IOException {
+//    VectorizedRowBatch batch = writer.getSchema().createRowBatch();
+//
+//    for (var op : this.operations) {
+//      this.traceMulOperation(op, writer, batch);
+//    }
+//    this.traceMulOperation(new MulOperation(OpCode.EXP, Bytes32.ZERO, Bytes32.ZERO), writer, batch);
+//
+//    if (batch.size != 0) {
+//      writer.addRowBatch(batch);
+//      batch.reset();
+//    }
   }
 
   private void traceMulOperation(final MulOperation op, Writer writer, VectorizedRowBatch batch) throws IOException {

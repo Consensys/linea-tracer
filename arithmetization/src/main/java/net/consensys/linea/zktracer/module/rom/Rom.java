@@ -17,11 +17,16 @@ package net.consensys.linea.zktracer.module.rom;
 
 import static net.consensys.linea.zktracer.module.rlputils.Pattern.padToGivenSizeWithRightZero;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.HashMap;
+import java.util.Map;
 
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
+import net.consensys.linea.zktracer.module.add.AddOperation;
+import net.consensys.linea.zktracer.module.add.Delta;
 import net.consensys.linea.zktracer.module.romLex.RomChunk;
 import net.consensys.linea.zktracer.module.romLex.RomLex;
 import net.consensys.linea.zktracer.types.UnsignedByte;
@@ -74,7 +79,7 @@ public class Rom implements Module {
         return LLARGE * nbSlice + nPaddingRow;
     }
 
-    private void traceChunk(RomChunk chunk, int cfi, int cfiInfty, Writer writer, VectorizedRowBatch batch) throws IOException {
+    private void traceChunk(RomChunk chunk, int cfi, int cfiInfty,Map<String, FileWriter> writer, Map<String, Delta<?>> batch) throws IOException {
         final int chunkRowSize = chunkRowSize(chunk);
         final int codeSize = chunk.byteCode().size();
         final int nLimbSlice = (codeSize + (LLARGE - 1)) / LLARGE;
@@ -92,8 +97,7 @@ public class Rom implements Module {
         for (int i = 0; i < chunkRowSize; i++) {
             boolean codeSizeReached = i >= codeSize;
             int sliceNumber = i / 16;
-            int row = batch.size++;
-            TraceBuilder trace = new TraceBuilder(row, batch, writer);
+            TraceBuilder trace = new TraceBuilder(writer, batch);
             // Fill Generic columns
             trace
                     .codeFragmentIndex(BigInteger.valueOf(cfi))
@@ -209,18 +213,36 @@ public class Rom implements Module {
     }
 
     @Override
-    public void commitToBuffer(Writer writer) throws IOException {
-        VectorizedRowBatch batch = writer.getSchema().createRowBatch();
+    public void commitToBuffer(Map<String, FileWriter> writer) throws IOException {
+        {
+            Map<String, Delta<?>> counters = new HashMap<>();
 
-        int cfi = 0;
-        final int cfiInfty = this.romLex.sortedChunks.size();
-        for (RomChunk chunk : this.romLex.sortedChunks) {
-            cfi += 1;
-            traceChunk(chunk, cfi, cfiInfty, writer, batch);
+            int cfi = 0;
+            final int cfiInfty = this.romLex.sortedChunks.size();
+            for (RomChunk chunk : this.romLex.sortedChunks) {
+                cfi += 1;
+                traceChunk(chunk, cfi, cfiInfty, writer, counters);
+            }
+
+            counters.entrySet().forEach(c -> {
+                try {
+                    c.getValue().close(writer.get(c.getKey()));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
         }
-        if (batch.size != 0) {
-            writer.addRowBatch(batch);
-            batch.reset();
-        }
+//        VectorizedRowBatch batch = writer.getSchema().createRowBatch();
+//
+//        int cfi = 0;
+//        final int cfiInfty = this.romLex.sortedChunks.size();
+//        for (RomChunk chunk : this.romLex.sortedChunks) {
+//            cfi += 1;
+//            traceChunk(chunk, cfi, cfiInfty, writer, batch);
+//        }
+//        if (batch.size != 0) {
+//            writer.addRowBatch(batch);
+//            batch.reset();
+//        }
     }
 }

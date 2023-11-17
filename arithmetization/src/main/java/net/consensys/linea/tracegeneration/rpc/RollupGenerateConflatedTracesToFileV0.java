@@ -18,7 +18,10 @@ package net.consensys.linea.tracegeneration.rpc;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.TimeUnit;
 
+import com.google.common.base.Stopwatch;
+import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.plugin.BesuContext;
 import org.hyperledger.besu.plugin.services.BesuConfiguration;
@@ -27,6 +30,7 @@ import org.hyperledger.besu.plugin.services.exception.PluginRpcEndpointException
 import org.hyperledger.besu.plugin.services.rpc.PluginRpcRequest;
 
 /** Responsible for conflated file traces generation. */
+@Slf4j
 public class RollupGenerateConflatedTracesToFileV0 {
 
   private final BesuContext besuContext;
@@ -53,6 +57,7 @@ public class RollupGenerateConflatedTracesToFileV0 {
    * @return an execution file trace.
    */
   public FileTrace execute(final PluginRpcRequest request) {
+    Stopwatch sw = Stopwatch.createStarted();
     if (traceService == null) {
       traceService = initTraceService();
     }
@@ -67,7 +72,7 @@ public class RollupGenerateConflatedTracesToFileV0 {
       final long fromBlock = params.fromBlock();
       final long toBlock = params.toBlock();
       final ZkTracer tracer = new ZkTracer();
-
+      log.warn("[TRACING] starting at {}", sw.elapsed(TimeUnit.SECONDS));
       traceService.trace(
           fromBlock,
           toBlock,
@@ -81,8 +86,9 @@ public class RollupGenerateConflatedTracesToFileV0 {
           },
           tracer);
 
+      log.warn("[TRACING] trace computed at {}", sw.elapsed(TimeUnit.SECONDS));
       final String path = writeTraceToFile(tracer, params.runtimeVersion());
-
+      log.warn("[TRACING] trace written at {}", sw.elapsed(TimeUnit.SECONDS));
       return new FileTrace(params.runtimeVersion(), path);
     } catch (Exception ex) {
       throw new PluginRpcEndpointException(ex.getMessage());

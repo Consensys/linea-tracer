@@ -165,10 +165,9 @@ public class RlpTxrcpt implements Module {
     traceValue.isPrefix = true;
     traceValue.phaseSize = 256;
     traceValue.limbConstructed = true;
-    traceValue.limb =
-        Bytes.concatenate(
-            bigIntegerToBytes(BigInteger.valueOf(INT_RLP_INT_LONG + 2)),
-            bigIntegerToBytes(BigInteger.valueOf(256)));
+    traceValue.limb = Bytes.concatenate(
+        bigIntegerToBytes(BigInteger.valueOf(INT_RLP_INT_LONG + 2)),
+        bigIntegerToBytes(BigInteger.valueOf(256)));
     traceValue.nBytes = 3;
     traceRow(traceValue, trace);
 
@@ -314,17 +313,15 @@ public class RlpTxrcpt implements Module {
         traceValue.limbConstructed = true;
 
         if (logList.get(i).getTopics().isEmpty() || logList.get(i).getTopics().size() == 1) {
-          traceValue.limb =
-              bigIntegerToBytes(
-                  BYTES_RLP_LIST_SHORT
-                      .toUnsignedBigInteger()
-                      .add(BigInteger.valueOf(traceValue.localSize)));
+          traceValue.limb = bigIntegerToBytes(
+              BYTES_RLP_LIST_SHORT
+                  .toUnsignedBigInteger()
+                  .add(BigInteger.valueOf(traceValue.localSize)));
           traceValue.nBytes = 1;
         } else {
-          traceValue.limb =
-              Bytes.concatenate(
-                  bigIntegerToBytes(BigInteger.valueOf(INT_RLP_LIST_LONG + 1)),
-                  bigIntegerToBytes(BigInteger.valueOf(traceValue.localSize)));
+          traceValue.limb = Bytes.concatenate(
+              bigIntegerToBytes(BigInteger.valueOf(INT_RLP_LIST_LONG + 1)),
+              bigIntegerToBytes(BigInteger.valueOf(traceValue.localSize)));
           traceValue.nBytes = 2;
         }
         traceRow(traceValue, trace);
@@ -368,9 +365,10 @@ public class RlpTxrcpt implements Module {
         traceValue.localSize = logList.get(i).getData().size();
         // There are three cases for tracing the data RLP prefix:
         switch (logList.get(i).getData().size()) {
-          case 0 -> { // Case  no data:
+          case 0 -> { // Case no data:
             traceValue.partialReset(phase, 1);
-            // In INPUT_2 is stored the number of topics, stored in INDEX_LOCAL at the previous row
+            // In INPUT_2 is stored the number of topics, stored in INDEX_LOCAL at the
+            // previous row
             traceValue.input2 = Bytes.ofUnsignedShort(indexLocalEndTopic);
             traceValue.depth1 = true;
             traceValue.isPrefix = true;
@@ -382,33 +380,33 @@ public class RlpTxrcpt implements Module {
             traceRow(traceValue, trace);
           }
           case 1 -> // Case with data is made of one byte
-          rlpInt(
-              3,
-              phase,
-              logList.get(i).getData().toUnsignedBigInteger().longValueExact(),
-              true,
-              true,
-              true,
-              false,
-              true,
-              true,
-              indexLocalEndTopic,
-              traceValue,
-              trace);
+            rlpInt(
+                3,
+                phase,
+                logList.get(i).getData().toUnsignedBigInteger().longValueExact(),
+                true,
+                true,
+                true,
+                false,
+                true,
+                true,
+                indexLocalEndTopic,
+                traceValue,
+                trace);
 
           default -> // Default case, data is made of >= 2 bytes
-          rlpByteString(
-              phase,
-              logList.get(i).getData().size(),
-              false,
-              true,
-              true,
-              true,
-              false,
-              true,
-              indexLocalEndTopic,
-              traceValue,
-              trace);
+            rlpByteString(
+                phase,
+                logList.get(i).getData().size(),
+                false,
+                true,
+                true,
+                true,
+                false,
+                true,
+                indexLocalEndTopic,
+                traceValue,
+                trace);
         }
 
         // Tracing the Data
@@ -436,9 +434,8 @@ public class RlpTxrcpt implements Module {
               traceValue.nBytes = LLARGE;
               traceValue.localSize -= LLARGE;
             } else {
-              traceValue.input1 =
-                  padToGivenSizeWithRightZero(
-                      logList.get(i).getData().slice(LLARGE * ct, sizeDataLastSlice), LLARGE);
+              traceValue.input1 = padToGivenSizeWithRightZero(
+                  logList.get(i).getData().slice(LLARGE * ct, sizeDataLastSlice), LLARGE);
               traceValue.limb = traceValue.input1;
               traceValue.nBytes = sizeDataLastSlice;
               traceValue.localSize -= sizeDataLastSlice;
@@ -477,9 +474,8 @@ public class RlpTxrcpt implements Module {
       int valueInput2,
       RlpTxrcptColumns traceValue,
       Trace trace) {
-    int lengthSize =
-        Bytes.ofUnsignedLong(length).size()
-            - Bytes.ofUnsignedLong(length).numberOfLeadingZeroBytes();
+    int lengthSize = Bytes.ofUnsignedLong(length).size()
+        - Bytes.ofUnsignedLong(length).numberOfLeadingZeroBytes();
 
     ByteCountAndPowerOutput byteCountingOutput = byteCounting(lengthSize, 8);
 
@@ -501,9 +497,8 @@ public class RlpTxrcpt implements Module {
       acc2LastRow = 55 - length;
     }
 
-    Bytes acc2LastRowShift =
-        padToGivenSizeWithLeftZero(
-            bigIntegerToBytes(BigInteger.valueOf(acc2LastRow)), traceValue.nStep);
+    Bytes acc2LastRowShift = padToGivenSizeWithLeftZero(
+        bigIntegerToBytes(BigInteger.valueOf(acc2LastRow)), traceValue.nStep);
     for (int ct = 0; ct < 8; ct++) {
       traceValue.counter = ct;
       traceValue.accSize = byteCountingOutput.accByteSizeList().get(ct);
@@ -589,8 +584,7 @@ public class RlpTxrcpt implements Module {
     ByteCountAndPowerOutput byteCountingOutput = byteCounting(inputSize, 8);
 
     Bytes inputBytesPadded = padToGivenSizeWithLeftZero(inputBytes, 8);
-    BitDecOutput bitDecOutput =
-        bitDecomposition(0xff & inputBytesPadded.get(inputBytesPadded.size() - 1), 8);
+    BitDecOutput bitDecOutput = bitDecomposition(0xff & inputBytesPadded.get(inputBytesPadded.size() - 1), 8);
 
     for (int ct = 0; ct < 8; ct++) {
       traceValue.counter = ct;
@@ -678,8 +672,8 @@ public class RlpTxrcpt implements Module {
         .nBytes(UnsignedByte.of(traceValue.nBytes))
         .nStep(BigInteger.valueOf(traceValue.nStep));
 
-    List<Function<Boolean, Trace>> phaseColumns =
-        List.of(trace::phase1, trace::phase2, trace::phase3, trace::phase4, trace::phase5);
+    List<Function<Boolean, Trace>> phaseColumns = List.of(trace::phase1, trace::phase2, trace::phase3, trace::phase4,
+        trace::phase5);
 
     for (int i = 0; i < phaseColumns.size(); i++) {
       phaseColumns.get(i).apply(i + 1 == traceValue.phase);
@@ -700,10 +694,12 @@ public class RlpTxrcpt implements Module {
   }
 
   /**
-   * Calculates the size of the RLP of a transaction receipt WITHOUT its RLP prefix.
+   * Calculates the size of the RLP of a transaction receipt WITHOUT its RLP
+   * prefix.
    *
-   * @param chunk an instance of {@link RlpTxrcptChunk} containing information pertaining to a
-   *     transaction execution
+   * @param chunk an instance of {@link RlpTxrcptChunk} containing information
+   *              pertaining to a
+   *              transaction execution
    * @return the size of the RLP of a transaction receipt WITHOUT its RLP prefix
    */
   private int txRcptSize(RlpTxrcptChunk chunk) {
@@ -737,12 +733,15 @@ public class RlpTxrcpt implements Module {
     // The size of RLP(Oa) is always 21.
     int logSize = 21;
 
-    // RLP(Topic) is of size 1 for 0 topic, 33+1 for 1 topic, 2 + 33*nTOPIC for 2 <= nTOPIC <=4.
+    // RLP(Topic) is of size 1 for 0 topic, 33+1 for 1 topic, 2 + 33*nTOPIC for 2 <=
+    // nTOPIC <=4.
     logSize += outerRlpSize(33 * log.getTopics().size());
 
-    // RLP(Od) is of size OuterRlpSize(datasize) except if the Data is made of one byte.
+    // RLP(Od) is of size OuterRlpSize(datasize) except if the Data is made of one
+    // byte.
     if (log.getData().size() == 1) {
-      // If the byte is of value >= 128, its RLP is 2 byte, else 1 byte (no RLP prefix).
+      // If the byte is of value >= 128, its RLP is 2 byte, else 1 byte (no RLP
+      // prefix).
       if (log.getData().toUnsignedBigInteger().compareTo(BigInteger.valueOf(128)) >= 0) {
         logSize += 2;
       } else {
@@ -756,7 +755,8 @@ public class RlpTxrcpt implements Module {
   }
 
   public int ChunkRowSize(RlpTxrcptChunk chunk) {
-    // Phase 0 is always 1+8=9 row long, Phase 1, 1 row long, Phase 2 8 row long, Phase 3 65 = 1 +
+    // Phase 0 is always 1+8=9 row long, Phase 1, 1 row long, Phase 2 8 row long,
+    // Phase 3 65 = 1 +
     // 64 row long
     int rowSize = 83;
 
@@ -768,7 +768,8 @@ public class RlpTxrcpt implements Module {
       rowSize += 8;
 
       for (int i = 0; i < chunk.logs().size(); i++) {
-        // Rlp prefix of a log entry is always 8, Log entry address is always 3 row long, Log topics
+        // Rlp prefix of a log entry is always 8, Log entry address is always 3 row
+        // long, Log topics
         // rlp prefix always 1
         rowSize += 12;
 

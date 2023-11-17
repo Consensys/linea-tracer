@@ -66,7 +66,7 @@ public class LogData implements Module {
   }
 
   private int indexMax(Log log) {
-    return log.getData().isEmpty() ? 0 : (log.getData().size()-1) / 16;
+    return log.getData().isEmpty() ? 0 : (log.getData().size() - 1) / 16;
   }
 
   @Override
@@ -95,7 +95,8 @@ public class LogData implements Module {
     return new LogDataTrace(trace.build());
   }
 
-  public void traceLogWoData(int absLogNum, int absLogNumMax, Trace.TraceBuilder trace) {
+  public void traceLogWoData(
+      final int absLogNum, final int absLogNumMax, Trace.TraceBuilder trace) {
     trace
         .absLogNumMax(BigInteger.valueOf(absLogNumMax))
         .absLogNum(BigInteger.valueOf(absLogNum))
@@ -108,7 +109,8 @@ public class LogData implements Module {
         .validateRow();
   }
 
-  public void traceLog(Log log, int absLogNum, int absLogNumMax, Trace.TraceBuilder trace) {
+  public void traceLog(
+      final Log log, final int absLogNum, final int absLogNumMax, Trace.TraceBuilder trace) {
     final int indexMax = indexMax(log);
     final Bytes dataPadded = padToGivenSizeWithRightZero(log.getData(), (indexMax + 1) * 16);
     final int lastLimbSize = (log.getData().size() % 16 == 0) ? 16 : log.getData().size() % 16;

@@ -91,7 +91,7 @@ public class LogInfo implements Module {
   }
 
   public void traceTxWoLog(
-      int absTxNum, int absLogNum, int absLogNumMax, Trace.TraceBuilder trace) {
+      final int absTxNum, final int absLogNum, final int absLogNumMax, Trace.TraceBuilder trace) {
     trace
         .absTxnNumMax(BigInteger.valueOf(this.rlpTxrcpt.chunkList.size()))
         .absTxnNum(BigInteger.valueOf(absTxNum))
@@ -124,7 +124,11 @@ public class LogInfo implements Module {
   }
 
   public void traceLog(
-      Log log, int absTxNum, int absLogNum, int absLogNumMax, Trace.TraceBuilder trace) {
+      final Log log,
+      final int absTxNum,
+      final int absLogNum,
+      final int absLogNumMax,
+      Trace.TraceBuilder trace) {
     final int ctMax = ctMax(log);
     final int nbTopic = log.getTopics().size();
     final Bytes32 topic1 = nbTopic >= 1 ? log.getTopics().get(0) : Bytes32.ZERO;

@@ -1,13 +1,16 @@
 package net.consensys.linea.zktracer.module;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
+@Slf4j
 public class FW {
 
-    private static final int CHUNK = 100_000;
+    private static final int CHUNK = 30_000_000;
     private MappedByteBuffer channel;
     private final RandomAccessFile value;
     int currentSize;
@@ -27,6 +30,7 @@ public class FW {
         int prevpos = pos;
         pos+=2;
         if(pos>currentSize){
+            log.warn("BLA");
             currentSize+=CHUNK;
             this.channel = value.getChannel().map(FileChannel.MapMode.READ_WRITE,prevpos, currentSize);
         }
@@ -65,5 +69,9 @@ public class FW {
 
     public RandomAccessFile getFile() {
         return value;
+    }
+
+    public void close() throws IOException {
+        value.setLength(pos);
     }
 }

@@ -239,7 +239,7 @@ public class Rom implements Module {
 
             writer.values().forEach(f -> {
                 try {
-                    f.getFile().close();
+                    f.close();
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }

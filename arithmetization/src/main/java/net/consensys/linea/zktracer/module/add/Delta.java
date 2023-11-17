@@ -1,9 +1,15 @@
 package net.consensys.linea.zktracer.module.add;
 
 import lombok.Data;
+import net.consensys.linea.zktracer.types.UnsignedByte;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+
+import static net.consensys.linea.zktracer.module.add.TraceBuilder.getByteArray;
 
 @Data
 public class Delta<T> {
@@ -16,11 +22,29 @@ public class Delta<T> {
         seenSoFar+=1;
     }
 
-    public void close(FileWriter writer) throws IOException {
-        writer.append(Integer.toString(seenSoFar));
-        writer.append(" ");
-        writer.append(previousValue.toString());
-        writer.append("\n");
+    public void close(FileChannel writer) throws IOException {
+        byte[] bytes2 = getByte(previousValue);
+
+        // Create a ByteBuffer with enough capacity
+        ByteBuffer buffer = ByteBuffer.allocate(8 + 2 + bytes2.length);
+        // Put the length of each byte array as a short, followed by the bytes themselves
+        buffer.putInt(seenSoFar);
+        buffer.putShort((short) bytes2.length);
+        buffer.put(bytes2);
+
+        // Encode the bytes to a Base64 string
+        writer.write(buffer);
+//
+    }
+
+    private byte[] getByte(T previousValue) {
+        if(previousValue instanceof BigInteger){
+            return ((BigInteger)previousValue).toByteArray();
+        }
+        else if(previousValue instanceof Boolean){
+            return new byte[]{((Boolean) previousValue) ? (byte) 1 : (byte) 0};
+        }
+        else return new byte[]{((UnsignedByte) previousValue).toByte()};
     }
 
     public void initialize(T b) {

@@ -17,21 +17,21 @@ package net.consensys.linea.zktracer.module.rom;
 
 import static net.consensys.linea.zktracer.module.rlputils.Pattern.padToGivenSizeWithRightZero;
 
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.channels.FileChannel;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
-import net.consensys.linea.zktracer.module.add.AddOperation;
 import net.consensys.linea.zktracer.module.add.Delta;
 import net.consensys.linea.zktracer.module.romLex.RomChunk;
 import net.consensys.linea.zktracer.module.romLex.RomLex;
 import net.consensys.linea.zktracer.types.UnsignedByte;
-import org.apache.hadoop.hive.ql.exec.vector.VectorizedRowBatch;
-import org.apache.orc.Writer;
 import org.apache.tuweni.bytes.Bytes;
 
 public class Rom implements Module {
@@ -79,7 +79,7 @@ public class Rom implements Module {
         return LLARGE * nbSlice + nPaddingRow;
     }
 
-    private void traceChunk(RomChunk chunk, int cfi, int cfiInfty,Map<String, FileWriter> writer, Map<String, Delta<?>> batch) throws IOException {
+    private void traceChunk(RomChunk chunk, int cfi, int cfiInfty,Map<String, FileChannel> writer, Map<String, Delta<?>> batch) throws IOException {
         final int chunkRowSize = chunkRowSize(chunk);
         final int codeSize = chunk.byteCode().size();
         final int nLimbSlice = (codeSize + (LLARGE - 1)) / LLARGE;
@@ -213,9 +213,11 @@ public class Rom implements Module {
     }
 
     @Override
-    public void commitToBuffer(Map<String, FileWriter> writer) throws IOException {
+    public void commitToBuffer(Map<String, FileOutputStream> foswriter) throws IOException {
         {
             Map<String, Delta<?>> counters = new HashMap<>();
+            Map<String, FileChannel> writer = foswriter.entrySet().stream().collect(Collectors.toMap(
+                    k->k.getKey(),k->k.getValue().getChannel()));
 
             int cfi = 0;
             final int cfiInfty = this.romLex.sortedChunks.size();

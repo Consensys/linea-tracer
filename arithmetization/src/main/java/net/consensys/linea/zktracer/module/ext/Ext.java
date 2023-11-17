@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.module.ext;
 
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Map;
@@ -211,7 +211,7 @@ public class Ext implements Module {
 
 
   @Override
-  public void commitToBuffer(Map<String, FileWriter> writer) throws IOException {
+  public void commitToBuffer(Map<String, FileOutputStream> writer) throws IOException {
 //    VectorizedRowBatch batch = writer.getSchema().createRowBatch();
 //
 //    for (ExtOperation operation : this.operations) {

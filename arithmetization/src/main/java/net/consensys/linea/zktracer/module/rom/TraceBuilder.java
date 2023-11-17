@@ -20,9 +20,13 @@ import net.consensys.linea.zktracer.module.add.Delta;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import java.io.FileWriter;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.BitSet;
 import java.util.Map;
 import java.io.IOException;
+
+import static net.consensys.linea.zktracer.module.add.TraceBuilder.getByteArray;
 
 /**
  * WARNING: This code is generated automatically.
@@ -33,9 +37,9 @@ import java.io.IOException;
 public class TraceBuilder {
 
     private final Map<String, Delta<?>> batch;
-    private final Map<String, FileWriter> writer;
+    private final Map<String, FileChannel> writer;
 
-    public TraceBuilder(Map<String, FileWriter> writer, Map<String, Delta<?>> batch) {
+    public TraceBuilder(Map<String, FileChannel> writer, Map<String, Delta<?>> batch) {
         this.writer = writer;
         this.batch = batch;
     }
@@ -415,30 +419,10 @@ public class TraceBuilder {
         filled.clear();
 
     }
-    private void processBigInteger(BigInteger b, FileWriter writer, Delta<?> d) {
-        Delta<BigInteger> delta = (Delta<BigInteger>) d;
-        if(delta.getPreviousValue() == null){
-            delta.initialize(b);
-        }
-        else if (delta.getPreviousValue().equals(b)) {
-            delta.increment();
-        } else {
-            try {
-                writer.write(delta.getSeenSoFar());
-                writer.append(" ");
-                writer.write(delta.getPreviousValue().toString());
-                writer.write("\n");
-                delta.setPreviousValue(b);
-                delta.lastIndex += delta.getSeenSoFar();
-                delta.setSeenSoFar(0);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
+
 
     private void processUnsignedByte(UnsignedByte b,
-                                     FileWriter writer,Delta<?>d) {
+                                     FileChannel writer, Delta<?>d) {
         Delta<UnsignedByte> delta = (Delta<UnsignedByte>) d;
         if(delta.getPreviousValue() == null){
             delta.initialize(b);
@@ -447,10 +431,19 @@ public class TraceBuilder {
             delta.increment();
         } else {
             try {
-                writer.write(delta.getSeenSoFar());
-                writer.append(" ");
-                writer.write(delta.getPreviousValue().toString());
-                writer.write("\n");
+
+                // Create a ByteBuffer with enough capacity
+                ByteBuffer buffer = ByteBuffer.allocate(8 + 1);
+                // Put the length of each byte array as a short, followed by the bytes themselves
+                buffer.putInt(delta.getSeenSoFar());
+                buffer.put(delta.getPreviousValue().toByte());
+
+                // Encode the bytes to a Base64 string
+                writer.write(buffer);
+//                writer.append(Integer.toString(delta.seenSoFar));
+//                writer.append(" ");
+//                writer.append(delta.previousValue.toString());
+//                writer.append("\n");
                 delta.setPreviousValue(b);
                 delta.lastIndex += delta.getSeenSoFar();
                 delta.setSeenSoFar(0);
@@ -460,7 +453,7 @@ public class TraceBuilder {
         }
     }
 
-    private void processBoolean(Boolean b,  FileWriter writer,Delta<?>d) {
+    private void processBoolean(Boolean b,  FileChannel writer,Delta<?>d) {
         Delta<Boolean> delta = (Delta<Boolean>) d;
         if(delta.getPreviousValue() == null){
             delta.initialize(b);
@@ -469,10 +462,20 @@ public class TraceBuilder {
             delta.increment();
         } else {
             try {
-                writer.write(delta.getSeenSoFar());
-                writer.append(" ");
-                writer.write(delta.getPreviousValue().toString());
-                writer.write("\n");
+
+                // Create a ByteBuffer with enough capacity
+                ByteBuffer buffer = ByteBuffer.allocate(8 + 1);
+                // Put the length of each byte array as a short, followed by the bytes themselves
+                buffer.putInt(delta.getSeenSoFar());
+                buffer.put(delta.getPreviousValue() ? (byte)1: (byte)0);
+
+                // Encode the bytes to a Base64 string
+                writer.write(buffer);
+////
+//                writer.append(Integer.toString(delta.seenSoFar));
+//                writer.append(" ");
+//                writer.append(delta.previousValue.toString());
+//                writer.append("\n");
                 delta.setPreviousValue(b);
                 delta.lastIndex += delta.getSeenSoFar();
                 delta.setSeenSoFar(0);
@@ -482,4 +485,40 @@ public class TraceBuilder {
         }
     }
 
+
+    private void processBigInteger(BigInteger b, FileChannel writer, Delta<?> d) {
+        Delta<BigInteger> delta = (Delta<BigInteger>) d;
+        if(delta.getPreviousValue() == null){
+            delta.initialize(b);
+        }
+        else if (delta.getPreviousValue().equals(b)) {
+            delta.increment();
+        } else {
+            try {
+                // Convert the BigIntegers to bytes
+
+                byte[] bytes2 = getByteArray(delta);
+
+                // Create a ByteBuffer with enough capacity
+                ByteBuffer buffer = ByteBuffer.allocate(8 + 2 + bytes2.length);
+                // Put the length of each byte array as a short, followed by the bytes themselves
+                buffer.putInt(delta.getSeenSoFar());
+                buffer.putShort((short) bytes2.length);
+                buffer.put(bytes2);
+
+                // Encode the bytes to a Base64 string
+                writer.write(buffer);
+//
+//                writer.append(String.valueOf(delta.seenSoFar));
+//                writer.append(" ");
+//                writer.append(delta.previousValue.toString());
+//                writer.append("\n");
+                delta.setPreviousValue(b);
+                delta.lastIndex += delta.getSeenSoFar();
+                delta.setSeenSoFar(1);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
 }

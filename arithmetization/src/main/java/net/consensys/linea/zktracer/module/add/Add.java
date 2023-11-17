@@ -15,9 +15,11 @@
 
 package net.consensys.linea.zktracer.module.add;
 
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.channels.FileChannel;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -105,7 +107,7 @@ public class Add implements Module {
      * @return
      */
     private void traceAddOperation(
-            OpCode opCode, Bytes32 arg1, Bytes32 arg2, Map<String, FileWriter> writer, Map<String, Delta<?>> batch) throws IOException {
+            OpCode opCode, Bytes32 arg1, Bytes32 arg2, Map<String, FileChannel> writer, Map<String, Delta<?>> batch) throws IOException {
         this.stamp++;
         final Bytes16 arg1Hi = Bytes16.wrap(arg1.slice(0, 16));
         final Bytes32 arg1Lo = Bytes32.leftPad(arg1.slice(16));
@@ -176,7 +178,9 @@ public class Add implements Module {
     }
 
     @Override
-    public void commitToBuffer(Map<String, FileWriter> writer) throws IOException {
+    public void commitToBuffer(Map<String, FileOutputStream> foswriter) throws IOException {
+        Map<String, FileChannel> writer = foswriter.entrySet().stream().collect(Collectors.toMap(
+               k->k.getKey(),k->k.getValue().getChannel()));
        Map<String, Delta<?>>counters = new HashMap<>();
         for (AddOperation op : this.chunks) {
             this.traceAddOperation(op.opCodem(), op.arg1(), op.arg2(), writer, counters);

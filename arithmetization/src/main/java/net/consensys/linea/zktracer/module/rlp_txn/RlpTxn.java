@@ -25,7 +25,7 @@ import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static org.hyperledger.besu.ethereum.core.encoding.EncodingContext.BLOCK_BODY;
 import static org.hyperledger.besu.ethereum.core.encoding.TransactionEncoder.encodeOpaqueBytes;
 
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -1384,7 +1384,7 @@ public class RlpTxn implements Module {
   }
 
   @Override
-  public void commitToBuffer(Map<String, FileWriter> writer) throws IOException {
+  public void commitToBuffer(Map<String, FileOutputStream> writer) throws IOException {
 //    VectorizedRowBatch batch = writer.getSchema().createRowBatch();
 //
 //    int absTxNum = 0;

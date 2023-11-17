@@ -122,18 +122,18 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
 
                     log.warn("[TRACING] done for {}, it took {}", m.jsonKey(), sw.elapsed(TimeUnit.MILLISECONDS));
                 }
-//                case "ROM" -> {
-//                    Map<String, FileChannel> writer = net.consensys.linea.zktracer.module.rom.ORCWriter.getWriter(filename);
-//                    m.commitToBuffer(writer);
-//                    writer.values().forEach(w -> {
-//                        try {
-//                            w.close();
-//                        } catch (IOException e) {
-//                            throw new RuntimeException(e);
-//                        }
-//                    });
-//                    log.warn("[TRACING] done for {}, it took {}", m.jsonKey(), sw.elapsed(TimeUnit.MILLISECONDS));
-//                }
+                case "ROM" -> {
+                    Map<String, RandomAccessFile> writer = net.consensys.linea.zktracer.module.rom.ORCWriter.getWriter(filename);
+                    m.commitToBuffer(writer);
+                    writer.values().forEach(w -> {
+                        try {
+                            w.close();
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+                    log.warn("[TRACING] done for {}, it took {}", m.jsonKey(), sw.elapsed(TimeUnit.MILLISECONDS));
+                }
 //                case "MUL" -> {
 //                    try (Writer writer =  net.consensys.linea.zktracer.module.mul.ORCWriter.getWriter(filename)) {
 //                        m.commitToBuffer(writer);

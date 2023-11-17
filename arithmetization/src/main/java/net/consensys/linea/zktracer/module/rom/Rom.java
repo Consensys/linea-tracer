@@ -79,7 +79,7 @@ public class Rom implements Module {
         return LLARGE * nbSlice + nPaddingRow;
     }
 
-    private void traceChunk(RomChunk chunk, int cfi, int cfiInfty, Map<String, FileChannel> writer, Map<String, Delta<?>> batch) throws IOException {
+    private void traceChunk(RomChunk chunk, int cfi, int cfiInfty, Map<String, FW> writer, Map<String, Delta<?>> batch) throws IOException {
         final int chunkRowSize = chunkRowSize(chunk);
         final int codeSize = chunk.byteCode().size();
         final int nLimbSlice = (codeSize + (LLARGE - 1)) / LLARGE;
@@ -226,7 +226,7 @@ public class Rom implements Module {
             final int cfiInfty = this.romLex.sortedChunks.size();
             for (RomChunk chunk : this.romLex.sortedChunks) {
                 cfi += 1;
-//                traceChunk(chunk, cfi, cfiInfty, writer, counters);
+                traceChunk(chunk, cfi, cfiInfty, writer, counters);
             }
 
             counters.entrySet().forEach(c -> {

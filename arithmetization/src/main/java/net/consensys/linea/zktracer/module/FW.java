@@ -7,13 +7,14 @@ import java.nio.channels.FileChannel;
 
 public class FW {
 
+    private static final int CHUNK = 100_000;
     private MappedByteBuffer channel;
     private final RandomAccessFile value;
     int currentSize;
     int pos = 0;
     public FW(RandomAccessFile value) {
         this.value=value;
-        currentSize = 10000;
+        currentSize = CHUNK;
 
         try {
            this.channel = value.getChannel().map(FileChannel.MapMode.READ_WRITE,pos, currentSize);
@@ -26,7 +27,7 @@ public class FW {
         int prevpos = pos;
         pos+=2;
         if(pos>currentSize){
-            currentSize+=10000;
+            currentSize+=CHUNK;
             this.channel = value.getChannel().map(FileChannel.MapMode.READ_WRITE,prevpos, currentSize);
         }
         channel.putShort(length);
@@ -36,7 +37,7 @@ public class FW {
         int prevpos = pos;
         pos+=bytes2.length;
         if(pos>currentSize){
-            currentSize+=10000;
+            currentSize+=CHUNK;
             this.channel = value.getChannel().map(FileChannel.MapMode.READ_WRITE,prevpos, currentSize);
         }
         channel.put(bytes2);
@@ -46,7 +47,7 @@ public class FW {
         int prevpos = pos;
         pos+=4;
         if(pos>currentSize){
-            currentSize+=10000;
+            currentSize+=CHUNK;
             this.channel = value.getChannel().map(FileChannel.MapMode.READ_WRITE,prevpos, currentSize);
         }
         channel.putInt(seenSoFar);
@@ -56,7 +57,7 @@ public class FW {
         int prevpos = pos;
         pos+=1;
         if(pos>currentSize){
-            currentSize+=10000;
+            currentSize+=CHUNK;
             this.channel = value.getChannel().map(FileChannel.MapMode.READ_WRITE,prevpos, currentSize);
         }
         channel.put(aByte);

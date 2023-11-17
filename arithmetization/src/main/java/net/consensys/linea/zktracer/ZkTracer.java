@@ -110,9 +110,9 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
             Stopwatch sw = Stopwatch.createStarted();
             switch (m.jsonKey().toUpperCase()) {
                 case "ADD" -> {
-                    Map<String, RandomAccessFile> writer = ORCWriter.getWriter(filename);
+                    List<RandomAccessFile> writer = ORCWriter.getWriter(filename);
                     m.commitToBuffer(writer);
-                    writer.values().forEach(w -> {
+                    writer.forEach(w -> {
                         try {
                             w.close();
                         } catch (IOException e) {
@@ -123,9 +123,9 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
                     log.warn("[TRACING] done for {}, it took {}", m.jsonKey(), sw.elapsed(TimeUnit.MILLISECONDS));
                 }
                 case "ROM" -> {
-                    Map<String, RandomAccessFile> writer = net.consensys.linea.zktracer.module.rom.ORCWriter.getWriter(filename);
+                    List<RandomAccessFile> writer = net.consensys.linea.zktracer.module.rom.ORCWriter.getWriter(filename);
                     m.commitToBuffer(writer);
-                    writer.values().forEach(w -> {
+                    writer.forEach(w -> {
                         try {
                             w.close();
                         } catch (IOException e) {

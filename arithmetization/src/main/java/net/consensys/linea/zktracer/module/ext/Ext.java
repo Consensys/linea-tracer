@@ -18,7 +18,7 @@ package net.consensys.linea.zktracer.module.ext;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.math.BigInteger;
-import java.util.Map;
+import java.util.List;
 
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
@@ -211,7 +211,7 @@ public class Ext implements Module {
 
 
   @Override
-  public void commitToBuffer(Map<String, RandomAccessFile> writer) throws IOException {
+  public void commitToBuffer(List<RandomAccessFile> writer) throws IOException {
 //    VectorizedRowBatch batch = writer.getSchema().createRowBatch();
 //
 //    for (ExtOperation operation : this.operations) {

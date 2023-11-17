@@ -15,22 +15,17 @@
 
 package net.consensys.linea.zktracer.module.rom;
 
-
 import net.consensys.linea.zktracer.module.FW;
 import net.consensys.linea.zktracer.module.add.Delta;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
-import java.io.DataOutputStream;
-import java.io.FileWriter;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.BitSet;
+import java.util.List;
 import java.util.Map;
 import java.io.IOException;
+import java.util.stream.IntStream;
 
-import static net.consensys.linea.zktracer.module.add.TraceBuilder.getByteArray;
-import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 /**
  * WARNING: This code is generated automatically.
@@ -39,13 +34,13 @@ import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
  */
 @SuppressWarnings({"unchecked"})
 public class TraceBuilder {
+    private final Delta<?>[] batch;
+    private final FW[] writer;
 
-    private final Map<String, Delta<?>> batch;
-    private final Map<String, FW> writer;
-
-    public TraceBuilder(Map<String, FW> writer, Map<String, Delta<?>> batch) {
-        this.writer = writer;
-        this.batch = batch;
+    public TraceBuilder(List<FW> writer) {
+        this.writer = writer.toArray(new FW[0]);
+        this.batch =new Delta<?>[writer.size()];
+        IntStream.range(0, writer.size()).forEach(i -> this.batch[i]=new Delta<BigInteger>());
     }
 
     private final BitSet filled = new BitSet();
@@ -56,9 +51,7 @@ public class TraceBuilder {
         } else {
             filled.set(0);
         }
-        processBigInteger(b, writer.get("ACC"), batch.computeIfAbsent("ACC",
-                t -> new Delta<BigInteger>()
-        ) );
+        processBigInteger(b, writer[0], batch[0] );
         return this;
     }
     public TraceBuilder codeFragmentIndex(BigInteger b) {
@@ -68,9 +61,7 @@ public class TraceBuilder {
         } else {
             filled.set(2);
         }
-        processBigInteger(b, writer.get("CODE_FRAGMENT_INDEX"), batch.computeIfAbsent("CODE_FRAGMENT_INDEX",
-                t -> new Delta<BigInteger>()
-        ) );
+        processBigInteger(b, writer[2], batch[2] );
         return this;
     }
     public TraceBuilder codeFragmentIndexInfty(BigInteger b) {
@@ -80,9 +71,7 @@ public class TraceBuilder {
         } else {
             filled.set(3);
         }
-        processBigInteger(b, writer.get("CODE_FRAGMENT_INDEX_INFTY"), batch.computeIfAbsent("CODE_FRAGMENT_INDEX_INFTY",
-                t -> new Delta<BigInteger>()
-        ) );
+        processBigInteger(b, writer[3], batch[3] );
         return this;
     }
     public TraceBuilder codeSize(BigInteger b) {
@@ -92,9 +81,7 @@ public class TraceBuilder {
         } else {
             filled.set(4);
         }
-        processBigInteger(b, writer.get("CODE_SIZE"), batch.computeIfAbsent("CODE_SIZE",
-                t -> new Delta<BigInteger>()
-        ) );
+        processBigInteger(b, writer[4], batch[4] );
         return this;
     }
     public TraceBuilder codesizeReached(Boolean b) {
@@ -104,9 +91,7 @@ public class TraceBuilder {
         } else {
             filled.set(1);
         }
-        processBoolean(b, writer.get("CODESIZE_REACHED"), batch.computeIfAbsent("CODESIZE_REACHED",
-                t -> new Delta<Boolean>()
-        ) );
+        processBoolean(b, writer[1], batch[1] );
         return this;
     }
     public TraceBuilder counter(BigInteger b) {
@@ -116,9 +101,7 @@ public class TraceBuilder {
         } else {
             filled.set(5);
         }
-        processBigInteger(b, writer.get("COUNTER"), batch.computeIfAbsent("COUNTER",
-                t -> new Delta<BigInteger>()
-        ) );
+        processBigInteger(b, writer[5], batch[5] );
         return this;
     }
     public TraceBuilder counterMax(BigInteger b) {
@@ -128,9 +111,7 @@ public class TraceBuilder {
         } else {
             filled.set(6);
         }
-        processBigInteger(b, writer.get("COUNTER_MAX"), batch.computeIfAbsent("COUNTER_MAX",
-                t -> new Delta<BigInteger>()
-        ) );
+        processBigInteger(b, writer[6], batch[6] );
         return this;
     }
     public TraceBuilder counterPush(BigInteger b) {
@@ -140,9 +121,7 @@ public class TraceBuilder {
         } else {
             filled.set(7);
         }
-        processBigInteger(b, writer.get("COUNTER_PUSH"), batch.computeIfAbsent("COUNTER_PUSH",
-                t -> new Delta<BigInteger>()
-        ) );
+        processBigInteger(b, writer[7], batch[7] );
         return this;
     }
     public TraceBuilder index(BigInteger b) {
@@ -152,9 +131,7 @@ public class TraceBuilder {
         } else {
             filled.set(8);
         }
-        processBigInteger(b, writer.get("INDEX"), batch.computeIfAbsent("INDEX",
-                t -> new Delta<BigInteger>()
-        ) );
+        processBigInteger(b, writer[8], batch[8] );
         return this;
     }
     public TraceBuilder isPush(Boolean b) {
@@ -164,9 +141,7 @@ public class TraceBuilder {
         } else {
             filled.set(9);
         }
-        processBoolean(b, writer.get("IS_PUSH"), batch.computeIfAbsent("IS_PUSH",
-                t -> new Delta<Boolean>()
-        ) );
+        processBoolean(b, writer[9], batch[9] );
         return this;
     }
     public TraceBuilder isPushData(Boolean b) {
@@ -176,9 +151,7 @@ public class TraceBuilder {
         } else {
             filled.set(10);
         }
-        processBoolean(b, writer.get("IS_PUSH_DATA"), batch.computeIfAbsent("IS_PUSH_DATA",
-                t -> new Delta<Boolean>()
-        ) );
+        processBoolean(b, writer[10], batch[10] );
         return this;
     }
     public TraceBuilder limb(BigInteger b) {
@@ -188,9 +161,7 @@ public class TraceBuilder {
         } else {
             filled.set(11);
         }
-        processBigInteger(b, writer.get("LIMB"), batch.computeIfAbsent("LIMB",
-                t -> new Delta<BigInteger>()
-        ) );
+        processBigInteger(b, writer[11], batch[11] );
         return this;
     }
     public TraceBuilder nBytes(BigInteger b) {
@@ -200,9 +171,7 @@ public class TraceBuilder {
         } else {
             filled.set(21);
         }
-        processBigInteger(b, writer.get("nBYTES"), batch.computeIfAbsent("nBYTES",
-                t -> new Delta<BigInteger>()
-        ) );
+        processBigInteger(b, writer[21], batch[21] );
         return this;
     }
     public TraceBuilder nBytesAcc(BigInteger b) {
@@ -212,9 +181,7 @@ public class TraceBuilder {
         } else {
             filled.set(22);
         }
-        processBigInteger(b, writer.get("nBYTES_ACC"), batch.computeIfAbsent("nBYTES_ACC",
-                t -> new Delta<BigInteger>()
-        ) );
+        processBigInteger(b, writer[22], batch[22] );
         return this;
     }
     public TraceBuilder opcode(UnsignedByte b) {
@@ -224,9 +191,7 @@ public class TraceBuilder {
         } else {
             filled.set(12);
         }
-        processUnsignedByte(b, writer.get("OPCODE"), batch.computeIfAbsent("OPCODE",
-                t -> new Delta<UnsignedByte>()
-        ) );
+        processUnsignedByte(b, writer[12], batch[12] );
         return this;
     }
     public TraceBuilder paddedBytecodeByte(UnsignedByte b) {
@@ -236,9 +201,7 @@ public class TraceBuilder {
         } else {
             filled.set(13);
         }
-        processUnsignedByte(b, writer.get("PADDED_BYTECODE_BYTE"), batch.computeIfAbsent("PADDED_BYTECODE_BYTE",
-                t -> new Delta<UnsignedByte>()
-        ) );
+        processUnsignedByte(b, writer[13], batch[13] );
         return this;
     }
     public TraceBuilder programmeCounter(BigInteger b) {
@@ -248,9 +211,7 @@ public class TraceBuilder {
         } else {
             filled.set(14);
         }
-        processBigInteger(b, writer.get("PROGRAMME_COUNTER"), batch.computeIfAbsent("PROGRAMME_COUNTER",
-                t -> new Delta<BigInteger>()
-        ) );
+        processBigInteger(b, writer[14], batch[14] );
         return this;
     }
     public TraceBuilder pushFunnelBit(Boolean b) {
@@ -260,9 +221,7 @@ public class TraceBuilder {
         } else {
             filled.set(15);
         }
-        processBoolean(b, writer.get("PUSH_FUNNEL_BIT"), batch.computeIfAbsent("PUSH_FUNNEL_BIT",
-                t -> new Delta<Boolean>()
-        ) );
+        processBoolean(b, writer[15], batch[15] );
         return this;
     }
     public TraceBuilder pushParameter(BigInteger b) {
@@ -272,9 +231,7 @@ public class TraceBuilder {
         } else {
             filled.set(16);
         }
-        processBigInteger(b, writer.get("PUSH_PARAMETER"), batch.computeIfAbsent("PUSH_PARAMETER",
-                t -> new Delta<BigInteger>()
-        ) );
+        processBigInteger(b, writer[16], batch[16] );
         return this;
     }
     public TraceBuilder pushValueAcc(BigInteger b) {
@@ -284,9 +241,7 @@ public class TraceBuilder {
         } else {
             filled.set(17);
         }
-        processBigInteger(b, writer.get("PUSH_VALUE_ACC"), batch.computeIfAbsent("PUSH_VALUE_ACC",
-                t -> new Delta<BigInteger>()
-        ) );
+        processBigInteger(b, writer[17], batch[17] );
         return this;
     }
     public TraceBuilder pushValueHigh(BigInteger b) {
@@ -296,9 +251,7 @@ public class TraceBuilder {
         } else {
             filled.set(18);
         }
-        processBigInteger(b, writer.get("PUSH_VALUE_HIGH"), batch.computeIfAbsent("PUSH_VALUE_HIGH",
-                t -> new Delta<BigInteger>()
-        ) );
+        processBigInteger(b, writer[18], batch[18] );
         return this;
     }
     public TraceBuilder pushValueLow(BigInteger b) {
@@ -308,9 +261,7 @@ public class TraceBuilder {
         } else {
             filled.set(19);
         }
-        processBigInteger(b, writer.get("PUSH_VALUE_LOW"), batch.computeIfAbsent("PUSH_VALUE_LOW",
-                t -> new Delta<BigInteger>()
-        ) );
+        processBigInteger(b, writer[19], batch[19] );
         return this;
     }
     public TraceBuilder validJumpDestination(Boolean b) {
@@ -320,9 +271,7 @@ public class TraceBuilder {
         } else {
             filled.set(20);
         }
-        processBoolean(b, writer.get("VALID_JUMP_DESTINATION"), batch.computeIfAbsent("VALID_JUMP_DESTINATION",
-                t -> new Delta<Boolean>()
-        ) );
+        processBoolean(b, writer[20], batch[20] );
         return this;
     }
 
@@ -488,4 +437,5 @@ public class TraceBuilder {
             }
         }
     }
+
 }

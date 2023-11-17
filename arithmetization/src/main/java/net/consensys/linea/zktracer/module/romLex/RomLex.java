@@ -305,22 +305,6 @@ public class RomLex implements Module {
     }
   }
 
-  private void traceChunk(
-      final RomChunk chunk, int cfi, int codeFragmentIndexInfinity, Trace.TraceBuilder trace) {
-    trace
-        .codeFragmentIndex(BigInteger.valueOf(cfi))
-        .codeFragmentIndexInfty(BigInteger.valueOf(codeFragmentIndexInfinity))
-        .codeSize(BigInteger.valueOf(chunk.byteCode().size()))
-        .addrHi(chunk.address().slice(0, 4).toUnsignedBigInteger())
-        .addrLo(chunk.address().slice(4, LLARGE).toUnsignedBigInteger())
-        .commitToState(chunk.commitToTheState())
-        .depNumber(BigInteger.valueOf(chunk.deploymentNumber()))
-        .depStatus(chunk.deploymentStatus())
-        .readFromState(chunk.readFromTheState())
-//        .validateRow()
-    ;
-  }
-
   @Override
   public void traceEndConflation() {
     this.sortedChunks.addAll(this.chunks);

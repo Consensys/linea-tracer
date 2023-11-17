@@ -32,7 +32,7 @@ public class ORCWriter {
 
 
 
-        public static Map<String, RandomAccessFile> getWriter(String path) throws IOException {
+        public static List<RandomAccessFile> getWriter(String path) throws IOException {
 
                 List<String> files = new ArrayList<>();
 
@@ -60,10 +60,10 @@ public class ORCWriter {
                 files.add("nBYTES");
                 files.add("nBYTES_ACC");
 
-                Map<String, RandomAccessFile> f = new HashMap<>();
+                List<RandomAccessFile> f = new ArrayList<>();
                 for(String module: files){
                         var fos = new RandomAccessFile(path+module, "rw");
-                        f.put(module, fos);
+                        f.add( fos);
                 }
                 return f;
 

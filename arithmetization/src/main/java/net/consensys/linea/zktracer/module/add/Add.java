@@ -19,7 +19,9 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.math.BigInteger;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -101,11 +103,10 @@ public class Add implements Module {
      * @param opCode the operations, ADD or SUB
      * @param arg1   first operand
      * @param arg2   second operand
-     * @param batch
      * @return
      */
     private void traceAddOperation(
-            OpCode opCode, Bytes32 arg1, Bytes32 arg2, Map<String, FW> writer, Map<String, Delta<?>> batch) throws IOException {
+            OpCode opCode, Bytes32 arg1, Bytes32 arg2, List<FW> writer) throws IOException {
         this.stamp++;
         final Bytes16 arg1Hi = Bytes16.wrap(arg1.slice(0, 16));
         final Bytes32 arg1Lo = Bytes32.leftPad(arg1.slice(16));
@@ -146,7 +147,7 @@ public class Add implements Module {
             }
 
             overflowLo = (addRes.compareTo(TWO_TO_THE_128) >= 0);
-            new TraceBuilder(writer, batch)
+            new TraceBuilder(writer)
                     .acc1(resHi.slice(0, 1 + i).toUnsignedBigInteger())
                     .acc2(resLo.slice(0, 1 + i).toUnsignedBigInteger())
                     .arg1Hi(arg1Hi.toUnsignedBigInteger())
@@ -176,25 +177,23 @@ public class Add implements Module {
     }
 
     @Override
-    public void commitToBuffer(Map<String, RandomAccessFile> writero) throws IOException {
-       Map<String, Delta<?>>counters = new HashMap<>();
-        var writer = writero.entrySet().stream().collect(Collectors.toMap(
-                k->k.getKey(),
-                k-> new FW(k.getValue())
-        ));
+    public void commitToBuffer(List<RandomAccessFile> writero) throws IOException {
+
+        var writer = writero.stream().map(k-> new FW(k)).toList();
+
         for (AddOperation op : this.chunks) {
-            this.traceAddOperation(op.opCodem(), op.arg1(), op.arg2(), writer, counters);
+            this.traceAddOperation(op.opCodem(), op.arg1(), op.arg2(), writer);
         }
 
-        counters.entrySet().forEach(c -> {
-            try {
-                c.getValue().close(writer.get(c.getKey()));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+//        counters.entrySet().forEach(c -> {
+//            try {
+//                c.getValue().close(writer.get(c.getKey()));
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            }
+//        });
 
-        writer.values().forEach(f -> {
+        writer.forEach(f -> {
             try {
                 f.close();
             } catch (Throwable e) {

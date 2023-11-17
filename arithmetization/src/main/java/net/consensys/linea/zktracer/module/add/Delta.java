@@ -4,15 +4,9 @@ import lombok.Data;
 import net.consensys.linea.zktracer.module.FW;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
-import java.io.DataOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 
-import static net.consensys.linea.zktracer.module.add.TraceBuilder.getByteArray;
 
 @Data
 public class Delta<T> {

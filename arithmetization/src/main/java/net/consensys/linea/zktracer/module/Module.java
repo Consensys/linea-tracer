@@ -18,7 +18,6 @@ package net.consensys.linea.zktracer.module;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.List;
-import java.util.Map;
 
 import net.consensys.linea.zktracer.ColumnHeader;
 import org.apache.commons.lang3.NotImplementedException;
@@ -83,6 +82,6 @@ public interface Module {
 
   ModuleTrace commit();
 
-  default void commitToBuffer(Map<String, RandomAccessFile> writer) throws IOException {
+  default void commitToBuffer(List<RandomAccessFile> writer) throws IOException {
   }
 }

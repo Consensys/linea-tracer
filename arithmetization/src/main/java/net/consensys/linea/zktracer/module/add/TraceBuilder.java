@@ -15,22 +15,17 @@
 
 package net.consensys.linea.zktracer.module.add;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import net.consensys.linea.zktracer.module.FW;
+import net.consensys.linea.zktracer.module.add.Delta;
 import net.consensys.linea.zktracer.types.UnsignedByte;
-import org.jetbrains.annotations.NotNull;
 
-import java.io.RandomAccessFile;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.BitSet;
+import java.util.List;
 import java.util.Map;
 import java.io.IOException;
-import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 
 /**
  * WARNING: This code is generated automatically.
@@ -39,20 +34,13 @@ import java.util.stream.Collectors;
  */
 @SuppressWarnings({"unchecked"})
 public class TraceBuilder {
+    private final Delta<?>[] batch;
+    private final FW[] writer;
 
-    private static final LoadingCache<BigInteger, byte[]> biCache = CacheBuilder.<BigInteger, byte[]>newBuilder().
-            build(new CacheLoader<>() {
-                @Override
-                public byte[] load(BigInteger key) throws Exception {
-                    return key.toByteArray();
-                }
-            });
-    private final Map<String, Delta<?>> batch;
-    private final Map<String, FW> writer;
-
-    public TraceBuilder(Map<String, FW> writer, Map<String, Delta<?>> batch) {
-this.writer=writer;
-        this.batch = batch;
+    public TraceBuilder(List<FW> writer) {
+        this.writer = writer.toArray(new FW[0]);
+        this.batch =new Delta<?>[writer.size()];
+        IntStream.range(0, writer.size()).forEach(i -> this.batch[i]=new Delta<BigInteger>());
     }
 
     private final BitSet filled = new BitSet();
@@ -63,9 +51,7 @@ this.writer=writer;
         } else {
             filled.set(0);
         }
-        processBigInteger(b, writer.get("ACC_1"), batch.computeIfAbsent("ACC_1",
-                t -> new Delta<BigInteger>()
-        ) );
+        processBigInteger(b, writer[0], batch[0] );
         return this;
     }
     public TraceBuilder acc2(BigInteger b) {
@@ -75,9 +61,7 @@ this.writer=writer;
         } else {
             filled.set(1);
         }
-        processBigInteger(b, writer.get("ACC_2"), batch.computeIfAbsent("ACC_2",
-                t -> new Delta<BigInteger>()
-        ) );
+        processBigInteger(b, writer[1], batch[1] );
         return this;
     }
     public TraceBuilder arg1Hi(BigInteger b) {
@@ -87,9 +71,7 @@ this.writer=writer;
         } else {
             filled.set(2);
         }
-        processBigInteger(b, writer.get("ARG_1_HI"), batch.computeIfAbsent("ARG_1_HI",
-                t -> new Delta<BigInteger>()
-        ) );
+        processBigInteger(b, writer[2], batch[2] );
         return this;
     }
     public TraceBuilder arg1Lo(BigInteger b) {
@@ -99,9 +81,7 @@ this.writer=writer;
         } else {
             filled.set(3);
         }
-        processBigInteger(b, writer.get("ARG_1_LO"), batch.computeIfAbsent("ARG_1_LO",
-                t -> new Delta<BigInteger>()
-        ) );
+        processBigInteger(b, writer[3], batch[3] );
         return this;
     }
     public TraceBuilder arg2Hi(BigInteger b) {
@@ -111,9 +91,7 @@ this.writer=writer;
         } else {
             filled.set(4);
         }
-        processBigInteger(b, writer.get("ARG_2_HI"), batch.computeIfAbsent("ARG_2_HI",
-                t -> new Delta<BigInteger>()
-        ) );
+        processBigInteger(b, writer[4], batch[4] );
         return this;
     }
     public TraceBuilder arg2Lo(BigInteger b) {
@@ -123,9 +101,7 @@ this.writer=writer;
         } else {
             filled.set(5);
         }
-        processBigInteger(b, writer.get("ARG_2_LO"), batch.computeIfAbsent("ARG_2_LO",
-                t -> new Delta<BigInteger>()
-        ) );
+        processBigInteger(b, writer[5], batch[5] );
         return this;
     }
     public TraceBuilder byte1(UnsignedByte b) {
@@ -135,9 +111,7 @@ this.writer=writer;
         } else {
             filled.set(6);
         }
-        processUnsignedByte(b, writer.get("BYTE_1"), batch.computeIfAbsent("BYTE_1",
-                t -> new Delta<UnsignedByte>()
-        ) );
+        processUnsignedByte(b, writer[6], batch[6] );
         return this;
     }
     public TraceBuilder byte2(UnsignedByte b) {
@@ -147,9 +121,7 @@ this.writer=writer;
         } else {
             filled.set(7);
         }
-        processUnsignedByte(b, writer.get("BYTE_2"), batch.computeIfAbsent("BYTE_2",
-                t -> new Delta<UnsignedByte>()
-        ) );
+        processUnsignedByte(b, writer[7], batch[7] );
         return this;
     }
     public TraceBuilder ct(BigInteger b) {
@@ -159,9 +131,7 @@ this.writer=writer;
         } else {
             filled.set(8);
         }
-        processBigInteger(b, writer.get("CT"), batch.computeIfAbsent("CT",
-                t -> new Delta<BigInteger>()
-        ) );
+        processBigInteger(b, writer[8], batch[8] );
         return this;
     }
     public TraceBuilder inst(BigInteger b) {
@@ -171,9 +141,7 @@ this.writer=writer;
         } else {
             filled.set(9);
         }
-        processBigInteger(b, writer.get("INST"), batch.computeIfAbsent("INST",
-                t -> new Delta<BigInteger>()
-        ) );
+        processBigInteger(b, writer[9], batch[9] );
         return this;
     }
     public TraceBuilder overflow(Boolean b) {
@@ -183,9 +151,7 @@ this.writer=writer;
         } else {
             filled.set(10);
         }
-        processBoolean(b, writer.get("OVERFLOW"), batch.computeIfAbsent("OVERFLOW",
-                t -> new Delta<Boolean>()
-        ) );
+        processBoolean(b, writer[10], batch[10] );
         return this;
     }
     public TraceBuilder resHi(BigInteger b) {
@@ -195,9 +161,7 @@ this.writer=writer;
         } else {
             filled.set(11);
         }
-        processBigInteger(b, writer.get("RES_HI"), batch.computeIfAbsent("RES_HI",
-                t -> new Delta<BigInteger>()
-        ) );
+        processBigInteger(b, writer[11], batch[11] );
         return this;
     }
     public TraceBuilder resLo(BigInteger b) {
@@ -207,9 +171,7 @@ this.writer=writer;
         } else {
             filled.set(12);
         }
-        processBigInteger(b, writer.get("RES_LO"), batch.computeIfAbsent("RES_LO",
-                t -> new Delta<BigInteger>()
-        ) );
+        processBigInteger(b, writer[12], batch[12] );
         return this;
     }
     public TraceBuilder stamp(BigInteger b) {
@@ -219,9 +181,7 @@ this.writer=writer;
         } else {
             filled.set(13);
         }
-        processBigInteger(b, writer.get("STAMP"), batch.computeIfAbsent("STAMP",
-                t -> new Delta<BigInteger>()
-        ) );
+        processBigInteger(b, writer[13], batch[13] );
         return this;
     }
 
@@ -288,16 +248,6 @@ this.writer=writer;
     }
 
 
-
-    @NotNull
-    public static byte[] getByteArray(Delta<BigInteger> delta) {
-        try {
-            return biCache.get(delta.previousValue);
-        } catch (ExecutionException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     private void processUnsignedByte(UnsignedByte b,
                                      FW writer, Delta<?>d) {
         Delta<UnsignedByte> delta = (Delta<UnsignedByte>) d;
@@ -350,7 +300,7 @@ this.writer=writer;
         } else {
             try {
 
-                byte[] bytes2 = delta.getPreviousValue().toByteArray();;
+                byte[] bytes2 = delta.getPreviousValue().toByteArray();
                 writer.writeShort((short)bytes2.length);
                 writer.write(bytes2);
                 delta.setPreviousValue(b);
@@ -361,4 +311,5 @@ this.writer=writer;
             }
         }
     }
+
 }

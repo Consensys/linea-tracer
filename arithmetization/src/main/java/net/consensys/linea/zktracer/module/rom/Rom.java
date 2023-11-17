@@ -20,8 +20,8 @@ import static net.consensys.linea.zktracer.module.rlputils.Pattern.padToGivenSiz
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.math.BigInteger;
-import java.nio.channels.FileChannel;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -79,7 +79,7 @@ public class Rom implements Module {
         return LLARGE * nbSlice + nPaddingRow;
     }
 
-    private void traceChunk(RomChunk chunk, int cfi, int cfiInfty, Map<String, FW> writer, Map<String, Delta<?>> batch) throws IOException {
+    private void traceChunk(RomChunk chunk, int cfi, int cfiInfty, List<FW> writer) throws IOException {
         final int chunkRowSize = chunkRowSize(chunk);
         final int codeSize = chunk.byteCode().size();
         final int nLimbSlice = (codeSize + (LLARGE - 1)) / LLARGE;
@@ -97,7 +97,7 @@ public class Rom implements Module {
         for (int i = 0; i < chunkRowSize; i++) {
             boolean codeSizeReached = i >= codeSize;
             int sliceNumber = i / 16;
-            TraceBuilder trace = new TraceBuilder(writer, batch);
+            TraceBuilder trace = new TraceBuilder(writer);
             // Fill Generic columns
             trace
                     .codeFragmentIndex(BigInteger.valueOf(cfi))
@@ -213,31 +213,20 @@ public class Rom implements Module {
     }
 
     @Override
-    public void commitToBuffer(Map<String, RandomAccessFile> writero) throws IOException {
+    public void commitToBuffer(List<RandomAccessFile> writero) throws IOException {
         {
 
-            var writer = writero.entrySet().stream().collect(Collectors.toMap(
-                    k->k.getKey(),
-                    k-> new FW(k.getValue())
-            ));
-            Map<String, Delta<?>> counters = new HashMap<>();
+            var writer = writero.stream().map( k-> new FW(k)).toList();
 
             int cfi = 0;
             final int cfiInfty = this.romLex.sortedChunks.size();
             for (RomChunk chunk : this.romLex.sortedChunks) {
                 cfi += 1;
-                traceChunk(chunk, cfi, cfiInfty, writer, counters);
+                traceChunk(chunk, cfi, cfiInfty, writer);
             }
 
-            counters.entrySet().forEach(c -> {
-                try {
-                    c.getValue().close(writer.get(c.getKey()));
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            });
 
-            writer.values().forEach(f -> {
+            writer.forEach(f -> {
                 try {
                     f.close();
                 } catch (Throwable e) {
@@ -245,17 +234,5 @@ public class Rom implements Module {
                 }
             });
         }
-//        VectorizedRowBatch batch = writer.getSchema().createRowBatch();
-//
-//        int cfi = 0;
-//        final int cfiInfty = this.romLex.sortedChunks.size();
-//        for (RomChunk chunk : this.romLex.sortedChunks) {
-//            cfi += 1;
-//            traceChunk(chunk, cfi, cfiInfty, writer, batch);
-//        }
-//        if (batch.size != 0) {
-//            writer.addRowBatch(batch);
-//            batch.reset();
-//        }
     }
 }

@@ -128,7 +128,7 @@ public class RollupGenerateConflatedTracesToFileV0 {
       throw new RuntimeException(
           String.format(
               "Trace directory '%s' does not exist and could not be made.",
-              tracesPath.toAbsolutePath()));
+              tracesPath.resolve("data").resolve("besu").resolve("traces").toAbsolutePath()));
     }
 
     return Paths.get(

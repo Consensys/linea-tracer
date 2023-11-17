@@ -82,10 +82,10 @@ public class LogData implements Module {
     for (RlpTxrcptChunk tx : this.rlpTxrcpt.chunkList) {
       if (!tx.logs().isEmpty()) {
         for (Log log : tx.logs()) {
+          absLogNum += 1;
           if (log.getData().isEmpty()) {
             traceLogWoData(absLogNum, absLogNumMax, trace);
           } else {
-            absLogNum += 1;
             traceLog(log, absLogNum, absLogNumMax, trace);
           }
         }

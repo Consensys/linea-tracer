@@ -90,6 +90,7 @@ public class TraceLineLimitTransactionSelector implements PluginTransactionSelec
       }
       if (lineCounts.get(module) > moduleLimits.get(module)) {
         System.out.println("Block is Full because module "+module+"("+lineCounts.get(module)+")");
+        System.out.println(pendingTransaction.getTransaction().getHash().toShortHexString());
         return TransactionSelectionResult.BLOCK_FULL;
       }
     }

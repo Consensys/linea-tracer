@@ -103,7 +103,7 @@ public class Add implements Module {
      * @return
      */
     private void traceAddOperation(
-            OpCode opCode, Bytes32 arg1, Bytes32 arg2, Map<String, DataOutputStream> writer, Map<String, Delta<?>> batch) throws IOException {
+            OpCode opCode, Bytes32 arg1, Bytes32 arg2, Map<String, FileChannel> writer, Map<String, Delta<?>> batch) throws IOException {
         this.stamp++;
         final Bytes16 arg1Hi = Bytes16.wrap(arg1.slice(0, 16));
         final Bytes32 arg1Lo = Bytes32.leftPad(arg1.slice(16));

@@ -77,7 +77,7 @@ public class Rom implements Module {
         return LLARGE * nbSlice + nPaddingRow;
     }
 
-    private void traceChunk(RomChunk chunk, int cfi, int cfiInfty, Map<String, DataOutputStream> writer, Map<String, Delta<?>> batch) throws IOException {
+    private void traceChunk(RomChunk chunk, int cfi, int cfiInfty, Map<String, FileChannel> writer, Map<String, Delta<?>> batch) throws IOException {
         final int chunkRowSize = chunkRowSize(chunk);
         final int codeSize = chunk.byteCode().size();
         final int nLimbSlice = (codeSize + (LLARGE - 1)) / LLARGE;

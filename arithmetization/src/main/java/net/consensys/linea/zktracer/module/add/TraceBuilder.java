@@ -50,9 +50,9 @@ public class TraceBuilder {
                 }
             });
     private final Map<String, Delta<?>> batch;
-    private final Map<String, DataOutputStream> writer;
+    private final Map<String, FileChannel> writer;
 
-    public TraceBuilder(Map<String, DataOutputStream> writer, Map<String, Delta<?>> batch) {
+    public TraceBuilder(Map<String, FileChannel> writer, Map<String, Delta<?>> batch) {
         this.writer = writer;
         this.batch = batch;
     }
@@ -288,41 +288,8 @@ public class TraceBuilder {
         filled.clear();
 
     }
-    private void processBigInteger(BigInteger b, FileChannel writer, Delta<?> d) {
-        Delta<BigInteger> delta = (Delta<BigInteger>) d;
-        if(delta.previousValue == null){
-            delta.initialize(b);
-        }
-        else if (delta.previousValue.equals(b)) {
-            delta.increment();
-        } else {
-            try {
-                // Convert the BigIntegers to bytes
 
-                byte[] bytes2 = getByteArray(delta);
 
-                // Create a ByteBuffer with enough capacity
-                ByteBuffer buffer = ByteBuffer.allocate(8 + 2 + bytes2.length);
-                // Put the length of each byte array as a short, followed by the bytes themselves
-                buffer.putInt(delta.seenSoFar);
-                buffer.putShort((short) bytes2.length);
-                buffer.put(bytes2);
-
-                // Encode the bytes to a Base64 string
-                writer.write(buffer);
-//
-//                writer.append(String.valueOf(delta.seenSoFar));
-//                writer.append(" ");
-//                writer.append(delta.previousValue.toString());
-//                writer.append("\n");
-                delta.previousValue = b;
-                delta.lastIndex += delta.seenSoFar;
-                delta.seenSoFar = 1;
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
 
     @NotNull
     public static byte[] getByteArray(Delta<BigInteger> delta) {
@@ -333,10 +300,8 @@ public class TraceBuilder {
         }
     }
 
-
-
     private void processUnsignedByte(UnsignedByte b,
-                                     DataOutputStream writer, Delta<?>d) {
+                                     FileChannel writer, Delta<?>d) {
         Delta<UnsignedByte> delta = (Delta<UnsignedByte>) d;
         if(delta.getPreviousValue() == null){
             delta.initialize(b);
@@ -345,9 +310,9 @@ public class TraceBuilder {
             delta.increment();
         } else {
             try {
-
-                writer.writeInt(delta.getSeenSoFar());
-                writer.writeByte(delta.getPreviousValue().toByte());
+                ByteBuffer bf = ((ByteBuffer.allocate(5).putInt(delta.getSeenSoFar())));
+                bf.put(b.toByte());
+                writer.write(bf);
                 delta.setPreviousValue(b);
                 delta.lastIndex += delta.getSeenSoFar();
                 delta.setSeenSoFar(0);
@@ -357,7 +322,7 @@ public class TraceBuilder {
         }
     }
 
-    private void processBoolean(Boolean b,  DataOutputStream writer,Delta<?>d) {
+    private void processBoolean(Boolean b,  FileChannel writer,Delta<?>d) {
         Delta<Boolean> delta = (Delta<Boolean>) d;
         if(delta.getPreviousValue() == null){
             delta.initialize(b);
@@ -366,14 +331,9 @@ public class TraceBuilder {
             delta.increment();
         } else {
             try {
-
-                writer.writeInt(delta.getSeenSoFar());
-                writer.writeBoolean(delta.getPreviousValue());
-////
-//                writer.append(Integer.toString(delta.seenSoFar));
-//                writer.append(" ");
-//                writer.append(delta.previousValue.toString());
-//                writer.append("\n");
+                ByteBuffer bf = ((ByteBuffer.allocate(5).putInt(delta.getSeenSoFar())));
+                bf.put(b?(byte)1:(byte)0);
+                writer.write(bf);
                 delta.setPreviousValue(b);
                 delta.lastIndex += delta.getSeenSoFar();
                 delta.setSeenSoFar(0);
@@ -384,7 +344,7 @@ public class TraceBuilder {
     }
 
 
-    private void processBigInteger(BigInteger b, DataOutputStream writer, Delta<?> d) {
+    private void processBigInteger(BigInteger b, FileChannel writer, Delta<?> d) {
         Delta<BigInteger> delta = (Delta<BigInteger>) d;
         if(delta.getPreviousValue() == null){
             delta.initialize(b);
@@ -395,11 +355,12 @@ public class TraceBuilder {
             try {
                 // Convert the BigIntegers to bytes
 
-                writer.writeInt(delta.getSeenSoFar());
-                byte[] bytes2 = delta.getPreviousValue().toByteArray();//getByteArray(delta);
-                writer.writeShort(bytes2.length);
-                // Put the length of each byte array as a short, followed by the bytes themselves
-                writer.write(bytes2);
+                byte[] bytes2 = getByteArray(delta);
+                ByteBuffer bf = ((ByteBuffer.allocate(6 + bytes2.length).putInt(delta.getSeenSoFar())));
+                bf.putShort((short)bytes2.length);
+                bf.put(bytes2);
+
+                writer.write(bf);
 
                 // Encode the bytes to a Base64 string
 

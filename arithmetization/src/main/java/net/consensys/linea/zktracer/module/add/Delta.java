@@ -25,12 +25,13 @@ public class Delta<T> {
 
     public void close(FileChannel writer) throws IOException {
         byte[] bytes2 = getByte(previousValue);
-        writer.(seenSoFar);
-        writer.writeShort((short) bytes2.length);
-        writer.write(bytes2);
+        ByteBuffer bf = ((ByteBuffer.allocate(6 + bytes2.length).putInt(seenSoFar)));
+        bf.putShort((short)bytes2.length);
+        bf.put(bytes2);
+        writer.write(bf);
     }
 
-    private byte[] getByte(T previousValue) {
+    public byte[] getByte(T previousValue) {
         if(previousValue instanceof BigInteger){
             return ((BigInteger)previousValue).toByteArray();
         }

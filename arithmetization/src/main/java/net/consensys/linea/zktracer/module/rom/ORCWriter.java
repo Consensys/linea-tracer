@@ -16,7 +16,7 @@
 package net.consensys.linea.zktracer.module.rom;
 
 import java.io.*;
-import java.nio.file.Paths;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 
 import java.util.HashMap;
@@ -33,7 +33,7 @@ public class ORCWriter {
 
 
 
-        public static Map<String, DataOutputStream> getWriter(String path) throws IOException {
+        public static Map<String, FileChannel> getWriter(String path) throws IOException {
 
                 List<String> files = new ArrayList<>();
 
@@ -61,10 +61,10 @@ public class ORCWriter {
                 files.add("nBYTES");
                 files.add("nBYTES_ACC");
 
-                Map<String, DataOutputStream> f = new HashMap<>();
+                Map<String, FileChannel> f = new HashMap<>();
                 for(String module: files){
-                        var fos = new DataOutputStream(new FileOutputStream(Paths.get(path+module).toFile()));
-                        f.put(module, fos);
+                        var fos =new RandomAccessFile(path+module, "rw");
+                        f.put(module, fos.getChannel());
                 }
                 return f;
 

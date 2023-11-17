@@ -15,8 +15,8 @@
 
 package net.consensys.linea.zktracer.module;
 
-import java.io.DataOutputStream;
 import java.io.IOException;
+import java.nio.channels.FileChannel;
 import java.util.List;
 import java.util.Map;
 
@@ -83,6 +83,6 @@ public interface Module {
 
   ModuleTrace commit();
 
-  default void commitToBuffer(Map<String, DataOutputStream> writer) throws IOException {
+  default void commitToBuffer(Map<String, FileChannel> writer) throws IOException {
   }
 }

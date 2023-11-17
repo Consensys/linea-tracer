@@ -23,9 +23,9 @@ public class Delta<T> {
         seenSoFar+=1;
     }
 
-    public void close(DataOutputStream writer) throws IOException {
+    public void close(FileChannel writer) throws IOException {
         byte[] bytes2 = getByte(previousValue);
-        writer.writeInt(seenSoFar);
+        writer.(seenSoFar);
         writer.writeShort((short) bytes2.length);
         writer.write(bytes2);
     }

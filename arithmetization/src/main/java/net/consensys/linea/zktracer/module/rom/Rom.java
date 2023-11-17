@@ -20,6 +20,7 @@ import static net.consensys.linea.zktracer.module.rlputils.Pattern.padToGivenSiz
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.channels.FileChannel;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -210,7 +211,7 @@ public class Rom implements Module {
     }
 
     @Override
-    public void commitToBuffer(Map<String, DataOutputStream> writer) throws IOException {
+    public void commitToBuffer(Map<String, FileChannel> writer) throws IOException {
         {
             Map<String, Delta<?>> counters = new HashMap<>();
 

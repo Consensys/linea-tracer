@@ -16,14 +16,11 @@
 package net.consensys.linea.zktracer.module.add;
 
 import java.io.DataOutputStream;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.channels.FileChannel;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import net.consensys.linea.zktracer.bytestheta.BaseBytes;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
@@ -34,8 +31,6 @@ import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.OpCodes;
 import net.consensys.linea.zktracer.types.Bytes16;
 import net.consensys.linea.zktracer.types.UnsignedByte;
-import org.apache.hadoop.hive.ql.exec.vector.VectorizedRowBatch;
-import org.apache.orc.Writer;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -179,7 +174,7 @@ public class Add implements Module {
     }
 
     @Override
-    public void commitToBuffer(Map<String, DataOutputStream> writer) throws IOException {
+    public void commitToBuffer(Map<String, FileChannel> writer) throws IOException {
        Map<String, Delta<?>>counters = new HashMap<>();
         for (AddOperation op : this.chunks) {
             this.traceAddOperation(op.opCodem(), op.arg1(), op.arg2(), writer, counters);

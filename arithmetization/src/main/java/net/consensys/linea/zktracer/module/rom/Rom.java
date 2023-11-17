@@ -20,15 +20,13 @@ import static net.consensys.linea.zktracer.module.rlputils.Pattern.padToGivenSiz
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.math.BigInteger;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import net.consensys.linea.zktracer.module.FW;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
-import net.consensys.linea.zktracer.module.add.Delta;
+import net.consensys.linea.zktracer.module.add.CompressedFileWriter;
 import net.consensys.linea.zktracer.module.romLex.RomChunk;
 import net.consensys.linea.zktracer.module.romLex.RomLex;
 import net.consensys.linea.zktracer.types.UnsignedByte;
@@ -79,7 +77,7 @@ public class Rom implements Module {
         return LLARGE * nbSlice + nPaddingRow;
     }
 
-    private void traceChunk(RomChunk chunk, int cfi, int cfiInfty, List<FW> writer) throws IOException {
+    private void traceChunk(RomChunk chunk, int cfi, int cfiInfty, CompressedFileWriter<?>[] writer) throws IOException {
         final int chunkRowSize = chunkRowSize(chunk);
         final int codeSize = chunk.byteCode().size();
         final int nLimbSlice = (codeSize + (LLARGE - 1)) / LLARGE;
@@ -213,10 +211,9 @@ public class Rom implements Module {
     }
 
     @Override
-    public void commitToBuffer(List<RandomAccessFile> writero) throws IOException {
+    public void commitToBuffer(CompressedFileWriter<?>[] writer) throws IOException {
         {
 
-            var writer = writero.stream().map( k-> new FW(k)).toList();
 
             int cfi = 0;
             final int cfiInfty = this.romLex.sortedChunks.size();
@@ -226,7 +223,7 @@ public class Rom implements Module {
             }
 
 
-            writer.forEach(f -> {
+            Arrays.stream(writer).forEach(f -> {
                 try {
                     f.close();
                 } catch (Throwable e) {

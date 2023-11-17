@@ -9,20 +9,20 @@ import java.math.BigInteger;
 
 
 @Data
-public class Delta<T> {
+public class CompressedFileWriter<T> {
     T previousValue = null;
     public int lastIndex = 0;
-
     int seenSoFar = 0;
 
+    private final FW fileWriter;
     public void increment() {
         seenSoFar+=1;
     }
 
-    public void close(FW writer) throws IOException {
+    public void close() throws IOException {
         byte[] bytes2 = getByte(previousValue);
-        writer.writeShort((short)bytes2.length);
-        writer.write(bytes2);
+        fileWriter.writeShort((short)bytes2.length);
+        fileWriter.write(bytes2);
     }
 
     public byte[] getByte(T previousValue) {
@@ -38,5 +38,21 @@ public class Delta<T> {
     public void initialize(T b) {
         previousValue = b;
         seenSoFar = 1;
+    }
+
+    public void writeInt(int seenSoFar) throws IOException {
+        fileWriter.writeInt(seenSoFar);
+    }
+
+    public void writeByte(byte aByte) throws IOException {
+        fileWriter.writeByte(aByte);
+    }
+
+    public void writeShort(short length) throws IOException {
+        fileWriter.writeShort(length);
+    }
+
+    public void write(byte[] bytes2) throws IOException {
+        fileWriter.write(bytes2);
     }
 }

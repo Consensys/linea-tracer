@@ -16,10 +16,10 @@
 package net.consensys.linea.zktracer.module;
 
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.module.add.CompressedFileWriter;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -82,6 +82,6 @@ public interface Module {
 
   ModuleTrace commit();
 
-  default void commitToBuffer(List<RandomAccessFile> writer) throws IOException {
+  default void commitToBuffer(CompressedFileWriter<?>[] writer) throws IOException {
   }
 }

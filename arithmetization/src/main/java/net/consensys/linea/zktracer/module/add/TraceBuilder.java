@@ -15,14 +15,11 @@
 
 package net.consensys.linea.zktracer.module.add;
 
-import net.consensys.linea.zktracer.module.FW;
-import net.consensys.linea.zktracer.module.add.Delta;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
 import java.math.BigInteger;
 import java.util.BitSet;
 import java.util.List;
-import java.util.Map;
 import java.io.IOException;
 import java.util.stream.IntStream;
 
@@ -34,13 +31,10 @@ import java.util.stream.IntStream;
  */
 @SuppressWarnings({"unchecked"})
 public class TraceBuilder {
-    private final Delta<?>[] batch;
-    private final FW[] writer;
+    private final CompressedFileWriter<?>[] writer;
 
-    public TraceBuilder(List<FW> writer) {
-        this.writer = writer.toArray(new FW[0]);
-        this.batch =new Delta<?>[writer.size()];
-        IntStream.range(0, writer.size()).forEach(i -> this.batch[i]=new Delta<BigInteger>());
+    public TraceBuilder(CompressedFileWriter<?>[] writer) {
+        this.writer=writer;
     }
 
     private final BitSet filled = new BitSet();
@@ -51,7 +45,7 @@ public class TraceBuilder {
         } else {
             filled.set(0);
         }
-        processBigInteger(b, writer[0], batch[0] );
+        processBigInteger(b, writer[0] );
         return this;
     }
     public TraceBuilder acc2(BigInteger b) {
@@ -61,7 +55,7 @@ public class TraceBuilder {
         } else {
             filled.set(1);
         }
-        processBigInteger(b, writer[1], batch[1] );
+        processBigInteger(b, writer[1] );
         return this;
     }
     public TraceBuilder arg1Hi(BigInteger b) {
@@ -71,7 +65,7 @@ public class TraceBuilder {
         } else {
             filled.set(2);
         }
-        processBigInteger(b, writer[2], batch[2] );
+        processBigInteger(b, writer[2] );
         return this;
     }
     public TraceBuilder arg1Lo(BigInteger b) {
@@ -81,7 +75,7 @@ public class TraceBuilder {
         } else {
             filled.set(3);
         }
-        processBigInteger(b, writer[3], batch[3] );
+        processBigInteger(b, writer[3] );
         return this;
     }
     public TraceBuilder arg2Hi(BigInteger b) {
@@ -91,7 +85,7 @@ public class TraceBuilder {
         } else {
             filled.set(4);
         }
-        processBigInteger(b, writer[4], batch[4] );
+        processBigInteger(b, writer[4] );
         return this;
     }
     public TraceBuilder arg2Lo(BigInteger b) {
@@ -101,7 +95,7 @@ public class TraceBuilder {
         } else {
             filled.set(5);
         }
-        processBigInteger(b, writer[5], batch[5] );
+        processBigInteger(b, writer[5] );
         return this;
     }
     public TraceBuilder byte1(UnsignedByte b) {
@@ -111,7 +105,7 @@ public class TraceBuilder {
         } else {
             filled.set(6);
         }
-        processUnsignedByte(b, writer[6], batch[6] );
+        processUnsignedByte(b, writer[6] );
         return this;
     }
     public TraceBuilder byte2(UnsignedByte b) {
@@ -121,7 +115,7 @@ public class TraceBuilder {
         } else {
             filled.set(7);
         }
-        processUnsignedByte(b, writer[7], batch[7] );
+        processUnsignedByte(b, writer[7] );
         return this;
     }
     public TraceBuilder ct(BigInteger b) {
@@ -131,7 +125,7 @@ public class TraceBuilder {
         } else {
             filled.set(8);
         }
-        processBigInteger(b, writer[8], batch[8] );
+        processBigInteger(b, writer[8] );
         return this;
     }
     public TraceBuilder inst(BigInteger b) {
@@ -141,7 +135,7 @@ public class TraceBuilder {
         } else {
             filled.set(9);
         }
-        processBigInteger(b, writer[9], batch[9] );
+        processBigInteger(b, writer[9] );
         return this;
     }
     public TraceBuilder overflow(Boolean b) {
@@ -151,7 +145,7 @@ public class TraceBuilder {
         } else {
             filled.set(10);
         }
-        processBoolean(b, writer[10], batch[10] );
+        processBoolean(b, writer[10] );
         return this;
     }
     public TraceBuilder resHi(BigInteger b) {
@@ -161,7 +155,7 @@ public class TraceBuilder {
         } else {
             filled.set(11);
         }
-        processBigInteger(b, writer[11], batch[11] );
+        processBigInteger(b, writer[11] );
         return this;
     }
     public TraceBuilder resLo(BigInteger b) {
@@ -171,7 +165,7 @@ public class TraceBuilder {
         } else {
             filled.set(12);
         }
-        processBigInteger(b, writer[12], batch[12] );
+        processBigInteger(b, writer[12] );
         return this;
     }
     public TraceBuilder stamp(BigInteger b) {
@@ -181,7 +175,7 @@ public class TraceBuilder {
         } else {
             filled.set(13);
         }
-        processBigInteger(b, writer[13], batch[13] );
+        processBigInteger(b, writer[13] );
         return this;
     }
 
@@ -249,40 +243,40 @@ public class TraceBuilder {
 
 
     private void processUnsignedByte(UnsignedByte b,
-                                     FW writer, Delta<?>d) {
-        Delta<UnsignedByte> delta = (Delta<UnsignedByte>) d;
-        if(delta.getPreviousValue() == null){
-            delta.initialize(b);
+                                     CompressedFileWriter<?> writer) {
+        CompressedFileWriter<UnsignedByte> compressedFileWriter = (CompressedFileWriter<UnsignedByte>) writer;
+        if(compressedFileWriter.getPreviousValue() == null){
+            compressedFileWriter.initialize(b);
         }
-        else if (delta.getPreviousValue().equals(b)) {
-            delta.increment();
+        else if (compressedFileWriter.getPreviousValue().equals(b)) {
+            compressedFileWriter.increment();
         } else {
             try {
-                writer.writeInt(delta.getSeenSoFar());
-                writer.writeByte(b.toByte());
-                delta.setPreviousValue(b);
-                delta.lastIndex += delta.getSeenSoFar();
-                delta.setSeenSoFar(0);
+                compressedFileWriter.writeInt(compressedFileWriter.getSeenSoFar());
+                compressedFileWriter.writeByte(b.toByte());
+                compressedFileWriter.setPreviousValue(b);
+                compressedFileWriter.lastIndex += compressedFileWriter.getSeenSoFar();
+                compressedFileWriter.setSeenSoFar(0);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
     }
 
-    private void processBoolean(Boolean b,  FW writer,Delta<?>d) {
-        Delta<Boolean> delta = (Delta<Boolean>) d;
-        if(delta.getPreviousValue() == null){
-            delta.initialize(b);
+    private void processBoolean(Boolean b, CompressedFileWriter<?> writer) {
+        CompressedFileWriter<Boolean> compressedFileWriter = (CompressedFileWriter<Boolean>) writer;
+        if(compressedFileWriter.getPreviousValue() == null){
+            compressedFileWriter.initialize(b);
         }
-        else if (delta.getPreviousValue().equals(b)) {
-            delta.increment();
+        else if (compressedFileWriter.getPreviousValue().equals(b)) {
+            compressedFileWriter.increment();
         } else {
             try {
-                writer.writeInt(delta.getSeenSoFar());
-                writer.writeByte(b?(byte)1:(byte)0);
-                delta.setPreviousValue(b);
-                delta.lastIndex += delta.getSeenSoFar();
-                delta.setSeenSoFar(0);
+                compressedFileWriter.writeInt(compressedFileWriter.getSeenSoFar());
+                compressedFileWriter.writeByte(b?(byte)1:(byte)0);
+                compressedFileWriter.setPreviousValue(b);
+                compressedFileWriter.lastIndex += compressedFileWriter.getSeenSoFar();
+                compressedFileWriter.setSeenSoFar(0);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -290,22 +284,22 @@ public class TraceBuilder {
     }
 
 
-    private void processBigInteger(BigInteger b, FW writer, Delta<?> d) {
-        Delta<BigInteger> delta = (Delta<BigInteger>) d;
-        if(delta.getPreviousValue() == null){
-            delta.initialize(b);
+    private void processBigInteger(BigInteger b, CompressedFileWriter<?> writer) {
+        CompressedFileWriter<BigInteger> compressedFileWriter = (CompressedFileWriter<BigInteger>) writer;
+        if(compressedFileWriter.getPreviousValue() == null){
+            compressedFileWriter.initialize(b);
         }
-        else if (delta.getPreviousValue().equals(b)) {
-            delta.increment();
+        else if (compressedFileWriter.getPreviousValue().equals(b)) {
+            compressedFileWriter.increment();
         } else {
             try {
 
-                byte[] bytes2 = delta.getPreviousValue().toByteArray();
-                writer.writeShort((short)bytes2.length);
-                writer.write(bytes2);
-                delta.setPreviousValue(b);
-                delta.lastIndex += delta.getSeenSoFar();
-                delta.setSeenSoFar(1);
+                byte[] bytes2 = compressedFileWriter.getPreviousValue().toByteArray();
+                compressedFileWriter.writeShort((short)bytes2.length);
+                compressedFileWriter.write(bytes2);
+                compressedFileWriter.setPreviousValue(b);
+                compressedFileWriter.lastIndex += compressedFileWriter.getSeenSoFar();
+                compressedFileWriter.setSeenSoFar(1);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

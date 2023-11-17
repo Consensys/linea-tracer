@@ -16,13 +16,12 @@
 package net.consensys.linea.zktracer.module.ext;
 
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.math.BigInteger;
-import java.util.List;
 
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
+import net.consensys.linea.zktracer.module.add.CompressedFileWriter;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.OpCodes;
 import net.consensys.linea.zktracer.types.UnsignedByte;
@@ -211,7 +210,7 @@ public class Ext implements Module {
 
 
   @Override
-  public void commitToBuffer(List<RandomAccessFile> writer) throws IOException {
+  public void commitToBuffer(CompressedFileWriter<?>[] writer) throws IOException {
 //    VectorizedRowBatch batch = writer.getSchema().createRowBatch();
 //
 //    for (ExtOperation operation : this.operations) {

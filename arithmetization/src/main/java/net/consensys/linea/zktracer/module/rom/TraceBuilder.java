@@ -15,16 +15,12 @@
 
 package net.consensys.linea.zktracer.module.rom;
 
-import net.consensys.linea.zktracer.module.FW;
-import net.consensys.linea.zktracer.module.add.Delta;
+import net.consensys.linea.zktracer.module.add.CompressedFileWriter;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
 import java.math.BigInteger;
 import java.util.BitSet;
-import java.util.List;
-import java.util.Map;
 import java.io.IOException;
-import java.util.stream.IntStream;
 
 
 /**
@@ -34,13 +30,10 @@ import java.util.stream.IntStream;
  */
 @SuppressWarnings({"unchecked"})
 public class TraceBuilder {
-    private final Delta<?>[] batch;
-    private final FW[] writer;
+    private final CompressedFileWriter<?>[] writer;
 
-    public TraceBuilder(List<FW> writer) {
-        this.writer = writer.toArray(new FW[0]);
-        this.batch =new Delta<?>[writer.size()];
-        IntStream.range(0, writer.size()).forEach(i -> this.batch[i]=new Delta<BigInteger>());
+    public TraceBuilder(CompressedFileWriter<?>[] writer) {
+        this.writer=writer;
     }
 
     private final BitSet filled = new BitSet();
@@ -51,7 +44,7 @@ public class TraceBuilder {
         } else {
             filled.set(0);
         }
-        processBigInteger(b, writer[0], batch[0] );
+        processBigInteger(b, writer[0] );
         return this;
     }
     public TraceBuilder codeFragmentIndex(BigInteger b) {
@@ -61,7 +54,7 @@ public class TraceBuilder {
         } else {
             filled.set(2);
         }
-        processBigInteger(b, writer[2], batch[2] );
+        processBigInteger(b, writer[2] );
         return this;
     }
     public TraceBuilder codeFragmentIndexInfty(BigInteger b) {
@@ -71,7 +64,7 @@ public class TraceBuilder {
         } else {
             filled.set(3);
         }
-        processBigInteger(b, writer[3], batch[3] );
+        processBigInteger(b, writer[3] );
         return this;
     }
     public TraceBuilder codeSize(BigInteger b) {
@@ -81,7 +74,7 @@ public class TraceBuilder {
         } else {
             filled.set(4);
         }
-        processBigInteger(b, writer[4], batch[4] );
+        processBigInteger(b, writer[4] );
         return this;
     }
     public TraceBuilder codesizeReached(Boolean b) {
@@ -91,7 +84,7 @@ public class TraceBuilder {
         } else {
             filled.set(1);
         }
-        processBoolean(b, writer[1], batch[1] );
+        processBoolean(b, writer[1] );
         return this;
     }
     public TraceBuilder counter(BigInteger b) {
@@ -101,7 +94,7 @@ public class TraceBuilder {
         } else {
             filled.set(5);
         }
-        processBigInteger(b, writer[5], batch[5] );
+        processBigInteger(b, writer[5] );
         return this;
     }
     public TraceBuilder counterMax(BigInteger b) {
@@ -111,7 +104,7 @@ public class TraceBuilder {
         } else {
             filled.set(6);
         }
-        processBigInteger(b, writer[6], batch[6] );
+        processBigInteger(b, writer[6] );
         return this;
     }
     public TraceBuilder counterPush(BigInteger b) {
@@ -121,7 +114,7 @@ public class TraceBuilder {
         } else {
             filled.set(7);
         }
-        processBigInteger(b, writer[7], batch[7] );
+        processBigInteger(b, writer[7] );
         return this;
     }
     public TraceBuilder index(BigInteger b) {
@@ -131,7 +124,7 @@ public class TraceBuilder {
         } else {
             filled.set(8);
         }
-        processBigInteger(b, writer[8], batch[8] );
+        processBigInteger(b, writer[8] );
         return this;
     }
     public TraceBuilder isPush(Boolean b) {
@@ -141,7 +134,7 @@ public class TraceBuilder {
         } else {
             filled.set(9);
         }
-        processBoolean(b, writer[9], batch[9] );
+        processBoolean(b, writer[9] );
         return this;
     }
     public TraceBuilder isPushData(Boolean b) {
@@ -151,7 +144,7 @@ public class TraceBuilder {
         } else {
             filled.set(10);
         }
-        processBoolean(b, writer[10], batch[10] );
+        processBoolean(b, writer[10] );
         return this;
     }
     public TraceBuilder limb(BigInteger b) {
@@ -161,7 +154,7 @@ public class TraceBuilder {
         } else {
             filled.set(11);
         }
-        processBigInteger(b, writer[11], batch[11] );
+        processBigInteger(b, writer[11] );
         return this;
     }
     public TraceBuilder nBytes(BigInteger b) {
@@ -171,7 +164,7 @@ public class TraceBuilder {
         } else {
             filled.set(21);
         }
-        processBigInteger(b, writer[21], batch[21] );
+        processBigInteger(b, writer[21] );
         return this;
     }
     public TraceBuilder nBytesAcc(BigInteger b) {
@@ -181,7 +174,7 @@ public class TraceBuilder {
         } else {
             filled.set(22);
         }
-        processBigInteger(b, writer[22], batch[22] );
+        processBigInteger(b, writer[22] );
         return this;
     }
     public TraceBuilder opcode(UnsignedByte b) {
@@ -191,7 +184,7 @@ public class TraceBuilder {
         } else {
             filled.set(12);
         }
-        processUnsignedByte(b, writer[12], batch[12] );
+        processUnsignedByte(b, writer[12] );
         return this;
     }
     public TraceBuilder paddedBytecodeByte(UnsignedByte b) {
@@ -201,7 +194,7 @@ public class TraceBuilder {
         } else {
             filled.set(13);
         }
-        processUnsignedByte(b, writer[13], batch[13] );
+        processUnsignedByte(b, writer[13] );
         return this;
     }
     public TraceBuilder programmeCounter(BigInteger b) {
@@ -211,7 +204,7 @@ public class TraceBuilder {
         } else {
             filled.set(14);
         }
-        processBigInteger(b, writer[14], batch[14] );
+        processBigInteger(b, writer[14] );
         return this;
     }
     public TraceBuilder pushFunnelBit(Boolean b) {
@@ -221,7 +214,7 @@ public class TraceBuilder {
         } else {
             filled.set(15);
         }
-        processBoolean(b, writer[15], batch[15] );
+        processBoolean(b, writer[15] );
         return this;
     }
     public TraceBuilder pushParameter(BigInteger b) {
@@ -231,7 +224,7 @@ public class TraceBuilder {
         } else {
             filled.set(16);
         }
-        processBigInteger(b, writer[16], batch[16] );
+        processBigInteger(b, writer[16] );
         return this;
     }
     public TraceBuilder pushValueAcc(BigInteger b) {
@@ -241,7 +234,7 @@ public class TraceBuilder {
         } else {
             filled.set(17);
         }
-        processBigInteger(b, writer[17], batch[17] );
+        processBigInteger(b, writer[17] );
         return this;
     }
     public TraceBuilder pushValueHigh(BigInteger b) {
@@ -251,7 +244,7 @@ public class TraceBuilder {
         } else {
             filled.set(18);
         }
-        processBigInteger(b, writer[18], batch[18] );
+        processBigInteger(b, writer[18] );
         return this;
     }
     public TraceBuilder pushValueLow(BigInteger b) {
@@ -261,7 +254,7 @@ public class TraceBuilder {
         } else {
             filled.set(19);
         }
-        processBigInteger(b, writer[19], batch[19] );
+        processBigInteger(b, writer[19] );
         return this;
     }
     public TraceBuilder validJumpDestination(Boolean b) {
@@ -271,7 +264,7 @@ public class TraceBuilder {
         } else {
             filled.set(20);
         }
-        processBoolean(b, writer[20], batch[20] );
+        processBoolean(b, writer[20] );
         return this;
     }
 
@@ -375,40 +368,40 @@ public class TraceBuilder {
 
 
     private void processUnsignedByte(UnsignedByte b,
-                                     FW writer, Delta<?>d) {
-        Delta<UnsignedByte> delta = (Delta<UnsignedByte>) d;
-        if(delta.getPreviousValue() == null){
-            delta.initialize(b);
+                                     CompressedFileWriter<?> writer) {
+        CompressedFileWriter<UnsignedByte> compressedFileWriter = (CompressedFileWriter<UnsignedByte>) writer;
+        if(compressedFileWriter.getPreviousValue() == null){
+            compressedFileWriter.initialize(b);
         }
-        else if (delta.getPreviousValue().equals(b)) {
-            delta.increment();
+        else if (compressedFileWriter.getPreviousValue().equals(b)) {
+            compressedFileWriter.increment();
         } else {
             try {
-                writer.writeInt(delta.getSeenSoFar());
-                writer.writeByte(b.toByte());
-                delta.setPreviousValue(b);
-                delta.lastIndex += delta.getSeenSoFar();
-                delta.setSeenSoFar(0);
+                compressedFileWriter.writeInt(compressedFileWriter.getSeenSoFar());
+                compressedFileWriter.writeByte(b.toByte());
+                compressedFileWriter.setPreviousValue(b);
+                compressedFileWriter.lastIndex += compressedFileWriter.getSeenSoFar();
+                compressedFileWriter.setSeenSoFar(0);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
     }
 
-    private void processBoolean(Boolean b,  FW writer,Delta<?>d) {
-        Delta<Boolean> delta = (Delta<Boolean>) d;
-        if(delta.getPreviousValue() == null){
-            delta.initialize(b);
+    private void processBoolean(Boolean b, CompressedFileWriter<?> writer) {
+        CompressedFileWriter<Boolean> compressedFileWriter = (CompressedFileWriter<Boolean>) writer;
+        if(compressedFileWriter.getPreviousValue() == null){
+            compressedFileWriter.initialize(b);
         }
-        else if (delta.getPreviousValue().equals(b)) {
-            delta.increment();
+        else if (compressedFileWriter.getPreviousValue().equals(b)) {
+            compressedFileWriter.increment();
         } else {
             try {
-                writer.writeInt(delta.getSeenSoFar());
-                writer.writeByte(b?(byte)1:(byte)0);
-                delta.setPreviousValue(b);
-                delta.lastIndex += delta.getSeenSoFar();
-                delta.setSeenSoFar(0);
+                compressedFileWriter.writeInt(compressedFileWriter.getSeenSoFar());
+                compressedFileWriter.writeByte(b?(byte)1:(byte)0);
+                compressedFileWriter.setPreviousValue(b);
+                compressedFileWriter.lastIndex += compressedFileWriter.getSeenSoFar();
+                compressedFileWriter.setSeenSoFar(0);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -416,22 +409,22 @@ public class TraceBuilder {
     }
 
 
-    private void processBigInteger(BigInteger b, FW writer, Delta<?> d) {
-        Delta<BigInteger> delta = (Delta<BigInteger>) d;
-        if(delta.getPreviousValue() == null){
-            delta.initialize(b);
+    private void processBigInteger(BigInteger b, CompressedFileWriter<?> writer) {
+        CompressedFileWriter<BigInteger> compressedFileWriter = (CompressedFileWriter<BigInteger>) writer;
+        if(compressedFileWriter.getPreviousValue() == null){
+            compressedFileWriter.initialize(b);
         }
-        else if (delta.getPreviousValue().equals(b)) {
-            delta.increment();
+        else if (compressedFileWriter.getPreviousValue().equals(b)) {
+            compressedFileWriter.increment();
         } else {
             try {
 
-                byte[] bytes2 = delta.getPreviousValue().toByteArray();
-                writer.writeShort((short)bytes2.length);
-                writer.write(bytes2);
-                delta.setPreviousValue(b);
-                delta.lastIndex += delta.getSeenSoFar();
-                delta.setSeenSoFar(1);
+                byte[] bytes2 = compressedFileWriter.getPreviousValue().toByteArray();
+                compressedFileWriter.writeShort((short)bytes2.length);
+                compressedFileWriter.write(bytes2);
+                compressedFileWriter.setPreviousValue(b);
+                compressedFileWriter.lastIndex += compressedFileWriter.getSeenSoFar();
+                compressedFileWriter.setSeenSoFar(1);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

@@ -14,13 +14,11 @@
  */
 
 package net.consensys.linea.zktracer.module.rom;
+import net.consensys.linea.zktracer.module.FW;
+import net.consensys.linea.zktracer.module.add.CompressedFileWriter;
 
-import java.io.*;
-import java.util.ArrayList;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.RandomAccessFile;
+import java.io.IOException;
 
 /**
  * WARNING: This code is generated automatically.
@@ -30,46 +28,36 @@ import java.util.Map;
 public class ORCWriter {
 
 
+        public static CompressedFileWriter<?>[] getWriter(String path) throws IOException {
 
+                CompressedFileWriter<?>[] res = new CompressedFileWriter<?>[]{
+                        new CompressedFileWriter<>(new FW(new RandomAccessFile(path + "ACC", "rw"))),
+                        new CompressedFileWriter<>(new FW(new RandomAccessFile(path + "CODESIZE_REACHED", "rw"))),
+                        new CompressedFileWriter<>(new FW(new RandomAccessFile(path + "CODE_FRAGMENT_INDEX", "rw"))),
+                        new CompressedFileWriter<>(new FW(new RandomAccessFile(path + "CODE_FRAGMENT_INDEX_INFTY", "rw"))),
+                        new CompressedFileWriter<>(new FW(new RandomAccessFile(path + "CODE_SIZE", "rw"))),
+                        new CompressedFileWriter<>(new FW(new RandomAccessFile(path + "COUNTER", "rw"))),
+                        new CompressedFileWriter<>(new FW(new RandomAccessFile(path + "COUNTER_MAX", "rw"))),
+                        new CompressedFileWriter<>(new FW(new RandomAccessFile(path + "COUNTER_PUSH", "rw"))),
+                        new CompressedFileWriter<>(new FW(new RandomAccessFile(path + "INDEX", "rw"))),
+                        new CompressedFileWriter<>(new FW(new RandomAccessFile(path + "IS_PUSH", "rw"))),
+                        new CompressedFileWriter<>(new FW(new RandomAccessFile(path + "IS_PUSH_DATA", "rw"))),
+                        new CompressedFileWriter<>(new FW(new RandomAccessFile(path + "LIMB", "rw"))),
+                        new CompressedFileWriter<>(new FW(new RandomAccessFile(path + "OPCODE", "rw"))),
+                        new CompressedFileWriter<>(new FW(new RandomAccessFile(path + "PADDED_BYTECODE_BYTE", "rw"))),
+                        new CompressedFileWriter<>(new FW(new RandomAccessFile(path + "PROGRAMME_COUNTER", "rw"))),
+                        new CompressedFileWriter<>(new FW(new RandomAccessFile(path + "PUSH_FUNNEL_BIT", "rw"))),
+                        new CompressedFileWriter<>(new FW(new RandomAccessFile(path + "PUSH_PARAMETER", "rw"))),
+                        new CompressedFileWriter<>(new FW(new RandomAccessFile(path + "PUSH_VALUE_ACC", "rw"))),
+                        new CompressedFileWriter<>(new FW(new RandomAccessFile(path + "PUSH_VALUE_HIGH", "rw"))),
+                        new CompressedFileWriter<>(new FW(new RandomAccessFile(path + "PUSH_VALUE_LOW", "rw"))),
+                        new CompressedFileWriter<>(new FW(new RandomAccessFile(path + "VALID_JUMP_DESTINATION", "rw"))),
+                        new CompressedFileWriter<>(new FW(new RandomAccessFile(path + "nBYTES", "rw"))),
+                        new CompressedFileWriter<>(new FW(new RandomAccessFile(path + "nBYTES_ACC", "rw")))};
 
-        public static List<RandomAccessFile> getWriter(String path) throws IOException {
-
-                List<String> files = new ArrayList<>();
-
-                files.add("ACC");
-                files.add("CODESIZE_REACHED");
-                files.add("CODE_FRAGMENT_INDEX");
-                files.add("CODE_FRAGMENT_INDEX_INFTY");
-                files.add("CODE_SIZE");
-                files.add("COUNTER");
-                files.add("COUNTER_MAX");
-                files.add("COUNTER_PUSH");
-                files.add("INDEX");
-                files.add("IS_PUSH");
-                files.add("IS_PUSH_DATA");
-                files.add("LIMB");
-                files.add("OPCODE");
-                files.add("PADDED_BYTECODE_BYTE");
-                files.add("PROGRAMME_COUNTER");
-                files.add("PUSH_FUNNEL_BIT");
-                files.add("PUSH_PARAMETER");
-                files.add("PUSH_VALUE_ACC");
-                files.add("PUSH_VALUE_HIGH");
-                files.add("PUSH_VALUE_LOW");
-                files.add("VALID_JUMP_DESTINATION");
-                files.add("nBYTES");
-                files.add("nBYTES_ACC");
-
-                List<RandomAccessFile> f = new ArrayList<>();
-                for(String module: files){
-                        var fos = new RandomAccessFile(path+module, "rw");
-                        f.add( fos);
-                }
-                return f;
-
+                return res;
         }
-
-}
+        }
 
 
 

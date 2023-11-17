@@ -16,14 +16,9 @@
 package net.consensys.linea.zktracer.module.add;
 
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.math.BigInteger;
-import java.nio.channels.FileChannel;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import net.consensys.linea.zktracer.bytestheta.BaseBytes;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
@@ -106,7 +101,7 @@ public class Add implements Module {
      * @return
      */
     private void traceAddOperation(
-            OpCode opCode, Bytes32 arg1, Bytes32 arg2, List<FW> writer) throws IOException {
+            OpCode opCode, Bytes32 arg1, Bytes32 arg2,CompressedFileWriter<?>[] writer) throws IOException {
         this.stamp++;
         final Bytes16 arg1Hi = Bytes16.wrap(arg1.slice(0, 16));
         final Bytes32 arg1Lo = Bytes32.leftPad(arg1.slice(16));
@@ -177,9 +172,8 @@ public class Add implements Module {
     }
 
     @Override
-    public void commitToBuffer(List<RandomAccessFile> writero) throws IOException {
+    public void commitToBuffer(CompressedFileWriter<?>[] writer) throws IOException {
 
-        var writer = writero.stream().map(k-> new FW(k)).toList();
 
         for (AddOperation op : this.chunks) {
             this.traceAddOperation(op.opCodem(), op.arg1(), op.arg2(), writer);
@@ -193,10 +187,10 @@ public class Add implements Module {
 //            }
 //        });
 
-        writer.forEach(f -> {
+        Arrays.stream(writer).forEach(f -> {
             try {
                 f.close();
-            } catch (Throwable e) {
+            } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         });

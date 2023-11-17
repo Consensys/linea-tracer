@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer;
 
 import java.io.*;
 import java.nio.channels.FileChannel;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -25,6 +26,7 @@ import com.google.common.base.Stopwatch;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.module.add.CompressedFileWriter;
 import net.consensys.linea.zktracer.module.add.ORCWriter;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCodes;
@@ -110,9 +112,9 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
             Stopwatch sw = Stopwatch.createStarted();
             switch (m.jsonKey().toUpperCase()) {
                 case "ADD" -> {
-                    List<RandomAccessFile> writer = ORCWriter.getWriter(filename);
+                    CompressedFileWriter<?>[] writer = ORCWriter.getWriter(filename);
                     m.commitToBuffer(writer);
-                    writer.forEach(w -> {
+                    Arrays.stream(writer).forEach(w -> {
                         try {
                             w.close();
                         } catch (IOException e) {
@@ -123,9 +125,9 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
                     log.warn("[TRACING] done for {}, it took {}", m.jsonKey(), sw.elapsed(TimeUnit.MILLISECONDS));
                 }
                 case "ROM" -> {
-                    List<RandomAccessFile> writer = net.consensys.linea.zktracer.module.rom.ORCWriter.getWriter(filename);
+                    CompressedFileWriter<?>[] writer = net.consensys.linea.zktracer.module.rom.ORCWriter.getWriter(filename);
                     m.commitToBuffer(writer);
-                    writer.forEach(w -> {
+                    Arrays.stream(writer).forEach(w -> {
                         try {
                             w.close();
                         } catch (IOException e) {

@@ -1,5 +1,5 @@
 /*
- * Copyright ConsenSys AG.
+ * Copyright ConsenSys Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -113,6 +113,23 @@ public record Trace(
       this.resHi = buffers.get(11);
       this.resLo = buffers.get(12);
       this.stamp = buffers.get(13);
+    }
+
+    public void releaseBuffers() {
+      this.acc1 = null;
+      this.acc2 = null;
+      this.arg1Hi = null;
+      this.arg1Lo = null;
+      this.arg2Hi = null;
+      this.arg2Lo = null;
+      this.byte1 = null;
+      this.byte2 = null;
+      this.ct = null;
+      this.inst = null;
+      this.overflow = null;
+      this.resHi = null;
+      this.resLo = null;
+      this.stamp = null;
     }
 
     public TraceBuilder acc1(final BigInteger b) {

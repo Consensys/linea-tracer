@@ -219,5 +219,6 @@ public class Rom implements Module {
       cfi += 1;
       traceChunk(chunk, cfi, cfiInfty, trace);
     }
+    trace.releaseBuffers();
   }
 }

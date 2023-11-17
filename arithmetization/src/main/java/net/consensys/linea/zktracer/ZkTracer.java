@@ -25,8 +25,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.base.Stopwatch;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCodes;
@@ -44,6 +46,7 @@ import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
+@Slf4j
 @RequiredArgsConstructor
 public class ZkTracer implements ZkBlockAwareOperationTracer {
   /** The {@link GasCalculator} used in this version of the arithmetization */
@@ -69,6 +72,9 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
 
   @Override
   public void writeToFile(final Path filename) {
+    log.warn("Starting serialization to " + filename.toString());
+    Stopwatch sw = Stopwatch.createStarted();
+
     final List<Module> modules = this.hub.getModulesToTrace();
     final List<ColumnHeader> traceMap =
         modules.stream().flatMap(m -> m.columnsHeaders().stream()).toList();
@@ -87,7 +93,6 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
         header.put((byte) h.bytesPerElement());
         header.putInt(h.length());
       }
-
       int offset = headerSize;
       for (Module m : modules) {
         List<MappedByteBuffer> buffers = new ArrayList<>();
@@ -101,6 +106,7 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+    log.warn("Done in " + sw);
   }
 
   @Override

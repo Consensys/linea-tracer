@@ -180,6 +180,7 @@ public class Add implements Module {
     for (AddOperation op : this.chunks) {
       this.traceAddOperation(op.opCodem(), op.arg1(), op.arg2(), trace);
     }
+    trace.releaseBuffers();
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright ConsenSys AG.
+ * Copyright ConsenSys Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -149,6 +149,32 @@ public record Trace(
       this.pushValueHigh = buffers.get(20);
       this.pushValueLow = buffers.get(21);
       this.validJumpDestination = buffers.get(22);
+    }
+
+    public void releaseBuffers() {
+      this.acc = null;
+      this.codeFragmentIndex = null;
+      this.codeFragmentIndexInfty = null;
+      this.codeSize = null;
+      this.codesizeReached = null;
+      this.counter = null;
+      this.counterMax = null;
+      this.counterPush = null;
+      this.index = null;
+      this.isPush = null;
+      this.isPushData = null;
+      this.limb = null;
+      this.nBytes = null;
+      this.nBytesAcc = null;
+      this.opcode = null;
+      this.paddedBytecodeByte = null;
+      this.programmeCounter = null;
+      this.pushFunnelBit = null;
+      this.pushParameter = null;
+      this.pushValueAcc = null;
+      this.pushValueHigh = null;
+      this.pushValueLow = null;
+      this.validJumpDestination = null;
     }
 
     public TraceBuilder acc(final BigInteger b) {

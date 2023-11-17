@@ -89,7 +89,7 @@ public class TraceLineLimitTransactionSelector implements PluginTransactionSelec
         System.out.println("Module " + module + " : "+ moduleLimits.get(module));
       }
       if (lineCounts.get(module) > moduleLimits.get(module)) {
-        System.out.println("Block is Full because module "+module+"("+moduleLimits.get(module)+")");
+        System.out.println("Block is Full because module "+module+"("+lineCounts.get(module)+")");
         return TransactionSelectionResult.BLOCK_FULL;
       }
     }

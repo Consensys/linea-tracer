@@ -14,7 +14,7 @@ import java.nio.channels.FileChannel;
 @Slf4j
 public class FW {
 
-    private static final int CHUNK = 30_000_000;
+    private static final int CHUNK = 300_000_000;
     private MappedByteBuffer channel;
     private final RandomAccessFile value;
     int currentSize;

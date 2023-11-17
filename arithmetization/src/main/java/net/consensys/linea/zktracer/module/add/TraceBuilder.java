@@ -350,7 +350,7 @@ this.writer=writer;
         } else {
             try {
 
-                byte[] bytes2 = getByteArray(delta);
+                byte[] bytes2 = delta.getPreviousValue().toByteArray();;
                 writer.writeShort((short)bytes2.length);
                 writer.write(bytes2);
                 delta.setPreviousValue(b);

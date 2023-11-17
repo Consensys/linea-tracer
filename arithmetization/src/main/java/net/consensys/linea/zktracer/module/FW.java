@@ -34,7 +34,7 @@ public class FW {
         int prevpos = pos;
         pos+=2;
         if(pos>currentSize){
-            log.warn("BLA");
+            log.warn("[TRACING] BLA");
             currentSize+=CHUNK;
             this.channel = value.getChannel().map(FileChannel.MapMode.READ_WRITE,prevpos, currentSize);
         }

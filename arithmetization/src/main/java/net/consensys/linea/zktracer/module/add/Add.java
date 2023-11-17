@@ -197,7 +197,7 @@ public class Add implements Module {
         writer.values().forEach(f -> {
             try {
                 f.close();
-            } catch (IOException e) {
+            } catch (Throwable e) {
                 throw new RuntimeException(e);
             }
         });

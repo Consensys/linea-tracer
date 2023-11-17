@@ -4,6 +4,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
@@ -71,7 +75,14 @@ public class FW {
         return value;
     }
 
-    public void close() throws IOException {
+    public void close() throws IOException, ClassNotFoundException, NoSuchFieldException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+        channel.force();
+        Class<?> unsafeClass = Class.forName("sun.misc.Unsafe");
+        Field unsafeField = unsafeClass.getDeclaredField("theUnsafe");
+        unsafeField.setAccessible(true);
+        Object unsafe = unsafeField.get(null);
+        Method invokeCleaner = unsafeClass.getMethod("invokeCleaner", ByteBuffer.class);
+        invokeCleaner.invoke(unsafe, channel);
         value.setLength(pos);
     }
 }

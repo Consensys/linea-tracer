@@ -103,16 +103,14 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
     }
 
     @SuppressWarnings({"deprecation", "unchecked"})
-    public void writeToFile(String filename) throws IOException {
-        log.warn("[TRACING] starting trace to file");
+    public void writeToFile(Path path, String filename) throws IOException {
+        log.warn("[TRACING] starting trace to path {} using pattern {}", path, filename);
 
-//      int i = (int)headerSize;
         for (Module m : this.hub.getModulesToTrace()) {
-
             Stopwatch sw = Stopwatch.createStarted();
             switch (m.jsonKey().toUpperCase()) {
                 case "ADD" -> {
-                    CompressedFileWriter<?>[] writer = ORCWriter.getWriter(filename);
+                    CompressedFileWriter<?>[] writer = ORCWriter.getWriter(path.resolve("ADD"), filename);
                     m.commitToBuffer(writer);
                     Arrays.stream(writer).forEach(w -> {
                         try {
@@ -122,7 +120,6 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
                         }
                     });
 
-                    log.warn("[TRACING] done for {}, it took {}", m.jsonKey(), sw.elapsed(TimeUnit.MILLISECONDS));
                 }
                 case "ROM" -> {
                     CompressedFileWriter<?>[] writer = net.consensys.linea.zktracer.module.rom.ORCWriter.getWriter(filename);
@@ -174,6 +171,7 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
                 default -> {
                 }
             }
+            log.warn("[TRACING] done for {}, it took {}", m.jsonKey(), sw.elapsed(TimeUnit.MILLISECONDS));
         }
     }
 

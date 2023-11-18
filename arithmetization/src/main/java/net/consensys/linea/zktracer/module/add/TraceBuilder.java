@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.module.add;
 
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
+import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.util.BitSet;
 import java.util.List;
@@ -30,7 +31,7 @@ import java.util.stream.IntStream;
  * Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
 @SuppressWarnings({"unchecked"})
-public class TraceBuilder {
+public class TraceBuilder extends AbstractTraceBuilder {
     private final CompressedFileWriter<?>[] writer;
 
     public TraceBuilder(CompressedFileWriter<?>[] writer) {
@@ -240,8 +241,7 @@ public class TraceBuilder {
         filled.clear();
 
     }
-
-
+}
     private void processUnsignedByte(UnsignedByte b,
                                      CompressedFileWriter<?> writer) {
         CompressedFileWriter<UnsignedByte> compressedFileWriter = (CompressedFileWriter<UnsignedByte>) writer;
@@ -251,35 +251,19 @@ public class TraceBuilder {
         else if (compressedFileWriter.getPreviousValue().equals(b)) {
             compressedFileWriter.increment();
         } else {
-            try {
-                compressedFileWriter.writeInt(compressedFileWriter.getSeenSoFar());
-                compressedFileWriter.writeByte(b.toByte());
-                compressedFileWriter.setPreviousValue(b);
-                compressedFileWriter.lastIndex += compressedFileWriter.getSeenSoFar();
-                compressedFileWriter.setSeenSoFar(0);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            compressedFileWriter.addUnsignedByte(b);
         }
     }
 
     private void processBoolean(Boolean b, CompressedFileWriter<?> writer) {
-        CompressedFileWriter<Boolean> compressedFileWriter = (CompressedFileWriter<Boolean>) writer;
+        BooleanCompressedFileWriter compressedFileWriter = (BooleanCompressedFileWriter) writer;
         if(compressedFileWriter.getPreviousValue() == null){
             compressedFileWriter.initialize(b);
         }
         else if (compressedFileWriter.getPreviousValue().equals(b)) {
             compressedFileWriter.increment();
         } else {
-            try {
-                compressedFileWriter.writeInt(compressedFileWriter.getSeenSoFar());
-                compressedFileWriter.writeByte(b?(byte)1:(byte)0);
-                compressedFileWriter.setPreviousValue(b);
-                compressedFileWriter.lastIndex += compressedFileWriter.getSeenSoFar();
-                compressedFileWriter.setSeenSoFar(0);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            compressedFileWriter.addBoolean(b)
         }
     }
 
@@ -292,18 +276,6 @@ public class TraceBuilder {
         else if (compressedFileWriter.getPreviousValue().equals(b)) {
             compressedFileWriter.increment();
         } else {
-            try {
-
-                byte[] bytes2 = compressedFileWriter.getPreviousValue().toByteArray();
-                compressedFileWriter.writeShort((short)bytes2.length);
-                compressedFileWriter.write(bytes2);
-                compressedFileWriter.setPreviousValue(b);
-                compressedFileWriter.lastIndex += compressedFileWriter.getSeenSoFar();
-                compressedFileWriter.setSeenSoFar(1);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            compressedFileWriter.addBigInteger(b);
         }
     }
-
-}

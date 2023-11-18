@@ -14,7 +14,7 @@ package net.consensys.linea.zktracer.module.add;
         public class ORCWriter {
 
 
-        public static CompressedFileWriter<?>[] getWriter(String path) throws IOException {
+        public static CompressedFileWriter<?>[] getWriter(Path folder, String pattern) throws IOException {
 
         CompressedFileWriter<?>[] res = new CompressedFileWriter<?>[]{
         new CompressedFileWriter<>(new FW(new RandomAccessFile(path + "ACC_1", "rw"))),

@@ -14,75 +14,80 @@ import java.nio.channels.FileChannel;
 @Slf4j
 public class FW {
 
-    private static final int CHUNK = 300_000_000;
-    private MappedByteBuffer channel;
-    private final RandomAccessFile value;
-    int currentSize;
-    int pos = 0;
-    public FW(RandomAccessFile value) {
-        this.value=value;
-        currentSize = CHUNK;
+  private final int chunkSize;
+  private MappedByteBuffer channel;
+  private final RandomAccessFile value;
+  int currentSize;
+  int pos = 0;
 
-        try {
-           this.channel = value.getChannel().map(FileChannel.MapMode.READ_WRITE,pos, currentSize);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+  public FW(RandomAccessFile value) {
+    this(value, 100_000_000);
+  }
 
-    public void writeShort(short length) throws IOException {
-        int prevpos = pos;
-        pos+=2;
-        if(pos>currentSize){
-            log.warn("[TRACING] Expanding file");
-            currentSize+=CHUNK;
-            this.channel = value.getChannel().map(FileChannel.MapMode.READ_WRITE,prevpos, currentSize);
-        }
-        channel.putShort(length);
-    }
+  public FW(RandomAccessFile value, int chunkSize) {
+    this.value = value;
+    currentSize = chunkSize;
 
-    public void write(byte[] bytes2) throws IOException {
-        int prevpos = pos;
-        pos+=bytes2.length;
-        if(pos>currentSize){
-            currentSize+=CHUNK;
-            this.channel = value.getChannel().map(FileChannel.MapMode.READ_WRITE,prevpos, currentSize);
-        }
-        channel.put(bytes2);
+    try {
+      this.channel = value.getChannel().map(FileChannel.MapMode.READ_WRITE, pos, currentSize);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
+  }
 
-    public void writeInt(int seenSoFar) throws IOException {
-        int prevpos = pos;
-        pos+=4;
-        if(pos>currentSize){
-            currentSize+=CHUNK;
-            this.channel = value.getChannel().map(FileChannel.MapMode.READ_WRITE,prevpos, currentSize);
-        }
-        channel.putInt(seenSoFar);
+  public void writeShort(short length) throws IOException {
+    int prevpos = pos;
+    pos += 2;
+    if (pos > currentSize) {
+      log.info("[TRACING] Expanding file");
+      currentSize += chunkSize;
+      this.channel = value.getChannel().map(FileChannel.MapMode.READ_WRITE, prevpos, currentSize);
     }
+    channel.putShort(length);
+  }
 
-    public void writeByte(byte aByte) throws IOException {
-        int prevpos = pos;
-        pos+=1;
-        if(pos>currentSize){
-            currentSize+=CHUNK;
-            this.channel = value.getChannel().map(FileChannel.MapMode.READ_WRITE,prevpos, currentSize);
-        }
-        channel.put(aByte);
+  public void write(byte[] bytes2) throws IOException {
+    int prevpos = pos;
+    pos += bytes2.length;
+    if (pos > currentSize) {
+      currentSize += chunkSize;
+      this.channel = value.getChannel().map(FileChannel.MapMode.READ_WRITE, prevpos, currentSize);
     }
+    channel.put(bytes2);
+  }
 
-    public RandomAccessFile getFile() {
-        return value;
+  public void writeInt(int seenSoFar) throws IOException {
+    int prevpos = pos;
+    pos += 4;
+    if (pos > currentSize) {
+      currentSize += chunkSize;
+      this.channel = value.getChannel().map(FileChannel.MapMode.READ_WRITE, prevpos, currentSize);
     }
+    channel.putInt(seenSoFar);
+  }
 
-    public void close() throws IOException, ClassNotFoundException, NoSuchFieldException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-        channel.force();
-        Class<?> unsafeClass = Class.forName("sun.misc.Unsafe");
-        Field unsafeField = unsafeClass.getDeclaredField("theUnsafe");
-        unsafeField.setAccessible(true);
-        Object unsafe = unsafeField.get(null);
-        Method invokeCleaner = unsafeClass.getMethod("invokeCleaner", ByteBuffer.class);
-        invokeCleaner.invoke(unsafe, channel);
-        value.setLength(pos);
+  public void writeByte(byte aByte) throws IOException {
+    int prevpos = pos;
+    pos += 1;
+    if (pos > currentSize) {
+      currentSize += chunkSize;
+      this.channel = value.getChannel().map(FileChannel.MapMode.READ_WRITE, prevpos, currentSize);
     }
+    channel.put(aByte);
+  }
+
+  public RandomAccessFile getFile() {
+    return value;
+  }
+
+  public void close() throws IOException, ClassNotFoundException, NoSuchFieldException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+    channel.force();
+    Class<?> unsafeClass = Class.forName("sun.misc.Unsafe");
+    Field unsafeField = unsafeClass.getDeclaredField("theUnsafe");
+    unsafeField.setAccessible(true);
+    Object unsafe = unsafeField.get(null);
+    Method invokeCleaner = unsafeClass.getMethod("invokeCleaner", ByteBuffer.class);
+    invokeCleaner.invoke(unsafe, channel);
+    value.setLength(pos);
+  }
 }

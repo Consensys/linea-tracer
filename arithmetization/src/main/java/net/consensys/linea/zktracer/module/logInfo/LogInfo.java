@@ -31,7 +31,7 @@ public class LogInfo implements Module {
     this.rlpTxrcpt = rlpTxrcpt;
   }
 
-  private final int log0 = 0xa0; // TODO why I don't get it from the .lisp ?
+  static private final int LOG0 = 0xa0; // TODO why I don't get it from the .lisp ?
 
   @Override
   public String jsonKey() {
@@ -47,7 +47,7 @@ public class LogInfo implements Module {
   @Override
   public int lineCount() {
     int rowSize = 0;
-    for (RlpTxrcptChunk chunk : this.rlpTxrcpt.chunkList) {
+    for (RlpTxrcptChunk chunk : this.rlpTxrcpt.getChunkList()) {
       rowSize += txRowSize(chunk);
     }
     return rowSize;
@@ -155,7 +155,7 @@ public class LogInfo implements Module {
           .topicHi4(topic4.slice(0, 16).toUnsignedBigInteger())
           .topicLo4(topic4.slice(16, 16).toUnsignedBigInteger())
           .dataSize(BigInteger.valueOf(log.getData().size()))
-          .inst(BigInteger.valueOf(log0 + nbTopic))
+          .inst(BigInteger.valueOf(LOG0 + nbTopic))
           .isLogX0(nbTopic == 0)
           .isLogX1(nbTopic == 1)
           .isLogX2(nbTopic == 2)

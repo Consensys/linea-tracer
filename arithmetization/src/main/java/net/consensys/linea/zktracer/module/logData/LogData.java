@@ -47,7 +47,7 @@ public class LogData implements Module {
   @Override
   public int lineCount() {
     int rowSize = 0;
-    for (RlpTxrcptChunk tx : this.rlpTxrcpt.chunkList) {
+    for (RlpTxrcptChunk tx : this.rlpTxrcpt.getChunkList()) {
       rowSize += txRowSize(tx);
     }
     return rowSize;

@@ -49,7 +49,7 @@ public class AddressUtils {
     }
     final Address currentAddress = frame.getRecipientAddress();
     return Address.contractAddress(
-      currentAddress, frame.getWorldUpdater().getAccount(currentAddress).getNonce());
+        currentAddress, frame.getWorldUpdater().getAccount(currentAddress).getNonce());
   }
 
   public static Address getCreate2Address(final MessageFrame frame) {
@@ -63,7 +63,7 @@ public class AddressUtils {
     final Bytes initCode = frame.shadowReadMemory(offset, length);
     Bytes PREFIX = Bytes.fromHexString("0xff");
     final Bytes32 hash =
-      Hash.keccak256(Bytes.concatenate(PREFIX, sender, salt, Hash.keccak256(initCode)));
+        Hash.keccak256(Bytes.concatenate(PREFIX, sender, salt, Hash.keccak256(initCode)));
     return Address.extract(hash);
   }
 

@@ -69,7 +69,7 @@ public class TransactionTraceLimitOverflowTest extends LineaPluginTestBase {
             GAS_PRICE.multiply(BigInteger.TEN));
     final byte[] signedTxContractInteraction =
         TransactionEncoder.signMessage(
-            txContractInteraction, Credentials.create(Accounts.GENESIS_ACCOUNT_TWO_PRIVATE_KEY));
+            txModuleLineCountTooBig, Credentials.create(Accounts.GENESIS_ACCOUNT_TWO_PRIVATE_KEY));
     final EthSendTransaction signedTxContractInteractionResp =
         web3j.ethSendRawTransaction(Numeric.toHexString(signedTxContractInteraction)).send();
 

@@ -18,9 +18,9 @@ package net.consensys.linea.zktracer.module;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.module.add.CompressedFileWriter;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -83,6 +83,6 @@ public interface Module {
 
   ModuleTrace commit();
 
-  default void commitToBuffer(Path path, String module) throws IOException {
+  default void commitToBuffer(Path path, String module, Map<String, ColumnHeader> traceMap) throws IOException {
   }
 }

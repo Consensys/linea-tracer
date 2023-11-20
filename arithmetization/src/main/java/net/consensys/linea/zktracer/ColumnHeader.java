@@ -17,7 +17,7 @@ package net.consensys.linea.zktracer;
 
 public record ColumnHeader(String name, int bytesPerElement, int eltCount) {
   public int dataSize() {
-    return this.eltCount() * this.bytesPerElement();
+    return this.eltCount() * (this.bytesPerElement()+4);
   }
 
   public int headerSize() {

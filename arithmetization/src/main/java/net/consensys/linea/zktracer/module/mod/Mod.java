@@ -18,11 +18,12 @@ package net.consensys.linea.zktracer.module.mod;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Path;
+import java.util.Map;
 
+import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
-import net.consensys.linea.zktracer.module.add.CompressedFileWriter;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.OpCodes;
@@ -153,7 +154,7 @@ public class Mod implements Module {
   }
 
   @Override
-  public void commitToBuffer(Path path, String name) throws IOException {
+  public void commitToBuffer(Path path, String name, Map<String, ColumnHeader> traceMap) throws IOException {
 //    VectorizedRowBatch batch = writer.getSchema().createRowBatch();
 //
 //    for (ModOperation op : this.chunks) {

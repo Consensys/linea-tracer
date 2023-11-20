@@ -18,7 +18,9 @@ package net.consensys.linea.zktracer;
 import java.io.*;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import com.google.common.base.Stopwatch;
 import lombok.RequiredArgsConstructor;
@@ -40,85 +42,87 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 @RequiredArgsConstructor
 @Slf4j
 public class ZkTracer implements ZkBlockAwareOperationTracer {
-    /**
-     * The {@link GasCalculator} used in this version of the arithmetization
-     */
-    public static final GasCalculator gasCalculator = new LondonGasCalculator();
+  /**
+   * The {@link GasCalculator} used in this version of the arithmetization
+   */
+  public static final GasCalculator gasCalculator = new LondonGasCalculator();
 
-    private final ZkTraceBuilder zkTraceBuilder = new ZkTraceBuilder();
-    private final Hub hub;
+  private final ZkTraceBuilder zkTraceBuilder = new ZkTraceBuilder();
+  private final Hub hub;
 
-    public ZkTracer() {
-        // Load opcodes configured in src/main/resources/opcodes.yml.
-        OpCodes.load();
+  public ZkTracer() {
+    // Load opcodes configured in src/main/resources/opcodes.yml.
+    OpCodes.load();
 
-        this.hub = new Hub();
-    }
+    this.hub = new Hub();
+  }
 
-    public ZkTrace getTrace() {
+  public ZkTrace getTrace() {
 //    for (Module<?> module : this.hub.getModulesToTrace()) {
 //      zkTraceBuilder.addTrace(module);
 //    }
 //    return zkTraceBuilder.build();
-        try {
-            this.writeToFile(Path.of("."), "franklin.lt");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return zkTraceBuilder.build();
+    try {
+      this.writeToFile(Path.of("."), "franklin.lt");
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
+    return zkTraceBuilder.build();
+  }
 
-    public void hugeWriteToFile(String filename) throws IOException {
+  public void hugeWriteToFile(String filename) throws IOException {
 //    final List<ColumnHeader> traceMap =
 //        this.hub.getModulesToTrace().stream().flatMap(m -> m.columnsHeaders().stream()).toList();
 //    final long headerSize = traceMap.stream().mapToInt(ColumnHeader::headerSize).sum();
 //    final long traceSize = traceMap.stream().mapToLong(ColumnHeader::cumulatedSize).sum();
 //
 //    assert traceSize < Integer.MAX_VALUE;
-        //    final Path path = Paths.get("/Users/franklin/pipo.hex");
+    //    final Path path = Paths.get("/Users/franklin/pipo.hex");
 
-        //    try (ResourceScope scope = ResourceScope.newConfinedScope()) {
-        //      MemorySegment mmap = MemorySegment.mapFile(path, 0, traceSize,
-        // FileChannel.MapMode.READ_WRITE, scope);
+    //    try (ResourceScope scope = ResourceScope.newConfinedScope()) {
+    //      MemorySegment mmap = MemorySegment.mapFile(path, 0, traceSize,
+    // FileChannel.MapMode.READ_WRITE, scope);
 
-        // ByteBuffer header = mmap.asSlice(0, headerSize).asByteBuffer();
-        //      for (ColumnHeader h : traceMap) {
-        //        final String name = h.name();
-        //        assert h.name().length() < 128;
-        //        header.put((byte) name.length());
-        //        for (int i = 0; i < name.length(); i++) {
-        //          header.putChar(name.charAt(i));
-        //        }
-        //        header.put(h.bitPerElement());
-        //        header.putInt(h.length());
-        //      }
+    // ByteBuffer header = mmap.asSlice(0, headerSize).asByteBuffer();
+    //      for (ColumnHeader h : traceMap) {
+    //        final String name = h.name();
+    //        assert h.name().length() < 128;
+    //        header.put((byte) name.length());
+    //        for (int i = 0; i < name.length(); i++) {
+    //          header.putChar(name.charAt(i));
+    //        }
+    //        header.put(h.bitPerElement());
+    //        header.putInt(h.length());
+    //      }
 
-        //      mmap.force();
-        //    }
-    }
+    //      mmap.force();
+    //    }
+  }
 
-    @SuppressWarnings({"deprecation", "unchecked"})
-    public void writeToFile(Path path, String filename) throws IOException {
-        log.warn("[TRACING] starting trace to path {} using pattern {}", path, filename);
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+  @SuppressWarnings({"deprecation", "unchecked"})
+  public void writeToFile(Path path, String filename) throws IOException {
+    log.warn("[TRACING] starting trace to path {} using pattern {}", path, filename);
+    Stopwatch sw1 = Stopwatch.createStarted();
+
+    final List<Module> modules = this.hub.getModulesToTrace();
+    final Map<String, Map<String, ColumnHeader>> traceMap =
+            modules.stream().collect(Collectors.toMap(m -> m.jsonKey(), m -> m.columnsHeaders().stream().collect(Collectors.toMap(
+                    ch -> ch.name(), ch -> ch
+            ))));
+
+    log.info("[TRACING] counting file size in {}", sw1);
+    for (Module m : this.hub.getModulesToTrace()) {
+      Stopwatch sw = Stopwatch.createStarted();
+      switch (m.jsonKey().toUpperCase()) {
+        case "ADD" -> {
+          m.commitToBuffer(path.resolve(m.jsonKey().toUpperCase()), filename, traceMap.get(m.jsonKey()));
+//                    writer.close();
         }
-        Stopwatch sw1 = Stopwatch.createStarted();
+        case "ROM" -> {
 
-        for (Module m : this.hub.getModulesToTrace()) {
-            Stopwatch sw = Stopwatch.createStarted();
-            switch (m.jsonKey().toUpperCase()) {
-                case "ADD" -> {
-                    m.commitToBuffer(path.resolve(m.jsonKey().toUpperCase()), filename);
+          m.commitToBuffer(path.resolve(m.jsonKey().toUpperCase()), filename, traceMap.get(m.jsonKey()));
 //                    writer.close();
-                }
-                case "ROM" -> {
-
-                    m.commitToBuffer(path.resolve(m.jsonKey().toUpperCase()), filename);
-//                    writer.close();
-                }
+        }
 //                case "MUL" -> {
 //                    try (Writer writer =  net.consensys.linea.zktracer.module.mul.ORCWriter.getWriter(filename)) {
 //                        m.commitToBuffer(writer);
@@ -154,89 +158,89 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
 //                        m.commitToBuffer(writer);
 //                    }
 //                }
-                default -> {
-                }
-            }
-            log.warn("[TRACING] done for {}, it took {}", m.jsonKey(), sw.elapsed(TimeUnit.MILLISECONDS));
+        default -> {
         }
-
-        log.warn("[TRACING] total time:{}", sw1.elapsed(TimeUnit.MILLISECONDS));
+      }
+      log.warn("[TRACING] done for {}, it took {}", m.jsonKey(), sw.elapsed(TimeUnit.MILLISECONDS));
     }
 
-    @Override
-    public void traceStartConflation(final long numBlocksInConflation) {
-        hub.traceStartConflation(numBlocksInConflation);
-    }
+    log.warn("[TRACING] total time:{}", sw1.elapsed(TimeUnit.MILLISECONDS));
+  }
 
-    @Override
-    public void traceEndConflation() {
-        this.hub.traceEndConflation();
-    }
+  @Override
+  public void traceStartConflation(final long numBlocksInConflation) {
+    hub.traceStartConflation(numBlocksInConflation);
+  }
 
-    @Override
-    public String getJsonTrace() {
-        return getTrace().toJson();
-    }
+  @Override
+  public void traceEndConflation() {
+    this.hub.traceEndConflation();
+  }
 
-    @Override
-    public void traceStartBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
-        this.hub.traceStartBlock(blockHeader, blockBody);
-    }
+  @Override
+  public String getJsonTrace() {
+    return getTrace().toJson();
+  }
 
-    @Override
-    public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
-        this.hub.traceEndBlock(blockHeader, blockBody);
-    }
+  @Override
+  public void traceStartBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
+    this.hub.traceStartBlock(blockHeader, blockBody);
+  }
 
-    @Override
-    public void traceStartTransaction(WorldView worldView, Transaction transaction) {
-        this.hub.traceStartTx(worldView, transaction);
-    }
+  @Override
+  public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
+    this.hub.traceEndBlock(blockHeader, blockBody);
+  }
 
-    @Override
-    public void traceEndTransaction(
-            WorldView worldView,
-            Transaction tx,
-            boolean status,
-            Bytes output,
-            List<Log> logs,
-            long gasUsed,
-            long timeNs) {
-        this.hub.traceEndTx(worldView, tx, status, output, logs, gasUsed);
-    }
+  @Override
+  public void traceStartTransaction(WorldView worldView, Transaction transaction) {
+    this.hub.traceStartTx(worldView, transaction);
+  }
 
-    @Override
-    public void tracePreExecution(final MessageFrame frame) {
-        this.hub.tracePreOpcode(frame);
-    }
+  @Override
+  public void traceEndTransaction(
+          WorldView worldView,
+          Transaction tx,
+          boolean status,
+          Bytes output,
+          List<Log> logs,
+          long gasUsed,
+          long timeNs) {
+    this.hub.traceEndTx(worldView, tx, status, output, logs, gasUsed);
+  }
 
-    @Override
-    public void tracePostExecution(MessageFrame frame, Operation.OperationResult operationResult) {
-        this.hub.tracePostExecution(frame, operationResult);
-    }
+  @Override
+  public void tracePreExecution(final MessageFrame frame) {
+    this.hub.tracePreOpcode(frame);
+  }
 
-    @Override
-    public void traceContextEnter(MessageFrame frame) {
-        // We only want to trigger on creation of new contexts, not on re-entry in existing contexts
-        if (frame.getState() == MessageFrame.State.NOT_STARTED) {
-            this.hub.traceContextEnter(frame);
-        }
-    }
+  @Override
+  public void tracePostExecution(MessageFrame frame, Operation.OperationResult operationResult) {
+    this.hub.tracePostExecution(frame, operationResult);
+  }
 
-    @Override
-    public void traceContextReEnter(MessageFrame frame) {
-        this.hub.traceContextReEnter(frame);
+  @Override
+  public void traceContextEnter(MessageFrame frame) {
+    // We only want to trigger on creation of new contexts, not on re-entry in existing contexts
+    if (frame.getState() == MessageFrame.State.NOT_STARTED) {
+      this.hub.traceContextEnter(frame);
     }
+  }
 
-    @Override
-    public void traceContextExit(MessageFrame frame) {
-        this.hub.traceContextExit(frame);
-    }
+  @Override
+  public void traceContextReEnter(MessageFrame frame) {
+    this.hub.traceContextReEnter(frame);
+  }
 
-    /**
-     * When called, erase all tracing related to the last included transaction.
-     */
-    public void popTransaction() {
-        hub.popTransaction();
-    }
+  @Override
+  public void traceContextExit(MessageFrame frame) {
+    this.hub.traceContextExit(frame);
+  }
+
+  /**
+   * When called, erase all tracing related to the last included transaction.
+   */
+  public void popTransaction() {
+    hub.popTransaction();
+  }
 }

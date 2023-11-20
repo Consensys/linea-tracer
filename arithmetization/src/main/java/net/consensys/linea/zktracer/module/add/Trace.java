@@ -18,6 +18,7 @@ package net.consensys.linea.zktracer.module.add;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.ParquetTrace;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
@@ -50,4 +51,24 @@ public class Trace implements ParquetTrace {
         BigInteger resHi;
         BigInteger resLo;
         BigInteger stamp;
+
+
+        public static List<ColumnHeader> headers(int size) {
+                return List.of(
+                        new ColumnHeader("ACC_1", 32, size),
+                        new ColumnHeader("ACC_2", 32, size),
+                        new ColumnHeader("ARG_1_HI", 32, size),
+                        new ColumnHeader("ARG_1_LO", 32, size),
+                        new ColumnHeader("ARG_2_HI", 32, size),
+                        new ColumnHeader("ARG_2_LO", 32, size),
+                        new ColumnHeader("BYTE_1", 1, size),
+                        new ColumnHeader("BYTE_2", 1, size),
+                        new ColumnHeader("CT", 32, size),
+                        new ColumnHeader("INST", 32, size),
+                        new ColumnHeader("OVERFLOW", 1, size),
+                        new ColumnHeader("RES_HI", 32, size),
+                        new ColumnHeader("RES_LO", 32, size),
+                        new ColumnHeader("STAMP", 32, size));
+        }
+
 }

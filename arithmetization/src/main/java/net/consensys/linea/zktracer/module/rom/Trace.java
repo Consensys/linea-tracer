@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -60,5 +61,32 @@ public class Trace{
   BigInteger pushValueAcc;
   BigInteger pushValueHigh;
   BigInteger pushValueLow;
-  Boolean validJumpDestination; 
+  Boolean validJumpDestination;
+
+  public static List<ColumnHeader> headers(int size) {
+    return List.of(
+            new ColumnHeader("ACC", 32, size),
+            new ColumnHeader("CODE_FRAGMENT_INDEX", 32, size),
+            new ColumnHeader("CODE_FRAGMENT_INDEX_INFTY", 32, size),
+            new ColumnHeader("CODE_SIZE", 32, size),
+            new ColumnHeader("CODESIZE_REACHED", 1, size),
+            new ColumnHeader("COUNTER", 32, size),
+            new ColumnHeader("COUNTER_MAX", 32, size),
+            new ColumnHeader("COUNTER_PUSH", 32, size),
+            new ColumnHeader("INDEX", 32, size),
+            new ColumnHeader("IS_PUSH", 1, size),
+            new ColumnHeader("IS_PUSH_DATA", 1, size),
+            new ColumnHeader("LIMB", 32, size),
+            new ColumnHeader("nBYTES", 32, size),
+            new ColumnHeader("nBYTES_ACC", 32, size),
+            new ColumnHeader("OPCODE", 1, size),
+            new ColumnHeader("PADDED_BYTECODE_BYTE", 1, size),
+            new ColumnHeader("PROGRAMME_COUNTER", 32, size),
+            new ColumnHeader("PUSH_FUNNEL_BIT", 1, size),
+            new ColumnHeader("PUSH_PARAMETER", 32, size),
+            new ColumnHeader("PUSH_VALUE_ACC", 32, size),
+            new ColumnHeader("PUSH_VALUE_HIGH", 32, size),
+            new ColumnHeader("PUSH_VALUE_LOW", 32, size),
+            new ColumnHeader("VALID_JUMP_DESTINATION", 1, size));
+  }
 }

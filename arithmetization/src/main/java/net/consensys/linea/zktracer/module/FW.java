@@ -36,51 +36,51 @@ public class FW {
   }
 
   public void writeShort(short length) throws IOException {
-    int prevpos = pos;
-    pos += 2;
-    if (pos > currentSize) {
-      log.info("[TRACING] Expanding file");
-      currentSize += chunkSize;
-      this.channel = value.getChannel().map(FileChannel.MapMode.READ_WRITE, prevpos, currentSize);
-    }
+//    int prevpos = pos;
+//    pos += 2;
+//    if (pos > currentSize) {
+//      log.info("[TRACING] Expanding file");
+//      currentSize += chunkSize;
+//      this.channel = value.getChannel().map(FileChannel.MapMode.READ_WRITE, prevpos, currentSize);
+//    }
     channel.putShort(length);
   }
 
   public void write(byte[] bytes2) throws IOException {
-    int prevpos = pos;
-    pos += bytes2.length;
-    if (pos > currentSize) {
-      currentSize += chunkSize;
-      this.channel = value.getChannel().map(FileChannel.MapMode.READ_WRITE, prevpos, currentSize);
-    }
+//    int prevpos = pos;
+//    pos += bytes2.length;
+//    if (pos > currentSize) {
+//      currentSize += chunkSize;
+//      this.channel = value.getChannel().map(FileChannel.MapMode.READ_WRITE, prevpos, currentSize);
+//    }
     channel.put(bytes2);
   }
 
   public void checkSize(int pos) throws IOException {
-    int prevpos = pos;
-    pos += 4;
-    if (pos > currentSize) {
-      currentSize += chunkSize;
-      this.channel = value.getChannel().map(FileChannel.MapMode.READ_WRITE, prevpos, currentSize);
-    }
+//    int prevpos = pos;
+    this.pos += pos;
+//    if (pos > currentSize) {
+//      currentSize += chunkSize;
+//      this.channel = value.getChannel().map(FileChannel.MapMode.READ_WRITE, prevpos, currentSize);
+//    }
   }
   public void writeInt(int seenSoFar) throws IOException {
-    int prevpos = pos;
-    pos += 4;
-    if (pos > currentSize) {
-      currentSize += chunkSize;
-      this.channel = value.getChannel().map(FileChannel.MapMode.READ_WRITE, prevpos, currentSize);
-    }
+//    int prevpos = pos;
+//    pos += 4;
+//    if (pos > currentSize) {
+//      currentSize += chunkSize;
+//      this.channel = value.getChannel().map(FileChannel.MapMode.READ_WRITE, prevpos, currentSize);
+//    }
     channel.putInt(seenSoFar);
   }
 
   public void writeByte(byte aByte) throws IOException {
-    int prevpos = pos;
-    pos += 1;
-    if (pos > currentSize) {
-      currentSize += chunkSize;
-      this.channel = value.getChannel().map(FileChannel.MapMode.READ_WRITE, prevpos, currentSize);
-    }
+//    int prevpos = pos;
+//    pos += 1;
+//    if (pos > currentSize) {
+//      currentSize += chunkSize;
+//      this.channel = value.getChannel().map(FileChannel.MapMode.READ_WRITE, prevpos, currentSize);
+//    }
     channel.put(aByte);
   }
 
@@ -100,12 +100,13 @@ public class FW {
   }
 
   public void write(ByteBuffer bf, int l) throws IOException {
-    int prevpos = pos;
-    pos += l;
-    if (pos > currentSize) {
-      currentSize += chunkSize;
-      this.channel = value.getChannel().map(FileChannel.MapMode.READ_WRITE, prevpos, currentSize);
-    }
+//    int prevpos = pos;
+//    pos += l;
+//    if (pos > currentSize) {
+//      currentSize += chunkSize;
+//      this.channel = value.getChannel().map(FileChannel.MapMode.READ_WRITE, prevpos, currentSize);
+//    }
+    this.pos+=l;
     channel.put(bf);
   }
 }

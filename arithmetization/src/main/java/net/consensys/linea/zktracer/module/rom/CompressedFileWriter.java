@@ -17,11 +17,14 @@ package net.consensys.linea.zktracer.module.rom;
 
 import lombok.extern.slf4j.Slf4j;
 
+import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.FW;
 
 import java.nio.file.Path;
 import java.io.RandomAccessFile;
 import java.io.IOException;
+import java.util.Map;
+
 import net.consensys.linea.zktracer.module.*;
 /**
  * WARNING: This code is generated automatically.
@@ -55,32 +58,32 @@ public class CompressedFileWriter{
         final public BigIntegerCompressedFileWriter nBytes;
         final public BigIntegerCompressedFileWriter nBytesAcc;
 
-        public CompressedFileWriter(Path path, String pattern) throws IOException {
+        public CompressedFileWriter(Path path, String pattern, Map<String, ColumnHeader> traceMap) throws IOException {
                 log.info("Creating writer for {}.", "rom");
 
-                this.acc = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("ACC" + pattern).toString(), "rw")));
-                this.codesizeReached = new BooleanCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("CODESIZE_REACHED" + pattern).toString(), "rw")));
-                this.codeFragmentIndex = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("CODE_FRAGMENT_INDEX" + pattern).toString(), "rw")));
-                this.codeFragmentIndexInfty = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("CODE_FRAGMENT_INDEX_INFTY" + pattern).toString(), "rw")));
-                this.codeSize = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("CODE_SIZE" + pattern).toString(), "rw")));
-                this.counter = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("COUNTER" + pattern).toString(), "rw")));
-                this.counterMax = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("COUNTER_MAX" + pattern).toString(), "rw")));
-                this.counterPush = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("COUNTER_PUSH" + pattern).toString(), "rw")));
-                this.index = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("INDEX" + pattern).toString(), "rw")));
-                this.isPush = new BooleanCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("IS_PUSH" + pattern).toString(), "rw")));
-                this.isPushData = new BooleanCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("IS_PUSH_DATA" + pattern).toString(), "rw")));
-                this.limb = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("LIMB" + pattern).toString(), "rw")));
-                this.opcode = new UnsignedByteCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("OPCODE" + pattern).toString(), "rw")));
-                this.paddedBytecodeByte = new UnsignedByteCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("PADDED_BYTECODE_BYTE" + pattern).toString(), "rw")));
-                this.programmeCounter = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("PROGRAMME_COUNTER" + pattern).toString(), "rw")));
-                this.pushFunnelBit = new BooleanCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("PUSH_FUNNEL_BIT" + pattern).toString(), "rw")));
-                this.pushParameter = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("PUSH_PARAMETER" + pattern).toString(), "rw")));
-                this.pushValueAcc = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("PUSH_VALUE_ACC" + pattern).toString(), "rw")));
-                this.pushValueHigh = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("PUSH_VALUE_HIGH" + pattern).toString(), "rw")));
-                this.pushValueLow = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("PUSH_VALUE_LOW" + pattern).toString(), "rw")));
-                this.validJumpDestination = new BooleanCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("VALID_JUMP_DESTINATION" + pattern).toString(), "rw")));
-                this.nBytes = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("nBYTES" + pattern).toString(), "rw")));
-                this.nBytesAcc = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("nBYTES_ACC" + pattern).toString(), "rw")));
+                this.acc = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("ACC" + pattern).toString(), "rw"), traceMap.get("ACC").dataSize()));
+                this.codesizeReached = new BooleanCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("CODESIZE_REACHED" + pattern).toString(), "rw"), traceMap.get("CODESIZE_REACHED").dataSize()));
+                this.codeFragmentIndex = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("CODE_FRAGMENT_INDEX" + pattern).toString(), "rw"), traceMap.get("CODE_FRAGMENT_INDEX").dataSize()));
+                this.codeFragmentIndexInfty = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("CODE_FRAGMENT_INDEX_INFTY" + pattern).toString(), "rw"), traceMap.get("CODE_FRAGMENT_INDEX_INFTY").dataSize()));
+                this.codeSize = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("CODE_SIZE" + pattern).toString(), "rw"), traceMap.get("CODE_SIZE").dataSize()));
+                this.counter = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("COUNTER" + pattern).toString(), "rw"), traceMap.get("COUNTER").dataSize()));
+                this.counterMax = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("COUNTER_MAX" + pattern).toString(), "rw"), traceMap.get("COUNTER_MAX").dataSize()));
+                this.counterPush = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("COUNTER_PUSH" + pattern).toString(), "rw"), traceMap.get("COUNTER_PUSH").dataSize()));
+                this.index = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("INDEX" + pattern).toString(), "rw"), traceMap.get("INDEX").dataSize()));
+                this.isPush = new BooleanCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("IS_PUSH" + pattern).toString(), "rw"), traceMap.get("IS_PUSH").dataSize()));
+                this.isPushData = new BooleanCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("IS_PUSH_DATA" + pattern).toString(), "rw"), traceMap.get("IS_PUSH_DATA").dataSize()));
+                this.limb = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("LIMB" + pattern).toString(), "rw"), traceMap.get("LIMB").dataSize()));
+                this.opcode = new UnsignedByteCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("OPCODE" + pattern).toString(), "rw"), traceMap.get("OPCODE").dataSize()));
+                this.paddedBytecodeByte = new UnsignedByteCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("PADDED_BYTECODE_BYTE" + pattern).toString(), "rw"), traceMap.get("PADDED_BYTECODE_BYTE").dataSize()));
+                this.programmeCounter = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("PROGRAMME_COUNTER" + pattern).toString(), "rw"), traceMap.get("PROGRAMME_COUNTER").dataSize()));
+                this.pushFunnelBit = new BooleanCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("PUSH_FUNNEL_BIT" + pattern).toString(), "rw"), traceMap.get("PUSH_FUNNEL_BIT").dataSize()));
+                this.pushParameter = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("PUSH_PARAMETER" + pattern).toString(), "rw"), traceMap.get("PUSH_PARAMETER").dataSize()));
+                this.pushValueAcc = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("PUSH_VALUE_ACC" + pattern).toString(), "rw"), traceMap.get("PUSH_VALUE_ACC").dataSize()));
+                this.pushValueHigh = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("PUSH_VALUE_HIGH" + pattern).toString(), "rw"), traceMap.get("PUSH_VALUE_HIGH").dataSize()));
+                this.pushValueLow = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("PUSH_VALUE_LOW" + pattern).toString(), "rw"), traceMap.get("PUSH_VALUE_LOW").dataSize()));
+                this.validJumpDestination = new BooleanCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("VALID_JUMP_DESTINATION" + pattern).toString(), "rw"), traceMap.get("VALID_JUMP_DESTINATION").dataSize()));
+                this.nBytes = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("nBYTES" + pattern).toString(), "rw"), traceMap.get("nBYTES").dataSize()));
+                this.nBytesAcc = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("nBYTES_ACC" + pattern).toString(), "rw"), traceMap.get("nBYTES_ACC").dataSize()));
         }
 }
 

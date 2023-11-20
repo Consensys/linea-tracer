@@ -20,7 +20,10 @@ import static net.consensys.linea.zktracer.module.rlputils.Pattern.padToGivenSiz
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
 
+import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
 import net.consensys.linea.zktracer.module.romLex.RomChunk;
@@ -54,6 +57,10 @@ public class Rom implements Module {
 
     @Override
     public void popTransaction() {
+    }
+    @Override
+    public List<ColumnHeader> columnsHeaders() {
+        return Trace.headers(this.lineCount());
     }
 
     @Override
@@ -207,12 +214,12 @@ public class Rom implements Module {
     }
 
     @Override
-    public void commitToBuffer(Path path, String name) throws IOException {
+    public void commitToBuffer(Path path, String name, Map<String, ColumnHeader> traceMap) throws IOException {
         {
             if(!path.toFile().exists()){
                 path.toFile().mkdir();
             }
-            var writer = new CompressedFileWriter(path, name);
+            var writer = new CompressedFileWriter(path, name, traceMap);
 
             int cfi = 0;
             final int cfiInfty = this.romLex.sortedChunks.size();

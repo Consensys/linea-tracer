@@ -18,11 +18,12 @@ package net.consensys.linea.zktracer.module.add;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Path;
-import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
+import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.bytestheta.BaseBytes;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
-import net.consensys.linea.zktracer.module.AbstractCompressedFileWriter;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -173,11 +174,17 @@ public class Add implements Module {
     }
 
     @Override
-    public void commitToBuffer(Path path, String name) throws IOException {
+    public List<ColumnHeader> columnsHeaders() {
+        return Trace.headers(this.lineCount());
+    }
+
+
+    @Override
+    public void commitToBuffer(Path path, String name,  Map<String, ColumnHeader> traceMap) throws IOException {
         if(!path.toFile().exists()){
             path.toFile().mkdir();
         }
-        var writer = new CompressedFileWriter(path, name);
+        var writer = new CompressedFileWriter(path, name, traceMap);
         for (AddOperation op : this.chunks) {
             this.traceAddOperation(op.opCodem(), op.arg1(), op.arg2(), writer);
         }

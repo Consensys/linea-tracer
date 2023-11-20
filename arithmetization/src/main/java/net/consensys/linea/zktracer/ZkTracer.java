@@ -101,19 +101,19 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
     public void writeToFile(Path path, String filename) throws IOException {
         log.warn("[TRACING] starting trace to path {} using pattern {}", path, filename);
 
+        Stopwatch sw1 = Stopwatch.createStarted();
+
         for (Module m : this.hub.getModulesToTrace()) {
             Stopwatch sw = Stopwatch.createStarted();
             switch (m.jsonKey().toUpperCase()) {
                 case "ADD" -> {
                     m.commitToBuffer(path.resolve(m.jsonKey().toUpperCase()), filename);
 //                    writer.close();
-
                 }
                 case "ROM" -> {
 
                     m.commitToBuffer(path.resolve(m.jsonKey().toUpperCase()), filename);
 //                    writer.close();
-                    log.warn("[TRACING] done for {}, it took {}", m.jsonKey(), sw.elapsed(TimeUnit.MILLISECONDS));
                 }
 //                case "MUL" -> {
 //                    try (Writer writer =  net.consensys.linea.zktracer.module.mul.ORCWriter.getWriter(filename)) {
@@ -155,6 +155,8 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
             }
             log.warn("[TRACING] done for {}, it took {}", m.jsonKey(), sw.elapsed(TimeUnit.MILLISECONDS));
         }
+
+        log.warn("[TRACING] total time:{}", sw1.elapsed(TimeUnit.MILLISECONDS));
     }
 
     @Override

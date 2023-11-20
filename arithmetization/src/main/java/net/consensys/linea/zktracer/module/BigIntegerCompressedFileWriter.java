@@ -1,27 +1,34 @@
 package net.consensys.linea.zktracer.module;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.IOException;
 import java.math.BigInteger;
 
 
+@Slf4j
 public class BigIntegerCompressedFileWriter extends AbstractCompressedFileWriter<BigInteger> {
   private BigInteger previousValue = null;
+  private BigInteger initialValue = null;
+  private BigInteger delta = null;
 
   public BigIntegerCompressedFileWriter(FW fileWriter) {
     super(fileWriter);
   }
 
-  public void addBigInteger(BigInteger b) {
+  public void addBigInteger(BigInteger b, BigInteger newDelta) {
     flush();
-    initialize(b);
+    initialize(b, newDelta);
   }
+
 
   @Override
   public void flush() {
-    if(previousValue!=null) {
+    if (previousValue != null) {
+//      log.info("Flushing Big Integer nbSeen:{}, initialValue::{}, delta:{}", seenSoFar, initialValue, delta);
       try {
         fileWriter.writeInt(seenSoFar);
-        byte[] bytes2 = previousValue.toByteArray();
+        byte[] bytes2 = delta.toByteArray();
         fileWriter.writeShort((short) bytes2.length);
         fileWriter.write(bytes2);
       } catch (IOException e) {
@@ -30,22 +37,24 @@ public class BigIntegerCompressedFileWriter extends AbstractCompressedFileWriter
     }
   }
 
-  public void initialize(BigInteger b) {
+  private void initialize(BigInteger b, BigInteger newDelta) {
+    initialValue = b;
     previousValue = b;
+    delta = newDelta;
     seenSoFar = 1;
   }
 
-  public BigInteger getPreviousValue() {
-    return previousValue;
-  }
-
   public void processBigInteger(BigInteger b) {
-    if (previousValue == null) {
-      initialize(b);
-    } else if (previousValue.equals(b)) {
-      increment();
+    if (initialValue == null) {
+      initialize(b, b);
     } else {
-      addBigInteger(b);
+      var newDelta = b.add(previousValue.negate());
+      if (delta.equals(newDelta)) {
+        increment();
+        previousValue = b;
+      } else {
+        addBigInteger(b, newDelta);
+      }
     }
   }
 }

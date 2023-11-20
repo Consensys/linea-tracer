@@ -15,28 +15,75 @@
 
 package net.consensys.linea.zktracer.module.rom;
 
-import net.consensys.linea.zktracer.module.add.CompressedFileWriter;
+
+import net.consensys.linea.zktracer.module.AbstractTraceBuilder;
+import net.consensys.linea.zktracer.module.BigIntegerCompressedFileWriter;
+import net.consensys.linea.zktracer.module.BooleanCompressedFileWriter;
+import net.consensys.linea.zktracer.module.UnsignedByteCompressedFileWriter;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
 import java.math.BigInteger;
 import java.util.BitSet;
 import java.io.IOException;
-
-
 /**
  * WARNING: This code is generated automatically.
  * Any modifications to this code may be overwritten and could lead to unexpected behavior.
  * Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
 @SuppressWarnings({"unchecked"})
-public class TraceBuilder {
-    private final CompressedFileWriter<?>[] writer;
+public class TraceBuilder extends AbstractTraceBuilder {
+    private final BitSet filled = new BitSet();
 
-    public TraceBuilder(CompressedFileWriter<?>[] writer) {
-        this.writer=writer;
+    final public BigIntegerCompressedFileWriter acc;
+    final public BooleanCompressedFileWriter codesizeReached;
+    final public BigIntegerCompressedFileWriter codeFragmentIndex;
+    final public BigIntegerCompressedFileWriter codeFragmentIndexInfty;
+    final public BigIntegerCompressedFileWriter codeSize;
+    final public BigIntegerCompressedFileWriter counter;
+    final public BigIntegerCompressedFileWriter counterMax;
+    final public BigIntegerCompressedFileWriter counterPush;
+    final public BigIntegerCompressedFileWriter index;
+    final public BooleanCompressedFileWriter isPush;
+    final public BooleanCompressedFileWriter isPushData;
+    final public BigIntegerCompressedFileWriter limb;
+    final public UnsignedByteCompressedFileWriter opcode;
+    final public UnsignedByteCompressedFileWriter paddedBytecodeByte;
+    final public BigIntegerCompressedFileWriter programmeCounter;
+    final public BooleanCompressedFileWriter pushFunnelBit;
+    final public BigIntegerCompressedFileWriter pushParameter;
+    final public BigIntegerCompressedFileWriter pushValueAcc;
+    final public BigIntegerCompressedFileWriter pushValueHigh;
+    final public BigIntegerCompressedFileWriter pushValueLow;
+    final public BooleanCompressedFileWriter validJumpDestination;
+    final public BigIntegerCompressedFileWriter nBytes;
+    final public BigIntegerCompressedFileWriter nBytesAcc;
+
+    public TraceBuilder(CompressedFileWriter writer) {
+        this.acc = writer.acc;
+        this.codesizeReached = writer.codesizeReached;
+        this.codeFragmentIndex = writer.codeFragmentIndex;
+        this.codeFragmentIndexInfty = writer.codeFragmentIndexInfty;
+        this.codeSize = writer.codeSize;
+        this.counter = writer.counter;
+        this.counterMax = writer.counterMax;
+        this.counterPush = writer.counterPush;
+        this.index = writer.index;
+        this.isPush = writer.isPush;
+        this.isPushData = writer.isPushData;
+        this.limb = writer.limb;
+        this.opcode = writer.opcode;
+        this.paddedBytecodeByte = writer.paddedBytecodeByte;
+        this.programmeCounter = writer.programmeCounter;
+        this.pushFunnelBit = writer.pushFunnelBit;
+        this.pushParameter = writer.pushParameter;
+        this.pushValueAcc = writer.pushValueAcc;
+        this.pushValueHigh = writer.pushValueHigh;
+        this.pushValueLow = writer.pushValueLow;
+        this.validJumpDestination = writer.validJumpDestination;
+        this.nBytes = writer.nBytes;
+        this.nBytesAcc = writer.nBytesAcc;
     }
 
-    private final BitSet filled = new BitSet();
     public TraceBuilder acc(BigInteger b) {
 
         if (filled.get(0)) {
@@ -44,7 +91,7 @@ public class TraceBuilder {
         } else {
             filled.set(0);
         }
-        processBigInteger(b, writer[0] );
+        processBigInteger(b, this.acc );
         return this;
     }
     public TraceBuilder codeFragmentIndex(BigInteger b) {
@@ -54,7 +101,7 @@ public class TraceBuilder {
         } else {
             filled.set(2);
         }
-        processBigInteger(b, writer[2] );
+        processBigInteger(b, this.codeFragmentIndex );
         return this;
     }
     public TraceBuilder codeFragmentIndexInfty(BigInteger b) {
@@ -64,7 +111,7 @@ public class TraceBuilder {
         } else {
             filled.set(3);
         }
-        processBigInteger(b, writer[3] );
+        processBigInteger(b, this.codeFragmentIndexInfty );
         return this;
     }
     public TraceBuilder codeSize(BigInteger b) {
@@ -74,7 +121,7 @@ public class TraceBuilder {
         } else {
             filled.set(4);
         }
-        processBigInteger(b, writer[4] );
+        processBigInteger(b, this.codeSize );
         return this;
     }
     public TraceBuilder codesizeReached(Boolean b) {
@@ -84,7 +131,7 @@ public class TraceBuilder {
         } else {
             filled.set(1);
         }
-        processBoolean(b, writer[1] );
+        processBoolean(b, this.codesizeReached );
         return this;
     }
     public TraceBuilder counter(BigInteger b) {
@@ -94,7 +141,7 @@ public class TraceBuilder {
         } else {
             filled.set(5);
         }
-        processBigInteger(b, writer[5] );
+        processBigInteger(b, this.counter );
         return this;
     }
     public TraceBuilder counterMax(BigInteger b) {
@@ -104,7 +151,7 @@ public class TraceBuilder {
         } else {
             filled.set(6);
         }
-        processBigInteger(b, writer[6] );
+        processBigInteger(b, this.counterMax );
         return this;
     }
     public TraceBuilder counterPush(BigInteger b) {
@@ -114,7 +161,7 @@ public class TraceBuilder {
         } else {
             filled.set(7);
         }
-        processBigInteger(b, writer[7] );
+        processBigInteger(b, this.counterPush );
         return this;
     }
     public TraceBuilder index(BigInteger b) {
@@ -124,7 +171,7 @@ public class TraceBuilder {
         } else {
             filled.set(8);
         }
-        processBigInteger(b, writer[8] );
+        processBigInteger(b, this.index );
         return this;
     }
     public TraceBuilder isPush(Boolean b) {
@@ -134,7 +181,7 @@ public class TraceBuilder {
         } else {
             filled.set(9);
         }
-        processBoolean(b, writer[9] );
+        processBoolean(b, this.isPush );
         return this;
     }
     public TraceBuilder isPushData(Boolean b) {
@@ -144,7 +191,7 @@ public class TraceBuilder {
         } else {
             filled.set(10);
         }
-        processBoolean(b, writer[10] );
+        processBoolean(b, this.isPushData );
         return this;
     }
     public TraceBuilder limb(BigInteger b) {
@@ -154,7 +201,7 @@ public class TraceBuilder {
         } else {
             filled.set(11);
         }
-        processBigInteger(b, writer[11] );
+        processBigInteger(b, this.limb );
         return this;
     }
     public TraceBuilder nBytes(BigInteger b) {
@@ -164,7 +211,7 @@ public class TraceBuilder {
         } else {
             filled.set(21);
         }
-        processBigInteger(b, writer[21] );
+        processBigInteger(b, this.nBytes );
         return this;
     }
     public TraceBuilder nBytesAcc(BigInteger b) {
@@ -174,7 +221,7 @@ public class TraceBuilder {
         } else {
             filled.set(22);
         }
-        processBigInteger(b, writer[22] );
+        processBigInteger(b, this.nBytesAcc );
         return this;
     }
     public TraceBuilder opcode(UnsignedByte b) {
@@ -184,7 +231,7 @@ public class TraceBuilder {
         } else {
             filled.set(12);
         }
-        processUnsignedByte(b, writer[12] );
+        processUnsignedByte(b, this.opcode );
         return this;
     }
     public TraceBuilder paddedBytecodeByte(UnsignedByte b) {
@@ -194,7 +241,7 @@ public class TraceBuilder {
         } else {
             filled.set(13);
         }
-        processUnsignedByte(b, writer[13] );
+        processUnsignedByte(b, this.paddedBytecodeByte );
         return this;
     }
     public TraceBuilder programmeCounter(BigInteger b) {
@@ -204,7 +251,7 @@ public class TraceBuilder {
         } else {
             filled.set(14);
         }
-        processBigInteger(b, writer[14] );
+        processBigInteger(b, this.programmeCounter );
         return this;
     }
     public TraceBuilder pushFunnelBit(Boolean b) {
@@ -214,7 +261,7 @@ public class TraceBuilder {
         } else {
             filled.set(15);
         }
-        processBoolean(b, writer[15] );
+        processBoolean(b, this.pushFunnelBit );
         return this;
     }
     public TraceBuilder pushParameter(BigInteger b) {
@@ -224,7 +271,7 @@ public class TraceBuilder {
         } else {
             filled.set(16);
         }
-        processBigInteger(b, writer[16] );
+        processBigInteger(b, this.pushParameter );
         return this;
     }
     public TraceBuilder pushValueAcc(BigInteger b) {
@@ -234,7 +281,7 @@ public class TraceBuilder {
         } else {
             filled.set(17);
         }
-        processBigInteger(b, writer[17] );
+        processBigInteger(b, this.pushValueAcc );
         return this;
     }
     public TraceBuilder pushValueHigh(BigInteger b) {
@@ -244,7 +291,7 @@ public class TraceBuilder {
         } else {
             filled.set(18);
         }
-        processBigInteger(b, writer[18] );
+        processBigInteger(b, this.pushValueHigh );
         return this;
     }
     public TraceBuilder pushValueLow(BigInteger b) {
@@ -254,7 +301,7 @@ public class TraceBuilder {
         } else {
             filled.set(19);
         }
-        processBigInteger(b, writer[19] );
+        processBigInteger(b, this.pushValueLow );
         return this;
     }
     public TraceBuilder validJumpDestination(Boolean b) {
@@ -264,7 +311,7 @@ public class TraceBuilder {
         } else {
             filled.set(20);
         }
-        processBoolean(b, writer[20] );
+        processBoolean(b, this.validJumpDestination );
         return this;
     }
 
@@ -272,163 +319,73 @@ public class TraceBuilder {
         if (!filled.get(0)) {
             throw new IllegalStateException("ACC has not been filled");
         }
-
         if (!filled.get(1)) {
             throw new IllegalStateException("CODESIZE_REACHED has not been filled");
         }
-
         if (!filled.get(2)) {
             throw new IllegalStateException("CODE_FRAGMENT_INDEX has not been filled");
         }
-
         if (!filled.get(3)) {
             throw new IllegalStateException("CODE_FRAGMENT_INDEX_INFTY has not been filled");
         }
-
         if (!filled.get(4)) {
             throw new IllegalStateException("CODE_SIZE has not been filled");
         }
-
         if (!filled.get(5)) {
             throw new IllegalStateException("COUNTER has not been filled");
         }
-
         if (!filled.get(6)) {
             throw new IllegalStateException("COUNTER_MAX has not been filled");
         }
-
         if (!filled.get(7)) {
             throw new IllegalStateException("COUNTER_PUSH has not been filled");
         }
-
         if (!filled.get(8)) {
             throw new IllegalStateException("INDEX has not been filled");
         }
-
         if (!filled.get(9)) {
             throw new IllegalStateException("IS_PUSH has not been filled");
         }
-
         if (!filled.get(10)) {
             throw new IllegalStateException("IS_PUSH_DATA has not been filled");
         }
-
         if (!filled.get(11)) {
             throw new IllegalStateException("LIMB has not been filled");
         }
-
         if (!filled.get(12)) {
             throw new IllegalStateException("OPCODE has not been filled");
         }
-
         if (!filled.get(13)) {
             throw new IllegalStateException("PADDED_BYTECODE_BYTE has not been filled");
         }
-
         if (!filled.get(14)) {
             throw new IllegalStateException("PROGRAMME_COUNTER has not been filled");
         }
-
         if (!filled.get(15)) {
             throw new IllegalStateException("PUSH_FUNNEL_BIT has not been filled");
         }
-
         if (!filled.get(16)) {
             throw new IllegalStateException("PUSH_PARAMETER has not been filled");
         }
-
         if (!filled.get(17)) {
             throw new IllegalStateException("PUSH_VALUE_ACC has not been filled");
         }
-
         if (!filled.get(18)) {
             throw new IllegalStateException("PUSH_VALUE_HIGH has not been filled");
         }
-
         if (!filled.get(19)) {
             throw new IllegalStateException("PUSH_VALUE_LOW has not been filled");
         }
-
         if (!filled.get(20)) {
             throw new IllegalStateException("VALID_JUMP_DESTINATION has not been filled");
         }
-
         if (!filled.get(21)) {
             throw new IllegalStateException("nBYTES has not been filled");
         }
-
         if (!filled.get(22)) {
             throw new IllegalStateException("nBYTES_ACC has not been filled");
         }
 
-
         filled.clear();
-
     }
-
-
-    private void processUnsignedByte(UnsignedByte b,
-                                     CompressedFileWriter<?> writer) {
-        CompressedFileWriter<UnsignedByte> compressedFileWriter = (CompressedFileWriter<UnsignedByte>) writer;
-        if(compressedFileWriter.getPreviousValue() == null){
-            compressedFileWriter.initialize(b);
-        }
-        else if (compressedFileWriter.getPreviousValue().equals(b)) {
-            compressedFileWriter.increment();
-        } else {
-            try {
-                compressedFileWriter.writeInt(compressedFileWriter.getSeenSoFar());
-                compressedFileWriter.writeByte(b.toByte());
-                compressedFileWriter.setPreviousValue(b);
-                compressedFileWriter.lastIndex += compressedFileWriter.getSeenSoFar();
-                compressedFileWriter.setSeenSoFar(0);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    private void processBoolean(Boolean b, CompressedFileWriter<?> writer) {
-        CompressedFileWriter<Boolean> compressedFileWriter = (CompressedFileWriter<Boolean>) writer;
-        if(compressedFileWriter.getPreviousValue() == null){
-            compressedFileWriter.initialize(b);
-        }
-        else if (compressedFileWriter.getPreviousValue().equals(b)) {
-            compressedFileWriter.increment();
-        } else {
-            try {
-                compressedFileWriter.writeInt(compressedFileWriter.getSeenSoFar());
-                compressedFileWriter.writeByte(b?(byte)1:(byte)0);
-                compressedFileWriter.setPreviousValue(b);
-                compressedFileWriter.lastIndex += compressedFileWriter.getSeenSoFar();
-                compressedFileWriter.setSeenSoFar(0);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-
-    private void processBigInteger(BigInteger b, CompressedFileWriter<?> writer) {
-        CompressedFileWriter<BigInteger> compressedFileWriter = (CompressedFileWriter<BigInteger>) writer;
-        if(compressedFileWriter.getPreviousValue() == null){
-            compressedFileWriter.initialize(b);
-        }
-        else if (compressedFileWriter.getPreviousValue().equals(b)) {
-            compressedFileWriter.increment();
-        } else {
-            try {
-
-                byte[] bytes2 = compressedFileWriter.getPreviousValue().toByteArray();
-                compressedFileWriter.writeShort((short)bytes2.length);
-                compressedFileWriter.write(bytes2);
-                compressedFileWriter.setPreviousValue(b);
-                compressedFileWriter.lastIndex += compressedFileWriter.getSeenSoFar();
-                compressedFileWriter.setSeenSoFar(1);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
 }

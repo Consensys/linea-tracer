@@ -209,8 +209,8 @@ public class Ext implements Module {
   }
 
 
-  @Override
-  public void commitToBuffer(CompressedFileWriter<?>[] writer) throws IOException {
+//  @Override
+//  public void commitToBuffer(CompressedFileWriter writer) throws IOException {
 //    VectorizedRowBatch batch = writer.getSchema().createRowBatch();
 //
 //    for (ExtOperation operation : this.operations) {
@@ -221,7 +221,7 @@ public class Ext implements Module {
 //      writer.addRowBatch(batch);
 //      batch.reset();
 //    }
-  }
+//  }
 
   @Override
   public int lineCount() {

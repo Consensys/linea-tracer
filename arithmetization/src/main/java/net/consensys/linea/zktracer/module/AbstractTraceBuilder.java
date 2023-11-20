@@ -15,12 +15,9 @@
 
 package net.consensys.linea.zktracer.module;
 
-import net.consensys.linea.zktracer.module.add.CompressedFileWriter;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
-import java.io.IOException;
 import java.math.BigInteger;
-import java.util.BitSet;
 
 
 /**
@@ -30,38 +27,17 @@ import java.util.BitSet;
  */
 public class AbstractTraceBuilder {
 
-  private void processUnsignedByte(UnsignedByte b,
-                                   CompressedFileWriter<?> writer) {
-    CompressedFileWriter<UnsignedByte> compressedFileWriter = (CompressedFileWriter<UnsignedByte>) writer;
-    if (compressedFileWriter.getPreviousValue() == null) {
-      compressedFileWriter.initialize(b);
-    } else if (compressedFileWriter.getPreviousValue().equals(b)) {
-      compressedFileWriter.increment();
-    } else {
-      compressedFileWriter.addUnsignedByte(b);
-    }
+  protected void processUnsignedByte(UnsignedByte b,
+                                     UnsignedByteCompressedFileWriter compressedFileWriter) {
+    compressedFileWriter.processUnsignedByte(b);
   }
 
-  private void processBoolean(Boolean b, CompressedFileWriter<?> writer) {
-    CompressedFileWriter<Boolean> compressedFileWriter = (CompressedFileWriter<Boolean>) writer;
-    if (compressedFileWriter.getPreviousValue() == null) {
-      compressedFileWriter.initialize(b);
-    } else if (compressedFileWriter.getPreviousValue().equals(b)) {
-      compressedFileWriter.increment();
-    } else {
-      compressedFileWriter.addBoolean(b)
-    }
+  protected void processBoolean(Boolean b, BooleanCompressedFileWriter compressedFileWriter) {
+   compressedFileWriter.processBoolean(b);
   }
 
 
-  private void processBigInteger(BigInteger b, CompressedFileWriter<?> writer) {
-    CompressedFileWriter<BigInteger> compressedFileWriter = (CompressedFileWriter<BigInteger>) writer;
-    if (compressedFileWriter.getPreviousValue() == null) {
-      compressedFileWriter.initialize(b);
-    } else if (compressedFileWriter.getPreviousValue().equals(b)) {
-      compressedFileWriter.increment();
-    } else {
-      compressedFileWriter.addBigInteger(b);
-    }
+  protected void processBigInteger(BigInteger b, BigIntegerCompressedFileWriter compressedFileWriter) {
+   compressedFileWriter.processBigInteger(b);
   }
 }

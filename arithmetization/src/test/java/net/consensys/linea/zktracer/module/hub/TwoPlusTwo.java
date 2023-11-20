@@ -27,7 +27,7 @@ public class TwoPlusTwo {
   @Test
   void testAdd() {
     var app = BytecodeCompiler.newProgram().push(32).push(27).op(OpCode.ADD);
-    for(int i = 0; i<1; i++){
+    for(int i = 0; i<1_000_000; i++){
       app.push(27).op(OpCode.ADD);
     }
     BytecodeRunner.of(app.compile())

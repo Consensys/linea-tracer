@@ -74,39 +74,37 @@ public class RollupGenerateConflatedTracesToFileV0 {
     }
 
 //    try {
-      TraceRequestParams params = TraceRequestParams.createTraceParams(request.getParams());
+    TraceRequestParams params = TraceRequestParams.createTraceParams(request.getParams());
 
-      final long fromBlock = params.fromBlock();
-      final long toBlock = params.toBlock();
-      final ZkTracer tracer = new ZkTracer();
+    final long fromBlock = params.fromBlock();
+    final long toBlock = params.toBlock();
+    final ZkTracer tracer = new ZkTracer();
     Stopwatch sw = Stopwatch.createStarted();
     log.warn("[TRACING] starting tracing from {} to {}", fromBlock, toBlock);
-      traceService.trace(
-          fromBlock,
-          toBlock,
-          worldStateBeforeTracing -> {
-            // before tracing
-            tracer.traceStartConflation(toBlock - fromBlock + 1);
-          },
-          worldStateAfterTracing -> {
-            // after tracing
-            tracer.traceEndConflation();
-          },
-          tracer);
+    traceService.trace(
+            fromBlock,
+            toBlock,
+            worldStateBeforeTracing -> {
+              // before tracing
+              tracer.traceStartConflation(toBlock - fromBlock + 1);
+            },
+            worldStateAfterTracing -> {
+              // after tracing
+              tracer.traceEndConflation();
+            },
+            tracer);
 
-      var file = generateOutputFile(params.runtimeVersion());
-    log.warn("[TRACING] Using file {}", file.getAbsolutePath());
+    var file = generateOutputFile(params.runtimeVersion());
+    log.warn("[TRACING] Using file {}", file.toAbsolutePath());
     try {
-      var filename = String.format("%.10s-%s.traces.%s",
-              System.currentTimeMillis(), tracesEngineVersion, getFileFormat());
-      tracer.writeToFile(file.toPath(), filename)
-              .toFile());
+      var filename = String.format("%.10s-%s.traces.%s", System.currentTimeMillis(), params.runtimeVersion(), getFileFormat());
+      tracer.writeToFile(file, filename);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
 
     log.warn("[TRACING] done in {}", sw.elapsed());
-    return new FileTrace(params.runtimeVersion(), file.getAbsolutePath());
+    return new FileTrace(params.runtimeVersion(), file.getFileName().toString());
   }
 
   private Path initTracesPath() {
@@ -145,7 +143,7 @@ public class RollupGenerateConflatedTracesToFileV0 {
     }
   }
 
-  private File generateOutputFile(final String tracesEngineVersion) {
+  private Path generateOutputFile(final String tracesEngineVersion) {
 
     if (!Files.isDirectory(tracesPath) && !tracesPath.toFile().mkdirs()) {
       throw new RuntimeException(

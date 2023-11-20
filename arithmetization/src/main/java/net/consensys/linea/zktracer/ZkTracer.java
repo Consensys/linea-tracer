@@ -16,21 +16,16 @@
 package net.consensys.linea.zktracer;
 
 import java.io.*;
-import java.nio.channels.FileChannel;
-import java.util.Arrays;
+import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Stopwatch;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.module.Module;
-import net.consensys.linea.zktracer.module.add.CompressedFileWriter;
-import net.consensys.linea.zktracer.module.add.ORCWriter;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCodes;
-import org.apache.orc.Writer;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -66,7 +61,7 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
 //    }
 //    return zkTraceBuilder.build();
         try {
-            this.writeToFile("franklin.lt");
+            this.writeToFile(Path.of("."), "franklin.lt");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -110,27 +105,14 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
             Stopwatch sw = Stopwatch.createStarted();
             switch (m.jsonKey().toUpperCase()) {
                 case "ADD" -> {
-                    CompressedFileWriter<?>[] writer = ORCWriter.getWriter(path.resolve("ADD"), filename);
-                    m.commitToBuffer(writer);
-                    Arrays.stream(writer).forEach(w -> {
-                        try {
-                            w.close();
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
+                    m.commitToBuffer(path.resolve(m.jsonKey().toUpperCase()), filename);
+//                    writer.close();
 
                 }
                 case "ROM" -> {
-                    CompressedFileWriter<?>[] writer = net.consensys.linea.zktracer.module.rom.ORCWriter.getWriter(filename);
-                    m.commitToBuffer(writer);
-                    Arrays.stream(writer).forEach(w -> {
-                        try {
-                            w.close();
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
+
+                    m.commitToBuffer(path.resolve(m.jsonKey().toUpperCase()), filename);
+//                    writer.close();
                     log.warn("[TRACING] done for {}, it took {}", m.jsonKey(), sw.elapsed(TimeUnit.MILLISECONDS));
                 }
 //                case "MUL" -> {

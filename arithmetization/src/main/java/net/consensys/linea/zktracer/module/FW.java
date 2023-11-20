@@ -26,7 +26,7 @@ public class FW {
 
   public FW(RandomAccessFile value, int chunkSize) {
     this.value = value;
-    currentSize = chunkSize;
+    this.chunkSize = chunkSize;
 
     try {
       this.channel = value.getChannel().map(FileChannel.MapMode.READ_WRITE, pos, currentSize);

@@ -1,20 +1,21 @@
-package net.consensys.linea.zktracer.module.add;
+package net.consensys.linea.zktracer.module;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.Iterator;
 
-
-public class CompressedFileReader<T> implements Iterator<T> {
+public abstract class CompressedFileReader<T> implements Iterator<T> {
 
   protected int remainingCurrent;
   protected final RandomAccessFile underlyingFile;
-  protected final int length;
+  protected final long length;
 
-  public CompressedFileReader(RandomAccessFile underlyingFile, int chunkSize) {
-    this(validateLength(underlyingFile));
+  public CompressedFileReader(RandomAccessFile underlyingFile, int chunkSize) throws IOException {
+    this(validateLength(underlyingFile, chunkSize));
   }
 
-  private static RandomAccessFile validateLength(RandomAccessFile underlyingFile, int chunkSize) {
+  private static RandomAccessFile validateLength(RandomAccessFile underlyingFile, int chunkSize) throws IOException {
+    var length = underlyingFile.length();
     if (length % chunkSize != 0) {
       throw new RuntimeException("Invalid file length for " + underlyingFile + " not a multiple of "
               + chunkSize + " while it's an UnsignedByte. Length is " + length);
@@ -22,7 +23,7 @@ public class CompressedFileReader<T> implements Iterator<T> {
     return underlyingFile;
   }
 
-  public CompressedFileReader(RandomAccessFile underlyingFile) {
+  public CompressedFileReader(RandomAccessFile underlyingFile) throws IOException {
     length = underlyingFile.length();
 
     this.underlyingFile = underlyingFile;
@@ -30,7 +31,7 @@ public class CompressedFileReader<T> implements Iterator<T> {
     if (underlyingFile.length() == 0) {
       remainingCurrent = 0;
     } else {
-      read(underlyingFile);
+      read();
     }
   }
 
@@ -38,13 +39,21 @@ public class CompressedFileReader<T> implements Iterator<T> {
 
   @Override
   public boolean hasNext() {
-    return remainingCurrent == 0 & underlyingFile.getFilePointer() >= length;
+    try {
+      return remainingCurrent > 0 || underlyingFile.getFilePointer() < length;
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override
   public T next() {
     if(remainingCurrent == 0){
-      read();
+      try {
+        read();
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
     }
     remainingCurrent -= 1;
     return getCurrentValue();

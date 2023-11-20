@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
@@ -82,6 +83,6 @@ public interface Module {
 
   ModuleTrace commit();
 
-  default void commitToBuffer(CompressedFileWriter<?>[] writer) throws IOException {
+  default void commitToBuffer(Path path, String module) throws IOException {
   }
 }

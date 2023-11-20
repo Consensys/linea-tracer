@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -101,7 +102,7 @@ public class ToyExecutionEnvironment {
   public void binaryTraceCode() {
     execute();
     try {
-      tracer.writeToFile("asf");
+      tracer.writeToFile(Path.of("."), "asf");
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

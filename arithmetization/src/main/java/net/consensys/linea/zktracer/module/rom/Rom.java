@@ -18,15 +18,11 @@ package net.consensys.linea.zktracer.module.rom;
 import static net.consensys.linea.zktracer.module.rlputils.Pattern.padToGivenSizeWithRightZero;
 
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.List;
+import java.nio.file.Path;
 
-import net.consensys.linea.zktracer.module.FW;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
-import net.consensys.linea.zktracer.module.add.CompressedFileWriter;
 import net.consensys.linea.zktracer.module.romLex.RomChunk;
 import net.consensys.linea.zktracer.module.romLex.RomLex;
 import net.consensys.linea.zktracer.types.UnsignedByte;
@@ -77,7 +73,7 @@ public class Rom implements Module {
         return LLARGE * nbSlice + nPaddingRow;
     }
 
-    private void traceChunk(RomChunk chunk, int cfi, int cfiInfty, CompressedFileWriter<?>[] writer) throws IOException {
+    private void traceChunk(RomChunk chunk, int cfi, int cfiInfty, CompressedFileWriter writer) throws IOException {
         final int chunkRowSize = chunkRowSize(chunk);
         final int codeSize = chunk.byteCode().size();
         final int nLimbSlice = (codeSize + (LLARGE - 1)) / LLARGE;
@@ -211,9 +207,12 @@ public class Rom implements Module {
     }
 
     @Override
-    public void commitToBuffer(CompressedFileWriter<?>[] writer) throws IOException {
+    public void commitToBuffer(Path path, String name) throws IOException {
         {
-
+            if(!path.toFile().exists()){
+                path.toFile().mkdir();
+            }
+            var writer = new CompressedFileWriter(path, name);
 
             int cfi = 0;
             final int cfiInfty = this.romLex.sortedChunks.size();
@@ -222,14 +221,7 @@ public class Rom implements Module {
                 traceChunk(chunk, cfi, cfiInfty, writer);
             }
 
-
-            Arrays.stream(writer).forEach(f -> {
-                try {
-                    f.close();
-                } catch (Throwable e) {
-                    throw new RuntimeException(e);
-                }
-            });
+//writer.close();
         }
     }
 }

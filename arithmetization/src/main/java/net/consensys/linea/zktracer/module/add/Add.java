@@ -17,12 +17,12 @@ package net.consensys.linea.zktracer.module.add;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.List;
 
 import net.consensys.linea.zktracer.bytestheta.BaseBytes;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
-import net.consensys.linea.zktracer.module.FW;
+import net.consensys.linea.zktracer.module.AbstractCompressedFileWriter;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -101,7 +101,7 @@ public class Add implements Module {
      * @return
      */
     private void traceAddOperation(
-            OpCode opCode, Bytes32 arg1, Bytes32 arg2,CompressedFileWriter<?>[] writer) throws IOException {
+            OpCode opCode, Bytes32 arg1, Bytes32 arg2, CompressedFileWriter writer) throws IOException {
         this.stamp++;
         final Bytes16 arg1Hi = Bytes16.wrap(arg1.slice(0, 16));
         final Bytes32 arg1Lo = Bytes32.leftPad(arg1.slice(16));
@@ -172,9 +172,11 @@ public class Add implements Module {
     }
 
     @Override
-    public void commitToBuffer(CompressedFileWriter<?>[] writer) throws IOException {
-
-
+    public void commitToBuffer(Path path, String name) throws IOException {
+        if(!path.toFile().exists()){
+            path.toFile().mkdir();
+        }
+        var writer = new CompressedFileWriter(path, name);
         for (AddOperation op : this.chunks) {
             this.traceAddOperation(op.opCodem(), op.arg1(), op.arg2(), writer);
         }
@@ -187,13 +189,7 @@ public class Add implements Module {
 //            }
 //        });
 
-        Arrays.stream(writer).forEach(f -> {
-            try {
-                f.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+//        writer.close();
     }
 
     @Override

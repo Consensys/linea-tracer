@@ -47,7 +47,7 @@ public class CompressedFileWriter{
   final public BigIntegerCompressedFileWriter stamp;
 
   public CompressedFileWriter(Path path, String pattern) throws IOException {
-    log.info("Creating writer for {}.", "add");
+    log.info("[TRACING] Creating writer for {} at {}.", "add", path.toAbsolutePath().toString());
 
     this.acc1 = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("ACC_1" + pattern).toString(), "rw")));
     this.acc2 = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("ACC_2" + pattern).toString(), "rw")));
@@ -63,6 +63,10 @@ public class CompressedFileWriter{
     this.resHi = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("RES_HI" + pattern).toString(), "rw")));
     this.resLo = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("RES_LO" + pattern).toString(), "rw")));
     this.stamp = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("STAMP" + pattern).toString(), "rw")));
+  }
+
+  public void close() {
+    acc1.close();
   }
 }
 

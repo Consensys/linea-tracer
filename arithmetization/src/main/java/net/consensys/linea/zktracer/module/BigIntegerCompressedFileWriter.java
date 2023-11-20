@@ -40,9 +40,9 @@ public class BigIntegerCompressedFileWriter extends AbstractCompressedFileWriter
   }
 
   public void processBigInteger(BigInteger b) {
-    if (getPreviousValue() == null) {
+    if (previousValue == null) {
       initialize(b);
-    } else if (getPreviousValue().equals(b)) {
+    } else if (previousValue.equals(b)) {
       increment();
     } else {
       addBigInteger(b);

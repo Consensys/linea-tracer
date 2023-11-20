@@ -56,7 +56,7 @@ public class TraceBuilder extends AbstractTraceBuilder {
     this.byte1 = writer.byte1;
     this.byte2 = writer.byte2;
     this.ct = writer.ct;
-   this.inst = writer.inst;
+    this.inst = writer.inst;
     this.overflow = writer.overflow;
     this.resHi = writer.resHi;
     this.resLo = writer.resLo;

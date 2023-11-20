@@ -189,7 +189,7 @@ public class Add implements Module {
 //            }
 //        });
 
-//        writer.close();
+        writer.close();
     }
 
     @Override

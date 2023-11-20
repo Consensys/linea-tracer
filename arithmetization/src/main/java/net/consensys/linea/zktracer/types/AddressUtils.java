@@ -27,7 +27,7 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public class AddressUtils {
-  private static final List<org.hyperledger.besu.datatypes.Address> precompileAddress =
+  private static final List<Address> precompileAddress =
       List.of(
           org.hyperledger.besu.datatypes.Address.ECREC,
           org.hyperledger.besu.datatypes.Address.SHA256,

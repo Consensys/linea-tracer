@@ -1,6 +1,7 @@
 package net.consensys.linea.zktracer.module;
 
 import java.io.IOException;
+import java.nio.channels.FileChannel;
 
 
 public class BooleanCompressedFileWriter extends AbstractCompressedFileWriter<Boolean> {
@@ -19,8 +20,9 @@ public class BooleanCompressedFileWriter extends AbstractCompressedFileWriter<Bo
   protected void flush() {
     if(previousValue!=null) {
       try {
-        fileWriter.writeInt(seenSoFar);
-        fileWriter.writeByte(previousValue ? (byte) 1 : (byte) 0);
+        fileWriter.checkSize(5);
+        fileWriter.channel.putInt(seenSoFar);
+        fileWriter.channel.put(previousValue ? (byte) 1 : (byte) 0);
       } catch (IOException e) {
         throw new RuntimeException(e);
       }

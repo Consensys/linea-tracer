@@ -20,8 +20,9 @@ public class UnsignedByteCompressedFileWriter extends AbstractCompressedFileWrit
   public void flush() {
     if(previousValue!=null) {
       try {
-        fileWriter.writeInt(seenSoFar);
-        fileWriter.writeByte(previousValue.toByte());
+        fileWriter.checkSize(5);
+        fileWriter.channel.putInt(seenSoFar);
+        fileWriter.channel.put(previousValue.toByte());
       } catch (IOException e) {
         throw new RuntimeException(e);
       }

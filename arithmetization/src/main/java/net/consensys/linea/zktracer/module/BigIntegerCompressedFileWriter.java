@@ -1,5 +1,6 @@
 package net.consensys.linea.zktracer.module;
 
+import com.google.common.primitives.Ints;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -28,17 +29,20 @@ public class BigIntegerCompressedFileWriter extends AbstractCompressedFileWriter
     if (previousValue != null) {
 //      log.info("Flushing Big Integer nbSeen:{}, initialValue::{}, delta:{}", seenSoFar, initialValue, delta);
       try {
-
-
         byte[] bytes2 = delta.toByteArray();
-        var l = 4+2+bytes2.length;
+        var l = 36;
          var bf = ByteBuffer.allocate(l);
 //        fileWriter.writeInt(seenSoFar);
 //        fileWriter.writeShort((short) bytes2.length);
 //        fileWriter.write(bytes2);
-        bf.putInt(seenSoFar);
-        bf.putShort((short) bytes2.length);
-        bf.put(bytes2);
+        bf.put((byte) (seenSoFar >> 24));
+        bf.put((byte) (seenSoFar >> 16));
+        bf.put((byte) (seenSoFar >> 8));
+        bf.put((byte) seenSoFar);
+//        bf.putShort((short) bytes2.length);
+        byte[] bytes = new byte[32];
+        System.arraycopy(bytes2, 0, bytes, 32-bytes2.length, bytes2.length);
+        bf.put(bytes);
         fileWriter.write(bf, l);
       } catch (IOException e) {
         throw new RuntimeException(e);
@@ -57,13 +61,25 @@ public class BigIntegerCompressedFileWriter extends AbstractCompressedFileWriter
     if (initialValue == null) {
       initialize(b, b);
     } else {
-      var newDelta = b.add(previousValue.negate());
-      if (delta.equals(newDelta)) {
+      if (previousValue.equals(b)) {
         increment();
-        previousValue = b;
       } else {
-        addBigInteger(b, newDelta);
+        addBigInteger(b, b);
       }
     }
   }
+//
+//  public void processBigInteger(BigInteger b) {
+//    if (initialValue == null) {
+//      initialize(b, b);
+//    } else {
+//      var newDelta = b.add(previousValue.negate());
+//      if (delta.equals(newDelta)) {
+//        increment();
+//        previousValue = b;
+//      } else {
+//        addBigInteger(b, newDelta);
+//      }
+//    }
+//  }
 }

@@ -15,7 +15,7 @@ import java.nio.channels.FileChannel;
 public class FW {
 
   private final int chunkSize;
-  private MappedByteBuffer channel;
+  protected MappedByteBuffer channel;
   private final RandomAccessFile value;
   int currentSize;
   int pos = 0;
@@ -56,6 +56,14 @@ public class FW {
     channel.put(bytes2);
   }
 
+  public void checkSize(int pos) throws IOException {
+    int prevpos = pos;
+    pos += 4;
+    if (pos > currentSize) {
+      currentSize += chunkSize;
+      this.channel = value.getChannel().map(FileChannel.MapMode.READ_WRITE, prevpos, currentSize);
+    }
+  }
   public void writeInt(int seenSoFar) throws IOException {
     int prevpos = pos;
     pos += 4;

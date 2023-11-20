@@ -51,8 +51,7 @@ public class RlpTxrcpt implements Module {
   private static final int INT_RLP_LIST_LONG = Trace.LIST_LONG;
 
   private int absLogNum = 0;
-  @Getter
-  public StackedList<RlpTxrcptChunk> chunkList = new StackedList<>();
+  @Getter public StackedList<RlpTxrcptChunk> chunkList = new StackedList<>();
 
   @Override
   public String jsonKey() {

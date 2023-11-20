@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Stopwatch;
 import lombok.Getter;
@@ -71,8 +72,8 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
   }
 
   @Override
-  public void writeToFile(final Path filenameo) {
-    Path filename= Path.of("data").resolve("besu").resolve("traces").resolve(filenameo.getFileName());
+  public void writeToFile(final Path filename) {
+//    Path filename= Path.of("data").resolve("besu").resolve("traces").resolve(filenameo.getFileName());
     log.warn("[TRACING] Starting serialization to " + filename.toAbsolutePath());
     Stopwatch sw = Stopwatch.createStarted();
 
@@ -96,6 +97,7 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
       }
       long offset = headerSize;
       for (Module m : modules) {
+        Stopwatch sw2 = Stopwatch.createStarted();
         List<MappedByteBuffer> buffers = new ArrayList<>();
         for (ColumnHeader columnHeader : m.columnsHeaders()) {
           final int columnLength = columnHeader.dataSize();
@@ -103,6 +105,7 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
           offset += columnLength;
         }
         m.commitToMmap(buffers);
+        log.info("[TRACING] done for {} in {}", m.jsonKey(), sw2.elapsed(TimeUnit.MILLISECONDS));
       }
     } catch (IOException e) {
       throw new RuntimeException(e);

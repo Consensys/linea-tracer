@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.rlpAddr;
 
+import java.math.BigInteger;
 import java.util.Optional;
 
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -23,11 +24,11 @@ import org.hyperledger.besu.datatypes.Address;
 
 public record RlpAddrChunk(
     OpCode opCode,
-    Optional<Long> nonce,
+    Optional<BigInteger> nonce,
     Address address,
     Optional<Bytes32> salt,
     Optional<Bytes32> keccak) {
-  public RlpAddrChunk(OpCode opCode, long nonce, Address address) {
+  public RlpAddrChunk(OpCode opCode, BigInteger nonce, Address address) {
     this(opCode, Optional.of(nonce), address, Optional.empty(), Optional.empty());
   }
 

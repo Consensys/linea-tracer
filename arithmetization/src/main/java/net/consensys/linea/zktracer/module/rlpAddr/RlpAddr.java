@@ -20,6 +20,7 @@ import static net.consensys.linea.zktracer.module.rlputils.Pattern.byteCounting;
 import static net.consensys.linea.zktracer.module.rlputils.Pattern.padToGivenSizeWithLeftZero;
 import static net.consensys.linea.zktracer.module.rlputils.Pattern.padToGivenSizeWithRightZero;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
+import static net.consensys.linea.zktracer.types.Conversions.longToUnsignedBigInteger;
 import static org.hyperledger.besu.crypto.Hash.keccak256;
 import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
@@ -65,7 +66,8 @@ public class RlpAddr implements Module {
   @Override
   public void traceStartTx(WorldView world, Transaction tx) {
     if (tx.getTo().isEmpty()) {
-      RlpAddrChunk chunk = new RlpAddrChunk(OpCode.CREATE, tx.getNonce(), tx.getSender());
+      RlpAddrChunk chunk =
+          new RlpAddrChunk(OpCode.CREATE, longToUnsignedBigInteger(tx.getNonce()), tx.getSender());
       this.chunkList.add(chunk);
     }
   }
@@ -79,10 +81,11 @@ public class RlpAddr implements Module {
         RlpAddrChunk chunk =
             new RlpAddrChunk(
                 OpCode.CREATE,
-                frame
-                    .getWorldUpdater()
-                    .get(currentAddress)
-                    .getNonce(), // TODO: use the method done by @Lorenzo in OOB module
+                longToUnsignedBigInteger(
+                    frame
+                        .getWorldUpdater()
+                        .get(currentAddress)
+                        .getNonce()),
                 currentAddress);
         this.chunkList.add(chunk);
       }
@@ -279,7 +282,7 @@ public class RlpAddr implements Module {
 
   private void traceChunks(RlpAddrChunk chunk, int stamp, Trace.TraceBuilder trace) {
     if (chunk.opCode().equals(OpCode.CREATE)) {
-      traceCreate(stamp, BigInteger.valueOf(chunk.nonce().get()), chunk.address(), trace);
+      traceCreate(stamp, chunk.nonce().get(), chunk.address(), trace);
     } else {
       traceCreate2(stamp, chunk.address(), chunk.salt().get(), chunk.keccak().get(), trace);
     }

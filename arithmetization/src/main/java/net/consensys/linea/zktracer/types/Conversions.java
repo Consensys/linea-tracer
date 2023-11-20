@@ -56,4 +56,10 @@ public class Conversions {
   public static BigInteger booleanToBigInteger(final boolean input) {
     return input ? BigInteger.ONE : BigInteger.ZERO;
   }
+
+  public static BigInteger longToUnsignedBigInteger(final long input) {
+    final BigInteger UNSIGNED_LONG_MASK =
+        BigInteger.ONE.shiftLeft(Long.SIZE).subtract(BigInteger.ONE);
+    return BigInteger.valueOf(input).and(UNSIGNED_LONG_MASK);
+  }
 }

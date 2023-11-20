@@ -37,7 +37,7 @@ import java.util.Set;
 @Accessors(fluent = true)
 @RequiredArgsConstructor
 public class Signals {
-  private final Set<InstructionFamily> FORCE_ENABLE_GAS = Set.of(InstructionFamily.CREATE, InstructionFamily.CALL, InstructionFamily.HALT);
+  private final Set<InstructionFamily> AUTOMATIC_GAS_MODULE_TRIGGER = Set.of(InstructionFamily.CREATE, InstructionFamily.CALL, InstructionFamily.HALT, InstructionFamily.INVALID);
 
   @Getter private boolean add;
   @Getter private boolean bin;
@@ -51,12 +51,13 @@ public class Signals {
   @Getter private boolean mmu;
   @Getter private boolean mxp;
   @Getter private boolean oob;
-  @Getter private boolean stipend;
+  @Getter private boolean stp;
   @Getter private boolean exp;
   @Getter private boolean trm;
   @Getter private boolean hashInfo;
   @Getter private boolean logInfo;
   @Getter private boolean romLex;
+  @Getter private boolean rlpAddr;
 
   private final PlatformController platformController;
 
@@ -73,11 +74,12 @@ public class Signals {
     this.mmu = false;
     this.mxp = false;
     this.oob = false;
-    this.stipend = false;
+    this.stp = false;
     this.exp = false;
     this.trm = false;
     this.hashInfo = false;
     this.romLex = false;
+    this.rlpAddr = false;
   }
 
   public Signals snapshot() {
@@ -95,11 +97,12 @@ public class Signals {
     r.mmu = this.mmu;
     r.mxp = this.mxp;
     r.oob = this.oob;
-    r.stipend = this.stipend;
+    r.stp = this.stp;
     r.exp = this.exp;
     r.trm = this.trm;
     r.hashInfo = this.hashInfo;
     r.romLex = this.romLex;
+    r.rlpAddr = this.rlpAddr;
 
     return r;
   }
@@ -115,7 +118,7 @@ public class Signals {
   }
 
   public Signals wantStipend() {
-    this.stipend = true;
+    this.stp = true;
     return this;
   }
 
@@ -136,9 +139,10 @@ public class Signals {
     final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
     final Exceptions ex = platformController.exceptions();
 
-    this.gas = ex.any() || this.FORCE_ENABLE_GAS.contains(opCode.getData().instructionFamily());
+    // this.gas coincides with CONTEXT_MAY_CHANGE
+    this.gas = ex.any() || this.AUTOMATIC_GAS_MODULE_TRIGGER.contains(opCode.getData().instructionFamily());
 
-    if (!ex.noStackException()) {
+    if (ex.stackException()) {
       return;
     }
 
@@ -159,8 +163,10 @@ public class Signals {
         this.mxp = ex.outOfMemoryExpansion() || ex.outOfGas() || ex.none();
         this.trm = ex.outOfGas() || ex.none();
         this.mmu = ex.none() && nonzeroSize;
+
         Address address  = Address.extract((Bytes32) frame.getStackItem(0));
         boolean targetAddressHasCode = frame.getWorldUpdater().get(address).hasCode();
+
         this.romLex = ex.none() && nonzeroSize && targetAddressHasCode;
       }
 
@@ -171,11 +177,42 @@ public class Signals {
       }
 
       case CALL, DELEGATECALL, STATICCALL, CALLCODE -> {
-        // WARN: nothing to see here, dynamically requested
+        this.mxp = !ex.staticFault();
+        this.stp = ex.outOfGas() || ex.none();
+        this.oob = ex.none();
+        this.trm = ex.outOfGas() || ex.none();
+
+        AbortingConditions abortingConditions = new AbortingConditions();
+        abortingConditions.prepare(hub);
+        boolean triggersAbortingCondition = ex.none() && abortingConditions.any();
+
+        Address target = Address.extract((Bytes32) frame.getStackItem(1));
+        boolean targetAddressHasNonEmptyCode = frame.getWorldUpdater().get(target).hasCode();
+
+        this.romLex = ex.none() && !triggersAbortingCondition && targetAddressHasNonEmptyCode;
       }
 
       case CREATE, CREATE2 -> {
-        // WARN: nothing to see here, cf scenarios – vous qui entrez ici, abandonnez tout espoir
+        AbortingConditions abortingConditions = new AbortingConditions();
+        abortingConditions.prepare(hub);
+        boolean triggersAbortingCondition = ex.none() && abortingConditions.any();
+
+        boolean triggersFailureCondition = false;
+        if (ex.none() && abortingConditions.none()) {
+          FailureConditions failureConditions = new FailureConditions(frame);
+          triggersFailureCondition = failureConditions.any();
+        }
+
+        boolean nonzeroSize = !frame.getStackItem(2).isZero();
+        boolean isCreate2 = opCode == OpCode.CREATE2;
+
+        this.mxp = !ex.staticFault();
+        this.stp = ex.outOfGas() || ex.none();
+        this.oob = ex.none();
+        this.rlpAddr = ex.none() && !triggersAbortingCondition;
+        this.hashInfo = ex.none() && !triggersAbortingCondition && nonzeroSize && isCreate2;
+        this.romLex = ex.none() && !triggersAbortingCondition && nonzeroSize && !triggersFailureCondition;
+        this.mmu = this.hashInfo || this.romLex;
       }
 
       case REVERT -> {
@@ -192,27 +229,30 @@ public class Signals {
 
         // WARN: Static part, other modules may be dynamically requested in the hub
         this.mxp =
-            ex.outOfMemoryExpansion() || ex.outOfGas() || ex.invalidCodePrefix() || ex.none();
+                ex.outOfMemoryExpansion() || ex.outOfGas() || ex.invalidCodePrefix() || ex.none();
         this.oob = isDeployment && (ex.codeSizeOverflow() || ex.none());
-        this.mmu =
-            (isDeployment && ex.invalidCodePrefix())
-                || (!isDeployment
-                    && ex.none()
-                    && sizeNonZero
-                    && hub.currentFrame().returnDataTarget().length() > 0)
-                || (isDeployment && ex.none() && sizeNonZero);
+        this.mmu = (isDeployment && ex.invalidCodePrefix())
+                        || (isDeployment && ex.none() && sizeNonZero)
+                        || (!isDeployment
+                        && ex.none()
+                        && sizeNonZero
+                        && hub.currentFrame().returnDataTarget().length() > 0)
+        ;
         this.romLex = this.hashInfo = isDeployment && ex.none() && sizeNonZero;
       }
 
         // TODO: these opcodes
-      case EXP -> { this.exp = true; }
+      case EXP -> {
+        this.exp = true;
+        this.mul = !ex.outOfGas();
+      }
 
       // other opcodes
       case ADD, SUB -> { this.add = !ex.outOfGas(); }
       case MUL -> { this.mul = !ex.outOfGas(); }
       case DIV, SDIV, MOD, SMOD -> { this.mod = !ex.outOfGas(); }
       case ADDMOD, MULMOD -> { this.ext = !ex.outOfGas(); }
-      case LT , GT , SLT , SGT, EQ, ISZERO -> { this.bin = !ex.outOfGas(); }
+      case LT , GT , SLT , SGT, EQ, ISZERO -> { this.wcp = !ex.outOfGas(); }
       case AND, OR, XOR, NOT, SIGNEXTEND, BYTE -> { this.bin = !ex.outOfGas(); }
       case SHL, SHR, SAR -> { this.shf = !ex.outOfGas(); }
       case SHA3 -> {

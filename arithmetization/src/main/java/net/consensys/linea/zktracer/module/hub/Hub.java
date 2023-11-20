@@ -494,7 +494,7 @@ public class Hub implements Module {
     if (this.pch.signals().oob()) {
       // TODO: this.oob.tracePreOpcode(frame);
     }
-    if (this.pch.signals().stipend()) {
+    if (this.pch.signals().stp()) {
       // TODO:
     }
     if (this.pch.signals().exp()) {

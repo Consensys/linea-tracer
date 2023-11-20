@@ -96,11 +96,14 @@ public final class Exceptions {
     this.codeSizeOverflow = false;
   }
 
+  public boolean stackException() {
+    return this.stackUnderflow() || this.stackOverflow();
+  }
   /**
    * @return true if no stack exception has been raised
    */
   public boolean noStackException() {
-    return !this.stackOverflow() && !this.stackUnderflow();
+    return !this.stackException();
   }
 
   /**

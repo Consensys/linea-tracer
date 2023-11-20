@@ -31,12 +31,12 @@ public class PlatformController {
   /** The exceptions raised during the execution of the current operation */
   @Getter private final Exceptions exceptions;
   /** The aborting conditions raised during the execution of the current operation */
-  @Getter private final Aborts aborts;
+  @Getter private final AbortingConditions aborts;
 
   public PlatformController(final Hub hub) {
     this.hub = hub;
     this.exceptions = new Exceptions();
-    this.aborts = new Aborts();
+    this.aborts = new AbortingConditions();
     this.signals = new Signals(this);
   }
 

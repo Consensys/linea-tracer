@@ -57,7 +57,7 @@ public class TransactionTraceLimitOverflowTest extends LineaPluginTestBase {
 
     // this tx will not be selected since it goes above the line count limit
     // but selection should go on and select the next one
-    final RawTransaction txContractInteraction =
+    final RawTransaction txModuleLineCountTooBig =
         RawTransaction.createTransaction(
             CHAIN_ID,
             BigInteger.valueOf(0),
@@ -73,7 +73,7 @@ public class TransactionTraceLimitOverflowTest extends LineaPluginTestBase {
     final EthSendTransaction signedTxContractInteractionResp =
         web3j.ethSendRawTransaction(Numeric.toHexString(signedTxContractInteraction)).send();
 
-    // this is the line count limit and should be selected
+    // this is under the line count limit and should be selected
     final RawTransaction txTransfer =
         RawTransaction.createTransaction(
             CHAIN_ID,

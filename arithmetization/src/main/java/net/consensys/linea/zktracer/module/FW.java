@@ -90,4 +90,14 @@ public class FW {
     invokeCleaner.invoke(unsafe, channel);
     value.setLength(pos);
   }
+
+  public void write(ByteBuffer bf, int l) throws IOException {
+    int prevpos = pos;
+    pos += l;
+    if (pos > currentSize) {
+      currentSize += chunkSize;
+      this.channel = value.getChannel().map(FileChannel.MapMode.READ_WRITE, prevpos, currentSize);
+    }
+    channel.put(bf);
+  }
 }

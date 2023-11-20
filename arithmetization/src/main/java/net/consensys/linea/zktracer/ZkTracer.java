@@ -100,7 +100,11 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
     @SuppressWarnings({"deprecation", "unchecked"})
     public void writeToFile(Path path, String filename) throws IOException {
         log.warn("[TRACING] starting trace to path {} using pattern {}", path, filename);
-
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         Stopwatch sw1 = Stopwatch.createStarted();
 
         for (Module m : this.hub.getModulesToTrace()) {

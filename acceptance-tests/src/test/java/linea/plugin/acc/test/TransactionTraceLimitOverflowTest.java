@@ -73,8 +73,6 @@ public class TransactionTraceLimitOverflowTest extends LineaPluginTestBase {
     final EthSendTransaction signedTxContractInteractionResp =
         web3j.ethSendRawTransaction(Numeric.toHexString(signedTxContractInteraction)).send();
 
-    System.out.println(signedTxContractInteractionResp);
-
     // this is the line count limit and should be selected
     final RawTransaction txTransfer =
         RawTransaction.createTransaction(

@@ -133,6 +133,7 @@ public class Add implements Module {
             }
         }
 
+        var trace = new TraceBuilder(writer);
         for (int i = 0; i < 16; i++) {
             Bytes32 addRes;
             if (opCode == OpCode.ADD) {
@@ -142,7 +143,7 @@ public class Add implements Module {
             }
 
             overflowLo = (addRes.compareTo(TWO_TO_THE_128) >= 0);
-            new TraceBuilder(writer)
+            trace
                     .acc1(resHi.slice(0, 1 + i).toUnsignedBigInteger())
                     .acc2(resLo.slice(0, 1 + i).toUnsignedBigInteger())
                     .arg1Hi(arg1Hi.toUnsignedBigInteger())

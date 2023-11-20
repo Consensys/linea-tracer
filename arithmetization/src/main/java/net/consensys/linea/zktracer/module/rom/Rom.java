@@ -87,11 +87,11 @@ public class Rom implements Module {
         int ctPush = 0;
         Bytes pushValueHigh = Bytes.minimalBytes(0);
         Bytes pushValueLow = Bytes.minimalBytes(0);
-
+        TraceBuilder trace = new TraceBuilder(writer);
         for (int i = 0; i < chunkRowSize; i++) {
             boolean codeSizeReached = i >= codeSize;
             int sliceNumber = i / 16;
-            TraceBuilder trace = new TraceBuilder(writer);
+
             // Fill Generic columns
             trace
                     .codeFragmentIndex(BigInteger.valueOf(cfi))

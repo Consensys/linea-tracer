@@ -247,7 +247,7 @@ public final class Exceptions {
   }
 
   /**
-   * Compute all the first exception that may have happened in the current frame. Wlthoug multiple
+   * Compute all the first exception that may have happened in the current frame. Wlthout multiple
    * exceptions may be triggered, the one minimizing the quantity of trace lines is generated.
    *
    * @param frame the context from which to compute the putative exceptions

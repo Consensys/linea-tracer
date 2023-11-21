@@ -116,20 +116,20 @@ public record Trace(
     }
 
     public void releaseBuffers() {
-      this.acc1 = null;
-      this.acc2 = null;
-      this.arg1Hi = null;
-      this.arg1Lo = null;
-      this.arg2Hi = null;
-      this.arg2Lo = null;
-      this.byte1 = null;
-      this.byte2 = null;
-      this.ct = null;
-      this.inst = null;
-      this.overflow = null;
-      this.resHi = null;
-      this.resLo = null;
-      this.stamp = null;
+      this.acc1.force();
+      this.acc2.force();
+      this.arg1Hi.force();
+      this.arg1Lo.force();
+      this.arg2Hi.force();
+      this.arg2Lo.force();
+      this.byte1.force();
+      this.byte2.force();
+      this.ct.force();
+      this.inst.force();
+      this.overflow.force();
+      this.resHi.force();
+      this.resLo.force();
+      this.stamp.force();
     }
 
     public TraceBuilder acc1(final BigInteger b) {

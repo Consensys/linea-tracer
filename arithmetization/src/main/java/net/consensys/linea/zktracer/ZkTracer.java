@@ -72,8 +72,8 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
   }
 
   @Override
-  public void writeToFile(final Path filename) {
-//    Path filename= Path.of("data").resolve("besu").resolve("traces").resolve(filenameo.getFileName());
+  public void writeToFile(final Path filenameo) {
+    Path filename= Path.of("data").resolve("besu").resolve("traces").resolve(filenameo.getFileName());
     log.warn("[TRACING] Starting serialization to " + filename.toAbsolutePath());
     Stopwatch sw = Stopwatch.createStarted();
 

@@ -152,29 +152,29 @@ public record Trace(
     }
 
     public void releaseBuffers() {
-      this.acc = null;
-      this.codeFragmentIndex = null;
-      this.codeFragmentIndexInfty = null;
-      this.codeSize = null;
-      this.codesizeReached = null;
-      this.counter = null;
-      this.counterMax = null;
-      this.counterPush = null;
-      this.index = null;
-      this.isPush = null;
-      this.isPushData = null;
-      this.limb = null;
-      this.nBytes = null;
-      this.nBytesAcc = null;
-      this.opcode = null;
-      this.paddedBytecodeByte = null;
-      this.programmeCounter = null;
-      this.pushFunnelBit = null;
-      this.pushParameter = null;
-      this.pushValueAcc = null;
-      this.pushValueHigh = null;
-      this.pushValueLow = null;
-      this.validJumpDestination = null;
+      this.acc.force();
+      this.codeFragmentIndex.force();
+      this.codeFragmentIndexInfty.force();
+      this.codeSize.force();
+      this.codesizeReached.force();
+      this.counter.force();
+      this.counterMax.force();
+      this.counterPush.force();
+      this.index.force();
+      this.isPush.force();
+      this.isPushData.force();
+      this.limb.force();
+      this.nBytes.force();
+      this.nBytesAcc.force();
+      this.opcode.force();
+      this.paddedBytecodeByte.force();
+      this.programmeCounter.force();
+      this.pushFunnelBit.force();
+      this.pushParameter.force();
+      this.pushValueAcc.force();
+      this.pushValueHigh.force();
+      this.pushValueLow.force();
+      this.validJumpDestination.force();
     }
 
     public TraceBuilder acc(final BigInteger b) {

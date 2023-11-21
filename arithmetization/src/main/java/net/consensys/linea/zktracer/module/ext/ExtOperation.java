@@ -25,26 +25,28 @@ import net.consensys.linea.zktracer.bytestheta.BaseTheta;
 import net.consensys.linea.zktracer.bytestheta.BytesArray;
 import net.consensys.linea.zktracer.module.ext.calculator.AbstractExtCalculator;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.opcode.OpCodeData;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
 
 public class ExtOperation {
   private static final int MMEDIUM = 8;
-
   @Getter private final OpCode opCode;
+  private final Bytes32 rawArg1;
+  private final Bytes32 rawArg2;
+  private final Bytes32 rawArg3;
   @Getter private final boolean oli;
-  @Getter private final BaseBytes arg1;
-  @Getter private final BaseBytes arg2;
-  @Getter private final BaseBytes arg3;
-  @Getter private final BaseTheta result;
-  @Getter private final BaseTheta aBytes;
-  @Getter private final BaseTheta bBytes;
-  @Getter private final BaseTheta cBytes;
+
+  @Getter private BaseBytes arg1;
+  @Getter private BaseBytes arg2;
+  @Getter private BaseBytes arg3;
+  @Getter private BaseTheta result;
+  @Getter private BaseTheta aBytes;
+  @Getter private BaseTheta bBytes;
+  @Getter private BaseTheta cBytes;
   @Getter private BaseTheta deltaBytes;
-  @Getter private final BytesArray hBytes;
-  @Getter private final BaseTheta rBytes;
-  @Getter private final BytesArray iBytes;
+  @Getter private BytesArray hBytes;
+  @Getter private BaseTheta rBytes;
+  @Getter private BytesArray iBytes;
   @Getter private BytesArray jBytes;
   @Getter private BytesArray qBytes;
   @Getter private boolean[] cmp = new boolean[8];
@@ -59,21 +61,24 @@ public class ExtOperation {
    */
   @Override
   public int hashCode() {
-    return Objects.hash(this.opCode, this.arg1, this.arg2, this.arg3);
-  }
-
-  public ExtOperation(OpCodeData opCodeData, Bytes32 arg1, Bytes32 arg2, Bytes32 arg3) {
-    this(opCodeData.mnemonic(), arg1, arg2, arg3);
+    return Objects.hash(this.opCode, this.rawArg1, this.rawArg2, this.rawArg3);
   }
 
   public ExtOperation(OpCode opCode, Bytes32 arg1, Bytes32 arg2, Bytes32 arg3) {
     this.opCode = opCode;
-    this.arg1 = BaseBytes.fromBytes32(arg1);
-    this.arg2 = BaseBytes.fromBytes32(arg2);
-    this.arg3 = BaseBytes.fromBytes32(arg3);
-    this.aBytes = BaseTheta.fromBytes32(arg1);
-    this.bBytes = BaseTheta.fromBytes32(arg2);
-    this.cBytes = BaseTheta.fromBytes32(arg3);
+    this.rawArg1 = arg1.copy();
+    this.rawArg2 = arg2.copy();
+    this.rawArg3 = arg3.copy();
+    this.oli = isOneLineInstruction();
+  }
+
+  public void setup() {
+    this.arg1 = BaseBytes.fromBytes32(this.rawArg1);
+    this.arg2 = BaseBytes.fromBytes32(this.rawArg2);
+    this.arg3 = BaseBytes.fromBytes32(rawArg3);
+    this.aBytes = BaseTheta.fromBytes32(this.rawArg1);
+    this.bBytes = BaseTheta.fromBytes32(this.rawArg2);
+    this.cBytes = BaseTheta.fromBytes32(this.rawArg3);
     this.iBytes = new BytesArray(7);
     this.jBytes = new BytesArray(8);
     this.qBytes = new BytesArray(8);
@@ -81,17 +86,16 @@ public class ExtOperation {
     this.hBytes = new BytesArray(6);
 
     AbstractExtCalculator computer = AbstractExtCalculator.create(opCode);
-    UInt256 result = computer.computeResult(arg1, arg2, arg3);
+    UInt256 result = computer.computeResult(this.rawArg1, this.rawArg2, this.rawArg3);
 
     this.result = BaseTheta.fromBytes32(result);
     this.rBytes = BaseTheta.fromBytes32(result);
 
-    this.oli = isOneLineInstruction();
     if (!this.oli) {
       cmp = computer.computeComparisonFlags(cBytes, rBytes);
       deltaBytes = computer.computeDeltas(cBytes, rBytes);
-      jBytes = computer.computeJs(arg1, arg2);
-      qBytes = computer.computeQs(arg1, arg2, arg3);
+      jBytes = computer.computeJs(this.rawArg1, this.rawArg2);
+      qBytes = computer.computeQs(this.rawArg1, this.rawArg2, this.rawArg3);
       overflowH = computer.computeHs(aBytes, bBytes, hBytes);
       overflowI = computer.computeIs(qBytes, cBytes, iBytes);
       overflowJ = computer.computeOverflowJ(qBytes, cBytes, rBytes, iBytes, getSigma(), getTau());
@@ -102,17 +106,15 @@ public class ExtOperation {
   }
 
   public boolean getBit1() {
-    return this.opCode == OpCode.MULMOD && this.arg1.isZero();
+    return this.opCode == OpCode.MULMOD && this.rawArg1.isZero();
   }
 
   public boolean getBit2() {
-    return this.opCode == OpCode.MULMOD && this.arg2.isZero();
+    return this.opCode == OpCode.MULMOD && this.rawArg2.isZero();
   }
 
   public boolean getBit3() {
-    UInt256 uInt256 = UInt256.fromBytes(this.arg3.getBytes32());
-
-    return UInt256.ONE.compareTo(uInt256) >= 0;
+    return UInt256.ONE.compareTo(UInt256.fromBytes(this.rawArg3)) >= 0;
   }
 
   /** Returns true if any of the bit1, bit2, or bit3 flags are set. */

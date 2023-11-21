@@ -23,7 +23,6 @@ import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
-import net.consensys.linea.zktracer.module.ModuleTrace;
 import net.consensys.linea.zktracer.module.rlp_txrcpt.RlpTxrcpt;
 import net.consensys.linea.zktracer.module.rlp_txrcpt.RlpTxrcptChunk;
 import org.apache.tuweni.bytes.Bytes;
@@ -101,8 +100,7 @@ public class LogData implements Module {
     }
   }
 
-  public void traceLogWoData(
-      final int absLogNum, final int absLogNumMax, Trace trace) {
+  public void traceLogWoData(final int absLogNum, final int absLogNumMax, Trace trace) {
     trace
         .absLogNumMax(BigInteger.valueOf(absLogNumMax))
         .absLogNum(BigInteger.valueOf(absLogNum))
@@ -115,8 +113,7 @@ public class LogData implements Module {
         .validateRow();
   }
 
-  public void traceLog(
-      final Log log, final int absLogNum, final int absLogNumMax, Trace trace) {
+  public void traceLog(final Log log, final int absLogNum, final int absLogNumMax, Trace trace) {
     final int indexMax = indexMax(log);
     final Bytes dataPadded = padToGivenSizeWithRightZero(log.getData(), (indexMax + 1) * 16);
     final int lastLimbSize = (log.getData().size() % 16 == 0) ? 16 : log.getData().size() % 16;

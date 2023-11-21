@@ -16,14 +16,12 @@
 package net.consensys.linea.zktracer.module.rlp_txrcpt;
 
 import static net.consensys.linea.zktracer.module.rlpCommon.rlpRandEdgeCase.randData;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.zktracer.module.logData.LogData;
 import net.consensys.linea.zktracer.module.logInfo.LogInfo;
 import net.consensys.linea.zktracer.opcode.OpCodes;
@@ -56,7 +54,8 @@ public class RandomTxrcptTests {
     KeyPair keyPair = new SECP256K1().generateKeyPair();
     Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
 
-    ToyAccount senderAccount = ToyAccount.builder().balance(Wei.of(5)).nonce(32).address(senderAddress).build();
+    ToyAccount senderAccount =
+        ToyAccount.builder().balance(Wei.of(5)).nonce(32).address(senderAddress).build();
 
     // Create few tx
     for (int i = 0; i < 200; i++) {
@@ -77,8 +76,8 @@ public class RandomTxrcptTests {
     //
     // Check the trace
     //
-    //TODO: uncomment the test
-    //assertThat(
+    // TODO: uncomment the test
+    // assertThat(
     //    CorsetValidator.isValid(
     //        new ZkTraceBuilder()
     //            .addTrace(rlpTxrcpt)

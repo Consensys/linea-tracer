@@ -27,9 +27,7 @@ import org.apache.tuweni.units.bigints.UInt256;
 /**
  * WARNING: This code is generated automatically.
  *
- * <p>
- * Any modifications to this code may be overwritten and could lead to
- * unexpected behavior.
+ * <p>Any modifications to this code may be overwritten and could lead to unexpected behavior.
  * Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
 public class Trace {

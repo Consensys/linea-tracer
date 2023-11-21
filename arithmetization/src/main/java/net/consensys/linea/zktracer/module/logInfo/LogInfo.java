@@ -21,7 +21,6 @@ import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
-import net.consensys.linea.zktracer.module.ModuleTrace;
 import net.consensys.linea.zktracer.module.rlp_txrcpt.RlpTxrcpt;
 import net.consensys.linea.zktracer.module.rlp_txrcpt.RlpTxrcptChunk;
 import org.apache.tuweni.bytes.Bytes32;
@@ -131,11 +130,7 @@ public class LogInfo implements Module {
   }
 
   public void traceLog(
-      final Log log,
-      final int absTxNum,
-      final int absLogNum,
-      final int absLogNumMax,
-      Trace trace) {
+      final Log log, final int absTxNum, final int absLogNum, final int absLogNumMax, Trace trace) {
     final int ctMax = ctMax(log);
     final int nbTopic = log.getTopics().size();
     final Bytes32 topic1 = nbTopic >= 1 ? log.getTopics().get(0) : Bytes32.ZERO;

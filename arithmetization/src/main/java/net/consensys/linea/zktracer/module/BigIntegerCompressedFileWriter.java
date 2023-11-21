@@ -12,15 +12,14 @@ import java.nio.ByteBuffer;
 public class BigIntegerCompressedFileWriter extends AbstractCompressedFileWriter<BigInteger> {
   private BigInteger previousValue = null;
   private BigInteger initialValue = null;
-  private BigInteger delta = null;
 
   public BigIntegerCompressedFileWriter(FW fileWriter) {
     super(fileWriter);
   }
 
-  public void addBigInteger(BigInteger b, BigInteger newDelta) {
+  public void addBigInteger(BigInteger b) {
     flush();
-    initialize(b, newDelta);
+    initialize(b);
   }
 
 
@@ -29,7 +28,7 @@ public class BigIntegerCompressedFileWriter extends AbstractCompressedFileWriter
 //    if (previousValue != null) {
 //      log.info("Flushing Big Integer nbSeen:{}, initialValue::{}, delta:{}", seenSoFar, initialValue, delta);
       try {
-        byte[] bytes2 = delta.toByteArray();
+        byte[] bytes2 = previousValue.toByteArray();
         var l = 36;
          var bf = ByteBuffer.allocate(l);
 //        fileWriter.writeInt(seenSoFar);
@@ -40,9 +39,12 @@ public class BigIntegerCompressedFileWriter extends AbstractCompressedFileWriter
         bf.put((byte) (seenSoFar >> 8));
         bf.put((byte) seenSoFar);
 //        bf.putShort((short) bytes2.length);
-        byte[] bytes = new byte[32];
-        System.arraycopy(bytes2, 0, bytes, 32-bytes2.length, bytes2.length);
-        bf.put(bytes);
+//        byte[] bytes = new byte[32];
+//        System.arraycopy(bytes2, 0, bytes, 32-bytes2.length, bytes2.length);
+        for(int i = 0; i<32-bytes2.length; i++){
+          bf.put((byte)0);
+        }
+        bf.put(bytes2);
         fileWriter.write(bf, l);
       } catch (IOException e) {
         throw new RuntimeException(e);
@@ -50,21 +52,20 @@ public class BigIntegerCompressedFileWriter extends AbstractCompressedFileWriter
 //    }
   }
 
-  private void initialize(BigInteger b, BigInteger newDelta) {
+  private void initialize(BigInteger b) {
     initialValue = b;
     previousValue = b;
-    delta = newDelta;
     seenSoFar = 1;
   }
 
   public void processBigInteger(BigInteger b) {
     if (initialValue == null) {
-      initialize(b, b);
+      initialize(b);
     } else {
       if (previousValue.equals(b)) {
         increment();
       } else {
-        addBigInteger(b, b);
+        addBigInteger(b);
       }
     }
   }

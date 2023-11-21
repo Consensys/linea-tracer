@@ -90,6 +90,8 @@ public class FW {
 
   public void close() throws IOException, ClassNotFoundException, NoSuchFieldException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
     channel.force();
+//    channel = null;
+    value.getFD().sync();
     Class<?> unsafeClass = Class.forName("sun.misc.Unsafe");
     Field unsafeField = unsafeClass.getDeclaredField("theUnsafe");
     unsafeField.setAccessible(true);

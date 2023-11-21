@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer;
 
+import com.google.common.base.Preconditions;
+
 public record ColumnHeader(String name, int bytesPerElement, int length) {
   public int dataSize() {
     return this.length() * this.bytesPerElement();
@@ -33,7 +35,7 @@ public record ColumnHeader(String name, int bytesPerElement, int length) {
   }
 
   public static ColumnHeader make(String name, int bytesPerElement, int length) {
-    assert name.length() < Short.MAX_VALUE;
+    Preconditions.checkArgument(name.length() < Short.MAX_VALUE, "column name is too long");
     return new ColumnHeader(name, bytesPerElement, length);
   }
 }

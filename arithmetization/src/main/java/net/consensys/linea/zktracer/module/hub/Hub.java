@@ -519,9 +519,6 @@ public class Hub implements Module {
     if (this.pch.signals().hashInfo()) {
       // TODO: this.hashInfo.tracePreOpcode(frame);
     }
-    if (this.pch.signals().logInfo()) {
-      // TODO: this.hashInfo.tracePreOpcode(frame);
-    }
     if (this.pch.signals().romLex()) {
       this.romLex.tracePreOpcode(frame);
     }

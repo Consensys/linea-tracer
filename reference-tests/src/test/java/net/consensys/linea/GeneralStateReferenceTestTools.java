@@ -121,6 +121,10 @@ public class GeneralStateReferenceTestTools {
     // Not compliant with the zkEVM requirements.
     PARAMS.ignore("stPreCompiledContracts2/modexpRandomInput.*");
     PARAMS.ignore("tQuadraticComplexityTest/Call50000_ecrec.*");
+    PARAMS.ignore("stStaticCall/static_Call50000_ecrec.*");
+    PARAMS.ignore("stRandom2/randomStatetest642.*");
+    PARAMS.ignore("stRandom2/randomStatetest644.*");
+    PARAMS.ignore("stRandom2/randomStatetest645.*");
   }
 
   private GeneralStateReferenceTestTools() {

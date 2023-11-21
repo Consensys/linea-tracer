@@ -18,7 +18,10 @@ package net.consensys.linea.zktracer.module.logData;
 import static net.consensys.linea.zktracer.module.rlputils.Pattern.padToGivenSizeWithRightZero;
 
 import java.math.BigInteger;
+import java.nio.MappedByteBuffer;
+import java.util.List;
 
+import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
 import net.consensys.linea.zktracer.module.rlp_txrcpt.RlpTxrcpt;
@@ -53,6 +56,11 @@ public class LogData implements Module {
     return rowSize;
   }
 
+  @Override
+  public List<ColumnHeader> columnsHeaders() {
+    return Trace.headers(this.lineCount());
+  }
+
   private int txRowSize(RlpTxrcptChunk tx) {
     int txRowSize = 0;
     if (tx.logs().isEmpty()) {
@@ -70,8 +78,8 @@ public class LogData implements Module {
   }
 
   @Override
-  public ModuleTrace commit() {
-    final Trace.TraceBuilder trace = Trace.builder(this.lineCount());
+  public void commit(List<MappedByteBuffer> buffers) {
+    final Trace trace = new Trace(buffers);
 
     int absLogNumMax = 0;
     for (RlpTxrcptChunk tx : this.rlpTxrcpt.chunkList) {
@@ -91,12 +99,10 @@ public class LogData implements Module {
         }
       }
     }
-
-    return new LogDataTrace(trace.build());
   }
 
   public void traceLogWoData(
-      final int absLogNum, final int absLogNumMax, Trace.TraceBuilder trace) {
+      final int absLogNum, final int absLogNumMax, Trace trace) {
     trace
         .absLogNumMax(BigInteger.valueOf(absLogNumMax))
         .absLogNum(BigInteger.valueOf(absLogNum))
@@ -110,7 +116,7 @@ public class LogData implements Module {
   }
 
   public void traceLog(
-      final Log log, final int absLogNum, final int absLogNumMax, Trace.TraceBuilder trace) {
+      final Log log, final int absLogNum, final int absLogNumMax, Trace trace) {
     final int indexMax = indexMax(log);
     final Bytes dataPadded = padToGivenSizeWithRightZero(log.getData(), (indexMax + 1) * 16);
     final int lastLimbSize = (log.getData().size() % 16 == 0) ? 16 : log.getData().size() % 16;

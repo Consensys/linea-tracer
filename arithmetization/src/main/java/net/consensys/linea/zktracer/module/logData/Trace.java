@@ -1,5 +1,5 @@
 /*
- * Copyright ConsenSys AG.
+ * Copyright ConsenSys Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -16,257 +16,262 @@
 package net.consensys.linea.zktracer.module.logData;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
+import java.nio.MappedByteBuffer;
 import java.util.BitSet;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.types.UnsignedByte;
+import org.apache.tuweni.units.bigints.UInt256;
 
 /**
- * WARNING: This code is generated automatically. Any modifications to this code may be overwritten
- * and could lead to unexpected behavior. Please DO NOT ATTEMPT TO MODIFY this code directly.
+ * WARNING: This code is generated automatically.
+ *
+ * <p>Any modifications to this code may be overwritten and could lead to unexpected behavior.
+ * Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
-public record Trace(
-    @JsonProperty("ABS_LOG_NUM") List<BigInteger> absLogNum,
-    @JsonProperty("ABS_LOG_NUM_MAX") List<BigInteger> absLogNumMax,
-    @JsonProperty("INDEX") List<BigInteger> index,
-    @JsonProperty("LIMB") List<BigInteger> limb,
-    @JsonProperty("LOGS_DATA") List<Boolean> logsData,
-    @JsonProperty("SIZE_ACC") List<BigInteger> sizeAcc,
-    @JsonProperty("SIZE_LIMB") List<BigInteger> sizeLimb,
-    @JsonProperty("SIZE_TOTAL") List<BigInteger> sizeTotal) {
-  static TraceBuilder builder(int length) {
-    return new TraceBuilder(length);
+public class Trace {
+  static final int CREATE2_SHIFT = 255;
+  static final int G_TXDATA_NONZERO = 16;
+  static final int G_TXDATA_ZERO = 4;
+  static final int INT_LONG = 183;
+  static final int INT_SHORT = 128;
+  static final int LIST_LONG = 247;
+  static final int LIST_SHORT = 192;
+  static final int LLARGE = 16;
+  static final int LLARGEMO = 15;
+  static final int RLPADDR_CONST_RECIPE_1 = 1;
+  static final int RLPADDR_CONST_RECIPE_2 = 2;
+  static final int RLPRECEIPT_SUBPHASE_ID_ADDR = 53;
+  static final int RLPRECEIPT_SUBPHASE_ID_CUMUL_GAS = 3;
+  static final int RLPRECEIPT_SUBPHASE_ID_DATA_LIMB = 77;
+  static final int RLPRECEIPT_SUBPHASE_ID_DATA_SIZE = 83;
+  static final int RLPRECEIPT_SUBPHASE_ID_NO_LOG_ENTRY = 11;
+  static final int RLPRECEIPT_SUBPHASE_ID_STATUS_CODE = 2;
+  static final int RLPRECEIPT_SUBPHASE_ID_TOPIC_BASE = 65;
+  static final int RLPRECEIPT_SUBPHASE_ID_TOPIC_DELTA = 96;
+  static final int RLPRECEIPT_SUBPHASE_ID_TYPE = 7;
+
+  private final BitSet filled = new BitSet();
+  private int currentLine = 0;
+
+  private final MappedByteBuffer absLogNum;
+  private final MappedByteBuffer absLogNumMax;
+  private final MappedByteBuffer index;
+  private final MappedByteBuffer limb;
+  private final MappedByteBuffer logsData;
+  private final MappedByteBuffer sizeAcc;
+  private final MappedByteBuffer sizeLimb;
+  private final MappedByteBuffer sizeTotal;
+
+  static List<ColumnHeader> headers(int length) {
+    return List.of(
+        new ColumnHeader("logData.ABS_LOG_NUM", 32, length),
+        new ColumnHeader("logData.ABS_LOG_NUM_MAX", 32, length),
+        new ColumnHeader("logData.INDEX", 32, length),
+        new ColumnHeader("logData.LIMB", 32, length),
+        new ColumnHeader("logData.LOGS_DATA", 1, length),
+        new ColumnHeader("logData.SIZE_ACC", 32, length),
+        new ColumnHeader("logData.SIZE_LIMB", 32, length),
+        new ColumnHeader("logData.SIZE_TOTAL", 32, length));
+  }
+
+  public Trace(List<MappedByteBuffer> buffers) {
+    this.absLogNum = buffers.get(0);
+    this.absLogNumMax = buffers.get(1);
+    this.index = buffers.get(2);
+    this.limb = buffers.get(3);
+    this.logsData = buffers.get(4);
+    this.sizeAcc = buffers.get(5);
+    this.sizeLimb = buffers.get(6);
+    this.sizeTotal = buffers.get(7);
   }
 
   public int size() {
-    return this.absLogNum.size();
+    if (!filled.isEmpty()) {
+      throw new RuntimeException("Cannot measure a trace with a non-validated row.");
+    }
+
+    return this.currentLine;
   }
 
-  static class TraceBuilder {
-    private final BitSet filled = new BitSet();
-
-    @JsonProperty("ABS_LOG_NUM")
-    private final List<BigInteger> absLogNum;
-
-    @JsonProperty("ABS_LOG_NUM_MAX")
-    private final List<BigInteger> absLogNumMax;
-
-    @JsonProperty("INDEX")
-    private final List<BigInteger> index;
-
-    @JsonProperty("LIMB")
-    private final List<BigInteger> limb;
-
-    @JsonProperty("LOGS_DATA")
-    private final List<Boolean> logsData;
-
-    @JsonProperty("SIZE_ACC")
-    private final List<BigInteger> sizeAcc;
-
-    @JsonProperty("SIZE_LIMB")
-    private final List<BigInteger> sizeLimb;
-
-    @JsonProperty("SIZE_TOTAL")
-    private final List<BigInteger> sizeTotal;
-
-    private TraceBuilder(int length) {
-      this.absLogNum = new ArrayList<>(length);
-      this.absLogNumMax = new ArrayList<>(length);
-      this.index = new ArrayList<>(length);
-      this.limb = new ArrayList<>(length);
-      this.logsData = new ArrayList<>(length);
-      this.sizeAcc = new ArrayList<>(length);
-      this.sizeLimb = new ArrayList<>(length);
-      this.sizeTotal = new ArrayList<>(length);
+  public Trace absLogNum(final BigInteger b) {
+    if (filled.get(0)) {
+      throw new IllegalStateException("logData.ABS_LOG_NUM already set");
+    } else {
+      filled.set(0);
     }
 
-    public int size() {
-      if (!filled.isEmpty()) {
-        throw new RuntimeException("Cannot measure a trace with a non-validated row.");
-      }
+    absLogNum.put(UInt256.valueOf(b).toBytes().toArray());
 
-      return this.absLogNum.size();
+    return this;
+  }
+
+  public Trace absLogNumMax(final BigInteger b) {
+    if (filled.get(1)) {
+      throw new IllegalStateException("logData.ABS_LOG_NUM_MAX already set");
+    } else {
+      filled.set(1);
     }
 
-    public TraceBuilder absLogNum(final BigInteger b) {
-      if (filled.get(0)) {
-        throw new IllegalStateException("ABS_LOG_NUM already set");
-      } else {
-        filled.set(0);
-      }
+    absLogNumMax.put(UInt256.valueOf(b).toBytes().toArray());
 
-      absLogNum.add(b);
+    return this;
+  }
 
-      return this;
+  public Trace index(final BigInteger b) {
+    if (filled.get(2)) {
+      throw new IllegalStateException("logData.INDEX already set");
+    } else {
+      filled.set(2);
     }
 
-    public TraceBuilder absLogNumMax(final BigInteger b) {
-      if (filled.get(1)) {
-        throw new IllegalStateException("ABS_LOG_NUM_MAX already set");
-      } else {
-        filled.set(1);
-      }
+    index.put(UInt256.valueOf(b).toBytes().toArray());
 
-      absLogNumMax.add(b);
+    return this;
+  }
 
-      return this;
+  public Trace limb(final BigInteger b) {
+    if (filled.get(3)) {
+      throw new IllegalStateException("logData.LIMB already set");
+    } else {
+      filled.set(3);
     }
 
-    public TraceBuilder index(final BigInteger b) {
-      if (filled.get(2)) {
-        throw new IllegalStateException("INDEX already set");
-      } else {
-        filled.set(2);
-      }
+    limb.put(UInt256.valueOf(b).toBytes().toArray());
 
-      index.add(b);
+    return this;
+  }
 
-      return this;
+  public Trace logsData(final Boolean b) {
+    if (filled.get(4)) {
+      throw new IllegalStateException("logData.LOGS_DATA already set");
+    } else {
+      filled.set(4);
     }
 
-    public TraceBuilder limb(final BigInteger b) {
-      if (filled.get(3)) {
-        throw new IllegalStateException("LIMB already set");
-      } else {
-        filled.set(3);
-      }
+    logsData.put((byte) (b ? 1 : 0));
 
-      limb.add(b);
+    return this;
+  }
 
-      return this;
+  public Trace sizeAcc(final BigInteger b) {
+    if (filled.get(5)) {
+      throw new IllegalStateException("logData.SIZE_ACC already set");
+    } else {
+      filled.set(5);
     }
 
-    public TraceBuilder logsData(final Boolean b) {
-      if (filled.get(4)) {
-        throw new IllegalStateException("LOGS_DATA already set");
-      } else {
-        filled.set(4);
-      }
+    sizeAcc.put(UInt256.valueOf(b).toBytes().toArray());
 
-      logsData.add(b);
+    return this;
+  }
 
-      return this;
+  public Trace sizeLimb(final BigInteger b) {
+    if (filled.get(6)) {
+      throw new IllegalStateException("logData.SIZE_LIMB already set");
+    } else {
+      filled.set(6);
     }
 
-    public TraceBuilder sizeAcc(final BigInteger b) {
-      if (filled.get(5)) {
-        throw new IllegalStateException("SIZE_ACC already set");
-      } else {
-        filled.set(5);
-      }
+    sizeLimb.put(UInt256.valueOf(b).toBytes().toArray());
 
-      sizeAcc.add(b);
+    return this;
+  }
 
-      return this;
+  public Trace sizeTotal(final BigInteger b) {
+    if (filled.get(7)) {
+      throw new IllegalStateException("logData.SIZE_TOTAL already set");
+    } else {
+      filled.set(7);
     }
 
-    public TraceBuilder sizeLimb(final BigInteger b) {
-      if (filled.get(6)) {
-        throw new IllegalStateException("SIZE_LIMB already set");
-      } else {
-        filled.set(6);
-      }
+    sizeTotal.put(UInt256.valueOf(b).toBytes().toArray());
 
-      sizeLimb.add(b);
+    return this;
+  }
 
-      return this;
+  public Trace validateRow() {
+    if (!filled.get(0)) {
+      throw new IllegalStateException("logData.ABS_LOG_NUM has not been filled");
     }
 
-    public TraceBuilder sizeTotal(final BigInteger b) {
-      if (filled.get(7)) {
-        throw new IllegalStateException("SIZE_TOTAL already set");
-      } else {
-        filled.set(7);
-      }
-
-      sizeTotal.add(b);
-
-      return this;
+    if (!filled.get(1)) {
+      throw new IllegalStateException("logData.ABS_LOG_NUM_MAX has not been filled");
     }
 
-    public TraceBuilder validateRow() {
-      if (!filled.get(0)) {
-        throw new IllegalStateException("ABS_LOG_NUM has not been filled");
-      }
-
-      if (!filled.get(1)) {
-        throw new IllegalStateException("ABS_LOG_NUM_MAX has not been filled");
-      }
-
-      if (!filled.get(2)) {
-        throw new IllegalStateException("INDEX has not been filled");
-      }
-
-      if (!filled.get(3)) {
-        throw new IllegalStateException("LIMB has not been filled");
-      }
-
-      if (!filled.get(4)) {
-        throw new IllegalStateException("LOGS_DATA has not been filled");
-      }
-
-      if (!filled.get(5)) {
-        throw new IllegalStateException("SIZE_ACC has not been filled");
-      }
-
-      if (!filled.get(6)) {
-        throw new IllegalStateException("SIZE_LIMB has not been filled");
-      }
-
-      if (!filled.get(7)) {
-        throw new IllegalStateException("SIZE_TOTAL has not been filled");
-      }
-
-      filled.clear();
-
-      return this;
+    if (!filled.get(2)) {
+      throw new IllegalStateException("logData.INDEX has not been filled");
     }
 
-    public TraceBuilder fillAndValidateRow() {
-      if (!filled.get(0)) {
-        absLogNum.add(BigInteger.ZERO);
-        this.filled.set(0);
-      }
-      if (!filled.get(1)) {
-        absLogNumMax.add(BigInteger.ZERO);
-        this.filled.set(1);
-      }
-      if (!filled.get(2)) {
-        index.add(BigInteger.ZERO);
-        this.filled.set(2);
-      }
-      if (!filled.get(3)) {
-        limb.add(BigInteger.ZERO);
-        this.filled.set(3);
-      }
-      if (!filled.get(4)) {
-        logsData.add(false);
-        this.filled.set(4);
-      }
-      if (!filled.get(5)) {
-        sizeAcc.add(BigInteger.ZERO);
-        this.filled.set(5);
-      }
-      if (!filled.get(6)) {
-        sizeLimb.add(BigInteger.ZERO);
-        this.filled.set(6);
-      }
-      if (!filled.get(7)) {
-        sizeTotal.add(BigInteger.ZERO);
-        this.filled.set(7);
-      }
-
-      return this.validateRow();
+    if (!filled.get(3)) {
+      throw new IllegalStateException("logData.LIMB has not been filled");
     }
 
-    public Trace build() {
-      if (!filled.isEmpty()) {
-        throw new IllegalStateException("Cannot build trace with a non-validated row.");
-      }
+    if (!filled.get(4)) {
+      throw new IllegalStateException("logData.LOGS_DATA has not been filled");
+    }
 
-      return new Trace(
-          absLogNum, absLogNumMax, index, limb, logsData, sizeAcc, sizeLimb, sizeTotal);
+    if (!filled.get(5)) {
+      throw new IllegalStateException("logData.SIZE_ACC has not been filled");
+    }
+
+    if (!filled.get(6)) {
+      throw new IllegalStateException("logData.SIZE_LIMB has not been filled");
+    }
+
+    if (!filled.get(7)) {
+      throw new IllegalStateException("logData.SIZE_TOTAL has not been filled");
+    }
+
+    filled.clear();
+    this.currentLine++;
+
+    return this;
+  }
+
+  public Trace fillAndValidateRow() {
+    if (!filled.get(0)) {
+      absLogNum.position(absLogNum.position() + 32);
+    }
+
+    if (!filled.get(1)) {
+      absLogNumMax.position(absLogNumMax.position() + 32);
+    }
+
+    if (!filled.get(2)) {
+      index.position(index.position() + 32);
+    }
+
+    if (!filled.get(3)) {
+      limb.position(limb.position() + 32);
+    }
+
+    if (!filled.get(4)) {
+      logsData.position(logsData.position() + 1);
+    }
+
+    if (!filled.get(5)) {
+      sizeAcc.position(sizeAcc.position() + 32);
+    }
+
+    if (!filled.get(6)) {
+      sizeLimb.position(sizeLimb.position() + 32);
+    }
+
+    if (!filled.get(7)) {
+      sizeTotal.position(sizeTotal.position() + 32);
+    }
+
+    filled.clear();
+    this.currentLine++;
+
+    return this;
+  }
+
+  public void build() {
+    if (!filled.isEmpty()) {
+      throw new IllegalStateException("Cannot build trace with a non-validated row.");
     }
   }
 }

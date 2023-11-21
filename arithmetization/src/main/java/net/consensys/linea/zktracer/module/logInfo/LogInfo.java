@@ -16,7 +16,10 @@
 package net.consensys.linea.zktracer.module.logInfo;
 
 import java.math.BigInteger;
+import java.nio.MappedByteBuffer;
+import java.util.List;
 
+import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ModuleTrace;
 import net.consensys.linea.zktracer.module.rlp_txrcpt.RlpTxrcpt;
@@ -54,8 +57,13 @@ public class LogInfo implements Module {
   }
 
   @Override
-  public ModuleTrace commit() {
-    final Trace.TraceBuilder trace = Trace.builder(this.lineCount());
+  public List<ColumnHeader> columnsHeaders() {
+    return Trace.headers(this.lineCount());
+  }
+
+  @Override
+  public void commit(List<MappedByteBuffer> buffers) {
+    final Trace trace = new Trace(buffers);
 
     int absLogNumMax = 0;
     for (RlpTxrcptChunk tx : this.rlpTxrcpt.chunkList) {
@@ -75,7 +83,6 @@ public class LogInfo implements Module {
         }
       }
     }
-    return new LogInfoTrace(trace.build());
   }
 
   private int txRowSize(RlpTxrcptChunk tx) {
@@ -91,7 +98,7 @@ public class LogInfo implements Module {
   }
 
   public void traceTxWoLog(
-      final int absTxNum, final int absLogNum, final int absLogNumMax, Trace.TraceBuilder trace) {
+      final int absTxNum, final int absLogNum, final int absLogNumMax, Trace trace) {
     trace
         .absTxnNumMax(BigInteger.valueOf(this.rlpTxrcpt.chunkList.size()))
         .absTxnNum(BigInteger.valueOf(absTxNum))
@@ -128,7 +135,7 @@ public class LogInfo implements Module {
       final int absTxNum,
       final int absLogNum,
       final int absLogNumMax,
-      Trace.TraceBuilder trace) {
+      Trace trace) {
     final int ctMax = ctMax(log);
     final int nbTopic = log.getTopics().size();
     final Bytes32 topic1 = nbTopic >= 1 ? log.getTopics().get(0) : Bytes32.ZERO;

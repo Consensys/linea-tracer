@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.function.Function;
 
 import com.google.common.base.Preconditions;
+import lombok.Getter;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import net.consensys.linea.zktracer.module.Module;
@@ -51,7 +52,8 @@ public class RlpTxrcpt implements Module {
   private static final int INT_RLP_LIST_LONG = Trace.LIST_LONG;
 
   private int absLogNum = 0;
-  @Getter public StackedList<RlpTxrcptChunk> chunkList = new StackedList<>();
+  @Getter
+  public StackedList<RlpTxrcptChunk> chunkList = new StackedList<>();
 
   @Override
   public String jsonKey() {

@@ -85,6 +85,33 @@ public class CompressedFileWriter{
                 this.nBytes = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("nBYTES" + pattern).toString(), "rw"), traceMap.get("nBYTES").dataSize()));
                 this.nBytesAcc = new BigIntegerCompressedFileWriter(new FW(new RandomAccessFile(path.resolve("nBYTES_ACC" + pattern).toString(), "rw"), traceMap.get("nBYTES_ACC").dataSize()));
         }
+
+
+        public void close() {
+                this.acc.close();
+                this.codeFragmentIndex.close();
+                this.codeFragmentIndexInfty.close();
+                this.codeSize.close();
+                this.codesizeReached.close();
+                this.counter.close();
+                this.counterMax.close();
+                this.counterPush.close();
+                this.index.close();
+                this.isPush.close();
+                this.isPushData.close();
+                this.limb.close();
+                this.nBytes.close();
+                this.nBytesAcc.close();
+                this.opcode.close();
+                this.paddedBytecodeByte.close();
+                this.programmeCounter.close();
+                this.pushFunnelBit.close();
+                this.pushParameter.close();
+                this.pushValueAcc.close();
+                this.pushValueHigh.close();
+                this.pushValueLow.close();
+                this.validJumpDestination.close();
+        }
 }
 
 

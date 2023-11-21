@@ -26,7 +26,7 @@ public class BigIntegerCompressedFileWriter extends AbstractCompressedFileWriter
 
   @Override
   public void flush() {
-    if (previousValue != null) {
+//    if (previousValue != null) {
 //      log.info("Flushing Big Integer nbSeen:{}, initialValue::{}, delta:{}", seenSoFar, initialValue, delta);
       try {
         byte[] bytes2 = delta.toByteArray();
@@ -47,7 +47,7 @@ public class BigIntegerCompressedFileWriter extends AbstractCompressedFileWriter
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
-    }
+//    }
   }
 
   private void initialize(BigInteger b, BigInteger newDelta) {

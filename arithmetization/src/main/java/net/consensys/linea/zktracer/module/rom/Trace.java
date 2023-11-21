@@ -89,4 +89,6 @@ public class Trace{
             new ColumnHeader("PUSH_VALUE_LOW", 32, size),
             new ColumnHeader("VALID_JUMP_DESTINATION", 1, size));
   }
+
+
 }

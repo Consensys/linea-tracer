@@ -19,9 +19,9 @@ public class UnsignedByteCompressedFileWriter extends AbstractCompressedFileWrit
   }
 
   public void flush() {
-    if(previousValue!=null) {
+//    if(previousValue!=null) {
       try {
-        fileWriter.checkSize(5);
+//        fileWriter.checkSize(5);
         var bf = ByteBuffer.allocate(5);
         bf.put((byte) (seenSoFar >> 24));
         bf.put((byte) (seenSoFar >> 16));
@@ -34,7 +34,7 @@ public class UnsignedByteCompressedFileWriter extends AbstractCompressedFileWrit
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
-    }
+//    }
   }
 
   public void initialize(UnsignedByte b) {

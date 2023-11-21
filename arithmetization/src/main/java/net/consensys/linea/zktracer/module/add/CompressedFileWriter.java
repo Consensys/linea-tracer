@@ -69,7 +69,20 @@ public class CompressedFileWriter{
   }
 
   public void close() {
-    acc1.close();
+    this.acc1.close();
+    this.acc2.close();
+    this.arg1Hi.close();
+    this.arg1Lo.close();
+    this.arg2Hi.close();
+    this.arg2Lo.close();
+    this.byte1.close();
+    this.byte2.close();
+    this.ct.close();
+    this.inst.close();
+    this.overflow.close();
+    this.resHi.close();
+    this.resLo.close();
+    this.stamp.close();
   }
 }
 

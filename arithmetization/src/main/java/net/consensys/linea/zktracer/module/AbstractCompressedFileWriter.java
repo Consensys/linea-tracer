@@ -13,7 +13,9 @@ public abstract class AbstractCompressedFileWriter<T> {
   }
 
   public void close() {
-    flush();
+    if(seenSoFar>0) {
+      flush();
+    }
     try {
       fileWriter.close();
     } catch (Throwable e) {

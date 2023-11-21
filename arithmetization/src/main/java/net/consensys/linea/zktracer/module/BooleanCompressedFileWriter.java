@@ -19,7 +19,7 @@ public class BooleanCompressedFileWriter extends AbstractCompressedFileWriter<Bo
 
   @Override
   protected void flush() {
-    if(previousValue!=null) {
+//    if(previousValue!=null) {
       try {
         var bf = ByteBuffer.allocate(5);
         bf.put((byte) (seenSoFar >> 24));
@@ -34,7 +34,7 @@ public class BooleanCompressedFileWriter extends AbstractCompressedFileWriter<Bo
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
-    }
+//    }
   }
 
   public void initialize(Boolean b) {

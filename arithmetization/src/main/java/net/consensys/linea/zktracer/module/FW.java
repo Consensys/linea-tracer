@@ -29,7 +29,7 @@ public class FW {
     this.chunkSize = chunkSize;
 
     try {
-      this.channel = value.getChannel().map(FileChannel.MapMode.READ_WRITE, pos, currentSize);
+      this.channel = value.getChannel().map(FileChannel.MapMode.READ_WRITE, pos, chunkSize);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

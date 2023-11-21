@@ -188,7 +188,8 @@ public class Hub implements Module {
   private final List<Module> modules;
 
   private final List<Module>
-          precompileLimitModules; // Those modules are not traced, we just compute the number of calls to
+      precompileLimitModules; // Those modules are not traced, we just compute the number of calls
+  // to
   // those precompile to meet prover's limit
 
   public Hub() {
@@ -423,52 +424,54 @@ public class Hub implements Module {
   }
 
   void triggerModules(MessageFrame frame) {
-//    switch (this.opCodeData().instructionFamily()) {
-//      case CREATE -> {
-//        if (this.pch().exceptions().noStackException() && !this.pch().exceptions().staticFault()) {
-//          this.mxp.tracePreOpcode(frame); // TODO: trigger in OoG
-//        }
-//
-//        if (!this.pch().exceptions().any() && this.callStack().depth() < 1024) {
-//          // TODO: check for failure: non empty byte code or non zero nonce (for the
-//          // Deployed
-//          // Address)
-//          UInt256 value = UInt256.fromBytes(frame.getStackItem(0));
-//          if (frame
-//              .getWorldUpdater()
-//              .get(this.tx.transaction().getSender())
-//              .getBalance()
-//              .toUInt256()
-//              .greaterOrEqualThan(value)) {
-//            this.rlpAddr.tracePreOpcode(frame);
-//            this.romLex.tracePreOpcode(frame);
-//          }
-//        }
-//      }
-//      case CALL -> {
-//        if (!this.pch().exceptions().any() && this.callStack().depth() < 1024) {
-//          this.romLex.tracePreOpcode(frame);
-//          for (Module m : this.precompileLimitModules) {
-//            m.tracePreOpcode(frame);
-//          }
-//        }
-//        if (!this.pch().exceptions().stackUnderflow() && !this.pch().exceptions().staticFault()) {
-//          this.mxp.tracePreOpcode(frame);
-//        }
-//        if (this.pch().exceptions().noStackException()) {
-//          this.trm.tracePreOpcode(frame); // TODO refine the trigger
-//        }
-//      }
-//      default -> {}
-//    }
+    //    switch (this.opCodeData().instructionFamily()) {
+    //      case CREATE -> {
+    //        if (this.pch().exceptions().noStackException() &&
+    // !this.pch().exceptions().staticFault()) {
+    //          this.mxp.tracePreOpcode(frame); // TODO: trigger in OoG
+    //        }
+    //
+    //        if (!this.pch().exceptions().any() && this.callStack().depth() < 1024) {
+    //          // TODO: check for failure: non empty byte code or non zero nonce (for the
+    //          // Deployed
+    //          // Address)
+    //          UInt256 value = UInt256.fromBytes(frame.getStackItem(0));
+    //          if (frame
+    //              .getWorldUpdater()
+    //              .get(this.tx.transaction().getSender())
+    //              .getBalance()
+    //              .toUInt256()
+    //              .greaterOrEqualThan(value)) {
+    //            this.rlpAddr.tracePreOpcode(frame);
+    //            this.romLex.tracePreOpcode(frame);
+    //          }
+    //        }
+    //      }
+    //      case CALL -> {
+    //        if (!this.pch().exceptions().any() && this.callStack().depth() < 1024) {
+    //          this.romLex.tracePreOpcode(frame);
+    //          for (Module m : this.precompileLimitModules) {
+    //            m.tracePreOpcode(frame);
+    //          }
+    //        }
+    //        if (!this.pch().exceptions().stackUnderflow() &&
+    // !this.pch().exceptions().staticFault()) {
+    //          this.mxp.tracePreOpcode(frame);
+    //        }
+    //        if (this.pch().exceptions().noStackException()) {
+    //          this.trm.tracePreOpcode(frame); // TODO refine the trigger
+    //        }
+    //      }
+    //      default -> {}
+    //    }
 
     // TODO: coming soon
     if (this.pch.signals().add()) {
       this.add.tracePreOpcode(frame);
     }
-//    if (this.pch.signals().bin()) {
-//      this.bin.tracePreOpcode(frame);
-//    }
+    //    if (this.pch.signals().bin()) {
+    //      this.bin.tracePreOpcode(frame);
+    //    }
     if (this.pch.signals().mul()) {
       this.mul.tracePreOpcode(frame);
     }

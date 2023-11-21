@@ -39,6 +39,12 @@ public final class AbortingConditions {
     this.balanceTooLow = balanceTooLow;
   }
 
+  public static AbortingConditions of(Hub hub) {
+    AbortingConditions r = new AbortingConditions();
+    r.prepare(hub);
+    return r;
+  }
+
   public void reset() {
     this.callStackOverflow = false;
     this.balanceTooLow = false;

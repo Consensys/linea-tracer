@@ -35,7 +35,7 @@ jobs:
           JAVA_OPTS: -Xmx2g -Dorg.gradle.daemon=false
 
       - name: Store distribution artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: distributions
           path: arithmetization/build/libs
@@ -66,7 +66,7 @@ jobs:
 
       - name: Upload test report
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: test-report
           path: acceptance-tests/build/reports/tests/
@@ -82,7 +82,7 @@ jobs:
 
 
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           submodules: recursive
 

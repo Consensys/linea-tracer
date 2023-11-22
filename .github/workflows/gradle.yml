@@ -34,13 +34,11 @@ jobs:
         env:
           JAVA_OPTS: -Xmx2g -Dorg.gradle.daemon=false
 
-      - name: Upload workspace
-        uses: actions/upload-artifact@v3
+      - name: Store distribution artifacts
+        uses: actions/upload-artifact@v2
         with:
-          name: workspace
-          path: |
-            ./
-            !./.git/**
+          name: distributions
+          path: build/distributions
 
   acceptanceTest:
     runs-on: ubuntu-latest

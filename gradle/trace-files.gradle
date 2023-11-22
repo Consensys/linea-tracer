@@ -95,8 +95,9 @@ tasks.register('binRT', TraceFilesTask) {
     }
 }
 
+
 //
-// Put here modules following the conventional MODULE/columns.lisp naming scheme
+// Put here modules following the conventional MODULE/columns.lisp naming scheme.
 //
 ['bin', 'ec_data', 'euc', 'mxp', 'shf', 'wcp', 'rom', 'romLex', 'trm', 'stp', 'txn_data', 'logInfo', 'logData'].each {moduleName ->
     tasks.register(moduleName, TraceFilesTask) {
@@ -111,7 +112,7 @@ tasks.register('binRT', TraceFilesTask) {
 //
 // Put here modules following the conventional MODULE/columns.lisp, MODULE/constants.lisp naming scheme.
 //
-['mmu', 'blake2f_modexp_data', 'oob'].each {moduleName ->
+['mmu', 'mmio', 'blake2f_modexp_data', 'oob'].each {moduleName ->
     tasks.register(moduleName, TraceFilesTask) {
         group "Trace files generation"
         dependsOn corsetExists

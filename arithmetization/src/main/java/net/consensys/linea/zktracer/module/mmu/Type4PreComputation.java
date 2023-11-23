@@ -33,8 +33,7 @@ import org.hyperledger.besu.evm.internal.Words;
 
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
 class Type4PreComputation implements MmuPreComputation {
-  private static final Set<Integer> TYPES =
-      Set.of(MmuTrace.type4CC, MmuTrace.type4CD, MmuTrace.type4RD);
+  private static final Set<Integer> TYPES = Set.of(Trace.type4CC, Trace.type4CD, Trace.type4RD);
 
   @Override
   public MicroData dispatch(
@@ -61,11 +60,11 @@ class Type4PreComputation implements MmuPreComputation {
 
     int ternary = microData.ternary();
 
-    if (ternary == MmuTrace.tern0) {
+    if (ternary == Trace.tern0) {
       dispatchTern0(microData, callStack);
-    } else if (ternary == MmuTrace.tern1) {
+    } else if (ternary == Trace.tern1) {
       dispatchTern1(microData, callStack);
-    } else if (ternary == MmuTrace.tern2) {
+    } else if (ternary == Trace.tern2) {
       dispatchTern2(microData);
     } else {
       microData.skip(true);
@@ -86,12 +85,12 @@ class Type4PreComputation implements MmuPreComputation {
     setContext(true, microData, callStack);
     int ternary = microData.ternary();
 
-    if (ternary == MmuTrace.tern0) {
+    if (ternary == Trace.tern0) {
       updateTern0(microData);
-    } else if (ternary == MmuTrace.tern1) {
+    } else if (ternary == Trace.tern1) {
       updateMicroOpType4Tern1(microData);
       updateOffsetType4Tern1(microData);
-    } else if (ternary == MmuTrace.tern2) {
+    } else if (ternary == Trace.tern2) {
       updateMicroOpType4Tern2(microData);
       updateOffsetType4Tern2(microData);
     }
@@ -120,27 +119,27 @@ class Type4PreComputation implements MmuPreComputation {
 
     if (bits[0]) {
       if (bits[2] && bits[3]) {
-        microData.microOp(MmuTrace.KillingOne);
+        microData.microOp(Trace.KillingOne);
       } else {
         microData.size(microData.sizeImported());
-        microData.microOp(MmuTrace.RamLimbExcision);
+        microData.microOp(Trace.RamLimbExcision);
       }
     } else if (microData.isFirstMicroInstruction()) {
       if (bits[2]) {
-        microData.microOp(MmuTrace.KillingOne);
+        microData.microOp(Trace.KillingOne);
       } else {
         microData.size(16 - nibbles[0].toInteger());
-        microData.microOp(MmuTrace.RamLimbExcision);
+        microData.microOp(Trace.RamLimbExcision);
       }
     } else if (microData.isLastPad()) {
       if (bits[3]) {
-        microData.microOp(MmuTrace.KillingOne);
+        microData.microOp(Trace.KillingOne);
       } else {
         microData.size(nibbles[3].toInteger() + 1);
-        microData.microOp(MmuTrace.RamLimbExcision);
+        microData.microOp(Trace.RamLimbExcision);
       }
     } else {
-      microData.microOp(MmuTrace.KillingOne);
+      microData.microOp(Trace.KillingOne);
     }
   }
 
@@ -252,24 +251,24 @@ class Type4PreComputation implements MmuPreComputation {
     boolean[] bits = microData.bits();
     if (bits[3]) {
       if (bits[4] && bits[5]) {
-        microData.microOp(MmuTrace.KillingOne);
+        microData.microOp(Trace.KillingOne);
       } else {
-        microData.microOp(MmuTrace.RamLimbExcision);
+        microData.microOp(Trace.RamLimbExcision);
       }
     } else if (!microData.isFirstPad()) {
       if (!microData.isLastPad()) {
-        microData.microOp(MmuTrace.KillingOne);
+        microData.microOp(Trace.KillingOne);
       } else {
         if (!bits[5]) {
-          microData.microOp(MmuTrace.RamLimbExcision);
+          microData.microOp(Trace.RamLimbExcision);
         } else {
-          microData.microOp(MmuTrace.KillingOne);
+          microData.microOp(Trace.KillingOne);
         }
       }
     } else if (bits[4]) {
-      microData.microOp(MmuTrace.KillingOne);
+      microData.microOp(Trace.KillingOne);
     } else {
-      microData.microOp(MmuTrace.RamLimbExcision);
+      microData.microOp(Trace.RamLimbExcision);
     }
   }
 
@@ -293,13 +292,13 @@ class Type4PreComputation implements MmuPreComputation {
         if (microData.remainingReads() != 0) {
           if (!microData.aligned()) {
             int preComputation = microData.precomputation();
-            if (preComputation == MmuTrace.type4CC) {
-              microData.microOp(MmuTrace.ExoToRam);
-            } else if (preComputation == MmuTrace.type4CD) {
+            if (preComputation == Trace.type4CC) {
+              microData.microOp(Trace.ExoToRam);
+            } else if (preComputation == Trace.type4CD) {
               if (!microData.info()) {
-                microData.microOp(MmuTrace.RamToRam);
+                microData.microOp(Trace.RamToRam);
               } else {
-                microData.microOp(MmuTrace.ExoToRam);
+                microData.microOp(Trace.ExoToRam);
               }
             }
           } else {
@@ -348,15 +347,15 @@ class Type4PreComputation implements MmuPreComputation {
 
   private void modifyOneLimb(MicroData microData) {
     int preComputation = microData.precomputation();
-    if (preComputation == MmuTrace.type4CC) {
-      microData.microOp(MmuTrace.ExoToRamSlideOverlappingChunk);
-    } else if (preComputation == MmuTrace.type4RD) {
-      microData.microOp(MmuTrace.RamToRamSlideOverlappingChunk);
-    } else if (preComputation == MmuTrace.type4CD) {
+    if (preComputation == Trace.type4CC) {
+      microData.microOp(Trace.ExoToRamSlideOverlappingChunk);
+    } else if (preComputation == Trace.type4RD) {
+      microData.microOp(Trace.RamToRamSlideOverlappingChunk);
+    } else if (preComputation == Trace.type4CD) {
       if (!microData.info()) {
-        microData.microOp(MmuTrace.RamToRamSlideOverlappingChunk);
+        microData.microOp(Trace.RamToRamSlideOverlappingChunk);
       } else {
-        microData.microOp(MmuTrace.ExoToRamSlideOverlappingChunk);
+        microData.microOp(Trace.ExoToRamSlideOverlappingChunk);
       }
     } else {
       throw new IllegalArgumentException("Tern not supported");
@@ -365,15 +364,15 @@ class Type4PreComputation implements MmuPreComputation {
 
   private void modifyTwoLimbs(MicroData microData) {
     int preComputation = microData.precomputation();
-    if (preComputation == MmuTrace.type4CC) {
-      microData.microOp(MmuTrace.ExoToRamSlideOverlappingChunk);
-    } else if (preComputation == MmuTrace.type4RD) {
-      microData.microOp(MmuTrace.RamToRamSlideOverlappingChunk);
-    } else if (preComputation == MmuTrace.type4CD) {
+    if (preComputation == Trace.type4CC) {
+      microData.microOp(Trace.ExoToRamSlideOverlappingChunk);
+    } else if (preComputation == Trace.type4RD) {
+      microData.microOp(Trace.RamToRamSlideOverlappingChunk);
+    } else if (preComputation == Trace.type4CD) {
       if (!microData.info()) {
-        microData.microOp(MmuTrace.RamToRamSlideOverlappingChunk);
+        microData.microOp(Trace.RamToRamSlideOverlappingChunk);
       } else {
-        microData.microOp(MmuTrace.ExoToRamSlideOverlappingChunk);
+        microData.microOp(Trace.ExoToRamSlideOverlappingChunk);
       }
     } else {
       throw new IllegalArgumentException("Tern not supported");
@@ -436,17 +435,17 @@ class Type4PreComputation implements MmuPreComputation {
     EWord refSize = EWord.of(microData.referenceSize());
     EWord sizeImportedMinusOneEWord = EWord.of(microData.sizeImported() - 1);
     if (!off2.hi().isZero()) {
-      microData.ternary(MmuTrace.tern2);
+      microData.ternary(Trace.tern2);
       microData.pointers().oob(true);
     } else if (off2.add(microData.sizeImported()).lessThan(refSize)) {
-      microData.ternary(MmuTrace.tern0);
+      microData.ternary(Trace.tern0);
       microData.pointers().oob(false);
 
       EWord acc1 = refSize.subtract(off2).subtract(microData.sizeImported());
       microData.setAccsAtIndex(0, acc1);
     } else if (off2.lessThan(refSize)
         && refSize.lessOrEqualThan(sizeImportedMinusOneEWord.add(off2))) {
-      microData.ternary(MmuTrace.tern1);
+      microData.ternary(Trace.tern1);
       microData.pointers().oob(false);
 
       EWord acc1 = EWord.of(microData.sizeImported() - 1 - microData.referenceSize()).add(off2);
@@ -455,7 +454,7 @@ class Type4PreComputation implements MmuPreComputation {
       EWord acc2 = EWord.of(microData.referenceSize() - 1).subtract(off2);
       microData.setAccsAtIndex(1, acc2);
     } else if (refSize.lessOrEqualThan(off2)) {
-      microData.ternary(MmuTrace.tern2);
+      microData.ternary(Trace.tern2);
       microData.pointers().oob(true);
 
       EWord acc1 = EWord.ZERO.subtract(refSize);

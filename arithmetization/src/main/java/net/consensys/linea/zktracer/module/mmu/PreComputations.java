@@ -40,12 +40,12 @@ class PreComputations {
     this.types = List.of(type1, type2, type3, type4, type5);
     this.typeMap =
         Map.of(
-            MmuTrace.type1, type1,
-            MmuTrace.type2, type2,
-            MmuTrace.type3, type3,
-            MmuTrace.type4CC, type4,
-            MmuTrace.type4CD, type4,
-            MmuTrace.type4RD, type4,
-            MmuTrace.type5, type5);
+            Trace.type1, type1,
+            Trace.type2, type2,
+            Trace.type3, type3,
+            Trace.type4CC, type4,
+            Trace.type4CD, type4,
+            Trace.type4RD, type4,
+            Trace.type5, type5);
   }
 }

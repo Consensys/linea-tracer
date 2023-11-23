@@ -136,22 +136,22 @@ class MicroData extends ModuleOperation {
   }
 
   boolean isErf() {
-    return microOp == MmuTrace.StoreXInAThreeRequired;
+    return microOp == Trace.StoreXInAThreeRequired;
   }
 
   boolean isFast() {
     return Arrays.asList(
-            MmuTrace.RamToRam,
-            MmuTrace.ExoToRam,
-            MmuTrace.RamIsExo,
-            MmuTrace.KillingOne,
-            MmuTrace.PushTwoRamToStack,
-            MmuTrace.PushOneRamToStack,
-            MmuTrace.ExceptionalRamToStack3To2FullFast,
-            MmuTrace.PushTwoStackToRam,
-            MmuTrace.StoreXInAThreeRequired,
-            MmuTrace.StoreXInB,
-            MmuTrace.StoreXInC)
+            Trace.RamToRam,
+            Trace.ExoToRam,
+            Trace.RamIsExo,
+            Trace.KillingOne,
+            Trace.PushTwoRamToStack,
+            Trace.PushOneRamToStack,
+            Trace.ExceptionalRamToStack3To2FullFast,
+            Trace.PushTwoStackToRam,
+            Trace.StoreXInAThreeRequired,
+            Trace.StoreXInB,
+            Trace.StoreXInC)
         .contains(microOp);
   }
 

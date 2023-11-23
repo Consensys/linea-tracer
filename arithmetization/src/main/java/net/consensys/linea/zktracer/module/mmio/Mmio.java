@@ -1,5 +1,5 @@
 /*
- * Copyright ConsenSys AG.
+ * Copyright Consensys Software Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -15,8 +15,10 @@
 
 package net.consensys.linea.zktracer.module.mmio;
 
+import java.util.List;
+
+import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
-import net.consensys.linea.zktracer.module.ModuleTrace;
 
 public class Mmio implements Module {
   @Override
@@ -36,7 +38,7 @@ public class Mmio implements Module {
   }
 
   @Override
-  public ModuleTrace commit() {
-    return null;
+  public List<ColumnHeader> columnsHeaders() {
+    throw new RuntimeException("TODO");
   }
 }

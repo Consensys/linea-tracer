@@ -38,7 +38,7 @@ public class MiscFragment implements TraceFragment, PostExecDefer {
   private final List<TraceSubFragment> subFragments = new ArrayList<>();
 
   public MiscFragment(Hub hub, MessageFrame frame) {
-    this.signals = hub.signals().snapshot();
+    this.signals = hub.pch().signals().snapshot();
 
     // TODO: the rest
     if (this.signals.mmu()) {
@@ -67,14 +67,13 @@ public class MiscFragment implements TraceFragment, PostExecDefer {
   }
 
   @Override
-  public Trace.TraceBuilder trace(Trace.TraceBuilder trace) {
+  public Trace trace(Trace trace) {
     trace
         .peekAtMiscellaneous(true)
         .pMiscellaneousMmuFlag(this.signals.mmu())
         .pMiscellaneousMxpFlag(this.signals.mxp())
         .pMiscellaneousOobFlag(this.signals.oob())
-        .pMiscellaneousPrecinfoFlag(this.signals.precompileInfo())
-        .pMiscellaneousStpFlag(this.signals.stipend())
+        .pMiscellaneousStpFlag(this.signals.stp())
         .pMiscellaneousExpFlag(this.signals.exp());
 
     for (TraceSubFragment subFragment : this.subFragments) {

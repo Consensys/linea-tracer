@@ -1,24 +1,26 @@
-# Besu zkBesu/tracer Plugin
+# Besu Plugins relating to tracer and sequencer functionality
 
 A Linea tracing implementation for [Hyperledger Besu](https://github.com/hyperledger/besu) based on
-an [existing implementation in Go](https://github.com/ConsenSys/zk-evm/).
+an [existing implementation in Go](https://github.com/Consensys/zk-evm/).
 
 ## Quickstart - Running Besu with Linea Plugins
-* compile linea-plugins `gradlew installDist`
-* copy jar file to besu runtime plugins/ directory (where you will run besu from, not where you're building besu)
-* add `ROLLUP` to besu config to enable the plugin RPC methods
-  * rpc-http-api=["ADMIN","ETH","NET","WEB3","ROLLUP"]
-* start besu (command line or from IDE) and you should see plugins registered at startup
-* call the RPC endpoint eg
+
+- compile linea-plugins `gradlew installDist`
+- copy jar file to besu runtime plugins/ directory (where you will run besu from, not where you're building besu)
+- add `ROLLUP` to besu config to enable the plugin RPC methods
+  - rpc-http-api=\["ADMIN","ETH","NET","WEB3","ROLLUP"\]
+- start besu (command line or from IDE) and you should see plugins registered at startup
+- call the RPC endpoint eg
 
 ```shell
   curl --location --request POST 'http://localhost:8545' --data-raw '{
-  "jsonrpc": "2.0",
-  "method": "rollup_generateConflatedTracesToFileV0",
-  "params": [0, 0, "6.16.0"],
-  "id": 1
+    "jsonrpc": "2.0",
+    "method": "rollup_generateConflatedTracesToFileV0",
+    "params": [0, 0, "6.16.0"],
+    "id": 1
   }'
 ```
+
 ## Development Setup
 
 ### Install Java 17
@@ -39,13 +41,13 @@ echo "net.git-fetch-with-cli=true" >> .cargo/config.toml
 ### Install Corset
 
 ```shell
-cargo install --git ssh://git@github.com/ConsenSys/corset
+cargo install --git ssh://git@github.com/Consensys/corset
 ```
 
-### Update Constraints [Submodule](https://github.com/ConsenSys/zkevm-constraints/)
+### Update Constraints [Submodule](https://github.com/Consensys/zkevm-constraints/)
 
 ```shell
-git submodule update --init
+git submodule update --init --recursive
 ```
 
 ### Install [pre-commit](https://pre-commit.com/)
@@ -80,8 +82,30 @@ ______________________________________________________________________
 ./gradlew clean unitTests
 
 # Run only acceptance tests
-./gradlew clean corsetTests
+./gradlew clean acceptanceTests
+
+# Run EVM test suite BlockchainTests
+./gradlew clean referenceBlockchainTests
+
+# Run EVM test suite GeneralStateTests
+./gradlew clean referenceGeneralStateTests
+
+# Run all EVM test suite reference tests
+./gradlew clean referenceTests
+
+# Run single reference test via gradle, e.g for net.consensys.linea.generated.blockchain.BlockchainReferenceTest_583
+./gradlew :reference-tests:referenceTests --tests "net.consensys.linea.generated.blockchain.BlockchainReferenceTest_583"
 ```
+
+______________________________________________________________________
+
+NOTE
+
+> Please be aware if the reference test code generation tasks `blockchainReferenceTests` and
+> `generalStateReferenceTests` do not generate any java code, than probably you are missing the Ethereum tests
+> submodule which you can clone via `git submodule update --init --recursive`.
+
+______________________________________________________________________
 
 ## IntelliJ IDEA Setup
 

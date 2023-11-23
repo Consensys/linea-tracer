@@ -1,5 +1,5 @@
 /*
- * Copyright ConsenSys AG.
+ * Copyright Consensys Software Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -470,7 +470,7 @@ class Type4PreComputation implements MmuPreComputation {
       case CODECOPY -> topCallFrame.code().getSize();
       case EXTCODECOPY -> {
         Address address = Words.toAddress(microData.value().toBytes());
-        topCallFrame.frame().getWorldUpdater().getAccount(address).getCode().size();
+        topCallFrame.frame().getWorldUpdater().get(address).getCode().size();
       }
       case CALLDATACOPY -> callStack.caller().callDataRange().length();
       case RETURNDATACOPY -> topCallFrame.returnDataRange().length();

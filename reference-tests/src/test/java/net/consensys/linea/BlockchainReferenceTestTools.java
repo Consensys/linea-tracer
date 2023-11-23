@@ -35,8 +35,10 @@ import org.hyperledger.besu.ethereum.mainnet.HeaderValidationMode;
 import org.hyperledger.besu.ethereum.mainnet.MainnetBlockImporter;
 import org.hyperledger.besu.ethereum.mainnet.ProtocolSchedule;
 import org.hyperledger.besu.ethereum.mainnet.ProtocolSpec;
+import org.hyperledger.besu.ethereum.referencetests.BlockchainReferenceTestCaseSpec;
 import org.hyperledger.besu.ethereum.referencetests.ReferenceTestProtocolSchedules;
 import org.hyperledger.besu.ethereum.rlp.RLPException;
+import org.hyperledger.besu.testutil.JsonTestParameters;
 
 public class BlockchainReferenceTestTools {
   private static final ReferenceTestProtocolSchedules REFERENCE_TEST_PROTOCOL_SCHEDULES =
@@ -54,14 +56,19 @@ public class BlockchainReferenceTestTools {
               });
 
   static {
+    if (NETWORKS_TO_RUN.isEmpty()) {
+      params.ignoreAll();
+    }
+
     // Consumes a huge amount of memory.
     params.ignore("static_Call1MB1024Calldepth_d1g0v0_\\w+");
     params.ignore("ShanghaiLove_.*");
+    params.ignore("/GeneralStateTests/VMTests/vmPerformance/");
 
     // Absurd amount of gas, doesn't run in parallel.
     params.ignore("randomStatetest94_\\w+");
 
-    // Don't do time consuming tests.
+    // Don't do time-consuming tests.
     params.ignore("CALLBlake2f_MaxRounds.*");
     params.ignore("loopMul_*");
 
@@ -70,18 +77,8 @@ public class BlockchainReferenceTestTools {
     // Perfectly valid test pre-merge.
     params.ignore("UncleFromSideChain_(Merge|Shanghai|Cancun|Prague|Osaka|Bogota)");
 
-    // Reference Tests are old.  Max blob count is 6.
-    params.ignore("blobhashListBounds5");
-    params.ignore("blockWithAllTransactionTypes");
-
-    // EIP-4788 is still in flux and the current fill is not against the final address.
-    params.ignore("\\[Cancun\\]");
-
     // EOF tests are written against an older version of the spec.
     params.ignore("/stEOF/");
-
-    // Test hangs and needs to be further investigated.
-    params.ignore("static_Call50000_sha256");
   }
 
   private BlockchainReferenceTestTools() {
@@ -89,10 +86,9 @@ public class BlockchainReferenceTestTools {
   }
 
   public static Collection<Object[]> generateTestParametersForConfig(final String[] filePath) {
-    //    return params.generate(filePath);
     return params.generate(
         Arrays.stream(filePath)
-            .map(f -> Paths.get("src/test/resources/ethereum-tests/" + f).toAbsolutePath())
+            .map(f -> Paths.get("src/test/resources/ethereum-tests/" + f).toFile())
             .toList());
   }
 
@@ -130,17 +126,15 @@ public class BlockchainReferenceTestTools {
                 ? HeaderValidationMode.LIGHT
                 : HeaderValidationMode.FULL;
 
-        zkTracer.traceStartConflation(1);
         final BlockImportResult importResult =
             blockImporter.importBlock(context, block, validationMode, validationMode);
-        zkTracer.traceEndConflation();
 
         assertThat(importResult.isImported()).isEqualTo(candidateBlock.isValid());
       } catch (final RLPException e) {
         assertThat(candidateBlock.isValid()).isFalse();
       }
 
-      assertThat(CorsetValidator.isValid(zkTracer.getJsonTrace())).isTrue();
+      assertThat(CorsetValidator.isValid(zkTracer.writeToTmpFile())).isTrue();
     }
 
     assertThat(blockchain.getChainHeadHash()).isEqualTo(spec.getLastBlockHash());

@@ -81,13 +81,7 @@ public enum OpCode {
   MSIZE,
   GAS,
   JUMPDEST,
-  // PUSH0(
-  // 0x5f,
-  // memoryFlags,
-  // moduleFlags,
-  // ramSettings,
-  // ramFlag,
-  // ),
+  // PUSH0,
   PUSH1,
   PUSH2,
   PUSH3,
@@ -198,5 +192,13 @@ public enum OpCode {
   /** Returns whether the {@link OpCode} entails a contract creation. */
   public boolean isCreate() {
     return this == OpCode.CREATE || this == OpCode.CREATE2;
+  }
+
+  /** Returns whether the {@link OpCode} is one of the CALL opcodes */
+  public boolean isCall() {
+    return this == OpCode.CALL
+        || this == OpCode.CALLCODE
+        || this == OpCode.DELEGATECALL
+        || this == OpCode.STATICCALL;
   }
 }

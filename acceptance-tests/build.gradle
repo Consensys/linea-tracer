@@ -1,3 +1,5 @@
+import java.time.LocalTime
+
 /*
  * Copyright Consensys Software Inc.
  *
@@ -33,6 +35,22 @@ web3j {
 solidity {
   resolvePackages = false
   optimizeRuns = 1
+}
+
+tasks.register('acceptanceTests', Test) {
+  description = 'Runs acceptance tests.'
+
+  dependsOn(project(":arithmetization").copyPluginJar)
+
+  inputs.property("integration.date", LocalTime.now()) // so it runs on every invocation
+
+  useJUnitPlatform {
+    includeTags("AcceptanceTest")
+  }
+
+  doFirst {
+    systemProperty("besu.plugins.dir", rootProject.besuPluginDir)
+  }
 }
 
 dependencies {

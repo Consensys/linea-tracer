@@ -15,13 +15,27 @@
 
 package net.consensys.linea.zktracer;
 
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import com.google.common.base.Stopwatch;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCodes;
 import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.datatypes.Hash;
+import org.hyperledger.besu.datatypes.PendingTransaction;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.gascalculator.GasCalculator;
@@ -31,14 +45,16 @@ import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
+import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
+@Slf4j
 @RequiredArgsConstructor
 public class ZkTracer implements ZkBlockAwareOperationTracer {
   /** The {@link GasCalculator} used in this version of the arithmetization */
   public static final GasCalculator gasCalculator = new LondonGasCalculator();
 
-  private final ZkTraceBuilder zkTraceBuilder = new ZkTraceBuilder();
-  private final Hub hub;
+  @Getter private final Hub hub;
+  private Hash hashOfLastTransactionTraced = Hash.EMPTY;
 
   public ZkTracer() {
     // Load opcodes configured in src/main/resources/opcodes.yml.
@@ -47,11 +63,53 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
     this.hub = new Hub();
   }
 
-  public ZkTrace getTrace() {
-    for (Module module : this.hub.getModulesToTrace()) {
-      zkTraceBuilder.addTrace(module);
+  public Path writeToTmpFile() {
+    try {
+      final Path traceFile = Files.createTempFile(null, ".lt");
+      this.writeToFile(traceFile);
+      return traceFile;
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
-    return zkTraceBuilder.build();
+  }
+
+  @Override
+  public void writeToFile(final Path filename) {
+    log.warn("[TRACING] Starting serialization to " + filename.toAbsolutePath());
+    Stopwatch sw = Stopwatch.createStarted();
+
+    final List<Module> modules = this.hub.getModulesToTrace();
+    final List<ColumnHeader> traceMap =
+        modules.stream().flatMap(m -> m.columnsHeaders().stream()).toList();
+    final int headerSize = traceMap.stream().mapToInt(ColumnHeader::headerSize).sum() + 4;
+
+    try (RandomAccessFile file = new RandomAccessFile(filename.toString(), "rw")) {
+      file.setLength(traceMap.stream().mapToLong(ColumnHeader::cumulatedSize).sum());
+      MappedByteBuffer header =
+          file.getChannel().map(FileChannel.MapMode.READ_WRITE, 0, headerSize);
+
+      header.putInt(traceMap.size());
+      for (ColumnHeader h : traceMap) {
+        final String name = h.name();
+        header.putShort((short) name.length());
+        header.put(name.getBytes());
+        header.put((byte) h.bytesPerElement());
+        header.putInt(h.length());
+      }
+      long offset = headerSize;
+      for (Module m : modules) {
+        List<MappedByteBuffer> buffers = new ArrayList<>();
+        for (ColumnHeader columnHeader : m.columnsHeaders()) {
+          final int columnLength = columnHeader.dataSize();
+          buffers.add(file.getChannel().map(FileChannel.MapMode.READ_WRITE, offset, columnLength));
+          offset += columnLength;
+        }
+        m.commit(buffers);
+      }
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    log.warn("[TRACING] Done in {}", sw);
   }
 
   @Override
@@ -65,13 +123,13 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
   }
 
   @Override
-  public String getJsonTrace() {
-    return getTrace().toJson();
+  public void traceStartBlock(final ProcessableBlockHeader processableBlockHeader) {
+    this.hub.traceStartBlock(processableBlockHeader);
   }
 
   @Override
   public void traceStartBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
-    this.hub.traceStartBlock(blockHeader, blockBody);
+    this.hub.traceStartBlock(blockHeader);
   }
 
   @Override
@@ -81,6 +139,7 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
 
   @Override
   public void traceStartTransaction(WorldView worldView, Transaction transaction) {
+    hashOfLastTransactionTraced = transaction.getHash();
     this.hub.traceStartTx(worldView, transaction);
   }
 
@@ -98,17 +157,22 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
 
   @Override
   public void tracePreExecution(final MessageFrame frame) {
-    this.hub.tracePreOpcode(frame);
+    if (frame.getCode().getSize() > 0) {
+      this.hub.tracePreOpcode(frame);
+    }
   }
 
   @Override
   public void tracePostExecution(MessageFrame frame, Operation.OperationResult operationResult) {
-    this.hub.tracePostExecution(frame, operationResult);
+    if (frame.getCode().getSize() > 0) {
+      this.hub.tracePostExecution(frame, operationResult);
+    }
   }
 
   @Override
   public void traceContextEnter(MessageFrame frame) {
-    // We only want to trigger on creation of new contexts, not on re-entry in existing contexts
+    // We only want to trigger on creation of new contexts, not on re-entry in
+    // existing contexts
     if (frame.getState() == MessageFrame.State.NOT_STARTED) {
       this.hub.traceContextEnter(frame);
     }
@@ -125,7 +189,16 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
   }
 
   /** When called, erase all tracing related to the last included transaction. */
-  public void popTransaction() {
-    hub.popTransaction();
+  public void popTransaction(final PendingTransaction pendingTransaction) {
+    if (hashOfLastTransactionTraced.equals(pendingTransaction.getTransaction().getHash())) {
+      hub.popTransaction();
+    }
+  }
+
+  public Map<String, Integer> getModulesLineCount() {
+    final HashMap<String, Integer> modulesLineCount = new HashMap<>();
+    hub.getModulesToTrace()
+        .forEach(m -> modulesLineCount.put(m.getClass().getSimpleName(), m.lineCount()));
+    return modulesLineCount;
   }
 }

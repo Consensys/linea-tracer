@@ -478,11 +478,11 @@ opcodes:
     value: 0x40
     instructionFamily: BATCH
     stackSettings:
-      pattern: ZERO_ONE
+      pattern: ONE_ONE
       alpha: 1
-      delta: 0
+      delta: 1
       nbAdded: 1
-      nbRemoved: 0
+      nbRemoved: 1
       staticGas: G_BLOCK_HASH
       flag1: true
   - mnemonic: COINBASE
@@ -1540,7 +1540,6 @@ opcodes:
       oobFlag: true
       staticGas: S_CALL
       twoLinesInstruction: true
-      forbiddenInStatic: true
       addressTrimmingInstruction: true
       flag1: true
     billing:
@@ -1585,9 +1584,9 @@ opcodes:
     stackSettings:
       pattern: CALL
       alpha: 1
-      delta: 7
+      delta: 6
       nbAdded: 1
-      nbRemoved: 7
+      nbRemoved: 6
       staticGas: S_CALL
       twoLinesInstruction: true
       addressTrimmingInstruction: true

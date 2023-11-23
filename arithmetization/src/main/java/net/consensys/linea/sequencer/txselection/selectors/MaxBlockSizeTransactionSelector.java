@@ -18,7 +18,7 @@ import static net.consensys.linea.sequencer.txselection.TransactionUtil.EMPTY_L1
 import static net.consensys.linea.sequencer.txselection.TransactionUtil.calculateL1TransactionSize;
 
 import lombok.extern.slf4j.Slf4j;
-import net.consensys.linea.sequencer.LineaConfiguration;
+import net.consensys.linea.sequencer.txselection.LineaTransactionSelectorConfiguration;
 import org.hyperledger.besu.datatypes.PendingTransaction;
 import org.hyperledger.besu.plugin.data.TransactionProcessingResult;
 import org.hyperledger.besu.plugin.data.TransactionSelectionResult;
@@ -29,7 +29,7 @@ public class MaxBlockSizeTransactionSelector implements PluginTransactionSelecto
   private int totalBlockSize = EMPTY_L1_BLOCK_SIZE;
   private final int maxBlockSize;
 
-  public MaxBlockSizeTransactionSelector(LineaConfiguration lineaConfiguration) {
+  public MaxBlockSizeTransactionSelector(LineaTransactionSelectorConfiguration lineaConfiguration) {
     this.maxBlockSize = lineaConfiguration.maxBlockSize();
   }
 

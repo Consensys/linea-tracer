@@ -23,7 +23,7 @@ import java.util.function.Function;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.module.hub.Aborts;
+import net.consensys.linea.zktracer.module.hub.AbortingConditions;
 import net.consensys.linea.zktracer.module.hub.DeploymentExceptions;
 import net.consensys.linea.zktracer.module.hub.Exceptions;
 import net.consensys.linea.zktracer.module.hub.Trace;
@@ -36,6 +36,8 @@ import net.consensys.linea.zktracer.runtime.stack.Stack;
 import net.consensys.linea.zktracer.runtime.stack.StackOperation;
 import net.consensys.linea.zktracer.types.EWord;
 import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.datatypes.Hash;
+import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @Accessors(fluent = true)
@@ -48,13 +50,13 @@ public final class StackFragment implements TraceFragment {
   private EWord hashInfoKeccak = EWord.ZERO;
   private final long hashInfoSize;
   private final boolean hashInfoFlag;
-  private final OpCode opCode;
+  @Getter private final OpCode opCode;
 
   private StackFragment(
       Stack stack,
       List<StackOperation> stackOps,
       Exceptions exceptions,
-      Aborts aborts,
+      AbortingConditions aborts,
       DeploymentExceptions contextExceptions,
       GasProjection gp,
       boolean isDeploying) {
@@ -81,7 +83,7 @@ public final class StackFragment implements TraceFragment {
       final Stack stack,
       final List<StackOperation> stackOperations,
       final Exceptions exceptions,
-      final Aborts aborts,
+      final AbortingConditions aborts,
       final GasProjection gp,
       boolean isDeploying) {
     return new StackFragment(
@@ -95,7 +97,14 @@ public final class StackFragment implements TraceFragment {
         case RETURN -> this.hashInfoKeccak = EWord.ZERO; // TODO: fixme
         case CREATE2 -> {
           Address newAddress = EWord.of(frame.getStackItem(0)).toAddress();
-          this.hashInfoKeccak = EWord.of(frame.getWorldUpdater().get(newAddress).getCodeHash());
+          // zero address indicates a failed deployment
+          if (!newAddress.isZero()) {
+            this.hashInfoKeccak =
+                EWord.of(
+                    Optional.ofNullable(frame.getWorldUpdater().get(newAddress))
+                        .map(AccountState::getCodeHash)
+                        .orElse(Hash.EMPTY));
+          }
         }
         default -> throw new IllegalStateException("unexpected opcode");
       }
@@ -103,36 +112,36 @@ public final class StackFragment implements TraceFragment {
   }
 
   @Override
-  public Trace.TraceBuilder trace(Trace.TraceBuilder trace) {
-    final List<Function<BigInteger, Trace.TraceBuilder>> valHiTracers =
+  public Trace trace(Trace trace) {
+    final List<Function<BigInteger, Trace>> valHiTracers =
         List.of(
             trace::pStackStackItemValueHi1,
             trace::pStackStackItemValueHi2,
             trace::pStackStackItemValueHi3,
             trace::pStackStackItemValueHi4);
 
-    final List<Function<BigInteger, Trace.TraceBuilder>> valLoTracers =
+    final List<Function<BigInteger, Trace>> valLoTracers =
         List.of(
             trace::pStackStackItemValueLo1,
             trace::pStackStackItemValueLo2,
             trace::pStackStackItemValueLo3,
             trace::pStackStackItemValueLo4);
 
-    final List<Function<Boolean, Trace.TraceBuilder>> popTracers =
+    final List<Function<Boolean, Trace>> popTracers =
         List.of(
             trace::pStackStackItemPop1,
             trace::pStackStackItemPop2,
             trace::pStackStackItemPop3,
             trace::pStackStackItemPop4);
 
-    final List<Function<BigInteger, Trace.TraceBuilder>> heightTracers =
+    final List<Function<BigInteger, Trace>> heightTracers =
         List.of(
             trace::pStackStackItemHeight1,
             trace::pStackStackItemHeight2,
             trace::pStackStackItemHeight3,
             trace::pStackStackItemHeight4);
 
-    final List<Function<BigInteger, Trace.TraceBuilder>> stampTracers =
+    final List<Function<BigInteger, Trace>> stampTracers =
         List.of(
             trace::pStackStackItemStamp1,
             trace::pStackStackItemStamp2,
@@ -188,7 +197,7 @@ public final class StackFragment implements TraceFragment {
         .pStackMxpx(exceptions.outOfMemoryExpansion())
         .pStackRdcx(exceptions.returnDataCopyFault())
         .pStackJumpx(exceptions.jumpFault())
-        .pStackStaticx(exceptions.staticViolation())
+        .pStackStaticx(exceptions.staticFault())
         .pStackSstorex(exceptions.outOfSStore())
         .pStackInvprex(contextExceptions.invalidCodePrefix())
         .pStackMaxcsx(contextExceptions.codeSizeOverflow())

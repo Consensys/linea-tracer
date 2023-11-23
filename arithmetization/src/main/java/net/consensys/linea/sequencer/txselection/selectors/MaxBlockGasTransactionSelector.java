@@ -18,7 +18,6 @@ import static net.consensys.linea.sequencer.txselection.LineaTransactionSelectio
 import static net.consensys.linea.sequencer.txselection.LineaTransactionSelectionResult.TX_TOO_LARGE_FOR_REMAINING_USER_GAS;
 import static org.hyperledger.besu.plugin.data.TransactionSelectionResult.SELECTED;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hyperledger.besu.datatypes.PendingTransaction;
 import org.hyperledger.besu.plugin.data.TransactionProcessingResult;
@@ -26,11 +25,15 @@ import org.hyperledger.besu.plugin.data.TransactionSelectionResult;
 import org.hyperledger.besu.plugin.services.txselection.PluginTransactionSelector;
 
 @Slf4j
-@RequiredArgsConstructor
 public class MaxBlockGasTransactionSelector implements PluginTransactionSelector {
 
   private final long maxGasPerBlock;
   private long cumulativeBlockGasUsed;
+
+  public MaxBlockGasTransactionSelector(long maxGasPerBlock) {
+    this.maxGasPerBlock = maxGasPerBlock;
+    this.cumulativeBlockGasUsed = 0;
+  }
 
   @Override
   public TransactionSelectionResult evaluateTransactionPostProcessing(

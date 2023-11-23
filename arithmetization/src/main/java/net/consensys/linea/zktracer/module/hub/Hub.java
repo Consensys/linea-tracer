@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
+import java.nio.MappedByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,27 +23,43 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
-import net.consensys.linea.zktracer.module.ModuleTrace;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.ext.Ext;
 import net.consensys.linea.zktracer.module.hub.defer.*;
 import net.consensys.linea.zktracer.module.hub.fragment.*;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.MiscFragment;
 import net.consensys.linea.zktracer.module.hub.section.*;
+import net.consensys.linea.zktracer.module.logData.LogData;
+import net.consensys.linea.zktracer.module.logInfo.LogInfo;
+import net.consensys.linea.zktracer.module.mmu.Mmu;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.mul.Mul;
 import net.consensys.linea.zktracer.module.mxp.Mxp;
+import net.consensys.linea.zktracer.module.preclimits.Blake2f;
+import net.consensys.linea.zktracer.module.preclimits.Ecadd;
+import net.consensys.linea.zktracer.module.preclimits.Ecmul;
+import net.consensys.linea.zktracer.module.preclimits.EcpairingCall;
+import net.consensys.linea.zktracer.module.preclimits.EcpairingWeightedCall;
+import net.consensys.linea.zktracer.module.preclimits.Ecrec;
+import net.consensys.linea.zktracer.module.preclimits.Modexp;
+import net.consensys.linea.zktracer.module.preclimits.Rip160;
+import net.consensys.linea.zktracer.module.preclimits.Sha256;
 import net.consensys.linea.zktracer.module.rlpAddr.RlpAddr;
 import net.consensys.linea.zktracer.module.rlp_txn.RlpTxn;
 import net.consensys.linea.zktracer.module.rlp_txrcpt.RlpTxrcpt;
 import net.consensys.linea.zktracer.module.rom.Rom;
 import net.consensys.linea.zktracer.module.romLex.RomLex;
 import net.consensys.linea.zktracer.module.shf.Shf;
+import net.consensys.linea.zktracer.module.tables.instructionDecoder.InstructionDecoder;
+import net.consensys.linea.zktracer.module.tables.shf.ShfRt;
+import net.consensys.linea.zktracer.module.trm.Trm;
 import net.consensys.linea.zktracer.module.txn_data.TxnData;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.*;
@@ -68,17 +85,36 @@ import org.hyperledger.besu.evm.internal.Words;
 import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
-import org.hyperledger.besu.plugin.data.BlockBody;
-import org.hyperledger.besu.plugin.data.BlockHeader;
+import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 @Slf4j
 @Accessors(fluent = true)
 public class Hub implements Module {
   private static final int TAU = 8;
+  private static final Set<Address> PRECOMPILES =
+      Set.of(
+          Address.ECREC,
+          Address.SHA256,
+          Address.RIPEMD160,
+          Address.ID,
+          Address.MODEXP,
+          Address.ALTBN128_ADD,
+          Address.ALTBN128_MUL,
+          Address.ALTBN128_PAIRING,
+          Address.BLAKE2B_F_COMPRESSION);
+
+  public static Optional<Bytes> maybeStackItem(MessageFrame frame, int idx) {
+    if (frame.stackSize() > idx) {
+      return Optional.of(frame.getStackItem(idx));
+    } else {
+      return Optional.empty();
+    }
+  }
+
   public static final GasProjector gp = new GasProjector();
 
   // Revertible state of the hub
-  private final State state = new State();
+  @Getter private final State state = new State();
 
   // Long-lived states
   @Getter ConflationInfo conflation = new ConflationInfo();
@@ -87,21 +123,16 @@ public class Hub implements Module {
   @Getter CallStack callStack = new CallStack();
   private final DeferRegistry defers = new DeferRegistry();
 
-  // These attributes are transient (opcode-specific) and do not need to be reversed.
-  @Getter private Exceptions exceptions;
-  @Getter private Aborts aborts;
-  @Getter private Signals signals;
-
-  private void resetSignals() {
-    this.signals = new Signals(this);
-  }
+  // These attributes are transient (opcode-specific) and do not need to be
+  // reversed.
+  @Getter private final PlatformController pch;
 
   public int stamp() {
     return this.state.stamps().hub();
   }
 
   public OpCodeData opCodeData() {
-    return this.currentFrame().opCode().getData();
+    return this.currentFrame().opCodeData();
   }
 
   TraceSection currentTraceSection() {
@@ -137,37 +168,79 @@ public class Hub implements Module {
   private final Wcp wcp = new Wcp();
   private final RlpTxn rlpTxn;
   private final Module mxp;
+  private final Module mmu;
   private final RlpTxrcpt rlpTxrcpt = new RlpTxrcpt();
+  private final LogInfo logInfo = new LogInfo(rlpTxrcpt);
+  private final LogData logData = new LogData(rlpTxrcpt);
   private final RlpAddr rlpAddr = new RlpAddr();
   private final Rom rom;
   private final RomLex romLex;
   private final TxnData txnData;
+  private final Trm trm = new Trm();
+
+  // Precompile counters
+  private final Sha256 sha256 = new Sha256();
+  private final Ecrec ecrec = new Ecrec();
+  private final Rip160 rip160 = new Rip160();
+  private final Modexp modexp = new Modexp();
+  private final Ecadd ecadd = new Ecadd();
+  private final Ecmul ecmul = new Ecmul();
+  private final EcpairingCall ecpairingCall = new EcpairingCall();
+  private final EcpairingWeightedCall ecpairingWeightedCall =
+      new EcpairingWeightedCall(ecpairingCall);
+  private final Blake2f blake2 = new Blake2f();
 
   private final List<Module> modules;
 
+  private final List<Module>
+      precompileLimitModules; // Those modules are not traced, we just compute the number of
+  // calls
+  // to
+  // those precompile to meet prover's limit
+
   public Hub() {
+    this.pch = new PlatformController(this);
+    this.mmu = new Mmu(this.callStack);
     this.mxp = new Mxp(this);
     this.romLex = new RomLex(this);
     this.rom = new Rom(this.romLex);
     this.rlpTxn = new RlpTxn(this.romLex);
     this.txnData = new TxnData(this, this.romLex, this.wcp);
 
-    this.modules =
+    this.precompileLimitModules =
         List.of(
-            this.romLex, // romLex must be traced before modules requiring CodeFragmentIndex, like
-            // RlpTxn, TxnData, etc
-            this.add,
-            this.ext,
-            this.mod,
-            this.mul,
-            this.mxp,
-            this.shf,
-            this.wcp,
-            this.rlpTxn,
-            this.rlpTxrcpt,
-            this.rlpAddr,
-            this.rom,
-            this.txnData);
+            this.sha256,
+            this.ecrec,
+            this.rip160,
+            this.modexp,
+            this.ecadd,
+            this.ecmul,
+            this.ecpairingCall,
+            this.ecpairingWeightedCall,
+            this.blake2);
+
+    this.modules =
+        Stream.concat(
+                Stream.of(
+                    this.romLex, // romLex must be called before modules requiring CodeFragmentIndex
+                    // (Rom, RlpTxn, TxnData, RAM, TODO: HUB)
+                    this.add,
+                    this.ext,
+                    this.mod,
+                    this.mul,
+                    this.mxp,
+                    this.shf,
+                    this.wcp,
+                    this.rlpTxn,
+                    this.rlpTxrcpt,
+                    this.logData,
+                    this.logInfo,
+                    this.rlpAddr,
+                    this.rom,
+                    this.txnData,
+                    this.trm),
+                this.precompileLimitModules.stream())
+            .toList();
   }
 
   /**
@@ -175,7 +248,9 @@ public class Hub implements Module {
    */
   public List<Module> getModulesToTrace() {
     return List.of(
-        this,
+        new InstructionDecoder(),
+        new ShfRt(),
+        // this,
         this.romLex,
         this.add,
         this.ext,
@@ -186,6 +261,8 @@ public class Hub implements Module {
         this.mxp,
         this.rlpTxn,
         this.rlpTxrcpt,
+        this.logData,
+        this.logInfo,
         this.rlpAddr,
         this.rom,
         this.txnData);
@@ -197,17 +274,7 @@ public class Hub implements Module {
   }
 
   public static boolean isPrecompile(Address to) {
-    return List.of(
-            Address.ECREC,
-            Address.SHA256,
-            Address.RIPEMD160,
-            Address.ID,
-            Address.MODEXP,
-            Address.ALTBN128_ADD,
-            Address.ALTBN128_MUL,
-            Address.ALTBN128_PAIRING,
-            Address.BLAKE2B_F_COMPRESSION)
-        .contains(to);
+    return PRECOMPILES.contains(to);
   }
 
   public static boolean isValidPrecompileCall(MessageFrame frame) {
@@ -346,8 +413,7 @@ public class Hub implements Module {
   }
 
   public CallFrame currentFrame() {
-    // If the transaction is skipped, it has no relevant CF to trace.
-    if (this.tx.state() == TxState.TX_SKIP) {
+    if (this.callStack().isEmpty()) {
       return CallFrame.EMPTY;
     }
     return this.callStack.current();
@@ -368,143 +434,114 @@ public class Hub implements Module {
   }
 
   void triggerModules(MessageFrame frame) {
-    switch (this.opCodeData().instructionFamily()) {
-      case ADD -> {
-        if (this.exceptions.noStackException()) {
-          this.add.tracePreOpcode(frame);
-        }
-      }
-      case MOD -> {
-        if (this.exceptions.noStackException()) {
-          this.mod.tracePreOpcode(frame);
-        }
-      }
-      case MUL -> {
-        if (this.exceptions.noStackException()) {
-          this.mul.tracePreOpcode(frame);
-        }
-      }
-      case EXT -> {
-        if (this.exceptions.noStackException()) {
-          this.ext.tracePreOpcode(frame);
-        }
-      }
-      case WCP -> {
-        if (this.exceptions.noStackException()) {
-          this.wcp.tracePreOpcode(frame);
-        }
-      }
-      case BIN -> {}
-      case SHF -> {
-        if (this.exceptions.noStackException()) {
-          this.shf.tracePreOpcode(frame);
-        }
-      }
-      case KEC -> {
-        if (this.exceptions.noStackException()) {
-          this.mxp.tracePreOpcode(frame);
-        }
-      }
-      case CONTEXT -> {}
-      case ACCOUNT -> {}
-      case COPY -> {
-        if (this.exceptions.noStackException()) {
-          if (this.currentFrame().opCode() == OpCode.RETURNDATACOPY) {
-            if (!this.exceptions.returnDataCopyFault()) {
-              this.mxp.tracePreOpcode(frame);
-            }
-          } else {
-            this.mxp.tracePreOpcode(frame);
-          }
-        }
-        if (!this.exceptions.any() && this.callStack().depth() < 1024) {
-          this.romLex.tracePreOpcode(frame);
-        }
-      }
-      case TRANSACTION -> {}
-      case BATCH -> {}
-      case STACK_RAM -> {
-        if (this.exceptions.noStackException()
-            && this.currentFrame().opCode() != OpCode.CALLDATALOAD) {
-          this.mxp.tracePreOpcode(frame);
-        }
-      }
-      case STORAGE -> {}
-      case JUMP -> {}
-      case MACHINE_STATE -> {
-        if (this.exceptions.noStackException() && this.currentFrame().opCode() == OpCode.MSIZE) {
-          this.mxp.tracePreOpcode(frame);
-        }
-      }
-      case PUSH_POP -> {}
-      case DUP -> {}
-      case SWAP -> {}
-      case LOG -> {
-        if (this.exceptions.noStackException() && !this.exceptions.staticViolation()) {
-          this.mxp.tracePreOpcode(frame);
-        }
-      }
-      case CREATE -> {
-        if (this.exceptions.noStackException() && !this.exceptions.staticViolation()) {
-          this.mxp.tracePreOpcode(frame); // TODO: trigger in OoG
-        }
+    // switch (this.opCodeData().instructionFamily()) {
+    // case CREATE -> {
+    // if (this.pch().exceptions().noStackException() &&
+    // !this.pch().exceptions().staticFault()) {
+    // this.mxp.tracePreOpcode(frame); // TODO: trigger in OoG
+    // }
+    //
+    // if (!this.pch().exceptions().any() && this.callStack().depth() < 1024) {
+    // // TODO: check for failure: non empty byte code or non zero nonce (for the
+    // // Deployed
+    // // Address)
+    // UInt256 value = UInt256.fromBytes(frame.getStackItem(0));
+    // if (frame
+    // .getWorldUpdater()
+    // .get(this.tx.transaction().getSender())
+    // .getBalance()
+    // .toUInt256()
+    // .greaterOrEqualThan(value)) {
+    // this.rlpAddr.tracePreOpcode(frame);
+    // this.romLex.tracePreOpcode(frame);
+    // }
+    // }
+    // }
+    // case CALL -> {
+    // if (!this.pch().exceptions().any() && this.callStack().depth() < 1024) {
+    // this.romLex.tracePreOpcode(frame);
+    // for (Module m : this.precompileLimitModules) {
+    // m.tracePreOpcode(frame);
+    // }
+    // }
+    // if (!this.pch().exceptions().stackUnderflow() &&
+    // !this.pch().exceptions().staticFault()) {
+    // this.mxp.tracePreOpcode(frame);
+    // }
+    // if (this.pch().exceptions().noStackException()) {
+    // this.trm.tracePreOpcode(frame); // TODO refine the trigger
+    // }
+    // }
+    // default -> {}
+    // }
 
-        if (!this.exceptions.any() && this.callStack().depth() < 1024) {
-          // TODO: check for failure: non empty byte code or non zero nonce (for the
-          // Deployed
-          // Address)
-          UInt256 value = UInt256.fromBytes(frame.getStackItem(0));
-          if (frame
-              .getWorldUpdater()
-              .get(this.tx.transaction().getSender())
-              .getBalance()
-              .toUInt256()
-              .greaterOrEqualThan(value)) {
-            this.rlpAddr.tracePreOpcode(frame);
-            this.romLex.tracePreOpcode(frame);
-          }
-        }
-      }
-      case CALL -> {
-        if (!this.exceptions.any() && this.callStack().depth() < 1024) {
-          this.romLex.tracePreOpcode(frame);
-        }
-      }
-      case HALT -> {
-        if (!this.exceptions.any() && this.callStack().depth() < 1024) {
-          this.romLex.tracePreOpcode(frame);
-        }
-        if (this.exceptions.noStackException()
-            && this.currentFrame().opCode() != OpCode.STOP
-            && this.currentFrame().opCode() != OpCode.SELFDESTRUCT) {
-          this.mxp.tracePreOpcode(frame);
-        }
-      }
-      case INVALID -> {}
-      default -> {}
+    // TODO: coming soon
+    if (this.pch.signals().add()) {
+      this.add.tracePreOpcode(frame);
+    }
+    // if (this.pch.signals().bin()) {
+    // this.bin.tracePreOpcode(frame);
+    // }
+    if (this.pch.signals().mul()) {
+      this.mul.tracePreOpcode(frame);
+    }
+    if (this.pch.signals().ext()) {
+      this.ext.tracePreOpcode(frame);
+    }
+    if (this.pch.signals().mod()) {
+      this.mod.tracePreOpcode(frame);
+    }
+    if (this.pch.signals().wcp()) {
+      this.wcp.tracePreOpcode(frame);
+    }
+    if (this.pch.signals().shf()) {
+      this.shf.tracePreOpcode(frame);
+    }
+    if (this.pch.signals().mmu()) {
+      this.mmu.tracePreOpcode(frame);
+    }
+
+    if (this.pch.signals().mxp()) {
+      this.mxp.tracePreOpcode(frame);
+    }
+    if (this.pch.signals().oob()) {
+      // TODO: this.oob.tracePreOpcode(frame);
+    }
+    if (this.pch.signals().stp()) {
+      // TODO:
+    }
+    if (this.pch.signals().exp()) {
+      this.modexp.tracePreOpcode(frame);
+    }
+    if (this.pch.signals().trm()) {
+      this.trm.tracePreOpcode(frame);
+    }
+    if (this.pch.signals().hashInfo()) {
+      // TODO: this.hashInfo.tracePreOpcode(frame);
+    }
+    if (this.pch.signals().romLex()) {
+      this.romLex.tracePreOpcode(frame);
     }
   }
 
   void processStateExec(MessageFrame frame) {
     this.currentFrame().frame(frame);
     this.state.stamps().stampHub();
-    this.exceptions = Exceptions.forFrame(frame, Hub.gp);
-    this.aborts = Aborts.forFrame(this);
+    this.pch.setup(frame);
 
     this.handleStack(frame);
     this.triggerModules(frame);
-    if (this.exceptions.any() || this.currentFrame().opCode() == OpCode.REVERT) {
+    if (this.pch().exceptions().any() || this.currentFrame().opCode() == OpCode.REVERT) {
       this.callStack.revert(this.state.stamps().hub());
     }
 
-    this.resetSignals();
     if (this.currentFrame().stack().isOk()) {
       this.traceOperation(frame);
     } else {
       this.addTraceSection(new StackOnlySection(this));
       // TODO: ‶return″ context line
     }
-    this.state.stamps().stampSubmodules(this.signals());
+    this.state.stamps().stampSubmodules(this.pch());
   }
 
   void processStateFinal(WorldView worldView, Transaction tx, boolean isSuccess) {
@@ -544,9 +581,10 @@ public class Hub implements Module {
                   this.tx.initialGas())));
     } else {
       // Trace the exceptions of a transaction that could not even start
-      if (this.exceptions == null) {
-        this.exceptions = Exceptions.fromOutOfGas();
-      }
+      // TODO: integrate with PCH
+      // if (this.exceptions == null) {
+      // this.exceptions = Exceptions.fromOutOfGas();
+      // }
 
       // otherwise 4 account rows (sender, coinbase, sender, recipient) + 1 tx row
       Address toAddress = this.tx.transaction().getSender();
@@ -591,11 +629,10 @@ public class Hub implements Module {
 
   @Override
   public void traceStartTx(final WorldView world, final Transaction tx) {
-    this.enterTransaction();
-
-    this.exceptions = Exceptions.empty();
-
+    this.pch.reset();
     this.tx.update(tx);
+
+    this.enterTransaction();
 
     if (this.tx.shouldSkip(world)) {
       this.tx.state(TxState.TX_SKIP);
@@ -656,7 +693,7 @@ public class Hub implements Module {
       if (line.needsResult()) {
         EWord result = EWord.ZERO;
         // Only pop from the stack if no exceptions have been encountered
-        if (!exceptions.any()) {
+        if (this.pch.exceptions().none()) {
           result = EWord.of(frame.getStackItem(0));
         }
 
@@ -668,7 +705,7 @@ public class Hub implements Module {
       }
     }
 
-    if (this.exceptions.none()) {
+    if (this.pch.exceptions().none()) {
       for (TraceSection.TraceLine line : section.getLines()) {
         if (line.specific() instanceof StackFragment stackFragment) {
           stackFragment.feedHashedValue(frame);
@@ -679,6 +716,8 @@ public class Hub implements Module {
 
   @Override
   public void traceContextEnter(MessageFrame frame) {
+    this.pch.reset();
+
     if (frame.getDepth() == 0) {
       // Bedrock...
       final Address toAddress = effectiveToAddress(this.tx.transaction());
@@ -712,7 +751,7 @@ public class Hub implements Module {
       final int codeDeploymentNumber = this.conflation.deploymentInfo().number(codeAddress);
       this.callStack.enter(
           this.state.stamps().hub(),
-          frame.getOriginatorAddress(), // TODO: check for all call types that it is correct
+          frame.getRecipientAddress(), // TODO: check for all call types that it is correct
           frame.getContractAddress(),
           new Bytecode(frame.getCode().getBytes()),
           frameType,
@@ -784,33 +823,33 @@ public class Hub implements Module {
 
     switch (this.opCodeData().instructionFamily()) {
       case ADD -> {
-        if (this.exceptions.noStackException()) {
+        if (this.pch.exceptions().noStackException()) {
           this.add.tracePostOp(frame);
         }
       }
       case MOD -> {
-        if (this.exceptions.noStackException()) {
+        if (this.pch.exceptions().noStackException()) {
           this.mod.tracePostOp(frame);
         }
       }
       case MUL -> {
-        if (this.exceptions.noStackException()) {
+        if (this.pch.exceptions().noStackException()) {
           this.mul.tracePostOp(frame);
         }
       }
       case EXT -> {
-        if (this.exceptions.noStackException()) {
+        if (this.pch.exceptions().noStackException()) {
           this.ext.tracePostOp(frame);
         }
       }
       case WCP -> {
-        if (this.exceptions.noStackException()) {
+        if (this.pch.exceptions().noStackException()) {
           this.wcp.tracePostOp(frame);
         }
       }
       case BIN -> {}
       case SHF -> {
-        if (this.exceptions.noStackException()) {
+        if (this.pch.exceptions().noStackException()) {
           this.shf.tracePostOp(frame);
         }
       }
@@ -821,7 +860,7 @@ public class Hub implements Module {
       case TRANSACTION -> {}
       case BATCH -> {}
       case STACK_RAM -> {
-        if (this.exceptions.noStackException()) {
+        if (this.pch.exceptions().noStackException()) {
           this.mxp.tracePostOp(frame);
         }
       }
@@ -845,10 +884,10 @@ public class Hub implements Module {
   }
 
   @Override
-  public void traceStartBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
-    this.block.update(blockHeader);
+  public void traceStartBlock(final ProcessableBlockHeader processableBlockHeader) {
+    this.block.update(processableBlockHeader);
     for (Module m : this.modules) {
-      m.traceStartBlock(blockHeader, blockBody);
+      m.traceStartBlock(processableBlockHeader);
     }
   }
 
@@ -869,9 +908,14 @@ public class Hub implements Module {
   }
 
   @Override
-  public ModuleTrace commit() {
-    final Trace.TraceBuilder trace = Trace.builder(this.lineCount());
-    return new HubTrace(this.state.commit(trace).build());
+  public List<ColumnHeader> columnsHeaders() {
+    return Trace.headers(this.lineCount());
+  }
+
+  @Override
+  public void commit(List<MappedByteBuffer> buffers) {
+    final Trace trace = new Trace(buffers);
+    this.state.commit(trace);
   }
 
   public long refundedGas() {
@@ -891,7 +935,7 @@ public class Hub implements Module {
     boolean updateReturnData =
         this.opCodeData().isHalt()
             || this.opCodeData().isInvalid()
-            || exceptions.any()
+            || this.pch().exceptions().any()
             || isValidPrecompileCall(frame);
 
     switch (this.opCodeData().instructionFamily()) {
@@ -910,9 +954,6 @@ public class Hub implements Module {
           HALT,
           INVALID -> this.addTraceSection(new StackOnlySection(this));
       case KEC -> {
-        final boolean needsMmu = this.exceptions.none() && !frame.getStackItem(1).isZero();
-        this.signals().wantMmu(needsMmu).wantMxp();
-
         this.addTraceSection(
             new KeccakSection(this, this.currentFrame(), new MiscFragment(this, frame)));
       }
@@ -933,7 +974,7 @@ public class Hub implements Module {
               case BALANCE, EXTCODESIZE, EXTCODEHASH -> Words.toAddress(frame.getStackItem(0));
               default -> Address.wrap(this.currentFrame().address());
             };
-        Account targetAccount = frame.getWorldUpdater().getAccount(targetAddress);
+        Account targetAccount = frame.getWorldUpdater().get(targetAddress);
         AccountSnapshot accountSnapshot =
             AccountSnapshot.fromAccount(
                 targetAccount,
@@ -956,7 +997,7 @@ public class Hub implements Module {
                 case EXTCODECOPY -> Words.toAddress(frame.getStackItem(0));
                 default -> throw new IllegalStateException("unexpected opcode");
               };
-          Account targetAccount = frame.getWorldUpdater().getAccount(targetAddress);
+          Account targetAccount = frame.getWorldUpdater().get(targetAddress);
           AccountSnapshot accountSnapshot =
               AccountSnapshot.fromAccount(
                   targetAccount,
@@ -992,7 +1033,6 @@ public class Hub implements Module {
           case CALLDATALOAD -> {
             final long readOffset = Words.clampedToLong(frame.getStackItem(0));
             final boolean isOob = readOffset > this.currentFrame().callData().size();
-            this.signals().wantMmu(!isOob && this.exceptions.none()).wantOob();
 
             final MiscFragment miscFragment = new MiscFragment(this, frame);
             this.defers.postExec(miscFragment);
@@ -1004,8 +1044,6 @@ public class Hub implements Module {
                     new ContextFragment(this.callStack(), this.currentFrame(), false)));
           }
           case MLOAD, MSTORE, MSTORE8 -> {
-            this.signals().wantMmu(this.exceptions.none()).wantMxp();
-
             this.addTraceSection(new StackRam(this, new MiscFragment(this, frame)));
           }
           default -> throw new IllegalStateException("unexpected STACK_RAM opcode");
@@ -1052,7 +1090,7 @@ public class Hub implements Module {
       }
       case CREATE -> {
         Address myAddress = this.currentFrame().address();
-        Account myAccount = frame.getWorldUpdater().getAccount(myAddress);
+        Account myAccount = frame.getWorldUpdater().get(myAddress);
         AccountSnapshot myAccountSnapshot =
             AccountSnapshot.fromAccount(
                 myAccount,
@@ -1061,7 +1099,7 @@ public class Hub implements Module {
                 this.conflation.deploymentInfo().isDeploying(myAddress));
 
         Address createdAddress = this.currentFrame().address();
-        Account createdAccount = frame.getWorldUpdater().getAccount(createdAddress);
+        Account createdAccount = frame.getWorldUpdater().get(createdAddress);
         AccountSnapshot createdAccountSnapshot =
             AccountSnapshot.fromAccount(
                 createdAccount,
@@ -1071,7 +1109,8 @@ public class Hub implements Module {
 
         CreateSection createSection =
             new CreateSection(this, myAccountSnapshot, createdAccountSnapshot);
-        // Will be traced in one (and only one!) of these depending on the success of the operation
+        // Will be traced in one (and only one!) of these depending on the success of
+        // the operation
         this.defers.postExec(createSection);
         this.defers.nextContext(createSection, currentFrame().id());
         this.addTraceSection(createSection);
@@ -1080,7 +1119,7 @@ public class Hub implements Module {
 
       case CALL -> {
         final Address myAddress = this.currentFrame().address();
-        final Account myAccount = frame.getWorldUpdater().getAccount(myAddress);
+        final Account myAccount = frame.getWorldUpdater().get(myAddress);
         final AccountSnapshot myAccountSnapshot =
             AccountSnapshot.fromAccount(
                 myAccount,
@@ -1089,7 +1128,7 @@ public class Hub implements Module {
                 this.conflation.deploymentInfo().isDeploying(myAddress));
 
         final Address calledAddress = Words.toAddress(frame.getStackItem(1));
-        final Account calledAccount = frame.getWorldUpdater().getAccount(calledAddress);
+        final Account calledAccount = frame.getWorldUpdater().get(calledAddress);
         final boolean hasCode =
             Optional.ofNullable(calledAccount).map(AccountState::hasCode).orElse(false);
 
@@ -1102,26 +1141,24 @@ public class Hub implements Module {
 
         boolean targetIsPrecompile = isPrecompile(calledAddress);
 
-        if (this.exceptions.any()) {
-          if (this.exceptions.staticViolation()) {
+        if (this.pch().exceptions().any()) {
+          if (this.pch().exceptions().staticFault()) {
             this.addTraceSection(
                 new AbortedCallSection(
                     this,
                     this.currentFrame(),
                     new ContextFragment(this.callStack, this.currentFrame(), false),
                     new ContextFragment(this.callStack, this.callStack().parent(), true)));
-          } else if (this.exceptions.outOfMemoryExpansion()) {
-            this.signals().wantMxp();
-
+          } else if (this.pch().exceptions().outOfMemoryExpansion()) {
+            this.pch().signals().wantMxp();
             this.addTraceSection(
                 new AbortedCallSection(
                     this,
                     this.currentFrame(),
                     new MiscFragment(this, frame),
                     new ContextFragment(this.callStack, this.callStack().parent(), true)));
-          } else if (this.exceptions.outOfGas()) {
-            this.signals().wantMxp().wantStipend();
-
+          } else if (this.pch().exceptions().outOfGas()) {
+            this.pch().signals().wantMxp().wantStipend();
             this.addTraceSection(
                 new AbortedCallSection(
                     this,
@@ -1131,15 +1168,8 @@ public class Hub implements Module {
                     new ContextFragment(this.callStack, this.callStack().parent(), true)));
           }
         } else {
-          Wei value = Wei.ZERO;
-          if (this.currentFrame().opCode() == OpCode.CALL
-              || this.currentFrame().opCode() == OpCode.CALLCODE) {
-            value = Wei.wrap(frame.getStackItem(2));
-          }
-          final boolean abort =
-              (myAccount.getBalance().lessThan(value)) || this.callStack().wouldOverflow();
-          if (abort) {
-            this.signals().wantMxp().wantOob().wantStipend();
+          this.pch().signals().wantMxp().wantOob().wantStipend();
+          if (this.pch.aborts().any()) {
             TraceSection abortedSection =
                 new AbortedCallSection(
                     this,
@@ -1157,7 +1187,6 @@ public class Hub implements Module {
                     new ContextFragment(this.callStack, this.currentFrame(), true));
             this.addTraceSection(abortedSection);
           } else {
-            this.signals().wantMxp().wantOob().wantStipend();
             final MiscFragment miscFragment = new MiscFragment(this, frame);
 
             if (hasCode) {
@@ -1189,11 +1218,9 @@ public class Hub implements Module {
       }
 
       case JUMP -> {
-        this.signals().wantOob();
-
         AccountSnapshot codeAccountSnapshot =
             AccountSnapshot.fromAccount(
-                frame.getWorldUpdater().getAccount(this.currentFrame().codeAddress()),
+                frame.getWorldUpdater().get(this.currentFrame().codeAddress()),
                 true,
                 this.conflation.deploymentInfo().number(this.currentFrame().codeAddress()),
                 this.currentFrame().underDeployment());
@@ -1210,7 +1237,7 @@ public class Hub implements Module {
     }
 
     // In all cases, add a context fragment if an exception occurred
-    if (this.exceptions.any()) {
+    if (this.pch().exceptions().any()) {
       this.currentTraceSection()
           .addChunk(
               this,
@@ -1227,8 +1254,8 @@ public class Hub implements Module {
             StackFragment.prepare(
                 this.currentFrame().stack().snapshot(),
                 new StackLine().asStackOperations(),
-                this.exceptions.snapshot(),
-                this.aborts.snapshot(),
+                this.pch.exceptions().snapshot(),
+                this.pch.aborts().snapshot(),
                 gp.of(f.frame(), f.opCode()),
                 f.underDeployment()));
       }
@@ -1238,8 +1265,8 @@ public class Hub implements Module {
             StackFragment.prepare(
                 f.stack().snapshot(),
                 line.asStackOperations(),
-                this.exceptions.snapshot(),
-                this.aborts.snapshot(),
+                this.pch.exceptions().snapshot(),
+                this.pch.aborts().snapshot(),
                 gp.of(f.frame(), f.opCode()),
                 f.underDeployment()));
       }

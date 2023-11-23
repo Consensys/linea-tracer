@@ -16,10 +16,12 @@
 package net.consensys.linea.zktracer.module.ext;
 
 import java.math.BigInteger;
+import java.nio.MappedByteBuffer;
+import java.util.List;
 
+import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
-import net.consensys.linea.zktracer.module.ModuleTrace;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.OpCodes;
 import net.consensys.linea.zktracer.types.UnsignedByte;
@@ -57,14 +59,15 @@ public class Ext implements Module {
   @Override
   public void tracePreOpcode(final MessageFrame frame) {
     final OpCodeData opCode = OpCodes.of(frame.getCurrentOperation().getOpcode());
-    final Bytes32 arg1 = Bytes32.leftPad(frame.getStackItem(0));
-    final Bytes32 arg2 = Bytes32.leftPad(frame.getStackItem(1));
-    final Bytes32 arg3 = Bytes32.leftPad(frame.getStackItem(2));
-
-    this.operations.add(new ExtOperation(opCode, arg1, arg2, arg3));
+    this.operations.add(
+        new ExtOperation(
+            opCode.mnemonic(),
+            Bytes32.leftPad(frame.getStackItem(0)),
+            Bytes32.leftPad(frame.getStackItem(1)),
+            Bytes32.leftPad(frame.getStackItem(2))));
   }
 
-  public void traceExtOperation(ExtOperation op, Trace.TraceBuilder trace) {
+  public void traceExtOperation(ExtOperation op, Trace trace) {
     this.stamp++;
 
     for (int i = 0; i < op.maxCounter(); i++) {
@@ -203,12 +206,17 @@ public class Ext implements Module {
   }
 
   @Override
-  public ModuleTrace commit() {
-    final Trace.TraceBuilder trace = Trace.builder(this.lineCount());
+  public List<ColumnHeader> columnsHeaders() {
+    return Trace.headers(this.lineCount());
+  }
+
+  @Override
+  public void commit(List<MappedByteBuffer> buffers) {
+    final Trace trace = new Trace(buffers);
     for (ExtOperation operation : this.operations) {
+      operation.setup();
       this.traceExtOperation(operation, trace);
     }
-    return new ExtTrace(trace.build());
   }
 
   @Override

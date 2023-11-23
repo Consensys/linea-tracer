@@ -67,7 +67,7 @@ public class ContinuousTracerTest {
             new CorsetValidator.Result(
                 true, Path.of("testTraceFile").toFile(), "testCorsetOutput"));
 
-    when(zkTracerMock.getJsonTrace()).thenReturn("{}");
+    when(zkTracerMock.writeToTmpFile()).thenReturn(Path.of(""));
 
     final CorsetValidator.Result validationResult =
         continuousTracer.verifyTraceOfBlock(BLOCK_HASH, "testZkEvmBin", zkTracerMock);
@@ -83,7 +83,7 @@ public class ContinuousTracerTest {
     when(traceServiceMock.traceBlock(ArgumentMatchers.any(), ArgumentMatchers.any()))
         .thenReturn(blockTraceResult);
 
-    when(zkTracerMock.getJsonTrace()).thenReturn("{}");
+    when(zkTracerMock.writeToTmpFile()).thenReturn(Path.of(""));
 
     when(corsetValidatorMock.validate(ArgumentMatchers.any(), matches("testZkEvmBin")))
         .thenReturn(

@@ -15,8 +15,6 @@
 
 package net.consensys.linea.corset;
 
-import static java.nio.file.StandardOpenOption.WRITE;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -41,28 +39,11 @@ public class CorsetValidator {
     initDefaultZkEvm();
   }
 
-  public Result validate(final String trace) throws RuntimeException {
-    return validate(trace, defaultZkEvm);
+  public Result validate(final Path filename) throws RuntimeException {
+    return validate(filename, defaultZkEvm);
   }
 
-  public Result validate(final String trace, final String zkEvmBin) throws RuntimeException {
-    final Path traceFile;
-
-    try {
-      traceFile = Files.createTempFile("", ".tmp.json");
-      log.info("Trace file: %s".formatted(traceFile.toAbsolutePath()));
-    } catch (IOException e) {
-      log.error("Can't create temporary trace file: %s".formatted(e.getMessage()));
-      throw new RuntimeException(e);
-    }
-
-    try {
-      Files.writeString(traceFile, trace, WRITE);
-    } catch (IOException e) {
-      log.error("Cannot write to temporary trace file: %s".formatted(e.getMessage()));
-      throw new RuntimeException(e);
-    }
-
+  public Result validate(final Path filename, final String zkEvmBin) throws RuntimeException {
     final Process corsetValidationProcess;
     try {
       corsetValidationProcess =
@@ -70,13 +51,13 @@ public class CorsetValidator {
                   corsetBin,
                   "check",
                   "-T",
-                  traceFile.toFile().getAbsolutePath(),
+                  filename.toAbsolutePath().toString(),
                   "-q",
                   "-r",
                   "-d",
                   "-s",
                   "-t",
-                  "32",
+                  "2",
                   zkEvmBin)
               .redirectInput(ProcessBuilder.Redirect.INHERIT)
               .redirectErrorStream(true)
@@ -105,10 +86,10 @@ public class CorsetValidator {
 
     if (corsetValidationProcess.exitValue() != 0) {
       log.error("Validation failed: %s".formatted(corsetOutput));
-      return new Result(false, traceFile.toFile(), corsetOutput);
+      return new Result(false, filename.toFile(), corsetOutput);
     }
 
-    return new Result(true, traceFile.toFile(), corsetOutput);
+    return new Result(true, filename.toFile(), corsetOutput);
   }
 
   private void initCorset() {

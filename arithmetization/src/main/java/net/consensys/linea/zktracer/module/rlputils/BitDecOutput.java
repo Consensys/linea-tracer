@@ -15,13 +15,6 @@
 
 package net.consensys.linea.zktracer.module.rlputils;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import lombok.Getter;
-
-@Getter
-public class BitDecOutput {
-  @Getter private List<Boolean> bitDecList = new ArrayList<>();
-  @Getter private List<Integer> bitAccList = new ArrayList<>();
-}
+public record BitDecOutput(List<Boolean> bitDecList, List<Integer> bitAccList) {}

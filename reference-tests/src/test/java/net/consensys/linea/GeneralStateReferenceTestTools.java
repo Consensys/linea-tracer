@@ -17,8 +17,14 @@ package net.consensys.linea;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
+import lombok.SneakyThrows;
 import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.datatypes.BlobGas;
@@ -29,6 +35,10 @@ import org.hyperledger.besu.ethereum.mainnet.MainnetTransactionProcessor;
 import org.hyperledger.besu.ethereum.mainnet.ProtocolSpec;
 import org.hyperledger.besu.ethereum.mainnet.TransactionValidationParams;
 import org.hyperledger.besu.ethereum.processing.TransactionProcessingResult;
+import org.hyperledger.besu.ethereum.referencetests.GeneralStateTestCaseEipSpec;
+import org.hyperledger.besu.ethereum.referencetests.GeneralStateTestCaseSpec;
+import org.hyperledger.besu.ethereum.referencetests.ReferenceTestBlockchain;
+import org.hyperledger.besu.ethereum.referencetests.ReferenceTestProtocolSchedules;
 import org.hyperledger.besu.ethereum.referencetests.ReferenceTestWorldState;
 import org.hyperledger.besu.ethereum.rlp.RLP;
 import org.hyperledger.besu.ethereum.vm.CachingBlockHashLookup;
@@ -96,6 +106,7 @@ public class GeneralStateReferenceTestTools {
     // Consumes a huge amount of memory
     params.ignore("static_Call1MB1024Calldepth-\\w");
     params.ignore("ShanghaiLove_.*");
+    params.ignore("/GeneralStateTests/VMTests/vmPerformance/");
 
     // Don't do time consuming tests
     params.ignore("CALLBlake2f_MaxRounds.*");
@@ -116,10 +127,10 @@ public class GeneralStateReferenceTestTools {
     return params.generate(filePath);
   }
 
+  @SneakyThrows
   public static void executeTest(final GeneralStateTestCaseEipSpec spec) {
     final BlockHeader blockHeader = spec.getBlockHeader();
-    final ReferenceTestWorldState initialWorldState =
-        (ReferenceTestWorldState) spec.getInitialWorldState();
+    final ReferenceTestWorldState initialWorldState = spec.getInitialWorldState();
     final Transaction transaction = spec.getTransaction();
     final BlockBody blockBody = new BlockBody(List.of(transaction), new ArrayList<>());
 
@@ -153,7 +164,6 @@ public class GeneralStateReferenceTestTools {
     final ZkTracer zkTracer = new ZkTracer();
     zkTracer.traceStartConflation(1);
     zkTracer.traceStartBlock(blockHeader, blockBody);
-    zkTracer.traceStartTransaction(worldStateUpdater, transaction);
 
     final TransactionProcessingResult result =
         processor.processTransaction(
@@ -174,14 +184,6 @@ public class GeneralStateReferenceTestTools {
       return;
     }
 
-    zkTracer.traceEndTransaction(
-        worldStateUpdater,
-        transaction,
-        result.isSuccessful(),
-        result.getOutput(),
-        result.getLogs(),
-        transaction.getGasLimit() - result.getGasRemaining(),
-        0);
     zkTracer.traceEndBlock(blockHeader, blockBody);
     zkTracer.traceEndConflation();
 
@@ -216,7 +218,7 @@ public class GeneralStateReferenceTestTools {
                   .isEqualTo(expected);
             });
 
-    assertThat(corsetValidator.validate(zkTracer.getJsonTrace()).isValid()).isTrue();
+    assertThat(corsetValidator.validate(zkTracer.writeToTmpFile()).isValid()).isTrue();
   }
 
   private static boolean shouldClearEmptyAccounts(final String eip) {

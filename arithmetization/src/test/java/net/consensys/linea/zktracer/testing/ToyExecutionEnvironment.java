@@ -18,7 +18,10 @@ package net.consensys.linea.zktracer.testing;
 import static net.consensys.linea.zktracer.runtime.stack.Stack.MAX_STACK_SIZE;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -26,7 +29,6 @@ import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.Singular;
 import net.consensys.linea.corset.CorsetValidator;
-import net.consensys.linea.zktracer.ZkBlockAwareOperationTracer;
 import net.consensys.linea.zktracer.ZkTracer;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.SECP256K1;
@@ -77,8 +79,10 @@ public class ToyExecutionEnvironment {
    */
   private final Consumer<TransactionProcessingResult> testValidator;
 
+  private final Consumer<ZkTracer> zkTracerValidator;
+
   private static final FeeMarket feeMarket = FeeMarket.london(-1);
-  private final ZkBlockAwareOperationTracer tracer = new ZkTracer();
+  private final ZkTracer tracer = new ZkTracer();
 
   /**
    * Gets the default EVM implementation, i.e. London.
@@ -89,20 +93,19 @@ public class ToyExecutionEnvironment {
     return MainnetEVMs.london(EvmConfiguration.DEFAULT);
   }
 
-  /**
-   * Execute constructed EVM bytecode and return a JSON trace.
-   *
-   * @return the generated JSON trace
-   */
-  public String traceCode() {
-    execute();
-    return tracer.getJsonTrace();
+  public static void checkTracer(ZkTracer tracer) {
+    try {
+      final Path traceFile = Files.createTempFile(null, ".lt");
+      tracer.writeToFile(traceFile);
+      assertThat(corsetValidator.validate(traceFile).isValid()).isTrue();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
-  /** Execute constructed EVM bytecode and perform Corset trace validation. */
   public void run() {
-    final CorsetValidator.Result result = corsetValidator.validate(traceCode());
-    assertThat(result.isValid()).isTrue();
+    execute();
+    checkTracer(this.tracer);
   }
 
   private void execute() {
@@ -144,6 +147,7 @@ public class ToyExecutionEnvironment {
           0);
 
       this.testValidator.accept(result);
+      this.zkTracerValidator.accept(tracer);
     }
 
     tracer.traceEndBlock(header, mockBlockBody);
@@ -203,7 +207,8 @@ public class ToyExecutionEnvironment {
           Optional.ofNullable(evm).orElse(defaultEvm()),
           Optional.ofNullable(transactions).orElse(defaultTxList),
           Optional.ofNullable(testValidator)
-              .orElse(result -> assertThat(result.isSuccessful()).isTrue()));
+              .orElse(result -> assertThat(result.isSuccessful()).isTrue()),
+          Optional.ofNullable(zkTracerValidator).orElse(zkTracer -> {}));
     }
   }
 }

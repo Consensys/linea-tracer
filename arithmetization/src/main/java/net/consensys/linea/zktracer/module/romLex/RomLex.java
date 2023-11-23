@@ -15,29 +15,29 @@
 
 package net.consensys.linea.zktracer.module.romLex;
 
+import static net.consensys.linea.zktracer.types.AddressUtils.getCreate2Address;
+import static net.consensys.linea.zktracer.types.AddressUtils.getCreateAddress;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
-import static org.hyperledger.besu.crypto.Hash.keccak256;
 import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
 import java.math.BigInteger;
+import java.nio.MappedByteBuffer;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
+import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
-import net.consensys.linea.zktracer.module.ModuleTrace;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
-import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
-import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
@@ -53,8 +53,6 @@ public class RomLex implements Module {
   public final List<RomChunk> sortedChunks = new ArrayList<>();
   private Bytes byteCode = Bytes.EMPTY;
   private Address address = Address.ZERO;
-
-  //  public final SortedMap<RomChunk, Integer> chunkMap = new TreeMap<>(romChunkComparator);
 
   static class RomChunkComparator implements Comparator<RomChunk> {
     // Initialize the ChunkList
@@ -112,7 +110,7 @@ public class RomLex implements Module {
     }
 
     if (codeFragmentIndex < 0) {
-      throw new RuntimeException("RomChunk not found");
+      throw new RuntimeException("RomChunk n°" + value + " not found");
     }
 
     return codeFragmentIndex;
@@ -123,7 +121,15 @@ public class RomLex implements Module {
     // Contract creation with InitCode
     if (tx.getInit().isPresent() && !tx.getInit().orElseThrow().isEmpty()) {
       codeIdentifierBeforeLexOrder += 1;
-      this.address = Address.contractAddress(tx.getSender(), tx.getNonce());
+      this.chunks.add(
+          new RomChunk(
+              Address.contractAddress(tx.getSender(), tx.getNonce()),
+              1,
+              true,
+              false,
+              false,
+              codeIdentifierBeforeLexOrder,
+              tx.getInit().get()));
     }
 
     // Call to an account with bytecode
@@ -154,14 +160,10 @@ public class RomLex implements Module {
 
     switch (opcode) {
       case CREATE -> {
-        this.address =
-            Address.contractAddress(
-                frame.getSenderAddress(),
-                frame.getWorldUpdater().getSenderAccount(frame).getNonce());
-
+        this.address = getCreateAddress(frame);
         final long offset = clampedToLong(frame.getStackItem(1));
         final long length = clampedToLong(frame.getStackItem(2));
-        this.byteCode = frame.readMemory(offset, length);
+        this.byteCode = frame.shadowReadMemory(offset, length);
         if (!this.byteCode.isEmpty()) {
           codeIdentifierBeforeLexOrder += 1;
         }
@@ -170,23 +172,18 @@ public class RomLex implements Module {
       case CREATE2 -> {
         final long offset = clampedToLong(frame.getStackItem(1));
         final long length = clampedToLong(frame.getStackItem(2));
-        this.byteCode = frame.readMemory(offset, length);
+        this.byteCode = frame.shadowReadMemory(offset, length);
 
         if (!this.byteCode.isEmpty()) {
           codeIdentifierBeforeLexOrder += 1;
-          final Bytes32 salt = Bytes32.leftPad(frame.getStackItem(3));
-          final Bytes32 hash = keccak256(this.byteCode);
-          this.address =
-              Address.extract(
-                  keccak256(
-                      Bytes.concatenate(CREATE2_SHIFT, frame.getSenderAddress(), salt, hash)));
+          this.address = getCreate2Address(frame);
         }
       }
 
       case RETURN -> {
         final long offset = clampedToLong(frame.getStackItem(0));
         final long length = clampedToLong(frame.getStackItem(1));
-        final Bytes code = frame.readMemory(offset, length);
+        final Bytes code = frame.shadowReadMemory(offset, length);
         final boolean depStatus =
             hub.conflation().deploymentInfo().isDeploying(frame.getContractAddress());
         if (!code.isEmpty() && depStatus) {
@@ -274,44 +271,11 @@ public class RomLex implements Module {
                 codeIdentifierBeforeLexOrder,
                 this.byteCode));
       }
-      case RETURN -> {
-        // TODO: get the right DepNumber & DepStatus once implemented in the HUB
-      }
-    }
-  }
-
-  @Override
-  public void traceEndTx(
-      WorldView worldView,
-      Transaction tx,
-      boolean status,
-      Bytes output,
-      List<Log> logs,
-      long gasUsed) {
-    if (tx.getInit().isPresent() && !tx.getInit().orElseThrow().isEmpty()) {
-      int depNumber =
-          hub.conflation()
-              .deploymentInfo()
-              .number(this.address); // should be 1 (constrained by lookup from TxnData)
-      boolean depStatus =
-          hub.conflation()
-              .deploymentInfo()
-              .isDeploying(this.address); // should be true (constrained by lookup from TxnData)
-
-      this.chunks.add(
-          new RomChunk(
-              this.address,
-              depNumber,
-              depStatus,
-              false,
-              false,
-              codeIdentifierBeforeLexOrder,
-              tx.getInit().orElseThrow()));
     }
   }
 
   private void traceChunk(
-      final RomChunk chunk, int cfi, int codeFragmentIndexInfinity, Trace.TraceBuilder trace) {
+      final RomChunk chunk, int cfi, int codeFragmentIndexInfinity, Trace trace) {
     trace
         .codeFragmentIndex(BigInteger.valueOf(cfi))
         .codeFragmentIndexInfty(BigInteger.valueOf(codeFragmentIndexInfinity))
@@ -337,8 +301,13 @@ public class RomLex implements Module {
   }
 
   @Override
-  public ModuleTrace commit() {
-    final Trace.TraceBuilder trace = Trace.builder(this.lineCount());
+  public List<ColumnHeader> columnsHeaders() {
+    return Trace.headers(this.lineCount());
+  }
+
+  @Override
+  public void commit(List<MappedByteBuffer> buffers) {
+    final Trace trace = new Trace(buffers);
     final int codeFragmentIndexInfinity = chunks.size();
 
     int cfi = 0;
@@ -346,6 +315,5 @@ public class RomLex implements Module {
       cfi += 1;
       traceChunk(chunk, cfi, codeFragmentIndexInfinity, trace);
     }
-    return new RomLexTrace(trace.build());
   }
 }

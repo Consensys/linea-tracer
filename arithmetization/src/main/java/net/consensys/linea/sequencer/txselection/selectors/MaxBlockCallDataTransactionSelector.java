@@ -14,6 +14,9 @@
  */
 package net.consensys.linea.sequencer.txselection.selectors;
 
+import static net.consensys.linea.sequencer.txselection.LineaTransactionSelectionResult.BLOCK_CALLDATA_FULL;
+import static org.hyperledger.besu.plugin.data.TransactionSelectionResult.SELECTED;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hyperledger.besu.datatypes.PendingTransaction;
@@ -39,8 +42,8 @@ public class MaxBlockCallDataTransactionSelector implements PluginTransactionSel
    * the call data size of the block over the limit.
    *
    * @param pendingTransaction The transaction to evaluate.
-   * @return BLOCK_FULL if the call data size of a transactions pushes the size for the block over
-   *     the limit, otherwise SELECTED.
+   * @return BLOCK_CALLDATA_FULL if the call data size of a transactions pushes the size for the
+   *     block over the limit, otherwise SELECTED.
    */
   @Override
   public TransactionSelectionResult evaluateTransactionPreProcessing(
@@ -54,9 +57,9 @@ public class MaxBlockCallDataTransactionSelector implements PluginTransactionSel
           "BlockCallData {} greater than {}, completing operation",
           transactionCallDataSize,
           maxBlockCallDataSize);
-      return TransactionSelectionResult.BLOCK_FULL;
+      return BLOCK_CALLDATA_FULL;
     }
-    return TransactionSelectionResult.SELECTED;
+    return SELECTED;
   }
 
   /**
@@ -67,12 +70,7 @@ public class MaxBlockCallDataTransactionSelector implements PluginTransactionSel
    * @return true if the total call data size would be too big, false otherwise.
    */
   private boolean isTransactionExceedingBlockCallDataSizeLimit(int transactionCallDataSize) {
-    try {
-      return Math.addExact(blockCallDataSize, transactionCallDataSize) > maxBlockCallDataSize;
-    } catch (final ArithmeticException e) {
-      // Overflow won't occur as blockCallDataSize won't exceed Integer.MAX_VALUE
-      return true;
-    }
+    return Math.addExact(blockCallDataSize, transactionCallDataSize) > maxBlockCallDataSize;
   }
 
   /**
@@ -100,6 +98,6 @@ public class MaxBlockCallDataTransactionSelector implements PluginTransactionSel
       final PendingTransaction pendingTransaction,
       final TransactionProcessingResult processingResult) {
     // Evaluation done in pre-processing, no action needed here.
-    return TransactionSelectionResult.SELECTED;
+    return SELECTED;
   }
 }

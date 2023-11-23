@@ -53,7 +53,7 @@ public class State implements StackedContainer {
    * @param hubTrace the trace builder to write to
    * @return the trace builder
    */
-  Trace.TraceBuilder commit(Trace.TraceBuilder hubTrace) {
+  Trace commit(Trace hubTrace) {
     for (TxState txState : this.state) {
       txState.txTrace().commit(hubTrace);
     }
@@ -128,11 +128,11 @@ public class State implements StackedContainer {
         this.hub++;
       }
 
-      void stampSubmodules(final Signals signals) {
-        if (signals.mmu()) {
+      void stampSubmodules(final PlatformController platformController) {
+        if (platformController.signals().mmu()) {
           this.mmu++;
         }
-        if (signals.mxp()) {
+        if (platformController.signals().mxp()) {
           this.mxp++;
         }
       }

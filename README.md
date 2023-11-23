@@ -1,7 +1,7 @@
-# Besu zkBesu/tracer Plugin
+# Besu Plugins relating to tracer and sequencer functionality
 
 A Linea tracing implementation for [Hyperledger Besu](https://github.com/hyperledger/besu) based on
-an [existing implementation in Go](https://github.com/ConsenSys/zk-evm/).
+an [existing implementation in Go](https://github.com/Consensys/zk-evm/).
 
 ## Quickstart - Running Besu with Linea Plugins
 
@@ -14,10 +14,10 @@ an [existing implementation in Go](https://github.com/ConsenSys/zk-evm/).
 
 ```shell
   curl --location --request POST 'http://localhost:8545' --data-raw '{
-  "jsonrpc": "2.0",
-  "method": "rollup_generateConflatedTracesToFileV0",
-  "params": [0, 0, "6.16.0"],
-  "id": 1
+    "jsonrpc": "2.0",
+    "method": "rollup_generateConflatedTracesToFileV0",
+    "params": [0, 0, "6.16.0"],
+    "id": 1
   }'
 ```
 
@@ -41,10 +41,10 @@ echo "net.git-fetch-with-cli=true" >> .cargo/config.toml
 ### Install Corset
 
 ```shell
-cargo install --git ssh://git@github.com/ConsenSys/corset
+cargo install --git ssh://git@github.com/Consensys/corset
 ```
 
-### Update Constraints [Submodule](https://github.com/ConsenSys/zkevm-constraints/)
+### Update Constraints [Submodule](https://github.com/Consensys/zkevm-constraints/)
 
 ```shell
 git submodule update --init --recursive
@@ -84,10 +84,11 @@ ______________________________________________________________________
 # Run only acceptance tests
 ./gradlew clean acceptanceTests
 
-# Generate EVM test suite BlockchainTests
-./gradlew blockchainReferenceTests
-# Generate EVM test suite GeneralStateTests
-./gradlew generalStateReferenceTests
+# Run EVM test suite BlockchainTests
+./gradlew clean referenceBlockchainTests
+
+# Run EVM test suite GeneralStateTests
+./gradlew clean referenceGeneralStateTests
 
 # Run all EVM test suite reference tests
 ./gradlew clean referenceTests

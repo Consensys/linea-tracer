@@ -15,8 +15,11 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment;
 
+import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
+
 import java.math.BigInteger;
 
+import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -48,7 +51,8 @@ public final class AccountFragment implements TraceFragment {
       boolean debit,
       long cost,
       boolean createAddress) {
-    assert oldState.address() == newState.address();
+    Preconditions.checkArgument(oldState.address().equals(newState.address()));
+
     this.who = oldState.address();
     this.oldState = oldState;
     this.newState = newState;
@@ -60,7 +64,7 @@ public final class AccountFragment implements TraceFragment {
   }
 
   @Override
-  public Trace.TraceBuilder trace(Trace.TraceBuilder trace) {
+  public Trace trace(Trace trace) {
     final EWord eWho = EWord.of(who);
     final EWord eCodeHash = EWord.of(oldState.code().getCodeHash());
     final EWord eCodeHashNew = EWord.of(newState.code().getCodeHash());
@@ -69,7 +73,7 @@ public final class AccountFragment implements TraceFragment {
         .peekAtAccount(true)
         .pAccountAddrHi(eWho.hiBigInt())
         .pAccountAddrLo(eWho.loBigInt())
-        .pAccountIsPrecompile(Hub.isPrecompile(who))
+        .pAccountIsPrecompile(isPrecompile(who))
         .pAccountNonce(BigInteger.valueOf(oldState.nonce()))
         .pAccountNonceNew(BigInteger.valueOf(newState.nonce()))
         .pAccountBalance(oldState.balance().getAsBigInteger())

@@ -49,7 +49,7 @@ public class MaxBlockGasTransactionSelector implements PluginTransactionSelector
 
     if (isTransactionExceedingMaxBlockGasLimit(gasUsedByTransaction)) {
       log.trace(
-          "Not selecting transaction, cumulative gas used {} greater than max gas per block {}",
+          "Not selecting transaction, cumulative gas used {} greater than max user gas per block {}",
           cumulativeBlockGasUsed,
           maxGasPerBlock);
       return TX_TOO_LARGE_FOR_REMAINING_USER_GAS;

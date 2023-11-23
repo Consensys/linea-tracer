@@ -30,7 +30,7 @@ import net.consensys.linea.zktracer.types.UnsignedByte;
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
 class Type1PreComputation implements MmuPreComputation {
 
-  private static final Set<Integer> TYPES = Set.of(MmuTrace.type1);
+  private static final Set<Integer> TYPES = Set.of(Trace.type1);
 
   @Override
   public MicroData dispatch(
@@ -66,22 +66,22 @@ class Type1PreComputation implements MmuPreComputation {
         microData.toRam(false);
 
         if (microData.aligned()) {
-          microData.microOp(MmuTrace.PushTwoRamToStack);
+          microData.microOp(Trace.PushTwoRamToStack);
         } else {
-          microData.microOp(MmuTrace.NA_RamToStack_3To2Full);
+          microData.microOp(Trace.NA_RamToStack_3To2Full);
         }
       }
       case MSTORE8 -> {
         microData.toRam(true);
-        microData.microOp(MmuTrace.LsbFromStackToRAM);
+        microData.microOp(Trace.LsbFromStackToRAM);
       }
       case MSTORE -> {
         microData.toRam(true);
 
         if (microData.aligned()) {
-          microData.microOp(MmuTrace.PushTwoStackToRam);
+          microData.microOp(Trace.PushTwoStackToRam);
         } else {
-          microData.microOp(MmuTrace.FullStackToRam);
+          microData.microOp(Trace.FullStackToRam);
         }
       }
       default -> throw new IllegalArgumentException(

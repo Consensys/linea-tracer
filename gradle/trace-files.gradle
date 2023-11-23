@@ -79,7 +79,7 @@ tasks.register('binRT', TraceFilesTask) {
 }
 
 //
-// Modules requiring the library
+// Modules requiring the library.
 //
 ['rlp_txrcpt', 'rlp_txn', 'rlpAddr', 'txn_data', 'logInfo', 'logData'].each {moduleName ->
     tasks.register(moduleName, TraceFilesTask) {

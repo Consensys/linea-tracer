@@ -29,7 +29,7 @@ import org.apache.commons.lang3.BooleanUtils;
 
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
 class Type3PreComputation implements MmuPreComputation {
-  private static final Set<Integer> TYPES = Set.of(MmuTrace.type3);
+  private static final Set<Integer> TYPES = Set.of(Trace.type3);
 
   @Override
   public MicroData dispatch(
@@ -134,16 +134,16 @@ class Type3PreComputation implements MmuPreComputation {
     boolean[] bits = microData.bits();
     if (!microData.isLastRead()) {
       if (microData.aligned()) {
-        microData.microOp(MmuTrace.RamIsExo);
+        microData.microOp(Trace.RamIsExo);
       } else {
-        microData.microOp(MmuTrace.FullExoFromTwo);
+        microData.microOp(Trace.FullExoFromTwo);
       }
     } else if (microData.aligned() && !bits[0]) {
-      microData.microOp(MmuTrace.RamIsExo);
+      microData.microOp(Trace.RamIsExo);
     } else if (bits[1]) {
-      microData.microOp(MmuTrace.PaddedExoFromTwo);
+      microData.microOp(Trace.PaddedExoFromTwo);
     } else {
-      microData.microOp(MmuTrace.PaddedExoFromOne);
+      microData.microOp(Trace.PaddedExoFromOne);
     }
   }
 }

@@ -30,7 +30,7 @@ import org.apache.commons.lang3.BooleanUtils;
 
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
 class Type2PreComputation implements MmuPreComputation {
-  private static final Set<Integer> TYPES = Set.of(MmuTrace.type2);
+  private static final Set<Integer> TYPES = Set.of(Trace.type2);
 
   @Override
   public MicroData dispatch(
@@ -202,28 +202,28 @@ class Type2PreComputation implements MmuPreComputation {
 
     if (bits[3]) {
       if (!bits[1]) {
-        microData.microOp(MmuTrace.RamToRamSlideChunk);
+        microData.microOp(Trace.RamToRamSlideChunk);
       } else if (bits[4]) {
-        microData.microOp(MmuTrace.RamToRamSlideOverlappingChunk);
+        microData.microOp(Trace.RamToRamSlideOverlappingChunk);
       } else {
-        microData.microOp(MmuTrace.RamToRamSlideChunk);
+        microData.microOp(Trace.RamToRamSlideChunk);
       }
     } else if (microData.isFirstMicroInstruction()) {
       if (bits[1]) {
-        microData.microOp(MmuTrace.RamToRamSlideOverlappingChunk);
+        microData.microOp(Trace.RamToRamSlideOverlappingChunk);
       } else {
-        microData.microOp(MmuTrace.RamToRamSlideChunk);
+        microData.microOp(Trace.RamToRamSlideChunk);
       }
     } else if (microData.isLastRead()) {
       if (bits[2]) {
-        microData.microOp(MmuTrace.RamToRamSlideOverlappingChunk);
+        microData.microOp(Trace.RamToRamSlideOverlappingChunk);
       } else {
-        microData.microOp(MmuTrace.RamToRamSlideChunk);
+        microData.microOp(Trace.RamToRamSlideChunk);
       }
     } else if (microData.aligned()) {
-      microData.microOp(MmuTrace.RamToRam);
+      microData.microOp(Trace.RamToRam);
     } else {
-      microData.microOp(MmuTrace.RamToRamSlideOverlappingChunk);
+      microData.microOp(Trace.RamToRamSlideOverlappingChunk);
     }
   }
 }

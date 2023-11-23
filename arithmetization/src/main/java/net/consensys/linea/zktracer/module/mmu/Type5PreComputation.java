@@ -29,7 +29,7 @@ import org.apache.commons.lang3.BooleanUtils;
 
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
 class Type5PreComputation implements MmuPreComputation {
-  private static final Set<Integer> TYPES = Set.of(MmuTrace.type5);
+  private static final Set<Integer> TYPES = Set.of(Trace.type5);
 
   @Override
   public MicroData dispatch(
@@ -164,49 +164,49 @@ class Type5PreComputation implements MmuPreComputation {
     switch (microData.remainingReads()) {
       case 3 -> {
         checkCallStackDepth(callStack);
-        microData.microOp(MmuTrace.StoreXInAThreeRequired);
+        microData.microOp(Trace.StoreXInAThreeRequired);
       }
       case 2 -> {
         checkCallStackDepth(callStack);
-        microData.microOp(MmuTrace.StoreXInB);
+        microData.microOp(Trace.StoreXInB);
       }
       case 1 -> {
         checkCallStackDepth(callStack);
-        microData.microOp(MmuTrace.StoreXInC);
+        microData.microOp(Trace.StoreXInC);
       }
       case 0 -> {
         boolean[] bits = microData.bits();
         if (callStack.depth() != 1) {
           if (microData.aligned()) {
             if (!bits[1] && bits[2]) {
-              microData.microOp(MmuTrace.FirstPaddedSecondZero);
+              microData.microOp(Trace.FirstPaddedSecondZero);
             } else if (!bits[1]) {
-              microData.microOp(MmuTrace.PushOneRamToStack);
+              microData.microOp(Trace.PushOneRamToStack);
             } else if (!bits[2]) {
-              microData.microOp(MmuTrace.FirstFastSecondPadded);
+              microData.microOp(Trace.FirstFastSecondPadded);
             } else {
-              microData.microOp(MmuTrace.PushTwoRamToStack);
+              microData.microOp(Trace.PushTwoRamToStack);
             }
           } else {
             if (!bits[1] && !bits[2]) {
               microData.microOp(
                   bits[3]
-                      ? MmuTrace.NA_RamToStack_2To1PaddedAndZero
-                      : MmuTrace.NA_RamToStack_1To1PaddedAndZero);
+                      ? Trace.NA_RamToStack_2To1PaddedAndZero
+                      : Trace.NA_RamToStack_1To1PaddedAndZero);
             } else if (!bits[1]) {
-              microData.microOp(MmuTrace.NA_RamToStack_2To1FullAndZero);
+              microData.microOp(Trace.NA_RamToStack_2To1FullAndZero);
             } else if (!bits[2]) {
               microData.microOp(
-                  bits[3] ? MmuTrace.NA_RamToStack_3To2Padded : MmuTrace.NA_RamToStack_2To2Padded);
+                  bits[3] ? Trace.NA_RamToStack_3To2Padded : Trace.NA_RamToStack_2To2Padded);
             } else {
-              microData.microOp(MmuTrace.NA_RamToStack_3To2Full);
+              microData.microOp(Trace.NA_RamToStack_3To2Full);
             }
           }
         } else {
           if (microData.aligned() && bits[2]) {
-            microData.microOp(MmuTrace.ExceptionalRamToStack3To2FullFast);
+            microData.microOp(Trace.ExceptionalRamToStack3To2FullFast);
           } else {
-            microData.microOp(MmuTrace.Exceptional_RamToStack_3To2Full);
+            microData.microOp(Trace.Exceptional_RamToStack_3To2Full);
           }
         }
       }

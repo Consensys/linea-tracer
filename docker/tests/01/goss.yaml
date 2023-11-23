@@ -1,0 +1,20 @@
+---
+# runtime docker tests
+file:
+  /opt/sequencer/bin/sequencer:
+    exists: true
+    mode: "0755"
+    owner: sequencer
+    group: sequencer
+    filetype: file
+    contains: []
+  /opt/sequencer/database:
+    exists: true
+    mode: "0755"
+    owner: sequencer
+    group: sequencer
+    filetype: directory
+    contains: []
+process:
+  java:
+    running: true

@@ -1,5 +1,7 @@
 import de.undercouch.gradle.tasks.download.Download
 
+import java.text.SimpleDateFormat
+
 /*
  * Copyright Consensys Software Inc.
  *
@@ -64,8 +66,8 @@ def calculateVersion() {
 }
 
 static def getCheckedOutGitCommitHash() {
-  def hashLength = 8
-  "git rev-parse HEAD".execute().text.take(hashLength)
+    def hashLength = 8
+    "git rev-parse HEAD".execute().text.take(hashLength)
 }
 
 tasks.register('distTar', Tar) {
@@ -138,4 +140,166 @@ tasks.register('deployPlugins', Copy) {
   }
 
   into installDist.destinationDir
+}
+
+// rename the top level dir from sequencer-<version> to sequencer and this makes it really
+// simple for use in docker
+task dockerDistUntar {
+  dependsOn distTar
+  dependsOn distZip
+  def dockerBuildDir = "${rootDir}/build/docker-sequencer/"
+  def distTarFile = distTar.outputs.files.singleFile
+  def distTarFileName = distTar.outputs.files.singleFile.name.replace(".tar.gz", "")
+  println("tar file name --> ${dockerBuildDir}/${distTarFileName}")
+
+  doFirst {
+    new File(dockerBuildDir).mkdir()
+    copy {
+      from tarTree(distTarFile)
+      into(dockerBuildDir)
+    }
+    project.delete(files("${dockerBuildDir}/sequencer"))
+    file("${dockerBuildDir}/${distTarFileName}").renameTo("${dockerBuildDir}/sequencer")
+  }
+}
+
+def dockerBuildVersion = project.hasProperty('release.releaseVersion') ? project.property('release.releaseVersion') : "${rootProject.version}"
+def dockerOrgName = project.hasProperty('dockerOrgName') ? project.getProperty("dockerOrgName") : "consensys"
+def dockerArtifactName = project.hasProperty("dockerArtifactName") ? project.getProperty("dockerArtifactName") : "linea-sequencer"
+def dockerImageName = "${dockerOrgName}/${dockerArtifactName}"
+def dockerVariants = project.hasProperty("dockerVariants") ? project.getProperty("dockerVariants").split(",") : [
+        "graalvm",
+        "openjdk-latest"
+]
+def archVariants = ["amd64", "arm64"]
+
+task dockerDist {
+  dependsOn dockerDistUntar
+  inputs.dir("${rootDir}/build/docker-sequencer/")
+  def dockerBuildDir = "${rootDir}/build/docker-sequencer/"
+
+  doLast {
+    println("${rootDir}")
+    for (def jvmVariant in dockerVariants) {
+      println("${rootDir}/docker/${jvmVariant}/Dockerfile")
+      copy {
+        from file("${rootDir}/docker/${jvmVariant}/Dockerfile")
+        into(dockerBuildDir)
+      }
+      exec {
+        def image = "${dockerImageName}:${dockerBuildVersion}-${jvmVariant}"
+        def dockerPlatform = ""
+        if (project.hasProperty('docker-platform')){
+          dockerPlatform = "--platform ${project.getProperty('docker-platform')}"
+          println "Building for platform ${project.getProperty('docker-platform')}"
+        }
+        executable "sh"
+        workingDir dockerBuildDir
+        args "-c", "docker build ${dockerPlatform} --build-arg BUILD_DATE=${buildTime()} --build-arg VERSION=${dockerBuildVersion} --build-arg VCS_REF=${getCheckedOutGitCommitHash()} -t ${image} ."
+      }
+    }
+
+    // tag the "default" (which is the variant in the zero position)
+    exec {
+      executable "sh"
+      args "-c", "docker tag '${dockerImageName}:${dockerBuildVersion}-${dockerVariants[0]}' '${dockerImageName}:${dockerBuildVersion}'"
+    }
+    // create a static tag for the benchmark target
+    exec {
+      executable "sh"
+      args "-c", "docker tag '${dockerImageName}:${dockerBuildVersion}-${dockerVariants[0]}' '${dockerImageName}:benchmark'"
+    }
+  }
+}
+
+task dockerTest {
+  dependsOn dockerDist
+  def dockerReportsDir = "docker/reports/"
+
+  doFirst {
+    new File(dockerReportsDir).mkdir()
+  }
+
+  doLast {
+    def architecture = System.getenv('architecture')
+    for (def variant in dockerVariants) {
+      exec {
+        def image = project.hasProperty('release.releaseVersion') ? "${dockerImageName}:" + project.property('release.releaseVersion') : "${dockerImageName}:${project.version}"
+        workingDir "${projectDir}/docker/${variant}"
+        executable "sh"
+        args "-c", "architecture=${architecture} bash ../test.sh ${image}-${variant}"
+      }
+    }
+  }
+}
+
+task dockerUpload {
+  dependsOn dockerDist
+  def architecture = System.getenv('architecture')
+  def image = "${dockerImageName}:${dockerBuildVersion}"
+  def tags = []
+
+  if (!isInterimBuild(dockerBuildVersion)) {
+    // if this is a release build, upload the version and latest tags
+    logger.quiet("uploading release build")
+    tags.add("${dockerImageName}:" + dockerBuildVersion)
+    tags.add("${dockerImageName}:latest")
+  } else {
+    // otherwise, upload as develop
+    logger.quiet("uploading develop build")
+    tags.add("${dockerImageName}:develop")
+  }
+
+  doLast {
+    exec {
+      def archImage = "${image}-${architecture}"
+
+      logger.quiet("architecture: $architecture")
+      logger.quiet("image: $image")
+      logger.quiet("tags: $tags")
+      logger.quiet("archImage: $archImage")
+
+      def cmd = "true"
+      tags.each { tag -> cmd += " && docker tag '${image}' '${tag.trim()}-${architecture}' && docker push '${tag.trim()}-${architecture}'" }
+      executable "sh"
+      args "-c", cmd
+    }
+  }
+}
+
+task dockerManifest {
+  def tags = []
+
+  if (!isInterimBuild(dockerBuildVersion)) {
+    // if this is a release, create manifests for the version and latest tags
+    tags.add("${dockerImageName}:" + dockerBuildVersion)
+    tags.add("${dockerImageName}:latest")
+  } else {
+    // otherwise, create manifest for develop
+    tags.add("${dockerImageName}:develop")
+  }
+
+  doLast {
+    for (baseTag in tags) {
+
+      exec {
+        def targets = ""
+        archVariants.forEach { arch -> targets += "'${baseTag}-${arch}' " }
+        def cmd = "docker manifest create '${baseTag}' ${targets} && docker manifest push '${baseTag}'"
+        executable "sh"
+        args "-c", cmd
+      }
+    }
+  }
+}
+
+def isInterimBuild(dockerBuildVersion) {
+  // any build version that is not major.minor.patch is treated as an interim build:
+  return !(dockerBuildVersion ==~ /[0-9]+\.[0-9]+\.[0-9]+/)
+}
+
+def buildTime() {
+  def df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'")
+  df.setTimeZone(TimeZone.getTimeZone("UTC"))
+  return df.format(new Date())
 }

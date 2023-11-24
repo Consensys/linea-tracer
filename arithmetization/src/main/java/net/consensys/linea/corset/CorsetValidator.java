@@ -156,7 +156,6 @@ public class CorsetValidator {
       return;
     }
 
-    log.error("Could not find default path for zkevm.bin");
-    throw new RuntimeException("Could not find default path for zkevm.bin");
+    log.warn("Could not find default path for zkevm.bin");
   }
 }

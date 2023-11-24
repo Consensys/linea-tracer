@@ -44,7 +44,7 @@ public class TraceFailureHandler {
                 + blockHeader.getNumber()
                 + "_"
                 + blockHeader.getBlockHash().toHexString()
-                + ".json");
+                + ".lt");
     final File corsetOutputFile =
         FileUtils.getFile(
             INVALID_TRACE_DIRECTORY,

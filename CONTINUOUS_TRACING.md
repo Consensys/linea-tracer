@@ -1,6 +1,6 @@
 # Continuous Tracing
 
-The continuous tracing plugin allows to trace every newly imported block and use Corset the check if the constraints are
+The continuous tracing plugin allows to trace every newly imported block and use Corset to check if the constraints are
 valid. In case of an error a message will be sent to the configured Slack channel.
 
 ## Usage
@@ -22,8 +22,8 @@ Environment=SLACK_SHADOW_NODE_WEBHOOK_URL=https://hooks.slack.com/services/SECRE
 
 ## Invalid trace handling
 
-In the success case the trace file will simply de deleted.
+In the success case the trace file will simply be deleted.
 
-In case of an error the trace file will be renamed to `trace_$BLOCK_NUMBER_$BLOCK_HASH.lt`, moved
+In case of an error the trace file will be renamed to `trace_$BLOCK_NUMBER_$BLOCK_HASH.lt` and moved
 to `$BESU_USER_HOME/invalid-traces`. The output of Corset will be saved in the same directory in a file
-named `corset_output_$BLOCK_NUMBER_$BLOCK_HASH.txt`. After that the error message will be sent to Slack.
+named `corset_output_$BLOCK_NUMBER_$BLOCK_HASH.txt`. After that an error message will be sent to Slack.

@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import lombok.extern.slf4j.Slf4j;
@@ -57,7 +58,7 @@ public class CorsetValidator {
                   "-d",
                   "-s",
                   "-t",
-                  "2",
+                  Optional.ofNullable(System.getenv("CORSET_THREADS")).orElse("2"),
                   zkEvmBin)
               .redirectInput(ProcessBuilder.Redirect.INHERIT)
               .redirectErrorStream(true)

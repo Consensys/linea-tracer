@@ -35,14 +35,14 @@ public class ContinuousTracingBlockAddedListener implements BesuEvents.BlockAdde
   final TraceFailureHandler traceFailureHandler;
   final String zkEvmBin;
 
-  static final int CORSET_PARALLELISM = 6; // Higher and IOs bite the dust
+  static final int BLOCK_PARALLELISM = 10; // Higher and IOs bite the dust
   final ThreadPoolExecutor pool =
       new ThreadPoolExecutor(
-          CORSET_PARALLELISM,
-          CORSET_PARALLELISM,
+          BLOCK_PARALLELISM,
+          BLOCK_PARALLELISM,
           0L,
           TimeUnit.SECONDS,
-          new ArrayBlockingQueue<>(CORSET_PARALLELISM),
+          new ArrayBlockingQueue<>(BLOCK_PARALLELISM),
           new ThreadPoolExecutor.CallerRunsPolicy());
   ;
 

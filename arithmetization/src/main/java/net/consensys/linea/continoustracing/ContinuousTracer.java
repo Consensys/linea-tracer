@@ -15,6 +15,9 @@
 package net.consensys.linea.continoustracing;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Optional;
 
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.continoustracing.exception.InvalidBlockTraceException;
@@ -29,6 +32,8 @@ import org.hyperledger.besu.plugin.services.TraceService;
 
 @Slf4j
 public class ContinuousTracer {
+  private static final Optional<Path> TRACES_PATH =
+      Optional.ofNullable(System.getenv("TRACES_DIR")).map(Paths::get);
   private final TraceService traceService;
   private final CorsetValidator corsetValidator;
 
@@ -62,7 +67,10 @@ public class ContinuousTracer {
 
     final CorsetValidator.Result result;
     try {
-      result = corsetValidator.validate(zkTracer.writeToTmpFile(), zkEvmBin);
+      result =
+          corsetValidator.validate(
+              TRACES_PATH.map(zkTracer::writeToTmpFile).orElseGet(zkTracer::writeToTmpFile),
+              zkEvmBin);
       if (!result.isValid()) {
         log.error("Trace of block {} is not valid", blockHash.toHexString());
         return result;

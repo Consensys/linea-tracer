@@ -14,9 +14,9 @@
  */
 package net.consensys.linea.continoustracing;
 
-import java.util.Optional;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.continoustracing.exception.InvalidBlockTraceException;
@@ -34,10 +34,17 @@ public class ContinuousTracingBlockAddedListener implements BesuEvents.BlockAdde
   final ContinuousTracer continuousTracer;
   final TraceFailureHandler traceFailureHandler;
   final String zkEvmBin;
+
+  static final int CORSET_PARALLELISM = 6; // Higher and IOs bite the dust
   final ThreadPoolExecutor pool =
-      (ThreadPoolExecutor)
-          Executors.newFixedThreadPool(
-              Optional.of(System.getenv("TRACER_THREADS")).map(Integer::parseInt).orElse(1));
+      new ThreadPoolExecutor(
+          CORSET_PARALLELISM,
+          CORSET_PARALLELISM,
+          0L,
+          TimeUnit.SECONDS,
+          new ArrayBlockingQueue<>(CORSET_PARALLELISM),
+          new ThreadPoolExecutor.CallerRunsPolicy());
+  ;
 
   public ContinuousTracingBlockAddedListener(
       final ContinuousTracer continuousTracer,

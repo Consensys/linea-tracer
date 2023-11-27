@@ -14,6 +14,10 @@
  */
 package net.consensys.linea.continoustracing;
 
+import java.util.Optional;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.continoustracing.exception.InvalidBlockTraceException;
 import net.consensys.linea.continoustracing.exception.InvalidTraceHandlerException;
@@ -30,6 +34,10 @@ public class ContinuousTracingBlockAddedListener implements BesuEvents.BlockAdde
   final ContinuousTracer continuousTracer;
   final TraceFailureHandler traceFailureHandler;
   final String zkEvmBin;
+  final ThreadPoolExecutor pool =
+      (ThreadPoolExecutor)
+          Executors.newFixedThreadPool(
+              Optional.of(System.getenv("TRACER_THREADS")).map(Integer::parseInt).orElse(1));
 
   public ContinuousTracingBlockAddedListener(
       final ContinuousTracer continuousTracer,
@@ -42,30 +50,33 @@ public class ContinuousTracingBlockAddedListener implements BesuEvents.BlockAdde
 
   @Override
   public void onBlockAdded(final AddedBlockContext addedBlockContext) {
-    final BlockHeader blockHeader = addedBlockContext.getBlockHeader();
-    final Hash blockHash = blockHeader.getBlockHash();
-    log.info("Tracing block {} ({})", blockHeader.getNumber(), blockHash.toHexString());
+    pool.submit(
+        () -> {
+          final BlockHeader blockHeader = addedBlockContext.getBlockHeader();
+          final Hash blockHash = blockHeader.getBlockHash();
+          log.info("Tracing block {} ({})", blockHeader.getNumber(), blockHash.toHexString());
 
-    try {
-      final CorsetValidator.Result traceResult =
-          continuousTracer.verifyTraceOfBlock(blockHash, zkEvmBin, new ZkTracer());
+          try {
+            final CorsetValidator.Result traceResult =
+                continuousTracer.verifyTraceOfBlock(blockHash, zkEvmBin, new ZkTracer());
 
-      if (!traceResult.isValid()) {
-        log.error("Corset returned and error for block {}", blockHeader.getNumber());
-        traceFailureHandler.handleCorsetFailure(blockHeader, traceResult);
-        return;
-      }
+            if (!traceResult.isValid()) {
+              log.error("Corset returned and error for block {}", blockHeader.getNumber());
+              traceFailureHandler.handleCorsetFailure(blockHeader, traceResult);
+              return;
+            }
 
-      log.info("Trace for block {} verified successfully", blockHeader.getNumber());
-    } catch (InvalidBlockTraceException e) {
-      log.error("Error while tracing block {}: {}", blockHeader.getNumber(), e.getMessage());
-      traceFailureHandler.handleBlockTraceFailure(blockHeader.getNumber(), e.txHash(), e);
-    } catch (TraceVerificationException e) {
-      log.error(e.getMessage());
-    } catch (InvalidTraceHandlerException e) {
-      log.error("Error while handling invalid trace: {}", e.getMessage());
-    } finally {
-      log.info("End of tracing block {}", blockHeader.getNumber());
-    }
+            log.info("Trace for block {} verified successfully", blockHeader.getNumber());
+          } catch (InvalidBlockTraceException e) {
+            log.error("Error while tracing block {}: {}", blockHeader.getNumber(), e.getMessage());
+            traceFailureHandler.handleBlockTraceFailure(blockHeader.getNumber(), e.txHash(), e);
+          } catch (TraceVerificationException e) {
+            log.error(e.getMessage());
+          } catch (InvalidTraceHandlerException e) {
+            log.error("Error while handling invalid trace: {}", e.getMessage());
+          } finally {
+            log.info("End of tracing block {}", blockHeader.getNumber());
+          }
+        });
   }
 }

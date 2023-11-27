@@ -28,7 +28,8 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 @Slf4j
 public class TraceFailureHandler {
   final SlackNotificationService slackNotificationService;
-  final File INVALID_TRACE_DIRECTORY = new File(FileUtils.getUserDirectory(), "invalid-traces");
+  static final File INVALID_TRACE_DIRECTORY =
+      new File(FileUtils.getUserDirectory(), "invalid-traces");
 
   public TraceFailureHandler(final SlackNotificationService slackNotificationService) {
     this.slackNotificationService = slackNotificationService;

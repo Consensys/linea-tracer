@@ -20,6 +20,7 @@ import static com.slack.api.model.block.Blocks.section;
 import static com.slack.api.model.block.composition.BlockCompositions.markdownText;
 
 import java.io.IOException;
+import java.util.stream.Collectors;
 
 import com.slack.api.Slack;
 import com.slack.api.webhook.Payload;
@@ -107,7 +108,12 @@ public class SlackNotificationService {
                                         + "```"
                                         // more than 2000 characters will cause a 400 error when
                                         // sending the message
-                                        + throwable.getMessage().substring(0, 2000)
+                                        + throwable
+                                            .getMessage()
+                                            .lines()
+                                            .limit(3)
+                                            .collect(Collectors.joining("\n"))
+                                            .substring(0, 2000)
                                         + "```")))))
             .build();
 

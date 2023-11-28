@@ -63,9 +63,11 @@ public class CallFrame {
 
   /** the {@link Address} of the account executing this {@link CallFrame}. */
   @Getter private final Address address;
+
   private EWord eAddress = null;
   /** the {@link Address} of the code executed in this {@link CallFrame}. */
   @Getter private Address codeAddress = Address.ZERO;
+
   private EWord eCodeAddress = null;
 
   /** the {@link CallFrameType} of this frame. */

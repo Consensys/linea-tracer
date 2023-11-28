@@ -26,7 +26,7 @@ import org.apache.tuweni.bytes.Bytes;
  * metadata, in a {@link StackContext}.
  */
 public final class StackOperation {
-  private final static Bytes MARKER = Bytes.fromHexString("0xDEADBEEF");
+  private static final Bytes MARKER = Bytes.fromHexString("0xDEADBEEF");
   /**
    * The relative height of the element with regard to the stack height just before executing the
    * linked EVM instruction.
@@ -62,10 +62,7 @@ public final class StackOperation {
 
   public static StackOperation push(int height, int stackStamp) {
     return new StackOperation(
-        height,
-        MARKER /* marker value, erased on unlatching */,
-        Action.PUSH,
-        stackStamp);
+        height, MARKER /* marker value, erased on unlatching */, Action.PUSH, stackStamp);
   }
 
   public static StackOperation pushImmediate(int height, Bytes val, int stackStamp) {

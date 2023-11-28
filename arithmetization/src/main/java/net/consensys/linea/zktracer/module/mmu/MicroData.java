@@ -135,7 +135,7 @@ class MicroData extends ModuleOperation {
     return Mmu.maxCounter(this.pointers.oob());
   }
 
-  boolean isErf() {
+  public boolean isErf() {
     return microOp == Trace.StoreXInAThreeRequired;
   }
 
@@ -199,7 +199,7 @@ class MicroData extends ModuleOperation {
     return callStackDepth == 1;
   }
 
-  int sourceContext() {
+  public int sourceContext() {
     return contexts.source();
   }
 
@@ -207,7 +207,7 @@ class MicroData extends ModuleOperation {
     contexts.source(value);
   }
 
-  int targetContext() {
+  public int targetContext() {
     return contexts.target();
   }
 
@@ -215,7 +215,7 @@ class MicroData extends ModuleOperation {
     contexts.target(value);
   }
 
-  EWord sourceLimbOffset() {
+  public EWord sourceLimbOffset() {
     return offsets.source().limb();
   }
 
@@ -223,7 +223,7 @@ class MicroData extends ModuleOperation {
     offsets.source().limb(value);
   }
 
-  UnsignedByte sourceByteOffset() {
+  public UnsignedByte sourceByteOffset() {
     return offsets.source().uByte();
   }
 
@@ -231,7 +231,7 @@ class MicroData extends ModuleOperation {
     offsets.source().uByte(value);
   }
 
-  EWord targetLimbOffset() {
+  public EWord targetLimbOffset() {
     return offsets.target().limb();
   }
 
@@ -239,7 +239,7 @@ class MicroData extends ModuleOperation {
     offsets.target().limb(value);
   }
 
-  UnsignedByte targetByteOffset() {
+  public UnsignedByte targetByteOffset() {
     return offsets.target().uByte();
   }
 

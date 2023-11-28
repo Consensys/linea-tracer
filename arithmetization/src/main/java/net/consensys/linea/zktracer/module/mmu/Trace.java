@@ -30,7 +30,6 @@ import org.apache.tuweni.bytes.Bytes;
  * Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
 public class Trace {
-<<<<<<< HEAD
   public static final int EQ_ = 20;
   public static final int INVALID_CODE_PREFIX_VALUE = 239;
   public static final int ISZERO = 21;
@@ -109,57 +108,6 @@ public class Trace {
   public static final int MMU_INST_RAM_TO_RAM_SANS_PADDING = 65088;
   public static final int MMU_INST_RIGHT_PADDED_WORD_EXTRACTION = 65040;
   public static final int WORD_SIZE = 32;
-=======
-  static final int CALLDATACOPY = 55;
-  static final int CALLDATALOAD = 53;
-  static final int CODECOPY = 57;
-  static final int EXTCODECOPY = 60;
-  static final int ExceptionalRamToStack3To2FullFast = 607;
-  static final int Exceptional_RamToStack_3To2Full = 627;
-  static final int ExoToRam = 602;
-  static final int ExoToRamSlideChunk = 616;
-  static final int ExoToRamSlideOverlappingChunk = 618;
-  static final int FirstFastSecondPadded = 625;
-  static final int FirstPaddedSecondZero = 626;
-  static final int FullExoFromTwo = 621;
-  static final int FullStackToRam = 623;
-  static final int KillingOne = 604;
-  static final int LIMB_SIZE = 16;
-  static final int LIMB_SIZE_MINUS_ONE = 15;
-  static final int LsbFromStackToRAM = 624;
-  static final int NA_RamToStack_1To1PaddedAndZero = 633;
-  static final int NA_RamToStack_2To1FullAndZero = 631;
-  static final int NA_RamToStack_2To1PaddedAndZero = 632;
-  static final int NA_RamToStack_2To2Padded = 630;
-  static final int NA_RamToStack_3To2Full = 628;
-  static final int NA_RamToStack_3To2Padded = 629;
-  static final int PaddedExoFromOne = 619;
-  static final int PaddedExoFromTwo = 620;
-  static final int PushOneRamToStack = 606;
-  static final int PushTwoRamToStack = 605;
-  static final int PushTwoStackToRam = 608;
-  static final int RETURNDATACOPY = 62;
-  static final int RamIsExo = 603;
-  static final int RamLimbExcision = 613;
-  static final int RamToRam = 601;
-  static final int RamToRamSlideChunk = 614;
-  static final int RamToRamSlideOverlappingChunk = 615;
-  static final int SMALL_LIMB_SIZE = 4;
-  static final int SMALL_LIMB_SIZE_MINUS_ONE = 3;
-  static final int StoreXInAThreeRequired = 609;
-  static final int StoreXInB = 610;
-  static final int StoreXInC = 611;
-  static final int tern0 = 0;
-  static final int tern1 = 1;
-  static final int tern2 = 2;
-  static final int type1 = 100;
-  static final int type2 = 200;
-  static final int type3 = 300;
-  static final int type4CC = 401;
-  static final int type4CD = 402;
-  static final int type4RD = 403;
-  static final int type5 = 500;
->>>>>>> d92e2470 (fix: MMU and MMIO constants generation according to new tracing format)
 
   private final BitSet filled = new BitSet();
   private int currentLine = 0;

@@ -20,7 +20,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import lombok.Getter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.memory.Memory;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 
@@ -29,7 +31,9 @@ import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
  * within a {@link CallFrame}. These cached information are used by the {@link Hub} to generate its
  * traces in the stack perspective.
  */
+@Accessors(fluent = true)
 public final class StackContext {
+  @Getter Memory memory;
   /** The opcode that triggered the stack operations. */
   OpCode opCode;
   /** One or two lines to be traced, representing the stack operations performed by the opcode. */

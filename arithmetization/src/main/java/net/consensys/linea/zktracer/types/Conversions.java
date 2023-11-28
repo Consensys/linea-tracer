@@ -50,6 +50,11 @@ public class Conversions {
         .toUnsignedBigInteger();
   }
 
+  public static BigInteger unsignedBytesSubArrayToUnsignedBigInteger(
+      final UnsignedByte[] input, final int newLength) {
+    return unsignedBytesToUnsignedBigInteger(Arrays.copyOf(input, newLength, UnsignedByte[].class));
+  }
+
   public static EWord unsignedBytesToEWord(final UnsignedByte[] input) {
     return EWord.of(unsignedBytesToUnsignedBigInteger(input));
   }

@@ -699,8 +699,8 @@ public class Hub implements Module {
     }
 
     StackContext pending = this.currentFrame().pending();
-    for (int i = 0; i < pending.getLines().size(); i++) {
-      StackLine line = pending.getLines().get(i);
+    for (int i = 0; i < pending.lines().size(); i++) {
+      StackLine line = pending.lines().get(i);
       if (line.needsResult()) {
         Bytes result = Bytes.EMPTY;
         // Only pop from the stack if no exceptions have been encountered
@@ -1263,7 +1263,7 @@ public class Hub implements Module {
 
   public List<TraceFragment> makeStackChunks(CallFrame f) {
     List<TraceFragment> r = new ArrayList<>();
-    if (f.pending().getLines().isEmpty()) {
+    if (f.pending().lines().isEmpty()) {
       for (int i = 0; i < (this.opCodeData().stackSettings().twoLinesInstruction() ? 2 : 1); i++) {
         r.add(
             StackFragment.prepare(
@@ -1275,7 +1275,7 @@ public class Hub implements Module {
                 f.underDeployment()));
       }
     } else {
-      for (StackLine line : f.pending().getLines()) {
+      for (StackLine line : f.pending().lines()) {
         r.add(
             StackFragment.prepare(
                 f.stack().snapshot(),

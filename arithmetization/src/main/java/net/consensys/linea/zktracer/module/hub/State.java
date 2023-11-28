@@ -95,7 +95,7 @@ public class State implements StackedContainer {
   /** Describes the Hub state during a given transaction. */
   @Accessors(fluent = true)
   @Getter
-  static class TxState {
+  public static class TxState {
     Stamps stamps;
     TxTrace txTrace;
 
@@ -116,23 +116,25 @@ public class State implements StackedContainer {
     /** Stores all the stamps associated to the tracing of a transaction. */
     @Accessors(fluent = true)
     @Getter
-    static class Stamps {
+    public static class Stamps {
       private int hub = 0;
       private int mmu = 0;
       private int mxp = 0;
       private int hashInfo = 0;
+      private int log = 0;
 
       public Stamps() {}
 
-      public Stamps(int hubStamp, int mmuStamp, int mxpStamp, int hashInfoStamp) {
+      public Stamps(int hubStamp, int mmuStamp, int mxpStamp, int hashInfoStamp, int logStamp) {
         this.hub = hubStamp;
         this.mmu = mmuStamp;
         this.mxp = mxpStamp;
         this.hashInfo = hashInfoStamp;
+        this.log = logStamp;
       }
 
       Stamps spinOff() {
-        return new Stamps(this.hub, this.mmu, this.mxp, this.hashInfo);
+        return new Stamps(this.hub, this.mmu, this.mxp, this.hashInfo, this.log);
       }
 
       void stampHub() {

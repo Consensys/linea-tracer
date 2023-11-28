@@ -25,6 +25,7 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Bytecode;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.memory.MemorySpan;
+import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
@@ -237,5 +238,9 @@ public final class CallStack {
 
   public void revert(int stamp) {
     this.current().revert(this, stamp);
+  }
+
+  public UnsignedByte[] valueFromMemory(final int counter, final int index) {
+    return get(counter).pending().memory().limbAtIndex(index);
   }
 }

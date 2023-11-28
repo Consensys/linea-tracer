@@ -73,8 +73,9 @@ public class MmuSubFragment implements TraceSubFragment, PostExecDefer {
   }
 
   @Override
-  public void runPostExec(Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
-    switch (OpCode.of(this.opCode)) {
+  public void runPostExec(
+      final Hub hub, final MessageFrame frame, final Operation.OperationResult operationResult) {
+    switch (hub.opCode()) {
       case MLOAD, CALLDATALOAD -> {
         this.stackValue = frame.getStackItem(0).copy();
       }

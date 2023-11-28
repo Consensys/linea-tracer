@@ -43,11 +43,11 @@ import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.mul.Mul;
 import net.consensys.linea.zktracer.module.mxp.Mxp;
 import net.consensys.linea.zktracer.module.preclimits.Blake2f;
-import net.consensys.linea.zktracer.module.preclimits.Ecadd;
-import net.consensys.linea.zktracer.module.preclimits.Ecmul;
-import net.consensys.linea.zktracer.module.preclimits.EcpairingCall;
+import net.consensys.linea.zktracer.module.preclimits.EcAdd;
+import net.consensys.linea.zktracer.module.preclimits.EcMul;
+import net.consensys.linea.zktracer.module.preclimits.EcPairingCall;
+import net.consensys.linea.zktracer.module.preclimits.EcRec;
 import net.consensys.linea.zktracer.module.preclimits.EcpairingWeightedCall;
-import net.consensys.linea.zktracer.module.preclimits.Ecrec;
 import net.consensys.linea.zktracer.module.preclimits.Modexp;
 import net.consensys.linea.zktracer.module.preclimits.Rip160;
 import net.consensys.linea.zktracer.module.preclimits.Sha256;
@@ -135,6 +135,10 @@ public class Hub implements Module {
     return this.currentFrame().opCodeData();
   }
 
+  public OpCode opCode() {
+    return this.currentFrame().opCode();
+  }
+
   TraceSection currentTraceSection() {
     return this.state.currentTxTrace().currentSection();
   }
@@ -160,10 +164,10 @@ public class Hub implements Module {
     this.state.currentTxTrace().add(section);
   }
 
-  private final Module add = new Add();
+  private final Module add = new Add(this);
   private final Module ext = new Ext();
   private final Module mod = new Mod();
-  private final Module mul = new Mul();
+  private final Module mul = new Mul(this);
   private final Module shf = new Shf();
   private final Wcp wcp = new Wcp();
   private final RlpTxn rlpTxn;
@@ -177,26 +181,11 @@ public class Hub implements Module {
   private final RomLex romLex;
   private final TxnData txnData;
   private final Trm trm = new Trm();
-
-  // Precompile counters
-  private final Sha256 sha256 = new Sha256();
-  private final Ecrec ecrec = new Ecrec();
-  private final Rip160 rip160 = new Rip160();
-  private final Modexp modexp = new Modexp();
-  private final Ecadd ecadd = new Ecadd();
-  private final Ecmul ecmul = new Ecmul();
-  private final EcpairingCall ecpairingCall = new EcpairingCall();
-  private final EcpairingWeightedCall ecpairingWeightedCall =
-      new EcpairingWeightedCall(ecpairingCall);
-  private final Blake2f blake2 = new Blake2f();
+  private final Modexp modexp;
 
   private final List<Module> modules;
-
-  private final List<Module>
-      precompileLimitModules; // Those modules are not traced, we just compute the number of
-  // calls
-  // to
-  // those precompile to meet prover's limit
+  /* Those modules are not traced, we just compute the number of calls to those precompile to meet the prover limits */
+  private final List<Module> precompileLimitModules;
 
   public Hub() {
     this.pch = new PlatformController(this);
@@ -207,17 +196,19 @@ public class Hub implements Module {
     this.rlpTxn = new RlpTxn(this.romLex);
     this.txnData = new TxnData(this, this.romLex, this.wcp);
 
+    this.modexp = new Modexp(this);
+    final EcPairingCall ecpairingCall = new EcPairingCall(this);
     this.precompileLimitModules =
         List.of(
-            this.sha256,
-            this.ecrec,
-            this.rip160,
+            new Sha256(this),
+            new EcRec(this),
+            new Rip160(this),
             this.modexp,
-            this.ecadd,
-            this.ecmul,
-            this.ecpairingCall,
-            this.ecpairingWeightedCall,
-            this.blake2);
+            new EcAdd(this),
+            new EcMul(this),
+            ecpairingCall,
+            new EcpairingWeightedCall(ecpairingCall),
+            new Blake2f(this));
 
     this.modules =
         Stream.concat(
@@ -474,6 +465,10 @@ public class Hub implements Module {
     // }
     // default -> {}
     // }
+
+    for (Module precompileLimit : this.precompileLimitModules) {
+      precompileLimit.tracePreOpcode(frame);
+    }
 
     // TODO: coming soon
     if (this.pch.signals().add()) {

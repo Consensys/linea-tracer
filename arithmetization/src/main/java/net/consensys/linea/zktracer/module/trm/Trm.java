@@ -89,7 +89,7 @@ public class Trm implements Module {
         return;
       }
       default -> {
-        throw new IllegalArgumentException("TransactionType not supported: " + txType);
+        throw new IllegalStateException("TransactionType not supported: " + txType);
       }
     }
   }

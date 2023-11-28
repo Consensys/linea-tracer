@@ -63,8 +63,10 @@ public class CallFrame {
 
   /** the {@link Address} of the account executing this {@link CallFrame}. */
   @Getter private final Address address;
+  private EWord eAddress = null;
   /** the {@link Address} of the code executed in this {@link CallFrame}. */
   @Getter private Address codeAddress = Address.ZERO;
+  private EWord eCodeAddress = null;
 
   /** the {@link CallFrameType} of this frame. */
   @Getter private final CallFrameType type;
@@ -178,7 +180,10 @@ public class CallFrame {
    * @return the address
    */
   public EWord addressAsEWord() {
-    return EWord.of(this.address);
+    if (this.eAddress == null) {
+      this.eAddress = EWord.of(this.address);
+    }
+    return this.eAddress;
   }
 
   /**
@@ -187,7 +192,10 @@ public class CallFrame {
    * @return the address
    */
   public EWord codeAddressAsEWord() {
-    return EWord.of(this.codeAddress);
+    if (this.eCodeAddress == null) {
+      this.eCodeAddress = EWord.of(this.codeAddress);
+    }
+    return this.eCodeAddress;
   }
 
   /**

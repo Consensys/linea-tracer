@@ -14,6 +14,10 @@
  */
 package net.consensys.linea.sequencer.txselection.selectors;
 
+import static net.consensys.linea.sequencer.txselection.LineaTransactionSelectionResult.TX_GAS_EXCEEDS_USER_MAX_BLOCK_GAS;
+import static net.consensys.linea.sequencer.txselection.LineaTransactionSelectionResult.TX_TOO_LARGE_FOR_REMAINING_USER_GAS;
+import static org.hyperledger.besu.plugin.data.TransactionSelectionResult.SELECTED;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hyperledger.besu.datatypes.PendingTransaction;
@@ -27,8 +31,6 @@ public class MaxBlockGasTransactionSelector implements PluginTransactionSelector
 
   private final long maxGasPerBlock;
   private long cumulativeBlockGasUsed;
-  public static String TRANSACTION_GAS_EXCEEDS_MAX_BLOCK_GAS =
-      "Gas used by transaction exceeds max gas per block";
 
   @Override
   public TransactionSelectionResult evaluateTransactionPostProcessing(
@@ -38,21 +40,29 @@ public class MaxBlockGasTransactionSelector implements PluginTransactionSelector
     final long gasUsedByTransaction = processingResult.getEstimateGasUsedByTransaction();
 
     if (gasUsedByTransaction > maxGasPerBlock) {
-      log.trace(
-          "Not selecting transaction, gas used {} greater than max gas per block {}",
-          gasUsedByTransaction,
-          maxGasPerBlock);
-      return TransactionSelectionResult.invalid(TRANSACTION_GAS_EXCEEDS_MAX_BLOCK_GAS);
+      log.atTrace()
+          .setMessage(
+              "Not selecting transaction {}, its gas used {} is greater than max user gas per block {},"
+                  + " removing it from the txpool")
+          .addArgument(pendingTransaction.getTransaction()::getHash)
+          .addArgument(gasUsedByTransaction)
+          .addArgument(maxGasPerBlock)
+          .log();
+      return TX_GAS_EXCEEDS_USER_MAX_BLOCK_GAS;
     }
 
     if (isTransactionExceedingMaxBlockGasLimit(gasUsedByTransaction)) {
-      log.trace(
-          "Not selecting transaction, cumulative gas used {} greater than max gas per block {}",
-          cumulativeBlockGasUsed,
-          maxGasPerBlock);
-      return TransactionSelectionResult.TX_TOO_LARGE_FOR_REMAINING_GAS;
+      log.atTrace()
+          .setMessage(
+              "Not selecting transaction {}, its cumulative block gas used {} greater than max user gas per block {},"
+                  + " skipping it")
+          .addArgument(pendingTransaction.getTransaction()::getHash)
+          .addArgument(cumulativeBlockGasUsed)
+          .addArgument(maxGasPerBlock)
+          .log();
+      return TX_TOO_LARGE_FOR_REMAINING_USER_GAS;
     }
-    return TransactionSelectionResult.SELECTED;
+    return SELECTED;
   }
 
   private boolean isTransactionExceedingMaxBlockGasLimit(long transactionGasUsed) {
@@ -68,7 +78,7 @@ public class MaxBlockGasTransactionSelector implements PluginTransactionSelector
   public void onTransactionSelected(
       final PendingTransaction pendingTransaction,
       final TransactionProcessingResult processingResult) {
-    cumulativeBlockGasUsed +=
+    cumulativeBlockGasUsed =
         Math.addExact(cumulativeBlockGasUsed, processingResult.getEstimateGasUsedByTransaction());
   }
 
@@ -76,6 +86,6 @@ public class MaxBlockGasTransactionSelector implements PluginTransactionSelector
   public TransactionSelectionResult evaluateTransactionPreProcessing(
       final PendingTransaction pendingTransaction) {
     // Evaluation done in post-processing, no action needed here.
-    return TransactionSelectionResult.SELECTED;
+    return SELECTED;
   }
 }

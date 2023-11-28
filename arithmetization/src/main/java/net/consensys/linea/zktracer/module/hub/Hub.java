@@ -691,10 +691,10 @@ public class Hub implements Module {
     for (int i = 0; i < pending.getLines().size(); i++) {
       StackLine line = pending.getLines().get(i);
       if (line.needsResult()) {
-        EWord result = EWord.ZERO;
+        Bytes result = Bytes.EMPTY;
         // Only pop from the stack if no exceptions have been encountered
         if (this.pch.exceptions().none()) {
-          result = EWord.of(frame.getStackItem(0));
+          result = frame.getStackItem(0).copy();
         }
 
         // This works because we are certain that the stack chunks are the first.

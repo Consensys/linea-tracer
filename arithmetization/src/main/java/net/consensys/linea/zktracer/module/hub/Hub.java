@@ -277,8 +277,8 @@ public class Hub implements Module {
     return PRECOMPILES.contains(to);
   }
 
-  public static boolean isValidPrecompileCall(MessageFrame frame) {
-    return switch (OpCode.of(frame.getCurrentOperation().getOpcode())) {
+  public static boolean isValidPrecompileCall(MessageFrame frame, final OpCode opCode) {
+    return switch (opCode) {
       case CALL, CALLCODE, STATICCALL, DELEGATECALL -> {
         if (frame.stackSize() < 2) {
           yield false; // invalid stack for a *CALL
@@ -936,7 +936,7 @@ public class Hub implements Module {
         this.opCodeData().isHalt()
             || this.opCodeData().isInvalid()
             || this.pch().exceptions().any()
-            || isValidPrecompileCall(frame);
+            || isValidPrecompileCall(frame, this.currentFrame().opCode());
 
     switch (this.opCodeData().instructionFamily()) {
       case ADD,

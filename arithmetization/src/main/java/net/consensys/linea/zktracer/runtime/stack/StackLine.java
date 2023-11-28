@@ -18,6 +18,7 @@ package net.consensys.linea.zktracer.runtime.stack;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.types.EWord;
@@ -26,25 +27,36 @@ import net.consensys.linea.zktracer.types.EWord;
  * As the zkEVM spec can only handle up to four stack operations per trace line of the {@link Hub},
  * operations on the stack must be decomposed in “lines” (mapping 1-to-1 with a trace line from the
  * hub, hence the name) of zero to four atomic {@link StackOperation}.
- *
- * @param items zero to four stack operations contained within this line
- * @param resultColumn if positive, in which item to store the expected retroactive result
  */
-public record StackLine(List<IndexedStackOperation> items, int resultColumn) {
+public final class StackLine {
+  private final List<IndexedStackOperation> items;
+  private final int resultColumn;
 
-  /** The default constructor, an empty stack line. */
+  /**
+   * @param items        zero to four stack operations contained within this line
+   * @param resultColumn if positive, in which item to store the expected retroactive result
+   */
+  public StackLine(List<IndexedStackOperation> items, int resultColumn) {
+    this.items = items;
+    this.resultColumn = resultColumn;
+  }
+
+  /**
+   * The default constructor, an empty stack line.
+   */
   public StackLine() {
-    this(new ArrayList<>(), -1);
+    this(new ArrayList<>(4), -1);
   }
 
   /**
    * Build a stack line from a set of {@link StackOperation}.
    *
-   * @param ct the index of this line within the parent {@link StackContext}
+   * @param ct    the index of this line within the parent {@link StackContext}
    * @param items the {@link IndexedStackOperation} to include in this line
    */
   StackLine(int ct, IndexedStackOperation... items) {
-    this(Arrays.stream(items).toList(), -1);
+    this.items = Arrays.asList(items);
+    this.resultColumn = -1;
   }
 
   /**
@@ -52,9 +64,9 @@ public record StackLine(List<IndexedStackOperation> items, int resultColumn) {
    */
   public List<StackOperation> asStackOperations() {
     StackOperation[] r =
-        new StackOperation[] {
-          new StackOperation(), new StackOperation(), new StackOperation(), new StackOperation()
-        };
+      new StackOperation[] {
+        new StackOperation(), new StackOperation(), new StackOperation(), new StackOperation()
+      };
     for (IndexedStackOperation item : this.items) {
       r[item.i()] = item.it();
     }
@@ -65,7 +77,7 @@ public record StackLine(List<IndexedStackOperation> items, int resultColumn) {
    * Sets the value of a stack item in the line. Used to retroactively set the value of push {@link
    * Action} during the unlatching process.
    *
-   * @param i the 1-based stack item to alter
+   * @param i     the 1-based stack item to alter
    * @param value the {@link EWord} to use
    */
   public void setResult(int i, EWord value) {

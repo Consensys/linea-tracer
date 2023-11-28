@@ -27,7 +27,7 @@ public class State implements StackedContainer {
   State() {}
 
   private TxState current() {
-    return this.state.get(this.state.size() - 1);
+    return this.state.peek();
   }
 
   TxState.Stamps stamps() {

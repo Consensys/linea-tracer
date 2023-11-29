@@ -27,6 +27,8 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.memory.MemorySpan;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.opcode.OpCodeData;
+import net.consensys.linea.zktracer.opcode.OpCodes;
 import net.consensys.linea.zktracer.runtime.stack.Stack;
 import net.consensys.linea.zktracer.runtime.stack.StackContext;
 import net.consensys.linea.zktracer.types.EWord;
@@ -61,8 +63,12 @@ public class CallFrame {
 
   /** the {@link Address} of the account executing this {@link CallFrame}. */
   @Getter private final Address address;
+  /** A memoized {@link EWord} conversion of `address` */
+  private EWord eAddress = null;
   /** the {@link Address} of the code executed in this {@link CallFrame}. */
   @Getter private Address codeAddress = Address.ZERO;
+  /** A memoized {@link EWord} conversion of `codeAddress` */
+  private EWord eCodeAddress = null;
 
   /** the {@link CallFrameType} of this frame. */
   @Getter private final CallFrameType type;
@@ -72,6 +78,7 @@ public class CallFrame {
 
   @Getter @Setter private int pc;
   @Getter @Setter private OpCode opCode = OpCode.STOP;
+  @Getter @Setter private OpCodeData opCodeData = OpCodes.of(OpCode.STOP);
   @Getter private MessageFrame frame;
 
   /** the ether amount given to this frame. */
@@ -175,7 +182,10 @@ public class CallFrame {
    * @return the address
    */
   public EWord addressAsEWord() {
-    return EWord.of(this.address);
+    if (this.eAddress == null) {
+      this.eAddress = EWord.of(this.address);
+    }
+    return this.eAddress;
   }
 
   /**
@@ -184,7 +194,10 @@ public class CallFrame {
    * @return the address
    */
   public EWord codeAddressAsEWord() {
-    return EWord.of(this.codeAddress);
+    if (this.eCodeAddress == null) {
+      this.eCodeAddress = EWord.of(this.codeAddress);
+    }
+    return this.eCodeAddress;
   }
 
   /**
@@ -214,7 +227,7 @@ public class CallFrame {
       this.selfRevertsAt = stamp;
       this.revertChildren(callStack, stamp);
     } else if (stamp != this.selfRevertsAt) {
-      throw new RuntimeException("a context can not self-reverse twice");
+      throw new IllegalStateException("a context can not self-reverse twice");
     }
   }
 
@@ -225,6 +238,7 @@ public class CallFrame {
   public void frame(MessageFrame frame) {
     this.frame = frame;
     this.opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
+    this.opCodeData = OpCodes.of(this.opCode);
     this.pc = frame.getPC();
   }
 }

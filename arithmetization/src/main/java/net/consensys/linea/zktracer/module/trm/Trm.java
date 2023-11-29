@@ -17,33 +17,38 @@ package net.consensys.linea.zktracer.module.trm;
 
 import static net.consensys.linea.zktracer.module.rlputils.Pattern.bitDecomposition;
 import static net.consensys.linea.zktracer.module.rlputils.Pattern.padToGivenSizeWithLeftZero;
-import static net.consensys.linea.zktracer.types.Address.isPrecompile;
+import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 
 import java.math.BigInteger;
+import java.nio.MappedByteBuffer;
 import java.util.List;
 
+import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
-import net.consensys.linea.zktracer.module.ModuleTrace;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.datatypes.AccessListEntry;
 import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.datatypes.Transaction;
+import org.hyperledger.besu.datatypes.TransactionType;
 import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class Trm implements Module {
+  private int stamp = 0;
+  private static final int MAX_CT = 16;
+  private static final int LLARGE = 16;
+  private static final int PIVOT_BIT_FLIPS_TO_TRUE = 12;
+
+  private final StackedSet<EWord> trimmings = new StackedSet<>();
+
   @Override
   public String jsonKey() {
     return "trm";
   }
-
-  private int stamp = 0;
-  private final int maxCT = 16;
-  static final int LLARGE = 16;
-  static final int PIVOT_BIT_FLIPS_TO_TRUE = 12;
-
-  private final StackedSet<EWord> trimmings = new StackedSet<>();
 
   @Override
   public void enterTransaction() {
@@ -57,7 +62,6 @@ public class Trm implements Module {
 
   @Override
   public void tracePreOpcode(MessageFrame frame) {
-
     final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
     switch (opCode) {
       case BALANCE, EXTCODESIZE, EXTCODECOPY, EXTCODEHASH, SELFDESTRUCT -> {
@@ -69,20 +73,40 @@ public class Trm implements Module {
     }
   }
 
+  @Override
+  public void traceStartTx(WorldView worldView, Transaction tx) {
+    final TransactionType txType = tx.getType();
+    switch (txType) {
+      case ACCESS_LIST, EIP1559 -> {
+        if (tx.getAccessList().isPresent()) {
+          for (AccessListEntry entry : tx.getAccessList().get()) {
+            this.trimmings.add(EWord.of(entry.address()));
+          }
+        }
+      }
+      case FRONTIER -> {
+        return;
+      }
+      default -> {
+        throw new IllegalStateException("TransactionType not supported: " + txType);
+      }
+    }
+  }
+
   public static boolean isPrec(EWord data) {
     BigInteger trmAddrParamAsBigInt = data.slice(12, 20).toUnsignedBigInteger();
     return (!trmAddrParamAsBigInt.equals(BigInteger.ZERO)
         && (trmAddrParamAsBigInt.compareTo(BigInteger.TEN) < 0));
   }
 
-  private void traceTrimming(EWord data, Trace.TraceBuilder trace) {
+  private void traceTrimming(EWord data, Trace trace) {
     this.stamp++;
     Bytes trmHi = padToGivenSizeWithLeftZero(data.hi().slice(PIVOT_BIT_FLIPS_TO_TRUE, 4), LLARGE);
     Boolean isPrec = isPrecompile(Address.extract(data));
     final int accLastByte = isPrec ? 9 - (0xff & data.get(31)) : (0xff & data.get(31)) - 10;
-    List<Boolean> ones = bitDecomposition(accLastByte, maxCT).bitDecList();
+    List<Boolean> ones = bitDecomposition(accLastByte, MAX_CT).bitDecList();
 
-    for (int ct = 0; ct < this.maxCT; ct++) {
+    for (int ct = 0; ct < MAX_CT; ct++) {
       trace
           .ct(BigInteger.valueOf(ct))
           .stamp(BigInteger.valueOf(this.stamp))
@@ -102,17 +126,21 @@ public class Trm implements Module {
   }
 
   @Override
-  public ModuleTrace commit() {
-    final Trace.TraceBuilder trace = Trace.builder(this.lineCount());
+  public List<ColumnHeader> columnsHeaders() {
+    return Trace.headers(this.lineCount());
+  }
+
+  @Override
+  public void commit(List<MappedByteBuffer> buffers) {
+    final Trace trace = new Trace(buffers);
 
     for (EWord data : this.trimmings) {
       traceTrimming(data, trace);
     }
-    return new TrmTrace(trace.build());
   }
 
   @Override
   public int lineCount() {
-    return this.trimmings.size() * maxCT;
+    return this.trimmings.size() * MAX_CT;
   }
 }

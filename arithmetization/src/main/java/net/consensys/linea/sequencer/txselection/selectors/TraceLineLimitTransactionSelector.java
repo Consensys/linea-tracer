@@ -14,8 +14,13 @@
  */
 package net.consensys.linea.sequencer.txselection.selectors;
 
+import static net.consensys.linea.sequencer.txselection.LineaTransactionSelectionResult.BLOCK_MODULE_LINE_COUNT_FULL;
+import static net.consensys.linea.sequencer.txselection.LineaTransactionSelectionResult.TX_MODULE_LINE_COUNT_OVERFLOW;
+import static org.hyperledger.besu.plugin.data.TransactionSelectionResult.SELECTED;
+
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ZkTracer;
@@ -33,13 +38,15 @@ import org.hyperledger.besu.plugin.services.txselection.PluginTransactionSelecto
 @Slf4j
 public class TraceLineLimitTransactionSelector implements PluginTransactionSelector {
 
-  private final Supplier<Map<String, Integer>> moduleLimitsProvider;
   private final ZkTracer zkTracer;
   private final String limitFilePath;
+  private final Map<String, Integer> moduleLimits;
+  private Map<String, Integer> prevCumulatedLineCount = Map.of();
+  private Map<String, Integer> currCumulatedLineCount;
 
   public TraceLineLimitTransactionSelector(
       final Supplier<Map<String, Integer>> moduleLimitsProvider, final String limitFilePath) {
-    this.moduleLimitsProvider = moduleLimitsProvider;
+    moduleLimits = moduleLimitsProvider.get();
     zkTracer = new ZkTracer();
     zkTracer.traceStartConflation(1L);
     this.limitFilePath = limitFilePath;
@@ -54,7 +61,7 @@ public class TraceLineLimitTransactionSelector implements PluginTransactionSelec
   @Override
   public TransactionSelectionResult evaluateTransactionPreProcessing(
       final PendingTransaction pendingTransaction) {
-    return TransactionSelectionResult.SELECTED;
+    return SELECTED;
   }
 
   @Override
@@ -64,37 +71,90 @@ public class TraceLineLimitTransactionSelector implements PluginTransactionSelec
     zkTracer.popTransaction(pendingTransaction);
   }
 
+  @Override
+  public void onTransactionSelected(
+      final PendingTransaction pendingTransaction,
+      final TransactionProcessingResult processingResult) {
+    prevCumulatedLineCount = currCumulatedLineCount;
+  }
+
   /**
    * Checking the created trace lines is performed post-processing.
    *
    * @param pendingTransaction The processed transaction.
    * @param processingResult The result of the transaction processing.
-   * @return BLOCK_FULL if the trace lines for a module are over the limit, otherwise SELECTED.
+   * @return BLOCK_MODULE_LINE_COUNT_FULL if the trace lines for a module are over the limit for the
+   *     block, TX_MODULE_LINE_COUNT_OVERFLOW if the trace lines are over the limit for the single
+   *     tx, otherwise SELECTED.
    */
   @Override
   public TransactionSelectionResult evaluateTransactionPostProcessing(
       final PendingTransaction pendingTransaction,
       final TransactionProcessingResult processingResult) {
-    final Map<String, Integer> moduleLimits = moduleLimitsProvider.get();
+
     // check that we are not exceed line number for any module
-    final Map<String, Integer> lineCounts = zkTracer.getModulesLineCount();
-    for (var e : lineCounts.entrySet()) {
-      final String module = e.getKey();
-      if (!moduleLimits.containsKey(module)) {
+    currCumulatedLineCount = zkTracer.getModulesLineCount();
+
+    log.atTrace()
+        .setMessage("Tx {} line count per module: {}")
+        .addArgument(pendingTransaction.getTransaction()::getHash)
+        .addArgument(this::logTxLineCount)
+        .log();
+
+    for (final var module : currCumulatedLineCount.keySet()) {
+      final Integer moduleLineCountLimit = moduleLimits.get(module);
+      if (moduleLineCountLimit == null) {
         final String errorMsg =
             "Module " + module + " does not exist in the limits file: " + limitFilePath;
         log.error(errorMsg);
         throw new RuntimeException(errorMsg);
       }
-      if (lineCounts.get(module) > moduleLimits.get(module)) {
-        return TransactionSelectionResult.BLOCK_FULL;
+
+      final int cumulatedModuleLineCount = currCumulatedLineCount.get(module);
+      final int txModuleLineCount =
+          cumulatedModuleLineCount - prevCumulatedLineCount.getOrDefault(module, 0);
+
+      if (txModuleLineCount > moduleLineCountLimit) {
+        log.warn(
+            "Tx {} line count for module {}={} is above the limit {}, removing from the txpool",
+            pendingTransaction.getTransaction().getHash(),
+            module,
+            txModuleLineCount,
+            moduleLineCountLimit);
+        return TX_MODULE_LINE_COUNT_OVERFLOW;
+      }
+
+      if (cumulatedModuleLineCount > moduleLineCountLimit) {
+        log.atTrace()
+            .setMessage(
+                "Cumulated line count for module {}={} is above the limit {}, stopping selection")
+            .addArgument(module)
+            .addArgument(cumulatedModuleLineCount)
+            .addArgument(moduleLineCountLimit)
+            .log();
+        return BLOCK_MODULE_LINE_COUNT_FULL;
       }
     }
-    return TransactionSelectionResult.SELECTED;
+    return SELECTED;
   }
 
   @Override
   public BlockAwareOperationTracer getOperationTracer() {
     return zkTracer;
+  }
+
+  private String logTxLineCount() {
+    return currCumulatedLineCount.entrySet().stream()
+        .map(
+            e ->
+                // tx line count / cumulated line count / line count limit
+                e.getKey()
+                    + "="
+                    + (e.getValue() - prevCumulatedLineCount.getOrDefault(e.getKey(), 0))
+                    + "/"
+                    + e.getValue()
+                    + "/"
+                    + moduleLimits.get(e.getKey()))
+        .collect(Collectors.joining(",", "[", "]"));
   }
 }

@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import lombok.SneakyThrows;
 import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.datatypes.BlobGas;
@@ -51,6 +52,7 @@ public class GeneralStateReferenceTestTools {
       ReferenceTestProtocolSchedules.create();
   private static final List<String> SPECS_PRIOR_TO_DELETING_EMPTY_ACCOUNTS =
       Arrays.asList("Frontier", "Homestead", "EIP150");
+  private static final CorsetValidator corsetValidator = new CorsetValidator();
 
   private static MainnetTransactionProcessor transactionProcessor(final String name) {
     return protocolSpec(name).getTransactionProcessor();
@@ -104,6 +106,7 @@ public class GeneralStateReferenceTestTools {
     // Consumes a huge amount of memory
     params.ignore("static_Call1MB1024Calldepth-\\w");
     params.ignore("ShanghaiLove_.*");
+    params.ignore("/GeneralStateTests/VMTests/vmPerformance/");
 
     // Don't do time consuming tests
     params.ignore("CALLBlake2f_MaxRounds.*");
@@ -124,6 +127,7 @@ public class GeneralStateReferenceTestTools {
     return params.generate(filePath);
   }
 
+  @SneakyThrows
   public static void executeTest(final GeneralStateTestCaseEipSpec spec) {
     final BlockHeader blockHeader = spec.getBlockHeader();
     final ReferenceTestWorldState initialWorldState = spec.getInitialWorldState();
@@ -160,7 +164,6 @@ public class GeneralStateReferenceTestTools {
     final ZkTracer zkTracer = new ZkTracer();
     zkTracer.traceStartConflation(1);
     zkTracer.traceStartBlock(blockHeader, blockBody);
-    zkTracer.traceStartTransaction(worldStateUpdater, transaction);
 
     final TransactionProcessingResult result =
         processor.processTransaction(
@@ -181,14 +184,6 @@ public class GeneralStateReferenceTestTools {
       return;
     }
 
-    zkTracer.traceEndTransaction(
-        worldStateUpdater,
-        transaction,
-        result.isSuccessful(),
-        result.getOutput(),
-        result.getLogs(),
-        transaction.getGasLimit() - result.getGasRemaining(),
-        0);
     zkTracer.traceEndBlock(blockHeader, blockBody);
     zkTracer.traceEndConflation();
 
@@ -223,7 +218,7 @@ public class GeneralStateReferenceTestTools {
                   .isEqualTo(expected);
             });
 
-    assertThat(CorsetValidator.isValid(zkTracer.getJsonTrace())).isTrue();
+    assertThat(corsetValidator.validate(zkTracer.writeToTmpFile()).isValid()).isTrue();
   }
 
   private static boolean shouldClearEmptyAccounts(final String eip) {

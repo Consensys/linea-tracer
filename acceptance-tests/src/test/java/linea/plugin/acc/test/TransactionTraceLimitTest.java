@@ -33,7 +33,7 @@ public class TransactionTraceLimitTest extends LineaPluginTestBase {
 
   private static final BigInteger GAS_LIMIT = DefaultGasProvider.GAS_LIMIT;
   private static final BigInteger VALUE = BigInteger.ZERO;
-  private static final BigInteger GAS_PRICE = BigInteger.ONE;
+  private static final BigInteger GAS_PRICE = BigInteger.TEN.pow(9);
   private static final BigInteger NONCE = BigInteger.ONE;
 
   @Override
@@ -44,14 +44,14 @@ public class TransactionTraceLimitTest extends LineaPluginTestBase {
   }
 
   @Test
-  public void sendTransactions() throws Exception {
+  public void transactionsMinedInSeparateBlocksTest() throws Exception {
     final SimpleStorage simpleStorage = deploySimpleStorage();
     final Web3j web3j = minerNode.nodeRequests().eth();
     final String contractAddress = simpleStorage.getContractAddress();
     final Credentials credentials = Credentials.create(Accounts.GENESIS_ACCOUNT_ONE_PRIVATE_KEY);
     final String txData = simpleStorage.add(BigInteger.valueOf(100)).encodeFunctionCall();
 
-    final ArrayList<String> hashes = new ArrayList<>();
+    final ArrayList<String> hashes = new ArrayList<>(5);
     for (int i = 0; i < 5; i++) {
       final RawTransaction transaction =
           RawTransaction.createTransaction(
@@ -62,7 +62,7 @@ public class TransactionTraceLimitTest extends LineaPluginTestBase {
               VALUE,
               txData,
               GAS_PRICE,
-              NONCE);
+              GAS_PRICE.multiply(BigInteger.TEN));
       final byte[] signedTransaction = TransactionEncoder.signMessage(transaction, credentials);
       final EthSendTransaction response =
           web3j.ethSendRawTransaction(Numeric.toHexString(signedTransaction)).send();
@@ -71,6 +71,6 @@ public class TransactionTraceLimitTest extends LineaPluginTestBase {
 
     // make sure that there are no more than one transaction per block, because the limit for the
     // add module only allows for one of these transactions.
-    assertTransactionsInSeparateBlocks(web3j, hashes);
+    assertTransactionsMinedInSeparateBlocks(web3j, hashes);
   }
 }

@@ -5,8 +5,6 @@ on:
     branches:
       - main
   pull_request:
-    branches:
-      - main
 
 env:
   CARGO_NET_GIT_FETCH_WITH_CLI: true
@@ -16,16 +14,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'adopt'
 
 #      - name: Cache Gradle dependencies
-#        uses: actions/cache@v2
+#        uses: actions/cache@v3
 #        with:
 #          path: ~/.gradle/caches
 #          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
@@ -36,33 +34,39 @@ jobs:
         env:
           JAVA_OPTS: -Xmx2g -Dorg.gradle.daemon=false
 
+      - name: Store distribution artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: distributions
+          path: arithmetization/build/libs
+
   acceptanceTest:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'adopt'
 
       - name: Cache Gradle dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.gradle/caches
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
           restore-keys: ${{ runner.os }}-gradle
 
-      - name: Run acceptanceTest
-        run: ./gradlew :acceptance-tests:acceptanceTest
+      - name: Run acceptance tests
+        run: ./gradlew :acceptance-tests:acceptanceTests
         env:
-          JAVA_OPTS: -Xmx2g -Dorg.gradle.daemon=false
+          JAVA_OPTS: -Dorg.gradle.daemon=false
 
       - name: Upload test report
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: test-report
           path: acceptance-tests/build/reports/tests/
@@ -83,31 +87,31 @@ jobs:
           submodules: recursive
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'adopt'
 
       - name: Cache Gradle dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.gradle/caches
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
           restore-keys: ${{ runner.os }}-gradle
 
       - name: Install Rust
-        run: sudo apt-get install -y cargo
+        run: sudo apt-get update && sudo apt-get install -y cargo
 
       - name: Install corset
         run: cargo install --git ssh://git@github.com/Consensys/corset.git --locked
 
-      - name: Run tests
+      - name: Run unit tests
         run: ./gradlew :arithmetization:test
         env:
-          JAVA_OPTS: -Xmx2g -Dorg.gradle.daemon=false
+          JAVA_OPTS: -Dorg.gradle.daemon=false
 
       - name: Upload test report
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: test-report
           path: build/reports/tests/
@@ -118,7 +122,7 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v3
       - name: Set up Java
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           distribution: adopt
           java-version: 17

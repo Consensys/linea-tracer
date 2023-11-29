@@ -15,19 +15,20 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
-import java.util.Stack;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.StackedContainer;
 
 public class State implements StackedContainer {
-  private final Stack<TxState> state = new Stack<>();
+  private final Deque<TxState> state = new ArrayDeque<>(50);
 
   State() {}
 
   private TxState current() {
-    return this.state.get(this.state.size() - 1);
+    return this.state.peek();
   }
 
   TxState.Stamps stamps() {
@@ -53,7 +54,7 @@ public class State implements StackedContainer {
    * @param hubTrace the trace builder to write to
    * @return the trace builder
    */
-  Trace.TraceBuilder commit(Trace.TraceBuilder hubTrace) {
+  Trace commit(Trace hubTrace) {
     for (TxState txState : this.state) {
       txState.txTrace().commit(hubTrace);
     }
@@ -128,11 +129,11 @@ public class State implements StackedContainer {
         this.hub++;
       }
 
-      void stampSubmodules(final Signals signals) {
-        if (signals.mmu()) {
+      void stampSubmodules(final PlatformController platformController) {
+        if (platformController.signals().mmu()) {
           this.mmu++;
         }
-        if (signals.mxp()) {
+        if (platformController.signals().mxp()) {
           this.mxp++;
         }
       }

@@ -13,5 +13,9 @@
   "TxnData": 20000,
   "Wcp": 2147483647,
   "Rom": 2147483647,
-  "RomLex": 2147483647
+  "RomLex": 2147483647,
+  "InstructionDecoder": 1000,
+  "ShfRt": 2305,
+  "LogData": 1000000000,
+  "LogInfo": 1000000000
 }

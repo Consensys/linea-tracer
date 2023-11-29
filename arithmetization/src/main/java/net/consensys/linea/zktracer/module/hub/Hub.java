@@ -40,12 +40,8 @@ import net.consensys.linea.zktracer.module.hub.defer.*;
 import net.consensys.linea.zktracer.module.hub.fragment.*;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.MiscFragment;
 import net.consensys.linea.zktracer.module.hub.section.*;
-import net.consensys.linea.zktracer.module.logData.LogData;
-import net.consensys.linea.zktracer.module.logInfo.LogInfo;
-import net.consensys.linea.zktracer.module.mmu.Mmu;
-import net.consensys.linea.zktracer.module.mod.Mod;
-import net.consensys.linea.zktracer.module.mul.Mul;
-import net.consensys.linea.zktracer.module.mxp.Mxp;
+import net.consensys.linea.zktracer.module.limits.Keccak;
+import net.consensys.linea.zktracer.module.limits.L1Block;
 import net.consensys.linea.zktracer.module.limits.precompiles.Blake2f;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcAdd;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcMul;
@@ -55,6 +51,12 @@ import net.consensys.linea.zktracer.module.limits.precompiles.EcpairingWeightedC
 import net.consensys.linea.zktracer.module.limits.precompiles.Modexp;
 import net.consensys.linea.zktracer.module.limits.precompiles.Rip160;
 import net.consensys.linea.zktracer.module.limits.precompiles.Sha256;
+import net.consensys.linea.zktracer.module.logData.LogData;
+import net.consensys.linea.zktracer.module.logInfo.LogInfo;
+import net.consensys.linea.zktracer.module.mmu.Mmu;
+import net.consensys.linea.zktracer.module.mod.Mod;
+import net.consensys.linea.zktracer.module.mul.Mul;
+import net.consensys.linea.zktracer.module.mxp.Mxp;
 import net.consensys.linea.zktracer.module.rlpAddr.RlpAddr;
 import net.consensys.linea.zktracer.module.rlp_txn.RlpTxn;
 import net.consensys.linea.zktracer.module.rlp_txrcpt.RlpTxrcpt;
@@ -183,7 +185,7 @@ public class Hub implements Module {
 
   private final List<Module> modules;
   /* Those modules are not traced, we just compute the number of calls to those precompile to meet the prover limits */
-  private final List<Module> precompileLimitModules;
+  private final List<Module> limitModules;
 
   public Hub() {
     this.pch = new PlatformController(this);
@@ -195,19 +197,22 @@ public class Hub implements Module {
     this.txnData = new TxnData(this, this.romLex, this.wcp);
     this.ecData = new EcData(this, this.wcp, this.ext);
 
+    final L1Block l1Block = new L1Block(this);
+    final EcRec ecRec = new EcRec(this);
     this.modexp = new Modexp(this);
     final EcPairingCall ecpairingCall = new EcPairingCall(this);
-    this.precompileLimitModules =
+    this.limitModules =
         List.of(
             new Sha256(this),
-            new EcRecover(this),
+            ecRec,
             new Rip160(this),
             this.modexp,
             new EcAdd(this),
             new EcMul(this),
             ecpairingCall,
-            new EcPairingWeightedCall(ecpairingCall),
-            new Blake2f(this));
+            new EcpairingWeightedCall(ecpairingCall),
+            new Blake2f(this),
+            new Keccak(this, ecRec, l1Block));
 
     this.modules =
         Stream.concat(
@@ -231,7 +236,7 @@ public class Hub implements Module {
                     this.txnData,
                     this.stp,
                     this.wcp),
-                this.precompileLimitModules.stream())
+                this.limitModules.stream())
             .toList();
   }
 
@@ -454,7 +459,7 @@ public class Hub implements Module {
   }
 
   void triggerModules(MessageFrame frame) {
-    for (Module precompileLimit : this.precompileLimitModules) {
+    for (Module precompileLimit : this.limitModules) {
       precompileLimit.tracePreOpcode(frame);
     }
 

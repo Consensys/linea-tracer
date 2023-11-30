@@ -18,7 +18,6 @@ package net.consensys.linea.linecounting;
 import java.util.Optional;
 
 import com.google.auto.service.AutoService;
-import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.LineaRequiredPlugin;
 import net.consensys.linea.linecounting.rpc.RollupGenerateLineCountV0;
 import net.consensys.linea.zktracer.opcode.OpCodes;
@@ -28,7 +27,6 @@ import org.hyperledger.besu.plugin.services.RpcEndpointService;
 
 /** Plugin with RPC endpoints. */
 @AutoService(BesuPlugin.class)
-@Slf4j
 public class RollupRpcEndpointServicePlugin extends LineaRequiredPlugin {
   @Override
   public void doRegister(final BesuContext context) {

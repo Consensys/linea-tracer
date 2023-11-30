@@ -15,6 +15,7 @@
 
 package net.consensys.linea.linecounting.rpc;
 
+import com.google.common.base.Stopwatch;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.plugin.BesuContext;
@@ -25,7 +26,6 @@ import org.hyperledger.besu.plugin.services.rpc.PluginRpcRequest;
 /** Responsible for conflated file traces generation. */
 @Slf4j
 public class RollupGenerateLineCountV0 {
-
   private final BesuContext besuContext;
 
   private TraceService traceService;
@@ -54,6 +54,7 @@ public class RollupGenerateLineCountV0 {
     }
 
     try {
+      Stopwatch sw = Stopwatch.createStarted();
       LineCountRequestParams params = LineCountRequestParams.createTraceParams(request.getParams());
 
       final long blockNumber = params.blockNumber();
@@ -70,6 +71,7 @@ public class RollupGenerateLineCountV0 {
             tracer.traceEndConflation();
           },
           tracer);
+      log.info("[COUNT({})] line counts computed in {}", blockNumber, sw);
       return new LineCount(params.runtimeVersion(), tracer.getModulesLineCount());
     } catch (Exception ex) {
       throw new PluginRpcEndpointException(ex.getMessage());

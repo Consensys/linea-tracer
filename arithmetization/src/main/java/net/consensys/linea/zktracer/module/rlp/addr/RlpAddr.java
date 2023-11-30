@@ -282,7 +282,7 @@ public class RlpAddr implements Module {
 
   @Override
   public int lineCount() {
-    return this.chunkList.lineCount();
+    return 2 * (this.chunkList.lineCount() + 1);
   }
 
   @Override

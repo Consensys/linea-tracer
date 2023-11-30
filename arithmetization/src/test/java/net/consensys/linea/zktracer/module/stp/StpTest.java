@@ -207,7 +207,7 @@ public class StpTest {
     final ToyAccount senderAccount =
         ToyAccount.builder()
             .balance(Wei.of(balance))
-            .nonce(RAND.nextInt())
+            .nonce(Math.abs(RAND.nextInt()))
             .address(senderAddress)
             .build();
     world.account(senderAccount);
@@ -216,7 +216,7 @@ public class StpTest {
     final Address to = Address.wrap(Bytes.random(20));
     final ToyAccount toAccount =
         ToyAccount.builder()
-            .nonce(RAND.nextInt())
+            .nonce(Math.abs(RAND.nextInt()))
             .balance(Wei.ONE)
             .address(to)
             .code(
@@ -249,7 +249,7 @@ public class StpTest {
     final ToyAccount senderAccount =
         ToyAccount.builder()
             .balance(Wei.of(balance))
-            .nonce(RAND.nextInt())
+            .nonce(Math.abs(RAND.nextInt()))
             .address(senderAddress)
             .build();
     world.account(senderAccount);
@@ -258,7 +258,7 @@ public class StpTest {
     final Address to = Address.wrap(Bytes.random(20));
     final ToyAccount toAccount =
         ToyAccount.builder()
-            .nonce(RAND.nextInt())
+            .nonce(Math.abs(RAND.nextInt()))
             .balance(Wei.ONE)
             .address(to)
             .code(

@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lombok.Getter;
+import net.consensys.linea.zktracer.module.hub.fragment.StackFragment;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
@@ -119,7 +120,7 @@ public class TxTrace {
   public int lineCount() {
     if (this.cachedLineCount == 0) {
       for (TraceSection s : trace) {
-        this.cachedLineCount += s.getLines().size();
+        this.cachedLineCount += s.getStackRowsCounter();
       }
     }
     return this.cachedLineCount;

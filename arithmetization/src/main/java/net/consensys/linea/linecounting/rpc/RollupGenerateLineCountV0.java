@@ -15,7 +15,11 @@
 
 package net.consensys.linea.linecounting.rpc;
 
+import java.util.Map;
+
 import com.google.common.base.Stopwatch;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.plugin.BesuContext;
@@ -23,11 +27,14 @@ import org.hyperledger.besu.plugin.services.TraceService;
 import org.hyperledger.besu.plugin.services.exception.PluginRpcEndpointException;
 import org.hyperledger.besu.plugin.services.rpc.PluginRpcRequest;
 
-/** Responsible for conflated file traces generation. */
+/** Responsible for trace counters generation. */
 @Slf4j
 public class RollupGenerateLineCountV0 {
-  private final BesuContext besuContext;
+  private static final int CACHE_SIZE = 10_000;
+  static final Cache<Long, Map<String, Integer>> cache =
+      CacheBuilder.newBuilder().maximumSize(CACHE_SIZE).build();
 
+  private final BesuContext besuContext;
   private TraceService traceService;
 
   public RollupGenerateLineCountV0(final BesuContext besuContext) {
@@ -54,25 +61,37 @@ public class RollupGenerateLineCountV0 {
     }
 
     try {
-      Stopwatch sw = Stopwatch.createStarted();
-      LineCountRequestParams params = LineCountRequestParams.createTraceParams(request.getParams());
+      final Stopwatch sw = Stopwatch.createStarted();
+      final LineCountRequestParams params =
+          LineCountRequestParams.createTraceParams(request.getParams());
+      final long requestedBlockNumber = params.blockNumber();
 
-      final long blockNumber = params.blockNumber();
-      final ZkTracer tracer = new ZkTracer();
-      traceService.trace(
-          blockNumber,
-          blockNumber,
-          worldStateBeforeTracing -> {
-            // before tracing
-            tracer.traceStartConflation(1);
-          },
-          worldStateAfterTracing -> {
-            // after tracing
-            tracer.traceEndConflation();
-          },
-          tracer);
-      log.info("[COUNT({})] line counts computed in {}", blockNumber, sw);
-      return new LineCount(params.runtimeVersion(), tracer.getModulesLineCount());
+      final LineCount r =
+          new LineCount(
+              params.runtimeVersion(),
+              cache
+                  .asMap()
+                  .computeIfAbsent(
+                      requestedBlockNumber,
+                      blockNumber -> {
+                        final ZkTracer tracer = new ZkTracer();
+                        traceService.trace(
+                            blockNumber,
+                            blockNumber,
+                            worldStateBeforeTracing -> {
+                              // before tracing
+                              tracer.traceStartConflation(1);
+                            },
+                            worldStateAfterTracing -> {
+                              // after tracing
+                              tracer.traceEndConflation();
+                            },
+                            tracer);
+
+                        return tracer.getModulesLineCount();
+                      }));
+      log.info("[COUNTERS] counters for {} returned in {}", requestedBlockNumber, sw);
+      return r;
     } catch (Exception ex) {
       throw new PluginRpcEndpointException(ex.getMessage());
     }

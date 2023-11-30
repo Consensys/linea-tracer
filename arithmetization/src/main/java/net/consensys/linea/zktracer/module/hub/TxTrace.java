@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lombok.Getter;
+import net.consensys.linea.zktracer.module.hub.fragment.StackFragment;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
@@ -115,10 +116,23 @@ public class TxTrace {
    * @return the line number in this transaction trace
    */
   public int lineCount() {
+    final boolean COUNT_STACK_ONLY = true;
     int sum = 0;
-    for (TraceSection s : trace) {
-      sum += s.getLines().size();
+
+    if (COUNT_STACK_ONLY) {
+      for(TraceSection section: this.trace) {
+        for (TraceSection.TraceLine line: section.getLines()) {
+          if (line.specific() instanceof StackFragment) {
+            sum++;
+          }
+        }
+      }
+    } else {
+      for(TraceSection section: this.trace) {
+        sum += section.getLines().size();
+      }
     }
+
     return sum;
   }
 }

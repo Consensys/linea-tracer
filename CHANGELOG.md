@@ -102,6 +102,8 @@ Testing pre-release from branch test-release/v0.1.4-test2
 * revert make loginfo counts closer to Geth
 * head: disable stp & txndata
 
+=======
+>>>>>>> 820918a3 (temp: geth-compatibily hacks)
 ## 0.1.4-test
 Temporary line counting release for testnet.
 

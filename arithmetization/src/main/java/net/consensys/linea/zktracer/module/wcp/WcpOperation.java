@@ -237,6 +237,7 @@ public class WcpOperation extends ModuleOperation {
 
   @Override
   protected int computeLineCount() {
-    return this.ctMax + 1;
+    final boolean isOli = (wcpInst == 0x14 /* EQ */) || (wcpInst == 0x15 /* ISZERO */);
+    return isOli ? 1 : 16;
   }
 }

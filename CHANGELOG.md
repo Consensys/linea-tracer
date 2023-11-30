@@ -1,6 +1,12 @@
 # Changelog
 
-## 0.1.4-SNAPSHOT
+## 0.1.4-test
+Temporary line counting release for testnet.
+
+* count stack temporary impl: make loginfo counts closer to Geth [temp/issue-248/count-stack-only](https://github.com/Consensys/besu-sequencer-plugins/tree/temp/issue-248/count-stack-only)
+--
+* fix: `Bytes.toUnsignedInteger` [#484](https://github.com/ConsenSys/besu-sequencer-plugins/pull/484) 
+* perf: delay computations at trace time [#483](https://github.com/ConsenSys/besu-sequencer-plugins/pull/483)
 
 ## 0.1.3
 - perf: improve `StackedSet` performances  [#466](https://github.com/ConsenSys/besu-sequencer-plugins/pull/466) 

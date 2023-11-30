@@ -27,6 +27,9 @@ import org.hyperledger.besu.datatypes.TransactionType;
 
 /** Utility class that provides various helper methods. */
 public class Util {
+  public static long ceilingTo(long x, long anchor) {
+    return (x + anchor - 1) / anchor;
+  }
 
   /**
    * Converts the bits of an unsigned byte into an array of Booleans.

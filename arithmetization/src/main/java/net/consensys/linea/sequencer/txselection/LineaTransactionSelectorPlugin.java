@@ -20,6 +20,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -89,8 +90,7 @@ public class LineaTransactionSelectorPlugin extends LineaRequiredPlugin {
           .toMap()
           .keySet()
           .forEach(key -> {
-            log.info(toCamelCase(key) + " : "+table.getLong(key));
-            limitsMap.put(toCamelCase(key), Math.toIntExact(table.getLong(key)));
+            limitsMap.put(key.toUpperCase(), Math.toIntExact(table.getLong(key)));
           });
     } catch (final Exception e) {
       final String errorMsg =

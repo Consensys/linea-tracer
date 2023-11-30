@@ -24,6 +24,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import com.google.common.base.Stopwatch;
@@ -206,7 +207,7 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
   public Map<String, Integer> getModulesLineCount() {
     final HashMap<String, Integer> modulesLineCount = new HashMap<>();
     hub.getModulesToTrace()
-        .forEach(m -> modulesLineCount.put(m.jsonKey(), m.lineCount()));
+        .forEach(m -> modulesLineCount.put(m.jsonKey().toUpperCase(), m.lineCount()));
     return modulesLineCount;
   }
 }

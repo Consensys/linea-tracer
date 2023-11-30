@@ -41,16 +41,18 @@ import net.consensys.linea.zktracer.module.hub.defer.*;
 import net.consensys.linea.zktracer.module.hub.fragment.*;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.MiscFragment;
 import net.consensys.linea.zktracer.module.hub.section.*;
+import net.consensys.linea.zktracer.module.legacy.hash.HashData;
+import net.consensys.linea.zktracer.module.legacy.hash.HashInfo;
 import net.consensys.linea.zktracer.module.limits.Keccak;
 import net.consensys.linea.zktracer.module.limits.L2Block;
 import net.consensys.linea.zktracer.module.limits.L2L1Logs;
 import net.consensys.linea.zktracer.module.limits.precompiles.Blake2fRounds;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcAddEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcMulEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingCallEffectiveCall;
+import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingMillerLoop;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcRecoverEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall;
+import net.consensys.linea.zktracer.module.limits.precompiles.Modexp;
 import net.consensys.linea.zktracer.module.limits.precompiles.Rip160Blocks;
 import net.consensys.linea.zktracer.module.limits.precompiles.Sha256Blocks;
 import net.consensys.linea.zktracer.module.logData.LogData;
@@ -183,9 +185,20 @@ public class Hub implements Module {
   private final RomLex romLex;
   private final TxnData txnData;
   private final Trm trm = new Trm();
-  private final ModexpEffectiveCall modexp;
   private final Stp stp = new Stp(this, wcp, mod);
   private final L2Block l2Block = new L2Block();
+  private final HashInfo hashInfo;
+  private final HashData hashData;
+
+  // Precompiles stuff
+  Blake2fRounds blake2f;
+  EcAddEffectiveCall ecAdd;
+  EcMulEffectiveCall ecMul;
+  EcPairingEffectiveCall ecPairing;
+  EcRecoverEffectiveCall ecRecover;
+  Modexp modexp;
+  Rip160Blocks rip160;
+  Sha256Blocks sha256;
 
   private final List<Module> modules;
   /* Those modules are not traced, we just compute the number of calls to those precompile to meet the prover limits */
@@ -193,6 +206,9 @@ public class Hub implements Module {
   private final List<Module> refTableModules;
 
   public Hub() {
+    //
+    // Module
+    //
     this.pch = new PlatformController(this);
     this.mmu = new Mmu(this.callStack);
     this.mxp = new Mxp(this);
@@ -202,24 +218,46 @@ public class Hub implements Module {
     this.txnData = new TxnData(this, this.romLex, this.wcp);
     this.ecData = new EcData(this, this.wcp, this.ext);
     this.euc = new Euc(this.wcp);
+    this.hashData = new HashData(this);
+    this.hashInfo = new HashInfo(this);
 
-    final EcRecoverEffectiveCall ecRec = new EcRecoverEffectiveCall(this);
-    this.modexp = new ModexpEffectiveCall(this);
-    final EcPairingCallEffectiveCall ecpairingCall = new EcPairingCallEffectiveCall(this);
+    //
+    // Precompiles
+    //
+    this.blake2f = new Blake2fRounds(this);
+    this.ecAdd = new EcAddEffectiveCall(this);
+    this.ecMul = new EcMulEffectiveCall(this);
+    this.ecPairing = new EcPairingEffectiveCall(this);
+    this.ecRecover = new EcRecoverEffectiveCall(this);
+    this.modexp = new Modexp(this);
+    this.rip160 = new Rip160Blocks(this);
+    this.sha256 = new Sha256Blocks(this);
+
     this.precompileLimitModules =
         List.of(
-            new Sha256Blocks(this),
-            ecRec,
-            new Rip160Blocks(this),
+            this.blake2f,
+            this.blake2f.callCounter(),
+            this.ecAdd,
+            this.ecAdd.callCounter(),
+            this.ecMul,
+            this.ecMul.callCounter(),
+            this.ecPairing,
+            this.ecPairing.callCounter(),
+            new EcPairingMillerLoop(this.ecPairing),
+            this.ecRecover,
+            this.ecRecover.callCounter(),
             this.modexp,
-            new EcAddEffectiveCall(this),
-            new EcMulEffectiveCall(this),
-            ecpairingCall,
-            new EcPairingMillerLoop(ecpairingCall),
-            new Blake2fRounds(this),
+            this.modexp.callCounter(),
+            this.rip160,
+            this.rip160.callCounter(),
+            this.sha256,
+            this.sha256.callCounter(),
+
             // Block level limits
+            this.hashData,
+            this.hashInfo,
             this.l2Block,
-            new Keccak(this, ecRec, this.l2Block),
+            new Keccak(this, this.ecRecover, this.l2Block),
             new L2L1Logs(this.l2Block));
 
     this.refTableModules = List.of(new BinRt(), new InstructionDecoder(), new ShfRt());
@@ -255,32 +293,36 @@ public class Hub implements Module {
    * @return a list of all modules for which to generate traces
    */
   public List<Module> getModulesToTrace() {
-    return Stream.concat(
-            this.refTableModules.stream(),
-            // Modules
-            Stream.of(
-                this,
-                this.romLex,
-                this.add,
-                this.bin,
-                this.ext,
-                //        this.ecData, // TODO: not yet
-                this.euc,
-                this.logData,
-                this.logInfo,
-                this.mod,
-                this.modexp.data(),
-                this.mul,
-                this.mxp,
-                this.rlpAddr,
-                this.rlpTxn,
-                this.rlpTxrcpt,
-                this.rom,
-                this.shf,
-                this.stp,
-                this.txnData,
-                this.wcp))
-        .toList();
+    return List.of(
+        //
+        // Reference tables
+        //
+        new BinRt(),
+        new InstructionDecoder(),
+        new ShfRt(),
+        //
+        // Modules
+        //
+        this,
+        this.add,
+        this.bin,
+        this.ext,
+        //        this.ecData, // TODO: not yet
+        this.euc,
+        this.logData,
+        this.logInfo,
+        this.mod,
+        this.mul,
+        this.mxp,
+        this.rlpAddr,
+        this.rlpTxn,
+        this.rlpTxrcpt,
+        this.rom,
+        this.romLex,
+        this.shf,
+        this.stp,
+        //        this.txnData,
+        this.wcp);
   }
 
   public List<Module> getModulesToCount() {
@@ -305,8 +347,10 @@ public class Hub implements Module {
                 this.rom,
                 this.shf,
                 this.trm,
-                this.txnData,
-                this.wcp),
+                //                this.txnData,
+                this.wcp,
+                this.hashData,
+                this.hashInfo),
             this.precompileLimitModules.stream())
         .toList();
   }
@@ -517,7 +561,7 @@ public class Hub implements Module {
       // TODO: this.oob.tracePreOpcode(frame);
     }
     if (this.pch.signals().stp()) {
-      this.stp.tracePreOpcode(frame);
+      //      this.stp.tracePreOpcode(frame);
     }
     if (this.pch.signals().exp()) {
       this.modexp.tracePreOpcode(frame);

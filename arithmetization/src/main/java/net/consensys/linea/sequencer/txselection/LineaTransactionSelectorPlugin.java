@@ -81,6 +81,7 @@ public class LineaTransactionSelectorPlugin extends LineaRequiredPlugin {
     try {
       URL url = new File(lineaConfiguration.moduleLimitsFilePath()).toURI().toURL();
       final String tomlString = Resources.toString(url, StandardCharsets.UTF_8);
+      log.debug("tomlString " + tomlString);
       TomlParseResult result = Toml.parse(tomlString);
       final TomlTable table = result.getTable("traces-limits");
       table

@@ -84,14 +84,12 @@ public class LineaTransactionSelectorPlugin extends LineaRequiredPlugin {
       log.debug("tomlString " + tomlString);
       TomlParseResult result = Toml.parse(tomlString);
       final TomlTable table = result.getTable("traces-limits");
-      log.debug("TomlTable content -- toString() :"+table.toString());
-      log.debug("TomlTable content -- toJson() :"+table.toJson());
 
       table
           .toMap()
           .keySet()
           .forEach(key -> {
-            log.debug(key + " : "+table.getLong(key));
+            log.info(toCamelCase(key) + " : "+table.getLong(key));
             limitsMap.put(toCamelCase(key), Math.toIntExact(table.getLong(key)));
           });
     } catch (final Exception e) {

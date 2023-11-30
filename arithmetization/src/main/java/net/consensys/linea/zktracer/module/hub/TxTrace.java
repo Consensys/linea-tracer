@@ -115,6 +115,12 @@ public class TxTrace {
    * @return the line number in this transaction trace
    */
   public int lineCount() {
-    return this.trace.stream().mapToInt(section -> section.getLines().size()).sum();
+    int totalCount = 0;
+    for (var section:this.trace
+         ) {
+      totalCount += section.getLines().size();
+    }
+    return totalCount;
+    //return this.trace.stream().mapToInt(section -> section.getLines().size()).sum();
   }
 }

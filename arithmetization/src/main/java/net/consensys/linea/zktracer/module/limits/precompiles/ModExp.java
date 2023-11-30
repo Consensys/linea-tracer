@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -19,55 +19,29 @@ import java.nio.MappedByteBuffer;
 import java.util.List;
 import java.util.Stack;
 
-import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
-import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.opcode.OpCode;
-import org.hyperledger.besu.datatypes.Address;
-import org.hyperledger.besu.evm.frame.MessageFrame;
-import org.hyperledger.besu.evm.internal.Words;
 
-@RequiredArgsConstructor
-public final class EcAddEffectiveCall implements Module {
-  private final Hub hub;
-  private final EcAdd ecAdd;
+public final class ModExp implements Module {
+  @Override
+  public String moduleKey() {
+    return "PRECOMPILE_MODEXP";
+  }
+
   private final Stack<Integer> counts = new Stack<>();
 
   @Override
-  public String moduleKey() {
-    return "PRECOMPILE_ECADD_EFFECTIVE_CALL";
-  }
-
-  private static final int PRECOMPILE_GAS_FEE = 150; // cf EIP-1108
-
-  @Override
   public void enterTransaction() {
-    counts.push(0);
+    this.counts.push(0);
   }
 
   @Override
   public void popTransaction() {
-    counts.pop();
+    this.counts.pop();
   }
 
-  @Override
-  public void tracePreOpcode(MessageFrame frame) {
-    final OpCode opCode = hub.opCode();
-
-    switch (opCode) {
-      case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
-        final Address target = Words.toAddress(frame.getStackItem(1));
-        if (target.equals(Address.ALTBN128_ADD)) {
-          this.ecAdd.countACAllToPrecompile();
-          final long gasPaid = Words.clampedToLong(frame.getStackItem(0));
-          if (gasPaid >= PRECOMPILE_GAS_FEE) {
-            this.counts.push(this.counts.pop() + 1);
-          }
-        }
-      }
-      default -> {}
-    }
+  public void countACAllToPrecompile() {
+    this.counts.push(this.counts.pop() + 1);
   }
 
   @Override

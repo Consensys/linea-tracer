@@ -294,7 +294,7 @@ public class RlpAddr implements Module {
     for (RlpAddrChunk chunk : this.chunkList) {
       traceRowSize += chunkRowSize(chunk);
     }
-    return traceRowSize;
+    return 2 * (traceRowSize + 1); // TODO: temporary hack for Geth/Besu
   }
 
   @Override

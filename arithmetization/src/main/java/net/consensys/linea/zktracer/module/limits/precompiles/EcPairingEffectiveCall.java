@@ -32,8 +32,9 @@ import org.hyperledger.besu.evm.internal.Words;
 
 @Slf4j
 @RequiredArgsConstructor
-public final class EcPairingCallEffectiveCall implements Module {
+public final class EcPairingEffectiveCall implements Module {
   private final Hub hub;
+  private final EcPairing ecPairing;
   @Getter private final Stack<EcPairingLimit> counts = new Stack<>();
   private static final int PRECOMPILE_BASE_GAS_FEE = 45000; // cf EIP-1108
   private static final int PRECOMPILE_MILLER_LOOP_GAS_FEE = 34000; // cf EIP-1108
@@ -62,6 +63,7 @@ public final class EcPairingCallEffectiveCall implements Module {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
         if (target.equals(Address.ALTBN128_PAIRING)) {
+          this.ecPairing.countACAllToPrecompile();
           long length = 0;
           switch (opCode) {
             case CALL, CALLCODE -> length = Words.clampedToLong(frame.getStackItem(4));

@@ -35,6 +35,7 @@ import org.hyperledger.besu.evm.internal.Words;
 @RequiredArgsConstructor
 public final class EcRecoverEffectiveCall implements Module {
   private final Hub hub;
+  private final EcRecover ecRecover;
   private final Stack<Integer> counts = new Stack<>();
 
   @Override
@@ -66,6 +67,7 @@ public final class EcRecoverEffectiveCall implements Module {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
         if (target.equals(Address.ECREC)) {
+          this.ecRecover.countACAllToPrecompile();
           long length = 0;
           long offset = 0;
           switch (opCode) {

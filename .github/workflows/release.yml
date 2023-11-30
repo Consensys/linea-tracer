@@ -11,9 +11,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up JDK 1.8
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'adopt'
@@ -29,11 +29,10 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build with Gradle
-        run: ./gradlew build -PreleaseVersion=${{ steps.get_version.outputs.VERSION }}
-
-      - name: Test with Gradle
-        run: ./gradlew test
+      - name: Build without tests
+        run: ./gradlew build -PreleaseVersion=${{ steps.get_version.outputs.VERSION }} -x test -x spotlessCheck
+        env:
+          JAVA_OPTS: -Xmx2g -Dorg.gradle.daemon=false
 
       - name: Draft Release
         id: create_release

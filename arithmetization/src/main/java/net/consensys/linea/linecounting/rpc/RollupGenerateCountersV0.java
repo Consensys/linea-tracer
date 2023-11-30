@@ -29,7 +29,7 @@ import org.hyperledger.besu.plugin.services.rpc.PluginRpcRequest;
 
 /** Responsible for trace counters generation. */
 @Slf4j
-public class RollupGenerateLineCountV0 {
+public class RollupGenerateCountersV0 {
   private static final int CACHE_SIZE = 10_000;
   static final Cache<Long, Map<String, Integer>> cache =
       CacheBuilder.newBuilder().maximumSize(CACHE_SIZE).build();
@@ -37,7 +37,7 @@ public class RollupGenerateLineCountV0 {
   private final BesuContext besuContext;
   private TraceService traceService;
 
-  public RollupGenerateLineCountV0(final BesuContext besuContext) {
+  public RollupGenerateCountersV0(final BesuContext besuContext) {
     this.besuContext = besuContext;
   }
 
@@ -55,19 +55,19 @@ public class RollupGenerateLineCountV0 {
    * @param request holds parameters of the RPC request.
    * @return an execution file trace.
    */
-  public LineCount execute(final PluginRpcRequest request) {
+  public Counters execute(final PluginRpcRequest request) {
     if (traceService == null) {
       traceService = initTraceService();
     }
 
     try {
       final Stopwatch sw = Stopwatch.createStarted();
-      final LineCountRequestParams params =
-          LineCountRequestParams.createTraceParams(request.getParams());
+      final CountersRequestParams params =
+          CountersRequestParams.createTraceParams(request.getParams());
       final long requestedBlockNumber = params.blockNumber();
 
-      final LineCount r =
-          new LineCount(
+      final Counters r =
+          new Counters(
               params.runtimeVersion(),
               cache
                   .asMap()

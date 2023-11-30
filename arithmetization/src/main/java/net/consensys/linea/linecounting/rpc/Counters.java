@@ -20,6 +20,6 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /** FileTrace represents an execution trace. */
-public record LineCount(
+public record Counters(
     @JsonProperty("tracesEngineVersion") String tracesEngineVersion,
     @JsonProperty("tracesCountersByModule") Map<String, Integer> traceCountersByModule) {}

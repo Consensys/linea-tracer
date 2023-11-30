@@ -19,7 +19,7 @@ import java.util.Optional;
 
 import com.google.auto.service.AutoService;
 import net.consensys.linea.LineaRequiredPlugin;
-import net.consensys.linea.linecounting.rpc.RollupGenerateLineCountV0;
+import net.consensys.linea.linecounting.rpc.RollupGenerateCountersV0;
 import net.consensys.linea.zktracer.opcode.OpCodes;
 import org.hyperledger.besu.plugin.BesuContext;
 import org.hyperledger.besu.plugin.BesuPlugin;
@@ -30,7 +30,7 @@ import org.hyperledger.besu.plugin.services.RpcEndpointService;
 public class RollupRpcEndpointServicePlugin extends LineaRequiredPlugin {
   @Override
   public void doRegister(final BesuContext context) {
-    RollupGenerateLineCountV0 method = new RollupGenerateLineCountV0(context);
+    RollupGenerateCountersV0 method = new RollupGenerateCountersV0(context);
 
     Optional<RpcEndpointService> service = context.getService(RpcEndpointService.class);
     createAndRegister(
@@ -41,7 +41,7 @@ public class RollupRpcEndpointServicePlugin extends LineaRequiredPlugin {
   }
 
   private void createAndRegister(
-      final RollupGenerateLineCountV0 method, final RpcEndpointService rpcEndpointService) {
+      final RollupGenerateCountersV0 method, final RpcEndpointService rpcEndpointService) {
     rpcEndpointService.registerRPCEndpoint(
         method.getNamespace(), method.getName(), method::execute);
   }

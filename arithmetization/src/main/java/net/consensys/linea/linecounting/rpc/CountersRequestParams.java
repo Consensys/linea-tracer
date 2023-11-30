@@ -21,16 +21,16 @@ import net.consensys.linea.zktracer.ZkTracer;
 
 /** Holds needed parameters for sending an execution trace generation request. */
 @SuppressWarnings("unused")
-public record LineCountRequestParams(long blockNumber, String runtimeVersion) {
+public record CountersRequestParams(long blockNumber, String runtimeVersion) {
   private static final int EXPECTED_PARAMS_SIZE = 2;
 
   /**
-   * Parses a list of params to a {@link LineCountRequestParams} object.
+   * Parses a list of params to a {@link CountersRequestParams} object.
    *
    * @param params an array of parameters.
-   * @return a parsed {@link LineCountRequestParams} object..
+   * @return a parsed {@link CountersRequestParams} object..
    */
-  public static LineCountRequestParams createTraceParams(final Object[] params) {
+  public static CountersRequestParams createTraceParams(final Object[] params) {
     // validate params size
     if (params.length != EXPECTED_PARAMS_SIZE) {
       throw new InvalidParameterException(
@@ -47,7 +47,7 @@ public record LineCountRequestParams(long blockNumber, String runtimeVersion) {
               getTracerRuntime(), version));
     }
 
-    return new LineCountRequestParams(blockNumber, version);
+    return new CountersRequestParams(blockNumber, version);
   }
 
   private static String getTracerRuntime() {

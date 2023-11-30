@@ -43,7 +43,15 @@ public class Rom implements Module {
 
   @Override
   public int lineCount() {
-    return this.romLex.chunks.lineCount();
+    int traceRowSize = 0;
+    for (RomChunk chunk : this.romLex.chunks) {
+      traceRowSize += chunkRowSize(chunk);
+    }
+    return traceRowSize + 32 * this.romLex.emptyContractsCount.stream().mapToInt(x -> x).sum();
+  }
+
+  public int chunkRowSize(RomChunk chunk) {
+    return chunk.byteCode().size();
   }
 
   @Override

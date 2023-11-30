@@ -31,6 +31,7 @@ import org.hyperledger.besu.evm.internal.Words;
 @RequiredArgsConstructor
 public final class Rip160Blocks implements Module {
   private final Hub hub;
+  private final Rip160CallCounter rip160CallCounter = new Rip160CallCounter();
   private final Stack<Integer> counts = new Stack<>();
 
   @Override
@@ -44,6 +45,10 @@ public final class Rip160Blocks implements Module {
   // If the length is > 2⁶4, we just use the lower 64 bits.
   private static final int RIPEMD160_LENGTH_APPEND = 64;
   private static final int RIPEMD160_ND_PADDED_ONE = 1;
+
+  public Module callCounter() {
+    return this.rip160CallCounter;
+  }
 
   @Override
   public void enterTransaction() {
@@ -63,6 +68,7 @@ public final class Rip160Blocks implements Module {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
         if (target.equals(Address.RIPEMD160)) {
+          this.rip160CallCounter.tick();
           long dataByteLength = 0;
           switch (opCode) {
             case CALL, CALLCODE -> dataByteLength = Words.clampedToLong(frame.getStackItem(4));

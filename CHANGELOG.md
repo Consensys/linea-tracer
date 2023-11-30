@@ -1,5 +1,6 @@
 # Changelog
 
+<<<<<<< HEAD
 ## 0.1.4-test8
 Test pre-release 8 from [temp/issue-248/count-stack-only](https://github.com/Consensys/besu-sequencer-plugins/tree/temp/issue-248/count-stack-only)
 * Add profitable transaction selector [#530](https://github.com/Consensys/besu-sequencer-plugins/pull/530)
@@ -34,6 +35,8 @@ Testing pre-release from branch test-release/v0.1.4-test2
 * revert make loginfo counts closer to Geth
 * head: disable stp & txndata
 
+=======
+>>>>>>> 820918a3 (temp: geth-compatibily hacks)
 ## 0.1.4-test
 Temporary line counting release for testnet.
 

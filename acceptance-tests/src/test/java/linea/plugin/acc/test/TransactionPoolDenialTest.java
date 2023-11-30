@@ -36,7 +36,7 @@ public class TransactionPoolDenialTest extends LineaPluginTestBase {
   @Override
   public List<String> getTestCliOptions() {
     return new TestCommandLineOptionsBuilder()
-        .set("--plugin-linea-deny-list-path=", getResourcePath("/denyList.txt"))
+        .set("--plugin-linea-deny-list-path=", getResourcePath("/test/denyList.txt"))
         .build();
   }
 

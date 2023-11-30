@@ -107,7 +107,7 @@ public class TraceLineLimitTransactionSelector implements PluginTransactionSelec
         final String errorMsg =
             "Module " + module + " does not exist in the limits file: " + limitFilePath;
         log.error(errorMsg);
-        throw new RuntimeException(errorMsg);
+        //throw new RuntimeException(errorMsg);
       }
 
       final int cumulatedModuleLineCount = currCumulatedLineCount.get(module);

@@ -33,9 +33,9 @@ public class TestCommandLineOptionsBuilder {
     cliOptions.setProperty("--plugin-linea-max-block-calldata-size=", MAX_VALUE);
     cliOptions.setProperty(
         "--plugin-linea-max-tx-gas-limit=", DefaultGasProvider.GAS_LIMIT.toString());
-    cliOptions.setProperty("--plugin-linea-deny-list-path=", getResourcePath("/test/emptyDenyList.txt"));
+    cliOptions.setProperty("--plugin-linea-deny-list-path=", getResourcePath("/emptyDenyList.txt"));
     cliOptions.setProperty(
-        "--plugin-linea-module-limit-file-path=", getResourcePath("/test/noModuleLimits.json"));
+        "--plugin-linea-module-limit-file-path=", getResourcePath("/noModuleLimits.toml"));
     cliOptions.setProperty("--plugin-linea-max-block-gas=", MAX_VALUE);
   }
 

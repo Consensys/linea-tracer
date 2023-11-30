@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.stp;
 
-import static net.consensys.linea.zktracer.module.rlpCommon.rlpRandEdgeCase.randLong;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.longToBytes;
 
@@ -47,8 +46,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(EvmExtension.class)
 public class StpTest {
   private static final Random RAND = new Random(666L);
-  final int NB_CALL = 100;
-  final int NB_CREATE = 100;
+  final int NB_CALL = 200;
+  final int NB_CREATE = 200;
 
   @Test
   void testCall() {
@@ -60,12 +59,12 @@ public class StpTest {
       final OpCode opcode = randOpCodeCall();
       final boolean toExists = RAND.nextBoolean();
       final boolean toWarm = toExists && RAND.nextBoolean();
-      // final Wei balance = Wei.of(RAND.nextLong(21000, 1000000L));
       final Wei balance = Wei.MAX_WEI;
       final long gasCall = RAND.nextLong(0, 100000L);
       final BigInteger value = BigInteger.valueOf(RAND.nextLong(0, 100000L));
+      final long gasLimit = RAND.nextLong(23400, 1000000L);
 
-      txList.add(txCall(opcode, toExists, toWarm, balance, value, gasCall, world));
+      txList.add(txCall(opcode, toExists, toWarm, balance, value, gasCall, gasLimit, world));
     }
 
     ToyExecutionEnvironment.builder()
@@ -126,42 +125,53 @@ public class StpTest {
       Wei balance,
       BigInteger value,
       long gasCall,
+      long gasLimit,
       ToyWorld.ToyWorldBuilder world) {
 
-    KeyPair keyPair = new SECP256K1().generateKeyPair();
-    Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
-    ToyAccount senderAccount =
-        ToyAccount.builder().balance(balance).nonce(randLong()).address(senderAddress).build();
-
-    KeyPair keyPairCallee = new SECP256K1().generateKeyPair();
-    Address calleeAddress =
-        Address.extract(Hash.hash(keyPairCallee.getPublicKey().getEncodedBytes()));
-    ToyAccount calleAccount =
-        ToyAccount.builder().balance(Wei.ONE).nonce(1L).address(calleeAddress).build();
-
+    // Create the sender account
+    final KeyPair keyPair = new SECP256K1().generateKeyPair();
+    final Address senderAddress =
+        Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
+    final ToyAccount senderAccount =
+        ToyAccount.builder().balance(balance).nonce(1).address(senderAddress).build();
     world.account(senderAccount);
+
+    // Create the callee account and address
+    final Address calleeAddress = Address.wrap(Bytes.random(20));
+    final ToyAccount calleeAccount =
+        ToyAccount.builder().nonce(1).balance(Wei.ONE).address(calleeAddress).build();
     if (toExist) {
-      world.account(calleAccount);
+      world.account(calleeAccount);
     }
+
+    // Create the to account, which contains the bytecode to execute
+    final Address toAddress = Address.wrap(Bytes.random(20));
+    final ToyAccount toAccount =
+        ToyAccount.builder()
+            .address(toAddress)
+            .nonce(1)
+            .balance(Wei.ONE)
+            .code(codeCall(opcode, calleeAddress, value, gasCall))
+            .build();
+    world.account(toAccount);
+
     AccessListEntry entry = AccessListEntry.createAccessListEntry(senderAddress, List.of());
     if (toWarm) {
       entry = AccessListEntry.createAccessListEntry(calleeAddress, List.of());
     }
 
-    final Bytes initCode = codeCall(opcode, calleeAddress, gasCall, value);
-
     return ToyTransaction.builder()
         .sender(senderAccount)
+        .to(toAccount)
         .keyPair(keyPair)
         .transactionType(TransactionType.ACCESS_LIST)
-        .value(Wei.ONE)
-        .gasLimit(100000L)
+        .value(Wei.of(100000L))
+        .gasLimit(gasLimit)
         .accessList(List.of(entry))
-        .payload(initCode)
         .build();
   }
 
-  private Bytes codeCall(OpCode opcode, Address calleeAddress, long gasCall, BigInteger value) {
+  private Bytes codeCall(OpCode opcode, Address calleeAddress, BigInteger value, long gasCall) {
     return switch (opcode) {
       case CALL, CALLCODE -> BytecodeCompiler.newProgram()
           .push(Bytes.minimalBytes(6)) // retLength
@@ -188,62 +198,88 @@ public class StpTest {
   }
 
   final Transaction txCreate(ToyWorld.ToyWorldBuilder world) {
-    KeyPair keyPair = new SECP256K1().generateKeyPair();
-    Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
+    // create sender account
+    final KeyPair keyPair = new SECP256K1().generateKeyPair();
+    final Address senderAddress =
+        Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
     final long balance = RAND.nextLong(21000, 100000L);
     final long value = RAND.nextLong();
-    ToyAccount senderAccount =
+    final ToyAccount senderAccount =
         ToyAccount.builder()
             .balance(Wei.of(balance))
-            .nonce(randLong())
+            .nonce(RAND.nextInt())
             .address(senderAddress)
             .build();
-
     world.account(senderAccount);
+
+    // create to account
+    final Address to = Address.wrap(Bytes.random(20));
+    final ToyAccount toAccount =
+        ToyAccount.builder()
+            .nonce(RAND.nextInt())
+            .balance(Wei.ONE)
+            .address(to)
+            .code(
+                BytecodeCompiler.newProgram()
+                    .push(Bytes.fromHexString("0xff")) // length
+                    .push(Bytes.fromHexString("0x80")) // offset
+                    .push(Bytes.minimalBytes(value)) // value
+                    .op(OpCode.CREATE)
+                    .compile())
+            .build();
+    world.account(toAccount);
 
     return ToyTransaction.builder()
         .sender(senderAccount)
         .keyPair(keyPair)
         .transactionType(TransactionType.FRONTIER)
         .value(Wei.ONE)
-        .payload(
-            BytecodeCompiler.newProgram()
-                .push(Bytes.fromHexString("0xff")) // length
-                .push(Bytes.fromHexString("0x80")) // offset
-                .push(Bytes.minimalBytes(value)) // value
-                .op(OpCode.CREATE)
-                .compile())
+        .to(toAccount)
+        .gasLimit(RAND.nextLong(21000, 100000))
         .build();
   }
 
   final Transaction txCreate2(ToyWorld.ToyWorldBuilder world) {
-    KeyPair keyPair = new SECP256K1().generateKeyPair();
-    Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
+    // create senderAccount
+    final KeyPair keyPair = new SECP256K1().generateKeyPair();
+    final Address senderAddress =
+        Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
     final long balance = RAND.nextLong(21000, 100000L);
     final long value = RAND.nextLong();
-    ToyAccount senderAccount =
+    final ToyAccount senderAccount =
         ToyAccount.builder()
             .balance(Wei.of(balance))
-            .nonce(randLong())
+            .nonce(RAND.nextInt())
             .address(senderAddress)
             .build();
-
     world.account(senderAccount);
+
+    // create to account
+    final Address to = Address.wrap(Bytes.random(20));
+    final ToyAccount toAccount =
+        ToyAccount.builder()
+            .nonce(RAND.nextInt())
+            .balance(Wei.ONE)
+            .address(to)
+            .code(
+                BytecodeCompiler.newProgram()
+                    .push(Bytes.random(32)) // salt
+                    .push(Bytes.fromHexString("0xff")) // length
+                    .push(Bytes.fromHexString("0x80")) // offset
+                    .push(Bytes.minimalBytes(value)) // value
+                    .op(OpCode.CREATE)
+                    .compile())
+            .build();
+    world.account(toAccount);
 
     return ToyTransaction.builder()
         .sender(senderAccount)
         .keyPair(keyPair)
         .transactionType(TransactionType.FRONTIER)
+        .to(toAccount)
         .gasLimit(100_000L)
         .value(Wei.ONE)
-        .payload(
-            BytecodeCompiler.newProgram()
-                .push(Bytes.random(32)) // salt
-                .push(Bytes.fromHexString("0xff")) // length
-                .push(Bytes.fromHexString("0x80")) // offset
-                .push(Bytes.minimalBytes(value)) // value
-                .op(OpCode.CREATE)
-                .compile())
+        .gasLimit(RAND.nextLong(21000, 100000))
         .build();
   }
 }

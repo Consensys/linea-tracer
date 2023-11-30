@@ -31,16 +31,15 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
-import org.hyperledger.besu.evm.frame.MessageFrame;
-import org.hyperledger.besu.evm.internal.Words;
 import org.hyperledger.besu.evm.log.Log;
+import org.hyperledger.besu.evm.log.LogTopic;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @RequiredArgsConstructor
 @Accessors(fluent = true)
 public class L1Block implements Module {
   private static final Address L2L1_ADDRESS = Address.fromHexString("0xDEADBEEF"); // TODO:
-  private static final Bytes L2L1_TOPIC = Bytes.fromHexString("0xBEEFDEAD"); // TODO:
+  private static final LogTopic L2L1_TOPIC = LogTopic.fromHexString("0xBEEFDEAD"); // TODO:
   private static final Set<OpCode> LOGS =
       Set.of(OpCode.LOG0, OpCode.LOG1, OpCode.LOG2, OpCode.LOG3, OpCode.LOG4);
 
@@ -54,55 +53,32 @@ public class L1Block implements Module {
   private final Hub hub;
 
   @Getter private final Deque<Integer> rlpSizes = new ArrayDeque<>();
-  @Getter private final Deque<List<String>> l2l1Logs = new ArrayDeque<>();
+  @Getter private final Deque<List<Integer>> l2l1LogSizes = new ArrayDeque<>();
 
   @Override
   public String jsonKey() {
-    return "BLOCK";
+    return "block";
   }
 
   @Override
   public void enterTransaction() {
     this.rlpSizes.push(0);
-    this.l2l1Logs.push(new ArrayList<>(5));
+    this.l2l1LogSizes.push(new ArrayList<>());
   }
 
   @Override
   public void popTransaction() {
     this.rlpSizes.pop();
-    this.l2l1Logs.pop();
-  }
-
-  @Override
-  public void tracePreOpcode(MessageFrame frame) {
-    final OpCode opCode = this.hub.opCode();
-
-    // Capture L2L1 logs
-    if (LOGS.contains(opCode) && hub.currentFrame().address() == L2L1_ADDRESS) {
-      boolean forMe = false;
-      for (int i = 0; i < opCode.byteValue() - OpCode.LOG0.byteValue(); i++) {
-        if (frame.stackSize() >= i) {
-          if (frame.getStackItem(i + 2).equals(L2L1_TOPIC)) {
-            forMe = true;
-          }
-        }
-      }
-
-      if (forMe) {
-        final long offset = Words.clampedToLong(frame.getStackItem(0));
-        final long size = Words.clampedToLong(frame.getStackItem(1));
-        this.l2l1Logs.peek().add(frame.shadowReadMemory(offset, size).toHexString());
-      }
-    }
+    this.l2l1LogSizes.pop();
   }
 
   @Override
   public int lineCount() {
     final int txCount = this.rlpSizes.size();
-    final int l2L1LogsCount = this.l2l1Logs.stream().mapToInt(List::size).sum();
+    final int l2L1LogsCount = this.l2l1LogSizes.stream().mapToInt(List::size).sum();
 
     // This calculates the data size related to the transaction field of the
-    // data sent on L1. This fiels is a double array of byte. Each subarray
+    // data sent on L1. This field is a double array of byte. Each subarray
     // corresponds to an RLP encoded transaction. The abi encoding incurs an
     // overhead for each transaction (32 bytes for an offset, and 32 bytes for
     // to encode the length of each sub bytes array). This overhead is also
@@ -164,6 +140,12 @@ public class L1Block implements Module {
       Bytes output,
       List<Log> logs,
       long gasUsed) {
+    for (Log log : logs) {
+      if (log.getLogger().equals(L2L1_ADDRESS) && log.getTopics().contains(L2L1_TOPIC)) {
+        this.l2l1LogSizes.peek().add(log.getData().size());
+      }
+    }
+
     this.rlpSizes.push(this.rlpSizes.pop() + tx.encoded().size());
   }
 }

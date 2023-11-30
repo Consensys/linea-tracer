@@ -49,7 +49,7 @@ public class Keccak implements Module {
 
   @Override
   public String jsonKey() {
-    return "KECCAK";
+    return "keccak";
   }
 
   @Override
@@ -95,7 +95,7 @@ public class Keccak implements Module {
 
   @Override
   public int lineCount() {
-    final int l2L1LogsCount = this.l1Block.l2l1Logs().stream().mapToInt(List::size).sum();
+    final int l2L1LogsCount = this.l1Block.l2l1LogSizes().stream().mapToInt(List::size).sum();
     final int txCount = this.l1Block.rlpSizes().size();
     final int ecRecoverCount = ecRec.lineCount();
 

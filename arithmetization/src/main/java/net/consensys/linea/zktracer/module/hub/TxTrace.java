@@ -118,8 +118,8 @@ public class TxTrace {
    */
   public int lineCount() {
     if (this.cachedLineCount == 0) {
-      for (TraceSection s : trace) {
-        this.cachedLineCount += s.getLines().size();
+      for (TraceSection section : this.trace) {
+        this.cachedLineCount += section.getStackRowsCounter();
       }
     }
     return this.cachedLineCount;

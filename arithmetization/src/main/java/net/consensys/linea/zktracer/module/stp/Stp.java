@@ -16,7 +16,6 @@
 package net.consensys.linea.zktracer.module.stp;
 
 import static java.lang.Long.max;
-import static net.consensys.linea.zktracer.opcode.OpCodes.isCreate;
 import static net.consensys.linea.zktracer.types.AddressUtils.getDeploymentAddress;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBigInteger;
 import static net.consensys.linea.zktracer.types.Conversions.longToBytes32;
@@ -214,7 +213,7 @@ public class Stp implements Module {
   }
 
   private void traceChunks(StpChunk chunk, int stamp, Trace trace) {
-    if (isCreate(chunk.opCode())) {
+    if (chunk.opCode().isCreate()) {
       traceCreate(chunk, stamp, trace);
     } else {
       traceCall(chunk, stamp, trace);
@@ -406,13 +405,13 @@ public class Stp implements Module {
 
   private int ctMax(StpChunk chunk) {
     if (chunk.oogx()) {
-      if (isCreate(chunk.opCode())) {
+      if (chunk.opCode().isCreate()) {
         return 1;
       } else {
         return 2;
       }
     } else {
-      if (isCreate(chunk.opCode())) {
+      if (chunk.opCode().isCreate()) {
         return 2;
       } else {
         return 4;

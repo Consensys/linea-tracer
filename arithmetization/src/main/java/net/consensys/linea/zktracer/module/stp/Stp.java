@@ -48,7 +48,7 @@ public class Stp implements Module {
 
   @Override
   public String jsonKey() {
-    return "stp";
+    return "Stp";
   }
 
   private final StackedSet<StpChunk> chunks = new StackedSet<>();

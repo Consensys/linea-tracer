@@ -69,6 +69,7 @@ public class SlackNotificationService {
                                         + "```"
                                         + validationResult
                                             .corsetOutput()
+                                            // Remove all ANSI escape codes that Slack does not like
                                             .replaceAll("\u001B\\[[;\\d]*m", "")
                                         + "```\n\n"
                                         + "Trace file: "

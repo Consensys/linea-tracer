@@ -65,12 +65,11 @@ public class SlackNotificationService {
                         section ->
                             section.text(
                                 markdownText(
-                                    "Block hash: *"
-                                        + blockHash
-                                        + "*\n\n"
-                                        + "Trace verification failed with the following error:\n\n"
+                                    "Trace verification failed with the following error:\n\n"
                                         + "```"
-                                        + validationResult.corsetOutput()
+                                        + validationResult
+                                            .corsetOutput()
+                                            .replaceAll("\u001B\\[[;\\d]*m", "")
                                         + "```\n\n"
                                         + "Trace file: "
                                         + validationResult.traceFile())))))

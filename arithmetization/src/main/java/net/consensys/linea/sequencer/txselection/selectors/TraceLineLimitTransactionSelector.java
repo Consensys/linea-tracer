@@ -100,15 +100,6 @@ public class TraceLineLimitTransactionSelector implements PluginTransactionSelec
         .addArgument(pendingTransaction.getTransaction()::getHash)
         .addArgument(this::logTxLineCount)
         .log();
-    System.out.println("*** moduleLimits.keySet() ***");
-    for (String module:moduleLimits.keySet()) {
-      System.out.println(module+ ": "+moduleLimits.get(module));
-    }
-
-    System.out.println("*** currCumulatedLineCount.keySet() ***");
-    for (final var module2 : currCumulatedLineCount.keySet()) {
-      System.out.println(module2.toUpperCase());
-    }
 
     for (final var module : currCumulatedLineCount.keySet()) {
       final Integer moduleLineCountLimit = moduleLimits.get(module.toUpperCase());

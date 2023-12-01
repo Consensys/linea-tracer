@@ -85,8 +85,6 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
 
   @Override
   public void writeToFile(final Path filename) {
-    Stopwatch sw = Stopwatch.createStarted();
-
     final List<Module> modules = this.hub.getModulesToTrace();
     final List<ColumnHeader> traceMap =
         modules.stream().flatMap(m -> m.columnsHeaders().stream()).toList();

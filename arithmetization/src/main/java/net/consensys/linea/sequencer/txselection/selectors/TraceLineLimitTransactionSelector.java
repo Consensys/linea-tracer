@@ -107,11 +107,11 @@ public class TraceLineLimitTransactionSelector implements PluginTransactionSelec
 
     System.out.println("*** currCumulatedLineCount.keySet() ***");
     for (final var module2 : currCumulatedLineCount.keySet()) {
-      System.out.println(module2);
+      System.out.println(module2.toUpperCase());
     }
 
     for (final var module : currCumulatedLineCount.keySet()) {
-      final Integer moduleLineCountLimit = moduleLimits.get(module);
+      final Integer moduleLineCountLimit = moduleLimits.get(module.toUpperCase());
       if (moduleLineCountLimit == null) {
         final String errorMsg =
             "Module " + module + " does not exist in the limits file: " + limitFilePath;

@@ -86,7 +86,7 @@ public class LineaTransactionSelectorPlugin extends LineaRequiredPlugin {
       table
           .toMap()
           .keySet()
-          .forEach(key -> limitsMap.put(toCamelCase(key), Math.toIntExact(table.getLong(key))));
+          .forEach(key -> limitsMap.put(key.toUpperCase(), Math.toIntExact(table.getLong(key))));
     } catch (final Exception e) {
       final String errorMsg =
           "Problem reading the toml file containing the limits for the modules: "

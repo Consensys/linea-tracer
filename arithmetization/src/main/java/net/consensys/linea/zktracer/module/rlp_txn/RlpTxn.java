@@ -63,8 +63,8 @@ public class RlpTxn implements Module {
   }
 
   @Override
-  public String jsonKey() {
-    return "rlpTxn";
+  public String tomlKey() {
+    return "TX_RLP";
   }
 
   public static final int LLARGE = TxnrlpTrace.LLARGE.intValue();

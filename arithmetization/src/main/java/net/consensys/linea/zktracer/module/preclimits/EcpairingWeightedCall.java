@@ -29,7 +29,7 @@ public final class EcpairingWeightedCall implements Module {
   }
 
   @Override
-  public String jsonKey() {
+  public String tomlKey() {
     return "ecpairingWeightedCall";
   }
 

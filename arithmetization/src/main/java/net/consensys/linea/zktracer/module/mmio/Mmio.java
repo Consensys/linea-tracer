@@ -22,8 +22,8 @@ import net.consensys.linea.zktracer.module.Module;
 
 public class Mmio implements Module {
   @Override
-  public String jsonKey() {
-    return null;
+  public String tomlKey() {
+    return "MMIO";
   }
 
   @Override

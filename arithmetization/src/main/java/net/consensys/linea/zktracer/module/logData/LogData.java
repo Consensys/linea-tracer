@@ -36,8 +36,8 @@ public class LogData implements Module {
   }
 
   @Override
-  public String jsonKey() {
-    return "logData";
+  public String tomlKey() {
+    return "PUB_LOG";
   }
 
   @Override

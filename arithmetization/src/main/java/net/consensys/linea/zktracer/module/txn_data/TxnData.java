@@ -63,7 +63,7 @@ public class TxnData implements Module {
   private final Wcp wcp;
 
   @Override
-  public String jsonKey() {
+  public String tomlKey() {
     return "txnData";
   }
 

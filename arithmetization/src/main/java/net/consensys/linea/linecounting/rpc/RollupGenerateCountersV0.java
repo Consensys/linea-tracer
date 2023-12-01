@@ -69,6 +69,7 @@ public class RollupGenerateCountersV0 {
       final Counters r =
           new Counters(
               params.runtimeVersion(),
+              requestedBlockNumber,
               cache
                   .asMap()
                   .computeIfAbsent(

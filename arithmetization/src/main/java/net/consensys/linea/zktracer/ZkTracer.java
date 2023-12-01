@@ -202,7 +202,8 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
 
   public Map<String, Integer> getModulesLineCount() {
     final HashMap<String, Integer> modulesLineCount = new HashMap<>();
-    hub.getModulesToTrace().forEach(m -> modulesLineCount.put(m.jsonKey(), m.lineCount()));
+    hub.getModulesToCount().forEach(m -> modulesLineCount.put(m.tomlKey(), m.lineCount()));
+    modulesLineCount.put("BLOCK_TX", hub.tx().number());
     return modulesLineCount;
   }
 }

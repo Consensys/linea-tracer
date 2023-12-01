@@ -22,4 +22,5 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /** FileTrace represents an execution trace. */
 public record Counters(
     @JsonProperty("tracesEngineVersion") String tracesEngineVersion,
-    @JsonProperty("tracesCountersByModule") Map<String, Integer> traceCountersByModule) {}
+    @JsonProperty("blockNumber") long blockNumber,
+    @JsonProperty("tracesCounters") Map<String, Integer> traceCountersByModule) {}

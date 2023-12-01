@@ -46,8 +46,8 @@ public class Rom implements Module {
   }
 
   @Override
-  public String jsonKey() {
-    return "rom";
+  public String tomlKey() {
+    return "ROM";
   }
 
   @Override

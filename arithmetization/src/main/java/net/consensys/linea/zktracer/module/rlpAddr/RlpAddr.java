@@ -58,7 +58,7 @@ public class RlpAddr implements Module {
   private final StackedList<RlpAddrChunk> chunkList = new StackedList<>();
 
   @Override
-  public String jsonKey() {
+  public String tomlKey() {
     return "rlpAddr";
   }
 

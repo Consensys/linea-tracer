@@ -1,3 +1,5 @@
+import java.time.LocalTime
+
 /*
  * Copyright Consensys Software Inc.
  *
@@ -37,8 +39,9 @@ jacoco {
   * - 'root.log.level' and 'evm.log.level': allow to control the log level used during the tests.
   */
 test {
+  minHeapSize = "4g"
+  maxHeapSize = "8g"
   jvmArgs = [
-    '-Xmx4g',
     '-XX:-UseGCOverheadLimit',
     // Mockito and jackson-databind do some strange reflection during tests.
     // This suppresses an illegal access warning.
@@ -63,20 +66,17 @@ test {
 tasks.test.dependsOn(buildZkevmBin)
 
 tasks.register('unitTests', Test) {
+  description = 'Runs unit tests.'
+
+  minHeapSize = "4g"
+  maxHeapSize = "8g"
+
   useJUnitPlatform {
     excludeTags("AcceptanceTest")
+    exclude('**/**ReferenceTest*')
   }
 }
 
-tasks.register('acceptanceTest', Test) {
-  dependsOn rootProject.copyPluginJar
-  inputs.property "integration.date", LocalTime.now() // so it runs at every invocation
-  include '**'
-
-  useJUnitPlatform {}
-
-  doFirst {
-    systemProperty "besu.plugins.dir", rootProject.ext.pluginDir
-  }
+test {
+  exclude('**/**ReferenceTest*')
 }
-

@@ -202,11 +202,10 @@ public class StpTest {
     final KeyPair keyPair = new SECP256K1().generateKeyPair();
     final Address senderAddress =
         Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
-    final long balance = RAND.nextLong(21000, 100000L);
     final long value = RAND.nextLong();
     final ToyAccount senderAccount =
         ToyAccount.builder()
-            .balance(Wei.of(balance))
+            .balance(Wei.MAX_WEI)
             .nonce(Math.abs(RAND.nextInt()))
             .address(senderAddress)
             .build();
@@ -229,13 +228,14 @@ public class StpTest {
             .build();
     world.account(toAccount);
 
+    final long gasLimit = RAND.nextLong(21000, 1000000L);
     return ToyTransaction.builder()
         .sender(senderAccount)
         .keyPair(keyPair)
         .transactionType(TransactionType.FRONTIER)
         .value(Wei.ONE)
         .to(toAccount)
-        .gasLimit(RAND.nextLong(21000, 100000))
+        .gasLimit(gasLimit)
         .build();
   }
 
@@ -244,11 +244,10 @@ public class StpTest {
     final KeyPair keyPair = new SECP256K1().generateKeyPair();
     final Address senderAddress =
         Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
-    final long balance = RAND.nextLong(21000, 100000L);
     final long value = RAND.nextLong();
     final ToyAccount senderAccount =
         ToyAccount.builder()
-            .balance(Wei.of(balance))
+            .balance(Wei.MAX_WEI)
             .nonce(Math.abs(RAND.nextInt()))
             .address(senderAddress)
             .build();
@@ -272,14 +271,15 @@ public class StpTest {
             .build();
     world.account(toAccount);
 
+    final long gasLimit = RAND.nextLong(21000, 1000000L);
     return ToyTransaction.builder()
         .sender(senderAccount)
         .keyPair(keyPair)
         .transactionType(TransactionType.FRONTIER)
         .to(toAccount)
-        .gasLimit(100_000L)
+        .gasLimit(gasLimit)
         .value(Wei.ONE)
-        .gasLimit(RAND.nextLong(21000, 100000))
+        .gasLimit(gasLimit)
         .build();
   }
 }

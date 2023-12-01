@@ -55,7 +55,7 @@ public class ToyAccount implements MutableAccount {
       final long nonce,
       final Wei balance,
       final Bytes code) {
-    Preconditions.checkArgument(nonce>=0);
+    Preconditions.checkArgument(nonce >= 0);
     this.parent = parent;
     this.address = address;
     this.nonce = nonce;

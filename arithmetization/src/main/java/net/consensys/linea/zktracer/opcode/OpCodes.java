@@ -93,4 +93,8 @@ public class OpCodes {
   public static List<OpCodeData> of(final OpCode... codes) {
     return Arrays.stream(codes).map(OpCodes::of).toList();
   }
+
+  public static boolean isCreate(OpCode opCode) {
+    return (opCode == OpCode.CREATE) || (opCode == OpCode.CREATE2);
+  }
 }

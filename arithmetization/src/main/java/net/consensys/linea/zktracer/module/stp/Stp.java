@@ -16,10 +16,10 @@
 package net.consensys.linea.zktracer.module.stp;
 
 import static java.lang.Long.max;
+import static net.consensys.linea.zktracer.opcode.OpCodes.isCreate;
 import static net.consensys.linea.zktracer.types.AddressUtils.getDeploymentAddress;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBigInteger;
 import static net.consensys.linea.zktracer.types.Conversions.longToBytes32;
-import static net.consensys.linea.zktracer.types.OpCodeUtils.isCreate;
 
 import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
@@ -66,11 +66,7 @@ public class Stp implements Module {
 
   @Override
   public int lineCount() {
-    int traceRowSize = 0;
-    for (StpChunk chunk : this.chunks) {
-      traceRowSize += ctMax(chunk) + 1;
-    }
-    return traceRowSize;
+    return this.chunks.stream().mapToInt(chunk -> ctMax(chunk) + 1).sum();
   }
 
   @Override
@@ -96,7 +92,7 @@ public class Stp implements Module {
         final StpChunk chunk = getCallData(frame);
         this.chunks.add(chunk);
         this.wcp.callLT(longToBytes32(chunk.gasActual()), Bytes32.ZERO);
-        if (cctv(chunk.opCode())) {
+        if (callCanTransferValue(chunk.opCode())) {
           this.wcp.callISZERO(Bytes32.leftPad(chunk.value()));
         }
         this.wcp.callLT(longToBytes32(chunk.gasActual()), longToBytes32(chunk.gasPrelim()));
@@ -114,7 +110,7 @@ public class Stp implements Module {
     final Long gasMxp = getGasMxpCreate(frame);
     final Long gasPrelim = GasConstants.G_CREATE.cost() + gasMxp;
     return new StpChunk(
-        OpCode.of(frame.getCurrentOperation().getOpcode()),
+        this.hub.opCode(),
         gasRemaining,
         gasPrelim,
         gasRemaining < gasPrelim,
@@ -125,9 +121,10 @@ public class Stp implements Module {
   }
 
   private StpChunk getCallData(final MessageFrame frame) {
-    final OpCode opcode = OpCode.of(frame.getCurrentOperation().getOpcode());
+    final OpCode opcode = this.hub.opCode();
     final long gasActual = frame.getRemainingGas();
-    final Bytes32 value = cctv(opcode) ? Bytes32.leftPad(frame.getStackItem(2)) : Bytes32.ZERO;
+    final Bytes32 value =
+        callCanTransferValue(opcode) ? Bytes32.leftPad(frame.getStackItem(2)) : Bytes32.ZERO;
     final Address to = Words.toAddress(frame.getStackItem(1));
     final Long gasMxp = getGasMxpCall(frame);
     final boolean toWarm = frame.isAddressWarm(to);
@@ -137,7 +134,7 @@ public class Stp implements Module {
                 && !frame.getWorldUpdater().get(to).isEmpty());
 
     long gasPrelim = gasMxp;
-    if (!value.isZero() && cctv(opcode)) {
+    if (!value.isZero() && callCanTransferValue(opcode)) {
       gasPrelim += GasConstants.G_CALL_VALUE.cost();
     }
     if (toWarm) {
@@ -163,28 +160,28 @@ public class Stp implements Module {
         Bytes32.leftPad(frame.getStackItem(0)));
   }
 
-  private boolean cctv(OpCode opCode) {
+  private boolean callCanTransferValue(OpCode opCode) {
     return (opCode == OpCode.CALL) || (opCode == OpCode.CALLCODE);
   }
 
   // TODO get from Hub.GasProjector
   private Long getGasMxpCreate(final MessageFrame frame) {
     long gasMxp = 0;
-    long offset = Words.clampedToLong(frame.getStackItem(1));
-    long length = Words.clampedToLong(frame.getStackItem(2));
-    long currentMemorySizeInWords = frame.memoryWordSize();
-    long updatedMemorySizeInWords = frame.calculateMemoryExpansion(offset, length);
+    final long offset = Words.clampedToLong(frame.getStackItem(1));
+    final long length = Words.clampedToLong(frame.getStackItem(2));
+    final long currentMemorySizeInWords = frame.memoryWordSize();
+    final long updatedMemorySizeInWords = frame.calculateMemoryExpansion(offset, length);
     if (currentMemorySizeInWords < updatedMemorySizeInWords) {
       // computing the "linear" portion of CREATE2 memory expansion cost
-      long G_mem = GasConstants.G_MEMORY.cost();
-      long squareCurrent = (currentMemorySizeInWords * currentMemorySizeInWords) >> 9;
-      long squareUpdated = (updatedMemorySizeInWords * updatedMemorySizeInWords) >> 9;
+      final long G_mem = GasConstants.G_MEMORY.cost();
+      final long squareCurrent = (currentMemorySizeInWords * currentMemorySizeInWords) >> 9;
+      final long squareUpdated = (updatedMemorySizeInWords * updatedMemorySizeInWords) >> 9;
       gasMxp +=
           G_mem * (updatedMemorySizeInWords - currentMemorySizeInWords)
               + (squareUpdated - squareCurrent);
     }
     if (OpCode.of(frame.getCurrentOperation().getOpcode()) == OpCode.CREATE2) {
-      long lengthInWords = (length + 31) >> 5; // ⌈ length / 32 ⌉
+      final long lengthInWords = (length + 31) >> 5; // ⌈ length / 32 ⌉
       gasMxp += lengthInWords * GasConstants.G_KECCAK_256_WORD.cost();
     }
     return gasMxp;
@@ -194,22 +191,23 @@ public class Stp implements Module {
   private Long getGasMxpCall(final MessageFrame frame) {
     long gasMxp = 0;
 
-    int offset = cctv(OpCode.of(frame.getCurrentOperation().getOpcode())) ? 1 : 0;
-    long cdo = Words.clampedToLong(frame.getStackItem(2 + offset)); // call data offset
-    long cds = Words.clampedToLong(frame.getStackItem(3 + offset)); // call data size
-    long rdo = Words.clampedToLong(frame.getStackItem(4 + offset)); // return data offset
-    long rdl = Words.clampedToLong(frame.getStackItem(5 + offset)); // return data size
+    final int offset =
+        callCanTransferValue(OpCode.of(frame.getCurrentOperation().getOpcode())) ? 1 : 0;
+    final long cdo = Words.clampedToLong(frame.getStackItem(2 + offset)); // call data offset
+    final long cds = Words.clampedToLong(frame.getStackItem(3 + offset)); // call data size
+    final long rdo = Words.clampedToLong(frame.getStackItem(4 + offset)); // return data offset
+    final long rdl = Words.clampedToLong(frame.getStackItem(5 + offset)); // return data size
 
-    long memSize = frame.memoryWordSize();
-    long memSizeCallData = frame.calculateMemoryExpansion(cdo, cds);
-    long memSizeReturnData = frame.calculateMemoryExpansion(rdo, rdl);
-    long maybeNewMemSize = max(memSizeReturnData, memSizeCallData);
+    final long memSize = frame.memoryWordSize();
+    final long memSizeCallData = frame.calculateMemoryExpansion(cdo, cds);
+    final long memSizeReturnData = frame.calculateMemoryExpansion(rdo, rdl);
+    final long maybeNewMemSize = max(memSizeReturnData, memSizeCallData);
 
     if (memSize < maybeNewMemSize) {
       // computing the "linear" portion of CREATE2 memory expansion cost
-      long G_mem = GasConstants.G_MEMORY.cost();
-      long squareCurrent = (memSize * memSize) >> 9;
-      long squareUpdated = (maybeNewMemSize * maybeNewMemSize) >> 9;
+      final long G_mem = GasConstants.G_MEMORY.cost();
+      final long squareCurrent = (memSize * memSize) >> 9;
+      final long squareUpdated = (maybeNewMemSize * maybeNewMemSize) >> 9;
       gasMxp += G_mem * (maybeNewMemSize - memSize) + (squareUpdated - squareCurrent);
     }
     return gasMxp;
@@ -299,7 +297,7 @@ public class Stp implements Module {
   private void traceCall(StpChunk chunk, int stamp, Trace trace) {
     final int ctMax = ctMax(chunk);
     final long gasStipend =
-        (!chunk.oogx() && cctv(chunk.opCode()) && !chunk.value().isZero())
+        (!chunk.oogx() && callCanTransferValue(chunk.opCode()) && !chunk.value().isZero())
             ? GasConstants.G_CALL_STIPEND.cost()
             : 0;
     final BigInteger gasOopkt =
@@ -352,7 +350,7 @@ public class Stp implements Module {
             .arg2Lo(BigInteger.ZERO)
             .exogenousModuleInstruction(UnsignedByte.of(OpCode.ISZERO.byteValue()))
             .resLo(booleanToBigInteger(chunk.value().isZero()))
-            .wcpFlag(cctv(chunk.opCode()))
+            .wcpFlag(callCanTransferValue(chunk.opCode()))
             .modFlag(false)
             .validateRow();
         case 2 -> trace

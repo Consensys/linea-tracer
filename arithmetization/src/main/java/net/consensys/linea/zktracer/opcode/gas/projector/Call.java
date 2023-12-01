@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.opcode.gas.projector;
 
+import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
+
 import net.consensys.linea.zktracer.opcode.gas.GasConstants;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
@@ -69,7 +71,7 @@ public record Call(
       return 0;
     }
 
-    if (frame.isAddressWarm(to)) {
+    if (frame.isAddressWarm(to) || isPrecompile(to)) {
       return GasConstants.G_WARM_ACCESS.cost();
     } else {
       return GasConstants.G_COLD_ACCOUNT_ACCESS.cost();
@@ -121,14 +123,10 @@ public record Call(
 
   @Override
   public long extraStipend() {
-    if (this.isInvalid()) {
+    if (this.isInvalid() || this.value.isZero()) {
       return 0;
     }
 
-    if (value.isZero()) {
-      return 0L;
-    } else {
-      return GasConstants.G_CALL_STIPEND.cost();
-    }
+    return GasConstants.G_CALL_STIPEND.cost();
   }
 }

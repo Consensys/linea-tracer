@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.runtime.stack;
 
-import net.consensys.linea.zktracer.types.EWord;
+import org.apache.tuweni.bytes.Bytes;
 
 /**
  * An atomic operation (read/pop or write/push) on the stack, indexed within a {@link
@@ -26,13 +26,14 @@ import net.consensys.linea.zktracer.types.EWord;
  * metadata, in a {@link StackContext}.
  */
 public final class StackOperation {
+  private static final Bytes MARKER = Bytes.fromHexString("0xDEADBEEF");
   /**
    * The relative height of the element with regard to the stack height just before executing the
    * linked EVM instruction.
    */
   private final int height;
   /** The value having been popped from/pushed on the stack. */
-  private EWord value;
+  private Bytes value;
   /** whether this action is a push or a pop. */
   private final Action action;
   /**
@@ -43,35 +44,32 @@ public final class StackOperation {
 
   StackOperation() {
     this.height = 0;
-    this.value = EWord.ZERO;
+    this.value = Bytes.EMPTY;
     this.action = Action.NONE;
     this.stackStamp = 0;
   }
 
-  StackOperation(int height, EWord value, Action action, int stackStamp) {
+  StackOperation(int height, Bytes value, Action action, int stackStamp) {
     this.height = height;
     this.value = value;
     this.action = action;
     this.stackStamp = stackStamp;
   }
 
-  public static StackOperation pop(int height, EWord value, int stackStamp) {
+  public static StackOperation pop(int height, Bytes value, int stackStamp) {
     return new StackOperation(height, value, Action.POP, stackStamp);
   }
 
   public static StackOperation push(int height, int stackStamp) {
     return new StackOperation(
-        height,
-        EWord.of(0xDEADBEEFL) /* marker value, erased on unlatching */,
-        Action.PUSH,
-        stackStamp);
+        height, MARKER /* marker value, erased on unlatching */, Action.PUSH, stackStamp);
   }
 
-  public static StackOperation pushImmediate(int height, EWord val, int stackStamp) {
+  public static StackOperation pushImmediate(int height, Bytes val, int stackStamp) {
     return new StackOperation(height, val.copy(), Action.PUSH, stackStamp);
   }
 
-  public void setValue(EWord x) {
+  public void setValue(Bytes x) {
     this.value = x;
   }
 
@@ -79,7 +77,7 @@ public final class StackOperation {
     return height;
   }
 
-  public EWord value() {
+  public Bytes value() {
     return value;
   }
 

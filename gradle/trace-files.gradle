@@ -61,17 +61,25 @@ tasks.register('instructionDecoder', TraceFilesTask) {
     module = "instructionDecoder"
     files = ["lookup_tables/tables/instruction_decoder.lisp"]
 }
+tasks.register('shfRT', TraceFilesTask) {
+    group "Trace files generation"
+    dependsOn corsetExists
+
+    moduleDir = "tables/shf"
+    module = "ShfRt"
+    files = ["lookup_tables/shfRT/columns.lisp"]
+}
 
 //
 // Modules requiring the library
 //
-['rlp_txrcpt', 'rlp_txn', 'rlpAddr', 'txn_data'].each {moduleName ->
+['rlp_txrcpt', 'rlp_txn', 'rlpAddr', 'txn_data', 'logInfo', 'logData'].each {moduleName ->
     tasks.register(moduleName, TraceFilesTask) {
         group "Trace files generation"
         dependsOn corsetExists
 
         module = moduleName
-        files = ["${moduleName}/columns.lisp", "rlp_patterns/constraints.lisp"]
+        files = ["${moduleName}/columns.lisp", "library/rlp_constraints_pattern.lisp"]
     }
 }
 

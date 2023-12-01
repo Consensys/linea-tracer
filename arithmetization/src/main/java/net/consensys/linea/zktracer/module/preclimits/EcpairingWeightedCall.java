@@ -15,13 +15,16 @@
 
 package net.consensys.linea.zktracer.module.preclimits;
 
+import java.nio.MappedByteBuffer;
+import java.util.List;
+
+import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
-import net.consensys.linea.zktracer.module.ModuleTrace;
 
 public final class EcpairingWeightedCall implements Module {
-  private final EcpairingCall ecpairingCall;
+  private final EcPairingCall ecpairingCall;
 
-  public EcpairingWeightedCall(EcpairingCall ecpairingCall) {
+  public EcpairingWeightedCall(EcPairingCall ecpairingCall) {
     this.ecpairingCall = ecpairingCall;
   }
 
@@ -42,7 +45,12 @@ public final class EcpairingWeightedCall implements Module {
   }
 
   @Override
-  public ModuleTrace commit() {
+  public List<ColumnHeader> columnsHeaders() {
+    throw new IllegalStateException("should never be called");
+  }
+
+  @Override
+  public void commit(List<MappedByteBuffer> buffers) {
     throw new IllegalStateException("should never be called");
   }
 }

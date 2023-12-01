@@ -18,6 +18,7 @@ package net.consensys.linea.zktracer.module.hub;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.Getter;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
@@ -27,7 +28,7 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
  */
 public class TxTrace {
   /** The {@link TraceSection} of which this transaction trace is made of */
-  private final List<TraceSection> trace = new ArrayList<>();
+  @Getter private final List<TraceSection> trace = new ArrayList<>();
 
   public int size() {
     return this.trace.size();
@@ -102,7 +103,7 @@ public class TxTrace {
    *
    * @param hubTrace where to materialize the trace
    */
-  public void commit(Trace.TraceBuilder hubTrace) {
+  public void commit(Trace hubTrace) {
     for (TraceSection opSection : this.trace) {
       for (TraceSection.TraceLine line : opSection.getLines()) {
         line.trace(hubTrace);

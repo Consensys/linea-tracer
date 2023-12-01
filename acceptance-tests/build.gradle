@@ -1,3 +1,5 @@
+import java.time.LocalTime
+
 /*
  * Copyright Consensys Software Inc.
  *
@@ -35,6 +37,21 @@ solidity {
   optimizeRuns = 1
 }
 
+tasks.register('acceptanceTests', Test) {
+  description = 'Runs acceptance tests.'
+
+  dependsOn(project(":arithmetization").copyPluginJar)
+
+  inputs.property("integration.date", LocalTime.now()) // so it runs on every invocation
+
+  useJUnitPlatform {
+    includeTags("AcceptanceTest")
+  }
+
+  doFirst {
+    systemProperty("besu.plugins.dir", rootProject.besuPluginDir)
+  }
+}
 
 dependencies {
   testImplementation "${besuArtifactGroup}.internal:dsl:$besuVersion"
@@ -45,8 +62,8 @@ dependencies {
   testImplementation "${besuArtifactGroup}.internal:core:$besuVersion:test-support"
   testImplementation "${besuArtifactGroup}:evm:$besuVersion"
 
-  testImplementation 'org.apache.tuweni:tuweni-bytes'
-  testImplementation 'org.apache.tuweni:tuweni-units'
+  testImplementation 'io.tmio:tuweni-bytes'
+  testImplementation 'io.tmio:tuweni-units'
 
   testImplementation 'org.web3j:abi'
   testImplementation 'org.web3j:besu'

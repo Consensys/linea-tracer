@@ -19,15 +19,22 @@ import static net.consensys.linea.zktracer.module.rlputils.Pattern.bitDecomposit
 import static net.consensys.linea.zktracer.module.rlputils.Pattern.byteCounting;
 import static net.consensys.linea.zktracer.module.rlputils.Pattern.padToGivenSizeWithLeftZero;
 import static net.consensys.linea.zktracer.module.rlputils.Pattern.padToGivenSizeWithRightZero;
+import static net.consensys.linea.zktracer.types.AddressUtils.getCreate2Address;
+import static net.consensys.linea.zktracer.types.AddressUtils.getCreateAddress;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
+import static net.consensys.linea.zktracer.types.Conversions.longToUnsignedBigInteger;
 import static org.hyperledger.besu.crypto.Hash.keccak256;
 import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
 import java.math.BigInteger;
+import java.nio.MappedByteBuffer;
+import java.util.List;
 
+import lombok.RequiredArgsConstructor;
+import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import net.consensys.linea.zktracer.module.Module;
-import net.consensys.linea.zktracer.module.ModuleTrace;
+import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.rlputils.BitDecOutput;
 import net.consensys.linea.zktracer.module.rlputils.ByteCountAndPowerOutput;
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -39,12 +46,14 @@ import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
+@RequiredArgsConstructor
 public class RlpAddr implements Module {
   private static final Bytes CREATE2_SHIFT = bigIntegerToBytes(BigInteger.valueOf(0xff));
   private static final Bytes INT_SHORT = bigIntegerToBytes(BigInteger.valueOf(0x80));
   private static final int LIST_SHORT = 0xc0;
   private static final int LLARGE = 16;
 
+  private final Hub hub;
   private final StackedList<RlpAddrChunk> chunkList = new StackedList<>();
 
   @Override
@@ -65,24 +74,29 @@ public class RlpAddr implements Module {
   @Override
   public void traceStartTx(WorldView world, Transaction tx) {
     if (tx.getTo().isEmpty()) {
-      RlpAddrChunk chunk = new RlpAddrChunk(OpCode.CREATE, tx.getNonce(), tx.getSender());
+      final Address senderAddress = tx.getSender();
+      final long nonce = tx.getNonce();
+      RlpAddrChunk chunk =
+          new RlpAddrChunk(
+              Address.contractAddress(senderAddress, nonce),
+              OpCode.CREATE,
+              longToUnsignedBigInteger(nonce),
+              senderAddress);
       this.chunkList.add(chunk);
     }
   }
 
   @Override
   public void tracePreOpcode(MessageFrame frame) {
-    OpCode opcode = OpCode.of(frame.getCurrentOperation().getOpcode());
+    final OpCode opcode = this.hub.opCode();
     switch (opcode) {
       case CREATE -> {
         final Address currentAddress = frame.getRecipientAddress();
         RlpAddrChunk chunk =
             new RlpAddrChunk(
+                getCreateAddress(frame),
                 OpCode.CREATE,
-                frame
-                    .getWorldUpdater()
-                    .getAccount(currentAddress)
-                    .getNonce(), // TODO: use the method done by @Lorenzo in OOB module
+                longToUnsignedBigInteger(frame.getWorldUpdater().get(currentAddress).getNonce()),
                 currentAddress);
         this.chunkList.add(chunk);
       }
@@ -94,31 +108,28 @@ public class RlpAddr implements Module {
         final Bytes32 hash = keccak256(initCode);
 
         RlpAddrChunk chunk =
-            new RlpAddrChunk(OpCode.CREATE2, frame.getRecipientAddress(), salt, hash);
+            new RlpAddrChunk(
+                getCreate2Address(frame), OpCode.CREATE2, frame.getRecipientAddress(), salt, hash);
         this.chunkList.add(chunk);
       }
     }
   }
 
-  private void traceCreate2(
-      int stamp, Address address, Bytes32 salt, Bytes32 keccak, Trace.TraceBuilder trace) {
-    final Address deployementAddress =
-        Address.extract(keccak256(Bytes.concatenate(CREATE2_SHIFT, address, salt, keccak)));
-
+  private void traceCreate2(int stamp, RlpAddrChunk chunk, Trace trace) {
     for (int ct = 0; ct < 6; ct++) {
       trace
           .stamp(BigInteger.valueOf(stamp))
           .recipe(BigInteger.valueOf(2))
           .recipe1(false)
           .recipe2(true)
-          .depAddrHi(deployementAddress.slice(0, 4).toUnsignedBigInteger())
-          .depAddrLo(deployementAddress.slice(4, LLARGE).toUnsignedBigInteger())
-          .addrHi(address.slice(0, 4).toUnsignedBigInteger())
-          .addrLo(address.slice(4, LLARGE).toUnsignedBigInteger())
-          .saltHi(salt.slice(0, LLARGE).toUnsignedBigInteger())
-          .saltLo(salt.slice(LLARGE, LLARGE).toUnsignedBigInteger())
-          .kecHi(keccak.slice(0, LLARGE).toUnsignedBigInteger())
-          .kecLo(keccak.slice(LLARGE, LLARGE).toUnsignedBigInteger())
+          .depAddrHi(chunk.depAddress().slice(0, 4).toUnsignedBigInteger())
+          .depAddrLo(chunk.depAddress().slice(4, LLARGE).toUnsignedBigInteger())
+          .addrHi(chunk.address().slice(0, 4).toUnsignedBigInteger())
+          .addrLo(chunk.address().slice(4, LLARGE).toUnsignedBigInteger())
+          .saltHi(chunk.salt().orElseThrow().slice(0, LLARGE).toUnsignedBigInteger())
+          .saltLo(chunk.salt().orElseThrow().slice(LLARGE, LLARGE).toUnsignedBigInteger())
+          .kecHi(chunk.keccak().orElseThrow().slice(0, LLARGE).toUnsignedBigInteger())
+          .kecLo(chunk.keccak().orElseThrow().slice(LLARGE, LLARGE).toUnsignedBigInteger())
           .lc(true)
           .index(BigInteger.valueOf(ct))
           .counter(BigInteger.valueOf(ct));
@@ -127,24 +138,24 @@ public class RlpAddr implements Module {
         case 0 -> {
           trace.limb(
               padToGivenSizeWithRightZero(
-                      Bytes.concatenate(CREATE2_SHIFT, address.slice(0, 4)), LLARGE)
+                      Bytes.concatenate(CREATE2_SHIFT, chunk.address().slice(0, 4)), LLARGE)
                   .toUnsignedBigInteger());
           trace.nBytes(BigInteger.valueOf(5));
         }
         case 1 -> trace
-            .limb(address.slice(4, LLARGE).toUnsignedBigInteger())
+            .limb(chunk.address().slice(4, LLARGE).toUnsignedBigInteger())
             .nBytes(BigInteger.valueOf(LLARGE));
         case 2 -> trace
-            .limb(salt.slice(0, LLARGE).toUnsignedBigInteger())
+            .limb(chunk.salt().orElseThrow().slice(0, LLARGE).toUnsignedBigInteger())
             .nBytes(BigInteger.valueOf(LLARGE));
         case 3 -> trace
-            .limb(salt.slice(LLARGE, LLARGE).toUnsignedBigInteger())
+            .limb(chunk.salt().orElseThrow().slice(LLARGE, LLARGE).toUnsignedBigInteger())
             .nBytes(BigInteger.valueOf(LLARGE));
         case 4 -> trace
-            .limb(keccak.slice(0, LLARGE).toUnsignedBigInteger())
+            .limb(chunk.keccak().orElseThrow().slice(0, LLARGE).toUnsignedBigInteger())
             .nBytes(BigInteger.valueOf(LLARGE));
         case 5 -> trace
-            .limb(keccak.slice(LLARGE, LLARGE).toUnsignedBigInteger())
+            .limb(chunk.keccak().orElseThrow().slice(LLARGE, LLARGE).toUnsignedBigInteger())
             .nBytes(BigInteger.valueOf(LLARGE));
       }
 
@@ -163,8 +174,9 @@ public class RlpAddr implements Module {
     }
   }
 
-  private void traceCreate(int stamp, BigInteger nonce, Address addr, Trace.TraceBuilder trace) {
+  private void traceCreate(int stamp, RlpAddrChunk chunk, Trace trace) {
     final int RECIPE1_CT_MAX = 8;
+    final BigInteger nonce = chunk.nonce().orElseThrow();
 
     Bytes nonceShifted = padToGivenSizeWithLeftZero(bigIntegerToBytes(nonce), RECIPE1_CT_MAX);
     Boolean tinyNonZeroNonce = true;
@@ -204,19 +216,16 @@ public class RlpAddr implements Module {
       }
     }
 
-    // Keccak of the Rlp to get the deployment address
-    final Address deployementAddress = Address.contractAddress(addr, nonce.longValueExact());
-
     for (int ct = 0; ct < 8; ct++) {
       trace
           .stamp(BigInteger.valueOf(stamp))
           .recipe(BigInteger.ONE)
           .recipe1(true)
           .recipe2(false)
-          .addrHi(addr.slice(0, 4).toUnsignedBigInteger())
-          .addrLo(addr.slice(4, LLARGE).toUnsignedBigInteger())
-          .depAddrHi(deployementAddress.slice(0, 4).toUnsignedBigInteger())
-          .depAddrLo(deployementAddress.slice(4, LLARGE).toUnsignedBigInteger())
+          .addrHi(chunk.address().slice(0, 4).toUnsignedBigInteger())
+          .addrLo(chunk.address().slice(4, LLARGE).toUnsignedBigInteger())
+          .depAddrHi(chunk.depAddress().slice(0, 4).toUnsignedBigInteger())
+          .depAddrLo(chunk.depAddress().slice(4, LLARGE).toUnsignedBigInteger())
           .nonce(nonce)
           .counter(BigInteger.valueOf(ct))
           .byte1(UnsignedByte.of(nonceShifted.get(ct)))
@@ -250,14 +259,15 @@ public class RlpAddr implements Module {
             .limb(
                 padToGivenSizeWithRightZero(
                         Bytes.concatenate(
-                            bigIntegerToBytes(BigInteger.valueOf(148)), addr.slice(0, 4)),
+                            bigIntegerToBytes(BigInteger.valueOf(148)),
+                            chunk.address().slice(0, 4)),
                         LLARGE)
                     .toUnsignedBigInteger())
             .nBytes(BigInteger.valueOf(5))
             .index(BigInteger.ONE);
         case 6 -> trace
             .lc(true)
-            .limb(addr.slice(4, LLARGE).toUnsignedBigInteger())
+            .limb(chunk.address().slice(4, LLARGE).toUnsignedBigInteger())
             .nBytes(BigInteger.valueOf(16))
             .index(BigInteger.valueOf(2));
         case 7 -> trace
@@ -277,11 +287,11 @@ public class RlpAddr implements Module {
     }
   }
 
-  private void traceChunks(RlpAddrChunk chunk, int stamp, Trace.TraceBuilder trace) {
+  private void traceChunks(RlpAddrChunk chunk, int stamp, Trace trace) {
     if (chunk.opCode().equals(OpCode.CREATE)) {
-      traceCreate(stamp, BigInteger.valueOf(chunk.nonce().get()), chunk.address(), trace);
+      traceCreate(stamp, chunk, trace);
     } else {
-      traceCreate2(stamp, chunk.address(), chunk.salt().get(), chunk.keccak().get(), trace);
+      traceCreate2(stamp, chunk, trace);
     }
   }
 
@@ -303,12 +313,16 @@ public class RlpAddr implements Module {
   }
 
   @Override
-  public ModuleTrace commit() {
-    final Trace.TraceBuilder trace = Trace.builder(this.lineCount());
+  public List<ColumnHeader> columnsHeaders() {
+    return Trace.headers(this.lineCount());
+  }
+
+  @Override
+  public void commit(List<MappedByteBuffer> buffers) {
+    final Trace trace = new Trace(buffers);
 
     for (int i = 0; i < this.chunkList.size(); i++) {
       traceChunks(chunkList.get(i), i + 1, trace);
     }
-    return new RlpAddrTrace(trace.build());
   }
 }

@@ -47,6 +47,9 @@ tasks.register('referenceBlockchainTests', Test) {
 
   dependsOn generateBlockchainReferenceTests
 
+  minHeapSize = "4g"
+  maxHeapSize = "20g"
+
   useJUnitPlatform {
     includeTags("BlockchainReferenceTest")
   }
@@ -57,6 +60,9 @@ tasks.register('referenceGeneralStateTests', Test) {
 
   dependsOn generateGeneralStateReferenceTests
 
+  minHeapSize = "4g"
+  maxHeapSize = "20g"
+
   useJUnitPlatform {
     includeTags("GeneralStateReferenceTest")
   }
@@ -65,11 +71,15 @@ tasks.register('referenceGeneralStateTests', Test) {
 tasks.register('referenceTests', Test) {
   description = 'Runs ETH reference tests.'
 
+  minHeapSize = "4g"
+  maxHeapSize = "20g"
+
   useJUnitPlatform {
     includeTags("BlockchainReferenceTest")
     includeTags("GeneralStateReferenceTest")
   }
 }
+
 
 dependencies {
   testImplementation project(":arithmetization")
@@ -86,8 +96,8 @@ dependencies {
   testImplementation "${besuArtifactGroup}.internal:util:${besuVersion}"
   testImplementation "${besuArtifactGroup}:plugin-api"
 
-  testImplementation 'org.apache.tuweni:tuweni-bytes'
-  testImplementation 'org.apache.tuweni:tuweni-units'
+  testImplementation 'io.tmio:tuweni-bytes'
+  testImplementation 'io.tmio:tuweni-units'
 
   testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
   testImplementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'

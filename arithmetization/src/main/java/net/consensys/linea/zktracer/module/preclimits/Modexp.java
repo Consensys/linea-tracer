@@ -18,11 +18,15 @@ package net.consensys.linea.zktracer.module.preclimits;
 import static net.consensys.linea.zktracer.module.Util.slice;
 
 import java.math.BigInteger;
+import java.nio.MappedByteBuffer;
+import java.util.List;
 import java.util.Stack;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
-import net.consensys.linea.zktracer.module.ModuleTrace;
+import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
@@ -30,7 +34,9 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 
 @Slf4j
+@RequiredArgsConstructor
 public class Modexp implements Module {
+  private final Hub hub;
   private final Stack<Integer> counts = new Stack<Integer>();
   private final int proverMaxInputBitSize = 4096;
   private final int ewordSize = 32;
@@ -53,7 +59,7 @@ public class Modexp implements Module {
 
   @Override
   public void tracePreOpcode(MessageFrame frame) {
-    final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
+    final OpCode opCode = hub.opCode();
 
     switch (opCode) {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
@@ -142,7 +148,12 @@ public class Modexp implements Module {
   }
 
   @Override
-  public ModuleTrace commit() {
+  public List<ColumnHeader> columnsHeaders() {
+    throw new IllegalStateException("should never be called");
+  }
+
+  @Override
+  public void commit(List<MappedByteBuffer> buffers) {
     throw new IllegalStateException("should never be called");
   }
 }

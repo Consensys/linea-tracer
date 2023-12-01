@@ -102,7 +102,7 @@ public class TraceLineLimitTransactionSelector implements PluginTransactionSelec
         .log();
     System.out.println("*** moduleLimits.keySet() ***");
     for (String module:moduleLimits.keySet()) {
-      System.out.println(module);
+      System.out.println(module+ ": "+moduleLimits.get(module));
     }
 
     System.out.println("*** currCumulatedLineCount.keySet() ***");

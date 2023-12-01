@@ -30,10 +30,8 @@ import org.hyperledger.besu.plugin.services.rpc.PluginRpcRequest;
 
 /** Responsible for conflated file traces generation. */
 @Slf4j
-public class RollupGenerateConflatedTracesToFileV0 implements RollupRpcMethod {
-
+public class RollupGenerateConflatedTracesToFileV0 implements  RollupRpcMethod {
   private final BesuContext besuContext;
-
   private Path tracesPath;
   private TraceService traceService;
 
@@ -41,12 +39,10 @@ public class RollupGenerateConflatedTracesToFileV0 implements RollupRpcMethod {
     this.besuContext = besuContext;
   }
 
-  @Override
   public String getNamespace() {
     return "rollup";
   }
 
-  @Override
   public String getName() {
     return "generateConflatedTracesToFileV0";
   }
@@ -57,15 +53,13 @@ public class RollupGenerateConflatedTracesToFileV0 implements RollupRpcMethod {
    * @param request holds parameters of the RPC request.
    * @return an execution file trace.
    */
-  @Override
   public FileTrace execute(final PluginRpcRequest request) {
     Stopwatch sw = Stopwatch.createStarted();
-    if (traceService == null) {
-      traceService = initTraceService();
+    if (this.traceService == null) {
+      this.traceService = getTraceService();
     }
-
-    if (tracesPath == null) {
-      tracesPath = initTracesPath();
+    if (this.tracesPath == null) {
+      this.tracesPath = getTracesPath();
     }
 
     try {
@@ -78,39 +72,40 @@ public class RollupGenerateConflatedTracesToFileV0 implements RollupRpcMethod {
           fromBlock,
           toBlock,
           worldStateBeforeTracing -> {
-            // before tracing
             tracer.traceStartConflation(toBlock - fromBlock + 1);
           },
           worldStateAfterTracing -> {
-            // after tracing
             tracer.traceEndConflation();
           },
           tracer);
       log.info("[TRACING] trace computed in {}", sw);
       sw.reset().start();
       final String path = writeTraceToFile(tracer, params.runtimeVersion());
-      log.info("[TRACING] trace serialized in {}", sw);
+      log.info("[TRACING] trace serialized to {} in {}", path, sw);
       return new FileTrace(params.runtimeVersion(), path);
     } catch (Exception ex) {
       throw new PluginRpcEndpointException(ex.getMessage());
     }
   }
 
-  private Path initTracesPath() {
-    final Path dataPath =
-        besuContext
-            .getService(BesuConfiguration.class)
-            .map(BesuConfiguration::getDataPath)
-            .orElseThrow(
-                () ->
-                    new RuntimeException(
-                        "Unable to find data path. Please ensure BesuConfiguration is registered."));
-
-    return dataPath.resolve("traces");
+  private Path getTracesPath() {
+    final String envVar = System.getenv("TRACES_DIR");
+    if (envVar == null) {
+      return this.besuContext
+          .getService(BesuConfiguration.class)
+          .map(BesuConfiguration::getDataPath)
+          .map(x -> x.resolve("traces"))
+          .orElseThrow(
+              () ->
+                  new RuntimeException(
+                      "Unable to find data path. Please ensure BesuConfiguration is registered."));
+    } else {
+      return Paths.get(envVar);
+    }
   }
 
-  private TraceService initTraceService() {
-    return besuContext
+  private TraceService getTraceService() {
+    return this.besuContext
         .getService(TraceService.class)
         .orElseThrow(
             () ->
@@ -132,10 +127,11 @@ public class RollupGenerateConflatedTracesToFileV0 implements RollupRpcMethod {
               tracesPath.toAbsolutePath()));
     }
 
-    return Paths.get(
-        String.format(
-            "%.10s-%s.traces.%s",
-            System.currentTimeMillis(), tracesEngineVersion, getFileFormat()));
+    return tracesPath.resolve(
+        Paths.get(
+            String.format(
+                "%.10s-%s.traces.%s",
+                System.currentTimeMillis(), tracesEngineVersion, getFileFormat())));
   }
 
   private String getFileFormat() {

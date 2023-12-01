@@ -33,16 +33,13 @@ public class LineCountsByBlockCache {
 
   public static Map<String, Integer> getBlockTraces(
       final TraceService traceService, final long blockNumber) {
-    if (!lineCountsCache.asMap().containsKey(blockNumber)) {
-      // trace the block, which will add the counters to the cache
-      traceService.traceBlock(blockNumber, new ZkTracer());
-    }
     if (lineCountsCache.asMap().containsKey(blockNumber)) {
       return lineCountsCache.getIfPresent(blockNumber);
 
     } else {
-      //      throw new RuntimeException("traceBlock() failed. Line counts do not exist in cache.");
-      return null;
+      // trace the block, which will add the counters to the cache
+      traceService.traceBlock(blockNumber, new ZkTracer());
+      return lineCountsCache.getIfPresent(blockNumber);
     }
   }
 }

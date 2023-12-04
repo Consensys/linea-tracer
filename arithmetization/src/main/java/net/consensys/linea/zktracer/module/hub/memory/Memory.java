@@ -15,15 +15,21 @@
 
 package net.consensys.linea.zktracer.module.hub.memory;
 
+import java.util.Arrays;
+
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
 public class Memory {
-  private final UnsignedByte[] memory;
-  private final boolean clean;
+  private UnsignedByte[] memory;
+  private boolean clean;
 
   public Memory(UnsignedByte[] memory) {
+    this(memory, true);
+  }
+
+  private Memory(UnsignedByte[] memory, boolean clean) {
     this.memory = memory;
-    this.clean = true;
+    this.clean = clean;
   }
 
   public UnsignedByte[] limbAtIndex(final int index) {
@@ -35,5 +41,30 @@ public class Memory {
     }
 
     return limb;
+  }
+
+  public void updateLimb(int limbIndex, UnsignedByte[] valNew) {
+    if (clean) {
+      clean = false;
+      this.memory = Arrays.copyOf(memory, memory.length);
+    }
+
+    int potNewLen = (limbIndex + 1) * 16;
+    expand(potNewLen);
+
+    System.arraycopy(valNew, 0, memory, limbIndex * 16, potNewLen);
+  }
+
+  /**
+   * Should be called once per RAM macro-instruction.
+   *
+   * @param potNewLen expanded memory length
+   */
+  private void expand(int potNewLen) {
+    if (potNewLen <= memory.length) {
+      return;
+    }
+
+    this.memory = Arrays.copyOf(memory, memory.length);
   }
 }

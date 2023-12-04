@@ -20,4 +20,6 @@ import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 
 interface MmioDispatcher {
   MmioData dispatch(MicroData microData, CallStack callStack);
+
+  void update(MmioData mmioData, MicroData microData, int counter);
 }

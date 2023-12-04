@@ -13,14 +13,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.tracegeneration;
+package net.consensys.linea.services.counters;
 
 import java.util.Optional;
 
 import com.google.auto.service.AutoService;
-import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.LineaRequiredPlugin;
-import net.consensys.linea.tracegeneration.rpc.RollupGenerateConflatedTracesToFileV0;
+import net.consensys.linea.services.counters.rpc.RollupGenerateCountersV0;
 import net.consensys.linea.zktracer.opcode.OpCodes;
 import org.hyperledger.besu.plugin.BesuContext;
 import org.hyperledger.besu.plugin.BesuPlugin;
@@ -28,12 +27,10 @@ import org.hyperledger.besu.plugin.services.RpcEndpointService;
 
 /** Plugin with RPC endpoints. */
 @AutoService(BesuPlugin.class)
-@Slf4j
 public class RollupRpcEndpointServicePlugin extends LineaRequiredPlugin {
   @Override
   public void doRegister(final BesuContext context) {
-    RollupGenerateConflatedTracesToFileV0 method =
-        new RollupGenerateConflatedTracesToFileV0(context);
+    RollupGenerateCountersV0 method = new RollupGenerateCountersV0(context);
 
     Optional<RpcEndpointService> service = context.getService(RpcEndpointService.class);
     createAndRegister(
@@ -44,8 +41,7 @@ public class RollupRpcEndpointServicePlugin extends LineaRequiredPlugin {
   }
 
   private void createAndRegister(
-      final RollupGenerateConflatedTracesToFileV0 method,
-      final RpcEndpointService rpcEndpointService) {
+      final RollupGenerateCountersV0 method, final RpcEndpointService rpcEndpointService) {
     rpcEndpointService.registerRPCEndpoint(
         method.getNamespace(), method.getName(), method::execute);
   }

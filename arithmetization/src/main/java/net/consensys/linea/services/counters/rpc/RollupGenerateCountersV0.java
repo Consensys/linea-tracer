@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.linecounting.rpc;
+package net.consensys.linea.services.counters.rpc;
 
 import java.util.Map;
 
@@ -79,14 +79,8 @@ public class RollupGenerateCountersV0 {
                         traceService.trace(
                             blockNumber,
                             blockNumber,
-                            worldStateBeforeTracing -> {
-                              // before tracing
-                              tracer.traceStartConflation(1);
-                            },
-                            worldStateAfterTracing -> {
-                              // after tracing
-                              tracer.traceEndConflation();
-                            },
+                            worldStateBeforeTracing -> tracer.traceStartConflation(1),
+                            worldStateAfterTracing -> tracer.traceEndConflation(),
                             tracer);
 
                         return tracer.getModulesLineCount();

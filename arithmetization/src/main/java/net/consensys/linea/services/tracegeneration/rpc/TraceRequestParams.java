@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.tracegeneration.rpc;
+package net.consensys.linea.services.tracegeneration.rpc;
 
 import java.security.InvalidParameterException;
 

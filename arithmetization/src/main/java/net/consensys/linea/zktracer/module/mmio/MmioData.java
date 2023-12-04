@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.mmio;
 
+import static net.consensys.linea.zktracer.module.mmio.MmioPatterns.*;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -66,5 +68,80 @@ class MmioData {
   private UInt256 acc5;
   private UInt256 acc6;
 
-  public void updateLimbsInMemory(final CallStack callStack) {}
+  UnsignedByte byteA(int counter) {
+    return valA[counter];
+  }
+
+  UnsignedByte byteB(int counter) {
+    return valB[counter];
+  }
+
+  UnsignedByte byteC(int counter) {
+    return valC[counter];
+  }
+
+  UnsignedByte byteX(int counter) {
+    return valX[counter];
+  }
+
+  UnsignedByte byteHi(int counter) {
+    return valHi[counter];
+  }
+
+  UnsignedByte byteLo(int counter) {
+    return valLo[counter];
+  }
+
+  void onePartialToOne(
+      UnsignedByte sb,
+      UnsignedByte tb,
+      UInt256 acc1,
+      UInt256 acc2,
+      UnsignedByte sm,
+      UnsignedByte tm,
+      int size,
+      int counter) {
+    bin1 = plateau(tm.toInteger(), counter);
+    bin2 = plateau(tm.toInteger() + size, counter);
+    bin3 = plateau(sm.toInteger(), counter);
+    bin4 = plateau(sm.toInteger() + size, counter);
+
+    this.acc1 = isolateChunk(acc1, tb, bin1, bin2, counter);
+    this.acc2 = isolateChunk(acc2, sb, bin3, bin4, counter);
+
+    pow2561 = power(pow2561, bin2, counter);
+  }
+
+  void onePartialToTwo(
+      UnsignedByte sb,
+      UnsignedByte t1b,
+      UnsignedByte t2b,
+      UInt256 acc1,
+      UInt256 acc2,
+      UInt256 acc3,
+      UInt256 acc4,
+      UnsignedByte sm,
+      UnsignedByte t1m,
+      int size,
+      int counter) {
+    bin1 = plateau(t1m.toInteger(), counter);
+    bin2 = plateau(t1m.toInteger() + size - 16, counter);
+    bin3 = plateau(sm.toInteger(), counter);
+    bin4 = plateau(sm.toInteger() + 16 - t1m.toInteger(), counter);
+    bin5 = plateau(sm.toInteger() + size, counter);
+
+    this.acc1 = isolateSuffix(acc1, bin1, t1b);
+    this.acc2 = isolateSuffix(acc2, bin2, t2b);
+
+    pow2561 = power(pow2561, bin2, counter);
+
+    this.acc3 = isolateChunk(acc3, sb, bin3, bin4, counter);
+    this.acc4 = isolateChunk(acc4, sb, bin4, bin5, counter);
+  }
+
+  void updateLimbsInMemory(final CallStack callStack) {
+    callStack.get(cnA).pending().memory().updateLimb(indexA, valANew);
+    callStack.get(cnA).pending().memory().updateLimb(indexB, valBNew);
+    callStack.get(cnA).pending().memory().updateLimb(indexC, valCNew);
+  }
 }

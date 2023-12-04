@@ -17,9 +17,8 @@ package net.consensys.linea.zktracer.module.mmio;
 
 import net.consensys.linea.zktracer.module.mmu.MicroData;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
-import net.consensys.linea.zktracer.types.UnsignedByte;
 
-class RamToRamDispatcher implements MmioDispatcher {
+class RamToRamSlideOverlappingChunkDispatcher implements MmioDispatcher {
   @Override
   public MmioData dispatch(MicroData microData, CallStack callStack) {
     MmioData mmioData = new MmioData();
@@ -28,18 +27,44 @@ class RamToRamDispatcher implements MmioDispatcher {
     mmioData.cnC(0);
     mmioData.indexA(microData.sourceLimbOffset().toInt());
     mmioData.indexB(microData.targetLimbOffset().toInt());
-    mmioData.indexC(0);
+    mmioData.indexC(microData.targetLimbOffset().toInt() + 1);
     mmioData.valA(callStack.valueFromMemory(mmioData.cnA(), mmioData.indexA()));
     mmioData.valB(callStack.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
-    mmioData.valC(new UnsignedByte[16]);
+    mmioData.valC(callStack.valueFromMemory(mmioData.cnC(), mmioData.indexC()));
     mmioData.valANew(mmioData.valA());
-    mmioData.valBNew(mmioData.valA());
-    mmioData.valCNew(new UnsignedByte[16]);
+
+    mmioData.valBNew(mmioData.valB());
+    int targetByteOffset = microData.targetByteOffset().toInteger();
+    int sourceByteOffset = microData.sourceByteOffset().toInteger();
+    for (int i = targetByteOffset; i < 16; i++) {
+      mmioData.valBNew()[i] = mmioData.valA()[sourceByteOffset + i - targetByteOffset];
+    }
+
+    mmioData.valCNew(mmioData.valC());
+    int size = microData.size();
+    int maxIndex = size - (16 - targetByteOffset);
+    for (int i = 0; i < maxIndex; i++) {
+      mmioData.valCNew()[i] = mmioData.valA()[sourceByteOffset + (16 - targetByteOffset) + i];
+    }
+
     mmioData.updateLimbsInMemory(callStack);
 
     return mmioData;
   }
 
   @Override
-  public void update(MmioData mmioData, MicroData microData, int counter) {}
+  public void update(MmioData mmioData, MicroData microData, int counter) {
+    mmioData.onePartialToTwo(
+        mmioData.byteA(counter),
+        mmioData.byteB(counter),
+        mmioData.byteC(counter),
+        mmioData.acc1(),
+        mmioData.acc2(),
+        mmioData.acc3(),
+        mmioData.acc4(),
+        microData.sourceByteOffset(),
+        microData.targetByteOffset(),
+        microData.size(),
+        counter);
+  }
 }

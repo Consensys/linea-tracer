@@ -15,11 +15,12 @@
 
 package net.consensys.linea.zktracer.module.mmio;
 
+import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.mmu.MicroData;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
-class RamToRamDispatcher implements MmioDispatcher {
+class RamToRamSlideChunkDispatcher implements MmioDispatcher {
   @Override
   public MmioData dispatch(MicroData microData, CallStack callStack) {
     MmioData mmioData = new MmioData();
@@ -33,13 +34,43 @@ class RamToRamDispatcher implements MmioDispatcher {
     mmioData.valB(callStack.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
     mmioData.valC(new UnsignedByte[16]);
     mmioData.valANew(mmioData.valA());
-    mmioData.valBNew(mmioData.valA());
-    mmioData.valCNew(new UnsignedByte[16]);
+    mmioData.valBNew(slideChunk(mmioData, microData));
+    mmioData.valCNew(mmioData.valC());
     mmioData.updateLimbsInMemory(callStack);
 
     return mmioData;
   }
 
   @Override
-  public void update(MmioData mmioData, MicroData microData, int counter) {}
+  public void update(MmioData mmioData, MicroData microData, int counter) {
+    // 1Partial => 1
+    mmioData.onePartialToOne(
+        mmioData.byteA(counter),
+        mmioData.byteB(counter),
+        mmioData.acc1(),
+        mmioData.acc2(),
+        microData.sourceByteOffset(),
+        microData.targetByteOffset(),
+        microData.size(),
+        counter);
+  }
+
+  private UnsignedByte[] slideChunk(MmioData mmioData, MicroData microData) {
+    UnsignedByte[] source = mmioData.valA();
+    UnsignedByte[] target = mmioData.valB();
+    int size = microData.size();
+    int sourceByteOffset = microData.sourceByteOffset().toInteger();
+    int targetByteOffset = microData.targetByteOffset().toInteger();
+
+    Preconditions.checkState(
+        size == 0 || sourceByteOffset + size > 16 || targetByteOffset + size > 16,
+        "Wrong size: %d sourceByteOffset: %d targetByteOffset: %d"
+            .formatted(size, sourceByteOffset, targetByteOffset));
+
+    for (int i = 0; i < size; i++) {
+      target[targetByteOffset + i] = source[sourceByteOffset + i];
+    }
+
+    return target;
+  }
 }

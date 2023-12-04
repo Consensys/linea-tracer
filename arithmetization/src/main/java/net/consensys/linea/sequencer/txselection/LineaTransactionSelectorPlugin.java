@@ -43,7 +43,7 @@ public class LineaTransactionSelectorPlugin extends LineaRequiredPlugin {
   public static final String NAME = "linea";
   private final LineaTransactionSelectorCliOptions options;
   private Optional<TransactionSelectionService> service;
-  private Map<String, Integer> limitsMap = new HashMap<>();
+  private final Map<String, Integer> limitsMap = new HashMap<>();
 
   public LineaTransactionSelectorPlugin() {
     options = LineaTransactionSelectorCliOptions.create();
@@ -86,7 +86,7 @@ public class LineaTransactionSelectorPlugin extends LineaRequiredPlugin {
       table
           .toMap()
           .keySet()
-          .forEach(key -> limitsMap.put(toCamelCase(key), Math.toIntExact(table.getLong(key))));
+          .forEach(key -> limitsMap.put(key, Math.toIntExact(table.getLong(key))));
     } catch (final Exception e) {
       final String errorMsg =
           "Problem reading the toml file containing the limits for the modules: "

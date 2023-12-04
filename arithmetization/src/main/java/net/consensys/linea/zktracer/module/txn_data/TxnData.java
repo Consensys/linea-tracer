@@ -64,7 +64,7 @@ public class TxnData implements Module {
 
   @Override
   public String tomlKey() {
-    return "txnData";
+    return "TXN_DATA";
   }
 
   private final List<BlockSnapshot> blocks = new ArrayList<>();

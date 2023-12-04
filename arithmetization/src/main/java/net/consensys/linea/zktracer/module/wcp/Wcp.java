@@ -35,7 +35,7 @@ public class Wcp implements Module {
 
   @Override
   public String tomlKey() {
-    return "wcp";
+    return "WCP";
   }
 
   @Override

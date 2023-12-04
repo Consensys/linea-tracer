@@ -59,7 +59,7 @@ public class RlpAddr implements Module {
 
   @Override
   public String tomlKey() {
-    return "rlpAddr";
+    return "RLP_ADDR";
   }
 
   @Override

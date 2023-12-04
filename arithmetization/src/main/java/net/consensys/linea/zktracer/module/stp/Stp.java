@@ -48,8 +48,8 @@ public class Stp implements Module {
   private final Mod mod;
 
   @Override
-  public String jsonKey() {
-    return "Stp";
+  public String tomlKey() {
+    return "STP";
   }
 
   private final StackedSet<StpChunk> chunks = new StackedSet<>();

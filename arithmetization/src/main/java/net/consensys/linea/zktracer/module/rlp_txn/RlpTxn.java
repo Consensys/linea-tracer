@@ -64,7 +64,7 @@ public class RlpTxn implements Module {
 
   @Override
   public String tomlKey() {
-    return "TX_RLP";
+    return "RLP_TXN";
   }
 
   public static final int LLARGE = TxnrlpTrace.LLARGE.intValue();

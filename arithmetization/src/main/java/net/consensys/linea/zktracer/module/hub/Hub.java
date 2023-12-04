@@ -257,27 +257,27 @@ public class Hub implements Module {
 
   public List<Module> getModulesToCount() {
     return Stream.concat(
-        Stream.of(
-          this,
-          this.romLex,
-          this.add,
-          this.ext,
-          this.logData,
-          this.logInfo,
-          this.mod,
-          this.mmu,
-          this.mul,
-          this.mxp,
-          this.rlpAddr,
-          this.rlpTxn,
-          this.rlpTxrcpt,
-          this.rom,
-          this.shf,
-          this.trm,
-          this.txnData,
-          this.wcp),
-        this.precompileLimitModules.stream())
-      .toList();
+            Stream.of(
+                this,
+                this.romLex,
+                this.add,
+                this.ext,
+                this.logData,
+                this.logInfo,
+                this.mod,
+                this.mmu,
+                this.mul,
+                this.mxp,
+                this.rlpAddr,
+                this.rlpTxn,
+                this.rlpTxrcpt,
+                this.rom,
+                this.shf,
+                this.trm,
+                this.txnData,
+                this.wcp),
+            this.precompileLimitModules.stream())
+        .toList();
   }
 
   @Override

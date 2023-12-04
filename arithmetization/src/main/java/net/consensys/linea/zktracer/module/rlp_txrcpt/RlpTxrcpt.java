@@ -56,7 +56,7 @@ public class RlpTxrcpt implements Module {
 
   @Override
   public String tomlKey() {
-    return "rlpTxRcpt";
+    return "RLP_TXRCPT";
   }
 
   @Override

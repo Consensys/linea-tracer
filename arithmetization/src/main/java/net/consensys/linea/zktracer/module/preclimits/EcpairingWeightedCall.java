@@ -30,7 +30,7 @@ public final class EcpairingWeightedCall implements Module {
 
   @Override
   public String tomlKey() {
-    return "ecpairingWeightedCall";
+    return "PRECOMPILE_ECPAIRING_WEIGHTED";
   }
 
   @Override

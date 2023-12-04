@@ -26,9 +26,6 @@ jobs:
         id: get_version
         run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
       - name: Build without tests
         run: ./gradlew build -PreleaseVersion=${{ steps.get_version.outputs.VERSION }} -x test -x spotlessCheck
         env:

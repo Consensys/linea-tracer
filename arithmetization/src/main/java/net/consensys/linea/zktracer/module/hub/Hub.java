@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
+import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
+
 import java.nio.MappedByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -57,6 +59,7 @@ import net.consensys.linea.zktracer.module.rlp_txrcpt.RlpTxrcpt;
 import net.consensys.linea.zktracer.module.rom.Rom;
 import net.consensys.linea.zktracer.module.romLex.RomLex;
 import net.consensys.linea.zktracer.module.shf.Shf;
+import net.consensys.linea.zktracer.module.stp.Stp;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.InstructionDecoder;
 import net.consensys.linea.zktracer.module.tables.shf.ShfRt;
 import net.consensys.linea.zktracer.module.trm.Trm;
@@ -91,17 +94,6 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 @Accessors(fluent = true)
 public class Hub implements Module {
   private static final int TAU = 8;
-  private static final Set<Address> PRECOMPILES =
-      Set.of(
-          Address.ECREC,
-          Address.SHA256,
-          Address.RIPEMD160,
-          Address.ID,
-          Address.MODEXP,
-          Address.ALTBN128_ADD,
-          Address.ALTBN128_MUL,
-          Address.ALTBN128_PAIRING,
-          Address.BLAKE2B_F_COMPRESSION);
 
   public static Optional<Bytes> maybeStackItem(MessageFrame frame, int idx) {
     if (frame.stackSize() > idx) {
@@ -166,7 +158,7 @@ public class Hub implements Module {
 
   private final Module add = new Add(this);
   private final Module ext = new Ext();
-  private final Module mod = new Mod();
+  private final Mod mod = new Mod();
   private final Module mul = new Mul(this);
   private final Module shf = new Shf();
   private final Wcp wcp = new Wcp();
@@ -182,6 +174,7 @@ public class Hub implements Module {
   private final TxnData txnData;
   private final Trm trm = new Trm();
   private final Modexp modexp;
+  private final Stp stp = new Stp(this, wcp, mod);
 
   private final List<Module> modules;
   /* Those modules are not traced, we just compute the number of calls to those precompile to meet the prover limits */
@@ -228,6 +221,7 @@ public class Hub implements Module {
                     this.shf,
                     this.trm,
                     this.txnData,
+                    this.stp,
                     this.wcp),
                 this.precompileLimitModules.stream())
             .toList();
@@ -256,6 +250,7 @@ public class Hub implements Module {
         this.rom,
         this.romLex,
         this.shf,
+        this.stp,
         this.txnData,
         this.wcp);
   }
@@ -263,10 +258,6 @@ public class Hub implements Module {
   @Override
   public String jsonKey() {
     return "hub_v2_off";
-  }
-
-  public static boolean isPrecompile(Address to) {
-    return PRECOMPILES.contains(to);
   }
 
   public static boolean isValidPrecompileCall(MessageFrame frame, final OpCode opCode) {
@@ -465,7 +456,7 @@ public class Hub implements Module {
       // TODO: this.oob.tracePreOpcode(frame);
     }
     if (this.pch.signals().stp()) {
-      // TODO:
+      this.stp.tracePreOpcode(frame);
     }
     if (this.pch.signals().exp()) {
       this.modexp.tracePreOpcode(frame);

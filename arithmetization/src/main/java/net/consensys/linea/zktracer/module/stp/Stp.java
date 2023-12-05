@@ -48,7 +48,7 @@ public class Stp implements Module {
   private final Mod mod;
 
   @Override
-  public String tomlKey() {
+  public String moduleKey() {
     return "STP";
   }
 

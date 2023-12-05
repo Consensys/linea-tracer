@@ -34,7 +34,7 @@ public final class Sha256 implements Module {
   private final Stack<Integer> counts = new Stack<Integer>();
 
   @Override
-  public String tomlKey() {
+  public String moduleKey() {
     return "PRECOMPILE_SHA2";
   }
 

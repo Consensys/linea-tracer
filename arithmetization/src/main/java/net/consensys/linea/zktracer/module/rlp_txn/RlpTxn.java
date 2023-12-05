@@ -63,7 +63,7 @@ public class RlpTxn implements Module {
   }
 
   @Override
-  public String tomlKey() {
+  public String moduleKey() {
     return "RLP_TXN";
   }
 

@@ -216,14 +216,14 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
         .forEach(
             m ->
                 modulesLineCount.put(
-                    m.tomlKey(),
+                    m.moduleKey(),
                     m.lineCount()
-                        + Optional.ofNullable(this.spillings.get(m.tomlKey()))
+                        + Optional.ofNullable(this.spillings.get(m.moduleKey()))
                             .orElseThrow(
                                 () ->
                                     new IllegalStateException(
                                         "Module "
-                                            + m.tomlKey()
+                                            + m.moduleKey()
                                             + " not found in spillings.toml"))));
     modulesLineCount.put("BLOCK_TX", hub.tx().number());
     return modulesLineCount;

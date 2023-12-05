@@ -32,7 +32,7 @@ public class Shf implements Module {
   private final StackedSet<ShfOperation> operations = new StackedSet<>();
 
   @Override
-  public String tomlKey() {
+  public String moduleKey() {
     return "SHF";
   }
 

@@ -22,7 +22,7 @@ import net.consensys.linea.zktracer.module.Module;
 
 public class Mmio implements Module {
   @Override
-  public String tomlKey() {
+  public String moduleKey() {
     return "MMIO";
   }
 

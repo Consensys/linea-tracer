@@ -34,7 +34,7 @@ public class Wcp implements Module {
   private int stamp = 0;
 
   @Override
-  public String tomlKey() {
+  public String moduleKey() {
     return "WCP";
   }
 

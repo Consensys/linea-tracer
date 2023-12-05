@@ -19,9 +19,9 @@ import java.io.File;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auto.service.AutoService;
@@ -43,7 +43,7 @@ public class LineaTransactionSelectorPlugin extends LineaRequiredPlugin {
   public static final String NAME = "linea";
   private final LineaTransactionSelectorCliOptions options;
   private Optional<TransactionSelectionService> service;
-  private final Map<String, Integer> limitsMap = new HashMap<>();
+  private final Map<String, Integer> limitsMap = new ConcurrentHashMap<>();
 
   public LineaTransactionSelectorPlugin() {
     options = LineaTransactionSelectorCliOptions.create();

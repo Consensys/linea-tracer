@@ -63,7 +63,7 @@ public class TxnData implements Module {
   private final Wcp wcp;
 
   @Override
-  public String tomlKey() {
+  public String moduleKey() {
     return "TXN_DATA";
   }
 

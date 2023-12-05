@@ -58,7 +58,7 @@ public class RlpAddr implements Module {
   private final StackedList<RlpAddrChunk> chunkList = new StackedList<>();
 
   @Override
-  public String tomlKey() {
+  public String moduleKey() {
     return "RLP_ADDR";
   }
 

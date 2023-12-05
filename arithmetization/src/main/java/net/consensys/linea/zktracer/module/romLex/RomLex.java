@@ -79,7 +79,7 @@ public class RomLex implements Module {
   }
 
   @Override
-  public String tomlKey() {
+  public String moduleKey() {
     return "ROM_LEX";
   }
 

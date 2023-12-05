@@ -39,7 +39,7 @@ public class Mxp implements Module {
   private Hub hub;
 
   @Override
-  public String tomlKey() {
+  public String moduleKey() {
     return "MXP";
   }
 

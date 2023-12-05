@@ -49,7 +49,4 @@ public class RollupRpcEndpointServicePlugin extends LineaRequiredPlugin {
   public void start() {
     OpCodes.load();
   }
-
-  @Override
-  public void stop() {}
 }

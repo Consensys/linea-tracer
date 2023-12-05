@@ -37,7 +37,7 @@ public class Ext implements Module {
   private final StackedSet<ExtOperation> operations = new StackedSet<>();
 
   @Override
-  public String tomlKey() {
+  public String moduleKey() {
     return "EXT";
   }
 

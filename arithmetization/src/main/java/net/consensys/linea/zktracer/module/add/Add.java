@@ -47,7 +47,7 @@ public class Add implements Module {
   private final StackedSet<AddOperation> chunks = new StackedSet<>();
 
   @Override
-  public String tomlKey() {
+  public String moduleKey() {
     return "ADD";
   }
 

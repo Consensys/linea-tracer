@@ -34,7 +34,7 @@ public final class Rip160 implements Module {
   private final Stack<Integer> counts = new Stack<>();
 
   @Override
-  public String tomlKey() {
+  public String moduleKey() {
     return "PRECOMPILE_RIPEMD";
   }
 

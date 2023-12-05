@@ -85,7 +85,7 @@ public class RollupGenerateCountersV0 {
 
                         return tracer.getModulesLineCount();
                       }));
-      log.info("[COUNTERS] counters for {} returned in {}", requestedBlockNumber, sw);
+      log.info("counters for {} returned in {}", requestedBlockNumber, sw);
       return r;
     } catch (Exception ex) {
       throw new PluginRpcEndpointException(ex.getMessage());

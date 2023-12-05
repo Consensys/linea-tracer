@@ -86,9 +86,20 @@ public class Bin implements Module {
     final Bytes16 resultLo = result.getLow();
 
     final UnsignedByte pivot = op.pivot();
-    trace.pivot(Bytes.ofUnsignedInt(pivot.toInteger()));
+    final Bytes pivotBytes = Bytes.of(pivot.toByte());
+    final Boolean[] pivotBooleanBytes = Util.byteBits(pivot);
 
-    final Boolean[] bits = Util.byteBits(pivot);
+    final UnsignedByte lsb = UnsignedByte.of(arg1Lo.get(15));
+    final Boolean[] lsbBooleanBytes = Util.byteBits(lsb);
+
+    final Boolean[] bits = new Boolean[16];
+    for (int i = 0; i < 16; i++) {
+      if (i < 8) {
+        bits[i] = pivotBooleanBytes[i];
+      } else {
+        bits[i] = lsbBooleanBytes[i - 8];
+      }
+    }
 
     final BaseBytes andRes = op.arg1().and(op.arg2());
     final BaseBytes orRes = op.arg1().or(op.arg2());
@@ -132,6 +143,7 @@ public class Bin implements Module {
           .xorByteLo(Bytes.of(xorRes.getLow().get(i)))
           .notByteHi(Bytes.of(notArg1Res.getHigh().get(i)))
           .notByteLo(Bytes.of(notArg1Res.getLow().get(i)))
+          .pivot(pivotBytes)
           .small(op.isSmall())
           .isData(stamp != 0)
           .validateRow();

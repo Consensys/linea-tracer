@@ -23,6 +23,7 @@ import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.mxp.MxpData;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.Bytes16;
 import net.consensys.linea.zktracer.types.UnsignedByte;
@@ -127,7 +128,11 @@ public class Wcp implements Module {
 
   @Override
   public int lineCount() {
-    return this.operations.stream().mapToInt(WcpOperation::maxCt).sum();
+    int sum = 0;
+    for (WcpOperation wcpOperation : this.operations) {
+      sum += wcpOperation.maxCt();
+    }
+    return sum;
   }
 
   public boolean callLT(Bytes32 arg1, Bytes32 arg2) {

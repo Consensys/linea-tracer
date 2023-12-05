@@ -15,7 +15,9 @@
 
 package net.consensys.linea.zktracer.container.stacked.set;
 
+import java.util.ArrayDeque;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -31,9 +33,8 @@ import org.jetbrains.annotations.NotNull;
  * @param <E> the type of elements stored in the set
  */
 public class StackedSet<E> implements StackedContainer, java.util.Set<E> {
-  private final Stack<Set<E>> sets = new Stack<>();
+  private final Deque<Set<E>> sets = new ArrayDeque<>();
   private Set<E> collapsed;
-  private boolean dirty = true;
 
   @Override
   public void enter() {
@@ -42,13 +43,13 @@ public class StackedSet<E> implements StackedContainer, java.util.Set<E> {
 
   @Override
   public void pop() {
-    this.sets.pop();
-    this.dirty = true;
+    Set<E> set = this.sets.pop();
+    this.collapsed.removeAll(set);
   }
 
   @Override
   public int size() {
-    return this.collapse().size();
+    return this.collapsed.size();
   }
 
   @Override
@@ -66,28 +67,16 @@ public class StackedSet<E> implements StackedContainer, java.util.Set<E> {
     return false;
   }
 
-  private Set<E> collapse() {
-    if (this.dirty) {
-      this.collapsed = new HashSet<>();
-      for (Set<E> set : this.sets) {
-        this.collapsed.addAll(set);
-      }
-      this.dirty = false;
-    }
-
-    return this.collapsed;
-  }
-
   @NotNull
   @Override
   public Iterator<E> iterator() {
-    return this.collapse().iterator();
+    return this.collapsed.iterator();
   }
 
   @NotNull
   @Override
   public Object[] toArray() {
-    return this.collapse().toArray();
+    return this.collapsed.toArray();
   }
 
   @NotNull
@@ -98,9 +87,11 @@ public class StackedSet<E> implements StackedContainer, java.util.Set<E> {
 
   @Override
   public boolean add(E e) {
-    final boolean r = this.sets.peek().add(e);
-    this.dirty = true;
-    return r;
+    final boolean added = this.sets.peek().add(e);
+    if (added) {
+      this.collapsed.add(e);
+    }
+    return added;
   }
 
   @Override
@@ -140,6 +131,6 @@ public class StackedSet<E> implements StackedContainer, java.util.Set<E> {
   @Override
   public void clear() {
     this.sets.clear();
-    this.dirty = true;
+    this.collapsed.clear();
   }
 }

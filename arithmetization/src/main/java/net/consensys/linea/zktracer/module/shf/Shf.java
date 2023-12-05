@@ -21,6 +21,7 @@ import java.util.List;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.module.wcp.WcpOperation;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
@@ -139,6 +140,10 @@ public class Shf implements Module {
 
   @Override
   public int lineCount() {
-    return this.operations.stream().mapToInt(ShfOperation::maxCt).sum();
+    int sum = 0;
+    for (ShfOperation shfOperation : this.operations) {
+      sum += shfOperation.maxCt();
+    }
+    return sum;
   }
 }

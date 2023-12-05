@@ -48,17 +48,17 @@ public record BinRt() implements Module {
     final Trace trace = new Trace(buffers);
 
     for (short a = 0; a <= 255; a++) {
-      final byte aByte = (byte) a;
+      final Bytes aByte = Bytes.of((byte) a);
       for (short b = 0; b <= 255; b++) {
-        final byte bByte = (byte) b;
+        final Bytes bByte = Bytes.of((byte) b);
 
         trace
-            .byteArg1(Bytes.of(a))
-            .byteArg2(Bytes.of(b))
-            .andByte(Bytes.of(aByte & bByte))
-            .orByte(Bytes.of(aByte | bByte))
-            .xorByte(Bytes.of(aByte ^ bByte))
-            .notByte(Bytes.of(~aByte))
+            .byteArg1(aByte)
+            .byteArg2(bByte)
+            .andByte(aByte.and(bByte))
+            .orByte(aByte.or(bByte))
+            .xorByte(aByte.xor(bByte))
+            .notByte(aByte.not())
             .isInRt(Bytes.of(1))
             .validateRow();
       }

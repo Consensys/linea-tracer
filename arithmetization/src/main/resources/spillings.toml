@@ -1,28 +1,28 @@
 # These values should be set from `corset debug -s zkevm.bin`
 [spillings]
-ADD = 1
-BIN = 15
-EC_DATA = 11
-EXT = 7
+ADD = 2
+BIN = 16
+EC_DATA = 12
+EXT = 8
 PUB_HASH = 0
 PUB_HASH_INFO = 0
-HUB = 1
+HUB = 2
 PUB_LOG = 1
 PUB_LOG_INFO = 5
-MOD = 7
-MUL = 8
-MXP = 3
+MOD = 8
+MUL = 9
+MXP = 4
 MMU = 10
 RLP_ADDR = 7
 RLP_TXN = 7
 RLP_TXRCPT = 7
-ROM = 1
+ROM = 2
 ROM_LEX = 1
 TXN_DATA = 15
-SHF = 15
+SHF = 16
 STP = 4
 TRM = 7
-WCP = 15
+WCP = 16
 
 PRECOMPILE_ECRECOVER = 0
 PRECOMPILE_SHA2      = 0

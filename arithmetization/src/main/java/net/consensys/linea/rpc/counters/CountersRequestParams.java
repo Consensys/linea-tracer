@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.services.counters.rpc;
+package net.consensys.linea.rpc.counters;
 
 import java.security.InvalidParameterException;
 

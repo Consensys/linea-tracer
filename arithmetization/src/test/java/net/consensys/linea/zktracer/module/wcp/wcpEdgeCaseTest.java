@@ -27,12 +27,39 @@ import org.junit.jupiter.api.extension.ExtendWith;
 public class wcpEdgeCaseTest {
   @Test
   void testZeroAndHugeArgs() {
-    BytecodeRunner.of(BytecodeCompiler.newProgram().push(Bytes.repeat((byte) 0xff, 32)).push(Bytes.EMPTY).op(OpCode.SLT).compile())
-      .run();
+    BytecodeRunner.of(
+            BytecodeCompiler.newProgram()
+                .push(Bytes.repeat((byte) 0xff, 32))
+                .push(Bytes.EMPTY)
+                .op(OpCode.SLT)
+                .compile())
+        .run();
   }
-@Test
+
+  @Test
   void testHugeAndZeroArgs() {
-    BytecodeRunner.of(BytecodeCompiler.newProgram().push(Bytes.EMPTY).push(Bytes.repeat((byte) 0xff, 32)).op(OpCode.SLT).compile())
-      .run();
+    BytecodeRunner.of(
+            BytecodeCompiler.newProgram()
+                .push(Bytes.EMPTY)
+                .push(Bytes.repeat((byte) 0xff, 32))
+                .op(OpCode.SLT)
+                .compile())
+        .run();
+  }
+
+  @Test
+  void failingOnShadowNodeBlock916394() {
+    BytecodeRunner.of(
+            BytecodeCompiler.newProgram()
+                .push(Bytes.EMPTY)
+                .push(
+                    Bytes.concatenate(
+                        Bytes.repeat((byte) 0xff, 29),
+                        Bytes.of(0xfe),
+                        Bytes.of(0x18),
+                        Bytes.of(0x59)))
+                .op(OpCode.SLT)
+                .compile())
+        .run();
   }
 }

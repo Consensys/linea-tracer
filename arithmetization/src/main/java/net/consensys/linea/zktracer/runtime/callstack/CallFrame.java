@@ -93,18 +93,18 @@ public class CallFrame {
   /** the data returned by the latest callee. */
   @Getter @Setter private Bytes returnData = Bytes.EMPTY;
   /** returnData position within the latest callee memory space. */
-  @Getter @Setter private MemorySpan returnDataPointer = new MemorySpan(0, 0);
+  @Getter @Setter private MemorySpan returnDataPointer;
   /** where this frame is expected to write its returnData within its parent's memory space. */
   @Getter private final MemorySpan returnDataTarget;
 
   // where I should put my RETURNDATARange in my caller's RAM
-  @Getter private MemoryRange returnTarget;
+  @Getter private MemoryRange returnTarget = MemoryRange.fromStartEnd(0, 0);
 
   // where my CALLDATA is in my caller's RAM
-  @Getter private MemoryRange callDataRange;
+  @Getter private MemoryRange callDataRange = MemoryRange.fromStartEnd(0, 0);
 
   // position of the returner's RETURNDATARange in its RAM
-  @Getter private MemoryRange returnDataRange;
+  @Getter private MemoryRange returnDataRange = MemoryRange.fromStartEnd(0, 0);
 
   // last called context
   @Getter private int returner;
@@ -220,6 +220,15 @@ public class CallFrame {
           .map(callStack::get)
           .forEach(frame -> frame.revertChildren(callStack, stamp));
     }
+  }
+
+  /**
+   * Sets the
+   * @param offset
+   * @param size
+   */
+  public void setReturn(long offset, long size) {
+    this.returnDataPointer = new MemorySpan(offset, size);
   }
 
   public void revert(CallStack callStack, int stamp) {

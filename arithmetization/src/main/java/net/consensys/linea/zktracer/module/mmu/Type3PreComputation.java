@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.mmu;
 
 import java.math.BigInteger;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -35,7 +36,7 @@ class Type3PreComputation implements MmuPreComputation {
   public MicroData dispatch(
       MicroData microData,
       final OpCode opCode,
-      final Map<Integer, StackOperation> stackOps,
+      final List<StackOperation> stackOps,
       final CallStack callStack) {
     Contexts contexts = microData.contexts();
     contexts.source(callStack.current().contextNumber());

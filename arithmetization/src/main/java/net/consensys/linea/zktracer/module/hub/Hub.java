@@ -261,6 +261,7 @@ public class Hub implements Module {
         //        this.ecData, // TODO: not yet
         this.logData,
         this.logInfo,
+        this.mmu,
         this.mod,
         this.mul,
         this.mxp,
@@ -694,6 +695,10 @@ public class Hub implements Module {
           result = frame.getStackItem(0).copy();
         }
 
+        if (i == 0 && this.pch.signals().mmu()) {
+          this.mmu.handleRam(this.opCode(), line.asStackOperations(), this.callStack());
+        }
+
         // This works because we are certain that the stack chunks are the first.
         ((StackFragment) section.getLines().get(i).specific())
             .stackOps()
@@ -938,6 +943,14 @@ public class Hub implements Module {
             || this.opCodeData().isInvalid()
             || this.pch().exceptions().any()
             || isValidPrecompileCall(frame, this.currentFrame().opCode());
+
+    if (this.opCode() == OpCode.RETURN) {
+      if (frame.stackSize() >= 2) {
+        final long offset = Words.clampedToLong(frame.getStackItem(0));
+        final long size = Words.clampedToLong(frame.getStackItem(1));
+        this.currentFrame().setReturn(offset,size);
+      }
+    }
 
     switch (this.opCodeData().instructionFamily()) {
       case ADD,

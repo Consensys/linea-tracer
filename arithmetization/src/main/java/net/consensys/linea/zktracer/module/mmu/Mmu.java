@@ -21,7 +21,6 @@ import static net.consensys.linea.zktracer.types.Conversions.unsignedBytesToUnsi
 import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.List;
-import java.util.Map;
 
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.list.StackedList;
@@ -91,7 +90,7 @@ public class Mmu implements Module {
    * @param callStack
    */
   public void handleRam(
-      final OpCode opCode, final Map<Integer, StackOperation> stackOps, final CallStack callStack) {
+      final OpCode opCode, final List<StackOperation> stackOps, final CallStack callStack) {
     MicroData microData = microDataProcessor.dispatchOpCode(opCode, stackOps, callStack);
 
     this.state.add(microData);

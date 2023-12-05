@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.module.mmu;
 
-import java.util.Map;
+import java.util.List;
 import java.util.Set;
 
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -24,10 +24,7 @@ import net.consensys.linea.zktracer.runtime.stack.StackOperation;
 
 interface MmuPreComputation {
   MicroData dispatch(
-      MicroData microData,
-      OpCode opCode,
-      Map<Integer, StackOperation> stackOps,
-      CallStack callStack);
+      MicroData microData, OpCode opCode, List<StackOperation> stackOps, CallStack callStack);
 
   MicroData preProcess(MicroData microData, CallStack callStack);
 

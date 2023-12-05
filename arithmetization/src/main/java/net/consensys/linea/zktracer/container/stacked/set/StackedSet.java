@@ -34,7 +34,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class StackedSet<E> implements StackedContainer, java.util.Set<E> {
   private final Deque<Set<E>> sets = new ArrayDeque<>();
-  private Set<E> collapsed;
+  private Set<E> collapsed = new HashSet<>();
 
   @Override
   public void enter() {

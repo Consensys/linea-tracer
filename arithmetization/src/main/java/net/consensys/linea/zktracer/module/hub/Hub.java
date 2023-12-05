@@ -61,6 +61,7 @@ import net.consensys.linea.zktracer.module.rom.Rom;
 import net.consensys.linea.zktracer.module.romLex.RomLex;
 import net.consensys.linea.zktracer.module.shf.Shf;
 import net.consensys.linea.zktracer.module.stp.Stp;
+import net.consensys.linea.zktracer.module.tables.bin.BinRt;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.InstructionDecoder;
 import net.consensys.linea.zktracer.module.tables.shf.ShfRt;
 import net.consensys.linea.zktracer.module.trm.Trm;
@@ -236,6 +237,7 @@ public class Hub implements Module {
   public List<Module> getModulesToTrace() {
     return List.of(
         // Reference tables
+        new BinRt(),
         new InstructionDecoder(),
         new ShfRt(),
         // Modules

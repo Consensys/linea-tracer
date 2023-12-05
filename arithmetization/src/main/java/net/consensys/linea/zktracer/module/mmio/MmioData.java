@@ -139,6 +139,15 @@ class MmioData {
     this.acc4 = isolateChunk(acc4, sb, bin4, bin5, counter);
   }
 
+  void excision(UnsignedByte tb, UInt256 acc, UInt256 p, UnsignedByte tm, int size, int counter) {
+    bin1 = plateau(tm.toInteger(), counter);
+    bin2 = plateau(tm.toInteger() + size, counter);
+
+    this.acc1 = isolateChunk(acc, tb, bin1, bin2, counter);
+
+    pow2561 = power(p, bin2, counter);
+  }
+
   void updateLimbsInMemory(final CallStack callStack) {
     callStack.get(cnA).pending().memory().updateLimb(indexA, valANew);
     callStack.get(cnA).pending().memory().updateLimb(indexB, valBNew);

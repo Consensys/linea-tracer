@@ -159,7 +159,7 @@ public class Hub implements Module {
   }
 
   private final Module add = new Add(this);
-  private final Module bin = new Bin();
+  private final Module bin = new Bin(this);
   private final Module ext = new Ext();
   private final Mod mod = new Mod();
   private final Module mul = new Mul(this);

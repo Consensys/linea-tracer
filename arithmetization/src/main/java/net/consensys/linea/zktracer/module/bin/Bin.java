@@ -23,6 +23,7 @@ import net.consensys.linea.zktracer.bytestheta.BaseBytes;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.Util;
+import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.Bytes16;
 import net.consensys.linea.zktracer.types.UnsignedByte;
@@ -34,10 +35,15 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 public class Bin implements Module {
   private static final byte NOT = (byte) 0x19;
 
+  private final Hub hub;
   private int stamp = 0;
 
   /** A set of the operations to trace */
   private final StackedSet<BinOperation> chunks = new StackedSet<>();
+
+  public Bin(final Hub hub) {
+    this.hub = hub;
+  }
 
   @Override
   public String moduleKey() {
@@ -56,7 +62,7 @@ public class Bin implements Module {
 
   @Override
   public void tracePreOpcode(MessageFrame frame) {
-    final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
+    final OpCode opCode = this.hub.opCode();
     final Bytes32 arg1 = Bytes32.leftPad(frame.getStackItem(0));
     final Bytes32 arg2 =
         isOpCodeNot(opCode) ? Bytes32.ZERO : Bytes32.leftPad(frame.getStackItem(1));

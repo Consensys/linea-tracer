@@ -901,7 +901,6 @@ public class Hub implements Module {
     return this.state.lineCount();
   }
 
-
   public int cumulatedTxCount() {
     return this.state.txCount();
   }

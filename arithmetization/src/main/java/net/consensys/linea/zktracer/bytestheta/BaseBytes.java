@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.bytestheta;
 
+import java.util.Objects;
+
 import net.consensys.linea.zktracer.types.Bytes16;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.bytes.MutableBytes32;
@@ -48,6 +50,19 @@ public class BaseBytes implements HighLowBytes {
    */
   protected BaseBytes(final Bytes32 arg) {
     bytes32 = arg.mutableCopy();
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(this.bytes32);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    final BaseBytes that = (BaseBytes) o;
+    return Objects.equals(this.bytes32, that.bytes32);
   }
 
   /**

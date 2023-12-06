@@ -120,15 +120,15 @@ public class TxTrace {
     int sum = 0;
 
     if (COUNT_STACK_ONLY) {
-      for(TraceSection section: this.trace) {
-        for (TraceSection.TraceLine line: section.getLines()) {
+      for (TraceSection section : this.trace) {
+        for (TraceSection.TraceLine line : section.getLines()) {
           if (line.specific() instanceof StackFragment) {
             sum++;
           }
         }
       }
     } else {
-      for(TraceSection section: this.trace) {
+      for (TraceSection section : this.trace) {
         sum += section.getLines().size();
       }
     }

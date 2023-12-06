@@ -52,11 +52,23 @@ public class BaseBytes implements HighLowBytes {
     bytes32 = arg.mutableCopy();
   }
 
+  /**
+   * The hashing must only be done on the numeric value wrapped by this class, so that sets of
+   * operations parameterized by these values hash correctly.
+   *
+   * @return this instance hash
+   */
   @Override
   public int hashCode() {
     return Objects.hash(this.bytes32);
   }
 
+  /**
+   * The equality must only be computed on the numeric value wrapped by this class, so that sets of
+   * operations parameterized by these values hash correctly.
+   *
+   * @return whether this == o
+   */
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;

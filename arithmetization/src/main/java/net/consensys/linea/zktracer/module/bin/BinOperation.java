@@ -15,6 +15,9 @@
 
 package net.consensys.linea.zktracer.module.bin;
 
+import com.google.common.base.Objects;
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.bytestheta.BaseBytes;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.Bytes16;
@@ -23,6 +26,8 @@ import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.bytes.MutableBytes32;
 
+@Getter
+@Accessors(fluent = true)
 public class BinOperation {
   private static final int LIMB_SIZE = 16;
 
@@ -53,8 +58,24 @@ public class BinOperation {
     this.isSmall = arg1.getBytes32().compareTo(Bytes.ofUnsignedInt(32)) < 0;
     this.lsb = UnsignedByte.of(arg1.getLow().get(15));
     this.low4 = lsb.mod(16);
-    this.bitB4 = lsb.shiftLeft(3).shiftRight(7).equals(UnsignedByte.of(1));
+    this.bitB4 =
+        (lsb.toInteger() << 3) >> 7 == 1; // shiftLeft(3).shiftRight(7).equals(UnsignedByte.of(1));
     this.neg = Bytes.ofUnsignedInt(pivot().toInteger()).get(0) == 1;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(this.opCode, this.arg1, this.arg2);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    final BinOperation that = (BinOperation) o;
+    return java.util.Objects.equals(opCode, that.opCode)
+        && java.util.Objects.equals(arg1, that.arg1)
+        && java.util.Objects.equals(arg2, that.arg2);
   }
 
   public boolean isOneLineInstruction() {
@@ -63,30 +84,6 @@ public class BinOperation {
 
   public int maxCt() {
     return isOneLineInstruction() ? 1 : LIMB_SIZE;
-  }
-
-  public BaseBytes arg1() {
-    return arg1;
-  }
-
-  public BaseBytes arg2() {
-    return arg2;
-  }
-
-  public Bytes16 arg1Hi() {
-    return arg1Hi;
-  }
-
-  public Bytes16 arg1Lo() {
-    return arg1Lo;
-  }
-
-  public Bytes16 arg2Hi() {
-    return arg2Hi;
-  }
-
-  public Bytes16 arg2Lo() {
-    return arg2Lo;
   }
 
   public BaseBytes getRes() {
@@ -120,26 +117,6 @@ public class BinOperation {
     }
 
     return UnsignedByte.ZERO;
-  }
-
-  public OpCode opCode() {
-    return opCode;
-  }
-
-  public UnsignedByte low4() {
-    return low4;
-  }
-
-  public boolean bitB4() {
-    return bitB4;
-  }
-
-  public boolean neg() {
-    return neg;
-  }
-
-  public boolean isSmall() {
-    return isSmall;
   }
 
   private Bytes32 signNExtendRes() {

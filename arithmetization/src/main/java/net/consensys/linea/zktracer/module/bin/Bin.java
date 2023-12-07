@@ -65,7 +65,7 @@ public class Bin implements Module {
     final OpCode opCode = this.hub.opCode();
     final Bytes32 arg1 = Bytes32.leftPad(frame.getStackItem(0));
     final Bytes32 arg2 =
-        isOpCodeNot(opCode) ? Bytes32.ZERO : Bytes32.leftPad(frame.getStackItem(1));
+        opCode == OpCode.NOT ? Bytes32.ZERO : Bytes32.leftPad(frame.getStackItem(1));
 
     this.chunks.add(
         new BinOperation(opCode, BaseBytes.fromBytes32(arg1), BaseBytes.fromBytes32(arg2)));
@@ -157,16 +157,16 @@ public class Bin implements Module {
   }
 
   @Override
-  public int lineCount() {
-    return this.chunks.stream().mapToInt(BinOperation::maxCt).sum();
-  }
-
-  @Override
   public List<ColumnHeader> columnsHeaders() {
     return Trace.headers(this.lineCount());
   }
 
-  private boolean isOpCodeNot(final OpCode opCode) {
-    return opCode.byteValue() == NOT;
+  @Override
+  public int lineCount() {
+    int sum = 0;
+    for (BinOperation op : this.chunks) {
+      sum += op.maxCt();
+    }
+    return sum;
   }
 }

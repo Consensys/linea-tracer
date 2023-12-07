@@ -42,6 +42,14 @@ class MmioPatterns {
     return acc;
   }
 
+  static UInt256 isolatePrefix(UInt256 acc, boolean flag, UnsignedByte b) {
+    if (!flag) {
+      return acc.multiply(UInt256.valueOf(256)).add(UInt256.valueOf(b.toInteger()));
+    }
+
+    return acc;
+  }
+
   static boolean plateau(int m, int counter) {
     return counter >= m;
   }

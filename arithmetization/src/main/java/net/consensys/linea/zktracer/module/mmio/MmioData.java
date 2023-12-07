@@ -15,12 +15,18 @@
 
 package net.consensys.linea.zktracer.module.mmio;
 
-import static net.consensys.linea.zktracer.module.mmio.MmioPatterns.*;
+import static net.consensys.linea.zktracer.module.mmio.MmioPatterns.isolateChunk;
+import static net.consensys.linea.zktracer.module.mmio.MmioPatterns.isolatePrefix;
+import static net.consensys.linea.zktracer.module.mmio.MmioPatterns.isolateSuffix;
+import static net.consensys.linea.zktracer.module.mmio.MmioPatterns.plateau;
+import static net.consensys.linea.zktracer.module.mmio.MmioPatterns.power;
+import static net.consensys.linea.zktracer.types.Conversions.bytesToUnsignedBytes;
 
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
+import net.consensys.linea.zktracer.runtime.stack.StackContext;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.units.bigints.UInt256;
@@ -139,18 +145,46 @@ class MmioData {
     this.acc4 = isolateChunk(acc4, sb, bin4, bin5, counter);
   }
 
-  void excision(UnsignedByte tb, UInt256 acc, UInt256 p, UnsignedByte tm, int size, int counter) {
+  void threeToTwoFull(
+      UnsignedByte s1b,
+      UnsignedByte s2b,
+      UnsignedByte s3b,
+      UInt256 acc1,
+      UInt256 acc2,
+      UInt256 acc3,
+      UInt256 acc4,
+      UnsignedByte sm,
+      int counter) {
+    bin1 = plateau(sm.toInteger(), counter);
+    bin2 = plateau(16 - sm.toInteger(), counter);
+
+    this.acc1 = isolateSuffix(acc1, bin1, s1b);
+    this.acc3 = isolateSuffix(acc3, bin1, s2b);
+
+    this.acc2 = isolatePrefix(acc2, bin1, s2b);
+    this.acc4 = isolatePrefix(acc4, bin1, s3b);
+
+    pow2561 = power(pow2561, bin2, counter);
+  }
+
+  void setVal(EWord x) {
+    System.arraycopy(bytesToUnsignedBytes(x.hi().toArray()), 0, valHi, 0, valHi.length);
+    System.arraycopy(bytesToUnsignedBytes(x.lo().toArray()), 0, valLo, 0, valLo.length);
+  }
+
+  void excision(UnsignedByte tb, UInt256 acc, UnsignedByte tm, int size, int counter) {
     bin1 = plateau(tm.toInteger(), counter);
     bin2 = plateau(tm.toInteger() + size, counter);
 
     this.acc1 = isolateChunk(acc, tb, bin1, bin2, counter);
 
-    pow2561 = power(p, bin2, counter);
+    pow2561 = power(pow2561, bin2, counter);
   }
 
   void updateLimbsInMemory(final CallStack callStack) {
-    callStack.get(cnA).pending().memory().updateLimb(indexA, valANew);
-    callStack.get(cnA).pending().memory().updateLimb(indexB, valBNew);
-    callStack.get(cnA).pending().memory().updateLimb(indexC, valCNew);
+    StackContext pending = callStack.get(cnA).pending();
+    pending.memory().updateLimb(indexA, valANew);
+    pending.memory().updateLimb(indexB, valBNew);
+    pending.memory().updateLimb(indexC, valCNew);
   }
 }

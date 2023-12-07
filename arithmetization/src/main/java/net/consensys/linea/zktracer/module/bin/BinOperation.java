@@ -31,14 +31,10 @@ public class BinOperation {
   private final BaseBytes arg1;
   private final BaseBytes arg2;
 
-  final Bytes16 arg1Hi;
-
   public BinOperation(OpCode opCode, BaseBytes arg1, BaseBytes arg2) {
     this.opCode = opCode;
     this.arg1 = arg1;
     this.arg2 = arg2;
-
-    arg1Hi = arg1.getHigh();
   }
 
   @Override
@@ -57,7 +53,7 @@ public class BinOperation {
   }
 
   public boolean isOneLineInstruction() {
-    return (opCode == OpCode.BYTE || opCode == OpCode.SIGNEXTEND) && !arg1Hi.isZero();
+    return (opCode == OpCode.BYTE || opCode == OpCode.SIGNEXTEND) && !arg1.getHigh().isZero();
   }
 
   public int maxCt() {

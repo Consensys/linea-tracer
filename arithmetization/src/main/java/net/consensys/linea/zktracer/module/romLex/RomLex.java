@@ -22,8 +22,10 @@ import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
 import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,6 +52,7 @@ public class RomLex implements Module {
   public int codeIdentifierBeforeLexOrder = 0;
 
   public final StackedSet<RomChunk> chunks = new StackedSet<>();
+  public final Deque<Integer> emptyContractsCount = new ArrayDeque<>();
   public final List<RomChunk> sortedChunks = new ArrayList<>();
   private Bytes byteCode = Bytes.EMPTY;
   private Address address = Address.ZERO;
@@ -90,11 +93,13 @@ public class RomLex implements Module {
   @Override
   public void enterTransaction() {
     this.chunks.enter();
+    this.emptyContractsCount.push(0);
   }
 
   @Override
   public void popTransaction() {
     this.chunks.pop();
+    this.emptyContractsCount.pop();
   }
 
   public int getCFIById(int value) {
@@ -136,7 +141,7 @@ public class RomLex implements Module {
     tx.getTo()
         .map(worldView::get)
         .map(AccountState::getCode)
-        .ifPresent(
+        .ifPresentOrElse(
             code -> {
               codeIdentifierBeforeLexOrder += 1;
               int depNumber = hub.conflation().deploymentInfo().number(tx.getTo().get());
@@ -151,7 +156,8 @@ public class RomLex implements Module {
                       false,
                       codeIdentifierBeforeLexOrder,
                       code));
-            });
+            },
+            () -> this.emptyContractsCount.push(this.emptyContractsCount.pop() + 1));
   }
 
   @Override
@@ -208,7 +214,7 @@ public class RomLex implements Module {
         final int depNumber = hub.conflation().deploymentInfo().number(frame.getContractAddress());
         Optional.ofNullable(frame.getWorldUpdater().get(calledAddress))
             .map(AccountState::getCode)
-            .ifPresent(
+            .ifPresentOrElse(
                 byteCode -> {
                   codeIdentifierBeforeLexOrder += 1;
                   this.chunks.add(
@@ -220,7 +226,8 @@ public class RomLex implements Module {
                           false,
                           codeIdentifierBeforeLexOrder,
                           byteCode));
-                });
+                },
+                () -> this.emptyContractsCount.push(this.emptyContractsCount.pop() + 1));
       }
 
       case EXTCODECOPY -> {
@@ -234,7 +241,7 @@ public class RomLex implements Module {
         final int depNumber = hub.conflation().deploymentInfo().number(frame.getContractAddress());
         Optional.ofNullable(frame.getWorldUpdater().get(calledAddress))
             .map(AccountState::getCode)
-            .ifPresent(
+            .ifPresentOrElse(
                 byteCode -> {
                   if (!byteCode.isEmpty()) {
                     codeIdentifierBeforeLexOrder += 1;
@@ -248,7 +255,8 @@ public class RomLex implements Module {
                             codeIdentifierBeforeLexOrder,
                             byteCode));
                   }
-                });
+                },
+                () -> this.emptyContractsCount.push(this.emptyContractsCount.pop() + 1));
       }
     }
   }

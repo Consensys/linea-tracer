@@ -62,7 +62,7 @@ public class Rom implements Module {
     for (RomChunk chunk : this.romLex.chunks) {
       traceRowSize += chunkRowSize(chunk);
     }
-    return traceRowSize;
+    return traceRowSize + 32 * this.romLex.emptyContractsCount.stream().mapToInt(x -> x).sum();
   }
 
   public int chunkRowSize(RomChunk chunk) {

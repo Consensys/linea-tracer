@@ -15,12 +15,11 @@
 
 package net.consensys.linea.zktracer.module.ec_data;
 
+import static net.consensys.linea.zktracer.types.Containers.repeat;
 import static net.consensys.linea.zktracer.types.Conversions.leftPadTo;
 
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import com.google.common.base.Preconditions;
 import lombok.Getter;
@@ -139,33 +138,23 @@ public class EcDataOperation {
       this.nPairings = 0;
     }
 
-    this.comparisons =
-        IntStream.range(0, nRows / 2).mapToObj(i -> false).collect(Collectors.toList());
-    this.equalities = IntStream.range(0, nRows).mapToObj(i -> false).collect(Collectors.toList());
-    this.squares =
-        IntStream.range(0, nRows / 2).mapToObj(i -> Bytes.EMPTY).collect(Collectors.toList());
-    this.cubes =
-        IntStream.range(0, nRows / 2).mapToObj(i -> Bytes.EMPTY).collect(Collectors.toList());
-    this.limbs =
-        IntStream.range(0, nRows / 2).mapToObj(i -> Bytes.EMPTY).collect(Collectors.toList());
+    this.comparisons = repeat(false, nRows / 2);
+    this.equalities = repeat(false, nRows);
+    this.squares = repeat(Bytes.EMPTY, nRows / 2);
+    this.cubes = repeat(Bytes.EMPTY, nRows / 2);
+    this.limbs = repeat(Bytes.EMPTY, nRows / 2);
 
-    this.wcpArg1 =
-        IntStream.range(0, nRows).mapToObj(i -> Bytes.EMPTY).collect(Collectors.toList());
-    this.wcpArg2 =
-        IntStream.range(0, nRows).mapToObj(i -> Bytes.EMPTY).collect(Collectors.toList());
-    this.wcpInst =
-        IntStream.range(0, nRows).mapToObj(i -> OpCode.INVALID).collect(Collectors.toList());
-    this.wcpRes = IntStream.range(0, nRows).mapToObj(i -> false).collect(Collectors.toList());
+    this.wcpArg1 = repeat(Bytes.EMPTY, nRows);
+    this.wcpArg2 = repeat(Bytes.EMPTY, nRows);
+    this.wcpInst = repeat(OpCode.INVALID, nRows);
+    this.wcpRes = repeat(false, nRows);
 
-    this.extArg1 =
-        IntStream.range(0, nRows).mapToObj(i -> Bytes.EMPTY).collect(Collectors.toList());
-    this.extArg2 =
-        IntStream.range(0, nRows).mapToObj(i -> Bytes.EMPTY).collect(Collectors.toList());
-    this.extArg3 =
-        IntStream.range(0, nRows).mapToObj(i -> Bytes.EMPTY).collect(Collectors.toList());
-    this.extInst =
-        IntStream.range(0, nRows).mapToObj(i -> OpCode.INVALID).collect(Collectors.toList());
-    this.extRes = IntStream.range(0, nRows).mapToObj(i -> Bytes.EMPTY).collect(Collectors.toList());
+    this.extArg1 = repeat(Bytes.EMPTY, nRows);
+    this.extArg2 = repeat(Bytes.EMPTY, nRows);
+    this.extArg3 = repeat(Bytes.EMPTY, nRows);
+    this.extInst = repeat(OpCode.INVALID, nRows);
+    this.extRes = repeat(Bytes.EMPTY, nRows);
+    ;
 
     this.wcp = wcp;
     this.ext = ext;

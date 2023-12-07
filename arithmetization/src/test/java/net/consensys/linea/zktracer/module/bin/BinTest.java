@@ -26,12 +26,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 public class BinTest {
   @Test
   public void edgeCase() {
-    BytecodeRunner.of(
-            BytecodeCompiler.newProgram()
-                .push(0xf0)
-                .push(0xf0)
-                .op(OpCode.AND)
-                .compile())
+    BytecodeRunner.of(BytecodeCompiler.newProgram().push(0xf0).push(0xf0).op(OpCode.AND).compile())
         .run();
   }
 }

@@ -243,7 +243,6 @@ public class Hub implements Module {
         // Modules
         this,
         this.add,
-        this.bin,
         this.ext,
         this.logData,
         this.logInfo,
@@ -266,6 +265,7 @@ public class Hub implements Module {
             Stream.of(
                 this,
                 this.romLex,
+                this.bin,
                 this.add,
                 this.ext,
                 this.logData,

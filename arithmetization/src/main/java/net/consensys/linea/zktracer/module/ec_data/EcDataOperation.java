@@ -1,5 +1,5 @@
 /*
- * Copyright ConsenSys AG.
+ * Copyright Consensys Software Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -56,6 +56,7 @@ public class EcDataOperation {
 
   private final int ecType;
   @Getter private final int nRows;
+  /** -1 if no switch off (i.e. preliminary checks passed) */
   private int hurdleSwitchOffRow;
 
   private final List<Boolean> comparisons;
@@ -268,18 +269,26 @@ public class EcDataOperation {
   }
 
   private void handlePointOnC1(final Bytes x, final Bytes y, int u, int i) {
-    this.squares.set(6 * i + 2 * u, this.callExt(12 * i + 4 * u, OpCode.MULMOD, x, x, P));
-    this.squares.set(1 + 2 * u + 6 * i, this.callExt(1 + 4 * u + 12 * i, OpCode.MULMOD, y, y, P));
+    this.squares.set(
+        6 * i + 2 * u, this.callExt(12 * i + 4 * u, OpCode.MULMOD, x, x, P)); // x² mod p
+    this.squares.set(
+        1 + 2 * u + 6 * i, this.callExt(1 + 4 * u + 12 * i, OpCode.MULMOD, y, y, P)); // y² mod p
     this.cubes.set(
         2 * u + 6 * i,
-        this.callExt(2 + 4 * u + 12 * i, OpCode.MULMOD, this.squares.get(2 * u + 6 * i), x, P));
+        this.callExt(
+            2 + 4 * u + 12 * i, OpCode.MULMOD, this.squares.get(2 * u + 6 * i), x, P)); // x³ mod p
     this.cubes.set(
         1 + 2 * u + 6 * i,
         this.callExt(
-            3 + 4 * u + 12 * i, OpCode.ADDMOD, this.cubes.get(2 * u + 6 * i), Bytes.of(3), P));
+            3 + 4 * u + 12 * i,
+            OpCode.ADDMOD,
+            this.cubes.get(2 * u + 6 * i),
+            Bytes.of(3),
+            P)); // x³ + 3 mod p
 
-    this.comparisons.set(2 * u + 6 * i, this.callWcp(4 * u + 12 * i, OpCode.LT, x, P));
-    this.comparisons.set(1 + 2 * u + 6 * i, this.callWcp(1 + 4 * u + 12 * i, OpCode.LT, y, P));
+    this.comparisons.set(2 * u + 6 * i, this.callWcp(4 * u + 12 * i, OpCode.LT, x, P)); // x < p
+    this.comparisons.set(
+        1 + 2 * u + 6 * i, this.callWcp(1 + 4 * u + 12 * i, OpCode.LT, y, P)); // y < p
 
     this.equalities.set(
         1 + 4 * u + 12 * i,
@@ -287,8 +296,8 @@ public class EcDataOperation {
             2 + 4 * u + 12 * i,
             OpCode.EQ,
             this.squares.get(1 + 2 * u + 6 * i),
-            this.cubes.get(1 + 2 * u + 6 * i)));
-    this.equalities.set(2 + 4 * u + 12 * i, x.isZero() && y.isZero());
+            this.cubes.get(1 + 2 * u + 6 * i))); // y² = x³ + 3
+    this.equalities.set(2 + 4 * u + 12 * i, x.isZero() && y.isZero()); // (x, y) == (0, 0)
     this.equalities.set(
         3 + 4 * u + 12 * i,
         this.equalities.get(1 + 4 * u + 12 * i) || this.equalities.get(2 + 4 * u + 12 * i));

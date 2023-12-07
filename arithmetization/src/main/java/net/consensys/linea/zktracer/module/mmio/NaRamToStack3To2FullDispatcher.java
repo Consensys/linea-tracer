@@ -18,57 +18,53 @@ package net.consensys.linea.zktracer.module.mmio;
 import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.mmu.MicroData;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
-import net.consensys.linea.zktracer.types.UnsignedByte;
 
-public class RamLimbExcisionDispatcher implements MmioDispatcher {
+public class NaRamToStack3To2FullDispatcher implements MmioDispatcher {
   @Override
   public MmioData dispatch(MicroData microData, CallStack callStack) {
     MmioData mmioData = new MmioData();
-    mmioData.cnA(0);
-    mmioData.cnB(microData.targetContext());
-    mmioData.cnC(0);
-    mmioData.indexA(0);
-    mmioData.indexB(microData.targetLimbOffset().toInt());
-    mmioData.indexC(0);
-    mmioData.valA(new UnsignedByte[16]);
+
+    int sourceContext = microData.sourceContext();
+    mmioData.cnA(sourceContext);
+    mmioData.cnB(sourceContext);
+    mmioData.cnC(sourceContext);
+
+    int sourceLimbOffset = microData.sourceLimbOffset().toInt();
+    mmioData.indexA(sourceLimbOffset);
+    mmioData.indexB(sourceLimbOffset + 1);
+    mmioData.indexC(sourceLimbOffset + 2);
+
+    Preconditions.checkState(
+        microData.isRootContext() && microData.isType5(),
+        "Should be: EXCEPTIONAL_RAM_TO_STACK_3_TO_2_FULL");
+
+    mmioData.valA(callStack.valueFromMemory(mmioData.cnA(), mmioData.indexA()));
     mmioData.valB(callStack.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
-    mmioData.valC(new UnsignedByte[16]);
+    mmioData.valC(callStack.valueFromMemory(mmioData.cnC(), mmioData.indexC()));
+
     mmioData.valANew(mmioData.valA());
-    mmioData.valBNew(
-        excise(mmioData.valB(), microData.targetByteOffset().toInteger(), microData.size()));
+    mmioData.valBNew(mmioData.valB());
     mmioData.valCNew(mmioData.valC());
+
+    mmioData.setVal(microData.value());
+
     mmioData.updateLimbsInMemory(callStack);
 
     return mmioData;
   }
 
-  private UnsignedByte[] excise(UnsignedByte[] source, int start, int size) {
-    int end = start + size;
-
-    Preconditions.checkState(
-        start < 0 || size <= 0,
-        "offsets out of bounds: start = %d, size = %d\none should have start >= 0 & size > 0"
-            .formatted(start, size));
-
-    // TODO: explore this case: it happens in practice : )
-    //    Preconditions.checkState(
-    //      end > 16,
-    //      "offsets out of bounds:, start + size = %d is bigger than 16".formatted(end));
-
-    for (int i = start; i < Math.min(end, 16); i++) {
-      source[i] = UnsignedByte.ZERO;
-    }
-
-    return source;
-  }
-
   @Override
   public void update(MmioData mmioData, MicroData microData, int counter) {
-    mmioData.excision(
+    // 3=>2Full
+    mmioData.threeToTwoFull(
+        mmioData.byteA(counter),
         mmioData.byteB(counter),
+        mmioData.byteC(counter),
         mmioData.acc1(),
-        microData.targetByteOffset(),
-        microData.size(),
+        mmioData.acc2(),
+        mmioData.acc3(),
+        mmioData.acc4(),
+        microData.sourceByteOffset(),
         counter);
   }
 }

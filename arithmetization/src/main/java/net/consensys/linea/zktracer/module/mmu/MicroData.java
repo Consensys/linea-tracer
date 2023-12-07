@@ -155,7 +155,7 @@ class MicroData extends ModuleOperation {
         .contains(microOp);
   }
 
-  boolean isType5() {
+  public boolean isType5() {
     return microOp == OpCode.CALLDATALOAD.getData().value();
   }
 
@@ -195,7 +195,7 @@ class MicroData extends ModuleOperation {
     return readPad.isLastPad(processingRow);
   }
 
-  boolean isRootContext() {
+  public boolean isRootContext() {
     return callStackDepth == 1;
   }
 

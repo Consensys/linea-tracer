@@ -41,6 +41,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 @Accessors(fluent = true)
 public class CallFrame {
   public static final CallFrame EMPTY = new CallFrame(Address.ZERO);
+
   /** the position of this {@link CallFrame} in the {@link CallStack}. */
   @Getter private int id;
   /** the context number of the frame, i.e. the hub stamp at its creation */
@@ -98,13 +99,13 @@ public class CallFrame {
   @Getter private final MemorySpan returnDataTarget;
 
   // where I should put my RETURNDATARange in my caller's RAM
-  @Getter private MemoryRange returnTarget = MemoryRange.fromStartEnd(0, 0);
+  @Getter private final MemoryRange returnTarget = MemoryRange.fromStartEnd(0, 0);
 
   // where my CALLDATA is in my caller's RAM
-  @Getter private MemoryRange callDataRange = MemoryRange.fromStartEnd(0, 0);
+  @Getter private final MemoryRange callDataRange = MemoryRange.fromStartEnd(0, 0);
 
   // position of the returner's RETURNDATARange in its RAM
-  @Getter private MemoryRange returnDataRange = MemoryRange.fromStartEnd(0, 0);
+  @Getter private final MemoryRange returnDataRange = MemoryRange.fromStartEnd(0, 0);
 
   // last called context
   @Getter private int returner;
@@ -123,8 +124,9 @@ public class CallFrame {
     this.type = CallFrameType.BEDROCK;
     this.contextNumber = 0;
     this.address = address;
-    this.callDataPointer = new MemorySpan(0, 0);
-    this.returnDataTarget = new MemorySpan(0, 0);
+    this.callDataPointer = MemorySpan.ZERO;
+    this.returnDataPointer = MemorySpan.ZERO;
+    this.returnDataTarget = MemorySpan.ZERO;
   }
 
   /**
@@ -172,8 +174,8 @@ public class CallFrame {
     this.callData = callData;
     this.callDataPointer = new MemorySpan(0, callData.size());
     this.depth = depth;
-    this.returnDataPointer = new MemorySpan(0, 0);
-    this.returnDataTarget = new MemorySpan(0, 0); // TODO: fix me Franklin
+    this.returnDataPointer = MemorySpan.ZERO;
+    this.returnDataTarget = MemorySpan.ZERO; // TODO: fix me Franklin
   }
 
   /**
@@ -223,9 +225,10 @@ public class CallFrame {
   }
 
   /**
-   * Sets the
-   * @param offset
-   * @param size
+   * Sets the {@link MemorySpan} of a return data pointer.
+   *
+   * @param offset start of a contiguous region in an account memory
+   * @param size length of a contiguous region in an account memory
    */
   public void setReturn(long offset, long size) {
     this.returnDataPointer = new MemorySpan(offset, size);

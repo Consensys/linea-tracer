@@ -948,7 +948,7 @@ public class Hub implements Module {
       if (frame.stackSize() >= 2) {
         final long offset = Words.clampedToLong(frame.getStackItem(0));
         final long size = Words.clampedToLong(frame.getStackItem(1));
-        this.currentFrame().setReturn(offset,size);
+        this.currentFrame().setReturn(offset, size);
       }
     }
 

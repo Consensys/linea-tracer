@@ -16,7 +16,6 @@
 package net.consensys.linea.zktracer.module.mmu;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import lombok.AccessLevel;

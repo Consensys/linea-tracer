@@ -49,8 +49,8 @@ import net.consensys.linea.zktracer.module.preclimits.Blake2f;
 import net.consensys.linea.zktracer.module.preclimits.EcAdd;
 import net.consensys.linea.zktracer.module.preclimits.EcMul;
 import net.consensys.linea.zktracer.module.preclimits.EcPairingCall;
-import net.consensys.linea.zktracer.module.preclimits.EcRec;
-import net.consensys.linea.zktracer.module.preclimits.EcpairingWeightedCall;
+import net.consensys.linea.zktracer.module.preclimits.EcPairingWeightedCall;
+import net.consensys.linea.zktracer.module.preclimits.EcRecover;
 import net.consensys.linea.zktracer.module.preclimits.Modexp;
 import net.consensys.linea.zktracer.module.preclimits.Rip160;
 import net.consensys.linea.zktracer.module.preclimits.Sha256;
@@ -164,7 +164,7 @@ public class Hub implements Module {
   private final Mod mod = new Mod();
   private final Module mul = new Mul(this);
   private final Module shf = new Shf();
-  private final Wcp wcp = new Wcp();
+  private final Wcp wcp = new Wcp(this);
   private final RlpTxn rlpTxn;
   private final Module mxp;
   private final Mmu mmu;
@@ -197,13 +197,13 @@ public class Hub implements Module {
     this.precompileLimitModules =
         List.of(
             new Sha256(this),
-            new EcRec(this),
+            new EcRecover(this),
             new Rip160(this),
             this.modexp,
             new EcAdd(this),
             new EcMul(this),
             ecpairingCall,
-            new EcpairingWeightedCall(ecpairingCall),
+            new EcPairingWeightedCall(ecpairingCall),
             new Blake2f(this));
 
     this.modules =
@@ -908,6 +908,10 @@ public class Hub implements Module {
   @Override
   public int lineCount() {
     return this.state.lineCount();
+  }
+
+  public int cumulatedTxCount() {
+    return this.state.txCount();
   }
 
   void traceOperation(MessageFrame frame) {

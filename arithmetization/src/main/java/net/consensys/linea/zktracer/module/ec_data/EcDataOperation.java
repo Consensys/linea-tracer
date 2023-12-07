@@ -117,11 +117,7 @@ public class EcDataOperation {
     Preconditions.checkArgument(EC_TYPES.contains(ecType), "invalid EC type");
 
     final int nRows = ecTypeToNRows(ecType, input);
-    final int minInputLength =
-        switch (ecType) {
-          case EC_MUL -> 96;
-          default -> 128;
-        };
+    final int minInputLength = ecType == EC_MUL ? 96 : 128;
     if (input.size() < minInputLength) {
       this.input = leftPadTo(input, minInputLength);
     } else {
@@ -192,10 +188,10 @@ public class EcDataOperation {
           default -> throw new IllegalStateException("Unexpected value: " + inst);
         };
 
-    this.wcpArg1.add(arg1);
-    this.wcpArg2.add(arg2);
-    this.wcpInst.add(inst);
-    this.wcpRes.add(r);
+    this.wcpArg1.set(i, arg1);
+    this.wcpArg2.set(i, arg2);
+    this.wcpInst.set(i, inst);
+    this.wcpRes.set(i, r);
     return r;
   }
 

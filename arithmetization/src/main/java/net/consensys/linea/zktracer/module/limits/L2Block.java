@@ -33,7 +33,7 @@ import org.hyperledger.besu.evm.log.LogTopic;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Accessors(fluent = true)
-public class L1Block implements Module {
+public class L2Block implements Module {
   private final Address L2L1_ADDRESS;
   private final LogTopic L2L1_TOPIC;
 
@@ -49,7 +49,7 @@ public class L1Block implements Module {
   /** The byte size of the L2->L1 logs messages of the conflation */
   @Getter private final Deque<List<Integer>> l2l1LogSizes = new ArrayDeque<>();
 
-  public L1Block() {
+  public L2Block() {
     this.L2L1_TOPIC =
         LogTopic.fromHexString(
             Optional.ofNullable(System.getenv("L2L1_TOPIC")).orElse("0xDEADBEEF"));
@@ -60,7 +60,7 @@ public class L1Block implements Module {
 
   @Override
   public String moduleKey() {
-    return "BLOCK_L2L1LOGS";
+    return "BLOCK_L1SIZE";
   }
 
   @Override
@@ -150,5 +150,9 @@ public class L1Block implements Module {
     }
 
     this.sizesRlpEncodedTxs.push(this.sizesRlpEncodedTxs.pop() + tx.encoded().size());
+  }
+
+  public int l2l1LogsCount() {
+    return this.l2l1LogSizes.stream().mapToInt(List::size).sum();
   }
 }

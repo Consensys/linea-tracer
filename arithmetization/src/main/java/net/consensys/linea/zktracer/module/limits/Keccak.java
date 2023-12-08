@@ -42,7 +42,7 @@ public class Keccak implements Module {
 
   private final Hub hub;
   private final EcRecover ecRec;
-  private final L1Block l1Block;
+  private final L2Block l2Block;
 
   private final Deque<List<Long>> deployedCodesizes = new ArrayDeque<>();
   private final Deque<List<Long>> sha3Sizes = new ArrayDeque<>();
@@ -95,13 +95,13 @@ public class Keccak implements Module {
 
   @Override
   public int lineCount() {
-    final int l2L1LogsCount = this.l1Block.l2l1LogSizes().stream().mapToInt(List::size).sum();
-    final int txCount = this.l1Block.sizesRlpEncodedTxs().size();
+    final int l2L1LogsCount = this.l2Block.l2l1LogSizes().stream().mapToInt(List::size).sum();
+    final int txCount = this.l2Block.sizesRlpEncodedTxs().size();
     final int ecRecoverCount = ecRec.lineCount();
 
     // From tx RLPs, used both for both the signature verification and the
     // public input computation.
-    return this.l1Block.sizesRlpEncodedTxs().stream().mapToInt(Keccak::numKeccak).sum()
+    return this.l2Block.sizesRlpEncodedTxs().stream().mapToInt(Keccak::numKeccak).sum()
         // From deployed contracts,
         // @alex, this formula suggests that the same data is hashed twice. Is this
         // accurate? If this is actually the same data then we should not need to

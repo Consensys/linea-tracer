@@ -27,6 +27,7 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.Bytes16;
 import net.consensys.linea.zktracer.types.UnsignedByte;
+import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 
 @Accessors(fluent = true)
@@ -37,30 +38,32 @@ final class ShfOperation {
   @Getter private final Bytes32 arg1;
   @Getter private final Bytes32 arg2;
   @Getter private final boolean isOneLineInstruction;
-  @Getter private final boolean isNegative;
-  @Getter private final boolean isShiftRight;
-  @Getter private final boolean isKnown;
-  @Getter private final UnsignedByte msb;
-  @Getter private final UnsignedByte lsb;
-  @Getter private final UnsignedByte low3;
-  @Getter private final UnsignedByte mshp;
-  @Getter private final Boolean[] lsbBits;
-  @Getter private final Boolean[] msbBits;
-  @Getter private final List<Boolean> bits;
-  @Getter private final Shb shb;
-  @Getter private final Res res;
-  @Getter private final boolean isBitB3;
-  @Getter private final boolean isBitB4;
-  @Getter private final boolean isBitB5;
-  @Getter private final boolean isBitB6;
-  @Getter private final boolean isBitB7;
+  @Getter private boolean isNegative;
+  @Getter private boolean isShiftRight;
+  @Getter private boolean isKnown;
+  @Getter private UnsignedByte msb;
+  @Getter private UnsignedByte lsb;
+  @Getter private UnsignedByte low3;
+  @Getter private UnsignedByte mshp;
+  @Getter private Boolean[] lsbBits;
+  @Getter private Boolean[] msbBits;
+  @Getter private List<Boolean> bits;
+  @Getter private Shb shb;
+  @Getter private Res res;
+  @Getter private boolean isBitB3;
+  @Getter private boolean isBitB4;
+  @Getter private boolean isBitB5;
+  @Getter private boolean isBitB6;
+  @Getter private boolean isBitB7;
 
   public ShfOperation(OpCode opCode, Bytes32 arg1, Bytes32 arg2) {
     this.opCode = opCode;
     this.arg1 = arg1;
     this.arg2 = arg2;
-
     this.isOneLineInstruction = isOneLineInstruction(opCode, arg1Hi());
+  }
+
+  private void compute() {
     this.isNegative = Long.compareUnsigned(arg2Hi().get(0), 128) >= 0;
     this.isShiftRight = List.of(OpCode.SAR, OpCode.SHR).contains(opCode);
     this.isKnown = isKnown(opCode, arg1Hi(), arg1Lo());
@@ -147,5 +150,74 @@ final class ShfOperation {
 
   public int maxCt() {
     return this.isOneLineInstruction ? 1 : LIMB_SIZE;
+  }
+
+  public void trace(Trace trace, int stamp) {
+    this.compute();
+
+    for (int i = 0; i < this.maxCt(); i++) {
+      final ByteChunks arg2HiByteChunks =
+        ByteChunks.fromBytes(UnsignedByte.of(this.arg2Hi().get(i)), this.mshp());
+      final ByteChunks arg2LoByteChunks =
+        ByteChunks.fromBytes(UnsignedByte.of(this.arg2Lo().get(i)), this.mshp());
+
+      trace
+        .acc1(this.arg1Lo().slice(0, 1 + i))
+        .acc2(this.arg2Hi().slice(0, 1 + i))
+        .acc3(this.arg2Lo().slice(0, 1 + i))
+        .acc4(this.res().getResHi().slice(0, 1 + i))
+        .acc5(this.res().getResLo().slice(0, 1 + i))
+        .arg1Hi(this.arg1Hi())
+        .arg1Lo(this.arg1Lo())
+        .arg2Hi(this.arg2Hi())
+        .arg2Lo(this.arg2Lo());
+
+      if (this.isShiftRight()) {
+        trace.bit1(i >= 1).bit2(i >= 2).bit3(i >= 4).bit4(i >= 8);
+      } else {
+        trace.bit1(i >= (16 - 1)).bit2(i >= (16 - 2)).bit3(i >= (16 - 4)).bit4(i >= (16 - 8));
+      }
+
+      trace
+        .bitB3(this.isBitB3())
+        .bitB4(this.isBitB4())
+        .bitB5(this.isBitB5())
+        .bitB6(this.isBitB6())
+        .bitB7(this.isBitB7())
+        .byte1(UnsignedByte.of(this.arg1Lo().get(i)))
+        .byte2(UnsignedByte.of(this.arg2Hi().get(i)))
+        .byte3(UnsignedByte.of(this.arg2Lo().get(i)))
+        .byte4(UnsignedByte.of(this.res().getResHi().get(i)))
+        .byte5(UnsignedByte.of(this.res().getResLo().get(i)))
+        .bits(this.bits().get(i))
+        .counter(Bytes.of(i))
+        .inst(Bytes.of(this.opCode().byteValue()))
+        .known(this.isKnown())
+        .neg(this.isNegative())
+        .oneLineInstruction(this.isOneLineInstruction())
+        .low3(Bytes.of(this.low3().toInteger()))
+        .microShiftParameter(Bytes.ofUnsignedInt(this.mshp().toInteger()))
+        .resHi(this.res().getResHi())
+        .resLo(this.res().getResLo())
+        .leftAlignedSuffixHigh(Bytes.ofUnsignedShort(arg2HiByteChunks.la().toInteger()))
+        .rightAlignedPrefixHigh(Bytes.ofUnsignedInt(arg2HiByteChunks.ra().toInteger()))
+        .ones(Bytes.ofUnsignedInt(arg2HiByteChunks.ones().toInteger()))
+        .leftAlignedSuffixLow(Bytes.ofUnsignedInt(arg2LoByteChunks.la().toInteger()))
+        .rightAlignedPrefixLow(Bytes.ofUnsignedInt(arg2LoByteChunks.ra().toInteger()))
+        .shb3Hi(Bytes.ofUnsignedInt(this.shb().getShbHi()[0][i].toInteger()))
+        .shb3Lo(Bytes.ofUnsignedInt(this.shb().getShbLo()[0][i].toInteger()))
+        .shb4Hi(Bytes.ofUnsignedInt(this.shb().getShbHi()[4 - 3][i].toInteger()))
+        .shb4Lo(Bytes.ofUnsignedInt(this.shb().getShbLo()[4 - 3][i].toInteger()))
+        .shb5Hi(Bytes.ofUnsignedInt(this.shb().getShbHi()[5 - 3][i].toInteger()))
+        .shb5Lo(Bytes.ofUnsignedInt(this.shb().getShbLo()[5 - 3][i].toInteger()))
+        .shb6Hi(Bytes.ofUnsignedInt(this.shb().getShbHi()[6 - 3][i].toInteger()))
+        .shb6Lo(Bytes.ofUnsignedInt(this.shb().getShbLo()[6 - 3][i].toInteger()))
+        .shb7Hi(Bytes.ofUnsignedInt(this.shb().getShbHi()[7 - 3][i].toInteger()))
+        .shb7Lo(Bytes.ofUnsignedInt(this.shb().getShbLo()[7 - 3][i].toInteger()))
+        .shiftDirection(this.isShiftRight())
+        .isData(stamp != 0)
+        .shiftStamp(Bytes.ofUnsignedInt(stamp))
+        .validateRow();
+    }
   }
 }

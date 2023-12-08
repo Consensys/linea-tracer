@@ -89,6 +89,7 @@ public class StackedSet<E> implements StackedContainer, java.util.Set<E> {
 
   @NotNull
   @Override
+  @SuppressWarnings("unchecked")
   public E[] toArray() {
     return occurences.entrySet().stream()
             .filter(entry -> entry.getValue() > 0)

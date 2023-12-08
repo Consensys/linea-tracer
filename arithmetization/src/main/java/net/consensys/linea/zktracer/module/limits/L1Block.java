@@ -19,15 +19,13 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
-import java.util.Set;
+import java.util.Optional;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -35,13 +33,10 @@ import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.log.LogTopic;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-@RequiredArgsConstructor
 @Accessors(fluent = true)
 public class L1Block implements Module {
-  private static final Address L2L1_ADDRESS = Address.fromHexString("0xDEADBEEF"); // TODO:
-  private static final LogTopic L2L1_TOPIC = LogTopic.fromHexString("0xBEEFDEAD"); // TODO:
-  private static final Set<OpCode> LOGS =
-      Set.of(OpCode.LOG0, OpCode.LOG1, OpCode.LOG2, OpCode.LOG3, OpCode.LOG4);
+  private final Address L2L1_ADDRESS;
+  private final LogTopic L2L1_TOPIC;
 
   private static final int ADDRESS_BYTES = 20;
   private static final int HASH_BYTES = 32;
@@ -50,31 +45,40 @@ public class L1Block implements Module {
   private static final int ABI_OFFSET_BYTES = 32;
   private static final int ABI_LEN_BYTES = 32;
 
-  private final Hub hub;
-
-  @Getter private final Deque<Integer> rlpSizes = new ArrayDeque<>();
+  /** The byte size of the RLP-encoded transaction of the conflation */
+  @Getter private final Deque<Integer> sizesRlpEncodedTxs = new ArrayDeque<>();
+  /** The byte size of the L2->L1 logs messages of the conflation */
   @Getter private final Deque<List<Integer>> l2l1LogSizes = new ArrayDeque<>();
 
+  public L1Block() {
+    this.L2L1_TOPIC =
+        LogTopic.fromHexString(
+            Optional.ofNullable(System.getenv("L2L1_TOPIC")).orElse("0xDEADBEEF"));
+    this.L2L1_ADDRESS =
+        Address.fromHexString(
+            Optional.ofNullable(System.getenv("L2L1_CONTRACT_ADDRESS")).orElse("0x12345"));
+  }
+
   @Override
-  public String jsonKey() {
-    return "block";
+  public String moduleKey() {
+    return "BLOCK_L2L1LOGS";
   }
 
   @Override
   public void enterTransaction() {
-    this.rlpSizes.push(0);
+    this.sizesRlpEncodedTxs.push(0);
     this.l2l1LogSizes.push(new ArrayList<>());
   }
 
   @Override
   public void popTransaction() {
-    this.rlpSizes.pop();
+    this.sizesRlpEncodedTxs.pop();
     this.l2l1LogSizes.pop();
   }
 
   @Override
   public int lineCount() {
-    final int txCount = this.rlpSizes.size();
+    final int txCount = this.sizesRlpEncodedTxs.size();
     final int l2L1LogsCount = this.l2l1LogSizes.stream().mapToInt(List::size).sum();
 
     // This calculates the data size related to the transaction field of the
@@ -84,7 +88,7 @@ public class L1Block implements Module {
     // to encode the length of each sub bytes array). This overhead is also
     // incurred by the top-level array, hence the +1.
     int totalTxsRlpSize = (txCount + 1) * (ABI_OFFSET_BYTES + ABI_LEN_BYTES);
-    for (int txRlpSize : this.rlpSizes) {
+    for (int txRlpSize : this.sizesRlpEncodedTxs) {
       totalTxsRlpSize += txRlpSize;
     }
 
@@ -120,7 +124,7 @@ public class L1Block implements Module {
             L1_MSG_INDICES_BYTES * txCount
             + ABI_LEN_BYTES
             + ABI_OFFSET_BYTES
-            + // the L1 msgs
+            + // the L1 messages
             ABI_LEN_BYTES
             + ABI_OFFSET_BYTES; // abi overheads for the blockdata struct.
 
@@ -146,6 +150,6 @@ public class L1Block implements Module {
       }
     }
 
-    this.rlpSizes.push(this.rlpSizes.pop() + tx.encoded().size());
+    this.sizesRlpEncodedTxs.push(this.sizesRlpEncodedTxs.pop() + tx.encoded().size());
   }
 }

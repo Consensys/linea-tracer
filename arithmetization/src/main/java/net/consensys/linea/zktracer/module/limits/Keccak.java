@@ -27,7 +27,7 @@ import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcRec;
+import net.consensys.linea.zktracer.module.limits.precompiles.EcRecover;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
@@ -41,15 +41,15 @@ public class Keccak implements Module {
   private static final int PUBKEY_BYTES = 64;
 
   private final Hub hub;
-  private final EcRec ecRec;
+  private final EcRecover ecRec;
   private final L1Block l1Block;
 
   private final Deque<List<Long>> deployedCodesizes = new ArrayDeque<>();
   private final Deque<List<Long>> sha3Sizes = new ArrayDeque<>();
 
   @Override
-  public String jsonKey() {
-    return "keccak";
+  public String moduleKey() {
+    return "BLOCK_KECCAK";
   }
 
   @Override
@@ -96,12 +96,12 @@ public class Keccak implements Module {
   @Override
   public int lineCount() {
     final int l2L1LogsCount = this.l1Block.l2l1LogSizes().stream().mapToInt(List::size).sum();
-    final int txCount = this.l1Block.rlpSizes().size();
+    final int txCount = this.l1Block.sizesRlpEncodedTxs().size();
     final int ecRecoverCount = ecRec.lineCount();
 
     // From tx RLPs, used both for both the signature verification and the
     // public input computation.
-    return this.l1Block.rlpSizes().stream().mapToInt(Keccak::numKeccak).sum()
+    return this.l1Block.sizesRlpEncodedTxs().stream().mapToInt(Keccak::numKeccak).sum()
         // From deployed contracts,
         // @alex, this formula suggests that the same data is hashed twice. Is this
         // accurate? If this is actually the same data then we should not need to

@@ -46,8 +46,8 @@ import net.consensys.linea.zktracer.module.limits.precompiles.Blake2f;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcAdd;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcMul;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcRec;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcpairingWeightedCall;
+import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingWeightedCall;
+import net.consensys.linea.zktracer.module.limits.precompiles.EcRecover;
 import net.consensys.linea.zktracer.module.limits.precompiles.Modexp;
 import net.consensys.linea.zktracer.module.limits.precompiles.Rip160;
 import net.consensys.linea.zktracer.module.limits.precompiles.Sha256;
@@ -185,7 +185,7 @@ public class Hub implements Module {
 
   private final List<Module> modules;
   /* Those modules are not traced, we just compute the number of calls to those precompile to meet the prover limits */
-  private final List<Module> limitModules;
+  private final List<Module> precompileLimitModules;
 
   public Hub() {
     this.pch = new PlatformController(this);
@@ -197,11 +197,11 @@ public class Hub implements Module {
     this.txnData = new TxnData(this, this.romLex, this.wcp);
     this.ecData = new EcData(this, this.wcp, this.ext);
 
-    final L1Block l1Block = new L1Block(this);
-    final EcRec ecRec = new EcRec(this);
+    final L1Block l1Block = new L1Block();
+    final EcRecover ecRec = new EcRecover(this);
     this.modexp = new Modexp(this);
     final EcPairingCall ecpairingCall = new EcPairingCall(this);
-    this.limitModules =
+    this.precompileLimitModules =
         List.of(
             new Sha256(this),
             ecRec,
@@ -210,7 +210,7 @@ public class Hub implements Module {
             new EcAdd(this),
             new EcMul(this),
             ecpairingCall,
-            new EcpairingWeightedCall(ecpairingCall),
+            new EcPairingWeightedCall(ecpairingCall),
             new Blake2f(this),
             new Keccak(this, ecRec, l1Block));
 
@@ -236,7 +236,7 @@ public class Hub implements Module {
                     this.txnData,
                     this.stp,
                     this.wcp),
-                this.limitModules.stream())
+                this.precompileLimitModules.stream())
             .toList();
   }
 
@@ -459,7 +459,7 @@ public class Hub implements Module {
   }
 
   void triggerModules(MessageFrame frame) {
-    for (Module precompileLimit : this.limitModules) {
+    for (Module precompileLimit : this.precompileLimitModules) {
       precompileLimit.tracePreOpcode(frame);
     }
 

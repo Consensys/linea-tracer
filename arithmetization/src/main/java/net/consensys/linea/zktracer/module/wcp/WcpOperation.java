@@ -40,24 +40,24 @@ public class WcpOperation {
 
   @Getter private final boolean isOneLineInstruction;
 
-  @Getter private final Bytes16 arg1Hi;
-  @Getter private final Bytes16 arg1Lo;
-  @Getter private final Bytes16 arg2Hi;
-  @Getter private final Bytes16 arg2Lo;
+  @Getter private Bytes16 arg1Hi;
+  @Getter private Bytes16 arg1Lo;
+  @Getter private Bytes16 arg2Hi;
+  @Getter private Bytes16 arg2Lo;
 
-  @Getter private final Bytes16 adjHi;
+  @Getter private Bytes16 adjHi;
 
-  @Getter private final Bytes16 adjLo;
-  @Getter private final Boolean neg1;
+  @Getter private Bytes16 adjLo;
+  @Getter private Boolean neg1;
 
-  @Getter private final Boolean neg2;
+  @Getter private Boolean neg2;
   @Getter private Boolean bit1 = true;
   @Getter private Boolean bit2 = true;
-  @Getter private final Boolean bit3;
-  @Getter private final Boolean bit4;
-  @Getter private final Boolean resLo;
+  @Getter private Boolean bit3;
+  @Getter private Boolean bit4;
+  @Getter private Boolean resLo;
 
-  @Getter final List<Boolean> bits;
+  @Getter final List<Boolean> bits = new ArrayList<>(16);
 
   public WcpOperation(OpCode opCode, Bytes32 arg1, Bytes32 arg2) {
     this.opCode = opCode;
@@ -65,11 +65,9 @@ public class WcpOperation {
     this.arg2 = arg2;
 
     this.isOneLineInstruction = isOneLineInstruction(opCode);
+  }
 
-    //     maybe ?
-    //     Bytes32[] args
-    //     Preconditions.checkArgument(args.size() == opCode.numberOfArguments());
-
+  private void compute() {
     this.arg1Hi = Bytes16.wrap(arg1.slice(0, 16));
     this.arg1Lo = Bytes16.wrap(arg1.slice(16));
     this.arg2Hi = Bytes16.wrap(arg2.slice(0, 16));
@@ -87,7 +85,6 @@ public class WcpOperation {
     this.neg2 = msb2Bits[0];
 
     // Initiate bits
-    bits = new ArrayList<>(16);
     Collections.addAll(bits, msb1Bits);
     Collections.addAll(bits, msb2Bits);
 
@@ -159,6 +156,55 @@ public class WcpOperation {
     var bytes32 = Bytes32.leftPad(Bytes.of(adjHi.toByteArray()));
 
     return Bytes16.wrap(bytes32.slice(16));
+  }
+
+  void trace(Trace trace, int stamp) {
+    this.compute();
+    final Bytes resHi = this.getResHi() ? Bytes.of(1) : Bytes.EMPTY;
+    final Bytes resLo = this.getResLo() ? Bytes.of(1) : Bytes.EMPTY;
+    final List<Boolean> bits = this.getBits();
+    final boolean neg1 = this.getNeg1();
+    final boolean neg2 = this.getNeg2();
+    final Bytes16 adjHi = this.getAdjHi();
+    final Bytes16 adjLo = this.getAdjLo();
+    final boolean bit1 = this.getBit1();
+    final boolean bit2 = this.getBit2();
+    final boolean bit3 = this.getBit3();
+    final boolean bit4 = this.getBit4();
+
+    for (int i = 0; i < this.maxCt(); i++) {
+      trace
+          .wordComparisonStamp(Bytes.ofUnsignedInt(stamp))
+          .oneLineInstruction(this.isOneLineInstruction())
+          .counter(Bytes.of(i))
+          .inst(Bytes.of(this.getOpCode().byteValue()))
+          .argument1Hi(this.getArg1Hi())
+          .argument1Lo(this.getArg1Lo())
+          .argument2Hi(this.getArg2Hi())
+          .argument2Lo(this.getArg2Lo())
+          .resultHi(resHi)
+          .resultLo(resLo)
+          .bits(bits.get(i))
+          .neg1(neg1)
+          .neg2(neg2)
+          .byte1(UnsignedByte.of(this.getArg1Hi().get(i)))
+          .byte2(UnsignedByte.of(this.getArg1Lo().get(i)))
+          .byte3(UnsignedByte.of(this.getArg2Hi().get(i)))
+          .byte4(UnsignedByte.of(this.getArg2Lo().get(i)))
+          .byte5(UnsignedByte.of(adjHi.get(i)))
+          .byte6(UnsignedByte.of(adjLo.get(i)))
+          .acc1(this.getArg1Hi().slice(0, 1 + i))
+          .acc2(this.getArg1Lo().slice(0, 1 + i))
+          .acc3(this.getArg2Hi().slice(0, 1 + i))
+          .acc4(this.getArg2Lo().slice(0, 1 + i))
+          .acc5(adjHi.slice(0, 1 + i))
+          .acc6(adjLo.slice(0, 1 + i))
+          .bit1(bit1)
+          .bit2(bit2)
+          .bit3(bit3)
+          .bit4(bit4)
+          .validateRow();
+    }
   }
 
   int maxCt() {

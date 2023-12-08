@@ -90,7 +90,7 @@ public class EcData implements Module {
           return;
         }
 
-        Bytes input = frame.shadowReadMemory(offset, length);
+        final Bytes input = frame.shadowReadMemory(offset, length);
 
         this.operations.add(
             EcDataOperation.of(
@@ -108,7 +108,11 @@ public class EcData implements Module {
 
   @Override
   public int lineCount() {
-    return this.operations.stream().mapToInt(EcDataOperation::nRows).sum();
+    int sum = 0;
+    for (EcDataOperation op : this.operations) {
+      sum += op.nRows();
+    }
+    return sum;
   }
 
   @Override

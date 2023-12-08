@@ -150,7 +150,6 @@ public class EcDataOperation {
     this.extArg3 = repeat(Bytes.EMPTY, nRows);
     this.extInst = repeat(OpCode.INVALID, nRows);
     this.extRes = repeat(Bytes.EMPTY, nRows);
-    ;
 
     this.wcp = wcp;
     this.ext = ext;

@@ -101,7 +101,7 @@ public class BinOperation {
     if (!isSmall) {
       return arg2;
     }
-    final int indexLeadingByte = 30 - arg1.getByte(31);
+    final int indexLeadingByte = 30 - arg1.getLow().toUnsignedBigInteger().intValueExact();
     final byte toSet = (byte) (arg2().getByte(indexLeadingByte) < 0 ? 0xFF : 0x00);
     return BaseBytes.fromBytes32(
         Bytes32.leftPad(arg2.getBytes32().slice(indexLeadingByte, 32 - indexLeadingByte), toSet));

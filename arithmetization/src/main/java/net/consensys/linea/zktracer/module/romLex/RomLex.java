@@ -192,7 +192,7 @@ public class RomLex implements Module {
         final Bytes code = frame.shadowReadMemory(offset, length);
         final boolean depStatus =
             hub.conflation().deploymentInfo().isDeploying(frame.getContractAddress());
-        if (!code.isEmpty() && depStatus) {
+        if (depStatus) {
           codeIdentifierBeforeLexOrder += 1;
           int depNumber = hub.conflation().deploymentInfo().number(frame.getContractAddress());
           this.chunks.add(
@@ -230,16 +230,11 @@ public class RomLex implements Module {
                 () -> this.emptyContractsCount.push(this.emptyContractsCount.pop() + 1));
       }
 
-      case EXTCODECOPY -> {
-        final Address calledAddress = Words.toAddress(frame.getStackItem(1));
-        final long size = Words.clampedToLong(frame.getStackItem(3));
-        final boolean isDeploying =
-            hub.conflation().deploymentInfo().isDeploying(frame.getContractAddress());
-        if (size == 0 || isDeploying) {
-          return;
-        }
-        final int depNumber = hub.conflation().deploymentInfo().number(frame.getContractAddress());
-        Optional.ofNullable(frame.getWorldUpdater().get(calledAddress))
+      case EXTCODECOPY, EXTCODEHASH, EXTCODESIZE -> {
+        final Address extAddress = Words.toAddress(frame.getStackItem(0));
+        final boolean isDeploying = hub.conflation().deploymentInfo().isDeploying(extAddress);
+        final int depNumber = hub.conflation().deploymentInfo().number(extAddress);
+        Optional.ofNullable(frame.getWorldUpdater().get(extAddress))
             .map(AccountState::getCode)
             .ifPresentOrElse(
                 byteCode -> {
@@ -247,7 +242,7 @@ public class RomLex implements Module {
                     codeIdentifierBeforeLexOrder += 1;
                     this.chunks.add(
                         new RomChunk(
-                            calledAddress,
+                            extAddress,
                             depNumber,
                             isDeploying,
                             true,
@@ -280,6 +275,7 @@ public class RomLex implements Module {
                 this.byteCode));
       }
     }
+    this.byteCode = Bytes.EMPTY;
   }
 
   private void traceChunk(

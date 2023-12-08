@@ -66,11 +66,18 @@ public class Rom implements Module {
   }
 
   public int chunkRowSize(RomChunk chunk) {
-    final int nPaddingRow = 32;
-    final int codeSize = chunk.byteCode().size();
-    final int nbSlice = (codeSize + (LLARGE - 1)) / LLARGE;
-
-    return LLARGE * nbSlice + nPaddingRow;
+    int s = 32;
+    for (int pc = 0; pc < chunk.byteCode().size(); pc++) {
+      final int opCode = 0xff & chunk.byteCode().get(pc);
+      if (opCode >= 0x60 && opCode <= 0x7f) {
+        final int pushParam = opCode - 0x60 + 1;
+        s += pushParam;
+        pc += pushParam;
+      } else {
+        s += 2;
+      }
+    }
+    return s;
   }
 
   private void traceChunk(RomChunk chunk, int cfi, int cfiInfty, Trace trace) {

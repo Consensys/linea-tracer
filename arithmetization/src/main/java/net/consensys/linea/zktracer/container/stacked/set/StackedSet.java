@@ -37,7 +37,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class StackedSet<E> implements StackedContainer, java.util.Set<E> {
   private final Deque<Set<E>> sets = new ArrayDeque<>();
-  private Map<E, Integer> occurences = new HashMap<>();
+  private final Map<E, Integer> occurences = new HashMap<>();
 
   @Override
   public void enter() {
@@ -47,11 +47,11 @@ public class StackedSet<E> implements StackedContainer, java.util.Set<E> {
   @Override
   public void pop() {
     Set<E> set = this.sets.pop();
-    for (E e:set) {
+    for (E e : set) {
       Integer count = occurences.get(e);
-      if (count > 0) occurences.put(e, count-1);
+      if (count > 0) occurences.put(e, count - 1);
       else throw new IllegalStateException("asymetric element removal !");
-    };
+    }
   }
 
   @Override
@@ -78,23 +78,23 @@ public class StackedSet<E> implements StackedContainer, java.util.Set<E> {
   @NotNull
   @Override
   public Iterator<E> iterator() {
-      List<E> list = new ArrayList<>();
-      for (Map.Entry<E, Integer> entry : occurences.entrySet()) {
-        if (entry.getValue() > 0) {
-          list.add(entry.getKey());
-        }
+    List<E> list = new ArrayList<>();
+    for (Map.Entry<E, Integer> entry : occurences.entrySet()) {
+      if (entry.getValue() > 0) {
+        list.add(entry.getKey());
       }
-      return list.iterator();
     }
+    return list.iterator();
+  }
 
   @NotNull
   @Override
   @SuppressWarnings("unchecked")
   public E[] toArray() {
     return occurences.entrySet().stream()
-            .filter(entry -> entry.getValue() > 0)
-            .map(Map.Entry::getKey)
-            .toArray(size -> (E[]) new Object[size]);
+        .filter(entry -> entry.getValue() > 0)
+        .map(Map.Entry::getKey)
+        .toArray(size -> (E[]) new Object[size]);
   }
 
   @NotNull

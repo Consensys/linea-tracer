@@ -157,20 +157,20 @@ final class ShfOperation {
 
     for (int i = 0; i < this.maxCt(); i++) {
       final ByteChunks arg2HiByteChunks =
-        ByteChunks.fromBytes(UnsignedByte.of(this.arg2Hi().get(i)), this.mshp());
+          ByteChunks.fromBytes(UnsignedByte.of(this.arg2Hi().get(i)), this.mshp());
       final ByteChunks arg2LoByteChunks =
-        ByteChunks.fromBytes(UnsignedByte.of(this.arg2Lo().get(i)), this.mshp());
+          ByteChunks.fromBytes(UnsignedByte.of(this.arg2Lo().get(i)), this.mshp());
 
       trace
-        .acc1(this.arg1Lo().slice(0, 1 + i))
-        .acc2(this.arg2Hi().slice(0, 1 + i))
-        .acc3(this.arg2Lo().slice(0, 1 + i))
-        .acc4(this.res().getResHi().slice(0, 1 + i))
-        .acc5(this.res().getResLo().slice(0, 1 + i))
-        .arg1Hi(this.arg1Hi())
-        .arg1Lo(this.arg1Lo())
-        .arg2Hi(this.arg2Hi())
-        .arg2Lo(this.arg2Lo());
+          .acc1(this.arg1Lo().slice(0, 1 + i))
+          .acc2(this.arg2Hi().slice(0, 1 + i))
+          .acc3(this.arg2Lo().slice(0, 1 + i))
+          .acc4(this.res().getResHi().slice(0, 1 + i))
+          .acc5(this.res().getResLo().slice(0, 1 + i))
+          .arg1Hi(this.arg1Hi())
+          .arg1Lo(this.arg1Lo())
+          .arg2Hi(this.arg2Hi())
+          .arg2Lo(this.arg2Lo());
 
       if (this.isShiftRight()) {
         trace.bit1(i >= 1).bit2(i >= 2).bit3(i >= 4).bit4(i >= 8);
@@ -179,45 +179,45 @@ final class ShfOperation {
       }
 
       trace
-        .bitB3(this.isBitB3())
-        .bitB4(this.isBitB4())
-        .bitB5(this.isBitB5())
-        .bitB6(this.isBitB6())
-        .bitB7(this.isBitB7())
-        .byte1(UnsignedByte.of(this.arg1Lo().get(i)))
-        .byte2(UnsignedByte.of(this.arg2Hi().get(i)))
-        .byte3(UnsignedByte.of(this.arg2Lo().get(i)))
-        .byte4(UnsignedByte.of(this.res().getResHi().get(i)))
-        .byte5(UnsignedByte.of(this.res().getResLo().get(i)))
-        .bits(this.bits().get(i))
-        .counter(Bytes.of(i))
-        .inst(Bytes.of(this.opCode().byteValue()))
-        .known(this.isKnown())
-        .neg(this.isNegative())
-        .oneLineInstruction(this.isOneLineInstruction())
-        .low3(Bytes.of(this.low3().toInteger()))
-        .microShiftParameter(Bytes.ofUnsignedInt(this.mshp().toInteger()))
-        .resHi(this.res().getResHi())
-        .resLo(this.res().getResLo())
-        .leftAlignedSuffixHigh(Bytes.ofUnsignedShort(arg2HiByteChunks.la().toInteger()))
-        .rightAlignedPrefixHigh(Bytes.ofUnsignedInt(arg2HiByteChunks.ra().toInteger()))
-        .ones(Bytes.ofUnsignedInt(arg2HiByteChunks.ones().toInteger()))
-        .leftAlignedSuffixLow(Bytes.ofUnsignedInt(arg2LoByteChunks.la().toInteger()))
-        .rightAlignedPrefixLow(Bytes.ofUnsignedInt(arg2LoByteChunks.ra().toInteger()))
-        .shb3Hi(Bytes.ofUnsignedInt(this.shb().getShbHi()[0][i].toInteger()))
-        .shb3Lo(Bytes.ofUnsignedInt(this.shb().getShbLo()[0][i].toInteger()))
-        .shb4Hi(Bytes.ofUnsignedInt(this.shb().getShbHi()[4 - 3][i].toInteger()))
-        .shb4Lo(Bytes.ofUnsignedInt(this.shb().getShbLo()[4 - 3][i].toInteger()))
-        .shb5Hi(Bytes.ofUnsignedInt(this.shb().getShbHi()[5 - 3][i].toInteger()))
-        .shb5Lo(Bytes.ofUnsignedInt(this.shb().getShbLo()[5 - 3][i].toInteger()))
-        .shb6Hi(Bytes.ofUnsignedInt(this.shb().getShbHi()[6 - 3][i].toInteger()))
-        .shb6Lo(Bytes.ofUnsignedInt(this.shb().getShbLo()[6 - 3][i].toInteger()))
-        .shb7Hi(Bytes.ofUnsignedInt(this.shb().getShbHi()[7 - 3][i].toInteger()))
-        .shb7Lo(Bytes.ofUnsignedInt(this.shb().getShbLo()[7 - 3][i].toInteger()))
-        .shiftDirection(this.isShiftRight())
-        .isData(stamp != 0)
-        .shiftStamp(Bytes.ofUnsignedInt(stamp))
-        .validateRow();
+          .bitB3(this.isBitB3())
+          .bitB4(this.isBitB4())
+          .bitB5(this.isBitB5())
+          .bitB6(this.isBitB6())
+          .bitB7(this.isBitB7())
+          .byte1(UnsignedByte.of(this.arg1Lo().get(i)))
+          .byte2(UnsignedByte.of(this.arg2Hi().get(i)))
+          .byte3(UnsignedByte.of(this.arg2Lo().get(i)))
+          .byte4(UnsignedByte.of(this.res().getResHi().get(i)))
+          .byte5(UnsignedByte.of(this.res().getResLo().get(i)))
+          .bits(this.bits().get(i))
+          .counter(Bytes.of(i))
+          .inst(Bytes.of(this.opCode().byteValue()))
+          .known(this.isKnown())
+          .neg(this.isNegative())
+          .oneLineInstruction(this.isOneLineInstruction())
+          .low3(Bytes.of(this.low3().toInteger()))
+          .microShiftParameter(Bytes.ofUnsignedInt(this.mshp().toInteger()))
+          .resHi(this.res().getResHi())
+          .resLo(this.res().getResLo())
+          .leftAlignedSuffixHigh(Bytes.ofUnsignedShort(arg2HiByteChunks.la().toInteger()))
+          .rightAlignedPrefixHigh(Bytes.ofUnsignedInt(arg2HiByteChunks.ra().toInteger()))
+          .ones(Bytes.ofUnsignedInt(arg2HiByteChunks.ones().toInteger()))
+          .leftAlignedSuffixLow(Bytes.ofUnsignedInt(arg2LoByteChunks.la().toInteger()))
+          .rightAlignedPrefixLow(Bytes.ofUnsignedInt(arg2LoByteChunks.ra().toInteger()))
+          .shb3Hi(Bytes.ofUnsignedInt(this.shb().getShbHi()[0][i].toInteger()))
+          .shb3Lo(Bytes.ofUnsignedInt(this.shb().getShbLo()[0][i].toInteger()))
+          .shb4Hi(Bytes.ofUnsignedInt(this.shb().getShbHi()[4 - 3][i].toInteger()))
+          .shb4Lo(Bytes.ofUnsignedInt(this.shb().getShbLo()[4 - 3][i].toInteger()))
+          .shb5Hi(Bytes.ofUnsignedInt(this.shb().getShbHi()[5 - 3][i].toInteger()))
+          .shb5Lo(Bytes.ofUnsignedInt(this.shb().getShbLo()[5 - 3][i].toInteger()))
+          .shb6Hi(Bytes.ofUnsignedInt(this.shb().getShbHi()[6 - 3][i].toInteger()))
+          .shb6Lo(Bytes.ofUnsignedInt(this.shb().getShbLo()[6 - 3][i].toInteger()))
+          .shb7Hi(Bytes.ofUnsignedInt(this.shb().getShbHi()[7 - 3][i].toInteger()))
+          .shb7Lo(Bytes.ofUnsignedInt(this.shb().getShbLo()[7 - 3][i].toInteger()))
+          .shiftDirection(this.isShiftRight())
+          .isData(stamp != 0)
+          .shiftStamp(Bytes.ofUnsignedInt(stamp))
+          .validateRow();
     }
   }
 }

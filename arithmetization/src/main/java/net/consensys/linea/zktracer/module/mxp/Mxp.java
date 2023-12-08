@@ -15,8 +15,6 @@
 
 package net.consensys.linea.zktracer.module.mxp;
 
-import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
-
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
@@ -24,12 +22,6 @@ import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.opcode.gas.BillingRate;
-import net.consensys.linea.zktracer.opcode.gas.MxpType;
-import net.consensys.linea.zktracer.types.EWord;
-import net.consensys.linea.zktracer.types.UnsignedByte;
-import org.apache.tuweni.bytes.Bytes;
-import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 /** Implementation of a {@link Module} for memory expansion. */

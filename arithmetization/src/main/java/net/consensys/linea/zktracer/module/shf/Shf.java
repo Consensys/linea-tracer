@@ -22,8 +22,6 @@ import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.types.UnsignedByte;
-import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 

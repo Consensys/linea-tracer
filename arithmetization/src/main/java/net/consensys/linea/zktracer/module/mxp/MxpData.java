@@ -28,7 +28,6 @@ import lombok.Getter;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
-import net.consensys.linea.zktracer.opcode.OpCodes;
 import net.consensys.linea.zktracer.opcode.gas.BillingRate;
 import net.consensys.linea.zktracer.opcode.gas.GasConstants;
 import net.consensys.linea.zktracer.opcode.gas.MxpType;
@@ -483,74 +482,73 @@ public class MxpData {
     final EWord eSize1 = EWord.of(this.size1);
     final EWord eSize2 = EWord.of(this.size2);
 
-
     int maxCt = this.maxCt();
     int maxCtComplement = 32 - maxCt;
 
     for (int i = 0; i < maxCt; i++) {
       trace
-        .stamp(Bytes.ofUnsignedLong(stamp))
-        .cn(Bytes.ofUnsignedLong(this.getContextNumber()))
-        .ct(Bytes.of(i))
-        .roob(this.isRoob())
-        .noop(this.isNoOperation())
-        .mxpx(this.isMxpx())
-        .inst(Bytes.of(this.getOpCodeData().value()))
-        .mxpType1(this.getOpCodeData().billing().type() == MxpType.TYPE_1)
-        .mxpType2(this.getOpCodeData().billing().type() == MxpType.TYPE_2)
-        .mxpType3(this.getOpCodeData().billing().type() == MxpType.TYPE_3)
-        .mxpType4(this.getOpCodeData().billing().type() == MxpType.TYPE_4)
-        .mxpType5(this.getOpCodeData().billing().type() == MxpType.TYPE_5)
-        .gword(
-          Bytes.ofUnsignedLong(
-            this.getOpCodeData().billing().billingRate() == BillingRate.BY_WORD
-              ? this.getOpCodeData().billing().perUnit().cost()
-              : 0))
-        .gbyte(
-          Bytes.ofUnsignedLong(
-            this.getOpCodeData().billing().billingRate() == BillingRate.BY_BYTE
-              ? this.getOpCodeData().billing().perUnit().cost()
-              : 0))
-        .deploys(this.isDeploys())
-        .offset1Hi(eOffset1.hi())
-        .offset1Lo(eOffset1.lo())
-        .offset2Hi(eOffset2.hi())
-        .offset2Lo(eOffset2.lo())
-        .size1Hi(eSize1.hi())
-        .size1Lo(eSize1.lo())
-        .size2Hi(eSize2.hi())
-        .size2Lo(eSize2.lo())
-        .maxOffset1(bigIntegerToBytes(this.getMaxOffset1()))
-        .maxOffset2(bigIntegerToBytes(this.getMaxOffset2()))
-        .maxOffset(bigIntegerToBytes(this.getMaxOffset()))
-        .comp(this.isComp())
-        .acc1(acc1Bytes32.slice(maxCtComplement, 1 + i))
-        .acc2(acc2Bytes32.slice(maxCtComplement, 1 + i))
-        .acc3(acc3Bytes32.slice(maxCtComplement, 1 + i))
-        .acc4(acc4Bytes32.slice(maxCtComplement, 1 + i))
-        .accA(accABytes32.slice(maxCtComplement, 1 + i))
-        .accW(accWBytes32.slice(maxCtComplement, 1 + i))
-        .accQ(accQBytes32.slice(maxCtComplement, 1 + i))
-        .byte1(UnsignedByte.of(acc1Bytes32.get(maxCtComplement + i)))
-        .byte2(UnsignedByte.of(acc2Bytes32.get(maxCtComplement + i)))
-        .byte3(UnsignedByte.of(acc3Bytes32.get(maxCtComplement + i)))
-        .byte4(UnsignedByte.of(acc4Bytes32.get(maxCtComplement + i)))
-        .byteA(UnsignedByte.of(accABytes32.get(maxCtComplement + i)))
-        .byteW(UnsignedByte.of(accWBytes32.get(maxCtComplement + i)))
-        .byteQ(UnsignedByte.of(accQBytes32.get(maxCtComplement + i)))
-        .byteQq(Bytes.ofUnsignedLong(this.getByteQQ()[i].toInteger()))
-        .byteR(Bytes.ofUnsignedLong(this.getByteR()[i].toInteger()))
-        .words(Bytes.ofUnsignedLong(this.getWords()))
-        .wordsNew(
-          Bytes.ofUnsignedLong(
-            this.getWordsNew())) // TODO: Could (should?) be set in tracePostOp?
-        .cMem(Bytes.ofUnsignedLong(this.getCMem())) // Returns current memory size in EVM words
-        .cMemNew(Bytes.ofUnsignedLong(this.getCMemNew()))
-        .quadCost(Bytes.ofUnsignedLong(this.getQuadCost()))
-        .linCost(Bytes.ofUnsignedLong(this.getLinCost()))
-        .gasMxp(Bytes.ofUnsignedLong(this.getQuadCost() + this.getEffectiveLinCost()))
-        .expands(this.isExpands())
-        .validateRow();
+          .stamp(Bytes.ofUnsignedLong(stamp))
+          .cn(Bytes.ofUnsignedLong(this.getContextNumber()))
+          .ct(Bytes.of(i))
+          .roob(this.isRoob())
+          .noop(this.isNoOperation())
+          .mxpx(this.isMxpx())
+          .inst(Bytes.of(this.getOpCodeData().value()))
+          .mxpType1(this.getOpCodeData().billing().type() == MxpType.TYPE_1)
+          .mxpType2(this.getOpCodeData().billing().type() == MxpType.TYPE_2)
+          .mxpType3(this.getOpCodeData().billing().type() == MxpType.TYPE_3)
+          .mxpType4(this.getOpCodeData().billing().type() == MxpType.TYPE_4)
+          .mxpType5(this.getOpCodeData().billing().type() == MxpType.TYPE_5)
+          .gword(
+              Bytes.ofUnsignedLong(
+                  this.getOpCodeData().billing().billingRate() == BillingRate.BY_WORD
+                      ? this.getOpCodeData().billing().perUnit().cost()
+                      : 0))
+          .gbyte(
+              Bytes.ofUnsignedLong(
+                  this.getOpCodeData().billing().billingRate() == BillingRate.BY_BYTE
+                      ? this.getOpCodeData().billing().perUnit().cost()
+                      : 0))
+          .deploys(this.isDeploys())
+          .offset1Hi(eOffset1.hi())
+          .offset1Lo(eOffset1.lo())
+          .offset2Hi(eOffset2.hi())
+          .offset2Lo(eOffset2.lo())
+          .size1Hi(eSize1.hi())
+          .size1Lo(eSize1.lo())
+          .size2Hi(eSize2.hi())
+          .size2Lo(eSize2.lo())
+          .maxOffset1(bigIntegerToBytes(this.getMaxOffset1()))
+          .maxOffset2(bigIntegerToBytes(this.getMaxOffset2()))
+          .maxOffset(bigIntegerToBytes(this.getMaxOffset()))
+          .comp(this.isComp())
+          .acc1(acc1Bytes32.slice(maxCtComplement, 1 + i))
+          .acc2(acc2Bytes32.slice(maxCtComplement, 1 + i))
+          .acc3(acc3Bytes32.slice(maxCtComplement, 1 + i))
+          .acc4(acc4Bytes32.slice(maxCtComplement, 1 + i))
+          .accA(accABytes32.slice(maxCtComplement, 1 + i))
+          .accW(accWBytes32.slice(maxCtComplement, 1 + i))
+          .accQ(accQBytes32.slice(maxCtComplement, 1 + i))
+          .byte1(UnsignedByte.of(acc1Bytes32.get(maxCtComplement + i)))
+          .byte2(UnsignedByte.of(acc2Bytes32.get(maxCtComplement + i)))
+          .byte3(UnsignedByte.of(acc3Bytes32.get(maxCtComplement + i)))
+          .byte4(UnsignedByte.of(acc4Bytes32.get(maxCtComplement + i)))
+          .byteA(UnsignedByte.of(accABytes32.get(maxCtComplement + i)))
+          .byteW(UnsignedByte.of(accWBytes32.get(maxCtComplement + i)))
+          .byteQ(UnsignedByte.of(accQBytes32.get(maxCtComplement + i)))
+          .byteQq(Bytes.ofUnsignedLong(this.getByteQQ()[i].toInteger()))
+          .byteR(Bytes.ofUnsignedLong(this.getByteR()[i].toInteger()))
+          .words(Bytes.ofUnsignedLong(this.getWords()))
+          .wordsNew(
+              Bytes.ofUnsignedLong(
+                  this.getWordsNew())) // TODO: Could (should?) be set in tracePostOp?
+          .cMem(Bytes.ofUnsignedLong(this.getCMem())) // Returns current memory size in EVM words
+          .cMemNew(Bytes.ofUnsignedLong(this.getCMemNew()))
+          .quadCost(Bytes.ofUnsignedLong(this.getQuadCost()))
+          .linCost(Bytes.ofUnsignedLong(this.getLinCost()))
+          .gasMxp(Bytes.ofUnsignedLong(this.getQuadCost() + this.getEffectiveLinCost()))
+          .expands(this.isExpands())
+          .validateRow();
     }
   }
 }

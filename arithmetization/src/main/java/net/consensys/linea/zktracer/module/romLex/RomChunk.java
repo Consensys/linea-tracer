@@ -30,7 +30,7 @@ public record RomChunk(
     Bytes byteCode) {
   @Override
   public int hashCode() {
-    return Objects.hash(this.address, this.deploymentNumber, this.deploymentStatus);
+    return Objects.hash(this.address, this.deploymentNumber, this.deploymentStatus, this.id);
   }
 
   @Override
@@ -40,6 +40,7 @@ public record RomChunk(
     final RomChunk that = (RomChunk) o;
     return Objects.equals(this.address, that.address)
         && Objects.equals(this.deploymentNumber, that.deploymentNumber)
-        && Objects.equals(this.deploymentStatus, that.deploymentStatus);
+        && Objects.equals(this.deploymentStatus, that.deploymentStatus)
+        && Objects.equals(this.id, that.id);
   }
 }

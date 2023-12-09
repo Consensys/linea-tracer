@@ -32,4 +32,14 @@ public record RomChunk(
   public int hashCode() {
     return Objects.hash(this.address, this.deploymentNumber, this.deploymentStatus);
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    final RomChunk that = (RomChunk) o;
+    return Objects.equals(this.address, that.address)
+        && Objects.equals(this.deploymentNumber, that.deploymentNumber)
+        && Objects.equals(this.deploymentStatus, that.deploymentStatus);
+  }
 }

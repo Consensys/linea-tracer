@@ -23,8 +23,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
-import lombok.Getter;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.Bytes16;
 import net.consensys.linea.zktracer.types.UnsignedByte;
@@ -34,30 +34,29 @@ import org.apache.tuweni.bytes.Bytes32;
 public class WcpOperation {
   private static final int LIMB_SIZE = 16;
 
-  @Getter private final OpCode opCode;
+  private final OpCode opCode;
   private final Bytes32 arg1;
   private final Bytes32 arg2;
 
-  @Getter private final boolean isOneLineInstruction;
+  private final boolean isOneLineInstruction;
 
-  @Getter private Bytes16 arg1Hi;
-  @Getter private Bytes16 arg1Lo;
-  @Getter private Bytes16 arg2Hi;
-  @Getter private Bytes16 arg2Lo;
+  private Bytes16 arg1Hi;
+  private Bytes16 arg1Lo;
+  private Bytes16 arg2Hi;
+  private Bytes16 arg2Lo;
 
-  @Getter private Bytes16 adjHi;
+  private Bytes16 adjHi;
+  private Bytes16 adjLo;
+  private Boolean neg1;
 
-  @Getter private Bytes16 adjLo;
-  @Getter private Boolean neg1;
+  private Boolean neg2;
+  private Boolean bit1 = true;
+  private Boolean bit2 = true;
+  private Boolean bit3;
+  private Boolean bit4;
+  private Boolean resLo;
 
-  @Getter private Boolean neg2;
-  @Getter private Boolean bit1 = true;
-  @Getter private Boolean bit2 = true;
-  @Getter private Boolean bit3;
-  @Getter private Boolean bit4;
-  @Getter private Boolean resLo;
-
-  @Getter final List<Boolean> bits = new ArrayList<>(16);
+  final List<Boolean> bits = new ArrayList<>(16);
 
   public WcpOperation(OpCode opCode, Bytes32 arg1, Bytes32 arg2) {
     this.opCode = opCode;
@@ -131,7 +130,7 @@ public class WcpOperation {
   }
 
   private boolean isOneLineInstruction(final OpCode opCode) {
-    return List.of(OpCode.EQ, OpCode.ISZERO).contains(opCode);
+    return Set.of(OpCode.EQ, OpCode.ISZERO).contains(opCode);
   }
 
   private boolean calculateResLow(OpCode opCode, Bytes32 arg1, Bytes32 arg2) {
@@ -161,42 +160,33 @@ public class WcpOperation {
   void trace(Trace trace, int stamp) {
     this.compute();
     final Bytes resHi = this.getResHi() ? Bytes.of(1) : Bytes.EMPTY;
-    final Bytes resLo = this.getResLo() ? Bytes.of(1) : Bytes.EMPTY;
-    final List<Boolean> bits = this.getBits();
-    final boolean neg1 = this.getNeg1();
-    final boolean neg2 = this.getNeg2();
-    final Bytes16 adjHi = this.getAdjHi();
-    final Bytes16 adjLo = this.getAdjLo();
-    final boolean bit1 = this.getBit1();
-    final boolean bit2 = this.getBit2();
-    final boolean bit3 = this.getBit3();
-    final boolean bit4 = this.getBit4();
+    final Bytes resLo = this.resLo ? Bytes.of(1) : Bytes.EMPTY;
 
     for (int i = 0; i < this.maxCt(); i++) {
       trace
           .wordComparisonStamp(Bytes.ofUnsignedInt(stamp))
-          .oneLineInstruction(this.isOneLineInstruction())
+          .oneLineInstruction(this.isOneLineInstruction)
           .counter(Bytes.of(i))
-          .inst(Bytes.of(this.getOpCode().byteValue()))
-          .argument1Hi(this.getArg1Hi())
-          .argument1Lo(this.getArg1Lo())
-          .argument2Hi(this.getArg2Hi())
-          .argument2Lo(this.getArg2Lo())
+          .inst(Bytes.of(this.opCode.byteValue()))
+          .argument1Hi(this.arg1Hi)
+          .argument1Lo(this.arg1Lo)
+          .argument2Hi(this.arg2Hi)
+          .argument2Lo(this.arg2Lo)
           .resultHi(resHi)
           .resultLo(resLo)
           .bits(bits.get(i))
           .neg1(neg1)
           .neg2(neg2)
-          .byte1(UnsignedByte.of(this.getArg1Hi().get(i)))
-          .byte2(UnsignedByte.of(this.getArg1Lo().get(i)))
-          .byte3(UnsignedByte.of(this.getArg2Hi().get(i)))
-          .byte4(UnsignedByte.of(this.getArg2Lo().get(i)))
+          .byte1(UnsignedByte.of(this.arg1Hi.get(i)))
+          .byte2(UnsignedByte.of(this.arg1Lo.get(i)))
+          .byte3(UnsignedByte.of(this.arg2Hi.get(i)))
+          .byte4(UnsignedByte.of(this.arg2Lo.get(i)))
           .byte5(UnsignedByte.of(adjHi.get(i)))
           .byte6(UnsignedByte.of(adjLo.get(i)))
-          .acc1(this.getArg1Hi().slice(0, 1 + i))
-          .acc2(this.getArg1Lo().slice(0, 1 + i))
-          .acc3(this.getArg2Hi().slice(0, 1 + i))
-          .acc4(this.getArg2Lo().slice(0, 1 + i))
+          .acc1(this.arg1Hi.slice(0, 1 + i))
+          .acc2(this.arg1Lo.slice(0, 1 + i))
+          .acc3(this.arg2Hi.slice(0, 1 + i))
+          .acc4(this.arg2Lo.slice(0, 1 + i))
           .acc5(adjHi.slice(0, 1 + i))
           .acc6(adjLo.slice(0, 1 + i))
           .bit1(bit1)

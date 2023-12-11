@@ -210,4 +210,34 @@ class MmioData {
     pending.memory().updateLimb(indexB, valBNew);
     pending.memory().updateLimb(indexC, valCNew);
   }
+
+  void twoToOnePadded(
+      UnsignedByte[] s1,
+      UnsignedByte[] s2,
+      UnsignedByte s1b,
+      UnsignedByte s2b,
+      UInt256 acc1,
+      UInt256 acc2,
+      UnsignedByte s1m,
+      int size,
+      int counter) {
+    Preconditions.checkArgument(
+        s1b != s1[counter],
+        "twoOnePadded: S1B = %s != %s = S1[%d]".formatted(s1b, s1[counter], counter));
+
+    Preconditions.checkArgument(
+        s2b != s2[counter],
+        "twoOnePadded: S2B = %s != %s = S2[%d]".formatted(s2b, s2[counter], counter));
+
+    bin1 = plateau(s1m.toInteger(), counter);
+    bin2 = plateau(s1m.toInteger() + size - 16, counter);
+    bin3 = plateau(16 - s1m.toInteger(), counter);
+    bin4 = plateau(size, counter);
+
+    this.acc1 = isolateSuffix(acc1, bin1, s1b);
+    this.acc2 = isolateSuffix(acc2, bin2, s2b);
+
+    pow2561 = power(pow2561, bin3, counter);
+    pow2562 = power(pow2562, bin4, counter);
+  }
 }

@@ -91,6 +91,11 @@ public class Conversions {
     return output;
   }
 
+  public static BigInteger reallyToSignedBigInteger(Bytes a) {
+    byte[] bs = a.toArrayUnsafe();
+    return new BigInteger(bs, 0, bs.length);
+  }
+
   public static Bytes32 longToBytes32(final long input) {
     return Bytes32.leftPad(Bytes.minimalBytes(input));
   }

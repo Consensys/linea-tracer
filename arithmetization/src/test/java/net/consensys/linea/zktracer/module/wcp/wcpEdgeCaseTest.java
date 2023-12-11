@@ -62,4 +62,17 @@ public class wcpEdgeCaseTest {
                 .compile())
         .run();
   }
+
+  @Test
+  void failingOnShadowNodeBlockWhatever() {
+    BytecodeRunner.of(
+            BytecodeCompiler.newProgram()
+                .push(Bytes.EMPTY)
+                .push(
+                    Bytes.fromHexString(
+                        "0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe1859"))
+                .op(OpCode.SLT)
+                .compile())
+        .run();
+  }
 }

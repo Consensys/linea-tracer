@@ -19,12 +19,15 @@ import static net.consensys.linea.zktracer.module.rlputils.Pattern.bitDecomposit
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import com.google.common.base.Objects;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.bytestheta.BaseBytes;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.types.Bytes16;
+import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 
@@ -41,13 +44,12 @@ public class BinOperation {
   private final OpCode opCode;
   private final BaseBytes arg1;
   private final BaseBytes arg2;
-  public final List<Boolean> lastEightBits = getLastEightBits();
-  public final boolean bit4 = getBit4();
-  public final int low4 = getLow4();
-  public final boolean isSmall = isSmall();
-  private final int pivotThreshold = getPivotThreshold();
-
-  public final int pivot = getPivot();
+  private List<Boolean> lastEightBits = List.of(false);
+  private boolean bit4 = false;
+  private int low4 = 0;
+  private boolean isSmall = false;
+  private int pivotThreshold = 0;
+  private int pivot = 0;
 
   @Override
   public int hashCode() {
@@ -168,5 +170,67 @@ public class BinOperation {
 
   public List<Boolean> getFirstEightBits() {
     return bitDecomposition(pivot, 8).bitDecList();
+  }
+
+  private void compute() {
+    this.lastEightBits = getLastEightBits();
+    this.bit4 = getBit4();
+    this.low4 = getLow4();
+    this.isSmall = isSmall();
+    this.pivotThreshold = getPivotThreshold();
+    this.pivot = getPivot();
+  }
+
+  public void traceBinOperation(int stamp, Trace trace) {
+    this.compute();
+
+    final int ctMax = this.maxCt();
+    final Bytes16 resHi = this.getResult().getHigh();
+    final Bytes16 resLo = this.arg1().getLow();
+    final List<Boolean> bit1 = this.getBit1();
+    final List<Boolean> bits =
+        Stream.concat(this.getFirstEightBits().stream(), this.lastEightBits.stream()).toList();
+    for (int ct = 0; ct < ctMax; ct++) {
+      trace
+          .stamp(Bytes.ofUnsignedInt(stamp))
+          .oneLineInstruction(ctMax == 1)
+          .mli(ctMax != 1)
+          .counter(UnsignedByte.of(ct))
+          .inst(Bytes.of(this.opCode().byteValue()))
+          .argument1Hi(this.arg1().getHigh())
+          .argument1Lo(this.arg1().getLow())
+          .argument2Hi(this.arg2().getHigh())
+          .argument2Lo(this.arg2().getLow())
+          .resultHi(resHi)
+          .resultLo(resLo)
+          .isAnd(this.opCode() == OpCode.AND)
+          .isOr(this.opCode() == OpCode.OR)
+          .isXor(this.opCode() == OpCode.XOR)
+          .isNot(this.opCode() == OpCode.NOT)
+          .isByte(this.opCode() == OpCode.BYTE)
+          .isSignextend(this.opCode() == OpCode.SIGNEXTEND)
+          .small(this.isSmall)
+          .bits(bits.get(ct))
+          .bitB4(this.bit4)
+          .low4(UnsignedByte.of(this.low4))
+          .neg(bits.get(0))
+          .bit1(bit1.get(ct))
+          .pivot(UnsignedByte.of(this.pivot))
+          .byte1(UnsignedByte.of(this.arg1().getHigh().get(ct)))
+          .byte2(UnsignedByte.of(this.arg1().getLow().get(ct)))
+          .byte3(UnsignedByte.of(this.arg2().getHigh().get(ct)))
+          .byte4(UnsignedByte.of(this.arg2().getLow().get(ct)))
+          .byte5(UnsignedByte.of(resHi.get(ct)))
+          .byte6(UnsignedByte.of(resLo.get(ct)))
+          .acc1(this.arg1().getHigh().slice(0, ct + 1))
+          .acc2(this.arg1().getLow().slice(0, ct + 1))
+          .acc3(this.arg2().getHigh().slice(0, ct + 1))
+          .acc4(this.arg2().getLow().slice(0, ct + 1))
+          .acc5(resHi.slice(0, ct + 1))
+          .acc6(resLo.slice(0, ct + 1))
+          .xxxByteHi(UnsignedByte.of(resHi.get(ct)))
+          .xxxByteLo(UnsignedByte.of(resLo.get(ct)))
+          .validateRow();
+    }
   }
 }

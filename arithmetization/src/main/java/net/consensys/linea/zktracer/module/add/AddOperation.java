@@ -127,7 +127,7 @@ public final class AddOperation {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(opCode, arg1, arg2);
+    return Objects.hashCode(this.opCode, this.rawArg1, this.rawArg2);
   }
 
   @Override

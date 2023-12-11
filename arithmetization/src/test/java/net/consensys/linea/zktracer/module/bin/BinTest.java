@@ -15,9 +15,9 @@
 
 package net.consensys.linea.zktracer.module.bin;
 
-import static net.consensys.linea.zktracer.module.rlpCommon.rlpRandEdgeCase.randBigInt;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
+import java.math.BigInteger;
 import java.util.Random;
 
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -43,12 +43,25 @@ public class BinTest {
     for (int i = 0; i < NB_GENERIC_TEST; i++) {
       BytecodeRunner.of(
               BytecodeCompiler.newProgram()
-                  .push(bigIntegerToBytes(randBigInt(false)))
-                  .push(bigIntegerToBytes(randBigInt(false)))
+                  .push(bigIntegerToBytes(randBigInt()))
+                  .push(bigIntegerToBytes(randBigInt()))
                   .op(randOpCode())
                   .compile())
           .run();
     }
+  }
+
+  private BigInteger randBigInt() {
+    final int selector = RAND.nextInt(0, 5);
+
+    return switch (selector) {
+      case 0 -> BigInteger.ZERO;
+      case 1 -> BigInteger.valueOf(RAND.nextInt(1, 32));
+      case 2 -> BigInteger.valueOf(RAND.nextInt(32, 256));
+      case 3 -> new BigInteger(16 * 8, RAND);
+      case 4 -> new BigInteger(32 * 8, RAND);
+      default -> throw new IllegalStateException("Unexpected value: " + selector);
+    };
   }
 
   private OpCode randOpCode() {

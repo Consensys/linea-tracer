@@ -91,7 +91,7 @@ public class BinOperation {
     return switch (opCode) {
       case AND -> arg1.and(arg2);
       case OR -> arg1.or(arg2);
-      case XOR -> arg1.xor(arg2);
+      case XOR -> BaseBytes.fromBytes32(arg1.getBytes32().xor(arg2.getBytes32()));
       case NOT -> arg1.not();
       case BYTE -> byteResult();
       case SIGNEXTEND -> signExtensionResult();

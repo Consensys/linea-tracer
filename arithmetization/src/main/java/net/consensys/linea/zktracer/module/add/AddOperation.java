@@ -32,8 +32,6 @@ public final class AddOperation {
   private final OpCode opCode;
   private final Bytes rawArg1;
   private final Bytes rawArg2;
-  private Bytes32 arg1;
-  private Bytes32 arg2;
 
   /**
    * Returns the appropriate state of the overflow bit depending on the position within the cycle.
@@ -63,8 +61,8 @@ public final class AddOperation {
   }
 
   void trace(int stamp, Trace trace) {
-    this.arg1 = Bytes32.leftPad(this.rawArg1);
-    this.arg2 = Bytes32.leftPad(this.rawArg2);
+    final Bytes32 arg1 = Bytes32.leftPad(this.rawArg1);
+    final Bytes32 arg2 = Bytes32.leftPad(this.rawArg2);
 
     final Bytes16 arg1Hi = Bytes16.wrap(arg1.slice(0, 16));
     final Bytes32 arg1Lo = Bytes32.leftPad(arg1.slice(16));
@@ -72,7 +70,6 @@ public final class AddOperation {
     final Bytes16 arg2Lo = Bytes16.wrap(arg2.slice(16));
 
     boolean overflowHi = false;
-    boolean overflowLo;
 
     final OpCodeData opCodeData = OpCodes.of(opCode);
 
@@ -81,12 +78,11 @@ public final class AddOperation {
     final Bytes16 resHi = res.getHigh();
     final Bytes16 resLo = res.getLow();
 
-    UInt256 arg1Int = UInt256.fromBytes(arg1);
-    UInt256 arg2Int = UInt256.fromBytes(arg2);
-    UInt256 resultBytes;
+    final UInt256 arg1Int = UInt256.fromBytes(arg1);
+    final UInt256 arg2Int = UInt256.fromBytes(arg2);
 
     if (opCode == OpCode.ADD) {
-      resultBytes = arg1Int.add(arg2Int);
+      final UInt256 resultBytes = arg1Int.add(arg2Int);
       if (resultBytes.compareTo(arg1Int) < 0) {
         overflowHi = true;
       }
@@ -103,8 +99,7 @@ public final class AddOperation {
       } else {
         addRes = Bytes32.wrap((UInt256.fromBytes(resLo)).add(UInt256.fromBytes(arg2Lo)));
       }
-
-      overflowLo = (addRes.compareTo(TWO_TO_THE_128) >= 0);
+      final boolean overflowLo = (addRes.compareTo(TWO_TO_THE_128) >= 0);
 
       trace
           .acc1(resHi.slice(0, 1 + i))

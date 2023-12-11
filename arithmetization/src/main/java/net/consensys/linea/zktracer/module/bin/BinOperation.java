@@ -31,23 +31,23 @@ import org.apache.tuweni.bytes.Bytes32;
 @Getter
 @Accessors(fluent = true)
 public class BinOperation {
-  private static final int LIMB_SIZE = 16;
-
-  private final OpCode opCode;
-  private final BaseBytes arg1;
-  private final BaseBytes arg2;
-  public final List<Boolean> LastEightBits = getLastEightBits();
-  public final boolean bit4 = getBit4();
-  public final int low4 = getLow4();
-  public final boolean isSmall = isSmall();
-  private final int pivotThreshold = getPivotThreshold();
-  public final int pivot = getPivot();
-
   public BinOperation(OpCode opCode, BaseBytes arg1, BaseBytes arg2) {
     this.opCode = opCode;
     this.arg1 = arg1;
     this.arg2 = arg2;
   }
+
+  private static final int LIMB_SIZE = 16;
+  private final OpCode opCode;
+  private final BaseBytes arg1;
+  private final BaseBytes arg2;
+  public final List<Boolean> lastEightBits = getLastEightBits();
+  public final boolean bit4 = getBit4();
+  public final int low4 = getLow4();
+  public final boolean isSmall = isSmall();
+  private final int pivotThreshold = getPivotThreshold();
+
+  public final int pivot = getPivot();
 
   @Override
   public int hashCode() {
@@ -56,7 +56,7 @@ public class BinOperation {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
+    // if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     final BinOperation that = (BinOperation) o;
     return java.util.Objects.equals(opCode, that.opCode)
@@ -124,7 +124,7 @@ public class BinOperation {
   public int getLow4() {
     int r = 0;
     for (int k = 0; k < 4; k++) {
-      if (LastEightBits.get(7 - k)) {
+      if (lastEightBits.get(7 - k)) {
         r += (int) Math.pow(2, k);
       }
     }

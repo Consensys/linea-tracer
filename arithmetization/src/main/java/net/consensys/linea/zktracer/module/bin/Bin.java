@@ -85,7 +85,7 @@ public class Bin implements Module {
     final Bytes16 resLo = op.arg1().getLow();
     final List<Boolean> bit1 = op.getBit1();
     final List<Boolean> bits =
-        Stream.concat(op.getFirstEightBits().stream(), op.LastEightBits.stream()).toList();
+        Stream.concat(op.getFirstEightBits().stream(), op.lastEightBits.stream()).toList();
     for (int ct = 0; ct < ctMax; ct++) {
       trace
           .stamp(Bytes.ofUnsignedInt(stamp))

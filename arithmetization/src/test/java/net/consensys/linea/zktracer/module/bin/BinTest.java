@@ -46,7 +46,7 @@ public class BinTest {
               .push(bigIntegerToBytes(randBigInt(false)))
               .push(bigIntegerToBytes(randBigInt(false)))
               .op(randOpCode())
-              .compile());
+              .compile()).run();
     }
   }
 

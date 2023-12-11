@@ -28,27 +28,27 @@ public class ModTest {
   @Test
   void testSignedSmod() {
     BytecodeRunner.of(
-      BytecodeCompiler.newProgram()
-        .immediate(UInt256.MAX_VALUE)
-        .immediate(UInt256.MAX_VALUE)
-        .op(OpCode.SMOD)
-        .compile()
-    ).run();
+            BytecodeCompiler.newProgram()
+                .immediate(UInt256.MAX_VALUE)
+                .immediate(UInt256.MAX_VALUE)
+                .op(OpCode.SMOD)
+                .compile())
+        .run();
 
     BytecodeRunner.of(
-      BytecodeCompiler.newProgram()
-        .immediate(UInt256.valueOf(132))
-        .immediate(UInt256.MAX_VALUE)
-        .op(OpCode.SMOD)
-        .compile()
-    ).run();
+            BytecodeCompiler.newProgram()
+                .immediate(UInt256.valueOf(132))
+                .immediate(UInt256.MAX_VALUE)
+                .op(OpCode.SMOD)
+                .compile())
+        .run();
 
     BytecodeRunner.of(
-      BytecodeCompiler.newProgram()
-        .immediate(UInt256.MAX_VALUE)
-        .immediate(UInt256.valueOf(132))
-        .op(OpCode.SMOD)
-        .compile()
-    ).run();
+            BytecodeCompiler.newProgram()
+                .immediate(UInt256.MAX_VALUE)
+                .immediate(UInt256.valueOf(132))
+                .op(OpCode.SMOD)
+                .compile())
+        .run();
   }
 }

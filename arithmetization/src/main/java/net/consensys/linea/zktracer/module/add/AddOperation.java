@@ -30,8 +30,8 @@ public final class AddOperation {
   private static final UInt256 TWO_TO_THE_128 = UInt256.ONE.shiftLeft(128);
 
   private final OpCode opCode;
-  private final Bytes rawArg1;
-  private final Bytes rawArg2;
+  private final Bytes32 arg1;
+  private final Bytes32 arg2;
 
   /**
    * Returns the appropriate state of the overflow bit depending on the position within the cycle.
@@ -56,14 +56,11 @@ public final class AddOperation {
 
   public AddOperation(OpCode opCode, Bytes arg1, Bytes arg2) {
     this.opCode = opCode;
-    this.rawArg1 = arg1;
-    this.rawArg2 = arg2;
+    this.arg1 = Bytes32.leftPad(arg1);
+    this.arg2 = Bytes32.leftPad(arg2);
   }
 
   void trace(int stamp, Trace trace) {
-    final Bytes32 arg1 = Bytes32.leftPad(this.rawArg1);
-    final Bytes32 arg2 = Bytes32.leftPad(this.rawArg2);
-
     final Bytes16 arg1Hi = Bytes16.wrap(arg1.slice(0, 16));
     final Bytes32 arg1Lo = Bytes32.leftPad(arg1.slice(16));
     final Bytes16 arg2Hi = Bytes16.wrap(arg2.slice(0, 16));
@@ -122,7 +119,7 @@ public final class AddOperation {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(this.opCode, this.rawArg1, this.rawArg2);
+    return Objects.hashCode(this.opCode, this.arg1, this.arg2);
   }
 
   @Override
@@ -131,7 +128,7 @@ public final class AddOperation {
     if (o == null || getClass() != o.getClass()) return false;
     final AddOperation that = (AddOperation) o;
     return java.util.Objects.equals(this.opCode, that.opCode)
-        && java.util.Objects.equals(this.rawArg1, that.rawArg1)
-        && java.util.Objects.equals(this.rawArg2, that.rawArg2);
+        && java.util.Objects.equals(this.arg1, that.arg1)
+        && java.util.Objects.equals(this.arg2, that.arg2);
   }
 }

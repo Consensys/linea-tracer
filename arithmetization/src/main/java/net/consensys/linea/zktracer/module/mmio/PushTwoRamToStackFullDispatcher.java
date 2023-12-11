@@ -18,8 +18,9 @@ package net.consensys.linea.zktracer.module.mmio;
 import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.mmu.MicroData;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
+import net.consensys.linea.zktracer.types.UnsignedByte;
 
-public class NaRamToStack3To2FullDispatcher implements MmioDispatcher {
+public class PushTwoRamToStackFullDispatcher implements MmioDispatcher {
   @Override
   public MmioData dispatch(MicroData microData, CallStack callStack) {
     MmioData mmioData = new MmioData();
@@ -27,26 +28,37 @@ public class NaRamToStack3To2FullDispatcher implements MmioDispatcher {
     int sourceContext = microData.sourceContext();
     mmioData.cnA(sourceContext);
     mmioData.cnB(sourceContext);
-    mmioData.cnC(sourceContext);
+    mmioData.cnC(0);
 
     int sourceLimbOffset = microData.sourceLimbOffset().toInt();
     mmioData.indexA(sourceLimbOffset);
     mmioData.indexB(sourceLimbOffset + 1);
-    mmioData.indexC(sourceLimbOffset + 2);
+    mmioData.indexC(0);
 
     Preconditions.checkState(
         microData.isRootContext() && microData.isType5(),
-        "Should be: EXCEPTIONAL_RAM_TO_STACK_3_TO_2_FULL");
+        "Should be: EXCEPTIONAL_RAM_TO_STACK_3_TO_2_FULL_FAST");
 
     mmioData.valA(callStack.valueFromMemory(mmioData.cnA(), mmioData.indexA()));
     mmioData.valB(callStack.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
-    mmioData.valC(callStack.valueFromMemory(mmioData.cnC(), mmioData.indexC()));
+    mmioData.valC(new UnsignedByte[16]);
 
-    mmioData.valANew(mmioData.valA());
-    mmioData.valBNew(mmioData.valB());
-    mmioData.valCNew(mmioData.valC());
+    UnsignedByte[] valA = mmioData.valA();
+    UnsignedByte[] valB = mmioData.valB();
+    mmioData.valANew(valA);
+    mmioData.valBNew(valB);
+    mmioData.valCNew(new UnsignedByte[16]);
 
-    mmioData.setVal(microData.eWordValue());
+    Preconditions.checkState(
+        !mmioData.valAEword().equals(microData.eWordValue().hi())
+            || !mmioData.valBEword().equals(microData.eWordValue().lo()),
+        "Inconsistent memory:\n"
+            + "expected mmioData.valA = %s found microOp.hi = %s\n"
+            + "expected mmioData.valB = %s found microOp.lo = %s\n"
+                .formatted(valA, microData.eWordValue().hi(), valB, microData.eWordValue().lo()));
+
+    mmioData.valHi(valA);
+    mmioData.valLo(valB);
 
     mmioData.updateLimbsInMemory(callStack);
 
@@ -54,17 +66,5 @@ public class NaRamToStack3To2FullDispatcher implements MmioDispatcher {
   }
 
   @Override
-  public void update(MmioData mmioData, MicroData microData, int counter) {
-    // 3=>2Full
-    mmioData.threeToTwoFull(
-        mmioData.byteA(counter),
-        mmioData.byteB(counter),
-        mmioData.byteC(counter),
-        mmioData.acc1(),
-        mmioData.acc2(),
-        mmioData.acc3(),
-        mmioData.acc4(),
-        microData.sourceByteOffset(),
-        counter);
-  }
+  public void update(MmioData mmioData, MicroData microData, int counter) {}
 }

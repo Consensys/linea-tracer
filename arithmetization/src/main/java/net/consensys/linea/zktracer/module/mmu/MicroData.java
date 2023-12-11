@@ -155,6 +155,10 @@ class MicroData extends ModuleOperation {
         .contains(microOp);
   }
 
+  public EWord eWordValue() {
+    return EWord.of(value);
+  }
+
   public boolean isType5() {
     return microOp == OpCode.CALLDATALOAD.getData().value();
   }

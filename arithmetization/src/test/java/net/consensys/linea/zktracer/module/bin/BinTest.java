@@ -42,11 +42,12 @@ public class BinTest {
   public void randomTest() {
     for (int i = 0; i < NB_GENERIC_TEST; i++) {
       BytecodeRunner.of(
-          BytecodeCompiler.newProgram()
-              .push(bigIntegerToBytes(randBigInt(false)))
-              .push(bigIntegerToBytes(randBigInt(false)))
-              .op(randOpCode())
-              .compile()).run();
+              BytecodeCompiler.newProgram()
+                  .push(bigIntegerToBytes(randBigInt(false)))
+                  .push(bigIntegerToBytes(randBigInt(false)))
+                  .op(randOpCode())
+                  .compile())
+          .run();
     }
   }
 

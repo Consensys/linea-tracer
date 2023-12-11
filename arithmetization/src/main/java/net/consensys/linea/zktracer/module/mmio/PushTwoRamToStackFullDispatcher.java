@@ -41,13 +41,13 @@ public class PushTwoRamToStackFullDispatcher implements MmioDispatcher {
 
     mmioData.valA(callStack.valueFromMemory(mmioData.cnA(), mmioData.indexA()));
     mmioData.valB(callStack.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
-    mmioData.valC(new UnsignedByte[16]);
+    mmioData.valC(UnsignedByte.EMPTY_BYTES16);
 
     UnsignedByte[] valA = mmioData.valA();
     UnsignedByte[] valB = mmioData.valB();
     mmioData.valANew(valA);
     mmioData.valBNew(valB);
-    mmioData.valCNew(new UnsignedByte[16]);
+    mmioData.valCNew(UnsignedByte.EMPTY_BYTES16);
 
     Preconditions.checkState(
         !mmioData.valAEword().equals(microData.eWordValue().hi())

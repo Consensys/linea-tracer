@@ -30,9 +30,9 @@ public class RamLimbExcisionDispatcher implements MmioDispatcher {
     mmioData.indexA(0);
     mmioData.indexB(microData.targetLimbOffset().toInt());
     mmioData.indexC(0);
-    mmioData.valA(new UnsignedByte[16]);
+    mmioData.valA(UnsignedByte.EMPTY_BYTES16);
     mmioData.valB(callStack.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
-    mmioData.valC(new UnsignedByte[16]);
+    mmioData.valC(UnsignedByte.EMPTY_BYTES16);
     mmioData.valANew(mmioData.valA());
     mmioData.valBNew(
         excise(mmioData.valB(), microData.targetByteOffset().toInteger(), microData.size()));

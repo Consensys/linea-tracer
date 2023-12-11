@@ -21,6 +21,7 @@ import static net.consensys.linea.zktracer.module.mmio.MmioPatterns.isolateSuffi
 import static net.consensys.linea.zktracer.module.mmio.MmioPatterns.plateau;
 import static net.consensys.linea.zktracer.module.mmio.MmioPatterns.power;
 import static net.consensys.linea.zktracer.types.Conversions.bytesToUnsignedBytes;
+import static net.consensys.linea.zktracer.types.Conversions.unsignedBytesToEWord;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -96,6 +97,14 @@ class MmioData {
 
   UnsignedByte byteLo(int counter) {
     return valLo[counter];
+  }
+
+  EWord valAEword() {
+    return unsignedBytesToEWord(valA);
+  }
+
+  EWord valBEword() {
+    return unsignedBytesToEWord(valB);
   }
 
   void onePartialToOne(

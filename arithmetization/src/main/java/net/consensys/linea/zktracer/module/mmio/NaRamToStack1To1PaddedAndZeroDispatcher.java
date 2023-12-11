@@ -15,31 +15,58 @@
 
 package net.consensys.linea.zktracer.module.mmio;
 
+import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.mmu.MicroData;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
-class RamToRamDispatcher implements MmioDispatcher {
+public class NaRamToStack1To1PaddedAndZeroDispatcher implements MmioDispatcher {
   @Override
   public MmioData dispatch(MicroData microData, CallStack callStack) {
     MmioData mmioData = new MmioData();
-    mmioData.cnA(microData.sourceContext());
-    mmioData.cnB(microData.targetContext());
+
+    int sourceContext = microData.sourceContext();
+    mmioData.cnA(sourceContext);
+    mmioData.cnB(0);
     mmioData.cnC(0);
-    mmioData.indexA(microData.sourceLimbOffset().toInt());
-    mmioData.indexB(microData.targetLimbOffset().toInt());
+
+    int sourceLimbOffset = microData.sourceLimbOffset().toInt();
+    mmioData.indexA(sourceLimbOffset);
+    mmioData.indexB(0);
     mmioData.indexC(0);
+
+    Preconditions.checkState(
+        microData.isRootContext() && microData.isType5(),
+        "Should be: EXCEPTIONAL_RAM_TO_STACK_3_TO_2_FULL");
+
     mmioData.valA(callStack.valueFromMemory(mmioData.cnA(), mmioData.indexA()));
-    mmioData.valB(callStack.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
+    mmioData.valB(UnsignedByte.EMPTY_BYTES16);
     mmioData.valC(UnsignedByte.EMPTY_BYTES16);
+
     mmioData.valANew(mmioData.valA());
-    mmioData.valBNew(mmioData.valA());
-    mmioData.valCNew(UnsignedByte.EMPTY_BYTES16);
+    mmioData.valBNew(mmioData.valB());
+    mmioData.valCNew(mmioData.valC());
+
+    mmioData.valLo(UnsignedByte.EMPTY_BYTES16);
+
+    for (int i = 0; i < microData.size(); i++) {
+      mmioData.valHi()[i] = mmioData.valA()[i + microData.sourceByteOffset().toInteger()];
+    }
+
     mmioData.updateLimbsInMemory(callStack);
 
     return mmioData;
   }
 
   @Override
-  public void update(MmioData mmioData, MicroData microData, int counter) {}
+  public void update(MmioData mmioData, MicroData microData, int counter) {
+    // [1 => 1Padded]
+    mmioData.oneToOnePadded(
+        mmioData.valA(),
+        mmioData.byteA(counter),
+        mmioData.acc1(),
+        microData.sourceByteOffset(),
+        microData.size(),
+        counter);
+  }
 }

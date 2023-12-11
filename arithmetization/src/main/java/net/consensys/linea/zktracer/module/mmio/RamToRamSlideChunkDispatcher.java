@@ -32,7 +32,7 @@ class RamToRamSlideChunkDispatcher implements MmioDispatcher {
     mmioData.indexC(0);
     mmioData.valA(callStack.valueFromMemory(mmioData.cnA(), mmioData.indexA()));
     mmioData.valB(callStack.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
-    mmioData.valC(new UnsignedByte[16]);
+    mmioData.valC(UnsignedByte.EMPTY_BYTES16);
     mmioData.valANew(mmioData.valA());
     mmioData.valBNew(slideChunk(mmioData, microData));
     mmioData.valCNew(mmioData.valC());

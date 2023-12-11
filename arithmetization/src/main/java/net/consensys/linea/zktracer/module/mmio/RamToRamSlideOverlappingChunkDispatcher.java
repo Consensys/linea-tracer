@@ -25,22 +25,28 @@ class RamToRamSlideOverlappingChunkDispatcher implements MmioDispatcher {
     mmioData.cnA(microData.sourceContext());
     mmioData.cnB(microData.targetContext());
     mmioData.cnC(0);
-    mmioData.indexA(microData.sourceLimbOffset().toInt());
-    mmioData.indexB(microData.targetLimbOffset().toInt());
-    mmioData.indexC(microData.targetLimbOffset().toInt() + 1);
+
+    int sourceLimbOffset = microData.sourceLimbOffset().toInt();
+    mmioData.indexA(sourceLimbOffset);
+
+    int targetedLimbOffset = microData.targetLimbOffset().toInt();
+    mmioData.indexB(targetedLimbOffset);
+    mmioData.indexC(targetedLimbOffset + 1);
+
     mmioData.valA(callStack.valueFromMemory(mmioData.cnA(), mmioData.indexA()));
     mmioData.valB(callStack.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
     mmioData.valC(callStack.valueFromMemory(mmioData.cnC(), mmioData.indexC()));
-    mmioData.valANew(mmioData.valA());
 
+    mmioData.valANew(mmioData.valA());
     mmioData.valBNew(mmioData.valB());
+
     int targetByteOffset = microData.targetByteOffset().toInteger();
     int sourceByteOffset = microData.sourceByteOffset().toInteger();
     for (int i = targetByteOffset; i < 16; i++) {
       mmioData.valBNew()[i] = mmioData.valA()[sourceByteOffset + i - targetByteOffset];
     }
-
     mmioData.valCNew(mmioData.valC());
+
     int size = microData.size();
     int maxIndex = size - (16 - targetByteOffset);
     for (int i = 0; i < maxIndex; i++) {

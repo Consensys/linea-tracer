@@ -15,19 +15,20 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
-import java.util.Stack;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.StackedContainer;
 
 public class State implements StackedContainer {
-  private final Stack<TxState> state = new Stack<>();
+  private final Deque<TxState> state = new ArrayDeque<>(50);
 
   State() {}
 
   private TxState current() {
-    return this.state.get(this.state.size() - 1);
+    return this.state.peek();
   }
 
   TxState.Stamps stamps() {
@@ -60,11 +61,19 @@ public class State implements StackedContainer {
     return hubTrace;
   }
 
+  int txCount() {
+    return this.state.size();
+  }
+
   /**
    * @return the cumulated line numbers for all currently traced transactions
    */
   int lineCount() {
-    return this.state.stream().mapToInt(s -> s.txTrace.lineCount()).sum();
+    int sum = 0;
+    for (TxState s : this.state) {
+      sum += s.txTrace.lineCount();
+    }
+    return sum;
   }
 
   @Override

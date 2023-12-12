@@ -19,7 +19,9 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.stream.IntStream;
 
+import com.google.common.base.Preconditions;
 import org.apache.tuweni.bytes.Bytes;
+import org.apache.tuweni.bytes.Bytes32;
 
 public class Conversions {
   public static final BigInteger UNSIGNED_LONG_MASK =
@@ -40,6 +42,26 @@ public class Conversions {
     }
 
     return bytes;
+  }
+
+  /**
+   * Add zeroes to the left of the {@link Bytes} to create {@link Bytes} of the given size. The
+   * wantedSize must be at least the size of the Bytes.
+   *
+   * @param input
+   * @param wantedSize
+   * @return
+   */
+  public static Bytes leftPadTo(Bytes input, int wantedSize) {
+    Preconditions.checkArgument(
+        wantedSize >= input.size(), "wantedSize can't be shorter than the input size");
+    return Bytes.concatenate(Bytes.repeat((byte) 0, wantedSize - input.size()), input);
+  }
+
+  public static Bytes rightPadTo(Bytes input, int wantedSize) {
+    Preconditions.checkArgument(
+        wantedSize >= input.size(), "wantedSize can't be shorter than the input size");
+    return Bytes.concatenate(input, Bytes.repeat((byte) 0, wantedSize - input.size()));
   }
 
   public static BigInteger unsignedBytesToUnsignedBigInteger(final UnsignedByte[] input) {
@@ -67,5 +89,26 @@ public class Conversions {
           "a long can't be more than 64 bits long, and is" + output.bitLength());
     }
     return output;
+  }
+
+  /**
+   * Convert the given {@link Bytes} to a signed {@link BigInteger}, even if the Bytes.toBigInteger
+   * is overloaded to create unsigned BigInteger (e.g. in {@link
+   * org.apache.tuweni.units.bigints.UInt256}.
+   *
+   * @param a a object implement {@link Bytes}
+   * @return the signed BigInteger represented by a's bytes
+   */
+  public static BigInteger reallyToSignedBigInteger(Bytes a) {
+    byte[] bs = a.toArrayUnsafe();
+    return new BigInteger(bs, 0, bs.length);
+  }
+
+  public static Bytes32 longToBytes32(final long input) {
+    return Bytes32.leftPad(Bytes.minimalBytes(input));
+  }
+
+  public static Bytes longToBytes(final long input) {
+    return input == 0 ? Bytes.of(0) : Bytes.minimalBytes(input);
   }
 }

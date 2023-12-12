@@ -17,12 +17,12 @@ package net.consensys.linea.zktracer.module.rlpAddr;
 
 import static net.consensys.linea.zktracer.module.rlputils.Pattern.bitDecomposition;
 import static net.consensys.linea.zktracer.module.rlputils.Pattern.byteCounting;
-import static net.consensys.linea.zktracer.module.rlputils.Pattern.padToGivenSizeWithLeftZero;
-import static net.consensys.linea.zktracer.module.rlputils.Pattern.padToGivenSizeWithRightZero;
 import static net.consensys.linea.zktracer.types.AddressUtils.getCreate2Address;
 import static net.consensys.linea.zktracer.types.AddressUtils.getCreateAddress;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
+import static net.consensys.linea.zktracer.types.Conversions.leftPadTo;
 import static net.consensys.linea.zktracer.types.Conversions.longToUnsignedBigInteger;
+import static net.consensys.linea.zktracer.types.Conversions.rightPadTo;
 import static org.hyperledger.besu.crypto.Hash.keccak256;
 import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
@@ -30,9 +30,11 @@ import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.rlputils.BitDecOutput;
 import net.consensys.linea.zktracer.module.rlputils.ByteCountAndPowerOutput;
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -44,17 +46,20 @@ import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
+@RequiredArgsConstructor
 public class RlpAddr implements Module {
   private static final Bytes CREATE2_SHIFT = bigIntegerToBytes(BigInteger.valueOf(0xff));
   private static final Bytes INT_SHORT = bigIntegerToBytes(BigInteger.valueOf(0x80));
   private static final int LIST_SHORT = 0xc0;
   private static final int LLARGE = 16;
+  private static final Bytes BYTES_LLARGE = Bytes.of(LLARGE);
 
+  private final Hub hub;
   private final StackedList<RlpAddrChunk> chunkList = new StackedList<>();
 
   @Override
-  public String jsonKey() {
-    return "rlpAddr";
+  public String moduleKey() {
+    return "RLP_ADDR";
   }
 
   @Override
@@ -84,7 +89,7 @@ public class RlpAddr implements Module {
 
   @Override
   public void tracePreOpcode(MessageFrame frame) {
-    OpCode opcode = OpCode.of(frame.getCurrentOperation().getOpcode());
+    final OpCode opcode = this.hub.opCode();
     switch (opcode) {
       case CREATE -> {
         final Address currentAddress = frame.getRecipientAddress();
@@ -114,54 +119,44 @@ public class RlpAddr implements Module {
   private void traceCreate2(int stamp, RlpAddrChunk chunk, Trace trace) {
     for (int ct = 0; ct < 6; ct++) {
       trace
-          .stamp(BigInteger.valueOf(stamp))
-          .recipe(BigInteger.valueOf(2))
+          .stamp(Bytes.ofUnsignedShort(stamp))
+          .recipe(Bytes.of(2))
           .recipe1(false)
           .recipe2(true)
-          .depAddrHi(chunk.depAddress().slice(0, 4).toUnsignedBigInteger())
-          .depAddrLo(chunk.depAddress().slice(4, LLARGE).toUnsignedBigInteger())
-          .addrHi(chunk.address().slice(0, 4).toUnsignedBigInteger())
-          .addrLo(chunk.address().slice(4, LLARGE).toUnsignedBigInteger())
-          .saltHi(chunk.salt().orElseThrow().slice(0, LLARGE).toUnsignedBigInteger())
-          .saltLo(chunk.salt().orElseThrow().slice(LLARGE, LLARGE).toUnsignedBigInteger())
-          .kecHi(chunk.keccak().orElseThrow().slice(0, LLARGE).toUnsignedBigInteger())
-          .kecLo(chunk.keccak().orElseThrow().slice(LLARGE, LLARGE).toUnsignedBigInteger())
+          .depAddrHi(chunk.depAddress().slice(0, 4))
+          .depAddrLo(chunk.depAddress().slice(4, LLARGE))
+          .addrHi(chunk.address().slice(0, 4))
+          .addrLo(chunk.address().slice(4, LLARGE))
+          .saltHi(chunk.salt().orElseThrow().slice(0, LLARGE))
+          .saltLo(chunk.salt().orElseThrow().slice(LLARGE, LLARGE))
+          .kecHi(chunk.keccak().orElseThrow().slice(0, LLARGE))
+          .kecLo(chunk.keccak().orElseThrow().slice(LLARGE, LLARGE))
           .lc(true)
-          .index(BigInteger.valueOf(ct))
-          .counter(BigInteger.valueOf(ct));
+          .index(Bytes.of(ct))
+          .counter(Bytes.of(ct));
 
       switch (ct) {
         case 0 -> {
           trace.limb(
-              padToGivenSizeWithRightZero(
-                      Bytes.concatenate(CREATE2_SHIFT, chunk.address().slice(0, 4)), LLARGE)
-                  .toUnsignedBigInteger());
-          trace.nBytes(BigInteger.valueOf(5));
+              rightPadTo(Bytes.concatenate(CREATE2_SHIFT, chunk.address().slice(0, 4)), LLARGE));
+          trace.nBytes(Bytes.of(5));
         }
-        case 1 -> trace
-            .limb(chunk.address().slice(4, LLARGE).toUnsignedBigInteger())
-            .nBytes(BigInteger.valueOf(LLARGE));
-        case 2 -> trace
-            .limb(chunk.salt().orElseThrow().slice(0, LLARGE).toUnsignedBigInteger())
-            .nBytes(BigInteger.valueOf(LLARGE));
-        case 3 -> trace
-            .limb(chunk.salt().orElseThrow().slice(LLARGE, LLARGE).toUnsignedBigInteger())
-            .nBytes(BigInteger.valueOf(LLARGE));
-        case 4 -> trace
-            .limb(chunk.keccak().orElseThrow().slice(0, LLARGE).toUnsignedBigInteger())
-            .nBytes(BigInteger.valueOf(LLARGE));
+        case 1 -> trace.limb(chunk.address().slice(4, LLARGE)).nBytes(BYTES_LLARGE);
+        case 2 -> trace.limb(chunk.salt().orElseThrow().slice(0, LLARGE)).nBytes(BYTES_LLARGE);
+        case 3 -> trace.limb(chunk.salt().orElseThrow().slice(LLARGE, LLARGE)).nBytes(BYTES_LLARGE);
+        case 4 -> trace.limb(chunk.keccak().orElseThrow().slice(0, LLARGE)).nBytes(BYTES_LLARGE);
         case 5 -> trace
-            .limb(chunk.keccak().orElseThrow().slice(LLARGE, LLARGE).toUnsignedBigInteger())
-            .nBytes(BigInteger.valueOf(LLARGE));
+            .limb(chunk.keccak().orElseThrow().slice(LLARGE, LLARGE))
+            .nBytes(BYTES_LLARGE);
       }
 
       // Columns unused for Recipe2
       trace
-          .nonce(BigInteger.ZERO)
+          .nonce(Bytes.EMPTY)
           .byte1(UnsignedByte.ZERO)
-          .acc(BigInteger.ZERO)
-          .accBytesize(BigInteger.ZERO)
-          .power(BigInteger.ZERO)
+          .acc(Bytes.EMPTY)
+          .accBytesize(Bytes.EMPTY)
+          .power(Bytes.EMPTY)
           .bit1(false)
           .bitAcc(UnsignedByte.ZERO)
           .tinyNonZeroNonce(false);
@@ -174,7 +169,7 @@ public class RlpAddr implements Module {
     final int RECIPE1_CT_MAX = 8;
     final BigInteger nonce = chunk.nonce().orElseThrow();
 
-    Bytes nonceShifted = padToGivenSizeWithLeftZero(bigIntegerToBytes(nonce), RECIPE1_CT_MAX);
+    Bytes nonceShifted = leftPadTo(bigIntegerToBytes(nonce), RECIPE1_CT_MAX);
     Boolean tinyNonZeroNonce = true;
     if (nonce.compareTo(BigInteger.ZERO) == 0 || nonce.compareTo(BigInteger.valueOf(128)) >= 0) {
       tinyNonZeroNonce = false;
@@ -214,71 +209,65 @@ public class RlpAddr implements Module {
 
     for (int ct = 0; ct < 8; ct++) {
       trace
-          .stamp(BigInteger.valueOf(stamp))
-          .recipe(BigInteger.ONE)
+          .stamp(Bytes.ofUnsignedShort(stamp))
+          .recipe(Bytes.of(1))
           .recipe1(true)
           .recipe2(false)
-          .addrHi(chunk.address().slice(0, 4).toUnsignedBigInteger())
-          .addrLo(chunk.address().slice(4, LLARGE).toUnsignedBigInteger())
-          .depAddrHi(chunk.depAddress().slice(0, 4).toUnsignedBigInteger())
-          .depAddrLo(chunk.depAddress().slice(4, LLARGE).toUnsignedBigInteger())
-          .nonce(nonce)
-          .counter(BigInteger.valueOf(ct))
+          .addrHi(chunk.address().slice(0, 4))
+          .addrLo(chunk.address().slice(4, LLARGE))
+          .depAddrHi(chunk.depAddress().slice(0, 4))
+          .depAddrLo(chunk.depAddress().slice(4, LLARGE))
+          .nonce(bigIntegerToBytes(nonce))
+          .counter(Bytes.of(ct))
           .byte1(UnsignedByte.of(nonceShifted.get(ct)))
-          .acc(nonceShifted.slice(0, ct + 1).toUnsignedBigInteger())
-          .accBytesize(BigInteger.valueOf(byteCounting.accByteSizeList().get(ct)))
-          .power(byteCounting.powerList().get(ct).divide(BigInteger.valueOf(256)))
+          .acc(nonceShifted.slice(0, ct + 1))
+          .accBytesize(Bytes.of(byteCounting.accByteSizeList().get(ct)))
+          .power(
+              bigIntegerToBytes(byteCounting.powerList().get(ct).divide(BigInteger.valueOf(256))))
           .bit1(bitDecomposition.bitDecList().get(ct))
           .bitAcc(UnsignedByte.of(bitDecomposition.bitAccList().get(ct)))
           .tinyNonZeroNonce(tinyNonZeroNonce);
 
       switch (ct) {
-        case 0, 1, 2, 3 -> trace
-            .lc(false)
-            .limb(BigInteger.ZERO)
-            .nBytes(BigInteger.ZERO)
-            .index(BigInteger.ZERO);
+        case 0, 1, 2, 3 -> trace.lc(false).limb(Bytes.EMPTY).nBytes(Bytes.EMPTY).index(Bytes.EMPTY);
         case 4 -> trace
             .lc(true)
             .limb(
-                padToGivenSizeWithRightZero(
-                        bigIntegerToBytes(
-                            BigInteger.valueOf(LIST_SHORT)
-                                .add(BigInteger.valueOf(21))
-                                .add(BigInteger.valueOf(size_rlp_nonce))),
-                        LLARGE)
-                    .toUnsignedBigInteger())
-            .nBytes(BigInteger.ONE)
-            .index(BigInteger.ZERO);
+                rightPadTo(
+                    bigIntegerToBytes(
+                        BigInteger.valueOf(LIST_SHORT)
+                            .add(BigInteger.valueOf(21))
+                            .add(BigInteger.valueOf(size_rlp_nonce))),
+                    LLARGE))
+            .nBytes(Bytes.of(1))
+            .index(Bytes.EMPTY);
         case 5 -> trace
             .lc(true)
             .limb(
-                padToGivenSizeWithRightZero(
-                        Bytes.concatenate(
-                            bigIntegerToBytes(BigInteger.valueOf(148)),
-                            chunk.address().slice(0, 4)),
-                        LLARGE)
-                    .toUnsignedBigInteger())
-            .nBytes(BigInteger.valueOf(5))
-            .index(BigInteger.ONE);
+                rightPadTo(
+                    Bytes.concatenate(
+                        bigIntegerToBytes(BigInteger.valueOf(148)), chunk.address().slice(0, 4)),
+                    LLARGE))
+            .nBytes(Bytes.of(5))
+            .index(Bytes.of(1));
         case 6 -> trace
             .lc(true)
-            .limb(chunk.address().slice(4, LLARGE).toUnsignedBigInteger())
-            .nBytes(BigInteger.valueOf(16))
-            .index(BigInteger.valueOf(2));
+            .limb(chunk.address().slice(4, LLARGE))
+            .nBytes(Bytes.of(16))
+            .index(Bytes.of(2));
         case 7 -> trace
             .lc(true)
-            .limb(padToGivenSizeWithRightZero(rlpNonce, LLARGE).toUnsignedBigInteger())
-            .nBytes(BigInteger.valueOf(size_rlp_nonce))
-            .index(BigInteger.valueOf(3));
+            .limb(rightPadTo(rlpNonce, LLARGE))
+            .nBytes(Bytes.of(size_rlp_nonce))
+            .index(Bytes.of(3));
       }
 
       // Column not used fo recipe 1:
       trace
-          .saltHi(BigInteger.ZERO)
-          .saltLo(BigInteger.ZERO)
-          .kecHi(BigInteger.ZERO)
-          .kecLo(BigInteger.ZERO)
+          .saltHi(Bytes.EMPTY)
+          .saltLo(Bytes.EMPTY)
+          .kecHi(Bytes.EMPTY)
+          .kecLo(Bytes.EMPTY)
           .validateRow();
     }
   }

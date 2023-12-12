@@ -15,27 +15,28 @@
 
 package net.consensys.linea.zktracer.module.wcp;
 
-import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.opcode.OpCodeData;
-import net.consensys.linea.zktracer.opcode.OpCodes;
-import net.consensys.linea.zktracer.types.UnsignedByte;
+import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
+@RequiredArgsConstructor
 public class Wcp implements Module {
   private final StackedSet<WcpOperation> operations = new StackedSet<>();
-  private int stamp = 0;
+
+  private final Hub hub;
 
   @Override
-  public String jsonKey() {
-    return "wcp";
+  public String moduleKey() {
+    return "WCP";
   }
 
   @Override
@@ -50,51 +51,12 @@ public class Wcp implements Module {
 
   @Override
   public void tracePreOpcode(final MessageFrame frame) {
-    final OpCodeData opCode = OpCodes.of(frame.getCurrentOperation().getOpcode());
+    final OpCode opcode = this.hub.opCode();
     final Bytes32 arg1 = Bytes32.leftPad(frame.getStackItem(0));
     final Bytes32 arg2 =
-        (opCode.mnemonic() != OpCode.ISZERO)
-            ? Bytes32.leftPad(frame.getStackItem(1))
-            : Bytes32.ZERO;
+        (opcode != OpCode.ISZERO) ? Bytes32.leftPad(frame.getStackItem(1)) : Bytes32.ZERO;
 
-    this.operations.add(new WcpOperation(opCode, arg1, arg2));
-  }
-
-  public void traceWcpOperation(WcpOperation op, Trace trace) {
-    this.stamp++;
-    for (int i = 0; i < op.maxCt(); i++) {
-      trace
-          .wordComparisonStamp(BigInteger.valueOf(stamp))
-          .oneLineInstruction(op.isOneLineInstruction())
-          .counter(BigInteger.valueOf(i))
-          .inst(BigInteger.valueOf(op.getOpCode().getData().value()))
-          .argument1Hi(op.getArg1Hi().toUnsignedBigInteger())
-          .argument1Lo(op.getArg1Lo().toUnsignedBigInteger())
-          .argument2Hi(op.getArg2Hi().toUnsignedBigInteger())
-          .argument2Lo(op.getArg2Lo().toUnsignedBigInteger())
-          .resultHi(op.getResHi() ? BigInteger.ONE : BigInteger.ZERO)
-          .resultLo(op.getResLo() ? BigInteger.ONE : BigInteger.ZERO)
-          .bits(op.getBits().get(i))
-          .neg1(op.getNeg1())
-          .neg2(op.getNeg2())
-          .byte1(UnsignedByte.of(op.getArg1Hi().get(i)))
-          .byte2(UnsignedByte.of(op.getArg1Lo().get(i)))
-          .byte3(UnsignedByte.of(op.getArg2Hi().get(i)))
-          .byte4(UnsignedByte.of(op.getArg2Lo().get(i)))
-          .byte5(UnsignedByte.of(op.getAdjHi().get(i)))
-          .byte6(UnsignedByte.of(op.getAdjLo().get(i)))
-          .acc1(op.getArg1Hi().slice(0, 1 + i).toUnsignedBigInteger())
-          .acc2(op.getArg1Lo().slice(0, 1 + i).toUnsignedBigInteger())
-          .acc3(op.getArg2Hi().slice(0, 1 + i).toUnsignedBigInteger())
-          .acc4(op.getArg2Lo().slice(0, 1 + i).toUnsignedBigInteger())
-          .acc5(op.getAdjHi().slice(0, 1 + i).toUnsignedBigInteger())
-          .acc6(op.getAdjLo().slice(0, 1 + i).toUnsignedBigInteger())
-          .bit1(op.getBit1())
-          .bit2(op.getBit2())
-          .bit3(op.getBit3())
-          .bit4(op.getBit4())
-          .validateRow();
-    }
+    this.operations.add(new WcpOperation(opcode, arg1, arg2));
   }
 
   @Override
@@ -106,25 +68,42 @@ public class Wcp implements Module {
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
 
+    int stamp = 0;
     for (WcpOperation operation : this.operations) {
-      this.traceWcpOperation(operation, trace);
+      stamp++;
+      operation.trace(trace, stamp);
     }
   }
 
   @Override
   public int lineCount() {
-    return this.operations.stream().mapToInt(WcpOperation::maxCt).sum();
+    int sum = 0;
+    for (WcpOperation wcpOperation : this.operations) {
+      sum += wcpOperation.maxCt();
+    }
+    return sum;
   }
 
-  public void callLT(Bytes32 arg1, Bytes32 arg2) {
+  public boolean callLT(Bytes32 arg1, Bytes32 arg2) {
     this.operations.add(new WcpOperation(OpCode.LT, arg1, arg2));
+    return arg1.compareTo(arg2) < 0;
   }
 
-  public void callEQ(Bytes32 arg1, Bytes32 arg2) {
+  public boolean callLT(Bytes arg1, Bytes arg2) {
+    return this.callLT(Bytes32.leftPad(arg1), Bytes32.leftPad(arg2));
+  }
+
+  public boolean callEQ(Bytes32 arg1, Bytes32 arg2) {
     this.operations.add(new WcpOperation(OpCode.EQ, arg1, arg2));
+    return arg1.compareTo(arg2) == 0;
   }
 
-  public void callISZERO(Bytes32 arg1) {
+  public boolean callEQ(Bytes arg1, Bytes arg2) {
+    return this.callEQ(Bytes32.leftPad(arg1), Bytes32.leftPad(arg2));
+  }
+
+  public boolean callISZERO(Bytes32 arg1) {
     this.operations.add(new WcpOperation(OpCode.ISZERO, arg1, Bytes32.ZERO));
+    return arg1.isZero();
   }
 }

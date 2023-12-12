@@ -19,10 +19,10 @@ import static net.consensys.linea.zktracer.module.Util.getTxTypeAsInt;
 import static net.consensys.linea.zktracer.module.rlputils.Pattern.bitDecomposition;
 import static net.consensys.linea.zktracer.module.rlputils.Pattern.byteCounting;
 import static net.consensys.linea.zktracer.module.rlputils.Pattern.outerRlpSize;
-import static net.consensys.linea.zktracer.module.rlputils.Pattern.padToGivenSizeWithLeftZero;
-import static net.consensys.linea.zktracer.module.rlputils.Pattern.padToGivenSizeWithRightZero;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
+import static net.consensys.linea.zktracer.types.Conversions.leftPadTo;
 import static net.consensys.linea.zktracer.types.Conversions.longToUnsignedBigInteger;
+import static net.consensys.linea.zktracer.types.Conversions.rightPadTo;
 import static org.hyperledger.besu.ethereum.core.encoding.EncodingContext.BLOCK_BODY;
 import static org.hyperledger.besu.ethereum.core.encoding.TransactionEncoder.encodeOpaqueBytes;
 
@@ -63,8 +63,8 @@ public class RlpTxn implements Module {
   }
 
   @Override
-  public String jsonKey() {
-    return "rlpTxn";
+  public String moduleKey() {
+    return "RLP_TXN";
   }
 
   public static final int LLARGE = TxnrlpTrace.LLARGE.intValue();
@@ -426,7 +426,7 @@ public class RlpTxn implements Module {
       // Tracing the Data: several 16-rows ct-loop
       int nbstep = 16;
       int nbloop = (traceValue.phaseByteSize - 1) / nbstep + 1;
-      data = padToGivenSizeWithRightZero(data, nbstep * nbloop);
+      data = rightPadTo(data, nbstep * nbloop);
       for (int i = 0; i < nbloop; i++) {
         traceValue.partialReset(phase, nbstep, lt, lx);
         traceValue.input1 = data.slice(LLARGE * i, LLARGE);
@@ -650,7 +650,7 @@ public class RlpTxn implements Module {
     traceValue.depth1 = depth1;
     traceValue.depth2 = depth2;
 
-    Bytes input1RightShift = padToGivenSizeWithLeftZero(traceValue.input1, 8);
+    Bytes input1RightShift = leftPadTo(traceValue.input1, 8);
 
     long acc2LastRow;
     if (length >= 56) {
@@ -658,8 +658,7 @@ public class RlpTxn implements Module {
     } else {
       acc2LastRow = 55 - length;
     }
-    Bytes acc2LastRowShift =
-        padToGivenSizeWithLeftZero(bigIntegerToBytes(BigInteger.valueOf(acc2LastRow)), 8);
+    Bytes acc2LastRowShift = leftPadTo(bigIntegerToBytes(BigInteger.valueOf(acc2LastRow)), 8);
 
     for (int ct = 0; ct < 8; ct++) {
       traceValue.counter = ct;
@@ -727,7 +726,7 @@ public class RlpTxn implements Module {
     int inputSize = inputByte.size();
     ByteCountAndPowerOutput byteCountingOutput = byteCounting(inputSize, nStep);
 
-    Bytes inputBytePadded = padToGivenSizeWithLeftZero(inputByte, nStep);
+    Bytes inputBytePadded = leftPadTo(inputByte, nStep);
     BitDecOutput bitDecOutput =
         bitDecomposition(0xff & inputBytePadded.get(inputBytePadded.size() - 1), nStep);
 
@@ -775,7 +774,7 @@ public class RlpTxn implements Module {
       // General case
       Bytes inputByte = bigIntegerToBytes(input);
       int inputLen = inputByte.size();
-      Bytes inputByte32 = padToGivenSizeWithLeftZero(inputByte, 32);
+      Bytes inputByte32 = leftPadTo(inputByte, 32);
       traceValue.input1 = inputByte32.slice(0, LLARGE);
       traceValue.input2 = inputByte32.slice(LLARGE, LLARGE);
 
@@ -848,7 +847,7 @@ public class RlpTxn implements Module {
     boolean lt = true;
     boolean lx = true;
     traceValue.partialReset(phase, LLARGE, lt, lx);
-    traceValue.input1 = padToGivenSizeWithLeftZero(address.slice(0, 4), LLARGE);
+    traceValue.input1 = leftPadTo(address.slice(0, 4), LLARGE);
     traceValue.input2 = address.slice(4, LLARGE);
 
     if (phase == 10) {
@@ -1107,23 +1106,23 @@ public class RlpTxn implements Module {
     }
 
     builder
-        .absTxNum(BigInteger.valueOf(traceValue.absTxNum))
-        .absTxNumInfiny(BigInteger.valueOf(this.chunkList.size()))
-        .acc1(traceValue.acc1.toUnsignedBigInteger())
-        .acc2(traceValue.acc2.toUnsignedBigInteger())
-        .accBytesize(BigInteger.valueOf(traceValue.accByteSize))
-        .accessTupleBytesize(BigInteger.valueOf(traceValue.accessTupleByteSize))
-        .addrHi(traceValue.addrHi.toUnsignedBigInteger())
-        .addrLo(traceValue.addrLo.toUnsignedBigInteger())
+        .absTxNum(Bytes.ofUnsignedInt(traceValue.absTxNum))
+        .absTxNumInfiny(Bytes.ofUnsignedInt(this.chunkList.size()))
+        .acc1(traceValue.acc1)
+        .acc2(traceValue.acc2)
+        .accBytesize(Bytes.ofUnsignedInt(traceValue.accByteSize))
+        .accessTupleBytesize(Bytes.ofUnsignedInt(traceValue.accessTupleByteSize))
+        .addrHi(traceValue.addrHi)
+        .addrLo(traceValue.addrLo)
         .bit(traceValue.bit)
-        .bitAcc(BigInteger.valueOf(traceValue.bitAcc))
+        .bitAcc(Bytes.ofUnsignedInt(traceValue.bitAcc))
         .byte1(UnsignedByte.of(traceValue.byte1))
         .byte2(UnsignedByte.of(traceValue.byte2))
-        .codeFragmentIndex(BigInteger.valueOf(traceValue.codeFragmentIndex))
-        .counter(BigInteger.valueOf(traceValue.counter))
-        .dataHi(traceValue.dataHi)
-        .dataLo(traceValue.dataLo)
-        .datagascost(BigInteger.valueOf(traceValue.dataGasCost))
+        .codeFragmentIndex(Bytes.ofUnsignedInt(traceValue.codeFragmentIndex))
+        .counter(Bytes.ofUnsignedInt(traceValue.counter))
+        .dataHi(bigIntegerToBytes(traceValue.dataHi))
+        .dataLo(bigIntegerToBytes(traceValue.dataLo))
+        .datagascost(Bytes.ofUnsignedInt(traceValue.dataGasCost))
         .depth1(traceValue.depth1)
         .depth2(traceValue.depth2);
     if (traceValue.counter == traceValue.nStep - 1) {
@@ -1133,22 +1132,22 @@ public class RlpTxn implements Module {
     }
     builder
         .phaseEnd(traceValue.phaseEnd)
-        .indexData(BigInteger.valueOf(traceValue.indexData))
-        .indexLt(BigInteger.valueOf(traceValue.indexLt))
-        .indexLx(BigInteger.valueOf(traceValue.indexLx))
-        .input1(traceValue.input1.toUnsignedBigInteger())
-        .input2(traceValue.input2.toUnsignedBigInteger())
+        .indexData(Bytes.ofUnsignedInt(traceValue.indexData))
+        .indexLt(Bytes.ofUnsignedInt(traceValue.indexLt))
+        .indexLx(Bytes.ofUnsignedInt(traceValue.indexLx))
+        .input1(traceValue.input1)
+        .input2(traceValue.input2)
         .lcCorrection(traceValue.lcCorrection)
         .isPrefix(traceValue.isPrefix)
-        .limb(padToGivenSizeWithRightZero(traceValue.limb, LLARGE).toUnsignedBigInteger())
+        .limb(rightPadTo(traceValue.limb, LLARGE))
         .limbConstructed(traceValue.limbConstructed)
         .lt(traceValue.lt)
         .lx(traceValue.lx)
-        .nBytes(BigInteger.valueOf(traceValue.nBytes))
-        .nAddr(BigInteger.valueOf(traceValue.nbAddr))
-        .nKeys(BigInteger.valueOf(traceValue.nbSto))
-        .nKeysPerAddr(BigInteger.valueOf(traceValue.nbStoPerAddr))
-        .nStep(BigInteger.valueOf(traceValue.nStep));
+        .nBytes(Bytes.ofUnsignedInt(traceValue.nBytes))
+        .nAddr(Bytes.ofUnsignedInt(traceValue.nbAddr))
+        .nKeys(Bytes.ofUnsignedInt(traceValue.nbSto))
+        .nKeysPerAddr(Bytes.ofUnsignedInt(traceValue.nbStoPerAddr))
+        .nStep(Bytes.ofUnsignedInt(traceValue.nStep));
     List<Function<Boolean, Trace>> phaseColumns =
         List.of(
             builder::phase0,
@@ -1170,12 +1169,12 @@ public class RlpTxn implements Module {
       phaseColumns.get(i).apply(i == traceValue.phase);
     }
     builder
-        .phaseSize(BigInteger.valueOf(traceValue.phaseByteSize))
-        .power(traceValue.power)
+        .phaseSize(Bytes.ofUnsignedInt(traceValue.phaseByteSize))
+        .power(bigIntegerToBytes(traceValue.power))
         .requiresEvmExecution(traceValue.requiresEvmExecution)
-        .rlpLtBytesize(BigInteger.valueOf(traceValue.rlpLtByteSize))
-        .rlpLxBytesize(BigInteger.valueOf(traceValue.rlpLxByteSize))
-        .type(BigInteger.valueOf(traceValue.txType));
+        .rlpLtBytesize(Bytes.ofUnsignedInt(traceValue.rlpLtByteSize))
+        .rlpLxBytesize(Bytes.ofUnsignedInt(traceValue.rlpLxByteSize))
+        .type(Bytes.ofUnsignedInt(traceValue.txType));
 
     // Increments Index
     if (traceValue.limbConstructed && traceValue.lt) {

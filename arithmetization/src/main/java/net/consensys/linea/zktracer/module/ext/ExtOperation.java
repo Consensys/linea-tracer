@@ -62,12 +62,29 @@ public class ExtOperation {
     return Objects.hash(this.opCode, this.arg1, this.arg2, this.arg3);
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    final ExtOperation that = (ExtOperation) o;
+    return Objects.equals(this.opCode, that.opCode)
+        && Objects.equals(this.arg1, that.arg1)
+        && Objects.equals(this.arg2, that.arg2)
+        && Objects.equals(this.arg3, that.arg3);
+  }
+
   public ExtOperation(OpCode opCode, Bytes32 arg1, Bytes32 arg2, Bytes32 arg3) {
     this.opCode = opCode;
     this.arg1 = BaseBytes.fromBytes32(arg1.copy());
     this.arg2 = BaseBytes.fromBytes32(arg2.copy());
     this.arg3 = BaseBytes.fromBytes32(arg3.copy());
     this.oli = isOneLineInstruction();
+  }
+
+  public UInt256 compute() {
+    AbstractExtCalculator computer = AbstractExtCalculator.create(this.opCode);
+    return computer.computeResult(
+        this.arg1.getBytes32(), this.arg2.getBytes32(), this.arg3.getBytes32());
   }
 
   public void setup() {
@@ -80,11 +97,9 @@ public class ExtOperation {
     this.deltaBytes = BaseTheta.fromBytes32(Bytes32.ZERO);
     this.hBytes = new BytesArray(6);
 
-    AbstractExtCalculator computer = AbstractExtCalculator.create(opCode);
-    UInt256 result =
-        computer.computeResult(
-            this.arg1.getBytes32(), this.arg2.getBytes32(), this.arg3.getBytes32());
+    AbstractExtCalculator computer = AbstractExtCalculator.create(this.opCode);
 
+    final UInt256 result = this.compute();
     this.result = BaseTheta.fromBytes32(result);
     this.rBytes = BaseTheta.fromBytes32(result);
 

@@ -14,6 +14,9 @@
  */
 package net.consensys.linea.sequencer.txselection.selectors;
 
+import static net.consensys.linea.sequencer.txselection.LineaTransactionSelectionResult.BLOCK_CALLDATA_OVERFLOW;
+import static org.hyperledger.besu.plugin.data.TransactionSelectionResult.SELECTED;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hyperledger.besu.datatypes.PendingTransaction;
@@ -32,15 +35,15 @@ import org.hyperledger.besu.plugin.services.txselection.PluginTransactionSelecto
 public class MaxBlockCallDataTransactionSelector implements PluginTransactionSelector {
 
   private final int maxBlockCallDataSize;
-  private int blockCallDataSize;
+  private int cumulativeBlockCallDataSize;
 
   /**
    * Evaluates a transaction before processing. Checks if adding the transaction to the block pushes
    * the call data size of the block over the limit.
    *
    * @param pendingTransaction The transaction to evaluate.
-   * @return BLOCK_FULL if the call data size of a transactions pushes the size for the block over
-   *     the limit, otherwise SELECTED.
+   * @return BLOCK_CALLDATA_FULL if the call data size of a transactions pushes the size for the
+   *     block over the limit, otherwise SELECTED.
    */
   @Override
   public TransactionSelectionResult evaluateTransactionPreProcessing(
@@ -50,13 +53,23 @@ public class MaxBlockCallDataTransactionSelector implements PluginTransactionSel
     final int transactionCallDataSize = transaction.getPayload().size();
 
     if (isTransactionExceedingBlockCallDataSizeLimit(transactionCallDataSize)) {
-      log.trace(
-          "BlockCallData {} greater than {}, completing operation",
-          transactionCallDataSize,
-          maxBlockCallDataSize);
-      return TransactionSelectionResult.BLOCK_FULL;
+      log.atTrace()
+          .setMessage(
+              "Cumulative block calldata size including tx {} is {} greater than the max allowed {}, skipping tx")
+          .addArgument(pendingTransaction.getTransaction()::getHash)
+          .addArgument(() -> cumulativeBlockCallDataSize + transactionCallDataSize)
+          .addArgument(maxBlockCallDataSize)
+          .log();
+      return BLOCK_CALLDATA_OVERFLOW;
     }
-    return TransactionSelectionResult.SELECTED;
+
+    log.atTrace()
+        .setMessage("Cumulative block calldata size including tx {} is {}")
+        .addArgument(pendingTransaction.getTransaction()::getHash)
+        .addArgument(cumulativeBlockCallDataSize)
+        .log();
+
+    return SELECTED;
   }
 
   /**
@@ -67,7 +80,8 @@ public class MaxBlockCallDataTransactionSelector implements PluginTransactionSel
    * @return true if the total call data size would be too big, false otherwise.
    */
   private boolean isTransactionExceedingBlockCallDataSizeLimit(int transactionCallDataSize) {
-    return Math.addExact(blockCallDataSize, transactionCallDataSize) > maxBlockCallDataSize;
+    return Math.addExact(cumulativeBlockCallDataSize, transactionCallDataSize)
+        > maxBlockCallDataSize;
   }
 
   /**
@@ -80,7 +94,8 @@ public class MaxBlockCallDataTransactionSelector implements PluginTransactionSel
       final PendingTransaction pendingTransaction,
       final TransactionProcessingResult transactionProcessingResult) {
     final int transactionCallDataSize = pendingTransaction.getTransaction().getPayload().size();
-    blockCallDataSize = Math.addExact(blockCallDataSize, transactionCallDataSize);
+    cumulativeBlockCallDataSize =
+        Math.addExact(cumulativeBlockCallDataSize, transactionCallDataSize);
   }
 
   /**
@@ -95,6 +110,6 @@ public class MaxBlockCallDataTransactionSelector implements PluginTransactionSel
       final PendingTransaction pendingTransaction,
       final TransactionProcessingResult processingResult) {
     // Evaluation done in pre-processing, no action needed here.
-    return TransactionSelectionResult.SELECTED;
+    return SELECTED;
   }
 }

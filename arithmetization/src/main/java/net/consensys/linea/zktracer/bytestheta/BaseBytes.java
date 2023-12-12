@@ -15,7 +15,10 @@
 
 package net.consensys.linea.zktracer.bytestheta;
 
+import java.util.Objects;
+
 import net.consensys.linea.zktracer.types.Bytes16;
+import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.bytes.MutableBytes32;
 
@@ -48,6 +51,31 @@ public class BaseBytes implements HighLowBytes {
    */
   protected BaseBytes(final Bytes32 arg) {
     bytes32 = arg.mutableCopy();
+  }
+
+  /**
+   * The hashing must only be done on the numeric value wrapped by this class, so that sets of
+   * operations parameterized by these values hash correctly.
+   *
+   * @return this instance hash
+   */
+  @Override
+  public int hashCode() {
+    return Objects.hash(this.bytes32);
+  }
+
+  /**
+   * The equality must only be computed on the numeric value wrapped by this class, so that sets of
+   * operations parameterized by these values hash correctly.
+   *
+   * @return whether this == o
+   */
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    final BaseBytes that = (BaseBytes) o;
+    return Objects.equals(this.bytes32, that.bytes32);
   }
 
   /**
@@ -98,5 +126,44 @@ public class BaseBytes implements HighLowBytes {
    */
   public boolean isZero() {
     return bytes32.isZero();
+  }
+
+  /**
+   * Add operation on an instance of {@link UnsignedByte}.
+   *
+   * @param other right hand side of and operation.
+   * @return the result of add operation as an instance of {@link UnsignedByte}.
+   */
+  public BaseBytes and(final BaseBytes other) {
+    return new BaseBytes(bytes32.and(other.bytes32));
+  }
+
+  /**
+   * Or operation on an instance of {@link UnsignedByte}.
+   *
+   * @param other right hand side of or operation.
+   * @return the result of or operation as an instance of {@link UnsignedByte}.
+   */
+  public BaseBytes or(final BaseBytes other) {
+    return new BaseBytes(bytes32.or(other.bytes32));
+  }
+
+  /**
+   * Xor operation on an instance of {@link UnsignedByte}.
+   *
+   * @param other right hand side of xor operation.
+   * @return the result of xor operation as an instance of {@link UnsignedByte}.
+   */
+  public BaseBytes xor(final BaseBytes other) {
+    return new BaseBytes(bytes32.xor(other.bytes32));
+  }
+
+  /**
+   * Not operation on an instance of {@link UnsignedByte}.
+   *
+   * @return the result of not operation as an instance of {@link UnsignedByte}.
+   */
+  public BaseBytes not() {
+    return new BaseBytes(bytes32.not());
   }
 }

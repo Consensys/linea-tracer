@@ -16,7 +16,7 @@
 package net.consensys.linea.zktracer.module.hub;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
@@ -28,11 +28,13 @@ import org.hyperledger.besu.evm.internal.Words;
 
 /** Encode the exceptions that may be triggered byt the execution of an instruction. */
 @Getter
-@NoArgsConstructor
+@RequiredArgsConstructor
 @Accessors(fluent = true)
 public final class Exceptions {
   private static final byte EIP_3541_MARKER = (byte) 0xEF;
   private static final int MAX_CODE_SIZE = 24576;
+
+  private final Hub hub;
 
   private boolean invalidOpcode;
   private boolean stackUnderflow;
@@ -69,6 +71,7 @@ public final class Exceptions {
       boolean outOfSStore,
       boolean invalidCodePrefix,
       boolean codeSizeOverflow) {
+    this.hub = null;
     this.invalidOpcode = invalidOpcode;
     this.stackUnderflow = stackUnderflow;
     this.stackOverflow = stackOverflow;
@@ -80,6 +83,44 @@ public final class Exceptions {
     this.outOfSStore = outOfSStore;
     this.invalidCodePrefix = invalidCodePrefix;
     this.codeSizeOverflow = codeSizeOverflow;
+  }
+
+  @Override
+  public String toString() {
+    if (this.invalidOpcode) {
+      return "Invalid opcode";
+    }
+    if (this.stackUnderflow) {
+      return "Stack underflow";
+    }
+    if (this.stackOverflow) {
+      return "Stack overflow";
+    }
+    if (this.outOfMemoryExpansion) {
+      return "Out of MXP";
+    }
+    if (this.outOfGas) {
+      return "Out of gas";
+    }
+    if (this.returnDataCopyFault) {
+      return "RDC fault";
+    }
+    if (this.jumpFault) {
+      return "JMP fault";
+    }
+    if (this.staticFault) {
+      return "Static fault";
+    }
+    if (this.outOfSStore) {
+      return "Out of SSTORE";
+    }
+    if (this.invalidCodePrefix) {
+      return "Invalid code prefix";
+    }
+    if (this.codeSizeOverflow) {
+      return "Code size overflow";
+    }
+    return "No exception";
   }
 
   public void reset() {
@@ -175,8 +216,8 @@ public final class Exceptions {
     return required > frame.getRemainingGas();
   }
 
-  private static boolean isReturnDataCopyFault(final MessageFrame frame) {
-    if (OpCode.of(frame.getCurrentOperation().getOpcode()) == OpCode.RETURNDATACOPY) {
+  private static boolean isReturnDataCopyFault(final MessageFrame frame, final OpCode opCode) {
+    if (opCode == OpCode.RETURNDATACOPY) {
       long returnDataSize = frame.getReturnData().size();
       long askedOffset = Words.clampedToLong(frame.getStackItem(1));
       long askedSize = Words.clampedToLong(frame.getStackItem(2));
@@ -209,16 +250,15 @@ public final class Exceptions {
     return false;
   }
 
-  private static boolean isStaticFault(final MessageFrame frame) {
-    final OpCodeData opCode = OpCode.of(frame.getCurrentOperation().getOpcode()).getData();
-    if (frame.isStatic() && opCode.mnemonic() == OpCode.CALL && frame.stackSize() > 2) {
+  private static boolean isStaticFault(final MessageFrame frame, OpCodeData opCodeData) {
+    if (frame.isStatic() && opCodeData.mnemonic() == OpCode.CALL && frame.stackSize() > 2) {
       final long value = Words.clampedToLong(frame.getStackItem(2));
       if (value > 0) {
         return true;
       }
     }
 
-    return frame.isStatic() && opCode.stackSettings().forbiddenInStatic();
+    return frame.isStatic() && opCodeData.stackSettings().forbiddenInStatic();
   }
 
   private static boolean isOutOfSStore(MessageFrame frame, OpCode opCode) {
@@ -256,8 +296,8 @@ public final class Exceptions {
    * @param frame the context from which to compute the putative exceptions
    */
   public void prepare(final MessageFrame frame, GasProjector gp) {
-    OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
-    OpCodeData opCodeData = opCode.getData();
+    OpCode opCode = hub.opCode();
+    OpCodeData opCodeData = hub.opCodeData();
 
     this.reset();
 
@@ -276,7 +316,7 @@ public final class Exceptions {
       return;
     }
 
-    this.staticFault = isStaticFault(frame);
+    this.staticFault = isStaticFault(frame, opCodeData);
     if (this.staticFault) {
       return;
     }
@@ -319,7 +359,7 @@ public final class Exceptions {
         }
       }
       case RETURNDATACOPY -> {
-        this.returnDataCopyFault = isReturnDataCopyFault(frame);
+        this.returnDataCopyFault = isReturnDataCopyFault(frame, opCode);
         if (this.returnDataCopyFault) {
           return;
         }

@@ -28,6 +28,7 @@ public class LineaTransactionSelectorCliOptions {
   private static final String MODULE_LIMIT_FILE_PATH = "--plugin-linea-module-limit-file-path";
   private static final String MAX_GAS_PER_BLOCK = "--plugin-linea-max-block-gas";
   private static final String MAX_BLOCK_SIZE = "--plugin-linea-max-block-size";
+
   @CommandLine.Option(
       names = {MAX_BLOCK_CALLDATA_SIZE},
       hidden = true,
@@ -55,13 +56,13 @@ public class LineaTransactionSelectorCliOptions {
       description = "Sets max gas per block.")
   private Long maxGasPerBlock = DEFAULT_MAX_GAS_PER_BLOCK;
 
-    @CommandLine.Option(
-            names = {MAX_BLOCK_SIZE},
-            hidden = true,
-            paramLabel = "<INTEGER>",
-            description =
-                    "Maximum size for the block size in bytes (default: " + DEFAULT_MAX_BLOCK_SIZE + ")")
-    private int maxBlockSize = DEFAULT_MAX_BLOCK_SIZE;
+  @CommandLine.Option(
+      names = {MAX_BLOCK_SIZE},
+      hidden = true,
+      paramLabel = "<INTEGER>",
+      description =
+          "Maximum size for the block size in bytes (default: " + DEFAULT_MAX_BLOCK_SIZE + ")")
+  private int maxBlockSize = DEFAULT_MAX_BLOCK_SIZE;
 
   private LineaTransactionSelectorCliOptions() {}
 

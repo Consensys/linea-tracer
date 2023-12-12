@@ -14,23 +14,31 @@
  */
 package net.consensys.linea.sequencer.txselection.selectors;
 
-import static net.consensys.linea.sequencer.txselection.TransactionUtil.EMPTY_L1_BLOCK_SIZE;
-import static net.consensys.linea.sequencer.txselection.TransactionUtil.calculateL1TransactionSize;
+import static net.consensys.linea.sequencer.txselection.LineaTransactionSelectionResult.BLOCK_BYTES_SIZE_OVERFLOW;
 
+import java.util.List;
+
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import net.consensys.linea.sequencer.txselection.LineaTransactionSelectorConfiguration;
 import org.hyperledger.besu.datatypes.PendingTransaction;
+import org.hyperledger.besu.datatypes.Transaction;
+import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.plugin.data.TransactionProcessingResult;
 import org.hyperledger.besu.plugin.data.TransactionSelectionResult;
 import org.hyperledger.besu.plugin.services.txselection.PluginTransactionSelector;
 
+@Getter
 @Slf4j
 public class MaxBlockSizeTransactionSelector implements PluginTransactionSelector {
-  private int totalBlockSize = EMPTY_L1_BLOCK_SIZE;
-  private final int maxBlockSize;
+  private int cumulativeBlockBytesSize = EMPTY_L1_BLOCK_SIZE;
+  private final int maxBytesPerBlock;
+  public static final int AVERAGE_TX_RLP_SIZE = 400;
+  public static final int FROM_ADDRESS_SIZE = 20;
+  public static final int EMPTY_L1_BLOCK_SIZE = 64 + 63 + 64 + 64;
+  public static final int LOG_SIZE = 32;
 
-  public MaxBlockSizeTransactionSelector(LineaTransactionSelectorConfiguration lineaConfiguration) {
-    this.maxBlockSize = lineaConfiguration.maxBlockSize();
+  public MaxBlockSizeTransactionSelector(int maxBytesPerBlock) {
+    this.maxBytesPerBlock = maxBytesPerBlock;
   }
 
   @Override
@@ -43,8 +51,18 @@ public class MaxBlockSizeTransactionSelector implements PluginTransactionSelecto
   public TransactionSelectionResult evaluateTransactionPostProcessing(
       final PendingTransaction pendingTransaction,
       final TransactionProcessingResult processingResult) {
-    if (isTransactionExceedingL1BlockSizeLimit(pendingTransaction, processingResult)) {
-      return TransactionSelectionResult.BLOCK_FULL;
+
+    int L1TransactionSize =
+        calculateL1TransactionSize(pendingTransaction, processingResult.getLogs());
+    if (isTransactionExceedingL1BlockSizeLimit(L1TransactionSize)) {
+      log.atTrace()
+          .setMessage(
+              "Cumulative block size in bytes including tx {} is {} greater than the max allowed {}, skipping tx")
+          .addArgument(pendingTransaction.getTransaction()::getHash)
+          .addArgument(() -> cumulativeBlockBytesSize + L1TransactionSize)
+          .addArgument(maxBytesPerBlock)
+          .log();
+      return BLOCK_BYTES_SIZE_OVERFLOW;
     }
     return TransactionSelectionResult.SELECTED;
   }
@@ -53,15 +71,12 @@ public class MaxBlockSizeTransactionSelector implements PluginTransactionSelecto
    * Checks if the total size of all transactions in a block would exceed the maximum allowed size
    * if the given transaction were added.
    *
-   * @param transaction the transaction.
-   * @param processingResult the transaction processing result.
+   * @param L1TransactionSize the L1 Transaction Size in Bytes.
    * @return true if the total call data size would be too big, false otherwise.
    */
-  private boolean isTransactionExceedingL1BlockSizeLimit(
-      final PendingTransaction transaction, final TransactionProcessingResult processingResult) {
+  private boolean isTransactionExceedingL1BlockSizeLimit(int L1TransactionSize) {
     try {
-      int L1Size = calculateL1TransactionSize(transaction, processingResult.getLogs());
-      return Math.addExact(totalBlockSize, L1Size) > maxBlockSize;
+      return Math.addExact(cumulativeBlockBytesSize, L1TransactionSize) > maxBytesPerBlock;
     } catch (final ArithmeticException e) {
       // Overflow won't occur as totalBlockSize won't exceed Integer.MAX_VALUE
       return true;
@@ -77,6 +92,22 @@ public class MaxBlockSizeTransactionSelector implements PluginTransactionSelecto
   public void onTransactionSelected(
       final PendingTransaction pendingTransaction, final TransactionProcessingResult result) {
     final int transactionL1Size = calculateL1TransactionSize(pendingTransaction, result.getLogs());
-    totalBlockSize = Math.addExact(totalBlockSize, transactionL1Size);
+    cumulativeBlockBytesSize = Math.addExact(cumulativeBlockBytesSize, transactionL1Size);
+  }
+
+  public static int calculateL1TransactionSize(
+      final PendingTransaction pendingTransaction, final List<Log> logs) {
+    return calculateTransactionSize(pendingTransaction.getTransaction())
+        + FROM_ADDRESS_SIZE
+        + calculateLogsSize(logs);
+  }
+
+  private static int calculateLogsSize(final List<Log> logs) {
+    return logs.size() * LOG_SIZE;
+  }
+
+  private static int calculateTransactionSize(final Transaction transaction) {
+    // TODO Replace with transaction actual size
+    return AVERAGE_TX_RLP_SIZE;
   }
 }

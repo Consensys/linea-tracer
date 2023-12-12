@@ -49,7 +49,7 @@ dependencies {
 
   implementation 'info.picocli:picocli'
 
-  implementation 'io.tmio:tuweni-toml'
+  implementation 'io.tmio:tuweni-toml:2.4.2'
 
   compileOnly 'io.vertx:vertx-core'
 

@@ -22,8 +22,8 @@ public class LineaTransactionSelectionResult extends TransactionSelectionResult 
     BLOCK_MODULE_LINE_COUNT_FULL(true, false),
     TX_GAS_EXCEEDS_USER_MAX_BLOCK_GAS(false, true),
     TX_TOO_LARGE_FOR_REMAINING_USER_GAS(false, false),
-    TX_MODULE_LINE_COUNT_OVERFLOW(false, true);
-
+    TX_MODULE_LINE_COUNT_OVERFLOW(false, true),
+    BLOCK_BYTES_SIZE_OVERFLOW(false, false);
     private final boolean stop;
     private final boolean discard;
 
@@ -57,4 +57,6 @@ public class LineaTransactionSelectionResult extends TransactionSelectionResult 
       new LineaTransactionSelectionResult(LineaStatus.TX_TOO_LARGE_FOR_REMAINING_USER_GAS);
   public static final TransactionSelectionResult TX_MODULE_LINE_COUNT_OVERFLOW =
       new LineaTransactionSelectionResult(LineaStatus.TX_MODULE_LINE_COUNT_OVERFLOW);
+  public static final TransactionSelectionResult BLOCK_BYTES_SIZE_OVERFLOW =
+      new LineaTransactionSelectionResult(LineaStatus.BLOCK_BYTES_SIZE_OVERFLOW);
 }

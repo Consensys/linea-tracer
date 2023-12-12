@@ -58,7 +58,7 @@ public class BinOperation {
 
   @Override
   public boolean equals(Object o) {
-    // if (this == o) return true;
+    if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     final BinOperation that = (BinOperation) o;
     return java.util.Objects.equals(opCode, that.opCode)
@@ -75,7 +75,7 @@ public class BinOperation {
   }
 
   public boolean isSmall() {
-    return arg1.getBytes32().compareTo(Bytes.of(32)) < 0;
+    return arg1.getBytes32().trimLeadingZeros().bitLength() < 6;
   }
 
   private int getPivotThreshold() {
@@ -103,19 +103,22 @@ public class BinOperation {
     if (!isSmall) {
       return arg2;
     }
-    final int indexLeadingByte = 30 - arg1.getLow().toUnsignedBigInteger().intValueExact();
-    final byte toSet = (byte) (arg2().getByte(indexLeadingByte) < 0 ? 0xFF : 0x00);
+    final int indexLeadingByte = 31 - arg1.getByte(31) & 0xff;
+    final byte toSet = (byte) (arg2().getByte(indexLeadingByte) < 0 ? 0xff : 0x00);
     return BaseBytes.fromBytes32(
         Bytes32.leftPad(arg2.getBytes32().slice(indexLeadingByte, 32 - indexLeadingByte), toSet));
   }
 
   private BaseBytes byteResult() {
+    if (isOneLineInstruction()) {
+      return BaseBytes.fromBytes32(Bytes32.ZERO);
+    }
     final int result = isSmall ? pivot : 0;
     return BaseBytes.fromBytes32(Bytes32.leftPad(Bytes.ofUnsignedShort(result)));
   }
 
   public List<Boolean> getLastEightBits() {
-    final int leastByteOfArg1 = arg1().getByte(31);
+    final int leastByteOfArg1 = arg1().getByte(31) & 0xff;
     return bitDecomposition(leastByteOfArg1, 8).bitDecList();
   }
 
@@ -152,16 +155,20 @@ public class BinOperation {
       }
       case BYTE -> {
         if (low4 == 0) {
-          return !bit4 ? arg2.getHigh().get(0) : arg2.getLow().get(0);
+          return !bit4 ? arg2.getHigh().get(0) & 0xff : arg2.getLow().get(0) & 0xff;
         } else {
-          return !bit4 ? arg2.getHigh().get(pivotThreshold) : arg2.getLow().get(pivotThreshold);
+          return !bit4
+              ? arg2.getHigh().get(pivotThreshold) & 0xff
+              : arg2.getLow().get(pivotThreshold) & 0xff;
         }
       }
       case SIGNEXTEND -> {
         if (low4 == 15) {
-          return !bit4 ? arg2.getLow().get(0) : arg2.getHigh().get(0);
+          return !bit4 ? arg2.getLow().get(0) & 0xff : arg2.getHigh().get(0) & 0xff;
         } else {
-          return !bit4 ? arg2.getLow().get(pivotThreshold) : arg2.getHigh().get(pivotThreshold);
+          return !bit4
+              ? arg2.getLow().get(pivotThreshold) & 0xff
+              : arg2.getHigh().get(pivotThreshold) & 0xff;
         }
       }
       default -> throw new IllegalStateException("Bin doesn't support OpCode" + opCode);
@@ -184,17 +191,16 @@ public class BinOperation {
   public void traceBinOperation(int stamp, Trace trace) {
     this.compute();
 
-    final int ctMax = this.maxCt();
     final Bytes16 resHi = this.getResult().getHigh();
-    final Bytes16 resLo = this.arg1().getLow();
+    final Bytes16 resLo = this.getResult().getLow();
     final List<Boolean> bit1 = this.getBit1();
     final List<Boolean> bits =
         Stream.concat(this.getFirstEightBits().stream(), this.lastEightBits.stream()).toList();
-    for (int ct = 0; ct < ctMax; ct++) {
+    for (int ct = 0; ct < this.maxCt(); ct++) {
       trace
           .stamp(Bytes.ofUnsignedInt(stamp))
-          .oneLineInstruction(ctMax == 1)
-          .mli(ctMax != 1)
+          .oneLineInstruction(this.maxCt() == 1)
+          .mli(this.maxCt() != 1)
           .counter(UnsignedByte.of(ct))
           .inst(Bytes.of(this.opCode().byteValue()))
           .argument1Hi(this.arg1().getHigh())

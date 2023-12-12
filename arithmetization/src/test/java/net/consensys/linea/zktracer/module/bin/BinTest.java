@@ -24,13 +24,14 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.testing.EvmExtension;
+import org.apache.tuweni.units.bigints.UInt256;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(EvmExtension.class)
 public class BinTest {
   private static final Random RAND = new Random(666);
-  private final int NB_GENERIC_TEST = 100;
+  private final int NB_GENERIC_TEST = 500;
 
   @Test
   public void edgeCase() {
@@ -75,5 +76,32 @@ public class BinTest {
       case 5 -> OpCode.SIGNEXTEND;
       default -> throw new IllegalArgumentException("Unexpected value: " + rand);
     };
+  }
+
+  @Test
+  void testSignedSignextend() {
+    BytecodeRunner.of(
+            BytecodeCompiler.newProgram()
+                .immediate(UInt256.MAX_VALUE)
+                .immediate(UInt256.MAX_VALUE)
+                .op(OpCode.SIGNEXTEND)
+                .compile())
+        .run();
+
+    BytecodeRunner.of(
+            BytecodeCompiler.newProgram()
+                .immediate(UInt256.valueOf(31))
+                .immediate(UInt256.MAX_VALUE)
+                .op(OpCode.SIGNEXTEND)
+                .compile())
+        .run();
+
+    BytecodeRunner.of(
+            BytecodeCompiler.newProgram()
+                .immediate(UInt256.valueOf(32))
+                .immediate(UInt256.MAX_VALUE)
+                .op(OpCode.SIGNEXTEND)
+                .compile())
+        .run();
   }
 }

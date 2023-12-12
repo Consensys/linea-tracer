@@ -237,7 +237,7 @@ public class Hub implements Module {
                     this.rom,
                     this.shf,
                     this.trm,
-//                    this.txnData,
+                    //                    this.txnData,
                     this.stp,
                     this.wcp),
                 this.precompileLimitModules.stream())
@@ -270,7 +270,7 @@ public class Hub implements Module {
         this.romLex,
         this.shf,
         this.stp,
-//        this.txnData,
+        //        this.txnData,
         this.wcp);
   }
 
@@ -295,7 +295,7 @@ public class Hub implements Module {
                 this.rom,
                 this.shf,
                 this.trm,
-//                this.txnData,
+                //                this.txnData,
                 this.wcp),
             this.precompileLimitModules.stream())
         .toList();
@@ -507,7 +507,7 @@ public class Hub implements Module {
       // TODO: this.oob.tracePreOpcode(frame);
     }
     if (this.pch.signals().stp()) {
-//      this.stp.tracePreOpcode(frame);
+      //      this.stp.tracePreOpcode(frame);
     }
     if (this.pch.signals().exp()) {
       this.modexp.tracePreOpcode(frame);

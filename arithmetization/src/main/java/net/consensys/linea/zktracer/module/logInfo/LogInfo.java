@@ -85,15 +85,7 @@ public class LogInfo implements Module {
   }
 
   private int txRowSize(RlpTxrcptChunk tx) {
-    int txRowSize = 0;
-    if (tx.logs().isEmpty()) {
-      return 1;
-    } else {
-      for (Log log : tx.logs()) {
-        txRowSize += ctMax(log) + 1;
-      }
-      return txRowSize;
-    }
+    return tx.logs().size();
   }
 
   public void traceTxWoLog(

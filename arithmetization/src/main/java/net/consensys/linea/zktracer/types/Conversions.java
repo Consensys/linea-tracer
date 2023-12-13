@@ -44,26 +44,6 @@ public class Conversions {
     return bytes;
   }
 
-  /**
-   * Add zeroes to the left of the {@link Bytes} to create {@link Bytes} of the given size. The
-   * wantedSize must be at least the size of the Bytes.
-   *
-   * @param input
-   * @param wantedSize
-   * @return
-   */
-  public static Bytes leftPadTo(Bytes input, int wantedSize) {
-    Preconditions.checkArgument(
-        wantedSize >= input.size(), "wantedSize can't be shorter than the input size");
-    return Bytes.concatenate(Bytes.repeat((byte) 0, wantedSize - input.size()), input);
-  }
-
-  public static Bytes rightPadTo(Bytes input, int wantedSize) {
-    Preconditions.checkArgument(
-        wantedSize >= input.size(), "wantedSize can't be shorter than the input size");
-    return Bytes.concatenate(input, Bytes.repeat((byte) 0, wantedSize - input.size()));
-  }
-
   public static BigInteger unsignedBytesToUnsignedBigInteger(final UnsignedByte[] input) {
     return Bytes.concatenate(Arrays.stream(input).map(i -> Bytes.of(i.toInteger())).toList())
         .toUnsignedBigInteger();

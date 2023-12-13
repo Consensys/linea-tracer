@@ -15,7 +15,8 @@
 
 package net.consensys.linea.zktracer.module.bin;
 
-import static net.consensys.linea.zktracer.module.rlputils.Pattern.bitDecomposition;
+
+import static net.consensys.linea.zktracer.types.Utils.bitDecomposition;
 
 import java.util.ArrayList;
 import java.util.List;

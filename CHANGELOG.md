@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.1.4-test3
+Test pre-release 3 from [temp/issue-248/count-stack-only](https://github.com/Consensys/besu-sequencer-plugins/tree/temp/issue-248/count-stack-only)
+* Log ZkTracer counters for every produced block [#485](https://github.com/ConsenSys/besu-sequencer-plugins/pull/485)
+* fix: overflow for modexp arg [#489](https://github.com/ConsenSys/besu-sequencer-plugins/pull/489)
+* bin reimplementation [#473](https://github.com/ConsenSys/besu-sequencer-plugins/pull/473)
+* applyMavenExclusions=false [#477](https://github.com/ConsenSys/besu-sequencer-plugins/pull/477)
+
+## 0.1.4-test2
+Testing pre-release from branch test-release/v0.1.4-test2
+
+* revert make loginfo counts closer to Geth
+* head: disable stp & txndata
+
+Temporary line counting release for testnet.
+
 ## 0.1.4-test
 Temporary line counting release for testnet.
 

@@ -110,9 +110,6 @@ public class BinOperation {
   }
 
   private BaseBytes byteResult() {
-    if (isOneLineInstruction()) {
-      return BaseBytes.fromBytes32(Bytes32.ZERO);
-    }
     final int result = isSmall ? pivot : 0;
     return BaseBytes.fromBytes32(Bytes32.leftPad(Bytes.ofUnsignedShort(result)));
   }

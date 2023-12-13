@@ -20,17 +20,17 @@ public final class LineaTransactionSelectorConfiguration {
   private final int maxBlockCallDataSize;
   private final String moduleLimitsFilePath;
   private final long maxGasPerBlock;
-  private final int maxBlockSize;
+  private final int maxBytesPerBlock;
 
   private LineaTransactionSelectorConfiguration(
       int maxBlockCallDataSize,
       final String moduleLimitsFilePath,
       long maxGasPerBlock,
-      final int maxBlockSize) {
+      final int maxBytesPerBlock) {
     this.maxBlockCallDataSize = maxBlockCallDataSize;
     this.moduleLimitsFilePath = moduleLimitsFilePath;
     this.maxGasPerBlock = maxGasPerBlock;
-    this.maxBlockSize = maxBlockSize;
+    this.maxBytesPerBlock = maxBytesPerBlock;
   }
 
   public int maxBlockCallDataSize() {
@@ -45,15 +45,15 @@ public final class LineaTransactionSelectorConfiguration {
     return maxGasPerBlock;
   }
 
-  public int maxBlockSize() {
-    return maxBlockSize;
+  public int maxBytesPerBlock() {
+    return maxBytesPerBlock;
   }
 
   public static class Builder {
     private int maxBlockCallDataSize;
     private String moduleLimitsFilePath;
     private long maxGasPerBlock;
-    private int maxBlockSize;
+    private int maxBytesPerBlock;
 
     public Builder maxBlockCallDataSize(final int maxBlockCallDataSize) {
       this.maxBlockCallDataSize = maxBlockCallDataSize;
@@ -70,14 +70,14 @@ public final class LineaTransactionSelectorConfiguration {
       return this;
     }
 
-    public Builder maxBlockSize(int maxBlockSize) {
-      this.maxBlockSize = maxBlockSize;
+    public Builder maxBytesPerBlock(int maxBytesPerBlock) {
+      this.maxBytesPerBlock = maxBytesPerBlock;
       return this;
     }
 
     public LineaTransactionSelectorConfiguration build() {
       return new LineaTransactionSelectorConfiguration(
-          maxBlockCallDataSize, moduleLimitsFilePath, maxGasPerBlock, maxBlockSize);
+          maxBlockCallDataSize, moduleLimitsFilePath, maxGasPerBlock, maxBytesPerBlock);
     }
   }
 }

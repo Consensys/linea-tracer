@@ -37,6 +37,7 @@ public class TestCommandLineOptionsBuilder {
     cliOptions.setProperty(
         "--plugin-linea-module-limit-file-path=", getResourcePath("/noModuleLimits.toml"));
     cliOptions.setProperty("--plugin-linea-max-block-gas=", MAX_VALUE);
+    cliOptions.setProperty("--plugin-linea-max-block-bytes=", MAX_VALUE);
   }
 
   public TestCommandLineOptionsBuilder set(String option, String value) {

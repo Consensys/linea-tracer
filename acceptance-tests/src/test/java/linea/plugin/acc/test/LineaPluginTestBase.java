@@ -191,7 +191,7 @@ public class LineaPluginTestBase extends AcceptanceTestBase {
             .notInTransactionPool(Hash.fromHexString(hash)));
   }
 
-  private TransactionReceiptProcessor createReceiptProcessor(Web3j web3j) {
+  protected TransactionReceiptProcessor createReceiptProcessor(Web3j web3j) {
     return new PollingTransactionReceiptProcessor(
         web3j,
         TransactionManager.DEFAULT_POLLING_FREQUENCY,

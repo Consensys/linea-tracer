@@ -21,13 +21,13 @@ import picocli.CommandLine;
 /** The Linea CLI options. */
 public class LineaTransactionSelectorCliOptions {
   public static final int DEFAULT_MAX_BLOCK_CALLDATA_SIZE = 70000;
-  public static final int DEFAULT_MAX_BLOCK_SIZE = Integer.MAX_VALUE;
+  public static final int DEFAULT_BYTES_PER_BLOCK = Integer.MAX_VALUE;
   private static final String DEFAULT_MODULE_LIMIT_FILE_PATH = "moduleLimitFile.toml";
   public static final long DEFAULT_MAX_GAS_PER_BLOCK = 30_000_000L;
   private static final String MAX_BLOCK_CALLDATA_SIZE = "--plugin-linea-max-block-calldata-size";
   private static final String MODULE_LIMIT_FILE_PATH = "--plugin-linea-module-limit-file-path";
   private static final String MAX_GAS_PER_BLOCK = "--plugin-linea-max-block-gas";
-  private static final String MAX_BLOCK_SIZE = "--plugin-linea-max-block-size";
+  private static final String MAX_BYTES_PER_BLOCK = "--plugin-linea-max-block-bytes";
 
   @CommandLine.Option(
       names = {MAX_BLOCK_CALLDATA_SIZE},
@@ -57,12 +57,11 @@ public class LineaTransactionSelectorCliOptions {
   private Long maxGasPerBlock = DEFAULT_MAX_GAS_PER_BLOCK;
 
   @CommandLine.Option(
-      names = {MAX_BLOCK_SIZE},
+      names = {MAX_BYTES_PER_BLOCK},
       hidden = true,
       paramLabel = "<INTEGER>",
-      description =
-          "Maximum size for the block size in bytes (default: " + DEFAULT_MAX_BLOCK_SIZE + ")")
-  private int maxBlockSize = DEFAULT_MAX_BLOCK_SIZE;
+      description = "Maximum bytes per block (default: " + DEFAULT_BYTES_PER_BLOCK + ")")
+  private int maxBytesPerBlock = DEFAULT_BYTES_PER_BLOCK;
 
   private LineaTransactionSelectorCliOptions() {}
 
@@ -87,7 +86,7 @@ public class LineaTransactionSelectorCliOptions {
     options.maxBlockCallDataSize = config.maxBlockCallDataSize();
     options.moduleLimitFilePath = config.moduleLimitsFilePath();
     options.maxGasPerBlock = config.maxGasPerBlock();
-    options.maxBlockSize = config.maxBlockSize();
+    options.maxBytesPerBlock = config.maxBytesPerBlock();
     return options;
   }
 
@@ -101,7 +100,7 @@ public class LineaTransactionSelectorCliOptions {
         .maxBlockCallDataSize(maxBlockCallDataSize)
         .moduleLimits(moduleLimitFilePath)
         .maxGasPerBlock(maxGasPerBlock)
-        .maxBlockSize(maxBlockSize)
+        .maxBytesPerBlock(maxBytesPerBlock)
         .build();
   }
 
@@ -111,7 +110,7 @@ public class LineaTransactionSelectorCliOptions {
         .add(MAX_BLOCK_CALLDATA_SIZE, maxBlockCallDataSize)
         .add(MODULE_LIMIT_FILE_PATH, moduleLimitFilePath)
         .add(MAX_GAS_PER_BLOCK, maxGasPerBlock)
-        .add(MAX_BLOCK_SIZE, maxBlockSize)
+        .add(MAX_BYTES_PER_BLOCK, maxBytesPerBlock)
         .toString();
   }
 }

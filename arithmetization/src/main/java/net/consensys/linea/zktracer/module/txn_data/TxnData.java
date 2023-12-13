@@ -33,6 +33,7 @@ import net.consensys.linea.zktracer.module.romLex.RomLex;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.gas.GasConstants;
 import net.consensys.linea.zktracer.types.EWord;
+import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -90,7 +91,7 @@ public class TxnData implements Module {
 
   @Override
   public void traceStartTx(WorldView worldView, Transaction tx) {
-    int codeIdBeforeLex = 0;
+    int codeIdBeforeLex = -1;
     if ((tx.getTo().isEmpty() && tx.getInit().isPresent() && !tx.getInit().orElseThrow().isEmpty()
         || tx.getTo().isPresent()
             && Optional.ofNullable(worldView.get(tx.getTo().orElseThrow()))
@@ -479,7 +480,7 @@ public class TxnData implements Module {
           .btcNum(Bytes.ofUnsignedInt(btcNum))
           .relTxNumMax(Bytes.ofUnsignedInt(relTxNumMax))
           .relTxNum(Bytes.ofUnsignedInt(relTxNum))
-          .ct(Bytes.ofUnsignedInt(ct))
+          .ct(UnsignedByte.of(ct))
           .fromHi(from.hi())
           .fromLo(from.lo())
           .nonce(Bytes.ofUnsignedLong(tx.nonce()))
@@ -506,14 +507,14 @@ public class TxnData implements Module {
           .cumulativeConsumedGas(Bytes.ofUnsignedLong(tx.cumulativeGasConsumption()))
           .statusCode(tx.status())
           .codeFragmentIndex(Bytes.ofUnsignedInt(codeFragmentIndex))
-          .phaseRlpTxn(Bytes.ofUnsignedInt(phaseNumbers.get(ct)))
+          .phaseRlpTxn(UnsignedByte.of(phaseNumbers.get(ct)))
           .outgoingHi(bigIntegerToBytes(outgoingHis.get(ct)))
           .outgoingLo(bigIntegerToBytes(outgoingLos.get(ct)))
           .wcpArgOneLo(bigIntegerToBytes(wcpArgOnes.get(ct)))
           .wcpArgTwoLo(bigIntegerToBytes(wcpArgTwos.get(ct)))
           .wcpResLo(wcpRes.get(ct))
-          .wcpInst(Bytes.ofUnsignedInt(wcpInsts.get(ct)))
-          .phaseRlpTxnrcpt(Bytes.ofUnsignedInt(phaseRlpTxnRcpt.get(ct)))
+          .wcpInst(UnsignedByte.of(wcpInsts.get(ct)))
+          .phaseRlpTxnrcpt(UnsignedByte.of(phaseRlpTxnRcpt.get(ct)))
           .outgoingRlpTxnrcpt(Bytes.ofUnsignedLong(outgoingRlpTxnRcpt.get(ct)))
           .validateRow();
     }

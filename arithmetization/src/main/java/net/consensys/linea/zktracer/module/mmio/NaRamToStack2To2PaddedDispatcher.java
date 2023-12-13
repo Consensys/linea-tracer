@@ -20,19 +20,19 @@ import net.consensys.linea.zktracer.module.mmu.MicroData;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
-public class NaRamToStack1To1PaddedAndZeroDispatcher implements MmioDispatcher {
+public class NaRamToStack2To2PaddedDispatcher implements MmioDispatcher {
   @Override
   public MmioData dispatch(MicroData microData, CallStack callStack) {
     MmioData mmioData = new MmioData();
 
     int sourceContext = microData.sourceContext();
     mmioData.cnA(sourceContext);
-    mmioData.cnB(0);
+    mmioData.cnB(sourceContext);
     mmioData.cnC(0);
 
     int sourceLimbOffset = microData.sourceLimbOffset().toInt();
     mmioData.indexA(sourceLimbOffset);
-    mmioData.indexB(0);
+    mmioData.indexB(sourceLimbOffset + 1);
     mmioData.indexC(0);
 
     Preconditions.checkState(
@@ -40,7 +40,7 @@ public class NaRamToStack1To1PaddedAndZeroDispatcher implements MmioDispatcher {
         "Should be: EXCEPTIONAL_RAM_TO_STACK_3_TO_2_FULL");
 
     mmioData.valA(callStack.valueFromMemory(mmioData.cnA(), mmioData.indexA()));
-    mmioData.valB(UnsignedByte.EMPTY_BYTES16);
+    mmioData.valB(callStack.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
     mmioData.valC(UnsignedByte.EMPTY_BYTES16);
 
     mmioData.valANew(mmioData.valA());
@@ -49,23 +49,42 @@ public class NaRamToStack1To1PaddedAndZeroDispatcher implements MmioDispatcher {
 
     mmioData.valLo(UnsignedByte.EMPTY_BYTES16);
 
-    for (int i = 0; i < microData.size(); i++) {
-      mmioData.valHi()[i] = mmioData.valA()[i + microData.sourceByteOffset().toInteger()];
+    int sourceByteOffset = microData.sourceByteOffset().toInteger();
+    int diff = 16 - sourceByteOffset;
+
+    // twoOneFull
+    for (int i = 0; i < 16; i++) {
+      if (sourceByteOffset + i < 16) {
+        mmioData.valHi()[i] = mmioData.valA()[i + sourceByteOffset];
+      } else {
+        mmioData.valHi()[i] = mmioData.valB()[i - diff];
+      }
     }
 
-    mmioData.updateLimbsInMemory(callStack);
+    // oneOnePadded
+    for (int i = 0; i < microData.size(); i++) {
+      mmioData.valLo()[i] = mmioData.valB()[sourceByteOffset + i];
+    }
 
     return mmioData;
   }
 
   @Override
   public void update(MmioData mmioData, MicroData microData, int counter) {
-    // [1 => 1Padded]
-    mmioData.oneToOnePadded(
-        mmioData.valA(),
+    mmioData.twoToOneFull(
         mmioData.byteA(counter),
+        mmioData.byteB(counter),
         mmioData.acc1(),
-        PowType.POW_256_1,
+        mmioData.acc2(),
+        microData.sourceByteOffset(),
+        counter);
+
+    // [2 => 1Padded]
+    mmioData.oneToOnePadded(
+        mmioData.valB(),
+        mmioData.byteB(counter),
+        mmioData.acc3(),
+        PowType.POW_256_2,
         microData.sourceByteOffset(),
         microData.size(),
         counter);

@@ -20,7 +20,7 @@ import net.consensys.linea.zktracer.module.mmu.MicroData;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
-public class NaRamToStack1To1PaddedAndZeroDispatcher implements MmioDispatcher {
+public class FirstPaddedtSecondZeroDispatcher implements MmioDispatcher {
   @Override
   public MmioData dispatch(MicroData microData, CallStack callStack) {
     MmioData mmioData = new MmioData();
@@ -49,8 +49,9 @@ public class NaRamToStack1To1PaddedAndZeroDispatcher implements MmioDispatcher {
 
     mmioData.valLo(UnsignedByte.EMPTY_BYTES16);
 
+    int sourceByteOffset = microData.sourceByteOffset().toInteger();
     for (int i = 0; i < microData.size(); i++) {
-      mmioData.valHi()[i] = mmioData.valA()[i + microData.sourceByteOffset().toInteger()];
+      mmioData.valHi()[i] = mmioData.valA()[i + sourceByteOffset];
     }
 
     mmioData.updateLimbsInMemory(callStack);
@@ -62,8 +63,8 @@ public class NaRamToStack1To1PaddedAndZeroDispatcher implements MmioDispatcher {
   public void update(MmioData mmioData, MicroData microData, int counter) {
     // [1 => 1Padded]
     mmioData.oneToOnePadded(
-        mmioData.valA(),
-        mmioData.byteA(counter),
+        mmioData.valB(),
+        mmioData.byteB(counter),
         mmioData.acc1(),
         PowType.POW_256_1,
         microData.sourceByteOffset(),

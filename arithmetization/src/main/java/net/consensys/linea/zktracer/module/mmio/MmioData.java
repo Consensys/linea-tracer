@@ -178,16 +178,38 @@ class MmioData {
   }
 
   void oneToOnePadded(
-      UnsignedByte[] s, UnsignedByte sb, UInt256 acc, UnsignedByte sm, int size, int counter) {
+      UnsignedByte[] s,
+      UnsignedByte sb,
+      UInt256 acc,
+      PowType powType,
+      UnsignedByte sm,
+      int size,
+      int counter) {
     Preconditions.checkArgument(
         sb != s[counter], "oneOnePadded: SB = %s != %s = S[%d]".formatted(sb, s[counter], counter));
 
-    bin1 = plateau(sm.toInteger(), counter);
-    bin2 = plateau(sm.toInteger() + size, counter);
-    bin3 = plateau(size, counter);
+    boolean b1 = plateau(sm.toInteger(), counter);
+    boolean b2 = plateau(sm.toInteger() + size, counter);
+    boolean b3 = plateau(size, counter);
 
-    acc1 = isolateChunk(acc, sb, bin1, bin2, counter);
-    pow2561 = power(pow2561, bin3, counter);
+    switch (powType) {
+      case POW_256_1 -> {
+        bin1 = b1;
+        bin2 = b2;
+        bin3 = b3;
+
+        acc1 = isolateChunk(acc, sb, bin1, bin2, counter);
+        pow2561 = power(pow2561, bin3, counter);
+      }
+      case POW_256_2 -> {
+        bin1 = b1;
+        bin3 = b2;
+        bin4 = b3;
+
+        acc3 = isolateChunk(acc, sb, bin1, bin3, counter);
+        pow2562 = power(pow2562, bin4, counter);
+      }
+    }
   }
 
   void setVal(EWord x) {
@@ -239,5 +261,22 @@ class MmioData {
 
     pow2561 = power(pow2561, bin3, counter);
     pow2562 = power(pow2562, bin4, counter);
+  }
+
+  void twoToOneFull(
+      UnsignedByte s1b,
+      UnsignedByte s2b,
+      UInt256 acc1,
+      UInt256 acc2,
+      UnsignedByte sm,
+      int counter) {
+
+    bin1 = plateau(sm.toInteger(), counter);
+    bin2 = plateau(16 - sm.toInteger(), counter);
+
+    this.acc1 = isolateSuffix(acc1, bin1, s1b);
+    this.acc2 = isolatePrefix(acc2, bin2, s2b);
+
+    pow2561 = power(pow2561, bin2, counter);
   }
 }

@@ -20,19 +20,19 @@ import net.consensys.linea.zktracer.module.mmu.MicroData;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
-public class NaRamToStack1To1PaddedAndZeroDispatcher implements MmioDispatcher {
+public class FirstFastSecondPaddedDispatcher implements MmioDispatcher {
   @Override
   public MmioData dispatch(MicroData microData, CallStack callStack) {
     MmioData mmioData = new MmioData();
 
     int sourceContext = microData.sourceContext();
     mmioData.cnA(sourceContext);
-    mmioData.cnB(0);
+    mmioData.cnB(sourceContext);
     mmioData.cnC(0);
 
     int sourceLimbOffset = microData.sourceLimbOffset().toInt();
     mmioData.indexA(sourceLimbOffset);
-    mmioData.indexB(0);
+    mmioData.indexB(sourceLimbOffset + 1);
     mmioData.indexC(0);
 
     Preconditions.checkState(
@@ -40,17 +40,21 @@ public class NaRamToStack1To1PaddedAndZeroDispatcher implements MmioDispatcher {
         "Should be: EXCEPTIONAL_RAM_TO_STACK_3_TO_2_FULL");
 
     mmioData.valA(callStack.valueFromMemory(mmioData.cnA(), mmioData.indexA()));
-    mmioData.valB(UnsignedByte.EMPTY_BYTES16);
+    mmioData.valB(callStack.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
     mmioData.valC(UnsignedByte.EMPTY_BYTES16);
 
     mmioData.valANew(mmioData.valA());
     mmioData.valBNew(mmioData.valB());
     mmioData.valCNew(mmioData.valC());
 
-    mmioData.valLo(UnsignedByte.EMPTY_BYTES16);
+    mmioData.valHi(mmioData.valA());
+
+    int sourceByteOffset = microData.sourceByteOffset().toInteger();
+
+    Preconditions.checkArgument(sourceByteOffset != 0, "microData.sourceByteOffset should be 0");
 
     for (int i = 0; i < microData.size(); i++) {
-      mmioData.valHi()[i] = mmioData.valA()[i + microData.sourceByteOffset().toInteger()];
+      mmioData.valLo()[i] = mmioData.valB()[i + sourceByteOffset];
     }
 
     mmioData.updateLimbsInMemory(callStack);
@@ -62,11 +66,11 @@ public class NaRamToStack1To1PaddedAndZeroDispatcher implements MmioDispatcher {
   public void update(MmioData mmioData, MicroData microData, int counter) {
     // [1 => 1Padded]
     mmioData.oneToOnePadded(
-        mmioData.valA(),
-        mmioData.byteA(counter),
+        mmioData.valB(),
+        mmioData.byteB(counter),
         mmioData.acc1(),
         PowType.POW_256_1,
-        microData.sourceByteOffset(),
+        UnsignedByte.ZERO,
         microData.size(),
         counter);
   }

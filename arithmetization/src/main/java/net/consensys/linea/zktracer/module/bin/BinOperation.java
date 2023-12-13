@@ -199,7 +199,7 @@ public class BinOperation {
           .oneLineInstruction(this.maxCt() == 1)
           .mli(this.maxCt() != 1)
           .counter(UnsignedByte.of(ct))
-          .inst(Bytes.of(this.opCode().byteValue()))
+          .inst(UnsignedByte.of(this.opCode().byteValue()))
           .argument1Hi(this.arg1().getHigh())
           .argument1Lo(this.arg1().getLow())
           .argument2Hi(this.arg2().getHigh())

@@ -95,7 +95,7 @@ public class Trace {
         new ColumnHeader("bin.BYTE_5", 1, length),
         new ColumnHeader("bin.BYTE_6", 1, length),
         new ColumnHeader("bin.COUNTER", 1, length),
-        new ColumnHeader("bin.INST", 32, length),
+        new ColumnHeader("bin.INST", 1, length),
         new ColumnHeader("bin.IS_AND", 1, length),
         new ColumnHeader("bin.IS_BYTE", 1, length),
         new ColumnHeader("bin.IS_NOT", 1, length),
@@ -444,18 +444,14 @@ public class Trace {
     return this;
   }
 
-  public Trace inst(final Bytes b) {
+  public Trace inst(final UnsignedByte b) {
     if (filled.get(20)) {
       throw new IllegalStateException("bin.INST already set");
     } else {
       filled.set(20);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      inst.put((byte) 0);
-    }
-    inst.put(b.toArrayUnsafe());
+    inst.put(b.toByte());
 
     return this;
   }
@@ -917,7 +913,7 @@ public class Trace {
     }
 
     if (!filled.get(20)) {
-      inst.position(inst.position() + 32);
+      inst.position(inst.position() + 1);
     }
 
     if (!filled.get(21)) {

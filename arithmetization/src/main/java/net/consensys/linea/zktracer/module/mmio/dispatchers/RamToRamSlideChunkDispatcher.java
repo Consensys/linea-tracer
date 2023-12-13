@@ -13,46 +13,30 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.mmio;
+package net.consensys.linea.zktracer.module.mmio.dispatchers;
 
+import com.google.common.base.Preconditions;
+import net.consensys.linea.zktracer.module.mmio.MmioData;
 import net.consensys.linea.zktracer.module.mmu.MicroData;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
+import net.consensys.linea.zktracer.types.UnsignedByte;
 
-class RamToRamSlideOverlappingChunkDispatcher implements MmioDispatcher {
+class RamToRamSlideChunkDispatcher implements MmioDispatcher {
   @Override
   public MmioData dispatch(MicroData microData, CallStack callStack) {
     MmioData mmioData = new MmioData();
     mmioData.cnA(microData.sourceContext());
     mmioData.cnB(microData.targetContext());
     mmioData.cnC(0);
-
-    int sourceLimbOffset = microData.sourceLimbOffset().toInt();
-    mmioData.indexA(sourceLimbOffset);
-
-    int targetedLimbOffset = microData.targetLimbOffset().toInt();
-    mmioData.indexB(targetedLimbOffset);
-    mmioData.indexC(targetedLimbOffset + 1);
-
+    mmioData.indexA(microData.sourceLimbOffset().toInt());
+    mmioData.indexB(microData.targetLimbOffset().toInt());
+    mmioData.indexC(0);
     mmioData.valA(callStack.valueFromMemory(mmioData.cnA(), mmioData.indexA()));
     mmioData.valB(callStack.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
-    mmioData.valC(callStack.valueFromMemory(mmioData.cnC(), mmioData.indexC()));
-
+    mmioData.valC(UnsignedByte.EMPTY_BYTES16);
     mmioData.valANew(mmioData.valA());
-    mmioData.valBNew(mmioData.valB());
-
-    int targetByteOffset = microData.targetByteOffset().toInteger();
-    int sourceByteOffset = microData.sourceByteOffset().toInteger();
-    for (int i = targetByteOffset; i < 16; i++) {
-      mmioData.valBNew()[i] = mmioData.valA()[sourceByteOffset + i - targetByteOffset];
-    }
+    mmioData.valBNew(slideChunk(mmioData, microData));
     mmioData.valCNew(mmioData.valC());
-
-    int size = microData.size();
-    int maxIndex = size - (16 - targetByteOffset);
-    for (int i = 0; i < maxIndex; i++) {
-      mmioData.valCNew()[i] = mmioData.valA()[sourceByteOffset + (16 - targetByteOffset) + i];
-    }
-
     mmioData.updateLimbsInMemory(callStack);
 
     return mmioData;
@@ -60,17 +44,34 @@ class RamToRamSlideOverlappingChunkDispatcher implements MmioDispatcher {
 
   @Override
   public void update(MmioData mmioData, MicroData microData, int counter) {
-    mmioData.onePartialToTwo(
+    // 1Partial => 1
+    mmioData.onePartialToOne(
         mmioData.byteA(counter),
         mmioData.byteB(counter),
-        mmioData.byteC(counter),
         mmioData.acc1(),
         mmioData.acc2(),
-        mmioData.acc3(),
-        mmioData.acc4(),
         microData.sourceByteOffset(),
         microData.targetByteOffset(),
         microData.size(),
         counter);
+  }
+
+  private UnsignedByte[] slideChunk(MmioData mmioData, MicroData microData) {
+    UnsignedByte[] source = mmioData.valA();
+    UnsignedByte[] target = mmioData.valB();
+    int size = microData.size();
+    int sourceByteOffset = microData.sourceByteOffset().toInteger();
+    int targetByteOffset = microData.targetByteOffset().toInteger();
+
+    Preconditions.checkState(
+        size == 0 || sourceByteOffset + size > 16 || targetByteOffset + size > 16,
+        "Wrong size: %d sourceByteOffset: %d targetByteOffset: %d"
+            .formatted(size, sourceByteOffset, targetByteOffset));
+
+    for (int i = 0; i < size; i++) {
+      target[targetByteOffset + i] = source[sourceByteOffset + i];
+    }
+
+    return target;
   }
 }

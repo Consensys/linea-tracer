@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.module.mmio;
 
-enum PowType {
+public enum PowType {
   POW_256_1,
   POW_256_2
 }

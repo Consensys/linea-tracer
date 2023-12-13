@@ -36,7 +36,7 @@ import org.apache.tuweni.units.bigints.UInt256;
 @Getter
 @Setter
 @Accessors(fluent = true)
-class MmioData {
+public class MmioData {
   private int cnA;
   private int cnB;
   private int cnC;
@@ -76,39 +76,39 @@ class MmioData {
   private UInt256 acc5;
   private UInt256 acc6;
 
-  UnsignedByte byteA(int counter) {
+  public UnsignedByte byteA(int counter) {
     return valA[counter];
   }
 
-  UnsignedByte byteB(int counter) {
+  public UnsignedByte byteB(int counter) {
     return valB[counter];
   }
 
-  UnsignedByte byteC(int counter) {
+  public UnsignedByte byteC(int counter) {
     return valC[counter];
   }
 
-  UnsignedByte byteX(int counter) {
+  public UnsignedByte byteX(int counter) {
     return valX[counter];
   }
 
-  UnsignedByte byteHi(int counter) {
+  public UnsignedByte byteHi(int counter) {
     return valHi[counter];
   }
 
-  UnsignedByte byteLo(int counter) {
+  public UnsignedByte byteLo(int counter) {
     return valLo[counter];
   }
 
-  EWord valAEword() {
+  public EWord valAEword() {
     return unsignedBytesToEWord(valA);
   }
 
-  EWord valBEword() {
+  public EWord valBEword() {
     return unsignedBytesToEWord(valB);
   }
 
-  void onePartialToOne(
+  public void onePartialToOne(
       UnsignedByte sb,
       UnsignedByte tb,
       UInt256 acc1,
@@ -128,7 +128,7 @@ class MmioData {
     pow2561 = power(pow2561, bin2, counter);
   }
 
-  void onePartialToTwo(
+  public void onePartialToTwo(
       UnsignedByte sb,
       UnsignedByte t1b,
       UnsignedByte t2b,
@@ -155,7 +155,7 @@ class MmioData {
     this.acc4 = isolateChunk(acc4, sb, bin4, bin5, counter);
   }
 
-  void threeToTwoFull(
+  public void threeToTwoFull(
       UnsignedByte s1b,
       UnsignedByte s2b,
       UnsignedByte s3b,
@@ -177,7 +177,7 @@ class MmioData {
     pow2561 = power(pow2561, bin2, counter);
   }
 
-  void oneToOnePadded(
+  public void oneToOnePadded(
       UnsignedByte[] s,
       UnsignedByte sb,
       UInt256 acc,
@@ -212,12 +212,12 @@ class MmioData {
     }
   }
 
-  void setVal(EWord x) {
+  public void setVal(EWord x) {
     System.arraycopy(bytesToUnsignedBytes(x.hi().toArray()), 0, valHi, 0, valHi.length);
     System.arraycopy(bytesToUnsignedBytes(x.lo().toArray()), 0, valLo, 0, valLo.length);
   }
 
-  void excision(UnsignedByte tb, UInt256 acc, UnsignedByte tm, int size, int counter) {
+  public void excision(UnsignedByte tb, UInt256 acc, UnsignedByte tm, int size, int counter) {
     bin1 = plateau(tm.toInteger(), counter);
     bin2 = plateau(tm.toInteger() + size, counter);
 
@@ -226,14 +226,14 @@ class MmioData {
     pow2561 = power(pow2561, bin2, counter);
   }
 
-  void updateLimbsInMemory(final CallStack callStack) {
+  public void updateLimbsInMemory(final CallStack callStack) {
     StackContext pending = callStack.get(cnA).pending();
     pending.memory().updateLimb(indexA, valANew);
     pending.memory().updateLimb(indexB, valBNew);
     pending.memory().updateLimb(indexC, valCNew);
   }
 
-  void twoToOnePadded(
+  public void twoToOnePadded(
       UnsignedByte[] s1,
       UnsignedByte[] s2,
       UnsignedByte s1b,
@@ -263,7 +263,7 @@ class MmioData {
     pow2562 = power(pow2562, bin4, counter);
   }
 
-  void twoToOneFull(
+  public void twoToOneFull(
       UnsignedByte s1b,
       UnsignedByte s2b,
       UInt256 acc1,

@@ -13,61 +13,62 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.mmio;
+package net.consensys.linea.zktracer.module.mmio.dispatchers;
 
 import com.google.common.base.Preconditions;
+import net.consensys.linea.zktracer.module.mmio.MmioData;
+import net.consensys.linea.zktracer.module.mmio.PowType;
 import net.consensys.linea.zktracer.module.mmu.MicroData;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
-public class RamLimbExcisionDispatcher implements MmioDispatcher {
+public class NaRamToStack1To1PaddedAndZeroDispatcher implements MmioDispatcher {
   @Override
   public MmioData dispatch(MicroData microData, CallStack callStack) {
     MmioData mmioData = new MmioData();
-    mmioData.cnA(0);
-    mmioData.cnB(microData.targetContext());
+
+    int sourceContext = microData.sourceContext();
+    mmioData.cnA(sourceContext);
+    mmioData.cnB(0);
     mmioData.cnC(0);
-    mmioData.indexA(0);
-    mmioData.indexB(microData.targetLimbOffset().toInt());
+
+    int sourceLimbOffset = microData.sourceLimbOffset().toInt();
+    mmioData.indexA(sourceLimbOffset);
+    mmioData.indexB(0);
     mmioData.indexC(0);
-    mmioData.valA(UnsignedByte.EMPTY_BYTES16);
-    mmioData.valB(callStack.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
+
+    Preconditions.checkState(
+        microData.isRootContext() && microData.isType5(),
+        "Should be: EXCEPTIONAL_RAM_TO_STACK_3_TO_2_FULL");
+
+    mmioData.valA(callStack.valueFromMemory(mmioData.cnA(), mmioData.indexA()));
+    mmioData.valB(UnsignedByte.EMPTY_BYTES16);
     mmioData.valC(UnsignedByte.EMPTY_BYTES16);
+
     mmioData.valANew(mmioData.valA());
-    mmioData.valBNew(
-        excise(mmioData.valB(), microData.targetByteOffset().toInteger(), microData.size()));
+    mmioData.valBNew(mmioData.valB());
     mmioData.valCNew(mmioData.valC());
+
+    mmioData.valLo(UnsignedByte.EMPTY_BYTES16);
+
+    for (int i = 0; i < microData.size(); i++) {
+      mmioData.valHi()[i] = mmioData.valA()[i + microData.sourceByteOffset().toInteger()];
+    }
+
     mmioData.updateLimbsInMemory(callStack);
 
     return mmioData;
   }
 
-  private UnsignedByte[] excise(UnsignedByte[] source, int start, int size) {
-    int end = start + size;
-
-    Preconditions.checkState(
-        start < 0 || size <= 0,
-        "offsets out of bounds: start = %d, size = %d\none should have start >= 0 & size > 0"
-            .formatted(start, size));
-
-    // TODO: explore this case: it happens in practice : )
-    //    Preconditions.checkState(
-    //      end > 16,
-    //      "offsets out of bounds:, start + size = %d is bigger than 16".formatted(end));
-
-    for (int i = start; i < Math.min(end, 16); i++) {
-      source[i] = UnsignedByte.ZERO;
-    }
-
-    return source;
-  }
-
   @Override
   public void update(MmioData mmioData, MicroData microData, int counter) {
-    mmioData.excision(
-        mmioData.byteB(counter),
+    // [1 => 1Padded]
+    mmioData.oneToOnePadded(
+        mmioData.valA(),
+        mmioData.byteA(counter),
         mmioData.acc1(),
-        microData.targetByteOffset(),
+        PowType.POW_256_1,
+        microData.sourceByteOffset(),
         microData.size(),
         counter);
   }

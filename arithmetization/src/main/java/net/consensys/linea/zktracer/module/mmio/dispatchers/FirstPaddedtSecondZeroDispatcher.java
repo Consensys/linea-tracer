@@ -13,26 +13,28 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.mmio;
+package net.consensys.linea.zktracer.module.mmio.dispatchers;
 
 import com.google.common.base.Preconditions;
+import net.consensys.linea.zktracer.module.mmio.MmioData;
+import net.consensys.linea.zktracer.module.mmio.PowType;
 import net.consensys.linea.zktracer.module.mmu.MicroData;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
-public class NaRamToStack2To1PaddedAndZeroDispatcher implements MmioDispatcher {
+public class FirstPaddedtSecondZeroDispatcher implements MmioDispatcher {
   @Override
   public MmioData dispatch(MicroData microData, CallStack callStack) {
     MmioData mmioData = new MmioData();
 
     int sourceContext = microData.sourceContext();
     mmioData.cnA(sourceContext);
-    mmioData.cnB(sourceContext);
+    mmioData.cnB(0);
     mmioData.cnC(0);
 
     int sourceLimbOffset = microData.sourceLimbOffset().toInt();
     mmioData.indexA(sourceLimbOffset);
-    mmioData.indexB(sourceLimbOffset + 1);
+    mmioData.indexB(0);
     mmioData.indexC(0);
 
     Preconditions.checkState(
@@ -40,7 +42,7 @@ public class NaRamToStack2To1PaddedAndZeroDispatcher implements MmioDispatcher {
         "Should be: EXCEPTIONAL_RAM_TO_STACK_3_TO_2_FULL");
 
     mmioData.valA(callStack.valueFromMemory(mmioData.cnA(), mmioData.indexA()));
-    mmioData.valB(callStack.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
+    mmioData.valB(UnsignedByte.EMPTY_BYTES16);
     mmioData.valC(UnsignedByte.EMPTY_BYTES16);
 
     mmioData.valANew(mmioData.valA());
@@ -51,12 +53,7 @@ public class NaRamToStack2To1PaddedAndZeroDispatcher implements MmioDispatcher {
 
     int sourceByteOffset = microData.sourceByteOffset().toInteger();
     for (int i = 0; i < microData.size(); i++) {
-      if (sourceByteOffset + i < 16) {
-        mmioData.valHi()[i] = mmioData.valA()[i + sourceByteOffset];
-      } else {
-        int diff = 16 - sourceByteOffset;
-        mmioData.valHi()[i] = mmioData.valB()[i - diff];
-      }
+      mmioData.valHi()[i] = mmioData.valA()[i + sourceByteOffset];
     }
 
     mmioData.updateLimbsInMemory(callStack);
@@ -66,14 +63,12 @@ public class NaRamToStack2To1PaddedAndZeroDispatcher implements MmioDispatcher {
 
   @Override
   public void update(MmioData mmioData, MicroData microData, int counter) {
-    // [2 => 1Padded]
-    mmioData.twoToOnePadded(
-        mmioData.valA(),
+    // [1 => 1Padded]
+    mmioData.oneToOnePadded(
         mmioData.valB(),
-        mmioData.byteA(counter),
         mmioData.byteB(counter),
         mmioData.acc1(),
-        mmioData.acc2(),
+        PowType.POW_256_1,
         microData.sourceByteOffset(),
         microData.size(),
         counter);

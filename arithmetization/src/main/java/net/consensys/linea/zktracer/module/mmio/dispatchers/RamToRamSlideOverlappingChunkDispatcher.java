@@ -13,79 +13,64 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.mmio;
+package net.consensys.linea.zktracer.module.mmio.dispatchers;
 
-import com.google.common.base.Preconditions;
+import net.consensys.linea.zktracer.module.mmio.MmioData;
 import net.consensys.linea.zktracer.module.mmu.MicroData;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
-import net.consensys.linea.zktracer.types.UnsignedByte;
 
-public class NaRamToStack2To2PaddedDispatcher implements MmioDispatcher {
+class RamToRamSlideOverlappingChunkDispatcher implements MmioDispatcher {
   @Override
   public MmioData dispatch(MicroData microData, CallStack callStack) {
     MmioData mmioData = new MmioData();
-
-    int sourceContext = microData.sourceContext();
-    mmioData.cnA(sourceContext);
-    mmioData.cnB(sourceContext);
+    mmioData.cnA(microData.sourceContext());
+    mmioData.cnB(microData.targetContext());
     mmioData.cnC(0);
 
     int sourceLimbOffset = microData.sourceLimbOffset().toInt();
     mmioData.indexA(sourceLimbOffset);
-    mmioData.indexB(sourceLimbOffset + 1);
-    mmioData.indexC(0);
 
-    Preconditions.checkState(
-        microData.isRootContext() && microData.isType5(),
-        "Should be: EXCEPTIONAL_RAM_TO_STACK_3_TO_2_FULL");
+    int targetedLimbOffset = microData.targetLimbOffset().toInt();
+    mmioData.indexB(targetedLimbOffset);
+    mmioData.indexC(targetedLimbOffset + 1);
 
     mmioData.valA(callStack.valueFromMemory(mmioData.cnA(), mmioData.indexA()));
     mmioData.valB(callStack.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
-    mmioData.valC(UnsignedByte.EMPTY_BYTES16);
+    mmioData.valC(callStack.valueFromMemory(mmioData.cnC(), mmioData.indexC()));
 
     mmioData.valANew(mmioData.valA());
     mmioData.valBNew(mmioData.valB());
+
+    int targetByteOffset = microData.targetByteOffset().toInteger();
+    int sourceByteOffset = microData.sourceByteOffset().toInteger();
+    for (int i = targetByteOffset; i < 16; i++) {
+      mmioData.valBNew()[i] = mmioData.valA()[sourceByteOffset + i - targetByteOffset];
+    }
     mmioData.valCNew(mmioData.valC());
 
-    mmioData.valLo(UnsignedByte.EMPTY_BYTES16);
-
-    int sourceByteOffset = microData.sourceByteOffset().toInteger();
-    int diff = 16 - sourceByteOffset;
-
-    // twoOneFull
-    for (int i = 0; i < 16; i++) {
-      if (sourceByteOffset + i < 16) {
-        mmioData.valHi()[i] = mmioData.valA()[i + sourceByteOffset];
-      } else {
-        mmioData.valHi()[i] = mmioData.valB()[i - diff];
-      }
+    int size = microData.size();
+    int maxIndex = size - (16 - targetByteOffset);
+    for (int i = 0; i < maxIndex; i++) {
+      mmioData.valCNew()[i] = mmioData.valA()[sourceByteOffset + (16 - targetByteOffset) + i];
     }
 
-    // oneOnePadded
-    for (int i = 0; i < microData.size(); i++) {
-      mmioData.valLo()[i] = mmioData.valB()[sourceByteOffset + i];
-    }
+    mmioData.updateLimbsInMemory(callStack);
 
     return mmioData;
   }
 
   @Override
   public void update(MmioData mmioData, MicroData microData, int counter) {
-    mmioData.twoToOneFull(
+    mmioData.onePartialToTwo(
         mmioData.byteA(counter),
         mmioData.byteB(counter),
+        mmioData.byteC(counter),
         mmioData.acc1(),
         mmioData.acc2(),
-        microData.sourceByteOffset(),
-        counter);
-
-    // [2 => 1Padded]
-    mmioData.oneToOnePadded(
-        mmioData.valB(),
-        mmioData.byteB(counter),
         mmioData.acc3(),
-        PowType.POW_256_2,
+        mmioData.acc4(),
         microData.sourceByteOffset(),
+        microData.targetByteOffset(),
         microData.size(),
         counter);
   }

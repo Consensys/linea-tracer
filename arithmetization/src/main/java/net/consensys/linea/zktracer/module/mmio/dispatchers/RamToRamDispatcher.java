@@ -13,8 +13,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.mmio;
+package net.consensys.linea.zktracer.module.mmio.dispatchers;
 
+import net.consensys.linea.zktracer.module.mmio.MmioData;
 import net.consensys.linea.zktracer.module.mmu.MicroData;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.types.UnsignedByte;
@@ -26,15 +27,19 @@ class RamToRamDispatcher implements MmioDispatcher {
     mmioData.cnA(microData.sourceContext());
     mmioData.cnB(microData.targetContext());
     mmioData.cnC(0);
+
     mmioData.indexA(microData.sourceLimbOffset().toInt());
     mmioData.indexB(microData.targetLimbOffset().toInt());
     mmioData.indexC(0);
+
     mmioData.valA(callStack.valueFromMemory(mmioData.cnA(), mmioData.indexA()));
     mmioData.valB(callStack.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
     mmioData.valC(UnsignedByte.EMPTY_BYTES16);
+
     mmioData.valANew(mmioData.valA());
     mmioData.valBNew(mmioData.valA());
     mmioData.valCNew(UnsignedByte.EMPTY_BYTES16);
+
     mmioData.updateLimbsInMemory(callStack);
 
     return mmioData;

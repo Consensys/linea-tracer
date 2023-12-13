@@ -13,13 +13,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.mmio;
+package net.consensys.linea.zktracer.module.mmio.dispatchers;
 
 import com.google.common.base.Preconditions;
+import net.consensys.linea.zktracer.module.mmio.MmioData;
+import net.consensys.linea.zktracer.module.mmio.PowType;
 import net.consensys.linea.zktracer.module.mmu.MicroData;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
+import net.consensys.linea.zktracer.types.UnsignedByte;
 
-public class NaRamToStack3To2FullDispatcher implements MmioDispatcher {
+public class NaRamToStack2To2PaddedDispatcher implements MmioDispatcher {
   @Override
   public MmioData dispatch(MicroData microData, CallStack callStack) {
     MmioData mmioData = new MmioData();
@@ -27,12 +30,12 @@ public class NaRamToStack3To2FullDispatcher implements MmioDispatcher {
     int sourceContext = microData.sourceContext();
     mmioData.cnA(sourceContext);
     mmioData.cnB(sourceContext);
-    mmioData.cnC(sourceContext);
+    mmioData.cnC(0);
 
     int sourceLimbOffset = microData.sourceLimbOffset().toInt();
     mmioData.indexA(sourceLimbOffset);
     mmioData.indexB(sourceLimbOffset + 1);
-    mmioData.indexC(sourceLimbOffset + 2);
+    mmioData.indexC(0);
 
     Preconditions.checkState(
         microData.isRootContext() && microData.isType5(),
@@ -40,31 +43,52 @@ public class NaRamToStack3To2FullDispatcher implements MmioDispatcher {
 
     mmioData.valA(callStack.valueFromMemory(mmioData.cnA(), mmioData.indexA()));
     mmioData.valB(callStack.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
-    mmioData.valC(callStack.valueFromMemory(mmioData.cnC(), mmioData.indexC()));
+    mmioData.valC(UnsignedByte.EMPTY_BYTES16);
 
     mmioData.valANew(mmioData.valA());
     mmioData.valBNew(mmioData.valB());
     mmioData.valCNew(mmioData.valC());
 
-    mmioData.setVal(microData.eWordValue());
+    mmioData.valLo(UnsignedByte.EMPTY_BYTES16);
 
-    mmioData.updateLimbsInMemory(callStack);
+    int sourceByteOffset = microData.sourceByteOffset().toInteger();
+    int diff = 16 - sourceByteOffset;
+
+    // twoOneFull
+    for (int i = 0; i < 16; i++) {
+      if (sourceByteOffset + i < 16) {
+        mmioData.valHi()[i] = mmioData.valA()[i + sourceByteOffset];
+      } else {
+        mmioData.valHi()[i] = mmioData.valB()[i - diff];
+      }
+    }
+
+    // oneOnePadded
+    for (int i = 0; i < microData.size(); i++) {
+      mmioData.valLo()[i] = mmioData.valB()[sourceByteOffset + i];
+    }
 
     return mmioData;
   }
 
   @Override
   public void update(MmioData mmioData, MicroData microData, int counter) {
-    // 3=>2Full
-    mmioData.threeToTwoFull(
+    mmioData.twoToOneFull(
         mmioData.byteA(counter),
         mmioData.byteB(counter),
-        mmioData.byteC(counter),
         mmioData.acc1(),
         mmioData.acc2(),
-        mmioData.acc3(),
-        mmioData.acc4(),
         microData.sourceByteOffset(),
+        counter);
+
+    // [2 => 1Padded]
+    mmioData.oneToOnePadded(
+        mmioData.valB(),
+        mmioData.byteB(counter),
+        mmioData.acc3(),
+        PowType.POW_256_2,
+        microData.sourceByteOffset(),
+        microData.size(),
         counter);
   }
 }

@@ -48,11 +48,24 @@ public class BlockBytesLimitTest extends LineaPluginTestBase {
         .build();
   }
 
+  /**
+   * Tests that a transaction is mined when the block bytes size limit is not exceeded. The log
+   * count is set to one, which is within the maximum block bytes size set in the getTestCliOptions
+   * method. The maximum block bytes size is calculated to accommodate one transaction and two logs.
+   * Therefore, a transaction with one log does not exceed this limit and can be successfully mined
+   * into a block.
+   */
   @Test
   public void shouldMineTransactionWhenBlockBytesNotExceeded() throws Exception {
     verifyTransactionReceipt(BigInteger.ONE, eth::expectSuccessfulTransactionReceipt);
   }
 
+  /**
+   * Tests that a transaction is not mined when the block bytes size limit is exceeded. The log
+   * count is set to ten, which exceeds the maximum block bytes size set in the getTestCliOptions
+   * method. The maximum block bytes size is calculated to accommodate one transaction and two logs.
+   * Therefore, a transaction with ten logs exceeds this limit and cannot be mined into a block.
+   */
   @Test
   public void shouldNotMineTransactionWhenBlockBytesExceeded() throws Exception {
     verifyTransactionReceipt(BigInteger.TEN, eth::expectNoTransactionReceipt);

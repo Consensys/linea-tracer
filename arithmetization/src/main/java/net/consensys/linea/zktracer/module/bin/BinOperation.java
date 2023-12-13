@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.bin;
 
-
 import static net.consensys.linea.zktracer.types.Utils.bitDecomposition;
 
 import java.util.ArrayList;
@@ -67,7 +66,7 @@ public class BinOperation {
         && java.util.Objects.equals(arg2, that.arg2);
   }
 
-  public boolean isOneLineInstruction() {
+  private boolean isOneLineInstruction() {
     return (opCode == OpCode.BYTE || opCode == OpCode.SIGNEXTEND) && !arg1.getHigh().isZero();
   }
 
@@ -75,7 +74,7 @@ public class BinOperation {
     return isOneLineInstruction() ? 1 : LIMB_SIZE;
   }
 
-  public boolean isSmall() {
+  private boolean isSmall() {
     return arg1.getBytes32().trimLeadingZeros().bitLength() < 6;
   }
 
@@ -88,7 +87,7 @@ public class BinOperation {
     };
   }
 
-  public BaseBytes getResult() {
+  private BaseBytes getResult() {
     return switch (opCode) {
       case AND -> arg1.and(arg2);
       case OR -> arg1.or(arg2);
@@ -115,16 +114,16 @@ public class BinOperation {
     return BaseBytes.fromBytes32(Bytes32.leftPad(Bytes.ofUnsignedShort(result)));
   }
 
-  public List<Boolean> getLastEightBits() {
+  private List<Boolean> getLastEightBits() {
     final int leastByteOfArg1 = arg1().getByte(31) & 0xff;
     return bitDecomposition(leastByteOfArg1, 8).bitDecList();
   }
 
-  public boolean getBit4() {
+  private boolean getBit4() {
     return getLastEightBits().get(3);
   }
 
-  public int getLow4() {
+  private int getLow4() {
     int r = 0;
     for (int k = 0; k < 4; k++) {
       if (lastEightBits.get(7 - k)) {
@@ -134,7 +133,7 @@ public class BinOperation {
     return r;
   }
 
-  public List<Boolean> getBit1() {
+  private List<Boolean> getBit1() {
     return plateau(pivotThreshold);
   }
 
@@ -173,7 +172,7 @@ public class BinOperation {
     }
   }
 
-  public List<Boolean> getFirstEightBits() {
+  private List<Boolean> getFirstEightBits() {
     return bitDecomposition(pivot, 8).bitDecList();
   }
 

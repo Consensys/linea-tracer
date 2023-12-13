@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.rom;
 
-
 import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 
 import java.nio.MappedByteBuffer;

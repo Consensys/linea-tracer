@@ -55,7 +55,7 @@ public class Pattern {
     } else {
       for (int i = 1; i < 8; i++) {
         if ((rlpSize - 2 - i >= Math.pow(2, 8 * i))
-          && (rlpSize - i - 1 <= Math.pow(2, 8 * (i + 1)))) {
+            && (rlpSize - i - 1 <= Math.pow(2, 8 * (i + 1)))) {
           output -= (2 + i);
         } else if (rlpSize == Math.pow(2, i) + 1 + i) {
           throw new RuntimeException("can't be this size");

@@ -78,6 +78,7 @@ public class Modexp implements Module {
           }
           final Bytes inputData = frame.shadowReadMemory(offset, length);
 
+          // Get the Base length
           final BigInteger baseLength = slice(inputData, 0, EVM_WORD_SIZE).toUnsignedBigInteger();
           if (baseLength.multiply(BigInteger.valueOf(8)).compareTo(PROVER_MAX_INPUT_BIT_SIZE) > 0) {
             log.info(
@@ -88,6 +89,8 @@ public class Modexp implements Module {
             this.counts.push(Integer.MAX_VALUE);
             return;
           }
+
+          // Get the Exponent length
           final BigInteger expLength =
               slice(inputData, EVM_WORD_SIZE, EVM_WORD_SIZE).toUnsignedBigInteger();
           if (expLength.multiply(BigInteger.valueOf(8)).compareTo(PROVER_MAX_INPUT_BIT_SIZE) > 0) {
@@ -97,6 +100,8 @@ public class Modexp implements Module {
             this.counts.push(Integer.MAX_VALUE);
             return;
           }
+
+          // Get the Modulo length
           final BigInteger moduloLength =
               slice(inputData, 2 * EVM_WORD_SIZE, EVM_WORD_SIZE).toUnsignedBigInteger();
           if (moduloLength.multiply(BigInteger.valueOf(8)).compareTo(PROVER_MAX_INPUT_BIT_SIZE)
@@ -109,6 +114,8 @@ public class Modexp implements Module {
             this.counts.push(Integer.MAX_VALUE);
             return;
           }
+
+          // Get the Exponent
           final Bytes exp =
               slice(
                   inputData,
@@ -117,6 +124,7 @@ public class Modexp implements Module {
 
           final long gasPaid = Words.clampedToLong(frame.getStackItem(0));
 
+          // If enough gas, add 1 to the call of the precompile
           if (gasPaid
               >= gasPrice(
                   baseLength.intValueExact(),

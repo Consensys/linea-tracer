@@ -29,7 +29,7 @@ public class Pattern {
   public static int outerRlpSize(int inputSize) {
     int rlpSize = inputSize;
     if (inputSize == 1) {
-      // TODO panic
+      throw new IllegalArgumentException("Input size must be different from 1");
     } else {
       rlpSize += 1;
       if (inputSize >= 56) {

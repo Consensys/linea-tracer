@@ -71,12 +71,8 @@ public class Bin implements Module {
     int stamp = 0;
     for (BinOperation op : this.chunks) {
       stamp++;
-      traceChunk(op, stamp, trace);
+      op.traceBinOperation(stamp, trace);
     }
-  }
-
-  private void traceChunk(BinOperation op, int stamp, Trace trace) {
-    op.traceBinOperation(stamp, trace);
   }
 
   @Override

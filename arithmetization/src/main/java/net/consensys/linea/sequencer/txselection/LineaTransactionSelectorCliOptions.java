@@ -21,7 +21,7 @@ import picocli.CommandLine;
 /** The Linea CLI options. */
 public class LineaTransactionSelectorCliOptions {
   public static final int DEFAULT_MAX_BLOCK_CALLDATA_SIZE = 70000;
-  public static final int DEFAULT_BYTES_PER_BLOCK = Integer.MAX_VALUE;
+  public static final int DEFAULT_MAX_BYTES_PER_BLOCK = Integer.MAX_VALUE;
   private static final String DEFAULT_MODULE_LIMIT_FILE_PATH = "moduleLimitFile.toml";
   public static final long DEFAULT_MAX_GAS_PER_BLOCK = 30_000_000L;
   private static final String MAX_BLOCK_CALLDATA_SIZE = "--plugin-linea-max-block-calldata-size";
@@ -60,8 +60,8 @@ public class LineaTransactionSelectorCliOptions {
       names = {MAX_BYTES_PER_BLOCK},
       hidden = true,
       paramLabel = "<INTEGER>",
-      description = "Maximum bytes per block (default: " + DEFAULT_BYTES_PER_BLOCK + ")")
-  private int maxBytesPerBlock = DEFAULT_BYTES_PER_BLOCK;
+      description = "Maximum bytes per block (default: " + DEFAULT_MAX_BYTES_PER_BLOCK + ")")
+  private int maxBytesPerBlock = DEFAULT_MAX_BYTES_PER_BLOCK;
 
   private LineaTransactionSelectorCliOptions() {}
 

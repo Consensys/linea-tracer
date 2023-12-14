@@ -315,4 +315,41 @@ public class MmioData {
 
     pow2561 = power(pow2561, bin2, counter);
   }
+
+  public void twoFullToThree(
+      UnsignedByte t1b,
+      UnsignedByte t2b,
+      UnsignedByte s1b,
+      UnsignedByte s2b,
+      UInt256 acc1,
+      UInt256 acc2,
+      UInt256 acc3,
+      UInt256 acc4,
+      UInt256 acc5,
+      UInt256 acc6,
+      UnsignedByte tm,
+      int counter) {
+    bin1 = plateau(tm.toInteger(), counter);
+    bin2 = plateau(16 - tm.toInteger(), counter);
+
+    this.acc1 = isolateSuffix(acc1, bin1, t1b);
+    this.acc2 = isolatePrefix(acc2, bin1, t2b);
+
+    this.acc3 = isolatePrefix(acc3, bin2, s1b);
+    this.acc4 = isolateSuffix(acc4, bin2, s2b);
+
+    this.acc5 = isolatePrefix(acc5, bin2, s2b);
+    this.acc6 = isolateSuffix(acc6, bin2, s2b);
+
+    pow2561 = power(pow2561, bin1, counter);
+  }
+
+  public void byteSwap(UnsignedByte tb, UInt256 acc, UnsignedByte tm, int counter) {
+    bin1 = plateau(tm.toInteger(), counter);
+    bin2 = plateau(tm.toInteger() + 1, counter);
+
+    this.acc1 = isolateChunk(acc, tb, bin1, bin2, counter);
+
+    pow2561 = power(pow2561, bin2, counter);
+  }
 }

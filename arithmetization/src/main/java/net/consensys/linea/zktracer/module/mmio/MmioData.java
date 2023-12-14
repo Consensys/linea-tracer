@@ -24,6 +24,7 @@ import static net.consensys.linea.zktracer.types.Conversions.bytesToUnsignedByte
 import static net.consensys.linea.zktracer.types.Conversions.unsignedBytesToEWord;
 
 import com.google.common.base.Preconditions;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -36,6 +37,7 @@ import org.apache.tuweni.units.bigints.UInt256;
 @Getter
 @Setter
 @Accessors(fluent = true)
+@AllArgsConstructor
 public class MmioData {
   private int cnA;
   private int cnB;
@@ -75,6 +77,40 @@ public class MmioData {
   private UInt256 acc4;
   private UInt256 acc5;
   private UInt256 acc6;
+
+  public MmioData() {
+    this(
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        UnsignedByte.EMPTY_BYTES16,
+        UnsignedByte.EMPTY_BYTES16,
+        UnsignedByte.EMPTY_BYTES16,
+        UnsignedByte.EMPTY_BYTES16,
+        UnsignedByte.EMPTY_BYTES16,
+        UnsignedByte.EMPTY_BYTES16,
+        null,
+        UnsignedByte.EMPTY_BYTES16,
+        UnsignedByte.EMPTY_BYTES16,
+        UnsignedByte.EMPTY_BYTES16,
+        false,
+        false,
+        false,
+        false,
+        false,
+        UInt256.ZERO,
+        UInt256.ZERO,
+        UInt256.ZERO,
+        UInt256.ZERO,
+        UInt256.ZERO,
+        UInt256.ZERO,
+        UInt256.ZERO,
+        UInt256.ZERO);
+  }
 
   public UnsignedByte byteA(int counter) {
     return valA[counter];

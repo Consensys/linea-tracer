@@ -39,9 +39,6 @@ class MicroData extends ModuleOperation {
   private static final UnsignedByte[] DEFAULT_NIBBLES = new UnsignedByte[9];
   private static final UnsignedByte[][] DEFAULT_ACCS = new UnsignedByte[8][32];
   private static final boolean[] DEFAULT_BITS = new boolean[8];
-  private static final UnsignedByte[] DEFAULT_VAL_A_CACHE = new UnsignedByte[16];
-  private static final UnsignedByte[] DEFAULT_VAL_C_CACHE = new UnsignedByte[16];
-  private static final UnsignedByte[] DEFAULT_VAL_B_CACHE = new UnsignedByte[16];
 
   @Getter @Setter private int callStackDepth;
   @Getter @Setter private int callStackSize;
@@ -83,9 +80,9 @@ class MicroData extends ModuleOperation {
   @Getter @Setter private boolean exoIsRom;
   @Getter @Setter private boolean exoIsTxcd;
   @Getter @Setter private boolean info;
-  private UnsignedByte[] valACache;
-  private UnsignedByte[] valBCache;
-  private UnsignedByte[] valCCache;
+  @Getter private UnsignedByte[] valACache;
+  @Getter private UnsignedByte[] valBCache;
+  @Getter private UnsignedByte[] valCCache;
   // < 1.000.000
   @Getter @Setter private int referenceOffset;
   // < 1.000.000
@@ -123,9 +120,9 @@ class MicroData extends ModuleOperation {
         false,
         false,
         false,
-        DEFAULT_VAL_A_CACHE,
-        DEFAULT_VAL_B_CACHE,
-        DEFAULT_VAL_C_CACHE,
+        UnsignedByte.EMPTY_BYTES16,
+        UnsignedByte.EMPTY_BYTES16,
+        UnsignedByte.EMPTY_BYTES16,
         0,
         0);
   }

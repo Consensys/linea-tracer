@@ -278,15 +278,13 @@ public class TxnData implements Module {
     return Stream.concat(common.stream(), suffix.stream()).toList();
   }
 
-  private List<List<Bytes16>> setWcpArguments(BlockSnapshot block, TransactionSnapshot tx) {
+  private List<Bytes16> setWcpArgumentOne(BlockSnapshot block, TransactionSnapshot tx) {
     final Bytes16 maxFeePerGas =
         tx.type() == TransactionType.EIP1559
             ? Bytes16.leftPad(bigIntegerToBytes(tx.maxFeePerGas().orElseThrow().getAsBigInteger()))
             : Bytes16.ZERO;
-    final Bytes16 limitMinusLeftOverGasDividedByTwo =
-        Bytes16.leftPad(bigIntegerToBytes(tx.getLimitMinusLeftoverGasDividedByTwo()));
 
-    List<Bytes16> commonOnes =
+    final List<Bytes16> commonOnes =
         List.of(
             Bytes16.leftPad(bigIntegerToBytes(tx.initialSenderBalance())), // ct = 0
             Bytes16.leftPad(Bytes.ofUnsignedLong(tx.gasLimit())), // ct = 1
@@ -294,7 +292,7 @@ public class TxnData implements Module {
             Bytes16.leftPad(Bytes.ofUnsignedLong(tx.refundCounter())) // ct = 3
             );
 
-    List<Bytes16> suffixOnes =
+    final List<Bytes16> suffixOnes =
         switch (tx.type()) {
           case FRONTIER -> List.of(
               Bytes16.ZERO, // ct = 4
@@ -315,6 +313,13 @@ public class TxnData implements Module {
               );
           default -> throw new RuntimeException("transaction type not supported");
         };
+
+    return Stream.concat(commonOnes.stream(), suffixOnes.stream()).toList();
+  }
+
+  private List<Bytes16> setWcpArgumentTwo(BlockSnapshot block, TransactionSnapshot tx) {
+    final Bytes16 limitMinusLeftOverGasDividedByTwo =
+        Bytes16.leftPad(bigIntegerToBytes(tx.getLimitMinusLeftoverGasDividedByTwo()));
 
     List<Bytes16> commonTwos =
         List.of(
@@ -355,12 +360,10 @@ public class TxnData implements Module {
                                   .getAsBigInteger()))), // ct = 6
               Bytes16.ZERO // ct = 7
               );
-          default -> throw new RuntimeException("transaction type not supported");
+          default -> throw new IllegalStateException("transaction type not supported:" + tx.type());
         };
 
-    return List.of(
-        Stream.concat(commonOnes.stream(), suffixOnes.stream()).toList(),
-        Stream.concat(commonTwos.stream(), suffixTwos.stream()).toList());
+    return Stream.concat(commonTwos.stream(), suffixTwos.stream()).toList();
   }
 
   private List<Boolean> setWcpRes(BlockSnapshot block, TransactionSnapshot tx) {
@@ -415,7 +418,7 @@ public class TxnData implements Module {
               TYPE_2_RLP_TXN_PHASE_NUMBER_6, // ct = 6
               TYPE_2_RLP_TXN_PHASE_NUMBER_7 // ct = 7
               );
-      default -> throw new RuntimeException("transaction type not supported");
+      default -> throw new IllegalStateException("transaction type not supported:" + tx.type());
     }
     return Stream.concat(common.stream(), phaseDependentSuffix.stream()).toList();
   }
@@ -474,15 +477,13 @@ public class TxnData implements Module {
     final EWord from = EWord.of(tx.from());
     final EWord to = EWord.of(tx.to());
     final EWord coinbase = EWord.of(block.getCoinbaseAddress());
-    int codeFragmentIndex = 0;
-    if (tx.codeIdBeforeLex() != 0) {
-      codeFragmentIndex = this.romLex.getCFIById(tx.codeIdBeforeLex());
-    }
+    final int codeFragmentIndex =
+        tx.codeIdBeforeLex() == 0 ? 0 : this.romLex.getCFIById(tx.codeIdBeforeLex());
     final List<BigInteger> outgoingHis = setOutgoingHisAndLos(tx).get(0);
     final List<BigInteger> outgoingLos = setOutgoingHisAndLos(tx).get(1);
     final List<Integer> wcpInsts = setWcpInst(tx);
-    final List<Bytes16> wcpArgOnes = setWcpArguments(block, tx).get(0);
-    final List<Bytes16> wcpArgTwos = setWcpArguments(block, tx).get(1);
+    final List<Bytes16> wcpArgOnes = setWcpArgumentOne(block, tx);
+    final List<Bytes16> wcpArgTwos = setWcpArgumentTwo(block, tx);
     final List<Boolean> wcpRes = setWcpRes(block, tx);
     final List<Integer> phaseNumbers = setPhaseRlpTxnNumbers(tx);
     final List<Integer> phaseRlpTxnRcpt = setPhaseRlpTxnRcpt(tx);

@@ -47,11 +47,11 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 @RequiredArgsConstructor
 public class TxnData implements Module {
-  private final int nRowsFrontierTx = 7;
-  private final int nRowsAccessListTx = 8;
-  private final int nRowsEIP1559Tx = 8;
-  private final int nRowsTxMax =
-      Math.max(Math.max(nRowsFrontierTx, nRowsAccessListTx), nRowsEIP1559Tx);
+  private final static int N_ROWS_FRONTIER_TX = 7;
+  private final static int N_ROWS_ACCESS_LIST_TX = 8;
+  private final static int N_ROWS_EIP_1559_TX = 8;
+  private final static int N_ROWS_TX_MAX =
+      Math.max(Math.max(N_ROWS_FRONTIER_TX, N_ROWS_ACCESS_LIST_TX), N_ROWS_EIP_1559_TX);
   private static final int LT = 16;
   static final int COMMON_RLP_TXN_PHASE_NUMBER_0 = 0;
   static final int COMMON_RLP_TXN_PHASE_NUMBER_1 = 7;
@@ -146,9 +146,9 @@ public class TxnData implements Module {
     for (BlockSnapshot block : this.blocks) {
       for (TransactionSnapshot tx : block.getTxs()) {
         switch (tx.type()) {
-          case FRONTIER -> traceSize += nRowsFrontierTx;
-          case ACCESS_LIST -> traceSize += nRowsAccessListTx;
-          case EIP1559 -> traceSize += nRowsEIP1559Tx;
+          case FRONTIER -> traceSize += N_ROWS_FRONTIER_TX;
+          case ACCESS_LIST -> traceSize += N_ROWS_ACCESS_LIST_TX;
+          case EIP1559 -> traceSize += N_ROWS_EIP_1559_TX;
           default -> throw new RuntimeException("Transaction type not supported:" + tx.type());
         }
       }
@@ -253,7 +253,7 @@ public class TxnData implements Module {
   }
 
   private List<Bytes16> setWcpArgumentOne(TransactionSnapshot tx) {
-    List<Bytes16> output = new ArrayList<>(nRowsTxMax);
+    List<Bytes16> output = new ArrayList<>(N_ROWS_TX_MAX);
 
     output.add(0, Bytes16.leftPad(bigIntegerToBytes(tx.initialSenderBalance()))); // ct = 0
     output.add(1, Bytes16.leftPad(Bytes.ofUnsignedLong(tx.gasLimit()))); // ct = 1

@@ -15,13 +15,19 @@
 
 package net.consensys.linea.zktracer.module.mmio.dispatchers;
 
+import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.mmio.MmioData;
 import net.consensys.linea.zktracer.module.mmu.MicroData;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 
-class RamToRamSlideOverlappingChunkDispatcher implements MmioDispatcher {
+@RequiredArgsConstructor
+public class RamToRamSlideOverlappingChunkDispatcher implements MmioDispatcher {
+  private final MicroData microData;
+
+  private final CallStack callStack;
+
   @Override
-  public MmioData dispatch(MicroData microData, CallStack callStack) {
+  public MmioData dispatch() {
     MmioData mmioData = new MmioData();
     mmioData.cnA(microData.sourceContext());
     mmioData.cnB(microData.targetContext());
@@ -60,7 +66,7 @@ class RamToRamSlideOverlappingChunkDispatcher implements MmioDispatcher {
   }
 
   @Override
-  public void update(MmioData mmioData, MicroData microData, int counter) {
+  public void update(MmioData mmioData, int counter) {
     mmioData.onePartialToTwo(
         mmioData.byteA(counter),
         mmioData.byteB(counter),

@@ -15,10 +15,25 @@
 
 package net.consensys.linea.zktracer.module.mmio.dispatchers;
 
+import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.mmio.MmioData;
+import net.consensys.linea.zktracer.module.mmu.MicroData;
+import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 
-public interface MmioDispatcher {
-  MmioData dispatch();
+@RequiredArgsConstructor
+public class FullExoFromTwoDispatcher implements MmioDispatcher {
 
-  void update(MmioData mmioData, int counter);
+  private final MicroData microData;
+
+  private final CallStack callStack;
+
+  @Override
+  public MmioData dispatch() {
+    MmioData mmioData = new MmioData();
+
+    return mmioData;
+  }
+
+  @Override
+  public void update(MmioData mmioData, int counter) {}
 }

@@ -15,13 +15,20 @@
 
 package net.consensys.linea.zktracer.module.mmio.dispatchers;
 
+import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.mmio.MmioData;
 import net.consensys.linea.zktracer.module.mmu.MicroData;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 
+@RequiredArgsConstructor
 public class FullStackToRamDispatcher implements MmioDispatcher {
+
+  private final MicroData microData;
+
+  private final CallStack callStack;
+
   @Override
-  public MmioData dispatch(MicroData microData, CallStack callStack) {
+  public MmioData dispatch() {
     MmioData mmioData = new MmioData();
 
     int targetContext = microData.targetContext();
@@ -59,7 +66,7 @@ public class FullStackToRamDispatcher implements MmioDispatcher {
   }
 
   @Override
-  public void update(MmioData mmioData, MicroData microData, int counter) {
+  public void update(MmioData mmioData, int counter) {
     // 2Full=>3
     mmioData.twoFullToThree(
         mmioData.byteA(counter),

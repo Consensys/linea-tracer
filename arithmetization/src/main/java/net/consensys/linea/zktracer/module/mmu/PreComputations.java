@@ -15,8 +15,8 @@
 
 package net.consensys.linea.zktracer.module.mmu;
 
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
@@ -29,7 +29,7 @@ class PreComputations {
   @Getter private final Type4PreComputation type4;
   @Getter private final Type5PreComputation type5;
   @Getter private final Map<Integer, MmuPreComputation> typeMap;
-  @Getter private final List<MmuPreComputation> types;
+  @Getter private final Set<MmuPreComputation> types;
 
   PreComputations() {
     this.type1 = new Type1PreComputation();
@@ -37,7 +37,7 @@ class PreComputations {
     this.type3 = new Type3PreComputation();
     this.type4 = new Type4PreComputation();
     this.type5 = new Type5PreComputation();
-    this.types = List.of(type1, type2, type3, type4, type5);
+    this.types = Set.of(type1, type2, type3, type4, type5);
     this.typeMap =
         Map.of(
             Trace.type1, type1,

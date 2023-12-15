@@ -27,6 +27,7 @@ import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.State;
 import net.consensys.linea.zktracer.module.mmu.MicroData;
 import net.consensys.linea.zktracer.module.rom.Rom;
+import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 
 /** MMIO contains the MEMORY MAPPED INPUT OUTPUT module's state. */
 public class Mmio implements Module {
@@ -61,6 +62,22 @@ public class Mmio implements Module {
   @Override
   public void commit(List<MappedByteBuffer> buffers) {
     Trace trace = new Trace(buffers);
+  }
+
+  public void handleRam(
+      final MicroData microData,
+      final CallStack callStack,
+      final State.TxState.Stamps moduleStamps,
+      final int microStamp) {
+    if (microData.microOp() == 0) {
+      return;
+    }
+
+    int maxCounter = maxCounter(microData.isFast());
+  }
+
+  private int maxCounter(boolean isFast) {
+    return isFast ? 0 : 15;
   }
 
   private void trace(

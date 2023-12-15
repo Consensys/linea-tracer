@@ -16,50 +16,51 @@
 package net.consensys.linea.zktracer.module.mmio.dispatchers;
 
 import com.google.common.base.Preconditions;
+import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.mmio.MmioData;
+import net.consensys.linea.zktracer.module.mmio.PowType;
 import net.consensys.linea.zktracer.module.mmu.MicroData;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
-public class PushTwoRamToStackFullDispatcher implements MmioDispatcher {
+@RequiredArgsConstructor
+public class FirstPaddedSecondZeroDispatcher implements MmioDispatcher {
+  private final MicroData microData;
+
+  private final CallStack callStack;
+
   @Override
-  public MmioData dispatch(MicroData microData, CallStack callStack) {
+  public MmioData dispatch() {
     MmioData mmioData = new MmioData();
 
     int sourceContext = microData.sourceContext();
     mmioData.cnA(sourceContext);
-    mmioData.cnB(sourceContext);
+    mmioData.cnB(0);
     mmioData.cnC(0);
 
     int sourceLimbOffset = microData.sourceLimbOffset().toInt();
     mmioData.indexA(sourceLimbOffset);
-    mmioData.indexB(sourceLimbOffset + 1);
+    mmioData.indexB(0);
     mmioData.indexC(0);
 
     Preconditions.checkState(
         microData.isRootContext() && microData.isType5(),
-        "Should be: EXCEPTIONAL_RAM_TO_STACK_3_TO_2_FULL_FAST");
+        "Should be: EXCEPTIONAL_RAM_TO_STACK_3_TO_2_FULL");
 
     mmioData.valA(callStack.valueFromMemory(mmioData.cnA(), mmioData.indexA()));
-    mmioData.valB(callStack.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
+    mmioData.valB(UnsignedByte.EMPTY_BYTES16);
     mmioData.valC(UnsignedByte.EMPTY_BYTES16);
 
-    UnsignedByte[] valA = mmioData.valA();
-    UnsignedByte[] valB = mmioData.valB();
-    mmioData.valANew(valA);
-    mmioData.valBNew(valB);
-    mmioData.valCNew(UnsignedByte.EMPTY_BYTES16);
+    mmioData.valANew(mmioData.valA());
+    mmioData.valBNew(mmioData.valB());
+    mmioData.valCNew(mmioData.valC());
 
-    Preconditions.checkState(
-        !mmioData.valAEword().equals(microData.eWordValue().hi())
-            || !mmioData.valBEword().equals(microData.eWordValue().lo()),
-        "Inconsistent memory:\n"
-            + "expected mmioData.valA = %s found microOp.hi = %s\n"
-            + "expected mmioData.valB = %s found microOp.lo = %s\n"
-                .formatted(valA, microData.eWordValue().hi(), valB, microData.eWordValue().lo()));
+    mmioData.valLo(UnsignedByte.EMPTY_BYTES16);
 
-    mmioData.valHi(valA);
-    mmioData.valLo(valB);
+    int sourceByteOffset = microData.sourceByteOffset().toInteger();
+    for (int i = 0; i < microData.size(); i++) {
+      mmioData.valHi()[i] = mmioData.valA()[i + sourceByteOffset];
+    }
 
     mmioData.updateLimbsInMemory(callStack);
 
@@ -67,5 +68,15 @@ public class PushTwoRamToStackFullDispatcher implements MmioDispatcher {
   }
 
   @Override
-  public void update(MmioData mmioData, MicroData microData, int counter) {}
+  public void update(MmioData mmioData, int counter) {
+    // [1 => 1Padded]
+    mmioData.oneToOnePadded(
+        mmioData.valB(),
+        mmioData.byteB(counter),
+        mmioData.acc1(),
+        PowType.POW_256_1,
+        microData.sourceByteOffset(),
+        microData.size(),
+        counter);
+  }
 }

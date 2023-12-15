@@ -47,6 +47,11 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 @RequiredArgsConstructor
 public class TxnData implements Module {
+  private final int nRowsFrontierTx = 7;
+  private final int nRowsAccessListTx = 8;
+  private final int nRowsEIP1559Tx = 8;
+  private final int nRowsTxMax =
+      Math.max(Math.max(nRowsFrontierTx, nRowsAccessListTx), nRowsEIP1559Tx);
   private static final int LT = 16;
   static final int COMMON_RLP_TXN_PHASE_NUMBER_0 = 0;
   static final int COMMON_RLP_TXN_PHASE_NUMBER_1 = 7;
@@ -117,48 +122,21 @@ public class TxnData implements Module {
 
     // Call the wcp module:
     if (!this.currentBlock().getTxs().isEmpty()) {
-      this.callWcp(this.currentBlock(), this.currentBlock().currentTx());
+      this.callWcp();
     }
   }
 
-  public void callWcp(BlockSnapshot block, TransactionSnapshot tx) {
-    // ct = 0
-    this.wcp.callLT(
-        Bytes32.leftPad(bigIntegerToBytes(tx.initialSenderBalance())),
-        Bytes32.leftPad(bigIntegerToBytes(tx.getMaximalUpfrontCost())));
-    // ct = 1
-    this.wcp.callLT(
-        Bytes32.leftPad(Bytes.minimalBytes(tx.gasLimit())),
-        Bytes32.leftPad(bigIntegerToBytes(tx.getMaximalUpfrontCost())));
-    // ct = 2
-    this.wcp.callLT(
-        Bytes32.leftPad(bigIntegerToBytes(tx.getLimitMinusLeftoverGas())),
-        Bytes32.leftPad(Bytes.minimalBytes(tx.refundCounter())));
-    // ct = 3
-    this.wcp.callLT(
-        Bytes32.leftPad(bigIntegerToBytes(tx.getLimitMinusLeftoverGasDividedByTwo())),
-        Bytes32.leftPad(bigIntegerToBytes(tx.getLimitMinusLeftoverGasDividedByTwo())));
-
-    if (tx.type() == TransactionType.EIP1559) {
-      // ct = 4
-      this.wcp.callLT(
-          Bytes32.leftPad(bigIntegerToBytes(tx.maxFeePerGas().orElseThrow().getAsBigInteger())),
-          Bytes32.leftPad(bigIntegerToBytes(block.getBaseFee().orElseThrow().getAsBigInteger())));
-      // ct = 5
-      this.wcp.callLT(
-          Bytes32.leftPad(bigIntegerToBytes(tx.maxFeePerGas().orElseThrow().getAsBigInteger())),
-          Bytes32.leftPad(
-              bigIntegerToBytes(tx.maxPriorityFeePerGas().orElseThrow().getAsBigInteger())));
-      // ct = 6
-      this.wcp.callLT(
-          Bytes32.leftPad(bigIntegerToBytes(tx.maxFeePerGas().orElseThrow().getAsBigInteger())),
-          Bytes32.leftPad(
-              bigIntegerToBytes(
-                  block
-                      .getBaseFee()
-                      .orElseThrow()
-                      .getAsBigInteger()
-                      .add(tx.maxPriorityFeePerGas().orElseThrow().getAsBigInteger()))));
+  public void callWcp() {
+    final List<Bytes16> wcpArgOneLo = setWcpArgumentOne(this.currentBlock().currentTx());
+    final List<Bytes16> wcpArgTwoLo =
+        setWcpArgumentTwo(this.currentBlock(), this.currentBlock().currentTx());
+    for (int ct = 0; ct < 4; ct++) {
+      this.wcp.callLT(Bytes32.leftPad(wcpArgOneLo.get(ct)), Bytes32.leftPad(wcpArgTwoLo.get(ct)));
+    }
+    if (this.currentBlock().currentTx().type() == TransactionType.EIP1559) {
+      for (int ct = 4; ct < 7; ct++) {
+        this.wcp.callLT(Bytes32.leftPad(wcpArgOneLo.get(ct)), Bytes32.leftPad(wcpArgTwoLo.get(ct)));
+      }
     }
   }
 
@@ -168,8 +146,9 @@ public class TxnData implements Module {
     for (BlockSnapshot block : this.blocks) {
       for (TransactionSnapshot tx : block.getTxs()) {
         switch (tx.type()) {
-          case FRONTIER -> traceSize += 7;
-          case ACCESS_LIST, EIP1559 -> traceSize += 8;
+          case FRONTIER -> traceSize += nRowsFrontierTx;
+          case ACCESS_LIST -> traceSize += nRowsAccessListTx;
+          case EIP1559 -> traceSize += nRowsEIP1559Tx;
           default -> throw new RuntimeException("Transaction type not supported:" + tx.type());
         }
       }
@@ -256,12 +235,7 @@ public class TxnData implements Module {
             );
     List<Integer> suffix =
         switch (tx.type()) {
-          case FRONTIER -> List.of(
-              0, // ct = 4
-              0, // ct = 5
-              0 // ct = 6
-              );
-          case ACCESS_LIST -> List.of(
+          case FRONTIER, ACCESS_LIST -> List.of(
               0, // ct = 4
               0, // ct = 5
               0, // ct = 6
@@ -278,43 +252,33 @@ public class TxnData implements Module {
     return Stream.concat(common.stream(), suffix.stream()).toList();
   }
 
-  private List<Bytes16> setWcpArgumentOne(BlockSnapshot block, TransactionSnapshot tx) {
-    final Bytes16 maxFeePerGas =
-        tx.type() == TransactionType.EIP1559
-            ? Bytes16.leftPad(bigIntegerToBytes(tx.maxFeePerGas().orElseThrow().getAsBigInteger()))
-            : Bytes16.ZERO;
+  private List<Bytes16> setWcpArgumentOne(TransactionSnapshot tx) {
+    List<Bytes16> output = new ArrayList<>(nRowsTxMax);
 
-    final List<Bytes16> commonOnes =
-        List.of(
-            Bytes16.leftPad(bigIntegerToBytes(tx.initialSenderBalance())), // ct = 0
-            Bytes16.leftPad(Bytes.ofUnsignedLong(tx.gasLimit())), // ct = 1
-            Bytes16.leftPad(bigIntegerToBytes(tx.getLimitMinusLeftoverGas())), // ct = 2
-            Bytes16.leftPad(Bytes.ofUnsignedLong(tx.refundCounter())) // ct = 3
-            );
+    output.add(0, Bytes16.leftPad(bigIntegerToBytes(tx.initialSenderBalance()))); // ct = 0
+    output.add(1, Bytes16.leftPad(Bytes.ofUnsignedLong(tx.gasLimit()))); // ct = 1
+    output.add(2, Bytes16.leftPad(bigIntegerToBytes(tx.getLimitMinusLeftoverGas()))); // ct = 2
+    output.add(3, Bytes16.leftPad(Bytes.ofUnsignedLong(tx.refundCounter()))); // ct = 3
 
-    final List<Bytes16> suffixOnes =
-        switch (tx.type()) {
-          case FRONTIER -> List.of(
-              Bytes16.ZERO, // ct = 4
-              Bytes16.ZERO, // ct = 5
-              Bytes16.ZERO // ct = 6
-              );
-          case ACCESS_LIST -> List.of(
-              Bytes16.ZERO, // ct = 4
-              Bytes16.ZERO, // ct = 5
-              Bytes16.ZERO, // ct = 6
-              Bytes16.ZERO // ct = 7
-              );
-          case EIP1559 -> List.of(
-              maxFeePerGas, // ct = 4
-              maxFeePerGas, // ct = 5
-              maxFeePerGas, // ct = 6
-              Bytes16.ZERO // ct = 7
-              );
-          default -> throw new RuntimeException("transaction type not supported");
-        };
+    switch (tx.type()) {
+      case FRONTIER, ACCESS_LIST -> {
+        output.add(4, Bytes16.ZERO); // ct = 4
+        output.add(5, Bytes16.ZERO); // ct = 5
+        output.add(6, Bytes16.ZERO); // ct = 6
+        output.add(7, Bytes16.ZERO); // ct = 7
+      }
 
-    return Stream.concat(commonOnes.stream(), suffixOnes.stream()).toList();
+      case EIP1559 -> {
+        final Bytes16 maxFeePerGas =
+            Bytes16.leftPad(bigIntegerToBytes(tx.maxFeePerGas().orElseThrow().getAsBigInteger()));
+        output.add(4, maxFeePerGas); // ct = 4
+        output.add(5, maxFeePerGas); // ct = 5
+        output.add(6, maxFeePerGas); // ct = 6
+        output.add(7, Bytes16.ZERO); // ct = 7
+      }
+      default -> throw new RuntimeException("transaction type not supported");
+    }
+    return output;
   }
 
   private List<Bytes16> setWcpArgumentTwo(BlockSnapshot block, TransactionSnapshot tx) {
@@ -331,16 +295,11 @@ public class TxnData implements Module {
 
     List<Bytes16> suffixTwos =
         switch (tx.type()) {
-          case FRONTIER -> List.of(
-              Bytes16.ZERO, // ct = 4
-              Bytes16.ZERO, // ct = 5
-              Bytes16.ZERO // ct = 6
-              );
-          case ACCESS_LIST -> List.of(
+          case FRONTIER, ACCESS_LIST -> List.of(
               Bytes16.ZERO, // ct = 4
               Bytes16.ZERO, // ct = 5
               Bytes16.ZERO, // ct = 6
-              Bytes16.ZERO // ct = 7
+              Bytes16.ZERO // ct =7
               );
           case EIP1559 -> List.of(
               Bytes16.leftPad(
@@ -423,7 +382,7 @@ public class TxnData implements Module {
     return Stream.concat(common.stream(), phaseDependentSuffix.stream()).toList();
   }
 
-  private List<Integer> setPhaseRlpTxnRcpt(TransactionSnapshot tx) {
+  private List<Integer> setPhaseRlpTxnRcpt() {
     return List.of(
         Trace.RLPRECEIPT_SUBPHASE_ID_TYPE, // ct =0
         Trace.RLPRECEIPT_SUBPHASE_ID_STATUS_CODE, // ct = 1
@@ -437,7 +396,7 @@ public class TxnData implements Module {
   }
 
   private List<Long> setOutgoingRlpTxnRcpt(TransactionSnapshot tx) {
-    Long statusTx = 0L;
+    long statusTx = 0L;
     if (tx.status()) {
       statusTx = 1L;
     }
@@ -481,12 +440,12 @@ public class TxnData implements Module {
         tx.codeIdBeforeLex() == 0 ? 0 : this.romLex.getCFIById(tx.codeIdBeforeLex());
     final List<BigInteger> outgoingHis = setOutgoingHisAndLos(tx).get(0);
     final List<BigInteger> outgoingLos = setOutgoingHisAndLos(tx).get(1);
+    final List<Bytes16> wcpArgOneLo = setWcpArgumentOne(tx);
+    final List<Bytes16> wcpArgTwoLo = setWcpArgumentTwo(block, tx);
     final List<Integer> wcpInsts = setWcpInst(tx);
-    final List<Bytes16> wcpArgOnes = setWcpArgumentOne(block, tx);
-    final List<Bytes16> wcpArgTwos = setWcpArgumentTwo(block, tx);
     final List<Boolean> wcpRes = setWcpRes(block, tx);
     final List<Integer> phaseNumbers = setPhaseRlpTxnNumbers(tx);
-    final List<Integer> phaseRlpTxnRcpt = setPhaseRlpTxnRcpt(tx);
+    final List<Integer> phaseRlpTxnRcpt = setPhaseRlpTxnRcpt();
     final List<Long> outgoingRlpTxnRcpt = setOutgoingRlpTxnRcpt(tx);
     for (int ct = 0; ct < tx.maxCounter(); ct++) {
       trace
@@ -526,8 +485,8 @@ public class TxnData implements Module {
           .phaseRlpTxn(UnsignedByte.of(phaseNumbers.get(ct)))
           .outgoingHi(bigIntegerToBytes(outgoingHis.get(ct)))
           .outgoingLo(bigIntegerToBytes(outgoingLos.get(ct)))
-          .wcpArgOneLo(wcpArgOnes.get(ct))
-          .wcpArgTwoLo(wcpArgTwos.get(ct))
+          .wcpArgOneLo(wcpArgOneLo.get(ct))
+          .wcpArgTwoLo(wcpArgTwoLo.get(ct))
           .wcpResLo(wcpRes.get(ct))
           .wcpInst(UnsignedByte.of(wcpInsts.get(ct)))
           .phaseRlpTxnrcpt(UnsignedByte.of(phaseRlpTxnRcpt.get(ct)))

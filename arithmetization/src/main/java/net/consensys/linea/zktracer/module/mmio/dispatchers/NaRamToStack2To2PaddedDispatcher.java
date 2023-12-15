@@ -16,15 +16,21 @@
 package net.consensys.linea.zktracer.module.mmio.dispatchers;
 
 import com.google.common.base.Preconditions;
+import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.mmio.MmioData;
 import net.consensys.linea.zktracer.module.mmio.PowType;
 import net.consensys.linea.zktracer.module.mmu.MicroData;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
+@RequiredArgsConstructor
 public class NaRamToStack2To2PaddedDispatcher implements MmioDispatcher {
+  private final MicroData microData;
+
+  private final CallStack callStack;
+
   @Override
-  public MmioData dispatch(MicroData microData, CallStack callStack) {
+  public MmioData dispatch() {
     MmioData mmioData = new MmioData();
 
     int sourceContext = microData.sourceContext();
@@ -72,7 +78,7 @@ public class NaRamToStack2To2PaddedDispatcher implements MmioDispatcher {
   }
 
   @Override
-  public void update(MmioData mmioData, MicroData microData, int counter) {
+  public void update(MmioData mmioData, int counter) {
     mmioData.twoToOneFull(
         mmioData.byteA(counter),
         mmioData.byteB(counter),

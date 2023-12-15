@@ -136,7 +136,7 @@ class MicroData extends ModuleOperation {
     return microOp == Trace.StoreXInAThreeRequired;
   }
 
-  boolean isFast() {
+  public boolean isFast() {
     return Arrays.asList(
             Trace.RamToRam,
             Trace.ExoToRam,

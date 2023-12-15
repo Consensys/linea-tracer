@@ -16,14 +16,20 @@
 package net.consensys.linea.zktracer.module.mmio.dispatchers;
 
 import com.google.common.base.Preconditions;
+import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.mmio.MmioData;
 import net.consensys.linea.zktracer.module.mmu.MicroData;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
+@RequiredArgsConstructor
 public class ExceptionalRamToStack3To2FullFastDispatcher implements MmioDispatcher {
+  private final MicroData microData;
+
+  private final CallStack callStack;
+
   @Override
-  public MmioData dispatch(MicroData microData, CallStack callStack) {
+  public MmioData dispatch() {
     MmioData mmioData = new MmioData();
 
     mmioData.cnA(0);
@@ -53,5 +59,5 @@ public class ExceptionalRamToStack3To2FullFastDispatcher implements MmioDispatch
   }
 
   @Override
-  public void update(MmioData mmioData, MicroData microData, int counter) {}
+  public void update(MmioData mmioData, int counter) {}
 }

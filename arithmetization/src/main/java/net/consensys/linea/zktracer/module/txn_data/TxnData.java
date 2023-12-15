@@ -47,10 +47,10 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 @RequiredArgsConstructor
 public class TxnData implements Module {
-  private final static int N_ROWS_FRONTIER_TX = 7;
-  private final static int N_ROWS_ACCESS_LIST_TX = 8;
-  private final static int N_ROWS_EIP_1559_TX = 8;
-  private final static int N_ROWS_TX_MAX =
+  private static final int N_ROWS_FRONTIER_TX = 7;
+  private static final int N_ROWS_ACCESS_LIST_TX = 8;
+  private static final int N_ROWS_EIP_1559_TX = 8;
+  private static final int N_ROWS_TX_MAX =
       Math.max(Math.max(N_ROWS_FRONTIER_TX, N_ROWS_ACCESS_LIST_TX), N_ROWS_EIP_1559_TX);
   private static final int LT = 16;
   static final int COMMON_RLP_TXN_PHASE_NUMBER_0 = 0;

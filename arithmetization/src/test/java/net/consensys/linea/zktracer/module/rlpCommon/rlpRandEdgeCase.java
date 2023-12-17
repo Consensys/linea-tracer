@@ -23,18 +23,15 @@ import org.apache.tuweni.bytes.Bytes;
 public class rlpRandEdgeCase {
   private static Random rnd = new Random(666);
 
-  public static final BigInteger randBigInt(boolean onlySixteenByte) {
-    int selectorBound = 4;
-    if (!onlySixteenByte) {
-      selectorBound += 1;
-    }
+  public static final BigInteger randBigInt(boolean onlyFourteenByte) {
+    final int selectorBound = onlyFourteenByte ? 4 : 5;
     int selector = rnd.nextInt(0, selectorBound);
 
     return switch (selector) {
       case 0 -> BigInteger.ZERO;
       case 1 -> BigInteger.valueOf(rnd.nextInt(1, 128));
       case 2 -> BigInteger.valueOf(rnd.nextInt(128, 256));
-      case 3 -> new BigInteger(16 * 8, rnd);
+      case 3 -> new BigInteger(14 * 8, rnd);
       case 4 -> new BigInteger(32 * 8, rnd);
       default -> throw new IllegalStateException("Unexpected value: " + selector);
     };

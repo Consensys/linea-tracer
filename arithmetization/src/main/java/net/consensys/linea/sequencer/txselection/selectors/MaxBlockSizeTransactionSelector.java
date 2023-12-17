@@ -57,7 +57,7 @@ public class MaxBlockSizeTransactionSelector implements PluginTransactionSelecto
     if (isTransactionExceedingL1BlockSizeLimit(transactionL1Size)) {
       log.atTrace()
           .setMessage(
-              "tx {hash} size {} would cause block (cumulative size {}) to exceed max {} bytes, skipping tx")
+              "tx {} size {} would cause block (cumulative size {}) to exceed max {} bytes, skipping tx")
           .addArgument(pendingTransaction.getTransaction()::getHash)
           .addArgument(() -> transactionL1Size)
           .addArgument(() -> cumulativeBlockBytesSize)

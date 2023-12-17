@@ -57,6 +57,7 @@ public class LineaTransactionSelector implements PluginTransactionSelector {
     return List.of(
         new MaxBlockCallDataTransactionSelector(lineaConfiguration.maxBlockCallDataSize()),
         new MaxBlockGasTransactionSelector(lineaConfiguration.maxGasPerBlock()),
+        new MaxBlockSizeTransactionSelector(lineaConfiguration.maxBytesPerBlock()),
         traceLineLimitTransactionSelector);
   }
 

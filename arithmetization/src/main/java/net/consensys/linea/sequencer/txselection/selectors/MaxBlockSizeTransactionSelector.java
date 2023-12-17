@@ -52,14 +52,15 @@ public class MaxBlockSizeTransactionSelector implements PluginTransactionSelecto
       final PendingTransaction pendingTransaction,
       final TransactionProcessingResult processingResult) {
 
-    int L1TransactionSize =
+    int transactionL1Size =
         calculateL1TransactionSize(pendingTransaction, processingResult.getLogs());
-    if (isTransactionExceedingL1BlockSizeLimit(L1TransactionSize)) {
+    if (isTransactionExceedingL1BlockSizeLimit(transactionL1Size)) {
       log.atTrace()
           .setMessage(
-              "Cumulative block size in bytes including tx {} is {} greater than the max allowed {}, skipping tx")
+              "tx {hash} size {} would cause block (cumulative size {}) to exceed max {} bytes, skipping tx")
           .addArgument(pendingTransaction.getTransaction()::getHash)
-          .addArgument(() -> cumulativeBlockBytesSize + L1TransactionSize)
+          .addArgument(() -> transactionL1Size)
+          .addArgument(() -> cumulativeBlockBytesSize)
           .addArgument(maxBytesPerBlock)
           .log();
       return BLOCK_BYTES_SIZE_OVERFLOW;

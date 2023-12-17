@@ -16,11 +16,10 @@ package linea.plugin.acc.test;
 
 import java.math.BigInteger;
 import java.util.List;
-import java.util.function.Function;
 
 import linea.plugin.acc.test.tests.web3j.generated.SimpleLog;
 import org.hyperledger.besu.tests.acceptance.dsl.account.Accounts;
-import org.hyperledger.besu.tests.acceptance.dsl.condition.Condition;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
@@ -37,6 +36,7 @@ public class BlockBytesLimitTest extends LineaPluginTestBase {
   private static final int FROM_ADDRESS_SIZE = 20;
   private static final int EMPTY_L1_BLOCK_SIZE = 64 + 63 + 64 + 64;
   private static final int LOG_SIZE = 32;
+  private SimpleLog simpleLog;
 
   @Override
   public List<String> getTestCliOptions() {
@@ -48,6 +48,17 @@ public class BlockBytesLimitTest extends LineaPluginTestBase {
         .build();
   }
 
+  private int calculateMaxBytesPerBlock(final int transactionCount, final int logsCount) {
+    return EMPTY_L1_BLOCK_SIZE
+        + (transactionCount * (FROM_ADDRESS_SIZE + AVERAGE_TX_RLP_SIZE))
+        + (logsCount * LOG_SIZE);
+  }
+
+  @BeforeEach
+  public void setUp() throws Exception {
+    simpleLog = deploySimpleLogContract();
+  }
+
   /**
    * Tests that a transaction is mined when the block bytes size limit is not exceeded. The log
    * count is set to one, which is within the maximum block bytes size set in the getTestCliOptions
@@ -56,8 +67,10 @@ public class BlockBytesLimitTest extends LineaPluginTestBase {
    * into a block.
    */
   @Test
-  public void shouldMineTransactionWhenBlockBytesNotExceeded() throws Exception {
-    verifyTransactionReceipt(BigInteger.ONE, eth::expectSuccessfulTransactionReceipt);
+  public void shouldSuccessfullyMineTransactionWhenWithinBlockBytesLimit() throws Exception {
+    String transactionData = simpleLog.run(BigInteger.ONE).encodeFunctionCall();
+    String transactionHash = executeTransaction(transactionData);
+    minerNode.verify(eth.expectSuccessfulTransactionReceipt(transactionHash));
   }
 
   /**
@@ -67,24 +80,34 @@ public class BlockBytesLimitTest extends LineaPluginTestBase {
    * Therefore, a transaction with ten logs exceeds this limit and cannot be mined into a block.
    */
   @Test
-  public void shouldNotMineTransactionWhenBlockBytesExceeded() throws Exception {
-    verifyTransactionReceipt(BigInteger.TEN, eth::expectNoTransactionReceipt);
+  public void shouldFailToMineTransactionWhenExceedingBlockBytesLimit() throws Exception {
+    String transactionData = simpleLog.run(BigInteger.TEN).encodeFunctionCall();
+    String transactionHash = executeTransaction(transactionData);
+    assertExpectNoTransactionReceipt(minerNode.nodeRequests().eth(), transactionHash);
   }
 
-  private void verifyTransactionReceipt(BigInteger logCount, Function<String, Condition> condition)
-      throws Exception {
-    SimpleLog simpleStorage = deploySimpleLogContract();
+  private String executeTransaction(final String transactionData) throws Exception {
     Web3j web3j = minerNode.nodeRequests().eth();
+    SimpleLog simpleStorage = deploySimpleLogContract();
     String contractAddress = simpleStorage.getContractAddress();
     Credentials credentials = Credentials.create(Accounts.GENESIS_ACCOUNT_ONE_PRIVATE_KEY);
-    TransactionManager txManager = new RawTransactionManager(web3j, credentials, CHAIN_ID);
-    String txData = simpleStorage.run(logCount).encodeFunctionCall();
-    String hash =
-        txManager
-            .sendTransaction(
-                GAS_PRICE, BigInteger.valueOf(MAX_TX_GAS_LIMIT), contractAddress, txData, VALUE)
-            .getTransactionHash();
-    minerNode.verify(condition.apply(hash));
+    TransactionManager transactionManager = new RawTransactionManager(web3j, credentials, CHAIN_ID);
+    return sendTransactionAndRetrieveHash(transactionManager, contractAddress, transactionData);
+  }
+
+  private String sendTransactionAndRetrieveHash(
+      final TransactionManager transactionManager,
+      final String contractAddress,
+      final String transactionData)
+      throws Exception {
+    return transactionManager
+        .sendTransaction(
+            GAS_PRICE,
+            BigInteger.valueOf(MAX_TX_GAS_LIMIT),
+            contractAddress,
+            transactionData,
+            VALUE)
+        .getTransactionHash();
   }
 
   private SimpleLog deploySimpleLogContract() throws Exception {
@@ -93,11 +116,5 @@ public class BlockBytesLimitTest extends LineaPluginTestBase {
     TransactionManager txManager = new RawTransactionManager(web3j, credentials, CHAIN_ID);
     RemoteCall<SimpleLog> deploy = SimpleLog.deploy(web3j, txManager, new DefaultGasProvider());
     return deploy.send();
-  }
-
-  private int calculateMaxBytesPerBlock(int transactionCount, int logsCount) {
-    return EMPTY_L1_BLOCK_SIZE
-        + (transactionCount * (FROM_ADDRESS_SIZE + AVERAGE_TX_RLP_SIZE))
-        + (logsCount * LOG_SIZE);
   }
 }

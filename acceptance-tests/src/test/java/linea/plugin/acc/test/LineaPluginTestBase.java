@@ -212,4 +212,14 @@ public class LineaPluginTestBase extends AcceptanceTestBase {
             BigInteger.ZERO)
         .getTransactionHash();
   }
+
+  protected void assertExpectNoTransactionReceipt(Web3j web3j, String transactionHash) {
+    try {
+      TransactionReceiptProcessor receiptProcessor = createReceiptProcessor(web3j);
+      TransactionReceipt receipt = receiptProcessor.waitForTransactionReceipt(transactionHash);
+      assertThat(receipt).isNull();
+    } catch (IOException | TransactionException e) {
+      throw new RuntimeException(e);
+    }
+  }
 }

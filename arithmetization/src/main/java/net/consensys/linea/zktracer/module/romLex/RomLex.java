@@ -244,7 +244,7 @@ public class RomLex implements Module {
                     codeIdentifierBeforeLexOrder += 1;
                     this.chunks.add(
                         new RomChunk(
-                            extAddress,
+                            calledAddress,
                             depNumber,
                             isDeploying,
                             true,

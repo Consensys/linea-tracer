@@ -32,6 +32,7 @@ import org.hyperledger.besu.evm.internal.Words;
 public final class Sha256 implements Module {
   private final Hub hub;
   private final Sha256NbCall sha256NbCall;
+  private final Sha256NbEffectiveCall sha256NbEffectiveCall;
   private final Stack<Integer> counts = new Stack<>();
 
   @Override
@@ -64,6 +65,7 @@ public final class Sha256 implements Module {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
         if (target.equals(Address.SHA256)) {
+          this.sha256NbCall.countACallToPrecompile();
           long dataByteLength = 0;
           switch (opCode) {
             case CALL, CALLCODE -> dataByteLength = Words.clampedToLong(frame.getStackItem(4));
@@ -87,7 +89,7 @@ public final class Sha256 implements Module {
 
           if (gasPaid >= gasNeeded) {
             this.counts.push(this.counts.pop() + blockCount);
-            this.sha256NbCall.countACallToPrecompile();
+            this.sha256NbEffectiveCall.countACallToPrecompile();
           }
         }
       }

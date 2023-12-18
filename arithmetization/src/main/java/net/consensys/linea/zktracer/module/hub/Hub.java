@@ -52,8 +52,10 @@ import net.consensys.linea.zktracer.module.limits.precompiles.EcRecover;
 import net.consensys.linea.zktracer.module.limits.precompiles.Modexp;
 import net.consensys.linea.zktracer.module.limits.precompiles.Rip160;
 import net.consensys.linea.zktracer.module.limits.precompiles.Rip160NbCall;
+import net.consensys.linea.zktracer.module.limits.precompiles.Rip160NbEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.Sha256;
 import net.consensys.linea.zktracer.module.limits.precompiles.Sha256NbCall;
+import net.consensys.linea.zktracer.module.limits.precompiles.Sha256NbEffectiveCall;
 import net.consensys.linea.zktracer.module.logData.LogData;
 import net.consensys.linea.zktracer.module.logInfo.LogInfo;
 import net.consensys.linea.zktracer.module.mmu.Mmu;
@@ -187,7 +189,9 @@ public class Hub implements Module {
   private final Stp stp = new Stp(this, wcp, mod);
   private final L2Block l2Block = new L2Block();
   private final Sha256NbCall sha256NbCall = new Sha256NbCall();
+  private final Sha256NbEffectiveCall sha256NbEffectiveCall = new Sha256NbEffectiveCall();
   private final Rip160NbCall rip160NbCall = new Rip160NbCall();
+  private final Rip160NbEffectiveCall rip160NbEffectiveCall = new Rip160NbEffectiveCall();
 
   private final List<Module> modules;
   /* Those modules are not traced, we just compute the number of calls to those precompile to meet the prover limits */
@@ -209,10 +213,12 @@ public class Hub implements Module {
     this.precompileLimitModules =
         List.of(
             sha256NbCall,
-            new Sha256(this, sha256NbCall),
+            sha256NbEffectiveCall,
+            new Sha256(this, sha256NbCall, sha256NbEffectiveCall),
             ecRec,
             rip160NbCall,
-            new Rip160(this, rip160NbCall),
+            rip160NbEffectiveCall,
+            new Rip160(this, rip160NbCall, rip160NbEffectiveCall),
             this.modexp,
             new EcAdd(this),
             new EcMul(this),

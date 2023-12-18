@@ -32,6 +32,7 @@ import org.hyperledger.besu.evm.internal.Words;
 public final class Rip160 implements Module {
   private final Hub hub;
   private final Rip160NbCall rip160NbCall;
+  private final Rip160NbEffectiveCall rip160NbEffectiveCall;
   private final Stack<Integer> counts = new Stack<>();
 
   @Override
@@ -64,6 +65,7 @@ public final class Rip160 implements Module {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
         if (target.equals(Address.RIPEMD160)) {
+          this.rip160NbCall.countACAllToPrecompile();
           long dataByteLength = 0;
           switch (opCode) {
             case CALL, CALLCODE -> dataByteLength = Words.clampedToLong(frame.getStackItem(4));
@@ -88,7 +90,7 @@ public final class Rip160 implements Module {
 
           if (gasPaid >= gasNeeded) {
             this.counts.push(this.counts.pop() + blockCount);
-            this.rip160NbCall.countACAllToPrecompile();
+            this.rip160NbEffectiveCall.countACAllToPrecompile();
           }
         }
       }

@@ -31,6 +31,7 @@ import org.hyperledger.besu.evm.internal.Words;
 @RequiredArgsConstructor
 public final class Rip160 implements Module {
   private final Hub hub;
+  private final Rip160NbCall rip160NbCall;
   private final Stack<Integer> counts = new Stack<>();
 
   @Override
@@ -87,6 +88,7 @@ public final class Rip160 implements Module {
 
           if (gasPaid >= gasNeeded) {
             this.counts.push(this.counts.pop() + blockCount);
+            this.rip160NbCall.countACAllToPrecompile();
           }
         }
       }

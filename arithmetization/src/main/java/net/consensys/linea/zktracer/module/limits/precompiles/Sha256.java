@@ -31,6 +31,7 @@ import org.hyperledger.besu.evm.internal.Words;
 @RequiredArgsConstructor
 public final class Sha256 implements Module {
   private final Hub hub;
+  private final Sha256NbCall sha256NbCall;
   private final Stack<Integer> counts = new Stack<>();
 
   @Override
@@ -86,6 +87,7 @@ public final class Sha256 implements Module {
 
           if (gasPaid >= gasNeeded) {
             this.counts.push(this.counts.pop() + blockCount);
+            this.sha256NbCall.countACallToPrecompile();
           }
         }
       }

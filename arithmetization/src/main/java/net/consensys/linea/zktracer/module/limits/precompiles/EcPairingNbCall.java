@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -17,36 +17,36 @@ package net.consensys.linea.zktracer.module.limits.precompiles;
 
 import java.nio.MappedByteBuffer;
 import java.util.List;
+import java.util.Stack;
 
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
 
-public final class EcPairingWeightedCall implements Module {
-  private final EcPairingNbEffectiveCall ecpairingCall;
-
-  public EcPairingWeightedCall(EcPairingNbEffectiveCall ecpairingCall) {
-    this.ecpairingCall = ecpairingCall;
-  }
-
+public final class EcPairingNbCall implements Module {
   @Override
   public String moduleKey() {
-    return "PRECOMPILE_ECPAIRING_WEIGHTED";
+    return "PRECOMPILE_ECPAIRING_NB_CALL";
+  }
+
+  private final Stack<Integer> counts = new Stack<>();
+
+  @Override
+  public void enterTransaction() {
+    this.counts.push(0);
   }
 
   @Override
-  public void enterTransaction() {}
+  public void popTransaction() {
+    this.counts.pop();
+  }
 
-  @Override
-  public void popTransaction() {}
+  public void countACAllToPrecompile() {
+    this.counts.push(this.counts.pop() + 1);
+  }
 
   @Override
   public int lineCount() {
-    final long r = ecpairingCall.getCounts().stream().mapToLong(EcPairingLimit::nMillerLoop).sum();
-    if (r > Integer.MAX_VALUE) {
-      throw new RuntimeException("Ludicrous EcPairing calls");
-    }
-
-    return (int) r;
+    return this.counts.stream().mapToInt(x -> x).sum();
   }
 
   @Override

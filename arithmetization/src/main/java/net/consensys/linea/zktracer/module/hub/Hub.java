@@ -46,7 +46,8 @@ import net.consensys.linea.zktracer.module.limits.L2L1Logs;
 import net.consensys.linea.zktracer.module.limits.precompiles.Blake2f;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcAdd;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcMul;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingCall;
+import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingNbCall;
+import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingNbEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingWeightedCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcRecover;
 import net.consensys.linea.zktracer.module.limits.precompiles.Modexp;
@@ -192,6 +193,7 @@ public class Hub implements Module {
   private final Sha256NbEffectiveCall sha256NbEffectiveCall = new Sha256NbEffectiveCall();
   private final Rip160NbCall rip160NbCall = new Rip160NbCall();
   private final Rip160NbEffectiveCall rip160NbEffectiveCall = new Rip160NbEffectiveCall();
+  private final EcPairingNbCall ecPairingNbCall = new EcPairingNbCall();
 
   private final List<Module> modules;
   /* Those modules are not traced, we just compute the number of calls to those precompile to meet the prover limits */
@@ -209,7 +211,8 @@ public class Hub implements Module {
 
     final EcRecover ecRec = new EcRecover(this);
     this.modexp = new Modexp(this);
-    final EcPairingCall ecpairingCall = new EcPairingCall(this);
+    final EcPairingNbEffectiveCall ecpairingNbEffectiveCall =
+        new EcPairingNbEffectiveCall(this, ecPairingNbCall);
     this.precompileLimitModules =
         List.of(
             sha256NbCall,
@@ -222,8 +225,9 @@ public class Hub implements Module {
             this.modexp,
             new EcAdd(this),
             new EcMul(this),
-            ecpairingCall,
-            new EcPairingWeightedCall(ecpairingCall),
+            ecPairingNbCall,
+            ecpairingNbEffectiveCall,
+            new EcPairingWeightedCall(ecpairingNbEffectiveCall),
             new Blake2f(this),
             // Block level limits
             this.l2Block,

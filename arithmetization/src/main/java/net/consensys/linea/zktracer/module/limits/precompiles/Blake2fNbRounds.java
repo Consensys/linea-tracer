@@ -15,9 +15,6 @@
 
 package net.consensys.linea.zktracer.module.limits.precompiles;
 
-import static net.consensys.linea.zktracer.module.Util.slice;
-
-import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 import java.util.Stack;
@@ -27,26 +24,19 @@ import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 
 @RequiredArgsConstructor
-public final class EcRecover implements Module {
-  private final Hub hub;
+public final class Blake2fNbRounds implements Module {
+  final Hub hub;
   private final Stack<Integer> counts = new Stack<>();
 
   @Override
   public String moduleKey() {
-    return "PRECOMPILE_ECRECOVER";
+    return "PRECOMPILE_BLAKE2F_NB_ROUNDS";
   }
-
-  private static final int ECRECOVER_GAS_FEE = 3000;
-  private static final int EWORD_SIZE = 32;
-  private static final BigInteger SECP_256_K1N =
-      new BigInteger(
-          "115792089237316195423570985008687907852837564279074904382605163141518161494337");
 
   @Override
   public void enterTransaction() {
@@ -65,7 +55,7 @@ public final class EcRecover implements Module {
     switch (opCode) {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
-        if (target.equals(Address.ECREC)) {
+        if (target.equals(Address.BLAKE2B_F_COMPRESSION)) {
           long length = 0;
           long offset = 0;
           switch (opCode) {
@@ -78,19 +68,21 @@ public final class EcRecover implements Module {
               offset = Words.clampedToLong(frame.getStackItem(2));
             }
           }
-          final Bytes inputData = frame.shadowReadMemory(offset, length);
-          final BigInteger v = slice(inputData, EWORD_SIZE, EWORD_SIZE).toUnsignedBigInteger();
-          final BigInteger r = slice(inputData, EWORD_SIZE * 2, EWORD_SIZE).toUnsignedBigInteger();
-          final BigInteger s = slice(inputData, EWORD_SIZE * 3, EWORD_SIZE).toUnsignedBigInteger();
-          final long gasPaid = Words.clampedToLong(frame.getStackItem(0));
-          // TODO: exclude case without valid signature
-          if (gasPaid >= ECRECOVER_GAS_FEE
-              && (v.equals(BigInteger.valueOf(27)) || v.equals(BigInteger.valueOf(28)))
-              && !r.equals(BigInteger.ZERO)
-              && r.compareTo(SECP_256_K1N) < 0
-              && !s.equals(BigInteger.ZERO)
-              && s.compareTo(SECP_256_K1N) < 0) {
-            this.counts.push(this.counts.pop() + 1);
+
+          final int blake2fDataSize = 213;
+          if (length == blake2fDataSize) {
+            final int f = frame.shadowReadMemory(offset, length).get(blake2fDataSize - 1);
+            if (f == 0 || f == 1) {
+              final int r =
+                  frame
+                      .shadowReadMemory(offset, length)
+                      .slice(0, 4)
+                      .toInt(); // The number of round is equal to the gas to pay
+              final long gasPaid = Words.clampedToLong(frame.getStackItem(0));
+              if (gasPaid >= r) {
+                this.counts.push(this.counts.pop() + r);
+              }
+            }
           }
         }
       }

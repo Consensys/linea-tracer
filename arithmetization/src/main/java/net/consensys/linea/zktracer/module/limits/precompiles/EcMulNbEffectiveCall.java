@@ -29,21 +29,16 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 
 @RequiredArgsConstructor
-public final class Sha256 implements Module {
+public final class EcMulNbEffectiveCall implements Module {
   private final Hub hub;
   private final Stack<Integer> counts = new Stack<>();
 
   @Override
   public String moduleKey() {
-    return "PRECOMPILE_SHA2";
+    return "PRECOMPILE_ECMUL_NB_EFFECTIVE_CALL";
   }
 
-  private static final int PRECOMPILE_BASE_GAS_FEE = 60;
-  private static final int PRECOMPILE_GAS_FEE_PER_EWORD = 12;
-  private static final int SHA256_BLOCKSIZE = 64 * 8;
-  // The length of the data to be hashed is 2**64 maximum.
-  private static final int SHA256_PADDING_LENGTH = 64;
-  private static final int SHA256_NB_PADDED_ONE = 1;
+  private static final int PRECOMPILE_GAS_FEE = 6000; // cf EIP-1108
 
   @Override
   public void enterTransaction() {
@@ -62,30 +57,10 @@ public final class Sha256 implements Module {
     switch (opCode) {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
-        if (target.equals(Address.SHA256)) {
-          long dataByteLength = 0;
-          switch (opCode) {
-            case CALL, CALLCODE -> dataByteLength = Words.clampedToLong(frame.getStackItem(4));
-            case DELEGATECALL, STATICCALL -> dataByteLength =
-                Words.clampedToLong(frame.getStackItem(3));
-          }
-          if (dataByteLength == 0) {
-            return;
-          } // skip trivial hash TODO: check the prover does skip it
-          final int blockCount =
-              (int)
-                      (dataByteLength * 8
-                          + SHA256_NB_PADDED_ONE
-                          + SHA256_PADDING_LENGTH
-                          + (SHA256_BLOCKSIZE - 1))
-                  / SHA256_BLOCKSIZE;
-
-          final long wordCount = (dataByteLength + 31) / 32;
+        if (target.equals(Address.ALTBN128_MUL)) {
           final long gasPaid = Words.clampedToLong(frame.getStackItem(0));
-          final long gasNeeded = PRECOMPILE_BASE_GAS_FEE + PRECOMPILE_GAS_FEE_PER_EWORD * wordCount;
-
-          if (gasPaid >= gasNeeded) {
-            this.counts.push(this.counts.pop() + blockCount);
+          if (gasPaid >= PRECOMPILE_GAS_FEE) {
+            this.counts.push(this.counts.pop() + 1);
           }
         }
       }

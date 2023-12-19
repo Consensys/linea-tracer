@@ -25,7 +25,7 @@ import net.consensys.linea.zktracer.module.Module;
 public final class Sha256NbEffectiveCall implements Module {
   @Override
   public String moduleKey() {
-    return "PRECOMPILE_SHA2_NB_CALL";
+    return "PRECOMPILE_SHA2_EFFECTIVE_NB_CALL";
   }
 
   private final Stack<Integer> counts = new Stack<>();

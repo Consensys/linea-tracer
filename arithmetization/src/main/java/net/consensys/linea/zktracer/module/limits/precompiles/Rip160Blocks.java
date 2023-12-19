@@ -29,16 +29,21 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 
 @RequiredArgsConstructor
-public final class EcMulNbEffectiveCall implements Module {
+public final class Rip160Blocks implements Module {
   private final Hub hub;
   private final Stack<Integer> counts = new Stack<>();
 
   @Override
   public String moduleKey() {
-    return "PRECOMPILE_ECMUL_NB_EFFECTIVE_CALL";
+    return "PRECOMPILE_RIPEMD_BLOCKS";
   }
 
-  private static final int PRECOMPILE_GAS_FEE = 6000; // cf EIP-1108
+  private static final int PRECOMPILE_BASE_GAS_FEE = 600;
+  private static final int PRECOMPILE_GAS_FEE_PER_EWORD = 120;
+  private static final int RIPEMD160_BLOCKSIZE = 64 * 8;
+  // If the length is > 2⁶4, we just use the lower 64 bits.
+  private static final int RIPEMD160_LENGTH_APPEND = 64;
+  private static final int RIPEMD160_ND_PADDED_ONE = 1;
 
   @Override
   public void enterTransaction() {
@@ -57,10 +62,31 @@ public final class EcMulNbEffectiveCall implements Module {
     switch (opCode) {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
-        if (target.equals(Address.ALTBN128_MUL)) {
+        if (target.equals(Address.RIPEMD160)) {
+          long dataByteLength = 0;
+          switch (opCode) {
+            case CALL, CALLCODE -> dataByteLength = Words.clampedToLong(frame.getStackItem(4));
+            case DELEGATECALL, STATICCALL -> dataByteLength =
+                Words.clampedToLong(frame.getStackItem(3));
+          }
+
+          if (dataByteLength == 0) {
+            return;
+          } // skip trivial hash TODO: check the prover does skip it
+          final int blockCount =
+              (int)
+                      (dataByteLength * 8
+                          + RIPEMD160_ND_PADDED_ONE
+                          + RIPEMD160_LENGTH_APPEND
+                          + (RIPEMD160_BLOCKSIZE - 1))
+                  / RIPEMD160_BLOCKSIZE;
+
+          final long wordCount = (dataByteLength + 31) / 32;
           final long gasPaid = Words.clampedToLong(frame.getStackItem(0));
-          if (gasPaid >= PRECOMPILE_GAS_FEE) {
-            this.counts.push(this.counts.pop() + 1);
+          final long gasNeeded = PRECOMPILE_BASE_GAS_FEE + PRECOMPILE_GAS_FEE_PER_EWORD * wordCount;
+
+          if (gasPaid >= gasNeeded) {
+            this.counts.push(this.counts.pop() + blockCount);
           }
         }
       }

@@ -29,16 +29,14 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 
 @RequiredArgsConstructor
-public final class EcAddNbEffectiveCall implements Module {
-  private final Hub hub;
+public final class Blake2fRounds implements Module {
+  final Hub hub;
   private final Stack<Integer> counts = new Stack<>();
 
   @Override
   public String moduleKey() {
-    return "PRECOMPILE_ECADD_NB_EFFECTIVE_CALL";
+    return "PRECOMPILE_BLAKE2F_ROUNDS";
   }
-
-  private static final int PRECOMPILE_GAS_FEE = 150; // cf EIP-1108
 
   @Override
   public void enterTransaction() {
@@ -57,10 +55,34 @@ public final class EcAddNbEffectiveCall implements Module {
     switch (opCode) {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
-        if (target.equals(Address.ALTBN128_ADD)) {
-          final long gasPaid = Words.clampedToLong(frame.getStackItem(0));
-          if (gasPaid >= PRECOMPILE_GAS_FEE) {
-            this.counts.push(this.counts.pop() + 1);
+        if (target.equals(Address.BLAKE2B_F_COMPRESSION)) {
+          long length = 0;
+          long offset = 0;
+          switch (opCode) {
+            case CALL, CALLCODE -> {
+              length = Words.clampedToLong(frame.getStackItem(4));
+              offset = Words.clampedToLong(frame.getStackItem(3));
+            }
+            case DELEGATECALL, STATICCALL -> {
+              length = Words.clampedToLong(frame.getStackItem(3));
+              offset = Words.clampedToLong(frame.getStackItem(2));
+            }
+          }
+
+          final int blake2fDataSize = 213;
+          if (length == blake2fDataSize) {
+            final int f = frame.shadowReadMemory(offset, length).get(blake2fDataSize - 1);
+            if (f == 0 || f == 1) {
+              final int r =
+                  frame
+                      .shadowReadMemory(offset, length)
+                      .slice(0, 4)
+                      .toInt(); // The number of round is equal to the gas to pay
+              final long gasPaid = Words.clampedToLong(frame.getStackItem(0));
+              if (gasPaid >= r) {
+                this.counts.push(this.counts.pop() + r);
+              }
+            }
           }
         }
       }

@@ -35,7 +35,7 @@ import org.hyperledger.besu.evm.internal.Words;
 
 @Slf4j
 @RequiredArgsConstructor
-public class ModexpNbEffectiveCall implements Module {
+public class ModexpEffectiveCall implements Module {
   private final Hub hub;
   private final Stack<Integer> counts = new Stack<>();
   private static final BigInteger PROVER_MAX_INPUT_BIT_SIZE = BigInteger.valueOf(4096);
@@ -43,7 +43,7 @@ public class ModexpNbEffectiveCall implements Module {
 
   @Override
   public String moduleKey() {
-    return "PRECOMPILE_MODEXP_NB_EFFECTIVE_CALL";
+    return "PRECOMPILE_MODEXP_EFFECTIVE_CALL";
   }
 
   @Override

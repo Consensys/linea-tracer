@@ -43,15 +43,15 @@ import net.consensys.linea.zktracer.module.hub.section.*;
 import net.consensys.linea.zktracer.module.limits.Keccak;
 import net.consensys.linea.zktracer.module.limits.L2Block;
 import net.consensys.linea.zktracer.module.limits.L2L1Logs;
-import net.consensys.linea.zktracer.module.limits.precompiles.Blake2fNbRounds;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcAddNbEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcMulNbEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingCallNbEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingNbMillerLoop;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcRecoverNbEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.ModexpNbEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.Rip160NbBlocks;
-import net.consensys.linea.zktracer.module.limits.precompiles.Sha256NbBlocks;
+import net.consensys.linea.zktracer.module.limits.precompiles.Blake2fRounds;
+import net.consensys.linea.zktracer.module.limits.precompiles.EcAddEffectiveCall;
+import net.consensys.linea.zktracer.module.limits.precompiles.EcMulEffectiveCall;
+import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingCallEffectiveCall;
+import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingMillerLoop;
+import net.consensys.linea.zktracer.module.limits.precompiles.EcRecoverEffectiveCall;
+import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall;
+import net.consensys.linea.zktracer.module.limits.precompiles.Rip160Blocks;
+import net.consensys.linea.zktracer.module.limits.precompiles.Sha256Blocks;
 import net.consensys.linea.zktracer.module.logData.LogData;
 import net.consensys.linea.zktracer.module.logInfo.LogInfo;
 import net.consensys.linea.zktracer.module.mmu.Mmu;
@@ -181,7 +181,7 @@ public class Hub implements Module {
   private final RomLex romLex;
   private final TxnData txnData;
   private final Trm trm = new Trm();
-  private final ModexpNbEffectiveCall modexp;
+  private final ModexpEffectiveCall modexp;
   private final Stp stp = new Stp(this, wcp, mod);
   private final L2Block l2Block = new L2Block();
 
@@ -199,20 +199,20 @@ public class Hub implements Module {
     this.txnData = new TxnData(this, this.romLex, this.wcp);
     this.ecData = new EcData(this, this.wcp, this.ext);
 
-    final EcRecoverNbEffectiveCall ecRec = new EcRecoverNbEffectiveCall(this);
-    this.modexp = new ModexpNbEffectiveCall(this);
-    final EcPairingCallNbEffectiveCall ecpairingCall = new EcPairingCallNbEffectiveCall(this);
+    final EcRecoverEffectiveCall ecRec = new EcRecoverEffectiveCall(this);
+    this.modexp = new ModexpEffectiveCall(this);
+    final EcPairingCallEffectiveCall ecpairingCall = new EcPairingCallEffectiveCall(this);
     this.precompileLimitModules =
         List.of(
-            new Sha256NbBlocks(this),
+            new Sha256Blocks(this),
             ecRec,
-            new Rip160NbBlocks(this),
+            new Rip160Blocks(this),
             this.modexp,
-            new EcAddNbEffectiveCall(this),
-            new EcMulNbEffectiveCall(this),
+            new EcAddEffectiveCall(this),
+            new EcMulEffectiveCall(this),
             ecpairingCall,
-            new EcPairingNbMillerLoop(ecpairingCall),
-            new Blake2fNbRounds(this),
+            new EcPairingMillerLoop(ecpairingCall),
+            new Blake2fRounds(this),
             // Block level limits
             this.l2Block,
             new Keccak(this, ecRec, this.l2Block),

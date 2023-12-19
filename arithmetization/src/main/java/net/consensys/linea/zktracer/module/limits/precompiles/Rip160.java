@@ -25,7 +25,7 @@ import net.consensys.linea.zktracer.module.Module;
 public final class Rip160 implements Module {
   @Override
   public String moduleKey() {
-    return "PRECOMPILE_RIP160";
+    return "PRECOMPILE_RIPEMD";
   }
 
   private final Stack<Integer> counts = new Stack<>();

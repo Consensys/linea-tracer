@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -19,83 +19,29 @@ import java.nio.MappedByteBuffer;
 import java.util.List;
 import java.util.Stack;
 
-import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
-import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.opcode.OpCode;
-import org.hyperledger.besu.datatypes.Address;
-import org.hyperledger.besu.evm.frame.MessageFrame;
-import org.hyperledger.besu.evm.internal.Words;
 
-@RequiredArgsConstructor
 public final class Rip160 implements Module {
-  private final Hub hub;
-  private final Rip160NbCall rip160NbCall;
-  private final Rip160NbEffectiveCall rip160NbEffectiveCall;
+  @Override
+  public String moduleKey() {
+    return "PRECOMPILE_RIP160";
+  }
+
   private final Stack<Integer> counts = new Stack<>();
 
   @Override
-  public String moduleKey() {
-    return "PRECOMPILE_RIPEMD";
-  }
-
-  private static final int PRECOMPILE_BASE_GAS_FEE = 600;
-  private static final int PRECOMPILE_GAS_FEE_PER_EWORD = 120;
-  private static final int RIPEMD160_BLOCKSIZE = 64 * 8;
-  // If the length is > 2⁶4, we just use the lower 64 bits.
-  private static final int RIPEMD160_LENGTH_APPEND = 64;
-  private static final int RIPEMD160_ND_PADDED_ONE = 1;
-
-  @Override
   public void enterTransaction() {
-    counts.push(0);
+    this.counts.push(0);
   }
 
   @Override
   public void popTransaction() {
-    counts.pop();
+    this.counts.pop();
   }
 
-  @Override
-  public void tracePreOpcode(MessageFrame frame) {
-    final OpCode opCode = hub.opCode();
-
-    switch (opCode) {
-      case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
-        final Address target = Words.toAddress(frame.getStackItem(1));
-        if (target.equals(Address.RIPEMD160)) {
-          this.rip160NbCall.countACAllToPrecompile();
-          long dataByteLength = 0;
-          switch (opCode) {
-            case CALL, CALLCODE -> dataByteLength = Words.clampedToLong(frame.getStackItem(4));
-            case DELEGATECALL, STATICCALL -> dataByteLength =
-                Words.clampedToLong(frame.getStackItem(3));
-          }
-
-          if (dataByteLength == 0) {
-            return;
-          } // skip trivial hash TODO: check the prover does skip it
-          final int blockCount =
-              (int)
-                      (dataByteLength * 8
-                          + RIPEMD160_ND_PADDED_ONE
-                          + RIPEMD160_LENGTH_APPEND
-                          + (RIPEMD160_BLOCKSIZE - 1))
-                  / RIPEMD160_BLOCKSIZE;
-
-          final long wordCount = (dataByteLength + 31) / 32;
-          final long gasPaid = Words.clampedToLong(frame.getStackItem(0));
-          final long gasNeeded = PRECOMPILE_BASE_GAS_FEE + PRECOMPILE_GAS_FEE_PER_EWORD * wordCount;
-
-          if (gasPaid >= gasNeeded) {
-            this.counts.push(this.counts.pop() + blockCount);
-            this.rip160NbEffectiveCall.countACAllToPrecompile();
-          }
-        }
-      }
-      default -> {}
-    }
+  public void countACAllToPrecompile() {
+    this.counts.push(this.counts.pop() + 1);
   }
 
   @Override

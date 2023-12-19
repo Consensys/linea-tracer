@@ -22,10 +22,10 @@ import java.util.Stack;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
 
-public final class Sha256NbCall implements Module {
+public final class Rip160EffectiveCall implements Module {
   @Override
   public String moduleKey() {
-    return "PRECOMPILE_SHA2_NB_CALL";
+    return "PRECOMPILE_RIP160_EFFECTIVE_CALL";
   }
 
   private final Stack<Integer> counts = new Stack<>();
@@ -40,7 +40,7 @@ public final class Sha256NbCall implements Module {
     this.counts.pop();
   }
 
-  public void countACallToPrecompile() {
+  public void countACAllToPrecompile() {
     this.counts.push(this.counts.pop() + 1);
   }
 

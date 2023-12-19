@@ -25,7 +25,7 @@ import net.consensys.linea.zktracer.module.Module;
 public final class Rip160NbEffectiveCall implements Module {
   @Override
   public String moduleKey() {
-    return "PRECOMPILE_RIP160_NB_CALL";
+    return "PRECOMPILE_RIP160_EFFECTIVE_NB_CALL";
   }
 
   private final Stack<Integer> counts = new Stack<>();

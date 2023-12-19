@@ -43,14 +43,18 @@ import net.consensys.linea.zktracer.module.hub.section.*;
 import net.consensys.linea.zktracer.module.limits.Keccak;
 import net.consensys.linea.zktracer.module.limits.L2Block;
 import net.consensys.linea.zktracer.module.limits.L2L1Logs;
+import net.consensys.linea.zktracer.module.limits.precompiles.Blake2f;
 import net.consensys.linea.zktracer.module.limits.precompiles.Blake2fRounds;
+import net.consensys.linea.zktracer.module.limits.precompiles.EcAdd;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcAddEffectiveCall;
+import net.consensys.linea.zktracer.module.limits.precompiles.EcMul;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcMulEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcPairing;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingMillerLoop;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcRecover;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcRecoverEffectiveCall;
+import net.consensys.linea.zktracer.module.limits.precompiles.ModExp;
 import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.Rip160;
 import net.consensys.linea.zktracer.module.limits.precompiles.Rip160Blocks;
@@ -187,7 +191,6 @@ public class Hub implements Module {
   private final RomLex romLex;
   private final TxnData txnData;
   private final Trm trm = new Trm();
-  private final ModexpEffectiveCall modexp;
   private final Stp stp = new Stp(this, wcp, mod);
   private final L2Block l2Block = new L2Block();
   private final Sha256 sha256NbCall = new Sha256();
@@ -196,6 +199,11 @@ public class Hub implements Module {
   private final Rip160EffectiveCall rip160NbEffectiveCall = new Rip160EffectiveCall();
   private final EcPairing ecPairingNbCall = new EcPairing();
   private final EcRecover ecRecover = new EcRecover();
+  private final ModExp modExp = new ModExp();
+  private final ModexpEffectiveCall modexpEffectiveCall = new ModexpEffectiveCall(this, modExp);
+  private final Blake2f blake2f = new Blake2f();
+  private final EcAdd ecAdd = new EcAdd();
+  private final EcMul ecMul = new EcMul();
 
   private final List<Module> modules;
   /* Those modules are not traced, we just compute the number of calls to those precompile to meet the prover limits */
@@ -212,7 +220,6 @@ public class Hub implements Module {
     this.ecData = new EcData(this, this.wcp, this.ext);
 
     final EcRecoverEffectiveCall ecRec = new EcRecoverEffectiveCall(this, ecRecover);
-    this.modexp = new ModexpEffectiveCall(this);
     final EcPairingEffectiveCall ecpairingNbEffectiveCall =
         new EcPairingEffectiveCall(this, ecPairingNbCall);
     this.precompileLimitModules =
@@ -224,13 +231,17 @@ public class Hub implements Module {
             rip160NbCall,
             rip160NbEffectiveCall,
             new Rip160Blocks(this, rip160NbCall, rip160NbEffectiveCall),
-            this.modexp,
-            new EcAddEffectiveCall(this),
-            new EcMulEffectiveCall(this),
+            modExp,
+            modexpEffectiveCall,
+            ecAdd,
+            new EcAddEffectiveCall(this, ecAdd),
+            ecMul,
+            new EcMulEffectiveCall(this, ecMul),
             ecPairingNbCall,
             ecpairingNbEffectiveCall,
             new EcPairingMillerLoop(ecpairingNbEffectiveCall),
-            new Blake2fRounds(this),
+            blake2f,
+            new Blake2fRounds(this, blake2f),
             // Block level limits
             this.l2Block,
             new Keccak(this, ecRec, this.l2Block),
@@ -529,7 +540,7 @@ public class Hub implements Module {
       //      this.stp.tracePreOpcode(frame);
     }
     if (this.pch.signals().exp()) {
-      this.modexp.tracePreOpcode(frame);
+      this.modexpEffectiveCall.tracePreOpcode(frame);
     }
     if (this.pch.signals().trm()) {
       this.trm.tracePreOpcode(frame);

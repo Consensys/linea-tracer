@@ -31,6 +31,7 @@ import org.hyperledger.besu.evm.internal.Words;
 @RequiredArgsConstructor
 public final class Blake2fRounds implements Module {
   final Hub hub;
+  final Blake2f blake2f;
   private final Stack<Integer> counts = new Stack<>();
 
   @Override
@@ -56,6 +57,7 @@ public final class Blake2fRounds implements Module {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
         if (target.equals(Address.BLAKE2B_F_COMPRESSION)) {
+          this.blake2f.countACAllToPrecompile();
           long length = 0;
           long offset = 0;
           switch (opCode) {

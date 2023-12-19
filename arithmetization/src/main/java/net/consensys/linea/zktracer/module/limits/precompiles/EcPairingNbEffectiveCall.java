@@ -42,7 +42,7 @@ public final class EcPairingNbEffectiveCall implements Module {
 
   @Override
   public String moduleKey() {
-    return "PRECOMPILE_ECPAIRING_EFFECTIVE_NB_CALL";
+    return "PRECOMPILE_ECPAIRING";
   }
 
   @Override

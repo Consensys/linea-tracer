@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.1.4-test5
+Test pre-release 5 from [temp/issue-248/count-stack-only](https://github.com/Consensys/besu-sequencer-plugins/tree/temp/issue-248/count-stack-only)
+* rename to match besu names. [Florian Huc]
+* feat: new geth precompile counting [Francois Bojarski]
+* style: consistency name between geth and besu [Francois Bojarski]
+* feat: add count to all ECPAiring precompile call [Francois Bojarski]
+
+
+## 0.1.4-test4
+Test pre-release 4 from [temp/issue-248/count-stack-only](https://github.com/Consensys/besu-sequencer-plugins/tree/temp/issue-248/count-stack-only)
+* feat: add counter for sha256 abd ripemd call
+* perf: faster line count for the hub 
+
+## 0.1.4-test3
+Test pre-release 3 from [temp/issue-248/count-stack-only](https://github.com/Consensys/besu-sequencer-plugins/tree/temp/issue-248/count-stack-only)
+* Log ZkTracer counters for every produced block [#485](https://github.com/ConsenSys/besu-sequencer-plugins/pull/485)
+* fix: overflow for modexp arg [#489](https://github.com/ConsenSys/besu-sequencer-plugins/pull/489)
+* bin reimplementation [#473](https://github.com/ConsenSys/besu-sequencer-plugins/pull/473)
+* applyMavenExclusions=false [#477](https://github.com/ConsenSys/besu-sequencer-plugins/pull/477)
+
+## 0.1.4-test2
+Testing pre-release from branch test-release/v0.1.4-test2
+
+* revert make loginfo counts closer to Geth
+* head: disable stp & txndata
+
 ## 0.1.4-test
 Temporary line counting release for testnet.
 

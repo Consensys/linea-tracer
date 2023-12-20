@@ -40,26 +40,22 @@ import net.consensys.linea.zktracer.module.hub.defer.*;
 import net.consensys.linea.zktracer.module.hub.fragment.*;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.MiscFragment;
 import net.consensys.linea.zktracer.module.hub.section.*;
+import net.consensys.linea.zktracer.module.legacy.hash.HashData;
+import net.consensys.linea.zktracer.module.legacy.hash.HashInfo;
 import net.consensys.linea.zktracer.module.limits.Keccak;
 import net.consensys.linea.zktracer.module.limits.L2Block;
 import net.consensys.linea.zktracer.module.limits.L2L1Logs;
-import net.consensys.linea.zktracer.module.limits.precompiles.Blake2f;
 import net.consensys.linea.zktracer.module.limits.precompiles.Blake2fRounds;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcAdd;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcAddEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcMul;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcMulEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcPairing;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingMillerLoop;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcRecover;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcRecoverEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.ModExp;
 import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.Rip160;
 import net.consensys.linea.zktracer.module.limits.precompiles.Rip160Blocks;
 import net.consensys.linea.zktracer.module.limits.precompiles.Rip160EffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.Sha256;
 import net.consensys.linea.zktracer.module.limits.precompiles.Sha256Blocks;
 import net.consensys.linea.zktracer.module.limits.precompiles.Sha256EffectiveCall;
 import net.consensys.linea.zktracer.module.logData.LogData;
@@ -193,17 +189,13 @@ public class Hub implements Module {
   private final Trm trm = new Trm();
   private final Stp stp = new Stp(this, wcp, mod);
   private final L2Block l2Block = new L2Block();
-  private final Sha256 sha256NbCall = new Sha256();
   private final Sha256EffectiveCall sha256NbEffectiveCall = new Sha256EffectiveCall();
-  private final Rip160 rip160NbCall = new Rip160();
   private final Rip160EffectiveCall rip160NbEffectiveCall = new Rip160EffectiveCall();
   private final EcPairing ecPairingNbCall = new EcPairing();
-  private final EcRecover ecRecover = new EcRecover();
   private final ModExp modExp = new ModExp();
   private final ModexpEffectiveCall modexpEffectiveCall = new ModexpEffectiveCall(this, modExp);
-  private final Blake2f blake2f = new Blake2f();
-  private final EcAdd ecAdd = new EcAdd();
-  private final EcMul ecMul = new EcMul();
+  private final HashInfo hashInfo;
+  private final HashData hashData;
 
   private final List<Module> modules;
   /* Those modules are not traced, we just compute the number of calls to those precompile to meet the prover limits */
@@ -218,6 +210,8 @@ public class Hub implements Module {
     this.rlpTxn = new RlpTxn(this.romLex);
     this.txnData = new TxnData(this, this.romLex, this.wcp);
     this.ecData = new EcData(this, this.wcp, this.ext);
+    this.hashData = new HashData(this);
+    this.hashInfo = new HashInfo(this);
 
     final EcRecoverEffectiveCall ecRec = new EcRecoverEffectiveCall(this, ecRecover);
     final EcPairingEffectiveCall ecpairingNbEffectiveCall =
@@ -268,7 +262,9 @@ public class Hub implements Module {
                     this.trm,
                     //                    this.txnData,
                     this.stp,
-                    this.wcp),
+                    this.wcp,
+                    this.hashData,
+                    this.hashInfo),
                 this.precompileLimitModules.stream())
             .toList();
   }
@@ -326,7 +322,9 @@ public class Hub implements Module {
                 this.shf,
                 this.trm,
                 //                this.txnData,
-                this.wcp),
+                this.wcp,
+                this.hashData,
+                this.hashInfo),
             this.precompileLimitModules.stream())
         .toList();
   }

@@ -159,9 +159,9 @@ ______________________________________________________________________
 corset check -T <JSON_FILE> -v zkevm-constraints/zkevm.bin
 ```
 
-## Continuous Tracing
+## Plugins
 
-The continuous tracing plugin is documented [here](CONTINUOUS_TRACING.md).
+Plugins are documented [here](PLUGINS.md).
 
 ## Release Process
 Here are the steps for releasing a new version of the plugin:

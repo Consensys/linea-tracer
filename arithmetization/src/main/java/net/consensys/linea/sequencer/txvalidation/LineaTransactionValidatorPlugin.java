@@ -32,10 +32,10 @@ import org.hyperledger.besu.plugin.services.PicoCLIOptions;
 import org.hyperledger.besu.plugin.services.PluginTransactionValidatorService;
 
 /**
- * This class extends the default transaction validation rules used by Besu. It leverages the
- * PluginTransactionValidatorService to manage and customize the process of transaction validation.
- * This includes, for example, setting a deny list of addresses that are not allowed to add
- * transactions to the pool.
+ * This class extends the default transaction validation rules for adding transactions to the
+ * transaction pool. It leverages the PluginTransactionValidatorService to manage and customize the
+ * process of transaction validation. This includes, for example, setting a deny list of addresses
+ * that are not allowed to add transactions to the pool.
  */
 @Slf4j
 @AutoService(BesuPlugin.class)

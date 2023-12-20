@@ -1,5 +1,5 @@
 /*
- * Copyright ConsenSys Inc.
+ * Copyright ConsenSys AG.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -15,47 +15,43 @@
 
 package net.consensys.linea.zktracer.module.limits.precompiles;
 
-import java.nio.MappedByteBuffer;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.List;
-import java.util.Stack;
 
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
+import org.apache.commons.lang3.NotImplementedException;
 
-public final class Sha256EffectiveCall implements Module {
+public class AbstractCallCounter implements Module {
+  private final Deque<Integer> callCount = new ArrayDeque<>();
+
   @Override
   public String moduleKey() {
-    return "PRECOMPILE_SHA2_EFFECTIVE_CALL";
+    throw new NotImplementedException("must be implemented by derived class");
   }
-
-  private final Stack<Integer> counts = new Stack<>();
 
   @Override
   public void enterTransaction() {
-    this.counts.push(0);
+    this.callCount.push(0);
   }
 
   @Override
   public void popTransaction() {
-    this.counts.pop();
-  }
-
-  public void countACallToPrecompile() {
-    this.counts.push(this.counts.pop() + 1);
+    this.callCount.pop();
   }
 
   @Override
   public int lineCount() {
-    return this.counts.stream().mapToInt(x -> x).sum();
+    return this.callCount.stream().mapToInt(x -> x).sum();
+  }
+
+  public void tick() {
+    this.callCount.push(this.callCount.pop() + 1);
   }
 
   @Override
   public List<ColumnHeader> columnsHeaders() {
-    throw new IllegalStateException("should never be called");
-  }
-
-  @Override
-  public void commit(List<MappedByteBuffer> buffers) {
     throw new IllegalStateException("should never be called");
   }
 }

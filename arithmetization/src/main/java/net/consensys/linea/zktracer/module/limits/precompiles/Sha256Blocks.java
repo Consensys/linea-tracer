@@ -31,8 +31,7 @@ import org.hyperledger.besu.evm.internal.Words;
 @RequiredArgsConstructor
 public final class Sha256Blocks implements Module {
   private final Hub hub;
-  private final Sha256 sha256NbCall;
-  private final Sha256EffectiveCall sha256NbEffectiveCall;
+  private final Sha256CallCounter sha256CallCounter = new Sha256CallCounter();
   private final Stack<Integer> counts = new Stack<>();
 
   @Override
@@ -46,6 +45,10 @@ public final class Sha256Blocks implements Module {
   // The length of the data to be hashed is 2**64 maximum.
   private static final int SHA256_PADDING_LENGTH = 64;
   private static final int SHA256_NB_PADDED_ONE = 1;
+
+  public Module callCounter() {
+    return this.sha256CallCounter;
+  }
 
   @Override
   public void enterTransaction() {
@@ -65,7 +68,7 @@ public final class Sha256Blocks implements Module {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
         if (target.equals(Address.SHA256)) {
-          this.sha256NbCall.countACallToPrecompile();
+          this.sha256CallCounter.tick();
           long dataByteLength = 0;
           switch (opCode) {
             case CALL, CALLCODE -> dataByteLength = Words.clampedToLong(frame.getStackItem(4));
@@ -89,7 +92,6 @@ public final class Sha256Blocks implements Module {
 
           if (gasPaid >= gasNeeded) {
             this.counts.push(this.counts.pop() + blockCount);
-            this.sha256NbEffectiveCall.countACallToPrecompile();
           }
         }
       }

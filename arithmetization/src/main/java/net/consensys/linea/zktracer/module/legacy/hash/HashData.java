@@ -36,7 +36,7 @@ public class HashData implements Module {
 
   @Override
   public String moduleKey() {
-    return "OLD_PUB_HASH";
+    return "PUB_HASH";
   }
 
   @Override

@@ -35,12 +35,16 @@ import org.hyperledger.besu.evm.internal.Words;
 
 @Slf4j
 @RequiredArgsConstructor
-public class ModexpEffectiveCall implements Module {
+public class Modexp implements Module {
   private final Hub hub;
-  private final ModExp modexp;
+  public final ModExpCallCounter modExpCallCounter = new ModExpCallCounter();
   private final Stack<Integer> counts = new Stack<>();
   private static final BigInteger PROVER_MAX_INPUT_BIT_SIZE = BigInteger.valueOf(4096);
   private static final int EVM_WORD_SIZE = 32;
+
+  public Module callCounter() {
+    return this.modExpCallCounter;
+  }
 
   @Override
   public String moduleKey() {
@@ -65,7 +69,7 @@ public class ModexpEffectiveCall implements Module {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
         if (target.equals(Address.MODEXP)) {
-          this.modexp.countACAllToPrecompile();
+          this.modExpCallCounter.tick();
           long length = 0;
           long offset = 0;
           switch (opCode) {

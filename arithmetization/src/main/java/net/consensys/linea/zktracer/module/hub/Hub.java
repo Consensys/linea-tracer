@@ -48,16 +48,12 @@ import net.consensys.linea.zktracer.module.limits.L2L1Logs;
 import net.consensys.linea.zktracer.module.limits.precompiles.Blake2fRounds;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcAddEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcMulEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcPairing;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingMillerLoop;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcRecoverEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.ModExp;
-import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall;
+import net.consensys.linea.zktracer.module.limits.precompiles.Modexp;
 import net.consensys.linea.zktracer.module.limits.precompiles.Rip160Blocks;
-import net.consensys.linea.zktracer.module.limits.precompiles.Rip160EffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.Sha256Blocks;
-import net.consensys.linea.zktracer.module.limits.precompiles.Sha256EffectiveCall;
 import net.consensys.linea.zktracer.module.logData.LogData;
 import net.consensys.linea.zktracer.module.logInfo.LogInfo;
 import net.consensys.linea.zktracer.module.mmu.Mmu;
@@ -189,19 +185,27 @@ public class Hub implements Module {
   private final Trm trm = new Trm();
   private final Stp stp = new Stp(this, wcp, mod);
   private final L2Block l2Block = new L2Block();
-  private final Sha256EffectiveCall sha256NbEffectiveCall = new Sha256EffectiveCall();
-  private final Rip160EffectiveCall rip160NbEffectiveCall = new Rip160EffectiveCall();
-  private final EcPairing ecPairingNbCall = new EcPairing();
-  private final ModExp modExp = new ModExp();
-  private final ModexpEffectiveCall modexpEffectiveCall = new ModexpEffectiveCall(this, modExp);
   private final HashInfo hashInfo;
   private final HashData hashData;
+
+  // Precompiles stuff
+  Blake2fRounds blake2f;
+  EcAddEffectiveCall ecAdd;
+  EcMulEffectiveCall ecMul;
+  EcPairingEffectiveCall ecPairing;
+  EcRecoverEffectiveCall ecRecover;
+  Modexp modexp;
+  Rip160Blocks rip160;
+  Sha256Blocks sha256;
 
   private final List<Module> modules;
   /* Those modules are not traced, we just compute the number of calls to those precompile to meet the prover limits */
   private final List<Module> precompileLimitModules;
 
   public Hub() {
+    //
+    // Module
+    //
     this.pch = new PlatformController(this);
     this.mmu = new Mmu(this.callStack);
     this.mxp = new Mxp(this);
@@ -213,32 +217,43 @@ public class Hub implements Module {
     this.hashData = new HashData(this);
     this.hashInfo = new HashInfo(this);
 
-    final EcRecoverEffectiveCall ecRec = new EcRecoverEffectiveCall(this, ecRecover);
-    final EcPairingEffectiveCall ecpairingNbEffectiveCall =
-        new EcPairingEffectiveCall(this, ecPairingNbCall);
+    //
+    // Precompiles
+    //
+    this.blake2f = new Blake2fRounds(this);
+    this.ecAdd = new EcAddEffectiveCall(this);
+    this.ecMul = new EcMulEffectiveCall(this);
+    this.ecPairing = new EcPairingEffectiveCall(this);
+    this.ecRecover = new EcRecoverEffectiveCall(this);
+    this.modexp = new Modexp(this);
+    this.rip160 = new Rip160Blocks(this);
+    this.sha256 = new Sha256Blocks(this);
+
     this.precompileLimitModules =
         List.of(
-            sha256NbCall,
-            sha256NbEffectiveCall,
-            new Sha256Blocks(this, sha256NbCall, sha256NbEffectiveCall),
-            ecRec,
-            rip160NbCall,
-            rip160NbEffectiveCall,
-            new Rip160Blocks(this, rip160NbCall, rip160NbEffectiveCall),
-            modExp,
-            modexpEffectiveCall,
-            ecAdd,
-            new EcAddEffectiveCall(this, ecAdd),
-            ecMul,
-            new EcMulEffectiveCall(this, ecMul),
-            ecPairingNbCall,
-            ecpairingNbEffectiveCall,
-            new EcPairingMillerLoop(ecpairingNbEffectiveCall),
-            blake2f,
-            new Blake2fRounds(this, blake2f),
+            this.blake2f,
+            this.blake2f.callCounter(),
+            this.ecAdd,
+            this.ecAdd.callCounter(),
+            this.ecMul,
+            this.ecMul.callCounter(),
+            this.ecPairing,
+            this.ecPairing.callCounter(),
+            new EcPairingMillerLoop(this.ecPairing),
+            this.ecRecover,
+            this.ecRecover.callCounter(),
+            this.modexp,
+            this.modexp.callCounter(),
+            this.rip160,
+            this.rip160.callCounter(),
+            this.sha256,
+            this.sha256.callCounter(),
+
             // Block level limits
+            this.hashData,
+            this.hashInfo,
             this.l2Block,
-            new Keccak(this, ecRec, this.l2Block),
+            new Keccak(this, this.ecRecover, this.l2Block),
             new L2L1Logs(this.l2Block));
 
     this.modules =
@@ -262,9 +277,7 @@ public class Hub implements Module {
                     this.trm,
                     //                    this.txnData,
                     this.stp,
-                    this.wcp,
-                    this.hashData,
-                    this.hashInfo),
+                    this.wcp),
                 this.precompileLimitModules.stream())
             .toList();
   }
@@ -274,11 +287,15 @@ public class Hub implements Module {
    */
   public List<Module> getModulesToTrace() {
     return List.of(
+        //
         // Reference tables
+        //
         new BinRt(),
         new InstructionDecoder(),
         new ShfRt(),
+        //
         // Modules
+        //
         this,
         this.add,
         this.bin,
@@ -538,7 +555,7 @@ public class Hub implements Module {
       //      this.stp.tracePreOpcode(frame);
     }
     if (this.pch.signals().exp()) {
-      this.modexpEffectiveCall.tracePreOpcode(frame);
+      this.modexp.tracePreOpcode(frame);
     }
     if (this.pch.signals().trm()) {
       this.trm.tracePreOpcode(frame);

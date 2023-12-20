@@ -31,8 +31,12 @@ import org.hyperledger.besu.evm.internal.Words;
 @RequiredArgsConstructor
 public final class EcAddEffectiveCall implements Module {
   private final Hub hub;
-  private final EcAdd ecAdd;
+  private final EcAddCallCounter ecAddCallCounter = new EcAddCallCounter();
   private final Stack<Integer> counts = new Stack<>();
+
+  public Module callCounter() {
+    return this.ecAddCallCounter;
+  }
 
   @Override
   public String moduleKey() {
@@ -59,7 +63,7 @@ public final class EcAddEffectiveCall implements Module {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
         if (target.equals(Address.ALTBN128_ADD)) {
-          this.ecAdd.countACAllToPrecompile();
+          this.ecAddCallCounter.tick();
           final long gasPaid = Words.clampedToLong(frame.getStackItem(0));
           if (gasPaid >= PRECOMPILE_GAS_FEE) {
             this.counts.push(this.counts.pop() + 1);

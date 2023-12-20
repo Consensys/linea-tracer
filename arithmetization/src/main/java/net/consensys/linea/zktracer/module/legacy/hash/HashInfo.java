@@ -33,7 +33,7 @@ public class HashInfo implements Module {
 
   @Override
   public String moduleKey() {
-    return "OLD_PUB_HASH_INFO";
+    return "PUB_HASH_INFO";
   }
 
   @Override

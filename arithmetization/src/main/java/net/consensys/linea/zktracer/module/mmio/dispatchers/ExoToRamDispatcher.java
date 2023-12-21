@@ -18,7 +18,11 @@ package net.consensys.linea.zktracer.module.mmio.dispatchers;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.mmio.MmioData;
 import net.consensys.linea.zktracer.module.mmu.MicroData;
+import net.consensys.linea.zktracer.module.romLex.RomLex;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
+import net.consensys.linea.zktracer.types.UnsignedByte;
+import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.datatypes.Address;
 
 @RequiredArgsConstructor
 public class ExoToRamDispatcher implements MmioDispatcher {
@@ -27,9 +31,36 @@ public class ExoToRamDispatcher implements MmioDispatcher {
 
   private final CallStack callStack;
 
+  private final RomLex romLex;
+
   @Override
   public MmioData dispatch() {
     MmioData mmioData = new MmioData();
+
+    Address exoAddress = microData.addressValue();
+    Bytes contractByteCode = romLex.addressRomChunkMap().get(exoAddress).byteCode();
+
+    int targetContext = microData.targetContext();
+    mmioData.cnA(targetContext);
+    mmioData.cnB(0);
+    mmioData.cnC(0);
+
+    int targetLimbOffset = microData.targetLimbOffset().toInt();
+    int sourceLimbOffset = microData.sourceLimbOffset().toInt();
+    mmioData.indexA(targetLimbOffset);
+    mmioData.indexB(0);
+    mmioData.indexC(0);
+    mmioData.indexX(sourceLimbOffset);
+
+    mmioData.valA(callStack.valueFromMemory(mmioData.cnA(), mmioData.indexA()));
+    mmioData.valB(UnsignedByte.EMPTY_BYTES16);
+    mmioData.valC(UnsignedByte.EMPTY_BYTES16);
+    mmioData.valX(
+        callStack.valueFromExo(contractByteCode, microData.exoSource(), mmioData.indexX()));
+
+    mmioData.valANew(mmioData.valX());
+    mmioData.valBNew(UnsignedByte.EMPTY_BYTES16);
+    mmioData.valCNew(UnsignedByte.EMPTY_BYTES16);
 
     return mmioData;
   }

@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.mmio.dispatchers;
 
-import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.mmio.MmioData;
 import net.consensys.linea.zktracer.module.mmu.MicroData;
@@ -26,7 +25,7 @@ import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 
 @RequiredArgsConstructor
-public class ExoToRamSlideChunkDispatcher implements MmioDispatcher {
+public class ExoToRamSlideOverlappingChunkDispatcher implements MmioDispatcher {
 
   private final MicroData microData;
 
@@ -44,40 +43,44 @@ public class ExoToRamSlideChunkDispatcher implements MmioDispatcher {
     int targetContext = microData.targetContext();
     mmioData.cnA(0);
     mmioData.cnB(targetContext);
-    mmioData.cnC(0);
+    mmioData.cnC(targetContext);
 
     int targetLimbOffset = microData.targetLimbOffset().toInt();
     int sourceLimbOffset = microData.sourceLimbOffset().toInt();
     mmioData.indexA(0);
     mmioData.indexB(targetLimbOffset);
-    mmioData.indexC(0);
+    mmioData.indexC(targetLimbOffset + 1);
     mmioData.indexX(sourceLimbOffset);
 
     mmioData.valA(UnsignedByte.EMPTY_BYTES16);
     mmioData.valB(callStack.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
-    mmioData.valC(UnsignedByte.EMPTY_BYTES16);
+    mmioData.valC(callStack.valueFromMemory(mmioData.cnC(), mmioData.indexC()));
     mmioData.valX(
         callStack.valueFromExo(contractByteCode, microData.exoSource(), mmioData.indexX()));
 
     mmioData.valANew(UnsignedByte.EMPTY_BYTES16);
-    mmioData.valBNew(mmioData.valB());
-    mmioData.valCNew(UnsignedByte.EMPTY_BYTES16);
 
     int targetByteOffset = microData.targetByteOffset().toInteger();
     int sourceByteOffset = microData.sourceByteOffset().toInteger();
-    int size = microData.size();
 
-    Preconditions.checkArgument(
-        sourceByteOffset + size > 16,
-        "op: %s, sourceByteOffset: %d, size %d"
-            .formatted(microData.opCode(), sourceByteOffset, size));
+    for (int i = 0; i < 16; i++) {
+      if (i < targetByteOffset) {
+        mmioData.valBNew()[i] = mmioData.valB()[i];
+      } else {
+        mmioData.valBNew()[i] = mmioData.valX()[sourceByteOffset + (i - targetByteOffset)];
+      }
+    }
 
-    System.arraycopy(
-        mmioData.valX(),
-        sourceByteOffset,
-        mmioData.valBNew(),
-        targetByteOffset,
-        mmioData.valX().length - sourceByteOffset + size);
+    for (int i = 0; i < 16; i++) {
+      int cutoff = (targetByteOffset + microData.size()) - 16;
+      int start = sourceByteOffset + (16 - targetByteOffset);
+
+      if (i < cutoff) {
+        mmioData.valCNew()[i] = mmioData.valX()[i + start];
+      } else {
+        mmioData.valCNew()[i] = mmioData.valC()[i];
+      }
+    }
 
     mmioData.updateLimbsInMemory(callStack);
 
@@ -86,11 +89,14 @@ public class ExoToRamSlideChunkDispatcher implements MmioDispatcher {
 
   @Override
   public void update(MmioData mmioData, int counter) {
-    mmioData.onePartialToOne(
+    mmioData.onePartialToTwo(
         mmioData.byteX(counter),
         mmioData.byteB(counter),
+        mmioData.byteC(counter),
         mmioData.acc1(),
         mmioData.acc2(),
+        mmioData.acc3(),
+        mmioData.acc4(),
         microData.sourceByteOffset(),
         microData.targetByteOffset(),
         microData.size(),

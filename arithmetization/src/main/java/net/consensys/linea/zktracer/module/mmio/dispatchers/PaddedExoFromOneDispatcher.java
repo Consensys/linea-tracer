@@ -15,10 +15,13 @@
 
 package net.consensys.linea.zktracer.module.mmio.dispatchers;
 
+import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.mmio.MmioData;
+import net.consensys.linea.zktracer.module.mmio.PowType;
 import net.consensys.linea.zktracer.module.mmu.MicroData;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
+import net.consensys.linea.zktracer.types.UnsignedByte;
 
 @RequiredArgsConstructor
 public class PaddedExoFromOneDispatcher implements MmioDispatcher {
@@ -30,9 +33,56 @@ public class PaddedExoFromOneDispatcher implements MmioDispatcher {
   public MmioData dispatch() {
     MmioData mmioData = new MmioData();
 
+    int sourceContext = microData.sourceContext();
+    mmioData.cnA(sourceContext);
+    mmioData.cnB(0);
+    mmioData.cnC(0);
+
+    int sourceLimbOffset = microData.sourceLimbOffset().toInt();
+    int targetLimbOffset = microData.targetLimbOffset().toInt();
+    mmioData.indexA(sourceLimbOffset);
+    mmioData.indexB(0);
+    mmioData.indexC(0);
+    mmioData.indexX(targetLimbOffset);
+
+    mmioData.valA(callStack.valueFromMemory(mmioData.cnA(), mmioData.indexA()));
+    mmioData.valB(UnsignedByte.EMPTY_BYTES16);
+    mmioData.valC(UnsignedByte.EMPTY_BYTES16);
+    mmioData.valX(UnsignedByte.EMPTY_BYTES16);
+
+    int sourceByteOffset = microData.sourceByteOffset().toInteger();
+    int size = microData.size();
+    boolean wrongOffsets =
+        sourceByteOffset < 0 || sourceByteOffset >= 16 || sourceByteOffset + size > 16;
+
+    Preconditions.checkArgument(
+        wrongOffsets,
+        ("Wrong size/sourceByteOffset combo in PaddedExoFromOneDispatcher\nsourceByteOffset = %s, size = %d, "
+                + "sourceByteOffset + size = %d > 16")
+            .formatted(sourceByteOffset, size, sourceByteOffset + size));
+
+    for (int i = 0; i < size; i++) {
+      mmioData.valX()[i] = mmioData.valA()[sourceByteOffset + i];
+    }
+
+    mmioData.valANew(mmioData.valA());
+    mmioData.valBNew(UnsignedByte.EMPTY_BYTES16);
+    mmioData.valCNew(UnsignedByte.EMPTY_BYTES16);
+
+    mmioData.updateLimbsInMemory(callStack);
+
     return mmioData;
   }
 
   @Override
-  public void update(MmioData mmioData, int counter) {}
+  public void update(MmioData mmioData, int counter) {
+    mmioData.oneToOnePadded(
+        mmioData.valA(),
+        mmioData.byteA(counter),
+        mmioData.acc1(),
+        PowType.POW_256_1,
+        microData.sourceByteOffset(),
+        microData.size(),
+        counter);
+  }
 }

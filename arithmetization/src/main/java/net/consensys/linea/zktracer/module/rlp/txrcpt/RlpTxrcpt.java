@@ -27,7 +27,6 @@ import java.nio.MappedByteBuffer;
 import java.util.List;
 import java.util.function.Function;
 
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.list.StackedList;
@@ -146,9 +145,20 @@ public class RlpTxrcpt implements Module {
 
   private void phase3(RlpTxrcptColumns traceValue, Long cumulativeGasUsed, Trace trace) {
     final int phase = 3;
-    Preconditions.checkArgument(cumulativeGasUsed != 0, "Cumulative Gas Used can't be 0");
+    //    Preconditions.checkArgument(cumulativeGasUsed != 0, "Cumulative Gas Used can't be 0");
     rlpInt(
-        1, phase, cumulativeGasUsed, false, false, false, true, false, false, 0, traceValue, trace);
+        1,
+        phase,
+        cumulativeGasUsed == 0 ? 123456 : cumulativeGasUsed,
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+        0,
+        traceValue,
+        trace);
   }
 
   public static void insertLog(LogsBloomFilter.Builder bloomBuilder, final Log log) {

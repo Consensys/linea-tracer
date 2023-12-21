@@ -3,7 +3,7 @@
 ## Sequencer
 ### Transaction Selection - LineaTransactionSelectorPlugin
 
-This plugin enhances the standard transaction selection protocols employed by Besu for block creation. 
+This plugin extends the standard transaction selection protocols employed by Besu for block creation. 
 It leverages the TransactionSelectionService to manage and customize the process of transaction selection. 
 This includes setting limits such as `TraceLineLimit`, `maxBlockGas`, and `maxCallData`.
 

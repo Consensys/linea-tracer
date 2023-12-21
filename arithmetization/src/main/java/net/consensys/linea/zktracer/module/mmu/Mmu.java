@@ -21,6 +21,7 @@ import static net.consensys.linea.zktracer.types.Conversions.unsignedBytesToUnsi
 import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.List;
+import java.util.Objects;
 
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.list.StackedList;
@@ -166,15 +167,15 @@ public class Mmu implements Module {
         .targetLimbOffset(microData.targetLimbOffset().toUnsignedBigInteger())
         .targetByteOffset(microData.targetByteOffset().toBigInteger())
         .size(BigInteger.valueOf(microData.size()))
-        .nib1(nibbles[0])
-        .nib2(nibbles[1])
-        .nib3(nibbles[2])
-        .nib4(nibbles[3])
-        .nib5(nibbles[4])
-        .nib6(nibbles[5])
-        .nib7(nibbles[6])
-        .nib8(nibbles[7])
-        .nib9(nibbles[8])
+        .nib1(Objects.requireNonNullElse(nibbles[0], UnsignedByte.ZERO))
+        .nib2(Objects.requireNonNullElse(nibbles[1], UnsignedByte.ZERO))
+        .nib3(Objects.requireNonNullElse(nibbles[2], UnsignedByte.ZERO))
+        .nib4(Objects.requireNonNullElse(nibbles[3], UnsignedByte.ZERO))
+        .nib5(Objects.requireNonNullElse(nibbles[4], UnsignedByte.ZERO))
+        .nib6(Objects.requireNonNullElse(nibbles[5], UnsignedByte.ZERO))
+        .nib7(Objects.requireNonNullElse(nibbles[6], UnsignedByte.ZERO))
+        .nib8(Objects.requireNonNullElse(nibbles[7], UnsignedByte.ZERO))
+        .nib9(Objects.requireNonNullElse(nibbles[8], UnsignedByte.ZERO))
         .acc1(acc(0, microData))
         .byte1(accByte(0, microData))
         .acc2(acc(1, microData))

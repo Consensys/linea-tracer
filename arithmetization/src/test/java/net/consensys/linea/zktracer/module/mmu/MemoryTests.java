@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys AG.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -15,20 +15,18 @@
 
 package net.consensys.linea.zktracer.module.mmu;
 
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.types.EWord;
-import net.consensys.linea.zktracer.types.UnsignedByte;
+import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.testing.BytecodeCompiler;
+import net.consensys.linea.zktracer.testing.BytecodeRunner;
+import net.consensys.linea.zktracer.testing.EvmExtension;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-@Getter
-@Setter
-@Builder
-@Accessors(fluent = true)
-@EqualsAndHashCode
-class LimbByte {
-  @Builder.Default private EWord limb = EWord.ZERO;
-  @Builder.Default private UnsignedByte uByte = UnsignedByte.ZERO;
+@ExtendWith(EvmExtension.class)
+public class MemoryTests {
+  @Test
+  void basicMSTORE() {
+    BytecodeRunner.of(BytecodeCompiler.newProgram().push(32).push(27).op(OpCode.MSTORE).compile())
+        .run();
+  }
 }

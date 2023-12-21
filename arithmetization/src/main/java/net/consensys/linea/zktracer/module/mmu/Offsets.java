@@ -25,6 +25,6 @@ import lombok.experimental.Accessors;
 @Builder
 @Accessors(fluent = true)
 class Offsets {
-  private LimbByte source;
-  private LimbByte target;
+  @Builder.Default private LimbByte source = LimbByte.builder().build();
+  @Builder.Default private LimbByte target = LimbByte.builder().build();
 }

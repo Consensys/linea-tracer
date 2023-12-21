@@ -228,6 +228,7 @@ public class Hub implements Module {
                     this.ext,
                     this.logData,
                     this.logInfo,
+                    this.mmu,
                     this.mod,
                     this.mul,
                     this.mxp,
@@ -688,15 +689,15 @@ public class Hub implements Module {
     StackContext pending = this.currentFrame().pending();
     for (int i = 0; i < pending.getLines().size(); i++) {
       StackLine line = pending.getLines().get(i);
+      if (i == 0 && this.pch.signals().mmu()) {
+        this.mmu.handleRam(this.opCode(), line.asStackOperations(), this.callStack());
+      }
+
       if (line.needsResult()) {
         Bytes result = Bytes.EMPTY;
         // Only pop from the stack if no exceptions have been encountered
         if (this.pch.exceptions().none()) {
           result = frame.getStackItem(0).copy();
-        }
-
-        if (i == 0 && this.pch.signals().mmu()) {
-          this.mmu.handleRam(this.opCode(), line.asStackOperations(), this.callStack());
         }
 
         // This works because we are certain that the stack chunks are the first.

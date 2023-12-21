@@ -26,7 +26,7 @@ import org.apache.tuweni.bytes.Bytes;
 @Setter
 @Accessors(fluent = true)
 class Pointers {
-  private Bytes stack1;
-  private Bytes stack2;
+  @Builder.Default private Bytes stack1 = Bytes.EMPTY;
+  @Builder.Default private Bytes stack2 = Bytes.EMPTY;
   private boolean oob;
 }

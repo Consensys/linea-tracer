@@ -88,8 +88,7 @@ public class BlockBytesLimitTest extends LineaPluginTestBase {
 
   private String executeTransaction(final String transactionData) throws Exception {
     Web3j web3j = minerNode.nodeRequests().eth();
-    SimpleLog simpleStorage = deploySimpleLogContract();
-    String contractAddress = simpleStorage.getContractAddress();
+    String contractAddress = simpleLog.getContractAddress();
     Credentials credentials = Credentials.create(Accounts.GENESIS_ACCOUNT_ONE_PRIVATE_KEY);
     TransactionManager transactionManager = new RawTransactionManager(web3j, credentials, CHAIN_ID);
     return sendTransactionAndRetrieveHash(transactionManager, contractAddress, transactionData);

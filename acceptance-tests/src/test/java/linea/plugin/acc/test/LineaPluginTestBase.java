@@ -16,6 +16,7 @@
 package linea.plugin.acc.test;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -192,10 +193,7 @@ public class LineaPluginTestBase extends AcceptanceTestBase {
   }
 
   protected TransactionReceiptProcessor createReceiptProcessor(Web3j web3j) {
-    return new PollingTransactionReceiptProcessor(
-        web3j,
-        TransactionManager.DEFAULT_POLLING_FREQUENCY,
-        TransactionManager.DEFAULT_POLLING_ATTEMPTS_PER_TX_HASH);
+    return new PollingTransactionReceiptProcessor(web3j, 5000, 5);
   }
 
   protected String sendTransactionWithGivenLengthPayload(
@@ -214,12 +212,9 @@ public class LineaPluginTestBase extends AcceptanceTestBase {
   }
 
   protected void assertExpectNoTransactionReceipt(Web3j web3j, String transactionHash) {
-    try {
-      TransactionReceiptProcessor receiptProcessor = createReceiptProcessor(web3j);
-      TransactionReceipt receipt = receiptProcessor.waitForTransactionReceipt(transactionHash);
-      assertThat(receipt).isNull();
-    } catch (IOException | TransactionException e) {
-      throw new RuntimeException(e);
-    }
+    TransactionReceiptProcessor receiptProcessor = createReceiptProcessor(web3j);
+    assertThrows(
+        TransactionException.class,
+        () -> receiptProcessor.waitForTransactionReceipt(transactionHash));
   }
 }

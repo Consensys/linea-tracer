@@ -29,9 +29,11 @@ import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
+import net.consensys.linea.zktracer.runtime.callstack.ExoSource;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.datatypes.Address;
 
 @AllArgsConstructor
 @Accessors(fluent = true)
@@ -154,6 +156,23 @@ class MicroData extends ModuleOperation {
 
   public EWord eWordValue() {
     return EWord.of(value);
+  }
+
+  public Address addressValue() {
+    return Address.fromHexString(value.toHexString());
+  }
+
+  public ExoSource exoSource() {
+    if (exoIsRom) {
+      return ExoSource.ROM;
+    }
+
+    if (exoIsTxcd) {
+      return ExoSource.TX_CALLDATA;
+    }
+
+    throw new IllegalArgumentException(
+        "ExoSource is neither ROM, nor TX_CALLDATA. This should not happen!");
   }
 
   public boolean isType5() {

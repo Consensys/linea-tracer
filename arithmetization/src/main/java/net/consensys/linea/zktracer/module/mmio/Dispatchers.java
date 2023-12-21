@@ -23,7 +23,7 @@ import lombok.Getter;
 import net.consensys.linea.zktracer.module.mmio.dispatchers.ExceptionalRamToStack3To2FullDispatcher;
 import net.consensys.linea.zktracer.module.mmio.dispatchers.ExceptionalRamToStack3To2FullFastDispatcher;
 import net.consensys.linea.zktracer.module.mmio.dispatchers.ExoToRamDispatcher;
-import net.consensys.linea.zktracer.module.mmio.dispatchers.ExoToRamSlideChunkDispatcher;
+import net.consensys.linea.zktracer.module.mmio.dispatchers.ExoToRamSlideOverlappingChunkDispatcher;
 import net.consensys.linea.zktracer.module.mmio.dispatchers.FirstFastSecondPaddedDispatcher;
 import net.consensys.linea.zktracer.module.mmio.dispatchers.FirstPaddedSecondZeroDispatcher;
 import net.consensys.linea.zktracer.module.mmio.dispatchers.FullExoFromTwoDispatcher;
@@ -51,21 +51,22 @@ import net.consensys.linea.zktracer.module.mmio.dispatchers.StoreXInAThreeRequir
 import net.consensys.linea.zktracer.module.mmio.dispatchers.StoreXInBDispatcher;
 import net.consensys.linea.zktracer.module.mmio.dispatchers.StoreXInCDispatcher;
 import net.consensys.linea.zktracer.module.mmu.MicroData;
+import net.consensys.linea.zktracer.module.romLex.RomLex;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 
 public class Dispatchers {
   @Getter private final Map<Integer, MmioDispatcher> typeMap;
 
-  public Dispatchers(MicroData microData, CallStack callStack) {
+  public Dispatchers(MicroData microData, CallStack callStack, RomLex romLex) {
     this.typeMap =
         Map.ofEntries(
             ///////////////////////////
             //					   //
-            //     TRANSPLANTS	   //
+            //      TRANSPLANTS	   //
             //					   //
             ///////////////////////////
             entry(Trace.RamToRam, new RamToRamDispatcher(microData, callStack)),
-            entry(Trace.ExoToRam, new ExoToRamDispatcher(microData, callStack)),
+            entry(Trace.ExoToRam, new ExoToRamDispatcher(microData, callStack, romLex)),
             entry(Trace.RamIsExo, new RamIsExoDispatcher(microData, callStack)),
             entry(Trace.KillingOne, new KillingOneDispatcher(microData, callStack)),
             entry(Trace.PushTwoRamToStack, new PushTwoRamToStackDispatcher(microData, callStack)),
@@ -93,10 +94,12 @@ public class Dispatchers {
                 new RamToRamSlideOverlappingChunkDispatcher(microData, callStack)),
             // 6.4 Exo to RAM
             /////////////////
-            entry(Trace.ExoToRamSlideChunk, new ExoToRamSlideChunkDispatcher(microData, callStack)),
+            entry(
+                Trace.ExoToRamSlideChunk,
+                new ExoToRamSlideOverlappingChunkDispatcher(microData, callStack, romLex)),
             entry(
                 Trace.ExoToRamSlideOverlappingChunk,
-                new ExoToRamSlideChunkDispatcher(microData, callStack)),
+                new ExoToRamSlideOverlappingChunkDispatcher(microData, callStack, romLex)),
             // 6.5 RAM to Exo
             /////////////////
             entry(Trace.PaddedExoFromOne, new PaddedExoFromOneDispatcher(microData, callStack)),

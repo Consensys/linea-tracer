@@ -19,10 +19,10 @@ import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.mmio.MmioData;
 import net.consensys.linea.zktracer.module.mmu.MicroData;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
+import net.consensys.linea.zktracer.types.UnsignedByte;
 
 @RequiredArgsConstructor
 public class FullExoFromTwoDispatcher implements MmioDispatcher {
-
   private final MicroData microData;
 
   private final CallStack callStack;
@@ -31,9 +31,46 @@ public class FullExoFromTwoDispatcher implements MmioDispatcher {
   public MmioData dispatch() {
     MmioData mmioData = new MmioData();
 
+    int sourceContext = microData.sourceContext();
+    mmioData.cnA(sourceContext);
+    mmioData.cnB(sourceContext);
+    mmioData.cnC(0);
+
+    int sourceLimbOffset = microData.sourceLimbOffset().toInt();
+    int targetLimbOffset = microData.targetLimbOffset().toInt();
+    mmioData.indexA(sourceLimbOffset);
+    mmioData.indexB(sourceContext + 1);
+    mmioData.indexC(0);
+    mmioData.indexX(targetLimbOffset);
+
+    mmioData.valA(callStack.valueFromMemory(mmioData.cnA(), mmioData.indexA()));
+    mmioData.valB(callStack.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
+
+    UnsignedByte[] valA = mmioData.valA();
+    UnsignedByte[] valB = mmioData.valB();
+    mmioData.valANew(valA);
+    mmioData.valBNew(valB);
+
+    int sourceByteOffset = microData.sourceByteOffset().toInteger();
+    UnsignedByte[] valX = mmioData.valX();
+
+    System.arraycopy(valA, sourceByteOffset, valX, 0, 16 - sourceByteOffset);
+    System.arraycopy(valB, 0, valX, 16 - sourceByteOffset, valX.length - 16 - sourceByteOffset);
+
+    mmioData.updateLimbsInMemory(callStack);
+
     return mmioData;
   }
 
   @Override
-  public void update(MmioData mmioData, int counter) {}
+  public void update(MmioData mmioData, int counter) {
+    // [2 => 1 Full]
+    mmioData.twoToOneFull(
+        mmioData.byteA(counter),
+        mmioData.byteB(counter),
+        mmioData.acc1(),
+        mmioData.acc2(),
+        microData.sourceByteOffset(),
+        counter);
+  }
 }

@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.types;
 
-
 import java.util.Arrays;
 
 public class Memory {

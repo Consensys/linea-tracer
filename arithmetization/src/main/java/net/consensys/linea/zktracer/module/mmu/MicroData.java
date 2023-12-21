@@ -34,6 +34,7 @@ import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.evm.internal.Words;
 
 @AllArgsConstructor
 @Accessors(fluent = true)
@@ -159,7 +160,7 @@ class MicroData extends ModuleOperation {
   }
 
   public Address addressValue() {
-    return Address.fromHexString(value.toHexString());
+    return Words.toAddress(value);
   }
 
   public ExoSource exoSource() {

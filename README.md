@@ -164,7 +164,7 @@ corset check -T <JSON_FILE> -v zkevm-constraints/zkevm.bin
 Plugins are documented [here](PLUGINS.md).
 
 ## Release Process
-Here are the steps for releasing a new version of the plugin:
+Here are the steps for releasing a new version of the plugins:
   1. Create a tag with the release version number in the format vX.Y.Z (e.g., v0.2.0 creates a release version 0.2.0).
   2. Push the tag to the repository.
   3. GitHub Actions will automatically create a draft release for the release tag.

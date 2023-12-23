@@ -57,9 +57,8 @@ public class NaRamToStack1To1PaddedAndZeroDispatcher implements MmioDispatcher {
 
     mmioData.valLo(UnsignedByte.EMPTY_BYTES16);
 
-    for (int i = 0; i < microData.size(); i++) {
-      mmioData.valHi()[i] = mmioData.valA()[i + microData.sourceByteOffset().toInteger()];
-    }
+    int sourceByteOffset = microData.sourceByteOffset().toInteger();
+    System.arraycopy(mmioData.valA(), sourceByteOffset, mmioData.valHi(), 0, microData.size());
 
     mmioData.updateLimbsInMemory(callStack);
 

@@ -23,6 +23,8 @@ import static net.consensys.linea.zktracer.module.mmio.MmioPatterns.power;
 import static net.consensys.linea.zktracer.types.Conversions.bytesToUnsignedBytes;
 import static net.consensys.linea.zktracer.types.Conversions.unsignedBytesToEWord;
 
+import java.util.stream.Stream;
+
 import com.google.common.base.Preconditions;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -32,6 +34,7 @@ import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.runtime.stack.StackContext;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.tuweni.units.bigints.UInt256;
 
 @Getter
@@ -267,6 +270,31 @@ public class MmioData {
     pending.memory().updateLimb(indexA, valANew);
     pending.memory().updateLimb(indexB, valBNew);
     pending.memory().updateLimb(indexC, valCNew);
+  }
+
+  public void setValHiLoForRootContextCalldataload(int sourceByteOffset) {
+    // bounds check: we require 0 <= sourceByteOffset < 16
+    Preconditions.checkArgument(
+        sourceByteOffset < 0 || sourceByteOffset >= 16,
+        "microData.sourceByteOffset is out of bounds");
+
+    if (sourceByteOffset == 0) {
+      valHi = valA;
+      valLo = valB;
+    } else {
+      mergeAndCopyVals(sourceByteOffset, valA, valB, valHi);
+      mergeAndCopyVals(sourceByteOffset, valB, valC, valLo);
+    }
+  }
+
+  private void mergeAndCopyVals(
+      int sourceByteOffset, UnsignedByte[] valA, UnsignedByte[] valB, UnsignedByte[] valDest) {
+    UnsignedByte[] valASubArray = ArrayUtils.subarray(valA, sourceByteOffset, valA.length);
+    UnsignedByte[] valBSubArray = ArrayUtils.subarray(valB, 0, sourceByteOffset);
+
+    UnsignedByte[] valMerged =
+        (UnsignedByte[]) Stream.of(valASubArray, valBSubArray).flatMap(Stream::of).toArray();
+    System.arraycopy(valMerged, 0, valDest, 0, valMerged.length);
   }
 
   public void twoToOnePadded(

@@ -58,9 +58,7 @@ public class FirstPaddedSecondZeroDispatcher implements MmioDispatcher {
     mmioData.valLo(UnsignedByte.EMPTY_BYTES16);
 
     int sourceByteOffset = microData.sourceByteOffset().toInteger();
-    for (int i = 0; i < microData.size(); i++) {
-      mmioData.valHi()[i] = mmioData.valA()[i + sourceByteOffset];
-    }
+    System.arraycopy(mmioData.valA(), sourceByteOffset, mmioData.valHi(), 0, microData.size());
 
     mmioData.updateLimbsInMemory(callStack);
 

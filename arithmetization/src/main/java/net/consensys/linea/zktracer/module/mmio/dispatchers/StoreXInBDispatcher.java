@@ -19,10 +19,10 @@ import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.mmio.MmioData;
 import net.consensys.linea.zktracer.module.mmu.MicroData;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
+import net.consensys.linea.zktracer.types.UnsignedByte;
 
 @RequiredArgsConstructor
 public class StoreXInBDispatcher implements MmioDispatcher {
-
   private final MicroData microData;
 
   private final CallStack callStack;
@@ -30,6 +30,28 @@ public class StoreXInBDispatcher implements MmioDispatcher {
   @Override
   public MmioData dispatch() {
     MmioData mmioData = new MmioData();
+    mmioData.cnA(0);
+    mmioData.cnB(0);
+    mmioData.cnC(0);
+
+    int sourceLimbOffset = microData.sourceLimbOffset().toInt();
+    mmioData.indexA(0);
+    mmioData.indexB(0);
+    mmioData.indexC(0);
+    mmioData.indexX(sourceLimbOffset);
+
+    mmioData.valA(microData.valACache());
+    mmioData.valB(microData.valBCache());
+    mmioData.valC(microData.valCCache());
+    mmioData.valX(microData.valBCache());
+
+    mmioData.valANew(UnsignedByte.EMPTY_BYTES16);
+    mmioData.valBNew(UnsignedByte.EMPTY_BYTES16);
+    mmioData.valCNew(UnsignedByte.EMPTY_BYTES16);
+
+    int sourceByteOffset = microData.sourceByteOffset().toInteger();
+    mmioData.setValHiLoForRootContextCalldataload(sourceByteOffset);
+    mmioData.updateLimbsInMemory(callStack);
 
     return mmioData;
   }

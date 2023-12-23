@@ -15,4 +15,42 @@
 
 package net.consensys.linea.zktracer.module.mmio;
 
-public class MmioDataProcessor {}
+import java.util.Map;
+
+import net.consensys.linea.zktracer.module.mmio.dispatchers.MmioDispatcher;
+import net.consensys.linea.zktracer.module.mmu.MicroData;
+import net.consensys.linea.zktracer.module.romLex.RomLex;
+import net.consensys.linea.zktracer.runtime.callstack.CallStack;
+
+class MmioDataProcessor {
+  private final MicroData microData;
+  private final Dispatchers dispatchers;
+
+  MmioDataProcessor(final RomLex romLex, final MicroData microData, final CallStack callStack) {
+    this.microData = microData;
+    this.dispatchers = new Dispatchers(microData, callStack, romLex);
+  }
+
+  MmioData dispatchMmioData() {
+    for (Map.Entry<Integer, MmioDispatcher> e : dispatchers.typeMap().entrySet()) {
+      if (e.getKey().equals(microData.microOp())) {
+        return e.getValue().dispatch();
+      }
+    }
+
+    throw new RuntimeException(
+        "Micro instruction not supported: %s".formatted(microData.microOp()));
+  }
+
+  void updateMmioData(MmioData mmioData, int counter) {
+    for (Map.Entry<Integer, MmioDispatcher> e : dispatchers.typeMap().entrySet()) {
+      if (e.getKey().equals(microData.microOp())) {
+        e.getValue().update(mmioData, counter);
+      }
+    }
+  }
+
+  int maxCounter() {
+    return microData.isFast() ? 0 : 15;
+  }
+}

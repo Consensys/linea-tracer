@@ -20,6 +20,7 @@ import static java.util.Map.entry;
 import java.util.Map;
 
 import lombok.Getter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.mmio.dispatchers.ExceptionalRamToStack3To2FullDispatcher;
 import net.consensys.linea.zktracer.module.mmio.dispatchers.ExceptionalRamToStack3To2FullFastDispatcher;
 import net.consensys.linea.zktracer.module.mmio.dispatchers.ExoToRamDispatcher;
@@ -54,6 +55,7 @@ import net.consensys.linea.zktracer.module.mmu.MicroData;
 import net.consensys.linea.zktracer.module.romLex.RomLex;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 
+@Accessors(fluent = true)
 public class Dispatchers {
   @Getter private final Map<Integer, MmioDispatcher> typeMap;
 

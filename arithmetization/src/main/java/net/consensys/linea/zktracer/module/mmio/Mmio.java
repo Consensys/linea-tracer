@@ -26,17 +26,28 @@ import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.State;
 import net.consensys.linea.zktracer.module.mmu.MicroData;
-import net.consensys.linea.zktracer.module.rom.Rom;
+import net.consensys.linea.zktracer.module.romLex.RomLex;
+import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 
 /** MMIO contains the MEMORY MAPPED INPUT OUTPUT module's state. */
 public class Mmio implements Module {
 
-  private Rom rom;
-
   private Trace trace;
 
   private Trace currentTrace;
+
+  private final MicroData microData;
+
+  private final CallStack callStack;
+
+  private final MmioDataProcessor mmioDataProcessor;
+
+  public Mmio(final RomLex romLex, final MicroData microData, final CallStack callStack) {
+    this.microData = microData;
+    this.callStack = callStack;
+    this.mmioDataProcessor = new MmioDataProcessor(romLex, microData, callStack);
+  }
 
   @Override
   public String moduleKey() {
@@ -61,27 +72,27 @@ public class Mmio implements Module {
 
   @Override
   public void commit(List<MappedByteBuffer> buffers) {
+    // TODO: concatenate currentTrace to trace
     Trace trace = new Trace(buffers);
   }
 
-  public void handleRam(
-      final MicroData microData,
-      final CallStack callStack,
-      final State.TxState.Stamps moduleStamps,
-      final int microStamp) {
+  public void handleRam(final State.TxState.Stamps moduleStamps, final int microStamp) {
     if (microData.microOp() == 0) {
       return;
     }
 
-    int maxCounter = maxCounter(microData.isFast());
-  }
+    int maxCounter = mmioDataProcessor.maxCounter();
+    MmioData mmioData = mmioDataProcessor.dispatchMmioData();
 
-  private int maxCounter(boolean isFast) {
-    return isFast ? 0 : 15;
+    for (int i = 0; i < maxCounter; i++) {
+      mmioDataProcessor.updateMmioData(mmioData, maxCounter);
+      boolean isInitCode = callStack.current().type() == CallFrameType.INIT_CODE;
+      int txNum = 0 /*TODO: callStack.txNum*/;
+      trace(mmioData, microStamp, isInitCode, txNum, moduleStamps, i);
+    }
   }
 
   private void trace(
-      MicroData microData,
       MmioData mmioData,
       int microStamp,
       boolean isInit,

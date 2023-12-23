@@ -42,9 +42,9 @@ public class Mmu implements Module {
 
   private final CallStack callStack;
 
-  public Mmu(final CallStack callStack) {
+  public Mmu(final Mmio mmio, final CallStack callStack) {
     this.callStack = callStack;
-    this.mmio = new Mmio();
+    this.mmio = mmio;
     this.microDataProcessor = new MicroDataProcessor();
   }
 

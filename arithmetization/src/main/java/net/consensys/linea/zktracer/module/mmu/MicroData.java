@@ -83,9 +83,9 @@ class MicroData extends ModuleOperation {
   @Getter @Setter private boolean exoIsRom;
   @Getter @Setter private boolean exoIsTxcd;
   @Getter @Setter private boolean info;
-  @Getter private UnsignedByte[] valACache;
-  @Getter private UnsignedByte[] valBCache;
-  @Getter private UnsignedByte[] valCCache;
+  @Getter @Setter private UnsignedByte[] valACache;
+  @Getter @Setter private UnsignedByte[] valBCache;
+  @Getter @Setter private UnsignedByte[] valCCache;
   // < 1.000.000
   @Getter @Setter private int referenceOffset;
   // < 1.000.000

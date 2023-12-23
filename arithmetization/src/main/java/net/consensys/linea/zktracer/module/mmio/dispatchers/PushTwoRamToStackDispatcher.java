@@ -59,10 +59,12 @@ public class PushTwoRamToStackDispatcher implements MmioDispatcher {
     Preconditions.checkState(
         !mmioData.valAEword().equals(microData.eWordValue().hi())
             || !mmioData.valBEword().equals(microData.eWordValue().lo()),
-        "Inconsistent memory:\n"
-            + "expected mmioData.valA = %s found microOp.hi = %s\n"
-            + "expected mmioData.valB = %s found microOp.lo = %s\n"
-                .formatted(valA, microData.eWordValue().hi(), valB, microData.eWordValue().lo()));
+        """
+Inconsistent memory:
+  expected mmioData.valA = %s found microOp.hi = %s
+  expected mmioData.valB = %s found microOp.lo = %s
+    """
+            .formatted(valA, microData.eWordValue().hi(), valB, microData.eWordValue().lo()));
 
     mmioData.valHi(valA);
     mmioData.valLo(valB);

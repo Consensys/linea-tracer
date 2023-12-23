@@ -61,9 +61,9 @@ public class Dispatchers {
     this.typeMap =
         Map.ofEntries(
             ///////////////////////////
-            //					   //
-            //      TRANSPLANTS	   //
-            //					   //
+            //					     //
+            //      TRANSPLANTS	     //
+            //					     //
             ///////////////////////////
             entry(Trace.RamToRam, new RamToRamDispatcher(microData, callStack)),
             entry(Trace.ExoToRam, new ExoToRamDispatcher(microData, callStack, romLex)),
@@ -77,13 +77,13 @@ public class Dispatchers {
             entry(Trace.PushTwoStackToRam, new PushTwoStackToRamDispatcher(microData, callStack)),
             entry(
                 Trace.StoreXInAThreeRequired,
-                new StoreXInAThreeRequiredDispatcher(microData, callStack)),
+                new StoreXInAThreeRequiredDispatcher(microData, callStack, romLex)),
             entry(Trace.StoreXInB, new StoreXInBDispatcher(microData, callStack)),
             entry(Trace.StoreXInC, new StoreXInCDispatcher(microData, callStack)),
             /////////////////////////
-            //					 //
-            //	  SURGERIES      //
-            //					 //
+            //					   //
+            //	    SURGERIES      //
+            //					   //
             /////////////////////////
             // 6.3 RAM to RAM
             /////////////////

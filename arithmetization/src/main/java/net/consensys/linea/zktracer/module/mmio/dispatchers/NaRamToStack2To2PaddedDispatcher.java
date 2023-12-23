@@ -70,9 +70,7 @@ public class NaRamToStack2To2PaddedDispatcher implements MmioDispatcher {
     }
 
     // oneOnePadded
-    for (int i = 0; i < microData.size(); i++) {
-      mmioData.valLo()[i] = mmioData.valB()[sourceByteOffset + i];
-    }
+    System.arraycopy(mmioData.valB(), sourceByteOffset, mmioData.valLo(), 0, microData.size());
 
     return mmioData;
   }

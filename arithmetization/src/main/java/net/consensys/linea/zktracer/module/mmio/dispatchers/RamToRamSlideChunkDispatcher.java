@@ -74,9 +74,7 @@ public class RamToRamSlideChunkDispatcher implements MmioDispatcher {
         "Wrong size: %d sourceByteOffset: %d targetByteOffset: %d"
             .formatted(size, sourceByteOffset, targetByteOffset));
 
-    for (int i = 0; i < size; i++) {
-      target[targetByteOffset + i] = source[sourceByteOffset + i];
-    }
+    System.arraycopy(source, sourceByteOffset, target, targetByteOffset, size);
 
     return target;
   }

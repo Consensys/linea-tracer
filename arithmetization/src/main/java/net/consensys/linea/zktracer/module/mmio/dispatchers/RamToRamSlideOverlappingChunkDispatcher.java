@@ -49,9 +49,14 @@ public class RamToRamSlideOverlappingChunkDispatcher implements MmioDispatcher {
 
     int targetByteOffset = microData.targetByteOffset().toInteger();
     int sourceByteOffset = microData.sourceByteOffset().toInteger();
-    for (int i = targetByteOffset; i < 16; i++) {
-      mmioData.valBNew()[i] = mmioData.valA()[sourceByteOffset + i - targetByteOffset];
-    }
+
+    System.arraycopy(
+        mmioData.valA(),
+        sourceByteOffset - targetByteOffset,
+        mmioData.valBNew(),
+        targetByteOffset,
+        16 - targetByteOffset);
+
     mmioData.valCNew(mmioData.valC());
 
     int size = microData.size();

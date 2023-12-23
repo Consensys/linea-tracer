@@ -56,8 +56,12 @@ public class PaddedExoFromTwoDispatcher implements MmioDispatcher {
 
     Preconditions.checkArgument(
         wrongOffsets,
-        ("Wrong size/sourceByteOffset combo in PaddedExoFromTwoDispatcher\nsourceByteOffset = %s, size = %d, "
-                + "sourceByteOffset + size = %d > 16")
+        """
+Wrong size/sourceByteOffset combo in PaddedExoFromTwoDispatcher:
+  sourceByteOffset = %s
+  size = %d
+  sourceByteOffset + size = %d > 16
+        """
             .formatted(sourceByteOffset, size, sourceByteOffset + size));
 
     for (int i = 0; i < size; i++) {

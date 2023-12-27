@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -35,18 +34,18 @@ import org.apache.tuweni.bytes.Bytes32;
 
 @Slf4j
 public class WcpOperation {
-  private static final int LIMB_SIZE = 16;
+  private static final int LLARGEMO = 15;
+  private static final int LLARGE = 16;
 
   private final OpCode opCode;
   private final Bytes32 arg1;
   private final Bytes32 arg2;
+  final int ctMax;
 
-  private final boolean isOneLineInstruction;
-
-  private Bytes16 arg1Hi;
-  private Bytes16 arg1Lo;
-  private Bytes16 arg2Hi;
-  private Bytes16 arg2Lo;
+  private Bytes arg1Hi;
+  private Bytes arg1Lo;
+  private Bytes arg2Hi;
+  private Bytes arg2Lo;
 
   private Bytes16 adjHi;
   private Bytes16 adjLo;
@@ -66,14 +65,16 @@ public class WcpOperation {
     this.arg1 = arg1;
     this.arg2 = arg2;
 
-    this.isOneLineInstruction = isOneLineInstruction(opCode);
+    this.ctMax = maxCt();
   }
 
   private void compute() {
-    this.arg1Hi = Bytes16.wrap(arg1.slice(0, 16));
-    this.arg1Lo = Bytes16.wrap(arg1.slice(16));
-    this.arg2Hi = Bytes16.wrap(arg2.slice(0, 16));
-    this.arg2Lo = Bytes16.wrap(arg2.slice(16));
+    final int length = this.isOli() ? LLARGE : this.ctMax + 1;
+    final int offset = LLARGE - length;
+    this.arg1Hi = arg1.slice(offset, length);
+    this.arg1Lo = arg1.slice(LLARGE + offset, length);
+    this.arg2Hi = arg2.slice(offset, length);
+    this.arg2Lo = arg2.slice(LLARGE + offset, length);
 
     // Calculate Result Low
     resLo = calculateResLow(opCode, arg1, arg2);
@@ -87,17 +88,29 @@ public class WcpOperation {
     this.neg2 = msb2Bits[0];
 
     // Initiate bits
-    Collections.addAll(bits, msb1Bits);
-    Collections.addAll(bits, msb2Bits);
+    if (this.isMli()) {
+      Collections.addAll(bits, msb1Bits);
+      Collections.addAll(bits, msb2Bits);
+    } else {
+      for (int ct = 0; ct < this.ctMax; ct++) {
+        bits.add(ct, false);
+      }
+    }
 
     // Set bit 1 and 2
-    for (int i = 0; i < 16; i++) {
-      if (arg1Hi.get(i) != arg2Hi.get(i)) {
-        bit1 = false;
+    if (this.isMli()) {
+
+      for (int i = 0; i < 16; i++) {
+        if (arg1Hi.get(i) != arg2Hi.get(i)) {
+          bit1 = false;
+        }
+        if (arg1Lo.get(i) != arg2Lo.get(i)) {
+          bit2 = false;
+        }
       }
-      if (arg1Lo.get(i) != arg2Lo.get(i)) {
-        bit2 = false;
-      }
+    } else {
+      bit1 = false;
+      bit2 = false;
     }
 
     // Set bit 3 and AdjHi
@@ -128,22 +141,16 @@ public class WcpOperation {
         && Objects.equals(arg2, that.arg2);
   }
 
-  public Boolean getResHi() {
-    return false;
-  }
-
-  private boolean isOneLineInstruction(final OpCode opCode) {
-    return Set.of(OpCode.EQ, OpCode.ISZERO).contains(opCode);
-  }
-
   private boolean calculateResLow(OpCode opCode, Bytes32 arg1, Bytes32 arg2) {
     return switch (opCode) {
-      case LT -> arg1.compareTo(arg2) < 0;
-      case GT -> arg1.compareTo(arg2) > 0;
-      case SLT -> reallyToSignedBigInteger(arg1).compareTo(reallyToSignedBigInteger(arg2)) < 0;
-      case SGT -> reallyToSignedBigInteger(arg1).compareTo(reallyToSignedBigInteger(arg2)) > 0;
       case EQ -> arg1.compareTo(arg2) == 0;
       case ISZERO -> arg1.isZero();
+      case SLT -> reallyToSignedBigInteger(arg1).compareTo(reallyToSignedBigInteger(arg2)) < 0;
+      case SGT -> reallyToSignedBigInteger(arg1).compareTo(reallyToSignedBigInteger(arg2)) > 0;
+      case LT -> arg1.compareTo(arg2) < 0;
+      case GT -> arg1.compareTo(arg2) > 0;
+      case LEQ -> arg1.compareTo(arg2) < 0 || arg1.compareTo(arg2) == 0;
+      case GEQ -> arg1.compareTo(arg2) > 0 || arg1.compareTo(arg2) == 0;
       default -> throw new InvalidParameterException("Invalid opcode");
     };
   }
@@ -163,36 +170,48 @@ public class WcpOperation {
   void trace(Trace trace, int stamp) {
     this.compute();
 
-    final Bytes resHi = this.getResHi() ? Bytes.of(1) : Bytes.EMPTY;
-    final Bytes resLo = this.resLo ? Bytes.of(1) : Bytes.EMPTY;
+    final boolean resLo = this.resLo;
+    final boolean oli = isOli();
+    final boolean mli = isMli();
+    final boolean vli = isVli();
+    final UnsignedByte inst = UnsignedByte.of(this.opCode.byteValue());
 
-    for (int i = 0; i < this.maxCt(); i++) {
+    for (int ct = 0; ct < this.maxCt(); ct++) {
       trace
           .wordComparisonStamp(Bytes.ofUnsignedInt(stamp))
-          .oneLineInstruction(this.isOneLineInstruction)
-          .counter(Bytes.of(i))
-          .inst(Bytes.of(this.opCode.byteValue()))
+          .oneLineInstruction(oli)
+          .multiLineInstruction(mli)
+          .variableLengthInstruction(vli)
+          .counter(UnsignedByte.of(ct))
+          .inst(inst)
+          .isEq(this.opCode == OpCode.EQ)
+          .isIszero(this.opCode == OpCode.ISZERO)
+          .isSlt(this.opCode == OpCode.SLT)
+          .isSgt(this.opCode == OpCode.SGT)
+          .isLt(this.opCode == OpCode.LT)
+          .isGt(this.opCode == OpCode.GT)
+          .isLeq(this.opCode == OpCode.LEQ)
+          .isGeq(this.opCode == OpCode.GEQ)
           .argument1Hi(this.arg1Hi)
           .argument1Lo(this.arg1Lo)
           .argument2Hi(this.arg2Hi)
           .argument2Lo(this.arg2Lo)
-          .resultHi(resHi)
-          .resultLo(resLo)
-          .bits(bits.get(i))
+          .result(resLo)
+          .bits(bits.get(ct))
           .neg1(neg1)
           .neg2(neg2)
-          .byte1(UnsignedByte.of(this.arg1Hi.get(i)))
-          .byte2(UnsignedByte.of(this.arg1Lo.get(i)))
-          .byte3(UnsignedByte.of(this.arg2Hi.get(i)))
-          .byte4(UnsignedByte.of(this.arg2Lo.get(i)))
-          .byte5(UnsignedByte.of(adjHi.get(i)))
-          .byte6(UnsignedByte.of(adjLo.get(i)))
-          .acc1(this.arg1Hi.slice(0, 1 + i))
-          .acc2(this.arg1Lo.slice(0, 1 + i))
-          .acc3(this.arg2Hi.slice(0, 1 + i))
-          .acc4(this.arg2Lo.slice(0, 1 + i))
-          .acc5(adjHi.slice(0, 1 + i))
-          .acc6(adjLo.slice(0, 1 + i))
+          .byte1(UnsignedByte.of(this.arg1Hi.get(ct)))
+          .byte2(UnsignedByte.of(this.arg1Lo.get(ct)))
+          .byte3(UnsignedByte.of(this.arg2Hi.get(ct)))
+          .byte4(UnsignedByte.of(this.arg2Lo.get(ct)))
+          .byte5(UnsignedByte.of(adjHi.get(ct)))
+          .byte6(UnsignedByte.of(adjLo.get(ct)))
+          .acc1(this.arg1Hi.slice(0, 1 + ct))
+          .acc2(this.arg1Lo.slice(0, 1 + ct))
+          .acc3(this.arg2Hi.slice(0, 1 + ct))
+          .acc4(this.arg2Lo.slice(0, 1 + ct))
+          .acc5(adjHi.slice(0, 1 + ct))
+          .acc6(adjLo.slice(0, 1 + ct))
           .bit1(bit1)
           .bit2(bit2)
           .bit3(bit3)
@@ -201,7 +220,38 @@ public class WcpOperation {
     }
   }
 
-  int maxCt() {
-    return this.isOneLineInstruction ? 1 : LIMB_SIZE;
+  private boolean isOli() {
+    return switch (this.opCode) {
+      case ISZERO, EQ -> true;
+      case SLT, SGT, LT, GT, LEQ, GEQ -> false;
+      default -> throw new IllegalStateException("Unexpected value: " + this.opCode);
+    };
+  }
+
+  private boolean isMli() {
+    return switch (this.opCode) {
+      case SLT, SGT -> true;
+      case ISZERO, EQ, LT, GT, LEQ, GEQ -> false;
+      default -> throw new IllegalStateException("Unexpected value: " + this.opCode);
+    };
+  }
+
+  private boolean isVli() {
+    return switch (this.opCode) {
+      case LT, GT, LEQ, GEQ -> true;
+      case ISZERO, EQ, SLT, SGT -> false;
+      default -> throw new IllegalStateException("Unexpected value: " + this.opCode);
+    };
+  }
+
+  private int maxCt() {
+    return switch (this.opCode) {
+      case ISZERO, EQ -> 0;
+      case SLT, SGT -> LLARGEMO;
+      case LT, GT, LEQ, GEQ -> Math.max(
+          Math.max(this.arg1.slice(0, LLARGE).size(), this.arg2.slice(0, LLARGE).size()),
+          Math.max(this.arg1.slice(LLARGE, LLARGE).size(), this.arg2.slice(LLARGE, LLARGE).size()));
+      default -> throw new IllegalStateException("Unexpected value: " + this.opCode);
+    };
   }
 }

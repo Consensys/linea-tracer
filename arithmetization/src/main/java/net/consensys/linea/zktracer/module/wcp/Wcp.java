@@ -79,7 +79,7 @@ public class Wcp implements Module {
   public int lineCount() {
     int sum = 0;
     for (WcpOperation wcpOperation : this.operations) {
-      sum += wcpOperation.maxCt();
+      sum += wcpOperation.ctMax + 1;
     }
     return sum;
   }

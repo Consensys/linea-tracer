@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Objects;
 
 import lombok.extern.slf4j.Slf4j;
-import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.Bytes16;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
@@ -36,31 +35,41 @@ import org.apache.tuweni.bytes.Bytes32;
 public class WcpOperation {
   private static final int LLARGEMO = 15;
   private static final int LLARGE = 16;
+  public static final byte LEQbv = 0x0E;
+  public static final byte GEQbv = 0x0F;
+  private static final byte LTbv = 0x10;
+  private static final byte GTbv = 0x11;
+  private static final byte SLTbv = 0x12;
+  private static final byte SGTbv = 0x13;
+  private static final byte EQbv = 0x14;
 
-  private final OpCode opCode;
+  private static final byte ISZERObv = 0x15;
+
+  private final byte opCode;
   private final Bytes32 arg1;
   private final Bytes32 arg2;
   final int ctMax;
-
+private int length;
+private int offset;
   private Bytes arg1Hi;
   private Bytes arg1Lo;
   private Bytes arg2Hi;
   private Bytes arg2Lo;
 
-  private Bytes16 adjHi;
-  private Bytes16 adjLo;
+  private Bytes adjHi;
+  private Bytes adjLo;
   private Boolean neg1;
 
   private Boolean neg2;
-  private Boolean bit1 = true;
-  private Boolean bit2 = true;
+  private boolean bit1;
+  private Boolean bit2;
   private Boolean bit3;
   private Boolean bit4;
   private Boolean resLo;
 
   final List<Boolean> bits = new ArrayList<>(16);
 
-  public WcpOperation(OpCode opCode, Bytes32 arg1, Bytes32 arg2) {
+  public WcpOperation(byte opCode, Bytes32 arg1, Bytes32 arg2) {
     this.opCode = opCode;
     this.arg1 = arg1;
     this.arg2 = arg2;
@@ -69,8 +78,8 @@ public class WcpOperation {
   }
 
   private void compute() {
-    final int length = this.isOli() ? LLARGE : this.ctMax + 1;
-    final int offset = LLARGE - length;
+    this.length = (this.isOli() || this.isMli()) ? LLARGE : this.ctMax + 1;
+    this.offset = LLARGE - length;
     this.arg1Hi = arg1.slice(offset, length);
     this.arg1Lo = arg1.slice(LLARGE + offset, length);
     this.arg2Hi = arg2.slice(offset, length);
@@ -92,38 +101,26 @@ public class WcpOperation {
       Collections.addAll(bits, msb1Bits);
       Collections.addAll(bits, msb2Bits);
     } else {
-      for (int ct = 0; ct < this.ctMax; ct++) {
+      for (int ct = 0; ct <= this.ctMax; ct++) {
         bits.add(ct, false);
       }
     }
 
     // Set bit 1 and 2
-    if (this.isMli()) {
-
-      for (int i = 0; i < 16; i++) {
-        if (arg1Hi.get(i) != arg2Hi.get(i)) {
-          bit1 = false;
-        }
-        if (arg1Lo.get(i) != arg2Lo.get(i)) {
-          bit2 = false;
-        }
-      }
-    } else {
-      bit1 = false;
-      bit2 = false;
-    }
+    this.bit1 = this.arg1Hi.compareTo(this.arg2Hi) == 0;
+    this.bit2 = this.arg1Lo.compareTo(this.arg2Lo) == 0;
 
     // Set bit 3 and AdjHi
     final BigInteger firstHi = arg1Hi.toUnsignedBigInteger();
     final BigInteger secondHi = arg2Hi.toUnsignedBigInteger();
     bit3 = firstHi.compareTo(secondHi) > 0;
-    this.adjHi = calculateAdj(bit3, firstHi, secondHi);
+    this.adjHi = calculateAdj(bit3, firstHi, secondHi).slice(offset, length);
 
     // Set bit 4 and AdjLo
     final BigInteger firstLo = arg1Lo.toUnsignedBigInteger();
     final BigInteger secondLo = arg2Lo.toUnsignedBigInteger();
     bit4 = firstLo.compareTo(secondLo) > 0;
-    this.adjLo = calculateAdj(bit4, firstLo, secondLo);
+    this.adjLo = calculateAdj(bit4, firstLo, secondLo).slice(offset,length);
   }
 
   @Override
@@ -141,16 +138,16 @@ public class WcpOperation {
         && Objects.equals(arg2, that.arg2);
   }
 
-  private boolean calculateResLow(OpCode opCode, Bytes32 arg1, Bytes32 arg2) {
+  private boolean calculateResLow(byte opCode, Bytes32 arg1, Bytes32 arg2) {
     return switch (opCode) {
-      case EQ -> arg1.compareTo(arg2) == 0;
-      case ISZERO -> arg1.isZero();
-      case SLT -> reallyToSignedBigInteger(arg1).compareTo(reallyToSignedBigInteger(arg2)) < 0;
-      case SGT -> reallyToSignedBigInteger(arg1).compareTo(reallyToSignedBigInteger(arg2)) > 0;
-      case LT -> arg1.compareTo(arg2) < 0;
-      case GT -> arg1.compareTo(arg2) > 0;
-      case LEQ -> arg1.compareTo(arg2) < 0 || arg1.compareTo(arg2) == 0;
-      case GEQ -> arg1.compareTo(arg2) > 0 || arg1.compareTo(arg2) == 0;
+      case EQbv -> arg1.compareTo(arg2) == 0;
+      case ISZERObv -> arg1.isZero();
+      case SLTbv -> reallyToSignedBigInteger(arg1).compareTo(reallyToSignedBigInteger(arg2)) < 0;
+      case SGTbv -> reallyToSignedBigInteger(arg1).compareTo(reallyToSignedBigInteger(arg2)) > 0;
+      case LTbv -> arg1.compareTo(arg2) < 0;
+      case GTbv -> arg1.compareTo(arg2) > 0;
+      case LEQbv -> arg1.compareTo(arg2) <= 0;
+      case GEQbv -> arg1.compareTo(arg2) >= 0;
       default -> throw new InvalidParameterException("Invalid opcode");
     };
   }
@@ -174,24 +171,25 @@ public class WcpOperation {
     final boolean oli = isOli();
     final boolean mli = isMli();
     final boolean vli = isVli();
-    final UnsignedByte inst = UnsignedByte.of(this.opCode.byteValue());
+    final UnsignedByte inst = UnsignedByte.of(this.opCode);
 
-    for (int ct = 0; ct < this.maxCt(); ct++) {
+    for (int ct = 0; ct <= this.maxCt(); ct++) {
       trace
           .wordComparisonStamp(Bytes.ofUnsignedInt(stamp))
           .oneLineInstruction(oli)
           .multiLineInstruction(mli)
           .variableLengthInstruction(vli)
           .counter(UnsignedByte.of(ct))
+          .ctMax(UnsignedByte.of(this.ctMax))
           .inst(inst)
-          .isEq(this.opCode == OpCode.EQ)
-          .isIszero(this.opCode == OpCode.ISZERO)
-          .isSlt(this.opCode == OpCode.SLT)
-          .isSgt(this.opCode == OpCode.SGT)
-          .isLt(this.opCode == OpCode.LT)
-          .isGt(this.opCode == OpCode.GT)
-          .isLeq(this.opCode == OpCode.LEQ)
-          .isGeq(this.opCode == OpCode.GEQ)
+          .isEq(this.opCode == EQbv)
+          .isIszero(this.opCode == ISZERObv)
+          .isSlt(this.opCode == SLTbv)
+          .isSgt(this.opCode == SGTbv)
+          .isLt(this.opCode == LTbv)
+          .isGt(this.opCode == GTbv)
+          .isLeq(this.opCode == LEQbv)
+          .isGeq(this.opCode == GEQbv)
           .argument1Hi(this.arg1Hi)
           .argument1Lo(this.arg1Lo)
           .argument2Hi(this.arg2Hi)
@@ -222,35 +220,40 @@ public class WcpOperation {
 
   private boolean isOli() {
     return switch (this.opCode) {
-      case ISZERO, EQ -> true;
-      case SLT, SGT, LT, GT, LEQ, GEQ -> false;
+      case ISZERObv, EQbv -> true;
+      case SLTbv, SGTbv, LTbv, GTbv, LEQbv, GEQbv -> false;
       default -> throw new IllegalStateException("Unexpected value: " + this.opCode);
     };
   }
 
   private boolean isMli() {
     return switch (this.opCode) {
-      case SLT, SGT -> true;
-      case ISZERO, EQ, LT, GT, LEQ, GEQ -> false;
+      case SLTbv, SGTbv -> true;
+      case ISZERObv, EQbv, LTbv, GTbv, LEQbv, GEQbv -> false;
       default -> throw new IllegalStateException("Unexpected value: " + this.opCode);
     };
   }
 
   private boolean isVli() {
     return switch (this.opCode) {
-      case LT, GT, LEQ, GEQ -> true;
-      case ISZERO, EQ, SLT, SGT -> false;
+      case LTbv, GTbv, LEQbv, GEQbv -> true;
+      case ISZERObv, EQbv, SLTbv, SGTbv -> false;
       default -> throw new IllegalStateException("Unexpected value: " + this.opCode);
     };
   }
 
   private int maxCt() {
     return switch (this.opCode) {
-      case ISZERO, EQ -> 0;
-      case SLT, SGT -> LLARGEMO;
-      case LT, GT, LEQ, GEQ -> Math.max(
-          Math.max(this.arg1.slice(0, LLARGE).size(), this.arg2.slice(0, LLARGE).size()),
-          Math.max(this.arg1.slice(LLARGE, LLARGE).size(), this.arg2.slice(LLARGE, LLARGE).size()));
+      case ISZERObv, EQbv -> 0;
+      case SLTbv, SGTbv -> LLARGEMO;
+      case LTbv, GTbv, LEQbv, GEQbv -> Math.max(
+              Math.max(
+                  this.arg1.slice(0, LLARGE).trimLeadingZeros().size(),
+                  this.arg2.slice(0, LLARGE).trimLeadingZeros().size()),
+              Math.max(
+                  this.arg1.slice(LLARGE, LLARGE).trimLeadingZeros().size(),
+                  this.arg2.slice(LLARGE, LLARGE).trimLeadingZeros().size()))
+          - 1;
       default -> throw new IllegalStateException("Unexpected value: " + this.opCode);
     };
   }

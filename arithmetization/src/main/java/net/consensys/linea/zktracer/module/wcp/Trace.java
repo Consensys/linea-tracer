@@ -72,7 +72,6 @@ public class Trace {
   private final MappedByteBuffer oneLineInstruction;
   private final MappedByteBuffer result;
   private final MappedByteBuffer variableLengthInstruction;
-  private final MappedByteBuffer witness;
   private final MappedByteBuffer wordComparisonStamp;
 
   static List<ColumnHeader> headers(int length) {
@@ -115,7 +114,6 @@ public class Trace {
         new ColumnHeader("wcp.ONE_LINE_INSTRUCTION", 1, length),
         new ColumnHeader("wcp.RESULT", 1, length),
         new ColumnHeader("wcp.VARIABLE_LENGTH_INSTRUCTION", 1, length),
-        new ColumnHeader("wcp.WITNESS", 32, length),
         new ColumnHeader("wcp.WORD_COMPARISON_STAMP", 32, length));
   }
 
@@ -158,8 +156,7 @@ public class Trace {
     this.oneLineInstruction = buffers.get(35);
     this.result = buffers.get(36);
     this.variableLengthInstruction = buffers.get(37);
-    this.witness = buffers.get(38);
-    this.wordComparisonStamp = buffers.get(39);
+    this.wordComparisonStamp = buffers.get(38);
   }
 
   public int size() {
@@ -666,27 +663,11 @@ public class Trace {
     return this;
   }
 
-  public Trace witness(final Bytes b) {
-    if (filled.get(38)) {
-      throw new IllegalStateException("wcp.WITNESS already set");
-    } else {
-      filled.set(38);
-    }
-
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      witness.put((byte) 0);
-    }
-    witness.put(b.toArrayUnsafe());
-
-    return this;
-  }
-
   public Trace wordComparisonStamp(final Bytes b) {
-    if (filled.get(39)) {
+    if (filled.get(38)) {
       throw new IllegalStateException("wcp.WORD_COMPARISON_STAMP already set");
     } else {
-      filled.set(39);
+      filled.set(38);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -852,10 +833,6 @@ public class Trace {
     }
 
     if (!filled.get(38)) {
-      throw new IllegalStateException("wcp.WITNESS has not been filled");
-    }
-
-    if (!filled.get(39)) {
       throw new IllegalStateException("wcp.WORD_COMPARISON_STAMP has not been filled");
     }
 
@@ -1019,10 +996,6 @@ public class Trace {
     }
 
     if (!filled.get(38)) {
-      witness.position(witness.position() + 32);
-    }
-
-    if (!filled.get(39)) {
       wordComparisonStamp.position(wordComparisonStamp.position() + 32);
     }
 

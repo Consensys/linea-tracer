@@ -49,8 +49,8 @@ public class WcpOperation {
   private final Bytes32 arg1;
   private final Bytes32 arg2;
   final int ctMax;
-private int length;
-private int offset;
+  private int length;
+  private int offset;
   private Bytes arg1Hi;
   private Bytes arg1Lo;
   private Bytes arg2Hi;
@@ -120,7 +120,7 @@ private int offset;
     final BigInteger firstLo = arg1Lo.toUnsignedBigInteger();
     final BigInteger secondLo = arg2Lo.toUnsignedBigInteger();
     bit4 = firstLo.compareTo(secondLo) > 0;
-    this.adjLo = calculateAdj(bit4, firstLo, secondLo).slice(offset,length);
+    this.adjLo = calculateAdj(bit4, firstLo, secondLo).slice(offset, length);
   }
 
   @Override

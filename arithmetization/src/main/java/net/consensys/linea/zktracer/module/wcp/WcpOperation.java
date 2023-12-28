@@ -246,14 +246,16 @@ public class WcpOperation {
     return switch (this.opCode) {
       case ISZERObv, EQbv -> 0;
       case SLTbv, SGTbv -> LLARGEMO;
-      case LTbv, GTbv, LEQbv, GEQbv -> Math.max(
-              Math.max(
-                  this.arg1.slice(0, LLARGE).trimLeadingZeros().size(),
-                  this.arg2.slice(0, LLARGE).trimLeadingZeros().size()),
-              Math.max(
-                  this.arg1.slice(LLARGE, LLARGE).trimLeadingZeros().size(),
-                  this.arg2.slice(LLARGE, LLARGE).trimLeadingZeros().size()))
-          - 1;
+      case LTbv, GTbv, LEQbv, GEQbv -> (this.arg1.isZero() && this.arg2.isZero())
+          ? 0
+          : Math.max(
+                  Math.max(
+                      this.arg1.slice(0, LLARGE).trimLeadingZeros().size(),
+                      this.arg2.slice(0, LLARGE).trimLeadingZeros().size()),
+                  Math.max(
+                      this.arg1.slice(LLARGE, LLARGE).trimLeadingZeros().size(),
+                      this.arg2.slice(LLARGE, LLARGE).trimLeadingZeros().size()))
+              - 1;
       default -> throw new IllegalStateException("Unexpected value: " + this.opCode);
     };
   }

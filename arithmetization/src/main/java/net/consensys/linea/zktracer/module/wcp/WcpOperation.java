@@ -46,7 +46,7 @@ public class WcpOperation {
 
   private static final byte ISZERObv = 0x15;
 
-  private final byte opCode;
+  private final byte wcpInst;
   private final Bytes32 arg1;
   private final Bytes32 arg2;
   final int ctMax;
@@ -57,35 +57,23 @@ public class WcpOperation {
   private Bytes arg2Hi;
   private Bytes arg2Lo;
 
-  private final Bytes adjHi;
-  private final Bytes adjLo;
+  private Bytes adjHi;
+  private Bytes adjLo;
   private Boolean neg1;
 
   private Boolean neg2;
   private boolean bit1;
   private Boolean bit2;
-  private final Boolean bit3;
-  private final Boolean bit4;
+  private Boolean bit3;
+  private Boolean bit4;
   private Boolean resLo;
 
   final List<Boolean> bits = new ArrayList<>(16);
 
-  public WcpOperation(byte opCode, Bytes32 arg1, Bytes32 arg2) {
-    this.opCode = opCode;
+  public WcpOperation(byte wcpInst, Bytes32 arg1, Bytes32 arg2) {
+    this.wcpInst = wcpInst;
     this.arg1 = arg1;
     this.arg2 = arg2;
-
-    // Set (bit 3) and AdjHi
-    final BigInteger firstHi = this.arg1.slice(0, LLARGE).toUnsignedBigInteger();
-    final BigInteger secondHi = this.arg2.slice(0, LLARGE).toUnsignedBigInteger();
-    this.bit3 = firstHi.compareTo(secondHi) > 0;
-    this.adjHi = calculateAdj(bit3, firstHi, secondHi);
-
-    // Set (bit 4) and AdjLo
-    final BigInteger firstLo = this.arg1.slice(LLARGE, LLARGE).toUnsignedBigInteger();
-    final BigInteger secondLo = this.arg2.slice(LLARGE, LLARGE).toUnsignedBigInteger();
-    this.bit4 = firstLo.compareTo(secondLo) > 0;
-    this.adjLo = calculateAdj(bit4, firstLo, secondLo);
 
     this.ctMax = maxCt();
   }
@@ -99,10 +87,22 @@ public class WcpOperation {
     this.arg2Lo = arg2.slice(LLARGE + offset, length);
 
     // Calculate Result Low
-    resLo = calculateResLow(opCode, arg1, arg2);
+    resLo = calculateResLow(wcpInst, arg1, arg2);
+
+    // Set bit 3 and AdjHi
+    final BigInteger firstHi = this.arg1.slice(0, LLARGE).toUnsignedBigInteger();
+    final BigInteger secondHi = this.arg2.slice(0, LLARGE).toUnsignedBigInteger();
+    this.bit3 = firstHi.compareTo(secondHi) > 0;
+    this.adjHi = calculateAdj(bit3, firstHi, secondHi).slice(offset, length);
+
+    // Set bit 4 and AdjLo
+    final BigInteger firstLo = this.arg1.slice(LLARGE, LLARGE).toUnsignedBigInteger();
+    final BigInteger secondLo = this.arg2.slice(LLARGE, LLARGE).toUnsignedBigInteger();
+    this.bit4 = firstLo.compareTo(secondLo) > 0;
+    this.adjLo = calculateAdj(bit4, firstLo, secondLo).slice(offset, length);
 
     // Initiate negatives and BITS
-    if (this.ctMax == LLARGEMO && (this.opCode == SLTbv || this.opCode == SGTbv)) {
+    if (this.ctMax == LLARGEMO && (this.wcpInst == SLTbv || this.wcpInst == SGTbv)) {
       // meaningful only for signed OpCode with LLARGE argument
       UnsignedByte msb1 = UnsignedByte.of(this.arg1Hi.get(0));
       UnsignedByte msb2 = UnsignedByte.of(this.arg2Hi.get(0));
@@ -127,7 +127,7 @@ public class WcpOperation {
 
   @Override
   public int hashCode() {
-    return Objects.hash(this.opCode, this.arg1, this.arg2);
+    return Objects.hash(this.wcpInst, this.arg1, this.arg2);
   }
 
   @Override
@@ -135,7 +135,7 @@ public class WcpOperation {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     final WcpOperation that = (WcpOperation) o;
-    return Objects.equals(opCode, that.opCode)
+    return Objects.equals(wcpInst, that.wcpInst)
         && Objects.equals(arg1, that.arg1)
         && Objects.equals(arg2, that.arg2);
   }
@@ -166,7 +166,7 @@ public class WcpOperation {
     final boolean resLo = this.resLo;
     final boolean oli = isOli();
     final boolean vli = isVli();
-    final UnsignedByte inst = UnsignedByte.of(this.opCode);
+    final UnsignedByte inst = UnsignedByte.of(this.wcpInst);
 
     for (int ct = 0; ct <= this.maxCt(); ct++) {
       trace
@@ -176,14 +176,14 @@ public class WcpOperation {
           .counter(UnsignedByte.of(ct))
           .ctMax(UnsignedByte.of(this.ctMax))
           .inst(inst)
-          .isEq(this.opCode == EQbv)
-          .isIszero(this.opCode == ISZERObv)
-          .isSlt(this.opCode == SLTbv)
-          .isSgt(this.opCode == SGTbv)
-          .isLt(this.opCode == LTbv)
-          .isGt(this.opCode == GTbv)
-          .isLeq(this.opCode == LEQbv)
-          .isGeq(this.opCode == GEQbv)
+          .isEq(this.wcpInst == EQbv)
+          .isIszero(this.wcpInst == ISZERObv)
+          .isSlt(this.wcpInst == SLTbv)
+          .isSgt(this.wcpInst == SGTbv)
+          .isLt(this.wcpInst == LTbv)
+          .isGt(this.wcpInst == GTbv)
+          .isLeq(this.wcpInst == LEQbv)
+          .isGeq(this.wcpInst == GEQbv)
           .argument1Hi(this.arg1Hi)
           .argument1Lo(this.arg1Lo)
           .argument2Hi(this.arg2Hi)
@@ -196,14 +196,14 @@ public class WcpOperation {
           .byte2(UnsignedByte.of(this.arg1Lo.get(ct)))
           .byte3(UnsignedByte.of(this.arg2Hi.get(ct)))
           .byte4(UnsignedByte.of(this.arg2Lo.get(ct)))
-          .byte5(UnsignedByte.of(adjHi.get(ct + offset)))
-          .byte6(UnsignedByte.of(adjLo.get(ct + offset)))
+          .byte5(UnsignedByte.of(adjHi.get(ct)))
+          .byte6(UnsignedByte.of(adjLo.get(ct)))
           .acc1(this.arg1Hi.slice(0, 1 + ct))
           .acc2(this.arg1Lo.slice(0, 1 + ct))
           .acc3(this.arg2Hi.slice(0, 1 + ct))
           .acc4(this.arg2Lo.slice(0, 1 + ct))
-          .acc5(adjHi.slice(offset, 1 + ct))
-          .acc6(adjLo.slice(offset, 1 + ct))
+          .acc5(adjHi.slice(0, 1 + ct))
+          .acc6(adjLo.slice(0, 1 + ct))
           .bit1(bit1)
           .bit2(bit2)
           .bit3(bit3)
@@ -213,23 +213,23 @@ public class WcpOperation {
   }
 
   private boolean isOli() {
-    return switch (this.opCode) {
+    return switch (this.wcpInst) {
       case ISZERObv, EQbv -> true;
       case SLTbv, SGTbv, LTbv, GTbv, LEQbv, GEQbv -> false;
-      default -> throw new IllegalStateException("Unexpected value: " + this.opCode);
+      default -> throw new IllegalStateException("Unexpected value: " + this.wcpInst);
     };
   }
 
   private boolean isVli() {
-    return switch (this.opCode) {
+    return switch (this.wcpInst) {
       case LTbv, GTbv, LEQbv, GEQbv, SLTbv, SGTbv -> true;
       case ISZERObv, EQbv -> false;
-      default -> throw new IllegalStateException("Unexpected value: " + this.opCode);
+      default -> throw new IllegalStateException("Unexpected value: " + this.wcpInst);
     };
   }
 
   private int maxCt() {
-    switch (this.opCode) {
+    switch (this.wcpInst) {
       case ISZERObv, EQbv -> {
         return 0;
       }
@@ -237,17 +237,15 @@ public class WcpOperation {
         if (this.arg1.isZero() && this.arg2.isZero()) {
           return 0;
         } else {
-          final ArrayList<Integer> sizes = new ArrayList<>(6);
+          final ArrayList<Integer> sizes = new ArrayList<>(4);
           sizes.add(this.arg1.slice(0, LLARGE).trimLeadingZeros().size());
           sizes.add(this.arg2.slice(0, LLARGE).trimLeadingZeros().size());
           sizes.add(this.arg1.slice(LLARGE, LLARGE).trimLeadingZeros().size());
           sizes.add(this.arg2.slice(LLARGE, LLARGE).trimLeadingZeros().size());
-          sizes.add(this.adjHi.trimLeadingZeros().size());
-          sizes.add(this.adjLo.trimLeadingZeros().size());
           return Collections.max(sizes) - 1;
         }
       }
-      default -> throw new IllegalStateException("Unexpected value: " + this.opCode);
+      default -> throw new IllegalStateException("Unexpected value: " + this.wcpInst);
     }
   }
 }

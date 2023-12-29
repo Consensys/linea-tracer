@@ -15,15 +15,10 @@
 
 package net.consensys.linea.zktracer.module.add;
 
-import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
-
-import java.math.BigInteger;
-
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.testing.EvmExtension;
-import net.consensys.linea.zktracer.types.Bytes16;
 import org.apache.tuweni.bytes.Bytes;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,77 +28,79 @@ public class addTest {
   @Test
   void testSmallZeroAdd() {
     BytecodeRunner.of(
-        BytecodeCompiler.newProgram()
-          .push(Bytes.of(0xF1))
-          .push(Bytes.EMPTY)
-          .op(OpCode.ADD)
-          .compile())
-      .run();
+            BytecodeCompiler.newProgram()
+                .push(Bytes.of(0xF1))
+                .push(Bytes.EMPTY)
+                .op(OpCode.ADD)
+                .compile())
+        .run();
   }
 
   @Test
   void testSmallZeroSub() {
     BytecodeRunner.of(
-        BytecodeCompiler.newProgram()
-          .push(Bytes.of(0xF1))
-          .push(Bytes.EMPTY)
-          .op(OpCode.SUB)
-          .compile())
-      .run();
+            BytecodeCompiler.newProgram()
+                .push(Bytes.of(0xF1))
+                .push(Bytes.EMPTY)
+                .op(OpCode.SUB)
+                .compile())
+        .run();
   }
 
   @Test
   void testOverflowLoAdd() {
     BytecodeRunner.of(
-        BytecodeCompiler.newProgram()
-          .push(Bytes.fromHexString("0xF0F1F2F3F4F5F6F7F8F9FAFBFCFDFEFF"))
-          .push(Bytes.fromHexString("0xE0E1E2E3E4E5E6E7E8E9EAEBECEDEEEF"))
-          .op(OpCode.ADD)
-          .compile())
-      .run();
+            BytecodeCompiler.newProgram()
+                .push(Bytes.fromHexString("0xF0F1F2F3F4F5F6F7F8F9FAFBFCFDFEFF"))
+                .push(Bytes.fromHexString("0xE0E1E2E3E4E5E6E7E8E9EAEBECEDEEEF"))
+                .op(OpCode.ADD)
+                .compile())
+        .run();
   }
 
   @Test
   void testHugeSmallAdd() {
     BytecodeRunner.of(
-        BytecodeCompiler.newProgram()
-          .push(Bytes.repeat((byte) 0xFF, 32))
-          .push(Bytes.of(2))
-          .op(OpCode.ADD)
-          .compile())
-      .run();
+            BytecodeCompiler.newProgram()
+                .push(Bytes.repeat((byte) 0xFF, 32))
+                .push(Bytes.of(2))
+                .op(OpCode.ADD)
+                .compile())
+        .run();
   }
 
   @Test
   void testOverFlowHiAdd() {
     BytecodeRunner.of(
-        BytecodeCompiler.newProgram()
-          .push(Bytes.concatenate(Bytes.repeat((byte) 0xFF, 16), Bytes.repeat((byte) 0x01, 16)))
-          .push(Bytes.concatenate(Bytes.repeat((byte) 0x02, 16), Bytes.repeat((byte) 0x01, 16)))
-          .op(OpCode.ADD)
-          .compile())
-      .run();
+            BytecodeCompiler.newProgram()
+                .push(
+                    Bytes.concatenate(Bytes.repeat((byte) 0xFF, 16), Bytes.repeat((byte) 0x01, 16)))
+                .push(
+                    Bytes.concatenate(Bytes.repeat((byte) 0x02, 16), Bytes.repeat((byte) 0x01, 16)))
+                .op(OpCode.ADD)
+                .compile())
+        .run();
   }
 
   @Test
   void testSmallHugeSub() {
     BytecodeRunner.of(
-        BytecodeCompiler.newProgram()
-          .push(Bytes.of(2))
-          .push(Bytes.repeat((byte) 0xFF, 32))
-          .op(OpCode.SUB)
-          .compile())
-      .run();
+            BytecodeCompiler.newProgram()
+                .push(Bytes.of(2))
+                .push(Bytes.repeat((byte) 0xFF, 32))
+                .op(OpCode.SUB)
+                .compile())
+        .run();
   }
 
   @Test
   void testHugeSmallSub() {
     BytecodeRunner.of(
-        BytecodeCompiler.newProgram()
-          .push(Bytes.repeat((byte) 0xFF, 32))
-          .push(Bytes.of(2))
-          .op(OpCode.SUB)
-          .compile())
-      .run();
+            BytecodeCompiler.newProgram()
+                .push(Bytes.repeat((byte) 0xFF, 32))
+                .push(Bytes.of(2))
+                .op(OpCode.SUB)
+                .compile())
+        .run();
   }
 }

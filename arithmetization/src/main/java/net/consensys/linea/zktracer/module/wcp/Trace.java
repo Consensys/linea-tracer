@@ -66,7 +66,6 @@ public class Trace {
   private final MappedByteBuffer isLt;
   private final MappedByteBuffer isSgt;
   private final MappedByteBuffer isSlt;
-  private final MappedByteBuffer multiLineInstruction;
   private final MappedByteBuffer neg1;
   private final MappedByteBuffer neg2;
   private final MappedByteBuffer oneLineInstruction;
@@ -108,7 +107,6 @@ public class Trace {
         new ColumnHeader("wcp.IS_LT", 1, length),
         new ColumnHeader("wcp.IS_SGT", 1, length),
         new ColumnHeader("wcp.IS_SLT", 1, length),
-        new ColumnHeader("wcp.MULTI_LINE_INSTRUCTION", 1, length),
         new ColumnHeader("wcp.NEG_1", 1, length),
         new ColumnHeader("wcp.NEG_2", 1, length),
         new ColumnHeader("wcp.ONE_LINE_INSTRUCTION", 1, length),
@@ -150,13 +148,12 @@ public class Trace {
     this.isLt = buffers.get(29);
     this.isSgt = buffers.get(30);
     this.isSlt = buffers.get(31);
-    this.multiLineInstruction = buffers.get(32);
-    this.neg1 = buffers.get(33);
-    this.neg2 = buffers.get(34);
-    this.oneLineInstruction = buffers.get(35);
-    this.result = buffers.get(36);
-    this.variableLengthInstruction = buffers.get(37);
-    this.wordComparisonStamp = buffers.get(38);
+    this.neg1 = buffers.get(32);
+    this.neg2 = buffers.get(33);
+    this.oneLineInstruction = buffers.get(34);
+    this.result = buffers.get(35);
+    this.variableLengthInstruction = buffers.get(36);
+    this.wordComparisonStamp = buffers.get(37);
   }
 
   public int size() {
@@ -591,23 +588,11 @@ public class Trace {
     return this;
   }
 
-  public Trace multiLineInstruction(final Boolean b) {
-    if (filled.get(32)) {
-      throw new IllegalStateException("wcp.MULTI_LINE_INSTRUCTION already set");
-    } else {
-      filled.set(32);
-    }
-
-    multiLineInstruction.put((byte) (b ? 1 : 0));
-
-    return this;
-  }
-
   public Trace neg1(final Boolean b) {
-    if (filled.get(33)) {
+    if (filled.get(32)) {
       throw new IllegalStateException("wcp.NEG_1 already set");
     } else {
-      filled.set(33);
+      filled.set(32);
     }
 
     neg1.put((byte) (b ? 1 : 0));
@@ -616,10 +601,10 @@ public class Trace {
   }
 
   public Trace neg2(final Boolean b) {
-    if (filled.get(34)) {
+    if (filled.get(33)) {
       throw new IllegalStateException("wcp.NEG_2 already set");
     } else {
-      filled.set(34);
+      filled.set(33);
     }
 
     neg2.put((byte) (b ? 1 : 0));
@@ -628,10 +613,10 @@ public class Trace {
   }
 
   public Trace oneLineInstruction(final Boolean b) {
-    if (filled.get(35)) {
+    if (filled.get(34)) {
       throw new IllegalStateException("wcp.ONE_LINE_INSTRUCTION already set");
     } else {
-      filled.set(35);
+      filled.set(34);
     }
 
     oneLineInstruction.put((byte) (b ? 1 : 0));
@@ -640,10 +625,10 @@ public class Trace {
   }
 
   public Trace result(final Boolean b) {
-    if (filled.get(36)) {
+    if (filled.get(35)) {
       throw new IllegalStateException("wcp.RESULT already set");
     } else {
-      filled.set(36);
+      filled.set(35);
     }
 
     result.put((byte) (b ? 1 : 0));
@@ -652,10 +637,10 @@ public class Trace {
   }
 
   public Trace variableLengthInstruction(final Boolean b) {
-    if (filled.get(37)) {
+    if (filled.get(36)) {
       throw new IllegalStateException("wcp.VARIABLE_LENGTH_INSTRUCTION already set");
     } else {
-      filled.set(37);
+      filled.set(36);
     }
 
     variableLengthInstruction.put((byte) (b ? 1 : 0));
@@ -664,10 +649,10 @@ public class Trace {
   }
 
   public Trace wordComparisonStamp(final Bytes b) {
-    if (filled.get(38)) {
+    if (filled.get(37)) {
       throw new IllegalStateException("wcp.WORD_COMPARISON_STAMP already set");
     } else {
-      filled.set(38);
+      filled.set(37);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -809,30 +794,26 @@ public class Trace {
     }
 
     if (!filled.get(32)) {
-      throw new IllegalStateException("wcp.MULTI_LINE_INSTRUCTION has not been filled");
-    }
-
-    if (!filled.get(33)) {
       throw new IllegalStateException("wcp.NEG_1 has not been filled");
     }
 
-    if (!filled.get(34)) {
+    if (!filled.get(33)) {
       throw new IllegalStateException("wcp.NEG_2 has not been filled");
     }
 
-    if (!filled.get(35)) {
+    if (!filled.get(34)) {
       throw new IllegalStateException("wcp.ONE_LINE_INSTRUCTION has not been filled");
     }
 
-    if (!filled.get(36)) {
+    if (!filled.get(35)) {
       throw new IllegalStateException("wcp.RESULT has not been filled");
     }
 
-    if (!filled.get(37)) {
+    if (!filled.get(36)) {
       throw new IllegalStateException("wcp.VARIABLE_LENGTH_INSTRUCTION has not been filled");
     }
 
-    if (!filled.get(38)) {
+    if (!filled.get(37)) {
       throw new IllegalStateException("wcp.WORD_COMPARISON_STAMP has not been filled");
     }
 
@@ -972,30 +953,26 @@ public class Trace {
     }
 
     if (!filled.get(32)) {
-      multiLineInstruction.position(multiLineInstruction.position() + 1);
-    }
-
-    if (!filled.get(33)) {
       neg1.position(neg1.position() + 1);
     }
 
-    if (!filled.get(34)) {
+    if (!filled.get(33)) {
       neg2.position(neg2.position() + 1);
     }
 
-    if (!filled.get(35)) {
+    if (!filled.get(34)) {
       oneLineInstruction.position(oneLineInstruction.position() + 1);
     }
 
-    if (!filled.get(36)) {
+    if (!filled.get(35)) {
       result.position(result.position() + 1);
     }
 
-    if (!filled.get(37)) {
+    if (!filled.get(36)) {
       variableLengthInstruction.position(variableLengthInstruction.position() + 1);
     }
 
-    if (!filled.get(38)) {
+    if (!filled.get(37)) {
       wordComparisonStamp.position(wordComparisonStamp.position() + 32);
     }
 

@@ -78,7 +78,7 @@ public class WcpOperation {
   }
 
   private void compute() {
-    this.length = (this.isOli() || this.isMli()) ? LLARGE : this.ctMax + 1;
+    this.length = this.isOli() ? LLARGE : this.ctMax + 1;
     this.offset = LLARGE - length;
     this.arg1Hi = arg1.slice(offset, length);
     this.arg1Lo = arg1.slice(LLARGE + offset, length);
@@ -88,19 +88,20 @@ public class WcpOperation {
     // Calculate Result Low
     resLo = calculateResLow(opCode, arg1, arg2);
 
-    // Initiate negatives
-    UnsignedByte msb1 = UnsignedByte.of(this.arg1Hi.get(0));
-    UnsignedByte msb2 = UnsignedByte.of(this.arg2Hi.get(0));
-    Boolean[] msb1Bits = byteBits(msb1);
-    Boolean[] msb2Bits = byteBits(msb2);
-    this.neg1 = msb1Bits[0];
-    this.neg2 = msb2Bits[0];
-
-    // Initiate bits
-    if (this.isMli()) {
+    // Initiate negatives and BITS
+    if (this.ctMax == LLARGEMO && (this.opCode == SLTbv || this.opCode == SGTbv)) {
+      // meaningful only for signed OpCode with LLARGE argument
+      UnsignedByte msb1 = UnsignedByte.of(this.arg1Hi.get(0));
+      UnsignedByte msb2 = UnsignedByte.of(this.arg2Hi.get(0));
+      Boolean[] msb1Bits = byteBits(msb1);
+      Boolean[] msb2Bits = byteBits(msb2);
+      this.neg1 = msb1Bits[0];
+      this.neg2 = msb2Bits[0];
       Collections.addAll(bits, msb1Bits);
       Collections.addAll(bits, msb2Bits);
     } else {
+      this.neg1 = false;
+      this.neg2 = false;
       for (int ct = 0; ct <= this.ctMax; ct++) {
         bits.add(ct, false);
       }
@@ -169,7 +170,6 @@ public class WcpOperation {
 
     final boolean resLo = this.resLo;
     final boolean oli = isOli();
-    final boolean mli = isMli();
     final boolean vli = isVli();
     final UnsignedByte inst = UnsignedByte.of(this.opCode);
 
@@ -177,7 +177,6 @@ public class WcpOperation {
       trace
           .wordComparisonStamp(Bytes.ofUnsignedInt(stamp))
           .oneLineInstruction(oli)
-          .multiLineInstruction(mli)
           .variableLengthInstruction(vli)
           .counter(UnsignedByte.of(ct))
           .ctMax(UnsignedByte.of(this.ctMax))
@@ -226,18 +225,10 @@ public class WcpOperation {
     };
   }
 
-  private boolean isMli() {
-    return switch (this.opCode) {
-      case SLTbv, SGTbv -> true;
-      case ISZERObv, EQbv, LTbv, GTbv, LEQbv, GEQbv -> false;
-      default -> throw new IllegalStateException("Unexpected value: " + this.opCode);
-    };
-  }
-
   private boolean isVli() {
     return switch (this.opCode) {
-      case LTbv, GTbv, LEQbv, GEQbv -> true;
-      case ISZERObv, EQbv, SLTbv, SGTbv -> false;
+      case LTbv, GTbv, LEQbv, GEQbv, SLTbv, SGTbv -> true;
+      case ISZERObv, EQbv -> false;
       default -> throw new IllegalStateException("Unexpected value: " + this.opCode);
     };
   }
@@ -245,8 +236,7 @@ public class WcpOperation {
   private int maxCt() {
     return switch (this.opCode) {
       case ISZERObv, EQbv -> 0;
-      case SLTbv, SGTbv -> LLARGEMO;
-      case LTbv, GTbv, LEQbv, GEQbv -> (this.arg1.isZero() && this.arg2.isZero())
+      case LTbv, GTbv, LEQbv, GEQbv, SLTbv, SGTbv -> (this.arg1.isZero() && this.arg2.isZero())
           ? 0
           : Math.max(
                   Math.max(

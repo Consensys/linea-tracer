@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.wcp;
 
 import static net.consensys.linea.zktracer.module.Util.byteBits;
+import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.reallyToSignedBigInteger;
 
 import java.math.BigInteger;
@@ -56,15 +57,15 @@ public class WcpOperation {
   private Bytes arg2Hi;
   private Bytes arg2Lo;
 
-  private Bytes adjHi;
-  private Bytes adjLo;
+  private final Bytes adjHi;
+  private final Bytes adjLo;
   private Boolean neg1;
 
   private Boolean neg2;
   private boolean bit1;
   private Boolean bit2;
-  private Boolean bit3;
-  private Boolean bit4;
+  private final Boolean bit3;
+  private final Boolean bit4;
   private Boolean resLo;
 
   final List<Boolean> bits = new ArrayList<>(16);
@@ -73,6 +74,18 @@ public class WcpOperation {
     this.opCode = opCode;
     this.arg1 = arg1;
     this.arg2 = arg2;
+
+    // Set (bit 3) and AdjHi
+    final BigInteger firstHi = this.arg1.slice(0, LLARGE).toUnsignedBigInteger();
+    final BigInteger secondHi = this.arg2.slice(0, LLARGE).toUnsignedBigInteger();
+    this.bit3 = firstHi.compareTo(secondHi) > 0;
+    this.adjHi = calculateAdj(bit3, firstHi, secondHi);
+
+    // Set (bit 4) and AdjLo
+    final BigInteger firstLo = this.arg1.slice(LLARGE, LLARGE).toUnsignedBigInteger();
+    final BigInteger secondLo = this.arg2.slice(LLARGE, LLARGE).toUnsignedBigInteger();
+    this.bit4 = firstLo.compareTo(secondLo) > 0;
+    this.adjLo = calculateAdj(bit4, firstLo, secondLo);
 
     this.ctMax = maxCt();
   }
@@ -110,18 +123,6 @@ public class WcpOperation {
     // Set bit 1 and 2
     this.bit1 = this.arg1Hi.compareTo(this.arg2Hi) == 0;
     this.bit2 = this.arg1Lo.compareTo(this.arg2Lo) == 0;
-
-    // Set bit 3 and AdjHi
-    final BigInteger firstHi = arg1Hi.toUnsignedBigInteger();
-    final BigInteger secondHi = arg2Hi.toUnsignedBigInteger();
-    bit3 = firstHi.compareTo(secondHi) > 0;
-    this.adjHi = calculateAdj(bit3, firstHi, secondHi).slice(offset, length);
-
-    // Set bit 4 and AdjLo
-    final BigInteger firstLo = arg1Lo.toUnsignedBigInteger();
-    final BigInteger secondLo = arg2Lo.toUnsignedBigInteger();
-    bit4 = firstLo.compareTo(secondLo) > 0;
-    this.adjLo = calculateAdj(bit4, firstLo, secondLo).slice(offset, length);
   }
 
   @Override
@@ -154,15 +155,9 @@ public class WcpOperation {
   }
 
   private Bytes16 calculateAdj(boolean cmp, BigInteger arg1, BigInteger arg2) {
-    BigInteger adjHi;
-    if (cmp) {
-      adjHi = arg1.subtract(arg2).subtract(BigInteger.ONE);
-    } else {
-      adjHi = arg2.subtract(arg1);
-    }
-    var bytes32 = Bytes32.leftPad(Bytes.of(adjHi.toByteArray()));
-
-    return Bytes16.wrap(bytes32.slice(16));
+    return cmp
+        ? Bytes16.leftPad(bigIntegerToBytes(arg1.subtract(arg2).subtract(BigInteger.ONE)))
+        : Bytes16.leftPad(bigIntegerToBytes(arg2.subtract(arg1)));
   }
 
   void trace(Trace trace, int stamp) {
@@ -201,14 +196,14 @@ public class WcpOperation {
           .byte2(UnsignedByte.of(this.arg1Lo.get(ct)))
           .byte3(UnsignedByte.of(this.arg2Hi.get(ct)))
           .byte4(UnsignedByte.of(this.arg2Lo.get(ct)))
-          .byte5(UnsignedByte.of(adjHi.get(ct)))
-          .byte6(UnsignedByte.of(adjLo.get(ct)))
+          .byte5(UnsignedByte.of(adjHi.get(ct + offset)))
+          .byte6(UnsignedByte.of(adjLo.get(ct + offset)))
           .acc1(this.arg1Hi.slice(0, 1 + ct))
           .acc2(this.arg1Lo.slice(0, 1 + ct))
           .acc3(this.arg2Hi.slice(0, 1 + ct))
           .acc4(this.arg2Lo.slice(0, 1 + ct))
-          .acc5(adjHi.slice(0, 1 + ct))
-          .acc6(adjLo.slice(0, 1 + ct))
+          .acc5(adjHi.slice(offset, 1 + ct))
+          .acc6(adjLo.slice(offset, 1 + ct))
           .bit1(bit1)
           .bit2(bit2)
           .bit3(bit3)
@@ -234,19 +229,25 @@ public class WcpOperation {
   }
 
   private int maxCt() {
-    return switch (this.opCode) {
-      case ISZERObv, EQbv -> 0;
-      case LTbv, GTbv, LEQbv, GEQbv, SLTbv, SGTbv -> (this.arg1.isZero() && this.arg2.isZero())
-          ? 0
-          : Math.max(
-                  Math.max(
-                      this.arg1.slice(0, LLARGE).trimLeadingZeros().size(),
-                      this.arg2.slice(0, LLARGE).trimLeadingZeros().size()),
-                  Math.max(
-                      this.arg1.slice(LLARGE, LLARGE).trimLeadingZeros().size(),
-                      this.arg2.slice(LLARGE, LLARGE).trimLeadingZeros().size()))
-              - 1;
+    switch (this.opCode) {
+      case ISZERObv, EQbv -> {
+        return 0;
+      }
+      case LTbv, GTbv, LEQbv, GEQbv, SLTbv, SGTbv -> {
+        if (this.arg1.isZero() && this.arg2.isZero()) {
+          return 0;
+        } else {
+          final ArrayList<Integer> sizes = new ArrayList<>(6);
+          sizes.add(this.arg1.slice(0, LLARGE).trimLeadingZeros().size());
+          sizes.add(this.arg2.slice(0, LLARGE).trimLeadingZeros().size());
+          sizes.add(this.arg1.slice(LLARGE, LLARGE).trimLeadingZeros().size());
+          sizes.add(this.arg2.slice(LLARGE, LLARGE).trimLeadingZeros().size());
+          sizes.add(this.adjHi.trimLeadingZeros().size());
+          sizes.add(this.adjLo.trimLeadingZeros().size());
+          return Collections.max(sizes) - 1;
+        }
+      }
       default -> throw new IllegalStateException("Unexpected value: " + this.opCode);
-    };
+    }
   }
 }

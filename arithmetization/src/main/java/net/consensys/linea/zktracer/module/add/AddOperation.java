@@ -79,8 +79,8 @@ public final class AddOperation {
     final Bytes16 arg2Hi = Bytes16.wrap(arg2.slice(0, 16));
     final Bytes16 arg2Lo = Bytes16.wrap(arg2.slice(16));
 
-    final int offset = this.ctMax + 1;
-    final int length = LLARGE - offset;
+    final int length = this.ctMax + 1;
+    final int offset = LLARGE - length;
     final Bytes resHi = res.getHigh().slice(offset, length);
     final Bytes resLo = res.getLow().slice(offset, length);
 

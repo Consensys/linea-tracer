@@ -29,4 +29,24 @@ public class TestTwoPlusTwo {
     BytecodeRunner.of(BytecodeCompiler.newProgram().push(32).push(27).op(OpCode.ADD).compile())
         .run();
   }
+
+  @Test
+  void testAssembler() {
+    BytecodeRunner.of(
+            BytecodeCompiler.newProgram()
+                .assemble(
+                    """
+      ; Perform some addition
+      PUSH8  02
+      PUSH32 0x1234
+      ADD
+      """)
+                .compile())
+        .run();
+  }
+
+  @Test
+  void testBreakingCall() {
+    BytecodeRunner.of(BytecodeCompiler.newProgram().push(32).op(OpCode.CALL).compile()).run();
+  }
 }

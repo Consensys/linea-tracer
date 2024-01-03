@@ -30,12 +30,14 @@ import org.hyperledger.besu.plugin.services.txselection.PluginTransactionSelecto
 @Getter
 @Slf4j
 public class MaxBlockSizeTransactionSelector implements PluginTransactionSelector {
-  private int cumulativeBlockBytesSize = EMPTY_L1_BLOCK_SIZE;
-  private final int maxBytesPerBlock;
+
   public static final int AVERAGE_TX_RLP_SIZE = 400;
   public static final int FROM_ADDRESS_SIZE = 20;
   public static final int EMPTY_L1_BLOCK_SIZE = 64 + 63 + 64 + 64;
   public static final int LOG_SIZE = 32;
+
+  private int cumulativeBlockBytesSize = EMPTY_L1_BLOCK_SIZE;
+  private final int maxBytesPerBlock;
 
   public MaxBlockSizeTransactionSelector(int maxBytesPerBlock) {
     this.maxBytesPerBlock = maxBytesPerBlock;
@@ -72,12 +74,12 @@ public class MaxBlockSizeTransactionSelector implements PluginTransactionSelecto
    * Checks if the total size of all transactions in a block would exceed the maximum allowed size
    * if the given transaction were added.
    *
-   * @param L1TransactionSize the L1 Transaction Size in Bytes.
+   * @param transactionL1Size the L1 Transaction Size in Bytes.
    * @return true if the total call data size would be too big, false otherwise.
    */
-  private boolean isTransactionExceedingL1BlockSizeLimit(int L1TransactionSize) {
+  private boolean isTransactionExceedingL1BlockSizeLimit(final int transactionL1Size) {
     try {
-      return Math.addExact(cumulativeBlockBytesSize, L1TransactionSize) > maxBytesPerBlock;
+      return Math.addExact(cumulativeBlockBytesSize, transactionL1Size) > maxBytesPerBlock;
     } catch (final ArithmeticException e) {
       // Overflow won't occur as totalBlockSize won't exceed Integer.MAX_VALUE
       return true;

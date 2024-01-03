@@ -24,7 +24,7 @@ import java.util.List;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import net.consensys.linea.zktracer.module.Module;
-import net.consensys.linea.zktracer.module.hub.State;
+import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.mmio.Mmio;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
@@ -39,15 +39,18 @@ import org.apache.commons.lang3.ArrayUtils;
 public class Mmu implements Module {
   private final StackedList<MicroData> state = new StackedList<>();
   private int ramStamp;
+  private int microStamp = 0;
   private boolean isMicro;
   private final MicroDataProcessor microDataProcessor;
+  private final Hub hub;
   private final Mmio mmio;
   private final CallStack callStack;
 
-  public Mmu(final Mmio mmio, final CallStack callStack) {
+  public Mmu(final Hub hub, final Mmio mmio, final CallStack callStack) {
+    this.hub = hub;
     this.callStack = callStack;
     this.mmio = mmio;
-    this.microDataProcessor = new MicroDataProcessor();
+    this.microDataProcessor = new MicroDataProcessor(microStamp);
   }
 
   @Override
@@ -80,7 +83,7 @@ public class Mmu implements Module {
     final Trace trace = new Trace(buffers);
 
     for (MicroData m : this.state) {
-      // TODO: Call traceMicroData with correct parameters;
+      traceMicroData(m, callStack, trace);
     }
   }
 
@@ -98,12 +101,7 @@ public class Mmu implements Module {
     this.state.add(microData);
   }
 
-  private void traceMicroData(
-      MicroData microData,
-      final CallStack callStack,
-      Trace trace,
-      final State.TxState.Stamps moduleStamps,
-      final int microStamp) {
+  private void traceMicroData(MicroData microData, final CallStack callStack, Trace trace) {
     if (microData.skip()) {
       return;
     }
@@ -126,7 +124,7 @@ public class Mmu implements Module {
 
     while (microData.processingRow() < microData.readPad().totalNumber()) {
       microDataProcessor.initializeProcessing(callStack, microData);
-      mmio.handleRam(microData, moduleStamps, microStamp);
+      mmio.handleRam(microData, hub.state().stamps(), microStamp);
       trace(microData, trace);
       microData.incrementProcessingRow(1);
     }

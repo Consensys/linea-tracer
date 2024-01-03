@@ -297,6 +297,8 @@ public class Hub implements Module {
                 this.euc,
                 this.logData,
                 this.logInfo,
+                this.mmu,
+                this.mmio,
                 this.mod,
                 this.modexp.data(),
                 this.mul,

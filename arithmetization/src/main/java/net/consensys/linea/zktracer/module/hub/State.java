@@ -32,7 +32,7 @@ public class State implements StackedContainer {
     return this.state.peek();
   }
 
-  TxState.Stamps stamps() {
+  public TxState.Stamps stamps() {
     return this.current().stamps;
   }
 

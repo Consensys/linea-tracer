@@ -197,8 +197,8 @@ public class Hub implements Module {
   public Hub() {
     this.pch = new PlatformController(this);
     this.romLex = new RomLex(this);
-    this.mmio = new Mmio(this.romLex, this.callStack);
-    this.mmu = new Mmu(this.mmio, this.callStack);
+    this.mmio = new Mmio(this, this.romLex, this.callStack);
+    this.mmu = new Mmu(this, this.mmio, this.callStack);
     this.mxp = new Mxp(this);
     this.rom = new Rom(this.romLex);
     this.rlpTxn = new RlpTxn(this.romLex);
@@ -236,6 +236,8 @@ public class Hub implements Module {
                     this.ecData,
                     this.euc,
                     this.ext,
+                    this.mmu,
+                    this.mmio,
                     this.logData,
                     this.logInfo,
                     this.mod,
@@ -296,10 +298,11 @@ public class Hub implements Module {
                 this.ext,
                 this.ecData,
                 this.euc,
+                this.mmu,
+                this.mmio,
                 this.logData,
                 this.logInfo,
                 this.mod,
-                this.mmu,
                 this.mul,
                 this.mxp,
                 this.rlpAddr,

@@ -28,7 +28,7 @@ import net.consensys.linea.zktracer.types.UnsignedByte;
 @Builder
 @Accessors(fluent = true)
 @EqualsAndHashCode
-class LimbByte {
+public class LimbByte {
   @Builder.Default private EWord limb = EWord.ZERO;
   @Builder.Default private UnsignedByte uByte = UnsignedByte.ZERO;
 }

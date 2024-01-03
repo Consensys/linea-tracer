@@ -24,7 +24,9 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.State;
 import net.consensys.linea.zktracer.module.romLex.RomLex;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
@@ -34,10 +36,8 @@ import net.consensys.linea.zktracer.runtime.microdata.MicroData;
 /** MMIO contains the MEMORY MAPPED INPUT OUTPUT module's state. */
 @RequiredArgsConstructor
 public class Mmio implements Module {
-  private Trace trace;
-
-  private Trace currentTrace;
-
+  private final StackedList<MmioOperation> state = new StackedList<>();
+  private final Hub hub;
   private final RomLex romLex;
   private final CallStack callStack;
 
@@ -47,55 +47,64 @@ public class Mmio implements Module {
   }
 
   @Override
-  public void enterTransaction() {}
+  public void enterTransaction() {
+    this.state.enter();
+  }
 
   @Override
-  public void popTransaction() {}
+  public void popTransaction() {
+    this.state.pop();
+  }
 
   @Override
   public int lineCount() {
-    return 0;
+    int sum = 0;
+    for (MmioOperation o : this.state) {
+      sum += o.mmioDataProcessor().maxCounter();
+    }
+
+    return sum;
   }
 
   @Override
   public List<ColumnHeader> columnsHeaders() {
-    return null;
+    return Trace.headers(this.lineCount());
   }
 
   @Override
   public void commit(List<MappedByteBuffer> buffers) {
-    // TODO: concatenate currentTrace to trace
     Trace trace = new Trace(buffers);
+
+    for (MmioOperation o : this.state) {
+      MmioDataProcessor processor = o.mmioDataProcessor();
+      int maxCounter = processor.maxCounter();
+
+      MmioData mmioData = processor.dispatchMmioData();
+      for (int i = 0; i < maxCounter; i++) {
+        processor.updateMmioData(mmioData, maxCounter);
+        trace(trace, o, mmioData, hub.tx().number(), i);
+      }
+    }
   }
 
   public void handleRam(
       MicroData microData, final State.TxState.Stamps moduleStamps, final int microStamp) {
-    MmioDataProcessor mmioDataProcessor = new MmioDataProcessor(romLex, microData, callStack);
-
     if (microData.microOp() == 0) {
       return;
     }
 
-    int maxCounter = mmioDataProcessor.maxCounter();
-    MmioData mmioData = mmioDataProcessor.dispatchMmioData();
+    MmioDataProcessor mmioDataProcessor = new MmioDataProcessor(romLex, microData, callStack);
+    boolean isInitCode = callStack.current().type() == CallFrameType.INIT_CODE;
 
-    for (int i = 0; i < maxCounter; i++) {
-      mmioDataProcessor.updateMmioData(mmioData, maxCounter);
-      boolean isInitCode = callStack.current().type() == CallFrameType.INIT_CODE;
-      int txNum = 0 /*TODO: callStack.txNum*/;
-      trace(microData, mmioData, microStamp, isInitCode, txNum, moduleStamps, i);
-    }
+    this.state.add(
+        new MmioOperation(microData, mmioDataProcessor, moduleStamps, microStamp, isInitCode));
   }
 
   private void trace(
-      MicroData microData,
-      MmioData mmioData,
-      int microStamp,
-      boolean isInit,
-      int txNum,
-      State.TxState.Stamps moduleStamps,
-      int counter) {
-    currentTrace
+      Trace trace, MmioOperation mmioOperation, MmioData mmioData, int txNum, int counter) {
+    MicroData microData = mmioOperation.microData();
+
+    trace
         .cnA(BigInteger.valueOf(mmioData.cnA()))
         .cnB(BigInteger.valueOf(mmioData.cnB()))
         .cnC(BigInteger.valueOf(mmioData.cnC()))
@@ -114,11 +123,11 @@ public class Mmio implements Module {
         .accA(unsignedBytesSubArrayToUnsignedBigInteger(mmioData.valA(), counter + 1))
         .accB(unsignedBytesSubArrayToUnsignedBigInteger(mmioData.valB(), counter + 1))
         .accC(unsignedBytesSubArrayToUnsignedBigInteger(mmioData.valC(), counter + 1))
-        .microInstructionStamp(BigInteger.valueOf(microStamp))
+        .microInstructionStamp(BigInteger.valueOf(mmioOperation.microStamp()))
         .microInstruction(BigInteger.valueOf(microData.microOp()))
         .contextSource(BigInteger.valueOf(microData.sourceContext()))
         .contextTarget(BigInteger.valueOf(microData.targetContext()))
-        .isInit(isInit)
+        .isInit(mmioOperation.isInitCode())
         .sourceLimbOffset(microData.sourceLimbOffset().toUnsignedBigInteger())
         .targetLimbOffset(microData.targetLimbOffset().toUnsignedBigInteger())
         .sourceByteOffset(microData.sourceByteOffset().toBigInteger())
@@ -140,7 +149,7 @@ public class Mmio implements Module {
         .byteX(mmioData.valX()[counter])
         .accX(unsignedBytesSubArrayToUnsignedBigInteger(mmioData.valX(), counter + 1))
         .txNum(BigInteger.valueOf(txNum))
-        .logNum(BigInteger.valueOf(moduleStamps.log()))
+        .logNum(BigInteger.valueOf(mmioOperation.moduleStamps().log()))
         .bin1(mmioData.bin1())
         .bin2(mmioData.bin2())
         .bin3(mmioData.bin3())
@@ -155,7 +164,6 @@ public class Mmio implements Module {
         .pow2561(mmioData.pow2561().toUnsignedBigInteger())
         .pow2562(mmioData.pow2562().toUnsignedBigInteger())
         .counter(BigInteger.valueOf(counter))
-        .validateRow()
-        .build();
+        .validateRow();
   }
 }

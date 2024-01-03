@@ -30,7 +30,10 @@ class MicroDataProcessor {
 
   private final PreComputations preComputations;
 
-  MicroDataProcessor() {
+  private int microStamp = 0;
+
+  MicroDataProcessor(int microStamp) {
+    this.microStamp = microStamp;
     this.microData = new MicroData();
     this.preComputations = new PreComputations();
   }
@@ -71,6 +74,8 @@ class MicroDataProcessor {
       final CallStack callStack,
       final MicroData microData,
       final TriFunction<MmuPreComputation, MicroData, CallStack, MicroData> processorFunc) {
+    microStamp++;
+
     for (MmuPreComputation p : preComputations.types()) {
       if (p.preComputationTypes().contains(microData.precomputation())) {
         processorFunc.apply(p, microData, callStack);

@@ -18,9 +18,9 @@ package net.consensys.linea.zktracer.module.mmio;
 import java.util.Map;
 
 import net.consensys.linea.zktracer.module.mmio.dispatchers.MmioDispatcher;
-import net.consensys.linea.zktracer.module.mmu.MicroData;
 import net.consensys.linea.zktracer.module.romLex.RomLex;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
+import net.consensys.linea.zktracer.runtime.microdata.MicroData;
 
 class MmioDataProcessor {
   private final MicroData microData;

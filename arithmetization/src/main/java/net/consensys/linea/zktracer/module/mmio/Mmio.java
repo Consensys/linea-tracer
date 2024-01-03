@@ -22,32 +22,24 @@ import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.State;
-import net.consensys.linea.zktracer.module.mmu.MicroData;
 import net.consensys.linea.zktracer.module.romLex.RomLex;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
+import net.consensys.linea.zktracer.runtime.microdata.MicroData;
 
 /** MMIO contains the MEMORY MAPPED INPUT OUTPUT module's state. */
+@RequiredArgsConstructor
 public class Mmio implements Module {
-
   private Trace trace;
 
   private Trace currentTrace;
 
-  private final MicroData microData;
-
+  private final RomLex romLex;
   private final CallStack callStack;
-
-  private final MmioDataProcessor mmioDataProcessor;
-
-  public Mmio(final RomLex romLex, final MicroData microData, final CallStack callStack) {
-    this.microData = microData;
-    this.callStack = callStack;
-    this.mmioDataProcessor = new MmioDataProcessor(romLex, microData, callStack);
-  }
 
   @Override
   public String moduleKey() {
@@ -76,7 +68,10 @@ public class Mmio implements Module {
     Trace trace = new Trace(buffers);
   }
 
-  public void handleRam(final State.TxState.Stamps moduleStamps, final int microStamp) {
+  public void handleRam(
+      MicroData microData, final State.TxState.Stamps moduleStamps, final int microStamp) {
+    MmioDataProcessor mmioDataProcessor = new MmioDataProcessor(romLex, microData, callStack);
+
     if (microData.microOp() == 0) {
       return;
     }
@@ -88,11 +83,12 @@ public class Mmio implements Module {
       mmioDataProcessor.updateMmioData(mmioData, maxCounter);
       boolean isInitCode = callStack.current().type() == CallFrameType.INIT_CODE;
       int txNum = 0 /*TODO: callStack.txNum*/;
-      trace(mmioData, microStamp, isInitCode, txNum, moduleStamps, i);
+      trace(microData, mmioData, microStamp, isInitCode, txNum, moduleStamps, i);
     }
   }
 
   private void trace(
+      MicroData microData,
       MmioData mmioData,
       int microStamp,
       boolean isInit,
@@ -159,6 +155,7 @@ public class Mmio implements Module {
         .pow2561(mmioData.pow2561().toUnsignedBigInteger())
         .pow2562(mmioData.pow2562().toUnsignedBigInteger())
         .counter(BigInteger.valueOf(counter))
+        .validateRow()
         .build();
   }
 }

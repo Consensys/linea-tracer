@@ -51,9 +51,9 @@ import net.consensys.linea.zktracer.module.mmio.dispatchers.RamToRamSlideOverlap
 import net.consensys.linea.zktracer.module.mmio.dispatchers.StoreXInAThreeRequiredDispatcher;
 import net.consensys.linea.zktracer.module.mmio.dispatchers.StoreXInBDispatcher;
 import net.consensys.linea.zktracer.module.mmio.dispatchers.StoreXInCDispatcher;
-import net.consensys.linea.zktracer.module.mmu.MicroData;
 import net.consensys.linea.zktracer.module.romLex.RomLex;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
+import net.consensys.linea.zktracer.runtime.microdata.MicroData;
 
 @Accessors(fluent = true)
 public class Dispatchers {

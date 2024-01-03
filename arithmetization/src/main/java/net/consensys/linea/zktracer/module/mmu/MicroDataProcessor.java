@@ -15,11 +15,13 @@
 
 package net.consensys.linea.zktracer.module.mmu;
 
-import java.util.Map;
+import java.util.List;
 
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
+import net.consensys.linea.zktracer.runtime.microdata.InstructionContext;
+import net.consensys.linea.zktracer.runtime.microdata.MicroData;
 import net.consensys.linea.zktracer.runtime.stack.StackOperation;
 import org.apache.commons.lang3.function.TriFunction;
 
@@ -42,7 +44,7 @@ class MicroDataProcessor {
   }
 
   MicroData dispatchOpCode(
-      final OpCode opCode, final Map<Integer, StackOperation> stackOps, final CallStack callStack) {
+      final OpCode opCode, final List<StackOperation> stackOps, final CallStack callStack) {
     int preComputation = typeOf(opCode, callStack);
 
     microData.precomputation(preComputation);

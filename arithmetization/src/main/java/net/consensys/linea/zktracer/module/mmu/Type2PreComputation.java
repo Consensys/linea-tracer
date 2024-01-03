@@ -16,13 +16,19 @@
 package net.consensys.linea.zktracer.module.mmu;
 
 import java.math.BigInteger;
-import java.util.Map;
+import java.util.List;
 import java.util.Set;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
+import net.consensys.linea.zktracer.runtime.microdata.Contexts;
+import net.consensys.linea.zktracer.runtime.microdata.LimbByte;
+import net.consensys.linea.zktracer.runtime.microdata.MicroData;
+import net.consensys.linea.zktracer.runtime.microdata.Offsets;
+import net.consensys.linea.zktracer.runtime.microdata.Pointers;
+import net.consensys.linea.zktracer.runtime.microdata.ReadPad;
 import net.consensys.linea.zktracer.runtime.stack.StackOperation;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
@@ -36,7 +42,7 @@ class Type2PreComputation implements MmuPreComputation {
   public MicroData dispatch(
       final MicroData microData,
       final OpCode opCode,
-      final Map<Integer, StackOperation> stackOps,
+      final List<StackOperation> stackOps,
       final CallStack callStack) {
     microData.contexts(
         Contexts.builder()

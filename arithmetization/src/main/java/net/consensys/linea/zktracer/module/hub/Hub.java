@@ -55,6 +55,7 @@ import net.consensys.linea.zktracer.module.limits.precompiles.Rip160Blocks;
 import net.consensys.linea.zktracer.module.limits.precompiles.Sha256Blocks;
 import net.consensys.linea.zktracer.module.logData.LogData;
 import net.consensys.linea.zktracer.module.logInfo.LogInfo;
+import net.consensys.linea.zktracer.module.mmio.Mmio;
 import net.consensys.linea.zktracer.module.mmu.Mmu;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.mul.Mul;
@@ -175,6 +176,7 @@ public class Hub implements Module {
   private final RlpTxn rlpTxn;
   private final Module mxp;
   private final Mmu mmu;
+  private final Mmio mmio;
   private final RlpTxrcpt rlpTxrcpt = new RlpTxrcpt();
   private final LogInfo logInfo = new LogInfo(rlpTxrcpt);
   private final LogData logData = new LogData(rlpTxrcpt);
@@ -194,9 +196,10 @@ public class Hub implements Module {
 
   public Hub() {
     this.pch = new PlatformController(this);
-    this.mmu = new Mmu(this.callStack);
-    this.mxp = new Mxp(this);
     this.romLex = new RomLex(this);
+    this.mmio = new Mmio(this.romLex, this.callStack);
+    this.mmu = new Mmu(this.mmio, this.callStack);
+    this.mxp = new Mxp(this);
     this.rom = new Rom(this.romLex);
     this.rlpTxn = new RlpTxn(this.romLex);
     this.txnData = new TxnData(this, this.romLex, this.wcp);
@@ -701,6 +704,10 @@ public class Hub implements Module {
     StackContext pending = this.currentFrame().pending();
     for (int i = 0; i < pending.lines().size(); i++) {
       StackLine line = pending.lines().get(i);
+      if (i == 0 && this.pch.signals().mmu()) {
+        this.mmu.handleRam(this.opCode(), line.asStackOperations(), this.callStack());
+      }
+
       if (line.needsResult()) {
         Bytes result = Bytes.EMPTY;
         // Only pop from the stack if no exceptions have been encountered
@@ -952,6 +959,14 @@ public class Hub implements Module {
             || this.opCodeData().isInvalid()
             || this.pch().exceptions().any()
             || isValidPrecompileCall(frame, this.currentFrame().opCode());
+
+    if (this.opCode() == OpCode.RETURN) {
+      if (frame.stackSize() >= 2) {
+        final long offset = Words.clampedToLong(frame.getStackItem(0));
+        final long size = Words.clampedToLong(frame.getStackItem(1));
+        this.currentFrame().setReturn(offset, size);
+      }
+    }
 
     switch (this.opCodeData().instructionFamily()) {
       case ADD,

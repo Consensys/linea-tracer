@@ -20,19 +20,25 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 
+@Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Accessors(fluent = true)
 public class MemoryRange {
-  @Getter private MemoryPoint start;
-  @Getter private MemoryPoint end;
+  private MemoryPoint start;
+  private MemoryPoint end;
 
-  public static MemoryRange newInstance(EWord offset, EWord length) {
-    EWord endWord = offset.add(length);
+  public static MemoryRange fromOffsetSize(EWord start, EWord length) {
+    final EWord end = start.add(length);
 
-    MemoryPoint start = MemoryPoint.fromAddress(offset);
-    MemoryPoint end = MemoryPoint.fromAddress(endWord);
+    return new MemoryRange(MemoryPoint.fromAddress(start), MemoryPoint.fromAddress(end));
+  }
 
-    return new MemoryRange(start, end);
+  public static MemoryRange fromStartEnd(EWord start, EWord end) {
+    return new MemoryRange(MemoryPoint.fromAddress(start), MemoryPoint.fromAddress(end));
+  }
+
+  public static MemoryRange fromStartEnd(long start, long end) {
+    return new MemoryRange(MemoryPoint.fromAddress(start), MemoryPoint.fromAddress(end));
   }
 
   public EWord length() {

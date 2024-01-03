@@ -13,46 +13,46 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.mmu;
+package net.consensys.linea.zktracer.runtime.microdata;
 
 import lombok.Builder;
 
 @Builder
-record ReadPad(int totalNumberLimbs, int totalNumberPaddingMicroInstructions) {
+public record ReadPad(int totalNumberLimbs, int totalNumberPaddingMicroInstructions) {
 
-  int totalNumber() {
+  public int totalNumber() {
     return totalNumberLimbs + totalNumberPaddingMicroInstructions;
   }
 
-  boolean isRead(final int processingRow) {
+  public boolean isRead(final int processingRow) {
     return processingRow < totalNumberLimbs;
   }
 
-  boolean isPad(final int processingRow) {
+  public boolean isPad(final int processingRow) {
     return !isRead(processingRow);
   }
 
-  boolean isFirstRead(final int processingRow) {
+  public boolean isFirstRead(final int processingRow) {
     return processingRow == 0 && totalNumberLimbs != 0;
   }
 
-  boolean isFirstPad(final int processingRow) {
+  public boolean isFirstPad(final int processingRow) {
     return totalNumberPaddingMicroInstructions != 0 && processingRow == totalNumberLimbs;
   }
 
-  boolean isFirstMicroInstruction(final int processingRow) {
+  public boolean isFirstMicroInstruction(final int processingRow) {
     return isFirstRead(processingRow) || (totalNumberLimbs == 0 && isFirstPad(processingRow));
   }
 
-  boolean isLastRead(final int processingRow) {
+  public boolean isLastRead(final int processingRow) {
     return totalNumberLimbs != 0 && (processingRow + 1) == totalNumberLimbs;
   }
 
-  boolean isLastPad(final int processingRow) {
+  public boolean isLastPad(final int processingRow) {
     return totalNumberPaddingMicroInstructions != 0 && processingRow == (totalNumber() - 1);
   }
 
-  int remainingMicroInstructions(final int processingRow) {
+  public int remainingMicroInstructions(final int processingRow) {
     if (!isRead(processingRow) || isPad(processingRow)) {
       return totalNumber();
     }
@@ -60,7 +60,7 @@ record ReadPad(int totalNumberLimbs, int totalNumberPaddingMicroInstructions) {
     return totalNumber() - processingRow - 1;
   }
 
-  int remainingReads(final int processingRow) {
+  public int remainingReads(final int processingRow) {
     if (isRead(processingRow)) {
       return totalNumberLimbs - processingRow - 1;
     }
@@ -68,7 +68,7 @@ record ReadPad(int totalNumberLimbs, int totalNumberPaddingMicroInstructions) {
     return 0;
   }
 
-  int remainingPads(final int processingRow) {
+  public int remainingPads(final int processingRow) {
     if (processingRow == -1 || isRead(processingRow)) {
       return totalNumberPaddingMicroInstructions;
     }

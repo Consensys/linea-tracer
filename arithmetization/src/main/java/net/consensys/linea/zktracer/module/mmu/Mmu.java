@@ -21,14 +21,18 @@ import static net.consensys.linea.zktracer.types.Conversions.unsignedBytesToUnsi
 import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.module.hub.State;
 import net.consensys.linea.zktracer.module.mmio.Mmio;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
+import net.consensys.linea.zktracer.runtime.microdata.InstructionContext;
+import net.consensys.linea.zktracer.runtime.microdata.MicroData;
+import net.consensys.linea.zktracer.runtime.microdata.Pointers;
 import net.consensys.linea.zktracer.runtime.stack.StackOperation;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
@@ -36,11 +40,10 @@ import org.apache.commons.lang3.ArrayUtils;
 
 public class Mmu implements Module {
   private final StackedList<MicroData> state = new StackedList<>();
-  private Mmio mmio;
   private int ramStamp;
   private boolean isMicro;
   private final MicroDataProcessor microDataProcessor;
-
+  private final Mmio mmio;
   private final CallStack callStack;
 
   public Mmu(final Mmio mmio, final CallStack callStack) {
@@ -79,7 +82,7 @@ public class Mmu implements Module {
     final Trace trace = new Trace(buffers);
 
     for (MicroData m : this.state) {
-      traceMicroData(m, callStack, trace);
+      // TODO: Call traceMicroData with correct parameters;
     }
   }
 
@@ -91,13 +94,18 @@ public class Mmu implements Module {
    * @param callStack
    */
   public void handleRam(
-      final OpCode opCode, final Map<Integer, StackOperation> stackOps, final CallStack callStack) {
+      final OpCode opCode, final List<StackOperation> stackOps, final CallStack callStack) {
     MicroData microData = microDataProcessor.dispatchOpCode(opCode, stackOps, callStack);
 
     this.state.add(microData);
   }
 
-  private void traceMicroData(MicroData microData, final CallStack callStack, Trace trace) {
+  private void traceMicroData(
+      MicroData microData,
+      final CallStack callStack,
+      Trace trace,
+      final State.TxState.Stamps moduleStamps,
+      final int microStamp) {
     if (microData.skip()) {
       return;
     }
@@ -120,7 +128,7 @@ public class Mmu implements Module {
 
     while (microData.processingRow() < microData.readPad().totalNumber()) {
       microDataProcessor.initializeProcessing(callStack, microData);
-      //      self.Mmio.handleRam(&uop, self.MicroStamp, callStack, moduleStamp)
+      mmio.handleRam(microData, moduleStamps, microStamp);
       trace(microData, trace);
       microData.incrementProcessingRow(1);
     }
@@ -167,15 +175,15 @@ public class Mmu implements Module {
         .targetLimbOffset(microData.targetLimbOffset().toUnsignedBigInteger())
         .targetByteOffset(microData.targetByteOffset().toBigInteger())
         .size(BigInteger.valueOf(microData.size()))
-        .nib1(nibbles[0])
-        .nib2(nibbles[1])
-        .nib3(nibbles[2])
-        .nib4(nibbles[3])
-        .nib5(nibbles[4])
-        .nib6(nibbles[5])
-        .nib7(nibbles[6])
-        .nib8(nibbles[7])
-        .nib9(nibbles[8])
+        .nib1(Objects.requireNonNullElse(nibbles[0], UnsignedByte.ZERO))
+        .nib2(Objects.requireNonNullElse(nibbles[1], UnsignedByte.ZERO))
+        .nib3(Objects.requireNonNullElse(nibbles[2], UnsignedByte.ZERO))
+        .nib4(Objects.requireNonNullElse(nibbles[3], UnsignedByte.ZERO))
+        .nib5(Objects.requireNonNullElse(nibbles[4], UnsignedByte.ZERO))
+        .nib6(Objects.requireNonNullElse(nibbles[5], UnsignedByte.ZERO))
+        .nib7(Objects.requireNonNullElse(nibbles[6], UnsignedByte.ZERO))
+        .nib8(Objects.requireNonNullElse(nibbles[7], UnsignedByte.ZERO))
+        .nib9(Objects.requireNonNullElse(nibbles[8], UnsignedByte.ZERO))
         .acc1(acc(0, microData))
         .byte1(accByte(0, microData))
         .acc2(acc(1, microData))
@@ -221,7 +229,8 @@ public class Mmu implements Module {
         .refo(BigInteger.valueOf(microData.referenceOffset()))
         .info(booleanToBigInteger(microData.info()))
         .isData(this.ramStamp != 0)
-        .validateRow();
+        .validateRow()
+        .build();
   }
 
   private BigInteger acc(final int accIndex, final MicroData microData) {

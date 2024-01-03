@@ -13,20 +13,20 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.mmu;
+package net.consensys.linea.zktracer.runtime.microdata;
 
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.types.EWord;
-import net.consensys.linea.zktracer.types.UnsignedByte;
+import org.apache.tuweni.bytes.Bytes;
 
 @Builder
+@Getter
+@Setter
 @Accessors(fluent = true)
-@EqualsAndHashCode
-class LimbByte {
-  @Getter @Setter private EWord limb;
-  @Getter @Setter private UnsignedByte uByte;
+public class Pointers {
+  @Builder.Default private Bytes stack1 = Bytes.EMPTY;
+  @Builder.Default private Bytes stack2 = Bytes.EMPTY;
+  private boolean oob;
 }

@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.mmu;
+package net.consensys.linea.zktracer.runtime.microdata;
 
 import static net.consensys.linea.zktracer.types.Conversions.bytesToUnsignedBytes;
 import static net.consensys.linea.zktracer.types.Conversions.unsignedBytesToEWord;
@@ -42,6 +42,18 @@ class MicroData extends ModuleOperation {
   private static final UnsignedByte[] DEFAULT_NIBBLES = new UnsignedByte[9];
   private static final UnsignedByte[][] DEFAULT_ACCS = new UnsignedByte[8][32];
   private static final boolean[] DEFAULT_BITS = new boolean[8];
+
+  private static final int RAM_TO_RAM = 601;
+  private static final int EXO_TO_RAM = 602;
+  private static final int RAM_IS_EXO = 603;
+  private static final int KILLING_ONE = 604;
+  private static final int PUSH_TWO_RAM_TO_STACK = 605;
+  private static final int PUSH_ONE_RAM_TO_STACK = 606;
+  private static final int EXCEPTIONAL_RAM_TO_STACK_3_TO_2_FULL_FAST = 607;
+  private static final int PUSH_TWO_STACK_TO_RAM = 608;
+  private static final int STORE_X_IN_A_THREE_REQUIRED = 609;
+  private static final int STORE_X_IN_B = 610;
+  private static final int STORE_X_IN_C = 611;
 
   @Getter @Setter private int callStackDepth;
   @Getter @Setter private int callStackSize;
@@ -91,7 +103,7 @@ class MicroData extends ModuleOperation {
   // < 1.000.000
   @Getter @Setter private int referenceSize;
 
-  MicroData() {
+  public MicroData() {
     this(
         0,
         0,
@@ -136,22 +148,22 @@ class MicroData extends ModuleOperation {
   }
 
   public boolean isErf() {
-    return microOp == Trace.StoreXInAThreeRequired;
+    return microOp == STORE_X_IN_A_THREE_REQUIRED;
   }
 
   public boolean isFast() {
     return Arrays.asList(
-            Trace.RamToRam,
-            Trace.ExoToRam,
-            Trace.RamIsExo,
-            Trace.KillingOne,
-            Trace.PushTwoRamToStack,
-            Trace.PushOneRamToStack,
-            Trace.ExceptionalRamToStack3To2FullFast,
-            Trace.PushTwoStackToRam,
-            Trace.StoreXInAThreeRequired,
-            Trace.StoreXInB,
-            Trace.StoreXInC)
+            RAM_TO_RAM,
+            EXO_TO_RAM,
+            RAM_IS_EXO,
+            KILLING_ONE,
+            PUSH_TWO_RAM_TO_STACK,
+            PUSH_ONE_RAM_TO_STACK,
+            EXCEPTIONAL_RAM_TO_STACK_3_TO_2_FULL_FAST,
+            PUSH_TWO_STACK_TO_RAM,
+            STORE_X_IN_A_THREE_REQUIRED,
+            STORE_X_IN_B,
+            STORE_X_IN_C)
         .contains(microOp);
   }
 
@@ -180,39 +192,39 @@ class MicroData extends ModuleOperation {
     return microOp == OpCode.CALLDATALOAD.getData().value();
   }
 
-  int remainingMicroInstructions() {
+  public int remainingMicroInstructions() {
     return readPad.remainingMicroInstructions(processingRow);
   }
 
-  boolean isRead() {
+  public boolean isRead() {
     return readPad.isRead(processingRow);
   }
 
-  int remainingReads() {
+  public int remainingReads() {
     return readPad.remainingReads(processingRow);
   }
 
-  int remainingPads() {
+  public int remainingPads() {
     return readPad.remainingPads(processingRow);
   }
 
-  boolean isFirstRead() {
+  public boolean isFirstRead() {
     return readPad.isFirstRead(processingRow);
   }
 
-  boolean isFirstPad() {
+  public boolean isFirstPad() {
     return readPad.isFirstPad(processingRow);
   }
 
-  boolean isFirstMicroInstruction() {
+  public boolean isFirstMicroInstruction() {
     return readPad.isFirstMicroInstruction(processingRow);
   }
 
-  boolean isLastRead() {
+  public boolean isLastRead() {
     return readPad.isLastRead(processingRow);
   }
 
-  boolean isLastPad() {
+  public boolean isLastPad() {
     return readPad.isLastPad(processingRow);
   }
 
@@ -224,7 +236,7 @@ class MicroData extends ModuleOperation {
     return contexts.source();
   }
 
-  void sourceContext(final int value) {
+  public void sourceContext(final int value) {
     contexts.source(value);
   }
 
@@ -232,7 +244,7 @@ class MicroData extends ModuleOperation {
     return contexts.target();
   }
 
-  void targetContext(final int value) {
+  public void targetContext(final int value) {
     contexts.target(value);
   }
 
@@ -240,7 +252,7 @@ class MicroData extends ModuleOperation {
     return offsets.source().limb();
   }
 
-  void sourceLimbOffset(final EWord value) {
+  public void sourceLimbOffset(final EWord value) {
     offsets.source().limb(value);
   }
 
@@ -248,7 +260,7 @@ class MicroData extends ModuleOperation {
     return offsets.source().uByte();
   }
 
-  void sourceByteOffset(final UnsignedByte value) {
+  public void sourceByteOffset(final UnsignedByte value) {
     offsets.source().uByte(value);
   }
 
@@ -256,7 +268,7 @@ class MicroData extends ModuleOperation {
     return offsets.target().limb();
   }
 
-  void targetLimbOffset(final EWord value) {
+  public void targetLimbOffset(final EWord value) {
     offsets.target().limb(value);
   }
 
@@ -264,27 +276,27 @@ class MicroData extends ModuleOperation {
     return offsets.target().uByte();
   }
 
-  void targetByteOffset(final UnsignedByte value) {
+  public void targetByteOffset(final UnsignedByte value) {
     offsets.target().uByte(value);
   }
 
-  EWord getAccsAtIndex(final int index) {
+  public EWord getAccsAtIndex(final int index) {
     return unsignedBytesToEWord(accs[index]);
   }
 
-  void setAccsAtIndex(final int index, final EWord value) {
+  public void setAccsAtIndex(final int index, final EWord value) {
     byte[] rawBytes = value.hiBigInt().toByteArray();
 
     accs[index] = bytesToUnsignedBytes(rawBytes);
   }
 
-  void setAccsAtIndex(final int index, final BigInteger value) {
+  public void setAccsAtIndex(final int index, final BigInteger value) {
     byte[] rawBytes = value.toByteArray();
 
     accs[index] = bytesToUnsignedBytes(rawBytes);
   }
 
-  void setAccsAndNibblesAtIndex(final int index, final EWord value) {
+  public void setAccsAndNibblesAtIndex(final int index, final EWord value) {
     EWord div = value.divide(16);
     setAccsAtIndex(index, div);
 
@@ -292,7 +304,7 @@ class MicroData extends ModuleOperation {
     nibbles[index] = modulus;
   }
 
-  void setInfo(final CallStack callStack) {
+  public void setInfo(final CallStack callStack) {
     if (Arrays.asList(OpCode.CODECOPY, OpCode.RETURN).contains(opCode)) {
       info = callStack.current().type() == CallFrameType.INIT_CODE;
       // TODO: settle EXTCODEDOPY info for CODECOPY
@@ -301,11 +313,11 @@ class MicroData extends ModuleOperation {
     }
   }
 
-  void incrementCounter(final int value) {
+  public void incrementCounter(final int value) {
     counter += value;
   }
 
-  void incrementProcessingRow(final int value) {
+  public void incrementProcessingRow(final int value) {
     processingRow += value;
   }
 }

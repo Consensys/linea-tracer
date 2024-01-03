@@ -23,6 +23,8 @@ package net.consensys.linea.zktracer.module.hub.memory;
  */
 public record MemorySpan(long offset, long length) {
 
+  public static MemorySpan ZERO = new MemorySpan(0, 0);
+
   /**
    * An alternative way to build a MemorySpan, from a start and an end.
    *
@@ -30,8 +32,12 @@ public record MemorySpan(long offset, long length) {
    * @param end the region end
    * @return the MemorySpan describing the region running from start to end
    */
-  static MemorySpan fromStartEnd(long start, long end) {
+  public static MemorySpan fromStartEnd(long start, long end) {
     return new MemorySpan(start, end - start);
+  }
+
+  public static MemorySpan fromOffsetSize(long offset, long size) {
+    return new MemorySpan(offset, size);
   }
 
   /**

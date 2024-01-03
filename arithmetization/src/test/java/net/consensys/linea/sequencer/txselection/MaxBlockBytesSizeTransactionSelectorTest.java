@@ -19,11 +19,16 @@ import static net.consensys.linea.sequencer.txselection.selectors.MaxBlockSizeTr
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hyperledger.besu.plugin.data.TransactionSelectionResult.SELECTED;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
 
 import net.consensys.linea.sequencer.txselection.selectors.MaxBlockSizeTransactionSelector;
+import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.PendingTransaction;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.log.Log;
@@ -44,7 +49,7 @@ public class MaxBlockBytesSizeTransactionSelectorTest {
         EMPTY_L1_BLOCK_SIZE
             + (transactionCount * (FROM_ADDRESS_SIZE + AVERAGE_TX_RLP_SIZE))
             + (logsCount * LOG_SIZE);
-    txSelector = new MaxBlockSizeTransactionSelector(maxBytesPerBlock);
+    txSelector = spy(new MaxBlockSizeTransactionSelector(maxBytesPerBlock));
   }
 
   @Test
@@ -82,11 +87,13 @@ public class MaxBlockBytesSizeTransactionSelectorTest {
     var selectionResult = selector.evaluateTransactionPostProcessing(transaction, processingResult);
     assertThat(selectionResult).isEqualTo(expectedSelectionResult);
     notifySelector(txSelector, transaction, processingResult, selectionResult);
+    verify(txSelector, times(1)).calculateTransactionSize(transaction, processingResult.getLogs());
   }
 
   private PendingTransaction mockTransaction() {
     PendingTransaction mockTransaction = mock(PendingTransaction.class);
     Transaction transaction = mock(Transaction.class);
+    when(transaction.getHash()).thenReturn(Hash.hash(Bytes.random(32)));
     when(mockTransaction.getTransaction()).thenReturn(transaction);
     return mockTransaction;
   }

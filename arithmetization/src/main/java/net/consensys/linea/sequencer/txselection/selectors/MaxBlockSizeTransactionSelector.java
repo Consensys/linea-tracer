@@ -18,10 +18,13 @@ import static net.consensys.linea.sequencer.txselection.LineaTransactionSelectio
 
 import java.util.List;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.PendingTransaction;
-import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.plugin.data.TransactionProcessingResult;
 import org.hyperledger.besu.plugin.data.TransactionSelectionResult;
@@ -39,6 +42,8 @@ public class MaxBlockSizeTransactionSelector implements PluginTransactionSelecto
   private int cumulativeBlockBytesSize = EMPTY_L1_BLOCK_SIZE;
   private final int maxBytesPerBlock;
 
+  static final Cache<Hash, Integer> cache = CacheBuilder.newBuilder().maximumSize(1000).build();
+
   public MaxBlockSizeTransactionSelector(int maxBytesPerBlock) {
     this.maxBytesPerBlock = maxBytesPerBlock;
   }
@@ -53,9 +58,8 @@ public class MaxBlockSizeTransactionSelector implements PluginTransactionSelecto
   public TransactionSelectionResult evaluateTransactionPostProcessing(
       final PendingTransaction pendingTransaction,
       final TransactionProcessingResult processingResult) {
-
     int transactionL1Size =
-        calculateL1TransactionSize(pendingTransaction, processingResult.getLogs());
+        computeL1TransactionSize(pendingTransaction, processingResult.getLogs());
     if (isTransactionExceedingL1BlockSizeLimit(transactionL1Size)) {
       log.atTrace()
           .setMessage(
@@ -94,23 +98,34 @@ public class MaxBlockSizeTransactionSelector implements PluginTransactionSelecto
   @Override
   public void onTransactionSelected(
       final PendingTransaction pendingTransaction, final TransactionProcessingResult result) {
-    final int transactionL1Size = calculateL1TransactionSize(pendingTransaction, result.getLogs());
+    final int transactionL1Size = computeL1TransactionSize(pendingTransaction, result.getLogs());
     cumulativeBlockBytesSize = Math.addExact(cumulativeBlockBytesSize, transactionL1Size);
   }
 
-  public static int calculateL1TransactionSize(
-      final PendingTransaction pendingTransaction, final List<Log> logs) {
-    return calculateTransactionSize(pendingTransaction.getTransaction())
-        + FROM_ADDRESS_SIZE
-        + calculateLogsSize(logs);
+  public int computeL1TransactionSize(final PendingTransaction tx, final List<Log> logs) {
+    Hash transactionHash = tx.getTransaction().getHash();
+    Integer transactionSize = cache.getIfPresent(transactionHash);
+    if (transactionSize == null) {
+      transactionSize = calculateTransactionSize(tx, logs);
+      cache.put(transactionHash, transactionSize);
+    }
+    return transactionSize;
   }
 
-  private static int calculateLogsSize(final List<Log> logs) {
+  @VisibleForTesting
+  public int calculateTransactionSize(final PendingTransaction tx, final List<Log> logs) {
+    // TODO Replace with transaction actual size
+    return AVERAGE_TX_RLP_SIZE + FROM_ADDRESS_SIZE + computeLogsSize(logs);
+  }
+
+  private static int computeLogsSize(final List<Log> logs) {
     return logs.size() * LOG_SIZE;
   }
 
-  private static int calculateTransactionSize(final Transaction transaction) {
-    // TODO Replace with transaction actual size
-    return AVERAGE_TX_RLP_SIZE;
+  @Override
+  public void onTransactionNotSelected(
+      final PendingTransaction pendingTransaction,
+      final TransactionSelectionResult transactionSelectionResult) {
+    cache.invalidate(pendingTransaction.getTransaction().getHash());
   }
 }

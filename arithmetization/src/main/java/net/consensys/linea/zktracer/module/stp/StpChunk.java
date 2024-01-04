@@ -23,6 +23,7 @@ import java.util.Optional;
 
 import com.google.common.base.Preconditions;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -33,6 +34,7 @@ import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 
+@RequiredArgsConstructor
 @Accessors(fluent = true)
 @Getter
 public final class StpChunk extends ModuleOperation {
@@ -47,32 +49,6 @@ public final class StpChunk extends ModuleOperation {
   private final Optional<Boolean> toExists;
   private final Optional<Boolean> toWarm;
   private final Optional<Bytes32> gas;
-
-  public StpChunk(
-      OpCode opCode,
-      Long gasActual,
-      Long gasPrelim,
-      Boolean oogx,
-      Long gasMxp,
-      Wei balance,
-      Address to,
-      Bytes32 value, // from stack
-      // for Call only
-      Optional<Boolean> toExists,
-      Optional<Boolean> toWarm,
-      Optional<Bytes32> gas) {
-    this.opCode = opCode;
-    this.gasActual = gasActual;
-    this.gasPrelim = gasPrelim;
-    this.oogx = oogx;
-    this.gasMxp = gasMxp;
-    this.balance = balance;
-    this.to = to;
-    this.value = value;
-    this.toExists = toExists;
-    this.toWarm = toWarm;
-    this.gas = gas;
-  }
 
   // Used by Create's instruction
   public StpChunk(
@@ -307,18 +283,10 @@ public final class StpChunk extends ModuleOperation {
   }
 
   private int maxCt() {
-    if (this.oogx()) {
-      if (this.opCode().isCreate()) {
-        return 1;
-      } else {
-        return 2;
-      }
+    if (this.oogx) {
+      return this.opCode.isCreate() ? 1 : 2;
     } else {
-      if (this.opCode().isCreate()) {
-        return 2;
-      } else {
-        return 4;
-      }
+      return this.opCode.isCreate() ? 2 : 4;
     }
   }
 

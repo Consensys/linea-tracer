@@ -15,15 +15,12 @@
 
 package net.consensys.linea.zktracer.container.stacked.list;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
-import java.util.function.Predicate;
-import java.util.function.UnaryOperator;
 
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.container.StackedContainer;
@@ -36,93 +33,8 @@ import org.jetbrains.annotations.NotNull;
  * @param <E> the type of elements stored in the list
  */
 public class StackedList<E extends ModuleOperation> implements List<E>, StackedContainer {
-  private class CountedList extends ArrayList<E> {
-    boolean countDirty = true;
-    int count = 0;
 
-    public CountedList(int initialCapacity) {
-      super(initialCapacity);
-    }
-
-    @Override
-    public boolean add(E e) {
-      this.countDirty = true;
-      return super.add(e);
-    }
-
-    @Override
-    public E set(int index, E element) {
-      this.countDirty = true;
-      return super.set(index, element);
-    }
-
-    @Override
-    public E remove(int index) {
-      this.countDirty = true;
-      return super.remove(index);
-    }
-
-    @Override
-    public boolean remove(Object o) {
-      this.countDirty = true;
-      return super.remove(o);
-    }
-
-    @Override
-    public boolean addAll(Collection<? extends E> c) {
-      this.countDirty = true;
-      return super.addAll(c);
-    }
-
-    @Override
-    public boolean addAll(int index, Collection<? extends E> c) {
-      this.countDirty = true;
-      return super.addAll(index, c);
-    }
-
-    @Override
-    protected void removeRange(int fromIndex, int toIndex) {
-      this.countDirty = true;
-      super.removeRange(fromIndex, toIndex);
-    }
-
-    @Override
-    public boolean removeAll(Collection<?> c) {
-      this.countDirty = true;
-      return super.removeAll(c);
-    }
-
-    @Override
-    public boolean retainAll(Collection<?> c) {
-      this.countDirty = true;
-      return super.retainAll(c);
-    }
-
-    @Override
-    public boolean removeIf(Predicate<? super E> filter) {
-      this.countDirty = true;
-      return super.removeIf(filter);
-    }
-
-    @Override
-    public void replaceAll(UnaryOperator<E> operator) {
-      this.countDirty = true;
-      super.replaceAll(operator);
-    }
-
-    int lineCount() {
-      if (this.countDirty) {
-        this.count = 0;
-        for (ModuleOperation op : this) {
-          this.count += op.lineCount();
-        }
-      }
-
-      return this.count;
-    }
-  }
-
-  private final LinkedList<CountedList> lists = new LinkedList<>();
+  private final LinkedList<CountedList<E>> lists = new LinkedList<>();
   /** The cached number of elements in this container */
   private int totalSize;
 
@@ -139,7 +51,11 @@ public class StackedList<E extends ModuleOperation> implements List<E>, StackedC
 
   @Override
   public void enter() {
-    this.lists.push(new CountedList(16));
+    this.lists.push(new CountedList<>());
+  }
+
+  public void enter(int initialCapacity) {
+    this.lists.push(new CountedList<>(initialCapacity));
   }
 
   @Override
@@ -157,6 +73,7 @@ public class StackedList<E extends ModuleOperation> implements List<E>, StackedC
 
   public int lineCount() {
     int sum = 0;
+    // Deliberate use of old-style for loops out of performances concerns
     for (int i = 0; i < this.lists.size(); i++) {
       sum += this.lists.get(i).lineCount();
     }
@@ -170,7 +87,7 @@ public class StackedList<E extends ModuleOperation> implements List<E>, StackedC
 
   @Override
   public boolean contains(Object o) {
-    for (CountedList l : this.lists) {
+    for (CountedList<E> l : this.lists) {
       if (l.contains(o)) {
         return true;
       }
@@ -254,7 +171,7 @@ public class StackedList<E extends ModuleOperation> implements List<E>, StackedC
 
   @Override
   public E get(int i) {
-    for (CountedList list : this.lists) {
+    for (CountedList<E> list : this.lists) {
       if (i >= list.size()) {
         i -= list.size();
       } else {

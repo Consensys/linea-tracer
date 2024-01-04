@@ -48,10 +48,6 @@ public final class RlpAddrChunk extends ModuleOperation {
 
   @Override
   protected int computeLineCount() {
-    if (this.opCode.equals(OpCode.CREATE)) {
-      return 8;
-    } else {
-      return 6;
-    }
+    return this.opCode.equals(OpCode.CREATE) ? 8 : 6;
   }
 }

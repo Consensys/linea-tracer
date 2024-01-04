@@ -20,6 +20,7 @@ import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 import java.util.Objects;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.rom.Trace;
@@ -27,6 +28,7 @@ import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 
+@RequiredArgsConstructor
 @Accessors(fluent = true)
 @Getter
 public final class RomChunk extends ModuleOperation {
@@ -48,23 +50,6 @@ public final class RomChunk extends ModuleOperation {
   private final boolean commitToTheState;
   private final int id;
   private final Bytes byteCode;
-
-  public RomChunk(
-      Address address,
-      int deploymentNumber,
-      boolean deploymentStatus,
-      boolean readFromTheState,
-      boolean commitToTheState,
-      int id,
-      Bytes byteCode) {
-    this.address = address;
-    this.deploymentNumber = deploymentNumber;
-    this.deploymentStatus = deploymentStatus;
-    this.readFromTheState = readFromTheState;
-    this.commitToTheState = commitToTheState;
-    this.id = id;
-    this.byteCode = byteCode;
-  }
 
   public void trace(Trace trace, int cfi, int cfiInfty) {
     final int chunkRowSize = this.lineCount();

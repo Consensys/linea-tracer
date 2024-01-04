@@ -18,11 +18,13 @@ package net.consensys.linea.zktracer.module.rlp.txrcpt;
 import java.util.List;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import org.hyperledger.besu.datatypes.TransactionType;
 import org.hyperledger.besu.evm.log.Log;
 
+@RequiredArgsConstructor
 @Accessors(fluent = true)
 @Getter
 public final class RlpTxrcptChunk extends ModuleOperation {
@@ -30,13 +32,6 @@ public final class RlpTxrcptChunk extends ModuleOperation {
   private final Boolean status;
   private final Long gasUsed;
   private final List<Log> logs;
-
-  public RlpTxrcptChunk(TransactionType txType, Boolean status, Long gasUsed, List<Log> logs) {
-    this.txType = txType;
-    this.status = status;
-    this.gasUsed = gasUsed;
-    this.logs = logs;
-  }
 
   @Override
   protected int computeLineCount() {

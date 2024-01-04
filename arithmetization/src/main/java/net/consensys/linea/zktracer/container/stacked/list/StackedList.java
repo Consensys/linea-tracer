@@ -22,7 +22,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
+import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 
+import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.container.StackedContainer;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,8 +35,94 @@ import org.jetbrains.annotations.NotNull;
  *
  * @param <E> the type of elements stored in the list
  */
-public class StackedList<E> implements List<E>, StackedContainer {
-  private final LinkedList<List<E>> lists = new LinkedList<>();
+public class StackedList<E extends ModuleOperation> implements List<E>, StackedContainer {
+  private class CountedList extends ArrayList<E> {
+    boolean countDirty = true;
+    int count = 0;
+
+    public CountedList(int initialCapacity) {
+      super(initialCapacity);
+    }
+
+    @Override
+    public boolean add(E e) {
+      this.countDirty = true;
+      return super.add(e);
+    }
+
+    @Override
+    public E set(int index, E element) {
+      this.countDirty = true;
+      return super.set(index, element);
+    }
+
+    @Override
+    public E remove(int index) {
+      this.countDirty = true;
+      return super.remove(index);
+    }
+
+    @Override
+    public boolean remove(Object o) {
+      this.countDirty = true;
+      return super.remove(o);
+    }
+
+    @Override
+    public boolean addAll(Collection<? extends E> c) {
+      this.countDirty = true;
+      return super.addAll(c);
+    }
+
+    @Override
+    public boolean addAll(int index, Collection<? extends E> c) {
+      this.countDirty = true;
+      return super.addAll(index, c);
+    }
+
+    @Override
+    protected void removeRange(int fromIndex, int toIndex) {
+      this.countDirty = true;
+      super.removeRange(fromIndex, toIndex);
+    }
+
+    @Override
+    public boolean removeAll(Collection<?> c) {
+      this.countDirty = true;
+      return super.removeAll(c);
+    }
+
+    @Override
+    public boolean retainAll(Collection<?> c) {
+      this.countDirty = true;
+      return super.retainAll(c);
+    }
+
+    @Override
+    public boolean removeIf(Predicate<? super E> filter) {
+      this.countDirty = true;
+      return super.removeIf(filter);
+    }
+
+    @Override
+    public void replaceAll(UnaryOperator<E> operator) {
+      this.countDirty = true;
+      super.replaceAll(operator);
+    }
+
+    int lineCount() {
+      if (this.countDirty) {
+        this.count = 0;
+        for (ModuleOperation op : this) {
+          this.count += op.lineCount();
+        }
+      }
+
+      return this.count;
+    }
+  }
+
+  private final LinkedList<CountedList> lists = new LinkedList<>();
   /** The cached number of elements in this container */
   private int totalSize;
 
@@ -50,7 +139,7 @@ public class StackedList<E> implements List<E>, StackedContainer {
 
   @Override
   public void enter() {
-    this.lists.push(new ArrayList<>());
+    this.lists.push(new CountedList(16));
   }
 
   @Override
@@ -66,6 +155,14 @@ public class StackedList<E> implements List<E>, StackedContainer {
     return this.totalSize;
   }
 
+  public int lineCount() {
+    int sum = 0;
+    for (int i = 0; i < this.lists.size(); i++) {
+      sum += this.lists.get(i).lineCount();
+    }
+    return sum;
+  }
+
   @Override
   public boolean isEmpty() {
     return this.totalSize == 0;
@@ -73,11 +170,12 @@ public class StackedList<E> implements List<E>, StackedContainer {
 
   @Override
   public boolean contains(Object o) {
-    for (List<E> l : this.lists) {
+    for (CountedList l : this.lists) {
       if (l.contains(o)) {
         return true;
       }
     }
+
     return false;
   }
 
@@ -156,7 +254,7 @@ public class StackedList<E> implements List<E>, StackedContainer {
 
   @Override
   public E get(int i) {
-    for (List<E> list : this.lists) {
+    for (CountedList list : this.lists) {
       if (i >= list.size()) {
         i -= list.size();
       } else {
@@ -217,7 +315,8 @@ public class StackedList<E> implements List<E>, StackedContainer {
     throw new UnsupportedOperationException("subList not supported");
   }
 
-  private static class StackedListIterator<F> implements Iterator<F>, ListIterator<F> {
+  private static class StackedListIterator<F extends ModuleOperation>
+      implements Iterator<F>, ListIterator<F> {
     private final StackedList<F> sl;
     /** Position of the iterator in the list of lists */
     private int head = 0;

@@ -64,11 +64,7 @@ public class Mxp implements Module {
 
   @Override
   public int lineCount() {
-    int sum = 0;
-    for (MxpData chunk : this.chunks) {
-      sum += chunk.maxCt();
-    }
-    return sum;
+    return this.chunks.lineCount();
   }
 
   @Override

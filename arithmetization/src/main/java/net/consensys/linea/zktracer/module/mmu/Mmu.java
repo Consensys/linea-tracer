@@ -143,13 +143,14 @@ public class Mmu implements Module {
 
     boolean[] bits = microData.bits();
 
-    final EWord eStack1 = EWord.of(pointers.stack1());
+    EWord eStack1 = EWord.of(pointers.stack1());
 
     trace
         .ramStamp(BigInteger.valueOf(this.ramStamp))
         .microInstructionStamp(BigInteger.ZERO)
         .isMicroInstruction(this.isMicro)
         .off1Lo(eStack1.lo().toUnsignedBigInteger())
+        .off2Lo(pointers.stack2().toUnsignedBigInteger())
         .off2Hi(pointers.stack2().toUnsignedBigInteger())
         .sizeImported(BigInteger.valueOf(microData.sizeImported()))
         .valHi(value)
@@ -209,8 +210,9 @@ public class Mmu implements Module {
         .aligned(booleanToBigInteger(microData.aligned()))
         .fast(booleanToBigInteger(microData.isFast()))
         .min(BigInteger.valueOf(microData.min()))
+        .callDataOffset(BigInteger.valueOf(microData.callDataOffset()))
         .callStackDepth(BigInteger.valueOf(microData.callStackDepth()))
-        .callDataSize(BigInteger.valueOf(microData.callDataOffset()))
+        .callDataSize(BigInteger.valueOf(microData.callDataSize()))
         .instruction(BigInteger.valueOf(microData.opCode().getData().value()))
         .totalNumberOfMicroInstructions(
             BigInteger.valueOf(this.ramStamp == 0 ? 0 : microData.remainingMicroInstructions()))
@@ -243,7 +245,8 @@ public class Mmu implements Module {
   private UnsignedByte accByte(final int accIndex, final MicroData microData) {
     int maxCounter = maxCounter(microData.pointers().oob());
 
-    return microData.accs()[accIndex][32 - maxCounter + microData.counter()];
+    return Objects.requireNonNullElse(
+        microData.accs()[accIndex][32 - maxCounter + microData.counter()], UnsignedByte.ZERO);
   }
 
   static int maxCounter(final boolean oob) {

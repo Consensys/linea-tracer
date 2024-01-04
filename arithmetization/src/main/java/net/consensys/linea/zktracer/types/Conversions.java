@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.types;
 
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Objects;
 
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
@@ -43,7 +44,11 @@ public class Conversions {
   }
 
   public static BigInteger unsignedBytesToUnsignedBigInteger(final UnsignedByte[] input) {
-    return Bytes.concatenate(Arrays.stream(input).map(i -> Bytes.of(i.toInteger())).toList())
+    return Bytes.concatenate(
+            Arrays.stream(input)
+                .filter(Objects::nonNull)
+                .map(i -> Bytes.of(i.toInteger()))
+                .toList())
         .toUnsignedBigInteger();
   }
 
@@ -62,6 +67,10 @@ public class Conversions {
       r[i] = UnsignedByte.of(bytes[i]);
     }
     return r;
+  }
+
+  public static UnsignedByte[] bigIntegerToUnsignedBytes32(final BigInteger value) {
+    return bytesToUnsignedBytes(Bytes32.leftPad(Bytes.of(value.toByteArray())).toArray());
   }
 
   public static BigInteger booleanToBigInteger(final boolean input) {

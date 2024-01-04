@@ -24,6 +24,7 @@ import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 
 import java.util.List;
 
+import com.google.common.base.Objects;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.types.EWord;
@@ -64,5 +65,17 @@ public class TrmOperation extends ModuleOperation {
   @Override
   protected int computeLineCount() {
     return MAX_CT;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(this.value);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    return this.value.equals(((TrmOperation) o).value);
   }
 }

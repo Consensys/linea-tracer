@@ -294,7 +294,7 @@ public class RomLex implements Module {
 
   @Override
   public int lineCount() {
-    return chunks.size();
+    return this.chunks.size();
   }
 
   @Override

@@ -20,6 +20,7 @@ import static net.consensys.linea.zktracer.types.Conversions.unsignedBytesToUnsi
 import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.List;
+import java.util.Objects;
 
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.list.StackedList;
@@ -141,7 +142,7 @@ public class Mmu implements Module {
 
     boolean[] bits = microData.bits();
 
-    final EWord eStack1 = EWord.of(pointers.stack1());
+    EWord eStack1 = EWord.of(pointers.stack1());
 
     trace
         //        .ramStamp(BigInteger.valueOf(this.ramStamp))
@@ -242,7 +243,8 @@ public class Mmu implements Module {
   private UnsignedByte accByte(final int accIndex, final MicroData microData) {
     int maxCounter = maxCounter(microData.pointers().oob());
 
-    return microData.accs()[accIndex][32 - maxCounter + microData.counter()];
+    return Objects.requireNonNullElse(
+        microData.accs()[accIndex][32 - maxCounter + microData.counter()], UnsignedByte.ZERO);
   }
 
   static int maxCounter(final boolean oob) {

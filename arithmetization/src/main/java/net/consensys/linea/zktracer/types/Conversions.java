@@ -19,6 +19,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
@@ -48,11 +49,6 @@ public class Conversions {
   public static BigInteger unsignedBytesToUnsignedBigInteger(final UnsignedByte[] input) {
     return Bytes.concatenate(Arrays.stream(input).map(i -> Bytes.of(i.toInteger())).toList())
         .toUnsignedBigInteger();
-  }
-
-  public static BigInteger unsignedBytesSubArrayToUnsignedBigInteger(
-      final UnsignedByte[] input, final int newLength) {
-    return unsignedBytesToUnsignedBigInteger(Arrays.copyOf(input, newLength, UnsignedByte[].class));
   }
 
   public static EWord unsignedBytesToEWord(final UnsignedByte[] input) {

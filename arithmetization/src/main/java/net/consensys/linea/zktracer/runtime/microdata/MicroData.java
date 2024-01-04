@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.runtime.microdata;
 
-import static net.consensys.linea.zktracer.types.Conversions.bytesToUnsignedBytes;
+import static net.consensys.linea.zktracer.types.Conversions.*;
 import static net.consensys.linea.zktracer.types.Conversions.unsignedBytesToEWord;
 
 import java.math.BigInteger;
@@ -285,15 +285,11 @@ public class MicroData extends ModuleOperation {
   }
 
   public void setAccsAtIndex(final int index, final EWord value) {
-    byte[] rawBytes = value.hiBigInt().toByteArray();
-
-    accs[index] = bytesToUnsignedBytes(rawBytes);
+    accs[index] = bigIntegerToUnsignedBytes32(value.hiBigInt());
   }
 
   public void setAccsAtIndex(final int index, final BigInteger value) {
-    byte[] rawBytes = value.toByteArray();
-
-    accs[index] = bytesToUnsignedBytes(rawBytes);
+    accs[index] = bigIntegerToUnsignedBytes32(value);
   }
 
   public void setAccsAndNibblesAtIndex(final int index, final EWord value) {

@@ -18,10 +18,10 @@ package net.consensys.linea.zktracer.container.stacked.list;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
-import java.util.Stack;
 
 import net.consensys.linea.zktracer.container.StackedContainer;
 import org.jetbrains.annotations.NotNull;
@@ -33,13 +33,13 @@ import org.jetbrains.annotations.NotNull;
  * @param <E> the type of elements stored in the list
  */
 public class StackedList<E> implements List<E>, StackedContainer {
-  private final Stack<List<E>> lists = new Stack<>();
+  private final LinkedList<List<E>> lists = new LinkedList<>();
   /** The cached number of elements in this container */
   private int totalSize;
 
   @Override
   public String toString() {
-    StringBuffer r = new StringBuffer();
+    StringBuilder r = new StringBuilder();
     r.append("[[");
     for (var l : this.lists) {
       r.append(l.toString());
@@ -229,7 +229,7 @@ public class StackedList<E> implements List<E>, StackedContainer {
     }
 
     private List<F> list() {
-      if (sl.lists.size() == 0) {
+      if (sl.lists.isEmpty()) {
         return List.of();
       }
       return this.sl.lists.get(this.head);

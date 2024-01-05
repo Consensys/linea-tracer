@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.rlp.txn;
 
+import static net.consensys.linea.zktracer.module.Util.getTxTypeAsInt;
 import static net.consensys.linea.zktracer.module.rlp.txn.RlpTxn.LLARGE;
 
 import java.math.BigInteger;
@@ -24,7 +25,6 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import org.hyperledger.besu.datatypes.Transaction;
-import org.hyperledger.besu.datatypes.TransactionType;
 
 @Accessors(fluent = true)
 @Getter
@@ -49,12 +49,7 @@ public final class RlpTxnChunk extends ModuleOperation {
 
   @Override
   protected int computeLineCount() {
-    int txType;
-    if (this.tx.getType() == TransactionType.FRONTIER) {
-      txType = 0;
-    } else {
-      txType = this.tx.getType().getSerializedType();
-    }
+    final int txType = getTxTypeAsInt(this.tx.getType());
     // Phase 0 is always 17 rows long
     int rowSize = 17;
 

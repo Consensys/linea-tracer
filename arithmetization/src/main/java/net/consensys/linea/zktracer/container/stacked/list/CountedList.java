@@ -106,6 +106,7 @@ class CountedList<E extends ModuleOperation> extends ArrayList<E> {
       for (ModuleOperation op : this) {
         this.count += op.lineCount();
       }
+      this.countDirty = false;
     }
 
     return this.count;

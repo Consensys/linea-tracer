@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.mmu;
 
+import static net.consensys.linea.zktracer.module.mmu.MicroDataProcessor.*;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBigInteger;
 import static net.consensys.linea.zktracer.types.Conversions.unsignedBytesToUnsignedBigInteger;
 
@@ -39,9 +40,9 @@ import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.commons.lang3.ArrayUtils;
 
 public class Mmu implements Module {
-  private final StackedList<MicroData> state = new StackedList<>();
+  private final StackedList<MmuOperation> state = new StackedList<>();
   private int ramStamp;
-  private int microStamp = 0;
+  private final int microStamp = 0;
   private boolean isMicro;
   private final MicroDataProcessor microDataProcessor;
   private final Hub hub;
@@ -84,8 +85,8 @@ public class Mmu implements Module {
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
 
-    for (MicroData m : this.state) {
-      traceMicroData(m, callStack, trace);
+    for (MmuOperation m : this.state) {
+      traceMicroData(m.microData(), callStack, trace);
     }
   }
 
@@ -100,7 +101,7 @@ public class Mmu implements Module {
       final OpCode opCode, final List<StackOperation> stackOps, final CallStack callStack) {
     MicroData microData = microDataProcessor.dispatchOpCode(opCode, stackOps, callStack);
 
-    this.state.add(microData);
+    this.state.add(new MmuOperation(microData));
   }
 
   private void traceMicroData(MicroData microData, final CallStack callStack, Trace trace) {
@@ -247,9 +248,5 @@ public class Mmu implements Module {
 
     return Objects.requireNonNullElse(
         microData.accs()[accIndex][32 - maxCounter + microData.counter()], UnsignedByte.ZERO);
-  }
-
-  static int maxCounter(final boolean oob) {
-    return oob ? 16 : 3;
   }
 }

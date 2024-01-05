@@ -25,7 +25,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
@@ -38,7 +37,7 @@ import org.hyperledger.besu.evm.internal.Words;
 
 @AllArgsConstructor
 @Accessors(fluent = true)
-class MicroData extends ModuleOperation {
+public class MicroData {
   private static final UnsignedByte[] DEFAULT_NIBBLES = new UnsignedByte[9];
   private static final UnsignedByte[][] DEFAULT_ACCS = new UnsignedByte[8][32];
   private static final boolean[] DEFAULT_BITS = new boolean[8];
@@ -140,11 +139,6 @@ class MicroData extends ModuleOperation {
         UnsignedByte.EMPTY_BYTES16,
         0,
         0);
-  }
-
-  @Override
-  protected int computeLineCount() {
-    return Mmu.maxCounter(this.pointers.oob());
   }
 
   public boolean isErf() {

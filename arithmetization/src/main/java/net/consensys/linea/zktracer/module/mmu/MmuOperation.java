@@ -13,26 +13,26 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.mmio;
+package net.consensys.linea.zktracer.module.mmu;
+
+import static net.consensys.linea.zktracer.module.mmu.MicroDataProcessor.maxCounter;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
-import net.consensys.linea.zktracer.module.hub.State;
 import net.consensys.linea.zktracer.runtime.microdata.MicroData;
 
 @RequiredArgsConstructor
 @Accessors(fluent = true)
-class MmioOperation extends ModuleOperation {
+class MmuOperation extends ModuleOperation {
   @Getter private final MicroData microData;
-  @Getter private final MmioDataProcessor mmioDataProcessor;
-  @Getter private final State.TxState.Stamps moduleStamps;
-  @Getter private final int microStamp;
-  @Getter private final boolean isInitCode;
 
   @Override
   protected int computeLineCount() {
-    return 1 + mmioDataProcessor.maxCounter();
+    int preProcessingCount = 1 + maxCounter(microData.pointers().oob());
+    int totalNumberOfMicroInstructions = microData.readPad().totalNumber();
+
+    return preProcessingCount + totalNumberOfMicroInstructions;
   }
 }

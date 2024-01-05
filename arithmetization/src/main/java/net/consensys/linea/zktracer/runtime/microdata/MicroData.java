@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.runtime.microdata;
 
-import static net.consensys.linea.zktracer.types.Conversions.*;
 import static net.consensys.linea.zktracer.types.Conversions.unsignedBytesToEWord;
 
 import java.math.BigInteger;
@@ -140,11 +139,6 @@ public class MicroData extends ModuleOperation {
         UnsignedByte.EMPTY_BYTES16,
         0,
         0);
-  }
-
-  @Override
-  protected int computeLineCount() {
-    return Mmu.maxCounter(this.pointers.oob());
   }
 
   public boolean isErf() {
@@ -285,11 +279,11 @@ public class MicroData extends ModuleOperation {
   }
 
   public void setAccsAtIndex(final int index, final EWord value) {
-    accs[index] = bigIntegerToUnsignedBytes32(value.hiBigInt());
+    //    accs[index] = bigIntegerToUnsignedBytes32(value.hiBigInt());
   }
 
   public void setAccsAtIndex(final int index, final BigInteger value) {
-    accs[index] = bigIntegerToUnsignedBytes32(value);
+    //    accs[index] = bigIntegerToUnsignedBytes32(value);
   }
 
   public void setAccsAndNibblesAtIndex(final int index, final EWord value) {
@@ -315,5 +309,10 @@ public class MicroData extends ModuleOperation {
 
   public void incrementProcessingRow(final int value) {
     processingRow += value;
+  }
+
+  @Override
+  protected int computeLineCount() {
+    return 0;
   }
 }

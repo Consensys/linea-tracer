@@ -58,12 +58,7 @@ public class Mmio implements Module {
 
   @Override
   public int lineCount() {
-    int sum = 0;
-    for (MmioOperation o : this.state) {
-      sum += 1 + o.mmioDataProcessor().maxCounter();
-    }
-
-    return sum;
+    return this.state.lineCount();
   }
 
   @Override

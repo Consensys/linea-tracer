@@ -20,15 +20,16 @@ import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 
 import java.math.BigInteger;
 
+import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 
-public class EucOperation {
+public class EucOperation extends ModuleOperation {
   private final Bytes dividend;
   private final Bytes divisor;
   private final Bytes remainder;
   private final Bytes quotient;
-  final int ctMax;
+  private final int ctMax;
 
   public EucOperation(
       final Bytes dividend, final Bytes divisor, final Bytes quotient, final Bytes remainder) {
@@ -39,8 +40,7 @@ public class EucOperation {
     final Bytes divisorTrim = divisor.trimLeadingZeros();
     this.ctMax = Math.max(dividendTrim.size(), divisorTrim.size()) - 1;
     if (ctMax >= 8) {
-      throw new IllegalStateException(
-          "Max ByteSize of input is 8 for EUC, and was given" + ctMax + 1);
+      throw new IllegalStateException("Max ByteSize of input is 8 for EUC, received" + ctMax + 1);
     }
     this.dividend = dividendTrim;
     this.divisor = divisorTrim;
@@ -48,7 +48,7 @@ public class EucOperation {
     this.remainder = remainder;
   }
 
-  public void trace(Trace trace) {
+  void trace(Trace trace) {
     final Bytes dividend = leftPadTo(this.dividend, this.ctMax + 1);
     final Bytes divisor = leftPadTo(this.divisor, this.ctMax + 1);
     final Bytes quotient = leftPadTo(this.quotient, this.ctMax + 1);
@@ -75,5 +75,10 @@ public class EucOperation {
           .remainderByte(UnsignedByte.of(remainder.get(ct)))
           .validateRow();
     }
+  }
+
+  @Override
+  protected int computeLineCount() {
+    return this.ctMax + 1;
   }
 }

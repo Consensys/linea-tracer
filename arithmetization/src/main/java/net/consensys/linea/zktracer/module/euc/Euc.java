@@ -50,11 +50,7 @@ public class Euc implements Module {
 
   @Override
   public int lineCount() {
-    int sum = 0;
-    for (EucOperation eucOperation : this.operations) {
-      sum += eucOperation.ctMax + 1;
-    }
-    return sum;
+    return this.operations.lineCount();
   }
 
   @Override

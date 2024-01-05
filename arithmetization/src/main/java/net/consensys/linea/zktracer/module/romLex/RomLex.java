@@ -294,6 +294,8 @@ public class RomLex implements Module {
 
   @Override
   public int lineCount() {
+    // WARN: the line count for the RomLex is the *number of code fragments*, not their actual line
+    // count – that's for the ROM.
     return this.chunks.size();
   }
 

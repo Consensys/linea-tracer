@@ -45,11 +45,7 @@ public class Mxp implements Module {
 
   @Override
   public void tracePreOpcode(MessageFrame frame) { // This will be renamed to tracePreOp
-    // create a data object to do the work
     this.chunks.add(new MxpData(frame, hub));
-
-    // sanity check
-    //    sanityCheck(opCode, scope, mxpData);
   }
 
   @Override

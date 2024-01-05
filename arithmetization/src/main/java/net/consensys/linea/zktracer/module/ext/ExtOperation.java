@@ -19,7 +19,6 @@ import static net.consensys.linea.zktracer.module.Util.boolToInt;
 
 import java.util.Objects;
 
-import lombok.Getter;
 import net.consensys.linea.zktracer.bytestheta.BaseBytes;
 import net.consensys.linea.zktracer.bytestheta.BaseTheta;
 import net.consensys.linea.zktracer.bytestheta.BytesArray;
@@ -34,27 +33,27 @@ import org.apache.tuweni.units.bigints.UInt256;
 public class ExtOperation extends ModuleOperation {
   private static final int MMEDIUM = 8;
 
-  @Getter private final OpCode opCode;
-  @Getter private final boolean oli;
-  @Getter private final BaseBytes arg1;
-  @Getter private final BaseBytes arg2;
-  @Getter private final BaseBytes arg3;
+  private final OpCode opCode;
+  private final boolean isOneLineInstruction;
+  private final BaseBytes arg1;
+  private final BaseBytes arg2;
+  private final BaseBytes arg3;
 
-  @Getter private BaseTheta result;
-  @Getter private BaseTheta aBytes;
-  @Getter private BaseTheta bBytes;
-  @Getter private BaseTheta cBytes;
-  @Getter private BaseTheta deltaBytes;
-  @Getter private BytesArray hBytes;
-  @Getter private BaseTheta rBytes;
-  @Getter private BytesArray iBytes;
-  @Getter private BytesArray jBytes;
-  @Getter private BytesArray qBytes;
-  @Getter private boolean[] cmp = new boolean[8];
-  @Getter boolean[] overflowH = new boolean[8];
-  @Getter boolean[] overflowJ = new boolean[8];
-  @Getter boolean[] overflowRes = new boolean[8];
-  @Getter boolean[] overflowI = new boolean[8];
+  private BaseTheta result;
+  private BaseTheta aBytes;
+  private BaseTheta bBytes;
+  private BaseTheta cBytes;
+  private BaseTheta deltaBytes;
+  private BytesArray hBytes;
+  private BaseTheta rBytes;
+  private BytesArray iBytes;
+  private BytesArray jBytes;
+  private BytesArray qBytes;
+  private boolean[] cmp = new boolean[8];
+  boolean[] overflowH = new boolean[8];
+  boolean[] overflowJ = new boolean[8];
+  boolean[] overflowRes = new boolean[8];
+  boolean[] overflowI = new boolean[8];
 
   /**
    * This custom hash function ensures that all identical operations are only traced once per
@@ -81,7 +80,7 @@ public class ExtOperation extends ModuleOperation {
     this.arg1 = BaseBytes.fromBytes32(arg1.copy());
     this.arg2 = BaseBytes.fromBytes32(arg2.copy());
     this.arg3 = BaseBytes.fromBytes32(arg3.copy());
-    this.oli = isOneLineInstruction();
+    this.isOneLineInstruction = isOneLineInstruction();
   }
 
   public UInt256 compute() {
@@ -106,7 +105,7 @@ public class ExtOperation extends ModuleOperation {
     this.result = BaseTheta.fromBytes32(result);
     this.rBytes = BaseTheta.fromBytes32(result);
 
-    if (!this.oli) {
+    if (!this.isOneLineInstruction) {
       cmp = computer.computeComparisonFlags(cBytes, rBytes);
       deltaBytes = computer.computeDeltas(cBytes, rBytes);
       jBytes = computer.computeJs(this.arg1.getBytes32(), this.arg2.getBytes32());
@@ -140,7 +139,7 @@ public class ExtOperation extends ModuleOperation {
   }
 
   private int maxCt() {
-    if (this.isOli()) {
+    if (this.isOneLineInstruction) {
       return 1;
     }
 
@@ -175,129 +174,129 @@ public class ExtOperation extends ModuleOperation {
       final int accLength = i + 1;
       trace
           // Byte A and Acc A
-          .byteA0(UnsignedByte.of(this.getABytes().get(0).get(i)))
-          .byteA1(UnsignedByte.of(this.getABytes().get(1).get(i)))
-          .byteA2(UnsignedByte.of(this.getABytes().get(2).get(i)))
-          .byteA3(UnsignedByte.of(this.getABytes().get(3).get(i)))
-          .accA0(this.getABytes().get(0).slice(0, accLength))
-          .accA1(this.getABytes().get(1).slice(0, accLength))
-          .accA2(this.getABytes().get(2).slice(0, accLength))
-          .accA3(this.getABytes().get(3).slice(0, accLength))
+          .byteA0(UnsignedByte.of(this.aBytes.get(0).get(i)))
+          .byteA1(UnsignedByte.of(this.aBytes.get(1).get(i)))
+          .byteA2(UnsignedByte.of(this.aBytes.get(2).get(i)))
+          .byteA3(UnsignedByte.of(this.aBytes.get(3).get(i)))
+          .accA0(this.aBytes.get(0).slice(0, accLength))
+          .accA1(this.aBytes.get(1).slice(0, accLength))
+          .accA2(this.aBytes.get(2).slice(0, accLength))
+          .accA3(this.aBytes.get(3).slice(0, accLength))
           // Byte B and Acc B
-          .byteB0(UnsignedByte.of(this.getBBytes().get(0).get(i)))
-          .byteB1(UnsignedByte.of(this.getBBytes().get(1).get(i)))
-          .byteB2(UnsignedByte.of(this.getBBytes().get(2).get(i)))
-          .byteB3(UnsignedByte.of(this.getBBytes().get(3).get(i)))
-          .accB0(this.getBBytes().get(0).slice(0, accLength))
-          .accB1(this.getBBytes().get(1).slice(0, accLength))
-          .accB2(this.getBBytes().get(2).slice(0, accLength))
-          .accB3(this.getBBytes().get(3).slice(0, accLength))
+          .byteB0(UnsignedByte.of(this.bBytes.get(0).get(i)))
+          .byteB1(UnsignedByte.of(this.bBytes.get(1).get(i)))
+          .byteB2(UnsignedByte.of(this.bBytes.get(2).get(i)))
+          .byteB3(UnsignedByte.of(this.bBytes.get(3).get(i)))
+          .accB0(this.bBytes.get(0).slice(0, accLength))
+          .accB1(this.bBytes.get(1).slice(0, accLength))
+          .accB2(this.bBytes.get(2).slice(0, accLength))
+          .accB3(this.bBytes.get(3).slice(0, accLength))
           // Byte C and Acc C
-          .byteC0(UnsignedByte.of(this.getCBytes().get(0).get(i)))
-          .byteC1(UnsignedByte.of(this.getCBytes().get(1).get(i)))
-          .byteC2(UnsignedByte.of(this.getCBytes().get(2).get(i)))
-          .byteC3(UnsignedByte.of(this.getCBytes().get(3).get(i)))
-          .accC0(this.getCBytes().get(0).slice(0, accLength))
-          .accC1(this.getCBytes().get(1).slice(0, accLength))
-          .accC2(this.getCBytes().get(2).slice(0, accLength))
-          .accC3(this.getCBytes().get(3).slice(0, accLength))
+          .byteC0(UnsignedByte.of(this.cBytes.get(0).get(i)))
+          .byteC1(UnsignedByte.of(this.cBytes.get(1).get(i)))
+          .byteC2(UnsignedByte.of(this.cBytes.get(2).get(i)))
+          .byteC3(UnsignedByte.of(this.cBytes.get(3).get(i)))
+          .accC0(this.cBytes.get(0).slice(0, accLength))
+          .accC1(this.cBytes.get(1).slice(0, accLength))
+          .accC2(this.cBytes.get(2).slice(0, accLength))
+          .accC3(this.cBytes.get(3).slice(0, accLength))
           // Byte Delta and Acc Delta
-          .byteDelta0(UnsignedByte.of(this.getDeltaBytes().get(0).get(i)))
-          .byteDelta1(UnsignedByte.of(this.getDeltaBytes().get(1).get(i)))
-          .byteDelta2(UnsignedByte.of(this.getDeltaBytes().get(2).get(i)))
-          .byteDelta3(UnsignedByte.of(this.getDeltaBytes().get(3).get(i)))
-          .accDelta0(this.getDeltaBytes().get(0).slice(0, accLength))
-          .accDelta1(this.getDeltaBytes().get(1).slice(0, accLength))
-          .accDelta2(this.getDeltaBytes().get(2).slice(0, accLength))
-          .accDelta3(this.getDeltaBytes().get(3).slice(0, accLength))
+          .byteDelta0(UnsignedByte.of(this.deltaBytes.get(0).get(i)))
+          .byteDelta1(UnsignedByte.of(this.deltaBytes.get(1).get(i)))
+          .byteDelta2(UnsignedByte.of(this.deltaBytes.get(2).get(i)))
+          .byteDelta3(UnsignedByte.of(this.deltaBytes.get(3).get(i)))
+          .accDelta0(this.deltaBytes.get(0).slice(0, accLength))
+          .accDelta1(this.deltaBytes.get(1).slice(0, accLength))
+          .accDelta2(this.deltaBytes.get(2).slice(0, accLength))
+          .accDelta3(this.deltaBytes.get(3).slice(0, accLength))
           // Byte H and Acc H
-          .byteH0(UnsignedByte.of(this.getHBytes().get(0).get(i)))
-          .byteH1(UnsignedByte.of(this.getHBytes().get(1).get(i)))
-          .byteH2(UnsignedByte.of(this.getHBytes().get(2).get(i)))
-          .byteH3(UnsignedByte.of(this.getHBytes().get(3).get(i)))
-          .byteH4(UnsignedByte.of(this.getHBytes().get(4).get(i)))
-          .byteH5(UnsignedByte.of(this.getHBytes().get(5).get(i)))
-          .accH0(this.getHBytes().get(0).slice(0, accLength))
-          .accH1(this.getHBytes().get(1).slice(0, accLength))
-          .accH2(this.getHBytes().get(2).slice(0, accLength))
-          .accH3(this.getHBytes().get(3).slice(0, accLength))
-          .accH4(this.getHBytes().get(4).slice(0, accLength))
-          .accH5(this.getHBytes().get(5).slice(0, accLength))
+          .byteH0(UnsignedByte.of(this.hBytes.get(0).get(i)))
+          .byteH1(UnsignedByte.of(this.hBytes.get(1).get(i)))
+          .byteH2(UnsignedByte.of(this.hBytes.get(2).get(i)))
+          .byteH3(UnsignedByte.of(this.hBytes.get(3).get(i)))
+          .byteH4(UnsignedByte.of(this.hBytes.get(4).get(i)))
+          .byteH5(UnsignedByte.of(this.hBytes.get(5).get(i)))
+          .accH0(this.hBytes.get(0).slice(0, accLength))
+          .accH1(this.hBytes.get(1).slice(0, accLength))
+          .accH2(this.hBytes.get(2).slice(0, accLength))
+          .accH3(this.hBytes.get(3).slice(0, accLength))
+          .accH4(this.hBytes.get(4).slice(0, accLength))
+          .accH5(this.hBytes.get(5).slice(0, accLength))
           // Byte I and Acc I
-          .byteI0(UnsignedByte.of(this.getIBytes().get(0).get(i)))
-          .byteI1(UnsignedByte.of(this.getIBytes().get(1).get(i)))
-          .byteI2(UnsignedByte.of(this.getIBytes().get(2).get(i)))
-          .byteI3(UnsignedByte.of(this.getIBytes().get(3).get(i)))
-          .byteI4(UnsignedByte.of(this.getIBytes().get(4).get(i)))
-          .byteI5(UnsignedByte.of(this.getIBytes().get(5).get(i)))
-          .byteI6(UnsignedByte.of(this.getIBytes().get(6).get(i)))
-          .accI0(this.getIBytes().get(0).slice(0, accLength))
-          .accI1(this.getIBytes().get(1).slice(0, accLength))
-          .accI2(this.getIBytes().get(2).slice(0, accLength))
-          .accI3(this.getIBytes().get(3).slice(0, accLength))
-          .accI4(this.getIBytes().get(4).slice(0, accLength))
-          .accI5(this.getIBytes().get(5).slice(0, accLength))
-          .accI6(this.getIBytes().get(6).slice(0, accLength))
+          .byteI0(UnsignedByte.of(this.iBytes.get(0).get(i)))
+          .byteI1(UnsignedByte.of(this.iBytes.get(1).get(i)))
+          .byteI2(UnsignedByte.of(this.iBytes.get(2).get(i)))
+          .byteI3(UnsignedByte.of(this.iBytes.get(3).get(i)))
+          .byteI4(UnsignedByte.of(this.iBytes.get(4).get(i)))
+          .byteI5(UnsignedByte.of(this.iBytes.get(5).get(i)))
+          .byteI6(UnsignedByte.of(this.iBytes.get(6).get(i)))
+          .accI0(this.iBytes.get(0).slice(0, accLength))
+          .accI1(this.iBytes.get(1).slice(0, accLength))
+          .accI2(this.iBytes.get(2).slice(0, accLength))
+          .accI3(this.iBytes.get(3).slice(0, accLength))
+          .accI4(this.iBytes.get(4).slice(0, accLength))
+          .accI5(this.iBytes.get(5).slice(0, accLength))
+          .accI6(this.iBytes.get(6).slice(0, accLength))
           // Byte J and Acc J
-          .byteJ0(UnsignedByte.of(this.getJBytes().get(0).get(i)))
-          .byteJ1(UnsignedByte.of(this.getJBytes().get(1).get(i)))
-          .byteJ2(UnsignedByte.of(this.getJBytes().get(2).get(i)))
-          .byteJ3(UnsignedByte.of(this.getJBytes().get(3).get(i)))
-          .byteJ4(UnsignedByte.of(this.getJBytes().get(4).get(i)))
-          .byteJ5(UnsignedByte.of(this.getJBytes().get(5).get(i)))
-          .byteJ6(UnsignedByte.of(this.getJBytes().get(6).get(i)))
-          .byteJ7(UnsignedByte.of(this.getJBytes().get(7).get(i)))
-          .accJ0(this.getJBytes().get(0).slice(0, accLength))
-          .accJ1(this.getJBytes().get(1).slice(0, accLength))
-          .accJ2(this.getJBytes().get(2).slice(0, accLength))
-          .accJ3(this.getJBytes().get(3).slice(0, accLength))
-          .accJ4(this.getJBytes().get(4).slice(0, accLength))
-          .accJ5(this.getJBytes().get(5).slice(0, accLength))
-          .accJ6(this.getJBytes().get(6).slice(0, accLength))
-          .accJ7(this.getJBytes().get(7).slice(0, accLength))
+          .byteJ0(UnsignedByte.of(this.jBytes.get(0).get(i)))
+          .byteJ1(UnsignedByte.of(this.jBytes.get(1).get(i)))
+          .byteJ2(UnsignedByte.of(this.jBytes.get(2).get(i)))
+          .byteJ3(UnsignedByte.of(this.jBytes.get(3).get(i)))
+          .byteJ4(UnsignedByte.of(this.jBytes.get(4).get(i)))
+          .byteJ5(UnsignedByte.of(this.jBytes.get(5).get(i)))
+          .byteJ6(UnsignedByte.of(this.jBytes.get(6).get(i)))
+          .byteJ7(UnsignedByte.of(this.jBytes.get(7).get(i)))
+          .accJ0(this.jBytes.get(0).slice(0, accLength))
+          .accJ1(this.jBytes.get(1).slice(0, accLength))
+          .accJ2(this.jBytes.get(2).slice(0, accLength))
+          .accJ3(this.jBytes.get(3).slice(0, accLength))
+          .accJ4(this.jBytes.get(4).slice(0, accLength))
+          .accJ5(this.jBytes.get(5).slice(0, accLength))
+          .accJ6(this.jBytes.get(6).slice(0, accLength))
+          .accJ7(this.jBytes.get(7).slice(0, accLength))
           // Byte Q and Acc Q
-          .byteQ0(UnsignedByte.of(this.getQBytes().get(0).get(i)))
-          .byteQ1(UnsignedByte.of(this.getQBytes().get(1).get(i)))
-          .byteQ2(UnsignedByte.of(this.getQBytes().get(2).get(i)))
-          .byteQ3(UnsignedByte.of(this.getQBytes().get(3).get(i)))
-          .byteQ4(UnsignedByte.of(this.getQBytes().get(4).get(i)))
-          .byteQ5(UnsignedByte.of(this.getQBytes().get(5).get(i)))
-          .byteQ6(UnsignedByte.of(this.getQBytes().get(6).get(i)))
-          .byteQ7(UnsignedByte.of(this.getQBytes().get(7).get(i)))
-          .accQ0(this.getQBytes().get(0).slice(0, accLength))
-          .accQ1(this.getQBytes().get(1).slice(0, accLength))
-          .accQ2(this.getQBytes().get(2).slice(0, accLength))
-          .accQ3(this.getQBytes().get(3).slice(0, accLength))
-          .accQ4(this.getQBytes().get(4).slice(0, accLength))
-          .accQ5(this.getQBytes().get(5).slice(0, accLength))
-          .accQ6(this.getQBytes().get(6).slice(0, accLength))
-          .accQ7(this.getQBytes().get(7).slice(0, accLength))
+          .byteQ0(UnsignedByte.of(this.qBytes.get(0).get(i)))
+          .byteQ1(UnsignedByte.of(this.qBytes.get(1).get(i)))
+          .byteQ2(UnsignedByte.of(this.qBytes.get(2).get(i)))
+          .byteQ3(UnsignedByte.of(this.qBytes.get(3).get(i)))
+          .byteQ4(UnsignedByte.of(this.qBytes.get(4).get(i)))
+          .byteQ5(UnsignedByte.of(this.qBytes.get(5).get(i)))
+          .byteQ6(UnsignedByte.of(this.qBytes.get(6).get(i)))
+          .byteQ7(UnsignedByte.of(this.qBytes.get(7).get(i)))
+          .accQ0(this.qBytes.get(0).slice(0, accLength))
+          .accQ1(this.qBytes.get(1).slice(0, accLength))
+          .accQ2(this.qBytes.get(2).slice(0, accLength))
+          .accQ3(this.qBytes.get(3).slice(0, accLength))
+          .accQ4(this.qBytes.get(4).slice(0, accLength))
+          .accQ5(this.qBytes.get(5).slice(0, accLength))
+          .accQ6(this.qBytes.get(6).slice(0, accLength))
+          .accQ7(this.qBytes.get(7).slice(0, accLength))
           // Byte R and Acc R
-          .byteR0(UnsignedByte.of(this.getRBytes().get(0).get(i)))
-          .byteR1(UnsignedByte.of(this.getRBytes().get(1).get(i)))
-          .byteR2(UnsignedByte.of(this.getRBytes().get(2).get(i)))
-          .byteR3(UnsignedByte.of(this.getRBytes().get(3).get(i)))
-          .accR0(this.getRBytes().get(0).slice(0, accLength))
-          .accR1(this.getRBytes().get(1).slice(0, accLength))
-          .accR2(this.getRBytes().get(2).slice(0, accLength))
-          .accR3(this.getRBytes().get(3).slice(0, accLength))
+          .byteR0(UnsignedByte.of(this.rBytes.get(0).get(i)))
+          .byteR1(UnsignedByte.of(this.rBytes.get(1).get(i)))
+          .byteR2(UnsignedByte.of(this.rBytes.get(2).get(i)))
+          .byteR3(UnsignedByte.of(this.rBytes.get(3).get(i)))
+          .accR0(this.rBytes.get(0).slice(0, accLength))
+          .accR1(this.rBytes.get(1).slice(0, accLength))
+          .accR2(this.rBytes.get(2).slice(0, accLength))
+          .accR3(this.rBytes.get(3).slice(0, accLength))
           // other
-          .arg1Hi(this.getArg1().getHigh())
-          .arg1Lo(this.getArg1().getLow())
-          .arg2Hi(this.getArg2().getHigh())
-          .arg2Lo(this.getArg2().getLow())
-          .arg3Hi(this.getArg3().getHigh())
-          .arg3Lo(this.getArg3().getLow())
-          .resHi(this.getResult().getHigh())
-          .resLo(this.getResult().getLow())
-          .cmp(this.getCmp()[i])
-          .ofH(this.getOverflowH()[i])
-          .ofJ(this.getOverflowJ()[i])
-          .ofI(this.getOverflowI()[i])
-          .ofRes(this.getOverflowRes()[i])
+          .arg1Hi(this.arg1.getHigh())
+          .arg1Lo(this.arg1.getLow())
+          .arg2Hi(this.arg2.getHigh())
+          .arg2Lo(this.arg2.getLow())
+          .arg3Hi(this.arg3.getHigh())
+          .arg3Lo(this.arg3.getLow())
+          .resHi(this.result.getHigh())
+          .resLo(this.result.getLow())
+          .cmp(this.cmp[i])
+          .ofH(this.overflowH[i])
+          .ofJ(this.overflowJ[i])
+          .ofI(this.overflowI[i])
+          .ofRes(this.overflowRes[i])
           .ct(Bytes.of(i))
-          .inst(Bytes.of(this.getOpCode().byteValue()))
-          .oli(this.isOli())
+          .inst(Bytes.of(this.opCode.byteValue()))
+          .oli(this.isOneLineInstruction)
           .bit1(this.getBit1())
           .bit2(this.getBit2())
           .bit3(this.getBit3())

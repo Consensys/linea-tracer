@@ -34,7 +34,6 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 @RequiredArgsConstructor
 public class Ext implements Module {
   private final Hub hub;
-  private int stamp = 0;
 
   /** A set of the operations to trace */
   private final StackedSet<ExtOperation> operations = new StackedSet<>();

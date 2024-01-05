@@ -51,8 +51,7 @@ public class WcpOperation extends ModuleOperation {
   private final Bytes32 arg1;
   private final Bytes32 arg2;
   final int ctMax;
-  private int length;
-  private int offset;
+
   private Bytes arg1Hi;
   private Bytes arg1Lo;
   private Bytes arg2Hi;
@@ -80,8 +79,8 @@ public class WcpOperation extends ModuleOperation {
   }
 
   private void compute() {
-    this.length = this.isOli() ? LLARGE : this.ctMax + 1;
-    this.offset = LLARGE - length;
+    final int length = this.isOli() ? LLARGE : this.ctMax + 1;
+    final int offset = LLARGE - length;
     this.arg1Hi = arg1.slice(offset, length);
     this.arg1Lo = arg1.slice(LLARGE + offset, length);
     this.arg2Hi = arg2.slice(offset, length);

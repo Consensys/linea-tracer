@@ -30,7 +30,6 @@ import net.consensys.linea.zktracer.bytestheta.BaseBytes;
 import net.consensys.linea.zktracer.bytestheta.BaseTheta;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.types.Bytes16;
 import net.consensys.linea.zktracer.types.Conversions;
 import net.consensys.linea.zktracer.types.UnsignedByte;
@@ -87,10 +86,6 @@ public class MulOperation extends ModuleOperation {
     return Objects.equals(opCode, that.opCode)
         && Objects.equals(arg1, that.arg1)
         && Objects.equals(arg2, that.arg2);
-  }
-
-  public MulOperation(OpCodeData opCodeData, Bytes32 arg1, Bytes32 arg2) {
-    this(opCodeData.mnemonic(), arg1, arg2);
   }
 
   public MulOperation(OpCode opCode, Bytes32 arg1, Bytes32 arg2) {

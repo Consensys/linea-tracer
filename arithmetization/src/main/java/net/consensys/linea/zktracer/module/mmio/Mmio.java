@@ -60,7 +60,7 @@ public class Mmio implements Module {
   public int lineCount() {
     int sum = 0;
     for (MmioOperation o : this.state) {
-      sum += o.mmioDataProcessor().maxCounter();
+      sum += 1 + o.mmioDataProcessor().maxCounter();
     }
 
     return sum;

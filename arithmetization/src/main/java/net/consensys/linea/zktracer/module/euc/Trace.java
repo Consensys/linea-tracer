@@ -50,18 +50,18 @@ public class Trace {
 
   static List<ColumnHeader> headers(int length) {
     return List.of(
-        new ColumnHeader("euc.CEIL", 32, length),
+        new ColumnHeader("euc.CEIL", 1, length),
         new ColumnHeader("euc.CT", 1, length),
         new ColumnHeader("euc.CT_MAX", 1, length),
-        new ColumnHeader("euc.DIVIDEND", 32, length),
+        new ColumnHeader("euc.DIVIDEND", 1, length),
         new ColumnHeader("euc.DIVIDEND_BYTE", 1, length),
-        new ColumnHeader("euc.DIVISOR", 32, length),
+        new ColumnHeader("euc.DIVISOR", 1, length),
         new ColumnHeader("euc.DIVISOR_BYTE", 1, length),
         new ColumnHeader("euc.DONE", 1, length),
         new ColumnHeader("euc.IOMF", 1, length),
-        new ColumnHeader("euc.QUOTIENT", 32, length),
+        new ColumnHeader("euc.QUOTIENT", 1, length),
         new ColumnHeader("euc.QUOTIENT_BYTE", 1, length),
-        new ColumnHeader("euc.REMAINDER", 32, length),
+        new ColumnHeader("euc.REMAINDER", 1, length),
         new ColumnHeader("euc.REMAINDER_BYTE", 1, length));
   }
 
@@ -326,7 +326,7 @@ public class Trace {
 
   public Trace fillAndValidateRow() {
     if (!filled.get(0)) {
-      ceil.position(ceil.position() + 32);
+      ceil.position(ceil.position() + 1);
     }
 
     if (!filled.get(1)) {
@@ -338,7 +338,7 @@ public class Trace {
     }
 
     if (!filled.get(3)) {
-      dividend.position(dividend.position() + 32);
+      dividend.position(dividend.position() + 1);
     }
 
     if (!filled.get(4)) {
@@ -346,7 +346,7 @@ public class Trace {
     }
 
     if (!filled.get(5)) {
-      divisor.position(divisor.position() + 32);
+      divisor.position(divisor.position() + 1);
     }
 
     if (!filled.get(6)) {
@@ -362,7 +362,7 @@ public class Trace {
     }
 
     if (!filled.get(9)) {
-      quotient.position(quotient.position() + 32);
+      quotient.position(quotient.position() + 1);
     }
 
     if (!filled.get(10)) {
@@ -370,7 +370,7 @@ public class Trace {
     }
 
     if (!filled.get(11)) {
-      remainder.position(remainder.position() + 32);
+      remainder.position(remainder.position() + 1);
     }
 
     if (!filled.get(12)) {

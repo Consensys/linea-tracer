@@ -129,6 +129,7 @@ public class Mmio implements Module {
         .targetByteOffset(microData.targetByteOffset().toBigInteger())
         .size(BigInteger.valueOf(microData.size()))
         .erf(microData.isErf())
+        .fast(microData.isFast())
         .stackValueHigh(unsignedBytesToUnsignedBigInteger(mmioData.valHi()))
         .stackValueLow(unsignedBytesToUnsignedBigInteger(mmioData.valLo()))
         .stackValueHiByte(mmioData.valHi()[counter])

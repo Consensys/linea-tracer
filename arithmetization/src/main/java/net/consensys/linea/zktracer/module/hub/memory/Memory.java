@@ -33,7 +33,7 @@ public class Memory {
   }
 
   public UnsignedByte[] limbAtIndex(final int index) {
-    UnsignedByte[] limb = new UnsignedByte[16];
+    UnsignedByte[] limb = UnsignedByte.EMPTY_BYTES16;
     int limbIndex = Math.min(16 * (index + 1), memory.length) - 16 * index;
 
     if (limbIndex >= 0) {
@@ -52,7 +52,8 @@ public class Memory {
     int potNewLen = (limbIndex + 1) * 16;
     expand(potNewLen);
 
-    System.arraycopy(valNew, 0, memory, limbIndex * 16, potNewLen);
+    int copyLen = potNewLen - 1 - (limbIndex * 16);
+    System.arraycopy(valNew, 0, memory, limbIndex * 16, copyLen);
   }
 
   /**
@@ -65,6 +66,6 @@ public class Memory {
       return;
     }
 
-    this.memory = Arrays.copyOf(memory, memory.length);
+    this.memory = Arrays.copyOf(memory, memory.length + potNewLen);
   }
 }

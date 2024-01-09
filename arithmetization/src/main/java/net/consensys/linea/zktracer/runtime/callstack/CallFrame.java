@@ -127,6 +127,7 @@ public class CallFrame {
     this.callDataPointer = MemorySpan.ZERO;
     this.returnDataPointer = MemorySpan.ZERO;
     this.returnDataTarget = MemorySpan.ZERO;
+    this.pending = new StackContext(opCode);
   }
 
   /**

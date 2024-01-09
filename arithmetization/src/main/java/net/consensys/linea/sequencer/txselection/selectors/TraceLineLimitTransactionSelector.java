@@ -72,14 +72,14 @@ public class TraceLineLimitTransactionSelector implements PluginTransactionSelec
 
   @Override
   public void onTransactionNotSelected(
-      final PendingTransaction pendingTransaction,
+      final TransactionEvaluationContext<? extends PendingTransaction> evaluationContext,
       final TransactionSelectionResult transactionSelectionResult) {
-    zkTracer.popTransaction(pendingTransaction);
+    zkTracer.popTransaction(evaluationContext.getPendingTransaction());
   }
 
   @Override
   public void onTransactionSelected(
-      final PendingTransaction pendingTransaction,
+      final TransactionEvaluationContext<? extends PendingTransaction> evaluationContext,
       final TransactionProcessingResult processingResult) {
     prevCumulatedLineCount = currCumulatedLineCount;
   }

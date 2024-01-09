@@ -92,9 +92,10 @@ public class MaxBlockCallDataTransactionSelector implements PluginTransactionSel
    */
   @Override
   public void onTransactionSelected(
-      final PendingTransaction pendingTransaction,
+      final TransactionEvaluationContext<? extends PendingTransaction> evaluationContext,
       final TransactionProcessingResult transactionProcessingResult) {
-    final int transactionCallDataSize = pendingTransaction.getTransaction().getPayload().size();
+    final int transactionCallDataSize =
+        evaluationContext.getPendingTransaction().getTransaction().getPayload().size();
     cumulativeBlockCallDataSize =
         Math.addExact(cumulativeBlockCallDataSize, transactionCallDataSize);
   }

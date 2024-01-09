@@ -91,10 +91,9 @@ public class MaxBlockCallDataSizeTransactionSelectorTest {
       final TestTransactionEvaluationContext evaluationContext,
       final TransactionSelectionResult selectionResult) {
     if (selectionResult.equals(SELECTED)) {
-      selector.onTransactionSelected(
-          evaluationContext.getPendingTransaction(), mock(TransactionProcessingResult.class));
+      selector.onTransactionSelected(evaluationContext, mock(TransactionProcessingResult.class));
     } else {
-      selector.onTransactionNotSelected(evaluationContext.getPendingTransaction(), selectionResult);
+      selector.onTransactionNotSelected(evaluationContext, selectionResult);
     }
   }
 

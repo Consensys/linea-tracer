@@ -108,30 +108,30 @@ public class LineaTransactionSelector implements PluginTransactionSelector {
   /**
    * Notifies all selectors when a transaction is selected.
    *
-   * @param pendingTransaction The selected transaction.
+   * @param evaluationContext The current selection context.
    * @param processingResult The transaction processing result.
    */
   @Override
   public void onTransactionSelected(
-      final PendingTransaction pendingTransaction,
+      final TransactionEvaluationContext<? extends PendingTransaction> evaluationContext,
       final TransactionProcessingResult processingResult) {
     selectors.forEach(
-        selector -> selector.onTransactionSelected(pendingTransaction, processingResult));
+        selector -> selector.onTransactionSelected(evaluationContext, processingResult));
   }
 
   /**
    * Notifies all selectors when a transaction is not selected.
    *
-   * @param pendingTransaction The non-selected transaction.
+   * @param evaluationContext The current selection context.
    * @param transactionSelectionResult The reason for not selecting the transaction.
    */
   @Override
   public void onTransactionNotSelected(
-      final PendingTransaction pendingTransaction,
+      final TransactionEvaluationContext<? extends PendingTransaction> evaluationContext,
       final TransactionSelectionResult transactionSelectionResult) {
     selectors.forEach(
         selector ->
-            selector.onTransactionNotSelected(pendingTransaction, transactionSelectionResult));
+            selector.onTransactionNotSelected(evaluationContext, transactionSelectionResult));
   }
 
   /**

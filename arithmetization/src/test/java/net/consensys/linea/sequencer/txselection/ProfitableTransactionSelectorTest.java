@@ -113,9 +113,9 @@ public class ProfitableTransactionSelectorTest {
       final TransactionProcessingResult processingResult,
       final TransactionSelectionResult selectionResult) {
     if (selectionResult.equals(SELECTED)) {
-      selector.onTransactionSelected(evaluationContext.getPendingTransaction(), processingResult);
+      selector.onTransactionSelected(evaluationContext, processingResult);
     } else {
-      selector.onTransactionNotSelected(evaluationContext.getPendingTransaction(), selectionResult);
+      selector.onTransactionNotSelected(evaluationContext, selectionResult);
     }
   }
 }

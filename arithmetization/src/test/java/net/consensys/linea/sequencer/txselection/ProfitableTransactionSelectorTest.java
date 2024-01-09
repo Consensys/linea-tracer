@@ -66,6 +66,17 @@ public class ProfitableTransactionSelectorTest {
   }
 
   @Test
+  public void shouldSelectPrevUnprofitableAfterGasPriceBump() {
+    var mockTransactionProcessingResult = mockTransactionProcessingResult(21000);
+    verifyTransactionSelection(
+        transactionSelector,
+        mockEvaluationContext(
+            false, 1000, Wei.of(1_100_000_000).multiply(9), Wei.of(1_000_000_000)),
+        mockTransactionProcessingResult,
+        SELECTED);
+  }
+
+  @Test
   public void shouldSelectPriorityTxEvenWhenUnprofitable() {
     var mockTransactionProcessingResult = mockTransactionProcessingResult(21000);
     verifyTransactionSelection(

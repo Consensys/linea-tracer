@@ -26,7 +26,7 @@ public class LineaTransactionSelectorCliOptions {
   public static final int DEFAULT_VERIFICATION_GAS_COST = 1_200_000;
   public static final int DEFAULT_VERIFICATION_CAPACITY = 90_000;
   public static final int DEFAULT_GAS_PRICE_RATIO = 15;
-  public static final double DEFAULT_MIN_MARGIN = 0.9;
+  public static final double DEFAULT_MIN_MARGIN = 1.0;
   private static final String MAX_BLOCK_CALLDATA_SIZE = "--plugin-linea-max-block-calldata-size";
   private static final String MODULE_LIMIT_FILE_PATH = "--plugin-linea-module-limit-file-path";
   private static final String MAX_GAS_PER_BLOCK = "--plugin-linea-max-block-gas";

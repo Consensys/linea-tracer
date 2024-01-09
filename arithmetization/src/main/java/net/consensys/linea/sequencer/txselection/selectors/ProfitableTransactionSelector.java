@@ -52,7 +52,7 @@ public class ProfitableTransactionSelector implements PluginTransactionSelector 
       final double l1GasPrice = minGasPrice * gasPriceRatio;
       final int serializedSize = transaction.getSize();
       final double verificationGasCostSlice =
-          ((double) serializedSize) / verificationCapacity * verificationGasCost;
+          (((double) serializedSize) / verificationCapacity) * verificationGasCost;
       final double cost = l1GasPrice * verificationGasCostSlice;
 
       final double margin = revenue / cost;

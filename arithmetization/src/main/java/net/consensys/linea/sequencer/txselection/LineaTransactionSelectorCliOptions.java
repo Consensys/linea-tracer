@@ -15,7 +15,10 @@
 
 package net.consensys.linea.sequencer.txselection;
 
+import java.math.BigDecimal;
+
 import com.google.common.base.MoreObjects;
+import jakarta.validation.constraints.Positive;
 import picocli.CommandLine;
 
 /** The Linea CLI options. */
@@ -26,7 +29,7 @@ public class LineaTransactionSelectorCliOptions {
   public static final int DEFAULT_VERIFICATION_GAS_COST = 1_200_000;
   public static final int DEFAULT_VERIFICATION_CAPACITY = 90_000;
   public static final int DEFAULT_GAS_PRICE_RATIO = 15;
-  public static final double DEFAULT_MIN_MARGIN = 1.0;
+  public static final BigDecimal DEFAULT_MIN_MARGIN = BigDecimal.ONE;
   private static final String MAX_BLOCK_CALLDATA_SIZE = "--plugin-linea-max-block-calldata-size";
   private static final String MODULE_LIMIT_FILE_PATH = "--plugin-linea-module-limit-file-path";
   private static final String MAX_GAS_PER_BLOCK = "--plugin-linea-max-block-gas";
@@ -35,6 +38,7 @@ public class LineaTransactionSelectorCliOptions {
   private static final String GAS_PRICE_RATIO = "--plugin-linea-gas-price-ratio";
   private static final String MIN_MARGIN = "--plugin-linea-min-margin";
 
+  @Positive
   @CommandLine.Option(
       names = {MAX_BLOCK_CALLDATA_SIZE},
       hidden = true,
@@ -50,6 +54,7 @@ public class LineaTransactionSelectorCliOptions {
           "Path to the toml file containing the module limits (default: ${DEFAULT-VALUE})")
   private String moduleLimitFilePath = DEFAULT_MODULE_LIMIT_FILE_PATH;
 
+  @Positive
   @CommandLine.Option(
       names = {MAX_GAS_PER_BLOCK},
       hidden = true,
@@ -57,6 +62,7 @@ public class LineaTransactionSelectorCliOptions {
       description = "Sets max gas per block  (default: ${DEFAULT-VALUE})")
   private Long maxGasPerBlock = DEFAULT_MAX_GAS_PER_BLOCK;
 
+  @Positive
   @CommandLine.Option(
       names = {VERIFICATION_GAS_COST},
       hidden = true,
@@ -64,6 +70,7 @@ public class LineaTransactionSelectorCliOptions {
       description = "L1 verification gas cost (default: ${DEFAULT-VALUE})")
   private int verificationGasCost = DEFAULT_VERIFICATION_GAS_COST;
 
+  @Positive
   @CommandLine.Option(
       names = {VERIFICATION_CAPACITY},
       hidden = true,
@@ -71,6 +78,7 @@ public class LineaTransactionSelectorCliOptions {
       description = "L1 verification capacity (default: ${DEFAULT-VALUE})")
   private int verificationCapacity = DEFAULT_VERIFICATION_CAPACITY;
 
+  @Positive
   @CommandLine.Option(
       names = {GAS_PRICE_RATIO},
       hidden = true,
@@ -78,12 +86,13 @@ public class LineaTransactionSelectorCliOptions {
       description = "L1/L2 gas price ratio (default: ${DEFAULT-VALUE})")
   private int gasPriceRatio = DEFAULT_GAS_PRICE_RATIO;
 
+  @Positive
   @CommandLine.Option(
       names = {MIN_MARGIN},
       hidden = true,
       paramLabel = "<FLOAT>",
       description = "Minimum margin of a transaction to be selected (default: ${DEFAULT-VALUE})")
-  private double minMargin = DEFAULT_MIN_MARGIN;
+  private BigDecimal minMargin = DEFAULT_MIN_MARGIN;
 
   private LineaTransactionSelectorCliOptions() {}
 
@@ -111,7 +120,7 @@ public class LineaTransactionSelectorCliOptions {
     options.verificationGasCost = config.getVerificationGasCost();
     options.verificationCapacity = config.getVerificationCapacity();
     options.gasPriceRatio = config.getGasPriceRatio();
-    options.minMargin = config.getMinMargin();
+    options.minMargin = BigDecimal.valueOf(config.getMinMargin());
     return options;
   }
 
@@ -128,7 +137,7 @@ public class LineaTransactionSelectorCliOptions {
         .verificationGasCost(verificationGasCost)
         .verificationCapacity(verificationCapacity)
         .gasPriceRatio(gasPriceRatio)
-        .minMargin(minMargin)
+        .minMargin(minMargin.doubleValue())
         .build();
   }
 

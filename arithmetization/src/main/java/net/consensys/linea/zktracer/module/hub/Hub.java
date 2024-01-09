@@ -39,12 +39,34 @@ import net.consensys.linea.zktracer.module.bin.Bin;
 import net.consensys.linea.zktracer.module.ec_data.EcData;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.ext.Ext;
-import net.consensys.linea.zktracer.module.hub.defer.*;
-import net.consensys.linea.zktracer.module.hub.fragment.*;
+import net.consensys.linea.zktracer.module.hub.defer.DeferRegistry;
+import net.consensys.linea.zktracer.module.hub.defer.SkippedPostTransactionDefer;
+import net.consensys.linea.zktracer.module.hub.fragment.AccountFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.StackFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.StorageFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.TransactionFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
-import net.consensys.linea.zktracer.module.hub.section.*;
+import net.consensys.linea.zktracer.module.hub.section.AccountSection;
+import net.consensys.linea.zktracer.module.hub.section.ContextLogSection;
+import net.consensys.linea.zktracer.module.hub.section.CopySection;
+import net.consensys.linea.zktracer.module.hub.section.CreateSection;
+import net.consensys.linea.zktracer.module.hub.section.EndTransaction;
+import net.consensys.linea.zktracer.module.hub.section.FailedCallSection;
+import net.consensys.linea.zktracer.module.hub.section.JumpSection;
+import net.consensys.linea.zktracer.module.hub.section.KeccakSection;
+import net.consensys.linea.zktracer.module.hub.section.NoCodeCallSection;
+import net.consensys.linea.zktracer.module.hub.section.SmartContractCallSection;
+import net.consensys.linea.zktracer.module.hub.section.StackOnlySection;
+import net.consensys.linea.zktracer.module.hub.section.StackRam;
+import net.consensys.linea.zktracer.module.hub.section.StorageSection;
+import net.consensys.linea.zktracer.module.hub.section.TraceSection;
+import net.consensys.linea.zktracer.module.hub.section.TransactionSection;
+import net.consensys.linea.zktracer.module.hub.section.TxInitSection;
+import net.consensys.linea.zktracer.module.hub.section.WarmupSection;
 import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
 import net.consensys.linea.zktracer.module.hub.transients.Transients;
 import net.consensys.linea.zktracer.module.limits.Keccak;
@@ -79,7 +101,8 @@ import net.consensys.linea.zktracer.module.tables.shf.ShfRt;
 import net.consensys.linea.zktracer.module.trm.Trm;
 import net.consensys.linea.zktracer.module.txn_data.TxnData;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import net.consensys.linea.zktracer.opcode.*;
+import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.gas.projector.GasProjector;
 import net.consensys.linea.zktracer.runtime.LogInvocation;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
@@ -527,6 +550,41 @@ public class Hub implements Module {
         .stack()
         .processInstruction(frame, this.currentFrame(), TAU * this.state.stamps().hub());
   }
+
+  //  private void handleRam() {
+  //    // Desired behaviour if an error occured:
+  //    // (i) the stack will trace empty lines
+  //    // (ii) the MMU won't trace
+  //    if (this.currentFrame().pending().lines().isEmpty()) {
+  //      return;
+  //    }
+  //
+  //    StackLine line = this.currentFrame().pending().lines().get(0);
+  //
+  //    if (!line.needsResult()) {
+  //      this.mmu.handleRam(this.opCode(), line.asStackOperations(), this.callStack());
+  //    }
+  //  }
+  //
+  //  private void handleMemory(org.hyperledger.besu.evm.frame.Memory memory) {
+  //    UnsignedByte[] bytes = bytesToUnsignedBytes(memory.getBytes(0,
+  // Integer.MAX_VALUE).toArray());
+  //    this.currentFrame().pending().memory(new Memory(bytes));
+  //  }
+  //
+  //  private void handleCallReturnData(Stack stack) {
+  //    switch (this.opCode()) {
+  //      case RETURN -> {
+  //      }
+  //      case CALL, CALLCODE -> {
+  //
+  //      }
+  //      case DELEGATECALL, STATICCALL -> {
+  //
+  //      }
+  //      default -> {}
+  //    }
+  //  }
 
   void triggerModules(MessageFrame frame) {
     for (Module precompileLimit : this.precompileLimitModules) {

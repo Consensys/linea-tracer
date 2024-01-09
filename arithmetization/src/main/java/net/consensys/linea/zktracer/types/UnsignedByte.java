@@ -23,7 +23,6 @@ import com.fasterxml.jackson.annotation.JsonValue;
 public class UnsignedByte {
   public static final UnsignedByte ZERO = UnsignedByte.of(0);
   public static final UnsignedByte[] EMPTY_BYTES16 = new UnsignedByte[16];
-
   private final short unsignedByte;
 
   private UnsignedByte(final short unsignedByte) {

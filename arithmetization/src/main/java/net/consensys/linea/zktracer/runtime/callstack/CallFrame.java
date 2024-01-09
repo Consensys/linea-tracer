@@ -156,20 +156,20 @@ public class CallFrame {
    * @param callData {@link Bytes} containing this frame call data
    */
   CallFrame(
-      int accountDeploymentNumber,
-      int codeDeploymentNumber,
-      boolean isDeployment,
-      int id,
-      int hubStamp,
-      Address address,
-      Address codeAddress,
-      Bytecode code,
-      CallFrameType type,
-      int caller,
-      Wei value,
-      long gas,
-      Bytes callData,
-      int depth) {
+    int accountDeploymentNumber,
+    int codeDeploymentNumber,
+    boolean isDeployment,
+    int id,
+    int hubStamp,
+    Address address,
+    Address codeAddress,
+    Bytecode code,
+    CallFrameType type,
+    int caller,
+    Wei value,
+    long gas,
+    Bytes callData,
+    int depth) {
     this.accountDeploymentNumber = accountDeploymentNumber;
     this.codeDeploymentNumber = codeDeploymentNumber;
     this.underDeployment = isDeployment;
@@ -231,8 +231,8 @@ public class CallFrame {
     if (this.getsRevertedAt == 0) {
       this.getsRevertedAt = stamp;
       this.childFrames.stream()
-          .map(callStack::getById)
-          .forEach(frame -> frame.revertChildren(callStack, stamp));
+        .map(callStack::getById)
+        .forEach(frame -> frame.revertChildren(callStack, stamp));
     }
   }
 

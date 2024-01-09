@@ -58,7 +58,7 @@ public class ProfitableTransactionSelector implements PluginTransactionSelector 
       final double margin = revenue / cost;
 
       log(
-          log.atInfo(),
+          log.atTrace(),
           transaction,
           margin,
           effectiveGasPrice,

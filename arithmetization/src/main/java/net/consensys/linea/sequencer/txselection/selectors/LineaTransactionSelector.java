@@ -58,12 +58,12 @@ public class LineaTransactionSelector implements PluginTransactionSelector {
     return List.of(
         new MaxBlockCallDataTransactionSelector(lineaConfiguration.maxBlockCallDataSize()),
         new MaxBlockGasTransactionSelector(lineaConfiguration.maxGasPerBlock()),
-        traceLineLimitTransactionSelector,
         new ProfitableTransactionSelector(
             lineaConfiguration.getVerificationGasCost(),
             lineaConfiguration.getVerificationCapacity(),
             lineaConfiguration.getGasPriceRatio(),
-            lineaConfiguration.getMinMargin()));
+            lineaConfiguration.getMinMargin()),
+        traceLineLimitTransactionSelector);
   }
 
   /**

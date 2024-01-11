@@ -19,6 +19,7 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Objects;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 
@@ -57,6 +58,11 @@ public class Conversions {
     return unsignedBytesToUnsignedBigInteger(Arrays.copyOf(input, newLength, UnsignedByte[].class));
   }
 
+  public static Bytes unsignedBytesSubArrayToBytes(
+      final UnsignedByte[] input, final int newLength) {
+    return unsignedBytesToBytes(Arrays.copyOf(input, newLength, UnsignedByte[].class));
+  }
+
   public static EWord unsignedBytesToEWord(final UnsignedByte[] input) {
     return EWord.of(unsignedBytesToUnsignedBigInteger(input));
   }
@@ -69,12 +75,21 @@ public class Conversions {
     return r;
   }
 
+  public static Bytes unsignedBytesToBytes(final UnsignedByte[] bytes) {
+    return Bytes.concatenate(
+        Arrays.stream(bytes).map(b -> Bytes.of(b == null ? 0 : b.toByte())).toList());
+  }
+
   public static UnsignedByte[] bigIntegerToUnsignedBytes32(final BigInteger value) {
     return bytesToUnsignedBytes(Bytes32.leftPad(Bytes.of(value.toByteArray())).toArray());
   }
 
   public static BigInteger booleanToBigInteger(final boolean input) {
     return input ? BigInteger.ONE : BigInteger.ZERO;
+  }
+
+  public static Bytes booleanToBytes(final boolean input) {
+    return Bytes.of(BooleanUtils.toInteger(input));
   }
 
   public static BigInteger longToUnsignedBigInteger(final long input) {

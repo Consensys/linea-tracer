@@ -15,14 +15,13 @@
 
 package net.consensys.linea.zktracer.module.mmu;
 
-import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.BitSet;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.types.UnsignedByte;
-import org.apache.tuweni.units.bigints.UInt256;
+import org.apache.tuweni.bytes.Bytes;
 
 /**
  * WARNING: This code is generated automatically.
@@ -337,110 +336,146 @@ public class Trace {
     return this.currentLine;
   }
 
-  public Trace acc1(final BigInteger b) {
+  public Trace acc1(final Bytes b) {
     if (filled.get(0)) {
       throw new IllegalStateException("mmu.ACC_1 already set");
     } else {
       filled.set(0);
     }
 
-    acc1.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      acc1.put((byte) 0);
+    }
+    acc1.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace acc2(final BigInteger b) {
+  public Trace acc2(final Bytes b) {
     if (filled.get(1)) {
       throw new IllegalStateException("mmu.ACC_2 already set");
     } else {
       filled.set(1);
     }
 
-    acc2.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      acc2.put((byte) 0);
+    }
+    acc2.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace acc3(final BigInteger b) {
+  public Trace acc3(final Bytes b) {
     if (filled.get(2)) {
       throw new IllegalStateException("mmu.ACC_3 already set");
     } else {
       filled.set(2);
     }
 
-    acc3.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      acc3.put((byte) 0);
+    }
+    acc3.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace acc4(final BigInteger b) {
+  public Trace acc4(final Bytes b) {
     if (filled.get(3)) {
       throw new IllegalStateException("mmu.ACC_4 already set");
     } else {
       filled.set(3);
     }
 
-    acc4.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      acc4.put((byte) 0);
+    }
+    acc4.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace acc5(final BigInteger b) {
+  public Trace acc5(final Bytes b) {
     if (filled.get(4)) {
       throw new IllegalStateException("mmu.ACC_5 already set");
     } else {
       filled.set(4);
     }
 
-    acc5.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      acc5.put((byte) 0);
+    }
+    acc5.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace acc6(final BigInteger b) {
+  public Trace acc6(final Bytes b) {
     if (filled.get(5)) {
       throw new IllegalStateException("mmu.ACC_6 already set");
     } else {
       filled.set(5);
     }
 
-    acc6.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      acc6.put((byte) 0);
+    }
+    acc6.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace acc7(final BigInteger b) {
+  public Trace acc7(final Bytes b) {
     if (filled.get(6)) {
       throw new IllegalStateException("mmu.ACC_7 already set");
     } else {
       filled.set(6);
     }
 
-    acc7.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      acc7.put((byte) 0);
+    }
+    acc7.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace acc8(final BigInteger b) {
+  public Trace acc8(final Bytes b) {
     if (filled.get(7)) {
       throw new IllegalStateException("mmu.ACC_8 already set");
     } else {
       filled.set(7);
     }
 
-    acc8.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      acc8.put((byte) 0);
+    }
+    acc8.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace aligned(final BigInteger b) {
+  public Trace aligned(final Bytes b) {
     if (filled.get(8)) {
       throw new IllegalStateException("mmu.ALIGNED already set");
     } else {
       filled.set(8);
     }
 
-    aligned.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      aligned.put((byte) 0);
+    }
+    aligned.put(b.toArrayUnsafe());
 
     return this;
   }
@@ -637,98 +672,130 @@ public class Trace {
     return this;
   }
 
-  public Trace callDataOffset(final BigInteger b) {
+  public Trace callDataOffset(final Bytes b) {
     if (filled.get(26)) {
       throw new IllegalStateException("mmu.CALL_DATA_OFFSET already set");
     } else {
       filled.set(26);
     }
 
-    callDataOffset.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      callDataOffset.put((byte) 0);
+    }
+    callDataOffset.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace callDataSize(final BigInteger b) {
+  public Trace callDataSize(final Bytes b) {
     if (filled.get(27)) {
       throw new IllegalStateException("mmu.CALL_DATA_SIZE already set");
     } else {
       filled.set(27);
     }
 
-    callDataSize.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      callDataSize.put((byte) 0);
+    }
+    callDataSize.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace callStackDepth(final BigInteger b) {
+  public Trace callStackDepth(final Bytes b) {
     if (filled.get(28)) {
       throw new IllegalStateException("mmu.CALL_STACK_DEPTH already set");
     } else {
       filled.set(28);
     }
 
-    callStackDepth.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      callStackDepth.put((byte) 0);
+    }
+    callStackDepth.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace caller(final BigInteger b) {
+  public Trace caller(final Bytes b) {
     if (filled.get(25)) {
       throw new IllegalStateException("mmu.CALLER already set");
     } else {
       filled.set(25);
     }
 
-    caller.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      caller.put((byte) 0);
+    }
+    caller.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace contextNumber(final BigInteger b) {
+  public Trace contextNumber(final Bytes b) {
     if (filled.get(29)) {
       throw new IllegalStateException("mmu.CONTEXT_NUMBER already set");
     } else {
       filled.set(29);
     }
 
-    contextNumber.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      contextNumber.put((byte) 0);
+    }
+    contextNumber.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace contextSource(final BigInteger b) {
+  public Trace contextSource(final Bytes b) {
     if (filled.get(30)) {
       throw new IllegalStateException("mmu.CONTEXT_SOURCE already set");
     } else {
       filled.set(30);
     }
 
-    contextSource.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      contextSource.put((byte) 0);
+    }
+    contextSource.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace contextTarget(final BigInteger b) {
+  public Trace contextTarget(final Bytes b) {
     if (filled.get(31)) {
       throw new IllegalStateException("mmu.CONTEXT_TARGET already set");
     } else {
       filled.set(31);
     }
 
-    contextTarget.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      contextTarget.put((byte) 0);
+    }
+    contextTarget.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace counter(final BigInteger b) {
+  public Trace counter(final Bytes b) {
     if (filled.get(32)) {
       throw new IllegalStateException("mmu.COUNTER already set");
     } else {
       filled.set(32);
     }
 
-    counter.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      counter.put((byte) 0);
+    }
+    counter.put(b.toArrayUnsafe());
 
     return this;
   }
@@ -793,38 +860,50 @@ public class Trace {
     return this;
   }
 
-  public Trace fast(final BigInteger b) {
+  public Trace fast(final Bytes b) {
     if (filled.get(38)) {
       throw new IllegalStateException("mmu.FAST already set");
     } else {
       filled.set(38);
     }
 
-    fast.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      fast.put((byte) 0);
+    }
+    fast.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace info(final BigInteger b) {
+  public Trace info(final Bytes b) {
     if (filled.get(39)) {
       throw new IllegalStateException("mmu.INFO already set");
     } else {
       filled.set(39);
     }
 
-    info.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      info.put((byte) 0);
+    }
+    info.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace instruction(final BigInteger b) {
+  public Trace instruction(final Bytes b) {
     if (filled.get(40)) {
       throw new IllegalStateException("mmu.INSTRUCTION already set");
     } else {
       filled.set(40);
     }
 
-    instruction.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      instruction.put((byte) 0);
+    }
+    instruction.put(b.toArrayUnsafe());
 
     return this;
   }
@@ -853,38 +932,50 @@ public class Trace {
     return this;
   }
 
-  public Trace microInstruction(final BigInteger b) {
+  public Trace microInstruction(final Bytes b) {
     if (filled.get(43)) {
       throw new IllegalStateException("mmu.MICRO_INSTRUCTION already set");
     } else {
       filled.set(43);
     }
 
-    microInstruction.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      microInstruction.put((byte) 0);
+    }
+    microInstruction.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace microInstructionStamp(final BigInteger b) {
+  public Trace microInstructionStamp(final Bytes b) {
     if (filled.get(44)) {
       throw new IllegalStateException("mmu.MICRO_INSTRUCTION_STAMP already set");
     } else {
       filled.set(44);
     }
 
-    microInstructionStamp.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      microInstructionStamp.put((byte) 0);
+    }
+    microInstructionStamp.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace min(final BigInteger b) {
+  public Trace min(final Bytes b) {
     if (filled.get(45)) {
       throw new IllegalStateException("mmu.MIN already set");
     } else {
       filled.set(45);
     }
 
-    min.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      min.put((byte) 0);
+    }
+    min.put(b.toArrayUnsafe());
 
     return this;
   }
@@ -997,38 +1088,50 @@ public class Trace {
     return this;
   }
 
-  public Trace off1Lo(final BigInteger b) {
+  public Trace off1Lo(final Bytes b) {
     if (filled.get(56)) {
       throw new IllegalStateException("mmu.OFF_1_LO already set");
     } else {
       filled.set(56);
     }
 
-    off1Lo.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      off1Lo.put((byte) 0);
+    }
+    off1Lo.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace off2Hi(final BigInteger b) {
+  public Trace off2Hi(final Bytes b) {
     if (filled.get(57)) {
       throw new IllegalStateException("mmu.OFF_2_HI already set");
     } else {
       filled.set(57);
     }
 
-    off2Hi.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      off2Hi.put((byte) 0);
+    }
+    off2Hi.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace off2Lo(final BigInteger b) {
+  public Trace off2Lo(final Bytes b) {
     if (filled.get(58)) {
       throw new IllegalStateException("mmu.OFF_2_LO already set");
     } else {
       filled.set(58);
     }
 
-    off2Lo.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      off2Lo.put((byte) 0);
+    }
+    off2Lo.put(b.toArrayUnsafe());
 
     return this;
   }
@@ -1045,170 +1148,226 @@ public class Trace {
     return this;
   }
 
-  public Trace precomputation(final BigInteger b) {
+  public Trace precomputation(final Bytes b) {
     if (filled.get(59)) {
       throw new IllegalStateException("mmu.PRECOMPUTATION already set");
     } else {
       filled.set(59);
     }
 
-    precomputation.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      precomputation.put((byte) 0);
+    }
+    precomputation.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace ramStamp(final BigInteger b) {
+  public Trace ramStamp(final Bytes b) {
     if (filled.get(60)) {
       throw new IllegalStateException("mmu.RAM_STAMP already set");
     } else {
       filled.set(60);
     }
 
-    ramStamp.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      ramStamp.put((byte) 0);
+    }
+    ramStamp.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace refo(final BigInteger b) {
+  public Trace refo(final Bytes b) {
     if (filled.get(61)) {
       throw new IllegalStateException("mmu.REFO already set");
     } else {
       filled.set(61);
     }
 
-    refo.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      refo.put((byte) 0);
+    }
+    refo.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace refs(final BigInteger b) {
+  public Trace refs(final Bytes b) {
     if (filled.get(62)) {
       throw new IllegalStateException("mmu.REFS already set");
     } else {
       filled.set(62);
     }
 
-    refs.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      refs.put((byte) 0);
+    }
+    refs.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace returnCapacity(final BigInteger b) {
+  public Trace returnCapacity(final Bytes b) {
     if (filled.get(64)) {
       throw new IllegalStateException("mmu.RETURN_CAPACITY already set");
     } else {
       filled.set(64);
     }
 
-    returnCapacity.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      returnCapacity.put((byte) 0);
+    }
+    returnCapacity.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace returnOffset(final BigInteger b) {
+  public Trace returnOffset(final Bytes b) {
     if (filled.get(65)) {
       throw new IllegalStateException("mmu.RETURN_OFFSET already set");
     } else {
       filled.set(65);
     }
 
-    returnOffset.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      returnOffset.put((byte) 0);
+    }
+    returnOffset.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace returner(final BigInteger b) {
+  public Trace returner(final Bytes b) {
     if (filled.get(63)) {
       throw new IllegalStateException("mmu.RETURNER already set");
     } else {
       filled.set(63);
     }
 
-    returner.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      returner.put((byte) 0);
+    }
+    returner.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace size(final BigInteger b) {
+  public Trace size(final Bytes b) {
     if (filled.get(66)) {
       throw new IllegalStateException("mmu.SIZE already set");
     } else {
       filled.set(66);
     }
 
-    size.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      size.put((byte) 0);
+    }
+    size.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace sizeImported(final BigInteger b) {
+  public Trace sizeImported(final Bytes b) {
     if (filled.get(67)) {
       throw new IllegalStateException("mmu.SIZE_IMPORTED already set");
     } else {
       filled.set(67);
     }
 
-    sizeImported.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      sizeImported.put((byte) 0);
+    }
+    sizeImported.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace sourceByteOffset(final BigInteger b) {
+  public Trace sourceByteOffset(final Bytes b) {
     if (filled.get(68)) {
       throw new IllegalStateException("mmu.SOURCE_BYTE_OFFSET already set");
     } else {
       filled.set(68);
     }
 
-    sourceByteOffset.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      sourceByteOffset.put((byte) 0);
+    }
+    sourceByteOffset.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace sourceLimbOffset(final BigInteger b) {
+  public Trace sourceLimbOffset(final Bytes b) {
     if (filled.get(69)) {
       throw new IllegalStateException("mmu.SOURCE_LIMB_OFFSET already set");
     } else {
       filled.set(69);
     }
 
-    sourceLimbOffset.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      sourceLimbOffset.put((byte) 0);
+    }
+    sourceLimbOffset.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace targetByteOffset(final BigInteger b) {
+  public Trace targetByteOffset(final Bytes b) {
     if (filled.get(70)) {
       throw new IllegalStateException("mmu.TARGET_BYTE_OFFSET already set");
     } else {
       filled.set(70);
     }
 
-    targetByteOffset.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      targetByteOffset.put((byte) 0);
+    }
+    targetByteOffset.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace targetLimbOffset(final BigInteger b) {
+  public Trace targetLimbOffset(final Bytes b) {
     if (filled.get(71)) {
       throw new IllegalStateException("mmu.TARGET_LIMB_OFFSET already set");
     } else {
       filled.set(71);
     }
 
-    targetLimbOffset.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      targetLimbOffset.put((byte) 0);
+    }
+    targetLimbOffset.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace ternary(final BigInteger b) {
+  public Trace ternary(final Bytes b) {
     if (filled.get(72)) {
       throw new IllegalStateException("mmu.TERNARY already set");
     } else {
       filled.set(72);
     }
 
-    ternary.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      ternary.put((byte) 0);
+    }
+    ternary.put(b.toArrayUnsafe());
 
     return this;
   }
@@ -1225,62 +1384,82 @@ public class Trace {
     return this;
   }
 
-  public Trace totalNumberOfMicroInstructions(final BigInteger b) {
+  public Trace totalNumberOfMicroInstructions(final Bytes b) {
     if (filled.get(73)) {
       throw new IllegalStateException("mmu.TOTAL_NUMBER_OF_MICRO_INSTRUCTIONS already set");
     } else {
       filled.set(73);
     }
 
-    totalNumberOfMicroInstructions.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      totalNumberOfMicroInstructions.put((byte) 0);
+    }
+    totalNumberOfMicroInstructions.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace totalNumberOfPaddings(final BigInteger b) {
+  public Trace totalNumberOfPaddings(final Bytes b) {
     if (filled.get(74)) {
       throw new IllegalStateException("mmu.TOTAL_NUMBER_OF_PADDINGS already set");
     } else {
       filled.set(74);
     }
 
-    totalNumberOfPaddings.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      totalNumberOfPaddings.put((byte) 0);
+    }
+    totalNumberOfPaddings.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace totalNumberOfReads(final BigInteger b) {
+  public Trace totalNumberOfReads(final Bytes b) {
     if (filled.get(75)) {
       throw new IllegalStateException("mmu.TOTAL_NUMBER_OF_READS already set");
     } else {
       filled.set(75);
     }
 
-    totalNumberOfReads.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      totalNumberOfReads.put((byte) 0);
+    }
+    totalNumberOfReads.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace valHi(final BigInteger b) {
+  public Trace valHi(final Bytes b) {
     if (filled.get(77)) {
       throw new IllegalStateException("mmu.VAL_HI already set");
     } else {
       filled.set(77);
     }
 
-    valHi.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      valHi.put((byte) 0);
+    }
+    valHi.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace valLo(final BigInteger b) {
+  public Trace valLo(final Bytes b) {
     if (filled.get(78)) {
       throw new IllegalStateException("mmu.VAL_LO already set");
     } else {
       filled.set(78);
     }
 
-    valLo.put(UInt256.valueOf(b).toBytes().toArray());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      valLo.put((byte) 0);
+    }
+    valLo.put(b.toArrayUnsafe());
 
     return this;
   }

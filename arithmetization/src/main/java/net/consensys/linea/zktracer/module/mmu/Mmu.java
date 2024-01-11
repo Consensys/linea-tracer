@@ -16,10 +16,9 @@
 package net.consensys.linea.zktracer.module.mmu;
 
 import static net.consensys.linea.zktracer.module.mmu.MicroDataProcessor.*;
-import static net.consensys.linea.zktracer.types.Conversions.booleanToBigInteger;
-import static net.consensys.linea.zktracer.types.Conversions.unsignedBytesToUnsignedBigInteger;
+import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
+import static net.consensys.linea.zktracer.types.Conversions.unsignedBytesToBytes;
 
-import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 import java.util.Objects;
@@ -38,6 +37,8 @@ import net.consensys.linea.zktracer.runtime.stack.StackOperation;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.tuweni.bytes.Bytes;
 
 public class Mmu implements Module {
   private final StackedList<MmuOperation> state = new StackedList<>();
@@ -136,7 +137,7 @@ public class Mmu implements Module {
   private void trace(MicroData microData, Trace trace) {
     Pointers pointers = microData.pointers();
 
-    BigInteger value = microData.value().toUnsignedBigInteger();
+    Bytes value = microData.value();
 
     InstructionContext stackFrames = microData.instructionContext();
 
@@ -147,34 +148,34 @@ public class Mmu implements Module {
     EWord eStack1 = EWord.of(pointers.stack1());
 
     trace
-        .ramStamp(BigInteger.valueOf(this.ramStamp))
-        .microInstructionStamp(BigInteger.ZERO)
+        .ramStamp(Bytes.ofUnsignedInt(this.ramStamp))
+        .microInstructionStamp(Bytes.EMPTY)
         .isMicroInstruction(this.isMicro)
-        .off1Lo(eStack1.lo().toUnsignedBigInteger())
-        .off2Lo(pointers.stack2().toUnsignedBigInteger())
-        .off2Hi(pointers.stack2().toUnsignedBigInteger())
-        .sizeImported(BigInteger.valueOf(microData.sizeImported()))
+        .off1Lo(eStack1.lo())
+        .off2Lo(pointers.stack2())
+        .off2Hi(pointers.stack2())
+        .sizeImported(Bytes.ofUnsignedInt(microData.sizeImported()))
         .valHi(value)
         .valLo(value)
-        .contextNumber(BigInteger.valueOf(stackFrames.self()))
-        .caller(BigInteger.valueOf(stackFrames.caller()))
-        .returner(BigInteger.valueOf(stackFrames.returner()))
-        .contextSource(BigInteger.valueOf(microData.sourceContext()))
-        .contextTarget(BigInteger.valueOf(microData.targetContext()))
-        .counter(BigInteger.valueOf(microData.counter()))
+        .contextNumber(Bytes.ofUnsignedInt(stackFrames.self()))
+        .caller(Bytes.ofUnsignedInt(stackFrames.caller()))
+        .returner(Bytes.ofUnsignedInt(stackFrames.returner()))
+        .contextSource(Bytes.ofUnsignedInt(microData.sourceContext()))
+        .contextTarget(Bytes.ofUnsignedInt(microData.targetContext()))
+        .counter(Bytes.ofUnsignedInt(microData.counter()))
         .offsetOutOfBounds(pointers.oob())
-        .precomputation(BigInteger.valueOf(microData.precomputation()))
-        .ternary(BigInteger.valueOf(microData.ternary()))
-        .microInstruction(BigInteger.valueOf(microData.microOp()))
+        .precomputation(Bytes.ofUnsignedInt(microData.precomputation()))
+        .ternary(Bytes.ofUnsignedInt(microData.ternary()))
+        .microInstruction(Bytes.ofUnsignedInt(microData.microOp()))
         .exoIsRom(microData.exoIsRom())
         .exoIsLog(microData.exoIsLog())
         .exoIsHash(microData.exoIsHash())
         .exoIsTxcd(microData.exoIsTxcd())
-        .sourceLimbOffset(microData.sourceLimbOffset().toUnsignedBigInteger())
-        .sourceByteOffset(microData.sourceByteOffset().toBigInteger())
-        .targetLimbOffset(microData.targetLimbOffset().toUnsignedBigInteger())
-        .targetByteOffset(microData.targetByteOffset().toBigInteger())
-        .size(BigInteger.valueOf(microData.size()))
+        .sourceLimbOffset(microData.sourceLimbOffset())
+        .sourceByteOffset(Bytes.of(microData.sourceByteOffset().toByte()))
+        .targetLimbOffset(microData.targetLimbOffset())
+        .targetByteOffset(Bytes.of(microData.targetByteOffset().toByte()))
+        .size(Bytes.ofUnsignedInt(microData.size()))
         .nib1(Objects.requireNonNullElse(nibbles[0], UnsignedByte.ZERO))
         .nib2(Objects.requireNonNullElse(nibbles[1], UnsignedByte.ZERO))
         .nib3(Objects.requireNonNullElse(nibbles[2], UnsignedByte.ZERO))
@@ -208,35 +209,35 @@ public class Mmu implements Module {
         .bit6(bits[5])
         .bit7(bits[6])
         .bit8(bits[7])
-        .aligned(booleanToBigInteger(microData.aligned()))
-        .fast(booleanToBigInteger(microData.isFast()))
-        .min(BigInteger.valueOf(microData.min()))
-        .callDataOffset(BigInteger.valueOf(microData.callDataOffset()))
-        .callStackDepth(BigInteger.valueOf(microData.callStackDepth()))
-        .callDataSize(BigInteger.valueOf(microData.callDataSize()))
-        .instruction(BigInteger.valueOf(microData.opCode().getData().value()))
+        .aligned(Bytes.of(BooleanUtils.toInteger(microData.aligned())))
+        .fast(booleanToBytes(microData.isFast()))
+        .min(Bytes.ofUnsignedInt(microData.min()))
+        .callDataOffset(Bytes.ofUnsignedInt(microData.callDataOffset()))
+        .callStackDepth(Bytes.ofUnsignedInt(microData.callStackDepth()))
+        .callDataSize(Bytes.ofUnsignedInt(microData.callDataSize()))
+        .instruction(Bytes.ofUnsignedInt(microData.opCode().getData().value()))
         .totalNumberOfMicroInstructions(
-            BigInteger.valueOf(this.ramStamp == 0 ? 0 : microData.remainingMicroInstructions()))
-        .totalNumberOfReads(BigInteger.valueOf(microData.remainingReads()))
-        .totalNumberOfPaddings(BigInteger.valueOf(microData.remainingPads()))
+            Bytes.ofUnsignedInt(this.ramStamp == 0 ? 0 : microData.remainingMicroInstructions()))
+        .totalNumberOfReads(Bytes.ofUnsignedInt(microData.remainingReads()))
+        .totalNumberOfPaddings(Bytes.ofUnsignedInt(microData.remainingPads()))
         .toRam(microData.toRam())
         .erf(isMicro && microData.isErf())
         .returnOffset(
             stackFrames.returnOffset().isUInt64() || stackFrames.returnCapacity() == 0
-                ? BigInteger.ZERO
-                : stackFrames.returnOffset().toUnsignedBigInteger())
-        .returnCapacity(BigInteger.valueOf(stackFrames.returnCapacity()))
-        .refs(BigInteger.valueOf(microData.referenceSize()))
-        .refo(BigInteger.valueOf(microData.referenceOffset()))
-        .info(booleanToBigInteger(microData.info()))
+                ? Bytes.EMPTY
+                : stackFrames.returnOffset())
+        .returnCapacity(Bytes.ofUnsignedInt(stackFrames.returnCapacity()))
+        .refs(Bytes.ofUnsignedInt(microData.referenceSize()))
+        .refo(Bytes.ofUnsignedInt(microData.referenceOffset()))
+        .info(booleanToBytes(microData.info()))
         .isData(this.ramStamp != 0)
         .validateRow();
   }
 
-  private BigInteger acc(final int accIndex, final MicroData microData) {
+  private Bytes acc(final int accIndex, final MicroData microData) {
     int maxCounter = maxCounter(microData.pointers().oob());
 
-    return unsignedBytesToUnsignedBigInteger(
+    return unsignedBytesToBytes(
         ArrayUtils.subarray(
             microData.accs()[accIndex],
             32 - maxCounter,

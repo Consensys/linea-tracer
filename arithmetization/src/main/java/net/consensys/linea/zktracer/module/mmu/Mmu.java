@@ -16,9 +16,8 @@
 package net.consensys.linea.zktracer.module.mmu;
 
 import static net.consensys.linea.zktracer.module.mmu.MicroDataProcessor.*;
-import static net.consensys.linea.zktracer.types.Conversions.unsignedBytesToUnsignedBigInteger;
+import static net.consensys.linea.zktracer.types.Conversions.unsignedBytesToBytes;
 
-import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 import java.util.Objects;
@@ -37,6 +36,7 @@ import net.consensys.linea.zktracer.runtime.stack.StackOperation;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.tuweni.bytes.Bytes;
 
 public class Mmu implements Module {
   private final StackedList<MmuOperation> state = new StackedList<>();
@@ -135,7 +135,7 @@ public class Mmu implements Module {
   private void trace(MicroData microData, Trace trace) {
     Pointers pointers = microData.pointers();
 
-    BigInteger value = microData.value().toUnsignedBigInteger();
+    Bytes value = microData.value();
 
     InstructionContext stackFrames = microData.instructionContext();
 
@@ -231,10 +231,10 @@ public class Mmu implements Module {
         .fillAndValidateRow();
   }
 
-  private BigInteger acc(final int accIndex, final MicroData microData) {
+  private Bytes acc(final int accIndex, final MicroData microData) {
     int maxCounter = maxCounter(microData.pointers().oob());
 
-    return unsignedBytesToUnsignedBigInteger(
+    return unsignedBytesToBytes(
         ArrayUtils.subarray(
             microData.accs()[accIndex],
             32 - maxCounter,

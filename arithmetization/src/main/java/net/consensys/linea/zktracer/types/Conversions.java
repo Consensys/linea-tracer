@@ -51,6 +51,16 @@ public class Conversions {
         .toUnsignedBigInteger();
   }
 
+  public static BigInteger unsignedBytesSubArrayToUnsignedBigInteger(
+      final UnsignedByte[] input, final int newLength) {
+    return unsignedBytesToUnsignedBigInteger(Arrays.copyOf(input, newLength, UnsignedByte[].class));
+  }
+
+  public static Bytes unsignedBytesSubArrayToBytes(
+      final UnsignedByte[] input, final int newLength) {
+    return unsignedBytesToBytes(Arrays.copyOf(input, newLength, UnsignedByte[].class));
+  }
+
   public static EWord unsignedBytesToEWord(final UnsignedByte[] input) {
     return EWord.of(unsignedBytesToUnsignedBigInteger(input));
   }
@@ -70,6 +80,15 @@ public class Conversions {
       r.add(UnsignedByte.of(aByte));
     }
     return r;
+  }
+
+  public static Bytes unsignedBytesToBytes(final UnsignedByte[] bytes) {
+    return Bytes.concatenate(
+        Arrays.stream(bytes).map(b -> Bytes.of(b == null ? 0 : b.toByte())).toList());
+  }
+
+  public static UnsignedByte[] bigIntegerToUnsignedBytes32(final BigInteger value) {
+    return bytesToUnsignedBytes(Bytes32.leftPad(Bytes.of(value.toByteArray())).toArray());
   }
 
   public static BigInteger booleanToBigInteger(final boolean input) {

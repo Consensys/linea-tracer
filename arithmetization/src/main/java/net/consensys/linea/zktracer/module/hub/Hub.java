@@ -277,7 +277,8 @@ public class Hub implements Module {
         this.shf,
         this.stp,
         this.txnData,
-        this.wcp);
+        this.wcp,
+        this.modexp.data());
   }
 
   public List<Module> getModulesToCount() {

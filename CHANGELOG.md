@@ -1,6 +1,9 @@
 # Changelog
 
-<<<<<<< HEAD
+## 0.1.4-test9
+Test pre-release 9 from [temp/issue-248/count-stack-only](https://github.com/Consensys/besu-sequencer-plugins/tree/temp/issue-248/count-stack-only)
+* Bump Linea Besu to 24.1.1-SNAPSHOT
+
 ## 0.1.4-test8
 Test pre-release 8 from [temp/issue-248/count-stack-only](https://github.com/Consensys/besu-sequencer-plugins/tree/temp/issue-248/count-stack-only)
 * Add profitable transaction selector [#530](https://github.com/Consensys/besu-sequencer-plugins/pull/530)

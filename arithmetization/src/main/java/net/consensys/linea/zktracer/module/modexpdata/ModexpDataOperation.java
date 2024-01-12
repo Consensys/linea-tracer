@@ -18,19 +18,23 @@ package net.consensys.linea.zktracer.module.modexpdata;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
+import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 
 @RequiredArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
+@Accessors(fluent = true)
 public class ModexpDataOperation extends ModuleOperation {
-  private final Bytes base;
+  @Getter private final Bytes base;
   private final int baseLength;
-  private final Bytes exp;
+  @Getter private final Bytes exp;
   private final int expLength;
-  private final Bytes mod;
+  @Getter private final Bytes mod;
   private final int modLength;
-  @Getter private Bytes result;
+  @Getter @Setter private Bytes result;
 
   @Override
   protected int computeLineCount() {
@@ -39,15 +43,15 @@ public class ModexpDataOperation extends ModuleOperation {
 
   void trace(Trace trace, int stamp) {
     for (int ct = 0; ct < 32; ct++) {
-      //      trace
-      //        .ct(UnsignedByte.of(ct))
-      //        .bemr()
-      //        .bytes()
-      //        .limb()
-      //        .index()
-      //        .rdcn()
-      //        .stamp(stamp)
-      //        .validateRow();
+      trace
+          .ct(UnsignedByte.of(ct))
+          .bemr(Bytes.concatenate(base, exp, mod, result))
+          //              .bytes()
+          //              .limb()
+          //              .index()
+          //              .rdcn()
+          .stamp(Bytes.ofUnsignedInt(stamp))
+          .validateRow();
     }
   }
 }

@@ -23,6 +23,7 @@ import java.util.stream.Stream;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.bytestheta.BaseBytes;
 import net.consensys.linea.zktracer.container.ModuleOperation;
@@ -35,6 +36,7 @@ import org.apache.tuweni.bytes.Bytes32;
 @Getter
 @Accessors(fluent = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
+@RequiredArgsConstructor
 public class BinOperation extends ModuleOperation {
   private static final int LIMB_SIZE = 16;
 
@@ -47,12 +49,6 @@ public class BinOperation extends ModuleOperation {
   private boolean isSmall = false;
   private int pivotThreshold = 0;
   private int pivot = 0;
-
-  public BinOperation(OpCode opCode, BaseBytes arg1, BaseBytes arg2) {
-    this.opCode = opCode;
-    this.arg1 = arg1;
-    this.arg2 = arg2;
-  }
 
   private boolean isOneLineInstruction() {
     return (opCode == OpCode.BYTE || opCode == OpCode.SIGNEXTEND) && !arg1.getHigh().isZero();

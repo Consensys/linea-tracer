@@ -61,9 +61,7 @@ public class FirstFastSecondPaddedDispatcher implements MmioDispatcher {
 
     Preconditions.checkArgument(sourceByteOffset != 0, "microData.sourceByteOffset should be 0");
 
-    for (int i = 0; i < microData.size(); i++) {
-      mmioData.valLo()[i] = mmioData.valB()[i + sourceByteOffset];
-    }
+    System.arraycopy(mmioData.valB(), sourceByteOffset, mmioData.valLo(), 0, microData.size());
 
     mmioData.updateLimbsInMemory(callStack);
 

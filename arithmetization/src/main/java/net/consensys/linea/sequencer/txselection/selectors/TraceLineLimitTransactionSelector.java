@@ -74,7 +74,11 @@ public class TraceLineLimitTransactionSelector implements PluginTransactionSelec
   public void onTransactionNotSelected(
       final TransactionEvaluationContext<? extends PendingTransaction> evaluationContext,
       final TransactionSelectionResult transactionSelectionResult) {
+    log.info(
+        "onTransactionNotSelected getModulesLineCount pre pop {}", zkTracer.getModulesLineCount());
     zkTracer.popTransaction(evaluationContext.getPendingTransaction());
+    log.info(
+        "onTransactionNotSelected getModulesLineCount post pop {}", zkTracer.getModulesLineCount());
   }
 
   @Override
@@ -82,6 +86,7 @@ public class TraceLineLimitTransactionSelector implements PluginTransactionSelec
       final TransactionEvaluationContext<? extends PendingTransaction> evaluationContext,
       final TransactionProcessingResult processingResult) {
     prevCumulatedLineCount = currCumulatedLineCount;
+    log.info("onTransactionSelected getModulesLineCount {}", zkTracer.getModulesLineCount());
   }
 
   /**
@@ -103,7 +108,7 @@ public class TraceLineLimitTransactionSelector implements PluginTransactionSelec
 
     final Transaction transaction = evaluationContext.getPendingTransaction().getTransaction();
 
-    log.atTrace()
+    log.atInfo()
         .setMessage("Tx {} line count per module: {}")
         .addArgument(transaction::getHash)
         .addArgument(this::logTxLineCount)
@@ -133,7 +138,7 @@ public class TraceLineLimitTransactionSelector implements PluginTransactionSelec
       }
 
       if (cumulatedModuleLineCount > moduleLineCountLimit) {
-        log.atTrace()
+        log.atInfo()
             .setMessage(
                 "Cumulated line count for module {}={} is above the limit {}, stopping selection")
             .addArgument(module)

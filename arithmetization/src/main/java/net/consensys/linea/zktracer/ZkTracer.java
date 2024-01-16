@@ -154,6 +154,7 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
 
   @Override
   public void traceStartTransaction(WorldView worldView, Transaction transaction) {
+    log.info("hashOfLastTransactionTraced set to {}", transaction.getHash());
     hashOfLastTransactionTraced = transaction.getHash();
     this.hub.traceStartTx(worldView, transaction);
   }
@@ -205,7 +206,9 @@ public class ZkTracer implements ZkBlockAwareOperationTracer {
 
   /** When called, erase all tracing related to the last included transaction. */
   public void popTransaction(final PendingTransaction pendingTransaction) {
+    log.info("hashOfLastTransactionTraced {}", hashOfLastTransactionTraced);
     if (hashOfLastTransactionTraced.equals(pendingTransaction.getTransaction().getHash())) {
+      log.info("hub.popTransaction called");
       hub.popTransaction();
     }
   }

@@ -67,6 +67,8 @@ public class TraceLineLimitTransactionSelector implements PluginTransactionSelec
   @Override
   public TransactionSelectionResult evaluateTransactionPreProcessing(
       final TransactionEvaluationContext<? extends PendingTransaction> evaluationContext) {
+    log.info(
+            "evaluateTransactionPreProcessing getModulesLineCount {} zkTracerId {}", zkTracer.getModulesLineCount(), System.identityHashCode(zkTracer));
     return SELECTED;
   }
 
@@ -75,10 +77,10 @@ public class TraceLineLimitTransactionSelector implements PluginTransactionSelec
       final TransactionEvaluationContext<? extends PendingTransaction> evaluationContext,
       final TransactionSelectionResult transactionSelectionResult) {
     log.info(
-        "onTransactionNotSelected getModulesLineCount pre pop {}", zkTracer.getModulesLineCount());
+        "onTransactionNotSelected getModulesLineCount pre pop {} zkTracerId {}", zkTracer.getModulesLineCount(), System.identityHashCode(zkTracer));
     zkTracer.popTransaction(evaluationContext.getPendingTransaction());
     log.info(
-        "onTransactionNotSelected getModulesLineCount post pop {}", zkTracer.getModulesLineCount());
+        "onTransactionNotSelected getModulesLineCount post pop {} zkTracerId {}", zkTracer.getModulesLineCount(), System.identityHashCode(zkTracer));
   }
 
   @Override
@@ -86,7 +88,7 @@ public class TraceLineLimitTransactionSelector implements PluginTransactionSelec
       final TransactionEvaluationContext<? extends PendingTransaction> evaluationContext,
       final TransactionProcessingResult processingResult) {
     prevCumulatedLineCount = currCumulatedLineCount;
-    log.info("onTransactionSelected getModulesLineCount {}", zkTracer.getModulesLineCount());
+    log.info("onTransactionSelected getModulesLineCount {} zkTracerId {}", zkTracer.getModulesLineCount(), System.identityHashCode(zkTracer));
   }
 
   /**
@@ -109,9 +111,10 @@ public class TraceLineLimitTransactionSelector implements PluginTransactionSelec
     final Transaction transaction = evaluationContext.getPendingTransaction().getTransaction();
 
     log.atInfo()
-        .setMessage("Tx {} line count per module: {}")
+        .setMessage("Tx {} line count per module: {} zkTracerId {}")
         .addArgument(transaction::getHash)
         .addArgument(this::logTxLineCount)
+            .addArgument(System.identityHashCode(this))
         .log();
 
     for (final var module : currCumulatedLineCount.keySet()) {
@@ -188,6 +191,7 @@ public class TraceLineLimitTransactionSelector implements PluginTransactionSelec
                           .sorted(Map.Entry.comparingByKey())
                           .map(e -> '"' + e.getKey() + "\":" + e.getValue())
                           .collect(Collectors.joining(",")))
+              .addKeyValue("zkTracerId", System.identityHashCode(this))
           .log();
     }
   }

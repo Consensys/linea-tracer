@@ -86,6 +86,58 @@ public class ProfitableTransactionTest extends LineaPluginTestBase {
     minerNode.verify(eth.expectNoTransactionReceipt(txUnprofitable.getTransactionHash()));
   }
 
+  @Test
+  public void transactionIsNotMinedWhenUnprofitableMultiBlocks() throws Exception {
+
+    final Web3j web3j = minerNode.nodeRequests().eth();
+
+    final Account sender1 = accounts.getSecondaryBenefactor();
+    final Account recipient = accounts.createAccount("recipient");
+
+    final TransferTransaction transferTx1 =
+            accountTransactions.createTransfer(sender1, recipient, 10);
+    final var txHash1 = minerNode.execute(transferTx1);
+
+    final Account sender2 = accounts.getPrimaryBenefactor();
+    final TransferTransaction transferTx2 =
+            accountTransactions.createTransfer(sender2, recipient, 10);
+    final var txHash2 = minerNode.execute(transferTx2);
+
+    final Credentials credentials = Credentials.create(Accounts.GENESIS_ACCOUNT_ONE_PRIVATE_KEY);
+    TransactionManager txManager = new RawTransactionManager(web3j, credentials, CHAIN_ID);
+
+    final String txData = "not profitable transaction".repeat(1000);
+
+    final var txUnprofitable =
+            txManager.sendTransaction(
+                    MIN_GAS_PRICE.getAsBigInteger().multiply(BigInteger.valueOf(11)),
+                    BigInteger.valueOf(MAX_TX_GAS_LIMIT / 2),
+                    credentials.getAddress(),
+                    txData,
+                    BigInteger.ZERO);
+
+    minerNode.verify(eth.expectSuccessfulTransactionReceipt(txHash1.toHexString()));
+    minerNode.verify(eth.expectSuccessfulTransactionReceipt(txHash2.toHexString()));
+
+    // assert that tx below margin is not confirmed
+    minerNode.verify(eth.expectNoTransactionReceipt(txUnprofitable.getTransactionHash()));
+
+    for (int i = 0; i < 5; i++) {
+
+      final TransferTransaction transferTx3 =
+              accountTransactions.createTransfer(sender1, recipient, 10);
+      final var txHash3 = minerNode.execute(transferTx3);
+
+      final TransferTransaction transferTx4 =
+              accountTransactions.createTransfer(recipient, sender2, 1);
+      final var txHash4 = minerNode.execute(transferTx4);
+
+      minerNode.verify(eth.expectSuccessfulTransactionReceipt(txHash3.toHexString()));
+      minerNode.verify(eth.expectSuccessfulTransactionReceipt(txHash4.toHexString()));
+
+    }
+  }
+
   /**
    * if we have a list of transactions [t_small, t_tooBig, t_small, ..., t_small] where t_tooBig is
    * too big to fit in a block, we have blocks created that contain all t_small transactions.

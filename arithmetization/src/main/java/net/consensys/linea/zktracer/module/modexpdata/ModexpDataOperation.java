@@ -15,12 +15,16 @@
 
 package net.consensys.linea.zktracer.module.modexpdata;
 
+import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
+import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
+
+import java.math.BigInteger;
+
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
+import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 
@@ -28,30 +32,54 @@ import org.apache.tuweni.bytes.Bytes;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @Accessors(fluent = true)
 public class ModexpDataOperation extends ModuleOperation {
-  @Getter private final Bytes base;
-  private final int baseLength;
-  @Getter private final Bytes exp;
-  private final int expLength;
-  @Getter private final Bytes mod;
-  private final int modLength;
-  @Getter @Setter private Bytes result;
+  private static final int BEMR_LINE_COUNT = 32 * 4;
+  private static final int COMPONENT_SIZE = 512;
+
+  private final Hub hub;
+
+  private final Bytes base;
+  private final Bytes exp;
+  private final Bytes mod;
+  private Bytes result;
 
   @Override
   protected int computeLineCount() {
-    return 32 * 4;
+    return BEMR_LINE_COUNT;
+  }
+
+  public void computeResult() {
+    BigInteger baseBigInt = base.toUnsignedBigInteger();
+    BigInteger expBigInt = exp.toUnsignedBigInteger();
+    BigInteger modBigInt = mod.toUnsignedBigInteger();
+
+    result = bigIntegerToBytes(baseBigInt.modPow(expBigInt, modBigInt));
   }
 
   void trace(Trace trace, int stamp) {
-    for (int ct = 0; ct < 32; ct++) {
-      trace
-          .ct(UnsignedByte.of(ct))
-          .bemr(Bytes.concatenate(base, exp, mod, result))
-          //              .bytes()
-          //              .limb()
-          //              .index()
-          //              .rdcn()
-          .stamp(Bytes.ofUnsignedInt(stamp))
-          .validateRow();
+    computeResult();
+    final Bytes stampBytes = Bytes.ofUnsignedInt(stamp);
+    final Bytes hubStamp = Bytes.ofUnsignedInt(hub.stamp() + 1);
+
+    final Bytes basePadded = leftPadTo(base, COMPONENT_SIZE);
+    final Bytes expPadded = leftPadTo(exp, COMPONENT_SIZE);
+    final Bytes modPadded = leftPadTo(mod, COMPONENT_SIZE);
+    final Bytes resultPadded = leftPadTo(result, COMPONENT_SIZE);
+    final Bytes bemrLimb = Bytes.concatenate(basePadded, expPadded, modPadded, resultPadded);
+
+    for (int bemr = 1; bemr <= 4; bemr++) {
+      for (int index = 0; index < 32; index++) {
+        int counter = 32 * (bemr - 1) + index;
+
+        trace
+            .ct(UnsignedByte.of(counter))
+            .bemr(Bytes.ofUnsignedInt(bemr))
+            //          .bytes()
+            .limb(bemrLimb.slice(16 * counter, 16))
+            .index(UnsignedByte.of(index))
+            .rdcn(hubStamp)
+            .stamp(stampBytes)
+            .validateRow();
+      }
     }
   }
 }

@@ -19,6 +19,7 @@ import static net.consensys.linea.zktracer.module.Util.slice;
 
 import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Stack;
 
@@ -67,101 +68,94 @@ public class ModexpEffectiveCall implements Module {
   public void tracePreOpcode(MessageFrame frame) {
     final OpCode opCode = hub.opCode();
 
-    switch (opCode) {
-      case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
-        final Address target = Words.toAddress(frame.getStackItem(1));
-        if (target.equals(Address.MODEXP)) {
-          long length = 0;
-          long offset = 0;
-          switch (opCode) {
-            case CALL, CALLCODE -> {
-              length = Words.clampedToLong(frame.getStackItem(4));
-              offset = Words.clampedToLong(frame.getStackItem(3));
-            }
-            case DELEGATECALL, STATICCALL -> {
-              length = Words.clampedToLong(frame.getStackItem(3));
-              offset = Words.clampedToLong(frame.getStackItem(2));
-            }
+    if (Arrays.asList(OpCode.CALL, OpCode.STATICCALL, OpCode.DELEGATECALL, OpCode.CALLCODE)
+        .contains(opCode)) {
+      final Address target = Words.toAddress(frame.getStackItem(1));
+      if (target.equals(Address.MODEXP)) {
+        long length = 0;
+        long offset = 0;
+        switch (opCode) {
+          case CALL, CALLCODE -> {
+            length = Words.clampedToLong(frame.getStackItem(4));
+            offset = Words.clampedToLong(frame.getStackItem(3));
           }
-          final Bytes inputData = frame.shadowReadMemory(offset, length);
-
-          // Get the Base length
-          final BigInteger baseLength = slice(inputData, 0, EVM_WORD_SIZE).toUnsignedBigInteger();
-          if (isInProverInputBounds(baseLength)) {
-            log.info(
-                "Too big argument, base bit length = {} > {}",
-                baseLength,
-                PROVER_MAX_INPUT_BIT_SIZE);
-            this.counts.pop();
-            this.counts.push(Integer.MAX_VALUE);
-            return;
-          }
-
-          // Get the Exponent length
-          final BigInteger expLength =
-              slice(inputData, EVM_WORD_SIZE, EVM_WORD_SIZE).toUnsignedBigInteger();
-          if (isInProverInputBounds(expLength)) {
-            log.info(
-                "Too big argument, expComponent bit length = {} > {}",
-                expLength,
-                PROVER_MAX_INPUT_BIT_SIZE);
-            this.counts.pop();
-            this.counts.push(Integer.MAX_VALUE);
-            return;
-          }
-
-          // Get the Modulo length
-          final BigInteger modLength =
-              slice(inputData, 2 * EVM_WORD_SIZE, EVM_WORD_SIZE).toUnsignedBigInteger();
-          if (isInProverInputBounds(modLength)) {
-            log.info(
-                "Too big argument, modulo bit length = {} > {}",
-                modLength,
-                PROVER_MAX_INPUT_BIT_SIZE);
-            this.counts.pop();
-            this.counts.push(Integer.MAX_VALUE);
-            return;
-          }
-
-          // Get the Base.
-          final Bytes baseComponent =
-              slice(inputData, 3 * EVM_WORD_SIZE, baseLength.intValueExact());
-
-          // Get the Exponent.
-          final Bytes expComponent =
-              slice(
-                  inputData,
-                  3 * EVM_WORD_SIZE + baseLength.intValueExact(),
-                  expLength.intValueExact());
-
-          // Get the Modulus.
-          final Bytes modComponent =
-              slice(
-                  inputData,
-                  3 * EVM_WORD_SIZE + baseLength.intValueExact() + expLength.intValueExact(),
-                  modLength.intValueExact());
-
-          final int baseLengthInt = baseLength.intValueExact();
-          final int expLengthInt = expLength.intValueExact();
-          final int modLengthInt = modLength.intValueExact();
-          final long gasPaid = Words.clampedToLong(frame.getStackItem(0));
-          final long gasPrice = gasPrice(baseLengthInt, expLengthInt, modLengthInt, expComponent);
-
-          // If enough gas, add 1 to the call of the precompile.
-          if (gasPaid >= gasPrice) {
-            this.data.call(
-                new ModexpDataOperation(
-                    baseComponent,
-                    baseLengthInt,
-                    expComponent,
-                    expLengthInt,
-                    modComponent,
-                    modLengthInt));
-            this.counts.push(this.counts.pop() + 1);
+          case DELEGATECALL, STATICCALL -> {
+            length = Words.clampedToLong(frame.getStackItem(3));
+            offset = Words.clampedToLong(frame.getStackItem(2));
           }
         }
+        final Bytes inputData = frame.shadowReadMemory(offset, length);
+
+        // Get the Base length
+        final BigInteger baseLength = slice(inputData, 0, EVM_WORD_SIZE).toUnsignedBigInteger();
+        if (isInProverInputBounds(baseLength)) {
+          log.info(
+              "Too big argument, base bit length = {} > {}", baseLength, PROVER_MAX_INPUT_BIT_SIZE);
+          this.counts.pop();
+          this.counts.push(Integer.MAX_VALUE);
+          return;
+        }
+
+        // Get the Exponent length
+        final BigInteger expLength =
+            slice(inputData, EVM_WORD_SIZE, EVM_WORD_SIZE).toUnsignedBigInteger();
+        if (isInProverInputBounds(expLength)) {
+          log.info(
+              "Too big argument, expComponent bit length = {} > {}",
+              expLength,
+              PROVER_MAX_INPUT_BIT_SIZE);
+          this.counts.pop();
+          this.counts.push(Integer.MAX_VALUE);
+          return;
+        }
+
+        // Get the Modulo length
+        final BigInteger modLength =
+            slice(inputData, 2 * EVM_WORD_SIZE, EVM_WORD_SIZE).toUnsignedBigInteger();
+        if (isInProverInputBounds(modLength)) {
+          log.info(
+              "Too big argument, modulo bit length = {} > {}",
+              modLength,
+              PROVER_MAX_INPUT_BIT_SIZE);
+          this.counts.pop();
+          this.counts.push(Integer.MAX_VALUE);
+          return;
+        }
+
+        final int baseLengthInt = baseLength.intValueExact();
+        final int expLengthInt = expLength.intValueExact();
+        final int modLengthInt = modLength.intValueExact();
+
+        // Get the Base.
+        final Bytes baseComponent = slice(inputData, 3 * EVM_WORD_SIZE, baseLengthInt);
+
+        // Get the Exponent.
+        final Bytes expComponent =
+            slice(inputData, 3 * EVM_WORD_SIZE + baseLengthInt, expLength.intValueExact());
+
+        // Get the Modulus.
+        final Bytes modComponent =
+            slice(
+                inputData,
+                3 * EVM_WORD_SIZE + baseLengthInt + expLengthInt,
+                modLength.intValueExact());
+
+        final long gasPaid = Words.clampedToLong(frame.getStackItem(0));
+        final long gasPrice = gasPrice(baseLengthInt, expLengthInt, modLengthInt, expComponent);
+
+        // If enough gas, add 1 to the call of the precompile.
+        if (gasPaid >= gasPrice) {
+          this.data.call(
+              new ModexpDataOperation(
+                  baseComponent,
+                  baseLengthInt,
+                  expComponent,
+                  expLengthInt,
+                  modComponent,
+                  modLengthInt));
+          this.counts.push(this.counts.pop() + 1);
+        }
       }
-      default -> {}
     }
   }
 

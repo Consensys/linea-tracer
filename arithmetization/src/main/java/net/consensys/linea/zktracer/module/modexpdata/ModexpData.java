@@ -15,16 +15,12 @@
 
 package net.consensys.linea.zktracer.module.modexpdata;
 
-import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
-
-import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
-import org.apache.tuweni.bytes.Bytes;
 
 public class ModexpData implements Module {
   private StackedSet<ModexpDataOperation> state = new StackedSet<>();
@@ -55,14 +51,6 @@ public class ModexpData implements Module {
   }
 
   public void call(final ModexpDataOperation operation) {
-    BigInteger base = operation.base().toUnsignedBigInteger();
-    BigInteger exp = operation.exp().toUnsignedBigInteger();
-    BigInteger mod = operation.mod().toUnsignedBigInteger();
-    BigInteger result = base.modPow(exp, mod);
-
-    Bytes resultBytes = bigIntegerToBytes(result);
-    operation.result(resultBytes);
-
     this.state.add(operation);
   }
 

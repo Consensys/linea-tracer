@@ -20,6 +20,7 @@ import static net.consensys.linea.zktracer.types.Conversions.unsignedBytesToEWor
 
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Set;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -53,6 +54,19 @@ public class MicroData {
   private static final int STORE_X_IN_A_THREE_REQUIRED = 609;
   private static final int STORE_X_IN_B = 610;
   private static final int STORE_X_IN_C = 611;
+  private static final Set<Integer> FAST_MICRO_INSTRUCTIONS =
+      Set.of(
+          RAM_TO_RAM,
+          EXO_TO_RAM,
+          RAM_IS_EXO,
+          KILLING_ONE,
+          PUSH_TWO_RAM_TO_STACK,
+          PUSH_ONE_RAM_TO_STACK,
+          EXCEPTIONAL_RAM_TO_STACK_3_TO_2_FULL_FAST,
+          PUSH_TWO_STACK_TO_RAM,
+          STORE_X_IN_A_THREE_REQUIRED,
+          STORE_X_IN_B,
+          STORE_X_IN_C);
 
   @Getter @Setter private int callStackDepth;
   @Getter @Setter private int callStackSize;
@@ -146,19 +160,7 @@ public class MicroData {
   }
 
   public boolean isFast() {
-    return Arrays.asList(
-            RAM_TO_RAM,
-            EXO_TO_RAM,
-            RAM_IS_EXO,
-            KILLING_ONE,
-            PUSH_TWO_RAM_TO_STACK,
-            PUSH_ONE_RAM_TO_STACK,
-            EXCEPTIONAL_RAM_TO_STACK_3_TO_2_FULL_FAST,
-            PUSH_TWO_STACK_TO_RAM,
-            STORE_X_IN_A_THREE_REQUIRED,
-            STORE_X_IN_B,
-            STORE_X_IN_C)
-        .contains(microOp);
+    return FAST_MICRO_INSTRUCTIONS.contains(microOp);
   }
 
   public EWord eWordValue() {

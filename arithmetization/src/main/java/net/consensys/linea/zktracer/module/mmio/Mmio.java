@@ -83,7 +83,7 @@ public class Mmio implements Module {
   }
 
   public void handleRam(
-      MicroData microData, final State.TxState.Stamps moduleStamps, final int microStamp) {
+      final MicroData microData, final State.TxState.Stamps moduleStamps, final int microStamp) {
     if (microData.microOp() == 0) {
       return;
     }

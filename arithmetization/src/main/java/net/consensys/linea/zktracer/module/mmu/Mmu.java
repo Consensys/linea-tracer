@@ -102,6 +102,8 @@ public class Mmu implements Module {
       final OpCode opCode, final List<StackOperation> stackOps, final CallStack callStack) {
     MicroData microData = microDataProcessor.dispatchOpCode(opCode, stackOps, callStack);
 
+    mmio.handleRam(microData, hub.state().stamps(), microStamp);
+
     this.state.add(new MmuOperation(microData));
   }
 
@@ -128,7 +130,6 @@ public class Mmu implements Module {
 
     while (microData.processingRow() < microData.readPad().totalNumber()) {
       microDataProcessor.initializeProcessing(callStack, microData);
-      mmio.handleRam(microData, hub.state().stamps(), microStamp);
       trace(microData, trace);
       microData.incrementProcessingRow(1);
     }

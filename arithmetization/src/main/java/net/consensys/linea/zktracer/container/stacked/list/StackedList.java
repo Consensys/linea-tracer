@@ -117,7 +117,7 @@ public class StackedList<E extends ModuleOperation> implements List<E>, StackedC
   @Override
   public boolean add(E e) {
     this.totalSize++;
-    return this.lists.get(this.lists.size() - 1).add(e);
+    return this.lists.getFirst().add(e);
   }
 
   @Override

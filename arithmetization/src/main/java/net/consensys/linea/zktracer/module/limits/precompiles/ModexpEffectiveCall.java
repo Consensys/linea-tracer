@@ -146,13 +146,7 @@ public class ModexpEffectiveCall implements Module {
         // If enough gas, add 1 to the call of the precompile.
         if (gasPaid >= gasPrice) {
           this.data.call(
-              new ModexpDataOperation(
-                  baseComponent,
-                  baseLengthInt,
-                  expComponent,
-                  expLengthInt,
-                  modComponent,
-                  modLengthInt));
+              new ModexpDataOperation(hub.stamp(), baseComponent, expComponent, modComponent));
           this.counts.push(this.counts.pop() + 1);
         }
       }

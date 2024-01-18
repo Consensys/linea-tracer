@@ -30,6 +30,10 @@ import org.apache.tuweni.bytes.Bytes;
  * Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
 public class Trace {
+  static final int PHASE_BASE = 1;
+  static final int PHASE_EXPONENT = 2;
+  static final int PHASE_MODULUS = 3;
+  static final int PHASE_RESULT = 4;
 
   private final BitSet filled = new BitSet();
   private int currentLine = 0;
@@ -39,18 +43,20 @@ public class Trace {
   private final MappedByteBuffer ct;
   private final MappedByteBuffer index;
   private final MappedByteBuffer limb;
-  private final MappedByteBuffer rdcn;
+  private final MappedByteBuffer phase;
+  private final MappedByteBuffer resultDataContext;
   private final MappedByteBuffer stamp;
 
   static List<ColumnHeader> headers(int length) {
     return List.of(
-        new ColumnHeader("modexp.BEMR", 32, length),
-        new ColumnHeader("modexp.BYTES", 1, length),
-        new ColumnHeader("modexp.CT", 1, length),
-        new ColumnHeader("modexp.INDEX", 1, length),
-        new ColumnHeader("modexp.LIMB", 32, length),
-        new ColumnHeader("modexp.RDCN", 4, length),
-        new ColumnHeader("modexp.STAMP", 32, length));
+        new ColumnHeader("modexpdata.BEMR", 1, length),
+        new ColumnHeader("modexpdata.BYTES", 1, length),
+        new ColumnHeader("modexpdata.CT", 1, length),
+        new ColumnHeader("modexpdata.INDEX", 1, length),
+        new ColumnHeader("modexpdata.LIMB", 2, length),
+        new ColumnHeader("modexpdata.PHASE", 1, length),
+        new ColumnHeader("modexpdata.RESULT_DATA_CONTEXT", 4, length),
+        new ColumnHeader("modexpdata.STAMP", 1, length));
   }
 
   public Trace(List<MappedByteBuffer> buffers) {
@@ -59,8 +65,9 @@ public class Trace {
     this.ct = buffers.get(2);
     this.index = buffers.get(3);
     this.limb = buffers.get(4);
-    this.rdcn = buffers.get(5);
-    this.stamp = buffers.get(6);
+    this.phase = buffers.get(5);
+    this.resultDataContext = buffers.get(6);
+    this.stamp = buffers.get(7);
   }
 
   public int size() {
@@ -71,25 +78,21 @@ public class Trace {
     return this.currentLine;
   }
 
-  public Trace bemr(final Bytes b) {
+  public Trace bemr(final UnsignedByte b) {
     if (filled.get(0)) {
-      throw new IllegalStateException("modexp.BEMR already set");
+      throw new IllegalStateException("modexpdata.BEMR already set");
     } else {
       filled.set(0);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      bemr.put((byte) 0);
-    }
-    bemr.put(b.toArrayUnsafe());
+    bemr.put(b.toByte());
 
     return this;
   }
 
   public Trace bytes(final UnsignedByte b) {
     if (filled.get(1)) {
-      throw new IllegalStateException("modexp.BYTES already set");
+      throw new IllegalStateException("modexpdata.BYTES already set");
     } else {
       filled.set(1);
     }
@@ -101,7 +104,7 @@ public class Trace {
 
   public Trace ct(final UnsignedByte b) {
     if (filled.get(2)) {
-      throw new IllegalStateException("modexp.CT already set");
+      throw new IllegalStateException("modexpdata.CT already set");
     } else {
       filled.set(2);
     }
@@ -113,7 +116,7 @@ public class Trace {
 
   public Trace index(final UnsignedByte b) {
     if (filled.get(3)) {
-      throw new IllegalStateException("modexp.INDEX already set");
+      throw new IllegalStateException("modexpdata.INDEX already set");
     } else {
       filled.set(3);
     }
@@ -125,7 +128,7 @@ public class Trace {
 
   public Trace limb(final Bytes b) {
     if (filled.get(4)) {
-      throw new IllegalStateException("modexp.LIMB already set");
+      throw new IllegalStateException("modexpdata.LIMB already set");
     } else {
       filled.set(4);
     }
@@ -139,65 +142,77 @@ public class Trace {
     return this;
   }
 
-  public Trace rdcn(final Bytes b) {
+  public Trace phase(final UnsignedByte b) {
     if (filled.get(5)) {
-      throw new IllegalStateException("modexp.RDCN already set");
+      throw new IllegalStateException("modexpdata.PHASE already set");
     } else {
       filled.set(5);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      rdcn.put((byte) 0);
-    }
-    rdcn.put(b.toArrayUnsafe());
+    phase.put(b.toByte());
 
     return this;
   }
 
-  public Trace stamp(final Bytes b) {
+  public Trace resultDataContext(final Bytes b) {
     if (filled.get(6)) {
-      throw new IllegalStateException("modexp.STAMP already set");
+      throw new IllegalStateException("modexpdata.RESULT_DATA_CONTEXT already set");
     } else {
       filled.set(6);
     }
 
     final byte[] bs = b.toArrayUnsafe();
     for (int i = bs.length; i < 32; i++) {
-      stamp.put((byte) 0);
+      resultDataContext.put((byte) 0);
     }
-    stamp.put(b.toArrayUnsafe());
+    resultDataContext.put(b.toArrayUnsafe());
+
+    return this;
+  }
+
+  public Trace stamp(final UnsignedByte b) {
+    if (filled.get(7)) {
+      throw new IllegalStateException("modexpdata.STAMP already set");
+    } else {
+      filled.set(7);
+    }
+
+    stamp.put(b.toByte());
 
     return this;
   }
 
   public Trace validateRow() {
     if (!filled.get(0)) {
-      throw new IllegalStateException("modexp.BEMR has not been filled");
+      throw new IllegalStateException("modexpdata.BEMR has not been filled");
     }
 
     if (!filled.get(1)) {
-      throw new IllegalStateException("modexp.BYTES has not been filled");
+      throw new IllegalStateException("modexpdata.BYTES has not been filled");
     }
 
     if (!filled.get(2)) {
-      throw new IllegalStateException("modexp.CT has not been filled");
+      throw new IllegalStateException("modexpdata.CT has not been filled");
     }
 
     if (!filled.get(3)) {
-      throw new IllegalStateException("modexp.INDEX has not been filled");
+      throw new IllegalStateException("modexpdata.INDEX has not been filled");
     }
 
     if (!filled.get(4)) {
-      throw new IllegalStateException("modexp.LIMB has not been filled");
+      throw new IllegalStateException("modexpdata.LIMB has not been filled");
     }
 
     if (!filled.get(5)) {
-      throw new IllegalStateException("modexp.RDCN has not been filled");
+      throw new IllegalStateException("modexpdata.PHASE has not been filled");
     }
 
     if (!filled.get(6)) {
-      throw new IllegalStateException("modexp.STAMP has not been filled");
+      throw new IllegalStateException("modexpdata.RESULT_DATA_CONTEXT has not been filled");
+    }
+
+    if (!filled.get(7)) {
+      throw new IllegalStateException("modexpdata.STAMP has not been filled");
     }
 
     filled.clear();
@@ -208,7 +223,7 @@ public class Trace {
 
   public Trace fillAndValidateRow() {
     if (!filled.get(0)) {
-      bemr.position(bemr.position() + 32);
+      bemr.position(bemr.position() + 1);
     }
 
     if (!filled.get(1)) {
@@ -224,15 +239,19 @@ public class Trace {
     }
 
     if (!filled.get(4)) {
-      limb.position(limb.position() + 32);
+      limb.position(limb.position() + 2);
     }
 
     if (!filled.get(5)) {
-      rdcn.position(rdcn.position() + 4);
+      phase.position(phase.position() + 1);
     }
 
     if (!filled.get(6)) {
-      stamp.position(stamp.position() + 32);
+      resultDataContext.position(resultDataContext.position() + 4);
+    }
+
+    if (!filled.get(7)) {
+      stamp.position(stamp.position() + 1);
     }
 
     filled.clear();

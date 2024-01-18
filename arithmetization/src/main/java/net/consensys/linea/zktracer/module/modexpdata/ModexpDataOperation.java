@@ -15,16 +15,18 @@
 
 package net.consensys.linea.zktracer.module.modexpdata;
 
+import static net.consensys.linea.zktracer.types.Conversions.*;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
+import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 
 import java.math.BigInteger;
 
+import com.google.common.base.Preconditions;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
-import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 
@@ -35,12 +37,14 @@ public class ModexpDataOperation extends ModuleOperation {
   private static final int BEMR_LINE_COUNT = 32 * 4;
   private static final int COMPONENT_SIZE = 512;
 
-  private final Hub hub;
+  private final int hubStamp;
 
-  private final Bytes base;
-  private final Bytes exp;
-  private final Bytes mod;
-  private Bytes result;
+  @EqualsAndHashCode.Include private final Bytes base;
+  @EqualsAndHashCode.Include private final Bytes exp;
+  @EqualsAndHashCode.Include private final Bytes mod;
+  @EqualsAndHashCode.Include private Bytes result;
+
+  private Bytes prevHubStamp = Bytes.EMPTY;
 
   @Override
   protected int computeLineCount() {
@@ -57,8 +61,9 @@ public class ModexpDataOperation extends ModuleOperation {
 
   void trace(Trace trace, int stamp) {
     computeResult();
-    final Bytes stampBytes = Bytes.ofUnsignedInt(stamp);
-    final Bytes hubStamp = Bytes.ofUnsignedInt(hub.stamp() + 1);
+
+    final UnsignedByte stampBytes = UnsignedByte.of(stamp);
+    Bytes currentHubStamp = Bytes.ofUnsignedInt(this.hubStamp + 1);
 
     final Bytes basePadded = leftPadTo(base, COMPONENT_SIZE);
     final Bytes expPadded = leftPadTo(exp, COMPONENT_SIZE);
@@ -66,20 +71,45 @@ public class ModexpDataOperation extends ModuleOperation {
     final Bytes resultPadded = leftPadTo(result, COMPONENT_SIZE);
     final Bytes bemrLimb = Bytes.concatenate(basePadded, expPadded, modPadded, resultPadded);
 
-    for (int bemr = 1; bemr <= 4; bemr++) {
+    BigInteger prevHubStampBigInt = prevHubStamp.toUnsignedBigInteger();
+    BigInteger hubStampBigInt = currentHubStamp.toUnsignedBigInteger();
+    BigInteger hubStampDiff = hubStampBigInt.subtract(prevHubStampBigInt).subtract(BigInteger.ONE);
+
+    Preconditions.checkArgument(
+        hubStampDiff.compareTo(BigInteger.valueOf(256 ^ 6)) < 0,
+        "Hub stamp difference should never exceed 256 ^ 6");
+
+    UnsignedByte[] hubStampDiffBytes =
+        bytesToUnsignedBytes(
+            rightPadTo(leftPadTo(bigIntegerToBytes(hubStampDiff), 6), 128).toArray());
+
+    for (int bemrIndex = 1; bemrIndex <= 4; bemrIndex++) {
+      UnsignedByte phase =
+          UnsignedByte.of(
+              switch (bemrIndex) {
+                case 1 -> Trace.PHASE_BASE;
+                case 2 -> Trace.PHASE_EXPONENT;
+                case 3 -> Trace.PHASE_MODULUS;
+                case 4 -> Trace.PHASE_RESULT;
+                default -> throw new IllegalStateException("Unexpected value: " + bemrIndex);
+              });
+
       for (int index = 0; index < 32; index++) {
-        int counter = 32 * (bemr - 1) + index;
+        int counter = 32 * (bemrIndex - 1) + index;
 
         trace
             .ct(UnsignedByte.of(counter))
-            .bemr(Bytes.ofUnsignedInt(bemr))
-            //          .bytes()
+            .bemr(UnsignedByte.of(bemrIndex))
+            .phase(phase)
+            .bytes(hubStampDiffBytes[counter])
             .limb(bemrLimb.slice(16 * counter, 16))
             .index(UnsignedByte.of(index))
-            .rdcn(hubStamp)
+            .resultDataContext(currentHubStamp)
             .stamp(stampBytes)
             .validateRow();
       }
     }
+
+    prevHubStamp = currentHubStamp;
   }
 }

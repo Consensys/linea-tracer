@@ -19,7 +19,6 @@ import static net.consensys.linea.zktracer.module.Util.slice;
 
 import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Stack;
 
@@ -68,8 +67,7 @@ public class ModexpEffectiveCall implements Module {
   public void tracePreOpcode(MessageFrame frame) {
     final OpCode opCode = hub.opCode();
 
-    if (Arrays.asList(OpCode.CALL, OpCode.STATICCALL, OpCode.DELEGATECALL, OpCode.CALLCODE)
-        .contains(opCode)) {
+    if (opCode.isAnyOf(OpCode.CALL, OpCode.STATICCALL, OpCode.DELEGATECALL, OpCode.CALLCODE)) {
       final Address target = Words.toAddress(frame.getStackItem(1));
       if (target.equals(Address.MODEXP)) {
         long length = 0;

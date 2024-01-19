@@ -16,7 +16,6 @@
 package net.consensys.linea.zktracer.containers;
 
 import java.math.BigInteger;
-import java.util.List;
 
 import com.google.common.collect.ImmutableList;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
@@ -28,17 +27,18 @@ import org.junit.jupiter.api.Test;
 
 public class StackedSetTests {
 
-  private final static AddOperation ONE_PLUS_ONE =
-          new AddOperation(
-                  OpCode.ADD,
-                  Bytes.wrap(BigInteger.ONE.toByteArray()),
-                  Bytes.wrap(BigInteger.ONE.toByteArray()));
+  private static final AddOperation ONE_PLUS_ONE =
+      new AddOperation(
+          OpCode.ADD,
+          Bytes.wrap(BigInteger.ONE.toByteArray()),
+          Bytes.wrap(BigInteger.ONE.toByteArray()));
 
-  private final static AddOperation ONE_PLUS_TWO =
-          new AddOperation(
-                  OpCode.ADD,
-                  Bytes.wrap(BigInteger.ONE.toByteArray()),
-                  Bytes.wrap(BigInteger.TWO.toByteArray()));
+  private static final AddOperation ONE_PLUS_TWO =
+      new AddOperation(
+          OpCode.ADD,
+          Bytes.wrap(BigInteger.ONE.toByteArray()),
+          Bytes.wrap(BigInteger.TWO.toByteArray()));
+
   @Test
   public void push() {
     StackedSet<AddOperation> chunks = new StackedSet<>();

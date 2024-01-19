@@ -1,30 +1,30 @@
 package net.consensys.linea.zktracer.container.stacked.list;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.math.BigInteger;
+
 import com.google.common.collect.ImmutableList;
-import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.add.AddOperation;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.math.BigInteger;
-
-import static org.junit.jupiter.api.Assertions.*;
-
 class StackedListTest {
 
-  private final static AddOperation ONE_PLUS_ONE =
-          new AddOperation(
-                  OpCode.ADD,
-                  Bytes.wrap(BigInteger.ONE.toByteArray()),
-                  Bytes.wrap(BigInteger.ONE.toByteArray()));
+  private static final AddOperation ONE_PLUS_ONE =
+      new AddOperation(
+          OpCode.ADD,
+          Bytes.wrap(BigInteger.ONE.toByteArray()),
+          Bytes.wrap(BigInteger.ONE.toByteArray()));
 
-  private final static AddOperation ONE_PLUS_TWO =
-          new AddOperation(
-                  OpCode.ADD,
-                  Bytes.wrap(BigInteger.ONE.toByteArray()),
-                  Bytes.wrap(BigInteger.TWO.toByteArray()));
+  private static final AddOperation ONE_PLUS_TWO =
+      new AddOperation(
+          OpCode.ADD,
+          Bytes.wrap(BigInteger.ONE.toByteArray()),
+          Bytes.wrap(BigInteger.TWO.toByteArray()));
+
   @Test
   public void push() {
     StackedList<AddOperation> chunks = new StackedList<>();

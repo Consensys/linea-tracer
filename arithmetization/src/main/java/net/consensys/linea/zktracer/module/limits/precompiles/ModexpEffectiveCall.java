@@ -48,6 +48,8 @@ public class ModexpEffectiveCall implements Module {
   private static final BigInteger PROVER_MAX_INPUT_BIT_SIZE = BigInteger.valueOf(4096);
   private static final int EVM_WORD_SIZE = 32;
 
+  private int lastModexpDataCallHubStamp = 0;
+
   @Override
   public String moduleKey() {
     return "PRECOMPILE_MODEXP_EFFECTIVE_CALL";
@@ -143,8 +145,14 @@ public class ModexpEffectiveCall implements Module {
 
         // If enough gas, add 1 to the call of the precompile.
         if (gasPaid >= gasPrice) {
-          this.data.call(
-              new ModexpDataOperation(hub.stamp(), baseComponent, expComponent, modComponent));
+          this.lastModexpDataCallHubStamp =
+              this.data.call(
+                  new ModexpDataOperation(
+                      hub.stamp(),
+                      lastModexpDataCallHubStamp,
+                      baseComponent,
+                      expComponent,
+                      modComponent));
           this.counts.push(this.counts.pop() + 1);
         }
       }

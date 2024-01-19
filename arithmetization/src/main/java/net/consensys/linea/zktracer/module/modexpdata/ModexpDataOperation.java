@@ -15,8 +15,8 @@
 
 package net.consensys.linea.zktracer.module.modexpdata;
 
-import static net.consensys.linea.zktracer.types.Conversions.*;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
+import static net.consensys.linea.zktracer.types.Conversions.bytesToUnsignedBytes;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 
@@ -24,13 +24,12 @@ import java.math.BigInteger;
 
 import com.google.common.base.Preconditions;
 import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
+import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 
-@RequiredArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @Accessors(fluent = true)
 public class ModexpDataOperation extends ModuleOperation {
@@ -38,13 +37,19 @@ public class ModexpDataOperation extends ModuleOperation {
   private static final int COMPONENT_SIZE = 512;
 
   private final int hubStamp;
-
+  @Getter private int prevHubStamp;
   @EqualsAndHashCode.Include private final Bytes base;
   @EqualsAndHashCode.Include private final Bytes exp;
   @EqualsAndHashCode.Include private final Bytes mod;
   private Bytes result;
 
-  private Bytes prevHubStamp = Bytes.EMPTY;
+  public ModexpDataOperation(int hubStamp, int prevHubStamp, Bytes base, Bytes exp, Bytes mod) {
+    this.hubStamp = hubStamp;
+    this.prevHubStamp = prevHubStamp;
+    this.base = base;
+    this.exp = exp;
+    this.mod = mod;
+  }
 
   @Override
   protected int computeLineCount() {
@@ -63,7 +68,7 @@ public class ModexpDataOperation extends ModuleOperation {
     computeResult();
 
     final UnsignedByte stampBytes = UnsignedByte.of(stamp);
-    Bytes currentHubStamp = Bytes.ofUnsignedInt(this.hubStamp + 1);
+    final Bytes currentHubStamp = Bytes.ofUnsignedInt(this.hubStamp + 1);
 
     final Bytes basePadded = leftPadTo(base, COMPONENT_SIZE);
     final Bytes expPadded = leftPadTo(exp, COMPONENT_SIZE);
@@ -71,7 +76,7 @@ public class ModexpDataOperation extends ModuleOperation {
     final Bytes resultPadded = leftPadTo(result, COMPONENT_SIZE);
     final Bytes bemrLimb = Bytes.concatenate(basePadded, expPadded, modPadded, resultPadded);
 
-    BigInteger prevHubStampBigInt = prevHubStamp.toUnsignedBigInteger();
+    BigInteger prevHubStampBigInt = BigInteger.valueOf(prevHubStamp);
     BigInteger hubStampBigInt = currentHubStamp.toUnsignedBigInteger();
     BigInteger hubStampDiff = hubStampBigInt.subtract(prevHubStampBigInt).subtract(BigInteger.ONE);
 
@@ -110,6 +115,6 @@ public class ModexpDataOperation extends ModuleOperation {
       }
     }
 
-    prevHubStamp = currentHubStamp;
+    prevHubStamp = currentHubStamp.toInt();
   }
 }

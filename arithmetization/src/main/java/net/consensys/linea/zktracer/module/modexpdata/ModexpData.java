@@ -50,8 +50,10 @@ public class ModexpData implements Module {
     return Trace.headers(this.lineCount());
   }
 
-  public void call(final ModexpDataOperation operation) {
+  public int call(final ModexpDataOperation operation) {
     this.state.add(operation);
+
+    return operation.prevHubStamp();
   }
 
   @Override

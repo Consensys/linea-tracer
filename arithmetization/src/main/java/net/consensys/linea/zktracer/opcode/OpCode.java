@@ -15,8 +15,6 @@
 
 package net.consensys.linea.zktracer.opcode;
 
-import java.util.Arrays;
-
 /** Represents the entire set of opcodes that are required by the arithmetization process. */
 public enum OpCode {
   STOP,
@@ -221,6 +219,12 @@ public enum OpCode {
    * @return if the current {@link OpCode} is contained within the list.
    */
   public boolean isAnyOf(OpCode... opCodes) {
-    return Arrays.asList(opCodes).contains(this);
+    for (OpCode opCode : opCodes) {
+      if (opCode.equals(this)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 }

@@ -240,9 +240,9 @@ public class Hub implements Module {
                     this.rlpTxrcpt,
                     this.rom,
                     this.shf,
+                    this.stp,
                     this.trm,
                     this.txnData,
-                    this.stp,
                     this.wcp),
                 this.precompileLimitModules.stream())
             .toList();
@@ -267,6 +267,7 @@ public class Hub implements Module {
         this.logData,
         this.logInfo,
         this.mod,
+        this.modexp.data(),
         this.mul,
         this.mxp,
         this.rlpAddr,
@@ -277,8 +278,7 @@ public class Hub implements Module {
         this.shf,
         this.stp,
         this.txnData,
-        this.wcp,
-        this.modexp.data());
+        this.wcp);
   }
 
   public List<Module> getModulesToCount() {

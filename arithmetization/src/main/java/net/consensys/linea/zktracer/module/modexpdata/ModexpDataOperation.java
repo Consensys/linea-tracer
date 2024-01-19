@@ -42,7 +42,7 @@ public class ModexpDataOperation extends ModuleOperation {
   @EqualsAndHashCode.Include private final Bytes base;
   @EqualsAndHashCode.Include private final Bytes exp;
   @EqualsAndHashCode.Include private final Bytes mod;
-  @EqualsAndHashCode.Include private Bytes result;
+  private Bytes result;
 
   private Bytes prevHubStamp = Bytes.EMPTY;
 

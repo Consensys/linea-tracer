@@ -57,9 +57,9 @@ public class ModexpDataOperation extends ModuleOperation {
   }
 
   public void computeResult() {
-    BigInteger baseBigInt = base.toUnsignedBigInteger();
-    BigInteger expBigInt = exp.toUnsignedBigInteger();
-    BigInteger modBigInt = mod.toUnsignedBigInteger();
+    final BigInteger baseBigInt = base.toUnsignedBigInteger();
+    final BigInteger expBigInt = exp.toUnsignedBigInteger();
+    final BigInteger modBigInt = mod.toUnsignedBigInteger();
 
     result = bigIntegerToBytes(baseBigInt.modPow(expBigInt, modBigInt));
   }

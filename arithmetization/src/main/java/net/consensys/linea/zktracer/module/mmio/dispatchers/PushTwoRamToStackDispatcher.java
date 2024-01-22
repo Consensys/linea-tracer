@@ -32,7 +32,7 @@ public class PushTwoRamToStackDispatcher implements MmioDispatcher {
   public MmioData dispatch() {
     MmioData mmioData = new MmioData();
 
-    int sourceContext = microData.sourceContext();
+    int sourceContext = microData.sourceContext() - 2;
     mmioData.cnA(sourceContext);
     mmioData.cnB(sourceContext);
     mmioData.cnC(0);
@@ -43,7 +43,7 @@ public class PushTwoRamToStackDispatcher implements MmioDispatcher {
     mmioData.indexC(0);
 
     Preconditions.checkState(
-        microData.isRootContext() && microData.isType5(),
+        !microData.isRootContext() && !microData.isType5(),
         "Should be: EXCEPTIONAL_RAM_TO_STACK_3_TO_2_FULL_FAST");
 
     mmioData.valA(callStack.valueFromMemory(mmioData.cnA(), mmioData.indexA()));

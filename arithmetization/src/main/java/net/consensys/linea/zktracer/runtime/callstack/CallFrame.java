@@ -177,6 +177,7 @@ public class CallFrame {
     this.depth = depth;
     this.returnDataPointer = MemorySpan.ZERO;
     this.returnDataTarget = MemorySpan.ZERO; // TODO: fix me Franklin
+    this.pending = new StackContext(opCode);
   }
 
   /**

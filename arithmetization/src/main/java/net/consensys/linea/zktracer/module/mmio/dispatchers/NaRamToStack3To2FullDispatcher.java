@@ -31,7 +31,7 @@ public class NaRamToStack3To2FullDispatcher implements MmioDispatcher {
   public MmioData dispatch() {
     MmioData mmioData = new MmioData();
 
-    int sourceContext = microData.sourceContext();
+    int sourceContext = microData.sourceContext() - 2;
     mmioData.cnA(sourceContext);
     mmioData.cnB(sourceContext);
     mmioData.cnC(sourceContext);
@@ -42,7 +42,7 @@ public class NaRamToStack3To2FullDispatcher implements MmioDispatcher {
     mmioData.indexC(sourceLimbOffset + 2);
 
     Preconditions.checkState(
-        microData.isRootContext() && microData.isType5(),
+        !microData.isRootContext() && !microData.isType5(),
         "Should be: EXCEPTIONAL_RAM_TO_STACK_3_TO_2_FULL");
 
     mmioData.valA(callStack.valueFromMemory(mmioData.cnA(), mmioData.indexA()));

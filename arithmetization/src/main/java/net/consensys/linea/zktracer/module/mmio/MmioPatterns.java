@@ -27,7 +27,8 @@ class MmioPatterns {
       }
 
       if (!endFlag) {
-        return acc.multiply(UInt256.valueOf(256)).add(UInt256.valueOf(b.toInteger()));
+        return acc.multiply(UInt256.valueOf(256))
+            .add(UInt256.valueOf(b != null ? b.toInteger() : 0));
       }
     }
 
@@ -36,7 +37,7 @@ class MmioPatterns {
 
   static UInt256 isolateSuffix(UInt256 acc, boolean flag, UnsignedByte b) {
     if (flag) {
-      return acc.multiply(UInt256.valueOf(256)).add(UInt256.valueOf(b.toInteger()));
+      return acc.multiply(UInt256.valueOf(256)).add(UInt256.valueOf(b != null ? b.toInteger() : 0));
     }
 
     return acc;
@@ -44,7 +45,7 @@ class MmioPatterns {
 
   static UInt256 isolatePrefix(UInt256 acc, boolean flag, UnsignedByte b) {
     if (!flag) {
-      return acc.multiply(UInt256.valueOf(256)).add(UInt256.valueOf(b.toInteger()));
+      return acc.multiply(UInt256.valueOf(256)).add(UInt256.valueOf(b != null ? b.toInteger() : 0));
     }
 
     return acc;

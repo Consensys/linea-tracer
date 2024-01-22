@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.mmu;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import lombok.AccessLevel;
@@ -34,6 +35,7 @@ import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.internal.Words;
 
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
@@ -339,7 +341,8 @@ class Type4PreComputation implements MmuPreComputation {
         modifyOneLimb(microData);
       }
 
-      microData.size(16 - microData.nibbles()[2].toInteger());
+      UnsignedByte nibble = microData.nibbles()[2];
+      microData.size(16 - (nibble == null ? 0 : nibble.toInteger()));
     }
   }
 
@@ -478,7 +481,11 @@ class Type4PreComputation implements MmuPreComputation {
       case CODECOPY -> topCallFrame.code().getSize();
       case EXTCODECOPY -> {
         final Address address = Words.toAddress(microData.value());
-        topCallFrame.frame().getWorldUpdater().get(address).getCode().size();
+        Optional<Account> account =
+            Optional.ofNullable(topCallFrame.frame().getWorldUpdater().get(address));
+        Bytes byteCode = account.isPresent() ? account.get().getCode() : Bytes.EMPTY;
+
+        return byteCode.size();
       }
       case CALLDATACOPY -> callStack.caller().callDataSource().length();
       case RETURNDATACOPY -> topCallFrame.returnDataSource().length();

@@ -50,7 +50,7 @@ class MmioDataProcessor {
     }
   }
 
-  int maxCounter() {
+  static int maxCounter(final MicroData microData) {
     return microData.isFast() ? 0 : 15;
   }
 }

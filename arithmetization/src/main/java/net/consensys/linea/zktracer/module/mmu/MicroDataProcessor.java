@@ -71,8 +71,8 @@ class MicroDataProcessor {
     return currentPreComputation.dispatch(microData, opCode, stackOps, callStack);
   }
 
-  static int maxCounter(final boolean oob) {
-    return oob ? 16 : 3;
+  static int maxCounter(final MicroData microData) {
+    return microData.pointers().oob() ? 16 : 3;
   }
 
   private void executeProcessingActionPerType(

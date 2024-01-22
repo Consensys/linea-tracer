@@ -112,7 +112,7 @@ public class Mmu implements Module {
 
     this.ramStamp++;
     this.isMicro = false;
-    int maxCounter = maxCounter(microData.pointers().oob());
+    int maxCounter = maxCounter(microData);
 
     microData.processingRow(-1);
 
@@ -233,7 +233,7 @@ public class Mmu implements Module {
   }
 
   private Bytes acc(final int accIndex, final MicroData microData) {
-    int maxCounter = maxCounter(microData.pointers().oob());
+    int maxCounter = maxCounter(microData);
 
     return unsignedBytesToBytes(
         ArrayUtils.subarray(
@@ -243,7 +243,7 @@ public class Mmu implements Module {
   }
 
   private UnsignedByte accByte(final int accIndex, final MicroData microData) {
-    int maxCounter = maxCounter(microData.pointers().oob());
+    int maxCounter = maxCounter(microData);
 
     return Objects.requireNonNullElse(
         microData.accs()[accIndex][32 - maxCounter + microData.counter()], UnsignedByte.ZERO);

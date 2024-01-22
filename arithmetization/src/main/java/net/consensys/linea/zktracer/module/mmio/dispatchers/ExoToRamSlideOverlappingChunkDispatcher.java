@@ -15,8 +15,11 @@
 
 package net.consensys.linea.zktracer.module.mmio.dispatchers;
 
+import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.mmio.MmioData;
+import net.consensys.linea.zktracer.module.romLex.RomChunk;
 import net.consensys.linea.zktracer.module.romLex.RomLex;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.runtime.microdata.MicroData;
@@ -38,7 +41,8 @@ public class ExoToRamSlideOverlappingChunkDispatcher implements MmioDispatcher {
     MmioData mmioData = new MmioData();
 
     Address exoAddress = microData.addressValue();
-    Bytes contractByteCode = romLex.addressRomChunkMap().get(exoAddress).byteCode();
+    Optional<RomChunk> romChunk = Optional.ofNullable(romLex.addressRomChunkMap().get(exoAddress));
+    Bytes contractByteCode = romChunk.isPresent() ? romChunk.get().byteCode() : Bytes.EMPTY;
 
     int targetContext = microData.targetContext();
     mmioData.cnA(0);

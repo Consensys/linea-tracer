@@ -30,7 +30,7 @@ class MmuOperation extends ModuleOperation {
 
   @Override
   protected int computeLineCount() {
-    int preProcessingCount = 1 + maxCounter(microData.pointers().oob());
+    int preProcessingCount = 1 + maxCounter(microData);
     int totalNumberOfMicroInstructions = microData.readPad().totalNumber();
 
     return preProcessingCount + totalNumberOfMicroInstructions;

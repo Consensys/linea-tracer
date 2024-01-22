@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.mmio;
 
+import static net.consensys.linea.zktracer.module.mmio.MmioDataProcessor.maxCounter;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -24,15 +26,16 @@ import net.consensys.linea.zktracer.runtime.microdata.MicroData;
 
 @RequiredArgsConstructor
 @Accessors(fluent = true)
+@Getter
 class MmioOperation extends ModuleOperation {
-  @Getter private final MicroData microData;
-  @Getter private final MmioDataProcessor mmioDataProcessor;
-  @Getter private final State.TxState.Stamps moduleStamps;
-  @Getter private final int microStamp;
-  @Getter private final boolean isInitCode;
+  private final MicroData microData;
+  private final MmioDataProcessor mmioDataProcessor;
+  private final State.TxState.Stamps moduleStamps;
+  private final int microStamp;
+  private final boolean isInitCode;
 
   @Override
   protected int computeLineCount() {
-    return 1 + mmioDataProcessor.maxCounter();
+    return 1 + maxCounter(microData);
   }
 }

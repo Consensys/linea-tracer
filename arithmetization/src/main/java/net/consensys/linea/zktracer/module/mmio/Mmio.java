@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.mmio;
 
+import static net.consensys.linea.zktracer.module.mmio.MmioDataProcessor.maxCounter;
 import static net.consensys.linea.zktracer.types.Conversions.unsignedBytesSubArrayToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.unsignedBytesToBytes;
 
@@ -74,7 +75,7 @@ public class Mmio implements Module {
 
     for (MmioOperation o : this.state) {
       MmioDataProcessor processor = o.mmioDataProcessor();
-      int maxCounter = processor.maxCounter();
+      int maxCounter = maxCounter(o.microData());
 
       MmioData mmioData = processor.dispatchMmioData();
       for (int i = 0; i < maxCounter; i++) {

@@ -43,7 +43,7 @@ public class PushTwoStackToRamDispatcher implements MmioDispatcher {
     mmioData.indexC(0);
 
     Preconditions.checkState(
-        microData.isRootContext() && microData.isType5(),
+        !microData.isRootContext() && !microData.isType5(),
         "Should be: EXCEPTIONAL_RAM_TO_STACK_3_TO_2_FULL_FAST");
 
     mmioData.valA(callStack.valueFromMemory(mmioData.cnA(), mmioData.indexA()));

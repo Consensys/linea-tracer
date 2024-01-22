@@ -20,6 +20,7 @@ import static net.consensys.linea.zktracer.types.Conversions.unsignedBytesToByte
 
 import java.nio.MappedByteBuffer;
 import java.util.List;
+import java.util.Objects;
 
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
@@ -31,6 +32,7 @@ import net.consensys.linea.zktracer.module.romLex.RomLex;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.runtime.microdata.MicroData;
+import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 
 /** MMIO contains the MEMORY MAPPED INPUT OUTPUT module's state. */
@@ -112,9 +114,9 @@ public class Mmio implements Module {
         .valANew(unsignedBytesToBytes(mmioData.valANew()))
         .valBNew(unsignedBytesToBytes(mmioData.valBNew()))
         .valCNew(unsignedBytesToBytes(mmioData.valCNew()))
-        .byteA(mmioData.valA()[counter])
-        .byteB(mmioData.valB()[counter])
-        .byteC(mmioData.valC()[counter])
+        .byteA(Objects.requireNonNullElse(mmioData.valA()[counter], UnsignedByte.ZERO))
+        .byteB(Objects.requireNonNullElse(mmioData.valB()[counter], UnsignedByte.ZERO))
+        .byteC(Objects.requireNonNullElse(mmioData.valC()[counter], UnsignedByte.ZERO))
         .accA(unsignedBytesSubArrayToBytes(mmioData.valA(), counter + 1))
         .accB(unsignedBytesSubArrayToBytes(mmioData.valB(), counter + 1))
         .accC(unsignedBytesSubArrayToBytes(mmioData.valC(), counter + 1))
@@ -132,8 +134,8 @@ public class Mmio implements Module {
         .fast(microData.isFast())
         .stackValueHigh(unsignedBytesToBytes(mmioData.valHi()))
         .stackValueLow(unsignedBytesToBytes(mmioData.valLo()))
-        .stackValueHiByte(mmioData.valHi()[counter])
-        .stackValueLoByte(mmioData.valLo()[counter])
+        .stackValueHiByte(Objects.requireNonNullElse(mmioData.valHi()[counter], UnsignedByte.ZERO))
+        .stackValueLoByte(Objects.requireNonNullElse(mmioData.valLo()[counter], UnsignedByte.ZERO))
         .accValHi(unsignedBytesSubArrayToBytes(mmioData.valHi(), counter + 1))
         .accValLo(unsignedBytesSubArrayToBytes(mmioData.valLo(), counter + 1))
         .exoIsRom(microData.exoIsRom())
@@ -142,7 +144,7 @@ public class Mmio implements Module {
         .exoIsTxcd(microData.exoIsTxcd())
         .indexX(Bytes.ofUnsignedInt(mmioData.indexX()))
         .valX(unsignedBytesToBytes(mmioData.valX()))
-        .byteX(mmioData.valX()[counter])
+        .byteX(Objects.requireNonNullElse(mmioData.valX()[counter], UnsignedByte.ZERO))
         .accX(unsignedBytesSubArrayToBytes(mmioData.valX(), counter + 1))
         .txNum(Bytes.ofUnsignedInt(txNum))
         .logNum(Bytes.ofUnsignedInt(mmioOperation.moduleStamps().log()))

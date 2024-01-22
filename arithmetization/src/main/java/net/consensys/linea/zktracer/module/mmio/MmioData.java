@@ -30,6 +30,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.module.hub.memory.Memory;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.runtime.stack.StackContext;
 import net.consensys.linea.zktracer.types.EWord;
@@ -267,9 +268,11 @@ public class MmioData {
 
   public void updateLimbsInMemory(final CallStack callStack) {
     StackContext pending = callStack.get(cnA).pending();
-    pending.memory().updateLimb(indexA, valANew);
-    pending.memory().updateLimb(indexB, valBNew);
-    pending.memory().updateLimb(indexC, valCNew);
+    Memory memory = pending.memory();
+
+    memory.updateLimb(indexA, valANew);
+    memory.updateLimb(indexB, valBNew);
+    memory.updateLimb(indexC, valCNew);
   }
 
   public void setValHiLoForRootContextCalldataload(int sourceByteOffset) {

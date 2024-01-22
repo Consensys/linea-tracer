@@ -826,7 +826,7 @@ public class Hub implements Module {
         ((StackFragment) section.getLines().get(i).specific())
             .stackOps()
             .get(line.resultColumn() - 1)
-            .setValue(result);
+            .value(result);
       }
     }
 

@@ -54,7 +54,10 @@ class Type4PreComputation implements MmuPreComputation {
             .build());
 
     Bytes value = stackOps.get(3).value().copy();
-    microData.sizeImported(value.toInt());
+    // TODO: This produces java.lang.IllegalArgumentException: Value of size 20 has more than 4
+    // bytes. Should we try to fix it or use the workaround below?
+    //    microData.sizeImported(value.toInt());
+    microData.sizeImported(value.toUnsignedBigInteger().intValue());
     microData.value(value);
 
     setTern(microData, callStack);

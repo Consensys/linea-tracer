@@ -15,25 +15,17 @@
 
 package net.consensys.linea.zktracer;
 
-import java.nio.file.Path;
+import net.consensys.linea.zktracer.testing.ToyExecutionEnvironment;
+import org.junit.jupiter.api.Test;
 
-import org.hyperledger.besu.plugin.services.tracer.BlockAwareOperationTracer;
+public class ReplaysTests {
+  public static void replay(String filename) {
+    ToyExecutionEnvironment environment = ToyExecutionEnvironment.builder().build();
+    environment.replay(filename);
+  }
 
-/**
- * An extended operation tracer that can trace the start and end of a number of blocks in
- * conflation.
- */
-public interface ZkBlockAwareOperationTracer extends BlockAwareOperationTracer {
-
-  /**
-   * Trace the start of conflation for a number of blocks.
-   *
-   * @param numBlocksInConflation blocks in conflation
-   */
-  void traceStartConflation(final long numBlocksInConflation);
-
-  /** Trace the end of conflation for a number of blocks. */
-  void traceEndConflation();
-
-  void writeToFile(final Path filename);
+  @Test
+  void replayOneFile() {
+    replay("/home/franklin/asdf.json");
+  }
 }

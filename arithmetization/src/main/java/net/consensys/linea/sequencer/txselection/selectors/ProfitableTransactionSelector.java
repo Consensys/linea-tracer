@@ -15,13 +15,22 @@
 package net.consensys.linea.sequencer.txselection.selectors;
 
 import static net.consensys.linea.sequencer.txselection.LineaTransactionSelectionResult.TX_UNPROFITABLE;
+import static net.consensys.linea.sequencer.txselection.LineaTransactionSelectionResult.TX_UNPROFITABLE_MIN_GAS_PRICE_NOT_DECREASED;
+import static net.consensys.linea.sequencer.txselection.LineaTransactionSelectionResult.TX_UNPROFITABLE_RETRY_LIMIT;
 import static net.consensys.linea.sequencer.txselection.LineaTransactionSelectionResult.TX_UNPROFITABLE_UPFRONT;
 import static org.hyperledger.besu.plugin.data.TransactionSelectionResult.SELECTED;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
+import com.google.common.annotations.VisibleForTesting;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.mutable.MutableBoolean;
+import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.PendingTransaction;
 import org.hyperledger.besu.datatypes.Transaction;
+import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.plugin.data.TransactionProcessingResult;
 import org.hyperledger.besu.plugin.data.TransactionSelectionResult;
 import org.hyperledger.besu.plugin.services.txselection.PluginTransactionSelector;
@@ -31,26 +40,78 @@ import org.slf4j.spi.LoggingEventBuilder;
 @Slf4j
 @RequiredArgsConstructor
 public class ProfitableTransactionSelector implements PluginTransactionSelector {
+  @VisibleForTesting protected static Set<Hash> unprofitableCache = new LinkedHashSet<>();
+  @VisibleForTesting protected static Wei prevMinGasPrice = Wei.MAX_WEI;
+
   private final int verificationGasCost;
   private final int verificationCapacity;
   private final int gasPriceRatio;
   private final double minMargin;
   private final int adjustTxSize;
+  private final int unprofitableCacheSize;
+  private final int unprofitableRetryLimit;
+  private int unprofitableRetries;
+  private MutableBoolean minGasPriceDecreased;
+
   @Override
   public TransactionSelectionResult evaluateTransactionPreProcessing(
       final TransactionEvaluationContext<? extends PendingTransaction> evaluationContext) {
+
+    final Wei minGasPrice = evaluationContext.getMinGasPrice();
+
+    // update prev min gas price only if it is a new block
+    if (minGasPriceDecreased == null) {
+      minGasPriceDecreased = new MutableBoolean(minGasPrice.lessThan(prevMinGasPrice));
+      prevMinGasPrice = minGasPrice;
+    }
+
     if (!evaluationContext.getPendingTransaction().hasPriority()) {
       final Transaction transaction = evaluationContext.getPendingTransaction().getTransaction();
-      final double minGasPrice = evaluationContext.getMinGasPrice().getAsBigInteger().doubleValue();
       final double effectiveGasPrice =
           evaluationContext.getTransactionGasPrice().getAsBigInteger().doubleValue();
       final long gasLimit = transaction.getGasLimit();
 
-      if (!isProfitable("PreProcessing", transaction, minGasPrice, effectiveGasPrice, gasLimit)) {
+      // check the upfront profitability using the gas limit of the tx
+      if (!isProfitable(
+          "PreProcessing",
+          transaction,
+          minGasPrice.getAsBigInteger().doubleValue(),
+          effectiveGasPrice,
+          gasLimit)) {
         return TX_UNPROFITABLE_UPFRONT;
       }
 
+      if (unprofitableCache.contains(transaction.getHash())) {
+        // only retry unprofitable txs if the min gas price went down
+        if (minGasPriceDecreased.isTrue()) {
+
+          if (unprofitableRetries >= unprofitableRetryLimit) {
+            log.atTrace()
+                .setMessage("Limit of unprofitable tx retries reached: {}/{}")
+                .addArgument(unprofitableRetries)
+                .addArgument(unprofitableRetryLimit);
+            return TX_UNPROFITABLE_RETRY_LIMIT;
+          }
+
+          log.atTrace()
+              .setMessage("Retrying unprofitable tx. Retry: {}/{}")
+              .addArgument(unprofitableRetries)
+              .addArgument(unprofitableRetryLimit);
+          unprofitableCache.remove(transaction.getHash());
+          unprofitableRetries++;
+
+        } else {
+          log.atTrace()
+              .setMessage(
+                  "Current block minGasPrice {} is higher than previous block {}, skipping unprofitable txs retry")
+              .addArgument(minGasPrice::toHumanReadableString)
+              .addArgument(prevMinGasPrice::toHumanReadableString)
+              .log();
+          return TX_UNPROFITABLE_MIN_GAS_PRICE_NOT_DECREASED;
+        }
+      }
     }
+
     return SELECTED;
   }
 
@@ -67,10 +128,28 @@ public class ProfitableTransactionSelector implements PluginTransactionSelector 
       final long gasUsed = processingResult.getEstimateGasUsedByTransaction();
 
       if (!isProfitable("PostProcessing", transaction, minGasPrice, effectiveGasPrice, gasUsed)) {
+        registerAsUnProfitable(transaction);
         return TX_UNPROFITABLE;
       }
     }
     return SELECTED;
+  }
+
+  @Override
+  public void onTransactionSelected(
+      final TransactionEvaluationContext<? extends PendingTransaction> evaluationContext,
+      final TransactionProcessingResult processingResult) {
+    unprofitableCache.remove(evaluationContext.getPendingTransaction().getTransaction().getHash());
+  }
+
+  @Override
+  public void onTransactionNotSelected(
+      final TransactionEvaluationContext<? extends PendingTransaction> evaluationContext,
+      final TransactionSelectionResult transactionSelectionResult) {
+    if (transactionSelectionResult.discard()) {
+      unprofitableCache.remove(
+          evaluationContext.getPendingTransaction().getTransaction().getHash());
+    }
   }
 
   private boolean isProfitable(
@@ -116,6 +195,13 @@ public class ProfitableTransactionSelector implements PluginTransactionSelector 
           adjustTxSize);
       return true;
     }
+  }
+
+  private void registerAsUnProfitable(final Transaction transaction) {
+    if (unprofitableCache.size() > unprofitableCacheSize) {
+      unprofitableCache.iterator().remove();
+    }
+    unprofitableCache.add(transaction.getHash());
   }
 
   private void log(

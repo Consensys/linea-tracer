@@ -15,18 +15,12 @@
 
 package net.consensys.linea.zktracer.module.mod;
 
-import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Stream;
 
 import net.consensys.linea.zktracer.module.Module;
-import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.testing.DynamicTests;
 import net.consensys.linea.zktracer.testing.OpcodeCall;
-import org.apache.tuweni.bytes.Bytes;
-import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
@@ -37,9 +31,7 @@ class ModTracerTest {
 
   @TestFactory
   Stream<DynamicTest> runDynamicTests() {
-    return DYN_TESTS
-        .testCase("non random arguments test", provideNonRandomArguments())
-        .run();
+    return DYN_TESTS.testCase("non random arguments test", provideNonRandomArguments()).run();
   }
 
   private List<OpcodeCall> provideNonRandomArguments() {

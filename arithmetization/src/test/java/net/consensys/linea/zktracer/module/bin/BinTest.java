@@ -15,11 +15,6 @@
 
 package net.consensys.linea.zktracer.module.bin;
 
-import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
-
-import java.math.BigInteger;
-import java.util.Random;
-
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.testing.BytecodeRunner;
@@ -35,7 +30,6 @@ public class BinTest {
     BytecodeRunner.of(BytecodeCompiler.newProgram().push(0xf0).push(0xf0).op(OpCode.AND).compile())
         .run();
   }
-
 
   @Test
   void testSignedSignextend() {

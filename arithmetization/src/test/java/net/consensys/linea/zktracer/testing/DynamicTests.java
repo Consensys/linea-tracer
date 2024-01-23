@@ -22,7 +22,6 @@ import java.util.Random;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
-import com.google.common.collect.Multimap;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.ext.Ext;
@@ -164,7 +163,6 @@ public class DynamicTests {
 
     return arguments;
   }
-
 
   private Stream<DynamicTest> generateTestCases(
       final String testCaseName,

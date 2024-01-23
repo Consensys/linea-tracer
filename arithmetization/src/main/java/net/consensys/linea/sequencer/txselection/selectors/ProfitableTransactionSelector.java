@@ -15,6 +15,7 @@
 package net.consensys.linea.sequencer.txselection.selectors;
 
 import static net.consensys.linea.sequencer.txselection.LineaTransactionSelectionResult.TX_UNPROFITABLE;
+import static net.consensys.linea.sequencer.txselection.LineaTransactionSelectionResult.TX_UNPROFITABLE_UPFRONT;
 import static org.hyperledger.besu.plugin.data.TransactionSelectionResult.SELECTED;
 
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,23 @@ public class ProfitableTransactionSelector implements PluginTransactionSelector 
   private final int gasPriceRatio;
   private final double minMargin;
   private final int adjustTxSize;
+  @Override
+  public TransactionSelectionResult evaluateTransactionPreProcessing(
+      final TransactionEvaluationContext<? extends PendingTransaction> evaluationContext) {
+    if (!evaluationContext.getPendingTransaction().hasPriority()) {
+      final Transaction transaction = evaluationContext.getPendingTransaction().getTransaction();
+      final double minGasPrice = evaluationContext.getMinGasPrice().getAsBigInteger().doubleValue();
+      final double effectiveGasPrice =
+          evaluationContext.getTransactionGasPrice().getAsBigInteger().doubleValue();
+      final long gasLimit = transaction.getGasLimit();
+
+      if (!isProfitable("PreProcessing", transaction, minGasPrice, effectiveGasPrice, gasLimit)) {
+        return TX_UNPROFITABLE_UPFRONT;
+      }
+
+    }
+    return SELECTED;
+  }
 
   @Override
   public TransactionSelectionResult evaluateTransactionPostProcessing(
@@ -43,57 +61,66 @@ public class ProfitableTransactionSelector implements PluginTransactionSelector 
 
     if (!evaluationContext.getPendingTransaction().hasPriority()) {
       final Transaction transaction = evaluationContext.getPendingTransaction().getTransaction();
-
+      final double minGasPrice = evaluationContext.getMinGasPrice().getAsBigInteger().doubleValue();
       final double effectiveGasPrice =
           evaluationContext.getTransactionGasPrice().getAsBigInteger().doubleValue();
       final long gasUsed = processingResult.getEstimateGasUsedByTransaction();
-      final double revenue = effectiveGasPrice * gasUsed;
 
-      final double minGasPrice = evaluationContext.getMinGasPrice().getAsBigInteger().doubleValue();
-      final double l1GasPrice = minGasPrice * gasPriceRatio;
-      final int serializedSize = Math.max(0, transaction.getSize() + adjustTxSize);
-      final double verificationGasCostSlice =
-          (((double) serializedSize) / verificationCapacity) * verificationGasCost;
-      final double cost = l1GasPrice * verificationGasCostSlice;
-
-      final double margin = revenue / cost;
-
-      log(
-          log.atTrace(),
-          transaction,
-          margin,
-          effectiveGasPrice,
-          gasUsed,
-          minGasPrice,
-          l1GasPrice,
-          serializedSize,
-          adjustTxSize);
-
-      if (margin < minMargin) {
-        log(
-            log.atDebug(),
-            transaction,
-            margin,
-            effectiveGasPrice,
-            gasUsed,
-            minGasPrice,
-            l1GasPrice,
-            serializedSize,
-            adjustTxSize);
+      if (!isProfitable("PostProcessing", transaction, minGasPrice, effectiveGasPrice, gasUsed)) {
         return TX_UNPROFITABLE;
       }
     }
     return SELECTED;
   }
 
-  @Override
-  public TransactionSelectionResult evaluateTransactionPreProcessing(
-      final TransactionEvaluationContext<? extends PendingTransaction> evaluationContext) {
-    return SELECTED;
+  private boolean isProfitable(
+      final String step,
+      final Transaction transaction,
+      final double minGasPrice,
+      final double effectiveGasPrice,
+      final long gas) {
+    final double revenue = effectiveGasPrice * gas;
+
+    final double l1GasPrice = minGasPrice * gasPriceRatio;
+    final int serializedSize = Math.max(0, transaction.getSize() + adjustTxSize);
+    final double verificationGasCostSlice =
+        (((double) serializedSize) / verificationCapacity) * verificationGasCost;
+    final double cost = l1GasPrice * verificationGasCostSlice;
+
+    final double margin = revenue / cost;
+
+    if (margin < minMargin) {
+      log(
+          log.atDebug(),
+          step,
+          transaction,
+          margin,
+          effectiveGasPrice,
+          gas,
+          minGasPrice,
+          l1GasPrice,
+          serializedSize,
+          adjustTxSize);
+      return false;
+    } else {
+      log(
+          log.atTrace(),
+          step,
+          transaction,
+          margin,
+          effectiveGasPrice,
+          gas,
+          minGasPrice,
+          l1GasPrice,
+          serializedSize,
+          adjustTxSize);
+      return true;
+    }
   }
 
   private void log(
       final LoggingEventBuilder leb,
+      final String step,
       final Transaction transaction,
       final double margin,
       final double effectiveGasPrice,
@@ -103,9 +130,10 @@ public class ProfitableTransactionSelector implements PluginTransactionSelector 
       final int serializedSize,
       final int adjustTxSize) {
     leb.setMessage(
-            "Transaction {} has a margin of {}, minMargin={}, verificationCapacity={}, "
+            "Step {}. Transaction {} has a margin of {}, minMargin={}, verificationCapacity={}, "
                 + "verificationGasCost={}, gasPriceRatio={}, effectiveGasPrice={}, gasUsed={}, minGasPrice={}, "
                 + "l1GasPrice={}, serializedSize={}, adjustTxSize={}")
+        .addArgument(step)
         .addArgument(transaction::getHash)
         .addArgument(margin)
         .addArgument(minMargin)

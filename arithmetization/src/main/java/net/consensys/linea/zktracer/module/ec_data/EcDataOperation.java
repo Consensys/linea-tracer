@@ -18,6 +18,7 @@ package net.consensys.linea.zktracer.module.ec_data;
 import static net.consensys.linea.zktracer.types.Containers.repeat;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Set;
 
@@ -29,6 +30,8 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.crypto.altbn128.AltBn128Fq2Point;
+import org.hyperledger.besu.crypto.altbn128.Fq2;
 import org.hyperledger.besu.datatypes.Address;
 
 @Accessors(fluent = true)
@@ -41,8 +44,8 @@ public class EcDataOperation extends ModuleOperation {
 
   private static final EWord P =
       EWord.ofHexString("0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47");
-  private static final EWord Q =
-      EWord.ofHexString("0x30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001");
+  private static final BigInteger Q =
+      new BigInteger("30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001", 16);
   private static final EWord SECP256_K1N =
       EWord.ofHexString("0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f");
 
@@ -104,12 +107,24 @@ public class EcDataOperation extends ModuleOperation {
     };
   }
 
-  private static boolean isOnG2(Bytes arg) {
-    return true; // TODO:
+  private static BigInteger extractParameter(final Bytes input) {
+    if (input.isEmpty()) {
+      return BigInteger.ZERO;
+    }
+    return new BigInteger(1, input.toArray());
   }
 
-  private static boolean isInfinity() {
-    return false; // TODO:
+  private static boolean isOnG2(Bytes xBytes) {
+    final BigInteger pXIm = extractParameter(xBytes.slice(0, 32));
+    final BigInteger pXRe = extractParameter(xBytes.slice(32, 32));
+    final BigInteger pYIm = extractParameter(xBytes.slice(64, 32));
+    final BigInteger pYRe = extractParameter(xBytes.slice(96, 32));
+    final Fq2 pX = Fq2.create(pXRe, pXIm);
+    final Fq2 pY = Fq2.create(pYRe, pYIm);
+    final AltBn128Fq2Point p2 = new AltBn128Fq2Point(pX, pY);
+    final AltBn128Fq2Point pPowQ = p2.multiply(Q);
+
+    return pPowQ.isOnCurve();
   }
 
   private EcDataOperation(

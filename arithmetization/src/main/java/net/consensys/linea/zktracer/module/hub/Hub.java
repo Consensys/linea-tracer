@@ -296,9 +296,6 @@ public class Hub implements Module {
                 this.logData,
                 this.logInfo,
                 this.mod,
-                // TODO: not sure if this should be here, but if it should we have to define a limit
-                // for MODEXP in spillings.toml
-                // this.modexp.data(),
                 this.mmu,
                 this.mul,
                 this.mxp,

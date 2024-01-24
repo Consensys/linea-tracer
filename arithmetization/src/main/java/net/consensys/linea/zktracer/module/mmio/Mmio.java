@@ -16,12 +16,9 @@
 package net.consensys.linea.zktracer.module.mmio;
 
 import static net.consensys.linea.zktracer.module.mmio.MmioDataProcessor.maxCounter;
-import static net.consensys.linea.zktracer.types.Conversions.unsignedBytesSubArrayToBytes;
-import static net.consensys.linea.zktracer.types.Conversions.unsignedBytesToBytes;
 
 import java.nio.MappedByteBuffer;
 import java.util.List;
-import java.util.Objects;
 
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
@@ -33,8 +30,6 @@ import net.consensys.linea.zktracer.module.romLex.RomLex;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.runtime.microdata.MicroData;
-import net.consensys.linea.zktracer.types.UnsignedByte;
-import org.apache.tuweni.bytes.Bytes;
 
 /** MMIO contains the MEMORY MAPPED INPUT OUTPUT module's state. */
 @RequiredArgsConstructor
@@ -80,7 +75,7 @@ public class Mmio implements Module {
       MmioData mmioData = processor.dispatchMmioData();
       for (int i = 0; i < maxCounter; i++) {
         processor.updateMmioData(mmioData, maxCounter);
-        trace(trace, o, mmioData, hub.tx().number(), i);
+        o.trace(trace, mmioData, hub.tx().number(), i);
       }
     }
   }
@@ -96,73 +91,5 @@ public class Mmio implements Module {
 
     this.state.add(
         new MmioOperation(microData, mmioDataProcessor, moduleStamps, microStamp, isInitCode));
-  }
-
-  private void trace(
-      Trace trace, MmioOperation mmioOperation, MmioData mmioData, int txNum, int counter) {
-    MicroData microData = mmioOperation.microData();
-
-    trace
-        .cnA(Bytes.ofUnsignedInt(mmioData.cnA()))
-        .cnB(Bytes.ofUnsignedInt(mmioData.cnB()))
-        .cnC(Bytes.ofUnsignedInt(mmioData.cnC()))
-        .indexA(Bytes.ofUnsignedInt(mmioData.indexA()))
-        .indexB(Bytes.ofUnsignedInt(mmioData.indexB()))
-        .indexC(Bytes.ofUnsignedInt(mmioData.indexC()))
-        .valA(unsignedBytesToBytes(mmioData.valA()))
-        .valB(unsignedBytesToBytes(mmioData.valB()))
-        .valC(unsignedBytesToBytes(mmioData.valC()))
-        .valANew(unsignedBytesToBytes(mmioData.valANew()))
-        .valBNew(unsignedBytesToBytes(mmioData.valBNew()))
-        .valCNew(unsignedBytesToBytes(mmioData.valCNew()))
-        .byteA(Objects.requireNonNullElse(mmioData.valA()[counter], UnsignedByte.ZERO))
-        .byteB(Objects.requireNonNullElse(mmioData.valB()[counter], UnsignedByte.ZERO))
-        .byteC(Objects.requireNonNullElse(mmioData.valC()[counter], UnsignedByte.ZERO))
-        .accA(unsignedBytesSubArrayToBytes(mmioData.valA(), counter + 1))
-        .accB(unsignedBytesSubArrayToBytes(mmioData.valB(), counter + 1))
-        .accC(unsignedBytesSubArrayToBytes(mmioData.valC(), counter + 1))
-        .microInstructionStamp(Bytes.of(mmioOperation.microStamp()))
-        .microInstruction(Bytes.ofUnsignedInt(microData.microOp()))
-        .contextSource(Bytes.ofUnsignedInt(microData.sourceContext()))
-        .contextTarget(Bytes.ofUnsignedInt(microData.targetContext()))
-        .isInit(mmioOperation.isInitCode())
-        .sourceLimbOffset(microData.sourceLimbOffset())
-        .targetLimbOffset(microData.targetLimbOffset())
-        .sourceByteOffset(Bytes.of(microData.sourceByteOffset().toByte()))
-        .targetByteOffset(Bytes.of(microData.targetByteOffset().toByte()))
-        .size(Bytes.ofUnsignedInt(microData.size()))
-        .erf(microData.isErf())
-        .fast(microData.isFast())
-        .stackValueHigh(unsignedBytesToBytes(mmioData.valHi()))
-        .stackValueLow(unsignedBytesToBytes(mmioData.valLo()))
-        .stackValueHiByte(Objects.requireNonNullElse(mmioData.valHi()[counter], UnsignedByte.ZERO))
-        .stackValueLoByte(Objects.requireNonNullElse(mmioData.valLo()[counter], UnsignedByte.ZERO))
-        .accValHi(unsignedBytesSubArrayToBytes(mmioData.valHi(), counter + 1))
-        .accValLo(unsignedBytesSubArrayToBytes(mmioData.valLo(), counter + 1))
-        .exoIsRom(microData.exoIsRom())
-        .exoIsLog(microData.exoIsLog())
-        .exoIsHash(microData.exoIsHash())
-        .exoIsTxcd(microData.exoIsTxcd())
-        .indexX(Bytes.ofUnsignedInt(mmioData.indexX()))
-        .valX(unsignedBytesToBytes(mmioData.valX()))
-        .byteX(Objects.requireNonNullElse(mmioData.valX()[counter], UnsignedByte.ZERO))
-        .accX(unsignedBytesSubArrayToBytes(mmioData.valX(), counter + 1))
-        .txNum(Bytes.ofUnsignedInt(txNum))
-        .logNum(Bytes.ofUnsignedInt(mmioOperation.moduleStamps().log()))
-        .bin1(mmioData.bin1())
-        .bin2(mmioData.bin2())
-        .bin3(mmioData.bin3())
-        .bin4(mmioData.bin4())
-        .bin5(mmioData.bin5())
-        .acc1(mmioData.acc1())
-        .acc2(mmioData.acc2())
-        .acc3(mmioData.acc3())
-        .acc4(mmioData.acc4())
-        .acc5(mmioData.acc5())
-        .acc6(mmioData.acc6())
-        .pow2561(mmioData.pow2561())
-        .pow2562(mmioData.pow2562())
-        .counter(Bytes.ofUnsignedInt(counter))
-        .validateRow();
   }
 }

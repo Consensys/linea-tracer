@@ -18,10 +18,10 @@ package net.consensys.linea.zktracer.module.mmio.dispatchers;
 import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
+import net.consensys.linea.zktracer.module.mmio.CallStackReader;
 import net.consensys.linea.zktracer.module.mmio.MmioData;
 import net.consensys.linea.zktracer.module.romLex.RomChunk;
 import net.consensys.linea.zktracer.module.romLex.RomLex;
-import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.runtime.microdata.MicroData;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
@@ -32,7 +32,7 @@ public class ExoToRamSlideOverlappingChunkDispatcher implements MmioDispatcher {
 
   private final MicroData microData;
 
-  private final CallStack callStack;
+  private final CallStackReader callStackReader;
 
   private final RomLex romLex;
 
@@ -57,10 +57,10 @@ public class ExoToRamSlideOverlappingChunkDispatcher implements MmioDispatcher {
     mmioData.indexX(sourceLimbOffset);
 
     mmioData.valA(UnsignedByte.EMPTY_BYTES16);
-    mmioData.valB(callStack.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
-    mmioData.valC(callStack.valueFromMemory(mmioData.cnC(), mmioData.indexC()));
+    mmioData.valB(callStackReader.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
+    mmioData.valC(callStackReader.valueFromMemory(mmioData.cnC(), mmioData.indexC()));
     mmioData.valX(
-        callStack.valueFromExo(contractByteCode, microData.exoSource(), mmioData.indexX()));
+        callStackReader.valueFromExo(contractByteCode, microData.exoSource(), mmioData.indexX()));
 
     mmioData.valANew(UnsignedByte.EMPTY_BYTES16);
 
@@ -86,7 +86,7 @@ public class ExoToRamSlideOverlappingChunkDispatcher implements MmioDispatcher {
       }
     }
 
-    mmioData.updateLimbsInMemory(callStack);
+    mmioData.updateLimbsInMemory(callStackReader.callStack());
 
     return mmioData;
   }

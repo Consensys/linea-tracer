@@ -75,7 +75,7 @@ public class Mmio implements Module {
       MmioData mmioData = processor.dispatchMmioData();
       for (int i = 0; i < maxCounter; i++) {
         processor.updateMmioData(mmioData, maxCounter);
-        o.trace(trace, mmioData, hub.tx().number(), i);
+        //        o.trace(trace, mmioData, hub.tx().number(), i);
       }
     }
   }

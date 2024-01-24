@@ -16,8 +16,8 @@
 package net.consensys.linea.zktracer.module.mmio.dispatchers;
 
 import lombok.RequiredArgsConstructor;
+import net.consensys.linea.zktracer.module.mmio.CallStackReader;
 import net.consensys.linea.zktracer.module.mmio.MmioData;
-import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.runtime.microdata.MicroData;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
@@ -25,7 +25,7 @@ import net.consensys.linea.zktracer.types.UnsignedByte;
 public class FullExoFromTwoDispatcher implements MmioDispatcher {
   private final MicroData microData;
 
-  private final CallStack callStack;
+  private final CallStackReader callStackReader;
 
   @Override
   public MmioData dispatch() {
@@ -43,8 +43,8 @@ public class FullExoFromTwoDispatcher implements MmioDispatcher {
     mmioData.indexC(0);
     mmioData.indexX(targetLimbOffset);
 
-    mmioData.valA(callStack.valueFromMemory(mmioData.cnA(), mmioData.indexA()));
-    mmioData.valB(callStack.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
+    mmioData.valA(callStackReader.valueFromMemory(mmioData.cnA(), mmioData.indexA()));
+    mmioData.valB(callStackReader.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
 
     UnsignedByte[] valA = mmioData.valA();
     UnsignedByte[] valB = mmioData.valB();
@@ -57,7 +57,7 @@ public class FullExoFromTwoDispatcher implements MmioDispatcher {
     System.arraycopy(valA, sourceByteOffset, valX, 0, 16 - sourceByteOffset);
     System.arraycopy(valB, 0, valX, 16 - sourceByteOffset, valX.length - 16 - sourceByteOffset);
 
-    mmioData.updateLimbsInMemory(callStack);
+    mmioData.updateLimbsInMemory(callStackReader.callStack());
 
     return mmioData;
   }

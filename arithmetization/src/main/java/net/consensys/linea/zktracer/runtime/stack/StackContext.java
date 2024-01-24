@@ -23,7 +23,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.memory.Memory;
+import net.consensys.linea.zktracer.module.hub.memory.MemorySegmentSnapshot;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.UnsignedByte;
@@ -35,7 +35,7 @@ import net.consensys.linea.zktracer.types.UnsignedByte;
  */
 @Accessors(fluent = true)
 public final class StackContext {
-  @Getter @Setter Memory memory;
+  @Getter @Setter MemorySegmentSnapshot memorySegmentSnapshot;
   /** The opcode that triggered the stack operations. */
   OpCode opCode;
   /** One or two lines to be traced, representing the stack operations performed by the opcode. */
@@ -48,7 +48,7 @@ public final class StackContext {
    */
   public StackContext(OpCode opCode) {
     this.opCode = opCode;
-    this.memory = new Memory(UnsignedByte.EMPTY_BYTES16);
+    this.memorySegmentSnapshot = new MemorySegmentSnapshot(UnsignedByte.EMPTY_BYTES16);
   }
 
   /**

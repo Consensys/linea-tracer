@@ -16,8 +16,8 @@
 package net.consensys.linea.zktracer.module.mmio.dispatchers;
 
 import lombok.RequiredArgsConstructor;
+import net.consensys.linea.zktracer.module.mmio.CallStackReader;
 import net.consensys.linea.zktracer.module.mmio.MmioData;
-import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.runtime.microdata.MicroData;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
@@ -26,7 +26,7 @@ public class RamToRamDispatcher implements MmioDispatcher {
 
   private final MicroData microData;
 
-  private final CallStack callStack;
+  private final CallStackReader callStackReader;
 
   @Override
   public MmioData dispatch() {
@@ -39,15 +39,15 @@ public class RamToRamDispatcher implements MmioDispatcher {
     mmioData.indexB(microData.targetLimbOffset().toInt());
     mmioData.indexC(0);
 
-    mmioData.valA(callStack.valueFromMemory(mmioData.cnA(), mmioData.indexA()));
-    mmioData.valB(callStack.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
+    mmioData.valA(callStackReader.valueFromMemory(mmioData.cnA(), mmioData.indexA()));
+    mmioData.valB(callStackReader.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
     mmioData.valC(UnsignedByte.EMPTY_BYTES16);
 
     mmioData.valANew(mmioData.valA());
     mmioData.valBNew(mmioData.valA());
     mmioData.valCNew(UnsignedByte.EMPTY_BYTES16);
 
-    mmioData.updateLimbsInMemory(callStack);
+    mmioData.updateLimbsInMemory(callStackReader.callStack());
 
     return mmioData;
   }

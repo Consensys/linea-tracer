@@ -17,9 +17,9 @@ package net.consensys.linea.zktracer.module.mmio.dispatchers;
 
 import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
+import net.consensys.linea.zktracer.module.mmio.CallStackReader;
 import net.consensys.linea.zktracer.module.mmio.MmioData;
 import net.consensys.linea.zktracer.module.mmio.PowType;
-import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.runtime.microdata.MicroData;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
@@ -27,7 +27,7 @@ import net.consensys.linea.zktracer.types.UnsignedByte;
 public class PaddedExoFromOneDispatcher implements MmioDispatcher {
   private final MicroData microData;
 
-  private final CallStack callStack;
+  private final CallStackReader callStackReader;
 
   @Override
   public MmioData dispatch() {
@@ -45,7 +45,7 @@ public class PaddedExoFromOneDispatcher implements MmioDispatcher {
     mmioData.indexC(0);
     mmioData.indexX(targetLimbOffset);
 
-    mmioData.valA(callStack.valueFromMemory(mmioData.cnA(), mmioData.indexA()));
+    mmioData.valA(callStackReader.valueFromMemory(mmioData.cnA(), mmioData.indexA()));
     mmioData.valB(UnsignedByte.EMPTY_BYTES16);
     mmioData.valC(UnsignedByte.EMPTY_BYTES16);
     mmioData.valX(UnsignedByte.EMPTY_BYTES16);
@@ -71,7 +71,7 @@ Wrong size/sourceByteOffset combo in PaddedExoFromOneDispatcher:
     mmioData.valBNew(UnsignedByte.EMPTY_BYTES16);
     mmioData.valCNew(UnsignedByte.EMPTY_BYTES16);
 
-    mmioData.updateLimbsInMemory(callStack);
+    mmioData.updateLimbsInMemory(callStackReader.callStack());
 
     return mmioData;
   }

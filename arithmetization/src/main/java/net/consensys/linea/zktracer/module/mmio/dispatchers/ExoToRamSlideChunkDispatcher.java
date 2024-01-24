@@ -17,9 +17,9 @@ package net.consensys.linea.zktracer.module.mmio.dispatchers;
 
 import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
+import net.consensys.linea.zktracer.module.mmio.CallStackReader;
 import net.consensys.linea.zktracer.module.mmio.MmioData;
 import net.consensys.linea.zktracer.module.romLex.RomLex;
-import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.runtime.microdata.MicroData;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
@@ -27,10 +27,9 @@ import org.hyperledger.besu.datatypes.Address;
 
 @RequiredArgsConstructor
 public class ExoToRamSlideChunkDispatcher implements MmioDispatcher {
-
   private final MicroData microData;
 
-  private final CallStack callStack;
+  private final CallStackReader callStackReader;
 
   private final RomLex romLex;
 
@@ -54,10 +53,10 @@ public class ExoToRamSlideChunkDispatcher implements MmioDispatcher {
     mmioData.indexX(sourceLimbOffset);
 
     mmioData.valA(UnsignedByte.EMPTY_BYTES16);
-    mmioData.valB(callStack.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
+    mmioData.valB(callStackReader.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
     mmioData.valC(UnsignedByte.EMPTY_BYTES16);
     mmioData.valX(
-        callStack.valueFromExo(contractByteCode, microData.exoSource(), mmioData.indexX()));
+        callStackReader.valueFromExo(contractByteCode, microData.exoSource(), mmioData.indexX()));
 
     mmioData.valANew(UnsignedByte.EMPTY_BYTES16);
     mmioData.valBNew(mmioData.valB());
@@ -79,7 +78,7 @@ public class ExoToRamSlideChunkDispatcher implements MmioDispatcher {
         targetByteOffset,
         mmioData.valX().length - sourceByteOffset + size);
 
-    mmioData.updateLimbsInMemory(callStack);
+    mmioData.updateLimbsInMemory(callStackReader.callStack());
 
     return mmioData;
   }

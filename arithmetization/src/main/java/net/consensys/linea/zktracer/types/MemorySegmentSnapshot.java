@@ -17,15 +17,15 @@ package net.consensys.linea.zktracer.types;
 
 import java.util.Arrays;
 
-public class Memory {
+public class MemorySegmentSnapshot {
   private UnsignedByte[] memory;
   private boolean clean;
 
-  public Memory(UnsignedByte[] memory) {
+  public MemorySegmentSnapshot(UnsignedByte[] memory) {
     this(memory, true);
   }
 
-  private Memory(UnsignedByte[] memory, boolean clean) {
+  private MemorySegmentSnapshot(UnsignedByte[] memory, boolean clean) {
     this.memory = memory;
     this.clean = clean;
   }

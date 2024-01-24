@@ -40,7 +40,7 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
  */
 public class Reaper {
   /** Collect the reads from the state */
-  private final StateReaper state = new StateReaper();
+  private final StateReaper storage = new StateReaper();
   /** Collect the addresses read from the state */
   private final AddressReaper addresses = new AddressReaper();
   /** Collect the blocks within a conflation */
@@ -53,7 +53,7 @@ public class Reaper {
   }
 
   public void enterTransaction(Transaction tx) {
-    this.state.enterTransaction();
+    this.storage.enterTransaction();
     this.addresses.enterTransaction();
 
     this.touchAddress(tx.getSender());
@@ -61,7 +61,7 @@ public class Reaper {
   }
 
   public void exitTransaction(boolean success) {
-    this.state.exitTransaction(success);
+    this.storage.exitTransaction(success);
     this.addresses.exitTransaction(success);
   }
 
@@ -70,7 +70,7 @@ public class Reaper {
   }
 
   public void touchStorage(final Address address, final UInt256 key) {
-    this.state.touch(address, key);
+    this.storage.touch(address, key);
   }
 
   /**
@@ -88,7 +88,7 @@ public class Reaper {
             .toList();
 
     final List<StorageSnapshot> initialStorage = new ArrayList<>();
-    for (Map.Entry<Address, Set<UInt256>> e : this.state.collapse().entrySet()) {
+    for (Map.Entry<Address, Set<UInt256>> e : this.storage.collapse().entrySet()) {
       final Address address = e.getKey();
 
       e.getValue().stream()

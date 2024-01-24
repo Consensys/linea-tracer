@@ -200,6 +200,7 @@ public class BinOperation extends ModuleOperation {
     final int length = ctMax + 1;
     final int offset = LLARGE - length;
 
+    final Bytes stampBytes = Bytes.minimalBytes(stamp);
     final Bytes arg1Hi = this.arg1.getHigh().slice(offset, length);
     final Bytes arg1Lo = this.arg1.getLow().slice(offset, length);
     final Bytes arg2Hi = this.arg2.getHigh().slice(offset, length);
@@ -211,7 +212,7 @@ public class BinOperation extends ModuleOperation {
         Stream.concat(this.getFirstEightBits().stream(), this.lastEightBits.stream()).toList();
     for (int ct = 0; ct <= this.ctMax; ct++) {
       trace
-          .stamp(Bytes.of(stamp))
+          .stamp(stampBytes)
           .ctMax(UnsignedByte.of(ctMax))
           .counter(UnsignedByte.of(ct))
           .inst(UnsignedByte.of(this.opCode().byteValue()))

@@ -17,7 +17,7 @@ import java.time.LocalTime
 
 plugins {
   id 'common-plugins'
-  id 'org.web3j' version '4.9.2'
+  id 'org.web3j' version '4.10.3'
   id 'org.web3j.solidity' version '0.3.5'
 }
 

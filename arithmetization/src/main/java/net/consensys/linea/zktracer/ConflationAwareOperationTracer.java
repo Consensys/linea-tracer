@@ -15,15 +15,13 @@
 
 package net.consensys.linea.zktracer;
 
-import java.nio.file.Path;
-
 import org.hyperledger.besu.plugin.services.tracer.BlockAwareOperationTracer;
 
 /**
  * An extended operation tracer that can trace the start and end of a number of blocks in
  * conflation.
  */
-public interface ZkBlockAwareOperationTracer extends BlockAwareOperationTracer {
+public interface ConflationAwareOperationTracer extends BlockAwareOperationTracer {
 
   /**
    * Trace the start of conflation for a number of blocks.
@@ -34,6 +32,4 @@ public interface ZkBlockAwareOperationTracer extends BlockAwareOperationTracer {
 
   /** Trace the end of conflation for a number of blocks. */
   void traceEndConflation();
-
-  void writeToFile(final Path filename);
 }

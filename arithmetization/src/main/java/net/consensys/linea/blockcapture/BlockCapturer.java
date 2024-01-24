@@ -15,12 +15,11 @@
 
 package net.consensys.linea.blockcapture;
 
-import java.nio.file.Path;
 import java.util.List;
 
 import com.google.gson.Gson;
 import net.consensys.linea.blockcapture.reapers.Reaper;
-import net.consensys.linea.zktracer.ZkBlockAwareOperationTracer;
+import net.consensys.linea.zktracer.ConflationAwareOperationTracer;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.units.bigints.UInt256;
@@ -35,7 +34,7 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 
-public class BlockCapturer implements ZkBlockAwareOperationTracer {
+public class BlockCapturer implements ConflationAwareOperationTracer {
   /**
    * The {@link Reaper} will collect all the data that will need to be mimicked to replay the block.
    */
@@ -125,15 +124,5 @@ public class BlockCapturer implements ZkBlockAwareOperationTracer {
   public String toJson() {
     Gson gson = new Gson();
     return gson.toJson(this.reaper.collapse(this.worldUpdater));
-  }
-
-  /**
-   * Implementing this method here does not make sense as we only ever access its JSON result.
-   *
-   * @param filename
-   */
-  @Override
-  public void writeToFile(Path filename) {
-    throw new UnsupportedOperationException();
   }
 }

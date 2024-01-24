@@ -47,7 +47,7 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 public class RomLex implements Module {
   private static final int LLARGE = 16;
 
-  private final RomChunkComparator romChunkComparator = new RomChunkComparator();
+  private static final RomChunkComparator ROM_CHUNK_COMPARATOR = new RomChunkComparator();
 
   private final Hub hub;
   public int codeIdentifierBeforeLexOrder = 0;
@@ -119,8 +119,9 @@ public class RomLex implements Module {
         .ifPresent(
             code -> {
               codeIdentifierBeforeLexOrder += 1;
-              int depNumber = hub.conflation().deploymentInfo().number(tx.getTo().get());
-              boolean depStatus = hub.conflation().deploymentInfo().isDeploying(tx.getTo().get());
+              final int depNumber = hub.conflation().deploymentInfo().number(tx.getTo().get());
+              final boolean depStatus =
+                  hub.conflation().deploymentInfo().isDeploying(tx.getTo().get());
 
               this.chunks.add(
                   new RomChunk(
@@ -187,8 +188,8 @@ public class RomLex implements Module {
       }
 
       case CALL, CALLCODE, DELEGATECALL, STATICCALL -> {
-        Address calledAddress = Words.toAddress(frame.getStackItem(1));
-        boolean depStatus = deploymentInfo.isDeploying(frame.getContractAddress());
+        final Address calledAddress = Words.toAddress(frame.getStackItem(1));
+        final boolean depStatus = deploymentInfo.isDeploying(frame.getContractAddress());
 
         final int depNumber = deploymentInfo.number(frame.getContractAddress());
 
@@ -250,7 +251,7 @@ public class RomLex implements Module {
 
   @Override
   public void tracePostExecution(MessageFrame frame, Operation.OperationResult operationResult) {
-    OpCode opcode = OpCode.of(frame.getCurrentOperation().getOpcode());
+    final OpCode opcode = OpCode.of(frame.getCurrentOperation().getOpcode());
     switch (opcode) {
       case CREATE, CREATE2 -> {
         final int depNumber = hub.conflation().deploymentInfo().number(this.address);
@@ -290,7 +291,7 @@ public class RomLex implements Module {
   @Override
   public void traceEndConflation() {
     this.sortedChunks.addAll(this.chunks);
-    this.sortedChunks.sort(romChunkComparator);
+    this.sortedChunks.sort(ROM_CHUNK_COMPARATOR);
   }
 
   @Override

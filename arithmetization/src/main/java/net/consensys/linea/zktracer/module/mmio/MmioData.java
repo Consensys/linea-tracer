@@ -226,7 +226,7 @@ public class MmioData {
       int size,
       int counter) {
     Preconditions.checkArgument(
-        sb != s[counter], "oneOnePadded: SB = %s != %s = S[%d]".formatted(sb, s[counter], counter));
+        sb != s[counter], "oneOnePadded: SB = %s != %s = S[%d]", sb, s[counter], counter);
 
     boolean b1 = plateau(sm.toInteger(), counter);
     boolean b2 = plateau(sm.toInteger() + size, counter);
@@ -311,12 +311,10 @@ public class MmioData {
       int size,
       int counter) {
     Preconditions.checkArgument(
-        s1b != s1[counter],
-        "twoOnePadded: S1B = %s != %s = S1[%d]".formatted(s1b, s1[counter], counter));
+        s1b != s1[counter], "twoOnePadded: S1B = %s != %s = S1[%d]", s1b, s1[counter], counter);
 
     Preconditions.checkArgument(
-        s2b != s2[counter],
-        "twoOnePadded: S2B = %s != %s = S2[%d]".formatted(s2b, s2[counter], counter));
+        s2b != s2[counter], "twoOnePadded: S2B = %s != %s = S2[%d]", s2b, s2[counter], counter);
 
     bin1 = plateau(s1m.toInteger(), counter);
     bin2 = plateau(s1m.toInteger() + size - 16, counter);

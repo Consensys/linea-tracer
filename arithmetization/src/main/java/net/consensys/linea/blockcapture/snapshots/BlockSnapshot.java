@@ -18,12 +18,13 @@ package net.consensys.linea.blockcapture.snapshots;
 import java.util.List;
 
 import org.hyperledger.besu.ethereum.core.BlockHeader;
+import org.hyperledger.besu.ethereum.core.Transaction;
 import org.hyperledger.besu.plugin.data.BlockBody;
 
 public record BlockSnapshot(BlockHeaderSnapshot header, List<TransactionSnapshot> txs) {
   public static BlockSnapshot of(final BlockHeader header, final BlockBody body) {
     return new BlockSnapshot(
         BlockHeaderSnapshot.from(header),
-        body.getTransactions().stream().map(TransactionSnapshot::of).toList());
+        body.getTransactions().stream().map(t -> TransactionSnapshot.of((Transaction) t)).toList());
   }
 }

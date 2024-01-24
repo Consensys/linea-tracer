@@ -18,8 +18,8 @@ package net.consensys.linea.zktracer.testing;
 import static net.consensys.linea.zktracer.runtime.stack.Stack.MAX_STACK_SIZE;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -124,11 +124,11 @@ public class ToyExecutionEnvironment {
    *
    * @param replayFile the file containing the conflation
    */
-  public void replay(final String replayFile) {
+  public void replay(final Reader replayFile) {
     Gson gson = new Gson();
     ConflationSnapshot conflation;
     try {
-      conflation = gson.fromJson(new FileReader(replayFile), ConflationSnapshot.class);
+      conflation = gson.fromJson(replayFile, ConflationSnapshot.class);
     } catch (Exception e) {
       log.error(e.getMessage());
       return;

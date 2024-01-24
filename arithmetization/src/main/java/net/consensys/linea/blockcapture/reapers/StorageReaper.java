@@ -29,7 +29,7 @@ import org.hyperledger.besu.datatypes.Address;
  * This object gathers all non-reversed accesses to storage values during the execution of a
  * conflation, then collapse them into a single mapping of the initial values in these slots.
  */
-public class StateReaper {
+public class StorageReaper {
   private final Deque<HashMap<Address, Set<UInt256>>> transientStates = new ArrayDeque<>();
 
   public void enterTransaction() {

@@ -40,7 +40,7 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
  */
 public class Reaper {
   /** Collect the reads from the state */
-  private final StateReaper storage = new StateReaper();
+  private final StorageReaper storage = new StorageReaper();
   /** Collect the addresses read from the state */
   private final AddressReaper addresses = new AddressReaper();
   /** Collect the blocks within a conflation */

@@ -24,6 +24,7 @@ import lombok.Getter;
 public final class LineaTransactionSelectorConfiguration {
   private final int maxBlockCallDataSize;
   private final String moduleLimitsFilePath;
+  private final int overLinesLimitCacheSize;
   private final long maxGasPerBlock;
   private final int verificationGasCost;
   private final int verificationCapacity;

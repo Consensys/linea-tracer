@@ -53,7 +53,9 @@ public class LineaTransactionSelector implements PluginTransactionSelector {
 
     traceLineLimitTransactionSelector =
         new TraceLineLimitTransactionSelector(
-            limitsMapSupplier, lineaConfiguration.getModuleLimitsFilePath());
+            limitsMapSupplier,
+            lineaConfiguration.getModuleLimitsFilePath(),
+            lineaConfiguration.getOverLinesLimitCacheSize());
 
     return List.of(
         new MaxBlockCallDataTransactionSelector(lineaConfiguration.getMaxBlockCallDataSize()),

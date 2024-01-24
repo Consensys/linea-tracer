@@ -211,9 +211,9 @@ public class BinOperation extends ModuleOperation {
         Stream.concat(this.getFirstEightBits().stream(), this.lastEightBits.stream()).toList();
     for (int ct = 0; ct <= this.ctMax; ct++) {
       trace
-          .stamp(Bytes.ofUnsignedInt(stamp))
-          .ctMax(UnsignedByte.of(ctMax))
-          .counter(UnsignedByte.of(ct))
+          .stamp(Bytes.of(stamp))
+          .ctMax(Bytes.of(ctMax))
+          .counter(Bytes.of(ct))
           .inst(UnsignedByte.of(this.opCode().byteValue()))
           .argument1Hi(arg1Hi)
           .argument1Lo(arg1Lo)

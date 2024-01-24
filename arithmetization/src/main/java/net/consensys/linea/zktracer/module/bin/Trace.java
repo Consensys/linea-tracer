@@ -74,16 +74,16 @@ public class Trace {
 
   static List<ColumnHeader> headers(int length) {
     return List.of(
-        new ColumnHeader("bin.ACC_1", 32, length),
-        new ColumnHeader("bin.ACC_2", 32, length),
-        new ColumnHeader("bin.ACC_3", 32, length),
-        new ColumnHeader("bin.ACC_4", 32, length),
-        new ColumnHeader("bin.ACC_5", 32, length),
-        new ColumnHeader("bin.ACC_6", 32, length),
-        new ColumnHeader("bin.ARGUMENT_1_HI", 32, length),
-        new ColumnHeader("bin.ARGUMENT_1_LO", 32, length),
-        new ColumnHeader("bin.ARGUMENT_2_HI", 32, length),
-        new ColumnHeader("bin.ARGUMENT_2_LO", 32, length),
+        new ColumnHeader("bin.ACC_1", 16, length),
+        new ColumnHeader("bin.ACC_2", 16, length),
+        new ColumnHeader("bin.ACC_3", 16, length),
+        new ColumnHeader("bin.ACC_4", 16, length),
+        new ColumnHeader("bin.ACC_5", 16, length),
+        new ColumnHeader("bin.ACC_6", 16, length),
+        new ColumnHeader("bin.ARGUMENT_1_HI", 16, length),
+        new ColumnHeader("bin.ARGUMENT_1_LO", 16, length),
+        new ColumnHeader("bin.ARGUMENT_2_HI", 16, length),
+        new ColumnHeader("bin.ARGUMENT_2_LO", 16, length),
         new ColumnHeader("bin.BIT_1", 1, length),
         new ColumnHeader("bin.BIT_B_4", 1, length),
         new ColumnHeader("bin.BITS", 1, length),
@@ -105,10 +105,10 @@ public class Trace {
         new ColumnHeader("bin.LOW_4", 1, length),
         new ColumnHeader("bin.NEG", 1, length),
         new ColumnHeader("bin.PIVOT", 1, length),
-        new ColumnHeader("bin.RESULT_HI", 32, length),
-        new ColumnHeader("bin.RESULT_LO", 32, length),
+        new ColumnHeader("bin.RESULT_HI", 16, length),
+        new ColumnHeader("bin.RESULT_LO", 16, length),
         new ColumnHeader("bin.SMALL", 1, length),
-        new ColumnHeader("bin.STAMP", 32, length),
+        new ColumnHeader("bin.STAMP", 3, length),
         new ColumnHeader("bin.XXX_BYTE_HI", 1, length),
         new ColumnHeader("bin.XXX_BYTE_LO", 1, length));
   }
@@ -429,26 +429,34 @@ public class Trace {
     return this;
   }
 
-  public Trace counter(final UnsignedByte b) {
+  public Trace counter(final Bytes b) {
     if (filled.get(19)) {
       throw new IllegalStateException("bin.COUNTER already set");
     } else {
       filled.set(19);
     }
 
-    counter.put(b.toByte());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      counter.put((byte) 0);
+    }
+    counter.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace ctMax(final UnsignedByte b) {
+  public Trace ctMax(final Bytes b) {
     if (filled.get(20)) {
       throw new IllegalStateException("bin.CT_MAX already set");
     } else {
       filled.set(20);
     }
 
-    ctMax.put(b.toByte());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      ctMax.put((byte) 0);
+    }
+    ctMax.put(b.toArrayUnsafe());
 
     return this;
   }
@@ -814,43 +822,43 @@ public class Trace {
 
   public Trace fillAndValidateRow() {
     if (!filled.get(0)) {
-      acc1.position(acc1.position() + 32);
+      acc1.position(acc1.position() + 16);
     }
 
     if (!filled.get(1)) {
-      acc2.position(acc2.position() + 32);
+      acc2.position(acc2.position() + 16);
     }
 
     if (!filled.get(2)) {
-      acc3.position(acc3.position() + 32);
+      acc3.position(acc3.position() + 16);
     }
 
     if (!filled.get(3)) {
-      acc4.position(acc4.position() + 32);
+      acc4.position(acc4.position() + 16);
     }
 
     if (!filled.get(4)) {
-      acc5.position(acc5.position() + 32);
+      acc5.position(acc5.position() + 16);
     }
 
     if (!filled.get(5)) {
-      acc6.position(acc6.position() + 32);
+      acc6.position(acc6.position() + 16);
     }
 
     if (!filled.get(6)) {
-      argument1Hi.position(argument1Hi.position() + 32);
+      argument1Hi.position(argument1Hi.position() + 16);
     }
 
     if (!filled.get(7)) {
-      argument1Lo.position(argument1Lo.position() + 32);
+      argument1Lo.position(argument1Lo.position() + 16);
     }
 
     if (!filled.get(8)) {
-      argument2Hi.position(argument2Hi.position() + 32);
+      argument2Hi.position(argument2Hi.position() + 16);
     }
 
     if (!filled.get(9)) {
-      argument2Lo.position(argument2Lo.position() + 32);
+      argument2Lo.position(argument2Lo.position() + 16);
     }
 
     if (!filled.get(11)) {
@@ -938,11 +946,11 @@ public class Trace {
     }
 
     if (!filled.get(31)) {
-      resultHi.position(resultHi.position() + 32);
+      resultHi.position(resultHi.position() + 16);
     }
 
     if (!filled.get(32)) {
-      resultLo.position(resultLo.position() + 32);
+      resultLo.position(resultLo.position() + 16);
     }
 
     if (!filled.get(33)) {
@@ -950,7 +958,7 @@ public class Trace {
     }
 
     if (!filled.get(34)) {
-      stamp.position(stamp.position() + 32);
+      stamp.position(stamp.position() + 3);
     }
 
     if (!filled.get(35)) {

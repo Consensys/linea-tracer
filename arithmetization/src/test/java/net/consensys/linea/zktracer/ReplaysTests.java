@@ -27,6 +27,20 @@ import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.testing.ToyExecutionEnvironment;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Replays are captured on a fully (not snapshot) synchronized Besu node running the plugin:
+ *
+ * <pre>{@code
+ * curl -X POST 'http://localhost:8545'
+ * --data '{
+ *    "jsonrpc":"2.0",
+ *    "method":"rollup_captureConflation",
+ *    "params":["296519", "296521"], "id":"1"
+ *  }'
+ * | jq '.result.capture' -r
+ * | gzip > arithmetization/src/test/resources/replays/my-test-case.json.gz
+ * }</pre>
+ */
 @Slf4j
 public class ReplaysTests {
   /**

@@ -39,12 +39,9 @@ import org.apache.tuweni.bytes.Bytes32;
 public class BinOperation extends ModuleOperation {
   private static final int LIMB_SIZE = 16;
 
-  @EqualsAndHashCode.Include
-  private final OpCode opCode;
-  @EqualsAndHashCode.Include
-  private final BaseBytes arg1;
-  @EqualsAndHashCode.Include
-  private final BaseBytes arg2;
+  @EqualsAndHashCode.Include private final OpCode opCode;
+  @EqualsAndHashCode.Include private final BaseBytes arg1;
+  @EqualsAndHashCode.Include private final BaseBytes arg2;
 
   public BinOperation(OpCode opCode, BaseBytes arg1, BaseBytes arg2) {
     this.opCode = opCode;
@@ -55,9 +52,6 @@ public class BinOperation extends ModuleOperation {
 
   private static final int LLARGE = 16;
   private static final int LLARGEMO = 15;
-  private final OpCode opCode;
-  private final BaseBytes arg1;
-  private final BaseBytes arg2;
   private final int ctMax;
   private List<Boolean> lastEightBits = List.of(false);
   private boolean bit4 = false;
@@ -65,28 +59,6 @@ public class BinOperation extends ModuleOperation {
   private boolean isSmall = false;
   private int pivotThreshold = 0;
   private int pivot = 0;
-
-  <<<<<<<HEAD
-
-  private boolean isOneLineInstruction() {
-    return (opCode == OpCode.BYTE || opCode == OpCode.SIGNEXTEND) && !arg1.getHigh().isZero();
-=======
-
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(this.opCode, this.arg1, this.arg2);
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    final BinOperation that = (BinOperation) o;
-    return java.util.Objects.equals(opCode, that.opCode)
-        && java.util.Objects.equals(arg1, that.arg1)
-        && java.util.Objects.equals(arg2, that.arg2);
->>>>>>> 49b702a1 (perf(BIN): adaptative nb line)
-  }
 
   @Override
   protected int computeLineCount() {
@@ -100,12 +72,12 @@ public class BinOperation extends ModuleOperation {
       case AND, OR, XOR -> Math.max(
           0,
           Math.max(
-              Math.max(
-                  arg1.getHigh().trimLeadingZeros().size(),
-                  arg2.getHigh().trimLeadingZeros().size()),
-              Math.max(
-                  arg1.getLow().trimLeadingZeros().size(),
-                  arg2.getLow().trimLeadingZeros().size()))
+                  Math.max(
+                      arg1.getHigh().trimLeadingZeros().size(),
+                      arg2.getHigh().trimLeadingZeros().size()),
+                  Math.max(
+                      arg1.getLow().trimLeadingZeros().size(),
+                      arg2.getLow().trimLeadingZeros().size()))
               - 1);
       default -> throw new IllegalStateException("Unexpected value: " + opCode);
     };
@@ -235,7 +207,8 @@ public class BinOperation extends ModuleOperation {
     final Bytes resHi = this.getResult().getHigh().slice(offset, length);
     final Bytes resLo = this.getResult().getLow().slice(offset, length);
     final List<Boolean> bit1 = this.getBit1();
-    final List<Boolean> bits = Stream.concat(this.getFirstEightBits().stream(), this.lastEightBits.stream()).toList();
+    final List<Boolean> bits =
+        Stream.concat(this.getFirstEightBits().stream(), this.lastEightBits.stream()).toList();
     for (int ct = 0; ct <= this.ctMax; ct++) {
       trace
           .stamp(Bytes.ofUnsignedInt(stamp))

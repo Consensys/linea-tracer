@@ -15,8 +15,6 @@
 
 package net.consensys.linea.zktracer.runtime.callstack;
 
-import static net.consensys.linea.zktracer.types.Conversions.bytesToUnsignedBytes;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -27,7 +25,6 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Bytecode;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.memory.MemorySpan;
-import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
@@ -240,41 +237,5 @@ public final class CallStack {
 
   public void revert(int stamp) {
     this.current().revert(this, stamp);
-  }
-
-  public UnsignedByte[] valueFromMemory(final int counter, final int index) {
-    return this.get(counter).pending().memory().limbAtIndex(index);
-  }
-
-  public UnsignedByte[] valueFromExo(
-      final Bytes contractByteCode, final ExoSource exoSource, final int limbIndex) {
-    switch (exoSource) {
-      case ROM -> {
-        return readLimbFromBytecode(limbIndex, contractByteCode);
-      }
-      case TX_CALLDATA -> {
-        Preconditions.checkArgument(depth != 1, "Only the root contract can read TxCalldata");
-        return readLimbFromBytecode(limbIndex, current().callData());
-      }
-      default -> throw new IllegalArgumentException(
-          "Unknown ExoSource -> %s. Possible values: %s".formatted(exoSource, ExoSource.values()));
-    }
-  }
-
-  private UnsignedByte[] readLimbFromBytecode(int limbIndex, Bytes data) {
-    UnsignedByte[] result = UnsignedByte.EMPTY_BYTES16;
-
-    int bytePtrStart = 16 * limbIndex;
-    if (bytePtrStart >= data.size()) {
-      return result;
-    }
-
-    int bytePtrEnd = bytePtrStart + 16;
-    int byteCodeEnd = Math.min(bytePtrEnd, data.size());
-    int copied = byteCodeEnd - bytePtrStart;
-    UnsignedByte[] src = bytesToUnsignedBytes(data.slice(bytePtrStart, byteCodeEnd).toArray());
-    System.arraycopy(src, 0, result, 0, copied);
-
-    return result;
   }
 }

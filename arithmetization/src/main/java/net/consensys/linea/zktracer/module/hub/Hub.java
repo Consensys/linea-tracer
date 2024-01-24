@@ -16,7 +16,6 @@
 package net.consensys.linea.zktracer.module.hub;
 
 import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
-import static net.consensys.linea.zktracer.types.Conversions.*;
 
 import java.nio.MappedByteBuffer;
 import java.util.ArrayList;

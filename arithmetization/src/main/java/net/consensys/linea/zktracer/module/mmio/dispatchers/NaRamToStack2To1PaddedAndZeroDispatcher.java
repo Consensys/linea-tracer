@@ -17,8 +17,8 @@ package net.consensys.linea.zktracer.module.mmio.dispatchers;
 
 import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
+import net.consensys.linea.zktracer.module.mmio.CallStackReader;
 import net.consensys.linea.zktracer.module.mmio.MmioData;
-import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.runtime.microdata.MicroData;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
@@ -26,7 +26,7 @@ import net.consensys.linea.zktracer.types.UnsignedByte;
 public class NaRamToStack2To1PaddedAndZeroDispatcher implements MmioDispatcher {
   private final MicroData microData;
 
-  private final CallStack callStack;
+  private final CallStackReader callStackReader;
 
   @Override
   public MmioData dispatch() {
@@ -46,8 +46,8 @@ public class NaRamToStack2To1PaddedAndZeroDispatcher implements MmioDispatcher {
         microData.isRootContext() && microData.isType5(),
         "Should be: EXCEPTIONAL_RAM_TO_STACK_3_TO_2_FULL");
 
-    mmioData.valA(callStack.valueFromMemory(mmioData.cnA(), mmioData.indexA()));
-    mmioData.valB(callStack.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
+    mmioData.valA(callStackReader.valueFromMemory(mmioData.cnA(), mmioData.indexA()));
+    mmioData.valB(callStackReader.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
     mmioData.valC(UnsignedByte.EMPTY_BYTES16);
 
     mmioData.valANew(mmioData.valA());
@@ -66,7 +66,7 @@ public class NaRamToStack2To1PaddedAndZeroDispatcher implements MmioDispatcher {
       }
     }
 
-    mmioData.updateLimbsInMemory(callStack);
+    mmioData.updateLimbsInMemory(callStackReader.callStack());
 
     return mmioData;
   }

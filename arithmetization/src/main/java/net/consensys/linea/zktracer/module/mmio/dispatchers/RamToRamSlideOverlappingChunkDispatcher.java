@@ -16,15 +16,15 @@
 package net.consensys.linea.zktracer.module.mmio.dispatchers;
 
 import lombok.RequiredArgsConstructor;
+import net.consensys.linea.zktracer.module.mmio.CallStackReader;
 import net.consensys.linea.zktracer.module.mmio.MmioData;
-import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.runtime.microdata.MicroData;
 
 @RequiredArgsConstructor
 public class RamToRamSlideOverlappingChunkDispatcher implements MmioDispatcher {
   private final MicroData microData;
 
-  private final CallStack callStack;
+  private final CallStackReader callStackReader;
 
   @Override
   public MmioData dispatch() {
@@ -40,9 +40,9 @@ public class RamToRamSlideOverlappingChunkDispatcher implements MmioDispatcher {
     mmioData.indexB(targetedLimbOffset);
     mmioData.indexC(targetedLimbOffset + 1);
 
-    mmioData.valA(callStack.valueFromMemory(mmioData.cnA(), mmioData.indexA()));
-    mmioData.valB(callStack.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
-    mmioData.valC(callStack.valueFromMemory(mmioData.cnC(), mmioData.indexC()));
+    mmioData.valA(callStackReader.valueFromMemory(mmioData.cnA(), mmioData.indexA()));
+    mmioData.valB(callStackReader.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
+    mmioData.valC(callStackReader.valueFromMemory(mmioData.cnC(), mmioData.indexC()));
 
     mmioData.valANew(mmioData.valA());
     mmioData.valBNew(mmioData.valB());
@@ -65,7 +65,7 @@ public class RamToRamSlideOverlappingChunkDispatcher implements MmioDispatcher {
       mmioData.valCNew()[i] = mmioData.valA()[sourceByteOffset + (16 - targetByteOffset) + i];
     }
 
-    mmioData.updateLimbsInMemory(callStack);
+    mmioData.updateLimbsInMemory(callStackReader.callStack());
 
     return mmioData;
   }

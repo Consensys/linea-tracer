@@ -16,9 +16,9 @@
 package net.consensys.linea.zktracer.module.mmio.dispatchers;
 
 import lombok.RequiredArgsConstructor;
+import net.consensys.linea.zktracer.module.mmio.CallStackReader;
 import net.consensys.linea.zktracer.module.mmio.MmioData;
 import net.consensys.linea.zktracer.module.romLex.RomLex;
-import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.runtime.microdata.MicroData;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
@@ -27,7 +27,7 @@ import org.apache.tuweni.bytes.Bytes;
 public class StoreXInAThreeRequiredDispatcher implements MmioDispatcher {
   private final MicroData microData;
 
-  private final CallStack callStack;
+  private final CallStackReader callStackReader;
 
   private final RomLex romLex;
 
@@ -47,11 +47,13 @@ public class StoreXInAThreeRequiredDispatcher implements MmioDispatcher {
     Bytes contractByteCode = romLex.addressRomChunkMap().get(null).byteCode();
 
     microData.valACache(
-        callStack.valueFromExo(contractByteCode, microData.exoSource(), mmioData.indexX()));
+        callStackReader.valueFromExo(contractByteCode, microData.exoSource(), mmioData.indexX()));
     microData.valBCache(
-        callStack.valueFromExo(contractByteCode, microData.exoSource(), mmioData.indexX() + 1));
+        callStackReader.valueFromExo(
+            contractByteCode, microData.exoSource(), mmioData.indexX() + 1));
     microData.valCCache(
-        callStack.valueFromExo(contractByteCode, microData.exoSource(), mmioData.indexX() + 2));
+        callStackReader.valueFromExo(
+            contractByteCode, microData.exoSource(), mmioData.indexX() + 2));
 
     mmioData.valA(microData.valACache());
     mmioData.valB(microData.valBCache());
@@ -64,7 +66,7 @@ public class StoreXInAThreeRequiredDispatcher implements MmioDispatcher {
 
     int sourceByteOffset = microData.sourceByteOffset().toInteger();
     mmioData.setValHiLoForRootContextCalldataload(sourceByteOffset);
-    mmioData.updateLimbsInMemory(callStack);
+    mmioData.updateLimbsInMemory(callStackReader.callStack());
 
     return mmioData;
   }

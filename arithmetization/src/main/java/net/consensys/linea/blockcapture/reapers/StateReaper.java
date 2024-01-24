@@ -53,6 +53,7 @@ public class StateReaper {
       for (Map.Entry<Address, Set<UInt256>> addressKeys : txEntry.entrySet()) {
         final Address address = addressKeys.getKey();
 
+        // Use computeIfAbsent instead of put, as we only want to capture the **first** read.
         r.computeIfAbsent(address, k -> new HashSet<>()).addAll(addressKeys.getValue());
       }
     }

@@ -18,21 +18,17 @@ package net.consensys.linea.blockcapture.snapshots;
 import java.util.Optional;
 
 import org.hyperledger.besu.datatypes.Address;
-import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.worldstate.WorldUpdater;
 
 public record AccountSnapshot(String address, long nonce, String balance, String code) {
   public static Optional<AccountSnapshot> from(Address address, WorldUpdater world) {
-    final Account account = world.get(address);
-    if (account == null) {
-      return Optional.empty();
-    }
-
-    return Optional.of(
-        new AccountSnapshot(
-            address.toHexString(),
-            account.getNonce(),
-            account.getBalance().toHexString(),
-            account.getCode().toHexString()));
+    return Optional.ofNullable(world.get(address))
+        .map(
+            account ->
+                new AccountSnapshot(
+                    address.toHexString(),
+                    account.getNonce(),
+                    account.getBalance().toHexString(),
+                    account.getCode().toHexString()));
   }
 }

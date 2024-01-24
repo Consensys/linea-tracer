@@ -29,9 +29,9 @@ import org.hyperledger.besu.crypto.SignatureAlgorithmFactory;
 import org.hyperledger.besu.datatypes.AccessListEntry;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Quantity;
-import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.TransactionType;
 import org.hyperledger.besu.datatypes.Wei;
+import org.hyperledger.besu.ethereum.core.Transaction;
 import org.hyperledger.besu.evm.internal.Words;
 
 public record TransactionSnapshot(
@@ -75,7 +75,7 @@ public record TransactionSnapshot(
         tx.getAccessList().map(l -> l.stream().map(AccessListEntrySnapshot::from).toList()));
   }
 
-  public org.hyperledger.besu.ethereum.core.Transaction toTransaction() {
+  public Transaction toTransaction() {
     BigInteger r = Bytes.fromHexStringLenient(this.r).toUnsignedBigInteger();
     BigInteger s = Bytes.fromHexStringLenient(this.s).toUnsignedBigInteger();
     BigInteger v = Bytes.fromHexStringLenient(this.v).toUnsignedBigInteger();
@@ -89,7 +89,7 @@ public record TransactionSnapshot(
     }
 
     final var tx =
-        org.hyperledger.besu.ethereum.core.Transaction.builder()
+        Transaction.builder()
             .type(this.type)
             .sender(Address.fromHexString(this.sender))
             .nonce(this.nonce)

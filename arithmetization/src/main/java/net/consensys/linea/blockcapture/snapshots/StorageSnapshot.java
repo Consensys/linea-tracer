@@ -19,19 +19,17 @@ import java.util.Optional;
 
 import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.datatypes.Address;
-import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.worldstate.WorldUpdater;
 
 public record StorageSnapshot(String address, String key, String value) {
   public static Optional<StorageSnapshot> from(
       Address address, UInt256 key, final WorldUpdater world) {
-    final Account account = world.get(address);
-    if (account == null) {
-      return Optional.empty();
-    }
-
-    return Optional.of(
-        new StorageSnapshot(
-            address.toHexString(), key.toHexString(), account.getStorageValue(key).toHexString()));
+    return Optional.ofNullable(world.get(address))
+        .map(
+            account ->
+                new StorageSnapshot(
+                    address.toHexString(),
+                    key.toHexString(),
+                    account.getStorageValue(key).toHexString()));
   }
 }

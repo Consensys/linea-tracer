@@ -212,8 +212,8 @@ public class BinOperation extends ModuleOperation {
     for (int ct = 0; ct <= this.ctMax; ct++) {
       trace
           .stamp(Bytes.of(stamp))
-          .ctMax(Bytes.of(ctMax))
-          .counter(Bytes.of(ct))
+          .ctMax(UnsignedByte.of(ctMax))
+          .counter(UnsignedByte.of(ct))
           .inst(UnsignedByte.of(this.opCode().byteValue()))
           .argument1Hi(arg1Hi)
           .argument1Lo(arg1Lo)

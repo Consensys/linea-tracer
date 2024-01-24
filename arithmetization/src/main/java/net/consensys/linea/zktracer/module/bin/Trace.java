@@ -108,7 +108,7 @@ public class Trace {
         new ColumnHeader("bin.RESULT_HI", 16, length),
         new ColumnHeader("bin.RESULT_LO", 16, length),
         new ColumnHeader("bin.SMALL", 1, length),
-        new ColumnHeader("bin.STAMP", 3, length),
+        new ColumnHeader("bin.STAMP", 4, length),
         new ColumnHeader("bin.XXX_BYTE_HI", 1, length),
         new ColumnHeader("bin.XXX_BYTE_LO", 1, length));
   }
@@ -429,34 +429,26 @@ public class Trace {
     return this;
   }
 
-  public Trace counter(final Bytes b) {
+  public Trace counter(final UnsignedByte b) {
     if (filled.get(19)) {
       throw new IllegalStateException("bin.COUNTER already set");
     } else {
       filled.set(19);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      counter.put((byte) 0);
-    }
-    counter.put(b.toArrayUnsafe());
+    counter.put(b.toByte());
 
     return this;
   }
 
-  public Trace ctMax(final Bytes b) {
+  public Trace ctMax(final UnsignedByte b) {
     if (filled.get(20)) {
       throw new IllegalStateException("bin.CT_MAX already set");
     } else {
       filled.set(20);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      ctMax.put((byte) 0);
-    }
-    ctMax.put(b.toArrayUnsafe());
+    ctMax.put(b.toByte());
 
     return this;
   }
@@ -958,7 +950,7 @@ public class Trace {
     }
 
     if (!filled.get(34)) {
-      stamp.position(stamp.position() + 3);
+      stamp.position(stamp.position() + 4);
     }
 
     if (!filled.get(35)) {

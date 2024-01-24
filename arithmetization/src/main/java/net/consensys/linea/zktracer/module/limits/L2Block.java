@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.module.limits;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.List;
 import java.util.Optional;
@@ -31,6 +32,8 @@ import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.log.LogTopic;
 import org.hyperledger.besu.evm.worldstate.WorldView;
+import org.hyperledger.besu.plugin.data.BlockBody;
+import org.hyperledger.besu.plugin.data.BlockHeader;
 
 @Accessors(fluent = true)
 public class L2Block implements Module {
@@ -77,8 +80,53 @@ public class L2Block implements Module {
 
   @Override
   public int lineCount() {
-    final int txCount = this.sizesRlpEncodedTxs.size();
-    final int l2L1LogsCount = this.l2l1LogSizes.stream().mapToInt(List::size).sum();
+    return computeL1DataSize(
+        this.sizesRlpEncodedTxs, this.l2l1LogSizes.stream().mapToInt(List::size).sum());
+  }
+
+  @Override
+  public List<ColumnHeader> columnsHeaders() {
+    throw new IllegalStateException("non-tracing module");
+  }
+
+  @Override
+  public void traceEndTx(
+      WorldView worldView,
+      Transaction tx,
+      boolean isSuccessful,
+      Bytes output,
+      List<Log> logs,
+      long gasUsed) {
+    for (Log log : logs) {
+      if (log.getLogger().equals(L2L1_ADDRESS) && log.getTopics().contains(L2L1_TOPIC)) {
+        this.l2l1LogSizes.peek().add(log.getData().size());
+      }
+    }
+
+    this.sizesRlpEncodedTxs.push(this.sizesRlpEncodedTxs.pop() + tx.encoded().size());
+  }
+
+  public int l2l1LogsCount() {
+    return this.l2l1LogSizes.stream().mapToInt(List::size).sum();
+  }
+
+  public static int computeL1DataSize(BlockHeader blockHeader, BlockBody blockBody) {
+    List<Integer> sizesRlpEncodedTxs =
+        blockBody.getTransactions().stream().map(t -> t.encoded().size()).toList();
+    // TODO: find a way to validate L1 data size on the block level (of course before a block gets
+    // produced on L2). We are struggling to find the right Besu mechanism to do that. We couldn't
+    // find a list of
+    // transaction logs on BlockHeader or BlockBody, so we were wondering if there is a similar
+    // transaction selection
+    // mechanism, but on a block level, i.e. a block validator plugin or something like that?
+
+    //    blockHeader.getLogsBloom()
+    //    return computeL1DataSize(sizesRlpEncodedTxs, )
+    return 0;
+  }
+
+  private static int computeL1DataSize(Collection<Integer> sizesRlpEncodedTxs, int l2l1LogCount) {
+    final int txCount = sizesRlpEncodedTxs.size();
 
     // This calculates the data size related to the transaction field of the
     // data sent on L1. This field is a double array of byte. Each subarray
@@ -87,7 +135,7 @@ public class L2Block implements Module {
     // to encode the length of each sub bytes array). This overhead is also
     // incurred by the top-level array, hence the +1.
     int totalTxsRlpSize = (txCount + 1) * (ABI_OFFSET_BYTES + ABI_LEN_BYTES);
-    for (int txRlpSize : this.sizesRlpEncodedTxs) {
+    for (int txRlpSize : sizesRlpEncodedTxs) {
       totalTxsRlpSize += txRlpSize;
     }
 
@@ -128,31 +176,5 @@ public class L2Block implements Module {
             + ABI_OFFSET_BYTES; // abi overheads for the blockdata struct.
 
     return l1Size;
-  }
-
-  @Override
-  public List<ColumnHeader> columnsHeaders() {
-    throw new IllegalStateException("non-tracing module");
-  }
-
-  @Override
-  public void traceEndTx(
-      WorldView worldView,
-      Transaction tx,
-      boolean isSuccessful,
-      Bytes output,
-      List<Log> logs,
-      long gasUsed) {
-    for (Log log : logs) {
-      if (log.getLogger().equals(L2L1_ADDRESS) && log.getTopics().contains(L2L1_TOPIC)) {
-        this.l2l1LogSizes.peek().add(log.getData().size());
-      }
-    }
-
-    this.sizesRlpEncodedTxs.push(this.sizesRlpEncodedTxs.pop() + tx.encoded().size());
-  }
-
-  public int l2l1LogsCount() {
-    return this.l2l1LogSizes.stream().mapToInt(List::size).sum();
   }
 }

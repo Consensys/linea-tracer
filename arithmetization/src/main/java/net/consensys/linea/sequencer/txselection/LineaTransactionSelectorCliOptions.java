@@ -159,17 +159,17 @@ public class LineaTransactionSelectorCliOptions {
   public static LineaTransactionSelectorCliOptions fromConfig(
       final LineaTransactionSelectorConfiguration config) {
     final LineaTransactionSelectorCliOptions options = create();
-    options.maxBlockCallDataSize = config.getMaxBlockCallDataSize();
-    options.moduleLimitFilePath = config.getModuleLimitsFilePath();
-    options.overLineCountLimitCacheSize = config.getOverLinesLimitCacheSize();
-    options.maxGasPerBlock = config.getMaxGasPerBlock();
-    options.verificationGasCost = config.getVerificationGasCost();
-    options.verificationCapacity = config.getVerificationCapacity();
-    options.gasPriceRatio = config.getGasPriceRatio();
-    options.minMargin = BigDecimal.valueOf(config.getMinMargin());
-    options.adjustTxSize = config.getAdjustTxSize();
-    options.unprofitableCacheSize = config.getUnprofitableCacheSize();
-    options.unprofitableRetryLimit = config.getUnprofitableRetryLimit();
+    options.maxBlockCallDataSize = config.maxBlockCallDataSize();
+    options.moduleLimitFilePath = config.moduleLimitsFilePath();
+    options.overLineCountLimitCacheSize = config.overLinesLimitCacheSize();
+    options.maxGasPerBlock = config.maxGasPerBlock();
+    options.verificationGasCost = config.verificationGasCost();
+    options.verificationCapacity = config.verificationCapacity();
+    options.gasPriceRatio = config.gasPriceRatio();
+    options.minMargin = BigDecimal.valueOf(config.minMargin());
+    options.adjustTxSize = config.adjustTxSize();
+    options.unprofitableCacheSize = config.unprofitableCacheSize();
+    options.unprofitableRetryLimit = config.unprofitableRetryLimit();
     return options;
   }
 

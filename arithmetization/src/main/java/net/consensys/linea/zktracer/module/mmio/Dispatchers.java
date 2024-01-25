@@ -52,14 +52,13 @@ import net.consensys.linea.zktracer.module.mmio.dispatchers.StoreXInAThreeRequir
 import net.consensys.linea.zktracer.module.mmio.dispatchers.StoreXInBDispatcher;
 import net.consensys.linea.zktracer.module.mmio.dispatchers.StoreXInCDispatcher;
 import net.consensys.linea.zktracer.module.romLex.RomLex;
-import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.runtime.microdata.MicroData;
 
 @Accessors(fluent = true)
 public class Dispatchers {
   @Getter private final Map<Integer, MmioDispatcher> typeMap;
 
-  public Dispatchers(MicroData microData, CallStack callStack, RomLex romLex) {
+  public Dispatchers(MicroData microData, CallStackReader callStackReader, RomLex romLex) {
     this.typeMap =
         Map.ofEntries(
             ///////////////////////////
@@ -67,21 +66,27 @@ public class Dispatchers {
             //      TRANSPLANTS	     //
             //					     //
             ///////////////////////////
-            entry(Trace.RamToRam, new RamToRamDispatcher(microData, callStack)),
-            entry(Trace.ExoToRam, new ExoToRamDispatcher(microData, callStack, romLex)),
-            entry(Trace.RamIsExo, new RamIsExoDispatcher(microData, callStack)),
-            entry(Trace.KillingOne, new KillingOneDispatcher(microData, callStack)),
-            entry(Trace.PushTwoRamToStack, new PushTwoRamToStackDispatcher(microData, callStack)),
-            entry(Trace.PushOneRamToStack, new PushOneRamToStackDispatcher(microData, callStack)),
+            entry(Trace.RamToRam, new RamToRamDispatcher(microData, callStackReader)),
+            entry(Trace.ExoToRam, new ExoToRamDispatcher(microData, callStackReader, romLex)),
+            entry(Trace.RamIsExo, new RamIsExoDispatcher(microData, callStackReader)),
+            entry(Trace.KillingOne, new KillingOneDispatcher(microData, callStackReader)),
+            entry(
+                Trace.PushTwoRamToStack,
+                new PushTwoRamToStackDispatcher(microData, callStackReader)),
+            entry(
+                Trace.PushOneRamToStack,
+                new PushOneRamToStackDispatcher(microData, callStackReader)),
             entry(
                 Trace.ExceptionalRamToStack3To2FullFast,
-                new ExceptionalRamToStack3To2FullFastDispatcher(microData, callStack)),
-            entry(Trace.PushTwoStackToRam, new PushTwoStackToRamDispatcher(microData, callStack)),
+                new ExceptionalRamToStack3To2FullFastDispatcher(microData)),
+            entry(
+                Trace.PushTwoStackToRam,
+                new PushTwoStackToRamDispatcher(microData, callStackReader)),
             entry(
                 Trace.StoreXInAThreeRequired,
-                new StoreXInAThreeRequiredDispatcher(microData, callStack, romLex)),
-            entry(Trace.StoreXInB, new StoreXInBDispatcher(microData, callStack)),
-            entry(Trace.StoreXInC, new StoreXInCDispatcher(microData, callStack)),
+                new StoreXInAThreeRequiredDispatcher(microData, callStackReader, romLex)),
+            entry(Trace.StoreXInB, new StoreXInBDispatcher(microData, callStackReader)),
+            entry(Trace.StoreXInC, new StoreXInCDispatcher(microData, callStackReader)),
             /////////////////////////
             //					   //
             //	    SURGERIES      //
@@ -89,58 +94,64 @@ public class Dispatchers {
             /////////////////////////
             // 6.3 RAM to RAM
             /////////////////
-            entry(Trace.RamLimbExcision, new RamLimbExcisionDispatcher(microData, callStack)),
-            entry(Trace.RamToRamSlideChunk, new RamToRamSlideChunkDispatcher(microData, callStack)),
+            entry(Trace.RamLimbExcision, new RamLimbExcisionDispatcher(microData, callStackReader)),
+            entry(
+                Trace.RamToRamSlideChunk,
+                new RamToRamSlideChunkDispatcher(microData, callStackReader)),
             entry(
                 Trace.RamToRamSlideOverlappingChunk,
-                new RamToRamSlideOverlappingChunkDispatcher(microData, callStack)),
+                new RamToRamSlideOverlappingChunkDispatcher(microData, callStackReader)),
             // 6.4 Exo to RAM
             /////////////////
             entry(
                 Trace.ExoToRamSlideChunk,
-                new ExoToRamSlideOverlappingChunkDispatcher(microData, callStack, romLex)),
+                new ExoToRamSlideOverlappingChunkDispatcher(microData, callStackReader, romLex)),
             entry(
                 Trace.ExoToRamSlideOverlappingChunk,
-                new ExoToRamSlideOverlappingChunkDispatcher(microData, callStack, romLex)),
+                new ExoToRamSlideOverlappingChunkDispatcher(microData, callStackReader, romLex)),
             // 6.5 RAM to Exo
             /////////////////
-            entry(Trace.PaddedExoFromOne, new PaddedExoFromOneDispatcher(microData, callStack)),
-            entry(Trace.PaddedExoFromTwo, new PaddedExoFromTwoDispatcher(microData, callStack)),
-            entry(Trace.FullExoFromTwo, new FullExoFromTwoDispatcher(microData, callStack)),
+            entry(
+                Trace.PaddedExoFromOne, new PaddedExoFromOneDispatcher(microData, callStackReader)),
+            entry(
+                Trace.PaddedExoFromTwo, new PaddedExoFromTwoDispatcher(microData, callStackReader)),
+            entry(Trace.FullExoFromTwo, new FullExoFromTwoDispatcher(microData, callStackReader)),
             // 6.6 Stack to RAM
             ///////////////////
-            entry(Trace.FullStackToRam, new FullStackToRamDispatcher(microData, callStack)),
-            entry(Trace.LsbFromStackToRAM, new LsbFromStackToRamDispatcher(microData, callStack)),
+            entry(Trace.FullStackToRam, new FullStackToRamDispatcher(microData, callStackReader)),
+            entry(
+                Trace.LsbFromStackToRAM,
+                new LsbFromStackToRamDispatcher(microData, callStackReader)),
             // 6.7 RAM to Stack: aligned offsets
             ////////////////////////////////////
             entry(
                 Trace.FirstFastSecondPadded,
-                new FirstFastSecondPaddedDispatcher(microData, callStack)),
+                new FirstFastSecondPaddedDispatcher(microData, callStackReader)),
             entry(
                 Trace.FirstPaddedSecondZero,
-                new FirstPaddedSecondZeroDispatcher(microData, callStack)),
+                new FirstPaddedSecondZeroDispatcher(microData, callStackReader)),
             // 6.8 RAM to Stack: non-aligned offsets
             ////////////////////////////////////////
             entry(
                 Trace.Exceptional_RamToStack_3To2Full,
-                new ExceptionalRamToStack3To2FullDispatcher(microData, callStack)),
+                new ExceptionalRamToStack3To2FullDispatcher(microData)),
             entry(
                 Trace.NA_RamToStack_3To2Full,
-                new NaRamToStack3To2FullDispatcher(microData, callStack)),
+                new NaRamToStack3To2FullDispatcher(microData, callStackReader)),
             entry(
                 Trace.NA_RamToStack_3To2Padded,
-                new NaRamToStack3To2PaddedDispatcher(microData, callStack)),
+                new NaRamToStack3To2PaddedDispatcher(microData, callStackReader)),
             entry(
                 Trace.NA_RamToStack_2To2Padded,
-                new NaRamToStack2To2PaddedDispatcher(microData, callStack)),
+                new NaRamToStack2To2PaddedDispatcher(microData, callStackReader)),
             entry(
                 Trace.NA_RamToStack_2To1FullAndZero,
-                new NaRamToStack2To1FullAndZeroDispatcher(microData, callStack)),
+                new NaRamToStack2To1FullAndZeroDispatcher(microData, callStackReader)),
             entry(
                 Trace.NA_RamToStack_2To1PaddedAndZero,
-                new NaRamToStack2To1PaddedAndZeroDispatcher(microData, callStack)),
+                new NaRamToStack2To1PaddedAndZeroDispatcher(microData, callStackReader)),
             entry(
                 Trace.NA_RamToStack_1To1PaddedAndZero,
-                new NaRamToStack1To1PaddedAndZeroDispatcher(microData, callStack)));
+                new NaRamToStack1To1PaddedAndZeroDispatcher(microData, callStackReader)));
   }
 }

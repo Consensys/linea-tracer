@@ -42,31 +42,19 @@ public class MicroData extends ModuleOperation {
   private static final UnsignedByte[] DEFAULT_NIBBLES = new UnsignedByte[9];
   private static final UnsignedByte[][] DEFAULT_ACCS = new UnsignedByte[8][32];
   private static final boolean[] DEFAULT_BITS = new boolean[8];
-
-  private static final int RAM_TO_RAM = 601;
-  private static final int EXO_TO_RAM = 602;
-  private static final int RAM_IS_EXO = 603;
-  private static final int KILLING_ONE = 604;
-  private static final int PUSH_TWO_RAM_TO_STACK = 605;
-  private static final int PUSH_ONE_RAM_TO_STACK = 606;
-  private static final int EXCEPTIONAL_RAM_TO_STACK_3_TO_2_FULL_FAST = 607;
-  private static final int PUSH_TWO_STACK_TO_RAM = 608;
-  private static final int STORE_X_IN_A_THREE_REQUIRED = 609;
-  private static final int STORE_X_IN_B = 610;
-  private static final int STORE_X_IN_C = 611;
   private static final Set<Integer> FAST_MICRO_INSTRUCTIONS =
       Set.of(
-          RAM_TO_RAM,
-          EXO_TO_RAM,
-          RAM_IS_EXO,
-          KILLING_ONE,
-          PUSH_TWO_RAM_TO_STACK,
-          PUSH_ONE_RAM_TO_STACK,
-          EXCEPTIONAL_RAM_TO_STACK_3_TO_2_FULL_FAST,
-          PUSH_TWO_STACK_TO_RAM,
-          STORE_X_IN_A_THREE_REQUIRED,
-          STORE_X_IN_B,
-          STORE_X_IN_C);
+          Trace.RAM_TO_RAM,
+          Trace.EXO_TO_RAM,
+          Trace.RAM_IS_EXO,
+          Trace.KILLING_ONE,
+          Trace.PUSH_TWO_RAM_TO_STACK,
+          Trace.PUSH_ONE_RAM_TO_STACK,
+          Trace.EXCEPTIONAL_RAM_TO_STACK_3_TO_2_FULL_FAST,
+          Trace.PUSH_TWO_STACK_TO_RAM,
+          Trace.STORE_X_IN_A_THREE_REQUIRED,
+          Trace.STORE_X_IN_B,
+          Trace.STORE_X_IN_C);
 
   @Getter @Setter private int callStackDepth;
   @Getter @Setter private int callStackSize;
@@ -156,7 +144,7 @@ public class MicroData extends ModuleOperation {
   }
 
   public boolean isErf() {
-    return microOp == STORE_X_IN_A_THREE_REQUIRED;
+    return microOp == Trace.STORE_X_IN_A_THREE_REQUIRED;
   }
 
   public boolean isFast() {

@@ -121,3 +121,16 @@ tasks.register('binRT', TraceFilesTask) {
         files = ["${moduleName}/columns.lisp", "${moduleName}/constants.lisp", "constants/constants.lisp"]
     }
 }
+
+//
+// Put here modules following the conventional MODULE/constants.lisp naming scheme.
+//
+['microdata'].each {moduleName ->
+    tasks.register(moduleName, TraceFilesTask) {
+        group "Trace files generation"
+        dependsOn corsetExists
+
+        module = moduleName
+        files = ["${moduleName}/constants.lisp"]
+    }
+}

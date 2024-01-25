@@ -19,16 +19,16 @@ import java.util.Map;
 
 import net.consensys.linea.zktracer.module.mmio.dispatchers.MmioDispatcher;
 import net.consensys.linea.zktracer.module.romLex.RomLex;
-import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.runtime.microdata.MicroData;
 
 class MmioDataProcessor {
   private final MicroData microData;
   private final Dispatchers dispatchers;
 
-  MmioDataProcessor(final RomLex romLex, final MicroData microData, final CallStack callStack) {
+  MmioDataProcessor(
+      final RomLex romLex, final MicroData microData, final CallStackReader callStackReader) {
     this.microData = microData;
-    this.dispatchers = new Dispatchers(microData, callStack, romLex);
+    this.dispatchers = new Dispatchers(microData, callStackReader, romLex);
   }
 
   MmioData dispatchMmioData() {

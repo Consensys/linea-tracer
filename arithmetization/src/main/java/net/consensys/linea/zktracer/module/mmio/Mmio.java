@@ -86,7 +86,8 @@ public class Mmio implements Module {
       return;
     }
 
-    MmioDataProcessor mmioDataProcessor = new MmioDataProcessor(romLex, microData, callStack);
+    MmioDataProcessor mmioDataProcessor =
+        new MmioDataProcessor(romLex, microData, new CallStackReader(callStack));
     boolean isInitCode = callStack.current().type() == CallFrameType.INIT_CODE;
 
     this.state.add(

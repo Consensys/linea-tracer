@@ -44,17 +44,17 @@ public class MicroData extends ModuleOperation {
   private static final boolean[] DEFAULT_BITS = new boolean[8];
   private static final Set<Integer> FAST_MICRO_INSTRUCTIONS =
       Set.of(
-          Trace.RAM_TO_RAM,
-          Trace.EXO_TO_RAM,
-          Trace.RAM_IS_EXO,
-          Trace.KILLING_ONE,
-          Trace.PUSH_TWO_RAM_TO_STACK,
-          Trace.PUSH_ONE_RAM_TO_STACK,
-          Trace.EXCEPTIONAL_RAM_TO_STACK_3_TO_2_FULL_FAST,
-          Trace.PUSH_TWO_STACK_TO_RAM,
-          Trace.STORE_X_IN_A_THREE_REQUIRED,
-          Trace.STORE_X_IN_B,
-          Trace.STORE_X_IN_C);
+          Trace.RamToRam,
+          Trace.ExoToRam,
+          Trace.RamIsExo,
+          Trace.KillingOne,
+          Trace.PushTwoRamToStack,
+          Trace.PushOneRamToStack,
+          Trace.ExceptionalRamToStack3To2FullFast,
+          Trace.PushTwoStackToRam,
+          Trace.StoreXInAThreeRequired,
+          Trace.StoreXInB,
+          Trace.StoreXInC);
 
   @Getter @Setter private int callStackDepth;
   @Getter @Setter private int callStackSize;
@@ -144,7 +144,7 @@ public class MicroData extends ModuleOperation {
   }
 
   public boolean isErf() {
-    return microOp == Trace.STORE_X_IN_A_THREE_REQUIRED;
+    return microOp == Trace.StoreXInAThreeRequired;
   }
 
   public boolean isFast() {

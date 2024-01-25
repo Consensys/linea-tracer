@@ -19,6 +19,7 @@ import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.mmio.CallStackReader;
 import net.consensys.linea.zktracer.module.mmio.MmioData;
+import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.microdata.MicroData;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
@@ -32,7 +33,11 @@ public class PushTwoRamToStackDispatcher implements MmioDispatcher {
   public MmioData dispatch() {
     MmioData mmioData = new MmioData();
 
-    int sourceContext = microData.sourceContext() - 2;
+    int sourceContext = microData.sourceContextId();
+    if (microData.opCode() == OpCode.CALLDATALOAD) {
+      sourceContext = callStackReader.callStack().current().parentFrame();
+    }
+
     mmioData.cnA(sourceContext);
     mmioData.cnB(sourceContext);
     mmioData.cnC(0);

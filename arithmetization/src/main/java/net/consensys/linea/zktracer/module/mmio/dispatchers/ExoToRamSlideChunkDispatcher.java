@@ -40,7 +40,7 @@ public class ExoToRamSlideChunkDispatcher implements MmioDispatcher {
     Address exoAddress = microData.addressValue();
     Bytes contractByteCode = romLex.addressRomChunkMap().get(exoAddress).byteCode();
 
-    int targetContext = microData.targetContext();
+    int targetContext = microData.targetContextId();
     mmioData.cnA(0);
     mmioData.cnB(targetContext);
     mmioData.cnC(0);

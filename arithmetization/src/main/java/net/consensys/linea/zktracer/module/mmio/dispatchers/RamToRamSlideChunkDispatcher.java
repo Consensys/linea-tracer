@@ -31,8 +31,8 @@ public class RamToRamSlideChunkDispatcher implements MmioDispatcher {
   @Override
   public MmioData dispatch() {
     MmioData mmioData = new MmioData();
-    mmioData.cnA(microData.sourceContext());
-    mmioData.cnB(microData.targetContext());
+    mmioData.cnA(microData.sourceContextId());
+    mmioData.cnB(microData.targetContextId());
     mmioData.cnC(0);
     mmioData.indexA(microData.sourceLimbOffset().toInt());
     mmioData.indexB(microData.targetLimbOffset().toInt());

@@ -33,7 +33,7 @@ public class RamLimbExcisionDispatcher implements MmioDispatcher {
     MmioData mmioData = new MmioData();
 
     mmioData.cnA(0);
-    mmioData.cnB(microData.targetContext());
+    mmioData.cnB(microData.targetContextId());
     mmioData.cnC(0);
 
     mmioData.indexA(0);

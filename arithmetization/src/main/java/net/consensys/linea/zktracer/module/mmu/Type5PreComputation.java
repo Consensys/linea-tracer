@@ -44,9 +44,9 @@ class Type5PreComputation implements MmuPreComputation {
     microData.value(stackOps.get(3).value().copy());
 
     if (microData.callStackDepth() == 1) {
-      microData.sourceContext(0);
+      microData.sourceContextId(0);
     } else {
-      microData.sourceContext(callStack.caller().contextNumber());
+      microData.sourceContextId(callStack.caller().contextNumber());
     }
 
     microData.pointers(Pointers.builder().stack1(stackOps.get(0).value().copy()).build());

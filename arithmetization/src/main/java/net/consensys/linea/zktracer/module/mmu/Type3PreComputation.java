@@ -23,7 +23,6 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
-import net.consensys.linea.zktracer.runtime.microdata.Contexts;
 import net.consensys.linea.zktracer.runtime.microdata.MicroData;
 import net.consensys.linea.zktracer.runtime.microdata.Pointers;
 import net.consensys.linea.zktracer.runtime.microdata.ReadPad;
@@ -41,9 +40,8 @@ class Type3PreComputation implements MmuPreComputation {
       final OpCode opCode,
       final List<StackOperation> stackOps,
       final CallStack callStack) {
-    Contexts contexts = microData.contexts();
-    contexts.source(callStack.current().contextNumber());
-    contexts.target(0);
+    microData.sourceContextId(callStack.current().id());
+    microData.targetContextId(0);
 
     microData.value(stackOps.get(3).value().copy());
 

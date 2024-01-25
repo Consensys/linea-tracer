@@ -23,7 +23,6 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
-import net.consensys.linea.zktracer.runtime.microdata.Contexts;
 import net.consensys.linea.zktracer.runtime.microdata.LimbByte;
 import net.consensys.linea.zktracer.runtime.microdata.MicroData;
 import net.consensys.linea.zktracer.runtime.microdata.Offsets;
@@ -35,7 +34,6 @@ import net.consensys.linea.zktracer.types.UnsignedByte;
 
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
 class Type1PreComputation implements MmuPreComputation {
-
   private static final Set<Integer> TYPES = Set.of(Trace.type1);
 
   @Override
@@ -64,12 +62,11 @@ class Type1PreComputation implements MmuPreComputation {
     LimbByte limbByte =
         LimbByte.builder().uByte(microData.nibbles()[0]).limb(EWord.of(accs)).build();
 
-    microData.offsets(Offsets.builder().target(limbByte).build());
-    microData.contexts(Contexts.builder().source(callStack.current().contextNumber()).build());
-
     switch (opCode) {
       case MLOAD -> {
         microData.toRam(false);
+        microData.sourceContextId(callStack.current().id());
+        microData.offsets(Offsets.builder().source(limbByte).build());
 
         if (microData.aligned()) {
           microData.microOp(Trace.PushTwoRamToStack);
@@ -80,9 +77,13 @@ class Type1PreComputation implements MmuPreComputation {
       case MSTORE8 -> {
         microData.toRam(true);
         microData.microOp(Trace.LsbFromStackToRAM);
+        microData.targetContextId(callStack.current().id());
+        microData.offsets(Offsets.builder().target(limbByte).build());
       }
       case MSTORE -> {
         microData.toRam(true);
+        microData.targetContextId(callStack.current().id());
+        microData.offsets(Offsets.builder().target(limbByte).build());
 
         if (microData.aligned()) {
           microData.microOp(Trace.PushTwoStackToRam);

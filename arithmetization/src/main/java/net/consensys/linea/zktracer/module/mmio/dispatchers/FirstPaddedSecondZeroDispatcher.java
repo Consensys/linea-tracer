@@ -33,7 +33,7 @@ public class FirstPaddedSecondZeroDispatcher implements MmioDispatcher {
   public MmioData dispatch() {
     MmioData mmioData = new MmioData();
 
-    int sourceContext = microData.sourceContext();
+    int sourceContext = microData.sourceContextId();
     mmioData.cnA(sourceContext);
     mmioData.cnB(0);
     mmioData.cnC(0);

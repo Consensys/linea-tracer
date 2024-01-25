@@ -23,7 +23,6 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
-import net.consensys.linea.zktracer.runtime.microdata.Contexts;
 import net.consensys.linea.zktracer.runtime.microdata.LimbByte;
 import net.consensys.linea.zktracer.runtime.microdata.MicroData;
 import net.consensys.linea.zktracer.runtime.microdata.Offsets;
@@ -44,11 +43,8 @@ class Type2PreComputation implements MmuPreComputation {
       final OpCode opCode,
       final List<StackOperation> stackOps,
       final CallStack callStack) {
-    microData.contexts(
-        Contexts.builder()
-            .source(callStack.current().contextNumber())
-            .target(callStack.caller().contextNumber())
-            .build());
+    microData.sourceContextId(callStack.current().id());
+    microData.targetContextId(callStack.caller().id());
 
     microData.sizeImported(stackOps.get(2).value().toInt());
 

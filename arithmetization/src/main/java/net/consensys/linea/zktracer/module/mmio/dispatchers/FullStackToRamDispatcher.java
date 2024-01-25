@@ -31,7 +31,7 @@ public class FullStackToRamDispatcher implements MmioDispatcher {
   public MmioData dispatch() {
     MmioData mmioData = new MmioData();
 
-    int targetContext = microData.targetContext();
+    int targetContext = microData.targetContextId();
     mmioData.cnA(targetContext);
     mmioData.cnB(targetContext);
     mmioData.cnC(targetContext);

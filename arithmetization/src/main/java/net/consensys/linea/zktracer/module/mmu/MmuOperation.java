@@ -38,12 +38,19 @@ import org.apache.tuweni.bytes.Bytes;
 class MmuOperation extends ModuleOperation {
   @Getter private final MicroData microData;
   private final MicroDataProcessor microDataProcessor;
+
+  private final CallStack callStack;
   private int ramStamp;
   private boolean isMicro;
 
   MmuOperation(
-      MicroData microData, MicroDataProcessor microDataProcessor, int ramStamp, boolean isMicro) {
+      MicroData microData,
+      CallStack callStack,
+      MicroDataProcessor microDataProcessor,
+      int ramStamp,
+      boolean isMicro) {
     this.microData = microData;
+    this.callStack = callStack;
     this.microDataProcessor = microDataProcessor;
     this.ramStamp = ramStamp;
     this.isMicro = isMicro;
@@ -111,8 +118,8 @@ class MmuOperation extends ModuleOperation {
         .contextNumber(Bytes.ofUnsignedInt(stackFrames.self()))
         .caller(Bytes.ofUnsignedInt(stackFrames.caller()))
         .returner(Bytes.ofUnsignedInt(stackFrames.returner()))
-        .contextSource(Bytes.ofUnsignedInt(microData.sourceContext()))
-        .contextTarget(Bytes.ofUnsignedInt(microData.targetContext()))
+        .contextSource(contextNumberOf(microData.sourceContextId()))
+        .contextTarget(contextNumberOf(microData.targetContextId()))
         .counter(Bytes.ofUnsignedInt(microData.counter()))
         .offsetOutOfBounds(pointers.oob())
         .precomputation(Bytes.ofUnsignedInt(microData.precomputation()))
@@ -183,6 +190,10 @@ class MmuOperation extends ModuleOperation {
         .info(booleanToBytes(microData.info()))
         .isData(this.ramStamp != 0)
         .validateRow();
+  }
+
+  private Bytes contextNumberOf(int contextId) {
+    return Bytes.ofUnsignedInt(callStack.get(contextId).contextNumber());
   }
 
   private Bytes acc(final int accIndex, final MicroData microData) {

@@ -94,6 +94,6 @@ public class Mmu implements Module {
 
     mmio.handleRam(microData, hub.state().stamps(), microStamp);
 
-    this.state.add(new MmuOperation(microData, microDataProcessor, ramStamp, isMicro));
+    this.state.add(new MmuOperation(microData, callStack, microDataProcessor, ramStamp, isMicro));
   }
 }

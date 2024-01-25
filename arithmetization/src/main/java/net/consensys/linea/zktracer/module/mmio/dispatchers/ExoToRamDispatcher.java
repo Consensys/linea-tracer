@@ -39,7 +39,7 @@ public class ExoToRamDispatcher implements MmioDispatcher {
     Address exoAddress = microData.addressValue();
     Bytes contractByteCode = romLex.addressRomChunkMap().get(exoAddress).byteCode();
 
-    int targetContext = microData.targetContext();
+    int targetContext = microData.targetContextId();
     mmioData.cnA(targetContext);
     mmioData.cnB(0);
     mmioData.cnC(0);

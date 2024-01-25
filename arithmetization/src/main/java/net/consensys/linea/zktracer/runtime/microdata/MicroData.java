@@ -133,13 +133,13 @@ public class MicroData {
         0,
         0,
         null,
-        null,
-        null,
+        Pointers.builder().build(),
+        Offsets.builder().build(),
         0,
         0,
         0,
         null,
-        null,
+        Contexts.builder().build(),
         DEFAULT_NIBBLES,
         DEFAULT_ACCS,
         DEFAULT_BITS,
@@ -228,19 +228,19 @@ public class MicroData {
     return callStackDepth == 1;
   }
 
-  public int sourceContext() {
+  public int sourceContextId() {
     return contexts.source();
   }
 
-  public void sourceContext(final int value) {
+  public void sourceContextId(final int value) {
     contexts.source(value);
   }
 
-  public int targetContext() {
+  public int targetContextId() {
     return contexts.target();
   }
 
-  public void targetContext(final int value) {
+  public void targetContextId(final int value) {
     contexts.target(value);
   }
 

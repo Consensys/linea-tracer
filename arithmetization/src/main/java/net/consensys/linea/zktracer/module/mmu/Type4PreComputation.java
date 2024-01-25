@@ -24,9 +24,7 @@ import lombok.AllArgsConstructor;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
-import net.consensys.linea.zktracer.runtime.microdata.LimbByte;
 import net.consensys.linea.zktracer.runtime.microdata.MicroData;
-import net.consensys.linea.zktracer.runtime.microdata.Offsets;
 import net.consensys.linea.zktracer.runtime.microdata.Pointers;
 import net.consensys.linea.zktracer.runtime.microdata.ReadPad;
 import net.consensys.linea.zktracer.runtime.stack.StackOperation;
@@ -52,14 +50,11 @@ class Type4PreComputation implements MmuPreComputation {
     microData.pointers(
         Pointers.builder()
             .stack1(stackOps.get(0).value().copy())
-            .stack2(stackOps.get(1).value().copy())
+            .stack2(stackOps.get(2).value().copy())
             .build());
 
-    Bytes value = stackOps.get(3).value().copy();
-    // TODO: This produces java.lang.IllegalArgumentException: Value of size 20 has more than 4
-    // bytes. Should we try to fix it or use the workaround below?
-    //    microData.sizeImported(value.toInt());
-    microData.sizeImported(value.toUnsignedBigInteger().intValue());
+    Bytes value = stackOps.get(1).value().copy();
+    microData.sizeImported(32 - value.numberOfLeadingZeroBytes());
     microData.value(value);
 
     setTern(microData, callStack);
@@ -391,7 +386,7 @@ class Type4PreComputation implements MmuPreComputation {
   }
 
   void setContext(final boolean isMicro, MicroData microData, final CallStack callStack) {
-    microData.targetContext(callStack.current().contextNumber());
+    microData.targetContextId(callStack.current().id());
 
     switch (microData.opCode()) {
       case RETURNDATACOPY -> {
@@ -399,6 +394,7 @@ class Type4PreComputation implements MmuPreComputation {
         microData.exoIsLog(false);
         microData.exoIsRom(false);
         microData.exoIsTxcd(false);
+        microData.sourceContextId(callStack.current().returner());
       }
       case CALLDATACOPY -> {
         microData.exoIsHash(false);
@@ -412,9 +408,9 @@ class Type4PreComputation implements MmuPreComputation {
         }
 
         if (microData.callStackDepth() != 1) {
-          microData.sourceContext(callStack.caller().contextNumber());
+          microData.sourceContextId(callStack.caller().id());
         } else {
-          microData.sourceContext(0);
+          microData.sourceContextId(0);
         }
       }
       case CODECOPY, EXTCODECOPY -> {
@@ -424,7 +420,7 @@ class Type4PreComputation implements MmuPreComputation {
         microData.exoIsRom(isMicro && microData.isRead());
         microData.exoIsTxcd(false);
 
-        microData.sourceContext(0);
+        microData.sourceContextId(0);
       }
       default -> throw new UnsupportedOperationException(
           "OpCode.%s is not supported for MMU type 4 pre-processing and/or processing"
@@ -547,19 +543,10 @@ class Type4PreComputation implements MmuPreComputation {
       nibbles[6] = UnsignedByte.of(sum % 16);
     }
 
-    microData.offsets(
-        Offsets.builder()
-            .source(
-                LimbByte.builder()
-                    .limb(microData.getAccsAtIndex(2).copy())
-                    .uByte(nibbles[2])
-                    .build())
-            .target(
-                LimbByte.builder()
-                    .limb(microData.getAccsAtIndex(4).copy())
-                    .uByte(nibbles[4])
-                    .build())
-            .build());
+    microData.sourceLimbOffset(microData.getAccsAtIndex(2).copy());
+    microData.sourceByteOffset(nibbles[2]);
+    microData.targetLimbOffset(microData.getAccsAtIndex(4).copy());
+    microData.targetByteOffset(nibbles[4]);
   }
 
   private int calculateReferenceOffset(final MicroData microData, final CallStack callStack) {

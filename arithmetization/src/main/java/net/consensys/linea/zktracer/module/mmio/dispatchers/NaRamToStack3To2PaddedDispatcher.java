@@ -32,7 +32,7 @@ public class NaRamToStack3To2PaddedDispatcher implements MmioDispatcher {
   public MmioData dispatch() {
     MmioData mmioData = new MmioData();
 
-    int sourceContext = microData.sourceContext();
+    int sourceContext = microData.sourceContextId();
     mmioData.cnA(sourceContext);
     mmioData.cnB(sourceContext);
     mmioData.cnC(sourceContext);

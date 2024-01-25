@@ -44,7 +44,7 @@ public class ExoToRamSlideOverlappingChunkDispatcher implements MmioDispatcher {
     Optional<RomChunk> romChunk = Optional.ofNullable(romLex.addressRomChunkMap().get(exoAddress));
     Bytes contractByteCode = romChunk.isPresent() ? romChunk.get().byteCode() : Bytes.EMPTY;
 
-    int targetContext = microData.targetContext();
+    int targetContext = microData.targetContextId();
     mmioData.cnA(0);
     mmioData.cnB(targetContext);
     mmioData.cnC(targetContext);

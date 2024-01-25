@@ -151,7 +151,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
     this.hub.traceEndBlock(blockHeader, blockBody);
   }
 
-  @Override
+  //  @Override
   public void tracePrepareTransaction(WorldView worldView, Transaction transaction) {
     hashOfLastTransactionTraced = transaction.getHash();
     this.hub.traceStartTx(worldView, transaction);

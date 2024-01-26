@@ -124,7 +124,7 @@ public class EcDataOperation extends ModuleOperation {
     final AltBn128Fq2Point p2 = new AltBn128Fq2Point(pX, pY);
     final AltBn128Fq2Point pPowQ = p2.multiply(Q);
 
-    return pPowQ.isOnCurve();
+    return pPowQ.isInfinity();
   }
 
   private EcDataOperation(

@@ -16,13 +16,55 @@
 package net.consensys.linea.zktracer.module.hub.subsection;
 
 import java.util.List;
+import java.util.Optional;
 
+import lombok.RequiredArgsConstructor;
+import net.consensys.linea.zktracer.module.hub.Precompile;
+import net.consensys.linea.zktracer.module.hub.fragment.PrecompileScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.SubSection;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
+import net.consensys.linea.zktracer.module.hub.memory.MemorySpan;
 
+@RequiredArgsConstructor
 public class PrecompileScenarioTraceSubsection implements SubSection {
+  private final PrecompileScenario scenario;
+  private final long callGas;
+  private final MemorySpan callData;
+  private final MemorySpan returnDataTarget;
+
+
   @Override
   public List<TraceFragment> generate() {
+    switch (this.scenario.precompile()) {
+      case EC_RECOVER -> {
+        assert !scenario.failureKnownToRam();
+
+        if (scenario.failureKnownToHub()) {
+          return List.of(
+            new PrecompileScenarioFragment(this.scenario)
+          );
+        }
+      }
+      case SHA2_256 -> {
+      }
+      case RIPEMD_160 -> {
+      }
+      case IDENTITY -> {
+      }
+      case MODEXP -> {
+      }
+      case EC_ADD -> {
+      }
+      case EC_MUL -> {
+      }
+      case EC_PAIRING -> {
+      }
+      case BLAKE2F -> {
+      }
+    }
+
+
+
     return List.of(); // TODO:
   }
 }

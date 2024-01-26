@@ -109,7 +109,7 @@ public class EcDataOperation extends ModuleOperation {
 
   private static BigInteger extractParameter(final Bytes input) {
     if (input.isEmpty()) {
-      return BigInteger.ZERO;
+      throw new IllegalArgumentException("EC_DATA input can not be empty");
     }
     return new BigInteger(1, input.toArray());
   }

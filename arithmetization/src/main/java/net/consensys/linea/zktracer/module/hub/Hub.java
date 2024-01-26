@@ -1154,7 +1154,7 @@ public class Hub implements Module {
                 this.conflation.deploymentInfo().number(myAddress),
                 this.conflation.deploymentInfo().isDeploying(myAddress));
 
-        boolean targetIsPrecompile = isPrecompile(calledAddress);
+        Optional<Precompile> targetPrecompile = Precompile.maybeOf(calledAddress);
 
         if (this.pch().exceptions().any()) {
           if (this.pch().exceptions().staticFault()) {
@@ -1190,7 +1190,7 @@ public class Hub implements Module {
                     this,
                     this.currentFrame(),
                     new ScenarioFragment(
-                        targetIsPrecompile,
+                        targetPrecompile,
                         hasCode,
                         true,
                         this.currentFrame().id(),
@@ -1217,7 +1217,7 @@ public class Hub implements Module {
               final NoCodeCallSection section =
                   new NoCodeCallSection(
                       this,
-                      targetIsPrecompile,
+                      targetPrecompile,
                       myAccountSnapshot,
                       calledAccountSnapshot,
                       miscFragment);

@@ -15,8 +15,11 @@
 
 package net.consensys.linea.zktracer.module.hub.section;
 
+import java.util.Optional;
+
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.Precompile;
 import net.consensys.linea.zktracer.module.hub.defer.PostExecDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.AccountFragment;
@@ -34,7 +37,7 @@ import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class NoCodeCallSection extends TraceSection implements PostTransactionDefer, PostExecDefer {
-  private final boolean targetIsPrecompile;
+  private final Optional<Precompile> targetIsPrecompile;
   private final CallFrame callerCallFrame;
   private final int calledCallFrameId;
   private final AccountSnapshot preCallCallerAccountSnapshot;
@@ -46,7 +49,7 @@ public class NoCodeCallSection extends TraceSection implements PostTransactionDe
 
   public NoCodeCallSection(
       Hub hub,
-      boolean targetIsPrecompile,
+      Optional<Precompile> targetIsPrecompile,
       AccountSnapshot preCallCallerAccountSnapshot,
       AccountSnapshot preCallCalledAccountSnapshot,
       MiscFragment miscFragment) {
@@ -63,6 +66,7 @@ public class NoCodeCallSection extends TraceSection implements PostTransactionDe
 
   @Override
   public void runPostExec(Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
+    final boolean callSuccessful = !frame.getStackItem(0).isZero();
     final Address callerAddress = preCallCallerAccountSnapshot.address();
     final Account callerAccount = frame.getWorldUpdater().get(callerAddress);
     final Address calledAddress = preCallCalledAccountSnapshot.address();
@@ -95,7 +99,7 @@ public class NoCodeCallSection extends TraceSection implements PostTransactionDe
         new AccountFragment(this.preCallCalledAccountSnapshot, this.postCallCalledAccountSnapshot));
 
     if (callerCallFrame.hasReverted()) {
-      if (targetIsPrecompile) {
+      if (targetIsPrecompile.isPresent()) {
         this.addChunksWithoutStack(
             hub,
             callerCallFrame,
@@ -104,19 +108,19 @@ public class NoCodeCallSection extends TraceSection implements PostTransactionDe
             new AccountFragment(
                 this.postCallCalledAccountSnapshot, this.preCallCalledAccountSnapshot));
         for (TraceFragment fragment : new PrecompileScenarioTraceSubsection().generate()) {
-          this.addChunk(hub, callerCallFrame, fragment);
+          this.addChunksWithoutStack(hub, callerCallFrame, fragment);
         }
       } else {
-        this.addChunk(
+        this.addChunksWithoutStack(
             hub, callerCallFrame, new ContextFragment(hub.callStack(), this.callerCallFrame, true));
       }
     } else {
-      if (targetIsPrecompile) {
+      if (targetIsPrecompile.isPresent()) {
         for (TraceFragment fragment : new PrecompileScenarioTraceSubsection().generate()) {
-          this.addChunk(hub, callerCallFrame, fragment);
+          this.addChunksWithoutStack(hub, callerCallFrame, fragment);
         }
       } else {
-        this.addChunk(
+        this.addChunksWithoutStack(
             hub, callerCallFrame, new ContextFragment(hub.callStack(), this.callerCallFrame, true));
       }
     }

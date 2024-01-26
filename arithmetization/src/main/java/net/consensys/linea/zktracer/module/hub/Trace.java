@@ -29,8 +29,6 @@ import org.apache.tuweni.bytes.Bytes;
  * Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
 public class Trace {
-  static final int N_FAILURE = 4;
-  static final int N_SUCCESS = 4;
 
   private final BitSet filled = new BitSet();
   private int currentLine = 0;
@@ -118,14 +116,17 @@ public class Trace {
   private final MappedByteBuffer isRipemd160XorEcaddXorHashInfoFlag;
   private final MappedByteBuffer isSha2256XorEcmulXorInvalidFlag;
   private final MappedByteBuffer mmuStamp;
+  private final MappedByteBuffer mxpFlag;
   private final MappedByteBuffer mxpSize1LoXorStackItemValueLo2;
   private final MappedByteBuffer mxpSize2HiXorStackItemValueLo3;
   private final MappedByteBuffer mxpSize2LoXorStackItemValueLo4;
   private final MappedByteBuffer mxpStamp;
   private final MappedByteBuffer mxpWordsXorStaticGas;
+  private final MappedByteBuffer mxpx;
   private final MappedByteBuffer nonceNewXorContextNumberXorMmuStackValHiXorStackItemStamp1XorNonce;
   private final MappedByteBuffer nonceXorCallValueXorMmuSizeXorStackItemHeight4XorLeftoverGas;
   private final MappedByteBuffer numberOfNonStackRows;
+  private final MappedByteBuffer oobFlag;
   private final MappedByteBuffer oobInst;
   private final MappedByteBuffer oobOutgoingData1;
   private final MappedByteBuffer oobOutgoingData2;
@@ -133,6 +134,8 @@ public class Trace {
   private final MappedByteBuffer oobOutgoingData4;
   private final MappedByteBuffer oobOutgoingData5;
   private final MappedByteBuffer oobOutgoingData6;
+  private final MappedByteBuffer oogx;
+  private final MappedByteBuffer opcx;
   private final MappedByteBuffer peekAtAccount;
   private final MappedByteBuffer peekAtContext;
   private final MappedByteBuffer peekAtMiscellaneous;
@@ -140,11 +143,14 @@ public class Trace {
   private final MappedByteBuffer peekAtStack;
   private final MappedByteBuffer peekAtStorage;
   private final MappedByteBuffer peekAtTransaction;
+  private final MappedByteBuffer prcFailureKnownToHubXorKecFlag;
+  private final MappedByteBuffer prcFailureKnownToRamXorLogFlag;
+  private final MappedByteBuffer prcSuccessXorMachineStateFlag;
   private final MappedByteBuffer programCounter;
   private final MappedByteBuffer programCounterNew;
   private final MappedByteBuffer pushpopFlag;
   private final MappedByteBuffer rdcx;
-  private final MappedByteBuffer ripemd160XorKecFlag;
+  private final MappedByteBuffer ripemd160XorMaxcsx;
   private final MappedByteBuffer
       rlpaddrDepAddrHiXorIsStaticXorMmuStackValLoXorStackItemStamp2XorToAddressHi;
   private final MappedByteBuffer
@@ -157,16 +163,8 @@ public class Trace {
   private final MappedByteBuffer
       rlpaddrSaltHiXorReturnDataOffsetXorMxpOffset2HiXorStackItemValueHi3;
   private final MappedByteBuffer rlpaddrSaltLoXorReturnDataSizeXorMxpOffset2LoXorStackItemValueHi4;
-  private final MappedByteBuffer scnFailure1XorLogFlag;
-  private final MappedByteBuffer scnFailure2XorMachineStateFlag;
-  private final MappedByteBuffer scnFailure3XorMaxcsx;
-  private final MappedByteBuffer scnFailure4XorModFlag;
-  private final MappedByteBuffer scnSuccess1XorMulFlag;
-  private final MappedByteBuffer scnSuccess2XorMxpx;
-  private final MappedByteBuffer scnSuccess3XorMxpFlag;
-  private final MappedByteBuffer scnSuccess4XorOobFlag;
-  private final MappedByteBuffer selfdestructXorOogx;
-  private final MappedByteBuffer sha2256XorOpcx;
+  private final MappedByteBuffer selfdestructXorModFlag;
+  private final MappedByteBuffer sha2256XorMulFlag;
   private final MappedByteBuffer shfFlag;
   private final MappedByteBuffer sox;
   private final MappedByteBuffer sstorex;
@@ -344,11 +342,13 @@ public class Trace {
         new ColumnHeader("hub_v2.IS_RIPEMD-160_xor_ECADD_xor_HASH_INFO_FLAG", 1, length),
         new ColumnHeader("hub_v2.IS_SHA2-256_xor_ECMUL_xor_INVALID_FLAG", 1, length),
         new ColumnHeader("hub_v2.MMU_STAMP", 32, length),
+        new ColumnHeader("hub_v2.MXP_FLAG", 1, length),
         new ColumnHeader("hub_v2.MXP___SIZE_1_LO_xor_STACK_ITEM_VALUE_LO_2", 32, length),
         new ColumnHeader("hub_v2.MXP___SIZE_2_HI_xor_STACK_ITEM_VALUE_LO_3", 32, length),
         new ColumnHeader("hub_v2.MXP___SIZE_2_LO_xor_STACK_ITEM_VALUE_LO_4", 32, length),
         new ColumnHeader("hub_v2.MXP_STAMP", 32, length),
         new ColumnHeader("hub_v2.MXP___WORDS_xor_STATIC_GAS", 32, length),
+        new ColumnHeader("hub_v2.MXPX", 1, length),
         new ColumnHeader(
             "hub_v2.NONCE_NEW_xor_CONTEXT_NUMBER_xor_MMU___STACK_VAL_HI_xor_STACK_ITEM_STAMP_1_xor_NONCE",
             32,
@@ -358,6 +358,7 @@ public class Trace {
             32,
             length),
         new ColumnHeader("hub_v2.NUMBER_OF_NON_STACK_ROWS", 32, length),
+        new ColumnHeader("hub_v2.OOB_FLAG", 1, length),
         new ColumnHeader("hub_v2.OOB___INST", 32, length),
         new ColumnHeader("hub_v2.OOB___OUTGOING_DATA_1", 32, length),
         new ColumnHeader("hub_v2.OOB___OUTGOING_DATA_2", 32, length),
@@ -365,6 +366,8 @@ public class Trace {
         new ColumnHeader("hub_v2.OOB___OUTGOING_DATA_4", 32, length),
         new ColumnHeader("hub_v2.OOB___OUTGOING_DATA_5", 32, length),
         new ColumnHeader("hub_v2.OOB___OUTGOING_DATA_6", 32, length),
+        new ColumnHeader("hub_v2.OOGX", 1, length),
+        new ColumnHeader("hub_v2.OPCX", 1, length),
         new ColumnHeader("hub_v2.PEEK_AT_ACCOUNT", 1, length),
         new ColumnHeader("hub_v2.PEEK_AT_CONTEXT", 1, length),
         new ColumnHeader("hub_v2.PEEK_AT_MISCELLANEOUS", 1, length),
@@ -372,11 +375,14 @@ public class Trace {
         new ColumnHeader("hub_v2.PEEK_AT_STACK", 1, length),
         new ColumnHeader("hub_v2.PEEK_AT_STORAGE", 1, length),
         new ColumnHeader("hub_v2.PEEK_AT_TRANSACTION", 1, length),
+        new ColumnHeader("hub_v2.PRC_FAILURE_KNOWN_TO_HUB_xor_KEC_FLAG", 1, length),
+        new ColumnHeader("hub_v2.PRC_FAILURE_KNOWN_TO_RAM_xor_LOG_FLAG", 1, length),
+        new ColumnHeader("hub_v2.PRC_SUCCESS_xor_MACHINE_STATE_FLAG", 1, length),
         new ColumnHeader("hub_v2.PROGRAM_COUNTER", 32, length),
         new ColumnHeader("hub_v2.PROGRAM_COUNTER_NEW", 32, length),
         new ColumnHeader("hub_v2.PUSHPOP_FLAG", 1, length),
         new ColumnHeader("hub_v2.RDCX", 1, length),
-        new ColumnHeader("hub_v2.RIPEMD-160_xor_KEC_FLAG", 1, length),
+        new ColumnHeader("hub_v2.RIPEMD-160_xor_MAXCSX", 1, length),
         new ColumnHeader(
             "hub_v2.RLPADDR___DEP_ADDR_HI_xor_IS_STATIC_xor_MMU___STACK_VAL_LO_xor_STACK_ITEM_STAMP_2_xor_TO_ADDRESS_HI",
             32,
@@ -406,16 +412,8 @@ public class Trace {
             "hub_v2.RLPADDR___SALT_LO_xor_RETURN_DATA_SIZE_xor_MXP___OFFSET_2_LO_xor_STACK_ITEM_VALUE_HI_4",
             32,
             length),
-        new ColumnHeader("hub_v2.SCN_FAILURE_1_xor_LOG_FLAG", 1, length),
-        new ColumnHeader("hub_v2.SCN_FAILURE_2_xor_MACHINE_STATE_FLAG", 1, length),
-        new ColumnHeader("hub_v2.SCN_FAILURE_3_xor_MAXCSX", 1, length),
-        new ColumnHeader("hub_v2.SCN_FAILURE_4_xor_MOD_FLAG", 1, length),
-        new ColumnHeader("hub_v2.SCN_SUCCESS_1_xor_MUL_FLAG", 1, length),
-        new ColumnHeader("hub_v2.SCN_SUCCESS_2_xor_MXPX", 1, length),
-        new ColumnHeader("hub_v2.SCN_SUCCESS_3_xor_MXP_FLAG", 1, length),
-        new ColumnHeader("hub_v2.SCN_SUCCESS_4_xor_OOB_FLAG", 1, length),
-        new ColumnHeader("hub_v2.SELFDESTRUCT_xor_OOGX", 1, length),
-        new ColumnHeader("hub_v2.SHA2-256_xor_OPCX", 1, length),
+        new ColumnHeader("hub_v2.SELFDESTRUCT_xor_MOD_FLAG", 1, length),
+        new ColumnHeader("hub_v2.SHA2-256_xor_MUL_FLAG", 1, length),
         new ColumnHeader("hub_v2.SHF_FLAG", 1, length),
         new ColumnHeader("hub_v2.SOX", 1, length),
         new ColumnHeader("hub_v2.SSTOREX", 1, length),
@@ -542,53 +540,53 @@ public class Trace {
     this.isRipemd160XorEcaddXorHashInfoFlag = buffers.get(56);
     this.isSha2256XorEcmulXorInvalidFlag = buffers.get(57);
     this.mmuStamp = buffers.get(58);
-    this.mxpSize1LoXorStackItemValueLo2 = buffers.get(59);
-    this.mxpSize2HiXorStackItemValueLo3 = buffers.get(60);
-    this.mxpSize2LoXorStackItemValueLo4 = buffers.get(61);
-    this.mxpStamp = buffers.get(62);
-    this.mxpWordsXorStaticGas = buffers.get(63);
-    this.nonceNewXorContextNumberXorMmuStackValHiXorStackItemStamp1XorNonce = buffers.get(64);
-    this.nonceXorCallValueXorMmuSizeXorStackItemHeight4XorLeftoverGas = buffers.get(65);
-    this.numberOfNonStackRows = buffers.get(66);
-    this.oobInst = buffers.get(67);
-    this.oobOutgoingData1 = buffers.get(68);
-    this.oobOutgoingData2 = buffers.get(69);
-    this.oobOutgoingData3 = buffers.get(70);
-    this.oobOutgoingData4 = buffers.get(71);
-    this.oobOutgoingData5 = buffers.get(72);
-    this.oobOutgoingData6 = buffers.get(73);
-    this.peekAtAccount = buffers.get(74);
-    this.peekAtContext = buffers.get(75);
-    this.peekAtMiscellaneous = buffers.get(76);
-    this.peekAtScenario = buffers.get(77);
-    this.peekAtStack = buffers.get(78);
-    this.peekAtStorage = buffers.get(79);
-    this.peekAtTransaction = buffers.get(80);
-    this.programCounter = buffers.get(81);
-    this.programCounterNew = buffers.get(82);
-    this.pushpopFlag = buffers.get(83);
-    this.rdcx = buffers.get(84);
-    this.ripemd160XorKecFlag = buffers.get(85);
+    this.mxpFlag = buffers.get(59);
+    this.mxpSize1LoXorStackItemValueLo2 = buffers.get(60);
+    this.mxpSize2HiXorStackItemValueLo3 = buffers.get(61);
+    this.mxpSize2LoXorStackItemValueLo4 = buffers.get(62);
+    this.mxpStamp = buffers.get(63);
+    this.mxpWordsXorStaticGas = buffers.get(64);
+    this.mxpx = buffers.get(65);
+    this.nonceNewXorContextNumberXorMmuStackValHiXorStackItemStamp1XorNonce = buffers.get(66);
+    this.nonceXorCallValueXorMmuSizeXorStackItemHeight4XorLeftoverGas = buffers.get(67);
+    this.numberOfNonStackRows = buffers.get(68);
+    this.oobFlag = buffers.get(69);
+    this.oobInst = buffers.get(70);
+    this.oobOutgoingData1 = buffers.get(71);
+    this.oobOutgoingData2 = buffers.get(72);
+    this.oobOutgoingData3 = buffers.get(73);
+    this.oobOutgoingData4 = buffers.get(74);
+    this.oobOutgoingData5 = buffers.get(75);
+    this.oobOutgoingData6 = buffers.get(76);
+    this.oogx = buffers.get(77);
+    this.opcx = buffers.get(78);
+    this.peekAtAccount = buffers.get(79);
+    this.peekAtContext = buffers.get(80);
+    this.peekAtMiscellaneous = buffers.get(81);
+    this.peekAtScenario = buffers.get(82);
+    this.peekAtStack = buffers.get(83);
+    this.peekAtStorage = buffers.get(84);
+    this.peekAtTransaction = buffers.get(85);
+    this.prcFailureKnownToHubXorKecFlag = buffers.get(86);
+    this.prcFailureKnownToRamXorLogFlag = buffers.get(87);
+    this.prcSuccessXorMachineStateFlag = buffers.get(88);
+    this.programCounter = buffers.get(89);
+    this.programCounterNew = buffers.get(90);
+    this.pushpopFlag = buffers.get(91);
+    this.rdcx = buffers.get(92);
+    this.ripemd160XorMaxcsx = buffers.get(93);
     this.rlpaddrDepAddrHiXorIsStaticXorMmuStackValLoXorStackItemStamp2XorToAddressHi =
-        buffers.get(86);
+        buffers.get(94);
     this.rlpaddrDepAddrLoXorReturnerContextNumberXorMxpGasMxpXorStackItemStamp3XorToAddressLo =
-        buffers.get(87);
-    this.rlpaddrFlagXorEcpairingXorInvprex = buffers.get(88);
-    this.rlpaddrKecHiXorReturnerIsPrecompileXorMxpInstXorStackItemStamp4XorValue = buffers.get(89);
-    this.rlpaddrKecLoXorReturnAtOffsetXorMxpOffset1HiXorStackItemValueHi1 = buffers.get(90);
-    this.rlpaddrRecipeXorReturnAtSizeXorMxpOffset1LoXorStackItemValueHi2 = buffers.get(91);
-    this.rlpaddrSaltHiXorReturnDataOffsetXorMxpOffset2HiXorStackItemValueHi3 = buffers.get(92);
-    this.rlpaddrSaltLoXorReturnDataSizeXorMxpOffset2LoXorStackItemValueHi4 = buffers.get(93);
-    this.scnFailure1XorLogFlag = buffers.get(94);
-    this.scnFailure2XorMachineStateFlag = buffers.get(95);
-    this.scnFailure3XorMaxcsx = buffers.get(96);
-    this.scnFailure4XorModFlag = buffers.get(97);
-    this.scnSuccess1XorMulFlag = buffers.get(98);
-    this.scnSuccess2XorMxpx = buffers.get(99);
-    this.scnSuccess3XorMxpFlag = buffers.get(100);
-    this.scnSuccess4XorOobFlag = buffers.get(101);
-    this.selfdestructXorOogx = buffers.get(102);
-    this.sha2256XorOpcx = buffers.get(103);
+        buffers.get(95);
+    this.rlpaddrFlagXorEcpairingXorInvprex = buffers.get(96);
+    this.rlpaddrKecHiXorReturnerIsPrecompileXorMxpInstXorStackItemStamp4XorValue = buffers.get(97);
+    this.rlpaddrKecLoXorReturnAtOffsetXorMxpOffset1HiXorStackItemValueHi1 = buffers.get(98);
+    this.rlpaddrRecipeXorReturnAtSizeXorMxpOffset1LoXorStackItemValueHi2 = buffers.get(99);
+    this.rlpaddrSaltHiXorReturnDataOffsetXorMxpOffset2HiXorStackItemValueHi3 = buffers.get(100);
+    this.rlpaddrSaltLoXorReturnDataSizeXorMxpOffset2LoXorStackItemValueHi4 = buffers.get(101);
+    this.selfdestructXorModFlag = buffers.get(102);
+    this.sha2256XorMulFlag = buffers.get(103);
     this.shfFlag = buffers.get(104);
     this.sox = buffers.get(105);
     this.sstorex = buffers.get(106);
@@ -3267,134 +3265,74 @@ public class Trace {
     return this;
   }
 
-  public Trace pScenarioRipemd160(final Boolean b) {
+  public Trace pScenarioPrcFailureKnownToHub(final Boolean b) {
     if (filled.get(69)) {
-      throw new IllegalStateException("hub_v2.scenario/RIPEMD-160 already set");
+      throw new IllegalStateException("hub_v2.scenario/PRC_FAILURE_KNOWN_TO_HUB already set");
     } else {
       filled.set(69);
     }
 
-    ripemd160XorKecFlag.put((byte) (b ? 1 : 0));
+    prcFailureKnownToHubXorKecFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
-  public Trace pScenarioScnFailure1(final Boolean b) {
+  public Trace pScenarioPrcFailureKnownToRam(final Boolean b) {
     if (filled.get(70)) {
-      throw new IllegalStateException("hub_v2.scenario/SCN_FAILURE_1 already set");
+      throw new IllegalStateException("hub_v2.scenario/PRC_FAILURE_KNOWN_TO_RAM already set");
     } else {
       filled.set(70);
     }
 
-    scnFailure1XorLogFlag.put((byte) (b ? 1 : 0));
+    prcFailureKnownToRamXorLogFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
-  public Trace pScenarioScnFailure2(final Boolean b) {
+  public Trace pScenarioPrcSuccess(final Boolean b) {
     if (filled.get(71)) {
-      throw new IllegalStateException("hub_v2.scenario/SCN_FAILURE_2 already set");
+      throw new IllegalStateException("hub_v2.scenario/PRC_SUCCESS already set");
     } else {
       filled.set(71);
     }
 
-    scnFailure2XorMachineStateFlag.put((byte) (b ? 1 : 0));
+    prcSuccessXorMachineStateFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
-  public Trace pScenarioScnFailure3(final Boolean b) {
+  public Trace pScenarioRipemd160(final Boolean b) {
     if (filled.get(72)) {
-      throw new IllegalStateException("hub_v2.scenario/SCN_FAILURE_3 already set");
+      throw new IllegalStateException("hub_v2.scenario/RIPEMD-160 already set");
     } else {
       filled.set(72);
     }
 
-    scnFailure3XorMaxcsx.put((byte) (b ? 1 : 0));
-
-    return this;
-  }
-
-  public Trace pScenarioScnFailure4(final Boolean b) {
-    if (filled.get(73)) {
-      throw new IllegalStateException("hub_v2.scenario/SCN_FAILURE_4 already set");
-    } else {
-      filled.set(73);
-    }
-
-    scnFailure4XorModFlag.put((byte) (b ? 1 : 0));
-
-    return this;
-  }
-
-  public Trace pScenarioScnSuccess1(final Boolean b) {
-    if (filled.get(74)) {
-      throw new IllegalStateException("hub_v2.scenario/SCN_SUCCESS_1 already set");
-    } else {
-      filled.set(74);
-    }
-
-    scnSuccess1XorMulFlag.put((byte) (b ? 1 : 0));
-
-    return this;
-  }
-
-  public Trace pScenarioScnSuccess2(final Boolean b) {
-    if (filled.get(75)) {
-      throw new IllegalStateException("hub_v2.scenario/SCN_SUCCESS_2 already set");
-    } else {
-      filled.set(75);
-    }
-
-    scnSuccess2XorMxpx.put((byte) (b ? 1 : 0));
-
-    return this;
-  }
-
-  public Trace pScenarioScnSuccess3(final Boolean b) {
-    if (filled.get(76)) {
-      throw new IllegalStateException("hub_v2.scenario/SCN_SUCCESS_3 already set");
-    } else {
-      filled.set(76);
-    }
-
-    scnSuccess3XorMxpFlag.put((byte) (b ? 1 : 0));
-
-    return this;
-  }
-
-  public Trace pScenarioScnSuccess4(final Boolean b) {
-    if (filled.get(77)) {
-      throw new IllegalStateException("hub_v2.scenario/SCN_SUCCESS_4 already set");
-    } else {
-      filled.set(77);
-    }
-
-    scnSuccess4XorOobFlag.put((byte) (b ? 1 : 0));
+    ripemd160XorMaxcsx.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
   public Trace pScenarioSelfdestruct(final Boolean b) {
-    if (filled.get(78)) {
+    if (filled.get(73)) {
       throw new IllegalStateException("hub_v2.scenario/SELFDESTRUCT already set");
     } else {
-      filled.set(78);
+      filled.set(73);
     }
 
-    selfdestructXorOogx.put((byte) (b ? 1 : 0));
+    selfdestructXorModFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
   public Trace pScenarioSha2256(final Boolean b) {
-    if (filled.get(79)) {
+    if (filled.get(74)) {
       throw new IllegalStateException("hub_v2.scenario/SHA2-256 already set");
     } else {
-      filled.set(79);
+      filled.set(74);
     }
 
-    sha2256XorOpcx.put((byte) (b ? 1 : 0));
+    sha2256XorMulFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3808,7 +3746,7 @@ public class Trace {
       filled.set(69);
     }
 
-    ripemd160XorKecFlag.put((byte) (b ? 1 : 0));
+    prcFailureKnownToHubXorKecFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3820,7 +3758,7 @@ public class Trace {
       filled.set(70);
     }
 
-    scnFailure1XorLogFlag.put((byte) (b ? 1 : 0));
+    prcFailureKnownToRamXorLogFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3832,7 +3770,7 @@ public class Trace {
       filled.set(71);
     }
 
-    scnFailure2XorMachineStateFlag.put((byte) (b ? 1 : 0));
+    prcSuccessXorMachineStateFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3844,7 +3782,7 @@ public class Trace {
       filled.set(72);
     }
 
-    scnFailure3XorMaxcsx.put((byte) (b ? 1 : 0));
+    ripemd160XorMaxcsx.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3856,7 +3794,7 @@ public class Trace {
       filled.set(73);
     }
 
-    scnFailure4XorModFlag.put((byte) (b ? 1 : 0));
+    selfdestructXorModFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3868,7 +3806,7 @@ public class Trace {
       filled.set(74);
     }
 
-    scnSuccess1XorMulFlag.put((byte) (b ? 1 : 0));
+    sha2256XorMulFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3880,7 +3818,7 @@ public class Trace {
       filled.set(76);
     }
 
-    scnSuccess3XorMxpFlag.put((byte) (b ? 1 : 0));
+    mxpFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3892,7 +3830,7 @@ public class Trace {
       filled.set(75);
     }
 
-    scnSuccess2XorMxpx.put((byte) (b ? 1 : 0));
+    mxpx.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3904,7 +3842,7 @@ public class Trace {
       filled.set(77);
     }
 
-    scnSuccess4XorOobFlag.put((byte) (b ? 1 : 0));
+    oobFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3916,7 +3854,7 @@ public class Trace {
       filled.set(78);
     }
 
-    selfdestructXorOogx.put((byte) (b ? 1 : 0));
+    oogx.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3928,7 +3866,7 @@ public class Trace {
       filled.set(79);
     }
 
-    sha2256XorOpcx.put((byte) (b ? 1 : 0));
+    opcx.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -5619,6 +5557,10 @@ public class Trace {
       throw new IllegalStateException("hub_v2.MMU_STAMP has not been filled");
     }
 
+    if (!filled.get(76)) {
+      throw new IllegalStateException("hub_v2.MXP_FLAG has not been filled");
+    }
+
     if (!filled.get(121)) {
       throw new IllegalStateException(
           "hub_v2.MXP___SIZE_1_LO_xor_STACK_ITEM_VALUE_LO_2 has not been filled");
@@ -5642,6 +5584,10 @@ public class Trace {
       throw new IllegalStateException("hub_v2.MXP___WORDS_xor_STATIC_GAS has not been filled");
     }
 
+    if (!filled.get(75)) {
+      throw new IllegalStateException("hub_v2.MXPX has not been filled");
+    }
+
     if (!filled.get(112)) {
       throw new IllegalStateException(
           "hub_v2.NONCE_NEW_xor_CONTEXT_NUMBER_xor_MMU___STACK_VAL_HI_xor_STACK_ITEM_STAMP_1_xor_NONCE has not been filled");
@@ -5654,6 +5600,10 @@ public class Trace {
 
     if (!filled.get(30)) {
       throw new IllegalStateException("hub_v2.NUMBER_OF_NON_STACK_ROWS has not been filled");
+    }
+
+    if (!filled.get(77)) {
+      throw new IllegalStateException("hub_v2.OOB_FLAG has not been filled");
     }
 
     if (!filled.get(125)) {
@@ -5684,6 +5634,14 @@ public class Trace {
       throw new IllegalStateException("hub_v2.OOB___OUTGOING_DATA_6 has not been filled");
     }
 
+    if (!filled.get(78)) {
+      throw new IllegalStateException("hub_v2.OOGX has not been filled");
+    }
+
+    if (!filled.get(79)) {
+      throw new IllegalStateException("hub_v2.OPCX has not been filled");
+    }
+
     if (!filled.get(31)) {
       throw new IllegalStateException("hub_v2.PEEK_AT_ACCOUNT has not been filled");
     }
@@ -5712,6 +5670,21 @@ public class Trace {
       throw new IllegalStateException("hub_v2.PEEK_AT_TRANSACTION has not been filled");
     }
 
+    if (!filled.get(69)) {
+      throw new IllegalStateException(
+          "hub_v2.PRC_FAILURE_KNOWN_TO_HUB_xor_KEC_FLAG has not been filled");
+    }
+
+    if (!filled.get(70)) {
+      throw new IllegalStateException(
+          "hub_v2.PRC_FAILURE_KNOWN_TO_RAM_xor_LOG_FLAG has not been filled");
+    }
+
+    if (!filled.get(71)) {
+      throw new IllegalStateException(
+          "hub_v2.PRC_SUCCESS_xor_MACHINE_STATE_FLAG has not been filled");
+    }
+
     if (!filled.get(38)) {
       throw new IllegalStateException("hub_v2.PROGRAM_COUNTER has not been filled");
     }
@@ -5728,8 +5701,8 @@ public class Trace {
       throw new IllegalStateException("hub_v2.RDCX has not been filled");
     }
 
-    if (!filled.get(69)) {
-      throw new IllegalStateException("hub_v2.RIPEMD-160_xor_KEC_FLAG has not been filled");
+    if (!filled.get(72)) {
+      throw new IllegalStateException("hub_v2.RIPEMD-160_xor_MAXCSX has not been filled");
     }
 
     if (!filled.get(113)) {
@@ -5772,45 +5745,12 @@ public class Trace {
           "hub_v2.RLPADDR___SALT_LO_xor_RETURN_DATA_SIZE_xor_MXP___OFFSET_2_LO_xor_STACK_ITEM_VALUE_HI_4 has not been filled");
     }
 
-    if (!filled.get(70)) {
-      throw new IllegalStateException("hub_v2.SCN_FAILURE_1_xor_LOG_FLAG has not been filled");
-    }
-
-    if (!filled.get(71)) {
-      throw new IllegalStateException(
-          "hub_v2.SCN_FAILURE_2_xor_MACHINE_STATE_FLAG has not been filled");
-    }
-
-    if (!filled.get(72)) {
-      throw new IllegalStateException("hub_v2.SCN_FAILURE_3_xor_MAXCSX has not been filled");
-    }
-
     if (!filled.get(73)) {
-      throw new IllegalStateException("hub_v2.SCN_FAILURE_4_xor_MOD_FLAG has not been filled");
+      throw new IllegalStateException("hub_v2.SELFDESTRUCT_xor_MOD_FLAG has not been filled");
     }
 
     if (!filled.get(74)) {
-      throw new IllegalStateException("hub_v2.SCN_SUCCESS_1_xor_MUL_FLAG has not been filled");
-    }
-
-    if (!filled.get(75)) {
-      throw new IllegalStateException("hub_v2.SCN_SUCCESS_2_xor_MXPX has not been filled");
-    }
-
-    if (!filled.get(76)) {
-      throw new IllegalStateException("hub_v2.SCN_SUCCESS_3_xor_MXP_FLAG has not been filled");
-    }
-
-    if (!filled.get(77)) {
-      throw new IllegalStateException("hub_v2.SCN_SUCCESS_4_xor_OOB_FLAG has not been filled");
-    }
-
-    if (!filled.get(78)) {
-      throw new IllegalStateException("hub_v2.SELFDESTRUCT_xor_OOGX has not been filled");
-    }
-
-    if (!filled.get(79)) {
-      throw new IllegalStateException("hub_v2.SHA2-256_xor_OPCX has not been filled");
+      throw new IllegalStateException("hub_v2.SHA2-256_xor_MUL_FLAG has not been filled");
     }
 
     if (!filled.get(82)) {
@@ -6273,6 +6213,10 @@ public class Trace {
       mmuStamp.position(mmuStamp.position() + 32);
     }
 
+    if (!filled.get(76)) {
+      mxpFlag.position(mxpFlag.position() + 1);
+    }
+
     if (!filled.get(121)) {
       mxpSize1LoXorStackItemValueLo2.position(mxpSize1LoXorStackItemValueLo2.position() + 32);
     }
@@ -6293,6 +6237,10 @@ public class Trace {
       mxpWordsXorStaticGas.position(mxpWordsXorStaticGas.position() + 32);
     }
 
+    if (!filled.get(75)) {
+      mxpx.position(mxpx.position() + 1);
+    }
+
     if (!filled.get(112)) {
       nonceNewXorContextNumberXorMmuStackValHiXorStackItemStamp1XorNonce.position(
           nonceNewXorContextNumberXorMmuStackValHiXorStackItemStamp1XorNonce.position() + 32);
@@ -6305,6 +6253,10 @@ public class Trace {
 
     if (!filled.get(30)) {
       numberOfNonStackRows.position(numberOfNonStackRows.position() + 32);
+    }
+
+    if (!filled.get(77)) {
+      oobFlag.position(oobFlag.position() + 1);
     }
 
     if (!filled.get(125)) {
@@ -6335,6 +6287,14 @@ public class Trace {
       oobOutgoingData6.position(oobOutgoingData6.position() + 32);
     }
 
+    if (!filled.get(78)) {
+      oogx.position(oogx.position() + 1);
+    }
+
+    if (!filled.get(79)) {
+      opcx.position(opcx.position() + 1);
+    }
+
     if (!filled.get(31)) {
       peekAtAccount.position(peekAtAccount.position() + 1);
     }
@@ -6363,6 +6323,18 @@ public class Trace {
       peekAtTransaction.position(peekAtTransaction.position() + 1);
     }
 
+    if (!filled.get(69)) {
+      prcFailureKnownToHubXorKecFlag.position(prcFailureKnownToHubXorKecFlag.position() + 1);
+    }
+
+    if (!filled.get(70)) {
+      prcFailureKnownToRamXorLogFlag.position(prcFailureKnownToRamXorLogFlag.position() + 1);
+    }
+
+    if (!filled.get(71)) {
+      prcSuccessXorMachineStateFlag.position(prcSuccessXorMachineStateFlag.position() + 1);
+    }
+
     if (!filled.get(38)) {
       programCounter.position(programCounter.position() + 32);
     }
@@ -6379,8 +6351,8 @@ public class Trace {
       rdcx.position(rdcx.position() + 1);
     }
 
-    if (!filled.get(69)) {
-      ripemd160XorKecFlag.position(ripemd160XorKecFlag.position() + 1);
+    if (!filled.get(72)) {
+      ripemd160XorMaxcsx.position(ripemd160XorMaxcsx.position() + 1);
     }
 
     if (!filled.get(113)) {
@@ -6425,44 +6397,12 @@ public class Trace {
           rlpaddrSaltLoXorReturnDataSizeXorMxpOffset2LoXorStackItemValueHi4.position() + 32);
     }
 
-    if (!filled.get(70)) {
-      scnFailure1XorLogFlag.position(scnFailure1XorLogFlag.position() + 1);
-    }
-
-    if (!filled.get(71)) {
-      scnFailure2XorMachineStateFlag.position(scnFailure2XorMachineStateFlag.position() + 1);
-    }
-
-    if (!filled.get(72)) {
-      scnFailure3XorMaxcsx.position(scnFailure3XorMaxcsx.position() + 1);
-    }
-
     if (!filled.get(73)) {
-      scnFailure4XorModFlag.position(scnFailure4XorModFlag.position() + 1);
+      selfdestructXorModFlag.position(selfdestructXorModFlag.position() + 1);
     }
 
     if (!filled.get(74)) {
-      scnSuccess1XorMulFlag.position(scnSuccess1XorMulFlag.position() + 1);
-    }
-
-    if (!filled.get(75)) {
-      scnSuccess2XorMxpx.position(scnSuccess2XorMxpx.position() + 1);
-    }
-
-    if (!filled.get(76)) {
-      scnSuccess3XorMxpFlag.position(scnSuccess3XorMxpFlag.position() + 1);
-    }
-
-    if (!filled.get(77)) {
-      scnSuccess4XorOobFlag.position(scnSuccess4XorOobFlag.position() + 1);
-    }
-
-    if (!filled.get(78)) {
-      selfdestructXorOogx.position(selfdestructXorOogx.position() + 1);
-    }
-
-    if (!filled.get(79)) {
-      sha2256XorOpcx.position(sha2256XorOpcx.position() + 1);
+      sha2256XorMulFlag.position(sha2256XorMulFlag.position() + 1);
     }
 
     if (!filled.get(82)) {

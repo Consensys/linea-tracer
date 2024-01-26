@@ -15,15 +15,20 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment;
 
+import java.util.Optional;
+
+import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.Precompile;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
+import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 /** This machine generates lines */
 public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
-  private final boolean targetIsPrecompile;
+  private final Optional<Precompile> targetPrecompile;
   private final boolean targetHasCode;
   private final boolean abort;
   private final int callerId;
@@ -32,16 +37,20 @@ public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
   private boolean calleeSelfReverts = false;
 
   public ScenarioFragment(
-      boolean targetIsPrecompile,
+      Optional<Precompile> targetPrecompile,
       boolean targetHasCode,
       boolean abort,
       int callerId,
       int calleeId) {
-    this.targetIsPrecompile = targetIsPrecompile;
+    this.targetPrecompile = targetPrecompile;
     this.targetHasCode = targetHasCode;
     this.abort = abort;
     this.callerId = callerId;
     this.calleeId = calleeId;
+  }
+
+  private boolean targetIsPrecompile() {
+    return this.targetPrecompile.isPresent();
   }
 
   @Override
@@ -54,19 +63,14 @@ public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
   public Trace trace(Trace trace) {
     return trace
         .peekAtScenario(true)
-        .pScenarioScnFailure1(false)
-        .pScenarioScnFailure2(false)
-        .pScenarioScnFailure3(false)
-        .pScenarioScnFailure4(false)
-        .pScenarioScnSuccess1(false)
-        .pScenarioScnSuccess2(false)
-        .pScenarioScnSuccess3(false)
-        .pScenarioScnSuccess4(false)
+        .pScenarioPrcSuccess(false)
+        .pScenarioPrcFailureKnownToHub(false)
+        .pScenarioPrcFailureKnownToRam(false)
         .pScenarioCallAbort(abort)
         .pScenarioCallEoaSuccessCallerWillRevert(
-            !abort && !targetIsPrecompile && !targetHasCode && callerReverts)
+            !abort && !targetIsPrecompile() && !targetHasCode && callerReverts)
         .pScenarioCallEoaSuccessCallerWontRevert(
-            !abort && !targetIsPrecompile && !targetHasCode && !callerReverts)
+            !abort && !targetIsPrecompile() && !targetHasCode && !callerReverts)
         .pScenarioCallSmcSuccessCallerWillRevert(
             !abort && targetHasCode && callerReverts && !calleeSelfReverts)
         .pScenarioCallSmcSuccessCallerWontRevert(
@@ -76,13 +80,13 @@ public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
         .pScenarioCallSmcFailureCallerWontRevert(
             !abort && targetHasCode && !callerReverts && calleeSelfReverts)
         .pScenarioCallPrcSuccessCallerWillRevert(
-            !abort && targetIsPrecompile && callerReverts && !calleeSelfReverts)
+            !abort && targetIsPrecompile() && callerReverts && !calleeSelfReverts)
         .pScenarioCallPrcSuccessCallerWontRevert(
-            !abort && targetIsPrecompile && !callerReverts && !calleeSelfReverts)
+            !abort && targetIsPrecompile() && !callerReverts && !calleeSelfReverts)
         .pScenarioCallPrcFailureCallerWillRevert(
-            !abort && targetIsPrecompile && callerReverts && calleeSelfReverts)
+            !abort && targetIsPrecompile() && callerReverts && calleeSelfReverts)
         .pScenarioCallPrcFailureCallerWontRevert(
-            !abort && targetIsPrecompile && !callerReverts && calleeSelfReverts)
+            !abort && targetIsPrecompile() && !callerReverts && calleeSelfReverts)
         .pScenarioBlake2F(false)
         .pScenarioCodedeposit(false)
         .pScenarioEcadd(false)

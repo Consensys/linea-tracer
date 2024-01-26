@@ -68,7 +68,7 @@ public class HashData implements Module {
     final OpCode opCode = hub.opCode();
     if (opCode == OpCode.CREATE2 || opCode == OpCode.SHA3) {
       if (this.hub.pch().exceptions().none()) {
-        final long size = Words.clampedToLong(frame.getStackItem(opCode == OpCode.CREATE2 ? 2 : 1));
+        final long size = Words.clampedToLong(frame.getStackItem(1));
         final int limbCount = (int) roundedUpDivision(size, 16);
         this.add(limbCount);
       }

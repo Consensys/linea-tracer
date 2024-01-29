@@ -20,10 +20,11 @@ import static net.consensys.linea.zktracer.module.Util.byteBits;
 
 import java.math.BigInteger;
 import java.util.Arrays;
-import java.util.Objects;
 
+import lombok.EqualsAndHashCode;
 import net.consensys.linea.zktracer.bytestheta.BaseBytes;
 import net.consensys.linea.zktracer.bytestheta.BaseTheta;
+import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.types.UnsignedByte;
@@ -32,13 +33,14 @@ import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
 import org.apache.tuweni.units.bigints.UInt64;
 
-public class ModOperation {
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
+public class ModOperation extends ModuleOperation {
   private static final int MMEDIUM = 8;
 
-  private final OpCode opCode;
+  @EqualsAndHashCode.Include private final OpCode opCode;
+  @EqualsAndHashCode.Include private final Bytes32 rawArg1;
+  @EqualsAndHashCode.Include private final Bytes32 rawArg2;
   private final boolean oli;
-  private final Bytes32 rawArg1;
-  private final Bytes32 rawArg2;
   private BaseBytes arg1;
   private BaseBytes arg2;
 
@@ -53,25 +55,6 @@ public class ModOperation {
   private final boolean[] cmp2 = new boolean[8];
   private Boolean[] msb1 = new Boolean[8];
   private Boolean[] msb2 = new Boolean[8];
-
-  /**
-   * This custom hash function ensures that all identical operations are only traced once per
-   * conflation block.
-   */
-  @Override
-  public int hashCode() {
-    return Objects.hash(this.opCode, this.rawArg1, this.rawArg2);
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    final ModOperation that = (ModOperation) o;
-    return Objects.equals(opCode, that.opCode)
-        && Objects.equals(rawArg1, that.rawArg1)
-        && Objects.equals(rawArg2, that.rawArg2);
-  }
 
   public ModOperation(OpCodeData opCodeData, Bytes32 arg1, Bytes32 arg2) {
     this(opCodeData.mnemonic(), arg1, arg2);
@@ -308,5 +291,10 @@ public class ModOperation {
           .msb2(this.msb2[i])
           .validateRow();
     }
+  }
+
+  @Override
+  protected int computeLineCount() {
+    return this.maxCounter();
   }
 }

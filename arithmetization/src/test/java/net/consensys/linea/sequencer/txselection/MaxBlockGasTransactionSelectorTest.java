@@ -46,14 +46,14 @@ public class MaxBlockGasTransactionSelectorTest {
   public void shouldSelectWhen_GasUsedByTransaction_IsLessThan_MaxGasPerBlock() {
     var mockTransactionProcessingResult = mockTransactionProcessingResult(MAX_GAS_PER_BLOCK - 1);
     verifyTransactionSelection(
-        transactionSelector, mockTransaction(), mockTransactionProcessingResult, SELECTED);
+        transactionSelector, mockEvaluationContext(), mockTransactionProcessingResult, SELECTED);
   }
 
   @Test
   public void shouldSelectWhen_GasUsedByTransaction_IsEqual_MaxGasPerBlock() {
     var mockTransactionProcessingResult = mockTransactionProcessingResult(MAX_GAS_PER_BLOCK);
     verifyTransactionSelection(
-        transactionSelector, mockTransaction(), mockTransactionProcessingResult, SELECTED);
+        transactionSelector, mockEvaluationContext(), mockTransactionProcessingResult, SELECTED);
   }
 
   @Test
@@ -61,7 +61,7 @@ public class MaxBlockGasTransactionSelectorTest {
     var mockTransactionProcessingResult = mockTransactionProcessingResult(MAX_GAS_PER_BLOCK + 1);
     verifyTransactionSelection(
         transactionSelector,
-        mockTransaction(),
+        mockEvaluationContext(),
         mockTransactionProcessingResult,
         TX_GAS_EXCEEDS_USER_MAX_BLOCK_GAS);
   }
@@ -71,40 +71,41 @@ public class MaxBlockGasTransactionSelectorTest {
     // block empty, transaction 80% max gas, should select
     verifyTransactionSelection(
         transactionSelector,
-        mockTransaction(),
+        mockEvaluationContext(),
         mockTransactionProcessingResult(MAX_GAS_PER_BLOCK_80_PERCENTAGE),
         SELECTED);
 
     // block 80% full, transaction 80% max gas, should not select
     verifyTransactionSelection(
         transactionSelector,
-        mockTransaction(),
+        mockEvaluationContext(),
         mockTransactionProcessingResult(MAX_GAS_PER_BLOCK_80_PERCENTAGE),
         TX_TOO_LARGE_FOR_REMAINING_USER_GAS);
 
     // block 80% full, transaction 20% max gas, should select
     verifyTransactionSelection(
         transactionSelector,
-        mockTransaction(),
+        mockEvaluationContext(),
         mockTransactionProcessingResult(MAX_GAS_PER_BLOCK_20_PERCENTAGE),
         SELECTED);
   }
 
   private void verifyTransactionSelection(
       final PluginTransactionSelector selector,
-      final PendingTransaction transaction,
+      final TestTransactionEvaluationContext evaluationContext,
       final TransactionProcessingResult processingResult,
       final TransactionSelectionResult expectedSelectionResult) {
-    var selectionResult = selector.evaluateTransactionPostProcessing(transaction, processingResult);
+    var selectionResult =
+        selector.evaluateTransactionPostProcessing(evaluationContext, processingResult);
     assertThat(selectionResult).isEqualTo(expectedSelectionResult);
-    notifySelector(selector, transaction, processingResult, selectionResult);
+    notifySelector(selector, evaluationContext, processingResult, selectionResult);
   }
 
-  private PendingTransaction mockTransaction() {
-    PendingTransaction mockTransaction = mock(PendingTransaction.class);
+  private TestTransactionEvaluationContext mockEvaluationContext() {
+    PendingTransaction pendingTransaction = mock(PendingTransaction.class);
     Transaction transaction = mock(Transaction.class);
-    when(mockTransaction.getTransaction()).thenReturn(transaction);
-    return mockTransaction;
+    when(pendingTransaction.getTransaction()).thenReturn(transaction);
+    return new TestTransactionEvaluationContext(pendingTransaction);
   }
 
   private TransactionProcessingResult mockTransactionProcessingResult(long gasUsedByTransaction) {
@@ -117,13 +118,13 @@ public class MaxBlockGasTransactionSelectorTest {
 
   private void notifySelector(
       final PluginTransactionSelector selector,
-      final PendingTransaction transaction,
+      final TestTransactionEvaluationContext evaluationContext,
       final TransactionProcessingResult processingResult,
       final TransactionSelectionResult selectionResult) {
     if (selectionResult.equals(SELECTED)) {
-      selector.onTransactionSelected(transaction, processingResult);
+      selector.onTransactionSelected(evaluationContext, processingResult);
     } else {
-      selector.onTransactionNotSelected(transaction, selectionResult);
+      selector.onTransactionNotSelected(evaluationContext, selectionResult);
     }
   }
 }

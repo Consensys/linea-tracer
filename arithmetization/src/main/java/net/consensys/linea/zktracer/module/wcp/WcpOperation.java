@@ -24,16 +24,18 @@ import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
+import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.types.Bytes16;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 
 @Slf4j
-public class WcpOperation {
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
+public class WcpOperation extends ModuleOperation {
   private static final int LLARGEMO = 15;
   private static final int LLARGE = 16;
   public static final byte LEQbv = 0x0E;
@@ -46,12 +48,11 @@ public class WcpOperation {
 
   private static final byte ISZERObv = 0x15;
 
-  private final byte wcpInst;
-  private final Bytes32 arg1;
-  private final Bytes32 arg2;
+  @EqualsAndHashCode.Include private final byte wcpInst;
+  @EqualsAndHashCode.Include private final Bytes32 arg1;
+  @EqualsAndHashCode.Include private final Bytes32 arg2;
   final int ctMax;
-  private int length;
-  private int offset;
+
   private Bytes arg1Hi;
   private Bytes arg1Lo;
   private Bytes arg2Hi;
@@ -79,8 +80,8 @@ public class WcpOperation {
   }
 
   private void compute() {
-    this.length = this.isOli() ? LLARGE : this.ctMax + 1;
-    this.offset = LLARGE - length;
+    final int length = this.isOli() ? LLARGE : this.ctMax + 1;
+    final int offset = LLARGE - length;
     this.arg1Hi = arg1.slice(offset, length);
     this.arg1Lo = arg1.slice(LLARGE + offset, length);
     this.arg2Hi = arg2.slice(offset, length);
@@ -123,21 +124,6 @@ public class WcpOperation {
     // Set bit 1 and 2
     this.bit1 = this.arg1Hi.compareTo(this.arg2Hi) == 0;
     this.bit2 = this.arg1Lo.compareTo(this.arg2Lo) == 0;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(this.wcpInst, this.arg1, this.arg2);
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    final WcpOperation that = (WcpOperation) o;
-    return Objects.equals(wcpInst, that.wcpInst)
-        && Objects.equals(arg1, that.arg1)
-        && Objects.equals(arg2, that.arg2);
   }
 
   private boolean calculateResLow(byte opCode, Bytes32 arg1, Bytes32 arg2) {
@@ -247,5 +233,10 @@ public class WcpOperation {
       }
       default -> throw new IllegalStateException("Unexpected value: " + this.wcpInst);
     }
+  }
+
+  @Override
+  protected int computeLineCount() {
+    return this.ctMax + 1;
   }
 }

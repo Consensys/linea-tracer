@@ -35,6 +35,7 @@ import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.bin.Bin;
 import net.consensys.linea.zktracer.module.ec_data.EcData;
+import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.ext.Ext;
 import net.consensys.linea.zktracer.module.hub.defer.*;
 import net.consensys.linea.zktracer.module.hub.fragment.*;
@@ -166,6 +167,7 @@ public class Hub implements Module {
   private final Module bin = new Bin(this);
   private final Ext ext = new Ext(this);
   private final EcData ecData;
+  private final Euc euc;
   private final Mod mod = new Mod();
   private final Module mul = new Mul(this);
   private final Module shf = new Shf();
@@ -188,6 +190,7 @@ public class Hub implements Module {
   private final List<Module> modules;
   /* Those modules are not traced, we just compute the number of calls to those precompile to meet the prover limits */
   private final List<Module> precompileLimitModules;
+  private final List<Module> refTableModules;
 
   public Hub() {
     this.pch = new PlatformController(this);
@@ -198,6 +201,7 @@ public class Hub implements Module {
     this.rlpTxn = new RlpTxn(this.romLex);
     this.txnData = new TxnData(this, this.romLex, this.wcp);
     this.ecData = new EcData(this, this.wcp, this.ext);
+    this.euc = new Euc(this.wcp);
 
     final EcRecoverEffectiveCall ecRec = new EcRecoverEffectiveCall(this);
     this.modexp = new ModexpEffectiveCall(this);
@@ -218,6 +222,8 @@ public class Hub implements Module {
             new Keccak(this, ecRec, this.l2Block),
             new L2L1Logs(this.l2Block));
 
+    this.refTableModules = List.of(new BinRt(), new InstructionDecoder(), new ShfRt());
+
     this.modules =
         Stream.concat(
                 Stream.of(
@@ -225,6 +231,7 @@ public class Hub implements Module {
                     this.add,
                     this.bin,
                     this.ecData,
+                    this.euc,
                     this.ext,
                     this.logData,
                     this.logInfo,
@@ -236,9 +243,9 @@ public class Hub implements Module {
                     this.rlpTxrcpt,
                     this.rom,
                     this.shf,
+                    this.stp,
                     this.trm,
                     this.txnData,
-                    this.stp,
                     this.wcp),
                 this.precompileLimitModules.stream())
             .toList();
@@ -248,31 +255,32 @@ public class Hub implements Module {
    * @return a list of all modules for which to generate traces
    */
   public List<Module> getModulesToTrace() {
-    return List.of(
-        // Reference tables
-        new BinRt(),
-        new InstructionDecoder(),
-        new ShfRt(),
-        // Modules
-        this,
-        this.add,
-        this.bin,
-        this.ext,
-        //        this.ecData, // TODO: not yet
-        this.logData,
-        this.logInfo,
-        this.mod,
-        this.mul,
-        this.mxp,
-        this.rlpAddr,
-        this.rlpTxn,
-        this.rlpTxrcpt,
-        this.rom,
-        this.romLex,
-        this.shf,
-        this.stp,
-        this.txnData,
-        this.wcp);
+    return Stream.concat(
+            this.refTableModules.stream(),
+            // Modules
+            Stream.of(
+                this,
+                this.romLex,
+                this.add,
+                this.bin,
+                this.ext,
+                //        this.ecData, // TODO: not yet
+                this.euc,
+                this.logData,
+                this.logInfo,
+                this.mod,
+                this.modexp.data(),
+                this.mul,
+                this.mxp,
+                this.rlpAddr,
+                this.rlpTxn,
+                this.rlpTxrcpt,
+                this.rom,
+                this.shf,
+                this.stp,
+                this.txnData,
+                this.wcp))
+        .toList();
   }
 
   public List<Module> getModulesToCount() {
@@ -284,6 +292,7 @@ public class Hub implements Module {
                 this.add,
                 this.ext,
                 this.ecData,
+                this.euc,
                 this.logData,
                 this.logInfo,
                 this.mod,
@@ -656,14 +665,19 @@ public class Hub implements Module {
 
   @Override
   public void traceEndTx(
-      WorldView world, Transaction tx, boolean status, Bytes output, List<Log> logs, long gasUsed) {
+      WorldView world,
+      Transaction tx,
+      boolean isSuccessful,
+      Bytes output,
+      List<Log> logs,
+      long gasUsed) {
     if (this.tx.state() != TxState.TX_SKIP) {
       this.tx.state(TxState.TX_FINAL);
     }
-    this.tx.status(status);
+    this.tx.status(!isSuccessful);
 
     if (this.tx.state() != TxState.TX_SKIP) {
-      this.processStateFinal(world, tx, status);
+      this.processStateFinal(world, tx, isSuccessful);
     }
 
     this.defers.runPostTx(this, world, tx);
@@ -671,7 +685,7 @@ public class Hub implements Module {
     this.state.currentTxTrace().postTxRetcon(this);
 
     for (Module m : this.modules) {
-      m.traceEndTx(world, tx, status, output, logs, gasUsed);
+      m.traceEndTx(world, tx, isSuccessful, output, logs, gasUsed);
     }
   }
 

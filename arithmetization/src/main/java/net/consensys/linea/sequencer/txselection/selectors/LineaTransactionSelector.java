@@ -25,13 +25,14 @@ import org.hyperledger.besu.plugin.data.TransactionProcessingResult;
 import org.hyperledger.besu.plugin.data.TransactionSelectionResult;
 import org.hyperledger.besu.plugin.services.tracer.BlockAwareOperationTracer;
 import org.hyperledger.besu.plugin.services.txselection.PluginTransactionSelector;
+import org.hyperledger.besu.plugin.services.txselection.TransactionEvaluationContext;
 
 /** Class for transaction selection using a list of selectors. */
 @Slf4j
 public class LineaTransactionSelector implements PluginTransactionSelector {
 
-  private static TraceLineLimitTransactionSelector traceLineLimitTransactionSelector;
-  List<PluginTransactionSelector> selectors;
+  private TraceLineLimitTransactionSelector traceLineLimitTransactionSelector;
+  private List<PluginTransactionSelector> selectors;
 
   public LineaTransactionSelector(
       LineaTransactionSelectorConfiguration lineaConfiguration,
@@ -46,7 +47,7 @@ public class LineaTransactionSelector implements PluginTransactionSelector {
    * @param limitsMapSupplier The supplier for the limits map.
    * @return A list of selectors.
    */
-  private static List<PluginTransactionSelector> createTransactionSelectors(
+  private List<PluginTransactionSelector> createTransactionSelectors(
       final LineaTransactionSelectorConfiguration lineaConfiguration,
       final Supplier<Map<String, Integer>> limitsMapSupplier) {
 
@@ -57,6 +58,12 @@ public class LineaTransactionSelector implements PluginTransactionSelector {
     return List.of(
         new MaxBlockCallDataTransactionSelector(lineaConfiguration.maxBlockCallDataSize()),
         new MaxBlockGasTransactionSelector(lineaConfiguration.maxGasPerBlock()),
+        new ProfitableTransactionSelector(
+            lineaConfiguration.getVerificationGasCost(),
+            lineaConfiguration.getVerificationCapacity(),
+            lineaConfiguration.getGasPriceRatio(),
+            lineaConfiguration.getMinMargin(),
+            lineaConfiguration.getAdjustTxSize()),
         traceLineLimitTransactionSelector);
   }
 
@@ -64,14 +71,14 @@ public class LineaTransactionSelector implements PluginTransactionSelector {
    * Evaluates a transaction before processing using all selectors. Stops if any selector doesn't
    * select the transaction.
    *
-   * @param pendingTransaction The transaction to evaluate.
+   * @param evaluationContext The current selection context.
    * @return The first non-SELECTED result or SELECTED if all selectors select the transaction.
    */
   @Override
   public TransactionSelectionResult evaluateTransactionPreProcessing(
-      PendingTransaction pendingTransaction) {
+      final TransactionEvaluationContext<? extends PendingTransaction> evaluationContext) {
     return selectors.stream()
-        .map(selector -> selector.evaluateTransactionPreProcessing(pendingTransaction))
+        .map(selector -> selector.evaluateTransactionPreProcessing(evaluationContext))
         .filter(result -> !result.equals(TransactionSelectionResult.SELECTED))
         .findFirst()
         .orElse(TransactionSelectionResult.SELECTED);
@@ -81,16 +88,17 @@ public class LineaTransactionSelector implements PluginTransactionSelector {
    * Evaluates a transaction considering its processing result. Stops if any selector doesn't select
    * the transaction.
    *
-   * @param pendingTransaction The processed transaction.
+   * @param evaluationContext The current selection context.
    * @param processingResult The result of the transaction processing.
    * @return The first non-SELECTED result or SELECTED if all selectors select the transaction.
    */
   @Override
   public TransactionSelectionResult evaluateTransactionPostProcessing(
-      PendingTransaction pendingTransaction, TransactionProcessingResult processingResult) {
+      final TransactionEvaluationContext<? extends PendingTransaction> evaluationContext,
+      final TransactionProcessingResult processingResult) {
     for (var selector : selectors) {
       TransactionSelectionResult result =
-          selector.evaluateTransactionPostProcessing(pendingTransaction, processingResult);
+          selector.evaluateTransactionPostProcessing(evaluationContext, processingResult);
       if (!result.equals(TransactionSelectionResult.SELECTED)) {
         return result;
       }
@@ -101,30 +109,30 @@ public class LineaTransactionSelector implements PluginTransactionSelector {
   /**
    * Notifies all selectors when a transaction is selected.
    *
-   * @param pendingTransaction The selected transaction.
+   * @param evaluationContext The current selection context.
    * @param processingResult The transaction processing result.
    */
   @Override
   public void onTransactionSelected(
-      final PendingTransaction pendingTransaction,
+      final TransactionEvaluationContext<? extends PendingTransaction> evaluationContext,
       final TransactionProcessingResult processingResult) {
     selectors.forEach(
-        selector -> selector.onTransactionSelected(pendingTransaction, processingResult));
+        selector -> selector.onTransactionSelected(evaluationContext, processingResult));
   }
 
   /**
    * Notifies all selectors when a transaction is not selected.
    *
-   * @param pendingTransaction The non-selected transaction.
+   * @param evaluationContext The current selection context.
    * @param transactionSelectionResult The reason for not selecting the transaction.
    */
   @Override
   public void onTransactionNotSelected(
-      final PendingTransaction pendingTransaction,
+      final TransactionEvaluationContext<? extends PendingTransaction> evaluationContext,
       final TransactionSelectionResult transactionSelectionResult) {
     selectors.forEach(
         selector ->
-            selector.onTransactionNotSelected(pendingTransaction, transactionSelectionResult));
+            selector.onTransactionNotSelected(evaluationContext, transactionSelectionResult));
   }
 
   /**

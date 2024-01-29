@@ -44,6 +44,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
+import org.jetbrains.annotations.NotNull;
 
 @RequiredArgsConstructor
 public class TxnData implements Module {
@@ -112,13 +113,13 @@ public class TxnData implements Module {
   public void traceEndTx(
       WorldView worldView,
       Transaction tx,
-      boolean status,
+      boolean isSuccessful,
       Bytes output,
       List<Log> logs,
       long cumulativeGasUsed) {
     final long refundCounter = hub.refundedGas();
     final long leftoverGas = hub.remainingGas();
-    this.currentBlock().endTx(cumulativeGasUsed, leftoverGas, refundCounter, status);
+    this.currentBlock().endTx(cumulativeGasUsed, leftoverGas, refundCounter, isSuccessful);
 
     // Call the wcp module:
     if (!this.currentBlock().getTxs().isEmpty()) {
@@ -360,6 +361,12 @@ public class TxnData implements Module {
             COMMON_RLP_TXN_PHASE_NUMBER_5 // ct = 5
             );
 
+    List<Integer> phaseDependentSuffix = computePhaseDependentSuffix(tx);
+    return Stream.concat(common.stream(), phaseDependentSuffix.stream()).toList();
+  }
+
+  @NotNull
+  private static List<Integer> computePhaseDependentSuffix(TransactionSnapshot tx) {
     List<Integer> phaseDependentSuffix;
 
     switch (tx.type()) {
@@ -379,7 +386,7 @@ public class TxnData implements Module {
               );
       default -> throw new IllegalStateException("transaction type not supported:" + tx.type());
     }
-    return Stream.concat(common.stream(), phaseDependentSuffix.stream()).toList();
+    return phaseDependentSuffix;
   }
 
   private List<Integer> setPhaseRlpTxnRcpt() {

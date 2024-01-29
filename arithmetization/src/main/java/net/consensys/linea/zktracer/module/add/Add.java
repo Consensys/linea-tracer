@@ -70,6 +70,6 @@ public class Add implements Module {
 
   @Override
   public int lineCount() {
-    return this.chunks.size() * 16;
+    return this.chunks.lineCount();
   }
 }

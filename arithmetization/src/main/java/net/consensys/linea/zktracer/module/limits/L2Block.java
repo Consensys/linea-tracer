@@ -29,16 +29,15 @@ import net.consensys.linea.zktracer.module.Module;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
+import org.hyperledger.besu.ethereum.core.BlockWithReceipts;
 import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.log.LogTopic;
 import org.hyperledger.besu.evm.worldstate.WorldView;
-import org.hyperledger.besu.plugin.data.BlockBody;
-import org.hyperledger.besu.plugin.data.BlockHeader;
 
 @Accessors(fluent = true)
 public class L2Block implements Module {
-  private final Address L2L1_ADDRESS;
-  private final LogTopic L2L1_TOPIC;
+  private final Address l2L1Address;
+  private final LogTopic l2L1Topic;
 
   private static final int ADDRESS_BYTES = 20;
   private static final int HASH_BYTES = 32;
@@ -53,10 +52,10 @@ public class L2Block implements Module {
   @Getter private final Deque<List<Integer>> l2l1LogSizes = new ArrayDeque<>();
 
   public L2Block() {
-    this.L2L1_TOPIC =
+    this.l2L1Topic =
         LogTopic.fromHexString(
             Optional.ofNullable(System.getenv("L2L1_TOPIC")).orElse("0xDEADBEEF"));
-    this.L2L1_ADDRESS =
+    this.l2L1Address =
         Address.fromHexString(
             Optional.ofNullable(System.getenv("L2L1_CONTRACT_ADDRESS")).orElse("0x12345"));
   }
@@ -80,8 +79,7 @@ public class L2Block implements Module {
 
   @Override
   public int lineCount() {
-    return computeL1DataSize(
-        this.sizesRlpEncodedTxs, this.l2l1LogSizes.stream().mapToInt(List::size).sum());
+    return computeL1DataSize(this.sizesRlpEncodedTxs, l2l1LogsCount());
   }
 
   @Override
@@ -98,7 +96,7 @@ public class L2Block implements Module {
       List<Log> logs,
       long gasUsed) {
     for (Log log : logs) {
-      if (log.getLogger().equals(L2L1_ADDRESS) && log.getTopics().contains(L2L1_TOPIC)) {
+      if (log.getLogger().equals(l2L1Address) && log.getTopics().contains(l2L1Topic)) {
         this.l2l1LogSizes.peek().add(log.getData().size());
       }
     }
@@ -110,22 +108,13 @@ public class L2Block implements Module {
     return this.l2l1LogSizes.stream().mapToInt(List::size).sum();
   }
 
-  public static int computeL1DataSize(BlockHeader blockHeader, BlockBody blockBody) {
-    List<Integer> sizesRlpEncodedTxs =
-        blockBody.getTransactions().stream().map(t -> t.encoded().size()).toList();
-    // TODO: find a way to validate L1 data size on the block level (of course before a block gets
-    // produced on L2). We are struggling to find the right Besu mechanism to do that. We couldn't
-    // find a list of
-    // transaction logs on BlockHeader or BlockBody, so we were wondering if there is a similar
-    // transaction selection
-    // mechanism, but on a block level, i.e. a block validator plugin or something like that?
-
-    //    blockHeader.getLogsBloom()
-    //    return computeL1DataSize(sizesRlpEncodedTxs, )
-    return 0;
+  public int computeL1DataSize(BlockWithReceipts blockWithReceipts) {
+    List<Integer> sizesTxReceipts =
+        blockWithReceipts.getReceipts().stream().map(r -> r.getLogs().size()).toList();
+    return computeL1DataSize(sizesTxReceipts, l2l1LogsCount());
   }
 
-  private static int computeL1DataSize(Collection<Integer> sizesRlpEncodedTxs, int l2l1LogCount) {
+  private int computeL1DataSize(Collection<Integer> sizesRlpEncodedTxs, int l2L1LogCount) {
     final int txCount = sizesRlpEncodedTxs.size();
 
     // This calculates the data size related to the transaction field of the
@@ -147,7 +136,7 @@ public class L2Block implements Module {
     // Accumulates the data occupied for the hashes of the L2 to L1 messages
     // hashes each of them occupies 32 bytes. Also accounts for the overheads
     // of L2 and L1 messages encoding.
-    final int totalL2L1Logs = HASH_BYTES * l2L1LogsCount + ABI_OFFSET_BYTES + ABI_LEN_BYTES;
+    final int totalL2L1Logs = HASH_BYTES * l2L1LogCount + ABI_OFFSET_BYTES + ABI_LEN_BYTES;
 
     int l1Size = totalTxsRlpSize + totalL2L1Logs + totalFromSize;
 
@@ -159,7 +148,7 @@ public class L2Block implements Module {
     // assumption that the block will be conflated alone. This corresponds to
     // counting twice the root hash and the timestamps. For the L1 messages, we
     // unfortunately do not have the data in the tracer yet. For that reason,
-    // we also make a worst-case assumption that that every transaction is a
+    // we also make a worst-case assumption that every transaction is a
     // batch reception on layer 2. Finally, since what is sent on L1 is an array
     // of L2BlockData, we also make a worst-case assumption that the block will
     // be alone in the structure and account for the ABI encoding.

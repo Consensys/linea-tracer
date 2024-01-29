@@ -33,7 +33,7 @@ that are not allowed to add transactions to the pool.
 
 ## RPC
 
-### Counters - RollupCounterRpcPlugin
+### Counters - CountersEndpointServicePlugin
 #### `rollup_getTracesCountersByBlockNumberV0` 
 
 The RollupRpcEndpointServicePlugin registers an RPC endpoint named `getTracesCountersByBlockNumberV0` 
@@ -46,7 +46,7 @@ under the `rollup` namespace. When this endpoint is called, returns trace counte
   - `tracerVersion`: _string_ - The tracer version. It will return an error if the 
 requested version is different from the tracer runtime 
 
-### Trace generation - RollupTraceGenerationRpcPlugin
+### Trace generation - TracesEndpointServicePlugin
 
 This plugin registers an RPC endpoint named `generateConflatedTracesToFileV0` under the `rollup` namespace. 
 The endpoint generates conflated file traces.

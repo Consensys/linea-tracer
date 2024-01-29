@@ -36,7 +36,7 @@ that are not allowed to add transactions to the pool.
 ### Counters - CountersEndpointServicePlugin
 #### `rollup_getTracesCountersByBlockNumberV0` 
 
-The RollupRpcEndpointServicePlugin registers an RPC endpoint named `getTracesCountersByBlockNumberV0` 
+The CountersEndpointServicePlugin registers an RPC endpoint named `getTracesCountersByBlockNumberV0` 
 under the `rollup` namespace. When this endpoint is called, returns trace counters based on the provided request parameters.
 
 #### Parameters

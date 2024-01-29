@@ -38,6 +38,7 @@ import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.bin.Bin;
 import net.consensys.linea.zktracer.module.ec_data.EcData;
 import net.consensys.linea.zktracer.module.euc.Euc;
+import net.consensys.linea.zktracer.module.exp.Exp;
 import net.consensys.linea.zktracer.module.ext.Ext;
 import net.consensys.linea.zktracer.module.hub.defer.*;
 import net.consensys.linea.zktracer.module.hub.fragment.*;
@@ -177,6 +178,7 @@ public class Hub implements Module {
   private final Wcp wcp = new Wcp(this);
   private final RlpTxn rlpTxn;
   private final Module mxp;
+  private final Module exp; // TODO: add signals and missing connection steps
   private final Mmu mmu;
   private final RlpTxrcpt rlpTxrcpt = new RlpTxrcpt();
   private final LogInfo logInfo = new LogInfo(rlpTxrcpt);
@@ -205,6 +207,7 @@ public class Hub implements Module {
     this.pch = new PlatformController(this);
     this.mmu = new Mmu(this.callStack);
     this.mxp = new Mxp(this);
+    this.exp = new Exp();
     this.romLex = new RomLex(this);
     this.rom = new Rom(this.romLex);
     this.rlpTxn = new RlpTxn(this.romLex);
@@ -248,6 +251,7 @@ public class Hub implements Module {
                     this.mod,
                     this.mul,
                     this.mxp,
+                    this.exp,
                     this.rlpAddr,
                     this.rlpTxn,
                     this.rlpTxrcpt,
@@ -282,6 +286,7 @@ public class Hub implements Module {
                 this.modexp.data(),
                 this.mul,
                 this.mxp,
+                this.exp,
                 this.rlpAddr,
                 this.rlpTxn,
                 this.rlpTxrcpt,
@@ -315,6 +320,7 @@ public class Hub implements Module {
                 this.mmu,
                 this.mul,
                 this.mxp,
+                this.exp,
                 this.rlpAddr,
                 this.rlpTxn,
                 this.rlpTxrcpt,

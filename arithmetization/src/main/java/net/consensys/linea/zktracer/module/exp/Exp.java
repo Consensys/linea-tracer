@@ -15,30 +15,53 @@
 
 package net.consensys.linea.zktracer.module.exp;
 
+import java.nio.MappedByteBuffer;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import net.consensys.linea.zktracer.module.Module;
+import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public class Exp implements Module {
+  /** A list of the operations to trace */
+  private final StackedList<ExpChunk> chunks = new StackedList<>();
+
   @Override
   public String moduleKey() {
-    return null;
+    return "EXP";
   }
 
   @Override
-  public void enterTransaction() {}
+  public void enterTransaction() {
+    this.chunks.enter();
+  }
 
   @Override
-  public void popTransaction() {}
+  public void popTransaction() {
+    this.chunks.pop();
+  }
 
   @Override
   public int lineCount() {
-    return 0;
+    return this.chunks.lineCount();
   }
 
   @Override
   public List<ColumnHeader> columnsHeaders() {
-    return null;
+    return Trace.headers(this.lineCount());
+  }
+
+  @Override
+  public void tracePreOpcode(MessageFrame frame) {
+    this.chunks.add(new ExpChunk(frame)); // TODO: add modules we need
+  }
+
+  @Override
+  public void commit(List<MappedByteBuffer> buffers) {
+    final Trace trace = new Trace(buffers);
+    for (int i = 0; i < this.chunks.size(); i++) {
+      this.chunks.get(i).trace(i + 1, trace);
+    }
   }
 }

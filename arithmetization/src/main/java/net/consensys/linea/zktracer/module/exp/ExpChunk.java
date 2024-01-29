@@ -16,6 +16,23 @@
 package net.consensys.linea.zktracer.module.exp;
 
 import lombok.Getter;
+import net.consensys.linea.zktracer.container.ModuleOperation;
+import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @Getter
-public class ExpChunk {}
+public class ExpChunk extends ModuleOperation {
+
+  public ExpChunk(final MessageFrame frame) {}
+
+  @Override
+  protected int computeLineCount() {
+    return 0; // maxCt
+  }
+
+  final void trace(int stamp, Trace trace) {
+    for (int i = 0; i < 0; i++) { // TODO
+      trace.stamp(Bytes.ofUnsignedLong(stamp)).validateRow();
+    }
+  }
+}

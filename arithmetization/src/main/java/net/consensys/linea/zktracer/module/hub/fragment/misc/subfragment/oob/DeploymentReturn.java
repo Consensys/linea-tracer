@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys AG.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -15,36 +15,27 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob;
 
-import static net.consensys.linea.zktracer.module.oob.Trace.OOB_INST_cdl;
+import static net.consensys.linea.zktracer.module.oob.Trace.OOB_INST_return;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
-import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.Exceptions;
 import net.consensys.linea.zktracer.module.oob.OobDataChannel;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.evm.frame.MessageFrame;
 
-public record CalldataloadSubFragment(EWord readOffset, EWord calldataSize)
-    implements GenericOobSubFragment {
-
-  public static CalldataloadSubFragment build(Hub hub, MessageFrame frame) {
-    return new CalldataloadSubFragment(
-        EWord.of(frame.getStackItem(0)), EWord.of(hub.currentFrame().callData().size()));
-  }
-
+public record DeploymentReturn(EWord size) implements GenericOobSubFragment {
   @Override
   public Bytes data(OobDataChannel i) {
     return switch (i) {
-      case DATA_1 -> this.readOffset.hi();
-      case DATA_2 -> this.readOffset.lo();
-      case DATA_5 -> this.calldataSize;
-      case DATA_7 -> booleanToBytes(this.readOffset.greaterOrEqualThan(this.calldataSize));
+      case DATA_1 -> size.hi();
+      case DATA_2 -> size.lo();
+      case DATA_7 -> booleanToBytes(size.greaterThan(EWord.of(Exceptions.MAX_CODE_SIZE)));
       default -> Bytes.EMPTY;
     };
   }
 
   @Override
   public int oobInstruction() {
-    return OOB_INST_cdl;
+    return OOB_INST_return;
   }
 }

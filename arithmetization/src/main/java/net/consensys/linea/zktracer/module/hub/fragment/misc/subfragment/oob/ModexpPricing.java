@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys AG.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -15,36 +15,36 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob;
 
-import static net.consensys.linea.zktracer.module.oob.Trace.OOB_INST_cdl;
+import static net.consensys.linea.zktracer.module.oob.Trace.OOB_INST_modexp_pricing;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
-import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.subsection.PrecompileScenario;
 import net.consensys.linea.zktracer.module.oob.OobDataChannel;
-import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.evm.frame.MessageFrame;
 
-public record CalldataloadSubFragment(EWord readOffset, EWord calldataSize)
+public record ModexpPricing(
+    PrecompileScenario scenario,
+    long callGas,
+    long returnDataRequestedSize,
+    int exponentLog,
+    int maxMbsBbs)
     implements GenericOobSubFragment {
-
-  public static CalldataloadSubFragment build(Hub hub, MessageFrame frame) {
-    return new CalldataloadSubFragment(
-        EWord.of(frame.getStackItem(0)), EWord.of(hub.currentFrame().callData().size()));
-  }
-
   @Override
   public Bytes data(OobDataChannel i) {
     return switch (i) {
-      case DATA_1 -> this.readOffset.hi();
-      case DATA_2 -> this.readOffset.lo();
-      case DATA_5 -> this.calldataSize;
-      case DATA_7 -> booleanToBytes(this.readOffset.greaterOrEqualThan(this.calldataSize));
+      case DATA_1 -> Bytes.ofUnsignedLong(callGas);
+      case DATA_3 -> Bytes.ofUnsignedLong(returnDataRequestedSize);
+      case DATA_4 -> booleanToBytes(scenario.success());
+      case DATA_5 -> Bytes.ofUnsignedLong(scenario.success() ? callGas - scenario.callPrice() : 0);
+      case DATA_6 -> Bytes.ofUnsignedLong(exponentLog);
+      case DATA_7 -> Bytes.ofUnsignedLong(maxMbsBbs);
+      case DATA_8 -> booleanToBytes(returnDataRequestedSize > 0);
       default -> Bytes.EMPTY;
     };
   }
 
   @Override
   public int oobInstruction() {
-    return OOB_INST_cdl;
+    return OOB_INST_modexp_pricing;
   }
 }

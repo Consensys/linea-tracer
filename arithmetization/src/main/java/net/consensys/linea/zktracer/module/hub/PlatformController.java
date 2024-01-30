@@ -63,7 +63,9 @@ public class PlatformController {
     this.exceptions.prepare(frame, Hub.gp);
     if (this.exceptions.none()) {
       this.aborts.prepare(hub);
-      this.failures.prepare(frame);
+      if (aborts.none()) {
+        this.failures.prepare(frame);
+      }
     }
     this.signals.prepare(frame, this, this.hub);
   }

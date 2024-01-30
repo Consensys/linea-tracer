@@ -40,7 +40,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class TraceLineLimitTransactionSelectorTest {
-
+  private static final int OVER_LINE_COUNT_LIMIT_CACHE_SIZE = 2;
   private TestableTraceLineLimitTransactionSelector transactionSelector;
   private Map<String, Integer> lineCountLimits;
 
@@ -48,11 +48,12 @@ public class TraceLineLimitTransactionSelectorTest {
   public void initialize() {
     lineCountLimits = loadLineCountLimitConf();
     transactionSelector = newSelectorForNewBlock();
+    transactionSelector.reset();
   }
 
   private TestableTraceLineLimitTransactionSelector newSelectorForNewBlock() {
     return new TestableTraceLineLimitTransactionSelector(
-        () -> lineCountLimits, "line-limits.toml", 10);
+        () -> lineCountLimits, "line-limits.toml", OVER_LINE_COUNT_LIMIT_CACHE_SIZE);
   }
 
   private Map<String, Integer> loadLineCountLimitConf() {
@@ -67,23 +68,35 @@ public class TraceLineLimitTransactionSelectorTest {
 
   @Test
   public void shouldSelectWhenBelowLimits() {
+    final var evaluationContext =
+        mockEvaluationContext(false, 100, Wei.of(1_100_000_000), Wei.of(1_000_000_000), 21000);
     verifyTransactionSelection(
         transactionSelector,
-        mockEvaluationContext(false, 100, Wei.of(1_100_000_000), Wei.of(1_000_000_000), 21000),
+        evaluationContext,
         mock(TransactionProcessingResult.class),
         SELECTED,
         SELECTED);
+    assertThat(
+            transactionSelector.isOverLineCountLimitTxCached(
+                evaluationContext.getPendingTransaction().getTransaction().getHash()))
+        .isFalse();
   }
 
   @Test
   public void shouldNotSelectWhenOverLimits() {
     lineCountLimits.put("ADD", 1);
+    final var evaluationContext =
+        mockEvaluationContext(false, 100, Wei.of(1_100_000_000), Wei.of(1_000_000_000), 21000);
     verifyTransactionSelection(
         transactionSelector,
-        mockEvaluationContext(false, 100, Wei.of(1_100_000_000), Wei.of(1_000_000_000), 21000),
+        evaluationContext,
         mock(TransactionProcessingResult.class),
         SELECTED,
         TX_MODULE_LINE_COUNT_OVERFLOW);
+    assertThat(
+            transactionSelector.isOverLineCountLimitTxCached(
+                evaluationContext.getPendingTransaction().getTransaction().getHash()))
+        .isTrue();
   }
 
   @Test
@@ -98,8 +111,15 @@ public class TraceLineLimitTransactionSelectorTest {
         SELECTED,
         TX_MODULE_LINE_COUNT_OVERFLOW);
 
+    assertThat(
+            transactionSelector.isOverLineCountLimitTxCached(
+                evaluationContext.getPendingTransaction().getTransaction().getHash()))
+        .isTrue();
     transactionSelector = newSelectorForNewBlock();
-
+    assertThat(
+            transactionSelector.isOverLineCountLimitTxCached(
+                evaluationContext.getPendingTransaction().getTransaction().getHash()))
+        .isTrue();
     // retrying the same tx should avoid reprocessing
     verifyTransactionSelection(
         transactionSelector,
@@ -107,6 +127,46 @@ public class TraceLineLimitTransactionSelectorTest {
         mock(TransactionProcessingResult.class),
         TX_MODULE_LINE_COUNT_OVERFLOW_CACHED,
         null);
+    assertThat(
+            transactionSelector.isOverLineCountLimitTxCached(
+                evaluationContext.getPendingTransaction().getTransaction().getHash()))
+        .isTrue();
+  }
+
+  @Test
+  public void shouldEvictWhenCacheIsFull() {
+    lineCountLimits.put("ADD", 1);
+    final TestTransactionEvaluationContext[] evaluationContexts =
+        new TestTransactionEvaluationContext[OVER_LINE_COUNT_LIMIT_CACHE_SIZE + 1];
+    for (int i = 0; i <= OVER_LINE_COUNT_LIMIT_CACHE_SIZE; i++) {
+      var evaluationContext =
+          mockEvaluationContext(false, 100, Wei.of(1_100_000_000), Wei.of(1_000_000_000), 21000);
+      verifyTransactionSelection(
+          transactionSelector,
+          evaluationContext,
+          mock(TransactionProcessingResult.class),
+          SELECTED,
+          TX_MODULE_LINE_COUNT_OVERFLOW);
+      evaluationContexts[i] = evaluationContext;
+      assertThat(
+              transactionSelector.isOverLineCountLimitTxCached(
+                  evaluationContext.getPendingTransaction().getTransaction().getHash()))
+          .isTrue();
+    }
+
+    // only the last two txs must be in the unprofitable cache, since the first one was evicted
+    assertThat(
+            transactionSelector.isOverLineCountLimitTxCached(
+                evaluationContexts[0].getPendingTransaction().getTransaction().getHash()))
+        .isFalse();
+    assertThat(
+            transactionSelector.isOverLineCountLimitTxCached(
+                evaluationContexts[1].getPendingTransaction().getTransaction().getHash()))
+        .isTrue();
+    assertThat(
+            transactionSelector.isOverLineCountLimitTxCached(
+                evaluationContexts[2].getPendingTransaction().getTransaction().getHash()))
+        .isTrue();
   }
 
   private void verifyTransactionSelection(
@@ -157,11 +217,19 @@ public class TraceLineLimitTransactionSelectorTest {
 
   private class TestableTraceLineLimitTransactionSelector
       extends TraceLineLimitTransactionSelector {
-    public TestableTraceLineLimitTransactionSelector(
+    TestableTraceLineLimitTransactionSelector(
         final Supplier<Map<String, Integer>> moduleLimitsProvider,
         final String limitFilePath,
         final int overLimitCacheSize) {
       super(moduleLimitsProvider, limitFilePath, overLimitCacheSize);
+    }
+
+    void reset() {
+      overLineCountLimitCache.clear();
+    }
+
+    boolean isOverLineCountLimitTxCached(final Hash txHash) {
+      return overLineCountLimitCache.contains(txHash);
     }
   }
 }

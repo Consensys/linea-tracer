@@ -172,8 +172,12 @@ public class TraceLineLimitTransactionSelector implements PluginTransactionSelec
   }
 
   private void rememberOverLineCountLimitTransaction(final Transaction transaction) {
-    if (overLineCountLimitCache.size() > overLimitCacheSize) {
-      overLineCountLimitCache.iterator().remove();
+    if (overLineCountLimitCache.size() >= overLimitCacheSize) {
+      final var it = overLineCountLimitCache.iterator();
+      if (it.hasNext()) {
+        it.next();
+        it.remove();
+      }
     }
     overLineCountLimitCache.add(transaction.getHash());
     log.atTrace()

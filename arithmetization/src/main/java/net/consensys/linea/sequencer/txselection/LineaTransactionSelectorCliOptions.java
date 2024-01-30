@@ -25,7 +25,7 @@ import picocli.CommandLine;
 public class LineaTransactionSelectorCliOptions {
   public static final int DEFAULT_MAX_BLOCK_CALLDATA_SIZE = 70_000;
   private static final String DEFAULT_MODULE_LIMIT_FILE_PATH = "moduleLimitFile.toml";
-  private static final int DEFAULT_OVER_LINE_COUNT_LIMIT_CACHE_SIZE = 100_000;
+  private static final int DEFAULT_OVER_LINE_COUNT_LIMIT_CACHE_SIZE = 10_000;
   public static final long DEFAULT_MAX_GAS_PER_BLOCK = 30_000_000L;
   public static final int DEFAULT_VERIFICATION_GAS_COST = 1_200_000;
   public static final int DEFAULT_VERIFICATION_CAPACITY = 90_000;

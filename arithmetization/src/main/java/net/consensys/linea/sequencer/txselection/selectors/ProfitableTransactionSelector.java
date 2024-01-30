@@ -198,8 +198,12 @@ public class ProfitableTransactionSelector implements PluginTransactionSelector 
   }
 
   private void registerAsUnProfitable(final Transaction transaction) {
-    if (unprofitableCache.size() > unprofitableCacheSize) {
-      unprofitableCache.iterator().remove();
+    if (unprofitableCache.size() >= unprofitableCacheSize) {
+      final var it = unprofitableCache.iterator();
+      if (it.hasNext()) {
+        it.next();
+        it.remove();
+      }
     }
     unprofitableCache.add(transaction.getHash());
   }

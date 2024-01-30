@@ -17,11 +17,43 @@ package net.consensys.linea.zktracer.module.exp;
 
 import lombok.Getter;
 import net.consensys.linea.zktracer.container.ModuleOperation;
+import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @Getter
 public class ExpChunk extends ModuleOperation {
+  private boolean cmptn;
+  private boolean macro;
+  private boolean prprc;
+  private int ctMax;
+  private boolean isExpLog;
+  private boolean isModexpLog;
+  private boolean pComputationPltBit;
+  private Bytes pComputationPltJmp;
+  private UnsignedByte pComputationRawByte;
+  private Bytes pComputationRawAcc;
+  private UnsignedByte pComputationTrimByte;
+  private Bytes pComputationTrimAcc;
+  private boolean pComputationTanzb;
+  private Bytes pComputationTanzbAcc;
+  private UnsignedByte pComputationMsnzb;
+  private boolean pComputationBitMsnzb;
+  private UnsignedByte pComputationAccMsnzb;
+  private boolean pComputationManzb;
+  private Bytes pComputationManzbAcc;
+  private UnsignedByte pMacroInstructionExpInst;
+  private Bytes pMacroInstructionData1;
+  private Bytes pMacroInstructionData2;
+  private Bytes pMacroInstructionData3;
+  private Bytes pMacroInstructionData4;
+  private Bytes pMacroInstructionData5;
+  private boolean pPreprocessingWcpFlag;
+  private Bytes pPreprocessingWcpArg1Hi;
+  private Bytes pPreprocessingWcpArg1Lo;
+  private Bytes pPreprocessingWcpArg2Hi;
+  private Bytes pPreprocessingWcpArg2Lo;
+  private UnsignedByte pPreprocessingWcpInst;
 
   public ExpChunk(final MessageFrame frame) {}
 
@@ -32,7 +64,41 @@ public class ExpChunk extends ModuleOperation {
 
   final void trace(int stamp, Trace trace) {
     for (int i = 0; i < 0; i++) { // TODO
-      trace.stamp(Bytes.ofUnsignedLong(stamp)).validateRow();
+      trace
+          .cmptn(false)
+          .macro(false)
+          .prprc(false)
+          .stamp(Bytes.ofUnsignedLong(stamp))
+          .ct(Bytes.of(i))
+          .ctMax(Bytes.of(0))
+          .isExpLog(false)
+          .isModexpLog(false)
+          .pComputationPltBit(false)
+          .pComputationPltJmp(Bytes.of(0))
+          .pComputationRawByte(UnsignedByte.ZERO)
+          .pComputationRawAcc(Bytes.of(0))
+          .pComputationTrimByte(UnsignedByte.ZERO)
+          .pComputationTrimAcc(Bytes.of(0))
+          .pComputationTanzb(false)
+          .pComputationTanzbAcc(Bytes.of(0))
+          .pComputationMsnzb(UnsignedByte.ZERO)
+          .pComputationBitMsnzb(false)
+          .pComputationAccMsnzb(UnsignedByte.ZERO)
+          .pComputationManzb(false)
+          .pComputationManzbAcc(Bytes.of(0))
+          .pMacroInstructionExpInst(UnsignedByte.ZERO)
+          .pMacroInstructionData1(Bytes.of(0))
+          .pMacroInstructionData2(Bytes.of(0))
+          .pMacroInstructionData3(Bytes.of(0))
+          .pMacroInstructionData4(Bytes.of(0))
+          .pMacroInstructionData5(Bytes.of(0))
+          .pPreprocessingWcpFlag(false)
+          .pPreprocessingWcpArg1Hi(Bytes.of(0))
+          .pPreprocessingWcpArg1Lo(Bytes.of(0))
+          .pPreprocessingWcpArg2Hi(Bytes.of(0))
+          .pPreprocessingWcpArg2Lo(Bytes.of(0))
+          .pPreprocessingWcpInst(UnsignedByte.ZERO)
+          .validateRow();
     }
   }
 }

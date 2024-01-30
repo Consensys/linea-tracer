@@ -61,7 +61,11 @@ public class ModexpDataOperation extends ModuleOperation {
     final BigInteger expBigInt = exp.toUnsignedBigInteger();
     final BigInteger modBigInt = mod.toUnsignedBigInteger();
 
-    result = bigIntegerToBytes(baseBigInt.modPow(expBigInt, modBigInt));
+    if (!modBigInt.equals(BigInteger.ZERO)) {
+      result = bigIntegerToBytes(baseBigInt.modPow(expBigInt, modBigInt));
+    } else {
+      result = Bytes.EMPTY;
+    }
   }
 
   void trace(Trace trace, int stamp) {

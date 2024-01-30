@@ -53,9 +53,9 @@ public class Trace {
         new ColumnHeader("modexpdata.BYTES", 1, length),
         new ColumnHeader("modexpdata.CT", 1, length),
         new ColumnHeader("modexpdata.INDEX", 1, length),
-        new ColumnHeader("modexpdata.LIMB", 2, length),
+        new ColumnHeader("modexpdata.LIMB", 32, length),
         new ColumnHeader("modexpdata.PHASE", 1, length),
-        new ColumnHeader("modexpdata.RESULT_DATA_CONTEXT", 4, length),
+        new ColumnHeader("modexpdata.RESULT_DATA_CONTEXT", 32, length),
         new ColumnHeader("modexpdata.STAMP", 1, length));
   }
 
@@ -239,7 +239,7 @@ public class Trace {
     }
 
     if (!filled.get(4)) {
-      limb.position(limb.position() + 2);
+      limb.position(limb.position() + 32);
     }
 
     if (!filled.get(5)) {
@@ -247,7 +247,7 @@ public class Trace {
     }
 
     if (!filled.get(6)) {
-      resultDataContext.position(resultDataContext.position() + 4);
+      resultDataContext.position(resultDataContext.position() + 32);
     }
 
     if (!filled.get(7)) {

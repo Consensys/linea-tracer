@@ -17,6 +17,12 @@ package net.consensys.linea.zktracer.module.exp;
 
 import static net.consensys.linea.zktracer.module.exp.Trace.EXP_EXPLOG;
 import static net.consensys.linea.zktracer.module.exp.Trace.EXP_MODEXPLOG;
+import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_CMPTN_EXP_LOG;
+import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_CMPTN_MODEXP_LOG;
+import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_MACRO_EXP_LOG;
+import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_MACRO_MODEXP_LOG;
+import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_PRPRC_EXP_LOG;
+import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_PRPRC_MODEXP_LOG;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToInt;
 
 import lombok.Getter;
@@ -59,7 +65,11 @@ public class ExpChunk extends ModuleOperation {
   private Bytes pPreprocessingWcpArg2Lo;
   private UnsignedByte pPreprocessingWcpInst;
 
-  public ExpChunk(final MessageFrame frame) {}
+  public ExpChunk(final MessageFrame frame) {
+    // EXP opcode in one case
+    // MODEXP call to precompile
+    // hub.exceptions.none() && hub.abortingCondition.none();
+  }
 
   @Override
   protected int computeLineCount() {
@@ -75,11 +85,39 @@ public class ExpChunk extends ModuleOperation {
   }
 
   int wghtSumMacro() {
-    return EXP_EXPLOG * booleanToInt(isExpLog) + EXP_MODEXPLOG * booleanToInt(isModexpLog);
+    if (isExpLog) {
+      return EXP_EXPLOG;
+    } else if (isModexpLog) {
+      return EXP_MODEXPLOG;
+    }
+    return 0;
+  }
+
+  int maxCt() {
+    if (cmptn) {
+      if (isExpLog) {
+        return MAX_CT_CMPTN_EXP_LOG;
+      } else if (isModexpLog) {
+        return MAX_CT_CMPTN_MODEXP_LOG;
+      }
+    } else if (macro) {
+      if (isExpLog) {
+        return MAX_CT_MACRO_EXP_LOG;
+      } else if (isModexpLog) {
+        return MAX_CT_MACRO_MODEXP_LOG;
+      }
+    } else if (prprc) {
+      if (isExpLog) {
+        return MAX_CT_PRPRC_EXP_LOG;
+      } else if (isModexpLog) {
+        return MAX_CT_PRPRC_MODEXP_LOG;
+      }
+    }
+    return 0;
   }
 
   final void trace(int stamp, Trace trace) {
-    for (int i = 0; i < 0; i++) { // TODO
+    for (int i = 0; i < this.maxCt(); i++) { // TODO
       trace
           .cmptn(false)
           .macro(false)

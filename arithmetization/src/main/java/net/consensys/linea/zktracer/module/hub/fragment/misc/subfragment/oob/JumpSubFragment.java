@@ -15,62 +15,64 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob;
 
-import java.math.BigInteger;
+import static net.consensys.linea.zktracer.module.oob.Trace.OOB_INST_jump;
+import static net.consensys.linea.zktracer.module.oob.Trace.OOB_INST_jumpi;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.Trace;
-import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
-import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.module.oob.OobDataChannel;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 
-public record JumpSubFragment(
-    EWord targetPc,
-    EWord jumpCondition,
-    int codeSize,
-    OpCode opCode,
-    boolean event1,
-    boolean event2)
-    implements TraceSubFragment {
+public final class JumpSubFragment implements GenericOobSubFragment {
+  private final EWord targetPc;
+  private final EWord jumpCondition;
+  private final int codeSize;
+  private final int oobInst;
+  private final boolean event1;
+  private final boolean event2;
 
-  public static JumpSubFragment build(Hub hub, MessageFrame frame) {
-    final OpCode opCode = hub.currentFrame().opCode();
-    final long targetPc = Words.clampedToLong(frame.getStackItem(0));
+  public JumpSubFragment(Hub hub, MessageFrame frame) {
+    long targetPc = Words.clampedToLong(frame.getStackItem(0));
     final boolean invalidDestination = frame.getCode().isJumpDestInvalid((int) targetPc);
 
     long jumpCondition = 0;
-    boolean event1;
-    switch (opCode) {
-      case JUMP -> event1 = invalidDestination;
+    switch (hub.currentFrame().opCode()) {
+      case JUMP -> {
+        this.oobInst = OOB_INST_jump;
+        this.event1 = invalidDestination;
+      }
       case JUMPI -> {
+        this.oobInst = OOB_INST_jumpi;
         jumpCondition = Words.clampedToLong(frame.getStackItem(1));
-        event1 = (jumpCondition != 0) && invalidDestination;
+        this.event1 = (jumpCondition != 0) && invalidDestination;
       }
       default -> throw new IllegalArgumentException("Unexpected opcode");
     }
 
-    return new JumpSubFragment(
-        EWord.of(BigInteger.valueOf(targetPc)),
-        EWord.of(BigInteger.valueOf(jumpCondition)),
-        frame.getWorldUpdater().get(hub.currentFrame().codeAddress()).getCode().size(),
-        opCode,
-        event1,
-        jumpCondition > 0);
+    this.targetPc = EWord.of(targetPc);
+    this.jumpCondition = EWord.of(jumpCondition);
+    this.codeSize = frame.getWorldUpdater().get(hub.currentFrame().codeAddress()).getCode().size();
+    this.event2 = jumpCondition > 0;
   }
 
   @Override
-  public Trace trace(Trace trace) {
-    return trace
-        .pMiscellaneousOobOutgoingData1(this.targetPc.hi())
-        .pMiscellaneousOobOutgoingData2(this.targetPc.lo())
-        .pMiscellaneousOobOutgoingData3(this.jumpCondition.hi())
-        .pMiscellaneousOobOutgoingData4(this.jumpCondition.lo())
-        .pMiscellaneousOobOutgoingData5(Bytes.ofUnsignedInt(this.codeSize))
-        .pMiscellaneousOobOutgoingData6(Bytes.EMPTY)
-        .pMiscellaneousOobInst(Bytes.ofUnsignedInt(this.opCode.byteValue()))
-        .pMiscellaneousOobEvent1(this.event1)
-        .pMiscellaneousOobEvent2(this.event2);
+  public int oobInstruction() {
+    return this.oobInst;
+  }
+
+  @Override
+  public Bytes data(OobDataChannel i) {
+    return switch (i) {
+      case DATA_1 -> this.targetPc.hi();
+      case DATA_2 -> this.targetPc.lo();
+      case DATA_3 -> this.jumpCondition.hi();
+      case DATA_4 -> this.jumpCondition.lo();
+      case DATA_5 -> Bytes.ofUnsignedInt(this.codeSize);
+      case DATA_7 -> this.event1 ? Bytes.of(1) : Bytes.EMPTY;
+      case DATA_8 -> this.event2 ? Bytes.of(1) : Bytes.EMPTY;
+      default -> Bytes.EMPTY;
+    };
   }
 }

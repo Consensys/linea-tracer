@@ -17,8 +17,17 @@ package net.consensys.linea.zktracer.module.hub.subsection;
 
 import net.consensys.linea.zktracer.module.hub.Precompile;
 
-public record PrecompileScenario(Precompile precompile, boolean failureKnownToHub, boolean failureKnownToRam) {
-  boolean success() {
+public record PrecompileScenario(
+    Precompile precompile, boolean failureKnownToHub, boolean failureKnownToRam, long callPrice) {
+  public boolean success() {
     return !this.failureKnownToHub && !this.failureKnownToRam;
+  }
+
+  public boolean hubSuccess() {
+    return !this.failureKnownToHub;
+  }
+
+  public boolean ramSuccess() {
+    return !this.failureKnownToRam;
   }
 }

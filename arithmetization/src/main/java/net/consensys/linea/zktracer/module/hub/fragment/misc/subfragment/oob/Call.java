@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys AG.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -15,36 +15,31 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob;
 
-import static net.consensys.linea.zktracer.module.oob.Trace.OOB_INST_cdl;
+import static net.consensys.linea.zktracer.module.oob.Trace.OOB_INST_call;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
-import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.AbortingConditions;
 import net.consensys.linea.zktracer.module.oob.OobDataChannel;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.evm.frame.MessageFrame;
 
-public record CalldataloadSubFragment(EWord readOffset, EWord calldataSize)
+public record Call(EWord value, EWord balance, int callStackDepth, AbortingConditions aborts)
     implements GenericOobSubFragment {
-
-  public static CalldataloadSubFragment build(Hub hub, MessageFrame frame) {
-    return new CalldataloadSubFragment(
-        EWord.of(frame.getStackItem(0)), EWord.of(hub.currentFrame().callData().size()));
-  }
-
   @Override
   public Bytes data(OobDataChannel i) {
     return switch (i) {
-      case DATA_1 -> this.readOffset.hi();
-      case DATA_2 -> this.readOffset.lo();
-      case DATA_5 -> this.calldataSize;
-      case DATA_7 -> booleanToBytes(this.readOffset.greaterOrEqualThan(this.calldataSize));
+      case DATA_1 -> value.hi();
+      case DATA_2 -> value.lo();
+      case DATA_3 -> balance.lo();
+      case DATA_6 -> Bytes.ofUnsignedLong(callStackDepth);
+      case DATA_7 -> booleanToBytes(!value.isZero());
+      case DATA_8 -> booleanToBytes(aborts.any());
       default -> Bytes.EMPTY;
     };
   }
 
   @Override
   public int oobInstruction() {
-    return OOB_INST_cdl;
+    return OOB_INST_call;
   }
 }

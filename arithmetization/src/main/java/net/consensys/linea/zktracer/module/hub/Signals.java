@@ -21,6 +21,7 @@ import java.util.Set;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.module.hub.subsection.PrecompileScenario;
 import net.consensys.linea.zktracer.opcode.InstructionFamily;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.hyperledger.besu.datatypes.Address;
@@ -108,6 +109,24 @@ public class Signals {
     r.romLex = this.romLex;
     r.rlpAddr = this.rlpAddr;
 
+    return r;
+  }
+
+  public static Signals fromPrecompile(final PrecompileScenario scenario) {
+    Signals r = new Signals(null);
+    switch (scenario.precompile()) {
+      case EC_RECOVER, SHA2_256, RIPEMD_160, IDENTITY -> {
+        r.oob = true;
+        r.mmu = scenario.success();
+      }
+      case MODEXP -> {
+        r.mmu = r.oob = true;
+      }
+      case EC_ADD, EC_MUL, EC_PAIRING, BLAKE2F -> {
+        r.oob = true;
+        r.mmu = !scenario.failureKnownToHub();
+      }
+    }
     return r;
   }
 

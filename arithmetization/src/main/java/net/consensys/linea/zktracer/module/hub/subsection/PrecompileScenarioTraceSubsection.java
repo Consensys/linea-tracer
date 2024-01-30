@@ -16,22 +16,25 @@
 package net.consensys.linea.zktracer.module.hub.subsection;
 
 import java.util.List;
-import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
-import net.consensys.linea.zktracer.module.hub.Precompile;
+import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.PrecompileScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.SubSection;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.misc.MiscFragment;
 import net.consensys.linea.zktracer.module.hub.memory.MemorySpan;
+import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
+import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 
 @RequiredArgsConstructor
 public class PrecompileScenarioTraceSubsection implements SubSection {
+  private final CallStack callStack;
+  private final CallFrame callFrame;
   private final PrecompileScenario scenario;
   private final long callGas;
   private final MemorySpan callData;
   private final MemorySpan returnDataTarget;
-
 
   @Override
   public List<TraceFragment> generate() {
@@ -41,29 +44,27 @@ public class PrecompileScenarioTraceSubsection implements SubSection {
 
         if (scenario.failureKnownToHub()) {
           return List.of(
-            new PrecompileScenarioFragment(this.scenario)
-          );
+              new PrecompileScenarioFragment(this.scenario),
+              new MiscFragment(scenario),
+              new ContextFragment(this.callStack, this.callFrame, true));
+        } else {
+          return List.of(
+              new PrecompileScenarioFragment(this.scenario),
+              new MiscFragment(scenario),
+              new MiscFragment(scenario),
+              new MiscFragment(scenario),
+              new ContextFragment(this.callStack, this.callFrame, true));
         }
       }
-      case SHA2_256 -> {
-      }
-      case RIPEMD_160 -> {
-      }
-      case IDENTITY -> {
-      }
-      case MODEXP -> {
-      }
-      case EC_ADD -> {
-      }
-      case EC_MUL -> {
-      }
-      case EC_PAIRING -> {
-      }
-      case BLAKE2F -> {
-      }
+      case SHA2_256 -> {}
+      case RIPEMD_160 -> {}
+      case IDENTITY -> {}
+      case MODEXP -> {}
+      case EC_ADD -> {}
+      case EC_MUL -> {}
+      case EC_PAIRING -> {}
+      case BLAKE2F -> {}
     }
-
-
 
     return List.of(); // TODO:
   }

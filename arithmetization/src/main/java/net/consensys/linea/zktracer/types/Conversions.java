@@ -23,6 +23,7 @@ import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 
 public class Conversions {
+  public static final Bytes ONE = Bytes.of(1);
   public static final BigInteger UNSIGNED_LONG_MASK =
       BigInteger.ONE.shiftLeft(Long.SIZE).subtract(BigInteger.ONE);
 
@@ -93,5 +94,9 @@ public class Conversions {
 
   public static Bytes longToBytes(final long input) {
     return input == 0 ? Bytes.of(0) : Bytes.minimalBytes(input);
+  }
+
+  public static Bytes booleanToBytes(boolean x) {
+    return x ? ONE : Bytes.EMPTY;
   }
 }

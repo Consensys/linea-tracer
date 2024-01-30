@@ -29,6 +29,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.MmuSubF
 import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.MxpSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.CalldataloadSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.JumpSubFragment;
+import net.consensys.linea.zktracer.module.hub.subsection.PrecompileScenario;
 import net.consensys.linea.zktracer.types.EWord;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.operation.Operation;
@@ -51,7 +52,7 @@ public class MiscFragment implements TraceFragment, PostExecDefer {
 
     if (this.signals.oob()) {
       switch (hub.currentFrame().opCode()) {
-        case JUMP, JUMPI -> this.subFragments.add(JumpSubFragment.build(hub, frame));
+        case JUMP, JUMPI -> this.subFragments.add(new JumpSubFragment(hub, frame));
         case CALLDATALOAD -> this.subFragments.add(CalldataloadSubFragment.build(hub, frame));
         case CALL, DELEGATECALL, STATICCALL, CALLCODE -> {}
         case CREATE, CREATE2 -> {}
@@ -64,6 +65,13 @@ public class MiscFragment implements TraceFragment, PostExecDefer {
     if (this.signals.exp()) {
       this.subFragments.add(new ExpSubFragment(EWord.of(frame.getStackItem(1))));
     }
+  }
+
+  public MiscFragment(final PrecompileScenario scenario, TraceSubFragment... subFragments) {
+    this.signals = Signals.fromPrecompile(scenario);
+    if (this.signals.oob()) {}
+
+    this.subFragments.addAll(List.of(subFragments));
   }
 
   @Override

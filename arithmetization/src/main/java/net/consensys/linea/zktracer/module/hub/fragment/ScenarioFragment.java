@@ -17,12 +17,10 @@ package net.consensys.linea.zktracer.module.hub.fragment;
 
 import java.util.Optional;
 
-import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Precompile;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
-import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 

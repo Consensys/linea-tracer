@@ -27,20 +27,18 @@ public class PrecompileScenarioFragment implements TraceFragment {
   @Override
   public Trace trace(Trace trace) {
     return trace
-      .peekAtScenario(true)
-
-      .pScenarioPrcSuccess(false)
-      .pScenarioPrcFailureKnownToHub(false)
-      .pScenarioPrcFailureKnownToRam(false)
-
-      .pScenarioBlake2F(scenario.precompile().equals(Precompile.BLAKE2F))
-      .pScenarioEcadd(scenario.precompile().equals(Precompile.EC_ADD))
-      .pScenarioEcmul(scenario.precompile().equals(Precompile.EC_MUL))
-      .pScenarioEcpairing(scenario.precompile().equals(Precompile.EC_PAIRING))
-      .pScenarioEcrecover(scenario.precompile().equals(Precompile.EC_RECOVER))
-      .pScenarioIdentity(scenario.precompile().equals(Precompile.IDENTITY))
-      .pScenarioModexp(scenario.precompile().equals(Precompile.MODEXP))
-      .pScenarioRipemd160(scenario.precompile().equals(Precompile.RIPEMD_160))
-      .pScenarioSha2256(scenario.precompile().equals(Precompile.SHA2_256));
+        .peekAtScenario(true)
+        .pScenarioPrcSuccess(this.scenario.success())
+        .pScenarioPrcFailureKnownToHub(this.scenario.failureKnownToHub())
+        .pScenarioPrcFailureKnownToRam(this.scenario.failureKnownToRam())
+        .pScenarioBlake2F(scenario.precompile().equals(Precompile.BLAKE2F))
+        .pScenarioEcadd(scenario.precompile().equals(Precompile.EC_ADD))
+        .pScenarioEcmul(scenario.precompile().equals(Precompile.EC_MUL))
+        .pScenarioEcpairing(scenario.precompile().equals(Precompile.EC_PAIRING))
+        .pScenarioEcrecover(scenario.precompile().equals(Precompile.EC_RECOVER))
+        .pScenarioIdentity(scenario.precompile().equals(Precompile.IDENTITY))
+        .pScenarioModexp(scenario.precompile().equals(Precompile.MODEXP))
+        .pScenarioRipemd160(scenario.precompile().equals(Precompile.RIPEMD_160))
+        .pScenarioSha2256(scenario.precompile().equals(Precompile.SHA2_256));
   }
 }

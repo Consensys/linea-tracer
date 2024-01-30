@@ -46,7 +46,7 @@ public class Trace {
   private final BitSet filled = new BitSet();
   private int currentLine = 0;
 
-  private final MappedByteBuffer accMsnzbXorExpInstXorWcpInst;
+  private final MappedByteBuffer accMsnzbXorWcpInst;
   private final MappedByteBuffer bitMsnzbXorWcpFlag;
   private final MappedByteBuffer cmptn;
   private final MappedByteBuffer ct;
@@ -54,6 +54,7 @@ public class Trace {
   private final MappedByteBuffer data3XorWcpArg2Hi;
   private final MappedByteBuffer data4XorWcpArg2Lo;
   private final MappedByteBuffer data5;
+  private final MappedByteBuffer expInst;
   private final MappedByteBuffer isExpLog;
   private final MappedByteBuffer isModexpLog;
   private final MappedByteBuffer macro;
@@ -73,7 +74,7 @@ public class Trace {
 
   static List<ColumnHeader> headers(int length) {
     return List.of(
-        new ColumnHeader("exp.ACC_MSNZB_xor_EXP_INST_xor_WCP_INST", 1, length),
+        new ColumnHeader("exp.ACC_MSNZB_xor_WCP_INST", 1, length),
         new ColumnHeader("exp.BIT_MSNZB_xor_WCP_FLAG", 1, length),
         new ColumnHeader("exp.CMPTN", 1, length),
         new ColumnHeader("exp.CT", 32, length),
@@ -81,6 +82,7 @@ public class Trace {
         new ColumnHeader("exp.DATA_3_xor_WCP_ARG_2_HI", 32, length),
         new ColumnHeader("exp.DATA_4_xor_WCP_ARG_2_LO", 32, length),
         new ColumnHeader("exp.DATA_5", 32, length),
+        new ColumnHeader("exp.EXP_INST", 32, length),
         new ColumnHeader("exp.IS_EXP_LOG", 1, length),
         new ColumnHeader("exp.IS_MODEXP_LOG", 1, length),
         new ColumnHeader("exp.MACRO", 1, length),
@@ -100,7 +102,7 @@ public class Trace {
   }
 
   public Trace(List<MappedByteBuffer> buffers) {
-    this.accMsnzbXorExpInstXorWcpInst = buffers.get(0);
+    this.accMsnzbXorWcpInst = buffers.get(0);
     this.bitMsnzbXorWcpFlag = buffers.get(1);
     this.cmptn = buffers.get(2);
     this.ct = buffers.get(3);
@@ -108,22 +110,23 @@ public class Trace {
     this.data3XorWcpArg2Hi = buffers.get(5);
     this.data4XorWcpArg2Lo = buffers.get(6);
     this.data5 = buffers.get(7);
-    this.isExpLog = buffers.get(8);
-    this.isModexpLog = buffers.get(9);
-    this.macro = buffers.get(10);
-    this.manzbAcc = buffers.get(11);
-    this.manzbXorWcpRes = buffers.get(12);
-    this.msnzb = buffers.get(13);
-    this.pltBit = buffers.get(14);
-    this.pltJmp = buffers.get(15);
-    this.prprc = buffers.get(16);
-    this.rawAccXorData1XorWcpArg1Hi = buffers.get(17);
-    this.rawByte = buffers.get(18);
-    this.stamp = buffers.get(19);
-    this.tanzb = buffers.get(20);
-    this.tanzbAcc = buffers.get(21);
-    this.trimAccXorData2XorWcpArg1Lo = buffers.get(22);
-    this.trimByte = buffers.get(23);
+    this.expInst = buffers.get(8);
+    this.isExpLog = buffers.get(9);
+    this.isModexpLog = buffers.get(10);
+    this.macro = buffers.get(11);
+    this.manzbAcc = buffers.get(12);
+    this.manzbXorWcpRes = buffers.get(13);
+    this.msnzb = buffers.get(14);
+    this.pltBit = buffers.get(15);
+    this.pltJmp = buffers.get(16);
+    this.prprc = buffers.get(17);
+    this.rawAccXorData1XorWcpArg1Hi = buffers.get(18);
+    this.rawByte = buffers.get(19);
+    this.stamp = buffers.get(20);
+    this.tanzb = buffers.get(21);
+    this.tanzbAcc = buffers.get(22);
+    this.trimAccXorData2XorWcpArg1Lo = buffers.get(23);
+    this.trimByte = buffers.get(24);
   }
 
   public int size() {
@@ -221,7 +224,7 @@ public class Trace {
       filled.set(12);
     }
 
-    accMsnzbXorExpInstXorWcpInst.put(b.toByte());
+    accMsnzbXorWcpInst.put(b.toByte());
 
     return this;
   }
@@ -307,10 +310,10 @@ public class Trace {
   }
 
   public Trace pComputationRawAcc(final Bytes b) {
-    if (filled.get(19)) {
+    if (filled.get(20)) {
       throw new IllegalStateException("exp.computation/RAW_ACC already set");
     } else {
-      filled.set(19);
+      filled.set(20);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -363,10 +366,10 @@ public class Trace {
   }
 
   public Trace pComputationTrimAcc(final Bytes b) {
-    if (filled.get(20)) {
+    if (filled.get(21)) {
       throw new IllegalStateException("exp.computation/TRIM_ACC already set");
     } else {
-      filled.set(20);
+      filled.set(21);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -391,10 +394,10 @@ public class Trace {
   }
 
   public Trace pMacroInstructionData1(final Bytes b) {
-    if (filled.get(19)) {
+    if (filled.get(20)) {
       throw new IllegalStateException("exp.macro-instruction/DATA_1 already set");
     } else {
-      filled.set(19);
+      filled.set(20);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -407,10 +410,10 @@ public class Trace {
   }
 
   public Trace pMacroInstructionData2(final Bytes b) {
-    if (filled.get(20)) {
+    if (filled.get(21)) {
       throw new IllegalStateException("exp.macro-instruction/DATA_2 already set");
     } else {
-      filled.set(20);
+      filled.set(21);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -423,10 +426,10 @@ public class Trace {
   }
 
   public Trace pMacroInstructionData3(final Bytes b) {
-    if (filled.get(21)) {
+    if (filled.get(22)) {
       throw new IllegalStateException("exp.macro-instruction/DATA_3 already set");
     } else {
-      filled.set(21);
+      filled.set(22);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -439,10 +442,10 @@ public class Trace {
   }
 
   public Trace pMacroInstructionData4(final Bytes b) {
-    if (filled.get(22)) {
+    if (filled.get(23)) {
       throw new IllegalStateException("exp.macro-instruction/DATA_4 already set");
     } else {
-      filled.set(22);
+      filled.set(23);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -455,10 +458,10 @@ public class Trace {
   }
 
   public Trace pMacroInstructionData5(final Bytes b) {
-    if (filled.get(23)) {
+    if (filled.get(24)) {
       throw new IllegalStateException("exp.macro-instruction/DATA_5 already set");
     } else {
-      filled.set(23);
+      filled.set(24);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -470,23 +473,27 @@ public class Trace {
     return this;
   }
 
-  public Trace pMacroInstructionExpInst(final UnsignedByte b) {
-    if (filled.get(12)) {
+  public Trace pMacroInstructionExpInst(final Bytes b) {
+    if (filled.get(19)) {
       throw new IllegalStateException("exp.macro-instruction/EXP_INST already set");
     } else {
-      filled.set(12);
+      filled.set(19);
     }
 
-    accMsnzbXorExpInstXorWcpInst.put(b.toByte());
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      expInst.put((byte) 0);
+    }
+    expInst.put(b.toArrayUnsafe());
 
     return this;
   }
 
   public Trace pPreprocessingWcpArg1Hi(final Bytes b) {
-    if (filled.get(19)) {
+    if (filled.get(20)) {
       throw new IllegalStateException("exp.preprocessing/WCP_ARG_1_HI already set");
     } else {
-      filled.set(19);
+      filled.set(20);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -499,10 +506,10 @@ public class Trace {
   }
 
   public Trace pPreprocessingWcpArg1Lo(final Bytes b) {
-    if (filled.get(20)) {
+    if (filled.get(21)) {
       throw new IllegalStateException("exp.preprocessing/WCP_ARG_1_LO already set");
     } else {
-      filled.set(20);
+      filled.set(21);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -515,10 +522,10 @@ public class Trace {
   }
 
   public Trace pPreprocessingWcpArg2Hi(final Bytes b) {
-    if (filled.get(21)) {
+    if (filled.get(22)) {
       throw new IllegalStateException("exp.preprocessing/WCP_ARG_2_HI already set");
     } else {
-      filled.set(21);
+      filled.set(22);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -531,10 +538,10 @@ public class Trace {
   }
 
   public Trace pPreprocessingWcpArg2Lo(final Bytes b) {
-    if (filled.get(22)) {
+    if (filled.get(23)) {
       throw new IllegalStateException("exp.preprocessing/WCP_ARG_2_LO already set");
     } else {
-      filled.set(22);
+      filled.set(23);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -565,7 +572,7 @@ public class Trace {
       filled.set(12);
     }
 
-    accMsnzbXorExpInstXorWcpInst.put(b.toByte());
+    accMsnzbXorWcpInst.put(b.toByte());
 
     return this;
   }
@@ -612,8 +619,7 @@ public class Trace {
 
   public Trace validateRow() {
     if (!filled.get(12)) {
-      throw new IllegalStateException(
-          "exp.ACC_MSNZB_xor_EXP_INST_xor_WCP_INST has not been filled");
+      throw new IllegalStateException("exp.ACC_MSNZB_xor_WCP_INST has not been filled");
     }
 
     if (!filled.get(8)) {
@@ -632,16 +638,20 @@ public class Trace {
       throw new IllegalStateException("exp.CT_MAX has not been filled");
     }
 
-    if (!filled.get(21)) {
+    if (!filled.get(22)) {
       throw new IllegalStateException("exp.DATA_3_xor_WCP_ARG_2_HI has not been filled");
     }
 
-    if (!filled.get(22)) {
+    if (!filled.get(23)) {
       throw new IllegalStateException("exp.DATA_4_xor_WCP_ARG_2_LO has not been filled");
     }
 
-    if (!filled.get(23)) {
+    if (!filled.get(24)) {
       throw new IllegalStateException("exp.DATA_5 has not been filled");
+    }
+
+    if (!filled.get(19)) {
+      throw new IllegalStateException("exp.EXP_INST has not been filled");
     }
 
     if (!filled.get(3)) {
@@ -680,7 +690,7 @@ public class Trace {
       throw new IllegalStateException("exp.PRPRC has not been filled");
     }
 
-    if (!filled.get(19)) {
+    if (!filled.get(20)) {
       throw new IllegalStateException(
           "exp.RAW_ACC_xor_DATA_1_xor_WCP_ARG_1_HI has not been filled");
     }
@@ -701,7 +711,7 @@ public class Trace {
       throw new IllegalStateException("exp.TANZB_ACC has not been filled");
     }
 
-    if (!filled.get(20)) {
+    if (!filled.get(21)) {
       throw new IllegalStateException(
           "exp.TRIM_ACC_xor_DATA_2_xor_WCP_ARG_1_LO has not been filled");
     }
@@ -718,7 +728,7 @@ public class Trace {
 
   public Trace fillAndValidateRow() {
     if (!filled.get(12)) {
-      accMsnzbXorExpInstXorWcpInst.position(accMsnzbXorExpInstXorWcpInst.position() + 1);
+      accMsnzbXorWcpInst.position(accMsnzbXorWcpInst.position() + 1);
     }
 
     if (!filled.get(8)) {
@@ -737,16 +747,20 @@ public class Trace {
       ctMax.position(ctMax.position() + 32);
     }
 
-    if (!filled.get(21)) {
+    if (!filled.get(22)) {
       data3XorWcpArg2Hi.position(data3XorWcpArg2Hi.position() + 32);
     }
 
-    if (!filled.get(22)) {
+    if (!filled.get(23)) {
       data4XorWcpArg2Lo.position(data4XorWcpArg2Lo.position() + 32);
     }
 
-    if (!filled.get(23)) {
+    if (!filled.get(24)) {
       data5.position(data5.position() + 32);
+    }
+
+    if (!filled.get(19)) {
+      expInst.position(expInst.position() + 32);
     }
 
     if (!filled.get(3)) {
@@ -785,7 +799,7 @@ public class Trace {
       prprc.position(prprc.position() + 1);
     }
 
-    if (!filled.get(19)) {
+    if (!filled.get(20)) {
       rawAccXorData1XorWcpArg1Hi.position(rawAccXorData1XorWcpArg1Hi.position() + 32);
     }
 
@@ -805,7 +819,7 @@ public class Trace {
       tanzbAcc.position(tanzbAcc.position() + 32);
     }
 
-    if (!filled.get(20)) {
+    if (!filled.get(21)) {
       trimAccXorData2XorWcpArg1Lo.position(trimAccXorData2XorWcpArg1Lo.position() + 32);
     }
 

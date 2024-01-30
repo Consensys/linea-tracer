@@ -15,6 +15,10 @@
 
 package net.consensys.linea.zktracer.module.exp;
 
+import static net.consensys.linea.zktracer.module.exp.Trace.EXP_EXPLOG;
+import static net.consensys.linea.zktracer.module.exp.Trace.EXP_MODEXPLOG;
+import static net.consensys.linea.zktracer.types.Conversions.booleanToInt;
+
 import lombok.Getter;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.types.UnsignedByte;
@@ -42,7 +46,7 @@ public class ExpChunk extends ModuleOperation {
   private UnsignedByte pComputationAccMsnzb;
   private boolean pComputationManzb;
   private Bytes pComputationManzbAcc;
-  private UnsignedByte pMacroInstructionExpInst;
+  private Bytes pMacroInstructionExpInst;
   private Bytes pMacroInstructionData1;
   private Bytes pMacroInstructionData2;
   private Bytes pMacroInstructionData3;
@@ -60,6 +64,18 @@ public class ExpChunk extends ModuleOperation {
   @Override
   protected int computeLineCount() {
     return 0; // maxCt
+  }
+
+  int flagSumPerspective() {
+    return booleanToInt(cmptn) + booleanToInt(macro) + booleanToInt(prprc);
+  }
+
+  int flagSumMacro() {
+    return booleanToInt(isExpLog) + booleanToInt(isModexpLog);
+  }
+
+  int wghtSumMacro() {
+    return EXP_EXPLOG * booleanToInt(isExpLog) + EXP_MODEXPLOG * booleanToInt(isModexpLog);
   }
 
   final void trace(int stamp, Trace trace) {
@@ -86,7 +102,7 @@ public class ExpChunk extends ModuleOperation {
           .pComputationAccMsnzb(UnsignedByte.ZERO)
           .pComputationManzb(false)
           .pComputationManzbAcc(Bytes.of(0))
-          .pMacroInstructionExpInst(UnsignedByte.ZERO)
+          .pMacroInstructionExpInst(Bytes.of(wghtSumMacro()))
           .pMacroInstructionData1(Bytes.of(0))
           .pMacroInstructionData2(Bytes.of(0))
           .pMacroInstructionData3(Bytes.of(0))

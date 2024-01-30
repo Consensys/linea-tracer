@@ -78,6 +78,14 @@ public class Conversions {
   public static int booleanToInt(final boolean input) {
     return input ? 1 : 0;
   }
+  // Also implemented in oob branch (remove it after merge)
+  public static boolean bigIntegerToBoolean(BigInteger n) {
+    if (!n.equals(BigInteger.ONE) && !n.equals(BigInteger.ZERO)) {
+      throw new IllegalArgumentException(
+          "argument should be equal to BigInteger.ONE or BigInteger.ZERO");
+    }
+    return BigInteger.valueOf(1).equals(n);
+  }
 
   public static BigInteger longToUnsignedBigInteger(final long input) {
     final BigInteger output = BigInteger.valueOf(input).and(UNSIGNED_LONG_MASK);

@@ -70,6 +70,10 @@ public class Trace {
   private final MappedByteBuffer contextWillRevertFlag;
   private final MappedByteBuffer counterNsr;
   private final MappedByteBuffer counterTli;
+  private final MappedByteBuffer createNonemptyInitCodeFailureWillRevertXorKecFlag;
+  private final MappedByteBuffer createNonemptyInitCodeFailureWontRevertXorLogFlag;
+  private final MappedByteBuffer createNonemptyInitCodeSuccessWillRevertXorMachineStateFlag;
+  private final MappedByteBuffer createNonemptyInitCodeSuccessWontRevertXorMaxcsx;
   private final MappedByteBuffer
       depNumNewXorCallStackDepthXorMmuRefSizeXorStackItemHeight3XorInitGas;
   private final MappedByteBuffer
@@ -83,8 +87,12 @@ public class Trace {
   private final MappedByteBuffer
       deploymentStatusInftyXorUpdateXorCcsrFlagXorBlake2FXorAccFlagXorValCurrChangesXorIsDeployment;
   private final MappedByteBuffer domStamp;
+  private final MappedByteBuffer ecaddXorModFlag;
+  private final MappedByteBuffer ecmulXorMulFlag;
+  private final MappedByteBuffer ecpairingXorMxpx;
+  private final MappedByteBuffer ecrecoverXorMxpFlag;
   private final MappedByteBuffer exceptionAhoyFlag;
-  private final MappedByteBuffer existsNewXorMxpDeploysXorCallPrcFailureXorCallFlagXorValNextIsOrig;
+  private final MappedByteBuffer existsNewXorMxpDeploysXorCallExceptionXorCallFlagXorValNextIsOrig;
   private final MappedByteBuffer
       existsXorMmuInfoXorCallEoaSuccessCallerWontRevertXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution;
   private final MappedByteBuffer gasActual;
@@ -94,34 +102,33 @@ public class Trace {
   private final MappedByteBuffer gasRefund;
   private final MappedByteBuffer gasRefundNew;
   private final MappedByteBuffer
-      hasCodeNewXorMxpMxpxXorCallPrcSuccessCallerWontRevertXorCopyFlagXorValOrigIsZero;
-  private final MappedByteBuffer
-      hasCodeXorMxpFlagXorCallPrcSuccessCallerWillRevertXorConFlagXorValNextIsZero;
+      hasCodeNewXorMxpMxpxXorCallPrcSuccessCallerWillRevertXorCopyFlagXorValOrigIsZero;
+  private final MappedByteBuffer hasCodeXorMxpFlagXorCallPrcFailureXorConFlagXorValNextIsZero;
   private final MappedByteBuffer hashInfoStamp;
   private final MappedByteBuffer hubStamp;
   private final MappedByteBuffer hubStampTransactionEnd;
+  private final MappedByteBuffer identityXorOobFlag;
   private final MappedByteBuffer
-      isBlake2FXorOobFlagXorCallSmcFailureCallerWillRevertXorCreateFlagXorWarm;
+      isBlake2FXorOobFlagXorCallPrcSuccessCallerWontRevertXorCreateFlagXorWarm;
   private final MappedByteBuffer
-      isEcaddXorStpExistsXorCallSmcFailureCallerWontRevertXorDecodedFlag1XorWarmNew;
-  private final MappedByteBuffer isEcmulXorStpFlagXorCallSmcSuccessCallerWillRevertXorDecodedFlag2;
+      isEcaddXorStpExistsXorCallSmcFailureCallerWillRevertXorDecodedFlag1XorWarmNew;
+  private final MappedByteBuffer isEcmulXorStpFlagXorCallSmcFailureCallerWontRevertXorDecodedFlag2;
   private final MappedByteBuffer
-      isEcpairingXorStpOogxXorCallSmcSuccessCallerWontRevertXorDecodedFlag3;
-  private final MappedByteBuffer isEcrecoverXorStpWarmXorCodedepositXorDecodedFlag4;
-  private final MappedByteBuffer isIdentityXorCodedepositInvalidCodePrefixXorDupFlag;
-  private final MappedByteBuffer isModexpXorCodedepositValidCodePrefixXorExtFlag;
-  private final MappedByteBuffer isPrecompileXorEcaddXorHaltFlag;
-  private final MappedByteBuffer isRipemd160XorEcmulXorHashInfoFlag;
-  private final MappedByteBuffer isSha2256XorEcpairingXorInvalidFlag;
+      isEcpairingXorStpOogxXorCallSmcSuccessCallerWillRevertXorDecodedFlag3;
+  private final MappedByteBuffer
+      isEcrecoverXorStpWarmXorCallSmcSuccessCallerWontRevertXorDecodedFlag4;
+  private final MappedByteBuffer isIdentityXorCodedepositXorDupFlag;
+  private final MappedByteBuffer isModexpXorCodedepositInvalidCodePrefixXorExtFlag;
+  private final MappedByteBuffer isPrecompileXorCodedepositValidCodePrefixXorHaltFlag;
+  private final MappedByteBuffer isRipemd160XorCreateAbortXorHashInfoFlag;
+  private final MappedByteBuffer isSha2256XorCreateEmptyInitCodeWillRevertXorInvalidFlag;
   private final MappedByteBuffer mmuStamp;
-  private final MappedByteBuffer mulFlag;
-  private final MappedByteBuffer mxpFlag;
+  private final MappedByteBuffer modexpXorOogx;
   private final MappedByteBuffer mxpSize1LoXorStackItemValueLo2;
   private final MappedByteBuffer mxpSize2HiXorStackItemValueLo3;
   private final MappedByteBuffer mxpSize2LoXorStackItemValueLo4;
   private final MappedByteBuffer mxpStamp;
   private final MappedByteBuffer mxpWordsXorStaticGas;
-  private final MappedByteBuffer mxpx;
   private final MappedByteBuffer nonceNewXorContextNumberXorMmuStackValHiXorStackItemStamp1XorNonce;
   private final MappedByteBuffer nonceXorCallValueXorMmuSizeXorStackItemHeight4XorLeftoverGas;
   private final MappedByteBuffer numberOfNonStackRows;
@@ -133,10 +140,7 @@ public class Trace {
   private final MappedByteBuffer oobData6;
   private final MappedByteBuffer oobData7;
   private final MappedByteBuffer oobData8;
-  private final MappedByteBuffer oobFlag;
   private final MappedByteBuffer oobInst;
-  private final MappedByteBuffer oogx;
-  private final MappedByteBuffer opcx;
   private final MappedByteBuffer peekAtAccount;
   private final MappedByteBuffer peekAtContext;
   private final MappedByteBuffer peekAtMiscellaneous;
@@ -144,18 +148,25 @@ public class Trace {
   private final MappedByteBuffer peekAtStack;
   private final MappedByteBuffer peekAtStorage;
   private final MappedByteBuffer peekAtTransaction;
-  private final MappedByteBuffer prcFailureKnownToRamXorKecFlag;
-  private final MappedByteBuffer prcSuccessXorLogFlag;
+  private final MappedByteBuffer prcCalleeGasXorOpcx;
+  private final MappedByteBuffer prcCallerGasXorPushpopFlag;
+  private final MappedByteBuffer prcCdoXorRdcx;
+  private final MappedByteBuffer prcCdsXorShfFlag;
+  private final MappedByteBuffer prcFailureKnownToHubXorSox;
+  private final MappedByteBuffer prcFailureKnownToRamXorSstorex;
+  private final MappedByteBuffer prcRacXorStackramFlag;
+  private final MappedByteBuffer prcRaoXorStackItemPop1;
+  private final MappedByteBuffer prcReturnGasXorStackItemPop2;
+  private final MappedByteBuffer prcSuccessWillRevertXorStackItemPop3;
+  private final MappedByteBuffer prcSuccessWontRevertXorStackItemPop4;
   private final MappedByteBuffer programCounter;
   private final MappedByteBuffer programCounterNew;
-  private final MappedByteBuffer pushpopFlag;
-  private final MappedByteBuffer rdcx;
-  private final MappedByteBuffer ripemd160XorMachineStateFlag;
+  private final MappedByteBuffer ripemd160XorStaticx;
   private final MappedByteBuffer
       rlpaddrDepAddrHiXorIsStaticXorMmuStackValLoXorStackItemStamp2XorToAddressHi;
   private final MappedByteBuffer
       rlpaddrDepAddrLoXorReturnerContextNumberXorMxpGasMxpXorStackItemStamp3XorToAddressLo;
-  private final MappedByteBuffer rlpaddrFlagXorEcrecoverXorInvprex;
+  private final MappedByteBuffer rlpaddrFlagXorCreateEmptyInitCodeWontRevertXorInvprex;
   private final MappedByteBuffer
       rlpaddrKecHiXorReturnerIsPrecompileXorMxpInstXorStackItemStamp4XorValue;
   private final MappedByteBuffer rlpaddrKecLoXorReturnAtOffsetXorMxpOffset1HiXorStackItemValueHi1;
@@ -163,19 +174,8 @@ public class Trace {
   private final MappedByteBuffer
       rlpaddrSaltHiXorReturnDataOffsetXorMxpOffset2HiXorStackItemValueHi3;
   private final MappedByteBuffer rlpaddrSaltLoXorReturnDataSizeXorMxpOffset2LoXorStackItemValueHi4;
-  private final MappedByteBuffer selfdestructXorMaxcsx;
-  private final MappedByteBuffer sha2256XorModFlag;
-  private final MappedByteBuffer shfFlag;
-  private final MappedByteBuffer sox;
-  private final MappedByteBuffer sstorex;
-  private final MappedByteBuffer stackItemPop1;
-  private final MappedByteBuffer stackItemPop2;
-  private final MappedByteBuffer stackItemPop3;
-  private final MappedByteBuffer stackItemPop4;
-  private final MappedByteBuffer stackramFlag;
-  private final MappedByteBuffer staticFlag;
-  private final MappedByteBuffer staticx;
-  private final MappedByteBuffer stoFlag;
+  private final MappedByteBuffer selfdestructXorStaticFlag;
+  private final MappedByteBuffer sha2256XorStoFlag;
   private final MappedByteBuffer stpGasHi;
   private final MappedByteBuffer stpGasLo;
   private final MappedByteBuffer stpGasOopkt;
@@ -188,7 +188,7 @@ public class Trace {
   private final MappedByteBuffer swapFlag;
   private final MappedByteBuffer transactionReverts;
   private final MappedByteBuffer trmFlag;
-  private final MappedByteBuffer trmFlagXorIdentityXorJumpx;
+  private final MappedByteBuffer trmFlagXorCreateExceptionXorJumpx;
   private final MappedByteBuffer trmRawAddrHiXorMxpSize1HiXorStackItemValueLo1;
   private final MappedByteBuffer twoLineInstruction;
   private final MappedByteBuffer txExec;
@@ -197,8 +197,9 @@ public class Trace {
   private final MappedByteBuffer txSkip;
   private final MappedByteBuffer txWarm;
   private final MappedByteBuffer txnFlag;
-  private final MappedByteBuffer warmNewXorPrcFailureKnownToHubXorJumpFlag;
-  private final MappedByteBuffer warmXorModexpXorJumpDestinationVettingRequired;
+  private final MappedByteBuffer warmNewXorCreateFailureConditionWontRevertXorJumpFlag;
+  private final MappedByteBuffer
+      warmXorCreateFailureConditionWillRevertXorJumpDestinationVettingRequired;
   private final MappedByteBuffer wcpFlag;
 
   static List<ColumnHeader> headers(int length) {
@@ -261,6 +262,16 @@ public class Trace {
         new ColumnHeader("hub_v2.COUNTER_NSR", 32, length),
         new ColumnHeader("hub_v2.COUNTER_TLI", 1, length),
         new ColumnHeader(
+            "hub_v2.CREATE_NONEMPTY_INIT_CODE_FAILURE_WILL_REVERT_xor_KEC_FLAG", 1, length),
+        new ColumnHeader(
+            "hub_v2.CREATE_NONEMPTY_INIT_CODE_FAILURE_WONT_REVERT_xor_LOG_FLAG", 1, length),
+        new ColumnHeader(
+            "hub_v2.CREATE_NONEMPTY_INIT_CODE_SUCCESS_WILL_REVERT_xor_MACHINE_STATE_FLAG",
+            1,
+            length),
+        new ColumnHeader(
+            "hub_v2.CREATE_NONEMPTY_INIT_CODE_SUCCESS_WONT_REVERT_xor_MAXCSX", 1, length),
+        new ColumnHeader(
             "hub_v2.DEP_NUM_NEW_xor_CALL_STACK_DEPTH_xor_MMU___REF_SIZE_xor_STACK_ITEM_HEIGHT_3_xor_INIT_GAS",
             32,
             length),
@@ -285,9 +296,13 @@ public class Trace {
             1,
             length),
         new ColumnHeader("hub_v2.DOM_STAMP", 32, length),
+        new ColumnHeader("hub_v2.ECADD_xor_MOD_FLAG", 1, length),
+        new ColumnHeader("hub_v2.ECMUL_xor_MUL_FLAG", 1, length),
+        new ColumnHeader("hub_v2.ECPAIRING_xor_MXPX", 1, length),
+        new ColumnHeader("hub_v2.ECRECOVER_xor_MXP_FLAG", 1, length),
         new ColumnHeader("hub_v2.EXCEPTION_AHOY_FLAG", 1, length),
         new ColumnHeader(
-            "hub_v2.EXISTS_NEW_xor_MXP___DEPLOYS_xor_CALL_PRC_FAILURE_xor_CALL_FLAG_xor_VAL_NEXT_IS_ORIG",
+            "hub_v2.EXISTS_NEW_xor_MXP___DEPLOYS_xor_CALL_EXCEPTION_xor_CALL_FLAG_xor_VAL_NEXT_IS_ORIG",
             1,
             length),
         new ColumnHeader(
@@ -301,50 +316,54 @@ public class Trace {
         new ColumnHeader("hub_v2.GAS_REFUND", 32, length),
         new ColumnHeader("hub_v2.GAS_REFUND_NEW", 32, length),
         new ColumnHeader(
-            "hub_v2.HAS_CODE_NEW_xor_MXP___MXPX_xor_CALL_PRC_SUCCESS_CALLER_WONT_REVERT_xor_COPY_FLAG_xor_VAL_ORIG_IS_ZERO",
+            "hub_v2.HAS_CODE_NEW_xor_MXP___MXPX_xor_CALL_PRC_SUCCESS_CALLER_WILL_REVERT_xor_COPY_FLAG_xor_VAL_ORIG_IS_ZERO",
             1,
             length),
         new ColumnHeader(
-            "hub_v2.HAS_CODE_xor_MXP___FLAG_xor_CALL_PRC_SUCCESS_CALLER_WILL_REVERT_xor_CON_FLAG_xor_VAL_NEXT_IS_ZERO",
+            "hub_v2.HAS_CODE_xor_MXP___FLAG_xor_CALL_PRC_FAILURE_xor_CON_FLAG_xor_VAL_NEXT_IS_ZERO",
             1,
             length),
         new ColumnHeader("hub_v2.HASH_INFO_STAMP", 32, length),
         new ColumnHeader("hub_v2.HUB_STAMP", 32, length),
         new ColumnHeader("hub_v2.HUB_STAMP_TRANSACTION_END", 32, length),
+        new ColumnHeader("hub_v2.IDENTITY_xor_OOB_FLAG", 1, length),
         new ColumnHeader(
-            "hub_v2.IS_BLAKE2f_xor_OOB___FLAG_xor_CALL_SMC_FAILURE_CALLER_WILL_REVERT_xor_CREATE_FLAG_xor_WARM",
+            "hub_v2.IS_BLAKE2f_xor_OOB___FLAG_xor_CALL_PRC_SUCCESS_CALLER_WONT_REVERT_xor_CREATE_FLAG_xor_WARM",
             1,
             length),
         new ColumnHeader(
-            "hub_v2.IS_ECADD_xor_STP___EXISTS_xor_CALL_SMC_FAILURE_CALLER_WONT_REVERT_xor_DECODED_FLAG_1_xor_WARM_NEW",
+            "hub_v2.IS_ECADD_xor_STP___EXISTS_xor_CALL_SMC_FAILURE_CALLER_WILL_REVERT_xor_DECODED_FLAG_1_xor_WARM_NEW",
             1,
             length),
         new ColumnHeader(
-            "hub_v2.IS_ECMUL_xor_STP___FLAG_xor_CALL_SMC_SUCCESS_CALLER_WILL_REVERT_xor_DECODED_FLAG_2",
+            "hub_v2.IS_ECMUL_xor_STP___FLAG_xor_CALL_SMC_FAILURE_CALLER_WONT_REVERT_xor_DECODED_FLAG_2",
             1,
             length),
         new ColumnHeader(
-            "hub_v2.IS_ECPAIRING_xor_STP___OOGX_xor_CALL_SMC_SUCCESS_CALLER_WONT_REVERT_xor_DECODED_FLAG_3",
+            "hub_v2.IS_ECPAIRING_xor_STP___OOGX_xor_CALL_SMC_SUCCESS_CALLER_WILL_REVERT_xor_DECODED_FLAG_3",
             1,
             length),
         new ColumnHeader(
-            "hub_v2.IS_ECRECOVER_xor_STP___WARM_xor_CODEDEPOSIT_xor_DECODED_FLAG_4", 1, length),
+            "hub_v2.IS_ECRECOVER_xor_STP___WARM_xor_CALL_SMC_SUCCESS_CALLER_WONT_REVERT_xor_DECODED_FLAG_4",
+            1,
+            length),
+        new ColumnHeader("hub_v2.IS_IDENTITY_xor_CODEDEPOSIT_xor_DUP_FLAG", 1, length),
         new ColumnHeader(
-            "hub_v2.IS_IDENTITY_xor_CODEDEPOSIT_INVALID_CODE_PREFIX_xor_DUP_FLAG", 1, length),
+            "hub_v2.IS_MODEXP_xor_CODEDEPOSIT_INVALID_CODE_PREFIX_xor_EXT_FLAG", 1, length),
         new ColumnHeader(
-            "hub_v2.IS_MODEXP_xor_CODEDEPOSIT_VALID_CODE_PREFIX_xor_EXT_FLAG", 1, length),
-        new ColumnHeader("hub_v2.IS_PRECOMPILE_xor_ECADD_xor_HALT_FLAG", 1, length),
-        new ColumnHeader("hub_v2.IS_RIPEMD-160_xor_ECMUL_xor_HASH_INFO_FLAG", 1, length),
-        new ColumnHeader("hub_v2.IS_SHA2-256_xor_ECPAIRING_xor_INVALID_FLAG", 1, length),
+            "hub_v2.IS_PRECOMPILE_xor_CODEDEPOSIT_VALID_CODE_PREFIX_xor_HALT_FLAG", 1, length),
+        new ColumnHeader("hub_v2.IS_RIPEMD-160_xor_CREATE_ABORT_xor_HASH_INFO_FLAG", 1, length),
+        new ColumnHeader(
+            "hub_v2.IS_SHA2-256_xor_CREATE_EMPTY_INIT_CODE_WILL_REVERT_xor_INVALID_FLAG",
+            1,
+            length),
         new ColumnHeader("hub_v2.MMU_STAMP", 32, length),
-        new ColumnHeader("hub_v2.MUL_FLAG", 1, length),
-        new ColumnHeader("hub_v2.MXP_FLAG", 1, length),
+        new ColumnHeader("hub_v2.MODEXP_xor_OOGX", 1, length),
         new ColumnHeader("hub_v2.MXP___SIZE_1_LO_xor_STACK_ITEM_VALUE_LO_2", 32, length),
         new ColumnHeader("hub_v2.MXP___SIZE_2_HI_xor_STACK_ITEM_VALUE_LO_3", 32, length),
         new ColumnHeader("hub_v2.MXP___SIZE_2_LO_xor_STACK_ITEM_VALUE_LO_4", 32, length),
         new ColumnHeader("hub_v2.MXP_STAMP", 32, length),
         new ColumnHeader("hub_v2.MXP___WORDS_xor_STATIC_GAS", 32, length),
-        new ColumnHeader("hub_v2.MXPX", 1, length),
         new ColumnHeader(
             "hub_v2.NONCE_NEW_xor_CONTEXT_NUMBER_xor_MMU___STACK_VAL_HI_xor_STACK_ITEM_STAMP_1_xor_NONCE",
             32,
@@ -362,10 +381,7 @@ public class Trace {
         new ColumnHeader("hub_v2.OOB____DATA_6", 32, length),
         new ColumnHeader("hub_v2.OOB____DATA_7", 32, length),
         new ColumnHeader("hub_v2.OOB____DATA_8", 32, length),
-        new ColumnHeader("hub_v2.OOB_FLAG", 1, length),
         new ColumnHeader("hub_v2.OOB___INST", 32, length),
-        new ColumnHeader("hub_v2.OOGX", 1, length),
-        new ColumnHeader("hub_v2.OPCX", 1, length),
         new ColumnHeader("hub_v2.PEEK_AT_ACCOUNT", 1, length),
         new ColumnHeader("hub_v2.PEEK_AT_CONTEXT", 1, length),
         new ColumnHeader("hub_v2.PEEK_AT_MISCELLANEOUS", 1, length),
@@ -373,13 +389,20 @@ public class Trace {
         new ColumnHeader("hub_v2.PEEK_AT_STACK", 1, length),
         new ColumnHeader("hub_v2.PEEK_AT_STORAGE", 1, length),
         new ColumnHeader("hub_v2.PEEK_AT_TRANSACTION", 1, length),
-        new ColumnHeader("hub_v2.PRC_FAILURE_KNOWN_TO_RAM_xor_KEC_FLAG", 1, length),
-        new ColumnHeader("hub_v2.PRC_SUCCESS_xor_LOG_FLAG", 1, length),
+        new ColumnHeader("hub_v2.PRC_CALLEE_GAS_xor_OPCX", 1, length),
+        new ColumnHeader("hub_v2.PRC_CALLER_GAS_xor_PUSHPOP_FLAG", 1, length),
+        new ColumnHeader("hub_v2.PRC_CDO_xor_RDCX", 1, length),
+        new ColumnHeader("hub_v2.PRC_CDS_xor_SHF_FLAG", 1, length),
+        new ColumnHeader("hub_v2.PRC_FAILURE_KNOWN_TO_HUB_xor_SOX", 1, length),
+        new ColumnHeader("hub_v2.PRC_FAILURE_KNOWN_TO_RAM_xor_SSTOREX", 1, length),
+        new ColumnHeader("hub_v2.PRC_RAC_xor_STACKRAM_FLAG", 1, length),
+        new ColumnHeader("hub_v2.PRC_RAO_xor_STACK_ITEM_POP_1", 1, length),
+        new ColumnHeader("hub_v2.PRC_RETURN_GAS_xor_STACK_ITEM_POP_2", 1, length),
+        new ColumnHeader("hub_v2.PRC_SUCCESS_WILL_REVERT_xor_STACK_ITEM_POP_3", 1, length),
+        new ColumnHeader("hub_v2.PRC_SUCCESS_WONT_REVERT_xor_STACK_ITEM_POP_4", 1, length),
         new ColumnHeader("hub_v2.PROGRAM_COUNTER", 32, length),
         new ColumnHeader("hub_v2.PROGRAM_COUNTER_NEW", 32, length),
-        new ColumnHeader("hub_v2.PUSHPOP_FLAG", 1, length),
-        new ColumnHeader("hub_v2.RDCX", 1, length),
-        new ColumnHeader("hub_v2.RIPEMD-160_xor_MACHINE_STATE_FLAG", 1, length),
+        new ColumnHeader("hub_v2.RIPEMD-160_xor_STATICX", 1, length),
         new ColumnHeader(
             "hub_v2.RLPADDR___DEP_ADDR_HI_xor_IS_STATIC_xor_MMU___STACK_VAL_LO_xor_STACK_ITEM_STAMP_2_xor_TO_ADDRESS_HI",
             32,
@@ -388,7 +411,8 @@ public class Trace {
             "hub_v2.RLPADDR___DEP_ADDR_LO_xor_RETURNER_CONTEXT_NUMBER_xor_MXP___GAS_MXP_xor_STACK_ITEM_STAMP_3_xor_TO_ADDRESS_LO",
             32,
             length),
-        new ColumnHeader("hub_v2.RLPADDR___FLAG_xor_ECRECOVER_xor_INVPREX", 1, length),
+        new ColumnHeader(
+            "hub_v2.RLPADDR___FLAG_xor_CREATE_EMPTY_INIT_CODE_WONT_REVERT_xor_INVPREX", 1, length),
         new ColumnHeader(
             "hub_v2.RLPADDR___KEC_HI_xor_RETURNER_IS_PRECOMPILE_xor_MXP___INST_xor_STACK_ITEM_STAMP_4_xor_VALUE",
             32,
@@ -409,19 +433,8 @@ public class Trace {
             "hub_v2.RLPADDR___SALT_LO_xor_RETURN_DATA_SIZE_xor_MXP___OFFSET_2_LO_xor_STACK_ITEM_VALUE_HI_4",
             32,
             length),
-        new ColumnHeader("hub_v2.SELFDESTRUCT_xor_MAXCSX", 1, length),
-        new ColumnHeader("hub_v2.SHA2-256_xor_MOD_FLAG", 1, length),
-        new ColumnHeader("hub_v2.SHF_FLAG", 1, length),
-        new ColumnHeader("hub_v2.SOX", 1, length),
-        new ColumnHeader("hub_v2.SSTOREX", 1, length),
-        new ColumnHeader("hub_v2.STACK_ITEM_POP_1", 1, length),
-        new ColumnHeader("hub_v2.STACK_ITEM_POP_2", 1, length),
-        new ColumnHeader("hub_v2.STACK_ITEM_POP_3", 1, length),
-        new ColumnHeader("hub_v2.STACK_ITEM_POP_4", 1, length),
-        new ColumnHeader("hub_v2.STACKRAM_FLAG", 1, length),
-        new ColumnHeader("hub_v2.STATIC_FLAG", 1, length),
-        new ColumnHeader("hub_v2.STATICX", 1, length),
-        new ColumnHeader("hub_v2.STO_FLAG", 1, length),
+        new ColumnHeader("hub_v2.SELFDESTRUCT_xor_STATIC_FLAG", 1, length),
+        new ColumnHeader("hub_v2.SHA2-256_xor_STO_FLAG", 1, length),
         new ColumnHeader("hub_v2.STP___GAS_HI", 32, length),
         new ColumnHeader("hub_v2.STP___GAS_LO", 32, length),
         new ColumnHeader("hub_v2.STP___GAS_OOPKT", 32, length),
@@ -434,7 +447,7 @@ public class Trace {
         new ColumnHeader("hub_v2.SWAP_FLAG", 1, length),
         new ColumnHeader("hub_v2.TRANSACTION_REVERTS", 1, length),
         new ColumnHeader("hub_v2.TRM_FLAG", 1, length),
-        new ColumnHeader("hub_v2.TRM___FLAG_xor_IDENTITY_xor_JUMPX", 1, length),
+        new ColumnHeader("hub_v2.TRM___FLAG_xor_CREATE_EXCEPTION_xor_JUMPX", 1, length),
         new ColumnHeader(
             "hub_v2.TRM___RAW_ADDR_HI_xor_MXP___SIZE_1_HI_xor_STACK_ITEM_VALUE_LO_1", 32, length),
         new ColumnHeader("hub_v2.TWO_LINE_INSTRUCTION", 1, length),
@@ -444,8 +457,12 @@ public class Trace {
         new ColumnHeader("hub_v2.TX_SKIP", 1, length),
         new ColumnHeader("hub_v2.TX_WARM", 1, length),
         new ColumnHeader("hub_v2.TXN_FLAG", 1, length),
-        new ColumnHeader("hub_v2.WARM_NEW_xor_PRC_FAILURE_KNOWN_TO_HUB_xor_JUMP_FLAG", 1, length),
-        new ColumnHeader("hub_v2.WARM_xor_MODEXP_xor_JUMP_DESTINATION_VETTING_REQUIRED", 1, length),
+        new ColumnHeader(
+            "hub_v2.WARM_NEW_xor_CREATE_FAILURE_CONDITION_WONT_REVERT_xor_JUMP_FLAG", 1, length),
+        new ColumnHeader(
+            "hub_v2.WARM_xor_CREATE_FAILURE_CONDITION_WILL_REVERT_xor_JUMP_DESTINATION_VETTING_REQUIRED",
+            1,
+            length),
         new ColumnHeader("hub_v2.WCP_FLAG", 1, length));
   }
 
@@ -491,109 +508,108 @@ public class Trace {
     this.contextWillRevertFlag = buffers.get(24);
     this.counterNsr = buffers.get(25);
     this.counterTli = buffers.get(26);
-    this.depNumNewXorCallStackDepthXorMmuRefSizeXorStackItemHeight3XorInitGas = buffers.get(27);
-    this.depNumXorCallDataSizeXorMmuRefOffsetXorStackItemHeight2XorInitCodeSize = buffers.get(28);
+    this.createNonemptyInitCodeFailureWillRevertXorKecFlag = buffers.get(27);
+    this.createNonemptyInitCodeFailureWontRevertXorLogFlag = buffers.get(28);
+    this.createNonemptyInitCodeSuccessWillRevertXorMachineStateFlag = buffers.get(29);
+    this.createNonemptyInitCodeSuccessWontRevertXorMaxcsx = buffers.get(30);
+    this.depNumNewXorCallStackDepthXorMmuRefSizeXorStackItemHeight3XorInitGas = buffers.get(31);
+    this.depNumXorCallDataSizeXorMmuRefOffsetXorStackItemHeight2XorInitCodeSize = buffers.get(32);
     this
             .depStatusNewXorMmuFlagXorCallEoaSuccessCallerWillRevertXorBinFlagXorValCurrIsZeroXorStatusCode =
-        buffers.get(29);
-    this.depStatusXorExpFlagXorCallAbortXorAddFlagXorValCurrIsOrigXorIsEip1559 = buffers.get(30);
+        buffers.get(33);
+    this.depStatusXorExpFlagXorCallAbortXorAddFlagXorValCurrIsOrigXorIsEip1559 = buffers.get(34);
     this
             .deploymentNumberInftyXorCallDataOffsetXorMmuParam2XorStackItemHeight1XorValOrigLoXorInitialBalance =
-        buffers.get(31);
+        buffers.get(35);
     this
             .deploymentStatusInftyXorUpdateXorCcsrFlagXorBlake2FXorAccFlagXorValCurrChangesXorIsDeployment =
-        buffers.get(32);
-    this.domStamp = buffers.get(33);
-    this.exceptionAhoyFlag = buffers.get(34);
-    this.existsNewXorMxpDeploysXorCallPrcFailureXorCallFlagXorValNextIsOrig = buffers.get(35);
+        buffers.get(36);
+    this.domStamp = buffers.get(37);
+    this.ecaddXorModFlag = buffers.get(38);
+    this.ecmulXorMulFlag = buffers.get(39);
+    this.ecpairingXorMxpx = buffers.get(40);
+    this.ecrecoverXorMxpFlag = buffers.get(41);
+    this.exceptionAhoyFlag = buffers.get(42);
+    this.existsNewXorMxpDeploysXorCallExceptionXorCallFlagXorValNextIsOrig = buffers.get(43);
     this
             .existsXorMmuInfoXorCallEoaSuccessCallerWontRevertXorBtcFlagXorValNextIsCurrXorTxnRequiresEvmExecution =
-        buffers.get(36);
-    this.gasActual = buffers.get(37);
-    this.gasCost = buffers.get(38);
-    this.gasExpected = buffers.get(39);
-    this.gasNext = buffers.get(40);
-    this.gasRefund = buffers.get(41);
-    this.gasRefundNew = buffers.get(42);
-    this.hasCodeNewXorMxpMxpxXorCallPrcSuccessCallerWontRevertXorCopyFlagXorValOrigIsZero =
-        buffers.get(43);
-    this.hasCodeXorMxpFlagXorCallPrcSuccessCallerWillRevertXorConFlagXorValNextIsZero =
         buffers.get(44);
-    this.hashInfoStamp = buffers.get(45);
-    this.hubStamp = buffers.get(46);
-    this.hubStampTransactionEnd = buffers.get(47);
-    this.isBlake2FXorOobFlagXorCallSmcFailureCallerWillRevertXorCreateFlagXorWarm = buffers.get(48);
-    this.isEcaddXorStpExistsXorCallSmcFailureCallerWontRevertXorDecodedFlag1XorWarmNew =
-        buffers.get(49);
-    this.isEcmulXorStpFlagXorCallSmcSuccessCallerWillRevertXorDecodedFlag2 = buffers.get(50);
-    this.isEcpairingXorStpOogxXorCallSmcSuccessCallerWontRevertXorDecodedFlag3 = buffers.get(51);
-    this.isEcrecoverXorStpWarmXorCodedepositXorDecodedFlag4 = buffers.get(52);
-    this.isIdentityXorCodedepositInvalidCodePrefixXorDupFlag = buffers.get(53);
-    this.isModexpXorCodedepositValidCodePrefixXorExtFlag = buffers.get(54);
-    this.isPrecompileXorEcaddXorHaltFlag = buffers.get(55);
-    this.isRipemd160XorEcmulXorHashInfoFlag = buffers.get(56);
-    this.isSha2256XorEcpairingXorInvalidFlag = buffers.get(57);
-    this.mmuStamp = buffers.get(58);
-    this.mulFlag = buffers.get(59);
-    this.mxpFlag = buffers.get(60);
-    this.mxpSize1LoXorStackItemValueLo2 = buffers.get(61);
-    this.mxpSize2HiXorStackItemValueLo3 = buffers.get(62);
-    this.mxpSize2LoXorStackItemValueLo4 = buffers.get(63);
-    this.mxpStamp = buffers.get(64);
-    this.mxpWordsXorStaticGas = buffers.get(65);
-    this.mxpx = buffers.get(66);
-    this.nonceNewXorContextNumberXorMmuStackValHiXorStackItemStamp1XorNonce = buffers.get(67);
-    this.nonceXorCallValueXorMmuSizeXorStackItemHeight4XorLeftoverGas = buffers.get(68);
-    this.numberOfNonStackRows = buffers.get(69);
-    this.oobData1 = buffers.get(70);
-    this.oobData2 = buffers.get(71);
-    this.oobData3 = buffers.get(72);
-    this.oobData4 = buffers.get(73);
-    this.oobData5 = buffers.get(74);
-    this.oobData6 = buffers.get(75);
-    this.oobData7 = buffers.get(76);
-    this.oobData8 = buffers.get(77);
-    this.oobFlag = buffers.get(78);
-    this.oobInst = buffers.get(79);
-    this.oogx = buffers.get(80);
-    this.opcx = buffers.get(81);
-    this.peekAtAccount = buffers.get(82);
-    this.peekAtContext = buffers.get(83);
-    this.peekAtMiscellaneous = buffers.get(84);
-    this.peekAtScenario = buffers.get(85);
-    this.peekAtStack = buffers.get(86);
-    this.peekAtStorage = buffers.get(87);
-    this.peekAtTransaction = buffers.get(88);
-    this.prcFailureKnownToRamXorKecFlag = buffers.get(89);
-    this.prcSuccessXorLogFlag = buffers.get(90);
-    this.programCounter = buffers.get(91);
-    this.programCounterNew = buffers.get(92);
-    this.pushpopFlag = buffers.get(93);
-    this.rdcx = buffers.get(94);
-    this.ripemd160XorMachineStateFlag = buffers.get(95);
+    this.gasActual = buffers.get(45);
+    this.gasCost = buffers.get(46);
+    this.gasExpected = buffers.get(47);
+    this.gasNext = buffers.get(48);
+    this.gasRefund = buffers.get(49);
+    this.gasRefundNew = buffers.get(50);
+    this.hasCodeNewXorMxpMxpxXorCallPrcSuccessCallerWillRevertXorCopyFlagXorValOrigIsZero =
+        buffers.get(51);
+    this.hasCodeXorMxpFlagXorCallPrcFailureXorConFlagXorValNextIsZero = buffers.get(52);
+    this.hashInfoStamp = buffers.get(53);
+    this.hubStamp = buffers.get(54);
+    this.hubStampTransactionEnd = buffers.get(55);
+    this.identityXorOobFlag = buffers.get(56);
+    this.isBlake2FXorOobFlagXorCallPrcSuccessCallerWontRevertXorCreateFlagXorWarm = buffers.get(57);
+    this.isEcaddXorStpExistsXorCallSmcFailureCallerWillRevertXorDecodedFlag1XorWarmNew =
+        buffers.get(58);
+    this.isEcmulXorStpFlagXorCallSmcFailureCallerWontRevertXorDecodedFlag2 = buffers.get(59);
+    this.isEcpairingXorStpOogxXorCallSmcSuccessCallerWillRevertXorDecodedFlag3 = buffers.get(60);
+    this.isEcrecoverXorStpWarmXorCallSmcSuccessCallerWontRevertXorDecodedFlag4 = buffers.get(61);
+    this.isIdentityXorCodedepositXorDupFlag = buffers.get(62);
+    this.isModexpXorCodedepositInvalidCodePrefixXorExtFlag = buffers.get(63);
+    this.isPrecompileXorCodedepositValidCodePrefixXorHaltFlag = buffers.get(64);
+    this.isRipemd160XorCreateAbortXorHashInfoFlag = buffers.get(65);
+    this.isSha2256XorCreateEmptyInitCodeWillRevertXorInvalidFlag = buffers.get(66);
+    this.mmuStamp = buffers.get(67);
+    this.modexpXorOogx = buffers.get(68);
+    this.mxpSize1LoXorStackItemValueLo2 = buffers.get(69);
+    this.mxpSize2HiXorStackItemValueLo3 = buffers.get(70);
+    this.mxpSize2LoXorStackItemValueLo4 = buffers.get(71);
+    this.mxpStamp = buffers.get(72);
+    this.mxpWordsXorStaticGas = buffers.get(73);
+    this.nonceNewXorContextNumberXorMmuStackValHiXorStackItemStamp1XorNonce = buffers.get(74);
+    this.nonceXorCallValueXorMmuSizeXorStackItemHeight4XorLeftoverGas = buffers.get(75);
+    this.numberOfNonStackRows = buffers.get(76);
+    this.oobData1 = buffers.get(77);
+    this.oobData2 = buffers.get(78);
+    this.oobData3 = buffers.get(79);
+    this.oobData4 = buffers.get(80);
+    this.oobData5 = buffers.get(81);
+    this.oobData6 = buffers.get(82);
+    this.oobData7 = buffers.get(83);
+    this.oobData8 = buffers.get(84);
+    this.oobInst = buffers.get(85);
+    this.peekAtAccount = buffers.get(86);
+    this.peekAtContext = buffers.get(87);
+    this.peekAtMiscellaneous = buffers.get(88);
+    this.peekAtScenario = buffers.get(89);
+    this.peekAtStack = buffers.get(90);
+    this.peekAtStorage = buffers.get(91);
+    this.peekAtTransaction = buffers.get(92);
+    this.prcCalleeGasXorOpcx = buffers.get(93);
+    this.prcCallerGasXorPushpopFlag = buffers.get(94);
+    this.prcCdoXorRdcx = buffers.get(95);
+    this.prcCdsXorShfFlag = buffers.get(96);
+    this.prcFailureKnownToHubXorSox = buffers.get(97);
+    this.prcFailureKnownToRamXorSstorex = buffers.get(98);
+    this.prcRacXorStackramFlag = buffers.get(99);
+    this.prcRaoXorStackItemPop1 = buffers.get(100);
+    this.prcReturnGasXorStackItemPop2 = buffers.get(101);
+    this.prcSuccessWillRevertXorStackItemPop3 = buffers.get(102);
+    this.prcSuccessWontRevertXorStackItemPop4 = buffers.get(103);
+    this.programCounter = buffers.get(104);
+    this.programCounterNew = buffers.get(105);
+    this.ripemd160XorStaticx = buffers.get(106);
     this.rlpaddrDepAddrHiXorIsStaticXorMmuStackValLoXorStackItemStamp2XorToAddressHi =
-        buffers.get(96);
+        buffers.get(107);
     this.rlpaddrDepAddrLoXorReturnerContextNumberXorMxpGasMxpXorStackItemStamp3XorToAddressLo =
-        buffers.get(97);
-    this.rlpaddrFlagXorEcrecoverXorInvprex = buffers.get(98);
-    this.rlpaddrKecHiXorReturnerIsPrecompileXorMxpInstXorStackItemStamp4XorValue = buffers.get(99);
-    this.rlpaddrKecLoXorReturnAtOffsetXorMxpOffset1HiXorStackItemValueHi1 = buffers.get(100);
-    this.rlpaddrRecipeXorReturnAtSizeXorMxpOffset1LoXorStackItemValueHi2 = buffers.get(101);
-    this.rlpaddrSaltHiXorReturnDataOffsetXorMxpOffset2HiXorStackItemValueHi3 = buffers.get(102);
-    this.rlpaddrSaltLoXorReturnDataSizeXorMxpOffset2LoXorStackItemValueHi4 = buffers.get(103);
-    this.selfdestructXorMaxcsx = buffers.get(104);
-    this.sha2256XorModFlag = buffers.get(105);
-    this.shfFlag = buffers.get(106);
-    this.sox = buffers.get(107);
-    this.sstorex = buffers.get(108);
-    this.stackItemPop1 = buffers.get(109);
-    this.stackItemPop2 = buffers.get(110);
-    this.stackItemPop3 = buffers.get(111);
-    this.stackItemPop4 = buffers.get(112);
-    this.stackramFlag = buffers.get(113);
-    this.staticFlag = buffers.get(114);
-    this.staticx = buffers.get(115);
-    this.stoFlag = buffers.get(116);
+        buffers.get(108);
+    this.rlpaddrFlagXorCreateEmptyInitCodeWontRevertXorInvprex = buffers.get(109);
+    this.rlpaddrKecHiXorReturnerIsPrecompileXorMxpInstXorStackItemStamp4XorValue = buffers.get(110);
+    this.rlpaddrKecLoXorReturnAtOffsetXorMxpOffset1HiXorStackItemValueHi1 = buffers.get(111);
+    this.rlpaddrRecipeXorReturnAtSizeXorMxpOffset1LoXorStackItemValueHi2 = buffers.get(112);
+    this.rlpaddrSaltHiXorReturnDataOffsetXorMxpOffset2HiXorStackItemValueHi3 = buffers.get(113);
+    this.rlpaddrSaltLoXorReturnDataSizeXorMxpOffset2LoXorStackItemValueHi4 = buffers.get(114);
+    this.selfdestructXorStaticFlag = buffers.get(115);
+    this.sha2256XorStoFlag = buffers.get(116);
     this.stpGasHi = buffers.get(117);
     this.stpGasLo = buffers.get(118);
     this.stpGasOopkt = buffers.get(119);
@@ -606,7 +622,7 @@ public class Trace {
     this.swapFlag = buffers.get(126);
     this.transactionReverts = buffers.get(127);
     this.trmFlag = buffers.get(128);
-    this.trmFlagXorIdentityXorJumpx = buffers.get(129);
+    this.trmFlagXorCreateExceptionXorJumpx = buffers.get(129);
     this.trmRawAddrHiXorMxpSize1HiXorStackItemValueLo1 = buffers.get(130);
     this.twoLineInstruction = buffers.get(131);
     this.txExec = buffers.get(132);
@@ -615,8 +631,9 @@ public class Trace {
     this.txSkip = buffers.get(135);
     this.txWarm = buffers.get(136);
     this.txnFlag = buffers.get(137);
-    this.warmNewXorPrcFailureKnownToHubXorJumpFlag = buffers.get(138);
-    this.warmXorModexpXorJumpDestinationVettingRequired = buffers.get(139);
+    this.warmNewXorCreateFailureConditionWontRevertXorJumpFlag = buffers.get(138);
+    this.warmXorCreateFailureConditionWillRevertXorJumpDestinationVettingRequired =
+        buffers.get(139);
     this.wcpFlag = buffers.get(140);
   }
 
@@ -1382,7 +1399,7 @@ public class Trace {
       filled.set(52);
     }
 
-    existsNewXorMxpDeploysXorCallPrcFailureXorCallFlagXorValNextIsOrig.put((byte) (b ? 1 : 0));
+    existsNewXorMxpDeploysXorCallExceptionXorCallFlagXorValNextIsOrig.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -1394,8 +1411,7 @@ public class Trace {
       filled.set(53);
     }
 
-    hasCodeXorMxpFlagXorCallPrcSuccessCallerWillRevertXorConFlagXorValNextIsZero.put(
-        (byte) (b ? 1 : 0));
+    hasCodeXorMxpFlagXorCallPrcFailureXorConFlagXorValNextIsZero.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -1407,7 +1423,7 @@ public class Trace {
       filled.set(54);
     }
 
-    hasCodeNewXorMxpMxpxXorCallPrcSuccessCallerWontRevertXorCopyFlagXorValOrigIsZero.put(
+    hasCodeNewXorMxpMxpxXorCallPrcSuccessCallerWillRevertXorCopyFlagXorValOrigIsZero.put(
         (byte) (b ? 1 : 0));
 
     return this;
@@ -1420,7 +1436,7 @@ public class Trace {
       filled.set(55);
     }
 
-    isBlake2FXorOobFlagXorCallSmcFailureCallerWillRevertXorCreateFlagXorWarm.put(
+    isBlake2FXorOobFlagXorCallPrcSuccessCallerWontRevertXorCreateFlagXorWarm.put(
         (byte) (b ? 1 : 0));
 
     return this;
@@ -1433,7 +1449,7 @@ public class Trace {
       filled.set(56);
     }
 
-    isEcaddXorStpExistsXorCallSmcFailureCallerWontRevertXorDecodedFlag1XorWarmNew.put(
+    isEcaddXorStpExistsXorCallSmcFailureCallerWillRevertXorDecodedFlag1XorWarmNew.put(
         (byte) (b ? 1 : 0));
 
     return this;
@@ -1446,7 +1462,7 @@ public class Trace {
       filled.set(57);
     }
 
-    isEcmulXorStpFlagXorCallSmcSuccessCallerWillRevertXorDecodedFlag2.put((byte) (b ? 1 : 0));
+    isEcmulXorStpFlagXorCallSmcFailureCallerWontRevertXorDecodedFlag2.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -1458,7 +1474,7 @@ public class Trace {
       filled.set(58);
     }
 
-    isEcpairingXorStpOogxXorCallSmcSuccessCallerWontRevertXorDecodedFlag3.put((byte) (b ? 1 : 0));
+    isEcpairingXorStpOogxXorCallSmcSuccessCallerWillRevertXorDecodedFlag3.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -1470,7 +1486,7 @@ public class Trace {
       filled.set(59);
     }
 
-    isEcrecoverXorStpWarmXorCodedepositXorDecodedFlag4.put((byte) (b ? 1 : 0));
+    isEcrecoverXorStpWarmXorCallSmcSuccessCallerWontRevertXorDecodedFlag4.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -1482,7 +1498,7 @@ public class Trace {
       filled.set(60);
     }
 
-    isIdentityXorCodedepositInvalidCodePrefixXorDupFlag.put((byte) (b ? 1 : 0));
+    isIdentityXorCodedepositXorDupFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -1494,7 +1510,7 @@ public class Trace {
       filled.set(61);
     }
 
-    isModexpXorCodedepositValidCodePrefixXorExtFlag.put((byte) (b ? 1 : 0));
+    isModexpXorCodedepositInvalidCodePrefixXorExtFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -1506,7 +1522,7 @@ public class Trace {
       filled.set(62);
     }
 
-    isPrecompileXorEcaddXorHaltFlag.put((byte) (b ? 1 : 0));
+    isPrecompileXorCodedepositValidCodePrefixXorHaltFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -1518,7 +1534,7 @@ public class Trace {
       filled.set(63);
     }
 
-    isRipemd160XorEcmulXorHashInfoFlag.put((byte) (b ? 1 : 0));
+    isRipemd160XorCreateAbortXorHashInfoFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -1530,7 +1546,7 @@ public class Trace {
       filled.set(64);
     }
 
-    isSha2256XorEcpairingXorInvalidFlag.put((byte) (b ? 1 : 0));
+    isSha2256XorCreateEmptyInitCodeWillRevertXorInvalidFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -1609,7 +1625,7 @@ public class Trace {
       filled.set(65);
     }
 
-    rlpaddrFlagXorEcrecoverXorInvprex.put((byte) (b ? 1 : 0));
+    rlpaddrFlagXorCreateEmptyInitCodeWontRevertXorInvprex.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -1701,7 +1717,7 @@ public class Trace {
       filled.set(66);
     }
 
-    trmFlagXorIdentityXorJumpx.put((byte) (b ? 1 : 0));
+    trmFlagXorCreateExceptionXorJumpx.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -1729,7 +1745,8 @@ public class Trace {
       filled.set(67);
     }
 
-    warmXorModexpXorJumpDestinationVettingRequired.put((byte) (b ? 1 : 0));
+    warmXorCreateFailureConditionWillRevertXorJumpDestinationVettingRequired.put(
+        (byte) (b ? 1 : 0));
 
     return this;
   }
@@ -1741,7 +1758,7 @@ public class Trace {
       filled.set(68);
     }
 
-    warmNewXorPrcFailureKnownToHubXorJumpFlag.put((byte) (b ? 1 : 0));
+    warmNewXorCreateFailureConditionWontRevertXorJumpFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -2469,7 +2486,7 @@ public class Trace {
       filled.set(52);
     }
 
-    existsNewXorMxpDeploysXorCallPrcFailureXorCallFlagXorValNextIsOrig.put((byte) (b ? 1 : 0));
+    existsNewXorMxpDeploysXorCallExceptionXorCallFlagXorValNextIsOrig.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -2481,8 +2498,7 @@ public class Trace {
       filled.set(53);
     }
 
-    hasCodeXorMxpFlagXorCallPrcSuccessCallerWillRevertXorConFlagXorValNextIsZero.put(
-        (byte) (b ? 1 : 0));
+    hasCodeXorMxpFlagXorCallPrcFailureXorConFlagXorValNextIsZero.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -2528,7 +2544,7 @@ public class Trace {
       filled.set(54);
     }
 
-    hasCodeNewXorMxpMxpxXorCallPrcSuccessCallerWontRevertXorCopyFlagXorValOrigIsZero.put(
+    hasCodeNewXorMxpMxpxXorCallPrcSuccessCallerWillRevertXorCopyFlagXorValOrigIsZero.put(
         (byte) (b ? 1 : 0));
 
     return this;
@@ -2813,7 +2829,7 @@ public class Trace {
       filled.set(55);
     }
 
-    isBlake2FXorOobFlagXorCallSmcFailureCallerWillRevertXorCreateFlagXorWarm.put(
+    isBlake2FXorOobFlagXorCallPrcSuccessCallerWontRevertXorCreateFlagXorWarm.put(
         (byte) (b ? 1 : 0));
 
     return this;
@@ -2842,7 +2858,7 @@ public class Trace {
       filled.set(56);
     }
 
-    isEcaddXorStpExistsXorCallSmcFailureCallerWontRevertXorDecodedFlag1XorWarmNew.put(
+    isEcaddXorStpExistsXorCallSmcFailureCallerWillRevertXorDecodedFlag1XorWarmNew.put(
         (byte) (b ? 1 : 0));
 
     return this;
@@ -2855,7 +2871,7 @@ public class Trace {
       filled.set(57);
     }
 
-    isEcmulXorStpFlagXorCallSmcSuccessCallerWillRevertXorDecodedFlag2.put((byte) (b ? 1 : 0));
+    isEcmulXorStpFlagXorCallSmcFailureCallerWontRevertXorDecodedFlag2.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -2947,7 +2963,7 @@ public class Trace {
       filled.set(58);
     }
 
-    isEcpairingXorStpOogxXorCallSmcSuccessCallerWontRevertXorDecodedFlag3.put((byte) (b ? 1 : 0));
+    isEcpairingXorStpOogxXorCallSmcSuccessCallerWillRevertXorDecodedFlag3.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -2991,7 +3007,7 @@ public class Trace {
       filled.set(59);
     }
 
-    isEcrecoverXorStpWarmXorCodedepositXorDecodedFlag4.put((byte) (b ? 1 : 0));
+    isEcrecoverXorStpWarmXorCallSmcSuccessCallerWontRevertXorDecodedFlag4.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3049,277 +3065,513 @@ public class Trace {
     return this;
   }
 
-  public Trace pScenarioCallPrcFailure(final Boolean b) {
+  public Trace pScenarioCallException(final Boolean b) {
     if (filled.get(52)) {
-      throw new IllegalStateException("hub_v2.scenario/CALL_PRC_FAILURE already set");
+      throw new IllegalStateException("hub_v2.scenario/CALL_EXCEPTION already set");
     } else {
       filled.set(52);
     }
 
-    existsNewXorMxpDeploysXorCallPrcFailureXorCallFlagXorValNextIsOrig.put((byte) (b ? 1 : 0));
+    existsNewXorMxpDeploysXorCallExceptionXorCallFlagXorValNextIsOrig.put((byte) (b ? 1 : 0));
+
+    return this;
+  }
+
+  public Trace pScenarioCallPrcFailure(final Boolean b) {
+    if (filled.get(53)) {
+      throw new IllegalStateException("hub_v2.scenario/CALL_PRC_FAILURE already set");
+    } else {
+      filled.set(53);
+    }
+
+    hasCodeXorMxpFlagXorCallPrcFailureXorConFlagXorValNextIsZero.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
   public Trace pScenarioCallPrcSuccessCallerWillRevert(final Boolean b) {
-    if (filled.get(53)) {
+    if (filled.get(54)) {
       throw new IllegalStateException(
           "hub_v2.scenario/CALL_PRC_SUCCESS_CALLER_WILL_REVERT already set");
     } else {
-      filled.set(53);
+      filled.set(54);
     }
 
-    hasCodeXorMxpFlagXorCallPrcSuccessCallerWillRevertXorConFlagXorValNextIsZero.put(
+    hasCodeNewXorMxpMxpxXorCallPrcSuccessCallerWillRevertXorCopyFlagXorValOrigIsZero.put(
         (byte) (b ? 1 : 0));
 
     return this;
   }
 
   public Trace pScenarioCallPrcSuccessCallerWontRevert(final Boolean b) {
-    if (filled.get(54)) {
+    if (filled.get(55)) {
       throw new IllegalStateException(
           "hub_v2.scenario/CALL_PRC_SUCCESS_CALLER_WONT_REVERT already set");
     } else {
-      filled.set(54);
+      filled.set(55);
     }
 
-    hasCodeNewXorMxpMxpxXorCallPrcSuccessCallerWontRevertXorCopyFlagXorValOrigIsZero.put(
+    isBlake2FXorOobFlagXorCallPrcSuccessCallerWontRevertXorCreateFlagXorWarm.put(
         (byte) (b ? 1 : 0));
 
     return this;
   }
 
   public Trace pScenarioCallSmcFailureCallerWillRevert(final Boolean b) {
-    if (filled.get(55)) {
+    if (filled.get(56)) {
       throw new IllegalStateException(
           "hub_v2.scenario/CALL_SMC_FAILURE_CALLER_WILL_REVERT already set");
     } else {
-      filled.set(55);
+      filled.set(56);
     }
 
-    isBlake2FXorOobFlagXorCallSmcFailureCallerWillRevertXorCreateFlagXorWarm.put(
+    isEcaddXorStpExistsXorCallSmcFailureCallerWillRevertXorDecodedFlag1XorWarmNew.put(
         (byte) (b ? 1 : 0));
 
     return this;
   }
 
   public Trace pScenarioCallSmcFailureCallerWontRevert(final Boolean b) {
-    if (filled.get(56)) {
+    if (filled.get(57)) {
       throw new IllegalStateException(
           "hub_v2.scenario/CALL_SMC_FAILURE_CALLER_WONT_REVERT already set");
     } else {
-      filled.set(56);
+      filled.set(57);
     }
 
-    isEcaddXorStpExistsXorCallSmcFailureCallerWontRevertXorDecodedFlag1XorWarmNew.put(
-        (byte) (b ? 1 : 0));
+    isEcmulXorStpFlagXorCallSmcFailureCallerWontRevertXorDecodedFlag2.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
   public Trace pScenarioCallSmcSuccessCallerWillRevert(final Boolean b) {
-    if (filled.get(57)) {
+    if (filled.get(58)) {
       throw new IllegalStateException(
           "hub_v2.scenario/CALL_SMC_SUCCESS_CALLER_WILL_REVERT already set");
     } else {
-      filled.set(57);
+      filled.set(58);
     }
 
-    isEcmulXorStpFlagXorCallSmcSuccessCallerWillRevertXorDecodedFlag2.put((byte) (b ? 1 : 0));
+    isEcpairingXorStpOogxXorCallSmcSuccessCallerWillRevertXorDecodedFlag3.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
   public Trace pScenarioCallSmcSuccessCallerWontRevert(final Boolean b) {
-    if (filled.get(58)) {
+    if (filled.get(59)) {
       throw new IllegalStateException(
           "hub_v2.scenario/CALL_SMC_SUCCESS_CALLER_WONT_REVERT already set");
     } else {
-      filled.set(58);
+      filled.set(59);
     }
 
-    isEcpairingXorStpOogxXorCallSmcSuccessCallerWontRevertXorDecodedFlag3.put((byte) (b ? 1 : 0));
+    isEcrecoverXorStpWarmXorCallSmcSuccessCallerWontRevertXorDecodedFlag4.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
   public Trace pScenarioCodedeposit(final Boolean b) {
-    if (filled.get(59)) {
+    if (filled.get(60)) {
       throw new IllegalStateException("hub_v2.scenario/CODEDEPOSIT already set");
     } else {
-      filled.set(59);
+      filled.set(60);
     }
 
-    isEcrecoverXorStpWarmXorCodedepositXorDecodedFlag4.put((byte) (b ? 1 : 0));
+    isIdentityXorCodedepositXorDupFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
   public Trace pScenarioCodedepositInvalidCodePrefix(final Boolean b) {
-    if (filled.get(60)) {
+    if (filled.get(61)) {
       throw new IllegalStateException(
           "hub_v2.scenario/CODEDEPOSIT_INVALID_CODE_PREFIX already set");
     } else {
-      filled.set(60);
+      filled.set(61);
     }
 
-    isIdentityXorCodedepositInvalidCodePrefixXorDupFlag.put((byte) (b ? 1 : 0));
+    isModexpXorCodedepositInvalidCodePrefixXorExtFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
   public Trace pScenarioCodedepositValidCodePrefix(final Boolean b) {
-    if (filled.get(61)) {
+    if (filled.get(62)) {
       throw new IllegalStateException("hub_v2.scenario/CODEDEPOSIT_VALID_CODE_PREFIX already set");
     } else {
-      filled.set(61);
+      filled.set(62);
     }
 
-    isModexpXorCodedepositValidCodePrefixXorExtFlag.put((byte) (b ? 1 : 0));
+    isPrecompileXorCodedepositValidCodePrefixXorHaltFlag.put((byte) (b ? 1 : 0));
+
+    return this;
+  }
+
+  public Trace pScenarioCreateAbort(final Boolean b) {
+    if (filled.get(63)) {
+      throw new IllegalStateException("hub_v2.scenario/CREATE_ABORT already set");
+    } else {
+      filled.set(63);
+    }
+
+    isRipemd160XorCreateAbortXorHashInfoFlag.put((byte) (b ? 1 : 0));
+
+    return this;
+  }
+
+  public Trace pScenarioCreateEmptyInitCodeWillRevert(final Boolean b) {
+    if (filled.get(64)) {
+      throw new IllegalStateException(
+          "hub_v2.scenario/CREATE_EMPTY_INIT_CODE_WILL_REVERT already set");
+    } else {
+      filled.set(64);
+    }
+
+    isSha2256XorCreateEmptyInitCodeWillRevertXorInvalidFlag.put((byte) (b ? 1 : 0));
+
+    return this;
+  }
+
+  public Trace pScenarioCreateEmptyInitCodeWontRevert(final Boolean b) {
+    if (filled.get(65)) {
+      throw new IllegalStateException(
+          "hub_v2.scenario/CREATE_EMPTY_INIT_CODE_WONT_REVERT already set");
+    } else {
+      filled.set(65);
+    }
+
+    rlpaddrFlagXorCreateEmptyInitCodeWontRevertXorInvprex.put((byte) (b ? 1 : 0));
+
+    return this;
+  }
+
+  public Trace pScenarioCreateException(final Boolean b) {
+    if (filled.get(66)) {
+      throw new IllegalStateException("hub_v2.scenario/CREATE_EXCEPTION already set");
+    } else {
+      filled.set(66);
+    }
+
+    trmFlagXorCreateExceptionXorJumpx.put((byte) (b ? 1 : 0));
+
+    return this;
+  }
+
+  public Trace pScenarioCreateFailureConditionWillRevert(final Boolean b) {
+    if (filled.get(67)) {
+      throw new IllegalStateException(
+          "hub_v2.scenario/CREATE_FAILURE_CONDITION_WILL_REVERT already set");
+    } else {
+      filled.set(67);
+    }
+
+    warmXorCreateFailureConditionWillRevertXorJumpDestinationVettingRequired.put(
+        (byte) (b ? 1 : 0));
+
+    return this;
+  }
+
+  public Trace pScenarioCreateFailureConditionWontRevert(final Boolean b) {
+    if (filled.get(68)) {
+      throw new IllegalStateException(
+          "hub_v2.scenario/CREATE_FAILURE_CONDITION_WONT_REVERT already set");
+    } else {
+      filled.set(68);
+    }
+
+    warmNewXorCreateFailureConditionWontRevertXorJumpFlag.put((byte) (b ? 1 : 0));
+
+    return this;
+  }
+
+  public Trace pScenarioCreateNonemptyInitCodeFailureWillRevert(final Boolean b) {
+    if (filled.get(69)) {
+      throw new IllegalStateException(
+          "hub_v2.scenario/CREATE_NONEMPTY_INIT_CODE_FAILURE_WILL_REVERT already set");
+    } else {
+      filled.set(69);
+    }
+
+    createNonemptyInitCodeFailureWillRevertXorKecFlag.put((byte) (b ? 1 : 0));
+
+    return this;
+  }
+
+  public Trace pScenarioCreateNonemptyInitCodeFailureWontRevert(final Boolean b) {
+    if (filled.get(70)) {
+      throw new IllegalStateException(
+          "hub_v2.scenario/CREATE_NONEMPTY_INIT_CODE_FAILURE_WONT_REVERT already set");
+    } else {
+      filled.set(70);
+    }
+
+    createNonemptyInitCodeFailureWontRevertXorLogFlag.put((byte) (b ? 1 : 0));
+
+    return this;
+  }
+
+  public Trace pScenarioCreateNonemptyInitCodeSuccessWillRevert(final Boolean b) {
+    if (filled.get(71)) {
+      throw new IllegalStateException(
+          "hub_v2.scenario/CREATE_NONEMPTY_INIT_CODE_SUCCESS_WILL_REVERT already set");
+    } else {
+      filled.set(71);
+    }
+
+    createNonemptyInitCodeSuccessWillRevertXorMachineStateFlag.put((byte) (b ? 1 : 0));
+
+    return this;
+  }
+
+  public Trace pScenarioCreateNonemptyInitCodeSuccessWontRevert(final Boolean b) {
+    if (filled.get(72)) {
+      throw new IllegalStateException(
+          "hub_v2.scenario/CREATE_NONEMPTY_INIT_CODE_SUCCESS_WONT_REVERT already set");
+    } else {
+      filled.set(72);
+    }
+
+    createNonemptyInitCodeSuccessWontRevertXorMaxcsx.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
   public Trace pScenarioEcadd(final Boolean b) {
-    if (filled.get(62)) {
+    if (filled.get(73)) {
       throw new IllegalStateException("hub_v2.scenario/ECADD already set");
     } else {
-      filled.set(62);
+      filled.set(73);
     }
 
-    isPrecompileXorEcaddXorHaltFlag.put((byte) (b ? 1 : 0));
+    ecaddXorModFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
   public Trace pScenarioEcmul(final Boolean b) {
-    if (filled.get(63)) {
+    if (filled.get(74)) {
       throw new IllegalStateException("hub_v2.scenario/ECMUL already set");
     } else {
-      filled.set(63);
+      filled.set(74);
     }
 
-    isRipemd160XorEcmulXorHashInfoFlag.put((byte) (b ? 1 : 0));
+    ecmulXorMulFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
   public Trace pScenarioEcpairing(final Boolean b) {
-    if (filled.get(64)) {
+    if (filled.get(75)) {
       throw new IllegalStateException("hub_v2.scenario/ECPAIRING already set");
     } else {
-      filled.set(64);
+      filled.set(75);
     }
 
-    isSha2256XorEcpairingXorInvalidFlag.put((byte) (b ? 1 : 0));
+    ecpairingXorMxpx.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
   public Trace pScenarioEcrecover(final Boolean b) {
-    if (filled.get(65)) {
+    if (filled.get(76)) {
       throw new IllegalStateException("hub_v2.scenario/ECRECOVER already set");
     } else {
-      filled.set(65);
+      filled.set(76);
     }
 
-    rlpaddrFlagXorEcrecoverXorInvprex.put((byte) (b ? 1 : 0));
+    ecrecoverXorMxpFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
   public Trace pScenarioIdentity(final Boolean b) {
-    if (filled.get(66)) {
+    if (filled.get(77)) {
       throw new IllegalStateException("hub_v2.scenario/IDENTITY already set");
     } else {
-      filled.set(66);
+      filled.set(77);
     }
 
-    trmFlagXorIdentityXorJumpx.put((byte) (b ? 1 : 0));
+    identityXorOobFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
   public Trace pScenarioModexp(final Boolean b) {
-    if (filled.get(67)) {
+    if (filled.get(78)) {
       throw new IllegalStateException("hub_v2.scenario/MODEXP already set");
     } else {
-      filled.set(67);
+      filled.set(78);
     }
 
-    warmXorModexpXorJumpDestinationVettingRequired.put((byte) (b ? 1 : 0));
+    modexpXorOogx.put((byte) (b ? 1 : 0));
+
+    return this;
+  }
+
+  public Trace pScenarioPrcCalleeGas(final Boolean b) {
+    if (filled.get(79)) {
+      throw new IllegalStateException("hub_v2.scenario/PRC_CALLEE_GAS already set");
+    } else {
+      filled.set(79);
+    }
+
+    prcCalleeGasXorOpcx.put((byte) (b ? 1 : 0));
+
+    return this;
+  }
+
+  public Trace pScenarioPrcCallerGas(final Boolean b) {
+    if (filled.get(80)) {
+      throw new IllegalStateException("hub_v2.scenario/PRC_CALLER_GAS already set");
+    } else {
+      filled.set(80);
+    }
+
+    prcCallerGasXorPushpopFlag.put((byte) (b ? 1 : 0));
+
+    return this;
+  }
+
+  public Trace pScenarioPrcCdo(final Boolean b) {
+    if (filled.get(81)) {
+      throw new IllegalStateException("hub_v2.scenario/PRC_CDO already set");
+    } else {
+      filled.set(81);
+    }
+
+    prcCdoXorRdcx.put((byte) (b ? 1 : 0));
+
+    return this;
+  }
+
+  public Trace pScenarioPrcCds(final Boolean b) {
+    if (filled.get(82)) {
+      throw new IllegalStateException("hub_v2.scenario/PRC_CDS already set");
+    } else {
+      filled.set(82);
+    }
+
+    prcCdsXorShfFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
   public Trace pScenarioPrcFailureKnownToHub(final Boolean b) {
-    if (filled.get(68)) {
+    if (filled.get(83)) {
       throw new IllegalStateException("hub_v2.scenario/PRC_FAILURE_KNOWN_TO_HUB already set");
     } else {
-      filled.set(68);
+      filled.set(83);
     }
 
-    warmNewXorPrcFailureKnownToHubXorJumpFlag.put((byte) (b ? 1 : 0));
+    prcFailureKnownToHubXorSox.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
   public Trace pScenarioPrcFailureKnownToRam(final Boolean b) {
-    if (filled.get(69)) {
+    if (filled.get(84)) {
       throw new IllegalStateException("hub_v2.scenario/PRC_FAILURE_KNOWN_TO_RAM already set");
     } else {
-      filled.set(69);
+      filled.set(84);
     }
 
-    prcFailureKnownToRamXorKecFlag.put((byte) (b ? 1 : 0));
+    prcFailureKnownToRamXorSstorex.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
-  public Trace pScenarioPrcSuccess(final Boolean b) {
-    if (filled.get(70)) {
-      throw new IllegalStateException("hub_v2.scenario/PRC_SUCCESS already set");
+  public Trace pScenarioPrcRac(final Boolean b) {
+    if (filled.get(85)) {
+      throw new IllegalStateException("hub_v2.scenario/PRC_RAC already set");
     } else {
-      filled.set(70);
+      filled.set(85);
     }
 
-    prcSuccessXorLogFlag.put((byte) (b ? 1 : 0));
+    prcRacXorStackramFlag.put((byte) (b ? 1 : 0));
+
+    return this;
+  }
+
+  public Trace pScenarioPrcRao(final Boolean b) {
+    if (filled.get(86)) {
+      throw new IllegalStateException("hub_v2.scenario/PRC_RAO already set");
+    } else {
+      filled.set(86);
+    }
+
+    prcRaoXorStackItemPop1.put((byte) (b ? 1 : 0));
+
+    return this;
+  }
+
+  public Trace pScenarioPrcReturnGas(final Boolean b) {
+    if (filled.get(87)) {
+      throw new IllegalStateException("hub_v2.scenario/PRC_RETURN_GAS already set");
+    } else {
+      filled.set(87);
+    }
+
+    prcReturnGasXorStackItemPop2.put((byte) (b ? 1 : 0));
+
+    return this;
+  }
+
+  public Trace pScenarioPrcSuccessWillRevert(final Boolean b) {
+    if (filled.get(88)) {
+      throw new IllegalStateException("hub_v2.scenario/PRC_SUCCESS_WILL_REVERT already set");
+    } else {
+      filled.set(88);
+    }
+
+    prcSuccessWillRevertXorStackItemPop3.put((byte) (b ? 1 : 0));
+
+    return this;
+  }
+
+  public Trace pScenarioPrcSuccessWontRevert(final Boolean b) {
+    if (filled.get(89)) {
+      throw new IllegalStateException("hub_v2.scenario/PRC_SUCCESS_WONT_REVERT already set");
+    } else {
+      filled.set(89);
+    }
+
+    prcSuccessWontRevertXorStackItemPop4.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
   public Trace pScenarioRipemd160(final Boolean b) {
-    if (filled.get(71)) {
+    if (filled.get(90)) {
       throw new IllegalStateException("hub_v2.scenario/RIPEMD-160 already set");
     } else {
-      filled.set(71);
+      filled.set(90);
     }
 
-    ripemd160XorMachineStateFlag.put((byte) (b ? 1 : 0));
+    ripemd160XorStaticx.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
   public Trace pScenarioSelfdestruct(final Boolean b) {
-    if (filled.get(72)) {
+    if (filled.get(91)) {
       throw new IllegalStateException("hub_v2.scenario/SELFDESTRUCT already set");
     } else {
-      filled.set(72);
+      filled.set(91);
     }
 
-    selfdestructXorMaxcsx.put((byte) (b ? 1 : 0));
+    selfdestructXorStaticFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
   public Trace pScenarioSha2256(final Boolean b) {
-    if (filled.get(73)) {
+    if (filled.get(92)) {
       throw new IllegalStateException("hub_v2.scenario/SHA2-256 already set");
     } else {
-      filled.set(73);
+      filled.set(92);
     }
 
-    sha2256XorModFlag.put((byte) (b ? 1 : 0));
+    sha2256XorStoFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3382,7 +3634,7 @@ public class Trace {
       filled.set(52);
     }
 
-    existsNewXorMxpDeploysXorCallPrcFailureXorCallFlagXorValNextIsOrig.put((byte) (b ? 1 : 0));
+    existsNewXorMxpDeploysXorCallExceptionXorCallFlagXorValNextIsOrig.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3394,8 +3646,7 @@ public class Trace {
       filled.set(53);
     }
 
-    hasCodeXorMxpFlagXorCallPrcSuccessCallerWillRevertXorConFlagXorValNextIsZero.put(
-        (byte) (b ? 1 : 0));
+    hasCodeXorMxpFlagXorCallPrcFailureXorConFlagXorValNextIsZero.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3407,7 +3658,7 @@ public class Trace {
       filled.set(54);
     }
 
-    hasCodeNewXorMxpMxpxXorCallPrcSuccessCallerWontRevertXorCopyFlagXorValOrigIsZero.put(
+    hasCodeNewXorMxpMxpxXorCallPrcSuccessCallerWillRevertXorCopyFlagXorValOrigIsZero.put(
         (byte) (b ? 1 : 0));
 
     return this;
@@ -3420,7 +3671,7 @@ public class Trace {
       filled.set(55);
     }
 
-    isBlake2FXorOobFlagXorCallSmcFailureCallerWillRevertXorCreateFlagXorWarm.put(
+    isBlake2FXorOobFlagXorCallPrcSuccessCallerWontRevertXorCreateFlagXorWarm.put(
         (byte) (b ? 1 : 0));
 
     return this;
@@ -3433,7 +3684,7 @@ public class Trace {
       filled.set(56);
     }
 
-    isEcaddXorStpExistsXorCallSmcFailureCallerWontRevertXorDecodedFlag1XorWarmNew.put(
+    isEcaddXorStpExistsXorCallSmcFailureCallerWillRevertXorDecodedFlag1XorWarmNew.put(
         (byte) (b ? 1 : 0));
 
     return this;
@@ -3446,7 +3697,7 @@ public class Trace {
       filled.set(57);
     }
 
-    isEcmulXorStpFlagXorCallSmcSuccessCallerWillRevertXorDecodedFlag2.put((byte) (b ? 1 : 0));
+    isEcmulXorStpFlagXorCallSmcFailureCallerWontRevertXorDecodedFlag2.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3458,7 +3709,7 @@ public class Trace {
       filled.set(58);
     }
 
-    isEcpairingXorStpOogxXorCallSmcSuccessCallerWontRevertXorDecodedFlag3.put((byte) (b ? 1 : 0));
+    isEcpairingXorStpOogxXorCallSmcSuccessCallerWillRevertXorDecodedFlag3.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3470,7 +3721,7 @@ public class Trace {
       filled.set(59);
     }
 
-    isEcrecoverXorStpWarmXorCodedepositXorDecodedFlag4.put((byte) (b ? 1 : 0));
+    isEcrecoverXorStpWarmXorCallSmcSuccessCallerWontRevertXorDecodedFlag4.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3482,7 +3733,7 @@ public class Trace {
       filled.set(60);
     }
 
-    isIdentityXorCodedepositInvalidCodePrefixXorDupFlag.put((byte) (b ? 1 : 0));
+    isIdentityXorCodedepositXorDupFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3494,7 +3745,7 @@ public class Trace {
       filled.set(61);
     }
 
-    isModexpXorCodedepositValidCodePrefixXorExtFlag.put((byte) (b ? 1 : 0));
+    isModexpXorCodedepositInvalidCodePrefixXorExtFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3506,7 +3757,7 @@ public class Trace {
       filled.set(62);
     }
 
-    isPrecompileXorEcaddXorHaltFlag.put((byte) (b ? 1 : 0));
+    isPrecompileXorCodedepositValidCodePrefixXorHaltFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3518,7 +3769,7 @@ public class Trace {
       filled.set(63);
     }
 
-    isRipemd160XorEcmulXorHashInfoFlag.put((byte) (b ? 1 : 0));
+    isRipemd160XorCreateAbortXorHashInfoFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3672,7 +3923,7 @@ public class Trace {
       filled.set(64);
     }
 
-    isSha2256XorEcpairingXorInvalidFlag.put((byte) (b ? 1 : 0));
+    isSha2256XorCreateEmptyInitCodeWillRevertXorInvalidFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3684,7 +3935,7 @@ public class Trace {
       filled.set(65);
     }
 
-    rlpaddrFlagXorEcrecoverXorInvprex.put((byte) (b ? 1 : 0));
+    rlpaddrFlagXorCreateEmptyInitCodeWontRevertXorInvprex.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3696,7 +3947,8 @@ public class Trace {
       filled.set(67);
     }
 
-    warmXorModexpXorJumpDestinationVettingRequired.put((byte) (b ? 1 : 0));
+    warmXorCreateFailureConditionWillRevertXorJumpDestinationVettingRequired.put(
+        (byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3708,7 +3960,7 @@ public class Trace {
       filled.set(68);
     }
 
-    warmNewXorPrcFailureKnownToHubXorJumpFlag.put((byte) (b ? 1 : 0));
+    warmNewXorCreateFailureConditionWontRevertXorJumpFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3720,7 +3972,7 @@ public class Trace {
       filled.set(66);
     }
 
-    trmFlagXorIdentityXorJumpx.put((byte) (b ? 1 : 0));
+    trmFlagXorCreateExceptionXorJumpx.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3732,7 +3984,7 @@ public class Trace {
       filled.set(69);
     }
 
-    prcFailureKnownToRamXorKecFlag.put((byte) (b ? 1 : 0));
+    createNonemptyInitCodeFailureWillRevertXorKecFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3744,7 +3996,7 @@ public class Trace {
       filled.set(70);
     }
 
-    prcSuccessXorLogFlag.put((byte) (b ? 1 : 0));
+    createNonemptyInitCodeFailureWontRevertXorLogFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3756,7 +4008,7 @@ public class Trace {
       filled.set(71);
     }
 
-    ripemd160XorMachineStateFlag.put((byte) (b ? 1 : 0));
+    createNonemptyInitCodeSuccessWillRevertXorMachineStateFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3768,7 +4020,7 @@ public class Trace {
       filled.set(72);
     }
 
-    selfdestructXorMaxcsx.put((byte) (b ? 1 : 0));
+    createNonemptyInitCodeSuccessWontRevertXorMaxcsx.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3780,7 +4032,7 @@ public class Trace {
       filled.set(73);
     }
 
-    sha2256XorModFlag.put((byte) (b ? 1 : 0));
+    ecaddXorModFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3792,7 +4044,7 @@ public class Trace {
       filled.set(74);
     }
 
-    mulFlag.put((byte) (b ? 1 : 0));
+    ecmulXorMulFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3804,7 +4056,7 @@ public class Trace {
       filled.set(76);
     }
 
-    mxpFlag.put((byte) (b ? 1 : 0));
+    ecrecoverXorMxpFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3816,7 +4068,7 @@ public class Trace {
       filled.set(75);
     }
 
-    mxpx.put((byte) (b ? 1 : 0));
+    ecpairingXorMxpx.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3828,7 +4080,7 @@ public class Trace {
       filled.set(77);
     }
 
-    oobFlag.put((byte) (b ? 1 : 0));
+    identityXorOobFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3840,7 +4092,7 @@ public class Trace {
       filled.set(78);
     }
 
-    oogx.put((byte) (b ? 1 : 0));
+    modexpXorOogx.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3852,7 +4104,7 @@ public class Trace {
       filled.set(79);
     }
 
-    opcx.put((byte) (b ? 1 : 0));
+    prcCalleeGasXorOpcx.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3900,7 +4152,7 @@ public class Trace {
       filled.set(80);
     }
 
-    pushpopFlag.put((byte) (b ? 1 : 0));
+    prcCallerGasXorPushpopFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3912,7 +4164,7 @@ public class Trace {
       filled.set(81);
     }
 
-    rdcx.put((byte) (b ? 1 : 0));
+    prcCdoXorRdcx.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3924,7 +4176,7 @@ public class Trace {
       filled.set(82);
     }
 
-    shfFlag.put((byte) (b ? 1 : 0));
+    prcCdsXorShfFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3936,7 +4188,7 @@ public class Trace {
       filled.set(83);
     }
 
-    sox.put((byte) (b ? 1 : 0));
+    prcFailureKnownToHubXorSox.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3948,7 +4200,7 @@ public class Trace {
       filled.set(84);
     }
 
-    sstorex.put((byte) (b ? 1 : 0));
+    prcFailureKnownToRamXorSstorex.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -4026,7 +4278,7 @@ public class Trace {
       filled.set(86);
     }
 
-    stackItemPop1.put((byte) (b ? 1 : 0));
+    prcRaoXorStackItemPop1.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -4038,7 +4290,7 @@ public class Trace {
       filled.set(87);
     }
 
-    stackItemPop2.put((byte) (b ? 1 : 0));
+    prcReturnGasXorStackItemPop2.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -4050,7 +4302,7 @@ public class Trace {
       filled.set(88);
     }
 
-    stackItemPop3.put((byte) (b ? 1 : 0));
+    prcSuccessWillRevertXorStackItemPop3.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -4062,7 +4314,7 @@ public class Trace {
       filled.set(89);
     }
 
-    stackItemPop4.put((byte) (b ? 1 : 0));
+    prcSuccessWontRevertXorStackItemPop4.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -4269,7 +4521,7 @@ public class Trace {
       filled.set(85);
     }
 
-    stackramFlag.put((byte) (b ? 1 : 0));
+    prcRacXorStackramFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -4281,7 +4533,7 @@ public class Trace {
       filled.set(91);
     }
 
-    staticFlag.put((byte) (b ? 1 : 0));
+    selfdestructXorStaticFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -4309,7 +4561,7 @@ public class Trace {
       filled.set(90);
     }
 
-    staticx.put((byte) (b ? 1 : 0));
+    ripemd160XorStaticx.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -4321,7 +4573,7 @@ public class Trace {
       filled.set(92);
     }
 
-    stoFlag.put((byte) (b ? 1 : 0));
+    sha2256XorStoFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -4586,7 +4838,7 @@ public class Trace {
       filled.set(52);
     }
 
-    existsNewXorMxpDeploysXorCallPrcFailureXorCallFlagXorValNextIsOrig.put((byte) (b ? 1 : 0));
+    existsNewXorMxpDeploysXorCallExceptionXorCallFlagXorValNextIsOrig.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -4598,8 +4850,7 @@ public class Trace {
       filled.set(53);
     }
 
-    hasCodeXorMxpFlagXorCallPrcSuccessCallerWillRevertXorConFlagXorValNextIsZero.put(
-        (byte) (b ? 1 : 0));
+    hasCodeXorMxpFlagXorCallPrcFailureXorConFlagXorValNextIsZero.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -4647,7 +4898,7 @@ public class Trace {
       filled.set(54);
     }
 
-    hasCodeNewXorMxpMxpxXorCallPrcSuccessCallerWontRevertXorCopyFlagXorValOrigIsZero.put(
+    hasCodeNewXorMxpMxpxXorCallPrcSuccessCallerWillRevertXorCopyFlagXorValOrigIsZero.put(
         (byte) (b ? 1 : 0));
 
     return this;
@@ -4678,7 +4929,7 @@ public class Trace {
       filled.set(55);
     }
 
-    isBlake2FXorOobFlagXorCallSmcFailureCallerWillRevertXorCreateFlagXorWarm.put(
+    isBlake2FXorOobFlagXorCallPrcSuccessCallerWontRevertXorCreateFlagXorWarm.put(
         (byte) (b ? 1 : 0));
 
     return this;
@@ -4691,7 +4942,7 @@ public class Trace {
       filled.set(56);
     }
 
-    isEcaddXorStpExistsXorCallSmcFailureCallerWontRevertXorDecodedFlag1XorWarmNew.put(
+    isEcaddXorStpExistsXorCallSmcFailureCallerWillRevertXorDecodedFlag1XorWarmNew.put(
         (byte) (b ? 1 : 0));
 
     return this;
@@ -5394,6 +5645,26 @@ public class Trace {
       throw new IllegalStateException("hub_v2.COUNTER_TLI has not been filled");
     }
 
+    if (!filled.get(69)) {
+      throw new IllegalStateException(
+          "hub_v2.CREATE_NONEMPTY_INIT_CODE_FAILURE_WILL_REVERT_xor_KEC_FLAG has not been filled");
+    }
+
+    if (!filled.get(70)) {
+      throw new IllegalStateException(
+          "hub_v2.CREATE_NONEMPTY_INIT_CODE_FAILURE_WONT_REVERT_xor_LOG_FLAG has not been filled");
+    }
+
+    if (!filled.get(71)) {
+      throw new IllegalStateException(
+          "hub_v2.CREATE_NONEMPTY_INIT_CODE_SUCCESS_WILL_REVERT_xor_MACHINE_STATE_FLAG has not been filled");
+    }
+
+    if (!filled.get(72)) {
+      throw new IllegalStateException(
+          "hub_v2.CREATE_NONEMPTY_INIT_CODE_SUCCESS_WONT_REVERT_xor_MAXCSX has not been filled");
+    }
+
     if (!filled.get(111)) {
       throw new IllegalStateException(
           "hub_v2.DEP_NUM_NEW_xor_CALL_STACK_DEPTH_xor_MMU___REF_SIZE_xor_STACK_ITEM_HEIGHT_3_xor_INIT_GAS has not been filled");
@@ -5428,13 +5699,29 @@ public class Trace {
       throw new IllegalStateException("hub_v2.DOM_STAMP has not been filled");
     }
 
+    if (!filled.get(73)) {
+      throw new IllegalStateException("hub_v2.ECADD_xor_MOD_FLAG has not been filled");
+    }
+
+    if (!filled.get(74)) {
+      throw new IllegalStateException("hub_v2.ECMUL_xor_MUL_FLAG has not been filled");
+    }
+
+    if (!filled.get(75)) {
+      throw new IllegalStateException("hub_v2.ECPAIRING_xor_MXPX has not been filled");
+    }
+
+    if (!filled.get(76)) {
+      throw new IllegalStateException("hub_v2.ECRECOVER_xor_MXP_FLAG has not been filled");
+    }
+
     if (!filled.get(18)) {
       throw new IllegalStateException("hub_v2.EXCEPTION_AHOY_FLAG has not been filled");
     }
 
     if (!filled.get(52)) {
       throw new IllegalStateException(
-          "hub_v2.EXISTS_NEW_xor_MXP___DEPLOYS_xor_CALL_PRC_FAILURE_xor_CALL_FLAG_xor_VAL_NEXT_IS_ORIG has not been filled");
+          "hub_v2.EXISTS_NEW_xor_MXP___DEPLOYS_xor_CALL_EXCEPTION_xor_CALL_FLAG_xor_VAL_NEXT_IS_ORIG has not been filled");
     }
 
     if (!filled.get(51)) {
@@ -5468,12 +5755,12 @@ public class Trace {
 
     if (!filled.get(54)) {
       throw new IllegalStateException(
-          "hub_v2.HAS_CODE_NEW_xor_MXP___MXPX_xor_CALL_PRC_SUCCESS_CALLER_WONT_REVERT_xor_COPY_FLAG_xor_VAL_ORIG_IS_ZERO has not been filled");
+          "hub_v2.HAS_CODE_NEW_xor_MXP___MXPX_xor_CALL_PRC_SUCCESS_CALLER_WILL_REVERT_xor_COPY_FLAG_xor_VAL_ORIG_IS_ZERO has not been filled");
     }
 
     if (!filled.get(53)) {
       throw new IllegalStateException(
-          "hub_v2.HAS_CODE_xor_MXP___FLAG_xor_CALL_PRC_SUCCESS_CALLER_WILL_REVERT_xor_CON_FLAG_xor_VAL_NEXT_IS_ZERO has not been filled");
+          "hub_v2.HAS_CODE_xor_MXP___FLAG_xor_CALL_PRC_FAILURE_xor_CON_FLAG_xor_VAL_NEXT_IS_ZERO has not been filled");
     }
 
     if (!filled.get(25)) {
@@ -5488,66 +5775,66 @@ public class Trace {
       throw new IllegalStateException("hub_v2.HUB_STAMP_TRANSACTION_END has not been filled");
     }
 
+    if (!filled.get(77)) {
+      throw new IllegalStateException("hub_v2.IDENTITY_xor_OOB_FLAG has not been filled");
+    }
+
     if (!filled.get(55)) {
       throw new IllegalStateException(
-          "hub_v2.IS_BLAKE2f_xor_OOB___FLAG_xor_CALL_SMC_FAILURE_CALLER_WILL_REVERT_xor_CREATE_FLAG_xor_WARM has not been filled");
+          "hub_v2.IS_BLAKE2f_xor_OOB___FLAG_xor_CALL_PRC_SUCCESS_CALLER_WONT_REVERT_xor_CREATE_FLAG_xor_WARM has not been filled");
     }
 
     if (!filled.get(56)) {
       throw new IllegalStateException(
-          "hub_v2.IS_ECADD_xor_STP___EXISTS_xor_CALL_SMC_FAILURE_CALLER_WONT_REVERT_xor_DECODED_FLAG_1_xor_WARM_NEW has not been filled");
+          "hub_v2.IS_ECADD_xor_STP___EXISTS_xor_CALL_SMC_FAILURE_CALLER_WILL_REVERT_xor_DECODED_FLAG_1_xor_WARM_NEW has not been filled");
     }
 
     if (!filled.get(57)) {
       throw new IllegalStateException(
-          "hub_v2.IS_ECMUL_xor_STP___FLAG_xor_CALL_SMC_SUCCESS_CALLER_WILL_REVERT_xor_DECODED_FLAG_2 has not been filled");
+          "hub_v2.IS_ECMUL_xor_STP___FLAG_xor_CALL_SMC_FAILURE_CALLER_WONT_REVERT_xor_DECODED_FLAG_2 has not been filled");
     }
 
     if (!filled.get(58)) {
       throw new IllegalStateException(
-          "hub_v2.IS_ECPAIRING_xor_STP___OOGX_xor_CALL_SMC_SUCCESS_CALLER_WONT_REVERT_xor_DECODED_FLAG_3 has not been filled");
+          "hub_v2.IS_ECPAIRING_xor_STP___OOGX_xor_CALL_SMC_SUCCESS_CALLER_WILL_REVERT_xor_DECODED_FLAG_3 has not been filled");
     }
 
     if (!filled.get(59)) {
       throw new IllegalStateException(
-          "hub_v2.IS_ECRECOVER_xor_STP___WARM_xor_CODEDEPOSIT_xor_DECODED_FLAG_4 has not been filled");
+          "hub_v2.IS_ECRECOVER_xor_STP___WARM_xor_CALL_SMC_SUCCESS_CALLER_WONT_REVERT_xor_DECODED_FLAG_4 has not been filled");
     }
 
     if (!filled.get(60)) {
       throw new IllegalStateException(
-          "hub_v2.IS_IDENTITY_xor_CODEDEPOSIT_INVALID_CODE_PREFIX_xor_DUP_FLAG has not been filled");
+          "hub_v2.IS_IDENTITY_xor_CODEDEPOSIT_xor_DUP_FLAG has not been filled");
     }
 
     if (!filled.get(61)) {
       throw new IllegalStateException(
-          "hub_v2.IS_MODEXP_xor_CODEDEPOSIT_VALID_CODE_PREFIX_xor_EXT_FLAG has not been filled");
+          "hub_v2.IS_MODEXP_xor_CODEDEPOSIT_INVALID_CODE_PREFIX_xor_EXT_FLAG has not been filled");
     }
 
     if (!filled.get(62)) {
       throw new IllegalStateException(
-          "hub_v2.IS_PRECOMPILE_xor_ECADD_xor_HALT_FLAG has not been filled");
+          "hub_v2.IS_PRECOMPILE_xor_CODEDEPOSIT_VALID_CODE_PREFIX_xor_HALT_FLAG has not been filled");
     }
 
     if (!filled.get(63)) {
       throw new IllegalStateException(
-          "hub_v2.IS_RIPEMD-160_xor_ECMUL_xor_HASH_INFO_FLAG has not been filled");
+          "hub_v2.IS_RIPEMD-160_xor_CREATE_ABORT_xor_HASH_INFO_FLAG has not been filled");
     }
 
     if (!filled.get(64)) {
       throw new IllegalStateException(
-          "hub_v2.IS_SHA2-256_xor_ECPAIRING_xor_INVALID_FLAG has not been filled");
+          "hub_v2.IS_SHA2-256_xor_CREATE_EMPTY_INIT_CODE_WILL_REVERT_xor_INVALID_FLAG has not been filled");
     }
 
     if (!filled.get(28)) {
       throw new IllegalStateException("hub_v2.MMU_STAMP has not been filled");
     }
 
-    if (!filled.get(74)) {
-      throw new IllegalStateException("hub_v2.MUL_FLAG has not been filled");
-    }
-
-    if (!filled.get(76)) {
-      throw new IllegalStateException("hub_v2.MXP_FLAG has not been filled");
+    if (!filled.get(78)) {
+      throw new IllegalStateException("hub_v2.MODEXP_xor_OOGX has not been filled");
     }
 
     if (!filled.get(122)) {
@@ -5571,10 +5858,6 @@ public class Trace {
 
     if (!filled.get(125)) {
       throw new IllegalStateException("hub_v2.MXP___WORDS_xor_STATIC_GAS has not been filled");
-    }
-
-    if (!filled.get(75)) {
-      throw new IllegalStateException("hub_v2.MXPX has not been filled");
     }
 
     if (!filled.get(113)) {
@@ -5623,20 +5906,8 @@ public class Trace {
       throw new IllegalStateException("hub_v2.OOB____DATA_8 has not been filled");
     }
 
-    if (!filled.get(77)) {
-      throw new IllegalStateException("hub_v2.OOB_FLAG has not been filled");
-    }
-
     if (!filled.get(98)) {
       throw new IllegalStateException("hub_v2.OOB___INST has not been filled");
-    }
-
-    if (!filled.get(78)) {
-      throw new IllegalStateException("hub_v2.OOGX has not been filled");
-    }
-
-    if (!filled.get(79)) {
-      throw new IllegalStateException("hub_v2.OPCX has not been filled");
     }
 
     if (!filled.get(31)) {
@@ -5667,13 +5938,53 @@ public class Trace {
       throw new IllegalStateException("hub_v2.PEEK_AT_TRANSACTION has not been filled");
     }
 
-    if (!filled.get(69)) {
-      throw new IllegalStateException(
-          "hub_v2.PRC_FAILURE_KNOWN_TO_RAM_xor_KEC_FLAG has not been filled");
+    if (!filled.get(79)) {
+      throw new IllegalStateException("hub_v2.PRC_CALLEE_GAS_xor_OPCX has not been filled");
     }
 
-    if (!filled.get(70)) {
-      throw new IllegalStateException("hub_v2.PRC_SUCCESS_xor_LOG_FLAG has not been filled");
+    if (!filled.get(80)) {
+      throw new IllegalStateException("hub_v2.PRC_CALLER_GAS_xor_PUSHPOP_FLAG has not been filled");
+    }
+
+    if (!filled.get(81)) {
+      throw new IllegalStateException("hub_v2.PRC_CDO_xor_RDCX has not been filled");
+    }
+
+    if (!filled.get(82)) {
+      throw new IllegalStateException("hub_v2.PRC_CDS_xor_SHF_FLAG has not been filled");
+    }
+
+    if (!filled.get(83)) {
+      throw new IllegalStateException(
+          "hub_v2.PRC_FAILURE_KNOWN_TO_HUB_xor_SOX has not been filled");
+    }
+
+    if (!filled.get(84)) {
+      throw new IllegalStateException(
+          "hub_v2.PRC_FAILURE_KNOWN_TO_RAM_xor_SSTOREX has not been filled");
+    }
+
+    if (!filled.get(85)) {
+      throw new IllegalStateException("hub_v2.PRC_RAC_xor_STACKRAM_FLAG has not been filled");
+    }
+
+    if (!filled.get(86)) {
+      throw new IllegalStateException("hub_v2.PRC_RAO_xor_STACK_ITEM_POP_1 has not been filled");
+    }
+
+    if (!filled.get(87)) {
+      throw new IllegalStateException(
+          "hub_v2.PRC_RETURN_GAS_xor_STACK_ITEM_POP_2 has not been filled");
+    }
+
+    if (!filled.get(88)) {
+      throw new IllegalStateException(
+          "hub_v2.PRC_SUCCESS_WILL_REVERT_xor_STACK_ITEM_POP_3 has not been filled");
+    }
+
+    if (!filled.get(89)) {
+      throw new IllegalStateException(
+          "hub_v2.PRC_SUCCESS_WONT_REVERT_xor_STACK_ITEM_POP_4 has not been filled");
     }
 
     if (!filled.get(38)) {
@@ -5684,17 +5995,8 @@ public class Trace {
       throw new IllegalStateException("hub_v2.PROGRAM_COUNTER_NEW has not been filled");
     }
 
-    if (!filled.get(80)) {
-      throw new IllegalStateException("hub_v2.PUSHPOP_FLAG has not been filled");
-    }
-
-    if (!filled.get(81)) {
-      throw new IllegalStateException("hub_v2.RDCX has not been filled");
-    }
-
-    if (!filled.get(71)) {
-      throw new IllegalStateException(
-          "hub_v2.RIPEMD-160_xor_MACHINE_STATE_FLAG has not been filled");
+    if (!filled.get(90)) {
+      throw new IllegalStateException("hub_v2.RIPEMD-160_xor_STATICX has not been filled");
     }
 
     if (!filled.get(114)) {
@@ -5709,7 +6011,7 @@ public class Trace {
 
     if (!filled.get(65)) {
       throw new IllegalStateException(
-          "hub_v2.RLPADDR___FLAG_xor_ECRECOVER_xor_INVPREX has not been filled");
+          "hub_v2.RLPADDR___FLAG_xor_CREATE_EMPTY_INIT_CODE_WONT_REVERT_xor_INVPREX has not been filled");
     }
 
     if (!filled.get(116)) {
@@ -5737,56 +6039,12 @@ public class Trace {
           "hub_v2.RLPADDR___SALT_LO_xor_RETURN_DATA_SIZE_xor_MXP___OFFSET_2_LO_xor_STACK_ITEM_VALUE_HI_4 has not been filled");
     }
 
-    if (!filled.get(72)) {
-      throw new IllegalStateException("hub_v2.SELFDESTRUCT_xor_MAXCSX has not been filled");
-    }
-
-    if (!filled.get(73)) {
-      throw new IllegalStateException("hub_v2.SHA2-256_xor_MOD_FLAG has not been filled");
-    }
-
-    if (!filled.get(82)) {
-      throw new IllegalStateException("hub_v2.SHF_FLAG has not been filled");
-    }
-
-    if (!filled.get(83)) {
-      throw new IllegalStateException("hub_v2.SOX has not been filled");
-    }
-
-    if (!filled.get(84)) {
-      throw new IllegalStateException("hub_v2.SSTOREX has not been filled");
-    }
-
-    if (!filled.get(86)) {
-      throw new IllegalStateException("hub_v2.STACK_ITEM_POP_1 has not been filled");
-    }
-
-    if (!filled.get(87)) {
-      throw new IllegalStateException("hub_v2.STACK_ITEM_POP_2 has not been filled");
-    }
-
-    if (!filled.get(88)) {
-      throw new IllegalStateException("hub_v2.STACK_ITEM_POP_3 has not been filled");
-    }
-
-    if (!filled.get(89)) {
-      throw new IllegalStateException("hub_v2.STACK_ITEM_POP_4 has not been filled");
-    }
-
-    if (!filled.get(85)) {
-      throw new IllegalStateException("hub_v2.STACKRAM_FLAG has not been filled");
-    }
-
     if (!filled.get(91)) {
-      throw new IllegalStateException("hub_v2.STATIC_FLAG has not been filled");
-    }
-
-    if (!filled.get(90)) {
-      throw new IllegalStateException("hub_v2.STATICX has not been filled");
+      throw new IllegalStateException("hub_v2.SELFDESTRUCT_xor_STATIC_FLAG has not been filled");
     }
 
     if (!filled.get(92)) {
-      throw new IllegalStateException("hub_v2.STO_FLAG has not been filled");
+      throw new IllegalStateException("hub_v2.SHA2-256_xor_STO_FLAG has not been filled");
     }
 
     if (!filled.get(134)) {
@@ -5839,7 +6097,7 @@ public class Trace {
 
     if (!filled.get(66)) {
       throw new IllegalStateException(
-          "hub_v2.TRM___FLAG_xor_IDENTITY_xor_JUMPX has not been filled");
+          "hub_v2.TRM___FLAG_xor_CREATE_EXCEPTION_xor_JUMPX has not been filled");
     }
 
     if (!filled.get(121)) {
@@ -5877,12 +6135,12 @@ public class Trace {
 
     if (!filled.get(68)) {
       throw new IllegalStateException(
-          "hub_v2.WARM_NEW_xor_PRC_FAILURE_KNOWN_TO_HUB_xor_JUMP_FLAG has not been filled");
+          "hub_v2.WARM_NEW_xor_CREATE_FAILURE_CONDITION_WONT_REVERT_xor_JUMP_FLAG has not been filled");
     }
 
     if (!filled.get(67)) {
       throw new IllegalStateException(
-          "hub_v2.WARM_xor_MODEXP_xor_JUMP_DESTINATION_VETTING_REQUIRED has not been filled");
+          "hub_v2.WARM_xor_CREATE_FAILURE_CONDITION_WILL_REVERT_xor_JUMP_DESTINATION_VETTING_REQUIRED has not been filled");
     }
 
     if (!filled.get(97)) {
@@ -6039,6 +6297,26 @@ public class Trace {
       counterTli.position(counterTli.position() + 1);
     }
 
+    if (!filled.get(69)) {
+      createNonemptyInitCodeFailureWillRevertXorKecFlag.position(
+          createNonemptyInitCodeFailureWillRevertXorKecFlag.position() + 1);
+    }
+
+    if (!filled.get(70)) {
+      createNonemptyInitCodeFailureWontRevertXorLogFlag.position(
+          createNonemptyInitCodeFailureWontRevertXorLogFlag.position() + 1);
+    }
+
+    if (!filled.get(71)) {
+      createNonemptyInitCodeSuccessWillRevertXorMachineStateFlag.position(
+          createNonemptyInitCodeSuccessWillRevertXorMachineStateFlag.position() + 1);
+    }
+
+    if (!filled.get(72)) {
+      createNonemptyInitCodeSuccessWontRevertXorMaxcsx.position(
+          createNonemptyInitCodeSuccessWontRevertXorMaxcsx.position() + 1);
+    }
+
     if (!filled.get(111)) {
       depNumNewXorCallStackDepthXorMmuRefSizeXorStackItemHeight3XorInitGas.position(
           depNumNewXorCallStackDepthXorMmuRefSizeXorStackItemHeight3XorInitGas.position() + 32);
@@ -6082,13 +6360,29 @@ public class Trace {
       domStamp.position(domStamp.position() + 32);
     }
 
+    if (!filled.get(73)) {
+      ecaddXorModFlag.position(ecaddXorModFlag.position() + 1);
+    }
+
+    if (!filled.get(74)) {
+      ecmulXorMulFlag.position(ecmulXorMulFlag.position() + 1);
+    }
+
+    if (!filled.get(75)) {
+      ecpairingXorMxpx.position(ecpairingXorMxpx.position() + 1);
+    }
+
+    if (!filled.get(76)) {
+      ecrecoverXorMxpFlag.position(ecrecoverXorMxpFlag.position() + 1);
+    }
+
     if (!filled.get(18)) {
       exceptionAhoyFlag.position(exceptionAhoyFlag.position() + 1);
     }
 
     if (!filled.get(52)) {
-      existsNewXorMxpDeploysXorCallPrcFailureXorCallFlagXorValNextIsOrig.position(
-          existsNewXorMxpDeploysXorCallPrcFailureXorCallFlagXorValNextIsOrig.position() + 1);
+      existsNewXorMxpDeploysXorCallExceptionXorCallFlagXorValNextIsOrig.position(
+          existsNewXorMxpDeploysXorCallExceptionXorCallFlagXorValNextIsOrig.position() + 1);
     }
 
     if (!filled.get(51)) {
@@ -6124,16 +6418,15 @@ public class Trace {
     }
 
     if (!filled.get(54)) {
-      hasCodeNewXorMxpMxpxXorCallPrcSuccessCallerWontRevertXorCopyFlagXorValOrigIsZero.position(
-          hasCodeNewXorMxpMxpxXorCallPrcSuccessCallerWontRevertXorCopyFlagXorValOrigIsZero
+      hasCodeNewXorMxpMxpxXorCallPrcSuccessCallerWillRevertXorCopyFlagXorValOrigIsZero.position(
+          hasCodeNewXorMxpMxpxXorCallPrcSuccessCallerWillRevertXorCopyFlagXorValOrigIsZero
                   .position()
               + 1);
     }
 
     if (!filled.get(53)) {
-      hasCodeXorMxpFlagXorCallPrcSuccessCallerWillRevertXorConFlagXorValNextIsZero.position(
-          hasCodeXorMxpFlagXorCallPrcSuccessCallerWillRevertXorConFlagXorValNextIsZero.position()
-              + 1);
+      hasCodeXorMxpFlagXorCallPrcFailureXorConFlagXorValNextIsZero.position(
+          hasCodeXorMxpFlagXorCallPrcFailureXorConFlagXorValNextIsZero.position() + 1);
     }
 
     if (!filled.get(25)) {
@@ -6148,66 +6441,67 @@ public class Trace {
       hubStampTransactionEnd.position(hubStampTransactionEnd.position() + 32);
     }
 
+    if (!filled.get(77)) {
+      identityXorOobFlag.position(identityXorOobFlag.position() + 1);
+    }
+
     if (!filled.get(55)) {
-      isBlake2FXorOobFlagXorCallSmcFailureCallerWillRevertXorCreateFlagXorWarm.position(
-          isBlake2FXorOobFlagXorCallSmcFailureCallerWillRevertXorCreateFlagXorWarm.position() + 1);
+      isBlake2FXorOobFlagXorCallPrcSuccessCallerWontRevertXorCreateFlagXorWarm.position(
+          isBlake2FXorOobFlagXorCallPrcSuccessCallerWontRevertXorCreateFlagXorWarm.position() + 1);
     }
 
     if (!filled.get(56)) {
-      isEcaddXorStpExistsXorCallSmcFailureCallerWontRevertXorDecodedFlag1XorWarmNew.position(
-          isEcaddXorStpExistsXorCallSmcFailureCallerWontRevertXorDecodedFlag1XorWarmNew.position()
+      isEcaddXorStpExistsXorCallSmcFailureCallerWillRevertXorDecodedFlag1XorWarmNew.position(
+          isEcaddXorStpExistsXorCallSmcFailureCallerWillRevertXorDecodedFlag1XorWarmNew.position()
               + 1);
     }
 
     if (!filled.get(57)) {
-      isEcmulXorStpFlagXorCallSmcSuccessCallerWillRevertXorDecodedFlag2.position(
-          isEcmulXorStpFlagXorCallSmcSuccessCallerWillRevertXorDecodedFlag2.position() + 1);
+      isEcmulXorStpFlagXorCallSmcFailureCallerWontRevertXorDecodedFlag2.position(
+          isEcmulXorStpFlagXorCallSmcFailureCallerWontRevertXorDecodedFlag2.position() + 1);
     }
 
     if (!filled.get(58)) {
-      isEcpairingXorStpOogxXorCallSmcSuccessCallerWontRevertXorDecodedFlag3.position(
-          isEcpairingXorStpOogxXorCallSmcSuccessCallerWontRevertXorDecodedFlag3.position() + 1);
+      isEcpairingXorStpOogxXorCallSmcSuccessCallerWillRevertXorDecodedFlag3.position(
+          isEcpairingXorStpOogxXorCallSmcSuccessCallerWillRevertXorDecodedFlag3.position() + 1);
     }
 
     if (!filled.get(59)) {
-      isEcrecoverXorStpWarmXorCodedepositXorDecodedFlag4.position(
-          isEcrecoverXorStpWarmXorCodedepositXorDecodedFlag4.position() + 1);
+      isEcrecoverXorStpWarmXorCallSmcSuccessCallerWontRevertXorDecodedFlag4.position(
+          isEcrecoverXorStpWarmXorCallSmcSuccessCallerWontRevertXorDecodedFlag4.position() + 1);
     }
 
     if (!filled.get(60)) {
-      isIdentityXorCodedepositInvalidCodePrefixXorDupFlag.position(
-          isIdentityXorCodedepositInvalidCodePrefixXorDupFlag.position() + 1);
+      isIdentityXorCodedepositXorDupFlag.position(
+          isIdentityXorCodedepositXorDupFlag.position() + 1);
     }
 
     if (!filled.get(61)) {
-      isModexpXorCodedepositValidCodePrefixXorExtFlag.position(
-          isModexpXorCodedepositValidCodePrefixXorExtFlag.position() + 1);
+      isModexpXorCodedepositInvalidCodePrefixXorExtFlag.position(
+          isModexpXorCodedepositInvalidCodePrefixXorExtFlag.position() + 1);
     }
 
     if (!filled.get(62)) {
-      isPrecompileXorEcaddXorHaltFlag.position(isPrecompileXorEcaddXorHaltFlag.position() + 1);
+      isPrecompileXorCodedepositValidCodePrefixXorHaltFlag.position(
+          isPrecompileXorCodedepositValidCodePrefixXorHaltFlag.position() + 1);
     }
 
     if (!filled.get(63)) {
-      isRipemd160XorEcmulXorHashInfoFlag.position(
-          isRipemd160XorEcmulXorHashInfoFlag.position() + 1);
+      isRipemd160XorCreateAbortXorHashInfoFlag.position(
+          isRipemd160XorCreateAbortXorHashInfoFlag.position() + 1);
     }
 
     if (!filled.get(64)) {
-      isSha2256XorEcpairingXorInvalidFlag.position(
-          isSha2256XorEcpairingXorInvalidFlag.position() + 1);
+      isSha2256XorCreateEmptyInitCodeWillRevertXorInvalidFlag.position(
+          isSha2256XorCreateEmptyInitCodeWillRevertXorInvalidFlag.position() + 1);
     }
 
     if (!filled.get(28)) {
       mmuStamp.position(mmuStamp.position() + 32);
     }
 
-    if (!filled.get(74)) {
-      mulFlag.position(mulFlag.position() + 1);
-    }
-
-    if (!filled.get(76)) {
-      mxpFlag.position(mxpFlag.position() + 1);
+    if (!filled.get(78)) {
+      modexpXorOogx.position(modexpXorOogx.position() + 1);
     }
 
     if (!filled.get(122)) {
@@ -6228,10 +6522,6 @@ public class Trace {
 
     if (!filled.get(125)) {
       mxpWordsXorStaticGas.position(mxpWordsXorStaticGas.position() + 32);
-    }
-
-    if (!filled.get(75)) {
-      mxpx.position(mxpx.position() + 1);
     }
 
     if (!filled.get(113)) {
@@ -6280,20 +6570,8 @@ public class Trace {
       oobData8.position(oobData8.position() + 32);
     }
 
-    if (!filled.get(77)) {
-      oobFlag.position(oobFlag.position() + 1);
-    }
-
     if (!filled.get(98)) {
       oobInst.position(oobInst.position() + 32);
-    }
-
-    if (!filled.get(78)) {
-      oogx.position(oogx.position() + 1);
-    }
-
-    if (!filled.get(79)) {
-      opcx.position(opcx.position() + 1);
     }
 
     if (!filled.get(31)) {
@@ -6324,12 +6602,50 @@ public class Trace {
       peekAtTransaction.position(peekAtTransaction.position() + 1);
     }
 
-    if (!filled.get(69)) {
-      prcFailureKnownToRamXorKecFlag.position(prcFailureKnownToRamXorKecFlag.position() + 1);
+    if (!filled.get(79)) {
+      prcCalleeGasXorOpcx.position(prcCalleeGasXorOpcx.position() + 1);
     }
 
-    if (!filled.get(70)) {
-      prcSuccessXorLogFlag.position(prcSuccessXorLogFlag.position() + 1);
+    if (!filled.get(80)) {
+      prcCallerGasXorPushpopFlag.position(prcCallerGasXorPushpopFlag.position() + 1);
+    }
+
+    if (!filled.get(81)) {
+      prcCdoXorRdcx.position(prcCdoXorRdcx.position() + 1);
+    }
+
+    if (!filled.get(82)) {
+      prcCdsXorShfFlag.position(prcCdsXorShfFlag.position() + 1);
+    }
+
+    if (!filled.get(83)) {
+      prcFailureKnownToHubXorSox.position(prcFailureKnownToHubXorSox.position() + 1);
+    }
+
+    if (!filled.get(84)) {
+      prcFailureKnownToRamXorSstorex.position(prcFailureKnownToRamXorSstorex.position() + 1);
+    }
+
+    if (!filled.get(85)) {
+      prcRacXorStackramFlag.position(prcRacXorStackramFlag.position() + 1);
+    }
+
+    if (!filled.get(86)) {
+      prcRaoXorStackItemPop1.position(prcRaoXorStackItemPop1.position() + 1);
+    }
+
+    if (!filled.get(87)) {
+      prcReturnGasXorStackItemPop2.position(prcReturnGasXorStackItemPop2.position() + 1);
+    }
+
+    if (!filled.get(88)) {
+      prcSuccessWillRevertXorStackItemPop3.position(
+          prcSuccessWillRevertXorStackItemPop3.position() + 1);
+    }
+
+    if (!filled.get(89)) {
+      prcSuccessWontRevertXorStackItemPop4.position(
+          prcSuccessWontRevertXorStackItemPop4.position() + 1);
     }
 
     if (!filled.get(38)) {
@@ -6340,16 +6656,8 @@ public class Trace {
       programCounterNew.position(programCounterNew.position() + 32);
     }
 
-    if (!filled.get(80)) {
-      pushpopFlag.position(pushpopFlag.position() + 1);
-    }
-
-    if (!filled.get(81)) {
-      rdcx.position(rdcx.position() + 1);
-    }
-
-    if (!filled.get(71)) {
-      ripemd160XorMachineStateFlag.position(ripemd160XorMachineStateFlag.position() + 1);
+    if (!filled.get(90)) {
+      ripemd160XorStaticx.position(ripemd160XorStaticx.position() + 1);
     }
 
     if (!filled.get(114)) {
@@ -6366,7 +6674,8 @@ public class Trace {
     }
 
     if (!filled.get(65)) {
-      rlpaddrFlagXorEcrecoverXorInvprex.position(rlpaddrFlagXorEcrecoverXorInvprex.position() + 1);
+      rlpaddrFlagXorCreateEmptyInitCodeWontRevertXorInvprex.position(
+          rlpaddrFlagXorCreateEmptyInitCodeWontRevertXorInvprex.position() + 1);
     }
 
     if (!filled.get(116)) {
@@ -6394,56 +6703,12 @@ public class Trace {
           rlpaddrSaltLoXorReturnDataSizeXorMxpOffset2LoXorStackItemValueHi4.position() + 32);
     }
 
-    if (!filled.get(72)) {
-      selfdestructXorMaxcsx.position(selfdestructXorMaxcsx.position() + 1);
-    }
-
-    if (!filled.get(73)) {
-      sha2256XorModFlag.position(sha2256XorModFlag.position() + 1);
-    }
-
-    if (!filled.get(82)) {
-      shfFlag.position(shfFlag.position() + 1);
-    }
-
-    if (!filled.get(83)) {
-      sox.position(sox.position() + 1);
-    }
-
-    if (!filled.get(84)) {
-      sstorex.position(sstorex.position() + 1);
-    }
-
-    if (!filled.get(86)) {
-      stackItemPop1.position(stackItemPop1.position() + 1);
-    }
-
-    if (!filled.get(87)) {
-      stackItemPop2.position(stackItemPop2.position() + 1);
-    }
-
-    if (!filled.get(88)) {
-      stackItemPop3.position(stackItemPop3.position() + 1);
-    }
-
-    if (!filled.get(89)) {
-      stackItemPop4.position(stackItemPop4.position() + 1);
-    }
-
-    if (!filled.get(85)) {
-      stackramFlag.position(stackramFlag.position() + 1);
-    }
-
     if (!filled.get(91)) {
-      staticFlag.position(staticFlag.position() + 1);
-    }
-
-    if (!filled.get(90)) {
-      staticx.position(staticx.position() + 1);
+      selfdestructXorStaticFlag.position(selfdestructXorStaticFlag.position() + 1);
     }
 
     if (!filled.get(92)) {
-      stoFlag.position(stoFlag.position() + 1);
+      sha2256XorStoFlag.position(sha2256XorStoFlag.position() + 1);
     }
 
     if (!filled.get(134)) {
@@ -6495,7 +6760,7 @@ public class Trace {
     }
 
     if (!filled.get(66)) {
-      trmFlagXorIdentityXorJumpx.position(trmFlagXorIdentityXorJumpx.position() + 1);
+      trmFlagXorCreateExceptionXorJumpx.position(trmFlagXorCreateExceptionXorJumpx.position() + 1);
     }
 
     if (!filled.get(121)) {
@@ -6532,13 +6797,13 @@ public class Trace {
     }
 
     if (!filled.get(68)) {
-      warmNewXorPrcFailureKnownToHubXorJumpFlag.position(
-          warmNewXorPrcFailureKnownToHubXorJumpFlag.position() + 1);
+      warmNewXorCreateFailureConditionWontRevertXorJumpFlag.position(
+          warmNewXorCreateFailureConditionWontRevertXorJumpFlag.position() + 1);
     }
 
     if (!filled.get(67)) {
-      warmXorModexpXorJumpDestinationVettingRequired.position(
-          warmXorModexpXorJumpDestinationVettingRequired.position() + 1);
+      warmXorCreateFailureConditionWillRevertXorJumpDestinationVettingRequired.position(
+          warmXorCreateFailureConditionWillRevertXorJumpDestinationVettingRequired.position() + 1);
     }
 
     if (!filled.get(97)) {

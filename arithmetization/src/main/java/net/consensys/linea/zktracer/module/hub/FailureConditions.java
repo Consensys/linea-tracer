@@ -31,6 +31,13 @@ public final class FailureConditions {
   private boolean deploymentAddressHasNonZeroNonce;
   private boolean deploymentAddressHasNonEmptyCode;
 
+  public FailureConditions snapshot() {
+    final FailureConditions r = new FailureConditions(null);
+    r.deploymentAddressHasNonZeroNonce = this.deploymentAddressHasNonZeroNonce;
+    r.deploymentAddressHasNonEmptyCode = this.deploymentAddressHasNonEmptyCode;
+    return r;
+  }
+
   public void reset() {
     this.deploymentAddressHasNonEmptyCode = false;
     this.deploymentAddressHasNonZeroNonce = false;

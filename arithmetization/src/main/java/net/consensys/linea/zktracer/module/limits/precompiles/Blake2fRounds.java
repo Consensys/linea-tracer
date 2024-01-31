@@ -30,7 +30,9 @@ import org.hyperledger.besu.evm.internal.Words;
 
 @RequiredArgsConstructor
 public final class Blake2fRounds implements Module {
-  final Hub hub;
+  private static final int BLAKE2F_VALID_DATASIZE = 213;
+
+  private final Hub hub;
   private final Stack<Integer> counts = new Stack<>();
 
   @Override
@@ -46,6 +48,112 @@ public final class Blake2fRounds implements Module {
   @Override
   public void popTransaction() {
     counts.pop();
+  }
+
+  public static boolean isHubFailure(final Hub hub) {
+    final OpCode opCode = hub.opCode();
+    final MessageFrame frame = hub.messageFrame();
+
+    return switch (opCode) {
+      case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
+        final Address target = Words.toAddress(frame.getStackItem(1));
+        if (target.equals(Address.BLAKE2B_F_COMPRESSION)) {
+          long length = 0;
+          switch (opCode) {
+            case CALL, CALLCODE -> {
+              length = Words.clampedToLong(frame.getStackItem(4));
+            }
+            case DELEGATECALL, STATICCALL -> {
+              length = Words.clampedToLong(frame.getStackItem(3));
+            }
+          }
+
+          yield length != BLAKE2F_VALID_DATASIZE;
+        } else {
+          yield false;
+        }
+      }
+      default -> false;
+    };
+  }
+
+  public static boolean isRamFailure(final Hub hub) {
+    final OpCode opCode = hub.opCode();
+    final MessageFrame frame = hub.messageFrame();
+
+    if (isHubFailure(hub)) {
+      return false;
+    }
+
+    return switch (opCode) {
+      case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
+        final Address target = Words.toAddress(frame.getStackItem(1));
+        if (target.equals(Address.BLAKE2B_F_COMPRESSION)) {
+          long offset = 0;
+          switch (opCode) {
+            case CALL, CALLCODE -> {
+              offset = Words.clampedToLong(frame.getStackItem(3));
+            }
+            case DELEGATECALL, STATICCALL -> {
+              offset = Words.clampedToLong(frame.getStackItem(2));
+            }
+          }
+
+          final int f =
+              frame
+                  .shadowReadMemory(offset, BLAKE2F_VALID_DATASIZE)
+                  .get(BLAKE2F_VALID_DATASIZE - 1);
+          final int r =
+              frame
+                  .shadowReadMemory(offset, BLAKE2F_VALID_DATASIZE)
+                  .slice(0, 4)
+                  .toInt(); // The number of round is equal to the gas to pay
+          yield !((f == 0 || f == 1) && hub.gasAllowanceForCall() >= r);
+        } else {
+          yield false;
+        }
+      }
+      default -> false;
+    };
+  }
+
+  public static long gasCost(final Hub hub) {
+    final OpCode opCode = hub.opCode();
+    final MessageFrame frame = hub.messageFrame();
+
+    switch (opCode) {
+      case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
+        final Address target = Words.toAddress(frame.getStackItem(1));
+        if (target.equals(Address.BLAKE2B_F_COMPRESSION)) {
+          long length = 0;
+          long offset = 0;
+          switch (opCode) {
+            case CALL, CALLCODE -> {
+              length = Words.clampedToLong(frame.getStackItem(4));
+              offset = Words.clampedToLong(frame.getStackItem(3));
+            }
+            case DELEGATECALL, STATICCALL -> {
+              length = Words.clampedToLong(frame.getStackItem(3));
+              offset = Words.clampedToLong(frame.getStackItem(2));
+            }
+          }
+
+          final int blake2fDataSize = 213;
+          if (length == blake2fDataSize) {
+            final int f = frame.shadowReadMemory(offset, length).get(blake2fDataSize - 1);
+            if (f == 0 || f == 1) {
+              return frame
+                  .shadowReadMemory(offset, length)
+                  .slice(0, 4)
+                  .toInt(); // The number of round is equal to the gas to pay
+            }
+          }
+        }
+      }
+      default -> throw new IllegalStateException();
+    }
+
+    return 0;
   }
 
   @Override
@@ -78,8 +186,7 @@ public final class Blake2fRounds implements Module {
                       .shadowReadMemory(offset, length)
                       .slice(0, 4)
                       .toInt(); // The number of round is equal to the gas to pay
-              final long gasPaid = Words.clampedToLong(frame.getStackItem(0));
-              if (gasPaid >= r) {
+              if (hub.gasAllowanceForCall() >= r) {
                 this.counts.push(this.counts.pop() + r);
               }
             }

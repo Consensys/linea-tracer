@@ -22,8 +22,8 @@ import net.consensys.linea.zktracer.module.hub.defer.PostExecDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.ScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.MiscFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioFragment;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -32,7 +32,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class WithCodeCallSection extends TraceSection
+public class SmartContractCallSection extends TraceSection
     implements PostTransactionDefer, PostExecDefer, NextContextDefer {
   private final CallFrame callerCallFrame;
   private final int calledCallFrameId;
@@ -47,7 +47,7 @@ public class WithCodeCallSection extends TraceSection
 
   private final MiscFragment miscFragment;
 
-  public WithCodeCallSection(
+  public SmartContractCallSection(
       Hub hub,
       AccountSnapshot preCallCallerAccountSnapshot,
       AccountSnapshot preCallCalledAccountSnapshot,
@@ -109,8 +109,9 @@ public class WithCodeCallSection extends TraceSection
     this.addChunksWithoutStack(
         hub,
         callerCallFrame,
-        new ScenarioFragment(false, true, false, this.callerCallFrame.id(), this.calledCallFrameId),
-        new ContextFragment(hub.callStack(), hub.currentFrame(), false),
+        ScenarioFragment.forSmartContractCallSection(
+            this.callerCallFrame.id(), this.calledCallFrameId),
+        ContextFragment.readContextData(hub.callStack()),
         this.miscFragment,
         new AccountFragment(this.preCallCallerAccountSnapshot, this.inCallCallerAccountSnapshot),
         new AccountFragment(this.preCallCalledAccountSnapshot, this.inCallCalledAccountSnapshot));
@@ -148,6 +149,8 @@ public class WithCodeCallSection extends TraceSection
     }
 
     this.addChunksWithoutStack(
-        hub, callerCallFrame, new ContextFragment(hub.callStack(), hub.currentFrame(), false));
+        hub,
+        callerCallFrame,
+        ContextFragment.enterContext(hub.callStack(), calledCallFrame));
   }
 }

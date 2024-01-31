@@ -16,14 +16,52 @@
 package net.consensys.linea.zktracer.module.hub.fragment;
 
 import net.consensys.linea.zktracer.module.hub.Trace;
+import net.consensys.linea.zktracer.module.hub.memory.MemorySpan;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 
 public record ContextFragment(
-    CallStack callStack, CallFrame callFrame, boolean updateCallerReturndata)
+    CallStack callStack,
+    CallFrame callFrame,
+    MemorySpan returnDataSegment,
+    boolean updateCallerReturndata)
     implements TraceFragment {
+
+  public static ContextFragment readContextData(final CallStack callStack) {
+    return new ContextFragment(
+        callStack,
+        callStack.current(),
+        callStack.current().currentReturnDataPointer().snapshot(),
+        false);
+  }
+
+  public static ContextFragment executionEmptyReturnData(final CallStack callStack) {
+    return new ContextFragment(callStack, callStack.parent(), MemorySpan.empty(), true);
+  }
+
+  public static ContextFragment nonExecutionEmptyReturnData(final CallStack callStack) {
+    return new ContextFragment(callStack, callStack.parent(), MemorySpan.empty(), true);
+  }
+
+  public static ContextFragment executionReturnData(final CallStack callStack) {
+    return new ContextFragment(
+        callStack, callStack.parent(), callStack.current().returnDataRange(), true);
+  }
+
+  public static ContextFragment enterContext(final CallStack callStack, final CallFrame calledCallFrame) {
+    return new ContextFragment(
+      callStack, calledCallFrame, MemorySpan.empty(), false);
+  }
+
+  public static ContextFragment providesReturnData(final CallStack callStack) {
+    return new ContextFragment(
+      callStack, callStack.current(), callStack.current().currentReturnDataPointer().snapshot(), true);
+  }
+
+
+
   @Override
   public Trace trace(Trace trace) {
     EWord eAddress = callFrame.addressAsEWord();
@@ -56,7 +94,7 @@ public record ContextFragment(
         .pContextReturnerContextNumber(
             Bytes.ofUnsignedInt(
                 callFrame.lastCallee().map(c -> callStack.get(c).contextNumber()).orElse(0)))
-        .pContextReturnDataOffset(Bytes.ofUnsignedLong(callFrame.returnDataPointer().offset()))
-        .pContextReturnDataSize(Bytes.ofUnsignedLong(callFrame.returnDataPointer().length()));
+        .pContextReturnDataOffset(Bytes.ofUnsignedLong(returnDataSegment.offset()))
+        .pContextReturnDataSize(Bytes.ofUnsignedLong(returnDataSegment.length()));
   }
 }

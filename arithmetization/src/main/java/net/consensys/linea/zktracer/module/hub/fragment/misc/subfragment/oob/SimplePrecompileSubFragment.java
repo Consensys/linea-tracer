@@ -25,12 +25,12 @@ import static net.consensys.linea.zktracer.module.oob.Trace.OOB_INST_sha2;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
 import net.consensys.linea.zktracer.module.hub.Precompile;
-import net.consensys.linea.zktracer.module.hub.subsection.PrecompileScenario;
+import net.consensys.linea.zktracer.module.hub.subsection.PrecompileInvocation;
 import net.consensys.linea.zktracer.module.oob.OobDataChannel;
 import org.apache.tuweni.bytes.Bytes;
 
 public record SimplePrecompileSubFragment(
-    PrecompileScenario scenario, long callGas, long callDataSize, long returnDataRequestedSize)
+    PrecompileInvocation scenario, long callGas, long callDataSize, long returnDataRequestedSize)
     implements GenericOobSubFragment {
 
   @Override
@@ -41,7 +41,7 @@ public record SimplePrecompileSubFragment(
       case DATA_3 -> Bytes.ofUnsignedLong(returnDataRequestedSize);
       case DATA_4 -> scenario.failureKnownToHub() ? Bytes.EMPTY : Bytes.of(1);
       case DATA_5 -> scenario.hubSuccess()
-          ? Bytes.ofUnsignedLong(callGas - scenario.callPrice())
+          ? Bytes.ofUnsignedLong(callGas - scenario.precompilePrice())
           : Bytes.EMPTY;
       case DATA_6 -> scenario.precompile().equals(Precompile.EC_PAIRING)
           ? booleanToBytes(scenario.hubSuccess() && callDataSize > 0 && callDataSize % 192 == 0)

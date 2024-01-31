@@ -55,6 +55,32 @@ public final class Sha256Blocks implements Module {
     counts.pop();
   }
 
+  public static boolean hasEnoughGas(final Hub hub) {
+    return hub.gasAllowanceForCall() >= gasCost(hub);
+  }
+
+  public static long gasCost(final Hub hub) {
+    final OpCode opCode = hub.opCode();
+    final MessageFrame frame = hub.messageFrame();
+
+    switch (opCode) {
+      case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
+        final Address target = Words.toAddress(frame.getStackItem(1));
+        if (target.equals(Address.SHA256)) {
+          long dataByteLength = 0;
+          switch (opCode) {
+            case CALL, CALLCODE -> dataByteLength = Words.clampedToLong(frame.getStackItem(4));
+            case DELEGATECALL, STATICCALL -> dataByteLength =
+                Words.clampedToLong(frame.getStackItem(3));
+          }
+          final long wordCount = (dataByteLength + 31) / 32;
+          return PRECOMPILE_BASE_GAS_FEE + PRECOMPILE_GAS_FEE_PER_EWORD * wordCount;
+        }
+      }
+    }
+    return 0;
+  }
+
   @Override
   public void tracePreOpcode(MessageFrame frame) {
     final OpCode opCode = hub.opCode();
@@ -71,7 +97,7 @@ public final class Sha256Blocks implements Module {
           }
           if (dataByteLength == 0) {
             return;
-          } // skip trivial hash TODO: check the prover does skip it
+          }
           final int blockCount =
               (int)
                       (dataByteLength * 8
@@ -80,11 +106,7 @@ public final class Sha256Blocks implements Module {
                           + (SHA256_BLOCKSIZE - 1))
                   / SHA256_BLOCKSIZE;
 
-          final long wordCount = (dataByteLength + 31) / 32;
-          final long gasPaid = Words.clampedToLong(frame.getStackItem(0));
-          final long gasNeeded = PRECOMPILE_BASE_GAS_FEE + PRECOMPILE_GAS_FEE_PER_EWORD * wordCount;
-
-          if (gasPaid >= gasNeeded) {
+          if (hasEnoughGas(this.hub)) {
             this.counts.push(this.counts.pop() + blockCount);
           }
         }

@@ -13,10 +13,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.fragment;
+package net.consensys.linea.zktracer.module.hub.section;
 
-import java.util.List;
+import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 
-public interface SubSection {
-  List<TraceFragment> generate();
+public class FailedCallSection extends TraceSection {
+  public FailedCallSection(Hub hub, TraceFragment... chunks) {
+    this.addChunksAndStack(hub, hub.currentFrame(), chunks);
+  }
 }

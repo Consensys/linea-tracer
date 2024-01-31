@@ -32,7 +32,6 @@ import net.consensys.linea.zktracer.opcode.OpCodes;
 import net.consensys.linea.zktracer.runtime.stack.Stack;
 import net.consensys.linea.zktracer.runtime.stack.StackContext;
 import net.consensys.linea.zktracer.types.EWord;
-import net.consensys.linea.zktracer.types.MemoryRange;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
@@ -93,18 +92,18 @@ public class CallFrame {
   /** the data returned by the latest callee. */
   @Getter @Setter private Bytes returnData = Bytes.EMPTY;
   /** returnData position within the latest callee memory space. */
-  @Getter @Setter private MemorySpan returnDataPointer = new MemorySpan(0, 0);
+  @Getter @Setter private MemorySpan currentReturnDataPointer = new MemorySpan(0, 0);
   /** where this frame is expected to write its returnData within its parent's memory space. */
   @Getter private final MemorySpan returnDataTarget;
 
   // where I should put my RETURNDATARange in my caller's RAM
-  @Getter private MemoryRange returnTarget;
+  @Getter private MemorySpan returnTarget;
 
   // where my CALLDATA is in my caller's RAM
-  @Getter private MemoryRange callDataRange;
+  @Getter private MemorySpan callDataRange;
 
   // position of the returner's RETURNDATARange in its RAM
-  @Getter private MemoryRange returnDataRange;
+  @Getter private MemorySpan returnDataRange;
 
   // last called context
   @Getter private int returner;
@@ -172,7 +171,7 @@ public class CallFrame {
     this.callData = callData;
     this.callDataPointer = new MemorySpan(0, callData.size());
     this.depth = depth;
-    this.returnDataPointer = new MemorySpan(0, 0);
+    this.currentReturnDataPointer = new MemorySpan(0, 0);
     this.returnDataTarget = new MemorySpan(0, 0); // TODO: fix me Franklin
   }
 

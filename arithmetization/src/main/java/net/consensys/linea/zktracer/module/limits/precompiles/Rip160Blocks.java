@@ -55,6 +55,34 @@ public final class Rip160Blocks implements Module {
     counts.pop();
   }
 
+  public static boolean hasEnoughGas(final Hub hub) {
+    return hub.gasAllowanceForCall() <= gasCost(hub);
+  }
+
+  public static long gasCost(final Hub hub) {
+    final OpCode opCode = hub.opCode();
+
+    switch (opCode) {
+      case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
+        final Address target = Words.toAddress(hub.messageFrame().getStackItem(1));
+        if (target.equals(Address.RIPEMD160)) {
+          long dataByteLength = 0;
+          switch (opCode) {
+            case CALL, CALLCODE -> dataByteLength =
+                Words.clampedToLong(hub.messageFrame().getStackItem(4));
+            case DELEGATECALL, STATICCALL -> dataByteLength =
+                Words.clampedToLong(hub.messageFrame().getStackItem(3));
+          }
+
+          final long wordCount = (dataByteLength + 31) / 32;
+          return PRECOMPILE_BASE_GAS_FEE + PRECOMPILE_GAS_FEE_PER_EWORD * wordCount;
+        }
+      }
+    }
+
+    return 0;
+  }
+
   @Override
   public void tracePreOpcode(MessageFrame frame) {
     final OpCode opCode = hub.opCode();
@@ -82,10 +110,9 @@ public final class Rip160Blocks implements Module {
                   / RIPEMD160_BLOCKSIZE;
 
           final long wordCount = (dataByteLength + 31) / 32;
-          final long gasPaid = Words.clampedToLong(frame.getStackItem(0));
           final long gasNeeded = PRECOMPILE_BASE_GAS_FEE + PRECOMPILE_GAS_FEE_PER_EWORD * wordCount;
 
-          if (gasPaid >= gasNeeded) {
+          if (hub.gasAllowanceForCall() >= gasNeeded) {
             this.counts.push(this.counts.pop() + blockCount);
           }
         }

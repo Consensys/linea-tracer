@@ -1,5 +1,5 @@
 /*
- * Copyright ConsenSys AG.
+ * Copyright Consensys Software Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -15,28 +15,30 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob;
 
-import static net.consensys.linea.zktracer.module.oob.Trace.OOB_INST_blake2f_cds;
+import static net.consensys.linea.zktracer.module.oob.Trace.OOB_INST_ecpairing;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
 import net.consensys.linea.zktracer.module.hub.subsection.PrecompileInvocation;
 import net.consensys.linea.zktracer.module.oob.OobDataChannel;
 import org.apache.tuweni.bytes.Bytes;
 
-public record Blake2fPrecompileFirstSubFragment(PrecompileInvocation p)
-    implements GenericOobSubFragment {
+public record EcPairing(PrecompileInvocation p) implements GenericOobSubFragment {
   @Override
   public Bytes data(OobDataChannel i) {
     return switch (i) {
+      case DATA_1 -> Bytes.ofUnsignedLong(p.gasAllowance());
       case DATA_2 -> Bytes.ofUnsignedLong(p.callData().length());
       case DATA_3 -> Bytes.ofUnsignedLong(p.requestedReturnData().length());
       case DATA_4 -> booleanToBytes(p.hubSuccess());
+      case DATA_5 -> Bytes.ofUnsignedLong(p.returnGas());
+      case DATA_6 -> booleanToBytes(p.hubSuccess() && !p.callData().isEmpty());
+      case DATA_7 -> booleanToBytes(p.hubSuccess() && p.callData().isEmpty());
       case DATA_8 -> booleanToBytes(!p.requestedReturnData().isEmpty());
-      default -> Bytes.EMPTY;
     };
   }
 
   @Override
   public int oobInstruction() {
-    return OOB_INST_blake2f_cds;
+    return OOB_INST_ecpairing;
   }
 }

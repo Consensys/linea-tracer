@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
+import java.util.Optional;
+
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.account.Account;
@@ -29,18 +31,31 @@ public record AccountSnapshot(
     boolean deploymentStatus) {
   public static AccountSnapshot fromAccount(
       Account account, boolean warm, int deploymentNumber, boolean deploymentStatus) {
-    if (account == null) {
-      return new AccountSnapshot(
-          Address.ZERO, 0, Wei.ZERO, warm, Bytecode.EMPTY, deploymentNumber, deploymentStatus);
-    }
+    return fromAccount(Optional.ofNullable(account), warm, deploymentNumber, deploymentStatus);
+  }
 
-    return new AccountSnapshot(
-        account.getAddress(),
-        account.getNonce(),
-        account.getBalance().copy(),
-        warm,
-        new Bytecode(account.getCode().copy()),
-        deploymentNumber,
-        deploymentStatus);
+  public static AccountSnapshot fromAccount(
+      Optional<Account> account, boolean warm, int deploymentNumber, boolean deploymentStatus) {
+
+    return account
+        .map(
+            a ->
+                new AccountSnapshot(
+                    a.getAddress(),
+                    a.getNonce(),
+                    a.getBalance().copy(),
+                    warm,
+                    new Bytecode(a.getCode().copy()),
+                    deploymentNumber,
+                    deploymentStatus))
+        .orElse(
+            new AccountSnapshot(
+                Address.ZERO,
+                0,
+                Wei.ZERO,
+                warm,
+                Bytecode.EMPTY,
+                deploymentNumber,
+                deploymentStatus));
   }
 }

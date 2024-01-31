@@ -42,32 +42,39 @@ public class MmuSubFragment implements TraceSubFragment, PostExecDefer {
   int exoSum = 0;
   int size = 0;
 
-  public MmuSubFragment(Hub hub, MessageFrame frame) {
+  public static MmuSubFragment nop() {
+    return new MmuSubFragment();
+  }
+
+  public static MmuSubFragment fromOpcode(Hub hub) {
+    final MmuSubFragment r = new MmuSubFragment();
     final OpCode opCode = hub.currentFrame().opCode();
 
     switch (opCode) {
       case SHA3 -> {
-        offset1 = frame.getStackItem(0).copy();
-        param1 = 0; // TODO: hash info stamp
-        size = Words.clampedToInt(Words.clampedToLong(frame.getStackItem(1)));
-        exoSum = 0; // TODO:
+        r.offset1 = hub.messageFrame().getStackItem(0).copy();
+        r.param1 = 0; // TODO: hash info stamp
+        r.size = Words.clampedToInt(Words.clampedToLong(hub.messageFrame().getStackItem(1)));
+        r.exoSum = 0; // TODO:
       }
       case CALLDATALOAD -> {
-        this.param1 = hub.tx().number();
-        this.info = hub.callStack().depth() == 1;
-        this.referenceOffset = hub.currentFrame().callDataPointer().offset();
-        this.referenceSize = hub.currentFrame().callDataPointer().length();
-        this.offset1 = frame.getStackItem(0).copy();
+        r.param1 = hub.tx().number();
+        r.info = hub.callStack().depth() == 1;
+        r.referenceOffset = hub.currentFrame().callDataPointer().offset();
+        r.referenceSize = hub.currentFrame().callDataPointer().length();
+        r.offset1 = hub.messageFrame().getStackItem(0).copy();
       }
       case MSTORE, MSTORE8 -> {
-        this.offset1 = frame.getStackItem(0).copy();
-        this.stackValue = frame.getStackItem(1).copy();
+        r.offset1 = hub.messageFrame().getStackItem(0).copy();
+        r.stackValue = hub.messageFrame().getStackItem(1).copy();
       }
-      case MLOAD -> this.offset1 = frame.getStackItem(0).copy();
-      default -> log.info("MMU not yet implemented for this opcode");
+      case MLOAD -> r.offset1 = hub.messageFrame().getStackItem(0).copy();
+      default -> log.info("MMU not relevant for this opcode");
     }
 
-    this.opCode = opCode.byteValue();
+    r.opCode = opCode.byteValue();
+
+    return r;
   }
 
   @Override

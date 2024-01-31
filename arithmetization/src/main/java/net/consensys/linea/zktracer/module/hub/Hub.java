@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
+import static net.consensys.linea.zktracer.module.hub.fragment.misc.MiscFragment.allButOneSixtyFourth;
 import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 
 import java.nio.MappedByteBuffer;
@@ -40,7 +41,9 @@ import net.consensys.linea.zktracer.module.ext.Ext;
 import net.consensys.linea.zktracer.module.hub.defer.*;
 import net.consensys.linea.zktracer.module.hub.fragment.*;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.MiscFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.section.*;
+import net.consensys.linea.zktracer.module.hub.subsection.PrecompileInvocation;
 import net.consensys.linea.zktracer.module.limits.Keccak;
 import net.consensys.linea.zktracer.module.limits.L2Block;
 import net.consensys.linea.zktracer.module.limits.L2L1Logs;
@@ -73,6 +76,7 @@ import net.consensys.linea.zktracer.module.trm.Trm;
 import net.consensys.linea.zktracer.module.txn_data.TxnData;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.*;
+import net.consensys.linea.zktracer.opcode.gas.GasConstants;
 import net.consensys.linea.zktracer.opcode.gas.projector.GasProjector;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
@@ -969,20 +973,18 @@ public class Hub implements Module {
           SWAP,
           HALT,
           INVALID -> this.addTraceSection(new StackOnlySection(this));
-      case KEC -> {
-        this.addTraceSection(
-            new KeccakSection(this, this.currentFrame(), MiscFragment.fromOpcode(this, frame)));
-      }
+      case KEC -> this.addTraceSection(
+          new KeccakSection(this, this.currentFrame(), MiscFragment.fromOpcode(this, frame)));
       case CONTEXT, LOG -> this.addTraceSection(
           new ContextLogSection(
-              this, new ContextFragment(this.callStack, this.currentFrame(), updateReturnData)));
+              this, ContextFragment.readContextData(callStack)));
       case ACCOUNT -> {
         TraceSection accountSection = new AccountSection(this);
         if (this.opCodeData().stackSettings().flag1()) {
           accountSection.addChunk(
               this,
               this.currentFrame(),
-              new ContextFragment(this.callStack, this.currentFrame(), updateReturnData));
+              ContextFragment.readContextData(callStack));
         }
 
         Address targetAddress =
@@ -1029,7 +1031,7 @@ public class Hub implements Module {
           copySection.addChunk(
               this,
               this.currentFrame(),
-              new ContextFragment(this.callStack, this.currentFrame(), updateReturnData));
+              ContextFragment.readContextData(callStack));
         }
         this.addTraceSection(copySection);
       }
@@ -1047,9 +1049,6 @@ public class Hub implements Module {
       case STACK_RAM -> {
         switch (this.currentFrame().opCode()) {
           case CALLDATALOAD -> {
-            final long readOffset = Words.clampedToLong(frame.getStackItem(0));
-            final boolean isOob = readOffset > this.currentFrame().callData().size();
-
             final MiscFragment miscFragment = MiscFragment.fromOpcode(this, frame);
             this.defers.postExec(miscFragment);
 
@@ -1057,11 +1056,10 @@ public class Hub implements Module {
                 new StackRam(
                     this,
                     miscFragment,
-                    new ContextFragment(this.callStack(), this.currentFrame(), false)));
+                    ContextFragment.readContextData(callStack)));
           }
-          case MLOAD, MSTORE, MSTORE8 -> {
-            this.addTraceSection(new StackRam(this, MiscFragment.fromOpcode(this, frame)));
-          }
+          case MLOAD, MSTORE, MSTORE8 -> this.addTraceSection(
+              new StackRam(this, MiscFragment.fromOpcode(this, frame)));
           default -> throw new IllegalStateException("unexpected STACK_RAM opcode");
         }
       }
@@ -1074,7 +1072,7 @@ public class Hub implements Module {
             this.addTraceSection(
                 new StorageSection(
                     this,
-                    new ContextFragment(this.callStack, this.currentFrame(), updateReturnData),
+                    ContextFragment.readContextData(callStack),
                     new StorageFragment(
                         address,
                         this.currentFrame().accountDeploymentNumber(),
@@ -1090,7 +1088,7 @@ public class Hub implements Module {
             this.addTraceSection(
                 new StorageSection(
                     this,
-                    new ContextFragment(this.callStack, this.currentFrame(), updateReturnData),
+                    ContextFragment.readContextData(callStack),
                     new StorageFragment(
                         address,
                         this.currentFrame().accountDeploymentNumber(),
@@ -1145,9 +1143,9 @@ public class Hub implements Module {
                 this.conflation.deploymentInfo().isDeploying(myAddress));
 
         final Address calledAddress = Words.toAddress(frame.getStackItem(1));
-        final Account calledAccount = frame.getWorldUpdater().get(calledAddress);
-        final boolean hasCode =
-            Optional.ofNullable(calledAccount).map(AccountState::hasCode).orElse(false);
+        final Optional<Account> calledAccount =
+            Optional.ofNullable(frame.getWorldUpdater().get(calledAddress));
+        final boolean hasCode = calledAccount.map(AccountState::hasCode).orElse(false);
 
         final AccountSnapshot calledAccountSnapshot =
             AccountSnapshot.fromAccount(
@@ -1161,51 +1159,47 @@ public class Hub implements Module {
         if (this.pch().exceptions().any()) {
           if (this.pch().exceptions().staticFault()) {
             this.addTraceSection(
-                new AbortedCallSection(
+                new FailedCallSection(
                     this,
-                    this.currentFrame(),
-                    new ContextFragment(this.callStack, this.currentFrame(), false),
-                    new ContextFragment(this.callStack, this.callStack().parent(), true)));
+                    ScenarioFragment.forCall(this, hasCode),
+                    MiscFragment.forCall(this, myAccount, calledAccount),
+                    ContextFragment.readContextData(callStack)
+            );
           } else if (this.pch().exceptions().outOfMemoryExpansion()) {
             this.addTraceSection(
-                new AbortedCallSection(
+                new FailedCallSection(
                     this,
-                    this.currentFrame(),
-                    MiscFragment.fromCall(this, frame, myAccount),
-                    new ContextFragment(this.callStack, this.callStack().parent(), true)));
+                    ScenarioFragment.forCall(this, hasCode),
+                    MiscFragment.forCall(this, myAccount, calledAccount)
+            );
           } else if (this.pch().exceptions().outOfGas()) {
             this.addTraceSection(
-                new AbortedCallSection(
+                new FailedCallSection(
                     this,
-                    this.currentFrame(),
-                    MiscFragment.fromCall(this, frame, myAccount),
-                    new AccountFragment(calledAccountSnapshot, calledAccountSnapshot),
-                    new ContextFragment(this.callStack, this.callStack().parent(), true)));
+                    ScenarioFragment.forCall(this, hasCode),
+                    MiscFragment.forCall(this, myAccount, calledAccount),
+                    new AccountFragment(calledAccountSnapshot, calledAccountSnapshot)
+            );
           }
         } else {
           if (this.pch.aborts().any()) {
             TraceSection abortedSection =
-                new AbortedCallSection(
+                new FailedCallSection(
                     this,
-                    this.currentFrame(),
-                    new ScenarioFragment(
-                        targetPrecompile,
-                        hasCode,
-                        true,
-                        this.currentFrame().id(),
-                        this.callStack().futureId()),
-                    new ContextFragment(this.callStack, this.currentFrame(), false),
-                    MiscFragment.fromCall(this, frame, myAccount),
+                    ScenarioFragment.forCall(this, hasCode),
+                    MiscFragment.forCall(this, myAccount, calledAccount),
+                    ContextFragment.readContextData(callStack),
                     new AccountFragment(myAccountSnapshot, myAccountSnapshot),
                     new AccountFragment(calledAccountSnapshot, calledAccountSnapshot),
-                    new ContextFragment(this.callStack, this.currentFrame(), true));
+                ContextFragment.nonExecutionEmptyReturnData(callStack)
+                );
             this.addTraceSection(abortedSection);
           } else {
             final MiscFragment miscFragment = MiscFragment.fromOpcode(this, frame);
 
             if (hasCode) {
-              final WithCodeCallSection section =
-                  new WithCodeCallSection(
+              final SmartContractCallSection section =
+                  new SmartContractCallSection(
                       this, myAccountSnapshot, calledAccountSnapshot, miscFragment);
               this.defers.postExec(section);
               this.defers.nextContext(section, currentFrame().id());
@@ -1213,10 +1207,13 @@ public class Hub implements Module {
               this.addTraceSection(section);
               this.currentFrame().needsUnlatchingAtReEntry(section);
             } else {
+              Optional<PrecompileInvocation> precompileInvocation =
+                  targetPrecompile.map(p -> PrecompileInvocation.of(this, p));
+
               final NoCodeCallSection section =
                   new NoCodeCallSection(
                       this,
-                      targetPrecompile,
+                      precompileInvocation,
                       myAccountSnapshot,
                       calledAccountSnapshot,
                       miscFragment);
@@ -1242,7 +1239,7 @@ public class Hub implements Module {
         JumpSection jumpSection =
             new JumpSection(
                 this,
-                new ContextFragment(this.callStack, this.currentFrame(), updateReturnData),
+                ContextFragment.readContextData(callStack),
                 new AccountFragment(codeAccountSnapshot, codeAccountSnapshot, false, 0, false),
                 MiscFragment.fromOpcode(this, frame));
 
@@ -1256,7 +1253,8 @@ public class Hub implements Module {
           .addChunk(
               this,
               this.currentFrame(),
-              new ContextFragment(this.callStack(), this.currentFrame(), true));
+            ContextFragment.executionEmptyReturnData(callStack)
+          );
     }
   }
 
@@ -1286,5 +1284,27 @@ public class Hub implements Module {
       }
     }
     return r;
+  }
+
+  public long gasAllowanceForCall() {
+    final OpCode opCode = opCode();
+
+    switch (opCode) {
+      case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
+        final long gas = Words.clampedToLong(messageFrame().getStackItem(0));
+        EWord value = EWord.ZERO;
+        if (opCode == OpCode.CALL || opCode == OpCode.CALLCODE) {
+          value = EWord.of(messageFrame().getStackItem(2));
+        }
+        final long stipend = value.isZero() ? 0 : GasConstants.G_CALL_STIPEND.cost();
+        final long upfrontCost = Hub.gp.of(messageFrame(), opCode()).total();
+        return stipend
+            + Math.max(
+                Words.unsignedMin(
+                    allButOneSixtyFourth(messageFrame().getRemainingGas() - upfrontCost), gas),
+                0);
+      }
+      default -> throw new IllegalStateException("not a CALL");
+    }
   }
 }

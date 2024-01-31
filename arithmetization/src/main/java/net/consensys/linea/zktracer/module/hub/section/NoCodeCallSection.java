@@ -15,19 +15,22 @@
 
 package net.consensys.linea.zktracer.module.hub.section;
 
+import java.util.List;
 import java.util.Optional;
 
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.Precompile;
+import net.consensys.linea.zktracer.module.hub.defer.DeferRegistry;
 import net.consensys.linea.zktracer.module.hub.defer.PostExecDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
+import net.consensys.linea.zktracer.module.hub.defer.ReEnterContextDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.ScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.MiscFragment;
-import net.consensys.linea.zktracer.module.hub.subsection.PrecompileScenarioTraceSubsection;
+import net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioFragment;
+import net.consensys.linea.zktracer.module.hub.subsection.PrecompileInvocation;
+import net.consensys.linea.zktracer.module.hub.subsection.PrecompileLinesGenerator;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -36,10 +39,12 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class NoCodeCallSection extends TraceSection implements PostTransactionDefer, PostExecDefer {
-  private final Optional<Precompile> targetIsPrecompile;
+public class NoCodeCallSection extends TraceSection implements PostTransactionDefer, PostExecDefer,
+  ReEnterContextDefer {
+  private final Optional<PrecompileInvocation> precompileInvocation;
   private final CallFrame callerCallFrame;
   private final int calledCallFrameId;
+  private boolean callSuccessful = false;
   private final AccountSnapshot preCallCallerAccountSnapshot;
   private final AccountSnapshot preCallCalledAccountSnapshot;
 
@@ -47,26 +52,31 @@ public class NoCodeCallSection extends TraceSection implements PostTransactionDe
   private AccountSnapshot postCallCalledAccountSnapshot;
   private final MiscFragment miscFragment;
 
+  private Optional<List<TraceFragment>> maybePrecompileLines = Optional.empty();
+
   public NoCodeCallSection(
       Hub hub,
-      Optional<Precompile> targetIsPrecompile,
+      Optional<PrecompileInvocation> targetPrecompile,
       AccountSnapshot preCallCallerAccountSnapshot,
       AccountSnapshot preCallCalledAccountSnapshot,
       MiscFragment miscFragment) {
-    this.targetIsPrecompile = targetIsPrecompile;
+    this.precompileInvocation = targetPrecompile;
     this.preCallCallerAccountSnapshot = preCallCallerAccountSnapshot;
     this.preCallCalledAccountSnapshot = preCallCalledAccountSnapshot;
     this.callerCallFrame = hub.currentFrame();
     this.calledCallFrameId = hub.callStack().futureId();
     this.miscFragment = miscFragment;
-    for (var stackChunk : hub.makeStackChunks(hub.currentFrame())) {
-      this.addChunk(hub, hub.currentFrame(), stackChunk);
-    }
+    this.addStack(hub);
+  }
+
+  @Override
+  public void runAtReEnter(Hub hub, MessageFrame frame) {
+    this.maybePrecompileLines = this.precompileInvocation.map(p -> PrecompileLinesGenerator.generateFor(hub, p));
   }
 
   @Override
   public void runPostExec(Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
-    final boolean callSuccessful = !frame.getStackItem(0).isZero();
+    this.callSuccessful = !frame.getStackItem(0).isZero();
     final Address callerAddress = preCallCallerAccountSnapshot.address();
     final Account callerAccount = frame.getWorldUpdater().get(callerAddress);
     final Address calledAddress = preCallCalledAccountSnapshot.address();
@@ -91,15 +101,15 @@ public class NoCodeCallSection extends TraceSection implements PostTransactionDe
     this.addChunksWithoutStack(
         hub,
         callerCallFrame,
-        new ScenarioFragment(
-            targetIsPrecompile, false, false, this.callerCallFrame.id(), this.calledCallFrameId),
-        new ContextFragment(hub.callStack(), hub.currentFrame(), false),
+        ScenarioFragment.forNoCodeCallSection(
+            precompileInvocation, this.callerCallFrame.id(), this.calledCallFrameId),
         this.miscFragment,
+        ContextFragment.readContextData(hub.callStack()),
         new AccountFragment(this.preCallCallerAccountSnapshot, this.postCallCallerAccountSnapshot),
         new AccountFragment(this.preCallCalledAccountSnapshot, this.postCallCalledAccountSnapshot));
 
-    if (callerCallFrame.hasReverted()) {
-      if (targetIsPrecompile.isPresent()) {
+    if (precompileInvocation.isPresent()) {
+      if (this.callSuccessful && callerCallFrame.hasReverted()) {
         this.addChunksWithoutStack(
             hub,
             callerCallFrame,
@@ -107,22 +117,30 @@ public class NoCodeCallSection extends TraceSection implements PostTransactionDe
                 this.postCallCallerAccountSnapshot, this.preCallCallerAccountSnapshot),
             new AccountFragment(
                 this.postCallCalledAccountSnapshot, this.preCallCalledAccountSnapshot));
-        for (TraceFragment fragment : new PrecompileScenarioTraceSubsection().generate()) {
-          this.addChunksWithoutStack(hub, callerCallFrame, fragment);
-        }
-      } else {
-        this.addChunksWithoutStack(
-            hub, callerCallFrame, new ContextFragment(hub.callStack(), this.callerCallFrame, true));
+      }
+      this.addChunksWithoutStack(
+          hub,
+          ScenarioFragment.forPrecompileEpilogue(
+              precompileInvocation.get(), callerCallFrame.id(), calledCallFrameId));
+      for (TraceFragment f :
+          this.maybePrecompileLines.orElseThrow(
+              () -> new IllegalStateException("missing precompile lines"))) {
+        this.addChunk(hub, callerCallFrame, f);
       }
     } else {
-      if (targetIsPrecompile.isPresent()) {
-        for (TraceFragment fragment : new PrecompileScenarioTraceSubsection().generate()) {
-          this.addChunksWithoutStack(hub, callerCallFrame, fragment);
-        }
-      } else {
+      if (callerCallFrame.hasReverted()) {
         this.addChunksWithoutStack(
-            hub, callerCallFrame, new ContextFragment(hub.callStack(), this.callerCallFrame, true));
+            hub,
+            callerCallFrame,
+            new AccountFragment(
+                this.postCallCallerAccountSnapshot, this.preCallCallerAccountSnapshot),
+            new AccountFragment(
+                this.postCallCalledAccountSnapshot, this.preCallCalledAccountSnapshot));
       }
+      this.addChunksWithoutStack(
+          hub, callerCallFrame,
+        ContextFragment.nonExecutionEmptyReturnData(hub.callStack())
+      );
     }
   }
 }

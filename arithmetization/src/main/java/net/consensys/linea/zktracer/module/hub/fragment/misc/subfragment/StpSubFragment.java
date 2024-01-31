@@ -17,11 +17,34 @@ package net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment;
 
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
-import org.apache.commons.lang3.NotImplementedException;
+import net.consensys.linea.zktracer.types.EWord;
+import org.apache.tuweni.bytes.Bytes;
 
-public record StpSubFragment() implements TraceSubFragment {
+public record StpSubFragment(
+    byte opCode,
+    EWord gas,
+    EWord value,
+    boolean exists,
+    boolean warm,
+    boolean outOfGasException,
+    long upfront,
+    long outOfPocket,
+    long stipend)
+    implements TraceSubFragment {
   @Override
   public Trace trace(Trace trace) {
-    throw new NotImplementedException("Soon");
+    return trace
+        .pMiscellaneousStpFlag(true)
+        .pMiscellaneousStpInst(Bytes.of(opCode))
+        .pMiscellaneousStpGasHi(gas.hi())
+        .pMiscellaneousStpGasLo(gas.lo())
+        .pMiscellaneousStpValHi(value.hi())
+        .pMiscellaneousStpValLo(value.lo())
+        .pMiscellaneousStpExists(exists)
+        .pMiscellaneousStpWarmth(warm)
+        .pMiscellaneousStpOogx(outOfGasException)
+        .pMiscellaneousStpGasUpfrontGasCost(Bytes.ofUnsignedLong(upfront))
+        .pMiscellaneousStpGasPaidOutOfPocket(Bytes.ofUnsignedLong(outOfPocket))
+        .pMiscellaneousStpGasStipend(Bytes.ofUnsignedLong(stipend));
   }
 }

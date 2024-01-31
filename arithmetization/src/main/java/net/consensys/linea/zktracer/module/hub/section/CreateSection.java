@@ -26,7 +26,7 @@ import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.defer.ReEnterContextDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.ScenarioFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioFragment;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -97,7 +97,7 @@ public class CreateSection extends TraceSection
 
     this.addChunksWithoutStack(
         hub,
-        new ContextFragment(hub.callStack(), hub.currentFrame(), updateReturnData),
+        ContextFragment.readContextData(hub.callStack()),
         new AccountFragment(oldCreatorSnapshot, newCreatorSnapshot, false, 0, false),
         new AccountFragment(oldCreatorSnapshot, newCreatorSnapshot, false, 0, false),
         new AccountFragment(oldCreatorSnapshot, newCreatorSnapshot, false, 0, false),
@@ -107,7 +107,7 @@ public class CreateSection extends TraceSection
   }
 
   @Override
-  public void runAtReEntry(Hub hub, MessageFrame frame) {
+  public void runAtReEnter(Hub hub, MessageFrame frame) {
     this.createSuccessful = !frame.getStackItem(0).isZero();
   }
 }

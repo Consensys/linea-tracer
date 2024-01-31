@@ -169,7 +169,7 @@ public final class CallStack {
   public void exit(Bytes returnData) {
     this.depth -= 1;
     Preconditions.checkState(this.depth >= 0);
-    this.current().returnDataPointer(new MemorySpan(0, 0)); // TODO: fix me Franklin
+    this.current().currentReturnDataPointer(new MemorySpan(0, 0)); // TODO: fix me Franklin
     final int parent = this.current().parentFrame();
     this.frames.get(parent).childFrames().add(this.current);
     this.frames.get(parent).returnData(returnData);

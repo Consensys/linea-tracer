@@ -15,6 +15,9 @@
 
 package net.consensys.linea.zktracer.module.limits.precompiles;
 
+import static net.consensys.linea.zktracer.CurveOperations.isOnC1;
+import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
+
 import java.nio.MappedByteBuffer;
 import java.util.List;
 import java.util.Stack;
@@ -24,6 +27,7 @@ import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
@@ -57,15 +61,37 @@ public final class EcAddEffectiveCall implements Module {
     switch (opCode) {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
-        if (target.equals(Address.ALTBN128_ADD)) {
-          final long gasPaid = Words.clampedToLong(frame.getStackItem(0));
-          if (gasPaid >= PRECOMPILE_GAS_FEE) {
-            this.counts.push(this.counts.pop() + 1);
-          }
+        if (target.equals(Address.ALTBN128_ADD)
+            && hub.gasAllowanceForCall() >= PRECOMPILE_GAS_FEE) {
+          this.counts.push(this.counts.pop() + 1);
         }
       }
-      default -> {}
     }
+  }
+
+  public static boolean isRamFailure(final Hub hub) {
+    final MessageFrame frame = hub.messageFrame();
+    final OpCode opCode = hub.opCode();
+
+    long length = 0;
+    long offset = 0;
+    switch (opCode) {
+      case CALL, CALLCODE -> {
+        length = Words.clampedToLong(frame.getStackItem(4));
+        offset = Words.clampedToLong(frame.getStackItem(3));
+      }
+      case DELEGATECALL, STATICCALL -> {
+        length = Words.clampedToLong(frame.getStackItem(3));
+        offset = Words.clampedToLong(frame.getStackItem(2));
+      }
+    }
+
+    final Bytes callData = rightPadTo(frame.shadowReadMemory(offset, Math.min(length, 128)), 128);
+    return !isOnC1(callData.slice(0, 64)) || !isOnC1(callData.slice(64, 64));
+  }
+
+  public static long gasCost() {
+    return PRECOMPILE_GAS_FEE;
   }
 
   @Override

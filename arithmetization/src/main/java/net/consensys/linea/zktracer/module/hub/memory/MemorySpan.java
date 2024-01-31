@@ -22,6 +22,9 @@ package net.consensys.linea.zktracer.module.hub.memory;
  * @param length the region length
  */
 public record MemorySpan(long offset, long length) {
+  public static MemorySpan empty() {
+    return new MemorySpan(0, 0);
+  }
 
   /**
    * An alternative way to build a MemorySpan, from a start and an end.
@@ -41,5 +44,13 @@ public record MemorySpan(long offset, long length) {
    */
   long end() {
     return this.length + this.length;
+  }
+
+  public boolean isEmpty() {
+    return this.length == 0;
+  }
+
+  public MemorySpan snapshot() {
+    return new MemorySpan(this.offset, this.length);
   }
 }

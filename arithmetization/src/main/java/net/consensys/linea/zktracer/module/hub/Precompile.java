@@ -37,6 +37,22 @@ public enum Precompile {
   public static Optional<Precompile> maybeOf(Address a) {
     if (a.equals(Address.ECREC)) {
       return Optional.of(Precompile.EC_RECOVER);
+    } else if (a.equals(Address.SHA256)) {
+      return Optional.of(Precompile.SHA2_256);
+    } else if (a.equals(Address.RIPEMD160)) {
+      return Optional.of(Precompile.RIPEMD_160);
+    } else if (a.equals(Address.ID)) {
+      return Optional.of(Precompile.IDENTITY);
+    } else if (a.equals(Address.MODEXP)) {
+      return Optional.of(Precompile.MODEXP);
+    } else if (a.equals(Address.ALTBN128_ADD)) {
+      return Optional.of(Precompile.EC_ADD);
+    } else if (a.equals(Address.ALTBN128_MUL)) {
+      return Optional.of(Precompile.EC_MUL);
+    } else if (a.equals(Address.ALTBN128_PAIRING)) {
+      return Optional.of(Precompile.EC_PAIRING);
+    } else if (a.equals(Address.BLAKE2B_F_COMPRESSION)) {
+      return Optional.of(Precompile.BLAKE2F);
     } else {
       return Optional.empty();
     }

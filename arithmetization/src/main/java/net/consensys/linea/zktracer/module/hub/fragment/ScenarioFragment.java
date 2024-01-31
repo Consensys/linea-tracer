@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.module.hub.fragment;
 
 import java.util.Optional;
 
+import net.consensys.linea.zktracer.module.hub.FailureConditions;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Precompile;
 import net.consensys.linea.zktracer.module.hub.Trace;
@@ -31,20 +32,17 @@ public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
   private final boolean abort;
   private final int callerId;
   private final int calleeId;
+  private final FailureConditions failures;
+  private 
   private boolean callerReverts = false;
   private boolean calleeSelfReverts = false;
 
-  public ScenarioFragment(
-      Optional<Precompile> targetPrecompile,
-      boolean targetHasCode,
-      boolean abort,
-      int callerId,
-      int calleeId) {
-    this.targetPrecompile = targetPrecompile;
-    this.targetHasCode = targetHasCode;
-    this.abort = abort;
-    this.callerId = callerId;
-    this.calleeId = calleeId;
+  public static ScenarioFragment forCreate(boolean targetHasCode,
+                                           boolean abort,) {
+        return new ScenarioFragment(
+          Optional.empty(),
+
+        );
   }
 
   private boolean targetIsPrecompile() {
@@ -61,40 +59,60 @@ public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
   public Trace trace(Trace trace) {
     return trace
         .peekAtScenario(true)
-        .pScenarioPrcSuccess(false)
-        .pScenarioPrcFailureKnownToHub(false)
-        .pScenarioPrcFailureKnownToRam(false)
+        .pScenarioCallException(false)
         .pScenarioCallAbort(abort)
-        .pScenarioCallEoaSuccessCallerWillRevert(
-            !abort && !targetIsPrecompile() && !targetHasCode && callerReverts)
-        .pScenarioCallEoaSuccessCallerWontRevert(
-            !abort && !targetIsPrecompile() && !targetHasCode && !callerReverts)
-        .pScenarioCallSmcSuccessCallerWillRevert(
-            !abort && targetHasCode && callerReverts && !calleeSelfReverts)
-        .pScenarioCallSmcSuccessCallerWontRevert(
-            !abort && targetHasCode && !callerReverts && !calleeSelfReverts)
-        .pScenarioCallSmcFailureCallerWillRevert(
-            !abort && targetHasCode && callerReverts && calleeSelfReverts)
-        .pScenarioCallSmcFailureCallerWontRevert(
-            !abort && targetHasCode && !callerReverts && calleeSelfReverts)
+        .pScenarioCallPrcFailure(
+            !abort && targetIsPrecompile() && !callerReverts && calleeSelfReverts)
         .pScenarioCallPrcSuccessCallerWillRevert(
             !abort && targetIsPrecompile() && callerReverts && !calleeSelfReverts)
         .pScenarioCallPrcSuccessCallerWontRevert(
             !abort && targetIsPrecompile() && !callerReverts && !calleeSelfReverts)
-        .pScenarioCallPrcFailureCallerWillRevert(
-            !abort && targetIsPrecompile() && callerReverts && calleeSelfReverts)
-        .pScenarioCallPrcFailureCallerWontRevert(
-            !abort && targetIsPrecompile() && !callerReverts && calleeSelfReverts)
-        .pScenarioBlake2F(false)
-        .pScenarioCodedeposit(false)
+        .pScenarioCallSmcFailureCallerWillRevert(
+            !abort && targetHasCode && callerReverts && calleeSelfReverts)
+        .pScenarioCallSmcFailureCallerWontRevert(
+            !abort && targetHasCode && !callerReverts && calleeSelfReverts)
+        .pScenarioCallSmcSuccessCallerWontRevert(
+            !abort && targetHasCode && !callerReverts && !calleeSelfReverts)
+        .pScenarioCallSmcSuccessCallerWillRevert(
+            !abort && targetHasCode && callerReverts && !calleeSelfReverts)
+        .pScenarioCallEoaSuccessCallerWontRevert(
+            !abort && !targetIsPrecompile() && !targetHasCode && !callerReverts)
+        .pScenarioCallEoaSuccessCallerWillRevert(
+            !abort && !targetIsPrecompile() && !targetHasCode && callerReverts)
+        .pScenarioCallEoaSuccessCallerWontRevert(false)
+        .pScenarioCreateException(false)
+        .pScenarioCreateAbort(false)
+        .pScenarioCreateFailureConditionWillRevert(false)
+        .pScenarioCreateFailureConditionWontRevert(false)
+        .pScenarioCreateEmptyInitCodeWillRevert(false)
+        .pScenarioCreateEmptyInitCodeWontRevert(false)
+        .pScenarioCreateNonemptyInitCodeFailureWillRevert(false)
+        .pScenarioCreateNonemptyInitCodeFailureWontRevert(false)
+        .pScenarioCreateNonemptyInitCodeSuccessWillRevert(false)
+        .pScenarioCreateNonemptyInitCodeSuccessWontRevert(false)
+        .pScenarioEcrecover(false)
+        .pScenarioSha2256(false)
+        .pScenarioRipemd160(false)
+        .pScenarioIdentity(false)
+        .pScenarioModexp(false)
         .pScenarioEcadd(false)
         .pScenarioEcmul(false)
         .pScenarioEcpairing(false)
-        .pScenarioEcrecover(false)
-        .pScenarioIdentity(false)
-        .pScenarioModexp(false)
-        .pScenarioRipemd160(false)
-        .pScenarioSha2256(false)
+        .pScenarioBlake2F(false)
+        .pScenarioPrcSuccessWillRevert(false)
+        .pScenarioPrcSuccessWontRevert(false)
+        .pScenarioPrcFailureKnownToHub(false)
+        .pScenarioPrcFailureKnownToRam(false)
+        .pScenarioPrcCallerGas(false)
+        .pScenarioPrcCalleeGas(false)
+        .pScenarioPrcReturnGas(false)
+        .pScenarioPrcCdo(false)
+        .pScenarioPrcCds(false)
+        .pScenarioPrcRao(false)
+        .pScenarioPrcRac(false)
+        .pScenarioCodedeposit(false)
+        .pScenarioCodedepositInvalidCodePrefix(false)
+        .pScenarioCodedepositValidCodePrefix(false)
         .pScenarioSelfdestruct(false);
   }
 }

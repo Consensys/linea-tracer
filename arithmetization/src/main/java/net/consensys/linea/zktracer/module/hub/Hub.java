@@ -782,6 +782,7 @@ public class Hub implements Module {
   }
 
   public void traceContextReEnter(MessageFrame frame) {
+    this.defers.runReEntry(this, frame);
     if (this.currentFrame().needsUnlatchingAtReEntry() != null) {
       this.unlatchStack(frame, this.currentFrame().needsUnlatchingAtReEntry());
       this.currentFrame().needsUnlatchingAtReEntry(null);
@@ -970,7 +971,7 @@ public class Hub implements Module {
           INVALID -> this.addTraceSection(new StackOnlySection(this));
       case KEC -> {
         this.addTraceSection(
-            new KeccakSection(this, this.currentFrame(), new MiscFragment(this, frame)));
+            new KeccakSection(this, this.currentFrame(), MiscFragment.fromOpcode(this, frame)));
       }
       case CONTEXT, LOG -> this.addTraceSection(
           new ContextLogSection(
@@ -1003,7 +1004,7 @@ public class Hub implements Module {
 
         this.addTraceSection(accountSection);
       }
-      case COPY -> { // TODO: call RomLex
+      case COPY -> {
         TraceSection copySection = new CopySection(this);
         if (this.opCodeData().stackSettings().flag1()) {
           Address targetAddress =
@@ -1049,7 +1050,7 @@ public class Hub implements Module {
             final long readOffset = Words.clampedToLong(frame.getStackItem(0));
             final boolean isOob = readOffset > this.currentFrame().callData().size();
 
-            final MiscFragment miscFragment = new MiscFragment(this, frame);
+            final MiscFragment miscFragment = MiscFragment.fromOpcode(this, frame);
             this.defers.postExec(miscFragment);
 
             this.addTraceSection(
@@ -1059,7 +1060,7 @@ public class Hub implements Module {
                     new ContextFragment(this.callStack(), this.currentFrame(), false)));
           }
           case MLOAD, MSTORE, MSTORE8 -> {
-            this.addTraceSection(new StackRam(this, new MiscFragment(this, frame)));
+            this.addTraceSection(new StackRam(this, MiscFragment.fromOpcode(this, frame)));
           }
           default -> throw new IllegalStateException("unexpected STACK_RAM opcode");
         }
@@ -1128,6 +1129,7 @@ public class Hub implements Module {
         // the operation
         this.defers.postExec(createSection);
         this.defers.nextContext(createSection, currentFrame().id());
+        this.defers.reEntry(createSection);
         this.addTraceSection(createSection);
         this.currentFrame().needsUnlatchingAtReEntry(createSection);
       }
@@ -1165,25 +1167,22 @@ public class Hub implements Module {
                     new ContextFragment(this.callStack, this.currentFrame(), false),
                     new ContextFragment(this.callStack, this.callStack().parent(), true)));
           } else if (this.pch().exceptions().outOfMemoryExpansion()) {
-            this.pch().signals().wantMxp();
             this.addTraceSection(
                 new AbortedCallSection(
                     this,
                     this.currentFrame(),
-                    new MiscFragment(this, frame),
+                    MiscFragment.fromCall(this, frame, myAccount),
                     new ContextFragment(this.callStack, this.callStack().parent(), true)));
           } else if (this.pch().exceptions().outOfGas()) {
-            this.pch().signals().wantMxp().wantStipend();
             this.addTraceSection(
                 new AbortedCallSection(
                     this,
                     this.currentFrame(),
-                    new MiscFragment(this, frame),
+                    MiscFragment.fromCall(this, frame, myAccount),
                     new AccountFragment(calledAccountSnapshot, calledAccountSnapshot),
                     new ContextFragment(this.callStack, this.callStack().parent(), true)));
           }
         } else {
-          this.pch().signals().wantMxp().wantOob().wantStipend();
           if (this.pch.aborts().any()) {
             TraceSection abortedSection =
                 new AbortedCallSection(
@@ -1196,13 +1195,13 @@ public class Hub implements Module {
                         this.currentFrame().id(),
                         this.callStack().futureId()),
                     new ContextFragment(this.callStack, this.currentFrame(), false),
-                    new MiscFragment(this, frame),
+                    MiscFragment.fromCall(this, frame, myAccount),
                     new AccountFragment(myAccountSnapshot, myAccountSnapshot),
                     new AccountFragment(calledAccountSnapshot, calledAccountSnapshot),
                     new ContextFragment(this.callStack, this.currentFrame(), true));
             this.addTraceSection(abortedSection);
           } else {
-            final MiscFragment miscFragment = new MiscFragment(this, frame);
+            final MiscFragment miscFragment = MiscFragment.fromOpcode(this, frame);
 
             if (hasCode) {
               final WithCodeCallSection section =
@@ -1245,7 +1244,7 @@ public class Hub implements Module {
                 this,
                 new ContextFragment(this.callStack, this.currentFrame(), updateReturnData),
                 new AccountFragment(codeAccountSnapshot, codeAccountSnapshot, false, 0, false),
-                new MiscFragment(this, frame));
+                MiscFragment.fromOpcode(this, frame));
 
         this.addTraceSection(jumpSection);
       }

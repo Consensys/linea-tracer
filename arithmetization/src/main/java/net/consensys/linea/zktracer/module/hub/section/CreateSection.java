@@ -15,13 +15,18 @@
 
 package net.consensys.linea.zktracer.module.hub.section;
 
+import net.consensys.linea.zktracer.module.hub.AbortingConditions;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
+import net.consensys.linea.zktracer.module.hub.Exceptions;
+import net.consensys.linea.zktracer.module.hub.FailureConditions;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.NextContextDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostExecDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
+import net.consensys.linea.zktracer.module.hub.defer.ReEnterContextDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.ScenarioFragment;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -29,14 +34,24 @@ import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class CreateSection extends TraceSection
-    implements PostExecDefer, NextContextDefer, PostTransactionDefer {
+    implements PostExecDefer, NextContextDefer, PostTransactionDefer, ReEnterContextDefer {
+  private final AbortingConditions aborts;
+  private final Exceptions exceptions;
+  private final FailureConditions failures;
+
   private final AccountSnapshot oldCreatorSnapshot;
   private final AccountSnapshot oldCreatedSnapshot;
+
   private AccountSnapshot newCreatorSnapshot;
   private AccountSnapshot newCreatedSnapshot;
+  private boolean createSuccessful;
 
   public CreateSection(
       Hub hub, AccountSnapshot oldCreatorSnapshot, AccountSnapshot oldCreatedSnapshot) {
+    this.aborts = hub.pch().aborts().snapshot();
+    this.exceptions = hub.pch().exceptions().snapshot();
+    this.failures = hub.pch().failures().snapshot();
+
     this.oldCreatorSnapshot = oldCreatorSnapshot;
     this.oldCreatedSnapshot = oldCreatedSnapshot;
 
@@ -74,6 +89,10 @@ public class CreateSection extends TraceSection
 
   @Override
   public void runPostTx(Hub hub, WorldView state, Transaction tx) {
+    if (this.exceptions.staticFault()) {
+      this.addChunksWithoutStack(hub, new ScenarioFragment());
+    }
+
     final boolean updateReturnData = false; // TODO:
 
     this.addChunksWithoutStack(
@@ -85,5 +104,10 @@ public class CreateSection extends TraceSection
         // 2×created account
         new AccountFragment(oldCreatedSnapshot, newCreatedSnapshot, false, 0, true),
         new AccountFragment(oldCreatedSnapshot, newCreatedSnapshot, false, 0, false));
+  }
+
+  @Override
+  public void runAtReEntry(Hub hub, MessageFrame frame) {
+    this.createSuccessful = !frame.getStackItem(0).isZero();
   }
 }

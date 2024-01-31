@@ -130,26 +130,6 @@ public class Signals {
     return r;
   }
 
-  public Signals wantMmu() {
-    this.mmu = true;
-    return this;
-  }
-
-  public Signals wantMxp() {
-    this.mxp = true;
-    return this;
-  }
-
-  public Signals wantStipend() {
-    this.stp = true;
-    return this;
-  }
-
-  public Signals wantOob() {
-    this.oob = true;
-    return this;
-  }
-
   /**
    * Setup all the signalling required to trigger modules for the execution of the current
    * operation.
@@ -207,7 +187,7 @@ public class Signals {
       case CALL, DELEGATECALL, STATICCALL, CALLCODE -> {
         this.mxp = !ex.staticFault();
         this.stp = ex.outOfGas() || ex.none();
-        this.oob = ex.none();
+        this.oob = opCode.equals(OpCode.CALL) && ex.staticFault() || ex.none();
         this.trm = ex.outOfGas() || ex.none();
 
         final boolean triggersAbortingCondition =

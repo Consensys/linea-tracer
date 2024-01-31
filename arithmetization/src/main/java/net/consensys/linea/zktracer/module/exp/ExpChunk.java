@@ -65,10 +65,18 @@ public class ExpChunk extends ModuleOperation {
   private Bytes pPreprocessingWcpArg2Lo;
   private UnsignedByte pPreprocessingWcpInst;
 
-  public ExpChunk(final MessageFrame frame) {
-    // EXP opcode in one case
-    // MODEXP call to precompile
-    // hub.exceptions.none() && hub.abortingCondition.none();
+  public ExpChunk(
+      final MessageFrame frame,
+      boolean cmptn,
+      boolean macro,
+      boolean prprc,
+      boolean isExpLog,
+      boolean isModexpLog) {
+    this.cmptn = cmptn;
+    this.macro = macro;
+    this.prprc = prprc;
+    this.isExpLog = isExpLog;
+    this.isModexpLog = isModexpLog;
   }
 
   @Override
@@ -119,14 +127,14 @@ public class ExpChunk extends ModuleOperation {
   final void trace(int stamp, Trace trace) {
     for (int i = 0; i < this.maxCt(); i++) { // TODO
       trace
-          .cmptn(false)
-          .macro(false)
-          .prprc(false)
+          .cmptn(cmptn)
+          .macro(macro)
+          .prprc(prprc)
           .stamp(Bytes.ofUnsignedLong(stamp))
           .ct(Bytes.of(i))
           .ctMax(Bytes.of(0))
-          .isExpLog(false)
-          .isModexpLog(false)
+          .isExpLog(isExpLog)
+          .isModexpLog(isModexpLog)
           .pComputationPltBit(false)
           .pComputationPltJmp(Bytes.of(0))
           .pComputationRawByte(UnsignedByte.ZERO)

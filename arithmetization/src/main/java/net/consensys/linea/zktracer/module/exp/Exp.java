@@ -21,11 +21,21 @@ import java.util.List;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.opcode.OpCode;
+import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.evm.internal.Words;
 
 public class Exp implements Module {
   /** A list of the operations to trace */
   private final StackedList<ExpChunk> chunks = new StackedList<>();
+
+  private final Hub hub;
+
+  public Exp(Hub hub) {
+    this.hub = hub;
+  }
 
   @Override
   public String moduleKey() {
@@ -54,7 +64,21 @@ public class Exp implements Module {
 
   @Override
   public void tracePreOpcode(MessageFrame frame) {
-    this.chunks.add(new ExpChunk(frame)); // TODO: add modules we need
+    if (hub.pch().exceptions().none() && hub.pch().aborts().none()) {
+      OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
+      if (opCode.equals(OpCode.EXP)) {
+        this.chunks.add(new ExpChunk(frame, true, false, false, true, false));
+        this.chunks.add(new ExpChunk(frame, false, true, false, true, false));
+        this.chunks.add(new ExpChunk(frame, false, false, true, true, false));
+      } else if (opCode.isCall()) {
+        Address target = Words.toAddress(frame.getStackItem(1));
+        if (target.equals(Address.MODEXP)) {
+          this.chunks.add(new ExpChunk(frame, true, false, false, false, true));
+          this.chunks.add(new ExpChunk(frame, false, true, false, false, true));
+          this.chunks.add(new ExpChunk(frame, false, false, true, false, true));
+        }
+      }
+    }
   }
 
   @Override

@@ -38,55 +38,135 @@ class MmuOperation extends ModuleOperation {
   private final MicroDataProcessor microDataProcessor;
 
   private final CallStack callStack;
-  private int ramStamp;
   private boolean isMicro;
+  private final int nbPreprocessingRows = nbPreprocessingRows();
+  int nbMmioRows;
 
   MmuOperation(
       MicroData microData,
       CallStack callStack,
       MicroDataProcessor microDataProcessor,
-      int ramStamp,
       boolean isMicro) {
     this.microData = microData;
     this.callStack = callStack;
     this.microDataProcessor = microDataProcessor;
-    this.ramStamp = ramStamp;
     this.isMicro = isMicro;
   }
 
   @Override
   protected int computeLineCount() {
-    int preProcessingCount = 1 + maxCounter(microData);
-    int totalNumberOfMicroInstructions = microData.readPad().totalNumber();
-
-    return preProcessingCount + totalNumberOfMicroInstructions;
+    return 1 + nbPreprocessingRows + nbMmioRows;
   }
 
-  void trace(MicroData microData, final CallStack callStack, Trace trace) {
+  void trace(MicroData microData, final CallStack callStack, final int mmuStamp, final int mmioStamp, Trace trace) {
     if (microData.skip()) {
       return;
     }
 
-    this.ramStamp++;
-    this.isMicro = false;
-    int maxCounter = maxCounter(microData);
+    final Bytes mmuStampBytes = Bytes.ofUnsignedShort(mmuStamp);
+    final Bytes mmioStampInit = Bytes.ofUnsignedShort(mmioStamp);
 
-    microData.processingRow(-1);
+    // Trace Macro Instruction decoding Row
+    traceMacroRow(mmuStampBytes, mmioStampInit, trace);
 
-    while (microData.counter() < maxCounter) {
-      microDataProcessor.initializePreProcessing(callStack);
-      traceMicroData(microData, trace);
-      microData.incrementCounter(1);
-    }
+    // Trace Preprocessing rows
+    tracePreprocessingRows(mmuStampBytes, mmioStampInit, trace);
 
-    this.isMicro = true;
-    microData.counter(0);
-    microData.processingRow(0);
+    // Trace Micro Instructions Rows
+    traceMicroRows(mmuStampBytes, mmioStamp, trace);
+  }
 
-    while (microData.processingRow() < microData.readPad().totalNumber()) {
-      microDataProcessor.initializeProcessing(callStack, microData);
-      traceMicroData(microData, trace);
-      microData.incrementProcessingRow(1);
+  private void traceFillMmuInstructionFlag(Trace trace){
+    trace.isMload()
+      .isMstore()
+      .isMstore8()
+      .isInvalidCodePrefix()
+      .isRightPaddedWordExtraction()
+      .isRamToExoWithPadding()
+      .isExoToRamTransplants()
+      .isRamToRamSansPadding()
+      .isAnyToRamWithPaddingSomeData()
+      .isAnyToRamWithPaddingPurePadding()
+      .isModexpZero()
+      .isModexpData()
+      .isBlakeParam();
+  }
+
+  private void traceOutAndBin(Trace trace){
+    trace
+      .out1()
+      .out2()
+      .out3()
+      .out4()
+      .out5()
+      .bin1()
+      .bin2()
+      .bin3()
+      .bin4()
+      .bin5();
+  }
+
+  private int nbPreprocessingRows(){
+    return switch ();
+  }
+
+  private void traceMacroRow(final Bytes mmuStamp, final Bytes mmioStamp, Trace trace){
+    traceFillMmuInstructionFlag(trace);
+    traceOutAndBin(trace);
+    trace.stamp(mmuStamp)
+      .mmioStamp(mmioStamp)
+      .macro(true)
+      .prprc(false)
+      .micro(false)
+      .tot(Bytes.ofUnsignedShort(nbMmioRows))
+      .totlz()
+      .totnt()
+      .totrz()
+      .pMacroInst()
+      .pMacroSrcId()
+      .pMacroTgtId()
+      .pMacroAuxId()
+      .pMacroSrcOffsetHi()
+      .pMacroSrcOffsetLo()
+      .pMacroSize()
+      .pMacroRefOffset()
+      .pMacroRefSize()
+      .pMacroSuccessBit()
+      .pMacroLimb1()
+      .pMacroLimb2()
+      .pMacroPhase()
+      .pMacroExoSum()
+      .fillAndValidateRow();
+  }
+
+  private void tracePreprocessingRows(final Bytes mmuStamp, final Bytes mmioStamp, Trace trace){
+    for (int i = 0; i < this.nbPreprocessingRows; i++) {
+      traceFillMmuInstructionFlag(trace);
+      traceOutAndBin(trace);
+      trace.stamp(mmuStamp)
+        .mmioStamp(mmioStamp)
+        .macro(false)
+        .prprc(true)
+        .micro(false)
+        .tot(Bytes.ofUnsignedShort(nbMmioRows))
+        .totlz()
+        .totnt()
+        .totrz()
+        .pPrprcCt(UnsignedByte.of(this.nbPreprocessingRows -i))
+        .pPrprcEucFlag()
+        .pPrprcEucA()
+        .pPrprcEucB()
+        .pPrprcEucQuot()
+        .pPrprcEucRem()
+        .pPrprcEucCeil()
+        .pPrprcWcpFlag()
+        .pPrprcWcpArg1Hi()
+        .pPrprcWcpArg1Lo()
+        .pPrprcWcpArg2Hi()
+        .pPrprcWcpArg2Lo()
+        .pPrprcWcpRes()
+        .pPrprcWcpInst()
+        .fillAndValidateRow();
     }
   }
 
@@ -189,6 +269,37 @@ class MmuOperation extends ModuleOperation {
     //        .info(booleanToBytes(microData.info()))
     //        .isData(this.ramStamp != 0)
     //        .validateRow();
+=======
+  private void traceMicroRows(final Bytes mmuStamp, int mmioStamp, Trace trace){
+    for (int i = 0; i < this.nbMmioRows; i++) {
+      mmioStamp +=1;
+      traceFillMmuInstructionFlag(trace);
+      traceOutAndBin(trace);
+      trace.stamp(mmuStamp)
+        .mmioStamp(Bytes.ofUnsignedShort(mmioStamp))
+        .macro(false)
+        .prprc(false)
+        .micro(true)
+        .tot()
+        .totlz()
+        .totnt()
+        .totrz()
+        .pMicroInst()
+        .pMicroSize()
+        .pMicroSlo()
+        .pMicroSbo()
+        .pMicroTlo()
+        .pMicroTbo()
+        .pMicroLimb()
+        .pMicroCnS()
+        .pMicroCnT()
+        .pMicroSuccessBit()
+        .pMicroExoSum()
+        .pMicroPhase()
+        .pMicroId1()
+        .pMicroId2()
+        .pMicroTotalSize()
+        .fillAndValidateRow();
   }
 
   private Bytes contextNumberOf(int contextId) {

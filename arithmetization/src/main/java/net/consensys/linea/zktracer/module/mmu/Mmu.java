@@ -15,9 +15,12 @@
 
 package net.consensys.linea.zktracer.module.mmu;
 
+<<<<<<< HEAD
 import static net.consensys.linea.zktracer.types.Conversions.unsignedBytesToUnsignedBigInteger;
 
 import java.math.BigInteger;
+=======
+>>>>>>> 56c2a31a (feat: preparing tracing)
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
@@ -38,6 +41,7 @@ import org.apache.commons.lang3.ArrayUtils;
 public class Mmu implements Module {
   private final StackedList<MicroData> state = new StackedList<>();
   private Mmio mmio;
+  private final StackedList<MmuOperation> mmuOperationList = new StackedList<>();
   private int ramStamp;
   private boolean isMicro;
   private final MicroDataProcessor microDataProcessor;
@@ -58,17 +62,17 @@ public class Mmu implements Module {
 
   @Override
   public void enterTransaction() {
-    this.state.enter();
+    this.mmuOperationList.enter();
   }
 
   @Override
   public void popTransaction() {
-    this.state.pop();
+    this.mmuOperationList.pop();
   }
 
   @Override
   public int lineCount() {
-    return this.state.lineCount();
+    return this.mmuOperationList.lineCount();
   }
 
   @Override

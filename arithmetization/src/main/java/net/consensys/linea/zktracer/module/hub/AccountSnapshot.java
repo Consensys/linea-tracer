@@ -34,6 +34,12 @@ public record AccountSnapshot(
     return fromAccount(Optional.ofNullable(account), warm, deploymentNumber, deploymentStatus);
   }
 
+  public static AccountSnapshot empty(
+      boolean warm, int deploymentNumber, boolean deploymentStatus) {
+    return new AccountSnapshot(
+        Address.ZERO, 0, Wei.ZERO, warm, Bytecode.EMPTY, deploymentNumber, deploymentStatus);
+  }
+
   public static AccountSnapshot fromAccount(
       Optional<Account> account, boolean warm, int deploymentNumber, boolean deploymentStatus) {
 
@@ -48,14 +54,6 @@ public record AccountSnapshot(
                     new Bytecode(a.getCode().copy()),
                     deploymentNumber,
                     deploymentStatus))
-        .orElse(
-            new AccountSnapshot(
-                Address.ZERO,
-                0,
-                Wei.ZERO,
-                warm,
-                Bytecode.EMPTY,
-                deploymentNumber,
-                deploymentStatus));
+        .orElseGet(() -> AccountSnapshot.empty(warm, deploymentNumber, deploymentStatus));
   }
 }

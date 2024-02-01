@@ -60,8 +60,8 @@ public class MmuSubFragment implements TraceSubFragment, PostExecDefer {
       case CALLDATALOAD -> {
         r.param1 = hub.tx().number();
         r.info = hub.callStack().depth() == 1;
-        r.referenceOffset = hub.currentFrame().callDataPointer().offset();
-        r.referenceSize = hub.currentFrame().callDataPointer().length();
+        r.referenceOffset = hub.currentFrame().callDataSource().offset();
+        r.referenceSize = hub.currentFrame().callDataSource().length();
         r.offset1 = hub.messageFrame().getStackItem(0).copy();
       }
       case MSTORE, MSTORE8 -> {

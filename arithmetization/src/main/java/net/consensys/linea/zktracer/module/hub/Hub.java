@@ -42,8 +42,8 @@ import net.consensys.linea.zktracer.module.hub.defer.*;
 import net.consensys.linea.zktracer.module.hub.fragment.*;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.MiscFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioFragment;
+import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 import net.consensys.linea.zktracer.module.hub.section.*;
-import net.consensys.linea.zktracer.module.hub.subsection.PrecompileInvocation;
 import net.consensys.linea.zktracer.module.limits.Keccak;
 import net.consensys.linea.zktracer.module.limits.L2Block;
 import net.consensys.linea.zktracer.module.limits.L2L1Logs;
@@ -85,6 +85,7 @@ import net.consensys.linea.zktracer.runtime.stack.ConflationInfo;
 import net.consensys.linea.zktracer.runtime.stack.StackContext;
 import net.consensys.linea.zktracer.runtime.stack.StackLine;
 import net.consensys.linea.zktracer.types.EWord;
+import net.consensys.linea.zktracer.types.MemorySpan;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
@@ -189,7 +190,6 @@ public class Hub implements Module {
   private final Trm trm = new Trm();
   private final ModexpEffectiveCall modexp;
   private final Stp stp = new Stp(this, wcp, mod);
-  private final L2Block l2Block = new L2Block();
 
   private final List<Module> modules;
   /* Those modules are not traced, we just compute the number of calls to those precompile to meet the prover limits */
@@ -210,6 +210,7 @@ public class Hub implements Module {
     final EcRecoverEffectiveCall ecRec = new EcRecoverEffectiveCall(this);
     this.modexp = new ModexpEffectiveCall(this);
     final EcPairingCallEffectiveCall ecpairingCall = new EcPairingCallEffectiveCall(this);
+    final L2Block l2Block = new L2Block();
     this.precompileLimitModules =
         List.of(
             new Sha256Blocks(this),
@@ -222,9 +223,9 @@ public class Hub implements Module {
             new EcPairingMillerLoop(ecpairingCall),
             new Blake2fRounds(this),
             // Block level limits
-            this.l2Block,
-            new Keccak(this, ecRec, this.l2Block),
-            new L2L1Logs(this.l2Block));
+            l2Block,
+            new Keccak(this, ecRec, l2Block),
+            new L2L1Logs(l2Block));
 
     this.refTableModules = List.of(new BinRt(), new InstructionDecoder(), new ShfRt());
 
@@ -952,12 +953,6 @@ public class Hub implements Module {
   }
 
   void traceOperation(MessageFrame frame) {
-    boolean updateReturnData =
-        this.opCodeData().isHalt()
-            || this.opCodeData().isInvalid()
-            || this.pch().exceptions().any()
-            || isValidPrecompileCall(frame, this.currentFrame().opCode());
-
     switch (this.opCodeData().instructionFamily()) {
       case ADD,
           MOD,
@@ -976,15 +971,12 @@ public class Hub implements Module {
       case KEC -> this.addTraceSection(
           new KeccakSection(this, this.currentFrame(), MiscFragment.fromOpcode(this, frame)));
       case CONTEXT, LOG -> this.addTraceSection(
-          new ContextLogSection(
-              this, ContextFragment.readContextData(callStack)));
+          new ContextLogSection(this, ContextFragment.readContextData(callStack)));
       case ACCOUNT -> {
         TraceSection accountSection = new AccountSection(this);
         if (this.opCodeData().stackSettings().flag1()) {
           accountSection.addChunk(
-              this,
-              this.currentFrame(),
-              ContextFragment.readContextData(callStack));
+              this, this.currentFrame(), ContextFragment.readContextData(callStack));
         }
 
         Address targetAddress =
@@ -1029,9 +1021,7 @@ public class Hub implements Module {
               new AccountFragment(accountSnapshot, accountSnapshot, false, 0, false));
         } else {
           copySection.addChunk(
-              this,
-              this.currentFrame(),
-              ContextFragment.readContextData(callStack));
+              this, this.currentFrame(), ContextFragment.readContextData(callStack));
         }
         this.addTraceSection(copySection);
       }
@@ -1053,10 +1043,7 @@ public class Hub implements Module {
             this.defers.postExec(miscFragment);
 
             this.addTraceSection(
-                new StackRam(
-                    this,
-                    miscFragment,
-                    ContextFragment.readContextData(callStack)));
+                new StackRam(this, miscFragment, ContextFragment.readContextData(callStack)));
           }
           case MLOAD, MSTORE, MSTORE8 -> this.addTraceSection(
               new StackRam(this, MiscFragment.fromOpcode(this, frame)));
@@ -1163,23 +1150,20 @@ public class Hub implements Module {
                     this,
                     ScenarioFragment.forCall(this, hasCode),
                     MiscFragment.forCall(this, myAccount, calledAccount),
-                    ContextFragment.readContextData(callStack)
-            );
+                    ContextFragment.readContextData(callStack)));
           } else if (this.pch().exceptions().outOfMemoryExpansion()) {
             this.addTraceSection(
                 new FailedCallSection(
                     this,
                     ScenarioFragment.forCall(this, hasCode),
-                    MiscFragment.forCall(this, myAccount, calledAccount)
-            );
+                    MiscFragment.forCall(this, myAccount, calledAccount)));
           } else if (this.pch().exceptions().outOfGas()) {
             this.addTraceSection(
                 new FailedCallSection(
                     this,
                     ScenarioFragment.forCall(this, hasCode),
                     MiscFragment.forCall(this, myAccount, calledAccount),
-                    new AccountFragment(calledAccountSnapshot, calledAccountSnapshot)
-            );
+                    new AccountFragment(calledAccountSnapshot, calledAccountSnapshot)));
           }
         } else {
           if (this.pch.aborts().any()) {
@@ -1191,8 +1175,7 @@ public class Hub implements Module {
                     ContextFragment.readContextData(callStack),
                     new AccountFragment(myAccountSnapshot, myAccountSnapshot),
                     new AccountFragment(calledAccountSnapshot, calledAccountSnapshot),
-                ContextFragment.nonExecutionEmptyReturnData(callStack)
-                );
+                    ContextFragment.nonExecutionEmptyReturnData(callStack));
             this.addTraceSection(abortedSection);
           } else {
             final MiscFragment miscFragment = MiscFragment.fromOpcode(this, frame);
@@ -1250,11 +1233,7 @@ public class Hub implements Module {
     // In all cases, add a context fragment if an exception occurred
     if (this.pch().exceptions().any()) {
       this.currentTraceSection()
-          .addChunk(
-              this,
-              this.currentFrame(),
-            ContextFragment.executionEmptyReturnData(callStack)
-          );
+          .addChunk(this, this.currentFrame(), ContextFragment.executionEmptyReturnData(callStack));
     }
   }
 
@@ -1306,5 +1285,51 @@ public class Hub implements Module {
       }
       default -> throw new IllegalStateException("not a CALL");
     }
+  }
+
+  public static MemorySpan callDataSegment(final MessageFrame frame) {
+    switch (OpCode.of(frame.getCurrentOperation().getOpcode())) {
+      case CALL, CALLCODE -> {
+        long offset = Words.clampedToLong(frame.getStackItem(3));
+        long length = Words.clampedToLong(frame.getStackItem(4));
+        return MemorySpan.fromStartLength(offset, length);
+      }
+      case DELEGATECALL, STATICCALL -> {
+        long offset = Words.clampedToLong(frame.getStackItem(2));
+        long length = Words.clampedToLong(frame.getStackItem(3));
+        return MemorySpan.fromStartLength(offset, length);
+      }
+      default -> throw new IllegalArgumentException("callDataSegment called outside of a *CALL");
+    }
+  }
+
+  public MemorySpan callDataSegment() {
+    return callDataSegment(messageFrame());
+  }
+
+  public Bytes callData() {
+    final MemorySpan callDataSegment = callDataSegment();
+    return messageFrame().shadowReadMemory(callDataSegment.offset(), callDataSegment.length());
+  }
+
+  public static MemorySpan returnDataRequestedSegment(final MessageFrame frame) {
+    switch (OpCode.of(frame.getCurrentOperation().getOpcode())) {
+      case CALL, CALLCODE -> {
+        long offset = Words.clampedToLong(frame.getStackItem(5));
+        long length = Words.clampedToLong(frame.getStackItem(6));
+        return MemorySpan.fromStartLength(offset, length);
+      }
+      case DELEGATECALL, STATICCALL -> {
+        long offset = Words.clampedToLong(frame.getStackItem(4));
+        long length = Words.clampedToLong(frame.getStackItem(5));
+        return MemorySpan.fromStartLength(offset, length);
+      }
+      default -> throw new IllegalArgumentException(
+          "returnDataRequestedSegment called outside of a *CALL");
+    }
+  }
+
+  public MemorySpan returnDataRequestedSegment() {
+    return returnDataRequestedSegment(messageFrame());
   }
 }

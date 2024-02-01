@@ -66,14 +66,7 @@ public final class Rip160Blocks implements Module {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(hub.messageFrame().getStackItem(1));
         if (target.equals(Address.RIPEMD160)) {
-          long dataByteLength = 0;
-          switch (opCode) {
-            case CALL, CALLCODE -> dataByteLength =
-                Words.clampedToLong(hub.messageFrame().getStackItem(4));
-            case DELEGATECALL, STATICCALL -> dataByteLength =
-                Words.clampedToLong(hub.messageFrame().getStackItem(3));
-          }
-
+          final long dataByteLength = hub.callDataSegment().length();
           final long wordCount = (dataByteLength + 31) / 32;
           return PRECOMPILE_BASE_GAS_FEE + PRECOMPILE_GAS_FEE_PER_EWORD * wordCount;
         }
@@ -91,13 +84,7 @@ public final class Rip160Blocks implements Module {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
         if (target.equals(Address.RIPEMD160)) {
-          long dataByteLength = 0;
-          switch (opCode) {
-            case CALL, CALLCODE -> dataByteLength = Words.clampedToLong(frame.getStackItem(4));
-            case DELEGATECALL, STATICCALL -> dataByteLength =
-                Words.clampedToLong(frame.getStackItem(3));
-          }
-
+          final long dataByteLength = hub.callDataSegment().length();
           if (dataByteLength == 0) {
             return;
           } // skip trivial hash TODO: check the prover does skip it

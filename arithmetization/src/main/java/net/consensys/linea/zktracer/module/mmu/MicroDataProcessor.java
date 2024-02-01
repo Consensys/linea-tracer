@@ -54,7 +54,7 @@ class MicroDataProcessor {
             .caller(callStack.caller().contextNumber())
             .returnOffset(callStack.caller().returnTarget().absolute())
             .returnCapacity((int) returnLength)
-            .returner(callStack.current().returner())
+            .returner(callStack.current().currentReturner())
             .build());
 
     microData.opCode(opCode);

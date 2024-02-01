@@ -20,7 +20,6 @@ import java.util.Optional;
 
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.defer.DeferRegistry;
 import net.consensys.linea.zktracer.module.hub.defer.PostExecDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.defer.ReEnterContextDefer;
@@ -29,8 +28,8 @@ import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.MiscFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioFragment;
-import net.consensys.linea.zktracer.module.hub.subsection.PrecompileInvocation;
-import net.consensys.linea.zktracer.module.hub.subsection.PrecompileLinesGenerator;
+import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
+import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileLinesGenerator;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -39,8 +38,8 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class NoCodeCallSection extends TraceSection implements PostTransactionDefer, PostExecDefer,
-  ReEnterContextDefer {
+public class NoCodeCallSection extends TraceSection
+    implements PostTransactionDefer, PostExecDefer, ReEnterContextDefer {
   private final Optional<PrecompileInvocation> precompileInvocation;
   private final CallFrame callerCallFrame;
   private final int calledCallFrameId;
@@ -71,7 +70,9 @@ public class NoCodeCallSection extends TraceSection implements PostTransactionDe
 
   @Override
   public void runAtReEnter(Hub hub, MessageFrame frame) {
-    this.maybePrecompileLines = this.precompileInvocation.map(p -> PrecompileLinesGenerator.generateFor(hub, p));
+    // The precompile lines will read the return data, so they need to be added after re-entry.
+    this.maybePrecompileLines =
+        this.precompileInvocation.map(p -> PrecompileLinesGenerator.generateFor(hub, p));
   }
 
   @Override
@@ -138,9 +139,7 @@ public class NoCodeCallSection extends TraceSection implements PostTransactionDe
                 this.postCallCalledAccountSnapshot, this.preCallCalledAccountSnapshot));
       }
       this.addChunksWithoutStack(
-          hub, callerCallFrame,
-        ContextFragment.nonExecutionEmptyReturnData(hub.callStack())
-      );
+          hub, callerCallFrame, ContextFragment.nonExecutionEmptyReturnData(hub.callStack()));
     }
   }
 }

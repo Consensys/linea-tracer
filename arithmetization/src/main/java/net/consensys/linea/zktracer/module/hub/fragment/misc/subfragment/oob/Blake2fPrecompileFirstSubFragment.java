@@ -18,7 +18,7 @@ package net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob;
 import static net.consensys.linea.zktracer.module.oob.Trace.OOB_INST_blake2f_cds;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
-import net.consensys.linea.zktracer.module.hub.subsection.PrecompileInvocation;
+import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 import net.consensys.linea.zktracer.module.oob.OobDataChannel;
 import org.apache.tuweni.bytes.Bytes;
 
@@ -27,10 +27,10 @@ public record Blake2fPrecompileFirstSubFragment(PrecompileInvocation p)
   @Override
   public Bytes data(OobDataChannel i) {
     return switch (i) {
-      case DATA_2 -> Bytes.ofUnsignedLong(p.callData().length());
-      case DATA_3 -> Bytes.ofUnsignedLong(p.requestedReturnData().length());
+      case DATA_2 -> Bytes.ofUnsignedLong(p.callDataSource().length());
+      case DATA_3 -> Bytes.ofUnsignedLong(p.requestedReturnDataTarget().length());
       case DATA_4 -> booleanToBytes(p.hubSuccess());
-      case DATA_8 -> booleanToBytes(!p.requestedReturnData().isEmpty());
+      case DATA_8 -> booleanToBytes(!p.requestedReturnDataTarget().isEmpty());
       default -> Bytes.EMPTY;
     };
   }

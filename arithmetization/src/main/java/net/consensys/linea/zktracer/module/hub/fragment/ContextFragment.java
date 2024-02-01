@@ -16,10 +16,10 @@
 package net.consensys.linea.zktracer.module.hub.fragment;
 
 import net.consensys.linea.zktracer.module.hub.Trace;
-import net.consensys.linea.zktracer.module.hub.memory.MemorySpan;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.types.EWord;
+import net.consensys.linea.zktracer.types.MemorySpan;
 import org.apache.tuweni.bytes.Bytes;
 
 public record ContextFragment(
@@ -33,7 +33,7 @@ public record ContextFragment(
     return new ContextFragment(
         callStack,
         callStack.current(),
-        callStack.current().currentReturnDataPointer().snapshot(),
+        callStack.current().currentReturnDataSource().snapshot(),
         false);
   }
 
@@ -47,20 +47,21 @@ public record ContextFragment(
 
   public static ContextFragment executionReturnData(final CallStack callStack) {
     return new ContextFragment(
-        callStack, callStack.parent(), callStack.current().returnDataRange(), true);
+        callStack, callStack.parent(), callStack.current().returnDataSource(), true);
   }
 
-  public static ContextFragment enterContext(final CallStack callStack, final CallFrame calledCallFrame) {
-    return new ContextFragment(
-      callStack, calledCallFrame, MemorySpan.empty(), false);
+  public static ContextFragment enterContext(
+      final CallStack callStack, final CallFrame calledCallFrame) {
+    return new ContextFragment(callStack, calledCallFrame, MemorySpan.empty(), false);
   }
 
   public static ContextFragment providesReturnData(final CallStack callStack) {
     return new ContextFragment(
-      callStack, callStack.current(), callStack.current().currentReturnDataPointer().snapshot(), true);
+        callStack,
+        callStack.current(),
+        callStack.current().currentReturnDataSource().snapshot(),
+        true);
   }
-
-
 
   @Override
   public Trace trace(Trace trace) {
@@ -86,8 +87,8 @@ public record ContextFragment(
         .pContextCallerAddressHi(parentAddress.hi())
         .pContextCallerAddressLo(parentAddress.lo())
         .pContextCallValue(callFrame.value())
-        .pContextCallDataOffset(Bytes.ofUnsignedLong(callFrame.callDataPointer().offset()))
-        .pContextCallDataSize(Bytes.ofUnsignedLong(callFrame.callDataPointer().length()))
+        .pContextCallDataOffset(Bytes.ofUnsignedLong(callFrame.callDataSource().offset()))
+        .pContextCallDataSize(Bytes.ofUnsignedLong(callFrame.callDataSource().length()))
         .pContextReturnAtOffset(Bytes.ofUnsignedLong(callFrame.returnDataTarget().offset()))
         .pContextReturnAtSize(Bytes.ofUnsignedLong(callFrame.returnDataTarget().length()))
         .pContextUpdate(updateCallerReturndata)

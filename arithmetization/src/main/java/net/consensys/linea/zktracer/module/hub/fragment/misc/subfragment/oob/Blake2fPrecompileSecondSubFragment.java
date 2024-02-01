@@ -18,22 +18,23 @@ package net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob;
 import static net.consensys.linea.zktracer.module.oob.Trace.OOB_INST_blake2f_params;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
-import net.consensys.linea.zktracer.module.hub.subsection.PrecompileInvocation;
+import net.consensys.linea.zktracer.module.hub.precompiles.Blake2fMetadata;
+import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 import net.consensys.linea.zktracer.module.oob.OobDataChannel;
 import org.apache.tuweni.bytes.Bytes;
 
-public record Blake2fPrecompileSecondSubFragment(
-    PrecompileInvocation scenario, long callGas, long r, int f) implements GenericOobSubFragment {
+public record Blake2fPrecompileSecondSubFragment(PrecompileInvocation p)
+    implements GenericOobSubFragment {
 
   @Override
   public Bytes data(OobDataChannel i) {
+    Blake2fMetadata metadata = (Blake2fMetadata) p.metadata();
     return switch (i) {
-      case DATA_1 -> Bytes.ofUnsignedLong(callGas);
-      case DATA_4 -> booleanToBytes(scenario.ramSuccess());
-      case DATA_5 -> Bytes.ofUnsignedLong(
-          scenario.ramSuccess() ? scenario.precompilePrice() - callGas : 0);
-      case DATA_6 -> Bytes.ofUnsignedLong(r);
-      case DATA_7 -> Bytes.ofUnsignedLong(f);
+      case DATA_1 -> Bytes.ofUnsignedLong(p.gasAtCall());
+      case DATA_4 -> booleanToBytes(p.ramSuccess());
+      case DATA_5 -> Bytes.ofUnsignedLong(p.ramSuccess() ? p.precompilePrice() - p.gasAtCall() : 0);
+      case DATA_6 -> Bytes.ofUnsignedLong(metadata.r());
+      case DATA_7 -> Bytes.ofUnsignedLong(metadata.f());
 
       default -> Bytes.EMPTY;
     };

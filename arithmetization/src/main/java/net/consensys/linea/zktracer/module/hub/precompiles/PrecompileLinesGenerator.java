@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.subsection;
+package net.consensys.linea.zktracer.module.hub.precompiles;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,28 +34,28 @@ public class PrecompileLinesGenerator {
     final List<TraceFragment> r = new ArrayList<>(10);
     switch (p.precompile()) {
       case EC_RECOVER -> {
-        if (p.failureKnownToHub()) {
+        if (p.hubFailure()) {
           r.add(MiscFragment.empty().withOob(new EcRecover(p)));
         } else {
           r.add(
               MiscFragment.empty()
                   .withOob(new EcRecover(p))
                   .withMmu(
-                      p.callData().isEmpty() && p.success()
+                      p.callDataSource().isEmpty() && p.success()
                           ? MmuSubFragment.nop()
                           : new MmuSubFragment()));
           r.add(
               MiscFragment.empty()
                   .withOob(new EcRecover(p))
                   .withMmu(
-                      p.callData().isEmpty() && p.success()
+                      p.callDataSource().isEmpty() && p.success()
                           ? MmuSubFragment.nop()
                           : new MmuSubFragment()));
           r.add(
               MiscFragment.empty()
                   .withOob(new EcRecover(p))
                   .withMmu(
-                      p.callData().isEmpty() && p.success()
+                      p.callDataSource().isEmpty() && p.success()
                           ? MmuSubFragment.nop()
                           : new MmuSubFragment()));
         }
@@ -68,10 +68,10 @@ public class PrecompileLinesGenerator {
       case EC_MUL -> {}
       case EC_PAIRING -> {}
       case BLAKE2F -> {
-        if (p.failureKnownToHub()) {
+        if (p.hubFailure()) {
           // hub failure - one line only
-          r.add(MiscFragment.empty().withOob(new Blake2fPrecompileFirstSubFragment(p), p));
-        } else if (p.failureKnownToRam()) {
+          r.add(MiscFragment.empty().withOob(new Blake2fPrecompileFirstSubFragment(p)));
+        } else if (p.ramFailure()) {
           // happy path or RAM failure - two lines
           r.add(MiscFragment.empty().withOob(new Blake2fPrecompileFirstSubFragment(p)).withMmu());
           r.add(MiscFragment.empty().withOob(new Blake2fPrecompileSecondSubFragment(p)));
@@ -85,9 +85,9 @@ public class PrecompileLinesGenerator {
     }
 
     r.add(
-      p.success() ?
-      ContextFragment.providesReturnData(hub.callStack())
-        : ContextFragment.nonExecutionEmptyReturnData(hub.callStack()));
+        p.success()
+            ? ContextFragment.providesReturnData(hub.callStack())
+            : ContextFragment.nonExecutionEmptyReturnData(hub.callStack()));
     return r;
   }
 }

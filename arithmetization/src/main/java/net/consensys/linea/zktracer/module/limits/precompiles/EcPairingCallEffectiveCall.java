@@ -66,11 +66,7 @@ public final class EcPairingCallEffectiveCall implements Module {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
         if (target.equals(Address.ALTBN128_PAIRING)) {
-          long length = 0;
-          switch (opCode) {
-            case CALL, CALLCODE -> length = Words.clampedToLong(frame.getStackItem(4));
-            case DELEGATECALL, STATICCALL -> length = Words.clampedToLong(frame.getStackItem(3));
-          }
+          long length = hub.callDataSegment().length();
           if (length % 192 != 0) {
             return true;
           }
@@ -88,17 +84,7 @@ public final class EcPairingCallEffectiveCall implements Module {
 
   public static boolean isRamFailure(final Hub hub) {
     final MessageFrame frame = hub.messageFrame();
-    final OpCode opCode = hub.opCode();
-
-    long length = 0;
-    switch (opCode) {
-      case CALL, CALLCODE -> {
-        length = Words.clampedToLong(frame.getStackItem(4));
-      }
-      case DELEGATECALL, STATICCALL -> {
-        length = Words.clampedToLong(frame.getStackItem(3));
-      }
-    }
+    long length = hub.callDataSegment().length();
 
     if (length == 0) {
       return true;
@@ -122,12 +108,7 @@ public final class EcPairingCallEffectiveCall implements Module {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
         if (target.equals(Address.ALTBN128_PAIRING)) {
-          long length = 0;
-          switch (opCode) {
-            case CALL, CALLCODE -> length = Words.clampedToLong(frame.getStackItem(4));
-            case DELEGATECALL, STATICCALL -> length = Words.clampedToLong(frame.getStackItem(3));
-          }
-
+          final long length = hub.callDataSegment().length();
           final long nMillerLoop = (length / ECPAIRING_NB_BYTES_PER_MILLER_LOOP);
           if (nMillerLoop * ECPAIRING_NB_BYTES_PER_MILLER_LOOP != length) {
             return 0;
@@ -149,11 +130,7 @@ public final class EcPairingCallEffectiveCall implements Module {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
         if (target.equals(Address.ALTBN128_PAIRING)) {
-          long length = 0;
-          switch (opCode) {
-            case CALL, CALLCODE -> length = Words.clampedToLong(frame.getStackItem(4));
-            case DELEGATECALL, STATICCALL -> length = Words.clampedToLong(frame.getStackItem(3));
-          }
+          long length = hub.callDataSegment().length();
 
           final long nMillerLoop = (length / ECPAIRING_NB_BYTES_PER_MILLER_LOOP);
           if (nMillerLoop * ECPAIRING_NB_BYTES_PER_MILLER_LOOP != length) {

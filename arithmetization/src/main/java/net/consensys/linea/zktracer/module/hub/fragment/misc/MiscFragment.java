@@ -46,7 +46,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.Jum
 import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.RipeMd160;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.SStore;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.Sha2;
-import net.consensys.linea.zktracer.module.hub.subsection.PrecompileInvocation;
+import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.gas.GasConstants;
 import net.consensys.linea.zktracer.types.EWord;

@@ -13,11 +13,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.subsection;
+package net.consensys.linea.zktracer.module.hub.precompiles;
 
+import lombok.Builder;
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Precompile;
-import net.consensys.linea.zktracer.module.hub.memory.MemorySpan;
 import net.consensys.linea.zktracer.module.limits.precompiles.Blake2fRounds;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcAddEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcMulEffectiveCall;
@@ -26,37 +28,52 @@ import net.consensys.linea.zktracer.module.limits.precompiles.EcRecoverEffective
 import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.Rip160Blocks;
 import net.consensys.linea.zktracer.module.limits.precompiles.Sha256Blocks;
+import net.consensys.linea.zktracer.types.MemorySpan;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.internal.Words;
 
-public record PrecompileInvocation(
-    Precompile precompile,
-    MemorySpan callData,
-    MemorySpan requestedReturnData,
-    boolean failureKnownToHub,
-    boolean failureKnownToRam,
-    /* The price of the *CALL itself */
-    long opCodeGas,
-    long precompilePrice,
-    /* The available gas just before the *CALL opcode execution */
-    long gasAtCall,
-    /* If applicable, the gas given to a precompile */
-    long gasAllowance,
-    long returnGas) {
+@Getter
+@Accessors(fluent = true)
+@Builder
+public final class PrecompileInvocation {
+  /** The precompile being called */
+  private final Precompile precompile;
+  /**
+   * If applicable, some data related to the precompile required later. Only used for Blake2f for
+   * now.
+   */
+  private final PrecompileMetadata metadata;
+  /** The input data for the precompile */
+  private final MemorySpan callDataSource;
+  /** Where the caller wants the precompile return data to be stored */
+  private final MemorySpan requestedReturnDataTarget;
+
+  private final boolean hubFailure;
+  private final boolean ramFailure;
+  /* The price of the *CALL itself */
+  private final long opCodeGas;
+  /** The intrinsic cost of the precompile */
+  private final long precompilePrice;
+  /** The available gas just before the *CALL opcode execution */
+  private final long gasAtCall;
+  /* If applicable, the gas given to a precompile */
+  private final long gasAllowance;
+  private final long returnGas;
+
   public boolean success() {
-    return !this.failureKnownToHub && !this.failureKnownToRam;
+    return !this.hubFailure && !this.ramFailure;
   }
 
   public boolean hubSuccess() {
-    return !this.failureKnownToHub;
+    return !this.hubFailure;
   }
 
   public boolean ramSuccess() {
-    return !this.failureKnownToRam;
+    return !this.ramFailure;
   }
 
   public static PrecompileInvocation of(final Hub hub, Precompile p) {
-    final boolean failureKnownToHub =
+    final boolean hubFailure =
         switch (p) {
           case EC_RECOVER -> !EcRecoverEffectiveCall.hasEnoughGas(hub);
           case SHA2_256 -> !Sha256Blocks.hasEnoughGas(hub);
@@ -65,13 +82,7 @@ public record PrecompileInvocation(
             case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
               final Address target = Words.toAddress(hub.messageFrame().getStackItem(1));
               if (target.equals(Address.ID)) {
-                long dataByteLength = 0;
-                switch (hub.opCode()) {
-                  case CALL, CALLCODE -> dataByteLength =
-                      Words.clampedToLong(hub.messageFrame().getStackItem(4));
-                  case DELEGATECALL, STATICCALL -> dataByteLength =
-                      Words.clampedToLong(hub.messageFrame().getStackItem(3));
-                }
+                final long dataByteLength = hub.callDataSegment().length();
                 final long wordCount = (dataByteLength + 31) / 32;
                 final long gasNeeded = 15 + 3 * wordCount;
 
@@ -89,8 +100,8 @@ public record PrecompileInvocation(
           case BLAKE2F -> Blake2fRounds.isHubFailure(hub);
         };
 
-    final boolean failureKnownToRam =
-        !failureKnownToHub
+    final boolean ramFailure =
+        !hubFailure
             && switch (p) {
               case EC_RECOVER, IDENTITY, RIPEMD_160, SHA2_256 -> false;
               case MODEXP -> false; // TODO: update when MODEXP is merged
@@ -103,7 +114,7 @@ public record PrecompileInvocation(
     final long opCodeGas = Hub.gp.of(hub.messageFrame(), hub.opCode()).total();
 
     final long precompilePrice =
-        failureKnownToHub || failureKnownToRam
+        hubFailure || ramFailure
             ? hub.gasAllowanceForCall()
             : switch (p) {
               case EC_RECOVER -> EcRecoverEffectiveCall.gasCost();
@@ -113,13 +124,7 @@ public record PrecompileInvocation(
                 case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
                   final Address target = Words.toAddress(hub.messageFrame().getStackItem(1));
                   if (target.equals(Address.ID)) {
-                    long dataByteLength = 0;
-                    switch (hub.opCode()) {
-                      case CALL, CALLCODE -> dataByteLength =
-                          Words.clampedToLong(hub.messageFrame().getStackItem(4));
-                      case DELEGATECALL, STATICCALL -> dataByteLength =
-                          Words.clampedToLong(hub.messageFrame().getStackItem(3));
-                    }
+                    final long dataByteLength = hub.callDataSegment().length();
                     final long wordCount = (dataByteLength + 31) / 32;
                     yield 15 + 3 * wordCount;
                   } else {
@@ -136,17 +141,26 @@ public record PrecompileInvocation(
             };
 
     final long returnGas =
-        failureKnownToHub || failureKnownToRam ? 0 : hub.gasAllowanceForCall() - precompilePrice;
+        hubFailure || ramFailure ? 0 : hub.gasAllowanceForCall() - precompilePrice;
 
-    return new PrecompileInvocation(
-        p,
-        hub.callStack().futureId(),
-        failureKnownToHub,
-        failureKnownToRam,
-        opCodeGas,
-        precompilePrice,
-        hub.messageFrame().getRemainingGas(),
-        hub.gasAllowanceForCall(),
-        returnGas);
+    PrecompileInvocationBuilder r =
+        PrecompileInvocation.builder()
+            .precompile(p)
+            .metadata(null)
+            .callDataSource(hub.callDataSegment())
+            .requestedReturnDataTarget(hub.returnDataRequestedSegment())
+            .hubFailure(hubFailure)
+            .ramFailure(ramFailure)
+            .opCodeGas(opCodeGas)
+            .precompilePrice(precompilePrice)
+            .gasAtCall(hub.messageFrame().getRemainingGas())
+            .gasAllowance(hub.gasAllowanceForCall())
+            .returnGas(returnGas);
+
+    if (p == Precompile.BLAKE2F) {
+      r.metadata(Blake2fRounds.metadata(hub));
+    }
+
+    return r.build();
   }
 }

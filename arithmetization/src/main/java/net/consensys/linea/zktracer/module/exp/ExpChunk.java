@@ -15,9 +15,6 @@
 
 package net.consensys.linea.zktracer.module.exp;
 
-import static com.google.common.math.BigIntegerMath.log2;
-import static java.lang.Math.max;
-import static java.lang.Math.min;
 import static net.consensys.linea.zktracer.module.exp.Trace.EXP_EXPLOG;
 import static net.consensys.linea.zktracer.module.exp.Trace.EXP_MODEXPLOG;
 import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_CMPTN_EXP_LOG;
@@ -28,13 +25,8 @@ import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_PRPRC_EXP_LOG
 import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_PRPRC_MODEXP_LOG;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToInt;
 
-import java.math.BigInteger;
-import java.math.RoundingMode;
-
 import lombok.Getter;
 import net.consensys.linea.zktracer.container.ModuleOperation;
-import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -73,6 +65,8 @@ public class ExpChunk extends ModuleOperation {
   private Bytes pPreprocessingWcpArg2Lo;
   private UnsignedByte pPreprocessingWcpInst;
 
+  public ExpChunk(final MessageFrame frame) {}
+
   public ExpChunk(
       final MessageFrame frame,
       boolean cmptn,
@@ -85,7 +79,6 @@ public class ExpChunk extends ModuleOperation {
     this.prprc = prprc;
     this.isExpLog = isExpLog;
     this.isModexpLog = isModexpLog;
-    populateColumns(frame);
   }
 
   @Override
@@ -131,88 +124,6 @@ public class ExpChunk extends ModuleOperation {
       }
     }
     return 0;
-  }
-
-  private void populateColumns(final MessageFrame frame) {
-    // TODO
-    if (isExpLog) {
-      BigInteger exponentHi = EWord.of(frame.getStackItem(1)).hiBigInt();
-      BigInteger exponentLo = EWord.of(frame.getStackItem(1)).loBigInt();
-      BigInteger dynamicCost;
-    } else if (isModexpLog) {
-      OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
-      // DELEGATECALL, STATICCALL cases
-      int argsOffset = 2;
-      int cdsIndex = 3;
-      // CALL, CALLCODE cases
-      if (opCode == OpCode.CALL || opCode == OpCode.CALLCODE) {
-        argsOffset = 3;
-        cdsIndex = 4;
-      }
-      BigInteger cds = EWord.of(frame.getStackItem(cdsIndex)).toUnsignedBigInteger();
-      // Note that this check will disappear since it will be the MXP module taking care of it
-      if (cds.compareTo(EWord.of(frame.getStackItem(cdsIndex)).loBigInt()) > 0) {
-        throw new IllegalArgumentException("cds hi part is non-zero");
-      }
-
-      Bytes unpaddedCallData = frame.shadowReadMemory(argsOffset, cds.longValue());
-      // pad unpaddedCallData to 96
-      Bytes paddedCallData =
-          cds.intValue() < 96
-              ? Bytes.concatenate(unpaddedCallData, Bytes.repeat((byte) 0, 96 - cds.intValue()))
-              : unpaddedCallData;
-
-      BigInteger bbs = paddedCallData.slice(0, 32).toUnsignedBigInteger();
-      BigInteger ebs = paddedCallData.slice(32, 64).toUnsignedBigInteger();
-
-      // Check if bbs and ebs are <= 512
-      if (bbs.compareTo(BigInteger.valueOf(512)) > 0
-          || ebs.compareTo(BigInteger.valueOf(512)) > 0) {
-        throw new IllegalArgumentException("byte sizes are too big");
-      }
-
-      // cdsCutoff
-      int cdsCutoff = min(max(cds.intValue() - (96 + ebs.intValue()), 0), 32);
-      // ebsCutoff?
-      int ebsCutoff = min(ebs.intValue(), 32);
-
-      // pad paddedCallData to 96 + bbs + 32
-      Bytes rawLead =
-          cds.intValue() < 96 + bbs.intValue() + 32
-              ? Bytes.concatenate(
-                  paddedCallData, Bytes.repeat((byte) 0, 96 + bbs.intValue() + 32 - cds.intValue()))
-              : paddedCallData;
-      // ...
-
-      // pad paddedCallData to 96 + bbs + ebs
-      Bytes doublePaddedCallData =
-          cds.intValue() < 96 + bbs.intValue() + ebs.intValue()
-              ? Bytes.concatenate(
-                  paddedCallData,
-                  Bytes.repeat((byte) 0, 96 + bbs.intValue() + ebs.intValue() - cds.intValue()))
-              : paddedCallData;
-
-      // lead
-      BigInteger lead =
-          doublePaddedCallData
-              .slice(96 + bbs.intValue(), min(ebs.intValue(), 32))
-              .toUnsignedBigInteger();
-
-      // leadLog
-      BigInteger leadLog;
-      if (ebs.intValue() <= 32 && lead.signum() == 0) {
-        leadLog = BigInteger.ZERO;
-      } else if (ebs.intValue() <= 32 && lead.signum() != 0) {
-        leadLog = BigInteger.valueOf(log2(lead, RoundingMode.FLOOR));
-      } else if (ebs.intValue() > 32 && lead.signum() != 0) {
-        leadLog =
-            BigInteger.valueOf(8)
-                .multiply(ebs.subtract(BigInteger.valueOf(32)))
-                .add(BigInteger.valueOf(log2(lead, RoundingMode.FLOOR)));
-      } else {
-        leadLog = BigInteger.valueOf(8).multiply(ebs.subtract(BigInteger.valueOf(32)));
-      }
-    }
   }
 
   final void trace(int stamp, Trace trace) {

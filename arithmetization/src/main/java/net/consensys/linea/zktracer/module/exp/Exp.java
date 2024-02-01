@@ -75,20 +75,17 @@ public class Exp implements Module {
     if (hub.pch().exceptions().none() && hub.pch().aborts().none()) {
       OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
       if (opCode.equals(OpCode.EXP)) {
-        if (setExpLogDataAndTrigger(frame)) {
-          // ExpChunk expChunk = new ExpChunk(frame);
-          // TODO: decide if it makes sense to create more than one chunk or only one
-          // Take into consideration also tracing for that decision
-          // Note that the computation order (macro, preprocessing, computation) is different from
-          // the tracing order
-          this.chunks.add(new ExpChunk(frame, true, false, false, true, false));
-          this.chunks.add(new ExpChunk(frame, false, true, false, true, false));
-          this.chunks.add(new ExpChunk(frame, false, false, true, true, false));
-        }
+        ExpLogExpParameters expLogExpParameters = extractExpLogData(frame);
+        // TODO: create one filler method for each case
+        this.chunks.add(new ExpChunk(frame, true, false, false, true, false));
+        this.chunks.add(new ExpChunk(frame, false, true, false, true, false));
+        this.chunks.add(new ExpChunk(frame, false, false, true, true, false));
       } else if (opCode.isCall()) {
         Address target = Words.toAddress(frame.getStackItem(1));
         if (target.equals(Address.MODEXP)) {
-          if (setModexpLogDataAndTrigger(frame)) {
+          ModexpLogExpParameters modexpLogExpParameters = extractModexpLogData(frame);
+          if (modexpLogExpParameters != null) {
+            // TODO: create one filler method for each case
             this.chunks.add(new ExpChunk(frame, true, false, false, false, true));
             this.chunks.add(new ExpChunk(frame, false, true, false, false, true));
             this.chunks.add(new ExpChunk(frame, false, false, true, false, true));
@@ -98,25 +95,12 @@ public class Exp implements Module {
     }
   }
 
-  BigInteger exponentHi;
-  BigInteger exponentLo;
-  BigInteger dynCost;
-
-  private boolean setExpLogDataAndTrigger(final MessageFrame frame) {
-    exponentHi = EWord.of(frame.getStackItem(1)).hiBigInt();
-    exponentLo = EWord.of(frame.getStackItem(1)).loBigInt();
-    dynCost = BigInteger.ZERO; // TODO
-    return true;
+  private ExpLogExpParameters extractExpLogData(final MessageFrame frame) {
+    EWord exponent = EWord.of(frame.getStackItem(1));
+    return new ExpLogExpParameters(exponent, BigInteger.ZERO);
   }
 
-  BigInteger rawLeadHi;
-  BigInteger rawLeadLo;
-  int cdsCutoff;
-  int ebsCutoff;
-  BigInteger lead;
-  BigInteger leadLog;
-
-  private boolean setModexpLogDataAndTrigger(final MessageFrame frame) {
+  private ModexpLogExpParameters extractModexpLogData(final MessageFrame frame) {
     OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
     // DELEGATECALL, STATICCALL cases
     int cdoIndex = 2;
@@ -132,7 +116,7 @@ public class Exp implements Module {
     // mxp should ensure that the hi part of cds is 0
 
     if (cds.signum() == 0) {
-      return false;
+      return null;
     }
     // Here cds != 0
 
@@ -151,12 +135,12 @@ public class Exp implements Module {
     // Some other module checks if bbs, ebs and msb are <= 512
 
     if (ebs.signum() == 0) {
-      return false;
+      return null;
     }
     // Here ebs != 0
 
     if (cds.compareTo(BigInteger.valueOf(96).add(bbs)) > 0) {
-      return false;
+      return null;
     }
 
     // pad paddedCallData to 96 + bbs + 32
@@ -166,23 +150,22 @@ public class Exp implements Module {
                 paddedCallData, Bytes.repeat((byte) 0, 96 + bbs.intValue() + 32 - cds.intValue()))
             : paddedCallData;
 
-    BigInteger rawLead = doublePaddedCallData.slice(96 + bbs.intValue(), 32).toUnsignedBigInteger();
-    // raw_lead_hi, raw_lead_lo
-    rawLeadHi = EWord.of(rawLead).hiBigInt();
-    rawLeadLo = EWord.of(rawLead).loBigInt();
+    // raw_lead
+    EWord rawLead = EWord.of(doublePaddedCallData.slice(96 + bbs.intValue(), 32));
 
     // cds_cutoff
-    cdsCutoff = min(max(cds.intValue() - (96 + ebs.intValue()), 0), 32);
+    int cdsCutoff = min(max(cds.intValue() - (96 + ebs.intValue()), 0), 32);
     // ebs_cutoff
-    ebsCutoff = min(ebs.intValue(), 32);
+    int ebsCutoff = min(ebs.intValue(), 32);
 
     // lead
-    lead =
+    BigInteger lead =
         doublePaddedCallData
             .slice(96 + bbs.intValue(), min(ebs.intValue(), 32))
             .toUnsignedBigInteger();
 
     // lead_log (same as EYP)
+    BigInteger leadLog;
     if (ebs.intValue() <= 32 && lead.signum() == 0) {
       leadLog = BigInteger.ZERO;
     } else if (ebs.intValue() <= 32 && lead.signum() != 0) {
@@ -195,14 +178,14 @@ public class Exp implements Module {
     } else {
       leadLog = BigInteger.valueOf(8).multiply(ebs.subtract(BigInteger.valueOf(32)));
     }
-    return true;
+    return new ModexpLogExpParameters(rawLead, cdsCutoff, ebsCutoff, leadLog, lead);
   }
 
   @Override
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
     for (int i = 0; i < this.chunks.size(); i++) {
-      // TODO: trace should be take into consideration the different scenarios
+      // TODO: manage trace different scenarios
       this.chunks.get(i).trace(i + 1, trace);
     }
   }

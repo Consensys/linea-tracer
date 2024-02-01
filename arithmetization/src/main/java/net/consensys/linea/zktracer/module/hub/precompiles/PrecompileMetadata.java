@@ -15,4 +15,8 @@
 
 package net.consensys.linea.zktracer.module.hub.precompiles;
 
+/**
+ * This interface groups all the precompile-specific data that need to be carried over to tracing
+ * time. Only used for Blake2f for now.
+ */
 public interface PrecompileMetadata {}

@@ -28,7 +28,7 @@ public record Blake2fPrecompileSecondSubFragment(PrecompileInvocation p)
 
   @Override
   public Bytes data(OobDataChannel i) {
-    Blake2fMetadata metadata = (Blake2fMetadata) p.metadata();
+    final Blake2fMetadata metadata = (Blake2fMetadata) p.metadata();
     return switch (i) {
       case DATA_1 -> Bytes.ofUnsignedLong(p.gasAtCall());
       case DATA_4 -> booleanToBytes(p.ramSuccess());

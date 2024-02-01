@@ -1265,6 +1265,11 @@ public class Hub implements Module {
     return r;
   }
 
+  /**
+   * Compute the gas allowance for the child context if in a CALL, throws otherwise.
+   *
+   * @return the CALL gas allowance
+   */
   public long gasAllowanceForCall() {
     final OpCode opCode = opCode();
 
@@ -1287,6 +1292,13 @@ public class Hub implements Module {
     }
   }
 
+  /**
+   * Returns the RAM segment of the caller containing the calldata if the current operation is a
+   * call, throws otherwise.
+   *
+   * @param frame the execution context
+   * @return the input data segment
+   */
   public static MemorySpan callDataSegment(final MessageFrame frame) {
     switch (OpCode.of(frame.getCurrentOperation().getOpcode())) {
       case CALL, CALLCODE -> {
@@ -1307,11 +1319,23 @@ public class Hub implements Module {
     return callDataSegment(messageFrame());
   }
 
+  /**
+   * Return the bytes of the calldata if the current operation is a call, throws otherwise.
+   *
+   * @return the calldata content
+   */
   public Bytes callData() {
     final MemorySpan callDataSegment = callDataSegment();
     return messageFrame().shadowReadMemory(callDataSegment.offset(), callDataSegment.length());
   }
 
+  /**
+   * Returns the RAM segment offered by the caller for the return data if the current operation is a
+   * call, throws otherwise.
+   *
+   * @param frame the execution context
+   * @return the return data target
+   */
   public static MemorySpan returnDataRequestedSegment(final MessageFrame frame) {
     switch (OpCode.of(frame.getCurrentOperation().getOpcode())) {
       case CALL, CALLCODE -> {
@@ -1329,6 +1353,12 @@ public class Hub implements Module {
     }
   }
 
+  /**
+   * Returns the RAM segment offered by the caller for the return data if the current operation is a
+   * call, throws otherwise.
+   *
+   * @return the return data target
+   */
   public MemorySpan returnDataRequestedSegment() {
     return returnDataRequestedSegment(messageFrame());
   }

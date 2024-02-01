@@ -15,4 +15,10 @@
 
 package net.consensys.linea.zktracer.module.hub.precompiles;
 
+/**
+ * Carries over arguments to the BLAKE2f precompile that are required at tracing time.
+ *
+ * @param r
+ * @param f
+ */
 public record Blake2fMetadata(long r, int f) implements PrecompileMetadata {}

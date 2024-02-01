@@ -15,8 +15,4 @@
 
 package net.consensys.linea.zktracer.module.exp;
 
-import lombok.Getter;
-
-public interface ExpParameters {
-  @Getter static final boolean toTrigger = false;
-}
+public interface ExpParameters {}

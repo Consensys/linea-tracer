@@ -23,7 +23,9 @@ import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_MACRO_EXP_LOG
 import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_MACRO_MODEXP_LOG;
 import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_PRPRC_EXP_LOG;
 import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_PRPRC_MODEXP_LOG;
-import static net.consensys.linea.zktracer.types.Conversions.booleanToInt;
+import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
+
+import java.math.BigInteger;
 
 import lombok.Getter;
 import net.consensys.linea.zktracer.container.ModuleOperation;
@@ -33,12 +35,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @Getter
 public class ExpChunk extends ModuleOperation {
-  private boolean cmptn;
-  private boolean macro;
-  private boolean prprc;
-  private int ctMax;
   private boolean isExpLog;
-  private boolean isModexpLog;
   private boolean pComputationPltBit;
   private Bytes pComputationPltJmp;
   private UnsignedByte pComputationRawByte;
@@ -65,78 +62,78 @@ public class ExpChunk extends ModuleOperation {
   private Bytes pPreprocessingWcpArg2Lo;
   private UnsignedByte pPreprocessingWcpInst;
 
-  public ExpChunk(final MessageFrame frame) {}
+  MessageFrame frame;
+  ExpLogExpParameters expLogExpParameters;
+  ModexpLogExpParameters modexpLogExpParameters;
 
-  public ExpChunk(
-      final MessageFrame frame,
-      boolean cmptn,
-      boolean macro,
-      boolean prprc,
-      boolean isExpLog,
-      boolean isModexpLog) {
-    this.cmptn = cmptn;
-    this.macro = macro;
-    this.prprc = prprc;
-    this.isExpLog = isExpLog;
-    this.isModexpLog = isModexpLog;
+  public ExpChunk(final MessageFrame frame, final ExpLogExpParameters expLogExpParameters) {
+    this.frame = frame;
+    this.expLogExpParameters = expLogExpParameters;
+    isExpLog = true;
   }
+
+  public ExpChunk(final MessageFrame frame, final ModexpLogExpParameters modexpLogExpParameters) {
+    this.frame = frame;
+    this.modexpLogExpParameters = modexpLogExpParameters;
+    isExpLog = false;
+  }
+
+  public void preprocessingExpLog() {}
+
+  public void computationExpLog() {}
+
+  public void preprocessingModexpLog() {}
+
+  public void computationModexpLog() {}
 
   @Override
   protected int computeLineCount() {
     return 0; // maxCt
   }
 
-  int flagSumPerspective() {
-    return booleanToInt(cmptn) + booleanToInt(macro) + booleanToInt(prprc);
-  }
-
-  int flagSumMacro() {
-    return booleanToInt(isExpLog) + booleanToInt(isModexpLog);
-  }
-
   int wghtSumMacro() {
     if (isExpLog) {
       return EXP_EXPLOG;
-    } else if (isModexpLog) {
+    } else {
       return EXP_MODEXPLOG;
     }
-    return 0;
   }
 
-  int maxCt() {
+  int maxCt(boolean cmptn, boolean macro, boolean prprc) {
     if (cmptn) {
       if (isExpLog) {
         return MAX_CT_CMPTN_EXP_LOG;
-      } else if (isModexpLog) {
+      } else {
         return MAX_CT_CMPTN_MODEXP_LOG;
       }
     } else if (macro) {
       if (isExpLog) {
         return MAX_CT_MACRO_EXP_LOG;
-      } else if (isModexpLog) {
+      } else {
         return MAX_CT_MACRO_MODEXP_LOG;
       }
     } else if (prprc) {
       if (isExpLog) {
         return MAX_CT_PRPRC_EXP_LOG;
-      } else if (isModexpLog) {
+      } else {
         return MAX_CT_PRPRC_MODEXP_LOG;
       }
     }
     return 0;
   }
 
-  final void trace(int stamp, Trace trace) {
-    for (int i = 0; i < this.maxCt(); i++) { // TODO
+  final void traceComputation(int stamp, Trace trace) {
+    int maxCt = this.maxCt(true, false, false);
+    for (int i = 0; i < maxCt + 1; i++) { // TODO
       trace
-          .cmptn(cmptn)
-          .macro(macro)
-          .prprc(prprc)
+          .cmptn(true)
+          .macro(false)
+          .prprc(false)
           .stamp(Bytes.ofUnsignedLong(stamp))
           .ct(Bytes.of(i))
-          .ctMax(Bytes.of(0))
+          .ctMax(Bytes.of(maxCt))
           .isExpLog(isExpLog)
-          .isModexpLog(isModexpLog)
+          .isModexpLog(!isExpLog)
           .pComputationPltBit(false)
           .pComputationPltJmp(Bytes.of(0))
           .pComputationRawByte(UnsignedByte.ZERO)
@@ -149,13 +146,57 @@ public class ExpChunk extends ModuleOperation {
           .pComputationBitMsnzb(false)
           .pComputationAccMsnzb(UnsignedByte.ZERO)
           .pComputationManzb(false)
-          .pComputationManzbAcc(Bytes.of(0))
+          .pComputationManzbAcc(Bytes.of(0));
+    }
+  }
+
+  final void traceMacro(int stamp, Trace trace) {
+    int maxCt = this.maxCt(false, true, false);
+    for (int i = 0; i < maxCt + 1; i++) {
+      trace
+          .cmptn(false)
+          .macro(true)
+          .prprc(false)
+          .stamp(Bytes.ofUnsignedLong(stamp))
+          .ct(Bytes.of(i))
+          .ctMax(Bytes.of(maxCt))
+          .isExpLog(isExpLog)
+          .isModexpLog(!isExpLog)
           .pMacroInstructionExpInst(Bytes.of(wghtSumMacro()))
-          .pMacroInstructionData1(Bytes.of(0))
-          .pMacroInstructionData2(Bytes.of(0))
-          .pMacroInstructionData3(Bytes.of(0))
-          .pMacroInstructionData4(Bytes.of(0))
-          .pMacroInstructionData5(Bytes.of(0))
+          .pMacroInstructionData1(
+              bigIntegerToBytes(
+                  isExpLog ? expLogExpParameters.exponentHi() : modexpLogExpParameters.rawLeadHi()))
+          .pMacroInstructionData2(
+              bigIntegerToBytes(
+                  isExpLog ? expLogExpParameters.exponentLo() : modexpLogExpParameters.rawLeadLo()))
+          .pMacroInstructionData3(
+              bigIntegerToBytes(
+                  isExpLog
+                      ? BigInteger.ZERO
+                      : BigInteger.valueOf(modexpLogExpParameters.cdsCutoff())))
+          .pMacroInstructionData4(
+              bigIntegerToBytes(
+                  isExpLog
+                      ? BigInteger.ZERO
+                      : BigInteger.valueOf(modexpLogExpParameters.ebsCutoff())))
+          .pMacroInstructionData5(
+              bigIntegerToBytes(
+                  isExpLog ? expLogExpParameters.dynCost() : modexpLogExpParameters.leadLog()));
+    }
+  }
+
+  final void tracePreprocessing(int stamp, Trace trace) {
+    int maxCt = this.maxCt(false, false, true);
+    for (int i = 0; i < maxCt + 1; i++) { // TODO
+      trace
+          .cmptn(false)
+          .macro(false)
+          .prprc(true)
+          .stamp(Bytes.ofUnsignedLong(stamp))
+          .ct(Bytes.of(i))
+          .ctMax(Bytes.of(maxCt))
+          .isExpLog(isExpLog)
+          .isModexpLog(!isExpLog)
           .pPreprocessingWcpFlag(false)
           .pPreprocessingWcpArg1Hi(Bytes.of(0))
           .pPreprocessingWcpArg1Lo(Bytes.of(0))

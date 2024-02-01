@@ -75,32 +75,32 @@ public class Exp implements Module {
     if (hub.pch().exceptions().none() && hub.pch().aborts().none()) {
       OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
       if (opCode.equals(OpCode.EXP)) {
-        ExpLogExpParameters expLogExpParameters = extractExpLogData(frame);
-        // TODO: create one filler method for each case
-        this.chunks.add(new ExpChunk(frame, true, false, false, true, false));
-        this.chunks.add(new ExpChunk(frame, false, true, false, true, false));
-        this.chunks.add(new ExpChunk(frame, false, false, true, true, false));
+        ExpLogExpParameters expLogExpParameters = extractExpLogParameters(frame);
+        ExpChunk expChunk = new ExpChunk(frame, expLogExpParameters);
+        expChunk.preprocessingExpLog();
+        expChunk.computationExpLog();
+        this.chunks.add(expChunk);
       } else if (opCode.isCall()) {
         Address target = Words.toAddress(frame.getStackItem(1));
         if (target.equals(Address.MODEXP)) {
-          ModexpLogExpParameters modexpLogExpParameters = extractModexpLogData(frame);
+          ModexpLogExpParameters modexpLogExpParameters = extractModexpLogParameters(frame);
           if (modexpLogExpParameters != null) {
-            // TODO: create one filler method for each case
-            this.chunks.add(new ExpChunk(frame, true, false, false, false, true));
-            this.chunks.add(new ExpChunk(frame, false, true, false, false, true));
-            this.chunks.add(new ExpChunk(frame, false, false, true, false, true));
+            ExpChunk expChunk = new ExpChunk(frame, modexpLogExpParameters);
+            expChunk.preprocessingModexpLog();
+            expChunk.computationModexpLog();
+            this.chunks.add(expChunk);
           }
         }
       }
     }
   }
 
-  private ExpLogExpParameters extractExpLogData(final MessageFrame frame) {
+  private ExpLogExpParameters extractExpLogParameters(final MessageFrame frame) {
     EWord exponent = EWord.of(frame.getStackItem(1));
     return new ExpLogExpParameters(exponent, BigInteger.ZERO);
   }
 
-  private ModexpLogExpParameters extractModexpLogData(final MessageFrame frame) {
+  private ModexpLogExpParameters extractModexpLogParameters(final MessageFrame frame) {
     OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
     // DELEGATECALL, STATICCALL cases
     int cdoIndex = 2;
@@ -185,8 +185,10 @@ public class Exp implements Module {
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
     for (int i = 0; i < this.chunks.size(); i++) {
-      // TODO: manage trace different scenarios
-      this.chunks.get(i).trace(i + 1, trace);
+      ExpChunk expChunk = this.chunks.get(i);
+      expChunk.traceComputation(i + 1, trace);
+      expChunk.traceMacro(i + 1, trace);
+      expChunk.tracePreprocessing(i + 1, trace);
     }
   }
 }

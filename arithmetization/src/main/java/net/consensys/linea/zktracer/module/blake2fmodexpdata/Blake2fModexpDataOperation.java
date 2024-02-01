@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.modexpdata;
+package net.consensys.linea.zktracer.module.blake2fmodexpdata;
 
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.bytesToUnsignedBytes;
@@ -32,7 +32,7 @@ import org.apache.tuweni.bytes.Bytes;
 
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @Accessors(fluent = true)
-public class ModexpDataOperation extends ModuleOperation {
+public class Blake2fModexpDataOperation extends ModuleOperation {
   private static final int BEMR_LINE_COUNT = 32 * 4;
   private static final int COMPONENT_SIZE = 512;
 
@@ -43,7 +43,8 @@ public class ModexpDataOperation extends ModuleOperation {
   @EqualsAndHashCode.Include private final Bytes mod;
   private Bytes result;
 
-  public ModexpDataOperation(int hubStamp, int prevHubStamp, Bytes base, Bytes exp, Bytes mod) {
+  public Blake2fModexpDataOperation(
+      int hubStamp, int prevHubStamp, Bytes base, Bytes exp, Bytes mod) {
     this.hubStamp = hubStamp;
     this.prevHubStamp = prevHubStamp;
     this.base = base;
@@ -88,29 +89,43 @@ public class ModexpDataOperation extends ModuleOperation {
         bytesToUnsignedBytes(
             rightPadTo(leftPadTo(bigIntegerToBytes(hubStampDiff), 6), 128).toArray());
 
-    for (int bemrIndex = 1; bemrIndex <= 4; bemrIndex++) {
-      UnsignedByte phase =
-          UnsignedByte.of(
-              switch (bemrIndex) {
-                case 1 -> Trace.PHASE_BASE;
-                case 2 -> Trace.PHASE_EXPONENT;
-                case 3 -> Trace.PHASE_MODULUS;
-                case 4 -> Trace.PHASE_RESULT;
-                default -> throw new IllegalStateException("Unexpected value: " + bemrIndex);
-              });
+    boolean[] phaseFlags = new boolean[7];
+
+    for (int phaseIndex = 1; phaseIndex <= 7; phaseIndex++) {
+      phaseFlags[phaseIndex - 1] = true;
+
+      PhaseInfo phaseInfo =
+          switch (phaseIndex) {
+            case 1 -> new PhaseInfo(Trace.PHASE_MODEXP_BASE, 31);
+            case 2 -> new PhaseInfo(Trace.PHASE_MODEXP_EXPONENT, 31);
+            case 3 -> new PhaseInfo(Trace.PHASE_MODEXP_MODULUS, 31);
+            case 4 -> new PhaseInfo(Trace.PHASE_MODEXP_RESULT, 31);
+            case 5 -> new PhaseInfo(Trace.PHASE_BLAKE_DATA, 12);
+            case 6 -> new PhaseInfo(Trace.PHASE_BLAKE_PARAMS, 1);
+            case 7 -> new PhaseInfo(Trace.PHASE_BLAKE_RESULT, 3);
+            default -> throw new IllegalStateException("Unexpected phase index: " + phaseIndex);
+          };
 
       for (int index = 0; index < 32; index++) {
-        int counter = 32 * (bemrIndex - 1) + index;
+        int counter = 32 * (phaseIndex - 1) + index;
 
         trace
-            .ct(UnsignedByte.of(counter))
-            .bemr(UnsignedByte.of(bemrIndex))
-            .phase(phase)
-            .bytes(hubStampDiffBytes[counter])
+            //            .ct(UnsignedByte.of(counter))
+            //            .bemr(UnsignedByte.of(phaseIndex))
+            .phase(UnsignedByte.of(phaseInfo.id()))
+            .deltaByte(hubStampDiffBytes[counter])
             .limb(bemrLimb.slice(16 * counter, 16))
             .index(UnsignedByte.of(index))
-            .resultDataContext(currentHubStamp)
+            .indexMax(UnsignedByte.of(phaseInfo.indexMax()))
+            .id(currentHubStamp)
             .stamp(stampBytes)
+            .isModexpBase(phaseFlags[0])
+            .isModexpExponent(phaseFlags[1])
+            .isModexpModulus(phaseFlags[2])
+            .isModexpResult(phaseFlags[3])
+            .isBlakeData(phaseFlags[4])
+            .isBlakeParams(phaseFlags[5])
+            .isBlakeResult(phaseFlags[6])
             .validateRow();
       }
     }

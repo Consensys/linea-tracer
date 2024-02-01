@@ -18,7 +18,7 @@ package net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob;
 import static net.consensys.linea.zktracer.module.oob.Trace.OOB_INST_modexp_pricing;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
-import net.consensys.linea.zktracer.module.hub.subsection.PrecompileInvocation;
+import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 import net.consensys.linea.zktracer.module.oob.OobDataChannel;
 import org.apache.tuweni.bytes.Bytes;
 

@@ -23,8 +23,8 @@ import net.consensys.linea.zktracer.module.hub.Precompile;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
-import net.consensys.linea.zktracer.module.hub.memory.MemorySpan;
-import net.consensys.linea.zktracer.module.hub.subsection.PrecompileInvocation;
+import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
+import net.consensys.linea.zktracer.types.MemorySpan;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.worldstate.WorldView;
@@ -157,7 +157,7 @@ public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
     this.callerReverts = hub.callStack().get(callerId).hasReverted();
     this.childContextFails = hub.callStack().get(calleeId).hasReverted();
 
-    this.callDataSegment = hub.callStack().get(calleeId).callDataPointer();
+    this.callDataSegment = hub.callStack().get(calleeId).callDataSource();
     this.requestedReturnDataSegment = hub.callStack().get(calleeId).returnDataTarget();
   }
 
@@ -258,9 +258,9 @@ public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
         .pScenarioPrcSuccessWontRevert(
             type.isPrecompile() && successfulPrecompileCall() && !callerReverts)
         .pScenarioPrcFailureKnownToHub(
-            precompileCall.map(PrecompileInvocation::failureKnownToHub).orElse(false))
+            precompileCall.map(PrecompileInvocation::hubFailure).orElse(false))
         .pScenarioPrcFailureKnownToRam(
-            precompileCall.map(PrecompileInvocation::failureKnownToRam).orElse(false))
+            precompileCall.map(PrecompileInvocation::ramFailure).orElse(false))
         .pScenarioPrcCallerGas(
             precompileCall
                 .map(s -> Bytes.ofUnsignedLong(s.gasAtCall() - s.opCodeGas()))

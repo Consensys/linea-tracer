@@ -149,8 +149,6 @@ public class SmartContractCallSection extends TraceSection
     }
 
     this.addChunksWithoutStack(
-        hub,
-        callerCallFrame,
-        ContextFragment.enterContext(hub.callStack(), calledCallFrame));
+        hub, callerCallFrame, ContextFragment.enterContext(hub.callStack(), calledCallFrame));
   }
 }

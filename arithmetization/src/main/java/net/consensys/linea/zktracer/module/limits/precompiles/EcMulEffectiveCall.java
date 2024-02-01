@@ -27,6 +27,7 @@ import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.types.MemorySpan;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -72,22 +73,12 @@ public final class EcMulEffectiveCall implements Module {
 
   public static boolean isRamFailure(final Hub hub) {
     final MessageFrame frame = hub.messageFrame();
-    final OpCode opCode = hub.opCode();
+    final MemorySpan callDataSource = hub.callDataSegment();
 
-    long length = 0;
-    long offset = 0;
-    switch (opCode) {
-      case CALL, CALLCODE -> {
-        length = Words.clampedToLong(frame.getStackItem(4));
-        offset = Words.clampedToLong(frame.getStackItem(3));
-      }
-      case DELEGATECALL, STATICCALL -> {
-        length = Words.clampedToLong(frame.getStackItem(3));
-        offset = Words.clampedToLong(frame.getStackItem(2));
-      }
-    }
-
-    final Bytes callData = rightPadTo(frame.shadowReadMemory(offset, Math.min(length, 96)), 96);
+    final Bytes callData =
+        rightPadTo(
+            frame.shadowReadMemory(callDataSource.offset(), Math.min(callDataSource.length(), 96)),
+            96);
     return !isOnC1(callData);
   }
 

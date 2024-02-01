@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.memory;
+package net.consensys.linea.zktracer.types;
 
 /**
  * A MemorySpan describes a contiguous region in an account memory.
@@ -33,8 +33,12 @@ public record MemorySpan(long offset, long length) {
    * @param end the region end
    * @return the MemorySpan describing the region running from start to end
    */
-  static MemorySpan fromStartEnd(long start, long end) {
+  public static MemorySpan fromStartEnd(long start, long end) {
     return new MemorySpan(start, end - start);
+  }
+
+  public static MemorySpan fromStartLength(long start, long length) {
+    return new MemorySpan(start, length);
   }
 
   /**

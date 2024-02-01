@@ -24,7 +24,6 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Bytecode;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.memory.MemorySpan;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
@@ -32,6 +31,7 @@ import net.consensys.linea.zktracer.opcode.OpCodes;
 import net.consensys.linea.zktracer.runtime.stack.Stack;
 import net.consensys.linea.zktracer.runtime.stack.StackContext;
 import net.consensys.linea.zktracer.types.EWord;
+import net.consensys.linea.zktracer.types.MemorySpan;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
@@ -81,39 +81,32 @@ public class CallFrame {
   @Getter private MessageFrame frame;
 
   /** the ether amount given to this frame. */
-  @Getter private Wei value = Wei.fromHexString("0xbadf00d"); // Marker for debugging
+  @Getter private Wei value = Wei.fromHexString("0xBadF00d"); // Marker for debugging
   /** the gas given to this frame. */
   @Getter private long gasEndowment;
 
   /** the call data given to this frame. */
   @Getter private Bytes callData = Bytes.EMPTY;
-  /** the call data span in the parent memory. */
-  @Getter private final MemorySpan callDataPointer;
+  /** the call data position in the parent's RAM. */
+  @Getter private final MemorySpan callDataSource;
+
   /** the data returned by the latest callee. */
   @Getter @Setter private Bytes returnData = Bytes.EMPTY;
-  /** returnData position within the latest callee memory space. */
-  @Getter @Setter private MemorySpan currentReturnDataPointer = new MemorySpan(0, 0);
+  /** where this frame store its return data in its own RAM */
+  @Getter @Setter private MemorySpan returnDataSource;
   /** where this frame is expected to write its returnData within its parent's memory space. */
   @Getter private final MemorySpan returnDataTarget;
 
-  // where I should put my RETURNDATARange in my caller's RAM
-  @Getter private MemorySpan returnTarget;
-
-  // where my CALLDATA is in my caller's RAM
-  @Getter private MemorySpan callDataRange;
-
-  // position of the returner's RETURNDATARange in its RAM
-  @Getter private MemorySpan returnDataRange;
-
-  // last called context
-  @Getter private int returner;
+  /** returnData position within the latest callee memory space. */
+  @Getter @Setter private MemorySpan currentReturnDataSource = new MemorySpan(0, 0);
+  /** the latest child context to have been called from this frame */
+  @Getter private int currentReturner = -1;
 
   @Getter @Setter private int selfRevertsAt = 0;
   @Getter @Setter private int getsRevertedAt = 0;
 
   /** this frame {@link Stack}. */
   @Getter private final Stack stack = new Stack();
-
   /** the latched context of this callframe stack. */
   @Getter @Setter private StackContext pending;
 
@@ -122,7 +115,7 @@ public class CallFrame {
     this.type = CallFrameType.BEDROCK;
     this.contextNumber = 0;
     this.address = address;
-    this.callDataPointer = new MemorySpan(0, 0);
+    this.callDataSource = new MemorySpan(0, 0);
     this.returnDataTarget = new MemorySpan(0, 0);
   }
 
@@ -169,9 +162,9 @@ public class CallFrame {
     this.value = value;
     this.gasEndowment = gas;
     this.callData = callData;
-    this.callDataPointer = new MemorySpan(0, callData.size());
+    this.callDataSource = new MemorySpan(0, callData.size());
     this.depth = depth;
-    this.currentReturnDataPointer = new MemorySpan(0, 0);
+    this.currentReturnDataSource = new MemorySpan(0, 0);
     this.returnDataTarget = new MemorySpan(0, 0); // TODO: fix me Franklin
   }
 

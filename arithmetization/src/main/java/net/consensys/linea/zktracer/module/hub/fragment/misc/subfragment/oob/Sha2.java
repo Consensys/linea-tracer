@@ -18,7 +18,7 @@ package net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob;
 import static net.consensys.linea.zktracer.module.oob.Trace.OOB_INST_sha2;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
-import net.consensys.linea.zktracer.module.hub.subsection.PrecompileInvocation;
+import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 import net.consensys.linea.zktracer.module.oob.OobDataChannel;
 import org.apache.tuweni.bytes.Bytes;
 
@@ -27,13 +27,13 @@ public record Sha2(PrecompileInvocation p) implements GenericOobSubFragment {
   public Bytes data(OobDataChannel i) {
     return switch (i) {
       case DATA_1 -> Bytes.ofUnsignedLong(p.gasAllowance());
-      case DATA_2 -> Bytes.ofUnsignedLong(p.callData().length());
-      case DATA_3 -> Bytes.ofUnsignedLong(p.requestedReturnData().length());
+      case DATA_2 -> Bytes.ofUnsignedLong(p.callDataSource().length());
+      case DATA_3 -> Bytes.ofUnsignedLong(p.requestedReturnDataTarget().length());
       case DATA_4 -> booleanToBytes(p.hubSuccess());
       case DATA_5 -> Bytes.ofUnsignedLong(p.returnGas());
-      case DATA_6 -> booleanToBytes(p.hubSuccess() && !p.callData().isEmpty());
-      case DATA_7 -> booleanToBytes(p.hubSuccess() && p.callData().isEmpty());
-      case DATA_8 -> booleanToBytes(!p.requestedReturnData().isEmpty());
+      case DATA_6 -> booleanToBytes(p.hubSuccess() && !p.callDataSource().isEmpty());
+      case DATA_7 -> booleanToBytes(p.hubSuccess() && p.callDataSource().isEmpty());
+      case DATA_8 -> booleanToBytes(!p.requestedReturnDataTarget().isEmpty());
     };
   }
 

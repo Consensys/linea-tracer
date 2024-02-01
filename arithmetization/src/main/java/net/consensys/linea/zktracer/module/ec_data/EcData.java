@@ -27,6 +27,7 @@ import net.consensys.linea.zktracer.module.ext.Ext;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.types.MemorySpan;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -72,25 +73,14 @@ public class EcData implements Module {
         if (!EC_PRECOMPILES.contains(to)) {
           return;
         }
+        final MemorySpan callDataSource = hub.callDataSegment();
 
-        long length = 0;
-        long offset = 0;
-        switch (opCode) {
-          case CALL, CALLCODE -> {
-            length = Words.clampedToLong(frame.getStackItem(4));
-            offset = Words.clampedToLong(frame.getStackItem(3));
-          }
-          case DELEGATECALL, STATICCALL -> {
-            length = Words.clampedToLong(frame.getStackItem(3));
-            offset = Words.clampedToLong(frame.getStackItem(2));
-          }
-        }
-
-        if (to.equals(Address.ALTBN128_PAIRING) && (length == 0 || length % 192 != 0)) {
+        if (to.equals(Address.ALTBN128_PAIRING)
+            && (callDataSource.isEmpty() || callDataSource.length() % 192 != 0)) {
           return;
         }
 
-        final Bytes input = frame.shadowReadMemory(offset, length);
+        final Bytes input = hub.callData();
 
         this.operations.add(
             EcDataOperation.of(

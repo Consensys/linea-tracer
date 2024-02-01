@@ -25,7 +25,7 @@ import static net.consensys.linea.zktracer.module.oob.Trace.OOB_INST_sha2;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
 import net.consensys.linea.zktracer.module.hub.Precompile;
-import net.consensys.linea.zktracer.module.hub.subsection.PrecompileInvocation;
+import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 import net.consensys.linea.zktracer.module.oob.OobDataChannel;
 import org.apache.tuweni.bytes.Bytes;
 
@@ -39,7 +39,7 @@ public record SimplePrecompileSubFragment(
       case DATA_1 -> Bytes.ofUnsignedLong(callGas);
       case DATA_2 -> Bytes.ofUnsignedLong(callDataSize);
       case DATA_3 -> Bytes.ofUnsignedLong(returnDataRequestedSize);
-      case DATA_4 -> scenario.failureKnownToHub() ? Bytes.EMPTY : Bytes.of(1);
+      case DATA_4 -> scenario.hubFailure() ? Bytes.EMPTY : Bytes.of(1);
       case DATA_5 -> scenario.hubSuccess()
           ? Bytes.ofUnsignedLong(callGas - scenario.precompilePrice())
           : Bytes.EMPTY;

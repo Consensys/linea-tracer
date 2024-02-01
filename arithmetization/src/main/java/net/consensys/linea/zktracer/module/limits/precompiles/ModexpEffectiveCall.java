@@ -72,19 +72,7 @@ public class ModexpEffectiveCall implements Module {
     if (opCode.isAnyOf(OpCode.CALL, OpCode.STATICCALL, OpCode.DELEGATECALL, OpCode.CALLCODE)) {
       final Address target = Words.toAddress(frame.getStackItem(1));
       if (target.equals(Address.MODEXP)) {
-        long length = 0;
-        long offset = 0;
-        switch (opCode) {
-          case CALL, CALLCODE -> {
-            length = Words.clampedToLong(frame.getStackItem(4));
-            offset = Words.clampedToLong(frame.getStackItem(3));
-          }
-          case DELEGATECALL, STATICCALL -> {
-            length = Words.clampedToLong(frame.getStackItem(3));
-            offset = Words.clampedToLong(frame.getStackItem(2));
-          }
-        }
-        final Bytes inputData = frame.shadowReadMemory(offset, length);
+        final Bytes inputData = hub.callData();
 
         // Get the Base length
         final BigInteger baseLength = slice(inputData, 0, EVM_WORD_SIZE).toUnsignedBigInteger();
@@ -164,19 +152,7 @@ public class ModexpEffectiveCall implements Module {
     if (opCode.isAnyOf(OpCode.CALL, OpCode.STATICCALL, OpCode.DELEGATECALL, OpCode.CALLCODE)) {
       final Address target = Words.toAddress(frame.getStackItem(1));
       if (target.equals(Address.MODEXP)) {
-        long length = 0;
-        long offset = 0;
-        switch (opCode) {
-          case CALL, CALLCODE -> {
-            length = Words.clampedToLong(frame.getStackItem(4));
-            offset = Words.clampedToLong(frame.getStackItem(3));
-          }
-          case DELEGATECALL, STATICCALL -> {
-            length = Words.clampedToLong(frame.getStackItem(3));
-            offset = Words.clampedToLong(frame.getStackItem(2));
-          }
-        }
-        final Bytes inputData = frame.shadowReadMemory(offset, length);
+        final Bytes inputData = hub.callData();
 
         // Get the Base length
         final BigInteger baseLength = slice(inputData, 0, EVM_WORD_SIZE).toUnsignedBigInteger();

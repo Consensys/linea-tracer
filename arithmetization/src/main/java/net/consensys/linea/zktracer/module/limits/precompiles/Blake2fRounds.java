@@ -23,7 +23,10 @@ import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.precompiles.Blake2fMetadata;
+import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileMetadata;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.types.MemorySpan;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
@@ -58,16 +61,7 @@ public final class Blake2fRounds implements Module {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
         if (target.equals(Address.BLAKE2B_F_COMPRESSION)) {
-          long length = 0;
-          switch (opCode) {
-            case CALL, CALLCODE -> {
-              length = Words.clampedToLong(frame.getStackItem(4));
-            }
-            case DELEGATECALL, STATICCALL -> {
-              length = Words.clampedToLong(frame.getStackItem(3));
-            }
-          }
-
+          final long length = hub.callDataSegment().length();
           yield length != BLAKE2F_VALID_DATASIZE;
         } else {
           yield false;
@@ -89,16 +83,7 @@ public final class Blake2fRounds implements Module {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
         if (target.equals(Address.BLAKE2B_F_COMPRESSION)) {
-          long offset = 0;
-          switch (opCode) {
-            case CALL, CALLCODE -> {
-              offset = Words.clampedToLong(frame.getStackItem(3));
-            }
-            case DELEGATECALL, STATICCALL -> {
-              offset = Words.clampedToLong(frame.getStackItem(2));
-            }
-          }
-
+          final long offset = hub.callDataSegment().offset();
           final int f =
               frame
                   .shadowReadMemory(offset, BLAKE2F_VALID_DATASIZE)
@@ -118,42 +103,51 @@ public final class Blake2fRounds implements Module {
   }
 
   public static long gasCost(final Hub hub) {
-    final OpCode opCode = hub.opCode();
     final MessageFrame frame = hub.messageFrame();
+    final Address target = Words.toAddress(frame.getStackItem(1));
+
+    if (target.equals(Address.BLAKE2B_F_COMPRESSION)) {
+      final MemorySpan callData = hub.callDataSegment();
+      final int blake2fDataSize = 213;
+      if (callData.length() == blake2fDataSize) {
+        final int f =
+            frame.shadowReadMemory(callData.offset(), callData.length()).get(blake2fDataSize - 1);
+        if (f == 0 || f == 1) {
+          return frame
+              .shadowReadMemory(callData.offset(), callData.length())
+              .slice(0, 4)
+              .toInt(); // The number of round is equal to the gas to pay
+        }
+      }
+    }
+
+    return 0;
+  }
+
+  public static PrecompileMetadata metadata(final Hub hub) {
+    final OpCode opCode = hub.opCode();
 
     switch (opCode) {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
-        final Address target = Words.toAddress(frame.getStackItem(1));
+        final Address target = Words.toAddress(hub.messageFrame().getStackItem(1));
         if (target.equals(Address.BLAKE2B_F_COMPRESSION)) {
-          long length = 0;
-          long offset = 0;
-          switch (opCode) {
-            case CALL, CALLCODE -> {
-              length = Words.clampedToLong(frame.getStackItem(4));
-              offset = Words.clampedToLong(frame.getStackItem(3));
-            }
-            case DELEGATECALL, STATICCALL -> {
-              length = Words.clampedToLong(frame.getStackItem(3));
-              offset = Words.clampedToLong(frame.getStackItem(2));
-            }
-          }
+          final long length = hub.callDataSegment().length();
 
-          final int blake2fDataSize = 213;
-          if (length == blake2fDataSize) {
-            final int f = frame.shadowReadMemory(offset, length).get(blake2fDataSize - 1);
+          if (length == BLAKE2F_VALID_DATASIZE) {
+            final int f = hub.callData().get(BLAKE2F_VALID_DATASIZE - 1);
             if (f == 0 || f == 1) {
-              return frame
-                  .shadowReadMemory(offset, length)
-                  .slice(0, 4)
-                  .toInt(); // The number of round is equal to the gas to pay
+              final int r =
+                  hub.callData()
+                      .slice(0, 4)
+                      .toInt(); // The number of round is equal to the gas to pay
+              return new Blake2fMetadata(r, f);
             }
           }
         }
       }
-      default -> throw new IllegalStateException();
     }
 
-    return 0;
+    return new Blake2fMetadata(0, 0);
   }
 
   @Override
@@ -164,26 +158,13 @@ public final class Blake2fRounds implements Module {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
         if (target.equals(Address.BLAKE2B_F_COMPRESSION)) {
-          long length = 0;
-          long offset = 0;
-          switch (opCode) {
-            case CALL, CALLCODE -> {
-              length = Words.clampedToLong(frame.getStackItem(4));
-              offset = Words.clampedToLong(frame.getStackItem(3));
-            }
-            case DELEGATECALL, STATICCALL -> {
-              length = Words.clampedToLong(frame.getStackItem(3));
-              offset = Words.clampedToLong(frame.getStackItem(2));
-            }
-          }
+          final long length = hub.callDataSegment().length();
 
-          final int blake2fDataSize = 213;
-          if (length == blake2fDataSize) {
-            final int f = frame.shadowReadMemory(offset, length).get(blake2fDataSize - 1);
+          if (length == BLAKE2F_VALID_DATASIZE) {
+            final int f = hub.callData().get(BLAKE2F_VALID_DATASIZE - 1);
             if (f == 0 || f == 1) {
               final int r =
-                  frame
-                      .shadowReadMemory(offset, length)
+                  hub.callData()
                       .slice(0, 4)
                       .toInt(); // The number of round is equal to the gas to pay
               if (hub.gasAllowanceForCall() >= r) {

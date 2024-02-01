@@ -27,6 +27,7 @@ import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.types.MemorySpan;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -82,19 +83,8 @@ public final class EcRecoverEffectiveCall implements Module {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
         if (target.equals(Address.ECREC)) {
-          long length = 0;
-          long offset = 0;
-          switch (opCode) {
-            case CALL, CALLCODE -> {
-              length = Words.clampedToLong(frame.getStackItem(4));
-              offset = Words.clampedToLong(frame.getStackItem(3));
-            }
-            case DELEGATECALL, STATICCALL -> {
-              length = Words.clampedToLong(frame.getStackItem(3));
-              offset = Words.clampedToLong(frame.getStackItem(2));
-            }
-          }
-          final Bytes inputData = frame.shadowReadMemory(offset, length);
+          final MemorySpan callData = hub.callDataSegment();
+          final Bytes inputData = frame.shadowReadMemory(callData.offset(), callData.length());
           final BigInteger v = slice(inputData, EWORD_SIZE, EWORD_SIZE).toUnsignedBigInteger();
           final BigInteger r = slice(inputData, EWORD_SIZE * 2, EWORD_SIZE).toUnsignedBigInteger();
           final BigInteger s = slice(inputData, EWORD_SIZE * 3, EWORD_SIZE).toUnsignedBigInteger();

@@ -19,12 +19,12 @@ import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.mmio.CallStackReader;
 import net.consensys.linea.zktracer.module.mmio.MmioData;
-import net.consensys.linea.zktracer.runtime.microdata.MicroData;
+import net.consensys.linea.zktracer.module.mmu.MmuData;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
 @RequiredArgsConstructor
 public class RamToRamSlideChunkDispatcher implements MmioDispatcher {
-  private final MicroData microData;
+  private final MmuData microData;
 
   private final CallStackReader callStackReader;
 
@@ -62,7 +62,7 @@ public class RamToRamSlideChunkDispatcher implements MmioDispatcher {
         counter);
   }
 
-  private UnsignedByte[] slideChunk(MmioData mmioData, MicroData microData) {
+  private UnsignedByte[] slideChunk(MmioData mmioData, MmuData microData) {
     UnsignedByte[] source = mmioData.valA();
     UnsignedByte[] target = mmioData.valB();
     int size = microData.size();

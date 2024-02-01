@@ -39,22 +39,24 @@ public class Trace {
   public static final int LT = 16;
   public static final int MMIO_INST_EXO_LIMB_VANISHES = 65280;
   public static final int MMIO_INST_EXO_TO_RAM_LIMB_TRANSPLANT = 65312;
-  public static final int MMIO_INST_EXO_TO_RAM_SLIDE_CHUNK = 65313;
-  public static final int MMIO_INST_EXO_TO_RAM_SLIDE_OVERLAPPING_CHUNK = 65314;
+  public static final int MMIO_INST_EXO_TO_RAM_SLIDE_CHUNK_ONE_TARGET = 65313;
+  public static final int MMIO_INST_EXO_TO_RAM_SLIDE_CHUNK_TWO_TARGET = 65314;
   public static final int MMIO_INST_LIMB_TO_RAM_OVERLAP = 65330;
   public static final int MMIO_INST_LIMB_TO_RAM_TRANSPLANT = 65329;
   public static final int MMIO_INST_LIMB_TO_RAM_WRITE_LSB = 65328;
   public static final int MMIO_INST_PADDED_EXO_FROM_ONE_RAM = 65298;
   public static final int MMIO_INST_PADDED_EXO_FROM_TWO_RAM = 65299;
-  public static final int MMIO_INST_PADDED_LIMB_FROM_ONE_RAM = 65345;
-  public static final int MMIO_INST_PADDED_LIMB_FROM_TWO_RAM = 65346;
+  public static final int MMIO_INST_PADDED_LIMB_FROM_RAM_ONE_SOURCE = 65345;
+  public static final int MMIO_INST_PADDED_LIMB_FROM_RAM_ONE_TARGET = 65347;
+  public static final int MMIO_INST_PADDED_LIMB_FROM_RAM_TWO_SOURCE = 65346;
+  public static final int MMIO_INST_PADDED_LIMB_FROM_RAM_TWO_TARGET = 65348;
   public static final int MMIO_INST_RAM_EXCISION = 65376;
   public static final int MMIO_INST_RAM_LIMB_VANISHES = 65377;
   public static final int MMIO_INST_RAM_TO_EXO_LIMB_TRANSPLANT = 65296;
   public static final int MMIO_INST_RAM_TO_LIMB_TRANSPLANT = 65344;
   public static final int MMIO_INST_RAM_TO_RAM_LIMB_TRANSPLANT = 65360;
-  public static final int MMIO_INST_RAM_TO_RAM_SLIDE_CHUNK = 65361;
-  public static final int MMIO_INST_RAM_TO_RAM_SLIDE_OVERLAPPING_CHUNK = 65362;
+  public static final int MMIO_INST_RAM_TO_RAM_SLIDE_CHUNK_ONE_TARGET = 65361;
+  public static final int MMIO_INST_RAM_TO_RAM_SLIDE_CHUNK_TWO_TARGET = 65362;
   public static final int MMIO_INST_TWO_RAM_TO_EXO_FULL = 65297;
   public static final int MMU_INST_ANY_TO_RAM_WITH_PADDING = 65104;
   public static final int MMU_INST_ANY_TO_RAM_WITH_PADDING_PURE_PADDING = 65106;
@@ -67,7 +69,7 @@ public class Trace {
   public static final int MMU_INST_MODEXP_ZERO = 65120;
   public static final int MMU_INST_MSTORE = 65026;
   public static final int MMU_INST_MSTORE8 = 83;
-  public static final int MMU_INST_NB_MICRO_ROWS_TOT_BLAKE_PARAM = 2;
+  public static final int MMU_INST_NB_MICRO_ROWS_TOT_BLAKE = 2;
   public static final int MMU_INST_NB_MICRO_ROWS_TOT_INVALID_CODE_PREFIX = 1;
   public static final int MMU_INST_NB_MICRO_ROWS_TOT_MLOAD = 2;
   public static final int MMU_INST_NB_MICRO_ROWS_TOT_MODEXP_DATA = 32;
@@ -79,8 +81,8 @@ public class Trace {
   public static final int MMU_INST_NB_PP_ROWS_ANY_TO_RAM_WITH_PADDING_PURE_PADDING_PO = 5;
   public static final int MMU_INST_NB_PP_ROWS_ANY_TO_RAM_WITH_PADDING_SOME_DATA = 1;
   public static final int MMU_INST_NB_PP_ROWS_ANY_TO_RAM_WITH_PADDING_SOME_DATA_PO = 2;
-  public static final int MMU_INST_NB_PP_ROWS_BLAKE_PARAM = 2;
-  public static final int MMU_INST_NB_PP_ROWS_BLAKE_PARAM_PO = 3;
+  public static final int MMU_INST_NB_PP_ROWS_BLAKE = 2;
+  public static final int MMU_INST_NB_PP_ROWS_BLAKE_PO = 3;
   public static final int MMU_INST_NB_PP_ROWS_EXO_TO_RAM_TRANSPLANTS = 1;
   public static final int MMU_INST_NB_PP_ROWS_EXO_TO_RAM_TRANSPLANTS_PO = 2;
   public static final int MMU_INST_NB_PP_ROWS_INVALID_CODE_PREFIX = 1;
@@ -123,7 +125,7 @@ public class Trace {
   private final MappedByteBuffer instXorInstXorCt;
   private final MappedByteBuffer isAnyToRamWithPaddingPurePadding;
   private final MappedByteBuffer isAnyToRamWithPaddingSomeData;
-  private final MappedByteBuffer isBlakeParam;
+  private final MappedByteBuffer isBlake;
   private final MappedByteBuffer isExoToRamTransplants;
   private final MappedByteBuffer isInvalidCodePrefix;
   private final MappedByteBuffer isMload;
@@ -163,8 +165,8 @@ public class Trace {
   private final MappedByteBuffer sizeXorEucCeil;
   private final MappedByteBuffer slo;
   private final MappedByteBuffer srcIdXorId1;
-  private final MappedByteBuffer srcOffsetHiXorWcpArg2Hi;
-  private final MappedByteBuffer srcOffsetLoXorWcpArg2Lo;
+  private final MappedByteBuffer srcOffsetHiXorWcpArg2Lo;
+  private final MappedByteBuffer srcOffsetLo;
   private final MappedByteBuffer stamp;
   private final MappedByteBuffer successBitXorSuccessBitXorEucFlag;
   private final MappedByteBuffer tbo;
@@ -192,7 +194,7 @@ public class Trace {
         new ColumnHeader("mmu.INST_xor_INST_xor_CT", 32, length),
         new ColumnHeader("mmu.IS_ANY_TO_RAM_WITH_PADDING_PURE_PADDING", 1, length),
         new ColumnHeader("mmu.IS_ANY_TO_RAM_WITH_PADDING_SOME_DATA", 1, length),
-        new ColumnHeader("mmu.IS_BLAKE_PARAM", 1, length),
+        new ColumnHeader("mmu.IS_BLAKE", 1, length),
         new ColumnHeader("mmu.IS_EXO_TO_RAM_TRANSPLANTS", 1, length),
         new ColumnHeader("mmu.IS_INVALID_CODE_PREFIX", 1, length),
         new ColumnHeader("mmu.IS_MLOAD", 1, length),
@@ -232,8 +234,8 @@ public class Trace {
         new ColumnHeader("mmu.SIZE_xor_EUC_CEIL", 32, length),
         new ColumnHeader("mmu.SLO", 32, length),
         new ColumnHeader("mmu.SRC_ID_xor_ID_1", 32, length),
-        new ColumnHeader("mmu.SRC_OFFSET_HI_xor_WCP_ARG_2_HI", 32, length),
-        new ColumnHeader("mmu.SRC_OFFSET_LO_xor_WCP_ARG_2_LO", 32, length),
+        new ColumnHeader("mmu.SRC_OFFSET_HI_xor_WCP_ARG_2_LO", 32, length),
+        new ColumnHeader("mmu.SRC_OFFSET_LO", 32, length),
         new ColumnHeader("mmu.STAMP", 32, length),
         new ColumnHeader("mmu.SUCCESS_BIT_xor_SUCCESS_BIT_xor_EUC_FLAG", 1, length),
         new ColumnHeader("mmu.TBO", 1, length),
@@ -261,7 +263,7 @@ public class Trace {
     this.instXorInstXorCt = buffers.get(8);
     this.isAnyToRamWithPaddingPurePadding = buffers.get(9);
     this.isAnyToRamWithPaddingSomeData = buffers.get(10);
-    this.isBlakeParam = buffers.get(11);
+    this.isBlake = buffers.get(11);
     this.isExoToRamTransplants = buffers.get(12);
     this.isInvalidCodePrefix = buffers.get(13);
     this.isMload = buffers.get(14);
@@ -301,8 +303,8 @@ public class Trace {
     this.sizeXorEucCeil = buffers.get(48);
     this.slo = buffers.get(49);
     this.srcIdXorId1 = buffers.get(50);
-    this.srcOffsetHiXorWcpArg2Hi = buffers.get(51);
-    this.srcOffsetLoXorWcpArg2Lo = buffers.get(52);
+    this.srcOffsetHiXorWcpArg2Lo = buffers.get(51);
+    this.srcOffsetLo = buffers.get(52);
     this.stamp = buffers.get(53);
     this.successBitXorSuccessBitXorEucFlag = buffers.get(54);
     this.tbo = buffers.get(55);
@@ -410,14 +412,14 @@ public class Trace {
     return this;
   }
 
-  public Trace isBlakeParam(final Boolean b) {
+  public Trace isBlake(final Boolean b) {
     if (filled.get(7)) {
-      throw new IllegalStateException("mmu.IS_BLAKE_PARAM already set");
+      throw new IllegalStateException("mmu.IS_BLAKE already set");
     } else {
       filled.set(7);
     }
 
-    isBlakeParam.put((byte) (b ? 1 : 0));
+    isBlake.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -891,9 +893,9 @@ public class Trace {
 
     final byte[] bs = b.toArrayUnsafe();
     for (int i = bs.length; i < 32; i++) {
-      srcOffsetHiXorWcpArg2Hi.put((byte) 0);
+      srcOffsetHiXorWcpArg2Lo.put((byte) 0);
     }
-    srcOffsetHiXorWcpArg2Hi.put(b.toArrayUnsafe());
+    srcOffsetHiXorWcpArg2Lo.put(b.toArrayUnsafe());
 
     return this;
   }
@@ -907,9 +909,9 @@ public class Trace {
 
     final byte[] bs = b.toArrayUnsafe();
     for (int i = bs.length; i < 32; i++) {
-      srcOffsetLoXorWcpArg2Lo.put((byte) 0);
+      srcOffsetLo.put((byte) 0);
     }
-    srcOffsetLoXorWcpArg2Lo.put(b.toArrayUnsafe());
+    srcOffsetLo.put(b.toArrayUnsafe());
 
     return this;
   }
@@ -1322,34 +1324,18 @@ public class Trace {
     return this;
   }
 
-  public Trace pPrprcWcpArg2Hi(final Bytes b) {
+  public Trace pPrprcWcpArg2Lo(final Bytes b) {
     if (filled.get(64)) {
-      throw new IllegalStateException("mmu.prprc/WCP_ARG_2_HI already set");
+      throw new IllegalStateException("mmu.prprc/WCP_ARG_2_LO already set");
     } else {
       filled.set(64);
     }
 
     final byte[] bs = b.toArrayUnsafe();
     for (int i = bs.length; i < 32; i++) {
-      srcOffsetHiXorWcpArg2Hi.put((byte) 0);
+      srcOffsetHiXorWcpArg2Lo.put((byte) 0);
     }
-    srcOffsetHiXorWcpArg2Hi.put(b.toArrayUnsafe());
-
-    return this;
-  }
-
-  public Trace pPrprcWcpArg2Lo(final Bytes b) {
-    if (filled.get(65)) {
-      throw new IllegalStateException("mmu.prprc/WCP_ARG_2_LO already set");
-    } else {
-      filled.set(65);
-    }
-
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      srcOffsetLoXorWcpArg2Lo.put((byte) 0);
-    }
-    srcOffsetLoXorWcpArg2Lo.put(b.toArrayUnsafe());
+    srcOffsetHiXorWcpArg2Lo.put(b.toArrayUnsafe());
 
     return this;
   }
@@ -1578,7 +1564,7 @@ public class Trace {
     }
 
     if (!filled.get(7)) {
-      throw new IllegalStateException("mmu.IS_BLAKE_PARAM has not been filled");
+      throw new IllegalStateException("mmu.IS_BLAKE has not been filled");
     }
 
     if (!filled.get(8)) {
@@ -1738,11 +1724,11 @@ public class Trace {
     }
 
     if (!filled.get(64)) {
-      throw new IllegalStateException("mmu.SRC_OFFSET_HI_xor_WCP_ARG_2_HI has not been filled");
+      throw new IllegalStateException("mmu.SRC_OFFSET_HI_xor_WCP_ARG_2_LO has not been filled");
     }
 
     if (!filled.get(65)) {
-      throw new IllegalStateException("mmu.SRC_OFFSET_LO_xor_WCP_ARG_2_LO has not been filled");
+      throw new IllegalStateException("mmu.SRC_OFFSET_LO has not been filled");
     }
 
     if (!filled.get(36)) {
@@ -1850,7 +1836,7 @@ public class Trace {
     }
 
     if (!filled.get(7)) {
-      isBlakeParam.position(isBlakeParam.position() + 1);
+      isBlake.position(isBlake.position() + 1);
     }
 
     if (!filled.get(8)) {
@@ -2010,11 +1996,11 @@ public class Trace {
     }
 
     if (!filled.get(64)) {
-      srcOffsetHiXorWcpArg2Hi.position(srcOffsetHiXorWcpArg2Hi.position() + 32);
+      srcOffsetHiXorWcpArg2Lo.position(srcOffsetHiXorWcpArg2Lo.position() + 32);
     }
 
     if (!filled.get(65)) {
-      srcOffsetLoXorWcpArg2Lo.position(srcOffsetLoXorWcpArg2Lo.position() + 32);
+      srcOffsetLo.position(srcOffsetLo.position() + 32);
     }
 
     if (!filled.get(36)) {

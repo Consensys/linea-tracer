@@ -18,12 +18,12 @@ package net.consensys.linea.zktracer.module.mmio.dispatchers;
 import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.mmio.MmioData;
-import net.consensys.linea.zktracer.runtime.microdata.MicroData;
+import net.consensys.linea.zktracer.module.mmu.MmuData;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
 @RequiredArgsConstructor
 public class ExceptionalRamToStack3To2FullFastDispatcher implements MmioDispatcher {
-  private final MicroData microData;
+  private final MmuData microData;
 
   @Override
   public MmioData dispatch() {

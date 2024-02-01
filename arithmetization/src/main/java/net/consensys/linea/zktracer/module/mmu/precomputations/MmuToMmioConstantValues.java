@@ -13,11 +13,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.runtime.microdata;
+package net.consensys.linea.zktracer.module.mmu.precomputations;
 
 import lombok.Builder;
-import net.consensys.linea.zktracer.types.EWord;
 
 @Builder
-public record InstructionContext(
-    int self, int caller, int returner, EWord returnOffset, int returnCapacity) {}
+public record MmuToMmioConstantValues(
+    int sourceContextNumber, int targetContextNumber, int microId1, int microId2, int totalSize) {}

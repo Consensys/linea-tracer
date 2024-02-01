@@ -26,7 +26,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.hub.State;
-import net.consensys.linea.zktracer.runtime.microdata.MicroData;
+import net.consensys.linea.zktracer.module.mmu.MmuData;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 
@@ -34,7 +34,7 @@ import org.apache.tuweni.bytes.Bytes;
 @Accessors(fluent = true)
 @Getter
 class MmioOperation extends ModuleOperation {
-  private final MicroData microData;
+  private final MmuData microData;
   private final MmioDataProcessor mmioDataProcessor;
   private final State.TxState.Stamps moduleStamps;
   private final int microStamp;

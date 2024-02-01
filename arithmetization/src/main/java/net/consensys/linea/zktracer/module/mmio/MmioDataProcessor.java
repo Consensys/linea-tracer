@@ -18,15 +18,15 @@ package net.consensys.linea.zktracer.module.mmio;
 import java.util.Map;
 
 import net.consensys.linea.zktracer.module.mmio.dispatchers.MmioDispatcher;
+import net.consensys.linea.zktracer.module.mmu.MmuData;
 import net.consensys.linea.zktracer.module.romLex.RomLex;
-import net.consensys.linea.zktracer.runtime.microdata.MicroData;
 
 class MmioDataProcessor {
-  private final MicroData microData;
+  private final MmuData microData;
   private final Dispatchers dispatchers;
 
   MmioDataProcessor(
-      final RomLex romLex, final MicroData microData, final CallStackReader callStackReader) {
+      final RomLex romLex, final MmuData microData, final CallStackReader callStackReader) {
     this.microData = microData;
     this.dispatchers = new Dispatchers(microData, callStackReader, romLex);
   }
@@ -50,7 +50,7 @@ class MmioDataProcessor {
     }
   }
 
-  static int maxCounter(final MicroData microData) {
+  static int maxCounter(final MmuData microData) {
     return microData.isFast() ? 0 : 15;
   }
 }

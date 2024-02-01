@@ -13,18 +13,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.runtime.microdata;
+package net.consensys.linea.zktracer.module.mmu;
 
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.types.EWord;
 
-@Accessors(fluent = true)
-@EqualsAndHashCode
 @Builder
-public class Contexts {
-  @Getter @Setter private int source;
-  @Getter @Setter private int target;
-}
+public record InstructionContext(
+    int self, int caller, int returner, EWord returnOffset, int returnCapacity) {}

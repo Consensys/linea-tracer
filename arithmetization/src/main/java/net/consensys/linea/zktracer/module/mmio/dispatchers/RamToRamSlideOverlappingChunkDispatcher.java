@@ -18,11 +18,11 @@ package net.consensys.linea.zktracer.module.mmio.dispatchers;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.mmio.CallStackReader;
 import net.consensys.linea.zktracer.module.mmio.MmioData;
-import net.consensys.linea.zktracer.runtime.microdata.MicroData;
+import net.consensys.linea.zktracer.module.mmu.MmuData;
 
 @RequiredArgsConstructor
 public class RamToRamSlideOverlappingChunkDispatcher implements MmioDispatcher {
-  private final MicroData microData;
+  private final MmuData microData;
 
   private final CallStackReader callStackReader;
 

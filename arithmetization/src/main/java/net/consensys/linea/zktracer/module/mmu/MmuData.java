@@ -13,19 +13,21 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.runtime.microdata;
+package net.consensys.linea.zktracer.module.mmu;
 
-import static net.consensys.linea.zktracer.types.Conversions.unsignedBytesToEWord;
-
-import java.math.BigInteger;
 import java.util.Arrays;
-import java.util.Set;
+import java.util.List;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.container.ModuleOperation;
+import net.consensys.linea.zktracer.module.mmu.precomputations.HubToMmuValues;
+import net.consensys.linea.zktracer.module.mmu.precomputations.MmuEucCallRecord;
+import net.consensys.linea.zktracer.module.mmu.precomputations.MmuOutAndBinValues;
+import net.consensys.linea.zktracer.module.mmu.precomputations.MmuToMmioConstantValues;
+import net.consensys.linea.zktracer.module.mmu.precomputations.MmuToMmioInstruction;
+import net.consensys.linea.zktracer.module.mmu.precomputations.MmuWcpCallRecord;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
@@ -36,120 +38,143 @@ import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.internal.Words;
 
-@AllArgsConstructor
+@NoArgsConstructor
 @Accessors(fluent = true)
-public class MicroData extends ModuleOperation {
-  private static final UnsignedByte[] DEFAULT_NIBBLES = new UnsignedByte[9];
-  private static final UnsignedByte[][] DEFAULT_ACCS = new UnsignedByte[8][32];
-  private static final boolean[] DEFAULT_BITS = new boolean[8];
-  private static final Set<Integer> FAST_MICRO_INSTRUCTIONS =
-      Set.of(
-          Trace.RamToRam,
-          Trace.ExoToRam,
-          Trace.RamIsExo,
-          Trace.KillingOne,
-          Trace.PushTwoRamToStack,
-          Trace.PushOneRamToStack,
-          Trace.ExceptionalRamToStack3To2FullFast,
-          Trace.PushTwoStackToRam,
-          Trace.StoreXInAThreeRequired,
-          Trace.StoreXInB,
-          Trace.StoreXInC);
+public class MmuData {
+  //  private static final Set<Integer> FAST_MICRO_INSTRUCTIONS =
+  //      Set.of(
+  //          Trace.RamToRam,
+  //          Trace.ExoToRam,
+  //          Trace.RamIsExo,
+  //          Trace.KillingOne,
+  //          Trace.PushTwoRamToStack,
+  //          Trace.PushOneRamToStack,
+  //          Trace.ExceptionalRamToStack3To2FullFast,
+  //          Trace.PushTwoStackToRam,
+  //          Trace.StoreXInAThreeRequired,
+  //          Trace.StoreXInB,
+  //          Trace.StoreXInC);
 
   @Getter @Setter private int callStackDepth;
-  @Getter @Setter private int callStackSize;
-  @Getter @Setter private int callDataOffset;
-  @Getter @Setter private int callDataSize;
+  //  @Getter @Setter private int callStackSize;
+  //  @Getter @Setter private int callDataOffset;
+  //  @Getter @Setter private int callDataSize;
   @Getter @Setter private OpCode opCode;
-  @Getter @Setter private boolean skip;
+  //  @Getter @Setter private boolean skip;
   @Getter @Setter private int processingRow;
-  // Same as {@link ReadPad#totalNumberPaddingMicroInstructions()} in size.
-  @Getter @Setter private boolean toRam;
-  // < 16
+  //  // Same as {@link ReadPad#totalNumberPaddingMicroInstructions()} in size.
+  //  @Getter @Setter private boolean toRam;
+  //  // < 16
   @Getter @Setter private int counter;
   @Getter @Setter private int microOp;
-  @Getter @Setter private boolean aligned;
+  //  @Getter @Setter private boolean aligned;
   @Getter @Setter private ReadPad readPad;
-  // < 1.000.000
-  @Getter @Setter private int sizeImported;
-  // < 1.000.000
-  @Getter @Setter private int size;
-  // stack element <=> uint256
+  //  // < 1.000.000
+  //  @Getter @Setter private int sizeImported;
+  //  // < 1.000.000
+  //  @Getter @Setter private int size;
+  //  // stack element <=> uint256
   @Getter @Setter private Bytes value;
-  // stack element
+  //  // stack element
   @Getter @Setter private Pointers pointers;
-  // stack element
+  //  // stack element
   @Getter @Setter private Offsets offsets;
-  // precomputation type
-  @Getter @Setter private int precomputation;
-  // < 1.000.000
-  @Getter @Setter private int min;
-  @Getter @Setter private int ternary;
+  //  // precomputation type
+  //  @Getter @Setter private int precomputation;
+  //  // < 1.000.000
+  //  @Getter @Setter private int min;
+  //  @Getter @Setter private int ternary;
   @Getter @Setter private InstructionContext instructionContext;
   @Getter @Setter private Contexts contexts;
-  // every acc is actually on 16 bytes
-  @Getter @Setter private UnsignedByte[] nibbles;
-  @Getter @Setter private UnsignedByte[][] accs;
-  @Getter @Setter private boolean[] bits;
+  //  // every acc is actually on 16 bytes
+  //  @Getter @Setter private UnsignedByte[] nibbles;
+  //  @Getter @Setter private UnsignedByte[][] accs;
+  //  @Getter @Setter private boolean[] bits;
   @Getter @Setter private boolean exoIsHash;
   @Getter @Setter private boolean exoIsLog;
   @Getter @Setter private boolean exoIsRom;
   @Getter @Setter private boolean exoIsTxcd;
   @Getter @Setter private boolean info;
-  @Getter @Setter private UnsignedByte[] valACache;
-  @Getter @Setter private UnsignedByte[] valBCache;
-  @Getter @Setter private UnsignedByte[] valCCache;
-  // < 1.000.000
-  @Getter @Setter private int referenceOffset;
-  // < 1.000.000
-  @Getter @Setter private int referenceSize;
+  //  @Getter @Setter private UnsignedByte[] valACache;
+  //  @Getter @Setter private UnsignedByte[] valBCache;
+  //  @Getter @Setter private UnsignedByte[] valCCache;
+  //  // < 1.000.000
+  //  @Getter @Setter private int referenceOffset;
+  //  // < 1.000.000
+  //  @Getter @Setter private int referenceSize;
 
-  public MicroData() {
-    this(
-        0,
-        0,
-        0,
-        0,
-        null,
-        false,
-        0,
-        false,
-        0,
-        0,
-        false,
-        new ReadPad(0, 0),
-        0,
-        0,
-        null,
-        Pointers.builder().build(),
-        Offsets.builder().build(),
-        0,
-        0,
-        0,
-        null,
-        Contexts.builder().build(),
-        DEFAULT_NIBBLES,
-        DEFAULT_ACCS,
-        DEFAULT_BITS,
-        false,
-        false,
-        false,
-        false,
-        false,
-        UnsignedByte.EMPTY_BYTES16,
-        UnsignedByte.EMPTY_BYTES16,
-        UnsignedByte.EMPTY_BYTES16,
-        0,
-        0);
+  @Getter @Setter private int totalLeftZeroesInitials;
+  @Getter @Setter private int totalRightZeroesInitials;
+  @Getter @Setter private int totalNonTrivialInitials;
+  @Getter @Setter private List<MmuEucCallRecord> eucCallRecords;
+  @Getter @Setter private List<MmuWcpCallRecord> wcpCallRecords;
+  @Getter @Setter private MmuOutAndBinValues outAndBinValues;
+  @Getter @Setter private HubToMmuValues hubToMmuValues;
+  @Getter @Setter private MmuToMmioConstantValues mmuToMmioConstantValues;
+  @Getter @Setter private List<MmuToMmioInstruction> mmuToMmioInstructions;
+
+  public int numberMmioInstructions() {
+    return totalLeftZeroesInitials + totalNonTrivialInitials + totalRightZeroesInitials;
   }
 
-  public boolean isErf() {
-    return microOp == Trace.StoreXInAThreeRequired;
+  public int numberMmuPreprocessingRows() {
+    return wcpCallRecords().size();
   }
 
-  public boolean isFast() {
-    return FAST_MICRO_INSTRUCTIONS.contains(microOp);
+  public void mmuToMmioInstruction(final MmuToMmioInstruction mmuToMmioInstruction) {
+    mmuToMmioInstructions.add(mmuToMmioInstruction);
   }
+
+  //  public MmuData() {
+  //    this(
+  //        0,
+  //        0,
+  //        0,
+  //        0,
+  //        null,
+  //        false,
+  //        0,
+  //        false,
+  //        0,
+  //        0,
+  //        false,
+  //        new ReadPad(0, 0),
+  //        0,
+  //        0,
+  //        null,
+  //        Pointers.builder().build(),
+  //        Offsets.builder().build(),
+  //        0,
+  //        0,
+  //        0,
+  //        null,
+  //        Contexts.builder().build(),
+  //        DEFAULT_NIBBLES,
+  //        DEFAULT_ACCS,
+  //        DEFAULT_BITS,
+  //        false,
+  //        false,
+  //        false,
+  //        false,
+  //        false,
+  //        UnsignedByte.EMPTY_BYTES16,
+  //        UnsignedByte.EMPTY_BYTES16,
+  //        UnsignedByte.EMPTY_BYTES16,
+  //        0,
+  //        0,
+  //        0,
+  //        0,
+  //        0,
+  //        new HashMap<>(Trace.MMU_INST_NB_PP_ROWS_MLOAD));
+  //  }
+
+  //  public boolean isErf() {
+  //    return microOp == Trace.StoreXInAThreeRequired;
+  //  }
+
+  //  public boolean isFast() {
+  //    return FAST_MICRO_INSTRUCTIONS.contains(microOp);
+  //  }
 
   public EWord eWordValue() {
     return EWord.of(value);
@@ -170,10 +195,6 @@ public class MicroData extends ModuleOperation {
 
     throw new IllegalArgumentException(
         "ExoSource is neither ROM, nor TX_CALLDATA. This should not happen!");
-  }
-
-  public boolean isType5() {
-    return microOp == OpCode.CALLDATALOAD.getData().value();
   }
 
   public int remainingMicroInstructions() {
@@ -264,26 +285,6 @@ public class MicroData extends ModuleOperation {
     offsets.target().uByte(value);
   }
 
-  public EWord getAccsAtIndex(final int index) {
-    return unsignedBytesToEWord(accs[index]);
-  }
-
-  public void setAccsAtIndex(final int index, final EWord value) {
-    //    accs[index] = bigIntegerToUnsignedBytes32(value.hiBigInt());
-  }
-
-  public void setAccsAtIndex(final int index, final BigInteger value) {
-    //    accs[index] = bigIntegerToUnsignedBytes32(value);
-  }
-
-  public void setAccsAndNibblesAtIndex(final int index, final EWord value) {
-    EWord div = value.divide(16);
-    setAccsAtIndex(index, div);
-
-    UnsignedByte modulus = UnsignedByte.of(value.mod(16).toLong());
-    nibbles[index] = modulus;
-  }
-
   public void setInfo(final CallStack callStack) {
     if (Arrays.asList(OpCode.CODECOPY, OpCode.RETURN).contains(opCode)) {
       info = callStack.current().type() == CallFrameType.INIT_CODE;
@@ -299,10 +300,5 @@ public class MicroData extends ModuleOperation {
 
   public void incrementProcessingRow(final int value) {
     processingRow += value;
-  }
-
-  @Override
-  protected int computeLineCount() {
-    return 0;
   }
 }

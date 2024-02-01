@@ -13,20 +13,32 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.runtime.microdata;
+package net.consensys.linea.zktracer.module.mmu.precomputations;
+
+import java.math.BigInteger;
 
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.apache.tuweni.bytes.Bytes;
 
 @Builder
 @Getter
-@Setter
 @Accessors(fluent = true)
-public class Pointers {
-  @Builder.Default private Bytes stack1 = Bytes.EMPTY;
-  @Builder.Default private Bytes stack2 = Bytes.EMPTY;
-  private boolean oob;
+public class HubToMmuValues {
+  private int mmuInstruction;
+  private int sourceId;
+  private int targetId;
+  private int auxId;
+  @Builder.Default private BigInteger sourceOffsetHi = BigInteger.ZERO;
+  @Builder.Default private BigInteger sourceOffsetLo = BigInteger.ZERO;
+  private long targetOffset;
+  private long size;
+  private long referenceOffset;
+  private long referenceSize;
+  private boolean successBit;
+  @Builder.Default private Bytes limb1 = Bytes.EMPTY;
+  @Builder.Default private Bytes limb2 = Bytes.EMPTY;
+  private int phase;
+  private int exoSum;
 }

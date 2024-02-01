@@ -66,13 +66,16 @@ public class Euc implements Module {
     }
   }
 
-  public void callEUC(Bytes dividend, Bytes divisor) {
+  public EucOperation callEUC(Bytes dividend, Bytes divisor) {
     final BigInteger dividendBI = dividend.toUnsignedBigInteger();
     final BigInteger divisorBI = divisor.toUnsignedBigInteger();
     final Bytes quotient = bigIntegerToBytes(dividendBI.divide(divisorBI));
     final Bytes remainder = bigIntegerToBytes(dividendBI.remainder(divisorBI));
 
-    this.operations.add(new EucOperation(dividend, divisor, quotient, remainder));
+    EucOperation operation = new EucOperation(dividend, divisor, quotient, remainder);
+    this.operations.add(operation);
     this.wcp.callLT(remainder, divisor);
+
+    return operation;
   }
 }

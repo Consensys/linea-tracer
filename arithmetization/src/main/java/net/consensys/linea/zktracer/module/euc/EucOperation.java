@@ -20,15 +20,18 @@ import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 
 import java.math.BigInteger;
 
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 
+@Accessors(fluent = true)
 public class EucOperation extends ModuleOperation {
-  private final Bytes dividend;
-  private final Bytes divisor;
-  private final Bytes remainder;
-  private final Bytes quotient;
+  @Getter private final Bytes dividend;
+  @Getter private final Bytes divisor;
+  @Getter private final Bytes remainder;
+  @Getter private final Bytes quotient;
   private final int ctMax;
 
   public EucOperation(

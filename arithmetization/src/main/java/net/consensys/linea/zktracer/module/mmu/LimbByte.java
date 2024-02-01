@@ -15,21 +15,20 @@
 
 package net.consensys.linea.zktracer.module.mmu;
 
-import java.util.List;
-import java.util.Set;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.types.EWord;
+import net.consensys.linea.zktracer.types.UnsignedByte;
 
-import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.runtime.callstack.CallStack;
-import net.consensys.linea.zktracer.runtime.microdata.MicroData;
-import net.consensys.linea.zktracer.runtime.stack.StackOperation;
-
-interface MmuPreComputation {
-  MicroData dispatch(
-      MicroData microData, OpCode opCode, List<StackOperation> stackOps, CallStack callStack);
-
-  MicroData preProcess(MicroData microData, CallStack callStack);
-
-  MicroData process(MicroData microData, CallStack callStack);
-
-  Set<Integer> preComputationTypes();
+@Getter
+@Setter
+@Builder
+@Accessors(fluent = true)
+@EqualsAndHashCode
+public class LimbByte {
+  @Builder.Default private EWord limb = EWord.ZERO;
+  @Builder.Default private UnsignedByte uByte = UnsignedByte.ZERO;
 }

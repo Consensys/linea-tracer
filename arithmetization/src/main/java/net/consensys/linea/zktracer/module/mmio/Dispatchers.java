@@ -51,14 +51,14 @@ import net.consensys.linea.zktracer.module.mmio.dispatchers.RamToRamSlideOverlap
 import net.consensys.linea.zktracer.module.mmio.dispatchers.StoreXInAThreeRequiredDispatcher;
 import net.consensys.linea.zktracer.module.mmio.dispatchers.StoreXInBDispatcher;
 import net.consensys.linea.zktracer.module.mmio.dispatchers.StoreXInCDispatcher;
+import net.consensys.linea.zktracer.module.mmu.MmuData;
 import net.consensys.linea.zktracer.module.romLex.RomLex;
-import net.consensys.linea.zktracer.runtime.microdata.MicroData;
 
 @Accessors(fluent = true)
 public class Dispatchers {
   @Getter private final Map<Integer, MmioDispatcher> typeMap;
 
-  public Dispatchers(MicroData microData, CallStackReader callStackReader, RomLex romLex) {
+  public Dispatchers(MmuData microData, CallStackReader callStackReader, RomLex romLex) {
     this.typeMap =
         Map.ofEntries(
             ///////////////////////////

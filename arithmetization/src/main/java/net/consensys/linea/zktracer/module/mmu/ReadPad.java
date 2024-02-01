@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.runtime.microdata;
+package net.consensys.linea.zktracer.module.mmu;
 
 import lombok.Builder;
 

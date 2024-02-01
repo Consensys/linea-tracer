@@ -15,35 +15,52 @@
 
 package net.consensys.linea.zktracer.module.mmu;
 
-import java.util.Map;
-import java.util.Set;
-
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.module.euc.Euc;
+import net.consensys.linea.zktracer.module.mmu.precomputations.MmuInstInvalidCodePrefixPreComputation;
+import net.consensys.linea.zktracer.module.mmu.precomputations.MmuInstMLoadPreComputation;
+import net.consensys.linea.zktracer.module.mmu.precomputations.MmuInstMStore8PreComputation;
+import net.consensys.linea.zktracer.module.mmu.precomputations.MmuInstMStorePreComputation;
+import net.consensys.linea.zktracer.module.wcp.Wcp;
 
 @Accessors(fluent = true)
 class PreComputations {
-  //  @Getter private final Type1PreComputation type1;
-  //  @Getter private final Type2PreComputation type2;
-  //  @Getter private final Type3PreComputation type3;
-  //  @Getter private final Type4PreComputation type4;
-  //  @Getter private final Type5PreComputation type5;
-  @Getter private final Map<Integer, MmuPreComputation> typeMap;
-  @Getter private final Set<MmuPreComputation> types;
+  @Getter private final MmuInstMLoadPreComputation mLoadPreComputation;
+  @Getter private final MmuInstMStorePreComputation mStorePreComputation;
+  private final MmuInstMStore8PreComputation mStore8PreComputation;
+  private final MmuInstInvalidCodePrefixPreComputation invalidCodePrefixPreComputation;
 
-  PreComputations() {
-    //    this.type1 = new Type1PreComputation();
-    //    this.type2 = new Type2PreComputation();
-    //    this.type3 = new Type3PreComputation();
-    //    this.type4 = new Type4PreComputation();
-    //    this.type5 = new Type5PreComputation();
-    this.types = Set.of(/*type1, type2, type3, type4, type5*/ );
-    this.typeMap = Map.of(/*Trace.type1, type1,
-            Trace.type2, type2,
-            Trace.type3, type3,
-            Trace.type4CC, type4,
-            Trace.type4CD, type4,
-            Trace.type4RD, type4,
-            Trace.type5, type5*/ );
+  PreComputations(Euc euc, Wcp wcp) {
+    // TODO need to instantiate only mmuInstPreComputation
+    this.mLoadPreComputation = new MmuInstMLoadPreComputation(euc, wcp);
+    this.mStorePreComputation = new MmuInstMStorePreComputation(euc, wcp);
+    this.mStore8PreComputation = new MmuInstMStore8PreComputation(euc);
+    this.invalidCodePrefixPreComputation = new MmuInstInvalidCodePrefixPreComputation(euc, wcp);
+  }
+
+  public MmuData compute(MmuData mmuData) {
+    int mmuInstruction = mmuData.hubToMmuValues().mmuInstruction();
+
+    return switch (mmuInstruction) {
+      case Trace.MMU_INST_MLOAD -> {
+        mmuData = mLoadPreComputation.preProcess(mmuData);
+        yield mLoadPreComputation.setMicroInstructions(mmuData);
+      }
+      case Trace.MMU_INST_MSTORE -> {
+        mmuData = mStorePreComputation.preProcess(mmuData);
+        yield mStorePreComputation.setMicroInstructions(mmuData);
+      }
+      case Trace.MMU_INST_MSTORE8 -> {
+        mmuData = mStore8PreComputation.preProcess(mmuData);
+        yield mStore8PreComputation.setMicroInstructions(mmuData);
+      }
+      case Trace.MMU_INST_INVALID_CODE_PREFIX -> {
+        mmuData = invalidCodePrefixPreComputation.preProcess(mmuData);
+        yield invalidCodePrefixPreComputation.setMicroInstructions(mmuData);
+      }
+      default -> throw new IllegalArgumentException(
+          "Unexpected MMU instruction: %d".formatted(mmuInstruction));
+    };
   }
 }

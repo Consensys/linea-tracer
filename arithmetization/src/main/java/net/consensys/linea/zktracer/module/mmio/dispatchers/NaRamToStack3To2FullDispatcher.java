@@ -19,11 +19,11 @@ import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.mmio.CallStackReader;
 import net.consensys.linea.zktracer.module.mmio.MmioData;
-import net.consensys.linea.zktracer.runtime.microdata.MicroData;
+import net.consensys.linea.zktracer.module.mmu.MmuData;
 
 @RequiredArgsConstructor
 public class NaRamToStack3To2FullDispatcher implements MmioDispatcher {
-  private final MicroData microData;
+  private final MmuData microData;
 
   private final CallStackReader callStackReader;
 

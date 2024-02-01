@@ -26,10 +26,10 @@ import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.State;
+import net.consensys.linea.zktracer.module.mmu.MmuData;
 import net.consensys.linea.zktracer.module.romLex.RomLex;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
-import net.consensys.linea.zktracer.runtime.microdata.MicroData;
 
 /** MMIO contains the MEMORY MAPPED INPUT OUTPUT module's state. */
 @RequiredArgsConstructor
@@ -81,7 +81,7 @@ public class Mmio implements Module {
   }
 
   public void handleRam(
-      final MicroData microData, final State.TxState.Stamps moduleStamps, final int microStamp) {
+      final MmuData microData, final State.TxState.Stamps moduleStamps, final int microStamp) {
     if (microData.microOp() == 0) {
       return;
     }

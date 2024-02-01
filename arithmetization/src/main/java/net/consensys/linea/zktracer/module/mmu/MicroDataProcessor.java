@@ -49,8 +49,8 @@ class MicroDataProcessor {
 
   MicroData dispatchOpCode(
       final OpCode opCode, final List<StackOperation> stackOps, final CallStack callStack) {
-    int preComputation = typeOf(opCode, callStack);
-
+    //    int preComputation = typeOf(opCode, callStack);
+    int preComputation = 0;
     microData.precomputation(preComputation);
 
     long returnLength = callStack.caller().requestedReturnDataTarget().length();
@@ -108,4 +108,20 @@ class MicroDataProcessor {
     // %s".formatted(opCode));
     //    };
   }
+  //  private int typeOf(final OpCode opCode, final CallStack callStack) {
+  //    if (opCode == OpCode.RETURN && callStack.current().type() == CallFrameType.INIT_CODE) {
+  //      return Trace.type3;
+  //    }
+  //
+  //    return switch (opCode) {
+  //      case MLOAD, MSTORE, MSTORE8 -> Trace.type1;
+  //      case RETURN, REVERT -> Trace.type2;
+  //      case CREATE, CREATE2, SHA3, LOG0, LOG1, LOG2, LOG3, LOG4 -> Trace.type3;
+  //      case CODECOPY, EXTCODECOPY -> Trace.type4CC;
+  //      case CALLDATACOPY -> Trace.type4CD;
+  //      case RETURNDATACOPY -> Trace.type4RD;
+  //      case CALLDATALOAD -> Trace.type5;
+  //      default -> throw new IllegalArgumentException("Unsupported opcode: %s".formatted(opCode));
+  //    };
+  //  }
 }

@@ -23,29 +23,27 @@ import lombok.experimental.Accessors;
 
 @Accessors(fluent = true)
 class PreComputations {
-  @Getter private final Type1PreComputation type1;
-  @Getter private final Type2PreComputation type2;
-  @Getter private final Type3PreComputation type3;
-  @Getter private final Type4PreComputation type4;
-  @Getter private final Type5PreComputation type5;
+  //  @Getter private final Type1PreComputation type1;
+  //  @Getter private final Type2PreComputation type2;
+  //  @Getter private final Type3PreComputation type3;
+  //  @Getter private final Type4PreComputation type4;
+  //  @Getter private final Type5PreComputation type5;
   @Getter private final Map<Integer, MmuPreComputation> typeMap;
   @Getter private final Set<MmuPreComputation> types;
 
   PreComputations() {
-    this.type1 = new Type1PreComputation();
-    this.type2 = new Type2PreComputation();
-    this.type3 = new Type3PreComputation();
-    this.type4 = new Type4PreComputation();
-    this.type5 = new Type5PreComputation();
-    this.types = Set.of(type1, type2, type3, type4, type5);
-    this.typeMap =
-        Map.of(
-            Trace.type1, type1,
+    //    this.type1 = new Type1PreComputation();
+    //    this.type2 = new Type2PreComputation();
+    //    this.type3 = new Type3PreComputation();
+    //    this.type4 = new Type4PreComputation();
+    //    this.type5 = new Type5PreComputation();
+    this.types = Set.of(/*type1, type2, type3, type4, type5*/ );
+    this.typeMap = Map.of(/*Trace.type1, type1,
             Trace.type2, type2,
             Trace.type3, type3,
             Trace.type4CC, type4,
             Trace.type4CD, type4,
             Trace.type4RD, type4,
-            Trace.type5, type5);
+            Trace.type5, type5*/ );
   }
 }

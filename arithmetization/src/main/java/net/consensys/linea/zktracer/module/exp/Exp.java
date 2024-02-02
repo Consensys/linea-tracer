@@ -76,19 +76,13 @@ public class Exp implements Module {
       OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
       if (opCode.equals(OpCode.EXP)) {
         ExpLogExpParameters expLogExpParameters = extractExpLogParameters(frame);
-        ExpChunk expChunk = new ExpChunk(frame, expLogExpParameters);
-        expChunk.preprocessingExpLog();
-        expChunk.computationExpLog();
-        this.chunks.add(expChunk);
+        this.chunks.add(new ExpChunk(frame, expLogExpParameters));
       } else if (opCode.isCall()) {
         Address target = Words.toAddress(frame.getStackItem(1));
         if (target.equals(Address.MODEXP)) {
           ModexpLogExpParameters modexpLogExpParameters = extractModexpLogParameters(frame);
           if (modexpLogExpParameters != null) {
-            ExpChunk expChunk = new ExpChunk(frame, modexpLogExpParameters);
-            expChunk.preprocessingModexpLog();
-            expChunk.computationModexpLog();
-            this.chunks.add(expChunk);
+            this.chunks.add(new ExpChunk(frame, modexpLogExpParameters));
           }
         }
       }

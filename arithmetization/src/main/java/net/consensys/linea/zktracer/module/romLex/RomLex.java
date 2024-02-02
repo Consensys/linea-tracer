@@ -51,6 +51,10 @@ public class RomLex implements Module {
   private Bytes byteCode = Bytes.EMPTY;
   private Address address = Address.ZERO;
 
+  public int nextCfiBeforeReordering() {
+    return this.codeIdentifierBeforeLexOrder + 1;
+  }
+
   static class RomChunkComparator implements Comparator<RomChunk> {
     // Initialize the ChunkList
     public int compare(RomChunk chunk1, RomChunk chunk2) {

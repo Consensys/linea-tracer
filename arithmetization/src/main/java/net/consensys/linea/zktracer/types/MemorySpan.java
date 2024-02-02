@@ -57,4 +57,8 @@ public record MemorySpan(long offset, long length) {
   public MemorySpan snapshot() {
     return new MemorySpan(this.offset, this.length);
   }
+
+  public long absolute() {
+    return this.offset;
+  }
 }

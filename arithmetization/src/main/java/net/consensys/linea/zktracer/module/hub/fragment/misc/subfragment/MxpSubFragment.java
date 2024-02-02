@@ -60,6 +60,7 @@ public record MxpSubFragment(
   @Override
   public Trace trace(Trace trace) {
     return trace
+        .pMiscellaneousMxpFlag(true)
         .pMiscellaneousMxpMxpx(this.mxpException)
         .pMiscellaneousMxpInst(Bytes.ofUnsignedInt(this.opCode))
         .pMiscellaneousMxpDeploys(this.deploys)

@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Optional;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.Signals;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.defer.PostExecDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
@@ -49,34 +48,33 @@ import org.hyperledger.besu.evm.internal.Words;
 import org.hyperledger.besu.evm.operation.Operation;
 
 public class MiscFragment implements TraceFragment, PostExecDefer {
-  private final Signals signals;
   private final List<TraceSubFragment> subFragments = new ArrayList<>();
 
+  private MiscFragment() {}
+
   private MiscFragment(final Hub hub) {
-    this(hub, hub.pch().signals().snapshot());
-  }
-
-  private MiscFragment(final Hub hub, final Signals signals) {
-    this.signals = signals;
-
-    if (this.signals.mxp()) {
+    if (hub.pch().signals().mxp()) {
       this.subFragments.add(MxpSubFragment.build(hub));
     }
 
-    if (this.signals.exp()) {
+    if (hub.pch().signals().exp()) {
       this.subFragments.add(new ExpSubFragment(EWord.of(hub.messageFrame().getStackItem(1))));
     }
   }
 
   public static MiscFragment empty() {
-    return new MiscFragment(null);
+    return new MiscFragment();
+  }
+
+  public static MiscFragment forTxInit(final Hub hub) {
+    return MiscFragment.empty().withMmu(MmuSubFragment.txInit(hub));
   }
 
   public static MiscFragment forCall(
       Hub hub, Account callerAccount, Optional<Account> calledAccount) {
     final MiscFragment r = new MiscFragment(hub);
 
-    if (r.signals.oob()) {
+    if (hub.pch().signals().oob()) {
       switch (hub.opCode()) {
         case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
           if (hub.opCode().equals(OpCode.CALL) && hub.pch().exceptions().any()) {
@@ -94,7 +92,7 @@ public class MiscFragment implements TraceFragment, PostExecDefer {
       }
     }
 
-    if (r.signals.stp()) {
+    if (hub.pch().signals().stp()) {
       final long gas = Words.clampedToLong(hub.messageFrame().getStackItem(0));
       EWord value = EWord.ZERO;
       if (hub.opCode().isAnyOf(OpCode.CALL, OpCode.CALLCODE)) {
@@ -134,7 +132,7 @@ public class MiscFragment implements TraceFragment, PostExecDefer {
       Hub hub, Account creatorAccount, Optional<Account> createeAccount) {
     final MiscFragment r = new MiscFragment(hub);
 
-    if (r.signals.oob()) {
+    if (hub.pch().signals().oob()) {
       switch (hub.currentFrame().opCode()) {
         case CREATE, CREATE2 -> {
           r.subFragments.add(
@@ -157,12 +155,30 @@ public class MiscFragment implements TraceFragment, PostExecDefer {
   public static MiscFragment forOpcode(Hub hub, MessageFrame frame) {
     final MiscFragment r = new MiscFragment(hub);
 
-    if (r.signals.mmu()) {
-      r.subFragments.add(MmuSubFragment.fromOpcode(hub));
+    if (hub.pch().signals().mmu()) {
+      switch (hub.opCode()) {
+        case SHA3 -> r.subFragments.add(MmuSubFragment.sha3(hub));
+        case CALLDATALOAD -> r.subFragments.add(MmuSubFragment.callDataLoad(hub));
+        case CALLDATACOPY -> r.subFragments.add(MmuSubFragment.callDataCopy(hub));
+        case CODECOPY -> r.subFragments.add(MmuSubFragment.codeCopy(hub));
+        case EXTCODECOPY -> r.subFragments.add(MmuSubFragment.extCodeCopy(hub));
+        case RETURNDATACOPY -> r.subFragments.add(MmuSubFragment.returnDataCopy(hub));
+        case MLOAD -> r.subFragments.add(MmuSubFragment.mload(hub));
+        case MSTORE -> r.subFragments.add(MmuSubFragment.mstore(hub));
+        case MSTORE8 -> r.subFragments.add(MmuSubFragment.mstore8(hub));
+        case LOG0, LOG1, LOG2, LOG3, LOG4 -> r.subFragments.add(MmuSubFragment.log(hub));
+        case CREATE -> r.subFragments.add(MmuSubFragment.create(hub));
+        case RETURN -> r.subFragments.add(
+            hub.currentFrame().underDeployment()
+                ? MmuSubFragment.returnFromDeployment(hub)
+                : MmuSubFragment.returnFromCall(hub));
+        case CREATE2 -> r.subFragments.add(MmuSubFragment.create2(hub));
+        case REVERT -> r.subFragments.add(MmuSubFragment.revert(hub));
+      }
     }
 
-    if (r.signals.oob()) {
-      switch (hub.currentFrame().opCode()) {
+    if (hub.pch().signals().oob()) {
+      switch (hub.opCode()) {
         case JUMP, JUMPI -> r.subFragments.add(new JumpSubFragment(hub, frame));
         case CALLDATALOAD -> r.subFragments.add(CalldataloadSubFragment.build(hub, frame));
         case SSTORE -> {
@@ -179,7 +195,6 @@ public class MiscFragment implements TraceFragment, PostExecDefer {
 
     return r;
   }
-
 
   public MiscFragment withOob(GenericOobSubFragment f) {
     this.subFragments.add(f);
@@ -217,26 +232,20 @@ public class MiscFragment implements TraceFragment, PostExecDefer {
 
   @Override
   public Trace trace(Trace trace) {
-    trace
-        .peekAtMiscellaneous(true)
-        .pMiscellaneousMmuFlag(this.signals.mmu())
-        .pMiscellaneousMxpFlag(this.signals.mxp())
-        .pMiscellaneousOobFlag(this.signals.oob())
-        .pMiscellaneousStpFlag(this.signals.stp())
-        .pMiscellaneousExpFlag(this.signals.exp());
+    trace.peekAtMiscellaneous(true);
 
     for (TraceSubFragment subFragment : this.subFragments) {
       subFragment.trace(trace);
     }
 
-    return trace;
+    return trace.fillAndValidateRow();
   }
 
   @Override
   public void runPostExec(Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
     for (TraceSubFragment f : this.subFragments) {
       if (f instanceof MmuSubFragment mmuSubFragment) {
-        mmuSubFragment.runPostExec(hub, frame, operationResult);
+        //        mmuSubFragment.runPostExec(hub, frame, operationResult);
       }
     }
   }

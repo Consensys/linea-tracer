@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment;
 
+import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
@@ -24,7 +25,7 @@ import org.apache.tuweni.bytes.Bytes;
 
 public record ContextFragment(
     CallStack callStack,
-    CallFrame callFrame,
+    int callFrameId,
     MemorySpan returnDataSegment,
     boolean updateCallerReturndata)
     implements TraceFragment {
@@ -32,44 +33,54 @@ public record ContextFragment(
   public static ContextFragment readContextData(final CallStack callStack) {
     return new ContextFragment(
         callStack,
-        callStack.current(),
+        callStack.current().id(),
         callStack.current().currentReturnDataSource().snapshot(),
         false);
   }
 
+  public static ContextFragment intializeExecutionContext(
+      final CallStack callStack, final Hub hub) {
+    return new ContextFragment(
+        callStack,
+        hub.stamp() + 1,
+        MemorySpan.fromStartEnd(0, hub.tx().transaction().getData().map(Bytes::size).orElse(0)),
+        false);
+  }
+
   public static ContextFragment executionEmptyReturnData(final CallStack callStack) {
-    return new ContextFragment(callStack, callStack.parent(), MemorySpan.empty(), true);
+    return new ContextFragment(callStack, callStack.parent().id(), MemorySpan.empty(), true);
   }
 
   public static ContextFragment nonExecutionEmptyReturnData(final CallStack callStack) {
-    return new ContextFragment(callStack, callStack.parent(), MemorySpan.empty(), true);
+    return new ContextFragment(callStack, callStack.parent().id(), MemorySpan.empty(), true);
   }
 
   public static ContextFragment executionReturnData(final CallStack callStack) {
     return new ContextFragment(
-        callStack, callStack.parent(), callStack.current().returnDataSource(), true);
+        callStack, callStack.parent().id(), callStack.current().returnDataSource(), true);
   }
 
   public static ContextFragment enterContext(
       final CallStack callStack, final CallFrame calledCallFrame) {
-    return new ContextFragment(callStack, calledCallFrame, MemorySpan.empty(), false);
+    return new ContextFragment(callStack, calledCallFrame.id(), MemorySpan.empty(), false);
   }
 
   public static ContextFragment providesReturnData(final CallStack callStack) {
     return new ContextFragment(
         callStack,
-        callStack.current(),
+        callStack.current().id(),
         callStack.current().currentReturnDataSource().snapshot(),
         true);
   }
 
   @Override
   public Trace trace(Trace trace) {
-    EWord eAddress = callFrame.addressAsEWord();
-    EWord eCodeAddress = callFrame.codeAddressAsEWord();
+    final CallFrame callFrame = this.callStack.get(this.callFrameId);
+    final CallFrame parent = callStack.getParentOf(callFrame.id());
 
-    CallFrame parent = callStack.getParentOf(callFrame.id());
-    EWord parentAddress = parent.addressAsEWord();
+    final EWord eAddress = callFrame.addressAsEWord();
+    final EWord eCodeAddress = callFrame.codeAddressAsEWord();
+    final EWord parentAddress = parent.addressAsEWord();
 
     return trace
         .peekAtContext(true)

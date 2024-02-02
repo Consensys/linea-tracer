@@ -27,6 +27,7 @@ public record ExpSubFragment(EWord exponent) implements TraceSubFragment {
   @Override
   public Trace trace(Trace trace) {
     return trace
+        .pMiscellaneousExpFlag(true)
         .pMiscellaneousExpExponentHi(exponent.hi())
         .pMiscellaneousExpExponentLo(this.exponent.lo())
         .pMiscellaneousExpDyncost(

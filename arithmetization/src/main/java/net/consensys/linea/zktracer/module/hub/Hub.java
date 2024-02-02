@@ -20,6 +20,7 @@ import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 
 import java.nio.MappedByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -32,6 +33,7 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.bin.Bin;
@@ -185,7 +187,7 @@ public class Hub implements Module {
   private final LogData logData = new LogData(rlpTxrcpt);
   private final RlpAddr rlpAddr = new RlpAddr(this);
   private final Rom rom;
-  private final RomLex romLex;
+  @Getter private final RomLex romLex;
   private final TxnData txnData;
   private final Trm trm = new Trm();
   private final ModexpEffectiveCall modexp;
@@ -453,6 +455,48 @@ public class Hub implements Module {
     if (isDeployment) {
       this.conflation().deploymentInfo().deploy(toAddress);
     }
+
+    final Address fromAddress = this.tx.transaction().getSender();
+    final Account fromAccount = world.get(fromAddress);
+    final AccountSnapshot fromSnapshot =
+        AccountSnapshot.fromAccount(
+            fromAccount,
+            true,
+            this.conflation.deploymentInfo().number(fromAddress),
+            this.conflation.deploymentInfo().isDeploying(fromAddress));
+
+    final Account toAccount = world.get(toAddress);
+    final AccountSnapshot toSnapshot =
+        AccountSnapshot.fromAccount(
+            toAccount,
+            true,
+            this.conflation.deploymentInfo().number(toAddress),
+            this.conflation.deploymentInfo().isDeploying(toAddress));
+
+    final Wei transactionGasPrice =
+        ZkTracer.feeMarket
+            .getTransactionPriceCalculator()
+            .price(
+                (org.hyperledger.besu.ethereum.core.Transaction) this.tx.transaction(),
+                Optional.of(this.block().baseFee()));
+    final Wei value = (Wei) tx.transaction().getValue();
+    final AccountSnapshot fromPostDebitSnapshot =
+        fromSnapshot.debit(transactionGasPrice.multiply(tx.transaction().getGasLimit()).add(value));
+
+    final boolean isSelfCredit = toAddress.equals(fromAddress);
+    this.addTraceSection(
+        new TxInitSection(
+            this,
+            new AccountFragment(fromSnapshot, fromPostDebitSnapshot),
+            isDeployment
+                ? new AccountFragment(toSnapshot, toSnapshot.deploy(value))
+                : (isSelfCredit
+                    ? new AccountFragment(
+                        fromPostDebitSnapshot, fromPostDebitSnapshot.credit(value))
+                    : new AccountFragment(toSnapshot, toSnapshot.credit(value))),
+            MiscFragment.forTxInit(this),
+            ContextFragment.intializeExecutionContext(this.callStack, this)));
+
     this.tx.state(TxState.TX_EXEC);
   }
 
@@ -1361,5 +1405,13 @@ public class Hub implements Module {
    */
   public MemorySpan returnDataRequestedSegment() {
     return returnDataRequestedSegment(messageFrame());
+  }
+
+  public readCallData(final long offset, final long size) {
+    if (start > memBytes.length) {
+      return Bytes.wrap(new byte[(int) numBytes]);
+    } else {
+      return Bytes.wrap(Arrays.copyOfRange(memBytes, start, start + length));
+    }
   }
 }

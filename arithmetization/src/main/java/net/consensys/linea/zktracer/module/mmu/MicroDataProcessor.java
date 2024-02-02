@@ -21,6 +21,7 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.runtime.stack.StackOperation;
+import net.consensys.linea.zktracer.types.EWord;
 import org.apache.commons.lang3.function.TriFunction;
 
 class MicroDataProcessor {
@@ -52,7 +53,7 @@ class MicroDataProcessor {
         InstructionContext.builder()
             .self(callStack.current().contextNumber())
             .caller(callStack.caller().contextNumber())
-            .returnOffset(callStack.caller().returnTarget().absolute())
+            .returnOffset(EWord.of(callStack.caller().returnDataTarget().absolute()))
             .returnCapacity((int) returnLength)
             .returner(callStack.current().currentReturner())
             .build());

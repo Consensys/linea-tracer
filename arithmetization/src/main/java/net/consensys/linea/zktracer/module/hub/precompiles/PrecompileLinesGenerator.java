@@ -27,6 +27,9 @@ import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.MmuSubF
 import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.Blake2fPrecompileFirstSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.Blake2fPrecompileSecondSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.EcRecover;
+import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.Identity;
+import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.RipeMd160;
+import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.Sha2;
 
 @RequiredArgsConstructor
 public class PrecompileLinesGenerator {
@@ -37,32 +40,91 @@ public class PrecompileLinesGenerator {
         if (p.hubFailure()) {
           r.add(MiscFragment.empty().withOob(new EcRecover(p)));
         } else {
+          final boolean recoverySuccessful =
+              false; // TODO: execute the ECRECOVER ourselves and check it
+
           r.add(
               MiscFragment.empty()
                   .withOob(new EcRecover(p))
                   .withMmu(
-                      p.callDataSource().isEmpty() && p.success()
+                      p.callDataSource().isEmpty()
                           ? MmuSubFragment.nop()
-                          : new MmuSubFragment()));
+                          : MmuSubFragment.forEcRecover(hub, p, recoverySuccessful, 0)));
           r.add(
               MiscFragment.empty()
-                  .withOob(new EcRecover(p))
                   .withMmu(
-                      p.callDataSource().isEmpty() && p.success()
+                      p.callDataSource().isEmpty()
                           ? MmuSubFragment.nop()
-                          : new MmuSubFragment()));
+                          : MmuSubFragment.forEcRecover(hub, p, recoverySuccessful, 1)));
           r.add(
               MiscFragment.empty()
-                  .withOob(new EcRecover(p))
                   .withMmu(
-                      p.callDataSource().isEmpty() && p.success()
+                      p.callDataSource().isEmpty()
                           ? MmuSubFragment.nop()
-                          : new MmuSubFragment()));
+                          : MmuSubFragment.forEcRecover(hub, p, recoverySuccessful, 2)));
         }
       }
-      case SHA2_256 -> {}
-      case RIPEMD_160 -> {}
-      case IDENTITY -> {}
+      case SHA2_256 -> {
+        if (p.hubFailure()) {
+          r.add(MiscFragment.empty().withOob(new Sha2(p)));
+        } else {
+          r.add(
+              MiscFragment.empty()
+                  .withOob(new Sha2(p))
+                  .withMmu(
+                      p.callDataSource().isEmpty()
+                          ? MmuSubFragment.nop()
+                          : MmuSubFragment.forSha2(hub, p, 0)));
+          r.add(
+              MiscFragment.empty()
+                  .withMmu(
+                      p.callDataSource().isEmpty()
+                          ? MmuSubFragment.nop()
+                          : MmuSubFragment.forSha2(hub, p, 1)));
+          r.add(
+              MiscFragment.empty()
+                  .withMmu(
+                      p.callDataSource().isEmpty()
+                          ? MmuSubFragment.nop()
+                          : MmuSubFragment.forSha2(hub, p, 2)));
+        }
+      }
+      case RIPEMD_160 -> {
+        if (p.hubFailure()) {
+          r.add(MiscFragment.empty().withOob(new RipeMd160(p)));
+        } else {
+          r.add(
+              MiscFragment.empty()
+                  .withOob(new Sha2(p))
+                  .withMmu(
+                      p.callDataSource().isEmpty()
+                          ? MmuSubFragment.nop()
+                          : MmuSubFragment.forRipeMd160(hub, p, 0)));
+          r.add(
+              MiscFragment.empty()
+                  .withMmu(
+                      p.callDataSource().isEmpty()
+                          ? MmuSubFragment.nop()
+                          : MmuSubFragment.forRipeMd160(hub, p, 1)));
+          r.add(
+              MiscFragment.empty()
+                  .withMmu(
+                      p.callDataSource().isEmpty()
+                          ? MmuSubFragment.nop()
+                          : MmuSubFragment.forRipeMd160(hub, p, 2)));
+        }
+      }
+      case IDENTITY -> {
+        if (p.hubFailure()) {
+          r.add(MiscFragment.empty().withOob(new Identity(p)));
+        } else {
+          r.add(
+              MiscFragment.empty()
+                  .withOob(new Identity(p))
+                  .withMmu(MmuSubFragment.forIdentity(hub, p, 0)));
+          r.add(MiscFragment.empty().withMmu(MmuSubFragment.forIdentity(hub, p, 1)));
+        }
+      }
       case MODEXP -> {}
       case EC_ADD -> {}
       case EC_MUL -> {}

@@ -28,6 +28,7 @@ public interface GenericOobSubFragment extends TraceSubFragment {
   @Override
   default Trace trace(Trace trace) {
     return trace
+        .pMiscellaneousOobFlag(true)
         .pMiscellaneousOobData1(this.data(OobDataChannel.of(0)))
         .pMiscellaneousOobData2(this.data(OobDataChannel.of(1)))
         .pMiscellaneousOobData3(this.data(OobDataChannel.of(2)))

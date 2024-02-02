@@ -228,7 +228,7 @@ public class ToyExecutionEnvironment {
         gasCalculator,
         new TransactionValidatorFactory(
             gasCalculator,
-            new LondonTargetingGasLimitCalculator(0L, new LondonFeeMarket(0, Optional.empty())),
+            new LondonTargetingGasLimitCalculator(0L, new LondonFeeMarket(0)),
             new LondonFeeMarket(0L),
             false,
             Optional.of(this.chainId),

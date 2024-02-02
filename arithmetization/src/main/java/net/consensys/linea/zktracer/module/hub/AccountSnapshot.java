@@ -56,4 +56,37 @@ public record AccountSnapshot(
                     deploymentStatus))
         .orElseGet(() -> AccountSnapshot.empty(warm, deploymentNumber, deploymentStatus));
   }
+
+  public AccountSnapshot debit(Wei quantity) {
+    return new AccountSnapshot(
+        this.address,
+        this.nonce + 1,
+        this.balance.subtract(quantity),
+        this.warm,
+        this.code,
+        this.deploymentNumber,
+        this.deploymentStatus);
+  }
+
+  public AccountSnapshot deploy(Wei value) {
+    return new AccountSnapshot(
+        this.address,
+        this.nonce + 1,
+        this.balance.add(value),
+        this.warm,
+        this.code,
+        this.deploymentNumber + 1,
+        this.deploymentStatus);
+  }
+
+  public AccountSnapshot credit(Wei value) {
+    return new AccountSnapshot(
+        this.address,
+        this.nonce,
+        this.balance.add(value),
+        true,
+        this.code,
+        this.deploymentNumber,
+        this.deploymentStatus);
+  }
 }

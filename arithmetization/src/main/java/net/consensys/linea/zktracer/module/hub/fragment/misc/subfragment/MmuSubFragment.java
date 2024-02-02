@@ -15,99 +15,415 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment;
 
-import lombok.extern.slf4j.Slf4j;
+import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_ECRECOVER_DATA;
+import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_ECRECOVER_RESULT;
+import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_SHA2_256_DATA;
+import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_SHA2_256_RESULT;
+import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_TRANSACTION_CALL_DATA;
+import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_ANY_TO_RAM_WITH_PADDING;
+import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_EXO_TO_RAM_TRANSPLANTS;
+import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_MLOAD;
+import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_MSTORE;
+import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_MSTORE8;
+import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_RAM_TO_EXO_WITH_PADDING;
+import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_RAM_TO_RAM_SANS_PADDING;
+import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_RIGHT_PADDED_WORD_EXTRACTION;
+
+import java.util.Arrays;
+
+import com.google.common.base.Preconditions;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
-import net.consensys.linea.zktracer.module.hub.defer.PostExecDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
-import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 import net.consensys.linea.zktracer.types.EWord;
+import net.consensys.linea.zktracer.types.MemorySpan;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
-import org.hyperledger.besu.evm.operation.Operation;
 
-@Slf4j
-public class MmuSubFragment implements TraceSubFragment, PostExecDefer {
-  Bytes stackValue = Bytes.EMPTY;
-  Bytes offset1 = Bytes.EMPTY;
-  Bytes offset2 = Bytes.EMPTY;
-  byte opCode;
-  int param1 = 0;
-  int param2 = 0;
-  int returner = 0;
-  boolean info = false;
-  long referenceOffset = 0;
-  long referenceSize = 0;
-  int exoSum = 0;
-  int size = 0;
+@RequiredArgsConstructor
+@Setter
+@Accessors(fluent = true)
+public class MmuSubFragment implements TraceSubFragment {
+  private final int instruction;
+  private int sourceId = 0;
+  private int targetId = 0;
+  private int auxId = 0;
+  private EWord sourceOffset = EWord.ZERO;
+  private EWord targetOffset = EWord.ZERO;
+  private long size = 0;
+  private long referenceOffset = 0;
+  private long referenceSize = 0;
+  private boolean successBit = false;
+  private Bytes limb1 = Bytes.EMPTY;
+  private Bytes limb2 = Bytes.EMPTY;
+  private int exoSum = 0;
+  private long phase = 0;
+
+  private MmuSubFragment setFlag(int pos) {
+    this.exoSum |= 1 >> pos;
+    return this;
+  }
+
+  MmuSubFragment setRlpTxn() {
+    return this.setFlag(0);
+  }
+
+  MmuSubFragment setLog() {
+    return this.setFlag(1);
+  }
+
+  MmuSubFragment setRom() {
+    return this.setFlag(2);
+  }
+
+  MmuSubFragment setHash() {
+    return this.setFlag(3);
+  }
+
+  MmuSubFragment setRipSha() {
+    return this.setFlag(4);
+  }
+
+  MmuSubFragment setBlakeModexp() {
+    return this.setFlag(5);
+  }
+
+  MmuSubFragment setEcData() {
+    return this.setFlag(6);
+  }
 
   public static MmuSubFragment nop() {
-    return new MmuSubFragment();
+    return new MmuSubFragment(0);
   }
 
-  public static MmuSubFragment fromOpcode(Hub hub) {
-    final MmuSubFragment r = new MmuSubFragment();
-    final OpCode opCode = hub.currentFrame().opCode();
+  public static MmuSubFragment sha3(final Hub hub) {
+    return new MmuSubFragment(MMU_INST_RAM_TO_EXO_WITH_PADDING)
+        .sourceId(hub.currentFrame().contextNumber())
+        .auxId(hub.state().stamps().hashInfo())
+        .sourceOffset(EWord.of(hub.messageFrame().getStackItem(0)))
+        .size(Words.clampedToLong(hub.messageFrame().getStackItem(1)))
+        .referenceSize(Words.clampedToLong(hub.messageFrame().getStackItem(1)))
+        .setHash();
+  }
 
-    switch (opCode) {
-      case SHA3 -> {
-        r.offset1 = hub.messageFrame().getStackItem(0).copy();
-        r.param1 = 0; // TODO: hash info stamp
-        r.size = Words.clampedToInt(Words.clampedToLong(hub.messageFrame().getStackItem(1)));
-        r.exoSum = 0; // TODO:
-      }
-      case CALLDATALOAD -> {
-        r.param1 = hub.tx().number();
-        r.info = hub.callStack().depth() == 1;
-        r.referenceOffset = hub.currentFrame().callDataSource().offset();
-        r.referenceSize = hub.currentFrame().callDataSource().length();
-        r.offset1 = hub.messageFrame().getStackItem(0).copy();
-      }
-      case MSTORE, MSTORE8 -> {
-        r.offset1 = hub.messageFrame().getStackItem(0).copy();
-        r.stackValue = hub.messageFrame().getStackItem(1).copy();
-      }
-      case MLOAD -> r.offset1 = hub.messageFrame().getStackItem(0).copy();
-      default -> log.info("MMU not relevant for this opcode");
+  public static MmuSubFragment callDataLoad(final Hub hub) {
+    final long offset = hub.currentFrame().callDataSource().offset();
+    final long size = hub.currentFrame().callDataSource().length();
+
+    final long sourceOffset = Words.clampedToLong(hub.messageFrame().getStackItem(0));
+
+    if (sourceOffset >= size) {
+      return nop();
     }
 
-    r.opCode = opCode.byteValue();
+    final EWord read =
+        EWord.of(
+            Bytes.wrap(
+                Arrays.copyOfRange(
+                    hub.currentFrame().callData().toArray(), (int) offset, (int) (offset + 32))));
 
-    return r;
+    return new MmuSubFragment(MMU_INST_RIGHT_PADDED_WORD_EXTRACTION)
+        .sourceId(hub.callStack().get(hub.currentFrame().parentFrame()).contextNumber())
+        .sourceOffset(EWord.of(hub.messageFrame().getStackItem(0)))
+        .referenceOffset(offset)
+        .referenceSize(size)
+        .limb1(read.hi())
+        .limb2(read.lo());
   }
 
-  @Override
-  public void runPostExec(
-      final Hub hub, final MessageFrame frame, final Operation.OperationResult operationResult) {
-    switch (hub.opCode()) {
-      case MLOAD, CALLDATALOAD -> {
-        this.stackValue = frame.getStackItem(0).copy();
+  public static MmuSubFragment callDataCopy(final Hub hub) {
+    final MemorySpan callDataSegment = hub.currentFrame().callDataSource();
+    return new MmuSubFragment(MMU_INST_ANY_TO_RAM_WITH_PADDING)
+        .sourceId(hub.tx().number())
+        .targetId(hub.currentFrame().contextNumber())
+        .sourceOffset(EWord.of(hub.messageFrame().getStackItem(1)))
+        .targetOffset(EWord.of(hub.messageFrame().getStackItem(0)))
+        .size(Words.clampedToLong(hub.messageFrame().getStackItem(2)))
+        .referenceOffset(callDataSegment.offset())
+        .referenceSize(callDataSegment.length());
+  }
+
+  public static MmuSubFragment codeCopy(final Hub hub) {
+    return new MmuSubFragment(MMU_INST_ANY_TO_RAM_WITH_PADDING)
+        .sourceId(0) // TODO: defer sorted CFI
+        .targetId(hub.currentFrame().contextNumber())
+        .sourceOffset(EWord.of(hub.messageFrame().getStackItem(1)))
+        .targetOffset(EWord.of(hub.messageFrame().getStackItem(0)))
+        .size(Words.clampedToLong(hub.messageFrame().getStackItem(2)))
+        .referenceSize(hub.currentFrame().code().getSize())
+        .setRom();
+  }
+
+  public static MmuSubFragment extCodeCopy(final Hub hub) {
+    return new MmuSubFragment(MMU_INST_ANY_TO_RAM_WITH_PADDING)
+        .sourceId(0) // TODO: defer target sorted CFI
+        .targetId(hub.currentFrame().contextNumber())
+        .sourceOffset(EWord.of(hub.messageFrame().getStackItem(2)))
+        .targetOffset(EWord.of(hub.messageFrame().getStackItem(1)))
+        .size(Words.clampedToLong(hub.messageFrame().getStackItem(3)))
+        .referenceSize(0) // TODO: target CFI size
+        .setRom();
+  }
+
+  public static MmuSubFragment returnDataCopy(final Hub hub) {
+    final MemorySpan returnDataSegment = hub.currentFrame().currentReturnDataSource();
+    return new MmuSubFragment(MMU_INST_ANY_TO_RAM_WITH_PADDING)
+        .sourceId(hub.callStack().get(hub.currentFrame().currentReturner()).contextNumber())
+        .targetId(hub.currentFrame().contextNumber())
+        .sourceOffset(EWord.of(hub.messageFrame().getStackItem(1)))
+        .targetOffset(EWord.of(hub.messageFrame().getStackItem(0)))
+        .size(Words.clampedToLong(hub.messageFrame().getStackItem(2)))
+        .referenceOffset(returnDataSegment.offset())
+        .referenceSize(returnDataSegment.length());
+  }
+
+  public static MmuSubFragment mload(final Hub hub) {
+    final long offset = Words.clampedToLong(hub.messageFrame().getStackItem(0));
+    final EWord loadedValue = EWord.of(hub.messageFrame().shadowReadMemory(offset, 32));
+    return new MmuSubFragment(MMU_INST_MLOAD)
+        .sourceId(hub.currentFrame().contextNumber())
+        .sourceOffset(EWord.of(hub.messageFrame().getStackItem(0)))
+        .limb1(loadedValue.hi())
+        .limb2(loadedValue.lo());
+  }
+
+  public static MmuSubFragment mstore(final Hub hub) {
+    final EWord storedValue = EWord.of(hub.messageFrame().getStackItem(1));
+    return new MmuSubFragment(MMU_INST_MSTORE)
+        .sourceId(hub.currentFrame().contextNumber())
+        .sourceOffset(EWord.of(hub.messageFrame().getStackItem(0)))
+        .limb1(storedValue.hi())
+        .limb2(storedValue.lo());
+  }
+
+  public static MmuSubFragment mstore8(final Hub hub) {
+    final EWord storedValue = EWord.of(hub.messageFrame().getStackItem(1));
+    return new MmuSubFragment(MMU_INST_MSTORE8)
+        .sourceId(hub.currentFrame().contextNumber())
+        .sourceOffset(EWord.of(hub.messageFrame().getStackItem(0)))
+        .limb1(storedValue.hi())
+        .limb2(storedValue.lo());
+  }
+
+  public static MmuSubFragment log(final Hub hub) {
+    return new MmuSubFragment(MMU_INST_RAM_TO_EXO_WITH_PADDING)
+        .sourceId(hub.currentFrame().contextNumber())
+        .targetId(0) // TODO: absolute log number
+        .sourceOffset(EWord.of(hub.messageFrame().getStackItem(0)))
+        .size(Words.clampedToLong(hub.messageFrame().getStackItem(1)))
+        .referenceSize(Words.clampedToLong(hub.messageFrame().getStackItem(1)))
+        .setLog();
+  }
+
+  public static MmuSubFragment create(final Hub hub) {
+    return new MmuSubFragment(MMU_INST_RAM_TO_EXO_WITH_PADDING)
+        .sourceId(hub.currentFrame().contextNumber())
+        .targetId(
+            hub.romLex().nextCfiBeforeReordering()) // TODO: must be deferred to the re-ordered CFI
+        .sourceOffset(EWord.of(hub.messageFrame().getStackItem(1)))
+        .size(Words.clampedToLong(hub.messageFrame().getStackItem(2)))
+        .referenceSize(Words.clampedToLong(hub.messageFrame().getStackItem(2)))
+        .setRom();
+  }
+
+  public static MmuSubFragment returnFromDeployment(final Hub hub) {
+    return new MmuSubFragment(MMU_INST_RAM_TO_EXO_WITH_PADDING)
+        .sourceId(hub.currentFrame().contextNumber())
+        .targetId(
+            hub.romLex().nextCfiBeforeReordering()) // TODO: must be deferred to the re-ordered CFI
+        .auxId(hub.state().stamps().hashInfo())
+        .sourceOffset(EWord.of(hub.messageFrame().getStackItem(0)))
+        .size(Words.clampedToLong(hub.messageFrame().getStackItem(1)))
+        .referenceSize(Words.clampedToLong(hub.messageFrame().getStackItem(1)))
+        .setHash()
+        .setRom();
+  }
+
+  public static MmuSubFragment returnFromCall(final Hub hub) {
+    return MmuSubFragment.revert(hub);
+  }
+
+  public static MmuSubFragment create2(final Hub hub) {
+    return new MmuSubFragment(MMU_INST_RAM_TO_EXO_WITH_PADDING)
+        .sourceId(hub.currentFrame().contextNumber())
+        .targetId(
+            hub.romLex().nextCfiBeforeReordering()) // TODO: must be deferred to the re-ordered CFI
+        .auxId(hub.state().stamps().hashInfo())
+        .sourceOffset(EWord.of(hub.messageFrame().getStackItem(1)))
+        .size(Words.clampedToLong(hub.messageFrame().getStackItem(2)))
+        .referenceSize(Words.clampedToLong(hub.messageFrame().getStackItem(2)))
+        .setHash()
+        .setRom();
+  }
+
+  public static MmuSubFragment revert(final Hub hub) {
+    return new MmuSubFragment(MMU_INST_RAM_TO_EXO_WITH_PADDING)
+        .sourceId(hub.currentFrame().contextNumber())
+        .targetId(hub.callStack().get(hub.currentFrame().parentFrame()).contextNumber())
+        .sourceOffset(EWord.of(hub.messageFrame().getStackItem(0)))
+        .size(Words.clampedToLong(hub.messageFrame().getStackItem(1)))
+        .referenceOffset(hub.currentFrame().returnDataTarget().offset())
+        .referenceSize(hub.currentFrame().returnDataTarget().length());
+  }
+
+  public static MmuSubFragment txInit(final Hub hub) {
+    return new MmuSubFragment(MMU_INST_EXO_TO_RAM_TRANSPLANTS)
+        .sourceId(hub.tx().number())
+        .targetId(hub.stamp())
+        .size(hub.tx().transaction().getData().map(Bytes::size).orElse(0))
+        .phase(PHASE_TRANSACTION_CALL_DATA)
+        .setRlpTxn();
+  }
+
+  public static MmuSubFragment forEcRecover(
+      final Hub hub, PrecompileInvocation p, boolean recoverySuccessful, int i) {
+    Preconditions.checkArgument(i >= 0 && i < 3);
+
+    if (i == 0) {
+      return new MmuSubFragment(MMU_INST_RAM_TO_EXO_WITH_PADDING)
+          .sourceId(hub.currentFrame().contextNumber())
+          .targetId(hub.stamp() + 1)
+          .sourceOffset(EWord.of(p.callDataSource().offset()))
+          .size(p.callDataSource().length())
+          .referenceSize(128)
+          .successBit(recoverySuccessful)
+          .phase(PHASE_ECRECOVER_DATA)
+          .setEcData();
+    } else if (i == 1) {
+      if (recoverySuccessful) {
+        return new MmuSubFragment(MMU_INST_EXO_TO_RAM_TRANSPLANTS)
+            .sourceId(hub.stamp() + 1)
+            .targetId(hub.stamp() + 1)
+            .size(32)
+            .phase(PHASE_ECRECOVER_RESULT)
+            .setEcData();
+      } else {
+        return nop();
       }
-      default -> {}
+    } else {
+      if (recoverySuccessful && !p.requestedReturnDataTarget().isEmpty()) {
+        return new MmuSubFragment(MMU_INST_RAM_TO_RAM_SANS_PADDING)
+            .sourceId(hub.stamp() + 1)
+            .targetId(hub.currentFrame().contextNumber())
+            .sourceOffset(EWord.ZERO)
+            .size(32)
+            .referenceOffset(p.requestedReturnDataTarget().offset())
+            .referenceSize(p.requestedReturnDataTarget().length());
+
+      } else {
+        return nop();
+      }
+    }
+  }
+
+  private static MmuSubFragment forRipeMd160Sha(
+      final Hub hub, PrecompileInvocation p, int i, Bytes emptyHi, Bytes emptyLo) {
+    Preconditions.checkArgument(i >= 0 && i < 3);
+
+    if (i == 0) {
+      if (p.callDataSource().isEmpty()) {
+        return nop();
+      } else {
+        return new MmuSubFragment(MMU_INST_RAM_TO_EXO_WITH_PADDING)
+            .sourceId(hub.currentFrame().contextNumber())
+            .targetId(hub.stamp() + 1)
+            .sourceOffset(EWord.of(p.callDataSource().offset()))
+            .size(p.callDataSource().length())
+            .referenceSize(p.callDataSource().length())
+            .phase(PHASE_SHA2_256_DATA)
+            .setRipSha();
+      }
+    } else if (i == 1) {
+      if (p.callDataSource().isEmpty()) {
+        return new MmuSubFragment(MMU_INST_MSTORE)
+            .targetId(hub.stamp() + 1)
+            .targetOffset(EWord.ZERO)
+            .limb1(emptyHi) // TODO: SHA2-256(NOTHING)/Hi
+            .limb2(emptyLo) // TODO: "/Lo
+        ;
+      } else {
+        return new MmuSubFragment(MMU_INST_EXO_TO_RAM_TRANSPLANTS)
+            .sourceId(hub.stamp() + 1)
+            .targetId(hub.stamp() + 1)
+            .size(32)
+            .phase(PHASE_SHA2_256_RESULT)
+            .setRipSha();
+      }
+    } else {
+      if (p.requestedReturnDataTarget().isEmpty()) {
+        return nop();
+      } else {
+        return new MmuSubFragment(MMU_INST_RAM_TO_RAM_SANS_PADDING)
+            .sourceId(hub.stamp() + 1)
+            .targetId(hub.currentFrame().contextNumber())
+            .sourceOffset(EWord.ZERO)
+            .size(32)
+            .referenceOffset(p.requestedReturnDataTarget().offset())
+            .referenceSize(p.requestedReturnDataTarget().length());
+      }
+    }
+  }
+
+  public static MmuSubFragment forSha2(final Hub hub, PrecompileInvocation p, int i) {
+    return forRipeMd160Sha(hub, p, i, Bytes.EMPTY, Bytes.EMPTY); // TODO: SHA2-256({}) hi/lo
+  }
+
+  public static MmuSubFragment forRipeMd160(final Hub hub, PrecompileInvocation p, int i) {
+    return forRipeMd160Sha(hub, p, i, Bytes.EMPTY, Bytes.EMPTY); // TODO: RIPEMD160({}) hi/lo
+  }
+
+  public static MmuSubFragment forIdentity(final Hub hub, PrecompileInvocation p, int i) {
+    Preconditions.checkArgument(i >= 0 && i < 2);
+
+    if (p.callDataSource().isEmpty()) {
+      return nop();
+    }
+
+    if (i == 0) {
+      return new MmuSubFragment(MMU_INST_RAM_TO_RAM_SANS_PADDING)
+          .sourceId(hub.currentFrame().contextNumber())
+          .targetId(hub.stamp() + 1)
+          .sourceOffset(EWord.of(p.callDataSource().offset()))
+          .size(p.callDataSource().length())
+          .referenceOffset(0)
+          .referenceSize(p.callDataSource().length());
+    } else {
+      if (p.requestedReturnDataTarget().isEmpty()) {
+        return nop();
+      } else {
+        return new MmuSubFragment(MMU_INST_RAM_TO_RAM_SANS_PADDING)
+            .sourceId(hub.stamp() + 1)
+            .targetId(hub.currentFrame().contextNumber())
+            .sourceOffset(EWord.ZERO)
+            .size(p.callDataSource().length())
+            .referenceOffset(p.requestedReturnDataTarget().offset())
+            .referenceSize(p.requestedReturnDataTarget().length());
+      }
     }
   }
 
   @Override
   public Trace trace(Trace trace) {
-    final EWord eOffset1 = EWord.of(this.offset1);
-    final EWord eOffset2 = EWord.of(this.offset2);
-    final EWord eStackValue = EWord.of(this.stackValue);
-
     return trace
-        .pMiscellaneousMmuInst(Bytes.of(this.opCode))
-        .pMiscellaneousMmuParam1(Bytes.ofUnsignedInt(this.param1))
-        .pMiscellaneousMmuParam2(Bytes.ofUnsignedInt(this.param2))
-        //        .pMiscellaneousMmuReturner(Bytes.ofUnsignedInt(this.returner))
-        .pMiscellaneousMmuInfo(this.info)
+        .pMiscellaneousMmuFlag(true)
+        .pMiscellaneousMmuInst(Bytes.ofUnsignedInt(this.instruction))
+        .pMiscellaneousMmuTgtId(Bytes.ofUnsignedInt(this.sourceId))
+        .pMiscellaneousMmuSrcId(Bytes.ofUnsignedInt(this.targetId))
+        .pMiscellaneousMmuAuxId(Bytes.ofUnsignedInt(this.auxId))
+        .pMiscellaneousMmuSrcOffsetHi(this.sourceOffset.hi())
+        .pMiscellaneousMmuSrcOffsetLo(this.sourceOffset.lo())
+        .pMiscellaneousMmuTgtOffsetLo(this.targetOffset.lo())
+        .pMiscellaneousMmuSize(Bytes.ofUnsignedLong(this.size))
         .pMiscellaneousMmuRefOffset(Bytes.ofUnsignedLong(this.referenceOffset))
         .pMiscellaneousMmuRefSize(Bytes.ofUnsignedLong(this.referenceSize))
-        .pMiscellaneousMmuOffset1Lo(eOffset1.lo())
-        .pMiscellaneousMmuOffset2Hi(eOffset2.hi())
-        .pMiscellaneousMmuOffset2Lo(eOffset2.lo())
-        .pMiscellaneousMmuSize(Bytes.ofUnsignedInt(this.size))
-        .pMiscellaneousMmuStackValHi(eStackValue.hi())
-        .pMiscellaneousMmuStackValLo(eStackValue.lo())
-        .pMiscellaneousMmuExoSum(Bytes.ofUnsignedInt(this.exoSum));
+        .pMiscellaneousMmuSuccessBit(this.successBit)
+        .pMiscellaneousMmuLimb1(this.limb1)
+        .pMiscellaneousMmuLimb2(this.limb2)
+        .pMiscellaneousMmuExoSum(Bytes.ofUnsignedLong(this.exoSum))
+        .pMiscellaneousMmuPhase(Bytes.ofUnsignedLong(this.phase));
   }
 }

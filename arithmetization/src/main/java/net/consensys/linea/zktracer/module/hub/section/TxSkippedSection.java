@@ -22,7 +22,4 @@ public class TxSkippedSection extends TraceSection {
   public TxSkippedSection(Hub hub, TraceFragment... chunks) {
     this.addChunksWithoutStack(hub, chunks);
   }
-
-  @Override
-  public void seal(Hub hub) {}
 }

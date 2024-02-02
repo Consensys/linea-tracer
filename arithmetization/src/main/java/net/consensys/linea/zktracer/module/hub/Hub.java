@@ -969,7 +969,7 @@ public class Hub implements Module {
           HALT,
           INVALID -> this.addTraceSection(new StackOnlySection(this));
       case KEC -> this.addTraceSection(
-          new KeccakSection(this, this.currentFrame(), MiscFragment.fromOpcode(this, frame)));
+          new KeccakSection(this, this.currentFrame(), MiscFragment.forOpcode(this, frame)));
       case CONTEXT, LOG -> this.addTraceSection(
           new ContextLogSection(this, ContextFragment.readContextData(callStack)));
       case ACCOUNT -> {
@@ -1039,14 +1039,14 @@ public class Hub implements Module {
       case STACK_RAM -> {
         switch (this.currentFrame().opCode()) {
           case CALLDATALOAD -> {
-            final MiscFragment miscFragment = MiscFragment.fromOpcode(this, frame);
+            final MiscFragment miscFragment = MiscFragment.forOpcode(this, frame);
             this.defers.postExec(miscFragment);
 
             this.addTraceSection(
                 new StackRam(this, miscFragment, ContextFragment.readContextData(callStack)));
           }
           case MLOAD, MSTORE, MSTORE8 -> this.addTraceSection(
-              new StackRam(this, MiscFragment.fromOpcode(this, frame)));
+              new StackRam(this, MiscFragment.forOpcode(this, frame)));
           default -> throw new IllegalStateException("unexpected STACK_RAM opcode");
         }
       }
@@ -1178,7 +1178,7 @@ public class Hub implements Module {
                     ContextFragment.nonExecutionEmptyReturnData(callStack));
             this.addTraceSection(abortedSection);
           } else {
-            final MiscFragment miscFragment = MiscFragment.fromOpcode(this, frame);
+            final MiscFragment miscFragment = MiscFragment.forOpcode(this, frame);
 
             if (hasCode) {
               final SmartContractCallSection section =
@@ -1224,7 +1224,7 @@ public class Hub implements Module {
                 this,
                 ContextFragment.readContextData(callStack),
                 new AccountFragment(codeAccountSnapshot, codeAccountSnapshot, false, 0, false),
-                MiscFragment.fromOpcode(this, frame));
+                MiscFragment.forOpcode(this, frame));
 
         this.addTraceSection(jumpSection);
       }

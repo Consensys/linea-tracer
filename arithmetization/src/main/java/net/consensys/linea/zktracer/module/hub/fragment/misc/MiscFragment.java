@@ -35,17 +35,10 @@ import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.Cal
 import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.CalldataloadSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.Create;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.DeploymentReturn;
-import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.EcAdd;
-import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.EcMul;
-import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.EcPairing;
-import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.EcRecover;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.ExceptionalCall;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.GenericOobSubFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.Identity;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.JumpSubFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.RipeMd160;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.SStore;
-import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.Sha2;
 import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.gas.GasConstants;
@@ -161,7 +154,7 @@ public class MiscFragment implements TraceFragment, PostExecDefer {
     return r;
   }
 
-  public static MiscFragment fromOpcode(Hub hub, MessageFrame frame) {
+  public static MiscFragment forOpcode(Hub hub, MessageFrame frame) {
     final MiscFragment r = new MiscFragment(hub);
 
     if (r.signals.mmu()) {
@@ -187,26 +180,6 @@ public class MiscFragment implements TraceFragment, PostExecDefer {
     return r;
   }
 
-  public MiscFragment withOobForPrecompile(final Hub hub, final PrecompileInvocation p) {
-    final MiscFragment r = new MiscFragment(hub, Signals.fromPrecompileInvocation(p));
-
-    if (r.signals.oob()) {
-      switch (p.precompile()) {
-        case EC_RECOVER -> r.subFragments.add(new EcRecover(p));
-        case SHA2_256 -> r.subFragments.add(new Sha2(p));
-        case RIPEMD_160 -> r.subFragments.add(new RipeMd160(p));
-        case IDENTITY -> r.subFragments.add(new Identity(p));
-        case EC_ADD -> r.subFragments.add(new EcAdd(p));
-        case EC_MUL -> r.subFragments.add(new EcMul(p));
-        case EC_PAIRING -> r.subFragments.add(new EcPairing(p));
-          // Failure case for this one
-        case BLAKE2F -> r.subFragments.add(new Blake2fPrecompileFirstSubFragment(p));
-        case MODEXP -> throw new IllegalArgumentException("should be called with an index");
-      }
-    }
-
-    return r;
-  }
 
   public MiscFragment withOob(GenericOobSubFragment f) {
     this.subFragments.add(f);

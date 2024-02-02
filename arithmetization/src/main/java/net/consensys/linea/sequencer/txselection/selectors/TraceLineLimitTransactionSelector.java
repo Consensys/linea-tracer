@@ -19,7 +19,6 @@ import static net.consensys.linea.sequencer.txselection.LineaTransactionSelectio
 import static org.hyperledger.besu.plugin.data.TransactionSelectionResult.SELECTED;
 
 import java.util.Map;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
@@ -51,8 +50,8 @@ public class TraceLineLimitTransactionSelector implements PluginTransactionSelec
   private Map<String, Integer> currCumulatedLineCount;
 
   public TraceLineLimitTransactionSelector(
-      final Supplier<Map<String, Integer>> moduleLimitsProvider, final String limitFilePath) {
-    moduleLimits = moduleLimitsProvider.get();
+      final Map<String, Integer> moduleLimits, final String limitFilePath) {
+    this.moduleLimits = moduleLimits;
     zkTracer = new ZkTracerWithLog();
     zkTracer.traceStartConflation(1L);
     this.limitFilePath = limitFilePath;

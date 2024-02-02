@@ -16,10 +16,9 @@ package net.consensys.linea.sequencer.txselection.selectors;
 
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
 
 import lombok.extern.slf4j.Slf4j;
-import net.consensys.linea.sequencer.txselection.LineaTransactionSelectorConfiguration;
+import net.consensys.linea.config.LineaTransactionSelectorConfiguration;
 import org.hyperledger.besu.datatypes.PendingTransaction;
 import org.hyperledger.besu.plugin.data.TransactionProcessingResult;
 import org.hyperledger.besu.plugin.data.TransactionSelectionResult;
@@ -36,36 +35,29 @@ public class LineaTransactionSelector implements PluginTransactionSelector {
 
   public LineaTransactionSelector(
       LineaTransactionSelectorConfiguration lineaConfiguration,
-      final Supplier<Map<String, Integer>> limitsMapSupplier) {
-    this.selectors = createTransactionSelectors(lineaConfiguration, limitsMapSupplier);
+      final Map<String, Integer> limitsMap) {
+    this.selectors = createTransactionSelectors(lineaConfiguration, limitsMap);
   }
 
   /**
    * Creates a list of selectors based on Linea configuration.
    *
    * @param lineaConfiguration The configuration to use.
-   * @param limitsMapSupplier The supplier for the limits map.
+   * @param limitsMap The limits map.
    * @return A list of selectors.
    */
   private List<PluginTransactionSelector> createTransactionSelectors(
       final LineaTransactionSelectorConfiguration lineaConfiguration,
-      final Supplier<Map<String, Integer>> limitsMapSupplier) {
+      final Map<String, Integer> limitsMap) {
 
     traceLineLimitTransactionSelector =
         new TraceLineLimitTransactionSelector(
-            limitsMapSupplier, lineaConfiguration.getModuleLimitsFilePath());
+            limitsMap, lineaConfiguration.getModuleLimitsFilePath());
 
     return List.of(
         new MaxBlockCallDataTransactionSelector(lineaConfiguration.getMaxBlockCallDataSize()),
         new MaxBlockGasTransactionSelector(lineaConfiguration.getMaxGasPerBlock()),
-        new ProfitableTransactionSelector(
-            lineaConfiguration.getVerificationGasCost(),
-            lineaConfiguration.getVerificationCapacity(),
-            lineaConfiguration.getGasPriceRatio(),
-            lineaConfiguration.getMinMargin(),
-            lineaConfiguration.getAdjustTxSize(),
-            lineaConfiguration.getUnprofitableCacheSize(),
-            lineaConfiguration.getUnprofitableRetryLimit()),
+        new ProfitableTransactionSelector(lineaConfiguration),
         traceLineLimitTransactionSelector);
   }
 

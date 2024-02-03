@@ -20,8 +20,6 @@ import static net.consensys.linea.zktracer.module.exp.Trace.EXP_MODEXPLOG;
 import static net.consensys.linea.zktracer.module.exp.Trace.ISZERO;
 import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_CMPTN_EXP_LOG;
 import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_CMPTN_MODEXP_LOG;
-import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_MACRO_EXP_LOG;
-import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_MACRO_MODEXP_LOG;
 import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_PRPRC_EXP_LOG;
 import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_PRPRC_MODEXP_LOG;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
@@ -42,7 +40,7 @@ public class ExpChunk extends ModuleOperation {
   private Bytes pComputationTanzbAcc = Bytes.of(0); // Paired with Tanzb
   private UnsignedByte pComputationMsnzb = UnsignedByte.of(0);
   private Bytes pComputationManzbAcc = Bytes.of(0); // Paired with Manzb
-  // macro contains only one row, thus no need for an array
+  // Macro contains only one row, thus no need for an array
   private final Bytes pMacroInstructionExpInst;
   private final Bytes pMacroInstructionData1;
   private final Bytes pMacroInstructionData2;
@@ -130,10 +128,11 @@ public class ExpChunk extends ModuleOperation {
 
   @Override
   protected int computeLineCount() {
+    // We assume MAX_CT_MACRO_EXP_LOG = MAX_CT_MACRO_MODEXP_LOG = 0;
     if (isExpLog) {
-      return MAX_CT_CMPTN_EXP_LOG + 1 + MAX_CT_MACRO_EXP_LOG + MAX_CT_PRPRC_EXP_LOG + 1;
+      return MAX_CT_CMPTN_EXP_LOG + MAX_CT_PRPRC_EXP_LOG + 3;
     } else {
-      return MAX_CT_CMPTN_MODEXP_LOG + 1 + MAX_CT_MACRO_MODEXP_LOG + MAX_CT_PRPRC_MODEXP_LOG + 1;
+      return MAX_CT_CMPTN_MODEXP_LOG + MAX_CT_PRPRC_MODEXP_LOG + 3;
     }
   }
 
@@ -172,6 +171,7 @@ public class ExpChunk extends ModuleOperation {
   }
 
   final void traceMacro(int stamp, Trace trace) {
+    // We assume MAX_CT_MACRO_EXP_LOG = MAX_CT_MACRO_MODEXP_LOG = 0;
     trace
         .cmptn(false)
         .macro(true)

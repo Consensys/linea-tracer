@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.module.exp;
 
 import static net.consensys.linea.zktracer.module.exp.Trace.EXP_EXPLOG;
 import static net.consensys.linea.zktracer.module.exp.Trace.EXP_MODEXPLOG;
+import static net.consensys.linea.zktracer.module.exp.Trace.ISZERO;
 import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_CMPTN_EXP_LOG;
 import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_CMPTN_MODEXP_LOG;
 import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_MACRO_EXP_LOG;
@@ -25,30 +26,22 @@ import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_PRPRC_EXP_LOG
 import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_PRPRC_MODEXP_LOG;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
-import java.math.BigInteger;
-
 import lombok.Getter;
 import net.consensys.linea.zktracer.container.ModuleOperation;
+import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @Getter
 public class ExpChunk extends ModuleOperation {
-  private boolean isExpLog;
-  private boolean[] pComputationPltBit;
-  private Bytes[] pComputationPltJmp;
-  private UnsignedByte[] pComputationRawByte;
-  private Bytes[] pComputationRawAcc;
-  private UnsignedByte[] pComputationTrimByte;
-  private Bytes[] pComputationTrimAcc;
-  private boolean[] pComputationTanzb;
-  private Bytes[] pComputationTanzbAcc;
-  private UnsignedByte[] pComputationMsnzb;
-  private boolean[] pComputationBitMsnzb;
-  private UnsignedByte[] pComputationAccMsnzb;
-  private boolean[] pComputationManzb;
-  private Bytes[] pComputationManzbAcc;
+  private final boolean isExpLog;
+  private Bytes pComputationPltJmp = Bytes.of(0);
+  private Bytes pComputationRawAcc = Bytes.of(0); // paired with RawByte
+  private Bytes pComputationTrimAcc = Bytes.of(0); // paired with TrimByte
+  private Bytes pComputationTanzbAcc = Bytes.of(0); // Paired with Tanzb
+  private UnsignedByte pComputationMsnzb = UnsignedByte.of(0);
+  private Bytes pComputationManzbAcc = Bytes.of(0); // Paired with Manzb
   // macro contains only one row, thus no need for an array
   private final Bytes pMacroInstructionExpInst;
   private final Bytes pMacroInstructionData1;
@@ -62,14 +55,19 @@ public class ExpChunk extends ModuleOperation {
   private Bytes[] pPreprocessingWcpArg2Hi;
   private Bytes[] pPreprocessingWcpArg2Lo;
   private UnsignedByte[] pPreprocessingWcpInst;
+  private boolean[] pPreprocessingWcpRes;
 
   MessageFrame frame;
   ExpLogExpParameters expLogExpParameters;
   ModexpLogExpParameters modexpLogExpParameters;
 
-  public ExpChunk(final MessageFrame frame, final ExpLogExpParameters expLogExpParameters) {
+  Wcp wcp;
+
+  public ExpChunk(
+      final MessageFrame frame, Wcp wcp, final ExpLogExpParameters expLogExpParameters) {
     // EXP_LOG case
     this.frame = frame;
+    this.wcp = wcp;
     this.expLogExpParameters = expLogExpParameters;
     isExpLog = true;
     pMacroInstructionExpInst = Bytes.of(EXP_EXPLOG);
@@ -78,14 +76,36 @@ public class ExpChunk extends ModuleOperation {
     pMacroInstructionData3 = Bytes.of(0);
     pMacroInstructionData4 = Bytes.of(0);
     pMacroInstructionData5 = bigIntegerToBytes(expLogExpParameters.dynCost());
-    initColumns(MAX_CT_CMPTN_EXP_LOG + 1, MAX_CT_PRPRC_EXP_LOG + 1);
-    // Do preprocessing here
-    // Then fill bytes / bits etc and ideally call the generic methods
+    initArrays(MAX_CT_PRPRC_EXP_LOG + 1);
+
+    // Preprocessing
+    // First row
+    pPreprocessingWcpFlag[0] = true;
+    pPreprocessingWcpArg1Hi[0] = Bytes.of(0);
+    pPreprocessingWcpArg1Lo[0] = bigIntegerToBytes(expLogExpParameters.exponentHi());
+    pPreprocessingWcpArg2Hi[0] = Bytes.of(0);
+    pPreprocessingWcpArg2Lo[0] = Bytes.of(0);
+    pPreprocessingWcpInst[0] = UnsignedByte.of(ISZERO);
+    pPreprocessingWcpRes[0] = expLogExpParameters.exponentHi().signum() == 0;
+    boolean expnHiIsZero = pPreprocessingWcpRes[0];
+
+    // Lookup
+    wcp.callISZERO(expLogExpParameters.exponent());
+
+    // Linking constraints
+    pComputationPltJmp = Bytes.of(16);
+    if (expnHiIsZero) {
+      pComputationRawAcc = bigIntegerToBytes(expLogExpParameters.exponentHi());
+    } else {
+      pComputationRawAcc = bigIntegerToBytes(expLogExpParameters.exponentLo());
+    }
   }
 
-  public ExpChunk(final MessageFrame frame, final ModexpLogExpParameters modexpLogExpParameters) {
+  public ExpChunk(
+      final MessageFrame frame, Wcp wcp, final ModexpLogExpParameters modexpLogExpParameters) {
     // MODEXP_LOG case
     this.frame = frame;
+    this.wcp = wcp;
     this.modexpLogExpParameters = modexpLogExpParameters;
     isExpLog = false;
     pMacroInstructionExpInst = Bytes.of(EXP_MODEXPLOG);
@@ -94,86 +114,31 @@ public class ExpChunk extends ModuleOperation {
     pMacroInstructionData3 = Bytes.of(modexpLogExpParameters.cdsCutoff());
     pMacroInstructionData4 = Bytes.of(modexpLogExpParameters.cdsCutoff());
     pMacroInstructionData5 = bigIntegerToBytes(modexpLogExpParameters.leadLog());
-    initColumns(MAX_CT_CMPTN_MODEXP_LOG + 1, MAX_CT_PRPRC_MODEXP_LOG + 1);
-    // Do preprocessing here
-    // Then fill bytes / bits etc and ideally call the generic methods
+    initArrays(MAX_CT_PRPRC_MODEXP_LOG + 1);
+    // TODO preprocessing and linking constraints
   }
 
-  private void initColumns(int pComputationLen, int pPreprocessingLen) {
-    pComputationPltBit = new boolean[pComputationLen];
-    pComputationPltJmp = new Bytes[pComputationLen];
-    pComputationRawByte = new UnsignedByte[pComputationLen];
-    pComputationRawAcc = new Bytes[pComputationLen];
-    pComputationTrimByte = new UnsignedByte[pComputationLen];
-    pComputationTrimAcc = new Bytes[pComputationLen];
-    pComputationTanzb = new boolean[pComputationLen];
-    pComputationTanzbAcc = new Bytes[pComputationLen];
-    pComputationMsnzb = new UnsignedByte[pComputationLen];
-    pComputationBitMsnzb = new boolean[pComputationLen];
-    pComputationAccMsnzb = new UnsignedByte[pComputationLen];
-    pComputationManzb = new boolean[pComputationLen];
-    pComputationManzbAcc = new Bytes[pComputationLen];
+  private void initArrays(int pPreprocessingLen) {
     pPreprocessingWcpFlag = new boolean[pPreprocessingLen];
     pPreprocessingWcpArg1Hi = new Bytes[pPreprocessingLen];
     pPreprocessingWcpArg1Lo = new Bytes[pPreprocessingLen];
     pPreprocessingWcpArg2Hi = new Bytes[pPreprocessingLen];
     pPreprocessingWcpArg2Lo = new Bytes[pPreprocessingLen];
     pPreprocessingWcpInst = new UnsignedByte[pPreprocessingLen];
-  }
-
-  private void setByteDecomposition(UnsignedByte[] dByte, Bytes[] dAcc) {
-    dAcc[0] = Bytes.of(dByte[0].toInteger());
-    for (int ct = 1; ct < dByte.length; ct++) {
-      dAcc[ct] =
-          bigIntegerToBytes(
-              BigInteger.valueOf(256)
-                  .multiply(dAcc[ct - 1].toUnsignedBigInteger())
-                  .add(dByte[ct].toBigInteger()));
-    }
-  }
-
-  private void setBitDecomposition(boolean[] dBit, UnsignedByte[] dAcc) {
-    dAcc[0] = UnsignedByte.of(dBit[0] ? 1 : 0);
-    for (int ct = 1; ct < dBit.length; ct++) {
-      dAcc[ct] =
-          UnsignedByte.of(
-              BigInteger.valueOf(2)
-                  .multiply(dAcc[ct - 1].toBigInteger())
-                  .add(dBit[ct] ? BigInteger.ONE : BigInteger.ZERO)
-                  .intValue());
-    }
+    pPreprocessingWcpRes = new boolean[pPreprocessingLen];
   }
 
   @Override
   protected int computeLineCount() {
-    return 0; // maxCt
-  }
-
-  int maxCt(boolean cmptn, boolean macro, boolean prprc) {
-    if (cmptn) {
-      if (isExpLog) {
-        return MAX_CT_CMPTN_EXP_LOG;
-      } else {
-        return MAX_CT_CMPTN_MODEXP_LOG;
-      }
-    } else if (macro) {
-      if (isExpLog) {
-        return MAX_CT_MACRO_EXP_LOG;
-      } else {
-        return MAX_CT_MACRO_MODEXP_LOG;
-      }
-    } else if (prprc) {
-      if (isExpLog) {
-        return MAX_CT_PRPRC_EXP_LOG;
-      } else {
-        return MAX_CT_PRPRC_MODEXP_LOG;
-      }
+    if (isExpLog) {
+      return MAX_CT_CMPTN_EXP_LOG + 1 + MAX_CT_MACRO_EXP_LOG + MAX_CT_PRPRC_EXP_LOG + 1;
+    } else {
+      return MAX_CT_CMPTN_MODEXP_LOG + 1 + MAX_CT_MACRO_MODEXP_LOG + MAX_CT_PRPRC_MODEXP_LOG + 1;
     }
-    return 0;
   }
 
   final void traceComputation(int stamp, Trace trace) {
-    int maxCt = this.maxCt(true, false, false);
+    int maxCt = isExpLog ? MAX_CT_CMPTN_EXP_LOG : MAX_CT_CMPTN_MODEXP_LOG;
     for (int i = 0; i < maxCt + 1; i++) {
       trace
           .cmptn(true)
@@ -184,45 +149,48 @@ public class ExpChunk extends ModuleOperation {
           .ctMax(Bytes.of(maxCt))
           .isExpLog(isExpLog)
           .isModexpLog(!isExpLog)
-          .pComputationPltBit(pComputationPltBit[i])
-          .pComputationPltJmp(pComputationPltJmp[i])
-          .pComputationRawByte(pComputationRawByte[i])
-          .pComputationRawAcc(pComputationRawAcc[i])
-          .pComputationTrimByte(pComputationTrimByte[i])
-          .pComputationTrimAcc(pComputationTrimAcc[i])
-          .pComputationTanzb(pComputationTanzb[i])
-          .pComputationTanzbAcc(pComputationTanzbAcc[i])
-          .pComputationMsnzb(pComputationMsnzb[i])
-          .pComputationBitMsnzb(pComputationBitMsnzb[i])
-          .pComputationAccMsnzb(pComputationAccMsnzb[i])
-          .pComputationManzb(pComputationManzb[i])
-          .pComputationManzbAcc(pComputationManzbAcc[i]);
+          .pComputationPltBit(i > pComputationPltJmp.toInt())
+          .pComputationPltJmp(pComputationPltJmp)
+          .pComputationRawByte(UnsignedByte.of(pComputationRawAcc.get(maxCt - i)))
+          .pComputationRawAcc(pComputationRawAcc.slice(maxCt - i)) //
+          .pComputationTrimByte(UnsignedByte.of(pComputationTrimAcc.get(maxCt - i)))
+          .pComputationTrimAcc(pComputationTrimAcc.slice(maxCt - i)) //
+          .pComputationTanzb(pComputationTrimAcc.get(maxCt - i) != 0)
+          .pComputationTanzbAcc(pComputationTanzbAcc.slice(maxCt - i)) //
+          .pComputationMsnzb(pComputationMsnzb)
+          .pComputationBitMsnzb(i > maxCt - 8 && ((pComputationMsnzb.toInteger() >> i) & 1) == 1)
+          .pComputationAccMsnzb(
+              UnsignedByte.of(
+                  i > maxCt - 8 ? pComputationMsnzb.toInteger() & ((1 << (i + 1)) - 1) : 0)) //
+          .pComputationManzb(
+              i > maxCt - 8 && (pComputationMsnzb.toInteger() & ((1 << (i + 1)) - 1)) != 0)
+          .pComputationManzbAcc(
+              i > maxCt - 8
+                  ? pComputationManzbAcc.slice(pComputationManzbAcc.size() - i)
+                  : Bytes.of(0)); //
     }
   }
 
   final void traceMacro(int stamp, Trace trace) {
-    int maxCt = this.maxCt(false, true, false);
-    for (int i = 0; i < maxCt + 1; i++) {
-      trace
-          .cmptn(false)
-          .macro(true)
-          .prprc(false)
-          .stamp(Bytes.ofUnsignedLong(stamp))
-          .ct(Bytes.of(i))
-          .ctMax(Bytes.of(maxCt))
-          .isExpLog(isExpLog)
-          .isModexpLog(!isExpLog)
-          .pMacroInstructionExpInst(pMacroInstructionExpInst)
-          .pMacroInstructionData1(pMacroInstructionData1)
-          .pMacroInstructionData2(pMacroInstructionData2)
-          .pMacroInstructionData3(pMacroInstructionData3)
-          .pMacroInstructionData4(pMacroInstructionData4)
-          .pMacroInstructionData5(pMacroInstructionData5);
-    }
+    trace
+        .cmptn(false)
+        .macro(true)
+        .prprc(false)
+        .stamp(Bytes.ofUnsignedLong(stamp))
+        .ct(Bytes.of(0))
+        .ctMax(Bytes.of(0))
+        .isExpLog(isExpLog)
+        .isModexpLog(!isExpLog)
+        .pMacroInstructionExpInst(pMacroInstructionExpInst)
+        .pMacroInstructionData1(pMacroInstructionData1)
+        .pMacroInstructionData2(pMacroInstructionData2)
+        .pMacroInstructionData3(pMacroInstructionData3)
+        .pMacroInstructionData4(pMacroInstructionData4)
+        .pMacroInstructionData5(pMacroInstructionData5);
   }
 
   final void tracePreprocessing(int stamp, Trace trace) {
-    int maxCt = this.maxCt(false, false, true);
+    int maxCt = isExpLog ? MAX_CT_PRPRC_EXP_LOG : MAX_CT_PRPRC_MODEXP_LOG;
     for (int i = 0; i < maxCt + 1; i++) { //
       trace
           .cmptn(false)
@@ -239,6 +207,7 @@ public class ExpChunk extends ModuleOperation {
           .pPreprocessingWcpArg2Hi(pPreprocessingWcpArg2Hi[i])
           .pPreprocessingWcpArg2Lo(pPreprocessingWcpArg2Lo[i])
           .pPreprocessingWcpInst(pPreprocessingWcpInst[i])
+          .pPreprocessingWcpRes(pPreprocessingWcpRes[i])
           .validateRow();
     }
   }

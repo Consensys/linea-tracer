@@ -207,7 +207,7 @@ public class Hub implements Module {
     this.pch = new PlatformController(this);
     this.mmu = new Mmu(this.callStack);
     this.mxp = new Mxp(this);
-    this.exp = new Exp(this);
+    this.exp = new Exp(this, this.wcp);
     this.romLex = new RomLex(this);
     this.rom = new Rom(this.romLex);
     this.rlpTxn = new RlpTxn(this.romLex);

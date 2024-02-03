@@ -18,6 +18,8 @@ package net.consensys.linea.zktracer.module.exp;
 import static com.google.common.math.BigIntegerMath.log2;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static net.consensys.linea.zktracer.module.exp.Trace.G_EXPBYTES;
+import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.math.BigInteger;
 import java.math.RoundingMode;
@@ -28,6 +30,7 @@ import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
@@ -40,9 +43,11 @@ public class Exp implements Module {
   private final StackedList<ExpChunk> chunks = new StackedList<>();
 
   private final Hub hub;
+  private final Wcp wcp;
 
-  public Exp(Hub hub) {
+  public Exp(Hub hub, Wcp wcp) {
     this.hub = hub;
+    this.wcp = wcp;
   }
 
   @Override
@@ -76,13 +81,13 @@ public class Exp implements Module {
       OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
       if (opCode.equals(OpCode.EXP)) {
         ExpLogExpParameters expLogExpParameters = extractExpLogParameters(frame);
-        this.chunks.add(new ExpChunk(frame, expLogExpParameters));
+        this.chunks.add(new ExpChunk(frame, wcp, expLogExpParameters));
       } else if (opCode.isCall()) {
         Address target = Words.toAddress(frame.getStackItem(1));
         if (target.equals(Address.MODEXP)) {
           ModexpLogExpParameters modexpLogExpParameters = extractModexpLogParameters(frame);
           if (modexpLogExpParameters != null) {
-            this.chunks.add(new ExpChunk(frame, modexpLogExpParameters));
+            this.chunks.add(new ExpChunk(frame, wcp, modexpLogExpParameters));
           }
         }
       }
@@ -91,7 +96,19 @@ public class Exp implements Module {
 
   private ExpLogExpParameters extractExpLogParameters(final MessageFrame frame) {
     EWord exponent = EWord.of(frame.getStackItem(1));
-    return new ExpLogExpParameters(exponent, BigInteger.ZERO);
+    BigInteger exponentHi = exponent.hiBigInt();
+    BigInteger dynCost;
+    if (exponent.isZero()) {
+      dynCost = BigInteger.ZERO;
+    } else {
+      boolean expnHiIsZero = exponentHi.signum() == 0;
+      if (!expnHiIsZero) {
+        dynCost = BigInteger.valueOf(G_EXPBYTES * (bigIntegerToBytes(exponentHi).size() + 16));
+      } else {
+        dynCost = BigInteger.valueOf(G_EXPBYTES * bigIntegerToBytes(exponentHi).size());
+      }
+    }
+    return new ExpLogExpParameters(exponent, dynCost);
   }
 
   private ModexpLogExpParameters extractModexpLogParameters(final MessageFrame frame) {

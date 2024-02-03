@@ -88,6 +88,7 @@ public class Trace {
   private final MappedByteBuffer statusCode;
   private final MappedByteBuffer toHi;
   private final MappedByteBuffer toLo;
+  private final MappedByteBuffer txCopyTxcd;
   private final MappedByteBuffer type0;
   private final MappedByteBuffer type1;
   private final MappedByteBuffer type2;
@@ -133,6 +134,7 @@ public class Trace {
         new ColumnHeader("txnData.STATUS_CODE", 1, length),
         new ColumnHeader("txnData.TO_HI", 32, length),
         new ColumnHeader("txnData.TO_LO", 32, length),
+        new ColumnHeader("txnData.TX_COPY_TXCD", 1, length),
         new ColumnHeader("txnData.TYPE0", 1, length),
         new ColumnHeader("txnData.TYPE1", 1, length),
         new ColumnHeader("txnData.TYPE2", 1, length),
@@ -178,14 +180,15 @@ public class Trace {
     this.statusCode = buffers.get(31);
     this.toHi = buffers.get(32);
     this.toLo = buffers.get(33);
-    this.type0 = buffers.get(34);
-    this.type1 = buffers.get(35);
-    this.type2 = buffers.get(36);
-    this.value = buffers.get(37);
-    this.wcpArgOneLo = buffers.get(38);
-    this.wcpArgTwoLo = buffers.get(39);
-    this.wcpInst = buffers.get(40);
-    this.wcpRes = buffers.get(41);
+    this.txCopyTxcd = buffers.get(34);
+    this.type0 = buffers.get(35);
+    this.type1 = buffers.get(36);
+    this.type2 = buffers.get(37);
+    this.value = buffers.get(38);
+    this.wcpArgOneLo = buffers.get(39);
+    this.wcpArgTwoLo = buffers.get(40);
+    this.wcpInst = buffers.get(41);
+    this.wcpRes = buffers.get(42);
   }
 
   public int size() {
@@ -716,11 +719,23 @@ public class Trace {
     return this;
   }
 
-  public Trace type0(final Boolean b) {
+  public Trace txCopyTxcd(final Boolean b) {
     if (filled.get(34)) {
-      throw new IllegalStateException("txnData.TYPE0 already set");
+      throw new IllegalStateException("txnData.TX_COPY_TXCD already set");
     } else {
       filled.set(34);
+    }
+
+    txCopyTxcd.put((byte) (b ? 1 : 0));
+
+    return this;
+  }
+
+  public Trace type0(final Boolean b) {
+    if (filled.get(35)) {
+      throw new IllegalStateException("txnData.TYPE0 already set");
+    } else {
+      filled.set(35);
     }
 
     type0.put((byte) (b ? 1 : 0));
@@ -729,10 +744,10 @@ public class Trace {
   }
 
   public Trace type1(final Boolean b) {
-    if (filled.get(35)) {
+    if (filled.get(36)) {
       throw new IllegalStateException("txnData.TYPE1 already set");
     } else {
-      filled.set(35);
+      filled.set(36);
     }
 
     type1.put((byte) (b ? 1 : 0));
@@ -741,10 +756,10 @@ public class Trace {
   }
 
   public Trace type2(final Boolean b) {
-    if (filled.get(36)) {
+    if (filled.get(37)) {
       throw new IllegalStateException("txnData.TYPE2 already set");
     } else {
-      filled.set(36);
+      filled.set(37);
     }
 
     type2.put((byte) (b ? 1 : 0));
@@ -753,10 +768,10 @@ public class Trace {
   }
 
   public Trace value(final Bytes b) {
-    if (filled.get(37)) {
+    if (filled.get(38)) {
       throw new IllegalStateException("txnData.VALUE already set");
     } else {
-      filled.set(37);
+      filled.set(38);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -769,10 +784,10 @@ public class Trace {
   }
 
   public Trace wcpArgOneLo(final Bytes b) {
-    if (filled.get(38)) {
+    if (filled.get(39)) {
       throw new IllegalStateException("txnData.WCP_ARG_ONE_LO already set");
     } else {
-      filled.set(38);
+      filled.set(39);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -785,10 +800,10 @@ public class Trace {
   }
 
   public Trace wcpArgTwoLo(final Bytes b) {
-    if (filled.get(39)) {
+    if (filled.get(40)) {
       throw new IllegalStateException("txnData.WCP_ARG_TWO_LO already set");
     } else {
-      filled.set(39);
+      filled.set(40);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -801,10 +816,10 @@ public class Trace {
   }
 
   public Trace wcpInst(final UnsignedByte b) {
-    if (filled.get(40)) {
+    if (filled.get(41)) {
       throw new IllegalStateException("txnData.WCP_INST already set");
     } else {
-      filled.set(40);
+      filled.set(41);
     }
 
     wcpInst.put(b.toByte());
@@ -813,10 +828,10 @@ public class Trace {
   }
 
   public Trace wcpRes(final Boolean b) {
-    if (filled.get(41)) {
+    if (filled.get(42)) {
       throw new IllegalStateException("txnData.WCP_RES already set");
     } else {
-      filled.set(41);
+      filled.set(42);
     }
 
     wcpRes.put((byte) (b ? 1 : 0));
@@ -962,34 +977,38 @@ public class Trace {
     }
 
     if (!filled.get(34)) {
-      throw new IllegalStateException("txnData.TYPE0 has not been filled");
+      throw new IllegalStateException("txnData.TX_COPY_TXCD has not been filled");
     }
 
     if (!filled.get(35)) {
-      throw new IllegalStateException("txnData.TYPE1 has not been filled");
+      throw new IllegalStateException("txnData.TYPE0 has not been filled");
     }
 
     if (!filled.get(36)) {
-      throw new IllegalStateException("txnData.TYPE2 has not been filled");
+      throw new IllegalStateException("txnData.TYPE1 has not been filled");
     }
 
     if (!filled.get(37)) {
-      throw new IllegalStateException("txnData.VALUE has not been filled");
+      throw new IllegalStateException("txnData.TYPE2 has not been filled");
     }
 
     if (!filled.get(38)) {
-      throw new IllegalStateException("txnData.WCP_ARG_ONE_LO has not been filled");
+      throw new IllegalStateException("txnData.VALUE has not been filled");
     }
 
     if (!filled.get(39)) {
-      throw new IllegalStateException("txnData.WCP_ARG_TWO_LO has not been filled");
+      throw new IllegalStateException("txnData.WCP_ARG_ONE_LO has not been filled");
     }
 
     if (!filled.get(40)) {
-      throw new IllegalStateException("txnData.WCP_INST has not been filled");
+      throw new IllegalStateException("txnData.WCP_ARG_TWO_LO has not been filled");
     }
 
     if (!filled.get(41)) {
+      throw new IllegalStateException("txnData.WCP_INST has not been filled");
+    }
+
+    if (!filled.get(42)) {
       throw new IllegalStateException("txnData.WCP_RES has not been filled");
     }
 
@@ -1137,34 +1156,38 @@ public class Trace {
     }
 
     if (!filled.get(34)) {
-      type0.position(type0.position() + 1);
+      txCopyTxcd.position(txCopyTxcd.position() + 1);
     }
 
     if (!filled.get(35)) {
-      type1.position(type1.position() + 1);
+      type0.position(type0.position() + 1);
     }
 
     if (!filled.get(36)) {
-      type2.position(type2.position() + 1);
+      type1.position(type1.position() + 1);
     }
 
     if (!filled.get(37)) {
-      value.position(value.position() + 32);
+      type2.position(type2.position() + 1);
     }
 
     if (!filled.get(38)) {
-      wcpArgOneLo.position(wcpArgOneLo.position() + 32);
+      value.position(value.position() + 32);
     }
 
     if (!filled.get(39)) {
-      wcpArgTwoLo.position(wcpArgTwoLo.position() + 32);
+      wcpArgOneLo.position(wcpArgOneLo.position() + 32);
     }
 
     if (!filled.get(40)) {
-      wcpInst.position(wcpInst.position() + 1);
+      wcpArgTwoLo.position(wcpArgTwoLo.position() + 32);
     }
 
     if (!filled.get(41)) {
+      wcpInst.position(wcpInst.position() + 1);
+    }
+
+    if (!filled.get(42)) {
       wcpRes.position(wcpRes.position() + 1);
     }
 

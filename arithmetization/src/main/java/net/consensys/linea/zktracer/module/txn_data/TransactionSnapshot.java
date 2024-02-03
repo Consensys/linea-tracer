@@ -72,7 +72,6 @@ public final class TransactionSnapshot extends ModuleOperation {
   /** The payload of the transaction, calldata or initcode */
   private final Bytes payload;
 
-
   private final int callDataSize;
 
   private final long gasLimit;

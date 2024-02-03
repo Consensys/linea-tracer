@@ -333,7 +333,7 @@ public class TxnData implements Module {
         false, // ct = 2
         tx.getLimitMinusLeftoverGasDividedByTwo().compareTo(BigInteger.valueOf(tx.refundCounter()))
             >= 0, // ct = 3,
-        tx.callDataSize()==0, // ct = 4
+        tx.callDataSize() == 0, // ct = 4
         false, // ct = 5
         false, // ct = 6
         tx.type() == TransactionType.EIP1559

@@ -98,7 +98,7 @@ public class RomLex implements Module {
     this.chunks.pop();
   }
 
-  public int getCfiById(int value) {
+  public int getSortedCfiByCfi(int value) {
     if (this.sortedChunks.isEmpty()) {
       throw new RuntimeException("Chunks have not been sorted yet");
     }

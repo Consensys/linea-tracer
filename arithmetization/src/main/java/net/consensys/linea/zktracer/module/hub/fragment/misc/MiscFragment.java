@@ -24,9 +24,9 @@ import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.ExpSubFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.MmuSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.MxpSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.StpSubFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.mmu.GenericMmuSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.Blake2fPrecompileFirstSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.Blake2fPrecompileSecondSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.Call;
@@ -66,7 +66,7 @@ public class MiscFragment implements TraceFragment {
   }
 
   public static MiscFragment forTxInit(final Hub hub) {
-    return MiscFragment.empty().withMmu(MmuSubFragment.txInit(hub));
+    return MiscFragment.empty().withMmu(GenericMmuSubFragment.txInit(hub));
   }
 
   public static MiscFragment forCall(
@@ -156,24 +156,23 @@ public class MiscFragment implements TraceFragment {
 
     if (hub.pch().signals().mmu()) {
       switch (hub.opCode()) {
-        case SHA3 -> r.subFragments.add(MmuSubFragment.sha3(hub));
-        case CALLDATALOAD -> r.subFragments.add(MmuSubFragment.callDataLoad(hub));
-        case CALLDATACOPY -> r.subFragments.add(MmuSubFragment.callDataCopy(hub));
-        case CODECOPY -> r.subFragments.add(MmuSubFragment.codeCopy(hub));
-        case EXTCODECOPY -> r.subFragments.add(
-            MmuSubFragment.extCodeCopy(hub, Words.toAddress(frame.getStackItem(0))));
-        case RETURNDATACOPY -> r.subFragments.add(MmuSubFragment.returnDataCopy(hub));
-        case MLOAD -> r.subFragments.add(MmuSubFragment.mload(hub));
-        case MSTORE -> r.subFragments.add(MmuSubFragment.mstore(hub));
-        case MSTORE8 -> r.subFragments.add(MmuSubFragment.mstore8(hub));
-        case LOG0, LOG1, LOG2, LOG3, LOG4 -> r.subFragments.add(MmuSubFragment.log(hub));
-        case CREATE -> r.subFragments.add(MmuSubFragment.create(hub));
+        case SHA3 -> r.subFragments.add(GenericMmuSubFragment.sha3(hub));
+        case CALLDATALOAD -> r.subFragments.add(GenericMmuSubFragment.callDataLoad(hub));
+        case CALLDATACOPY -> r.subFragments.add(GenericMmuSubFragment.callDataCopy(hub));
+        case CODECOPY -> r.subFragments.add(GenericMmuSubFragment.codeCopy(hub));
+        case EXTCODECOPY -> r.subFragments.add(GenericMmuSubFragment.extCodeCopy(hub));
+        case RETURNDATACOPY -> r.subFragments.add(GenericMmuSubFragment.returnDataCopy(hub));
+        case MLOAD -> r.subFragments.add(GenericMmuSubFragment.mload(hub));
+        case MSTORE -> r.subFragments.add(GenericMmuSubFragment.mstore(hub));
+        case MSTORE8 -> r.subFragments.add(GenericMmuSubFragment.mstore8(hub));
+        case LOG0, LOG1, LOG2, LOG3, LOG4 -> r.subFragments.add(GenericMmuSubFragment.log(hub));
+        case CREATE -> r.subFragments.add(GenericMmuSubFragment.create(hub));
         case RETURN -> r.subFragments.add(
             hub.currentFrame().underDeployment()
-                ? MmuSubFragment.returnFromDeployment(hub)
-                : MmuSubFragment.returnFromCall(hub));
-        case CREATE2 -> r.subFragments.add(MmuSubFragment.create2(hub));
-        case REVERT -> r.subFragments.add(MmuSubFragment.revert(hub));
+                ? GenericMmuSubFragment.returnFromDeployment(hub)
+                : GenericMmuSubFragment.returnFromCall(hub));
+        case CREATE2 -> r.subFragments.add(GenericMmuSubFragment.create2(hub));
+        case REVERT -> r.subFragments.add(GenericMmuSubFragment.revert(hub));
       }
     }
 
@@ -225,7 +224,7 @@ public class MiscFragment implements TraceFragment {
     return this;
   }
 
-  public MiscFragment withMmu(MmuSubFragment f) {
+  public MiscFragment withMmu(GenericMmuSubFragment f) {
     this.subFragments.add(f);
     return this;
   }
@@ -244,7 +243,7 @@ public class MiscFragment implements TraceFragment {
   @Override
   public void postConflationRetcon(Hub hub, WorldView state) {
     for (TraceSubFragment f : this.subFragments) {
-      if (f instanceof MmuSubFragment mmuSubFragment) {
+      if (f instanceof GenericMmuSubFragment mmuSubFragment) {
         mmuSubFragment.postConflationRetcon(hub);
       }
     }

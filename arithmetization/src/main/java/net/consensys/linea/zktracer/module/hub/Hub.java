@@ -79,6 +79,7 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.*;
 import net.consensys.linea.zktracer.opcode.gas.GasConstants;
 import net.consensys.linea.zktracer.opcode.gas.projector.GasProjector;
+import net.consensys.linea.zktracer.runtime.LogInvocation;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
@@ -1013,8 +1014,13 @@ public class Hub implements Module {
           INVALID -> this.addTraceSection(new StackOnlySection(this));
       case KEC -> this.addTraceSection(
           new KeccakSection(this, this.currentFrame(), MiscFragment.forOpcode(this, frame)));
-      case CONTEXT, LOG -> this.addTraceSection(
+      case CONTEXT -> this.addTraceSection(
           new ContextLogSection(this, ContextFragment.readContextData(callStack)));
+      case LOG -> {
+        this.addTraceSection(
+            new ContextLogSection(this, ContextFragment.readContextData(callStack)));
+        LogInvocation.forOpcode(this);
+      }
       case ACCOUNT -> {
         TraceSection accountSection = new AccountSection(this);
         if (this.opCodeData().stackSettings().flag1()) {

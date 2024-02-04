@@ -23,16 +23,15 @@ import net.consensys.linea.zktracer.module.oob.OobDataChannel;
 import org.apache.tuweni.bytes.Bytes;
 
 public record ModexpPricing(
-    PrecompileInvocation scenario, long returnDataRequestedSize, int exponentLog, int maxMbsBbs)
+    PrecompileInvocation p, long returnDataRequestedSize, int exponentLog, int maxMbsBbs)
     implements GenericOobSubFragment {
   @Override
   public Bytes data(OobDataChannel i) {
     return switch (i) {
-      case DATA_1 -> Bytes.ofUnsignedLong(callGas);
+      case DATA_1 -> Bytes.ofUnsignedLong(p.gasAtCall());
       case DATA_3 -> Bytes.ofUnsignedLong(returnDataRequestedSize);
-      case DATA_4 -> booleanToBytes(scenario.success());
-      case DATA_5 -> Bytes.ofUnsignedLong(
-          scenario.success() ? callGas - scenario.precompilePrice() : 0);
+      case DATA_4 -> booleanToBytes(p.success());
+      case DATA_5 -> Bytes.ofUnsignedLong(p.success() ? p.gasAtCall() - p.precompilePrice() : 0);
       case DATA_6 -> Bytes.ofUnsignedLong(exponentLog);
       case DATA_7 -> Bytes.ofUnsignedLong(maxMbsBbs);
       case DATA_8 -> booleanToBytes(returnDataRequestedSize > 0);

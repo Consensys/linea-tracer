@@ -24,7 +24,7 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.MiscFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.MmuSubFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.mmu.GenericMmuSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.Blake2fPrecompileFirstSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.Blake2fPrecompileSecondSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.EcRecover;
@@ -48,20 +48,20 @@ public class PrecompileLinesGenerator {
                   .withOob(new EcRecover(p))
                   .withMmu(
                       p.callDataSource().isEmpty()
-                          ? MmuSubFragment.nop()
-                          : MmuSubFragment.forEcRecover(hub, p, recoverySuccessful, 0)));
+                          ? GenericMmuSubFragment.nop()
+                          : GenericMmuSubFragment.forEcRecover(hub, p, recoverySuccessful, 0)));
           r.add(
               MiscFragment.empty()
                   .withMmu(
                       p.callDataSource().isEmpty()
-                          ? MmuSubFragment.nop()
-                          : MmuSubFragment.forEcRecover(hub, p, recoverySuccessful, 1)));
+                          ? GenericMmuSubFragment.nop()
+                          : GenericMmuSubFragment.forEcRecover(hub, p, recoverySuccessful, 1)));
           r.add(
               MiscFragment.empty()
                   .withMmu(
                       p.callDataSource().isEmpty()
-                          ? MmuSubFragment.nop()
-                          : MmuSubFragment.forEcRecover(hub, p, recoverySuccessful, 2)));
+                          ? GenericMmuSubFragment.nop()
+                          : GenericMmuSubFragment.forEcRecover(hub, p, recoverySuccessful, 2)));
         }
       }
       case SHA2_256 -> {
@@ -73,20 +73,20 @@ public class PrecompileLinesGenerator {
                   .withOob(new Sha2(p))
                   .withMmu(
                       p.callDataSource().isEmpty()
-                          ? MmuSubFragment.nop()
-                          : MmuSubFragment.forSha2(hub, p, 0)));
+                          ? GenericMmuSubFragment.nop()
+                          : GenericMmuSubFragment.forSha2(hub, p, 0)));
           r.add(
               MiscFragment.empty()
                   .withMmu(
                       p.callDataSource().isEmpty()
-                          ? MmuSubFragment.nop()
-                          : MmuSubFragment.forSha2(hub, p, 1)));
+                          ? GenericMmuSubFragment.nop()
+                          : GenericMmuSubFragment.forSha2(hub, p, 1)));
           r.add(
               MiscFragment.empty()
                   .withMmu(
                       p.callDataSource().isEmpty()
-                          ? MmuSubFragment.nop()
-                          : MmuSubFragment.forSha2(hub, p, 2)));
+                          ? GenericMmuSubFragment.nop()
+                          : GenericMmuSubFragment.forSha2(hub, p, 2)));
         }
       }
       case RIPEMD_160 -> {
@@ -98,20 +98,20 @@ public class PrecompileLinesGenerator {
                   .withOob(new Sha2(p))
                   .withMmu(
                       p.callDataSource().isEmpty()
-                          ? MmuSubFragment.nop()
-                          : MmuSubFragment.forRipeMd160(hub, p, 0)));
+                          ? GenericMmuSubFragment.nop()
+                          : GenericMmuSubFragment.forRipeMd160(hub, p, 0)));
           r.add(
               MiscFragment.empty()
                   .withMmu(
                       p.callDataSource().isEmpty()
-                          ? MmuSubFragment.nop()
-                          : MmuSubFragment.forRipeMd160(hub, p, 1)));
+                          ? GenericMmuSubFragment.nop()
+                          : GenericMmuSubFragment.forRipeMd160(hub, p, 1)));
           r.add(
               MiscFragment.empty()
                   .withMmu(
                       p.callDataSource().isEmpty()
-                          ? MmuSubFragment.nop()
-                          : MmuSubFragment.forRipeMd160(hub, p, 2)));
+                          ? GenericMmuSubFragment.nop()
+                          : GenericMmuSubFragment.forRipeMd160(hub, p, 2)));
         }
       }
       case IDENTITY -> {
@@ -121,8 +121,8 @@ public class PrecompileLinesGenerator {
           r.add(
               MiscFragment.empty()
                   .withOob(new Identity(p))
-                  .withMmu(MmuSubFragment.forIdentity(hub, p, 0)));
-          r.add(MiscFragment.empty().withMmu(MmuSubFragment.forIdentity(hub, p, 1)));
+                  .withMmu(GenericMmuSubFragment.forIdentity(hub, p, 0)));
+          r.add(MiscFragment.empty().withMmu(GenericMmuSubFragment.forIdentity(hub, p, 1)));
         }
       }
       case MODEXP -> {}

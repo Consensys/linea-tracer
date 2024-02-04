@@ -23,6 +23,7 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.StackedContainer;
 import net.consensys.linea.zktracer.module.hub.State.TxState.Stamps;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class State implements StackedContainer {
   private final Deque<TxState> state = new ArrayDeque<>(50);
@@ -44,9 +45,9 @@ public class State implements StackedContainer {
     return this.current().txTrace;
   }
 
-  void postConflationRetcon(Hub hub) {
+  void postConflationRetcon(final Hub hub, final WorldView state) {
     for (TxState txState : this.state) {
-      txState.txTrace.postConflationRetcon(hub, null /* TODO WorldView */);
+      txState.txTrace.postConflationRetcon(hub, state);
     }
   }
 

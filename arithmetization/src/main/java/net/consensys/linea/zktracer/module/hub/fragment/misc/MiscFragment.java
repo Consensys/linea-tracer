@@ -21,7 +21,6 @@ import java.util.Optional;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
-import net.consensys.linea.zktracer.module.hub.defer.PostExecDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.ExpSubFragment;
@@ -45,9 +44,9 @@ import net.consensys.linea.zktracer.types.EWord;
 import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
-import org.hyperledger.besu.evm.operation.Operation;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class MiscFragment implements TraceFragment, PostExecDefer {
+public class MiscFragment implements TraceFragment {
   private final List<TraceSubFragment> subFragments = new ArrayList<>();
 
   private MiscFragment() {}
@@ -161,7 +160,8 @@ public class MiscFragment implements TraceFragment, PostExecDefer {
         case CALLDATALOAD -> r.subFragments.add(MmuSubFragment.callDataLoad(hub));
         case CALLDATACOPY -> r.subFragments.add(MmuSubFragment.callDataCopy(hub));
         case CODECOPY -> r.subFragments.add(MmuSubFragment.codeCopy(hub));
-        case EXTCODECOPY -> r.subFragments.add(MmuSubFragment.extCodeCopy(hub));
+        case EXTCODECOPY -> r.subFragments.add(
+            MmuSubFragment.extCodeCopy(hub, Words.toAddress(frame.getStackItem(0))));
         case RETURNDATACOPY -> r.subFragments.add(MmuSubFragment.returnDataCopy(hub));
         case MLOAD -> r.subFragments.add(MmuSubFragment.mload(hub));
         case MSTORE -> r.subFragments.add(MmuSubFragment.mstore(hub));
@@ -242,10 +242,10 @@ public class MiscFragment implements TraceFragment, PostExecDefer {
   }
 
   @Override
-  public void runPostExec(Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
+  public void postConflationRetcon(Hub hub, WorldView state) {
     for (TraceSubFragment f : this.subFragments) {
       if (f instanceof MmuSubFragment mmuSubFragment) {
-        //        mmuSubFragment.runPostExec(hub, frame, operationResult);
+        mmuSubFragment.postConflationRetcon(hub);
       }
     }
   }

@@ -98,23 +98,57 @@ public class RomLex implements Module {
     this.chunks.pop();
   }
 
-  public int getCFIById(int value) {
+  public int getCfiById(int value) {
     if (this.sortedChunks.isEmpty()) {
       throw new RuntimeException("Chunks have not been sorted yet");
     }
 
-    int codeFragmentIndex = -1;
+    if (value == 0) {
+      return 0;
+    }
+
     for (int i = 0; i < this.sortedChunks.size(); i++) {
       if (this.sortedChunks.get(i).id() == value) {
-        codeFragmentIndex = i + 1;
+        return i + 1;
       }
     }
 
-    if (codeFragmentIndex < 0) {
-      throw new RuntimeException("RomChunk n°" + value + " not found");
+    throw new RuntimeException("RomChunk n°" + value + " not found");
+  }
+
+  public int getCfiByMetadata(
+      final Address address, final int deploymentNumber, final boolean deploymentStatus) {
+    if (this.sortedChunks.isEmpty()) {
+      throw new RuntimeException("Chunks have not been sorted yet");
     }
 
-    return codeFragmentIndex;
+    for (int i = 0; i < this.sortedChunks.size(); i++) {
+      final RomChunk c = this.sortedChunks.get(i);
+      if (c.address().equals(address)
+          && c.deploymentNumber() == deploymentNumber
+          && c.deploymentStatus() == deploymentStatus) {
+        return i + 1;
+      }
+    }
+
+    throw new RuntimeException("RomChunk not found");
+  }
+
+  public Optional<RomChunk> getChunkByMetadata(
+      final Address address, final int deploymentNumber, final boolean deploymentStatus) {
+    if (this.sortedChunks.isEmpty()) {
+      throw new RuntimeException("Chunks have not been sorted yet");
+    }
+
+    for (RomChunk c : this.chunks) {
+      if (c.address().equals(address)
+          && c.deploymentNumber() == deploymentNumber
+          && c.deploymentStatus() == deploymentStatus) {
+        return Optional.of(c);
+      }
+    }
+
+    return Optional.empty();
   }
 
   @Override
@@ -291,7 +325,7 @@ public class RomLex implements Module {
   }
 
   @Override
-  public void traceEndConflation() {
+  public void traceEndConflation(final WorldView state) {
     this.sortedChunks.addAll(this.chunks);
     this.sortedChunks.sort(romChunkComparator);
   }

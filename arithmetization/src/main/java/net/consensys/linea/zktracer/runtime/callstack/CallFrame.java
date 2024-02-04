@@ -74,6 +74,8 @@ public class CallFrame {
 
   /** the {@link Bytecode} executing within this frame. */
   @Getter private Bytecode code = Bytecode.EMPTY;
+  /** the CFI of this frame bytecode if applicable */
+  @Getter private int codeFragmentIndex = -1;
 
   @Getter @Setter private int pc;
   @Getter @Setter private OpCode opCode = OpCode.STOP;

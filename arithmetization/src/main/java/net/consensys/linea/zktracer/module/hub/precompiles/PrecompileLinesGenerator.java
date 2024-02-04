@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
+import net.consensys.linea.zktracer.EcRecoverComputer;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
@@ -40,8 +41,7 @@ public class PrecompileLinesGenerator {
         if (p.hubFailure()) {
           r.add(MiscFragment.empty().withOob(new EcRecover(p)));
         } else {
-          final boolean recoverySuccessful =
-              false; // TODO: execute the ECRECOVER ourselves and check it
+          final boolean recoverySuccessful = EcRecoverComputer.ecRecoverSuccessful(hub.callData());
 
           r.add(
               MiscFragment.empty()

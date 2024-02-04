@@ -484,7 +484,7 @@ public class TxnData implements Module {
           .type1(tx.type() == TransactionType.ACCESS_LIST)
           .type2(tx.type() == TransactionType.EIP1559)
           .requiresEvmExecution(tx.requiresEvmExecution())
-          .txCopyTxcd(copyTxCd)
+          .copyTxcdAtInitialisation(copyTxCd)
           .leftoverGas(Bytes.ofUnsignedLong(tx.leftoverGas()))
           .refundCounter(Bytes.ofUnsignedLong(tx.refundCounter()))
           .refundAmount(Bytes.ofUnsignedLong(tx.effectiveGasRefund()))

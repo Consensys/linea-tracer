@@ -135,8 +135,8 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   }
 
   @Override
-  public void traceEndConflation() {
-    this.hub.traceEndConflation();
+  public void traceEndConflation(final WorldView state) {
+    this.hub.traceEndConflation(state);
   }
 
   @Override

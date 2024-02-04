@@ -34,7 +34,7 @@ public interface Module {
 
   default void traceStartConflation(final long blockCount) {}
 
-  default void traceEndConflation() {}
+  default void traceEndConflation(final WorldView state) {}
 
   default void traceStartBlock(final ProcessableBlockHeader processableBlockHeader) {}
 

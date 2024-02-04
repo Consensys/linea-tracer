@@ -176,7 +176,7 @@ public class GeneralStateReferenceTestTools {
     final TransactionProcessingResult result =
         processor.processTransaction(
             blockchain,
-            worldStateUpdater,
+            worldStateUpdater.updater(),
             blockHeader,
             transaction,
             blockHeader.getCoinbase(),
@@ -193,7 +193,7 @@ public class GeneralStateReferenceTestTools {
     }
 
     zkTracer.traceEndBlock(blockHeader, blockBody);
-    zkTracer.traceEndConflation();
+    zkTracer.traceEndConflation(worldStateUpdater);
 
     assertThat(spec.getExpectException())
         .withFailMessage("Exception was expected - " + spec.getExpectException())

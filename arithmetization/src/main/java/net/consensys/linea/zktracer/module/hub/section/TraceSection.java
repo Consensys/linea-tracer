@@ -310,11 +310,12 @@ public abstract class TraceSection {
    * This method is called when the conflation is finished to build required information post-hoc.
    *
    * @param hub the linked {@link Hub} context
+   * @param state the blockchain state after the conflation execution
    */
-  public final void postConflationRetcon(Hub hub, WorldView world) {
+  public final void postConflationRetcon(Hub hub, WorldView state) {
     for (TraceLine chunk : lines) {
-      chunk.common().postConflationRetcon(hub);
-      chunk.specific().postConflationRetcon(hub);
+      chunk.common().postConflationRetcon(hub, state);
+      chunk.specific().postConflationRetcon(hub, state);
     }
   }
 }

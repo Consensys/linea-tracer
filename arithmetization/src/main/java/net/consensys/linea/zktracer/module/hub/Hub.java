@@ -20,7 +20,6 @@ import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 
 import java.nio.MappedByteBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -961,11 +960,11 @@ public class Hub implements Module {
   }
 
   @Override
-  public void traceEndConflation() {
-    this.state.postConflationRetcon(this);
+  public void traceEndConflation(final WorldView state) {
     for (Module m : this.modules) {
-      m.traceEndConflation();
+      m.traceEndConflation(state);
     }
+    this.state.postConflationRetcon(this, state);
   }
 
   @Override
@@ -1084,7 +1083,6 @@ public class Hub implements Module {
         switch (this.currentFrame().opCode()) {
           case CALLDATALOAD -> {
             final MiscFragment miscFragment = MiscFragment.forOpcode(this, frame);
-            this.defers.postExec(miscFragment);
 
             this.addTraceSection(
                 new StackRam(this, miscFragment, ContextFragment.readContextData(callStack)));
@@ -1405,13 +1403,5 @@ public class Hub implements Module {
    */
   public MemorySpan returnDataRequestedSegment() {
     return returnDataRequestedSegment(messageFrame());
-  }
-
-  public readCallData(final long offset, final long size) {
-    if (start > memBytes.length) {
-      return Bytes.wrap(new byte[(int) numBytes]);
-    } else {
-      return Bytes.wrap(Arrays.copyOfRange(memBytes, start, start + length));
-    }
   }
 }

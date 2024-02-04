@@ -39,6 +39,7 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.evm.internal.Words;
 
 @Accessors(fluent = true)
 public final class StackFragment implements TraceFragment {
@@ -94,7 +95,13 @@ public final class StackFragment implements TraceFragment {
     if (hashInfoFlag) {
       switch (this.opCode) {
         case SHA3 -> this.hashInfoKeccak = EWord.of(frame.getStackItem(0));
-        case RETURN -> this.hashInfoKeccak = EWord.ZERO; // TODO: fixme
+        case RETURN -> {
+          final long from = Words.clampedToLong(frame.getStackItem(0));
+          final long length = Words.clampedToLong(frame.getStackItem(1));
+          this.hashInfoKeccak =
+              EWord.of(
+                  org.hyperledger.besu.crypto.Hash.keccak256(frame.shadowReadMemory(from, length)));
+        }
         case CREATE2 -> {
           Address newAddress = EWord.of(frame.getStackItem(0)).toAddress();
           // zero address indicates a failed deployment

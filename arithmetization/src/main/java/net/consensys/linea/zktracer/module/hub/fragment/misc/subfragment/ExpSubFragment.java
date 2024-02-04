@@ -15,22 +15,19 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment;
 
-import static net.consensys.linea.zktracer.opcode.gas.GasConstants.G_EXP_BYTE;
-
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
 import net.consensys.linea.zktracer.types.EWord;
-import org.apache.tuweni.bytes.Bytes;
 
 public record ExpSubFragment(EWord exponent) implements TraceSubFragment {
 
   @Override
   public Trace trace(Trace trace) {
-    return trace
-        .pMiscellaneousExpFlag(true)
-        .pMiscellaneousExpExponentHi(exponent.hi())
-        .pMiscellaneousExpExponentLo(this.exponent.lo())
-        .pMiscellaneousExpDyncost(
-            Bytes.ofUnsignedLong((long) G_EXP_BYTE.cost() * exponent.byteLength()));
+    return trace.pMiscellaneousExpFlag(true)
+    //        .pMiscellaneousExpExponentHi(exponent.hi())
+    //        .pMiscellaneousExpExponentLo(this.exponent.lo())
+    //        .pMiscellaneousExpDyncost(
+    //            Bytes.ofUnsignedLong((long) G_EXP_BYTE.cost() * exponent.byteLength()))
+    ;
   }
 }

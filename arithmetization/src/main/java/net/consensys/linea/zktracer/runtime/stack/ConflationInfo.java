@@ -15,9 +15,13 @@
 
 package net.consensys.linea.zktracer.runtime.stack;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.DeploymentInfo;
+import net.consensys.linea.zktracer.runtime.LogInvocation;
 
 /** Stores data relative to the conflation. */
 @Accessors(fluent = true)
@@ -25,6 +29,16 @@ import net.consensys.linea.zktracer.module.hub.DeploymentInfo;
 public class ConflationInfo {
   private int number = 0;
   private DeploymentInfo deploymentInfo;
+  private final List<LogInvocation> logs = new ArrayList<>(100);
+
+  public int log(LogInvocation logInvocation) {
+    this.logs.add(logInvocation);
+    return this.logs.size() - 1;
+  }
+
+  public int currentLogId() {
+    return this.logs.size() - 1;
+  }
 
   public void update() {
     this.number++;

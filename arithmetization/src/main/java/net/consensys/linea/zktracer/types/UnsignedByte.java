@@ -149,7 +149,7 @@ public class UnsignedByte {
    * @return true if the least significant bit at the specified position is set (1), false
    *     otherwise.
    */
-  public boolean getLSB(int index) {
+  public boolean lsb(int index) {
     if (index < 0 || index > 7) {
       throw new IllegalArgumentException("Index must be between 0 - 7. Is " + index);
     }
@@ -163,7 +163,7 @@ public class UnsignedByte {
    * @param size The size of the slice to retrieve, representing the number of bits.
    * @return An integer representing the slice of bits starting from the LSB of the provided byte.
    */
-  public int getSliceLSB(int size) {
+  public int sliceLsb(int size) {
     if (size < 0 || size > 8) {
       throw new IllegalArgumentException("Size must be between 0 - 8. Is " + size);
     }

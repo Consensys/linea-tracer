@@ -15,14 +15,17 @@
 
 package net.consensys.linea.zktracer.module.exp;
 
+import static java.lang.Math.min;
 import static net.consensys.linea.zktracer.module.exp.Trace.EXP_EXPLOG;
 import static net.consensys.linea.zktracer.module.exp.Trace.EXP_MODEXPLOG;
 import static net.consensys.linea.zktracer.module.exp.Trace.ISZERO;
+import static net.consensys.linea.zktracer.module.exp.Trace.LT;
 import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_CMPTN_EXP_LOG;
 import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_CMPTN_MODEXP_LOG;
 import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_PRPRC_EXP_LOG;
 import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_PRPRC_MODEXP_LOG;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
+import static net.consensys.linea.zktracer.types.Conversions.booleanToInt;
 
 import lombok.Getter;
 import net.consensys.linea.zktracer.container.ModuleOperation;
@@ -67,6 +70,7 @@ public class ExpChunk extends ModuleOperation {
     this.frame = frame;
     this.wcp = wcp;
     this.expLogExpParameters = expLogExpParameters;
+    // Fill isExpLog
     isExpLog = true;
     pMacroInstructionExpInst = Bytes.of(EXP_EXPLOG);
     pMacroInstructionData1 = bigIntegerToBytes(expLogExpParameters.exponentHi());
@@ -90,13 +94,32 @@ public class ExpChunk extends ModuleOperation {
     // Lookup
     wcp.callISZERO(expLogExpParameters.exponent());
 
-    // Linking constraints
+    // Linking constraints and fill rawAcc
     pComputationPltJmp = Bytes.of(16);
     if (expnHiIsZero) {
       pComputationRawAcc = bigIntegerToBytes(expLogExpParameters.exponentHi());
     } else {
       pComputationRawAcc = bigIntegerToBytes(expLogExpParameters.exponentLo());
     }
+
+    // Fill trimAcc
+    int maxCt = MAX_CT_CMPTN_EXP_LOG;
+    for (int i = 0; i < maxCt + 1; i++) {
+      boolean pltBit = i > pComputationPltJmp.toInt();
+      byte rawByte = pComputationRawAcc.get(maxCt - i);
+      byte trimByte = pltBit ? 0 : rawByte;
+      pComputationTrimAcc = Bytes.concatenate(Bytes.of(trimByte), pComputationTrimAcc);
+    }
+
+    // Fill msnzb
+    pComputationMsnzb = UnsignedByte.of(0);
+
+    // Fill tanzbAcc, manzbAcc
+    for (int i = 0; i < maxCt + 1; i++) {
+      boolean tanzb = pComputationTrimAcc.slice(maxCt - i).toBigInteger().signum() != 0;
+      pComputationTanzbAcc = Bytes.of(pComputationTanzbAcc.toInt() + (tanzb ? 1 : 0));
+    }
+    pComputationManzbAcc = Bytes.of(0);
   }
 
   public ExpChunk(
@@ -105,6 +128,7 @@ public class ExpChunk extends ModuleOperation {
     this.frame = frame;
     this.wcp = wcp;
     this.modexpLogExpParameters = modexpLogExpParameters;
+    // Fill isExpLog
     isExpLog = false;
     pMacroInstructionExpInst = Bytes.of(EXP_MODEXPLOG);
     pMacroInstructionData1 = bigIntegerToBytes(modexpLogExpParameters.rawLeadHi());
@@ -113,7 +137,114 @@ public class ExpChunk extends ModuleOperation {
     pMacroInstructionData4 = Bytes.of(modexpLogExpParameters.cdsCutoff());
     pMacroInstructionData5 = bigIntegerToBytes(modexpLogExpParameters.leadLog());
     initArrays(MAX_CT_PRPRC_MODEXP_LOG + 1);
-    // TODO preprocessing and linking constraints
+
+    // Preprocessing
+    int usedBits = modexpLogExpParameters.leadLog().intValue() % 8;
+    int usedBytes = modexpLogExpParameters.leadLog().intValue() / 8;
+
+    // First row
+    pPreprocessingWcpFlag[0] = true;
+    pPreprocessingWcpArg1Hi[0] = Bytes.of(0);
+    pPreprocessingWcpArg1Lo[0] = Bytes.of(modexpLogExpParameters.cdsCutoff());
+    pPreprocessingWcpArg2Hi[0] = Bytes.of(0);
+    pPreprocessingWcpArg2Lo[0] = Bytes.of(modexpLogExpParameters.ebsCutoff());
+    pPreprocessingWcpInst[0] = UnsignedByte.of(LT);
+    pPreprocessingWcpRes[0] =
+        modexpLogExpParameters.cdsCutoff() < modexpLogExpParameters.ebsCutoff();
+    int minCutoff = min(modexpLogExpParameters.cdsCutoff(), modexpLogExpParameters.ebsCutoff());
+
+    // Lookup
+    wcp.callLT(
+        Bytes.of(modexpLogExpParameters.cdsCutoff()), Bytes.of(modexpLogExpParameters.ebsCutoff()));
+
+    // Second row
+    pPreprocessingWcpFlag[1] = true;
+    pPreprocessingWcpArg1Hi[1] = Bytes.of(0);
+    pPreprocessingWcpArg1Lo[1] = Bytes.of(minCutoff);
+    pPreprocessingWcpArg2Hi[1] = Bytes.of(0);
+    pPreprocessingWcpArg2Lo[1] = Bytes.of(17);
+    pPreprocessingWcpInst[1] = UnsignedByte.of(LT);
+    pPreprocessingWcpRes[1] = minCutoff < 17;
+    boolean minCutoffLeq16 = pPreprocessingWcpRes[1];
+
+    // Lookup
+    wcp.callLT(Bytes.of(minCutoff), Bytes.of(17));
+
+    // Third row
+    pPreprocessingWcpFlag[2] = true;
+    pPreprocessingWcpArg1Hi[2] = Bytes.of(0);
+    pPreprocessingWcpArg1Lo[2] = Bytes.of(getModexpLogExpParameters().ebsCutoff());
+    pPreprocessingWcpArg2Hi[2] = Bytes.of(0);
+    pPreprocessingWcpArg2Lo[2] = Bytes.of(17);
+    pPreprocessingWcpInst[2] = UnsignedByte.of(LT);
+    pPreprocessingWcpRes[2] = modexpLogExpParameters.ebsCutoff() < 17;
+    boolean ebsCutoffLeq16 = pPreprocessingWcpRes[2];
+
+    // Lookup
+    wcp.callLT(Bytes.of(getModexpLogExpParameters().ebsCutoff()), Bytes.of(17));
+
+    // Fourth row
+    pPreprocessingWcpFlag[3] = true;
+    pPreprocessingWcpArg1Hi[3] = Bytes.of(0);
+    pPreprocessingWcpArg1Lo[3] = bigIntegerToBytes(modexpLogExpParameters.rawLeadHi());
+    pPreprocessingWcpArg2Hi[3] = Bytes.of(0);
+    pPreprocessingWcpArg2Lo[3] = Bytes.of(0);
+    pPreprocessingWcpInst[3] = UnsignedByte.of(ISZERO);
+    pPreprocessingWcpRes[3] = modexpLogExpParameters.rawLeadHi().signum() == 0;
+    boolean rawHiPartIsZero = pPreprocessingWcpRes[3];
+
+    // Lookup
+    wcp.callISZERO(bigIntegerToBytes(modexpLogExpParameters.rawLeadHi()));
+
+    // Fifth row
+    int paddedBase2Log = 8 * usedBytes + usedBits;
+
+    pPreprocessingWcpFlag[4] = true;
+    pPreprocessingWcpArg1Hi[4] = Bytes.of(0);
+    pPreprocessingWcpArg1Lo[4] = Bytes.of(paddedBase2Log);
+    pPreprocessingWcpArg2Hi[4] = Bytes.of(0);
+    pPreprocessingWcpArg2Lo[4] = Bytes.of(0);
+    pPreprocessingWcpInst[4] = UnsignedByte.of(ISZERO);
+    pPreprocessingWcpRes[4] = paddedBase2Log == 0;
+    boolean trivialTrim = pPreprocessingWcpRes[4];
+
+    // Lookup
+    wcp.callISZERO(Bytes.of(paddedBase2Log));
+
+    // Linking constraints and fill rawAcc
+    if (minCutoffLeq16) {
+      pComputationRawAcc = bigIntegerToBytes(modexpLogExpParameters.rawLeadHi());
+    } else {
+      if (!rawHiPartIsZero) {
+        pComputationRawAcc = bigIntegerToBytes(modexpLogExpParameters.rawLeadHi());
+      } else {
+        pComputationRawAcc = bigIntegerToBytes(modexpLogExpParameters.rawLeadLo());
+      }
+    }
+
+    // Fill pltJmp
+    pComputationPltJmp = Bytes.of(minCutoff - (1 - booleanToInt(minCutoffLeq16)) * 16);
+
+    // Fill trimAcc
+    int maxCt = MAX_CT_CMPTN_MODEXP_LOG;
+    for (int i = 0; i < maxCt + 1; i++) {
+      boolean pltBit = i > pComputationPltJmp.toInt();
+      byte rawByte = pComputationRawAcc.get(maxCt - i);
+      byte trimByte = pltBit ? 0 : rawByte;
+      pComputationTrimAcc = Bytes.concatenate(Bytes.of(trimByte), pComputationTrimAcc);
+    }
+
+    // Fill msnzb
+    pComputationMsnzb = UnsignedByte.of(bigIntegerToBytes(modexpLogExpParameters.lead()).get(0));
+
+    // Fill tanzbAcc, manzbAcc
+    for (int i = 0; i < maxCt + 1; i++) {
+      boolean tanzb = pComputationTrimAcc.slice(maxCt - i).toBigInteger().signum() != 0;
+      pComputationTanzbAcc = Bytes.of(pComputationTanzbAcc.toInt() + (tanzb ? 1 : 0));
+
+      boolean manzb = i > maxCt - 8 && (pComputationMsnzb.toInteger() & ((1 << (i + 1)) - 1)) != 0;
+      pComputationManzbAcc = Bytes.of(pComputationManzbAcc.toInt() + (manzb ? 1 : 0));
+    }
   }
 
   private void initArrays(int pPreprocessingLen) {
@@ -139,6 +270,16 @@ public class ExpChunk extends ModuleOperation {
   final void traceComputation(int stamp, Trace trace) {
     int maxCt = isExpLog ? MAX_CT_CMPTN_EXP_LOG : MAX_CT_CMPTN_MODEXP_LOG;
     for (int i = 0; i < maxCt + 1; i++) {
+      /*
+      All the values are derived from
+      isExpLog
+      pComputationPltJmp
+      pComputationRawAcc
+      pComputationTrimAcc
+      pComputationTanzbAcc
+      pComputationMsnzb
+      pComputationManzbAcc
+      */
       trace
           .cmptn(true)
           .macro(false)
@@ -151,22 +292,22 @@ public class ExpChunk extends ModuleOperation {
           .pComputationPltBit(i > pComputationPltJmp.toInt())
           .pComputationPltJmp(pComputationPltJmp)
           .pComputationRawByte(UnsignedByte.of(pComputationRawAcc.get(maxCt - i)))
-          .pComputationRawAcc(pComputationRawAcc.slice(maxCt - i)) //
+          .pComputationRawAcc(pComputationRawAcc.slice(maxCt - i))
           .pComputationTrimByte(UnsignedByte.of(pComputationTrimAcc.get(maxCt - i)))
-          .pComputationTrimAcc(pComputationTrimAcc.slice(maxCt - i)) //
-          .pComputationTanzb(pComputationTrimAcc.get(maxCt - i) != 0)
-          .pComputationTanzbAcc(pComputationTanzbAcc.slice(maxCt - i)) //
+          .pComputationTrimAcc(pComputationTrimAcc.slice(maxCt - i))
+          .pComputationTanzb(pComputationTrimAcc.slice(maxCt - i).toBigInteger().signum() != 0)
+          .pComputationTanzbAcc(pComputationTanzbAcc.slice(maxCt - i))
           .pComputationMsnzb(pComputationMsnzb)
           .pComputationBitMsnzb(i > maxCt - 8 && ((pComputationMsnzb.toInteger() >> i) & 1) == 1)
           .pComputationAccMsnzb(
               UnsignedByte.of(
-                  i > maxCt - 8 ? pComputationMsnzb.toInteger() & ((1 << (i + 1)) - 1) : 0)) //
+                  i > maxCt - 8 ? pComputationMsnzb.toInteger() & ((1 << (i + 1)) - 1) : 0))
           .pComputationManzb(
               i > maxCt - 8 && (pComputationMsnzb.toInteger() & ((1 << (i + 1)) - 1)) != 0)
           .pComputationManzbAcc(
               i > maxCt - 8
                   ? pComputationManzbAcc.slice(pComputationManzbAcc.size() - i)
-                  : Bytes.of(0)); //
+                  : Bytes.of(0));
     }
   }
 

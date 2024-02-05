@@ -70,8 +70,10 @@ public class ExpChunk extends ModuleOperation {
     this.frame = frame;
     this.wcp = wcp;
     this.expLogExpParameters = expLogExpParameters;
+
     // Fill isExpLog
     isExpLog = true;
+
     pMacroInstructionExpInst = Bytes.of(EXP_EXPLOG);
     pMacroInstructionData1 = bigIntegerToBytes(expLogExpParameters.exponentHi());
     pMacroInstructionData2 = bigIntegerToBytes(expLogExpParameters.exponentLo());
@@ -128,8 +130,10 @@ public class ExpChunk extends ModuleOperation {
     this.frame = frame;
     this.wcp = wcp;
     this.modexpLogExpParameters = modexpLogExpParameters;
+
     // Fill isExpLog
     isExpLog = false;
+
     pMacroInstructionExpInst = Bytes.of(EXP_MODEXPLOG);
     pMacroInstructionData1 = bigIntegerToBytes(modexpLogExpParameters.rawLeadHi());
     pMacroInstructionData2 = bigIntegerToBytes(modexpLogExpParameters.rawLeadLo());
@@ -298,16 +302,15 @@ public class ExpChunk extends ModuleOperation {
           .pComputationTanzb(pComputationTrimAcc.slice(maxCt - i).toBigInteger().signum() != 0)
           .pComputationTanzbAcc(pComputationTanzbAcc.slice(maxCt - i))
           .pComputationMsnzb(pComputationMsnzb)
-          .pComputationBitMsnzb(i > maxCt - 8 && ((pComputationMsnzb.toInteger() >> i) & 1) == 1)
+          .pComputationBitMsnzb(i > maxCt - 8 && pComputationMsnzb.getLSB(i))
           .pComputationAccMsnzb(
-              UnsignedByte.of(
-                  i > maxCt - 8 ? pComputationMsnzb.toInteger() & ((1 << (i + 1)) - 1) : 0))
-          .pComputationManzb(
-              i > maxCt - 8 && (pComputationMsnzb.toInteger() & ((1 << (i + 1)) - 1)) != 0)
+              UnsignedByte.of(i > maxCt - 8 ? pComputationMsnzb.getSliceLSB(i + 1) : 0))
+          .pComputationManzb(i > maxCt - 8 && pComputationMsnzb.getSliceLSB(i + 1) != 0)
           .pComputationManzbAcc(
               i > maxCt - 8
                   ? pComputationManzbAcc.slice(pComputationManzbAcc.size() - i)
                   : Bytes.of(0));
+      // TODO: for consistency we may want operations on UnsignedByte be BigEndian?
     }
   }
 

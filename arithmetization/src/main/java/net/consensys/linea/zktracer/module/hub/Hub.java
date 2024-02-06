@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
-import static net.consensys.linea.zktracer.module.hub.fragment.misc.MiscFragment.allButOneSixtyFourth;
+import static net.consensys.linea.zktracer.module.UtilCalculator.allButOneSixtyFourth;
 import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 
 import java.nio.MappedByteBuffer;
@@ -41,7 +41,7 @@ import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.ext.Ext;
 import net.consensys.linea.zktracer.module.hub.defer.*;
 import net.consensys.linea.zktracer.module.hub.fragment.*;
-import net.consensys.linea.zktracer.module.hub.fragment.misc.MiscFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.misc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 import net.consensys.linea.zktracer.module.hub.section.*;
@@ -494,7 +494,7 @@ public class Hub implements Module {
                     ? new AccountFragment(
                         fromPostDebitSnapshot, fromPostDebitSnapshot.credit(value))
                     : new AccountFragment(toSnapshot, toSnapshot.credit(value))),
-            MiscFragment.forTxInit(this),
+            ImcFragment.forTxInit(this),
             ContextFragment.intializeExecutionContext(this.callStack, this)));
 
     this.tx.state(TxState.TX_EXEC);
@@ -1013,7 +1013,7 @@ public class Hub implements Module {
           HALT,
           INVALID -> this.addTraceSection(new StackOnlySection(this));
       case KEC -> this.addTraceSection(
-          new KeccakSection(this, this.currentFrame(), MiscFragment.forOpcode(this, frame)));
+          new KeccakSection(this, this.currentFrame(), ImcFragment.forOpcode(this, frame)));
       case CONTEXT -> this.addTraceSection(
           new ContextLogSection(this, ContextFragment.readContextData(callStack)));
       case LOG -> {
@@ -1088,13 +1088,13 @@ public class Hub implements Module {
       case STACK_RAM -> {
         switch (this.currentFrame().opCode()) {
           case CALLDATALOAD -> {
-            final MiscFragment miscFragment = MiscFragment.forOpcode(this, frame);
+            final ImcFragment imcFragment = ImcFragment.forOpcode(this, frame);
 
             this.addTraceSection(
-                new StackRam(this, miscFragment, ContextFragment.readContextData(callStack)));
+                new StackRam(this, imcFragment, ContextFragment.readContextData(callStack)));
           }
           case MLOAD, MSTORE, MSTORE8 -> this.addTraceSection(
-              new StackRam(this, MiscFragment.forOpcode(this, frame)));
+              new StackRam(this, ImcFragment.forOpcode(this, frame)));
           default -> throw new IllegalStateException("unexpected STACK_RAM opcode");
         }
       }
@@ -1197,20 +1197,20 @@ public class Hub implements Module {
                 new FailedCallSection(
                     this,
                     ScenarioFragment.forCall(this, hasCode),
-                    MiscFragment.forCall(this, myAccount, calledAccount),
+                    ImcFragment.forCall(this, myAccount, calledAccount),
                     ContextFragment.readContextData(callStack)));
           } else if (this.pch().exceptions().outOfMemoryExpansion()) {
             this.addTraceSection(
                 new FailedCallSection(
                     this,
                     ScenarioFragment.forCall(this, hasCode),
-                    MiscFragment.forCall(this, myAccount, calledAccount)));
+                    ImcFragment.forCall(this, myAccount, calledAccount)));
           } else if (this.pch().exceptions().outOfGas()) {
             this.addTraceSection(
                 new FailedCallSection(
                     this,
                     ScenarioFragment.forCall(this, hasCode),
-                    MiscFragment.forCall(this, myAccount, calledAccount),
+                    ImcFragment.forCall(this, myAccount, calledAccount),
                     new AccountFragment(calledAccountSnapshot, calledAccountSnapshot)));
           }
         } else {
@@ -1219,19 +1219,19 @@ public class Hub implements Module {
                 new FailedCallSection(
                     this,
                     ScenarioFragment.forCall(this, hasCode),
-                    MiscFragment.forCall(this, myAccount, calledAccount),
+                    ImcFragment.forCall(this, myAccount, calledAccount),
                     ContextFragment.readContextData(callStack),
                     new AccountFragment(myAccountSnapshot, myAccountSnapshot),
                     new AccountFragment(calledAccountSnapshot, calledAccountSnapshot),
                     ContextFragment.nonExecutionEmptyReturnData(callStack));
             this.addTraceSection(abortedSection);
           } else {
-            final MiscFragment miscFragment = MiscFragment.forOpcode(this, frame);
+            final ImcFragment imcFragment = ImcFragment.forOpcode(this, frame);
 
             if (hasCode) {
               final SmartContractCallSection section =
                   new SmartContractCallSection(
-                      this, myAccountSnapshot, calledAccountSnapshot, miscFragment);
+                      this, myAccountSnapshot, calledAccountSnapshot, imcFragment);
               this.defers.postExec(section);
               this.defers.nextContext(section, currentFrame().id());
               this.defers.postTx(section);
@@ -1247,7 +1247,7 @@ public class Hub implements Module {
                       precompileInvocation,
                       myAccountSnapshot,
                       calledAccountSnapshot,
-                      miscFragment);
+                      imcFragment);
               this.defers.postExec(section);
               this.defers.postTx(section);
               this.addTraceSection(section);
@@ -1272,7 +1272,7 @@ public class Hub implements Module {
                 this,
                 ContextFragment.readContextData(callStack),
                 new AccountFragment(codeAccountSnapshot, codeAccountSnapshot, false, 0, false),
-                MiscFragment.forOpcode(this, frame));
+                ImcFragment.forOpcode(this, frame));
 
         this.addTraceSection(jumpSection);
       }

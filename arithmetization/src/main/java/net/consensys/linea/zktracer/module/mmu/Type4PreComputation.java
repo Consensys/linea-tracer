@@ -551,8 +551,8 @@ class Type4PreComputation implements MmuPreComputation {
   private int calculateReferenceOffset(final MicroData microData, final CallStack callStack) {
     return switch (microData.opCode()) {
       case CODECOPY, EXTCODECOPY -> 0;
-      case CALLDATACOPY -> (int)callStack.caller().callDataSource().absolute();
-      case RETURNDATACOPY -> (int)callStack.current().returnDataSource().absolute();
+      case CALLDATACOPY -> (int) callStack.caller().callDataSource().absolute();
+      case RETURNDATACOPY -> (int) callStack.current().returnDataSource().absolute();
       default -> throw new IllegalArgumentException(
           "OpCode.%s not supported for type 4 reference offset calculation"
               .formatted(microData.opCode()));

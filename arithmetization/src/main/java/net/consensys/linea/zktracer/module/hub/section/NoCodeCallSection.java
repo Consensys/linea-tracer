@@ -26,7 +26,7 @@ import net.consensys.linea.zktracer.module.hub.defer.ReEnterContextDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.misc.MiscFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.misc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileLinesGenerator;
@@ -49,7 +49,7 @@ public class NoCodeCallSection extends TraceSection
 
   private AccountSnapshot postCallCallerAccountSnapshot;
   private AccountSnapshot postCallCalledAccountSnapshot;
-  private final MiscFragment miscFragment;
+  private final ImcFragment imcFragment;
 
   private Optional<List<TraceFragment>> maybePrecompileLines = Optional.empty();
 
@@ -58,13 +58,13 @@ public class NoCodeCallSection extends TraceSection
       Optional<PrecompileInvocation> targetPrecompile,
       AccountSnapshot preCallCallerAccountSnapshot,
       AccountSnapshot preCallCalledAccountSnapshot,
-      MiscFragment miscFragment) {
+      ImcFragment imcFragment) {
     this.precompileInvocation = targetPrecompile;
     this.preCallCallerAccountSnapshot = preCallCallerAccountSnapshot;
     this.preCallCalledAccountSnapshot = preCallCalledAccountSnapshot;
     this.callerCallFrame = hub.currentFrame();
     this.calledCallFrameId = hub.callStack().futureId();
-    this.miscFragment = miscFragment;
+    this.imcFragment = imcFragment;
     this.addStack(hub);
   }
 
@@ -104,7 +104,7 @@ public class NoCodeCallSection extends TraceSection
         callerCallFrame,
         ScenarioFragment.forNoCodeCallSection(
             precompileInvocation, this.callerCallFrame.id(), this.calledCallFrameId),
-        this.miscFragment,
+        this.imcFragment,
         ContextFragment.readContextData(hub.callStack()),
         new AccountFragment(this.preCallCallerAccountSnapshot, this.postCallCallerAccountSnapshot),
         new AccountFragment(this.preCallCalledAccountSnapshot, this.postCallCalledAccountSnapshot));

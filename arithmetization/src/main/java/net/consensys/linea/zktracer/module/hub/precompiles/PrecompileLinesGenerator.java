@@ -23,14 +23,14 @@ import net.consensys.linea.zktracer.EcRecoverComputer;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.misc.MiscFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.mmu.GenericMmuSubFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.Blake2fPrecompileFirstSubFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.Blake2fPrecompileSecondSubFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.EcRecover;
-import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.Identity;
-import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.RipeMd160;
-import net.consensys.linea.zktracer.module.hub.fragment.misc.subfragment.oob.Sha2;
+import net.consensys.linea.zktracer.module.hub.fragment.misc.ImcFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.misc.call.mmu.MmuCall;
+import net.consensys.linea.zktracer.module.hub.fragment.misc.call.oob.precompiles.Blake2FPrecompile1;
+import net.consensys.linea.zktracer.module.hub.fragment.misc.call.oob.precompiles.Blake2FPrecompile2;
+import net.consensys.linea.zktracer.module.hub.fragment.misc.call.oob.precompiles.EcRecover;
+import net.consensys.linea.zktracer.module.hub.fragment.misc.call.oob.precompiles.Identity;
+import net.consensys.linea.zktracer.module.hub.fragment.misc.call.oob.precompiles.RipeMd160;
+import net.consensys.linea.zktracer.module.hub.fragment.misc.call.oob.precompiles.Sha2;
 
 @RequiredArgsConstructor
 public class PrecompileLinesGenerator {
@@ -39,90 +39,82 @@ public class PrecompileLinesGenerator {
     switch (p.precompile()) {
       case EC_RECOVER -> {
         if (p.hubFailure()) {
-          r.add(MiscFragment.empty().withOob(new EcRecover(p)));
+          r.add(ImcFragment.empty().callOob(new EcRecover(p)));
         } else {
           final boolean recoverySuccessful = EcRecoverComputer.ecRecoverSuccessful(hub.callData());
 
           r.add(
-              MiscFragment.empty()
-                  .withOob(new EcRecover(p))
-                  .withMmu(
+              ImcFragment.empty()
+                  .callOob(new EcRecover(p))
+                  .callMmu(
                       p.callDataSource().isEmpty()
-                          ? GenericMmuSubFragment.nop()
-                          : GenericMmuSubFragment.forEcRecover(hub, p, recoverySuccessful, 0)));
+                          ? MmuCall.nop()
+                          : MmuCall.forEcRecover(hub, p, recoverySuccessful, 0)));
           r.add(
-              MiscFragment.empty()
-                  .withMmu(
+              ImcFragment.empty()
+                  .callMmu(
                       p.callDataSource().isEmpty()
-                          ? GenericMmuSubFragment.nop()
-                          : GenericMmuSubFragment.forEcRecover(hub, p, recoverySuccessful, 1)));
+                          ? MmuCall.nop()
+                          : MmuCall.forEcRecover(hub, p, recoverySuccessful, 1)));
           r.add(
-              MiscFragment.empty()
-                  .withMmu(
+              ImcFragment.empty()
+                  .callMmu(
                       p.callDataSource().isEmpty()
-                          ? GenericMmuSubFragment.nop()
-                          : GenericMmuSubFragment.forEcRecover(hub, p, recoverySuccessful, 2)));
+                          ? MmuCall.nop()
+                          : MmuCall.forEcRecover(hub, p, recoverySuccessful, 2)));
         }
       }
       case SHA2_256 -> {
         if (p.hubFailure()) {
-          r.add(MiscFragment.empty().withOob(new Sha2(p)));
+          r.add(ImcFragment.empty().callOob(new Sha2(p)));
         } else {
           r.add(
-              MiscFragment.empty()
-                  .withOob(new Sha2(p))
-                  .withMmu(
-                      p.callDataSource().isEmpty()
-                          ? GenericMmuSubFragment.nop()
-                          : GenericMmuSubFragment.forSha2(hub, p, 0)));
+              ImcFragment.empty()
+                  .callOob(new Sha2(p))
+                  .callMmu(
+                      p.callDataSource().isEmpty() ? MmuCall.nop() : MmuCall.forSha2(hub, p, 0)));
           r.add(
-              MiscFragment.empty()
-                  .withMmu(
-                      p.callDataSource().isEmpty()
-                          ? GenericMmuSubFragment.nop()
-                          : GenericMmuSubFragment.forSha2(hub, p, 1)));
+              ImcFragment.empty()
+                  .callMmu(
+                      p.callDataSource().isEmpty() ? MmuCall.nop() : MmuCall.forSha2(hub, p, 1)));
           r.add(
-              MiscFragment.empty()
-                  .withMmu(
-                      p.callDataSource().isEmpty()
-                          ? GenericMmuSubFragment.nop()
-                          : GenericMmuSubFragment.forSha2(hub, p, 2)));
+              ImcFragment.empty()
+                  .callMmu(
+                      p.callDataSource().isEmpty() ? MmuCall.nop() : MmuCall.forSha2(hub, p, 2)));
         }
       }
       case RIPEMD_160 -> {
         if (p.hubFailure()) {
-          r.add(MiscFragment.empty().withOob(new RipeMd160(p)));
+          r.add(ImcFragment.empty().callOob(new RipeMd160(p)));
         } else {
           r.add(
-              MiscFragment.empty()
-                  .withOob(new Sha2(p))
-                  .withMmu(
+              ImcFragment.empty()
+                  .callOob(new Sha2(p))
+                  .callMmu(
                       p.callDataSource().isEmpty()
-                          ? GenericMmuSubFragment.nop()
-                          : GenericMmuSubFragment.forRipeMd160(hub, p, 0)));
+                          ? MmuCall.nop()
+                          : MmuCall.forRipeMd160(hub, p, 0)));
           r.add(
-              MiscFragment.empty()
-                  .withMmu(
+              ImcFragment.empty()
+                  .callMmu(
                       p.callDataSource().isEmpty()
-                          ? GenericMmuSubFragment.nop()
-                          : GenericMmuSubFragment.forRipeMd160(hub, p, 1)));
+                          ? MmuCall.nop()
+                          : MmuCall.forRipeMd160(hub, p, 1)));
           r.add(
-              MiscFragment.empty()
-                  .withMmu(
+              ImcFragment.empty()
+                  .callMmu(
                       p.callDataSource().isEmpty()
-                          ? GenericMmuSubFragment.nop()
-                          : GenericMmuSubFragment.forRipeMd160(hub, p, 2)));
+                          ? MmuCall.nop()
+                          : MmuCall.forRipeMd160(hub, p, 2)));
         }
       }
       case IDENTITY -> {
         if (p.hubFailure()) {
-          r.add(MiscFragment.empty().withOob(new Identity(p)));
+          r.add(ImcFragment.empty().callOob(new Identity(p)));
         } else {
           r.add(
-              MiscFragment.empty()
-                  .withOob(new Identity(p))
-                  .withMmu(GenericMmuSubFragment.forIdentity(hub, p, 0)));
-          r.add(MiscFragment.empty().withMmu(GenericMmuSubFragment.forIdentity(hub, p, 1)));
+              ImcFragment.empty().callOob(new Identity(p)).callMmu(MmuCall.forIdentity(hub, p, 0)));
+          r.add(ImcFragment.empty().callMmu(MmuCall.forIdentity(hub, p, 1)));
         }
       }
       case MODEXP -> {}
@@ -132,16 +124,16 @@ public class PrecompileLinesGenerator {
       case BLAKE2F -> {
         if (p.hubFailure()) {
           // hub failure - one line only
-          r.add(MiscFragment.empty().withOob(new Blake2fPrecompileFirstSubFragment(p)));
+          r.add(ImcFragment.empty().callOob(new Blake2FPrecompile1(p)));
         } else if (p.ramFailure()) {
           // happy path or RAM failure - two lines
-          r.add(MiscFragment.empty().withOob(new Blake2fPrecompileFirstSubFragment(p)).withMmu());
-          r.add(MiscFragment.empty().withOob(new Blake2fPrecompileSecondSubFragment(p)));
+          r.add(ImcFragment.empty().callOob(new Blake2FPrecompile1(p)).callMmu());
+          r.add(ImcFragment.empty().callOob(new Blake2FPrecompile2(p)));
         } else {
-          r.add(MiscFragment.empty().withOob(new Blake2fPrecompileFirstSubFragment(p)).withMmu());
-          r.add(MiscFragment.empty().withOob(new Blake2fPrecompileSecondSubFragment(p)).withMmu());
-          r.add(MiscFragment.empty().withMmu());
-          r.add(MiscFragment.empty().withMmu());
+          r.add(ImcFragment.empty().callOob(new Blake2FPrecompile1(p)).callMmu());
+          r.add(ImcFragment.empty().callOob(new Blake2FPrecompile2(p)).callMmu());
+          r.add(ImcFragment.empty().callMmu());
+          r.add(ImcFragment.empty().callMmu());
         }
       }
     }

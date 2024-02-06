@@ -29,11 +29,11 @@ import org.bouncycastle.asn1.sec.SECNamedCurves;
 import org.bouncycastle.asn1.x9.X9ECParameters;
 import org.bouncycastle.crypto.params.ECDomainParameters;
 import org.hyperledger.besu.crypto.SECPSignature;
-import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.api.jsonrpc.internal.exception.InvalidJsonRpcParameters;
 import org.hyperledger.besu.ethereum.api.jsonrpc.internal.parameters.JsonCallParameter;
 import org.hyperledger.besu.ethereum.api.jsonrpc.internal.parameters.JsonRpcParameter;
+import org.hyperledger.besu.ethereum.core.Transaction;
 import org.hyperledger.besu.evm.tracing.EstimateGasOperationTracer;
 import org.hyperledger.besu.plugin.services.BesuConfiguration;
 import org.hyperledger.besu.plugin.services.BlockchainService;
@@ -96,8 +96,12 @@ public class LineaEstimateGas {
     final var callParameters = parseRequest(request.getParams());
     final var transaction =
         createTransactionOverridingGasLimit(callParameters, txValidatorConf.maxTxGasLimit());
-    final var estimateGasUsed = estimateGasUsed(callParameters, transaction);
-
+    log.atTrace()
+        .setMessage("Parsed call parameters: {}; Transaction: {}")
+        .addArgument(callParameters)
+        .addArgument(transaction::toTraceLog)
+        .log();
+    final var estimatedGasUsed = estimateGasUsed(callParameters, transaction);
     final Wei baseFee =
         blockchainService
             .getNextBlockBaseFee()
@@ -105,9 +109,13 @@ public class LineaEstimateGas {
 
     final Wei estimatedPriorityFee =
         txProfitabilityCalculator.profitablePriorityFeePerGas(
-            transaction, besuConfiguration.getMinGasPrice(), estimateGasUsed);
+            transaction, besuConfiguration.getMinGasPrice(), estimatedGasUsed);
 
-    return new Response(create(estimateGasUsed), create(baseFee), create(estimatedPriorityFee));
+    final var response =
+        new Response(create(estimatedGasUsed), create(baseFee), create(estimatedPriorityFee));
+    log.debug("Response for call params {} is {}", callParameters, response);
+
+    return response;
   }
 
   private Long estimateGasUsed(
@@ -124,6 +132,11 @@ public class LineaEstimateGas {
               // if the transaction is invalid or doesn't have enough gas with the max it never
               // will!
               if (r.isInvalid() || !r.isSuccessful()) {
+                log.atDebug()
+                    .setMessage("Invalid or unsuccessful transaction {}, reason {}")
+                    .addArgument(transaction::toTraceLog)
+                    .addArgument(r.result())
+                    .log();
                 throw new RuntimeException("Invalid or unsuccessful transaction");
               }
 
@@ -140,8 +153,18 @@ public class LineaEstimateGas {
                         // if with the low estimation gas is successful the return this
                         // estimation
                         if (lr.isSuccessful()) {
+                          log.trace(
+                              "Low gas estimation {} successful, call params {}",
+                              lowGasEstimation,
+                              callParameters);
                           return lowGasEstimation;
                         } else {
+                          log.trace(
+                              "Low gas estimation {} unsuccessful, result{}, call params {}",
+                              lowGasEstimation,
+                              lr.result(),
+                              callParameters);
+
                           // else do a binary search to find the right estimation
                           var high = highGasEstimation(lr.getGasEstimate(), tracer);
                           var mid = high;
@@ -158,8 +181,24 @@ public class LineaEstimateGas {
                             if (binarySearchResult.isEmpty()
                                 || !binarySearchResult.get().isSuccessful()) {
                               low = mid;
+                              log.atTrace()
+                                  .setMessage(
+                                      "Binary gas estimation search low={},med={},high={}, unsuccessful result {}, call params {}")
+                                  .addArgument(lowGasEstimation)
+                                  .addArgument(
+                                      () ->
+                                          binarySearchResult
+                                              .map(result -> result.result().toString())
+                                              .orElse("empty"))
+                                  .addArgument(callParameters)
+                                  .log();
+
                             } else {
                               high = mid;
+                              log.trace(
+                                  "Binary gas estimation search low={},med={},high={}, successful, call params {}",
+                                  lowGasEstimation,
+                                  callParameters);
                             }
                           }
                           return high;
@@ -212,7 +251,7 @@ public class LineaEstimateGas {
       final JsonCallParameter callParameters, final long maxTxGasLimit) {
 
     final var txBuilder =
-        org.hyperledger.besu.ethereum.core.Transaction.builder()
+        Transaction.builder()
             .sender(callParameters.getFrom())
             .to(callParameters.getTo())
             .gasLimit(maxTxGasLimit)

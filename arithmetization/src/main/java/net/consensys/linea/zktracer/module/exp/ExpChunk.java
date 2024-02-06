@@ -108,14 +108,14 @@ public class ExpChunk extends ModuleOperation {
     int maxCt = MAX_CT_CMPTN_EXP_LOG;
     for (int i = 0; i < maxCt + 1; i++) {
       boolean pltBit = i > pComputationPltJmp.toInt();
-      byte rawByte = pComputationRawAcc.get(maxCt - i);
+      byte rawByte = pComputationRawAcc.get(i);
       byte trimByte = pltBit ? 0 : rawByte;
       pComputationTrimAcc = Bytes.concatenate(Bytes.of(trimByte), pComputationTrimAcc);
     }
 
     // Fill tanzbAcc
     for (int i = 0; i < maxCt + 1; i++) {
-      boolean tanzb = pComputationTrimAcc.slice(maxCt - i).toBigInteger().signum() != 0;
+      boolean tanzb = pComputationTrimAcc.slice(i + 1).toBigInteger().signum() != 0;
       pComputationTanzbAcc = Bytes.of(pComputationTanzbAcc.toInt() + (tanzb ? 1 : 0));
     }
 
@@ -231,7 +231,7 @@ public class ExpChunk extends ModuleOperation {
     int maxCt = MAX_CT_CMPTN_MODEXP_LOG;
     for (int i = 0; i < maxCt + 1; i++) {
       boolean pltBit = i > pComputationPltJmp.toInt();
-      byte rawByte = pComputationRawAcc.get(maxCt - i);
+      byte rawByte = pComputationRawAcc.get(i);
       byte trimByte = pltBit ? 0 : rawByte;
       pComputationTrimAcc = Bytes.concatenate(Bytes.of(trimByte), pComputationTrimAcc);
     }
@@ -241,11 +241,11 @@ public class ExpChunk extends ModuleOperation {
 
     // Fill tanzbAcc, manzbAcc
     for (int i = 0; i < maxCt + 1; i++) {
-      boolean tanzb = pComputationTrimAcc.slice(maxCt - i).toBigInteger().signum() != 0;
+      boolean tanzb = pComputationTrimAcc.slice(0, i + 1).toBigInteger().signum() != 0;
       pComputationTanzbAcc = Bytes.of(pComputationTanzbAcc.toInt() + (tanzb ? 1 : 0));
 
       // manzb turns to 1 iff accMsnzb is nonzero
-      boolean manzb = i > maxCt - 8 && pComputationMsnzb.sliceLsb(i + 1) != 0;
+      boolean manzb = i > maxCt - 8 && pComputationMsnzb.slice(i + 1) != 0;
       pComputationManzbAcc = Bytes.of(pComputationManzbAcc.toInt() + (manzb ? 1 : 0));
     }
   }
@@ -294,22 +294,20 @@ public class ExpChunk extends ModuleOperation {
           .isModexpLog(!isExpLog)
           .pComputationPltBit(i > pComputationPltJmp.toInt())
           .pComputationPltJmp(pComputationPltJmp)
-          .pComputationRawByte(UnsignedByte.of(pComputationRawAcc.get(maxCt - i)))
-          .pComputationRawAcc(pComputationRawAcc.slice(maxCt - i))
-          .pComputationTrimByte(UnsignedByte.of(pComputationTrimAcc.get(maxCt - i)))
-          .pComputationTrimAcc(pComputationTrimAcc.slice(maxCt - i))
-          .pComputationTanzb(pComputationTrimAcc.slice(maxCt - i).toBigInteger().signum() != 0)
-          .pComputationTanzbAcc(pComputationTanzbAcc.slice(maxCt - i))
+          .pComputationRawByte(UnsignedByte.of(pComputationRawAcc.get(i)))
+          .pComputationRawAcc(pComputationRawAcc.slice(0, i + 1))
+          .pComputationTrimByte(UnsignedByte.of(pComputationTrimAcc.get(i)))
+          .pComputationTrimAcc(pComputationTrimAcc.slice(0, i + 1))
+          .pComputationTanzb(pComputationTrimAcc.slice(0, i + 1).toBigInteger().signum() != 0)
+          .pComputationTanzbAcc(pComputationTanzbAcc.slice(0, i + 1))
           .pComputationMsnzb(pComputationMsnzb)
-          .pComputationBitMsnzb(i > maxCt - 8 && pComputationMsnzb.lsb(i))
-          .pComputationAccMsnzb(
-              UnsignedByte.of(i > maxCt - 8 ? pComputationMsnzb.sliceLsb(i + 1) : 0))
-          .pComputationManzb(i > maxCt - 8 && pComputationMsnzb.sliceLsb(i + 1) != 0)
+          .pComputationBitMsnzb(i > maxCt - 8 && pComputationMsnzb.get(i))
+          .pComputationAccMsnzb(UnsignedByte.of(i > maxCt - 8 ? pComputationMsnzb.slice(i + 1) : 0))
+          .pComputationManzb(i > maxCt - 8 && pComputationMsnzb.slice(i + 1) != 0)
           .pComputationManzbAcc(
               i > maxCt - 8
                   ? pComputationManzbAcc.slice(pComputationManzbAcc.size() - i)
                   : Bytes.of(0));
-      // TODO: for consistency we may want operations on UnsignedByte be BigEndian?
     }
   }
 

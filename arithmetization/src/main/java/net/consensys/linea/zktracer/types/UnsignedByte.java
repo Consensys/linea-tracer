@@ -142,31 +142,30 @@ public class UnsignedByte {
   }
 
   /**
-   * Retrieves the value of the least significant bit (LSB) at a specified position of on instance
-   * of {@link UnsignedByte}.
+   * Retrieves the value of the most significant bit (MSB) at a specified position of an instance of
+   * {@link UnsignedByte}.
    *
-   * @param index The position of the LSB to retrieve, counting from the LSB as position 0.
-   * @return true if the least significant bit at the specified position is set (1), false
-   *     otherwise.
+   * @param index The position of the MSB to retrieve, counting from the MSB as position 0.
+   * @return true if the most significant bit at the specified position is set (1), false otherwise.
    */
-  public boolean lsb(int index) {
+  public boolean get(int index) {
     if (index < 0 || index > 7) {
       throw new IllegalArgumentException("Index must be between 0 - 7. Is " + index);
     }
-    return ((this.toInteger() >> index) & 1) == 1;
+    return ((this.toInteger() >> (7 - index)) & 1) == 1;
   }
 
   /**
-   * Retrieves a slice of bits starting from the least significant bit (LSB) of on an instance
-   * {@link UnsignedByte}.
+   * Retrieves a slice of bits starting from the most significant bit (MSB) of an instance of {@link
+   * UnsignedByte}.
    *
    * @param size The size of the slice to retrieve, representing the number of bits.
-   * @return An integer representing the slice of bits starting from the LSB of the provided byte.
+   * @return An integer representing the slice of bits starting from the MSB of the provided byte.
    */
-  public int sliceLsb(int size) {
+  public int slice(int size) {
     if (size < 0 || size > 8) {
       throw new IllegalArgumentException("Size must be between 0 - 8. Is " + size);
     }
-    return this.toInteger() & ((1 << size) - 1);
+    return (this.toInteger() >> (8 - size));
   }
 }

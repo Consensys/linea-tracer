@@ -30,6 +30,7 @@ import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.blake2fmodexpdata.Blake2fModexpData;
 import net.consensys.linea.zktracer.module.blake2fmodexpdata.Blake2fModexpDataOperation;
+import net.consensys.linea.zktracer.module.blake2fmodexpdata.ModexpComponents;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
@@ -48,7 +49,7 @@ public class ModexpEffectiveCall implements Module {
   private static final BigInteger PROVER_MAX_INPUT_BIT_SIZE = BigInteger.valueOf(4096);
   private static final int EVM_WORD_SIZE = 32;
 
-  private int lastModexpDataCallHubStamp = 0;
+  private int lastDataCallHubStamp = 0;
 
   @Override
   public String moduleKey() {
@@ -145,14 +146,13 @@ public class ModexpEffectiveCall implements Module {
 
         // If enough gas, add 1 to the call of the precompile.
         if (gasPaid >= gasPrice) {
-          this.lastModexpDataCallHubStamp =
+          this.lastDataCallHubStamp =
               this.data.call(
                   new Blake2fModexpDataOperation(
                       hub.stamp(),
-                      lastModexpDataCallHubStamp,
-                      baseComponent,
-                      expComponent,
-                      modComponent));
+                      lastDataCallHubStamp,
+                      new ModexpComponents(baseComponent, expComponent, modComponent),
+                      null));
           this.counts.push(this.counts.pop() + 1);
         }
       }

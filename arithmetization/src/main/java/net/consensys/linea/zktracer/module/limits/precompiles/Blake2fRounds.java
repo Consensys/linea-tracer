@@ -19,18 +19,29 @@ import java.nio.MappedByteBuffer;
 import java.util.List;
 import java.util.Stack;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.module.blake2fmodexpdata.Blake2fComponents;
+import net.consensys.linea.zktracer.module.blake2fmodexpdata.Blake2fModexpData;
+import net.consensys.linea.zktracer.module.blake2fmodexpdata.Blake2fModexpDataOperation;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 
 @RequiredArgsConstructor
 public final class Blake2fRounds implements Module {
-  final Hub hub;
+  private static final int BLAKE2f_INPUT_SIZE = 213;
+  private final Hub hub;
+
+  @Getter private final Blake2fModexpData data = new Blake2fModexpData();
+
+  private int lastDataCallHubStamp = 0;
+
   private final Stack<Integer> counts = new Stack<>();
 
   @Override
@@ -52,41 +63,45 @@ public final class Blake2fRounds implements Module {
   public void tracePreOpcode(MessageFrame frame) {
     final OpCode opCode = hub.opCode();
 
-    switch (opCode) {
-      case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
-        final Address target = Words.toAddress(frame.getStackItem(1));
-        if (target.equals(Address.BLAKE2B_F_COMPRESSION)) {
-          long length = 0;
-          long offset = 0;
-          switch (opCode) {
-            case CALL, CALLCODE -> {
-              length = Words.clampedToLong(frame.getStackItem(4));
-              offset = Words.clampedToLong(frame.getStackItem(3));
-            }
-            case DELEGATECALL, STATICCALL -> {
-              length = Words.clampedToLong(frame.getStackItem(3));
-              offset = Words.clampedToLong(frame.getStackItem(2));
-            }
+    if (opCode.isAnyOf(OpCode.CALL, OpCode.STATICCALL, OpCode.DELEGATECALL, OpCode.CALLCODE)) {
+      final Address target = Words.toAddress(frame.getStackItem(1));
+      if (target.equals(Address.BLAKE2B_F_COMPRESSION)) {
+        long length = 0;
+        long offset = 0;
+        switch (opCode) {
+          case CALL, CALLCODE -> {
+            length = Words.clampedToLong(frame.getStackItem(4));
+            offset = Words.clampedToLong(frame.getStackItem(3));
           }
+          case DELEGATECALL, STATICCALL -> {
+            length = Words.clampedToLong(frame.getStackItem(3));
+            offset = Words.clampedToLong(frame.getStackItem(2));
+          }
+        }
 
-          final int blake2fDataSize = 213;
-          if (length == blake2fDataSize) {
-            final int f = frame.shadowReadMemory(offset, length).get(blake2fDataSize - 1);
-            if (f == 0 || f == 1) {
-              final int r =
-                  frame
-                      .shadowReadMemory(offset, length)
-                      .slice(0, 4)
-                      .toInt(); // The number of round is equal to the gas to pay
-              final long gasPaid = Words.clampedToLong(frame.getStackItem(0));
-              if (gasPaid >= r) {
-                this.counts.push(this.counts.pop() + r);
-              }
+        final Bytes inputData = frame.shadowReadMemory(offset, length);
+
+        if (length == BLAKE2f_INPUT_SIZE) {
+          final int f = inputData.get(BLAKE2f_INPUT_SIZE - 1);
+          if (f == 0 || f == 1) {
+            final Bytes r = inputData.slice(0, 4); // The number of round is equal to the gas to pay
+            final Bytes data = inputData.slice(4, BLAKE2f_INPUT_SIZE - 4);
+
+            final long gasPaid = Words.clampedToLong(frame.getStackItem(0));
+            final int rInt = r.toInt();
+            if (gasPaid >= rInt) {
+              this.lastDataCallHubStamp =
+                  this.data.call(
+                      new Blake2fModexpDataOperation(
+                          hub.stamp(),
+                          lastDataCallHubStamp,
+                          null,
+                          new Blake2fComponents(inputData, data, r, Bytes.of(f))));
+              this.counts.push(this.counts.pop() + rInt);
             }
           }
         }
       }
-      default -> {}
     }
   }
 
@@ -97,11 +112,11 @@ public final class Blake2fRounds implements Module {
 
   @Override
   public List<ColumnHeader> columnsHeaders() {
-    throw new IllegalStateException("should never be called");
+    throw new UnsupportedOperationException("should never be called");
   }
 
   @Override
   public void commit(List<MappedByteBuffer> buffers) {
-    throw new IllegalStateException("should never be called");
+    throw new UnsupportedOperationException("should never be called");
   }
 }

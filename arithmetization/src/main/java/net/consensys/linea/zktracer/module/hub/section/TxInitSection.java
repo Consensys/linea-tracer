@@ -20,6 +20,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 
 public class TxInitSection extends TraceSection {
   public TxInitSection(Hub hub, TraceFragment... chunks) {
-    this.addChunksWithoutStack(hub, chunks);
+    this.addFragmentsWithoutStack(hub, chunks);
   }
 }

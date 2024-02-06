@@ -1034,7 +1034,7 @@ public class Hub implements Module {
       case ACCOUNT -> {
         TraceSection accountSection = new AccountSection(this);
         if (this.opCodeData().stackSettings().flag1()) {
-          accountSection.addChunk(
+          accountSection.addFragment(
               this, this.currentFrame(), ContextFragment.readContextData(callStack));
         }
 
@@ -1050,7 +1050,7 @@ public class Hub implements Module {
                 frame.isAddressWarm(targetAddress),
                 this.transients.conflation().deploymentInfo().number(targetAddress),
                 this.transients.conflation().deploymentInfo().isDeploying(targetAddress));
-        accountSection.addChunk(
+        accountSection.addFragment(
             this,
             this.currentFrame(),
             new AccountFragment(accountSnapshot, accountSnapshot, false, 0, false));
@@ -1074,12 +1074,12 @@ public class Hub implements Module {
                   this.transients.conflation().deploymentInfo().number(targetAddress),
                   this.transients.conflation().deploymentInfo().isDeploying(targetAddress));
 
-          copySection.addChunk(
+          copySection.addFragment(
               this,
               this.currentFrame(),
               new AccountFragment(accountSnapshot, accountSnapshot, false, 0, false));
         } else {
-          copySection.addChunk(
+          copySection.addFragment(
               this, this.currentFrame(), ContextFragment.readContextData(callStack));
         }
         this.addTraceSection(copySection);
@@ -1297,35 +1297,8 @@ public class Hub implements Module {
     // In all cases, add a context fragment if an exception occurred
     if (this.pch().exceptions().any()) {
       this.currentTraceSection()
-          .addChunk(this, this.currentFrame(), ContextFragment.executionEmptyReturnData(callStack));
+          .addFragment(
+              this, this.currentFrame(), ContextFragment.executionEmptyReturnData(callStack));
     }
-  }
-
-  public List<TraceFragment> makeStackChunks(CallFrame f) {
-    List<TraceFragment> r = new ArrayList<>(2);
-    if (f.pending().getLines().isEmpty()) {
-      for (int i = 0; i < (this.opCodeData().stackSettings().twoLinesInstruction() ? 2 : 1); i++) {
-        r.add(
-            StackFragment.prepare(
-                this.currentFrame().stack().snapshot(),
-                new StackLine().asStackOperations(),
-                this.pch.exceptions().snapshot(),
-                this.pch.aborts().snapshot(),
-                gp.of(f.frame(), f.opCode()),
-                f.underDeployment()));
-      }
-    } else {
-      for (StackLine line : f.pending().getLines()) {
-        r.add(
-            StackFragment.prepare(
-                f.stack().snapshot(),
-                line.asStackOperations(),
-                this.pch.exceptions().snapshot(),
-                this.pch.aborts().snapshot(),
-                gp.of(f.frame(), f.opCode()),
-                f.underDeployment()));
-      }
-    }
-    return r;
   }
 }

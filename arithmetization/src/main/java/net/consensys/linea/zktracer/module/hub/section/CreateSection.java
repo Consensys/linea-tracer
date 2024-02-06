@@ -90,12 +90,12 @@ public class CreateSection extends TraceSection
   @Override
   public void runPostTx(Hub hub, WorldView state, Transaction tx) {
     if (this.exceptions.staticFault()) {
-      this.addChunksWithoutStack(hub, new ScenarioFragment());
+      this.addFragmentsWithoutStack(hub, new ScenarioFragment());
     }
 
     final boolean updateReturnData = false; // TODO:
 
-    this.addChunksWithoutStack(
+    this.addFragmentsWithoutStack(
         hub,
         ContextFragment.readContextData(hub.callStack()),
         new AccountFragment(oldCreatorSnapshot, newCreatorSnapshot, false, 0, false),

@@ -99,7 +99,7 @@ public class NoCodeCallSection extends TraceSection
 
   @Override
   public void runPostTx(Hub hub, WorldView state, Transaction tx) {
-    this.addChunksWithoutStack(
+    this.addFragmentsWithoutStack(
         hub,
         callerCallFrame,
         ScenarioFragment.forNoCodeCallSection(
@@ -111,7 +111,7 @@ public class NoCodeCallSection extends TraceSection
 
     if (precompileInvocation.isPresent()) {
       if (this.callSuccessful && callerCallFrame.hasReverted()) {
-        this.addChunksWithoutStack(
+        this.addFragmentsWithoutStack(
             hub,
             callerCallFrame,
             new AccountFragment(
@@ -119,18 +119,18 @@ public class NoCodeCallSection extends TraceSection
             new AccountFragment(
                 this.postCallCalledAccountSnapshot, this.preCallCalledAccountSnapshot));
       }
-      this.addChunksWithoutStack(
+      this.addFragmentsWithoutStack(
           hub,
           ScenarioFragment.forPrecompileEpilogue(
               precompileInvocation.get(), callerCallFrame.id(), calledCallFrameId));
       for (TraceFragment f :
           this.maybePrecompileLines.orElseThrow(
               () -> new IllegalStateException("missing precompile lines"))) {
-        this.addChunk(hub, callerCallFrame, f);
+        this.addFragment(hub, callerCallFrame, f);
       }
     } else {
       if (callerCallFrame.hasReverted()) {
-        this.addChunksWithoutStack(
+        this.addFragmentsWithoutStack(
             hub,
             callerCallFrame,
             new AccountFragment(
@@ -138,7 +138,7 @@ public class NoCodeCallSection extends TraceSection
             new AccountFragment(
                 this.postCallCalledAccountSnapshot, this.preCallCalledAccountSnapshot));
       }
-      this.addChunksWithoutStack(
+      this.addFragmentsWithoutStack(
           hub, callerCallFrame, ContextFragment.nonExecutionEmptyReturnData(hub.callStack()));
     }
   }

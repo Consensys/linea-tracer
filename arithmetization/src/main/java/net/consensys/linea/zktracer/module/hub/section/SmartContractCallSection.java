@@ -106,7 +106,7 @@ public class SmartContractCallSection extends TraceSection
   public void runPostTx(Hub hub, WorldView state, Transaction tx) {
     final CallFrame calledCallFrame = hub.callStack().get(this.calledCallFrameId);
 
-    this.addChunksWithoutStack(
+    this.addFragmentsWithoutStack(
         hub,
         callerCallFrame,
         ScenarioFragment.forSmartContractCallSection(
@@ -118,7 +118,7 @@ public class SmartContractCallSection extends TraceSection
 
     if (callerCallFrame.hasReverted()) {
       if (calledCallFrame.hasReverted()) {
-        this.addChunksWithoutStack(
+        this.addFragmentsWithoutStack(
             hub,
             callerCallFrame,
             new AccountFragment(
@@ -128,7 +128,7 @@ public class SmartContractCallSection extends TraceSection
             new AccountFragment(
                 this.postCallCalledAccountSnapshot, this.preCallCalledAccountSnapshot));
       } else {
-        this.addChunksWithoutStack(
+        this.addFragmentsWithoutStack(
             hub,
             callerCallFrame,
             new AccountFragment(
@@ -138,7 +138,7 @@ public class SmartContractCallSection extends TraceSection
       }
     } else {
       if (calledCallFrame.hasReverted()) {
-        this.addChunksWithoutStack(
+        this.addFragmentsWithoutStack(
             hub,
             callerCallFrame,
             new AccountFragment(
@@ -148,7 +148,7 @@ public class SmartContractCallSection extends TraceSection
       }
     }
 
-    this.addChunksWithoutStack(
+    this.addFragmentsWithoutStack(
         hub, callerCallFrame, ContextFragment.enterContext(hub.callStack(), calledCallFrame));
   }
 }

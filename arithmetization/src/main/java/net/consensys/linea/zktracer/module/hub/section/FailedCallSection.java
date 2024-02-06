@@ -20,6 +20,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 
 public class FailedCallSection extends TraceSection {
   public FailedCallSection(Hub hub, TraceFragment... chunks) {
-    this.addChunksAndStack(hub, hub.currentFrame(), chunks);
+    this.addFragmentsAndStack(hub, hub.currentFrame(), chunks);
   }
 }

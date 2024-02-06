@@ -43,14 +43,20 @@ import org.hyperledger.besu.plugin.services.rpc.PluginRpcRequest;
 @Slf4j
 public class LineaEstimateGas {
   private static final double SUB_CALL_REMAINING_GAS_RATIO = 65D / 64D;
-  private static final SECPSignature FAKE_SIGNATURE_FOR_SIZE;
+  private static final SECPSignature FAKE_SIGNATURE_FOR_SIZE_CALCULATION;
 
   static {
     final X9ECParameters params = SECNamedCurves.getByName("secp256k1");
     final ECDomainParameters curve =
         new ECDomainParameters(params.getCurve(), params.getG(), params.getN(), params.getH());
-    FAKE_SIGNATURE_FOR_SIZE =
-        SECPSignature.create(BigInteger.ONE, BigInteger.TEN, (byte) 0, curve.getN());
+    FAKE_SIGNATURE_FOR_SIZE_CALCULATION =
+        SECPSignature.create(
+            new BigInteger(
+                "66397251408932042429874251838229702988618145381408295790259650671563847073199"),
+            new BigInteger(
+                "24729624138373455972486746091821238755870276413282629437244319694880507882088"),
+            (byte) 0,
+            curve.getN());
   }
 
   private final JsonRpcParameter parameterParser = new JsonRpcParameter();
@@ -214,7 +220,7 @@ public class LineaEstimateGas {
                 callParameters.getPayload() == null ? Bytes.EMPTY : callParameters.getPayload())
             .gasPrice(callParameters.getGasPrice())
             .value(callParameters.getValue())
-            .signature(FAKE_SIGNATURE_FOR_SIZE);
+            .signature(FAKE_SIGNATURE_FOR_SIZE_CALCULATION);
 
     callParameters.getMaxFeePerGas().ifPresent(txBuilder::maxFeePerGas);
     callParameters.getMaxPriorityFeePerGas().ifPresent(txBuilder::maxPriorityFeePerGas);

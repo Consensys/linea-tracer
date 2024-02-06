@@ -85,18 +85,18 @@ public class ProfitableTransactionSelector implements PluginTransactionSelector 
         // only retry unprofitable txs if the min gas price went down
         if (minGasPriceDecreased.isTrue()) {
 
-          if (unprofitableRetries >= conf.getUnprofitableRetryLimit()) {
+          if (unprofitableRetries >= conf.unprofitableRetryLimit()) {
             log.atTrace()
                 .setMessage("Limit of unprofitable tx retries reached: {}/{}")
                 .addArgument(unprofitableRetries)
-                .addArgument(conf.getUnprofitableRetryLimit());
+                .addArgument(conf.unprofitableRetryLimit());
             return TX_UNPROFITABLE_RETRY_LIMIT;
           }
 
           log.atTrace()
               .setMessage("Retrying unprofitable tx. Retry: {}/{}")
               .addArgument(unprofitableRetries)
-              .addArgument(conf.getUnprofitableRetryLimit());
+              .addArgument(conf.unprofitableRetryLimit());
           unprofitableCache.remove(transaction.getHash());
           unprofitableRetries++;
 
@@ -129,7 +129,7 @@ public class ProfitableTransactionSelector implements PluginTransactionSelector 
 
       if (!transactionProfitabilityCalculator.isProfitable(
           "PostProcessing", transaction, minGasPrice, effectiveGasPrice, gasUsed)) {
-        registerAsUnProfitable(transaction);
+        rememberUnprofitable(transaction);
         return TX_UNPROFITABLE;
       }
     }
@@ -153,8 +153,8 @@ public class ProfitableTransactionSelector implements PluginTransactionSelector 
     }
   }
 
-  private void registerAsUnProfitable(final Transaction transaction) {
-    if (unprofitableCache.size() >= conf.getUnprofitableCacheSize()) {
+  private void rememberUnprofitable(final Transaction transaction) {
+    while (unprofitableCache.size() >= conf.unprofitableCacheSize()) {
       final var it = unprofitableCache.iterator();
       if (it.hasNext()) {
         it.next();
@@ -162,5 +162,6 @@ public class ProfitableTransactionSelector implements PluginTransactionSelector 
       }
     }
     unprofitableCache.add(transaction.getHash());
+    log.atTrace().setMessage("unprofitableCache={}").addArgument(unprofitableCache::size).log();
   }
 }

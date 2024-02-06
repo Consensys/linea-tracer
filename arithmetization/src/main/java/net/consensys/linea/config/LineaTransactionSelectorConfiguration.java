@@ -16,22 +16,21 @@
 package net.consensys.linea.config;
 
 import lombok.Builder;
-import lombok.Getter;
 
-/** The Linea configuration. */
-@Getter
+/** The Linea transaction selectors configuration. */
 @Builder(toBuilder = true)
-public final class LineaTransactionSelectorConfiguration {
-  private final int maxBlockCallDataSize;
-  private final String moduleLimitsFilePath;
-  private final long maxGasPerBlock;
-  private final int verificationGasCost;
-  private final int verificationCapacity;
-  private final int gasPriceRatio;
-  private final double minMargin;
-  private final double estimateGasMinMargin;
-  private final int adjustTxSize;
-  private final int txCompressionRatio;
-  private final int unprofitableCacheSize;
-  private final int unprofitableRetryLimit;
-}
+public record LineaTransactionSelectorConfiguration(
+    int maxBlockCallDataSize,
+    String moduleLimitsFilePath,
+    int overLinesLimitCacheSize,
+    long maxGasPerBlock,
+    int verificationGasCost,
+    int verificationCapacity,
+    int gasPriceRatio,
+    double minMargin,
+    double estimateGasMinMargin,
+    int adjustTxSize,
+    int txCompressionRatio,
+    int unprofitableCacheSize,
+    int unprofitableRetryLimit) {}
+;

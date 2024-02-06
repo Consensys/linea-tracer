@@ -65,8 +65,7 @@ public class LineaTransactionSelectorPlugin extends AbstractLineaRequiredPlugin 
   public void beforeExternalServices() {
     super.beforeExternalServices();
     try {
-      URL url =
-          new File(transactionSelectorConfiguration.getModuleLimitsFilePath()).toURI().toURL();
+      URL url = new File(transactionSelectorConfiguration.moduleLimitsFilePath()).toURI().toURL();
       final String tomlString = Resources.toString(url, StandardCharsets.UTF_8);
       TomlParseResult result = Toml.parse(tomlString);
       final TomlTable table = result.getTable("traces-limits");
@@ -80,7 +79,7 @@ public class LineaTransactionSelectorPlugin extends AbstractLineaRequiredPlugin 
     } catch (final Exception e) {
       final String errorMsg =
           "Problem reading the toml file containing the limits for the modules: "
-              + transactionSelectorConfiguration.getModuleLimitsFilePath();
+              + transactionSelectorConfiguration.moduleLimitsFilePath();
       log.error(errorMsg);
       throw new RuntimeException(errorMsg, e);
     }

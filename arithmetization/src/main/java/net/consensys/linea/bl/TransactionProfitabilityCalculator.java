@@ -1,3 +1,17 @@
+/*
+ * Copyright Consensys Software Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 package net.consensys.linea.bl;
 
 import java.math.BigDecimal;
@@ -17,19 +31,19 @@ public class TransactionProfitabilityCalculator {
   public TransactionProfitabilityCalculator(final LineaTransactionSelectorConfiguration conf) {
     this.conf = conf;
     this.preComputedValue =
-        conf.getEstimateGasMinMargin() * conf.getGasPriceRatio() * conf.getVerificationGasCost();
+        conf.estimateGasMinMargin() * conf.gasPriceRatio() * conf.verificationGasCost();
   }
 
   public Wei profitablePriorityFeePerGas(
       final Transaction transaction, final Wei minGasPrice, final long gas) {
-    final double txSize = Math.max(0, transaction.getSize() + conf.getAdjustTxSize());
-    final double compressedSerializedSize = txSize / conf.getTxCompressionRatio();
+    final double txSize = Math.max(0, transaction.getSize() + conf.adjustTxSize());
+    final double compressedSerializedSize = txSize / conf.txCompressionRatio();
 
     final var profitAt =
         preComputedValue
             * txSize
             * minGasPrice.getAsBigInteger().doubleValue()
-            / (gas * conf.getVerificationCapacity());
+            / (gas * conf.verificationCapacity());
 
     final var profitAtWei = Wei.ofNumber(BigDecimal.valueOf(profitAt).toBigInteger());
 
@@ -38,14 +52,14 @@ public class TransactionProfitabilityCalculator {
             "Estimated profitable priorityFeePerGas: {}; estimateGasMinMargin={}, gasPriceRatio={}, "
                 + "verificationGasCost={}, txSize={}, compressedTxSize={}, minGasPrice={}, gas={}, verificationCapacity={}")
         .addArgument(profitAtWei::toHumanReadableString)
-        .addArgument(conf.getEstimateGasMinMargin())
-        .addArgument(conf.getGasPriceRatio())
-        .addArgument(conf.getVerificationGasCost())
+        .addArgument(conf.estimateGasMinMargin())
+        .addArgument(conf.gasPriceRatio())
+        .addArgument(conf.verificationGasCost())
         .addArgument(txSize)
         .addArgument(compressedSerializedSize)
         .addArgument(minGasPrice::toHumanReadableString)
         .addArgument(gas)
-        .addArgument(conf.getVerificationCapacity())
+        .addArgument(conf.verificationCapacity())
         .log();
 
     return Wei.ofNumber(BigDecimal.valueOf(profitAt).toBigInteger());
@@ -59,16 +73,15 @@ public class TransactionProfitabilityCalculator {
       final long gas) {
     final double revenue = effectiveGasPrice * gas;
 
-    final double l1GasPrice = minGasPrice * conf.getGasPriceRatio();
-    final int serializedSize = Math.max(0, transaction.getSize() + conf.getAdjustTxSize());
+    final double l1GasPrice = minGasPrice * conf.gasPriceRatio();
+    final int serializedSize = Math.max(0, transaction.getSize() + conf.adjustTxSize());
     final double verificationGasCostSlice =
-        (((double) serializedSize) / conf.getVerificationCapacity())
-            * conf.getVerificationGasCost();
+        (((double) serializedSize) / conf.verificationCapacity()) * conf.verificationGasCost();
     final double cost = l1GasPrice * verificationGasCostSlice;
 
     final double margin = revenue / cost;
 
-    if (margin < conf.getMinMargin()) {
+    if (margin < conf.minMargin()) {
       log(
           log.atDebug(),
           step,
@@ -79,7 +92,7 @@ public class TransactionProfitabilityCalculator {
           minGasPrice,
           l1GasPrice,
           serializedSize,
-          conf.getAdjustTxSize());
+          conf.adjustTxSize());
       return false;
     } else {
       log(
@@ -92,7 +105,7 @@ public class TransactionProfitabilityCalculator {
           minGasPrice,
           l1GasPrice,
           serializedSize,
-          conf.getAdjustTxSize());
+          conf.adjustTxSize());
       return true;
     }
   }
@@ -115,10 +128,10 @@ public class TransactionProfitabilityCalculator {
         .addArgument(context)
         .addArgument(transaction::getHash)
         .addArgument(margin)
-        .addArgument(conf.getMinMargin())
-        .addArgument(conf.getVerificationCapacity())
-        .addArgument(conf.getVerificationGasCost())
-        .addArgument(conf.getGasPriceRatio())
+        .addArgument(conf.minMargin())
+        .addArgument(conf.verificationCapacity())
+        .addArgument(conf.verificationGasCost())
+        .addArgument(conf.gasPriceRatio())
         .addArgument(effectiveGasPrice)
         .addArgument(gasUsed)
         .addArgument(minGasPrice)

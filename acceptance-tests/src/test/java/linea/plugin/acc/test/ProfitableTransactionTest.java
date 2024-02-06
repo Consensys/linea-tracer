@@ -42,6 +42,7 @@ public class ProfitableTransactionTest extends LineaPluginTestBase {
         .set("--plugin-linea-verification-capacity=", String.valueOf(VERIFICATION_CAPACITY))
         .set("--plugin-linea-gas-price-ratio=", String.valueOf(GAS_PRICE_RATIO))
         .set("--plugin-linea-min-margin=", String.valueOf(MIN_MARGIN))
+        .set("--plugin-linea-deny-list-path=", getResourcePath("/denyList.txt"))
         .build();
   }
 

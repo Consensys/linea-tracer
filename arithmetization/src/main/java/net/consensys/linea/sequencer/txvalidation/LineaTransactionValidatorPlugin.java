@@ -15,8 +15,9 @@
 
 package net.consensys.linea.sequencer.txvalidation;
 
+import java.io.File;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -62,8 +63,9 @@ public class LineaTransactionValidatorPlugin extends AbstractLineaRequiredPlugin
 
   @Override
   public void beforeExternalServices() {
+    super.beforeExternalServices();
     try (Stream<String> lines =
-        Files.lines(Paths.get(transactionValidatorConfiguration.denyListPath()))) {
+        Files.lines(Path.of(new File(transactionValidatorConfiguration.denyListPath()).toURI()))) {
       final Set<Address> denied =
           lines.map(l -> Address.fromHexString(l.trim())).collect(Collectors.toUnmodifiableSet());
       createAndRegister(transactionValidatorService, transactionValidatorConfiguration, denied);

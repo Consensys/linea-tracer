@@ -55,13 +55,13 @@ public abstract class AbstractLineaSharedOptionsPlugin implements BesuPlugin {
   @Override
   public void beforeExternalServices() {
     log.debug(
-        "Starting plugin {} with transaction selector configuration: {}",
+        "Configuring plugin {} with transaction selector configuration: {}",
         getName(),
         transactionSelectorCliOptions);
     transactionSelectorConfiguration = transactionSelectorCliOptions.toDomainObject();
 
     log.debug(
-        "Starting plugin {} with transaction validator configuration: {}",
+        "Configuring plugin {} with transaction validator configuration: {}",
         getName(),
         transactionValidatorCliOptions);
     transactionValidatorConfiguration = transactionValidatorCliOptions.toDomainObject();

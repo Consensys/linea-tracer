@@ -18,8 +18,6 @@ package net.consensys.linea.zktracer.module.exp;
 import static com.google.common.math.BigIntegerMath.log2;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static net.consensys.linea.zktracer.module.exp.Trace.G_EXPBYTES;
-import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.math.BigInteger;
 import java.math.RoundingMode;
@@ -77,12 +75,15 @@ public class Exp implements Module {
 
   @Override
   public void tracePreOpcode(MessageFrame frame) {
-    if (hub.pch().exceptions().none() && hub.pch().aborts().none()) {
-      OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
-      if (opCode.equals(OpCode.EXP)) {
+    OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
+    if (opCode.equals(OpCode.EXP)) {
+      if (!hub.pch().exceptions().stackUnderflow()) {
         ExpLogExpParameters expLogExpParameters = extractExpLogParameters(frame);
         this.chunks.add(new ExpChunk(frame, wcp, expLogExpParameters));
-      } else if (opCode.isCall()) {
+      }
+    }
+    if (hub.pch().exceptions().none() && hub.pch().aborts().none()) {
+      if (opCode.isCall()) {
         Address target = Words.toAddress(frame.getStackItem(1));
         if (target.equals(Address.MODEXP)) {
           ModexpLogExpParameters modexpLogExpParameters = extractModexpLogParameters(frame);
@@ -97,17 +98,11 @@ public class Exp implements Module {
   private ExpLogExpParameters extractExpLogParameters(final MessageFrame frame) {
     EWord exponent = EWord.of(frame.getStackItem(1));
     BigInteger exponentHi = exponent.hiBigInt();
-    BigInteger dynCost;
-    if (exponent.isZero()) {
-      dynCost = BigInteger.ZERO;
-    } else {
-      boolean expnHiIsZero = exponentHi.signum() == 0;
-      if (!expnHiIsZero) {
-        dynCost = BigInteger.valueOf(G_EXPBYTES * (bigIntegerToBytes(exponentHi).size() + 16));
-      } else {
-        dynCost = BigInteger.valueOf(G_EXPBYTES * bigIntegerToBytes(exponentHi).size());
-      }
-    }
+    BigInteger dynCost =
+        exponent.isZero()
+            ? BigInteger.ZERO
+            : BigInteger.valueOf(log2(exponent.toBigInteger(), RoundingMode.FLOOR))
+                .divide(BigInteger.valueOf(8));
     return new ExpLogExpParameters(exponent, dynCost);
   }
 
@@ -143,7 +138,7 @@ public class Exp implements Module {
     BigInteger ebs = paddedCallData.slice(32, 64).toUnsignedBigInteger();
     BigInteger mbs = paddedCallData.slice(64, 96).toUnsignedBigInteger();
 
-    // Some other module checks if bbs, ebs and msb are <= 512
+    // Some other module checks if bbs, ebs and msb are <= 512 (@Francois)
 
     if (ebs.signum() == 0) {
       return null;
@@ -168,27 +163,24 @@ public class Exp implements Module {
     int cdsCutoff = min(max(cds.intValue() - (96 + ebs.intValue()), 0), 32);
     // ebs_cutoff
     int ebsCutoff = min(ebs.intValue(), 32);
+    // min_cutoff
+    int minCutoff = min(cdsCutoff, ebsCutoff);
+
+    BigInteger mask =
+        new BigInteger("0x" + new String(new char[minCutoff]).replace("\0", "FF"), 16);
+    if (minCutoff < 32) {
+      mask = mask.shiftLeft(32 - minCutoff);
+    }
+
+    // TODO: check consistency with specs
+    BigInteger trimLead = rawLead.toUnsignedBigInteger().and(mask);
 
     // lead
-    BigInteger lead =
-        doublePaddedCallData
-            .slice(96 + bbs.intValue(), min(ebs.intValue(), 32))
-            .toUnsignedBigInteger();
+    BigInteger lead = trimLead.shiftRight(32 - ebsCutoff);
 
     // lead_log (same as EYP)
-    BigInteger leadLog;
-    if (ebs.intValue() <= 32 && lead.signum() == 0) {
-      leadLog = BigInteger.ZERO;
-    } else if (ebs.intValue() <= 32 && lead.signum() != 0) {
-      leadLog = BigInteger.valueOf(log2(lead, RoundingMode.FLOOR));
-    } else if (ebs.intValue() > 32 && lead.signum() != 0) {
-      leadLog =
-          BigInteger.valueOf(8)
-              .multiply(ebs.subtract(BigInteger.valueOf(32)))
-              .add(BigInteger.valueOf(log2(lead, RoundingMode.FLOOR)));
-    } else {
-      leadLog = BigInteger.valueOf(8).multiply(ebs.subtract(BigInteger.valueOf(32)));
-    }
+    BigInteger leadLog =
+        lead.signum() == 0 ? BigInteger.ZERO : BigInteger.valueOf(log2(lead, RoundingMode.FLOOR));
     return new ModexpLogExpParameters(rawLead, cdsCutoff, ebsCutoff, leadLog, lead);
   }
 

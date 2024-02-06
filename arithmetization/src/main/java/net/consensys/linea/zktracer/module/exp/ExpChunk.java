@@ -138,7 +138,7 @@ public class ExpChunk extends ModuleOperation {
     pMacroInstructionData1 = bigIntegerToBytes(modexpLogExpParameters.rawLeadHi());
     pMacroInstructionData2 = bigIntegerToBytes(modexpLogExpParameters.rawLeadLo());
     pMacroInstructionData3 = Bytes.of(modexpLogExpParameters.cdsCutoff());
-    pMacroInstructionData4 = Bytes.of(modexpLogExpParameters.cdsCutoff());
+    pMacroInstructionData4 = Bytes.of(modexpLogExpParameters.ebsCutoff());
     pMacroInstructionData5 = bigIntegerToBytes(modexpLogExpParameters.leadLog());
     initArrays(MAX_CT_PRPRC_MODEXP_LOG + 1);
 
@@ -232,6 +232,7 @@ public class ExpChunk extends ModuleOperation {
     // Fill trimAcc
     int maxCt = MAX_CT_CMPTN_MODEXP_LOG;
     for (int i = 0; i < maxCt + 1; i++) {
+      // TODO: double check it
       boolean pltBit = i > pComputationPltJmp.toInt();
       byte rawByte = pComputationRawAcc.get(maxCt - i);
       byte trimByte = pltBit ? 0 : rawByte;
@@ -239,6 +240,7 @@ public class ExpChunk extends ModuleOperation {
     }
 
     // Fill msnzb
+    // TODO: double check it (we may need to get it from trimLead?)
     pComputationMsnzb = UnsignedByte.of(bigIntegerToBytes(modexpLogExpParameters.lead()).get(0));
 
     // Fill tanzbAcc, manzbAcc
@@ -246,6 +248,7 @@ public class ExpChunk extends ModuleOperation {
       boolean tanzb = pComputationTrimAcc.slice(maxCt - i).toBigInteger().signum() != 0;
       pComputationTanzbAcc = Bytes.of(pComputationTanzbAcc.toInt() + (tanzb ? 1 : 0));
 
+      // TODO: give a name to it
       boolean manzb = i > maxCt - 8 && (pComputationMsnzb.toInteger() & ((1 << (i + 1)) - 1)) != 0;
       pComputationManzbAcc = Bytes.of(pComputationManzbAcc.toInt() + (manzb ? 1 : 0));
     }

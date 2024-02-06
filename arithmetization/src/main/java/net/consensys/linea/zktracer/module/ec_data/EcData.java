@@ -73,14 +73,14 @@ public class EcData implements Module {
         if (!EC_PRECOMPILES.contains(to)) {
           return;
         }
-        final MemorySpan callDataSource = hub.callDataSegment();
+        final MemorySpan callDataSource = hub.transients().op().callDataSegment();
 
         if (to.equals(Address.ALTBN128_PAIRING)
             && (callDataSource.isEmpty() || callDataSource.length() % 192 != 0)) {
           return;
         }
 
-        final Bytes input = hub.callData();
+        final Bytes input = hub.transients().op().callData();
 
         this.operations.add(
             EcDataOperation.of(

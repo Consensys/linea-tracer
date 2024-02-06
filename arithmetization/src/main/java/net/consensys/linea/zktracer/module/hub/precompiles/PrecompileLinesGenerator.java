@@ -41,7 +41,8 @@ public class PrecompileLinesGenerator {
         if (p.hubFailure()) {
           r.add(ImcFragment.empty().callOob(new EcRecover(p)));
         } else {
-          final boolean recoverySuccessful = EcRecoverComputer.ecRecoverSuccessful(hub.callData());
+          final boolean recoverySuccessful =
+              EcRecoverComputer.ecRecoverSuccessful(hub.transients().op().callData());
 
           r.add(
               ImcFragment.empty()

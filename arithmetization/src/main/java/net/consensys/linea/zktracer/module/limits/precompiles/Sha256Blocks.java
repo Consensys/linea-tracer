@@ -56,7 +56,7 @@ public final class Sha256Blocks implements Module {
   }
 
   public static boolean hasEnoughGas(final Hub hub) {
-    return hub.gasAllowanceForCall() >= gasCost(hub);
+    return hub.transients().op().gasAllowanceForCall() >= gasCost(hub);
   }
 
   public static long gasCost(final Hub hub) {
@@ -67,7 +67,7 @@ public final class Sha256Blocks implements Module {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
         if (target.equals(Address.SHA256)) {
-          final long dataByteLength = hub.callDataSegment().length();
+          final long dataByteLength = hub.transients().op().callDataSegment().length();
           final long wordCount = (dataByteLength + 31) / 32;
           return PRECOMPILE_BASE_GAS_FEE + PRECOMPILE_GAS_FEE_PER_EWORD * wordCount;
         }
@@ -84,7 +84,7 @@ public final class Sha256Blocks implements Module {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
         if (target.equals(Address.SHA256)) {
-          final long dataByteLength = hub.callDataSegment().length();
+          final long dataByteLength = hub.transients().op().callDataSegment().length();
           if (dataByteLength == 0) {
             return;
           }

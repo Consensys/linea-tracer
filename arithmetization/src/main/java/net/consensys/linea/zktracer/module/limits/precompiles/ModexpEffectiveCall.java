@@ -72,7 +72,7 @@ public class ModexpEffectiveCall implements Module {
     if (opCode.isAnyOf(OpCode.CALL, OpCode.STATICCALL, OpCode.DELEGATECALL, OpCode.CALLCODE)) {
       final Address target = Words.toAddress(frame.getStackItem(1));
       if (target.equals(Address.MODEXP)) {
-        final Bytes inputData = hub.callData();
+        final Bytes inputData = hub.transients().op().callData();
 
         // Get the Base length
         final BigInteger baseLength = slice(inputData, 0, EVM_WORD_SIZE).toUnsignedBigInteger();
@@ -130,7 +130,7 @@ public class ModexpEffectiveCall implements Module {
         final long gasPrice = gasPrice(baseLengthInt, expLengthInt, modLengthInt, expComponent);
 
         // If enough gas, add 1 to the call of the precompile.
-        if (hub.gasAllowanceForCall() >= gasPrice) {
+        if (hub.transients().op().gasAllowanceForCall() >= gasPrice) {
           this.lastModexpDataCallHubStamp =
               this.data.call(
                   new ModexpDataOperation(
@@ -152,7 +152,7 @@ public class ModexpEffectiveCall implements Module {
     if (opCode.isAnyOf(OpCode.CALL, OpCode.STATICCALL, OpCode.DELEGATECALL, OpCode.CALLCODE)) {
       final Address target = Words.toAddress(frame.getStackItem(1));
       if (target.equals(Address.MODEXP)) {
-        final Bytes inputData = hub.callData();
+        final Bytes inputData = hub.transients().op().callData();
 
         // Get the Base length
         final BigInteger baseLength = slice(inputData, 0, EVM_WORD_SIZE).toUnsignedBigInteger();

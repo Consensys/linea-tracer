@@ -174,8 +174,10 @@ public class RomLex implements Module {
         .ifPresent(
             code -> {
               codeIdentifierBeforeLexOrder += 1;
-              int depNumber = hub.conflation().deploymentInfo().number(tx.getTo().get());
-              boolean depStatus = hub.conflation().deploymentInfo().isDeploying(tx.getTo().get());
+              int depNumber =
+                  hub.transients().conflation().deploymentInfo().number(tx.getTo().get());
+              boolean depStatus =
+                  hub.transients().conflation().deploymentInfo().isDeploying(tx.getTo().get());
 
               this.chunks.add(
                   new RomChunk(
@@ -220,10 +222,11 @@ public class RomLex implements Module {
         final long length = clampedToLong(frame.getStackItem(1));
         final Bytes code = frame.shadowReadMemory(offset, length);
         final boolean depStatus =
-            hub.conflation().deploymentInfo().isDeploying(frame.getContractAddress());
+            hub.transients().conflation().deploymentInfo().isDeploying(frame.getContractAddress());
         if (!code.isEmpty() && depStatus) {
           codeIdentifierBeforeLexOrder += 1;
-          int depNumber = hub.conflation().deploymentInfo().number(frame.getContractAddress());
+          int depNumber =
+              hub.transients().conflation().deploymentInfo().number(frame.getContractAddress());
           this.chunks.add(
               new RomChunk(
                   codeIdentifierBeforeLexOrder,
@@ -239,8 +242,9 @@ public class RomLex implements Module {
       case CALL, CALLCODE, DELEGATECALL, STATICCALL -> {
         final Address calledAddress = Words.toAddress(frame.getStackItem(1));
         final boolean depStatus =
-            hub.conflation().deploymentInfo().isDeploying(frame.getContractAddress());
-        final int depNumber = hub.conflation().deploymentInfo().number(frame.getContractAddress());
+            hub.transients().conflation().deploymentInfo().isDeploying(frame.getContractAddress());
+        final int depNumber =
+            hub.transients().conflation().deploymentInfo().number(frame.getContractAddress());
         Optional.ofNullable(frame.getWorldUpdater().get(calledAddress))
             .map(AccountState::getCode)
             .ifPresent(
@@ -262,11 +266,12 @@ public class RomLex implements Module {
         final Address calledAddress = Words.toAddress(frame.getStackItem(0));
         final long length = Words.clampedToLong(frame.getStackItem(3));
         final boolean isDeploying =
-            hub.conflation().deploymentInfo().isDeploying(frame.getContractAddress());
+            hub.transients().conflation().deploymentInfo().isDeploying(frame.getContractAddress());
         if (length == 0 || isDeploying) {
           return;
         }
-        final int depNumber = hub.conflation().deploymentInfo().number(frame.getContractAddress());
+        final int depNumber =
+            hub.transients().conflation().deploymentInfo().number(frame.getContractAddress());
         Optional.ofNullable(frame.getWorldUpdater().get(calledAddress))
             .map(AccountState::getCode)
             .ifPresent(
@@ -293,8 +298,9 @@ public class RomLex implements Module {
     OpCode opcode = OpCode.of(frame.getCurrentOperation().getOpcode());
     switch (opcode) {
       case CREATE, CREATE2 -> {
-        final int depNumber = hub.conflation().deploymentInfo().number(this.address);
-        final boolean depStatus = hub.conflation().deploymentInfo().isDeploying(this.address);
+        final int depNumber = hub.transients().conflation().deploymentInfo().number(this.address);
+        final boolean depStatus =
+            hub.transients().conflation().deploymentInfo().isDeploying(this.address);
 
         this.chunks.add(
             new RomChunk(

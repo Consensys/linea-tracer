@@ -41,8 +41,8 @@ public class ExtCodeCopy extends MmuCall {
           hub.romLex()
               .getCfiByMetadata(
                   sourceAddress,
-                  hub.conflation().deploymentInfo().number(sourceAddress),
-                  hub.conflation().deploymentInfo().isDeploying(sourceAddress));
+                  hub.transients().conflation().deploymentInfo().number(sourceAddress),
+                  hub.transients().conflation().deploymentInfo().isDeploying(sourceAddress));
     } catch (Exception ignored) {
       // Triggered if the external bytecode is empty, and thus absent from the ROMLex.
       // CFI is already equal to 0 anyway, so do nothing.
@@ -56,8 +56,8 @@ public class ExtCodeCopy extends MmuCall {
             hub.romLex()
                 .getChunkByMetadata(
                     sourceAddress,
-                    hub.conflation().deploymentInfo().number(sourceAddress),
-                    hub.conflation().deploymentInfo().isDeploying(sourceAddress))
+                    hub.transients().conflation().deploymentInfo().number(sourceAddress),
+                    hub.transients().conflation().deploymentInfo().isDeploying(sourceAddress))
                 .map(c -> c.byteCode().size())
                 .orElse(0))
         .setRom();

@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub;
+package net.consensys.linea.zktracer.module.hub.transients;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,7 +36,7 @@ public class DeploymentInfo {
     return this.deploymentNumber.getOrDefault(address, 0);
   }
 
-  void deploy(Address address) {
+  public void deploy(Address address) {
     this.deploymentNumber.put(address, this.number(address) + 1);
     this.markDeploying(address);
   }

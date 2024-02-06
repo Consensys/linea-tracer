@@ -63,7 +63,7 @@ public final class EcAddEffectiveCall implements Module {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
         if (target.equals(Address.ALTBN128_ADD)
-            && hub.gasAllowanceForCall() >= PRECOMPILE_GAS_FEE) {
+            && hub.transients().op().gasAllowanceForCall() >= PRECOMPILE_GAS_FEE) {
           this.counts.push(this.counts.pop() + 1);
         }
       }
@@ -72,7 +72,7 @@ public final class EcAddEffectiveCall implements Module {
 
   public static boolean isRamFailure(final Hub hub) {
     final MessageFrame frame = hub.messageFrame();
-    final MemorySpan callDataSource = hub.callDataSegment();
+    final MemorySpan callDataSource = hub.transients().op().callDataSegment();
     final Bytes callData =
         rightPadTo(
             frame.shadowReadMemory(callDataSource.offset(), Math.min(callDataSource.length(), 128)),

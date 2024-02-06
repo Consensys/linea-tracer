@@ -24,10 +24,10 @@ import static net.consensys.linea.zktracer.module.oob.Trace.OOB_INST_ripemd;
 import static net.consensys.linea.zktracer.module.oob.Trace.OOB_INST_sha2;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
-import net.consensys.linea.zktracer.module.hub.Precompile;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.call.oob.OobCall;
 import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 import net.consensys.linea.zktracer.module.oob.OobDataChannel;
+import net.consensys.linea.zktracer.types.Precompile;
 import org.apache.tuweni.bytes.Bytes;
 
 public record SimplePrecompileCall(

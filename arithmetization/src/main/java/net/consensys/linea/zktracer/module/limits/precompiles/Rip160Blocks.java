@@ -56,7 +56,7 @@ public final class Rip160Blocks implements Module {
   }
 
   public static boolean hasEnoughGas(final Hub hub) {
-    return hub.gasAllowanceForCall() <= gasCost(hub);
+    return hub.transients().op().gasAllowanceForCall() <= gasCost(hub);
   }
 
   public static long gasCost(final Hub hub) {
@@ -66,7 +66,7 @@ public final class Rip160Blocks implements Module {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(hub.messageFrame().getStackItem(1));
         if (target.equals(Address.RIPEMD160)) {
-          final long dataByteLength = hub.callDataSegment().length();
+          final long dataByteLength = hub.transients().op().callDataSegment().length();
           final long wordCount = (dataByteLength + 31) / 32;
           return PRECOMPILE_BASE_GAS_FEE + PRECOMPILE_GAS_FEE_PER_EWORD * wordCount;
         }
@@ -84,7 +84,7 @@ public final class Rip160Blocks implements Module {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
         if (target.equals(Address.RIPEMD160)) {
-          final long dataByteLength = hub.callDataSegment().length();
+          final long dataByteLength = hub.transients().op().callDataSegment().length();
           if (dataByteLength == 0) {
             return;
           } // skip trivial hash TODO: check the prover does skip it
@@ -99,7 +99,7 @@ public final class Rip160Blocks implements Module {
           final long wordCount = (dataByteLength + 31) / 32;
           final long gasNeeded = PRECOMPILE_BASE_GAS_FEE + PRECOMPILE_GAS_FEE_PER_EWORD * wordCount;
 
-          if (hub.gasAllowanceForCall() >= gasNeeded) {
+          if (hub.transients().op().gasAllowanceForCall() >= gasNeeded) {
             this.counts.push(this.counts.pop() + blockCount);
           }
         }

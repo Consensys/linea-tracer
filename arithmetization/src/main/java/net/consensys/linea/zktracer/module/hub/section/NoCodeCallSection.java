@@ -87,14 +87,14 @@ public class NoCodeCallSection extends TraceSection
         AccountSnapshot.fromAccount(
             callerAccount,
             frame.isAddressWarm(callerAddress),
-            hub.conflation().deploymentInfo().number(callerAddress),
-            hub.conflation().deploymentInfo().isDeploying(callerAddress));
+            hub.transients().conflation().deploymentInfo().number(callerAddress),
+            hub.transients().conflation().deploymentInfo().isDeploying(callerAddress));
     this.postCallCalledAccountSnapshot =
         AccountSnapshot.fromAccount(
             calledAccount,
             frame.isAddressWarm(calledAddress),
-            hub.conflation().deploymentInfo().number(calledAddress),
-            hub.conflation().deploymentInfo().isDeploying(calledAddress));
+            hub.transients().conflation().deploymentInfo().number(calledAddress),
+            hub.transients().conflation().deploymentInfo().isDeploying(calledAddress));
   }
 
   @Override

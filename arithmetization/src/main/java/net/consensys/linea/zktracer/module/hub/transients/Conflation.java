@@ -13,20 +13,19 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.runtime.stack;
+package net.consensys.linea.zktracer.module.hub.transients;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.module.hub.DeploymentInfo;
 import net.consensys.linea.zktracer.runtime.LogInvocation;
 
 /** Stores data relative to the conflation. */
 @Accessors(fluent = true)
 @Getter
-public class ConflationInfo {
+public class Conflation {
   private int number = 0;
   private DeploymentInfo deploymentInfo;
   private final List<LogInvocation> logs = new ArrayList<>(100);

@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.module.hub;
 
 import java.util.Optional;
 
+import net.consensys.linea.zktracer.types.Bytecode;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.account.Account;

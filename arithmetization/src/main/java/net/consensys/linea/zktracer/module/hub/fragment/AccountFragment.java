@@ -108,7 +108,7 @@ public final class AccountFragment implements TraceFragment {
 
   @Override
   public void postConflationRetcon(final Hub hub, final WorldView world) {
-    this.deploymentNumberInfnty = hub.conflation().deploymentInfo().number(this.who);
+    this.deploymentNumberInfnty = hub.transients().conflation().deploymentInfo().number(this.who);
     this.existsInfinity = world.get(this.who) == null;
   }
 }

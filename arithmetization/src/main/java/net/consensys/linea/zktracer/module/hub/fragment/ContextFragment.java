@@ -43,7 +43,8 @@ public record ContextFragment(
     return new ContextFragment(
         callStack,
         hub.stamp() + 1,
-        MemorySpan.fromStartEnd(0, hub.tx().transaction().getData().map(Bytes::size).orElse(0)),
+        MemorySpan.fromStartEnd(
+            0, hub.transients().tx().transaction().getData().map(Bytes::size).orElse(0)),
         false);
   }
 

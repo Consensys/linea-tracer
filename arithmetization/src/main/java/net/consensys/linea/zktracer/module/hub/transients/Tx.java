@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub;
+package net.consensys.linea.zktracer.module.hub.transients;
 
 import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 
@@ -25,18 +25,16 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.container.StackedContainer;
+import net.consensys.linea.zktracer.types.TxState;
 import org.hyperledger.besu.datatypes.Quantity;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
-import org.hyperledger.besu.evm.gascalculator.GasCalculator;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 /** Stores transaction-specific information. */
 @Accessors(fluent = true)
 @Getter
-public class TxInfo implements StackedContainer {
-  private static final GasCalculator gc = ZkTracer.gasCalculator;
-
+public class Tx implements StackedContainer {
   private int preExecNumber = 0;
 
   private int number = 0;
@@ -44,7 +42,7 @@ public class TxInfo implements StackedContainer {
   @Setter private TxState state;
   @Setter private Boolean status;
   private long initialGas;
-  StorageInfo storage;
+  StorageInitialValues storage;
 
   /**
    * Returns the transaction result, or throws an exception if it is being accessed outside of its
@@ -60,7 +58,7 @@ public class TxInfo implements StackedContainer {
     return this.status;
   }
 
-  boolean shouldSkip(WorldView world) {
+  public boolean shouldSkip(WorldView world) {
     return (this.transaction.getTo().isPresent()
             && Optional.ofNullable(world.get(this.transaction.getTo().get()))
                 .map(a -> a.getCode().isEmpty())
@@ -77,8 +75,8 @@ public class TxInfo implements StackedContainer {
   public static long computeInitGas(Transaction tx) {
     boolean isDeployment = tx.getTo().isEmpty();
     return tx.getGasLimit()
-        - gc.transactionIntrinsicGasCost(tx.getPayload(), isDeployment)
-        - tx.getAccessList().map(gc::accessListGasCost).orElse(0L);
+        - ZkTracer.gasCalculator.transactionIntrinsicGasCost(tx.getPayload(), isDeployment)
+        - tx.getAccessList().map(ZkTracer.gasCalculator::accessListGasCost).orElse(0L);
   }
 
   /**
@@ -86,13 +84,13 @@ public class TxInfo implements StackedContainer {
    *
    * @param tx the new transaction
    */
-  void update(final Transaction tx) {
+  public void update(final Transaction tx) {
     if (tx.getTo().isPresent() && isPrecompile(tx.getTo().get())) {
       throw new RuntimeException("Call to precompile forbidden");
     } else {
       this.number++;
     }
-    this.storage = new StorageInfo();
+    this.storage = new StorageInitialValues();
     this.status = null;
     this.transaction = tx;
     this.initialGas = tx.getGasLimit();

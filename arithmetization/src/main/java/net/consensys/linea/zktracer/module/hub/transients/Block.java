@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub;
+package net.consensys.linea.zktracer.module.hub.transients;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
@@ -24,10 +24,10 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 /** Stores block-specific information. */
 @Accessors(fluent = true)
 @Getter
-public class BlockInfo {
-  int blockNumber = 0;
-  Address minerAddress;
-  Wei baseFee;
+public class Block {
+  private int blockNumber = 0;
+  private Address minerAddress;
+  private Wei baseFee;
 
   /**
    * Update block-specific information on new block entrance.

@@ -57,7 +57,8 @@ public class LogInvocation {
       default -> throw new IllegalStateException("not a LOG operation");
     }
 
-    return hub.conflation()
+    return hub.transients()
+        .conflation()
         .log(new LogInvocation(hub.callStack(), payload, topics, hub.currentFrame().id()));
   }
 

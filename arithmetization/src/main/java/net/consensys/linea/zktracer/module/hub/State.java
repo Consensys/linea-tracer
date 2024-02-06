@@ -23,6 +23,7 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.StackedContainer;
 import net.consensys.linea.zktracer.module.hub.State.TxState.Stamps;
+import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class State implements StackedContainer {

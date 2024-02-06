@@ -31,7 +31,7 @@ public class LogX extends MmuCall {
 
   public LogX(final Hub hub) {
     super(MMU_INST_RAM_TO_EXO_WITH_PADDING);
-    this.logId = hub.conflation().currentLogId();
+    this.logId = hub.transients().conflation().currentLogId();
 
     this.sourceId(hub.currentFrame().contextNumber())
         .sourceOffset(EWord.of(hub.messageFrame().getStackItem(0)))
@@ -42,6 +42,6 @@ public class LogX extends MmuCall {
 
   @Override
   public void postConflationRetcon(final Hub hub) {
-    if (hub.conflation().logs().get(this.logId).reverted()) this.enabled = false;
+    if (hub.transients().conflation().logs().get(this.logId).reverted()) this.enabled = false;
   }
 }

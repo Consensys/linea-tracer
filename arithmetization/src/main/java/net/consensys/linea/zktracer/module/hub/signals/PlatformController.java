@@ -13,14 +13,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub;
+package net.consensys.linea.zktracer.module.hub.signals;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.module.hub.Hub;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 /**
- * The platform controller handles inter-modules communications, exceptions, and aborts. It provides
+ * The platform controller handles external modules activation, exceptions, and aborts. It provides
  * a centralized way of accessing this information from other modules.
  */
 @Accessors(fluent = true)
@@ -57,7 +58,7 @@ public class PlatformController {
    *
    * @param frame the current execution context
    */
-  void setup(MessageFrame frame) {
+  public void setup(MessageFrame frame) {
     this.reset();
 
     this.exceptions.prepare(frame, Hub.gp);

@@ -19,7 +19,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.Precompile;
 import net.consensys.linea.zktracer.module.limits.precompiles.Blake2fRounds;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcAddEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcMulEffectiveCall;
@@ -29,6 +28,7 @@ import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCal
 import net.consensys.linea.zktracer.module.limits.precompiles.Rip160Blocks;
 import net.consensys.linea.zktracer.module.limits.precompiles.Sha256Blocks;
 import net.consensys.linea.zktracer.types.MemorySpan;
+import net.consensys.linea.zktracer.types.Precompile;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.internal.Words;
 
@@ -82,11 +82,11 @@ public final class PrecompileInvocation {
             case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
               final Address target = Words.toAddress(hub.messageFrame().getStackItem(1));
               if (target.equals(Address.ID)) {
-                final long dataByteLength = hub.callDataSegment().length();
+                final long dataByteLength = hub.transients().op().callDataSegment().length();
                 final long wordCount = (dataByteLength + 31) / 32;
                 final long gasNeeded = 15 + 3 * wordCount;
 
-                yield hub.gasAllowanceForCall() < gasNeeded;
+                yield hub.transients().op().gasAllowanceForCall() < gasNeeded;
               } else {
                 throw new IllegalStateException();
               }
@@ -94,8 +94,8 @@ public final class PrecompileInvocation {
             default -> throw new IllegalStateException();
           };
           case MODEXP -> false;
-          case EC_ADD -> hub.gasAllowanceForCall() < 150;
-          case EC_MUL -> hub.gasAllowanceForCall() < 6000;
+          case EC_ADD -> hub.transients().op().gasAllowanceForCall() < 150;
+          case EC_MUL -> hub.transients().op().gasAllowanceForCall() < 6000;
           case EC_PAIRING -> EcPairingCallEffectiveCall.isHubFailure(hub);
           case BLAKE2F -> Blake2fRounds.isHubFailure(hub);
         };
@@ -115,7 +115,7 @@ public final class PrecompileInvocation {
 
     final long precompilePrice =
         hubFailure || ramFailure
-            ? hub.gasAllowanceForCall()
+            ? hub.transients().op().gasAllowanceForCall()
             : switch (p) {
               case EC_RECOVER -> EcRecoverEffectiveCall.gasCost();
               case SHA2_256 -> Sha256Blocks.gasCost(hub);
@@ -124,7 +124,7 @@ public final class PrecompileInvocation {
                 case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
                   final Address target = Words.toAddress(hub.messageFrame().getStackItem(1));
                   if (target.equals(Address.ID)) {
-                    final long dataByteLength = hub.callDataSegment().length();
+                    final long dataByteLength = hub.transients().op().callDataSegment().length();
                     final long wordCount = (dataByteLength + 31) / 32;
                     yield 15 + 3 * wordCount;
                   } else {
@@ -141,20 +141,22 @@ public final class PrecompileInvocation {
             };
 
     final long returnGas =
-        hubFailure || ramFailure ? 0 : hub.gasAllowanceForCall() - precompilePrice;
+        hubFailure || ramFailure
+            ? 0
+            : hub.transients().op().gasAllowanceForCall() - precompilePrice;
 
     PrecompileInvocationBuilder r =
         PrecompileInvocation.builder()
             .precompile(p)
             .metadata(null)
-            .callDataSource(hub.callDataSegment())
-            .requestedReturnDataTarget(hub.returnDataRequestedSegment())
+            .callDataSource(hub.transients().op().callDataSegment())
+            .requestedReturnDataTarget(hub.transients().op().returnDataRequestedSegment())
             .hubFailure(hubFailure)
             .ramFailure(ramFailure)
             .opCodeGas(opCodeGas)
             .precompilePrice(precompilePrice)
             .gasAtCall(hub.messageFrame().getRemainingGas())
-            .gasAllowance(hub.gasAllowanceForCall())
+            .gasAllowance(hub.transients().op().gasAllowanceForCall())
             .returnGas(returnGas);
 
     if (p == Precompile.BLAKE2F) {

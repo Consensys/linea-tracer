@@ -66,13 +66,13 @@ public final class EcPairingCallEffectiveCall implements Module {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
         if (target.equals(Address.ALTBN128_PAIRING)) {
-          long length = hub.callDataSegment().length();
+          long length = hub.transients().op().callDataSegment().length();
           if (length % 192 != 0) {
             return true;
           }
           final long pairingCount = length / ECPAIRING_NB_BYTES_PER_MILLER_LOOP;
 
-          return hub.gasAllowanceForCall()
+          return hub.transients().op().gasAllowanceForCall()
               < PRECOMPILE_BASE_GAS_FEE + PRECOMPILE_MILLER_LOOP_GAS_FEE * pairingCount;
         }
       }
@@ -84,7 +84,7 @@ public final class EcPairingCallEffectiveCall implements Module {
 
   public static boolean isRamFailure(final Hub hub) {
     final MessageFrame frame = hub.messageFrame();
-    long length = hub.callDataSegment().length();
+    long length = hub.transients().op().callDataSegment().length();
 
     if (length == 0) {
       return true;
@@ -108,7 +108,7 @@ public final class EcPairingCallEffectiveCall implements Module {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
         if (target.equals(Address.ALTBN128_PAIRING)) {
-          final long length = hub.callDataSegment().length();
+          final long length = hub.transients().op().callDataSegment().length();
           final long nMillerLoop = (length / ECPAIRING_NB_BYTES_PER_MILLER_LOOP);
           if (nMillerLoop * ECPAIRING_NB_BYTES_PER_MILLER_LOOP != length) {
             return 0;
@@ -130,7 +130,7 @@ public final class EcPairingCallEffectiveCall implements Module {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
         if (target.equals(Address.ALTBN128_PAIRING)) {
-          long length = hub.callDataSegment().length();
+          long length = hub.transients().op().callDataSegment().length();
 
           final long nMillerLoop = (length / ECPAIRING_NB_BYTES_PER_MILLER_LOOP);
           if (nMillerLoop * ECPAIRING_NB_BYTES_PER_MILLER_LOOP != length) {
@@ -138,7 +138,7 @@ public final class EcPairingCallEffectiveCall implements Module {
             return;
           }
 
-          if (hub.gasAllowanceForCall()
+          if (hub.transients().op().gasAllowanceForCall()
               >= PRECOMPILE_BASE_GAS_FEE + PRECOMPILE_MILLER_LOOP_GAS_FEE * nMillerLoop) {
             final EcPairingLimit lastEcpairingLimit = this.counts.pop();
             this.counts.push(

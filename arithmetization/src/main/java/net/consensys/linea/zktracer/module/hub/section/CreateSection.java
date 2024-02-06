@@ -15,10 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.section;
 
-import net.consensys.linea.zktracer.module.hub.AbortingConditions;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
-import net.consensys.linea.zktracer.module.hub.Exceptions;
-import net.consensys.linea.zktracer.module.hub.FailureConditions;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.NextContextDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostExecDefer;
@@ -27,6 +24,9 @@ import net.consensys.linea.zktracer.module.hub.defer.ReEnterContextDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioFragment;
+import net.consensys.linea.zktracer.module.hub.signals.AbortingConditions;
+import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
+import net.consensys.linea.zktracer.module.hub.signals.FailureConditions;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -72,16 +72,16 @@ public class CreateSection extends TraceSection
         AccountSnapshot.fromAccount(
             frame.getWorldUpdater().get(creatorAddress),
             true,
-            hub.conflation().deploymentInfo().number(creatorAddress),
-            hub.conflation().deploymentInfo().isDeploying(creatorAddress));
+            hub.transients().conflation().deploymentInfo().number(creatorAddress),
+            hub.transients().conflation().deploymentInfo().isDeploying(creatorAddress));
 
     Address createdAddress = oldCreatedSnapshot.address();
     this.newCreatedSnapshot =
         AccountSnapshot.fromAccount(
             frame.getWorldUpdater().get(createdAddress),
             true,
-            hub.conflation().deploymentInfo().number(createdAddress),
-            hub.conflation().deploymentInfo().isDeploying(createdAddress));
+            hub.transients().conflation().deploymentInfo().number(createdAddress),
+            hub.transients().conflation().deploymentInfo().isDeploying(createdAddress));
   }
 
   @Override

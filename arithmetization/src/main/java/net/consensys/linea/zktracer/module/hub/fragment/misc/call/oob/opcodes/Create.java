@@ -18,9 +18,9 @@ package net.consensys.linea.zktracer.module.hub.fragment.misc.call.oob.opcodes;
 import static net.consensys.linea.zktracer.module.oob.Trace.OOB_INST_create;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
-import net.consensys.linea.zktracer.module.hub.AbortingConditions;
-import net.consensys.linea.zktracer.module.hub.FailureConditions;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.call.oob.OobCall;
+import net.consensys.linea.zktracer.module.hub.signals.AbortingConditions;
+import net.consensys.linea.zktracer.module.hub.signals.FailureConditions;
 import net.consensys.linea.zktracer.module.oob.OobDataChannel;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;

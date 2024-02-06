@@ -61,7 +61,7 @@ public final class Blake2fRounds implements Module {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
         if (target.equals(Address.BLAKE2B_F_COMPRESSION)) {
-          final long length = hub.callDataSegment().length();
+          final long length = hub.transients().op().callDataSegment().length();
           yield length != BLAKE2F_VALID_DATASIZE;
         } else {
           yield false;
@@ -83,7 +83,7 @@ public final class Blake2fRounds implements Module {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
         if (target.equals(Address.BLAKE2B_F_COMPRESSION)) {
-          final long offset = hub.callDataSegment().offset();
+          final long offset = hub.transients().op().callDataSegment().offset();
           final int f =
               frame
                   .shadowReadMemory(offset, BLAKE2F_VALID_DATASIZE)
@@ -93,7 +93,7 @@ public final class Blake2fRounds implements Module {
                   .shadowReadMemory(offset, BLAKE2F_VALID_DATASIZE)
                   .slice(0, 4)
                   .toInt(); // The number of round is equal to the gas to pay
-          yield !((f == 0 || f == 1) && hub.gasAllowanceForCall() >= r);
+          yield !((f == 0 || f == 1) && hub.transients().op().gasAllowanceForCall() >= r);
         } else {
           yield false;
         }
@@ -107,7 +107,7 @@ public final class Blake2fRounds implements Module {
     final Address target = Words.toAddress(frame.getStackItem(1));
 
     if (target.equals(Address.BLAKE2B_F_COMPRESSION)) {
-      final MemorySpan callData = hub.callDataSegment();
+      final MemorySpan callData = hub.transients().op().callDataSegment();
       final int blake2fDataSize = 213;
       if (callData.length() == blake2fDataSize) {
         final int f =
@@ -131,13 +131,15 @@ public final class Blake2fRounds implements Module {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(hub.messageFrame().getStackItem(1));
         if (target.equals(Address.BLAKE2B_F_COMPRESSION)) {
-          final long length = hub.callDataSegment().length();
+          final long length = hub.transients().op().callDataSegment().length();
 
           if (length == BLAKE2F_VALID_DATASIZE) {
-            final int f = hub.callData().get(BLAKE2F_VALID_DATASIZE - 1);
+            final int f = hub.transients().op().callData().get(BLAKE2F_VALID_DATASIZE - 1);
             if (f == 0 || f == 1) {
               final int r =
-                  hub.callData()
+                  hub.transients()
+                      .op()
+                      .callData()
                       .slice(0, 4)
                       .toInt(); // The number of round is equal to the gas to pay
               return new Blake2fMetadata(r, f);
@@ -158,16 +160,18 @@ public final class Blake2fRounds implements Module {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
         if (target.equals(Address.BLAKE2B_F_COMPRESSION)) {
-          final long length = hub.callDataSegment().length();
+          final long length = hub.transients().op().callDataSegment().length();
 
           if (length == BLAKE2F_VALID_DATASIZE) {
-            final int f = hub.callData().get(BLAKE2F_VALID_DATASIZE - 1);
+            final int f = hub.transients().op().callData().get(BLAKE2F_VALID_DATASIZE - 1);
             if (f == 0 || f == 1) {
               final int r =
-                  hub.callData()
+                  hub.transients()
+                      .op()
+                      .callData()
                       .slice(0, 4)
                       .toInt(); // The number of round is equal to the gas to pay
-              if (hub.gasAllowanceForCall() >= r) {
+              if (hub.transients().op().gasAllowanceForCall() >= r) {
                 this.counts.push(this.counts.pop() + r);
               }
             }

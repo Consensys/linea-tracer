@@ -67,7 +67,7 @@ public final class EcRecoverEffectiveCall implements Module {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
         if (target.equals(Address.ECREC)) {
-          return hub.gasAllowanceForCall() >= ECRECOVER_GAS_FEE;
+          return hub.transients().op().gasAllowanceForCall() >= ECRECOVER_GAS_FEE;
         }
       }
     }
@@ -83,7 +83,7 @@ public final class EcRecoverEffectiveCall implements Module {
       case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
         final Address target = Words.toAddress(frame.getStackItem(1));
         if (target.equals(Address.ECREC)) {
-          final MemorySpan callData = hub.callDataSegment();
+          final MemorySpan callData = hub.transients().op().callDataSegment();
           final Bytes inputData = frame.shadowReadMemory(callData.offset(), callData.length());
           final BigInteger v = slice(inputData, EWORD_SIZE, EWORD_SIZE).toUnsignedBigInteger();
           final BigInteger r = slice(inputData, EWORD_SIZE * 2, EWORD_SIZE).toUnsignedBigInteger();

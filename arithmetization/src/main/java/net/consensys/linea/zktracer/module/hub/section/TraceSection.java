@@ -78,9 +78,9 @@ public abstract class TraceSection {
     }
 
     return new CommonFragment(
-        hub.tx().number(),
-        hub.conflation().number(),
-        hub.tx().state(),
+        hub.transients().tx().number(),
+        hub.transients().conflation().number(),
+        hub.transients().tx().state(),
         hub.stamp(),
         0, // retconned
         false, // retconned

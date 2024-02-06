@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub;
+package net.consensys.linea.zktracer.module.hub.transients;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,7 +21,11 @@ import java.util.Map;
 import net.consensys.linea.zktracer.types.EWord;
 import org.hyperledger.besu.datatypes.Address;
 
-public class StorageInfo {
+/**
+ * Accumulates initial storage accesses executed during a transaction, keeping traces of storage
+ * value in order to correctly price SLOAD/SSTORE operations.
+ */
+public class StorageInitialValues {
   final Map<Address, Map<EWord, EWord>> originalStorageValues = new HashMap<>();
 
   public EWord getOriginalValueOrUpdate(Address address, EWord key, EWord value) {

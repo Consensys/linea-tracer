@@ -97,7 +97,6 @@ public class Exp implements Module {
 
   private ExpLogExpParameters extractExpLogParameters(final MessageFrame frame) {
     EWord exponent = EWord.of(frame.getStackItem(1));
-    BigInteger exponentHi = exponent.hiBigInt();
     BigInteger dynCost =
         exponent.isZero()
             ? BigInteger.ZERO
@@ -172,11 +171,11 @@ public class Exp implements Module {
       mask = mask.shiftLeft(32 - minCutoff);
     }
 
-    // TODO: check consistency with specs
-    BigInteger trimLead = rawLead.toUnsignedBigInteger().and(mask);
+    // trim (keep only minCutoff bytes of rawLead)
+    BigInteger trim = rawLead.toUnsignedBigInteger().and(mask);
 
-    // lead
-    BigInteger lead = trimLead.shiftRight(32 - ebsCutoff);
+    // lead (keep only minCutoff bytes of rawLead and potentially pad to ebsCutoff with 0's)
+    BigInteger lead = trim.shiftRight(32 - ebsCutoff);
 
     // lead_log (same as EYP)
     BigInteger leadLog =

@@ -22,7 +22,6 @@ import net.consensys.linea.zktracer.types.EWord;
 public record ModexpLogExpParameters(
     EWord rawLead, int cdsCutoff, int ebsCutoff, BigInteger leadLog, BigInteger lead)
     implements ExpParameters {
-  // lead is probably not needed
 
   public BigInteger rawLeadHi() {
     return rawLead.hiBigInt();

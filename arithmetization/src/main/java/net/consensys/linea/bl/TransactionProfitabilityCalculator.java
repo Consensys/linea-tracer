@@ -62,7 +62,7 @@ public class TransactionProfitabilityCalculator {
         .addArgument(conf.verificationCapacity())
         .log();
 
-    return Wei.ofNumber(BigDecimal.valueOf(profitAt).toBigInteger());
+    return profitAtWei;
   }
 
   public boolean isProfitable(

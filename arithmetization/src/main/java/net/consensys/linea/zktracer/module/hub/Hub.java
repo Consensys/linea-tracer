@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
+import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 
 import java.nio.MappedByteBuffer;
@@ -664,18 +665,6 @@ public class Hub implements Module {
               new AccountFragment(fromSnapshot, fromSnapshot, false, 0, false),
               new AccountFragment(toSnapshot, toSnapshot, false, 0, false)));
     }
-  }
-
-  /**
-   * Compute the effective address of a transaction target, i.e. the specified target if explicitly
-   * set, or the to-be-deployed address otherwise.
-   *
-   * @return the effective target address of tx
-   */
-  public static Address effectiveToAddress(Transaction tx) {
-    return tx.getTo()
-        .map(x -> (Address) x)
-        .orElse(Address.contractAddress(tx.getSender(), tx.getNonce()));
   }
 
   @Override

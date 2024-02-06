@@ -78,6 +78,11 @@ public class Operation {
         long length = Words.clampedToLong(frame.getStackItem(3));
         return MemorySpan.fromStartLength(offset, length);
       }
+      case CREATE, CREATE2 -> {
+        long offset = Words.clampedToLong(frame.getStackItem(1));
+        long length = Words.clampedToLong(frame.getStackItem(2));
+        return MemorySpan.fromStartLength(offset, length);
+      }
       default -> throw new IllegalArgumentException("callDataSegment called outside of a *CALL");
     }
   }
@@ -100,6 +105,17 @@ public class Operation {
   public Bytes callData() {
     final MemorySpan callDataSegment = callDataSegment();
     return hub.messageFrame().shadowReadMemory(callDataSegment.offset(), callDataSegment.length());
+  }
+
+  /**
+   * Return the bytes of the calldata if the current operation is a call, throws otherwise.
+   *
+   * @param frame the execution context
+   * @return the calldata content
+   */
+  public static Bytes callData(final MessageFrame frame) {
+    final MemorySpan callDataSegment = callDataSegment(frame);
+    return frame.shadowReadMemory(callDataSegment.offset(), callDataSegment.length());
   }
 
   /**

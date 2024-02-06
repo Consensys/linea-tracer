@@ -15,10 +15,10 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment;
 
+import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import lombok.Setter;
-import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.transients.Tx;
 import net.consensys.linea.zktracer.types.EWord;
@@ -77,7 +77,7 @@ public final class TransactionFragment implements TraceFragment {
 
   @Override
   public Trace trace(Trace trace) {
-    final EWord to = EWord.of(Hub.effectiveToAddress(tx));
+    final EWord to = EWord.of(effectiveToAddress(tx));
     final EWord from = EWord.of(tx.getSender());
     final EWord miner = EWord.of(minerAddress);
 

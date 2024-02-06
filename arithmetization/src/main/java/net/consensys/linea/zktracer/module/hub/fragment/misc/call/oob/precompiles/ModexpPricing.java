@@ -23,19 +23,18 @@ import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 import net.consensys.linea.zktracer.module.oob.OobDataChannel;
 import org.apache.tuweni.bytes.Bytes;
 
-public record ModexpPricing(
-    PrecompileInvocation p, long returnDataRequestedSize, int exponentLog, int maxMbsBbs)
+public record ModexpPricing(PrecompileInvocation p, int exponentLog, int maxMbsBbs)
     implements OobCall {
   @Override
   public Bytes data(OobDataChannel i) {
     return switch (i) {
       case DATA_1 -> Bytes.ofUnsignedLong(p.gasAtCall());
-      case DATA_3 -> Bytes.ofUnsignedLong(returnDataRequestedSize);
+      case DATA_3 -> Bytes.ofUnsignedLong(p.requestedReturnDataTarget().length());
       case DATA_4 -> booleanToBytes(p.success());
       case DATA_5 -> Bytes.ofUnsignedLong(p.success() ? p.gasAtCall() - p.precompilePrice() : 0);
       case DATA_6 -> Bytes.ofUnsignedLong(exponentLog);
       case DATA_7 -> Bytes.ofUnsignedLong(maxMbsBbs);
-      case DATA_8 -> booleanToBytes(returnDataRequestedSize > 0);
+      case DATA_8 -> booleanToBytes(!p.requestedReturnDataTarget().isEmpty());
       default -> Bytes.EMPTY;
     };
   }

@@ -15,14 +15,30 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.misc.call.mmu;
 
+import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_BLAKE_DATA;
+import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_BLAKE_PARAMETERS;
+import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_BLAKE_RESULT;
+import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_ECADD_DATA;
+import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_ECADD_RESULT;
+import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_ECMUL_DATA;
+import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_ECMUL_RESULT;
 import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_ECRECOVER_DATA;
 import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_ECRECOVER_RESULT;
+import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_MODEXP_BASE;
+import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_MODEXP_EXPONENT;
+import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_MODEXP_MODULUS;
+import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_MODEXP_RESULT;
+import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_PAIRING_DATA;
+import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_PAIRING_RESULT;
 import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_SHA2_256_DATA;
 import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_SHA2_256_RESULT;
 import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_TRANSACTION_CALL_DATA;
 import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_ANY_TO_RAM_WITH_PADDING;
+import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_BLAKE;
 import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_EXO_TO_RAM_TRANSPLANTS;
 import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_MLOAD;
+import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_MODEXP_DATA;
+import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_MODEXP_ZERO;
 import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_MSTORE;
 import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_MSTORE8;
 import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_RAM_TO_EXO_WITH_PADDING;
@@ -44,6 +60,8 @@ import net.consensys.linea.zktracer.module.hub.fragment.misc.call.mmu.opcode.Cre
 import net.consensys.linea.zktracer.module.hub.fragment.misc.call.mmu.opcode.ExtCodeCopy;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.call.mmu.opcode.LogX;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.call.mmu.opcode.ReturnFromDeployment;
+import net.consensys.linea.zktracer.module.hub.precompiles.Blake2fMetadata;
+import net.consensys.linea.zktracer.module.hub.precompiles.ModExpMetadata;
 import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.MemorySpan;
@@ -413,7 +431,7 @@ public class MmuCall implements TraceSubFragment {
         Bytes.fromHexString("c5e9fc54612808977ee8f548b2258d31")); // RIPEMD160({}) hi/lo
   }
 
-  public static MmuCall forIdentity(final Hub hub, PrecompileInvocation p, int i) {
+  public static MmuCall forIdentity(final Hub hub, final PrecompileInvocation p, int i) {
     Preconditions.checkArgument(i >= 0 && i < 2);
 
     if (p.callDataSource().isEmpty()) {
@@ -440,6 +458,237 @@ public class MmuCall implements TraceSubFragment {
             .referenceOffset(p.requestedReturnDataTarget().offset())
             .referenceSize(p.requestedReturnDataTarget().length());
       }
+    }
+  }
+
+  public static MmuCall forEcAdd(final Hub hub, final PrecompileInvocation p, int i) {
+    Preconditions.checkArgument(i >= 0 && i < 3);
+    if (i == 0) {
+      return new MmuCall(MMU_INST_RAM_TO_EXO_WITH_PADDING)
+          .sourceId(hub.currentFrame().contextNumber())
+          .targetId(hub.stamp() + 1)
+          .sourceOffset(EWord.of(p.callDataSource().offset()))
+          .size(p.callDataSource().length())
+          .referenceSize(128)
+          .successBit(!p.ramFailure())
+          .setEcData()
+          .phase(PHASE_ECADD_DATA);
+    } else if (i == 1) {
+      return new MmuCall(MMU_INST_EXO_TO_RAM_TRANSPLANTS)
+          .sourceId(hub.stamp() + 1)
+          .targetId(hub.stamp() + 1)
+          .size(64)
+          .setEcData()
+          .phase(PHASE_ECADD_RESULT);
+    } else {
+      return new MmuCall(MMU_INST_RAM_TO_RAM_SANS_PADDING)
+          .sourceId(hub.stamp() + 1)
+          .targetId(hub.currentFrame().contextNumber())
+          .targetOffset(EWord.of(p.requestedReturnDataTarget().offset()))
+          .size(p.requestedReturnDataTarget().length())
+          .referenceSize(64);
+    }
+  }
+
+  public static MmuCall forEcMul(final Hub hub, final PrecompileInvocation p, int i) {
+    Preconditions.checkArgument(i >= 0 && i < 3);
+    if (i == 0) {
+      return new MmuCall(MMU_INST_RAM_TO_EXO_WITH_PADDING)
+          .sourceId(hub.currentFrame().contextNumber())
+          .targetId(hub.stamp() + 1)
+          .sourceOffset(EWord.of(p.callDataSource().offset()))
+          .size(p.callDataSource().length())
+          .referenceSize(96)
+          .successBit(!p.ramFailure())
+          .setEcData()
+          .phase(PHASE_ECMUL_DATA);
+    } else if (i == 1) {
+      return new MmuCall(MMU_INST_EXO_TO_RAM_TRANSPLANTS)
+          .sourceId(hub.stamp() + 1)
+          .targetId(hub.stamp() + 1)
+          .size(64)
+          .setEcData()
+          .phase(PHASE_ECMUL_RESULT);
+    } else {
+      return new MmuCall(MMU_INST_RAM_TO_RAM_SANS_PADDING)
+          .sourceId(hub.stamp() + 1)
+          .targetId(hub.currentFrame().contextNumber())
+          .targetOffset(EWord.of(p.requestedReturnDataTarget().offset()))
+          .size(p.requestedReturnDataTarget().length())
+          .referenceSize(64);
+    }
+  }
+
+  public static MmuCall forEcPairing(final Hub hub, final PrecompileInvocation p, int i) {
+    Preconditions.checkArgument(i >= 0 && i < 3);
+    if (i == 0) {
+      return new MmuCall(MMU_INST_RAM_TO_EXO_WITH_PADDING)
+          .sourceId(hub.currentFrame().contextNumber())
+          .targetId(hub.stamp() + 1)
+          .sourceOffset(EWord.of(p.callDataSource().offset()))
+          .size(p.callDataSource().length())
+          .referenceSize(p.callDataSource().length())
+          .successBit(!p.ramFailure())
+          .setEcData()
+          .phase(PHASE_PAIRING_DATA);
+    } else if (i == 1) {
+      if (p.callDataSource().isEmpty()) {
+        return new MmuCall(MMU_INST_MSTORE).targetId(hub.stamp() + 1).limb2(Bytes.of(1));
+      } else {
+        return new MmuCall(MMU_INST_EXO_TO_RAM_TRANSPLANTS)
+            .sourceId(hub.stamp() + 1)
+            .targetId(hub.stamp() + 1)
+            .size(32)
+            .setEcData()
+            .phase(PHASE_PAIRING_RESULT);
+      }
+    } else {
+      return new MmuCall(MMU_INST_RAM_TO_RAM_SANS_PADDING)
+          .sourceId(hub.stamp() + 1)
+          .targetId(hub.currentFrame().contextNumber())
+          .targetOffset(EWord.of(p.requestedReturnDataTarget().offset()))
+          .size(p.requestedReturnDataTarget().length())
+          .referenceSize(32);
+    }
+  }
+
+  public static MmuCall forBlake2f(final Hub hub, final PrecompileInvocation p, int i) {
+    Preconditions.checkArgument(i >= 0 && i < 4);
+    if (i == 0) {
+      return new MmuCall(MMU_INST_BLAKE)
+          .sourceId(hub.currentFrame().contextNumber())
+          .targetId(hub.stamp() + 1)
+          .sourceOffset(EWord.of(p.callDataSource().offset()))
+          .successBit(!p.ramFailure())
+          .limb1(EWord.of(((Blake2fMetadata) p.metadata()).r()))
+          .limb2(EWord.of(((Blake2fMetadata) p.metadata()).f()))
+          .setBlakeModexp()
+          .phase(PHASE_BLAKE_PARAMETERS);
+    } else if (i == 1) {
+      return new MmuCall(MMU_INST_RAM_TO_EXO_WITH_PADDING)
+          .sourceId(hub.currentFrame().contextNumber())
+          .targetId(hub.stamp() + 1)
+          .sourceOffset(EWord.of(p.callDataSource().offset() + 4))
+          .size(208)
+          .referenceSize(208)
+          .setBlakeModexp()
+          .phase(PHASE_BLAKE_DATA);
+    } else if (i == 2) {
+      return new MmuCall(MMU_INST_EXO_TO_RAM_TRANSPLANTS)
+          .sourceId(hub.stamp() + 1)
+          .targetId(hub.stamp() + 1)
+          .size(64)
+          .setBlakeModexp()
+          .phase(PHASE_BLAKE_RESULT);
+    } else {
+      if (p.requestedReturnDataTarget().isEmpty()) {
+        return MmuCall.nop();
+      } else {
+        return new MmuCall(MMU_INST_RAM_TO_RAM_SANS_PADDING)
+            .sourceId(hub.stamp() + 1)
+            .targetId(hub.currentFrame().contextNumber())
+            .size(64)
+            .referenceOffset(p.requestedReturnDataTarget().offset())
+            .referenceSize(p.requestedReturnDataTarget().length());
+      }
+    }
+  }
+
+  public static MmuCall forModExp(final Hub hub, final PrecompileInvocation p, int i) {
+    Preconditions.checkArgument(i >= 2 && i < 12);
+    final ModExpMetadata m = (ModExpMetadata) p.metadata();
+    final int prcContextNumber = hub.stamp() + 1;
+
+    if (i == 2) {
+      return new MmuCall(MMU_INST_RIGHT_PADDED_WORD_EXTRACTION)
+          .sourceId(hub.currentFrame().contextNumber())
+          .referenceOffset(p.callDataSource().offset())
+          .referenceSize(p.callDataSource().length())
+          .limb1(m.bbs().hi())
+          .limb2(m.bbs().lo());
+    } else if (i == 3) {
+      return new MmuCall(MMU_INST_RIGHT_PADDED_WORD_EXTRACTION)
+          .sourceId(hub.currentFrame().contextNumber())
+          .sourceOffset(EWord.of(32))
+          .referenceOffset(p.callDataSource().offset())
+          .referenceSize(p.callDataSource().length())
+          .limb1(m.ebs().hi())
+          .limb2(m.ebs().lo());
+    } else if (i == 4) {
+      return new MmuCall(MMU_INST_RIGHT_PADDED_WORD_EXTRACTION)
+          .sourceId(hub.currentFrame().contextNumber())
+          .sourceOffset(EWord.of(64))
+          .referenceOffset(p.callDataSource().offset())
+          .referenceSize(p.callDataSource().length())
+          .limb1(m.mbs().hi())
+          .limb2(m.mbs().lo());
+    } else if (i == 5) {
+      return new MmuCall(MMU_INST_MLOAD)
+          .sourceId(hub.currentFrame().contextNumber())
+          .sourceOffset(EWord.of(p.callDataSource().offset() + 96 + m.bbs().toInt()))
+          .limb1(m.rawLeadingWord().hi())
+          .limb2(m.rawLeadingWord().lo());
+    } else if (i == 7) {
+      if (m.extractBase()) {
+        return new MmuCall(MMU_INST_MODEXP_DATA)
+            .sourceId(hub.currentFrame().contextNumber())
+            .targetId(prcContextNumber)
+            .sourceOffset(EWord.of(96))
+            .size(m.bbs().toInt())
+            .referenceOffset(p.callDataSource().offset())
+            .referenceSize(p.callDataSource().length())
+            .phase(PHASE_MODEXP_BASE)
+            .setBlakeModexp();
+      } else {
+        return new MmuCall(MMU_INST_MODEXP_ZERO)
+            .targetId(hub.stamp() + 1)
+            .phase(PHASE_MODEXP_BASE)
+            .setBlakeModexp();
+      }
+    } else if (i == 8) {
+      if (m.extractExponent()) {
+        return new MmuCall(MMU_INST_MODEXP_DATA)
+            .sourceId(hub.currentFrame().contextNumber())
+            .targetId(prcContextNumber)
+            .sourceOffset(EWord.of(96 + m.bbs().toInt()))
+            .size(m.ebs().toInt())
+            .referenceOffset(p.callDataSource().offset())
+            .referenceSize(p.callDataSource().length())
+            .phase(PHASE_MODEXP_EXPONENT)
+            .setBlakeModexp();
+      } else {
+        return new MmuCall(MMU_INST_MODEXP_ZERO)
+            .targetId(hub.stamp() + 1)
+            .phase(PHASE_MODEXP_EXPONENT)
+            .setBlakeModexp();
+      }
+    } else if (i == 9) {
+      return new MmuCall(MMU_INST_MODEXP_DATA)
+          .sourceId(hub.currentFrame().contextNumber())
+          .targetId(prcContextNumber)
+          .sourceOffset(EWord.of(96 + m.bbs().toInt() + m.ebs().toInt()))
+          .size(m.mbs().toInt())
+          .referenceOffset(p.callDataSource().offset())
+          .referenceSize(p.callDataSource().length())
+          .phase(PHASE_MODEXP_MODULUS)
+          .setBlakeModexp();
+    } else if (i == 10) {
+      return new MmuCall(MMU_INST_EXO_TO_RAM_TRANSPLANTS)
+          .sourceId(prcContextNumber)
+          .targetId(prcContextNumber)
+          .size(512)
+          .phase(PHASE_MODEXP_RESULT)
+          .setBlakeModexp();
+    } else if (i == 11) {
+      return new MmuCall(MMU_INST_RAM_TO_RAM_SANS_PADDING)
+          .sourceId(prcContextNumber)
+          .targetId(hub.currentFrame().contextNumber())
+          .sourceOffset(EWord.of(512 - m.mbs().toInt()))
+          .size(m.mbs().toInt())
+          .referenceOffset(p.requestedReturnDataTarget().offset())
+          .referenceSize(p.requestedReturnDataTarget().length());
+    } else {
+      throw new IllegalArgumentException("need a boolean");
     }
   }
 

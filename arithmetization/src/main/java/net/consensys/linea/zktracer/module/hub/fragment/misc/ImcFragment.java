@@ -18,6 +18,7 @@ package net.consensys.linea.zktracer.module.hub.fragment.misc;
 import static net.consensys.linea.zktracer.module.UtilCalculator.allButOneSixtyFourth;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,10 +26,11 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.misc.call.ExpCall;
+import net.consensys.linea.zktracer.module.hub.fragment.misc.call.ExpLogCall;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.call.MxpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.call.StpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.call.mmu.MmuCall;
+import net.consensys.linea.zktracer.module.hub.fragment.misc.call.oob.ModExpLogCall;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.call.oob.OobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.call.oob.opcodes.Call;
 import net.consensys.linea.zktracer.module.hub.fragment.misc.call.oob.opcodes.CallDataLoad;
@@ -50,11 +52,15 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
  * correctly trigger other modules from the Hub.
  */
 public class ImcFragment implements TraceFragment {
-  /**
-   * the list of modules to trigger withing this fragment. TODO: a method to ensure there is never a
-   * call to the same module twice should be implemented
-   */
+  /** the list of modules to trigger withing this fragment. */
   private final List<TraceSubFragment> moduleCalls = new ArrayList<>();
+  // exp
+  // oob
+  // mxp
+  // mmu
+  // stp
+  // TODO: a method to ensure there is never a call to the same module twice should be implemented
+  private final BitSet used = new BitSet(5);
 
   /** This class should only be instantiated through specialized static methods. */
   private ImcFragment() {}
@@ -65,7 +71,7 @@ public class ImcFragment implements TraceFragment {
     }
 
     if (hub.pch().signals().exp()) {
-      this.moduleCalls.add(new ExpCall(EWord.of(hub.messageFrame().getStackItem(1))));
+      this.moduleCalls.add(new ExpLogCall(EWord.of(hub.messageFrame().getStackItem(1))));
     }
   }
 
@@ -224,6 +230,26 @@ public class ImcFragment implements TraceFragment {
   }
 
   public ImcFragment callMmu(MmuCall f) {
+    this.moduleCalls.add(f);
+    return this;
+  }
+
+  public ImcFragment callExp(ExpLogCall f) {
+    this.moduleCalls.add(f);
+    return this;
+  }
+
+  public ImcFragment callModExp(ModExpLogCall f) {
+    this.moduleCalls.add(f);
+    return this;
+  }
+
+  public ImcFragment callMxp(MxpCall f) {
+    this.moduleCalls.add(f);
+    return this;
+  }
+
+  public ImcFragment callStp(StpCall f) {
     this.moduleCalls.add(f);
     return this;
   }

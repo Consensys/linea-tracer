@@ -70,7 +70,7 @@ public class ContinuousTracerTest {
     when(zkTracerMock.writeToTmpFile()).thenReturn(Path.of(""));
 
     final CorsetValidator.Result validationResult =
-        continuousTracer.verifyTraceOfBlock(BLOCK_HASH, "testZkEvmBin", zkTracerMock);
+        continuousTracer.verifyTraceOfBlock(1, "testZkEvmBin", zkTracerMock);
     assertThat(validationResult.isValid()).isTrue();
   }
 
@@ -91,7 +91,7 @@ public class ContinuousTracerTest {
                 false, Path.of("testTraceFile").toFile(), "testCorsetOutput"));
 
     final CorsetValidator.Result validationResult =
-        continuousTracer.verifyTraceOfBlock(BLOCK_HASH, "testZkEvmBin", zkTracerMock);
+        continuousTracer.verifyTraceOfBlock(1, "testZkEvmBin", zkTracerMock);
     assertThat(validationResult.isValid()).isFalse();
   }
 
@@ -105,6 +105,6 @@ public class ContinuousTracerTest {
 
     assertThrows(
         InvalidBlockTraceException.class,
-        () -> continuousTracer.verifyTraceOfBlock(BLOCK_HASH, "testZkEvmBin", new ZkTracer()));
+        () -> continuousTracer.verifyTraceOfBlock(1, "testZkEvmBin", new ZkTracer()));
   }
 }

@@ -38,10 +38,9 @@ public record ContextFragment(
         false);
   }
 
-  public static ContextFragment intializeExecutionContext(
-      final CallStack callStack, final Hub hub) {
+  public static ContextFragment intializeExecutionContext(final Hub hub) {
     return new ContextFragment(
-        callStack,
+        hub.callStack(),
         hub.stamp() + 1,
         MemorySpan.fromStartEnd(
             0, hub.transients().tx().transaction().getData().map(Bytes::size).orElse(0)),

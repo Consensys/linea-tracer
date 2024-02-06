@@ -98,6 +98,19 @@ public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
         hub.pch().exceptions().invalidCodePrefix());
   }
 
+  public static ScenarioFragment forCreate(final Hub hub, boolean targetHasCode) {
+    return new ScenarioFragment(
+        Optional.empty(),
+        CallType.CREATE,
+        targetHasCode,
+        hub.currentFrame().id(),
+        hub.callStack().futureId(),
+        hub.pch().exceptions().any(),
+        hub.pch().aborts().any(),
+        hub.pch().failures().any(),
+        hub.pch().exceptions().invalidCodePrefix());
+  }
+
   public static ScenarioFragment forSmartContractCallSection(int callerFrameId, int calleeFrameId) {
     return new ScenarioFragment(
         Optional.empty(),

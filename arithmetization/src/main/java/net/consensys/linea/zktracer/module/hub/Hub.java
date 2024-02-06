@@ -496,7 +496,7 @@ public class Hub implements Module {
                         fromPostDebitSnapshot, fromPostDebitSnapshot.credit(value))
                     : new AccountFragment(toSnapshot, toSnapshot.credit(value))),
             ImcFragment.forTxInit(this),
-            ContextFragment.intializeExecutionContext(this.callStack, this)));
+            ContextFragment.intializeExecutionContext(this)));
 
     this.transients.tx().state(TxState.TX_EXEC);
   }
@@ -1194,6 +1194,9 @@ public class Hub implements Module {
         Optional<Precompile> targetPrecompile = Precompile.maybeOf(calledAddress);
 
         if (this.pch().exceptions().any()) {
+          //
+          // THERE IS AN EXCEPTION
+          //
           if (this.pch().exceptions().staticFault()) {
             this.addTraceSection(
                 new FailedCallSection(
@@ -1215,48 +1218,54 @@ public class Hub implements Module {
                     ImcFragment.forCall(this, myAccount, calledAccount),
                     new AccountFragment(calledAccountSnapshot, calledAccountSnapshot)));
           }
+        } else if (this.pch.aborts().any()) {
+          TraceSection abortedSection =
+              new FailedCallSection(
+                  this,
+                  ScenarioFragment.forCall(this, hasCode),
+                  ImcFragment.forCall(this, myAccount, calledAccount),
+                  ContextFragment.readContextData(callStack),
+                  new AccountFragment(myAccountSnapshot, myAccountSnapshot),
+                  new AccountFragment(calledAccountSnapshot, calledAccountSnapshot),
+                  ContextFragment.nonExecutionEmptyReturnData(callStack));
+          this.addTraceSection(abortedSection);
         } else {
-          if (this.pch.aborts().any()) {
-            TraceSection abortedSection =
-                new FailedCallSection(
-                    this,
-                    ScenarioFragment.forCall(this, hasCode),
-                    ImcFragment.forCall(this, myAccount, calledAccount),
-                    ContextFragment.readContextData(callStack),
-                    new AccountFragment(myAccountSnapshot, myAccountSnapshot),
-                    new AccountFragment(calledAccountSnapshot, calledAccountSnapshot),
-                    ContextFragment.nonExecutionEmptyReturnData(callStack));
-            this.addTraceSection(abortedSection);
+          //
+          // THERE IS AN ABORT
+          //
+          final ImcFragment imcFragment = ImcFragment.forOpcode(this, frame);
+
+          if (hasCode) {
+            final SmartContractCallSection section =
+                new SmartContractCallSection(
+                    this, myAccountSnapshot, calledAccountSnapshot, imcFragment);
+            this.defers.postExec(section);
+            this.defers.nextContext(section, currentFrame().id());
+            this.defers.postTx(section);
+            this.addTraceSection(section);
+            this.currentFrame().needsUnlatchingAtReEntry(section);
           } else {
-            final ImcFragment imcFragment = ImcFragment.forOpcode(this, frame);
+            //
+            // CALL EXECUTED
+            //
 
-            if (hasCode) {
-              final SmartContractCallSection section =
-                  new SmartContractCallSection(
-                      this, myAccountSnapshot, calledAccountSnapshot, imcFragment);
-              this.defers.postExec(section);
-              this.defers.nextContext(section, currentFrame().id());
-              this.defers.postTx(section);
-              this.addTraceSection(section);
-              this.currentFrame().needsUnlatchingAtReEntry(section);
-            } else {
-              Optional<PrecompileInvocation> precompileInvocation =
-                  targetPrecompile.map(p -> PrecompileInvocation.of(this, p));
+            // TODO: fill the callee & requested return data for the current call frame
+            Optional<PrecompileInvocation> precompileInvocation =
+                targetPrecompile.map(p -> PrecompileInvocation.of(this, p));
 
-              final NoCodeCallSection section =
-                  new NoCodeCallSection(
-                      this,
-                      precompileInvocation,
-                      myAccountSnapshot,
-                      calledAccountSnapshot,
-                      imcFragment);
-              this.defers.postExec(section);
-              this.defers.postTx(section);
-              this.addTraceSection(section);
-              this.currentFrame()
-                  .needsUnlatchingAtReEntry(
-                      section); // TODO: not sure there -- will we switch context?
-            }
+            final NoCodeCallSection section =
+                new NoCodeCallSection(
+                    this,
+                    precompileInvocation,
+                    myAccountSnapshot,
+                    calledAccountSnapshot,
+                    imcFragment);
+            this.defers.postExec(section);
+            this.defers.postTx(section);
+            this.addTraceSection(section);
+            this.currentFrame()
+                .needsUnlatchingAtReEntry(
+                    section); // TODO: not sure there -- will we switch context?
           }
         }
       }

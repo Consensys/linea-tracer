@@ -30,81 +30,84 @@ import org.apache.tuweni.bytes.Bytes;
  * Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
 public class Trace {
-  static final int EQ_ = 20;
-  static final int ISZERO = 21;
-  static final int LLARGE = 16;
-  static final int LLARGEMO = 15;
-  static final int LLARGEPO = 17;
-  static final int LT = 16;
-  static final int MMIO_INST_EXO_LIMB_VANISHES = 65280;
-  static final int MMIO_INST_EXO_TO_RAM_LIMB_TRANSPLANT = 65312;
-  static final int MMIO_INST_EXO_TO_RAM_SLIDE_CHUNK = 65313;
-  static final int MMIO_INST_EXO_TO_RAM_SLIDE_OVERLAPPING_CHUNK = 65314;
-  static final int MMIO_INST_LIMB_TO_RAM_OVERLAP = 65330;
-  static final int MMIO_INST_LIMB_TO_RAM_TRANSPLANT = 65329;
-  static final int MMIO_INST_LIMB_TO_RAM_WRITE_LSB = 65328;
-  static final int MMIO_INST_PADDED_EXO_FROM_ONE_RAM = 65298;
-  static final int MMIO_INST_PADDED_EXO_FROM_TWO_RAM = 65299;
-  static final int MMIO_INST_PADDED_LIMB_FROM_ONE_RAM = 65345;
-  static final int MMIO_INST_PADDED_LIMB_FROM_TWO_RAM = 65346;
-  static final int MMIO_INST_RAM_EXCISION = 65376;
-  static final int MMIO_INST_RAM_LIMB_VANISHES = 65377;
-  static final int MMIO_INST_RAM_TO_EXO_LIMB_TRANSPLANT = 65296;
-  static final int MMIO_INST_RAM_TO_LIMB_TRANSPLANT = 65344;
-  static final int MMIO_INST_RAM_TO_RAM_LIMB_TRANSPLANT = 65360;
-  static final int MMIO_INST_RAM_TO_RAM_SLIDE_CHUNK = 65361;
-  static final int MMIO_INST_RAM_TO_RAM_SLIDE_OVERLAPPING_CHUNK = 65362;
-  static final int MMIO_INST_TWO_RAM_TO_EXO_FULL = 65297;
+  public static final int EQ_ = 20;
+  public static final int INVALID_CODE_PREFIX_VALUE = 239;
+  public static final int ISZERO = 21;
+  public static final int LLARGE = 16;
+  public static final int LLARGEMO = 15;
+  public static final int LLARGEPO = 17;
+  public static final int LT = 16;
+  public static final int MMIO_INST_EXO_LIMB_VANISHES = 65280;
+  public static final int MMIO_INST_EXO_TO_RAM_LIMB_TRANSPLANT = 65312;
+  public static final int MMIO_INST_EXO_TO_RAM_SLIDE_CHUNK = 65313;
+  public static final int MMIO_INST_EXO_TO_RAM_SLIDE_OVERLAPPING_CHUNK = 65314;
+  public static final int MMIO_INST_LIMB_TO_RAM_OVERLAP = 65330;
+  public static final int MMIO_INST_LIMB_TO_RAM_TRANSPLANT = 65329;
+  public static final int MMIO_INST_LIMB_TO_RAM_WRITE_LSB = 65328;
+  public static final int MMIO_INST_PADDED_EXO_FROM_ONE_RAM = 65298;
+  public static final int MMIO_INST_PADDED_EXO_FROM_TWO_RAM = 65299;
+  public static final int MMIO_INST_PADDED_LIMB_FROM_ONE_RAM = 65345;
+  public static final int MMIO_INST_PADDED_LIMB_FROM_TWO_RAM = 65346;
+  public static final int MMIO_INST_RAM_EXCISION = 65376;
+  public static final int MMIO_INST_RAM_LIMB_VANISHES = 65377;
+  public static final int MMIO_INST_RAM_TO_EXO_LIMB_TRANSPLANT = 65296;
+  public static final int MMIO_INST_RAM_TO_LIMB_TRANSPLANT = 65344;
+  public static final int MMIO_INST_RAM_TO_RAM_LIMB_TRANSPLANT = 65360;
+  public static final int MMIO_INST_RAM_TO_RAM_SLIDE_CHUNK = 65361;
+  public static final int MMIO_INST_RAM_TO_RAM_SLIDE_OVERLAPPING_CHUNK = 65362;
+  public static final int MMIO_INST_TWO_RAM_TO_EXO_FULL = 65297;
   public static final int MMU_INST_ANY_TO_RAM_WITH_PADDING = 65104;
-  static final int MMU_INST_ANY_TO_RAM_WITH_PADDING_PURE_PADDING = 65106;
-  static final int MMU_INST_ANY_TO_RAM_WITH_PADDING_SOME_DATA = 65105;
-  static final int MMU_INST_BLAKE_PARAM = 65152;
+  public static final int MMU_INST_ANY_TO_RAM_WITH_PADDING_PURE_PADDING = 65106;
+  public static final int MMU_INST_ANY_TO_RAM_WITH_PADDING_SOME_DATA = 65105;
+  public static final int MMU_INST_BLAKE = 65152;
   public static final int MMU_INST_EXO_TO_RAM_TRANSPLANTS = 65072;
-  static final int MMU_INST_INVALID_CODE_PREFIX = 65024;
+  public static final int MMU_INST_INVALID_CODE_PREFIX = 65024;
   public static final int MMU_INST_MLOAD = 65025;
-  static final int MMU_INST_MODEXP_DATA = 65136;
-  static final int MMU_INST_MODEXP_ZERO = 65120;
+  public static final int MMU_INST_MODEXP_DATA = 65136;
+  public static final int MMU_INST_MODEXP_ZERO = 65120;
   public static final int MMU_INST_MSTORE = 65026;
   public static final int MMU_INST_MSTORE8 = 83;
-  static final int MMU_INST_NB_MICRO_ROWS_TOT_BLAKE_PARAM = 2;
-  static final int MMU_INST_NB_MICRO_ROWS_TOT_INVALID_CODE_PREFIX = 1;
-  static final int MMU_INST_NB_MICRO_ROWS_TOT_MLOAD = 2;
-  static final int MMU_INST_NB_MICRO_ROWS_TOT_MODEXP_DATA = 32;
-  static final int MMU_INST_NB_MICRO_ROWS_TOT_MODEXP_ZERO = 32;
-  static final int MMU_INST_NB_MICRO_ROWS_TOT_MSTORE = 2;
-  static final int MMU_INST_NB_MICRO_ROWS_TOT_MSTORE_EIGHT = 1;
-  static final int MMU_INST_NB_MICRO_ROWS_TOT_RIGHT_PADDED_WORD_EXTRACTION = 2;
-  static final int MMU_INST_NB_PP_ROWS_ANY_TO_RAM_WITH_PADDING_PURE_PADDING = 4;
-  static final int MMU_INST_NB_PP_ROWS_ANY_TO_RAM_WITH_PADDING_PURE_PADDING_PO = 5;
-  static final int MMU_INST_NB_PP_ROWS_ANY_TO_RAM_WITH_PADDING_SOME_DATA = 1;
-  static final int MMU_INST_NB_PP_ROWS_ANY_TO_RAM_WITH_PADDING_SOME_DATA_PO = 2;
-  static final int MMU_INST_NB_PP_ROWS_BLAKE_PARAM = 2;
-  static final int MMU_INST_NB_PP_ROWS_BLAKE_PARAM_PO = 3;
-  static final int MMU_INST_NB_PP_ROWS_EXO_TO_RAM_TRANSPLANTS = 1;
-  static final int MMU_INST_NB_PP_ROWS_EXO_TO_RAM_TRANSPLANTS_PO = 2;
-  static final int MMU_INST_NB_PP_ROWS_INVALID_CODE_PREFIX = 1;
-  static final int MMU_INST_NB_PP_ROWS_INVALID_CODE_PREFIX_PO = 2;
-  static final int MMU_INST_NB_PP_ROWS_MLOAD = 1;
-  static final int MMU_INST_NB_PP_ROWS_MLOAD_PO = 2;
-  static final int MMU_INST_NB_PP_ROWS_MLOAD_PT = 3;
-  static final int MMU_INST_NB_PP_ROWS_MODEXP_DATA = 6;
-  static final int MMU_INST_NB_PP_ROWS_MODEXP_DATA_PO = 7;
-  static final int MMU_INST_NB_PP_ROWS_MODEXP_ZERO = 1;
-  static final int MMU_INST_NB_PP_ROWS_MODEXP_ZERO_PO = 2;
-  static final int MMU_INST_NB_PP_ROWS_MSTORE = 1;
-  static final int MMU_INST_NB_PP_ROWS_MSTORE8 = 1;
-  static final int MMU_INST_NB_PP_ROWS_MSTORE8_PO = 2;
-  static final int MMU_INST_NB_PP_ROWS_MSTORE_PO = 2;
-  static final int MMU_INST_NB_PP_ROWS_MSTORE_PT = 3;
-  static final int MMU_INST_NB_PP_ROWS_RAM_TO_EXO_WITH_PADDING = 4;
-  static final int MMU_INST_NB_PP_ROWS_RAM_TO_EXO_WITH_PADDING_PO = 5;
-  static final int MMU_INST_NB_PP_ROWS_RAM_TO_RAM_SANS_PADDING = 5;
-  static final int MMU_INST_NB_PP_ROWS_RAM_TO_RAM_SANS_PADDING_PO = 6;
-  static final int MMU_INST_NB_PP_ROWS_RIGHT_PADDED_WORD_EXTRACTION = 5;
-  static final int MMU_INST_NB_PP_ROWS_RIGHT_PADDED_WORD_EXTRACTION_PO = 6;
+  public static final int MMU_INST_NB_MICRO_ROWS_TOT_BLAKE_PARAM = 2;
+  public static final int MMU_INST_NB_MICRO_ROWS_TOT_INVALID_CODE_PREFIX = 1;
+  public static final int MMU_INST_NB_MICRO_ROWS_TOT_MLOAD = 2;
+  public static final int MMU_INST_NB_MICRO_ROWS_TOT_MODEXP_DATA = 32;
+  public static final int MMU_INST_NB_MICRO_ROWS_TOT_MODEXP_ZERO = 32;
+  public static final int MMU_INST_NB_MICRO_ROWS_TOT_MSTORE = 2;
+  public static final int MMU_INST_NB_MICRO_ROWS_TOT_MSTORE_EIGHT = 1;
+  public static final int MMU_INST_NB_MICRO_ROWS_TOT_RIGHT_PADDED_WORD_EXTRACTION = 2;
+  public static final int MMU_INST_NB_PP_ROWS_ANY_TO_RAM_WITH_PADDING_PURE_PADDING = 4;
+  public static final int MMU_INST_NB_PP_ROWS_ANY_TO_RAM_WITH_PADDING_PURE_PADDING_PO = 5;
+  public static final int MMU_INST_NB_PP_ROWS_ANY_TO_RAM_WITH_PADDING_SOME_DATA = 1;
+  public static final int MMU_INST_NB_PP_ROWS_ANY_TO_RAM_WITH_PADDING_SOME_DATA_PO = 2;
+  public static final int MMU_INST_NB_PP_ROWS_BLAKE_PARAM = 2;
+  public static final int MMU_INST_NB_PP_ROWS_BLAKE_PARAM_PO = 3;
+  public static final int MMU_INST_NB_PP_ROWS_EXO_TO_RAM_TRANSPLANTS = 1;
+  public static final int MMU_INST_NB_PP_ROWS_EXO_TO_RAM_TRANSPLANTS_PO = 2;
+  public static final int MMU_INST_NB_PP_ROWS_INVALID_CODE_PREFIX = 1;
+  public static final int MMU_INST_NB_PP_ROWS_INVALID_CODE_PREFIX_PO = 2;
+  public static final int MMU_INST_NB_PP_ROWS_MLOAD = 1;
+  public static final int MMU_INST_NB_PP_ROWS_MLOAD_PO = 2;
+  public static final int MMU_INST_NB_PP_ROWS_MLOAD_PT = 3;
+  public static final int MMU_INST_NB_PP_ROWS_MODEXP_DATA = 6;
+  public static final int MMU_INST_NB_PP_ROWS_MODEXP_DATA_PO = 7;
+  public static final int MMU_INST_NB_PP_ROWS_MODEXP_ZERO = 1;
+  public static final int MMU_INST_NB_PP_ROWS_MODEXP_ZERO_PO = 2;
+  public static final int MMU_INST_NB_PP_ROWS_MSTORE = 1;
+  public static final int MMU_INST_NB_PP_ROWS_MSTORE8 = 1;
+  public static final int MMU_INST_NB_PP_ROWS_MSTORE8_PO = 2;
+  public static final int MMU_INST_NB_PP_ROWS_MSTORE_PO = 2;
+  public static final int MMU_INST_NB_PP_ROWS_MSTORE_PT = 3;
+  public static final int MMU_INST_NB_PP_ROWS_RAM_TO_EXO_WITH_PADDING = 4;
+  public static final int MMU_INST_NB_PP_ROWS_RAM_TO_EXO_WITH_PADDING_PO = 5;
+  public static final int MMU_INST_NB_PP_ROWS_RAM_TO_RAM_SANS_PADDING = 5;
+  public static final int MMU_INST_NB_PP_ROWS_RAM_TO_RAM_SANS_PADDING_PO = 6;
+  public static final int MMU_INST_NB_PP_ROWS_RIGHT_PADDED_WORD_EXTRACTION = 5;
+  public static final int MMU_INST_NB_PP_ROWS_RIGHT_PADDED_WORD_EXTRACTION_PO = 6;
+  public static final int MMU_INST_NB_PP_ROWS_RIGHT_PADDED_WORD_EXTRACTION_PT = 7;
   public static final int MMU_INST_RAM_TO_EXO_WITH_PADDING = 65056;
   public static final int MMU_INST_RAM_TO_RAM_SANS_PADDING = 65088;
   public static final int MMU_INST_RIGHT_PADDED_WORD_EXTRACTION = 65040;
+  public static final int WORD_SIZE = 32;
 
   private final BitSet filled = new BitSet();
   private int currentLine = 0;
@@ -178,15 +181,15 @@ public class Trace {
 
   static List<ColumnHeader> headers(int length) {
     return List.of(
-        new ColumnHeader("mmu.AUX_ID_xor_CN_S", 4, length),
+        new ColumnHeader("mmu.AUX_ID_xor_CN_S", 32, length),
         new ColumnHeader("mmu.BIN_1", 1, length),
         new ColumnHeader("mmu.BIN_2", 1, length),
         new ColumnHeader("mmu.BIN_3", 1, length),
         new ColumnHeader("mmu.BIN_4", 1, length),
         new ColumnHeader("mmu.BIN_5", 1, length),
-        new ColumnHeader("mmu.EUC_REM", 8, length),
-        new ColumnHeader("mmu.EXO_SUM_xor_CN_T", 4, length),
-        new ColumnHeader("mmu.INST_xor_INST_xor_CT", 2, length),
+        new ColumnHeader("mmu.EUC_REM", 32, length),
+        new ColumnHeader("mmu.EXO_SUM_xor_CN_T", 32, length),
+        new ColumnHeader("mmu.INST_xor_INST_xor_CT", 32, length),
         new ColumnHeader("mmu.IS_ANY_TO_RAM_WITH_PADDING_PURE_PADDING", 1, length),
         new ColumnHeader("mmu.IS_ANY_TO_RAM_WITH_PADDING_SOME_DATA", 1, length),
         new ColumnHeader("mmu.IS_BLAKE_PARAM", 1, length),
@@ -200,48 +203,48 @@ public class Trace {
         new ColumnHeader("mmu.IS_RAM_TO_EXO_WITH_PADDING", 1, length),
         new ColumnHeader("mmu.IS_RAM_TO_RAM_SANS_PADDING", 1, length),
         new ColumnHeader("mmu.IS_RIGHT_PADDED_WORD_EXTRACTION", 1, length),
-        new ColumnHeader("mmu.LIMB_1_xor_LIMB_xor_WCP_ARG_1_HI", 16, length),
-        new ColumnHeader("mmu.LIMB_2_xor_WCP_ARG_1_LO", 16, length),
+        new ColumnHeader("mmu.LIMB_1_xor_LIMB_xor_WCP_ARG_1_HI", 32, length),
+        new ColumnHeader("mmu.LIMB_2_xor_WCP_ARG_1_LO", 32, length),
         new ColumnHeader("mmu.LZRO", 1, length),
         new ColumnHeader("mmu.MACRO", 1, length),
         new ColumnHeader("mmu.MICRO", 1, length),
-        new ColumnHeader("mmu.MMIO_STAMP", 4, length),
+        new ColumnHeader("mmu.MMIO_STAMP", 32, length),
         new ColumnHeader("mmu.NT_FIRST", 1, length),
         new ColumnHeader("mmu.NT_LAST", 1, length),
         new ColumnHeader("mmu.NT_MDDL", 1, length),
         new ColumnHeader("mmu.NT_ONLY", 1, length),
-        new ColumnHeader("mmu.OUT_1", 4, length),
-        new ColumnHeader("mmu.OUT_2", 4, length),
-        new ColumnHeader("mmu.OUT_3", 4, length),
-        new ColumnHeader("mmu.OUT_4", 4, length),
-        new ColumnHeader("mmu.OUT_5", 4, length),
-        new ColumnHeader("mmu.PHASE", 4, length),
-        new ColumnHeader("mmu.PHASE_xor_EXO_SUM", 4, length),
+        new ColumnHeader("mmu.OUT_1", 32, length),
+        new ColumnHeader("mmu.OUT_2", 32, length),
+        new ColumnHeader("mmu.OUT_3", 32, length),
+        new ColumnHeader("mmu.OUT_4", 32, length),
+        new ColumnHeader("mmu.OUT_5", 32, length),
+        new ColumnHeader("mmu.PHASE", 32, length),
+        new ColumnHeader("mmu.PHASE_xor_EXO_SUM", 32, length),
         new ColumnHeader("mmu.PRPRC", 1, length),
-        new ColumnHeader("mmu.REF_OFFSET_xor_EUC_A", 8, length),
-        new ColumnHeader("mmu.REF_SIZE_xor_EUC_B", 8, length),
+        new ColumnHeader("mmu.REF_OFFSET_xor_EUC_A", 32, length),
+        new ColumnHeader("mmu.REF_SIZE_xor_EUC_B", 32, length),
         new ColumnHeader("mmu.RZ_FIRST", 1, length),
         new ColumnHeader("mmu.RZ_LAST", 1, length),
         new ColumnHeader("mmu.RZ_MDDL", 1, length),
         new ColumnHeader("mmu.RZ_ONLY", 1, length),
         new ColumnHeader("mmu.SBO_xor_WCP_INST", 1, length),
         new ColumnHeader("mmu.SIZE", 1, length),
-        new ColumnHeader("mmu.SIZE_xor_EUC_CEIL", 8, length),
-        new ColumnHeader("mmu.SLO", 4, length),
-        new ColumnHeader("mmu.SRC_ID_xor_ID_1", 4, length),
-        new ColumnHeader("mmu.SRC_OFFSET_HI_xor_WCP_ARG_2_HI", 16, length),
-        new ColumnHeader("mmu.SRC_OFFSET_LO_xor_WCP_ARG_2_LO", 16, length),
-        new ColumnHeader("mmu.STAMP", 4, length),
+        new ColumnHeader("mmu.SIZE_xor_EUC_CEIL", 32, length),
+        new ColumnHeader("mmu.SLO", 32, length),
+        new ColumnHeader("mmu.SRC_ID_xor_ID_1", 32, length),
+        new ColumnHeader("mmu.SRC_OFFSET_HI_xor_WCP_ARG_2_HI", 32, length),
+        new ColumnHeader("mmu.SRC_OFFSET_LO_xor_WCP_ARG_2_LO", 32, length),
+        new ColumnHeader("mmu.STAMP", 32, length),
         new ColumnHeader("mmu.SUCCESS_BIT_xor_SUCCESS_BIT_xor_EUC_FLAG", 1, length),
         new ColumnHeader("mmu.TBO", 1, length),
-        new ColumnHeader("mmu.TGT_ID_xor_ID_2", 4, length),
-        new ColumnHeader("mmu.TGT_OFFSET_LO_xor_EUC_QUOT", 8, length),
-        new ColumnHeader("mmu.TLO", 4, length),
-        new ColumnHeader("mmu.TOT", 2, length),
-        new ColumnHeader("mmu.TOTAL_SIZE", 4, length),
-        new ColumnHeader("mmu.TOTLZ", 2, length),
-        new ColumnHeader("mmu.TOTNT", 2, length),
-        new ColumnHeader("mmu.TOTRZ", 2, length),
+        new ColumnHeader("mmu.TGT_ID_xor_ID_2", 32, length),
+        new ColumnHeader("mmu.TGT_OFFSET_LO_xor_EUC_QUOT", 32, length),
+        new ColumnHeader("mmu.TLO", 32, length),
+        new ColumnHeader("mmu.TOT", 32, length),
+        new ColumnHeader("mmu.TOTAL_SIZE", 32, length),
+        new ColumnHeader("mmu.TOTLZ", 32, length),
+        new ColumnHeader("mmu.TOTNT", 32, length),
+        new ColumnHeader("mmu.TOTRZ", 32, length),
         new ColumnHeader("mmu.WCP_FLAG", 1, length),
         new ColumnHeader("mmu.WCP_RES", 1, length));
   }
@@ -1803,7 +1806,7 @@ public class Trace {
 
   public Trace fillAndValidateRow() {
     if (!filled.get(48)) {
-      auxIdXorCnS.position(auxIdXorCnS.position() + 4);
+      auxIdXorCnS.position(auxIdXorCnS.position() + 32);
     }
 
     if (!filled.get(0)) {
@@ -1827,15 +1830,15 @@ public class Trace {
     }
 
     if (!filled.get(61)) {
-      eucRem.position(eucRem.position() + 8);
+      eucRem.position(eucRem.position() + 32);
     }
 
     if (!filled.get(49)) {
-      exoSumXorCnT.position(exoSumXorCnT.position() + 4);
+      exoSumXorCnT.position(exoSumXorCnT.position() + 32);
     }
 
     if (!filled.get(47)) {
-      instXorInstXorCt.position(instXorInstXorCt.position() + 2);
+      instXorInstXorCt.position(instXorInstXorCt.position() + 32);
     }
 
     if (!filled.get(5)) {
@@ -1891,11 +1894,11 @@ public class Trace {
     }
 
     if (!filled.get(62)) {
-      limb1XorLimbXorWcpArg1Hi.position(limb1XorLimbXorWcpArg1Hi.position() + 16);
+      limb1XorLimbXorWcpArg1Hi.position(limb1XorLimbXorWcpArg1Hi.position() + 32);
     }
 
     if (!filled.get(63)) {
-      limb2XorWcpArg1Lo.position(limb2XorWcpArg1Lo.position() + 16);
+      limb2XorWcpArg1Lo.position(limb2XorWcpArg1Lo.position() + 32);
     }
 
     if (!filled.get(18)) {
@@ -1911,7 +1914,7 @@ public class Trace {
     }
 
     if (!filled.get(21)) {
-      mmioStamp.position(mmioStamp.position() + 4);
+      mmioStamp.position(mmioStamp.position() + 32);
     }
 
     if (!filled.get(22)) {
@@ -1931,31 +1934,31 @@ public class Trace {
     }
 
     if (!filled.get(26)) {
-      out1.position(out1.position() + 4);
+      out1.position(out1.position() + 32);
     }
 
     if (!filled.get(27)) {
-      out2.position(out2.position() + 4);
+      out2.position(out2.position() + 32);
     }
 
     if (!filled.get(28)) {
-      out3.position(out3.position() + 4);
+      out3.position(out3.position() + 32);
     }
 
     if (!filled.get(29)) {
-      out4.position(out4.position() + 4);
+      out4.position(out4.position() + 32);
     }
 
     if (!filled.get(30)) {
-      out5.position(out5.position() + 4);
+      out5.position(out5.position() + 32);
     }
 
     if (!filled.get(53)) {
-      phase.position(phase.position() + 4);
+      phase.position(phase.position() + 32);
     }
 
     if (!filled.get(50)) {
-      phaseXorExoSum.position(phaseXorExoSum.position() + 4);
+      phaseXorExoSum.position(phaseXorExoSum.position() + 32);
     }
 
     if (!filled.get(31)) {
@@ -1963,11 +1966,11 @@ public class Trace {
     }
 
     if (!filled.get(57)) {
-      refOffsetXorEucA.position(refOffsetXorEucA.position() + 8);
+      refOffsetXorEucA.position(refOffsetXorEucA.position() + 32);
     }
 
     if (!filled.get(58)) {
-      refSizeXorEucB.position(refSizeXorEucB.position() + 8);
+      refSizeXorEucB.position(refSizeXorEucB.position() + 32);
     }
 
     if (!filled.get(32)) {
@@ -1995,27 +1998,27 @@ public class Trace {
     }
 
     if (!filled.get(59)) {
-      sizeXorEucCeil.position(sizeXorEucCeil.position() + 8);
+      sizeXorEucCeil.position(sizeXorEucCeil.position() + 32);
     }
 
     if (!filled.get(54)) {
-      slo.position(slo.position() + 4);
+      slo.position(slo.position() + 32);
     }
 
     if (!filled.get(51)) {
-      srcIdXorId1.position(srcIdXorId1.position() + 4);
+      srcIdXorId1.position(srcIdXorId1.position() + 32);
     }
 
     if (!filled.get(64)) {
-      srcOffsetHiXorWcpArg2Hi.position(srcOffsetHiXorWcpArg2Hi.position() + 16);
+      srcOffsetHiXorWcpArg2Hi.position(srcOffsetHiXorWcpArg2Hi.position() + 32);
     }
 
     if (!filled.get(65)) {
-      srcOffsetLoXorWcpArg2Lo.position(srcOffsetLoXorWcpArg2Lo.position() + 16);
+      srcOffsetLoXorWcpArg2Lo.position(srcOffsetLoXorWcpArg2Lo.position() + 32);
     }
 
     if (!filled.get(36)) {
-      stamp.position(stamp.position() + 4);
+      stamp.position(stamp.position() + 32);
     }
 
     if (!filled.get(41)) {
@@ -2027,35 +2030,35 @@ public class Trace {
     }
 
     if (!filled.get(52)) {
-      tgtIdXorId2.position(tgtIdXorId2.position() + 4);
+      tgtIdXorId2.position(tgtIdXorId2.position() + 32);
     }
 
     if (!filled.get(60)) {
-      tgtOffsetLoXorEucQuot.position(tgtOffsetLoXorEucQuot.position() + 8);
+      tgtOffsetLoXorEucQuot.position(tgtOffsetLoXorEucQuot.position() + 32);
     }
 
     if (!filled.get(55)) {
-      tlo.position(tlo.position() + 4);
+      tlo.position(tlo.position() + 32);
     }
 
     if (!filled.get(37)) {
-      tot.position(tot.position() + 2);
+      tot.position(tot.position() + 32);
     }
 
     if (!filled.get(56)) {
-      totalSize.position(totalSize.position() + 4);
+      totalSize.position(totalSize.position() + 32);
     }
 
     if (!filled.get(38)) {
-      totlz.position(totlz.position() + 2);
+      totlz.position(totlz.position() + 32);
     }
 
     if (!filled.get(39)) {
-      totnt.position(totnt.position() + 2);
+      totnt.position(totnt.position() + 32);
     }
 
     if (!filled.get(40)) {
-      totrz.position(totrz.position() + 2);
+      totrz.position(totrz.position() + 32);
     }
 
     if (!filled.get(42)) {

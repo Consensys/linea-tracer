@@ -49,7 +49,9 @@ import org.hyperledger.besu.ethereum.mainnet.feemarket.FeeMarket;
 import org.hyperledger.besu.ethereum.mainnet.feemarket.LondonFeeMarket;
 import org.hyperledger.besu.ethereum.processing.TransactionProcessingResult;
 import org.hyperledger.besu.evm.EVM;
+import org.hyperledger.besu.evm.MainnetEVMs;
 import org.hyperledger.besu.evm.gascalculator.GasCalculator;
+import org.hyperledger.besu.evm.internal.EvmConfiguration;
 import org.hyperledger.besu.evm.precompile.PrecompileContractRegistry;
 import org.hyperledger.besu.evm.processor.ContractCreationProcessor;
 import org.hyperledger.besu.evm.processor.MessageCallProcessor;
@@ -57,7 +59,7 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 
 /** Fluent API for executing EVM transactions in tests. */
 @Builder
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 @Slf4j
 public class ToyExecutionEnvironment {
   public static final BigInteger CHAIN_ID = BigInteger.valueOf(1337);
@@ -75,7 +77,7 @@ public class ToyExecutionEnvironment {
   private static final Address minerAddress = Address.fromHexString("0x1234532342");
 
   private final ToyWorld toyWorld;
-  private final EVM evm;
+  private final EVM evm = MainnetEVMs.london(EvmConfiguration.DEFAULT);
   @Builder.Default private BigInteger chainId = CHAIN_ID;
   @Singular private final List<Transaction> transactions;
 

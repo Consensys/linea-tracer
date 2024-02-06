@@ -56,8 +56,9 @@ public final class PrecompileInvocation {
   private final long precompilePrice;
   /** The available gas just before the *CALL opcode execution */
   private final long gasAtCall;
-  /* If applicable, the gas given to a precompile */
+  /** If applicable, the gas given to a precompile */
   private final long gasAllowance;
+  /** The amount of gas to be given back to the caller */
   private final long returnGas;
 
   public boolean success() {

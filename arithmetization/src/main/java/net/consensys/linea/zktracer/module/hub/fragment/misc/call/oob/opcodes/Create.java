@@ -19,15 +19,13 @@ import static net.consensys.linea.zktracer.module.oob.Trace.OOB_INST_create;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
 import net.consensys.linea.zktracer.module.hub.fragment.misc.call.oob.OobCall;
-import net.consensys.linea.zktracer.module.hub.signals.AbortingConditions;
-import net.consensys.linea.zktracer.module.hub.signals.FailureConditions;
 import net.consensys.linea.zktracer.module.oob.OobDataChannel;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 
 public record Create(
-    AbortingConditions aborts,
-    FailureConditions failures,
+    boolean hasAbort,
+    boolean hasFailure,
     EWord value,
     EWord creatorBalance,
     long createdNonce,
@@ -43,8 +41,8 @@ public record Create(
       case DATA_4 -> Bytes.ofUnsignedLong(createdNonce);
       case DATA_5 -> booleanToBytes(createdHasCode);
       case DATA_6 -> Bytes.ofUnsignedLong(callStackDepth);
-      case DATA_7 -> booleanToBytes(aborts.any());
-      case DATA_8 -> booleanToBytes(failures.any());
+      case DATA_7 -> booleanToBytes(hasAbort);
+      case DATA_8 -> booleanToBytes(hasFailure);
     };
   }
 

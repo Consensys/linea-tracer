@@ -51,6 +51,7 @@ public class CreateSection extends TraceSection
   private final AbortingConditions aborts;
   private final Exceptions exceptions;
   private final FailureConditions failures;
+  private final ScenarioFragment scenarioFragment;
 
   // Just before create
   private final AccountSnapshot oldCreatorSnapshot;
@@ -83,6 +84,8 @@ public class CreateSection extends TraceSection
 
     this.oldCreatorSnapshot = oldCreatorSnapshot;
     this.oldCreatedSnapshot = oldCreatedSnapshot;
+
+    this.scenarioFragment = ScenarioFragment.forCreate(hub, this.targetHasCode());
 
     this.addStack(hub);
   }
@@ -136,13 +139,11 @@ public class CreateSection extends TraceSection
 
   @Override
   public void runPostTx(Hub hub, WorldView state, Transaction tx) {
-    final boolean creatorReverted = hub.callStack().get(this.creatorContextId).hasReverted();
+    final boolean creatorReverted = hub.callStack().getById(this.creatorContextId).hasReverted();
     final GasProjection projection = Hub.gp.of(hub.messageFrame(), hub.opCode());
     final long upfrontCost =
         projection.memoryExpansion() + projection.linearPerWord() + GasConstants.G_TX_CREATE.cost();
 
-    final ScenarioFragment commonScenarioFragment =
-        ScenarioFragment.forCreate(hub, this.targetHasCode());
     final ImcFragment commonImcFragment =
         ImcFragment.empty()
             .callMxp(MxpCall.build(hub))
@@ -158,7 +159,8 @@ public class CreateSection extends TraceSection
                     allButOneSixtyFourth(this.initialGas - upfrontCost),
                     0));
 
-    this.addFragmentsWithoutStack(hub, commonScenarioFragment);
+    this.scenarioFragment.runPostTx(hub, state, tx);
+    this.addFragmentsWithoutStack(hub, scenarioFragment);
     if (this.exceptions.staticFault()) {
       this.addFragmentsWithoutStack(
           hub,

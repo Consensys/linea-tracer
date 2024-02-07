@@ -28,7 +28,6 @@ import java.util.function.Consumer;
 
 import com.google.gson.Gson;
 import lombok.Builder;
-import lombok.RequiredArgsConstructor;
 import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.blockcapture.snapshots.BlockSnapshot;
@@ -59,7 +58,6 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 
 /** Fluent API for executing EVM transactions in tests. */
 @Builder
-//@RequiredArgsConstructor
 @Slf4j
 public class ToyExecutionEnvironment {
   public static final BigInteger CHAIN_ID = BigInteger.valueOf(1337);
@@ -85,9 +83,9 @@ public class ToyExecutionEnvironment {
    * A function applied to the {@link TransactionProcessingResult} of each transaction; by default,
    * asserts that the transaction is successful.
    */
-  private final Consumer<TransactionProcessingResult> testValidator;
+  @Builder.Default private final Consumer<TransactionProcessingResult> testValidator = x -> {};
 
-  private final Consumer<ZkTracer> zkTracerValidator;
+  @Builder.Default private final Consumer<ZkTracer> zkTracerValidator = x -> {};
 
   private static final FeeMarket feeMarket = FeeMarket.london(-1);
   private final ZkTracer tracer = new ZkTracer();

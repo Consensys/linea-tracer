@@ -19,12 +19,11 @@ import static net.consensys.linea.zktracer.module.oob.Trace.OOB_INST_call;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
 import net.consensys.linea.zktracer.module.hub.fragment.misc.call.oob.OobCall;
-import net.consensys.linea.zktracer.module.hub.signals.AbortingConditions;
 import net.consensys.linea.zktracer.module.oob.OobDataChannel;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 
-public record Call(EWord value, EWord balance, int callStackDepth, AbortingConditions aborts)
+public record Call(EWord value, EWord balance, int callStackDepth, boolean hasAbort)
     implements OobCall {
   @Override
   public Bytes data(OobDataChannel i) {
@@ -34,7 +33,7 @@ public record Call(EWord value, EWord balance, int callStackDepth, AbortingCondi
       case DATA_3 -> balance.lo();
       case DATA_6 -> Bytes.ofUnsignedLong(callStackDepth);
       case DATA_7 -> booleanToBytes(!value.isZero());
-      case DATA_8 -> booleanToBytes(aborts.any());
+      case DATA_8 -> booleanToBytes(hasAbort);
       default -> Bytes.EMPTY;
     };
   }

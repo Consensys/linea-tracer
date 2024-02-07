@@ -218,7 +218,7 @@ public class MmuCall implements TraceSubFragment {
                     hub.currentFrame().callData().toArray(), (int) offset, (int) (offset + 32))));
 
     return new MmuCall(MMU_INST_RIGHT_PADDED_WORD_EXTRACTION)
-        .sourceId(hub.callStack().get(hub.currentFrame().parentFrame()).contextNumber())
+        .sourceId(hub.callStack().getById(hub.currentFrame().parentFrame()).contextNumber())
         .sourceOffset(EWord.of(hub.messageFrame().getStackItem(0)))
         .referenceOffset(offset)
         .referenceSize(size)
@@ -249,7 +249,7 @@ public class MmuCall implements TraceSubFragment {
   public static MmuCall returnDataCopy(final Hub hub) {
     final MemorySpan returnDataSegment = hub.currentFrame().currentReturnDataSource();
     return new MmuCall(MMU_INST_ANY_TO_RAM_WITH_PADDING)
-        .sourceId(hub.callStack().get(hub.currentFrame().currentReturner()).contextNumber())
+        .sourceId(hub.callStack().getById(hub.currentFrame().currentReturner()).contextNumber())
         .targetId(hub.currentFrame().contextNumber())
         .sourceOffset(EWord.of(hub.messageFrame().getStackItem(1)))
         .targetOffset(EWord.of(hub.messageFrame().getStackItem(0)))
@@ -309,11 +309,11 @@ public class MmuCall implements TraceSubFragment {
   public static MmuCall revert(final Hub hub) {
     return new MmuCall(MMU_INST_RAM_TO_EXO_WITH_PADDING)
         .sourceId(hub.currentFrame().contextNumber())
-        .targetId(hub.callStack().get(hub.currentFrame().parentFrame()).contextNumber())
+        .targetId(hub.callStack().getById(hub.currentFrame().parentFrame()).contextNumber())
         .sourceOffset(EWord.of(hub.messageFrame().getStackItem(0)))
         .size(Words.clampedToLong(hub.messageFrame().getStackItem(1)))
-        .referenceOffset(hub.currentFrame().returnDataTarget().offset())
-        .referenceSize(hub.currentFrame().returnDataTarget().length());
+        .referenceOffset(hub.currentFrame().requestedReturnDataTarget().offset())
+        .referenceSize(hub.currentFrame().requestedReturnDataTarget().length());
   }
 
   public static MmuCall txInit(final Hub hub) {

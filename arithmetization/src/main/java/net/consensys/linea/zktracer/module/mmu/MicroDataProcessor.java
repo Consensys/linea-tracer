@@ -48,12 +48,12 @@ class MicroDataProcessor {
 
     microData.precomputation(preComputation);
 
-    long returnLength = callStack.caller().returnDataTarget().length();
+    long returnLength = callStack.caller().requestedReturnDataTarget().length();
     microData.instructionContext(
         InstructionContext.builder()
             .self(callStack.current().contextNumber())
             .caller(callStack.caller().contextNumber())
-            .returnOffset(EWord.of(callStack.caller().returnDataTarget().absolute()))
+            .returnOffset(EWord.of(callStack.caller().requestedReturnDataTarget().absolute()))
             .returnCapacity((int) returnLength)
             .returner(callStack.current().currentReturner())
             .build());

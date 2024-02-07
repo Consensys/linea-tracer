@@ -50,6 +50,7 @@ public class NoCodeCallSection extends TraceSection
   private AccountSnapshot postCallCallerAccountSnapshot;
   private AccountSnapshot postCallCalledAccountSnapshot;
   private final ImcFragment imcFragment;
+  private final ScenarioFragment scenarioFragment;
 
   private Optional<List<TraceFragment>> maybePrecompileLines = Optional.empty();
 
@@ -65,6 +66,9 @@ public class NoCodeCallSection extends TraceSection
     this.callerCallFrame = hub.currentFrame();
     this.calledCallFrameId = hub.callStack().futureId();
     this.imcFragment = imcFragment;
+    this.scenarioFragment =
+        ScenarioFragment.forNoCodeCallSection(
+            hub, precompileInvocation, this.callerCallFrame.id(), this.calledCallFrameId);
     this.addStack(hub);
   }
 
@@ -99,11 +103,12 @@ public class NoCodeCallSection extends TraceSection
 
   @Override
   public void runPostTx(Hub hub, WorldView state, Transaction tx) {
+    this.scenarioFragment.runPostTx(hub, state, tx);
+
     this.addFragmentsWithoutStack(
         hub,
         callerCallFrame,
-        ScenarioFragment.forNoCodeCallSection(
-            precompileInvocation, this.callerCallFrame.id(), this.calledCallFrameId),
+        this.scenarioFragment,
         this.imcFragment,
         ContextFragment.readContextData(hub.callStack()),
         new AccountFragment(this.preCallCallerAccountSnapshot, this.postCallCallerAccountSnapshot),
@@ -122,7 +127,7 @@ public class NoCodeCallSection extends TraceSection
       this.addFragmentsWithoutStack(
           hub,
           ScenarioFragment.forPrecompileEpilogue(
-              precompileInvocation.get(), callerCallFrame.id(), calledCallFrameId));
+              hub, precompileInvocation.get(), callerCallFrame.id(), calledCallFrameId));
       for (TraceFragment f :
           this.maybePrecompileLines.orElseThrow(
               () -> new IllegalStateException("missing precompile lines"))) {

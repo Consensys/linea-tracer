@@ -125,7 +125,7 @@ public class Hub implements Module {
   @Getter CallStack callStack = new CallStack();
 
   /** Stores all the actions that must be deferred to a later time */
-  private final DeferRegistry defers = new DeferRegistry();
+  @Getter private final DeferRegistry defers = new DeferRegistry();
 
   @Getter private final PlatformController pch;
 
@@ -777,23 +777,47 @@ public class Hub implements Module {
       // Bedrock...
       final Address toAddress = effectiveToAddress(this.transients.tx().transaction());
       final boolean isDeployment = this.transients.tx().transaction().getTo().isEmpty();
-      this.callStack.newBedrock(
-          this.state.stamps().hub(),
-          this.transients.tx().transaction().getSender(),
-          toAddress,
-          isDeployment ? CallFrameType.INIT_CODE : CallFrameType.STANDARD,
-          new Bytecode(
-              toAddress == null
-                  ? this.transients.tx().transaction().getData().orElse(Bytes.EMPTY)
-                  : Optional.ofNullable(frame.getWorldUpdater().get(toAddress))
-                      .map(AccountState::getCode)
-                      .orElse(Bytes.EMPTY)), // TODO: see with Olivier
-          Wei.of(this.transients.tx().transaction().getValue().getAsBigInteger()),
-          this.transients.tx().transaction().getGasLimit(),
-          this.transients.tx().transaction().getData().orElse(Bytes.EMPTY),
-          this.transients.conflation().deploymentInfo().number(toAddress),
-          toAddress.isEmpty() ? 0 : this.transients.conflation().deploymentInfo().number(toAddress),
-          this.transients.conflation().deploymentInfo().isDeploying(toAddress));
+      if (!isDeployment && !frame.getInputData().isEmpty()) {
+        this.callStack.newMantleAndBedrock(
+            this.state.stamps().hub(),
+            this.transients.tx().transaction().getSender(),
+            toAddress,
+            isDeployment ? CallFrameType.INIT_CODE : CallFrameType.STANDARD,
+            new Bytecode(
+                toAddress == null
+                    ? this.transients.tx().transaction().getData().orElse(Bytes.EMPTY)
+                    : Optional.ofNullable(frame.getWorldUpdater().get(toAddress))
+                        .map(AccountState::getCode)
+                        .orElse(Bytes.EMPTY)), // TODO: see with Olivier
+            Wei.of(this.transients.tx().transaction().getValue().getAsBigInteger()),
+            this.transients.tx().transaction().getGasLimit(),
+            this.transients.tx().transaction().getData().orElse(Bytes.EMPTY),
+            this.transients.conflation().deploymentInfo().number(toAddress),
+            toAddress.isEmpty()
+                ? 0
+                : this.transients.conflation().deploymentInfo().number(toAddress),
+            this.transients.conflation().deploymentInfo().isDeploying(toAddress));
+      } else {
+        this.callStack.newBedrock(
+            this.state.stamps().hub(),
+            //            this.transients.tx().transaction().getSender(),
+            toAddress,
+            isDeployment ? CallFrameType.INIT_CODE : CallFrameType.STANDARD,
+            new Bytecode(
+                toAddress == null
+                    ? this.transients.tx().transaction().getData().orElse(Bytes.EMPTY)
+                    : Optional.ofNullable(frame.getWorldUpdater().get(toAddress))
+                        .map(AccountState::getCode)
+                        .orElse(Bytes.EMPTY)), // TODO: see with Olivier
+            Wei.of(this.transients.tx().transaction().getValue().getAsBigInteger()),
+            this.transients.tx().transaction().getGasLimit(),
+            this.transients.tx().transaction().getData().orElse(Bytes.EMPTY),
+            this.transients.conflation().deploymentInfo().number(toAddress),
+            toAddress.isEmpty()
+                ? 0
+                : this.transients.conflation().deploymentInfo().number(toAddress),
+            this.transients.conflation().deploymentInfo().isDeploying(toAddress));
+      }
     } else {
       // ...or CALL
       final boolean isDeployment = frame.getType() == MessageFrame.Type.CONTRACT_CREATION;
@@ -1262,6 +1286,7 @@ public class Hub implements Module {
                     imcFragment);
             this.defers.postExec(section);
             this.defers.postTx(section);
+            this.defers.reEntry(section);
             this.addTraceSection(section);
             this.currentFrame()
                 .needsUnlatchingAtReEntry(

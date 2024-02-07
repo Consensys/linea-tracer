@@ -63,6 +63,6 @@ public class LogInvocation {
   }
 
   public boolean reverted() {
-    return this.callStack.get(this.callFrameId).hasReverted();
+    return this.callStack.getById(this.callFrameId).hasReverted();
   }
 }

@@ -39,7 +39,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @Accessors(fluent = true)
 public class CallFrame {
-  public static final CallFrame EMPTY = new CallFrame(Address.ZERO);
+  public static final CallFrame EMPTY = new CallFrame();
   /** the position of this {@link CallFrame} in the {@link CallStack}. */
   @Getter private int id;
   /** the context number of the frame, i.e. the hub stamp at its creation */
@@ -90,14 +90,14 @@ public class CallFrame {
   /** the call data given to this frame. */
   @Getter private Bytes callData = Bytes.EMPTY;
   /** the call data position in the parent's RAM. */
-  @Getter private final MemorySpan callDataSource;
+  @Getter private MemorySpan callDataSource;
 
   /** the data returned by the latest callee. */
   @Getter @Setter private Bytes returnData = Bytes.EMPTY;
   /** where this frame store its return data in its own RAM */
   @Getter @Setter private MemorySpan returnDataSource;
   /** where this frame is expected to write its returnData within its parent's memory space. */
-  @Getter private final MemorySpan returnDataTarget;
+  @Getter private MemorySpan requestedReturnDataTarget = MemorySpan.empty();
 
   /** returnData position within the latest callee memory space. */
   @Getter @Setter private MemorySpan currentReturnDataSource = new MemorySpan(0, 0);
@@ -112,13 +112,29 @@ public class CallFrame {
   /** the latched context of this callframe stack. */
   @Getter @Setter private StackContext pending;
 
-  /** Create a root call frame. */
-  CallFrame(Address address) {
-    this.type = CallFrameType.BEDROCK;
+  /**
+   * Define the given {@link Bytes} as the 0-aligned call data for this frame
+   *
+   * @param callData the call data content
+   */
+  private void set0AlignedCallData(final Bytes callData) {
+    this.callData = callData;
+    this.callDataSource = new MemorySpan(0, callData.size());
+  }
+
+  /** Create a bedrock call frame. */
+  CallFrame(Bytes callData, int cn) {
+    this.type = CallFrameType.MANTLE;
+    this.contextNumber = cn;
+    this.address = Address.ZERO;
+    this.set0AlignedCallData(callData);
+  }
+
+  /** Create a bedrock call frame. */
+  CallFrame() {
+    this.type = CallFrameType.EMPTY;
     this.contextNumber = 0;
-    this.address = address;
-    this.callDataSource = new MemorySpan(0, 0);
-    this.returnDataTarget = new MemorySpan(0, 0);
+    this.address = Address.ZERO;
   }
 
   /**
@@ -167,7 +183,7 @@ public class CallFrame {
     this.callDataSource = new MemorySpan(0, callData.size());
     this.depth = depth;
     this.currentReturnDataSource = new MemorySpan(0, 0);
-    this.returnDataTarget = new MemorySpan(0, 0); // TODO: fix me Franklin
+    this.requestedReturnDataTarget = new MemorySpan(0, 0); // TODO: fix me Franklin
   }
 
   /**
@@ -211,7 +227,7 @@ public class CallFrame {
     if (this.getsRevertedAt == 0) {
       this.getsRevertedAt = stamp;
       this.childFrames.stream()
-          .map(callStack::get)
+          .map(callStack::getById)
           .forEach(frame -> frame.revertChildren(callStack, stamp));
     }
   }

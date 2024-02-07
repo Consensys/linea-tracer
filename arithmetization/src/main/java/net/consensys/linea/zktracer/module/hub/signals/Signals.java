@@ -210,7 +210,7 @@ public class Signals {
         this.mmu =
             ex.none()
                 && !frame.getStackItem(1).isZero()
-                && hub.currentFrame().returnDataTarget().length() > 0;
+                && hub.currentFrame().requestedReturnDataTarget().length() > 0;
       }
 
       case RETURN -> {
@@ -227,7 +227,7 @@ public class Signals {
                 || (!isDeployment
                     && ex.none()
                     && sizeNonZero
-                    && hub.currentFrame().returnDataTarget().length() > 0);
+                    && hub.currentFrame().requestedReturnDataTarget().length() > 0);
         this.romLex = this.hashInfo = isDeployment && ex.none() && sizeNonZero;
       }
 

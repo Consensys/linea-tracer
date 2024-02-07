@@ -42,7 +42,9 @@ import net.consensys.linea.zktracer.module.hub.fragment.misc.call.oob.opcodes.SS
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.gas.GasConstants;
 import net.consensys.linea.zktracer.types.EWord;
+import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.account.Account;
+import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 import org.hyperledger.besu.evm.worldstate.WorldView;
@@ -117,7 +119,7 @@ public class ImcFragment implements TraceFragment {
                     EWord.of(hub.messageFrame().getStackItem(2)),
                     EWord.of(callerAccount.getBalance()),
                     hub.callStack().depth(),
-                    hub.pch().aborts().snapshot()));
+                    hub.pch().aborts().any()));
           }
         }
         default -> throw new IllegalArgumentException("unexpected opcode for IMC/CALL");
@@ -165,8 +167,8 @@ public class ImcFragment implements TraceFragment {
         case CREATE, CREATE2 -> {
           r.moduleCalls.add(
               new Create(
-                  hub.pch().aborts().snapshot(),
-                  hub.pch().failures().snapshot(),
+                  hub.pch().aborts().any(),
+                  hub.pch().failures().any(),
                   EWord.of(hub.messageFrame().getStackItem(0)),
                   EWord.of(creatorAccount.getBalance()),
                   createeAccount.map(Account::getNonce).orElse(0L),
@@ -209,15 +211,36 @@ public class ImcFragment implements TraceFragment {
       switch (hub.opCode()) {
         case JUMP, JUMPI -> r.moduleCalls.add(new Jump(hub, frame));
         case CALLDATALOAD -> r.moduleCalls.add(CallDataLoad.build(hub, frame));
-        case SSTORE -> {
-          r.moduleCalls.add(new SStore(frame.getRemainingGas()));
+        case SSTORE -> r.moduleCalls.add(new SStore(frame.getRemainingGas()));
+        case CALL, CALLCODE -> {
+          r.moduleCalls.add(
+              new Call(
+                  EWord.of(frame.getStackItem(2)),
+                  EWord.of(
+                      Optional.ofNullable(frame.getWorldUpdater().get(frame.getRecipientAddress()))
+                          .map(AccountState::getBalance)
+                          .orElse(Wei.ZERO)),
+                  hub.callStack().depth(),
+                  hub.pch().aborts().any()));
+        }
+        case DELEGATECALL, STATICCALL -> {
+          r.moduleCalls.add(
+              new Call(
+                  EWord.ZERO,
+                  EWord.of(
+                      Optional.ofNullable(frame.getWorldUpdater().get(frame.getRecipientAddress()))
+                          .map(AccountState::getBalance)
+                          .orElse(Wei.ZERO)),
+                  hub.callStack().depth(),
+                  hub.pch().aborts().any()));
         }
         case RETURN -> {
           if (hub.currentFrame().underDeployment()) {
             r.moduleCalls.add(new DeploymentReturn(EWord.of(frame.getStackItem(1))));
           }
         }
-        default -> throw new IllegalArgumentException("unexpected opcode for OoB");
+        default -> throw new IllegalArgumentException(
+            "unexpected opcode for OoB %s".formatted(hub.opCode()));
       }
     }
 
@@ -262,7 +285,7 @@ public class ImcFragment implements TraceFragment {
       subFragment.trace(trace);
     }
 
-    return trace.fillAndValidateRow();
+    return trace;
   }
 
   @Override

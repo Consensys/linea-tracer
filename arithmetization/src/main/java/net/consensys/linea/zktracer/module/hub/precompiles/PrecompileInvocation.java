@@ -146,24 +146,31 @@ public final class PrecompileInvocation {
             ? 0
             : hub.transients().op().gasAllowanceForCall() - precompilePrice;
 
-    PrecompileInvocationBuilder r =
-        PrecompileInvocation.builder()
-            .precompile(p)
-            .metadata(null)
-            .callDataSource(hub.transients().op().callDataSegment())
-            .requestedReturnDataTarget(hub.transients().op().returnDataRequestedSegment())
-            .hubFailure(hubFailure)
-            .ramFailure(ramFailure)
-            .opCodeGas(opCodeGas)
-            .precompilePrice(precompilePrice)
-            .gasAtCall(hub.messageFrame().getRemainingGas())
-            .gasAllowance(hub.transients().op().gasAllowanceForCall())
-            .returnGas(returnGas);
+    PrecompileMetadata metadata =
+        switch (p) {
+          case EC_RECOVER -> EcRecoverMetadata.of(hub);
+          case SHA2_256 -> null;
+          case RIPEMD_160 -> null;
+          case IDENTITY -> null;
+          case MODEXP -> null; // TODO: create ModexpMetadata here
+          case EC_ADD -> null;
+          case EC_MUL -> null;
+          case EC_PAIRING -> null;
+          case BLAKE2F -> Blake2fRounds.metadata(hub);
+        };
 
-    if (p == Precompile.BLAKE2F) {
-      r.metadata(Blake2fRounds.metadata(hub));
-    }
-
-    return r.build();
+    return PrecompileInvocation.builder()
+        .precompile(p)
+        .metadata(metadata)
+        .callDataSource(hub.transients().op().callDataSegment())
+        .requestedReturnDataTarget(hub.transients().op().returnDataRequestedSegment())
+        .hubFailure(hubFailure)
+        .ramFailure(ramFailure)
+        .opCodeGas(opCodeGas)
+        .precompilePrice(precompilePrice)
+        .gasAtCall(hub.messageFrame().getRemainingGas())
+        .gasAllowance(hub.transients().op().gasAllowanceForCall())
+        .returnGas(returnGas)
+        .build();
   }
 }

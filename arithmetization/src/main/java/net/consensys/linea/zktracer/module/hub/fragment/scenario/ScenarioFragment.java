@@ -85,16 +85,19 @@ public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
   private boolean childContextFails = false;
 
   public static ScenarioFragment forCall(final Hub hub, boolean targetHasCode) {
-    return new ScenarioFragment(
-        Optional.empty(),
-        CallType.CALL,
-        targetHasCode,
-        hub.currentFrame().id(),
-        hub.callStack().futureId(),
-        hub.pch().exceptions().any(),
-        hub.pch().aborts().any(),
-        hub.pch().failures().any(),
-        hub.pch().exceptions().invalidCodePrefix());
+    ScenarioFragment r =
+        new ScenarioFragment(
+            Optional.empty(),
+            CallType.CALL,
+            targetHasCode,
+            hub.currentFrame().id(),
+            hub.callStack().futureId(),
+            hub.pch().exceptions().any(),
+            hub.pch().aborts().any(),
+            hub.pch().failures().any(),
+            hub.pch().exceptions().invalidCodePrefix());
+    hub.defers().postTx(r);
+    return r;
   }
 
   public static ScenarioFragment forCreate(final Hub hub, boolean targetHasCode) {
@@ -110,42 +113,69 @@ public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
         hub.pch().exceptions().invalidCodePrefix());
   }
 
-  public static ScenarioFragment forSmartContractCallSection(int callerFrameId, int calleeFrameId) {
-    return new ScenarioFragment(
-        Optional.empty(),
-        CallType.CALL,
-        true,
-        callerFrameId,
-        calleeFrameId,
-        false,
-        false,
-        false,
-        false);
+  public static ScenarioFragment forSmartContractCallSection(
+      final Hub hub, int calledFrameId, int callerFrameId) {
+    final ScenarioFragment r =
+        new ScenarioFragment(
+            Optional.empty(),
+            CallType.CALL,
+            true,
+            callerFrameId,
+            calledFrameId,
+            false,
+            false,
+            false,
+            false);
+    r.callDataSegment = hub.transients().op().callDataSegment();
+    r.requestedReturnDataSegment = hub.transients().op().returnDataRequestedSegment();
+    return r;
   }
 
   public static ScenarioFragment forNoCodeCallSection(
-      Optional<PrecompileInvocation> precompileCall, int callerId, int calleeId) {
+      final Hub hub, Optional<PrecompileInvocation> precompileCall, int callerId, int calleeId) {
+    ScenarioFragment r;
     if (precompileCall.isPresent()) {
-      return new ScenarioFragment(
-          precompileCall, CallType.CALL, false, callerId, calleeId, false, false, false, false);
+      r =
+          new ScenarioFragment(
+              precompileCall, CallType.CALL, false, callerId, calleeId, false, false, false, false);
     } else {
-      return new ScenarioFragment(
-          Optional.empty(), CallType.CALL, false, callerId, calleeId, false, false, false, false);
+      r =
+          new ScenarioFragment(
+              Optional.empty(),
+              CallType.CALL,
+              false,
+              callerId,
+              calleeId,
+              false,
+              false,
+              false,
+              false);
     }
+    r.callDataSegment = hub.transients().op().callDataSegment();
+    r.requestedReturnDataSegment = hub.transients().op().returnDataRequestedSegment();
+
+    r.fillPostCallInformation(hub);
+    return r;
   }
 
   public static ScenarioFragment forPrecompileEpilogue(
-      PrecompileInvocation precompile, int callerId, int calleeId) {
-    return new ScenarioFragment(
-        Optional.of(precompile),
-        CallType.PRECOMPILE,
-        false,
-        callerId,
-        calleeId,
-        false,
-        false,
-        false,
-        false);
+      final Hub hub, PrecompileInvocation precompile, int callerId, int calleeId) {
+    final ScenarioFragment r =
+        new ScenarioFragment(
+            Optional.of(precompile),
+            CallType.PRECOMPILE,
+            false,
+            callerId,
+            calleeId,
+            false,
+            false,
+            false,
+            false);
+    // This one is already created from a post-tx hook
+    r.callDataSegment = precompile.callDataSource();
+    r.requestedReturnDataSegment = precompile.requestedReturnDataTarget();
+    r.fillPostCallInformation(hub);
+    return r;
   }
 
   private boolean calleeSelfReverts() {
@@ -164,13 +194,37 @@ public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
     return this.precompileCall.isPresent();
   }
 
+  /**
+   * Fill the information related to the CALL this fragment stems from. This may be done either
+   * through a defer if the fragment is created at runtime, or directly if the fragment is already
+   * created within a post-transaction defer.
+   *
+   * @param hub the execution context
+   */
+  private void fillPreCallInformation(final Hub hub) {
+    this.callDataSegment = hub.callStack().getById(calleeId).callDataSource();
+    this.requestedReturnDataSegment = hub.callStack().getById(calleeId).requestedReturnDataTarget();
+  }
+
+  /**
+   * Fill the information related to the CALL this fragment stems from. This may be done either
+   * through a defer if the fragment is created at runtime, or directly if the fragment is already
+   * created within a post-transaction defer.
+   *
+   * @param hub the execution context
+   */
+  private void fillPostCallInformation(final Hub hub) {
+    // It does not make sense to interrogate a child frame that was never created
+    if (!this.hasFailed && !this.hasAborted && !this.raisedException && targetHasCode) {
+      // TODO: can a context without code reverts? @Olivier
+      this.childContextFails = hub.callStack().getById(calleeId).hasReverted();
+    }
+    this.callerReverts = hub.callStack().getById(callerId).hasReverted();
+  }
+
   @Override
   public void runPostTx(Hub hub, WorldView state, Transaction tx) {
-    this.callerReverts = hub.callStack().get(callerId).hasReverted();
-    this.childContextFails = hub.callStack().get(calleeId).hasReverted();
-
-    this.callDataSegment = hub.callStack().get(calleeId).callDataSource();
-    this.requestedReturnDataSegment = hub.callStack().get(calleeId).returnDataTarget();
+    this.fillPostCallInformation(hub);
   }
 
   @Override

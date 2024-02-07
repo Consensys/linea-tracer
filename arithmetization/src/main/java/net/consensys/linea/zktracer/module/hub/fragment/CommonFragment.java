@@ -112,7 +112,7 @@ public final class CommonFragment implements TraceFragment {
 
   @Override
   public void postTxRetcon(Hub hub) {
-    CallFrame frame = hub.callStack().get(this.callFrameId);
+    CallFrame frame = hub.callStack().getById(this.callFrameId);
 
     this.txEndStamp = hub.stamp();
     this.txReverts = hub.transients().tx().status();

@@ -45,6 +45,7 @@ public class SmartContractCallSection extends TraceSection
   private AccountSnapshot postCallCallerAccountSnapshot;
   private AccountSnapshot postCallCalledAccountSnapshot;
 
+  private final ScenarioFragment scenarioFragment;
   private final ImcFragment imcFragment;
 
   public SmartContractCallSection(
@@ -57,6 +58,10 @@ public class SmartContractCallSection extends TraceSection
     this.preCallCallerAccountSnapshot = preCallCallerAccountSnapshot;
     this.preCallCalledAccountSnapshot = preCallCalledAccountSnapshot;
     this.imcFragment = imcFragment;
+    this.scenarioFragment =
+        ScenarioFragment.forSmartContractCallSection(
+            hub, calledCallFrameId, this.callerCallFrame.id());
+
     this.addStack(hub);
   }
 
@@ -104,13 +109,13 @@ public class SmartContractCallSection extends TraceSection
 
   @Override
   public void runPostTx(Hub hub, WorldView state, Transaction tx) {
-    final CallFrame calledCallFrame = hub.callStack().get(this.calledCallFrameId);
+    final CallFrame calledCallFrame = hub.callStack().getById(this.calledCallFrameId);
+    this.scenarioFragment.runPostTx(hub, state, tx);
 
     this.addFragmentsWithoutStack(
         hub,
         callerCallFrame,
-        ScenarioFragment.forSmartContractCallSection(
-            this.callerCallFrame.id(), this.calledCallFrameId),
+        this.scenarioFragment,
         ContextFragment.readContextData(hub.callStack()),
         this.imcFragment,
         new AccountFragment(this.preCallCallerAccountSnapshot, this.inCallCallerAccountSnapshot),

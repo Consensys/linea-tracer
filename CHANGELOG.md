@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.4-test18-RC1
+Test pre-release 18-RC1 from [temp/issue-248/count-stack-only](https://github.com/Consensys/besu-sequencer-plugins/tree/temp/issue-248/count-stack-only)
+* Linea estimate gas endpoint [#585](https://github.com/Consensys/besu-sequencer-plugins/pull/585)
+
 ## 0.1.4-test17
 Test pre-release 17 from [temp/issue-248/count-stack-only](https://github.com/Consensys/besu-sequencer-plugins/tree/temp/issue-248/count-stack-only)
 * tests: drop huge random tests [https://github.com/Consensys/besu-sequencer-plugins/pull/563](#563)

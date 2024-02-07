@@ -123,7 +123,7 @@ public class LineaEstimateGas {
     final var tracer = new EstimateGasOperationTracer();
     final var chainHeadHash = blockchainService.getChainHeadHash();
     final var maybeSimulationResults =
-        transactionSimulationService.simulate(transaction, chainHeadHash, tracer);
+        transactionSimulationService.simulate(transaction, chainHeadHash, tracer, true);
 
     return maybeSimulationResults
         .map(
@@ -148,7 +148,8 @@ public class LineaEstimateGas {
                   transactionSimulationService.simulate(
                       createTransactionOverridingGasLimit(callParameters, lowGasEstimation),
                       chainHeadHash,
-                      tracer);
+                      tracer,
+                      true);
 
               return lowResult
                   .map(
@@ -179,7 +180,8 @@ public class LineaEstimateGas {
                                 transactionSimulationService.simulate(
                                     createTransactionOverridingGasLimit(callParameters, mid),
                                     chainHeadHash,
-                                    tracer);
+                                    tracer,
+                                    true);
 
                             if (binarySearchResult.isEmpty()
                                 || !binarySearchResult.get().isSuccessful()) {

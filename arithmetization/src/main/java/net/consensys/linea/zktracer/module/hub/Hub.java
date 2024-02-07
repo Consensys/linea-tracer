@@ -899,7 +899,7 @@ public class Hub implements Module {
     }
 
     this.defers.runPostExec(this, frame, operationResult);
-    this.romLex.tracePostExecution(frame, operationResult);
+    this.romLex.tracePostOpcode(frame);
 
     if (this.currentFrame().needsUnlatchingAtReEntry() == null) {
       this.unlatchStack(frame);
@@ -908,33 +908,33 @@ public class Hub implements Module {
     switch (this.opCodeData().instructionFamily()) {
       case ADD -> {
         if (this.pch.exceptions().noStackException()) {
-          this.add.tracePostOp(frame);
+          this.add.tracePostOpcode(frame);
         }
       }
       case MOD -> {
         if (this.pch.exceptions().noStackException()) {
-          this.mod.tracePostOp(frame);
+          this.mod.tracePostOpcode(frame);
         }
       }
       case MUL -> {
         if (this.pch.exceptions().noStackException()) {
-          this.mul.tracePostOp(frame);
+          this.mul.tracePostOpcode(frame);
         }
       }
       case EXT -> {
         if (this.pch.exceptions().noStackException()) {
-          this.ext.tracePostOp(frame);
+          this.ext.tracePostOpcode(frame);
         }
       }
       case WCP -> {
         if (this.pch.exceptions().noStackException()) {
-          this.wcp.tracePostOp(frame);
+          this.wcp.tracePostOpcode(frame);
         }
       }
       case BIN -> {}
       case SHF -> {
         if (this.pch.exceptions().noStackException()) {
-          this.shf.tracePostOp(frame);
+          this.shf.tracePostOpcode(frame);
         }
       }
       case KEC -> {}
@@ -945,7 +945,7 @@ public class Hub implements Module {
       case BATCH -> {}
       case STACK_RAM -> {
         if (this.pch.exceptions().noStackException()) {
-          this.mxp.tracePostOp(frame);
+          this.mxp.tracePostOpcode(frame);
         }
       }
       case STORAGE -> {}

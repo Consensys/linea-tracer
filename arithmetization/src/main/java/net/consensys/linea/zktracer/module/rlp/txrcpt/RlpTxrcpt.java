@@ -31,6 +31,7 @@ import lombok.Getter;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.module.rlp_txrcpt.Trace;
 import net.consensys.linea.zktracer.module.rlputils.ByteCountAndPowerOutput;
 import net.consensys.linea.zktracer.types.BitDecOutput;
 import net.consensys.linea.zktracer.types.UnsignedByte;

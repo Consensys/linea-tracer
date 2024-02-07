@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.rlp.txn;
+package net.consensys.linea.zktracer.module.rlp_txn;
 
 import java.nio.MappedByteBuffer;
 import java.util.BitSet;
@@ -106,6 +106,7 @@ public class Trace {
   private final MappedByteBuffer phase8;
   private final MappedByteBuffer phase9;
   private final MappedByteBuffer phaseEnd;
+  private final MappedByteBuffer phaseId;
   private final MappedByteBuffer phaseSize;
   private final MappedByteBuffer power;
   private final MappedByteBuffer requiresEvmExecution;
@@ -124,7 +125,7 @@ public class Trace {
         new ColumnHeader("rlpTxn.ADDR_HI", 32, length),
         new ColumnHeader("rlpTxn.ADDR_LO", 32, length),
         new ColumnHeader("rlpTxn.BIT", 1, length),
-        new ColumnHeader("rlpTxn.BIT_ACC", 32, length),
+        new ColumnHeader("rlpTxn.BIT_ACC", 1, length),
         new ColumnHeader("rlpTxn.BYTE_1", 1, length),
         new ColumnHeader("rlpTxn.BYTE_2", 1, length),
         new ColumnHeader("rlpTxn.CODE_FRAGMENT_INDEX", 32, length),
@@ -167,6 +168,7 @@ public class Trace {
         new ColumnHeader("rlpTxn.PHASE_8", 1, length),
         new ColumnHeader("rlpTxn.PHASE_9", 1, length),
         new ColumnHeader("rlpTxn.PHASE_END", 1, length),
+        new ColumnHeader("rlpTxn.PHASE_ID", 32, length),
         new ColumnHeader("rlpTxn.PHASE_SIZE", 32, length),
         new ColumnHeader("rlpTxn.POWER", 32, length),
         new ColumnHeader("rlpTxn.REQUIRES_EVM_EXECUTION", 1, length),
@@ -228,12 +230,13 @@ public class Trace {
     this.phase8 = buffers.get(49);
     this.phase9 = buffers.get(50);
     this.phaseEnd = buffers.get(51);
-    this.phaseSize = buffers.get(52);
-    this.power = buffers.get(53);
-    this.requiresEvmExecution = buffers.get(54);
-    this.rlpLtBytesize = buffers.get(55);
-    this.rlpLxBytesize = buffers.get(56);
-    this.type = buffers.get(57);
+    this.phaseId = buffers.get(52);
+    this.phaseSize = buffers.get(53);
+    this.power = buffers.get(54);
+    this.requiresEvmExecution = buffers.get(55);
+    this.rlpLtBytesize = buffers.get(56);
+    this.rlpLxBytesize = buffers.get(57);
+    this.type = buffers.get(58);
   }
 
   public int size() {
@@ -384,18 +387,14 @@ public class Trace {
     return this;
   }
 
-  public Trace bitAcc(final Bytes b) {
+  public Trace bitAcc(final UnsignedByte b) {
     if (filled.get(9)) {
       throw new IllegalStateException("rlpTxn.BIT_ACC already set");
     } else {
       filled.set(9);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      bitAcc.put((byte) 0);
-    }
-    bitAcc.put(b.toArrayUnsafe());
+    bitAcc.put(b.toByte());
 
     return this;
   }
@@ -697,10 +696,10 @@ public class Trace {
   }
 
   public Trace nAddr(final Bytes b) {
-    if (filled.get(53)) {
+    if (filled.get(54)) {
       throw new IllegalStateException("rlpTxn.nADDR already set");
     } else {
-      filled.set(53);
+      filled.set(54);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -713,10 +712,10 @@ public class Trace {
   }
 
   public Trace nBytes(final Bytes b) {
-    if (filled.get(54)) {
+    if (filled.get(55)) {
       throw new IllegalStateException("rlpTxn.nBYTES already set");
     } else {
-      filled.set(54);
+      filled.set(55);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -729,10 +728,10 @@ public class Trace {
   }
 
   public Trace nKeys(final Bytes b) {
-    if (filled.get(55)) {
+    if (filled.get(56)) {
       throw new IllegalStateException("rlpTxn.nKEYS already set");
     } else {
-      filled.set(55);
+      filled.set(56);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -745,10 +744,10 @@ public class Trace {
   }
 
   public Trace nKeysPerAddr(final Bytes b) {
-    if (filled.get(56)) {
+    if (filled.get(57)) {
       throw new IllegalStateException("rlpTxn.nKEYS_PER_ADDR already set");
     } else {
-      filled.set(56);
+      filled.set(57);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -761,10 +760,10 @@ public class Trace {
   }
 
   public Trace nStep(final Bytes b) {
-    if (filled.get(57)) {
+    if (filled.get(58)) {
       throw new IllegalStateException("rlpTxn.nSTEP already set");
     } else {
-      filled.set(57);
+      filled.set(58);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -968,11 +967,27 @@ public class Trace {
     return this;
   }
 
-  public Trace phaseSize(final Bytes b) {
+  public Trace phaseId(final Bytes b) {
     if (filled.get(47)) {
-      throw new IllegalStateException("rlpTxn.PHASE_SIZE already set");
+      throw new IllegalStateException("rlpTxn.PHASE_ID already set");
     } else {
       filled.set(47);
+    }
+
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      phaseId.put((byte) 0);
+    }
+    phaseId.put(b.toArrayUnsafe());
+
+    return this;
+  }
+
+  public Trace phaseSize(final Bytes b) {
+    if (filled.get(48)) {
+      throw new IllegalStateException("rlpTxn.PHASE_SIZE already set");
+    } else {
+      filled.set(48);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -985,10 +1000,10 @@ public class Trace {
   }
 
   public Trace power(final Bytes b) {
-    if (filled.get(48)) {
+    if (filled.get(49)) {
       throw new IllegalStateException("rlpTxn.POWER already set");
     } else {
-      filled.set(48);
+      filled.set(49);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -1001,10 +1016,10 @@ public class Trace {
   }
 
   public Trace requiresEvmExecution(final Boolean b) {
-    if (filled.get(49)) {
+    if (filled.get(50)) {
       throw new IllegalStateException("rlpTxn.REQUIRES_EVM_EXECUTION already set");
     } else {
-      filled.set(49);
+      filled.set(50);
     }
 
     requiresEvmExecution.put((byte) (b ? 1 : 0));
@@ -1013,10 +1028,10 @@ public class Trace {
   }
 
   public Trace rlpLtBytesize(final Bytes b) {
-    if (filled.get(50)) {
+    if (filled.get(51)) {
       throw new IllegalStateException("rlpTxn.RLP_LT_BYTESIZE already set");
     } else {
-      filled.set(50);
+      filled.set(51);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -1029,10 +1044,10 @@ public class Trace {
   }
 
   public Trace rlpLxBytesize(final Bytes b) {
-    if (filled.get(51)) {
+    if (filled.get(52)) {
       throw new IllegalStateException("rlpTxn.RLP_LX_BYTESIZE already set");
     } else {
-      filled.set(51);
+      filled.set(52);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -1045,10 +1060,10 @@ public class Trace {
   }
 
   public Trace type(final Bytes b) {
-    if (filled.get(52)) {
+    if (filled.get(53)) {
       throw new IllegalStateException("rlpTxn.TYPE already set");
     } else {
-      filled.set(52);
+      filled.set(53);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -1185,23 +1200,23 @@ public class Trace {
       throw new IllegalStateException("rlpTxn.LX has not been filled");
     }
 
-    if (!filled.get(53)) {
+    if (!filled.get(54)) {
       throw new IllegalStateException("rlpTxn.nADDR has not been filled");
     }
 
-    if (!filled.get(54)) {
+    if (!filled.get(55)) {
       throw new IllegalStateException("rlpTxn.nBYTES has not been filled");
     }
 
-    if (!filled.get(55)) {
+    if (!filled.get(56)) {
       throw new IllegalStateException("rlpTxn.nKEYS has not been filled");
     }
 
-    if (!filled.get(56)) {
+    if (!filled.get(57)) {
       throw new IllegalStateException("rlpTxn.nKEYS_PER_ADDR has not been filled");
     }
 
-    if (!filled.get(57)) {
+    if (!filled.get(58)) {
       throw new IllegalStateException("rlpTxn.nSTEP has not been filled");
     }
 
@@ -1270,26 +1285,30 @@ public class Trace {
     }
 
     if (!filled.get(47)) {
-      throw new IllegalStateException("rlpTxn.PHASE_SIZE has not been filled");
+      throw new IllegalStateException("rlpTxn.PHASE_ID has not been filled");
     }
 
     if (!filled.get(48)) {
-      throw new IllegalStateException("rlpTxn.POWER has not been filled");
+      throw new IllegalStateException("rlpTxn.PHASE_SIZE has not been filled");
     }
 
     if (!filled.get(49)) {
-      throw new IllegalStateException("rlpTxn.REQUIRES_EVM_EXECUTION has not been filled");
+      throw new IllegalStateException("rlpTxn.POWER has not been filled");
     }
 
     if (!filled.get(50)) {
-      throw new IllegalStateException("rlpTxn.RLP_LT_BYTESIZE has not been filled");
+      throw new IllegalStateException("rlpTxn.REQUIRES_EVM_EXECUTION has not been filled");
     }
 
     if (!filled.get(51)) {
-      throw new IllegalStateException("rlpTxn.RLP_LX_BYTESIZE has not been filled");
+      throw new IllegalStateException("rlpTxn.RLP_LT_BYTESIZE has not been filled");
     }
 
     if (!filled.get(52)) {
+      throw new IllegalStateException("rlpTxn.RLP_LX_BYTESIZE has not been filled");
+    }
+
+    if (!filled.get(53)) {
       throw new IllegalStateException("rlpTxn.TYPE has not been filled");
     }
 
@@ -1337,7 +1356,7 @@ public class Trace {
     }
 
     if (!filled.get(9)) {
-      bitAcc.position(bitAcc.position() + 32);
+      bitAcc.position(bitAcc.position() + 1);
     }
 
     if (!filled.get(10)) {
@@ -1424,23 +1443,23 @@ public class Trace {
       lx.position(lx.position() + 1);
     }
 
-    if (!filled.get(53)) {
+    if (!filled.get(54)) {
       nAddr.position(nAddr.position() + 32);
     }
 
-    if (!filled.get(54)) {
+    if (!filled.get(55)) {
       nBytes.position(nBytes.position() + 32);
     }
 
-    if (!filled.get(55)) {
+    if (!filled.get(56)) {
       nKeys.position(nKeys.position() + 32);
     }
 
-    if (!filled.get(56)) {
+    if (!filled.get(57)) {
       nKeysPerAddr.position(nKeysPerAddr.position() + 32);
     }
 
-    if (!filled.get(57)) {
+    if (!filled.get(58)) {
       nStep.position(nStep.position() + 32);
     }
 
@@ -1509,26 +1528,30 @@ public class Trace {
     }
 
     if (!filled.get(47)) {
-      phaseSize.position(phaseSize.position() + 32);
+      phaseId.position(phaseId.position() + 32);
     }
 
     if (!filled.get(48)) {
-      power.position(power.position() + 32);
+      phaseSize.position(phaseSize.position() + 32);
     }
 
     if (!filled.get(49)) {
-      requiresEvmExecution.position(requiresEvmExecution.position() + 1);
+      power.position(power.position() + 32);
     }
 
     if (!filled.get(50)) {
-      rlpLtBytesize.position(rlpLtBytesize.position() + 32);
+      requiresEvmExecution.position(requiresEvmExecution.position() + 1);
     }
 
     if (!filled.get(51)) {
-      rlpLxBytesize.position(rlpLxBytesize.position() + 32);
+      rlpLtBytesize.position(rlpLtBytesize.position() + 32);
     }
 
     if (!filled.get(52)) {
+      rlpLxBytesize.position(rlpLxBytesize.position() + 32);
+    }
+
+    if (!filled.get(53)) {
       type.position(type.position() + 32);
     }
 

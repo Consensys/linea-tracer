@@ -35,13 +35,15 @@ import org.hyperledger.besu.crypto.Hash;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @Accessors(fluent = true)
 public class Blake2fModexpDataOperation extends ModuleOperation {
-  private static final int MODEXP_COMPONENTS_LINE_COUNT = 32 * 4;
   private static final int MODEXP_COMPONENT_INT_BYTE_SIZE = 32;
   private static final int MODEXP_COMPONENT_SIZE = 512;
   private static final int MODEXP_LIMB_INT_BYTE_SIZE = 16;
-  private static final int BLAKE2f_DATA_SIZE = 13;
-  private static final int BLAKE2f_RESULT_SIZE = 4;
+  private static final int BLAKE2f_DATA_SIZE = Trace.INDEX_MAX_BLAKE_DATA + 1;
+  private static final int BLAKE2f_RESULT_SIZE = Trace.INDEX_MAX_BLAKE_RESULT + 1;
   private static final int BLAKE2f_LIMB_INT_BYTE_SIZE = 16;
+  private static final int MODEXP_COMPONENTS_LINE_COUNT = 32 * 4;
+  private static final int BLAKE2f_COMPONENTS_LINE_COUNT =
+      BLAKE2f_DATA_SIZE + BLAKE2f_RESULT_SIZE + 2;
 
   private final int hubStamp;
   @Getter private int prevHubStamp;
@@ -62,7 +64,7 @@ public class Blake2fModexpDataOperation extends ModuleOperation {
 
   @Override
   protected int computeLineCount() {
-    return MODEXP_COMPONENTS_LINE_COUNT;
+    return MODEXP_COMPONENTS_LINE_COUNT + BLAKE2f_COMPONENTS_LINE_COUNT;
   }
 
   void trace(Trace trace, int stamp) {
@@ -152,13 +154,13 @@ public class Blake2fModexpDataOperation extends ModuleOperation {
 
   private PhaseInfo getPhaseInfo(int phaseIndex) {
     return switch (phaseIndex) {
-      case 1 -> new PhaseInfo(Trace.PHASE_MODEXP_BASE, MODEXP_COMPONENT_INT_BYTE_SIZE - 1);
-      case 2 -> new PhaseInfo(Trace.PHASE_MODEXP_EXPONENT, MODEXP_COMPONENT_INT_BYTE_SIZE - 1);
-      case 3 -> new PhaseInfo(Trace.PHASE_MODEXP_MODULUS, MODEXP_COMPONENT_INT_BYTE_SIZE - 1);
-      case 4 -> new PhaseInfo(Trace.PHASE_MODEXP_RESULT, MODEXP_COMPONENT_INT_BYTE_SIZE - 1);
-      case 5 -> new PhaseInfo(Trace.PHASE_BLAKE_DATA, BLAKE2f_DATA_SIZE - 1);
-      case 6 -> new PhaseInfo(Trace.PHASE_BLAKE_PARAMS, 1);
-      case 7 -> new PhaseInfo(Trace.PHASE_BLAKE_RESULT, BLAKE2f_RESULT_SIZE - 1);
+      case 1 -> new PhaseInfo(Trace.PHASE_MODEXP_BASE, Trace.INDEX_MAX_MODEXP_BASE);
+      case 2 -> new PhaseInfo(Trace.PHASE_MODEXP_EXPONENT, Trace.INDEX_MAX_MODEXP_EXPONENT);
+      case 3 -> new PhaseInfo(Trace.PHASE_MODEXP_MODULUS, Trace.INDEX_MAX_MODEXP_MODULUS);
+      case 4 -> new PhaseInfo(Trace.PHASE_MODEXP_RESULT, Trace.INDEX_MAX_MODEXP_RESULT);
+      case 5 -> new PhaseInfo(Trace.PHASE_BLAKE_DATA, Trace.INDEX_MAX_BLAKE_DATA);
+      case 6 -> new PhaseInfo(Trace.PHASE_BLAKE_PARAMS, Trace.INDEX_MAX_BLAKE_PARAMS);
+      case 7 -> new PhaseInfo(Trace.PHASE_BLAKE_RESULT, Trace.INDEX_MAX_BLAKE_RESULT);
       default -> throw new IllegalStateException("Unexpected phase index: " + phaseIndex);
     };
   }

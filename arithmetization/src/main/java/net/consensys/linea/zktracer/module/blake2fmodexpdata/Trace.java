@@ -30,13 +30,20 @@ import org.apache.tuweni.bytes.Bytes;
  * Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
 public class Trace {
-  static final int PHASE_BLAKE_DATA = 5;
-  static final int PHASE_BLAKE_PARAMS = 6;
-  static final int PHASE_BLAKE_RESULT = 7;
-  static final int PHASE_MODEXP_BASE = 1;
-  static final int PHASE_MODEXP_EXPONENT = 2;
-  static final int PHASE_MODEXP_MODULUS = 3;
-  static final int PHASE_MODEXP_RESULT = 4;
+  public static final int INDEX_MAX_BLAKE_DATA = 12;
+  public static final int INDEX_MAX_BLAKE_PARAMS = 1;
+  public static final int INDEX_MAX_BLAKE_RESULT = 3;
+  public static final int INDEX_MAX_MODEXP_BASE = 31;
+  public static final int INDEX_MAX_MODEXP_EXPONENT = 31;
+  public static final int INDEX_MAX_MODEXP_MODULUS = 31;
+  public static final int INDEX_MAX_MODEXP_RESULT = 31;
+  public static final int PHASE_BLAKE_DATA = 5;
+  public static final int PHASE_BLAKE_PARAMS = 6;
+  public static final int PHASE_BLAKE_RESULT = 7;
+  public static final int PHASE_MODEXP_BASE = 1;
+  public static final int PHASE_MODEXP_EXPONENT = 2;
+  public static final int PHASE_MODEXP_MODULUS = 3;
+  public static final int PHASE_MODEXP_RESULT = 4;
 
   private final BitSet filled = new BitSet();
   private int currentLine = 0;

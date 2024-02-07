@@ -46,8 +46,6 @@ public class Trace {
   private final BitSet filled = new BitSet();
   private int currentLine = 0;
 
-  private final MappedByteBuffer accMsnzbXorWcpInst;
-  private final MappedByteBuffer bitMsnzbXorWcpFlag;
   private final MappedByteBuffer cmptn;
   private final MappedByteBuffer ct;
   private final MappedByteBuffer ctMax;
@@ -59,8 +57,10 @@ public class Trace {
   private final MappedByteBuffer isModexpLog;
   private final MappedByteBuffer macro;
   private final MappedByteBuffer manzbAcc;
-  private final MappedByteBuffer manzbXorWcpRes;
-  private final MappedByteBuffer msnzb;
+  private final MappedByteBuffer manzbXorWcpFlag;
+  private final MappedByteBuffer msbAcc;
+  private final MappedByteBuffer msbBitXorWcpRes;
+  private final MappedByteBuffer msbXorWcpInst;
   private final MappedByteBuffer pltBit;
   private final MappedByteBuffer pltJmp;
   private final MappedByteBuffer prprc;
@@ -74,8 +74,6 @@ public class Trace {
 
   static List<ColumnHeader> headers(int length) {
     return List.of(
-        new ColumnHeader("exp.ACC_MSNZB_xor_WCP_INST", 1, length),
-        new ColumnHeader("exp.BIT_MSNZB_xor_WCP_FLAG", 1, length),
         new ColumnHeader("exp.CMPTN", 1, length),
         new ColumnHeader("exp.CT", 32, length),
         new ColumnHeader("exp.CT_MAX", 32, length),
@@ -87,8 +85,10 @@ public class Trace {
         new ColumnHeader("exp.IS_MODEXP_LOG", 1, length),
         new ColumnHeader("exp.MACRO", 1, length),
         new ColumnHeader("exp.MANZB_ACC", 32, length),
-        new ColumnHeader("exp.MANZB_xor_WCP_RES", 1, length),
-        new ColumnHeader("exp.MSNZB", 1, length),
+        new ColumnHeader("exp.MANZB_xor_WCP_FLAG", 1, length),
+        new ColumnHeader("exp.MSB_ACC", 1, length),
+        new ColumnHeader("exp.MSB_BIT_xor_WCP_RES", 1, length),
+        new ColumnHeader("exp.MSB_xor_WCP_INST", 1, length),
         new ColumnHeader("exp.PLT_BIT", 1, length),
         new ColumnHeader("exp.PLT_JMP", 32, length),
         new ColumnHeader("exp.PRPRC", 1, length),
@@ -102,21 +102,21 @@ public class Trace {
   }
 
   public Trace(List<MappedByteBuffer> buffers) {
-    this.accMsnzbXorWcpInst = buffers.get(0);
-    this.bitMsnzbXorWcpFlag = buffers.get(1);
-    this.cmptn = buffers.get(2);
-    this.ct = buffers.get(3);
-    this.ctMax = buffers.get(4);
-    this.data3XorWcpArg2Hi = buffers.get(5);
-    this.data4XorWcpArg2Lo = buffers.get(6);
-    this.data5 = buffers.get(7);
-    this.expInst = buffers.get(8);
-    this.isExpLog = buffers.get(9);
-    this.isModexpLog = buffers.get(10);
-    this.macro = buffers.get(11);
-    this.manzbAcc = buffers.get(12);
-    this.manzbXorWcpRes = buffers.get(13);
-    this.msnzb = buffers.get(14);
+    this.cmptn = buffers.get(0);
+    this.ct = buffers.get(1);
+    this.ctMax = buffers.get(2);
+    this.data3XorWcpArg2Hi = buffers.get(3);
+    this.data4XorWcpArg2Lo = buffers.get(4);
+    this.data5 = buffers.get(5);
+    this.expInst = buffers.get(6);
+    this.isExpLog = buffers.get(7);
+    this.isModexpLog = buffers.get(8);
+    this.macro = buffers.get(9);
+    this.manzbAcc = buffers.get(10);
+    this.manzbXorWcpFlag = buffers.get(11);
+    this.msbAcc = buffers.get(12);
+    this.msbBitXorWcpRes = buffers.get(13);
+    this.msbXorWcpInst = buffers.get(14);
     this.pltBit = buffers.get(15);
     this.pltJmp = buffers.get(16);
     this.prprc = buffers.get(17);
@@ -217,38 +217,14 @@ public class Trace {
     return this;
   }
 
-  public Trace pComputationAccMsnzb(final UnsignedByte b) {
-    if (filled.get(12)) {
-      throw new IllegalStateException("exp.computation/ACC_MSNZB already set");
-    } else {
-      filled.set(12);
-    }
-
-    accMsnzbXorWcpInst.put(b.toByte());
-
-    return this;
-  }
-
-  public Trace pComputationBitMsnzb(final Boolean b) {
+  public Trace pComputationManzb(final Boolean b) {
     if (filled.get(8)) {
-      throw new IllegalStateException("exp.computation/BIT_MSNZB already set");
+      throw new IllegalStateException("exp.computation/MANZB already set");
     } else {
       filled.set(8);
     }
 
-    bitMsnzbXorWcpFlag.put((byte) (b ? 1 : 0));
-
-    return this;
-  }
-
-  public Trace pComputationManzb(final Boolean b) {
-    if (filled.get(9)) {
-      throw new IllegalStateException("exp.computation/MANZB already set");
-    } else {
-      filled.set(9);
-    }
-
-    manzbXorWcpRes.put((byte) (b ? 1 : 0));
+    manzbXorWcpFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -269,14 +245,38 @@ public class Trace {
     return this;
   }
 
-  public Trace pComputationMsnzb(final UnsignedByte b) {
+  public Trace pComputationMsb(final UnsignedByte b) {
+    if (filled.get(12)) {
+      throw new IllegalStateException("exp.computation/MSB already set");
+    } else {
+      filled.set(12);
+    }
+
+    msbXorWcpInst.put(b.toByte());
+
+    return this;
+  }
+
+  public Trace pComputationMsbAcc(final UnsignedByte b) {
     if (filled.get(13)) {
-      throw new IllegalStateException("exp.computation/MSNZB already set");
+      throw new IllegalStateException("exp.computation/MSB_ACC already set");
     } else {
       filled.set(13);
     }
 
-    msnzb.put(b.toByte());
+    msbAcc.put(b.toByte());
+
+    return this;
+  }
+
+  public Trace pComputationMsbBit(final Boolean b) {
+    if (filled.get(9)) {
+      throw new IllegalStateException("exp.computation/MSB_BIT already set");
+    } else {
+      filled.set(9);
+    }
+
+    msbBitXorWcpRes.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -560,7 +560,7 @@ public class Trace {
       filled.set(8);
     }
 
-    bitMsnzbXorWcpFlag.put((byte) (b ? 1 : 0));
+    manzbXorWcpFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -572,7 +572,7 @@ public class Trace {
       filled.set(12);
     }
 
-    accMsnzbXorWcpInst.put(b.toByte());
+    msbXorWcpInst.put(b.toByte());
 
     return this;
   }
@@ -584,7 +584,7 @@ public class Trace {
       filled.set(9);
     }
 
-    manzbXorWcpRes.put((byte) (b ? 1 : 0));
+    msbBitXorWcpRes.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -618,14 +618,6 @@ public class Trace {
   }
 
   public Trace validateRow() {
-    if (!filled.get(12)) {
-      throw new IllegalStateException("exp.ACC_MSNZB_xor_WCP_INST has not been filled");
-    }
-
-    if (!filled.get(8)) {
-      throw new IllegalStateException("exp.BIT_MSNZB_xor_WCP_FLAG has not been filled");
-    }
-
     if (!filled.get(0)) {
       throw new IllegalStateException("exp.CMPTN has not been filled");
     }
@@ -670,12 +662,20 @@ public class Trace {
       throw new IllegalStateException("exp.MANZB_ACC has not been filled");
     }
 
-    if (!filled.get(9)) {
-      throw new IllegalStateException("exp.MANZB_xor_WCP_RES has not been filled");
+    if (!filled.get(8)) {
+      throw new IllegalStateException("exp.MANZB_xor_WCP_FLAG has not been filled");
     }
 
     if (!filled.get(13)) {
-      throw new IllegalStateException("exp.MSNZB has not been filled");
+      throw new IllegalStateException("exp.MSB_ACC has not been filled");
+    }
+
+    if (!filled.get(9)) {
+      throw new IllegalStateException("exp.MSB_BIT_xor_WCP_RES has not been filled");
+    }
+
+    if (!filled.get(12)) {
+      throw new IllegalStateException("exp.MSB_xor_WCP_INST has not been filled");
     }
 
     if (!filled.get(10)) {
@@ -691,8 +691,7 @@ public class Trace {
     }
 
     if (!filled.get(20)) {
-      throw new IllegalStateException(
-          "exp.RAW_ACC_xor_DATA_1_xor_WCP_ARG_1_HI has not been filled");
+      throw new IllegalStateException("exp.RAW_ACC_xor_DATA_1_xor_WCP_ARG_1_HI has not been filled");
     }
 
     if (!filled.get(14)) {
@@ -712,8 +711,7 @@ public class Trace {
     }
 
     if (!filled.get(21)) {
-      throw new IllegalStateException(
-          "exp.TRIM_ACC_xor_DATA_2_xor_WCP_ARG_1_LO has not been filled");
+      throw new IllegalStateException("exp.TRIM_ACC_xor_DATA_2_xor_WCP_ARG_1_LO has not been filled");
     }
 
     if (!filled.get(15)) {
@@ -727,14 +725,6 @@ public class Trace {
   }
 
   public Trace fillAndValidateRow() {
-    if (!filled.get(12)) {
-      accMsnzbXorWcpInst.position(accMsnzbXorWcpInst.position() + 1);
-    }
-
-    if (!filled.get(8)) {
-      bitMsnzbXorWcpFlag.position(bitMsnzbXorWcpFlag.position() + 1);
-    }
-
     if (!filled.get(0)) {
       cmptn.position(cmptn.position() + 1);
     }
@@ -779,12 +769,20 @@ public class Trace {
       manzbAcc.position(manzbAcc.position() + 32);
     }
 
-    if (!filled.get(9)) {
-      manzbXorWcpRes.position(manzbXorWcpRes.position() + 1);
+    if (!filled.get(8)) {
+      manzbXorWcpFlag.position(manzbXorWcpFlag.position() + 1);
     }
 
     if (!filled.get(13)) {
-      msnzb.position(msnzb.position() + 1);
+      msbAcc.position(msbAcc.position() + 1);
+    }
+
+    if (!filled.get(9)) {
+      msbBitXorWcpRes.position(msbBitXorWcpRes.position() + 1);
+    }
+
+    if (!filled.get(12)) {
+      msbXorWcpInst.position(msbXorWcpInst.position() + 1);
     }
 
     if (!filled.get(10)) {

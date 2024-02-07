@@ -41,7 +41,7 @@ public class ExpChunk extends ModuleOperation {
   private Bytes pComputationRawAcc = Bytes.of(0); // paired with RawByte
   private Bytes pComputationTrimAcc = Bytes.of(0); // paired with TrimByte
   private Bytes pComputationTanzbAcc = Bytes.of(0); // Paired with Tanzb
-  private UnsignedByte pComputationMsnzb = UnsignedByte.of(0);
+  private UnsignedByte pComputationMsb = UnsignedByte.of(0);
   private Bytes pComputationManzbAcc = Bytes.of(0); // Paired with Manzb
   // Macro contains only one row, thus no need for an array
   private final Bytes pMacroInstructionExpInst;
@@ -119,7 +119,7 @@ public class ExpChunk extends ModuleOperation {
       pComputationTanzbAcc = Bytes.of(pComputationTanzbAcc.toInt() + (tanzb ? 1 : 0));
     }
 
-    // msnzb and manzbAcc remain 0
+    // msb and manzbAcc remain 0
   }
 
   public ExpChunk(
@@ -141,8 +141,8 @@ public class ExpChunk extends ModuleOperation {
     initArrays(MAX_CT_PRPRC_MODEXP_LOG + 1);
 
     // Preprocessing
-    int usedBits = modexpLogExpParameters.leadLog().intValue() % 8;
-    int usedBytes = modexpLogExpParameters.leadLog().intValue() / 8;
+    int nBitsOfLeadingByteExcludingLeadingBit = modexpLogExpParameters.leadLog().intValue() % 8;
+    int nBytesExcludingLeadingByte = modexpLogExpParameters.leadLog().intValue() / 8;
 
     // First row
     pPreprocessingWcpFlag[0] = true;
@@ -199,7 +199,7 @@ public class ExpChunk extends ModuleOperation {
     wcp.callISZERO(bigIntegerToBytes(modexpLogExpParameters.rawLeadHi()));
 
     // Fifth row
-    int paddedBase2Log = 8 * usedBytes + usedBits;
+    int paddedBase2Log = 8 * nBytesExcludingLeadingByte + nBitsOfLeadingByteExcludingLeadingBit;
 
     pPreprocessingWcpFlag[4] = true;
     pPreprocessingWcpArg1Hi[4] = Bytes.of(0);
@@ -236,16 +236,16 @@ public class ExpChunk extends ModuleOperation {
       pComputationTrimAcc = Bytes.concatenate(Bytes.of(trimByte), pComputationTrimAcc);
     }
 
-    // Fill msnzb
-    pComputationMsnzb = UnsignedByte.of(bigIntegerToBytes(modexpLogExpParameters.lead()).get(0));
+    // Fill msb
+    pComputationMsb = UnsignedByte.of(bigIntegerToBytes(modexpLogExpParameters.lead()).get(0));
 
     // Fill tanzbAcc, manzbAcc
     for (int i = 0; i < maxCt + 1; i++) {
       boolean tanzb = pComputationTrimAcc.slice(0, i + 1).toBigInteger().signum() != 0;
       pComputationTanzbAcc = Bytes.of(pComputationTanzbAcc.toInt() + (tanzb ? 1 : 0));
 
-      // manzb turns to 1 iff accMsnzb is nonzero
-      boolean manzb = i > maxCt - 8 && pComputationMsnzb.slice(i + 1) != 0;
+      // manzb turns to 1 iff msbAcc is nonzero
+      boolean manzb = i > maxCt - 8 && pComputationMsb.slice(i + 1) != 0;
       pComputationManzbAcc = Bytes.of(pComputationManzbAcc.toInt() + (manzb ? 1 : 0));
     }
   }
@@ -280,7 +280,7 @@ public class ExpChunk extends ModuleOperation {
       pComputationRawAcc
       pComputationTrimAcc
       pComputationTanzbAcc
-      pComputationMsnzb
+      pComputationMsb
       pComputationManzbAcc
       */
       trace
@@ -300,10 +300,10 @@ public class ExpChunk extends ModuleOperation {
           .pComputationTrimAcc(pComputationTrimAcc.slice(0, i + 1))
           .pComputationTanzb(pComputationTrimAcc.slice(0, i + 1).toBigInteger().signum() != 0)
           .pComputationTanzbAcc(pComputationTanzbAcc.slice(0, i + 1))
-          .pComputationMsnzb(pComputationMsnzb)
-          .pComputationBitMsnzb(i > maxCt - 8 && pComputationMsnzb.get(i))
-          .pComputationAccMsnzb(UnsignedByte.of(i > maxCt - 8 ? pComputationMsnzb.slice(i + 1) : 0))
-          .pComputationManzb(i > maxCt - 8 && pComputationMsnzb.slice(i + 1) != 0)
+          .pComputationMsb(pComputationMsb)
+          .pComputationMsbBit(i > maxCt - 8 && pComputationMsb.get(i))
+          .pComputationMsbAcc(UnsignedByte.of(i > maxCt - 8 ? pComputationMsb.slice(i + 1) : 0))
+          .pComputationManzb(i > maxCt - 8 && pComputationMsb.slice(i + 1) != 0)
           .pComputationManzbAcc(
               i > maxCt - 8
                   ? pComputationManzbAcc.slice(pComputationManzbAcc.size() - i)

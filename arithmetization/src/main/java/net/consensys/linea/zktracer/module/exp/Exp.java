@@ -97,6 +97,20 @@ public class Exp implements Module {
 
   private ExpLogExpParameters extractExpLogParameters(final MessageFrame frame) {
     EWord exponent = EWord.of(frame.getStackItem(1));
+
+    /*
+    From ExpOperation.java
+
+    final int numBytes = (power.bitLength() + 7) / 8;
+
+    final long cost = gasCalculator.expOperationGasCost(numBytes);
+
+    From FrontierGasCalculator.java
+    @Override
+    public long expOperationGasCost(final int numBytes) {
+      return expOperationByteGasCost() * numBytes + EXP_OPERATION_BASE_GAS_COST;
+    }
+    */
     BigInteger dynCost =
         exponent.isZero()
             ? BigInteger.ZERO

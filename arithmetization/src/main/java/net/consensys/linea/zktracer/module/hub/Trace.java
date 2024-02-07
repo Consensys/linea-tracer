@@ -29,26 +29,26 @@ import org.apache.tuweni.bytes.Bytes;
  * Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
 public class Trace {
-  public static final long PHASE_BLAKE_DATA = 7074001440898230567L;
-  public static final long PHASE_BLAKE_PARAMETERS = 3350957301729335128L;
-  public static final long PHASE_BLAKE_RESULT = 1585289502508127280L;
-  public static final long PHASE_ECADD_DATA = 7823307972454208529L;
-  public static final long PHASE_ECADD_RESULT = 7562749815216769865L;
-  public static final long PHASE_ECMUL_DATA = 5802300645785201546L;
-  public static final long PHASE_ECMUL_RESULT = 8377948469103109179L;
-  public static final long PHASE_ECRECOVER_DATA = 6686212976918691653L;
-  public static final long PHASE_ECRECOVER_RESULT = 1294808803382747949L;
-  public static final long PHASE_MODEXP_BASE = 5037493566838214847L;
-  public static final long PHASE_MODEXP_EXPONENT = 1408445486967475878L;
-  public static final long PHASE_MODEXP_MODULUS = 2466404142778584215L;
-  public static final long PHASE_MODEXP_RESULT = 7064147254651801924L;
-  public static final long PHASE_PAIRING_DATA = 5504717566538507493L;
-  public static final long PHASE_PAIRING_RESULT = 1149790341725439131L;
-  public static final long PHASE_RIPEMD_160_DATA = 600074940263921265L;
-  public static final long PHASE_RIPEMD_160_RESULT = 3975516308228131269L;
-  public static final long PHASE_SHA2_256_DATA = 2502363397263297129L;
-  public static final long PHASE_SHA2_256_RESULT = 1518095379782604550L;
-  public static final long PHASE_TRANSACTION_CALL_DATA = 3735928559L;
+  public static final long PHASE_BLAKE_DATA = 0x622be6d4b1572927L;
+  public static final long PHASE_BLAKE_PARAMETERS = 0x2e80fde96b141758L;
+  public static final long PHASE_BLAKE_RESULT = 0x160014673f271430L;
+  public static final long PHASE_ECADD_DATA = 0x6c91f926ba9d5411L;
+  public static final long PHASE_ECADD_RESULT = 0x68f448e345258b49L;
+  public static final long PHASE_ECMUL_DATA = 0x5085e9b2080beb8aL;
+  public static final long PHASE_ECMUL_RESULT = 0x744473be8f6b243bL;
+  public static final long PHASE_ECRECOVER_DATA = 0x5cca334705d87f45L;
+  public static final long PHASE_ECRECOVER_RESULT = 0x11f815bf19ad632dL;
+  public static final long PHASE_MODEXP_BASE = 0x45e8c5b591b510bfL;
+  public static final long PHASE_MODEXP_EXPONENT = 0x138bcdb54832cea6L;
+  public static final long PHASE_MODEXP_MODULUS = 0x223a6d8012de8c97L;
+  public static final long PHASE_MODEXP_RESULT = 0x6208e4802a925144L;
+  public static final long PHASE_PAIRING_DATA = 0x4c64af76266164e5L;
+  public static final long PHASE_PAIRING_RESULT = 0xff4e03954b8449bL;
+  public static final long PHASE_RIPEMD_160_DATA = 0x853e4fa950b7671L;
+  public static final long PHASE_RIPEMD_160_RESULT = 0x372bdf04e6b5c9c5L;
+  public static final long PHASE_SHA2_256_DATA = 0x22ba2e4070d18a69L;
+  public static final long PHASE_SHA2_256_RESULT = 0x15115bb4671a9706L;
+  public static final int PHASE_TRANSACTION_CALL_DATA = 0x9;
 
   private final BitSet filled = new BitSet();
   private int currentLine = 0;
@@ -333,7 +333,7 @@ public class Trace {
             "hub_v2.EXISTS_xor_MMU___SUCCESS_BIT_xor_CALL_EOA_SUCCESS_CALLER_WONT_REVERT_xor_BTC_FLAG_xor_VAL_NEXT_IS_CURR_xor_TXN_REQUIRES_EVM_EXECUTION",
             1,
             length),
-        new ColumnHeader("hub_v2.EXP___INST_xor_PRC_CALLEE_GAS", 4, length),
+        new ColumnHeader("hub_v2.EXP___INST_xor_PRC_CALLEE_GAS", 8, length),
         new ColumnHeader("hub_v2.GAS_ACTUAL", 32, length),
         new ColumnHeader("hub_v2.GAS_COST", 32, length),
         new ColumnHeader("hub_v2.GAS_EXPECTED", 32, length),
@@ -382,16 +382,16 @@ public class Trace {
             "hub_v2.IS_SHA2-256_xor_CREATE_EMPTY_INIT_CODE_WILL_REVERT_xor_INVALID_FLAG",
             1,
             length),
-        new ColumnHeader("hub_v2.MMU___AUX_ID_xor_PRC_CALLER_GAS", 4, length),
-        new ColumnHeader("hub_v2.MMU___EXO_SUM_xor_PRC_CDO", 4, length),
-        new ColumnHeader("hub_v2.MMU___INST_xor_PRC_CDS", 4, length),
-        new ColumnHeader("hub_v2.MMU___PHASE_xor_PRC_RAC", 4, length),
-        new ColumnHeader("hub_v2.MMU___REF_OFFSET_xor_PRC_RAO", 4, length),
-        new ColumnHeader("hub_v2.MMU___REF_SIZE_xor_PRC_RETURN_GAS", 4, length),
-        new ColumnHeader("hub_v2.MMU___SIZE", 4, length),
-        new ColumnHeader("hub_v2.MMU___SRC_ID", 4, length),
+        new ColumnHeader("hub_v2.MMU___AUX_ID_xor_PRC_CALLER_GAS", 8, length),
+        new ColumnHeader("hub_v2.MMU___EXO_SUM_xor_PRC_CDO", 8, length),
+        new ColumnHeader("hub_v2.MMU___INST_xor_PRC_CDS", 8, length),
+        new ColumnHeader("hub_v2.MMU___PHASE_xor_PRC_RAC", 8, length),
+        new ColumnHeader("hub_v2.MMU___REF_OFFSET_xor_PRC_RAO", 8, length),
+        new ColumnHeader("hub_v2.MMU___REF_SIZE_xor_PRC_RETURN_GAS", 8, length),
+        new ColumnHeader("hub_v2.MMU___SIZE", 8, length),
+        new ColumnHeader("hub_v2.MMU___SRC_ID", 8, length),
         new ColumnHeader("hub_v2.MMU_STAMP", 32, length),
-        new ColumnHeader("hub_v2.MMU___TGT_ID", 4, length),
+        new ColumnHeader("hub_v2.MMU___TGT_ID", 8, length),
         new ColumnHeader("hub_v2.MODEXP_xor_OOGX", 1, length),
         new ColumnHeader("hub_v2.MXP_STAMP", 32, length),
         new ColumnHeader(
@@ -410,7 +410,7 @@ public class Trace {
         new ColumnHeader("hub_v2.OOB____DATA_6", 32, length),
         new ColumnHeader("hub_v2.OOB____DATA_7", 32, length),
         new ColumnHeader("hub_v2.OOB____DATA_8", 32, length),
-        new ColumnHeader("hub_v2.OOB___INST", 4, length),
+        new ColumnHeader("hub_v2.OOB___INST", 8, length),
         new ColumnHeader("hub_v2.PEEK_AT_ACCOUNT", 1, length),
         new ColumnHeader("hub_v2.PEEK_AT_CONTEXT", 1, length),
         new ColumnHeader("hub_v2.PEEK_AT_MISCELLANEOUS", 1, length),
@@ -2315,50 +2315,38 @@ public class Trace {
     return this;
   }
 
-  public Trace pMiscellaneousExpInst(final Bytes b) {
+  public Trace pMiscellaneousExpInst(final long b) {
     if (filled.get(98)) {
       throw new IllegalStateException("hub_v2.miscellaneous/EXP___INST already set");
     } else {
       filled.set(98);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      expInstXorPrcCalleeGas.put((byte) 0);
-    }
-    expInstXorPrcCalleeGas.put(b.toArrayUnsafe());
+    expInstXorPrcCalleeGas.putLong(b);
 
     return this;
   }
 
-  public Trace pMiscellaneousMmuAuxId(final Bytes b) {
+  public Trace pMiscellaneousMmuAuxId(final long b) {
     if (filled.get(99)) {
       throw new IllegalStateException("hub_v2.miscellaneous/MMU___AUX_ID already set");
     } else {
       filled.set(99);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      mmuAuxIdXorPrcCallerGas.put((byte) 0);
-    }
-    mmuAuxIdXorPrcCallerGas.put(b.toArrayUnsafe());
+    mmuAuxIdXorPrcCallerGas.putLong(b);
 
     return this;
   }
 
-  public Trace pMiscellaneousMmuExoSum(final Bytes b) {
+  public Trace pMiscellaneousMmuExoSum(final long b) {
     if (filled.get(100)) {
       throw new IllegalStateException("hub_v2.miscellaneous/MMU___EXO_SUM already set");
     } else {
       filled.set(100);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      mmuExoSumXorPrcCdo.put((byte) 0);
-    }
-    mmuExoSumXorPrcCdo.put(b.toArrayUnsafe());
+    mmuExoSumXorPrcCdo.putLong(b);
 
     return this;
   }
@@ -2376,18 +2364,14 @@ public class Trace {
     return this;
   }
 
-  public Trace pMiscellaneousMmuInst(final Bytes b) {
+  public Trace pMiscellaneousMmuInst(final long b) {
     if (filled.get(101)) {
       throw new IllegalStateException("hub_v2.miscellaneous/MMU___INST already set");
     } else {
       filled.set(101);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      mmuInstXorPrcCds.put((byte) 0);
-    }
-    mmuInstXorPrcCds.put(b.toArrayUnsafe());
+    mmuInstXorPrcCds.putLong(b);
 
     return this;
   }
@@ -2426,82 +2410,62 @@ public class Trace {
     return this;
   }
 
-  public Trace pMiscellaneousMmuPhase(final Bytes b) {
+  public Trace pMiscellaneousMmuPhase(final long b) {
     if (filled.get(102)) {
       throw new IllegalStateException("hub_v2.miscellaneous/MMU___PHASE already set");
     } else {
       filled.set(102);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      mmuPhaseXorPrcRac.put((byte) 0);
-    }
-    mmuPhaseXorPrcRac.put(b.toArrayUnsafe());
+    mmuPhaseXorPrcRac.putLong(b);
 
     return this;
   }
 
-  public Trace pMiscellaneousMmuRefOffset(final Bytes b) {
+  public Trace pMiscellaneousMmuRefOffset(final long b) {
     if (filled.get(103)) {
       throw new IllegalStateException("hub_v2.miscellaneous/MMU___REF_OFFSET already set");
     } else {
       filled.set(103);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      mmuRefOffsetXorPrcRao.put((byte) 0);
-    }
-    mmuRefOffsetXorPrcRao.put(b.toArrayUnsafe());
+    mmuRefOffsetXorPrcRao.putLong(b);
 
     return this;
   }
 
-  public Trace pMiscellaneousMmuRefSize(final Bytes b) {
+  public Trace pMiscellaneousMmuRefSize(final long b) {
     if (filled.get(104)) {
       throw new IllegalStateException("hub_v2.miscellaneous/MMU___REF_SIZE already set");
     } else {
       filled.set(104);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      mmuRefSizeXorPrcReturnGas.put((byte) 0);
-    }
-    mmuRefSizeXorPrcReturnGas.put(b.toArrayUnsafe());
+    mmuRefSizeXorPrcReturnGas.putLong(b);
 
     return this;
   }
 
-  public Trace pMiscellaneousMmuSize(final Bytes b) {
+  public Trace pMiscellaneousMmuSize(final long b) {
     if (filled.get(105)) {
       throw new IllegalStateException("hub_v2.miscellaneous/MMU___SIZE already set");
     } else {
       filled.set(105);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      mmuSize.put((byte) 0);
-    }
-    mmuSize.put(b.toArrayUnsafe());
+    mmuSize.putLong(b);
 
     return this;
   }
 
-  public Trace pMiscellaneousMmuSrcId(final Bytes b) {
+  public Trace pMiscellaneousMmuSrcId(final long b) {
     if (filled.get(106)) {
       throw new IllegalStateException("hub_v2.miscellaneous/MMU___SRC_ID already set");
     } else {
       filled.set(106);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      mmuSrcId.put((byte) 0);
-    }
-    mmuSrcId.put(b.toArrayUnsafe());
+    mmuSrcId.putLong(b);
 
     return this;
   }
@@ -2555,18 +2519,14 @@ public class Trace {
     return this;
   }
 
-  public Trace pMiscellaneousMmuTgtId(final Bytes b) {
+  public Trace pMiscellaneousMmuTgtId(final long b) {
     if (filled.get(107)) {
       throw new IllegalStateException("hub_v2.miscellaneous/MMU___TGT_ID already set");
     } else {
       filled.set(107);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      mmuTgtId.put((byte) 0);
-    }
-    mmuTgtId.put(b.toArrayUnsafe());
+    mmuTgtId.putLong(b);
 
     return this;
   }
@@ -2947,18 +2907,14 @@ public class Trace {
     return this;
   }
 
-  public Trace pMiscellaneousOobInst(final Bytes b) {
+  public Trace pMiscellaneousOobInst(final long b) {
     if (filled.get(108)) {
       throw new IllegalStateException("hub_v2.miscellaneous/OOB___INST already set");
     } else {
       filled.set(108);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      oobInst.put((byte) 0);
-    }
-    oobInst.put(b.toArrayUnsafe());
+    oobInst.putLong(b);
 
     return this;
   }
@@ -3538,66 +3494,50 @@ public class Trace {
     return this;
   }
 
-  public Trace pScenarioPrcCalleeGas(final Bytes b) {
+  public Trace pScenarioPrcCalleeGas(final long b) {
     if (filled.get(98)) {
       throw new IllegalStateException("hub_v2.scenario/PRC_CALLEE_GAS already set");
     } else {
       filled.set(98);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      expInstXorPrcCalleeGas.put((byte) 0);
-    }
-    expInstXorPrcCalleeGas.put(b.toArrayUnsafe());
+    expInstXorPrcCalleeGas.putLong(b);
 
     return this;
   }
 
-  public Trace pScenarioPrcCallerGas(final Bytes b) {
+  public Trace pScenarioPrcCallerGas(final long b) {
     if (filled.get(99)) {
       throw new IllegalStateException("hub_v2.scenario/PRC_CALLER_GAS already set");
     } else {
       filled.set(99);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      mmuAuxIdXorPrcCallerGas.put((byte) 0);
-    }
-    mmuAuxIdXorPrcCallerGas.put(b.toArrayUnsafe());
+    mmuAuxIdXorPrcCallerGas.putLong(b);
 
     return this;
   }
 
-  public Trace pScenarioPrcCdo(final Bytes b) {
+  public Trace pScenarioPrcCdo(final long b) {
     if (filled.get(100)) {
       throw new IllegalStateException("hub_v2.scenario/PRC_CDO already set");
     } else {
       filled.set(100);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      mmuExoSumXorPrcCdo.put((byte) 0);
-    }
-    mmuExoSumXorPrcCdo.put(b.toArrayUnsafe());
+    mmuExoSumXorPrcCdo.putLong(b);
 
     return this;
   }
 
-  public Trace pScenarioPrcCds(final Bytes b) {
+  public Trace pScenarioPrcCds(final long b) {
     if (filled.get(101)) {
       throw new IllegalStateException("hub_v2.scenario/PRC_CDS already set");
     } else {
       filled.set(101);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      mmuInstXorPrcCds.put((byte) 0);
-    }
-    mmuInstXorPrcCds.put(b.toArrayUnsafe());
+    mmuInstXorPrcCds.putLong(b);
 
     return this;
   }
@@ -3626,50 +3566,38 @@ public class Trace {
     return this;
   }
 
-  public Trace pScenarioPrcRac(final Bytes b) {
+  public Trace pScenarioPrcRac(final long b) {
     if (filled.get(102)) {
       throw new IllegalStateException("hub_v2.scenario/PRC_RAC already set");
     } else {
       filled.set(102);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      mmuPhaseXorPrcRac.put((byte) 0);
-    }
-    mmuPhaseXorPrcRac.put(b.toArrayUnsafe());
+    mmuPhaseXorPrcRac.putLong(b);
 
     return this;
   }
 
-  public Trace pScenarioPrcRao(final Bytes b) {
+  public Trace pScenarioPrcRao(final long b) {
     if (filled.get(103)) {
       throw new IllegalStateException("hub_v2.scenario/PRC_RAO already set");
     } else {
       filled.set(103);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      mmuRefOffsetXorPrcRao.put((byte) 0);
-    }
-    mmuRefOffsetXorPrcRao.put(b.toArrayUnsafe());
+    mmuRefOffsetXorPrcRao.putLong(b);
 
     return this;
   }
 
-  public Trace pScenarioPrcReturnGas(final Bytes b) {
+  public Trace pScenarioPrcReturnGas(final long b) {
     if (filled.get(104)) {
       throw new IllegalStateException("hub_v2.scenario/PRC_RETURN_GAS already set");
     } else {
       filled.set(104);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      mmuRefSizeXorPrcReturnGas.put((byte) 0);
-    }
-    mmuRefSizeXorPrcReturnGas.put(b.toArrayUnsafe());
+    mmuRefSizeXorPrcReturnGas.putLong(b);
 
     return this;
   }
@@ -6569,7 +6497,7 @@ public class Trace {
     }
 
     if (!filled.get(98)) {
-      expInstXorPrcCalleeGas.position(expInstXorPrcCalleeGas.position() + 4);
+      expInstXorPrcCalleeGas.position(expInstXorPrcCalleeGas.position() + 8);
     }
 
     if (!filled.get(19)) {
@@ -6676,35 +6604,35 @@ public class Trace {
     }
 
     if (!filled.get(99)) {
-      mmuAuxIdXorPrcCallerGas.position(mmuAuxIdXorPrcCallerGas.position() + 4);
+      mmuAuxIdXorPrcCallerGas.position(mmuAuxIdXorPrcCallerGas.position() + 8);
     }
 
     if (!filled.get(100)) {
-      mmuExoSumXorPrcCdo.position(mmuExoSumXorPrcCdo.position() + 4);
+      mmuExoSumXorPrcCdo.position(mmuExoSumXorPrcCdo.position() + 8);
     }
 
     if (!filled.get(101)) {
-      mmuInstXorPrcCds.position(mmuInstXorPrcCds.position() + 4);
+      mmuInstXorPrcCds.position(mmuInstXorPrcCds.position() + 8);
     }
 
     if (!filled.get(102)) {
-      mmuPhaseXorPrcRac.position(mmuPhaseXorPrcRac.position() + 4);
+      mmuPhaseXorPrcRac.position(mmuPhaseXorPrcRac.position() + 8);
     }
 
     if (!filled.get(103)) {
-      mmuRefOffsetXorPrcRao.position(mmuRefOffsetXorPrcRao.position() + 4);
+      mmuRefOffsetXorPrcRao.position(mmuRefOffsetXorPrcRao.position() + 8);
     }
 
     if (!filled.get(104)) {
-      mmuRefSizeXorPrcReturnGas.position(mmuRefSizeXorPrcReturnGas.position() + 4);
+      mmuRefSizeXorPrcReturnGas.position(mmuRefSizeXorPrcReturnGas.position() + 8);
     }
 
     if (!filled.get(105)) {
-      mmuSize.position(mmuSize.position() + 4);
+      mmuSize.position(mmuSize.position() + 8);
     }
 
     if (!filled.get(106)) {
-      mmuSrcId.position(mmuSrcId.position() + 4);
+      mmuSrcId.position(mmuSrcId.position() + 8);
     }
 
     if (!filled.get(28)) {
@@ -6712,7 +6640,7 @@ public class Trace {
     }
 
     if (!filled.get(107)) {
-      mmuTgtId.position(mmuTgtId.position() + 4);
+      mmuTgtId.position(mmuTgtId.position() + 8);
     }
 
     if (!filled.get(78)) {
@@ -6766,7 +6694,7 @@ public class Trace {
     }
 
     if (!filled.get(108)) {
-      oobInst.position(oobInst.position() + 4);
+      oobInst.position(oobInst.position() + 8);
     }
 
     if (!filled.get(31)) {

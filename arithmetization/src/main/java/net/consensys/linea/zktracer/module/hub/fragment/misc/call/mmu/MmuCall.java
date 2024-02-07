@@ -696,20 +696,20 @@ public class MmuCall implements TraceSubFragment {
   public Trace trace(Trace trace) {
     return trace
         .pMiscellaneousMmuFlag(this.enabled())
-        .pMiscellaneousMmuInst(Bytes.ofUnsignedInt(this.instruction()))
-        .pMiscellaneousMmuTgtId(Bytes.ofUnsignedInt(this.sourceId()))
-        .pMiscellaneousMmuSrcId(Bytes.ofUnsignedInt(this.targetId()))
-        .pMiscellaneousMmuAuxId(Bytes.ofUnsignedInt(this.auxId()))
+        .pMiscellaneousMmuInst(this.instruction())
+        .pMiscellaneousMmuTgtId(this.sourceId())
+        .pMiscellaneousMmuSrcId(this.targetId())
+        .pMiscellaneousMmuAuxId(this.auxId())
         .pMiscellaneousMmuSrcOffsetHi(this.sourceOffset().hi())
         .pMiscellaneousMmuSrcOffsetLo(this.sourceOffset().lo())
         .pMiscellaneousMmuTgtOffsetLo(this.targetOffset().lo())
-        .pMiscellaneousMmuSize(Bytes.ofUnsignedLong(this.size()))
-        .pMiscellaneousMmuRefOffset(Bytes.ofUnsignedLong(this.referenceOffset()))
-        .pMiscellaneousMmuRefSize(Bytes.ofUnsignedLong(this.referenceSize()))
+        .pMiscellaneousMmuSize(this.size())
+        .pMiscellaneousMmuRefOffset(this.referenceOffset())
+        .pMiscellaneousMmuRefSize(this.referenceSize())
         .pMiscellaneousMmuSuccessBit(this.successBit())
         .pMiscellaneousMmuLimb1(this.limb1())
         .pMiscellaneousMmuLimb2(this.limb2())
-        .pMiscellaneousMmuExoSum(Bytes.ofUnsignedLong(this.exoSum))
-        .pMiscellaneousMmuPhase(Bytes.ofUnsignedLong(this.phase()));
+        .pMiscellaneousMmuExoSum(this.exoSum)
+        .pMiscellaneousMmuPhase(this.phase());
   }
 }

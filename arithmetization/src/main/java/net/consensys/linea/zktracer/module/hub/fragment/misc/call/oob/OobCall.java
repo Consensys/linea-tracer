@@ -46,6 +46,6 @@ public abstract interface OobCall extends TraceSubFragment {
         .pMiscellaneousOobData6(this.data(OobDataChannel.of(5)))
         .pMiscellaneousOobData7(this.data(OobDataChannel.of(6)))
         .pMiscellaneousOobData8(this.data(OobDataChannel.of(7)))
-        .pMiscellaneousOobInst(Bytes.ofUnsignedShort(this.oobInstruction()));
+        .pMiscellaneousOobInst(this.oobInstruction());
   }
 }

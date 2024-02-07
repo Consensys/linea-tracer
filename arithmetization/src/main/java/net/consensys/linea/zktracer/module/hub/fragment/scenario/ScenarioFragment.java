@@ -25,7 +25,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 import net.consensys.linea.zktracer.types.MemorySpan;
 import net.consensys.linea.zktracer.types.Precompile;
-import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
@@ -274,29 +273,17 @@ public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
             precompileCall.map(PrecompileInvocation::hubFailure).orElse(false))
         .pScenarioPrcFailureKnownToRam(
             precompileCall.map(PrecompileInvocation::ramFailure).orElse(false))
-        .pScenarioPrcCallerGas(
-            precompileCall
-                .map(s -> Bytes.ofUnsignedLong(s.gasAtCall() - s.opCodeGas()))
-                .orElse(Bytes.EMPTY))
-        .pScenarioPrcCalleeGas(
-            precompileCall.map(s -> Bytes.ofUnsignedLong(s.gasAllowance())).orElse(Bytes.EMPTY))
+        .pScenarioPrcCallerGas(precompileCall.map(s -> s.gasAtCall() - s.opCodeGas()).orElse(0L))
+        .pScenarioPrcCalleeGas(precompileCall.map(PrecompileInvocation::gasAllowance).orElse(0L))
         .pScenarioPrcReturnGas(
             precompileCall
                 .filter(s -> successfulPrecompileCall())
-                .map(s -> Bytes.ofUnsignedLong(s.gasAllowance() - s.precompilePrice()))
-                .orElse(Bytes.EMPTY))
-        .pScenarioPrcCdo(
-            type.isPrecompile() ? Bytes.ofUnsignedLong(callDataSegment.offset()) : Bytes.EMPTY)
-        .pScenarioPrcCds(
-            type.isPrecompile() ? Bytes.ofUnsignedLong(callDataSegment.length()) : Bytes.EMPTY)
-        .pScenarioPrcRao(
-            type.isPrecompile()
-                ? Bytes.ofUnsignedLong(requestedReturnDataSegment.offset())
-                : Bytes.EMPTY)
-        .pScenarioPrcRac(
-            type.isPrecompile()
-                ? Bytes.ofUnsignedLong(requestedReturnDataSegment.length())
-                : Bytes.EMPTY)
+                .map(s -> s.gasAllowance() - s.precompilePrice())
+                .orElse(0L))
+        .pScenarioPrcCdo(type.isPrecompile() ? callDataSegment.offset() : 0)
+        .pScenarioPrcCds(type.isPrecompile() ? callDataSegment.length() : 0)
+        .pScenarioPrcRao(type.isPrecompile() ? requestedReturnDataSegment.offset() : 0)
+        .pScenarioPrcRac(type.isPrecompile() ? requestedReturnDataSegment.length() : 0)
         .pScenarioCodedeposit(type.isDeposit())
         .pScenarioCodedepositInvalidCodePrefix(type.isDeposit() && raisedInvalidCodePrefix)
         .pScenarioCodedepositValidCodePrefix(false) // TODO: @Olivier

@@ -575,7 +575,6 @@ public class Hub implements Module {
     }
     if (this.pch.signals().exp()) {
       this.exp.tracePreOpcode(frame);
-      // TODO: check
       this.modexp.tracePreOpcode(frame);
       // if (this.pch.exceptions().none() && this.pch.aborts().none())
     }

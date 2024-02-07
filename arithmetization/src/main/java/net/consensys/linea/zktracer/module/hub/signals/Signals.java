@@ -189,6 +189,8 @@ public class Signals {
         this.romLex = ex.none() && !triggersAbortingCondition && targetAddressHasNonEmptyCode;
 
         this.ecData = ex.none() && EC_PRECOMPILES.contains(target);
+        this.exp =
+            ex.none() && this.platformController.aborts().none() && target.equals(Address.MODEXP);
       }
 
       case CREATE, CREATE2 -> {

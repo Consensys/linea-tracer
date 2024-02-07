@@ -137,7 +137,10 @@ public class LineaEstimateGas {
                     .addArgument(transaction::toTraceLog)
                     .addArgument(r.result())
                     .log();
-                throw new RuntimeException("Invalid or unsuccessful transaction");
+                final var invalidReason = r.result().getInvalidReason();
+                throw new RuntimeException(
+                    "Invalid or unsuccessful transaction"
+                        + invalidReason.map(ir -> ", reason: " + ir).orElse(""));
               }
 
               final var lowGasEstimation = r.result().getEstimateGasUsedByTransaction();

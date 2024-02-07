@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.rlp_txn;
+package net.consensys.linea.zktracer.module.rlp.txn;
 
 import java.nio.MappedByteBuffer;
 import java.util.BitSet;
@@ -30,26 +30,26 @@ import org.apache.tuweni.bytes.Bytes;
  * Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
 public class Trace {
-  static final int CREATE2_SHIFT = 255;
-  static final int G_TXDATA_NONZERO = 16;
-  static final int G_TXDATA_ZERO = 4;
-  static final int INT_LONG = 183;
-  static final int INT_SHORT = 128;
-  static final int LIST_LONG = 247;
-  static final int LIST_SHORT = 192;
-  static final int LLARGE = 16;
-  static final int LLARGEMO = 15;
-  static final int RLPADDR_CONST_RECIPE_1 = 1;
-  static final int RLPADDR_CONST_RECIPE_2 = 2;
-  static final int RLPRECEIPT_SUBPHASE_ID_ADDR = 53;
-  static final int RLPRECEIPT_SUBPHASE_ID_CUMUL_GAS = 3;
-  static final int RLPRECEIPT_SUBPHASE_ID_DATA_LIMB = 77;
-  static final int RLPRECEIPT_SUBPHASE_ID_DATA_SIZE = 83;
-  static final int RLPRECEIPT_SUBPHASE_ID_NO_LOG_ENTRY = 11;
-  static final int RLPRECEIPT_SUBPHASE_ID_STATUS_CODE = 2;
-  static final int RLPRECEIPT_SUBPHASE_ID_TOPIC_BASE = 65;
-  static final int RLPRECEIPT_SUBPHASE_ID_TOPIC_DELTA = 96;
-  static final int RLPRECEIPT_SUBPHASE_ID_TYPE = 7;
+  public static final int CREATE2_SHIFT = 255;
+  public static final int G_TXDATA_NONZERO = 16;
+  public static final int G_TXDATA_ZERO = 4;
+  public static final int INT_LONG = 183;
+  public static final int INT_SHORT = 128;
+  public static final int LIST_LONG = 247;
+  public static final int LIST_SHORT = 192;
+  public static final int LLARGE = 16;
+  public static final int LLARGEMO = 15;
+  public static final int RLPADDR_CONST_RECIPE_1 = 1;
+  public static final int RLPADDR_CONST_RECIPE_2 = 2;
+  public static final int RLPRECEIPT_SUBPHASE_ID_ADDR = 53;
+  public static final int RLPRECEIPT_SUBPHASE_ID_CUMUL_GAS = 3;
+  public static final int RLPRECEIPT_SUBPHASE_ID_DATA_LIMB = 77;
+  public static final int RLPRECEIPT_SUBPHASE_ID_DATA_SIZE = 83;
+  public static final int RLPRECEIPT_SUBPHASE_ID_NO_LOG_ENTRY = 11;
+  public static final int RLPRECEIPT_SUBPHASE_ID_STATUS_CODE = 2;
+  public static final int RLPRECEIPT_SUBPHASE_ID_TOPIC_BASE = 65;
+  public static final int RLPRECEIPT_SUBPHASE_ID_TOPIC_DELTA = 96;
+  public static final int RLPRECEIPT_SUBPHASE_ID_TYPE = 7;
 
   private final BitSet filled = new BitSet();
   private int currentLine = 0;

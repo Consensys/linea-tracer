@@ -1090,7 +1090,7 @@ public class RlpTxn implements Module {
         .addrHi(traceValue.addrHi)
         .addrLo(traceValue.addrLo)
         .bit(traceValue.bit)
-        .bitAcc(Bytes.ofUnsignedInt(traceValue.bitAcc))
+        .bitAcc(UnsignedByte.of(traceValue.bitAcc))
         .byte1(UnsignedByte.of(traceValue.byte1))
         .byte2(UnsignedByte.of(traceValue.byte2))
         .codeFragmentIndex(Bytes.ofUnsignedInt(traceValue.codeFragmentIndex))
@@ -1122,7 +1122,8 @@ public class RlpTxn implements Module {
         .nAddr(Bytes.ofUnsignedInt(traceValue.nbAddr))
         .nKeys(Bytes.ofUnsignedInt(traceValue.nbSto))
         .nKeysPerAddr(Bytes.ofUnsignedInt(traceValue.nbStoPerAddr))
-        .nStep(Bytes.ofUnsignedInt(traceValue.nStep));
+        .nStep(Bytes.ofUnsignedInt(traceValue.nStep))
+        .phaseId(Bytes.ofUnsignedShort(traceValue.phase));
     List<Function<Boolean, Trace>> phaseColumns =
         List.of(
             builder::phase0,

@@ -91,7 +91,7 @@ tasks.register('binRT', TraceFilesTask) {
         module = moduleName
         moduleDir = moduleInfos[1]
 
-        files = ["${moduleName}/columns.lisp", "library/rlp_constraints_pattern.lisp"]
+        files = ["${moduleName}/columns.lisp", "${moduleName}/constants.lisp", "library/rlp_constraints_pattern.lisp"]
     }
 }
 

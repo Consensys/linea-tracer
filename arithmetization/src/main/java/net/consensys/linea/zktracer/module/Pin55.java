@@ -20,6 +20,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.DelegatingBytes;
 import org.hyperledger.besu.datatypes.Quantity;
@@ -60,33 +61,56 @@ public class Pin55 {
       return this.level == 0;
     }
 
-    public PinLevel conflation() {
-      this.level |= CONFLATION;
+    public PinLevel conflation(boolean x) {
+      if (x) {
+        this.level |= CONFLATION;
+      } else {
+        this.level &= ~CONFLATION;
+      }
       return this;
     }
 
-    public PinLevel block() {
-      this.level |= BLOCK;
+    public PinLevel block(boolean x) {
+      if (x) {
+        this.level |= BLOCK;
+      } else {
+        this.level &= ~BLOCK;
+      }
       return this;
     }
 
-    public PinLevel tx() {
-      this.level |= TX;
+    public PinLevel tx(boolean x) {
+      if (x) {
+        this.level |= TX;
+      } else {
+        this.level &= ~TX;
+      }
       return this;
     }
 
-    public PinLevel context() {
-      this.level |= CONTEXT;
+    public PinLevel context(boolean x) {
+      if (x) {
+        this.level |= CONTEXT;
+      } else {
+        this.level &= ~CONTEXT;
+      }      return this;
+    }
+
+    public PinLevel opCode(boolean x) {
+      if (x) {
+        this.level |= INST;
+      } else {
+        this.level &= ~INST;
+      }
       return this;
     }
 
-    public PinLevel opCode() {
-      this.level |= INST;
-      return this;
-    }
-
-    public PinLevel stack() {
-      this.level |= STACK;
+    public PinLevel stack(boolean x) {
+      if (x) {
+        this.level |= STACK;
+      } else {
+        this.level &= ~STACK;
+      }
       return this;
     }
 
@@ -234,10 +258,10 @@ public class Pin55 {
     }
 
     log.info(
-        "{}@{} {}",
+        "{}#{} {}",
         Integer.toHexString(hub.currentFrame().pc()),
         hub.currentFrame().id(),
-        hub.opCode());
+        renderOpCode(hub.opCode(), frame));
   }
 
   public void tracePostOpcode(final MessageFrame frame) {
@@ -257,5 +281,183 @@ public class Pin55 {
       }
     }
     log.info("{}", s);
+  }
+
+  private static String maybeStackItem(final MessageFrame frame, int i) {
+    if (i > frame.stackSize()) {
+      return "?";
+    }
+
+    return frame.getStackItem(i).toQuantityHexString();
+  }
+
+  private static String renderOpCode(final OpCode opCode, final MessageFrame frame) {
+    return switch (opCode) {
+      case ADD,
+          MUL,
+          SUB,
+          DIV,
+          SDIV,
+          MOD,
+          SMOD,
+          EXP,
+          SIGNEXTEND,
+          LT,
+          GT,
+          SLT,
+          SGT,
+          EQ,
+          AND,
+          OR,
+          XOR,
+          BYTE -> "%s %s %s".formatted(opCode, maybeStackItem(frame, 0), maybeStackItem(frame, 1));
+      case ADDMOD, MULMOD -> "%s %s %s %s"
+          .formatted(
+              opCode, maybeStackItem(frame, 0), maybeStackItem(frame, 1), maybeStackItem(frame, 2));
+      case ISZERO, NOT, CALLDATALOAD, BLOCKHASH, MLOAD, SLOAD -> "%s %s"
+          .formatted(opCode, maybeStackItem(frame, 0));
+      case SHL -> "SHL %s << %s".formatted(maybeStackItem(frame, 1), maybeStackItem(frame, 0));
+      case SHR -> "SHR %s >> %s".formatted(maybeStackItem(frame, 1), maybeStackItem(frame, 0));
+      case SAR -> "SAR %s >> %s".formatted(maybeStackItem(frame, 1), maybeStackItem(frame, 0));
+      case BALANCE, EXTCODESIZE -> "%s @ %s".formatted(opCode, maybeStackItem(frame, 0));
+      case CALLDATACOPY, CODECOPY, RETURNDATACOPY -> "%s [%s ..+ %s] --> %s"
+          .formatted(
+              opCode, maybeStackItem(frame, 1), maybeStackItem(frame, 2), maybeStackItem(frame, 0));
+      case EXTCODECOPY -> "%s [%s ..+ %s] @ %s --> %s"
+          .formatted(
+              opCode,
+              maybeStackItem(frame, 2),
+              maybeStackItem(frame, 3),
+              maybeStackItem(frame, 0),
+              maybeStackItem(frame, 1));
+      case EXTCODEHASH -> "EXTCODEHASH @ %s".formatted(maybeStackItem(frame, 0));
+      case MSTORE, SSTORE -> "%s %s --> %s"
+          .formatted(opCode, maybeStackItem(frame, 1), maybeStackItem(frame, 0));
+      case JUMP -> "JUMP %s".formatted(maybeStackItem(frame, 0));
+      case JUMPI -> "JUMPI %s ? %s".formatted(maybeStackItem(frame, 1), maybeStackItem(frame, 0));
+      case PUSH1,
+          PUSH32,
+          PUSH31,
+          PUSH30,
+          PUSH29,
+          PUSH28,
+          PUSH27,
+          PUSH3,
+          PUSH4,
+          PUSH5,
+          PUSH6,
+          PUSH7,
+          PUSH8,
+          PUSH9,
+          PUSH10,
+          PUSH11,
+          PUSH2,
+          PUSH12,
+          PUSH13,
+          PUSH14,
+          PUSH15,
+          PUSH16,
+          PUSH17,
+          PUSH18,
+          PUSH19,
+          PUSH20,
+          PUSH21,
+          PUSH22,
+          PUSH23,
+          PUSH24,
+          PUSH25,
+          PUSH26 -> {
+        final int pushSize = opCode.byteValue() - OpCode.PUSH1.byteValue() + 1;
+        int copyStart = frame.getPC() + 1;
+        Bytes push;
+        if (frame.getCode().getSize() <= copyStart) {
+          push = Bytes.EMPTY;
+        } else {
+          final int copyLength = Math.min(pushSize, frame.getCode().getSize() - frame.getPC() - 1);
+          push = frame.getCode().getBytes().slice(copyStart, copyLength);
+        }
+        yield "%s %s".formatted(opCode, push.toQuantityHexString());
+      }
+      case DUP1,
+          DUP2,
+          DUP3,
+          DUP4,
+          DUP5,
+          DUP6,
+          DUP7,
+          DUP8,
+          DUP9,
+          DUP10,
+          DUP11,
+          DUP12,
+          DUP13,
+          DUP14,
+          DUP15,
+          DUP16 -> {
+        final int stackOffset = opCode.byteValue() - OpCode.DUP1.byteValue();
+        yield "%s %s".formatted(opCode, maybeStackItem(frame, stackOffset));
+      }
+      case SWAP1,
+          SWAP2,
+          SWAP3,
+          SWAP4,
+          SWAP5,
+          SWAP6,
+          SWAP7,
+          SWAP8,
+          SWAP9,
+          SWAP10,
+          SWAP11,
+          SWAP12,
+          SWAP13,
+          SWAP14,
+          SWAP15,
+          SWAP16 -> {
+        final int depth = opCode.byteValue() - OpCode.SWAP1.byteValue() + 1;
+        yield "%s %s <--> %s"
+            .formatted(opCode, maybeStackItem(frame, 0), maybeStackItem(frame, depth));
+      }
+      case LOG0, LOG1, LOG2, LOG3, LOG4 -> {
+        final int topicCount = opCode.byteValue() - OpCode.LOG0.byteValue();
+        final StringBuilder s = new StringBuilder(100);
+        s.append(
+            "%s %s ..+ %s".formatted(opCode, maybeStackItem(frame, 0), maybeStackItem(frame, 1)));
+        for (int i = 0; i < topicCount; i++) {
+          s.append(" #");
+          s.append(maybeStackItem(frame, i + 2));
+        }
+        yield s.toString();
+      }
+      case CALL, CALLCODE -> "%s @%s gas: %s value: %s IN [%s ..+ %s]  OUT [%s ..+ %s]"
+          .formatted(
+              opCode,
+              maybeStackItem(frame, 1),
+              maybeStackItem(frame, 0),
+              maybeStackItem(frame, 2),
+              maybeStackItem(frame, 3),
+              maybeStackItem(frame, 4),
+              maybeStackItem(frame, 5),
+              maybeStackItem(frame, 6));
+      case RETURN, REVERT, SHA3 -> "RETURN [%s ..+ %s]"
+          .formatted(maybeStackItem(frame, 0), maybeStackItem(frame, 1));
+      case DELEGATECALL, STATICCALL -> "%s @%s gas: %s  IN [%s ..+ %s]  OUT [%s ..+ %s]"
+          .formatted(
+              opCode,
+              maybeStackItem(frame, 1),
+              maybeStackItem(frame, 0),
+              maybeStackItem(frame, 2),
+              maybeStackItem(frame, 3),
+              maybeStackItem(frame, 4),
+              maybeStackItem(frame, 5));
+      case CREATE -> "CREATE [%s ..+ %s] value: %s"
+          .formatted(maybeStackItem(frame, 1), maybeStackItem(frame, 2), maybeStackItem(frame, 0));
+      case CREATE2 -> "CREATE [%s ..+ %s] value: %s salt: %s"
+          .formatted(
+              maybeStackItem(frame, 1),
+              maybeStackItem(frame, 2),
+              maybeStackItem(frame, 0),
+              maybeStackItem(frame, 3));
+      default -> opCode.toString();
+    };
   }
 }

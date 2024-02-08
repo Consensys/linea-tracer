@@ -21,7 +21,7 @@ import net.consensys.linea.zktracer.module.oob.OobDataChannel;
 import org.apache.tuweni.bytes.Bytes;
 
 /** This interface defines the API required to execute a call to the OOB module. */
-public abstract interface OobCall extends TraceSubFragment {
+public interface OobCall extends TraceSubFragment {
   /**
    * Given a data channel number, returns the data that should be sent to the OOB through this
    * channel.

@@ -1288,9 +1288,7 @@ public class Hub implements Module {
             this.defers.postTx(section);
             this.defers.reEntry(section);
             this.addTraceSection(section);
-            this.currentFrame()
-                .needsUnlatchingAtReEntry(
-                    section); // TODO: not sure there -- will we switch context?
+            this.currentFrame().needsUnlatchingAtReEntry(section);
           }
         }
       }

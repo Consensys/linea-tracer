@@ -59,7 +59,6 @@ public class ZkTracer implements ConflationAwareOperationTracer {
 
   @Getter private final Hub hub = new Hub();
   private final Optional<Pin55> pin55;
-  ;
   private final Map<String, Integer> spillings = new HashMap<>();
   private Hash hashOfLastTransactionTraced = Hash.EMPTY;
 

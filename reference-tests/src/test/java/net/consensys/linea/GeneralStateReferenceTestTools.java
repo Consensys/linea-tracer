@@ -176,7 +176,7 @@ public class GeneralStateReferenceTestTools {
     final TransactionProcessingResult result =
         processor.processTransaction(
             blockchain,
-            worldStateUpdater.updater(),
+            worldStateUpdater,
             blockHeader,
             transaction,
             blockHeader.getCoinbase(),

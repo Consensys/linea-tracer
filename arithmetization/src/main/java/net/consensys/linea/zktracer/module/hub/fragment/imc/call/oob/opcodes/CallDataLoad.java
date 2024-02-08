@@ -25,8 +25,7 @@ import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
-public record CallDataLoad(EWord readOffset, EWord calldataSize) implements OobCall {
-
+public record CallDataLoad(EWord readOffset, EWord callDataSize) implements OobCall {
   public static CallDataLoad build(Hub hub, MessageFrame frame) {
     return new CallDataLoad(
         EWord.of(frame.getStackItem(0)), EWord.of(hub.currentFrame().callData().size()));
@@ -37,8 +36,8 @@ public record CallDataLoad(EWord readOffset, EWord calldataSize) implements OobC
     return switch (i) {
       case DATA_1 -> this.readOffset.hi();
       case DATA_2 -> this.readOffset.lo();
-      case DATA_5 -> this.calldataSize;
-      case DATA_7 -> booleanToBytes(this.readOffset.greaterOrEqualThan(this.calldataSize));
+      case DATA_5 -> this.callDataSize;
+      case DATA_7 -> booleanToBytes(this.readOffset.greaterOrEqualThan(this.callDataSize));
       default -> Bytes.EMPTY;
     };
   }

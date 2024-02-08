@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.precompiles;
 
-import net.consensys.linea.zktracer.EcRecoverComputer;
+import net.consensys.linea.zktracer.CurveOperations;
 import net.consensys.linea.zktracer.module.hub.Hub;
 
 /**
@@ -26,6 +26,6 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 public record EcRecoverMetadata(boolean recoverySuccessful) implements PrecompileMetadata {
   public static EcRecoverMetadata of(final Hub hub) {
     return new EcRecoverMetadata(
-        EcRecoverComputer.ecRecoverSuccessful(hub.transients().op().callData()));
+        CurveOperations.ecRecoverSuccessful(hub.transients().op().callData()));
   }
 }

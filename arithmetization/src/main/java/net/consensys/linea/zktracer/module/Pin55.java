@@ -147,7 +147,7 @@ public class Pin55 {
     if (!this.l.doConflation()) {
       return;
     }
-    log.info("=== Start conflation ===");
+    log.info("=== Start conflation ({} blocks) ===", blockCount);
   }
 
   public void traceEndConflation() {

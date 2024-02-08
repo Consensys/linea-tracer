@@ -56,24 +56,24 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 public class ImcFragment implements TraceFragment {
   /** the list of modules to trigger withing this fragment. */
   private final List<TraceSubFragment> moduleCalls = new ArrayList<>();
-  // exp
-  // oob
-  // mxp
-  // mmu
-  // stp
-  // TODO: a method to ensure there is never a call to the same module twice should be implemented
-  private final BitSet used = new BitSet(5);
+
+  private boolean expIsSet = false;
+  private boolean modExpIsSet = false;
+  private boolean oobIsSet = false;
+  private boolean mxpIsSet = false;
+  private boolean mmuIsSet = false;
+  private boolean stpIsSet = false;
 
   /** This class should only be instantiated through specialized static methods. */
   private ImcFragment() {}
 
   private ImcFragment(final Hub hub) {
     if (hub.pch().signals().mxp()) {
-      this.moduleCalls.add(MxpCall.build(hub));
+      this.callMxp(MxpCall.build(hub));
     }
 
     if (hub.pch().signals().exp()) {
-      this.moduleCalls.add(new ExpLogCall(EWord.of(hub.messageFrame().getStackItem(1))));
+      this.callExp(new ExpLogCall(EWord.of(hub.messageFrame().getStackItem(1))));
     }
   }
 
@@ -112,9 +112,9 @@ public class ImcFragment implements TraceFragment {
       switch (hub.opCode()) {
         case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
           if (hub.opCode().equals(OpCode.CALL) && hub.pch().exceptions().any()) {
-            r.moduleCalls.add(new ExceptionalCall(EWord.of(hub.messageFrame().getStackItem(2))));
+            r.callOob(new ExceptionalCall(EWord.of(hub.messageFrame().getStackItem(2))));
           } else {
-            r.moduleCalls.add(
+            r.callOob(
                 new Call(
                     EWord.of(hub.messageFrame().getStackItem(2)),
                     EWord.of(callerAccount.getBalance()),
@@ -136,7 +136,7 @@ public class ImcFragment implements TraceFragment {
       final long stipend = value.isZero() ? 0 : GasConstants.G_CALL_STIPEND.cost();
       final long upfrontCost = Hub.gp.of(hub.messageFrame(), hub.opCode()).total();
 
-      r.moduleCalls.add(
+      r.callStp(
           new StpCall(
               hub.opCode().byteValue(),
               EWord.of(gas),
@@ -165,7 +165,7 @@ public class ImcFragment implements TraceFragment {
     if (hub.pch().signals().oob()) {
       switch (hub.currentFrame().opCode()) {
         case CREATE, CREATE2 -> {
-          r.moduleCalls.add(
+          r.callOob(
               new Create(
                   hub.pch().aborts().any(),
                   hub.pch().failures().any(),
@@ -187,33 +187,33 @@ public class ImcFragment implements TraceFragment {
 
     if (hub.pch().signals().mmu()) {
       switch (hub.opCode()) {
-        case SHA3 -> r.moduleCalls.add(MmuCall.sha3(hub));
-        case CALLDATALOAD -> r.moduleCalls.add(MmuCall.callDataLoad(hub));
-        case CALLDATACOPY -> r.moduleCalls.add(MmuCall.callDataCopy(hub));
-        case CODECOPY -> r.moduleCalls.add(MmuCall.codeCopy(hub));
-        case EXTCODECOPY -> r.moduleCalls.add(MmuCall.extCodeCopy(hub));
-        case RETURNDATACOPY -> r.moduleCalls.add(MmuCall.returnDataCopy(hub));
-        case MLOAD -> r.moduleCalls.add(MmuCall.mload(hub));
-        case MSTORE -> r.moduleCalls.add(MmuCall.mstore(hub));
-        case MSTORE8 -> r.moduleCalls.add(MmuCall.mstore8(hub));
-        case LOG0, LOG1, LOG2, LOG3, LOG4 -> r.moduleCalls.add(MmuCall.log(hub));
-        case CREATE -> r.moduleCalls.add(MmuCall.create(hub));
-        case RETURN -> r.moduleCalls.add(
+        case SHA3 -> r.callMmu(MmuCall.sha3(hub));
+        case CALLDATALOAD -> r.callMmu(MmuCall.callDataLoad(hub));
+        case CALLDATACOPY -> r.callMmu(MmuCall.callDataCopy(hub));
+        case CODECOPY -> r.callMmu(MmuCall.codeCopy(hub));
+        case EXTCODECOPY -> r.callMmu(MmuCall.extCodeCopy(hub));
+        case RETURNDATACOPY -> r.callMmu(MmuCall.returnDataCopy(hub));
+        case MLOAD -> r.callMmu(MmuCall.mload(hub));
+        case MSTORE -> r.callMmu(MmuCall.mstore(hub));
+        case MSTORE8 -> r.callMmu(MmuCall.mstore8(hub));
+        case LOG0, LOG1, LOG2, LOG3, LOG4 -> r.callMmu(MmuCall.log(hub));
+        case CREATE -> r.callMmu(MmuCall.create(hub));
+        case RETURN -> r.callMmu(
             hub.currentFrame().underDeployment()
                 ? MmuCall.returnFromDeployment(hub)
                 : MmuCall.returnFromCall(hub));
-        case CREATE2 -> r.moduleCalls.add(MmuCall.create2(hub));
-        case REVERT -> r.moduleCalls.add(MmuCall.revert(hub));
+        case CREATE2 -> r.callMmu(MmuCall.create2(hub));
+        case REVERT -> r.callMmu(MmuCall.revert(hub));
       }
     }
 
     if (hub.pch().signals().oob()) {
       switch (hub.opCode()) {
-        case JUMP, JUMPI -> r.moduleCalls.add(new Jump(hub, frame));
-        case CALLDATALOAD -> r.moduleCalls.add(CallDataLoad.build(hub, frame));
-        case SSTORE -> r.moduleCalls.add(new SStore(frame.getRemainingGas()));
+        case JUMP, JUMPI -> r.callOob(new Jump(hub, frame));
+        case CALLDATALOAD -> r.callOob(CallDataLoad.build(hub, frame));
+        case SSTORE -> r.callOob(new SStore(frame.getRemainingGas()));
         case CALL, CALLCODE -> {
-          r.moduleCalls.add(
+          r.callOob(
               new Call(
                   EWord.of(frame.getStackItem(2)),
                   EWord.of(
@@ -224,7 +224,7 @@ public class ImcFragment implements TraceFragment {
                   hub.pch().aborts().any()));
         }
         case DELEGATECALL, STATICCALL -> {
-          r.moduleCalls.add(
+          r.callOob(
               new Call(
                   EWord.ZERO,
                   EWord.of(
@@ -236,7 +236,7 @@ public class ImcFragment implements TraceFragment {
         }
         case RETURN -> {
           if (hub.currentFrame().underDeployment()) {
-            r.moduleCalls.add(new DeploymentReturn(EWord.of(frame.getStackItem(1))));
+            r.callOob(new DeploymentReturn(EWord.of(frame.getStackItem(1))));
           }
         }
         default -> throw new IllegalArgumentException(
@@ -248,31 +248,61 @@ public class ImcFragment implements TraceFragment {
   }
 
   public ImcFragment callOob(OobCall f) {
+    if (oobIsSet) {
+      throw new IllegalStateException("OOB already called");
+    } else {
+      oobIsSet = true;
+    }
     this.moduleCalls.add(f);
     return this;
   }
 
   public ImcFragment callMmu(MmuCall f) {
+    if (mmuIsSet) {
+      throw new IllegalStateException("MMU already called");
+    } else {
+      mmuIsSet = true;
+    }
     this.moduleCalls.add(f);
     return this;
   }
 
   public ImcFragment callExp(ExpLogCall f) {
+    if (expIsSet) {
+      throw new IllegalStateException("EXP already called");
+    } else {
+      expIsSet = true;
+    }
     this.moduleCalls.add(f);
     return this;
   }
 
   public ImcFragment callModExp(ModExpLogCall f) {
+    if (modExpIsSet) {
+      throw new IllegalStateException("MODEXP already called");
+    } else {
+      modExpIsSet = true;
+    }
     this.moduleCalls.add(f);
     return this;
   }
 
   public ImcFragment callMxp(MxpCall f) {
+    if (mxpIsSet) {
+      throw new IllegalStateException("MXP already called");
+    } else {
+      mxpIsSet = true;
+    }
     this.moduleCalls.add(f);
     return this;
   }
 
   public ImcFragment callStp(StpCall f) {
+    if (stpIsSet) {
+      throw new IllegalStateException("STP already called");
+    } else {
+      stpIsSet = true;
+    }
     this.moduleCalls.add(f);
     return this;
   }

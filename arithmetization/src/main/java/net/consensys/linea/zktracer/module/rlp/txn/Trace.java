@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.rlp.txn;
+package net.consensys.linea.zktracer.module.rlp_txn;
 
 import java.nio.MappedByteBuffer;
 import java.util.BitSet;
@@ -39,6 +39,21 @@ public class Trace {
   public static final int LIST_SHORT = 192;
   public static final int LLARGE = 16;
   public static final int LLARGEMO = 15;
+  public static final int PHASE_ACCESS_LIST_VALUE = 11;
+  public static final int PHASE_BETA_VALUE = 12;
+  public static final int PHASE_CHAIN_ID_VALUE = 2;
+  public static final int PHASE_DATA_VALUE = 10;
+  public static final int PHASE_GAS_LIMIT_VALUE = 7;
+  public static final int PHASE_GAS_PRICE_VALUE = 4;
+  public static final int PHASE_MAX_FEE_PER_GAS_VALUE = 6;
+  public static final int PHASE_MAX_PRIORITY_FEE_PER_GAS_VALUE = 5;
+  public static final int PHASE_NONCE_VALUE = 3;
+  public static final int PHASE_RLP_PREFIX_VALUE = 1;
+  public static final int PHASE_R_VALUE = 14;
+  public static final int PHASE_S_VALUE = 15;
+  public static final int PHASE_TO_VALUE = 8;
+  public static final int PHASE_VALUE_VALUE = 9;
+  public static final int PHASE_Y_VALUE = 13;
   public static final int RLPADDR_CONST_RECIPE_1 = 1;
   public static final int RLPADDR_CONST_RECIPE_2 = 2;
   public static final int RLPRECEIPT_SUBPHASE_ID_ADDR = 53;
@@ -90,13 +105,13 @@ public class Trace {
   private final MappedByteBuffer nKeys;
   private final MappedByteBuffer nKeysPerAddr;
   private final MappedByteBuffer nStep;
-  private final MappedByteBuffer phase0;
   private final MappedByteBuffer phase1;
   private final MappedByteBuffer phase10;
   private final MappedByteBuffer phase11;
   private final MappedByteBuffer phase12;
   private final MappedByteBuffer phase13;
   private final MappedByteBuffer phase14;
+  private final MappedByteBuffer phase15;
   private final MappedByteBuffer phase2;
   private final MappedByteBuffer phase3;
   private final MappedByteBuffer phase4;
@@ -114,7 +129,7 @@ public class Trace {
   private final MappedByteBuffer rlpLxBytesize;
   private final MappedByteBuffer type;
 
-  static List<ColumnHeader> headers(int length) {
+  public static List<ColumnHeader> headers(int length) {
     return List.of(
         new ColumnHeader("rlpTxn.ABS_TX_NUM", 32, length),
         new ColumnHeader("rlpTxn.ABS_TX_NUM_INFINY", 32, length),
@@ -152,13 +167,13 @@ public class Trace {
         new ColumnHeader("rlpTxn.nKEYS", 32, length),
         new ColumnHeader("rlpTxn.nKEYS_PER_ADDR", 32, length),
         new ColumnHeader("rlpTxn.nSTEP", 32, length),
-        new ColumnHeader("rlpTxn.PHASE_0", 1, length),
         new ColumnHeader("rlpTxn.PHASE_1", 1, length),
         new ColumnHeader("rlpTxn.PHASE_10", 1, length),
         new ColumnHeader("rlpTxn.PHASE_11", 1, length),
         new ColumnHeader("rlpTxn.PHASE_12", 1, length),
         new ColumnHeader("rlpTxn.PHASE_13", 1, length),
         new ColumnHeader("rlpTxn.PHASE_14", 1, length),
+        new ColumnHeader("rlpTxn.PHASE_15", 1, length),
         new ColumnHeader("rlpTxn.PHASE_2", 1, length),
         new ColumnHeader("rlpTxn.PHASE_3", 1, length),
         new ColumnHeader("rlpTxn.PHASE_4", 1, length),
@@ -214,13 +229,13 @@ public class Trace {
     this.nKeys = buffers.get(33);
     this.nKeysPerAddr = buffers.get(34);
     this.nStep = buffers.get(35);
-    this.phase0 = buffers.get(36);
-    this.phase1 = buffers.get(37);
-    this.phase10 = buffers.get(38);
-    this.phase11 = buffers.get(39);
-    this.phase12 = buffers.get(40);
-    this.phase13 = buffers.get(41);
-    this.phase14 = buffers.get(42);
+    this.phase1 = buffers.get(36);
+    this.phase10 = buffers.get(37);
+    this.phase11 = buffers.get(38);
+    this.phase12 = buffers.get(39);
+    this.phase13 = buffers.get(40);
+    this.phase14 = buffers.get(41);
+    this.phase15 = buffers.get(42);
     this.phase2 = buffers.get(43);
     this.phase3 = buffers.get(44);
     this.phase4 = buffers.get(45);
@@ -775,23 +790,11 @@ public class Trace {
     return this;
   }
 
-  public Trace phase0(final Boolean b) {
-    if (filled.get(31)) {
-      throw new IllegalStateException("rlpTxn.PHASE_0 already set");
-    } else {
-      filled.set(31);
-    }
-
-    phase0.put((byte) (b ? 1 : 0));
-
-    return this;
-  }
-
   public Trace phase1(final Boolean b) {
-    if (filled.get(32)) {
+    if (filled.get(31)) {
       throw new IllegalStateException("rlpTxn.PHASE_1 already set");
     } else {
-      filled.set(32);
+      filled.set(31);
     }
 
     phase1.put((byte) (b ? 1 : 0));
@@ -800,10 +803,10 @@ public class Trace {
   }
 
   public Trace phase10(final Boolean b) {
-    if (filled.get(33)) {
+    if (filled.get(32)) {
       throw new IllegalStateException("rlpTxn.PHASE_10 already set");
     } else {
-      filled.set(33);
+      filled.set(32);
     }
 
     phase10.put((byte) (b ? 1 : 0));
@@ -812,10 +815,10 @@ public class Trace {
   }
 
   public Trace phase11(final Boolean b) {
-    if (filled.get(34)) {
+    if (filled.get(33)) {
       throw new IllegalStateException("rlpTxn.PHASE_11 already set");
     } else {
-      filled.set(34);
+      filled.set(33);
     }
 
     phase11.put((byte) (b ? 1 : 0));
@@ -824,10 +827,10 @@ public class Trace {
   }
 
   public Trace phase12(final Boolean b) {
-    if (filled.get(35)) {
+    if (filled.get(34)) {
       throw new IllegalStateException("rlpTxn.PHASE_12 already set");
     } else {
-      filled.set(35);
+      filled.set(34);
     }
 
     phase12.put((byte) (b ? 1 : 0));
@@ -836,10 +839,10 @@ public class Trace {
   }
 
   public Trace phase13(final Boolean b) {
-    if (filled.get(36)) {
+    if (filled.get(35)) {
       throw new IllegalStateException("rlpTxn.PHASE_13 already set");
     } else {
-      filled.set(36);
+      filled.set(35);
     }
 
     phase13.put((byte) (b ? 1 : 0));
@@ -848,13 +851,25 @@ public class Trace {
   }
 
   public Trace phase14(final Boolean b) {
-    if (filled.get(37)) {
+    if (filled.get(36)) {
       throw new IllegalStateException("rlpTxn.PHASE_14 already set");
+    } else {
+      filled.set(36);
+    }
+
+    phase14.put((byte) (b ? 1 : 0));
+
+    return this;
+  }
+
+  public Trace phase15(final Boolean b) {
+    if (filled.get(37)) {
+      throw new IllegalStateException("rlpTxn.PHASE_15 already set");
     } else {
       filled.set(37);
     }
 
-    phase14.put((byte) (b ? 1 : 0));
+    phase15.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -1221,31 +1236,31 @@ public class Trace {
     }
 
     if (!filled.get(31)) {
-      throw new IllegalStateException("rlpTxn.PHASE_0 has not been filled");
-    }
-
-    if (!filled.get(32)) {
       throw new IllegalStateException("rlpTxn.PHASE_1 has not been filled");
     }
 
-    if (!filled.get(33)) {
+    if (!filled.get(32)) {
       throw new IllegalStateException("rlpTxn.PHASE_10 has not been filled");
     }
 
-    if (!filled.get(34)) {
+    if (!filled.get(33)) {
       throw new IllegalStateException("rlpTxn.PHASE_11 has not been filled");
     }
 
-    if (!filled.get(35)) {
+    if (!filled.get(34)) {
       throw new IllegalStateException("rlpTxn.PHASE_12 has not been filled");
     }
 
-    if (!filled.get(36)) {
+    if (!filled.get(35)) {
       throw new IllegalStateException("rlpTxn.PHASE_13 has not been filled");
     }
 
-    if (!filled.get(37)) {
+    if (!filled.get(36)) {
       throw new IllegalStateException("rlpTxn.PHASE_14 has not been filled");
+    }
+
+    if (!filled.get(37)) {
+      throw new IllegalStateException("rlpTxn.PHASE_15 has not been filled");
     }
 
     if (!filled.get(38)) {
@@ -1464,31 +1479,31 @@ public class Trace {
     }
 
     if (!filled.get(31)) {
-      phase0.position(phase0.position() + 1);
-    }
-
-    if (!filled.get(32)) {
       phase1.position(phase1.position() + 1);
     }
 
-    if (!filled.get(33)) {
+    if (!filled.get(32)) {
       phase10.position(phase10.position() + 1);
     }
 
-    if (!filled.get(34)) {
+    if (!filled.get(33)) {
       phase11.position(phase11.position() + 1);
     }
 
-    if (!filled.get(35)) {
+    if (!filled.get(34)) {
       phase12.position(phase12.position() + 1);
     }
 
-    if (!filled.get(36)) {
+    if (!filled.get(35)) {
       phase13.position(phase13.position() + 1);
     }
 
-    if (!filled.get(37)) {
+    if (!filled.get(36)) {
       phase14.position(phase14.position() + 1);
+    }
+
+    if (!filled.get(37)) {
+      phase15.position(phase15.position() + 1);
     }
 
     if (!filled.get(38)) {

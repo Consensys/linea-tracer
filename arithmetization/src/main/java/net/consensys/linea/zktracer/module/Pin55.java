@@ -93,7 +93,8 @@ public class Pin55 {
         this.level |= CONTEXT;
       } else {
         this.level &= ~CONTEXT;
-      }      return this;
+      }
+      return this;
     }
 
     public PinLevel opCode(boolean x) {

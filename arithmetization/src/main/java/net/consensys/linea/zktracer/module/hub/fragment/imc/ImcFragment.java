@@ -18,7 +18,6 @@ package net.consensys.linea.zktracer.module.hub.fragment.imc;
 import static net.consensys.linea.zktracer.module.UtilCalculator.allButOneSixtyFourth;
 
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.List;
 import java.util.Optional;
 

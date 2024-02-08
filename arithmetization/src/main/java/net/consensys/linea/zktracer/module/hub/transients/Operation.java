@@ -151,4 +151,61 @@ public class Operation {
   public MemorySpan returnDataRequestedSegment() {
     return returnDataRequestedSegment(hub.messageFrame());
   }
+
+  /**
+   * Returns the RAM segment offered by the callee for the return data if the current operation is a
+   * RETURN/REVERT, throws otherwise.
+   *
+   * @param frame the execution context
+   * @return the return data segment
+   */
+  public static MemorySpan returnDataSegment(final MessageFrame frame) {
+    switch (OpCode.of(frame.getCurrentOperation().getOpcode())) {
+      case RETURN, REVERT -> {
+        long offset = Words.clampedToLong(frame.getStackItem(5));
+        long length = Words.clampedToLong(frame.getStackItem(6));
+        return MemorySpan.fromStartLength(offset, length);
+      }
+      case DELEGATECALL, STATICCALL -> {
+        long offset = Words.clampedToLong(frame.getStackItem(4));
+        long length = Words.clampedToLong(frame.getStackItem(5));
+        return MemorySpan.fromStartLength(offset, length);
+      }
+      default -> throw new IllegalArgumentException(
+          "returnDataRequestedSegment called outside of a *CALL");
+    }
+  }
+
+  /**
+   * Returns the RAM segment offered by the caller for the return data if the current operation is a
+   * call, throws otherwise.
+   *
+   * @return the return data target
+   */
+  public MemorySpan returnDataSegment() {
+    return returnDataSegment(hub.messageFrame());
+  }
+
+  /**
+   * Return the bytes of the calldata if the current operation is a call, throws otherwise.
+   *
+   * @return the calldata content
+   */
+  public Bytes returnData() {
+    final MemorySpan returnDataSegment = returnDataSegment();
+    return hub.messageFrame()
+        .shadowReadMemory(returnDataSegment.offset(), returnDataSegment.length());
+  }
+
+  /**
+   * Return the bytes of the returndata if the current operation is a return/revert, throws
+   * otherwise.
+   *
+   * @param frame the execution context
+   * @return the returndata content
+   */
+  public static Bytes returnData(final MessageFrame frame) {
+    final MemorySpan returnDataSegment = returnDataSegment(frame);
+    return frame.shadowReadMemory(returnDataSegment.offset(), returnDataSegment.length());
+  }
 }

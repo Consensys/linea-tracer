@@ -1033,8 +1033,16 @@ public class Hub implements Module {
           PUSH_POP,
           DUP,
           SWAP,
-          HALT,
           INVALID -> this.addTraceSection(new StackOnlySection(this));
+      case HALT -> {
+        if (this.opCode() == OpCode.RETURN || this.opCode() == OpCode.REVERT) {
+          if (pch.exceptions().none()) {
+            this.currentFrame().returnDataSource(transients.op().returnDataSegment());
+            this.currentFrame().returnData(transients.op().returnData());
+          }
+        }
+        this.addTraceSection(new StackOnlySection(this));
+      }
       case KEC -> this.addTraceSection(
           new KeccakSection(this, this.currentFrame(), ImcFragment.forOpcode(this, frame)));
       case CONTEXT -> this.addTraceSection(

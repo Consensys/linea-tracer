@@ -148,8 +148,8 @@ public class Exp implements Module {
             : unpaddedCallData;
 
     BigInteger bbs = paddedCallData.slice(0, 32).toUnsignedBigInteger();
-    BigInteger ebs = paddedCallData.slice(32, 64).toUnsignedBigInteger();
-    BigInteger mbs = paddedCallData.slice(64, 96).toUnsignedBigInteger();
+    BigInteger ebs = paddedCallData.slice(32, 32).toUnsignedBigInteger();
+    BigInteger mbs = paddedCallData.slice(64, 32).toUnsignedBigInteger();
 
     // Some other module checks if bbs, ebs and msb are <= 512 (@Francois)
 

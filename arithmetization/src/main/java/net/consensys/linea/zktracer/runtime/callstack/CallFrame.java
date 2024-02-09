@@ -94,6 +94,8 @@ public class CallFrame {
 
   /** the data returned by the latest callee. */
   @Getter @Setter private Bytes latestReturnData = Bytes.EMPTY;
+  /** returnData position within the latest callee memory space. */
+  @Getter @Setter private MemorySpan latestReturnDataSource = new MemorySpan(0, 0);
 
   /** the return data provided by this frame */
   @Getter @Setter private Bytes returnData = Bytes.EMPTY;
@@ -102,8 +104,6 @@ public class CallFrame {
   /** where this frame is expected to write its returnData within its parent's memory space. */
   @Getter private MemorySpan requestedReturnDataTarget = MemorySpan.empty();
 
-  /** returnData position within the latest callee memory space. */
-  @Getter @Setter private MemorySpan currentReturnDataSource = new MemorySpan(0, 0);
   /** the latest child context to have been called from this frame */
   @Getter private int currentReturner = -1;
 
@@ -185,8 +185,9 @@ public class CallFrame {
     this.callData = callData;
     this.callDataSource = new MemorySpan(0, callData.size());
     this.depth = depth;
-    this.currentReturnDataSource = new MemorySpan(0, 0);
-    this.requestedReturnDataTarget = new MemorySpan(0, 0); // TODO: fix me Franklin
+    this.returnDataSource = MemorySpan.empty();
+    this.latestReturnDataSource = MemorySpan.empty();
+    this.requestedReturnDataTarget = MemorySpan.empty(); // TODO: fix me Franklin
   }
 
   /**

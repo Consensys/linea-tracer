@@ -16,7 +16,9 @@
 package net.consensys.linea.zktracer.types;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.IntStream;
 
 import org.apache.tuweni.bytes.Bytes;
@@ -56,6 +58,14 @@ public class Conversions {
   public static UnsignedByte[] bytesToUnsignedBytes(final byte[] bytes) {
     return (UnsignedByte[])
         IntStream.range(0, bytes.length).mapToObj(i -> UnsignedByte.of(bytes[i])).toArray();
+  }
+
+  public static List<UnsignedByte> bytesToUnsignedBytesList(final byte[] bytes) {
+    List<UnsignedByte> r = new ArrayList<>(bytes.length);
+    for (byte aByte : bytes) {
+      r.add(UnsignedByte.of(aByte));
+    }
+    return r;
   }
 
   public static BigInteger booleanToBigInteger(final boolean input) {

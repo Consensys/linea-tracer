@@ -157,14 +157,18 @@ public class PrecompileLinesGenerator {
                 : Bytes.EMPTY;
         final EWord mbs = EWord.of(rawMbs.shiftRight(mbsShift).shiftLeft(mbsShift));
 
+        final int bbsInt = bbs.toUnsignedBigInteger().intValueExact();
+        final int ebsInt = ebs.toUnsignedBigInteger().intValueExact();
+        final int mbsInt = mbs.toUnsignedBigInteger().intValueExact();
+
         final boolean loadRawLeadingWord =
-            p.callDataSource().length() > 96 + bbs.lo().toInt() && !ebs.isZero();
+            p.callDataSource().length() > 96 + bbsInt && !ebs.isZero();
 
         final EWord rawLeadingWord =
             loadRawLeadingWord
                 ? EWord.of(
                     hub.messageFrame()
-                        .shadowReadMemory(p.callDataSource().offset() + 96 + bbs.toInt(), 32))
+                        .shadowReadMemory(p.callDataSource().offset() + 96 + bbsInt, 32))
                 : EWord.ZERO;
 
         r.add(ImcFragment.empty().callOob(new ModexpCds(p.requestedReturnDataTarget().length())));
@@ -182,15 +186,14 @@ public class PrecompileLinesGenerator {
                 .callMmu(extractEbs ? MmuCall.forModExp(hub, p, 4) : MmuCall.nop()));
         final ImcFragment line5 =
             ImcFragment.empty()
-                .callOob(
-                    new ModexpLead(bbs.lo().toInt(), p.callDataSource().length(), ebs.lo().toInt()))
+                .callOob(new ModexpLead(bbsInt, p.callDataSource().length(), ebsInt))
                 .callMmu(loadRawLeadingWord ? MmuCall.forModExp(hub, p, 5) : MmuCall.nop());
         if (loadRawLeadingWord) {
           line5.callModExp(
               new ModExpLogCall(
                   rawLeadingWord,
-                  Math.min((int) (p.callDataSource().length() - 96 - bbs.toInt()), 32),
-                  Math.min(ebs.toInt(), 32)));
+                  Math.min((int) (p.callDataSource().length() - 96 - bbsInt), 32),
+                  Math.min(ebsInt, 32)));
         }
         r.add(line5);
         r.add(
@@ -200,26 +203,19 @@ public class PrecompileLinesGenerator {
                         p,
                         ModExpLogCall.exponentLeadingWordLog(
                             rawLeadingWord,
-                            Math.min((int) (p.callDataSource().length() - 96 - bbs.toInt()), 32),
-                            Math.min(ebs.toInt(), 32)),
-                        Math.max(mbs.toInt(), bbs.toInt()))));
+                            Math.min((int) (p.callDataSource().length() - 96 - bbsInt), 32),
+                            Math.min(ebsInt, 32)),
+                        Math.max(mbsInt, bbsInt))));
 
         if (p.ramFailure()) {
           r.add(ContextFragment.nonExecutionEmptyReturnData(hub.callStack()));
         } else {
           final boolean extractModulus =
-              (p.callDataSource().length() > 96 + bbs.toInt() + ebs.toInt()) && !mbs.isZero();
-          final boolean extractBase = extractModulus && !bbs.isZero();
-          final boolean extractExponent = extractModulus && !ebs.isZero();
+              (p.callDataSource().length() > 96 + bbsInt + ebsInt) && !mbs.isZero();
 
           r.add(
               ImcFragment.empty()
-                  .callOob(
-                      new ModexpExtract(
-                          p.callDataSource().length(),
-                          bbs.lo().toInt(),
-                          ebs.lo().toInt(),
-                          mbs.lo().toInt()))
+                  .callOob(new ModexpExtract(p.callDataSource().length(), bbsInt, ebsInt, mbsInt))
                   .callMmu(extractModulus ? MmuCall.forModExp(hub, p, 7) : MmuCall.nop()));
 
           if (extractModulus) {

@@ -58,11 +58,13 @@ public class ModexpEffectiveCall implements Module {
   @Override
   public void enterTransaction() {
     counts.push(0);
+    this.data.enterTransaction();
   }
 
   @Override
   public void popTransaction() {
     counts.pop();
+    this.data.popTransaction();
   }
 
   @Override

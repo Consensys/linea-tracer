@@ -37,7 +37,7 @@ public record ContextFragment(
     return new ContextFragment(
         callStack,
         Either.left(callStack.current().id()),
-        callStack.current().currentReturnDataSource().snapshot(),
+        callStack.current().latestReturnDataSource().snapshot(),
         false);
   }
 
@@ -78,7 +78,7 @@ public record ContextFragment(
     return new ContextFragment(
         callStack,
         Either.left(callStack.current().id()),
-        callStack.current().currentReturnDataSource().snapshot(),
+        callStack.current().latestReturnDataSource().snapshot(),
         true);
   }
 

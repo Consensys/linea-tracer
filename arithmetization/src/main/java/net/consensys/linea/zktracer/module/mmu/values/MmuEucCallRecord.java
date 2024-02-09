@@ -13,18 +13,21 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.mmu.precomputations;
+package net.consensys.linea.zktracer.module.mmu.values;
 
 import lombok.Builder;
-import net.consensys.linea.zktracer.types.UnsignedByte;
-import org.apache.tuweni.bytes.Bytes;
+import lombok.Getter;
+import lombok.experimental.Accessors;
 
 @Builder
-public record MmuWcpCallRecord(
-    boolean flag,
-    UnsignedByte instruction,
-    Bytes arg1Hi,
-    Bytes arg1Lo,
-    Bytes arg2Hi,
-    Bytes arg2Lo,
-    boolean result) {}
+@Getter
+@Accessors(fluent = true)
+public class MmuEucCallRecord {
+  public static final MmuEucCallRecord EMPTY_CALL = builder().build();
+
+  @Builder.Default boolean flag = true;
+  long dividend;
+  long divisor;
+  long quotient;
+  long remainder;
+}

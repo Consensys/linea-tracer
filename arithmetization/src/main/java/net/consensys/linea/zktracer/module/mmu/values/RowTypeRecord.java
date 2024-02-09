@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,10 +13,22 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.mmu.precomputations;
+package net.consensys.linea.zktracer.module.mmu.values;
 
 import lombok.Builder;
 
 @Builder
-public record MmuEucCallRecord(
-    boolean flag, long dividend, long divisor, long quotient, long remainder) {}
+public record RowTypeRecord(
+    int total,
+    int totalLeftZeroes,
+    int totalNonTrivial,
+    int totalRightZeroes,
+    boolean leftZeroRow,
+    boolean onlyNonTrivialRow,
+    boolean firstNonTrivialRow,
+    boolean middleNonTrivialRow,
+    boolean lastNonTrivialRow,
+    boolean onlyRightZeroRow,
+    boolean firstRightZeroRow,
+    boolean middleRightZeroRow,
+    boolean lastRightZeroRow) {}

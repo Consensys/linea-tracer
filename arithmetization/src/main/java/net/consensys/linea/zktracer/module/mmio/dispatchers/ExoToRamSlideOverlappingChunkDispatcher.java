@@ -30,7 +30,7 @@ import org.hyperledger.besu.datatypes.Address;
 @RequiredArgsConstructor
 public class ExoToRamSlideOverlappingChunkDispatcher implements MmioDispatcher {
 
-  private final MmuData microData;
+  private final MmuData mmuData;
 
   private final CallStackReader callStackReader;
 
@@ -40,17 +40,17 @@ public class ExoToRamSlideOverlappingChunkDispatcher implements MmioDispatcher {
   public MmioData dispatch() {
     MmioData mmioData = new MmioData();
 
-    Address exoAddress = microData.addressValue();
+    Address exoAddress = mmuData.addressValue();
     Optional<RomChunk> romChunk = Optional.ofNullable(romLex.addressRomChunkMap().get(exoAddress));
     Bytes contractByteCode = romChunk.isPresent() ? romChunk.get().byteCode() : Bytes.EMPTY;
 
-    int targetContext = microData.targetContextId();
+    int targetContext = mmuData.targetContextId();
     mmioData.cnA(0);
     mmioData.cnB(targetContext);
     mmioData.cnC(targetContext);
 
-    int targetLimbOffset = microData.targetLimbOffset().toInt();
-    int sourceLimbOffset = microData.sourceLimbOffset().toInt();
+    int targetLimbOffset = mmuData.targetLimbOffset().toInt();
+    int sourceLimbOffset = mmuData.sourceLimbOffset().toInt();
     mmioData.indexA(0);
     mmioData.indexB(targetLimbOffset);
     mmioData.indexC(targetLimbOffset + 1);
@@ -60,12 +60,12 @@ public class ExoToRamSlideOverlappingChunkDispatcher implements MmioDispatcher {
     mmioData.valB(callStackReader.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
     mmioData.valC(callStackReader.valueFromMemory(mmioData.cnC(), mmioData.indexC()));
     mmioData.valX(
-        callStackReader.valueFromExo(contractByteCode, microData.exoSource(), mmioData.indexX()));
+        callStackReader.valueFromExo(contractByteCode, mmuData.exoSource(), mmioData.indexX()));
 
     mmioData.valANew(UnsignedByte.EMPTY_BYTES16);
 
-    int targetByteOffset = microData.targetByteOffset().toInteger();
-    int sourceByteOffset = microData.sourceByteOffset().toInteger();
+    int targetByteOffset = mmuData.targetByteOffset().toInteger();
+    int sourceByteOffset = mmuData.sourceByteOffset().toInteger();
 
     for (int i = 0; i < 16; i++) {
       if (i < targetByteOffset) {
@@ -76,7 +76,7 @@ public class ExoToRamSlideOverlappingChunkDispatcher implements MmioDispatcher {
     }
 
     for (int i = 0; i < 16; i++) {
-      int cutoff = (targetByteOffset + microData.size()) - 16;
+      int cutoff = (targetByteOffset + mmuData.mmuToMmioInstructions().size()) - 16;
       int start = sourceByteOffset + (16 - targetByteOffset);
 
       if (i < cutoff) {
@@ -101,9 +101,9 @@ public class ExoToRamSlideOverlappingChunkDispatcher implements MmioDispatcher {
         mmioData.acc2(),
         mmioData.acc3(),
         mmioData.acc4(),
-        microData.sourceByteOffset(),
-        microData.targetByteOffset(),
-        microData.size(),
+        mmuData.sourceByteOffset(),
+        mmuData.targetByteOffset(),
+        mmuData.mmuToMmioInstructions().size(),
         counter);
   }
 }

@@ -24,24 +24,24 @@ import net.consensys.linea.zktracer.types.UnsignedByte;
 
 @RequiredArgsConstructor
 public class RamToRamSlideChunkDispatcher implements MmioDispatcher {
-  private final MmuData microData;
+  private final MmuData mmuData;
 
   private final CallStackReader callStackReader;
 
   @Override
   public MmioData dispatch() {
     MmioData mmioData = new MmioData();
-    mmioData.cnA(microData.sourceContextId());
-    mmioData.cnB(microData.targetContextId());
+    mmioData.cnA(mmuData.sourceContextId());
+    mmioData.cnB(mmuData.targetContextId());
     mmioData.cnC(0);
-    mmioData.indexA(microData.sourceLimbOffset().toInt());
-    mmioData.indexB(microData.targetLimbOffset().toInt());
+    mmioData.indexA(mmuData.sourceLimbOffset().toInt());
+    mmioData.indexB(mmuData.targetLimbOffset().toInt());
     mmioData.indexC(0);
     mmioData.valA(callStackReader.valueFromMemory(mmioData.cnA(), mmioData.indexA()));
     mmioData.valB(callStackReader.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
     mmioData.valC(UnsignedByte.EMPTY_BYTES16);
     mmioData.valANew(mmioData.valA());
-    mmioData.valBNew(slideChunk(mmioData, microData));
+    mmioData.valBNew(slideChunk(mmioData, mmuData));
     mmioData.valCNew(mmioData.valC());
     mmioData.updateLimbsInMemory(callStackReader.callStack());
 
@@ -56,18 +56,18 @@ public class RamToRamSlideChunkDispatcher implements MmioDispatcher {
         mmioData.byteB(counter),
         mmioData.acc1(),
         mmioData.acc2(),
-        microData.sourceByteOffset(),
-        microData.targetByteOffset(),
-        microData.size(),
+        mmuData.sourceByteOffset(),
+        mmuData.targetByteOffset(),
+        mmuData.mmuToMmioInstructions().size(),
         counter);
   }
 
-  private UnsignedByte[] slideChunk(MmioData mmioData, MmuData microData) {
+  private UnsignedByte[] slideChunk(MmioData mmioData, MmuData mmuData) {
     UnsignedByte[] source = mmioData.valA();
     UnsignedByte[] target = mmioData.valB();
-    int size = microData.size();
-    int sourceByteOffset = microData.sourceByteOffset().toInteger();
-    int targetByteOffset = microData.targetByteOffset().toInteger();
+    int size = (int) mmuData.hubToMmuValues().size();
+    int sourceByteOffset = mmuData.sourceByteOffset().toInteger();
+    int targetByteOffset = mmuData.targetByteOffset().toInteger();
 
     Preconditions.checkState(
         size == 0 || sourceByteOffset + size > 16 || targetByteOffset + size > 16,

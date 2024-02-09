@@ -1,5 +1,5 @@
 /*
- * Copyright ConsenSys Inc.
+ * Copyright Consensys Software Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,22 +13,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.mmu;
+package net.consensys.linea.zktracer.module.mmu.values;
 
 import lombok.Builder;
 
 @Builder
-public record RowTypeRecord(
-    int total,
-    int totalLeftZeroes,
-    int totalNonTrivial,
-    int totalRightZeroes,
-    boolean leftZeroRow,
-    boolean onlyNonTrivialRow,
-    boolean firstNonTrivialRow,
-    boolean middleNonTrivialRow,
-    boolean lastNonTrivialRow,
-    boolean onlyRightZeroRow,
-    boolean firstRightZeroRow,
-    boolean middleRightZeroRow,
-    boolean lastRightZeroRow) {}
+public record MmuToMmioConstantValues(
+    int sourceContextNumber,
+    int targetContextNumber,
+    boolean successBit,
+    int exoSum,
+    long phase,
+    int exoId,
+    int kecId,
+    int totalSize) {}

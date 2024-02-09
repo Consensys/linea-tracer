@@ -33,9 +33,9 @@ class RomChunkComparator implements Comparator<RomChunk> {
         // Third sort by Deployment Status (true greater)
         if (chunk1.deploymentStatus() == chunk2.deploymentStatus()) {
           return 0;
+        } else {
+          return chunk1.deploymentStatus() ? -1 : 1;
         }
-
-        return chunk1.deploymentStatus() ? -1 : 1;
       }
     }
   }

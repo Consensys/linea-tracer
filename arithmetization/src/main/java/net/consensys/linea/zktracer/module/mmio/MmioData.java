@@ -30,10 +30,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.module.hub.memory.MemorySegmentSnapshot;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.runtime.stack.StackContext;
 import net.consensys.linea.zktracer.types.EWord;
+import net.consensys.linea.zktracer.types.MemorySegmentSnapshot;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.tuweni.units.bigints.UInt256;
@@ -267,7 +267,7 @@ public class MmioData {
   }
 
   public void updateLimbsInMemory(final CallStack callStack) {
-    StackContext pending = callStack.get(cnA).pending();
+    StackContext pending = callStack.getByContextNumber(cnA).pending();
     MemorySegmentSnapshot memorySegmentSnapshot = pending.memorySegmentSnapshot();
 
     memorySegmentSnapshot.updateLimb(indexA, valANew);
@@ -279,7 +279,7 @@ public class MmioData {
     // bounds check: we require 0 <= sourceByteOffset < 16
     Preconditions.checkArgument(
         sourceByteOffset < 0 || sourceByteOffset >= 16,
-        "microData.sourceByteOffset is out of bounds");
+        "mmuData.sourceByteOffset is out of bounds");
 
     if (sourceByteOffset == 0) {
       valHi = valA;

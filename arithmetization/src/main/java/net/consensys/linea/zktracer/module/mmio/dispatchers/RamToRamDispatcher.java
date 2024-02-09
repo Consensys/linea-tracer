@@ -24,19 +24,19 @@ import net.consensys.linea.zktracer.types.UnsignedByte;
 @RequiredArgsConstructor
 public class RamToRamDispatcher implements MmioDispatcher {
 
-  private final MmuData microData;
+  private final MmuData mmuData;
 
   private final CallStackReader callStackReader;
 
   @Override
   public MmioData dispatch() {
     MmioData mmioData = new MmioData();
-    mmioData.cnA(microData.sourceContextId());
-    mmioData.cnB(microData.targetContextId());
+    mmioData.cnA(mmuData.sourceContextId());
+    mmioData.cnB(mmuData.targetContextId());
     mmioData.cnC(0);
 
-    mmioData.indexA(microData.sourceLimbOffset().toInt());
-    mmioData.indexB(microData.targetLimbOffset().toInt());
+    mmioData.indexA(mmuData.sourceLimbOffset().toInt());
+    mmioData.indexB(mmuData.targetLimbOffset().toInt());
     mmioData.indexC(0);
 
     mmioData.valA(callStackReader.valueFromMemory(mmioData.cnA(), mmioData.indexA()));

@@ -26,7 +26,7 @@ import org.hyperledger.besu.datatypes.Address;
 
 @RequiredArgsConstructor
 public class ExoToRamDispatcher implements MmioDispatcher {
-  private final MmuData microData;
+  private final MmuData mmuData;
 
   private final CallStackReader callStackReader;
 
@@ -36,16 +36,16 @@ public class ExoToRamDispatcher implements MmioDispatcher {
   public MmioData dispatch() {
     MmioData mmioData = new MmioData();
 
-    Address exoAddress = microData.addressValue();
+    Address exoAddress = mmuData.addressValue();
     Bytes contractByteCode = romLex.addressRomChunkMap().get(exoAddress).byteCode();
 
-    int targetContext = microData.targetContextId();
+    int targetContext = mmuData.targetContextId();
     mmioData.cnA(targetContext);
     mmioData.cnB(0);
     mmioData.cnC(0);
 
-    int targetLimbOffset = microData.targetLimbOffset().toInt();
-    int sourceLimbOffset = microData.sourceLimbOffset().toInt();
+    int targetLimbOffset = mmuData.targetLimbOffset().toInt();
+    int sourceLimbOffset = mmuData.sourceLimbOffset().toInt();
     mmioData.indexA(targetLimbOffset);
     mmioData.indexB(0);
     mmioData.indexC(0);
@@ -55,7 +55,7 @@ public class ExoToRamDispatcher implements MmioDispatcher {
     mmioData.valB(UnsignedByte.EMPTY_BYTES16);
     mmioData.valC(UnsignedByte.EMPTY_BYTES16);
     mmioData.valX(
-        callStackReader.valueFromExo(contractByteCode, microData.exoSource(), mmioData.indexX()));
+        callStackReader.valueFromExo(contractByteCode, mmuData.exoSource(), mmioData.indexX()));
 
     mmioData.valANew(mmioData.valX());
     mmioData.valBNew(UnsignedByte.EMPTY_BYTES16);

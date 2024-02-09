@@ -13,10 +13,21 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.mmu.precomputations;
+package net.consensys.linea.zktracer.module.mmu.values;
 
 import lombok.Builder;
 
 @Builder
-public record MmuToMmioConstantValues(
-    int sourceContextNumber, int targetContextNumber, int microId1, int microId2, int totalSize) {}
+public record MmuOutAndBinValues(
+    int out1,
+    int out2,
+    int out3,
+    int out4,
+    int out5,
+    boolean bin1,
+    boolean bin2,
+    boolean bin3,
+    boolean bin4,
+    boolean bin5) {
+  public static final MmuOutAndBinValues DEFAULT = builder().build();
+}

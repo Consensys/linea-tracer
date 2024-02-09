@@ -27,7 +27,7 @@ import org.hyperledger.besu.datatypes.Address;
 
 @RequiredArgsConstructor
 public class ExoToRamSlideChunkDispatcher implements MmioDispatcher {
-  private final MmuData microData;
+  private final MmuData mmuData;
 
   private final CallStackReader callStackReader;
 
@@ -37,16 +37,16 @@ public class ExoToRamSlideChunkDispatcher implements MmioDispatcher {
   public MmioData dispatch() {
     MmioData mmioData = new MmioData();
 
-    Address exoAddress = microData.addressValue();
+    Address exoAddress = mmuData.addressValue();
     Bytes contractByteCode = romLex.addressRomChunkMap().get(exoAddress).byteCode();
 
-    int targetContext = microData.targetContextId();
+    int targetContext = mmuData.targetContextId();
     mmioData.cnA(0);
     mmioData.cnB(targetContext);
     mmioData.cnC(0);
 
-    int targetLimbOffset = microData.targetLimbOffset().toInt();
-    int sourceLimbOffset = microData.sourceLimbOffset().toInt();
+    int targetLimbOffset = mmuData.targetLimbOffset().toInt();
+    int sourceLimbOffset = mmuData.sourceLimbOffset().toInt();
     mmioData.indexA(0);
     mmioData.indexB(targetLimbOffset);
     mmioData.indexC(0);
@@ -56,20 +56,20 @@ public class ExoToRamSlideChunkDispatcher implements MmioDispatcher {
     mmioData.valB(callStackReader.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
     mmioData.valC(UnsignedByte.EMPTY_BYTES16);
     mmioData.valX(
-        callStackReader.valueFromExo(contractByteCode, microData.exoSource(), mmioData.indexX()));
+        callStackReader.valueFromExo(contractByteCode, mmuData.exoSource(), mmioData.indexX()));
 
     mmioData.valANew(UnsignedByte.EMPTY_BYTES16);
     mmioData.valBNew(mmioData.valB());
     mmioData.valCNew(UnsignedByte.EMPTY_BYTES16);
 
-    int targetByteOffset = microData.targetByteOffset().toInteger();
-    int sourceByteOffset = microData.sourceByteOffset().toInteger();
-    int size = microData.size();
+    int targetByteOffset = mmuData.targetByteOffset().toInteger();
+    int sourceByteOffset = mmuData.sourceByteOffset().toInteger();
+    int size = mmuData.mmuToMmioInstructions().size();
 
     Preconditions.checkArgument(
         sourceByteOffset + size > 16,
         "op: %s, sourceByteOffset: %d, size %d"
-            .formatted(microData.opCode(), sourceByteOffset, size));
+            .formatted(mmuData.opCode(), sourceByteOffset, size));
 
     System.arraycopy(
         mmioData.valX(),
@@ -90,9 +90,9 @@ public class ExoToRamSlideChunkDispatcher implements MmioDispatcher {
         mmioData.byteB(counter),
         mmioData.acc1(),
         mmioData.acc2(),
-        microData.sourceByteOffset(),
-        microData.targetByteOffset(),
-        microData.size(),
+        mmuData.sourceByteOffset(),
+        mmuData.targetByteOffset(),
+        mmuData.mmuToMmioInstructions().size(),
         counter);
   }
 }

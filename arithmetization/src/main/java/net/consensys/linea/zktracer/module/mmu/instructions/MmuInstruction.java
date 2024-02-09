@@ -13,11 +13,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.mmu.precomputations;
+package net.consensys.linea.zktracer.module.mmu.instructions;
 
 import net.consensys.linea.zktracer.module.mmu.MmuData;
 
-public interface MmuPreComputation {
+public interface MmuInstruction {
   MmuData preProcess(MmuData mmuData);
 
   MmuData setMicroInstructions(MmuData mmuData);

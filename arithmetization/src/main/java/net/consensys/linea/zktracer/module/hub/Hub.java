@@ -201,7 +201,7 @@ public class Hub implements Module {
   private final Wcp wcp = new Wcp(this);
   private final RlpTxn rlpTxn;
   private final Module mxp;
-  private final Mmu mmu;
+  @Getter private final Mmu mmu;
   private final Mmio mmio;
   private final RlpTxrcpt rlpTxrcpt = new RlpTxrcpt();
   private final LogInfo logInfo = new LogInfo(rlpTxrcpt);
@@ -227,16 +227,16 @@ public class Hub implements Module {
   public Hub() {
     this.transients = new Transients(this);
 
+    this.euc = new Euc(this.wcp);
     this.pch = new PlatformController(this);
     this.romLex = new RomLex(this);
     this.mmio = new Mmio(this, this.romLex, this.callStack);
-    this.mmu = new Mmu(this, this.mmio, this.callStack);
+    this.mmu = new Mmu(this, this.euc, this.wcp, this.mmio, this.callStack);
     this.mxp = new Mxp(this);
     this.rom = new Rom(this.romLex);
     this.rlpTxn = new RlpTxn(this.romLex);
     this.txnData = new TxnData(this, this.romLex, this.wcp);
     this.ecData = new EcData(this, this.wcp, this.ext);
-    this.euc = new Euc(this.wcp);
 
     final EcRecoverEffectiveCall ecRec = new EcRecoverEffectiveCall(this);
     this.modexp = new ModexpEffectiveCall(this);
@@ -813,9 +813,6 @@ public class Hub implements Module {
     StackContext pending = this.currentFrame().pending();
     for (int i = 0; i < pending.lines().size(); i++) {
       StackLine line = pending.lines().get(i);
-      if (i == 0 && this.pch.signals().mmu()) {
-        this.mmu.handleRam(this.opCode(), line.asStackOperations(), this.callStack());
-      }
 
       if (line.needsResult()) {
         Bytes result = Bytes.EMPTY;

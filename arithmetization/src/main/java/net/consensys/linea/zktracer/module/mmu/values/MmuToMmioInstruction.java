@@ -13,9 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.mmu.precomputations;
-
-import java.math.BigInteger;
+package net.consensys.linea.zktracer.module.mmu.values;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -25,20 +23,12 @@ import org.apache.tuweni.bytes.Bytes;
 @Builder
 @Getter
 @Accessors(fluent = true)
-public class HubToMmuValues {
-  private int mmuInstruction;
-  private int sourceId;
-  private int targetId;
-  private int auxId;
-  @Builder.Default private BigInteger sourceOffsetHi = BigInteger.ZERO;
-  @Builder.Default private BigInteger sourceOffsetLo = BigInteger.ZERO;
-  private long targetOffset;
-  private long size;
-  private long referenceOffset;
-  private long referenceSize;
-  private boolean successBit;
-  @Builder.Default private Bytes limb1 = Bytes.EMPTY;
-  @Builder.Default private Bytes limb2 = Bytes.EMPTY;
-  private int phase;
-  private int exoSum;
+public class MmuToMmioInstruction {
+  private int mmioInstruction;
+  private int size;
+  private int sourceLimbOffset;
+  private int sourceByteOffset;
+  private int targetLimbOffset;
+  private int targetByteOffset;
+  @Builder.Default private Bytes limb = Bytes.EMPTY;
 }

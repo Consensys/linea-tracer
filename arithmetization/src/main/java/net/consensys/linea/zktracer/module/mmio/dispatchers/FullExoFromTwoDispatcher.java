@@ -23,7 +23,7 @@ import net.consensys.linea.zktracer.types.UnsignedByte;
 
 @RequiredArgsConstructor
 public class FullExoFromTwoDispatcher implements MmioDispatcher {
-  private final MmuData microData;
+  private final MmuData mmuData;
 
   private final CallStackReader callStackReader;
 
@@ -31,13 +31,13 @@ public class FullExoFromTwoDispatcher implements MmioDispatcher {
   public MmioData dispatch() {
     MmioData mmioData = new MmioData();
 
-    int sourceContext = microData.sourceContextId();
+    int sourceContext = mmuData.sourceContextId();
     mmioData.cnA(sourceContext);
     mmioData.cnB(sourceContext);
     mmioData.cnC(0);
 
-    int sourceLimbOffset = microData.sourceLimbOffset().toInt();
-    int targetLimbOffset = microData.targetLimbOffset().toInt();
+    int sourceLimbOffset = mmuData.sourceLimbOffset().toInt();
+    int targetLimbOffset = mmuData.targetLimbOffset().toInt();
     mmioData.indexA(sourceLimbOffset);
     mmioData.indexB(sourceContext + 1);
     mmioData.indexC(0);
@@ -51,7 +51,7 @@ public class FullExoFromTwoDispatcher implements MmioDispatcher {
     mmioData.valANew(valA);
     mmioData.valBNew(valB);
 
-    int sourceByteOffset = microData.sourceByteOffset().toInteger();
+    int sourceByteOffset = mmuData.sourceByteOffset().toInteger();
     UnsignedByte[] valX = mmioData.valX();
 
     System.arraycopy(valA, sourceByteOffset, valX, 0, 16 - sourceByteOffset);
@@ -70,7 +70,7 @@ public class FullExoFromTwoDispatcher implements MmioDispatcher {
         mmioData.byteB(counter),
         mmioData.acc1(),
         mmioData.acc2(),
-        microData.sourceByteOffset(),
+        mmuData.sourceByteOffset(),
         counter);
   }
 }

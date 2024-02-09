@@ -22,21 +22,21 @@ import net.consensys.linea.zktracer.module.mmu.MmuData;
 
 @RequiredArgsConstructor
 public class RamToRamSlideOverlappingChunkDispatcher implements MmioDispatcher {
-  private final MmuData microData;
+  private final MmuData mmuData;
 
   private final CallStackReader callStackReader;
 
   @Override
   public MmioData dispatch() {
     MmioData mmioData = new MmioData();
-    mmioData.cnA(microData.sourceContextId());
-    mmioData.cnB(microData.targetContextId());
+    mmioData.cnA(mmuData.sourceContextId());
+    mmioData.cnB(mmuData.targetContextId());
     mmioData.cnC(0);
 
-    int sourceLimbOffset = microData.sourceLimbOffset().toInt();
+    int sourceLimbOffset = mmuData.sourceLimbOffset().toInt();
     mmioData.indexA(sourceLimbOffset);
 
-    int targetedLimbOffset = microData.targetLimbOffset().toInt();
+    int targetedLimbOffset = mmuData.targetLimbOffset().toInt();
     mmioData.indexB(targetedLimbOffset);
     mmioData.indexC(targetedLimbOffset + 1);
 
@@ -47,8 +47,8 @@ public class RamToRamSlideOverlappingChunkDispatcher implements MmioDispatcher {
     mmioData.valANew(mmioData.valA());
     mmioData.valBNew(mmioData.valB());
 
-    int targetByteOffset = microData.targetByteOffset().toInteger();
-    int sourceByteOffset = microData.sourceByteOffset().toInteger();
+    int targetByteOffset = mmuData.targetByteOffset().toInteger();
+    int sourceByteOffset = mmuData.sourceByteOffset().toInteger();
 
     System.arraycopy(
         mmioData.valA(),
@@ -59,7 +59,7 @@ public class RamToRamSlideOverlappingChunkDispatcher implements MmioDispatcher {
 
     mmioData.valCNew(mmioData.valC());
 
-    int size = microData.size();
+    int size = mmuData.mmuToMmioInstructions().size();
     int maxIndex = size - (16 - targetByteOffset);
     for (int i = 0; i < maxIndex; i++) {
       mmioData.valCNew()[i] = mmioData.valA()[sourceByteOffset + (16 - targetByteOffset) + i];
@@ -80,9 +80,9 @@ public class RamToRamSlideOverlappingChunkDispatcher implements MmioDispatcher {
         mmioData.acc2(),
         mmioData.acc3(),
         mmioData.acc4(),
-        microData.sourceByteOffset(),
-        microData.targetByteOffset(),
-        microData.size(),
+        mmuData.sourceByteOffset(),
+        mmuData.targetByteOffset(),
+        mmuData.mmuToMmioInstructions().size(),
         counter);
   }
 }

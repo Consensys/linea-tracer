@@ -23,9 +23,9 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.memory.MemorySegmentSnapshot;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
+import net.consensys.linea.zktracer.types.MemorySegmentSnapshot;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
 /**

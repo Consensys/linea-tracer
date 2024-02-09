@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.mmio.dispatchers;
 
-import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.mmio.CallStackReader;
 import net.consensys.linea.zktracer.module.mmio.MmioData;
@@ -24,7 +23,7 @@ import net.consensys.linea.zktracer.types.UnsignedByte;
 
 @RequiredArgsConstructor
 public class PushTwoStackToRamDispatcher implements MmioDispatcher {
-  private final MmuData microData;
+  private final MmuData mmuData;
 
   private final CallStackReader callStackReader;
 
@@ -32,25 +31,25 @@ public class PushTwoStackToRamDispatcher implements MmioDispatcher {
   public MmioData dispatch() {
     MmioData mmioData = new MmioData();
 
-    int targetContext = microData.targetContextId();
+    int targetContext = mmuData.targetContextId();
     mmioData.cnA(targetContext);
     mmioData.cnB(targetContext);
     mmioData.cnC(0);
 
-    int targetLimbOffset = microData.targetLimbOffset().toInt();
+    int targetLimbOffset = mmuData.targetLimbOffset().toInt();
     mmioData.indexA(targetLimbOffset);
     mmioData.indexB(targetLimbOffset + 1);
     mmioData.indexC(0);
 
-    Preconditions.checkState(
-        !microData.isRootContext() && !microData.isType5(),
-        "Should be: EXCEPTIONAL_RAM_TO_STACK_3_TO_2_FULL_FAST");
+    //    Preconditions.checkState(
+    //        !mmuData.isRootContext() && !mmuData.isType5(),
+    //        "Should be: EXCEPTIONAL_RAM_TO_STACK_3_TO_2_FULL_FAST");
 
     mmioData.valA(callStackReader.valueFromMemory(mmioData.cnA(), mmioData.indexA()));
     mmioData.valB(callStackReader.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
     mmioData.valC(UnsignedByte.EMPTY_BYTES16);
 
-    mmioData.setVal(microData.eWordValue());
+    mmioData.setVal(mmuData.eWordValue());
 
     mmioData.valANew(mmioData.valHi());
     mmioData.valBNew(mmioData.valLo());

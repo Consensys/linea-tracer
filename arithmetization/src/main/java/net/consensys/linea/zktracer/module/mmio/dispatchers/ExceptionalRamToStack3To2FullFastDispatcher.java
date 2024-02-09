@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.mmio.dispatchers;
 
-import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.mmio.MmioData;
 import net.consensys.linea.zktracer.module.mmu.MmuData;
@@ -23,7 +22,7 @@ import net.consensys.linea.zktracer.types.UnsignedByte;
 
 @RequiredArgsConstructor
 public class ExceptionalRamToStack3To2FullFastDispatcher implements MmioDispatcher {
-  private final MmuData microData;
+  private final MmuData mmuData;
 
   @Override
   public MmioData dispatch() {
@@ -37,13 +36,13 @@ public class ExceptionalRamToStack3To2FullFastDispatcher implements MmioDispatch
     mmioData.indexB(0);
     mmioData.indexC(0);
 
-    Preconditions.checkState(
-        microData.isRootContext() && microData.isType5(),
-        "Should be: EXCEPTIONAL_RAM_TO_STACK_3_TO_2_FULL");
-
-    mmioData.valA(microData.valACache());
-    mmioData.valB(microData.valBCache());
-    mmioData.valC(microData.valCCache());
+    //    Preconditions.checkState(
+    //        mmuData.isRootContext() && mmuData.isType5(),
+    //        "Should be: EXCEPTIONAL_RAM_TO_STACK_3_TO_2_FULL");
+    //
+    //    mmioData.valA(mmuData.valACache());
+    //    mmioData.valB(mmuData.valBCache());
+    //    mmioData.valC(mmuData.valCCache());
 
     mmioData.valANew(UnsignedByte.EMPTY_BYTES16);
     mmioData.valBNew(UnsignedByte.EMPTY_BYTES16);

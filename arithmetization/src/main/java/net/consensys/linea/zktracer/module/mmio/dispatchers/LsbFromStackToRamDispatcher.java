@@ -24,7 +24,7 @@ import net.consensys.linea.zktracer.types.UnsignedByte;
 @RequiredArgsConstructor
 public class LsbFromStackToRamDispatcher implements MmioDispatcher {
 
-  private final MmuData microData;
+  private final MmuData mmuData;
 
   private final CallStackReader callStackReader;
 
@@ -32,12 +32,12 @@ public class LsbFromStackToRamDispatcher implements MmioDispatcher {
   public MmioData dispatch() {
     MmioData mmioData = new MmioData();
 
-    int targetContext = microData.targetContextId();
+    int targetContext = mmuData.targetContextId();
     mmioData.cnA(targetContext);
     mmioData.cnB(0);
     mmioData.cnC(0);
 
-    int targetLimbOffset = microData.targetLimbOffset().toInt();
+    int targetLimbOffset = mmuData.targetLimbOffset().toInt();
     mmioData.indexA(targetLimbOffset);
     mmioData.indexB(0);
     mmioData.indexC(0);
@@ -49,9 +49,9 @@ public class LsbFromStackToRamDispatcher implements MmioDispatcher {
     mmioData.valBNew(UnsignedByte.EMPTY_BYTES16);
     mmioData.valCNew(UnsignedByte.EMPTY_BYTES16);
 
-    mmioData.setVal(microData.eWordValue());
+    mmioData.setVal(mmuData.eWordValue());
 
-    int targetByteOffset = microData.targetByteOffset().toInteger();
+    int targetByteOffset = mmuData.targetByteOffset().toInteger();
     for (int i = 0; i < 16; i++) {
       if (i == targetByteOffset) {
         mmioData.valANew()[targetByteOffset] = mmioData.valLo()[15];
@@ -68,6 +68,6 @@ public class LsbFromStackToRamDispatcher implements MmioDispatcher {
   @Override
   public void update(MmioData mmioData, int counter) {
     mmioData.byteSwap(
-        mmioData.byteA(counter), mmioData.acc1(), microData.targetByteOffset(), counter);
+        mmioData.byteA(counter), mmioData.acc1(), mmuData.targetByteOffset(), counter);
   }
 }

@@ -23,7 +23,7 @@ import net.consensys.linea.zktracer.module.mmu.MmuData;
 @RequiredArgsConstructor
 public class FullStackToRamDispatcher implements MmioDispatcher {
 
-  private final MmuData microData;
+  private final MmuData mmuData;
 
   private final CallStackReader callStackReader;
 
@@ -31,23 +31,23 @@ public class FullStackToRamDispatcher implements MmioDispatcher {
   public MmioData dispatch() {
     MmioData mmioData = new MmioData();
 
-    int targetContext = microData.targetContextId();
+    int targetContext = mmuData.targetContextId();
     mmioData.cnA(targetContext);
     mmioData.cnB(targetContext);
     mmioData.cnC(targetContext);
 
-    int targetLimbOffset = microData.targetLimbOffset().toInt();
+    int targetLimbOffset = mmuData.targetLimbOffset().toInt();
     mmioData.indexA(targetLimbOffset);
     mmioData.indexB(targetLimbOffset + 1);
     mmioData.indexC(targetLimbOffset + 2);
 
-    mmioData.setVal(microData.eWordValue());
+    mmioData.setVal(mmuData.eWordValue());
 
     mmioData.valA(callStackReader.valueFromMemory(mmioData.cnA(), mmioData.indexA()));
     mmioData.valB(callStackReader.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
     mmioData.valC(callStackReader.valueFromMemory(mmioData.cnC(), mmioData.indexC()));
 
-    int targetByteOffset = microData.targetByteOffset().toInteger();
+    int targetByteOffset = mmuData.targetByteOffset().toInteger();
     for (int i = 0; i < 16; i++) {
       if (i < targetByteOffset) {
         mmioData.valANew()[i] = mmioData.valA()[i];
@@ -79,7 +79,7 @@ public class FullStackToRamDispatcher implements MmioDispatcher {
         mmioData.acc4(),
         mmioData.acc5(),
         mmioData.acc6(),
-        microData.targetByteOffset(),
+        mmuData.targetByteOffset(),
         counter);
   }
 }

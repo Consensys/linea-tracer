@@ -44,7 +44,7 @@ public class CodeCopy extends MmuCall {
   }
 
   @Override
-  protected int sourceId() {
+  public int sourceId() {
     return this.hub.romLex().getSortedCfiByCfi(this.cfi);
   }
 }

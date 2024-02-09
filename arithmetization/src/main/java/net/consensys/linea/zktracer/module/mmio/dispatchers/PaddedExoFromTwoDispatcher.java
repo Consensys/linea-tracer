@@ -24,7 +24,7 @@ import net.consensys.linea.zktracer.types.UnsignedByte;
 
 @RequiredArgsConstructor
 public class PaddedExoFromTwoDispatcher implements MmioDispatcher {
-  private final MmuData microData;
+  private final MmuData mmuData;
 
   private final CallStackReader callStackReader;
 
@@ -32,13 +32,13 @@ public class PaddedExoFromTwoDispatcher implements MmioDispatcher {
   public MmioData dispatch() {
     MmioData mmioData = new MmioData();
 
-    int sourceContext = microData.sourceContextId();
+    int sourceContext = mmuData.sourceContextId();
     mmioData.cnA(sourceContext);
     mmioData.cnB(sourceContext);
     mmioData.cnC(0);
 
-    int sourceLimbOffset = microData.sourceLimbOffset().toInt();
-    int targetLimbOffset = microData.targetLimbOffset().toInt();
+    int sourceLimbOffset = mmuData.sourceLimbOffset().toInt();
+    int targetLimbOffset = mmuData.targetLimbOffset().toInt();
     mmioData.indexA(sourceLimbOffset);
     mmioData.indexB(sourceContext + 1);
     mmioData.indexC(0);
@@ -49,8 +49,8 @@ public class PaddedExoFromTwoDispatcher implements MmioDispatcher {
     mmioData.valC(UnsignedByte.EMPTY_BYTES16);
     mmioData.valX(UnsignedByte.EMPTY_BYTES16);
 
-    int sourceByteOffset = microData.sourceByteOffset().toInteger();
-    int size = microData.size();
+    int sourceByteOffset = mmuData.sourceByteOffset().toInteger();
+    int size = mmuData.mmuToMmioInstructions().size();
     boolean wrongOffsets =
         sourceByteOffset < 0 || sourceByteOffset >= 16 || sourceByteOffset + size <= 16;
 
@@ -90,8 +90,8 @@ Wrong size/sourceByteOffset combo in PaddedExoFromTwoDispatcher:
         mmioData.byteB(counter),
         mmioData.acc1(),
         mmioData.acc2(),
-        microData.sourceByteOffset(),
-        microData.size(),
+        mmuData.sourceByteOffset(),
+        mmuData.mmuToMmioInstructions().size(),
         counter);
   }
 }

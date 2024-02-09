@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.mmu.precomputations;
+package net.consensys.linea.zktracer.module.mmu.instructions;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,22 +22,28 @@ import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.euc.EucOperation;
 import net.consensys.linea.zktracer.module.mmu.MmuData;
 import net.consensys.linea.zktracer.module.mmu.Trace;
+import net.consensys.linea.zktracer.module.mmu.values.HubToMmuValues;
+import net.consensys.linea.zktracer.module.mmu.values.MmuEucCallRecord;
+import net.consensys.linea.zktracer.module.mmu.values.MmuOutAndBinValues;
+import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioConstantValues;
+import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioInstruction;
+import net.consensys.linea.zktracer.module.mmu.values.MmuWcpCallRecord;
 import org.apache.tuweni.bytes.Bytes;
 
-public class MmuInstMStore8PreComputation implements MmuPreComputation {
+public class MStore8 implements MmuInstruction {
   private final Euc euc;
   private List<MmuEucCallRecord> eucCallRecords;
   private List<MmuWcpCallRecord> wcpCallRecords;
-
   private int initialTargetLimbOffset;
   private int initialTargetByteOffset;
 
-  public MmuInstMStore8PreComputation(Euc euc) {
+  public MStore8(Euc euc) {
     this.euc = euc;
-    this.eucCallRecords = new ArrayList<>(Trace.MMU_INST_NB_PP_ROWS_MSTORE);
-    this.wcpCallRecords = new ArrayList<>(Trace.MMU_INST_NB_PP_ROWS_MSTORE);
+    this.eucCallRecords = new ArrayList<>(Trace.NB_PP_ROWS_MSTORE8);
+    this.wcpCallRecords = new ArrayList<>(Trace.NB_PP_ROWS_MSTORE8);
   }
 
+  @Override
   public MmuData preProcess(MmuData mmuData) {
 
     // row n°1
@@ -56,20 +62,21 @@ public class MmuInstMStore8PreComputation implements MmuPreComputation {
             .remainder(rem)
             .build());
 
-    wcpCallRecords.add(MmuWcpCallRecord.builder().build()); // no call to WCP
+    wcpCallRecords.add(MmuWcpCallRecord.EMPTY_CALL); // no call to WCP
 
     mmuData.eucCallRecords(eucCallRecords);
     mmuData.wcpCallRecords(wcpCallRecords);
     // setting Out and Bin values
-    mmuData.outAndBinValues(MmuOutAndBinValues.builder().build()); // all 0
+    mmuData.outAndBinValues(MmuOutAndBinValues.DEFAULT); // all 0
 
     mmuData.totalLeftZeroesInitials(0);
-    mmuData.totalNonTrivialInitials(1);
+    mmuData.totalNonTrivialInitials(Trace.NB_MICRO_ROWS_TOT_MSTORE_EIGHT);
     mmuData.totalRightZeroesInitials(0);
 
     return mmuData;
   }
 
+  @Override
   public MmuData setMicroInstructions(MmuData mmuData) {
     HubToMmuValues hubToMmuValues = mmuData.hubToMmuValues();
 
@@ -79,7 +86,9 @@ public class MmuInstMStore8PreComputation implements MmuPreComputation {
     // First and only micro-instruction.
     mmuData.mmuToMmioInstruction(
         MmuToMmioInstruction.builder()
-            .mmioInstruction(Trace.MMIO_INST_LIMB_TO_RAM_WRITE_LSB)
+            .mmioInstruction(Trace.MMIO_INST_LIMB_TO_RAM_ONE_TARGET)
+            .size(1)
+            .sourceByteOffset(Trace.LLARGEMO)
             .targetLimbOffset(initialTargetLimbOffset)
             .targetByteOffset(initialTargetByteOffset)
             .limb(hubToMmuValues.limb2())

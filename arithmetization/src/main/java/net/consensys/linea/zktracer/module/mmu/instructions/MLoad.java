@@ -1,5 +1,5 @@
 /*
- * Copyright ConsenSys Inc.
+ * Copyright Consensys Software Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.mmu.precomputations;
+package net.consensys.linea.zktracer.module.mmu.instructions;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,31 +22,33 @@ import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.euc.EucOperation;
 import net.consensys.linea.zktracer.module.mmu.MmuData;
 import net.consensys.linea.zktracer.module.mmu.Trace;
+import net.consensys.linea.zktracer.module.mmu.values.HubToMmuValues;
+import net.consensys.linea.zktracer.module.mmu.values.MmuEucCallRecord;
+import net.consensys.linea.zktracer.module.mmu.values.MmuOutAndBinValues;
+import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioConstantValues;
+import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioInstruction;
+import net.consensys.linea.zktracer.module.mmu.values.MmuWcpCallRecord;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 
-public class MmuInstInvalidCodePrefixPreComputation {
+public class MLoad implements MmuInstruction {
   private final Euc euc;
   private final Wcp wcp;
   private List<MmuEucCallRecord> eucCallRecords;
   private List<MmuWcpCallRecord> wcpCallRecords;
 
+  private boolean aligned;
   private int initialSourceLimbOffset;
   private int initialSourceByteOffset;
-  private Bytes microLimb;
 
-  public MmuInstInvalidCodePrefixPreComputation(Euc euc, Wcp wcp) {
+  public MLoad(Euc euc, Wcp wcp) {
     this.euc = euc;
     this.wcp = wcp;
-    this.eucCallRecords = new ArrayList<>(Trace.MMU_INST_NB_PP_ROWS_INVALID_CODE_PREFIX);
-    this.wcpCallRecords = new ArrayList<>(Trace.MMU_INST_NB_PP_ROWS_INVALID_CODE_PREFIX);
+    this.eucCallRecords = new ArrayList<>(Trace.NB_PP_ROWS_MLOAD);
+    this.wcpCallRecords = new ArrayList<>(Trace.NB_PP_ROWS_MLOAD);
   }
 
   public MmuData preProcess(MmuData mmuData) {
-
-    // row n°1
     final long dividend1 = mmuData.hubToMmuValues().sourceOffsetLo().longValueExact();
     EucOperation eucOp = euc.callEUC(Bytes.ofUnsignedLong(dividend1), Bytes.of(16));
     int rem = eucOp.remainder().toInt();
@@ -62,27 +64,24 @@ public class MmuInstInvalidCodePrefixPreComputation {
             .remainder(rem)
             .build());
 
-    // TODO set microLimb to the right value
-    Bytes arg1 = microLimb;
-    Bytes arg2 = Bytes.of(0xEF);
-    boolean result = wcp.callEQ(arg1, arg2);
+    Bytes isZeroArg = Bytes.ofUnsignedInt(mmuData.sourceByteOffset().toInteger());
+    boolean result = wcp.callISZERO(isZeroArg);
+    aligned = result;
 
     wcpCallRecords.add(
-        MmuWcpCallRecord.builder()
-            .instruction(UnsignedByte.of(OpCode.ISZERO.byteValue()))
+        MmuWcpCallRecord.instIsZeroBuilder()
             .arg1Hi(Bytes.EMPTY)
-            .arg1Lo(arg1)
-            .arg2Lo(arg2)
+            .arg1Lo(isZeroArg)
+            .arg2Lo(Bytes.EMPTY)
             .result(result)
             .build());
 
     mmuData.eucCallRecords(eucCallRecords);
     mmuData.wcpCallRecords(wcpCallRecords);
-    // setting Out and Bin values
-    mmuData.outAndBinValues(MmuOutAndBinValues.builder().build()); // all 0
+    mmuData.outAndBinValues(MmuOutAndBinValues.DEFAULT);
 
     mmuData.totalLeftZeroesInitials(0);
-    mmuData.totalNonTrivialInitials(1);
+    mmuData.totalNonTrivialInitials(Trace.NB_MICRO_ROWS_TOT_MLOAD);
     mmuData.totalRightZeroesInitials(0);
 
     return mmuData;
@@ -94,15 +93,28 @@ public class MmuInstInvalidCodePrefixPreComputation {
     mmuData.mmuToMmioConstantValues(
         MmuToMmioConstantValues.builder().sourceContextNumber(hubToMmuValues.sourceId()).build());
 
-    // First and only micro-instruction.
+    // First micro-instruction.
     mmuData.mmuToMmioInstruction(
         MmuToMmioInstruction.builder()
-            .mmioInstruction(Trace.MMIO_INST_PADDED_LIMB_FROM_RAM_ONE_SOURCE)
-            .size(1)
+            .mmioInstruction(
+                aligned
+                    ? Trace.MMIO_INST_RAM_TO_LIMB_TRANSPLANT
+                    : Trace.MMIO_INST_RAM_TO_LIMB_TWO_SOURCE)
             .sourceLimbOffset(initialSourceLimbOffset)
             .sourceByteOffset(initialSourceByteOffset)
-            .targetByteOffset(15)
-            .limb(microLimb)
+            .limb(hubToMmuValues.limb1())
+            .build());
+
+    // Second micro-instruction.
+    mmuData.mmuToMmioInstruction(
+        MmuToMmioInstruction.builder()
+            .mmioInstruction(
+                aligned
+                    ? Trace.MMIO_INST_RAM_TO_LIMB_TRANSPLANT
+                    : Trace.MMIO_INST_RAM_TO_LIMB_TWO_SOURCE)
+            .sourceLimbOffset(initialSourceLimbOffset + 1)
+            .sourceByteOffset(initialSourceByteOffset)
+            .limb(hubToMmuValues.limb2())
             .build());
 
     return mmuData;

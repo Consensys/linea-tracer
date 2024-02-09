@@ -25,7 +25,7 @@ import org.apache.tuweni.bytes.Bytes;
 
 @RequiredArgsConstructor
 public class StoreXInAThreeRequiredDispatcher implements MmioDispatcher {
-  private final MmuData microData;
+  private final MmuData mmuData;
 
   private final CallStackReader callStackReader;
 
@@ -38,7 +38,7 @@ public class StoreXInAThreeRequiredDispatcher implements MmioDispatcher {
     mmioData.cnB(0);
     mmioData.cnC(0);
 
-    int sourceLimbOffset = microData.sourceLimbOffset().toInt();
+    int sourceLimbOffset = mmuData.sourceLimbOffset().toInt();
     mmioData.indexA(0);
     mmioData.indexB(0);
     mmioData.indexC(0);
@@ -46,25 +46,26 @@ public class StoreXInAThreeRequiredDispatcher implements MmioDispatcher {
 
     Bytes contractByteCode = romLex.addressRomChunkMap().get(null).byteCode();
 
-    microData.valACache(
-        callStackReader.valueFromExo(contractByteCode, microData.exoSource(), mmioData.indexX()));
-    microData.valBCache(
-        callStackReader.valueFromExo(
-            contractByteCode, microData.exoSource(), mmioData.indexX() + 1));
-    microData.valCCache(
-        callStackReader.valueFromExo(
-            contractByteCode, microData.exoSource(), mmioData.indexX() + 2));
-
-    mmioData.valA(microData.valACache());
-    mmioData.valB(microData.valBCache());
-    mmioData.valC(microData.valCCache());
-    mmioData.valX(microData.valACache());
+    //    mmuData.valACache(
+    //        callStackReader.valueFromExo(contractByteCode, mmuData.exoSource(),
+    // mmioData.indexX()));
+    //    mmuData.valBCache(
+    //        callStackReader.valueFromExo(contractByteCode, mmuData.exoSource(), mmioData.indexX()
+    // + 1));
+    //    mmuData.valCCache(
+    //        callStackReader.valueFromExo(contractByteCode, mmuData.exoSource(), mmioData.indexX()
+    // + 2));
+    //
+    //    mmioData.valA(mmuData.valACache());
+    //    mmioData.valB(mmuData.valBCache());
+    //    mmioData.valC(mmuData.valCCache());
+    //    mmioData.valX(mmuData.valACache());
 
     mmioData.valANew(UnsignedByte.EMPTY_BYTES16);
     mmioData.valBNew(UnsignedByte.EMPTY_BYTES16);
     mmioData.valCNew(UnsignedByte.EMPTY_BYTES16);
 
-    int sourceByteOffset = microData.sourceByteOffset().toInteger();
+    int sourceByteOffset = mmuData.sourceByteOffset().toInteger();
     mmioData.setValHiLoForRootContextCalldataload(sourceByteOffset);
     mmioData.updateLimbsInMemory(callStackReader.callStack());
 

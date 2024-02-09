@@ -32,7 +32,11 @@ public class CallStackReader {
   @Getter private final CallStack callStack;
 
   public UnsignedByte[] valueFromMemory(final int counter, final int index) {
-    return callStack.get(counter).pending().memorySegmentSnapshot().limbAtIndex(index);
+    return callStack
+        .getByContextNumber(counter)
+        .pending()
+        .memorySegmentSnapshot()
+        .limbAtIndex(index);
   }
 
   public UnsignedByte[] valueFromExo(

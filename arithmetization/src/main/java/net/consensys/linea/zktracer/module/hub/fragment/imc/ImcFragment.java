@@ -37,6 +37,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.Dep
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.ExceptionalCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.Jump;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.SStore;
+import net.consensys.linea.zktracer.module.mmu.values.HubToMmuValues;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.gas.GasConstants;
 import net.consensys.linea.zktracer.types.EWord;
@@ -61,18 +62,10 @@ public class ImcFragment implements TraceFragment {
   private boolean mxpIsSet = false;
   private boolean mmuIsSet = false;
   private boolean stpIsSet = false;
-
-  /** This class should only be instantiated through specialized static methods. */
-  private ImcFragment() {}
+  private final Hub hub;
 
   private ImcFragment(final Hub hub) {
-    if (hub.pch().signals().mxp()) {
-      this.callMxp(MxpCall.build(hub));
-    }
-
-    if (hub.pch().signals().exp()) {
-      this.callExp(new ExpLogCall(EWord.of(hub.messageFrame().getStackItem(1))));
-    }
+    this.hub = hub;
   }
 
   /**
@@ -80,8 +73,8 @@ public class ImcFragment implements TraceFragment {
    *
    * @return an empty ImcFragment
    */
-  public static ImcFragment empty() {
-    return new ImcFragment();
+  public static ImcFragment empty(final Hub hub) {
+    return new ImcFragment(hub);
   }
 
   /**
@@ -91,7 +84,7 @@ public class ImcFragment implements TraceFragment {
    * @return the ImcFragment for the TxInit phase
    */
   public static ImcFragment forTxInit(final Hub hub) {
-    return ImcFragment.empty().callMmu(MmuCall.txInit(hub));
+    return ImcFragment.empty(hub).callMmu(MmuCall.txInit(hub));
   }
 
   /**
@@ -105,6 +98,14 @@ public class ImcFragment implements TraceFragment {
   public static ImcFragment forCall(
       Hub hub, Account callerAccount, Optional<Account> calledAccount) {
     final ImcFragment r = new ImcFragment(hub);
+
+    if (hub.pch().signals().mxp()) {
+      r.callMxp(MxpCall.build(hub));
+    }
+
+    if (hub.pch().signals().exp()) {
+      r.callExp(new ExpLogCall(EWord.of(hub.messageFrame().getStackItem(1))));
+    }
 
     if (hub.pch().signals().oob()) {
       switch (hub.opCode()) {
@@ -158,6 +159,14 @@ public class ImcFragment implements TraceFragment {
 
   public static ImcFragment forOpcode(Hub hub, MessageFrame frame) {
     final ImcFragment r = new ImcFragment(hub);
+
+    if (hub.pch().signals().mxp()) {
+      r.callMxp(MxpCall.build(hub));
+    }
+
+    if (hub.pch().signals().exp()) {
+      r.callExp(new ExpLogCall(EWord.of(hub.messageFrame().getStackItem(1))));
+    }
 
     if (hub.pch().signals().mmu()) {
       switch (hub.opCode()) {
@@ -238,6 +247,7 @@ public class ImcFragment implements TraceFragment {
       mmuIsSet = true;
     }
     this.moduleCalls.add(f);
+    this.hub.mmu().call(HubToMmuValues.fromMmuCall(f), hub.callStack());
     return this;
   }
 

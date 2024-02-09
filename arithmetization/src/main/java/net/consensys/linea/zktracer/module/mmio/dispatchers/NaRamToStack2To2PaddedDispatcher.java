@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.mmio.dispatchers;
 
-import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.mmio.CallStackReader;
 import net.consensys.linea.zktracer.module.mmio.MmioData;
@@ -25,7 +24,7 @@ import net.consensys.linea.zktracer.types.UnsignedByte;
 
 @RequiredArgsConstructor
 public class NaRamToStack2To2PaddedDispatcher implements MmioDispatcher {
-  private final MmuData microData;
+  private final MmuData mmuData;
 
   private final CallStackReader callStackReader;
 
@@ -33,19 +32,19 @@ public class NaRamToStack2To2PaddedDispatcher implements MmioDispatcher {
   public MmioData dispatch() {
     MmioData mmioData = new MmioData();
 
-    int sourceContext = microData.sourceContextId();
+    int sourceContext = mmuData.sourceContextId();
     mmioData.cnA(sourceContext);
     mmioData.cnB(sourceContext);
     mmioData.cnC(0);
 
-    int sourceLimbOffset = microData.sourceLimbOffset().toInt();
+    int sourceLimbOffset = mmuData.sourceLimbOffset().toInt();
     mmioData.indexA(sourceLimbOffset);
     mmioData.indexB(sourceLimbOffset + 1);
     mmioData.indexC(0);
 
-    Preconditions.checkState(
-        microData.isRootContext() && microData.isType5(),
-        "Should be: EXCEPTIONAL_RAM_TO_STACK_3_TO_2_FULL");
+    //    Preconditions.checkState(
+    //        mmuData.isRootContext() && mmuData.isType5(),
+    //        "Should be: EXCEPTIONAL_RAM_TO_STACK_3_TO_2_FULL");
 
     mmioData.valA(callStackReader.valueFromMemory(mmioData.cnA(), mmioData.indexA()));
     mmioData.valB(callStackReader.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
@@ -57,7 +56,7 @@ public class NaRamToStack2To2PaddedDispatcher implements MmioDispatcher {
 
     mmioData.valLo(UnsignedByte.EMPTY_BYTES16);
 
-    int sourceByteOffset = microData.sourceByteOffset().toInteger();
+    int sourceByteOffset = mmuData.sourceByteOffset().toInteger();
     int diff = 16 - sourceByteOffset;
 
     // twoOneFull
@@ -70,7 +69,12 @@ public class NaRamToStack2To2PaddedDispatcher implements MmioDispatcher {
     }
 
     // oneOnePadded
-    System.arraycopy(mmioData.valB(), sourceByteOffset, mmioData.valLo(), 0, microData.size());
+    System.arraycopy(
+        mmioData.valB(),
+        sourceByteOffset,
+        mmioData.valLo(),
+        0,
+        mmuData.mmuToMmioInstructions().size());
 
     return mmioData;
   }
@@ -82,7 +86,7 @@ public class NaRamToStack2To2PaddedDispatcher implements MmioDispatcher {
         mmioData.byteB(counter),
         mmioData.acc1(),
         mmioData.acc2(),
-        microData.sourceByteOffset(),
+        mmuData.sourceByteOffset(),
         counter);
 
     // [2 => 1Padded]
@@ -91,8 +95,8 @@ public class NaRamToStack2To2PaddedDispatcher implements MmioDispatcher {
         mmioData.byteB(counter),
         mmioData.acc3(),
         PowType.POW_256_2,
-        microData.sourceByteOffset(),
-        microData.size(),
+        mmuData.sourceByteOffset(),
+        mmuData.mmuToMmioInstructions().size(),
         counter);
   }
 }

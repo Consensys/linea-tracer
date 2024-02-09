@@ -23,7 +23,7 @@ import net.consensys.linea.zktracer.types.UnsignedByte;
 
 @RequiredArgsConstructor
 public class KillingOneDispatcher implements MmioDispatcher {
-  private final MmuData microData;
+  private final MmuData mmuData;
 
   private final CallStackReader callStackReader;
 
@@ -31,12 +31,12 @@ public class KillingOneDispatcher implements MmioDispatcher {
   public MmioData dispatch() {
     MmioData mmioData = new MmioData();
 
-    int targetContext = microData.targetContextId();
+    int targetContext = mmuData.targetContextId();
     mmioData.cnA(targetContext);
     mmioData.cnB(0);
     mmioData.cnC(0);
 
-    int targetLimbOffset = microData.targetLimbOffset().toInt();
+    int targetLimbOffset = mmuData.targetLimbOffset().toInt();
     mmioData.indexA(targetLimbOffset);
     mmioData.indexB(0);
     mmioData.indexC(0);

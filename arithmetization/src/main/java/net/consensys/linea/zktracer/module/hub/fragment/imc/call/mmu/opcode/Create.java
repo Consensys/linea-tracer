@@ -43,7 +43,7 @@ public class Create extends MmuCall {
   }
 
   @Override
-  protected int targetId() {
+  public int targetId() {
     return this.hub.romLex().getSortedCfiByCfi(this.cfi);
   }
 }

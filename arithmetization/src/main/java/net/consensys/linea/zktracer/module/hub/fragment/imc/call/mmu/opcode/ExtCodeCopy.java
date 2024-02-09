@@ -64,7 +64,7 @@ public class ExtCodeCopy extends MmuCall {
   }
 
   @Override
-  protected int sourceId() {
+  public int sourceId() {
     return this.hub.romLex().getSortedCfiByCfi(this.cfi);
   }
 }

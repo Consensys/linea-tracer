@@ -24,7 +24,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 import net.consensys.linea.zktracer.container.ModuleOperation;
@@ -122,7 +121,7 @@ public class StackedSet<E extends ModuleOperation> implements StackedContainer, 
 
   @Override
   public boolean add(E e) {
-    final boolean isNew = Optional.ofNullable(this.sets.peekLast()).orElse(new HashSet<>()).add(e);
+    final boolean isNew = this.sets.peekLast().add(e);
 
     if (isNew) {
       occurrences.put(e, occurrences.getOrDefault(e, 0) + 1);

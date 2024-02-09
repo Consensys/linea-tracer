@@ -25,7 +25,7 @@ import net.consensys.linea.zktracer.types.UnsignedByte;
 
 @RequiredArgsConstructor
 public class FirstFastSecondPaddedDispatcher implements MmioDispatcher {
-  private final MmuData microData;
+  private final MmuData mmuData;
 
   private final CallStackReader callStackReader;
 
@@ -33,19 +33,19 @@ public class FirstFastSecondPaddedDispatcher implements MmioDispatcher {
   public MmioData dispatch() {
     MmioData mmioData = new MmioData();
 
-    int sourceContext = microData.sourceContextId();
+    int sourceContext = mmuData.sourceContextId();
     mmioData.cnA(sourceContext);
     mmioData.cnB(sourceContext);
     mmioData.cnC(0);
 
-    int sourceLimbOffset = microData.sourceLimbOffset().toInt();
+    int sourceLimbOffset = mmuData.sourceLimbOffset().toInt();
     mmioData.indexA(sourceLimbOffset);
     mmioData.indexB(sourceLimbOffset + 1);
     mmioData.indexC(0);
 
-    Preconditions.checkState(
-        microData.isRootContext() && microData.isType5(),
-        "Should be: EXCEPTIONAL_RAM_TO_STACK_3_TO_2_FULL");
+    //    Preconditions.checkState(
+    //        mmuData.isRootContext() && mmuData.isType5(),
+    //        "Should be: EXCEPTIONAL_RAM_TO_STACK_3_TO_2_FULL");
 
     mmioData.valA(callStackReader.valueFromMemory(mmioData.cnA(), mmioData.indexA()));
     mmioData.valB(callStackReader.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
@@ -57,11 +57,16 @@ public class FirstFastSecondPaddedDispatcher implements MmioDispatcher {
 
     mmioData.valHi(mmioData.valA());
 
-    int sourceByteOffset = microData.sourceByteOffset().toInteger();
+    int sourceByteOffset = mmuData.sourceByteOffset().toInteger();
 
-    Preconditions.checkArgument(sourceByteOffset != 0, "microData.sourceByteOffset should be 0");
+    Preconditions.checkArgument(sourceByteOffset != 0, "mmuData.sourceByteOffset should be 0");
 
-    System.arraycopy(mmioData.valB(), sourceByteOffset, mmioData.valLo(), 0, microData.size());
+    System.arraycopy(
+        mmioData.valB(),
+        sourceByteOffset,
+        mmioData.valLo(),
+        0,
+        (int) mmuData.hubToMmuValues().size());
 
     mmioData.updateLimbsInMemory(callStackReader.callStack());
 
@@ -77,7 +82,7 @@ public class FirstFastSecondPaddedDispatcher implements MmioDispatcher {
         mmioData.acc1(),
         PowType.POW_256_1,
         UnsignedByte.ZERO,
-        microData.size(),
+        mmuData.mmuToMmioInstructions().size(),
         counter);
   }
 }

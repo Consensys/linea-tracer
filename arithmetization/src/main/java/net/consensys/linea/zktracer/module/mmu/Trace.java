@@ -30,86 +30,78 @@ import org.apache.tuweni.bytes.Bytes;
  * Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
 public class Trace {
-  public static final int EQ_ = 20;
-  public static final int INVALID_CODE_PREFIX_VALUE = 239;
-  public static final int ISZERO = 21;
-  public static final int LLARGE = 16;
-  public static final int LLARGEMO = 15;
-  public static final int LLARGEPO = 17;
-  public static final int LT = 16;
-  public static final int MMIO_INST_EXO_LIMB_VANISHES = 65280;
-  public static final int MMIO_INST_EXO_TO_RAM_LIMB_TRANSPLANT = 65312;
-  public static final int MMIO_INST_EXO_TO_RAM_SLIDE_CHUNK_ONE_TARGET = 65313;
-  public static final int MMIO_INST_EXO_TO_RAM_SLIDE_CHUNK_TWO_TARGET = 65314;
-  public static final int MMIO_INST_LIMB_TO_RAM_OVERLAP = 65330;
-  public static final int MMIO_INST_LIMB_TO_RAM_TRANSPLANT = 65329;
-  public static final int MMIO_INST_LIMB_TO_RAM_WRITE_LSB = 65328;
-  public static final int MMIO_INST_PADDED_EXO_FROM_ONE_RAM = 65298;
-  public static final int MMIO_INST_PADDED_EXO_FROM_TWO_RAM = 65299;
-  public static final int MMIO_INST_PADDED_LIMB_FROM_RAM_ONE_SOURCE = 65345;
-  public static final int MMIO_INST_PADDED_LIMB_FROM_RAM_ONE_TARGET = 65347;
-  public static final int MMIO_INST_PADDED_LIMB_FROM_RAM_TWO_SOURCE = 65346;
-  public static final int MMIO_INST_PADDED_LIMB_FROM_RAM_TWO_TARGET = 65348;
-  public static final int MMIO_INST_RAM_EXCISION = 65376;
-  public static final int MMIO_INST_RAM_LIMB_VANISHES = 65377;
-  public static final int MMIO_INST_RAM_TO_EXO_LIMB_TRANSPLANT = 65296;
-  public static final int MMIO_INST_RAM_TO_LIMB_TRANSPLANT = 65344;
-  public static final int MMIO_INST_RAM_TO_RAM_LIMB_TRANSPLANT = 65360;
-  public static final int MMIO_INST_RAM_TO_RAM_SLIDE_CHUNK_ONE_TARGET = 65361;
-  public static final int MMIO_INST_RAM_TO_RAM_SLIDE_CHUNK_TWO_TARGET = 65362;
-  public static final int MMIO_INST_TWO_RAM_TO_EXO_FULL = 65297;
-  public static final int MMU_INST_ANY_TO_RAM_WITH_PADDING = 65104;
-  public static final int MMU_INST_ANY_TO_RAM_WITH_PADDING_PURE_PADDING = 65106;
-  public static final int MMU_INST_ANY_TO_RAM_WITH_PADDING_SOME_DATA = 65105;
-  public static final int MMU_INST_BLAKE = 65152;
-  public static final int MMU_INST_EXO_TO_RAM_TRANSPLANTS = 65072;
-  public static final int MMU_INST_INVALID_CODE_PREFIX = 65024;
-  public static final int MMU_INST_MLOAD = 65025;
-  public static final int MMU_INST_MODEXP_DATA = 65136;
-  public static final int MMU_INST_MODEXP_ZERO = 65120;
-  public static final int MMU_INST_MSTORE = 65026;
-  public static final int MMU_INST_MSTORE8 = 83;
-  public static final int MMU_INST_NB_MICRO_ROWS_TOT_BLAKE = 2;
-  public static final int MMU_INST_NB_MICRO_ROWS_TOT_INVALID_CODE_PREFIX = 1;
-  public static final int MMU_INST_NB_MICRO_ROWS_TOT_MLOAD = 2;
-  public static final int MMU_INST_NB_MICRO_ROWS_TOT_MODEXP_DATA = 32;
-  public static final int MMU_INST_NB_MICRO_ROWS_TOT_MODEXP_ZERO = 32;
-  public static final int MMU_INST_NB_MICRO_ROWS_TOT_MSTORE = 2;
-  public static final int MMU_INST_NB_MICRO_ROWS_TOT_MSTORE_EIGHT = 1;
-  public static final int MMU_INST_NB_MICRO_ROWS_TOT_RIGHT_PADDED_WORD_EXTRACTION = 2;
-  public static final int MMU_INST_NB_PP_ROWS_ANY_TO_RAM_WITH_PADDING_PURE_PADDING = 4;
-  public static final int MMU_INST_NB_PP_ROWS_ANY_TO_RAM_WITH_PADDING_PURE_PADDING_PO = 5;
-  public static final int MMU_INST_NB_PP_ROWS_ANY_TO_RAM_WITH_PADDING_SOME_DATA = 1;
-  public static final int MMU_INST_NB_PP_ROWS_ANY_TO_RAM_WITH_PADDING_SOME_DATA_PO = 2;
-  public static final int MMU_INST_NB_PP_ROWS_BLAKE = 2;
-  public static final int MMU_INST_NB_PP_ROWS_BLAKE_PO = 3;
-  public static final int MMU_INST_NB_PP_ROWS_EXO_TO_RAM_TRANSPLANTS = 1;
-  public static final int MMU_INST_NB_PP_ROWS_EXO_TO_RAM_TRANSPLANTS_PO = 2;
-  public static final int MMU_INST_NB_PP_ROWS_INVALID_CODE_PREFIX = 1;
-  public static final int MMU_INST_NB_PP_ROWS_INVALID_CODE_PREFIX_PO = 2;
-  public static final int MMU_INST_NB_PP_ROWS_MLOAD = 1;
-  public static final int MMU_INST_NB_PP_ROWS_MLOAD_PO = 2;
-  public static final int MMU_INST_NB_PP_ROWS_MLOAD_PT = 3;
-  public static final int MMU_INST_NB_PP_ROWS_MODEXP_DATA = 6;
-  public static final int MMU_INST_NB_PP_ROWS_MODEXP_DATA_PO = 7;
-  public static final int MMU_INST_NB_PP_ROWS_MODEXP_ZERO = 1;
-  public static final int MMU_INST_NB_PP_ROWS_MODEXP_ZERO_PO = 2;
-  public static final int MMU_INST_NB_PP_ROWS_MSTORE = 1;
-  public static final int MMU_INST_NB_PP_ROWS_MSTORE8 = 1;
-  public static final int MMU_INST_NB_PP_ROWS_MSTORE8_PO = 2;
-  public static final int MMU_INST_NB_PP_ROWS_MSTORE_PO = 2;
-  public static final int MMU_INST_NB_PP_ROWS_MSTORE_PT = 3;
-  public static final int MMU_INST_NB_PP_ROWS_RAM_TO_EXO_WITH_PADDING = 4;
-  public static final int MMU_INST_NB_PP_ROWS_RAM_TO_EXO_WITH_PADDING_PO = 5;
-  public static final int MMU_INST_NB_PP_ROWS_RAM_TO_RAM_SANS_PADDING = 5;
-  public static final int MMU_INST_NB_PP_ROWS_RAM_TO_RAM_SANS_PADDING_PO = 6;
-  public static final int MMU_INST_NB_PP_ROWS_RIGHT_PADDED_WORD_EXTRACTION = 5;
-  public static final int MMU_INST_NB_PP_ROWS_RIGHT_PADDED_WORD_EXTRACTION_PO = 6;
-  public static final int MMU_INST_NB_PP_ROWS_RIGHT_PADDED_WORD_EXTRACTION_PT = 7;
-  public static final int MMU_INST_RAM_TO_EXO_WITH_PADDING = 65056;
-  public static final int MMU_INST_RAM_TO_RAM_SANS_PADDING = 65088;
-  public static final int MMU_INST_RIGHT_PADDED_WORD_EXTRACTION = 65040;
-  public static final int WORD_SIZE = 32;
+  public static final int EQ_ = 0x14;
+  public static final int INVALID_CODE_PREFIX_VALUE = 0xef;
+  public static final int ISZERO = 0x15;
+  public static final int LLARGE = 0x10;
+  public static final int LLARGEMO = 0xf;
+  public static final int LLARGEPO = 0x11;
+  public static final int LT = 0x10;
+  public static final int MMIO_INST_LIMB_TO_RAM_ONE_TARGET = 0xfe12;
+  public static final int MMIO_INST_LIMB_TO_RAM_TRANSPLANT = 0xfe11;
+  public static final int MMIO_INST_LIMB_TO_RAM_TWO_TARGET = 0xfe13;
+  public static final int MMIO_INST_LIMB_VANISHES = 0xfe01;
+  public static final int MMIO_INST_RAM_EXCISION = 0xfe41;
+  public static final int MMIO_INST_RAM_TO_LIMB_ONE_SOURCE = 0xfe22;
+  public static final int MMIO_INST_RAM_TO_LIMB_TRANSPLANT = 0xfe21;
+  public static final int MMIO_INST_RAM_TO_LIMB_TWO_SOURCE = 0xfe23;
+  public static final int MMIO_INST_RAM_TO_RAM_PARTIAL = 0xfe32;
+  public static final int MMIO_INST_RAM_TO_RAM_TRANSPLANT = 0xfe31;
+  public static final int MMIO_INST_RAM_TO_RAM_TWO_SOURCE = 0xfe34;
+  public static final int MMIO_INST_RAM_TO_RAM_TWO_TARGET = 0xfe33;
+  public static final int MMIO_INST_RAM_VANISHES = 0xfe42;
+  public static final int MMU_INST_ANY_TO_RAM_WITH_PADDING = 0xfe50;
+  public static final int MMU_INST_ANY_TO_RAM_WITH_PADDING_PURE_PADDING = 0xfe52;
+  public static final int MMU_INST_ANY_TO_RAM_WITH_PADDING_SOME_DATA = 0xfe51;
+  public static final int MMU_INST_BLAKE = 0xfe80;
+  public static final int MMU_INST_EXO_TO_RAM_TRANSPLANTS = 0xfe30;
+  public static final int MMU_INST_INVALID_CODE_PREFIX = 0xfe00;
+  public static final int MMU_INST_MLOAD = 0xfe01;
+  public static final int MMU_INST_MODEXP_DATA = 0xfe70;
+  public static final int MMU_INST_MODEXP_ZERO = 0xfe60;
+  public static final int MMU_INST_MSTORE = 0xfe02;
+  public static final int MMU_INST_MSTORE8 = 0x53;
+  public static final int MMU_INST_RAM_TO_EXO_WITH_PADDING = 0xfe20;
+  public static final int MMU_INST_RAM_TO_RAM_SANS_PADDING = 0xfe40;
+  public static final int MMU_INST_RIGHT_PADDED_WORD_EXTRACTION = 0xfe10;
+  public static final int NB_MICRO_ROWS_TOT_BLAKE = 0x2;
+  public static final int NB_MICRO_ROWS_TOT_INVALID_CODE_PREFIX = 0x1;
+  public static final int NB_MICRO_ROWS_TOT_MLOAD = 0x2;
+  public static final int NB_MICRO_ROWS_TOT_MODEXP_DATA = 0x20;
+  public static final int NB_MICRO_ROWS_TOT_MODEXP_ZERO = 0x20;
+  public static final int NB_MICRO_ROWS_TOT_MSTORE = 0x2;
+  public static final int NB_MICRO_ROWS_TOT_MSTORE_EIGHT = 0x1;
+  public static final int NB_MICRO_ROWS_TOT_RIGHT_PADDED_WORD_EXTRACTION = 0x2;
+  public static final int NB_PP_ROWS_ANY_TO_RAM_WITH_PADDING_PURE_PADDING = 0x4;
+  public static final int NB_PP_ROWS_ANY_TO_RAM_WITH_PADDING_PURE_PADDING_PO = 0x5;
+  public static final int NB_PP_ROWS_ANY_TO_RAM_WITH_PADDING_SOME_DATA = 0x1;
+  public static final int NB_PP_ROWS_ANY_TO_RAM_WITH_PADDING_SOME_DATA_PO = 0x2;
+  public static final int NB_PP_ROWS_BLAKE = 0x2;
+  public static final int NB_PP_ROWS_BLAKE_PO = 0x3;
+  public static final int NB_PP_ROWS_EXO_TO_RAM_TRANSPLANTS = 0x1;
+  public static final int NB_PP_ROWS_EXO_TO_RAM_TRANSPLANTS_PO = 0x2;
+  public static final int NB_PP_ROWS_INVALID_CODE_PREFIX = 0x1;
+  public static final int NB_PP_ROWS_INVALID_CODE_PREFIX_PO = 0x2;
+  public static final int NB_PP_ROWS_MLOAD = 0x1;
+  public static final int NB_PP_ROWS_MLOAD_PO = 0x2;
+  public static final int NB_PP_ROWS_MLOAD_PT = 0x3;
+  public static final int NB_PP_ROWS_MODEXP_DATA = 0x6;
+  public static final int NB_PP_ROWS_MODEXP_DATA_PO = 0x7;
+  public static final int NB_PP_ROWS_MODEXP_ZERO = 0x1;
+  public static final int NB_PP_ROWS_MODEXP_ZERO_PO = 0x2;
+  public static final int NB_PP_ROWS_MSTORE = 0x1;
+  public static final int NB_PP_ROWS_MSTORE8 = 0x1;
+  public static final int NB_PP_ROWS_MSTORE8_PO = 0x2;
+  public static final int NB_PP_ROWS_MSTORE_PO = 0x2;
+  public static final int NB_PP_ROWS_MSTORE_PT = 0x3;
+  public static final int NB_PP_ROWS_RAM_TO_EXO_WITH_PADDING = 0x4;
+  public static final int NB_PP_ROWS_RAM_TO_EXO_WITH_PADDING_PO = 0x5;
+  public static final int NB_PP_ROWS_RAM_TO_RAM_SANS_PADDING = 0x5;
+  public static final int NB_PP_ROWS_RAM_TO_RAM_SANS_PADDING_PO = 0x6;
+  public static final int NB_PP_ROWS_RIGHT_PADDED_WORD_EXTRACTION = 0x5;
+  public static final int NB_PP_ROWS_RIGHT_PADDED_WORD_EXTRACTION_PO = 0x6;
+  public static final int NB_PP_ROWS_RIGHT_PADDED_WORD_EXTRACTION_PT = 0x7;
+  public static final int WORD_SIZE = 0x20;
 
   private final BitSet filled = new BitSet();
   private int currentLine = 0;
@@ -152,7 +144,7 @@ public class Trace {
   private final MappedByteBuffer out4;
   private final MappedByteBuffer out5;
   private final MappedByteBuffer phase;
-  private final MappedByteBuffer phaseXorExoSum;
+  private final MappedByteBuffer phaseXorExoId;
   private final MappedByteBuffer prprc;
   private final MappedByteBuffer refOffsetXorEucA;
   private final MappedByteBuffer refSizeXorEucB;
@@ -164,13 +156,13 @@ public class Trace {
   private final MappedByteBuffer size;
   private final MappedByteBuffer sizeXorEucCeil;
   private final MappedByteBuffer slo;
-  private final MappedByteBuffer srcIdXorId1;
+  private final MappedByteBuffer srcIdXorExoSum;
   private final MappedByteBuffer srcOffsetHiXorWcpArg2Lo;
   private final MappedByteBuffer srcOffsetLo;
   private final MappedByteBuffer stamp;
   private final MappedByteBuffer successBitXorSuccessBitXorEucFlag;
   private final MappedByteBuffer tbo;
-  private final MappedByteBuffer tgtIdXorId2;
+  private final MappedByteBuffer tgtIdXorKecId;
   private final MappedByteBuffer tgtOffsetLoXorEucQuot;
   private final MappedByteBuffer tlo;
   private final MappedByteBuffer tot;
@@ -183,15 +175,15 @@ public class Trace {
 
   static List<ColumnHeader> headers(int length) {
     return List.of(
-        new ColumnHeader("mmu.AUX_ID_xor_CN_S", 32, length),
+        new ColumnHeader("mmu.AUX_ID_xor_CN_S", 8, length),
         new ColumnHeader("mmu.BIN_1", 1, length),
         new ColumnHeader("mmu.BIN_2", 1, length),
         new ColumnHeader("mmu.BIN_3", 1, length),
         new ColumnHeader("mmu.BIN_4", 1, length),
         new ColumnHeader("mmu.BIN_5", 1, length),
         new ColumnHeader("mmu.EUC_REM", 32, length),
-        new ColumnHeader("mmu.EXO_SUM_xor_CN_T", 32, length),
-        new ColumnHeader("mmu.INST_xor_INST_xor_CT", 32, length),
+        new ColumnHeader("mmu.EXO_SUM_xor_CN_T", 8, length),
+        new ColumnHeader("mmu.INST_xor_INST_xor_CT", 4, length),
         new ColumnHeader("mmu.IS_ANY_TO_RAM_WITH_PADDING_PURE_PADDING", 1, length),
         new ColumnHeader("mmu.IS_ANY_TO_RAM_WITH_PADDING_SOME_DATA", 1, length),
         new ColumnHeader("mmu.IS_BLAKE", 1, length),
@@ -210,18 +202,18 @@ public class Trace {
         new ColumnHeader("mmu.LZRO", 1, length),
         new ColumnHeader("mmu.MACRO", 1, length),
         new ColumnHeader("mmu.MICRO", 1, length),
-        new ColumnHeader("mmu.MMIO_STAMP", 32, length),
+        new ColumnHeader("mmu.MMIO_STAMP", 8, length),
         new ColumnHeader("mmu.NT_FIRST", 1, length),
         new ColumnHeader("mmu.NT_LAST", 1, length),
         new ColumnHeader("mmu.NT_MDDL", 1, length),
         new ColumnHeader("mmu.NT_ONLY", 1, length),
-        new ColumnHeader("mmu.OUT_1", 32, length),
-        new ColumnHeader("mmu.OUT_2", 32, length),
-        new ColumnHeader("mmu.OUT_3", 32, length),
-        new ColumnHeader("mmu.OUT_4", 32, length),
-        new ColumnHeader("mmu.OUT_5", 32, length),
-        new ColumnHeader("mmu.PHASE", 32, length),
-        new ColumnHeader("mmu.PHASE_xor_EXO_SUM", 32, length),
+        new ColumnHeader("mmu.OUT_1", 8, length),
+        new ColumnHeader("mmu.OUT_2", 8, length),
+        new ColumnHeader("mmu.OUT_3", 8, length),
+        new ColumnHeader("mmu.OUT_4", 8, length),
+        new ColumnHeader("mmu.OUT_5", 8, length),
+        new ColumnHeader("mmu.PHASE", 8, length),
+        new ColumnHeader("mmu.PHASE_xor_EXO_ID", 8, length),
         new ColumnHeader("mmu.PRPRC", 1, length),
         new ColumnHeader("mmu.REF_OFFSET_xor_EUC_A", 32, length),
         new ColumnHeader("mmu.REF_SIZE_xor_EUC_B", 32, length),
@@ -232,21 +224,21 @@ public class Trace {
         new ColumnHeader("mmu.SBO_xor_WCP_INST", 1, length),
         new ColumnHeader("mmu.SIZE", 1, length),
         new ColumnHeader("mmu.SIZE_xor_EUC_CEIL", 32, length),
-        new ColumnHeader("mmu.SLO", 32, length),
-        new ColumnHeader("mmu.SRC_ID_xor_ID_1", 32, length),
+        new ColumnHeader("mmu.SLO", 8, length),
+        new ColumnHeader("mmu.SRC_ID_xor_EXO_SUM", 8, length),
         new ColumnHeader("mmu.SRC_OFFSET_HI_xor_WCP_ARG_2_LO", 32, length),
         new ColumnHeader("mmu.SRC_OFFSET_LO", 32, length),
-        new ColumnHeader("mmu.STAMP", 32, length),
+        new ColumnHeader("mmu.STAMP", 8, length),
         new ColumnHeader("mmu.SUCCESS_BIT_xor_SUCCESS_BIT_xor_EUC_FLAG", 1, length),
         new ColumnHeader("mmu.TBO", 1, length),
-        new ColumnHeader("mmu.TGT_ID_xor_ID_2", 32, length),
+        new ColumnHeader("mmu.TGT_ID_xor_KEC_ID", 8, length),
         new ColumnHeader("mmu.TGT_OFFSET_LO_xor_EUC_QUOT", 32, length),
-        new ColumnHeader("mmu.TLO", 32, length),
-        new ColumnHeader("mmu.TOT", 32, length),
-        new ColumnHeader("mmu.TOTAL_SIZE", 32, length),
-        new ColumnHeader("mmu.TOTLZ", 32, length),
-        new ColumnHeader("mmu.TOTNT", 32, length),
-        new ColumnHeader("mmu.TOTRZ", 32, length),
+        new ColumnHeader("mmu.TLO", 8, length),
+        new ColumnHeader("mmu.TOT", 4, length),
+        new ColumnHeader("mmu.TOTAL_SIZE", 8, length),
+        new ColumnHeader("mmu.TOTLZ", 4, length),
+        new ColumnHeader("mmu.TOTNT", 4, length),
+        new ColumnHeader("mmu.TOTRZ", 4, length),
         new ColumnHeader("mmu.WCP_FLAG", 1, length),
         new ColumnHeader("mmu.WCP_RES", 1, length));
   }
@@ -290,7 +282,7 @@ public class Trace {
     this.out4 = buffers.get(35);
     this.out5 = buffers.get(36);
     this.phase = buffers.get(37);
-    this.phaseXorExoSum = buffers.get(38);
+    this.phaseXorExoId = buffers.get(38);
     this.prprc = buffers.get(39);
     this.refOffsetXorEucA = buffers.get(40);
     this.refSizeXorEucB = buffers.get(41);
@@ -302,13 +294,13 @@ public class Trace {
     this.size = buffers.get(47);
     this.sizeXorEucCeil = buffers.get(48);
     this.slo = buffers.get(49);
-    this.srcIdXorId1 = buffers.get(50);
+    this.srcIdXorExoSum = buffers.get(50);
     this.srcOffsetHiXorWcpArg2Lo = buffers.get(51);
     this.srcOffsetLo = buffers.get(52);
     this.stamp = buffers.get(53);
     this.successBitXorSuccessBitXorEucFlag = buffers.get(54);
     this.tbo = buffers.get(55);
-    this.tgtIdXorId2 = buffers.get(56);
+    this.tgtIdXorKecId = buffers.get(56);
     this.tgtOffsetLoXorEucQuot = buffers.get(57);
     this.tlo = buffers.get(58);
     this.tot = buffers.get(59);
@@ -580,18 +572,14 @@ public class Trace {
     return this;
   }
 
-  public Trace mmioStamp(final Bytes b) {
+  public Trace mmioStamp(final long b) {
     if (filled.get(21)) {
       throw new IllegalStateException("mmu.MMIO_STAMP already set");
     } else {
       filled.set(21);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      mmioStamp.put((byte) 0);
-    }
-    mmioStamp.put(b.toArrayUnsafe());
+    mmioStamp.putLong(b);
 
     return this;
   }
@@ -644,130 +632,98 @@ public class Trace {
     return this;
   }
 
-  public Trace out1(final Bytes b) {
+  public Trace out1(final long b) {
     if (filled.get(26)) {
       throw new IllegalStateException("mmu.OUT_1 already set");
     } else {
       filled.set(26);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      out1.put((byte) 0);
-    }
-    out1.put(b.toArrayUnsafe());
+    out1.putLong(b);
 
     return this;
   }
 
-  public Trace out2(final Bytes b) {
+  public Trace out2(final long b) {
     if (filled.get(27)) {
       throw new IllegalStateException("mmu.OUT_2 already set");
     } else {
       filled.set(27);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      out2.put((byte) 0);
-    }
-    out2.put(b.toArrayUnsafe());
+    out2.putLong(b);
 
     return this;
   }
 
-  public Trace out3(final Bytes b) {
+  public Trace out3(final long b) {
     if (filled.get(28)) {
       throw new IllegalStateException("mmu.OUT_3 already set");
     } else {
       filled.set(28);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      out3.put((byte) 0);
-    }
-    out3.put(b.toArrayUnsafe());
+    out3.putLong(b);
 
     return this;
   }
 
-  public Trace out4(final Bytes b) {
+  public Trace out4(final long b) {
     if (filled.get(29)) {
       throw new IllegalStateException("mmu.OUT_4 already set");
     } else {
       filled.set(29);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      out4.put((byte) 0);
-    }
-    out4.put(b.toArrayUnsafe());
+    out4.putLong(b);
 
     return this;
   }
 
-  public Trace out5(final Bytes b) {
+  public Trace out5(final long b) {
     if (filled.get(30)) {
       throw new IllegalStateException("mmu.OUT_5 already set");
     } else {
       filled.set(30);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      out5.put((byte) 0);
-    }
-    out5.put(b.toArrayUnsafe());
+    out5.putLong(b);
 
     return this;
   }
 
-  public Trace pMacroAuxId(final Bytes b) {
+  public Trace pMacroAuxId(final long b) {
     if (filled.get(48)) {
       throw new IllegalStateException("mmu.macro/AUX_ID already set");
     } else {
       filled.set(48);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      auxIdXorCnS.put((byte) 0);
-    }
-    auxIdXorCnS.put(b.toArrayUnsafe());
+    auxIdXorCnS.putLong(b);
 
     return this;
   }
 
-  public Trace pMacroExoSum(final Bytes b) {
+  public Trace pMacroExoSum(final long b) {
     if (filled.get(49)) {
       throw new IllegalStateException("mmu.macro/EXO_SUM already set");
     } else {
       filled.set(49);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      exoSumXorCnT.put((byte) 0);
-    }
-    exoSumXorCnT.put(b.toArrayUnsafe());
+    exoSumXorCnT.putLong(b);
 
     return this;
   }
 
-  public Trace pMacroInst(final Bytes b) {
+  public Trace pMacroInst(final int b) {
     if (filled.get(47)) {
       throw new IllegalStateException("mmu.macro/INST already set");
     } else {
       filled.set(47);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      instXorInstXorCt.put((byte) 0);
-    }
-    instXorInstXorCt.put(b.toArrayUnsafe());
+    instXorInstXorCt.putInt(b);
 
     return this;
   }
@@ -804,18 +760,14 @@ public class Trace {
     return this;
   }
 
-  public Trace pMacroPhase(final Bytes b) {
+  public Trace pMacroPhase(final long b) {
     if (filled.get(50)) {
       throw new IllegalStateException("mmu.macro/PHASE already set");
     } else {
       filled.set(50);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      phaseXorExoSum.put((byte) 0);
-    }
-    phaseXorExoSum.put(b.toArrayUnsafe());
+    phaseXorExoId.putLong(b);
 
     return this;
   }
@@ -868,18 +820,14 @@ public class Trace {
     return this;
   }
 
-  public Trace pMacroSrcId(final Bytes b) {
+  public Trace pMacroSrcId(final long b) {
     if (filled.get(51)) {
       throw new IllegalStateException("mmu.macro/SRC_ID already set");
     } else {
       filled.set(51);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      srcIdXorId1.put((byte) 0);
-    }
-    srcIdXorId1.put(b.toArrayUnsafe());
+    srcIdXorExoSum.putLong(b);
 
     return this;
   }
@@ -928,18 +876,14 @@ public class Trace {
     return this;
   }
 
-  public Trace pMacroTgtId(final Bytes b) {
+  public Trace pMacroTgtId(final long b) {
     if (filled.get(52)) {
       throw new IllegalStateException("mmu.macro/TGT_ID already set");
     } else {
       filled.set(52);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      tgtIdXorId2.put((byte) 0);
-    }
-    tgtIdXorId2.put(b.toArrayUnsafe());
+    tgtIdXorKecId.putLong(b);
 
     return this;
   }
@@ -960,98 +904,74 @@ public class Trace {
     return this;
   }
 
-  public Trace pMicroCnS(final Bytes b) {
+  public Trace pMicroCnS(final long b) {
     if (filled.get(48)) {
       throw new IllegalStateException("mmu.micro/CN_S already set");
     } else {
       filled.set(48);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      auxIdXorCnS.put((byte) 0);
-    }
-    auxIdXorCnS.put(b.toArrayUnsafe());
+    auxIdXorCnS.putLong(b);
 
     return this;
   }
 
-  public Trace pMicroCnT(final Bytes b) {
+  public Trace pMicroCnT(final long b) {
     if (filled.get(49)) {
       throw new IllegalStateException("mmu.micro/CN_T already set");
     } else {
       filled.set(49);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      exoSumXorCnT.put((byte) 0);
-    }
-    exoSumXorCnT.put(b.toArrayUnsafe());
+    exoSumXorCnT.putLong(b);
 
     return this;
   }
 
-  public Trace pMicroExoSum(final Bytes b) {
+  public Trace pMicroExoId(final long b) {
     if (filled.get(50)) {
-      throw new IllegalStateException("mmu.micro/EXO_SUM already set");
+      throw new IllegalStateException("mmu.micro/EXO_ID already set");
     } else {
       filled.set(50);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      phaseXorExoSum.put((byte) 0);
-    }
-    phaseXorExoSum.put(b.toArrayUnsafe());
+    phaseXorExoId.putLong(b);
 
     return this;
   }
 
-  public Trace pMicroId1(final Bytes b) {
+  public Trace pMicroExoSum(final long b) {
     if (filled.get(51)) {
-      throw new IllegalStateException("mmu.micro/ID_1 already set");
+      throw new IllegalStateException("mmu.micro/EXO_SUM already set");
     } else {
       filled.set(51);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      srcIdXorId1.put((byte) 0);
-    }
-    srcIdXorId1.put(b.toArrayUnsafe());
+    srcIdXorExoSum.putLong(b);
 
     return this;
   }
 
-  public Trace pMicroId2(final Bytes b) {
-    if (filled.get(52)) {
-      throw new IllegalStateException("mmu.micro/ID_2 already set");
-    } else {
-      filled.set(52);
-    }
-
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      tgtIdXorId2.put((byte) 0);
-    }
-    tgtIdXorId2.put(b.toArrayUnsafe());
-
-    return this;
-  }
-
-  public Trace pMicroInst(final Bytes b) {
+  public Trace pMicroInst(final int b) {
     if (filled.get(47)) {
       throw new IllegalStateException("mmu.micro/INST already set");
     } else {
       filled.set(47);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      instXorInstXorCt.put((byte) 0);
+    instXorInstXorCt.putInt(b);
+
+    return this;
+  }
+
+  public Trace pMicroKecId(final long b) {
+    if (filled.get(52)) {
+      throw new IllegalStateException("mmu.micro/KEC_ID already set");
+    } else {
+      filled.set(52);
     }
-    instXorInstXorCt.put(b.toArrayUnsafe());
+
+    tgtIdXorKecId.putLong(b);
 
     return this;
   }
@@ -1072,18 +992,14 @@ public class Trace {
     return this;
   }
 
-  public Trace pMicroPhase(final Bytes b) {
+  public Trace pMicroPhase(final long b) {
     if (filled.get(53)) {
       throw new IllegalStateException("mmu.micro/PHASE already set");
     } else {
       filled.set(53);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      phase.put((byte) 0);
-    }
-    phase.put(b.toArrayUnsafe());
+    phase.putLong(b);
 
     return this;
   }
@@ -1112,18 +1028,14 @@ public class Trace {
     return this;
   }
 
-  public Trace pMicroSlo(final Bytes b) {
+  public Trace pMicroSlo(final long b) {
     if (filled.get(54)) {
       throw new IllegalStateException("mmu.micro/SLO already set");
     } else {
       filled.set(54);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      slo.put((byte) 0);
-    }
-    slo.put(b.toArrayUnsafe());
+    slo.putLong(b);
 
     return this;
   }
@@ -1152,50 +1064,38 @@ public class Trace {
     return this;
   }
 
-  public Trace pMicroTlo(final Bytes b) {
+  public Trace pMicroTlo(final long b) {
     if (filled.get(55)) {
       throw new IllegalStateException("mmu.micro/TLO already set");
     } else {
       filled.set(55);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      tlo.put((byte) 0);
-    }
-    tlo.put(b.toArrayUnsafe());
+    tlo.putLong(b);
 
     return this;
   }
 
-  public Trace pMicroTotalSize(final Bytes b) {
+  public Trace pMicroTotalSize(final long b) {
     if (filled.get(56)) {
       throw new IllegalStateException("mmu.micro/TOTAL_SIZE already set");
     } else {
       filled.set(56);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      totalSize.put((byte) 0);
-    }
-    totalSize.put(b.toArrayUnsafe());
+    totalSize.putLong(b);
 
     return this;
   }
 
-  public Trace pPrprcCt(final Bytes b) {
+  public Trace pPrprcCt(final int b) {
     if (filled.get(47)) {
       throw new IllegalStateException("mmu.prprc/CT already set");
     } else {
       filled.set(47);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      instXorInstXorCt.put((byte) 0);
-    }
-    instXorInstXorCt.put(b.toArrayUnsafe());
+    instXorInstXorCt.putInt(b);
 
     return this;
   }
@@ -1436,82 +1336,62 @@ public class Trace {
     return this;
   }
 
-  public Trace stamp(final Bytes b) {
+  public Trace stamp(final long b) {
     if (filled.get(36)) {
       throw new IllegalStateException("mmu.STAMP already set");
     } else {
       filled.set(36);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      stamp.put((byte) 0);
-    }
-    stamp.put(b.toArrayUnsafe());
+    stamp.putLong(b);
 
     return this;
   }
 
-  public Trace tot(final Bytes b) {
+  public Trace tot(final int b) {
     if (filled.get(37)) {
       throw new IllegalStateException("mmu.TOT already set");
     } else {
       filled.set(37);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      tot.put((byte) 0);
-    }
-    tot.put(b.toArrayUnsafe());
+    tot.putInt(b);
 
     return this;
   }
 
-  public Trace totlz(final Bytes b) {
+  public Trace totlz(final int b) {
     if (filled.get(38)) {
       throw new IllegalStateException("mmu.TOTLZ already set");
     } else {
       filled.set(38);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      totlz.put((byte) 0);
-    }
-    totlz.put(b.toArrayUnsafe());
+    totlz.putInt(b);
 
     return this;
   }
 
-  public Trace totnt(final Bytes b) {
+  public Trace totnt(final int b) {
     if (filled.get(39)) {
       throw new IllegalStateException("mmu.TOTNT already set");
     } else {
       filled.set(39);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      totnt.put((byte) 0);
-    }
-    totnt.put(b.toArrayUnsafe());
+    totnt.putInt(b);
 
     return this;
   }
 
-  public Trace totrz(final Bytes b) {
+  public Trace totrz(final int b) {
     if (filled.get(40)) {
       throw new IllegalStateException("mmu.TOTRZ already set");
     } else {
       filled.set(40);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      totrz.put((byte) 0);
-    }
-    totrz.put(b.toArrayUnsafe());
+    totrz.putInt(b);
 
     return this;
   }
@@ -1672,7 +1552,7 @@ public class Trace {
     }
 
     if (!filled.get(50)) {
-      throw new IllegalStateException("mmu.PHASE_xor_EXO_SUM has not been filled");
+      throw new IllegalStateException("mmu.PHASE_xor_EXO_ID has not been filled");
     }
 
     if (!filled.get(31)) {
@@ -1720,7 +1600,7 @@ public class Trace {
     }
 
     if (!filled.get(51)) {
-      throw new IllegalStateException("mmu.SRC_ID_xor_ID_1 has not been filled");
+      throw new IllegalStateException("mmu.SRC_ID_xor_EXO_SUM has not been filled");
     }
 
     if (!filled.get(64)) {
@@ -1745,7 +1625,7 @@ public class Trace {
     }
 
     if (!filled.get(52)) {
-      throw new IllegalStateException("mmu.TGT_ID_xor_ID_2 has not been filled");
+      throw new IllegalStateException("mmu.TGT_ID_xor_KEC_ID has not been filled");
     }
 
     if (!filled.get(60)) {
@@ -1792,7 +1672,7 @@ public class Trace {
 
   public Trace fillAndValidateRow() {
     if (!filled.get(48)) {
-      auxIdXorCnS.position(auxIdXorCnS.position() + 32);
+      auxIdXorCnS.position(auxIdXorCnS.position() + 8);
     }
 
     if (!filled.get(0)) {
@@ -1820,11 +1700,11 @@ public class Trace {
     }
 
     if (!filled.get(49)) {
-      exoSumXorCnT.position(exoSumXorCnT.position() + 32);
+      exoSumXorCnT.position(exoSumXorCnT.position() + 8);
     }
 
     if (!filled.get(47)) {
-      instXorInstXorCt.position(instXorInstXorCt.position() + 32);
+      instXorInstXorCt.position(instXorInstXorCt.position() + 4);
     }
 
     if (!filled.get(5)) {
@@ -1900,7 +1780,7 @@ public class Trace {
     }
 
     if (!filled.get(21)) {
-      mmioStamp.position(mmioStamp.position() + 32);
+      mmioStamp.position(mmioStamp.position() + 8);
     }
 
     if (!filled.get(22)) {
@@ -1920,31 +1800,31 @@ public class Trace {
     }
 
     if (!filled.get(26)) {
-      out1.position(out1.position() + 32);
+      out1.position(out1.position() + 8);
     }
 
     if (!filled.get(27)) {
-      out2.position(out2.position() + 32);
+      out2.position(out2.position() + 8);
     }
 
     if (!filled.get(28)) {
-      out3.position(out3.position() + 32);
+      out3.position(out3.position() + 8);
     }
 
     if (!filled.get(29)) {
-      out4.position(out4.position() + 32);
+      out4.position(out4.position() + 8);
     }
 
     if (!filled.get(30)) {
-      out5.position(out5.position() + 32);
+      out5.position(out5.position() + 8);
     }
 
     if (!filled.get(53)) {
-      phase.position(phase.position() + 32);
+      phase.position(phase.position() + 8);
     }
 
     if (!filled.get(50)) {
-      phaseXorExoSum.position(phaseXorExoSum.position() + 32);
+      phaseXorExoId.position(phaseXorExoId.position() + 8);
     }
 
     if (!filled.get(31)) {
@@ -1988,11 +1868,11 @@ public class Trace {
     }
 
     if (!filled.get(54)) {
-      slo.position(slo.position() + 32);
+      slo.position(slo.position() + 8);
     }
 
     if (!filled.get(51)) {
-      srcIdXorId1.position(srcIdXorId1.position() + 32);
+      srcIdXorExoSum.position(srcIdXorExoSum.position() + 8);
     }
 
     if (!filled.get(64)) {
@@ -2004,7 +1884,7 @@ public class Trace {
     }
 
     if (!filled.get(36)) {
-      stamp.position(stamp.position() + 32);
+      stamp.position(stamp.position() + 8);
     }
 
     if (!filled.get(41)) {
@@ -2016,7 +1896,7 @@ public class Trace {
     }
 
     if (!filled.get(52)) {
-      tgtIdXorId2.position(tgtIdXorId2.position() + 32);
+      tgtIdXorKecId.position(tgtIdXorKecId.position() + 8);
     }
 
     if (!filled.get(60)) {
@@ -2024,27 +1904,27 @@ public class Trace {
     }
 
     if (!filled.get(55)) {
-      tlo.position(tlo.position() + 32);
+      tlo.position(tlo.position() + 8);
     }
 
     if (!filled.get(37)) {
-      tot.position(tot.position() + 32);
+      tot.position(tot.position() + 4);
     }
 
     if (!filled.get(56)) {
-      totalSize.position(totalSize.position() + 32);
+      totalSize.position(totalSize.position() + 8);
     }
 
     if (!filled.get(38)) {
-      totlz.position(totlz.position() + 32);
+      totlz.position(totlz.position() + 4);
     }
 
     if (!filled.get(39)) {
-      totnt.position(totnt.position() + 32);
+      totnt.position(totnt.position() + 4);
     }
 
     if (!filled.get(40)) {
-      totrz.position(totrz.position() + 32);
+      totrz.position(totrz.position() + 4);
     }
 
     if (!filled.get(42)) {

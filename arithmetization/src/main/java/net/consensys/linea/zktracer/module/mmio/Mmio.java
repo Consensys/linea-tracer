@@ -70,7 +70,7 @@ public class Mmio implements Module {
 
     for (MmioOperation o : this.state) {
       MmioDataProcessor processor = o.mmioDataProcessor();
-      int maxCounter = maxCounter(o.microData());
+      int maxCounter = maxCounter(o.mmuData());
 
       MmioData mmioData = processor.dispatchMmioData();
       for (int i = 0; i < maxCounter; i++) {
@@ -81,16 +81,16 @@ public class Mmio implements Module {
   }
 
   public void handleRam(
-      final MmuData microData, final State.TxState.Stamps moduleStamps, final int microStamp) {
-    if (microData.microOp() == 0) {
+      final MmuData mmuData, final State.TxState.Stamps moduleStamps, final int microStamp) {
+    if (mmuData.microOp() == 0) {
       return;
     }
 
     MmioDataProcessor mmioDataProcessor =
-        new MmioDataProcessor(romLex, microData, new CallStackReader(callStack));
+        new MmioDataProcessor(romLex, mmuData, new CallStackReader(callStack));
     boolean isInitCode = callStack.current().type() == CallFrameType.INIT_CODE;
 
     this.state.add(
-        new MmioOperation(microData, mmioDataProcessor, moduleStamps, microStamp, isInitCode));
+        new MmioOperation(mmuData, mmioDataProcessor, moduleStamps, microStamp, isInitCode));
   }
 }

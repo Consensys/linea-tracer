@@ -28,13 +28,12 @@ import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.hub.State;
 import net.consensys.linea.zktracer.module.mmu.MmuData;
 import net.consensys.linea.zktracer.types.UnsignedByte;
-import org.apache.tuweni.bytes.Bytes;
 
 @RequiredArgsConstructor
 @Accessors(fluent = true)
 @Getter
 class MmioOperation extends ModuleOperation {
-  private final MmuData microData;
+  private final MmuData mmuData;
   private final MmioDataProcessor mmioDataProcessor;
   private final State.TxState.Stamps moduleStamps;
   private final int microStamp;
@@ -42,17 +41,17 @@ class MmioOperation extends ModuleOperation {
 
   @Override
   protected int computeLineCount() {
-    return 1 + maxCounter(microData);
+    return 1 + maxCounter(mmuData);
   }
 
   void trace(Trace trace, MmioData mmioData, int txNum, int counter) {
     trace
-        .cnA(Bytes.ofUnsignedInt(mmioData.cnA()))
-        .cnB(Bytes.ofUnsignedInt(mmioData.cnB()))
-        .cnC(Bytes.ofUnsignedInt(mmioData.cnC()))
-        .indexA(Bytes.ofUnsignedInt(mmioData.indexA()))
-        .indexB(Bytes.ofUnsignedInt(mmioData.indexB()))
-        .indexC(Bytes.ofUnsignedInt(mmioData.indexC()))
+        .cnA(mmioData.cnA())
+        .cnB(mmioData.cnB())
+        .cnC(mmioData.cnC())
+        .indexA(UnsignedByte.of(mmioData.indexA()))
+        .indexB(UnsignedByte.of(mmioData.indexB()))
+        .indexC(UnsignedByte.of(mmioData.indexC()))
         .valA(unsignedBytesToBytes(mmioData.valA()))
         .valB(unsignedBytesToBytes(mmioData.valB()))
         .valC(unsignedBytesToBytes(mmioData.valC()))
@@ -65,34 +64,36 @@ class MmioOperation extends ModuleOperation {
         .accA(unsignedBytesSubArrayToBytes(mmioData.valA(), counter + 1))
         .accB(unsignedBytesSubArrayToBytes(mmioData.valB(), counter + 1))
         .accC(unsignedBytesSubArrayToBytes(mmioData.valC(), counter + 1))
-        .microInstructionStamp(Bytes.of(microStamp))
-        .microInstruction(Bytes.ofUnsignedInt(microData.microOp()))
-        .contextSource(Bytes.ofUnsignedInt(microData.sourceContextId()))
-        .contextTarget(Bytes.ofUnsignedInt(microData.targetContextId()))
-        .isInit(isInitCode)
-        .sourceLimbOffset(microData.sourceLimbOffset())
-        .targetLimbOffset(microData.targetLimbOffset())
-        .sourceByteOffset(Bytes.of(microData.sourceByteOffset().toByte()))
-        .targetByteOffset(Bytes.of(microData.targetByteOffset().toByte()))
-        .size(Bytes.ofUnsignedInt(microData.size()))
-        .erf(microData.isErf())
-        .fast(microData.isFast())
-        .stackValueHigh(unsignedBytesToBytes(mmioData.valHi()))
-        .stackValueLow(unsignedBytesToBytes(mmioData.valLo()))
-        .stackValueHiByte(Objects.requireNonNullElse(mmioData.valHi()[counter], UnsignedByte.ZERO))
-        .stackValueLoByte(Objects.requireNonNullElse(mmioData.valLo()[counter], UnsignedByte.ZERO))
-        .accValHi(unsignedBytesSubArrayToBytes(mmioData.valHi(), counter + 1))
-        .accValLo(unsignedBytesSubArrayToBytes(mmioData.valLo(), counter + 1))
-        .exoIsRom(microData.exoIsRom())
-        .exoIsLog(microData.exoIsLog())
-        .exoIsHash(microData.exoIsHash())
-        .exoIsTxcd(microData.exoIsTxcd())
-        .indexX(Bytes.ofUnsignedInt(mmioData.indexX()))
-        .valX(unsignedBytesToBytes(mmioData.valX()))
-        .byteX(Objects.requireNonNullElse(mmioData.valX()[counter], UnsignedByte.ZERO))
-        .accX(unsignedBytesSubArrayToBytes(mmioData.valX(), counter + 1))
-        .txNum(Bytes.ofUnsignedInt(txNum))
-        .logNum(Bytes.ofUnsignedInt(moduleStamps.log()))
+        //        .microInstructionStamp(Bytes.of(microStamp))
+        //        .microInstruction(Bytes.ofUnsignedInt(microData.microOp()))
+        .contextSource(mmuData.sourceContextId())
+        .contextTarget(mmuData.targetContextId())
+        //        .isInit(isInitCode)
+        .sourceLimbOffset(mmuData.sourceLimbOffset().toLong())
+        .targetLimbOffset(mmuData.targetLimbOffset().toLong())
+        .sourceByteOffset((short) mmuData.sourceByteOffset().toInteger())
+        .targetByteOffset((short) mmuData.targetByteOffset().toInteger())
+        .size(mmuData.hubToMmuValues().size())
+        //        .erf(microData.isErf())
+        //        .fast(microData.isFast())
+        //        .stackValueHigh(unsignedBytesToBytes(mmioData.valHi()))
+        //        .stackValueLow(unsignedBytesToBytes(mmioData.valLo()))
+        //        .stackValueHiByte(Objects.requireNonNullElse(mmioData.valHi()[counter],
+        // UnsignedByte.ZERO))
+        //        .stackValueLoByte(Objects.requireNonNullElse(mmioData.valLo()[counter],
+        // UnsignedByte.ZERO))
+        //        .accValHi(unsignedBytesSubArrayToBytes(mmioData.valHi(), counter + 1))
+        //        .accValLo(unsignedBytesSubArrayToBytes(mmioData.valLo(), counter + 1))
+        .exoIsRom(mmuData.exoIsRom())
+        .exoIsLog(mmuData.exoIsLog())
+        //        .exoIsHash(mmuData.exoIsHash())
+        .exoIsTxcd(mmuData.exoIsTxcd())
+        .indexX(mmioData.indexX())
+        //        .valX(unsignedBytesToBytes(mmioData.valX()))
+        //        .byteX(Objects.requireNonNullElse(mmioData.valX()[counter], UnsignedByte.ZERO))
+        //        .accX(unsignedBytesSubArrayToBytes(mmioData.valX(), counter + 1))
+        //        .txNum(Bytes.ofUnsignedInt(txNum))
+        //        .logNum(Bytes.ofUnsignedInt(moduleStamps.log()))
         .bin1(mmioData.bin1())
         .bin2(mmioData.bin2())
         .bin3(mmioData.bin3())
@@ -102,11 +103,11 @@ class MmioOperation extends ModuleOperation {
         .acc2(mmioData.acc2())
         .acc3(mmioData.acc3())
         .acc4(mmioData.acc4())
-        .acc5(mmioData.acc5())
-        .acc6(mmioData.acc6())
+        //        .acc5(mmioData.acc5())
+        //        .acc6(mmioData.acc6())
         .pow2561(mmioData.pow2561())
         .pow2562(mmioData.pow2562())
-        .counter(Bytes.ofUnsignedInt(counter))
+        .counter((short) counter)
         .validateRow();
   }
 }

@@ -24,7 +24,7 @@ import net.consensys.linea.zktracer.types.UnsignedByte;
 
 @RequiredArgsConstructor
 public class RamLimbExcisionDispatcher implements MmioDispatcher {
-  private final MmuData microData;
+  private final MmuData mmuData;
 
   private final CallStackReader callStackReader;
 
@@ -33,11 +33,11 @@ public class RamLimbExcisionDispatcher implements MmioDispatcher {
     MmioData mmioData = new MmioData();
 
     mmioData.cnA(0);
-    mmioData.cnB(microData.targetContextId());
+    mmioData.cnB(mmuData.targetContextId());
     mmioData.cnC(0);
 
     mmioData.indexA(0);
-    mmioData.indexB(microData.targetLimbOffset().toInt());
+    mmioData.indexB(mmuData.targetLimbOffset().toInt());
     mmioData.indexC(0);
 
     mmioData.valA(UnsignedByte.EMPTY_BYTES16);
@@ -46,7 +46,10 @@ public class RamLimbExcisionDispatcher implements MmioDispatcher {
 
     mmioData.valANew(mmioData.valA());
     mmioData.valBNew(
-        excise(mmioData.valB(), microData.targetByteOffset().toInteger(), microData.size()));
+        excise(
+            mmioData.valB(),
+            mmuData.targetByteOffset().toInteger(),
+            mmuData.mmuToMmioInstructions().size()));
     mmioData.valCNew(mmioData.valC());
 
     mmioData.updateLimbsInMemory(callStackReader.callStack());
@@ -79,8 +82,8 @@ public class RamLimbExcisionDispatcher implements MmioDispatcher {
     mmioData.excision(
         mmioData.byteB(counter),
         mmioData.acc1(),
-        microData.targetByteOffset(),
-        microData.size(),
+        mmuData.targetByteOffset(),
+        mmuData.mmuToMmioInstructions().size(),
         counter);
   }
 }

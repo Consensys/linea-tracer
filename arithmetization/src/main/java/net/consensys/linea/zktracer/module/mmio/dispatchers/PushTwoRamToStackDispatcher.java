@@ -25,7 +25,7 @@ import net.consensys.linea.zktracer.types.UnsignedByte;
 
 @RequiredArgsConstructor
 public class PushTwoRamToStackDispatcher implements MmioDispatcher {
-  private final MmuData microData;
+  private final MmuData mmuData;
 
   private final CallStackReader callStackReader;
 
@@ -33,8 +33,8 @@ public class PushTwoRamToStackDispatcher implements MmioDispatcher {
   public MmioData dispatch() {
     MmioData mmioData = new MmioData();
 
-    int sourceContext = microData.sourceContextId();
-    if (microData.opCode() == OpCode.CALLDATALOAD) {
+    int sourceContext = mmuData.sourceContextId();
+    if (mmuData.opCode() == OpCode.CALLDATALOAD) {
       sourceContext = callStackReader.callStack().current().parentFrame();
     }
 
@@ -42,14 +42,14 @@ public class PushTwoRamToStackDispatcher implements MmioDispatcher {
     mmioData.cnB(sourceContext);
     mmioData.cnC(0);
 
-    int sourceLimbOffset = microData.sourceLimbOffset().toInt();
+    int sourceLimbOffset = mmuData.sourceLimbOffset().toInt();
     mmioData.indexA(sourceLimbOffset);
     mmioData.indexB(sourceLimbOffset + 1);
     mmioData.indexC(0);
 
-    Preconditions.checkState(
-        !microData.isRootContext() && !microData.isType5(),
-        "Should be: EXCEPTIONAL_RAM_TO_STACK_3_TO_2_FULL_FAST");
+    //    Preconditions.checkState(
+    //        !mmuData.isRootContext() && !mmuData.isType5(),
+    //        "Should be: EXCEPTIONAL_RAM_TO_STACK_3_TO_2_FULL_FAST");
 
     mmioData.valA(callStackReader.valueFromMemory(mmioData.cnA(), mmioData.indexA()));
     mmioData.valB(callStackReader.valueFromMemory(mmioData.cnB(), mmioData.indexB()));
@@ -62,14 +62,14 @@ public class PushTwoRamToStackDispatcher implements MmioDispatcher {
     mmioData.valCNew(UnsignedByte.EMPTY_BYTES16);
 
     Preconditions.checkState(
-        !mmioData.valAEword().equals(microData.eWordValue().hi())
-            || !mmioData.valBEword().equals(microData.eWordValue().lo()),
+        !mmioData.valAEword().equals(mmuData.eWordValue().hi())
+            || !mmioData.valBEword().equals(mmuData.eWordValue().lo()),
         """
 Inconsistent memorySegmentSnapshot:
   expected mmioData.valA = %s found microOp.hi = %s
   expected mmioData.valB = %s found microOp.lo = %s
     """
-            .formatted(valA, microData.eWordValue().hi(), valB, microData.eWordValue().lo()));
+            .formatted(valA, mmuData.eWordValue().hi(), valB, mmuData.eWordValue().lo()));
 
     mmioData.valHi(valA);
     mmioData.valLo(valB);

@@ -22,35 +22,35 @@ import net.consensys.linea.zktracer.module.mmu.MmuData;
 import net.consensys.linea.zktracer.module.romLex.RomLex;
 
 class MmioDataProcessor {
-  private final MmuData microData;
+  private final MmuData mmuData;
   private final Dispatchers dispatchers;
 
   MmioDataProcessor(
-      final RomLex romLex, final MmuData microData, final CallStackReader callStackReader) {
-    this.microData = microData;
-    this.dispatchers = new Dispatchers(microData, callStackReader, romLex);
+      final RomLex romLex, final MmuData mmuData, final CallStackReader callStackReader) {
+    this.mmuData = mmuData;
+    this.dispatchers = new Dispatchers(mmuData, callStackReader, romLex);
   }
 
   MmioData dispatchMmioData() {
     for (Map.Entry<Integer, MmioDispatcher> e : dispatchers.typeMap().entrySet()) {
-      if (e.getKey().equals(microData.microOp())) {
+      if (e.getKey().equals(mmuData.microOp())) {
         return e.getValue().dispatch();
       }
     }
 
-    throw new RuntimeException(
-        "Micro instruction not supported: %s".formatted(microData.microOp()));
+    throw new RuntimeException("Micro instruction not supported: %s".formatted(mmuData.microOp()));
   }
 
   void updateMmioData(MmioData mmioData, int counter) {
     for (Map.Entry<Integer, MmioDispatcher> e : dispatchers.typeMap().entrySet()) {
-      if (e.getKey().equals(microData.microOp())) {
+      if (e.getKey().equals(mmuData.microOp())) {
         e.getValue().update(mmioData, counter);
       }
     }
   }
 
-  static int maxCounter(final MmuData microData) {
-    return microData.isFast() ? 0 : 15;
+  static int maxCounter(final MmuData mmuData) {
+    //    return mmuData.isFast() ? 0 : 15;
+    return 0;
   }
 }

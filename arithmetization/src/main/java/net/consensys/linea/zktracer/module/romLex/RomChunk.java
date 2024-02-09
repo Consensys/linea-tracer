@@ -168,7 +168,7 @@ public final class RomChunk extends ModuleOperation {
 
   @Override
   protected int computeLineCount() {
-    final int nPaddingRow = 32;
+    final int nPaddingRow = 2 * LLARGE;
     final int codeSize = this.byteCode.size();
     final int nbSlice = (codeSize + (LLARGE - 1)) / LLARGE;
 

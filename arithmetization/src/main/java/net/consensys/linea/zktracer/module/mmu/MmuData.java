@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.mmu;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -22,12 +23,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.module.mmu.precomputations.HubToMmuValues;
-import net.consensys.linea.zktracer.module.mmu.precomputations.MmuEucCallRecord;
-import net.consensys.linea.zktracer.module.mmu.precomputations.MmuOutAndBinValues;
-import net.consensys.linea.zktracer.module.mmu.precomputations.MmuToMmioConstantValues;
-import net.consensys.linea.zktracer.module.mmu.precomputations.MmuToMmioInstruction;
-import net.consensys.linea.zktracer.module.mmu.precomputations.MmuWcpCallRecord;
+import net.consensys.linea.zktracer.module.mmu.values.HubToMmuValues;
+import net.consensys.linea.zktracer.module.mmu.values.MmuEucCallRecord;
+import net.consensys.linea.zktracer.module.mmu.values.MmuOutAndBinValues;
+import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioConstantValues;
+import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioInstruction;
+import net.consensys.linea.zktracer.module.mmu.values.MmuWcpCallRecord;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
@@ -111,7 +112,8 @@ public class MmuData {
   @Getter @Setter private MmuOutAndBinValues outAndBinValues;
   @Getter @Setter private HubToMmuValues hubToMmuValues;
   @Getter @Setter private MmuToMmioConstantValues mmuToMmioConstantValues;
-  @Getter @Setter private List<MmuToMmioInstruction> mmuToMmioInstructions;
+  @Getter @Setter private List<MmuToMmioInstruction> mmuToMmioInstructions = new ArrayList<>();
+  @Getter @Setter private boolean mmuInstAnyToRamWithPaddingIsPurePadding;
 
   public int numberMmioInstructions() {
     return totalLeftZeroesInitials + totalNonTrivialInitials + totalRightZeroesInitials;

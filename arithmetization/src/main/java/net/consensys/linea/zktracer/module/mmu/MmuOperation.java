@@ -26,12 +26,13 @@ import java.util.List;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
-import net.consensys.linea.zktracer.module.mmu.precomputations.HubToMmuValues;
-import net.consensys.linea.zktracer.module.mmu.precomputations.MmuEucCallRecord;
-import net.consensys.linea.zktracer.module.mmu.precomputations.MmuOutAndBinValues;
-import net.consensys.linea.zktracer.module.mmu.precomputations.MmuToMmioConstantValues;
-import net.consensys.linea.zktracer.module.mmu.precomputations.MmuToMmioInstruction;
-import net.consensys.linea.zktracer.module.mmu.precomputations.MmuWcpCallRecord;
+import net.consensys.linea.zktracer.module.mmu.values.HubToMmuValues;
+import net.consensys.linea.zktracer.module.mmu.values.MmuEucCallRecord;
+import net.consensys.linea.zktracer.module.mmu.values.MmuOutAndBinValues;
+import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioConstantValues;
+import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioInstruction;
+import net.consensys.linea.zktracer.module.mmu.values.MmuWcpCallRecord;
+import net.consensys.linea.zktracer.module.mmu.values.RowTypeRecord;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
@@ -41,8 +42,8 @@ class MmuOperation extends ModuleOperation {
   @Getter private final MmuData mmuData;
   private final CallStack callStack;
 
-  MmuOperation(MmuData microData, CallStack callStack) {
-    this.mmuData = microData;
+  MmuOperation(MmuData mmuData, CallStack callStack) {
+    this.mmuData = mmuData;
     this.callStack = callStack;
   }
 
@@ -52,21 +53,15 @@ class MmuOperation extends ModuleOperation {
   }
 
   void trace(final int mmuStamp, final int mmioStamp, Trace trace) {
-    //    if (mmuData.skip()) {
-    //      return;
-    //    }
-
-    final Bytes mmuStampBytes = Bytes.ofUnsignedShort(mmuStamp);
-    final Bytes mmioStampInit = Bytes.ofUnsignedShort(mmioStamp);
 
     // Trace Macro Instruction decoding Row
-    traceMacroRow(mmuStampBytes, mmioStampInit, trace);
+    traceMacroRow(mmuStamp, mmioStamp, trace);
 
     // Trace Preprocessing rows
-    tracePreprocessingRows(this.mmuData, mmuStampBytes, mmioStampInit, trace);
+    tracePreprocessingRows(this.mmuData, mmuStamp, mmioStamp, trace);
 
     // Trace Micro Instructions Rows
-    traceMicroRows(mmuStampBytes, mmioStamp, trace);
+    traceMicroRows(mmuStamp, mmioStamp, trace);
   }
 
   private void traceFillMmuInstructionFlag(Trace trace) {
@@ -81,9 +76,11 @@ class MmuOperation extends ModuleOperation {
         .isExoToRamTransplants(mmuInstruction == Trace.MMU_INST_EXO_TO_RAM_TRANSPLANTS)
         .isRamToRamSansPadding(mmuInstruction == Trace.MMU_INST_RAM_TO_RAM_SANS_PADDING)
         .isAnyToRamWithPaddingSomeData(
-            mmuInstruction == Trace.MMU_INST_ANY_TO_RAM_WITH_PADDING_SOME_DATA)
+            mmuInstruction == Trace.MMU_INST_ANY_TO_RAM_WITH_PADDING
+                && !mmuData.mmuInstAnyToRamWithPaddingIsPurePadding())
         .isAnyToRamWithPaddingPurePadding(
-            mmuInstruction == Trace.MMU_INST_ANY_TO_RAM_WITH_PADDING_PURE_PADDING)
+            mmuInstruction == Trace.MMU_INST_ANY_TO_RAM_WITH_PADDING
+                && mmuData.mmuInstAnyToRamWithPaddingIsPurePadding())
         .isModexpZero(mmuInstruction == Trace.MMU_INST_MODEXP_ZERO)
         .isModexpData(mmuInstruction == Trace.MMU_INST_MODEXP_DATA)
         .isBlake(mmuInstruction == Trace.MMU_INST_BLAKE);
@@ -93,11 +90,11 @@ class MmuOperation extends ModuleOperation {
     MmuOutAndBinValues mmuOutAndBinRecord = mmuData.outAndBinValues();
 
     trace
-        .out1(Bytes.ofUnsignedInt(mmuOutAndBinRecord.out1()))
-        .out2(Bytes.ofUnsignedInt(mmuOutAndBinRecord.out2()))
-        .out3(Bytes.ofUnsignedInt(mmuOutAndBinRecord.out3()))
-        .out4(Bytes.ofUnsignedInt(mmuOutAndBinRecord.out4()))
-        .out5(Bytes.ofUnsignedInt(mmuOutAndBinRecord.out5()))
+        .out1(mmuOutAndBinRecord.out1())
+        .out2(mmuOutAndBinRecord.out2())
+        .out3(mmuOutAndBinRecord.out3())
+        .out4(mmuOutAndBinRecord.out4())
+        .out5(mmuOutAndBinRecord.out5())
         .bin1(mmuOutAndBinRecord.bin1())
         .bin2(mmuOutAndBinRecord.bin2())
         .bin3(mmuOutAndBinRecord.bin3())
@@ -105,7 +102,7 @@ class MmuOperation extends ModuleOperation {
         .bin5(mmuOutAndBinRecord.bin5());
   }
 
-  private void traceMacroRow(final Bytes mmuStamp, final Bytes mmioStamp, Trace trace) {
+  private void traceMacroRow(final long mmuStamp, final long mmioStamp, Trace trace) {
     traceFillMmuInstructionFlag(trace);
     traceOutAndBin(trace);
 
@@ -117,14 +114,14 @@ class MmuOperation extends ModuleOperation {
         .macro(true)
         .prprc(false)
         .micro(false)
-        .tot(Bytes.ofUnsignedLong(mmuData.numberMmioInstructions()))
-        .totlz(Bytes.ofUnsignedLong(mmuData.totalLeftZeroesInitials()))
-        .totnt(Bytes.ofUnsignedLong(mmuData.totalNonTrivialInitials()))
-        .totrz(Bytes.ofUnsignedLong(mmuData.totalRightZeroesInitials()))
-        .pMacroInst(Bytes.ofUnsignedShort(mmuHubInput.mmuInstruction()))
-        .pMacroSrcId(Bytes.ofUnsignedInt(mmuHubInput.sourceId()))
-        .pMacroTgtId(Bytes.ofUnsignedInt(mmuHubInput.targetId()))
-        .pMacroAuxId(Bytes.ofUnsignedInt(mmuHubInput.auxId()))
+        .tot(mmuData.numberMmioInstructions())
+        .totlz(mmuData.totalLeftZeroesInitials())
+        .totnt(mmuData.totalNonTrivialInitials())
+        .totrz(mmuData.totalRightZeroesInitials())
+        .pMacroInst(mmuHubInput.mmuInstruction())
+        .pMacroSrcId(mmuHubInput.sourceId())
+        .pMacroTgtId(mmuHubInput.targetId())
+        .pMacroAuxId(mmuHubInput.auxId())
         .pMacroSrcOffsetHi(bigIntegerToBytes(mmuHubInput.sourceOffsetHi()))
         .pMacroSrcOffsetLo(bigIntegerToBytes(mmuHubInput.sourceOffsetLo()))
         .pMacroTgtOffsetLo(Bytes.ofUnsignedLong(mmuHubInput.targetOffset()))
@@ -134,34 +131,30 @@ class MmuOperation extends ModuleOperation {
         .pMacroSuccessBit(mmuHubInput.successBit())
         .pMacroLimb1(mmuHubInput.limb1())
         .pMacroLimb2(mmuHubInput.limb2())
-        .pMacroPhase(Bytes.ofUnsignedInt(mmuHubInput.phase()))
-        .pMacroExoSum(Bytes.ofUnsignedInt(mmuHubInput.exoSum()))
+        .pMacroPhase(mmuHubInput.phase())
+        .pMacroExoSum(mmuHubInput.exoSum())
         .fillAndValidateRow();
   }
 
   private void tracePreprocessingRows(
-      final MmuData mmuData, final Bytes mmuStamp, final Bytes mmioStamp, Trace trace) {
-    final Bytes totalLeftZeroes = Bytes.ofUnsignedLong(mmuData.totalLeftZeroesInitials());
-    final Bytes totalNonTrivial = Bytes.ofUnsignedLong(mmuData.totalNonTrivialInitials());
-    final Bytes totalRightZeroes = Bytes.ofUnsignedLong(mmuData.totalRightZeroesInitials());
-    final Bytes total = Bytes.ofUnsignedLong(mmuData.numberMmioInstructions());
+      final MmuData mmuData, final long mmuStamp, final long mmioStamp, Trace trace) {
 
     for (int i = 1; i <= mmuData().numberMmuPreprocessingRows(); i++) {
       traceFillMmuInstructionFlag(trace);
       traceOutAndBin(trace);
-      MmuEucCallRecord currentMmuEucCallRecord = mmuData.eucCallRecords().get(i);
-      MmuWcpCallRecord currentMmuWcpCallRecord = mmuData.wcpCallRecords().get(i);
+      MmuEucCallRecord currentMmuEucCallRecord = mmuData.eucCallRecords().get(i - 1);
+      MmuWcpCallRecord currentMmuWcpCallRecord = mmuData.wcpCallRecords().get(i - 1);
       trace
           .stamp(mmuStamp)
           .mmioStamp(mmioStamp)
           .macro(false)
           .prprc(true)
           .micro(false)
-          .tot(total)
-          .totlz(totalLeftZeroes)
-          .totnt(totalNonTrivial)
-          .totrz(totalRightZeroes)
-          .pPrprcCt(Bytes.of(mmuData.numberMmuPreprocessingRows() - i))
+          .tot(mmuData.numberMmioInstructions())
+          .totlz(mmuData.totalLeftZeroesInitials())
+          .totnt(mmuData.totalNonTrivialInitials())
+          .totrz(mmuData.totalRightZeroesInitials())
+          .pPrprcCt(mmuData.numberMmuPreprocessingRows() - i)
           .pPrprcEucFlag(currentMmuEucCallRecord.flag())
           .pPrprcEucA(Bytes.ofUnsignedLong(currentMmuEucCallRecord.dividend()))
           .pPrprcEucB(Bytes.ofUnsignedLong(currentMmuEucCallRecord.divisor()))
@@ -169,7 +162,7 @@ class MmuOperation extends ModuleOperation {
           .pPrprcEucRem(Bytes.ofUnsignedLong(currentMmuEucCallRecord.remainder()))
           .pPrprcEucCeil(
               Bytes.ofUnsignedLong(
-                  currentMmuEucCallRecord.remainder() == 0 && currentMmuWcpCallRecord.flag()
+                  currentMmuEucCallRecord.remainder() == 0 && currentMmuEucCallRecord.flag()
                       ? currentMmuEucCallRecord.quotient() + 1
                       : currentMmuEucCallRecord.quotient()))
           .pPrprcWcpFlag(currentMmuWcpCallRecord.flag())
@@ -182,10 +175,13 @@ class MmuOperation extends ModuleOperation {
     }
   }
 
-  private List<RowTypeRecord> generateRowTypeList(
-      final int totLeftZeroInit, final int totNonTrivialInit, final int totRightZeroInit) {
+  private List<RowTypeRecord> generateRowTypeList() {
     final int totInit = mmuData().numberMmioInstructions();
     List<RowTypeRecord> output = new ArrayList<>(totInit);
+
+    final int totLeftZeroInit = mmuData.totalLeftZeroesInitials();
+    final int totNonTrivialInit = mmuData.totalNonTrivialInitials();
+    final int totRightZeroInit = mmuData.totalRightZeroesInitials();
 
     int totLeftZero = totLeftZeroInit;
     int totNonTrivial = totNonTrivialInit;
@@ -237,24 +233,13 @@ class MmuOperation extends ModuleOperation {
     return output;
   }
 
-  private void traceMicroRows(final Bytes mmuStamp, int mmioStamp, Trace trace) {
-    final List<RowTypeRecord> rowType =
-        generateRowTypeList(
-            this.mmuData.totalLeftZeroesInitials(),
-            this.mmuData.totalNonTrivialInitials(),
-            this.mmuData.totalRightZeroesInitials());
+  private void traceMicroRows(final long mmuStamp, int mmioStamp, Trace trace) {
+    final List<RowTypeRecord> rowType = generateRowTypeList();
     final HubToMmuValues mmuHubInput = mmuData.hubToMmuValues();
 
-    final Bytes exoSum = Bytes.ofUnsignedInt(mmuHubInput.exoSum());
-    final Bytes phase = Bytes.ofUnsignedInt(mmuHubInput.phase());
     final boolean successBit = mmuHubInput.successBit();
 
     final MmuToMmioConstantValues mmioConstantValues = mmuData.mmuToMmioConstantValues();
-    final Bytes sourceContextNumber = Bytes.ofUnsignedInt(mmioConstantValues.sourceContextNumber());
-    final Bytes targetContextNumber = Bytes.ofUnsignedInt(mmioConstantValues.targetContextNumber());
-    final Bytes microId1 = Bytes.ofUnsignedInt(mmioConstantValues.microId1());
-    final Bytes microId2 = Bytes.ofUnsignedInt(mmioConstantValues.microId2());
-    final Bytes microTotalSize = Bytes.ofUnsignedInt(mmioConstantValues.totalSize());
 
     for (int i = 0; i < mmuData().numberMmioInstructions(); i++) {
       mmioStamp += 1;
@@ -267,14 +252,14 @@ class MmuOperation extends ModuleOperation {
 
       trace
           .stamp(mmuStamp)
-          .mmioStamp(Bytes.ofUnsignedShort(mmioStamp))
+          .mmioStamp(mmioStamp)
           .macro(false)
           .prprc(false)
           .micro(true)
-          .tot(Bytes.ofUnsignedShort(currentRowTypeRecord.total()))
-          .totlz(Bytes.ofUnsignedShort(currentRowTypeRecord.totalLeftZeroes()))
-          .totnt(Bytes.ofUnsignedShort(currentRowTypeRecord.totalNonTrivial()))
-          .totrz(Bytes.ofUnsignedShort(currentRowTypeRecord.totalRightZeroes()))
+          .tot(currentRowTypeRecord.total())
+          .totlz(currentRowTypeRecord.totalLeftZeroes())
+          .totnt(currentRowTypeRecord.totalNonTrivial())
+          .totrz(currentRowTypeRecord.totalRightZeroes())
           .lzro(currentRowTypeRecord.leftZeroRow())
           .ntOnly(currentRowTypeRecord.onlyNonTrivialRow())
           .ntFirst(currentRowTypeRecord.firstNonTrivialRow())
@@ -284,21 +269,21 @@ class MmuOperation extends ModuleOperation {
           .rzFirst(currentRowTypeRecord.firstRightZeroRow())
           .rzMddl(currentRowTypeRecord.middleRightZeroRow())
           .rzLast(currentRowTypeRecord.lastRightZeroRow())
-          .pMicroInst(Bytes.ofUnsignedInt(currentMmuToMmioInstruction.mmioInstruction()))
+          .pMicroInst(currentMmuToMmioInstruction.mmioInstruction())
           .pMicroSize(UnsignedByte.of(currentMmuToMmioInstruction.size()))
-          .pMicroSlo(Bytes.ofUnsignedInt(currentMmuToMmioInstruction.sourceLimbOffset()))
+          .pMicroSlo(currentMmuToMmioInstruction.sourceLimbOffset())
           .pMicroSbo(UnsignedByte.of(currentMmuToMmioInstruction.sourceByteOffset()))
-          .pMicroTlo(Bytes.ofUnsignedInt(currentMmuToMmioInstruction.targetLimbOffset()))
+          .pMicroTlo(currentMmuToMmioInstruction.targetLimbOffset())
           .pMicroTbo(UnsignedByte.of(currentMmuToMmioInstruction.targetByteOffset()))
           .pMicroLimb(currentMmuToMmioInstruction.limb())
-          .pMicroCnS(sourceContextNumber)
-          .pMicroCnT(targetContextNumber)
+          .pMicroCnS(mmioConstantValues.sourceContextNumber())
+          .pMicroCnT(mmioConstantValues.targetContextNumber())
           .pMicroSuccessBit(successBit)
-          .pMicroExoSum(exoSum)
-          .pMicroPhase(phase)
-          .pMicroId1(microId1)
-          .pMicroId2(microId2)
-          .pMicroTotalSize(microTotalSize)
+          .pMicroExoSum(mmioConstantValues.exoSum())
+          .pMicroPhase(mmioConstantValues.phase())
+          .pMicroExoId(mmioConstantValues.exoId())
+          .pMicroKecId(mmioConstantValues.kecId())
+          .pMicroTotalSize(mmioConstantValues.totalSize())
           .fillAndValidateRow();
     }
   }

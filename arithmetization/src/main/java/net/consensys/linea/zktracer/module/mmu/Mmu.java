@@ -24,21 +24,23 @@ import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.mmio.Mmio;
+import net.consensys.linea.zktracer.module.mmu.values.HubToMmuValues;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
-import net.consensys.linea.zktracer.runtime.stack.StackOperation;
 
 public class Mmu implements Module {
   private final StackedList<MmuOperation> mmuOperationList = new StackedList<>();
   private boolean isMicro;
   private final Hub hub;
-  private Euc euc;
-  private Wcp wcp;
+  private final Euc euc;
+  private final Wcp wcp;
   private final CallStack callStack;
 
-  public Mmu(final Hub hub, final Mmio mmio, final CallStack callStack) {
+  public Mmu(
+      final Hub hub, final Euc euc, final Wcp wcp, final Mmio mmio, final CallStack callStack) {
     this.hub = hub;
+    this.euc = euc;
+    this.wcp = wcp;
     this.callStack = callStack;
   }
 
@@ -88,13 +90,12 @@ public class Mmu implements Module {
    * @param stackOps
    * @param callStack
    */
-  public void handleRam(
-      final OpCode opCode, final List<StackOperation> stackOps, final CallStack callStack) {
-
+  public void call(final HubToMmuValues hubToMmuValues, final CallStack callStack) {
     MmuData mmuData = new MmuData();
-    // TODO: fill in input from the HUB to MmuData
-    PreComputations preComputations = new PreComputations(euc, wcp);
-    mmuData = preComputations.compute(mmuData);
+    mmuData.hubToMmuValues(hubToMmuValues);
+
+    MmuInstructions mmuInstructions = new MmuInstructions(euc, wcp);
+    mmuData = mmuInstructions.compute(mmuData);
 
     // TODO: Deal with calling of the MMIO later.
     //    mmio.handleRam(mmuData, hub.state().stamps(), microStamp);

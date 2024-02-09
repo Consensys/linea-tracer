@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.mmio.dispatchers;
 
-import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.mmio.MmioData;
 import net.consensys.linea.zktracer.module.mmu.MmuData;
@@ -23,7 +22,7 @@ import net.consensys.linea.zktracer.types.UnsignedByte;
 
 @RequiredArgsConstructor
 public class ExceptionalRamToStack3To2FullDispatcher implements MmioDispatcher {
-  private final MmuData microData;
+  private final MmuData mmuData;
 
   @Override
   public MmioData dispatch() {
@@ -37,13 +36,13 @@ public class ExceptionalRamToStack3To2FullDispatcher implements MmioDispatcher {
     mmioData.indexB(0);
     mmioData.indexC(0);
 
-    Preconditions.checkState(
-        microData.isRootContext() && microData.isType5(),
-        "Should be: EXCEPTIONAL_RAM_TO_STACK_3_TO_2_FULL");
-
-    mmioData.valA(microData.valACache());
-    mmioData.valB(microData.valBCache());
-    mmioData.valC(microData.valCCache());
+    //    Preconditions.checkState(
+    //        mmuData.isRootContext() && mmuData.isType5(),
+    //        "Should be: EXCEPTIONAL_RAM_TO_STACK_3_TO_2_FULL");
+    //
+    //    mmioData.valA(mmuData.valACache());
+    //    mmioData.valB(mmuData.valBCache());
+    //    mmioData.valC(mmuData.valCCache());
 
     mmioData.valANew(UnsignedByte.EMPTY_BYTES16);
     mmioData.valBNew(UnsignedByte.EMPTY_BYTES16);
@@ -51,7 +50,7 @@ public class ExceptionalRamToStack3To2FullDispatcher implements MmioDispatcher {
 
     mmioData.valLo(UnsignedByte.EMPTY_BYTES16);
 
-    int sourceByteOffset = microData.sourceByteOffset().toInteger();
+    int sourceByteOffset = mmuData.sourceByteOffset().toInteger();
 
     for (int i = 0; i < 16; i++) {
       if (sourceByteOffset + i < 16) {
@@ -77,7 +76,7 @@ public class ExceptionalRamToStack3To2FullDispatcher implements MmioDispatcher {
         mmioData.acc2(),
         mmioData.acc3(),
         mmioData.acc4(),
-        microData.sourceByteOffset(),
+        mmuData.sourceByteOffset(),
         counter);
   }
 }

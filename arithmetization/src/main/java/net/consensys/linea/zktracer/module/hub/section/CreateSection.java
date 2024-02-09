@@ -28,6 +28,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.StpCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.Create;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.signals.AbortingConditions;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
@@ -108,7 +109,7 @@ public class CreateSection extends TraceSection
             hub.transients().conflation().deploymentInfo().number(createdAddress),
             hub.transients().conflation().deploymentInfo().isDeploying(createdAddress));
     // Pre-emptively set new* snapshots in case we never enter the child frame.
-    // Will be overwritten if we enter the child frame and runNextContext is explicitely called by
+    // Will be overwritten if we enter the child frame and runNextContext is explicitly called by
     // the defer registry.
     this.runAtReEnter(hub, frame);
   }
@@ -146,6 +147,15 @@ public class CreateSection extends TraceSection
 
     final ImcFragment commonImcFragment =
         ImcFragment.empty()
+            .callOob(
+                new Create(
+                    hub.pch().aborts().any(),
+                    hub.pch().failures().any(),
+                    EWord.of(hub.messageFrame().getStackItem(0)),
+                    EWord.of(oldCreatedSnapshot.balance()),
+                    oldCreatedSnapshot.nonce(),
+                    !oldCreatedSnapshot.code().isEmpty(),
+                    hub.callStack().depth()))
             .callMxp(MxpCall.build(hub))
             .callStp(
                 new StpCall(

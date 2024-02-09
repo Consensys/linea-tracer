@@ -33,7 +33,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.ModExpLogCa
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.Call;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.CallDataLoad;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.Create;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.DeploymentReturn;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.ExceptionalCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.Jump;
@@ -152,30 +151,6 @@ public class ImcFragment implements TraceFragment {
                       gas),
                   0),
               stipend));
-    }
-
-    return r;
-  }
-
-  public static ImcFragment forCreate(
-      Hub hub, Account creatorAccount, Optional<Account> createeAccount) {
-    final ImcFragment r = new ImcFragment(hub);
-
-    if (hub.pch().signals().oob()) {
-      switch (hub.currentFrame().opCode()) {
-        case CREATE, CREATE2 -> {
-          r.callOob(
-              new Create(
-                  hub.pch().aborts().any(),
-                  hub.pch().failures().any(),
-                  EWord.of(hub.messageFrame().getStackItem(0)),
-                  EWord.of(creatorAccount.getBalance()),
-                  createeAccount.map(Account::getNonce).orElse(0L),
-                  createeAccount.map(Account::hasCode).orElse(false),
-                  hub.callStack().depth()));
-        }
-        default -> throw new IllegalArgumentException("unexpected opcode for OoB");
-      }
     }
 
     return r;

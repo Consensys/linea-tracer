@@ -596,7 +596,8 @@ public class Hub implements Module {
       this.traceOperation(frame);
     } else {
       this.addTraceSection(new StackOnlySection(this));
-      // TODO: ‶return″ context line
+      this.currentTraceSection()
+          .addFragmentsWithoutStack(this, ContextFragment.executionEmptyReturnData(this.callStack));
     }
   }
 
@@ -788,7 +789,7 @@ public class Hub implements Module {
                     ? this.transients.tx().transaction().getData().orElse(Bytes.EMPTY)
                     : Optional.ofNullable(frame.getWorldUpdater().get(toAddress))
                         .map(AccountState::getCode)
-                        .orElse(Bytes.EMPTY)), // TODO: see with Olivier
+                        .orElse(Bytes.EMPTY)),
             Wei.of(this.transients.tx().transaction().getValue().getAsBigInteger()),
             this.transients.tx().transaction().getGasLimit(),
             this.transients.tx().transaction().getData().orElse(Bytes.EMPTY),
@@ -808,7 +809,7 @@ public class Hub implements Module {
                     ? this.transients.tx().transaction().getData().orElse(Bytes.EMPTY)
                     : Optional.ofNullable(frame.getWorldUpdater().get(toAddress))
                         .map(AccountState::getCode)
-                        .orElse(Bytes.EMPTY)), // TODO: see with Olivier
+                        .orElse(Bytes.EMPTY)),
             Wei.of(this.transients.tx().transaction().getValue().getAsBigInteger()),
             this.transients.tx().transaction().getGasLimit(),
             this.transients.tx().transaction().getData().orElse(Bytes.EMPTY),
@@ -831,7 +832,7 @@ public class Hub implements Module {
           this.transients.conflation().deploymentInfo().number(codeAddress);
       this.callStack.enter(
           this.state.stamps().hub(),
-          frame.getRecipientAddress(), // TODO: check for all call types that it is correct
+          frame.getRecipientAddress(),
           frame.getContractAddress(),
           new Bytecode(frame.getCode().getBytes()),
           frameType,
@@ -873,7 +874,7 @@ public class Hub implements Module {
         this.callStack.revert(this.state.stamps().hub());
       }
 
-      this.callStack.exit(frame.getOutputData());
+      this.callStack.exit();
 
       for (Module m : this.modules) {
         m.traceContextExit(frame);
@@ -1035,12 +1036,32 @@ public class Hub implements Module {
           SWAP,
           INVALID -> this.addTraceSection(new StackOnlySection(this));
       case HALT -> {
-        if (this.opCode() == OpCode.RETURN || this.opCode() == OpCode.REVERT) {
-          if (pch.exceptions().none()) {
+        final CallFrame parentFrame = this.callStack.parent();
+
+        switch (this.opCode()) {
+          case RETURN -> {
+            final Bytes returnData = this.transients.op().returnData();
             this.currentFrame().returnDataSource(transients.op().returnDataSegment());
-            this.currentFrame().returnData(transients.op().returnData());
+            this.currentFrame().returnData(returnData);
+            if (!this.pch.exceptions().any() && !this.currentFrame().underDeployment()) {
+              parentFrame.latestReturnData(returnData);
+            } else {
+              parentFrame.latestReturnData(Bytes.EMPTY);
+            }
           }
+          case REVERT -> {
+            final Bytes returnData = this.transients.op().returnData();
+            this.currentFrame().returnDataSource(transients.op().returnDataSegment());
+            this.currentFrame().returnData(returnData);
+            if (!this.pch.exceptions().any()) {
+              parentFrame.latestReturnData(returnData);
+            } else {
+              parentFrame.latestReturnData(Bytes.EMPTY);
+            }
+          }
+          case STOP, SELFDESTRUCT -> parentFrame.latestReturnData(Bytes.EMPTY);
         }
+
         this.addTraceSection(new StackOnlySection(this));
       }
       case KEC -> this.addTraceSection(
@@ -1282,6 +1303,7 @@ public class Hub implements Module {
             //
 
             // TODO: fill the callee & requested return data for the current call frame
+            // TODO: i.e. ensure that the precompile frame behaves as expected
             Optional<PrecompileInvocation> precompileInvocation =
                 targetPrecompile.map(p -> PrecompileInvocation.of(this, p));
 

@@ -24,7 +24,6 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.types.Bytecode;
-import net.consensys.linea.zktracer.types.MemorySpan;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
@@ -205,6 +204,7 @@ public final class CallStack {
     this.frames.add(newFrame);
     this.current = newTop;
     if (caller != -1) {
+      this.frames.get(caller).latestReturnData(Bytes.EMPTY);
       this.frames.get(caller).childFrames().add(newTop);
     }
   }
@@ -212,17 +212,11 @@ public final class CallStack {
   /**
    * Exit the current context, sets it return data for the caller to read, and marks its last
    * position in the hub traces.
-   *
-   * @param returnData the return data of the current frame
    */
-  public void exit(Bytes returnData) {
+  public void exit() {
     this.depth -= 1;
     Preconditions.checkState(this.depth >= 0);
-    this.current().currentReturnDataSource(new MemorySpan(0, 0)); // TODO: fix me Franklin
-    final int parent = this.current().parentFrame();
-    this.frames.get(parent).childFrames().add(this.current);
-    this.frames.get(parent).returnData(returnData);
-    this.current = parent;
+    this.current = this.current().parentFrame();
   }
 
   /**

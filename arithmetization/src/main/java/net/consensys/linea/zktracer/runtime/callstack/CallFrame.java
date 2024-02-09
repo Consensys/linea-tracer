@@ -93,6 +93,9 @@ public class CallFrame {
   @Getter private MemorySpan callDataSource;
 
   /** the data returned by the latest callee. */
+  @Getter @Setter private Bytes latestReturnData = Bytes.EMPTY;
+
+  /** the return data provided by this frame */
   @Getter @Setter private Bytes returnData = Bytes.EMPTY;
   /** where this frame store its return data in its own RAM */
   @Getter @Setter private MemorySpan returnDataSource;

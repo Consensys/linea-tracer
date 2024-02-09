@@ -27,6 +27,7 @@ import org.hyperledger.besu.datatypes.Quantity;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.log.Log;
+import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
@@ -265,7 +266,11 @@ public class Pin55 {
         renderOpCode(hub.opCode(), frame));
   }
 
-  public void tracePostOpcode(final MessageFrame frame) {
+  public void tracePostOpcode(final MessageFrame frame, Operation.OperationResult operationResult) {
+    if (operationResult.getHaltReason() != null) {
+      log.info("{}", operationResult.getHaltReason());
+    }
+
     if (!this.l.doStack()) {
       return;
     }

@@ -199,7 +199,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   public void tracePostExecution(MessageFrame frame, Operation.OperationResult operationResult) {
     if (frame.getCode().getSize() > 0) {
       this.hub.tracePostExecution(frame, operationResult);
-      this.pin55.ifPresent(x -> x.tracePostOpcode(frame));
+      this.pin55.ifPresent(x -> x.tracePostOpcode(frame, operationResult));
     }
   }
 

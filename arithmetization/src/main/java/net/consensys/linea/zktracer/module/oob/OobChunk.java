@@ -506,8 +506,8 @@ public class OobChunk {
 
         // cds and the data below can be int when compared (after size check)
         BigInteger bbs = paddedCallData.slice(0, 32).toUnsignedBigInteger();
-        BigInteger ebs = paddedCallData.slice(32, 64).toUnsignedBigInteger();
-        BigInteger mbs = paddedCallData.slice(64, 96).toUnsignedBigInteger();
+        BigInteger ebs = paddedCallData.slice(32, 32).toUnsignedBigInteger();
+        BigInteger mbs = paddedCallData.slice(64, 32).toUnsignedBigInteger();
 
         // Check if bbs, ebs and mbs are <= 512
         if (bbs.compareTo(BigInteger.valueOf(512)) > 0

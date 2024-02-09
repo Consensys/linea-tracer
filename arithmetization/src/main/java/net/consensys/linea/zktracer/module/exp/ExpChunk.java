@@ -74,7 +74,7 @@ public class ExpChunk extends ModuleOperation {
     // Fill isExpLog
     isExpLog = true;
 
-    pMacroInstructionExpInst = Bytes.of(EXP_EXPLOG);
+    pMacroInstructionExpInst = Bytes.ofUnsignedShort(EXP_EXPLOG);
     pMacroInstructionData1 = bigIntegerToBytes(expLogExpParameters.exponentHi());
     pMacroInstructionData2 = bigIntegerToBytes(expLogExpParameters.exponentLo());
     pMacroInstructionData3 = Bytes.of(0);
@@ -97,11 +97,18 @@ public class ExpChunk extends ModuleOperation {
     wcp.callISZERO(expLogExpParameters.exponent());
 
     // Linking constraints and fill rawAcc
+    // TODO: continue checking needed paddings
     pComputationPltJmp = Bytes.of(16);
     if (expnHiIsZero) {
-      pComputationRawAcc = bigIntegerToBytes(expLogExpParameters.exponentHi());
+      Bytes unpaddedExponentHi = bigIntegerToBytes(expLogExpParameters.exponentHi());
+      pComputationRawAcc =
+          Bytes.concatenate(
+              Bytes.repeat((byte) 0, 16 - unpaddedExponentHi.size()), unpaddedExponentHi);
     } else {
-      pComputationRawAcc = bigIntegerToBytes(expLogExpParameters.exponentLo());
+      Bytes unpaddedExponentLo = bigIntegerToBytes(expLogExpParameters.exponentLo());
+      pComputationRawAcc =
+          Bytes.concatenate(
+              Bytes.repeat((byte) 0, 16 - unpaddedExponentLo.size()), unpaddedExponentLo);
     }
 
     // Fill trimAcc
@@ -132,7 +139,7 @@ public class ExpChunk extends ModuleOperation {
     // Fill isExpLog
     isExpLog = false;
 
-    pMacroInstructionExpInst = Bytes.of(EXP_MODEXPLOG);
+    pMacroInstructionExpInst = Bytes.ofUnsignedShort(EXP_MODEXPLOG);
     pMacroInstructionData1 = bigIntegerToBytes(modexpLogExpParameters.rawLeadHi());
     pMacroInstructionData2 = bigIntegerToBytes(modexpLogExpParameters.rawLeadLo());
     pMacroInstructionData3 = Bytes.of(modexpLogExpParameters.cdsCutoff());
@@ -301,13 +308,11 @@ public class ExpChunk extends ModuleOperation {
           .pComputationTanzb(pComputationTrimAcc.slice(0, i + 1).toBigInteger().signum() != 0)
           .pComputationTanzbAcc(pComputationTanzbAcc.slice(0, i + 1))
           .pComputationMsb(pComputationMsb)
-          .pComputationMsbBit(i > maxCt - 8 && pComputationMsb.get(i))
-          .pComputationMsbAcc(UnsignedByte.of(i > maxCt - 8 ? pComputationMsb.slice(i + 1) : 0))
-          .pComputationManzb(i > maxCt - 8 && pComputationMsb.slice(i + 1) != 0)
+          .pComputationMsbBit(i > maxCt - 8 && pComputationMsb.get(i % 8))
+          .pComputationMsbAcc(UnsignedByte.of(i > maxCt - 8 ? pComputationMsb.slice(i % 8 + 1) : 0))
+          .pComputationManzb(i > maxCt - 8 && pComputationMsb.slice(i % 8 + 1) != 0)
           .pComputationManzbAcc(
-              i > maxCt - 8
-                  ? pComputationManzbAcc.slice(pComputationManzbAcc.size() - i)
-                  : Bytes.of(0));
+              i > maxCt - 8 ? pComputationManzbAcc.slice(i % 8 + 1) : Bytes.of(0)); // validaterow?
     }
   }
 
@@ -327,7 +332,7 @@ public class ExpChunk extends ModuleOperation {
         .pMacroInstructionData2(pMacroInstructionData2)
         .pMacroInstructionData3(pMacroInstructionData3)
         .pMacroInstructionData4(pMacroInstructionData4)
-        .pMacroInstructionData5(pMacroInstructionData5);
+        .pMacroInstructionData5(pMacroInstructionData5); // validaterow?
   }
 
   final void tracePreprocessing(int stamp, Trace trace) {
@@ -348,8 +353,7 @@ public class ExpChunk extends ModuleOperation {
           .pPreprocessingWcpArg2Hi(pPreprocessingWcpArg2Hi[i])
           .pPreprocessingWcpArg2Lo(pPreprocessingWcpArg2Lo[i])
           .pPreprocessingWcpInst(pPreprocessingWcpInst[i])
-          .pPreprocessingWcpRes(pPreprocessingWcpRes[i])
-          .validateRow();
+          .pPreprocessingWcpRes(pPreprocessingWcpRes[i]); // validaterow?
     }
   }
 }

@@ -69,7 +69,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
       table.toMap().keySet().forEach(k -> spillings.put(k, Math.toIntExact(table.getLong(k))));
 
       for (Module m : this.hub.getModulesToCount()) {
-        if (this.spillings.containsKey(m.moduleKey())) {
+        if (!this.spillings.containsKey(m.moduleKey())) {
           throw new IllegalStateException(
               "Spilling for module " + m.moduleKey() + " not defined in spillings.toml");
         }

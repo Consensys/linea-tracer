@@ -93,6 +93,7 @@ import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 import org.hyperledger.besu.evm.log.Log;
+import org.hyperledger.besu.evm.log.LogTopic;
 import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
@@ -185,14 +186,15 @@ public class Hub implements Module {
   private final Trm trm = new Trm();
   private final ModexpEffectiveCall modexp;
   private final Stp stp = new Stp(this, wcp, mod);
-  private final L2Block l2Block = new L2Block();
+  private final L2Block l2Block;
 
   private final List<Module> modules;
   /* Those modules are not traced, we just compute the number of calls to those precompile to meet the prover limits */
   private final List<Module> precompileLimitModules;
   private final List<Module> refTableModules;
 
-  public Hub() {
+  public Hub(final String l2l1ContractAddress, final String l2l1Topic) {
+    this.l2Block = new L2Block(Address.fromHexString(l2l1ContractAddress), LogTopic.fromHexString(l2l1Topic));
     this.pch = new PlatformController(this);
     this.mmu = new Mmu(this.callStack);
     this.mxp = new Mxp(this);

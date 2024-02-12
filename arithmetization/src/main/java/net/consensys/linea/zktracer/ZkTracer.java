@@ -58,6 +58,10 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   private Hash hashOfLastTransactionTraced = Hash.EMPTY;
 
   public ZkTracer() {
+    new ZkTracer("0xDEADBEEF", "0x12345");
+  }
+
+  public ZkTracer(final String l2l1ContractAddress, final String l2l1Topic) {
     // Load opcodes configured in src/main/resources/opcodes.yml.
     OpCodes.load();
 

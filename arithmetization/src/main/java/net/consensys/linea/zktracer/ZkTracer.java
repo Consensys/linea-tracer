@@ -58,7 +58,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   private Hash hashOfLastTransactionTraced = Hash.EMPTY;
 
   public ZkTracer() {
-    this("0xDEADBEEF", "0x12345");
+    this("0xDEADBEEF", "0x012345");
   }
 
   public ZkTracer(final String l2l1ContractAddress, final String l2l1Topic) {

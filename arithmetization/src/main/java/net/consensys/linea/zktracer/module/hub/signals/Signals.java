@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.hub.signals;
 
+import static net.consensys.linea.zktracer.module.ec_data.EcData.EC_PRECOMPILES;
+
 import java.util.Optional;
 import java.util.Set;
 
@@ -64,6 +66,7 @@ public class Signals {
   @Getter private boolean logInfo;
   @Getter private boolean romLex;
   @Getter private boolean rlpAddr;
+  @Getter private boolean ecData;
 
   private final PlatformController platformController;
 
@@ -86,6 +89,7 @@ public class Signals {
     this.hashInfo = false;
     this.romLex = false;
     this.rlpAddr = false;
+    this.ecData = false;
   }
 
   public Signals snapshot() {
@@ -108,6 +112,7 @@ public class Signals {
     r.hashInfo = this.hashInfo;
     r.romLex = this.romLex;
     r.rlpAddr = this.rlpAddr;
+    r.ecData = this.ecData;
 
     return r;
   }
@@ -182,6 +187,8 @@ public class Signals {
                 .orElse(false);
 
         this.romLex = ex.none() && !triggersAbortingCondition && targetAddressHasNonEmptyCode;
+
+        this.ecData = ex.none() && EC_PRECOMPILES.contains(target);
       }
 
       case CREATE, CREATE2 -> {

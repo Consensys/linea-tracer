@@ -527,8 +527,6 @@ public class Hub implements Module {
       precompileLimit.tracePreOpcode(frame);
     }
 
-    this.ecData.tracePreOpcode(frame);
-
     if (this.pch.signals().romLex()) {
       this.romLex.tracePreOpcode(frame);
     }
@@ -577,6 +575,9 @@ public class Hub implements Module {
     }
     if (this.pch.signals().hashInfo()) {
       // TODO: this.hashInfo.tracePreOpcode(frame);
+    }
+    if (this.pch.signals().ecData()) {
+      this.ecData.tracePreOpcode(frame);
     }
   }
 

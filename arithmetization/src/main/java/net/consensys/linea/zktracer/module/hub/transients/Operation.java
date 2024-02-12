@@ -162,17 +162,12 @@ public class Operation {
   public static MemorySpan returnDataSegment(final MessageFrame frame) {
     switch (OpCode.of(frame.getCurrentOperation().getOpcode())) {
       case RETURN, REVERT -> {
-        long offset = Words.clampedToLong(frame.getStackItem(5));
-        long length = Words.clampedToLong(frame.getStackItem(6));
-        return MemorySpan.fromStartLength(offset, length);
-      }
-      case DELEGATECALL, STATICCALL -> {
-        long offset = Words.clampedToLong(frame.getStackItem(4));
-        long length = Words.clampedToLong(frame.getStackItem(5));
+        long offset = Words.clampedToLong(frame.getStackItem(0));
+        long length = Words.clampedToLong(frame.getStackItem(1));
         return MemorySpan.fromStartLength(offset, length);
       }
       default -> throw new IllegalArgumentException(
-          "returnDataRequestedSegment called outside of a *CALL");
+          "returnDataRequestedSegment called outside of a RETURN/REVERT");
     }
   }
 

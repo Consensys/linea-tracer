@@ -53,15 +53,17 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   /** The {@link GasCalculator} used in this version of the arithmetization */
   public static final GasCalculator gasCalculator = new LondonGasCalculator();
 
-  @Getter private final Hub hub = new Hub();
+  @Getter private final Hub hub;
   private final Map<String, Integer> spillings = new HashMap<>();
   private Hash hashOfLastTransactionTraced = Hash.EMPTY;
 
   public ZkTracer() {
-    new ZkTracer("0xDEADBEEF", "0x12345");
+    this("0xDEADBEEF", "0x12345");
   }
 
   public ZkTracer(final String l2l1ContractAddress, final String l2l1Topic) {
+    this.hub = new Hub(l2l1ContractAddress, l2l1Topic);
+
     // Load opcodes configured in src/main/resources/opcodes.yml.
     OpCodes.load();
 

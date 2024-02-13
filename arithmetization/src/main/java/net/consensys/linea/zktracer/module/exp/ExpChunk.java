@@ -42,7 +42,7 @@ public class ExpChunk extends ModuleOperation {
   private final boolean isExpLog;
   private Bytes pComputationPltJmp = Bytes.of(0);
   private Bytes pComputationRawAcc = leftPadTo(Bytes.of(0), 16); // paired with RawByte
-  private Bytes pComputationTrimAcc = leftPadTo(Bytes.of(0), 16); // paired with TrimByte
+  private Bytes pComputationTrimAcc = Bytes.EMPTY; // paired with TrimByte
   private Bytes pComputationTanzbAcc = leftPadTo(Bytes.of(0), 16); // Paired with Tanzb
   private UnsignedByte pComputationMsb = UnsignedByte.of(0);
   private Bytes pComputationManzbAcc = leftPadTo(Bytes.of(0), 16); // Paired with Manzb
@@ -113,12 +113,12 @@ public class ExpChunk extends ModuleOperation {
       boolean pltBit = i > pComputationPltJmp.toInt();
       byte rawByte = pComputationRawAcc.get(i);
       byte trimByte = pltBit ? 0 : rawByte;
-      pComputationTrimAcc = Bytes.concatenate(Bytes.of(trimByte), pComputationTrimAcc);
+      pComputationTrimAcc = Bytes.concatenate(pComputationTrimAcc, Bytes.of(trimByte));
     }
 
     // Fill tanzbAcc
     for (int i = 0; i < maxCt + 1; i++) {
-      boolean tanzb = pComputationTrimAcc.slice(i + 1).toBigInteger().signum() != 0;
+      boolean tanzb = pComputationTrimAcc.slice(0, i + 1).toBigInteger().signum() != 0;
       pComputationTanzbAcc =
           bigIntegerToBytes(
               pComputationTanzbAcc.toBigInteger().add(tanzb ? BigInteger.ONE : BigInteger.ZERO));
@@ -239,7 +239,7 @@ public class ExpChunk extends ModuleOperation {
       boolean pltBit = i > pComputationPltJmp.toInt();
       byte rawByte = pComputationRawAcc.get(i);
       byte trimByte = pltBit ? 0 : rawByte;
-      pComputationTrimAcc = Bytes.concatenate(Bytes.of(trimByte), pComputationTrimAcc);
+      pComputationTrimAcc = Bytes.concatenate(pComputationTrimAcc, Bytes.of(trimByte));
     }
 
     // Fill msb
@@ -253,7 +253,7 @@ public class ExpChunk extends ModuleOperation {
               pComputationTanzbAcc.toBigInteger().add(tanzb ? BigInteger.ONE : BigInteger.ZERO));
 
       // manzb turns to 1 iff msbAcc is nonzero
-      boolean manzb = i > maxCt - 8 && pComputationMsb.slice(i + 1) != 0;
+      boolean manzb = i > maxCt - 8 && pComputationMsb.slice(0, i + 1) != 0;
       pComputationManzbAcc =
           bigIntegerToBytes(
               pComputationManzbAcc.toBigInteger().add(manzb ? BigInteger.ONE : BigInteger.ZERO));
@@ -314,9 +314,11 @@ public class ExpChunk extends ModuleOperation {
           .pComputationTanzbAcc(pComputationTanzbAcc.slice(0, i + 1))
           .pComputationMsb(pComputationMsb)
           .pComputationMsbBit(i > maxCt - 8 && pComputationMsb.get(i % 8))
-          .pComputationMsbAcc(UnsignedByte.of(i > maxCt - 8 ? pComputationMsb.slice(i % 8 + 1) : 0))
-          .pComputationManzb(i > maxCt - 8 && pComputationMsb.slice(i % 8 + 1) != 0)
-          .pComputationManzbAcc(i > maxCt - 8 ? pComputationManzbAcc.slice(i % 8 + 1) : Bytes.of(0))
+          .pComputationMsbAcc(
+              UnsignedByte.of(i > maxCt - 8 ? pComputationMsb.slice(0, i % 8 + 1) : 0))
+          .pComputationManzb(i > maxCt - 8 && pComputationMsb.slice(0, i % 8 + 1) != 0)
+          .pComputationManzbAcc(
+              i > maxCt - 8 ? pComputationManzbAcc.slice(0, i % 8 + 1) : Bytes.of(0))
           .fillAndValidateRow();
     }
   }

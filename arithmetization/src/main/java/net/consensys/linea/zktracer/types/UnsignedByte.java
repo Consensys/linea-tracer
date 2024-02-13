@@ -145,27 +145,35 @@ public class UnsignedByte {
    * Retrieves the value of the most significant bit (MSB) at a specified position of an instance of
    * {@link UnsignedByte}.
    *
-   * @param index The position of the MSB to retrieve, counting from the MSB as position 0.
+   * @param i The position of the MSB to retrieve, counting from the MSB as position 0.
    * @return true if the most significant bit at the specified position is set (1), false otherwise.
+   * @throws IndexOutOfBoundsException if i < 0 or i >= 8.
    */
-  public boolean get(int index) {
-    if (index < 0 || index > 7) {
-      throw new IllegalArgumentException("Index must be between 0 - 7. Is " + index);
+  public boolean get(int i) {
+    if (i < 0 || i >= 8) {
+      throw new IndexOutOfBoundsException("Index must be between 0 - 7. Is " + i);
     }
-    return ((this.toInteger() >> (7 - index)) & 1) == 1;
+    return ((this.toInteger() >> (7 - i)) & 1) == 1;
   }
 
   /**
-   * Retrieves a slice of bits starting from the most significant bit (MSB) of an instance of {@link
+   * Retrieves a slice of bits starting from a specified index of an instance of {@link
    * UnsignedByte}.
    *
-   * @param size The size of the slice to retrieve, representing the number of bits.
-   * @return An integer representing the slice of bits starting from the MSB of the provided byte.
+   * @param i The index from which to start retrieving the slice.
+   * @param length The length of the slice to retrieve, representing the number of bits.
+   * @return An integer representing the slice of bits starting from the specified index.
+   * @throws IllegalArgumentException if length < 0.
+   * @throws IndexOutOfBoundsException if i < 0 or i >= 8 or i + length > 8.
    */
-  public int slice(int size) {
-    if (size < 0 || size > 8) {
-      throw new IllegalArgumentException("Size must be between 0 - 8. Is " + size);
+  public int slice(int i, int length) {
+    if (length < 0) {
+      throw new IllegalArgumentException("Length must be non-negative. Is " + length);
     }
-    return (this.toInteger() >> (8 - size));
+    if (i < 0 || i >= 8 || i + length > 8) {
+      throw new IndexOutOfBoundsException("Index out of bounds. i=" + i + ", length=" + length);
+    }
+    // Apply the shift and mask to retrieve the desired slice
+    return (this.toInteger() >> (8 - (i + length))) & ((1 << length) - 1);
   }
 }

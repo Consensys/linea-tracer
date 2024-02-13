@@ -48,17 +48,20 @@ public class TransactionProfitabilityCalculator {
 
     log.atDebug()
         .setMessage(
-            "Estimated profitable priorityFeePerGas: {}; estimateGasMinMargin={}, gasPriceRatio={}, "
-                + "verificationGasCost={}, txSize={}, compressedTxSize={}, minGasPrice={}, gas={}, verificationCapacity={}")
+            "Estimated profitable priorityFeePerGas: {}; estimateGasMinMargin={}, verificationCapacity={}, "
+                + "verificationGasCost={}, gasPriceRatio={}, gas={}, minGasPrice={}, "
+                + "l1GasPrice={}, txSize={}, compressedTxSize={}, adjustTxSize={}")
         .addArgument(profitAtWei::toHumanReadableString)
         .addArgument(conf.estimateGasMinMargin())
-        .addArgument(conf.gasPriceRatio())
+        .addArgument(conf.verificationCapacity())
         .addArgument(conf.verificationGasCost())
+        .addArgument(conf.gasPriceRatio())
+        .addArgument(gas)
+        .addArgument(minGasPrice::toHumanReadableString)
+        .addArgument(() -> minGasPrice.multiply(conf.gasPriceRatio()).toHumanReadableString())
         .addArgument(transaction::getSize)
         .addArgument(compressedTxSize)
-        .addArgument(minGasPrice::toHumanReadableString)
-        .addArgument(gas)
-        .addArgument(conf.verificationCapacity())
+        .addArgument(conf.adjustTxSize())
         .log();
 
     return profitAtWei;

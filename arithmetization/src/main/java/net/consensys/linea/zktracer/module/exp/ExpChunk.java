@@ -26,6 +26,9 @@ import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_PRPRC_EXP_LOG
 import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_PRPRC_MODEXP_LOG;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToInt;
+import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
+
+import java.math.BigInteger;
 
 import lombok.Getter;
 import net.consensys.linea.zktracer.container.ModuleOperation;
@@ -38,11 +41,11 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 public class ExpChunk extends ModuleOperation {
   private final boolean isExpLog;
   private Bytes pComputationPltJmp = Bytes.of(0);
-  private Bytes pComputationRawAcc = Bytes.of(0); // paired with RawByte
-  private Bytes pComputationTrimAcc = Bytes.of(0); // paired with TrimByte
-  private Bytes pComputationTanzbAcc = Bytes.of(0); // Paired with Tanzb
+  private Bytes pComputationRawAcc = leftPadTo(Bytes.of(0), 16); // paired with RawByte
+  private Bytes pComputationTrimAcc = leftPadTo(Bytes.of(0), 16); // paired with TrimByte
+  private Bytes pComputationTanzbAcc = leftPadTo(Bytes.of(0), 16); // Paired with Tanzb
   private UnsignedByte pComputationMsb = UnsignedByte.of(0);
-  private Bytes pComputationManzbAcc = Bytes.of(0); // Paired with Manzb
+  private Bytes pComputationManzbAcc = leftPadTo(Bytes.of(0), 16); // Paired with Manzb
   // Macro contains only one row, thus no need for an array
   private final Bytes pMacroInstructionExpInst;
   private final Bytes pMacroInstructionData1;
@@ -97,18 +100,11 @@ public class ExpChunk extends ModuleOperation {
     wcp.callISZERO(expLogExpParameters.exponent());
 
     // Linking constraints and fill rawAcc
-    // TODO: continue checking needed paddings
     pComputationPltJmp = Bytes.of(16);
     if (expnHiIsZero) {
-      Bytes unpaddedExponentHi = bigIntegerToBytes(expLogExpParameters.exponentHi());
-      pComputationRawAcc =
-          Bytes.concatenate(
-              Bytes.repeat((byte) 0, 16 - unpaddedExponentHi.size()), unpaddedExponentHi);
+      pComputationRawAcc = leftPadTo(bigIntegerToBytes(expLogExpParameters.exponentLo()), 16);
     } else {
-      Bytes unpaddedExponentLo = bigIntegerToBytes(expLogExpParameters.exponentLo());
-      pComputationRawAcc =
-          Bytes.concatenate(
-              Bytes.repeat((byte) 0, 16 - unpaddedExponentLo.size()), unpaddedExponentLo);
+      pComputationRawAcc = leftPadTo(bigIntegerToBytes(expLogExpParameters.exponentHi()), 16);
     }
 
     // Fill trimAcc
@@ -123,8 +119,11 @@ public class ExpChunk extends ModuleOperation {
     // Fill tanzbAcc
     for (int i = 0; i < maxCt + 1; i++) {
       boolean tanzb = pComputationTrimAcc.slice(i + 1).toBigInteger().signum() != 0;
-      pComputationTanzbAcc = Bytes.of(pComputationTanzbAcc.toInt() + (tanzb ? 1 : 0));
+      pComputationTanzbAcc =
+          bigIntegerToBytes(
+              pComputationTanzbAcc.toBigInteger().add(tanzb ? BigInteger.ONE : BigInteger.ZERO));
     }
+    pComputationTanzbAcc = leftPadTo(pComputationTanzbAcc, 16);
 
     // msb and manzbAcc remain 0
   }
@@ -222,12 +221,12 @@ public class ExpChunk extends ModuleOperation {
 
     // Linking constraints and fill rawAcc
     if (minCutoffLeq16) {
-      pComputationRawAcc = bigIntegerToBytes(modexpLogExpParameters.rawLeadHi());
+      pComputationRawAcc = leftPadTo(bigIntegerToBytes(modexpLogExpParameters.rawLeadHi()), 16);
     } else {
       if (!rawHiPartIsZero) {
-        pComputationRawAcc = bigIntegerToBytes(modexpLogExpParameters.rawLeadHi());
+        pComputationRawAcc = leftPadTo(bigIntegerToBytes(modexpLogExpParameters.rawLeadHi()), 16);
       } else {
-        pComputationRawAcc = bigIntegerToBytes(modexpLogExpParameters.rawLeadLo());
+        pComputationRawAcc = leftPadTo(bigIntegerToBytes(modexpLogExpParameters.rawLeadLo()), 16);
       }
     }
 
@@ -249,12 +248,18 @@ public class ExpChunk extends ModuleOperation {
     // Fill tanzbAcc, manzbAcc
     for (int i = 0; i < maxCt + 1; i++) {
       boolean tanzb = pComputationTrimAcc.slice(0, i + 1).toBigInteger().signum() != 0;
-      pComputationTanzbAcc = Bytes.of(pComputationTanzbAcc.toInt() + (tanzb ? 1 : 0));
+      pComputationTanzbAcc =
+          bigIntegerToBytes(
+              pComputationTanzbAcc.toBigInteger().add(tanzb ? BigInteger.ONE : BigInteger.ZERO));
 
       // manzb turns to 1 iff msbAcc is nonzero
       boolean manzb = i > maxCt - 8 && pComputationMsb.slice(i + 1) != 0;
-      pComputationManzbAcc = Bytes.of(pComputationManzbAcc.toInt() + (manzb ? 1 : 0));
+      pComputationManzbAcc =
+          bigIntegerToBytes(
+              pComputationManzbAcc.toBigInteger().add(manzb ? BigInteger.ONE : BigInteger.ZERO));
     }
+    pComputationTanzbAcc = leftPadTo(pComputationTanzbAcc, 16);
+    pComputationManzbAcc = leftPadTo(pComputationManzbAcc, 16);
   }
 
   private void initArrays(int pPreprocessingLen) {
@@ -311,8 +316,8 @@ public class ExpChunk extends ModuleOperation {
           .pComputationMsbBit(i > maxCt - 8 && pComputationMsb.get(i % 8))
           .pComputationMsbAcc(UnsignedByte.of(i > maxCt - 8 ? pComputationMsb.slice(i % 8 + 1) : 0))
           .pComputationManzb(i > maxCt - 8 && pComputationMsb.slice(i % 8 + 1) != 0)
-          .pComputationManzbAcc(
-              i > maxCt - 8 ? pComputationManzbAcc.slice(i % 8 + 1) : Bytes.of(0)); // validaterow?
+          .pComputationManzbAcc(i > maxCt - 8 ? pComputationManzbAcc.slice(i % 8 + 1) : Bytes.of(0))
+          .fillAndValidateRow();
     }
   }
 
@@ -332,7 +337,8 @@ public class ExpChunk extends ModuleOperation {
         .pMacroInstructionData2(pMacroInstructionData2)
         .pMacroInstructionData3(pMacroInstructionData3)
         .pMacroInstructionData4(pMacroInstructionData4)
-        .pMacroInstructionData5(pMacroInstructionData5); // validaterow?
+        .pMacroInstructionData5(pMacroInstructionData5)
+        .fillAndValidateRow();
   }
 
   final void tracePreprocessing(int stamp, Trace trace) {
@@ -353,7 +359,8 @@ public class ExpChunk extends ModuleOperation {
           .pPreprocessingWcpArg2Hi(pPreprocessingWcpArg2Hi[i])
           .pPreprocessingWcpArg2Lo(pPreprocessingWcpArg2Lo[i])
           .pPreprocessingWcpInst(pPreprocessingWcpInst[i])
-          .pPreprocessingWcpRes(pPreprocessingWcpRes[i]); // validaterow?
+          .pPreprocessingWcpRes(pPreprocessingWcpRes[i])
+          .fillAndValidateRow();
     }
   }
 }

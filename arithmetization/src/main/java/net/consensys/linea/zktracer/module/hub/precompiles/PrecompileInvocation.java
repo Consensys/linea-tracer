@@ -16,7 +16,6 @@
 package net.consensys.linea.zktracer.module.hub.precompiles;
 
 import lombok.Builder;
-import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.limits.precompiles.Blake2fRounds;
@@ -32,34 +31,32 @@ import net.consensys.linea.zktracer.types.Precompile;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.internal.Words;
 
-@Getter
 @Accessors(fluent = true)
 @Builder
-public final class PrecompileInvocation {
-  /** The precompile being called */
-  private final Precompile precompile;
-  /**
-   * If applicable, some data related to the precompile required later. Only used for Blake2f for
-   * now.
-   */
-  private final PrecompileMetadata metadata;
-  /** The input data for the precompile */
-  private final MemorySpan callDataSource;
-  /** Where the caller wants the precompile return data to be stored */
-  private final MemorySpan requestedReturnDataTarget;
-
-  private final boolean hubFailure;
-  private final boolean ramFailure;
-  /* The price of the *CALL itself */
-  private final long opCodeGas;
-  /** The intrinsic cost of the precompile */
-  private final long precompilePrice;
-  /** The available gas just before the *CALL opcode execution */
-  private final long gasAtCall;
-  /** If applicable, the gas given to a precompile */
-  private final long gasAllowance;
-  /** The amount of gas to be given back to the caller */
-  private final long returnGas;
+public record PrecompileInvocation(
+    /* The precompile being called */
+    Precompile precompile,
+    /*
+     * If applicable, some data related to the precompile required later. Only used for Blake2f for
+     * now.
+     */
+    PrecompileMetadata metadata,
+    /* The input data for the precompile */
+    MemorySpan callDataSource,
+    /* Where the caller wants the precompile return data to be stored */
+    MemorySpan requestedReturnDataTarget,
+    boolean hubFailure,
+    boolean ramFailure,
+    /* The price of the *CALL itself */
+    long opCodeGas,
+    /* The intrinsic cost of the precompile */
+    long precompilePrice,
+    /* The available gas just before the *CALL opcode execution */
+    long gasAtCall,
+    /* If applicable, the gas given to a precompile */
+    long gasAllowance,
+    /* The amount of gas to be given back to the caller */
+    long returnGas) {
 
   public boolean success() {
     return !this.hubFailure && !this.ramFailure;
@@ -152,7 +149,7 @@ public final class PrecompileInvocation {
           case SHA2_256 -> null;
           case RIPEMD_160 -> null;
           case IDENTITY -> null;
-          case MODEXP -> null; // TODO: create ModexpMetadata here
+          case MODEXP -> ModExpMetadata.of(hub);
           case EC_ADD -> null;
           case EC_MUL -> null;
           case EC_PAIRING -> null;

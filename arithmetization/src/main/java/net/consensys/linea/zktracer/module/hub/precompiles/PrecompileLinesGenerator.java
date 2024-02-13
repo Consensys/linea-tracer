@@ -40,7 +40,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.RipeMd160;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.Sha2;
 import net.consensys.linea.zktracer.types.EWord;
-import org.apache.tuweni.bytes.Bytes;
 
 @RequiredArgsConstructor
 public class PrecompileLinesGenerator {
@@ -129,69 +128,32 @@ public class PrecompileLinesGenerator {
         }
       }
       case MODEXP -> {
-        /** Put all that in ModExp metadata */
-        final boolean extractBbs = !p.callDataSource().isEmpty();
-        final boolean extractEbs = p.callDataSource().length() > 32;
-        final boolean extractMbs = p.callDataSource().length() > 64;
-
-        final int bbsShift = 32 - (int) Math.min(32, p.callDataSource().length());
-        final Bytes rawBbs =
-            extractBbs
-                ? hub.messageFrame().shadowReadMemory(p.callDataSource().offset(), 32)
-                : Bytes.EMPTY;
-        final EWord bbs = EWord.of(rawBbs.shiftRight(bbsShift).shiftLeft(bbsShift));
-
-        final int ebsShift =
-            extractEbs ? 32 - (int) Math.min(32, p.callDataSource().length() - 32) : 0;
-        final Bytes rawEbs =
-            extractEbs
-                ? hub.messageFrame().shadowReadMemory(p.callDataSource().offset() + 32, 32)
-                : Bytes.EMPTY;
-        final EWord ebs = EWord.of(rawEbs.shiftRight(ebsShift).shiftLeft(ebsShift));
-
-        final int mbsShift =
-            extractMbs ? 32 - (int) Math.min(32, p.callDataSource().length() - 64) : 0;
-        final Bytes rawMbs =
-            extractMbs
-                ? hub.messageFrame().shadowReadMemory(p.callDataSource().offset() + 64, 32)
-                : Bytes.EMPTY;
-        final EWord mbs = EWord.of(rawMbs.shiftRight(mbsShift).shiftLeft(mbsShift));
-
-        final int bbsInt = bbs.toUnsignedBigInteger().intValueExact();
-        final int ebsInt = ebs.toUnsignedBigInteger().intValueExact();
-        final int mbsInt = mbs.toUnsignedBigInteger().intValueExact();
-
-        final boolean loadRawLeadingWord =
-            p.callDataSource().length() > 96 + bbsInt && !ebs.isZero();
-
-        final EWord rawLeadingWord =
-            loadRawLeadingWord
-                ? EWord.of(
-                    hub.messageFrame()
-                        .shadowReadMemory(p.callDataSource().offset() + 96 + bbsInt, 32))
-                : EWord.ZERO;
+        final ModExpMetadata m = (ModExpMetadata) p.metadata();
+        final int bbsInt = m.bbs().toUnsignedBigInteger().intValueExact();
+        final int ebsInt = m.ebs().toUnsignedBigInteger().intValueExact();
+        final int mbsInt = m.mbs().toUnsignedBigInteger().intValueExact();
 
         r.add(ImcFragment.empty().callOob(new ModexpCds(p.requestedReturnDataTarget().length())));
         r.add(
             ImcFragment.empty()
-                .callOob(new ModexpXbs(bbs, EWord.ZERO, false))
-                .callMmu(extractBbs ? MmuCall.forModExp(hub, p, 2) : MmuCall.nop()));
+                .callOob(new ModexpXbs(m.bbs(), EWord.ZERO, false))
+                .callMmu(m.extractBbs() ? MmuCall.forModExp(hub, p, 2) : MmuCall.nop()));
         r.add(
             ImcFragment.empty()
-                .callOob(new ModexpXbs(ebs, EWord.ZERO, false))
-                .callMmu(extractEbs ? MmuCall.forModExp(hub, p, 3) : MmuCall.nop()));
+                .callOob(new ModexpXbs(m.ebs(), EWord.ZERO, false))
+                .callMmu(m.extractEbs() ? MmuCall.forModExp(hub, p, 3) : MmuCall.nop()));
         r.add(
             ImcFragment.empty()
-                .callOob(new ModexpXbs(mbs, bbs, true))
-                .callMmu(extractEbs ? MmuCall.forModExp(hub, p, 4) : MmuCall.nop()));
+                .callOob(new ModexpXbs(m.mbs(), m.bbs(), true))
+                .callMmu(m.extractEbs() ? MmuCall.forModExp(hub, p, 4) : MmuCall.nop()));
         final ImcFragment line5 =
             ImcFragment.empty()
                 .callOob(new ModexpLead(bbsInt, p.callDataSource().length(), ebsInt))
-                .callMmu(loadRawLeadingWord ? MmuCall.forModExp(hub, p, 5) : MmuCall.nop());
-        if (loadRawLeadingWord) {
+                .callMmu(m.loadRawLeadingWord() ? MmuCall.forModExp(hub, p, 5) : MmuCall.nop());
+        if (m.loadRawLeadingWord()) {
           line5.callModExp(
               new ModExpLogCall(
-                  rawLeadingWord,
+                  m.rawLeadingWord(),
                   Math.min((int) (p.callDataSource().length() - 96 - bbsInt), 32),
                   Math.min(ebsInt, 32)));
         }
@@ -202,7 +164,7 @@ public class PrecompileLinesGenerator {
                     new ModexpPricing(
                         p,
                         ModExpLogCall.exponentLeadingWordLog(
-                            rawLeadingWord,
+                            m.rawLeadingWord(),
                             Math.min((int) (p.callDataSource().length() - 96 - bbsInt), 32),
                             Math.min(ebsInt, 32)),
                         Math.max(mbsInt, bbsInt))));
@@ -210,15 +172,12 @@ public class PrecompileLinesGenerator {
         if (p.ramFailure()) {
           r.add(ContextFragment.nonExecutionEmptyReturnData(hub.callStack()));
         } else {
-          final boolean extractModulus =
-              (p.callDataSource().length() > 96 + bbsInt + ebsInt) && !mbs.isZero();
-
           r.add(
               ImcFragment.empty()
                   .callOob(new ModexpExtract(p.callDataSource().length(), bbsInt, ebsInt, mbsInt))
-                  .callMmu(extractModulus ? MmuCall.forModExp(hub, p, 7) : MmuCall.nop()));
+                  .callMmu(m.extractModulus() ? MmuCall.forModExp(hub, p, 7) : MmuCall.nop()));
 
-          if (extractModulus) {
+          if (m.extractModulus()) {
             r.add(ImcFragment.empty().callMmu(MmuCall.forModExp(hub, p, 8)));
             r.add(ImcFragment.empty().callMmu(MmuCall.forModExp(hub, p, 9)));
             r.add(ImcFragment.empty().callMmu(MmuCall.forModExp(hub, p, 10)));
@@ -228,7 +187,7 @@ public class PrecompileLinesGenerator {
             }
           }
 
-          if (!mbs.isZero() && !p.requestedReturnDataTarget().isEmpty()) {
+          if (!m.mbs().isZero() && !p.requestedReturnDataTarget().isEmpty()) {
             r.add(ImcFragment.empty().callMmu(MmuCall.forModExp(hub, p, 11)));
           }
 

@@ -15,7 +15,10 @@
 
 package net.consensys.linea.zktracer.module.hub.precompiles;
 
+import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.types.EWord;
+import net.consensys.linea.zktracer.types.MemorySpan;
+import org.apache.tuweni.bytes.Bytes;
 
 public record ModExpMetadata(
     boolean extractBbs,
@@ -29,4 +32,59 @@ public record ModExpMetadata(
     boolean extractModulus,
     boolean extractBase,
     boolean extractExponent)
-    implements PrecompileMetadata {}
+    implements PrecompileMetadata {
+  public static ModExpMetadata of(final Hub hub) {
+    final MemorySpan callDataSource = hub.transients().op().callDataSegment();
+    final boolean extractBbs = !callDataSource.isEmpty();
+    final boolean extractEbs = callDataSource.length() > 32;
+    final boolean extractMbs = callDataSource.length() > 64;
+
+    final int bbsShift = 32 - (int) Math.min(32, callDataSource.length());
+    final Bytes rawBbs =
+        extractBbs ? hub.messageFrame().shadowReadMemory(callDataSource.offset(), 32) : Bytes.EMPTY;
+    final EWord bbs = EWord.of(rawBbs.shiftRight(bbsShift).shiftLeft(bbsShift));
+
+    final int ebsShift = extractEbs ? 32 - (int) Math.min(32, callDataSource.length() - 32) : 0;
+    final Bytes rawEbs =
+        extractEbs
+            ? hub.messageFrame().shadowReadMemory(callDataSource.offset() + 32, 32)
+            : Bytes.EMPTY;
+    final EWord ebs = EWord.of(rawEbs.shiftRight(ebsShift).shiftLeft(ebsShift));
+
+    final int mbsShift = extractMbs ? 32 - (int) Math.min(32, callDataSource.length() - 64) : 0;
+    final Bytes rawMbs =
+        extractMbs
+            ? hub.messageFrame().shadowReadMemory(callDataSource.offset() + 64, 32)
+            : Bytes.EMPTY;
+    final EWord mbs = EWord.of(rawMbs.shiftRight(mbsShift).shiftLeft(mbsShift));
+
+    final int bbsInt = bbs.toUnsignedBigInteger().intValueExact();
+    final int ebsInt = ebs.toUnsignedBigInteger().intValueExact();
+
+    final boolean loadRawLeadingWord = callDataSource.length() > 96 + bbsInt && !ebs.isZero();
+
+    final EWord rawLeadingWord =
+        loadRawLeadingWord
+            ? EWord.of(
+                hub.messageFrame().shadowReadMemory(callDataSource.offset() + 96 + bbsInt, 32))
+            : EWord.ZERO;
+
+    final boolean extractModulus =
+        (callDataSource.length() > 96 + bbsInt + ebsInt) && !mbs.isZero();
+    final boolean extractBase = extractModulus && !bbs.isZero();
+    final boolean extractExponent = extractModulus && !ebs.isZero();
+
+    return new ModExpMetadata(
+        extractBbs,
+        extractEbs,
+        extractMbs,
+        bbs,
+        ebs,
+        mbs,
+        loadRawLeadingWord,
+        rawLeadingWord,
+        extractModulus,
+        extractBase,
+        extractExponent);
+  }
+}

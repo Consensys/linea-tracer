@@ -119,7 +119,9 @@ public final class StackFragment implements TraceFragment {
                         .orElse(Hash.EMPTY));
           }
         }
-        case RETURN -> {/* already set at opcode invocation */}
+        case RETURN -> {
+          /* already set at opcode invocation */
+        }
         default -> throw new IllegalStateException("unexpected opcode");
       }
     }

@@ -326,6 +326,7 @@ public abstract class TraceSection {
       for (int i = 0; i < (f.opCodeData().stackSettings().twoLinesInstruction() ? 2 : 1); i++) {
         r.add(
             StackFragment.prepare(
+                hub,
                 f.stack().snapshot(),
                 new StackLine().asStackOperations(),
                 hub.pch().exceptions().snapshot(),
@@ -337,6 +338,7 @@ public abstract class TraceSection {
       for (StackLine line : f.pending().getLines()) {
         r.add(
             StackFragment.prepare(
+                hub,
                 f.stack().snapshot(),
                 line.asStackOperations(),
                 hub.pch().exceptions().snapshot(),

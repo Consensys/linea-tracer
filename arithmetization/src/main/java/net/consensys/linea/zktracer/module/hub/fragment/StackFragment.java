@@ -23,6 +23,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.DeploymentExceptions;
+import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.signals.AbortingConditions;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
@@ -39,7 +40,6 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.frame.MessageFrame;
-import org.hyperledger.besu.evm.internal.Words;
 
 @Accessors(fluent = true)
 public final class StackFragment implements TraceFragment {
@@ -54,6 +54,7 @@ public final class StackFragment implements TraceFragment {
   @Getter private final OpCode opCode;
 
   private StackFragment(
+      final Hub hub,
       Stack stack,
       List<StackOperation> stackOps,
       Exceptions exceptions,
@@ -78,9 +79,14 @@ public final class StackFragment implements TraceFragment {
         };
     this.hashInfoSize = this.hashInfoFlag ? gp.messageSize() : 0;
     this.staticGas = gp.staticGas();
+    if (this.opCode == OpCode.RETURN && exceptions.none()) {
+      this.hashInfoKeccak =
+          EWord.of(org.hyperledger.besu.crypto.Hash.keccak256(hub.transients().op().returnData()));
+    }
   }
 
   public static StackFragment prepare(
+      final Hub hub,
       final Stack stack,
       final List<StackOperation> stackOperations,
       final Exceptions exceptions,
@@ -88,20 +94,20 @@ public final class StackFragment implements TraceFragment {
       final GasProjection gp,
       boolean isDeploying) {
     return new StackFragment(
-        stack, stackOperations, exceptions, aborts, DeploymentExceptions.empty(), gp, isDeploying);
+        hub,
+        stack,
+        stackOperations,
+        exceptions,
+        aborts,
+        DeploymentExceptions.empty(),
+        gp,
+        isDeploying);
   }
 
   public void feedHashedValue(MessageFrame frame) {
     if (hashInfoFlag) {
       switch (this.opCode) {
         case SHA3 -> this.hashInfoKeccak = EWord.of(frame.getStackItem(0));
-        case RETURN -> {
-          final long from = Words.clampedToLong(frame.getStackItem(0));
-          final long length = Words.clampedToLong(frame.getStackItem(1));
-          this.hashInfoKeccak =
-              EWord.of(
-                  org.hyperledger.besu.crypto.Hash.keccak256(frame.shadowReadMemory(from, length)));
-        }
         case CREATE2 -> {
           Address newAddress = EWord.of(frame.getStackItem(0)).toAddress();
           // zero address indicates a failed deployment
@@ -113,6 +119,7 @@ public final class StackFragment implements TraceFragment {
                         .orElse(Hash.EMPTY));
           }
         }
+        case RETURN -> {/* already set at opcode invocation */}
         default -> throw new IllegalStateException("unexpected opcode");
       }
     }

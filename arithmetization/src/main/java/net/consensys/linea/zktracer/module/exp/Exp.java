@@ -18,6 +18,7 @@ package net.consensys.linea.zktracer.module.exp;
 import static com.google.common.math.BigIntegerMath.log2;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static net.consensys.linea.zktracer.ZkTracer.gasCalculator;
 
 import java.math.BigInteger;
 import java.math.RoundingMode;
@@ -97,25 +98,15 @@ public class Exp implements Module {
 
   private ExpLogExpParameters extractExpLogParameters(final MessageFrame frame) {
     EWord exponent = EWord.of(frame.getStackItem(1));
-
-    /*
-    From ExpOperation.java
-
-    final int numBytes = (power.bitLength() + 7) / 8;
-
-    final long cost = gasCalculator.expOperationGasCost(numBytes);
-
-    From FrontierGasCalculator.java
-    @Override
-    public long expOperationGasCost(final int numBytes) {
-      return expOperationByteGasCost() * numBytes + EXP_OPERATION_BASE_GAS_COST;
-    }
-    */
+    // From SpuriousDragonGasCalculator.java (necessary to keep only dynamic cost and throw away the
+    // static one)
+    final long EXP_OPERATION_BASE_GAS_COST = 10L;
+    final int numBytes = (exponent.bitLength() + 7) / 8;
     BigInteger dynCost =
         exponent.isZero()
             ? BigInteger.ZERO
-            : BigInteger.valueOf(log2(exponent.toBigInteger(), RoundingMode.FLOOR))
-                .divide(BigInteger.valueOf(8));
+            : BigInteger.valueOf(
+                gasCalculator.expOperationGasCost(numBytes) - EXP_OPERATION_BASE_GAS_COST);
     return new ExpLogExpParameters(exponent, dynCost);
   }
 

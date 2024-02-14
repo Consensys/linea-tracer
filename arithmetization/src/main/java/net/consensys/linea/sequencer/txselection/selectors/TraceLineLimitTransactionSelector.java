@@ -69,16 +69,17 @@ public class TraceLineLimitTransactionSelector implements PluginTransactionSelec
     }
 
     this.moduleLimits = moduleLimits;
+    this.limitFilePath = txSelectorConfiguration.moduleLimitsFilePath();
+    this.overLimitCacheSize = txSelectorConfiguration.overLinesLimitCacheSize();
+
     zkTracer = new ZkTracerWithLog(l1L2BridgeConfiguration);
     for (Module m : zkTracer.getHub().getModulesToCount()) {
       if (!moduleLimits.containsKey(m.moduleKey())) {
         throw new IllegalStateException(
-            "Limit for module %s not defined in %s".formatted(m.moduleKey(), limitFilePath));
+            "Limit for module %s not defined in %s".formatted(m.moduleKey(), this.limitFilePath));
       }
     }
     zkTracer.traceStartConflation(1L);
-    this.limitFilePath = txSelectorConfiguration.moduleLimitsFilePath();
-    this.overLimitCacheSize = txSelectorConfiguration.overLinesLimitCacheSize();
   }
 
   /**

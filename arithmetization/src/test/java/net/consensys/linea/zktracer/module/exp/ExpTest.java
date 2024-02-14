@@ -29,9 +29,39 @@ import org.junit.jupiter.api.extension.ExtendWith;
 public class ExpTest {
   @Test
   void TestExpLogSingleCase() {
-    Bytes exponent = Bytes.fromHexString("0x02");
     BytecodeCompiler program = BytecodeCompiler.newProgram();
-    program.push(exponent).push(10).op(OpCode.EXP);
+    program.push(2).push(10).op(OpCode.EXP);
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
+    bytecodeRunner.run();
+  }
+
+  @Test
+  void TestModexpLogSingleCase() {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    program
+        .push(1) // bbs
+        .push(0)
+        .op(OpCode.MSTORE)
+        .push(1) // ebs
+        .push(0x20)
+        .op(OpCode.MSTORE)
+        .push(1) // mbs
+        .push(0x40)
+        .op(OpCode.MSTORE)
+        .push(
+            Bytes.fromHexStringLenient(
+                "0x08090A0000000000000000000000000000000000000000000000000000000000")) // b, e, m
+        .push(0x60)
+        .op(OpCode.MSTORE);
+
+    program
+        .push(1) // retSize
+        .push(0x9f) // retOffset
+        .push(0x63) // argSize (cds)
+        .push(0) // argOffset (cdo)
+        .push(5) // address
+        .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas
+        .op(OpCode.STATICCALL);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run();
   }

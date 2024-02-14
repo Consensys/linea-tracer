@@ -20,6 +20,6 @@ import picocli.CommandLine;
 public class BytesConverter implements CommandLine.ITypeConverter<Bytes> {
   @Override
   public Bytes convert(final String s) throws Exception {
-    return Bytes.fromHexString(s);
+    return Bytes.fromHexStringLenient(s);
   }
 }

@@ -21,7 +21,6 @@ import com.google.common.base.Stopwatch;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import lombok.extern.slf4j.Slf4j;
-import net.consensys.linea.config.LineaL1L2BridgeConfiguration;
 import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.plugin.BesuContext;
 import org.hyperledger.besu.plugin.services.TraceService;
@@ -30,24 +29,21 @@ import org.hyperledger.besu.plugin.services.rpc.PluginRpcRequest;
 
 /** This class is used to generate trace counters. */
 @Slf4j
-public class RollupGenerateCountersV0 {
+public class GenerateCountersV0 {
   private static final int CACHE_SIZE = 10_000;
   static final Cache<Long, Map<String, Integer>> cache =
       CacheBuilder.newBuilder().maximumSize(CACHE_SIZE).build();
 
   private final BesuContext besuContext;
   private TraceService traceService;
-  private LineaL1L2BridgeConfiguration l1L2BridgeConfiguration;
 
   /**
    * Constructor for RollupGenerateCountersV0.
    *
    * @param besuContext the BesuContext to be used.
    */
-  public RollupGenerateCountersV0(
-      final BesuContext besuContext, final LineaL1L2BridgeConfiguration l1L2BridgeConfiguration) {
+  public GenerateCountersV0(final BesuContext besuContext) {
     this.besuContext = besuContext;
-    this.l1L2BridgeConfiguration = l1L2BridgeConfiguration;
   }
 
   public String getNamespace() {
@@ -88,7 +84,7 @@ public class RollupGenerateCountersV0 {
                   .computeIfAbsent(
                       requestedBlockNumber,
                       blockNumber -> {
-                        final ZkTracer tracer = new ZkTracer(l1L2BridgeConfiguration);
+                        final ZkTracer tracer = new ZkTracer();
                         traceService.trace(
                             blockNumber,
                             blockNumber,

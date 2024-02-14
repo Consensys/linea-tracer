@@ -22,13 +22,10 @@ import static org.mockito.Mockito.when;
 import java.nio.file.Path;
 import java.util.List;
 
-import net.consensys.linea.config.LineaL1L2BridgeConfiguration;
 import net.consensys.linea.continoustracing.exception.InvalidBlockTraceException;
 import net.consensys.linea.continoustracing.exception.TraceVerificationException;
 import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.zktracer.ZkTracer;
-import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.plugin.data.BlockTraceResult;
 import org.hyperledger.besu.plugin.data.TransactionTraceResult;
@@ -46,11 +43,6 @@ public class ContinuousTracerTest {
       Hash.fromHexString("0x0000000000000000000000000000000000000000000000000000000000000042");
 
   private ContinuousTracer continuousTracer;
-  private LineaL1L2BridgeConfiguration l1L2BridgeConfiguration =
-      LineaL1L2BridgeConfiguration.builder()
-          .contract(Address.fromHexString("0xDEADBEEF"))
-          .topic(Bytes.fromHexString("0x012345"))
-          .build();
 
   @Mock TraceService traceServiceMock;
   @Mock CorsetValidator corsetValidatorMock;
@@ -113,8 +105,6 @@ public class ContinuousTracerTest {
 
     assertThrows(
         InvalidBlockTraceException.class,
-        () ->
-            continuousTracer.verifyTraceOfBlock(
-                BLOCK_HASH, "testZkEvmBin", new ZkTracer(l1L2BridgeConfiguration)));
+        () -> continuousTracer.verifyTraceOfBlock(BLOCK_HASH, "testZkEvmBin", new ZkTracer()));
   }
 }

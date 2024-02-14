@@ -22,11 +22,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import net.consensys.linea.config.LineaL1L2BridgeConfiguration;
 import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.zktracer.ZkTracer;
-import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.ethereum.MainnetBlockValidator;
 import org.hyperledger.besu.ethereum.ProtocolContext;
 import org.hyperledger.besu.ethereum.chain.MutableBlockchain;
@@ -116,12 +113,7 @@ public class BlockchainReferenceTestTools {
         return;
       }
 
-      final ZkTracer zkTracer =
-          new ZkTracer(
-              LineaL1L2BridgeConfiguration.builder()
-                  .contract(Address.fromHexString("0xDEADBEEF"))
-                  .topic(Bytes.fromHexString("0x012345"))
-                  .build());
+      final ZkTracer zkTracer = new ZkTracer();
 
       try {
         final Block block = candidateBlock.getBlock();

@@ -29,19 +29,17 @@ public class LineaL1L2BridgeCliOptions {
 
   @CommandLine.Option(
       names = {L1L2_BRIDGE_CONTRACT},
-      required = true,
       paramLabel = "<ADDRESS>",
       converter = AddressConverter.class,
-      description = "The address of the L1 L2 bridge contract")
-  private Address l1l2BridgeContract;
+      description = "The address of the L1 L2 bridge contract (default: ${DEFAULT-VALUE})")
+  private Address l1l2BridgeContract = Address.ZERO;
 
   @CommandLine.Option(
       names = {L1L2_BRIDGE_TOPIC},
-      required = true,
       paramLabel = "<HEX_STRING>",
       converter = BytesConverter.class,
-      description = "The log topic of the L1 L2 bridge")
-  private Bytes l1l2BridgeTopic;
+      description = "The log topic of the L1 L2 bridge (default: ${DEFAULT-VALUE})")
+  private Bytes l1l2BridgeTopic = Bytes.EMPTY;
 
   private LineaL1L2BridgeCliOptions() {}
 

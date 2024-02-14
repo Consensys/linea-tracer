@@ -25,11 +25,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import lombok.SneakyThrows;
-import net.consensys.linea.config.LineaL1L2BridgeConfiguration;
 import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.zktracer.ZkTracer;
-import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.BlobGas;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Wei;
@@ -172,12 +169,7 @@ public class GeneralStateReferenceTestTools {
             .getFeeMarket()
             .blobGasPricePerGas(blockHeader.getExcessBlobGas().orElse(BlobGas.ZERO));
 
-    final ZkTracer zkTracer =
-        new ZkTracer(
-            LineaL1L2BridgeConfiguration.builder()
-                .contract(Address.fromHexString("0xDEADBEEF"))
-                .topic(Bytes.fromHexString("0x012345"))
-                .build());
+    final ZkTracer zkTracer = new ZkTracer();
     zkTracer.traceStartConflation(1);
     zkTracer.traceStartBlock(blockHeader, blockBody);
 

@@ -26,8 +26,8 @@ import org.hyperledger.besu.plugin.services.RpcEndpointService;
 /**
  * Registers RPC endpoints .This class provides an RPC endpoint named
  * 'generateConflatedTracesToFileV0' under the 'rollup' namespace. It uses {@link
- * RollupGenerateConflatedTracesToFileV0} to generate conflated file traces. This class provides an
- * RPC endpoint named 'generateConflatedTracesToFileV0' under the 'rollup' namespace.
+ * GenerateConflatedTracesV0} to generate conflated file traces. This class provides an RPC endpoint
+ * named 'generateConflatedTracesToFileV0' under the 'rollup' namespace.
  */
 @AutoService(BesuPlugin.class)
 @Slf4j
@@ -55,8 +55,7 @@ public class TracesEndpointServicePlugin extends AbstractLineaSharedOptionsPlugi
   @Override
   public void beforeExternalServices() {
     super.beforeExternalServices();
-    RollupGenerateConflatedTracesToFileV0 method =
-        new RollupGenerateConflatedTracesToFileV0(besuContext, l1L2BridgeConfiguration);
+    GenerateConflatedTracesV0 method = new GenerateConflatedTracesV0(besuContext);
 
     createAndRegister(method, rpcEndpointService);
   }
@@ -68,8 +67,7 @@ public class TracesEndpointServicePlugin extends AbstractLineaSharedOptionsPlugi
    * @param rpcEndpointService the RpcEndpointService to be registered.
    */
   private void createAndRegister(
-      final RollupGenerateConflatedTracesToFileV0 method,
-      final RpcEndpointService rpcEndpointService) {
+      final GenerateConflatedTracesV0 method, final RpcEndpointService rpcEndpointService) {
     rpcEndpointService.registerRPCEndpoint(
         method.getNamespace(), method.getName(), method::execute);
   }

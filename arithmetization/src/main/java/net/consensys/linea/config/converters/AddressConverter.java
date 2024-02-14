@@ -20,6 +20,6 @@ import picocli.CommandLine;
 public class AddressConverter implements CommandLine.ITypeConverter<Address> {
   @Override
   public Address convert(final String s) throws Exception {
-    return Address.fromHexStringStrict(s);
+    return Address.fromHexString(s);
   }
 }

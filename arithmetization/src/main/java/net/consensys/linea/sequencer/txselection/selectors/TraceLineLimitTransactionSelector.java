@@ -62,6 +62,11 @@ public class TraceLineLimitTransactionSelector implements PluginTransactionSelec
       final Map<String, Integer> moduleLimits,
       final LineaTransactionSelectorConfiguration txSelectorConfiguration,
       final LineaL1L2BridgeConfiguration l1L2BridgeConfiguration) {
+    if (l1L2BridgeConfiguration.isEmpty()) {
+      log.error("L1L2 bridge settings have not been defined.");
+      System.exit(1);
+    }
+
     this.moduleLimits = moduleLimits;
     zkTracer = new ZkTracerWithLog(l1L2BridgeConfiguration);
     zkTracer.traceStartConflation(1L);

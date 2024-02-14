@@ -38,7 +38,7 @@ public class TestCommandLineOptionsBuilder {
         "--plugin-linea-module-limit-file-path=", getResourcePath("/noModuleLimits.toml"));
     cliOptions.setProperty("--plugin-linea-max-block-gas=", MAX_VALUE);
     cliOptions.setProperty(
-        "--plugin-linea-l1l2-bridge-contract=", "0x0000000000000000000000000000000000000000");
+        "--plugin-linea-l1l2-bridge-contract=", "0x00000000000000000000000000000000DEADBEEF");
     cliOptions.setProperty("--plugin-linea-l1l2-bridge-topic=", "0x123456");
   }
 

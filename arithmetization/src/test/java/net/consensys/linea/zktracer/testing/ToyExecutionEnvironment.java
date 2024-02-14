@@ -34,7 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.blockcapture.snapshots.BlockSnapshot;
 import net.consensys.linea.blockcapture.snapshots.ConflationSnapshot;
 import net.consensys.linea.blockcapture.snapshots.TransactionSnapshot;
-import net.consensys.linea.config.LineaL1L2BridgeConfiguration;
 import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.hub.Exceptions;
@@ -92,12 +91,7 @@ public class ToyExecutionEnvironment {
   private final Consumer<ZkTracer> zkTracerValidator;
 
   private static final FeeMarket feeMarket = FeeMarket.london(-1);
-  private final ZkTracer tracer =
-      new ZkTracer(
-          LineaL1L2BridgeConfiguration.builder()
-              .contract(Address.fromHexString("0xDEADBEEF"))
-              .topic(Bytes.fromHexString("0x012345"))
-              .build());
+  private final ZkTracer tracer = new ZkTracer();
 
   /**
    * Gets the default EVM implementation, i.e. London.

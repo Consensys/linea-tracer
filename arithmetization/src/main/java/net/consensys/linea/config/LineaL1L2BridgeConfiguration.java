@@ -21,4 +21,8 @@ import org.hyperledger.besu.datatypes.Address;
 
 /** The Linea L1 L2 bridge configuration. */
 @Builder(toBuilder = true)
-public record LineaL1L2BridgeConfiguration(Address contract, Bytes topic) {}
+public record LineaL1L2BridgeConfiguration(Address contract, Bytes topic) {
+  public boolean isEmpty() {
+    return this.contract.equals(Address.ZERO) || this.topic.isEmpty();
+  }
+}

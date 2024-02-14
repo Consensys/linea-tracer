@@ -15,10 +15,8 @@
 
 package net.consensys.linea.rpc.counters;
 
-import java.util.Optional;
-
 import com.google.auto.service.AutoService;
-import net.consensys.linea.AbstractLineaRequiredPlugin;
+import net.consensys.linea.AbstractLineaSharedOptionsPlugin;
 import net.consensys.linea.zktracer.opcode.OpCodes;
 import org.hyperledger.besu.plugin.BesuContext;
 import org.hyperledger.besu.plugin.BesuPlugin;
@@ -33,23 +31,33 @@ import org.hyperledger.besu.plugin.services.RpcEndpointService;
  * RollupGenerateCountersV0}
  */
 @AutoService(BesuPlugin.class)
-public class CountersEndpointServicePlugin extends AbstractLineaRequiredPlugin {
-
+public class CountersEndpointServicePlugin extends AbstractLineaSharedOptionsPlugin {
+  private BesuContext besuContext;
+  private RpcEndpointService rpcEndpointService;
   /**
    * Register the RPC service.
    *
    * @param context the BesuContext to be used.
    */
   @Override
-  public void doRegister(final BesuContext context) {
-    RollupGenerateCountersV0 method = new RollupGenerateCountersV0(context);
+  public void register(final BesuContext context) {
+    super.register(context);
+    besuContext = context;
+    rpcEndpointService =
+        context
+            .getService(RpcEndpointService.class)
+            .orElseThrow(
+                () ->
+                    new RuntimeException(
+                        "Failed to obtain RpcEndpointService from the BesuContext."));
+  }
 
-    Optional<RpcEndpointService> service = context.getService(RpcEndpointService.class);
-    createAndRegister(
-        method,
-        service.orElseThrow(
-            () ->
-                new RuntimeException("Failed to obtain RpcEndpointService from the BesuContext.")));
+  @Override
+  public void beforeExternalServices() {
+    super.beforeExternalServices();
+    RollupGenerateCountersV0 method =
+        new RollupGenerateCountersV0(besuContext, l1L2BridgeConfiguration);
+    createAndRegister(method, rpcEndpointService);
   }
 
   /**

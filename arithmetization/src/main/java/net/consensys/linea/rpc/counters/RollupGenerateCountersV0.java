@@ -21,6 +21,7 @@ import com.google.common.base.Stopwatch;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.config.LineaL1L2BridgeConfiguration;
 import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.plugin.BesuContext;
 import org.hyperledger.besu.plugin.services.TraceService;
@@ -36,14 +37,17 @@ public class RollupGenerateCountersV0 {
 
   private final BesuContext besuContext;
   private TraceService traceService;
+  private LineaL1L2BridgeConfiguration l1L2BridgeConfiguration;
 
   /**
    * Constructor for RollupGenerateCountersV0.
    *
    * @param besuContext the BesuContext to be used.
    */
-  public RollupGenerateCountersV0(final BesuContext besuContext) {
+  public RollupGenerateCountersV0(
+      final BesuContext besuContext, final LineaL1L2BridgeConfiguration l1L2BridgeConfiguration) {
     this.besuContext = besuContext;
+    this.l1L2BridgeConfiguration = l1L2BridgeConfiguration;
   }
 
   public String getNamespace() {
@@ -84,7 +88,7 @@ public class RollupGenerateCountersV0 {
                   .computeIfAbsent(
                       requestedBlockNumber,
                       blockNumber -> {
-                        final ZkTracer tracer = new ZkTracer();
+                        final ZkTracer tracer = new ZkTracer(l1L2BridgeConfiguration);
                         traceService.trace(
                             blockNumber,
                             blockNumber,

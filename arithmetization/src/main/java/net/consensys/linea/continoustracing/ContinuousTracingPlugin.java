@@ -18,6 +18,7 @@ import java.util.Optional;
 
 import com.google.auto.service.AutoService;
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.AbstractLineaSharedOptionsPlugin;
 import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.zktracer.opcode.OpCodes;
 import org.hyperledger.besu.plugin.BesuContext;
@@ -28,7 +29,7 @@ import org.hyperledger.besu.plugin.services.TraceService;
 
 @Slf4j
 @AutoService(BesuPlugin.class)
-public class ContinuousTracingPlugin implements BesuPlugin {
+public class ContinuousTracingPlugin extends AbstractLineaSharedOptionsPlugin {
   public static final String NAME = "linea-continuous";
   public static final String ENV_WEBHOOK_URL = "SLACK_SHADOW_NODE_WEBHOOK_URL";
 
@@ -46,6 +47,7 @@ public class ContinuousTracingPlugin implements BesuPlugin {
 
   @Override
   public void register(final BesuContext context) {
+    super.register(context);
     final PicoCLIOptions cmdlineOptions =
         context
             .getService(PicoCLIOptions.class)
@@ -103,6 +105,7 @@ public class ContinuousTracingPlugin implements BesuPlugin {
         new ContinuousTracingBlockAddedListener(
             new ContinuousTracer(traceService, new CorsetValidator()),
             new TraceFailureHandler(SlackNotificationService.create(webHookUrl)),
+            l1L2BridgeConfiguration,
             tracingConfiguration.zkEvmBin()));
   }
 

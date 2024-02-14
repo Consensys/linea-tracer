@@ -21,6 +21,7 @@ import java.nio.file.Paths;
 
 import com.google.common.base.Stopwatch;
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.config.LineaL1L2BridgeConfiguration;
 import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.plugin.BesuContext;
 import org.hyperledger.besu.plugin.services.BesuConfiguration;
@@ -39,9 +40,12 @@ public class RollupGenerateConflatedTracesToFileV0 {
   private final BesuContext besuContext;
   private Path tracesPath;
   private TraceService traceService;
+  private LineaL1L2BridgeConfiguration l1L2BridgeConfiguration;
 
-  public RollupGenerateConflatedTracesToFileV0(final BesuContext besuContext) {
+  public RollupGenerateConflatedTracesToFileV0(
+      final BesuContext besuContext, final LineaL1L2BridgeConfiguration l1L2BridgeConfiguration) {
     this.besuContext = besuContext;
+    this.l1L2BridgeConfiguration = l1L2BridgeConfiguration;
   }
 
   public String getNamespace() {
@@ -72,7 +76,7 @@ public class RollupGenerateConflatedTracesToFileV0 {
 
       final long fromBlock = params.fromBlock();
       final long toBlock = params.toBlock();
-      final ZkTracer tracer = new ZkTracer();
+      final ZkTracer tracer = new ZkTracer(l1L2BridgeConfiguration);
       traceService.trace(
           fromBlock,
           toBlock,

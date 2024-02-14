@@ -21,6 +21,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.config.LineaL1L2BridgeConfiguration;
 import net.consensys.linea.continoustracing.exception.InvalidBlockTraceException;
 import net.consensys.linea.continoustracing.exception.InvalidTraceHandlerException;
 import net.consensys.linea.continoustracing.exception.TraceVerificationException;
@@ -33,9 +34,10 @@ import org.hyperledger.besu.plugin.services.BesuEvents;
 
 @Slf4j
 public class ContinuousTracingBlockAddedListener implements BesuEvents.BlockAddedListener {
-  final ContinuousTracer continuousTracer;
-  final TraceFailureHandler traceFailureHandler;
-  final String zkEvmBin;
+  private final ContinuousTracer continuousTracer;
+  private final TraceFailureHandler traceFailureHandler;
+  private final LineaL1L2BridgeConfiguration l1L2BridgeConfiguration;
+  private final String zkEvmBin;
 
   static final int BLOCK_PARALLELISM = 5;
   final ThreadPoolExecutor pool =
@@ -50,9 +52,11 @@ public class ContinuousTracingBlockAddedListener implements BesuEvents.BlockAdde
   public ContinuousTracingBlockAddedListener(
       final ContinuousTracer continuousTracer,
       final TraceFailureHandler traceFailureHandler,
+      final LineaL1L2BridgeConfiguration l1L2BridgeConfiguration,
       final String zkEvmBin) {
     this.continuousTracer = continuousTracer;
     this.traceFailureHandler = traceFailureHandler;
+    this.l1L2BridgeConfiguration = l1L2BridgeConfiguration;
     this.zkEvmBin = zkEvmBin;
   }
 
@@ -66,7 +70,8 @@ public class ContinuousTracingBlockAddedListener implements BesuEvents.BlockAdde
 
           try {
             final CorsetValidator.Result traceResult =
-                continuousTracer.verifyTraceOfBlock(blockHash, zkEvmBin, new ZkTracer());
+                continuousTracer.verifyTraceOfBlock(
+                    blockHash, zkEvmBin, new ZkTracer(l1L2BridgeConfiguration));
             Files.delete(traceResult.traceFile().toPath());
 
             if (!traceResult.isValid()) {

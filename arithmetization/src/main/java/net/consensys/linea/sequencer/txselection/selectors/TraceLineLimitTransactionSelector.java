@@ -26,6 +26,8 @@ import java.util.stream.Collectors;
 
 import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.config.LineaL1L2BridgeConfiguration;
+import net.consensys.linea.config.LineaTransactionSelectorConfiguration;
 import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.PendingTransaction;
@@ -58,13 +60,13 @@ public class TraceLineLimitTransactionSelector implements PluginTransactionSelec
 
   public TraceLineLimitTransactionSelector(
       final Map<String, Integer> moduleLimits,
-      final String limitFilePath,
-      final int overLimitCacheSize) {
+      final LineaTransactionSelectorConfiguration txSelectorConfiguration,
+      final LineaL1L2BridgeConfiguration l1L2BridgeConfiguration) {
     this.moduleLimits = moduleLimits;
-    zkTracer = new ZkTracerWithLog();
+    zkTracer = new ZkTracerWithLog(l1L2BridgeConfiguration);
     zkTracer.traceStartConflation(1L);
-    this.limitFilePath = limitFilePath;
-    this.overLimitCacheSize = overLimitCacheSize;
+    this.limitFilePath = txSelectorConfiguration.moduleLimitsFilePath();
+    this.overLimitCacheSize = txSelectorConfiguration.overLinesLimitCacheSize();
   }
 
   /**
@@ -201,6 +203,10 @@ public class TraceLineLimitTransactionSelector implements PluginTransactionSelec
   }
 
   private class ZkTracerWithLog extends ZkTracer {
+    public ZkTracerWithLog(final LineaL1L2BridgeConfiguration bridgeConfiguration) {
+      super(bridgeConfiguration);
+    }
+
     @Override
     public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
       super.traceEndBlock(blockHeader, blockBody);

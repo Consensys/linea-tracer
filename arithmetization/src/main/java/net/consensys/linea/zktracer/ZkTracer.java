@@ -29,12 +29,14 @@ import java.util.Optional;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.config.LineaL1L2BridgeConfiguration;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCodes;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.toml.Toml;
 import org.apache.tuweni.toml.TomlTable;
+import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.PendingTransaction;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -58,11 +60,15 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   private Hash hashOfLastTransactionTraced = Hash.EMPTY;
 
   public ZkTracer() {
-    this("0xDEADBEEF", "0x012345");
+    this(
+        LineaL1L2BridgeConfiguration.builder()
+            .contract(Address.fromHexString("0xDEAD"))
+            .topic(Bytes.fromHexString("0xBEEF"))
+            .build());
   }
 
-  public ZkTracer(final String l2l1ContractAddress, final String l2l1Topic) {
-    this.hub = new Hub(l2l1ContractAddress, l2l1Topic);
+  public ZkTracer(final LineaL1L2BridgeConfiguration bridgeConfiguration) {
+    this.hub = new Hub(bridgeConfiguration.contract(), bridgeConfiguration.topic());
 
     // Load opcodes configured in src/main/resources/opcodes.yml.
     OpCodes.load();

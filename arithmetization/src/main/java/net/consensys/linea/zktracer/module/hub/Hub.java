@@ -193,9 +193,8 @@ public class Hub implements Module {
   private final List<Module> precompileLimitModules;
   private final List<Module> refTableModules;
 
-  public Hub(final String l2l1ContractAddress, final String l2l1Topic) {
-    this.l2Block =
-        new L2Block(Address.fromHexString(l2l1ContractAddress), LogTopic.fromHexString(l2l1Topic));
+  public Hub(final Address l2l1ContractAddress, final Bytes l2l1Topic) {
+    this.l2Block = new L2Block(l2l1ContractAddress, LogTopic.of(l2l1Topic));
     this.pch = new PlatformController(this);
     this.mmu = new Mmu(this.callStack);
     this.mxp = new Mxp(this);

@@ -224,7 +224,7 @@ public class Hub implements Module {
             new Sha256Blocks(this),
             ecRec,
             new Rip160Blocks(this),
-            this.modexp,
+            // this.modexp,
             new EcAddEffectiveCall(this),
             new EcMulEffectiveCall(this),
             ecPairingCall,
@@ -283,7 +283,7 @@ public class Hub implements Module {
                 this.logData,
                 this.logInfo,
                 this.mod,
-                this.modexp.data(),
+                // this.modexp.data(),
                 this.mul,
                 this.mxp,
                 this.exp,
@@ -575,7 +575,7 @@ public class Hub implements Module {
     }
     if (this.pch.signals().exp()) {
       this.exp.tracePreOpcode(frame);
-      this.modexp.tracePreOpcode(frame);
+      // this.modexp.tracePreOpcode(frame);
       // if (this.pch.exceptions().none() && this.pch.aborts().none())
     }
     if (this.pch.signals().trm()) {

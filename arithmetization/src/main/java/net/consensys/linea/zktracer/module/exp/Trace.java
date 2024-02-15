@@ -30,18 +30,18 @@ import org.apache.tuweni.bytes.Bytes;
  * Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
 public class Trace {
-  static final int EQ = 20;
-  static final int EXP_EXPLOG = 60938;
-  static final int EXP_MODEXPLOG = 60933;
-  static final int G_EXPBYTES = 50;
-  static final int ISZERO = 21;
-  static final int LT = 16;
-  static final int MAX_CT_CMPTN_EXP_LOG = 15;
-  static final int MAX_CT_CMPTN_MODEXP_LOG = 15;
-  static final int MAX_CT_MACRO_EXP_LOG = 0;
-  static final int MAX_CT_MACRO_MODEXP_LOG = 0;
-  static final int MAX_CT_PRPRC_EXP_LOG = 0;
-  static final int MAX_CT_PRPRC_MODEXP_LOG = 3;
+  public static final int EQ = 0x14;
+  public static final int EXP_EXPLOG = 0xee0a;
+  public static final int EXP_MODEXPLOG = 0xee05;
+  public static final int G_EXPBYTES = 0x32;
+  public static final int ISZERO = 0x15;
+  public static final int LT = 0x10;
+  public static final int MAX_CT_CMPTN_EXP_LOG = 0xf;
+  public static final int MAX_CT_CMPTN_MODEXP_LOG = 0xf;
+  public static final int MAX_CT_MACRO_EXP_LOG = 0x0;
+  public static final int MAX_CT_MACRO_MODEXP_LOG = 0x0;
+  public static final int MAX_CT_PRPRC_EXP_LOG = 0x0;
+  public static final int MAX_CT_PRPRC_MODEXP_LOG = 0x4;
 
   private final BitSet filled = new BitSet();
   private int currentLine = 0;
@@ -75,28 +75,28 @@ public class Trace {
   static List<ColumnHeader> headers(int length) {
     return List.of(
         new ColumnHeader("exp.CMPTN", 1, length),
-        new ColumnHeader("exp.CT", 32, length),
-        new ColumnHeader("exp.CT_MAX", 32, length),
+        new ColumnHeader("exp.CT", 2, length),
+        new ColumnHeader("exp.CT_MAX", 2, length),
         new ColumnHeader("exp.DATA_3_xor_WCP_ARG_2_HI", 32, length),
         new ColumnHeader("exp.DATA_4_xor_WCP_ARG_2_LO", 32, length),
         new ColumnHeader("exp.DATA_5", 32, length),
-        new ColumnHeader("exp.EXP_INST", 32, length),
+        new ColumnHeader("exp.EXP_INST", 4, length),
         new ColumnHeader("exp.IS_EXP_LOG", 1, length),
         new ColumnHeader("exp.IS_MODEXP_LOG", 1, length),
         new ColumnHeader("exp.MACRO", 1, length),
-        new ColumnHeader("exp.MANZB_ACC", 32, length),
+        new ColumnHeader("exp.MANZB_ACC", 2, length),
         new ColumnHeader("exp.MANZB_xor_WCP_FLAG", 1, length),
         new ColumnHeader("exp.MSB_ACC", 1, length),
         new ColumnHeader("exp.MSB_BIT_xor_WCP_RES", 1, length),
         new ColumnHeader("exp.MSB_xor_WCP_INST", 1, length),
         new ColumnHeader("exp.PLT_BIT", 1, length),
-        new ColumnHeader("exp.PLT_JMP", 32, length),
+        new ColumnHeader("exp.PLT_JMP", 2, length),
         new ColumnHeader("exp.PRPRC", 1, length),
         new ColumnHeader("exp.RAW_ACC_xor_DATA_1_xor_WCP_ARG_1_HI", 32, length),
         new ColumnHeader("exp.RAW_BYTE", 1, length),
-        new ColumnHeader("exp.STAMP", 32, length),
+        new ColumnHeader("exp.STAMP", 8, length),
         new ColumnHeader("exp.TANZB", 1, length),
-        new ColumnHeader("exp.TANZB_ACC", 32, length),
+        new ColumnHeader("exp.TANZB_ACC", 2, length),
         new ColumnHeader("exp.TRIM_ACC_xor_DATA_2_xor_WCP_ARG_1_LO", 32, length),
         new ColumnHeader("exp.TRIM_BYTE", 1, length));
   }
@@ -149,34 +149,26 @@ public class Trace {
     return this;
   }
 
-  public Trace ct(final Bytes b) {
+  public Trace ct(final short b) {
     if (filled.get(1)) {
       throw new IllegalStateException("exp.CT already set");
     } else {
       filled.set(1);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      ct.put((byte) 0);
-    }
-    ct.put(b.toArrayUnsafe());
+    ct.putShort(b);
 
     return this;
   }
 
-  public Trace ctMax(final Bytes b) {
+  public Trace ctMax(final short b) {
     if (filled.get(2)) {
       throw new IllegalStateException("exp.CT_MAX already set");
     } else {
       filled.set(2);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      ctMax.put((byte) 0);
-    }
-    ctMax.put(b.toArrayUnsafe());
+    ctMax.putShort(b);
 
     return this;
   }
@@ -229,18 +221,14 @@ public class Trace {
     return this;
   }
 
-  public Trace pComputationManzbAcc(final Bytes b) {
+  public Trace pComputationManzbAcc(final short b) {
     if (filled.get(16)) {
       throw new IllegalStateException("exp.computation/MANZB_ACC already set");
     } else {
       filled.set(16);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      manzbAcc.put((byte) 0);
-    }
-    manzbAcc.put(b.toArrayUnsafe());
+    manzbAcc.putShort(b);
 
     return this;
   }
@@ -293,18 +281,14 @@ public class Trace {
     return this;
   }
 
-  public Trace pComputationPltJmp(final Bytes b) {
+  public Trace pComputationPltJmp(final short b) {
     if (filled.get(18)) {
       throw new IllegalStateException("exp.computation/PLT_JMP already set");
     } else {
       filled.set(18);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      pltJmp.put((byte) 0);
-    }
-    pltJmp.put(b.toArrayUnsafe());
+    pltJmp.putShort(b);
 
     return this;
   }
@@ -349,18 +333,14 @@ public class Trace {
     return this;
   }
 
-  public Trace pComputationTanzbAcc(final Bytes b) {
+  public Trace pComputationTanzbAcc(final short b) {
     if (filled.get(17)) {
       throw new IllegalStateException("exp.computation/TANZB_ACC already set");
     } else {
       filled.set(17);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      tanzbAcc.put((byte) 0);
-    }
-    tanzbAcc.put(b.toArrayUnsafe());
+    tanzbAcc.putShort(b);
 
     return this;
   }
@@ -473,18 +453,14 @@ public class Trace {
     return this;
   }
 
-  public Trace pMacroInstructionExpInst(final Bytes b) {
+  public Trace pMacroInstructionExpInst(final int b) {
     if (filled.get(19)) {
       throw new IllegalStateException("exp.macro-instruction/EXP_INST already set");
     } else {
       filled.set(19);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      expInst.put((byte) 0);
-    }
-    expInst.put(b.toArrayUnsafe());
+    expInst.putInt(b);
 
     return this;
   }
@@ -601,18 +577,14 @@ public class Trace {
     return this;
   }
 
-  public Trace stamp(final Bytes b) {
+  public Trace stamp(final long b) {
     if (filled.get(7)) {
       throw new IllegalStateException("exp.STAMP already set");
     } else {
       filled.set(7);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      stamp.put((byte) 0);
-    }
-    stamp.put(b.toArrayUnsafe());
+    stamp.putLong(b);
 
     return this;
   }
@@ -732,11 +704,11 @@ public class Trace {
     }
 
     if (!filled.get(1)) {
-      ct.position(ct.position() + 32);
+      ct.position(ct.position() + 2);
     }
 
     if (!filled.get(2)) {
-      ctMax.position(ctMax.position() + 32);
+      ctMax.position(ctMax.position() + 2);
     }
 
     if (!filled.get(22)) {
@@ -752,7 +724,7 @@ public class Trace {
     }
 
     if (!filled.get(19)) {
-      expInst.position(expInst.position() + 32);
+      expInst.position(expInst.position() + 4);
     }
 
     if (!filled.get(3)) {
@@ -768,7 +740,7 @@ public class Trace {
     }
 
     if (!filled.get(16)) {
-      manzbAcc.position(manzbAcc.position() + 32);
+      manzbAcc.position(manzbAcc.position() + 2);
     }
 
     if (!filled.get(8)) {
@@ -792,7 +764,7 @@ public class Trace {
     }
 
     if (!filled.get(18)) {
-      pltJmp.position(pltJmp.position() + 32);
+      pltJmp.position(pltJmp.position() + 2);
     }
 
     if (!filled.get(6)) {
@@ -808,7 +780,7 @@ public class Trace {
     }
 
     if (!filled.get(7)) {
-      stamp.position(stamp.position() + 32);
+      stamp.position(stamp.position() + 8);
     }
 
     if (!filled.get(11)) {
@@ -816,7 +788,7 @@ public class Trace {
     }
 
     if (!filled.get(17)) {
-      tanzbAcc.position(tanzbAcc.position() + 32);
+      tanzbAcc.position(tanzbAcc.position() + 2);
     }
 
     if (!filled.get(21)) {

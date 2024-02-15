@@ -173,33 +173,33 @@ public class ExpTest {
              */
             BytecodeCompiler program = BytecodeCompiler.newProgram();
             program
-              .push(1) // bbs
-              .push(0)
-              .op(OpCode.MSTORE)
-              .push(ebs) // ebs
-              .push(0x20)
-              .op(OpCode.MSTORE)
-              .push(1) // mbs
-              .push(0x40)
-              .op(OpCode.MSTORE)
-              .push(10) // b
-              .push(0x60)
-              .op(OpCode.MSTORE)
-              .push(rawLead) // e
-              .push(0x80)
-              .op(OpCode.MSTORE)
-              .push(10) // m
-              .push(0xA0)
-              .op(OpCode.MSTORE);
+                .push(1) // bbs
+                .push(0)
+                .op(OpCode.MSTORE)
+                .push(ebs) // ebs
+                .push(0x20)
+                .op(OpCode.MSTORE)
+                .push(1) // mbs
+                .push(0x40)
+                .op(OpCode.MSTORE)
+                .push(10) // b
+                .push(0x60)
+                .op(OpCode.MSTORE)
+                .push(rawLead) // e
+                .push(0x80)
+                .op(OpCode.MSTORE)
+                .push(10) // m
+                .push(0xA0)
+                .op(OpCode.MSTORE);
 
             program
-              .push(1) // retSize
-              .push(0x9f) // retOffset
-              .push(cds) // argSize (cds)
-              .push(0) // argOffset (cdo)
-              .push(5) // address
-              .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas
-              .op(OpCode.STATICCALL);
+                .push(1) // retSize
+                .push(0x9f) // retOffset
+                .push(cds) // argSize (cds)
+                .push(0) // argOffset (cdo)
+                .push(5) // address
+                .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas
+                .op(OpCode.STATICCALL);
             BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
             bytecodeRunner.run();
           }

@@ -28,8 +28,6 @@ import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToInt;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 
-import java.math.BigInteger;
-
 import lombok.Getter;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
@@ -40,12 +38,12 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 @Getter
 public class ExpChunk extends ModuleOperation {
   private final boolean isExpLog;
-  private Bytes pComputationPltJmp = Bytes.of(0);
+  private short pComputationPltJmp = 0;
   private Bytes pComputationRawAcc; // (last row) paired with RawByte
   private Bytes pComputationTrimAcc = Bytes.EMPTY; // (last row) paired with TrimByte
   private UnsignedByte pComputationMsb = UnsignedByte.of(0);
   // Macro contains only one row, thus no need for an array
-  private final Bytes pMacroInstructionExpInst;
+  private final int pMacroInstructionExpInst;
   private final Bytes pMacroInstructionData1;
   private final Bytes pMacroInstructionData2;
   private final Bytes pMacroInstructionData3;
@@ -75,7 +73,7 @@ public class ExpChunk extends ModuleOperation {
     // Fill isExpLog
     isExpLog = true;
 
-    pMacroInstructionExpInst = Bytes.ofUnsignedShort(EXP_EXPLOG);
+    pMacroInstructionExpInst = EXP_EXPLOG;
     pMacroInstructionData1 = bigIntegerToBytes(expLogExpParameters.exponentHi());
     pMacroInstructionData2 = bigIntegerToBytes(expLogExpParameters.exponentLo());
     pMacroInstructionData3 = Bytes.of(0);
@@ -98,7 +96,7 @@ public class ExpChunk extends ModuleOperation {
     wcp.callISZERO(bigIntegerToBytes(expLogExpParameters.exponentHi()));
 
     // Linking constraints and fill rawAcc
-    pComputationPltJmp = Bytes.of(16);
+    pComputationPltJmp = 16;
     if (expnHiIsZero) {
       pComputationRawAcc = leftPadTo(bigIntegerToBytes(expLogExpParameters.exponentLo()), 16);
     } else {
@@ -106,9 +104,9 @@ public class ExpChunk extends ModuleOperation {
     }
 
     // Fill trimAcc
-    int maxCt = MAX_CT_CMPTN_EXP_LOG;
-    for (int i = 0; i < maxCt + 1; i++) {
-      boolean pltBit = i > pComputationPltJmp.toInt();
+    short maxCt = (short) MAX_CT_CMPTN_EXP_LOG;
+    for (short i = 0; i < maxCt + 1; i++) {
+      boolean pltBit = i >= pComputationPltJmp;
       byte rawByte = pComputationRawAcc.get(i);
       byte trimByte = pltBit ? 0 : rawByte;
       pComputationTrimAcc = Bytes.concatenate(pComputationTrimAcc, Bytes.of(trimByte));
@@ -127,7 +125,7 @@ public class ExpChunk extends ModuleOperation {
     // Fill isExpLog
     isExpLog = false;
 
-    pMacroInstructionExpInst = Bytes.ofUnsignedShort(EXP_MODEXPLOG);
+    pMacroInstructionExpInst = EXP_MODEXPLOG;
     pMacroInstructionData1 = bigIntegerToBytes(modexpLogExpParameters.rawLeadHi());
     pMacroInstructionData2 = bigIntegerToBytes(modexpLogExpParameters.rawLeadLo());
     pMacroInstructionData3 = Bytes.of(modexpLogExpParameters.cdsCutoff());
@@ -220,12 +218,12 @@ public class ExpChunk extends ModuleOperation {
     }
 
     // Fill pltJmp
-    pComputationPltJmp = Bytes.of(minCutoff - (1 - booleanToInt(minCutoffLeq16)) * 16);
+    pComputationPltJmp = (short) (minCutoff - (1 - booleanToInt(minCutoffLeq16)) * 16);
 
     // Fill trimAcc
-    int maxCt = MAX_CT_CMPTN_MODEXP_LOG;
-    for (int i = 0; i < maxCt + 1; i++) {
-      boolean pltBit = i > pComputationPltJmp.toInt();
+    short maxCt = (short) MAX_CT_CMPTN_MODEXP_LOG;
+    for (short i = 0; i < maxCt + 1; i++) {
+      boolean pltBit = i >= pComputationPltJmp;
       byte rawByte = pComputationRawAcc.get(i);
       byte trimByte = pltBit ? 0 : rawByte;
       pComputationTrimAcc = Bytes.concatenate(pComputationTrimAcc, Bytes.of(trimByte));
@@ -257,11 +255,11 @@ public class ExpChunk extends ModuleOperation {
 
   final void traceComputation(int stamp, Trace trace) {
     boolean tanzb;
-    Bytes pComputationTanzbAcc = Bytes.of(0); // Paired with Tanzb
+    short pComputationTanzbAcc = 0; // Paired with Tanzb
     boolean manzb;
-    Bytes pComputationManzbAcc = Bytes.of(0); // Paired with Manzb
-    int maxCt = isExpLog ? MAX_CT_CMPTN_EXP_LOG : MAX_CT_CMPTN_MODEXP_LOG;
-    for (int i = 0; i < maxCt + 1; i++) {
+    short pComputationManzbAcc = 0; // Paired with Manzb
+    short maxCt = (short) (isExpLog ? MAX_CT_CMPTN_EXP_LOG : MAX_CT_CMPTN_MODEXP_LOG);
+    for (short i = 0; i < maxCt + 1; i++) {
       /*
       All the values are derived from
       isExpLog
@@ -272,24 +270,20 @@ public class ExpChunk extends ModuleOperation {
       */
       // tanzb turns to 1 iff trimAcc is nonzero
       tanzb = pComputationTrimAcc.slice(0, i + 1).toBigInteger().signum() != 0;
-      pComputationTanzbAcc =
-          bigIntegerToBytes(
-              pComputationTanzbAcc.toBigInteger().add(tanzb ? BigInteger.ONE : BigInteger.ZERO));
+      pComputationTanzbAcc += (short) (tanzb ? 1 : 0);
       // manzb turns to 1 iff msbAcc is nonzero
       manzb = i > maxCt - 8 && pComputationMsb.slice(0, i % 8 + 1) != 0;
-      pComputationManzbAcc =
-          bigIntegerToBytes(
-              pComputationManzbAcc.toBigInteger().add(manzb ? BigInteger.ONE : BigInteger.ZERO));
+      pComputationManzbAcc += (short) (manzb ? 1 : 0);
       trace
           .cmptn(true)
           .macro(false)
           .prprc(false)
-          .stamp(Bytes.ofUnsignedLong(stamp))
-          .ct(Bytes.of(i))
-          .ctMax(Bytes.of(maxCt))
+          .stamp(stamp)
+          .ct(i)
+          .ctMax(maxCt)
           .isExpLog(isExpLog)
           .isModexpLog(!isExpLog)
-          .pComputationPltBit(i > pComputationPltJmp.toInt())
+          .pComputationPltBit(i >= pComputationPltJmp)
           .pComputationPltJmp(pComputationPltJmp)
           .pComputationRawByte(UnsignedByte.of(pComputationRawAcc.get(i)))
           .pComputationRawAcc(pComputationRawAcc.slice(0, i + 1))
@@ -313,9 +307,9 @@ public class ExpChunk extends ModuleOperation {
         .cmptn(false)
         .macro(true)
         .prprc(false)
-        .stamp(Bytes.ofUnsignedLong(stamp))
-        .ct(Bytes.of(0))
-        .ctMax(Bytes.of(0))
+        .stamp(stamp)
+        .ct((short) 0)
+        .ctMax((short) 0)
         .isExpLog(isExpLog)
         .isModexpLog(!isExpLog)
         .pMacroInstructionExpInst(pMacroInstructionExpInst)
@@ -328,15 +322,15 @@ public class ExpChunk extends ModuleOperation {
   }
 
   final void tracePreprocessing(int stamp, Trace trace) {
-    int maxCt = isExpLog ? MAX_CT_PRPRC_EXP_LOG : MAX_CT_PRPRC_MODEXP_LOG;
-    for (int i = 0; i < maxCt + 1; i++) { //
+    short maxCt = (short) (isExpLog ? MAX_CT_PRPRC_EXP_LOG : MAX_CT_PRPRC_MODEXP_LOG);
+    for (short i = 0; i < maxCt + 1; i++) {
       trace
           .cmptn(false)
           .macro(false)
           .prprc(true)
-          .stamp(Bytes.ofUnsignedLong(stamp))
-          .ct(Bytes.of(i))
-          .ctMax(Bytes.of(maxCt))
+          .stamp(stamp)
+          .ct(i)
+          .ctMax(maxCt)
           .isExpLog(isExpLog)
           .isModexpLog(!isExpLog)
           .pPreprocessingWcpFlag(pPreprocessingWcpFlag[i])

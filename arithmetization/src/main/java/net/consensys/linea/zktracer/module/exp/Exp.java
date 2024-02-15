@@ -149,7 +149,7 @@ public class Exp implements Module {
     }
     // Here ebs != 0
 
-    if (cds.compareTo(BigInteger.valueOf(96).add(bbs)) > 0) {
+    if (cds.compareTo(BigInteger.valueOf(96).add(bbs)) <= 0) {
       return null;
     }
 
@@ -170,17 +170,17 @@ public class Exp implements Module {
     // min_cutoff
     int minCutoff = min(cdsCutoff, ebsCutoff);
 
-    BigInteger mask =
-        new BigInteger("0x" + new String(new char[minCutoff]).replace("\0", "FF"), 16);
+    BigInteger mask = new BigInteger("FF".repeat(minCutoff), 16);
     if (minCutoff < 32) {
-      mask = mask.shiftLeft(32 - minCutoff);
+      // 32 - minCutoff is the shift distance in bytes, but we need bits
+      mask = mask.shiftLeft(8 * (32 - minCutoff));
     }
 
     // trim (keep only minCutoff bytes of rawLead)
     BigInteger trim = rawLead.toUnsignedBigInteger().and(mask);
 
     // lead (keep only minCutoff bytes of rawLead and potentially pad to ebsCutoff with 0's)
-    BigInteger lead = trim.shiftRight(32 - ebsCutoff);
+    BigInteger lead = trim.shiftRight(8 * (32 - ebsCutoff));
 
     // lead_log (same as EYP)
     BigInteger leadLog =

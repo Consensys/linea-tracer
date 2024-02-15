@@ -153,7 +153,11 @@ public class UnsignedByte {
     if (i < 0 || i >= 8) {
       throw new IndexOutOfBoundsException("Index must be between 0 - 7. Is " + i);
     }
-    return ((this.toInteger() >> (7 - i)) & 1) == 1;
+    String ub = Integer.toBinaryString(this.toInteger());
+    if (ub.length() < 8) {
+      ub = "0".repeat(8 - ub.length()) + ub;
+    }
+    return ub.charAt(i) == '1';
   }
 
   /**
@@ -173,7 +177,10 @@ public class UnsignedByte {
     if (i < 0 || i >= 8 || i + length > 8) {
       throw new IndexOutOfBoundsException("Index out of bounds. i=" + i + ", length=" + length);
     }
-    // Apply the shift and mask to retrieve the desired slice
-    return (this.toInteger() >> (8 - (i + length))) & ((1 << length) - 1);
+    String ub = Integer.toBinaryString(this.toInteger());
+    if (ub.length() < 8) {
+      ub = "0".repeat(8 - ub.length()) + ub;
+    }
+    return Integer.parseInt(ub.substring(i, i + length), 2);
   }
 }

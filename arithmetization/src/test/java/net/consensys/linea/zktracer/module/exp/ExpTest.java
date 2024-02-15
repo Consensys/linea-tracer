@@ -70,6 +70,7 @@ public class ExpTest {
   void TestExpLogFFBlockCase() {
     for (int k = 0; k <= 32; k++) {
       Bytes exponent = Bytes.fromHexString(FFBlock(k));
+      System.out.println(exponent);
       BytecodeCompiler program = BytecodeCompiler.newProgram();
       program.push(exponent).push(10).op(OpCode.EXP);
       BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
@@ -80,7 +81,9 @@ public class ExpTest {
   @Test
   void TestExpLogFFAtCase() {
     for (int k = 1; k <= 32; k++) {
-      Bytes exponent = Bytes.fromHexString(FFAt(k));
+      String exponentString = FFAt(k);
+      System.out.println(exponentString);
+      Bytes exponent = Bytes.fromHexString(exponentString);
       BytecodeCompiler program = BytecodeCompiler.newProgram();
       program.push(exponent).push(10).op(OpCode.EXP);
       BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());

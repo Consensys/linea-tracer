@@ -22,12 +22,12 @@ import static org.hyperledger.besu.plugin.data.TransactionSelectionResult.SELECT
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ZkTracer;
+import net.consensys.linea.zktracer.module.Module;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.PendingTransaction;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -58,11 +58,17 @@ public class TraceLineLimitTransactionSelector implements PluginTransactionSelec
   private Map<String, Integer> currCumulatedLineCount;
 
   public TraceLineLimitTransactionSelector(
-      final Supplier<Map<String, Integer>> moduleLimitsProvider,
+      final Map<String, Integer> moduleLimits,
       final String limitFilePath,
       final int overLimitCacheSize) {
-    moduleLimits = moduleLimitsProvider.get();
+    this.moduleLimits = moduleLimits;
     zkTracer = new ZkTracerWithLog();
+    for (Module m : zkTracer.getHub().getModulesToCount()) {
+      if (!moduleLimits.containsKey(m.moduleKey())) {
+        throw new IllegalStateException(
+            "Limit for module %s not defined in %s".formatted(m.moduleKey(), limitFilePath));
+      }
+    }
     zkTracer.traceStartConflation(1L);
     this.limitFilePath = limitFilePath;
     this.overLimitCacheSize = overLimitCacheSize;

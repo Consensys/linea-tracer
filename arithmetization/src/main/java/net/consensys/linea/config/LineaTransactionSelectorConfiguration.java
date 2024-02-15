@@ -13,12 +13,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.sequencer.txselection;
+package net.consensys.linea.config;
 
 import lombok.Builder;
 
 /** The Linea transaction selectors configuration. */
-@Builder
+@Builder(toBuilder = true)
 public record LineaTransactionSelectorConfiguration(
     int maxBlockCallDataSize,
     String moduleLimitsFilePath,
@@ -28,7 +28,9 @@ public record LineaTransactionSelectorConfiguration(
     int verificationCapacity,
     int gasPriceRatio,
     double minMargin,
+    double estimateGasMinMargin,
     int adjustTxSize,
+    int txCompressionRatio,
     int unprofitableCacheSize,
     int unprofitableRetryLimit) {}
 ;

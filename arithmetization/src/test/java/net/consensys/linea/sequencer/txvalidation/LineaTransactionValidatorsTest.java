@@ -15,23 +15,30 @@
 
 package net.consensys.linea.sequencer.txvalidation;
 
-import java.util.HashSet;
+import java.nio.file.Path;
 import java.util.Optional;
 import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.config.LineaProfitabilityCliOptions;
 import net.consensys.linea.config.LineaTransactionValidatorConfiguration;
+import net.consensys.linea.sequencer.txvalidation.validators.LineaTransactionValidators;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Wei;
+import org.hyperledger.besu.plugin.data.BlockContext;
+import org.hyperledger.besu.plugin.data.BlockHeader;
+import org.hyperledger.besu.plugin.services.BesuConfiguration;
+import org.hyperledger.besu.plugin.services.BlockchainService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @Slf4j
 @RequiredArgsConstructor
-public class LineaTransactionValidatorTest {
+public class LineaTransactionValidatorsTest {
 
   public static final Address DENIED =
       Address.fromHexString("0x0000000000000000000000000000000000001000");
@@ -40,15 +47,20 @@ public class LineaTransactionValidatorTest {
   public static final Address PRECOMPILED = Address.precompiled(0xa);
   public static final int MAX_TX_GAS_LIMIT = 9_000_000;
   public static final int MAX_TX_CALLDATA_SIZE = 10_000;
-  private LineaTransactionValidator lineaTransactionValidator;
+  public static final double TX_POOL_MIN_MARGIN = 1.0;
+  private LineaTransactionValidators lineaTransactionValidators;
 
   @BeforeEach
   public void initialize() {
-    Set<Address> denied = new HashSet<>();
-    denied.add(DENIED);
-    lineaTransactionValidator =
-        new LineaTransactionValidator(
+    Set<Address> denied = Set.of(DENIED);
+    lineaTransactionValidators =
+        new LineaTransactionValidators(
+            new TestBesuConfiguration(),
+            new TestBlockchainService(),
             new LineaTransactionValidatorConfiguration("", MAX_TX_GAS_LIMIT, MAX_TX_CALLDATA_SIZE),
+            LineaProfitabilityCliOptions.create().toDomainObject().toBuilder()
+                .txPoolMinMargin(TX_POOL_MIN_MARGIN)
+                .build(),
             denied);
   }
 
@@ -59,7 +71,7 @@ public class LineaTransactionValidatorTest {
     final org.hyperledger.besu.ethereum.core.Transaction transaction =
         builder.sender(NOT_DENIED).to(NOT_DENIED).gasPrice(Wei.ZERO).payload(Bytes.EMPTY).build();
     Assertions.assertEquals(
-        lineaTransactionValidator.validateTransaction(transaction), Optional.empty());
+        lineaTransactionValidators.validateTransaction(transaction), Optional.empty());
   }
 
   @Test
@@ -69,7 +81,7 @@ public class LineaTransactionValidatorTest {
     final org.hyperledger.besu.ethereum.core.Transaction transaction =
         builder.sender(DENIED).to(NOT_DENIED).gasPrice(Wei.ZERO).payload(Bytes.EMPTY).build();
     Assertions.assertEquals(
-        lineaTransactionValidator.validateTransaction(transaction).orElseThrow(),
+        lineaTransactionValidators.validateTransaction(transaction).orElseThrow(),
         "sender 0x0000000000000000000000000000000000001000 is blocked as appearing on the SDN or other legally prohibited list");
   }
 
@@ -80,7 +92,7 @@ public class LineaTransactionValidatorTest {
     final org.hyperledger.besu.ethereum.core.Transaction transaction =
         builder.sender(NOT_DENIED).to(DENIED).gasPrice(Wei.ZERO).payload(Bytes.EMPTY).build();
     Assertions.assertEquals(
-        lineaTransactionValidator.validateTransaction(transaction).orElseThrow(),
+        lineaTransactionValidators.validateTransaction(transaction).orElseThrow(),
         "recipient 0x0000000000000000000000000000000000001000 is blocked as appearing on the SDN or other legally prohibited list");
   }
 
@@ -91,7 +103,7 @@ public class LineaTransactionValidatorTest {
     final org.hyperledger.besu.ethereum.core.Transaction transaction =
         builder.sender(NOT_DENIED).to(PRECOMPILED).gasPrice(Wei.ZERO).payload(Bytes.EMPTY).build();
     Assertions.assertEquals(
-        lineaTransactionValidator.validateTransaction(transaction).orElseThrow(),
+        lineaTransactionValidators.validateTransaction(transaction).orElseThrow(),
         "destination address is a precompile address and cannot receive transactions");
   }
 
@@ -108,7 +120,7 @@ public class LineaTransactionValidatorTest {
             .payload(Bytes.EMPTY)
             .build();
     Assertions.assertEquals(
-        lineaTransactionValidator.validateTransaction(transaction), Optional.empty());
+        lineaTransactionValidators.validateTransaction(transaction), Optional.empty());
   }
 
   @Test
@@ -124,7 +136,7 @@ public class LineaTransactionValidatorTest {
             .payload(Bytes.EMPTY)
             .build();
     Assertions.assertEquals(
-        lineaTransactionValidator.validateTransaction(transaction).orElseThrow(),
+        lineaTransactionValidators.validateTransaction(transaction).orElseThrow(),
         "Gas limit of transaction is greater than the allowed max of " + MAX_TX_GAS_LIMIT);
   }
 
@@ -141,7 +153,7 @@ public class LineaTransactionValidatorTest {
             .payload(Bytes.random(MAX_TX_CALLDATA_SIZE))
             .build();
     Assertions.assertEquals(
-        lineaTransactionValidator.validateTransaction(transaction), Optional.empty());
+        lineaTransactionValidators.validateTransaction(transaction), Optional.empty());
   }
 
   @Test
@@ -157,7 +169,52 @@ public class LineaTransactionValidatorTest {
             .payload(Bytes.random(MAX_TX_CALLDATA_SIZE + 1))
             .build();
     Assertions.assertEquals(
-        lineaTransactionValidator.validateTransaction(transaction).orElseThrow(),
+        lineaTransactionValidators.validateTransaction(transaction).orElseThrow(),
         "Calldata of transaction is greater than the allowed max of " + MAX_TX_CALLDATA_SIZE);
+  }
+
+  private static class TestBesuConfiguration implements BesuConfiguration {
+    @Override
+    public Path getStoragePath() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Path getDataPath() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public int getDatabaseVersion() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Wei getMinGasPrice() {
+      return Wei.of(1_000_000_000);
+    }
+  }
+
+  private static class TestBlockchainService implements BlockchainService {
+
+    @Override
+    public Optional<BlockContext> getBlockByNumber(final long l) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Hash getChainHeadHash() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public BlockHeader getChainHeadHeader() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Optional<Wei> getNextBlockBaseFee() {
+      return Optional.of(Wei.of(7));
+    }
   }
 }

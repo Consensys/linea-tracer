@@ -17,7 +17,7 @@ package net.consensys.linea.bl;
 import java.math.BigDecimal;
 
 import lombok.extern.slf4j.Slf4j;
-import net.consensys.linea.config.LineaTransactionSelectorConfiguration;
+import net.consensys.linea.config.LineaProfitabilityConfiguration;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
 import org.slf4j.spi.LoggingEventBuilder;
@@ -25,24 +25,29 @@ import org.slf4j.spi.LoggingEventBuilder;
 @Slf4j
 public class TransactionProfitabilityCalculator {
 
-  private final LineaTransactionSelectorConfiguration conf;
+  private final LineaProfitabilityConfiguration profitabilityConf;
   private final double preComputedValue;
 
-  public TransactionProfitabilityCalculator(final LineaTransactionSelectorConfiguration conf) {
-    this.conf = conf;
+  public TransactionProfitabilityCalculator(
+      final LineaProfitabilityConfiguration profitabilityConf) {
+    this.profitabilityConf = profitabilityConf;
     this.preComputedValue =
-        conf.estimateGasMinMargin() * conf.gasPriceRatio() * conf.verificationGasCost();
+        profitabilityConf.gasPriceRatio() * profitabilityConf.verificationGasCost();
   }
 
   public Wei profitablePriorityFeePerGas(
-      final Transaction transaction, final Wei minGasPrice, final long gas) {
+      final Transaction transaction,
+      final double minMargin,
+      final Wei minGasPrice,
+      final long gas) {
     final double compressedTxSize = getCompressedTxSize(transaction);
 
     final var profitAt =
         preComputedValue
+            * minMargin
             * compressedTxSize
             * minGasPrice.getAsBigInteger().doubleValue()
-            / (gas * conf.verificationCapacity());
+            / (gas * profitabilityConf.verificationCapacity());
 
     final var profitAtWei = Wei.ofNumber(BigDecimal.valueOf(profitAt).toBigInteger());
 
@@ -52,16 +57,17 @@ public class TransactionProfitabilityCalculator {
                 + "verificationGasCost={}, gasPriceRatio={}, gas={}, minGasPrice={}, "
                 + "l1GasPrice={}, txSize={}, compressedTxSize={}, adjustTxSize={}")
         .addArgument(profitAtWei::toHumanReadableString)
-        .addArgument(conf.estimateGasMinMargin())
-        .addArgument(conf.verificationCapacity())
-        .addArgument(conf.verificationGasCost())
-        .addArgument(conf.gasPriceRatio())
+        .addArgument(profitabilityConf.estimateGasMinMargin())
+        .addArgument(profitabilityConf.verificationCapacity())
+        .addArgument(profitabilityConf.verificationGasCost())
+        .addArgument(profitabilityConf.gasPriceRatio())
         .addArgument(gas)
         .addArgument(minGasPrice::toHumanReadableString)
-        .addArgument(() -> minGasPrice.multiply(conf.gasPriceRatio()).toHumanReadableString())
+        .addArgument(
+            () -> minGasPrice.multiply(profitabilityConf.gasPriceRatio()).toHumanReadableString())
         .addArgument(transaction::getSize)
         .addArgument(compressedTxSize)
-        .addArgument(conf.adjustTxSize())
+        .addArgument(profitabilityConf.adjustTxSize())
         .log();
 
     return profitAtWei;
@@ -70,20 +76,22 @@ public class TransactionProfitabilityCalculator {
   public boolean isProfitable(
       final String step,
       final Transaction transaction,
+      final double minMargin,
       final double minGasPrice,
       final double effectiveGasPrice,
       final long gas) {
     final double revenue = effectiveGasPrice * gas;
 
-    final double l1GasPrice = minGasPrice * conf.gasPriceRatio();
+    final double l1GasPrice = minGasPrice * profitabilityConf.gasPriceRatio();
     final double compressedTxSize = getCompressedTxSize(transaction);
     final double verificationGasCostSlice =
-        (compressedTxSize / conf.verificationCapacity()) * conf.verificationGasCost();
+        (compressedTxSize / profitabilityConf.verificationCapacity())
+            * profitabilityConf.verificationGasCost();
     final double cost = l1GasPrice * verificationGasCostSlice;
 
     final double margin = revenue / cost;
 
-    if (margin < conf.minMargin()) {
+    if (margin < minMargin) {
       log(
           log.atDebug(),
           step,
@@ -94,7 +102,7 @@ public class TransactionProfitabilityCalculator {
           minGasPrice,
           l1GasPrice,
           compressedTxSize,
-          conf.adjustTxSize());
+          profitabilityConf.adjustTxSize());
       return false;
     } else {
       log(
@@ -107,7 +115,7 @@ public class TransactionProfitabilityCalculator {
           minGasPrice,
           l1GasPrice,
           compressedTxSize,
-          conf.adjustTxSize());
+          profitabilityConf.adjustTxSize());
       return true;
     }
   }
@@ -115,8 +123,9 @@ public class TransactionProfitabilityCalculator {
   private double getCompressedTxSize(final Transaction transaction) {
     // this is just a temporary estimation, that will be replaced by gnarkCompression when available
     // at that point conf.txCompressionRatio and conf.adjustTxSize options can be removed
-    final double adjustedTxSize = Math.max(0, transaction.getSize() + conf.adjustTxSize());
-    return adjustedTxSize / conf.txCompressionRatio();
+    final double adjustedTxSize =
+        Math.max(0, transaction.getSize() + profitabilityConf.adjustTxSize());
+    return adjustedTxSize / profitabilityConf.txCompressionRatio();
   }
 
   private void log(
@@ -137,10 +146,10 @@ public class TransactionProfitabilityCalculator {
         .addArgument(context)
         .addArgument(transaction::getHash)
         .addArgument(margin)
-        .addArgument(conf.minMargin())
-        .addArgument(conf.verificationCapacity())
-        .addArgument(conf.verificationGasCost())
-        .addArgument(conf.gasPriceRatio())
+        .addArgument(profitabilityConf.minMargin())
+        .addArgument(profitabilityConf.verificationCapacity())
+        .addArgument(profitabilityConf.verificationGasCost())
+        .addArgument(profitabilityConf.gasPriceRatio())
         .addArgument(effectiveGasPrice)
         .addArgument(gasUsed)
         .addArgument(minGasPrice)

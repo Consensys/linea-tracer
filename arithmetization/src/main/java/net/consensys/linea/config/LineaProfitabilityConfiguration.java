@@ -17,12 +17,14 @@ package net.consensys.linea.config;
 
 import lombok.Builder;
 
-/** The Linea transaction selectors configuration. */
+/** The Linea profitability calculator configuration. */
 @Builder(toBuilder = true)
-public record LineaTransactionSelectorConfiguration(
-    int maxBlockCallDataSize,
-    String moduleLimitsFilePath,
-    int overLinesLimitCacheSize,
-    long maxGasPerBlock,
-    int unprofitableCacheSize,
-    int unprofitableRetryLimit) {}
+public record LineaProfitabilityConfiguration(
+    int verificationGasCost,
+    int verificationCapacity,
+    int gasPriceRatio,
+    double minMargin,
+    double estimateGasMinMargin,
+    double txPoolMinMargin,
+    int adjustTxSize,
+    int txCompressionRatio) {}

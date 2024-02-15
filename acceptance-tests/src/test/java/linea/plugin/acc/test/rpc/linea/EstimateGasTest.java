@@ -23,8 +23,8 @@ import java.util.List;
 import linea.plugin.acc.test.LineaPluginTestBase;
 import linea.plugin.acc.test.TestCommandLineOptionsBuilder;
 import net.consensys.linea.bl.TransactionProfitabilityCalculator;
-import net.consensys.linea.config.LineaTransactionSelectorCliOptions;
-import net.consensys.linea.config.LineaTransactionSelectorConfiguration;
+import net.consensys.linea.config.LineaProfitabilityCliOptions;
+import net.consensys.linea.config.LineaProfitabilityConfiguration;
 import net.consensys.linea.rpc.linea.LineaEstimateGas;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.units.bigints.UInt64;
@@ -45,7 +45,7 @@ public class EstimateGasTest extends LineaPluginTestBase {
   private static final double ESTIMATE_GAS_MIN_MARGIN = 1.0;
   private static final Wei MIN_GAS_PRICE = Wei.of(1_000_000_000);
   public static final int MAX_TRANSACTION_GAS_LIMIT = 30_000_000;
-  private LineaTransactionSelectorConfiguration txSelectorConf;
+  private LineaProfitabilityConfiguration profitabilityConf;
 
   @Override
   public List<String> getTestCliOptions() {
@@ -66,8 +66,8 @@ public class EstimateGasTest extends LineaPluginTestBase {
 
   @BeforeEach
   public void createDefaultConfigurations() {
-    txSelectorConf =
-        LineaTransactionSelectorCliOptions.create().toDomainObject().toBuilder()
+    profitabilityConf =
+        LineaProfitabilityCliOptions.create().toDomainObject().toBuilder()
             .verificationCapacity(VERIFICATION_CAPACITY)
             .verificationGasCost(VERIFICATION_GAS_COST)
             .gasPriceRatio(GAS_PRICE_RATIO)
@@ -116,11 +116,12 @@ public class EstimateGasTest extends LineaPluginTestBase {
             .signature(LineaEstimateGas.FAKE_SIGNATURE_FOR_SIZE_CALCULATION)
             .build();
 
-    final var profitabilityCalculator = new TransactionProfitabilityCalculator(txSelectorConf);
+    final var profitabilityCalculator = new TransactionProfitabilityCalculator(profitabilityConf);
     assertThat(
             profitabilityCalculator.isProfitable(
                 "Test",
                 tx,
+                profitabilityConf.txPoolMinMargin(),
                 minerNode
                     .getMiningParameters()
                     .getMinTransactionGasPrice()

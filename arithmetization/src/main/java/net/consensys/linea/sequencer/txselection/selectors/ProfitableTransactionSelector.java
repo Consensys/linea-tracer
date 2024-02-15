@@ -26,6 +26,7 @@ import java.util.Set;
 import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.bl.TransactionProfitabilityCalculator;
+import net.consensys.linea.config.LineaProfitabilityConfiguration;
 import net.consensys.linea.config.LineaTransactionSelectorConfiguration;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.hyperledger.besu.datatypes.Hash;
@@ -42,15 +43,20 @@ public class ProfitableTransactionSelector implements PluginTransactionSelector 
   @VisibleForTesting protected static Set<Hash> unprofitableCache = new LinkedHashSet<>();
   @VisibleForTesting protected static Wei prevMinGasPrice = Wei.MAX_WEI;
 
-  private final LineaTransactionSelectorConfiguration conf;
+  private final LineaTransactionSelectorConfiguration txSelectorConf;
+  private final LineaProfitabilityConfiguration profitabilityConf;
   private final TransactionProfitabilityCalculator transactionProfitabilityCalculator;
 
   private int unprofitableRetries;
   private MutableBoolean minGasPriceDecreased;
 
-  public ProfitableTransactionSelector(final LineaTransactionSelectorConfiguration conf) {
-    this.conf = conf;
-    this.transactionProfitabilityCalculator = new TransactionProfitabilityCalculator(conf);
+  public ProfitableTransactionSelector(
+      final LineaTransactionSelectorConfiguration txSelectorConf,
+      final LineaProfitabilityConfiguration profitabilityConf) {
+    this.txSelectorConf = txSelectorConf;
+    this.profitabilityConf = profitabilityConf;
+    this.transactionProfitabilityCalculator =
+        new TransactionProfitabilityCalculator(profitabilityConf);
   }
 
   @Override
@@ -75,6 +81,7 @@ public class ProfitableTransactionSelector implements PluginTransactionSelector 
       if (!transactionProfitabilityCalculator.isProfitable(
           "PreProcessing",
           transaction,
+          profitabilityConf.minMargin(),
           minGasPrice.getAsBigInteger().doubleValue(),
           effectiveGasPrice,
           gasLimit)) {
@@ -85,18 +92,18 @@ public class ProfitableTransactionSelector implements PluginTransactionSelector 
         // only retry unprofitable txs if the min gas price went down
         if (minGasPriceDecreased.isTrue()) {
 
-          if (unprofitableRetries >= conf.unprofitableRetryLimit()) {
+          if (unprofitableRetries >= txSelectorConf.unprofitableRetryLimit()) {
             log.atTrace()
                 .setMessage("Limit of unprofitable tx retries reached: {}/{}")
                 .addArgument(unprofitableRetries)
-                .addArgument(conf.unprofitableRetryLimit());
+                .addArgument(txSelectorConf.unprofitableRetryLimit());
             return TX_UNPROFITABLE_RETRY_LIMIT;
           }
 
           log.atTrace()
               .setMessage("Retrying unprofitable tx. Retry: {}/{}")
               .addArgument(unprofitableRetries)
-              .addArgument(conf.unprofitableRetryLimit());
+              .addArgument(txSelectorConf.unprofitableRetryLimit());
           unprofitableCache.remove(transaction.getHash());
           unprofitableRetries++;
 
@@ -128,7 +135,12 @@ public class ProfitableTransactionSelector implements PluginTransactionSelector 
       final long gasUsed = processingResult.getEstimateGasUsedByTransaction();
 
       if (!transactionProfitabilityCalculator.isProfitable(
-          "PostProcessing", transaction, minGasPrice, effectiveGasPrice, gasUsed)) {
+          "PostProcessing",
+          transaction,
+          profitabilityConf.minMargin(),
+          minGasPrice,
+          effectiveGasPrice,
+          gasUsed)) {
         rememberUnprofitable(transaction);
         return TX_UNPROFITABLE;
       }
@@ -154,7 +166,7 @@ public class ProfitableTransactionSelector implements PluginTransactionSelector 
   }
 
   private void rememberUnprofitable(final Transaction transaction) {
-    while (unprofitableCache.size() >= conf.unprofitableCacheSize()) {
+    while (unprofitableCache.size() >= txSelectorConf.unprofitableCacheSize()) {
       final var it = unprofitableCache.iterator();
       if (it.hasNext()) {
         it.next();

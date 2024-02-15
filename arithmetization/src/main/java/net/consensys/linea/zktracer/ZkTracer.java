@@ -36,7 +36,6 @@ import net.consensys.linea.zktracer.opcode.OpCodes;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.toml.Toml;
 import org.apache.tuweni.toml.TomlTable;
-import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.PendingTransaction;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -60,11 +59,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   private Hash hashOfLastTransactionTraced = Hash.EMPTY;
 
   public ZkTracer() {
-    this(
-        LineaL1L2BridgeConfiguration.builder()
-            .contract(Address.fromHexString("0xDEAD"))
-            .topic(Bytes.fromHexString("0xBEEF"))
-            .build());
+    this(LineaL1L2BridgeConfiguration.EMPTY);
   }
 
   public ZkTracer(final LineaL1L2BridgeConfiguration bridgeConfiguration) {

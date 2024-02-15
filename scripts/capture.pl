@@ -14,8 +14,6 @@ my $end;
 my $shadownode_fqdn = 'ec2-107-21-85-50.compute-1.amazonaws.com'; # default value
 # Maybe the user needs a specific ssh key
 my $ssh_key = '';
-# Destination folder
-my $destination = 'arithmetization/src/test/resources/replays';
 # Destination filename
 my $filename;
 
@@ -24,7 +22,7 @@ GetOptions(
     'start=o' => \$start,
     'end:o' => \$end,
     'server:s' => \$shadownode_fqdn,
-    'destination:s' => \$destination,
+    'to:s' => \$filename,
     'ssh-key:s' => sub {
         shift; # drop the first arg, i.e. "ssh-key"
         $ssh_key = " -i " . shift . " ";
@@ -34,12 +32,17 @@ HelpMessage(1) unless $start; # $start is mandatory
 
 if ($end) {
     say "Capturing conflation $start - $end";
-    $filename = "$destination/$start-$end.json.gz";
+    $filename = "arithmetization/src/test/resources/replays/$start-$end.json.gz" unless $filename;
 } else {
     say "Capturing block $start";
     $end = $start;
-    $filename = "$destination/$start.json.gz";
+    $filename = "arithmetization/src/test/resources/replays/$start.json.gz" unless $filename;
 }
+
+if ($start > $end) {
+    die "Invalid range : $start - $end";
+}
+
 say "Writing replay to `$filename`";
 
 
@@ -67,12 +70,12 @@ capture - capture conflation replays from a shadow node
 
 =head1 SYNOPSIS
 
-  --start         The first block to replay (required)
-  --end           The last block to replay (default to <start>)
-  --ssh-key       If applicable, path the SSH key to use to connect to the shadow node
-  --server        The shadow node hostname (defaults to `ec2-107-21-85-50.compute-1.amazonaws.com`)
-  --destination   Where to write the replay file (defaults to `arithmetization/src/test/resources/replays`)
-  --help, -h      Print this message
+  --start      The first block to replay (required)
+  --end        The last block to replay (default to <start>)
+  --ssh-key    If applicable, path the SSH key to use to connect to the shadow node
+  --server     The shadow node hostname (defaults to `ec2-107-21-85-50.compute-1.amazonaws.com`)
+  --to         Where to write the replay file (defaults to `arithmetization/src/test/resources/replays/<start>-<end>.json.gz`)
+  --help, -h   Print this message
 
 =head1 VERSION
 

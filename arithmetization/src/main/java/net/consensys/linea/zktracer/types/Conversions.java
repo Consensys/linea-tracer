@@ -68,6 +68,7 @@ public class Conversions {
     for (byte aByte : bytes) {
       r.add(UnsignedByte.of(aByte));
     }
+
     return r;
   }
 

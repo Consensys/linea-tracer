@@ -29,6 +29,7 @@ import java.util.Optional;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.config.LineaL1L2BridgeConfiguration;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.Pin55;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -57,20 +58,26 @@ public class ZkTracer implements ConflationAwareOperationTracer {
 
   public static final FeeMarket feeMarket = FeeMarket.london(-1);
 
-  @Getter private final Hub hub = new Hub();
+  @Getter
+  private final Hub hub = new Hub();
   private final Optional<Pin55> pin55;
   private final Map<String, Integer> spillings = new HashMap<>();
   private Hash hashOfLastTransactionTraced = Hash.EMPTY;
 
   public ZkTracer() {
+    this(LineaL1L2BridgeConfiguration.EMPTY);
+  }
+
+  public ZkTracer(final LineaL1L2BridgeConfiguration bridgeConfiguration) {
+    this.hub = new Hub(bridgeConfiguration.contract(), bridgeConfiguration.topic());
+
     // Load opcodes configured in src/main/resources/opcodes.yml.
     OpCodes.load();
 
     // Load spillings configured in src/main/resources/spillings.toml.
     try {
-      final TomlTable table =
-          Toml.parse(getClass().getClassLoader().getResourceAsStream("spillings.toml"))
-              .getTable("spillings");
+      final TomlTable table = Toml.parse(getClass().getClassLoader().getResourceAsStream("spillings.toml"))
+          .getTable("spillings");
       table.toMap().keySet().forEach(k -> spillings.put(k, Math.toIntExact(table.getLong(k))));
 
       for (Module m : this.hub.getModulesToCount()) {
@@ -86,8 +93,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
     // >>>> CHANGE ME >>>>
     final Pin55.PinLevel debugLevel = new Pin55.PinLevel();
     // <<<< CHANGE ME <<<<
-    this.pin55 =
-        debugLevel.none() ? Optional.empty() : Optional.of(new Pin55(debugLevel, this.hub));
+    this.pin55 = debugLevel.none() ? Optional.empty() : Optional.of(new Pin55(debugLevel, this.hub));
   }
 
   public Path writeToTmpFile() {
@@ -112,14 +118,12 @@ public class ZkTracer implements ConflationAwareOperationTracer {
 
   public void writeToFile(final Path filename) {
     final List<Module> modules = this.hub.getModulesToTrace();
-    final List<ColumnHeader> traceMap =
-        modules.stream().flatMap(m -> m.columnsHeaders().stream()).toList();
+    final List<ColumnHeader> traceMap = modules.stream().flatMap(m -> m.columnsHeaders().stream()).toList();
     final int headerSize = traceMap.stream().mapToInt(ColumnHeader::headerSize).sum() + 4;
 
     try (RandomAccessFile file = new RandomAccessFile(filename.toString(), "rw")) {
       file.setLength(traceMap.stream().mapToLong(ColumnHeader::cumulatedSize).sum());
-      MappedByteBuffer header =
-          file.getChannel().map(FileChannel.MapMode.READ_WRITE, 0, headerSize);
+      MappedByteBuffer header = file.getChannel().map(FileChannel.MapMode.READ_WRITE, 0, headerSize);
 
       header.putInt(traceMap.size());
       for (ColumnHeader h : traceMap) {
@@ -243,17 +247,15 @@ public class ZkTracer implements ConflationAwareOperationTracer {
     final HashMap<String, Integer> modulesLineCount = new HashMap<>();
     hub.getModulesToCount()
         .forEach(
-            m ->
-                modulesLineCount.put(
-                    m.moduleKey(),
-                    m.lineCount()
-                        + Optional.ofNullable(this.spillings.get(m.moduleKey()))
-                            .orElseThrow(
-                                () ->
-                                    new IllegalStateException(
-                                        "Module "
-                                            + m.moduleKey()
-                                            + " not found in spillings.toml"))));
+            m -> modulesLineCount.put(
+                m.moduleKey(),
+                m.lineCount()
+                    + Optional.ofNullable(this.spillings.get(m.moduleKey()))
+                        .orElseThrow(
+                            () -> new IllegalStateException(
+                                "Module "
+                                    + m.moduleKey()
+                                    + " not found in spillings.toml"))));
     modulesLineCount.put("BLOCK_TX", hub.cumulatedTxCount());
     return modulesLineCount;
   }

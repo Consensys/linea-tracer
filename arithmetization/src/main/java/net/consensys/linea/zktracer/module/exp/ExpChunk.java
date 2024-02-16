@@ -132,12 +132,10 @@ public class ExpChunk extends ModuleOperation {
     initArrays(MAX_CT_PRPRC_MODEXP_LOG + 1);
 
     // Preprocessing
-    BigInteger trimLimb;
-    if (modexpLogExpParameters.trimHi().signum() == 0) {
-      trimLimb = modexpLogExpParameters.trimLo();
-    } else {
-      trimLimb = modexpLogExpParameters.trimHi();
-    }
+    BigInteger trimLimb =
+        modexpLogExpParameters.trimHi().signum() == 0
+            ? modexpLogExpParameters.trimLo()
+            : modexpLogExpParameters.trimHi();
     int trimLog = trimLimb.signum() == 0 ? 0 : log2(trimLimb, RoundingMode.FLOOR);
     int nBitsOfLeadingByteExcludingLeadingBit = trimLog % 8;
     int nBytesExcludingLeadingByte = trimLog / 8;
@@ -281,8 +279,6 @@ public class ExpChunk extends ModuleOperation {
       pComputationManzbAcc += (short) (manzb ? 1 : 0);
       trace
           .cmptn(true)
-          .macro(false)
-          .prprc(false)
           .stamp(stamp)
           .ct(i)
           .ctMax(maxCt)
@@ -309,9 +305,7 @@ public class ExpChunk extends ModuleOperation {
   final void traceMacro(int stamp, Trace trace) {
     // We assume MAX_CT_MACRO_EXP_LOG = MAX_CT_MACRO_MODEXP_LOG = 0;
     trace
-        .cmptn(false)
         .macro(true)
-        .prprc(false)
         .stamp(stamp)
         .ct((short) 0)
         .ctMax((short) 0)
@@ -330,8 +324,6 @@ public class ExpChunk extends ModuleOperation {
     short maxCt = (short) (isExpLog ? MAX_CT_PRPRC_EXP_LOG : MAX_CT_PRPRC_MODEXP_LOG);
     for (short i = 0; i < maxCt + 1; i++) {
       trace
-          .cmptn(false)
-          .macro(false)
           .prprc(true)
           .stamp(stamp)
           .ct(i)

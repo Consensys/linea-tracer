@@ -164,7 +164,7 @@ public class Exp implements Module {
     EWord rawLead = EWord.of(doublePaddedCallData.slice(96 + bbs.intValue(), 32));
 
     // cds_cutoff
-    int cdsCutoff = min(max(cds.intValue() - (96 + ebs.intValue()), 0), 32);
+    int cdsCutoff = min(max(cds.intValue() - (96 + bbs.intValue()), 0), 32);
     // ebs_cutoff
     int ebsCutoff = min(ebs.intValue(), 32);
     // min_cutoff
@@ -185,6 +185,13 @@ public class Exp implements Module {
     // lead_log (same as EYP)
     BigInteger leadLog =
         lead.signum() == 0 ? BigInteger.ZERO : BigInteger.valueOf(log2(lead, RoundingMode.FLOOR));
+
+    System.out.println("(extracted) ebsCutoff: " + ebsCutoff);
+    System.out.println("(extracted) cdsCutoff: " + cdsCutoff);
+    System.out.println("(extracted) ebs: " + ebs);
+    System.out.println("(extracted) cds: " + cds);
+    System.out.println("(extracted) rawLead: " + rawLead);
+
     return new ModexpLogExpParameters(rawLead, cdsCutoff, ebsCutoff, leadLog, trim, lead);
   }
 

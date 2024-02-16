@@ -33,7 +33,7 @@ public record ModexpLogExpParameters(
   }
 
   public BigInteger rawLeadLo() {
-    return rawLead.hiBigInt();
+    return rawLead.loBigInt();
   }
 
   public BigInteger trimHi() {
@@ -41,6 +41,6 @@ public record ModexpLogExpParameters(
   }
 
   public BigInteger trimLo() {
-    return EWord.of(trim).hiBigInt();
+    return EWord.of(trim).loBigInt();
   }
 }

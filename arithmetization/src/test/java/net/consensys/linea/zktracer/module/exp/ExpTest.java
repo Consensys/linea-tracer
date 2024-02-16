@@ -30,6 +30,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(EvmExtension.class)
 public class ExpTest {
+
   @Test
   void TestExpLogSingleCase() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
@@ -73,7 +74,6 @@ public class ExpTest {
   void TestExpLogFFBlockCase() {
     for (int k = 0; k <= 32; k++) {
       Bytes exponent = Bytes.fromHexString(FFBlock(k));
-      // System.out.println(exponent);
       BytecodeCompiler program = BytecodeCompiler.newProgram();
       program.push(exponent).push(10).op(OpCode.EXP);
       BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
@@ -84,9 +84,7 @@ public class ExpTest {
   @Test
   void TestExpLogFFAtCase() {
     for (int k = 1; k <= 32; k++) {
-      String exponentString = FFAt(k);
-      // System.out.println(exponentString);
-      Bytes exponent = Bytes.fromHexString(exponentString);
+      Bytes exponent = Bytes.fromHexString(FFAt(k));
       BytecodeCompiler program = BytecodeCompiler.newProgram();
       program.push(exponent).push(10).op(OpCode.EXP);
       BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
@@ -102,48 +100,11 @@ public class ExpTest {
   void TestModexpLogFFBlockWithLDCase() {
     for (int ebsCutoff : C) {
       for (int cdsCutoff : C) {
-        int ebs = ebsCutoff;
-        int cds = cdsCutoff + 96 + ebs;
         for (int k : C) {
           for (int LDIndex : LDIndeces) {
-            Bytes rawLead = Bytes.fromHexStringLenient(FFBlockWithLD(k, LDIndex));
-            System.out.println("ebsCutoff: " + ebsCutoff);
-            System.out.println("cdsCutoff: " + cdsCutoff);
-            System.out.println("ebs: " + ebs);
-            System.out.println("cds: " + cds);
-            System.out.println("k: " + k);
-            System.out.println("LDIndex: " + LDIndex);
-            System.out.println("rawLead: " + rawLead);
-
-            BytecodeCompiler program = BytecodeCompiler.newProgram();
-            program
-                .push(1) // bbs
-                .push(0)
-                .op(OpCode.MSTORE)
-                .push(ebs) // ebs
-                .push(0x20)
-                .op(OpCode.MSTORE)
-                .push(1) // mbs
-                .push(0x40)
-                .op(OpCode.MSTORE)
-                .push(10) // b
-                .push(0x60)
-                .op(OpCode.MSTORE)
-                .push(rawLead) // e
-                .push(0x80)
-                .op(OpCode.MSTORE)
-                .push(10) // m
-                .push(0xA0)
-                .op(OpCode.MSTORE);
-
-            program
-                .push(1) // retSize
-                .push(0x9f) // retOffset
-                .push(cds) // argSize (cds)
-                .push(0) // argOffset (cdo)
-                .push(5) // address
-                .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas
-                .op(OpCode.STATICCALL);
+            Bytes wordAfterBase = Bytes.fromHexStringLenient(FFBlockWithLD(k, LDIndex));
+            BytecodeCompiler program =
+                initProgramInvokingModexp(ebsCutoff, cdsCutoff, wordAfterBase);
             BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
             bytecodeRunner.run();
           }
@@ -156,54 +117,69 @@ public class ExpTest {
   void TestModexpLogLDAtCase() {
     for (int ebsCutoff : C) {
       for (int cdsCutoff : C) {
-        int ebs = ebsCutoff;
-        int cds = cdsCutoff + 96 + ebs;
         for (int k : C) {
           for (int LDIndex : LDIndeces) {
-            Bytes rawLead = Bytes.fromHexStringLenient(LDAt(k, LDIndex));
-            System.out.println("ebsCutoff: " + ebsCutoff);
-            System.out.println("cdsCutoff: " + cdsCutoff);
-            System.out.println("ebs: " + ebs);
-            System.out.println("cds: " + cds);
-            System.out.println("k: " + k);
-            System.out.println("LDIndex: " + LDIndex);
-            System.out.println("rawLead: " + rawLead);
-
-            BytecodeCompiler program = BytecodeCompiler.newProgram();
-            program
-                .push(1) // bbs
-                .push(0)
-                .op(OpCode.MSTORE)
-                .push(ebs) // ebs
-                .push(0x20)
-                .op(OpCode.MSTORE)
-                .push(1) // mbs
-                .push(0x40)
-                .op(OpCode.MSTORE)
-                .push(10) // b
-                .push(0x60)
-                .op(OpCode.MSTORE)
-                .push(rawLead) // e
-                .push(0x80)
-                .op(OpCode.MSTORE)
-                .push(10) // m
-                .push(0xA0)
-                .op(OpCode.MSTORE);
-
-            program
-                .push(1) // retSize
-                .push(0x9f) // retOffset
-                .push(cds) // argSize (cds)
-                .push(0) // argOffset (cdo)
-                .push(5) // address
-                .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas
-                .op(OpCode.STATICCALL);
+            Bytes wordAfterBase = Bytes.fromHexStringLenient(LDAt(k, LDIndex));
+            BytecodeCompiler program =
+                initProgramInvokingModexp(ebsCutoff, cdsCutoff, wordAfterBase);
             BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
             bytecodeRunner.run();
           }
         }
       }
     }
+  }
+
+  @Test
+  void TestModexpLogZerosCase() {
+    for (int ebsCutoff : C) {
+      for (int cdsCutoff : C) {
+        Bytes wordAfterBase =
+            Bytes.fromHexStringLenient(
+                "0000000000000000000000000000000000000000000000000000000000000000");
+        BytecodeCompiler program = initProgramInvokingModexp(ebsCutoff, cdsCutoff, wordAfterBase);
+        BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
+        bytecodeRunner.run();
+      }
+    }
+  }
+
+  BytecodeCompiler initProgramInvokingModexp(int ebsCutoff, int cdsCutoff, Bytes wordAfterBase) {
+    int bbs = 0;
+    int minimalValidEbs = ebsCutoff;
+    int mbs = 0;
+    int minimalValidCds = cdsCutoff + 96 + bbs;
+    System.out.println("ebsCutoff: " + ebsCutoff);
+    System.out.println("cdsCutoff: " + cdsCutoff);
+    System.out.println("minimalValidEbs: " + minimalValidEbs);
+    System.out.println("minimalValidCds: " + minimalValidCds);
+    System.out.println("wordAfterBase: " + wordAfterBase);
+
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    program
+        .push(bbs) // bbs
+        .push(0)
+        .op(OpCode.MSTORE)
+        .push(minimalValidEbs) // ebs
+        .push(32)
+        .op(OpCode.MSTORE)
+        .push(mbs) // mbs
+        .push(64)
+        .op(OpCode.MSTORE)
+        .push(wordAfterBase) // e
+        .push(96 + bbs)
+        .op(OpCode.MSTORE);
+
+    program
+        .push(512) // retSize
+        .push(minimalValidCds) // retOffset
+        .push(minimalValidCds) // argSize (cds)
+        .push(0) // argOffset (cdo)
+        .push(5) // address
+        .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas
+        .op(OpCode.STATICCALL);
+    System.out.println(program.compile());
+    return program;
   }
 
   @Test
@@ -236,11 +212,13 @@ public class ExpTest {
 
     for (int ebsCutoff : C) {
       for (int cdsCutoff : C) {
-        int ebs = ebsCutoff;
-        int cds = cdsCutoff + 96 + ebs;
-        assert (ebsCutoff == min(ebs, 32));
-        assert (cdsCutoff == min(max(cds - (96 + ebs), 0), 32));
-        System.out.println("ebs: " + ebs + ", cds: " + cds);
+        int bbs = 0;
+        int minimalValidEbs = ebsCutoff;
+        int minimalValidCds = cdsCutoff + 96 + bbs;
+        assert (ebsCutoff == min(minimalValidEbs, 32));
+        assert (cdsCutoff == min(max(minimalValidCds - (96 + bbs), 0), 32));
+        System.out.println(
+            "minimalValidEbs: " + minimalValidEbs + ", minimalValidCds: " + minimalValidCds);
         System.out.println("ebsCutoff: " + ebsCutoff + ", cdsCutoff: " + cdsCutoff);
         System.out.println("###");
       }

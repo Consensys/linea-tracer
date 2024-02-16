@@ -35,10 +35,8 @@ import java.math.RoundingMode;
 import lombok.Getter;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @Getter
 public class ExpChunk extends ModuleOperation {
@@ -62,16 +60,13 @@ public class ExpChunk extends ModuleOperation {
   private UnsignedByte[] pPreprocessingWcpInst;
   private boolean[] pPreprocessingWcpRes;
 
-  MessageFrame frame;
   ExpLogExpParameters expLogExpParameters;
   ModexpLogExpParameters modexpLogExpParameters;
 
   Wcp wcp;
 
-  public ExpChunk(
-      final MessageFrame frame, Wcp wcp, final ExpLogExpParameters expLogExpParameters) {
+  public ExpChunk(Wcp wcp, final ExpLogExpParameters expLogExpParameters) {
     // EXP_LOG case
-    this.frame = frame;
     this.wcp = wcp;
     this.expLogExpParameters = expLogExpParameters;
 
@@ -120,10 +115,8 @@ public class ExpChunk extends ModuleOperation {
     // msb remain 0
   }
 
-  public ExpChunk(
-      final MessageFrame frame, Wcp wcp, final ModexpLogExpParameters modexpLogExpParameters) {
+  public ExpChunk(Wcp wcp, final ModexpLogExpParameters modexpLogExpParameters) {
     // MODEXP_LOG case
-    this.frame = frame;
     this.wcp = wcp;
     this.modexpLogExpParameters = modexpLogExpParameters;
 

@@ -80,7 +80,7 @@ public class Exp implements Module {
     if (opCode.equals(OpCode.EXP)) {
       if (!hub.pch().exceptions().stackUnderflow()) {
         ExpLogExpParameters expLogExpParameters = extractExpLogParameters(frame);
-        this.chunks.add(new ExpChunk(frame, wcp, expLogExpParameters));
+        this.chunks.add(new ExpChunk(wcp, expLogExpParameters));
       }
     }
     if (hub.pch().exceptions().none() && hub.pch().aborts().none()) {
@@ -89,7 +89,7 @@ public class Exp implements Module {
         if (target.equals(Address.MODEXP)) {
           ModexpLogExpParameters modexpLogExpParameters = extractModexpLogParameters(frame);
           if (modexpLogExpParameters != null) {
-            this.chunks.add(new ExpChunk(frame, wcp, modexpLogExpParameters));
+            this.chunks.add(new ExpChunk(wcp, modexpLogExpParameters));
           }
         }
       }

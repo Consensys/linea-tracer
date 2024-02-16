@@ -108,7 +108,7 @@ public class ExpTest {
           for (int LDIndex : LDIndeces) {
             Bytes rawLead = Bytes.fromHexStringLenient(FFBlockWithLD(k, LDIndex));
             System.out.println("ebsCutoff: " + ebsCutoff);
-            System.out.println("cdsCutoff: " +cdsCutoff);
+            System.out.println("cdsCutoff: " + cdsCutoff);
             System.out.println("ebs: " + ebs);
             System.out.println("cds: " + cds);
             System.out.println("k: " + k);
@@ -162,7 +162,7 @@ public class ExpTest {
           for (int LDIndex : LDIndeces) {
             Bytes rawLead = Bytes.fromHexStringLenient(LDAt(k, LDIndex));
             System.out.println("ebsCutoff: " + ebsCutoff);
-            System.out.println("cdsCutoff: " +cdsCutoff);
+            System.out.println("cdsCutoff: " + cdsCutoff);
             System.out.println("ebs: " + ebs);
             System.out.println("cds: " + cds);
             System.out.println("k: " + k);

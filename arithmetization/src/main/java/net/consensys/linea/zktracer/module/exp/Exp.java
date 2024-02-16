@@ -19,6 +19,7 @@ import static com.google.common.math.BigIntegerMath.log2;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static net.consensys.linea.zktracer.ZkTracer.gasCalculator;
+import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.math.BigInteger;
 import java.math.RoundingMode;
@@ -192,7 +193,8 @@ public class Exp implements Module {
     System.out.println("(extracted) cds: " + cds);
     System.out.println("(extracted) rawLead: " + rawLead);
 
-    return new ModexpLogExpParameters(rawLead, cdsCutoff, ebsCutoff, leadLog, trim, lead);
+    return new ModexpLogExpParameters(
+        rawLead, cdsCutoff, ebsCutoff, leadLog, bigIntegerToBytes(trim), bigIntegerToBytes(lead));
   }
 
   @Override

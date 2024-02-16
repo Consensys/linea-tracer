@@ -26,7 +26,6 @@ import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_CMPTN_MODEXP_
 import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_PRPRC_EXP_LOG;
 import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_PRPRC_MODEXP_LOG;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
-import static net.consensys.linea.zktracer.types.Conversions.booleanToInt;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 
 import java.math.BigInteger;
@@ -112,7 +111,7 @@ public class ExpChunk extends ModuleOperation {
       pComputationTrimAcc = Bytes.concatenate(pComputationTrimAcc, Bytes.of(trimByte));
     }
 
-    // msb remain 0
+    // msb remains 0
   }
 
   public ExpChunk(Wcp wcp, final ModexpLogExpParameters modexpLogExpParameters) {
@@ -221,7 +220,15 @@ public class ExpChunk extends ModuleOperation {
     }
 
     // Fill pltJmp
-    pComputationPltJmp = (short) (minCutoff - (1 - booleanToInt(minCutoffLeq16)) * 16);
+    if (minCutoffLeq16) {
+      pComputationPltJmp = (short) minCutoff;
+    } else {
+      if (!rawHiPartIsZero) {
+        pComputationPltJmp = (short) 16;
+      } else {
+        pComputationPltJmp = (short) (minCutoff - 16);
+      }
+    }
 
     // Fill trimAcc
     short maxCt = (short) MAX_CT_CMPTN_MODEXP_LOG;
@@ -230,10 +237,11 @@ public class ExpChunk extends ModuleOperation {
       byte rawByte = pComputationRawAcc.get(i);
       byte trimByte = pltBit ? 0 : rawByte;
       pComputationTrimAcc = Bytes.concatenate(pComputationTrimAcc, Bytes.of(trimByte));
+      if (trimByte != 0 && pComputationMsb.toInteger() == 0) {
+        // Fill msb
+        pComputationMsb = UnsignedByte.of(trimByte);
+      }
     }
-
-    // Fill msb
-    pComputationMsb = UnsignedByte.of(bigIntegerToBytes(modexpLogExpParameters.lead()).get(0));
   }
 
   private void initArrays(int pPreprocessingLen) {

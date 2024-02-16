@@ -102,6 +102,8 @@ public class ExpTest {
       for (int cdsCutoff : C) {
         for (int k : C) {
           for (int LDIndex : LDIndeces) {
+            System.out.println("k: " + k);
+            System.out.println("LDIndex: " + LDIndex);
             Bytes wordAfterBase = Bytes.fromHexStringLenient(FFBlockWithLD(k, LDIndex));
             BytecodeCompiler program =
                 initProgramInvokingModexp(ebsCutoff, cdsCutoff, wordAfterBase);
@@ -119,6 +121,8 @@ public class ExpTest {
       for (int cdsCutoff : C) {
         for (int k : C) {
           for (int LDIndex : LDIndeces) {
+            System.out.println("k: " + k);
+            System.out.println("LDIndex: " + LDIndex);
             Bytes wordAfterBase = Bytes.fromHexStringLenient(LDAt(k, LDIndex));
             BytecodeCompiler program =
                 initProgramInvokingModexp(ebsCutoff, cdsCutoff, wordAfterBase);
@@ -128,6 +132,34 @@ public class ExpTest {
         }
       }
     }
+  }
+
+  @Test
+  void TestModexpLogFFBlockWithLDCaseSpecific() {
+    int ebsCutoff = 17;
+    int cdsCutoff = 17;
+    int k = 16;
+    int LDIndex = 1;
+    System.out.println("k: " + k);
+    System.out.println("LDIndex: " + LDIndex);
+    Bytes wordAfterBase = Bytes.fromHexStringLenient(FFBlockWithLD(k, LDIndex));
+    BytecodeCompiler program = initProgramInvokingModexp(ebsCutoff, cdsCutoff, wordAfterBase);
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
+    bytecodeRunner.run();
+  }
+
+  @Test
+  void TestModexpLogLDAtCaseSpecific() {
+    int ebsCutoff = 17;
+    int cdsCutoff = 17;
+    int k = 2;
+    int LDIndex = 1;
+    System.out.println("k: " + k);
+    System.out.println("LDIndex: " + LDIndex);
+    Bytes wordAfterBase = Bytes.fromHexStringLenient(LDAt(k, LDIndex));
+    BytecodeCompiler program = initProgramInvokingModexp(ebsCutoff, cdsCutoff, wordAfterBase);
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
+    bytecodeRunner.run();
   }
 
   @Test

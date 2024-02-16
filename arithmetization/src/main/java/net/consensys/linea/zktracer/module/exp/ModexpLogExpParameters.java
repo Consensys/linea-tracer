@@ -18,14 +18,10 @@ package net.consensys.linea.zktracer.module.exp;
 import java.math.BigInteger;
 
 import net.consensys.linea.zktracer.types.EWord;
+import org.apache.tuweni.bytes.Bytes;
 
 public record ModexpLogExpParameters(
-    EWord rawLead,
-    int cdsCutoff,
-    int ebsCutoff,
-    BigInteger leadLog,
-    BigInteger trim,
-    BigInteger lead)
+    EWord rawLead, int cdsCutoff, int ebsCutoff, BigInteger leadLog, Bytes trim, Bytes lead)
     implements ExpParameters {
 
   public BigInteger rawLeadHi() {

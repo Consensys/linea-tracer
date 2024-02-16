@@ -185,7 +185,7 @@ public class Exp implements Module {
     // lead_log (same as EYP)
     BigInteger leadLog =
         lead.signum() == 0 ? BigInteger.ZERO : BigInteger.valueOf(log2(lead, RoundingMode.FLOOR));
-    return new ModexpLogExpParameters(rawLead, cdsCutoff, ebsCutoff, leadLog, lead);
+    return new ModexpLogExpParameters(rawLead, cdsCutoff, ebsCutoff, leadLog, trim, lead);
   }
 
   @Override

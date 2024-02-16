@@ -94,10 +94,12 @@ public class ExpTest {
     }
   }
 
+  // Generates 128, 64, 2, 1 as LD
+  int[] LDIndeces = new int[] {1, 2, 7, 8};
+  int[] C = new int[] {1, 2, 10, 15, 16, 17, 20, 31, 32};
+
   @Test
   void TestModexpLogFFBlockWithLDCase() {
-    int[] LDIndeces = new int[] {1, 2, 7, 8};
-    int[] C = new int[] {1, 2, 10, 15, 16, 17, 20, 31, 32};
     for (int ebsCutoff : C) {
       for (int cdsCutoff : C) {
         int ebs = ebsCutoff;
@@ -105,7 +107,6 @@ public class ExpTest {
         for (int k : C) {
           for (int LDIndex : LDIndeces) {
             Bytes rawLead = Bytes.fromHexStringLenient(FFBlockWithLD(k, LDIndex));
-            /*
             System.out.println("ebsCutoff: " + ebsCutoff);
             System.out.println("cdsCutoff: " +cdsCutoff);
             System.out.println("ebs: " + ebs);
@@ -113,7 +114,7 @@ public class ExpTest {
             System.out.println("k: " + k);
             System.out.println("LDIndex: " + LDIndex);
             System.out.println("rawLead: " + rawLead);
-             */
+
             BytecodeCompiler program = BytecodeCompiler.newProgram();
             program
                 .push(1) // bbs
@@ -153,8 +154,6 @@ public class ExpTest {
 
   @Test
   void TestModexpLogLDAtCase() {
-    int[] LDIndeces = new int[] {1, 2, 7, 8};
-    int[] C = new int[] {1, 2, 10, 15, 16, 17, 20, 31, 32};
     for (int ebsCutoff : C) {
       for (int cdsCutoff : C) {
         int ebs = ebsCutoff;
@@ -162,7 +161,6 @@ public class ExpTest {
         for (int k : C) {
           for (int LDIndex : LDIndeces) {
             Bytes rawLead = Bytes.fromHexStringLenient(LDAt(k, LDIndex));
-            /*
             System.out.println("ebsCutoff: " + ebsCutoff);
             System.out.println("cdsCutoff: " +cdsCutoff);
             System.out.println("ebs: " + ebs);
@@ -170,7 +168,7 @@ public class ExpTest {
             System.out.println("k: " + k);
             System.out.println("LDIndex: " + LDIndex);
             System.out.println("rawLead: " + rawLead);
-             */
+
             BytecodeCompiler program = BytecodeCompiler.newProgram();
             program
                 .push(1) // bbs
@@ -222,9 +220,6 @@ public class ExpTest {
     }
 
     // ModexpLog case
-    // Generates 128, 64, 2, 1 as LD
-    int[] LDIndeces = new int[] {1, 2, 7, 8};
-    int[] C = new int[] {1, 2, 10, 15, 16, 17, 20, 31, 32};
     System.out.println("FFBlockWithLD");
     for (int k : C) {
       for (int LDIndex : LDIndeces) {

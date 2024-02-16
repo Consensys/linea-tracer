@@ -20,7 +20,7 @@ import java.math.BigInteger;
 import net.consensys.linea.zktracer.types.EWord;
 
 public record ModexpLogExpParameters(
-    EWord rawLead, int cdsCutoff, int ebsCutoff, BigInteger leadLog, BigInteger lead)
+  EWord rawLead, int cdsCutoff, int ebsCutoff, BigInteger leadLog, BigInteger trim, BigInteger lead)
     implements ExpParameters {
 
   public BigInteger rawLeadHi() {
@@ -29,5 +29,13 @@ public record ModexpLogExpParameters(
 
   public BigInteger rawLeadLo() {
     return rawLead.hiBigInt();
+  }
+
+  public BigInteger trimHi() {
+    return EWord.of(trim).hiBigInt();
+  }
+
+  public BigInteger trimLo() {
+    return EWord.of(trim).hiBigInt();
   }
 }

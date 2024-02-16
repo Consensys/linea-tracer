@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.exp;
 
+import static com.google.common.math.BigIntegerMath.log2;
 import static java.lang.Math.min;
 import static net.consensys.linea.zktracer.module.exp.Trace.EXP_EXPLOG;
 import static net.consensys.linea.zktracer.module.exp.Trace.EXP_MODEXPLOG;
@@ -28,9 +29,13 @@ import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToInt;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 
+import java.math.BigInteger;
+import java.math.RoundingMode;
+
 import lombok.Getter;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
+import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -134,8 +139,15 @@ public class ExpChunk extends ModuleOperation {
     initArrays(MAX_CT_PRPRC_MODEXP_LOG + 1);
 
     // Preprocessing
-    int nBitsOfLeadingByteExcludingLeadingBit = modexpLogExpParameters.leadLog().intValue() % 8;
-    int nBytesExcludingLeadingByte = modexpLogExpParameters.leadLog().intValue() / 8;
+    BigInteger trimLimb;
+    if (modexpLogExpParameters.trimHi().signum() == 0) {
+      trimLimb = modexpLogExpParameters.trimLo();
+    } else {
+      trimLimb = modexpLogExpParameters.trimHi();
+    }
+    int trimLog = trimLimb.signum() == 0 ? 0 : log2(trimLimb, RoundingMode.FLOOR);
+    int nBitsOfLeadingByteExcludingLeadingBit = trimLog % 8;
+    int nBytesExcludingLeadingByte = trimLog / 8;
 
     // First row
     pPreprocessingWcpFlag[0] = true;

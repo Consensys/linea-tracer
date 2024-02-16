@@ -19,7 +19,9 @@ import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.bl.TransactionProfitabilityCalculator;
 import net.consensys.linea.config.LineaProfitabilityConfiguration;
+import org.apache.tuweni.units.bigints.UInt256s;
 import org.hyperledger.besu.datatypes.Transaction;
+import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.plugin.services.BesuConfiguration;
 import org.hyperledger.besu.plugin.services.BlockchainService;
 import org.hyperledger.besu.plugin.services.txvalidator.PluginTransactionValidator;
@@ -48,10 +50,27 @@ public class ProfitabilityValidator implements PluginTransactionValidator {
             "Txpool",
             transaction,
             profitabilityConf.txPoolMinMargin(),
-            besuConfiguration.getMinGasPrice().getAsBigInteger().doubleValue(),
-            blockchainService.getNextBlockBaseFee().get().getAsBigInteger().doubleValue(),
+            besuConfiguration.getMinGasPrice(),
+            calculateUpfrontGasPrice(transaction),
             transaction.getGasLimit())
         ? Optional.empty()
         : Optional.of("Gas price too low");
+  }
+
+  private Wei calculateUpfrontGasPrice(final Transaction transaction) {
+    final Wei baseFee =
+        blockchainService
+            .getNextBlockBaseFee()
+            .orElseThrow(() -> new RuntimeException("We only support a base fee market"));
+
+    return transaction
+        .getMaxFeePerGas()
+        .map(Wei::fromQuantity)
+        .map(
+            maxFee ->
+                UInt256s.min(
+                    maxFee,
+                    baseFee.add(Wei.fromQuantity(transaction.getMaxPriorityFeePerGas().get()))))
+        .orElseGet(() -> Wei.fromQuantity(transaction.getGasPrice().get()));
   }
 }

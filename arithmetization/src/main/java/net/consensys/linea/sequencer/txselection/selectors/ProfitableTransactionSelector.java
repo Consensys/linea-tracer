@@ -73,8 +73,6 @@ public class ProfitableTransactionSelector implements PluginTransactionSelector 
 
     if (!evaluationContext.getPendingTransaction().hasPriority()) {
       final Transaction transaction = evaluationContext.getPendingTransaction().getTransaction();
-      final double effectiveGasPrice =
-          evaluationContext.getTransactionGasPrice().getAsBigInteger().doubleValue();
       final long gasLimit = transaction.getGasLimit();
 
       // check the upfront profitability using the gas limit of the tx
@@ -82,8 +80,8 @@ public class ProfitableTransactionSelector implements PluginTransactionSelector 
           "PreProcessing",
           transaction,
           profitabilityConf.minMargin(),
-          minGasPrice.getAsBigInteger().doubleValue(),
-          effectiveGasPrice,
+          minGasPrice,
+          evaluationContext.getTransactionGasPrice(),
           gasLimit)) {
         return TX_UNPROFITABLE_UPFRONT;
       }
@@ -129,17 +127,14 @@ public class ProfitableTransactionSelector implements PluginTransactionSelector 
 
     if (!evaluationContext.getPendingTransaction().hasPriority()) {
       final Transaction transaction = evaluationContext.getPendingTransaction().getTransaction();
-      final double minGasPrice = evaluationContext.getMinGasPrice().getAsBigInteger().doubleValue();
-      final double effectiveGasPrice =
-          evaluationContext.getTransactionGasPrice().getAsBigInteger().doubleValue();
       final long gasUsed = processingResult.getEstimateGasUsedByTransaction();
 
       if (!transactionProfitabilityCalculator.isProfitable(
           "PostProcessing",
           transaction,
           profitabilityConf.minMargin(),
-          minGasPrice,
-          effectiveGasPrice,
+          evaluationContext.getMinGasPrice(),
+          evaluationContext.getTransactionGasPrice(),
           gasUsed)) {
         rememberUnprofitable(transaction);
         return TX_UNPROFITABLE;

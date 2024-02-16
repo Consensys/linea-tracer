@@ -122,12 +122,8 @@ public class EstimateGasTest extends LineaPluginTestBase {
                 "Test",
                 tx,
                 profitabilityConf.txPoolMinMargin(),
-                minerNode
-                    .getMiningParameters()
-                    .getMinTransactionGasPrice()
-                    .getAsBigInteger()
-                    .doubleValue(),
-                maxGasPrice.getAsBigInteger().doubleValue(),
+                minerNode.getMiningParameters().getMinTransactionGasPrice(),
+                maxGasPrice,
                 gasLimit))
         .isTrue();
   }

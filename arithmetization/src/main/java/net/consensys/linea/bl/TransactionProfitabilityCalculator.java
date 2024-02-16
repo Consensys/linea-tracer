@@ -74,50 +74,39 @@ public class TransactionProfitabilityCalculator {
   }
 
   public boolean isProfitable(
-      final String step,
+      final String context,
       final Transaction transaction,
       final double minMargin,
-      final double minGasPrice,
-      final double effectiveGasPrice,
+      final Wei minGasPrice,
+      final Wei effectiveGasPrice,
       final long gas) {
-    final double revenue = effectiveGasPrice * gas;
 
-    final double l1GasPrice = minGasPrice * profitabilityConf.gasPriceRatio();
-    final double compressedTxSize = getCompressedTxSize(transaction);
-    final double verificationGasCostSlice =
-        (compressedTxSize / profitabilityConf.verificationCapacity())
-            * profitabilityConf.verificationGasCost();
-    final double cost = l1GasPrice * verificationGasCostSlice;
+    final Wei profitablePriorityFee =
+        profitablePriorityFeePerGas(transaction, minMargin, minGasPrice, gas);
 
-    final double margin = revenue / cost;
-
-    if (margin < minMargin) {
+    if (effectiveGasPrice.lessThan(profitablePriorityFee)) {
       log(
           log.atDebug(),
-          step,
+          context,
           transaction,
-          margin,
+          minMargin,
           effectiveGasPrice,
+          profitablePriorityFee,
           gas,
-          minGasPrice,
-          l1GasPrice,
-          compressedTxSize,
-          profitabilityConf.adjustTxSize());
+          minGasPrice);
       return false;
-    } else {
-      log(
-          log.atTrace(),
-          step,
-          transaction,
-          margin,
-          effectiveGasPrice,
-          gas,
-          minGasPrice,
-          l1GasPrice,
-          compressedTxSize,
-          profitabilityConf.adjustTxSize());
-      return true;
     }
+
+    log(
+        log.atTrace(),
+        context,
+        transaction,
+        minMargin,
+        effectiveGasPrice,
+        profitablePriorityFee,
+        gas,
+        minGasPrice);
+    return true;
   }
 
   private double getCompressedTxSize(final Transaction transaction) {
@@ -132,31 +121,29 @@ public class TransactionProfitabilityCalculator {
       final LoggingEventBuilder leb,
       final String context,
       final Transaction transaction,
-      final double margin,
-      final double effectiveGasPrice,
+      final double minMargin,
+      final Wei effectiveGasPrice,
+      final Wei profitableGasPrice,
       final long gasUsed,
-      final double minGasPrice,
-      final double l1GasPrice,
-      final double compressedTxSize,
-      final int adjustTxSize) {
+      final Wei minGasPrice) {
     leb.setMessage(
-            "Context {}. Transaction {} has a margin of {}, minMargin={}, verificationCapacity={}, "
-                + "verificationGasCost={}, gasPriceRatio={}, effectiveGasPrice={}, gasUsed={}, minGasPrice={}, "
-                + "l1GasPrice={}, txSize={}, compressedTxSize={}, adjustTxSize={}")
+            "Context {}. Transaction {} has a margin of {}, minMargin={}, effectiveGasPrice={},"
+                + " profitableGasPrice={}, verificationCapacity={}, verificationGasCost={}, gasPriceRatio={},"
+                + " gasUsed={}, minGasPrice={}")
         .addArgument(context)
         .addArgument(transaction::getHash)
-        .addArgument(margin)
-        .addArgument(profitabilityConf.minMargin())
+        .addArgument(
+            () ->
+                effectiveGasPrice.toBigInteger().doubleValue()
+                    / profitableGasPrice.toBigInteger().doubleValue())
+        .addArgument(minMargin)
+        .addArgument(effectiveGasPrice::toHumanReadableString)
+        .addArgument(profitableGasPrice::toHumanReadableString)
         .addArgument(profitabilityConf.verificationCapacity())
         .addArgument(profitabilityConf.verificationGasCost())
         .addArgument(profitabilityConf.gasPriceRatio())
-        .addArgument(effectiveGasPrice)
         .addArgument(gasUsed)
-        .addArgument(minGasPrice)
-        .addArgument(l1GasPrice)
-        .addArgument(transaction::getSize)
-        .addArgument(compressedTxSize)
-        .addArgument(adjustTxSize)
+        .addArgument(minGasPrice::toHumanReadableString)
         .log();
   }
 }

@@ -42,7 +42,7 @@ public class LineaProfitabilityCliOptions {
   public static final BigDecimal DEFAULT_TX_POOL_MIN_MARGIN = BigDecimal.ONE;
 
   public static final String ADJUST_TX_SIZE = "--plugin-linea-adjust-tx-size";
-  public static final int DEFAULT_ADJUST_TX_SIZE = -45;
+  public static final int DEFAULT_ADJUST_TX_SIZE = 0;
 
   public static final String TX_COMPRESSION_RATIO = "--plugin-linea-tx-compression-ratio";
   public static final int DEFAULT_TX_COMPRESSION_RATIO = 5;

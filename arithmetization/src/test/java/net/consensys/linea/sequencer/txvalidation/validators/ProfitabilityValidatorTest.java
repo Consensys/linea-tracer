@@ -15,6 +15,8 @@
 
 package net.consensys.linea.sequencer.txvalidation.validators;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.math.BigInteger;
 import java.nio.file.Path;
 import java.util.Optional;
@@ -22,10 +24,12 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.config.LineaProfitabilityCliOptions;
+import org.apache.tuweni.bytes.Bytes;
 import org.bouncycastle.asn1.sec.SECNamedCurves;
 import org.bouncycastle.asn1.x9.X9ECParameters;
 import org.bouncycastle.crypto.params.ECDomainParameters;
 import org.hyperledger.besu.crypto.SECPSignature;
+import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.plugin.data.BlockContext;
@@ -33,10 +37,15 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 import org.hyperledger.besu.plugin.services.BesuConfiguration;
 import org.hyperledger.besu.plugin.services.BlockchainService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 @Slf4j
 @RequiredArgsConstructor
 public class ProfitabilityValidatorTest {
+  public static final Address SENDER =
+      Address.fromHexString("0x0000000000000000000000000000000000001000");
+  public static final Address RECIPIENT =
+      Address.fromHexString("0x0000000000000000000000000000000000001001");
   private static final SECPSignature FAKE_SIGNATURE;
 
   static {
@@ -53,7 +62,7 @@ public class ProfitabilityValidatorTest {
             curve.getN());
   }
 
-  public static final double TX_POOL_MIN_MARGIN = 1.0;
+  public static final double TX_POOL_MIN_MARGIN = 0.5;
   private ProfitabilityValidator profitabilityValidator;
 
   @BeforeEach
@@ -65,6 +74,38 @@ public class ProfitabilityValidatorTest {
             LineaProfitabilityCliOptions.create().toDomainObject().toBuilder()
                 .txPoolMinMargin(TX_POOL_MIN_MARGIN)
                 .build());
+  }
+
+  @Test
+  public void acceptWhenBelowMinProfitability() {
+    final org.hyperledger.besu.ethereum.core.Transaction transaction =
+        org.hyperledger.besu.ethereum.core.Transaction.builder()
+            .sender(SENDER)
+            .to(RECIPIENT)
+            .gasLimit(21000)
+            .gasPrice(Wei.of(11000000))
+            .payload(Bytes.EMPTY)
+            .value(Wei.ONE)
+            .signature(FAKE_SIGNATURE)
+            .build();
+    assertThat(profitabilityValidator.validateTransaction(transaction)).isEmpty();
+  }
+
+  @Test
+  public void rejectWhenBelowMinProfitability() {
+    final org.hyperledger.besu.ethereum.core.Transaction transaction =
+        org.hyperledger.besu.ethereum.core.Transaction.builder()
+            .sender(SENDER)
+            .to(RECIPIENT)
+            .gasLimit(21000)
+            .gasPrice(Wei.ONE)
+            .payload(Bytes.EMPTY)
+            .value(Wei.ONE)
+            .signature(FAKE_SIGNATURE)
+            .build();
+    assertThat(profitabilityValidator.validateTransaction(transaction))
+        .isPresent()
+        .contains("Gas price too low");
   }
 
   private static class TestBesuConfiguration implements BesuConfiguration {
@@ -85,7 +126,7 @@ public class ProfitabilityValidatorTest {
 
     @Override
     public Wei getMinGasPrice() {
-      return Wei.of(1_000_000_000);
+      return Wei.of(100_000_000);
     }
   }
 

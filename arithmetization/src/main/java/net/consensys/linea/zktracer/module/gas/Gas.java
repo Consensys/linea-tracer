@@ -1,11 +1,13 @@
 package net.consensys.linea.zktracer.module.gas;
 
+import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import net.consensys.linea.zktracer.module.Module;
+import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public class Gas implements Module {
   /** A list of the operations to trace */
@@ -34,6 +36,16 @@ public class Gas implements Module {
   @Override
   public List<ColumnHeader> columnsHeaders() {
     return null;
+  }
+
+  @Override
+  public void tracePreOpcode(MessageFrame frame) {
+    GasParameters gasParameters = extractGasParameters(frame);
+    this.chunks.add(new GasChunk(gasParameters));
+  }
+
+  private GasParameters extractGasParameters(MessageFrame frame) {
+    return new GasParameters(BigInteger.ZERO, BigInteger.ZERO, false);
   }
 
   @Override

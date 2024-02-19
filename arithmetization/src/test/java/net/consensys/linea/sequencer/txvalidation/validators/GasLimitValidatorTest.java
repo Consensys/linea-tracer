@@ -47,7 +47,8 @@ public class GasLimitValidatorTest {
         org.hyperledger.besu.ethereum.core.Transaction.builder();
     final org.hyperledger.besu.ethereum.core.Transaction transaction =
         builder.gasLimit(MAX_TX_GAS_LIMIT).gasPrice(Wei.ZERO).payload(Bytes.EMPTY).build();
-    Assertions.assertEquals(gasLimitValidator.validateTransaction(transaction), Optional.empty());
+    Assertions.assertEquals(
+        gasLimitValidator.validateTransaction(transaction, false, false), Optional.empty());
   }
 
   @Test
@@ -57,7 +58,7 @@ public class GasLimitValidatorTest {
     final org.hyperledger.besu.ethereum.core.Transaction transaction =
         builder.gasLimit(MAX_TX_GAS_LIMIT + 1).gasPrice(Wei.ZERO).payload(Bytes.EMPTY).build();
     Assertions.assertEquals(
-        gasLimitValidator.validateTransaction(transaction).orElseThrow(),
+        gasLimitValidator.validateTransaction(transaction, false, false).orElseThrow(),
         "Gas limit of transaction is greater than the allowed max of " + MAX_TX_GAS_LIMIT);
   }
 }

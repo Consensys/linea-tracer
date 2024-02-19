@@ -28,7 +28,8 @@ public class CalldataValidator implements PluginTransactionValidator {
   final LineaTransactionValidatorConfiguration txValidatorConf;
 
   @Override
-  public Optional<String> validateTransaction(final Transaction transaction) {
+  public Optional<String> validateTransaction(
+      final Transaction transaction, final boolean isLocal, final boolean hasPriority) {
     if (transaction.getPayload().size() > txValidatorConf.maxTxCalldataSize()) {
       final String errMsg =
           "Calldata of transaction is greater than the allowed max of "

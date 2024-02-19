@@ -46,6 +46,8 @@ public class ProfitabilityValidatorTest {
       Address.fromHexString("0x0000000000000000000000000000000000001000");
   public static final Address RECIPIENT =
       Address.fromHexString("0x0000000000000000000000000000000000001001");
+  private static Wei PROFITABLE_GAS_PRICE = Wei.of(11000000);
+  private static Wei UNPROFITABLE_GAS_PRICE = Wei.of(1000000);
   private static final SECPSignature FAKE_SIGNATURE;
 
   static {
@@ -63,47 +65,180 @@ public class ProfitabilityValidatorTest {
   }
 
   public static final double TX_POOL_MIN_MARGIN = 0.5;
-  private ProfitabilityValidator profitabilityValidator;
+  private ProfitabilityValidator profitabilityValidatorAlways;
+  private ProfitabilityValidator profitabilityValidatorOnlyApi;
+  private ProfitabilityValidator profitabilityValidatorOnlyP2p;
+  private ProfitabilityValidator profitabilityValidatorNever;
 
   @BeforeEach
   public void initialize() {
-    profitabilityValidator =
+    final var profitabilityConfBuilder =
+        LineaProfitabilityCliOptions.create().toDomainObject().toBuilder()
+            .txPoolMinMargin(TX_POOL_MIN_MARGIN);
+
+    profitabilityValidatorAlways =
         new ProfitabilityValidator(
             new TestBesuConfiguration(),
             new TestBlockchainService(),
-            LineaProfitabilityCliOptions.create().toDomainObject().toBuilder()
-                .txPoolMinMargin(TX_POOL_MIN_MARGIN)
+            profitabilityConfBuilder
+                .txPoolCheckP2pEnabled(true)
+                .txPoolCheckApiEnabled(true)
+                .build());
+
+    profitabilityValidatorNever =
+        new ProfitabilityValidator(
+            new TestBesuConfiguration(),
+            new TestBlockchainService(),
+            profitabilityConfBuilder
+                .txPoolCheckP2pEnabled(false)
+                .txPoolCheckApiEnabled(false)
+                .build());
+
+    profitabilityValidatorOnlyApi =
+        new ProfitabilityValidator(
+            new TestBesuConfiguration(),
+            new TestBlockchainService(),
+            profitabilityConfBuilder
+                .txPoolCheckP2pEnabled(false)
+                .txPoolCheckApiEnabled(true)
+                .build());
+
+    profitabilityValidatorOnlyP2p =
+        new ProfitabilityValidator(
+            new TestBesuConfiguration(),
+            new TestBlockchainService(),
+            profitabilityConfBuilder
+                .txPoolCheckP2pEnabled(true)
+                .txPoolCheckApiEnabled(false)
                 .build());
   }
 
   @Test
-  public void acceptWhenBelowMinProfitability() {
+  public void acceptRemoteWhenBelowMinProfitability() {
     final org.hyperledger.besu.ethereum.core.Transaction transaction =
         org.hyperledger.besu.ethereum.core.Transaction.builder()
             .sender(SENDER)
             .to(RECIPIENT)
             .gasLimit(21000)
-            .gasPrice(Wei.of(11000000))
+            .gasPrice(PROFITABLE_GAS_PRICE)
             .payload(Bytes.EMPTY)
             .value(Wei.ONE)
             .signature(FAKE_SIGNATURE)
             .build();
-    assertThat(profitabilityValidator.validateTransaction(transaction)).isEmpty();
+    assertThat(profitabilityValidatorAlways.validateTransaction(transaction, false, false))
+        .isEmpty();
   }
 
   @Test
-  public void rejectWhenBelowMinProfitability() {
+  public void rejectRemoteWhenBelowMinProfitability() {
     final org.hyperledger.besu.ethereum.core.Transaction transaction =
         org.hyperledger.besu.ethereum.core.Transaction.builder()
             .sender(SENDER)
             .to(RECIPIENT)
             .gasLimit(21000)
-            .gasPrice(Wei.ONE)
+            .gasPrice(UNPROFITABLE_GAS_PRICE)
             .payload(Bytes.EMPTY)
             .value(Wei.ONE)
             .signature(FAKE_SIGNATURE)
             .build();
-    assertThat(profitabilityValidator.validateTransaction(transaction))
+    assertThat(profitabilityValidatorAlways.validateTransaction(transaction, false, false))
+        .isPresent()
+        .contains("Gas price too low");
+  }
+
+  @Test
+  public void acceptRemoteWhenBelowMinProfitabilityIfCheckNeverEnabled() {
+    final org.hyperledger.besu.ethereum.core.Transaction transaction =
+        org.hyperledger.besu.ethereum.core.Transaction.builder()
+            .sender(SENDER)
+            .to(RECIPIENT)
+            .gasLimit(21000)
+            .gasPrice(UNPROFITABLE_GAS_PRICE)
+            .payload(Bytes.EMPTY)
+            .value(Wei.ONE)
+            .signature(FAKE_SIGNATURE)
+            .build();
+    assertThat(profitabilityValidatorNever.validateTransaction(transaction, false, false))
+        .isEmpty();
+  }
+
+  @Test
+  public void acceptLocalWhenBelowMinProfitabilityIfCheckNeverEnabled() {
+    final org.hyperledger.besu.ethereum.core.Transaction transaction =
+        org.hyperledger.besu.ethereum.core.Transaction.builder()
+            .sender(SENDER)
+            .to(RECIPIENT)
+            .gasLimit(21000)
+            .gasPrice(UNPROFITABLE_GAS_PRICE)
+            .payload(Bytes.EMPTY)
+            .value(Wei.ONE)
+            .signature(FAKE_SIGNATURE)
+            .build();
+    assertThat(profitabilityValidatorNever.validateTransaction(transaction, true, false)).isEmpty();
+  }
+
+  @Test
+  public void acceptRemoteWhenBelowMinProfitabilityIfCheckDisabledForP2p() {
+    final org.hyperledger.besu.ethereum.core.Transaction transaction =
+        org.hyperledger.besu.ethereum.core.Transaction.builder()
+            .sender(SENDER)
+            .to(RECIPIENT)
+            .gasLimit(21000)
+            .gasPrice(UNPROFITABLE_GAS_PRICE)
+            .payload(Bytes.EMPTY)
+            .value(Wei.ONE)
+            .signature(FAKE_SIGNATURE)
+            .build();
+    assertThat(profitabilityValidatorOnlyApi.validateTransaction(transaction, false, false))
+        .isEmpty();
+  }
+
+  @Test
+  public void rejectRemoteWhenBelowMinProfitabilityIfCheckEnableForP2p() {
+    final org.hyperledger.besu.ethereum.core.Transaction transaction =
+        org.hyperledger.besu.ethereum.core.Transaction.builder()
+            .sender(SENDER)
+            .to(RECIPIENT)
+            .gasLimit(21000)
+            .gasPrice(UNPROFITABLE_GAS_PRICE)
+            .payload(Bytes.EMPTY)
+            .value(Wei.ONE)
+            .signature(FAKE_SIGNATURE)
+            .build();
+    assertThat(profitabilityValidatorOnlyP2p.validateTransaction(transaction, false, false))
+        .isPresent()
+        .contains("Gas price too low");
+  }
+
+  @Test
+  public void acceptLocalWhenBelowMinProfitabilityIfCheckDisabledForApi() {
+    final org.hyperledger.besu.ethereum.core.Transaction transaction =
+        org.hyperledger.besu.ethereum.core.Transaction.builder()
+            .sender(SENDER)
+            .to(RECIPIENT)
+            .gasLimit(21000)
+            .gasPrice(UNPROFITABLE_GAS_PRICE)
+            .payload(Bytes.EMPTY)
+            .value(Wei.ONE)
+            .signature(FAKE_SIGNATURE)
+            .build();
+    assertThat(profitabilityValidatorOnlyP2p.validateTransaction(transaction, true, false))
+        .isEmpty();
+  }
+
+  @Test
+  public void rejectLocalWhenBelowMinProfitabilityIfCheckEnableForApi() {
+    final org.hyperledger.besu.ethereum.core.Transaction transaction =
+        org.hyperledger.besu.ethereum.core.Transaction.builder()
+            .sender(SENDER)
+            .to(RECIPIENT)
+            .gasLimit(21000)
+            .gasPrice(UNPROFITABLE_GAS_PRICE)
+            .payload(Bytes.EMPTY)
+            .value(Wei.ONE)
+            .signature(FAKE_SIGNATURE)
+            .build();
+    assertThat(profitabilityValidatorOnlyApi.validateTransaction(transaction, true, false))
         .isPresent()
         .contains("Gas price too low");
   }

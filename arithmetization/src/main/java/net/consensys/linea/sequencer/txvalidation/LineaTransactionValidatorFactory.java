@@ -15,11 +15,16 @@
 
 package net.consensys.linea.sequencer.txvalidation;
 
+import java.util.Arrays;
+import java.util.Optional;
 import java.util.Set;
 
 import net.consensys.linea.config.LineaProfitabilityConfiguration;
 import net.consensys.linea.config.LineaTransactionValidatorConfiguration;
-import net.consensys.linea.sequencer.txvalidation.validators.LineaTransactionValidators;
+import net.consensys.linea.sequencer.txvalidation.validators.AllowedAddressValidator;
+import net.consensys.linea.sequencer.txvalidation.validators.CalldataValidator;
+import net.consensys.linea.sequencer.txvalidation.validators.GasLimitValidator;
+import net.consensys.linea.sequencer.txvalidation.validators.ProfitabilityValidator;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.plugin.services.BesuConfiguration;
 import org.hyperledger.besu.plugin.services.BlockchainService;
@@ -31,30 +36,38 @@ public class LineaTransactionValidatorFactory implements PluginTransactionValida
 
   private final BesuConfiguration besuConfiguration;
   private final BlockchainService blockchainService;
-  private final LineaTransactionValidatorConfiguration transactionValidatorConfiguration;
-  private final LineaProfitabilityConfiguration profitabilityConfiguration;
+  private final LineaTransactionValidatorConfiguration txValidatorConf;
+  private final LineaProfitabilityConfiguration profitabilityConf;
   private final Set<Address> denied;
 
   public LineaTransactionValidatorFactory(
       final BesuConfiguration besuConfiguration,
       final BlockchainService blockchainService,
-      final LineaTransactionValidatorConfiguration transactionValidatorConfiguration,
-      final LineaProfitabilityConfiguration profitabilityConfiguration,
+      final LineaTransactionValidatorConfiguration txValidatorConf,
+      final LineaProfitabilityConfiguration profitabilityConf,
       final Set<Address> denied) {
     this.besuConfiguration = besuConfiguration;
     this.blockchainService = blockchainService;
-    this.transactionValidatorConfiguration = transactionValidatorConfiguration;
-    this.profitabilityConfiguration = profitabilityConfiguration;
+    this.txValidatorConf = txValidatorConf;
+    this.profitabilityConf = profitabilityConf;
     this.denied = denied;
   }
 
   @Override
   public PluginTransactionValidator create() {
-    return new LineaTransactionValidators(
-        besuConfiguration,
-        blockchainService,
-        transactionValidatorConfiguration,
-        profitabilityConfiguration,
-        denied);
+    final var validators =
+        new PluginTransactionValidator[] {
+          new AllowedAddressValidator(denied),
+          new GasLimitValidator(txValidatorConf),
+          new CalldataValidator(txValidatorConf),
+          new ProfitabilityValidator(besuConfiguration, blockchainService, profitabilityConf)
+        };
+
+    return (transaction, isLocal, hasPriority) ->
+        Arrays.stream(validators)
+            .map(v -> v.validateTransaction(transaction, isLocal, hasPriority))
+            .filter(Optional::isPresent)
+            .findFirst()
+            .map(Optional::get);
   }
 }

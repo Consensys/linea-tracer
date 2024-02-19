@@ -28,7 +28,8 @@ public class GasLimitValidator implements PluginTransactionValidator {
   final LineaTransactionValidatorConfiguration txValidatorConf;
 
   @Override
-  public Optional<String> validateTransaction(final Transaction transaction) {
+  public Optional<String> validateTransaction(
+      final Transaction transaction, final boolean isLocal, final boolean hasPriority) {
     if (transaction.getGasLimit() > txValidatorConf.maxTxGasLimit()) {
       final String errMsg =
           "Gas limit of transaction is greater than the allowed max of "

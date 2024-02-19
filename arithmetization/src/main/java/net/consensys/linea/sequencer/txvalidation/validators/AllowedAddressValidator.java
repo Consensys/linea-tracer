@@ -42,7 +42,8 @@ public class AllowedAddressValidator implements PluginTransactionValidator {
   private final Set<Address> denied;
 
   @Override
-  public Optional<String> validateTransaction(final Transaction transaction) {
+  public Optional<String> validateTransaction(
+      final Transaction transaction, final boolean isLocal, final boolean hasPriority) {
     final var maybeValidSender = validateSender(transaction);
     if (maybeValidSender.isEmpty()) {
       return validateRecipient(transaction);

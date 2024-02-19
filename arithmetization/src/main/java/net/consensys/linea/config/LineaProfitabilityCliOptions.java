@@ -39,13 +39,21 @@ public class LineaProfitabilityCliOptions {
   public static final BigDecimal DEFAULT_ESTIMATE_GAS_MIN_MARGIN = BigDecimal.ONE;
 
   public static final String TX_POOL_MIN_MARGIN = "--plugin-linea-tx-pool-min-margin";
-  public static final BigDecimal DEFAULT_TX_POOL_MIN_MARGIN = BigDecimal.ONE;
+  public static final BigDecimal DEFAULT_TX_POOL_MIN_MARGIN = BigDecimal.valueOf(0.5);
 
   public static final String ADJUST_TX_SIZE = "--plugin-linea-adjust-tx-size";
   public static final int DEFAULT_ADJUST_TX_SIZE = 0;
 
   public static final String TX_COMPRESSION_RATIO = "--plugin-linea-tx-compression-ratio";
   public static final int DEFAULT_TX_COMPRESSION_RATIO = 5;
+
+  public static final String TX_POOL_ENABLE_CHECK_API =
+      "--plugin-linea-tx-pool-profitability-check-api-enabled";
+  public static final boolean DEFAULT_TX_POOL_ENABLE_CHECK_API = true;
+
+  public static final String TX_POOL_ENABLE_CHECK_P2P =
+      "--plugin-linea-tx-pool-profitability-check-p2p-enabled";
+  public static final boolean DEFAULT_TX_POOL_ENABLE_CHECK_P2P = false;
 
   @Positive
   @CommandLine.Option(
@@ -115,6 +123,24 @@ public class LineaProfitabilityCliOptions {
           "The ratio between tx serialized size and its compressed size (default: ${DEFAULT-VALUE})")
   private int txCompressionRatio = DEFAULT_TX_COMPRESSION_RATIO;
 
+  @CommandLine.Option(
+      names = {TX_POOL_ENABLE_CHECK_API},
+      arity = "0..1",
+      hidden = true,
+      paramLabel = "<BOOLEAN>",
+      description =
+          "Enable the profitability check for txs received via API? (default: ${DEFAULT-VALUE})")
+  private boolean txPoolCheckApiEnabled = DEFAULT_TX_POOL_ENABLE_CHECK_API;
+
+  @CommandLine.Option(
+      names = {TX_POOL_ENABLE_CHECK_P2P},
+      arity = "0..1",
+      hidden = true,
+      paramLabel = "<BOOLEAN>",
+      description =
+          "Enable the profitability check for txs received via p2p? (default: ${DEFAULT-VALUE})")
+  private boolean txPoolCheckP2pEnabled = DEFAULT_TX_POOL_ENABLE_CHECK_P2P;
+
   private LineaProfitabilityCliOptions() {}
 
   /**
@@ -143,6 +169,8 @@ public class LineaProfitabilityCliOptions {
     options.txPoolMinMargin = BigDecimal.valueOf(config.txPoolMinMargin());
     options.adjustTxSize = config.adjustTxSize();
     options.txCompressionRatio = config.txCompressionRatio();
+    options.txPoolCheckApiEnabled = config.txPoolCheckApiEnabled();
+    options.txPoolCheckP2pEnabled = config.txPoolCheckP2pEnabled();
     return options;
   }
 
@@ -161,6 +189,8 @@ public class LineaProfitabilityCliOptions {
         .txPoolMinMargin(txPoolMinMargin.doubleValue())
         .adjustTxSize(adjustTxSize)
         .txCompressionRatio(txCompressionRatio)
+        .txPoolCheckApiEnabled(txPoolCheckApiEnabled)
+        .txPoolCheckP2pEnabled(txPoolCheckP2pEnabled)
         .build();
   }
 
@@ -175,6 +205,8 @@ public class LineaProfitabilityCliOptions {
         .add(TX_POOL_MIN_MARGIN, txPoolMinMargin)
         .add(ADJUST_TX_SIZE, adjustTxSize)
         .add(TX_COMPRESSION_RATIO, txCompressionRatio)
+        .add(TX_POOL_ENABLE_CHECK_API, txPoolCheckApiEnabled)
+        .add(TX_POOL_ENABLE_CHECK_P2P, txPoolCheckP2pEnabled)
         .toString();
   }
 }

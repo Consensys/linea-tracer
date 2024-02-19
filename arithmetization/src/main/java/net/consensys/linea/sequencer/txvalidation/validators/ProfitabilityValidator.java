@@ -44,17 +44,24 @@ public class ProfitabilityValidator implements PluginTransactionValidator {
   }
 
   @Override
-  public Optional<String> validateTransaction(final Transaction transaction) {
+  public Optional<String> validateTransaction(
+      final Transaction transaction, final boolean isLocal, final boolean hasPriority) {
 
-    return profitabilityCalculator.isProfitable(
-            "Txpool",
-            transaction,
-            profitabilityConf.txPoolMinMargin(),
-            besuConfiguration.getMinGasPrice(),
-            calculateUpfrontGasPrice(transaction),
-            transaction.getGasLimit())
-        ? Optional.empty()
-        : Optional.of("Gas price too low");
+    if (isLocal && profitabilityConf.txPoolCheckApiEnabled()
+        || !isLocal && profitabilityConf.txPoolCheckP2pEnabled()) {
+
+      return profitabilityCalculator.isProfitable(
+              "Txpool",
+              transaction,
+              profitabilityConf.txPoolMinMargin(),
+              besuConfiguration.getMinGasPrice(),
+              calculateUpfrontGasPrice(transaction),
+              transaction.getGasLimit())
+          ? Optional.empty()
+          : Optional.of("Gas price too low");
+    }
+
+    return Optional.empty();
   }
 
   private Wei calculateUpfrontGasPrice(final Transaction transaction) {

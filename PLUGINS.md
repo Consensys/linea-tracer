@@ -10,27 +10,29 @@ It is applied, with different configuration to:
 
 #### CLI Options
 
-| Option Name                      | Default Value        | Command Line Argument                             |
-|----------------------------------|----------------------|---------------------------------------------------|
-| L1_VERIFICATION_GAS_COST         | 1_200_000            | `--plugin-linea-verification-gas-cost`            |
-| L1_VERIFICATION_CAPACITY         | 90_000               | `--plugin-linea-verification-capacity`            |
-| L1_L2_GAS_PRICE_RATIO            | 15                   | `--plugin-linea-gas-price-ratio`                  |
-| MIN_MARGIN                       | 1.0                  | `--plugin-linea-min-margin`                       |
-| ESTIMATE_GAS_MIN_MARGIN          | 1.0                  | `--plugin-linea-estimate-gas-min-margin`          |
-| TX_POOL_MIN_MARGIN               | 0.5                  | `--plugin-linea-tx-pool-min-margin`               |
-| ADJUST_TX_SIZE                   | 0                    | `--plugin-linea-adjust-tx-size`                   |
-| TX_COMPRESSION_RATIO             | 5                    | `--plugin-linea-tx-compression-ratio`                                               |
-| UNPROFITABLE_CACHE_SIZE          | 100_000              | `--plugin-linea-unprofitable-cache-size`          |
-| UNPROFITABLE_RETRY_LIMIT         | 10                   | `--plugin-linea-unprofitable-retry-limit`         |
+| Option Name                  | Default Value | Command Line Argument                                     |
+|------------------------------|---------------|-----------------------------------------------------------|
+| L1_VERIFICATION_GAS_COST     | 1_200_000     | `--plugin-linea-verification-gas-cost`                    |
+| L1_VERIFICATION_CAPACITY     | 90_000        | `--plugin-linea-verification-capacity`                    |
+| L1_L2_GAS_PRICE_RATIO        | 15            | `--plugin-linea-gas-price-ratio`                          |
+| MIN_MARGIN                   | 1.0           | `--plugin-linea-min-margin`                               |
+| ESTIMATE_GAS_MIN_MARGIN      | 1.0           | `--plugin-linea-estimate-gas-min-margin`                  |
+| TX_POOL_MIN_MARGIN           | 0.5           | `--plugin-linea-tx-pool-min-margin`                       |
+| ADJUST_TX_SIZE               | 0             | `--plugin-linea-adjust-tx-size`                           |
+| TX_COMPRESSION_RATIO         | 5             | `--plugin-linea-tx-compression-ratio`                     |
+| UNPROFITABLE_CACHE_SIZE      | 100_000       | `--plugin-linea-unprofitable-cache-size`                  |
+| UNPROFITABLE_RETRY_LIMIT     | 10            | `--plugin-linea-unprofitable-retry-limit`                 |
+| TX_POOL_ENABLE_CHECK_API     | true          | `--plugin-linea-tx-pool-profitability-check-api-enabled`  |
+| TX_POOL_ENABLE_CHECK_P2P     | false         | `--plugin-linea-tx-pool-profitability-check-p2p-enabled`  |
 
 ### L1 L2 Bridge
 
 #### CLI Options
 
-| Option Name                      | Default Value        | Command Line Argument                             |
-|----------------------------------|----------------------|---------------------------------------------------|
-| L2L1_BRIDGE_CONTRACT_ADDRESS     |                 | `--plugin-linea-l1l2-bridge-contract`          |
-| L2L1_BRIDGE_LOG_TOPIC            |  | `--plugin-linea-l1l2-bridge-topic`           |
+| Option Name                      | Default Value | Command Line Argument                       |
+|----------------------------------|---------------|---------------------------------------------|
+| L2L1_BRIDGE_CONTRACT_ADDRESS     |               | `--plugin-linea-l1l2-bridge-contract`       |
+| L2L1_BRIDGE_LOG_TOPIC            |               | `--plugin-linea-l1l2-bridge-topic`          |
 
 ## Sequencer
 ### Transaction Selection - LineaTransactionSelectorPlugin
@@ -60,11 +62,11 @@ that are not allowed to add transactions to the pool.
 
 #### CLI Options
 
-| Option Name | Default Value | Command Line Argument |
-| --- | --- | --- |
-| DENY_LIST_PATH | lineaDenyList.txt | `--plugin-linea-deny-list-path` |
-| MAX_TX_GAS_LIMIT_OPTION | 30_000_000 | `--plugin-linea-max-tx-gas-limit` |
-| MAX_TX_CALLDATA_SIZE | 60_000 | `--plugin-linea-max-tx-calldata-size` |
+| Option Name             | Default Value     | Command Line Argument                 |
+|-------------------------|-------------------|---------------------------------------|
+| DENY_LIST_PATH          | lineaDenyList.txt | `--plugin-linea-deny-list-path`       |
+| MAX_TX_GAS_LIMIT_OPTION | 30_000_000        | `--plugin-linea-max-tx-gas-limit`     |
+| MAX_TX_CALLDATA_SIZE    | 60_000            | `--plugin-linea-max-tx-calldata-size` |
 
 ## RPC
 

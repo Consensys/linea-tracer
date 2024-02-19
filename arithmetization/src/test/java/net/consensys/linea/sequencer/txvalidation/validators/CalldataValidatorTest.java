@@ -47,7 +47,8 @@ public class CalldataValidatorTest {
         org.hyperledger.besu.ethereum.core.Transaction.builder();
     final org.hyperledger.besu.ethereum.core.Transaction transaction =
         builder.gasPrice(Wei.ZERO).payload(Bytes.random(MAX_TX_CALLDATA_SIZE)).build();
-    Assertions.assertEquals(calldataValidator.validateTransaction(transaction), Optional.empty());
+    Assertions.assertEquals(
+        calldataValidator.validateTransaction(transaction, false, false), Optional.empty());
   }
 
   @Test
@@ -57,7 +58,7 @@ public class CalldataValidatorTest {
     final org.hyperledger.besu.ethereum.core.Transaction transaction =
         builder.gasPrice(Wei.ZERO).payload(Bytes.random(MAX_TX_CALLDATA_SIZE + 1)).build();
     Assertions.assertEquals(
-        calldataValidator.validateTransaction(transaction).orElseThrow(),
+        calldataValidator.validateTransaction(transaction, false, false).orElseThrow(),
         "Calldata of transaction is greater than the allowed max of " + MAX_TX_CALLDATA_SIZE);
   }
 }

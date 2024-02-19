@@ -50,7 +50,7 @@ public class AllowedAddressValidatorTest {
     final org.hyperledger.besu.ethereum.core.Transaction transaction =
         builder.sender(NOT_DENIED).to(NOT_DENIED).gasPrice(Wei.ZERO).payload(Bytes.EMPTY).build();
     Assertions.assertEquals(
-        allowedAddressValidator.validateTransaction(transaction), Optional.empty());
+        allowedAddressValidator.validateTransaction(transaction, false, false), Optional.empty());
   }
 
   @Test
@@ -60,7 +60,7 @@ public class AllowedAddressValidatorTest {
     final org.hyperledger.besu.ethereum.core.Transaction transaction =
         builder.sender(DENIED).to(NOT_DENIED).gasPrice(Wei.ZERO).payload(Bytes.EMPTY).build();
     Assertions.assertEquals(
-        allowedAddressValidator.validateTransaction(transaction).orElseThrow(),
+        allowedAddressValidator.validateTransaction(transaction, false, false).orElseThrow(),
         "sender 0x0000000000000000000000000000000000001000 is blocked as appearing on the SDN or other legally prohibited list");
   }
 
@@ -71,7 +71,7 @@ public class AllowedAddressValidatorTest {
     final org.hyperledger.besu.ethereum.core.Transaction transaction =
         builder.sender(NOT_DENIED).to(DENIED).gasPrice(Wei.ZERO).payload(Bytes.EMPTY).build();
     Assertions.assertEquals(
-        allowedAddressValidator.validateTransaction(transaction).orElseThrow(),
+        allowedAddressValidator.validateTransaction(transaction, false, false).orElseThrow(),
         "recipient 0x0000000000000000000000000000000000001000 is blocked as appearing on the SDN or other legally prohibited list");
   }
 
@@ -82,7 +82,7 @@ public class AllowedAddressValidatorTest {
     final org.hyperledger.besu.ethereum.core.Transaction transaction =
         builder.sender(NOT_DENIED).to(PRECOMPILED).gasPrice(Wei.ZERO).payload(Bytes.EMPTY).build();
     Assertions.assertEquals(
-        allowedAddressValidator.validateTransaction(transaction).orElseThrow(),
+        allowedAddressValidator.validateTransaction(transaction, false, false).orElseThrow(),
         "destination address is a precompile address and cannot receive transactions");
   }
 }

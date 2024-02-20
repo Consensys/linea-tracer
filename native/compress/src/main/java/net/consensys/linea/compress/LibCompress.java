@@ -36,12 +36,17 @@ public class LibCompress {
             final File compressJni = Native.extractFromResourcePath("compress_jni");
             Native.register(LibCompress.class, compressJni.getAbsolutePath());
 
-            Path dictFile = Files.createTempFile("tempCompressor_dict", "bin");
+            Path dictFilePath = Files.createTempFile("tempCompressor_dict", "bin");
             try (InputStream stream = LibCompress.class.getClassLoader().getResourceAsStream("compressor_dict.bin")) {
-                Files.copy(stream, dictFile, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                Files.copy(stream, dictFilePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                dictFilePath.toFile().deleteOnExit();
+            } catch (Exception e) {
+                System.out.println("Problem creating temp file from compressor_dict.bin resource: " + e.getMessage());
+                dictFilePath.toFile().delete();
+                System.exit(-1);
             }
 
-            final String dictPath = dictFile.toAbsolutePath().toString();
+            final String dictPath = dictFilePath.toAbsolutePath().toString();
             if (!Init(dictPath)) {
                 throw new RuntimeException(Error());
             }

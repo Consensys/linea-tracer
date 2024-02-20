@@ -19,6 +19,8 @@ plugins {
     id 'com.jfrog.artifactory' version '4.20.0'
 }
 
+apply from: rootProject.file("gradle/dependency-management.gradle")
+
 repositories {
     mavenCentral()
 }
@@ -37,13 +39,13 @@ compileJava{
 }
 
 dependencies {
-    implementation 'net.java.dev.jna:jna:5.12.1'
-    testImplementation 'net.java.dev.jna:jna:5.12.1'
-    implementation 'org.apache.tuweni:tuweni-bytes:2.2.0'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.2'
-    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.10.2'
-    testImplementation 'org.assertj:assertj-core:3.22.0'
-    testImplementation 'org.mockito:mockito-core:4.4.0'
+    implementation 'net.java.dev.jna:jna'
+    implementation 'io.tmio:tuweni-bytes'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api'
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine'
+    testImplementation 'org.assertj:assertj-core'
+    testImplementation 'org.mockito:mockito-core'
 }
 
 

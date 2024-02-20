@@ -373,9 +373,9 @@ public class Trace {
     return this;
   }
 
-  public Trace pMacroInstructionData1(final Bytes b) {
+  public Trace pMacroData1(final Bytes b) {
     if (filled.get(20)) {
-      throw new IllegalStateException("exp.macro-instruction/DATA_1 already set");
+      throw new IllegalStateException("exp.macro/DATA_1 already set");
     } else {
       filled.set(20);
     }
@@ -389,9 +389,9 @@ public class Trace {
     return this;
   }
 
-  public Trace pMacroInstructionData2(final Bytes b) {
+  public Trace pMacroData2(final Bytes b) {
     if (filled.get(21)) {
-      throw new IllegalStateException("exp.macro-instruction/DATA_2 already set");
+      throw new IllegalStateException("exp.macro/DATA_2 already set");
     } else {
       filled.set(21);
     }
@@ -405,9 +405,9 @@ public class Trace {
     return this;
   }
 
-  public Trace pMacroInstructionData3(final Bytes b) {
+  public Trace pMacroData3(final Bytes b) {
     if (filled.get(22)) {
-      throw new IllegalStateException("exp.macro-instruction/DATA_3 already set");
+      throw new IllegalStateException("exp.macro/DATA_3 already set");
     } else {
       filled.set(22);
     }
@@ -421,9 +421,9 @@ public class Trace {
     return this;
   }
 
-  public Trace pMacroInstructionData4(final Bytes b) {
+  public Trace pMacroData4(final Bytes b) {
     if (filled.get(23)) {
-      throw new IllegalStateException("exp.macro-instruction/DATA_4 already set");
+      throw new IllegalStateException("exp.macro/DATA_4 already set");
     } else {
       filled.set(23);
     }
@@ -437,9 +437,9 @@ public class Trace {
     return this;
   }
 
-  public Trace pMacroInstructionData5(final Bytes b) {
+  public Trace pMacroData5(final Bytes b) {
     if (filled.get(24)) {
-      throw new IllegalStateException("exp.macro-instruction/DATA_5 already set");
+      throw new IllegalStateException("exp.macro/DATA_5 already set");
     } else {
       filled.set(24);
     }
@@ -453,9 +453,9 @@ public class Trace {
     return this;
   }
 
-  public Trace pMacroInstructionExpInst(final int b) {
+  public Trace pMacroExpInst(final int b) {
     if (filled.get(19)) {
-      throw new IllegalStateException("exp.macro-instruction/EXP_INST already set");
+      throw new IllegalStateException("exp.macro/EXP_INST already set");
     } else {
       filled.set(19);
     }

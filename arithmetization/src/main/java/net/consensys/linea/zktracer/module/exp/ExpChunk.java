@@ -45,12 +45,12 @@ public class ExpChunk extends ModuleOperation {
   private Bytes pComputationTrimAcc = Bytes.EMPTY; // (last row) paired with TrimByte
   private UnsignedByte pComputationMsb = UnsignedByte.of(0);
   // Macro contains only one row, thus no need for an array
-  private final int pMacroInstructionExpInst;
-  private final Bytes pMacroInstructionData1;
-  private final Bytes pMacroInstructionData2;
-  private final Bytes pMacroInstructionData3;
-  private final Bytes pMacroInstructionData4;
-  private final Bytes pMacroInstructionData5;
+  private final int pMacroExpInst;
+  private final Bytes pMacroData1;
+  private final Bytes pMacroData2;
+  private final Bytes pMacroData3;
+  private final Bytes pMacroData4;
+  private final Bytes pMacroData5;
   private boolean[] pPreprocessingWcpFlag;
   private Bytes[] pPreprocessingWcpArg1Hi;
   private Bytes[] pPreprocessingWcpArg1Lo;
@@ -72,12 +72,12 @@ public class ExpChunk extends ModuleOperation {
     // Fill isExpLog
     isExpLog = true;
 
-    pMacroInstructionExpInst = EXP_EXPLOG;
-    pMacroInstructionData1 = bigIntegerToBytes(expLogExpParameters.exponentHi());
-    pMacroInstructionData2 = bigIntegerToBytes(expLogExpParameters.exponentLo());
-    pMacroInstructionData3 = Bytes.of(0);
-    pMacroInstructionData4 = Bytes.of(0);
-    pMacroInstructionData5 = bigIntegerToBytes(expLogExpParameters.dynCost());
+    pMacroExpInst = EXP_EXPLOG;
+    pMacroData1 = bigIntegerToBytes(expLogExpParameters.exponentHi());
+    pMacroData2 = bigIntegerToBytes(expLogExpParameters.exponentLo());
+    pMacroData3 = Bytes.of(0);
+    pMacroData4 = Bytes.of(0);
+    pMacroData5 = bigIntegerToBytes(expLogExpParameters.dynCost());
     initArrays(MAX_CT_PRPRC_EXP_LOG + 1);
 
     // Preprocessing
@@ -122,12 +122,12 @@ public class ExpChunk extends ModuleOperation {
     // Fill isExpLog
     isExpLog = false;
 
-    pMacroInstructionExpInst = EXP_MODEXPLOG;
-    pMacroInstructionData1 = bigIntegerToBytes(modexpLogExpParameters.rawLeadHi());
-    pMacroInstructionData2 = bigIntegerToBytes(modexpLogExpParameters.rawLeadLo());
-    pMacroInstructionData3 = Bytes.of(modexpLogExpParameters.cdsCutoff());
-    pMacroInstructionData4 = Bytes.of(modexpLogExpParameters.ebsCutoff());
-    pMacroInstructionData5 = bigIntegerToBytes(modexpLogExpParameters.leadLog());
+    pMacroExpInst = EXP_MODEXPLOG;
+    pMacroData1 = bigIntegerToBytes(modexpLogExpParameters.rawLeadHi());
+    pMacroData2 = bigIntegerToBytes(modexpLogExpParameters.rawLeadLo());
+    pMacroData3 = Bytes.of(modexpLogExpParameters.cdsCutoff());
+    pMacroData4 = Bytes.of(modexpLogExpParameters.ebsCutoff());
+    pMacroData5 = bigIntegerToBytes(modexpLogExpParameters.leadLog());
     initArrays(MAX_CT_PRPRC_MODEXP_LOG + 1);
 
     // Preprocessing
@@ -319,12 +319,12 @@ public class ExpChunk extends ModuleOperation {
         .ctMax((short) 0)
         .isExpLog(isExpLog)
         .isModexpLog(!isExpLog)
-        .pMacroInstructionExpInst(pMacroInstructionExpInst)
-        .pMacroInstructionData1(pMacroInstructionData1)
-        .pMacroInstructionData2(pMacroInstructionData2)
-        .pMacroInstructionData3(pMacroInstructionData3)
-        .pMacroInstructionData4(pMacroInstructionData4)
-        .pMacroInstructionData5(pMacroInstructionData5)
+        .pMacroExpInst(pMacroExpInst)
+        .pMacroData1(pMacroData1)
+        .pMacroData2(pMacroData2)
+        .pMacroData3(pMacroData3)
+        .pMacroData4(pMacroData4)
+        .pMacroData5(pMacroData5)
         .fillAndValidateRow();
   }
 

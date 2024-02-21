@@ -199,7 +199,11 @@ public final class Blake2fRounds implements Module {
 
   @Override
   public int lineCount() {
-    return this.counts.stream().mapToInt(x -> x).sum();
+    int r = 0;
+    for (int i = 0; i < this.counts.size(); i++) {
+      r += this.counts.get(i);
+    }
+    return r;
   }
 
   @Override

@@ -83,7 +83,7 @@ public class Blake2fModexpDataOperation extends ModuleOperation {
 
   @Override
   protected int computeLineCount() {
-    return modexpComponents.isPresent() ? MODEXP_COMPONENTS_LINE_COUNT : BLAKE2f_COMPONENTS_LINE_COUNT;
+    throw new UnsupportedOperationException("should not be called");
   }
 
   void trace(Trace trace, int stamp) {
@@ -116,7 +116,7 @@ public class Blake2fModexpDataOperation extends ModuleOperation {
                   ((phaseInfo, phaseIndex, index) ->
                       phaseInfo.indexMax() * (phaseIndex - 1) + index))
               .traceLimbConsumer(
-                  (rowIndex) -> {
+                  (rowIndex, phaseIndex) -> {
                     if (!modexpComponentsLimb.isEmpty()) {
                       trace.limb(
                           modexpComponentsLimb.slice(
@@ -138,18 +138,20 @@ public class Blake2fModexpDataOperation extends ModuleOperation {
               .endPhaseIndex(Trace.PHASE_BLAKE_RESULT)
               .currentRowIndexFunction(((phaseInfo, phaseIndex, index) -> index))
               .traceLimbConsumer(
-                  (rowIndex) -> {
-                    if (rowIndex <= Trace.INDEX_MAX_BLAKE_DATA) {
+                  (rowIndex, phaseIndex) -> {
+                    if (phaseIndex == Trace.PHASE_BLAKE_DATA) {
                       trace.limb(
                           components
                               .data()
                               .slice(
                                   BLAKE2f_LIMB_INT_BYTE_SIZE * rowIndex,
                                   BLAKE2f_LIMB_INT_BYTE_SIZE));
-                    } else if (rowIndex
-                        <= Trace.INDEX_MAX_BLAKE_DATA + Trace.INDEX_MAX_BLAKE_PARAMS + 1) {
-                      trace.limb(components.r());
-                      trace.limb(components.f());
+                    } else if (phaseIndex == Trace.PHASE_BLAKE_PARAMS) {
+                      if (rowIndex == Trace.PHASE_BLAKE_PARAMS - 1) {
+                        trace.limb(components.r());
+                      } else {
+                        trace.limb(components.f());
+                      }
                     } else {
                       trace.limb(
                           blake2fResult.slice(

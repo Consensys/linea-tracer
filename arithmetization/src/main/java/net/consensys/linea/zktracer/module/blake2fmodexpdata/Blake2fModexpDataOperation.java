@@ -21,6 +21,8 @@ import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 
 import java.math.BigInteger;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import com.google.common.base.Preconditions;
@@ -45,6 +47,22 @@ public class Blake2fModexpDataOperation extends ModuleOperation {
   private static final int BLAKE2f_COMPONENTS_LINE_COUNT =
       BLAKE2f_DATA_SIZE + BLAKE2f_RESULT_SIZE + 2;
 
+  private static final Map<Integer, PhaseInfo> PHASE_INFO_MAP =
+      Map.of(
+          Trace.PHASE_MODEXP_BASE,
+              new PhaseInfo(Trace.PHASE_MODEXP_BASE, Trace.INDEX_MAX_MODEXP_BASE),
+          Trace.PHASE_MODEXP_EXPONENT,
+              new PhaseInfo(Trace.PHASE_MODEXP_EXPONENT, Trace.INDEX_MAX_MODEXP_EXPONENT),
+          Trace.PHASE_MODEXP_MODULUS,
+              new PhaseInfo(Trace.PHASE_MODEXP_MODULUS, Trace.INDEX_MAX_MODEXP_MODULUS),
+          Trace.PHASE_MODEXP_RESULT,
+              new PhaseInfo(Trace.PHASE_MODEXP_RESULT, Trace.INDEX_MAX_MODEXP_RESULT),
+          Trace.PHASE_BLAKE_DATA, new PhaseInfo(Trace.PHASE_BLAKE_DATA, Trace.INDEX_MAX_BLAKE_DATA),
+          Trace.PHASE_BLAKE_PARAMS,
+              new PhaseInfo(Trace.PHASE_BLAKE_PARAMS, Trace.INDEX_MAX_BLAKE_PARAMS),
+          Trace.PHASE_BLAKE_RESULT,
+              new PhaseInfo(Trace.PHASE_BLAKE_RESULT, Trace.INDEX_MAX_BLAKE_RESULT));
+
   private final int hubStamp;
   @Getter private int prevHubStamp;
 
@@ -68,7 +86,7 @@ public class Blake2fModexpDataOperation extends ModuleOperation {
   }
 
   void trace(Trace trace, int stamp) {
-    final UnsignedByte stampBytes = UnsignedByte.of(stamp);
+    final UnsignedByte stampByte = UnsignedByte.of(stamp);
     final Bytes currentHubStamp = Bytes.ofUnsignedInt(this.hubStamp + 1);
 
     final UnsignedByte[] hubStampDiffBytes = getHubStampDiffBytes(currentHubStamp);
@@ -79,67 +97,70 @@ public class Blake2fModexpDataOperation extends ModuleOperation {
     final Bytes blake2fResult =
         blake2fComponents.map(c -> computeBlake2fResult(c.rawInput())).orElse(Bytes.EMPTY);
 
-    boolean[] phaseFlags = new boolean[7];
+    var tracerBuilder =
+        Blake2fModexpTraceHelper.builder()
+            .trace(trace)
+            .currentHubStamp(currentHubStamp)
+            .prevHubStamp(prevHubStamp)
+            .phaseInfoMap(PHASE_INFO_MAP)
+            .hubStampDiffBytes(hubStampDiffBytes)
+            .stampByte(stampByte);
 
-    for (int phaseIndex = 1; phaseIndex <= 7; phaseIndex++) {
-      phaseFlags[phaseIndex - 1] = true;
+    if (modexpComponents.isPresent()) {
+      Blake2fModexpTraceHelper modexpTraceHelper =
+          tracerBuilder
+              .startPhaseIndex(1)
+              .endPhaseIndex(4)
+              .currentRowIndexFunction(
+                  ((phaseInfo, phaseIndex, index) ->
+                      phaseInfo.indexMax() * (phaseIndex - 1) + index))
+              .traceLimbConsumer(
+                  (rowIndex) -> {
+                    if (!modexpComponentsLimb.isEmpty()) {
+                      trace.limb(
+                          modexpComponentsLimb.slice(
+                              MODEXP_LIMB_INT_BYTE_SIZE * rowIndex, MODEXP_LIMB_INT_BYTE_SIZE));
+                    }
+                  })
+              .build();
 
-      PhaseInfo phaseInfo = getPhaseInfo(phaseIndex);
+      modexpTraceHelper.trace();
 
-      for (int index = 0; index < 32; index++) {
-        int counter = 32 * (phaseIndex - 1) + index;
-
-        trace
-            .phase(UnsignedByte.of(phaseInfo.id()))
-            .deltaByte(hubStampDiffBytes[counter])
-            .id(currentHubStamp)
-            .index(UnsignedByte.of(index))
-            .indexMax(UnsignedByte.of(phaseInfo.indexMax()))
-            .stamp(stampBytes);
-
-        if (!modexpComponentsLimb.isEmpty()) {
-          trace.limb(
-              modexpComponentsLimb.slice(
-                  MODEXP_LIMB_INT_BYTE_SIZE * counter, MODEXP_LIMB_INT_BYTE_SIZE));
-        }
-
-        boolean isBlakeData = phaseFlags[4];
-        boolean isBlakeParams = phaseFlags[5];
-        boolean isBlakeResult = phaseFlags[6];
-
-        if (blake2fComponents.isPresent()) {
-          Blake2fComponents components = blake2fComponents.get();
-          if (isBlakeData) {
-            for (int i = 0; i < BLAKE2f_DATA_SIZE; i++) {
-              trace.limb(
-                  components
-                      .data()
-                      .slice(BLAKE2f_LIMB_INT_BYTE_SIZE * i, BLAKE2f_LIMB_INT_BYTE_SIZE));
-            }
-          } else if (isBlakeParams) {
-            trace.limb(components.r());
-            trace.limb(components.f());
-          } else if (isBlakeResult && !blake2fResult.isEmpty()) {
-            for (int i = 0; i < BLAKE2f_RESULT_SIZE; i++) {
-              trace.limb(
-                  blake2fResult.slice(BLAKE2f_LIMB_INT_BYTE_SIZE * i, BLAKE2f_LIMB_INT_BYTE_SIZE));
-            }
-          }
-        }
-
-        trace
-            .isModexpBase(phaseFlags[0])
-            .isModexpExponent(phaseFlags[1])
-            .isModexpModulus(phaseFlags[2])
-            .isModexpResult(phaseFlags[3])
-            .isBlakeData(isBlakeData)
-            .isBlakeParams(isBlakeParams)
-            .isBlakeResult(isBlakeResult)
-            .validateRow();
-      }
+      prevHubStamp = modexpTraceHelper.prevHubStamp();
     }
 
-    prevHubStamp = currentHubStamp.toInt();
+    if (blake2fComponents.isPresent()) {
+      Blake2fComponents components = blake2fComponents.get();
+      Blake2fModexpTraceHelper blake2fTraceHelper =
+          tracerBuilder
+              .startPhaseIndex(5)
+              .endPhaseIndex(7)
+              .currentRowIndexFunction(((phaseInfo, phaseIndex, index) -> index))
+              .traceLimbConsumer(
+                  (rowIndex) -> {
+                    if (rowIndex <= Trace.INDEX_MAX_BLAKE_DATA) {
+                      trace.limb(
+                          components
+                              .data()
+                              .slice(
+                                  BLAKE2f_LIMB_INT_BYTE_SIZE * rowIndex,
+                                  BLAKE2f_LIMB_INT_BYTE_SIZE));
+                    } else if (rowIndex
+                        <= Trace.INDEX_MAX_BLAKE_DATA + Trace.INDEX_MAX_BLAKE_PARAMS + 1) {
+                      trace.limb(components.r());
+                      trace.limb(components.f());
+                    } else {
+                      trace.limb(
+                          blake2fResult.slice(
+                              BLAKE2f_LIMB_INT_BYTE_SIZE * rowIndex, BLAKE2f_LIMB_INT_BYTE_SIZE));
+                    }
+                  })
+              .build();
+
+      blake2fTraceHelper.trace();
+
+      prevHubStamp = blake2fTraceHelper.prevHubStamp();
+    }
   }
 
   private Bytes buildModexpComponentsLimb(ModexpComponents components) {
@@ -152,23 +173,14 @@ public class Blake2fModexpDataOperation extends ModuleOperation {
     return Bytes.concatenate(basePadded, expPadded, modPadded, resultPadded);
   }
 
-  private PhaseInfo getPhaseInfo(int phaseIndex) {
-    return switch (phaseIndex) {
-      case 1 -> new PhaseInfo(Trace.PHASE_MODEXP_BASE, Trace.INDEX_MAX_MODEXP_BASE);
-      case 2 -> new PhaseInfo(Trace.PHASE_MODEXP_EXPONENT, Trace.INDEX_MAX_MODEXP_EXPONENT);
-      case 3 -> new PhaseInfo(Trace.PHASE_MODEXP_MODULUS, Trace.INDEX_MAX_MODEXP_MODULUS);
-      case 4 -> new PhaseInfo(Trace.PHASE_MODEXP_RESULT, Trace.INDEX_MAX_MODEXP_RESULT);
-      case 5 -> new PhaseInfo(Trace.PHASE_BLAKE_DATA, Trace.INDEX_MAX_BLAKE_DATA);
-      case 6 -> new PhaseInfo(Trace.PHASE_BLAKE_PARAMS, Trace.INDEX_MAX_BLAKE_PARAMS);
-      case 7 -> new PhaseInfo(Trace.PHASE_BLAKE_RESULT, Trace.INDEX_MAX_BLAKE_RESULT);
-      default -> throw new IllegalStateException("Unexpected phase index: " + phaseIndex);
-    };
-  }
-
   private Bytes computeModexpResult(ModexpComponents modexpComponents) {
     final BigInteger baseBigInt = modexpComponents.base().toUnsignedBigInteger();
     final BigInteger expBigInt = modexpComponents.exp().toUnsignedBigInteger();
     final BigInteger modBigInt = modexpComponents.mod().toUnsignedBigInteger();
+
+    if (List.of(baseBigInt, expBigInt, modBigInt).contains(BigInteger.ZERO)) {
+      return Bytes.EMPTY;
+    }
 
     return bigIntegerToBytes(baseBigInt.modPow(expBigInt, modBigInt));
   }

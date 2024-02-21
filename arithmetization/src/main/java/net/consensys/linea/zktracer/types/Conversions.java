@@ -16,13 +16,15 @@
 package net.consensys.linea.zktracer.types;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.stream.IntStream;
+import java.util.List;
 
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 
 public class Conversions {
+  public static final Bytes ONE = Bytes.of(1);
   public static final BigInteger UNSIGNED_LONG_MASK =
       BigInteger.ONE.shiftLeft(Long.SIZE).subtract(BigInteger.ONE);
 
@@ -53,12 +55,28 @@ public class Conversions {
   }
 
   public static UnsignedByte[] bytesToUnsignedBytes(final byte[] bytes) {
-    return (UnsignedByte[])
-        IntStream.range(0, bytes.length).mapToObj(i -> UnsignedByte.of(bytes[i])).toArray();
+    UnsignedByte[] uBytes = new UnsignedByte[bytes.length];
+    for (int i = 0; i < bytes.length; i++) {
+      uBytes[i] = UnsignedByte.of(bytes[i]);
+    }
+
+    return uBytes;
+  }
+
+  public static List<UnsignedByte> bytesToUnsignedBytesList(final byte[] bytes) {
+    List<UnsignedByte> r = new ArrayList<>(bytes.length);
+    for (byte aByte : bytes) {
+      r.add(UnsignedByte.of(aByte));
+    }
+    return r;
   }
 
   public static BigInteger booleanToBigInteger(final boolean input) {
     return input ? BigInteger.ONE : BigInteger.ZERO;
+  }
+
+  public static int booleanToInt(final boolean input) {
+    return input ? 1 : 0;
   }
 
   public static BigInteger longToUnsignedBigInteger(final long input) {
@@ -89,5 +107,9 @@ public class Conversions {
 
   public static Bytes longToBytes(final long input) {
     return input == 0 ? Bytes.of(0) : Bytes.minimalBytes(input);
+  }
+
+  public static Bytes booleanToBytes(boolean x) {
+    return x ? ONE : Bytes.EMPTY;
   }
 }

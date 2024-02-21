@@ -109,8 +109,8 @@ public class Blake2fModexpDataOperation extends ModuleOperation {
     if (modexpComponents.isPresent()) {
       Blake2fModexpTraceHelper modexpTraceHelper =
           tracerBuilder
-              .startPhaseIndex(1)
-              .endPhaseIndex(4)
+              .startPhaseIndex(Trace.PHASE_MODEXP_BASE)
+              .endPhaseIndex(Trace.PHASE_MODEXP_RESULT)
               .currentRowIndexFunction(
                   ((phaseInfo, phaseIndex, index) ->
                       phaseInfo.indexMax() * (phaseIndex - 1) + index))
@@ -133,8 +133,8 @@ public class Blake2fModexpDataOperation extends ModuleOperation {
       Blake2fComponents components = blake2fComponents.get();
       Blake2fModexpTraceHelper blake2fTraceHelper =
           tracerBuilder
-              .startPhaseIndex(5)
-              .endPhaseIndex(7)
+              .startPhaseIndex(Trace.PHASE_BLAKE_DATA)
+              .endPhaseIndex(Trace.PHASE_BLAKE_RESULT)
               .currentRowIndexFunction(((phaseInfo, phaseIndex, index) -> index))
               .traceLimbConsumer(
                   (rowIndex) -> {

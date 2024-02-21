@@ -63,7 +63,7 @@ public class Blake2fModexpDataOperation extends ModuleOperation {
           Trace.PHASE_BLAKE_RESULT,
               new PhaseInfo(Trace.PHASE_BLAKE_RESULT, Trace.INDEX_MAX_BLAKE_RESULT));
 
-  private final int hubStamp;
+  @EqualsAndHashCode.Include private final int hubStamp;
   @Getter private int prevHubStamp;
 
   @EqualsAndHashCode.Include private final Optional<ModexpComponents> modexpComponents;

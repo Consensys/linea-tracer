@@ -110,7 +110,6 @@ public final class CommonFragment implements TraceFragment {
         .counterNsr(Bytes.ofUnsignedShort(nonStackRowsCounter));
   }
 
-  @Override
   public void postTxRetcon(Hub hub) {
     CallFrame frame = hub.callStack().getById(this.callFrameId);
 

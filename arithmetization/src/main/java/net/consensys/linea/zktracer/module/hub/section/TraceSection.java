@@ -299,7 +299,6 @@ public abstract class TraceSection {
     for (TraceLine line : this.lines) {
       line.common().postTxRetcon(hub);
       line.common().gasRefund(gasRefund);
-      line.specific().postTxRetcon(hub);
       if (line.specific instanceof TransactionFragment fragment) {
         fragment.setGasRefundAmount(gasRefund);
         fragment.setLeftoverGas(leftoverGas);

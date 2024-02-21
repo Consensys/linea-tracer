@@ -51,7 +51,7 @@ public class TransactionProfitabilityCalculator {
         .setMessage(
             "Estimated profitable priorityFeePerGas: {}; estimateGasMinMargin={}, verificationCapacity={}, "
                 + "verificationGasCost={}, gasPriceRatio={}, gas={}, minGasPrice={}, "
-                + "l1GasPrice={}, txSize={}, compressedTxSize={}, adjustTxSize={}")
+                + "l1GasPrice={}, txSize={}, compressedTxSize={}")
         .addArgument(profitAtWei::toHumanReadableString)
         .addArgument(conf.estimateGasMinMargin())
         .addArgument(conf.verificationCapacity())
@@ -62,7 +62,6 @@ public class TransactionProfitabilityCalculator {
         .addArgument(() -> minGasPrice.multiply(conf.gasPriceRatio()).toHumanReadableString())
         .addArgument(transaction::getSize)
         .addArgument(compressedTxSize)
-        .addArgument(conf.adjustTxSize())
         .log();
 
     return profitAtWei;
@@ -94,8 +93,7 @@ public class TransactionProfitabilityCalculator {
           gas,
           minGasPrice,
           l1GasPrice,
-          compressedTxSize,
-          conf.adjustTxSize());
+          compressedTxSize);
       return false;
     } else {
       log(
@@ -107,8 +105,7 @@ public class TransactionProfitabilityCalculator {
           gas,
           minGasPrice,
           l1GasPrice,
-          compressedTxSize,
-          conf.adjustTxSize());
+          compressedTxSize);
       return true;
     }
   }
@@ -127,12 +124,11 @@ public class TransactionProfitabilityCalculator {
       final long gasUsed,
       final double minGasPrice,
       final double l1GasPrice,
-      final double compressedTxSize,
-      final int adjustTxSize) {
+      final double compressedTxSize) {
     leb.setMessage(
             "Context {}. Transaction {} has a margin of {}, minMargin={}, verificationCapacity={}, "
                 + "verificationGasCost={}, gasPriceRatio={}, effectiveGasPrice={}, gasUsed={}, minGasPrice={}, "
-                + "l1GasPrice={}, txSize={}, compressedTxSize={}, adjustTxSize={}")
+                + "l1GasPrice={}, txSize={}, compressedTxSize={}")
         .addArgument(context)
         .addArgument(transaction::getHash)
         .addArgument(margin)
@@ -146,7 +142,6 @@ public class TransactionProfitabilityCalculator {
         .addArgument(l1GasPrice)
         .addArgument(transaction::getSize)
         .addArgument(compressedTxSize)
-        .addArgument(adjustTxSize)
         .log();
   }
 }

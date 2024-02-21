@@ -60,11 +60,12 @@ public class ProfitableTransactionTest extends LineaPluginTestBase {
 
     final KeccakDigest keccakDigest = new KeccakDigest(256);
     final StringBuilder txData = new StringBuilder();
+    txData.append("0x");
     for (int i = 0; i < 10; i++) {
       keccakDigest.update(new byte[] {(byte) i}, 0, 1);
       final byte[] out = new byte[32];
       keccakDigest.doFinal(out, 0);
-      txData.append("0x").append(new BigInteger(out));
+      txData.append(new BigInteger(out));
     }
 
     final var txUnprofitable =

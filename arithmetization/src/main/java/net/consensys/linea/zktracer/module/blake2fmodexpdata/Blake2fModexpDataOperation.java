@@ -83,7 +83,9 @@ public class Blake2fModexpDataOperation extends ModuleOperation {
 
   @Override
   protected int computeLineCount() {
-    throw new UnsupportedOperationException("should not be called");
+    return modexpComponents.isPresent()
+        ? MODEXP_COMPONENTS_LINE_COUNT
+        : BLAKE2f_COMPONENTS_LINE_COUNT;
   }
 
   void trace(Trace trace, int stamp) {
@@ -147,7 +149,7 @@ public class Blake2fModexpDataOperation extends ModuleOperation {
                                   BLAKE2f_LIMB_INT_BYTE_SIZE * rowIndex,
                                   BLAKE2f_LIMB_INT_BYTE_SIZE));
                     } else if (phaseIndex == Trace.PHASE_BLAKE_PARAMS) {
-                      if (rowIndex == Trace.PHASE_BLAKE_PARAMS - 1) {
+                      if (rowIndex == Trace.INDEX_MAX_BLAKE_PARAMS - 1) {
                         trace.limb(components.r());
                       } else {
                         trace.limb(components.f());

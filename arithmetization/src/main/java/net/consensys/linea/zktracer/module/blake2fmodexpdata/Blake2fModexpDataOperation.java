@@ -42,10 +42,11 @@ public class Blake2fModexpDataOperation extends ModuleOperation {
   private static final int MODEXP_LIMB_INT_BYTE_SIZE = 16;
   private static final int BLAKE2f_DATA_SIZE = Trace.INDEX_MAX_BLAKE_DATA + 1;
   private static final int BLAKE2f_RESULT_SIZE = Trace.INDEX_MAX_BLAKE_RESULT + 1;
+  private static final int BLAKE2f_PARAMS_SIZE = Trace.INDEX_MAX_BLAKE_PARAMS + 1;
   private static final int BLAKE2f_LIMB_INT_BYTE_SIZE = 16;
   private static final int MODEXP_COMPONENTS_LINE_COUNT = 32 * 4;
   private static final int BLAKE2f_COMPONENTS_LINE_COUNT =
-      BLAKE2f_DATA_SIZE + BLAKE2f_RESULT_SIZE + 2;
+      BLAKE2f_DATA_SIZE + BLAKE2f_RESULT_SIZE + BLAKE2f_PARAMS_SIZE;
 
   private static final Map<Integer, PhaseInfo> PHASE_INFO_MAP =
       Map.of(
@@ -82,7 +83,7 @@ public class Blake2fModexpDataOperation extends ModuleOperation {
 
   @Override
   protected int computeLineCount() {
-    return MODEXP_COMPONENTS_LINE_COUNT + BLAKE2f_COMPONENTS_LINE_COUNT;
+    return modexpComponents.isPresent() ? MODEXP_COMPONENTS_LINE_COUNT : BLAKE2f_COMPONENTS_LINE_COUNT;
   }
 
   void trace(Trace trace, int stamp) {

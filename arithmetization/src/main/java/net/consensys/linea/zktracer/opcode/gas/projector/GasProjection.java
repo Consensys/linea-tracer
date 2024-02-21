@@ -20,71 +20,71 @@ import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.evm.gascalculator.GasCalculator;
 import org.hyperledger.besu.evm.internal.Words;
 
-public interface GasProjection {
+public abstract class GasProjection {
   GasCalculator gc = ZkTracer.gasCalculator;
 
-  default long linearCost(long a, long x, long unit) {
+  long linearCost(long a, long x, long unit) {
     Preconditions.checkArgument((unit == 1) || (unit == 32));
     return Words.clampedMultiply(a, (Words.clampedAdd(x, unit) - 1) / unit);
   }
 
-  default long staticGas() {
+  long staticGas() {
     return 0;
   }
 
-  default long expGas() {
+  long expGas() {
     return 0;
   }
 
-  default long memoryExpansion() {
+  long memoryExpansion() {
     return 0;
   }
 
-  default long accountAccess() {
+  long accountAccess() {
     return 0;
   }
 
-  default long accountCreation() {
+  long accountCreation() {
     return 0;
   }
 
-  default long transferValue() {
+  long transferValue() {
     return 0;
   }
 
-  default long linearPerWord() {
+  long linearPerWord() {
     return 0;
   }
 
-  default long linearPerByte() {
+  long linearPerByte() {
     return 0;
   }
 
-  default long storageWarmth() {
+  long storageWarmth() {
     return 0;
   }
 
-  default long sStoreValue() {
+  long sStoreValue() {
     return 0;
   }
 
-  default long rawStipend() {
+  long rawStipend() {
     return 0;
   }
 
-  default long extraStipend() {
+  long extraStipend() {
     return 0;
   }
 
-  default long deploymentCost() {
+  long deploymentCost() {
     return 0;
   }
 
-  default long refund() {
+  long refund() {
     return 0;
   }
 
-  default long messageSize() {
+  long messageSize() {
     return 0;
   }
 
@@ -94,11 +94,11 @@ public interface GasProjection {
    *
    * @return how far in the memory this instruction reaches
    */
-  default long largestOffset() {
+  long largestOffset() {
     return 0;
   }
 
-  default long total() {
+  public final long total() {
     return staticGas()
         + expGas()
         + memoryExpansion()

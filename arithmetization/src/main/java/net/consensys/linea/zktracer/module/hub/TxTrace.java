@@ -81,7 +81,6 @@ public class TxTrace {
     long refundedGas = this.refundedGas();
     for (TraceSection section : this.trace) {
       section.postTxRetcon(hub, leftoverGas, refundedGas);
-      section.setFinalGasRefundCounter(refundedGas);
     }
   }
 

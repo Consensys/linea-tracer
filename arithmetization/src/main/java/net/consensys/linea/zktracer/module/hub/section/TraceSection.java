@@ -228,19 +228,6 @@ public abstract class TraceSection {
   }
 
   /**
-   * Update this section with the current refunded gas as computed by the hub.
-   *
-   * @param refundedGas the refunded gas provided by the hub
-   */
-  public void setFinalGasRefundCounter(long refundedGas) {
-    for (TraceLine line : this.lines) {
-      if (line.specific instanceof TransactionFragment fragment) {
-        fragment.setGasRefundFinalCounter(refundedGas);
-      }
-    }
-  }
-
-  /**
    * Update the stack fragments of the section with the provided {@link DeploymentExceptions}.
    *
    * @param contEx the computed exceptions
@@ -264,6 +251,7 @@ public abstract class TraceSection {
       if (line.specific instanceof TransactionFragment fragment) {
         fragment.setGasRefundAmount(gasRefund);
         fragment.setLeftoverGas(leftoverGas);
+        fragment.setGasRefundFinalCounter(gasRefund);
       }
     }
   }

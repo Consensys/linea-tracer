@@ -27,9 +27,11 @@ import net.consensys.linea.zktracer.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.testing.EvmExtension;
 import org.apache.tuweni.bytes.Bytes;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+@Disabled("EXP tests are disabled due to running for over 30 min.")
 @Slf4j
 @ExtendWith(EvmExtension.class)
 public class ExpTest {

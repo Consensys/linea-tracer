@@ -19,7 +19,6 @@ import java.nio.MappedByteBuffer;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.module.BinRt.Trace;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.UnsignedByte;
@@ -84,6 +83,7 @@ public class BinRt implements Module {
 
         final UnsignedByte result = UnsignedByte.of(input1Bytes.or(input2Bytes).get(0));
         trace
+          .iomf(true)
             .inst(opCode)
             .resultByte(result)
             .inputByte1(input1UByte)

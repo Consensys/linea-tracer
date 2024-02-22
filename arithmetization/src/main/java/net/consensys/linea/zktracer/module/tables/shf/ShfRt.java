@@ -15,12 +15,15 @@
 
 package net.consensys.linea.zktracer.module.tables.shf;
 
+import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
+
 import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 
 public record ShfRt() implements Module {
@@ -50,23 +53,14 @@ public record ShfRt() implements Module {
     for (int a = 0; a <= 255; a++) {
       for (int uShp = 0; uShp <= 8; uShp++) {
         trace
-            ._byte(BigInteger.valueOf(a))
-            .las(BigInteger.valueOf(Bytes.of((byte) a).shiftLeft(8 - uShp).toInt())) // a<<(8-µShp)
-            .mshp(BigInteger.valueOf(uShp))
-            .rap(BigInteger.valueOf(Bytes.ofUnsignedShort(a).shiftRight(uShp).toInt()))
-            .ones(BigInteger.valueOf((Bytes.fromHexString("0xFF").shiftRight(uShp)).not().toInt()))
-            .isInRt(BigInteger.ONE)
+            .byte1(UnsignedByte.of(a))
+            .las(Bytes.ofUnsignedShort(a).shiftLeft(8 - uShp)) // a<<(8-µShp)
+            .mshp((short) uShp)
+            .rap(Bytes.ofUnsignedShort(a).shiftRight(uShp))
+            .ones((Bytes.fromHexString("0xFF").shiftRight(uShp)).not())
+            .iomf(true)
             .validateRow();
       }
     }
-
-    trace
-        ._byte(BigInteger.ZERO)
-        .isInRt(BigInteger.ZERO)
-        .las(BigInteger.ZERO)
-        .mshp(BigInteger.ZERO)
-        .ones(BigInteger.ZERO)
-        .rap(BigInteger.ZERO)
-        .validateRow();
   }
 }

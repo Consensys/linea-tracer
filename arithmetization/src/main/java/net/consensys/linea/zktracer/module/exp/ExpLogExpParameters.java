@@ -20,7 +20,6 @@ import java.math.BigInteger;
 import net.consensys.linea.zktracer.types.EWord;
 
 public record ExpLogExpParameters(EWord exponent, BigInteger dynCost) implements ExpParameters {
-
   public BigInteger exponentHi() {
     return exponent.hiBigInt();
   }

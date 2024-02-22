@@ -26,10 +26,13 @@ import java.math.RoundingMode;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.EWord;
@@ -38,17 +41,16 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 
+@Slf4j
+@RequiredArgsConstructor
 public class Exp implements Module {
+  private static final long EXP_OPERATION_BASE_GAS_COST = 10L;
+
   /** A list of the operations to trace */
   private final StackedList<ExpChunk> chunks = new StackedList<>();
 
   private final Hub hub;
   private final Wcp wcp;
-
-  public Exp(Hub hub, Wcp wcp) {
-    this.hub = hub;
-    this.wcp = wcp;
-  }
 
   @Override
   public String moduleKey() {
@@ -77,14 +79,17 @@ public class Exp implements Module {
 
   @Override
   public void tracePreOpcode(MessageFrame frame) {
-    OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
-    if (opCode.equals(OpCode.EXP)) {
-      if (!hub.pch().exceptions().stackUnderflow()) {
+    final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
+    final Exceptions exceptions = hub.pch().exceptions();
+
+    if (opCode == OpCode.EXP) {
+      if (!exceptions.stackUnderflow()) {
         ExpLogExpParameters expLogExpParameters = extractExpLogParameters(frame);
         this.chunks.add(new ExpChunk(wcp, expLogExpParameters));
       }
     }
-    if (hub.pch().exceptions().none() && hub.pch().aborts().none()) {
+
+    if (exceptions.none() && hub.pch().aborts().none()) {
       if (opCode.isCall()) {
         Address target = Words.toAddress(frame.getStackItem(1));
         if (target.equals(Address.MODEXP)) {
@@ -101,18 +106,18 @@ public class Exp implements Module {
     EWord exponent = EWord.of(frame.getStackItem(1));
     // From SpuriousDragonGasCalculator.java (necessary to keep only dynamic cost and throw away the
     // static one)
-    final long EXP_OPERATION_BASE_GAS_COST = 10L;
     final int numBytes = (exponent.bitLength() + 7) / 8;
     BigInteger dynCost =
         exponent.isZero()
             ? BigInteger.ZERO
             : BigInteger.valueOf(
                 gasCalculator.expOperationGasCost(numBytes) - EXP_OPERATION_BASE_GAS_COST);
+
     return new ExpLogExpParameters(exponent, dynCost);
   }
 
   private ModexpLogExpParameters extractModexpLogParameters(final MessageFrame frame) {
-    OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
+    final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
     // DELEGATECALL, STATICCALL cases
     int cdoIndex = 2;
     int cdsIndex = 3;
@@ -121,8 +126,9 @@ public class Exp implements Module {
       cdoIndex = 3;
       cdsIndex = 4;
     }
-    BigInteger cdo = EWord.of(frame.getStackItem(cdoIndex)).toUnsignedBigInteger();
-    BigInteger cds = EWord.of(frame.getStackItem(cdsIndex)).toUnsignedBigInteger();
+
+    final BigInteger cdo = EWord.of(frame.getStackItem(cdoIndex)).toUnsignedBigInteger();
+    final BigInteger cds = EWord.of(frame.getStackItem(cdsIndex)).toUnsignedBigInteger();
 
     // mxp should ensure that the hi part of cds is 0
 
@@ -131,17 +137,17 @@ public class Exp implements Module {
     }
     // Here cds != 0
 
-    Bytes unpaddedCallData = frame.shadowReadMemory(cdo.longValue(), cds.longValue());
+    final Bytes unpaddedCallData = frame.shadowReadMemory(cdo.longValue(), cds.longValue());
 
     // pad unpaddedCallData to 96 (this is probably not necessary)
-    Bytes paddedCallData =
+    final Bytes paddedCallData =
         cds.intValue() < 96
             ? Bytes.concatenate(unpaddedCallData, Bytes.repeat((byte) 0, 96 - cds.intValue()))
             : unpaddedCallData;
 
-    BigInteger bbs = paddedCallData.slice(0, 32).toUnsignedBigInteger();
-    BigInteger ebs = paddedCallData.slice(32, 32).toUnsignedBigInteger();
-    BigInteger mbs = paddedCallData.slice(64, 32).toUnsignedBigInteger();
+    final BigInteger bbs = paddedCallData.slice(0, 32).toUnsignedBigInteger();
+    final BigInteger ebs = paddedCallData.slice(32, 32).toUnsignedBigInteger();
+    final BigInteger mbs = paddedCallData.slice(64, 32).toUnsignedBigInteger();
 
     // Some other module checks if bbs, ebs and msb are <= 512 (@Francois)
 
@@ -155,21 +161,21 @@ public class Exp implements Module {
     }
 
     // pad paddedCallData to 96 + bbs + 32
-    Bytes doublePaddedCallData =
+    final Bytes doublePaddedCallData =
         cds.intValue() < 96 + bbs.intValue() + 32
             ? Bytes.concatenate(
                 paddedCallData, Bytes.repeat((byte) 0, 96 + bbs.intValue() + 32 - cds.intValue()))
             : paddedCallData;
 
     // raw_lead
-    EWord rawLead = EWord.of(doublePaddedCallData.slice(96 + bbs.intValue(), 32));
+    final EWord rawLead = EWord.of(doublePaddedCallData.slice(96 + bbs.intValue(), 32));
 
     // cds_cutoff
-    int cdsCutoff = min(max(cds.intValue() - (96 + bbs.intValue()), 0), 32);
+    final int cdsCutoff = min(max(cds.intValue() - (96 + bbs.intValue()), 0), 32);
     // ebs_cutoff
-    int ebsCutoff = min(ebs.intValue(), 32);
+    final int ebsCutoff = min(ebs.intValue(), 32);
     // min_cutoff
-    int minCutoff = min(cdsCutoff, ebsCutoff);
+    final int minCutoff = min(cdsCutoff, ebsCutoff);
 
     BigInteger mask = new BigInteger("FF".repeat(minCutoff), 16);
     if (minCutoff < 32) {
@@ -178,20 +184,20 @@ public class Exp implements Module {
     }
 
     // trim (keep only minCutoff bytes of rawLead)
-    BigInteger trim = rawLead.toUnsignedBigInteger().and(mask);
+    final BigInteger trim = rawLead.toUnsignedBigInteger().and(mask);
 
     // lead (keep only minCutoff bytes of rawLead and potentially pad to ebsCutoff with 0's)
-    BigInteger lead = trim.shiftRight(8 * (32 - ebsCutoff));
+    final BigInteger lead = trim.shiftRight(8 * (32 - ebsCutoff));
 
     // lead_log (same as EYP)
-    BigInteger leadLog =
+    final BigInteger leadLog =
         lead.signum() == 0 ? BigInteger.ZERO : BigInteger.valueOf(log2(lead, RoundingMode.FLOOR));
 
-    System.out.println("(extracted) ebsCutoff: " + ebsCutoff);
-    System.out.println("(extracted) cdsCutoff: " + cdsCutoff);
-    System.out.println("(extracted) ebs: " + ebs);
-    System.out.println("(extracted) cds: " + cds);
-    System.out.println("(extracted) rawLead: " + rawLead);
+    log.debug("(extracted) ebsCutoff: " + ebsCutoff);
+    log.debug("(extracted) cdsCutoff: " + cdsCutoff);
+    log.debug("(extracted) ebs: " + ebs);
+    log.debug("(extracted) cds: " + cds);
+    log.debug("(extracted) rawLead: " + rawLead);
 
     return new ModexpLogExpParameters(
         rawLead, cdsCutoff, ebsCutoff, leadLog, bigIntegerToBytes(trim), bigIntegerToBytes(lead));
@@ -200,6 +206,7 @@ public class Exp implements Module {
   @Override
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
+
     for (int i = 0; i < this.chunks.size(); i++) {
       ExpChunk expChunk = this.chunks.get(i);
       expChunk.traceComputation(i + 1, trace);

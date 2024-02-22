@@ -41,9 +41,9 @@ import org.apache.tuweni.bytes.Bytes;
 public class ExpChunk extends ModuleOperation {
   private final boolean isExpLog;
   private short pComputationPltJmp = 0;
-  private Bytes pComputationRawAcc; // (last row) paired with RawByte
+  private final Bytes pComputationRawAcc; // (last row) paired with RawByte
   private Bytes pComputationTrimAcc = Bytes.EMPTY; // (last row) paired with TrimByte
-  private UnsignedByte pComputationMsb = UnsignedByte.of(0);
+  private UnsignedByte pComputationMsb = UnsignedByte.ZERO;
   // Macro contains only one row, thus no need for an array
   private final int pMacroExpInst;
   private final Bytes pMacroData1;
@@ -59,10 +59,9 @@ public class ExpChunk extends ModuleOperation {
   private UnsignedByte[] pPreprocessingWcpInst;
   private boolean[] pPreprocessingWcpRes;
 
-  ExpLogExpParameters expLogExpParameters;
-  ModexpLogExpParameters modexpLogExpParameters;
-
-  Wcp wcp;
+  private ExpLogExpParameters expLogExpParameters;
+  private ModexpLogExpParameters modexpLogExpParameters;
+  private final Wcp wcp;
 
   public ExpChunk(Wcp wcp, final ExpLogExpParameters expLogExpParameters) {
     // EXP_LOG case
@@ -131,13 +130,13 @@ public class ExpChunk extends ModuleOperation {
     initArrays(MAX_CT_PRPRC_MODEXP_LOG + 1);
 
     // Preprocessing
-    BigInteger trimLimb =
+    final BigInteger trimLimb =
         modexpLogExpParameters.trimHi().signum() == 0
             ? modexpLogExpParameters.trimLo()
             : modexpLogExpParameters.trimHi();
-    int trimLog = trimLimb.signum() == 0 ? 0 : log2(trimLimb, RoundingMode.FLOOR);
-    int nBitsOfLeadingByteExcludingLeadingBit = trimLog % 8;
-    int nBytesExcludingLeadingByte = trimLog / 8;
+    final int trimLog = trimLimb.signum() == 0 ? 0 : log2(trimLimb, RoundingMode.FLOOR);
+    final int nBitsOfLeadingByteExcludingLeadingBit = trimLog % 8;
+    final int nBytesExcludingLeadingByte = trimLog / 8;
 
     // First row
     pPreprocessingWcpFlag[0] = true;
@@ -148,7 +147,8 @@ public class ExpChunk extends ModuleOperation {
     pPreprocessingWcpInst[0] = UnsignedByte.of(LT);
     pPreprocessingWcpRes[0] =
         modexpLogExpParameters.cdsCutoff() < modexpLogExpParameters.ebsCutoff();
-    int minCutoff = min(modexpLogExpParameters.cdsCutoff(), modexpLogExpParameters.ebsCutoff());
+    final int minCutoff =
+        min(modexpLogExpParameters.cdsCutoff(), modexpLogExpParameters.ebsCutoff());
 
     // Lookup
     wcp.callLT(
@@ -162,7 +162,7 @@ public class ExpChunk extends ModuleOperation {
     pPreprocessingWcpArg2Lo[1] = Bytes.of(17);
     pPreprocessingWcpInst[1] = UnsignedByte.of(LT);
     pPreprocessingWcpRes[1] = minCutoff < 17;
-    boolean minCutoffLeq16 = pPreprocessingWcpRes[1];
+    final boolean minCutoffLeq16 = pPreprocessingWcpRes[1];
 
     // Lookup
     wcp.callLT(Bytes.of(minCutoff), Bytes.of(17));
@@ -175,7 +175,7 @@ public class ExpChunk extends ModuleOperation {
     pPreprocessingWcpArg2Lo[2] = Bytes.of(17);
     pPreprocessingWcpInst[2] = UnsignedByte.of(LT);
     pPreprocessingWcpRes[2] = modexpLogExpParameters.ebsCutoff() < 17;
-    boolean ebsCutoffLeq16 = pPreprocessingWcpRes[2];
+    final boolean ebsCutoffLeq16 = pPreprocessingWcpRes[2];
 
     // Lookup
     wcp.callLT(Bytes.of(getModexpLogExpParameters().ebsCutoff()), Bytes.of(17));
@@ -188,13 +188,14 @@ public class ExpChunk extends ModuleOperation {
     pPreprocessingWcpArg2Lo[3] = Bytes.of(0);
     pPreprocessingWcpInst[3] = UnsignedByte.of(ISZERO);
     pPreprocessingWcpRes[3] = modexpLogExpParameters.rawLeadHi().signum() == 0;
-    boolean rawHiPartIsZero = pPreprocessingWcpRes[3];
+    final boolean rawHiPartIsZero = pPreprocessingWcpRes[3];
 
     // Lookup
     wcp.callISZERO(bigIntegerToBytes(modexpLogExpParameters.rawLeadHi()));
 
     // Fifth row
-    int paddedBase2Log = 8 * nBytesExcludingLeadingByte + nBitsOfLeadingByteExcludingLeadingBit;
+    final int paddedBase2Log =
+        8 * nBytesExcludingLeadingByte + nBitsOfLeadingByteExcludingLeadingBit;
 
     pPreprocessingWcpFlag[4] = true;
     pPreprocessingWcpArg1Hi[4] = Bytes.of(0);
@@ -203,7 +204,7 @@ public class ExpChunk extends ModuleOperation {
     pPreprocessingWcpArg2Lo[4] = Bytes.of(0);
     pPreprocessingWcpInst[4] = UnsignedByte.of(ISZERO);
     pPreprocessingWcpRes[4] = paddedBase2Log == 0;
-    boolean trivialTrim = pPreprocessingWcpRes[4];
+    final boolean trivialTrim = pPreprocessingWcpRes[4];
 
     // Lookup
     wcp.callISZERO(Bytes.of(paddedBase2Log));
@@ -231,11 +232,11 @@ public class ExpChunk extends ModuleOperation {
     }
 
     // Fill trimAcc
-    short maxCt = (short) MAX_CT_CMPTN_MODEXP_LOG;
+    final short maxCt = (short) MAX_CT_CMPTN_MODEXP_LOG;
     for (short i = 0; i < maxCt + 1; i++) {
-      boolean pltBit = i >= pComputationPltJmp;
-      byte rawByte = pComputationRawAcc.get(i);
-      byte trimByte = pltBit ? 0 : rawByte;
+      final boolean pltBit = i >= pComputationPltJmp;
+      final byte rawByte = pComputationRawAcc.get(i);
+      final byte trimByte = pltBit ? 0 : rawByte;
       pComputationTrimAcc = Bytes.concatenate(pComputationTrimAcc, Bytes.of(trimByte));
       if (trimByte != 0 && pComputationMsb.toInteger() == 0) {
         // Fill msb
@@ -259,9 +260,9 @@ public class ExpChunk extends ModuleOperation {
     // We assume MAX_CT_MACRO_EXP_LOG = MAX_CT_MACRO_MODEXP_LOG = 0;
     if (isExpLog) {
       return MAX_CT_CMPTN_EXP_LOG + MAX_CT_PRPRC_EXP_LOG + 3;
-    } else {
-      return MAX_CT_CMPTN_MODEXP_LOG + MAX_CT_PRPRC_MODEXP_LOG + 3;
     }
+
+    return MAX_CT_CMPTN_MODEXP_LOG + MAX_CT_PRPRC_MODEXP_LOG + 3;
   }
 
   final void traceComputation(int stamp, Trace trace) {
@@ -270,6 +271,7 @@ public class ExpChunk extends ModuleOperation {
     boolean manzb;
     short pComputationManzbAcc = 0; // Paired with Manzb
     short maxCt = (short) (isExpLog ? MAX_CT_CMPTN_EXP_LOG : MAX_CT_CMPTN_MODEXP_LOG);
+
     for (short i = 0; i < maxCt + 1; i++) {
       /*
       All the values are derived from

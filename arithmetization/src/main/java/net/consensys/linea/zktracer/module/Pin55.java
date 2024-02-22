@@ -268,7 +268,8 @@ public class Pin55 {
 
   public void tracePostOpcode(final MessageFrame frame, Operation.OperationResult operationResult) {
     if (operationResult.getHaltReason() != null) {
-      log.info("{} failed: {}", frame.getCurrentOperation().getName(), operationResult.getHaltReason());
+      log.info(
+          "{} failed: {}", frame.getCurrentOperation().getName(), operationResult.getHaltReason());
     }
 
     if (!this.l.doStack()) {

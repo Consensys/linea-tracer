@@ -488,9 +488,7 @@ public class Hub implements Module {
     final Wei value = (Wei) this.transients.tx().besuTx().getValue();
     final AccountSnapshot fromPostDebitSnapshot =
         fromSnapshot.debit(
-            transactionGasPrice
-                .multiply(this.transients.tx().besuTx().getGasLimit())
-                .add(value));
+            transactionGasPrice.multiply(this.transients.tx().besuTx().getGasLimit()).add(value));
 
     final boolean isSelfCredit = toAddress.equals(fromAddress);
     this.addTraceSection(

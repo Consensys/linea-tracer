@@ -19,7 +19,7 @@ import java.math.BigInteger;
 
 import net.consensys.linea.zktracer.types.EWord;
 
-public record ExpLogExpParameters(EWord exponent, BigInteger dynCost) implements ExpParameters {
+public record ExpLogExpParameters(EWord exponent, BigInteger dynCost) {
   public BigInteger exponentHi() {
     return exponent.hiBigInt();
   }

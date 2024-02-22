@@ -178,7 +178,7 @@ public class Hub implements Module {
   private final Wcp wcp = new Wcp(this);
   private final RlpTxn rlpTxn;
   private final Module mxp;
-  private final Module exp; // TODO: add signals and missing connection steps
+  @Getter private final Exp exp;
   private final Mmu mmu;
   private final RlpTxrcpt rlpTxrcpt = new RlpTxrcpt();
   private final LogInfo logInfo = new LogInfo(rlpTxrcpt);
@@ -1032,19 +1032,16 @@ public class Hub implements Module {
 
   void traceOperation(MessageFrame frame) {
     switch (this.opCodeData().instructionFamily()) {
-      case ADD,
-          MOD,
-          MUL,
-          SHF,
-          BIN,
-          WCP,
-          EXT,
-          BATCH,
-          MACHINE_STATE,
-          PUSH_POP,
-          DUP,
-          SWAP,
-          INVALID -> this.addTraceSection(new StackOnlySection(this));
+      case ADD, MOD, SHF, BIN, WCP, EXT, BATCH, MACHINE_STATE, PUSH_POP, DUP, SWAP, INVALID -> this
+          .addTraceSection(new StackOnlySection(this));
+      case MUL -> {
+        if (this.opCode() == OpCode.EXP) {
+          this.addTraceSection(
+              new ExpSection(this, ImcFragment.forOpcode(this, this.messageFrame())));
+        } else {
+          this.addTraceSection(new StackOnlySection(this));
+        }
+      }
       case HALT -> {
         final CallFrame parentFrame = this.callStack.parent();
 
@@ -1075,7 +1072,8 @@ public class Hub implements Module {
         this.addTraceSection(new StackOnlySection(this));
       }
       case KEC -> this.addTraceSection(
-          new KeccakSection(this, this.currentFrame(), ImcFragment.forOpcode(this, frame)));
+          new KeccakSection(
+              this, this.currentFrame(), ImcFragment.forOpcode(this, this.messageFrame())));
       case CONTEXT -> this.addTraceSection(
           new ContextLogSection(this, ContextFragment.readContextData(callStack)));
       case LOG -> {

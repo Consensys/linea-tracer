@@ -55,6 +55,8 @@ public class ImcFragment implements TraceFragment {
   /** the list of modules to trigger withing this fragment. */
   private final List<TraceSubFragment> moduleCalls = new ArrayList<>();
 
+  private final Hub hub;
+
   private boolean expIsSet = false;
   private boolean modExpIsSet = false;
   private boolean oobIsSet = false;
@@ -63,9 +65,13 @@ public class ImcFragment implements TraceFragment {
   private boolean stpIsSet = false;
 
   /** This class should only be instantiated through specialized static methods. */
-  private ImcFragment() {}
+  private ImcFragment() {
+    this.hub = null;
+  }
 
   private ImcFragment(final Hub hub) {
+    this.hub = hub;
+
     if (hub.pch().signals().mxp()) {
       this.callMxp(MxpCall.build(hub));
     }
@@ -218,6 +224,8 @@ public class ImcFragment implements TraceFragment {
       }
     }
 
+    // XXX: Exp/Mxp are already called in the constructor
+
     return r;
   }
 
@@ -247,6 +255,7 @@ public class ImcFragment implements TraceFragment {
     } else {
       expIsSet = true;
     }
+    this.hub.exp().callExpLogCall(f);
     this.moduleCalls.add(f);
     return this;
   }
@@ -257,6 +266,7 @@ public class ImcFragment implements TraceFragment {
     } else {
       modExpIsSet = true;
     }
+    this.hub.exp().callModExpLogCall(f);
     this.moduleCalls.add(f);
     return this;
   }

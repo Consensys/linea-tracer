@@ -32,6 +32,8 @@ import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.ExpLogCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.ModExpLogCall;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -85,21 +87,27 @@ public class Exp implements Module {
     if (opCode == OpCode.EXP) {
       if (!exceptions.stackUnderflow()) {
         ExpLogExpParameters expLogExpParameters = extractExpLogParameters(frame);
-        this.chunks.add(new ExpChunk(wcp, expLogExpParameters));
+        this.chunks.add(new ExpLogChunk(wcp, expLogExpParameters));
       }
-    }
-
-    if (exceptions.none() && hub.pch().aborts().none()) {
+    } else if (exceptions.none() && hub.pch().aborts().none()) {
       if (opCode.isCall()) {
         Address target = Words.toAddress(frame.getStackItem(1));
         if (target.equals(Address.MODEXP)) {
           ModexpLogExpParameters modexpLogExpParameters = extractModexpLogParameters(frame);
           if (modexpLogExpParameters != null) {
-            this.chunks.add(new ExpChunk(wcp, modexpLogExpParameters));
+            this.chunks.add(new ModExpLogChunk(this.wcp, modexpLogExpParameters));
           }
         }
       }
     }
+  }
+
+  public void callExpLogCall(final ExpLogCall c) {
+    this.chunks.add(new ExpLogChunk(this.wcp, c.forExp()));
+  }
+
+  public void callModExpLogCall(final ModExpLogCall c) {
+    this.chunks.add(new ModExpLogChunk(this.wcp, c.forExp()));
   }
 
   private ExpLogExpParameters extractExpLogParameters(final MessageFrame frame) {
@@ -127,8 +135,9 @@ public class Exp implements Module {
       cdsIndex = 4;
     }
 
-    final BigInteger cdo = EWord.of(frame.getStackItem(cdoIndex)).toUnsignedBigInteger();
-    final BigInteger cds = EWord.of(frame.getStackItem(cdsIndex)).toUnsignedBigInteger();
+    // TODO: use OperationTransient here
+    final BigInteger cdo = frame.getStackItem(cdoIndex).toUnsignedBigInteger();
+    final BigInteger cds = frame.getStackItem(cdsIndex).toUnsignedBigInteger();
 
     // mxp should ensure that the hi part of cds is 0
 
@@ -209,6 +218,7 @@ public class Exp implements Module {
 
     for (int i = 0; i < this.chunks.size(); i++) {
       ExpChunk expChunk = this.chunks.get(i);
+      expChunk.preCompute();
       expChunk.traceComputation(i + 1, trace);
       expChunk.traceMacro(i + 1, trace);
       expChunk.tracePreprocessing(i + 1, trace);

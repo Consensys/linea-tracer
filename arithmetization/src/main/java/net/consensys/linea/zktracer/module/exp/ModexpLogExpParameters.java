@@ -15,14 +15,34 @@
 
 package net.consensys.linea.zktracer.module.exp;
 
+import static java.lang.Math.min;
+import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
+
 import java.math.BigInteger;
 
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 
 public record ModexpLogExpParameters(
-    EWord rawLead, int cdsCutoff, int ebsCutoff, BigInteger leadLog, Bytes trim, Bytes lead)
-    implements ExpParameters {
+    EWord rawLead, int cdsCutoff, int ebsCutoff, BigInteger leadLog, Bytes trim, Bytes lead) {
+  public static ModexpLogExpParameters build(
+      EWord rawLead, int cdsCutoff, int ebsCutoff, BigInteger leadLog) {
+    final int minCutoff = min(cdsCutoff, ebsCutoff);
+
+    BigInteger mask = new BigInteger("FF".repeat(minCutoff), 16);
+    if (minCutoff < 32) {
+      // 32 - minCutoff is the shift distance in bytes, but we need bits
+      mask = mask.shiftLeft(8 * (32 - minCutoff));
+    }
+
+    // trim (keep only minCutoff bytes of rawLead)
+    final BigInteger trim = rawLead.toUnsignedBigInteger().and(mask);
+
+    // lead (keep only minCutoff bytes of rawLead and potentially pad to ebsCutoff with 0's)
+    final BigInteger lead = trim.shiftRight(8 * (32 - ebsCutoff));
+    return new ModexpLogExpParameters(
+        rawLead, cdsCutoff, ebsCutoff, leadLog, bigIntegerToBytes(trim), bigIntegerToBytes(lead));
+  }
 
   public BigInteger rawLeadHi() {
     return rawLead.hiBigInt();

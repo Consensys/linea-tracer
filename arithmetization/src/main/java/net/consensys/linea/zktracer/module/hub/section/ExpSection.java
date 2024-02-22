@@ -13,6 +13,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.exp;
+package net.consensys.linea.zktracer.module.hub.section;
 
-public interface ExpParameters {}
+import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
+
+public class ExpSection extends TraceSection {
+  public ExpSection(Hub hub, TraceFragment... chunks) {
+    this.addFragmentsAndStack(hub, hub.currentFrame(), chunks);
+  }
+}

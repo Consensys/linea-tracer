@@ -17,13 +17,15 @@ package net.consensys.linea.zktracer.module.hub.fragment.imc.call;
 
 import static net.consensys.linea.zktracer.opcode.gas.GasConstants.G_EXP_BYTE;
 
+import java.math.BigInteger;
+
+import net.consensys.linea.zktracer.module.exp.ExpLogExpParameters;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 
 public record ExpLogCall(EWord exponent) implements TraceSubFragment {
-
   @Override
   public Trace trace(Trace trace) {
     return trace
@@ -31,5 +33,10 @@ public record ExpLogCall(EWord exponent) implements TraceSubFragment {
         .pMiscellaneousExpData1(exponent.hi())
         .pMiscellaneousExpData2(exponent.lo())
         .pMiscellaneousExpData5(Bytes.ofUnsignedShort(G_EXP_BYTE.cost() * exponent.byteLength()));
+  }
+
+  public ExpLogExpParameters forExp() {
+    return new ExpLogExpParameters(
+        exponent, BigInteger.valueOf((long) G_EXP_BYTE.cost() * exponent.byteLength()));
   }
 }

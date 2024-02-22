@@ -123,10 +123,10 @@ public class ExpTest {
     for (int ebsCutoff : C) {
       for (int cdsCutoff : C) {
         for (int k : C) {
-          for (int LDIndex : LD_INDICES) {
+          for (int ldIndex : LD_INDICES) {
             log.debug("k: " + k);
-            log.debug("LDIndex: " + LDIndex);
-            Bytes wordAfterBase = Bytes.fromHexStringLenient(ldAt(k, LDIndex));
+            log.debug("ldIndex: " + ldIndex);
+            Bytes wordAfterBase = Bytes.fromHexStringLenient(ldAt(k, ldIndex));
             BytecodeCompiler program =
                 initProgramInvokingModexp(ebsCutoff, cdsCutoff, wordAfterBase);
             BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
@@ -286,25 +286,25 @@ public class ExpTest {
     if (LDIndex < 1 || LDIndex > 8) {
       throw new IllegalArgumentException("LDIndex must be between 1 and 8");
     }
-    String LD =
+    String ld =
         new BigInteger("0".repeat(LDIndex - 1) + "1" + "0".repeat(8 - LDIndex), 2).toString(16);
     if (k < 32) {
-      return "00".repeat(32 - k - 1) + (LD.length() == 1 ? "0" + LD : LD) + "ff".repeat(k);
+      return "00".repeat(32 - k - 1) + (ld.length() == 1 ? "0" + ld : ld) + "ff".repeat(k);
     }
 
     return "ff".repeat(k);
   }
 
-  public static String ldAt(int k, int LDIndex) {
+  public static String ldAt(int k, int ldIndex) {
     if (k < 1 || k > 32) {
       throw new IllegalArgumentException("k must be between 1 and 32");
     }
-    if (LDIndex < 1 || LDIndex > 8) {
-      throw new IllegalArgumentException("LDIndex must be between 1 and 8");
+    if (ldIndex < 1 || ldIndex > 8) {
+      throw new IllegalArgumentException("ldindex must be between 1 and 8");
     }
-    String LD =
-        new BigInteger("0".repeat(LDIndex - 1) + "1" + "0".repeat(8 - LDIndex), 2).toString(16);
+    String ld =
+        new BigInteger("0".repeat(ldIndex - 1) + "1" + "0".repeat(8 - ldIndex), 2).toString(16);
 
-    return "00".repeat(k - 1) + (LD.length() == 1 ? "0" + LD : LD) + "00".repeat(32 - k);
+    return "00".repeat(k - 1) + (ld.length() == 1 ? "0" + ld : ld) + "00".repeat(32 - k);
   }
 }

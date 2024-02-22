@@ -27,7 +27,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.CommonFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.StackFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TransactionFragment;
-import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.runtime.stack.StackLine;
 import org.hyperledger.besu.evm.worldstate.WorldView;
@@ -71,44 +70,8 @@ public abstract class TraceSection {
    *
    * @return a {@link CommonFragment} representing the shared columns
    */
-  private CommonFragment traceCommon(Hub hub, CallFrame callFrame) {
-    OpCode opCode = callFrame.opCode();
-    long refund = 0;
-    if (hub.pch().exceptions().noStackException()) {
-      refund = Hub.gp.of(callFrame.frame(), opCode).refund();
-    }
-
-    return new CommonFragment(
-        hub.transients().tx().number(),
-        hub.transients().conflation().number(),
-        hub.transients().tx().state(),
-        hub.stamp(),
-        0, // retconned
-        false, // retconned
-        hub.opCodeData().instructionFamily(),
-        hub.pch().exceptions().snapshot(),
-        callFrame.id(),
-        callFrame.contextNumber(),
-        callFrame.contextNumber(),
-        0, // retconned
-        false, // retconned
-        false, // retconned
-        callFrame.pc(),
-        callFrame.pc(), // retconned later on
-        callFrame.addressAsEWord(),
-        callFrame.codeDeploymentNumber(),
-        callFrame.underDeployment(),
-        callFrame.accountDeploymentNumber(),
-        0,
-        0,
-        0,
-        0,
-        refund,
-        0,
-        hub.opCodeData().stackSettings().twoLinesInstruction(),
-        this.stackRowsCounter == 1,
-        0, // retconned on sealing
-        this.nonStackRowsCounter);
+  private CommonFragment traceCommon(Hub hub, CallFrame frame) {
+    return CommonFragment.fromHub(hub, frame, this.stackRowsCounter == 1, this.nonStackRowsCounter);
   }
 
   /** Default creator for an empty section. */
@@ -297,7 +260,6 @@ public abstract class TraceSection {
    */
   public final void postTxRetcon(Hub hub, long leftoverGas, long gasRefund) {
     for (TraceLine line : this.lines) {
-      line.common().postTxRetcon(hub);
       line.common().gasRefund(gasRefund);
       if (line.specific instanceof TransactionFragment fragment) {
         fragment.setGasRefundAmount(gasRefund);
@@ -314,7 +276,6 @@ public abstract class TraceSection {
    */
   public final void postConflationRetcon(Hub hub, WorldView state) {
     for (TraceLine line : this.lines) {
-      line.common().postConflationRetcon(hub, state);
       line.specific().postConflationRetcon(hub, state);
     }
   }

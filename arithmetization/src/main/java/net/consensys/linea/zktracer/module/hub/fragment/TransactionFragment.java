@@ -20,7 +20,7 @@ import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import lombok.Setter;
 import net.consensys.linea.zktracer.module.hub.Trace;
-import net.consensys.linea.zktracer.module.hub.transients.Tx;
+import net.consensys.linea.zktracer.module.hub.TransactionStack;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
@@ -91,7 +91,7 @@ public final class TransactionFragment implements TraceFragment {
         .pTransactionToAddressLo(to.lo())
         .pTransactionGasPrice(gasPrice)
         .pTransactionBasefee(baseFee)
-        .pTransactionInitGas(Bytes.ofUnsignedLong(Tx.computeInitGas(tx)))
+        .pTransactionInitGas(Bytes.ofUnsignedLong(TransactionStack.computeInitGas(tx)))
         .pTransactionInitialBalance(Bytes.ofUnsignedLong(initialGas))
         .pTransactionValue(bigIntegerToBytes(tx.getValue().getAsBigInteger()))
         .pTransactionCoinbaseAddressHi(miner.hi())

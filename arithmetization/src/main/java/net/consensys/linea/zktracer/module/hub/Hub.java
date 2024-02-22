@@ -124,6 +124,7 @@ public class Hub implements Module {
   @Getter Transients transients;
 
   @Getter CallStack callStack = new CallStack();
+  @Getter TransactionStack txStack = new TransactionStack();
 
   /** Stores all the actions that must be deferred to a later time */
   @Getter private final DeferRegistry defers = new DeferRegistry();
@@ -341,13 +342,13 @@ public class Hub implements Module {
    */
   void processStateSkip(WorldView world) {
     this.state.stamps().stampHub();
-    boolean isDeployment = this.transients.tx().transaction().getTo().isEmpty();
+    boolean isDeployment = this.transients.tx().besuTx().getTo().isEmpty();
 
     //
     // 3 sections -- account changes
     //
     // From account information
-    Address fromAddress = this.transients.tx().transaction().getSender();
+    Address fromAddress = this.transients.tx().besuTx().getSender();
     AccountSnapshot oldFromAccount =
         AccountSnapshot.fromAccount(
             world.get(fromAddress),
@@ -356,7 +357,7 @@ public class Hub implements Module {
             false);
 
     // To account information
-    Address toAddress = effectiveToAddress(this.transients.tx().transaction());
+    Address toAddress = effectiveToAddress(this.transients.tx().besuTx());
     if (isDeployment) {
       this.transients.conflation().deploymentInfo().deploy(toAddress);
     }
@@ -404,7 +405,7 @@ public class Hub implements Module {
     this.state.stamps().stampHub();
     this.transients
         .tx()
-        .transaction()
+        .besuTx()
         .getAccessList()
         .ifPresent(
             preWarmed -> {
@@ -455,13 +456,13 @@ public class Hub implements Module {
    */
   void processStateInit(WorldView world) {
     this.state.stamps().stampHub();
-    final boolean isDeployment = this.transients.tx().transaction().getTo().isEmpty();
-    final Address toAddress = effectiveToAddress(this.transients.tx().transaction());
+    final boolean isDeployment = this.transients.tx().besuTx().getTo().isEmpty();
+    final Address toAddress = effectiveToAddress(this.transients.tx().besuTx());
     if (isDeployment) {
       this.transients.conflation().deploymentInfo().deploy(toAddress);
     }
 
-    final Address fromAddress = this.transients.tx().transaction().getSender();
+    final Address fromAddress = this.transients.tx().besuTx().getSender();
     final Account fromAccount = world.get(fromAddress);
     final AccountSnapshot fromSnapshot =
         AccountSnapshot.fromAccount(
@@ -482,13 +483,13 @@ public class Hub implements Module {
         ZkTracer.feeMarket
             .getTransactionPriceCalculator()
             .price(
-                (org.hyperledger.besu.ethereum.core.Transaction) this.transients.tx().transaction(),
+                (org.hyperledger.besu.ethereum.core.Transaction) this.transients.tx().besuTx(),
                 Optional.of(this.transients.block().baseFee()));
-    final Wei value = (Wei) this.transients.tx().transaction().getValue();
+    final Wei value = (Wei) this.transients.tx().besuTx().getValue();
     final AccountSnapshot fromPostDebitSnapshot =
         fromSnapshot.debit(
             transactionGasPrice
-                .multiply(this.transients.tx().transaction().getGasLimit())
+                .multiply(this.transients.tx().besuTx().getGasLimit())
                 .add(value));
 
     final boolean isSelfCredit = toAddress.equals(fromAddress);
@@ -614,7 +615,7 @@ public class Hub implements Module {
   void processStateFinal(WorldView worldView, Transaction tx, boolean isSuccess) {
     this.state.stamps().stampHub();
 
-    Address fromAddress = this.transients.tx().transaction().getSender();
+    Address fromAddress = this.transients.tx().besuTx().getSender();
     Account fromAccount = worldView.get(fromAddress);
     AccountSnapshot fromSnapshot =
         AccountSnapshot.fromAccount(
@@ -658,9 +659,8 @@ public class Hub implements Module {
       // if (this.exceptions == null) {
       // this.exceptions = Exceptions.fromOutOfGas();
       // }
-
       // otherwise 4 account rows (sender, coinbase, sender, recipient) + 1 tx row
-      Address toAddress = this.transients.tx().transaction().getSender();
+      Address toAddress = this.transients.tx().besuTx().getSender();
       Account toAccount = worldView.get(toAddress);
       AccountSnapshot toSnapshot =
           AccountSnapshot.fromAccount(
@@ -680,9 +680,6 @@ public class Hub implements Module {
 
   @Override
   public void enterTransaction() {
-    this.state.enter();
-    this.transients.tx().enter();
-
     for (Module m : this.modules) {
       m.enterTransaction();
     }
@@ -691,7 +688,9 @@ public class Hub implements Module {
   @Override
   public void traceStartTx(final WorldView world, final Transaction tx) {
     this.pch.reset();
-    this.transients.tx().update(tx);
+    this.state.enter();
+    this.txStack.enter();
+    this.txStack.enterTransaction(tx);
 
     this.enterTransaction();
 
@@ -711,7 +710,7 @@ public class Hub implements Module {
 
   @Override
   public void popTransaction() {
-    this.transients.tx().pop();
+    this.txStack.pop();
     this.state.pop();
     for (Module m : this.modules) {
       m.popTransaction();
@@ -727,16 +726,11 @@ public class Hub implements Module {
       List<Log> logs,
       long gasUsed) {
     if (this.transients.tx().state() != TxState.TX_SKIP) {
-      this.transients.tx().state(TxState.TX_FINAL);
-    }
-    this.transients.tx().status(!isSuccessful);
-
-    if (this.transients.tx().state() != TxState.TX_SKIP) {
       this.processStateFinal(world, tx, isSuccessful);
     }
 
+    this.txStack.exitTransaction(this, isSuccessful);
     this.defers.runPostTx(this, world, tx);
-
     this.state.currentTxTrace().postTxRetcon(this);
 
     for (Module m : this.modules) {
@@ -786,23 +780,23 @@ public class Hub implements Module {
 
     if (frame.getDepth() == 0) {
       // Bedrock...
-      final Address toAddress = effectiveToAddress(this.transients.tx().transaction());
-      final boolean isDeployment = this.transients.tx().transaction().getTo().isEmpty();
+      final Address toAddress = effectiveToAddress(this.transients.tx().besuTx());
+      final boolean isDeployment = this.transients.tx().besuTx().getTo().isEmpty();
       if (!isDeployment && !frame.getInputData().isEmpty()) {
         this.callStack.newMantleAndBedrock(
             this.state.stamps().hub(),
-            this.transients.tx().transaction().getSender(),
+            this.transients.tx().besuTx().getSender(),
             toAddress,
             isDeployment ? CallFrameType.INIT_CODE : CallFrameType.STANDARD,
             new Bytecode(
                 toAddress == null
-                    ? this.transients.tx().transaction().getData().orElse(Bytes.EMPTY)
+                    ? this.transients.tx().besuTx().getData().orElse(Bytes.EMPTY)
                     : Optional.ofNullable(frame.getWorldUpdater().get(toAddress))
                         .map(AccountState::getCode)
                         .orElse(Bytes.EMPTY)),
-            Wei.of(this.transients.tx().transaction().getValue().getAsBigInteger()),
-            this.transients.tx().transaction().getGasLimit(),
-            this.transients.tx().transaction().getData().orElse(Bytes.EMPTY),
+            Wei.of(this.transients.tx().besuTx().getValue().getAsBigInteger()),
+            this.transients.tx().besuTx().getGasLimit(),
+            this.transients.tx().besuTx().getData().orElse(Bytes.EMPTY),
             this.transients.conflation().deploymentInfo().number(toAddress),
             toAddress.isEmpty()
                 ? 0
@@ -816,13 +810,13 @@ public class Hub implements Module {
             isDeployment ? CallFrameType.INIT_CODE : CallFrameType.STANDARD,
             new Bytecode(
                 toAddress == null
-                    ? this.transients.tx().transaction().getData().orElse(Bytes.EMPTY)
+                    ? this.transients.tx().besuTx().getData().orElse(Bytes.EMPTY)
                     : Optional.ofNullable(frame.getWorldUpdater().get(toAddress))
                         .map(AccountState::getCode)
                         .orElse(Bytes.EMPTY)),
-            Wei.of(this.transients.tx().transaction().getValue().getAsBigInteger()),
-            this.transients.tx().transaction().getGasLimit(),
-            this.transients.tx().transaction().getData().orElse(Bytes.EMPTY),
+            Wei.of(this.transients.tx().besuTx().getValue().getAsBigInteger()),
+            this.transients.tx().besuTx().getGasLimit(),
+            this.transients.tx().besuTx().getData().orElse(Bytes.EMPTY),
             this.transients.conflation().deploymentInfo().number(toAddress),
             toAddress.isEmpty()
                 ? 0
@@ -1047,7 +1041,11 @@ public class Hub implements Module {
 
         switch (this.opCode()) {
           case RETURN -> {
-            final Bytes returnData = this.transients.op().returnData();
+            Bytes returnData = Bytes.EMPTY;
+            // Trying to read memory with absurd arguments will throw an exception
+            if (pch.exceptions().none()) {
+              returnData = this.transients.op().returnData();
+            }
             this.currentFrame().returnDataSource(transients.op().returnDataSegment());
             this.currentFrame().returnData(returnData);
             if (!this.pch.exceptions().any() && !this.currentFrame().underDeployment()) {
@@ -1140,7 +1138,7 @@ public class Hub implements Module {
               TransactionFragment.prepare(
                   this.transients.conflation().number(),
                   frame.getMiningBeneficiary(),
-                  this.transients.tx().transaction(),
+                  this.transients.tx().besuTx(),
                   true,
                   frame.getGasPrice(),
                   frame.getBlockValues().getBaseFee().orElse(Wei.ZERO),

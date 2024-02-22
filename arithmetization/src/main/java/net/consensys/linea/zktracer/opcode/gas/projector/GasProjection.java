@@ -28,63 +28,63 @@ public abstract class GasProjection {
     return Words.clampedMultiply(a, (Words.clampedAdd(x, unit) - 1) / unit);
   }
 
-  long staticGas() {
+  public long staticGas() {
     return 0;
   }
 
-  long expGas() {
+  public long expGas() {
     return 0;
   }
 
-  long memoryExpansion() {
+  public long memoryExpansion() {
     return 0;
   }
 
-  long accountAccess() {
+  public long accountAccess() {
     return 0;
   }
 
-  long accountCreation() {
+  public long accountCreation() {
     return 0;
   }
 
-  long transferValue() {
+  public long transferValue() {
     return 0;
   }
 
-  long linearPerWord() {
+  public long linearPerWord() {
     return 0;
   }
 
-  long linearPerByte() {
+  public long linearPerByte() {
     return 0;
   }
 
-  long storageWarmth() {
+  public long storageWarmth() {
     return 0;
   }
 
-  long sStoreValue() {
+  public long sStoreValue() {
     return 0;
   }
 
-  long rawStipend() {
+  public long rawStipend() {
     return 0;
   }
 
-  long extraStipend() {
+  public long extraStipend() {
     return 0;
   }
 
-  long deploymentCost() {
+  public long deploymentCost() {
     return 0;
   }
 
-  long refund() {
+  public long refund() {
     return 0;
   }
 
-  long messageSize() {
+  public long messageSize() {
     return 0;
   }
 
@@ -94,7 +94,7 @@ public abstract class GasProjection {
    *
    * @return how far in the memory this instruction reaches
    */
-  long largestOffset() {
+  public long largestOffset() {
     return 0;
   }
 

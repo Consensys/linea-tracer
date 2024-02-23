@@ -170,8 +170,8 @@ final class ShfOperation extends ModuleOperation {
           .byte4(UnsignedByte.of(this.res.getResHi().get(i)))
           .byte5(UnsignedByte.of(this.res.getResLo().get(i)))
           .bits(this.bits.get(i))
-          .counter(Bytes.of(i))
-          .inst(Bytes.of(this.opCode.byteValue()))
+          .counter(UnsignedByte.of(i))
+          .inst(UnsignedByte.of(this.opCode.byteValue()))
           .known(this.isKnown)
           .neg(this.isNegative)
           .oneLineInstruction(this.isOneLineInstruction)
@@ -195,8 +195,8 @@ final class ShfOperation extends ModuleOperation {
           .shb7Hi(Bytes.ofUnsignedInt(this.shb.getShbHi()[7 - 3][i].toInteger()))
           .shb7Lo(Bytes.ofUnsignedInt(this.shb.getShbLo()[7 - 3][i].toInteger()))
           .shiftDirection(this.isShiftRight)
-          .isData(stamp != 0)
-          .shiftStamp(Bytes.ofUnsignedInt(stamp))
+          .iomf(true)
+          .shiftStamp((short) stamp)
           .validateRow();
     }
   }

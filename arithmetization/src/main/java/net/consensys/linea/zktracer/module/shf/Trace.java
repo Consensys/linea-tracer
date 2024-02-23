@@ -30,6 +30,113 @@ import org.apache.tuweni.bytes.Bytes;
  * Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
 public class Trace {
+  public static final int ADD = 0x1;
+  public static final int ADDMOD = 0x8;
+  public static final int AND = 0x16;
+  public static final int BLAKE_PHASE_DATA = 0x5;
+  public static final int BLAKE_PHASE_PARAMS = 0x6;
+  public static final int BLAKE_PHASE_RESULT = 0x7;
+  public static final int BYTE = 0x1a;
+  public static final int DIV = 0x4;
+  public static final int EQ_ = 0x14;
+  public static final int EXP = 0xa;
+  public static final int GEQ = 0xf;
+  public static final int GT = 0x11;
+  public static final int INVALID_CODE_PREFIX_VALUE = 0xef;
+  public static final int INVALID_OPCODE = 0xfe;
+  public static final int ISZERO = 0x15;
+  public static final int JUMPDEST = 0x5b;
+  public static final int LEQ = 0xe;
+  public static final int LLARGE = 0x10;
+  public static final int LLARGEMO = 0xf;
+  public static final int LLARGEPO = 0x11;
+  public static final int LOG0 = 0xa0;
+  public static final int LOG1 = 0xa1;
+  public static final int LOG2 = 0xa2;
+  public static final int LOG3 = 0xa3;
+  public static final int LOG4 = 0xa4;
+  public static final int LT = 0x10;
+  public static final int MMEDIUM = 0x8;
+  public static final int MMEDIUMMO = 0x7;
+  public static final int MMIO_INST_LIMB_TO_RAM_ONE_TARGET = 0xfe12;
+  public static final int MMIO_INST_LIMB_TO_RAM_TRANSPLANT = 0xfe11;
+  public static final int MMIO_INST_LIMB_TO_RAM_TWO_TARGET = 0xfe13;
+  public static final int MMIO_INST_LIMB_VANISHES = 0xfe01;
+  public static final int MMIO_INST_RAM_EXCISION = 0xfe41;
+  public static final int MMIO_INST_RAM_TO_LIMB_ONE_SOURCE = 0xfe22;
+  public static final int MMIO_INST_RAM_TO_LIMB_TRANSPLANT = 0xfe21;
+  public static final int MMIO_INST_RAM_TO_LIMB_TWO_SOURCE = 0xfe23;
+  public static final int MMIO_INST_RAM_TO_RAM_PARTIAL = 0xfe32;
+  public static final int MMIO_INST_RAM_TO_RAM_TRANSPLANT = 0xfe31;
+  public static final int MMIO_INST_RAM_TO_RAM_TWO_SOURCE = 0xfe34;
+  public static final int MMIO_INST_RAM_TO_RAM_TWO_TARGET = 0xfe33;
+  public static final int MMIO_INST_RAM_VANISHES = 0xfe42;
+  public static final int MMU_INST_ANY_TO_RAM_WITH_PADDING = 0xfe50;
+  public static final int MMU_INST_ANY_TO_RAM_WITH_PADDING_PURE_PADDING = 0xfe52;
+  public static final int MMU_INST_ANY_TO_RAM_WITH_PADDING_SOME_DATA = 0xfe51;
+  public static final int MMU_INST_BLAKE = 0xfe80;
+  public static final int MMU_INST_EXO_TO_RAM_TRANSPLANTS = 0xfe30;
+  public static final int MMU_INST_INVALID_CODE_PREFIX = 0xfe00;
+  public static final int MMU_INST_MLOAD = 0xfe01;
+  public static final int MMU_INST_MODEXP_DATA = 0xfe70;
+  public static final int MMU_INST_MODEXP_ZERO = 0xfe60;
+  public static final int MMU_INST_MSTORE = 0xfe02;
+  public static final int MMU_INST_MSTORE8 = 0x53;
+  public static final int MMU_INST_RAM_TO_EXO_WITH_PADDING = 0xfe20;
+  public static final int MMU_INST_RAM_TO_RAM_SANS_PADDING = 0xfe40;
+  public static final int MMU_INST_RIGHT_PADDED_WORD_EXTRACTION = 0xfe10;
+  public static final int MOD = 0x6;
+  public static final int MODEXP_PHASE_BASE = 0x1;
+  public static final int MODEXP_PHASE_EXPONENT = 0x2;
+  public static final int MODEXP_PHASE_MODULUS = 0x3;
+  public static final int MODEXP_PHASE_RESULT = 0x4;
+  public static final int MUL = 0x2;
+  public static final int MULMOD = 0x9;
+  public static final int NOT = 0x19;
+  public static final int OR = 0x17;
+  public static final int PUSH_1 = 0x60;
+  public static final int RLP_ADDR_RECIPE_1 = 0x1;
+  public static final int RLP_ADDR_RECIPE_2 = 0x2;
+  public static final int RLP_PREFIX_INT_LONG = 0xb7;
+  public static final int RLP_PREFIX_INT_SHORT = 0x80;
+  public static final int RLP_PREFIX_LIST_LONG = 0xf7;
+  public static final int RLP_PREFIX_LIST_SHORT = 0xc0;
+  public static final int RLP_RCPT_SUBPHASE_ID_ADDR = 0x35;
+  public static final int RLP_RCPT_SUBPHASE_ID_CUMUL_GAS = 0x3;
+  public static final int RLP_RCPT_SUBPHASE_ID_DATA_LIMB = 0x4d;
+  public static final int RLP_RCPT_SUBPHASE_ID_DATA_SIZE = 0x53;
+  public static final int RLP_RCPT_SUBPHASE_ID_NO_LOG_ENTRY = 0xb;
+  public static final int RLP_RCPT_SUBPHASE_ID_STATUS_CODE = 0x2;
+  public static final int RLP_RCPT_SUBPHASE_ID_TOPIC_BASE = 0x41;
+  public static final int RLP_RCPT_SUBPHASE_ID_TOPIC_DELTA = 0x60;
+  public static final int RLP_RCPT_SUBPHASE_ID_TYPE = 0x7;
+  public static final int RLP_TXN_PHASE_ACCESS_LIST_VALUE = 0xb;
+  public static final int RLP_TXN_PHASE_BETA_VALUE = 0xc;
+  public static final int RLP_TXN_PHASE_CHAIN_ID_VALUE = 0x2;
+  public static final int RLP_TXN_PHASE_DATA_VALUE = 0xa;
+  public static final int RLP_TXN_PHASE_GAS_LIMIT_VALUE = 0x7;
+  public static final int RLP_TXN_PHASE_GAS_PRICE_VALUE = 0x4;
+  public static final int RLP_TXN_PHASE_MAX_FEE_PER_GAS_VALUE = 0x6;
+  public static final int RLP_TXN_PHASE_MAX_PRIORITY_FEE_PER_GAS_VALUE = 0x5;
+  public static final int RLP_TXN_PHASE_NONCE_VALUE = 0x3;
+  public static final int RLP_TXN_PHASE_RLP_PREFIX_VALUE = 0x1;
+  public static final int RLP_TXN_PHASE_R_VALUE = 0xe;
+  public static final int RLP_TXN_PHASE_S_VALUE = 0xf;
+  public static final int RLP_TXN_PHASE_TO_VALUE = 0x8;
+  public static final int RLP_TXN_PHASE_VALUE_VALUE = 0x9;
+  public static final int RLP_TXN_PHASE_Y_VALUE = 0xd;
+  public static final int SAR = 0x1d;
+  public static final int SDIV = 0x5;
+  public static final int SGT = 0x13;
+  public static final int SHL = 0x1b;
+  public static final int SHR = 0x1c;
+  public static final int SIGNEXTEND = 0xb;
+  public static final int SLT = 0x12;
+  public static final int SMOD = 0x7;
+  public static final int SUB = 0x3;
+  public static final int WORD_SIZE = 0x20;
+  public static final int WORD_SIZE_MO = 0x1f;
+  public static final int XOR = 0x18;
 
   private final BitSet filled = new BitSet();
   private int currentLine = 0;
@@ -60,7 +167,7 @@ public class Trace {
   private final MappedByteBuffer byte5;
   private final MappedByteBuffer counter;
   private final MappedByteBuffer inst;
-  private final MappedByteBuffer isData;
+  private final MappedByteBuffer iomf;
   private final MappedByteBuffer known;
   private final MappedByteBuffer leftAlignedSuffixHigh;
   private final MappedByteBuffer leftAlignedSuffixLow;
@@ -112,9 +219,9 @@ public class Trace {
         new ColumnHeader("shf.BYTE_3", 1, length),
         new ColumnHeader("shf.BYTE_4", 1, length),
         new ColumnHeader("shf.BYTE_5", 1, length),
-        new ColumnHeader("shf.COUNTER", 32, length),
-        new ColumnHeader("shf.INST", 32, length),
-        new ColumnHeader("shf.IS_DATA", 1, length),
+        new ColumnHeader("shf.COUNTER", 1, length),
+        new ColumnHeader("shf.INST", 1, length),
+        new ColumnHeader("shf.IOMF", 1, length),
         new ColumnHeader("shf.KNOWN", 1, length),
         new ColumnHeader("shf.LEFT_ALIGNED_SUFFIX_HIGH", 32, length),
         new ColumnHeader("shf.LEFT_ALIGNED_SUFFIX_LOW", 32, length),
@@ -138,7 +245,7 @@ public class Trace {
         new ColumnHeader("shf.SHB_7_HI", 32, length),
         new ColumnHeader("shf.SHB_7_LO", 32, length),
         new ColumnHeader("shf.SHIFT_DIRECTION", 1, length),
-        new ColumnHeader("shf.SHIFT_STAMP", 32, length));
+        new ColumnHeader("shf.SHIFT_STAMP", 2, length));
   }
 
   public Trace(List<MappedByteBuffer> buffers) {
@@ -168,7 +275,7 @@ public class Trace {
     this.byte5 = buffers.get(23);
     this.counter = buffers.get(24);
     this.inst = buffers.get(25);
-    this.isData = buffers.get(26);
+    this.iomf = buffers.get(26);
     this.known = buffers.get(27);
     this.leftAlignedSuffixHigh = buffers.get(28);
     this.leftAlignedSuffixLow = buffers.get(29);
@@ -527,46 +634,38 @@ public class Trace {
     return this;
   }
 
-  public Trace counter(final Bytes b) {
+  public Trace counter(final UnsignedByte b) {
     if (filled.get(24)) {
       throw new IllegalStateException("shf.COUNTER already set");
     } else {
       filled.set(24);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      counter.put((byte) 0);
-    }
-    counter.put(b.toArrayUnsafe());
+    counter.put(b.toByte());
 
     return this;
   }
 
-  public Trace inst(final Bytes b) {
+  public Trace inst(final UnsignedByte b) {
     if (filled.get(25)) {
       throw new IllegalStateException("shf.INST already set");
     } else {
       filled.set(25);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      inst.put((byte) 0);
-    }
-    inst.put(b.toArrayUnsafe());
+    inst.put(b.toByte());
 
     return this;
   }
 
-  public Trace isData(final Boolean b) {
+  public Trace iomf(final Boolean b) {
     if (filled.get(26)) {
-      throw new IllegalStateException("shf.IS_DATA already set");
+      throw new IllegalStateException("shf.IOMF already set");
     } else {
       filled.set(26);
     }
 
-    isData.put((byte) (b ? 1 : 0));
+    iomf.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -923,18 +1022,14 @@ public class Trace {
     return this;
   }
 
-  public Trace shiftStamp(final Bytes b) {
+  public Trace shiftStamp(final short b) {
     if (filled.get(50)) {
       throw new IllegalStateException("shf.SHIFT_STAMP already set");
     } else {
       filled.set(50);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      shiftStamp.put((byte) 0);
-    }
-    shiftStamp.put(b.toArrayUnsafe());
+    shiftStamp.putShort(b);
 
     return this;
   }
@@ -1045,7 +1140,7 @@ public class Trace {
     }
 
     if (!filled.get(26)) {
-      throw new IllegalStateException("shf.IS_DATA has not been filled");
+      throw new IllegalStateException("shf.IOMF has not been filled");
     }
 
     if (!filled.get(27)) {
@@ -1248,15 +1343,15 @@ public class Trace {
     }
 
     if (!filled.get(24)) {
-      counter.position(counter.position() + 32);
+      counter.position(counter.position() + 1);
     }
 
     if (!filled.get(25)) {
-      inst.position(inst.position() + 32);
+      inst.position(inst.position() + 1);
     }
 
     if (!filled.get(26)) {
-      isData.position(isData.position() + 1);
+      iomf.position(iomf.position() + 1);
     }
 
     if (!filled.get(27)) {
@@ -1352,7 +1447,7 @@ public class Trace {
     }
 
     if (!filled.get(50)) {
-      shiftStamp.position(shiftStamp.position() + 32);
+      shiftStamp.position(shiftStamp.position() + 2);
     }
 
     filled.clear();

@@ -167,11 +167,13 @@ public class PrecompileLinesGenerator {
                 .callOob(
                     new ModexpPricing(
                         p,
-                        ModExpLogChunk.LeadLogTrimLead.fromArgs(
-                                m.rawLeadingWord(),
-                                Math.min((int) (p.callDataSource().length() - 96 - bbsInt), 32),
-                                Math.min(ebsInt, 32))
-                            .leadLog(),
+                        m.loadRawLeadingWord()
+                            ? ModExpLogChunk.LeadLogTrimLead.fromArgs(
+                                    m.rawLeadingWord(),
+                                    Math.min((int) (p.callDataSource().length() - 96 - bbsInt), 32),
+                                    Math.min(ebsInt, 32))
+                                .leadLog()
+                            : 0,
                         Math.max(mbsInt, bbsInt))));
 
         if (p.ramFailure()) {

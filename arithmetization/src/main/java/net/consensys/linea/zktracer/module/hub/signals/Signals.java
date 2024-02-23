@@ -235,7 +235,7 @@ public class Signals {
                 || (!isDeployment
                     && ex.none()
                     && sizeNonZero
-                    && hub.currentFrame().requestedReturnDataTarget().length() > 0);
+                    && !hub.currentFrame().requestedReturnDataTarget().isEmpty());
         this.romLex = this.hashInfo = isDeployment && ex.none() && sizeNonZero;
       }
 

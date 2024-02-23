@@ -26,12 +26,8 @@ import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.ExpLogCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.ModExpLogCall;
-import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import net.consensys.linea.zktracer.opcode.OpCode;
-import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
-import org.hyperledger.besu.evm.internal.Words;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -69,24 +65,8 @@ public class Exp implements Module {
 
   @Override
   public void tracePreOpcode(MessageFrame frame) {
-    final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
-    final Exceptions exceptions = hub.pch().exceptions();
-
-    if (opCode == OpCode.EXP) {
-      if (!exceptions.stackUnderflow()) {
-        this.chunks.add(ExpLogChunk.fromMessageFrame(this.wcp, frame));
-      }
-    } else if (exceptions.none() && hub.pch().aborts().none()) {
-      if (opCode.isCall()) {
-        Address target = Words.toAddress(frame.getStackItem(1));
-        if (target.equals(Address.MODEXP)) {
-          final ExpChunk modexpOperation = ModExpLogChunk.fromFrame(this.wcp, frame);
-          if (modexpOperation != null) {
-            this.chunks.add(modexpOperation);
-          }
-        }
-      }
-    }
+    // We can only come here from IMCFragment, at which point we are sure that everything will be OK
+    this.chunks.add(ExpLogChunk.fromMessageFrame(this.wcp, frame));
   }
 
   public void callExpLogCall(final ExpLogCall c) {

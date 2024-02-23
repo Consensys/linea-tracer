@@ -103,10 +103,6 @@ public class ImcFragment implements TraceFragment {
       r.callMxp(MxpCall.build(hub));
     }
 
-    if (hub.pch().signals().exp()) {
-      r.callExp(new ExpLogCall(EWord.of(hub.messageFrame().getStackItem(1))));
-    }
-
     if (hub.pch().signals().oob()) {
       switch (hub.opCode()) {
         case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
@@ -166,6 +162,10 @@ public class ImcFragment implements TraceFragment {
 
     if (hub.pch().signals().exp()) {
       r.callExp(new ExpLogCall(EWord.of(hub.messageFrame().getStackItem(1))));
+    }
+
+    if (hub.pch().signals().exp() && !hub.pch().exceptions().stackException()) {
+      hub.exp().tracePreOpcode(frame);
     }
 
     if (hub.pch().signals().mmu()) {

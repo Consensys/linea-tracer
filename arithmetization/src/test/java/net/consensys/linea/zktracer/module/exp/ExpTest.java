@@ -187,25 +187,25 @@ public class ExpTest {
     final int minimalValidCds = cdsCutoff + 96 + bbs;
 
     return BytecodeCompiler.newProgram()
-            .push(bbs) // bbs
-            .push(0)
-            .op(OpCode.MSTORE)
-            .push(minimalValidEbs) // ebs
-            .push(32)
-            .op(OpCode.MSTORE)
-            .push(mbs) // mbs
-            .push(64)
-            .op(OpCode.MSTORE)
-            .push(wordAfterBase) // e
-            .push(96 + bbs)
-            .op(OpCode.MSTORE)
-            .push(512) // retSize
-            .push(minimalValidCds) // retOffset
-            .push(minimalValidCds) // argSize (cds)
-            .push(0) // argOffset (cdo)
-            .push(5) // address
-            .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas
-            .op(OpCode.STATICCALL);
+        .push(bbs) // bbs
+        .push(0)
+        .op(OpCode.MSTORE)
+        .push(minimalValidEbs) // ebs
+        .push(32)
+        .op(OpCode.MSTORE)
+        .push(mbs) // mbs
+        .push(64)
+        .op(OpCode.MSTORE)
+        .push(wordAfterBase) // e
+        .push(96 + bbs)
+        .op(OpCode.MSTORE)
+        .push(512) // retSize
+        .push(minimalValidCds) // retOffset
+        .push(minimalValidCds) // argSize (cds)
+        .push(0) // argOffset (cdo)
+        .push(5) // address
+        .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas
+        .op(OpCode.STATICCALL);
   }
 
   @Disabled("EXP tests are disabled due to running for over 30 min.")

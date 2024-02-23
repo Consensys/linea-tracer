@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
+import net.consensys.linea.zktracer.module.exp.ModExpLogChunk;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
@@ -123,7 +124,9 @@ public class PrecompileLinesGenerator {
           r.add(ImcFragment.empty(hub).callOob(new Identity(p)));
         } else {
           r.add(
-              ImcFragment.empty(hub).callOob(new Identity(p)).callMmu(MmuCall.forIdentity(hub, p, 0)));
+              ImcFragment.empty(hub)
+                  .callOob(new Identity(p))
+                  .callMmu(MmuCall.forIdentity(hub, p, 0)));
           r.add(ImcFragment.empty(hub).callMmu(MmuCall.forIdentity(hub, p, 1)));
         }
       }
@@ -133,7 +136,8 @@ public class PrecompileLinesGenerator {
         final int ebsInt = m.ebs().toUnsignedBigInteger().intValueExact();
         final int mbsInt = m.mbs().toUnsignedBigInteger().intValueExact();
 
-        r.add(ImcFragment.empty(hub).callOob(new ModexpCds(p.requestedReturnDataTarget().length())));
+        r.add(
+            ImcFragment.empty(hub).callOob(new ModexpCds(p.requestedReturnDataTarget().length())));
         r.add(
             ImcFragment.empty(hub)
                 .callOob(new ModexpXbs(m.bbs(), EWord.ZERO, false))
@@ -163,10 +167,11 @@ public class PrecompileLinesGenerator {
                 .callOob(
                     new ModexpPricing(
                         p,
-                        ModExpLogCall.exponentLeadingWordLog(
-                            m.rawLeadingWord(),
-                            Math.min((int) (p.callDataSource().length() - 96 - bbsInt), 32),
-                            Math.min(ebsInt, 32)),
+                        ModExpLogChunk.exponentLeadingWordLog(
+                                m.rawLeadingWord(),
+                                Math.min((int) (p.callDataSource().length() - 96 - bbsInt), 32),
+                                Math.min(ebsInt, 32))
+                            .leadLog(),
                         Math.max(mbsInt, bbsInt))));
 
         if (p.ramFailure()) {

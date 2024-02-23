@@ -23,7 +23,6 @@ import static net.consensys.linea.zktracer.module.exp.Trace.ISZERO;
 import static net.consensys.linea.zktracer.module.exp.Trace.LT;
 import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_CMPTN_MODEXP_LOG;
 import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_PRPRC_MODEXP_LOG;
-import static net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.ModExpLogCall.exponentLeadingWordLog;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 
@@ -54,29 +53,17 @@ public class ModExpLogChunk extends ExpChunk {
   }
 
   public static ModExpLogChunk fromExpLogCall(final Wcp wcp, final ModExpLogCall c) {
-    final int minCutoff = min(c.cdsCutoff(), c.ebsCutoff());
-
-    BigInteger mask = new BigInteger("FF".repeat(minCutoff), 16);
-    if (minCutoff < 32) {
-      // 32 - minCutoff is the shift distance in bytes, but we need bits
-      mask = mask.shiftLeft(8 * (32 - minCutoff));
-    }
-
-    // trim (keep only minCutoff bytes of rawLead)
-    final BigInteger trim = c.rawLeadingWord().toUnsignedBigInteger().and(mask);
-
-    // lead (keep only minCutoff bytes of rawLead and potentially pad to ebsCutoff with 0's)
-    final BigInteger lead = trim.shiftRight(8 * (32 - c.ebsCutoff()));
+    LeadLogTrimLead leadLogTrimLead =
+        exponentLeadingWordLog(c.rawLeadingWord(), c.cdsCutoff(), c.ebsCutoff());
 
     final ModExpLogChunk r =
         new ModExpLogChunk(
             c.rawLeadingWord(),
             c.cdsCutoff(),
             c.ebsCutoff(),
-            BigInteger.valueOf(
-                exponentLeadingWordLog(c.rawLeadingWord(), c.cdsCutoff(), c.ebsCutoff())),
-            EWord.of(trim),
-            bigIntegerToBytes(lead));
+            BigInteger.valueOf(leadLogTrimLead.leadLog),
+            EWord.of(leadLogTrimLead.trim),
+            bigIntegerToBytes(leadLogTrimLead.lead));
 
     r.wcp = wcp;
     r.preCompute();
@@ -141,6 +128,25 @@ public class ModExpLogChunk extends ExpChunk {
     final int cdsCutoff = min(max(cds.intValue() - (96 + bbs.intValue()), 0), 32);
     // ebs_cutoff
     final int ebsCutoff = min(ebs.intValue(), 32);
+
+    LeadLogTrimLead leadLogTrimLead = exponentLeadingWordLog(rawLead, cdsCutoff, ebsCutoff);
+
+    final ModExpLogChunk r =
+        new ModExpLogChunk(
+            rawLead,
+            cdsCutoff,
+            ebsCutoff,
+            BigInteger.valueOf(leadLogTrimLead.leadLog),
+            EWord.of(leadLogTrimLead.trim),
+            bigIntegerToBytes(leadLogTrimLead.lead));
+
+    r.wcp = wcp;
+    r.preCompute();
+    return r;
+  }
+
+  public static LeadLogTrimLead exponentLeadingWordLog(
+      EWord rawLead, int cdsCutoff, int ebsCutoff) {
     // min_cutoff
     final int minCutoff = min(cdsCutoff, ebsCutoff);
 
@@ -157,17 +163,12 @@ public class ModExpLogChunk extends ExpChunk {
     final BigInteger lead = trim.shiftRight(8 * (32 - ebsCutoff));
 
     // lead_log (same as EYP)
-    final BigInteger leadLog =
-        lead.signum() == 0 ? BigInteger.ZERO : BigInteger.valueOf(log2(lead, RoundingMode.FLOOR));
+    final int leadLog = lead.signum() == 0 ? 0 : log2(lead, RoundingMode.FLOOR);
 
-    final ModExpLogChunk r =
-        new ModExpLogChunk(
-            rawLead, cdsCutoff, ebsCutoff, leadLog, EWord.of(trim), bigIntegerToBytes(lead));
-    r.wcp = wcp;
-    r.preCompute();
-
-    return r;
+    return new LeadLogTrimLead(leadLog, trim, lead);
   }
+
+  public record LeadLogTrimLead(int leadLog, BigInteger trim, BigInteger lead) {}
 
   @Override
   public void preCompute() {

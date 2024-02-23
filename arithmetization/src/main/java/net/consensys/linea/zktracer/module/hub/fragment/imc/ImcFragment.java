@@ -64,7 +64,6 @@ public class ImcFragment implements TraceFragment {
   private boolean mmuIsSet = false;
   private boolean stpIsSet = false;
 
-
   private ImcFragment(final Hub hub) {
     this.hub = hub;
   }

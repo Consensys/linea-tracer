@@ -20,7 +20,7 @@
         dependsOn corsetExists
 
         module = moduleName
-        files = ["alu/${moduleName}/columns.lisp"]
+        files = ["alu/${moduleName}/columns.lisp", "constants/constants.lisp"]
     }
 }
 
@@ -91,7 +91,7 @@ tasks.register('binRT', TraceFilesTask) {
         module = moduleName
         moduleDir = moduleInfos[1]
 
-        files = ["${moduleName}/columns.lisp", "${moduleName}/constants.lisp", "library/rlp_constraints_pattern.lisp"]
+        files = ["${moduleName}/columns.lisp", "${moduleName}/constants.lisp", "library/rlp_constraints_pattern.lisp", "constants/constants.lisp"]
     }
 }
 
@@ -104,7 +104,7 @@ tasks.register('binRT', TraceFilesTask) {
         dependsOn corsetExists
 
         module = moduleName
-        files = ["${moduleName}/columns.lisp"]
+        files = ["${moduleName}/columns.lisp", "constants/constants.lisp"]
     }
 }
 
@@ -117,6 +117,6 @@ tasks.register('binRT', TraceFilesTask) {
         dependsOn corsetExists
 
         module = moduleName
-        files = ["${moduleName}/columns.lisp", "${moduleName}/constants.lisp"]
+        files = ["${moduleName}/columns.lisp", "${moduleName}/constants.lisp", "constants/constants.lisp"]
     }
 }

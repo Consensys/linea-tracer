@@ -83,7 +83,7 @@ public class BinRt implements Module {
 
         final UnsignedByte result = UnsignedByte.of(input1Bytes.or(input2Bytes).get(0));
         trace
-          .iomf(true)
+            .iomf(true)
             .inst(opCode)
             .resultByte(result)
             .inputByte1(input1UByte)

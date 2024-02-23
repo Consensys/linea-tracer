@@ -15,9 +15,6 @@
 
 package net.consensys.linea.zktracer.module.tables.shf;
 
-import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
-
-import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 

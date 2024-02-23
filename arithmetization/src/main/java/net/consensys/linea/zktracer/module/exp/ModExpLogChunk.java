@@ -16,51 +16,169 @@
 package net.consensys.linea.zktracer.module.exp;
 
 import static com.google.common.math.BigIntegerMath.log2;
+import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static net.consensys.linea.zktracer.module.exp.Trace.EXP_MODEXPLOG;
 import static net.consensys.linea.zktracer.module.exp.Trace.ISZERO;
 import static net.consensys.linea.zktracer.module.exp.Trace.LT;
 import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_CMPTN_MODEXP_LOG;
 import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_PRPRC_MODEXP_LOG;
+import static net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.ModExpLogCall.exponentLeadingWordLog;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 
 import java.math.BigInteger;
 import java.math.RoundingMode;
 
+import lombok.RequiredArgsConstructor;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.ModExpLogCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
+import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.evm.frame.MessageFrame;
 
+@RequiredArgsConstructor
 public class ModExpLogChunk extends ExpChunk {
-  private final ModexpLogExpParameters modexpLogExpParameters;
+  private final EWord rawLead;
+  private final int cdsCutoff;
+  private final int ebsCutoff;
+  private final BigInteger leadLog;
+  private final EWord trim;
+  private final Bytes lead;
 
   @Override
   protected boolean isExpLog() {
     return false;
   }
 
-  public ModExpLogChunk(final Wcp wcp, final ModexpLogExpParameters modexpLogExpParameters) {
-    // MODEXP_LOG case
-    this.wcp = wcp;
-    this.modexpLogExpParameters = modexpLogExpParameters;
+  public static ModExpLogChunk fromExpLogCall(final Wcp wcp, final ModExpLogCall c) {
+    final int minCutoff = min(c.cdsCutoff(), c.ebsCutoff());
+
+    BigInteger mask = new BigInteger("FF".repeat(minCutoff), 16);
+    if (minCutoff < 32) {
+      // 32 - minCutoff is the shift distance in bytes, but we need bits
+      mask = mask.shiftLeft(8 * (32 - minCutoff));
+    }
+
+    // trim (keep only minCutoff bytes of rawLead)
+    final BigInteger trim = c.rawLeadingWord().toUnsignedBigInteger().and(mask);
+
+    // lead (keep only minCutoff bytes of rawLead and potentially pad to ebsCutoff with 0's)
+    final BigInteger lead = trim.shiftRight(8 * (32 - c.ebsCutoff()));
+
+    final ModExpLogChunk r =
+        new ModExpLogChunk(
+            c.rawLeadingWord(),
+            c.cdsCutoff(),
+            c.ebsCutoff(),
+            BigInteger.valueOf(
+                exponentLeadingWordLog(c.rawLeadingWord(), c.cdsCutoff(), c.ebsCutoff())),
+            EWord.of(trim),
+            bigIntegerToBytes(lead));
+
+    r.wcp = wcp;
+    return r;
+  }
+
+  public static ModExpLogChunk fromFrame(final Wcp wcp, final MessageFrame frame) {
+    final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
+    // DELEGATECALL, STATICCALL cases
+    int cdoIndex = 2;
+    int cdsIndex = 3;
+    // CALL, CALLCODE cases
+    if (opCode == OpCode.CALL || opCode == OpCode.CALLCODE) {
+      cdoIndex = 3;
+      cdsIndex = 4;
+    }
+
+    // TODO: use OperationTransient here
+    final BigInteger cdo = frame.getStackItem(cdoIndex).toUnsignedBigInteger();
+    final BigInteger cds = frame.getStackItem(cdsIndex).toUnsignedBigInteger();
+
+    // mxp should ensure that the hi part of cds is 0
+
+    if (cds.signum() == 0) {
+      return null;
+    }
+    // Here cds != 0
+
+    final Bytes unpaddedCallData = frame.shadowReadMemory(cdo.longValue(), cds.longValue());
+
+    // pad unpaddedCallData to 96 (this is probably not necessary)
+    final Bytes paddedCallData =
+        cds.intValue() < 96
+            ? Bytes.concatenate(unpaddedCallData, Bytes.repeat((byte) 0, 96 - cds.intValue()))
+            : unpaddedCallData;
+
+    final BigInteger bbs = paddedCallData.slice(0, 32).toUnsignedBigInteger();
+    final BigInteger ebs = paddedCallData.slice(32, 32).toUnsignedBigInteger();
+
+    // Some other module checks if bbs, ebs and msb are <= 512 (@Francois)
+
+    if (ebs.signum() == 0) {
+      return null;
+    }
+    // Here ebs != 0
+
+    if (cds.compareTo(BigInteger.valueOf(96).add(bbs)) <= 0) {
+      return null;
+    }
+
+    // pad paddedCallData to 96 + bbs + 32
+    final Bytes doublePaddedCallData =
+        cds.intValue() < 96 + bbs.intValue() + 32
+            ? Bytes.concatenate(
+                paddedCallData, Bytes.repeat((byte) 0, 96 + bbs.intValue() + 32 - cds.intValue()))
+            : paddedCallData;
+
+    // raw_lead
+    final EWord rawLead = EWord.of(doublePaddedCallData.slice(96 + bbs.intValue(), 32));
+
+    // cds_cutoff
+    final int cdsCutoff = min(max(cds.intValue() - (96 + bbs.intValue()), 0), 32);
+    // ebs_cutoff
+    final int ebsCutoff = min(ebs.intValue(), 32);
+    // min_cutoff
+    final int minCutoff = min(cdsCutoff, ebsCutoff);
+
+    BigInteger mask = new BigInteger("FF".repeat(minCutoff), 16);
+    if (minCutoff < 32) {
+      // 32 - minCutoff is the shift distance in bytes, but we need bits
+      mask = mask.shiftLeft(8 * (32 - minCutoff));
+    }
+
+    // trim (keep only minCutoff bytes of rawLead)
+    final BigInteger trim = rawLead.toUnsignedBigInteger().and(mask);
+
+    // lead (keep only minCutoff bytes of rawLead and potentially pad to ebsCutoff with 0's)
+    final BigInteger lead = trim.shiftRight(8 * (32 - ebsCutoff));
+
+    // lead_log (same as EYP)
+    final BigInteger leadLog =
+        lead.signum() == 0 ? BigInteger.ZERO : BigInteger.valueOf(log2(lead, RoundingMode.FLOOR));
+
+    final ModExpLogChunk r =
+        new ModExpLogChunk(
+            rawLead, cdsCutoff, ebsCutoff, leadLog, EWord.of(trim), bigIntegerToBytes(lead));
+    r.wcp = wcp;
+    return r;
   }
 
   @Override
   public void preCompute() {
     pMacroExpInst = EXP_MODEXPLOG;
-    pMacroData1 = bigIntegerToBytes(modexpLogExpParameters.rawLeadHi());
-    pMacroData2 = bigIntegerToBytes(modexpLogExpParameters.rawLeadLo());
-    pMacroData3 = Bytes.of(modexpLogExpParameters.cdsCutoff());
-    pMacroData4 = Bytes.of(modexpLogExpParameters.ebsCutoff());
-    pMacroData5 = bigIntegerToBytes(modexpLogExpParameters.leadLog());
+    pMacroData1 = this.rawLead.hi();
+    pMacroData2 = this.rawLead.lo();
+    pMacroData3 = Bytes.of(this.cdsCutoff);
+    pMacroData4 = Bytes.of(this.ebsCutoff);
+    pMacroData5 = bigIntegerToBytes(this.leadLog);
     initArrays(MAX_CT_PRPRC_MODEXP_LOG + 1);
 
     // Preprocessing
     final BigInteger trimLimb =
-        modexpLogExpParameters.trimHi().signum() == 0
-            ? modexpLogExpParameters.trimLo()
-            : modexpLogExpParameters.trimHi();
+        this.trim.hi().isZero() ? this.trim.loBigInt() : this.trim.hiBigInt();
     final int trimLog = trimLimb.signum() == 0 ? 0 : log2(trimLimb, RoundingMode.FLOOR);
     final int nBitsOfLeadingByteExcludingLeadingBit = trimLog % 8;
     final int nBytesExcludingLeadingByte = trimLog / 8;
@@ -68,18 +186,15 @@ public class ModExpLogChunk extends ExpChunk {
     // First row
     pPreprocessingWcpFlag[0] = true;
     pPreprocessingWcpArg1Hi[0] = Bytes.of(0);
-    pPreprocessingWcpArg1Lo[0] = Bytes.of(modexpLogExpParameters.cdsCutoff());
+    pPreprocessingWcpArg1Lo[0] = Bytes.of(this.cdsCutoff);
     pPreprocessingWcpArg2Hi[0] = Bytes.of(0);
-    pPreprocessingWcpArg2Lo[0] = Bytes.of(modexpLogExpParameters.ebsCutoff());
+    pPreprocessingWcpArg2Lo[0] = Bytes.of(this.ebsCutoff);
     pPreprocessingWcpInst[0] = UnsignedByte.of(LT);
-    pPreprocessingWcpRes[0] =
-        modexpLogExpParameters.cdsCutoff() < modexpLogExpParameters.ebsCutoff();
-    final int minCutoff =
-        min(modexpLogExpParameters.cdsCutoff(), modexpLogExpParameters.ebsCutoff());
+    pPreprocessingWcpRes[0] = this.cdsCutoff < this.ebsCutoff;
+    final int minCutoff = min(this.cdsCutoff, this.ebsCutoff);
 
     // Lookup
-    wcp.callLT(
-        Bytes.of(modexpLogExpParameters.cdsCutoff()), Bytes.of(modexpLogExpParameters.ebsCutoff()));
+    wcp.callLT(Bytes.of(this.cdsCutoff), Bytes.of(this.ebsCutoff));
 
     // Second row
     pPreprocessingWcpFlag[1] = true;
@@ -97,27 +212,27 @@ public class ModExpLogChunk extends ExpChunk {
     // Third row
     pPreprocessingWcpFlag[2] = true;
     pPreprocessingWcpArg1Hi[2] = Bytes.of(0);
-    pPreprocessingWcpArg1Lo[2] = Bytes.of(modexpLogExpParameters.ebsCutoff());
+    pPreprocessingWcpArg1Lo[2] = Bytes.of(this.ebsCutoff);
     pPreprocessingWcpArg2Hi[2] = Bytes.of(0);
     pPreprocessingWcpArg2Lo[2] = Bytes.of(17);
     pPreprocessingWcpInst[2] = UnsignedByte.of(LT);
-    pPreprocessingWcpRes[2] = modexpLogExpParameters.ebsCutoff() < 17;
+    pPreprocessingWcpRes[2] = this.ebsCutoff < 17;
 
     // Lookup
-    wcp.callLT(Bytes.of(modexpLogExpParameters.ebsCutoff()), Bytes.of(17));
+    wcp.callLT(Bytes.of(this.ebsCutoff), Bytes.of(17));
 
     // Fourth row
     pPreprocessingWcpFlag[3] = true;
     pPreprocessingWcpArg1Hi[3] = Bytes.of(0);
-    pPreprocessingWcpArg1Lo[3] = bigIntegerToBytes(modexpLogExpParameters.rawLeadHi());
+    pPreprocessingWcpArg1Lo[3] = this.rawLead.hi();
     pPreprocessingWcpArg2Hi[3] = Bytes.of(0);
     pPreprocessingWcpArg2Lo[3] = Bytes.of(0);
     pPreprocessingWcpInst[3] = UnsignedByte.of(ISZERO);
-    pPreprocessingWcpRes[3] = modexpLogExpParameters.rawLeadHi().signum() == 0;
+    pPreprocessingWcpRes[3] = this.rawLead.hi().isZero();
     final boolean rawHiPartIsZero = pPreprocessingWcpRes[3];
 
     // Lookup
-    wcp.callISZERO(bigIntegerToBytes(modexpLogExpParameters.rawLeadHi()));
+    wcp.callISZERO(this.rawLead.hi());
 
     // Fifth row
     final int paddedBase2Log =
@@ -136,13 +251,11 @@ public class ModExpLogChunk extends ExpChunk {
 
     // Linking constraints and fill rawAcc
     if (minCutoffLeq16) {
-      pComputationRawAcc = leftPadTo(bigIntegerToBytes(modexpLogExpParameters.rawLeadHi()), 16);
+      pComputationRawAcc = leftPadTo(this.rawLead.hi(), 16);
+    } else if (!rawHiPartIsZero) {
+      pComputationRawAcc = leftPadTo(this.rawLead.hi(), 16);
     } else {
-      if (!rawHiPartIsZero) {
-        pComputationRawAcc = leftPadTo(bigIntegerToBytes(modexpLogExpParameters.rawLeadHi()), 16);
-      } else {
-        pComputationRawAcc = leftPadTo(bigIntegerToBytes(modexpLogExpParameters.rawLeadLo()), 16);
-      }
+      pComputationRawAcc = leftPadTo(this.rawLead.lo(), 16);
     }
 
     // Fill pltJmp

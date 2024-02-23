@@ -15,9 +15,6 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob;
 
-import java.math.BigInteger;
-
-import net.consensys.linea.zktracer.module.exp.ModexpLogExpParameters;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
 import net.consensys.linea.zktracer.types.EWord;
@@ -43,13 +40,5 @@ public record ModExpLogCall(EWord rawLeadingWord, int cdsCutoff, int ebsCutoff)
         .pMiscellaneousExpData4(Bytes.ofUnsignedShort(ebsCutoff))
         .pMiscellaneousExpData5(
             Bytes.ofUnsignedShort(exponentLeadingWordLog(rawLeadingWord, cdsCutoff, ebsCutoff)));
-  }
-
-  public ModexpLogExpParameters forExp() {
-    return ModexpLogExpParameters.build(
-        rawLeadingWord,
-        cdsCutoff,
-        ebsCutoff,
-        BigInteger.valueOf(exponentLeadingWordLog(rawLeadingWord, cdsCutoff, ebsCutoff)));
   }
 }

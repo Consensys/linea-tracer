@@ -34,11 +34,11 @@ public abstract class ExpChunk extends ModuleOperation {
   protected UnsignedByte pComputationMsb = UnsignedByte.ZERO;
 
   protected int pMacroExpInst;
-  protected Bytes pMacroData1;
-  protected Bytes pMacroData2;
-  protected Bytes pMacroData3;
-  protected Bytes pMacroData4;
-  protected Bytes pMacroData5;
+  protected Bytes pMacroData1 = Bytes.EMPTY;
+  protected Bytes pMacroData2 = Bytes.EMPTY;
+  protected Bytes pMacroData3 = Bytes.EMPTY;
+  protected Bytes pMacroData4 = Bytes.EMPTY;
+  protected Bytes pMacroData5 = Bytes.EMPTY;
 
   protected boolean[] pPreprocessingWcpFlag;
   protected Bytes[] pPreprocessingWcpArg1Hi;

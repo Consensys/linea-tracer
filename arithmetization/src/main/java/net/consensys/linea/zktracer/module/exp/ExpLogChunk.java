@@ -19,57 +19,68 @@ import static net.consensys.linea.zktracer.module.exp.Trace.EXP_EXPLOG;
 import static net.consensys.linea.zktracer.module.exp.Trace.ISZERO;
 import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_CMPTN_EXP_LOG;
 import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_PRPRC_EXP_LOG;
-import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
-import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
+import static net.consensys.linea.zktracer.opcode.gas.GasConstants.G_EXP_BYTE;
 
+import lombok.RequiredArgsConstructor;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.ExpLogCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
+import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.evm.frame.MessageFrame;
 
+@RequiredArgsConstructor
 public class ExpLogChunk extends ExpChunk {
-  private final ExpLogExpParameters expLogExpParameters;
+  private final EWord exponent;
+  private final long dynCost;
 
   @Override
   protected boolean isExpLog() {
     return true;
   }
 
-  public ExpLogChunk(final Wcp wcp, final ExpLogExpParameters expLogExpParameters) {
-    // EXP_LOG case
-    this.wcp = wcp;
-    this.expLogExpParameters = expLogExpParameters;
+  public static ExpLogChunk fromMessageFrame(final Wcp wcp, final MessageFrame frame) {
+    EWord exponent = EWord.of(frame.getStackItem(1));
+    final ExpLogChunk r =
+        new ExpLogChunk(exponent, (long) G_EXP_BYTE.cost() * exponent.byteLength());
+    r.wcp = wcp;
+    return r;
+  }
+
+  public static ExpLogChunk fromExpLogCall(final Wcp wcp, final ExpLogCall c) {
+    final ExpLogChunk r =
+        new ExpLogChunk(c.exponent(), (long) G_EXP_BYTE.cost() * c.exponent().byteLength());
+    r.wcp = wcp;
+    return r;
   }
 
   @Override
   public void preCompute() {
     pMacroExpInst = EXP_EXPLOG;
-    pMacroData1 = bigIntegerToBytes(expLogExpParameters.exponentHi());
-    pMacroData2 = bigIntegerToBytes(expLogExpParameters.exponentLo());
-    pMacroData3 = Bytes.of(0);
-    pMacroData4 = Bytes.of(0);
-    pMacroData5 = bigIntegerToBytes(expLogExpParameters.dynCost());
+    pMacroData1 = this.exponent.hi();
+    pMacroData2 = this.exponent.lo();
+    pMacroData5 = Bytes.ofUnsignedLong(this.dynCost);
     initArrays(MAX_CT_PRPRC_EXP_LOG + 1);
 
     // Preprocessing
     // First row
     pPreprocessingWcpFlag[0] = true;
-    pPreprocessingWcpArg1Hi[0] = Bytes.of(0);
-    pPreprocessingWcpArg1Lo[0] = bigIntegerToBytes(expLogExpParameters.exponentHi());
-    pPreprocessingWcpArg2Hi[0] = Bytes.of(0);
-    pPreprocessingWcpArg2Lo[0] = Bytes.of(0);
+    pPreprocessingWcpArg1Hi[0] = Bytes.EMPTY;
+    pPreprocessingWcpArg1Lo[0] = this.exponent.hi();
+    pPreprocessingWcpArg2Hi[0] = Bytes.EMPTY;
+    pPreprocessingWcpArg2Lo[0] = Bytes.EMPTY;
     pPreprocessingWcpInst[0] = UnsignedByte.of(ISZERO);
-    pPreprocessingWcpRes[0] = expLogExpParameters.exponentHi().signum() == 0;
-    boolean expnHiIsZero = pPreprocessingWcpRes[0];
+    pPreprocessingWcpRes[0] = this.exponent.hi().isZero();
+    final boolean expnHiIsZero = pPreprocessingWcpRes[0];
 
     // Lookup
-    wcp.callISZERO(bigIntegerToBytes(expLogExpParameters.exponentHi()));
+    wcp.callISZERO(this.exponent.hi());
 
     // Linking constraints and fill rawAcc
     pComputationPltJmp = 16;
+    pComputationRawAcc = this.exponent.hi();
     if (expnHiIsZero) {
-      pComputationRawAcc = leftPadTo(bigIntegerToBytes(expLogExpParameters.exponentLo()), 16);
-    } else {
-      pComputationRawAcc = leftPadTo(bigIntegerToBytes(expLogExpParameters.exponentHi()), 16);
+      pComputationRawAcc = this.exponent.lo();
     }
 
     // Fill trimAcc
@@ -80,7 +91,5 @@ public class ExpLogChunk extends ExpChunk {
       byte trimByte = pltBit ? 0 : rawByte;
       pComputationTrimAcc = Bytes.concatenate(pComputationTrimAcc, Bytes.of(trimByte));
     }
-
-    // msb remains 0
   }
 }

@@ -79,7 +79,7 @@ public class ModExpLogChunk extends ExpChunk {
     final LeadLogTrimLead leadLogTrimLead =
         LeadLogTrimLead.fromArgs(c.rawLeadingWord(), c.cdsCutoff(), c.ebsCutoff());
 
-    final ModExpLogChunk r =
+    final ModExpLogChunk modExpLogChunk =
         new ModExpLogChunk(
             c.rawLeadingWord(),
             c.cdsCutoff(),
@@ -87,9 +87,9 @@ public class ModExpLogChunk extends ExpChunk {
             BigInteger.valueOf(leadLogTrimLead.leadLog),
             EWord.of(leadLogTrimLead.trim));
 
-    r.wcp = wcp;
-    r.preCompute();
-    return r;
+    modExpLogChunk.wcp = wcp;
+    modExpLogChunk.preCompute();
+    return modExpLogChunk;
   }
 
   public static ModExpLogChunk fromFrame(final Wcp wcp, final MessageFrame frame) {
@@ -153,7 +153,7 @@ public class ModExpLogChunk extends ExpChunk {
 
     final LeadLogTrimLead leadLogTrimLead = LeadLogTrimLead.fromArgs(rawLead, cdsCutoff, ebsCutoff);
 
-    final ModExpLogChunk r =
+    final ModExpLogChunk modExpLogChunk =
         new ModExpLogChunk(
             rawLead,
             cdsCutoff,
@@ -161,9 +161,9 @@ public class ModExpLogChunk extends ExpChunk {
             BigInteger.valueOf(leadLogTrimLead.leadLog),
             EWord.of(leadLogTrimLead.trim));
 
-    r.wcp = wcp;
-    r.preCompute();
-    return r;
+    modExpLogChunk.wcp = wcp;
+    modExpLogChunk.preCompute();
+    return modExpLogChunk;
   }
 
   @Override

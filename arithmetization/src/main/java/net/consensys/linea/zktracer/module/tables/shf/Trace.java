@@ -45,10 +45,10 @@ public class Trace {
     return List.of(
         new ColumnHeader("shfRT.BYTE1", 1, length),
         new ColumnHeader("shfRT.IOMF", 1, length),
-        new ColumnHeader("shfRT.LAS", 32, length),
+        new ColumnHeader("shfRT.LAS", 4, length),
         new ColumnHeader("shfRT.MSHP", 2, length),
-        new ColumnHeader("shfRT.ONES", 32, length),
-        new ColumnHeader("shfRT.RAP", 32, length));
+        new ColumnHeader("shfRT.ONES", 4, length),
+        new ColumnHeader("shfRT.RAP", 4, length));
   }
 
   public Trace(List<MappedByteBuffer> buffers) {
@@ -92,18 +92,14 @@ public class Trace {
     return this;
   }
 
-  public Trace las(final Bytes b) {
+  public Trace las(final int b) {
     if (filled.get(2)) {
       throw new IllegalStateException("shfRT.LAS already set");
     } else {
       filled.set(2);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      las.put((byte) 0);
-    }
-    las.put(b.toArrayUnsafe());
+    las.putInt(b);
 
     return this;
   }
@@ -120,34 +116,26 @@ public class Trace {
     return this;
   }
 
-  public Trace ones(final Bytes b) {
+  public Trace ones(final int b) {
     if (filled.get(4)) {
       throw new IllegalStateException("shfRT.ONES already set");
     } else {
       filled.set(4);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      ones.put((byte) 0);
-    }
-    ones.put(b.toArrayUnsafe());
+    ones.putInt(b);
 
     return this;
   }
 
-  public Trace rap(final Bytes b) {
+  public Trace rap(final int b) {
     if (filled.get(5)) {
       throw new IllegalStateException("shfRT.RAP already set");
     } else {
       filled.set(5);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      rap.put((byte) 0);
-    }
-    rap.put(b.toArrayUnsafe());
+    rap.putInt(b);
 
     return this;
   }
@@ -193,7 +181,7 @@ public class Trace {
     }
 
     if (!filled.get(2)) {
-      las.position(las.position() + 32);
+      las.position(las.position() + 4);
     }
 
     if (!filled.get(3)) {
@@ -201,11 +189,11 @@ public class Trace {
     }
 
     if (!filled.get(4)) {
-      ones.position(ones.position() + 32);
+      ones.position(ones.position() + 4);
     }
 
     if (!filled.get(5)) {
-      rap.position(rap.position() + 32);
+      rap.position(rap.position() + 4);
     }
 
     filled.clear();

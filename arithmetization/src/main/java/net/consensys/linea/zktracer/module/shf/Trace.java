@@ -223,17 +223,17 @@ public class Trace {
         new ColumnHeader("shf.INST", 1, length),
         new ColumnHeader("shf.IOMF", 1, length),
         new ColumnHeader("shf.KNOWN", 1, length),
-        new ColumnHeader("shf.LEFT_ALIGNED_SUFFIX_HIGH", 32, length),
-        new ColumnHeader("shf.LEFT_ALIGNED_SUFFIX_LOW", 32, length),
+        new ColumnHeader("shf.LEFT_ALIGNED_SUFFIX_HIGH", 4, length),
+        new ColumnHeader("shf.LEFT_ALIGNED_SUFFIX_LOW", 4, length),
         new ColumnHeader("shf.LOW_3", 32, length),
-        new ColumnHeader("shf.MICRO_SHIFT_PARAMETER", 32, length),
+        new ColumnHeader("shf.MICRO_SHIFT_PARAMETER", 2, length),
         new ColumnHeader("shf.NEG", 1, length),
         new ColumnHeader("shf.ONE_LINE_INSTRUCTION", 1, length),
-        new ColumnHeader("shf.ONES", 32, length),
+        new ColumnHeader("shf.ONES", 4, length),
         new ColumnHeader("shf.RES_HI", 32, length),
         new ColumnHeader("shf.RES_LO", 32, length),
-        new ColumnHeader("shf.RIGHT_ALIGNED_PREFIX_HIGH", 32, length),
-        new ColumnHeader("shf.RIGHT_ALIGNED_PREFIX_LOW", 32, length),
+        new ColumnHeader("shf.RIGHT_ALIGNED_PREFIX_HIGH", 4, length),
+        new ColumnHeader("shf.RIGHT_ALIGNED_PREFIX_LOW", 4, length),
         new ColumnHeader("shf.SHB_3_HI", 32, length),
         new ColumnHeader("shf.SHB_3_LO", 32, length),
         new ColumnHeader("shf.SHB_4_HI", 32, length),
@@ -682,34 +682,26 @@ public class Trace {
     return this;
   }
 
-  public Trace leftAlignedSuffixHigh(final Bytes b) {
+  public Trace leftAlignedSuffixHigh(final int b) {
     if (filled.get(28)) {
       throw new IllegalStateException("shf.LEFT_ALIGNED_SUFFIX_HIGH already set");
     } else {
       filled.set(28);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      leftAlignedSuffixHigh.put((byte) 0);
-    }
-    leftAlignedSuffixHigh.put(b.toArrayUnsafe());
+    leftAlignedSuffixHigh.putInt(b);
 
     return this;
   }
 
-  public Trace leftAlignedSuffixLow(final Bytes b) {
+  public Trace leftAlignedSuffixLow(final int b) {
     if (filled.get(29)) {
       throw new IllegalStateException("shf.LEFT_ALIGNED_SUFFIX_LOW already set");
     } else {
       filled.set(29);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      leftAlignedSuffixLow.put((byte) 0);
-    }
-    leftAlignedSuffixLow.put(b.toArrayUnsafe());
+    leftAlignedSuffixLow.putInt(b);
 
     return this;
   }
@@ -730,18 +722,14 @@ public class Trace {
     return this;
   }
 
-  public Trace microShiftParameter(final Bytes b) {
+  public Trace microShiftParameter(final short b) {
     if (filled.get(31)) {
       throw new IllegalStateException("shf.MICRO_SHIFT_PARAMETER already set");
     } else {
       filled.set(31);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      microShiftParameter.put((byte) 0);
-    }
-    microShiftParameter.put(b.toArrayUnsafe());
+    microShiftParameter.putShort(b);
 
     return this;
   }
@@ -770,18 +758,14 @@ public class Trace {
     return this;
   }
 
-  public Trace ones(final Bytes b) {
+  public Trace ones(final int b) {
     if (filled.get(33)) {
       throw new IllegalStateException("shf.ONES already set");
     } else {
       filled.set(33);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      ones.put((byte) 0);
-    }
-    ones.put(b.toArrayUnsafe());
+    ones.putInt(b);
 
     return this;
   }
@@ -818,34 +802,26 @@ public class Trace {
     return this;
   }
 
-  public Trace rightAlignedPrefixHigh(final Bytes b) {
+  public Trace rightAlignedPrefixHigh(final int b) {
     if (filled.get(37)) {
       throw new IllegalStateException("shf.RIGHT_ALIGNED_PREFIX_HIGH already set");
     } else {
       filled.set(37);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      rightAlignedPrefixHigh.put((byte) 0);
-    }
-    rightAlignedPrefixHigh.put(b.toArrayUnsafe());
+    rightAlignedPrefixHigh.putInt(b);
 
     return this;
   }
 
-  public Trace rightAlignedPrefixLow(final Bytes b) {
+  public Trace rightAlignedPrefixLow(final int b) {
     if (filled.get(38)) {
       throw new IllegalStateException("shf.RIGHT_ALIGNED_PREFIX_LOW already set");
     } else {
       filled.set(38);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      rightAlignedPrefixLow.put((byte) 0);
-    }
-    rightAlignedPrefixLow.put(b.toArrayUnsafe());
+    rightAlignedPrefixLow.putInt(b);
 
     return this;
   }
@@ -1359,11 +1335,11 @@ public class Trace {
     }
 
     if (!filled.get(28)) {
-      leftAlignedSuffixHigh.position(leftAlignedSuffixHigh.position() + 32);
+      leftAlignedSuffixHigh.position(leftAlignedSuffixHigh.position() + 4);
     }
 
     if (!filled.get(29)) {
-      leftAlignedSuffixLow.position(leftAlignedSuffixLow.position() + 32);
+      leftAlignedSuffixLow.position(leftAlignedSuffixLow.position() + 4);
     }
 
     if (!filled.get(30)) {
@@ -1371,7 +1347,7 @@ public class Trace {
     }
 
     if (!filled.get(31)) {
-      microShiftParameter.position(microShiftParameter.position() + 32);
+      microShiftParameter.position(microShiftParameter.position() + 2);
     }
 
     if (!filled.get(32)) {
@@ -1383,7 +1359,7 @@ public class Trace {
     }
 
     if (!filled.get(33)) {
-      ones.position(ones.position() + 32);
+      ones.position(ones.position() + 4);
     }
 
     if (!filled.get(35)) {
@@ -1395,11 +1371,11 @@ public class Trace {
     }
 
     if (!filled.get(37)) {
-      rightAlignedPrefixHigh.position(rightAlignedPrefixHigh.position() + 32);
+      rightAlignedPrefixHigh.position(rightAlignedPrefixHigh.position() + 4);
     }
 
     if (!filled.get(38)) {
-      rightAlignedPrefixLow.position(rightAlignedPrefixLow.position() + 32);
+      rightAlignedPrefixLow.position(rightAlignedPrefixLow.position() + 4);
     }
 
     if (!filled.get(39)) {

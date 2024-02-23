@@ -51,10 +51,10 @@ public record ShfRt() implements Module {
       for (int uShp = 0; uShp <= 8; uShp++) {
         trace
             .byte1(UnsignedByte.of(a))
-            .las(Bytes.ofUnsignedShort(a).shiftLeft(8 - uShp)) // a<<(8-µShp)
+            .las(Bytes.ofUnsignedShort(a).shiftLeft(8 - uShp).toInt()) // a<<(8-µShp)
             .mshp((short) uShp)
-            .rap(Bytes.ofUnsignedShort(a).shiftRight(uShp))
-            .ones((Bytes.fromHexString("0xFF").shiftRight(uShp)).not())
+            .rap(Bytes.ofUnsignedShort(a).shiftRight(uShp).toInt())
+            .ones((Bytes.fromHexString("0xFF").shiftRight(uShp)).not().toInt())
             .iomf(true)
             .validateRow();
       }

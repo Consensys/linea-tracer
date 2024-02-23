@@ -41,7 +41,7 @@ final class ShfOperation extends ModuleOperation {
   private boolean isShiftRight;
   private boolean isKnown;
   private UnsignedByte low3;
-  private UnsignedByte mshp;
+  private short mshp;
   private List<Boolean> bits;
   private Shb shb;
   private Res res;
@@ -90,9 +90,9 @@ final class ShfOperation extends ModuleOperation {
     this.low3 = lsb.shiftLeft(5).shiftRight(5);
 
     if (isShiftRight) {
-      this.mshp = low3;
+      this.mshp = (short) low3.toInteger();
     } else {
-      this.mshp = UnsignedByte.of(8 - low3.toInteger());
+      this.mshp = (short) (8 - low3.toInteger());
     }
 
     Boolean[] lsbBits = byteBits(lsb);
@@ -137,9 +137,11 @@ final class ShfOperation extends ModuleOperation {
 
     for (int i = 0; i < this.maxCt(); i++) {
       final ByteChunks arg2HiByteChunks =
-          ByteChunks.fromBytes(UnsignedByte.of(this.arg2Hi().get(i)), this.mshp);
+          ByteChunks.fromBytes(
+              (short) UnsignedByte.of(this.arg2Hi().get(i)).toInteger(), this.mshp);
       final ByteChunks arg2LoByteChunks =
-          ByteChunks.fromBytes(UnsignedByte.of(this.arg2Lo().get(i)), this.mshp);
+          ByteChunks.fromBytes(
+              (short) UnsignedByte.of(this.arg2Lo().get(i)).toInteger(), this.mshp);
 
       trace
           .acc1(this.arg1Lo().slice(0, 1 + i))
@@ -176,14 +178,14 @@ final class ShfOperation extends ModuleOperation {
           .neg(this.isNegative)
           .oneLineInstruction(this.isOneLineInstruction)
           .low3(Bytes.of(this.low3.toInteger()))
-          .microShiftParameter((short) this.mshp.toInteger())
+          .microShiftParameter(this.mshp)
           .resHi(this.res.getResHi())
           .resLo(this.res.getResLo())
-          .leftAlignedSuffixHigh(arg2HiByteChunks.la().toInteger())
-          .rightAlignedPrefixHigh(arg2HiByteChunks.ra().toInteger())
-          .ones(arg2HiByteChunks.ones().toInteger())
-          .leftAlignedSuffixLow(arg2LoByteChunks.la().toInteger())
-          .rightAlignedPrefixLow(arg2LoByteChunks.ra().toInteger())
+          .leftAlignedSuffixHigh(arg2HiByteChunks.la())
+          .rightAlignedPrefixHigh(arg2HiByteChunks.ra())
+          .ones(arg2HiByteChunks.ones())
+          .leftAlignedSuffixLow(arg2LoByteChunks.la())
+          .rightAlignedPrefixLow(arg2LoByteChunks.ra())
           .shb3Hi(Bytes.ofUnsignedInt(this.shb.getShbHi()[0][i].toInteger()))
           .shb3Lo(Bytes.ofUnsignedInt(this.shb.getShbLo()[0][i].toInteger()))
           .shb4Hi(Bytes.ofUnsignedInt(this.shb.getShbHi()[4 - 3][i].toInteger()))

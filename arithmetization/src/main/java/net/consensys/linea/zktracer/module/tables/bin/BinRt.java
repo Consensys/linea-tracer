@@ -62,6 +62,7 @@ public class BinRt implements Module {
 
         final UnsignedByte result = UnsignedByte.of(input1Bytes.and(input2Bytes).get(0));
         trace
+            .iomf(true)
             .inst(opCode)
             .resultByte(result)
             .inputByte1(input1UByte)
@@ -105,6 +106,7 @@ public class BinRt implements Module {
 
         final UnsignedByte result = UnsignedByte.of(input1Bytes.xor(input2Bytes).get(0));
         trace
+            .iomf(true)
             .inst(opCode)
             .resultByte(result)
             .inputByte1(input1UByte)
@@ -122,6 +124,7 @@ public class BinRt implements Module {
 
       final UnsignedByte result = UnsignedByte.of(input1Bytes.not().get(0));
       trace
+          .iomf(true)
           .inst(opCode)
           .resultByte(result)
           .inputByte1(input1UByte)

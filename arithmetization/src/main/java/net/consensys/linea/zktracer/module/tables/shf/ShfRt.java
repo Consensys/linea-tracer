@@ -37,7 +37,7 @@ public record ShfRt() implements Module {
 
   @Override
   public int lineCount() {
-    return 256 * 9 + 1;
+    return 256 * 9;
   }
 
   @Override

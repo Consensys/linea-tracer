@@ -23,7 +23,6 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostExecDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.defer.ReEnterContextDefer;
-import net.consensys.linea.zktracer.module.hub.fragment.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
@@ -70,6 +69,10 @@ public class NoCodeCallSection extends TraceSection
         ScenarioFragment.forNoCodeCallSection(
             hub, precompileInvocation, this.callerCallFrame.id(), this.calledCallFrameId);
     this.addStack(hub);
+
+    hub.defers().postExec(this);
+    hub.defers().postTx(this);
+    hub.defers().reEntry(this);
   }
 
   @Override
@@ -111,18 +114,24 @@ public class NoCodeCallSection extends TraceSection
         this.scenarioFragment,
         this.imcFragment,
         ContextFragment.readContextData(hub.callStack()),
-        new AccountFragment(this.preCallCallerAccountSnapshot, this.postCallCallerAccountSnapshot),
-        new AccountFragment(this.preCallCalledAccountSnapshot, this.postCallCalledAccountSnapshot));
+        hub.factories()
+            .accountFragment()
+            .make(this.preCallCallerAccountSnapshot, this.postCallCallerAccountSnapshot),
+        hub.factories()
+            .accountFragment()
+            .make(this.preCallCalledAccountSnapshot, this.postCallCalledAccountSnapshot));
 
     if (precompileInvocation.isPresent()) {
       if (this.callSuccessful && callerCallFrame.hasReverted()) {
         this.addFragmentsWithoutStack(
             hub,
             callerCallFrame,
-            new AccountFragment(
-                this.postCallCallerAccountSnapshot, this.preCallCallerAccountSnapshot),
-            new AccountFragment(
-                this.postCallCalledAccountSnapshot, this.preCallCalledAccountSnapshot));
+            hub.factories()
+                .accountFragment()
+                .make(this.postCallCallerAccountSnapshot, this.preCallCallerAccountSnapshot),
+            hub.factories()
+                .accountFragment()
+                .make(this.postCallCalledAccountSnapshot, this.preCallCalledAccountSnapshot));
       }
       this.addFragmentsWithoutStack(
           hub,
@@ -138,10 +147,12 @@ public class NoCodeCallSection extends TraceSection
         this.addFragmentsWithoutStack(
             hub,
             callerCallFrame,
-            new AccountFragment(
-                this.postCallCallerAccountSnapshot, this.preCallCallerAccountSnapshot),
-            new AccountFragment(
-                this.postCallCalledAccountSnapshot, this.preCallCalledAccountSnapshot));
+            hub.factories()
+                .accountFragment()
+                .make(this.postCallCallerAccountSnapshot, this.preCallCallerAccountSnapshot),
+            hub.factories()
+                .accountFragment()
+                .make(this.postCallCalledAccountSnapshot, this.preCallCalledAccountSnapshot));
       }
       this.addFragmentsWithoutStack(
           hub, callerCallFrame, ContextFragment.nonExecutionEmptyReturnData(hub.callStack()));

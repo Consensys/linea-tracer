@@ -23,7 +23,6 @@ import net.consensys.linea.zktracer.module.hub.defer.NextContextDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostExecDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.defer.ReEnterContextDefer;
-import net.consensys.linea.zktracer.module.hub.fragment.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
@@ -89,6 +88,12 @@ public class CreateSection extends TraceSection
     this.scenarioFragment = ScenarioFragment.forCreate(hub, this.targetHasCode());
 
     this.addStack(hub);
+
+    // Will be traced in one (and only one!) of these depending on the success of
+    // the operation
+    hub.defers().postExec(this);
+    hub.defers().nextContext(this, hub.currentFrame().id());
+    hub.defers().reEntry(this);
   }
 
   @Override
@@ -190,24 +195,24 @@ public class CreateSection extends TraceSection
           hub,
           commonImcFragment,
           ContextFragment.readContextData(hub.callStack()),
-          new AccountFragment(oldCreatorSnapshot, newCreatorSnapshot),
+          hub.factories().accountFragment().make(oldCreatorSnapshot, newCreatorSnapshot),
           ContextFragment.nonExecutionEmptyReturnData(hub.callStack()));
     } else if (this.failures.any()) {
       if (creatorReverted) {
         this.addFragmentsWithoutStack(
             hub,
             commonImcFragment,
-            new AccountFragment(oldCreatorSnapshot, newCreatorSnapshot),
-            new AccountFragment(oldCreatedSnapshot, newCreatedSnapshot),
-            new AccountFragment(newCreatorSnapshot, oldCreatorSnapshot),
-            new AccountFragment(newCreatedSnapshot, oldCreatedSnapshot),
+            hub.factories().accountFragment().make(oldCreatorSnapshot, newCreatorSnapshot),
+            hub.factories().accountFragment().make(oldCreatedSnapshot, newCreatedSnapshot),
+            hub.factories().accountFragment().make(newCreatorSnapshot, oldCreatorSnapshot),
+            hub.factories().accountFragment().make(newCreatedSnapshot, oldCreatedSnapshot),
             ContextFragment.nonExecutionEmptyReturnData(hub.callStack()));
       } else {
         this.addFragmentsWithoutStack(
             hub,
             commonImcFragment,
-            new AccountFragment(oldCreatorSnapshot, newCreatorSnapshot),
-            new AccountFragment(oldCreatedSnapshot, newCreatedSnapshot),
+            hub.factories().accountFragment().make(oldCreatorSnapshot, newCreatorSnapshot),
+            hub.factories().accountFragment().make(oldCreatedSnapshot, newCreatedSnapshot),
             ContextFragment.nonExecutionEmptyReturnData(hub.callStack()));
       }
     } else {
@@ -216,17 +221,17 @@ public class CreateSection extends TraceSection
           this.addFragmentsWithoutStack(
               hub,
               commonImcFragment,
-              new AccountFragment(oldCreatorSnapshot, newCreatorSnapshot),
-              new AccountFragment(oldCreatedSnapshot, newCreatedSnapshot),
-              new AccountFragment(newCreatorSnapshot, oldCreatorSnapshot),
-              new AccountFragment(newCreatedSnapshot, oldCreatedSnapshot),
+              hub.factories().accountFragment().make(oldCreatorSnapshot, newCreatorSnapshot),
+              hub.factories().accountFragment().make(oldCreatedSnapshot, newCreatedSnapshot),
+              hub.factories().accountFragment().make(newCreatorSnapshot, oldCreatorSnapshot),
+              hub.factories().accountFragment().make(newCreatedSnapshot, oldCreatedSnapshot),
               ContextFragment.nonExecutionEmptyReturnData(hub.callStack()));
         } else {
           this.addFragmentsWithoutStack(
               hub,
               commonImcFragment,
-              new AccountFragment(oldCreatorSnapshot, newCreatorSnapshot),
-              new AccountFragment(oldCreatedSnapshot, newCreatedSnapshot),
+              hub.factories().accountFragment().make(oldCreatorSnapshot, newCreatorSnapshot),
+              hub.factories().accountFragment().make(oldCreatedSnapshot, newCreatedSnapshot),
               ContextFragment.nonExecutionEmptyReturnData(hub.callStack()));
         }
       } else {
@@ -235,18 +240,18 @@ public class CreateSection extends TraceSection
             this.addFragmentsWithoutStack(
                 hub,
                 commonImcFragment,
-                new AccountFragment(oldCreatorSnapshot, midCreatorSnapshot),
-                new AccountFragment(oldCreatedSnapshot, midCreatedSnapshot),
-                new AccountFragment(midCreatorSnapshot, oldCreatorSnapshot),
-                new AccountFragment(midCreatedSnapshot, oldCreatedSnapshot),
+                hub.factories().accountFragment().make(oldCreatorSnapshot, midCreatorSnapshot),
+                hub.factories().accountFragment().make(oldCreatedSnapshot, midCreatedSnapshot),
+                hub.factories().accountFragment().make(midCreatorSnapshot, oldCreatorSnapshot),
+                hub.factories().accountFragment().make(midCreatedSnapshot, oldCreatedSnapshot),
                 ContextFragment.intializeExecutionContext(hub));
 
           } else {
             this.addFragmentsWithoutStack(
                 hub,
                 commonImcFragment,
-                new AccountFragment(oldCreatorSnapshot, midCreatorSnapshot),
-                new AccountFragment(oldCreatedSnapshot, midCreatedSnapshot),
+                hub.factories().accountFragment().make(oldCreatorSnapshot, midCreatorSnapshot),
+                hub.factories().accountFragment().make(oldCreatedSnapshot, midCreatedSnapshot),
                 ContextFragment.intializeExecutionContext(hub));
           }
         } else {
@@ -254,21 +259,21 @@ public class CreateSection extends TraceSection
             this.addFragmentsWithoutStack(
                 hub,
                 commonImcFragment,
-                new AccountFragment(oldCreatorSnapshot, midCreatorSnapshot),
-                new AccountFragment(oldCreatedSnapshot, midCreatedSnapshot),
-                new AccountFragment(midCreatorSnapshot, newCreatorSnapshot),
-                new AccountFragment(midCreatedSnapshot, newCreatedSnapshot),
-                new AccountFragment(newCreatorSnapshot, oldCreatorSnapshot),
-                new AccountFragment(newCreatedSnapshot, oldCreatedSnapshot),
+                hub.factories().accountFragment().make(oldCreatorSnapshot, midCreatorSnapshot),
+                hub.factories().accountFragment().make(oldCreatedSnapshot, midCreatedSnapshot),
+                hub.factories().accountFragment().make(midCreatorSnapshot, newCreatorSnapshot),
+                hub.factories().accountFragment().make(midCreatedSnapshot, newCreatedSnapshot),
+                hub.factories().accountFragment().make(newCreatorSnapshot, oldCreatorSnapshot),
+                hub.factories().accountFragment().make(newCreatedSnapshot, oldCreatedSnapshot),
                 ContextFragment.intializeExecutionContext(hub));
           } else {
             this.addFragmentsWithoutStack(
                 hub,
                 commonImcFragment,
-                new AccountFragment(oldCreatorSnapshot, midCreatorSnapshot),
-                new AccountFragment(oldCreatedSnapshot, midCreatedSnapshot),
-                new AccountFragment(midCreatorSnapshot, newCreatorSnapshot),
-                new AccountFragment(midCreatedSnapshot, newCreatedSnapshot),
+                hub.factories().accountFragment().make(oldCreatorSnapshot, midCreatorSnapshot),
+                hub.factories().accountFragment().make(oldCreatedSnapshot, midCreatedSnapshot),
+                hub.factories().accountFragment().make(midCreatorSnapshot, newCreatorSnapshot),
+                hub.factories().accountFragment().make(midCreatedSnapshot, newCreatedSnapshot),
                 ContextFragment.intializeExecutionContext(hub));
           }
         }

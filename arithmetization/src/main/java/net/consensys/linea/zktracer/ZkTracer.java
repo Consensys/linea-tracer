@@ -84,7 +84,11 @@ public class ZkTracer implements ConflationAwareOperationTracer {
     }
 
     // >>>> CHANGE ME >>>>
+    // >>>> CHANGE ME >>>>
+    // >>>> CHANGE ME >>>>
     final Pin55.PinLevel debugLevel = new Pin55.PinLevel();
+    // <<<< CHANGE ME <<<<
+    // <<<< CHANGE ME <<<<
     // <<<< CHANGE ME <<<<
     this.pin55 =
         debugLevel.none() ? Optional.empty() : Optional.of(new Pin55(debugLevel, this.hub));

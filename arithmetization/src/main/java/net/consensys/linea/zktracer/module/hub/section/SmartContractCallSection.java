@@ -20,7 +20,6 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.NextContextDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostExecDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
-import net.consensys.linea.zktracer.module.hub.fragment.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioFragment;
@@ -63,6 +62,10 @@ public class SmartContractCallSection extends TraceSection
             hub, calledCallFrameId, this.callerCallFrame.id());
 
     this.addStack(hub);
+
+    hub.defers().postExec(this);
+    hub.defers().nextContext(this, hub.currentFrame().id());
+    hub.defers().postTx(this);
   }
 
   @Override
@@ -118,38 +121,49 @@ public class SmartContractCallSection extends TraceSection
         this.scenarioFragment,
         ContextFragment.readContextData(hub.callStack()),
         this.imcFragment,
-        new AccountFragment(this.preCallCallerAccountSnapshot, this.inCallCallerAccountSnapshot),
-        new AccountFragment(this.preCallCalledAccountSnapshot, this.inCallCalledAccountSnapshot));
+        hub.factories()
+            .accountFragment()
+            .make(this.preCallCallerAccountSnapshot, this.inCallCallerAccountSnapshot),
+        hub.factories()
+            .accountFragment()
+            .make(this.preCallCalledAccountSnapshot, this.inCallCalledAccountSnapshot));
 
     if (callerCallFrame.hasReverted()) {
       if (calledCallFrame.hasReverted()) {
         this.addFragmentsWithoutStack(
             hub,
             callerCallFrame,
-            new AccountFragment(
-                this.inCallCallerAccountSnapshot, this.preCallCallerAccountSnapshot),
-            new AccountFragment(
-                this.inCallCalledAccountSnapshot, this.postCallCalledAccountSnapshot),
-            new AccountFragment(
-                this.postCallCalledAccountSnapshot, this.preCallCalledAccountSnapshot));
+            hub.factories()
+                .accountFragment()
+                .make(this.inCallCallerAccountSnapshot, this.preCallCallerAccountSnapshot),
+            hub.factories()
+                .accountFragment()
+                .make(this.inCallCalledAccountSnapshot, this.postCallCalledAccountSnapshot),
+            hub.factories()
+                .accountFragment()
+                .make(this.postCallCalledAccountSnapshot, this.preCallCalledAccountSnapshot));
       } else {
         this.addFragmentsWithoutStack(
             hub,
             callerCallFrame,
-            new AccountFragment(
-                this.inCallCallerAccountSnapshot, this.preCallCallerAccountSnapshot),
-            new AccountFragment(
-                this.inCallCalledAccountSnapshot, this.preCallCalledAccountSnapshot));
+            hub.factories()
+                .accountFragment()
+                .make(this.inCallCallerAccountSnapshot, this.preCallCallerAccountSnapshot),
+            hub.factories()
+                .accountFragment()
+                .make(this.inCallCalledAccountSnapshot, this.preCallCalledAccountSnapshot));
       }
     } else {
       if (calledCallFrame.hasReverted()) {
         this.addFragmentsWithoutStack(
             hub,
             callerCallFrame,
-            new AccountFragment(
-                this.inCallCallerAccountSnapshot, this.postCallCallerAccountSnapshot),
-            new AccountFragment(
-                this.inCallCalledAccountSnapshot, this.postCallCalledAccountSnapshot));
+            hub.factories()
+                .accountFragment()
+                .make(this.inCallCallerAccountSnapshot, this.postCallCallerAccountSnapshot),
+            hub.factories()
+                .accountFragment()
+                .make(this.inCallCalledAccountSnapshot, this.postCallCalledAccountSnapshot));
       }
     }
 

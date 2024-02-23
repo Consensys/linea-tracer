@@ -111,16 +111,14 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 @Accessors(fluent = true)
 public class Hub implements Module {
   private static final int TAU = 8;
-
   public static final GasProjector gp = new GasProjector();
 
   /** accumulate the trace information for the Hub */
   @Getter private final State state = new State();
+  /** contain the factories for trace segments that need complex initialization */
+  @Getter private final Factories factories;
 
-  /**
-   * Long-lived states, not used in tracing per se but keeping track of data of the associated
-   * lifetime
-   */
+  /** provides phase-related volatile information */
   @Getter Transients transients;
 
   @Getter CallStack callStack = new CallStack();
@@ -129,6 +127,7 @@ public class Hub implements Module {
   /** Stores all the actions that must be deferred to a later time */
   @Getter private final DeferRegistry defers = new DeferRegistry();
 
+  /** stores all data related to failure states & module activation */
   @Getter private final PlatformController pch;
 
   public int stamp() {
@@ -204,6 +203,7 @@ public class Hub implements Module {
 
   public Hub() {
     this.transients = new Transients(this);
+    this.factories = new Factories(this);
 
     this.pch = new PlatformController(this);
     this.mmu = new Mmu(this.callStack);
@@ -419,7 +419,8 @@ public class Hub implements Module {
                   AccountSnapshot snapshot =
                       AccountSnapshot.fromAccount(
                           world.get(address), seenAddresses.contains(address), 0, false);
-                  fragments.add(new AccountFragment(snapshot, snapshot, false, 0, false));
+                  fragments.add(
+                      this.factories.accountFragment().make(snapshot, snapshot, false, 0, false));
                   seenAddresses.add(address);
 
                   List<Bytes32> keys = entry.storageKeys();
@@ -494,13 +495,14 @@ public class Hub implements Module {
     this.addTraceSection(
         new TxInitSection(
             this,
-            new AccountFragment(fromSnapshot, fromPostDebitSnapshot),
+            this.factories.accountFragment().make(fromSnapshot, fromPostDebitSnapshot),
             isDeployment
-                ? new AccountFragment(toSnapshot, toSnapshot.deploy(value))
+                ? this.factories.accountFragment().make(toSnapshot, toSnapshot.deploy(value))
                 : (isSelfCredit
-                    ? new AccountFragment(
-                        fromPostDebitSnapshot, fromPostDebitSnapshot.credit(value))
-                    : new AccountFragment(toSnapshot, toSnapshot.credit(value))),
+                    ? this.factories
+                        .accountFragment()
+                        .make(fromPostDebitSnapshot, fromPostDebitSnapshot.credit(value))
+                    : this.factories.accountFragment().make(toSnapshot, toSnapshot.credit(value))),
             ImcFragment.forTxInit(this),
             ContextFragment.intializeExecutionContext(this)));
 
@@ -641,8 +643,8 @@ public class Hub implements Module {
       this.addTraceSection(
           new EndTransaction(
               this,
-              new AccountFragment(fromSnapshot, fromSnapshot, false, 0, false),
-              new AccountFragment(minerSnapshot, minerSnapshot, false, 0, false),
+              this.factories.accountFragment().make(fromSnapshot, fromSnapshot, false, 0, false),
+              this.factories.accountFragment().make(minerSnapshot, minerSnapshot, false, 0, false),
               TransactionFragment.prepare(
                   this.transients.conflation().number(),
                   this.transients.block().minerAddress(),
@@ -669,10 +671,10 @@ public class Hub implements Module {
       this.addTraceSection(
           new EndTransaction(
               this,
-              new AccountFragment(fromSnapshot, fromSnapshot, false, 0, false),
-              new AccountFragment(minerSnapshot, minerSnapshot, false, 0, false),
-              new AccountFragment(fromSnapshot, fromSnapshot, false, 0, false),
-              new AccountFragment(toSnapshot, toSnapshot, false, 0, false)));
+              this.factories.accountFragment().make(fromSnapshot, fromSnapshot, false, 0, false),
+              this.factories.accountFragment().make(minerSnapshot, minerSnapshot, false, 0, false),
+              this.factories.accountFragment().make(fromSnapshot, fromSnapshot, false, 0, false),
+              this.factories.accountFragment().make(toSnapshot, toSnapshot, false, 0, false)));
     }
   }
 
@@ -687,7 +689,9 @@ public class Hub implements Module {
   public void traceStartTx(final WorldView world, final Transaction tx) {
     this.pch.reset();
     this.state.enter();
-    this.txStack.enter();
+
+    this.defers.postTx(this.state.currentTxTrace());
+
     this.txStack.enterTransaction(tx);
 
     this.enterTransaction();
@@ -729,7 +733,6 @@ public class Hub implements Module {
 
     this.txStack.exitTransaction(this, isSuccessful);
     this.defers.runPostTx(this, world, tx);
-    this.state.currentTxTrace().postTxRetcon(this);
 
     for (Module m : this.modules) {
       m.traceEndTx(world, tx, isSuccessful, output, logs, gasUsed);
@@ -988,10 +991,11 @@ public class Hub implements Module {
 
   @Override
   public void traceEndConflation(final WorldView state) {
+    this.defers.runPostConflation(this, state);
+
     for (Module m : this.modules) {
       m.traceEndConflation(state);
     }
-    this.state.postConflationRetcon(this, state);
   }
 
   @Override
@@ -1099,7 +1103,9 @@ public class Hub implements Module {
         accountSection.addFragment(
             this,
             this.currentFrame(),
-            new AccountFragment(accountSnapshot, accountSnapshot, false, 0, false));
+            this.factories
+                .accountFragment()
+                .make(accountSnapshot, accountSnapshot, false, 0, false));
 
         this.addTraceSection(accountSection);
       }
@@ -1123,7 +1129,9 @@ public class Hub implements Module {
           copySection.addFragment(
               this,
               this.currentFrame(),
-              new AccountFragment(accountSnapshot, accountSnapshot, false, 0, false));
+              this.factories
+                  .accountFragment()
+                  .make(accountSnapshot, accountSnapshot, false, 0, false));
         } else {
           copySection.addFragment(
               this, this.currentFrame(), ContextFragment.readContextData(callStack));
@@ -1217,11 +1225,6 @@ public class Hub implements Module {
 
         CreateSection createSection =
             new CreateSection(this, myAccountSnapshot, createdAccountSnapshot);
-        // Will be traced in one (and only one!) of these depending on the success of
-        // the operation
-        this.defers.postExec(createSection);
-        this.defers.nextContext(createSection, currentFrame().id());
-        this.defers.reEntry(createSection);
         this.addTraceSection(createSection);
         this.currentFrame().needsUnlatchingAtReEntry(createSection);
       }
@@ -1273,7 +1276,9 @@ public class Hub implements Module {
                     this,
                     ScenarioFragment.forCall(this, hasCode),
                     ImcFragment.forCall(this, myAccount, calledAccount),
-                    new AccountFragment(calledAccountSnapshot, calledAccountSnapshot)));
+                    this.factories
+                        .accountFragment()
+                        .make(calledAccountSnapshot, calledAccountSnapshot)));
           }
         } else if (this.pch.aborts().any()) {
           TraceSection abortedSection =
@@ -1282,8 +1287,10 @@ public class Hub implements Module {
                   ScenarioFragment.forCall(this, hasCode),
                   ImcFragment.forCall(this, myAccount, calledAccount),
                   ContextFragment.readContextData(callStack),
-                  new AccountFragment(myAccountSnapshot, myAccountSnapshot),
-                  new AccountFragment(calledAccountSnapshot, calledAccountSnapshot),
+                  this.factories.accountFragment().make(myAccountSnapshot, myAccountSnapshot),
+                  this.factories
+                      .accountFragment()
+                      .make(calledAccountSnapshot, calledAccountSnapshot),
                   ContextFragment.nonExecutionEmptyReturnData(callStack));
           this.addTraceSection(abortedSection);
         } else {
@@ -1296,9 +1303,6 @@ public class Hub implements Module {
             final SmartContractCallSection section =
                 new SmartContractCallSection(
                     this, myAccountSnapshot, calledAccountSnapshot, imcFragment);
-            this.defers.postExec(section);
-            this.defers.nextContext(section, currentFrame().id());
-            this.defers.postTx(section);
             this.addTraceSection(section);
             this.currentFrame().needsUnlatchingAtReEntry(section);
           } else {
@@ -1318,9 +1322,6 @@ public class Hub implements Module {
                     myAccountSnapshot,
                     calledAccountSnapshot,
                     imcFragment);
-            this.defers.postExec(section);
-            this.defers.postTx(section);
-            this.defers.reEntry(section);
             this.addTraceSection(section);
             this.currentFrame().needsUnlatchingAtReEntry(section);
           }
@@ -1342,7 +1343,9 @@ public class Hub implements Module {
             new JumpSection(
                 this,
                 ContextFragment.readContextData(callStack),
-                new AccountFragment(codeAccountSnapshot, codeAccountSnapshot, false, 0, false),
+                this.factories
+                    .accountFragment()
+                    .make(codeAccountSnapshot, codeAccountSnapshot, false, 0, false),
                 ImcFragment.forOpcode(this, frame));
 
         this.addTraceSection(jumpSection);

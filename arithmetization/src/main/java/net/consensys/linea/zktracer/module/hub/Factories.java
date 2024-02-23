@@ -13,14 +13,18 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.fragment;
+package net.consensys.linea.zktracer.module.hub;
 
-import net.consensys.linea.zktracer.module.hub.Trace;
+import lombok.Getter;
+import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.module.hub.fragment.AccountFragment;
 
-/**
- * A TraceFragment represents a piece of a trace line; either a {@link CommonFragment} present in
- * each line, or a perspective-specific fragment.
- */
-public interface TraceFragment {
-  Trace trace(Trace trace);
+/** Contain factories for modules requiring access to longer-lived data. */
+@Accessors(fluent = true)
+public class Factories {
+  @Getter private final AccountFragment.AccountFragmentFactory accountFragment;
+
+  public Factories(final Hub hub) {
+    this.accountFragment = new AccountFragment.AccountFragmentFactory(hub.defers());
+  }
 }

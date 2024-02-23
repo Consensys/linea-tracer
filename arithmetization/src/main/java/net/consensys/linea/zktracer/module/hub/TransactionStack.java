@@ -68,6 +68,7 @@ public class TransactionStack implements StackedContainer {
   }
 
   public void enterTransaction(final Transaction tx) {
+    this.enter();
     if (tx.getTo().isPresent() && isPrecompile(tx.getTo().get())) {
       throw new RuntimeException("Call to precompile forbidden");
     } else {

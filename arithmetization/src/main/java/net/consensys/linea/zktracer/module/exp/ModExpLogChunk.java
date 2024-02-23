@@ -79,6 +79,7 @@ public class ModExpLogChunk extends ExpChunk {
             bigIntegerToBytes(lead));
 
     r.wcp = wcp;
+    r.preCompute();
     return r;
   }
 
@@ -163,6 +164,8 @@ public class ModExpLogChunk extends ExpChunk {
         new ModExpLogChunk(
             rawLead, cdsCutoff, ebsCutoff, leadLog, EWord.of(trim), bigIntegerToBytes(lead));
     r.wcp = wcp;
+    r.preCompute();
+
     return r;
   }
 

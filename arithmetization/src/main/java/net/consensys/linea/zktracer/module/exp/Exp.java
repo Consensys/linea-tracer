@@ -103,7 +103,6 @@ public class Exp implements Module {
 
     for (int i = 0; i < this.chunks.size(); i++) {
       ExpChunk expChunk = this.chunks.get(i);
-      expChunk.preCompute();
       expChunk.traceComputation(i + 1, trace);
       expChunk.traceMacro(i + 1, trace);
       expChunk.tracePreprocessing(i + 1, trace);

@@ -44,6 +44,8 @@ public class ExpLogChunk extends ExpChunk {
     final ExpLogChunk r =
         new ExpLogChunk(exponent, (long) G_EXP_BYTE.cost() * exponent.byteLength());
     r.wcp = wcp;
+    r.preCompute();
+
     return r;
   }
 
@@ -51,6 +53,8 @@ public class ExpLogChunk extends ExpChunk {
     final ExpLogChunk r =
         new ExpLogChunk(c.exponent(), (long) G_EXP_BYTE.cost() * c.exponent().byteLength());
     r.wcp = wcp;
+    r.preCompute();
+
     return r;
   }
 

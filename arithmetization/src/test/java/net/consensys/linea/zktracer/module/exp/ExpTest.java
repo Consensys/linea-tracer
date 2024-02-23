@@ -31,7 +31,6 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-@Disabled("EXP tests are disabled due to running for over 30 min.")
 @Slf4j
 @ExtendWith(EvmExtension.class)
 public class ExpTest {
@@ -99,6 +98,7 @@ public class ExpTest {
     }
   }
 
+  @Disabled("EXP tests are disabled due to running for over 30 min.")
   @Test
   void testModexpLogFFBlockWithLDCase() {
     for (int ebsCutoff : C) {
@@ -118,6 +118,7 @@ public class ExpTest {
     }
   }
 
+  @Disabled("EXP tests are disabled due to running for over 30 min.")
   @Test
   void testModexpLogLDAtCase() {
     for (int ebsCutoff : C) {
@@ -144,9 +145,6 @@ public class ExpTest {
     final int k = 16;
     final int ldIndex = 1;
 
-    log.debug("k: " + k);
-    log.debug("ldIndex: " + ldIndex);
-
     Bytes wordAfterBase = Bytes.fromHexStringLenient(ffBlockWithLd(k, ldIndex));
     BytecodeCompiler program = initProgramInvokingModexp(ebsCutoff, cdsCutoff, wordAfterBase);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
@@ -160,15 +158,13 @@ public class ExpTest {
     final int k = 2;
     final int ldIndex = 1;
 
-    log.debug("k: " + k);
-    log.debug("LDIndex: " + ldIndex);
-
     Bytes wordAfterBase = Bytes.fromHexStringLenient(ldAt(k, ldIndex));
     BytecodeCompiler program = initProgramInvokingModexp(ebsCutoff, cdsCutoff, wordAfterBase);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run();
   }
 
+  @Disabled("EXP tests are disabled due to running for over 30 min.")
   @Test
   void testModexpLogZerosCase() {
     for (int ebsCutoff : C) {
@@ -190,14 +186,7 @@ public class ExpTest {
     final int mbs = 0;
     final int minimalValidCds = cdsCutoff + 96 + bbs;
 
-    log.debug("ebsCutoff: " + ebsCutoff);
-    log.debug("cdsCutoff: " + cdsCutoff);
-    log.debug("minimalValidEbs: " + minimalValidEbs);
-    log.debug("minimalValidCds: " + minimalValidCds);
-    log.debug("wordAfterBase: " + wordAfterBase);
-
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram()
+    return BytecodeCompiler.newProgram()
             .push(bbs) // bbs
             .push(0)
             .op(OpCode.MSTORE)
@@ -217,10 +206,9 @@ public class ExpTest {
             .push(5) // address
             .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas
             .op(OpCode.STATICCALL);
-
-    return program;
   }
 
+  @Disabled("EXP tests are disabled due to running for over 30 min.")
   @Test
   void testExpUtils() {
     // ExpLog case

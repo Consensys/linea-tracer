@@ -64,21 +64,9 @@ public class ImcFragment implements TraceFragment {
   private boolean mmuIsSet = false;
   private boolean stpIsSet = false;
 
-  /** This class should only be instantiated through specialized static methods. */
-  private ImcFragment() {
-    this.hub = null;
-  }
 
   private ImcFragment(final Hub hub) {
     this.hub = hub;
-
-    if (hub.pch().signals().mxp()) {
-      this.callMxp(MxpCall.build(hub));
-    }
-
-    if (hub.pch().signals().exp()) {
-      this.callExp(new ExpLogCall(EWord.of(hub.messageFrame().getStackItem(1))));
-    }
   }
 
   /**
@@ -86,8 +74,8 @@ public class ImcFragment implements TraceFragment {
    *
    * @return an empty ImcFragment
    */
-  public static ImcFragment empty() {
-    return new ImcFragment();
+  public static ImcFragment empty(final Hub hub) {
+    return new ImcFragment(hub);
   }
 
   /**
@@ -97,7 +85,7 @@ public class ImcFragment implements TraceFragment {
    * @return the ImcFragment for the TxInit phase
    */
   public static ImcFragment forTxInit(final Hub hub) {
-    return ImcFragment.empty().callMmu(MmuCall.txInit(hub));
+    return ImcFragment.empty(hub).callMmu(MmuCall.txInit(hub));
   }
 
   /**
@@ -111,6 +99,14 @@ public class ImcFragment implements TraceFragment {
   public static ImcFragment forCall(
       Hub hub, Account callerAccount, Optional<Account> calledAccount) {
     final ImcFragment r = new ImcFragment(hub);
+
+    if (hub.pch().signals().mxp()) {
+      r.callMxp(MxpCall.build(hub));
+    }
+
+    if (hub.pch().signals().exp()) {
+      r.callExp(new ExpLogCall(EWord.of(hub.messageFrame().getStackItem(1))));
+    }
 
     if (hub.pch().signals().oob()) {
       switch (hub.opCode()) {
@@ -164,6 +160,14 @@ public class ImcFragment implements TraceFragment {
 
   public static ImcFragment forOpcode(Hub hub, MessageFrame frame) {
     final ImcFragment r = new ImcFragment(hub);
+
+    if (hub.pch().signals().mxp()) {
+      r.callMxp(MxpCall.build(hub));
+    }
+
+    if (hub.pch().signals().exp()) {
+      r.callExp(new ExpLogCall(EWord.of(hub.messageFrame().getStackItem(1))));
+    }
 
     if (hub.pch().signals().mmu()) {
       switch (hub.opCode()) {
@@ -223,8 +227,6 @@ public class ImcFragment implements TraceFragment {
             "unexpected opcode for OoB %s".formatted(hub.opCode()));
       }
     }
-
-    // XXX: Exp/Mxp are already called in the constructor
 
     return r;
   }

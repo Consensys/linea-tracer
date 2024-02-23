@@ -20,6 +20,7 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.NextContextDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostExecDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
+import net.consensys.linea.zktracer.module.hub.fragment.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioFragment;
@@ -112,6 +113,8 @@ public class SmartContractCallSection extends TraceSection
 
   @Override
   public void runPostTx(Hub hub, WorldView state, Transaction tx) {
+    final AccountFragment.AccountFragmentFactory accountFragmentFactory =
+        hub.factories().accountFragment();
     final CallFrame calledCallFrame = hub.callStack().getById(this.calledCallFrameId);
     this.scenarioFragment.runPostTx(hub, state, tx);
 
@@ -121,49 +124,40 @@ public class SmartContractCallSection extends TraceSection
         this.scenarioFragment,
         ContextFragment.readContextData(hub.callStack()),
         this.imcFragment,
-        hub.factories()
-            .accountFragment()
-            .make(this.preCallCallerAccountSnapshot, this.inCallCallerAccountSnapshot),
-        hub.factories()
-            .accountFragment()
-            .make(this.preCallCalledAccountSnapshot, this.inCallCalledAccountSnapshot));
+        accountFragmentFactory.make(
+            this.preCallCallerAccountSnapshot, this.inCallCallerAccountSnapshot),
+        accountFragmentFactory.make(
+            this.preCallCalledAccountSnapshot, this.inCallCalledAccountSnapshot));
 
     if (callerCallFrame.hasReverted()) {
       if (calledCallFrame.hasReverted()) {
         this.addFragmentsWithoutStack(
             hub,
             callerCallFrame,
-            hub.factories()
-                .accountFragment()
-                .make(this.inCallCallerAccountSnapshot, this.preCallCallerAccountSnapshot),
-            hub.factories()
-                .accountFragment()
-                .make(this.inCallCalledAccountSnapshot, this.postCallCalledAccountSnapshot),
-            hub.factories()
-                .accountFragment()
-                .make(this.postCallCalledAccountSnapshot, this.preCallCalledAccountSnapshot));
+            accountFragmentFactory.make(
+                this.inCallCallerAccountSnapshot, this.preCallCallerAccountSnapshot),
+            accountFragmentFactory.make(
+                this.inCallCalledAccountSnapshot, this.postCallCalledAccountSnapshot),
+            accountFragmentFactory.make(
+                this.postCallCalledAccountSnapshot, this.preCallCalledAccountSnapshot));
       } else {
         this.addFragmentsWithoutStack(
             hub,
             callerCallFrame,
-            hub.factories()
-                .accountFragment()
-                .make(this.inCallCallerAccountSnapshot, this.preCallCallerAccountSnapshot),
-            hub.factories()
-                .accountFragment()
-                .make(this.inCallCalledAccountSnapshot, this.preCallCalledAccountSnapshot));
+            accountFragmentFactory.make(
+                this.inCallCallerAccountSnapshot, this.preCallCallerAccountSnapshot),
+            accountFragmentFactory.make(
+                this.inCallCalledAccountSnapshot, this.preCallCalledAccountSnapshot));
       }
     } else {
       if (calledCallFrame.hasReverted()) {
         this.addFragmentsWithoutStack(
             hub,
             callerCallFrame,
-            hub.factories()
-                .accountFragment()
-                .make(this.inCallCallerAccountSnapshot, this.postCallCallerAccountSnapshot),
-            hub.factories()
-                .accountFragment()
-                .make(this.inCallCalledAccountSnapshot, this.postCallCalledAccountSnapshot));
+            accountFragmentFactory.make(
+                this.inCallCallerAccountSnapshot, this.postCallCallerAccountSnapshot),
+            accountFragmentFactory.make(
+                this.inCallCalledAccountSnapshot, this.postCallCalledAccountSnapshot));
       }
     }
 

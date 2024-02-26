@@ -101,10 +101,11 @@ jobs:
           JAVA_OPTS: -Dorg.gradle.daemon=false
 
       - name: Upload test report
+        if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: test-report
-          path: build/reports/tests/
+          name: unit-test-report
+          path: arithmetization/build/reports/tests/
 
   spotless:
     runs-on: ubuntu-latest

@@ -87,6 +87,6 @@ public record OpCodeData(
   }
 
   public boolean isMxp() {
-    return this.billing.type() != MxpType.NONE;
+    return this.billing().type() != MxpType.NONE;
   }
 }

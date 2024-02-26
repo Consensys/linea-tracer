@@ -66,7 +66,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: test-report
+          name: acceptance-test-report
           path: acceptance-tests/build/reports/tests/
 
   libCompressTest:
@@ -96,8 +96,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: test-report
-          path: acceptance-tests/build/reports/tests/
+          name: compress-test-report
+          path: compress/build/reports/tests/
 
   tests:
     runs-on: ubuntu-latest
@@ -144,8 +144,8 @@ jobs:
       - name: Upload test report
         uses: actions/upload-artifact@v3
         with:
-          name: test-report
-          path: build/reports/tests/
+          name: unit-test-report
+          path: arithmetization/build/reports/tests/
 
   spotless:
     runs-on: ubuntu-latest

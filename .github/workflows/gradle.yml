@@ -92,6 +92,13 @@ jobs:
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
 
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-report
+          path: acceptance-tests/build/reports/tests/
+
   tests:
     runs-on: ubuntu-latest
     steps:

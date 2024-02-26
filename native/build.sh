@@ -9,31 +9,22 @@ set -o nounset
 # Exit script if a statement returns a non-true return value.
 set -o errexit
 
-# Use the error status of the first failure, rather than that of the last item in a pipeline.
-set -o pipefail
-
-
-SCRIPTDIR=$( dirname -- "$( readlink -f -- "$0"; )"; )
+SCRIPTDIR=$(dirname -- "$( readlink -f -- "$0")")
+OSTYPE=$(uname -o)
 
 # delete old build dir, if exists
 rm -rf "$SCRIPTDIR/compress/build/native" || true
 mkdir -p "$SCRIPTDIR/compress/build/native"
 
-if [[ "$OSTYPE" == "msys" ]]; then
+if [ x"$OSTYPE" = x"msys" ]; then
   LIBRARY_EXTENSION=dll
-elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+elif [ x"$OSTYPE" = x"GNU/Linux" ]; then
   LIBRARY_EXTENSION=so
-elif [[ "$OSTYPE" == "darwin"* ]]; then
+elif [ x"$OSTYPE" = x"Darwin" ]; then
   LIBRARY_EXTENSION=dylib
 else
   echo "*** Unknown OS: $OSTYPE"
   exit 1
-fi
-
-
-if ! command -v go &> /dev/null; then
-    echo "*** The Go compiler could not be found"
-    exit 1
 fi
 
 cd "$SCRIPTDIR/compress/compress-jni"

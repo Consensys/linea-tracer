@@ -17,6 +17,7 @@ package net.consensys.linea.bl;
 import java.math.BigDecimal;
 
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.compress.LibCompress;
 import net.consensys.linea.config.LineaProfitabilityConfiguration;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
@@ -55,7 +56,7 @@ public class TransactionProfitabilityCalculator {
         .setMessage(
             "Estimated profitable priorityFeePerGas: {}; estimateGasMinMargin={}, verificationCapacity={}, "
                 + "verificationGasCost={}, gasPriceRatio={}, gas={}, minGasPrice={}, "
-                + "l1GasPrice={}, txSize={}, compressedTxSize={}, adjustTxSize={}")
+                + "l1GasPrice={}, txSize={}, compressedTxSize={}")
         .addArgument(profitAtWei::toHumanReadableString)
         .addArgument(profitabilityConf.estimateGasMinMargin())
         .addArgument(profitabilityConf.verificationCapacity())
@@ -67,7 +68,6 @@ public class TransactionProfitabilityCalculator {
             () -> minGasPrice.multiply(profitabilityConf.gasPriceRatio()).toHumanReadableString())
         .addArgument(transaction::getSize)
         .addArgument(compressedTxSize)
-        .addArgument(profitabilityConf.adjustTxSize())
         .log();
 
     return profitAtWei;
@@ -110,11 +110,8 @@ public class TransactionProfitabilityCalculator {
   }
 
   private double getCompressedTxSize(final Transaction transaction) {
-    // this is just a temporary estimation, that will be replaced by gnarkCompression when available
-    // at that point conf.txCompressionRatio and conf.adjustTxSize options can be removed
-    final double adjustedTxSize =
-        Math.max(0, transaction.getSize() + profitabilityConf.adjustTxSize());
-    return adjustedTxSize / profitabilityConf.txCompressionRatio();
+    final byte[] bytes = transaction.encoded().toArrayUnsafe();
+    return LibCompress.CompressedSize(bytes, bytes.length);
   }
 
   private void log(

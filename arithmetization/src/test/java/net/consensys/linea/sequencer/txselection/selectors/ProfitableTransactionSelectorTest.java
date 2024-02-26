@@ -27,7 +27,9 @@ import net.consensys.linea.config.LineaProfitabilityCliOptions;
 import net.consensys.linea.config.LineaProfitabilityConfiguration;
 import net.consensys.linea.config.LineaTransactionSelectorCliOptions;
 import net.consensys.linea.config.LineaTransactionSelectorConfiguration;
+import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
+import org.bouncycastle.crypto.digests.KeccakDigest;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.PendingTransaction;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -54,7 +56,6 @@ public class ProfitableTransactionSelectorTest {
   private final LineaProfitabilityConfiguration profitabilityConf =
       LineaProfitabilityCliOptions.create().toDomainObject().toBuilder()
           .gasPriceRatio(GAS_PRICE_RATIO)
-          .adjustTxSize(ADJUST_TX_SIZE)
           .minMargin(MIN_MARGIN)
           .verificationCapacity(VERIFICATION_CAPACITY)
           .verificationGasCost(VERIFICATION_GAS_COST)
@@ -403,11 +404,30 @@ public class ProfitableTransactionSelectorTest {
     PendingTransaction pendingTransaction = mock(PendingTransaction.class);
     Transaction transaction = mock(Transaction.class);
     when(transaction.getHash()).thenReturn(Hash.wrap(Bytes32.random()));
-    when(transaction.getSize()).thenReturn(size);
     when(transaction.getGasLimit()).thenReturn(gasLimit);
+    when(transaction.encoded()).thenReturn(Bytes.wrap(pseudoRandomBytes(size)));
     when(pendingTransaction.getTransaction()).thenReturn(transaction);
     when(pendingTransaction.hasPriority()).thenReturn(hasPriority);
     return new TestTransactionEvaluationContext(pendingTransaction, effectiveGasPrice, minGasPrice);
+  }
+
+  private byte[] pseudoRandomBytes(int size) {
+    final int expectedCompressedSize =
+        (size - 58) / 5; // This emulates old behaviour of compression ratio and size adjustment
+    byte[] bytes = new byte[expectedCompressedSize];
+    final KeccakDigest keccakDigest = new KeccakDigest(256);
+
+    final byte[] out = new byte[32];
+    int offset = 0;
+    int i = 0;
+    do {
+      keccakDigest.update(new byte[] {(byte) i++}, 0, 1);
+      keccakDigest.doFinal(out, 0);
+      System.arraycopy(out, 0, bytes, offset, Math.min(expectedCompressedSize - offset, 32));
+      offset += 32;
+    } while (offset < expectedCompressedSize);
+
+    return bytes;
   }
 
   private TransactionProcessingResult mockTransactionProcessingResult(long gasUsedByTransaction) {

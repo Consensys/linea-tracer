@@ -20,11 +20,8 @@ import java.util.List;
 
 import com.google.common.base.Preconditions;
 import lombok.Getter;
-<<<<<<< HEAD
 import lombok.Setter;
-=======
 import lombok.experimental.Accessors;
->>>>>>> 1c754157 (fix: update column names)
 import net.consensys.linea.zktracer.module.hub.DeploymentExceptions;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;

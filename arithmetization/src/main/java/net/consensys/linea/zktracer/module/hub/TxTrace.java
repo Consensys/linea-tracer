@@ -66,7 +66,7 @@ public class TxTrace implements PostTransactionDefer {
    * @param section the section to append
    */
   public void add(TraceSection section) {
-    section.setParentTrace(this);
+    section.parentTrace(this);
     this.trace.add(section);
   }
 

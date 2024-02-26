@@ -75,9 +75,9 @@ public final class TransactionFragment implements TraceFragment {
     final EWord to = EWord.of(effectiveToAddress(tx));
     final EWord from = EWord.of(tx.getSender());
     final EWord miner = EWord.of(minerAddress);
-    long gasRefundAmount = this.parentSection.getParentTrace().refundedGas();
-    long leftoverGas = this.parentSection.getParentTrace().leftoverGas();
-    long gasRefundFinalCounter = this.parentSection.getParentTrace().gasRefundFinalCounter();
+    long gasRefundAmount = this.parentSection.parentTrace().refundedGas();
+    long leftoverGas = this.parentSection.parentTrace().leftoverGas();
+    long gasRefundFinalCounter = this.parentSection.parentTrace().gasRefundFinalCounter();
 
     return trace
         .peekAtTransaction(true)
@@ -89,7 +89,7 @@ public final class TransactionFragment implements TraceFragment {
         .pTransactionToAddressLo(to.lo())
         .pTransactionGasPrice(gasPrice)
         .pTransactionBasefee(baseFee)
-        .pTransactionInitGas(Bytes.ofUnsignedLong(TransactionStack.computeInitGas(tx)))
+        .pTransactionInitialGas(Bytes.ofUnsignedLong(TransactionStack.computeInitGas(tx)))
         .pTransactionInitialBalance(Bytes.ofUnsignedLong(initialGas))
         .pTransactionValue(bigIntegerToBytes(tx.getValue().getAsBigInteger()))
         .pTransactionCoinbaseAddressHi(miner.hi())

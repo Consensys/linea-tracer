@@ -100,13 +100,14 @@ public final class CommonFragment implements TraceFragment {
   }
 
   public Trace trace(Trace trace, int stackHeight, int stackHeightNew) {
-    CallFrame frame = this.hub.callStack().getById(this.callFrameId);
-    TransactionStack.MetaTransaction tx = hub.txStack().getById(this.txId);
+    final CallFrame frame = this.hub.callStack().getById(this.callFrameId);
+    final TransactionStack.MetaTransaction tx = hub.txStack().getById(this.txId);
     final boolean selfReverts = frame.selfReverts();
     final boolean getsReverted = frame.getsReverted();
 
     return trace
-      .absoluteTransactionNumber(Bytes.ofUnsignedInt(tx.absNumber()))
+        .codeFragmentIndex(Bytes.ofUnsignedInt(frame.codeFragmentIndex()))
+        .absoluteTransactionNumber(Bytes.ofUnsignedInt(tx.absNumber()))
         .height(Bytes.ofUnsignedShort(stackHeight))
         .heightNew(Bytes.ofUnsignedShort(stackHeightNew))
         .batchNumber(Bytes.ofUnsignedInt(this.batchNumber))

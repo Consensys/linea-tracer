@@ -13,6 +13,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Install Go
+        uses: actions/setup-go@v4
+
+      - name: Set up GCC
+        uses: egor-tensin/setup-gcc@v1
+
       - name: Checkout repository
         uses: actions/checkout@v3
 
@@ -36,6 +42,12 @@ jobs:
   acceptanceTest:
     runs-on: ubuntu-latest
     steps:
+      - name: Install Go
+        uses: actions/setup-go@v4
+
+      - name: Set up GCC
+        uses: egor-tensin/setup-gcc@v1
+
       - name: Checkout repository
         uses: actions/checkout@v3
 
@@ -60,6 +72,12 @@ jobs:
   libCompressTest:
     runs-on: ubuntu-latest
     steps:
+      - name: Install Go
+        uses: actions/setup-go@v4
+
+      - name: Set up GCC
+        uses: egor-tensin/setup-gcc@v1
+
       - name: Checkout repository
         uses: actions/checkout@v3
 
@@ -81,7 +99,6 @@ jobs:
         with:
           ssh-private-key: |
             ${{ secrets.CONSTRAINTS_SSH_KEY }}
-
 
       - name: Checkout repository
         uses: actions/checkout@v3

@@ -13,6 +13,7 @@ import net.consensys.linea.zktracer.module.mmu.values.MmuOutAndBinValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioConstantValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioInstruction;
 import net.consensys.linea.zktracer.module.mmu.values.MmuWcpCallRecord;
+import net.consensys.linea.zktracer.types.Bytes16;
 import org.apache.tuweni.bytes.Bytes;
 
 public class ExoToRamTransplants implements MmuInstruction {
@@ -43,15 +44,12 @@ public class ExoToRamTransplants implements MmuInstruction {
 
     wcpCallRecords.add(MmuWcpCallRecord.EMPTY_CALL);
 
-    final Bytes quotient = eucOp.quotient();
-    final int eucCeil = eucOp.remainder().toInt() == 0 ? quotient.toInt() + 1 : quotient.toInt();
-
     mmuData.eucCallRecords(eucCallRecords);
     mmuData.wcpCallRecords(wcpCallRecords);
     mmuData.outAndBinValues(MmuOutAndBinValues.DEFAULT);
 
     mmuData.totalLeftZeroesInitials(0);
-    mmuData.totalNonTrivialInitials(eucCeil);
+    mmuData.totalNonTrivialInitials(eucOp.ceiling().toInt());
     mmuData.totalRightZeroesInitials(0);
 
     return mmuData;
@@ -77,7 +75,7 @@ public class ExoToRamTransplants implements MmuInstruction {
               .mmioInstruction(Trace.MMIO_INST_LIMB_TO_RAM_TRANSPLANT)
               .sourceLimbOffset(i)
               .targetLimbOffset(i)
-              .limb(currentMicroInstlimb)
+              .limb((Bytes16) currentMicroInstlimb)
               .build());
     }
 

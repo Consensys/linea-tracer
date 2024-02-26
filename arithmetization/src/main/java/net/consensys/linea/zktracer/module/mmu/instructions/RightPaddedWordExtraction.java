@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.mmu.instructions;
 
+import static net.consensys.linea.zktracer.module.mmu.Trace.LLARGE;
+import static net.consensys.linea.zktracer.module.mmu.Trace.WORD_SIZE;
 import static net.consensys.linea.zktracer.types.Conversions.*;
 
 import java.math.BigInteger;
@@ -42,10 +44,10 @@ public class RightPaddedWordExtraction implements MmuInstruction {
   private List<MmuWcpCallRecord> wcpCallRecords;
 
   private boolean firstLimbPadded;
-  private int firstLimbByteSize;
+  private short firstLimbByteSize;
   private boolean secondLimbPadded;
-  private int secondLimbByteSize;
-  private long extractionSize;
+  private short secondLimbByteSize;
+  private short extractionSize;
   private boolean firstLimbIsFull;
   private boolean firstLimbSingleSource;
   private boolean secondLimbSingleSource;
@@ -92,7 +94,9 @@ public class RightPaddedWordExtraction implements MmuInstruction {
     final Bytes wcpArg2 = longToBytes(refSize);
     final boolean wcpResult = wcp.callLT(wcpArg1, wcpArg2);
     secondLimbPadded = wcpResult;
-    extractionSize = secondLimbPadded ? refSize - hubToMmuValues.sourceOffsetLo().longValue() : 32;
+    extractionSize =
+        (short)
+            (secondLimbPadded ? refSize - hubToMmuValues.sourceOffsetLo().longValue() : WORD_SIZE);
 
     wcpCallRecords.add(
         MmuWcpCallRecord.builder().arg1Lo(wcpArg1).arg2Lo(wcpArg2).result(wcpResult).build());
@@ -111,12 +115,12 @@ public class RightPaddedWordExtraction implements MmuInstruction {
 
     firstLimbPadded = wcpResult;
     if (!secondLimbPadded) {
-      secondLimbByteSize = 16;
+      secondLimbByteSize = LLARGE;
     } else {
-      secondLimbByteSize = !firstLimbPadded ? (int) (extractionSize - 16) : 0;
+      secondLimbByteSize = (short) (!firstLimbPadded ? (extractionSize - LLARGE) : 0);
     }
 
-    firstLimbByteSize = !firstLimbPadded ? 16 : (int) extractionSize;
+    firstLimbByteSize = !firstLimbPadded ? LLARGE : extractionSize;
 
     final Bytes dividend = Bytes.of(16);
     final Bytes divisor = Bytes.of(firstLimbByteSize);
@@ -190,7 +194,6 @@ public class RightPaddedWordExtraction implements MmuInstruction {
   @Override
   public MmuData setMicroInstructions(MmuData mmuData) {
     HubToMmuValues hubToMmuValues = mmuData.hubToMmuValues();
-    hubToMmuValues.exoSum(0);
 
     mmuData.mmuToMmioConstantValues(
         MmuToMmioConstantValues.builder().sourceContextNumber(hubToMmuValues.sourceId()).build());
@@ -216,15 +219,14 @@ public class RightPaddedWordExtraction implements MmuInstruction {
             .mmioInstruction(firstMicroInst)
             .size(firstLimbByteSize)
             .sourceLimbOffset(sourceLimbOffset.toInt())
-            .sourceByteOffset(sourceByteOffset.toInt())
-            .targetByteOffset(0)
+            .sourceByteOffset((short) sourceByteOffset.toInt())
+            .targetByteOffset((short) 0)
             .limb(mmuData.hubToMmuValues().limb1())
             .build());
   }
 
   private void secondMicroInstruction(MmuData mmuData) {
     if (secondLimbVoid) {
-      mmuData.hubToMmuValues().limb2(Bytes.EMPTY);
       secondMicroInst = Trace.MMIO_INST_LIMB_VANISHES;
     } else if (secondLimbSingleSource) {
       secondMicroInst =
@@ -240,8 +242,8 @@ public class RightPaddedWordExtraction implements MmuInstruction {
             .mmioInstruction(secondMicroInst)
             .size(secondLimbByteSize)
             .sourceLimbOffset(sourceLimbOffset.toInt() + 1)
-            .sourceByteOffset(sourceByteOffset.toInt())
-            .targetByteOffset(0)
+            .sourceByteOffset((short) sourceByteOffset.toInt())
+            .targetByteOffset((short) 0)
             .limb(mmuData.hubToMmuValues().limb2())
             .build());
   }

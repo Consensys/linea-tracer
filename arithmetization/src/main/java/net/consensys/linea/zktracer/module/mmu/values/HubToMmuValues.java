@@ -18,10 +18,9 @@ package net.consensys.linea.zktracer.module.mmu.values;
 import java.math.BigInteger;
 
 import lombok.Getter;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
-import org.apache.tuweni.bytes.Bytes;
+import net.consensys.linea.zktracer.types.Bytes16;
 
 @Getter
 @Accessors(fluent = true)
@@ -37,10 +36,10 @@ public class HubToMmuValues {
   private long referenceOffset;
   private long referenceSize;
   private boolean successBit;
-  private Bytes limb1;
-  @Setter private Bytes limb2;
+  private Bytes16 limb1;
+  private Bytes16 limb2;
   private long phase;
-  @Setter private int exoSum;
+  private int exoSum;
 
   private HubToMmuValues(final MmuCall mmuCall) {
     this.mmuInstruction = mmuCall.instruction();
@@ -54,8 +53,8 @@ public class HubToMmuValues {
     this.referenceOffset = mmuCall.referenceOffset();
     this.referenceSize = mmuCall.referenceSize();
     this.successBit = mmuCall.successBit();
-    this.limb1 = mmuCall.limb1();
-    this.limb2 = mmuCall.limb2();
+    this.limb1 = Bytes16.wrap(mmuCall.limb1());
+    this.limb2 = Bytes16.wrap(mmuCall.limb2());
     this.phase = mmuCall.phase();
     this.exoSum = mmuCall.exoSum();
   }

@@ -265,8 +265,8 @@ public class Trace {
   static List<ColumnHeader> headers(int length) {
     return List.of(
         new ColumnHeader("euc.CEIL", 32, length),
-        new ColumnHeader("euc.CT", 1, length),
-        new ColumnHeader("euc.CT_MAX", 1, length),
+        new ColumnHeader("euc.CT", 2, length),
+        new ColumnHeader("euc.CT_MAX", 2, length),
         new ColumnHeader("euc.DIVIDEND", 32, length),
         new ColumnHeader("euc.DIVISOR", 32, length),
         new ColumnHeader("euc.DIVISOR_BYTE", 1, length),
@@ -317,26 +317,26 @@ public class Trace {
     return this;
   }
 
-  public Trace ct(final UnsignedByte b) {
+  public Trace ct(final short b) {
     if (filled.get(1)) {
       throw new IllegalStateException("euc.CT already set");
     } else {
       filled.set(1);
     }
 
-    ct.put(b.toByte());
+    ct.putShort(b);
 
     return this;
   }
 
-  public Trace ctMax(final UnsignedByte b) {
+  public Trace ctMax(final short b) {
     if (filled.get(2)) {
       throw new IllegalStateException("euc.CT_MAX already set");
     } else {
       filled.set(2);
     }
 
-    ctMax.put(b.toByte());
+    ctMax.putShort(b);
 
     return this;
   }
@@ -526,11 +526,11 @@ public class Trace {
     }
 
     if (!filled.get(1)) {
-      ct.position(ct.position() + 1);
+      ct.position(ct.position() + 2);
     }
 
     if (!filled.get(2)) {
-      ctMax.position(ctMax.position() + 1);
+      ctMax.position(ctMax.position() + 2);
     }
 
     if (!filled.get(3)) {

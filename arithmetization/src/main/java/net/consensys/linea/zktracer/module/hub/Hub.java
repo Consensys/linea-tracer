@@ -226,17 +226,24 @@ public class Hub implements Module {
 
   public Hub() {
     this.transients = new Transients(this);
-
     this.euc = new Euc(this.wcp);
     this.pch = new PlatformController(this);
     this.romLex = new RomLex(this);
-    this.mmio = new Mmio(this, this.romLex, this.callStack);
-    this.mmu = new Mmu(this, this.euc, this.wcp, this.mmio, this.callStack);
     this.mxp = new Mxp(this);
     this.rom = new Rom(this.romLex);
     this.rlpTxn = new RlpTxn(this.romLex);
     this.txnData = new TxnData(this, this.romLex, this.wcp);
     this.ecData = new EcData(this, this.wcp, this.ext);
+    this.mmu =
+        new Mmu(
+            this.euc,
+            this.wcp,
+            this.romLex,
+            this.rlpTxn,
+            this.rlpTxrcpt,
+            this.ecData, /*add blake, modexp */
+            this.callStack);
+    this.mmio = new Mmio(this.mmu, this.callStack);
 
     final EcRecoverEffectiveCall ecRec = new EcRecoverEffectiveCall(this);
     this.modexp = new ModexpEffectiveCall(this);

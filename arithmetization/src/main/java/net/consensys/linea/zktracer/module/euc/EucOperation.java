@@ -15,10 +15,7 @@
 
 package net.consensys.linea.zktracer.module.euc;
 
-import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
-
-import java.math.BigInteger;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
@@ -51,21 +48,24 @@ public class EucOperation extends ModuleOperation {
     this.remainder = remainder;
   }
 
+  public Bytes ceiling() {
+    return !remainder.isZero() && !dividend.isZero()
+        ? Bytes.ofUnsignedLong(quotient.toInt() + 1)
+        : quotient;
+  }
+
   void trace(Trace trace) {
     final Bytes dividend = leftPadTo(this.dividend, this.ctMax + 1);
     final Bytes divisor = leftPadTo(this.divisor, this.ctMax + 1);
     final Bytes quotient = leftPadTo(this.quotient, this.ctMax + 1);
     final Bytes remainder = leftPadTo(this.remainder, this.ctMax + 1);
-    final Bytes ceil =
-        remainder.isZero()
-            ? divisor
-            : bigIntegerToBytes(divisor.toUnsignedBigInteger().add(BigInteger.ONE));
+    final Bytes ceil = this.ceiling();
 
     for (int ct = 0; ct <= ctMax; ct++) {
       trace
           .iomf(true)
-          .ct(UnsignedByte.of(ct))
-          .ctMax(UnsignedByte.of(ctMax))
+          .ct((short) ct)
+          .ctMax((short) ctMax)
           .done(ct == ctMax)
           .dividend(dividend)
           .divisor(divisor)

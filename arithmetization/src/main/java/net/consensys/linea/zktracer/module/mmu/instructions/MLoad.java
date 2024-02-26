@@ -39,7 +39,7 @@ public class MLoad implements MmuInstruction {
 
   private boolean aligned;
   private int initialSourceLimbOffset;
-  private int initialSourceByteOffset;
+  private short initialSourceByteOffset;
 
   public MLoad(Euc euc, Wcp wcp) {
     this.euc = euc;
@@ -50,11 +50,11 @@ public class MLoad implements MmuInstruction {
 
   public MmuData preProcess(MmuData mmuData) {
     final long dividend1 = mmuData.hubToMmuValues().sourceOffsetLo().longValueExact();
-    EucOperation eucOp = euc.callEUC(Bytes.ofUnsignedLong(dividend1), Bytes.of(16));
-    int rem = eucOp.remainder().toInt();
-    int quot = eucOp.quotient().toInt();
+    final EucOperation eucOp = euc.callEUC(Bytes.ofUnsignedLong(dividend1), Bytes.of(Trace.LLARGE));
+    final int rem = eucOp.remainder().toInt();
+    final int quot = eucOp.quotient().toInt();
     initialSourceLimbOffset = quot;
-    initialSourceByteOffset = rem;
+    initialSourceByteOffset = (short) rem;
 
     eucCallRecords.add(
         MmuEucCallRecord.builder()
@@ -64,17 +64,12 @@ public class MLoad implements MmuInstruction {
             .remainder(rem)
             .build());
 
-    Bytes isZeroArg = Bytes.ofUnsignedInt(mmuData.sourceByteOffset().toInteger());
-    boolean result = wcp.callISZERO(isZeroArg);
+    final Bytes isZeroArg = Bytes.ofUnsignedInt(initialSourceByteOffset);
+    final boolean result = wcp.callISZERO(isZeroArg);
     aligned = result;
 
     wcpCallRecords.add(
-        MmuWcpCallRecord.instIsZeroBuilder()
-            .arg1Hi(Bytes.EMPTY)
-            .arg1Lo(isZeroArg)
-            .arg2Lo(Bytes.EMPTY)
-            .result(result)
-            .build());
+        MmuWcpCallRecord.instIsZeroBuilder().arg1Lo(isZeroArg).result(result).build());
 
     mmuData.eucCallRecords(eucCallRecords);
     mmuData.wcpCallRecords(wcpCallRecords);

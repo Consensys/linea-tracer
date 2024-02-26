@@ -39,7 +39,7 @@ public class MStore implements MmuInstruction {
 
   private boolean aligned;
   private int initialTargetLimbOffset;
-  private int initialTargetByteOffset;
+  private short initialTargetByteOffset;
 
   public MStore(Euc euc, Wcp wcp) {
     this.euc = euc;
@@ -57,7 +57,7 @@ public class MStore implements MmuInstruction {
     final int rem = eucOp.remainder().toInt();
     final int quot = eucOp.quotient().toInt();
     initialTargetLimbOffset = quot;
-    initialTargetByteOffset = rem;
+    initialTargetByteOffset = (short) rem;
 
     eucCallRecords.add(
         MmuEucCallRecord.builder()
@@ -104,7 +104,7 @@ public class MStore implements MmuInstruction {
             .mmioInstruction(
                 aligned
                     ? Trace.MMIO_INST_LIMB_TO_RAM_TRANSPLANT
-                    : Trace.MMIO_INST_LIMB_TO_RAM_ONE_TARGET)
+                    : Trace.MMIO_INST_LIMB_TO_RAM_TWO_TARGET)
             .targetLimbOffset(initialTargetLimbOffset)
             .targetByteOffset(initialTargetByteOffset)
             .limb(hubToMmuValues.limb1())
@@ -116,7 +116,7 @@ public class MStore implements MmuInstruction {
             .mmioInstruction(
                 aligned
                     ? Trace.MMIO_INST_LIMB_TO_RAM_TRANSPLANT
-                    : Trace.MMIO_INST_LIMB_TO_RAM_ONE_TARGET)
+                    : Trace.MMIO_INST_LIMB_TO_RAM_TWO_TARGET)
             .targetLimbOffset(initialTargetLimbOffset + 1)
             .targetByteOffset(initialTargetByteOffset)
             .limb(hubToMmuValues.limb2())

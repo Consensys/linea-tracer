@@ -37,11 +37,11 @@ public class MmuWcpCallRecord {
   private boolean result;
 
   public static MmuWcpCallRecord.MmuWcpCallRecordBuilder instLtBuilder() {
-    return builder().instruction(UnsignedByte.of(Trace.LT));
+    return builder().instruction(UnsignedByte.of(Trace.EVM_INST_LT));
   }
 
   public static MmuWcpCallRecord.MmuWcpCallRecordBuilder instEqBuilder() {
-    return builder().instruction(UnsignedByte.of(Trace.EQ_));
+    return builder().instruction(UnsignedByte.of(Trace.EVM_INST_EQ));
   }
 
   public static MmuWcpCallRecord.MmuWcpCallRecordBuilder instIsZeroBuilder() {

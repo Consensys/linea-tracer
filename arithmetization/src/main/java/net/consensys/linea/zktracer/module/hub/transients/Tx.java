@@ -26,6 +26,7 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.container.StackedContainer;
 import net.consensys.linea.zktracer.types.TxState;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Quantity;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
@@ -56,6 +57,14 @@ public class Tx implements StackedContainer {
     }
 
     return this.status;
+  }
+
+  public boolean isDeployment() {
+    return this.transaction.getTo().isPresent();
+  }
+
+  public Optional<Bytes> callData() {
+    return this.transaction.getData();
   }
 
   public boolean shouldSkip(WorldView world) {

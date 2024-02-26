@@ -39,9 +39,9 @@ public class Blake implements MmuInstruction {
   private List<MmuEucCallRecord> eucCallRecords;
   private List<MmuWcpCallRecord> wcpCallRecords;
   private int sourceLimbOffsetR;
-  private int sourceByteOffsetR;
+  private short sourceByteOffsetR;
   private int sourceLimbOffsetF;
-  private int sourceByteOffsetF;
+  private short sourceByteOffsetF;
   private boolean blakeRSingleSource;
 
   public Blake(Euc euc, Wcp wcp) {
@@ -59,7 +59,7 @@ public class Blake implements MmuInstruction {
     final long dividendRow1 = hubToMmuValues.sourceOffsetLo().longValueExact();
     EucOperation eucOpRow1 = euc.callEUC(longToBytes(dividendRow1), Bytes.of(Trace.LLARGE));
     sourceLimbOffsetR = eucOpRow1.quotient().toInt();
-    sourceByteOffsetR = eucOpRow1.remainder().toInt();
+    sourceByteOffsetR = (short) eucOpRow1.remainder().toInt();
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividendRow1)
@@ -82,7 +82,7 @@ public class Blake implements MmuInstruction {
     final long dividendRow2 = hubToMmuValues.sourceOffsetLo().longValueExact() + 213 - 1;
     EucOperation eucOpRow2 = euc.callEUC(longToBytes(dividendRow2), Bytes.of(Trace.LLARGE));
     sourceLimbOffsetF = eucOpRow2.quotient().toInt();
-    sourceByteOffsetF = eucOpRow2.remainder().toInt();
+    sourceByteOffsetF = (short) eucOpRow2.remainder().toInt();
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividendRow2)
@@ -129,11 +129,11 @@ public class Blake implements MmuInstruction {
                 blakeRSingleSource
                     ? Trace.MMIO_INST_RAM_TO_LIMB_ONE_SOURCE
                     : Trace.MMIO_INST_RAM_TO_LIMB_TWO_SOURCE)
-            .size(4)
+            .size((short) 4)
             .sourceLimbOffset(sourceLimbOffsetR)
             .sourceByteOffset(sourceByteOffsetR)
             .targetLimbOffset(0)
-            .targetByteOffset(Trace.LLARGE - 4)
+            .targetByteOffset((short) (Trace.LLARGE - 4))
             .limb(hubToMmuValues.limb1())
             .build());
 
@@ -141,11 +141,11 @@ public class Blake implements MmuInstruction {
     mmuData.mmuToMmioInstruction(
         MmuToMmioInstruction.builder()
             .mmioInstruction(Trace.MMIO_INST_RAM_TO_LIMB_ONE_SOURCE)
-            .size(1)
+            .size((short) 1)
             .sourceLimbOffset(sourceLimbOffsetF)
             .sourceByteOffset(sourceByteOffsetF)
             .targetLimbOffset(0)
-            .targetByteOffset(Trace.LLARGE - 1)
+            .targetByteOffset((short) (Trace.LLARGE - 1))
             .limb(hubToMmuValues.limb2())
             .build());
 

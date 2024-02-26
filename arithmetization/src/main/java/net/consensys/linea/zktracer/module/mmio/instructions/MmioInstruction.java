@@ -13,12 +13,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.mmio.dispatchers;
+package net.consensys.linea.zktracer.module.mmio.instructions;
 
 import net.consensys.linea.zktracer.module.mmio.MmioData;
 
-public interface MmioDispatcher {
-  MmioData dispatch();
-
-  void update(MmioData mmioData, int counter);
+public interface MmioInstruction {
+  MmioData execute();
 }

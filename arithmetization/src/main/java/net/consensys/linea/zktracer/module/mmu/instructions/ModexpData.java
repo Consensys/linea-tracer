@@ -31,6 +31,7 @@ import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioConstantValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioInstruction;
 import net.consensys.linea.zktracer.module.mmu.values.MmuWcpCallRecord;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
+import net.consensys.linea.zktracer.types.Bytes16;
 import org.apache.tuweni.bytes.Bytes;
 
 public class ModexpData implements MmuInstruction {
@@ -41,11 +42,11 @@ public class ModexpData implements MmuInstruction {
   private int initialTotalLeftZeroes;
   private int initialTotalNonTrivial;
   private int initialTotalRightZeroes;
-  private int initialTargetByteOffset;
+  private short initialTargetByteOffset;
   private int initialSourceLimbOffset;
-  private int initialSourceByteOffset;
-  private int firstLimbByteSize;
-  private int lastLimbByteSize;
+  private short initialSourceByteOffset;
+  private short firstLimbByteSize;
+  private short lastLimbByteSize;
   private boolean firstLimbSingleSource;
   private boolean aligned;
   private boolean lastLimbSingleSource;
@@ -54,7 +55,7 @@ public class ModexpData implements MmuInstruction {
   private int leftoverDataSize;
   private boolean dataRunsOut;
   private int rightPaddingRemainder;
-  private int middleSourceByteOffset;
+  private short middleSourceByteOffset;
   private int middleFirstSourceLimbOffset;
   private int middleMicroInst;
 
@@ -109,7 +110,7 @@ public class ModexpData implements MmuInstruction {
 
     EucOperation eucOp = euc.callEUC(longToBytes(numberLeftPaddingBytes), Bytes.of(Trace.LLARGE));
 
-    initialTargetByteOffset = eucOp.remainder().toInt();
+    initialTargetByteOffset = (short) eucOp.remainder().toInt();
     initialTotalLeftZeroes = eucOp.quotient().toInt();
 
     eucCallRecords.add(
@@ -158,7 +159,7 @@ public class ModexpData implements MmuInstruction {
     final long dividend = parameterOffset;
     EucOperation eucOp = euc.callEUC(longToBytes(dividend), Bytes.of(Trace.LLARGE));
     initialSourceLimbOffset = eucOp.quotient().toInt();
-    initialSourceByteOffset = eucOp.remainder().toInt();
+    initialSourceByteOffset = (short) eucOp.remainder().toInt();
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividend)
@@ -167,11 +168,11 @@ public class ModexpData implements MmuInstruction {
             .remainder(eucOp.remainder().toLong())
             .build());
     if (wcpResult) {
-      firstLimbByteSize = dataRunsOut ? leftoverDataSize : parameterByteSize;
+      firstLimbByteSize = (short) (dataRunsOut ? leftoverDataSize : parameterByteSize);
     } else {
-      firstLimbByteSize = Trace.LLARGE - initialTargetByteOffset;
+      firstLimbByteSize = (short) (Trace.LLARGE - initialTargetByteOffset);
     }
-    lastLimbByteSize = dataRunsOut ? Trace.LLARGE - rightPaddingRemainder : Trace.LLARGE;
+    lastLimbByteSize = (short) (dataRunsOut ? Trace.LLARGE - rightPaddingRemainder : Trace.LLARGE);
   }
 
   private void row4() {
@@ -202,7 +203,7 @@ public class ModexpData implements MmuInstruction {
     // row n°6
     final long dividend = initialSourceByteOffset + firstLimbByteSize;
     EucOperation eucOp = euc.callEUC(longToBytes(dividend), Bytes.of(Trace.LLARGE));
-    middleSourceByteOffset = eucOp.remainder().toInt();
+    middleSourceByteOffset = (short) eucOp.remainder().toInt();
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividend)
@@ -284,7 +285,7 @@ public class ModexpData implements MmuInstruction {
             .sourceByteOffset(initialSourceByteOffset)
             .targetLimbOffset(initialTotalLeftZeroes)
             .targetByteOffset(initialTargetByteOffset)
-            .limb(limb)
+            .limb((Bytes16) limb)
             .build());
   }
 
@@ -293,12 +294,12 @@ public class ModexpData implements MmuInstruction {
     mmuData.mmuToMmioInstruction(
         MmuToMmioInstruction.builder()
             .mmioInstruction(middleMicroInst)
-            .size(Trace.LLARGE)
+            .size((short) Trace.LLARGE)
             .sourceLimbOffset(sourceLimbOffset)
             .sourceByteOffset(middleSourceByteOffset)
             .targetLimbOffset(targetLimbOffset)
-            .targetByteOffset(0)
-            .limb(limb)
+            .targetByteOffset((short) 0)
+            .limb((Bytes16) limb)
             .build());
   }
 
@@ -314,8 +315,8 @@ public class ModexpData implements MmuInstruction {
             .sourceLimbOffset(middleFirstSourceLimbOffset + initialTotalNonTrivial)
             .sourceByteOffset(middleSourceByteOffset)
             .targetLimbOffset(initialTotalLeftZeroes + initialTotalNonTrivial)
-            .targetByteOffset(0)
-            .limb(limb)
+            .targetByteOffset((short) 0)
+            .limb((Bytes16) limb)
             .build());
   }
 }

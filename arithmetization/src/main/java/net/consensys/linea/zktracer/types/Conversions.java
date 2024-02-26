@@ -73,6 +73,10 @@ public class Conversions {
     return uBytes;
   }
 
+  public static UnsignedByte[] bytesToUnsignedBytes(final Bytes bytes) {
+    return bytesToUnsignedBytes(bytes.toArray());
+  }
+
   public static List<UnsignedByte> bytesToUnsignedBytesList(final byte[] bytes) {
     List<UnsignedByte> r = new ArrayList<>(bytes.length);
     for (byte aByte : bytes) {

@@ -18,17 +18,17 @@ package net.consensys.linea.zktracer.module.mmu.values;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.experimental.Accessors;
-import org.apache.tuweni.bytes.Bytes;
+import net.consensys.linea.zktracer.types.Bytes16;
 
 @Builder
 @Getter
 @Accessors(fluent = true)
 public class MmuToMmioInstruction {
   private int mmioInstruction;
-  private int size;
+  private short size;
   private int sourceLimbOffset;
-  private int sourceByteOffset;
+  private short sourceByteOffset;
   private int targetLimbOffset;
-  private int targetByteOffset;
-  @Builder.Default private Bytes limb = Bytes.EMPTY;
+  private short targetByteOffset;
+  @Builder.Default private Bytes16 limb = Bytes16.ZERO;
 }

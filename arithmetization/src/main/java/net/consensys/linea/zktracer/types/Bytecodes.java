@@ -13,22 +13,23 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.mmu;
+package net.consensys.linea.zktracer.types;
 
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.types.EWord;
-import net.consensys.linea.zktracer.types.UnsignedByte;
+import static net.consensys.linea.zktracer.types.Utils.*;
 
-@Getter
-@Setter
-@Builder
-@Accessors(fluent = true)
-@EqualsAndHashCode
-public class LimbByte {
-  @Builder.Default private EWord limb = EWord.ZERO;
-  @Builder.Default private UnsignedByte uByte = UnsignedByte.ZERO;
+import org.apache.tuweni.bytes.Bytes;
+
+public class Bytecodes {
+
+  public static Bytes16 readLimb(final Bytes data, final int limbIndex) {
+    int bytePtrStart = 16 * limbIndex;
+    if (bytePtrStart >= data.size()) {
+      return Bytes16.ZERO;
+    }
+
+    final int bytePtrEnd = bytePtrStart + 16;
+    final int byteCodeEnd = Math.min(bytePtrEnd, data.size());
+
+    return Bytes16.leftPad(data.slice(bytePtrStart, byteCodeEnd));
+  }
 }

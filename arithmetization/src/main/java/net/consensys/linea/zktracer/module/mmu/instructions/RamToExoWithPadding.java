@@ -15,6 +15,9 @@
 
 package net.consensys.linea.zktracer.module.mmu.instructions;
 
+import static net.consensys.linea.zktracer.module.mmu.Trace.LLARGE;
+import static net.consensys.linea.zktracer.types.Bytecodes.readLimb;
+import static net.consensys.linea.zktracer.types.Conversions.*;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.longToBytes;
 
@@ -32,7 +35,7 @@ import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioConstantValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioInstruction;
 import net.consensys.linea.zktracer.module.mmu.values.MmuWcpCallRecord;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import net.consensys.linea.zktracer.types.UnsignedByte;
+import net.consensys.linea.zktracer.types.Bytes16;
 import org.apache.tuweni.bytes.Bytes;
 
 public class RamToExoWithPadding implements MmuInstruction {
@@ -42,12 +45,12 @@ public class RamToExoWithPadding implements MmuInstruction {
   private List<MmuWcpCallRecord> wcpCallRecords;
 
   private boolean aligned;
-  private int lastLimbByteSize;
+  private short lastLimbByteSize;
   private boolean lastLimbSingleSource;
   private boolean lastLimbIsFull;
 
-  private Bytes initialSourceLimbOffset;
-  private Bytes initialSourceByteOffset;
+  private int initialSourceLimbOffset;
+  private short initialSourceByteOffset;
   private boolean hasRightPadding;
   private int paddingSize;
   private int extractionSize;
@@ -61,9 +64,9 @@ public class RamToExoWithPadding implements MmuInstruction {
 
   @Override
   public MmuData preProcess(MmuData mmuData) {
-    MmuOutAndBinValues mmuOutAndBinValues = mmuData.outAndBinValues();
+    final MmuOutAndBinValues mmuOutAndBinValues = mmuData.outAndBinValues();
     aligned = mmuOutAndBinValues.bin1();
-    lastLimbByteSize = mmuOutAndBinValues.out1();
+    lastLimbByteSize = (short) mmuOutAndBinValues.out1();
     lastLimbSingleSource = mmuOutAndBinValues.bin2();
     lastLimbIsFull = mmuOutAndBinValues.bin3();
 
@@ -71,7 +74,7 @@ public class RamToExoWithPadding implements MmuInstruction {
     row1(hubToMmuValues);
     row2(mmuData);
     row3(mmuData);
-    row4(hubToMmuValues);
+    row4();
 
     mmuData.eucCallRecords(eucCallRecords);
     mmuData.wcpCallRecords(wcpCallRecords);
@@ -102,14 +105,17 @@ public class RamToExoWithPadding implements MmuInstruction {
             .remainder(eucOp.remainder().toLong())
             .build());
 
-    initialSourceLimbOffset = eucOp.quotient();
-    initialSourceByteOffset = eucOp.remainder();
+    initialSourceLimbOffset = eucOp.quotient().toInt();
+    initialSourceByteOffset = (short) eucOp.remainder().toInt();
 
-    final boolean isZeroResult = wcp.callISZERO(initialSourceByteOffset);
+    final boolean isZeroResult = wcp.callISZERO(Bytes.ofUnsignedInt(initialSourceByteOffset));
     aligned = isZeroResult;
 
     wcpCallRecords.add(
-        MmuWcpCallRecord.builder().arg1Lo(initialSourceByteOffset).result(isZeroResult).build());
+        MmuWcpCallRecord.builder()
+            .arg1Lo(Bytes.ofUnsignedInt(initialSourceByteOffset))
+            .result(isZeroResult)
+            .build());
   }
 
   private void row2(final MmuData mmuData) {
@@ -127,7 +133,7 @@ public class RamToExoWithPadding implements MmuInstruction {
     paddingSize = hasRightPadding ? (int) (refSize - size) : 0;
     extractionSize = (int) (hasRightPadding ? size : refSize);
 
-    final Bytes dividend = Bytes.of(16);
+    final Bytes dividend = Bytes.of(LLARGE);
     final Bytes divisor = Bytes.ofUnsignedShort(paddingSize);
     final EucOperation eucOp = euc.callEUC(dividend, divisor);
 
@@ -144,7 +150,7 @@ public class RamToExoWithPadding implements MmuInstruction {
 
   private void row3(final MmuData mmuData) {
     // row n°3
-    final Bytes dividend = Bytes.of(16);
+    final Bytes dividend = Bytes.of(LLARGE);
     final Bytes divisor = Bytes.ofUnsignedShort(extractionSize);
     final EucOperation eucOp = euc.callEUC(dividend, divisor);
 
@@ -162,37 +168,31 @@ public class RamToExoWithPadding implements MmuInstruction {
     wcpCallRecords.add(
         MmuWcpCallRecord.builder().arg1Lo(eucOp.remainder()).result(isZeroResult).build());
 
-    final int eucCeil = eucOp.remainder().toInt() == 0 ? quotient.toInt() + 1 : quotient.toInt();
-
-    mmuData.totalNonTrivialInitials(eucCeil);
+    mmuData.totalNonTrivialInitials(eucOp.ceiling().toInt());
 
     lastLimbIsFull = isZeroResult;
-    lastLimbByteSize = lastLimbIsFull ? 16 : eucOp.remainder().toInt();
+    lastLimbByteSize = (short) (lastLimbIsFull ? LLARGE : eucOp.remainder().toInt());
   }
 
-  private void row4(final HubToMmuValues hubToMmuValues) {
+  private void row4() {
     // row n°4
     eucCallRecords.add(MmuEucCallRecord.EMPTY_CALL);
 
-    final Bytes wcpArg1 =
-        Bytes.ofUnsignedShort(initialSourceByteOffset.toInt() + (lastLimbByteSize - 1));
+    final Bytes wcpArg1 = Bytes.ofUnsignedShort(initialSourceByteOffset + (lastLimbByteSize - 1));
     final Bytes wcpArg2 = Bytes.of(16);
     boolean wcpResult = wcp.callLT(wcpArg1, wcpArg2);
 
     wcpCallRecords.add(
-        MmuWcpCallRecord.builder()
-            .instruction(UnsignedByte.of(Trace.LT))
-            .arg1Lo(wcpArg1)
-            .arg2Lo(wcpArg2)
-            .result(wcpResult)
-            .build());
+        MmuWcpCallRecord.instLtBuilder().arg1Lo(wcpArg1).arg2Lo(wcpArg2).result(wcpResult).build());
 
     lastLimbSingleSource = wcpResult;
   }
 
   @Override
   public MmuData setMicroInstructions(MmuData mmuData) {
-    HubToMmuValues hubToMmuValues = mmuData.hubToMmuValues();
+    final HubToMmuValues hubToMmuValues = mmuData.hubToMmuValues();
+    final Bytes exoBytes = mmuData.exoSumDecoder().extractBytesFromExo(hubToMmuValues.targetId());
+    mmuData.exoBytes(exoBytes);
 
     mmuData.mmuToMmioConstantValues(
         MmuToMmioConstantValues.builder()
@@ -206,23 +206,15 @@ public class RamToExoWithPadding implements MmuInstruction {
             .build());
 
     if (mmuData.totalNonTrivialInitials() == 1) {
-      // TODO: Determine relative value of limb
-      final Bytes onlyMicroInstLimb = Bytes.EMPTY;
-      onlyMicroInstruction(mmuData, onlyMicroInstLimb);
+      onlyMicroInstruction(mmuData);
     } else {
-      // TODO: Determine relative value of limb
-      final Bytes firstMicroInstLimb = Bytes.EMPTY;
-      firstMicroInstruction(mmuData, firstMicroInstLimb);
+      firstMicroInstruction(mmuData);
       final int middleMicroInst =
           aligned ? Trace.MMIO_INST_RAM_TO_LIMB_TRANSPLANT : Trace.MMIO_INST_RAM_TO_LIMB_TWO_SOURCE;
       for (int i = 1; i < mmuData.totalNonTrivialInitials() - 1; i++) {
-        // TODO: Determine relative value of limb
-        final Bytes middleMicroInstlimb = Bytes.EMPTY;
-        middleMicroInstruction(mmuData, middleMicroInstlimb, i, middleMicroInst);
+        middleMicroInstruction(mmuData, i, middleMicroInst);
       }
-      // TODO: Determine relative value of limb
-      final Bytes lastMicroInstLimb = Bytes.EMPTY;
-      lastMicroInstruction(mmuData, lastMicroInstLimb);
+      lastMicroInstruction(mmuData);
     }
 
     for (int i = 0; i < mmuData.totalRightZeroesInitials(); i++) {
@@ -240,17 +232,22 @@ public class RamToExoWithPadding implements MmuInstruction {
             .build());
   }
 
-  private void lastMicroInstruction(MmuData mmuData, final Bytes limb) {
+  private void lastMicroInstruction(MmuData mmuData) {
     final int lastMicroInst = calculateLastOrOnlyMicroInstruction();
+
+    final int targetLimbOffset = mmuData.totalNonTrivialInitials() - 1;
+    final int sourceLimbOffset = initialSourceLimbOffset + mmuData.totalNonTrivialInitials() - 1;
+
+    final Bytes16 microLimb = (Bytes16) mmuData.exoBytes().slice(targetLimbOffset * LLARGE, LLARGE);
 
     mmuData.mmuToMmioInstruction(
         MmuToMmioInstruction.builder()
             .mmioInstruction(lastMicroInst)
             .size(lastLimbByteSize)
-            .sourceLimbOffset(mmuData.sourceLimbOffset().add(1).toInt())
-            .sourceByteOffset(mmuData.sourceByteOffset().toInteger())
-            .targetLimbOffset(mmuData.totalNonTrivialInitials() - 1)
-            .limb(limb)
+            .sourceLimbOffset(sourceLimbOffset)
+            .sourceByteOffset(initialSourceByteOffset)
+            .targetLimbOffset(targetLimbOffset)
+            .limb(microLimb)
             .build());
   }
 
@@ -264,42 +261,49 @@ public class RamToExoWithPadding implements MmuInstruction {
     return Trace.MMIO_INST_RAM_TO_LIMB_TWO_SOURCE;
   }
 
-  private void onlyMicroInstruction(MmuData mmuData, final Bytes limb) {
+  private void onlyMicroInstruction(MmuData mmuData) {
+    final Bytes16 microLimb = readLimb(mmuData.exoBytes(), 0);
+
     final int onlyMicroInst = calculateLastOrOnlyMicroInstruction();
 
     mmuData.mmuToMmioInstruction(
         MmuToMmioInstruction.builder()
             .mmioInstruction(onlyMicroInst)
             .size(lastLimbByteSize)
-            .sourceLimbOffset(initialSourceLimbOffset.toInt())
-            .sourceByteOffset(initialSourceByteOffset.toInt())
-            .limb(limb)
+            .sourceLimbOffset(initialSourceLimbOffset)
+            .sourceByteOffset(initialSourceByteOffset)
+            .limb(microLimb)
             .build());
   }
 
-  private void firstMicroInstruction(MmuData mmuData, final Bytes limb) {
+  private void firstMicroInstruction(MmuData mmuData) {
     final int firstMicroInst =
         aligned ? Trace.MMIO_INST_RAM_TO_LIMB_TRANSPLANT : Trace.MMIO_INST_RAM_TO_LIMB_TWO_SOURCE;
+
     mmuData.mmuToMmioInstruction(
         MmuToMmioInstruction.builder()
             .mmioInstruction(firstMicroInst)
-            .size(16)
-            .sourceLimbOffset(initialSourceLimbOffset.toInt())
-            .sourceByteOffset(initialSourceByteOffset.toInt())
-            .limb(limb)
+            .size((short) LLARGE)
+            .sourceLimbOffset(initialSourceLimbOffset)
+            .sourceByteOffset(initialSourceByteOffset)
+            .limb(readLimb(mmuData.exoBytes(), 0))
             .build());
   }
 
   private void middleMicroInstruction(
-      MmuData mmuData, final Bytes limb, final int targetByteOffset, final int middleMicroInst) {
+      MmuData mmuData, final int rowIndex, final int middleMicroInst) {
+    final int currentSourceLimbOffset = initialSourceLimbOffset + rowIndex;
+
+    final Bytes16 microLimb = readLimb(mmuData.exoBytes(), rowIndex);
+
     mmuData.mmuToMmioInstruction(
         MmuToMmioInstruction.builder()
             .mmioInstruction(middleMicroInst)
-            .size(16)
-            .sourceLimbOffset(mmuData.sourceLimbOffset().add(1).toInt())
-            .sourceByteOffset(mmuData.sourceByteOffset().toInteger())
-            .targetLimbOffset(targetByteOffset)
-            .limb(limb)
+            .size((short) LLARGE)
+            .sourceLimbOffset(currentSourceLimbOffset)
+            .sourceByteOffset(initialSourceByteOffset)
+            .targetLimbOffset(rowIndex)
+            .limb(microLimb)
             .build());
   }
 }

@@ -35,7 +35,7 @@ public class MStore8 implements MmuInstruction {
   private List<MmuEucCallRecord> eucCallRecords;
   private List<MmuWcpCallRecord> wcpCallRecords;
   private int initialTargetLimbOffset;
-  private int initialTargetByteOffset;
+  private short initialTargetByteOffset;
 
   public MStore8(Euc euc) {
     this.euc = euc;
@@ -52,7 +52,7 @@ public class MStore8 implements MmuInstruction {
     int rem = eucOp.remainder().toInt();
     int quot = eucOp.quotient().toInt();
     initialTargetLimbOffset = quot;
-    initialTargetByteOffset = rem;
+    initialTargetByteOffset = (short) rem;
 
     eucCallRecords.add(
         MmuEucCallRecord.builder()
@@ -87,8 +87,8 @@ public class MStore8 implements MmuInstruction {
     mmuData.mmuToMmioInstruction(
         MmuToMmioInstruction.builder()
             .mmioInstruction(Trace.MMIO_INST_LIMB_TO_RAM_ONE_TARGET)
-            .size(1)
-            .sourceByteOffset(Trace.LLARGEMO)
+            .size((short) 1)
+            .sourceByteOffset((short) Trace.LLARGEMO)
             .targetLimbOffset(initialTargetLimbOffset)
             .targetByteOffset(initialTargetByteOffset)
             .limb(hubToMmuValues.limb2())

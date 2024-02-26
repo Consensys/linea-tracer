@@ -15,28 +15,25 @@
 
 package net.consensys.linea.zktracer.module.mmio;
 
+import static net.consensys.linea.zktracer.module.mmio.MmioPatterns.antiPower;
 import static net.consensys.linea.zktracer.module.mmio.MmioPatterns.isolateChunk;
 import static net.consensys.linea.zktracer.module.mmio.MmioPatterns.isolatePrefix;
 import static net.consensys.linea.zktracer.module.mmio.MmioPatterns.isolateSuffix;
 import static net.consensys.linea.zktracer.module.mmio.MmioPatterns.plateau;
 import static net.consensys.linea.zktracer.module.mmio.MmioPatterns.power;
-import static net.consensys.linea.zktracer.types.Conversions.bytesToUnsignedBytes;
-import static net.consensys.linea.zktracer.types.Conversions.unsignedBytesToEWord;
+import static net.consensys.linea.zktracer.module.mmio.Trace.LLARGE;
 
-import java.util.stream.Stream;
+import java.util.Arrays;
+import java.util.List;
 
-import com.google.common.base.Preconditions;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.runtime.callstack.CallStack;
-import net.consensys.linea.zktracer.runtime.stack.StackContext;
-import net.consensys.linea.zktracer.types.EWord;
-import net.consensys.linea.zktracer.types.MemorySegmentSnapshot;
-import net.consensys.linea.zktracer.types.UnsignedByte;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.tuweni.units.bigints.UInt256;
+import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioConstantValues;
+import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioInstruction;
+import net.consensys.linea.zktracer.types.Bytes16;
+import org.apache.tuweni.bytes.Bytes;
 
 @Getter
 @Setter
@@ -50,39 +47,60 @@ public class MmioData {
   private int indexA;
   private int indexB;
   private int indexC;
-  // pointer into exo data
+
+  private Bytes16 valA;
+  private Bytes16 valB;
+  private Bytes16 valC;
+
+  private Bytes16 valANew;
+  private Bytes16 valBNew;
+  private Bytes16 valCNew;
+
+  // imorted from the mmu
+  private int instruction;
+  private int sourceContext;
+  private int targetContext;
+  private int sourceLimbOffset;
+  private int targetLimbOffset;
+  private short sourceByteOffset;
+  private short targetByteOffset;
+  private short size;
+  private Bytes16 limb;
+  private int totalSize;
+  private int exoSum;
+  private int exoId;
+  private int kecId;
+  private long phase;
+  private boolean successBit;
+  private ExoSumDecoder exoSumDecoder;
+
   private int indexX;
 
-  private UnsignedByte[] valA;
-  private UnsignedByte[] valB;
-  private UnsignedByte[] valC;
+  private boolean[] bin1;
+  private boolean[] bin2;
+  private boolean[] bin3;
+  private boolean[] bin4;
+  private boolean[] bin5;
 
-  private UnsignedByte[] valANew;
-  private UnsignedByte[] valBNew;
-  private UnsignedByte[] valCNew;
+  private Bytes[] pow2561;
+  private Bytes[] pow2562;
 
-  private EWord val;
-  private UnsignedByte[] valHi;
-  private UnsignedByte[] valLo;
-  private UnsignedByte[] valX;
+  private Bytes[] acc1;
+  private Bytes[] acc2;
+  private Bytes[] acc3;
+  private Bytes[] acc4;
 
-  private boolean bin1;
-  private boolean bin2;
-  private boolean bin3;
-  private boolean bin4;
-  private boolean bin5;
+  // private boolean exoIsKeccak;
+  // private boolean exoIsRipSha;
+  // private boolean exoIsBlake2fModexp;
+  // private boolean exoIsLog;
+  // private boolean exoIsRom;
+  // private boolean exoIsTxcd;
 
-  private UInt256 pow2561;
-  private UInt256 pow2562;
-
-  private UInt256 acc1;
-  private UInt256 acc2;
-  private UInt256 acc3;
-  private UInt256 acc4;
-  private UInt256 acc5;
-  private UInt256 acc6;
-
-  public MmioData() {
+  public MmioData(
+      MmuToMmioConstantValues mmuToMmioConstantValues,
+      MmuToMmioInstruction mmuToMmioInstruction,
+      ExoSumDecoder exoSumDecoder) {
     this(
         0,
         0,
@@ -90,295 +108,177 @@ public class MmioData {
         0,
         0,
         0,
+        Bytes16.ZERO,
+        Bytes16.ZERO,
+        Bytes16.ZERO,
+        Bytes16.ZERO,
+        Bytes16.ZERO,
+        Bytes16.ZERO,
+        mmuToMmioInstruction.mmioInstruction(),
+        mmuToMmioConstantValues.sourceContextNumber(),
+        mmuToMmioConstantValues.targetContextNumber(),
+        mmuToMmioInstruction.sourceLimbOffset(),
+        mmuToMmioInstruction.targetLimbOffset(),
+        mmuToMmioInstruction.sourceByteOffset(),
+        mmuToMmioInstruction.targetByteOffset(),
+        mmuToMmioInstruction.size(),
+        mmuToMmioInstruction.limb(),
+        mmuToMmioConstantValues.totalSize(),
+        mmuToMmioConstantValues.exoSum(),
+        mmuToMmioConstantValues.exoId(),
+        mmuToMmioConstantValues.kecId(),
+        mmuToMmioConstantValues.phase(),
+        mmuToMmioConstantValues.successBit(),
+        exoSumDecoder,
         0,
-        UnsignedByte.EMPTY_BYTES16,
-        UnsignedByte.EMPTY_BYTES16,
-        UnsignedByte.EMPTY_BYTES16,
-        UnsignedByte.EMPTY_BYTES16,
-        UnsignedByte.EMPTY_BYTES16,
-        UnsignedByte.EMPTY_BYTES16,
-        null,
-        UnsignedByte.EMPTY_BYTES16,
-        UnsignedByte.EMPTY_BYTES16,
-        UnsignedByte.EMPTY_BYTES16,
-        false,
-        false,
-        false,
-        false,
-        false,
-        UInt256.ZERO,
-        UInt256.ZERO,
-        UInt256.ZERO,
-        UInt256.ZERO,
-        UInt256.ZERO,
-        UInt256.ZERO,
-        UInt256.ZERO,
-        UInt256.ZERO);
+        new boolean[LLARGE],
+        new boolean[LLARGE],
+        new boolean[LLARGE],
+        new boolean[LLARGE],
+        new boolean[LLARGE],
+        initBytes(new Bytes[LLARGE]),
+        initBytes(new Bytes[LLARGE]),
+        initBytes(new Bytes[LLARGE]),
+        initBytes(new Bytes[LLARGE]),
+        initBytes(new Bytes[LLARGE]),
+        initBytes(new Bytes[LLARGE]));
   }
 
-  public UnsignedByte byteA(int counter) {
-    return valA[counter];
+  private static Bytes[] initBytes(Bytes[] arr) {
+    Arrays.fill(arr, Bytes.EMPTY);
+    return arr;
   }
 
-  public UnsignedByte byteB(int counter) {
-    return valB[counter];
+  public static boolean isFastOperation(final int mmioInstruction) {
+    return List.of(
+            Trace.MMIO_INST_LIMB_VANISHES,
+            Trace.MMIO_INST_LIMB_TO_RAM_TRANSPLANT,
+            Trace.MMIO_INST_RAM_TO_LIMB_TRANSPLANT,
+            Trace.MMIO_INST_RAM_TO_RAM_TRANSPLANT,
+            Trace.MMIO_INST_RAM_VANISHES)
+        .contains(mmioInstruction);
   }
 
-  public UnsignedByte byteC(int counter) {
-    return valC[counter];
-  }
-
-  public UnsignedByte byteX(int counter) {
-    return valX[counter];
-  }
-
-  public UnsignedByte byteHi(int counter) {
-    return valHi[counter];
-  }
-
-  public UnsignedByte byteLo(int counter) {
-    return valLo[counter];
-  }
-
-  public EWord valAEword() {
-    return unsignedBytesToEWord(valA);
-  }
-
-  public EWord valBEword() {
-    return unsignedBytesToEWord(valB);
+  public static int numberOfRowOfMmioInstruction(final int mmioInstruction) {
+    return isFastOperation(mmioInstruction) ? 1 : LLARGE;
   }
 
   public void onePartialToOne(
-      UnsignedByte sb,
-      UnsignedByte tb,
-      UInt256 acc1,
-      UInt256 acc2,
-      UnsignedByte sm,
-      UnsignedByte tm,
-      int size,
-      int counter) {
-    bin1 = plateau(tm.toInteger(), counter);
-    bin2 = plateau(tm.toInteger() + size, counter);
-    bin3 = plateau(sm.toInteger(), counter);
-    bin4 = plateau(sm.toInteger() + size, counter);
-
-    this.acc1 = isolateChunk(acc1, tb, bin1, bin2, counter);
-    this.acc2 = isolateChunk(acc2, sb, bin3, bin4, counter);
-
-    pow2561 = power(pow2561, bin2, counter);
+      Bytes16 sourceBytes,
+      Bytes16 targetBytes,
+      short sourceOffsetTrigger,
+      short targetOffsetTrigger,
+      short size) {
+    for (short ct = 0; ct < LLARGE; ct++) {
+      bin1[ct] = plateau(targetOffsetTrigger, ct);
+      bin2[ct] = plateau(targetOffsetTrigger + size, ct);
+      bin3[ct] = plateau(sourceOffsetTrigger, ct);
+      bin4[ct] = plateau(sourceOffsetTrigger + size, ct);
+    }
+    acc1 = isolateChunk(targetBytes, bin1, bin2);
+    acc2 = isolateChunk(sourceBytes, bin3, bin4);
+    pow2561 = power(bin2);
   }
 
   public void onePartialToTwo(
-      UnsignedByte sb,
-      UnsignedByte t1b,
-      UnsignedByte t2b,
-      UInt256 acc1,
-      UInt256 acc2,
-      UInt256 acc3,
-      UInt256 acc4,
-      UnsignedByte sm,
-      UnsignedByte t1m,
-      int size,
-      int counter) {
-    bin1 = plateau(t1m.toInteger(), counter);
-    bin2 = plateau(t1m.toInteger() + size - 16, counter);
-    bin3 = plateau(sm.toInteger(), counter);
-    bin4 = plateau(sm.toInteger() + 16 - t1m.toInteger(), counter);
-    bin5 = plateau(sm.toInteger() + size, counter);
-
-    this.acc1 = isolateSuffix(acc1, bin1, t1b);
-    this.acc2 = isolateSuffix(acc2, bin2, t2b);
-
-    pow2561 = power(pow2561, bin2, counter);
-
-    this.acc3 = isolateChunk(acc3, sb, bin3, bin4, counter);
-    this.acc4 = isolateChunk(acc4, sb, bin4, bin5, counter);
-  }
-
-  public void threeToTwoFull(
-      UnsignedByte s1b,
-      UnsignedByte s2b,
-      UnsignedByte s3b,
-      UInt256 acc1,
-      UInt256 acc2,
-      UInt256 acc3,
-      UInt256 acc4,
-      UnsignedByte sm,
-      int counter) {
-    bin1 = plateau(sm.toInteger(), counter);
-    bin2 = plateau(16 - sm.toInteger(), counter);
-
-    this.acc1 = isolateSuffix(acc1, bin1, s1b);
-    this.acc3 = isolateSuffix(acc3, bin1, s2b);
-
-    this.acc2 = isolatePrefix(acc2, bin1, s2b);
-    this.acc4 = isolatePrefix(acc4, bin1, s3b);
-
-    pow2561 = power(pow2561, bin2, counter);
+      Bytes16 sourceBytes,
+      Bytes16 target1Bytes,
+      Bytes16 target2Bytes,
+      short sourceOffsetTrigger,
+      short target1OffsetTrigger,
+      short size) {
+    for (short ct = 0; ct < LLARGE; ct++) {
+      bin1[ct] = plateau(target1OffsetTrigger, ct);
+      bin2[ct] = plateau(target1OffsetTrigger + size - LLARGE, ct);
+      bin3[ct] = plateau(sourceOffsetTrigger, ct);
+      bin4[ct] = plateau(sourceOffsetTrigger + LLARGE - target1OffsetTrigger, ct);
+      bin5[ct] = plateau(sourceOffsetTrigger + size, ct);
+    }
+    acc1 = isolateSuffix(target1Bytes, bin1);
+    acc1 = isolatePrefix(target2Bytes, bin2);
+    acc3 = isolateChunk(sourceBytes, bin3, bin4);
+    acc4 = isolateChunk(sourceBytes, bin4, bin5);
+    pow2561 = power(bin2);
   }
 
   public void oneToOnePadded(
-      UnsignedByte[] s,
-      UnsignedByte sb,
-      UInt256 acc,
-      PowType powType,
-      UnsignedByte sm,
-      int size,
-      int counter) {
-    Preconditions.checkArgument(
-        sb != s[counter], "oneOnePadded: SB = %s != %s = S[%d]", sb, s[counter], counter);
+      final Bytes16 sourceBytes, final short sourceOffsetTrigger, final short size) {
 
-    boolean b1 = plateau(sm.toInteger(), counter);
-    boolean b2 = plateau(sm.toInteger() + size, counter);
-    boolean b3 = plateau(size, counter);
+    for (short ct = 0; ct < LLARGE; ct++) {
 
-    switch (powType) {
-      case POW_256_1 -> {
-        bin1 = b1;
-        bin2 = b2;
-        bin3 = b3;
-
-        acc1 = isolateChunk(acc, sb, bin1, bin2, counter);
-        pow2561 = power(pow2561, bin3, counter);
-      }
-      case POW_256_2 -> {
-        bin1 = b1;
-        bin3 = b2;
-        bin4 = b3;
-
-        acc3 = isolateChunk(acc, sb, bin1, bin3, counter);
-        pow2562 = power(pow2562, bin4, counter);
-      }
+      bin1[ct] = plateau(sourceOffsetTrigger, ct);
+      bin2[ct] = plateau(sourceOffsetTrigger + size, ct);
+      bin3[ct] = plateau(size, ct);
     }
+    acc1 = isolateChunk(sourceBytes, bin1, bin2);
+    pow2561 = power(bin3);
   }
 
-  public void setVal(EWord x) {
-    System.arraycopy(bytesToUnsignedBytes(x.hi().toArray()), 0, valHi, 0, valHi.length);
-    System.arraycopy(bytesToUnsignedBytes(x.lo().toArray()), 0, valLo, 0, valLo.length);
-  }
+  public void excision(final Bytes16 target, final short targetOffsetTrigger, final short size) {
 
-  public void excision(UnsignedByte tb, UInt256 acc, UnsignedByte tm, int size, int counter) {
-    bin1 = plateau(tm.toInteger(), counter);
-    bin2 = plateau(tm.toInteger() + size, counter);
-
-    this.acc1 = isolateChunk(acc, tb, bin1, bin2, counter);
-
-    pow2561 = power(pow2561, bin2, counter);
-  }
-
-  public void updateLimbsInMemory(final CallStack callStack) {
-    StackContext pending = callStack.getByContextNumber(cnA).pending();
-    MemorySegmentSnapshot memorySegmentSnapshot = pending.memorySegmentSnapshot();
-
-    memorySegmentSnapshot.updateLimb(indexA, valANew);
-    memorySegmentSnapshot.updateLimb(indexB, valBNew);
-    memorySegmentSnapshot.updateLimb(indexC, valCNew);
-  }
-
-  public void setValHiLoForRootContextCalldataload(int sourceByteOffset) {
-    // bounds check: we require 0 <= sourceByteOffset < 16
-    Preconditions.checkArgument(
-        sourceByteOffset < 0 || sourceByteOffset >= 16,
-        "mmuData.sourceByteOffset is out of bounds");
-
-    if (sourceByteOffset == 0) {
-      valHi = valA;
-      valLo = valB;
-    } else {
-      mergeAndCopyVals(sourceByteOffset, valA, valB, valHi);
-      mergeAndCopyVals(sourceByteOffset, valB, valC, valLo);
+    for (short ct = 0; ct < LLARGE; ct++) {
+      bin1[ct] = plateau(targetOffsetTrigger, ct);
+      bin2[ct] = plateau(targetOffsetTrigger + size, ct);
     }
+
+    acc1 = isolateChunk(target, bin1, bin2);
+    pow2561 = power(bin2);
   }
 
-  private void mergeAndCopyVals(
-      int sourceByteOffset, UnsignedByte[] valA, UnsignedByte[] valB, UnsignedByte[] valDest) {
-    UnsignedByte[] valASubArray = ArrayUtils.subarray(valA, sourceByteOffset, valA.length);
-    UnsignedByte[] valBSubArray = ArrayUtils.subarray(valB, 0, sourceByteOffset);
+  //  public void updateLimbsInMemory(final CallStack callStack) {
+  //    StackContext pending = callStack.getByContextNumber(cnA).pending();
+  //    MemorySegmentSnapshot memorySegmentSnapshot = pending.memorySegmentSnapshot();
+  //
+  //    memorySegmentSnapshot.updateLimb(indexA, valANew);
+  //    memorySegmentSnapshot.updateLimb(indexB, valBNew);
+  //    memorySegmentSnapshot.updateLimb(indexC, valCNew);
+  //  }
 
-    UnsignedByte[] valMerged =
-        (UnsignedByte[]) Stream.of(valASubArray, valBSubArray).flatMap(Stream::of).toArray();
-    System.arraycopy(valMerged, 0, valDest, 0, valMerged.length);
-  }
+  // private void mergeAndCopyVals(
+  //     int sourceByteOffset, UnsignedByte[] valA, UnsignedByte[] valB, UnsignedByte[] valDest) {
+  //   UnsignedByte[] valASubArray = ArrayUtils.subarray(valA, sourceByteOffset, valA.length);
+  //   UnsignedByte[] valBSubArray = ArrayUtils.subarray(valB, 0, sourceByteOffset);
+  //
+  //   UnsignedByte[] valMerged =
+  //       (UnsignedByte[]) Stream.of(valASubArray, valBSubArray).flatMap(Stream::of).toArray();
+  //   System.arraycopy(valMerged, 0, valDest, 0, valMerged.length);
+  // }
 
   public void twoToOnePadded(
-      UnsignedByte[] s1,
-      UnsignedByte[] s2,
-      UnsignedByte s1b,
-      UnsignedByte s2b,
-      UInt256 acc1,
-      UInt256 acc2,
-      UnsignedByte s1m,
-      int size,
-      int counter) {
-    Preconditions.checkArgument(
-        s1b != s1[counter], "twoOnePadded: S1B = %s != %s = S1[%d]", s1b, s1[counter], counter);
+      Bytes16 sourceBytes1, Bytes16 sourceBytes2, short sourceOffsetTrigger, short size) {
 
-    Preconditions.checkArgument(
-        s2b != s2[counter], "twoOnePadded: S2B = %s != %s = S2[%d]", s2b, s2[counter], counter);
-
-    bin1 = plateau(s1m.toInteger(), counter);
-    bin2 = plateau(s1m.toInteger() + size - 16, counter);
-    bin3 = plateau(16 - s1m.toInteger(), counter);
-    bin4 = plateau(size, counter);
-
-    this.acc1 = isolateSuffix(acc1, bin1, s1b);
-    this.acc2 = isolateSuffix(acc2, bin2, s2b);
-
-    pow2561 = power(pow2561, bin3, counter);
-    pow2562 = power(pow2562, bin4, counter);
+    for (short ct = 0; ct < LLARGE; ct++) {
+      bin1[ct] = plateau(sourceOffsetTrigger, ct);
+      bin2[ct] = plateau(sourceOffsetTrigger + size - LLARGE, ct);
+      bin3[ct] = plateau(LLARGE - sourceOffsetTrigger, ct);
+      bin4[ct] = plateau(size, ct);
+    }
+    acc1 = isolateSuffix(sourceBytes1, bin1);
+    acc2 = isolatePrefix(sourceBytes2, bin2);
+    pow2561 = power(bin3);
+    pow2562 = power(bin4);
   }
 
-  public void twoToOneFull(
-      UnsignedByte s1b,
-      UnsignedByte s2b,
-      UInt256 acc1,
-      UInt256 acc2,
-      UnsignedByte sm,
-      int counter) {
+  public void twoPartialToOne(
+      final Bytes16 source1,
+      final Bytes16 source2,
+      final Bytes16 target,
+      final short sourceOffsetTrigger,
+      final short targetOffsetTrgger,
+      final short size) {
 
-    bin1 = plateau(sm.toInteger(), counter);
-    bin2 = plateau(16 - sm.toInteger(), counter);
+    for (short ct = 0; ct < LLARGE; ct++) {
+      bin1[ct] = plateau(sourceOffsetTrigger, ct);
+      bin2[ct] = plateau(sourceOffsetTrigger + size - LLARGE, ct);
+      bin3[ct] = plateau(targetOffsetTrgger, ct);
+      bin4[ct] = plateau(targetOffsetTrgger + size, ct);
+    }
 
-    this.acc1 = isolateSuffix(acc1, bin1, s1b);
-    this.acc2 = isolatePrefix(acc2, bin2, s2b);
+    acc1 = isolateSuffix(source1, bin1);
+    acc2 = isolatePrefix(source2, bin2);
+    acc3 = isolateChunk(target, bin3, bin4);
 
-    pow2561 = power(pow2561, bin2, counter);
-  }
-
-  public void twoFullToThree(
-      UnsignedByte t1b,
-      UnsignedByte t2b,
-      UnsignedByte s1b,
-      UnsignedByte s2b,
-      UInt256 acc1,
-      UInt256 acc2,
-      UInt256 acc3,
-      UInt256 acc4,
-      UInt256 acc5,
-      UInt256 acc6,
-      UnsignedByte tm,
-      int counter) {
-    bin1 = plateau(tm.toInteger(), counter);
-    bin2 = plateau(16 - tm.toInteger(), counter);
-
-    this.acc1 = isolateSuffix(acc1, bin1, t1b);
-    this.acc2 = isolatePrefix(acc2, bin1, t2b);
-
-    this.acc3 = isolatePrefix(acc3, bin2, s1b);
-    this.acc4 = isolateSuffix(acc4, bin2, s2b);
-
-    this.acc5 = isolatePrefix(acc5, bin2, s2b);
-    this.acc6 = isolateSuffix(acc6, bin2, s2b);
-
-    pow2561 = power(pow2561, bin1, counter);
-  }
-
-  public void byteSwap(UnsignedByte tb, UInt256 acc, UnsignedByte tm, int counter) {
-    bin1 = plateau(tm.toInteger(), counter);
-    bin2 = plateau(tm.toInteger() + 1, counter);
-
-    this.acc1 = isolateChunk(acc, tb, bin1, bin2, counter);
-
-    pow2561 = power(pow2561, bin2, counter);
+    pow2561 = power(bin4);
+    pow2562 = antiPower(bin2);
   }
 }

@@ -15,60 +15,18 @@
 
 package net.consensys.linea.zktracer.module.mmio;
 
-import static net.consensys.linea.zktracer.types.Conversions.bytesToUnsignedBytes;
-
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
-import net.consensys.linea.zktracer.runtime.callstack.ExoSource;
 import net.consensys.linea.zktracer.types.UnsignedByte;
-import org.apache.tuweni.bytes.Bytes;
 
 @RequiredArgsConstructor
 @Accessors(fluent = true)
 public class CallStackReader {
   @Getter private final CallStack callStack;
 
-  public UnsignedByte[] valueFromMemory(final int counter, final int index) {
-    return callStack
-        .getByContextNumber(counter)
-        .pending()
-        .memorySegmentSnapshot()
-        .limbAtIndex(index);
-  }
-
-  public UnsignedByte[] valueFromExo(
-      final Bytes contractByteCode, final ExoSource exoSource, final int limbIndex) {
-    switch (exoSource) {
-      case ROM -> {
-        return readLimbFromBytecode(limbIndex, contractByteCode);
-      }
-      case TX_CALLDATA -> {
-        Preconditions.checkArgument(
-            callStack.depth() != 1, "Only the root contract can read TxCalldata");
-        return readLimbFromBytecode(limbIndex, callStack.current().callData());
-      }
-      default -> throw new IllegalArgumentException(
-          "Unknown ExoSource -> %s. Possible values: %s".formatted(exoSource, ExoSource.values()));
-    }
-  }
-
-  private UnsignedByte[] readLimbFromBytecode(int limbIndex, Bytes data) {
-    UnsignedByte[] result = UnsignedByte.EMPTY_BYTES16;
-
-    int bytePtrStart = 16 * limbIndex;
-    if (bytePtrStart >= data.size()) {
-      return result;
-    }
-
-    int bytePtrEnd = bytePtrStart + 16;
-    int byteCodeEnd = Math.min(bytePtrEnd, data.size());
-    int copied = byteCodeEnd - bytePtrStart;
-    UnsignedByte[] src = bytesToUnsignedBytes(data.slice(bytePtrStart, byteCodeEnd).toArray());
-    System.arraycopy(src, 0, result, 0, copied);
-
-    return result;
+  public UnsignedByte[] valueFromMemory(final int contextNumber) {
+    return callStack.getByContextNumber(contextNumber).pending().memorySegmentSnapshot().memory();
   }
 }

@@ -18,6 +18,7 @@ the License for the
 
 package net.consensys.linea.zktracer.module.mmu;
 
+import static net.consensys.linea.zktracer.module.mmio.MmioData.numberOfRowOfMmioInstruction;
 import static net.consensys.linea.zktracer.types.Conversions.*;
 
 import java.util.ArrayList;
@@ -38,7 +39,7 @@ import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 
 @Accessors(fluent = true)
-class MmuOperation extends ModuleOperation {
+public class MmuOperation extends ModuleOperation {
   @Getter private final MmuData mmuData;
   private final CallStack callStack;
 
@@ -50,6 +51,14 @@ class MmuOperation extends ModuleOperation {
   @Override
   protected int computeLineCount() {
     return 1 + mmuData.numberMmuPreprocessingRows() + mmuData.numberMmioInstructions();
+  }
+
+  public int computeMmioLineCount() {
+    int sum = 0;
+    for (int i = 0; i < mmuData().numberMmioInstructions(); i++) {
+      sum += numberOfRowOfMmioInstruction(mmuData.mmuToMmioInstructions().get(i).mmioInstruction());
+    }
+    return sum;
   }
 
   void trace(final int mmuStamp, final int mmioStamp, Trace trace) {
@@ -160,11 +169,7 @@ class MmuOperation extends ModuleOperation {
           .pPrprcEucB(Bytes.ofUnsignedLong(currentMmuEucCallRecord.divisor()))
           .pPrprcEucQuot(Bytes.ofUnsignedLong(currentMmuEucCallRecord.quotient()))
           .pPrprcEucRem(Bytes.ofUnsignedLong(currentMmuEucCallRecord.remainder()))
-          .pPrprcEucCeil(
-              Bytes.ofUnsignedLong(
-                  currentMmuEucCallRecord.remainder() == 0 && currentMmuEucCallRecord.flag()
-                      ? currentMmuEucCallRecord.quotient() + 1
-                      : currentMmuEucCallRecord.quotient()))
+          .pPrprcEucCeil(Bytes.ofUnsignedLong(currentMmuEucCallRecord.ceiling()))
           .pPrprcWcpFlag(currentMmuWcpCallRecord.flag())
           .pPrprcWcpArg1Hi(currentMmuWcpCallRecord.arg1Hi())
           .pPrprcWcpArg1Lo(currentMmuWcpCallRecord.arg1Lo())

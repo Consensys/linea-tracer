@@ -17,8 +17,12 @@ package net.consensys.linea.zktracer.types;
 
 import java.util.Arrays;
 
+import lombok.Getter;
+import lombok.experimental.Accessors;
+
+@Accessors(fluent = true)
 public class MemorySegmentSnapshot {
-  private UnsignedByte[] memory;
+  @Getter private UnsignedByte[] memory;
   private boolean clean;
 
   public MemorySegmentSnapshot(UnsignedByte[] memory) {

@@ -29,6 +29,7 @@ import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioConstantValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioInstruction;
 import net.consensys.linea.zktracer.module.mmu.values.MmuWcpCallRecord;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
+import net.consensys.linea.zktracer.types.Bytes16;
 import org.apache.tuweni.bytes.Bytes;
 
 public class InvalidCodePrefix implements MmuInstruction {
@@ -102,11 +103,11 @@ public class InvalidCodePrefix implements MmuInstruction {
     mmuData.mmuToMmioInstruction(
         MmuToMmioInstruction.builder()
             .mmioInstruction(Trace.MMIO_INST_RAM_TO_LIMB_ONE_SOURCE)
-            .size(1)
+            .size((short) 1)
             .sourceLimbOffset(initialSourceLimbOffset)
-            .sourceByteOffset(initialSourceByteOffset)
-            .targetByteOffset(15)
-            .limb(microLimb)
+            .sourceByteOffset((short) initialSourceByteOffset)
+            .targetByteOffset((short) 15)
+            .limb((Bytes16) microLimb)
             .build());
 
     return mmuData;

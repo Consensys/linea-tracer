@@ -18,30 +18,43 @@ package net.consensys.linea.zktracer.module.mmu;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.module.ec_data.EcData;
 import net.consensys.linea.zktracer.module.euc.Euc;
-import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.mmio.Mmio;
+import net.consensys.linea.zktracer.module.mmio.ExoSumDecoder;
 import net.consensys.linea.zktracer.module.mmu.values.HubToMmuValues;
+import net.consensys.linea.zktracer.module.rlp.txn.RlpTxn;
+import net.consensys.linea.zktracer.module.rlp.txrcpt.RlpTxrcpt;
+import net.consensys.linea.zktracer.module.romLex.RomLex;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 
+@Accessors(fluent = true)
 public class Mmu implements Module {
-  private final StackedList<MmuOperation> mmuOperationList = new StackedList<>();
-  private boolean isMicro;
-  private final Hub hub;
+  @Getter private final StackedList<MmuOperation> mmuOperations = new StackedList<>();
   private final Euc euc;
   private final Wcp wcp;
-  private final CallStack callStack;
+
+  private final ExoSumDecoder exoSumDecoder;
 
   public Mmu(
-      final Hub hub, final Euc euc, final Wcp wcp, final Mmio mmio, final CallStack callStack) {
-    this.hub = hub;
+      final Euc euc,
+      final Wcp wcp,
+      final RomLex romLex,
+      final RlpTxn rlpTxn,
+      final RlpTxrcpt rlpTxrcpt,
+      final EcData ecData,
+      // final Blake2fModexpData blake2fModexpData, not yet implemented
+      //  TODO: SHAKIRA module
+      final CallStack callStack) {
     this.euc = euc;
     this.wcp = wcp;
-    this.callStack = callStack;
+    this.exoSumDecoder =
+        new ExoSumDecoder(callStack, romLex, rlpTxn, rlpTxrcpt, ecData /*, blake2fModexpData*/);
   }
 
   @Override
@@ -51,17 +64,17 @@ public class Mmu implements Module {
 
   @Override
   public void enterTransaction() {
-    this.mmuOperationList.enter();
+    this.mmuOperations.enter();
   }
 
   @Override
   public void popTransaction() {
-    this.mmuOperationList.pop();
+    this.mmuOperations.pop();
   }
 
   @Override
   public int lineCount() {
-    return this.mmuOperationList.lineCount();
+    return this.mmuOperations.lineCount();
   }
 
   @Override
@@ -76,30 +89,26 @@ public class Mmu implements Module {
     int mmuStamp = 0;
     int mmioStamp = 0;
 
-    for (MmuOperation mmuOp : this.mmuOperationList) {
+    for (MmuOperation mmuOp : this.mmuOperations) {
       mmuStamp += 1;
       mmuOp.trace(mmuStamp, mmioStamp, trace);
       mmioStamp += mmuOp.mmuData().numberMmioInstructions();
     }
   }
 
-  /**
-   * TODO: should be called from the hub.
-   *
-   * @param opCode
-   * @param stackOps
-   * @param callStack
-   */
   public void call(final HubToMmuValues hubToMmuValues, final CallStack callStack) {
     MmuData mmuData = new MmuData();
     mmuData.hubToMmuValues(hubToMmuValues);
 
-    MmuInstructions mmuInstructions = new MmuInstructions(euc, wcp);
+    final int exoSum = mmuData.hubToMmuValues().exoSum();
+    mmuData.exoSumDecoder(exoSumDecoder);
+    if (exoSum != 0) {
+      exoSumDecoder.decode(exoSum);
+    }
+
+    final MmuInstructions mmuInstructions = new MmuInstructions(euc, wcp);
     mmuData = mmuInstructions.compute(mmuData);
 
-    // TODO: Deal with calling of the MMIO later.
-    //    mmio.handleRam(mmuData, hub.state().stamps(), microStamp);
-
-    this.mmuOperationList.add(new MmuOperation(mmuData, callStack));
+    this.mmuOperations.add(new MmuOperation(mmuData, callStack));
   }
 }

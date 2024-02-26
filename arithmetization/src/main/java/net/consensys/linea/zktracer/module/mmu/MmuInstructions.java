@@ -49,7 +49,6 @@ class MmuInstructions {
   private final Blake blake;
 
   MmuInstructions(Euc euc, Wcp wcp) {
-    // TODO need to instantiate only mmuInstPreComputation
     this.mLoadPreComputation = new MLoad(euc, wcp);
     this.mStorePreComputation = new MStore(euc, wcp);
     this.mStore8PreComputation = new MStore8(euc);

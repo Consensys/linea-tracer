@@ -30,4 +30,10 @@ public class MmuEucCallRecord {
   long divisor;
   long quotient;
   long remainder;
+
+  public long ceiling() {
+    return this.flag && this.remainder != 0 && this.dividend != 0
+        ? this.quotient + 1
+        : this.quotient;
+  }
 }

@@ -29,4 +29,10 @@ class MemoryTests {
     BytecodeRunner.of(BytecodeCompiler.newProgram().push(32).push(27).op(OpCode.MSTORE).compile())
         .run();
   }
+
+  @Test
+  void basicMload() {
+    BytecodeRunner.of(BytecodeCompiler.newProgram().push(34).push(76).op(OpCode.MLOAD).compile())
+        .run();
+  }
 }

@@ -15,7 +15,12 @@
 
 package net.consensys.linea.zktracer.module.mmio;
 
-public enum PowType {
-  POW_256_1,
-  POW_256_2
+public enum ExoSource {
+  ROM,
+  TX_CALLDATA,
+  KECCAK,
+  RIPSHA,
+  LOG,
+  EC_DATA,
+  BLAKE2f_MODEXP
 }

@@ -15,55 +15,166 @@
 
 package net.consensys.linea.zktracer.module.mmio;
 
-import net.consensys.linea.zktracer.types.UnsignedByte;
-import org.apache.tuweni.units.bigints.UInt256;
+import static net.consensys.linea.zktracer.module.mmio.Trace.LLARGE;
 
-class MmioPatterns {
-  static UInt256 isolateChunk(
-      UInt256 acc, UnsignedByte b, boolean startFlag, boolean endFlag, int counter) {
-    if (startFlag) {
-      if (counter == 0) {
-        return acc.add(UInt256.valueOf(b.toInteger()));
-      }
+import net.consensys.linea.zktracer.types.Bytes16;
+import org.apache.tuweni.bytes.Bytes;
 
-      if (!endFlag) {
-        return acc.multiply(UInt256.valueOf(256))
-            .add(UInt256.valueOf(b != null ? b.toInteger() : 0));
-      }
+public class MmioPatterns {
+
+  static Bytes[] isolateSuffix(final Bytes16 input, final boolean[] flag) {
+    Bytes[] output = new Bytes[LLARGE];
+
+    output[0] = flag[0] ? Bytes.of(input.get(0)) : Bytes.EMPTY;
+
+    for (int ct = 1; ct < LLARGE; ct++) {
+      output[ct] =
+          flag[ct] ? Bytes.concatenate(output[ct - 1], Bytes.of(input.get(ct))) : output[ct - 1];
     }
 
-    return acc;
+    return output;
   }
 
-  static UInt256 isolateSuffix(UInt256 acc, boolean flag, UnsignedByte b) {
-    if (flag) {
-      return acc.multiply(UInt256.valueOf(256)).add(UInt256.valueOf(b != null ? b.toInteger() : 0));
+  static Bytes[] isolatePrefix(final Bytes16 input, final boolean[] flag) {
+    Bytes[] output = new Bytes[LLARGE];
+
+    output[0] = flag[0] ? Bytes.EMPTY : Bytes.of(input.get(0));
+
+    for (int ct = 1; ct < LLARGE; ct++) {
+      output[ct] =
+          flag[ct] ? output[ct - 1] : Bytes.concatenate(output[ct - 1], Bytes.of(input.get(ct)));
     }
 
-    return acc;
+    return output;
   }
 
-  static UInt256 isolatePrefix(UInt256 acc, boolean flag, UnsignedByte b) {
-    if (!flag) {
-      return acc.multiply(UInt256.valueOf(256)).add(UInt256.valueOf(b != null ? b.toInteger() : 0));
+  static Bytes[] isolateChunk(
+      final Bytes16 input, final boolean[] startFlag, final boolean[] endFlag) {
+    Bytes[] output = new Bytes[LLARGE];
+
+    output[0] = startFlag[0] ? Bytes.of(input.get(0)) : Bytes.EMPTY;
+
+    for (int ct = 1; ct < LLARGE; ct++) {
+      if (startFlag[ct]) {
+        output[ct] =
+            endFlag[ct]
+                ? output[ct - 1]
+                : Bytes.concatenate(output[ct - 1], Bytes.of(input.get(ct)));
+      } else {
+        output[ct] = Bytes.EMPTY;
+      }
     }
 
-    return acc;
+    return output;
+  }
+
+  static Bytes[] power(final boolean[] flag) {
+    Bytes[] output = new Bytes[LLARGE];
+
+    output[0] = Bytes.of(1);
+
+    for (int ct = 1; ct < LLARGE; ct++) {
+      output[ct] = flag[ct] ? output[ct - 1].shiftLeft(8) : output[ct - 1];
+    }
+    return output;
+  }
+
+  static Bytes[] antiPower(final boolean[] flag) {
+    Bytes[] output = new Bytes[LLARGE];
+
+    output[0] = flag[0] ? Bytes.of(256) : Bytes.of(1);
+
+    for (short ct = 1; ct < LLARGE; ct++) {
+      output[ct] = flag[ct] ? output[ct - 1] : output[ct - 1].shiftLeft(8);
+    }
+    return output;
   }
 
   static boolean plateau(int m, int counter) {
     return counter >= m;
   }
 
-  static UInt256 power(UInt256 pow, boolean b, int counter) {
-    if (counter == 0) {
-      return UInt256.valueOf(1);
-    }
+  public static Bytes16 onePartialToOne(
+      final Bytes16 source,
+      final Bytes16 target,
+      final short sourceByteOffset,
+      final short targetByteOffset,
+      final short size) {
+    return Bytes16.leftPad(
+        Bytes.concatenate(target.slice(0, targetByteOffset), source.slice(sourceByteOffset, size)));
+  }
 
-    if (b) {
-      return pow.multiply(UInt256.valueOf(256));
-    }
+  public static Bytes16 onePartialToTwoOutputOne(
+      final Bytes16 source,
+      final Bytes16 target1,
+      final short sourceByteOffset,
+      final short targetByteOffset) {
+    return (Bytes16)
+        Bytes.concatenate(
+            target1.slice(0, targetByteOffset),
+            source.slice(sourceByteOffset, LLARGE - targetByteOffset));
+  }
 
-    return pow;
+  public static Bytes16 onePartialToTwoOutputTwo(
+      final Bytes16 source,
+      final Bytes16 target2,
+      final short sourceByteOffset,
+      final short targetByteOffset,
+      final short size) {
+    final short numberOfBytesFromSourceToFirstTarget = (short) (LLARGE - targetByteOffset);
+    final short numberOfBytesFromSourceToSecondTarget =
+        (short) (size - numberOfBytesFromSourceToFirstTarget);
+    return (Bytes16)
+        Bytes.concatenate(
+            source.slice(
+                sourceByteOffset + numberOfBytesFromSourceToFirstTarget,
+                numberOfBytesFromSourceToSecondTarget),
+            target2.slice(
+                numberOfBytesFromSourceToSecondTarget,
+                LLARGE - numberOfBytesFromSourceToSecondTarget));
+  }
+
+  public static Bytes16 oneToOnePadded(
+      final Bytes16 source, final short sourceByteoffset, final short size) {
+    return Bytes16.leftPad(source.slice(sourceByteoffset, size));
+  }
+
+  public static Bytes16 twoToOnePadded(
+      final Bytes16 source1,
+      final Bytes16 source2,
+      final short sourceByteOffset,
+      final short size) {
+    final short numberOfBytesFromFirstSource = (short) (LLARGE - sourceByteOffset);
+
+    return Bytes16.leftPad(
+        Bytes.concatenate(
+            source1.slice(sourceByteOffset, numberOfBytesFromFirstSource),
+            source2.slice(0, size - numberOfBytesFromFirstSource)));
+  }
+
+  public static Bytes16 twoPartialToOne(
+      final Bytes16 source1,
+      final Bytes16 source2,
+      final Bytes16 target,
+      final short sourceByteOffset,
+      final short targetByteOffset,
+      final short size) {
+    final short numberByteFromFirstSource = (short) (LLARGE - sourceByteOffset);
+    final short numberByteFromSecondSource = (short) (size - numberByteFromFirstSource);
+    return (Bytes16)
+        Bytes.concatenate(
+            target.slice(0, targetByteOffset),
+            source1.slice(sourceByteOffset, numberByteFromFirstSource),
+            source2.slice(0, numberByteFromSecondSource),
+            target.slice(targetByteOffset + size));
+  }
+
+  public static Bytes16 excision(
+      final Bytes16 target, final short targetByteOffset, final short size) {
+    return (Bytes16)
+        Bytes.concatenate(
+            target.slice(0, targetByteOffset),
+            Bytes.repeat((byte) 0, size),
+            target.slice(targetByteOffset + size));
   }
 }

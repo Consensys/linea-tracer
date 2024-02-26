@@ -84,7 +84,11 @@ public class ImcFragment implements TraceFragment {
    * @return the ImcFragment for the TxInit phase
    */
   public static ImcFragment forTxInit(final Hub hub) {
-    return ImcFragment.empty(hub).callMmu(MmuCall.txInit(hub));
+    final ImcFragment r = ImcFragment.empty(hub);
+    if (!hub.transients().tx().isDeployment() && hub.transients().tx().callData().isPresent()) {
+      r.callMmu(MmuCall.txInit(hub));
+    }
+    return r;
   }
 
   /**

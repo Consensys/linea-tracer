@@ -88,7 +88,7 @@ public class RlpTxn implements Module {
   public static final int INT_PREFIX_LONG_LIST =
       BYTES_PREFIX_LONG_LIST.toUnsignedBigInteger().intValueExact();
 
-  private final StackedList<RlpTxnChunk> chunkList = new StackedList<>();
+  public final StackedList<RlpTxnChunk> chunkList = new StackedList<>();
 
   // Used to check the reconstruction of RLPs
   Bytes reconstructedRlpLt;

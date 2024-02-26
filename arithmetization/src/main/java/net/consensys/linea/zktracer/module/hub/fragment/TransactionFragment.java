@@ -95,10 +95,10 @@ public final class TransactionFragment implements TraceFragment {
         .pTransactionCoinbaseAddressHi(miner.hi())
         .pTransactionCoinbaseAddressLo(miner.lo())
         .pTransactionCallDataSize(Bytes.ofUnsignedInt(tx.getData().map(Bytes::size).orElse(0)))
-        .pTransactionTxnRequiresEvmExecution(evmExecutes)
+        .pTransactionRequiresEvmExecution(evmExecutes)
         .pTransactionLeftoverGas(Bytes.ofUnsignedLong(leftoverGas))
-        .pTransactionGasRefundCounterFinal(Bytes.ofUnsignedLong(gasRefundFinalCounter))
-        .pTransactionGasRefundAmount(Bytes.ofUnsignedLong(gasRefundAmount))
+        .pTransactionRefundCounterInfinity(Bytes.ofUnsignedLong(gasRefundFinalCounter))
+        .pTransactionRefundAmount(Bytes.ofUnsignedLong(gasRefundAmount))
         .pTransactionStatusCode(txSuccess);
   }
 }

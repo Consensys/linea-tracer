@@ -194,18 +194,13 @@ public final class StackFragment implements TraceFragment {
 
     return trace
         .peekAtStack(true)
-        // Stack height
-        .pStackHeight(Bytes.ofUnsignedShort(stack.getHeight()))
-        .pStackHeightNew(Bytes.ofUnsignedShort(stack.getHeightNew()))
-        .pStackHeightUnder(Bytes.ofUnsignedShort(heightUnder))
-        .pStackHeightOver(Bytes.ofUnsignedShort(heightOver))
         // Instruction details
-        .pStackInst(Bytes.of(this.stack.getCurrentOpcodeData().value()))
+        .pStackInstruction(Bytes.of(this.stack.getCurrentOpcodeData().value()))
         .pStackStaticGas(Bytes.ofUnsignedInt(staticGas))
-        .pStackDecodedFlag1(this.stack.getCurrentOpcodeData().stackSettings().flag1())
-        .pStackDecodedFlag2(this.stack.getCurrentOpcodeData().stackSettings().flag2())
-        .pStackDecodedFlag3(this.stack.getCurrentOpcodeData().stackSettings().flag3())
-        .pStackDecodedFlag4(this.stack.getCurrentOpcodeData().stackSettings().flag4())
+        .pStackDecFlag1(this.stack.getCurrentOpcodeData().stackSettings().flag1())
+        .pStackDecFlag2(this.stack.getCurrentOpcodeData().stackSettings().flag2())
+        .pStackDecFlag3(this.stack.getCurrentOpcodeData().stackSettings().flag3())
+        .pStackDecFlag4(this.stack.getCurrentOpcodeData().stackSettings().flag4())
         // Exception flag
         .pStackOpcx(exceptions.invalidOpcode())
         .pStackSux(exceptions.stackUnderflow())
@@ -216,7 +211,7 @@ public final class StackFragment implements TraceFragment {
         .pStackJumpx(exceptions.jumpFault())
         .pStackStaticx(exceptions.staticFault())
         .pStackSstorex(exceptions.outOfSStore())
-        .pStackInvprex(contextExceptions.invalidCodePrefix())
+        .pStackIcpx(contextExceptions.invalidCodePrefix())
         .pStackMaxcsx(contextExceptions.codeSizeOverflow())
         // Opcode families
         .pStackAddFlag(
@@ -271,10 +266,7 @@ public final class StackFragment implements TraceFragment {
             Optional.ofNullable(this.stack.getCurrentOpcodeData().billing())
                 .map(b -> b.type() != MxpType.NONE)
                 .orElse(false))
-        .pStackTrmFlag(
-            this.stack.getCurrentOpcodeData().stackSettings().addressTrimmingInstruction())
         .pStackStaticFlag(this.stack.getCurrentOpcodeData().stackSettings().forbiddenInStatic())
-        .pStackOobFlag(this.stack.getCurrentOpcodeData().stackSettings().oobFlag())
         // Hash data
         .pStackHashInfoSize(Bytes.ofUnsignedInt(hashInfoSize))
         .pStackHashInfoKecHi(this.hashInfoKeccak.hi())

@@ -98,8 +98,8 @@ public final class AccountFragment implements TraceFragment, PostConflationDefer
 
     return trace
         .peekAtAccount(true)
-        .pAccountAddrHi(eWho.hi())
-        .pAccountAddrLo(eWho.lo())
+        .pAccountAddressHi(eWho.hi())
+        .pAccountAddressLo(eWho.lo())
         .pAccountIsPrecompile(isPrecompile(who))
         .pAccountNonce(Bytes.ofUnsignedLong(oldState.nonce()))
         .pAccountNonceNew(Bytes.ofUnsignedLong(newState.nonce()))
@@ -123,16 +123,12 @@ public final class AccountFragment implements TraceFragment, PostConflationDefer
                 || !newState.balance().isZero())
         .pAccountWarm(oldState.warm())
         .pAccountWarmNew(newState.warm())
-        .pAccountDepNum(Bytes.ofUnsignedInt(oldState.deploymentNumber()))
-        .pAccountDepNumNew(Bytes.ofUnsignedInt(newState.deploymentNumber()))
-        .pAccountDepStatus(oldState.deploymentStatus())
-        .pAccountDepStatusNew(newState.deploymentStatus())
-        //      .pAccountDebit(debit)
-        //      .pAccountCost(cost)
-        //      .pAccountCreateAddress(createAddress)
+        .pAccountDeploymentNumber(Bytes.ofUnsignedInt(oldState.deploymentNumber()))
+        .pAccountDeploymentNumberNew(Bytes.ofUnsignedInt(newState.deploymentNumber()))
         .pAccountDeploymentNumberInfty(Bytes.ofUnsignedInt(deploymentNumberInfnty))
-    //        .pAccountExistsInfty(existsInfinity)
-    ;
+        .pAccountDeploymentStatus(oldState.deploymentStatus())
+        .pAccountDeploymentStatusNew(newState.deploymentStatus())
+        .pAccountDeploymentStatusInfty(existsInfinity);
   }
 
   @Override

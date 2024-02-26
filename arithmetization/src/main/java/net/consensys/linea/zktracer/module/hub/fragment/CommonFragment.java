@@ -96,13 +96,19 @@ public final class CommonFragment implements TraceFragment {
 
   @Override
   public Trace trace(Trace trace) {
+    throw new UnsupportedOperationException("should never be called");
+  }
+
+  public Trace trace(Trace trace, int stackHeight, int stackHeightNew) {
     CallFrame frame = this.hub.callStack().getById(this.callFrameId);
     TransactionStack.MetaTransaction tx = hub.txStack().getById(this.txId);
     final boolean selfReverts = frame.selfReverts();
     final boolean getsReverted = frame.getsReverted();
 
     return trace
-        .absoluteTransactionNumber(Bytes.ofUnsignedInt(tx.absNumber()))
+      .absoluteTransactionNumber(Bytes.ofUnsignedInt(tx.absNumber()))
+        .height(Bytes.ofUnsignedShort(stackHeight))
+        .heightNew(Bytes.ofUnsignedShort(stackHeightNew))
         .batchNumber(Bytes.ofUnsignedInt(this.batchNumber))
         .txSkip(this.txState == TxState.TX_SKIP)
         .txWarm(this.txState == TxState.TX_WARM)
@@ -131,16 +137,13 @@ public final class CommonFragment implements TraceFragment {
         .programCounterNew(Bytes.ofUnsignedInt(newPc))
 
         // Bytecode metadata
-        .codeAddressHi(codeAddress.hi())
-        .codeAddressLo(codeAddress.lo())
-        .codeDeploymentNumber(Bytes.ofUnsignedInt(codeDeploymentNumber))
-        .codeDeploymentStatus(codeDeploymentStatus)
         .callerContextNumber(Bytes.ofUnsignedInt(callerContextNumber))
         .gasExpected(Bytes.ofUnsignedLong(gasExpected))
         .gasActual(Bytes.ofUnsignedLong(gasActual))
         .gasCost(Bytes.ofUnsignedLong(gasCost))
         .gasNext(Bytes.ofUnsignedLong(gasNext))
-        .gasRefund(Bytes.ofUnsignedLong(gasRefund))
+        .refgas(Bytes.ofUnsignedLong(gasRefund))
+        .refgasNew(Bytes.EMPTY)
         .twoLineInstruction(twoLinesInstruction)
         .counterTli(twoLinesInstructionCounter)
         .numberOfNonStackRows(Bytes.ofUnsignedShort(numberOfNonStackRows))

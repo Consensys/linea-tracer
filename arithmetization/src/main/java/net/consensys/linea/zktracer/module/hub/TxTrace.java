@@ -95,8 +95,8 @@ public class TxTrace implements PostTransactionDefer {
    */
   public void commit(Trace hubTrace) {
     for (TraceSection opSection : this.trace) {
-      for (TraceSection.TraceLine line : opSection.getLines()) {
-        line.trace(hubTrace);
+      for (TraceSection.TraceLine line : opSection.lines()) {
+        line.trace(hubTrace, opSection.stackHeight(), opSection.stackHeightNew());
       }
     }
   }
@@ -107,7 +107,7 @@ public class TxTrace implements PostTransactionDefer {
   public int lineCount() {
     if (this.cachedLineCount == 0) {
       for (TraceSection s : trace) {
-        this.cachedLineCount += s.getLines().size();
+        this.cachedLineCount += s.lines().size();
       }
     }
     return this.cachedLineCount;

@@ -409,6 +409,8 @@ public class Hub implements Module {
         .ifPresent(
             preWarmed -> {
               if (!preWarmed.isEmpty()) {
+                this.state.stamps().stampHub();
+
                 Set<Address> seenAddresses = new HashSet<>();
                 Map<Address, Set<Bytes32>> seenKeys = new HashMap<>();
                 List<TraceFragment> fragments = new ArrayList<>();
@@ -758,7 +760,7 @@ public class Hub implements Module {
         }
 
         // This works because we are certain that the stack chunks are the first.
-        ((StackFragment) section.getLines().get(i).specific())
+        ((StackFragment) section.lines().get(i).specific())
             .stackOps()
             .get(line.resultColumn() - 1)
             .setValue(result);
@@ -766,7 +768,7 @@ public class Hub implements Module {
     }
 
     if (this.pch.exceptions().none()) {
-      for (TraceSection.TraceLine line : section.getLines()) {
+      for (TraceSection.TraceLine line : section.lines()) {
         if (line.specific() instanceof StackFragment stackFragment) {
           stackFragment.feedHashedValue(frame);
         }

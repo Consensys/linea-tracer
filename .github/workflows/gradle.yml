@@ -54,7 +54,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: test-report
+          name: acceptance-test-report
           path: acceptance-tests/build/reports/tests/
 
   tests:
@@ -104,7 +104,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: test-report
-          path: build/reports/tests/
+          path: arithmetization/build/reports/tests/
 
   spotless:
     runs-on: ubuntu-latest

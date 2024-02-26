@@ -36,7 +36,6 @@ public class Trace {
   private final MappedByteBuffer inputByte1;
   private final MappedByteBuffer inputByte2;
   private final MappedByteBuffer inst;
-  private final MappedByteBuffer iomf;
   private final MappedByteBuffer resultByte;
 
   static List<ColumnHeader> headers(int length) {
@@ -44,7 +43,6 @@ public class Trace {
         new ColumnHeader("binRT.INPUT_BYTE_1", 1, length),
         new ColumnHeader("binRT.INPUT_BYTE_2", 1, length),
         new ColumnHeader("binRT.INST", 1, length),
-        new ColumnHeader("binRT.IOMF", 1, length),
         new ColumnHeader("binRT.RESULT_BYTE", 1, length));
   }
 
@@ -52,8 +50,7 @@ public class Trace {
     this.inputByte1 = buffers.get(0);
     this.inputByte2 = buffers.get(1);
     this.inst = buffers.get(2);
-    this.iomf = buffers.get(3);
-    this.resultByte = buffers.get(4);
+    this.resultByte = buffers.get(3);
   }
 
   public int size() {
@@ -100,23 +97,11 @@ public class Trace {
     return this;
   }
 
-  public Trace iomf(final Boolean b) {
-    if (filled.get(3)) {
-      throw new IllegalStateException("binRT.IOMF already set");
-    } else {
-      filled.set(3);
-    }
-
-    iomf.put((byte) (b ? 1 : 0));
-
-    return this;
-  }
-
   public Trace resultByte(final UnsignedByte b) {
-    if (filled.get(4)) {
+    if (filled.get(3)) {
       throw new IllegalStateException("binRT.RESULT_BYTE already set");
     } else {
-      filled.set(4);
+      filled.set(3);
     }
 
     resultByte.put(b.toByte());
@@ -138,10 +123,6 @@ public class Trace {
     }
 
     if (!filled.get(3)) {
-      throw new IllegalStateException("binRT.IOMF has not been filled");
-    }
-
-    if (!filled.get(4)) {
       throw new IllegalStateException("binRT.RESULT_BYTE has not been filled");
     }
 
@@ -165,10 +146,6 @@ public class Trace {
     }
 
     if (!filled.get(3)) {
-      iomf.position(iomf.position() + 1);
-    }
-
-    if (!filled.get(4)) {
       resultByte.position(resultByte.position() + 1);
     }
 

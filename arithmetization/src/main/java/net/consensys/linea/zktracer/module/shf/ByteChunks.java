@@ -23,6 +23,7 @@ public record ByteChunks(UnsignedByte ra, UnsignedByte la, UnsignedByte ones) {
     if (mshp.toInteger() > 8) {
       String s =
           String.format("chunksFromByte given mshp = %d not in {0,1,...,8}", mshp.toInteger());
+      throw new IllegalArgumentException(s);
     }
 
     final UnsignedByte mshpCmp = UnsignedByte.of(8 - mshp.toInteger());

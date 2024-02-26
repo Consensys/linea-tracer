@@ -41,12 +41,6 @@ public class LineaProfitabilityCliOptions {
   public static final String TX_POOL_MIN_MARGIN = "--plugin-linea-tx-pool-min-margin";
   public static final BigDecimal DEFAULT_TX_POOL_MIN_MARGIN = BigDecimal.valueOf(0.5);
 
-  public static final String ADJUST_TX_SIZE = "--plugin-linea-adjust-tx-size";
-  public static final int DEFAULT_ADJUST_TX_SIZE = 0;
-
-  public static final String TX_COMPRESSION_RATIO = "--plugin-linea-tx-compression-ratio";
-  public static final int DEFAULT_TX_COMPRESSION_RATIO = 5;
-
   public static final String TX_POOL_ENABLE_CHECK_API =
       "--plugin-linea-tx-pool-profitability-check-api-enabled";
   public static final boolean DEFAULT_TX_POOL_ENABLE_CHECK_API = true;
@@ -105,24 +99,6 @@ public class LineaProfitabilityCliOptions {
           "The min margin an incoming tx must have to be accepted in the txpool (default: ${DEFAULT-VALUE})")
   private BigDecimal txPoolMinMargin = DEFAULT_TX_POOL_MIN_MARGIN;
 
-  @Positive
-  @CommandLine.Option(
-      names = {ADJUST_TX_SIZE},
-      hidden = true,
-      paramLabel = "<INTEGER>",
-      description =
-          "Adjust transaction size for profitability calculation (default: ${DEFAULT-VALUE})")
-  private int adjustTxSize = DEFAULT_ADJUST_TX_SIZE;
-
-  @Positive
-  @CommandLine.Option(
-      names = {TX_COMPRESSION_RATIO},
-      hidden = true,
-      paramLabel = "<INTEGER>",
-      description =
-          "The ratio between tx serialized size and its compressed size (default: ${DEFAULT-VALUE})")
-  private int txCompressionRatio = DEFAULT_TX_COMPRESSION_RATIO;
-
   @CommandLine.Option(
       names = {TX_POOL_ENABLE_CHECK_API},
       arity = "0..1",
@@ -167,8 +143,6 @@ public class LineaProfitabilityCliOptions {
     options.minMargin = BigDecimal.valueOf(config.minMargin());
     options.estimageGasMinMargin = BigDecimal.valueOf(config.estimateGasMinMargin());
     options.txPoolMinMargin = BigDecimal.valueOf(config.txPoolMinMargin());
-    options.adjustTxSize = config.adjustTxSize();
-    options.txCompressionRatio = config.txCompressionRatio();
     options.txPoolCheckApiEnabled = config.txPoolCheckApiEnabled();
     options.txPoolCheckP2pEnabled = config.txPoolCheckP2pEnabled();
     return options;
@@ -187,8 +161,6 @@ public class LineaProfitabilityCliOptions {
         .minMargin(minMargin.doubleValue())
         .estimateGasMinMargin(estimageGasMinMargin.doubleValue())
         .txPoolMinMargin(txPoolMinMargin.doubleValue())
-        .adjustTxSize(adjustTxSize)
-        .txCompressionRatio(txCompressionRatio)
         .txPoolCheckApiEnabled(txPoolCheckApiEnabled)
         .txPoolCheckP2pEnabled(txPoolCheckP2pEnabled)
         .build();
@@ -203,8 +175,6 @@ public class LineaProfitabilityCliOptions {
         .add(MIN_MARGIN, minMargin)
         .add(ESTIMATE_GAS_MIN_MARGIN, estimageGasMinMargin)
         .add(TX_POOL_MIN_MARGIN, txPoolMinMargin)
-        .add(ADJUST_TX_SIZE, adjustTxSize)
-        .add(TX_COMPRESSION_RATIO, txCompressionRatio)
         .add(TX_POOL_ENABLE_CHECK_API, txPoolCheckApiEnabled)
         .add(TX_POOL_ENABLE_CHECK_P2P, txPoolCheckP2pEnabled)
         .toString();

@@ -18,8 +18,6 @@ It is applied, with different configuration to:
 | MIN_MARGIN                   | 1.0           | `--plugin-linea-min-margin`                               |
 | ESTIMATE_GAS_MIN_MARGIN      | 1.0           | `--plugin-linea-estimate-gas-min-margin`                  |
 | TX_POOL_MIN_MARGIN           | 0.5           | `--plugin-linea-tx-pool-min-margin`                       |
-| ADJUST_TX_SIZE               | 0             | `--plugin-linea-adjust-tx-size`                           |
-| TX_COMPRESSION_RATIO         | 5             | `--plugin-linea-tx-compression-ratio`                     |
 | UNPROFITABLE_CACHE_SIZE      | 100_000       | `--plugin-linea-unprofitable-cache-size`                  |
 | UNPROFITABLE_RETRY_LIMIT     | 10            | `--plugin-linea-unprofitable-retry-limit`                 |
 | TX_POOL_ENABLE_CHECK_API     | true          | `--plugin-linea-tx-pool-profitability-check-api-enabled`  |

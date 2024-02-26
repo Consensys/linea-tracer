@@ -26,7 +26,5 @@ public record LineaProfitabilityConfiguration(
     double minMargin,
     double estimateGasMinMargin,
     double txPoolMinMargin,
-    int adjustTxSize,
-    int txCompressionRatio,
     boolean txPoolCheckApiEnabled,
     boolean txPoolCheckP2pEnabled) {}

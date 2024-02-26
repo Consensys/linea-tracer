@@ -164,30 +164,19 @@ public final class StackFragment implements TraceFragment {
             trace::pStackStackItemStamp3,
             trace::pStackStackItemStamp4);
 
-    final int alpha = this.stack.getCurrentOpcodeData().stackSettings().alpha();
-    final int delta = this.stack.getCurrentOpcodeData().stackSettings().delta();
-
-    var heightUnder = stack.getHeight() - delta;
-    var heightOver = 0;
-
-    if (!stack.isUnderflow()) {
-      if (!(alpha == 1 && delta == 0 && stack.getHeight() == Stack.MAX_STACK_SIZE)) {
-        var overflow = stack.isOverflow() ? 1 : 0;
-        heightOver = (2 * overflow - 1) * (heightUnder + alpha - Stack.MAX_STACK_SIZE) - overflow;
-      }
-    } else {
-      heightUnder = -heightUnder - 1;
-    }
-
+    EWord pushValue = EWord.ZERO;
     var it = stackOps.listIterator();
     while (it.hasNext()) {
       var i = it.nextIndex();
       var op = it.next();
-      final EWord eword = EWord.of(op.value());
+      final EWord eValue = EWord.of(op.value());
+      if (this.stack.getCurrentOpcodeData().isPush()) {
+        pushValue = eValue;
+      }
 
       heightTracers.get(i).apply(Bytes.ofUnsignedShort(op.height()));
-      valLoTracers.get(i).apply(eword.lo());
-      valHiTracers.get(i).apply(eword.hi());
+      valLoTracers.get(i).apply(eValue.lo());
+      valHiTracers.get(i).apply(eValue.hi());
       popTracers.get(i).apply(op.action() == Action.POP);
       stampTracers.get(i).apply(Bytes.ofUnsignedLong(op.stackStamp()));
     }
@@ -197,6 +186,8 @@ public final class StackFragment implements TraceFragment {
         // Instruction details
         .pStackInstruction(Bytes.of(this.stack.getCurrentOpcodeData().value()))
         .pStackStaticGas(Bytes.ofUnsignedInt(staticGas))
+        .pStackPushValueHi(pushValue.hi())
+        .pStackPushValueLo(pushValue.lo())
         .pStackDecFlag1(this.stack.getCurrentOpcodeData().stackSettings().flag1())
         .pStackDecFlag2(this.stack.getCurrentOpcodeData().stackSettings().flag2())
         .pStackDecFlag3(this.stack.getCurrentOpcodeData().stackSettings().flag3())

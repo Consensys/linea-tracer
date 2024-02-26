@@ -102,11 +102,16 @@ public final class CommonFragment implements TraceFragment {
   public Trace trace(Trace trace, int stackHeight, int stackHeightNew) {
     final CallFrame frame = this.hub.callStack().getById(this.callFrameId);
     final TransactionStack.MetaTransaction tx = hub.txStack().getById(this.txId);
+    final int codeFragmentIndex =
+        this.hub
+            .romLex()
+            .getCfiByMetadata(
+                frame.codeAddress(), frame.codeDeploymentNumber(), frame.underDeployment());
     final boolean selfReverts = frame.selfReverts();
     final boolean getsReverted = frame.getsReverted();
 
     return trace
-        .codeFragmentIndex(Bytes.ofUnsignedInt(frame.codeFragmentIndex()))
+        .codeFragmentIndex(Bytes.ofUnsignedInt(codeFragmentIndex))
         .absoluteTransactionNumber(Bytes.ofUnsignedInt(tx.absNumber()))
         .height(Bytes.ofUnsignedShort(stackHeight))
         .heightNew(Bytes.ofUnsignedShort(stackHeightNew))

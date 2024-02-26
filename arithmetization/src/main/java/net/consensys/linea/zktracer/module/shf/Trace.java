@@ -30,32 +30,156 @@ import org.apache.tuweni.bytes.Bytes;
  * Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
 public class Trace {
-  public static final int ADD = 0x1;
-  public static final int ADDMOD = 0x8;
-  public static final int AND = 0x16;
   public static final int BLAKE_PHASE_DATA = 0x5;
   public static final int BLAKE_PHASE_PARAMS = 0x6;
   public static final int BLAKE_PHASE_RESULT = 0x7;
-  public static final int BYTE = 0x1a;
-  public static final int DIV = 0x4;
-  public static final int EQ_ = 0x14;
-  public static final int EXP = 0xa;
-  public static final int GEQ = 0xf;
-  public static final int GT = 0x11;
+  public static final int EVM_INST_ADD = 0x1;
+  public static final int EVM_INST_ADDMOD = 0x8;
+  public static final int EVM_INST_ADDRESS = 0x30;
+  public static final int EVM_INST_AND = 0x16;
+  public static final int EVM_INST_BALANCE = 0x31;
+  public static final int EVM_INST_BASEFEE = 0x48;
+  public static final int EVM_INST_BLOCKHASH = 0x40;
+  public static final int EVM_INST_BYTE = 0x1a;
+  public static final int EVM_INST_CALL = 0xf1;
+  public static final int EVM_INST_CALLCODE = 0xf2;
+  public static final int EVM_INST_CALLDATACOPY = 0x37;
+  public static final int EVM_INST_CALLDATALOAD = 0x35;
+  public static final int EVM_INST_CALLDATASIZE = 0x36;
+  public static final int EVM_INST_CALLER = 0x33;
+  public static final int EVM_INST_CALLVALUE = 0x34;
+  public static final int EVM_INST_CHAINID = 0x46;
+  public static final int EVM_INST_CODECOPY = 0x39;
+  public static final int EVM_INST_CODESIZE = 0x38;
+  public static final int EVM_INST_COINBASE = 0x41;
+  public static final int EVM_INST_CREATE = 0xf0;
+  public static final int EVM_INST_CREATE2 = 0xf5;
+  public static final int EVM_INST_DELEGATECALL = 0xf4;
+  public static final int EVM_INST_DIFFICULTY = 0x44;
+  public static final int EVM_INST_DIV = 0x4;
+  public static final int EVM_INST_DUP1 = 0x80;
+  public static final int EVM_INST_DUP10 = 0x89;
+  public static final int EVM_INST_DUP11 = 0x8a;
+  public static final int EVM_INST_DUP12 = 0x8b;
+  public static final int EVM_INST_DUP13 = 0x8c;
+  public static final int EVM_INST_DUP14 = 0x8d;
+  public static final int EVM_INST_DUP15 = 0x8e;
+  public static final int EVM_INST_DUP16 = 0x8f;
+  public static final int EVM_INST_DUP2 = 0x81;
+  public static final int EVM_INST_DUP3 = 0x82;
+  public static final int EVM_INST_DUP4 = 0x83;
+  public static final int EVM_INST_DUP5 = 0x84;
+  public static final int EVM_INST_DUP6 = 0x85;
+  public static final int EVM_INST_DUP7 = 0x86;
+  public static final int EVM_INST_DUP8 = 0x87;
+  public static final int EVM_INST_DUP9 = 0x88;
+  public static final int EVM_INST_EQ = 0x14;
+  public static final int EVM_INST_EXP = 0xa;
+  public static final int EVM_INST_EXTCODECOPY = 0x3c;
+  public static final int EVM_INST_EXTCODEHASH = 0x3f;
+  public static final int EVM_INST_EXTCODESIZE = 0x3b;
+  public static final int EVM_INST_GAS = 0x5a;
+  public static final int EVM_INST_GASLIMIT = 0x45;
+  public static final int EVM_INST_GASPRICE = 0x3a;
+  public static final int EVM_INST_GT = 0x11;
+  public static final int EVM_INST_INVALID = 0xfe;
+  public static final int EVM_INST_ISZERO = 0x15;
+  public static final int EVM_INST_JUMP = 0x56;
+  public static final int EVM_INST_JUMPDEST = 0x5b;
+  public static final int EVM_INST_JUMPI = 0x57;
+  public static final int EVM_INST_LOG0 = 0xa0;
+  public static final int EVM_INST_LOG1 = 0xa1;
+  public static final int EVM_INST_LOG2 = 0xa2;
+  public static final int EVM_INST_LOG3 = 0xa3;
+  public static final int EVM_INST_LOG4 = 0xa4;
+  public static final int EVM_INST_LT = 0x10;
+  public static final int EVM_INST_MLOAD = 0x51;
+  public static final int EVM_INST_MOD = 0x6;
+  public static final int EVM_INST_MSIZE = 0x59;
+  public static final int EVM_INST_MSTORE = 0x52;
+  public static final int EVM_INST_MSTORE8 = 0x53;
+  public static final int EVM_INST_MUL = 0x2;
+  public static final int EVM_INST_MULMOD = 0x9;
+  public static final int EVM_INST_NOT = 0x19;
+  public static final int EVM_INST_NUMBER = 0x43;
+  public static final int EVM_INST_OR = 0x17;
+  public static final int EVM_INST_ORIGIN = 0x32;
+  public static final int EVM_INST_PC = 0x58;
+  public static final int EVM_INST_POP = 0x50;
+  public static final int EVM_INST_PUSH1 = 0x60;
+  public static final int EVM_INST_PUSH10 = 0x69;
+  public static final int EVM_INST_PUSH11 = 0x6a;
+  public static final int EVM_INST_PUSH12 = 0x6b;
+  public static final int EVM_INST_PUSH13 = 0x6c;
+  public static final int EVM_INST_PUSH14 = 0x6d;
+  public static final int EVM_INST_PUSH15 = 0x6e;
+  public static final int EVM_INST_PUSH16 = 0x6f;
+  public static final int EVM_INST_PUSH17 = 0x70;
+  public static final int EVM_INST_PUSH18 = 0x71;
+  public static final int EVM_INST_PUSH19 = 0x72;
+  public static final int EVM_INST_PUSH2 = 0x61;
+  public static final int EVM_INST_PUSH20 = 0x73;
+  public static final int EVM_INST_PUSH21 = 0x74;
+  public static final int EVM_INST_PUSH22 = 0x75;
+  public static final int EVM_INST_PUSH23 = 0x76;
+  public static final int EVM_INST_PUSH24 = 0x77;
+  public static final int EVM_INST_PUSH25 = 0x78;
+  public static final int EVM_INST_PUSH26 = 0x79;
+  public static final int EVM_INST_PUSH27 = 0x7a;
+  public static final int EVM_INST_PUSH28 = 0x7b;
+  public static final int EVM_INST_PUSH29 = 0x7c;
+  public static final int EVM_INST_PUSH3 = 0x62;
+  public static final int EVM_INST_PUSH30 = 0x7d;
+  public static final int EVM_INST_PUSH31 = 0x7e;
+  public static final int EVM_INST_PUSH32 = 0x7f;
+  public static final int EVM_INST_PUSH4 = 0x63;
+  public static final int EVM_INST_PUSH5 = 0x64;
+  public static final int EVM_INST_PUSH6 = 0x65;
+  public static final int EVM_INST_PUSH7 = 0x66;
+  public static final int EVM_INST_PUSH8 = 0x67;
+  public static final int EVM_INST_PUSH9 = 0x68;
+  public static final int EVM_INST_RETURN = 0xf3;
+  public static final int EVM_INST_RETURNDATACOPY = 0x3e;
+  public static final int EVM_INST_RETURNDATASIZE = 0x3d;
+  public static final int EVM_INST_REVERT = 0xfd;
+  public static final int EVM_INST_SAR = 0x1d;
+  public static final int EVM_INST_SDIV = 0x5;
+  public static final int EVM_INST_SELFBALANCE = 0x47;
+  public static final int EVM_INST_SELFDESTRUCT = 0xff;
+  public static final int EVM_INST_SGT = 0x13;
+  public static final int EVM_INST_SHA3 = 0x20;
+  public static final int EVM_INST_SHL = 0x1b;
+  public static final int EVM_INST_SHR = 0x1c;
+  public static final int EVM_INST_SIGNEXTEND = 0xb;
+  public static final int EVM_INST_SLOAD = 0x54;
+  public static final int EVM_INST_SLT = 0x12;
+  public static final int EVM_INST_SMOD = 0x7;
+  public static final int EVM_INST_SSTORE = 0x55;
+  public static final int EVM_INST_STATICCALL = 0xfa;
+  public static final int EVM_INST_STOP = 0x0;
+  public static final int EVM_INST_SUB = 0x3;
+  public static final int EVM_INST_SWAP1 = 0x90;
+  public static final int EVM_INST_SWAP10 = 0x99;
+  public static final int EVM_INST_SWAP11 = 0x9a;
+  public static final int EVM_INST_SWAP12 = 0x9b;
+  public static final int EVM_INST_SWAP13 = 0x9c;
+  public static final int EVM_INST_SWAP14 = 0x9d;
+  public static final int EVM_INST_SWAP15 = 0x9e;
+  public static final int EVM_INST_SWAP16 = 0x9f;
+  public static final int EVM_INST_SWAP2 = 0x91;
+  public static final int EVM_INST_SWAP3 = 0x92;
+  public static final int EVM_INST_SWAP4 = 0x93;
+  public static final int EVM_INST_SWAP5 = 0x94;
+  public static final int EVM_INST_SWAP6 = 0x95;
+  public static final int EVM_INST_SWAP7 = 0x96;
+  public static final int EVM_INST_SWAP8 = 0x97;
+  public static final int EVM_INST_SWAP9 = 0x98;
+  public static final int EVM_INST_TIMESTAMP = 0x42;
+  public static final int EVM_INST_XOR = 0x18;
   public static final int INVALID_CODE_PREFIX_VALUE = 0xef;
-  public static final int INVALID_OPCODE = 0xfe;
-  public static final int ISZERO = 0x15;
-  public static final int JUMPDEST = 0x5b;
-  public static final int LEQ = 0xe;
   public static final int LLARGE = 0x10;
   public static final int LLARGEMO = 0xf;
   public static final int LLARGEPO = 0x11;
-  public static final int LOG0 = 0xa0;
-  public static final int LOG1 = 0xa1;
-  public static final int LOG2 = 0xa2;
-  public static final int LOG3 = 0xa3;
-  public static final int LOG4 = 0xa4;
-  public static final int LT = 0x10;
   public static final int MMEDIUM = 0x8;
   public static final int MMEDIUMMO = 0x7;
   public static final int MMIO_INST_LIMB_TO_RAM_ONE_TARGET = 0xfe12;
@@ -85,16 +209,10 @@ public class Trace {
   public static final int MMU_INST_RAM_TO_EXO_WITH_PADDING = 0xfe20;
   public static final int MMU_INST_RAM_TO_RAM_SANS_PADDING = 0xfe40;
   public static final int MMU_INST_RIGHT_PADDED_WORD_EXTRACTION = 0xfe10;
-  public static final int MOD = 0x6;
   public static final int MODEXP_PHASE_BASE = 0x1;
   public static final int MODEXP_PHASE_EXPONENT = 0x2;
   public static final int MODEXP_PHASE_MODULUS = 0x3;
   public static final int MODEXP_PHASE_RESULT = 0x4;
-  public static final int MUL = 0x2;
-  public static final int MULMOD = 0x9;
-  public static final int NOT = 0x19;
-  public static final int OR = 0x17;
-  public static final int PUSH_1 = 0x60;
   public static final int RLP_ADDR_RECIPE_1 = 0x1;
   public static final int RLP_ADDR_RECIPE_2 = 0x2;
   public static final int RLP_PREFIX_INT_LONG = 0xb7;
@@ -125,18 +243,10 @@ public class Trace {
   public static final int RLP_TXN_PHASE_TO_VALUE = 0x8;
   public static final int RLP_TXN_PHASE_VALUE_VALUE = 0x9;
   public static final int RLP_TXN_PHASE_Y_VALUE = 0xd;
-  public static final int SAR = 0x1d;
-  public static final int SDIV = 0x5;
-  public static final int SGT = 0x13;
-  public static final int SHL = 0x1b;
-  public static final int SHR = 0x1c;
-  public static final int SIGNEXTEND = 0xb;
-  public static final int SLT = 0x12;
-  public static final int SMOD = 0x7;
-  public static final int SUB = 0x3;
+  public static final int WCP_INST_GEQ = 0xe;
+  public static final int WCP_INST_LEQ = 0xf;
   public static final int WORD_SIZE = 0x20;
   public static final int WORD_SIZE_MO = 0x1f;
-  public static final int XOR = 0x18;
 
   private final BitSet filled = new BitSet();
   private int currentLine = 0;
@@ -219,21 +329,21 @@ public class Trace {
         new ColumnHeader("shf.BYTE_3", 1, length),
         new ColumnHeader("shf.BYTE_4", 1, length),
         new ColumnHeader("shf.BYTE_5", 1, length),
-        new ColumnHeader("shf.COUNTER", 1, length),
+        new ColumnHeader("shf.COUNTER", 2, length),
         new ColumnHeader("shf.INST", 1, length),
         new ColumnHeader("shf.IOMF", 1, length),
         new ColumnHeader("shf.KNOWN", 1, length),
-        new ColumnHeader("shf.LEFT_ALIGNED_SUFFIX_HIGH", 4, length),
-        new ColumnHeader("shf.LEFT_ALIGNED_SUFFIX_LOW", 4, length),
+        new ColumnHeader("shf.LEFT_ALIGNED_SUFFIX_HIGH", 1, length),
+        new ColumnHeader("shf.LEFT_ALIGNED_SUFFIX_LOW", 1, length),
         new ColumnHeader("shf.LOW_3", 32, length),
         new ColumnHeader("shf.MICRO_SHIFT_PARAMETER", 2, length),
         new ColumnHeader("shf.NEG", 1, length),
         new ColumnHeader("shf.ONE_LINE_INSTRUCTION", 1, length),
-        new ColumnHeader("shf.ONES", 4, length),
+        new ColumnHeader("shf.ONES", 1, length),
         new ColumnHeader("shf.RES_HI", 32, length),
         new ColumnHeader("shf.RES_LO", 32, length),
-        new ColumnHeader("shf.RIGHT_ALIGNED_PREFIX_HIGH", 4, length),
-        new ColumnHeader("shf.RIGHT_ALIGNED_PREFIX_LOW", 4, length),
+        new ColumnHeader("shf.RIGHT_ALIGNED_PREFIX_HIGH", 1, length),
+        new ColumnHeader("shf.RIGHT_ALIGNED_PREFIX_LOW", 1, length),
         new ColumnHeader("shf.SHB_3_HI", 32, length),
         new ColumnHeader("shf.SHB_3_LO", 32, length),
         new ColumnHeader("shf.SHB_4_HI", 32, length),
@@ -245,7 +355,7 @@ public class Trace {
         new ColumnHeader("shf.SHB_7_HI", 32, length),
         new ColumnHeader("shf.SHB_7_LO", 32, length),
         new ColumnHeader("shf.SHIFT_DIRECTION", 1, length),
-        new ColumnHeader("shf.SHIFT_STAMP", 2, length));
+        new ColumnHeader("shf.SHIFT_STAMP", 8, length));
   }
 
   public Trace(List<MappedByteBuffer> buffers) {
@@ -634,14 +744,14 @@ public class Trace {
     return this;
   }
 
-  public Trace counter(final UnsignedByte b) {
+  public Trace counter(final short b) {
     if (filled.get(24)) {
       throw new IllegalStateException("shf.COUNTER already set");
     } else {
       filled.set(24);
     }
 
-    counter.put(b.toByte());
+    counter.putShort(b);
 
     return this;
   }
@@ -682,26 +792,26 @@ public class Trace {
     return this;
   }
 
-  public Trace leftAlignedSuffixHigh(final int b) {
+  public Trace leftAlignedSuffixHigh(final UnsignedByte b) {
     if (filled.get(28)) {
       throw new IllegalStateException("shf.LEFT_ALIGNED_SUFFIX_HIGH already set");
     } else {
       filled.set(28);
     }
 
-    leftAlignedSuffixHigh.putInt(b);
+    leftAlignedSuffixHigh.put(b.toByte());
 
     return this;
   }
 
-  public Trace leftAlignedSuffixLow(final int b) {
+  public Trace leftAlignedSuffixLow(final UnsignedByte b) {
     if (filled.get(29)) {
       throw new IllegalStateException("shf.LEFT_ALIGNED_SUFFIX_LOW already set");
     } else {
       filled.set(29);
     }
 
-    leftAlignedSuffixLow.putInt(b);
+    leftAlignedSuffixLow.put(b.toByte());
 
     return this;
   }
@@ -758,14 +868,14 @@ public class Trace {
     return this;
   }
 
-  public Trace ones(final int b) {
+  public Trace ones(final UnsignedByte b) {
     if (filled.get(33)) {
       throw new IllegalStateException("shf.ONES already set");
     } else {
       filled.set(33);
     }
 
-    ones.putInt(b);
+    ones.put(b.toByte());
 
     return this;
   }
@@ -802,26 +912,26 @@ public class Trace {
     return this;
   }
 
-  public Trace rightAlignedPrefixHigh(final int b) {
+  public Trace rightAlignedPrefixHigh(final UnsignedByte b) {
     if (filled.get(37)) {
       throw new IllegalStateException("shf.RIGHT_ALIGNED_PREFIX_HIGH already set");
     } else {
       filled.set(37);
     }
 
-    rightAlignedPrefixHigh.putInt(b);
+    rightAlignedPrefixHigh.put(b.toByte());
 
     return this;
   }
 
-  public Trace rightAlignedPrefixLow(final int b) {
+  public Trace rightAlignedPrefixLow(final UnsignedByte b) {
     if (filled.get(38)) {
       throw new IllegalStateException("shf.RIGHT_ALIGNED_PREFIX_LOW already set");
     } else {
       filled.set(38);
     }
 
-    rightAlignedPrefixLow.putInt(b);
+    rightAlignedPrefixLow.put(b.toByte());
 
     return this;
   }
@@ -998,14 +1108,14 @@ public class Trace {
     return this;
   }
 
-  public Trace shiftStamp(final short b) {
+  public Trace shiftStamp(final long b) {
     if (filled.get(50)) {
       throw new IllegalStateException("shf.SHIFT_STAMP already set");
     } else {
       filled.set(50);
     }
 
-    shiftStamp.putShort(b);
+    shiftStamp.putLong(b);
 
     return this;
   }
@@ -1319,7 +1429,7 @@ public class Trace {
     }
 
     if (!filled.get(24)) {
-      counter.position(counter.position() + 1);
+      counter.position(counter.position() + 2);
     }
 
     if (!filled.get(25)) {
@@ -1335,11 +1445,11 @@ public class Trace {
     }
 
     if (!filled.get(28)) {
-      leftAlignedSuffixHigh.position(leftAlignedSuffixHigh.position() + 4);
+      leftAlignedSuffixHigh.position(leftAlignedSuffixHigh.position() + 1);
     }
 
     if (!filled.get(29)) {
-      leftAlignedSuffixLow.position(leftAlignedSuffixLow.position() + 4);
+      leftAlignedSuffixLow.position(leftAlignedSuffixLow.position() + 1);
     }
 
     if (!filled.get(30)) {
@@ -1359,7 +1469,7 @@ public class Trace {
     }
 
     if (!filled.get(33)) {
-      ones.position(ones.position() + 4);
+      ones.position(ones.position() + 1);
     }
 
     if (!filled.get(35)) {
@@ -1371,11 +1481,11 @@ public class Trace {
     }
 
     if (!filled.get(37)) {
-      rightAlignedPrefixHigh.position(rightAlignedPrefixHigh.position() + 4);
+      rightAlignedPrefixHigh.position(rightAlignedPrefixHigh.position() + 1);
     }
 
     if (!filled.get(38)) {
-      rightAlignedPrefixLow.position(rightAlignedPrefixLow.position() + 4);
+      rightAlignedPrefixLow.position(rightAlignedPrefixLow.position() + 1);
     }
 
     if (!filled.get(39)) {
@@ -1423,7 +1533,7 @@ public class Trace {
     }
 
     if (!filled.get(50)) {
-      shiftStamp.position(shiftStamp.position() + 2);
+      shiftStamp.position(shiftStamp.position() + 8);
     }
 
     filled.clear();

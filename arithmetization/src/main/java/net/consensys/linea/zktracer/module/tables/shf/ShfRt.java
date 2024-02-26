@@ -48,13 +48,14 @@ public record ShfRt() implements Module {
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
     for (int a = 0; a <= 255; a++) {
+      final UnsignedByte unsignedByteA = UnsignedByte.of(a);
       for (int uShp = 0; uShp <= 8; uShp++) {
         trace
             .byte1(UnsignedByte.of(a))
-            .las(Bytes.ofUnsignedShort(a).shiftLeft(8 - uShp).toInt()) // a<<(8-µShp)
+            .las(unsignedByteA.shiftLeft(8 - uShp))
             .mshp((short) uShp)
-            .rap(Bytes.ofUnsignedShort(a).shiftRight(uShp).toInt())
-            .ones((Bytes.fromHexString("0xFF").shiftRight(uShp)).not().toInt())
+            .rap(unsignedByteA.shiftRight(uShp))
+            .ones(UnsignedByte.of((Bytes.fromHexString("0xFF").shiftRight(uShp)).not().toInt()))
             .iomf(true)
             .validateRow();
       }

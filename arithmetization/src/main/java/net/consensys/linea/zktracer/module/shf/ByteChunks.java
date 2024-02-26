@@ -15,20 +15,20 @@
 
 package net.consensys.linea.zktracer.module.shf;
 
-import org.apache.tuweni.bytes.Bytes;
+import net.consensys.linea.zktracer.types.UnsignedByte;
 
-public record ByteChunks(short ra, short la, short ones) {
+public record ByteChunks(UnsignedByte ra, UnsignedByte la, UnsignedByte ones) {
 
-  public static ByteChunks fromBytes(final short b, final short mshp) {
-    if (mshp > 8) {
-      String s = String.format("chunksFromByte given mshp = %d not in {0,1,...,8}", mshp);
-      throw new IllegalArgumentException(s);
+  public static ByteChunks fromBytes(final UnsignedByte b, final UnsignedByte mshp) {
+    if (mshp.toInteger() > 8) {
+      String s =
+          String.format("chunksFromByte given mshp = %d not in {0,1,...,8}", mshp.toInteger());
     }
 
-    final short mshpCmp = (short) (8 - mshp);
-    final short ra = (short) Bytes.ofUnsignedShort(b).shiftRight(mshp).toInt();
-    final short la = (short) Bytes.ofUnsignedShort(b).shiftLeft(mshpCmp).toInt();
-    final short ones = (short) Bytes.of(255).shiftLeft(mshpCmp).toInt();
+    final UnsignedByte mshpCmp = UnsignedByte.of(8 - mshp.toInteger());
+    final UnsignedByte ra = b.shiftRight(mshp);
+    final UnsignedByte la = b.shiftLeft(mshpCmp);
+    final UnsignedByte ones = UnsignedByte.of(255).shiftLeft(mshpCmp);
 
     return new ByteChunks(ra, la, ones);
   }

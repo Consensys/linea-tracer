@@ -31,7 +31,6 @@ import org.apache.tuweni.bytes.Bytes32;
 
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 final class ShfOperation extends ModuleOperation {
-  private static final int LIMB_SIZE = 16;
 
   @EqualsAndHashCode.Include private final OpCode opCode;
   @EqualsAndHashCode.Include private final Bytes32 arg1;
@@ -41,7 +40,7 @@ final class ShfOperation extends ModuleOperation {
   private boolean isShiftRight;
   private boolean isKnown;
   private UnsignedByte low3;
-  private short mshp;
+  private UnsignedByte mshp;
   private List<Boolean> bits;
   private Shb shb;
   private Res res;
@@ -71,7 +70,7 @@ final class ShfOperation extends ModuleOperation {
   }
 
   private static boolean allButLastByteZero(final Bytes16 bytes) {
-    for (int i = 0; i < 15; i++) {
+    for (int i = 0; i < Trace.LLARGEMO; i++) {
       if (bytes.get(i) != 0) {
         return false;
       }
@@ -90,9 +89,9 @@ final class ShfOperation extends ModuleOperation {
     this.low3 = lsb.shiftLeft(5).shiftRight(5);
 
     if (isShiftRight) {
-      this.mshp = (short) low3.toInteger();
+      this.mshp = low3;
     } else {
-      this.mshp = (short) (8 - low3.toInteger());
+      this.mshp = UnsignedByte.of(8 - low3.toInteger());
     }
 
     Boolean[] lsbBits = byteBits(lsb);
@@ -129,7 +128,7 @@ final class ShfOperation extends ModuleOperation {
   }
 
   public int maxCt() {
-    return this.isOneLineInstruction ? 1 : LIMB_SIZE;
+    return this.isOneLineInstruction ? 1 : Trace.LLARGE;
   }
 
   public void trace(Trace trace, int stamp) {
@@ -137,11 +136,9 @@ final class ShfOperation extends ModuleOperation {
 
     for (int i = 0; i < this.maxCt(); i++) {
       final ByteChunks arg2HiByteChunks =
-          ByteChunks.fromBytes(
-              (short) UnsignedByte.of(this.arg2Hi().get(i)).toInteger(), this.mshp);
+          ByteChunks.fromBytes(UnsignedByte.of(this.arg2Hi().get(i)), this.mshp);
       final ByteChunks arg2LoByteChunks =
-          ByteChunks.fromBytes(
-              (short) UnsignedByte.of(this.arg2Lo().get(i)).toInteger(), this.mshp);
+          ByteChunks.fromBytes(UnsignedByte.of(this.arg2Lo().get(i)), this.mshp);
 
       trace
           .acc1(this.arg1Lo().slice(0, 1 + i))
@@ -172,13 +169,13 @@ final class ShfOperation extends ModuleOperation {
           .byte4(UnsignedByte.of(this.res.getResHi().get(i)))
           .byte5(UnsignedByte.of(this.res.getResLo().get(i)))
           .bits(this.bits.get(i))
-          .counter(UnsignedByte.of(i))
+          .counter((short) i)
           .inst(UnsignedByte.of(this.opCode.byteValue()))
           .known(this.isKnown)
           .neg(this.isNegative)
           .oneLineInstruction(this.isOneLineInstruction)
           .low3(Bytes.of(this.low3.toInteger()))
-          .microShiftParameter(this.mshp)
+          .microShiftParameter((short) this.mshp.toInteger())
           .resHi(this.res.getResHi())
           .resLo(this.res.getResLo())
           .leftAlignedSuffixHigh(arg2HiByteChunks.la())

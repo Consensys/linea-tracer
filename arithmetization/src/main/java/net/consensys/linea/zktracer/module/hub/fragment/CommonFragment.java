@@ -25,6 +25,7 @@ import net.consensys.linea.zktracer.module.hub.TransactionStack;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.opcode.InstructionFamily;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
+import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.TxState;
 import org.apache.tuweni.bytes.Bytes;
@@ -102,7 +103,7 @@ public final class CommonFragment implements TraceFragment {
   public Trace trace(Trace trace, int stackHeight, int stackHeightNew) {
     final CallFrame frame = this.hub.callStack().getById(this.callFrameId);
     final TransactionStack.MetaTransaction tx = hub.txStack().getById(this.txId);
-    final int codeFragmentIndex =
+    final int codeFragmentIndex = frame.type() == CallFrameType.MANTLE ? 0 :
         this.hub
             .romLex()
             .getCfiByMetadata(
@@ -137,9 +138,9 @@ public final class CommonFragment implements TraceFragment {
         .contextNumber(Bytes.ofUnsignedInt(contextNumber))
         .contextNumberNew(Bytes.ofUnsignedInt(newContextNumber))
         .contextRevertStamp(Bytes.ofUnsignedInt(revertStamp))
-        .contextWillRevertFlag(getsReverted || selfReverts)
-        .contextGetsRevertedFlag(getsReverted)
-        .contextSelfRevertsFlag(selfReverts)
+        .contextWillRevert(getsReverted || selfReverts)
+        .contextGetsReverted(getsReverted)
+        .contextSelfReverts(selfReverts)
         .programCounter(Bytes.ofUnsignedInt(pc))
         .programCounterNew(Bytes.ofUnsignedInt(newPc))
 

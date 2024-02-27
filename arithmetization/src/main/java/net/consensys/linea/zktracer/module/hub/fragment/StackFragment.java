@@ -29,7 +29,6 @@ import net.consensys.linea.zktracer.module.hub.signals.AbortingConditions;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.opcode.InstructionFamily;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.gas.MxpType;
 import net.consensys.linea.zktracer.opcode.gas.projector.GasProjection;
 import net.consensys.linea.zktracer.runtime.stack.Action;
@@ -187,8 +186,10 @@ public final class StackFragment implements TraceFragment {
         // Instruction details
         .pStackAlpha(Bytes.ofUnsignedInt(this.stack.getCurrentOpcodeData().stackSettings().alpha()))
         .pStackDelta(Bytes.ofUnsignedInt(this.stack.getCurrentOpcodeData().stackSettings().delta()))
-      .pStackNbAdded(Bytes.ofUnsignedInt(this.stack.getCurrentOpcodeData().stackSettings().nbAdded()))
-      .pStackNbRemoved(Bytes.ofUnsignedInt(this.stack.getCurrentOpcodeData().stackSettings().nbRemoved()))
+        .pStackNbAdded(
+            Bytes.ofUnsignedInt(this.stack.getCurrentOpcodeData().stackSettings().nbAdded()))
+        .pStackNbRemoved(
+            Bytes.ofUnsignedInt(this.stack.getCurrentOpcodeData().stackSettings().nbRemoved()))
         .pStackInstruction(Bytes.of(this.stack.getCurrentOpcodeData().value()))
         .pStackStaticGas(Bytes.ofUnsignedInt(staticGas))
         .pStackPushValueHi(pushValue.hi())

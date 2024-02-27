@@ -176,7 +176,7 @@ public class Hub implements Module {
   private final Mod mod = new Mod();
   private final Module mul = new Mul(this);
   private final Module shf = new Shf();
-  private final Wcp wcp = new Wcp(this);
+  @Getter private final Wcp wcp = new Wcp(this);
   private final RlpTxn rlpTxn;
   private final Module mxp;
   @Getter private final Exp exp;
@@ -526,9 +526,7 @@ public class Hub implements Module {
   }
 
   private void handleStack(MessageFrame frame) {
-    this.currentFrame()
-        .stack()
-        .processInstruction(frame, this.currentFrame(), TAU * this.state.stamps().hub());
+    this.currentFrame().stack().processInstruction(this, frame, TAU * this.state.stamps().hub());
   }
 
   void triggerModules(MessageFrame frame) {

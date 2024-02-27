@@ -124,13 +124,13 @@ public final class CommonFragment implements TraceFragment {
         .hubStamp(Bytes.ofUnsignedInt(this.stamp))
         .hubStampTransactionEnd(Bytes.ofUnsignedLong(tx.endStamp()))
         .transactionReverts(tx.status())
-        .contextMayChangeFlag(
-            (instructionFamily == InstructionFamily.CALL
+        .contextMayChange(this.txState == TxState.TX_EXEC &&
+          ((instructionFamily == InstructionFamily.CALL
                     || instructionFamily == InstructionFamily.CREATE
                     || instructionFamily == InstructionFamily.HALT
                     || instructionFamily == InstructionFamily.INVALID)
-                || exceptions.any())
-        .exceptionAhoyFlag(exceptions.any())
+                || exceptions.any()))
+        .exceptionAhoy(exceptions.any())
 
         // Context data
         .contextNumber(Bytes.ofUnsignedInt(contextNumber))

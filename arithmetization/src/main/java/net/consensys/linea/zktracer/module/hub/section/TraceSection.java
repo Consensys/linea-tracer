@@ -79,7 +79,7 @@ public abstract class TraceSection {
    * @return a {@link CommonFragment} representing the shared columns
    */
   private CommonFragment traceCommon(Hub hub, CallFrame frame) {
-    return CommonFragment.fromHub(hub, frame, this.stackRowsCounter == 1, this.nonStackRowsCounter);
+    return CommonFragment.fromHub(hub, frame, this.stackRowsCounter == 2, this.nonStackRowsCounter);
   }
 
   /** Default creator for an empty section. */

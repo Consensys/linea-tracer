@@ -22,7 +22,6 @@ import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import lombok.RequiredArgsConstructor;
@@ -39,7 +38,6 @@ import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.TransactionType;
-import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.worldstate.WorldView;
@@ -111,11 +109,6 @@ public class TxnData implements Module {
 
   @Override
   public void traceStartTx(WorldView worldView, Transaction tx) {
-    if ((tx.getTo().isEmpty() && tx.getInit().isPresent() && !tx.getInit().orElseThrow().isEmpty()
-        || tx.getTo().isPresent()
-            && Optional.ofNullable(worldView.get(tx.getTo().orElseThrow()))
-                .map(AccountState::hasCode)
-                .orElse(false))) {}
     this.currentBlock().captureTx(worldView, tx);
   }
 

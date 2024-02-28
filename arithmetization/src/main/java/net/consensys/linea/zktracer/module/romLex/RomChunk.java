@@ -38,9 +38,16 @@ import org.apache.tuweni.bytes.Bytes;
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public final class RomChunk extends ModuleOperation {
-  private static final UnsignedByte BYTES_LLARGE = UnsignedByte.of(LLARGE);
-  private static final UnsignedByte BYTES_LLARGEMO = UnsignedByte.of(LLARGEMO);
-  private static final UnsignedByte BYTES_EVW_WORDMO = UnsignedByte.of(WORD_SIZE_MO);
+  private static final int LLARGE = 16;
+  private static final UnsignedByte UB_LLARGE = UnsignedByte.of(LLARGE);
+  private static final int LLARGE_MO = 15;
+  private static final UnsignedByte UB_LLARGE_MO = UnsignedByte.of(LLARGE_MO);
+  private static final int EVM_WORD_MO = 31;
+  private static final UnsignedByte UB_EVW_WORD_MO = UnsignedByte.of(EVM_WORD_MO);
+  private static final int PUSH_1 = 0x60;
+  private static final int PUSH_32 = 0x7f;
+  private static final UnsignedByte INVALID = UnsignedByte.of(0xFE);
+  private static final int JUMPDEST = 0x5b;
 
   @EqualsAndHashCode.Include private final ContractMetadata metadata;
   private final boolean readFromTheState;
@@ -81,9 +88,9 @@ public final class RomChunk extends ModuleOperation {
 
       // Fill CT, CTmax nBYTES, nBYTES_ACC
       if (sliceNumber < nLimbSlice) {
-        trace.counter(UnsignedByte.of(i % LLARGE)).counterMax(BYTES_LLARGEMO);
+        trace.counter(UnsignedByte.of(i % LLARGE)).counterMax(UB_LLARGE_MO);
         if (sliceNumber < nLimbSlice - 1) {
-          trace.nBytes(BYTES_LLARGE).nBytesAcc(UnsignedByte.of((i % LLARGE) + 1));
+          trace.nBytes(UB_LLARGE).nBytesAcc(UnsignedByte.of((i % LLARGE) + 1));
         }
         if (sliceNumber == nLimbSlice - 1) {
           trace
@@ -93,7 +100,7 @@ public final class RomChunk extends ModuleOperation {
       } else if (sliceNumber == nLimbSlice || sliceNumber == nLimbSlice + 1) {
         trace
             .counter(UnsignedByte.of(i - nLimbSlice * LLARGE))
-            .counterMax(BYTES_EVW_WORDMO)
+            .counterMax(UB_EVW_WORD_MO)
             .nBytes(UnsignedByte.ZERO)
             .nBytesAcc(UnsignedByte.ZERO);
       }

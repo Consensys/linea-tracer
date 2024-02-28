@@ -32,7 +32,6 @@ import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.rom.Trace;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Address;
 
 @RequiredArgsConstructor
 @Accessors(fluent = true)
@@ -43,10 +42,7 @@ public final class RomChunk extends ModuleOperation {
   private static final UnsignedByte BYTES_LLARGEMO = UnsignedByte.of(LLARGEMO);
   private static final UnsignedByte BYTES_EVW_WORDMO = UnsignedByte.of(WORD_SIZE_MO);
 
-  private final int id;
-  @EqualsAndHashCode.Include private final Address address;
-  @EqualsAndHashCode.Include private final int deploymentNumber;
-  @EqualsAndHashCode.Include private final boolean deploymentStatus;
+  @EqualsAndHashCode.Include private final ContractMetadata metadata;
   private final boolean readFromTheState;
   private final boolean commitToTheState;
   private final Bytes byteCode;

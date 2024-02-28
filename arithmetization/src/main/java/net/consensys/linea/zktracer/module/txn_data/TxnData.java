@@ -28,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.romLex.ContractMetadata;
 import net.consensys.linea.zktracer.module.romLex.RomLex;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.gas.GasConstants;
@@ -447,7 +448,7 @@ public class TxnData implements Module {
     final EWord coinbase = EWord.of(block.getCoinbaseAddress());
     final int codeFragmentIndex =
         tx.isDeployment() && tx.requiresEvmExecution()
-            ? this.romLex.getCfiByMetadata(tx.to(), 1, true)
+            ? this.romLex.getCfiByMetadata(ContractMetadata.deployed(tx.to(), 1))
             : 0;
     final List<BigInteger> outgoingHis = setOutgoingHisAndLos(tx).get(0);
     final List<BigInteger> outgoingLos = setOutgoingHisAndLos(tx).get(1);

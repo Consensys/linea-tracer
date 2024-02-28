@@ -40,6 +40,7 @@ import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.rlp_txn.Trace;
 import net.consensys.linea.zktracer.module.rlputils.ByteCountAndPowerOutput;
+import net.consensys.linea.zktracer.module.romLex.ContractMetadata;
 import net.consensys.linea.zktracer.module.romLex.RomLex;
 import net.consensys.linea.zktracer.types.BitDecOutput;
 import net.consensys.linea.zktracer.types.UnsignedByte;
@@ -125,7 +126,6 @@ public class RlpTxn implements Module {
   }
 
   public void traceChunk(RlpTxnChunk chunk, int absTxNum, Trace trace) {
-
     // Create the local row storage and specify transaction constant columns
     RlpTxnColumnsValue traceValue = new RlpTxnColumnsValue();
     traceValue.resetDataHiLo();
@@ -136,7 +136,8 @@ public class RlpTxn implements Module {
     traceValue.codeFragmentIndex =
         chunk.tx().getTo().isEmpty() && chunk.requireEvmExecution()
             ? this.romLex.getCfiByMetadata(
-                Address.contractAddress(chunk.tx().getSender(), chunk.tx().getNonce()), 1, true)
+                ContractMetadata.deployed(
+                    Address.contractAddress(chunk.tx().getSender(), chunk.tx().getNonce()), 1))
             : 0;
     traceValue.txType = getTxTypeAsInt(chunk.tx().getType());
 

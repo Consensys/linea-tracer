@@ -317,14 +317,14 @@ public class RomLex implements Module {
   private void traceChunk(
       final RomChunk chunk, int cfi, int codeFragmentIndexInfinity, Trace trace) {
     trace
-        .codeFragmentIndex(Bytes.ofUnsignedInt(cfi))
-        .codeFragmentIndexInfty(Bytes.ofUnsignedInt(codeFragmentIndexInfinity))
-        .codeSize(Bytes.ofUnsignedInt(chunk.byteCode().size()))
-        .addrHi(chunk.address().slice(0, 4))
-        .addrLo(chunk.address().slice(4, LLARGE))
+        .codeFragmentIndex(cfi)
+        .codeFragmentIndexInfty(codeFragmentIndexInfinity)
+        .codeSize(chunk.byteCode().size())
+        .addressHi(chunk.address().slice(0, 4).toInt())
+        .addressLo(chunk.address().slice(4, LLARGE))
         .commitToState(chunk.commitToTheState())
-        .depNumber(Bytes.ofUnsignedInt(chunk.deploymentNumber()))
-        .depStatus(chunk.deploymentStatus())
+        .deploymentNumber(chunk.deploymentNumber())
+        .deploymentStatus(chunk.deploymentStatus())
         .readFromState(chunk.readFromTheState())
         .validateRow();
   }

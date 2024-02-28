@@ -320,7 +320,7 @@ public class RomLex implements Module {
         .codeFragmentIndex(cfi)
         .codeFragmentIndexInfty(codeFragmentIndexInfinity)
         .codeSize(chunk.byteCode().size())
-        .addressHi(chunk.address().slice(0, 4).toInt())
+        .addressHi(chunk.address().slice(0, 4).toLong())
         .addressLo(chunk.address().slice(4, LLARGE))
         .commitToState(chunk.commitToTheState())
         .deploymentNumber(chunk.deploymentNumber())

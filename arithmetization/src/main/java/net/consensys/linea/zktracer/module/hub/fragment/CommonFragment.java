@@ -25,7 +25,6 @@ import net.consensys.linea.zktracer.module.hub.TransactionStack;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.opcode.InstructionFamily;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
-import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.TxState;
 import org.apache.tuweni.bytes.Bytes;
@@ -105,11 +104,11 @@ public final class CommonFragment implements TraceFragment {
     final TransactionStack.MetaTransaction tx = hub.txStack().getById(this.txId);
     final int codeFragmentIndex = 0;
     // TODO: after ROMLex merge
-//    frame.type() == CallFrameType.MANTLE ? 0 :
-//        this.hub
-//            .romLex()
-//            .getCfiByMetadata(
-//                frame.codeAddress(), frame.codeDeploymentNumber(), frame.underDeployment());
+    //    frame.type() == CallFrameType.MANTLE ? 0 :
+    //        this.hub
+    //            .romLex()
+    //            .getCfiByMetadata(
+    //                frame.codeAddress(), frame.codeDeploymentNumber(), frame.underDeployment());
     final boolean selfReverts = frame.selfReverts();
     final boolean getsReverted = frame.getsReverted();
 

@@ -65,7 +65,7 @@ public class ReplayTests {
     }
     ToyExecutionEnvironment.builder()
         .build()
-        .replay(new BufferedReader(new InputStreamReader(stream)));
+        .replayAndCheck(new BufferedReader(new InputStreamReader(stream)));
   }
 
   @Test

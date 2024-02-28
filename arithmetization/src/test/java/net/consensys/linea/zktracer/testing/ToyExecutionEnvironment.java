@@ -122,7 +122,15 @@ public class ToyExecutionEnvironment {
       return;
     }
     this.executeFrom(conflation);
+  }
+
+  public void replayAndCheck(final Reader replayFile) {
+    this.replay(replayFile);
     this.checkTracer();
+  }
+
+  public Map<String, Integer> getLinesCount() {
+    return this.tracer.getModulesLineCount();
   }
 
   /**

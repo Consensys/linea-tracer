@@ -103,11 +103,13 @@ public final class CommonFragment implements TraceFragment {
   public Trace trace(Trace trace, int stackHeight, int stackHeightNew) {
     final CallFrame frame = this.hub.callStack().getById(this.callFrameId);
     final TransactionStack.MetaTransaction tx = hub.txStack().getById(this.txId);
-    final int codeFragmentIndex = frame.type() == CallFrameType.MANTLE ? 0 :
-        this.hub
-            .romLex()
-            .getCfiByMetadata(
-                frame.codeAddress(), frame.codeDeploymentNumber(), frame.underDeployment());
+    final int codeFragmentIndex = 0;
+    // TODO: after ROMLex merge
+//    frame.type() == CallFrameType.MANTLE ? 0 :
+//        this.hub
+//            .romLex()
+//            .getCfiByMetadata(
+//                frame.codeAddress(), frame.codeDeploymentNumber(), frame.underDeployment());
     final boolean selfReverts = frame.selfReverts();
     final boolean getsReverted = frame.getsReverted();
 

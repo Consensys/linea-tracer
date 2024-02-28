@@ -33,11 +33,11 @@ import org.hyperledger.besu.datatypes.Address;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public final class RomChunk extends ModuleOperation {
   private static final int LLARGE = 16;
-  private static final Bytes BYTES_LLARGE = Bytes.of(LLARGE);
+  private static final UnsignedByte UB_LLARGE = UnsignedByte.of(LLARGE);
   private static final int LLARGE_MO = 15;
-  private static final Bytes BYTES_LLARGE_MO = Bytes.of(LLARGE_MO);
+  private static final UnsignedByte UB_LLARGE_MO = UnsignedByte.of(LLARGE_MO);
   private static final int EVM_WORD_MO = 31;
-  private static final Bytes BYTES_EVW_WORD_MO = Bytes.of(EVM_WORD_MO);
+  private static final UnsignedByte UB_EVW_WORD_MO = UnsignedByte.of(EVM_WORD_MO);
   private static final int PUSH_1 = 0x60;
   private static final int PUSH_32 = 0x7f;
   private static final UnsignedByte INVALID = UnsignedByte.of(0xFE);
@@ -72,33 +72,33 @@ public final class RomChunk extends ModuleOperation {
 
       // Fill Generic columns
       trace
-          .codeFragmentIndex(Bytes.ofUnsignedInt(cfi))
-          .codeFragmentIndexInfty(Bytes.ofUnsignedInt(cfiInfty))
-          .programmeCounter(Bytes.ofUnsignedInt(i))
+          .codeFragmentIndex(cfi)
+          .codeFragmentIndexInfty(cfiInfty)
+          .programCounter(i)
           .limb(dataPadded.slice(sliceNumber * LLARGE, LLARGE))
-          .codeSize(Bytes.ofUnsignedInt(codeSize))
+          .codeSize(codeSize)
           .paddedBytecodeByte(UnsignedByte.of(dataPadded.get(i)))
           .acc(dataPadded.slice(sliceNumber * LLARGE, (i % LLARGE) + 1))
           .codesizeReached(codeSizeReached)
-          .index(Bytes.ofUnsignedInt(sliceNumber));
+          .index(sliceNumber);
 
       // Fill CT, CTmax nBYTES, nBYTES_ACC
       if (sliceNumber < nLimbSlice) {
-        trace.counter(Bytes.of(i % LLARGE)).counterMax(BYTES_LLARGE_MO);
+        trace.counter(UnsignedByte.of(i % LLARGE)).counterMax(UB_LLARGE_MO);
         if (sliceNumber < nLimbSlice - 1) {
-          trace.nBytes(BYTES_LLARGE).nBytesAcc(Bytes.of((i % LLARGE) + 1));
+          trace.nBytes(UB_LLARGE).nBytesAcc(UnsignedByte.of((i % LLARGE) + 1));
         }
         if (sliceNumber == nLimbSlice - 1) {
           trace
-              .nBytes(Bytes.of(nBytesLastRow))
-              .nBytesAcc(Bytes.of(Math.min(nBytesLastRow, (i % LLARGE) + 1)));
+              .nBytes(UnsignedByte.of(nBytesLastRow))
+              .nBytesAcc(UnsignedByte.of(Math.min(nBytesLastRow, (i % LLARGE) + 1)));
         }
       } else if (sliceNumber == nLimbSlice || sliceNumber == nLimbSlice + 1) {
         trace
-            .counter(Bytes.of(i - nLimbSlice * LLARGE))
-            .counterMax(BYTES_EVW_WORD_MO)
-            .nBytes(Bytes.EMPTY)
-            .nBytesAcc(Bytes.EMPTY);
+            .counter(UnsignedByte.of(i - nLimbSlice * LLARGE))
+            .counterMax(UB_EVW_WORD_MO)
+            .nBytes(UnsignedByte.ZERO)
+            .nBytesAcc(UnsignedByte.ZERO);
       }
 
       // Deal when not in a PUSH instruction
@@ -121,13 +121,13 @@ public final class RomChunk extends ModuleOperation {
             .isPush(isPush)
             .isPushData(false)
             .opcode(opCode)
-            .pushParameter(Bytes.ofUnsignedShort(pushParameter))
-            .counterPush(Bytes.EMPTY)
+            .pushParameter(UnsignedByte.of(pushParameter))
+            .counterPush(UnsignedByte.ZERO)
             .pushValueAcc(Bytes.EMPTY)
-            .pushValueHigh(pushValueHigh)
-            .pushValueLow(pushValueLow)
+            .pushValueHi(pushValueHigh)
+            .pushValueLo(pushValueLow)
             .pushFunnelBit(false)
-            .validJumpDestination(opCode.toInteger() == JUMPDEST);
+            .isJumpdest(opCode.toInteger() == JUMPDEST);
       }
       // Deal when in a PUSH instruction
       else {
@@ -136,12 +136,12 @@ public final class RomChunk extends ModuleOperation {
             .isPush(false)
             .isPushData(true)
             .opcode(INVALID)
-            .pushParameter(Bytes.ofUnsignedShort(pushParameter))
-            .pushValueHigh(pushValueHigh)
-            .pushValueLow(pushValueLow)
-            .counterPush(Bytes.of(ctPush))
+            .pushParameter(UnsignedByte.of(pushParameter))
+            .pushValueHi(pushValueHigh)
+            .pushValueLo(pushValueLow)
+            .counterPush(UnsignedByte.of(ctPush))
             .pushFunnelBit(pushParameter > LLARGE && ctPush > pushParameter - LLARGE)
-            .validJumpDestination(false);
+            .isJumpdest(false);
 
         if (pushParameter <= LLARGE) {
           trace.pushValueAcc(pushValueLow.slice(0, ctPush));

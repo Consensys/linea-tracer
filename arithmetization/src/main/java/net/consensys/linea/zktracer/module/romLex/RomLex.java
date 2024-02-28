@@ -43,7 +43,7 @@ public class RomLex implements Module {
   private static final RomChunkComparator romChunkComparator = new RomChunkComparator();
 
   private final Hub hub;
-  public int codeIdentifierBeforeLexOrder = 0;
+  public int codeIdentifierBeforeLexOrder = 1;
 
   public final StackedSet<RomChunk> chunks = new StackedSet<>();
   public final List<RomChunk> sortedChunks = new ArrayList<>();

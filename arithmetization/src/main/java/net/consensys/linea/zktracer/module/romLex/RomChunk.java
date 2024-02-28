@@ -43,15 +43,16 @@ public final class RomChunk extends ModuleOperation {
   private static final UnsignedByte BYTES_LLARGEMO = UnsignedByte.of(LLARGEMO);
   private static final UnsignedByte BYTES_EVW_WORDMO = UnsignedByte.of(WORD_SIZE_MO);
 
-  @EqualsAndHashCode.Include private final int id;
-  private final Address address;
-  private final int deploymentNumber;
-  private final boolean deploymentStatus;
+  private final int id;
+  @EqualsAndHashCode.Include private final Address address;
+  @EqualsAndHashCode.Include private final int deploymentNumber;
+  @EqualsAndHashCode.Include private final boolean deploymentStatus;
   private final boolean readFromTheState;
   private final boolean commitToTheState;
   private final Bytes byteCode;
 
   public void trace(Trace trace, int cfi, int cfiInfty) {
+    // WARN this is the tracing used by the ROM, not by the ROMLEX
     final int chunkRowSize = this.lineCount();
     final int codeSize = this.byteCode().size();
     final int nLimbSlice = (codeSize + (LLARGE - 1)) / LLARGE;

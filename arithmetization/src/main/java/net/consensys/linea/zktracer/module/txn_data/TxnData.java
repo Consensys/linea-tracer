@@ -111,15 +111,12 @@ public class TxnData implements Module {
 
   @Override
   public void traceStartTx(WorldView worldView, Transaction tx) {
-    int codeIdBeforeLex = 0;
     if ((tx.getTo().isEmpty() && tx.getInit().isPresent() && !tx.getInit().orElseThrow().isEmpty()
         || tx.getTo().isPresent()
             && Optional.ofNullable(worldView.get(tx.getTo().orElseThrow()))
                 .map(AccountState::hasCode)
-                .orElse(false))) {
-      codeIdBeforeLex = this.romLex.codeIdentifierBeforeLexOrder;
-    }
-    this.currentBlock().captureTx(codeIdBeforeLex, worldView, tx);
+                .orElse(false))) {}
+    this.currentBlock().captureTx(worldView, tx);
   }
 
   @Override
@@ -455,8 +452,7 @@ public class TxnData implements Module {
     final EWord from = EWord.of(tx.from());
     final EWord to = EWord.of(tx.to());
     final EWord coinbase = EWord.of(block.getCoinbaseAddress());
-    final int codeFragmentIndex =
-        tx.codeIdBeforeLex() == 0 ? 0 : this.romLex.getSortedCfiByCfi(tx.codeIdBeforeLex());
+    final int codeFragmentIndex = this.romLex.getCfiByMetadata(tx.to(), 1, true);
     final List<BigInteger> outgoingHis = setOutgoingHisAndLos(tx).get(0);
     final List<BigInteger> outgoingLos = setOutgoingHisAndLos(tx).get(1);
     final List<Bytes16> wcpArgOneLo = setWcpArgumentOne(tx);

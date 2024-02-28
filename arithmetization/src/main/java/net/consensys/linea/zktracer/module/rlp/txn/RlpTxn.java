@@ -109,7 +109,7 @@ public class RlpTxn implements Module {
   @Override
   public void traceStartTx(WorldView worldView, Transaction tx) {
     // Contract Creation
-    if (tx.getTo().isEmpty() && !tx.getInit().orElseThrow().isEmpty()) {
+    if (tx.getTo().isEmpty() && !tx.getInit().get().isEmpty()) {
       this.chunkList.add(new RlpTxnChunk(tx, true));
     }
 
@@ -136,7 +136,7 @@ public class RlpTxn implements Module {
     traceValue.codeFragmentIndex =
         chunk.tx().getTo().isEmpty() && chunk.requireEvmExecution()
             ? this.romLex.getCfiByMetadata(
-                ContractMetadata.deployed(
+                ContractMetadata.underDeployment(
                     Address.contractAddress(chunk.tx().getSender(), chunk.tx().getNonce()), 1))
             : 0;
     traceValue.txType = getTxTypeAsInt(chunk.tx().getType());

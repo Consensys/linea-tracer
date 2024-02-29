@@ -28,14 +28,12 @@ import java.util.function.Consumer;
 
 import com.google.gson.Gson;
 import lombok.Builder;
-import lombok.Getter;
 import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.blockcapture.snapshots.BlockSnapshot;
 import net.consensys.linea.blockcapture.snapshots.ConflationSnapshot;
 import net.consensys.linea.blockcapture.snapshots.TransactionSnapshot;
 import net.consensys.linea.corset.CorsetValidator;
-import net.consensys.linea.zktracer.ZkBlockAwareOperationTracer;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
@@ -46,9 +44,7 @@ import org.hyperledger.besu.ethereum.core.*;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.hyperledger.besu.ethereum.core.feemarket.CoinbaseFeePriceCalculator;
 import org.hyperledger.besu.ethereum.mainnet.LondonTargetingGasLimitCalculator;
-import org.hyperledger.besu.ethereum.mainnet.MainnetPrecompiledContractRegistries;
 import org.hyperledger.besu.ethereum.mainnet.MainnetTransactionProcessor;
-import org.hyperledger.besu.ethereum.mainnet.PrecompiledContractConfiguration;
 import org.hyperledger.besu.ethereum.mainnet.TransactionValidatorFactory;
 import org.hyperledger.besu.ethereum.mainnet.feemarket.FeeMarket;
 import org.hyperledger.besu.ethereum.mainnet.feemarket.LondonFeeMarket;
@@ -57,6 +53,7 @@ import org.hyperledger.besu.evm.EVM;
 import org.hyperledger.besu.evm.MainnetEVMs;
 import org.hyperledger.besu.evm.gascalculator.GasCalculator;
 import org.hyperledger.besu.evm.internal.EvmConfiguration;
+import org.hyperledger.besu.evm.precompile.PrecompileContractRegistry;
 import org.hyperledger.besu.evm.processor.ContractCreationProcessor;
 import org.hyperledger.besu.evm.processor.MessageCallProcessor;
 import org.hyperledger.besu.plugin.data.BlockHeader;
@@ -93,7 +90,7 @@ public class ToyExecutionEnvironment {
   @Builder.Default private final Consumer<ZkTracer> zkTracerValidator = x -> {};
 
   private static final FeeMarket feeMarket = FeeMarket.london(-1);
-  @Getter private final ZkBlockAwareOperationTracer tracer = new ZkTracer();
+  private final ZkTracer tracer = new ZkTracer();
 
   public void checkTracer() {
     try {
@@ -203,7 +200,7 @@ public class ToyExecutionEnvironment {
               Wei.ZERO);
 
       this.testValidator.accept(result);
-      this.zkTracerValidator.accept((ZkTracer) tracer);
+      this.zkTracerValidator.accept(tracer);
     }
     tracer.traceEndBlock(header, mockBlockBody);
     tracer.traceEndConflation(toyWorld.updater());
@@ -211,11 +208,7 @@ public class ToyExecutionEnvironment {
 
   private MainnetTransactionProcessor getMainnetTransactionProcessor() {
     final MessageCallProcessor messageCallProcessor =
-        new MessageCallProcessor(
-            evm,
-            MainnetPrecompiledContractRegistries.istanbul(
-                new PrecompiledContractConfiguration(
-                    ZkTracer.gasCalculator, PrivacyParameters.DEFAULT)));
+        new MessageCallProcessor(evm, new PrecompileContractRegistry());
 
     final ContractCreationProcessor contractCreationProcessor =
         new ContractCreationProcessor(evm.getGasCalculator(), evm, false, List.of(), 0);
@@ -239,45 +232,11 @@ public class ToyExecutionEnvironment {
         CoinbaseFeePriceCalculator.eip1559());
   }
 
-  private static Transaction defaultTransaction() {
-    return Transaction.builder()
-        .nonce(123L)
-        .type(TransactionType.FRONTIER)
-        .gasPrice(Wei.of(1500))
-        .gasLimit(DEFAULT_GAS_LIMIT)
-        .to(Address.fromHexString("0x1234567890"))
-        .value(DEFAULT_VALUE)
-        .payload(DEFAULT_INPUT_DATA)
-        .sender(DEFAULT_SENDER_ADDRESS)
-        .chainId(CHAIN_ID)
-        .signAndBuild(new SECP256K1().generateKeyPair());
-  }
-
-  /** Customizations applied to the Lombok generated builder. */
-  public static class ToyExecutionEnvironmentBuilder {
-    /**
-     * Builder method returning an instance of {@link ToyExecutionEnvironment}.
-     *
-     * @return an instance of {@link ToyExecutionEnvironment}
-     */
-    public ToyExecutionEnvironment build() {
-      var defaultTxList = new ArrayList<>(List.of(defaultTransaction()));
-
-      return new ToyExecutionEnvironment(
-          Optional.ofNullable(toyWorld).orElse(DEFAULT_TOY_WORLD),
-          Optional.ofNullable(evm).orElse(defaultEvm()),
-          Optional.ofNullable(transactions).orElse(defaultTxList),
-          Optional.ofNullable(testValidator)
-              .orElse(result -> assertThat(result.isSuccessful()).isTrue()),
-          Optional.ofNullable(zkTracerValidator).orElse(zkTracer -> {}));
-    }
-  }
-
   public Hub getHub() {
-    return ((ZkTracer) tracer).getHub();
+    return tracer.getHub();
   }
 
   public Oob getOob() {
-    return ((ZkTracer) tracer).getHub().oob();
+    return tracer.getHub().oob();
   }
 }

@@ -18,7 +18,7 @@ package net.consensys.linea.config;
 import com.google.common.base.MoreObjects;
 import picocli.CommandLine;
 
-/** The Linea L1 L2 Bridge CLI options. */
+/** The Linea RPC CLI options. */
 public class LineaRpcCliOptions {
   private static final String ESTIMATE_GAS_COMPATIBILITY_MODE_ENABLED =
       "--plugin-linea-estimate-gas-compatibility-mode-enabled";

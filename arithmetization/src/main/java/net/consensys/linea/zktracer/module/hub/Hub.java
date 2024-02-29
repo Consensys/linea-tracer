@@ -543,7 +543,7 @@ public class Hub implements Module {
   }
 
   void triggerModules(MessageFrame frame) {
-    if (!this.pch.exceptions().stackException()) {
+    if (this.pch.exceptions().none() && this.pch.aborts().none()) {
       for (Module precompileLimit : this.precompileLimitModules) {
         precompileLimit.tracePreOpcode(frame);
       }

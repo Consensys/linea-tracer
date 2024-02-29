@@ -25,6 +25,7 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,40 +58,6 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 @Slf4j
 public class ZkTracer implements ConflationAwareOperationTracer {
-  /** Gather all and any exception that happened during tracing under a common umbrella. */
-  @Getter
-  @RequiredArgsConstructor
-  public static class TracingExceptions extends RuntimeException {
-    private final List<Exception> tracingExceptions;
-
-    @Override
-    public String getMessage() {
-      final StringBuilder msg = new StringBuilder("Exceptions triggered while tracing:\n");
-      for (final Exception e : tracingExceptions) {
-        msg.append("  - ").append(e.getMessage()).append("\n");
-      }
-      return msg.toString();
-    }
-
-    @Override
-    public void printStackTrace(PrintStream s) {
-      for (final Exception e : this.tracingExceptions) {
-        e.printStackTrace(s);
-      }
-    }
-
-    @Override
-    public String toString() {
-      StringWriter stringWriter = new StringWriter();
-      PrintWriter s = new PrintWriter(stringWriter);
-      for (final Exception e : this.tracingExceptions) {
-        s.append("\n");
-        e.printStackTrace(s);
-      }
-      return stringWriter.toString();
-    }
-  }
-
   /** The {@link GasCalculator} used in this version of the arithmetization */
   public static final GasCalculator gasCalculator = new LondonGasCalculator();
 
@@ -101,7 +68,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   private final Map<String, Integer> spillings = new HashMap<>();
   private Hash hashOfLastTransactionTraced = Hash.EMPTY;
   /** Accumulate all the exceptions that happened at tracing time. */
-  @Getter private final List<Exception> tracingExceptions = new ArrayList<>();
+  @Getter private final List<Exception> tracingExceptions = new FiniteList<>(50);
 
   public ZkTracer() {
     this(LineaL1L2BridgeConfiguration.EMPTY);
@@ -368,5 +335,69 @@ public class ZkTracer implements ConflationAwareOperationTracer {
                                             + " not found in spillings.toml"))));
     modulesLineCount.put("BLOCK_TX", hub.cumulatedTxCount());
     return modulesLineCount;
+  }
+
+  /** Gather all and any exception that happened during tracing under a common umbrella. */
+  @Getter
+  @RequiredArgsConstructor
+  private static class TracingExceptions extends RuntimeException {
+    private final List<Exception> tracingExceptions;
+
+    @Override
+    public String getMessage() {
+      final StringBuilder msg = new StringBuilder("Exceptions triggered while tracing:\n");
+      for (final Exception e : tracingExceptions) {
+        msg.append("  - ").append(e.getMessage()).append("\n");
+      }
+      return msg.toString();
+    }
+
+    @Override
+    public void printStackTrace(PrintStream s) {
+      for (final Exception e : this.tracingExceptions) {
+        e.printStackTrace(s);
+      }
+    }
+
+    @Override
+    public String toString() {
+      StringWriter stringWriter = new StringWriter();
+      PrintWriter s = new PrintWriter(stringWriter);
+      for (final Exception e : this.tracingExceptions) {
+        s.append("\n");
+        e.printStackTrace(s);
+      }
+      return stringWriter.toString();
+    }
+  }
+
+  /** An {@link ArrayList} with an upper bound on the number of element it can store. */
+  @RequiredArgsConstructor
+  private static class FiniteList<T> extends ArrayList<T> {
+    /** The maximal number of elements in this list. */
+    private final int maxLength;
+
+    @Override
+    public void add(int index, T element) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean addAll(Collection<? extends T> c) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean addAll(int index, Collection<? extends T> c) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean add(T t) {
+      if (this.size() < this.maxLength) {
+        return super.add(t);
+      }
+      return false;
+    }
   }
 }

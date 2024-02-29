@@ -34,11 +34,11 @@ public record ReturnOobParameters(EWord size) implements OobParameters {
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .incomingData1(bigIntegerToBytes(sizeHi()))
-        .incomingData2(bigIntegerToBytes(sizeLo()))
-        .incomingData3(ZERO)
-        .incomingData4(ZERO)
-        .incomingData5(ZERO)
-        .incomingData6(ZERO);
+        .data1(bigIntegerToBytes(sizeHi()))
+        .data2(bigIntegerToBytes(sizeLo()))
+        .data3(ZERO)
+        .data4(ZERO)
+        .data5(ZERO)
+        .data6(ZERO);
   }
 }

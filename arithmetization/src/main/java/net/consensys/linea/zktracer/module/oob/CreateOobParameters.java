@@ -36,11 +36,11 @@ public record CreateOobParameters(
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .incomingData1(bigIntegerToBytes(valHi()))
-        .incomingData2(bigIntegerToBytes(valLo()))
-        .incomingData3(bigIntegerToBytes(bal))
-        .incomingData4(bigIntegerToBytes(nonce))
-        .incomingData5((hasCode ? ONE : ZERO))
-        .incomingData6(bigIntegerToBytes(csd));
+        .data1(bigIntegerToBytes(valHi()))
+        .data2(bigIntegerToBytes(valLo()))
+        .data3(bigIntegerToBytes(bal))
+        .data4(bigIntegerToBytes(nonce))
+        .data5((hasCode ? ONE : ZERO))
+        .data6(bigIntegerToBytes(csd));
   }
 }

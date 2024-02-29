@@ -231,7 +231,7 @@ public abstract class TraceSection {
   /**
    * Update the stack fragments of the section with the provided {@link DeploymentExceptions}.
    *
-   * @param deploymentExceptions the computed exceptions
+   * @param contEx the computed exceptions
    */
   public void setContextExceptions(DeploymentExceptions contEx) {
     for (TraceLine line : this.lines) {

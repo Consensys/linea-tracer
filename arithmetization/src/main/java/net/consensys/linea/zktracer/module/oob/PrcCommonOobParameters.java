@@ -48,11 +48,11 @@ public class PrcCommonOobParameters implements OobParameters {
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .incomingData1(bigIntegerToBytes(callGas))
-        .incomingData2(bigIntegerToBytes(remainingGas))
-        .incomingData3(bigIntegerToBytes(cds))
-        .incomingData4(cdsISZERO ? ONE : ZERO)
-        .incomingData5(bigIntegerToBytes(returnAtCapacity))
-        .incomingData6(returnAtCapacityISZERO ? ONE : ZERO);
+        .data1(bigIntegerToBytes(callGas))
+        .data2(bigIntegerToBytes(remainingGas))
+        .data3(bigIntegerToBytes(cds))
+        .data4(cdsISZERO ? ONE : ZERO)
+        .data5(bigIntegerToBytes(returnAtCapacity))
+        .data6(returnAtCapacityISZERO ? ONE : ZERO);
   }
 }

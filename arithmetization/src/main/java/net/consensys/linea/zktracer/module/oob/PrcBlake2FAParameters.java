@@ -24,11 +24,11 @@ public record PrcBlake2FAParameters(BigInteger cds) implements OobParameters {
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .incomingData1(ZERO)
-        .incomingData2(ZERO)
-        .incomingData3(bigIntegerToBytes(cds))
-        .incomingData4(ZERO)
-        .incomingData5(ZERO)
-        .incomingData6(ZERO);
+        .data1(ZERO)
+        .data2(ZERO)
+        .data3(bigIntegerToBytes(cds))
+        .data4(ZERO)
+        .data5(ZERO)
+        .data6(ZERO);
   }
 }

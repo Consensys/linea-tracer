@@ -24,11 +24,11 @@ public record SstoreOobParameters(BigInteger gas) implements OobParameters {
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .incomingData1(ZERO)
-        .incomingData2(ZERO)
-        .incomingData3(ZERO)
-        .incomingData4(ZERO)
-        .incomingData5(bigIntegerToBytes(gas))
-        .incomingData6(ZERO);
+        .data1(ZERO)
+        .data2(ZERO)
+        .data3(ZERO)
+        .data4(ZERO)
+        .data5(bigIntegerToBytes(gas))
+        .data6(ZERO);
   }
 }

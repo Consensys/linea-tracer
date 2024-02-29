@@ -40,14 +40,14 @@ import org.hyperledger.besu.ethereum.core.Transaction;
 public final class BytecodeRunner {
   private final Bytes byteCode;
 
+  ToyExecutionEnvironment toyExecutionEnvironment;
+
   /**
    * @param byteCode the byte code to test
    */
   public BytecodeRunner(Bytes byteCode) {
     this.byteCode = byteCode;
   }
-
-  static ToyExecutionEnvironment toyExecutionEnvironment;
 
   public static BytecodeRunner of(Bytes byteCode) {
     return new BytecodeRunner(byteCode);
@@ -56,11 +56,7 @@ public final class BytecodeRunner {
   @Setter private Consumer<ZkTracer> zkTracerValidator = zkTracer -> {};
 
   public void run() {
-    run(Wei.fromEth(1), 100_000_000L);
-  }
-
-  public void run(Long gasLimit) {
-    run(Wei.fromEth(1), gasLimit);
+    this.run(Wei.fromEth(1), 100_000_000L);
   }
 
   public void run(Wei senderBalance, Long gasLimit) {
@@ -70,11 +66,11 @@ public final class BytecodeRunner {
     Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
 
     final ToyAccount senderAccount =
-        ToyAccount.builder().balance(senderBalance).nonce(5).address(senderAddress).build();
+        ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
 
     final ToyAccount receiverAccount =
         ToyAccount.builder()
-            .balance(Wei.fromEth(1))
+            .balance(senderBalance)
             .nonce(6)
             .address(Address.fromHexString("0x111111"))
             .code(byteCode)
@@ -95,6 +91,7 @@ public final class BytecodeRunner {
         ToyExecutionEnvironment.builder()
             .testValidator(x -> {})
             .toyWorld(toyWorld)
+            .zkTracerValidator(zkTracerValidator)
             .transaction(tx)
             .build();
 
@@ -102,7 +99,7 @@ public final class BytecodeRunner {
   }
 
   public Hub getHub() {
-    return ((ZkTracer) toyExecutionEnvironment.getTracer()).getHub();
+    return toyExecutionEnvironment.getHub();
   }
 
   public Oob getOob() {

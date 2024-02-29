@@ -34,11 +34,11 @@ public record CdlOobParameters(EWord offset, BigInteger cds) implements OobParam
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .incomingData1(bigIntegerToBytes(offsetHi()))
-        .incomingData2(bigIntegerToBytes(offsetLo()))
-        .incomingData3(ZERO)
-        .incomingData4(ZERO)
-        .incomingData5(bigIntegerToBytes(cds))
-        .incomingData6(ZERO);
+        .data1(bigIntegerToBytes(offsetHi()))
+        .data2(bigIntegerToBytes(offsetLo()))
+        .data3(ZERO)
+        .data4(ZERO)
+        .data5(bigIntegerToBytes(cds))
+        .data6(ZERO);
   }
 }

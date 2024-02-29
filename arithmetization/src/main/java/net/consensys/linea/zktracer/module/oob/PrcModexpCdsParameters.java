@@ -32,12 +32,12 @@ public record PrcModexpCdsParameters(
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .incomingData1(bigIntegerToBytes(cds))
-        .incomingData2(cdsGT0 ? ONE : ZERO)
-        .incomingData3(cdsGT32 ? ONE : ZERO)
-        .incomingData4(cdsGT64 ? ONE : ZERO)
-        .incomingData5(cdsLT32 ? ONE : ZERO)
-        .incomingData6(cdsLT32 ? ONE : ZERO);
+        .data1(bigIntegerToBytes(cds))
+        .data2(cdsGT0 ? ONE : ZERO)
+        .data3(cdsGT32 ? ONE : ZERO)
+        .data4(cdsGT64 ? ONE : ZERO)
+        .data5(cdsLT32 ? ONE : ZERO)
+        .data6(cdsLT32 ? ONE : ZERO);
     // oobEvent1 is set to cdsLT96 in set PrcModexpCds
   }
 }

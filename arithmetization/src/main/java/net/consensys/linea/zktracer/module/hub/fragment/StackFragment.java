@@ -46,7 +46,7 @@ public final class StackFragment implements TraceFragment {
   private final Stack stack;
   @Getter private final List<StackOperation> stackOps;
   private final Exceptions exceptions;
-  @Setter private DeploymentExceptions deploymentExceptions;
+  @Setter private DeploymentExceptions contextExceptions;
   private final long staticGas;
   private EWord hashInfoKeccak = EWord.ZERO;
   private final long hashInfoSize;
@@ -59,22 +59,22 @@ public final class StackFragment implements TraceFragment {
       List<StackOperation> stackOps,
       Exceptions exceptions,
       AbortingConditions aborts,
-      DeploymentExceptions deploymentExceptions,
+      DeploymentExceptions contextExceptions,
       GasProjection gp,
       boolean isDeploying) {
     this.stack = stack;
     this.stackOps = stackOps;
     this.exceptions = exceptions;
-    this.deploymentExceptions = deploymentExceptions;
+    this.contextExceptions = contextExceptions;
     this.opCode = stack.getCurrentOpcodeData().mnemonic();
     this.hashInfoFlag =
         switch (this.opCode) {
           case SHA3 -> exceptions.none() && gp.messageSize() > 0;
-          case RETURN -> exceptions.none()
-              && this.deploymentExceptions.none()
-              && gp.messageSize() > 0
-              && isDeploying;
-          case CREATE2 -> exceptions.none() && aborts.none() && gp.messageSize() > 0;
+          case RETURN -> exceptions.none() && gp.messageSize() > 0 && isDeploying;
+          case CREATE2 -> exceptions.none()
+              && contextExceptions.none()
+              && aborts.none()
+              && gp.messageSize() > 0;
           default -> false;
         };
     this.hashInfoSize = this.hashInfoFlag ? gp.messageSize() : 0;

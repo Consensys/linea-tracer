@@ -48,11 +48,11 @@ public class PrcModexpPricingParameters implements OobParameters {
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .incomingData1(bigIntegerToBytes(callGas))
-        .incomingData2(bigIntegerToBytes(remainingGas))
-        .incomingData3(bigIntegerToBytes(exponentLog))
-        .incomingData4(bigIntegerToBytes(maxMbsBbs))
-        .incomingData5(bigIntegerToBytes(returnAtCapacity))
-        .incomingData6(returnAtCapacityISZERO ? ONE : ZERO);
+        .data1(bigIntegerToBytes(callGas))
+        .data2(bigIntegerToBytes(remainingGas))
+        .data3(bigIntegerToBytes(exponentLog))
+        .data4(bigIntegerToBytes(maxMbsBbs))
+        .data5(bigIntegerToBytes(returnAtCapacity))
+        .data6(returnAtCapacityISZERO ? ONE : ZERO);
   }
 }

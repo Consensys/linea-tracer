@@ -48,11 +48,11 @@ public class PrcBlake2FBParameters implements OobParameters {
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .incomingData1(bigIntegerToBytes(callGas))
-        .incomingData2(bigIntegerToBytes(remainingGas))
-        .incomingData3(bigIntegerToBytes(blakeR))
-        .incomingData4(bigIntegerToBytes(blakeF))
-        .incomingData5(bigIntegerToBytes(returnAtCapacity))
-        .incomingData6(returnAtCapacityISZERO ? ONE : ZERO);
+        .data1(bigIntegerToBytes(callGas))
+        .data2(bigIntegerToBytes(remainingGas))
+        .data3(bigIntegerToBytes(blakeR))
+        .data4(bigIntegerToBytes(blakeF))
+        .data5(bigIntegerToBytes(returnAtCapacity))
+        .data6(returnAtCapacityISZERO ? ONE : ZERO);
   }
 }

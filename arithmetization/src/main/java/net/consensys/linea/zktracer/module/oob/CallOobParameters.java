@@ -35,11 +35,11 @@ public record CallOobParameters(EWord val, BigInteger bal, boolean nonZeroValue,
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .incomingData1(bigIntegerToBytes(valHi()))
-        .incomingData2(bigIntegerToBytes(valLo()))
-        .incomingData3(bigIntegerToBytes(bal))
-        .incomingData4(nonZeroValue ? ONE : ZERO)
-        .incomingData5(ZERO)
-        .incomingData6(bigIntegerToBytes(csd));
+        .data1(bigIntegerToBytes(valHi()))
+        .data2(bigIntegerToBytes(valLo()))
+        .data3(bigIntegerToBytes(bal))
+        .data4(nonZeroValue ? ONE : ZERO)
+        .data5(ZERO)
+        .data6(bigIntegerToBytes(csd));
   }
 }

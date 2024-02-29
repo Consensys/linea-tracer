@@ -26,11 +26,11 @@ public record PrcModexpExponentParameters(
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .incomingData1(ZERO)
-        .incomingData2(bigIntegerToBytes(ebs))
-        .incomingData3(ebsISZERO ? ONE : ZERO)
-        .incomingData4(ebsLT32 ? ONE : ZERO)
-        .incomingData5(bigIntegerToBytes(minEbs32))
-        .incomingData6(bigIntegerToBytes(ebsSub32));
+        .data1(ZERO)
+        .data2(bigIntegerToBytes(ebs))
+        .data3(ebsISZERO ? ONE : ZERO)
+        .data4(ebsLT32 ? ONE : ZERO)
+        .data5(bigIntegerToBytes(minEbs32))
+        .data6(bigIntegerToBytes(ebsSub32));
   }
 }

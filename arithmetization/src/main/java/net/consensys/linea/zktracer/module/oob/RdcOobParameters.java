@@ -43,11 +43,11 @@ public record RdcOobParameters(EWord offset, EWord size, BigInteger rds) impleme
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .incomingData1(bigIntegerToBytes(offsetHi()))
-        .incomingData2(bigIntegerToBytes(offsetLo()))
-        .incomingData3(bigIntegerToBytes(sizeHi()))
-        .incomingData4(Bytes.wrap(sizeLo().toByteArray()))
-        .incomingData5(bigIntegerToBytes(rds))
-        .incomingData6(ZERO);
+        .data1(bigIntegerToBytes(offsetHi()))
+        .data2(bigIntegerToBytes(offsetLo()))
+        .data3(bigIntegerToBytes(sizeHi()))
+        .data4(Bytes.wrap(sizeLo().toByteArray()))
+        .data5(bigIntegerToBytes(rds))
+        .data6(ZERO);
   }
 }

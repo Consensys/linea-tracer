@@ -34,11 +34,11 @@ public record JumpOobParameters(EWord pcNew, BigInteger codesize) implements Oob
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .incomingData1(bigIntegerToBytes(pcNewHi()))
-        .incomingData2(bigIntegerToBytes(pcNewLo()))
-        .incomingData3(ZERO)
-        .incomingData4(ZERO)
-        .incomingData5(bigIntegerToBytes(codesize))
-        .incomingData6(ZERO);
+        .data1(bigIntegerToBytes(pcNewHi()))
+        .data2(bigIntegerToBytes(pcNewLo()))
+        .data3(ZERO)
+        .data4(ZERO)
+        .data5(bigIntegerToBytes(codesize))
+        .data6(ZERO);
   }
 }

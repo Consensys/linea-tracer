@@ -111,9 +111,7 @@ public class Oob implements Module {
           .stamp(Bytes.ofUnsignedInt(stamp))
           .ct(Bytes.of(ct))
           .ctMax(Bytes.of(chunk.maxCt()))
-          .oobEvent1(chunk.isOobEvent1())
-          .oobEvent2(chunk.isOobEvent2())
-          .incomingInst(bigIntegerToBytes(chunk.getIncomingInst()))
+          // .incomingInst(bigIntegerToBytes(chunk.getIncomingInst()))
           .isJump(chunk.isJump())
           .isJumpi(chunk.isJumpi())
           .isRdc(chunk.isRdc())
@@ -130,8 +128,8 @@ public class Oob implements Module {
           .prcEcadd(chunk.isPrcEcadd())
           .prcEcmul(chunk.isPrcEcmul())
           .prcEcpairing(chunk.isPrcEcpairing())
-          .prcBlake2FA(chunk.isPrcBlake2FA())
-          .prcBlake2FB(chunk.isPrcBlake2FB())
+          // .prcBlake2FA(chunk.isPrcBlake2FA())
+          // .prcBlake2FB(chunk.isPrcBlake2FB())
           .prcModexpCds(chunk.isPrcModexpCds())
           .prcModexpBase(chunk.isPrcModexpBase())
           .prcModexpExponent(chunk.isPrcModexpExponent())
@@ -146,7 +144,8 @@ public class Oob implements Module {
           .outgoingData3(bigIntegerToBytes(chunk.getOutgoingData3()[ct]))
           .outgoingData4(bigIntegerToBytes(chunk.getOutgoingData4()[ct]))
           .outgoingResLo(bigIntegerToBytes(chunk.getOutgoingResLo()[ct]))
-          .validateRow();
+          .fillAndValidateRow();
+      // .validateRow();
     }
   }
 
@@ -172,9 +171,6 @@ public class Oob implements Module {
       this.traceChunk(this.chunks.get(i), i + 1, trace);
     }
   }
-
-  @Override
-  public void tracePostOp(MessageFrame frame) {}
 
   public List<ColumnHeader> columnsHeaders() {
     return Trace.headers(this.lineCount());

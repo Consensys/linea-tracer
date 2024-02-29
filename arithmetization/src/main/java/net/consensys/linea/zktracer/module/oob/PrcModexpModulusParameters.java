@@ -26,11 +26,11 @@ public record PrcModexpModulusParameters(
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .incomingData1(bigIntegerToBytes(bbs))
-        .incomingData2(bigIntegerToBytes(mbs))
-        .incomingData3(mbsISZERO ? ONE : ZERO)
-        .incomingData4(bigIntegerToBytes(maxMbsBbs))
-        .incomingData5(ZERO)
-        .incomingData6(ZERO);
+        .data1(bigIntegerToBytes(bbs))
+        .data2(bigIntegerToBytes(mbs))
+        .data3(mbsISZERO ? ONE : ZERO)
+        .data4(bigIntegerToBytes(maxMbsBbs))
+        .data5(ZERO)
+        .data6(ZERO);
   }
 }

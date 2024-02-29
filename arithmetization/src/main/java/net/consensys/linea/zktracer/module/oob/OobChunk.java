@@ -27,6 +27,7 @@ import java.math.RoundingMode;
 
 import lombok.Getter;
 import net.consensys.linea.zktracer.ZkTracer;
+import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.mod.Mod;
@@ -41,7 +42,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 
 @Getter
-public class OobChunk {
+public class OobChunk extends ModuleOperation {
   private boolean oobEvent1;
   private boolean oobEvent2;
 
@@ -1226,5 +1227,10 @@ public class OobChunk {
     BigInteger remainingGas =
         (prcModexpPricingParameters.callGas.subtract(precompileCost)).max(BigInteger.ZERO);
     prcModexpPricingParameters.setRemainingGas(remainingGas);
+  }
+
+  @Override
+  protected int computeLineCount() {
+    return this.nRows();
   }
 }

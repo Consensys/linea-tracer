@@ -31,11 +31,11 @@ public record PrcModexpBaseParameters(
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .incomingData1(bigIntegerToBytes(cds))
-        .incomingData2(bigIntegerToBytes(bbs))
-        .incomingData3(bbsISZERO ? ONE : ZERO)
-        .incomingData4(callDataExtendesBeyondBase ? ONE : ZERO)
-        .incomingData5(byLessThanAnEVMWord ? ONE : ZERO)
-        .incomingData6(bigIntegerToBytes(NCallDataBytes));
+        .data1(bigIntegerToBytes(cds))
+        .data2(bigIntegerToBytes(bbs))
+        .data3(bbsISZERO ? ONE : ZERO)
+        .data4(callDataExtendesBeyondBase ? ONE : ZERO)
+        .data5(byLessThanAnEVMWord ? ONE : ZERO)
+        .data6(bigIntegerToBytes(NCallDataBytes));
   }
 }

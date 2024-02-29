@@ -43,11 +43,11 @@ public record JumpiOobParameters(EWord pcNew, EWord jumpCondition, BigInteger co
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .incomingData1(bigIntegerToBytes(pcNewHi()))
-        .incomingData2(bigIntegerToBytes(pcNewLo()))
-        .incomingData3(bigIntegerToBytes(jumpConditionHi()))
-        .incomingData4(bigIntegerToBytes(jumpConditionLo()))
-        .incomingData5(bigIntegerToBytes(codesize))
-        .incomingData6(ZERO);
+        .data1(bigIntegerToBytes(pcNewHi()))
+        .data2(bigIntegerToBytes(pcNewLo()))
+        .data3(bigIntegerToBytes(jumpConditionHi()))
+        .data4(bigIntegerToBytes(jumpConditionLo()))
+        .data5(bigIntegerToBytes(codesize))
+        .data6(ZERO);
   }
 }

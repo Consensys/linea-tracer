@@ -110,7 +110,7 @@ public class Oob implements Module {
           .stamp(stamp)
           .ct((short) ct)
           .ctMax((short) chunk.maxCt())
-          // .incomingInst(bigIntegerToBytes(chunk.getIncomingInst()))
+          .oobInst(bigIntegerToBytes(chunk.getOobInst()))
           .isJump(chunk.isJump())
           .isJumpi(chunk.isJumpi())
           .isRdc(chunk.isRdc())
@@ -120,20 +120,20 @@ public class Oob implements Module {
           .isCreate(chunk.isCreate())
           .isSstore(chunk.isSstore())
           .isDeployment(chunk.isReturn())
-          .isEcrecover(chunk.isPrcEcRecover())
-          .isSha2(chunk.isPrcSha2())
-          .isRipemd(chunk.isPrcRipemd())
-          .isIdentity(chunk.isPrcIdentity())
-          .isEcadd(chunk.isPrcEcadd())
-          .isEcmul(chunk.isPrcEcmul())
-          .isEcpairing(chunk.isPrcEcpairing())
-          .isBlake2FCds(chunk.isPrcBlake2FA()) //
-          .isBlake2FParams(chunk.isPrcBlake2FB()) //
-          .isModexpCds(chunk.isPrcModexpCds())
-          .isModexpXbs(chunk.isPrcModexpBase()) //
-          .isModexpLead(chunk.isPrcModexpExponent()) //
+          .isEcrecover(chunk.isEcRecover())
+          .isSha2(chunk.isSha2())
+          .isRipemd(chunk.isRipemd())
+          .isIdentity(chunk.isIdentity())
+          .isEcadd(chunk.isEcadd())
+          .isEcmul(chunk.isEcmul())
+          .isEcpairing(chunk.isEcpairing())
+          .isBlake2FCds(chunk.isBlake2FCds()) //
+          .isBlake2FParams(chunk.isBlake2FParams()) //
+          .isModexpCds(chunk.isModexpCds())
+          .isModexpXbs(chunk.isModexpXbs()) //
+          .isModexpLead(chunk.isModexpLead()) //
           .isModexpPricing(chunk.isPrcModexpPricing())
-          .isModexpExtract(chunk.isPrcModexpModulus()) //
+          .isModexpExtract(chunk.isPrcModexpExtract()) //
           .addFlag(chunk.getAddFlag()[ct])
           .modFlag(chunk.getModFlag()[ct])
           .wcpFlag(chunk.getWcpFlag()[ct])

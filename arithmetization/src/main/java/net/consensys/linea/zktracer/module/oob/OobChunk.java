@@ -18,6 +18,31 @@ package net.consensys.linea.zktracer.module.oob;
 import static com.google.common.math.BigIntegerMath.log2;
 import static java.lang.Byte.toUnsignedInt;
 import static java.lang.Math.min;
+import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_BLAKE2F_cds;
+import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_BLAKE2F_params;
+import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_CALL;
+import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_CDL;
+import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_CREATE;
+import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_DEPLOYMENT;
+import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_ECADD;
+import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_ECMUL;
+import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_ECPAIRING;
+import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_ECRECOVER;
+import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_IDENTITY;
+import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_JUMP;
+import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_JUMPI;
+import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_MODEXP_cds;
+import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_MODEXP_extract;
+import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_MODEXP_lead;
+import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_MODEXP_pricing;
+import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_MODEXP_xbs;
+import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_RDC;
+import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_RIPEMD;
+import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_SHA2;
+import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_SSTORE;
+import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_XCALL;
+import static net.consensys.linea.zktracer.module.oob.Trace.G_CALLSTIPEND;
+import static net.consensys.linea.zktracer.module.oob.Trace.G_QUADDIVISOR;
 import static net.consensys.linea.zktracer.types.AddressUtils.getDeploymentAddress;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBoolean;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBigInteger;
@@ -43,10 +68,7 @@ import org.hyperledger.besu.evm.internal.Words;
 
 @Getter
 public class OobChunk extends ModuleOperation {
-  private boolean oobEvent1;
-  private boolean oobEvent2;
-
-  private BigInteger incomingInst;
+  private BigInteger oobInst;
 
   private boolean isJump;
   private boolean isJumpi;
@@ -58,46 +80,20 @@ public class OobChunk extends ModuleOperation {
   private boolean isSstore;
   private boolean isReturn;
 
-  private boolean prcEcRecover;
-  private boolean prcSha2;
-  private boolean prcRipemd;
-  private boolean prcIdentity;
-  private boolean prcEcadd;
-  private boolean prcEcmul;
-  private boolean prcEcpairing;
-  private boolean prcBlake2FA;
-  private boolean prcBlake2FB;
-  private boolean prcModexpCds;
-  private boolean prcModexpBase;
-  private boolean prcModexpExponent;
-  private boolean prcModexpModulus;
+  private boolean isEcRecover;
+  private boolean isSha2;
+  private boolean isRipemd;
+  private boolean isIdentity;
+  private boolean isEcadd;
+  private boolean isEcmul;
+  private boolean isEcpairing;
+  private boolean isBlake2FCds;
+  private boolean isBlake2FParams;
+  private boolean isModexpCds;
+  private boolean isModexpXbs;
+  private boolean isModexpLead;
   private boolean prcModexpPricing;
-
-  private final int ctMaxJump = 0;
-  private final int ctMaxJumpi = 1;
-  private final int ctMaxRdc = 2;
-  private final int ctMaxCdl = 0;
-  private final int ctMaxXCall = 0;
-  private final int ctMaxCall = 2;
-  private final int ctMaxCreate = 2;
-  private final int ctMaxSstore = 0;
-  private final int ctMaxReturn = 0;
-
-  private final int ctMaxPrcEcrecover = 2;
-  private final int ctMaxPrcSha2 = 3;
-  private final int ctMaxPrcRipemd = 3;
-  private final int ctMaxPrcIdentity = 3;
-  private final int ctMaxPrcEcadd = 2;
-  private final int ctMaxPrcEcmul = 2;
-  private final int ctMaxPrcEcpairing = 4;
-  private final int ctMaxPrcBlake2FA = 0;
-  private final int ctMaxPrcBlake2FB = 2;
-
-  private final int ctMaxPrcModexpCds = 3;
-  private final int ctMaxPrcModexpBase = 3;
-  private final int ctMaxPrcModexpExponent = 2;
-  private final int ctMaxPrcModexpModulus = 2;
-  private final int ctMaxPrcModexpPricing = 5;
+  private boolean prcModexpExtract;
 
   private final boolean[] addFlag;
   private final boolean[] modFlag;
@@ -115,11 +111,6 @@ public class OobChunk extends ModuleOperation {
   private OobParameters oobParameters;
 
   private BigInteger wghtSum;
-
-  private final BigInteger G_CALLSTIPEND =
-      BigInteger.valueOf(2300); // TODO: GasConstants.G_CALL_STIPEND.cost()?
-  private final BigInteger G_QUADDIVISOR =
-      BigInteger.valueOf(3); // TODO: should this go in GasConstants?
 
   private BigInteger precompileCost;
 
@@ -216,54 +207,54 @@ public class OobChunk extends ModuleOperation {
         throw new IllegalArgumentException("OpCode not relevant for Oob");
     }
 
-    incomingInst = wghtSum;
+    oobInst = wghtSum;
   }
 
   private void setPrecomileFlagsAndWghtSumAndIncomingInst(MessageFrame frame) {
     Address target = Words.toAddress(frame.getStackItem(1));
 
     if (target.equals(Address.ECREC)) {
-      prcEcRecover = true;
+      isEcRecover = true;
       wghtSum = Bytes.fromHexString("FF01").toUnsignedBigInteger();
     } else if (target.equals(Address.SHA256)) {
-      prcSha2 = true;
+      isSha2 = true;
       wghtSum = Bytes.fromHexString("FF02").toUnsignedBigInteger();
     } else if (target.equals(Address.RIPEMD160)) {
-      prcRipemd = true;
+      isRipemd = true;
       wghtSum = Bytes.fromHexString("FF03").toUnsignedBigInteger();
     } else if (target.equals(Address.ID)) {
-      prcIdentity = true;
+      isIdentity = true;
       wghtSum = Bytes.fromHexString("FF04").toUnsignedBigInteger();
     } else if (target.equals(Address.ALTBN128_ADD)) {
-      prcEcadd = true;
+      isEcadd = true;
       wghtSum = Bytes.fromHexString("FF06").toUnsignedBigInteger();
     } else if (target.equals(Address.ALTBN128_MUL)) {
-      prcEcmul = true;
+      isEcmul = true;
       wghtSum = Bytes.fromHexString("FF07").toUnsignedBigInteger();
     } else if (target.equals(Address.ALTBN128_PAIRING)) {
-      prcEcpairing = true;
+      isEcpairing = true;
       wghtSum = Bytes.fromHexString("FF08").toUnsignedBigInteger();
     } else if (target.equals(Address.BLAKE2B_F_COMPRESSION)) {
       if (blake2FCallNumber == 1) {
-        prcBlake2FA = true;
+        isBlake2FCds = true;
         wghtSum = Bytes.fromHexString("FA09").toUnsignedBigInteger();
       } else if (blake2FCallNumber == 2) {
-        prcBlake2FB = true;
+        isBlake2FParams = true;
         wghtSum = Bytes.fromHexString("FB09").toUnsignedBigInteger();
       }
     } else if (target.equals(Address.MODEXP)) {
       switch (modexpCallNumber) {
         case 1:
-          prcModexpCds = true;
+          isModexpCds = true;
           wghtSum = Bytes.fromHexString("FA05").toUnsignedBigInteger();
         case 2:
-          prcModexpBase = true;
+          isModexpXbs = true;
           wghtSum = Bytes.fromHexString("FB05").toUnsignedBigInteger();
         case 3:
-          prcModexpExponent = true;
+          isModexpLead = true;
           wghtSum = Bytes.fromHexString("FC05").toUnsignedBigInteger();
         case 4:
-          prcModexpModulus = true;
+          prcModexpExtract = true;
           wghtSum = Bytes.fromHexString("FD05").toUnsignedBigInteger();
         case 5:
           prcModexpPricing = true;
@@ -273,7 +264,7 @@ public class OobChunk extends ModuleOperation {
       throw new IllegalArgumentException("Precompile not relevant for Oob");
     }
 
-    incomingInst = wghtSum;
+    oobInst = wghtSum;
   }
 
   public boolean isInst() {
@@ -282,25 +273,15 @@ public class OobChunk extends ModuleOperation {
   }
 
   public boolean isPrcCommon() {
-    return prcEcRecover
-        || prcSha2
-        || prcRipemd
-        || prcIdentity
-        || prcEcadd
-        || prcEcmul
-        || prcEcpairing;
+    return isEcRecover || isSha2 || isRipemd || isIdentity || isEcadd || isEcmul || isEcpairing;
   }
 
   public boolean isPrcBlake() {
-    return prcBlake2FA || prcBlake2FB;
+    return isBlake2FCds || isBlake2FParams;
   }
 
   public boolean isPrcModexp() {
-    return prcModexpCds
-        || prcModexpBase
-        || prcModexpExponent
-        || prcModexpModulus
-        || prcModexpPricing;
+    return isModexpCds || isModexpXbs || isModexpLead || prcModexpExtract || prcModexpPricing;
   }
 
   public boolean isPrc() {
@@ -308,29 +289,29 @@ public class OobChunk extends ModuleOperation {
   }
 
   public int maxCt() {
-    return ctMaxJump * (isJump ? 1 : 0)
-        + ctMaxJumpi * (isJumpi ? 1 : 0)
-        + ctMaxRdc * (isRdc ? 1 : 0)
-        + ctMaxCdl * (isCdl ? 1 : 0)
-        + ctMaxXCall * (isXCall ? 1 : 0)
-        + ctMaxCall * (isCall ? 1 : 0)
-        + ctMaxCreate * (isCreate ? 1 : 0)
-        + ctMaxSstore * (isSstore ? 1 : 0)
-        + ctMaxReturn * (isReturn ? 1 : 0)
-        + ctMaxPrcEcrecover * (prcEcRecover ? 1 : 0)
-        + ctMaxPrcSha2 * (prcSha2 ? 1 : 0)
-        + ctMaxPrcRipemd * (prcRipemd ? 1 : 0)
-        + ctMaxPrcIdentity * (prcIdentity ? 1 : 0)
-        + ctMaxPrcEcadd * (prcEcadd ? 1 : 0)
-        + ctMaxPrcEcmul * (prcEcmul ? 1 : 0)
-        + ctMaxPrcEcpairing * (prcEcpairing ? 1 : 0)
-        + ctMaxPrcBlake2FA * (prcBlake2FA ? 1 : 0)
-        + ctMaxPrcBlake2FB * (prcBlake2FB ? 1 : 0)
-        + ctMaxPrcModexpCds * (prcModexpCds ? 1 : 0)
-        + ctMaxPrcModexpBase * (prcModexpBase ? 1 : 0)
-        + ctMaxPrcModexpExponent * (prcModexpExponent ? 1 : 0)
-        + ctMaxPrcModexpModulus * (prcModexpModulus ? 1 : 0)
-        + ctMaxPrcModexpPricing * (prcModexpPricing ? 1 : 0);
+    return CT_MAX_JUMP * (isJump ? 1 : 0)
+        + CT_MAX_JUMPI * (isJumpi ? 1 : 0)
+        + CT_MAX_RDC * (isRdc ? 1 : 0)
+        + CT_MAX_CDL * (isCdl ? 1 : 0)
+        + CT_MAX_XCALL * (isXCall ? 1 : 0)
+        + CT_MAX_CALL * (isCall ? 1 : 0)
+        + CT_MAX_CREATE * (isCreate ? 1 : 0)
+        + CT_MAX_SSTORE * (isSstore ? 1 : 0)
+        + CT_MAX_DEPLOYMENT * (isReturn ? 1 : 0)
+        + CT_MAX_ECRECOVER * (isEcRecover ? 1 : 0)
+        + CT_MAX_SHA2 * (isSha2 ? 1 : 0)
+        + CT_MAX_RIPEMD * (isRipemd ? 1 : 0)
+        + CT_MAX_IDENTITY * (isIdentity ? 1 : 0)
+        + CT_MAX_ECADD * (isEcadd ? 1 : 0)
+        + CT_MAX_ECMUL * (isEcmul ? 1 : 0)
+        + CT_MAX_ECPAIRING * (isEcpairing ? 1 : 0)
+        + CT_MAX_BLAKE2F_cds * (isBlake2FCds ? 1 : 0)
+        + CT_MAX_BLAKE2F_params * (isBlake2FParams ? 1 : 0)
+        + CT_MAX_MODEXP_cds * (isModexpCds ? 1 : 0)
+        + CT_MAX_MODEXP_xbs * (isModexpXbs ? 1 : 0)
+        + CT_MAX_MODEXP_lead * (isModexpLead ? 1 : 0)
+        + CT_MAX_MODEXP_pricing * (prcModexpPricing ? 1 : 0)
+        + CT_MAX_MODEXP_extract * (prcModexpPricing ? 1 : 0);
   }
 
   public int nRows() {
@@ -468,19 +449,19 @@ public class OobChunk extends ModuleOperation {
                 returnAtCapacity.signum() == 0);
         oobParameters = prcCommonOobParameters;
         setPrc(prcCommonOobParameters);
-        if (prcEcRecover || prcEcadd || prcEcmul) {
+        if (isEcRecover || isEcadd || isEcmul) {
           setPrcEcRecoverPrcEcaddPrcEcmul(prcCommonOobParameters);
-        } else if (prcSha2 || prcRipemd || prcIdentity) {
+        } else if (isSha2 || isRipemd || isIdentity) {
           setPrcSha2PrcRipemdPrcIdentity(prcCommonOobParameters);
-        } else if (prcEcpairing) {
-          setPrcEcpairing(prcCommonOobParameters);
+        } else if (isEcpairing) {
+          setEcpairing(prcCommonOobParameters);
         }
       } else if (isPrcBlake()) {
-        if (prcBlake2FA) {
+        if (isBlake2FCds) {
           PrcBlake2FAParameters prcBlake2FAParameters = new PrcBlake2FAParameters(cds);
           oobParameters = prcBlake2FAParameters;
-          setPrcBlake2FA(prcBlake2FAParameters);
-        } else if (prcBlake2FB) {
+          setBlake2FCds(prcBlake2FAParameters);
+        } else if (isBlake2FParams) {
           BigInteger blakeR =
               frame
                   .shadowReadMemory(argsOffset, cds.longValue())
@@ -495,7 +476,7 @@ public class OobChunk extends ModuleOperation {
               new PrcBlake2FBParameters(
                   callGas, blakeR, blakeF, returnAtCapacity, returnAtCapacity.signum() == 0);
           oobParameters = prcBlake2FBParameters;
-          setPrcBlake2FB(prcBlake2FBParameters);
+          setBlake2FParams(prcBlake2FBParameters);
         }
       } else if (isPrcModexp()) {
         Bytes unpaddedCallData = frame.shadowReadMemory(argsOffset, cds.longValue());
@@ -542,7 +523,7 @@ public class OobChunk extends ModuleOperation {
         } else {
           exponentLog = BigInteger.valueOf(8).multiply(ebs.subtract(BigInteger.valueOf(32)));
         }
-        if (prcModexpCds) {
+        if (isModexpCds) {
           PrcModexpCdsParameters prcModexpCdsParameters =
               new PrcModexpCdsParameters(
                   cds,
@@ -553,8 +534,8 @@ public class OobChunk extends ModuleOperation {
                   cds.intValue() < 64,
                   cds.intValue() < 96);
           oobParameters = prcModexpCdsParameters;
-          setPrcModexpCds(prcModexpCdsParameters);
-        } else if (prcModexpBase) {
+          setModexpCds(prcModexpCdsParameters);
+        } else if (isModexpXbs) {
           boolean callDataExtendsBeyondBase = 96 + bbs.intValue() < cds.intValue();
           boolean byLessThanAnEVMWord = cds.intValue() - (96 + bbs.intValue()) < 32;
           BigInteger NCallDataBytes;
@@ -576,8 +557,8 @@ public class OobChunk extends ModuleOperation {
                   byLessThanAnEVMWord,
                   NCallDataBytes);
           oobParameters = prcModexpBaseParameters;
-          setPrcModexpBase(prcModexpBaseParameters);
-        } else if (prcModexpExponent) {
+          setModexpXbs(prcModexpBaseParameters);
+        } else if (isModexpLead) {
           PrcModexpExponentParameters prcModexpExponentParameters =
               new PrcModexpExponentParameters(
                   ebs,
@@ -586,12 +567,12 @@ public class OobChunk extends ModuleOperation {
                   ebs.min(BigInteger.valueOf(32)),
                   ebs.subtract(BigInteger.valueOf(32)));
           oobParameters = prcModexpExponentParameters;
-          setPrcModexpExponent(prcModexpExponentParameters);
-        } else if (prcModexpModulus) {
+          setModexpLead(prcModexpExponentParameters);
+        } else if (prcModexpExtract) {
           PrcModexpModulusParameters prcModexpModulusParameters =
               new PrcModexpModulusParameters(bbs, mbs, mbs.signum() == 0, mbs.max(bbs));
           oobParameters = prcModexpModulusParameters;
-          setPrcModexpModulus(prcModexpModulusParameters);
+          setPrcModexpExtract(prcModexpModulusParameters);
         } else if (prcModexpPricing) {
           PrcModexpPricingParameters prcModexpPricingParameters =
               new PrcModexpPricingParameters(
@@ -757,10 +738,6 @@ public class OobChunk extends ModuleOperation {
         BigInteger.ZERO,
         jumpOobParameters.codesize());
     int invalidPcNew = 1 - (bigIntegerToBoolean(outgoingResLo[0]) ? 1 : 0);
-
-    // OOB_EVENT_k
-    oobEvent1 = invalidPcNew == 1;
-    oobEvent2 = false;
   }
 
   private void setJumpi(JumpiOobParameters jumpiOobParameters) {
@@ -776,10 +753,6 @@ public class OobChunk extends ModuleOperation {
     // row i + 1
     callToISZERO(1, jumpiOobParameters.jumpConditionHi(), jumpiOobParameters.jumpConditionLo());
     int attemptJump = 1 - (bigIntegerToBoolean(outgoingResLo[1]) ? 1 : 0);
-
-    // OOB_EVENT_k
-    oobEvent1 = attemptJump * invalidPcNew == 1;
-    oobEvent2 = attemptJump == 1;
   }
 
   private void setRdc(RdcOobParameters rdcOobParameters) {
@@ -813,10 +786,6 @@ public class OobChunk extends ModuleOperation {
       noCall(2);
     }
     int rdcSoob = bigIntegerToBoolean(outgoingResLo[2]) ? 1 : 0;
-
-    // OOB_EVENT_k
-    oobEvent1 = rdcRoob + (1 - rdcRoob) * rdcSoob == 1;
-    oobEvent2 = false;
   }
 
   private void setCdl(CdlOobParameters cdlOobParameters) {
@@ -828,10 +797,6 @@ public class OobChunk extends ModuleOperation {
         BigInteger.ZERO,
         cdlOobParameters.cds());
     int touchesRam = bigIntegerToBoolean(outgoingResLo[0]) ? 1 : 0;
-
-    // OOB_EVENT_k
-    oobEvent1 = 1 - touchesRam == 1;
-    oobEvent2 = false;
   }
 
   private void setXCall(CallOobParameters callOobParameters) {
@@ -856,11 +821,6 @@ public class OobChunk extends ModuleOperation {
 
     // row i + 2
     callToISZERO(2, callOobParameters.valHi(), callOobParameters.valLo());
-
-    // OOB_EVENT_k
-    oobEvent1 =
-        insufficientBalanceAbort + (1 - insufficientBalanceAbort) * callStackDepthAbort == 1;
-    oobEvent2 = false;
   }
 
   private void setCreate(CreateOobParameters createOobParameters) {
@@ -881,25 +841,17 @@ public class OobChunk extends ModuleOperation {
     // row i + 2
     callToISZERO(2, BigInteger.ZERO, createOobParameters.nonce());
     int nonZeroNonce = 1 - (bigIntegerToBoolean(outgoingResLo[2]) ? 1 : 0);
-
-    // OOB_EVENT_k
-    oobEvent1 =
-        insufficientBalanceAbort + (1 - insufficientBalanceAbort) * callStackDepthAbort == 1;
-    oobEvent2 =
-        (1 - (oobEvent1 ? 1 : 0))
-                * ((createOobParameters.hasCode() ? 1 : 0)
-                    + (1 - (createOobParameters.hasCode() ? 1 : 0)) * nonZeroNonce)
-            == 1;
   }
 
   private void setSstore(SstoreOobParameters sstoreOobParameters) {
     // row i
-    callToLT(0, BigInteger.ZERO, G_CALLSTIPEND, BigInteger.ZERO, sstoreOobParameters.gas());
+    callToLT(
+        0,
+        BigInteger.ZERO,
+        BigInteger.valueOf(G_CALLSTIPEND),
+        BigInteger.ZERO,
+        sstoreOobParameters.gas());
     int sufficientGas = bigIntegerToBoolean(outgoingResLo[0]) ? 1 : 0;
-
-    // OOB_EVENT_k
-    oobEvent1 = 1 - sufficientGas == 1;
-    oobEvent2 = false;
   }
 
   private void setReturn(ReturnOobParameters returnOobParameters) {
@@ -911,10 +863,7 @@ public class OobChunk extends ModuleOperation {
         returnOobParameters.sizeHi(),
         returnOobParameters.sizeLo());
 
-    // OOB_EVENT_k
     int exceedsMaxCodeSize = bigIntegerToBoolean(outgoingResLo[0]) ? 1 : 0;
-    oobEvent1 = exceedsMaxCodeSize == 1;
-    oobEvent2 = false;
   }
 
   private void setPrc(PrcCommonOobParameters prcOobParameters) {
@@ -928,14 +877,10 @@ public class OobChunk extends ModuleOperation {
   private void setPrcEcRecoverPrcEcaddPrcEcmul(PrcCommonOobParameters prcCommonOobParameters) {
     precompileCost =
         BigInteger.valueOf(
-            3000 * (prcEcRecover ? 1 : 0) + 150 * (prcEcadd ? 1 : 0) + 6000 * (prcEcmul ? 1 : 0));
+            3000 * (isEcRecover ? 1 : 0) + 150 * (isEcadd ? 1 : 0) + 6000 * (isEcmul ? 1 : 0));
 
     // row i + 2
     callToLT(2, BigInteger.ZERO, prcCommonOobParameters.callGas, BigInteger.ZERO, precompileCost);
-
-    // OOB_EVENT_k
-    oobEvent1 = (bigIntegerToBoolean(outgoingResLo[2]) ? 1 : 0) == 1;
-    oobEvent2 = false;
 
     // Set remaining gas
     BigInteger remainingGas =
@@ -957,16 +902,10 @@ public class OobChunk extends ModuleOperation {
         (BigInteger.valueOf(5).add(ceil))
             .multiply(
                 BigInteger.valueOf(
-                    12 * (prcSha2 ? 1 : 0)
-                        + 120 * (prcRipemd ? 1 : 0)
-                        + 3 * (prcIdentity ? 1 : 0)));
+                    12 * (isSha2 ? 1 : 0) + 120 * (isRipemd ? 1 : 0) + 3 * (isIdentity ? 1 : 0)));
 
     // row i + 3
     callToLT(3, BigInteger.ZERO, prcCommonOobParameters.callGas, BigInteger.ZERO, precompileCost);
-
-    // OOB_EVENT_k
-    oobEvent1 = (bigIntegerToBoolean(outgoingResLo[3]) ? 1 : 0) == 1;
-    oobEvent2 = false;
 
     // Set remaining gas
     BigInteger remainingGas =
@@ -974,7 +913,7 @@ public class OobChunk extends ModuleOperation {
     prcCommonOobParameters.setRemainingGas(remainingGas);
   }
 
-  private void setPrcEcpairing(PrcCommonOobParameters prcCommonOobParameters) {
+  private void setEcpairing(PrcCommonOobParameters prcCommonOobParameters) {
     // row i + 2
     callToMOD(
         2, BigInteger.ZERO, prcCommonOobParameters.cds, BigInteger.ZERO, BigInteger.valueOf(192));
@@ -1001,33 +940,22 @@ public class OobChunk extends ModuleOperation {
     }
     boolean insufficientGas = outgoingResLo[4].equals(BigInteger.ONE);
 
-    // OOB_EVENT_k
-    oobEvent1 =
-        (1 - (isMultipleOf192 ? 1 : 0)) + (isMultipleOf192 ? 1 : 0) * (insufficientGas ? 1 : 0)
-            == 1;
-    oobEvent2 = false;
-
     // Set remaining gas
     BigInteger remainingGas = BigInteger.ZERO;
 
-    if (!oobEvent1) {
-      remainingGas = (prcCommonOobParameters.callGas.subtract(precompileCost)).max(BigInteger.ZERO);
-    }
+    remainingGas = (prcCommonOobParameters.callGas.subtract(precompileCost)).max(BigInteger.ZERO);
+
     prcCommonOobParameters.setRemainingGas(remainingGas);
   }
 
-  private void setPrcBlake2FA(PrcBlake2FAParameters prcBlake2FAParameters) {
+  private void setBlake2FCds(PrcBlake2FAParameters prcBlake2FAParameters) {
     // row i
     callToEQ(
         0, BigInteger.ZERO, prcBlake2FAParameters.cds(), BigInteger.ZERO, BigInteger.valueOf(213));
     int validCds = bigIntegerToBoolean(outgoingResLo[0]) ? 1 : 0;
-
-    // OOB_EVENT_k
-    oobEvent1 = 1 - validCds == 1;
-    oobEvent2 = false;
   }
 
-  private void setPrcBlake2FB(PrcBlake2FBParameters prcBlake2FBParameters) {
+  private void setBlake2FParams(PrcBlake2FBParameters prcBlake2FBParameters) {
     // row i
     callToLT(
         0,
@@ -1049,17 +977,13 @@ public class OobChunk extends ModuleOperation {
     // row i + 2
     callToISZERO(2, BigInteger.ZERO, prcBlake2FBParameters.returnAtCapacity);
 
-    // OOB_EVENT_k
-    oobEvent1 = insufficientGas + (1 - insufficientGas) * fIsNotABit == 1;
-    oobEvent2 = false;
-
     // Set remaining gas
     BigInteger remainingGas =
         (prcBlake2FBParameters.callGas.subtract(prcBlake2FBParameters.blakeR)).max(BigInteger.ZERO);
     prcBlake2FBParameters.setRemainingGas(remainingGas);
   }
 
-  private void setPrcModexpCds(PrcModexpCdsParameters prcModexpCdsParameters) {
+  private void setModexpCds(PrcModexpCdsParameters prcModexpCdsParameters) {
     // row i
     callToGT(0, BigInteger.ZERO, prcModexpCdsParameters.cds(), BigInteger.ZERO, BigInteger.ZERO);
 
@@ -1082,13 +1006,9 @@ public class OobChunk extends ModuleOperation {
     // row i + 5
     callToLT(
         5, BigInteger.ZERO, prcModexpCdsParameters.cds(), BigInteger.ZERO, BigInteger.valueOf(96));
-
-    // OOB_EVENT_k
-    oobEvent1 = prcModexpCdsParameters.cdsLT96();
-    oobEvent2 = false;
   }
 
-  private void setPrcModexpBase(PrcModexpBaseParameters prcModexpBaseParameters) {
+  private void setModexpXbs(PrcModexpBaseParameters prcModexpBaseParameters) {
     // row i
     callToLT(
         0,
@@ -1121,13 +1041,9 @@ public class OobChunk extends ModuleOperation {
           BigInteger.ZERO,
           BigInteger.valueOf(32));
     }
-
-    // OOB_EVENT_k
-    oobEvent1 = false;
-    oobEvent2 = false;
   }
 
-  private void setPrcModexpExponent(PrcModexpExponentParameters prcModexpExponentParameters) {
+  private void setModexpLead(PrcModexpExponentParameters prcModexpExponentParameters) {
     // row i
     callToLT(
         0,
@@ -1146,13 +1062,9 @@ public class OobChunk extends ModuleOperation {
         prcModexpExponentParameters.ebs(),
         BigInteger.ZERO,
         BigInteger.valueOf(32));
-
-    // OOB_EVENT_k
-    oobEvent1 = false;
-    oobEvent2 = false;
   }
 
-  private void setPrcModexpModulus(PrcModexpModulusParameters prcModexpModulusParameters) {
+  private void setPrcModexpExtract(PrcModexpModulusParameters prcModexpModulusParameters) {
     // row i
     callToLT(
         0,
@@ -1171,10 +1083,6 @@ public class OobChunk extends ModuleOperation {
         prcModexpModulusParameters.mbs(),
         BigInteger.ZERO,
         prcModexpModulusParameters.bbs());
-
-    // OOB_EVENT_k
-    oobEvent1 = false;
-    oobEvent2 = false;
   }
 
   private void setPrcModexpPricing(PrcModexpPricingParameters prcModexpPricingParameters) {
@@ -1202,7 +1110,7 @@ public class OobChunk extends ModuleOperation {
     } else {
       bigNumerator = fOfMax;
     }
-    callToDIV(3, BigInteger.ZERO, bigNumerator, BigInteger.ZERO, G_QUADDIVISOR);
+    callToDIV(3, BigInteger.ZERO, bigNumerator, BigInteger.ZERO, BigInteger.valueOf(G_QUADDIVISOR));
     BigInteger bigQuotient = outgoingResLo[3];
 
     // row i + 4
@@ -1218,10 +1126,6 @@ public class OobChunk extends ModuleOperation {
     callToLT(
         5, BigInteger.ZERO, prcModexpPricingParameters.callGas, BigInteger.ZERO, precompileCost);
     boolean insufficientGas = bigIntegerToBoolean(outgoingResLo[5]);
-
-    // OOB_EVENT_k
-    oobEvent1 = insufficientGas;
-    oobEvent2 = false;
 
     // Set remaining gas
     BigInteger remainingGas =

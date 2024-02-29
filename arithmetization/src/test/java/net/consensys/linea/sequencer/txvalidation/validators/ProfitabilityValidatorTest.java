@@ -36,6 +36,7 @@ import org.hyperledger.besu.plugin.data.BlockContext;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 import org.hyperledger.besu.plugin.services.BesuConfiguration;
 import org.hyperledger.besu.plugin.services.BlockchainService;
+import org.hyperledger.besu.plugin.services.storage.DataStorageFormat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -255,7 +256,7 @@ public class ProfitabilityValidatorTest {
     }
 
     @Override
-    public int getDatabaseVersion() {
+    public DataStorageFormat getDatabaseFormat() {
       throw new UnsupportedOperationException();
     }
 

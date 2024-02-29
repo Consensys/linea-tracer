@@ -31,7 +31,6 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
@@ -108,9 +107,9 @@ public class Oob implements Module {
       // Note: if a value is bigger than 128, do not use Bytes.of and use Bytes.ofUnsignedType
       // instead (according to size)
       trace
-          .stamp(Bytes.ofUnsignedInt(stamp))
-          .ct(Bytes.of(ct))
-          .ctMax(Bytes.of(chunk.maxCt()))
+          .stamp(stamp)
+          .ct((short) ct)
+          .ctMax((short) chunk.maxCt())
           // .incomingInst(bigIntegerToBytes(chunk.getIncomingInst()))
           .isJump(chunk.isJump())
           .isJumpi(chunk.isJumpi())
@@ -120,21 +119,21 @@ public class Oob implements Module {
           .isCall(chunk.isCall())
           .isCreate(chunk.isCreate())
           .isSstore(chunk.isSstore())
-          .isReturn(chunk.isReturn())
-          .prcEcrecover(chunk.isPrcEcRecover())
-          .prcSha2(chunk.isPrcSha2())
-          .prcRipemd(chunk.isPrcRipemd())
-          .prcIdentity(chunk.isPrcIdentity())
-          .prcEcadd(chunk.isPrcEcadd())
-          .prcEcmul(chunk.isPrcEcmul())
-          .prcEcpairing(chunk.isPrcEcpairing())
-          // .prcBlake2FA(chunk.isPrcBlake2FA())
-          // .prcBlake2FB(chunk.isPrcBlake2FB())
-          .prcModexpCds(chunk.isPrcModexpCds())
-          .prcModexpBase(chunk.isPrcModexpBase())
-          .prcModexpExponent(chunk.isPrcModexpExponent())
-          .prcModexpModulus(chunk.isPrcModexpModulus())
-          .prcModexpPricing(chunk.isPrcModexpPricing())
+          .isDeployment(chunk.isReturn())
+          .isEcrecover(chunk.isPrcEcRecover())
+          .isSha2(chunk.isPrcSha2())
+          .isRipemd(chunk.isPrcRipemd())
+          .isIdentity(chunk.isPrcIdentity())
+          .isEcadd(chunk.isPrcEcadd())
+          .isEcmul(chunk.isPrcEcmul())
+          .isEcpairing(chunk.isPrcEcpairing())
+          .isBlake2FCds(chunk.isPrcBlake2FA()) //
+          .isBlake2FParams(chunk.isPrcBlake2FB()) //
+          .isModexpCds(chunk.isPrcModexpCds())
+          .isModexpXbs(chunk.isPrcModexpBase()) //
+          .isModexpLead(chunk.isPrcModexpExponent()) //
+          .isModexpPricing(chunk.isPrcModexpPricing())
+          .isModexpExtract(chunk.isPrcModexpModulus()) //
           .addFlag(chunk.getAddFlag()[ct])
           .modFlag(chunk.getModFlag()[ct])
           .wcpFlag(chunk.getWcpFlag()[ct])

@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.oob;
 
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
+import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
 import java.math.BigInteger;
 
@@ -26,33 +27,37 @@ import lombok.Setter;
 public class PrcCommonOobParameters implements OobParameters {
 
   BigInteger callGas;
-  @Setter BigInteger remainingGas;
   BigInteger cds;
-  boolean cdsISZERO;
   BigInteger returnAtCapacity;
-  boolean returnAtCapacityISZERO;
+  @Setter boolean success;
+  @Setter BigInteger returnGas;
+  boolean extractCallData;
+  boolean emptyCallData;
+  boolean returnAtCapacityNonZero;
 
   public PrcCommonOobParameters(
       BigInteger callGas,
       BigInteger cds,
-      boolean cdsISZERO,
       BigInteger returnAtCapacity,
-      boolean returnAtCapacityISZERO) {
+      boolean returnAtCapacityNonZero) {
     this.callGas = callGas;
     this.cds = cds;
-    this.cdsISZERO = cdsISZERO;
     this.returnAtCapacity = returnAtCapacity;
-    this.returnAtCapacityISZERO = returnAtCapacityISZERO;
+    this.returnAtCapacityNonZero = returnAtCapacityNonZero;
   }
 
   @Override
   public Trace trace(Trace trace) {
+    boolean extractCallData = success && cds.signum() != 0;
+    boolean emptyCallData = success && cds.signum() == 0;
     return trace
         .data1(bigIntegerToBytes(callGas))
-        .data2(bigIntegerToBytes(remainingGas))
-        .data3(bigIntegerToBytes(cds))
-        .data4(cdsISZERO ? ONE : ZERO)
-        .data5(bigIntegerToBytes(returnAtCapacity))
-        .data6(returnAtCapacityISZERO ? ONE : ZERO);
+        .data2(bigIntegerToBytes(cds))
+        .data3(bigIntegerToBytes(returnAtCapacity))
+        .data4(booleanToBytes(success)) // Not set in the constructor
+        .data5(bigIntegerToBytes(returnGas)) // Not set in the constructor
+        .data6(booleanToBytes(extractCallData)) // Derived from other parameters
+        .data7(booleanToBytes(emptyCallData)) // Derived from other parameters
+        .data8(booleanToBytes(returnAtCapacityNonZero));
   }
 }

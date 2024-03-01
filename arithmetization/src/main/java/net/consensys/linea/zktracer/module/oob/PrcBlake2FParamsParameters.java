@@ -26,7 +26,7 @@ import lombok.Setter;
 public class PrcBlake2FParamsParameters implements OobParameters {
 
   BigInteger callGas;
-  @Setter BigInteger remainingGas;
+  @Setter BigInteger returnGas;
   BigInteger blakeR;
   BigInteger blakeF;
   BigInteger returnAtCapacity;
@@ -49,7 +49,7 @@ public class PrcBlake2FParamsParameters implements OobParameters {
   public Trace trace(Trace trace) {
     return trace
         .data1(bigIntegerToBytes(callGas))
-        .data2(bigIntegerToBytes(remainingGas))
+        .data2(bigIntegerToBytes(returnGas))
         .data3(bigIntegerToBytes(blakeR))
         .data4(bigIntegerToBytes(blakeF))
         .data5(bigIntegerToBytes(returnAtCapacity))

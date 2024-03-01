@@ -26,7 +26,7 @@ import lombok.Setter;
 public class PrcModexpPricingParameters implements OobParameters {
 
   BigInteger callGas;
-  @Setter BigInteger remainingGas;
+  @Setter BigInteger returnGas;
   BigInteger exponentLog;
   BigInteger maxMbsBbs;
   BigInteger returnAtCapacity;
@@ -49,7 +49,7 @@ public class PrcModexpPricingParameters implements OobParameters {
   public Trace trace(Trace trace) {
     return trace
         .data1(bigIntegerToBytes(callGas))
-        .data2(bigIntegerToBytes(remainingGas))
+        .data2(bigIntegerToBytes(returnGas))
         .data3(bigIntegerToBytes(exponentLog))
         .data4(bigIntegerToBytes(maxMbsBbs))
         .data5(bigIntegerToBytes(returnAtCapacity))

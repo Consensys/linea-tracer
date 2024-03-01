@@ -444,14 +444,10 @@ public class OobChunk extends ModuleOperation {
       BigInteger returnAtCapacity =
           EWord.of(frame.getStackItem(returnAtCapacityIndex)).toUnsignedBigInteger();
 
+      boolean returnAtCapacityNonZero = returnAtCapacity.signum() != 0;
       if (isPrcCommon()) {
         PrcCommonOobParameters prcCommonOobParameters =
-            new PrcCommonOobParameters(
-                callGas,
-                cds,
-                cds.longValue() == 0,
-                returnAtCapacity,
-                returnAtCapacity.signum() == 0);
+            new PrcCommonOobParameters(callGas, cds, returnAtCapacity, returnAtCapacityNonZero);
         oobParameters = prcCommonOobParameters;
         setPrc(prcCommonOobParameters);
         if (isEcRecover || isEcadd || isEcmul) {
@@ -886,11 +882,16 @@ public class OobChunk extends ModuleOperation {
 
     // row i + 2
     callToLT(2, BigInteger.ZERO, prcCommonOobParameters.callGas, BigInteger.ZERO, precompileCost);
+    boolean insufficientGas = bigIntegerToBoolean(outgoingResLo[2]);
+
+    // Set hub success
+    boolean hubSuccess = !insufficientGas;
+    prcCommonOobParameters.setSuccess(hubSuccess);
 
     // Set remaining gas
-    BigInteger remainingGas =
-        (prcCommonOobParameters.callGas.subtract(precompileCost)).max(BigInteger.ZERO);
-    prcCommonOobParameters.setRemainingGas(remainingGas);
+    BigInteger returnGas =
+        hubSuccess ? prcCommonOobParameters.callGas.subtract(precompileCost) : BigInteger.ZERO;
+    prcCommonOobParameters.setReturnGas(returnGas);
   }
 
   private void setPrcSha2PrcRipemdPrcIdentity(PrcCommonOobParameters prcCommonOobParameters) {
@@ -911,11 +912,16 @@ public class OobChunk extends ModuleOperation {
 
     // row i + 3
     callToLT(3, BigInteger.ZERO, prcCommonOobParameters.callGas, BigInteger.ZERO, precompileCost);
+    boolean insufficientGas = bigIntegerToBoolean(outgoingResLo[3]);
+
+    // Set hub success
+    boolean hubSuccess = !insufficientGas;
+    prcCommonOobParameters.setSuccess(hubSuccess);
 
     // Set remaining gas
-    BigInteger remainingGas =
-        (prcCommonOobParameters.callGas.subtract(precompileCost)).max(BigInteger.ZERO);
-    prcCommonOobParameters.setRemainingGas(remainingGas);
+    BigInteger returnGas =
+        hubSuccess ? prcCommonOobParameters.callGas.subtract(precompileCost) : BigInteger.ZERO;
+    prcCommonOobParameters.setReturnGas(returnGas);
   }
 
   private void setEcpairing(PrcCommonOobParameters prcCommonOobParameters) {
@@ -943,16 +949,19 @@ public class OobChunk extends ModuleOperation {
     } else {
       noCall(4);
     }
-    boolean insufficientGas = outgoingResLo[4].equals(BigInteger.ONE);
+    boolean insufficientGas = bigIntegerToBoolean(outgoingResLo[4]);
+
+    // Set hub success
+    boolean hubSuccess = isMultipleOf192 && !insufficientGas;
+    prcCommonOobParameters.setSuccess(hubSuccess);
 
     // Set remaining gas
-    BigInteger remainingGas = BigInteger.ZERO;
-
-    remainingGas = (prcCommonOobParameters.callGas.subtract(precompileCost)).max(BigInteger.ZERO);
-
-    prcCommonOobParameters.setRemainingGas(remainingGas);
+    BigInteger returnGas =
+        hubSuccess ? prcCommonOobParameters.callGas.subtract(precompileCost) : BigInteger.ZERO;
+    prcCommonOobParameters.setReturnGas(returnGas);
   }
 
+  // TODO: fix order and boolean conversions
   private void setBlake2FCds(PrcBlake2FCdsParameters prcBlake2FCdsParameters) {
     // row i
     callToEQ(
@@ -987,10 +996,10 @@ public class OobChunk extends ModuleOperation {
     callToISZERO(2, BigInteger.ZERO, prcBlake2FParamsParameters.returnAtCapacity);
 
     // Set remaining gas
-    BigInteger remainingGas =
+    BigInteger returnGas =
         (prcBlake2FParamsParameters.callGas.subtract(prcBlake2FParamsParameters.blakeR))
             .max(BigInteger.ZERO);
-    prcBlake2FParamsParameters.setRemainingGas(remainingGas);
+    prcBlake2FParamsParameters.setReturnGas(returnGas);
   }
 
   private void setModexpCds(PrcModexpCdsParameters prcModexpCdsParameters) {
@@ -1109,9 +1118,9 @@ public class OobChunk extends ModuleOperation {
     boolean insufficientGas = bigIntegerToBoolean(outgoingResLo[5]);
 
     // Set remaining gas
-    BigInteger remainingGas =
+    BigInteger returnGas =
         (prcModexpPricingParameters.callGas.subtract(precompileCost)).max(BigInteger.ZERO);
-    prcModexpPricingParameters.setRemainingGas(remainingGas);
+    prcModexpPricingParameters.setReturnGas(returnGas);
   }
 
   private void setPrcModexpExtract(PrcModexpExtractParameters prcModexpExtractParameters) {

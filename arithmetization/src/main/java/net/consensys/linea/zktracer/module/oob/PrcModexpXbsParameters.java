@@ -19,7 +19,7 @@ import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.math.BigInteger;
 
-public record PrcModexpBaseParameters(
+public record PrcModexpXbsParameters(
     BigInteger cds,
     BigInteger bbs,
     boolean bbsISZERO,

@@ -19,17 +19,15 @@ import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.math.BigInteger;
 
-public record PrcModexpModulusParameters(
-    BigInteger bbs, BigInteger mbs, boolean mbsISZERO, BigInteger maxMbsBbs)
-    implements OobParameters {
+public record PrcBlake2FCdsParameters(BigInteger cds) implements OobParameters {
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .data1(bigIntegerToBytes(bbs))
-        .data2(bigIntegerToBytes(mbs))
-        .data3(mbsISZERO ? ONE : ZERO)
-        .data4(bigIntegerToBytes(maxMbsBbs))
+        .data1(ZERO)
+        .data2(ZERO)
+        .data3(bigIntegerToBytes(cds))
+        .data4(ZERO)
         .data5(ZERO)
         .data6(ZERO);
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys AG.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -19,26 +19,18 @@ import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.math.BigInteger;
 
-import net.consensys.linea.zktracer.types.EWord;
-
-public record ReturnOobParameters(EWord size) implements OobParameters {
-
-  public BigInteger sizeHi() {
-    return size.hiBigInt();
-  }
-
-  public BigInteger sizeLo() {
-    return size.loBigInt();
-  }
+public record PrcModexpLeadParameters(
+    BigInteger ebs, boolean ebsISZERO, boolean ebsLT32, BigInteger minEbs32, BigInteger ebsSub32)
+    implements OobParameters {
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .data1(bigIntegerToBytes(sizeHi()))
-        .data2(bigIntegerToBytes(sizeLo()))
-        .data3(ZERO)
-        .data4(ZERO)
-        .data5(ZERO)
-        .data6(ZERO);
+        .data1(ZERO)
+        .data2(bigIntegerToBytes(ebs))
+        .data3(ebsISZERO ? ONE : ZERO)
+        .data4(ebsLT32 ? ONE : ZERO)
+        .data5(bigIntegerToBytes(minEbs32))
+        .data6(bigIntegerToBytes(ebsSub32));
   }
 }

@@ -19,18 +19,18 @@ import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.math.BigInteger;
 
-public record PrcModexpExponentParameters(
-    BigInteger ebs, boolean ebsISZERO, boolean ebsLT32, BigInteger minEbs32, BigInteger ebsSub32)
+public record PrcModexpExtractParameters(
+    BigInteger bbs, BigInteger mbs, boolean mbsISZERO, BigInteger maxMbsBbs)
     implements OobParameters {
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .data1(ZERO)
-        .data2(bigIntegerToBytes(ebs))
-        .data3(ebsISZERO ? ONE : ZERO)
-        .data4(ebsLT32 ? ONE : ZERO)
-        .data5(bigIntegerToBytes(minEbs32))
-        .data6(bigIntegerToBytes(ebsSub32));
+        .data1(bigIntegerToBytes(bbs))
+        .data2(bigIntegerToBytes(mbs))
+        .data3(mbsISZERO ? ONE : ZERO)
+        .data4(bigIntegerToBytes(maxMbsBbs))
+        .data5(ZERO)
+        .data6(ZERO);
   }
 }

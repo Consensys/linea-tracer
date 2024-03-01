@@ -23,7 +23,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter
-public class PrcBlake2FBParameters implements OobParameters {
+public class PrcBlake2FParamsParameters implements OobParameters {
 
   BigInteger callGas;
   @Setter BigInteger remainingGas;
@@ -32,7 +32,7 @@ public class PrcBlake2FBParameters implements OobParameters {
   BigInteger returnAtCapacity;
   boolean returnAtCapacityISZERO;
 
-  public PrcBlake2FBParameters(
+  public PrcBlake2FParamsParameters(
       BigInteger callGas,
       BigInteger blakeR,
       BigInteger blakeF,

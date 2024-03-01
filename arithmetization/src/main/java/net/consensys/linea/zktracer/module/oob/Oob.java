@@ -119,7 +119,7 @@ public class Oob implements Module {
           .isCall(chunk.isCall())
           .isCreate(chunk.isCreate())
           .isSstore(chunk.isSstore())
-          .isDeployment(chunk.isReturn())
+          .isDeployment(chunk.isDeployment())
           .isEcrecover(chunk.isEcRecover())
           .isSha2(chunk.isSha2())
           .isRipemd(chunk.isRipemd())
@@ -127,13 +127,13 @@ public class Oob implements Module {
           .isEcadd(chunk.isEcadd())
           .isEcmul(chunk.isEcmul())
           .isEcpairing(chunk.isEcpairing())
-          .isBlake2FCds(chunk.isBlake2FCds()) //
-          .isBlake2FParams(chunk.isBlake2FParams()) //
+          .isBlake2FCds(chunk.isBlake2FCds())
+          .isBlake2FParams(chunk.isBlake2FParams())
           .isModexpCds(chunk.isModexpCds())
-          .isModexpXbs(chunk.isModexpXbs()) //
-          .isModexpLead(chunk.isModexpLead()) //
+          .isModexpXbs(chunk.isModexpXbs())
+          .isModexpLead(chunk.isModexpLead())
           .isModexpPricing(chunk.isPrcModexpPricing())
-          .isModexpExtract(chunk.isPrcModexpExtract()) //
+          .isModexpExtract(chunk.isPrcModexpExtract())
           .addFlag(chunk.getAddFlag()[ct])
           .modFlag(chunk.getModFlag()[ct])
           .wcpFlag(chunk.getWcpFlag()[ct])
@@ -143,8 +143,7 @@ public class Oob implements Module {
           .outgoingData3(bigIntegerToBytes(chunk.getOutgoingData3()[ct]))
           .outgoingData4(bigIntegerToBytes(chunk.getOutgoingData4()[ct]))
           .outgoingResLo(bigIntegerToBytes(chunk.getOutgoingResLo()[ct]))
-          .fillAndValidateRow();
-      // .validateRow();
+          .validateRow();
     }
   }
 

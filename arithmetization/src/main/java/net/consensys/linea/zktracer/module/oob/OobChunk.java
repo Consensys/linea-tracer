@@ -443,11 +443,9 @@ public class OobChunk extends ModuleOperation {
 
       BigInteger returnAtCapacity =
           EWord.of(frame.getStackItem(returnAtCapacityIndex)).toUnsignedBigInteger();
-
-      boolean returnAtCapacityNonZero = returnAtCapacity.signum() != 0;
       if (isPrcCommon()) {
         PrcCommonOobParameters prcCommonOobParameters =
-            new PrcCommonOobParameters(callGas, cds, returnAtCapacity, returnAtCapacityNonZero);
+            new PrcCommonOobParameters(callGas, cds, returnAtCapacity);
         oobParameters = prcCommonOobParameters;
         setPrc(prcCommonOobParameters);
         if (isEcRecover || isEcadd || isEcmul) {
@@ -456,28 +454,6 @@ public class OobChunk extends ModuleOperation {
           setPrcSha2PrcRipemdPrcIdentity(prcCommonOobParameters);
         } else if (isEcpairing) {
           setEcpairing(prcCommonOobParameters);
-        }
-      } else if (isPrcBlake()) {
-        if (isBlake2FCds) {
-          PrcBlake2FCdsParameters prcBlake2FCdsParameters = new PrcBlake2FCdsParameters(cds);
-          oobParameters = prcBlake2FCdsParameters;
-          setBlake2FCds(prcBlake2FCdsParameters);
-        } else if (isBlake2FParams) {
-          BigInteger blakeR =
-              frame
-                  .shadowReadMemory(argsOffset, cds.longValue())
-                  .slice(0, 4)
-                  .toUnsignedBigInteger();
-
-          BigInteger blakeF =
-              BigInteger.valueOf(
-                  toUnsignedInt(frame.shadowReadMemory(argsOffset, cds.longValue()).get(212)));
-
-          PrcBlake2FParamsParameters prcBlake2FParamsParameters =
-              new PrcBlake2FParamsParameters(
-                  callGas, blakeR, blakeF, returnAtCapacity, returnAtCapacity.signum() == 0);
-          oobParameters = prcBlake2FParamsParameters;
-          setBlake2FParams(prcBlake2FParamsParameters);
         }
       } else if (isPrcModexp()) {
         Bytes unpaddedCallData = frame.shadowReadMemory(argsOffset, cds.longValue());
@@ -585,9 +561,31 @@ public class OobChunk extends ModuleOperation {
           oobParameters = prcModexpExtractParameters;
           setPrcModexpExtract(prcModexpExtractParameters);
         }
+      } else if (isPrcBlake()) {
+        if (isBlake2FCds) {
+          PrcBlake2FCdsParameters prcBlake2FCdsParameters =
+              new PrcBlake2FCdsParameters(cds, returnAtCapacity);
+          oobParameters = prcBlake2FCdsParameters;
+          setBlake2FCds(prcBlake2FCdsParameters);
+        } else if (isBlake2FParams) {
+          BigInteger blakeR =
+              frame
+                  .shadowReadMemory(argsOffset, cds.longValue())
+                  .slice(0, 4)
+                  .toUnsignedBigInteger();
+
+          BigInteger blakeF =
+              BigInteger.valueOf(
+                  toUnsignedInt(frame.shadowReadMemory(argsOffset, cds.longValue()).get(212)));
+
+          PrcBlake2FParamsParameters prcBlake2FParamsParameters =
+              new PrcBlake2FParamsParameters(callGas, blakeR, blakeF);
+          oobParameters = prcBlake2FParamsParameters;
+          setBlake2FParams(prcBlake2FParamsParameters);
+        }
+      } else {
+        throw new RuntimeException("no opcode or precompile flag was set to true");
       }
-    } else {
-      throw new RuntimeException("no opcode or precompile flag was set to true");
     }
   }
 
@@ -738,7 +736,7 @@ public class OobChunk extends ModuleOperation {
         jumpOobParameters.pcNewLo(),
         BigInteger.ZERO,
         jumpOobParameters.codesize());
-    int invalidPcNew = 1 - (bigIntegerToBoolean(outgoingResLo[0]) ? 1 : 0);
+    boolean invalidPcNew = !bigIntegerToBoolean(outgoingResLo[0]);
   }
 
   private void setJumpi(JumpiOobParameters jumpiOobParameters) {
@@ -749,20 +747,20 @@ public class OobChunk extends ModuleOperation {
         jumpiOobParameters.pcNewLo(),
         BigInteger.ZERO,
         jumpiOobParameters.codesize());
-    int invalidPcNew = 1 - (bigIntegerToBoolean(outgoingResLo[0]) ? 1 : 0);
+    boolean invalidPcNew = !bigIntegerToBoolean(outgoingResLo[0]);
 
     // row i + 1
     callToISZERO(1, jumpiOobParameters.jumpConditionHi(), jumpiOobParameters.jumpConditionLo());
-    int attemptJump = 1 - (bigIntegerToBoolean(outgoingResLo[1]) ? 1 : 0);
+    boolean attemptJump = !bigIntegerToBoolean(outgoingResLo[1]);
   }
 
   private void setRdc(RdcOobParameters rdcOobParameters) {
     // row i
     callToISZERO(0, rdcOobParameters.offsetHi(), rdcOobParameters.sizeHi());
-    int rdcRoob = 1 - (bigIntegerToBoolean(outgoingResLo[0]) ? 1 : 0);
+    boolean rdcRoob = !bigIntegerToBoolean(outgoingResLo[0]);
 
     // row i + 1
-    if (rdcRoob == 0) {
+    if (!rdcRoob) {
       callToADD(
           1,
           BigInteger.ZERO,
@@ -776,7 +774,7 @@ public class OobChunk extends ModuleOperation {
         addFlag[1] ? rdcOobParameters.offsetLo().add(rdcOobParameters.sizeLo()) : BigInteger.ZERO;
 
     // row i + 2
-    if (rdcRoob == 0) {
+    if (!rdcRoob) {
       callToGT(
           2,
           EWord.of(sum).hiBigInt(),
@@ -786,7 +784,7 @@ public class OobChunk extends ModuleOperation {
     } else {
       noCall(2);
     }
-    int rdcSoob = bigIntegerToBoolean(outgoingResLo[2]) ? 1 : 0;
+    boolean rdcSoob = bigIntegerToBoolean(outgoingResLo[2]);
   }
 
   private void setCdl(CdlOobParameters cdlOobParameters) {
@@ -797,7 +795,7 @@ public class OobChunk extends ModuleOperation {
         cdlOobParameters.offsetLo(),
         BigInteger.ZERO,
         cdlOobParameters.cds());
-    int touchesRam = bigIntegerToBoolean(outgoingResLo[0]) ? 1 : 0;
+    boolean touchesRam = bigIntegerToBoolean(outgoingResLo[0]);
   }
 
   private void setXCall(CallOobParameters callOobParameters) {
@@ -813,12 +811,12 @@ public class OobChunk extends ModuleOperation {
         callOobParameters.bal(),
         callOobParameters.valHi(),
         callOobParameters.valLo());
-    int insufficientBalanceAbort = bigIntegerToBoolean(outgoingResLo[0]) ? 1 : 0;
+    boolean insufficientBalanceAbort = bigIntegerToBoolean(outgoingResLo[0]);
 
     // row i + 1
     callToLT(
         1, BigInteger.ZERO, callOobParameters.csd(), BigInteger.ZERO, BigInteger.valueOf(1024));
-    int callStackDepthAbort = 1 - (bigIntegerToBoolean(outgoingResLo[1]) ? 1 : 0);
+    boolean callStackDepthAbort = !bigIntegerToBoolean(outgoingResLo[1]);
 
     // row i + 2
     callToISZERO(2, callOobParameters.valHi(), callOobParameters.valLo());
@@ -832,16 +830,16 @@ public class OobChunk extends ModuleOperation {
         createOobParameters.bal(),
         createOobParameters.valHi(),
         createOobParameters.valLo());
-    int insufficientBalanceAbort = bigIntegerToBoolean(outgoingResLo[0]) ? 1 : 0;
+    boolean insufficientBalanceAbort = bigIntegerToBoolean(outgoingResLo[0]);
 
     // row i + 1
     callToLT(
         1, BigInteger.ZERO, createOobParameters.csd(), BigInteger.ZERO, BigInteger.valueOf(1024));
-    int callStackDepthAbort = 1 - (bigIntegerToBoolean(outgoingResLo[1]) ? 1 : 0);
+    boolean callStackDepthAbort = !bigIntegerToBoolean(outgoingResLo[1]);
 
     // row i + 2
     callToISZERO(2, BigInteger.ZERO, createOobParameters.nonce());
-    int nonZeroNonce = 1 - (bigIntegerToBoolean(outgoingResLo[2]) ? 1 : 0);
+    boolean nonZeroNonce = !bigIntegerToBoolean(outgoingResLo[2]);
   }
 
   private void setSstore(SstoreOobParameters sstoreOobParameters) {
@@ -852,7 +850,7 @@ public class OobChunk extends ModuleOperation {
         BigInteger.valueOf(G_CALLSTIPEND),
         BigInteger.ZERO,
         sstoreOobParameters.gas());
-    int sufficientGas = bigIntegerToBoolean(outgoingResLo[0]) ? 1 : 0;
+    boolean sufficientGas = bigIntegerToBoolean(outgoingResLo[0]);
   }
 
   private void setDeployment(DeploymentOobParameters deploymentOobParameters) {
@@ -863,16 +861,23 @@ public class OobChunk extends ModuleOperation {
         BigInteger.valueOf(24576),
         deploymentOobParameters.sizeHi(),
         deploymentOobParameters.sizeLo());
-
-    int exceedsMaxCodeSize = bigIntegerToBoolean(outgoingResLo[0]) ? 1 : 0;
+    boolean exceedsMaxCodeSize = bigIntegerToBoolean(outgoingResLo[0]);
   }
 
   private void setPrc(PrcCommonOobParameters prcOobParameters) {
     // row i
     callToISZERO(0, BigInteger.ZERO, prcOobParameters.cds);
+    boolean cdsIsZero = bigIntegerToBoolean(outgoingResLo[0]);
 
     // row i + 1
     callToISZERO(1, BigInteger.ZERO, prcOobParameters.returnAtCapacity);
+    boolean returnAtCapacityIsZero = bigIntegerToBoolean(outgoingResLo[1]);
+
+    // Set cdsIsZero
+    prcOobParameters.setCdsIsZero(cdsIsZero);
+
+    // Set returnAtCapacityIsZero
+    prcOobParameters.setReturnAtCapacityNonZero(!returnAtCapacityIsZero);
   }
 
   private void setPrcEcRecoverPrcEcaddPrcEcmul(PrcCommonOobParameters prcCommonOobParameters) {
@@ -961,47 +966,7 @@ public class OobChunk extends ModuleOperation {
     prcCommonOobParameters.setReturnGas(returnGas);
   }
 
-  // TODO: fix order and boolean conversions
-  private void setBlake2FCds(PrcBlake2FCdsParameters prcBlake2FCdsParameters) {
-    // row i
-    callToEQ(
-        0,
-        BigInteger.ZERO,
-        prcBlake2FCdsParameters.cds(),
-        BigInteger.ZERO,
-        BigInteger.valueOf(213));
-    int validCds = bigIntegerToBoolean(outgoingResLo[0]) ? 1 : 0;
-  }
-
-  private void setBlake2FParams(PrcBlake2FParamsParameters prcBlake2FParamsParameters) {
-    // row i
-    callToLT(
-        0,
-        BigInteger.ZERO,
-        prcBlake2FParamsParameters.callGas,
-        BigInteger.ZERO,
-        prcBlake2FParamsParameters.blakeR);
-    int insufficientGas = bigIntegerToBoolean(outgoingResLo[0]) ? 1 : 0;
-
-    // row i + 1
-    callToEQ(
-        1,
-        BigInteger.ZERO,
-        prcBlake2FParamsParameters.blakeF,
-        BigInteger.ZERO,
-        prcBlake2FParamsParameters.blakeF.multiply(prcBlake2FParamsParameters.blakeF));
-    int fIsNotABit = 1 - (bigIntegerToBoolean(outgoingResLo[1]) ? 1 : 0);
-
-    // row i + 2
-    callToISZERO(2, BigInteger.ZERO, prcBlake2FParamsParameters.returnAtCapacity);
-
-    // Set remaining gas
-    BigInteger returnGas =
-        (prcBlake2FParamsParameters.callGas.subtract(prcBlake2FParamsParameters.blakeR))
-            .max(BigInteger.ZERO);
-    prcBlake2FParamsParameters.setReturnGas(returnGas);
-  }
-
+  // TODO: review boolean conversions and lookup results
   private void setModexpCds(PrcModexpCdsParameters prcModexpCdsParameters) {
     // row i
     callToGT(0, BigInteger.ZERO, prcModexpCdsParameters.cds(), BigInteger.ZERO, BigInteger.ZERO);
@@ -1142,6 +1107,54 @@ public class OobChunk extends ModuleOperation {
         prcModexpExtractParameters.mbs(),
         BigInteger.ZERO,
         prcModexpExtractParameters.bbs());
+  }
+
+  private void setBlake2FCds(PrcBlake2FCdsParameters prcBlake2FCdsParameters) {
+    // row i
+    callToEQ(
+        0, BigInteger.ZERO, prcBlake2FCdsParameters.cds, BigInteger.ZERO, BigInteger.valueOf(213));
+    boolean validCds = bigIntegerToBoolean(outgoingResLo[0]);
+
+    // row i
+    callToISZERO(1, BigInteger.ZERO, prcBlake2FCdsParameters.returnAtCapacity);
+    boolean returnAtCapacityIsZero = bigIntegerToBoolean(outgoingResLo[1]);
+
+    // Set hub success
+    prcBlake2FCdsParameters.setSuccess(validCds);
+
+    // Set returnAtCapacityIsZero
+    prcBlake2FCdsParameters.setReturnAtCapacityNonZero(!returnAtCapacityIsZero);
+  }
+
+  private void setBlake2FParams(PrcBlake2FParamsParameters prcBlake2FParamsParameters) {
+    // row i
+    callToLT(
+        0,
+        BigInteger.ZERO,
+        prcBlake2FParamsParameters.callGas,
+        BigInteger.ZERO,
+        prcBlake2FParamsParameters.blakeR);
+    boolean sufficientGas = !bigIntegerToBoolean(outgoingResLo[0]); // = ramSuccess
+
+    // row i + 1
+    callToEQ(
+        1,
+        BigInteger.ZERO,
+        prcBlake2FParamsParameters.blakeF,
+        BigInteger.ZERO,
+        prcBlake2FParamsParameters.blakeF.multiply(prcBlake2FParamsParameters.blakeF));
+    boolean fIsABit = bigIntegerToBoolean(outgoingResLo[1]);
+
+    // Set ramSuccess
+    boolean ramSuccess = sufficientGas && fIsABit;
+    prcBlake2FParamsParameters.setSuccess(ramSuccess);
+
+    // Set returnGas
+    BigInteger returnGas =
+        ramSuccess
+            ? (prcBlake2FParamsParameters.callGas.subtract(prcBlake2FParamsParameters.blakeR))
+            : BigInteger.ZERO;
+    prcBlake2FParamsParameters.setReturnGas(returnGas);
   }
 
   @Override

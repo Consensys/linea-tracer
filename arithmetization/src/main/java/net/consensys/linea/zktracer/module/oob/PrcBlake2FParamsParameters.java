@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.oob;
 
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
+import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
 import java.math.BigInteger;
 
@@ -26,33 +27,27 @@ import lombok.Setter;
 public class PrcBlake2FParamsParameters implements OobParameters {
 
   BigInteger callGas;
+  @Setter boolean success;
   @Setter BigInteger returnGas;
   BigInteger blakeR;
   BigInteger blakeF;
-  BigInteger returnAtCapacity;
-  boolean returnAtCapacityISZERO;
 
-  public PrcBlake2FParamsParameters(
-      BigInteger callGas,
-      BigInteger blakeR,
-      BigInteger blakeF,
-      BigInteger returnAtCapacity,
-      boolean returnAtCapacityISZERO) {
+  public PrcBlake2FParamsParameters(BigInteger callGas, BigInteger blakeR, BigInteger blakeF) {
     this.callGas = callGas;
     this.blakeR = blakeR;
     this.blakeF = blakeF;
-    this.returnAtCapacity = returnAtCapacity;
-    this.returnAtCapacityISZERO = returnAtCapacityISZERO;
   }
 
   @Override
   public Trace trace(Trace trace) {
     return trace
         .data1(bigIntegerToBytes(callGas))
-        .data2(bigIntegerToBytes(returnGas))
-        .data3(bigIntegerToBytes(blakeR))
-        .data4(bigIntegerToBytes(blakeF))
-        .data5(bigIntegerToBytes(returnAtCapacity))
-        .data6(returnAtCapacityISZERO ? ONE : ZERO);
+        .data2(ZERO)
+        .data3(ZERO)
+        .data4(booleanToBytes(success)) // Set after the constructor
+        .data5(bigIntegerToBytes(returnGas)) // Set after the constructor
+        .data6(bigIntegerToBytes(blakeR))
+        .data7(bigIntegerToBytes(blakeF))
+        .data8(ZERO);
   }
 }

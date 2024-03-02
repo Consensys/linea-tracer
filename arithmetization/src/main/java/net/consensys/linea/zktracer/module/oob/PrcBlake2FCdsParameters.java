@@ -16,19 +16,36 @@
 package net.consensys.linea.zktracer.module.oob;
 
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
+import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
 import java.math.BigInteger;
 
-public record PrcBlake2FCdsParameters(BigInteger cds) implements OobParameters {
+import lombok.Getter;
+import lombok.Setter;
+import org.apache.tuweni.bytes.Bytes;
+
+@Getter
+public class PrcBlake2FCdsParameters implements OobParameters {
+  BigInteger cds;
+  BigInteger returnAtCapacity;
+  @Setter boolean success;
+  @Setter boolean returnAtCapacityNonZero;
+
+  public PrcBlake2FCdsParameters(BigInteger cds, BigInteger returnAtCapacity) {
+    this.cds = cds;
+    this.returnAtCapacity = returnAtCapacity;
+  }
 
   @Override
   public Trace trace(Trace trace) {
     return trace
         .data1(ZERO)
-        .data2(ZERO)
-        .data3(bigIntegerToBytes(cds))
-        .data4(ZERO)
+        .data2(bigIntegerToBytes(cds))
+        .data3(bigIntegerToBytes(returnAtCapacity))
+        .data4(booleanToBytes(success)) // Set after the constructor
         .data5(ZERO)
-        .data6(ZERO);
+        .data6(Bytes.of(0))
+        .data7(Bytes.of(0))
+        .data8(booleanToBytes(returnAtCapacityNonZero)); // Set after the constructor
   }
 }

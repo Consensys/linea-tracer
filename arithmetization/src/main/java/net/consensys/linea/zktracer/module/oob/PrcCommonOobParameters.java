@@ -31,33 +31,27 @@ public class PrcCommonOobParameters implements OobParameters {
   BigInteger returnAtCapacity;
   @Setter boolean success;
   @Setter BigInteger returnGas;
-  boolean extractCallData;
-  boolean emptyCallData;
-  boolean returnAtCapacityNonZero;
+  @Setter boolean returnAtCapacityNonZero;
+  @Setter boolean cdsIsZero; // Necessary to compute extractCallData and emptyCallData
 
-  public PrcCommonOobParameters(
-      BigInteger callGas,
-      BigInteger cds,
-      BigInteger returnAtCapacity,
-      boolean returnAtCapacityNonZero) {
+  public PrcCommonOobParameters(BigInteger callGas, BigInteger cds, BigInteger returnAtCapacity) {
     this.callGas = callGas;
     this.cds = cds;
     this.returnAtCapacity = returnAtCapacity;
-    this.returnAtCapacityNonZero = returnAtCapacityNonZero;
   }
 
   @Override
   public Trace trace(Trace trace) {
-    boolean extractCallData = success && cds.signum() != 0;
-    boolean emptyCallData = success && cds.signum() == 0;
+    boolean extractCallData = success && !cdsIsZero;
+    boolean emptyCallData = success && cdsIsZero;
     return trace
         .data1(bigIntegerToBytes(callGas))
         .data2(bigIntegerToBytes(cds))
         .data3(bigIntegerToBytes(returnAtCapacity))
-        .data4(booleanToBytes(success)) // Not set in the constructor
-        .data5(bigIntegerToBytes(returnGas)) // Not set in the constructor
+        .data4(booleanToBytes(success)) // Set after the constructor
+        .data5(bigIntegerToBytes(returnGas)) // Set after the constructor
         .data6(booleanToBytes(extractCallData)) // Derived from other parameters
         .data7(booleanToBytes(emptyCallData)) // Derived from other parameters
-        .data8(booleanToBytes(returnAtCapacityNonZero));
+        .data8(booleanToBytes(returnAtCapacityNonZero)); // Set after the constructor
   }
 }

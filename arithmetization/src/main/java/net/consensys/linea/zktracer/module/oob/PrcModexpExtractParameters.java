@@ -16,21 +16,41 @@
 package net.consensys.linea.zktracer.module.oob;
 
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
+import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
 import java.math.BigInteger;
 
-public record PrcModexpExtractParameters(
-    BigInteger bbs, BigInteger mbs, boolean mbsISZERO, BigInteger maxMbsBbs)
-    implements OobParameters {
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+public class PrcModexpExtractParameters implements OobParameters {
+  private BigInteger cds;
+  private BigInteger bbs;
+  private BigInteger ebs;
+  private BigInteger mbs;
+  @Setter private boolean extractBase;
+  @Setter private boolean extractExponent;
+  @Setter private boolean extractModulus;
+
+  public PrcModexpExtractParameters(
+      BigInteger cds, BigInteger bbs, BigInteger ebs, BigInteger mbs) {
+    this.cds = cds;
+    this.bbs = bbs;
+    this.ebs = ebs;
+    this.mbs = mbs;
+  }
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .data1(bigIntegerToBytes(bbs))
-        .data2(bigIntegerToBytes(mbs))
-        .data3(mbsISZERO ? ONE : ZERO)
-        .data4(bigIntegerToBytes(maxMbsBbs))
-        .data5(ZERO)
-        .data6(ZERO);
+        .data1(ZERO)
+        .data2(bigIntegerToBytes(cds))
+        .data3(bigIntegerToBytes(bbs))
+        .data4(bigIntegerToBytes(ebs))
+        .data5(bigIntegerToBytes(mbs))
+        .data6(booleanToBytes(extractBase))
+        .data7(booleanToBytes(extractExponent))
+        .data8(booleanToBytes(extractModulus));
   }
 }

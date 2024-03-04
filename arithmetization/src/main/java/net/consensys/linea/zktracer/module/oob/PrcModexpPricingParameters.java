@@ -16,43 +16,43 @@
 package net.consensys.linea.zktracer.module.oob;
 
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
+import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
 import java.math.BigInteger;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.tuweni.bytes.Bytes;
 
 @Getter
 public class PrcModexpPricingParameters implements OobParameters {
 
   private BigInteger callGas;
+  private BigInteger returnAtCapacity;
+  @Setter private boolean success;
   @Setter private BigInteger returnGas;
   private BigInteger exponentLog;
-  private BigInteger maxMbsBbs;
-  private BigInteger returnAtCapacity;
-  private boolean returnAtCapacityISZERO;
+  private int maxMbsBbs;
+  @Setter private boolean returnAtCapacityNonZero;
 
   public PrcModexpPricingParameters(
-      BigInteger callGas,
-      BigInteger exponentLog,
-      BigInteger maxMbsBbs,
-      BigInteger returnAtCapacity,
-      boolean returnAtCapacityISZERO) {
+      BigInteger callGas, BigInteger returnAtCapacity, BigInteger exponentLog, int maxMbsBbs) {
     this.callGas = callGas;
+    this.returnAtCapacity = returnAtCapacity;
     this.exponentLog = exponentLog;
     this.maxMbsBbs = maxMbsBbs;
-    this.returnAtCapacity = returnAtCapacity;
-    this.returnAtCapacityISZERO = returnAtCapacityISZERO;
   }
 
   @Override
   public Trace trace(Trace trace) {
     return trace
         .data1(bigIntegerToBytes(callGas))
-        .data2(bigIntegerToBytes(returnGas))
-        .data3(bigIntegerToBytes(exponentLog))
-        .data4(bigIntegerToBytes(maxMbsBbs))
-        .data5(bigIntegerToBytes(returnAtCapacity))
-        .data6(returnAtCapacityISZERO ? ONE : ZERO);
+        .data2(ZERO)
+        .data3(bigIntegerToBytes(returnAtCapacity))
+        .data4(booleanToBytes(success))
+        .data5(bigIntegerToBytes(returnGas))
+        .data6(bigIntegerToBytes(exponentLog))
+        .data7(Bytes.of(maxMbsBbs))
+        .data8(booleanToBytes(returnAtCapacityNonZero));
   }
 }

@@ -546,18 +546,14 @@ public class OobChunk extends ModuleOperation {
           oobParameters = prcModexpLeadParameters;
           setModexpLead(prcModexpLeadParameters);
         } else if (prcModexpPricing) {
+          int maxXbsYbs = 0; // TODO: get if from the hub
           PrcModexpPricingParameters prcModexpPricingParameters =
-              new PrcModexpPricingParameters(
-                  callGas,
-                  exponentLog,
-                  mbs.max(bbs),
-                  returnAtCapacity,
-                  returnAtCapacity.signum() == 0);
+              new PrcModexpPricingParameters(callGas, returnAtCapacity, exponentLog, maxXbsYbs);
           oobParameters = prcModexpPricingParameters;
           setPrcModexpPricing(prcModexpPricingParameters);
         } else if (prcModexpExtract) {
           PrcModexpExtractParameters prcModexpExtractParameters =
-              new PrcModexpExtractParameters(bbs, mbs, mbs.signum() == 0, mbs.max(bbs));
+              new PrcModexpExtractParameters(cds, bbs, ebs, mbs);
           oobParameters = prcModexpExtractParameters;
           setPrcModexpExtract(prcModexpExtractParameters);
         }
@@ -1109,26 +1105,26 @@ public class OobChunk extends ModuleOperation {
   private void setPrcModexpPricing(PrcModexpPricingParameters prcModexpPricingParameters) {
     // row i
     callToISZERO(0, BigInteger.ZERO, prcModexpPricingParameters.getReturnAtCapacity());
+    boolean returnAtCapacityIsZero = bigIntegerToBoolean(outgoingResLo[0]);
 
     // row i + 1
     callToISZERO(1, BigInteger.ZERO, prcModexpPricingParameters.getExponentLog());
-    boolean exponentLogISZERO = bigIntegerToBoolean(outgoingResLo[1]);
+    boolean exponentLogIsZero = bigIntegerToBoolean(outgoingResLo[1]);
 
     // row i + 2
     callToDIV(
         2,
         BigInteger.ZERO,
-        (prcModexpPricingParameters
-                .getMaxMbsBbs()
-                .multiply(prcModexpPricingParameters.getMaxMbsBbs()))
-            .add(BigInteger.valueOf(7)),
+        BigInteger.valueOf(
+            prcModexpPricingParameters.getMaxMbsBbs() * prcModexpPricingParameters.getMaxMbsBbs()
+                + 7),
         BigInteger.ZERO,
         BigInteger.valueOf(8));
     BigInteger fOfMax = outgoingResLo[2];
 
     // row i + 3
     BigInteger bigNumerator;
-    if (!exponentLogISZERO) {
+    if (!exponentLogIsZero) {
       bigNumerator = fOfMax.multiply(prcModexpPricingParameters.getExponentLog());
     } else {
       bigNumerator = fOfMax;
@@ -1141,44 +1137,64 @@ public class OobChunk extends ModuleOperation {
     boolean bigQuotientLT200 = bigIntegerToBoolean(outgoingResLo[4]);
 
     // row i + 5
-    precompileCost =
-        BigInteger.valueOf(200)
-            .multiply(booleanToBigInteger(bigQuotientLT200))
-            .add(bigQuotient)
-            .multiply(BigInteger.valueOf(1).subtract(booleanToBigInteger(bigQuotientLT200)));
+    precompileCost = bigQuotientLT200 ? BigInteger.valueOf(200) : bigQuotient;
+
     callToLT(
         5,
         BigInteger.ZERO,
         prcModexpPricingParameters.getCallGas(),
         BigInteger.ZERO,
         precompileCost);
-    boolean insufficientGas = bigIntegerToBoolean(outgoingResLo[5]);
+
+    // Set ram success
+    boolean ramSuccess = !bigIntegerToBoolean(outgoingResLo[5]);
+    prcModexpPricingParameters.setSuccess(ramSuccess);
 
     // Set remaining gas
     BigInteger returnGas =
-        (prcModexpPricingParameters.getCallGas().subtract(precompileCost)).max(BigInteger.ZERO);
+        ramSuccess
+            ? prcModexpPricingParameters.getCallGas().subtract(precompileCost)
+            : BigInteger.ZERO;
     prcModexpPricingParameters.setReturnGas(returnGas);
+
+    // Set returnAtCapacityIsZero
+    prcModexpPricingParameters.setReturnAtCapacityNonZero(!returnAtCapacityIsZero);
   }
 
   private void setPrcModexpExtract(PrcModexpExtractParameters prcModexpExtractParameters) {
     // row i
-    callToLT(
-        0,
-        BigInteger.ZERO,
-        prcModexpExtractParameters.mbs(),
-        BigInteger.ZERO,
-        BigInteger.valueOf(513));
+    callToISZERO(0, BigInteger.ZERO, prcModexpExtractParameters.getBbs());
+    boolean bbsIsZero = bigIntegerToBoolean(outgoingResLo[0]);
 
     // row i + 1
-    callToISZERO(1, BigInteger.ZERO, prcModexpExtractParameters.mbs());
+    callToISZERO(1, BigInteger.ZERO, prcModexpExtractParameters.getEbs());
+    boolean ebsIsZero = bigIntegerToBoolean(outgoingResLo[1]);
 
     // row i + 2
+    callToISZERO(2, BigInteger.ZERO, prcModexpExtractParameters.getMbs());
+    boolean mbsIsZero = bigIntegerToBoolean(outgoingResLo[2]);
+
+    // row i + 3
     callToLT(
-        2,
+        3,
         BigInteger.ZERO,
-        prcModexpExtractParameters.mbs(),
+        BigInteger.valueOf(96)
+            .add(prcModexpExtractParameters.getBbs().add(prcModexpExtractParameters.getEbs())),
         BigInteger.ZERO,
-        prcModexpExtractParameters.bbs());
+        prcModexpExtractParameters.getCds());
+    boolean callDataExtendsBeyondExponent = bigIntegerToBoolean(outgoingResLo[3]);
+
+    // Set extractModulus
+    boolean extractModulus = callDataExtendsBeyondExponent && !mbsIsZero;
+    prcModexpExtractParameters.setExtractModulus(extractModulus);
+
+    // Set extractBase
+    boolean extractBase = extractModulus && !bbsIsZero;
+    prcModexpExtractParameters.setExtractBase(extractBase);
+
+    // Set extractExponent
+    boolean extractExponent = extractModulus && !ebsIsZero;
+    prcModexpExtractParameters.setExtractExponent(extractExponent);
   }
 
   private void setBlake2FCds(PrcBlake2FCdsParameters prcBlake2FCdsParameters) {

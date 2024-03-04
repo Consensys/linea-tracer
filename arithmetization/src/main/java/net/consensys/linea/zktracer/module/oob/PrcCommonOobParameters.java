@@ -26,13 +26,13 @@ import lombok.Setter;
 @Getter
 public class PrcCommonOobParameters implements OobParameters {
 
-  BigInteger callGas;
-  BigInteger cds;
-  BigInteger returnAtCapacity;
-  @Setter boolean success;
-  @Setter BigInteger returnGas;
-  @Setter boolean returnAtCapacityNonZero;
-  @Setter boolean cdsIsZero; // Necessary to compute extractCallData and emptyCallData
+  private BigInteger callGas;
+  private BigInteger cds;
+  private BigInteger returnAtCapacity;
+  @Setter private boolean success;
+  @Setter private BigInteger returnGas;
+  @Setter private boolean returnAtCapacityNonZero;
+  @Setter private boolean cdsIsZero; // Necessary to compute extractCallData and emptyCallData
 
   public PrcCommonOobParameters(BigInteger callGas, BigInteger cds, BigInteger returnAtCapacity) {
     this.callGas = callGas;

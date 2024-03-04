@@ -16,28 +16,34 @@
 package net.consensys.linea.zktracer.module.oob;
 
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
+import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
 import java.math.BigInteger;
 
-public record PrcModexpCdsParameters(
-    BigInteger cds,
-    boolean cdsGT0,
-    boolean cdsGT32,
-    boolean cdsGT64,
-    boolean cdsLT32,
-    boolean cdsLT64,
-    boolean cdsLT96)
-    implements OobParameters {
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+public class PrcModexpCdsParameters implements OobParameters {
+  private BigInteger cds;
+  @Setter private boolean extractBbs;
+  @Setter private boolean extractEbs;
+  @Setter private boolean extractMbs;
+
+  public PrcModexpCdsParameters(BigInteger cds) {
+    this.cds = cds;
+  }
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .data1(bigIntegerToBytes(cds))
-        .data2(cdsGT0 ? ONE : ZERO)
-        .data3(cdsGT32 ? ONE : ZERO)
-        .data4(cdsGT64 ? ONE : ZERO)
-        .data5(cdsLT32 ? ONE : ZERO)
-        .data6(cdsLT32 ? ONE : ZERO);
-    // oobEvent1 is set to cdsLT96 in set PrcModexpCds
+        .data1(ZERO)
+        .data2(bigIntegerToBytes(cds))
+        .data3(booleanToBytes(extractBbs))
+        .data4(booleanToBytes(extractEbs))
+        .data5(booleanToBytes(extractMbs))
+        .data6(ZERO)
+        .data7(ZERO)
+        .data8(ZERO);
   }
 }

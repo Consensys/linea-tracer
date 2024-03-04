@@ -25,12 +25,12 @@ import lombok.Setter;
 @Getter
 public class PrcModexpPricingParameters implements OobParameters {
 
-  BigInteger callGas;
-  @Setter BigInteger returnGas;
-  BigInteger exponentLog;
-  BigInteger maxMbsBbs;
-  BigInteger returnAtCapacity;
-  boolean returnAtCapacityISZERO;
+  private BigInteger callGas;
+  @Setter private BigInteger returnGas;
+  private BigInteger exponentLog;
+  private BigInteger maxMbsBbs;
+  private BigInteger returnAtCapacity;
+  private boolean returnAtCapacityISZERO;
 
   public PrcModexpPricingParameters(
       BigInteger callGas,

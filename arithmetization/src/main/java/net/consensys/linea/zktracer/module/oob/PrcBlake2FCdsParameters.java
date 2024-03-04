@@ -26,10 +26,10 @@ import org.apache.tuweni.bytes.Bytes;
 
 @Getter
 public class PrcBlake2FCdsParameters implements OobParameters {
-  BigInteger cds;
-  BigInteger returnAtCapacity;
-  @Setter boolean success;
-  @Setter boolean returnAtCapacityNonZero;
+  private BigInteger cds;
+  private BigInteger returnAtCapacity;
+  @Setter private boolean success;
+  @Setter private boolean returnAtCapacityNonZero;
 
   public PrcBlake2FCdsParameters(BigInteger cds, BigInteger returnAtCapacity) {
     this.cds = cds;

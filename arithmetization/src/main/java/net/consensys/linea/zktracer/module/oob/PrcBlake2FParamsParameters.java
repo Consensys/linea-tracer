@@ -26,11 +26,11 @@ import lombok.Setter;
 @Getter
 public class PrcBlake2FParamsParameters implements OobParameters {
 
-  BigInteger callGas;
-  @Setter boolean success;
-  @Setter BigInteger returnGas;
-  BigInteger blakeR;
-  BigInteger blakeF;
+  private BigInteger callGas;
+  @Setter private boolean success;
+  @Setter private BigInteger returnGas;
+  private BigInteger blakeR;
+  private BigInteger blakeF;
 
   public PrcBlake2FParamsParameters(BigInteger callGas, BigInteger blakeR, BigInteger blakeF) {
     this.callGas = callGas;

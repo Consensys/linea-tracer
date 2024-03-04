@@ -16,26 +16,41 @@
 package net.consensys.linea.zktracer.module.oob;
 
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
+import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
 import java.math.BigInteger;
 
-public record PrcModexpXbsParameters(
-    BigInteger cds,
-    BigInteger bbs,
-    boolean bbsISZERO,
-    boolean callDataExtendesBeyondBase,
-    boolean byLessThanAnEVMWord,
-    BigInteger NCallDataBytes)
-    implements OobParameters {
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+public class PrcModexpXbsParameters implements OobParameters {
+
+  private BigInteger xbsHi;
+  private BigInteger xbsLo;
+  private BigInteger ybsLo;
+  private boolean computeMax;
+  @Setter private BigInteger maxXbsYbs;
+  @Setter private boolean xbsNonZero;
+
+  public PrcModexpXbsParameters(
+      BigInteger xbsHi, BigInteger xbsLo, BigInteger ybsLo, boolean computeMax) {
+    this.xbsHi = xbsHi;
+    this.xbsLo = xbsLo;
+    this.ybsLo = ybsLo;
+    this.computeMax = computeMax;
+  }
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .data1(bigIntegerToBytes(cds))
-        .data2(bigIntegerToBytes(bbs))
-        .data3(bbsISZERO ? ONE : ZERO)
-        .data4(callDataExtendesBeyondBase ? ONE : ZERO)
-        .data5(byLessThanAnEVMWord ? ONE : ZERO)
-        .data6(bigIntegerToBytes(NCallDataBytes));
+        .data1(bigIntegerToBytes(xbsHi))
+        .data2(bigIntegerToBytes(xbsLo))
+        .data3(bigIntegerToBytes(ybsLo))
+        .data4(booleanToBytes(computeMax))
+        .data5(ZERO)
+        .data6(ZERO)
+        .data7(bigIntegerToBytes(maxXbsYbs))
+        .data8(booleanToBytes(xbsNonZero));
   }
 }

@@ -87,7 +87,7 @@ public class Oob implements Module {
             this.chunks.add(new OobChunk(frame, add, mod, wcp, hub, true, 2, 0));
           }
         } else if (target.equals(Address.MODEXP)) {
-          for (int i = 1; i <= 5; i++) {
+          for (int i = 1; i <= 7; i++) {
             this.chunks.add(new OobChunk(frame, add, mod, wcp, hub, true, 0, i));
           }
         } else {

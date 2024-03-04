@@ -16,21 +16,41 @@
 package net.consensys.linea.zktracer.module.oob;
 
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
+import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
 import java.math.BigInteger;
 
-public record PrcModexpLeadParameters(
-    BigInteger ebs, boolean ebsISZERO, boolean ebsLT32, BigInteger minEbs32, BigInteger ebsSub32)
-    implements OobParameters {
+import lombok.Getter;
+import lombok.Setter;
+import org.apache.tuweni.bytes.Bytes;
+
+@Getter
+public class PrcModexpLeadParameters implements OobParameters {
+
+  BigInteger bbs;
+  BigInteger cds;
+  BigInteger ebs;
+  @Setter boolean loadLead;
+  @Setter int cdsCutoff;
+  @Setter int ebsCutoff;
+  @Setter int subEbs32;
+
+  public PrcModexpLeadParameters(BigInteger bbs, BigInteger cds, BigInteger ebs) {
+    this.bbs = bbs;
+    this.cds = cds;
+    this.ebs = ebs;
+  }
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .data1(ZERO)
-        .data2(bigIntegerToBytes(ebs))
-        .data3(ebsISZERO ? ONE : ZERO)
-        .data4(ebsLT32 ? ONE : ZERO)
-        .data5(bigIntegerToBytes(minEbs32))
-        .data6(bigIntegerToBytes(ebsSub32));
+        .data1(bigIntegerToBytes(bbs))
+        .data2(bigIntegerToBytes(cds))
+        .data3(bigIntegerToBytes(ebs))
+        .data4(booleanToBytes(loadLead))
+        .data5(ZERO)
+        .data6(Bytes.of(cdsCutoff))
+        .data7(Bytes.of(ebsCutoff))
+        .data8(Bytes.of(subEbs32));
   }
 }

@@ -540,13 +540,9 @@ public class OobChunk extends ModuleOperation {
           oobParameters = prcModexpXbsParameters;
           setModexpXbs(prcModexpXbsParameters);
         } else if (isModexpLead) {
+
           PrcModexpLeadParameters prcModexpLeadParameters =
-              new PrcModexpLeadParameters(
-                  ebs,
-                  ebs.signum() == 0,
-                  ebs.longValue() < 32,
-                  ebs.min(BigInteger.valueOf(32)),
-                  ebs.subtract(BigInteger.valueOf(32)));
+              new PrcModexpLeadParameters(bbs, cds, ebs);
           oobParameters = prcModexpLeadParameters;
           setModexpLead(prcModexpLeadParameters);
         } else if (prcModexpPricing) {
@@ -1036,6 +1032,7 @@ public class OobChunk extends ModuleOperation {
     // row i + 2
     callToISZERO(2, BigInteger.ZERO, prcModexpXbsParameters.getXbsLo());
 
+    // Set MaxXbsYbs and xbsNonZero
     if (!prcModexpXbsParameters.isComputeMax()) {
       prcModexpXbsParameters.setMaxXbsYbs(BigInteger.ZERO);
       prcModexpXbsParameters.setXbsNonZero(false);
@@ -1048,19 +1045,65 @@ public class OobChunk extends ModuleOperation {
 
   private void setModexpLead(PrcModexpLeadParameters prcModexpLeadParameters) {
     // row i
-    callToLT(
-        0,
-        BigInteger.ZERO,
-        prcModexpLeadParameters.ebs(),
-        BigInteger.ZERO,
-        BigInteger.valueOf(513));
+    callToISZERO(0, BigInteger.ZERO, prcModexpLeadParameters.getEbs());
+    boolean ebsIsZero = bigIntegerToBoolean(outgoingResLo[0]);
 
     // row i + 1
-    callToISZERO(1, BigInteger.ZERO, prcModexpLeadParameters.ebs());
+    callToLT(
+        1,
+        BigInteger.ZERO,
+        prcModexpLeadParameters.getEbs(),
+        BigInteger.ZERO,
+        BigInteger.valueOf(32));
+    boolean ebsLessThan32 = bigIntegerToBoolean(outgoingResLo[1]);
 
     // row i + 2
     callToLT(
-        2, BigInteger.ZERO, prcModexpLeadParameters.ebs(), BigInteger.ZERO, BigInteger.valueOf(32));
+        2,
+        BigInteger.ZERO,
+        BigInteger.valueOf(96).add(prcModexpLeadParameters.getBbs()),
+        BigInteger.ZERO,
+        prcModexpLeadParameters.getCds());
+    boolean callDataContainsExponentBytes = bigIntegerToBoolean(outgoingResLo[2]);
+
+    // row i + 3
+    if (callDataContainsExponentBytes) {
+      callToLT(
+          3,
+          BigInteger.ZERO,
+          prcModexpLeadParameters
+              .getCds()
+              .subtract(BigInteger.valueOf(96).add(prcModexpLeadParameters.getBbs())),
+          BigInteger.ZERO,
+          BigInteger.valueOf(32));
+    } else {
+      noCall(3);
+    }
+    boolean comp = bigIntegerToBoolean(outgoingResLo[3]); // TODO: double check usage
+
+    // Set loadLead
+    boolean loadLead = callDataContainsExponentBytes && !ebsIsZero;
+    prcModexpLeadParameters.setLoadLead(loadLead);
+
+    // Set cdsCutoff
+    if (!callDataContainsExponentBytes) {
+      prcModexpLeadParameters.setCdsCutoff(0);
+    } else {
+      prcModexpLeadParameters.setCdsCutoff(
+          comp
+              ? (prcModexpLeadParameters
+                  .getCds()
+                  .subtract(BigInteger.valueOf(96).add(prcModexpLeadParameters.getBbs()))
+                  .intValue())
+              : 32);
+    }
+    // Set ebsCutoff
+    prcModexpLeadParameters.setEbsCutoff(
+        ebsLessThan32 ? prcModexpLeadParameters.getEbs().intValue() : 0);
+
+    // Set subEbs32
+    prcModexpLeadParameters.setSubEbs32(
+        ebsLessThan32 ? 0 : prcModexpLeadParameters.getEbs().intValue() - 32);
   }
 
   private void setPrcModexpPricing(PrcModexpPricingParameters prcModexpPricingParameters) {

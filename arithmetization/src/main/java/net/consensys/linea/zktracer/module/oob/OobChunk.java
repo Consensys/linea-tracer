@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.module.oob;
 
 import static com.google.common.math.BigIntegerMath.log2;
 import static java.lang.Byte.toUnsignedInt;
+import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_BLAKE2F_cds;
 import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_BLAKE2F_params;
@@ -540,15 +541,14 @@ public class OobChunk extends ModuleOperation {
           oobParameters = prcModexpXbsParameters;
           setModexpXbs(prcModexpXbsParameters);
         } else if (isModexpLead) {
-
           PrcModexpLeadParameters prcModexpLeadParameters =
               new PrcModexpLeadParameters(bbs, cds, ebs);
           oobParameters = prcModexpLeadParameters;
           setModexpLead(prcModexpLeadParameters);
         } else if (prcModexpPricing) {
-          int maxXbsYbs = 0; // TODO: get if from the hub
+          int maxMbsBbs = max(mbs.intValue(), bbs.intValue());
           PrcModexpPricingParameters prcModexpPricingParameters =
-              new PrcModexpPricingParameters(callGas, returnAtCapacity, exponentLog, maxXbsYbs);
+              new PrcModexpPricingParameters(callGas, returnAtCapacity, exponentLog, maxMbsBbs);
           oobParameters = prcModexpPricingParameters;
           setPrcModexpPricing(prcModexpPricingParameters);
         } else if (prcModexpExtract) {
@@ -1075,7 +1075,7 @@ public class OobChunk extends ModuleOperation {
     } else {
       noCall(3);
     }
-    boolean comp = bigIntegerToBoolean(outgoingResLo[3]); // TODO: double check usage
+    boolean comp = bigIntegerToBoolean(outgoingResLo[3]); // TODO: double check when debugging
 
     // Set loadLead
     boolean loadLead = callDataContainsExponentBytes && !ebsIsZero;
@@ -1214,7 +1214,7 @@ public class OobChunk extends ModuleOperation {
     // Set hubSuccess
     prcBlake2FCdsParameters.setSuccess(validCds);
 
-    // Set returnAtCapacityIsZero
+    // Set returnAtCapacityNonZero
     prcBlake2FCdsParameters.setReturnAtCapacityNonZero(!returnAtCapacityIsZero);
   }
 

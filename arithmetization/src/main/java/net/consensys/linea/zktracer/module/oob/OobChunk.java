@@ -888,11 +888,11 @@ public class OobChunk extends ModuleOperation {
         2, BigInteger.ZERO, prcCommonOobParameters.getCallGas(), BigInteger.ZERO, precompileCost);
     boolean insufficientGas = bigIntegerToBoolean(outgoingResLo[2]);
 
-    // Set hub success
+    // Set hubSuccess
     boolean hubSuccess = !insufficientGas;
     prcCommonOobParameters.setSuccess(hubSuccess);
 
-    // Set remaining gas
+    // Set returnGas
     BigInteger returnGas =
         hubSuccess ? prcCommonOobParameters.getCallGas().subtract(precompileCost) : BigInteger.ZERO;
     prcCommonOobParameters.setReturnGas(returnGas);
@@ -921,11 +921,11 @@ public class OobChunk extends ModuleOperation {
         3, BigInteger.ZERO, prcCommonOobParameters.getCallGas(), BigInteger.ZERO, precompileCost);
     boolean insufficientGas = bigIntegerToBoolean(outgoingResLo[3]);
 
-    // Set hub success
+    // Set hubSuccess
     boolean hubSuccess = !insufficientGas;
     prcCommonOobParameters.setSuccess(hubSuccess);
 
-    // Set remaining gas
+    // Set returnGas
     BigInteger returnGas =
         hubSuccess ? prcCommonOobParameters.getCallGas().subtract(precompileCost) : BigInteger.ZERO;
     prcCommonOobParameters.setReturnGas(returnGas);
@@ -963,11 +963,11 @@ public class OobChunk extends ModuleOperation {
     }
     boolean insufficientGas = bigIntegerToBoolean(outgoingResLo[4]);
 
-    // Set hub success
+    // Set hubSuccess
     boolean hubSuccess = isMultipleOf192 && !insufficientGas;
     prcCommonOobParameters.setSuccess(hubSuccess);
 
-    // Set remaining gas
+    // Set returnGas
     BigInteger returnGas =
         hubSuccess ? prcCommonOobParameters.getCallGas().subtract(precompileCost) : BigInteger.ZERO;
     prcCommonOobParameters.setReturnGas(returnGas);
@@ -996,13 +996,13 @@ public class OobChunk extends ModuleOperation {
         BigInteger.valueOf(64));
     boolean extractMbs = bigIntegerToBoolean(outgoingResLo[2]);
 
-    // Set extract bbs
+    // Set extractBbs
     prcModexpCdsParameters.setExtractBbs(extractBbs);
 
-    // Set extract ebs
+    // Set extractEbs
     prcModexpCdsParameters.setExtractEbs(extractEbs);
 
-    // Set extract mbs
+    // Set extractMbs
     prcModexpCdsParameters.setExtractMbs(extractMbs);
   }
 
@@ -1028,7 +1028,7 @@ public class OobChunk extends ModuleOperation {
     // row i + 2
     callToISZERO(2, BigInteger.ZERO, prcModexpXbsParameters.getXbsLo());
 
-    // Set MaxXbsYbs and xbsNonZero
+    // Set maxXbsYbs and xbsNonZero
     if (!prcModexpXbsParameters.isComputeMax()) {
       prcModexpXbsParameters.setMaxXbsYbs(BigInteger.ZERO);
       prcModexpXbsParameters.setXbsNonZero(false);
@@ -1146,18 +1146,18 @@ public class OobChunk extends ModuleOperation {
         BigInteger.ZERO,
         precompileCost);
 
-    // Set ram success
+    // Set ramSuccess
     boolean ramSuccess = !bigIntegerToBoolean(outgoingResLo[5]);
     prcModexpPricingParameters.setSuccess(ramSuccess);
 
-    // Set remaining gas
+    // Set returnGas
     BigInteger returnGas =
         ramSuccess
             ? prcModexpPricingParameters.getCallGas().subtract(precompileCost)
             : BigInteger.ZERO;
     prcModexpPricingParameters.setReturnGas(returnGas);
 
-    // Set returnAtCapacityIsZero
+    // Set returnAtCapacityNonZero
     prcModexpPricingParameters.setReturnAtCapacityNonZero(!returnAtCapacityIsZero);
   }
 
@@ -1211,7 +1211,7 @@ public class OobChunk extends ModuleOperation {
     callToISZERO(1, BigInteger.ZERO, prcBlake2FCdsParameters.getReturnAtCapacity());
     boolean returnAtCapacityIsZero = bigIntegerToBoolean(outgoingResLo[1]);
 
-    // Set hub success
+    // Set hubSuccess
     prcBlake2FCdsParameters.setSuccess(validCds);
 
     // Set returnAtCapacityIsZero

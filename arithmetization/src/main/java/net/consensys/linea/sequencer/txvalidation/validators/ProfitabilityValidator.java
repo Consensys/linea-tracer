@@ -24,10 +24,10 @@ import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.plugin.services.BesuConfiguration;
 import org.hyperledger.besu.plugin.services.BlockchainService;
-import org.hyperledger.besu.plugin.services.txvalidator.PluginTransactionValidator;
+import org.hyperledger.besu.plugin.services.txvalidator.PluginTransactionPoolValidator;
 
 @Slf4j
-public class ProfitabilityValidator implements PluginTransactionValidator {
+public class ProfitabilityValidator implements PluginTransactionPoolValidator {
   final BesuConfiguration besuConfiguration;
   final BlockchainService blockchainService;
   final LineaProfitabilityConfiguration profitabilityConf;

@@ -21,11 +21,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
-import org.hyperledger.besu.plugin.services.txvalidator.PluginTransactionValidator;
+import org.hyperledger.besu.plugin.services.txvalidator.PluginTransactionPoolValidator;
 
 @Slf4j
 @RequiredArgsConstructor
-public class AllowedAddressValidator implements PluginTransactionValidator {
+public class AllowedAddressValidator implements PluginTransactionPoolValidator {
   private static final Set<Address> PRECOMPILES =
       Set.of(
           Address.fromHexString("0x0000000000000000000000000000000000000001"),

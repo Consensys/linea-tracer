@@ -28,11 +28,11 @@ import net.consensys.linea.sequencer.txvalidation.validators.ProfitabilityValida
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.plugin.services.BesuConfiguration;
 import org.hyperledger.besu.plugin.services.BlockchainService;
-import org.hyperledger.besu.plugin.services.txvalidator.PluginTransactionValidator;
-import org.hyperledger.besu.plugin.services.txvalidator.PluginTransactionValidatorFactory;
+import org.hyperledger.besu.plugin.services.txvalidator.PluginTransactionPoolValidator;
+import org.hyperledger.besu.plugin.services.txvalidator.PluginTransactionPoolValidatorFactory;
 
 /** Represents a factory for creating transaction validators. */
-public class LineaTransactionValidatorFactory implements PluginTransactionValidatorFactory {
+public class LineaTransactionValidatorFactory implements PluginTransactionPoolValidatorFactory {
 
   private final BesuConfiguration besuConfiguration;
   private final BlockchainService blockchainService;
@@ -54,9 +54,9 @@ public class LineaTransactionValidatorFactory implements PluginTransactionValida
   }
 
   @Override
-  public PluginTransactionValidator create() {
+  public PluginTransactionPoolValidator createTransactionValidator() {
     final var validators =
-        new PluginTransactionValidator[] {
+        new PluginTransactionPoolValidator[] {
           new AllowedAddressValidator(denied),
           new GasLimitValidator(txValidatorConf),
           new CalldataValidator(txValidatorConf),

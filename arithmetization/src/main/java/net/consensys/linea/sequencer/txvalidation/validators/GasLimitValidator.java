@@ -20,11 +20,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.config.LineaTransactionValidatorConfiguration;
 import org.hyperledger.besu.datatypes.Transaction;
-import org.hyperledger.besu.plugin.services.txvalidator.PluginTransactionValidator;
+import org.hyperledger.besu.plugin.services.txvalidator.PluginTransactionPoolValidator;
 
 @Slf4j
 @RequiredArgsConstructor
-public class GasLimitValidator implements PluginTransactionValidator {
+public class GasLimitValidator implements PluginTransactionPoolValidator {
   final LineaTransactionValidatorConfiguration txValidatorConf;
 
   @Override

@@ -47,8 +47,9 @@ public class ProfitabilityValidator implements PluginTransactionPoolValidator {
   public Optional<String> validateTransaction(
       final Transaction transaction, final boolean isLocal, final boolean hasPriority) {
 
-    if (isLocal && profitabilityConf.txPoolCheckApiEnabled()
-        || !isLocal && profitabilityConf.txPoolCheckP2pEnabled()) {
+    if (!hasPriority
+        && (isLocal && profitabilityConf.txPoolCheckApiEnabled()
+            || !isLocal && profitabilityConf.txPoolCheckP2pEnabled())) {
 
       return profitabilityCalculator.isProfitable(
               "Txpool",

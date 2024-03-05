@@ -115,7 +115,7 @@ public class ProfitabilityValidatorTest {
   }
 
   @Test
-  public void acceptRemoteWhenBelowMinProfitability() {
+  public void acceptPriorityRemoteWhenBelowMinProfitability() {
     final org.hyperledger.besu.ethereum.core.Transaction transaction =
         org.hyperledger.besu.ethereum.core.Transaction.builder()
             .sender(SENDER)
@@ -126,7 +126,7 @@ public class ProfitabilityValidatorTest {
             .value(Wei.ONE)
             .signature(FAKE_SIGNATURE)
             .build();
-    assertThat(profitabilityValidatorAlways.validateTransaction(transaction, false, false))
+    assertThat(profitabilityValidatorAlways.validateTransaction(transaction, false, true))
         .isEmpty();
   }
 

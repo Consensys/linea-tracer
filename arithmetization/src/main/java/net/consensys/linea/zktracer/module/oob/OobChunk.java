@@ -1063,6 +1063,7 @@ public class OobChunk extends ModuleOperation {
     boolean callDataContainsExponentBytes = bigIntegerToBoolean(outgoingResLo[2]);
 
     // row i + 3
+    boolean comp = false;
     if (callDataContainsExponentBytes) {
       callToLT(
           3,
@@ -1072,10 +1073,10 @@ public class OobChunk extends ModuleOperation {
               .subtract(BigInteger.valueOf(96).add(prcModexpLeadParameters.getBbs())),
           BigInteger.ZERO,
           BigInteger.valueOf(32));
+      comp = bigIntegerToBoolean(outgoingResLo[3]);
     } else {
       noCall(3);
     }
-    boolean comp = bigIntegerToBoolean(outgoingResLo[3]); // TODO: double check when debugging
 
     // Set loadLead
     boolean loadLead = callDataContainsExponentBytes && !ebsIsZero;

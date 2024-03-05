@@ -10,16 +10,17 @@ It is applied, with different configuration to:
 
 #### CLI Options
 
-| Option Name                  | Default Value | Command Line Argument                                     |
-|------------------------------|---------------|-----------------------------------------------------------|
-| L1_VERIFICATION_GAS_COST     | 1_200_000     | `--plugin-linea-verification-gas-cost`                    |
-| L1_VERIFICATION_CAPACITY     | 90_000        | `--plugin-linea-verification-capacity`                    |
-| L1_L2_GAS_PRICE_RATIO        | 15            | `--plugin-linea-gas-price-ratio`                          |
-| MIN_MARGIN                   | 1.0           | `--plugin-linea-min-margin`                               |
-| ESTIMATE_GAS_MIN_MARGIN      | 1.0           | `--plugin-linea-estimate-gas-min-margin`                  |
-| TX_POOL_MIN_MARGIN           | 0.5           | `--plugin-linea-tx-pool-min-margin`                       |
-| UNPROFITABLE_CACHE_SIZE      | 100_000       | `--plugin-linea-unprofitable-cache-size`                  |
-| UNPROFITABLE_RETRY_LIMIT     | 10            | `--plugin-linea-unprofitable-retry-limit`                 |
+| Option Name              | Default Value | Command Line Argument                     |
+|--------------------------|---------------|-------------------------------------------|
+| L1_VERIFICATION_GAS_COST | 1_200_000     | `--plugin-linea-verification-gas-cost`    |
+| L1_VERIFICATION_CAPACITY | 90_000        | `--plugin-linea-verification-capacity`    |
+| L1_L2_GAS_PRICE_RATIO    | 15            | `--plugin-linea-gas-price-ratio`          |
+| L2_GAS_PRICE_ADJUSTMENT  | 0 wei         | `--plugin-linea-gas-price-adjustment`     |
+| MIN_MARGIN               | 1.0           | `--plugin-linea-min-margin`               |
+| ESTIMATE_GAS_MIN_MARGIN  | 1.0           | `--plugin-linea-estimate-gas-min-margin`  |
+| TX_POOL_MIN_MARGIN       | 0.5           | `--plugin-linea-tx-pool-min-margin`       |
+| UNPROFITABLE_CACHE_SIZE  | 100_000       | `--plugin-linea-unprofitable-cache-size`  |
+| UNPROFITABLE_RETRY_LIMIT | 10            | `--plugin-linea-unprofitable-retry-limit` |
 | TX_POOL_ENABLE_CHECK_API     | true          | `--plugin-linea-tx-pool-profitability-check-api-enabled`  |
 | TX_POOL_ENABLE_CHECK_P2P     | false         | `--plugin-linea-tx-pool-profitability-check-p2p-enabled`  |
 
@@ -27,10 +28,10 @@ It is applied, with different configuration to:
 
 #### CLI Options
 
-| Option Name                      | Default Value | Command Line Argument                       |
-|----------------------------------|---------------|---------------------------------------------|
-| L2L1_BRIDGE_CONTRACT_ADDRESS     |               | `--plugin-linea-l1l2-bridge-contract`       |
-| L2L1_BRIDGE_LOG_TOPIC            |               | `--plugin-linea-l1l2-bridge-topic`          |
+| Option Name                  | Default Value | Command Line Argument                       |
+|------------------------------|---------------|---------------------------------------------|
+| L1L2_BRIDGE_CONTRACT_ADDRESS |               | `--plugin-linea-l1l2-bridge-contract`       |
+| L1L2_BRIDGE_LOG_TOPIC        |               | `--plugin-linea-l1l2-bridge-topic`          |
 
 ## Sequencer
 ### Transaction Selection - LineaTransactionSelectorPlugin

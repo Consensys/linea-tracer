@@ -45,7 +45,6 @@ public class ProfitableTransactionSelectorTest {
   private static final int VERIFICATION_CAPACITY = 90_000;
   private static final int GAS_PRICE_RATIO = 15;
   private static final double MIN_MARGIN = 1.0;
-  private static final int ADJUST_TX_SIZE = 0;
   private static final int UNPROFITABLE_CACHE_SIZE = 2;
   private static final int UNPROFITABLE_RETRY_LIMIT = 1;
   private final LineaTransactionSelectorConfiguration txSelectorConf =

@@ -19,6 +19,8 @@ import java.math.BigDecimal;
 
 import com.google.common.base.MoreObjects;
 import jakarta.validation.constraints.Positive;
+import net.consensys.linea.config.converters.WeiConverter;
+import org.hyperledger.besu.datatypes.Wei;
 import picocli.CommandLine;
 
 /** The Linea profitability calculator CLI options. */
@@ -31,6 +33,9 @@ public class LineaProfitabilityCliOptions {
 
   public static final String GAS_PRICE_RATIO = "--plugin-linea-gas-price-ratio";
   public static final int DEFAULT_GAS_PRICE_RATIO = 15;
+
+  public static final String GAS_PRICE_ADJUSTMENT = "--plugin-linea-gas-price-adjustment";
+  public static final Wei DEFAULT_GAS_PRICE_ADJUSTMENT = Wei.ZERO;
 
   public static final String MIN_MARGIN = "--plugin-linea-min-margin";
   public static final BigDecimal DEFAULT_MIN_MARGIN = BigDecimal.ONE;
@@ -72,6 +77,15 @@ public class LineaProfitabilityCliOptions {
       paramLabel = "<INTEGER>",
       description = "L1/L2 gas price ratio (default: ${DEFAULT-VALUE})")
   private int gasPriceRatio = DEFAULT_GAS_PRICE_RATIO;
+
+  @CommandLine.Option(
+      names = {GAS_PRICE_ADJUSTMENT},
+      hidden = true,
+      converter = WeiConverter.class,
+      paramLabel = "<WEI>",
+      description =
+          "Amount to add to the calculated profitable gas price (default: ${DEFAULT-VALUE})")
+  private Wei gasPriceAdjustment = DEFAULT_GAS_PRICE_ADJUSTMENT;
 
   @Positive
   @CommandLine.Option(
@@ -140,6 +154,7 @@ public class LineaProfitabilityCliOptions {
     options.verificationGasCost = config.verificationGasCost();
     options.verificationCapacity = config.verificationCapacity();
     options.gasPriceRatio = config.gasPriceRatio();
+    options.gasPriceAdjustment = config.gasPriceAdjustment();
     options.minMargin = BigDecimal.valueOf(config.minMargin());
     options.estimageGasMinMargin = BigDecimal.valueOf(config.estimateGasMinMargin());
     options.txPoolMinMargin = BigDecimal.valueOf(config.txPoolMinMargin());
@@ -158,6 +173,7 @@ public class LineaProfitabilityCliOptions {
         .verificationGasCost(verificationGasCost)
         .verificationCapacity(verificationCapacity)
         .gasPriceRatio(gasPriceRatio)
+        .gasPriceAdjustment(gasPriceAdjustment)
         .minMargin(minMargin.doubleValue())
         .estimateGasMinMargin(estimageGasMinMargin.doubleValue())
         .txPoolMinMargin(txPoolMinMargin.doubleValue())
@@ -172,6 +188,7 @@ public class LineaProfitabilityCliOptions {
         .add(VERIFICATION_GAS_COST, verificationGasCost)
         .add(VERIFICATION_CAPACITY, verificationCapacity)
         .add(GAS_PRICE_RATIO, gasPriceRatio)
+        .add(GAS_PRICE_ADJUSTMENT, gasPriceAdjustment)
         .add(MIN_MARGIN, minMargin)
         .add(ESTIMATE_GAS_MIN_MARGIN, estimageGasMinMargin)
         .add(TX_POOL_MIN_MARGIN, txPoolMinMargin)

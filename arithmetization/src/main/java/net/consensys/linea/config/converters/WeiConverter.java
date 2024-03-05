@@ -12,21 +12,17 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+package net.consensys.linea.config.converters;
 
-package net.consensys.linea.config;
+import java.math.BigInteger;
 
-import lombok.Builder;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Wei;
+import picocli.CommandLine;
 
-/** The Linea profitability calculator configuration. */
-@Builder(toBuilder = true)
-public record LineaProfitabilityConfiguration(
-    int verificationGasCost,
-    int verificationCapacity,
-    int gasPriceRatio,
-    Wei gasPriceAdjustment,
-    double minMargin,
-    double estimateGasMinMargin,
-    double txPoolMinMargin,
-    boolean txPoolCheckApiEnabled,
-    boolean txPoolCheckP2pEnabled) {}
+public class WeiConverter implements CommandLine.ITypeConverter<Bytes> {
+  @Override
+  public Bytes convert(final String s) throws Exception {
+    return Wei.of(new BigInteger(s));
+  }
+}

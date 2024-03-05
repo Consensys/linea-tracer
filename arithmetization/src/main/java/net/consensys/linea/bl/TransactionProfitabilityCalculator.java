@@ -50,18 +50,21 @@ public class TransactionProfitabilityCalculator {
             * minGasPrice.getAsBigInteger().doubleValue()
             / (gas * profitabilityConf.verificationCapacity());
 
-    final var profitAtWei = Wei.ofNumber(BigDecimal.valueOf(profitAt).toBigInteger());
+    final var adjustedProfit =
+        Wei.ofNumber(BigDecimal.valueOf(profitAt).toBigInteger())
+            .add(profitabilityConf.gasPriceAdjustment());
 
     log.atDebug()
         .setMessage(
             "Estimated profitable priorityFeePerGas: {}; estimateGasMinMargin={}, verificationCapacity={}, "
-                + "verificationGasCost={}, gasPriceRatio={}, gas={}, minGasPrice={}, "
+                + "verificationGasCost={}, gasPriceRatio={}, gasPriceAdjustment={}, gas={}, minGasPrice={}, "
                 + "l1GasPrice={}, txSize={}, compressedTxSize={}")
-        .addArgument(profitAtWei::toHumanReadableString)
+        .addArgument(adjustedProfit::toHumanReadableString)
         .addArgument(profitabilityConf.estimateGasMinMargin())
         .addArgument(profitabilityConf.verificationCapacity())
         .addArgument(profitabilityConf.verificationGasCost())
         .addArgument(profitabilityConf.gasPriceRatio())
+        .addArgument(profitabilityConf.gasPriceAdjustment()::toHumanReadableString)
         .addArgument(gas)
         .addArgument(minGasPrice::toHumanReadableString)
         .addArgument(
@@ -70,7 +73,7 @@ public class TransactionProfitabilityCalculator {
         .addArgument(compressedTxSize)
         .log();
 
-    return profitAtWei;
+    return adjustedProfit;
   }
 
   public boolean isProfitable(
@@ -125,7 +128,7 @@ public class TransactionProfitabilityCalculator {
       final Wei minGasPrice) {
     leb.setMessage(
             "Context {}. Transaction {} has a margin of {}, minMargin={}, effectiveGasPrice={},"
-                + " profitableGasPrice={}, verificationCapacity={}, verificationGasCost={}, gasPriceRatio={},"
+                + " profitableGasPrice={}, verificationCapacity={}, verificationGasCost={}, gasPriceRatio={},, gasPriceAdjustment={}"
                 + " gasUsed={}, minGasPrice={}")
         .addArgument(context)
         .addArgument(transaction::getHash)
@@ -139,6 +142,7 @@ public class TransactionProfitabilityCalculator {
         .addArgument(profitabilityConf.verificationCapacity())
         .addArgument(profitabilityConf.verificationGasCost())
         .addArgument(profitabilityConf.gasPriceRatio())
+        .addArgument(profitabilityConf.gasPriceAdjustment()::toHumanReadableString)
         .addArgument(gasUsed)
         .addArgument(minGasPrice::toHumanReadableString)
         .log();

@@ -187,6 +187,7 @@ public class Hub implements Module {
   private final RlpTxn rlpTxn;
   private final Module mxp;
   private final Mmio mmio;
+
   @Getter private final Exp exp;
   private final Mmu mmu;
   private final RlpTxrcpt rlpTxrcpt = new RlpTxrcpt();
@@ -194,6 +195,7 @@ public class Hub implements Module {
   private final LogData logData = new LogData(rlpTxrcpt);
   private final RlpAddr rlpAddr = new RlpAddr(this);
   private final Rom rom;
+
   @Getter private final RomLex romLex;
   private final TxnData txnData;
   private final Trm trm = new Trm();
@@ -209,6 +211,17 @@ public class Hub implements Module {
   public Hub(final Address l2l1ContractAddress, final Bytes l2l1Topic) {
     this.l2Block = new L2Block(l2l1ContractAddress, LogTopic.of(l2l1Topic));
     this.transients = new Transients(this);
+    this.factories = new Factories(this);
+
+    this.pch = new PlatformController(this);
+    this.mmu = new Mmu(this.callStack);
+    this.mxp = new Mxp(this);
+    this.exp = new Exp(this, this.wcp);
+    this.romLex = new RomLex(this);
+    this.rom = new Rom(this.romLex);
+    this.rlpTxn = new RlpTxn(this.romLex);
+    this.txnData = new TxnData(this, this.romLex, this.wcp);
+    this.ecData = new EcData(this, this.wcp, this.ext);
     this.euc = new Euc(this.wcp);
     this.factories = new Factories(this);
 
@@ -563,41 +576,6 @@ public class Hub implements Module {
   private void handleStack(MessageFrame frame) {
     this.currentFrame().stack().processInstruction(this, frame, TAU * this.state.stamps().hub());
   }
-
-  //  private void handleRam() {
-  //    // Desired behaviour if an error occured:
-  //    // (i) the stack will trace empty lines
-  //    // (ii) the MMU won't trace
-  //    if (this.currentFrame().pending().lines().isEmpty()) {
-  //      return;
-  //    }
-  //
-  //    StackLine line = this.currentFrame().pending().lines().get(0);
-  //
-  //    if (!line.needsResult()) {
-  //      this.mmu.handleRam(this.opCode(), line.asStackOperations(), this.callStack());
-  //    }
-  //  }
-  //
-  //  private void handleMemory(org.hyperledger.besu.evm.frame.Memory memory) {
-  //    UnsignedByte[] bytes = bytesToUnsignedBytes(memory.getBytes(0,
-  // Integer.MAX_VALUE).toArray());
-  //    this.currentFrame().pending().memory(new Memory(bytes));
-  //  }
-  //
-  //  private void handleCallReturnData(Stack stack) {
-  //    switch (this.opCode()) {
-  //      case RETURN -> {
-  //      }
-  //      case CALL, CALLCODE -> {
-  //
-  //      }
-  //      case DELEGATECALL, STATICCALL -> {
-  //
-  //      }
-  //      default -> {}
-  //    }
-  //  }
 
   void triggerModules(MessageFrame frame) {
     if (this.pch.exceptions().none() && this.pch.aborts().none()) {

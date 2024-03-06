@@ -127,7 +127,7 @@ public class RomLex implements Module {
               boolean depStatus =
                   hub.transients().conflation().deploymentInfo().isDeploying(calledAddress);
 
-              RomChunk chunk =
+              final RomChunk chunk =
                   new RomChunk(
                       ContractMetadata.make(calledAddress, depNumber, depStatus),
                       true,
@@ -176,7 +176,8 @@ public class RomLex implements Module {
             hub.transients().conflation().deploymentInfo().isDeploying(frame.getContractAddress());
         final int depNumber =
             hub.transients().conflation().deploymentInfo().number(frame.getContractAddress());
-        RomChunk chunk =
+
+        final RomChunk chunk =
             new RomChunk(
                 ContractMetadata.make(calledAddress, depNumber, depStatus), true, false, byteCode);
         Optional.ofNullable(frame.getWorldUpdater().get(calledAddress))
@@ -224,6 +225,7 @@ public class RomLex implements Module {
             hub.transients().conflation().deploymentInfo().isDeploying(this.address);
         final ContractMetadata contractMetadata =
             ContractMetadata.make(this.address, depNumber, depStatus);
+
         final RomChunk chunk = new RomChunk(contractMetadata, true, false, this.byteCode);
         this.chunks.add(chunk);
         this.createDefers.trigger(contractMetadata);

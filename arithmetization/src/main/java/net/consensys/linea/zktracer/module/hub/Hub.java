@@ -214,7 +214,6 @@ public class Hub implements Module {
     this.factories = new Factories(this);
 
     this.pch = new PlatformController(this);
-    this.mmu = new Mmu(this.callStack);
     this.mxp = new Mxp(this);
     this.exp = new Exp(this, this.wcp);
     this.romLex = new RomLex(this);
@@ -223,12 +222,6 @@ public class Hub implements Module {
     this.txnData = new TxnData(this, this.romLex, this.wcp);
     this.ecData = new EcData(this, this.wcp, this.ext);
     this.euc = new Euc(this.wcp);
-    this.factories = new Factories(this);
-
-    this.pch = new PlatformController(this);
-    this.romLex = new RomLex(this);
-    this.rlpTxn = new RlpTxn(this.romLex);
-    this.ecData = new EcData(this, this.wcp, this.ext);
     this.mmu =
         new Mmu(
             this.euc,
@@ -238,10 +231,6 @@ public class Hub implements Module {
             this.rlpTxrcpt,
             this.ecData, /*add blake, modexp */
             this.callStack);
-    this.mxp = new Mxp(this);
-    this.exp = new Exp(this, this.wcp);
-    this.rom = new Rom(this.romLex);
-    this.txnData = new TxnData(this, this.romLex, this.wcp);
     this.mmio = new Mmio(this.mmu, this.callStack);
 
     final EcRecoverEffectiveCall ecRec = new EcRecoverEffectiveCall(this);

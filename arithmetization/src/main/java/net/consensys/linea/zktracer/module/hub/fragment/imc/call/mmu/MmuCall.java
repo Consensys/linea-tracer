@@ -48,6 +48,7 @@ import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_RIGHT_PADDE
 import java.util.Arrays;
 
 import com.google.common.base.Preconditions;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -75,6 +76,7 @@ import org.hyperledger.besu.evm.internal.Words;
  */
 @RequiredArgsConstructor
 @Setter
+@Getter
 @Accessors(fluent = true)
 public class MmuCall implements TraceSubFragment {
   protected boolean enabled = true;
@@ -91,62 +93,6 @@ public class MmuCall implements TraceSubFragment {
   protected Bytes limb1 = Bytes.EMPTY;
   protected Bytes limb2 = Bytes.EMPTY;
   protected long phase = 0;
-
-  protected boolean enabled() {
-    return this.enabled;
-  }
-
-  protected int instruction() {
-    return this.instruction;
-  }
-
-  protected int sourceId() {
-    return this.sourceId;
-  }
-
-  protected int targetId() {
-    return this.targetId;
-  }
-
-  protected int auxId() {
-    return this.auxId;
-  }
-
-  protected EWord sourceOffset() {
-    return this.sourceOffset;
-  }
-
-  protected EWord targetOffset() {
-    return this.targetOffset;
-  }
-
-  protected long size() {
-    return this.size;
-  }
-
-  protected long referenceOffset() {
-    return this.referenceOffset;
-  }
-
-  protected long referenceSize() {
-    return this.referenceSize;
-  }
-
-  protected boolean successBit() {
-    return this.successBit;
-  }
-
-  protected Bytes limb1() {
-    return this.limb1;
-  }
-
-  protected Bytes limb2() {
-    return this.limb2;
-  }
-
-  protected long phase() {
-    return this.phase;
-  }
 
   private int exoSum = 0;
 

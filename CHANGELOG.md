@@ -6,6 +6,7 @@ Test pre-release 22 from [temp/issue-248/count-stack-only](https://github.com/Co
 * Update profitability formula with gas price adjustment option https://github.com/Consensys/besu-sequencer-plugins/pull/638
 * Update code to latest plugin API https://github.com/Consensys/besu-sequencer-plugins/pull/640
 * Txpool profitability check https://github.com/Consensys/besu-sequencer-plugins/pull/603
+* Fix price adjustment in profitability formula https://github.com/Consensys/besu-sequencer-plugins/pull/642
 
 ## 0.1.4-test21
 Test pre-release 21 from [temp/issue-248/count-stack-only](https://github.com/Consensys/besu-sequencer-plugins/tree/temp/issue-248/count-stack-only)

@@ -31,6 +31,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioFragmen
 import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileLinesGenerator;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.account.Account;
@@ -40,6 +41,7 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class NoCodeCallSection extends TraceSection
     implements PostTransactionDefer, PostExecDefer, ReEnterContextDefer {
+  private final Bytes rawCalledAddress;
   private final Optional<PrecompileInvocation> precompileInvocation;
   private final CallFrame callerCallFrame;
   private final int calledCallFrameId;
@@ -59,7 +61,9 @@ public class NoCodeCallSection extends TraceSection
       Optional<PrecompileInvocation> targetPrecompile,
       AccountSnapshot preCallCallerAccountSnapshot,
       AccountSnapshot preCallCalledAccountSnapshot,
+      Bytes rawCalledAddress,
       ImcFragment imcFragment) {
+    this.rawCalledAddress = rawCalledAddress;
     this.precompileInvocation = targetPrecompile;
     this.preCallCallerAccountSnapshot = preCallCallerAccountSnapshot;
     this.preCallCalledAccountSnapshot = preCallCalledAccountSnapshot;
@@ -70,6 +74,10 @@ public class NoCodeCallSection extends TraceSection
         ScenarioFragment.forNoCodeCallSection(
             hub, precompileInvocation, this.callerCallFrame.id(), this.calledCallFrameId);
     this.addStack(hub);
+
+    hub.defers().postExec(this);
+    hub.defers().postTx(this);
+    hub.defers().reEntry(this);
   }
 
   @Override
@@ -102,8 +110,10 @@ public class NoCodeCallSection extends TraceSection
   }
 
   @Override
-  public void runPostTx(Hub hub, WorldView state, Transaction tx) {
-    this.scenarioFragment.runPostTx(hub, state, tx);
+  public void runPostTx(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+    final AccountFragment.AccountFragmentFactory accountFragmentFactory =
+        hub.factories().accountFragment();
+    this.scenarioFragment.runPostTx(hub, state, tx, isSuccessful);
 
     this.addFragmentsWithoutStack(
         hub,
@@ -111,17 +121,21 @@ public class NoCodeCallSection extends TraceSection
         this.scenarioFragment,
         this.imcFragment,
         ContextFragment.readContextData(hub.callStack()),
-        new AccountFragment(this.preCallCallerAccountSnapshot, this.postCallCallerAccountSnapshot),
-        new AccountFragment(this.preCallCalledAccountSnapshot, this.postCallCalledAccountSnapshot));
+        accountFragmentFactory.make(
+            this.preCallCallerAccountSnapshot, this.postCallCallerAccountSnapshot),
+        accountFragmentFactory.makeWithTrm(
+            this.preCallCalledAccountSnapshot,
+            this.postCallCalledAccountSnapshot,
+            this.rawCalledAddress));
 
     if (precompileInvocation.isPresent()) {
       if (this.callSuccessful && callerCallFrame.hasReverted()) {
         this.addFragmentsWithoutStack(
             hub,
             callerCallFrame,
-            new AccountFragment(
+            accountFragmentFactory.make(
                 this.postCallCallerAccountSnapshot, this.preCallCallerAccountSnapshot),
-            new AccountFragment(
+            accountFragmentFactory.make(
                 this.postCallCalledAccountSnapshot, this.preCallCalledAccountSnapshot));
       }
       this.addFragmentsWithoutStack(
@@ -138,9 +152,9 @@ public class NoCodeCallSection extends TraceSection
         this.addFragmentsWithoutStack(
             hub,
             callerCallFrame,
-            new AccountFragment(
+            accountFragmentFactory.make(
                 this.postCallCallerAccountSnapshot, this.preCallCallerAccountSnapshot),
-            new AccountFragment(
+            accountFragmentFactory.make(
                 this.postCallCalledAccountSnapshot, this.preCallCalledAccountSnapshot));
       }
       this.addFragmentsWithoutStack(

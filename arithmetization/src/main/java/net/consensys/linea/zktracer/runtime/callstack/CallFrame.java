@@ -24,6 +24,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
+import net.consensys.linea.zktracer.module.romLex.ContractMetadata;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.OpCodes;
@@ -55,7 +56,7 @@ public class CallFrame {
 
   @Getter @Setter private TraceSection needsUnlatchingAtReEntry = null;
 
-  /** the position of this {@link CallFrame} parent in the {@link CallStack}. */
+  /** the ID of this {@link CallFrame} parent in the {@link CallStack}. */
   @Getter private int parentFrame;
   /** all the {@link CallFrame} that have been called by this frame. */
   @Getter private final List<Integer> childFrames = new ArrayList<>();
@@ -138,6 +139,7 @@ public class CallFrame {
     this.type = CallFrameType.EMPTY;
     this.contextNumber = 0;
     this.address = Address.ZERO;
+    this.parentFrame = -1;
   }
 
   /**
@@ -227,6 +229,15 @@ public class CallFrame {
     return Optional.of(this.childFrames.get(this.childFrames.size() - 1));
   }
 
+  /**
+   * Returns a {@link ContractMetadata} instance representing the executed contract.
+   *
+   * @return the executed contract metadata
+   */
+  public ContractMetadata metadata() {
+    return ContractMetadata.make(this.codeAddress, this.codeDeploymentNumber, this.underDeployment);
+  }
+
   private void revertChildren(CallStack callStack, int stamp) {
     if (this.getsRevertedAt == 0) {
       this.getsRevertedAt = stamp;
@@ -243,6 +254,14 @@ public class CallFrame {
     } else if (stamp != this.selfRevertsAt) {
       throw new IllegalStateException("a context can not self-reverse twice");
     }
+  }
+
+  public boolean selfReverts() {
+    return this.selfRevertsAt > 0;
+  }
+
+  public boolean getsReverted() {
+    return this.getsRevertedAt > 0;
   }
 
   public boolean hasReverted() {

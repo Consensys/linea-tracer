@@ -48,7 +48,6 @@ import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_RIGHT_PADDE
 import java.util.Arrays;
 
 import com.google.common.base.Preconditions;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -75,7 +74,6 @@ import org.hyperledger.besu.evm.internal.Words;
  * class implement this defer mechanism.
  */
 @RequiredArgsConstructor
-@Getter
 @Setter
 @Accessors(fluent = true)
 public class MmuCall implements TraceSubFragment {
@@ -93,6 +91,63 @@ public class MmuCall implements TraceSubFragment {
   protected Bytes limb1 = Bytes.EMPTY;
   protected Bytes limb2 = Bytes.EMPTY;
   protected long phase = 0;
+
+  protected boolean enabled() {
+    return this.enabled;
+  }
+
+  protected int instruction() {
+    return this.instruction;
+  }
+
+  protected int sourceId() {
+    return this.sourceId;
+  }
+
+  protected int targetId() {
+    return this.targetId;
+  }
+
+  protected int auxId() {
+    return this.auxId;
+  }
+
+  protected EWord sourceOffset() {
+    return this.sourceOffset;
+  }
+
+  protected EWord targetOffset() {
+    return this.targetOffset;
+  }
+
+  protected long size() {
+    return this.size;
+  }
+
+  protected long referenceOffset() {
+    return this.referenceOffset;
+  }
+
+  protected long referenceSize() {
+    return this.referenceSize;
+  }
+
+  protected boolean successBit() {
+    return this.successBit;
+  }
+
+  protected Bytes limb1() {
+    return this.limb1;
+  }
+
+  protected Bytes limb2() {
+    return this.limb2;
+  }
+
+  protected long phase() {
+    return this.phase;
+  }
+
   private int exoSum = 0;
 
   private MmuCall setFlag(int pos) {
@@ -174,7 +229,7 @@ public class MmuCall implements TraceSubFragment {
   public static MmuCall callDataCopy(final Hub hub) {
     final MemorySpan callDataSegment = hub.currentFrame().callDataSource();
     return new MmuCall(MMU_INST_ANY_TO_RAM_WITH_PADDING)
-        .sourceId(hub.transients().tx().number())
+        .sourceId(hub.transients().tx().absNumber())
         .targetId(hub.currentFrame().contextNumber())
         .sourceOffset(EWord.of(hub.messageFrame().getStackItem(1)))
         .targetOffset(EWord.of(hub.messageFrame().getStackItem(0)))
@@ -263,9 +318,9 @@ public class MmuCall implements TraceSubFragment {
 
   public static MmuCall txInit(final Hub hub) {
     return new MmuCall(MMU_INST_EXO_TO_RAM_TRANSPLANTS)
-        .sourceId(hub.transients().tx().number())
+        .sourceId(hub.transients().tx().absNumber())
         .targetId(hub.stamp())
-        .size(hub.transients().tx().transaction().getData().map(Bytes::size).orElse(0))
+        .size(hub.transients().tx().besuTx().getData().map(Bytes::size).orElse(0))
         .phase(PHASE_TRANSACTION_CALL_DATA)
         .setRlpTxn();
   }
@@ -640,21 +695,21 @@ public class MmuCall implements TraceSubFragment {
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .pMiscellaneousMmuFlag(this.enabled())
-        .pMiscellaneousMmuInst(this.instruction())
-        .pMiscellaneousMmuTgtId(this.sourceId())
-        .pMiscellaneousMmuSrcId(this.targetId())
-        .pMiscellaneousMmuAuxId(this.auxId())
-        .pMiscellaneousMmuSrcOffsetHi(this.sourceOffset().hi())
-        .pMiscellaneousMmuSrcOffsetLo(this.sourceOffset().lo())
-        .pMiscellaneousMmuTgtOffsetLo(this.targetOffset().lo())
-        .pMiscellaneousMmuSize(this.size())
-        .pMiscellaneousMmuRefOffset(this.referenceOffset())
-        .pMiscellaneousMmuRefSize(this.referenceSize())
-        .pMiscellaneousMmuSuccessBit(this.successBit())
-        .pMiscellaneousMmuLimb1(this.limb1())
-        .pMiscellaneousMmuLimb2(this.limb2())
-        .pMiscellaneousMmuExoSum(this.exoSum)
-        .pMiscellaneousMmuPhase(this.phase());
+        .pMiscMmuFlag(this.enabled())
+        .pMiscMmuInst(this.instruction())
+        .pMiscMmuTgtId(this.sourceId())
+        .pMiscMmuSrcId(this.targetId())
+        .pMiscMmuAuxId(this.auxId())
+        .pMiscMmuSrcOffsetHi(this.sourceOffset().hi())
+        .pMiscMmuSrcOffsetLo(this.sourceOffset().lo())
+        .pMiscMmuTgtOffsetLo(this.targetOffset().lo())
+        .pMiscMmuSize(this.size())
+        .pMiscMmuRefOffset(this.referenceOffset())
+        .pMiscMmuRefSize(this.referenceSize())
+        .pMiscMmuSuccessBit(this.successBit())
+        .pMiscMmuLimb1(this.limb1())
+        .pMiscMmuLimb2(this.limb2())
+        .pMiscMmuExoSum(this.exoSum)
+        .pMiscMmuPhase(this.phase());
   }
 }

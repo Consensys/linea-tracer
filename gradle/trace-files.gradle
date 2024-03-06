@@ -59,7 +59,7 @@ tasks.register('instructionDecoder', TraceFilesTask) {
 
     moduleDir = "tables/instructionDecoder"
     module = "instructionDecoder"
-    files = ["reference_tables/tables/instruction_decoder.lisp"]
+    files = ["reference_tables/instruction_decoder.lisp"]
 }
 tasks.register('shfRT', TraceFilesTask) {
     group "Trace files generation"
@@ -112,7 +112,7 @@ tasks.register('binRT', TraceFilesTask) {
 //
 // Put here modules following the conventional MODULE/columns.lisp, MODULE/constants.lisp naming scheme.
 //
-['mmu', 'mmio', 'blake2f_modexp_data', 'oob'].each {moduleName ->
+['mmu', 'mmio', 'blake2f_modexp_data', 'oob', 'exp'].each {moduleName ->
     tasks.register(moduleName, TraceFilesTask) {
         group "Trace files generation"
         dependsOn corsetExists

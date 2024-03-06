@@ -37,7 +37,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.Dep
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.ExceptionalCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.Jump;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.SStore;
-import net.consensys.linea.zktracer.module.mmu.values.HubToMmuValues;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.gas.GasConstants;
 import net.consensys.linea.zktracer.types.EWord;
@@ -46,7 +45,6 @@ import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
-import org.hyperledger.besu.evm.worldstate.WorldView;
 
 /**
  * IMCFragments embed data required for Inter-Module Communication, i.e. data that are required to
@@ -56,13 +54,14 @@ public class ImcFragment implements TraceFragment {
   /** the list of modules to trigger withing this fragment. */
   private final List<TraceSubFragment> moduleCalls = new ArrayList<>();
 
+  private final Hub hub;
+
   private boolean expIsSet = false;
   private boolean modExpIsSet = false;
   private boolean oobIsSet = false;
   private boolean mxpIsSet = false;
   private boolean mmuIsSet = false;
   private boolean stpIsSet = false;
-  private final Hub hub;
 
   private ImcFragment(final Hub hub) {
     this.hub = hub;
@@ -84,11 +83,9 @@ public class ImcFragment implements TraceFragment {
    * @return the ImcFragment for the TxInit phase
    */
   public static ImcFragment forTxInit(final Hub hub) {
-    final ImcFragment r = ImcFragment.empty(hub);
-    if (!hub.transients().tx().isDeployment() && hub.transients().tx().callData().isPresent()) {
-      r.callMmu(MmuCall.txInit(hub));
-    }
-    return r;
+    // isdeployment == false
+    // non empty calldata
+    return ImcFragment.empty(hub).callMmu(MmuCall.txInit(hub));
   }
 
   /**
@@ -105,10 +102,6 @@ public class ImcFragment implements TraceFragment {
 
     if (hub.pch().signals().mxp()) {
       r.callMxp(MxpCall.build(hub));
-    }
-
-    if (hub.pch().signals().exp()) {
-      r.callExp(new ExpLogCall(EWord.of(hub.messageFrame().getStackItem(1))));
     }
 
     if (hub.pch().signals().oob()) {
@@ -170,6 +163,10 @@ public class ImcFragment implements TraceFragment {
 
     if (hub.pch().signals().exp()) {
       r.callExp(new ExpLogCall(EWord.of(hub.messageFrame().getStackItem(1))));
+    }
+
+    if (hub.pch().signals().exp() && !hub.pch().exceptions().stackException()) {
+      hub.exp().tracePreOpcode(frame);
     }
 
     if (hub.pch().signals().mmu()) {
@@ -251,7 +248,6 @@ public class ImcFragment implements TraceFragment {
       mmuIsSet = true;
     }
     this.moduleCalls.add(f);
-    this.hub.mmu().call(HubToMmuValues.fromMmuCall(f), hub.callStack());
     return this;
   }
 
@@ -261,6 +257,7 @@ public class ImcFragment implements TraceFragment {
     } else {
       expIsSet = true;
     }
+    this.hub.exp().callExpLogCall(f);
     this.moduleCalls.add(f);
     return this;
   }
@@ -271,6 +268,7 @@ public class ImcFragment implements TraceFragment {
     } else {
       modExpIsSet = true;
     }
+    this.hub.exp().callModExpLogCall(f);
     this.moduleCalls.add(f);
     return this;
   }
@@ -304,14 +302,5 @@ public class ImcFragment implements TraceFragment {
     }
 
     return trace;
-  }
-
-  @Override
-  public void postConflationRetcon(Hub hub, WorldView state) {
-    for (TraceSubFragment f : this.moduleCalls) {
-      if (f instanceof MmuCall mmuCall) {
-        mmuCall.postConflationRetcon(hub);
-      }
-    }
   }
 }

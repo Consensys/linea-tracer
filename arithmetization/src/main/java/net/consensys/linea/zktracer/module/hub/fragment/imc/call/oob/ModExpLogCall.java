@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob;
 
+import net.consensys.linea.zktracer.module.exp.ModExpLogChunk;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
 import net.consensys.linea.zktracer.types.EWord;
@@ -22,23 +23,18 @@ import org.apache.tuweni.bytes.Bytes;
 
 public record ModExpLogCall(EWord rawLeadingWord, int cdsCutoff, int ebsCutoff)
     implements TraceSubFragment {
-  public static int exponentLeadingWordLog(final Bytes exponent, int cdsCutoff, int ebsCutoff) {
-    final int minCutoff = Math.min(cdsCutoff, ebsCutoff);
-    final int leadBitLength =
-        exponent.shiftRight(32 - minCutoff).shiftLeft(ebsCutoff - minCutoff).bitLength();
-
-    return Math.max(leadBitLength - 1, 0);
-  }
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .pMiscellaneousExpFlag(true)
-        .pMiscellaneousExpData1(rawLeadingWord.hi())
-        .pMiscellaneousExpData2(rawLeadingWord.lo())
-        .pMiscellaneousExpData3(Bytes.ofUnsignedShort(cdsCutoff))
-        .pMiscellaneousExpData4(Bytes.ofUnsignedShort(ebsCutoff))
-        .pMiscellaneousExpData5(
-            Bytes.ofUnsignedShort(exponentLeadingWordLog(rawLeadingWord, cdsCutoff, ebsCutoff)));
+        .pMiscExpFlag(true)
+        .pMiscExpData1(rawLeadingWord.hi())
+        .pMiscExpData2(rawLeadingWord.lo())
+        .pMiscExpData3(Bytes.ofUnsignedShort(cdsCutoff))
+        .pMiscExpData4(Bytes.ofUnsignedShort(ebsCutoff))
+        .pMiscExpData5(
+            Bytes.ofUnsignedShort(
+                ModExpLogChunk.LeadLogTrimLead.fromArgs(rawLeadingWord, cdsCutoff, ebsCutoff)
+                    .leadLog()));
   }
 }

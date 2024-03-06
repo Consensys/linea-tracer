@@ -21,20 +21,21 @@ class RomChunkComparator implements Comparator<RomChunk> {
   // Initialize the ChunkList
   public int compare(RomChunk chunk1, RomChunk chunk2) {
     // First sort by Address
-    int addressComparison = chunk1.address().compareTo(chunk2.address());
+    int addressComparison = chunk1.metadata().address().compareTo(chunk2.metadata().address());
     if (addressComparison != 0) {
       return addressComparison;
     } else {
       // Second, sort by Deployment Number
-      int deploymentNumberComparison = chunk1.deploymentNumber() - chunk2.deploymentNumber();
+      int deploymentNumberComparison =
+          chunk1.metadata().deploymentNumber() - chunk2.metadata().deploymentNumber();
       if (deploymentNumberComparison != 0) {
         return deploymentNumberComparison;
       } else {
         // Third sort by Deployment Status (true greater)
-        if (chunk1.deploymentStatus() == chunk2.deploymentStatus()) {
+        if (chunk1.metadata().underDeployment() == chunk2.metadata().underDeployment()) {
           return 0;
         } else {
-          return chunk1.deploymentStatus() ? -1 : 1;
+          return chunk1.metadata().underDeployment() ? -1 : 1;
         }
       }
     }

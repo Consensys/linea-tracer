@@ -38,35 +38,14 @@ import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.bin.Bin;
 import net.consensys.linea.zktracer.module.ec_data.EcData;
 import net.consensys.linea.zktracer.module.euc.Euc;
+import net.consensys.linea.zktracer.module.exp.Exp;
 import net.consensys.linea.zktracer.module.ext.Ext;
-import net.consensys.linea.zktracer.module.hub.defer.DeferRegistry;
-import net.consensys.linea.zktracer.module.hub.defer.SkippedPostTransactionDefer;
-import net.consensys.linea.zktracer.module.hub.fragment.AccountFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.StackFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.StorageFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.TransactionFragment;
+import net.consensys.linea.zktracer.module.hub.defer.*;
+import net.consensys.linea.zktracer.module.hub.fragment.*;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
-import net.consensys.linea.zktracer.module.hub.section.AccountSection;
-import net.consensys.linea.zktracer.module.hub.section.ContextLogSection;
-import net.consensys.linea.zktracer.module.hub.section.CopySection;
-import net.consensys.linea.zktracer.module.hub.section.CreateSection;
-import net.consensys.linea.zktracer.module.hub.section.EndTransaction;
-import net.consensys.linea.zktracer.module.hub.section.FailedCallSection;
-import net.consensys.linea.zktracer.module.hub.section.JumpSection;
-import net.consensys.linea.zktracer.module.hub.section.KeccakSection;
-import net.consensys.linea.zktracer.module.hub.section.NoCodeCallSection;
-import net.consensys.linea.zktracer.module.hub.section.SmartContractCallSection;
-import net.consensys.linea.zktracer.module.hub.section.StackOnlySection;
-import net.consensys.linea.zktracer.module.hub.section.StackRam;
-import net.consensys.linea.zktracer.module.hub.section.StorageSection;
-import net.consensys.linea.zktracer.module.hub.section.TraceSection;
-import net.consensys.linea.zktracer.module.hub.section.TransactionSection;
-import net.consensys.linea.zktracer.module.hub.section.TxInitSection;
-import net.consensys.linea.zktracer.module.hub.section.WarmupSection;
+import net.consensys.linea.zktracer.module.hub.section.*;
 import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
 import net.consensys.linea.zktracer.module.hub.transients.Transients;
 import net.consensys.linea.zktracer.module.limits.Keccak;
@@ -101,8 +80,7 @@ import net.consensys.linea.zktracer.module.tables.shf.ShfRt;
 import net.consensys.linea.zktracer.module.trm.Trm;
 import net.consensys.linea.zktracer.module.txn_data.TxnData;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.opcode.OpCodeData;
+import net.consensys.linea.zktracer.opcode.*;
 import net.consensys.linea.zktracer.opcode.gas.projector.GasProjector;
 import net.consensys.linea.zktracer.runtime.LogInvocation;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
@@ -126,6 +104,7 @@ import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 import org.hyperledger.besu.evm.log.Log;
+import org.hyperledger.besu.evm.log.LogTopic;
 import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
@@ -139,18 +118,24 @@ public class Hub implements Module {
 
   /** accumulate the trace information for the Hub */
   @Getter private final State state = new State();
+  /** contain the factories for trace segments that need complex initialization */
+  @Getter private final Factories factories;
+
+  /** provides phase-related volatile information */
+  @Getter Transients transients;
 
   /**
    * Long-lived states, not used in tracing per se but keeping track of data of the associated
    * lifetime
    */
-  @Getter Transients transients;
-
   @Getter CallStack callStack = new CallStack();
+
+  @Getter TransactionStack txStack = new TransactionStack();
 
   /** Stores all the actions that must be deferred to a later time */
   @Getter private final DeferRegistry defers = new DeferRegistry();
 
+  /** stores all data related to failure states & module activation */
   @Getter private final PlatformController pch;
 
   public int stamp() {
@@ -198,11 +183,12 @@ public class Hub implements Module {
   private final Mod mod = new Mod();
   private final Module mul = new Mul(this);
   private final Module shf = new Shf();
-  private final Wcp wcp = new Wcp(this);
+  @Getter private final Wcp wcp = new Wcp(this);
   private final RlpTxn rlpTxn;
   private final Module mxp;
-  @Getter private final Mmu mmu;
   private final Mmio mmio;
+  @Getter private final Exp exp;
+  private final Mmu mmu;
   private final RlpTxrcpt rlpTxrcpt = new RlpTxrcpt();
   private final LogInfo logInfo = new LogInfo(rlpTxrcpt);
   private final LogData logData = new LogData(rlpTxrcpt);
@@ -213,26 +199,22 @@ public class Hub implements Module {
   private final Trm trm = new Trm();
   private final ModexpEffectiveCall modexp;
   private final Stp stp = new Stp(this, wcp, mod);
+  private final L2Block l2Block;
 
   private final List<Module> modules;
   /* Those modules are not traced, we just compute the number of calls to those precompile to meet the prover limits */
   private final List<Module> precompileLimitModules;
   private final List<Module> refTableModules;
 
-  @Override
-  public String moduleKey() {
-    return "HUB";
-  }
-
-  public Hub() {
+  public Hub(final Address l2l1ContractAddress, final Bytes l2l1Topic) {
+    this.l2Block = new L2Block(l2l1ContractAddress, LogTopic.of(l2l1Topic));
     this.transients = new Transients(this);
     this.euc = new Euc(this.wcp);
+    this.factories = new Factories(this);
+
     this.pch = new PlatformController(this);
     this.romLex = new RomLex(this);
-    this.mxp = new Mxp(this);
-    this.rom = new Rom(this.romLex);
     this.rlpTxn = new RlpTxn(this.romLex);
-    this.txnData = new TxnData(this, this.romLex, this.wcp);
     this.ecData = new EcData(this, this.wcp, this.ext);
     this.mmu =
         new Mmu(
@@ -243,12 +225,17 @@ public class Hub implements Module {
             this.rlpTxrcpt,
             this.ecData, /*add blake, modexp */
             this.callStack);
+    this.mxp = new Mxp(this);
+    this.exp = new Exp(this, this.wcp);
+    this.rom = new Rom(this.romLex);
+    this.txnData = new TxnData(this, this.romLex, this.wcp);
     this.mmio = new Mmio(this.mmu, this.callStack);
 
     final EcRecoverEffectiveCall ecRec = new EcRecoverEffectiveCall(this);
     this.modexp = new ModexpEffectiveCall(this);
     final EcPairingCallEffectiveCall ecPairingCall = new EcPairingCallEffectiveCall(this);
-    final L2Block l2Block = new L2Block();
+    final L2Block l2Block = new L2Block(l2l1ContractAddress, LogTopic.of(l2l1Topic));
+
     this.precompileLimitModules =
         List.of(
             new Sha256Blocks(this),
@@ -283,6 +270,7 @@ public class Hub implements Module {
                     this.mod,
                     this.mul,
                     this.mxp,
+                    this.exp,
                     this.rlpAddr,
                     this.rlpTxn,
                     this.rlpTxrcpt,
@@ -319,6 +307,7 @@ public class Hub implements Module {
                 this.modexp.data(),
                 this.mul,
                 this.mxp,
+                this.exp,
                 this.rlpAddr,
                 this.rlpTxn,
                 this.rlpTxrcpt,
@@ -353,6 +342,7 @@ public class Hub implements Module {
                 this.mod,
                 this.mul,
                 this.mxp,
+                this.exp,
                 this.rlpAddr,
                 this.rlpTxn,
                 this.rlpTxrcpt,
@@ -360,7 +350,8 @@ public class Hub implements Module {
                 this.shf,
                 this.trm,
                 this.txnData,
-                this.wcp),
+                this.wcp,
+                this.l2Block),
             this.precompileLimitModules.stream())
         .toList();
   }
@@ -372,13 +363,13 @@ public class Hub implements Module {
    */
   void processStateSkip(WorldView world) {
     this.state.stamps().stampHub();
-    boolean isDeployment = this.transients.tx().transaction().getTo().isEmpty();
+    boolean isDeployment = this.transients.tx().besuTx().getTo().isEmpty();
 
     //
     // 3 sections -- account changes
     //
     // From account information
-    Address fromAddress = this.transients.tx().transaction().getSender();
+    Address fromAddress = this.transients.tx().besuTx().getSender();
     AccountSnapshot oldFromAccount =
         AccountSnapshot.fromAccount(
             world.get(fromAddress),
@@ -387,7 +378,7 @@ public class Hub implements Module {
             false);
 
     // To account information
-    Address toAddress = effectiveToAddress(this.transients.tx().transaction());
+    Address toAddress = effectiveToAddress(this.transients.tx().besuTx());
     if (isDeployment) {
       this.transients.conflation().deploymentInfo().deploy(toAddress);
     }
@@ -432,14 +423,15 @@ public class Hub implements Module {
    * @param world a view onto the state
    */
   void processStateWarm(WorldView world) {
-    this.state.stamps().stampHub();
     this.transients
         .tx()
-        .transaction()
+        .besuTx()
         .getAccessList()
         .ifPresent(
             preWarmed -> {
               if (!preWarmed.isEmpty()) {
+                this.state.stamps().stampHub();
+
                 Set<Address> seenAddresses = new HashSet<>();
                 Map<Address, Set<Bytes32>> seenKeys = new HashMap<>();
                 List<TraceFragment> fragments = new ArrayList<>();
@@ -449,7 +441,8 @@ public class Hub implements Module {
                   AccountSnapshot snapshot =
                       AccountSnapshot.fromAccount(
                           world.get(address), seenAddresses.contains(address), 0, false);
-                  fragments.add(new AccountFragment(snapshot, snapshot, false, 0, false));
+                  fragments.add(
+                      this.factories.accountFragment().make(snapshot, snapshot, false, 0, false));
                   seenAddresses.add(address);
 
                   List<Bytes32> keys = entry.storageKeys();
@@ -486,13 +479,13 @@ public class Hub implements Module {
    */
   void processStateInit(WorldView world) {
     this.state.stamps().stampHub();
-    final boolean isDeployment = this.transients.tx().transaction().getTo().isEmpty();
-    final Address toAddress = effectiveToAddress(this.transients.tx().transaction());
+    final boolean isDeployment = this.transients.tx().besuTx().getTo().isEmpty();
+    final Address toAddress = effectiveToAddress(this.transients.tx().besuTx());
     if (isDeployment) {
       this.transients.conflation().deploymentInfo().deploy(toAddress);
     }
 
-    final Address fromAddress = this.transients.tx().transaction().getSender();
+    final Address fromAddress = this.transients.tx().besuTx().getSender();
     final Account fromAccount = world.get(fromAddress);
     final AccountSnapshot fromSnapshot =
         AccountSnapshot.fromAccount(
@@ -513,28 +506,41 @@ public class Hub implements Module {
         ZkTracer.feeMarket
             .getTransactionPriceCalculator()
             .price(
-                (org.hyperledger.besu.ethereum.core.Transaction) this.transients.tx().transaction(),
+                (org.hyperledger.besu.ethereum.core.Transaction) this.transients.tx().besuTx(),
                 Optional.of(this.transients.block().baseFee()));
-    final Wei value = (Wei) this.transients.tx().transaction().getValue();
+    final Wei value = (Wei) this.transients.tx().besuTx().getValue();
     final AccountSnapshot fromPostDebitSnapshot =
         fromSnapshot.debit(
-            transactionGasPrice
-                .multiply(this.transients.tx().transaction().getGasLimit())
-                .add(value));
+            transactionGasPrice.multiply(this.transients.tx().besuTx().getGasLimit()).add(value));
 
     final boolean isSelfCredit = toAddress.equals(fromAddress);
+    final TransactionFragment txFragment =
+        TransactionFragment.prepare(
+            this.transients.conflation().number(),
+            this.transients.block().minerAddress(),
+            this.transients.tx().besuTx(),
+            true,
+            ((org.hyperledger.besu.ethereum.core.Transaction) this.transients.tx().besuTx())
+                .getEffectiveGasPrice(Optional.ofNullable(this.transients().block().baseFee())),
+            this.transients.block().baseFee(),
+            0 // TODO: find getInitialGas
+            );
+    this.defers.postTx(txFragment);
+
     this.addTraceSection(
         new TxInitSection(
             this,
-            new AccountFragment(fromSnapshot, fromPostDebitSnapshot),
+            this.factories.accountFragment().make(fromSnapshot, fromPostDebitSnapshot),
             isDeployment
-                ? new AccountFragment(toSnapshot, toSnapshot.deploy(value))
+                ? this.factories.accountFragment().make(toSnapshot, toSnapshot.deploy(value))
                 : (isSelfCredit
-                    ? new AccountFragment(
-                        fromPostDebitSnapshot, fromPostDebitSnapshot.credit(value))
-                    : new AccountFragment(toSnapshot, toSnapshot.credit(value))),
+                    ? this.factories
+                        .accountFragment()
+                        .make(fromPostDebitSnapshot, fromPostDebitSnapshot.credit(value))
+                    : this.factories.accountFragment().make(toSnapshot, toSnapshot.credit(value))),
             ImcFragment.forTxInit(this),
-            ContextFragment.intializeExecutionContext(this)));
+            ContextFragment.intializeExecutionContext(this),
+            txFragment));
 
     this.transients.tx().state(TxState.TX_EXEC);
   }
@@ -555,9 +561,7 @@ public class Hub implements Module {
   }
 
   private void handleStack(MessageFrame frame) {
-    this.currentFrame()
-        .stack()
-        .processInstruction(frame, this.currentFrame(), TAU * this.state.stamps().hub());
+    this.currentFrame().stack().processInstruction(this, frame, TAU * this.state.stamps().hub());
   }
 
   //  private void handleRam() {
@@ -596,8 +600,10 @@ public class Hub implements Module {
   //  }
 
   void triggerModules(MessageFrame frame) {
-    for (Module precompileLimit : this.precompileLimitModules) {
-      precompileLimit.tracePreOpcode(frame);
+    if (this.pch.exceptions().none() && this.pch.aborts().none()) {
+      for (Module precompileLimit : this.precompileLimitModules) {
+        precompileLimit.tracePreOpcode(frame);
+      }
     }
 
     if (this.pch.signals().romLex()) {
@@ -641,7 +647,9 @@ public class Hub implements Module {
       this.stp.tracePreOpcode(frame);
     }
     if (this.pch.signals().exp()) {
+      this.exp.tracePreOpcode(frame);
       this.modexp.tracePreOpcode(frame);
+      // if (this.pch.exceptions().none() && this.pch.aborts().none())
     }
     if (this.pch.signals().trm()) {
       this.trm.tracePreOpcode(frame);
@@ -676,9 +684,10 @@ public class Hub implements Module {
   }
 
   void processStateFinal(WorldView worldView, Transaction tx, boolean isSuccess) {
+    this.transients().tx().state(TxState.TX_FINAL);
     this.state.stamps().stampHub();
 
-    Address fromAddress = this.transients.tx().transaction().getSender();
+    Address fromAddress = this.transients.tx().besuTx().getSender();
     Account fromAccount = worldView.get(fromAddress);
     AccountSnapshot fromSnapshot =
         AccountSnapshot.fromAccount(
@@ -706,8 +715,8 @@ public class Hub implements Module {
       this.addTraceSection(
           new EndTransaction(
               this,
-              new AccountFragment(fromSnapshot, fromSnapshot, false, 0, false),
-              new AccountFragment(minerSnapshot, minerSnapshot, false, 0, false),
+              this.factories.accountFragment().make(fromSnapshot, fromSnapshot, false, 0, false),
+              this.factories.accountFragment().make(minerSnapshot, minerSnapshot, false, 0, false),
               TransactionFragment.prepare(
                   this.transients.conflation().number(),
                   this.transients.block().minerAddress(),
@@ -722,9 +731,8 @@ public class Hub implements Module {
       // if (this.exceptions == null) {
       // this.exceptions = Exceptions.fromOutOfGas();
       // }
-
       // otherwise 4 account rows (sender, coinbase, sender, recipient) + 1 tx row
-      Address toAddress = this.transients.tx().transaction().getSender();
+      Address toAddress = this.transients.tx().besuTx().getSender();
       Account toAccount = worldView.get(toAddress);
       AccountSnapshot toSnapshot =
           AccountSnapshot.fromAccount(
@@ -735,18 +743,15 @@ public class Hub implements Module {
       this.addTraceSection(
           new EndTransaction(
               this,
-              new AccountFragment(fromSnapshot, fromSnapshot, false, 0, false),
-              new AccountFragment(minerSnapshot, minerSnapshot, false, 0, false),
-              new AccountFragment(fromSnapshot, fromSnapshot, false, 0, false),
-              new AccountFragment(toSnapshot, toSnapshot, false, 0, false)));
+              this.factories.accountFragment().make(fromSnapshot, fromSnapshot, false, 0, false),
+              this.factories.accountFragment().make(minerSnapshot, minerSnapshot, false, 0, false),
+              this.factories.accountFragment().make(fromSnapshot, fromSnapshot, false, 0, false),
+              this.factories.accountFragment().make(toSnapshot, toSnapshot, false, 0, false)));
     }
   }
 
   @Override
   public void enterTransaction() {
-    this.state.enter();
-    this.transients.tx().enter();
-
     for (Module m : this.modules) {
       m.enterTransaction();
     }
@@ -755,7 +760,11 @@ public class Hub implements Module {
   @Override
   public void traceStartTx(final WorldView world, final Transaction tx) {
     this.pch.reset();
-    this.transients.tx().update(tx);
+    this.state.enter();
+
+    this.defers.postTx(this.state.currentTxTrace());
+
+    this.txStack.enterTransaction(tx);
 
     this.enterTransaction();
 
@@ -775,7 +784,7 @@ public class Hub implements Module {
 
   @Override
   public void popTransaction() {
-    this.transients.tx().pop();
+    this.txStack.pop();
     this.state.pop();
     for (Module m : this.modules) {
       m.popTransaction();
@@ -790,18 +799,12 @@ public class Hub implements Module {
       Bytes output,
       List<Log> logs,
       long gasUsed) {
-    if (this.transients.tx().state() != TxState.TX_SKIP) {
-      this.transients.tx().state(TxState.TX_FINAL);
-    }
-    this.transients.tx().status(!isSuccessful);
-
+    this.txStack.exitTransaction(this, isSuccessful);
     if (this.transients.tx().state() != TxState.TX_SKIP) {
       this.processStateFinal(world, tx, isSuccessful);
     }
 
-    this.defers.runPostTx(this, world, tx);
-
-    this.state.currentTxTrace().postTxRetcon(this);
+    this.defers.runPostTx(this, world, tx, isSuccessful);
 
     for (Module m : this.modules) {
       m.traceEndTx(world, tx, isSuccessful, output, logs, gasUsed);
@@ -829,7 +832,7 @@ public class Hub implements Module {
         }
 
         // This works because we are certain that the stack chunks are the first.
-        ((StackFragment) section.getLines().get(i).specific())
+        ((StackFragment) section.lines().get(i).specific())
             .stackOps()
             .get(line.resultColumn() - 1)
             .value(result);
@@ -837,7 +840,7 @@ public class Hub implements Module {
     }
 
     if (this.pch.exceptions().none()) {
-      for (TraceSection.TraceLine line : section.getLines()) {
+      for (TraceSection.TraceLine line : section.lines()) {
         if (line.specific() instanceof StackFragment stackFragment) {
           stackFragment.feedHashedValue(frame);
         }
@@ -851,23 +854,23 @@ public class Hub implements Module {
 
     if (frame.getDepth() == 0) {
       // Bedrock...
-      final Address toAddress = effectiveToAddress(this.transients.tx().transaction());
-      final boolean isDeployment = this.transients.tx().transaction().getTo().isEmpty();
+      final Address toAddress = effectiveToAddress(this.transients.tx().besuTx());
+      final boolean isDeployment = this.transients.tx().besuTx().getTo().isEmpty();
       if (!isDeployment && !frame.getInputData().isEmpty()) {
         this.callStack.newMantleAndBedrock(
             this.state.stamps().hub(),
-            this.transients.tx().transaction().getSender(),
+            this.transients.tx().besuTx().getSender(),
             toAddress,
             isDeployment ? CallFrameType.INIT_CODE : CallFrameType.STANDARD,
             new Bytecode(
                 toAddress == null
-                    ? this.transients.tx().transaction().getData().orElse(Bytes.EMPTY)
+                    ? this.transients.tx().besuTx().getData().orElse(Bytes.EMPTY)
                     : Optional.ofNullable(frame.getWorldUpdater().get(toAddress))
                         .map(AccountState::getCode)
                         .orElse(Bytes.EMPTY)),
-            Wei.of(this.transients.tx().transaction().getValue().getAsBigInteger()),
-            this.transients.tx().transaction().getGasLimit(),
-            this.transients.tx().transaction().getData().orElse(Bytes.EMPTY),
+            Wei.of(this.transients.tx().besuTx().getValue().getAsBigInteger()),
+            this.transients.tx().besuTx().getGasLimit(),
+            this.transients.tx().besuTx().getData().orElse(Bytes.EMPTY),
             this.transients.conflation().deploymentInfo().number(toAddress),
             toAddress.isEmpty()
                 ? 0
@@ -881,13 +884,13 @@ public class Hub implements Module {
             isDeployment ? CallFrameType.INIT_CODE : CallFrameType.STANDARD,
             new Bytecode(
                 toAddress == null
-                    ? this.transients.tx().transaction().getData().orElse(Bytes.EMPTY)
+                    ? this.transients.tx().besuTx().getData().orElse(Bytes.EMPTY)
                     : Optional.ofNullable(frame.getWorldUpdater().get(toAddress))
                         .map(AccountState::getCode)
                         .orElse(Bytes.EMPTY)),
-            Wei.of(this.transients.tx().transaction().getValue().getAsBigInteger()),
-            this.transients.tx().transaction().getGasLimit(),
-            this.transients.tx().transaction().getData().orElse(Bytes.EMPTY),
+            Wei.of(this.transients.tx().besuTx().getValue().getAsBigInteger()),
+            this.transients.tx().besuTx().getGasLimit(),
+            this.transients.tx().besuTx().getData().orElse(Bytes.EMPTY),
             this.transients.conflation().deploymentInfo().number(toAddress),
             toAddress.isEmpty()
                 ? 0
@@ -1052,6 +1055,11 @@ public class Hub implements Module {
   }
 
   @Override
+  public String moduleKey() {
+    return "HUB";
+  }
+
+  @Override
   public void traceStartConflation(long blockCount) {
     this.transients.conflation().update();
     for (Module m : this.modules) {
@@ -1061,10 +1069,11 @@ public class Hub implements Module {
 
   @Override
   public void traceEndConflation(final WorldView state) {
+    this.defers.runPostConflation(this, state);
+
     for (Module m : this.modules) {
       m.traceEndConflation(state);
     }
-    this.state.postConflationRetcon(this, state);
   }
 
   @Override
@@ -1097,25 +1106,26 @@ public class Hub implements Module {
 
   void traceOperation(MessageFrame frame) {
     switch (this.opCodeData().instructionFamily()) {
-      case ADD,
-          MOD,
-          MUL,
-          SHF,
-          BIN,
-          WCP,
-          EXT,
-          BATCH,
-          MACHINE_STATE,
-          PUSH_POP,
-          DUP,
-          SWAP,
-          INVALID -> this.addTraceSection(new StackOnlySection(this));
+      case ADD, MOD, SHF, BIN, WCP, EXT, BATCH, MACHINE_STATE, PUSH_POP, DUP, SWAP, INVALID -> this
+          .addTraceSection(new StackOnlySection(this));
+      case MUL -> {
+        if (this.opCode() == OpCode.EXP) {
+          this.addTraceSection(
+              new ExpSection(this, ImcFragment.forOpcode(this, this.messageFrame())));
+        } else {
+          this.addTraceSection(new StackOnlySection(this));
+        }
+      }
       case HALT -> {
         final CallFrame parentFrame = this.callStack.parent();
 
         switch (this.opCode()) {
           case RETURN -> {
-            final Bytes returnData = this.transients.op().returnData();
+            Bytes returnData = Bytes.EMPTY;
+            // Trying to read memory with absurd arguments will throw an exception
+            if (pch.exceptions().none()) {
+              returnData = this.transients.op().returnData();
+            }
             this.currentFrame().returnDataSource(transients.op().returnDataSegment());
             this.currentFrame().returnData(returnData);
             if (!this.pch.exceptions().any() && !this.currentFrame().underDeployment()) {
@@ -1140,7 +1150,8 @@ public class Hub implements Module {
         this.addTraceSection(new StackOnlySection(this));
       }
       case KEC -> this.addTraceSection(
-          new KeccakSection(this, this.currentFrame(), ImcFragment.forOpcode(this, frame)));
+          new KeccakSection(
+              this, this.currentFrame(), ImcFragment.forOpcode(this, this.messageFrame())));
       case CONTEXT -> this.addTraceSection(
           new ContextLogSection(this, ContextFragment.readContextData(callStack)));
       case LOG -> {
@@ -1155,13 +1166,14 @@ public class Hub implements Module {
               this, this.currentFrame(), ContextFragment.readContextData(callStack));
         }
 
-        Address targetAddress =
+        final Bytes rawTargetAddress =
             switch (this.currentFrame().opCode()) {
-              case BALANCE, EXTCODESIZE, EXTCODEHASH -> Words.toAddress(frame.getStackItem(0));
-              default -> Address.wrap(this.currentFrame().address());
+              case BALANCE, EXTCODESIZE, EXTCODEHASH -> frame.getStackItem(0);
+              default -> this.currentFrame().address();
             };
-        Account targetAccount = frame.getWorldUpdater().get(targetAddress);
-        AccountSnapshot accountSnapshot =
+        final Address targetAddress = Words.toAddress(rawTargetAddress);
+        final Account targetAccount = frame.getWorldUpdater().get(targetAddress);
+        final AccountSnapshot accountSnapshot =
             AccountSnapshot.fromAccount(
                 targetAccount,
                 frame.isAddressWarm(targetAddress),
@@ -1170,20 +1182,24 @@ public class Hub implements Module {
         accountSection.addFragment(
             this,
             this.currentFrame(),
-            new AccountFragment(accountSnapshot, accountSnapshot, false, 0, false));
+            this.factories
+                .accountFragment()
+                .makeWithTrm(accountSnapshot, accountSnapshot, false, 0, false, rawTargetAddress));
 
         this.addTraceSection(accountSection);
       }
       case COPY -> {
         TraceSection copySection = new CopySection(this);
         if (this.opCodeData().stackSettings().flag1()) {
-          Address targetAddress =
+
+          final Bytes rawTargetAddress =
               switch (this.currentFrame().opCode()) {
                 case CODECOPY -> this.currentFrame().codeAddress();
-                case EXTCODECOPY -> Words.toAddress(frame.getStackItem(0));
+                case EXTCODECOPY -> frame.getStackItem(0);
                 default -> throw new IllegalStateException("unexpected opcode");
               };
-          Account targetAccount = frame.getWorldUpdater().get(targetAddress);
+          final Address targetAddress = Words.toAddress(rawTargetAddress);
+          final Account targetAccount = frame.getWorldUpdater().get(targetAddress);
           AccountSnapshot accountSnapshot =
               AccountSnapshot.fromAccount(
                   targetAccount,
@@ -1194,7 +1210,14 @@ public class Hub implements Module {
           copySection.addFragment(
               this,
               this.currentFrame(),
-              new AccountFragment(accountSnapshot, accountSnapshot, false, 0, false));
+              this.currentFrame().opCode() == OpCode.EXTCODECOPY
+                  ? this.factories
+                      .accountFragment()
+                      .makeWithTrm(
+                          accountSnapshot, accountSnapshot, false, 0, false, rawTargetAddress)
+                  : this.factories
+                      .accountFragment()
+                      .make(accountSnapshot, accountSnapshot, false, 0, false));
         } else {
           copySection.addFragment(
               this, this.currentFrame(), ContextFragment.readContextData(callStack));
@@ -1207,7 +1230,7 @@ public class Hub implements Module {
               TransactionFragment.prepare(
                   this.transients.conflation().number(),
                   frame.getMiningBeneficiary(),
-                  this.transients.tx().transaction(),
+                  this.transients.tx().besuTx(),
                   true,
                   frame.getGasPrice(),
                   frame.getBlockValues().getBaseFee().orElse(Wei.ZERO),
@@ -1288,11 +1311,6 @@ public class Hub implements Module {
 
         CreateSection createSection =
             new CreateSection(this, myAccountSnapshot, createdAccountSnapshot);
-        // Will be traced in one (and only one!) of these depending on the success of
-        // the operation
-        this.defers.postExec(createSection);
-        this.defers.nextContext(createSection, currentFrame().id());
-        this.defers.reEntry(createSection);
         this.addTraceSection(createSection);
         this.currentFrame().needsUnlatchingAtReEntry(createSection);
       }
@@ -1307,7 +1325,8 @@ public class Hub implements Module {
                 this.transients.conflation().deploymentInfo().number(myAddress),
                 this.transients.conflation().deploymentInfo().isDeploying(myAddress));
 
-        final Address calledAddress = Words.toAddress(frame.getStackItem(1));
+        final Bytes rawCalledAddress = frame.getStackItem(1);
+        final Address calledAddress = Words.toAddress(rawCalledAddress);
         final Optional<Account> calledAccount =
             Optional.ofNullable(frame.getWorldUpdater().get(calledAddress));
         final boolean hasCode = calledAccount.map(AccountState::hasCode).orElse(false);
@@ -1344,7 +1363,10 @@ public class Hub implements Module {
                     this,
                     ScenarioFragment.forCall(this, hasCode),
                     ImcFragment.forCall(this, myAccount, calledAccount),
-                    new AccountFragment(calledAccountSnapshot, calledAccountSnapshot)));
+                    this.factories
+                        .accountFragment()
+                        .makeWithTrm(
+                            calledAccountSnapshot, calledAccountSnapshot, rawCalledAddress)));
           }
         } else if (this.pch.aborts().any()) {
           TraceSection abortedSection =
@@ -1353,8 +1375,10 @@ public class Hub implements Module {
                   ScenarioFragment.forCall(this, hasCode),
                   ImcFragment.forCall(this, myAccount, calledAccount),
                   ContextFragment.readContextData(callStack),
-                  new AccountFragment(myAccountSnapshot, myAccountSnapshot),
-                  new AccountFragment(calledAccountSnapshot, calledAccountSnapshot),
+                  this.factories.accountFragment().make(myAccountSnapshot, myAccountSnapshot),
+                  this.factories
+                      .accountFragment()
+                      .makeWithTrm(calledAccountSnapshot, calledAccountSnapshot, rawCalledAddress),
                   ContextFragment.nonExecutionEmptyReturnData(callStack));
           this.addTraceSection(abortedSection);
         } else {
@@ -1366,10 +1390,7 @@ public class Hub implements Module {
           if (hasCode) {
             final SmartContractCallSection section =
                 new SmartContractCallSection(
-                    this, myAccountSnapshot, calledAccountSnapshot, imcFragment);
-            this.defers.postExec(section);
-            this.defers.nextContext(section, currentFrame().id());
-            this.defers.postTx(section);
+                    this, myAccountSnapshot, calledAccountSnapshot, rawCalledAddress, imcFragment);
             this.addTraceSection(section);
             this.currentFrame().needsUnlatchingAtReEntry(section);
           } else {
@@ -1388,10 +1409,8 @@ public class Hub implements Module {
                     precompileInvocation,
                     myAccountSnapshot,
                     calledAccountSnapshot,
+                    rawCalledAddress,
                     imcFragment);
-            this.defers.postExec(section);
-            this.defers.postTx(section);
-            this.defers.reEntry(section);
             this.addTraceSection(section);
             this.currentFrame().needsUnlatchingAtReEntry(section);
           }
@@ -1413,7 +1432,9 @@ public class Hub implements Module {
             new JumpSection(
                 this,
                 ContextFragment.readContextData(callStack),
-                new AccountFragment(codeAccountSnapshot, codeAccountSnapshot, false, 0, false),
+                this.factories
+                    .accountFragment()
+                    .make(codeAccountSnapshot, codeAccountSnapshot, false, 0, false),
                 ImcFragment.forOpcode(this, frame));
 
         this.addTraceSection(jumpSection);

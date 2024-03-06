@@ -24,7 +24,6 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.StackedContainer;
 import net.consensys.linea.zktracer.module.hub.State.TxState.Stamps;
 import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
-import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class State implements StackedContainer {
   private final Deque<TxState> state = new ArrayDeque<>(50);
@@ -44,12 +43,6 @@ public class State implements StackedContainer {
    */
   TxTrace currentTxTrace() {
     return this.current().txTrace;
-  }
-
-  void postConflationRetcon(final Hub hub, final WorldView state) {
-    for (TxState txState : this.state) {
-      txState.txTrace.postConflationRetcon(hub, state);
-    }
   }
 
   /**
@@ -98,7 +91,7 @@ public class State implements StackedContainer {
   /** Describes the Hub state during a given transaction. */
   @Accessors(fluent = true)
   @Getter
-  public static class TxState {
+  static class TxState {
     Stamps stamps;
     TxTrace txTrace;
 
@@ -124,20 +117,18 @@ public class State implements StackedContainer {
       private int mmu = 0;
       private int mxp = 0;
       private int hashInfo = 0;
-      private int log = 0;
 
       public Stamps() {}
 
-      public Stamps(int hubStamp, int mmuStamp, int mxpStamp, int hashInfoStamp, int logStamp) {
+      public Stamps(int hubStamp, int mmuStamp, int mxpStamp, int hashInfoStamp) {
         this.hub = hubStamp;
         this.mmu = mmuStamp;
         this.mxp = mxpStamp;
         this.hashInfo = hashInfoStamp;
-        this.log = logStamp;
       }
 
       Stamps spinOff() {
-        return new Stamps(this.hub, this.mmu, this.mxp, this.hashInfo, this.log);
+        return new Stamps(this.hub, this.mmu, this.mxp, this.hashInfo);
       }
 
       void stampHub() {

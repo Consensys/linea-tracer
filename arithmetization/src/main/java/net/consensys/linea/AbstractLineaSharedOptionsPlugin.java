@@ -16,6 +16,11 @@
 package net.consensys.linea;
 
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.compress.LibCompress;
+import net.consensys.linea.config.LineaL1L2BridgeCliOptions;
+import net.consensys.linea.config.LineaL1L2BridgeConfiguration;
+import net.consensys.linea.config.LineaRpcCliOptions;
+import net.consensys.linea.config.LineaRpcConfiguration;
 import net.consensys.linea.config.LineaTransactionSelectorCliOptions;
 import net.consensys.linea.config.LineaTransactionSelectorConfiguration;
 import net.consensys.linea.config.LineaTransactionValidatorCliOptions;
@@ -28,10 +33,20 @@ import org.hyperledger.besu.plugin.services.PicoCLIOptions;
 public abstract class AbstractLineaSharedOptionsPlugin implements BesuPlugin {
   private static String CLI_OPTIONS_PREFIX = "linea";
   private static boolean cliOptionsRegistered = false;
+  private static boolean configured = false;
   private static LineaTransactionSelectorCliOptions transactionSelectorCliOptions;
   private static LineaTransactionValidatorCliOptions transactionValidatorCliOptions;
+  private static LineaL1L2BridgeCliOptions l1L2BridgeCliOptions;
+  private static LineaRpcCliOptions rpcCliOptions;
   protected static LineaTransactionSelectorConfiguration transactionSelectorConfiguration;
   protected static LineaTransactionValidatorConfiguration transactionValidatorConfiguration;
+  protected static LineaL1L2BridgeConfiguration l1L2BridgeConfiguration;
+  protected static LineaRpcConfiguration rpcConfiguration;
+
+  static {
+    // force the initialization of the gnark compress native library to fail fast in case of issues
+    LibCompress.CompressedSize(new byte[0], 0);
+  }
 
   @Override
   public synchronized void register(final BesuContext context) {
@@ -45,34 +60,44 @@ public abstract class AbstractLineaSharedOptionsPlugin implements BesuPlugin {
                           "Failed to obtain PicoCLI options from the BesuContext"));
       transactionSelectorCliOptions = LineaTransactionSelectorCliOptions.create();
       transactionValidatorCliOptions = LineaTransactionValidatorCliOptions.create();
+      l1L2BridgeCliOptions = LineaL1L2BridgeCliOptions.create();
+      rpcCliOptions = LineaRpcCliOptions.create();
 
       cmdlineOptions.addPicoCLIOptions(CLI_OPTIONS_PREFIX, transactionSelectorCliOptions);
       cmdlineOptions.addPicoCLIOptions(CLI_OPTIONS_PREFIX, transactionValidatorCliOptions);
+      cmdlineOptions.addPicoCLIOptions(CLI_OPTIONS_PREFIX, l1L2BridgeCliOptions);
+      cmdlineOptions.addPicoCLIOptions(CLI_OPTIONS_PREFIX, rpcCliOptions);
       cliOptionsRegistered = true;
     }
   }
 
   @Override
   public void beforeExternalServices() {
+    if (!configured) {
+      transactionSelectorConfiguration = transactionSelectorCliOptions.toDomainObject();
+      transactionValidatorConfiguration = transactionValidatorCliOptions.toDomainObject();
+      l1L2BridgeConfiguration = l1L2BridgeCliOptions.toDomainObject();
+      rpcConfiguration = rpcCliOptions.toDomainObject();
+      configured = true;
+    }
+
     log.debug(
-        "Configuring plugin {} with transaction selector configuration: {}",
+        "Configured plugin {} with transaction selector configuration: {}",
         getName(),
         transactionSelectorCliOptions);
-    transactionSelectorConfiguration = transactionSelectorCliOptions.toDomainObject();
 
     log.debug(
-        "Configuring plugin {} with transaction validator configuration: {}",
+        "Configured plugin {} with transaction validator configuration: {}",
         getName(),
         transactionValidatorCliOptions);
-    transactionValidatorConfiguration = transactionValidatorCliOptions.toDomainObject();
-  }
 
-  /**
-   * Linea plugins need to implement this method. Called by {@link BesuPlugin} register method
-   *
-   * @param context
-   */
-  public abstract void doRegister(final BesuContext context);
+    log.debug(
+        "Configured plugin {} with L1 L2 bridge configuration: {}",
+        getName(),
+        l1L2BridgeCliOptions);
+
+    log.debug("Configured plugin {} with RPC configuration: {}", getName(), rpcConfiguration);
+  }
 
   @Override
   public void start() {}
@@ -80,5 +105,6 @@ public abstract class AbstractLineaSharedOptionsPlugin implements BesuPlugin {
   @Override
   public void stop() {
     cliOptionsRegistered = false;
+    configured = false;
   }
 }

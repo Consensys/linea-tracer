@@ -524,6 +524,7 @@ public class AnyToRamWithPadding implements MmuInstruction {
             .targetContextNumber(hubToMmuValues.targetId())
             .exoSum(hubToMmuValues.exoSum())
             .exoId(dataSourceIsRam ? 0 : hubToMmuValues.sourceId())
+            .totalSize((int) hubToMmuValues.referenceSize())
             .build());
 
     // Setting data transfer micro instructions
@@ -599,7 +600,7 @@ public class AnyToRamWithPadding implements MmuInstruction {
 
   private void someDataOnlyNonTrivialInstruction(MmuData mmuData) {
     final Bytes limb = Bytes.EMPTY; // TODO
-    int onlyMmioInstruction = 0;
+    int onlyMmioInstruction;
     if (dataSourceIsRam) {
       onlyMmioInstruction =
           onlyDataTransferSingleTarget

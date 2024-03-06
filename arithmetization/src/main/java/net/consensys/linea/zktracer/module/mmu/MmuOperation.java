@@ -34,18 +34,29 @@ import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioConstantValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioInstruction;
 import net.consensys.linea.zktracer.module.mmu.values.MmuWcpCallRecord;
 import net.consensys.linea.zktracer.module.mmu.values.RowTypeRecord;
-import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 
 @Accessors(fluent = true)
 public class MmuOperation extends ModuleOperation {
   @Getter private final MmuData mmuData;
-  private final CallStack callStack;
 
-  MmuOperation(MmuData mmuData, CallStack callStack) {
+  private boolean isMload;
+  private boolean isMstore;
+  private boolean isMstore8;
+  private boolean isInvalidCodePrefix;
+  private boolean isRightPaddedWordExtraction;
+  private boolean isRamToExoWithPadding;
+  private boolean isExoToRamTransplants;
+  private boolean isRamToRamSansPadding;
+  private boolean isAnyToRamWithPaddingSomeData;
+  private boolean isAnyToRamWithPaddingPurePadding;
+  private boolean isModexpZero;
+  private boolean isModexpData;
+  private boolean isBlake;
+
+  MmuOperation(MmuData mmuData) {
     this.mmuData = mmuData;
-    this.callStack = callStack;
   }
 
   @Override
@@ -63,6 +74,8 @@ public class MmuOperation extends ModuleOperation {
 
   void trace(final int mmuStamp, final int mmioStamp, Trace trace) {
 
+    setInstructionFlag();
+
     // Trace Macro Instruction decoding Row
     traceMacroRow(mmuStamp, mmioStamp, trace);
 
@@ -73,26 +86,42 @@ public class MmuOperation extends ModuleOperation {
     traceMicroRows(mmuStamp, mmioStamp, trace);
   }
 
+  private void setInstructionFlag() {
+    final int mmuInstruction = mmuData.hubToMmuValues().mmuInstruction();
+    isMload = mmuInstruction == Trace.MMU_INST_MLOAD;
+    isMstore = mmuInstruction == Trace.MMU_INST_MSTORE;
+    isMstore8 = mmuInstruction == Trace.MMU_INST_MSTORE8;
+    isInvalidCodePrefix = mmuInstruction == Trace.INVALID_CODE_PREFIX_VALUE;
+    isRightPaddedWordExtraction = mmuInstruction == Trace.MMU_INST_RIGHT_PADDED_WORD_EXTRACTION;
+    isRamToExoWithPadding = mmuInstruction == Trace.MMU_INST_RAM_TO_EXO_WITH_PADDING;
+    isExoToRamTransplants = mmuInstruction == Trace.MMU_INST_EXO_TO_RAM_TRANSPLANTS;
+    isRamToRamSansPadding = mmuInstruction == Trace.MMU_INST_RAM_TO_RAM_SANS_PADDING;
+    isAnyToRamWithPaddingSomeData =
+        mmuInstruction == Trace.MMU_INST_ANY_TO_RAM_WITH_PADDING
+            && !mmuData.mmuInstAnyToRamWithPaddingIsPurePadding();
+    isAnyToRamWithPaddingPurePadding =
+        mmuInstruction == Trace.MMU_INST_ANY_TO_RAM_WITH_PADDING
+            && mmuData.mmuInstAnyToRamWithPaddingIsPurePadding();
+    isModexpZero = mmuInstruction == Trace.MMU_INST_MODEXP_ZERO;
+    isModexpData = mmuInstruction == Trace.MMU_INST_MODEXP_DATA;
+    isBlake = mmuInstruction == Trace.MMU_INST_BLAKE;
+  }
+
   private void traceFillMmuInstructionFlag(Trace trace) {
-    int mmuInstruction = mmuData.hubToMmuValues().mmuInstruction();
     trace
-        .isMload(mmuInstruction == Trace.MMU_INST_MLOAD)
-        .isMstore(mmuInstruction == Trace.MMU_INST_MSTORE)
-        .isMstore8(mmuInstruction == Trace.MMU_INST_MSTORE8)
-        .isInvalidCodePrefix(mmuInstruction == Trace.MMU_INST_INVALID_CODE_PREFIX)
-        .isRightPaddedWordExtraction(mmuInstruction == Trace.MMU_INST_RIGHT_PADDED_WORD_EXTRACTION)
-        .isRamToExoWithPadding(mmuInstruction == Trace.MMU_INST_RAM_TO_EXO_WITH_PADDING)
-        .isExoToRamTransplants(mmuInstruction == Trace.MMU_INST_EXO_TO_RAM_TRANSPLANTS)
-        .isRamToRamSansPadding(mmuInstruction == Trace.MMU_INST_RAM_TO_RAM_SANS_PADDING)
-        .isAnyToRamWithPaddingSomeData(
-            mmuInstruction == Trace.MMU_INST_ANY_TO_RAM_WITH_PADDING
-                && !mmuData.mmuInstAnyToRamWithPaddingIsPurePadding())
-        .isAnyToRamWithPaddingPurePadding(
-            mmuInstruction == Trace.MMU_INST_ANY_TO_RAM_WITH_PADDING
-                && mmuData.mmuInstAnyToRamWithPaddingIsPurePadding())
-        .isModexpZero(mmuInstruction == Trace.MMU_INST_MODEXP_ZERO)
-        .isModexpData(mmuInstruction == Trace.MMU_INST_MODEXP_DATA)
-        .isBlake(mmuInstruction == Trace.MMU_INST_BLAKE);
+        .isMload(isMload)
+        .isMstore(isMstore)
+        .isMstore8(isMstore8)
+        .isInvalidCodePrefix(isInvalidCodePrefix)
+        .isRightPaddedWordExtraction(isRightPaddedWordExtraction)
+        .isRamToExoWithPadding(isRamToExoWithPadding)
+        .isExoToRamTransplants(isExoToRamTransplants)
+        .isRamToRamSansPadding(isRamToRamSansPadding)
+        .isAnyToRamWithPaddingSomeData(isAnyToRamWithPaddingSomeData)
+        .isAnyToRamWithPaddingPurePadding(isAnyToRamWithPaddingPurePadding)
+        .isModexpZero(isModexpZero)
+        .isModexpData(isModexpData)
+        .isBlake(isBlake);
   }
 
   private void traceOutAndBin(Trace trace) {

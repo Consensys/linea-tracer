@@ -16,14 +16,16 @@
 package net.consensys.linea.zktracer.module.oob;
 
 class OobTestCommon {
-
+  // TODO: all these methods are deprecated since oobEvent has been removed, update them once oob is done
   // Support methods to assert that the oob events are set correctly
   static boolean getOobEvent1AtRow(final Oob oob, int i) {
-    return oob.getChunks().get(i).isOobEvent1();
+    //return oob.getChunks().get(i).isOobEvent1();
+    return false;
   }
 
   static boolean getOobEvent2AtRow(final Oob oob, int i) {
-    return oob.getChunks().get(i).isOobEvent2();
+    // return oob.getChunks().get(i).isOobEvent2();
+    return false;
   }
 
   /* Note that the methods below refer to the values of oobEvent1 and oobEvent2 in the chunks,
@@ -41,10 +43,12 @@ class OobTestCommon {
   }
 
   static void assertNumberOfOnesInOobEvent1(final Oob oob, int numberOfOnesInOobEvent1) {
+    /*
     int actualNumberOfOnesInOobEvent1 = 0;
     for (OobChunk oobChunk : oob.getChunks()) {
       actualNumberOfOnesInOobEvent1 += oobChunk.isOobEvent1() ? 1 : 0;
     }
     assert (actualNumberOfOnesInOobEvent1 == numberOfOnesInOobEvent1);
+    */
   }
 }

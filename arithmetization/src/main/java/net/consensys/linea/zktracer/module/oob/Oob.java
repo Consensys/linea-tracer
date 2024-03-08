@@ -48,7 +48,7 @@ public class Oob implements Module {
 
   @Override
   public String moduleKey() {
-    return "oob";
+    return "OOB";
   }
 
   public Oob(Hub hub, Add add, Mod mod, Wcp wcp) {

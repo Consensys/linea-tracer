@@ -32,7 +32,7 @@ import org.hyperledger.besu.crypto.SECPSignature;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Wei;
-import org.hyperledger.besu.plugin.data.BlockContext;
+import org.hyperledger.besu.plugin.data.Block;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 import org.hyperledger.besu.plugin.services.BesuConfiguration;
 import org.hyperledger.besu.plugin.services.BlockchainService;
@@ -269,7 +269,7 @@ public class ProfitabilityValidatorTest {
   private static class TestBlockchainService implements BlockchainService {
 
     @Override
-    public Optional<BlockContext> getBlockByNumber(final long l) {
+    public Optional<? extends Block> getBlockByNumber(final long l) {
       throw new UnsupportedOperationException();
     }
 

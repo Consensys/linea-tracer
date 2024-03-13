@@ -18,13 +18,19 @@ import java.util.List;
 import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.compress.LibCompress;
 import net.consensys.linea.config.LineaL1L2BridgeConfiguration;
 import net.consensys.linea.config.LineaProfitabilityConfiguration;
 import net.consensys.linea.config.LineaTransactionSelectorConfiguration;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.PendingTransaction;
+import org.hyperledger.besu.plugin.data.Block;
+import org.hyperledger.besu.plugin.data.BlockBody;
+import org.hyperledger.besu.plugin.data.BlockHeader;
 import org.hyperledger.besu.plugin.data.TransactionProcessingResult;
 import org.hyperledger.besu.plugin.data.TransactionSelectionResult;
 import org.hyperledger.besu.plugin.services.tracer.BlockAwareOperationTracer;
+import org.hyperledger.besu.plugin.services.txselection.InvalidCandidateBlockException;
 import org.hyperledger.besu.plugin.services.txselection.PluginTransactionSelector;
 import org.hyperledger.besu.plugin.services.txselection.TransactionEvaluationContext;
 
@@ -149,5 +155,13 @@ public class LineaTransactionSelector implements PluginTransactionSelector {
   @Override
   public BlockAwareOperationTracer getOperationTracer() {
     return traceLineLimitTransactionSelector.getOperationTracer();
+  }
+
+  @Override
+  public void afterSelectionEnds(final Block block) throws InvalidCandidateBlockException {
+    final byte[] rlpBytes = block.toRlp().toArrayUnsafe();
+
+    final int compressedBlockSize = LibCompress.CompressedSize(rlpBytes, rlpBytes.length);
+
   }
 }

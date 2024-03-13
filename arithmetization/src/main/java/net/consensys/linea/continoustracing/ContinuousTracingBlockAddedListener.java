@@ -60,7 +60,7 @@ public class ContinuousTracingBlockAddedListener implements BesuEvents.BlockAdde
   public void onBlockAdded(final AddedBlockContext addedBlockContext) {
     pool.submit(
         () -> {
-          final BlockHeader blockHeader = addedBlockContext.getBlockHeader();
+          final BlockHeader blockHeader = addedBlockContext.getHeader();
           final Hash blockHash = blockHeader.getBlockHash();
           log.info("Tracing block {} ({})", blockHeader.getNumber(), blockHash.toHexString());
 

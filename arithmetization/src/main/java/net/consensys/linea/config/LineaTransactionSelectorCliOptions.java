@@ -21,6 +21,9 @@ import picocli.CommandLine;
 
 /** The Linea Transaction Selector CLI options. */
 public class LineaTransactionSelectorCliOptions {
+  public static final String MAX_COMPRESSED_RLP_BLOCK_SIZE = "--plugin-linea-max-compressed-rlp-block-size";
+  public static final int DEFAULT_MAX_COMPRESSED_RLP_BLOCK_SIZE = 70_000;
+
   public static final String MAX_BLOCK_CALLDATA_SIZE = "--plugin-linea-max-block-calldata-size";
   public static final int DEFAULT_MAX_BLOCK_CALLDATA_SIZE = 70_000;
 

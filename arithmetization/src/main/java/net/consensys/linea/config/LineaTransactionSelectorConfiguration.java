@@ -20,6 +20,7 @@ import lombok.Builder;
 /** The Linea transaction selectors configuration. */
 @Builder(toBuilder = true)
 public record LineaTransactionSelectorConfiguration(
+    int maxCompressedRlpBlockSize,
     int maxBlockCallDataSize,
     String moduleLimitsFilePath,
     int overLinesLimitCacheSize,

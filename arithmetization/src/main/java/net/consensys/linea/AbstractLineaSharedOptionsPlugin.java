@@ -16,8 +16,13 @@
 package net.consensys.linea;
 
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.compress.LibCompress;
 import net.consensys.linea.config.LineaL1L2BridgeCliOptions;
 import net.consensys.linea.config.LineaL1L2BridgeConfiguration;
+import net.consensys.linea.config.LineaProfitabilityCliOptions;
+import net.consensys.linea.config.LineaProfitabilityConfiguration;
+import net.consensys.linea.config.LineaRpcCliOptions;
+import net.consensys.linea.config.LineaRpcConfiguration;
 import net.consensys.linea.config.LineaTransactionSelectorCliOptions;
 import net.consensys.linea.config.LineaTransactionSelectorConfiguration;
 import net.consensys.linea.config.LineaTransactionValidatorCliOptions;
@@ -34,9 +39,18 @@ public abstract class AbstractLineaSharedOptionsPlugin implements BesuPlugin {
   private static LineaTransactionSelectorCliOptions transactionSelectorCliOptions;
   private static LineaTransactionValidatorCliOptions transactionValidatorCliOptions;
   private static LineaL1L2BridgeCliOptions l1L2BridgeCliOptions;
+  private static LineaRpcCliOptions rpcCliOptions;
+  private static LineaProfitabilityCliOptions profitabilityCliOptions;
   protected static LineaTransactionSelectorConfiguration transactionSelectorConfiguration;
   protected static LineaTransactionValidatorConfiguration transactionValidatorConfiguration;
   protected static LineaL1L2BridgeConfiguration l1L2BridgeConfiguration;
+  protected static LineaRpcConfiguration rpcConfiguration;
+  protected static LineaProfitabilityConfiguration profitabilityConfiguration;
+
+  static {
+    // force the initialization of the gnark compress native library to fail fast in case of issues
+    LibCompress.CompressedSize(new byte[0], 0);
+  }
 
   @Override
   public synchronized void register(final BesuContext context) {
@@ -51,10 +65,14 @@ public abstract class AbstractLineaSharedOptionsPlugin implements BesuPlugin {
       transactionSelectorCliOptions = LineaTransactionSelectorCliOptions.create();
       transactionValidatorCliOptions = LineaTransactionValidatorCliOptions.create();
       l1L2BridgeCliOptions = LineaL1L2BridgeCliOptions.create();
+      rpcCliOptions = LineaRpcCliOptions.create();
+      profitabilityCliOptions = LineaProfitabilityCliOptions.create();
 
       cmdlineOptions.addPicoCLIOptions(CLI_OPTIONS_PREFIX, transactionSelectorCliOptions);
       cmdlineOptions.addPicoCLIOptions(CLI_OPTIONS_PREFIX, transactionValidatorCliOptions);
       cmdlineOptions.addPicoCLIOptions(CLI_OPTIONS_PREFIX, l1L2BridgeCliOptions);
+      cmdlineOptions.addPicoCLIOptions(CLI_OPTIONS_PREFIX, rpcCliOptions);
+      cmdlineOptions.addPicoCLIOptions(CLI_OPTIONS_PREFIX, profitabilityCliOptions);
       cliOptionsRegistered = true;
     }
   }
@@ -65,6 +83,8 @@ public abstract class AbstractLineaSharedOptionsPlugin implements BesuPlugin {
       transactionSelectorConfiguration = transactionSelectorCliOptions.toDomainObject();
       transactionValidatorConfiguration = transactionValidatorCliOptions.toDomainObject();
       l1L2BridgeConfiguration = l1L2BridgeCliOptions.toDomainObject();
+      rpcConfiguration = rpcCliOptions.toDomainObject();
+      profitabilityConfiguration = profitabilityCliOptions.toDomainObject();
       configured = true;
     }
 
@@ -82,6 +102,13 @@ public abstract class AbstractLineaSharedOptionsPlugin implements BesuPlugin {
         "Configured plugin {} with L1 L2 bridge configuration: {}",
         getName(),
         l1L2BridgeCliOptions);
+
+    log.debug("Configured plugin {} with RPC configuration: {}", getName(), rpcConfiguration);
+
+    log.debug(
+        "Configured plugin {} with profitability calculator configuration: {}",
+        getName(),
+        profitabilityConfiguration);
   }
 
   @Override

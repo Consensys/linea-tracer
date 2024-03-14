@@ -29,6 +29,15 @@ an [existing implementation in Go](https://github.com/Consensys/zk-evm/).
 brew install openjdk@17
 ```
 
+### Native Lib Prerequisites
+
+Linux/MacOs
+* Install the relevant CGo compiler for your platform
+* Install the Go toolchain
+
+Windows
+* Requirement [Docker Desktop WSL 2 backend on Windows](https://docs.docker.com/desktop/wsl/)
+
 ### Install Rust
 
 ```

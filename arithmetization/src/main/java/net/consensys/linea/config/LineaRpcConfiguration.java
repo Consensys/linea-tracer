@@ -15,14 +15,11 @@
 
 package net.consensys.linea.config;
 
+import java.math.BigDecimal;
+
 import lombok.Builder;
 
-/** The Linea transaction selectors configuration. */
+/** The Linea RPC configuration. */
 @Builder(toBuilder = true)
-public record LineaTransactionSelectorConfiguration(
-    int maxBlockCallDataSize,
-    String moduleLimitsFilePath,
-    int overLinesLimitCacheSize,
-    long maxGasPerBlock,
-    int unprofitableCacheSize,
-    int unprofitableRetryLimit) {}
+public record LineaRpcConfiguration(
+    boolean estimateGasCompatibilityModeEnabled, BigDecimal estimateGasCompatibilityMultiplier) {}

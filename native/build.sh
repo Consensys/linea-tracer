@@ -29,5 +29,5 @@ fi
 
 cd "$SCRIPTDIR/compress/compress-jni"
 echo "Building Go module libcompress_jni.$LIBRARY_EXTENSION for $OSTYPE"
-CGO_ENABLED=1 go build -buildmode=c-shared -o libcompress_jni.$LIBRARY_EXTENSION compress-jni.go
+CGO_ENABLED=1 /usr/local/go/bin/go build -buildmode=c-shared -o libcompress_jni.$LIBRARY_EXTENSION compress-jni.go
 mv libcompress_jni.* "$SCRIPTDIR/compress/build/native"

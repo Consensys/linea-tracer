@@ -43,7 +43,6 @@ import java.nio.MappedByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 
 import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.ColumnHeader;
@@ -1121,28 +1120,22 @@ public class RlpTxn implements Module {
         .nKeys(traceValue.nbSto)
         .nKeysPerAddr(traceValue.nbStoPerAddr)
         .nStep((short) traceValue.nStep)
-        .phaseId((short) traceValue.phase);
-    List<Function<Boolean, Trace>> phaseColumns =
-        List.of(
-            builder::phase1,
-            builder::phase2,
-            builder::phase3,
-            builder::phase4,
-            builder::phase5,
-            builder::phase6,
-            builder::phase7,
-            builder::phase8,
-            builder::phase9,
-            builder::phase10,
-            builder::phase11,
-            builder::phase12,
-            builder::phase13,
-            builder::phase14,
-            builder::phase15);
-    for (int i = 1; i <= phaseColumns.size(); i++) {
-      phaseColumns.get(i - 1).apply(i == traceValue.phase);
-    }
-    builder
+        .phaseId((short) traceValue.phase)
+        .phase1(traceValue.phase == 1)
+        .phase2(traceValue.phase == 2)
+        .phase3(traceValue.phase == 3)
+        .phase4(traceValue.phase == 4)
+        .phase5(traceValue.phase == 5)
+        .phase6(traceValue.phase == 6)
+        .phase7(traceValue.phase == 7)
+        .phase8(traceValue.phase == 8)
+        .phase9(traceValue.phase == 9)
+        .phase10(traceValue.phase == 10)
+        .phase11(traceValue.phase == 11)
+        .phase12(traceValue.phase == 12)
+        .phase13(traceValue.phase == 13)
+        .phase14(traceValue.phase == 14)
+        .phase15(traceValue.phase == 15)
         .phaseSize(traceValue.phaseByteSize)
         .power(bigIntegerToBytes(traceValue.power))
         .requiresEvmExecution(traceValue.requiresEvmExecution)
@@ -1176,6 +1169,8 @@ public class RlpTxn implements Module {
         }
       }
     }
+
+    // Reset Data Hi and Data Lo if end of the phase
     if (traceValue.phaseEnd) {
       traceValue.resetDataHiLo();
     }

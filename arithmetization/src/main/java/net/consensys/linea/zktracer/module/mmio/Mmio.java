@@ -81,7 +81,6 @@ public class Mmio implements Module {
       if (sourceContextNumber != 0) {
         final Bytes sourceMemory =
             unsignedBytesToBytes(callStackReader.valueFromMemory(sourceContextNumber));
-        // TODO: should better make valueFromMemory return Bytes
         currentMmuData.sourceRamBytes(sourceMemory);
       }
 

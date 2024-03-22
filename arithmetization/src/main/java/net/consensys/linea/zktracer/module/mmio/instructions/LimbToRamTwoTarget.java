@@ -70,6 +70,8 @@ public class LimbToRamTwoTarget implements MmioInstruction {
             mmioData.size()));
     mmioData.valCNew(Bytes16.ZERO);
 
+    // TODO: need to update mmuData.targetBytesRam
+
     mmioData.onePartialToTwo(
         mmioData.limb(),
         mmioData.valA(),

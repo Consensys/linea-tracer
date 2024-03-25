@@ -32,7 +32,6 @@ import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioConstantValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioInstruction;
 import net.consensys.linea.zktracer.module.mmu.values.MmuWcpCallRecord;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import net.consensys.linea.zktracer.types.Bytes16;
 import org.apache.tuweni.bytes.Bytes;
 
 public class RamToRamSansPadding implements MmuInstruction {
@@ -251,32 +250,24 @@ public class RamToRamSansPadding implements MmuInstruction {
             .build());
 
     if (mmuData.totalNonTrivialInitials() == 1) {
-      // TODO: Determine relative value of limb
-      final Bytes onlyMicroInstLimb = Bytes.EMPTY;
-      onlyMicroInstruction(mmuData, onlyMicroInstLimb);
+      onlyMicroInstruction(mmuData);
     } else {
-      // TODO: Determine relative value of limb
-      final Bytes firstMicroInstLimb = Bytes.EMPTY;
-      firstMicroInstruction(mmuData, firstMicroInstLimb);
+      firstMicroInstruction(mmuData);
 
       final int firstMiddleSlo =
           (int) (initialSloIncrement ? initialSourceLimbOffset + 1 : initialSourceLimbOffset);
       final int middleMicroInst =
           aligned ? Trace.MMIO_INST_RAM_TO_LIMB_TRANSPLANT : Trace.MMIO_INST_RAM_TO_LIMB_TWO_SOURCE;
       for (int i = 1; i < mmuData.totalNonTrivialInitials() - 1; i++) {
-        // TODO: Determine relative value of limb
-        final Bytes middleMicroInstlimb = Bytes.EMPTY;
-        middleMicroInstruction(mmuData, middleMicroInst, i, firstMiddleSlo, middleMicroInstlimb);
+        middleMicroInstruction(mmuData, middleMicroInst, i, firstMiddleSlo);
       }
-      // TODO: Determine relative value of limb
-      final Bytes lastMicroInstLimb = Bytes.EMPTY;
-      lastMicroInstruction(mmuData, firstMiddleSlo, lastMicroInstLimb);
+      lastMicroInstruction(mmuData, firstMiddleSlo);
     }
 
     return mmuData;
   }
 
-  private void onlyMicroInstruction(MmuData mmuData, final Bytes limb) {
+  private void onlyMicroInstruction(MmuData mmuData) {
     final int onlyMicroInst = calculateLastOrOnlyMicroInstruction();
 
     mmuData.mmuToMmioInstruction(
@@ -287,11 +278,10 @@ public class RamToRamSansPadding implements MmuInstruction {
             .sourceByteOffset(initialSourceByteOffset)
             .targetLimbOffset((int) initialTargetLimbOffset)
             .targetByteOffset(initialTargetByteOffset)
-            .limb((Bytes16) limb)
             .build());
   }
 
-  private void firstMicroInstruction(MmuData mmuData, final Bytes limb) {
+  private void firstMicroInstruction(MmuData mmuData) {
     final int onlyMicroInst = calculateFirstMicroInstruction();
 
     mmuData.mmuToMmioInstruction(
@@ -302,12 +292,11 @@ public class RamToRamSansPadding implements MmuInstruction {
             .sourceByteOffset(initialSourceByteOffset)
             .targetLimbOffset((int) initialTargetLimbOffset)
             .targetByteOffset(initialTargetByteOffset)
-            .limb((Bytes16) limb)
             .build());
   }
 
   private void middleMicroInstruction(
-      MmuData mmuData, int middleMicrioInstruction, int i, int firstMiddleSlo, final Bytes limb) {
+      MmuData mmuData, int middleMicrioInstruction, int i, int firstMiddleSlo) {
 
     mmuData.mmuToMmioInstruction(
         MmuToMmioInstruction.builder()
@@ -317,11 +306,10 @@ public class RamToRamSansPadding implements MmuInstruction {
             .sourceByteOffset(middleSourceByteOffset)
             .targetLimbOffset((int) initialTargetLimbOffset + i)
             .targetByteOffset((short) 0)
-            .limb((Bytes16) limb)
             .build());
   }
 
-  private void lastMicroInstruction(MmuData mmuData, int firstMiddleSlo, final Bytes limb) {
+  private void lastMicroInstruction(MmuData mmuData, int firstMiddleSlo) {
     final int lastMicroInst = calculateLastOrOnlyMicroInstruction();
 
     mmuData.mmuToMmioInstruction(
@@ -332,7 +320,6 @@ public class RamToRamSansPadding implements MmuInstruction {
             .sourceByteOffset(middleSourceByteOffset)
             .targetLimbOffset((int) (initialTargetLimbOffset + totInitialNonTrivial))
             .targetByteOffset((short) 0)
-            .limb((Bytes16) limb)
             .build());
   }
 

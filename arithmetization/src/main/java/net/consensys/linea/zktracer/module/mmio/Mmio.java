@@ -173,7 +173,6 @@ public class Mmio implements Module {
           .isRamToRamTwoSource(mmioData.instruction() == Trace.MMIO_INST_RAM_TO_RAM_TWO_SOURCE)
           .isRamToRamTwoTarget(mmioData.instruction() == Trace.MMIO_INST_RAM_TO_RAM_TWO_TARGET)
           .isRamVanishes(mmioData.instruction() == Trace.MMIO_INST_RAM_VANISHES)
-          // TODO EXO SUM flag
           .indexX(mmioData.indexX())
           .byteLimb(UnsignedByte.of(mmioData.limb().get(ct)))
           .accLimb(mmioData.limb().slice(0, ct + 1))

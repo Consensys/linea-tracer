@@ -15,6 +15,9 @@
 
 package net.consensys.linea.zktracer.module.mmu.instructions;
 
+import static net.consensys.linea.zktracer.module.mmu.Trace.INVALID_CODE_PREFIX_VALUE;
+import static net.consensys.linea.zktracer.module.mmu.Trace.LLARGE;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,14 +65,19 @@ public class InvalidCodePrefix implements MmuInstruction {
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividend1)
-            .divisor(Trace.LLARGE)
+            .divisor(LLARGE)
             .quotient(quot)
             .remainder(rem)
             .build());
 
-    // TODO set microLimb to the right value
+    microLimb =
+        Bytes.of(
+            mmuData
+                .sourceRamBytes()
+                .get(LLARGE * initialSourceLimbOffset + initialSourceByteOffset));
+    // TODO: won't work as we fill mmuData.sourceRamBytes after, in the commit() of mmio.
     Bytes arg1 = microLimb;
-    Bytes arg2 = Bytes.of(0xEF);
+    Bytes arg2 = Bytes.of(INVALID_CODE_PREFIX_VALUE);
     boolean result = wcp.callEQ(arg1, arg2);
 
     wcpCallRecords.add(

@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.mmu.instructions;
 
+import static net.consensys.linea.zktracer.module.mmu.Trace.LLARGE;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,7 +48,7 @@ public class ExoToRamTransplants implements MmuInstruction {
   public MmuData preProcess(MmuData mmuData) {
     // row n°1
     final Bytes dividend = Bytes.ofUnsignedInt(mmuData.hubToMmuValues().size());
-    final Bytes divisor = Bytes.of(Trace.LLARGE);
+    final Bytes divisor = Bytes.of(LLARGE);
     final EucOperation eucOp = euc.callEUC(dividend, divisor);
 
     eucCallRecords.add(
@@ -83,14 +85,12 @@ public class ExoToRamTransplants implements MmuInstruction {
             .build());
 
     for (int i = 0; i < mmuData.totalNonTrivialInitials(); i++) {
-      // TODO: Determine relative value of limb
-      final Bytes currentMicroInstlimb = Bytes.EMPTY;
       mmuData.mmuToMmioInstruction(
           MmuToMmioInstruction.builder()
               .mmioInstruction(Trace.MMIO_INST_LIMB_TO_RAM_TRANSPLANT)
               .sourceLimbOffset(i)
               .targetLimbOffset(i)
-              .limb((Bytes16) currentMicroInstlimb)
+              .limb((Bytes16) mmuData.exoBytes().slice(i * LLARGE, LLARGE))
               .build());
     }
 

@@ -36,6 +36,7 @@ import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.bin.Bin;
+import net.consensys.linea.zktracer.module.blake2fmodexpdata.Blake2fModexpData;
 import net.consensys.linea.zktracer.module.ec_data.EcData;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.exp.Exp;
@@ -177,11 +178,12 @@ public class Hub implements Module {
 
   private final Module add = new Add(this);
   private final Module bin = new Bin(this);
-  private final Ext ext = new Ext(this);
+  private final Blake2fModexpData blake2fModexpData = new Blake2fModexpData();
   private final EcData ecData;
   private final Euc euc;
-  private final Mod mod = new Mod();
+  private final Ext ext = new Ext(this);
   private final Module mul = new Mul(this);
+  private final Mod mod = new Mod();
   private final Module shf = new Shf();
   @Getter private final Wcp wcp = new Wcp(this);
   private final RlpTxn rlpTxn;
@@ -199,7 +201,7 @@ public class Hub implements Module {
   @Getter private final RomLex romLex;
   private final TxnData txnData;
   private final Trm trm = new Trm();
-  private final ModexpEffectiveCall modexp;
+  private final ModexpEffectiveCall modexpEffectiveCall;
   private final Stp stp = new Stp(this, wcp, mod);
   private final L2Block l2Block;
 
@@ -229,12 +231,13 @@ public class Hub implements Module {
             this.romLex,
             this.rlpTxn,
             this.rlpTxrcpt,
-            this.ecData, /*add blake, modexp */
+            this.ecData,
+            this.blake2fModexpData,
             this.callStack);
     this.mmio = new Mmio(this.mmu, this.callStack);
 
     final EcRecoverEffectiveCall ecRec = new EcRecoverEffectiveCall(this);
-    this.modexp = new ModexpEffectiveCall(this);
+    this.modexpEffectiveCall = new ModexpEffectiveCall(this, this.blake2fModexpData);
     final EcPairingCallEffectiveCall ecPairingCall = new EcPairingCallEffectiveCall(this);
     final L2Block l2Block = new L2Block(l2l1ContractAddress, LogTopic.of(l2l1Topic));
 
@@ -243,12 +246,12 @@ public class Hub implements Module {
             new Sha256Blocks(this),
             ecRec,
             new Rip160Blocks(this),
-            this.modexp,
+            this.modexpEffectiveCall,
             new EcAddEffectiveCall(this),
             new EcMulEffectiveCall(this),
             ecPairingCall,
             new EcPairingMillerLoop(ecPairingCall),
-            new Blake2fRounds(this),
+            new Blake2fRounds(this, this.blake2fModexpData),
             // Block level limits
             l2Block,
             new Keccak(this, ecRec, l2Block),
@@ -259,16 +262,15 @@ public class Hub implements Module {
     this.modules =
         Stream.concat(
                 Stream.of(
-                    this.romLex, // WARN: must be called first
                     this.add,
                     this.bin,
                     this.ecData,
                     this.euc,
                     this.ext,
-                    this.mmu,
-                    this.mmio,
                     this.logData,
                     this.logInfo,
+                    this.mmio,
+                    this.mmu,
                     this.mod,
                     this.mul,
                     this.mxp,
@@ -277,6 +279,7 @@ public class Hub implements Module {
                     this.rlpTxn,
                     this.rlpTxrcpt,
                     this.rom,
+                    this.romLex,
                     this.shf,
                     this.stp,
                     this.trm,
@@ -295,25 +298,25 @@ public class Hub implements Module {
             // Modules
             Stream.of(
                 this,
-                this.romLex,
                 this.add,
                 this.bin,
-                this.ext,
+                this.blake2fModexpData,
                 //        this.ecData, // TODO: not yet
+                this.ext,
                 this.euc,
+                this.exp,
                 this.logData,
                 this.logInfo,
-                this.mmu,
                 this.mmio,
+                this.mmu,
                 this.mod,
-                this.modexp.data(),
                 this.mul,
                 this.mxp,
-                this.exp,
                 this.rlpAddr,
                 this.rlpTxn,
                 this.rlpTxrcpt,
                 this.rom,
+                this.romLex,
                 this.shf,
                 this.stp,
                 this.txnData,
@@ -615,7 +618,7 @@ public class Hub implements Module {
     }
     if (this.pch.signals().exp()) {
       this.exp.tracePreOpcode(frame);
-      this.modexp.tracePreOpcode(frame);
+      this.modexpEffectiveCall.tracePreOpcode(frame);
       // if (this.pch.exceptions().none() && this.pch.aborts().none())
     }
     if (this.pch.signals().trm()) {

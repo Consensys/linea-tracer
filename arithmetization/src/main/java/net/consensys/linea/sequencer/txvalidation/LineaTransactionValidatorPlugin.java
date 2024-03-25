@@ -26,11 +26,12 @@ import java.util.stream.Stream;
 import com.google.auto.service.AutoService;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.AbstractLineaRequiredPlugin;
-import net.consensys.linea.config.LineaTransactionValidatorConfiguration;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.plugin.BesuContext;
 import org.hyperledger.besu.plugin.BesuPlugin;
-import org.hyperledger.besu.plugin.services.PluginTransactionValidatorService;
+import org.hyperledger.besu.plugin.services.BesuConfiguration;
+import org.hyperledger.besu.plugin.services.BlockchainService;
+import org.hyperledger.besu.plugin.services.TransactionPoolValidatorService;
 
 /**
  * This class extends the default transaction validation rules for adding transactions to the
@@ -42,7 +43,9 @@ import org.hyperledger.besu.plugin.services.PluginTransactionValidatorService;
 @AutoService(BesuPlugin.class)
 public class LineaTransactionValidatorPlugin extends AbstractLineaRequiredPlugin {
   public static final String NAME = "linea";
-  private PluginTransactionValidatorService transactionValidatorService;
+  private BesuConfiguration besuConfiguration;
+  private BlockchainService blockchainService;
+  private TransactionPoolValidatorService transactionValidatorService;
 
   @Override
   public Optional<String> getName() {
@@ -51,10 +54,25 @@ public class LineaTransactionValidatorPlugin extends AbstractLineaRequiredPlugin
 
   @Override
   public void doRegister(final BesuContext context) {
+    besuConfiguration =
+        context
+            .getService(BesuConfiguration.class)
+            .orElseThrow(
+                () ->
+                    new RuntimeException(
+                        "Failed to obtain BesuConfiguration from the BesuContext."));
+
+    blockchainService =
+        context
+            .getService(BlockchainService.class)
+            .orElseThrow(
+                () ->
+                    new RuntimeException(
+                        "Failed to obtain BlockchainService from the BesuContext."));
 
     transactionValidatorService =
         context
-            .getService(PluginTransactionValidatorService.class)
+            .getService(TransactionPoolValidatorService.class)
             .orElseThrow(
                 () ->
                     new RuntimeException(
@@ -68,17 +86,17 @@ public class LineaTransactionValidatorPlugin extends AbstractLineaRequiredPlugin
         Files.lines(Path.of(new File(transactionValidatorConfiguration.denyListPath()).toURI()))) {
       final Set<Address> denied =
           lines.map(l -> Address.fromHexString(l.trim())).collect(Collectors.toUnmodifiableSet());
-      createAndRegister(transactionValidatorService, transactionValidatorConfiguration, denied);
+
+      transactionValidatorService.registerPluginTransactionValidatorFactory(
+          new LineaTransactionValidatorFactory(
+              besuConfiguration,
+              blockchainService,
+              transactionValidatorConfiguration,
+              profitabilityConfiguration,
+              denied));
+
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
-  }
-
-  private void createAndRegister(
-      final PluginTransactionValidatorService transactionValidationService,
-      final LineaTransactionValidatorConfiguration transactionValidatorConfiguration,
-      final Set<Address> denied) {
-    transactionValidationService.registerTransactionValidatorFactory(
-        new LineaTransactionValidatorFactory(transactionValidatorConfiguration, denied));
   }
 }

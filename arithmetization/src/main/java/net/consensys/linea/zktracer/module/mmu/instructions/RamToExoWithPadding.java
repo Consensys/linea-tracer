@@ -191,7 +191,10 @@ public class RamToExoWithPadding implements MmuInstruction {
   @Override
   public MmuData setMicroInstructions(MmuData mmuData) {
     final HubToMmuValues hubToMmuValues = mmuData.hubToMmuValues();
-    final Bytes exoBytes = mmuData.exoSumDecoder().extractBytesFromExo(hubToMmuValues.targetId());
+    final Bytes exoBytes =
+        mmuData
+            .exoSumDecoder()
+            .extractBytesFromExo(hubToMmuValues.targetId(), (int) hubToMmuValues.phase());
     mmuData.exoBytes(exoBytes);
 
     mmuData.mmuToMmioConstantValues(

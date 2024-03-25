@@ -21,6 +21,7 @@ import java.util.Map;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.module.blake2fmodexpdata.Blake2fModexpData;
 import net.consensys.linea.zktracer.module.ec_data.EcData;
 import net.consensys.linea.zktracer.module.rlp.txn.RlpTxn;
 import net.consensys.linea.zktracer.module.rlp.txrcpt.RlpTxrcpt;
@@ -39,7 +40,7 @@ public class ExoSumDecoder {
   private final RlpTxn rlpTxn;
   private final RlpTxrcpt rlpTxrcpt;
   private final EcData ecData;
-  // private final Blake2fModexpData blake2fModexpData;
+  private final Blake2fModexpData blake2fModexpData;
 
   @Getter private boolean exoIsRom;
   @Getter private boolean exoIsBlake2fModexp;
@@ -70,7 +71,7 @@ public class ExoSumDecoder {
   }
 
   // this should be called only once, by the MMU preprocessing
-  public Bytes extractBytesFromExo(final int id) {
+  public Bytes extractBytesFromExo(final int id, final int phase) {
     return exoSourcesMap.entrySet().stream()
         .filter(Map.Entry::getValue)
         .map(
@@ -78,11 +79,13 @@ public class ExoSumDecoder {
               switch (e.getKey()) {
                 case ROM -> this.romLex.sortedChunks().get(id - 1).byteCode().copy();
                 case TX_CALLDATA -> this.rlpTxn.chunkList.get(id - 1).tx().getPayload();
-                case KECCAK -> {}
-                case RIPSHA -> {}
-                case BLAKE2f_MODEXP -> {}
+                case KECCAK -> {} // TODO
+                case RIPSHA -> {} // TODO
+                case BLAKE2f_MODEXP -> {
+                  this.blake2fModexpData.getInputDataByIdAndPhase(id, phase);
+                }
                 case LOG -> this.rlpTxrcpt.getLogDataByAbsLogNumber(id);
-                case EC_DATA -> {}
+                case EC_DATA -> {} // TODO
               }
               return Bytes.EMPTY;
             })

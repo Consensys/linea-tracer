@@ -520,7 +520,10 @@ public class AnyToRamWithPadding implements MmuInstruction {
 
     // Setting ExoSum
     if (hubToMmuValues.exoSum() != 0) {
-      final Bytes exoBytes = mmuData.exoSumDecoder().extractBytesFromExo(hubToMmuValues.sourceId());
+      final Bytes exoBytes =
+          mmuData
+              .exoSumDecoder()
+              .extractBytesFromExo(hubToMmuValues.sourceId(), (int) hubToMmuValues.phase());
       mmuData.exoBytes(exoBytes);
     }
 

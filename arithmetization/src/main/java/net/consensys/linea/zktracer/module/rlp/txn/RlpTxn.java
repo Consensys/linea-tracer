@@ -25,6 +25,7 @@ import static net.consensys.linea.zktracer.module.rlp.txn.Trace.RLP_PREFIX_LIST_
 import static net.consensys.linea.zktracer.module.rlp.txn.Trace.RLP_PREFIX_LIST_SHORT;
 import static net.consensys.linea.zktracer.module.rlp.txn.Trace.RLP_TXN_PHASE_CHAIN_ID_VALUE;
 import static net.consensys.linea.zktracer.module.rlp.txn.Trace.RLP_TXN_PHASE_GAS_PRICE_VALUE;
+import static net.consensys.linea.zktracer.module.rlp.txn.Trace.RLP_TXN_PHASE_MAX_FEE_PER_GAS_VALUE;
 import static net.consensys.linea.zktracer.module.rlp.txn.Trace.RLP_TXN_PHASE_MAX_PRIORITY_FEE_PER_GAS_VALUE;
 import static net.consensys.linea.zktracer.module.rlp.txn.Trace.RLP_TXN_PHASE_NONCE_VALUE;
 import static net.consensys.linea.zktracer.module.rlputils.Pattern.byteCounting;
@@ -243,7 +244,7 @@ public class RlpTxn implements Module {
           bigIntegerToBytes(maxFeePerGas).size() <= 8, "Max Fee per Gas is longer than 8 bytes");
       traceValue.dataLo = maxFeePerGas;
       handlePhaseInteger(
-          traceValue, RLP_TXN_PHASE_MAX_PRIORITY_FEE_PER_GAS_VALUE, maxFeePerGas, 8, trace);
+          traceValue, RLP_TXN_PHASE_MAX_FEE_PER_GAS_VALUE, maxFeePerGas, 8, trace);
     }
 
     // Phase GasLimit

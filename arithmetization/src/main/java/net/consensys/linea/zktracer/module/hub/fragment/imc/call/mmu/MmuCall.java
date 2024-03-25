@@ -64,6 +64,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.opcode.Retu
 import net.consensys.linea.zktracer.module.hub.precompiles.Blake2fMetadata;
 import net.consensys.linea.zktracer.module.hub.precompiles.ModExpMetadata;
 import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
+import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.MemorySpan;
 import org.apache.tuweni.bytes.Bytes;
@@ -164,7 +165,7 @@ public class MmuCall implements TraceSubFragment {
                     hub.currentFrame().callData().toArray(), (int) offset, (int) (offset + 32))));
 
     return new MmuCall(MMU_INST_RIGHT_PADDED_WORD_EXTRACTION)
-        .sourceId(hub.callStack().getById(hub.currentFrame().parentFrame()).contextNumber())
+        .sourceId(callDataContextNumber(hub))
         .sourceOffset(EWord.of(hub.messageFrame().getStackItem(0)))
         .referenceOffset(offset)
         .referenceSize(size)
@@ -174,14 +175,23 @@ public class MmuCall implements TraceSubFragment {
 
   public static MmuCall callDataCopy(final Hub hub) {
     final MemorySpan callDataSegment = hub.currentFrame().callDataSource();
+
     return new MmuCall(MMU_INST_ANY_TO_RAM_WITH_PADDING)
-        .sourceId(hub.transients().tx().absNumber())
+        .sourceId(callDataContextNumber(hub))
         .targetId(hub.currentFrame().contextNumber())
         .sourceOffset(EWord.of(hub.messageFrame().getStackItem(1)))
         .targetOffset(EWord.of(hub.messageFrame().getStackItem(0)))
         .size(Words.clampedToLong(hub.messageFrame().getStackItem(2)))
         .referenceOffset(callDataSegment.offset())
         .referenceSize(callDataSegment.length());
+  }
+
+  private static int callDataContextNumber(final Hub hub) {
+    final CallFrame currentFrame = hub.callStack().current();
+
+    return currentFrame.isRoot()
+        ? currentFrame.contextNumber() - 1
+        : hub.callStack().parent().contextNumber();
   }
 
   public static MmuCall codeCopy(final Hub hub) {

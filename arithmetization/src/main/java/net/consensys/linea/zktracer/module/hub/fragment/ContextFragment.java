@@ -41,7 +41,7 @@ public record ContextFragment(
         false);
   }
 
-  public static ContextFragment intializeExecutionContext(final Hub hub) {
+  public static ContextFragment initializeExecutionContext(final Hub hub) {
     return new ContextFragment(
         hub.callStack(),
         Either.right(hub.stamp() + 1),

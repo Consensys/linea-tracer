@@ -115,7 +115,7 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 public class Hub implements Module {
   private static final int TAU = 8;
 
-  public static final GasProjector gp = new GasProjector();
+  public static final GasProjector GAS_PROJECTOR = new GasProjector();
 
   /** accumulate the trace information for the Hub */
   @Getter private final State state = new State();
@@ -191,7 +191,7 @@ public class Hub implements Module {
   private final Mmio mmio;
 
   @Getter private final Exp exp;
-  private final Mmu mmu;
+  @Getter private final Mmu mmu;
   private final RlpTxrcpt rlpTxrcpt = new RlpTxrcpt();
   private final LogInfo logInfo = new LogInfo(rlpTxrcpt);
   private final LogData logData = new LogData(rlpTxrcpt);
@@ -544,7 +544,7 @@ public class Hub implements Module {
                         .make(fromPostDebitSnapshot, fromPostDebitSnapshot.credit(value))
                     : this.factories.accountFragment().make(toSnapshot, toSnapshot.credit(value))),
             ImcFragment.forTxInit(this),
-            ContextFragment.intializeExecutionContext(this),
+            ContextFragment.initializeExecutionContext(this),
             txFragment));
 
     this.transients.tx().state(TxState.TX_EXEC);
@@ -734,7 +734,7 @@ public class Hub implements Module {
 
     this.defers.postTx(this.state.currentTxTrace());
 
-    this.txStack.enterTransaction(tx);
+    this.txStack.enterTransaction(tx, requiresEvmExecution(world, tx));
 
     this.enterTransaction();
 
@@ -824,9 +824,14 @@ public class Hub implements Module {
 
     if (frame.getDepth() == 0) {
       // Bedrock...
-      final Address toAddress = effectiveToAddress(this.transients.tx().besuTx());
+      final TransactionStack.MetaTransaction currentTx = transients().tx();
+      final Address toAddress = effectiveToAddress(currentTx.besuTx());
       final boolean isDeployment = this.transients.tx().besuTx().getTo().isEmpty();
-      if (!isDeployment && !frame.getInputData().isEmpty()) {
+
+      final boolean shouldCopyTxCallData =
+          !isDeployment && !frame.getInputData().isEmpty() && currentTx.requiresEvmExecution();
+
+      if (shouldCopyTxCallData) {
         this.callStack.newMantleAndBedrock(
             this.state.stamps().hub(),
             this.transients.tx().besuTx().getSender(),
@@ -897,6 +902,16 @@ public class Hub implements Module {
         m.traceContextEnter(frame);
       }
     }
+  }
+
+  private boolean requiresEvmExecution(final WorldView worldView, final Transaction tx) {
+    Optional<? extends Address> receiver = tx.getTo();
+
+    if (receiver.isPresent()) {
+      return worldView.get(receiver.get()).hasCode();
+    }
+
+    return !tx.getInit().get().isEmpty();
   }
 
   public void traceContextReEnter(MessageFrame frame) {

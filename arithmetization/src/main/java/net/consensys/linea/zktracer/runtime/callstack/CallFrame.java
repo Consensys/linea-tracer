@@ -41,6 +41,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 @Accessors(fluent = true)
 public class CallFrame {
   public static final CallFrame EMPTY = new CallFrame();
+
   /** the position of this {@link CallFrame} in the {@link CallStack}. */
   @Getter private int id;
   /** the context number of the frame, i.e. the hub stamp at its creation */
@@ -127,9 +128,9 @@ public class CallFrame {
   }
 
   /** Create a bedrock call frame. */
-  CallFrame(Bytes callData, int cn) {
+  CallFrame(Bytes callData, int contextNumber) {
     this.type = CallFrameType.MANTLE;
-    this.contextNumber = cn;
+    this.contextNumber = contextNumber;
     this.address = Address.ZERO;
     this.set0AlignedCallData(callData);
   }
@@ -190,6 +191,10 @@ public class CallFrame {
     this.returnDataSource = MemorySpan.empty();
     this.latestReturnDataSource = MemorySpan.empty();
     this.requestedReturnDataTarget = MemorySpan.empty(); // TODO: fix me Franklin
+  }
+
+  public boolean isRoot() {
+    return this.depth == 1;
   }
 
   /**

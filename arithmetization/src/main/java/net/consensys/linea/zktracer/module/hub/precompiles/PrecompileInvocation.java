@@ -110,7 +110,7 @@ public record PrecompileInvocation(
               case BLAKE2F -> Blake2fRounds.isRamFailure(hub);
             };
 
-    final long opCodeGas = Hub.gp.of(hub.messageFrame(), hub.opCode()).total();
+    final long opCodeGas = Hub.GAS_PROJECTOR.of(hub.messageFrame(), hub.opCode()).total();
 
     final long precompilePrice =
         hubFailure || ramFailure

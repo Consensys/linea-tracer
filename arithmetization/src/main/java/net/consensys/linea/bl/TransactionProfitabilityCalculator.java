@@ -17,7 +17,6 @@ package net.consensys.linea.bl;
 import java.math.BigDecimal;
 
 import lombok.extern.slf4j.Slf4j;
-import net.consensys.linea.compress.LibCompress;
 import net.consensys.linea.config.LineaProfitabilityConfiguration;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
@@ -115,7 +114,8 @@ public class TransactionProfitabilityCalculator {
 
   private double getCompressedTxSize(final Transaction transaction) {
     final byte[] bytes = transaction.encoded().toArrayUnsafe();
-    return LibCompress.CompressedSize(bytes, bytes.length);
+    //    return LibCompress.CompressedSize(bytes, bytes.length);
+    return 0;
   }
 
   private void log(

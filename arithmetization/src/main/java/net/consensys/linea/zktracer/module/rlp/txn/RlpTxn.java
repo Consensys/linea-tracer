@@ -243,8 +243,7 @@ public class RlpTxn implements Module {
       Preconditions.checkArgument(
           bigIntegerToBytes(maxFeePerGas).size() <= 8, "Max Fee per Gas is longer than 8 bytes");
       traceValue.dataLo = maxFeePerGas;
-      handlePhaseInteger(
-          traceValue, RLP_TXN_PHASE_MAX_FEE_PER_GAS_VALUE, maxFeePerGas, 8, trace);
+      handlePhaseInteger(traceValue, RLP_TXN_PHASE_MAX_FEE_PER_GAS_VALUE, maxFeePerGas, 8, trace);
     }
 
     // Phase GasLimit

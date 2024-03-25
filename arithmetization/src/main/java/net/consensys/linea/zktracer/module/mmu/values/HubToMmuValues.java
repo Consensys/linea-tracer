@@ -53,8 +53,8 @@ public class HubToMmuValues {
     this.referenceOffset = mmuCall.referenceOffset();
     this.referenceSize = mmuCall.referenceSize();
     this.successBit = mmuCall.successBit();
-    this.limb1 = Bytes16.wrap(mmuCall.limb1());
-    this.limb2 = Bytes16.wrap(mmuCall.limb2());
+    this.limb1 = Bytes16.leftPad(mmuCall.limb1());
+    this.limb2 = Bytes16.leftPad(mmuCall.limb2());
     this.phase = mmuCall.phase();
     this.exoSum = mmuCall.exoSum();
   }

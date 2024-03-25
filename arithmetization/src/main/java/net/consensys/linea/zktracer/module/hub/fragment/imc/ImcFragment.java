@@ -23,6 +23,7 @@ import java.util.Optional;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
+import net.consensys.linea.zktracer.module.hub.TransactionStack;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.ExpLogCall;
@@ -37,9 +38,11 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.Dep
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.ExceptionalCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.Jump;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.SStore;
+import net.consensys.linea.zktracer.module.mmu.values.HubToMmuValues;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.gas.GasConstants;
 import net.consensys.linea.zktracer.types.EWord;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.account.AccountState;
@@ -85,7 +88,19 @@ public class ImcFragment implements TraceFragment {
   public static ImcFragment forTxInit(final Hub hub) {
     // isdeployment == false
     // non empty calldata
-    return ImcFragment.empty(hub).callMmu(MmuCall.txInit(hub));
+    final TransactionStack.MetaTransaction currentTx = hub.transients().tx();
+    final boolean isDeployment = currentTx.besuTx().getTo().isEmpty();
+
+    final Optional<Bytes> txData = currentTx.besuTx().getData();
+    final boolean shouldCopyTxCallData =
+        !isDeployment
+            && txData.isPresent()
+            && !txData.get().isEmpty()
+            && currentTx.requiresEvmExecution();
+
+    final ImcFragment emptyFragment = ImcFragment.empty(hub);
+
+    return shouldCopyTxCallData ? emptyFragment.callMmu(MmuCall.txInit(hub)) : emptyFragment;
   }
 
   /**
@@ -130,7 +145,7 @@ public class ImcFragment implements TraceFragment {
       }
 
       final long stipend = value.isZero() ? 0 : GasConstants.G_CALL_STIPEND.cost();
-      final long upfrontCost = Hub.gp.of(hub.messageFrame(), hub.opCode()).total();
+      final long upfrontCost = Hub.GAS_PROJECTOR.of(hub.messageFrame(), hub.opCode()).total();
 
       r.callStp(
           new StpCall(
@@ -247,6 +262,9 @@ public class ImcFragment implements TraceFragment {
     } else {
       mmuIsSet = true;
     }
+    HubToMmuValues hubToMmuValues = HubToMmuValues.fromMmuCall(f);
+    this.hub.mmu().call(hubToMmuValues, this.hub.callStack());
+
     this.moduleCalls.add(f);
     return this;
   }

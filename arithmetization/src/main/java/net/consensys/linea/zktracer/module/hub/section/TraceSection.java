@@ -252,7 +252,7 @@ public abstract class TraceSection {
                 new StackLine().asStackOperations(),
                 hub.pch().exceptions().snapshot(),
                 hub.pch().aborts().snapshot(),
-                Hub.gp.of(f.frame(), f.opCode()),
+                Hub.GAS_PROJECTOR.of(f.frame(), f.opCode()),
                 f.underDeployment()));
       }
     } else {
@@ -264,7 +264,7 @@ public abstract class TraceSection {
                 line.asStackOperations(),
                 hub.pch().exceptions().snapshot(),
                 hub.pch().aborts().snapshot(),
-                Hub.gp.of(f.frame(), f.opCode()),
+                Hub.GAS_PROJECTOR.of(f.frame(), f.opCode()),
                 f.underDeployment()));
       }
     }

@@ -16,7 +16,6 @@
 package net.consensys.linea;
 
 import lombok.extern.slf4j.Slf4j;
-import net.consensys.linea.compress.LibCompress;
 import net.consensys.linea.config.LineaL1L2BridgeCliOptions;
 import net.consensys.linea.config.LineaL1L2BridgeConfiguration;
 import net.consensys.linea.config.LineaProfitabilityCliOptions;
@@ -47,10 +46,11 @@ public abstract class AbstractLineaSharedOptionsPlugin implements BesuPlugin {
   protected static LineaRpcConfiguration rpcConfiguration;
   protected static LineaProfitabilityConfiguration profitabilityConfiguration;
 
-  static {
-    // force the initialization of the gnark compress native library to fail fast in case of issues
-    LibCompress.CompressedSize(new byte[0], 0);
-  }
+  //  static {
+  //    // force the initialization of the gnark compress native library to fail fast in case of
+  // issues
+  //    LibCompress.CompressedSize(new byte[0], 0);
+  //  }
 
   @Override
   public synchronized void register(final BesuContext context) {

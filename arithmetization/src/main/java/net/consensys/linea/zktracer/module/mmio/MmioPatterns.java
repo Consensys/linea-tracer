@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.module.mmio;
 
 import static net.consensys.linea.zktracer.module.mmio.Trace.LLARGE;
 
+import net.consensys.linea.zktracer.module.mmu.MmuData;
 import net.consensys.linea.zktracer.types.Bytes16;
 import org.apache.tuweni.bytes.Bytes;
 
@@ -176,5 +177,19 @@ public class MmioPatterns {
             target.slice(0, targetByteOffset),
             Bytes.repeat((byte) 0, size),
             target.slice(targetByteOffset + size));
+  }
+
+  public static void updateTemporaryTargetRam(
+      MmuData mmuData, int targetLimbOffsetToUpdate, Bytes16 newLimb) {
+    final Bytes bytesPreLimb =
+        Bytes.repeat(
+            (byte) 0,
+            LLARGE
+                * targetLimbOffsetToUpdate); // We won't access the preLimb again, so we don't care
+    // of its value
+    final Bytes bytesPostLimb =
+        mmuData.targetRamBytes().slice((targetLimbOffsetToUpdate + 1) * LLARGE);
+
+    mmuData.targetRamBytes(Bytes.concatenate(bytesPreLimb, newLimb, bytesPostLimb));
   }
 }

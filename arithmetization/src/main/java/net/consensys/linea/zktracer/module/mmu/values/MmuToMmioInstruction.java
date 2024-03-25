@@ -31,4 +31,5 @@ public class MmuToMmioInstruction {
   private int targetLimbOffset;
   private short targetByteOffset;
   @Builder.Default private Bytes16 limb = Bytes16.ZERO;
+  private boolean targetLimbIsTouchedTwice;
 }

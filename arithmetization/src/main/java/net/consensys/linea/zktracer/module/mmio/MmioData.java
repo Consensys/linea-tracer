@@ -56,7 +56,7 @@ public class MmioData {
   private Bytes16 valBNew;
   private Bytes16 valCNew;
 
-  // imorted from the mmu
+  // imported from the mmu
   private int instruction;
   private int sourceContext;
   private int targetContext;
@@ -73,6 +73,7 @@ public class MmioData {
   private long phase;
   private boolean successBit;
   private ExoSumDecoder exoSumDecoder;
+  private boolean targetLimbIsTouchedTwice;
 
   private int indexX;
 
@@ -89,13 +90,6 @@ public class MmioData {
   private Bytes[] acc2;
   private Bytes[] acc3;
   private Bytes[] acc4;
-
-  // private boolean exoIsKeccak;
-  // private boolean exoIsRipSha;
-  // private boolean exoIsBlake2fModexp;
-  // private boolean exoIsLog;
-  // private boolean exoIsRom;
-  // private boolean exoIsTxcd;
 
   public MmioData(
       MmuToMmioConstantValues mmuToMmioConstantValues,
@@ -130,6 +124,7 @@ public class MmioData {
         mmuToMmioConstantValues.phase(),
         mmuToMmioConstantValues.successBit(),
         exoSumDecoder,
+        mmuToMmioInstruction.targetLimbIsTouchedTwice(),
         0,
         new boolean[LLARGE],
         new boolean[LLARGE],

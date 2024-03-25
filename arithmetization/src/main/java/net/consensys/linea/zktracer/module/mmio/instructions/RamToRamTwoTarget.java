@@ -17,7 +17,9 @@ package net.consensys.linea.zktracer.module.mmio.instructions;
 
 import static net.consensys.linea.zktracer.module.mmio.MmioPatterns.onePartialToTwoOutputOne;
 import static net.consensys.linea.zktracer.module.mmio.MmioPatterns.onePartialToTwoOutputTwo;
+import static net.consensys.linea.zktracer.module.mmio.MmioPatterns.updateTemporaryTargetRam;
 
+import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.mmio.MmioData;
 import net.consensys.linea.zktracer.module.mmu.MmuData;
@@ -40,6 +42,10 @@ public class RamToRamTwoTarget implements MmioInstruction {
 
     MmioData mmioData =
         new MmioData(mmuToMmioConstantValues, mmuToMmioInstruction, mmuData.exoSumDecoder());
+
+    Preconditions.checkArgument(
+        mmioData.targetLimbIsTouchedTwice(),
+        "The MMIO instruction RamToRamTwoTarget must temporary update the target limb");
 
     mmioData.cnA(mmioData.sourceContext());
     mmioData.cnB(mmioData.targetContext());
@@ -77,6 +83,8 @@ public class RamToRamTwoTarget implements MmioInstruction {
         mmioData.sourceByteOffset(),
         mmioData.targetByteOffset(),
         mmioData.size());
+
+    updateTemporaryTargetRam(mmuData, mmioData.indexC(), mmioData.valCNew());
 
     return mmioData;
   }

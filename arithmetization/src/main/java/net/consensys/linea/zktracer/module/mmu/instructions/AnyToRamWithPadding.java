@@ -16,6 +16,8 @@
 package net.consensys.linea.zktracer.module.mmu.instructions;
 
 import static net.consensys.linea.zktracer.module.mmu.Trace.LLARGE;
+import static net.consensys.linea.zktracer.module.mmu.Trace.MMIO_INST_LIMB_TO_RAM_TWO_TARGET;
+import static net.consensys.linea.zktracer.module.mmu.Trace.MMIO_INST_RAM_TO_RAM_TWO_TARGET;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.longToBytes;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
@@ -79,6 +81,7 @@ public class AnyToRamWithPadding implements MmuInstruction {
   private short maxSourceByteOffset;
   private boolean onlyDataTransferSingleTarget;
   private boolean onlyDataTransferMaxesOutTarget;
+  private boolean lastDataTransferMaxesOutTarget;
   private boolean firstDataTransferSingleTarget;
   private boolean firstDataTransferMaxesOutTarget;
   private int firstPaddingLimbOffset;
@@ -87,6 +90,7 @@ public class AnyToRamWithPadding implements MmuInstruction {
   private int totInitialRightZeroes;
   private int maxSourceOffsetOrZero;
   private int firstMiddleNonTrivialTargetLimbOffset;
+  private boolean dataToPaddingTransitionTakesTwoMmioInstructions;
 
   public AnyToRamWithPadding(Euc euc, Wcp wcp) {
     this.euc = euc;
@@ -413,11 +417,12 @@ public class AnyToRamWithPadding implements MmuInstruction {
               .arg2Lo(wcpArg2)
               .result(wcpResult)
               .build());
-
+      lastDataTransferMaxesOutTarget = wcpResult;
       lastDataTransferSingleTarget = eucOp.quotient().toInt() == 0;
       targetLimbOffsetIncrementsAfterFirstDataTransfer =
           firstDataTransferSingleTarget ? firstDataTransferMaxesOutTarget : true;
-      targetLimbOffsetIncrementsAtTransition = lastDataTransferSingleTarget ? wcpResult : true;
+      targetLimbOffsetIncrementsAtTransition =
+          lastDataTransferSingleTarget ? lastDataTransferMaxesOutTarget : true;
     } else {
       wcpCallRecords.add(MmuWcpCallRecord.EMPTY_CALL);
       eucCallRecords.add(MmuEucCallRecord.EMPTY_CALL);
@@ -512,10 +517,17 @@ public class AnyToRamWithPadding implements MmuInstruction {
 
   private void setMicroInstructionsSomeDataCase(MmuData mmuData) {
     final HubToMmuValues hubToMmuValues = mmuData.hubToMmuValues();
+
+    // Setting ExoSum
     if (hubToMmuValues.exoSum() != 0) {
       final Bytes exoBytes = mmuData.exoSumDecoder().extractBytesFromExo(hubToMmuValues.sourceId());
       mmuData.exoBytes(exoBytes);
     }
+
+    // Setting if the transition data / padding is made in 1 or 2 mmio instructions
+    dataToPaddingTransitionTakesTwoMmioInstructions =
+        totInitialRightZeroes != 0
+            && (onlyDataTransferMaxesOutTarget || lastDataTransferMaxesOutTarget);
 
     // Setting Microinstruction constant values
     mmuData.mmuToMmioConstantValues(
@@ -530,8 +542,6 @@ public class AnyToRamWithPadding implements MmuInstruction {
     // Setting data transfer micro instructions
     if (totalNonTrivialIsOne) {
       someDataOnlyNonTrivialInstruction(mmuData);
-      // firstOrOnlyPaddingTargetLimbOffset =
-      //    targetLimbOffsetIncrementsAtTransition ? minTargetLimbOffset + 1 : minTargetLimbOffset;
     } else {
       someDataFirstNonTrivialInstruction(mmuData);
       firstMiddleNonTrivialTargetLimbOffset =
@@ -542,18 +552,16 @@ public class AnyToRamWithPadding implements MmuInstruction {
         someDataMiddleNonTrivialInstruction(mmuData, i);
       }
       someDataLastNonTrivialInstruction(mmuData);
-      // firstOrOnlyPaddingTargetLimbOffset =
-      //    targetLimbOffsetIncrementsAtTransition
-      //        ? firstMiddleNonTrivialTargetLimbOffset + totInitialNonTrivial - 1
-      //        : firstMiddleNonTrivialTargetLimbOffset + totInitialNonTrivial - 2;
     }
 
     // Setting padding micro instructions
-    someDataOnlyOrFirstPaddingInstruction(mmuData);
-    for (int i = 1; i < totInitialNonTrivial - 1; i++) {
-      someDataMiddlePaddingInstruction(mmuData, i);
+    if (totInitialRightZeroes != 0) {
+      someDataOnlyOrFirstPaddingInstruction(mmuData);
+      for (int i = 1; i < totInitialRightZeroes - 1; i++) {
+        someDataMiddlePaddingInstruction(mmuData, i);
+      }
+      someDataLastPaddingInstruction(mmuData);
     }
-    someDataLastPaddingInstruction(mmuData);
   }
 
   private void purePaddingOnlyMicroInstruction(MmuData mmuData) {
@@ -622,6 +630,9 @@ public class AnyToRamWithPadding implements MmuInstruction {
             .targetLimbOffset(minTargetLimbOffset)
             .targetByteOffset(minTargetByteOffset)
             .limb((Bytes16) limb)
+            .targetLimbIsTouchedTwice(
+                mmioInstNeedsUpdateTemporaryTargetRam(onlyMmioInstruction)
+                    || dataToPaddingTransitionTakesTwoMmioInstructions)
             .build());
   }
 
@@ -649,6 +660,7 @@ public class AnyToRamWithPadding implements MmuInstruction {
             .targetLimbOffset(minTargetLimbOffset)
             .targetByteOffset(minTargetByteOffset)
             .limb((Bytes16) limb)
+            .targetLimbIsTouchedTwice(mmioInstNeedsUpdateTemporaryTargetRam(firstMmioInstruction))
             .build());
   }
 
@@ -670,31 +682,35 @@ public class AnyToRamWithPadding implements MmuInstruction {
             .targetLimbOffset(firstMiddleNonTrivialTargetLimbOffset + rowNumber - 1)
             .targetByteOffset(middleTargetByteOffset)
             .limb((Bytes16) limb)
+            .targetLimbIsTouchedTwice(mmioInstNeedsUpdateTemporaryTargetRam(middleMmioInstruction))
             .build());
   }
 
   private void someDataLastNonTrivialInstruction(MmuData mmuData) {
     final Bytes limb = Bytes.EMPTY; // TODO
-    int mmioInstruction = 0;
+    int lastMmioInstruction = 0;
     if (dataSourceIsRam) {
-      mmioInstruction =
+      lastMmioInstruction =
           lastDataTransferSingleTarget
               ? Trace.MMIO_INST_RAM_TO_RAM_PARTIAL
               : Trace.MMIO_INST_RAM_TO_RAM_TWO_TARGET;
     } else {
-      mmioInstruction =
+      lastMmioInstruction =
           lastDataTransferSingleTarget
               ? Trace.MMIO_INST_LIMB_TO_RAM_ONE_TARGET
               : Trace.MMIO_INST_LIMB_TO_RAM_TWO_TARGET;
     }
     mmuData.mmuToMmioInstruction(
         MmuToMmioInstruction.builder()
-            .mmioInstruction(mmioInstruction)
+            .mmioInstruction(lastMmioInstruction)
             .size(lastDataTransferSize)
             .sourceLimbOffset(minSourceLimbOffset + totInitialNonTrivial - 1)
             .targetLimbOffset(firstMiddleNonTrivialTargetLimbOffset + totInitialNonTrivial - 2)
             .targetByteOffset(middleTargetByteOffset)
             .limb((Bytes16) limb)
+            .targetLimbIsTouchedTwice(
+                mmioInstNeedsUpdateTemporaryTargetRam(lastMmioInstruction)
+                    || dataToPaddingTransitionTakesTwoMmioInstructions)
             .build());
   }
 
@@ -723,5 +739,10 @@ public class AnyToRamWithPadding implements MmuInstruction {
             .size(lastPaddingSize)
             .targetLimbOffset(lastPaddingLimbOffset)
             .build());
+  }
+
+  private boolean mmioInstNeedsUpdateTemporaryTargetRam(int mmioInstruction) {
+    return mmioInstruction == MMIO_INST_RAM_TO_RAM_TWO_TARGET
+        || mmioInstruction == MMIO_INST_LIMB_TO_RAM_TWO_TARGET;
   }
 }

@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.mmio.instructions;
 
 import static net.consensys.linea.zktracer.module.mmio.MmioPatterns.onePartialToOne;
+import static net.consensys.linea.zktracer.module.mmio.MmioPatterns.updateTemporaryTargetRam;
 
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.mmio.MmioData;
@@ -70,6 +71,10 @@ public class RamToRamPartial implements MmioInstruction {
         mmioData.sourceByteOffset(),
         mmioData.targetByteOffset(),
         mmioData.size());
+
+    if (mmioData.targetLimbIsTouchedTwice()) {
+      updateTemporaryTargetRam(mmuData, mmioData.indexB(), mmioData.valBNew());
+    }
 
     return mmioData;
   }

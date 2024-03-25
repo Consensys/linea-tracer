@@ -237,7 +237,7 @@ public class LineaEstimateGas {
               return lowResult
                   .map(
                       lr -> {
-                        // if with the low estimation gas is successful the return this estimation
+                        // if with the low estimation gas is successful then return this estimation
                         if (lr.isSuccessful()) {
                           log.atTrace()
                               .setMessage("[{}] Low gas estimation {} successful")

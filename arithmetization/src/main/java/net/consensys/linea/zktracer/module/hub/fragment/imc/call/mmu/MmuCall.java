@@ -227,8 +227,8 @@ public class MmuCall implements TraceSubFragment {
   public static MmuCall mstore(final Hub hub) {
     final EWord storedValue = EWord.of(hub.messageFrame().getStackItem(1));
     return new MmuCall(MMU_INST_MSTORE)
-        .sourceId(hub.currentFrame().contextNumber())
-        .sourceOffset(EWord.of(hub.messageFrame().getStackItem(0)))
+        .targetId(hub.currentFrame().contextNumber())
+        .targetOffset(EWord.of(hub.messageFrame().getStackItem(0)))
         .limb1(storedValue.hi())
         .limb2(storedValue.lo());
   }
@@ -236,8 +236,8 @@ public class MmuCall implements TraceSubFragment {
   public static MmuCall mstore8(final Hub hub) {
     final EWord storedValue = EWord.of(hub.messageFrame().getStackItem(1));
     return new MmuCall(MMU_INST_MSTORE8)
-        .sourceId(hub.currentFrame().contextNumber())
-        .sourceOffset(EWord.of(hub.messageFrame().getStackItem(0)))
+        .targetId(hub.currentFrame().contextNumber())
+        .targetOffset(EWord.of(hub.messageFrame().getStackItem(0)))
         .limb1(storedValue.hi())
         .limb2(storedValue.lo());
   }

@@ -23,7 +23,7 @@ import static net.consensys.linea.zktracer.module.mmio.MmioPatterns.plateau;
 import static net.consensys.linea.zktracer.module.mmio.MmioPatterns.power;
 import static net.consensys.linea.zktracer.module.mmio.Trace.LLARGE;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -77,19 +77,19 @@ public class MmioData {
 
   private int indexX;
 
-  private boolean[] bin1;
-  private boolean[] bin2;
-  private boolean[] bin3;
-  private boolean[] bin4;
-  private boolean[] bin5;
+  private List<Boolean> bin1;
+  private List<Boolean> bin2;
+  private List<Boolean> bin3;
+  private List<Boolean> bin4;
+  private List<Boolean> bin5;
 
-  private Bytes[] pow2561;
-  private Bytes[] pow2562;
+  private List<Bytes> pow2561;
+  private List<Bytes> pow2562;
 
-  private Bytes[] acc1;
-  private Bytes[] acc2;
-  private Bytes[] acc3;
-  private Bytes[] acc4;
+  private List<Bytes> acc1;
+  private List<Bytes> acc2;
+  private List<Bytes> acc3;
+  private List<Bytes> acc4;
 
   public MmioData(
       MmuToMmioConstantValues mmuToMmioConstantValues,
@@ -126,22 +126,17 @@ public class MmioData {
         exoSumDecoder,
         mmuToMmioInstruction.targetLimbIsTouchedTwice(),
         0,
-        new boolean[LLARGE],
-        new boolean[LLARGE],
-        new boolean[LLARGE],
-        new boolean[LLARGE],
-        new boolean[LLARGE],
-        initBytes(new Bytes[LLARGE]),
-        initBytes(new Bytes[LLARGE]),
-        initBytes(new Bytes[LLARGE]),
-        initBytes(new Bytes[LLARGE]),
-        initBytes(new Bytes[LLARGE]),
-        initBytes(new Bytes[LLARGE]));
-  }
-
-  private static Bytes[] initBytes(Bytes[] arr) {
-    Arrays.fill(arr, Bytes.EMPTY);
-    return arr;
+        new ArrayList<>(LLARGE),
+        new ArrayList<>(LLARGE),
+        new ArrayList<>(LLARGE),
+        new ArrayList<>(LLARGE),
+        new ArrayList<>(LLARGE),
+        new ArrayList<>(LLARGE),
+        new ArrayList<>(LLARGE),
+        new ArrayList<>(LLARGE),
+        new ArrayList<>(LLARGE),
+        new ArrayList<>(LLARGE),
+        new ArrayList<>(LLARGE));
   }
 
   public static boolean isFastOperation(final int mmioInstruction) {
@@ -159,16 +154,16 @@ public class MmioData {
   }
 
   public void onePartialToOne(
-      Bytes16 sourceBytes,
-      Bytes16 targetBytes,
-      short sourceOffsetTrigger,
-      short targetOffsetTrigger,
-      short size) {
+      final Bytes16 sourceBytes,
+      final Bytes16 targetBytes,
+      final short sourceOffsetTrigger,
+      final short targetOffsetTrigger,
+      final short size) {
     for (short ct = 0; ct < LLARGE; ct++) {
-      bin1[ct] = plateau(targetOffsetTrigger, ct);
-      bin2[ct] = plateau(targetOffsetTrigger + size, ct);
-      bin3[ct] = plateau(sourceOffsetTrigger, ct);
-      bin4[ct] = plateau(sourceOffsetTrigger + size, ct);
+      bin1.add(ct, plateau(targetOffsetTrigger, ct));
+      bin2.add(ct, plateau(targetOffsetTrigger + size, ct));
+      bin3.add(ct, plateau(sourceOffsetTrigger, ct));
+      bin4.add(ct, plateau(sourceOffsetTrigger + size, ct));
     }
     acc1 = isolateChunk(targetBytes, bin1, bin2);
     acc2 = isolateChunk(sourceBytes, bin3, bin4);
@@ -176,18 +171,18 @@ public class MmioData {
   }
 
   public void onePartialToTwo(
-      Bytes16 sourceBytes,
-      Bytes16 target1Bytes,
-      Bytes16 target2Bytes,
-      short sourceOffsetTrigger,
-      short target1OffsetTrigger,
-      short size) {
+      final Bytes16 sourceBytes,
+      final Bytes16 target1Bytes,
+      final Bytes16 target2Bytes,
+      final short sourceOffsetTrigger,
+      final short target1OffsetTrigger,
+      final short size) {
     for (short ct = 0; ct < LLARGE; ct++) {
-      bin1[ct] = plateau(target1OffsetTrigger, ct);
-      bin2[ct] = plateau(target1OffsetTrigger + size - LLARGE, ct);
-      bin3[ct] = plateau(sourceOffsetTrigger, ct);
-      bin4[ct] = plateau(sourceOffsetTrigger + LLARGE - target1OffsetTrigger, ct);
-      bin5[ct] = plateau(sourceOffsetTrigger + size, ct);
+      bin1.add(ct, plateau(target1OffsetTrigger, ct));
+      bin2.add(ct, plateau(target1OffsetTrigger + size - LLARGE, ct));
+      bin3.add(ct, plateau(sourceOffsetTrigger, ct));
+      bin4.add(ct, plateau(sourceOffsetTrigger + LLARGE - target1OffsetTrigger, ct));
+      bin5.add(ct, plateau(sourceOffsetTrigger + size, ct));
     }
     acc1 = isolateSuffix(target1Bytes, bin1);
     acc1 = isolatePrefix(target2Bytes, bin2);
@@ -201,9 +196,9 @@ public class MmioData {
 
     for (short ct = 0; ct < LLARGE; ct++) {
 
-      bin1[ct] = plateau(sourceOffsetTrigger, ct);
-      bin2[ct] = plateau(sourceOffsetTrigger + size, ct);
-      bin3[ct] = plateau(size, ct);
+      bin1.add(ct, plateau(sourceOffsetTrigger, ct));
+      bin2.add(ct, plateau(sourceOffsetTrigger + size, ct));
+      bin3.add(ct, plateau(size, ct));
     }
     acc1 = isolateChunk(sourceBytes, bin1, bin2);
     pow2561 = power(bin3);
@@ -212,8 +207,8 @@ public class MmioData {
   public void excision(final Bytes16 target, final short targetOffsetTrigger, final short size) {
 
     for (short ct = 0; ct < LLARGE; ct++) {
-      bin1[ct] = plateau(targetOffsetTrigger, ct);
-      bin2[ct] = plateau(targetOffsetTrigger + size, ct);
+      bin1.add(ct, plateau(targetOffsetTrigger, ct));
+      bin2.add(ct, plateau(targetOffsetTrigger + size, ct));
     }
 
     acc1 = isolateChunk(target, bin1, bin2);
@@ -240,13 +235,16 @@ public class MmioData {
   // }
 
   public void twoToOnePadded(
-      Bytes16 sourceBytes1, Bytes16 sourceBytes2, short sourceOffsetTrigger, short size) {
+      final Bytes16 sourceBytes1,
+      final Bytes16 sourceBytes2,
+      final short sourceOffsetTrigger,
+      final short size) {
 
     for (short ct = 0; ct < LLARGE; ct++) {
-      bin1[ct] = plateau(sourceOffsetTrigger, ct);
-      bin2[ct] = plateau(sourceOffsetTrigger + size - LLARGE, ct);
-      bin3[ct] = plateau(LLARGE - sourceOffsetTrigger, ct);
-      bin4[ct] = plateau(size, ct);
+      bin1.add(ct, plateau(sourceOffsetTrigger, ct));
+      bin2.add(ct, plateau(sourceOffsetTrigger + size - LLARGE, ct));
+      bin3.add(ct, plateau(LLARGE - sourceOffsetTrigger, ct));
+      bin4.add(ct, plateau(size, ct));
     }
     acc1 = isolateSuffix(sourceBytes1, bin1);
     acc2 = isolatePrefix(sourceBytes2, bin2);
@@ -263,10 +261,10 @@ public class MmioData {
       final short size) {
 
     for (short ct = 0; ct < LLARGE; ct++) {
-      bin1[ct] = plateau(sourceOffsetTrigger, ct);
-      bin2[ct] = plateau(sourceOffsetTrigger + size - LLARGE, ct);
-      bin3[ct] = plateau(targetOffsetTrgger, ct);
-      bin4[ct] = plateau(targetOffsetTrgger + size, ct);
+      bin1.add(ct, plateau(sourceOffsetTrigger, ct));
+      bin2.add(ct, plateau(sourceOffsetTrigger + size - LLARGE, ct));
+      bin3.add(ct, plateau(targetOffsetTrgger, ct));
+      bin4.add(ct, plateau(targetOffsetTrgger + size, ct));
     }
 
     acc1 = isolateSuffix(source1, bin1);

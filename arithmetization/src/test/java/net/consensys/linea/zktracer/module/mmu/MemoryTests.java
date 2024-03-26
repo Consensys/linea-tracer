@@ -25,14 +25,39 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(EvmExtension.class)
 class MemoryTests {
   @Test
-  void basicMstore() {
-    BytecodeRunner.of(BytecodeCompiler.newProgram().push(32).push(27).op(OpCode.MSTORE).compile())
+  void fastMstore() {
+    BytecodeRunner.of(BytecodeCompiler.newProgram().push(25).push(32).op(OpCode.MSTORE).compile())
         .run();
   }
 
   @Test
-  void basicMload() {
+  void slowMstore() {
+    BytecodeRunner.of(BytecodeCompiler.newProgram().push(13).push(27).op(OpCode.MSTORE).compile())
+        .run();
+  }
+
+  @Test
+  void fastMload() {
+    BytecodeRunner.of(BytecodeCompiler.newProgram().push(34).push(0).op(OpCode.MLOAD).compile())
+        .run();
+  }
+
+  @Test
+  void slowMload() {
     BytecodeRunner.of(BytecodeCompiler.newProgram().push(34).push(76).op(OpCode.MLOAD).compile())
+        .run();
+  }
+
+  @Test
+  void alignedMstore8() {
+    BytecodeRunner.of(BytecodeCompiler.newProgram().push(12).push(0).op(OpCode.MSTORE8).compile())
+        .run();
+  }
+
+  @Test
+  void nonAlignedMstore8() {
+    BytecodeRunner.of(
+            BytecodeCompiler.newProgram().push(66872).push(35).op(OpCode.MSTORE8).compile())
         .run();
   }
 }

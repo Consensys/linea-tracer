@@ -58,6 +58,7 @@ public class MmioInstructions {
             new RamToRamPartial(mmuData, mmioInstructionNumber),
             Trace.MMIO_INST_RAM_TO_RAM_TWO_TARGET,
             new RamToRamTwoTarget(mmuData, mmioInstructionNumber));
+    // TODO misses RamExcision, RamToRamTwoSource, RamVanishes
   }
 
   public MmioData compute(final int mmioInstruction) {

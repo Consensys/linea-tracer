@@ -17,76 +17,90 @@ package net.consensys.linea.zktracer.module.mmio;
 
 import static net.consensys.linea.zktracer.module.mmio.Trace.LLARGE;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import net.consensys.linea.zktracer.module.mmu.MmuData;
 import net.consensys.linea.zktracer.types.Bytes16;
 import org.apache.tuweni.bytes.Bytes;
 
 public class MmioPatterns {
 
-  static Bytes[] isolateSuffix(final Bytes16 input, final boolean[] flag) {
-    Bytes[] output = new Bytes[LLARGE];
+  static List<Bytes> isolateSuffix(final Bytes16 input, final List<Boolean> flag) {
+    List<Bytes> output = new ArrayList<>(LLARGE);
 
-    output[0] = flag[0] ? Bytes.of(input.get(0)) : Bytes.EMPTY;
+    output.add(0, flag.get(0) ? Bytes.of(input.get(0)) : Bytes.EMPTY);
 
-    for (int ct = 1; ct < LLARGE; ct++) {
-      output[ct] =
-          flag[ct] ? Bytes.concatenate(output[ct - 1], Bytes.of(input.get(ct))) : output[ct - 1];
+    for (short ct = 1; ct < LLARGE; ct++) {
+      output.add(
+          ct,
+          flag.get(ct)
+              ? Bytes.concatenate(output.get(ct - 1), Bytes.of(input.get(ct)))
+              : output.get(ct - 1));
     }
 
     return output;
   }
 
-  static Bytes[] isolatePrefix(final Bytes16 input, final boolean[] flag) {
-    Bytes[] output = new Bytes[LLARGE];
+  static List<Bytes> isolatePrefix(final Bytes16 input, final List<Boolean> flag) {
+    List<Bytes> output = new ArrayList<>(LLARGE);
 
-    output[0] = flag[0] ? Bytes.EMPTY : Bytes.of(input.get(0));
+    output.add(0, flag.get(0) ? Bytes.EMPTY : Bytes.of(input.get(0)));
 
-    for (int ct = 1; ct < LLARGE; ct++) {
-      output[ct] =
-          flag[ct] ? output[ct - 1] : Bytes.concatenate(output[ct - 1], Bytes.of(input.get(ct)));
+    for (short ct = 1; ct < LLARGE; ct++) {
+      output.add(
+          ct,
+          flag.get(ct)
+              ? output.get(ct - 1)
+              : Bytes.concatenate(output.get(ct - 1), Bytes.of(input.get(ct))));
     }
 
     return output;
   }
 
-  static Bytes[] isolateChunk(
-      final Bytes16 input, final boolean[] startFlag, final boolean[] endFlag) {
-    Bytes[] output = new Bytes[LLARGE];
+  static List<Bytes> isolateChunk(
+      final Bytes16 input, final List<Boolean> startFlag, final List<Boolean> endFlag) {
+    List<Bytes> output = new ArrayList<>(LLARGE);
 
-    output[0] = startFlag[0] ? Bytes.of(input.get(0)) : Bytes.EMPTY;
+    output.add(0, startFlag.get(0) ? Bytes.of(input.get(0)) : Bytes.EMPTY);
 
-    for (int ct = 1; ct < LLARGE; ct++) {
-      if (startFlag[ct]) {
-        output[ct] =
-            endFlag[ct]
-                ? output[ct - 1]
-                : Bytes.concatenate(output[ct - 1], Bytes.of(input.get(ct)));
+    for (short ct = 1; ct < LLARGE; ct++) {
+      if (startFlag.get(ct)) {
+        output.add(
+            ct,
+            endFlag.get(ct)
+                ? output.get(ct - 1)
+                : Bytes.concatenate(output.get(ct - 1), Bytes.of(input.get(ct))));
       } else {
-        output[ct] = Bytes.EMPTY;
+        output.add(ct, Bytes.EMPTY);
       }
     }
 
     return output;
   }
 
-  static Bytes[] power(final boolean[] flag) {
-    Bytes[] output = new Bytes[LLARGE];
+  static List<Bytes> power(final List<Boolean> flag) {
+    List<Bytes> output = new ArrayList<>(LLARGE);
 
-    output[0] = Bytes.of(1);
+    output.add(0, flag.get(0) ? Bytes.ofUnsignedShort(256) : Bytes.of(1));
 
-    for (int ct = 1; ct < LLARGE; ct++) {
-      output[ct] = flag[ct] ? output[ct - 1].shiftLeft(8) : output[ct - 1];
+    for (short ct = 1; ct < LLARGE; ct++) {
+      output.add(
+          ct,
+          flag.get(ct) ? Bytes.concatenate(output.get(ct - 1), Bytes.of(0)) : output.get(ct - 1));
     }
     return output;
   }
 
-  static Bytes[] antiPower(final boolean[] flag) {
-    Bytes[] output = new Bytes[LLARGE];
+  static List<Bytes> antiPower(final List<Boolean> flag) {
+    List<Bytes> output = new ArrayList<>(LLARGE);
 
-    output[0] = flag[0] ? Bytes.of(256) : Bytes.of(1);
+    output.add(0, flag.get(0) ? Bytes.of(1) : Bytes.ofUnsignedShort(256));
 
     for (short ct = 1; ct < LLARGE; ct++) {
-      output[ct] = flag[ct] ? output[ct - 1] : output[ct - 1].shiftLeft(8);
+      output.add(
+          ct,
+          flag.get(ct) ? output.get(ct - 1) : Bytes.concatenate(output.get(ct - 1), Bytes.of(0)));
     }
     return output;
   }
@@ -101,8 +115,11 @@ public class MmioPatterns {
       final short sourceByteOffset,
       final short targetByteOffset,
       final short size) {
-    return Bytes16.leftPad(
-        Bytes.concatenate(target.slice(0, targetByteOffset), source.slice(sourceByteOffset, size)));
+    return Bytes16.wrap(
+        Bytes.concatenate(
+            target.slice(0, targetByteOffset),
+            source.slice(sourceByteOffset, size),
+            target.slice(targetByteOffset + size, LLARGE - targetByteOffset - size)));
   }
 
   public static Bytes16 onePartialToTwoOutputOne(
@@ -180,7 +197,7 @@ public class MmioPatterns {
   }
 
   public static void updateTemporaryTargetRam(
-      MmuData mmuData, int targetLimbOffsetToUpdate, Bytes16 newLimb) {
+      MmuData mmuData, final int targetLimbOffsetToUpdate, final Bytes16 newLimb) {
     final Bytes bytesPreLimb =
         Bytes.repeat(
             (byte) 0,

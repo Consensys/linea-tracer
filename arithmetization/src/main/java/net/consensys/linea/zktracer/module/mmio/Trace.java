@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.mmio;
 
+import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.BitSet;
 import java.util.List;
@@ -30,6 +31,12 @@ import org.apache.tuweni.bytes.Bytes;
  * Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
 public class Trace {
+  public static final BigInteger EMPTY_KECCAK_HI = new BigInteger("16434357337474432580558001204043214908");
+  public static final BigInteger EMPTY_KECCAK_LO = new BigInteger("19024806816994025362060938983270537799");
+  public static final int EMPTY_RIPEMD_HI = 0x9c1185a;
+  public static final BigInteger EMPTY_RIPEMD_LO = new BigInteger("16442052386882578548602430796343695571");
+  public static final BigInteger EMPTY_SHA2_HI = new BigInteger("18915786244935348617899154533661473682");
+  public static final BigInteger EMPTY_SHA2_LO = new BigInteger("3296542996298665609207448061432114053");
   public static final int EVM_INST_ADD = 0x1;
   public static final int EVM_INST_ADDMOD = 0x8;
   public static final int EVM_INST_ADDRESS = 0x30;
@@ -173,17 +180,65 @@ public class Trace {
   public static final int EVM_INST_SWAP9 = 0x98;
   public static final int EVM_INST_TIMESTAMP = 0x42;
   public static final int EVM_INST_XOR = 0x18;
-  public static final int EXO_SUM_BLAKEMODEXP = 0x7;
-  public static final int EXO_SUM_ECDATA = 0x5;
-  public static final int EXO_SUM_KEC = 0x2;
-  public static final int EXO_SUM_LOG = 0x3;
-  public static final int EXO_SUM_RIPSHA = 0x6;
-  public static final int EXO_SUM_ROM = 0x1;
-  public static final int EXO_SUM_TXCD = 0x4;
+  public static final int EXO_SUM_INDEX_BLAKEMODEXP = 0x6;
+  public static final int EXO_SUM_INDEX_ECDATA = 0x4;
+  public static final int EXO_SUM_INDEX_KEC = 0x1;
+  public static final int EXO_SUM_INDEX_LOG = 0x2;
+  public static final int EXO_SUM_INDEX_RIPSHA = 0x5;
+  public static final int EXO_SUM_INDEX_ROM = 0x0;
+  public static final int EXO_SUM_INDEX_TXCD = 0x3;
+  public static final int EXO_SUM_WEIGHT_BLAKEMODEXP = 0x40;
+  public static final int EXO_SUM_WEIGHT_ECDATA = 0x10;
+  public static final int EXO_SUM_WEIGHT_KEC = 0x2;
+  public static final int EXO_SUM_WEIGHT_LOG = 0x4;
+  public static final int EXO_SUM_WEIGHT_RIPSHA = 0x20;
+  public static final int EXO_SUM_WEIGHT_ROM = 0x1;
+  public static final int EXO_SUM_WEIGHT_TXCD = 0x8;
+  public static final int EXP_INST_EXPLOG = 0xee0a;
+  public static final int EXP_INST_MODEXPLOG = 0xee05;
+  public static final int GAS_CONST_G_ACCESS_LIST_ADRESS = 0x960;
+  public static final int GAS_CONST_G_ACCESS_LIST_STORAGE = 0x76c;
+  public static final int GAS_CONST_G_BASE = 0x2;
+  public static final int GAS_CONST_G_BLOCKHASH = 0x14;
+  public static final int GAS_CONST_G_CALL_STIPEND = 0x8fc;
+  public static final int GAS_CONST_G_CALL_VALUE = 0x2328;
+  public static final int GAS_CONST_G_CODE_DEPOSIT = 0xc8;
+  public static final int GAS_CONST_G_COLD_ACCOUNT_ACCESS = 0xa28;
+  public static final int GAS_CONST_G_COLD_SLOAD = 0x834;
+  public static final int GAS_CONST_G_COPY = 0x3;
+  public static final int GAS_CONST_G_CREATE = 0x7d00;
+  public static final int GAS_CONST_G_EXP = 0xa;
+  public static final int GAS_CONST_G_EXP_BYTE = 0x32;
+  public static final int GAS_CONST_G_HIGH = 0xa;
+  public static final int GAS_CONST_G_JUMPDEST = 0x1;
+  public static final int GAS_CONST_G_KECCAK_256 = 0x1e;
+  public static final int GAS_CONST_G_KECCAK_256_WORD = 0x6;
+  public static final int GAS_CONST_G_LOG = 0x177;
+  public static final int GAS_CONST_G_LOG_DATA = 0x8;
+  public static final int GAS_CONST_G_LOG_TOPIC = 0x177;
+  public static final int GAS_CONST_G_LOW = 0x5;
+  public static final int GAS_CONST_G_MEMORY = 0x3;
+  public static final int GAS_CONST_G_MID = 0x8;
+  public static final int GAS_CONST_G_NEW_ACCOUNT = 0x61a8;
+  public static final int GAS_CONST_G_SELFDESTRUCT = 0x1388;
+  public static final int GAS_CONST_G_SRESET = 0xb54;
+  public static final int GAS_CONST_G_SSET = 0x4e20;
+  public static final int GAS_CONST_G_TRANSACTION = 0x5208;
+  public static final int GAS_CONST_G_TX_CREATE = 0x7d00;
+  public static final int GAS_CONST_G_TX_DATA_NONZERO = 0x10;
+  public static final int GAS_CONST_G_TX_DATA_ZERO = 0x4;
+  public static final int GAS_CONST_G_VERY_LOW = 0x3;
+  public static final int GAS_CONST_G_WARM_ACCESS = 0x64;
+  public static final int GAS_CONST_G_ZERO = 0x0;
   public static final int INVALID_CODE_PREFIX_VALUE = 0xef;
   public static final int LLARGE = 0x10;
   public static final int LLARGEMO = 0xf;
   public static final int LLARGEPO = 0x11;
+  public static final int MISC_EXP_WEIGHT = 0x1;
+  public static final int MISC_MMU_WEIGHT = 0x2;
+  public static final int MISC_MXP_WEIGHT = 0x4;
+  public static final int MISC_OOB_WEIGHT = 0x8;
+  public static final int MISC_STP_WEIGHT = 0x10;
   public static final int MMEDIUM = 0x8;
   public static final int MMEDIUMMO = 0x7;
   public static final int MMIO_INST_LIMB_TO_RAM_ONE_TARGET = 0xfe12;
@@ -211,19 +266,44 @@ public class Trace {
   public static final int MMU_INST_RAM_TO_EXO_WITH_PADDING = 0xfe20;
   public static final int MMU_INST_RAM_TO_RAM_SANS_PADDING = 0xfe40;
   public static final int MMU_INST_RIGHT_PADDED_WORD_EXTRACTION = 0xfe10;
+  public static final int OOB_INST_blake_cds = 0xfa09;
+  public static final int OOB_INST_blake_params = 0xfb09;
+  public static final int OOB_INST_call = 0xca;
+  public static final int OOB_INST_cdl = 0x35;
+  public static final int OOB_INST_create = 0xce;
+  public static final int OOB_INST_deployment = 0xf3;
+  public static final int OOB_INST_ecadd = 0xff06;
+  public static final int OOB_INST_ecmul = 0xff07;
+  public static final int OOB_INST_ecpairing = 0xff08;
+  public static final int OOB_INST_ecrecover = 0xff01;
+  public static final int OOB_INST_identity = 0xff04;
+  public static final int OOB_INST_jump = 0x56;
+  public static final int OOB_INST_jumpi = 0x57;
+  public static final int OOB_INST_modexp_cds = 0xfa05;
+  public static final int OOB_INST_modexp_extract = 0xfe05;
+  public static final int OOB_INST_modexp_lead = 0xfc05;
+  public static final int OOB_INST_modexp_pricing = 0xfd05;
+  public static final int OOB_INST_modexp_xbs = 0xfb05;
+  public static final int OOB_INST_rdc = 0x3e;
+  public static final int OOB_INST_ripemd = 0xff03;
+  public static final int OOB_INST_sha2 = 0xff02;
+  public static final int OOB_INST_sstore = 0x55;
+  public static final int OOB_INST_xcall = 0xcc;
   public static final int PHASE_BLAKE_DATA = 0x5;
   public static final int PHASE_BLAKE_PARAMS = 0x6;
   public static final int PHASE_BLAKE_RESULT = 0x7;
-  public static final int PHASE_KECCAK_DATA = 0x8;
-  public static final int PHASE_KECCAK_RESULT = 0x9;
+  public static final int PHASE_KECCAK_DATA = 0x5;
+  public static final int PHASE_KECCAK_RESULT = 0x6;
   public static final int PHASE_MODEXP_BASE = 0x1;
   public static final int PHASE_MODEXP_EXPONENT = 0x2;
   public static final int PHASE_MODEXP_MODULUS = 0x3;
   public static final int PHASE_MODEXP_RESULT = 0x4;
-  public static final int PHASE_RIPEMD_DATA = 0xc;
-  public static final int PHASE_RIPEMD_RESULT = 0xd;
-  public static final int PHASE_SHA2_DATA = 0xa;
-  public static final int PHASE_SHA2_RESULT = 0xb;
+  public static final int PHASE_RIPEMD_DATA = 0x3;
+  public static final int PHASE_RIPEMD_RESULT = 0x4;
+  public static final int PHASE_SHA2_DATA = 0x1;
+  public static final int PHASE_SHA2_RESULT = 0x2;
+  public static final int REFUND_CONST_R_SCLEAR = 0x3a98;
+  public static final int REFUND_CONST_R_SELFDESTRUCT = 0x5dc0;
   public static final int RLP_ADDR_RECIPE_1 = 0x1;
   public static final int RLP_ADDR_RECIPE_2 = 0x2;
   public static final int RLP_PREFIX_INT_LONG = 0xb7;
@@ -270,11 +350,11 @@ public class Trace {
   private final MappedByteBuffer accB;
   private final MappedByteBuffer accC;
   private final MappedByteBuffer accLimb;
-  private final MappedByteBuffer bin1;
-  private final MappedByteBuffer bin2;
-  private final MappedByteBuffer bin3;
-  private final MappedByteBuffer bin4;
-  private final MappedByteBuffer bin5;
+  private final MappedByteBuffer bit1;
+  private final MappedByteBuffer bit2;
+  private final MappedByteBuffer bit3;
+  private final MappedByteBuffer bit4;
+  private final MappedByteBuffer bit5;
   private final MappedByteBuffer byteA;
   private final MappedByteBuffer byteB;
   private final MappedByteBuffer byteC;
@@ -344,11 +424,11 @@ public class Trace {
         new ColumnHeader("mmio.ACC_B", 32, length),
         new ColumnHeader("mmio.ACC_C", 32, length),
         new ColumnHeader("mmio.ACC_LIMB", 32, length),
-        new ColumnHeader("mmio.BIN_1", 1, length),
-        new ColumnHeader("mmio.BIN_2", 1, length),
-        new ColumnHeader("mmio.BIN_3", 1, length),
-        new ColumnHeader("mmio.BIN_4", 1, length),
-        new ColumnHeader("mmio.BIN_5", 1, length),
+        new ColumnHeader("mmio.BIT_1", 1, length),
+        new ColumnHeader("mmio.BIT_2", 1, length),
+        new ColumnHeader("mmio.BIT_3", 1, length),
+        new ColumnHeader("mmio.BIT_4", 1, length),
+        new ColumnHeader("mmio.BIT_5", 1, length),
         new ColumnHeader("mmio.BYTE_A", 1, length),
         new ColumnHeader("mmio.BYTE_B", 1, length),
         new ColumnHeader("mmio.BYTE_C", 1, length),
@@ -418,11 +498,11 @@ public class Trace {
     this.accB = buffers.get(5);
     this.accC = buffers.get(6);
     this.accLimb = buffers.get(7);
-    this.bin1 = buffers.get(8);
-    this.bin2 = buffers.get(9);
-    this.bin3 = buffers.get(10);
-    this.bin4 = buffers.get(11);
-    this.bin5 = buffers.get(12);
+    this.bit1 = buffers.get(8);
+    this.bit2 = buffers.get(9);
+    this.bit3 = buffers.get(10);
+    this.bit4 = buffers.get(11);
+    this.bit5 = buffers.get(12);
     this.byteA = buffers.get(13);
     this.byteB = buffers.get(14);
     this.byteC = buffers.get(15);
@@ -619,62 +699,62 @@ public class Trace {
     return this;
   }
 
-  public Trace bin1(final Boolean b) {
+  public Trace bit1(final Boolean b) {
     if (filled.get(8)) {
-      throw new IllegalStateException("mmio.BIN_1 already set");
+      throw new IllegalStateException("mmio.BIT_1 already set");
     } else {
       filled.set(8);
     }
 
-    bin1.put((byte) (b ? 1 : 0));
+    bit1.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
-  public Trace bin2(final Boolean b) {
+  public Trace bit2(final Boolean b) {
     if (filled.get(9)) {
-      throw new IllegalStateException("mmio.BIN_2 already set");
+      throw new IllegalStateException("mmio.BIT_2 already set");
     } else {
       filled.set(9);
     }
 
-    bin2.put((byte) (b ? 1 : 0));
+    bit2.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
-  public Trace bin3(final Boolean b) {
+  public Trace bit3(final Boolean b) {
     if (filled.get(10)) {
-      throw new IllegalStateException("mmio.BIN_3 already set");
+      throw new IllegalStateException("mmio.BIT_3 already set");
     } else {
       filled.set(10);
     }
 
-    bin3.put((byte) (b ? 1 : 0));
+    bit3.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
-  public Trace bin4(final Boolean b) {
+  public Trace bit4(final Boolean b) {
     if (filled.get(11)) {
-      throw new IllegalStateException("mmio.BIN_4 already set");
+      throw new IllegalStateException("mmio.BIT_4 already set");
     } else {
       filled.set(11);
     }
 
-    bin4.put((byte) (b ? 1 : 0));
+    bit4.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
-  public Trace bin5(final Boolean b) {
+  public Trace bit5(final Boolean b) {
     if (filled.get(12)) {
-      throw new IllegalStateException("mmio.BIN_5 already set");
+      throw new IllegalStateException("mmio.BIT_5 already set");
     } else {
       filled.set(12);
     }
 
-    bin5.put((byte) (b ? 1 : 0));
+    bit5.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -1449,23 +1529,23 @@ public class Trace {
     }
 
     if (!filled.get(8)) {
-      throw new IllegalStateException("mmio.BIN_1 has not been filled");
+      throw new IllegalStateException("mmio.BIT_1 has not been filled");
     }
 
     if (!filled.get(9)) {
-      throw new IllegalStateException("mmio.BIN_2 has not been filled");
+      throw new IllegalStateException("mmio.BIT_2 has not been filled");
     }
 
     if (!filled.get(10)) {
-      throw new IllegalStateException("mmio.BIN_3 has not been filled");
+      throw new IllegalStateException("mmio.BIT_3 has not been filled");
     }
 
     if (!filled.get(11)) {
-      throw new IllegalStateException("mmio.BIN_4 has not been filled");
+      throw new IllegalStateException("mmio.BIT_4 has not been filled");
     }
 
     if (!filled.get(12)) {
-      throw new IllegalStateException("mmio.BIN_5 has not been filled");
+      throw new IllegalStateException("mmio.BIT_5 has not been filled");
     }
 
     if (!filled.get(13)) {
@@ -1740,23 +1820,23 @@ public class Trace {
     }
 
     if (!filled.get(8)) {
-      bin1.position(bin1.position() + 1);
+      bit1.position(bit1.position() + 1);
     }
 
     if (!filled.get(9)) {
-      bin2.position(bin2.position() + 1);
+      bit2.position(bit2.position() + 1);
     }
 
     if (!filled.get(10)) {
-      bin3.position(bin3.position() + 1);
+      bit3.position(bit3.position() + 1);
     }
 
     if (!filled.get(11)) {
-      bin4.position(bin4.position() + 1);
+      bit4.position(bit4.position() + 1);
     }
 
     if (!filled.get(12)) {
-      bin5.position(bin5.position() + 1);
+      bit5.position(bit5.position() + 1);
     }
 
     if (!filled.get(13)) {

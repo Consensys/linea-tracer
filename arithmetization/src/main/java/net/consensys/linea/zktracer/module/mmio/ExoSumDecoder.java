@@ -51,13 +51,13 @@ public class ExoSumDecoder {
   @Getter private boolean exoIsTxcd;
 
   public void decode(int exoSum) {
-    exoIsRom = decodeInternal(Trace.EXO_SUM_ROM, exoSum);
-    exoIsBlake2fModexp = decodeInternal(Trace.EXO_SUM_BLAKEMODEXP, exoSum);
-    exoIsEcData = decodeInternal(Trace.EXO_SUM_ECDATA, exoSum);
-    exoIsRipSha = decodeInternal(Trace.EXO_SUM_RIPSHA, exoSum);
-    exoIsKeccak = decodeInternal(Trace.EXO_SUM_KEC, exoSum);
-    exoIsLog = decodeInternal(Trace.EXO_SUM_LOG, exoSum);
-    exoIsTxcd = decodeInternal(Trace.EXO_SUM_TXCD, exoSum);
+    exoIsRom = decodeInternal(Trace.EXO_SUM_INDEX_ROM, exoSum);
+    exoIsBlake2fModexp = decodeInternal(Trace.EXO_SUM_INDEX_BLAKEMODEXP, exoSum);
+    exoIsEcData = decodeInternal(Trace.EXO_SUM_INDEX_ECDATA, exoSum);
+    exoIsRipSha = decodeInternal(Trace.EXO_SUM_INDEX_RIPSHA, exoSum);
+    exoIsKeccak = decodeInternal(Trace.EXO_SUM_INDEX_KEC, exoSum);
+    exoIsLog = decodeInternal(Trace.EXO_SUM_INDEX_LOG, exoSum);
+    exoIsTxcd = decodeInternal(Trace.EXO_SUM_INDEX_TXCD, exoSum);
 
     exoSourcesMap =
         Map.of(

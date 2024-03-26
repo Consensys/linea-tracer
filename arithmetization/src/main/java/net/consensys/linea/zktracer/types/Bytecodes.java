@@ -22,14 +22,13 @@ import org.apache.tuweni.bytes.Bytes;
 public class Bytecodes {
 
   public static Bytes16 readLimb(final Bytes data, final int limbIndex) {
-    int bytePtrStart = 16 * limbIndex;
-    if (bytePtrStart >= data.size()) {
+    final int offset = 16 * limbIndex;
+    if (offset >= data.size()) {
       return Bytes16.ZERO;
     }
 
-    final int bytePtrEnd = bytePtrStart + 16;
-    final int byteCodeEnd = Math.min(bytePtrEnd, data.size());
+    final int dataLengthToExtract = Math.max(16, data.size() - offset);
 
-    return Bytes16.leftPad(data.slice(bytePtrStart, byteCodeEnd));
+    return Bytes16.rightPad(data.slice(offset, dataLengthToExtract));
   }
 }

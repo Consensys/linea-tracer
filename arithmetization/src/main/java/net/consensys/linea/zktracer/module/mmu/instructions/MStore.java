@@ -105,9 +105,11 @@ public class MStore implements MmuInstruction {
                 aligned
                     ? Trace.MMIO_INST_LIMB_TO_RAM_TRANSPLANT
                     : Trace.MMIO_INST_LIMB_TO_RAM_TWO_TARGET)
+            .size((short) Trace.LLARGE)
             .targetLimbOffset(initialTargetLimbOffset)
             .targetByteOffset(initialTargetByteOffset)
             .limb(hubToMmuValues.limb1())
+            .targetLimbIsTouchedTwice(!aligned)
             .build());
 
     // Second micro-instruction.
@@ -117,9 +119,11 @@ public class MStore implements MmuInstruction {
                 aligned
                     ? Trace.MMIO_INST_LIMB_TO_RAM_TRANSPLANT
                     : Trace.MMIO_INST_LIMB_TO_RAM_TWO_TARGET)
+            .size((short) Trace.LLARGE)
             .targetLimbOffset(initialTargetLimbOffset + 1)
             .targetByteOffset(initialTargetByteOffset)
             .limb(hubToMmuValues.limb2())
+            .targetLimbIsTouchedTwice(!aligned)
             .build());
 
     return mmuData;

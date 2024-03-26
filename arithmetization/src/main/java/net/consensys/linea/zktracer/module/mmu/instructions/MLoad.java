@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.mmu.instructions;
 
+import static net.consensys.linea.zktracer.module.mmu.Trace.LLARGE;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,7 +52,7 @@ public class MLoad implements MmuInstruction {
 
   public MmuData preProcess(MmuData mmuData) {
     final long dividend1 = mmuData.hubToMmuValues().sourceOffsetLo().longValueExact();
-    final EucOperation eucOp = euc.callEUC(Bytes.ofUnsignedLong(dividend1), Bytes.of(Trace.LLARGE));
+    final EucOperation eucOp = euc.callEUC(Bytes.ofUnsignedLong(dividend1), Bytes.of(LLARGE));
     final int rem = eucOp.remainder().toInt();
     final int quot = eucOp.quotient().toInt();
     initialSourceLimbOffset = quot;
@@ -59,7 +61,7 @@ public class MLoad implements MmuInstruction {
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividend1)
-            .divisor(Trace.LLARGE)
+            .divisor(LLARGE)
             .quotient(quot)
             .remainder(rem)
             .build());
@@ -95,6 +97,7 @@ public class MLoad implements MmuInstruction {
                 aligned
                     ? Trace.MMIO_INST_RAM_TO_LIMB_TRANSPLANT
                     : Trace.MMIO_INST_RAM_TO_LIMB_TWO_SOURCE)
+            .size((short) LLARGE)
             .sourceLimbOffset(initialSourceLimbOffset)
             .sourceByteOffset(initialSourceByteOffset)
             .limb(hubToMmuValues.limb1())
@@ -107,6 +110,7 @@ public class MLoad implements MmuInstruction {
                 aligned
                     ? Trace.MMIO_INST_RAM_TO_LIMB_TRANSPLANT
                     : Trace.MMIO_INST_RAM_TO_LIMB_TWO_SOURCE)
+            .size((short) LLARGE)
             .sourceLimbOffset(initialSourceLimbOffset + 1)
             .sourceByteOffset(initialSourceByteOffset)
             .limb(hubToMmuValues.limb2())

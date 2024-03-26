@@ -127,10 +127,10 @@ public class MmioPatterns {
       final Bytes16 target1,
       final short sourceByteOffset,
       final short targetByteOffset) {
-    return (Bytes16)
+    return Bytes16.wrap(
         Bytes.concatenate(
             target1.slice(0, targetByteOffset),
-            source.slice(sourceByteOffset, LLARGE - targetByteOffset));
+            source.slice(sourceByteOffset, LLARGE - targetByteOffset)));
   }
 
   public static Bytes16 onePartialToTwoOutputTwo(
@@ -142,14 +142,14 @@ public class MmioPatterns {
     final short numberOfBytesFromSourceToFirstTarget = (short) (LLARGE - targetByteOffset);
     final short numberOfBytesFromSourceToSecondTarget =
         (short) (size - numberOfBytesFromSourceToFirstTarget);
-    return (Bytes16)
+    return Bytes16.wrap(
         Bytes.concatenate(
             source.slice(
                 sourceByteOffset + numberOfBytesFromSourceToFirstTarget,
                 numberOfBytesFromSourceToSecondTarget),
             target2.slice(
                 numberOfBytesFromSourceToSecondTarget,
-                LLARGE - numberOfBytesFromSourceToSecondTarget));
+                LLARGE - numberOfBytesFromSourceToSecondTarget)));
   }
 
   public static Bytes16 oneToOnePadded(

@@ -78,29 +78,29 @@ class MemoryTests {
   }
 
   @Test
-  void extcodecopyThenCreate(){
+  void extcodecopyThenCreate() {
     ToyWorld.ToyWorldBuilder world = ToyWorld.builder();
 
     // create called account
     final ToyAccount calledAccount =
-      ToyAccount.builder()
-        .balance(Wei.of(rnd.nextInt(10000, 10000000)))
-        .nonce(rnd.nextInt(2, 500))
-        .address(Address.wrap(Bytes.random(20)))
-        .code(Bytes.random(1000))
-        .build();
+        ToyAccount.builder()
+            .balance(Wei.of(rnd.nextInt(10000, 10000000)))
+            .nonce(rnd.nextInt(2, 500))
+            .address(Address.wrap(Bytes.random(20)))
+            .code(Bytes.random(1000))
+            .build();
     world.account(calledAccount);
 
     // create sender account
     final KeyPair keyPair = new SECP256K1().generateKeyPair();
     final Address senderAddress =
-      Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
+        Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
     final ToyAccount senderAccount =
-      ToyAccount.builder()
-        .balance(Wei.of(rnd.nextLong(30000, 100000000)))
-        .nonce(rnd.nextInt(0, 500))
-        .address(senderAddress)
-        .build();
+        ToyAccount.builder()
+            .balance(Wei.of(rnd.nextLong(30000, 100000000)))
+            .nonce(rnd.nextInt(0, 500))
+            .address(senderAddress)
+            .build();
     world.account(senderAccount);
 
     final int lengthExtcodecopy = 133;
@@ -113,33 +113,33 @@ class MemoryTests {
 
     // create transaction
     final Transaction tx =
-      ToyTransaction.builder()
-        .sender(senderAccount)
-        .keyPair(keyPair)
-        .transactionType(TransactionType.FRONTIER)
-        .gasLimit(rnd.nextLong(210000, 0xfffffffffffffL))
-        .value(Wei.of(rnd.nextInt(0, 1000)))
-        .payload( BytecodeCompiler.newProgram()
-          .push(lengthExtcodecopy)
-          .push(offsetExtcodecopy)
-          .push(destoffsetExtcodecopy)
-          .push(calledAccount.getAddress())
-          .op(OpCode.EXTCODECOPY)
-          .push(lengthCreate)
-          .push(offsetCreate)
-          .push(valueCreate)
-          .op(OpCode.CREATE)
-          .compile())
-        .build();
+        ToyTransaction.builder()
+            .sender(senderAccount)
+            .keyPair(keyPair)
+            .transactionType(TransactionType.FRONTIER)
+            .gasLimit(rnd.nextLong(210000, 0xfffffffffffffL))
+            .value(Wei.of(rnd.nextInt(0, 1000)))
+            .payload(
+                BytecodeCompiler.newProgram()
+                    .push(lengthExtcodecopy)
+                    .push(offsetExtcodecopy)
+                    .push(destoffsetExtcodecopy)
+                    .push(calledAccount.getAddress())
+                    .op(OpCode.EXTCODECOPY)
+                    .push(lengthCreate)
+                    .push(offsetCreate)
+                    .push(valueCreate)
+                    .op(OpCode.CREATE)
+                    .compile())
+            .build();
 
     // build and run
     ToyExecutionEnvironment.builder()
-      .toyWorld(world.build())
-      .transaction(tx)
-      .testValidator(x -> {})
-      .build()
-      .run();
-
+        .toyWorld(world.build())
+        .transaction(tx)
+        .testValidator(x -> {})
+        .build()
+        .run();
   }
 
   @Test

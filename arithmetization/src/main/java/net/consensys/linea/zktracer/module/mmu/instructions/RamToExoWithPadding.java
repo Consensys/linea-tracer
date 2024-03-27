@@ -94,13 +94,12 @@ public class RamToExoWithPadding implements MmuInstruction {
 
   private void row1(final HubToMmuValues hubToMmuValues) {
     // row n°1
-    final Bytes dividend = Bytes.of(16);
-    final Bytes divisor = bigIntegerToBytes(hubToMmuValues.sourceOffsetLo());
-    final EucOperation eucOp = euc.callEUC(dividend, divisor);
+    final Bytes dividend = bigIntegerToBytes(hubToMmuValues.sourceOffsetLo());
+    final EucOperation eucOp = euc.callEUC(dividend, Bytes.of(LLARGE));
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividend.toLong())
-            .divisor(divisor.toLong())
+            .divisor(LLARGE)
             .quotient(eucOp.quotient().toLong())
             .remainder(eucOp.remainder().toLong())
             .build());
@@ -133,14 +132,13 @@ public class RamToExoWithPadding implements MmuInstruction {
     paddingSize = hasRightPadding ? (int) (refSize - size) : 0;
     extractionSize = (int) (hasRightPadding ? size : refSize);
 
-    final Bytes dividend = Bytes.of(LLARGE);
-    final Bytes divisor = Bytes.ofUnsignedShort(paddingSize);
-    final EucOperation eucOp = euc.callEUC(dividend, divisor);
+    final Bytes dividend = Bytes.ofUnsignedShort(paddingSize);
+    final EucOperation eucOp = euc.callEUC(dividend, Bytes.of(LLARGE));
 
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividend.toLong())
-            .divisor(divisor.toLong())
+            .divisor(LLARGE)
             .quotient(eucOp.quotient().toLong())
             .remainder(eucOp.remainder().toLong())
             .build());
@@ -150,15 +148,14 @@ public class RamToExoWithPadding implements MmuInstruction {
 
   private void row3(final MmuData mmuData) {
     // row n°3
-    final Bytes dividend = Bytes.of(LLARGE);
-    final Bytes divisor = Bytes.ofUnsignedShort(extractionSize);
-    final EucOperation eucOp = euc.callEUC(dividend, divisor);
+    final Bytes dividend = Bytes.ofUnsignedShort(extractionSize);
+    final EucOperation eucOp = euc.callEUC(dividend, Bytes.of(LLARGE));
 
     Bytes quotient = eucOp.quotient();
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividend.toLong())
-            .divisor(divisor.toLong())
+            .divisor(LLARGE)
             .quotient(quotient.toLong())
             .remainder(eucOp.remainder().toLong())
             .build());

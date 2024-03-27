@@ -122,16 +122,15 @@ public class RightPaddedWordExtraction implements MmuInstruction {
 
     firstLimbByteSize = !firstLimbPadded ? LLARGE : extractionSize;
 
-    final Bytes dividend = Bytes.of(16);
-    final Bytes divisor = Bytes.of(firstLimbByteSize);
-    EucOperation eucOp = euc.callEUC(dividend, divisor);
+    final Bytes dividend = Bytes.of(firstLimbByteSize);
+    EucOperation eucOp = euc.callEUC(dividend, Bytes.of(LLARGE));
 
     firstLimbIsFull = BooleanUtils.toBoolean(eucOp.quotient().toInt());
 
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividend.toLong())
-            .divisor(divisor.toLong())
+            .divisor(LLARGE)
             .quotient(eucOp.quotient().toLong())
             .remainder(eucOp.remainder().toLong())
             .build());
@@ -139,15 +138,14 @@ public class RightPaddedWordExtraction implements MmuInstruction {
 
   private void row3(final HubToMmuValues hubToMmuValues) {
     // row n°3
-    final Bytes dividend = Bytes.of(16);
-    final Bytes divisor =
+    final Bytes dividend =
         longToBytes(hubToMmuValues.sourceOffsetLo().longValue() + hubToMmuValues.referenceOffset());
-    EucOperation eucOp = euc.callEUC(dividend, divisor);
+    EucOperation eucOp = euc.callEUC(dividend, Bytes.of(LLARGE));
 
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividend.toLong())
-            .divisor(divisor.toLong())
+            .divisor(LLARGE)
             .quotient(eucOp.quotient().toLong())
             .remainder(eucOp.remainder().toLong())
             .build());

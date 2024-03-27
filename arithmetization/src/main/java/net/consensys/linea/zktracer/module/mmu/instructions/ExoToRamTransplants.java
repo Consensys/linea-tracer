@@ -48,13 +48,12 @@ public class ExoToRamTransplants implements MmuInstruction {
   public MmuData preProcess(MmuData mmuData) {
     // row n°1
     final Bytes dividend = Bytes.ofUnsignedInt(mmuData.hubToMmuValues().size());
-    final Bytes divisor = Bytes.of(LLARGE);
-    final EucOperation eucOp = euc.callEUC(dividend, divisor);
+    final EucOperation eucOp = euc.callEUC(dividend, Bytes.of(LLARGE));
 
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividend.toLong())
-            .divisor(divisor.toLong())
+            .divisor(LLARGE)
             .quotient(eucOp.quotient().toLong())
             .remainder(eucOp.remainder().toLong())
             .build());

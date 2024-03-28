@@ -219,7 +219,7 @@ public class MmuCall implements TraceSubFragment {
     final EWord loadedValue = EWord.of(hub.messageFrame().shadowReadMemory(offset, 32));
     return new MmuCall(MMU_INST_MLOAD)
         .sourceId(hub.currentFrame().contextNumber())
-        .sourceOffset(EWord.of(hub.messageFrame().getStackItem(0)))
+        .sourceOffset(EWord.of(offset))
         .limb1(loadedValue.hi())
         .limb2(loadedValue.lo());
   }

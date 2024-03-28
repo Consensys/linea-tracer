@@ -17,7 +17,6 @@ package net.consensys.linea.zktracer.module.mmio;
 
 import static net.consensys.linea.zktracer.module.mmio.MmioData.isFastOperation;
 import static net.consensys.linea.zktracer.module.mmio.MmioData.numberOfRowOfMmioInstruction;
-import static net.consensys.linea.zktracer.types.Conversions.unsignedBytesToBytes;
 
 import java.nio.MappedByteBuffer;
 import java.util.List;
@@ -79,15 +78,13 @@ public class Mmio implements Module {
 
       final int sourceContextNumber = mmuToMmioConstantValues.sourceContextNumber();
       if (sourceContextNumber != 0) {
-        final Bytes sourceMemory =
-            unsignedBytesToBytes(callStackReader.valueFromMemory(sourceContextNumber));
+        final Bytes sourceMemory = callStackReader.valueFromMemory(sourceContextNumber);
         currentMmuData.sourceRamBytes(sourceMemory);
       }
 
       final int targetContextNumber = mmuToMmioConstantValues.targetContextNumber();
       if (targetContextNumber != 0) {
-        final Bytes targetMemory =
-            unsignedBytesToBytes(callStackReader.valueFromMemory(targetContextNumber));
+        final Bytes targetMemory = callStackReader.valueFromMemory(targetContextNumber);
         currentMmuData.targetRamBytes(targetMemory);
       }
 

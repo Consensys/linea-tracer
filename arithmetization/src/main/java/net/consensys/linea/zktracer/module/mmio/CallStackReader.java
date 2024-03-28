@@ -18,15 +18,17 @@ package net.consensys.linea.zktracer.module.mmio;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
-import net.consensys.linea.zktracer.types.UnsignedByte;
+import org.apache.tuweni.bytes.Bytes;
 
 @RequiredArgsConstructor
 @Accessors(fluent = true)
 public class CallStackReader {
   @Getter private final CallStack callStack;
 
-  public UnsignedByte[] valueFromMemory(final int contextNumber) {
-    return callStack.getByContextNumber(contextNumber).pending().memorySegmentSnapshot().memory();
+  public Bytes valueFromMemory(final int contextNumber) {
+    final CallFrame callFrame = callStack.getByContextNumber(contextNumber);
+    return callFrame.frame().shadowReadMemory(0, callFrame.frame().memoryByteSize());
   }
 }

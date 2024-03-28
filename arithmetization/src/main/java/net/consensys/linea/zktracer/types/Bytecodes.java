@@ -15,19 +15,19 @@
 
 package net.consensys.linea.zktracer.types;
 
-import static net.consensys.linea.zktracer.types.Utils.*;
+import static net.consensys.linea.zktracer.module.mmio.Trace.LLARGE;
 
 import org.apache.tuweni.bytes.Bytes;
 
 public class Bytecodes {
 
   public static Bytes16 readLimb(final Bytes data, final int limbIndex) {
-    final int offset = 16 * limbIndex;
+    final int offset = LLARGE * limbIndex;
     if (offset >= data.size()) {
       return Bytes16.ZERO;
     }
 
-    final int dataLengthToExtract = Math.max(16, data.size() - offset);
+    final int dataLengthToExtract = Math.min(LLARGE, data.size() - offset);
 
     return Bytes16.rightPad(data.slice(offset, dataLengthToExtract));
   }

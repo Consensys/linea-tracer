@@ -77,7 +77,11 @@ public class ExoSumDecoder {
         .map(
             e -> {
               switch (e.getKey()) {
-                case ROM -> this.romLex.sortedChunks().get(id - 1).byteCode().copy();
+                case ROM -> this.romLex
+                    .sortedChunks()
+                    .get(id - 1)
+                    .byteCode()
+                    .copy(); // TODO won't work, need to access by metaData
                 case TX_CALLDATA -> this.rlpTxn.chunkList.get(id - 1).tx().getPayload();
                 case KECCAK -> {} // TODO
                 case RIPSHA -> {} // TODO

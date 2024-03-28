@@ -69,51 +69,51 @@ class MmuInstructions {
 
     return switch (mmuInstruction) {
       case Trace.MMU_INST_MLOAD -> {
-        mmuData = mLoadPreComputation.preProcess(mmuData);
+        mmuData = mLoadPreComputation.preProcess(mmuData, callStack);
         yield mLoadPreComputation.setMicroInstructions(mmuData);
       }
       case Trace.MMU_INST_MSTORE -> {
-        mmuData = mStorePreComputation.preProcess(mmuData);
+        mmuData = mStorePreComputation.preProcess(mmuData, callStack);
         yield mStorePreComputation.setMicroInstructions(mmuData);
       }
       case Trace.MMU_INST_MSTORE8 -> {
-        mmuData = mStore8PreComputation.preProcess(mmuData);
+        mmuData = mStore8PreComputation.preProcess(mmuData, callStack);
         yield mStore8PreComputation.setMicroInstructions(mmuData);
       }
       case Trace.MMU_INST_INVALID_CODE_PREFIX -> {
-        mmuData = invalidCodePrefix.preProcessWithCallStack(mmuData, callStack);
+        mmuData = invalidCodePrefix.preProcess(mmuData, callStack);
         yield invalidCodePrefix.setMicroInstructions(mmuData);
       }
       case Trace.MMU_INST_RIGHT_PADDED_WORD_EXTRACTION -> {
-        mmuData = rightPaddedWordExtraction.preProcess(mmuData);
+        mmuData = rightPaddedWordExtraction.preProcess(mmuData, callStack);
         yield rightPaddedWordExtraction.setMicroInstructions(mmuData);
       }
       case Trace.MMU_INST_RAM_TO_EXO_WITH_PADDING -> {
-        mmuData = ramToExoWithPadding.preProcess(mmuData);
+        mmuData = ramToExoWithPadding.preProcess(mmuData, callStack);
         yield ramToExoWithPadding.setMicroInstructions(mmuData);
       }
       case Trace.MMU_INST_EXO_TO_RAM_TRANSPLANTS -> {
-        mmuData = exoToRamTransplants.preProcess(mmuData);
+        mmuData = exoToRamTransplants.preProcess(mmuData, callStack);
         yield exoToRamTransplants.setMicroInstructions(mmuData);
       }
       case Trace.MMU_INST_RAM_TO_RAM_SANS_PADDING -> {
-        mmuData = ramToRamSansPadding.preProcess(mmuData);
+        mmuData = ramToRamSansPadding.preProcess(mmuData, callStack);
         yield ramToRamSansPadding.setMicroInstructions(mmuData);
       }
       case Trace.MMU_INST_ANY_TO_RAM_WITH_PADDING -> {
-        mmuData = anyToRamWithPadding.preProcess(mmuData);
+        mmuData = anyToRamWithPadding.preProcess(mmuData, callStack);
         yield anyToRamWithPadding.setMicroInstructions(mmuData);
       }
       case Trace.MMU_INST_MODEXP_ZERO -> {
-        mmuData = modexpZero.preProcess(mmuData);
+        mmuData = modexpZero.preProcess(mmuData, callStack);
         yield modexpZero.setMicroInstructions(mmuData);
       }
       case Trace.MMU_INST_MODEXP_DATA -> {
-        mmuData = modexpData.preProcess(mmuData);
+        mmuData = modexpData.preProcess(mmuData, callStack);
         yield modexpData.setMicroInstructions(mmuData);
       }
       case Trace.MMU_INST_BLAKE -> {
-        mmuData = blake.preProcess(mmuData);
+        mmuData = blake.preProcess(mmuData, callStack);
         yield blake.setMicroInstructions(mmuData);
       }
       default -> throw new IllegalArgumentException(

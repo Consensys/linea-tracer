@@ -92,7 +92,6 @@ public class Mmu implements Module {
 
     for (MmuOperation mmuOp : this.mmuOperations) {
       mmuOp.computeExoSum(exoSumDecoder);
-      mmuOp.retrieveSourceAndTargetRam();
       mmuOp.fillLimb();
 
       mmuStamp += 1;
@@ -102,7 +101,7 @@ public class Mmu implements Module {
   }
 
   public void call(final HubToMmuValues hubToMmuValues, final CallStack callStack) {
-    MmuData mmuData = new MmuData();
+    MmuData mmuData = new MmuData(callStack);
     mmuData.hubToMmuValues(hubToMmuValues);
 
     final MmuInstructions mmuInstructions = new MmuInstructions(euc, wcp);

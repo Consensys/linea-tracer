@@ -68,7 +68,7 @@ public class ModexpData implements MmuInstruction {
   }
 
   @Override
-  public MmuData preProcess(MmuData mmuData) {
+  public MmuData preProcess(MmuData mmuData, final CallStack callStack) {
     final HubToMmuValues hubToMmuValues = mmuData.hubToMmuValues();
     row1(hubToMmuValues);
     row2();
@@ -98,11 +98,6 @@ public class ModexpData implements MmuInstruction {
     mmuData.totalRightZeroesInitials(initialTotalRightZeroes);
 
     return mmuData;
-  }
-
-  @Override
-  public MmuData preProcessWithCallStack(MmuData mmuData, CallStack callStack) {
-    return null;
   }
 
   private void row1(final HubToMmuValues hubToMmuValues) {
@@ -230,6 +225,7 @@ public class ModexpData implements MmuInstruction {
   public MmuData setMicroInstructions(MmuData mmuData) {
     HubToMmuValues hubToMmuValues = mmuData.hubToMmuValues();
 
+    // Setting MMIO constant values
     mmuData.mmuToMmioConstantValues(
         MmuToMmioConstantValues.builder()
             .sourceContextNumber(hubToMmuValues.sourceId())
@@ -237,6 +233,9 @@ public class ModexpData implements MmuInstruction {
             .phase(hubToMmuValues.phase())
             .exoId(hubToMmuValues.targetId())
             .build());
+
+    // Setting the source ram bytes
+    mmuData.setSourceRamBytes();
 
     // Left Zeroes
     for (int i = 0; i < initialTotalLeftZeroes; i++) {

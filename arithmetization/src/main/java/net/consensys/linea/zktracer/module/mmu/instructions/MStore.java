@@ -50,7 +50,7 @@ public class MStore implements MmuInstruction {
   }
 
   @Override
-  public MmuData preProcess(MmuData mmuData) {
+  public MmuData preProcess(MmuData mmuData, final CallStack callStack) {
 
     // row n°1
     final long dividend = mmuData.hubToMmuValues().targetOffset();
@@ -93,16 +93,15 @@ public class MStore implements MmuInstruction {
   }
 
   @Override
-  public MmuData preProcessWithCallStack(MmuData mmuData, CallStack callStack) {
-    return null;
-  }
-
-  @Override
   public MmuData setMicroInstructions(MmuData mmuData) {
     HubToMmuValues hubToMmuValues = mmuData.hubToMmuValues();
 
+    // Setting MMIO constant values
     mmuData.mmuToMmioConstantValues(
         MmuToMmioConstantValues.builder().targetContextNumber(hubToMmuValues.targetId()).build());
+
+    // Setting the target ram bytes
+    mmuData.setTargetRamBytes();
 
     // First micro-instruction.
     mmuData.mmuToMmioInstruction(

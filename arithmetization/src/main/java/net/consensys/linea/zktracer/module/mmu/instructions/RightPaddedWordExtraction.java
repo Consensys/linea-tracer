@@ -66,7 +66,7 @@ public class RightPaddedWordExtraction implements MmuInstruction {
   }
 
   @Override
-  public MmuData preProcess(MmuData mmuData) {
+  public MmuData preProcess(MmuData mmuData, final CallStack callStack) {
     final HubToMmuValues hubToMmuValues = mmuData.hubToMmuValues();
     row1(hubToMmuValues);
     row2(hubToMmuValues);
@@ -85,11 +85,6 @@ public class RightPaddedWordExtraction implements MmuInstruction {
     mmuData.totalRightZeroesInitials(0);
 
     return mmuData;
-  }
-
-  @Override
-  public MmuData preProcessWithCallStack(MmuData mmuData, CallStack callStack) {
-    return null;
   }
 
   private void row1(final HubToMmuValues hubToMmuValues) {
@@ -199,9 +194,14 @@ public class RightPaddedWordExtraction implements MmuInstruction {
   public MmuData setMicroInstructions(MmuData mmuData) {
     HubToMmuValues hubToMmuValues = mmuData.hubToMmuValues();
 
+    // Setting MMIO constant values
     mmuData.mmuToMmioConstantValues(
         MmuToMmioConstantValues.builder().sourceContextNumber(hubToMmuValues.sourceId()).build());
 
+    // Setting the source ram bytes
+    mmuData.setSourceRamBytes();
+
+    // Setting the list of MMIO instructions
     firstMicroInstruction(mmuData);
     secondMicroInstruction(mmuData);
 

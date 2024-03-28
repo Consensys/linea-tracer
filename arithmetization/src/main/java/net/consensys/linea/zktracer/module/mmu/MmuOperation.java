@@ -124,27 +124,6 @@ public class MmuOperation extends ModuleOperation {
     }
   }
 
-  public void retrieveSourceAndTargetRam() {
-    // Job already done in the preprocessing only for INVALID_CODE_PREFIX
-    if (mmuData.hubToMmuValues().mmuInstruction() == Trace.MMU_INST_INVALID_CODE_PREFIX) {
-      return;
-    }
-
-    final MmuToMmioConstantValues mmuToMmioConstantValues = mmuData.mmuToMmioConstantValues();
-
-    final int sourceContextNumber = mmuToMmioConstantValues.sourceContextNumber();
-    if (sourceContextNumber != 0) {
-      final Bytes sourceMemory = callStackReader.valueFromMemory(sourceContextNumber);
-      mmuData.sourceRamBytes(sourceMemory);
-    }
-
-    final int targetContextNumber = mmuToMmioConstantValues.targetContextNumber();
-    if (targetContextNumber != 0) {
-      final Bytes targetMemory = callStackReader.valueFromMemory(targetContextNumber);
-      mmuData.targetRamBytes(targetMemory);
-    }
-  }
-
   public void fillLimb() {
     final int mmuInstruction = mmuData.hubToMmuValues().mmuInstruction();
     // Job already done in the preprocessing only for INVALID_CODE_PREFIX

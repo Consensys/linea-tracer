@@ -55,12 +55,7 @@ public class InvalidCodePrefix implements MmuInstruction {
   }
 
   @Override
-  public MmuData preProcess(MmuData mmuData) {
-    return null;
-  }
-
-  @Override
-  public MmuData preProcessWithCallStack(MmuData mmuData, final CallStack callStack) {
+  public MmuData preProcess(MmuData mmuData, final CallStack callStack) {
     // Set mmuData.sourceRamBytes
     CallStackReader callStackReader = new CallStackReader(callStack);
     final Bytes sourceMemory = callStackReader.valueFromMemory(mmuData.hubToMmuValues().sourceId());

@@ -68,7 +68,7 @@ public class RamToRamSansPadding implements MmuInstruction {
   }
 
   @Override
-  public MmuData preProcess(MmuData mmuData) {
+  public MmuData preProcess(MmuData mmuData, final CallStack callStack) {
     final HubToMmuValues hubToMmuValues = mmuData.hubToMmuValues();
     row1(hubToMmuValues);
     row2(hubToMmuValues);
@@ -95,11 +95,6 @@ public class RamToRamSansPadding implements MmuInstruction {
     mmuData.totalRightZeroesInitials(0);
 
     return mmuData;
-  }
-
-  @Override
-  public MmuData preProcessWithCallStack(MmuData mmuData, CallStack callStack) {
-    return null;
   }
 
   private void row1(final HubToMmuValues hubToMmuValues) {
@@ -249,12 +244,18 @@ public class RamToRamSansPadding implements MmuInstruction {
   public MmuData setMicroInstructions(MmuData mmuData) {
     final HubToMmuValues hubToMmuValues = mmuData.hubToMmuValues();
 
+    // Setting MMIO constant values
     mmuData.mmuToMmioConstantValues(
         MmuToMmioConstantValues.builder()
             .sourceContextNumber(hubToMmuValues.sourceId())
             .targetContextNumber(hubToMmuValues.targetId())
             .build());
 
+    // Setting the source and target ram bytes
+    mmuData.setSourceRamBytes();
+    mmuData.setTargetRamBytes();
+
+    // Setting the list of MMIO instructions
     if (mmuData.totalNonTrivialInitials() == 1) {
       onlyMicroInstruction(mmuData);
     } else {

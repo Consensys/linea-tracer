@@ -100,7 +100,7 @@ public class AnyToRamWithPadding implements MmuInstruction {
   }
 
   @Override
-  public MmuData preProcess(MmuData mmuData) {
+  public MmuData preProcess(MmuData mmuData, final CallStack callStack) {
     final HubToMmuValues hubToMmuValues = mmuData.hubToMmuValues();
 
     // Shared PreProcessing
@@ -131,11 +131,6 @@ public class AnyToRamWithPadding implements MmuInstruction {
     mmuData.totalRightZeroesInitials(totInitialRightZeroes);
 
     return mmuData;
-  }
-
-  @Override
-  public MmuData preProcessWithCallStack(MmuData mmuData, CallStack callStack) {
-    return null;
   }
 
   private void someDataCasePreProcessing(final HubToMmuValues hubToMmuValues) {
@@ -509,6 +504,12 @@ public class AnyToRamWithPadding implements MmuInstruction {
     mmuData.mmuToMmioConstantValues(
         MmuToMmioConstantValues.builder().targetContextNumber(hubToMmuValues.targetId()).build());
 
+    // Setting the source (if relevant) and target ram bytes
+    if (dataSourceIsRam) {
+      mmuData.setSourceRamBytes();
+    }
+    mmuData.setTargetRamBytes();
+
     if (totalRightZeroIsOne) {
       purePaddingOnlyMicroInstruction(mmuData);
     } else {
@@ -546,6 +547,12 @@ public class AnyToRamWithPadding implements MmuInstruction {
             .exoId(dataSourceIsRam ? 0 : hubToMmuValues.sourceId())
             .totalSize((int) hubToMmuValues.referenceSize())
             .build());
+
+    // Setting the source (if relevant) and target ram bytes
+    if (dataSourceIsRam) {
+      mmuData.setSourceRamBytes();
+    }
+    mmuData.setTargetRamBytes();
 
     // Setting data transfer micro instructions
     if (totalNonTrivialIsOne) {

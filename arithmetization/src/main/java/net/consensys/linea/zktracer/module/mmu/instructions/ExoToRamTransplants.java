@@ -45,7 +45,7 @@ public class ExoToRamTransplants implements MmuInstruction {
   }
 
   @Override
-  public MmuData preProcess(MmuData mmuData) {
+  public MmuData preProcess(MmuData mmuData, final CallStack callStack) {
     // row n°1
     final Bytes dividend = Bytes.ofUnsignedInt(mmuData.hubToMmuValues().size());
     final EucOperation eucOp = euc.callEUC(dividend, Bytes.of(LLARGE));
@@ -72,14 +72,10 @@ public class ExoToRamTransplants implements MmuInstruction {
   }
 
   @Override
-  public MmuData preProcessWithCallStack(MmuData mmuData, CallStack callStack) {
-    return null;
-  }
-
-  @Override
   public MmuData setMicroInstructions(MmuData mmuData) {
     HubToMmuValues hubToMmuValues = mmuData.hubToMmuValues();
 
+    // Setting MMIO constant values
     mmuData.mmuToMmioConstantValues(
         MmuToMmioConstantValues.builder()
             .targetContextNumber(hubToMmuValues.targetId())
@@ -87,6 +83,9 @@ public class ExoToRamTransplants implements MmuInstruction {
             .phase(hubToMmuValues.phase())
             .exoId(hubToMmuValues.sourceId())
             .build());
+
+    // Setting the target ram bytes
+    mmuData.setTargetRamBytes();
 
     for (int i = 0; i < mmuData.totalNonTrivialInitials(); i++) {
       mmuData.mmuToMmioInstruction(

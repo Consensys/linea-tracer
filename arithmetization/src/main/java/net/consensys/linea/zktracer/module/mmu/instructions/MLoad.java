@@ -51,7 +51,7 @@ public class MLoad implements MmuInstruction {
     this.wcpCallRecords = new ArrayList<>(Trace.NB_PP_ROWS_MLOAD);
   }
 
-  public MmuData preProcess(MmuData mmuData) {
+  public MmuData preProcess(MmuData mmuData, final CallStack callStack) {
     final long dividend1 = mmuData.hubToMmuValues().sourceOffsetLo().longValueExact();
     final EucOperation eucOp = euc.callEUC(Bytes.ofUnsignedLong(dividend1), Bytes.of(LLARGE));
     final int rem = eucOp.remainder().toInt();
@@ -85,16 +85,15 @@ public class MLoad implements MmuInstruction {
     return mmuData;
   }
 
-  @Override
-  public MmuData preProcessWithCallStack(MmuData mmuData, CallStack callStack) {
-    return null;
-  }
-
   public MmuData setMicroInstructions(MmuData mmuData) {
     HubToMmuValues hubToMmuValues = mmuData.hubToMmuValues();
 
+    // Setting MMIO constant values
     mmuData.mmuToMmioConstantValues(
         MmuToMmioConstantValues.builder().sourceContextNumber(hubToMmuValues.sourceId()).build());
+
+    // Setting the source ram bytes
+    mmuData.setSourceRamBytes();
 
     // First micro-instruction.
     mmuData.mmuToMmioInstruction(

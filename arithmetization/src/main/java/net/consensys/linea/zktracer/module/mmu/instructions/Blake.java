@@ -53,7 +53,7 @@ public class Blake implements MmuInstruction {
   }
 
   @Override
-  public MmuData preProcess(MmuData mmuData) {
+  public MmuData preProcess(MmuData mmuData, final CallStack callStack) {
     final HubToMmuValues hubToMmuValues = mmuData.hubToMmuValues();
 
     // Preprocessing row n°1
@@ -109,11 +109,6 @@ public class Blake implements MmuInstruction {
   }
 
   @Override
-  public MmuData preProcessWithCallStack(MmuData mmuData, CallStack callStack) {
-    return null;
-  }
-
-  @Override
   public MmuData setMicroInstructions(MmuData mmuData) {
     HubToMmuValues hubToMmuValues = mmuData.hubToMmuValues();
 
@@ -127,6 +122,9 @@ public class Blake implements MmuInstruction {
             .phase(successBit ? hubToMmuValues.phase() : 0)
             .exoId(successBit ? hubToMmuValues.targetId() : 0)
             .build());
+
+    // Setting the source ram bytes
+    mmuData.setSourceRamBytes();
 
     // First micro instruction
     mmuData.mmuToMmioInstruction(

@@ -38,7 +38,7 @@ public class ModexpZero implements MmuInstruction {
   }
 
   @Override
-  public MmuData preProcess(MmuData mmuData) {
+  public MmuData preProcess(MmuData mmuData, final CallStack callStack) {
 
     // no call to wcp nor euc. So much fun.
     eucCallRecords.add(MmuEucCallRecord.EMPTY_CALL);
@@ -57,19 +57,19 @@ public class ModexpZero implements MmuInstruction {
   }
 
   @Override
-  public MmuData preProcessWithCallStack(MmuData mmuData, CallStack callStack) {
-    return null;
-  }
-
-  @Override
   public MmuData setMicroInstructions(MmuData mmuData) {
     HubToMmuValues hubToMmuValues = mmuData.hubToMmuValues();
+
+    // Setting MMIO constant values
     mmuData.mmuToMmioConstantValues(
         MmuToMmioConstantValues.builder()
             .exoSum(hubToMmuValues.exoSum())
             .phase(hubToMmuValues.phase())
             .targetContextNumber(hubToMmuValues.targetId())
             .build());
+
+    // Setting the source ram bytes
+    mmuData.setSourceRamBytes();
 
     for (int i = 0; i < Trace.NB_MICRO_ROWS_TOT_MODEXP_ZERO; i++) {
       vanishingMicroInstruction(mmuData, i);

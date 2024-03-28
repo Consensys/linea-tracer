@@ -128,6 +128,7 @@ public class CallFrame {
   }
 
   /** Create a bedrock call frame. */
+  // TODO: Isn't it a MANTLE type call frame ?
   CallFrame(Bytes callData, int contextNumber) {
     this.type = CallFrameType.MANTLE;
     this.contextNumber = contextNumber;

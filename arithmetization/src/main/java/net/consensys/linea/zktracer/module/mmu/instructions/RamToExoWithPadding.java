@@ -63,7 +63,7 @@ public class RamToExoWithPadding implements MmuInstruction {
   }
 
   @Override
-  public MmuData preProcess(MmuData mmuData) {
+  public MmuData preProcess(MmuData mmuData, final CallStack callStack) {
     final MmuOutAndBinValues mmuOutAndBinValues = mmuData.outAndBinValues();
     aligned = mmuOutAndBinValues.bin1();
     lastLimbByteSize = (short) mmuOutAndBinValues.out1();
@@ -90,11 +90,6 @@ public class RamToExoWithPadding implements MmuInstruction {
     mmuData.totalLeftZeroesInitials(0);
 
     return mmuData;
-  }
-
-  @Override
-  public MmuData preProcessWithCallStack(MmuData mmuData, CallStack callStack) {
-    return null;
   }
 
   private void row1(final HubToMmuValues hubToMmuValues) {
@@ -193,12 +188,8 @@ public class RamToExoWithPadding implements MmuInstruction {
   @Override
   public MmuData setMicroInstructions(MmuData mmuData) {
     final HubToMmuValues hubToMmuValues = mmuData.hubToMmuValues();
-    // final Bytes exoBytes =
-    //     mmuData
-    //         .exoSumDecoder()
-    //         .extractBytesFromExo(hubToMmuValues.targetId(), (int) hubToMmuValues.phase());
-    // mmuData.exoBytes(exoBytes);
 
+    // Setting MMIO constant values
     mmuData.mmuToMmioConstantValues(
         MmuToMmioConstantValues.builder()
             .sourceContextNumber(hubToMmuValues.sourceId())
@@ -210,6 +201,10 @@ public class RamToExoWithPadding implements MmuInstruction {
             .totalSize((int) hubToMmuValues.referenceSize())
             .build());
 
+    // Setting the source ram bytes
+    mmuData.setTargetRamBytes();
+
+    // Setting the list of MMIO instructions
     if (mmuData.totalNonTrivialInitials() == 1) {
       onlyMicroInstruction(mmuData);
     } else {

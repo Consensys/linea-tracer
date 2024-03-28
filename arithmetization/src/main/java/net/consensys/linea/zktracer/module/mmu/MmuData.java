@@ -22,6 +22,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.module.mmio.CallStackReader;
 import net.consensys.linea.zktracer.module.mmio.ExoSumDecoder;
 import net.consensys.linea.zktracer.module.mmu.values.HubToMmuValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuEucCallRecord;
@@ -29,6 +30,7 @@ import net.consensys.linea.zktracer.module.mmu.values.MmuOutAndBinValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioConstantValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioInstruction;
 import net.consensys.linea.zktracer.module.mmu.values.MmuWcpCallRecord;
+import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import org.apache.tuweni.bytes.Bytes;
 
 @AllArgsConstructor
@@ -50,8 +52,9 @@ public class MmuData {
   private Bytes exoBytes;
   private Bytes sourceRamBytes;
   private Bytes targetRamBytes;
+  private CallStackReader callStackReader;
 
-  public MmuData() {
+  public MmuData(final CallStack callStack) {
     this(
         0,
         0,
@@ -66,7 +69,8 @@ public class MmuData {
         false,
         Bytes.EMPTY,
         Bytes.EMPTY,
-        Bytes.EMPTY);
+        Bytes.EMPTY,
+        new CallStackReader(callStack));
   }
 
   public int numberMmioInstructions() {
@@ -79,5 +83,25 @@ public class MmuData {
 
   public void mmuToMmioInstruction(final MmuToMmioInstruction mmuToMmioInstruction) {
     mmuToMmioInstructions.add(mmuToMmioInstruction);
+  }
+
+  public void setSourceRamBytes() {
+    final MmuToMmioConstantValues mmuToMmioConstantValues = this.mmuToMmioConstantValues();
+
+    final int sourceContextNumber = mmuToMmioConstantValues.sourceContextNumber();
+    if (sourceContextNumber != 0) {
+      final Bytes sourceMemory = callStackReader.valueFromMemory(sourceContextNumber);
+      this.sourceRamBytes(sourceMemory);
+    }
+  }
+
+  public void setTargetRamBytes() {
+    final MmuToMmioConstantValues mmuToMmioConstantValues = this.mmuToMmioConstantValues();
+
+    final int targetContextNumber = mmuToMmioConstantValues.targetContextNumber();
+    if (targetContextNumber != 0) {
+      final Bytes targetMemory = callStackReader.valueFromMemory(targetContextNumber);
+      this.targetRamBytes(targetMemory);
+    }
   }
 }

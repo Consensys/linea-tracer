@@ -53,6 +53,25 @@ class MemoryTests {
   }
 
   @Test
+  void successionOverlappingMstore() {
+    BytecodeRunner.of(
+            BytecodeCompiler.newProgram()
+                .push(Bytes.repeat((byte) 1, 32))
+                .push(0)
+                .op(OpCode.MSTORE)
+                .push(Bytes.repeat((byte) 2, 32))
+                .push(15)
+                .op(OpCode.MSTORE)
+                .push(Bytes.repeat((byte) 3, 32))
+                .push(2)
+                .op(OpCode.MSTORE)
+                .push(6)
+                .op(OpCode.MLOAD)
+                .compile())
+        .run();
+  }
+
+  @Test
   void fastMload() {
     BytecodeRunner.of(BytecodeCompiler.newProgram().push(34).push(0).op(OpCode.MLOAD).compile())
         .run();

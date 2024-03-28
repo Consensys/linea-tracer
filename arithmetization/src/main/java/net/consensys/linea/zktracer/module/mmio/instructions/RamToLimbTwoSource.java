@@ -50,14 +50,14 @@ public class RamToLimbTwoSource implements MmioInstruction {
     mmioData.valA(Bytes16.wrap(Bytecodes.readLimb(mmuData.sourceRamBytes(), mmioData.indexA())));
     mmioData.valB(Bytes16.wrap(Bytecodes.readLimb(mmuData.sourceRamBytes(), mmioData.indexB())));
     mmioData.valC(Bytes16.ZERO);
-    final short sourceByteOffset = mmioData.sourceByteOffset();
     mmioData.limb(mmioData.limb());
 
     mmioData.valANew(mmioData.valA());
     mmioData.valBNew(mmioData.valB());
     mmioData.valCNew(Bytes16.ZERO);
 
-    mmioData.twoToOnePadded(mmioData.valA(), mmioData.valB(), sourceByteOffset, mmioData.size());
+    mmioData.twoToOnePadded(
+        mmioData.valA(), mmioData.valB(), mmioData.sourceByteOffset(), mmioData.size());
     return mmioData;
   }
 }

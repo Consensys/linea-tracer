@@ -23,6 +23,7 @@ import java.util.List;
 
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.euc.EucOperation;
+import net.consensys.linea.zktracer.module.mmio.CallStackReader;
 import net.consensys.linea.zktracer.module.mmu.MmuData;
 import net.consensys.linea.zktracer.module.mmu.Trace;
 import net.consensys.linea.zktracer.module.mmu.values.HubToMmuValues;
@@ -32,6 +33,7 @@ import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioConstantValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioInstruction;
 import net.consensys.linea.zktracer.module.mmu.values.MmuWcpCallRecord;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
+import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.types.Bytes16;
 import org.apache.tuweni.bytes.Bytes;
 
@@ -54,6 +56,16 @@ public class InvalidCodePrefix implements MmuInstruction {
 
   @Override
   public MmuData preProcess(MmuData mmuData) {
+    return null;
+  }
+
+  @Override
+  public MmuData preProcessWithCallStack(MmuData mmuData, final CallStack callStack) {
+    // Set mmuData.sourceRamBytes
+    CallStackReader callStackReader = new CallStackReader(callStack);
+    final Bytes sourceMemory = callStackReader.valueFromMemory(mmuData.hubToMmuValues().sourceId());
+    mmuData.sourceRamBytes(sourceMemory);
+
     // row n°1
     final long dividend1 = mmuData.hubToMmuValues().sourceOffsetLo().longValueExact();
     EucOperation eucOp = euc.callEUC(Bytes.ofUnsignedLong(dividend1), Bytes.of(16));
@@ -75,7 +87,6 @@ public class InvalidCodePrefix implements MmuInstruction {
             mmuData
                 .sourceRamBytes()
                 .get(LLARGE * initialSourceLimbOffset + initialSourceByteOffset));
-    // TODO: won't work as we fill mmuData.sourceRamBytes after, in the commit() of mmio.
     Bytes arg1 = microLimb;
     Bytes arg2 = Bytes.of(INVALID_CODE_PREFIX_VALUE);
     boolean result = wcp.callEQ(arg1, arg2);

@@ -32,6 +32,7 @@ import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioConstantValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioInstruction;
 import net.consensys.linea.zktracer.module.mmu.values.MmuWcpCallRecord;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
+import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import org.apache.tuweni.bytes.Bytes;
 
 public class ModexpData implements MmuInstruction {
@@ -97,6 +98,11 @@ public class ModexpData implements MmuInstruction {
     mmuData.totalRightZeroesInitials(initialTotalRightZeroes);
 
     return mmuData;
+  }
+
+  @Override
+  public MmuData preProcessWithCallStack(MmuData mmuData, CallStack callStack) {
+    return null;
   }
 
   private void row1(final HubToMmuValues hubToMmuValues) {

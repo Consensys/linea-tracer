@@ -32,6 +32,7 @@ import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioConstantValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioInstruction;
 import net.consensys.linea.zktracer.module.mmu.values.MmuWcpCallRecord;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
+import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import org.apache.tuweni.bytes.Bytes;
 
 public class RamToRamSansPadding implements MmuInstruction {
@@ -94,6 +95,11 @@ public class RamToRamSansPadding implements MmuInstruction {
     mmuData.totalRightZeroesInitials(0);
 
     return mmuData;
+  }
+
+  @Override
+  public MmuData preProcessWithCallStack(MmuData mmuData, CallStack callStack) {
+    return null;
   }
 
   private void row1(final HubToMmuValues hubToMmuValues) {

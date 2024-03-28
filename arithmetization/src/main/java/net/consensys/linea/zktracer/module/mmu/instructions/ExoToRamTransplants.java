@@ -30,6 +30,7 @@ import net.consensys.linea.zktracer.module.mmu.values.MmuOutAndBinValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioConstantValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioInstruction;
 import net.consensys.linea.zktracer.module.mmu.values.MmuWcpCallRecord;
+import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import org.apache.tuweni.bytes.Bytes;
 
 public class ExoToRamTransplants implements MmuInstruction {
@@ -68,6 +69,11 @@ public class ExoToRamTransplants implements MmuInstruction {
     mmuData.totalRightZeroesInitials(0);
 
     return mmuData;
+  }
+
+  @Override
+  public MmuData preProcessWithCallStack(MmuData mmuData, CallStack callStack) {
+    return null;
   }
 
   @Override

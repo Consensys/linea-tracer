@@ -31,6 +31,7 @@ import net.consensys.linea.zktracer.module.mmu.instructions.RamToExoWithPadding;
 import net.consensys.linea.zktracer.module.mmu.instructions.RamToRamSansPadding;
 import net.consensys.linea.zktracer.module.mmu.instructions.RightPaddedWordExtraction;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
+import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 
 @Accessors(fluent = true)
 class MmuInstructions {
@@ -63,7 +64,7 @@ class MmuInstructions {
     this.blake = new Blake(euc, wcp);
   }
 
-  public MmuData compute(MmuData mmuData) {
+  public MmuData compute(MmuData mmuData, final CallStack callStack) {
     int mmuInstruction = mmuData.hubToMmuValues().mmuInstruction();
 
     return switch (mmuInstruction) {
@@ -80,7 +81,7 @@ class MmuInstructions {
         yield mStore8PreComputation.setMicroInstructions(mmuData);
       }
       case Trace.MMU_INST_INVALID_CODE_PREFIX -> {
-        mmuData = invalidCodePrefix.preProcess(mmuData);
+        mmuData = invalidCodePrefix.preProcessWithCallStack(mmuData, callStack);
         yield invalidCodePrefix.setMicroInstructions(mmuData);
       }
       case Trace.MMU_INST_RIGHT_PADDED_WORD_EXTRACTION -> {

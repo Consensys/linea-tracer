@@ -125,6 +125,11 @@ public class MmuOperation extends ModuleOperation {
   }
 
   public void retrieveSourceAndTargetRam() {
+    // Job already done in the preprocessing only for INVALID_CODE_PREFIX
+    if (mmuData.hubToMmuValues().mmuInstruction() == Trace.MMU_INST_INVALID_CODE_PREFIX) {
+      return;
+    }
+
     final MmuToMmioConstantValues mmuToMmioConstantValues = mmuData.mmuToMmioConstantValues();
 
     final int sourceContextNumber = mmuToMmioConstantValues.sourceContextNumber();
@@ -142,6 +147,10 @@ public class MmuOperation extends ModuleOperation {
 
   public void fillLimb() {
     final int mmuInstruction = mmuData.hubToMmuValues().mmuInstruction();
+    // Job already done in the preprocessing only for INVALID_CODE_PREFIX
+    if (mmuInstruction == Trace.MMU_INST_INVALID_CODE_PREFIX) {
+      return;
+    }
 
     if (mmuInstruction == Trace.MMU_INST_BLAKE) {
       return; // the limb for BLAKE is given by the HUB

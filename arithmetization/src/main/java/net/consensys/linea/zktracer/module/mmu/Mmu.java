@@ -106,7 +106,7 @@ public class Mmu implements Module {
     mmuData.hubToMmuValues(hubToMmuValues);
 
     final MmuInstructions mmuInstructions = new MmuInstructions(euc, wcp);
-    mmuData = mmuInstructions.compute(mmuData);
+    mmuData = mmuInstructions.compute(mmuData, callStack);
 
     this.mmuOperations.add(new MmuOperation(mmuData, callStack));
   }

@@ -253,7 +253,7 @@ public class RomLex implements Module {
   public void traceEndConflation(final WorldView state) {
     this.sortedChunks.addAll(this.chunks);
     this.sortedChunks.sort(ROM_CHUNK_COMPARATOR);
-  }
+  } // TODO: should be done in the commit function
 
   @Override
   public int lineCount() {
@@ -269,6 +269,7 @@ public class RomLex implements Module {
 
   @Override
   public void commit(List<MappedByteBuffer> buffers) {
+
     final Trace trace = new Trace(buffers);
     final int codeFragmentIndexInfinity = chunks.size();
 

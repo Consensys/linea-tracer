@@ -37,7 +37,6 @@ import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioConstantValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioInstruction;
 import net.consensys.linea.zktracer.module.mmu.values.MmuWcpCallRecord;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import net.consensys.linea.zktracer.types.Bytes16;
 import org.apache.tuweni.bytes.Bytes;
 
 public class AnyToRamWithPadding implements MmuInstruction {
@@ -610,11 +609,11 @@ public class AnyToRamWithPadding implements MmuInstruction {
   }
 
   private void someDataOnlyNonTrivialInstruction(MmuData mmuData) {
-    final Bytes16 limb =
-        (Bytes16)
-            (dataSourceIsRam
-                ? Bytes.EMPTY
-                : mmuData.exoBytes().slice(LLARGE * minSourceLimbOffset, LLARGE));
+    // final Bytes16 limb =
+    //     (Bytes16)
+    //         (dataSourceIsRam
+    //             ? Bytes.EMPTY
+    //             : mmuData.exoBytes().slice(LLARGE * minSourceLimbOffset, LLARGE));
     int onlyMmioInstruction;
     if (dataSourceIsRam) {
       onlyMmioInstruction =
@@ -636,7 +635,7 @@ public class AnyToRamWithPadding implements MmuInstruction {
             .sourceByteOffset(minSourceByteOffset)
             .targetLimbOffset(minTargetLimbOffset)
             .targetByteOffset(minTargetByteOffset)
-            .limb(limb)
+            //  .limb(limb)
             .targetLimbIsTouchedTwice(
                 mmioInstNeedsUpdateTemporaryTargetRam(onlyMmioInstruction)
                     || dataToPaddingTransitionTakesTwoMmioInstructions)
@@ -644,11 +643,11 @@ public class AnyToRamWithPadding implements MmuInstruction {
   }
 
   private void someDataFirstNonTrivialInstruction(MmuData mmuData) {
-    final Bytes16 limb =
-        (Bytes16)
-            (dataSourceIsRam
-                ? Bytes.EMPTY
-                : mmuData.exoBytes().slice(LLARGE * minSourceLimbOffset, LLARGE));
+    // final Bytes16 limb =
+    //    (Bytes16)
+    //        (dataSourceIsRam
+    //            ? Bytes.EMPTY
+    //            : mmuData.exoBytes().slice(LLARGE * minSourceLimbOffset, LLARGE));
     int firstMmioInstruction = 0;
     if (dataSourceIsRam) {
       firstMmioInstruction =
@@ -670,18 +669,18 @@ public class AnyToRamWithPadding implements MmuInstruction {
             .sourceByteOffset(minSourceByteOffset)
             .targetLimbOffset(minTargetLimbOffset)
             .targetByteOffset(minTargetByteOffset)
-            .limb(limb)
+            // .limb(limb)
             .targetLimbIsTouchedTwice(mmioInstNeedsUpdateTemporaryTargetRam(firstMmioInstruction))
             .build());
   }
 
   private void someDataMiddleNonTrivialInstruction(MmuData mmuData, int rowNumber) {
     final int sourceLimbOffset = minSourceLimbOffset + rowNumber;
-    final Bytes16 limb =
-        (Bytes16)
-            (dataSourceIsRam
-                ? Bytes.EMPTY
-                : mmuData.exoBytes().slice(sourceLimbOffset * LLARGE, LLARGE));
+    // final Bytes16 limb =
+    //     (Bytes16)
+    //         (dataSourceIsRam
+    //             ? Bytes.EMPTY
+    //             : mmuData.exoBytes().slice(sourceLimbOffset * LLARGE, LLARGE));
     int middleMmioInstruction = 0;
     if (dataSourceIsRam) {
       middleMmioInstruction =
@@ -698,18 +697,18 @@ public class AnyToRamWithPadding implements MmuInstruction {
             .sourceLimbOffset(sourceLimbOffset)
             .targetLimbOffset(firstMiddleNonTrivialTargetLimbOffset + rowNumber - 1)
             .targetByteOffset(middleTargetByteOffset)
-            .limb(limb)
+            //   .limb(limb)
             .targetLimbIsTouchedTwice(mmioInstNeedsUpdateTemporaryTargetRam(middleMmioInstruction))
             .build());
   }
 
   private void someDataLastNonTrivialInstruction(MmuData mmuData) {
     final int sourceLimbOffset = minSourceLimbOffset + totInitialNonTrivial - 1;
-    final Bytes16 limb =
-        (Bytes16)
-            (dataSourceIsRam
-                ? Bytes.EMPTY
-                : mmuData.exoBytes().slice(LLARGE * sourceLimbOffset, LLARGE));
+    // final Bytes16 limb =
+    //     (Bytes16)
+    //         (dataSourceIsRam
+    //             ? Bytes.EMPTY
+    //             : mmuData.exoBytes().slice(LLARGE * sourceLimbOffset, LLARGE));
     int lastMmioInstruction = 0;
     if (dataSourceIsRam) {
       lastMmioInstruction =
@@ -729,7 +728,7 @@ public class AnyToRamWithPadding implements MmuInstruction {
             .sourceLimbOffset(sourceLimbOffset)
             .targetLimbOffset(firstMiddleNonTrivialTargetLimbOffset + totInitialNonTrivial - 2)
             .targetByteOffset(middleTargetByteOffset)
-            .limb(limb)
+            //   .limb(limb)
             .targetLimbIsTouchedTwice(
                 mmioInstNeedsUpdateTemporaryTargetRam(lastMmioInstruction)
                     || dataToPaddingTransitionTakesTwoMmioInstructions)

@@ -17,11 +17,13 @@ package net.consensys.linea.zktracer.module.mmu.values;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.types.Bytes16;
 
 @Builder
 @Getter
+@Setter
 @Accessors(fluent = true)
 public class MmuToMmioInstruction {
   private int mmioInstruction;

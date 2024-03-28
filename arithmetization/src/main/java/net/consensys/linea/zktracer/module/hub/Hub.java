@@ -234,7 +234,7 @@ public class Hub implements Module {
             this.ecData,
             this.blake2fModexpData,
             this.callStack);
-    this.mmio = new Mmio(this.mmu, this.callStack);
+    this.mmio = new Mmio(this.mmu);
 
     final EcRecoverEffectiveCall ecRec = new EcRecoverEffectiveCall(this);
     this.modexpEffectiveCall = new ModexpEffectiveCall(this, this.blake2fModexpData);
@@ -307,8 +307,8 @@ public class Hub implements Module {
                 this.exp,
                 this.logData,
                 this.logInfo,
+                this.mmu, // WARN: must be called before the MMIO
                 this.mmio,
-                this.mmu,
                 this.mod,
                 this.mul,
                 this.mxp,

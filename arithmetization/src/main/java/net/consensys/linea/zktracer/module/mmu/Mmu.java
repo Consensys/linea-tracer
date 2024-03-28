@@ -33,10 +33,6 @@ import net.consensys.linea.zktracer.module.rlp.txrcpt.RlpTxrcpt;
 import net.consensys.linea.zktracer.module.romLex.RomLex;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
-import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Transaction;
-import org.hyperledger.besu.evm.log.Log;
-import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Accessors(fluent = true)
 public class Mmu implements Module {
@@ -68,17 +64,6 @@ public class Mmu implements Module {
   }
 
   @Override
-  public void traceEndTx(
-      WorldView worldView,
-      Transaction tx,
-      boolean isSuccessful,
-      Bytes output,
-      List<Log> logs,
-      long gasUsed) {
-    // TODO: execute defered call to the MMU
-  }
-
-  @Override
   public void enterTransaction() {
     this.mmuOperations.enter();
   }
@@ -106,6 +91,10 @@ public class Mmu implements Module {
     int mmioStamp = 0;
 
     for (MmuOperation mmuOp : this.mmuOperations) {
+      mmuOp.computeExoSum(exoSumDecoder);
+      mmuOp.retrieveSourceAndTargetRam();
+      mmuOp.fillLimb();
+
       mmuStamp += 1;
       mmuOp.trace(mmuStamp, mmioStamp, trace);
       mmioStamp += mmuOp.mmuData().numberMmioInstructions();
@@ -116,17 +105,9 @@ public class Mmu implements Module {
     MmuData mmuData = new MmuData();
     mmuData.hubToMmuValues(hubToMmuValues);
 
-    // TODO: defers all the computation of the MMU at the end of the transaction.
-
-    final int exoSum = mmuData.hubToMmuValues().exoSum();
-    mmuData.exoSumDecoder(exoSumDecoder);
-    if (exoSum != 0) {
-      exoSumDecoder.decode(exoSum);
-    }
-
     final MmuInstructions mmuInstructions = new MmuInstructions(euc, wcp);
     mmuData = mmuInstructions.compute(mmuData);
 
-    this.mmuOperations.add(new MmuOperation(mmuData));
+    this.mmuOperations.add(new MmuOperation(mmuData, callStack));
   }
 }

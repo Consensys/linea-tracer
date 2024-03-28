@@ -32,7 +32,6 @@ import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioConstantValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioInstruction;
 import net.consensys.linea.zktracer.module.mmu.values.MmuWcpCallRecord;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import net.consensys.linea.zktracer.types.Bytes16;
 import org.apache.tuweni.bytes.Bytes;
 
 public class ModexpData implements MmuInstruction {
@@ -281,7 +280,8 @@ public class ModexpData implements MmuInstruction {
             .sourceByteOffset(initialSourceByteOffset)
             .targetLimbOffset(initialTotalLeftZeroes)
             .targetByteOffset(initialTargetByteOffset)
-            .limb((Bytes16) mmuData.exoBytes().slice(initialSourceLimbOffset * LLARGE, LLARGE))
+            //     .limb((Bytes16) mmuData.exoBytes().slice(initialSourceLimbOffset * LLARGE,
+            // LLARGE))
             .build());
   }
 
@@ -295,7 +295,7 @@ public class ModexpData implements MmuInstruction {
             .sourceByteOffset(middleSourceByteOffset)
             .targetLimbOffset(targetLimbOffset)
             .targetByteOffset((short) 0)
-            .limb((Bytes16) mmuData.exoBytes().slice(LLARGE * sourceLimbOffset, LLARGE))
+            //       .limb((Bytes16) mmuData.exoBytes().slice(LLARGE * sourceLimbOffset, LLARGE))
             .build());
   }
 
@@ -314,7 +314,7 @@ public class ModexpData implements MmuInstruction {
             .sourceByteOffset(middleSourceByteOffset)
             .targetLimbOffset(initialTotalLeftZeroes + initialTotalNonTrivial)
             .targetByteOffset((short) 0)
-            .limb((Bytes16) mmuData.exoBytes().slice(LLARGE * sourceLimbOffset, LLARGE))
+            //    .limb((Bytes16) mmuData.exoBytes().slice(LLARGE * sourceLimbOffset, LLARGE))
             .build());
   }
 }

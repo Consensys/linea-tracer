@@ -19,14 +19,19 @@ the License for the
 package net.consensys.linea.zktracer.module.mmu;
 
 import static net.consensys.linea.zktracer.module.mmio.MmioData.numberOfRowOfMmioInstruction;
+import static net.consensys.linea.zktracer.module.mmu.Trace.LLARGE;
+import static net.consensys.linea.zktracer.types.Bytecodes.readBytes;
 import static net.consensys.linea.zktracer.types.Conversions.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
+import net.consensys.linea.zktracer.module.mmio.CallStackReader;
+import net.consensys.linea.zktracer.module.mmio.ExoSumDecoder;
 import net.consensys.linea.zktracer.module.mmu.values.HubToMmuValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuEucCallRecord;
 import net.consensys.linea.zktracer.module.mmu.values.MmuOutAndBinValues;
@@ -34,6 +39,8 @@ import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioConstantValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioInstruction;
 import net.consensys.linea.zktracer.module.mmu.values.MmuWcpCallRecord;
 import net.consensys.linea.zktracer.module.mmu.values.RowTypeRecord;
+import net.consensys.linea.zktracer.runtime.callstack.CallStack;
+import net.consensys.linea.zktracer.types.Bytes16;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 
@@ -54,9 +61,11 @@ public class MmuOperation extends ModuleOperation {
   private boolean isModexpZero;
   private boolean isModexpData;
   private boolean isBlake;
+  private final CallStackReader callStackReader;
 
-  MmuOperation(MmuData mmuData) {
+  MmuOperation(MmuData mmuData, final CallStack callStack) {
     this.mmuData = mmuData;
+    this.callStackReader = new CallStackReader(callStack);
   }
 
   @Override
@@ -105,6 +114,77 @@ public class MmuOperation extends ModuleOperation {
     isModexpZero = mmuInstruction == Trace.MMU_INST_MODEXP_ZERO;
     isModexpData = mmuInstruction == Trace.MMU_INST_MODEXP_DATA;
     isBlake = mmuInstruction == Trace.MMU_INST_BLAKE;
+  }
+
+  public void computeExoSum(ExoSumDecoder exoSumDecoder) {
+    final int exoSum = mmuData.hubToMmuValues().exoSum();
+    mmuData.exoSumDecoder(exoSumDecoder);
+    if (exoSum != 0) {
+      exoSumDecoder.decode(exoSum);
+    }
+  }
+
+  public void retrieveSourceAndTargetRam() {
+    final MmuToMmioConstantValues mmuToMmioConstantValues = mmuData.mmuToMmioConstantValues();
+
+    final int sourceContextNumber = mmuToMmioConstantValues.sourceContextNumber();
+    if (sourceContextNumber != 0) {
+      final Bytes sourceMemory = callStackReader.valueFromMemory(sourceContextNumber);
+      mmuData.sourceRamBytes(sourceMemory);
+    }
+
+    final int targetContextNumber = mmuToMmioConstantValues.targetContextNumber();
+    if (targetContextNumber != 0) {
+      final Bytes targetMemory = callStackReader.valueFromMemory(targetContextNumber);
+      mmuData.targetRamBytes(targetMemory);
+    }
+  }
+
+  public void fillLimb() {
+    final int mmuInstruction = mmuData.hubToMmuValues().mmuInstruction();
+
+    if (mmuInstruction == Trace.MMU_INST_BLAKE) {
+      return; // the limb for BLAKE is given by the HUB
+    }
+
+    if (!mmuData.exoBytes().isEmpty()) {
+      final boolean exoIsSource = exoLimbIsSource(mmuInstruction);
+      final boolean exoIsTarget = exoLimbIsTarget(mmuInstruction);
+      Preconditions.checkArgument(
+          exoIsSource == !exoIsTarget, "ExoLimb is either the source or the target");
+
+      for (MmuToMmioInstruction mmioInst : this.mmuData.mmuToMmioInstructions()) {
+        final int offset =
+            exoIsSource
+                ? mmioInst.sourceLimbOffset() * LLARGE + mmioInst.sourceByteOffset()
+                : mmioInst.targetLimbOffset() * LLARGE + mmioInst.targetByteOffset();
+        final int sizeToExtract = mmioInst.size() == 0 ? LLARGE : mmioInst.size();
+        final Bytes16 exoLimb = readBytes(mmuData.exoBytes(), offset, sizeToExtract);
+        mmioInst.limb(exoLimb);
+      }
+    }
+
+    // if (mmuInstruction == Trace.MMU_INST_INVALID_CODE_PREFIX){
+    //  final MmuToMmioInstruction mmioInst = mmuData.mmuToMmioInstructions().get(0);
+    //  final int offset = Trace.LLARGE * mmioInst.sourceLimbOffset() + mmioInst.sourceByteOffset();
+    //  final Bytes16 limb = Bytes16.leftPad(mmuData.sourceRamBytes().slice(offset, 1));
+    //  mmioInst.limb(limb);
+    // }
+
+  }
+
+  private boolean exoLimbIsSource(final int mmuInstruction) {
+    return List.of(Trace.MMU_INST_ANY_TO_RAM_WITH_PADDING, Trace.MMU_INST_EXO_TO_RAM_TRANSPLANTS)
+        .contains(mmuInstruction);
+  }
+
+  private boolean exoLimbIsTarget(final int mmuInstruction) {
+    return List.of(
+            Trace.MMU_INST_BLAKE,
+            Trace.MMU_INST_MODEXP_DATA,
+            Trace.MMU_INST_MODEXP_ZERO,
+            Trace.MMU_INST_RAM_TO_EXO_WITH_PADDING)
+        .contains(mmuInstruction);
   }
 
   private void traceFillMmuInstructionFlag(Trace trace) {

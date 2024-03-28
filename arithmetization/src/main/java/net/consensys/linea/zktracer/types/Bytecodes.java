@@ -15,20 +15,23 @@
 
 package net.consensys.linea.zktracer.types;
 
-import static net.consensys.linea.zktracer.module.mmio.Trace.LLARGE;
+import static net.consensys.linea.zktracer.module.mmu.Trace.LLARGE;
 
 import org.apache.tuweni.bytes.Bytes;
 
 public class Bytecodes {
 
-  public static Bytes16 readLimb(final Bytes data, final int limbIndex) {
-    final int offset = LLARGE * limbIndex;
+  public static Bytes16 readBytes(final Bytes data, final int offset, final int sizeToRead) {
     if (offset >= data.size()) {
       return Bytes16.ZERO;
     }
 
-    final int dataLengthToExtract = Math.min(LLARGE, data.size() - offset);
+    final int dataLengthToExtract = Math.min(sizeToRead, data.size() - offset);
 
     return Bytes16.rightPad(data.slice(offset, dataLengthToExtract));
+  }
+
+  public static Bytes16 readLimb(final Bytes data, final int limbOffset) {
+    return readBytes(data, LLARGE * limbOffset, LLARGE);
   }
 }

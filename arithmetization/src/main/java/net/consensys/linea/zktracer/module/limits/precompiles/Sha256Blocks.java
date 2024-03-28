@@ -63,16 +63,15 @@ public final class Sha256Blocks implements Module {
     final OpCode opCode = hub.opCode();
     final MessageFrame frame = hub.messageFrame();
 
-    switch (opCode) {
-      case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
-        final Address target = Words.toAddress(frame.getStackItem(1));
-        if (target.equals(Address.SHA256)) {
-          final long dataByteLength = hub.transients().op().callDataSegment().length();
-          final long wordCount = (dataByteLength + 31) / 32;
-          return PRECOMPILE_BASE_GAS_FEE + PRECOMPILE_GAS_FEE_PER_EWORD * wordCount;
-        }
+    if (opCode.isCall()) {
+      final Address target = Words.toAddress(frame.getStackItem(1));
+      if (target.equals(Address.SHA256)) {
+        final long dataByteLength = hub.transients().op().callDataSegment().length();
+        final long wordCount = (dataByteLength + 31) / 32;
+        return PRECOMPILE_BASE_GAS_FEE + PRECOMPILE_GAS_FEE_PER_EWORD * wordCount;
       }
     }
+
     return 0;
   }
 
@@ -80,36 +79,33 @@ public final class Sha256Blocks implements Module {
   public void tracePreOpcode(MessageFrame frame) {
     final OpCode opCode = hub.opCode();
 
-    switch (opCode) {
-      case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
-        final Address target = Words.toAddress(frame.getStackItem(1));
-        if (target.equals(Address.SHA256)) {
-          final long dataByteLength = hub.transients().op().callDataSegment().length();
-          if (dataByteLength == 0) {
-            return;
-          }
-          final int blockCount =
-              (int)
-                      (dataByteLength * 8
-                          + SHA256_NB_PADDED_ONE
-                          + SHA256_PADDING_LENGTH
-                          + (SHA256_BLOCKSIZE - 1))
-                  / SHA256_BLOCKSIZE;
+    if (opCode.isCall()) {
+      final Address target = Words.toAddress(frame.getStackItem(1));
+      if (target.equals(Address.SHA256)) {
+        final long dataByteLength = hub.transients().op().callDataSegment().length();
+        if (dataByteLength == 0) {
+          return;
+        }
+        final int blockCount =
+            (int)
+                    (dataByteLength * 8
+                        + SHA256_NB_PADDED_ONE
+                        + SHA256_PADDING_LENGTH
+                        + (SHA256_BLOCKSIZE - 1))
+                / SHA256_BLOCKSIZE;
 
-          if (hasEnoughGas(this.hub)) {
-            this.counts.push(this.counts.pop() + blockCount);
-          }
+        if (hasEnoughGas(this.hub)) {
+          this.counts.push(this.counts.pop() + blockCount);
         }
       }
-      default -> {}
     }
   }
 
   @Override
   public int lineCount() {
     int r = 0;
-    for (int i = 0; i < this.counts.size(); i++) {
-      r += this.counts.get(i);
+    for (Integer count : this.counts) {
+      r += count;
     }
     return r;
   }

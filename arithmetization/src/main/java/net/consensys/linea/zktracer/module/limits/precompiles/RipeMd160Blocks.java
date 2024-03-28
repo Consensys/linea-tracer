@@ -29,7 +29,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 
 @RequiredArgsConstructor
-public final class Rip160Blocks implements Module {
+public final class RipeMd160Blocks implements Module {
   private final Hub hub;
   private final Stack<Integer> counts = new Stack<>();
 
@@ -62,14 +62,12 @@ public final class Rip160Blocks implements Module {
   public static long gasCost(final Hub hub) {
     final OpCode opCode = hub.opCode();
 
-    switch (opCode) {
-      case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
-        final Address target = Words.toAddress(hub.messageFrame().getStackItem(1));
-        if (target.equals(Address.RIPEMD160)) {
-          final long dataByteLength = hub.transients().op().callDataSegment().length();
-          final long wordCount = (dataByteLength + 31) / 32;
-          return PRECOMPILE_BASE_GAS_FEE + PRECOMPILE_GAS_FEE_PER_EWORD * wordCount;
-        }
+    if (opCode.isCall()) {
+      final Address target = Words.toAddress(hub.messageFrame().getStackItem(1));
+      if (target.equals(Address.RIPEMD160)) {
+        final long dataByteLength = hub.transients().op().callDataSegment().length();
+        final long wordCount = (dataByteLength + 31) / 32;
+        return PRECOMPILE_BASE_GAS_FEE + PRECOMPILE_GAS_FEE_PER_EWORD * wordCount;
       }
     }
 
@@ -80,39 +78,36 @@ public final class Rip160Blocks implements Module {
   public void tracePreOpcode(MessageFrame frame) {
     final OpCode opCode = hub.opCode();
 
-    switch (opCode) {
-      case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
-        final Address target = Words.toAddress(frame.getStackItem(1));
-        if (target.equals(Address.RIPEMD160)) {
-          final long dataByteLength = hub.transients().op().callDataSegment().length();
-          if (dataByteLength == 0) {
-            return;
-          } // skip trivial hash TODO: check the prover does skip it
-          final int blockCount =
-              (int)
-                      (dataByteLength * 8
-                          + RIPEMD160_ND_PADDED_ONE
-                          + RIPEMD160_LENGTH_APPEND
-                          + (RIPEMD160_BLOCKSIZE - 1))
-                  / RIPEMD160_BLOCKSIZE;
+    if (opCode.isCall()) {
+      final Address target = Words.toAddress(frame.getStackItem(1));
+      if (target.equals(Address.RIPEMD160)) {
+        final long dataByteLength = hub.transients().op().callDataSegment().length();
+        if (dataByteLength == 0) {
+          return;
+        } // skip trivial hash TODO: check the prover does skip it
+        final int blockCount =
+            (int)
+                    (dataByteLength * 8
+                        + RIPEMD160_ND_PADDED_ONE
+                        + RIPEMD160_LENGTH_APPEND
+                        + (RIPEMD160_BLOCKSIZE - 1))
+                / RIPEMD160_BLOCKSIZE;
 
-          final long wordCount = (dataByteLength + 31) / 32;
-          final long gasNeeded = PRECOMPILE_BASE_GAS_FEE + PRECOMPILE_GAS_FEE_PER_EWORD * wordCount;
+        final long wordCount = (dataByteLength + 31) / 32;
+        final long gasNeeded = PRECOMPILE_BASE_GAS_FEE + PRECOMPILE_GAS_FEE_PER_EWORD * wordCount;
 
-          if (hub.transients().op().gasAllowanceForCall() >= gasNeeded) {
-            this.counts.push(this.counts.pop() + blockCount);
-          }
+        if (hub.transients().op().gasAllowanceForCall() >= gasNeeded) {
+          this.counts.push(this.counts.pop() + blockCount);
         }
       }
-      default -> {}
     }
   }
 
   @Override
   public int lineCount() {
     int r = 0;
-    for (int i = 0; i < this.counts.size(); i++) {
-      r += this.counts.get(i);
+    for (Integer count : this.counts) {
+      r += count;
     }
     return r;
   }

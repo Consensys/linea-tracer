@@ -1099,7 +1099,7 @@ public class RlpTxn implements Module {
         .counter((short) traceValue.counter)
         .dataHi(bigIntegerToBytes(traceValue.dataHi))
         .dataLo(bigIntegerToBytes(traceValue.dataLo))
-        .datagascost(traceValue.dataGasCost)
+        .dataGasCost(traceValue.dataGasCost)
         .depth1(traceValue.depth1)
         .depth2(traceValue.depth2)
         .done(traceValue.counter == traceValue.nStep - 1)

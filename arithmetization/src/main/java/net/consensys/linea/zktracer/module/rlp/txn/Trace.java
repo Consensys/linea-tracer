@@ -31,17 +31,12 @@ import org.apache.tuweni.bytes.Bytes;
  * Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
 public class Trace {
-  public static final BigInteger EMPTY_KECCAK_HI =
-      new BigInteger("16434357337474432580558001204043214908");
-  public static final BigInteger EMPTY_KECCAK_LO =
-      new BigInteger("19024806816994025362060938983270537799");
+  public static final BigInteger EMPTY_KECCAK_HI = new BigInteger("16434357337474432580558001204043214908");
+  public static final BigInteger EMPTY_KECCAK_LO = new BigInteger("19024806816994025362060938983270537799");
   public static final int EMPTY_RIPEMD_HI = 0x9c1185a;
-  public static final BigInteger EMPTY_RIPEMD_LO =
-      new BigInteger("16442052386882578548602430796343695571");
-  public static final BigInteger EMPTY_SHA2_HI =
-      new BigInteger("18915786244935348617899154533661473682");
-  public static final BigInteger EMPTY_SHA2_LO =
-      new BigInteger("3296542996298665609207448061432114053");
+  public static final BigInteger EMPTY_RIPEMD_LO = new BigInteger("16442052386882578548602430796343695571");
+  public static final BigInteger EMPTY_SHA2_HI = new BigInteger("18915786244935348617899154533661473682");
+  public static final BigInteger EMPTY_SHA2_LO = new BigInteger("3296542996298665609207448061432114053");
   public static final int EVM_INST_ADD = 0x1;
   public static final int EVM_INST_ADDMOD = 0x8;
   public static final int EVM_INST_ADDRESS = 0x30;
@@ -235,8 +230,6 @@ public class Trace {
   public static final int GAS_CONST_G_VERY_LOW = 0x3;
   public static final int GAS_CONST_G_WARM_ACCESS = 0x64;
   public static final int GAS_CONST_G_ZERO = 0x0;
-  public static final int G_TXDATA_NONZERO = 0x10;
-  public static final int G_TXDATA_ZERO = 0x4;
   public static final int INVALID_CODE_PREFIX_VALUE = 0xef;
   public static final int LLARGE = 0x10;
   public static final int LLARGEMO = 0xf;
@@ -363,9 +356,9 @@ public class Trace {
   private final MappedByteBuffer byte2;
   private final MappedByteBuffer codeFragmentIndex;
   private final MappedByteBuffer counter;
+  private final MappedByteBuffer dataGasCost;
   private final MappedByteBuffer dataHi;
   private final MappedByteBuffer dataLo;
-  private final MappedByteBuffer datagascost;
   private final MappedByteBuffer depth1;
   private final MappedByteBuffer depth2;
   private final MappedByteBuffer done;
@@ -409,7 +402,7 @@ public class Trace {
   private final MappedByteBuffer rlpLxBytesize;
   private final MappedByteBuffer type;
 
-  public static List<ColumnHeader> headers(int length) {
+  static List<ColumnHeader> headers(int length) {
     return List.of(
         new ColumnHeader("rlpTxn.ABS_TX_NUM", 8, length),
         new ColumnHeader("rlpTxn.ABS_TX_NUM_INFINY", 4, length),
@@ -425,9 +418,9 @@ public class Trace {
         new ColumnHeader("rlpTxn.BYTE_2", 1, length),
         new ColumnHeader("rlpTxn.CODE_FRAGMENT_INDEX", 8, length),
         new ColumnHeader("rlpTxn.COUNTER", 2, length),
+        new ColumnHeader("rlpTxn.DATA_GAS_COST", 8, length),
         new ColumnHeader("rlpTxn.DATA_HI", 32, length),
         new ColumnHeader("rlpTxn.DATA_LO", 32, length),
-        new ColumnHeader("rlpTxn.DATAGASCOST", 8, length),
         new ColumnHeader("rlpTxn.DEPTH_1", 1, length),
         new ColumnHeader("rlpTxn.DEPTH_2", 1, length),
         new ColumnHeader("rlpTxn.DONE", 1, length),
@@ -487,9 +480,9 @@ public class Trace {
     this.byte2 = buffers.get(11);
     this.codeFragmentIndex = buffers.get(12);
     this.counter = buffers.get(13);
-    this.dataHi = buffers.get(14);
-    this.dataLo = buffers.get(15);
-    this.datagascost = buffers.get(16);
+    this.dataGasCost = buffers.get(14);
+    this.dataHi = buffers.get(15);
+    this.dataLo = buffers.get(16);
     this.depth1 = buffers.get(17);
     this.depth2 = buffers.get(18);
     this.done = buffers.get(19);
@@ -722,6 +715,18 @@ public class Trace {
     return this;
   }
 
+  public Trace dataGasCost(final long b) {
+    if (filled.get(14)) {
+      throw new IllegalStateException("rlpTxn.DATA_GAS_COST already set");
+    } else {
+      filled.set(14);
+    }
+
+    dataGasCost.putLong(b);
+
+    return this;
+  }
+
   public Trace dataHi(final Bytes b) {
     if (filled.get(15)) {
       throw new IllegalStateException("rlpTxn.DATA_HI already set");
@@ -750,18 +755,6 @@ public class Trace {
       dataLo.put((byte) 0);
     }
     dataLo.put(b.toArrayUnsafe());
-
-    return this;
-  }
-
-  public Trace datagascost(final long b) {
-    if (filled.get(14)) {
-      throw new IllegalStateException("rlpTxn.DATAGASCOST already set");
-    } else {
-      filled.set(14);
-    }
-
-    datagascost.putLong(b);
 
     return this;
   }
@@ -1343,16 +1336,16 @@ public class Trace {
       throw new IllegalStateException("rlpTxn.COUNTER has not been filled");
     }
 
+    if (!filled.get(14)) {
+      throw new IllegalStateException("rlpTxn.DATA_GAS_COST has not been filled");
+    }
+
     if (!filled.get(15)) {
       throw new IllegalStateException("rlpTxn.DATA_HI has not been filled");
     }
 
     if (!filled.get(16)) {
       throw new IllegalStateException("rlpTxn.DATA_LO has not been filled");
-    }
-
-    if (!filled.get(14)) {
-      throw new IllegalStateException("rlpTxn.DATAGASCOST has not been filled");
     }
 
     if (!filled.get(17)) {
@@ -1586,16 +1579,16 @@ public class Trace {
       counter.position(counter.position() + 2);
     }
 
+    if (!filled.get(14)) {
+      dataGasCost.position(dataGasCost.position() + 8);
+    }
+
     if (!filled.get(15)) {
       dataHi.position(dataHi.position() + 32);
     }
 
     if (!filled.get(16)) {
       dataLo.position(dataLo.position() + 32);
-    }
-
-    if (!filled.get(14)) {
-      datagascost.position(datagascost.position() + 8);
     }
 
     if (!filled.get(17)) {

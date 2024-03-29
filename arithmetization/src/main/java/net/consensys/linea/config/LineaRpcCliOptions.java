@@ -15,8 +15,6 @@
 
 package net.consensys.linea.config;
 
-import java.math.BigDecimal;
-
 import com.google.common.base.MoreObjects;
 import picocli.CommandLine;
 
@@ -25,10 +23,6 @@ public class LineaRpcCliOptions {
   private static final String ESTIMATE_GAS_COMPATIBILITY_MODE_ENABLED =
       "--plugin-linea-estimate-gas-compatibility-mode-enabled";
   private static final boolean DEFAULT_ESTIMATE_GAS_COMPATIBILITY_MODE_ENABLED = false;
-  private static final String ESTIMATE_GAS_COMPATIBILITY_MODE_MULTIPLIER =
-      "--plugin-linea-estimate-gas-compatibility-mode-multiplier";
-  private static final BigDecimal DEFAULT_ESTIMATE_GAS_COMPATIBILITY_MODE_MULTIPLIER =
-      BigDecimal.valueOf(1.2);
 
   @CommandLine.Option(
       names = {ESTIMATE_GAS_COMPATIBILITY_MODE_ENABLED},
@@ -37,14 +31,6 @@ public class LineaRpcCliOptions {
           "Set to true to return the min mineable gas price * multiplier, instead of the profitable price (default: ${DEFAULT-VALUE})")
   private boolean estimateGasCompatibilityModeEnabled =
       DEFAULT_ESTIMATE_GAS_COMPATIBILITY_MODE_ENABLED;
-
-  @CommandLine.Option(
-      names = {ESTIMATE_GAS_COMPATIBILITY_MODE_MULTIPLIER},
-      paramLabel = "<FLOAT>",
-      description =
-          "Set to multiplier to apply to the min priority fee per gas when the compatibility mode is enabled (default: ${DEFAULT-VALUE})")
-  private BigDecimal estimateGasCompatibilityMultiplier =
-      DEFAULT_ESTIMATE_GAS_COMPATIBILITY_MODE_MULTIPLIER;
 
   private LineaRpcCliOptions() {}
 
@@ -66,7 +52,6 @@ public class LineaRpcCliOptions {
   public static LineaRpcCliOptions fromConfig(final LineaRpcConfiguration config) {
     final LineaRpcCliOptions options = create();
     options.estimateGasCompatibilityModeEnabled = config.estimateGasCompatibilityModeEnabled();
-    options.estimateGasCompatibilityMultiplier = config.estimateGasCompatibilityMultiplier();
     return options;
   }
 
@@ -78,7 +63,6 @@ public class LineaRpcCliOptions {
   public LineaRpcConfiguration toDomainObject() {
     return LineaRpcConfiguration.builder()
         .estimateGasCompatibilityModeEnabled(estimateGasCompatibilityModeEnabled)
-        .estimateGasCompatibilityMultiplier(estimateGasCompatibilityMultiplier)
         .build();
   }
 
@@ -86,7 +70,6 @@ public class LineaRpcCliOptions {
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add(ESTIMATE_GAS_COMPATIBILITY_MODE_ENABLED, estimateGasCompatibilityModeEnabled)
-        .add(ESTIMATE_GAS_COMPATIBILITY_MODE_MULTIPLIER, estimateGasCompatibilityMultiplier)
         .toString();
   }
 }

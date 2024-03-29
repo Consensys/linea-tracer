@@ -17,12 +17,19 @@ package net.consensys.linea.rpc.linea;
 
 import static org.hyperledger.besu.ethereum.api.jsonrpc.internal.results.Quantity.create;
 
-import java.math.BigDecimal;
+import java.io.IOException;
 import java.math.BigInteger;
-import java.math.RoundingMode;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.file.Files;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.bl.TransactionProfitabilityCalculator;
@@ -30,6 +37,7 @@ import net.consensys.linea.config.LineaProfitabilityConfiguration;
 import net.consensys.linea.config.LineaRpcConfiguration;
 import net.consensys.linea.config.LineaTransactionPoolValidatorConfiguration;
 import org.apache.tuweni.bytes.Bytes;
+import org.apache.tuweni.units.bigints.UInt256s;
 import org.bouncycastle.asn1.sec.SECNamedCurves;
 import org.bouncycastle.asn1.x9.X9ECParameters;
 import org.bouncycastle.crypto.params.ECDomainParameters;
@@ -54,6 +62,13 @@ public class LineaEstimateGas {
 
   private static final double SUB_CALL_REMAINING_GAS_RATIO = 65D / 64D;
   private static final AtomicInteger LOG_SEQUENCE = new AtomicInteger();
+  private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
+  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+  private static final AtomicInteger REQUEST_ID_SEQUENCE = new AtomicInteger();
+  private static AtomicLong lastEthGasPriceBlock = new AtomicLong(-1);
+  private static AtomicReference<Wei> cacheEthGasPrice = new AtomicReference<>(Wei.ZERO);
+  private static int rpcPort = -1;
+  private static URI localRpcEndpoint;
 
   static {
     final X9ECParameters params = SECNamedCurves.getByName("secp256k1");
@@ -157,12 +172,7 @@ public class LineaEstimateGas {
     final Wei priorityFeeLowerBound = minGasPrice.subtract(baseFee);
 
     if (rpcConfiguration.estimateGasCompatibilityModeEnabled()) {
-      return Wei.of(
-          rpcConfiguration
-              .estimateGasCompatibilityMultiplier()
-              .multiply(new BigDecimal(priorityFeeLowerBound.getAsBigInteger()))
-              .setScale(0, RoundingMode.CEILING)
-              .toBigInteger());
+      return temporaryHackyEthGasPrice(baseFee, priorityFeeLowerBound);
     }
 
     final Wei profitablePriorityFee =
@@ -181,6 +191,89 @@ public class LineaEstimateGas {
         .addArgument(priorityFeeLowerBound::toHumanReadableString)
         .log();
     return priorityFeeLowerBound;
+  }
+
+  private Wei temporaryHackyEthGasPrice(final Wei baseFee, final Wei priorityFeeLowerBound) {
+    final long headBlockNumber = blockchainService.getChainHeadHeader().getNumber();
+    lastEthGasPriceBlock.getAndUpdate(
+        cachedBlockNumber -> {
+          log.trace("cachedBlockNumber {} headBlockNumber {}", cachedBlockNumber, headBlockNumber);
+          if (headBlockNumber > cachedBlockNumber) {
+            try {
+              if (rpcPort < 0) {
+                rpcPort = loadRpcPort();
+                localRpcEndpoint = URI.create("http://localhost:" + rpcPort + "/");
+              }
+              final HttpRequest request =
+                  HttpRequest.newBuilder(localRpcEndpoint)
+                      .headers("Content-Type", "application/json")
+                      .POST(
+                          HttpRequest.BodyPublishers.ofString(
+                              """
+                              {"jsonrpc":"2.0","method":"eth_gasPrice","params":[],"id":
+                              """
+                                  + REQUEST_ID_SEQUENCE.getAndIncrement()
+                                  + '}'))
+                      .build();
+
+              final var responseStream =
+                  HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofInputStream());
+              final var jsonResponse = OBJECT_MAPPER.readTree(responseStream.body());
+              log.atDebug().setMessage("eth_gasPrice response {}").addArgument(jsonResponse).log();
+
+              if (jsonResponse.has("result")) {
+                final var ethGasPrice = Wei.fromHexString(jsonResponse.get("result").asText());
+                final var priorityFee =
+                    UInt256s.max(priorityFeeLowerBound, ethGasPrice.subtract(baseFee));
+                log.atDebug()
+                    .setMessage(
+                        "Updating the priorityFee from ethGasPrice cached value to {}, lower bound {}")
+                    .addArgument(priorityFee::toHumanReadableString)
+                    .addArgument(priorityFeeLowerBound::toHumanReadableString)
+                    .log();
+                cacheEthGasPrice.set(priorityFee);
+              } else if (jsonResponse.has("error")) {
+                final var jsonError = jsonResponse.get("error");
+                throw new PluginRpcEndpointException(
+                    new RpcMethodError() {
+                      @Override
+                      public int getCode() {
+                        return jsonError.get("code").asInt();
+                      }
+
+                      @Override
+                      public String getMessage() {
+                        return jsonError.get("message").asText();
+                      }
+                    });
+              } else {
+                throw new PluginRpcEndpointException(
+                    RpcErrorType.PLUGIN_INTERNAL_ERROR, "Unrecognized gas price response");
+              }
+            } catch (Exception e) {
+              throw new PluginRpcEndpointException(
+                  RpcErrorType.PLUGIN_INTERNAL_ERROR, "Error estimating gas price", e);
+            }
+          } else {
+          }
+          return headBlockNumber;
+        });
+
+    return cacheEthGasPrice.get();
+  }
+
+  private int loadRpcPort() throws IOException {
+    final var lines = Files.readAllLines(besuConfiguration.getDataPath().resolve("besu.ports"));
+    final var port =
+        lines.stream()
+            .filter(line -> line.startsWith("json-rpc="))
+            .map(line -> line.split("=")[1])
+            .findFirst();
+    return port.map(Integer::valueOf)
+        .orElseThrow(
+            () ->
+                new PluginRpcEndpointException(
+                    RpcErrorType.PLUGIN_INTERNAL_ERROR, "Unable to load RPC port"));
   }
 
   private Long estimateGasUsed(

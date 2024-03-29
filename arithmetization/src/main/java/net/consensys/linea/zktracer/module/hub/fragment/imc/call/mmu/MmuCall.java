@@ -16,7 +16,6 @@
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu;
 
 import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_BLAKE_DATA;
-import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_BLAKE_PARAMETERS;
 import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_BLAKE_RESULT;
 import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_ECADD_DATA;
 import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_ECADD_RESULT;
@@ -32,7 +31,6 @@ import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_PAIRING_DATA;
 import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_PAIRING_RESULT;
 import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_SHA2_256_DATA;
 import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_SHA2_256_RESULT;
-import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_TRANSACTION_CALL_DATA;
 import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_ANY_TO_RAM_WITH_PADDING;
 import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_BLAKE;
 import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_EXO_TO_RAM_TRANSPLANTS;
@@ -277,7 +275,7 @@ public class MmuCall implements TraceSubFragment {
         .sourceId(hub.transients().tx().absNumber())
         .targetId(hub.stamp())
         .size(hub.transients().tx().besuTx().getData().map(Bytes::size).orElse(0))
-        .phase(PHASE_TRANSACTION_CALL_DATA)
+        .phase(Trace.RLP_TXN_PHASE_DATA_VALUE)
         .setRlpTxn();
   }
 
@@ -519,7 +517,7 @@ public class MmuCall implements TraceSubFragment {
           .limb1(EWord.of(((Blake2fMetadata) p.metadata()).r()))
           .limb2(EWord.of(((Blake2fMetadata) p.metadata()).f()))
           .setBlakeModexp()
-          .phase(PHASE_BLAKE_PARAMETERS);
+          .phase(Trace.PHASE_BLAKE_PARAMS);
     } else if (i == 1) {
       return new MmuCall(MMU_INST_RAM_TO_EXO_WITH_PADDING)
           .sourceId(hub.currentFrame().contextNumber())

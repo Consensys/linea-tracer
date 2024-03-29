@@ -42,6 +42,7 @@ import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_MSTORE8;
 import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_RAM_TO_EXO_WITH_PADDING;
 import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_RAM_TO_RAM_SANS_PADDING;
 import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_RIGHT_PADDED_WORD_EXTRACTION;
+import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.util.Arrays;
 
@@ -320,7 +321,8 @@ public class MmuCall implements TraceSubFragment {
     }
   }
 
-  private static MmuCall forRipeMd160Sha(
+  private static MmuCall
+      forRipeMd160Sha( // TODO fix with Olivier, seems wrong, misses exosum, phase wrong
       final Hub hub, PrecompileInvocation p, int i, Bytes emptyHi, Bytes emptyLo) {
     Preconditions.checkArgument(i >= 0 && i < 3);
 
@@ -369,20 +371,12 @@ public class MmuCall implements TraceSubFragment {
 
   public static MmuCall forSha2(final Hub hub, PrecompileInvocation p, int i) {
     return forRipeMd160Sha(
-        hub,
-        p,
-        i,
-        Bytes.fromHexString("e3b0c44298fc1c149afbf4c8996fb924"),
-        Bytes.fromHexString("27ae41e4649b934ca495991b7852b855")); // SHA2-256({}) hi/lo
+        hub, p, i, bigIntegerToBytes(Trace.EMPTY_SHA2_HI), bigIntegerToBytes(Trace.EMPTY_SHA2_LO));
   }
 
   public static MmuCall forRipeMd160(final Hub hub, PrecompileInvocation p, int i) {
     return forRipeMd160Sha(
-        hub,
-        p,
-        i,
-        Bytes.fromHexString("9c1185a5"),
-        Bytes.fromHexString("c5e9fc54612808977ee8f548b2258d31")); // RIPEMD160({}) hi/lo
+        hub, p, i, Bytes.of(Trace.EMPTY_RIPEMD_HI), bigIntegerToBytes(Trace.EMPTY_RIPEMD_LO));
   }
 
   public static MmuCall forIdentity(final Hub hub, final PrecompileInvocation p, int i) {

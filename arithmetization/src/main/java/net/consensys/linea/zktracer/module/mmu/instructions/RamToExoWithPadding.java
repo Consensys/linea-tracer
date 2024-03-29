@@ -35,7 +35,6 @@ import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioInstruction;
 import net.consensys.linea.zktracer.module.mmu.values.MmuWcpCallRecord;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
-import net.consensys.linea.zktracer.types.Bytes16;
 import org.apache.tuweni.bytes.Bytes;
 
 public class RamToExoWithPadding implements MmuInstruction {
@@ -238,8 +237,6 @@ public class RamToExoWithPadding implements MmuInstruction {
     final int targetLimbOffset = mmuData.totalNonTrivialInitials() - 1;
     final int sourceLimbOffset = initialSourceLimbOffset + mmuData.totalNonTrivialInitials() - 1;
 
-    final Bytes16 microLimb = (Bytes16) mmuData.exoBytes().slice(targetLimbOffset * LLARGE, LLARGE);
-
     mmuData.mmuToMmioInstruction(
         MmuToMmioInstruction.builder()
             .mmioInstruction(lastMicroInst)
@@ -247,7 +244,6 @@ public class RamToExoWithPadding implements MmuInstruction {
             .sourceLimbOffset(sourceLimbOffset)
             .sourceByteOffset(initialSourceByteOffset)
             .targetLimbOffset(targetLimbOffset)
-            .limb(microLimb)
             .build());
   }
 
@@ -262,7 +258,6 @@ public class RamToExoWithPadding implements MmuInstruction {
   }
 
   private void onlyMicroInstruction(MmuData mmuData) {
-    // final Bytes16 microLimb = readLimb(mmuData.exoBytes(), 0);
 
     final int onlyMicroInst = calculateLastOrOnlyMicroInstruction();
 
@@ -272,7 +267,6 @@ public class RamToExoWithPadding implements MmuInstruction {
             .size(lastLimbByteSize)
             .sourceLimbOffset(initialSourceLimbOffset)
             .sourceByteOffset(initialSourceByteOffset)
-            //        .limb(microLimb)
             .build());
   }
 
@@ -286,15 +280,12 @@ public class RamToExoWithPadding implements MmuInstruction {
             .size((short) LLARGE)
             .sourceLimbOffset(initialSourceLimbOffset)
             .sourceByteOffset(initialSourceByteOffset)
-            //    .limb(readLimb(mmuData.exoBytes(), 0))
             .build());
   }
 
   private void middleMicroInstruction(
       MmuData mmuData, final int rowIndex, final int middleMicroInst) {
     final int currentSourceLimbOffset = initialSourceLimbOffset + rowIndex;
-
-    //   final Bytes16 microLimb = readLimb(mmuData.exoBytes(), rowIndex);
 
     mmuData.mmuToMmioInstruction(
         MmuToMmioInstruction.builder()
@@ -303,7 +294,6 @@ public class RamToExoWithPadding implements MmuInstruction {
             .sourceLimbOffset(currentSourceLimbOffset)
             .sourceByteOffset(initialSourceByteOffset)
             .targetLimbOffset(rowIndex)
-            //    .limb(microLimb)
             .build());
   }
 }

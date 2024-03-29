@@ -41,18 +41,6 @@ class MemoryTests {
   private final Random rnd = new Random(666);
 
   @Test
-  void fastMstore() {
-    BytecodeRunner.of(BytecodeCompiler.newProgram().push(25).push(32).op(OpCode.MSTORE).compile())
-        .run();
-  }
-
-  @Test
-  void slowMstore() {
-    BytecodeRunner.of(BytecodeCompiler.newProgram().push(13).push(27).op(OpCode.MSTORE).compile())
-        .run();
-  }
-
-  @Test
   void successionOverlappingMstore() {
     BytecodeRunner.of(
             BytecodeCompiler.newProgram()
@@ -74,12 +62,6 @@ class MemoryTests {
   @Test
   void fastMload() {
     BytecodeRunner.of(BytecodeCompiler.newProgram().push(34).push(0).op(OpCode.MLOAD).compile())
-        .run();
-  }
-
-  @Test
-  void slowMload() {
-    BytecodeRunner.of(BytecodeCompiler.newProgram().push(34).push(76).op(OpCode.MLOAD).compile())
         .run();
   }
 

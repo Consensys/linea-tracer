@@ -645,8 +645,8 @@ public class MmuCall implements TraceSubFragment {
     return trace
         .pMiscMmuFlag(this.enabled())
         .pMiscMmuInst(this.instruction())
-        .pMiscMmuTgtId(this.sourceId())
-        .pMiscMmuSrcId(this.targetId())
+        .pMiscMmuTgtId(this.targetId())
+        .pMiscMmuSrcId(this.sourceId())
         .pMiscMmuAuxId(this.auxId())
         .pMiscMmuSrcOffsetHi(this.sourceOffset().hi())
         .pMiscMmuSrcOffsetLo(this.sourceOffset().lo())

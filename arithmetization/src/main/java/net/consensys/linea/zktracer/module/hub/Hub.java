@@ -836,7 +836,7 @@ public class Hub implements Module {
             this.state.stamps().hub(),
             this.transients.tx().besuTx().getSender(),
             toAddress,
-            isDeployment ? CallFrameType.INIT_CODE : CallFrameType.STANDARD,
+            CallFrameType.MANTLE,
             new Bytecode(
                 toAddress == null
                     ? this.transients.tx().besuTx().getData().orElse(Bytes.EMPTY)
@@ -856,7 +856,7 @@ public class Hub implements Module {
             this.state.stamps().hub(),
             //            this.transients.tx().transaction().getSender(),
             toAddress,
-            isDeployment ? CallFrameType.INIT_CODE : CallFrameType.STANDARD,
+            CallFrameType.BEDROCK,
             new Bytecode(
                 toAddress == null
                     ? this.transients.tx().besuTx().getData().orElse(Bytes.EMPTY)

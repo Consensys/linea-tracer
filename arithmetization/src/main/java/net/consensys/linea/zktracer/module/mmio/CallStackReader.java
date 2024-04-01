@@ -15,12 +15,16 @@
 
 package net.consensys.linea.zktracer.module.mmio;
 
+import java.util.Optional;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
+import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @RequiredArgsConstructor
 @Accessors(fluent = true)
@@ -29,6 +33,12 @@ public class CallStackReader {
 
   public Bytes valueFromMemory(final int contextNumber) {
     final CallFrame callFrame = callStack.getByContextNumber(contextNumber);
-    return callFrame.frame().shadowReadMemory(0, callFrame.frame().memoryByteSize());
+    if (callFrame.type() == CallFrameType.MANTLE) {
+      return callFrame.callData();
+    }
+
+    final MessageFrame messageFrame = callFrame.frame();
+
+    return messageFrame.shadowReadMemory(0, messageFrame.memoryByteSize());
   }
 }

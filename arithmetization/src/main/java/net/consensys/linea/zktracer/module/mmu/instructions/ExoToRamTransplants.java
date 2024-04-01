@@ -85,7 +85,11 @@ public class ExoToRamTransplants implements MmuInstruction {
             .build());
 
     // Setting the target ram bytes
-    mmuData.setTargetRamBytes();
+    if (mmuData.hubToMmuValues().exoSum() != Trace.EXO_SUM_WEIGHT_TXCD) { // TODO to remove
+      mmuData.setTargetRamBytes();
+    } else {
+      mmuData.targetRamBytes(Bytes.EMPTY);
+    }
 
     for (int i = 0; i < mmuData.totalNonTrivialInitials(); i++) {
       mmuData.mmuToMmioInstruction(
@@ -93,7 +97,6 @@ public class ExoToRamTransplants implements MmuInstruction {
               .mmioInstruction(Trace.MMIO_INST_LIMB_TO_RAM_TRANSPLANT)
               .sourceLimbOffset(i)
               .targetLimbOffset(i)
-              //  .limb((Bytes16) mmuData.exoBytes().slice(i * LLARGE, LLARGE))
               .build());
     }
 

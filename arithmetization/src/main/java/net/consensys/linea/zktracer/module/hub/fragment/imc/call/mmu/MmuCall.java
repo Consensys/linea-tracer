@@ -97,36 +97,36 @@ public class MmuCall implements TraceSubFragment {
   private int exoSum = 0;
 
   private MmuCall setFlag(int pos) {
-    this.exoSum |= 1 >> pos;
+    this.exoSum |= 1 << pos;
     return this;
   }
 
   final MmuCall setRlpTxn() {
-    return this.setFlag(0);
+    return this.setFlag(Trace.EXO_SUM_INDEX_TXCD);
   }
 
   public final MmuCall setLog() {
-    return this.setFlag(1);
+    return this.setFlag(Trace.EXO_SUM_INDEX_LOG);
   }
 
   public final MmuCall setRom() {
-    return this.setFlag(2);
+    return this.setFlag(Trace.EXO_SUM_INDEX_ROM);
   }
 
   public final MmuCall setHash() {
-    return this.setFlag(3);
+    return this.setFlag(Trace.EXO_SUM_INDEX_KEC);
   }
 
   final MmuCall setRipSha() {
-    return this.setFlag(4);
+    return this.setFlag(Trace.EXO_SUM_INDEX_RIPSHA);
   }
 
   final MmuCall setBlakeModexp() {
-    return this.setFlag(5);
+    return this.setFlag(Trace.EXO_SUM_INDEX_BLAKEMODEXP);
   }
 
   final MmuCall setEcData() {
-    return this.setFlag(6);
+    return this.setFlag(Trace.EXO_SUM_INDEX_ECDATA);
   }
 
   public MmuCall(int instruction) {

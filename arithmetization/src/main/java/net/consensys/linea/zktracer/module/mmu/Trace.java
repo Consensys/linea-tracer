@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.mmu;
 
+import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.BitSet;
 import java.util.List;
@@ -30,9 +31,17 @@ import org.apache.tuweni.bytes.Bytes;
  * Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
 public class Trace {
-  public static final int BLAKE_PHASE_DATA = 0x5;
-  public static final int BLAKE_PHASE_PARAMS = 0x6;
-  public static final int BLAKE_PHASE_RESULT = 0x7;
+  public static final BigInteger EMPTY_KECCAK_HI =
+      new BigInteger("16434357337474432580558001204043214908");
+  public static final BigInteger EMPTY_KECCAK_LO =
+      new BigInteger("19024806816994025362060938983270537799");
+  public static final int EMPTY_RIPEMD_HI = 0x9c1185a;
+  public static final BigInteger EMPTY_RIPEMD_LO =
+      new BigInteger("16442052386882578548602430796343695571");
+  public static final BigInteger EMPTY_SHA2_HI =
+      new BigInteger("18915786244935348617899154533661473682");
+  public static final BigInteger EMPTY_SHA2_LO =
+      new BigInteger("3296542996298665609207448061432114053");
   public static final int EVM_INST_ADD = 0x1;
   public static final int EVM_INST_ADDMOD = 0x8;
   public static final int EVM_INST_ADDRESS = 0x30;
@@ -176,10 +185,65 @@ public class Trace {
   public static final int EVM_INST_SWAP9 = 0x98;
   public static final int EVM_INST_TIMESTAMP = 0x42;
   public static final int EVM_INST_XOR = 0x18;
+  public static final int EXO_SUM_INDEX_BLAKEMODEXP = 0x6;
+  public static final int EXO_SUM_INDEX_ECDATA = 0x4;
+  public static final int EXO_SUM_INDEX_KEC = 0x1;
+  public static final int EXO_SUM_INDEX_LOG = 0x2;
+  public static final int EXO_SUM_INDEX_RIPSHA = 0x5;
+  public static final int EXO_SUM_INDEX_ROM = 0x0;
+  public static final int EXO_SUM_INDEX_TXCD = 0x3;
+  public static final int EXO_SUM_WEIGHT_BLAKEMODEXP = 0x40;
+  public static final int EXO_SUM_WEIGHT_ECDATA = 0x10;
+  public static final int EXO_SUM_WEIGHT_KEC = 0x2;
+  public static final int EXO_SUM_WEIGHT_LOG = 0x4;
+  public static final int EXO_SUM_WEIGHT_RIPSHA = 0x20;
+  public static final int EXO_SUM_WEIGHT_ROM = 0x1;
+  public static final int EXO_SUM_WEIGHT_TXCD = 0x8;
+  public static final int EXP_INST_EXPLOG = 0xee0a;
+  public static final int EXP_INST_MODEXPLOG = 0xee05;
+  public static final int GAS_CONST_G_ACCESS_LIST_ADRESS = 0x960;
+  public static final int GAS_CONST_G_ACCESS_LIST_STORAGE = 0x76c;
+  public static final int GAS_CONST_G_BASE = 0x2;
+  public static final int GAS_CONST_G_BLOCKHASH = 0x14;
+  public static final int GAS_CONST_G_CALL_STIPEND = 0x8fc;
+  public static final int GAS_CONST_G_CALL_VALUE = 0x2328;
+  public static final int GAS_CONST_G_CODE_DEPOSIT = 0xc8;
+  public static final int GAS_CONST_G_COLD_ACCOUNT_ACCESS = 0xa28;
+  public static final int GAS_CONST_G_COLD_SLOAD = 0x834;
+  public static final int GAS_CONST_G_COPY = 0x3;
+  public static final int GAS_CONST_G_CREATE = 0x7d00;
+  public static final int GAS_CONST_G_EXP = 0xa;
+  public static final int GAS_CONST_G_EXP_BYTE = 0x32;
+  public static final int GAS_CONST_G_HIGH = 0xa;
+  public static final int GAS_CONST_G_JUMPDEST = 0x1;
+  public static final int GAS_CONST_G_KECCAK_256 = 0x1e;
+  public static final int GAS_CONST_G_KECCAK_256_WORD = 0x6;
+  public static final int GAS_CONST_G_LOG = 0x177;
+  public static final int GAS_CONST_G_LOG_DATA = 0x8;
+  public static final int GAS_CONST_G_LOG_TOPIC = 0x177;
+  public static final int GAS_CONST_G_LOW = 0x5;
+  public static final int GAS_CONST_G_MEMORY = 0x3;
+  public static final int GAS_CONST_G_MID = 0x8;
+  public static final int GAS_CONST_G_NEW_ACCOUNT = 0x61a8;
+  public static final int GAS_CONST_G_SELFDESTRUCT = 0x1388;
+  public static final int GAS_CONST_G_SRESET = 0xb54;
+  public static final int GAS_CONST_G_SSET = 0x4e20;
+  public static final int GAS_CONST_G_TRANSACTION = 0x5208;
+  public static final int GAS_CONST_G_TX_CREATE = 0x7d00;
+  public static final int GAS_CONST_G_TX_DATA_NONZERO = 0x10;
+  public static final int GAS_CONST_G_TX_DATA_ZERO = 0x4;
+  public static final int GAS_CONST_G_VERY_LOW = 0x3;
+  public static final int GAS_CONST_G_WARM_ACCESS = 0x64;
+  public static final int GAS_CONST_G_ZERO = 0x0;
   public static final int INVALID_CODE_PREFIX_VALUE = 0xef;
   public static final int LLARGE = 0x10;
   public static final int LLARGEMO = 0xf;
   public static final int LLARGEPO = 0x11;
+  public static final int MISC_EXP_WEIGHT = 0x1;
+  public static final int MISC_MMU_WEIGHT = 0x2;
+  public static final int MISC_MXP_WEIGHT = 0x4;
+  public static final int MISC_OOB_WEIGHT = 0x8;
+  public static final int MISC_STP_WEIGHT = 0x10;
   public static final int MMEDIUM = 0x8;
   public static final int MMEDIUMMO = 0x7;
   public static final int MMIO_INST_LIMB_TO_RAM_ONE_TARGET = 0xfe12;
@@ -207,10 +271,6 @@ public class Trace {
   public static final int MMU_INST_RAM_TO_EXO_WITH_PADDING = 0xfe20;
   public static final int MMU_INST_RAM_TO_RAM_SANS_PADDING = 0xfe40;
   public static final int MMU_INST_RIGHT_PADDED_WORD_EXTRACTION = 0xfe10;
-  public static final int MODEXP_PHASE_BASE = 0x1;
-  public static final int MODEXP_PHASE_EXPONENT = 0x2;
-  public static final int MODEXP_PHASE_MODULUS = 0x3;
-  public static final int MODEXP_PHASE_RESULT = 0x4;
   public static final int NB_MICRO_ROWS_TOT_BLAKE = 0x2;
   public static final int NB_MICRO_ROWS_TOT_INVALID_CODE_PREFIX = 0x1;
   public static final int NB_MICRO_ROWS_TOT_MLOAD = 0x2;
@@ -225,6 +285,7 @@ public class Trace {
   public static final int NB_PP_ROWS_ANY_TO_RAM_WITH_PADDING_SOME_DATA_PO = 0x2;
   public static final int NB_PP_ROWS_BLAKE = 0x2;
   public static final int NB_PP_ROWS_BLAKE_PO = 0x3;
+  public static final int NB_PP_ROWS_BLAKE_PT = 0x4;
   public static final int NB_PP_ROWS_EXO_TO_RAM_TRANSPLANTS = 0x1;
   public static final int NB_PP_ROWS_EXO_TO_RAM_TRANSPLANTS_PO = 0x2;
   public static final int NB_PP_ROWS_INVALID_CODE_PREFIX = 0x1;
@@ -248,6 +309,44 @@ public class Trace {
   public static final int NB_PP_ROWS_RIGHT_PADDED_WORD_EXTRACTION = 0x5;
   public static final int NB_PP_ROWS_RIGHT_PADDED_WORD_EXTRACTION_PO = 0x6;
   public static final int NB_PP_ROWS_RIGHT_PADDED_WORD_EXTRACTION_PT = 0x7;
+  public static final int OOB_INST_blake_cds = 0xfa09;
+  public static final int OOB_INST_blake_params = 0xfb09;
+  public static final int OOB_INST_call = 0xca;
+  public static final int OOB_INST_cdl = 0x35;
+  public static final int OOB_INST_create = 0xce;
+  public static final int OOB_INST_deployment = 0xf3;
+  public static final int OOB_INST_ecadd = 0xff06;
+  public static final int OOB_INST_ecmul = 0xff07;
+  public static final int OOB_INST_ecpairing = 0xff08;
+  public static final int OOB_INST_ecrecover = 0xff01;
+  public static final int OOB_INST_identity = 0xff04;
+  public static final int OOB_INST_jump = 0x56;
+  public static final int OOB_INST_jumpi = 0x57;
+  public static final int OOB_INST_modexp_cds = 0xfa05;
+  public static final int OOB_INST_modexp_extract = 0xfe05;
+  public static final int OOB_INST_modexp_lead = 0xfc05;
+  public static final int OOB_INST_modexp_pricing = 0xfd05;
+  public static final int OOB_INST_modexp_xbs = 0xfb05;
+  public static final int OOB_INST_rdc = 0x3e;
+  public static final int OOB_INST_ripemd = 0xff03;
+  public static final int OOB_INST_sha2 = 0xff02;
+  public static final int OOB_INST_sstore = 0x55;
+  public static final int OOB_INST_xcall = 0xcc;
+  public static final int PHASE_BLAKE_DATA = 0x5;
+  public static final int PHASE_BLAKE_PARAMS = 0x6;
+  public static final int PHASE_BLAKE_RESULT = 0x7;
+  public static final int PHASE_KECCAK_DATA = 0x5;
+  public static final int PHASE_KECCAK_RESULT = 0x6;
+  public static final int PHASE_MODEXP_BASE = 0x1;
+  public static final int PHASE_MODEXP_EXPONENT = 0x2;
+  public static final int PHASE_MODEXP_MODULUS = 0x3;
+  public static final int PHASE_MODEXP_RESULT = 0x4;
+  public static final int PHASE_RIPEMD_DATA = 0x3;
+  public static final int PHASE_RIPEMD_RESULT = 0x4;
+  public static final int PHASE_SHA2_DATA = 0x1;
+  public static final int PHASE_SHA2_RESULT = 0x2;
+  public static final int REFUND_CONST_R_SCLEAR = 0x3a98;
+  public static final int REFUND_CONST_R_SELFDESTRUCT = 0x5dc0;
   public static final int RLP_ADDR_RECIPE_1 = 0x1;
   public static final int RLP_ADDR_RECIPE_2 = 0x2;
   public static final int RLP_PREFIX_INT_LONG = 0xb7;

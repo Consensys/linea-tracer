@@ -82,12 +82,12 @@ public class ExoToRamTransplants implements MmuInstruction {
             .exoSum(hubToMmuValues.exoSum())
             .phase(hubToMmuValues.phase())
             .exoId(hubToMmuValues.sourceId())
+            .totalSize((int) hubToMmuValues.size())
             .build());
 
     // Setting the target ram bytes
     // If the exo module is RlpTxn, the previous target RAM Bytes is empty, as we created a non-evm
     // context number ram to store the call data
-
     if (!mmuData.hubToMmuValues().exoIsTxcd()) {
       mmuData.setTargetRamBytes();
     } else {
@@ -101,6 +101,7 @@ public class ExoToRamTransplants implements MmuInstruction {
               .mmioInstruction(Trace.MMIO_INST_LIMB_TO_RAM_TRANSPLANT)
               .sourceLimbOffset(i)
               .targetLimbOffset(i)
+              .size((short) LLARGE)
               .build());
     }
 

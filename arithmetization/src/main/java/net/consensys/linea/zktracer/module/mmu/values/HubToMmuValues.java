@@ -38,8 +38,15 @@ public class HubToMmuValues {
   private boolean successBit;
   private Bytes16 limb1;
   private Bytes16 limb2;
-  private long phase;
+  private int phase;
   private int exoSum;
+  private boolean exoIsRom;
+  private boolean exoIsBlake2fModexp;
+  private boolean exoIsEcData;
+  private boolean exoIsRipSha;
+  private boolean exoIsKeccak;
+  private boolean exoIsLog;
+  private boolean exoIsTxcd;
 
   private HubToMmuValues(final MmuCall mmuCall) {
     this.mmuInstruction = mmuCall.instruction();
@@ -55,8 +62,15 @@ public class HubToMmuValues {
     this.successBit = mmuCall.successBit();
     this.limb1 = Bytes16.leftPad(mmuCall.limb1());
     this.limb2 = Bytes16.leftPad(mmuCall.limb2());
-    this.phase = mmuCall.phase();
+    this.phase = (int) mmuCall.phase();
     this.exoSum = mmuCall.exoSum();
+    this.exoIsRom = mmuCall.exoIsRom();
+    this.exoIsBlake2fModexp = mmuCall.exoIsBlakeModexp();
+    this.exoIsEcData = mmuCall.exoIsEcData();
+    this.exoIsRipSha = mmuCall.exoIsRipSha();
+    this.exoIsKeccak = mmuCall.exoIsKec();
+    this.exoIsLog = mmuCall.exoIsLog();
+    this.exoIsTxcd = mmuCall.exoIsRlpTxn();
   }
 
   public static HubToMmuValues fromMmuCall(final MmuCall mmuCall) {

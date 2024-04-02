@@ -524,15 +524,6 @@ public class AnyToRamWithPadding implements MmuInstruction {
   private void setMicroInstructionsSomeDataCase(MmuData mmuData) {
     final HubToMmuValues hubToMmuValues = mmuData.hubToMmuValues();
 
-    // Setting ExoSum
-    if (hubToMmuValues.exoSum() != 0) {
-      final Bytes exoBytes =
-          mmuData
-              .exoSumDecoder()
-              .extractBytesFromExo(hubToMmuValues.sourceId(), (int) hubToMmuValues.phase());
-      mmuData.exoBytes(exoBytes);
-    }
-
     // Setting if the transition data / padding is made in 1 or 2 mmio instructions
     dataToPaddingTransitionTakesTwoMmioInstructions =
         totInitialRightZeroes != 0
@@ -622,11 +613,6 @@ public class AnyToRamWithPadding implements MmuInstruction {
   }
 
   private void someDataOnlyNonTrivialInstruction(MmuData mmuData) {
-    // final Bytes16 limb =
-    //     (Bytes16)
-    //         (dataSourceIsRam
-    //             ? Bytes.EMPTY
-    //             : mmuData.exoBytes().slice(LLARGE * minSourceLimbOffset, LLARGE));
     int onlyMmioInstruction;
     if (dataSourceIsRam) {
       onlyMmioInstruction =
@@ -656,11 +642,6 @@ public class AnyToRamWithPadding implements MmuInstruction {
   }
 
   private void someDataFirstNonTrivialInstruction(MmuData mmuData) {
-    // final Bytes16 limb =
-    //    (Bytes16)
-    //        (dataSourceIsRam
-    //            ? Bytes.EMPTY
-    //            : mmuData.exoBytes().slice(LLARGE * minSourceLimbOffset, LLARGE));
     int firstMmioInstruction = 0;
     if (dataSourceIsRam) {
       firstMmioInstruction =
@@ -689,11 +670,6 @@ public class AnyToRamWithPadding implements MmuInstruction {
 
   private void someDataMiddleNonTrivialInstruction(MmuData mmuData, int rowNumber) {
     final int sourceLimbOffset = minSourceLimbOffset + rowNumber;
-    // final Bytes16 limb =
-    //     (Bytes16)
-    //         (dataSourceIsRam
-    //             ? Bytes.EMPTY
-    //             : mmuData.exoBytes().slice(sourceLimbOffset * LLARGE, LLARGE));
     int middleMmioInstruction = 0;
     if (dataSourceIsRam) {
       middleMmioInstruction =
@@ -717,11 +693,6 @@ public class AnyToRamWithPadding implements MmuInstruction {
 
   private void someDataLastNonTrivialInstruction(MmuData mmuData) {
     final int sourceLimbOffset = minSourceLimbOffset + totInitialNonTrivial - 1;
-    // final Bytes16 limb =
-    //     (Bytes16)
-    //         (dataSourceIsRam
-    //             ? Bytes.EMPTY
-    //             : mmuData.exoBytes().slice(LLARGE * sourceLimbOffset, LLARGE));
     int lastMmioInstruction = 0;
     if (dataSourceIsRam) {
       lastMmioInstruction =

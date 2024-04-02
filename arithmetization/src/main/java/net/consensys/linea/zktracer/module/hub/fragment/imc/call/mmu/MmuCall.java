@@ -94,42 +94,49 @@ public class MmuCall implements TraceSubFragment {
   protected Bytes limb2 = Bytes.EMPTY;
   protected long phase = 0;
 
+  protected boolean exoIsRlpTxn = false;
+  protected boolean exoIsLog = false;
+  protected boolean exoIsRom = false;
+  protected boolean exoIsKec = false;
+  protected boolean exoIsRipSha = false;
+  protected boolean exoIsBlakeModexp = false;
+  protected boolean exoIsEcData = false;
   private int exoSum = 0;
 
-  private MmuCall setFlag(int pos) {
+  private MmuCall updateExoSum(final int pos) {
     this.exoSum |= 1 << pos;
     return this;
   }
 
   final MmuCall setRlpTxn() {
-    return this.setFlag(Trace.EXO_SUM_INDEX_TXCD);
+    return this.exoIsRlpTxn(true).updateExoSum(Trace.EXO_SUM_INDEX_TXCD);
   }
 
   public final MmuCall setLog() {
-    return this.setFlag(Trace.EXO_SUM_INDEX_LOG);
+    return this.exoIsLog(true).updateExoSum(Trace.EXO_SUM_INDEX_LOG);
   }
 
   public final MmuCall setRom() {
-    return this.setFlag(Trace.EXO_SUM_INDEX_ROM);
+    return this.exoIsRom(true).updateExoSum(Trace.EXO_SUM_INDEX_ROM);
   }
 
   public final MmuCall setHash() {
-    return this.setFlag(Trace.EXO_SUM_INDEX_KEC);
+    return this.exoIsKec(true).updateExoSum(Trace.EXO_SUM_INDEX_KEC);
   }
 
   final MmuCall setRipSha() {
-    return this.setFlag(Trace.EXO_SUM_INDEX_RIPSHA);
+    return this.exoIsRipSha(true).updateExoSum(Trace.EXO_SUM_INDEX_RIPSHA);
   }
 
   final MmuCall setBlakeModexp() {
-    return this.setFlag(Trace.EXO_SUM_INDEX_BLAKEMODEXP);
+    return this.exoIsBlakeModexp(true).updateExoSum(Trace.EXO_SUM_INDEX_BLAKEMODEXP);
   }
 
   final MmuCall setEcData() {
-    return this.setFlag(Trace.EXO_SUM_INDEX_ECDATA);
+    return this.exoIsEcData(true).updateExoSum(Trace.EXO_SUM_INDEX_ECDATA);
   }
 
-  public MmuCall(int instruction) {
+  public MmuCall(final int instruction) {
     this.instruction = instruction;
   }
 

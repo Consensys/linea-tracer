@@ -26,7 +26,6 @@ import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.blake2fmodexpdata.Blake2fModexpData;
 import net.consensys.linea.zktracer.module.ec_data.EcData;
 import net.consensys.linea.zktracer.module.euc.Euc;
-import net.consensys.linea.zktracer.module.mmio.ExoSumDecoder;
 import net.consensys.linea.zktracer.module.mmu.values.HubToMmuValues;
 import net.consensys.linea.zktracer.module.rlp.txn.RlpTxn;
 import net.consensys.linea.zktracer.module.rlp.txrcpt.RlpTxrcpt;
@@ -91,7 +90,7 @@ public class Mmu implements Module {
     int mmioStamp = 0;
 
     for (MmuOperation mmuOp : this.mmuOperations) {
-      mmuOp.computeExoSum(exoSumDecoder);
+      mmuOp.setExoBytes(exoSumDecoder);
       mmuOp.fillLimb();
 
       mmuStamp += 1;

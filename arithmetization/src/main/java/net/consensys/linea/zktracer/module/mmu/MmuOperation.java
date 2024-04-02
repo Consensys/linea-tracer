@@ -31,7 +31,6 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.mmio.CallStackReader;
-import net.consensys.linea.zktracer.module.mmio.ExoSumDecoder;
 import net.consensys.linea.zktracer.module.mmu.values.HubToMmuValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuEucCallRecord;
 import net.consensys.linea.zktracer.module.mmu.values.MmuOutAndBinValues;
@@ -116,11 +115,16 @@ public class MmuOperation extends ModuleOperation {
     isBlake = mmuInstruction == Trace.MMU_INST_BLAKE;
   }
 
-  public void computeExoSum(ExoSumDecoder exoSumDecoder) {
+  public void setExoBytes(ExoSumDecoder exoSumDecoder) {
     final int exoSum = mmuData.hubToMmuValues().exoSum();
-    mmuData.exoSumDecoder(exoSumDecoder);
+
     if (exoSum != 0) {
-      exoSumDecoder.decode(exoSum);
+      mmuData.exoSumDecoder(exoSumDecoder);
+      final int exoId =
+          exoLimbIsSource()
+              ? this.mmuData.hubToMmuValues().sourceId()
+              : this.mmuData.hubToMmuValues().targetId();
+      mmuData.exoBytes(exoSumDecoder.getExoBytes(mmuData.hubToMmuValues(), exoId));
     }
   }
 
@@ -131,13 +135,14 @@ public class MmuOperation extends ModuleOperation {
       return;
     }
 
+    // the limb for BLAKE is given by the HUB
     if (mmuInstruction == Trace.MMU_INST_BLAKE) {
-      return; // the limb for BLAKE is given by the HUB
+      return;
     }
 
     if (!mmuData.exoBytes().isEmpty()) {
-      final boolean exoIsSource = exoLimbIsSource(mmuInstruction);
-      final boolean exoIsTarget = exoLimbIsTarget(mmuInstruction);
+      final boolean exoIsSource = exoLimbIsSource();
+      final boolean exoIsTarget = exoLimbIsTarget();
       Preconditions.checkArgument(
           exoIsSource == !exoIsTarget, "ExoLimb is either the source or the target");
 
@@ -151,28 +156,20 @@ public class MmuOperation extends ModuleOperation {
         mmioInst.limb(exoLimb);
       }
     }
-
-    // if (mmuInstruction == Trace.MMU_INST_INVALID_CODE_PREFIX){
-    //  final MmuToMmioInstruction mmioInst = mmuData.mmuToMmioInstructions().get(0);
-    //  final int offset = Trace.LLARGE * mmioInst.sourceLimbOffset() + mmioInst.sourceByteOffset();
-    //  final Bytes16 limb = Bytes16.leftPad(mmuData.sourceRamBytes().slice(offset, 1));
-    //  mmioInst.limb(limb);
-    // }
-
   }
 
-  private boolean exoLimbIsSource(final int mmuInstruction) {
+  private boolean exoLimbIsSource() {
     return List.of(Trace.MMU_INST_ANY_TO_RAM_WITH_PADDING, Trace.MMU_INST_EXO_TO_RAM_TRANSPLANTS)
-        .contains(mmuInstruction);
+        .contains(this.mmuData.hubToMmuValues().mmuInstruction());
   }
 
-  private boolean exoLimbIsTarget(final int mmuInstruction) {
+  private boolean exoLimbIsTarget() {
     return List.of(
             Trace.MMU_INST_BLAKE,
             Trace.MMU_INST_MODEXP_DATA,
             Trace.MMU_INST_MODEXP_ZERO,
             Trace.MMU_INST_RAM_TO_EXO_WITH_PADDING)
-        .contains(mmuInstruction);
+        .contains(this.mmuData.hubToMmuValues().mmuInstruction());
   }
 
   private void traceFillMmuInstructionFlag(Trace trace) {

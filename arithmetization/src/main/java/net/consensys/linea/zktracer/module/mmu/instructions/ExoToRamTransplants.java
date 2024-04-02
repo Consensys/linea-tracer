@@ -85,12 +85,16 @@ public class ExoToRamTransplants implements MmuInstruction {
             .build());
 
     // Setting the target ram bytes
-    if (mmuData.hubToMmuValues().exoSum() != Trace.EXO_SUM_WEIGHT_TXCD) {
+    // If the exo module is RlpTxn, the previous target RAM Bytes is empty, as we created a non-evm
+    // context number ram to store the call data
+
+    if (!mmuData.hubToMmuValues().exoIsTxcd()) {
       mmuData.setTargetRamBytes();
     } else {
       mmuData.targetRamBytes(Bytes.EMPTY);
     }
 
+    // setting the MMIO instructions
     for (int i = 0; i < mmuData.totalNonTrivialInitials(); i++) {
       mmuData.mmuToMmioInstruction(
           MmuToMmioInstruction.builder()

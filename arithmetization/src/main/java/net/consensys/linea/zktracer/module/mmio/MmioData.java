@@ -30,6 +30,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.module.mmu.ExoSumDecoder;
+import net.consensys.linea.zktracer.module.mmu.values.HubToMmuValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioConstantValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioInstruction;
 import net.consensys.linea.zktracer.types.Bytes16;
@@ -57,23 +59,30 @@ public class MmioData {
   private Bytes16 valCNew;
 
   // imported from the mmu
-  private int instruction;
-  private int sourceContext;
-  private int targetContext;
-  private int sourceLimbOffset;
-  private int targetLimbOffset;
-  private short sourceByteOffset;
-  private short targetByteOffset;
-  private short size;
+  private final int instruction;
+  private final int sourceContext;
+  private final int targetContext;
+  private final int sourceLimbOffset;
+  private final int targetLimbOffset;
+  private final short sourceByteOffset;
+  private final short targetByteOffset;
+  private final short size;
   private Bytes16 limb;
-  private int totalSize;
-  private int exoSum;
-  private int exoId;
-  private int kecId;
-  private long phase;
-  private boolean successBit;
-  private ExoSumDecoder exoSumDecoder;
-  private boolean targetLimbIsTouchedTwice;
+  private final int totalSize;
+  private final int exoSum;
+  private final boolean exoIsRom;
+  private final boolean exoIsBlake2fModexp;
+  private final boolean exoIsEcData;
+  private final boolean exoIsRipSha;
+  private final boolean exoIsKeccak;
+  private final boolean exoIsLog;
+  private final boolean exoIsTxcd;
+  private final int exoId;
+  private final int kecId;
+  private final long phase;
+  private final boolean successBit;
+  private final ExoSumDecoder exoSumDecoder;
+  private final boolean targetLimbIsTouchedTwice;
 
   private int indexX;
 
@@ -92,6 +101,7 @@ public class MmioData {
   private List<Bytes> acc4;
 
   public MmioData(
+      HubToMmuValues hubToMmuValues,
       MmuToMmioConstantValues mmuToMmioConstantValues,
       MmuToMmioInstruction mmuToMmioInstruction,
       ExoSumDecoder exoSumDecoder) {
@@ -119,6 +129,13 @@ public class MmioData {
         mmuToMmioInstruction.limb(),
         mmuToMmioConstantValues.totalSize(),
         mmuToMmioConstantValues.exoSum(),
+        hubToMmuValues.exoIsRom(),
+        hubToMmuValues.exoIsBlake2fModexp(),
+        hubToMmuValues.exoIsEcData(),
+        hubToMmuValues.exoIsRipSha(),
+        hubToMmuValues.exoIsKeccak(),
+        hubToMmuValues.exoIsLog(),
+        hubToMmuValues.exoIsTxcd(),
         mmuToMmioConstantValues.exoId(),
         mmuToMmioConstantValues.kecId(),
         mmuToMmioConstantValues.phase(),

@@ -23,6 +23,7 @@ import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.module.mmu.ExoSumDecoder;
 import net.consensys.linea.zktracer.module.mmu.Mmu;
 import net.consensys.linea.zktracer.module.mmu.MmuData;
 import net.consensys.linea.zktracer.module.mmu.MmuOperation;
@@ -143,13 +144,13 @@ public class Mmio implements Module {
           .totalSize(Bytes.ofUnsignedShort(mmioData.totalSize()))
           .exoSum(mmioData.exoSum())
           .exoId(mmioData.exoId())
-          .exoIsTxcd(exoSumDecoder.exoIsTxcd())
-          .exoIsRom(exoSumDecoder.exoIsRom())
-          .exoIsLog(exoSumDecoder.exoIsLog())
-          .exoIsEcdata(exoSumDecoder.exoIsEcData())
-          .exoIsBlakemodexp(exoSumDecoder.exoIsBlake2fModexp())
-          .exoIsRipsha(exoSumDecoder.exoIsRipSha())
-          .exoIsKec(exoSumDecoder.exoIsKeccak())
+          .exoIsTxcd(mmioData.exoIsTxcd())
+          .exoIsRom(mmioData.exoIsRom())
+          .exoIsLog(mmioData.exoIsLog())
+          .exoIsEcdata(mmioData.exoIsEcData())
+          .exoIsBlakemodexp(mmioData.exoIsBlake2fModexp())
+          .exoIsRipsha(mmioData.exoIsRipSha())
+          .exoIsKec(mmioData.exoIsKeccak())
           .kecId(mmioData.kecId())
           .phase(mmioData.phase())
           .successBit(mmioData.successBit())

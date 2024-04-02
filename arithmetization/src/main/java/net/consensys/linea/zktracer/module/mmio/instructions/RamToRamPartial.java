@@ -39,7 +39,11 @@ public class RamToRamPartial implements MmioInstruction {
         mmuData.mmuToMmioInstructions().get(instructionNumber);
 
     MmioData mmioData =
-        new MmioData(mmuToMmioConstantValues, mmuToMmioInstruction, mmuData.exoSumDecoder());
+        new MmioData(
+            mmuData.hubToMmuValues(),
+            mmuToMmioConstantValues,
+            mmuToMmioInstruction,
+            mmuData.exoSumDecoder());
 
     mmioData.cnA(mmioData.sourceContext());
     mmioData.cnB(mmioData.targetContext());

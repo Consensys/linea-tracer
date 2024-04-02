@@ -41,7 +41,11 @@ public class LimbToRamTwoTarget implements MmioInstruction {
         mmuData.mmuToMmioInstructions().get(instructionId);
 
     MmioData mmioData =
-        new MmioData(mmuToMmioConstantValues, mmuToMmioInstruction, mmuData.exoSumDecoder());
+        new MmioData(
+            mmuData.hubToMmuValues(),
+            mmuToMmioConstantValues,
+            mmuToMmioInstruction,
+            mmuData.exoSumDecoder());
 
     Preconditions.checkArgument(
         mmioData.targetLimbIsTouchedTwice(),

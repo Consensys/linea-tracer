@@ -19,17 +19,29 @@ import java.nio.MappedByteBuffer;
 import java.util.List;
 import java.util.Stack;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.shakiradata.RipeMdComponents;
+import net.consensys.linea.zktracer.module.shakiradata.ShakiraData;
+import net.consensys.linea.zktracer.module.shakiradata.ShakiraDataOperation;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 
 @RequiredArgsConstructor
 public final class RipeMd160Blocks implements Module {
+  private static final int PRECOMPILE_BASE_GAS_FEE = 600;
+  private static final int PRECOMPILE_GAS_FEE_PER_EWORD = 120;
+  private static final int RIPEMD160_BLOCKSIZE = 64 * 8;
+  // If the length is > 2⁶4, we just use the lower 64 bits.
+  private static final int RIPEMD160_LENGTH_APPEND = 64;
+  private static final int RIPEMD160_ND_PADDED_ONE = 1;
+
   private final Hub hub;
   private final Stack<Integer> counts = new Stack<>();
 
@@ -38,12 +50,9 @@ public final class RipeMd160Blocks implements Module {
     return "PRECOMPILE_RIPEMD_BLOCKS";
   }
 
-  private static final int PRECOMPILE_BASE_GAS_FEE = 600;
-  private static final int PRECOMPILE_GAS_FEE_PER_EWORD = 120;
-  private static final int RIPEMD160_BLOCKSIZE = 64 * 8;
-  // If the length is > 2⁶4, we just use the lower 64 bits.
-  private static final int RIPEMD160_LENGTH_APPEND = 64;
-  private static final int RIPEMD160_ND_PADDED_ONE = 1;
+  @Getter private final ShakiraData data = new ShakiraData();
+
+  private int lastDataCallHubStamp = 0;
 
   @Override
   public void enterTransaction() {
@@ -82,9 +91,11 @@ public final class RipeMd160Blocks implements Module {
       final Address target = Words.toAddress(frame.getStackItem(1));
       if (target.equals(Address.RIPEMD160)) {
         final long dataByteLength = hub.transients().op().callDataSegment().length();
+
         if (dataByteLength == 0) {
           return;
         } // skip trivial hash TODO: check the prover does skip it
+
         final int blockCount =
             (int)
                     (dataByteLength * 8
@@ -96,7 +107,18 @@ public final class RipeMd160Blocks implements Module {
         final long wordCount = (dataByteLength + 31) / 32;
         final long gasNeeded = PRECOMPILE_BASE_GAS_FEE + PRECOMPILE_GAS_FEE_PER_EWORD * wordCount;
 
+        final Bytes inputData = hub.transients().op().callData();
+
         if (hub.transients().op().gasAllowanceForCall() >= gasNeeded) {
+          this.lastDataCallHubStamp =
+              this.data.call(
+                  new ShakiraDataOperation(
+                      hub.stamp(),
+                      lastDataCallHubStamp,
+                      null,
+                      new RipeMdComponents(inputData),
+                      null));
+
           this.counts.push(this.counts.pop() + blockCount);
         }
       }

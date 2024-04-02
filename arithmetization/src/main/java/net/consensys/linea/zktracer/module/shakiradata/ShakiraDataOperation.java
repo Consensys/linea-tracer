@@ -85,12 +85,12 @@ public class ShakiraDataOperation extends ModuleOperation {
   public ShakiraDataOperation(
       int hubStamp,
       int prevHubStamp,
-      Sha2Components modexpComponents,
+      Sha2Components sha2Components,
       RipeMdComponents blake2fComponents,
       KeccakComponents keccakComponents) {
     this.hubStamp = hubStamp;
     this.prevHubStamp = prevHubStamp;
-    this.sha2Components = Optional.ofNullable(modexpComponents);
+    this.sha2Components = Optional.ofNullable(sha2Components);
     this.ripeMdComponents = Optional.ofNullable(blake2fComponents);
     this.keccakComponents = Optional.ofNullable(keccakComponents);
   }

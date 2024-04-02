@@ -19,24 +19,22 @@ import java.nio.MappedByteBuffer;
 import java.util.List;
 import java.util.Stack;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.shakiradata.Sha2Components;
+import net.consensys.linea.zktracer.module.shakiradata.ShakiraData;
+import net.consensys.linea.zktracer.module.shakiradata.ShakiraDataOperation;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 
 @RequiredArgsConstructor
 public final class Sha256Blocks implements Module {
-  private final Hub hub;
-  private final Stack<Integer> counts = new Stack<>();
-
-  @Override
-  public String moduleKey() {
-    return "PRECOMPILE_SHA2_BLOCKS";
-  }
 
   private static final int PRECOMPILE_BASE_GAS_FEE = 60;
   private static final int PRECOMPILE_GAS_FEE_PER_EWORD = 12;
@@ -44,6 +42,17 @@ public final class Sha256Blocks implements Module {
   // The length of the data to be hashed is 2**64 maximum.
   private static final int SHA256_PADDING_LENGTH = 64;
   private static final int SHA256_NB_PADDED_ONE = 1;
+
+  private final Hub hub;
+  private final Stack<Integer> counts = new Stack<>();
+
+  @Getter private final ShakiraData data = new ShakiraData();
+  private int lastDataCallHubStamp = 0;
+
+  @Override
+  public String moduleKey() {
+    return "PRECOMPILE_SHA2_BLOCKS";
+  }
 
   @Override
   public void enterTransaction() {
@@ -94,7 +103,18 @@ public final class Sha256Blocks implements Module {
                         + (SHA256_BLOCKSIZE - 1))
                 / SHA256_BLOCKSIZE;
 
+        final Bytes inputData = hub.transients().op().callData();
+
         if (hasEnoughGas(this.hub)) {
+          this.lastDataCallHubStamp =
+              this.data.call(
+                  new ShakiraDataOperation(
+                      hub.stamp(),
+                      lastDataCallHubStamp,
+                      new Sha2Components(inputData),
+                      null,
+                      null));
+
           this.counts.push(this.counts.pop() + blockCount);
         }
       }

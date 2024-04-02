@@ -17,4 +17,4 @@ package net.consensys.linea.zktracer.module.shakiradata;
 
 import org.apache.tuweni.bytes.Bytes;
 
-public record RipeMdComponents(Bytes data, Bytes result) {}
+public record RipeMdComponents(Bytes data) {}

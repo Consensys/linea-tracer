@@ -17,4 +17,4 @@ package net.consensys.linea.zktracer.module.shakiradata;
 
 import org.apache.tuweni.bytes.Bytes;
 
-public record Sha2Components(Bytes data, Bytes result) {}
+public record Sha2Components(Bytes data) {}

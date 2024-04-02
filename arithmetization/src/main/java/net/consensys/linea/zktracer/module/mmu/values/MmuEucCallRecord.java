@@ -23,7 +23,7 @@ import lombok.experimental.Accessors;
 @Getter
 @Accessors(fluent = true)
 public class MmuEucCallRecord {
-  public static final MmuEucCallRecord EMPTY_CALL = builder().build();
+  public static final MmuEucCallRecord EMPTY_CALL = builder().flag(false).build();
 
   @Builder.Default boolean flag = true;
   long dividend;

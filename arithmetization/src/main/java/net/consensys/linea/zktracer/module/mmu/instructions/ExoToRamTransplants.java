@@ -85,7 +85,7 @@ public class ExoToRamTransplants implements MmuInstruction {
             .build());
 
     // Setting the target ram bytes
-    if (mmuData.hubToMmuValues().exoSum() != Trace.EXO_SUM_WEIGHT_TXCD) { // TODO to remove
+    if (mmuData.hubToMmuValues().exoSum() != Trace.EXO_SUM_WEIGHT_TXCD) {
       mmuData.setTargetRamBytes();
     } else {
       mmuData.targetRamBytes(Bytes.EMPTY);

@@ -69,10 +69,10 @@ public class RightPaddedWordExtraction implements MmuInstruction {
   public MmuData preProcess(MmuData mmuData, final CallStack callStack) {
     final HubToMmuValues hubToMmuValues = mmuData.hubToMmuValues();
     row1(hubToMmuValues);
-    row2(hubToMmuValues);
+    row2();
     row3(hubToMmuValues);
-    row4(hubToMmuValues);
-    row5(hubToMmuValues);
+    row4();
+    row5();
 
     mmuData.eucCallRecords(eucCallRecords);
     mmuData.wcpCallRecords(wcpCallRecords);
@@ -94,25 +94,25 @@ public class RightPaddedWordExtraction implements MmuInstruction {
     final long refSize = hubToMmuValues.referenceSize();
     final Bytes wcpArg2 = longToBytes(refSize);
     final boolean wcpResult = wcp.callLT(wcpArg1, wcpArg2);
-    secondLimbPadded = wcpResult;
+    secondLimbPadded = !wcpResult;
     extractionSize =
         (short)
             (secondLimbPadded ? refSize - hubToMmuValues.sourceOffsetLo().longValue() : WORD_SIZE);
 
     wcpCallRecords.add(
-        MmuWcpCallRecord.builder().arg1Lo(wcpArg1).arg2Lo(wcpArg2).result(wcpResult).build());
+        MmuWcpCallRecord.instLtBuilder().arg1Lo(wcpArg1).arg2Lo(wcpArg2).result(wcpResult).build());
 
     eucCallRecords.add(MmuEucCallRecord.EMPTY_CALL);
   }
 
-  private void row2(final HubToMmuValues hubToMmuValues) {
+  private void row2() {
     // row n°2
     final Bytes wcpArg1 = longToBytes(extractionSize);
-    final Bytes wcpArg2 = Bytes.of(16);
+    final Bytes wcpArg2 = Bytes.of(LLARGE);
     final boolean wcpResult = wcp.callLT(wcpArg1, wcpArg2);
 
     wcpCallRecords.add(
-        MmuWcpCallRecord.builder().arg1Lo(wcpArg1).arg2Lo(wcpArg2).result(wcpResult).build());
+        MmuWcpCallRecord.instLtBuilder().arg1Lo(wcpArg1).arg2Lo(wcpArg2).result(wcpResult).build());
 
     firstLimbPadded = wcpResult;
     if (!secondLimbPadded) {
@@ -159,12 +159,12 @@ public class RightPaddedWordExtraction implements MmuInstruction {
     boolean wcpResult = wcp.callLT(wcpArg1, wcpArg2);
 
     wcpCallRecords.add(
-        MmuWcpCallRecord.builder().arg1Lo(wcpArg1).arg2Lo(wcpArg2).result(wcpResult).build());
+        MmuWcpCallRecord.instLtBuilder().arg1Lo(wcpArg1).arg2Lo(wcpArg2).result(wcpResult).build());
 
     firstLimbSingleSource = wcpResult;
   }
 
-  private void row4(final HubToMmuValues hubToMmuValues) {
+  private void row4() {
     // row n°4
     eucCallRecords.add(MmuEucCallRecord.EMPTY_CALL);
 
@@ -173,19 +173,20 @@ public class RightPaddedWordExtraction implements MmuInstruction {
     boolean wcpResult = wcp.callLT(wcpArg1, wcpArg2);
 
     wcpCallRecords.add(
-        MmuWcpCallRecord.builder().arg1Lo(wcpArg1).arg2Lo(wcpArg2).result(wcpResult).build());
+        MmuWcpCallRecord.instLtBuilder().arg1Lo(wcpArg1).arg2Lo(wcpArg2).result(wcpResult).build());
 
     secondLimbSingleSource = wcpResult;
   }
 
-  private void row5(final HubToMmuValues hubToMmuValues) {
+  private void row5() {
     // row n°5
     eucCallRecords.add(MmuEucCallRecord.EMPTY_CALL);
 
-    Bytes isZeroArg = Bytes.ofUnsignedShort(secondLimbByteSize);
+    final Bytes isZeroArg = Bytes.ofUnsignedShort(secondLimbByteSize);
     boolean wcpResult = wcp.callISZERO(isZeroArg);
 
-    wcpCallRecords.add(MmuWcpCallRecord.builder().arg1Lo(isZeroArg).result(wcpResult).build());
+    wcpCallRecords.add(
+        MmuWcpCallRecord.instIsZeroBuilder().arg1Lo(isZeroArg).result(wcpResult).build());
 
     secondLimbVoid = wcpResult;
   }
@@ -232,13 +233,15 @@ public class RightPaddedWordExtraction implements MmuInstruction {
   private void secondMicroInstruction(MmuData mmuData) {
     if (secondLimbVoid) {
       secondMicroInst = Trace.MMIO_INST_LIMB_VANISHES;
-    } else if (secondLimbSingleSource) {
-      secondMicroInst =
-          !secondLimbPadded
-              ? Trace.MMIO_INST_RAM_TO_LIMB_TRANSPLANT
-              : Trace.MMIO_INST_RAM_TO_LIMB_ONE_SOURCE;
     } else {
-      secondMicroInst = Trace.MMIO_INST_RAM_TO_LIMB_TWO_SOURCE;
+      if (secondLimbSingleSource) {
+        secondMicroInst =
+            secondLimbPadded
+                ? Trace.MMIO_INST_RAM_TO_LIMB_ONE_SOURCE
+                : Trace.MMIO_INST_RAM_TO_LIMB_TRANSPLANT;
+      } else {
+        secondMicroInst = Trace.MMIO_INST_RAM_TO_LIMB_TWO_SOURCE;
+      }
     }
 
     mmuData.mmuToMmioInstruction(

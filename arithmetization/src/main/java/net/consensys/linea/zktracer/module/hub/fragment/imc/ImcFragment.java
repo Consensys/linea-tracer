@@ -262,8 +262,10 @@ public class ImcFragment implements TraceFragment {
     } else {
       mmuIsSet = true;
     }
-    HubToMmuValues hubToMmuValues = HubToMmuValues.fromMmuCall(f);
-    this.hub.mmu().call(hubToMmuValues, this.hub.callStack());
+    final HubToMmuValues hubToMmuValues = HubToMmuValues.fromMmuCall(f);
+    if (hubToMmuValues.mmuInstruction() != -1) {
+      this.hub.mmu().call(hubToMmuValues, this.hub.callStack());
+    }
 
     this.moduleCalls.add(f);
     return this;

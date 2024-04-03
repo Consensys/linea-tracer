@@ -264,6 +264,7 @@ public class Hub implements Module {
                 Stream.of(
                     this.add,
                     this.bin,
+                    this.blake2fModexpData,
                     this.ecData,
                     this.euc,
                     this.ext,

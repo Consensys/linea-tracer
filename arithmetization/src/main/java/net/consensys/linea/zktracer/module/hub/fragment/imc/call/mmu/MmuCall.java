@@ -141,7 +141,7 @@ public class MmuCall implements TraceSubFragment {
   }
 
   public static MmuCall nop() {
-    return new MmuCall();
+    return new MmuCall().instruction(-1);
   }
 
   public static MmuCall sha3(final Hub hub) {

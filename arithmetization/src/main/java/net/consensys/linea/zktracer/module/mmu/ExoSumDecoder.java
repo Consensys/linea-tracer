@@ -15,9 +15,6 @@
 
 package net.consensys.linea.zktracer.module.mmu;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -34,7 +31,6 @@ import org.apache.tuweni.bytes.Bytes;
 @Accessors(fluent = true)
 @RequiredArgsConstructor
 public class ExoSumDecoder {
-  private Map<ExoSource, Boolean> exoSourcesMap = new HashMap<>();
   private final CallStack callStack;
   private final RomLex romLex;
   private final RlpTxn rlpTxn;
@@ -72,10 +68,12 @@ public class ExoSumDecoder {
     }
 
     if (exoIsEcData) {
+      return Bytes.EMPTY;
       // TODO
     }
 
     if (exoIsRipSha) {
+      return Bytes.EMPTY;
       // TODO
     }
 
@@ -84,6 +82,7 @@ public class ExoSumDecoder {
     }
 
     if (exoIsKeccak) {
+      return Bytes.EMPTY;
       // TODO use hubToMmuValues.auxId()
     }
 

@@ -16,7 +16,6 @@
 package net.consensys.linea.zktracer.module.mmu.instructions;
 
 import static net.consensys.linea.zktracer.module.mmu.Trace.LLARGE;
-import static net.consensys.linea.zktracer.types.Conversions.*;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.longToBytes;
 
@@ -110,7 +109,7 @@ public class RamToExoWithPadding implements MmuInstruction {
     aligned = isZeroResult;
 
     wcpCallRecords.add(
-        MmuWcpCallRecord.builder()
+        MmuWcpCallRecord.instIsZeroBuilder()
             .arg1Lo(Bytes.ofUnsignedInt(initialSourceByteOffset))
             .result(isZeroResult)
             .build());
@@ -125,7 +124,7 @@ public class RamToExoWithPadding implements MmuInstruction {
     final boolean wcpResult = wcp.callLT(wcpArg1, wcpArg2);
 
     wcpCallRecords.add(
-        MmuWcpCallRecord.builder().arg1Lo(wcpArg1).arg2Lo(wcpArg2).result(wcpResult).build());
+        MmuWcpCallRecord.instLtBuilder().arg1Lo(wcpArg1).arg2Lo(wcpArg2).result(wcpResult).build());
 
     hasRightPadding = wcpResult;
     paddingSize = hasRightPadding ? (int) (refSize - size) : 0;
@@ -162,7 +161,10 @@ public class RamToExoWithPadding implements MmuInstruction {
     final boolean isZeroResult = wcp.callISZERO(eucOp.remainder());
 
     wcpCallRecords.add(
-        MmuWcpCallRecord.builder().arg1Lo(eucOp.remainder()).result(isZeroResult).build());
+        MmuWcpCallRecord.instIsZeroBuilder()
+            .arg1Lo(eucOp.remainder())
+            .result(isZeroResult)
+            .build());
 
     mmuData.totalNonTrivialInitials(eucOp.ceiling().toInt());
 
@@ -175,7 +177,7 @@ public class RamToExoWithPadding implements MmuInstruction {
     eucCallRecords.add(MmuEucCallRecord.EMPTY_CALL);
 
     final Bytes wcpArg1 = Bytes.ofUnsignedShort(initialSourceByteOffset + (lastLimbByteSize - 1));
-    final Bytes wcpArg2 = Bytes.of(16);
+    final Bytes wcpArg2 = Bytes.of(LLARGE);
     boolean wcpResult = wcp.callLT(wcpArg1, wcpArg2);
 
     wcpCallRecords.add(

@@ -38,26 +38,25 @@ public class EucOperation extends ModuleOperation {
     if (divisor.isZero()) {
       throw new IllegalArgumentException("EUC module doesn't accept 0 for divisor");
     }
-    final Bytes dividendTrim = dividend.trimLeadingZeros();
     final Bytes divisorTrim = divisor.trimLeadingZeros();
-    this.ctMax = Math.max(dividendTrim.size(), divisorTrim.size()) - 1;
+    final Bytes quotientTrim = quotient.trimLeadingZeros();
+    this.ctMax = Math.max(quotientTrim.size(), divisorTrim.size()) - 1;
     if (ctMax >= 8) {
       throw new IllegalStateException("Max ByteSize of input is 8 for EUC, received" + ctMax + 1);
     }
-    this.dividend = dividendTrim;
+    this.dividend = dividend;
     this.divisor = divisorTrim;
-    this.quotient = quotient;
+    this.quotient = quotientTrim;
     this.remainder = remainder;
   }
 
   public Bytes ceiling() {
     return !remainder.isZero() && !dividend.isZero()
-        ? Bytes.ofUnsignedLong(quotient.toInt() + 1)
+        ? Bytes.minimalBytes(quotient.toInt() + 1)
         : quotient;
   }
 
   void trace(Trace trace) {
-    final Bytes dividend = leftPadTo(this.dividend, this.ctMax + 1);
     final Bytes divisor = leftPadTo(this.divisor, this.ctMax + 1);
     final Bytes quotient = leftPadTo(this.quotient, this.ctMax + 1);
     final Bytes remainder = leftPadTo(this.remainder, this.ctMax + 1);
@@ -70,9 +69,9 @@ public class EucOperation extends ModuleOperation {
           .ctMax((short) ctMax)
           .done(ct == ctMax)
           .dividend(dividend)
-          .divisor(divisor)
-          .quotient(quotient)
-          .remainder(remainder)
+          .divisor(divisor.slice(0, ct + 1))
+          .quotient(quotient.slice(0, ct + 1))
+          .remainder(remainder.slice(0, ct + 1))
           .ceil(ceil)
           .divisorByte(UnsignedByte.of(divisor.get(ct)))
           .quotientByte(UnsignedByte.of(quotient.get(ct)))

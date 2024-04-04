@@ -23,7 +23,6 @@ import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
-import net.consensys.linea.zktracer.module.mmu.ExoSumDecoder;
 import net.consensys.linea.zktracer.module.mmu.Mmu;
 import net.consensys.linea.zktracer.module.mmu.MmuData;
 import net.consensys.linea.zktracer.module.mmu.MmuOperation;

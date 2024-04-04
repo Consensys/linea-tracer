@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.module.euc;
 
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
@@ -24,9 +25,10 @@ import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 
 @Accessors(fluent = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class EucOperation extends ModuleOperation {
-  @Getter private final Bytes dividend;
-  @Getter private final Bytes divisor;
+  @Getter @EqualsAndHashCode.Include private final Bytes dividend;
+  @Getter @EqualsAndHashCode.Include private final Bytes divisor;
   @Getter private final Bytes remainder;
   @Getter private final Bytes quotient;
   private final int ctMax;

@@ -127,8 +127,7 @@ public class CallFrame {
     this.callDataSource = new MemorySpan(0, callData.size());
   }
 
-  /** Create a bedrock call frame. */
-  // TODO: Isn't it a MANTLE type call frame ?
+  /** Create a MANTLE call frame. */
   CallFrame(Bytes callData, int contextNumber) {
     this.type = CallFrameType.MANTLE;
     this.contextNumber = contextNumber;
@@ -136,7 +135,7 @@ public class CallFrame {
     this.set0AlignedCallData(callData);
   }
 
-  /** Create a bedrock call frame. */
+  /** Create an empty call frame. */
   CallFrame() {
     this.type = CallFrameType.EMPTY;
     this.contextNumber = 0;

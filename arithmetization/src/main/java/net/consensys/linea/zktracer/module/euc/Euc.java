@@ -73,6 +73,7 @@ public class Euc implements Module {
     final Bytes remainder = bigIntegerToBytes(dividendBI.remainder(divisorBI));
 
     EucOperation operation = new EucOperation(dividend, divisor, quotient, remainder);
+
     this.operations.add(operation);
     this.wcp.callLT(remainder, divisor);
 

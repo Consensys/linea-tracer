@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.mmu.instructions;
 
 import static net.consensys.linea.zktracer.module.mmu.Trace.LLARGE;
+import static net.consensys.linea.zktracer.module.mmu.Trace.LLARGEPO;
 import static net.consensys.linea.zktracer.module.mmu.Trace.WORD_SIZE;
 import static net.consensys.linea.zktracer.types.Conversions.*;
 
@@ -155,7 +156,7 @@ public class RightPaddedWordExtraction implements MmuInstruction {
     sourceByteOffset = eucOp.remainder();
 
     final Bytes wcpArg1 = Bytes.ofUnsignedShort(sourceByteOffset.toInt() + firstLimbByteSize);
-    final Bytes wcpArg2 = Bytes.of(16 + 1);
+    final Bytes wcpArg2 = Bytes.of(LLARGEPO);
     boolean wcpResult = wcp.callLT(wcpArg1, wcpArg2);
 
     wcpCallRecords.add(
@@ -169,7 +170,7 @@ public class RightPaddedWordExtraction implements MmuInstruction {
     eucCallRecords.add(MmuEucCallRecord.EMPTY_CALL);
 
     final Bytes wcpArg1 = Bytes.ofUnsignedShort(sourceByteOffset.toInt() + secondLimbByteSize);
-    final Bytes wcpArg2 = Bytes.of(16 + 1);
+    final Bytes wcpArg2 = Bytes.of(LLARGEPO);
     boolean wcpResult = wcp.callLT(wcpArg1, wcpArg2);
 
     wcpCallRecords.add(
@@ -225,7 +226,6 @@ public class RightPaddedWordExtraction implements MmuInstruction {
             .size(firstLimbByteSize)
             .sourceLimbOffset(sourceLimbOffset.toInt())
             .sourceByteOffset((short) sourceByteOffset.toInt())
-            .targetByteOffset((short) 0)
             .limb(mmuData.hubToMmuValues().limb1())
             .build());
   }
@@ -250,7 +250,6 @@ public class RightPaddedWordExtraction implements MmuInstruction {
             .size(secondLimbByteSize)
             .sourceLimbOffset(sourceLimbOffset.toInt() + 1)
             .sourceByteOffset((short) sourceByteOffset.toInt())
-            .targetByteOffset((short) 0)
             .limb(mmuData.hubToMmuValues().limb2())
             .build());
   }

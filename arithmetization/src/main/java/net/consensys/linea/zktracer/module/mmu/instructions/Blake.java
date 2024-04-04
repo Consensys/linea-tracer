@@ -39,9 +39,9 @@ public class Blake implements MmuInstruction {
   private final Wcp wcp;
   private List<MmuEucCallRecord> eucCallRecords;
   private List<MmuWcpCallRecord> wcpCallRecords;
-  private int sourceLimbOffsetR;
+  private long sourceLimbOffsetR;
   private short sourceByteOffsetR;
-  private int sourceLimbOffsetF;
+  private long sourceLimbOffsetF;
   private short sourceByteOffsetF;
   private boolean blakeRSingleSource;
 
@@ -59,14 +59,14 @@ public class Blake implements MmuInstruction {
     // Preprocessing row n°1
     final long dividendRow1 = hubToMmuValues.sourceOffsetLo().longValueExact();
     EucOperation eucOpRow1 = euc.callEUC(longToBytes(dividendRow1), Bytes.of(Trace.LLARGE));
-    sourceLimbOffsetR = eucOpRow1.quotient().toInt();
+    sourceLimbOffsetR = eucOpRow1.quotient().toLong();
     sourceByteOffsetR = (short) eucOpRow1.remainder().toInt();
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividendRow1)
-            .divisor(Trace.LLARGE)
+            .divisor((short) Trace.LLARGE)
             .quotient(eucOpRow1.quotient().toLong())
-            .remainder(eucOpRow1.remainder().toLong())
+            .remainder((short) eucOpRow1.remainder().toInt())
             .build());
 
     final Bytes wcpArg1 = longToBytes(sourceByteOffsetR + 3);
@@ -82,14 +82,14 @@ public class Blake implements MmuInstruction {
     // Preprocessing row n°2
     final long dividendRow2 = hubToMmuValues.sourceOffsetLo().longValueExact() + 213 - 1;
     EucOperation eucOpRow2 = euc.callEUC(longToBytes(dividendRow2), Bytes.of(Trace.LLARGE));
-    sourceLimbOffsetF = eucOpRow2.quotient().toInt();
+    sourceLimbOffsetF = eucOpRow2.quotient().toLong();
     sourceByteOffsetF = (short) eucOpRow2.remainder().toInt();
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividendRow2)
-            .divisor(Trace.LLARGE)
+            .divisor((short) Trace.LLARGE)
             .quotient(eucOpRow2.quotient().toLong())
-            .remainder(eucOpRow2.remainder().toLong())
+            .remainder((short) eucOpRow2.remainder().toInt())
             .build());
 
     wcpCallRecords.add(MmuWcpCallRecord.EMPTY_CALL); // no second call to wcp
@@ -120,7 +120,7 @@ public class Blake implements MmuInstruction {
             .successBit(successBit)
             .exoSum(successBit ? hubToMmuValues.exoSum() : 0)
             .phase(successBit ? hubToMmuValues.phase() : 0)
-            .exoId(successBit ? hubToMmuValues.targetId() : 0)
+            .exoId(successBit ? (int) hubToMmuValues.targetId() : 0)
             .build());
 
     // Setting the source ram bytes
@@ -136,7 +136,6 @@ public class Blake implements MmuInstruction {
             .size((short) 4)
             .sourceLimbOffset(sourceLimbOffsetR)
             .sourceByteOffset(sourceByteOffsetR)
-            .targetLimbOffset(0)
             .targetByteOffset((short) (Trace.LLARGE - 4))
             .limb(hubToMmuValues.limb1())
             .build());
@@ -148,7 +147,6 @@ public class Blake implements MmuInstruction {
             .size((short) 1)
             .sourceLimbOffset(sourceLimbOffsetF)
             .sourceByteOffset(sourceByteOffsetF)
-            .targetLimbOffset(0)
             .targetByteOffset((short) (Trace.LLARGE - 1))
             .limb(hubToMmuValues.limb2())
             .build());

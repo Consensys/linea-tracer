@@ -121,9 +121,10 @@ public class MmuOperation extends ModuleOperation {
     if (exoSum != 0) {
       mmuData.exoSumDecoder(exoSumDecoder);
       final int exoId =
-          exoLimbIsSource()
-              ? this.mmuData.hubToMmuValues().sourceId()
-              : this.mmuData.hubToMmuValues().targetId();
+          (int)
+              (exoLimbIsSource()
+                  ? this.mmuData.hubToMmuValues().sourceId()
+                  : this.mmuData.hubToMmuValues().targetId());
       mmuData.exoBytes(exoSumDecoder.getExoBytes(mmuData.hubToMmuValues(), exoId));
     }
   }
@@ -148,9 +149,10 @@ public class MmuOperation extends ModuleOperation {
 
       for (MmuToMmioInstruction mmioInst : this.mmuData.mmuToMmioInstructions()) {
         final int offset =
-            exoIsSource
-                ? mmioInst.sourceLimbOffset() * LLARGE + mmioInst.sourceByteOffset()
-                : mmioInst.targetLimbOffset() * LLARGE + mmioInst.targetByteOffset();
+            (int)
+                (exoIsSource
+                    ? mmioInst.sourceLimbOffset() * LLARGE + mmioInst.sourceByteOffset()
+                    : mmioInst.targetLimbOffset() * LLARGE + mmioInst.targetByteOffset());
         final int sizeToExtract = mmioInst.size() == 0 ? LLARGE : mmioInst.size();
         final Bytes16 exoLimb = readBytes(mmuData.exoBytes(), offset, sizeToExtract);
         mmioInst.limb(exoLimb);

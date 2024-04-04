@@ -42,13 +42,13 @@ import org.apache.tuweni.bytes.Bytes;
 @Accessors(fluent = true)
 @AllArgsConstructor
 public class MmioData {
-  private int cnA;
-  private int cnB;
-  private int cnC;
+  private long cnA;
+  private long cnB;
+  private long cnC;
 
-  private int indexA;
-  private int indexB;
-  private int indexC;
+  private long indexA;
+  private long indexB;
+  private long indexC;
 
   private Bytes16 valA;
   private Bytes16 valB;
@@ -60,15 +60,15 @@ public class MmioData {
 
   // imported from the mmu
   private final int instruction;
-  private final int sourceContext;
-  private final int targetContext;
-  private final int sourceLimbOffset;
-  private final int targetLimbOffset;
+  private final long sourceContext;
+  private final long targetContext;
+  private final long sourceLimbOffset;
+  private final long targetLimbOffset;
   private final short sourceByteOffset;
   private final short targetByteOffset;
   private final short size;
   private Bytes16 limb;
-  private final int totalSize;
+  private final long totalSize;
   private final int exoSum;
   private final boolean exoIsRom;
   private final boolean exoIsBlake2fModexp;
@@ -79,12 +79,12 @@ public class MmioData {
   private final boolean exoIsTxcd;
   private final int exoId;
   private final int kecId;
-  private final long phase;
+  private final int phase;
   private final boolean successBit;
   private final ExoSumDecoder exoSumDecoder;
   private final boolean targetLimbIsTouchedTwice;
 
-  private int indexX;
+  private long indexX;
 
   private List<Boolean> bit1;
   private List<Boolean> bit2;

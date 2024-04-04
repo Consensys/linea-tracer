@@ -21,17 +21,17 @@ import org.apache.tuweni.bytes.Bytes;
 
 public class Bytecodes {
 
-  public static Bytes16 readBytes(final Bytes data, final int offset, final int sizeToRead) {
+  public static Bytes16 readBytes(final Bytes data, final long offset, final int sizeToRead) {
     if (offset >= data.size()) {
       return Bytes16.ZERO;
     }
 
-    final int dataLengthToExtract = Math.min(sizeToRead, data.size() - offset);
+    final long dataLengthToExtract = Math.min(sizeToRead, data.size() - offset);
 
-    return Bytes16.rightPad(data.slice(offset, dataLengthToExtract));
+    return Bytes16.rightPad(data.slice((int) offset, (int) dataLengthToExtract));
   }
 
-  public static Bytes16 readLimb(final Bytes data, final int limbOffset) {
+  public static Bytes16 readLimb(final Bytes data, final long limbOffset) {
     return readBytes(data, LLARGE * limbOffset, LLARGE);
   }
 }

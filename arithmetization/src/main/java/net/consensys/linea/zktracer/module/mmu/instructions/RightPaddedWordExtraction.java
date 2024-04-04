@@ -132,9 +132,9 @@ public class RightPaddedWordExtraction implements MmuInstruction {
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividend.toLong())
-            .divisor(LLARGE)
+            .divisor((short) LLARGE)
             .quotient(eucOp.quotient().toLong())
-            .remainder(eucOp.remainder().toLong())
+            .remainder((short) eucOp.remainder().toInt())
             .build());
   }
 
@@ -147,9 +147,9 @@ public class RightPaddedWordExtraction implements MmuInstruction {
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividend.toLong())
-            .divisor(LLARGE)
+            .divisor((short) LLARGE)
             .quotient(eucOp.quotient().toLong())
-            .remainder(eucOp.remainder().toLong())
+            .remainder((short) eucOp.remainder().toInt())
             .build());
 
     sourceLimbOffset = eucOp.quotient();

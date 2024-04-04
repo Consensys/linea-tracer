@@ -25,28 +25,28 @@ import net.consensys.linea.zktracer.types.Bytes16;
 @Getter
 @Accessors(fluent = true)
 public class HubToMmuValues {
-  private int mmuInstruction;
-  private int sourceId;
-  private int targetId;
-  private int auxId;
-  private BigInteger sourceOffsetHi;
-  private BigInteger sourceOffsetLo;
-  private long targetOffset;
-  private long size;
-  private long referenceOffset;
-  private long referenceSize;
-  private boolean successBit;
-  private Bytes16 limb1;
-  private Bytes16 limb2;
-  private int phase;
-  private int exoSum;
-  private boolean exoIsRom;
-  private boolean exoIsBlake2fModexp;
-  private boolean exoIsEcData;
-  private boolean exoIsRipSha;
-  private boolean exoIsKeccak;
-  private boolean exoIsLog;
-  private boolean exoIsTxcd;
+  private final int mmuInstruction;
+  private final long sourceId;
+  private final long targetId;
+  private final int auxId;
+  private final BigInteger sourceOffsetHi;
+  private final BigInteger sourceOffsetLo;
+  private final long targetOffset;
+  private final long size;
+  private final long referenceOffset;
+  private final long referenceSize;
+  private final boolean successBit;
+  private final Bytes16 limb1;
+  private final Bytes16 limb2;
+  private final int phase;
+  private final int exoSum;
+  private final boolean exoIsRom;
+  private final boolean exoIsBlake2fModexp;
+  private final boolean exoIsEcData;
+  private final boolean exoIsRipSha;
+  private final boolean exoIsKeccak;
+  private final boolean exoIsLog;
+  private final boolean exoIsTxcd;
 
   private HubToMmuValues(final MmuCall mmuCall) {
     this.mmuInstruction = mmuCall.instruction();

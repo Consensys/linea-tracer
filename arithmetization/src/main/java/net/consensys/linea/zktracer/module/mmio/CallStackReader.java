@@ -30,7 +30,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 public class CallStackReader {
   private final CallStack callStack;
 
-  public Bytes valueFromMemory(final int contextNumber) {
+  public Bytes valueFromMemory(final long contextNumber) {
     final CallFrame callFrame = callStack.getByContextNumber(contextNumber);
     if (callFrame.type() == CallFrameType.MANTLE) {
       return callFrame.callData();

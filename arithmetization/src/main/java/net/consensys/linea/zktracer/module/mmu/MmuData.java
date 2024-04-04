@@ -87,7 +87,7 @@ public class MmuData {
   public void setSourceRamBytes() {
     final MmuToMmioConstantValues mmuToMmioConstantValues = this.mmuToMmioConstantValues();
 
-    final int sourceContextNumber = mmuToMmioConstantValues.sourceContextNumber();
+    final long sourceContextNumber = mmuToMmioConstantValues.sourceContextNumber();
     if (sourceContextNumber != 0) {
       final Bytes sourceMemory = callStackReader.valueFromMemory(sourceContextNumber);
       this.sourceRamBytes(sourceMemory);
@@ -97,7 +97,7 @@ public class MmuData {
   public void setTargetRamBytes() {
     final MmuToMmioConstantValues mmuToMmioConstantValues = this.mmuToMmioConstantValues();
 
-    final int targetContextNumber = mmuToMmioConstantValues.targetContextNumber();
+    final long targetContextNumber = mmuToMmioConstantValues.targetContextNumber();
     if (targetContextNumber != 0) {
       final Bytes targetMemory = callStackReader.valueFromMemory(targetContextNumber);
       this.targetRamBytes(targetMemory);

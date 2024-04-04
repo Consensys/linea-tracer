@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.module.mmu.instructions;
 
 import static net.consensys.linea.zktracer.module.mmu.Trace.INVALID_CODE_PREFIX_VALUE;
 import static net.consensys.linea.zktracer.module.mmu.Trace.LLARGE;
+import static net.consensys.linea.zktracer.module.mmu.Trace.LLARGEMO;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,8 +44,8 @@ public class InvalidCodePrefix implements MmuInstruction {
   private List<MmuEucCallRecord> eucCallRecords;
   private List<MmuWcpCallRecord> wcpCallRecords;
 
-  private int initialSourceLimbOffset;
-  private int initialSourceByteOffset;
+  private long initialSourceLimbOffset;
+  private short initialSourceByteOffset;
   private Bytes microLimb;
 
   public InvalidCodePrefix(Euc euc, Wcp wcp) {
@@ -64,15 +65,15 @@ public class InvalidCodePrefix implements MmuInstruction {
     // row n°1
     final long dividend1 = mmuData.hubToMmuValues().sourceOffsetLo().longValueExact();
     EucOperation eucOp = euc.callEUC(Bytes.ofUnsignedLong(dividend1), Bytes.of(16));
-    int rem = eucOp.remainder().toInt();
-    int quot = eucOp.quotient().toInt();
+    final short rem = (short) eucOp.remainder().toInt();
+    final long quot = eucOp.quotient().toLong();
     initialSourceLimbOffset = quot;
     initialSourceByteOffset = rem;
 
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividend1)
-            .divisor(LLARGE)
+            .divisor((short) LLARGE)
             .quotient(quot)
             .remainder(rem)
             .build());
@@ -81,21 +82,17 @@ public class InvalidCodePrefix implements MmuInstruction {
         Bytes.of(
             mmuData
                 .sourceRamBytes()
-                .get(LLARGE * initialSourceLimbOffset + initialSourceByteOffset));
+                .get((int) (LLARGE * initialSourceLimbOffset + initialSourceByteOffset)));
     Bytes arg1 = microLimb;
     Bytes arg2 = Bytes.of(INVALID_CODE_PREFIX_VALUE);
     boolean result = wcp.callEQ(arg1, arg2);
 
     wcpCallRecords.add(
-        MmuWcpCallRecord.instEqBuilder()
-            .arg1Hi(Bytes.EMPTY)
-            .arg1Lo(arg1)
-            .arg2Lo(arg2)
-            .result(result)
-            .build());
+        MmuWcpCallRecord.instEqBuilder().arg1Lo(arg1).arg2Lo(arg2).result(result).build());
 
     mmuData.eucCallRecords(eucCallRecords);
     mmuData.wcpCallRecords(wcpCallRecords);
+
     // setting Out and Bin values
     mmuData.outAndBinValues(MmuOutAndBinValues.builder().build()); // all 0
 
@@ -119,8 +116,8 @@ public class InvalidCodePrefix implements MmuInstruction {
             .mmioInstruction(Trace.MMIO_INST_RAM_TO_LIMB_ONE_SOURCE)
             .size((short) 1)
             .sourceLimbOffset(initialSourceLimbOffset)
-            .sourceByteOffset((short) initialSourceByteOffset)
-            .targetByteOffset((short) 15)
+            .sourceByteOffset(initialSourceByteOffset)
+            .targetByteOffset((short) LLARGEMO)
             .limb((Bytes16) microLimb)
             .build());
 

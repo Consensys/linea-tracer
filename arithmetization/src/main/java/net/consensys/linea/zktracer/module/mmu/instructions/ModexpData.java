@@ -44,7 +44,7 @@ public class ModexpData implements MmuInstruction {
   private int initialTotalNonTrivial;
   private int initialTotalRightZeroes;
   private short initialTargetByteOffset;
-  private int initialSourceLimbOffset;
+  private long initialSourceLimbOffset;
   private short initialSourceByteOffset;
   private short firstLimbByteSize;
   private short lastLimbByteSize;
@@ -57,7 +57,7 @@ public class ModexpData implements MmuInstruction {
   private boolean dataRunsOut;
   private int rightPaddingRemainder;
   private short middleSourceByteOffset;
-  private int middleFirstSourceLimbOffset;
+  private long middleFirstSourceLimbOffset;
   private int middleMicroInst;
 
   public ModexpData(Euc euc, Wcp wcp) {
@@ -117,9 +117,9 @@ public class ModexpData implements MmuInstruction {
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(numberLeftPaddingBytes)
-            .divisor(LLARGE)
+            .divisor((short) LLARGE)
             .quotient(eucOp.quotient().toLong())
-            .remainder(eucOp.remainder().toLong())
+            .remainder((short) eucOp.remainder().toInt())
             .build());
 
     wcpCallRecords.add(MmuWcpCallRecord.EMPTY_CALL);
@@ -131,7 +131,7 @@ public class ModexpData implements MmuInstruction {
     final Bytes wcpArg2 = longToBytes(parameterByteSize);
     final boolean wcpResult = wcp.callLT(wcpArg1, wcpArg2);
     dataRunsOut = wcpResult;
-    int numberRightPaddingBytes = dataRunsOut ? parameterByteSize - leftoverDataSize : 0;
+    final int numberRightPaddingBytes = dataRunsOut ? parameterByteSize - leftoverDataSize : 0;
     wcpCallRecords.add(
         MmuWcpCallRecord.instLtBuilder().arg1Lo(wcpArg1).arg2Lo(wcpArg2).result(wcpResult).build());
 
@@ -143,9 +143,9 @@ public class ModexpData implements MmuInstruction {
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(numberRightPaddingBytes)
-            .divisor(LLARGE)
+            .divisor((short) LLARGE)
             .quotient(eucOp.quotient().toLong())
-            .remainder(eucOp.remainder().toLong())
+            .remainder((short) eucOp.remainder().toInt())
             .build());
   }
 
@@ -159,14 +159,14 @@ public class ModexpData implements MmuInstruction {
 
     final long dividend = parameterOffset;
     EucOperation eucOp = euc.callEUC(longToBytes(dividend), Bytes.of(LLARGE));
-    initialSourceLimbOffset = eucOp.quotient().toInt();
+    initialSourceLimbOffset = eucOp.quotient().toLong();
     initialSourceByteOffset = (short) eucOp.remainder().toInt();
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividend)
-            .divisor(LLARGE)
+            .divisor((short) LLARGE)
             .quotient(eucOp.quotient().toLong())
-            .remainder(eucOp.remainder().toLong())
+            .remainder((short) eucOp.remainder().toInt())
             .build());
     if (wcpResult) {
       firstLimbByteSize = (short) (dataRunsOut ? leftoverDataSize : parameterByteSize);
@@ -208,9 +208,9 @@ public class ModexpData implements MmuInstruction {
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividend)
-            .divisor(LLARGE)
+            .divisor((short) LLARGE)
             .quotient(eucOp.quotient().toLong())
-            .remainder(eucOp.remainder().toLong())
+            .remainder((short) eucOp.remainder().toInt())
             .build());
 
     final Bytes wcpArg1 = longToBytes(middleSourceByteOffset + lastLimbByteSize - 1);
@@ -231,7 +231,7 @@ public class ModexpData implements MmuInstruction {
             .sourceContextNumber(hubToMmuValues.sourceId())
             .exoSum(hubToMmuValues.exoSum())
             .phase(hubToMmuValues.phase())
-            .exoId(hubToMmuValues.targetId())
+            .exoId((int) hubToMmuValues.targetId())
             .build());
 
     // Setting the source ram bytes
@@ -249,7 +249,7 @@ public class ModexpData implements MmuInstruction {
     middleMicroInst =
         aligned ? Trace.MMIO_INST_RAM_TO_LIMB_TRANSPLANT : Trace.MMIO_INST_RAM_TO_LIMB_TWO_SOURCE;
     for (int i = 1; i < mmuData.totalNonTrivialInitials() - 1; i++) {
-      final int sourceLimbOffset = middleFirstSourceLimbOffset + i - 1;
+      final long sourceLimbOffset = middleFirstSourceLimbOffset + i - 1;
       final int targetLimbOffset = initialTotalLeftZeroes + i;
       middleMicroInstruction(mmuData, sourceLimbOffset, targetLimbOffset);
     }
@@ -285,13 +285,11 @@ public class ModexpData implements MmuInstruction {
             .sourceByteOffset(initialSourceByteOffset)
             .targetLimbOffset(initialTotalLeftZeroes)
             .targetByteOffset(initialTargetByteOffset)
-            //     .limb((Bytes16) mmuData.exoBytes().slice(initialSourceLimbOffset * LLARGE,
-            // LLARGE))
             .build());
   }
 
   private void middleMicroInstruction(
-      MmuData mmuData, final int sourceLimbOffset, final int targetLimbOffset) {
+      MmuData mmuData, final long sourceLimbOffset, final int targetLimbOffset) {
     mmuData.mmuToMmioInstruction(
         MmuToMmioInstruction.builder()
             .mmioInstruction(middleMicroInst)
@@ -299,8 +297,6 @@ public class ModexpData implements MmuInstruction {
             .sourceLimbOffset(sourceLimbOffset)
             .sourceByteOffset(middleSourceByteOffset)
             .targetLimbOffset(targetLimbOffset)
-            .targetByteOffset((short) 0)
-            //       .limb((Bytes16) mmuData.exoBytes().slice(LLARGE * sourceLimbOffset, LLARGE))
             .build());
   }
 
@@ -309,7 +305,7 @@ public class ModexpData implements MmuInstruction {
         lastLimbSingleSource
             ? Trace.MMIO_INST_RAM_TO_LIMB_ONE_SOURCE
             : Trace.MMIO_INST_RAM_TO_LIMB_TWO_SOURCE;
-    final int sourceLimbOffset = middleFirstSourceLimbOffset + initialTotalNonTrivial;
+    final long sourceLimbOffset = middleFirstSourceLimbOffset + initialTotalNonTrivial;
 
     mmuData.mmuToMmioInstruction(
         MmuToMmioInstruction.builder()
@@ -318,8 +314,6 @@ public class ModexpData implements MmuInstruction {
             .sourceLimbOffset(sourceLimbOffset)
             .sourceByteOffset(middleSourceByteOffset)
             .targetLimbOffset(initialTotalLeftZeroes + initialTotalNonTrivial)
-            .targetByteOffset((short) 0)
-            //    .limb((Bytes16) mmuData.exoBytes().slice(LLARGE * sourceLimbOffset, LLARGE))
             .build());
   }
 }

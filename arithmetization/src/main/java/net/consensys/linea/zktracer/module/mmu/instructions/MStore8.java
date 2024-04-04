@@ -35,7 +35,7 @@ public class MStore8 implements MmuInstruction {
   private final Euc euc;
   private List<MmuEucCallRecord> eucCallRecords;
   private List<MmuWcpCallRecord> wcpCallRecords;
-  private int initialTargetLimbOffset;
+  private long initialTargetLimbOffset;
   private short initialTargetByteOffset;
 
   public MStore8(Euc euc) {
@@ -50,15 +50,15 @@ public class MStore8 implements MmuInstruction {
     // row n°1
     final long dividend1 = mmuData.hubToMmuValues().targetOffset();
     EucOperation eucOp = euc.callEUC(Bytes.ofUnsignedLong(dividend1), Bytes.of(16));
-    int rem = eucOp.remainder().toInt();
-    int quot = eucOp.quotient().toInt();
+    final short rem = (short) eucOp.remainder().toInt();
+    final long quot = eucOp.quotient().toLong();
     initialTargetLimbOffset = quot;
-    initialTargetByteOffset = (short) rem;
+    initialTargetByteOffset = rem;
 
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividend1)
-            .divisor(Trace.LLARGE)
+            .divisor((short) Trace.LLARGE)
             .quotient(quot)
             .remainder(rem)
             .build());

@@ -102,15 +102,15 @@ public class RamToRamSansPadding implements MmuInstruction {
     final Bytes dividend = bigIntegerToBytes(hubToMmuValues.sourceOffsetLo());
     EucOperation eucOp = euc.callEUC(dividend, Bytes.of(Trace.LLARGE));
 
-    initialSourceLimbOffset = eucOp.quotient().toInt();
+    initialSourceLimbOffset = eucOp.quotient().toLong();
     initialSourceByteOffset = (short) eucOp.remainder().toInt();
 
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividend.toLong())
-            .divisor(Trace.LLARGE)
+            .divisor((short) Trace.LLARGE)
             .quotient(eucOp.quotient().toLong())
-            .remainder(eucOp.remainder().toLong())
+            .remainder((short) eucOp.remainder().toInt())
             .build());
 
     final Bytes wcpArg1 = longToBytes(hubToMmuValues.referenceSize());
@@ -128,15 +128,15 @@ public class RamToRamSansPadding implements MmuInstruction {
     final Bytes dividend = longToBytes(hubToMmuValues.referenceOffset());
     EucOperation eucOp = euc.callEUC(dividend, Bytes.of(Trace.LLARGE));
 
-    initialTargetLimbOffset = eucOp.quotient().toInt();
+    initialTargetLimbOffset = eucOp.quotient().toLong();
     initialTargetByteOffset = (short) eucOp.remainder().toInt();
 
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividend.toLong())
-            .divisor(Trace.LLARGE)
+            .divisor((short) Trace.LLARGE)
             .quotient(eucOp.quotient().toLong())
-            .remainder(eucOp.remainder().toLong())
+            .remainder((short) eucOp.remainder().toInt())
             .build());
 
     final Bytes wcpArg1 = longToBytes(initialSourceByteOffset);
@@ -159,9 +159,9 @@ public class RamToRamSansPadding implements MmuInstruction {
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividend.toLong())
-            .divisor(Trace.LLARGE)
+            .divisor((short) Trace.LLARGE)
             .quotient(eucOp.quotient().toLong())
-            .remainder(eucOp.remainder().toLong())
+            .remainder((short) eucOp.remainder().toInt())
             .build());
 
     final Bytes wcpArg1 = longToBytes(totInitialNonTrivial);
@@ -207,9 +207,9 @@ public class RamToRamSansPadding implements MmuInstruction {
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividend.toLong())
-            .divisor(Trace.LLARGE)
+            .divisor((short) Trace.LLARGE)
             .quotient(eucOp.quotient().toLong())
-            .remainder(eucOp.remainder().toLong())
+            .remainder((short) eucOp.remainder().toInt())
             .build());
 
     lastLimbSingleSource =
@@ -229,9 +229,9 @@ public class RamToRamSansPadding implements MmuInstruction {
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividend.toLong())
-            .divisor(Trace.LLARGE)
+            .divisor((short) Trace.LLARGE)
             .quotient(eucOp.quotient().toLong())
-            .remainder(eucOp.remainder().toLong())
+            .remainder((short) eucOp.remainder().toInt())
             .build());
     lastLimbIsFull = eucOp.quotient().toInt() == 1;
     lastLimbIsFast = aligned && lastLimbIsFull;
@@ -281,9 +281,9 @@ public class RamToRamSansPadding implements MmuInstruction {
         MmuToMmioInstruction.builder()
             .mmioInstruction(onlyMicroInst)
             .size(firstLimbByteSize)
-            .sourceLimbOffset((int) initialSourceLimbOffset)
+            .sourceLimbOffset(initialSourceLimbOffset)
             .sourceByteOffset(initialSourceByteOffset)
-            .targetLimbOffset((int) initialTargetLimbOffset)
+            .targetLimbOffset(initialTargetLimbOffset)
             .targetByteOffset(initialTargetByteOffset)
             .build());
   }
@@ -295,24 +295,23 @@ public class RamToRamSansPadding implements MmuInstruction {
         MmuToMmioInstruction.builder()
             .mmioInstruction(onlyMicroInst)
             .size(firstLimbByteSize)
-            .sourceLimbOffset((int) initialSourceLimbOffset)
+            .sourceLimbOffset(initialSourceLimbOffset)
             .sourceByteOffset(initialSourceByteOffset)
-            .targetLimbOffset((int) initialTargetLimbOffset)
+            .targetLimbOffset(initialTargetLimbOffset)
             .targetByteOffset(initialTargetByteOffset)
             .build());
   }
 
   private void middleMicroInstruction(
-      MmuData mmuData, int middleMicrioInstruction, int i, int firstMiddleSlo) {
+      MmuData mmuData, int middleMicroInstruction, int i, int firstMiddleSlo) {
 
     mmuData.mmuToMmioInstruction(
         MmuToMmioInstruction.builder()
-            .mmioInstruction(middleMicrioInstruction)
+            .mmioInstruction(middleMicroInstruction)
             .size((short) Trace.LLARGE)
             .sourceLimbOffset(firstMiddleSlo + i - 1)
             .sourceByteOffset(middleSourceByteOffset)
-            .targetLimbOffset((int) initialTargetLimbOffset + i)
-            .targetByteOffset((short) 0)
+            .targetLimbOffset(initialTargetLimbOffset + i)
             .build());
   }
 
@@ -323,10 +322,9 @@ public class RamToRamSansPadding implements MmuInstruction {
         MmuToMmioInstruction.builder()
             .mmioInstruction(lastMicroInst)
             .size(lastLimbByteSize)
-            .sourceLimbOffset((int) (firstMiddleSlo + totInitialNonTrivial - 1))
+            .sourceLimbOffset((firstMiddleSlo + totInitialNonTrivial - 1))
             .sourceByteOffset(middleSourceByteOffset)
-            .targetLimbOffset((int) (initialTargetLimbOffset + totInitialNonTrivial))
-            .targetByteOffset((short) 0)
+            .targetLimbOffset((initialTargetLimbOffset + totInitialNonTrivial))
             .build());
   }
 

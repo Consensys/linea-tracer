@@ -19,11 +19,11 @@ import lombok.Builder;
 
 @Builder
 public record MmuOutAndBinValues(
-    int out1,
-    int out2,
-    int out3,
-    int out4,
-    int out5,
+    long out1,
+    long out2,
+    long out3,
+    long out4,
+    long out5,
     boolean bin1,
     boolean bin2,
     boolean bin3,

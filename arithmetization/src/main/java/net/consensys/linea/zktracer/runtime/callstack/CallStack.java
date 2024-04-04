@@ -269,7 +269,7 @@ public final class CallStack {
    * @return the call frame with the specifies
    * @throws IndexOutOfBoundsException if the index is out of range
    */
-  public CallFrame getByContextNumber(int i) {
+  public CallFrame getByContextNumber(final long i) {
     for (CallFrame f : this.frames) {
       if (f.contextNumber() == i) {
         return f;

@@ -41,7 +41,7 @@ public class MLoad implements MmuInstruction {
   private List<MmuWcpCallRecord> wcpCallRecords;
 
   private boolean aligned;
-  private int initialSourceLimbOffset;
+  private long initialSourceLimbOffset;
   private short initialSourceByteOffset;
 
   public MLoad(Euc euc, Wcp wcp) {
@@ -54,15 +54,15 @@ public class MLoad implements MmuInstruction {
   public MmuData preProcess(MmuData mmuData, final CallStack callStack) {
     final long dividend1 = mmuData.hubToMmuValues().sourceOffsetLo().longValueExact();
     final EucOperation eucOp = euc.callEUC(Bytes.ofUnsignedLong(dividend1), Bytes.of(LLARGE));
-    final int rem = eucOp.remainder().toInt();
-    final int quot = eucOp.quotient().toInt();
+    final short rem = (short) eucOp.remainder().toInt();
+    final long quot = eucOp.quotient().toLong();
     initialSourceLimbOffset = quot;
-    initialSourceByteOffset = (short) rem;
+    initialSourceByteOffset = rem;
 
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividend1)
-            .divisor(LLARGE)
+            .divisor((short) LLARGE)
             .quotient(quot)
             .remainder(rem)
             .build());

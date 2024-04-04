@@ -53,9 +53,9 @@ public class ExoToRamTransplants implements MmuInstruction {
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividend.toLong())
-            .divisor(LLARGE)
+            .divisor((short) LLARGE)
             .quotient(eucOp.quotient().toLong())
-            .remainder(eucOp.remainder().toLong())
+            .remainder((short) eucOp.remainder().toInt())
             .build());
 
     wcpCallRecords.add(MmuWcpCallRecord.EMPTY_CALL);
@@ -81,7 +81,7 @@ public class ExoToRamTransplants implements MmuInstruction {
             .targetContextNumber(hubToMmuValues.targetId())
             .exoSum(hubToMmuValues.exoSum())
             .phase(hubToMmuValues.phase())
-            .exoId(hubToMmuValues.sourceId())
+            .exoId((int) hubToMmuValues.sourceId())
             .totalSize((int) hubToMmuValues.size())
             .build());
 

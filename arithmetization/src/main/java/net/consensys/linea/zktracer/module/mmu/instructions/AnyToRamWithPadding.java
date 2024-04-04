@@ -45,17 +45,17 @@ public class AnyToRamWithPadding implements MmuInstruction {
   private final Wcp wcp;
   private List<MmuEucCallRecord> eucCallRecords;
   private List<MmuWcpCallRecord> wcpCallRecords;
-  private int minTargetOffset;
-  private int maxTargetOffset;
+  private long minTargetOffset;
+  private long maxTargetOffset;
   private boolean purePadding;
-  private int minTargetLimbOffset;
+  private long minTargetLimbOffset;
   private short minTargetByteOffset;
   private boolean mixed;
   private boolean pureData;
-  private int maxTargetLimbOffset;
+  private long maxTargetLimbOffset;
   private short maxTargetByteOffset;
-  private int transferSize;
-  private int paddingSize;
+  private long transferSize;
+  private long paddingSize;
   private boolean lastPaddingIsFull;
   private short lastPaddingSize;
   private boolean totalRightZeroIsOne;
@@ -74,22 +74,22 @@ public class AnyToRamWithPadding implements MmuInstruction {
   private boolean totalNonTrivialIsOne;
   private short onlyDataTransferSize;
   private short firstDataTransferSize;
-  private int minSourceOffset;
-  private int minSourceLimbOffset;
+  private long minSourceOffset;
+  private long minSourceLimbOffset;
   private short minSourceByteOffset;
-  private int maxSourceLimbOffset;
+  private long maxSourceLimbOffset;
   private short maxSourceByteOffset;
   private boolean onlyDataTransferSingleTarget;
   private boolean onlyDataTransferMaxesOutTarget;
   private boolean lastDataTransferMaxesOutTarget;
   private boolean firstDataTransferSingleTarget;
   private boolean firstDataTransferMaxesOutTarget;
-  private int firstPaddingLimbOffset;
-  private int lastPaddingLimbOffset;
+  private long firstPaddingLimbOffset;
+  private long lastPaddingLimbOffset;
   private int totInitialNonTrivial;
   private int totInitialRightZeroes;
-  private int maxSourceOffsetOrZero;
-  private int firstMiddleNonTrivialTargetLimbOffset;
+  private long maxSourceOffsetOrZero;
+  private long firstMiddleNonTrivialTargetLimbOffset;
   private boolean dataToPaddingTransitionTakesTwoMmioInstructions;
 
   public AnyToRamWithPadding(Euc euc, Wcp wcp) {
@@ -174,23 +174,23 @@ public class AnyToRamWithPadding implements MmuInstruction {
             .build());
     purePadding = !wcpResult;
 
-    minTargetOffset = (int) hubToMmuValues.targetOffset();
-    maxTargetOffset = (int) (minTargetOffset + hubToMmuValues.size() - 1);
+    minTargetOffset = hubToMmuValues.targetOffset();
+    maxTargetOffset = (minTargetOffset + hubToMmuValues.size() - 1);
     final long dividend = minTargetOffset;
     EucOperation eucOp = euc.callEUC(longToBytes(dividend), Bytes.of(LLARGE));
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividend)
-            .divisor(LLARGE)
+            .divisor((short) LLARGE)
             .quotient(eucOp.quotient().toLong())
-            .remainder(eucOp.remainder().toLong())
+            .remainder((short) eucOp.remainder().toInt())
             .build());
-    minTargetLimbOffset = eucOp.quotient().toInt();
+    minTargetLimbOffset = eucOp.quotient().toLong();
     minTargetByteOffset = (short) eucOp.remainder().toInt();
     maxSourceOffsetOrZero =
         purePadding
             ? 0
-            : (int) (hubToMmuValues.sourceOffsetLo().longValueExact() + hubToMmuValues.size() - 1);
+            : (hubToMmuValues.sourceOffsetLo().longValueExact() + hubToMmuValues.size() - 1);
   }
 
   private void sharedRow2(final HubToMmuValues hubToMmuValues) {
@@ -207,35 +207,34 @@ public class AnyToRamWithPadding implements MmuInstruction {
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividend)
-            .divisor(LLARGE)
+            .divisor((short) LLARGE)
             .quotient(eucOp.quotient().toLong())
-            .remainder(eucOp.remainder().toLong())
+            .remainder((short) eucOp.remainder().toInt())
             .build());
-    maxTargetLimbOffset = eucOp.quotient().toInt();
+    maxTargetLimbOffset = eucOp.quotient().toLong();
     maxTargetByteOffset = (short) eucOp.remainder().toInt();
 
     if (purePadding) {
       transferSize = 0;
-      paddingSize = (int) hubToMmuValues.size();
+      paddingSize = hubToMmuValues.size();
     }
     if (mixed) {
       transferSize =
-          (int) (hubToMmuValues.referenceSize() - hubToMmuValues.sourceOffsetLo().longValueExact());
+          (hubToMmuValues.referenceSize() - hubToMmuValues.sourceOffsetLo().longValueExact());
       paddingSize =
-          (int)
-              (hubToMmuValues.size()
-                  - (hubToMmuValues.referenceSize()
-                      - hubToMmuValues.sourceOffsetLo().longValueExact()));
+          (hubToMmuValues.size()
+              - (hubToMmuValues.referenceSize()
+                  - hubToMmuValues.sourceOffsetLo().longValueExact()));
     }
     if (pureData) {
-      transferSize = (int) hubToMmuValues.size();
+      transferSize = hubToMmuValues.size();
       paddingSize = 0;
     }
   }
 
   private void purePaddingRow3() {
     totInitialNonTrivial = 0;
-    totInitialRightZeroes = maxTargetLimbOffset - minTargetLimbOffset + 1;
+    totInitialRightZeroes = (int) (maxTargetLimbOffset - minTargetLimbOffset + 1);
     final Bytes wcpArg1 = longToBytes(totInitialRightZeroes);
     final Bytes wcpArg2 = Bytes.of(1);
     final boolean wcpResult = wcp.callEQ(wcpArg1, wcpArg2);
@@ -257,13 +256,13 @@ public class AnyToRamWithPadding implements MmuInstruction {
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividend)
-            .divisor(LLARGE)
+            .divisor((short) LLARGE)
             .quotient(eucOp.quotient().toLong())
-            .remainder(eucOp.remainder().toLong())
+            .remainder((short) eucOp.remainder().toInt())
             .build());
 
     firstPaddingIsFull = wcpResult;
-    lastPaddingIsFull = !totalRightZeroIsOne && eucOp.quotient().toInt() == 1;
+    lastPaddingIsFull = !totalRightZeroIsOne && eucOp.quotient().toLong() == 1;
     onlyPaddingIsFull = firstPaddingIsFull && lastPaddingIsFull;
     firstPaddingSize = (short) (LLARGE - minTargetByteOffset);
     lastPaddingSize = (short) (totalRightZeroIsOne ? 0 : maxTargetByteOffset + 1);
@@ -276,7 +275,7 @@ public class AnyToRamWithPadding implements MmuInstruction {
     wcpCallRecords.add(
         MmuWcpCallRecord.instIsZeroBuilder().arg1Lo(wcpArg1).result(wcpResult).build());
     dataSourceIsRam = wcpResult;
-    totInitialNonTrivial = maxSourceLimbOffset - minSourceLimbOffset + 1;
+    totInitialNonTrivial = (int) (maxSourceLimbOffset - minSourceLimbOffset + 1);
 
     eucCallRecords.add(MmuEucCallRecord.EMPTY_CALL);
   }
@@ -297,17 +296,17 @@ public class AnyToRamWithPadding implements MmuInstruction {
 
   private void someDataRow5(final HubToMmuValues hubToMmuValues) {
     minSourceOffset =
-        (int) (hubToMmuValues.sourceOffsetLo().longValueExact() + hubToMmuValues.referenceOffset());
+        (hubToMmuValues.sourceOffsetLo().longValueExact() + hubToMmuValues.referenceOffset());
     final long dividend = minSourceOffset;
     EucOperation eucOp = euc.callEUC(longToBytes(dividend), Bytes.of(LLARGE));
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividend)
-            .divisor(LLARGE)
+            .divisor((short) LLARGE)
             .quotient(eucOp.quotient().toLong())
-            .remainder(eucOp.remainder().toLong())
+            .remainder((short) eucOp.remainder().toInt())
             .build());
-    minSourceLimbOffset = eucOp.quotient().toInt();
+    minSourceLimbOffset = eucOp.quotient().toLong();
     minSourceByteOffset = (short) eucOp.remainder().toInt();
 
     final Bytes wcpArg1 = longToBytes(minTargetByteOffset);
@@ -324,11 +323,11 @@ public class AnyToRamWithPadding implements MmuInstruction {
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividend)
-            .divisor(LLARGE)
+            .divisor((short) LLARGE)
             .quotient(eucOp.quotient().toLong())
-            .remainder(eucOp.remainder().toLong())
+            .remainder((short) eucOp.remainder().toInt())
             .build());
-    maxSourceLimbOffset = eucOp.quotient().toInt();
+    maxSourceLimbOffset = eucOp.quotient().toLong();
     maxSourceByteOffset = (short) eucOp.remainder().toInt();
 
     wcpCallRecords.add(MmuWcpCallRecord.EMPTY_CALL);
@@ -341,9 +340,9 @@ public class AnyToRamWithPadding implements MmuInstruction {
       eucCallRecords.add(
           MmuEucCallRecord.builder()
               .dividend(dividend)
-              .divisor(LLARGE)
+              .divisor((short) LLARGE)
               .quotient(eucOp.quotient().toLong())
-              .remainder(eucOp.remainder().toLong())
+              .remainder((short) eucOp.remainder().toInt())
               .build());
 
       final Bytes wcpArg1 = eucOp.remainder();
@@ -371,9 +370,9 @@ public class AnyToRamWithPadding implements MmuInstruction {
       eucCallRecords.add(
           MmuEucCallRecord.builder()
               .dividend(dividend)
-              .divisor(LLARGE)
+              .divisor((short) LLARGE)
               .quotient(eucOp.quotient().toLong())
-              .remainder(eucOp.remainder().toLong())
+              .remainder((short) eucOp.remainder().toInt())
               .build());
 
       final Bytes wcpArg1 = eucOp.remainder();
@@ -403,9 +402,9 @@ public class AnyToRamWithPadding implements MmuInstruction {
       eucCallRecords.add(
           MmuEucCallRecord.builder()
               .dividend(dividend)
-              .divisor(LLARGE)
+              .divisor((short) LLARGE)
               .quotient(eucOp.quotient().toLong())
-              .remainder(eucOp.remainder().toLong())
+              .remainder((short) eucOp.remainder().toInt())
               .build());
 
       final Bytes wcpArg1 = eucOp.remainder();
@@ -438,14 +437,15 @@ public class AnyToRamWithPadding implements MmuInstruction {
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividend)
-            .divisor(LLARGE)
+            .divisor((short) LLARGE)
             .quotient(eucOp.quotient().toLong())
-            .remainder(eucOp.remainder().toLong())
+            .remainder((short) eucOp.remainder().toInt())
             .build());
 
-    firstPaddingLimbOffset = eucOp.quotient().toInt();
+    firstPaddingLimbOffset = eucOp.quotient().toLong();
     firstPaddingByteOffset = (short) (mixed ? eucOp.remainder().toInt() : 0);
-    totInitialRightZeroes = pureData ? 0 : lastPaddingLimbOffset - firstPaddingLimbOffset + 1;
+    totInitialRightZeroes =
+        pureData ? 0 : (int) (lastPaddingLimbOffset - firstPaddingLimbOffset + 1);
 
     final Bytes wcpArg1 = longToBytes(totInitialRightZeroes);
     final Bytes wcpArg2 = Bytes.of(1);
@@ -535,7 +535,7 @@ public class AnyToRamWithPadding implements MmuInstruction {
             .sourceContextNumber(dataSourceIsRam ? hubToMmuValues.sourceId() : 0)
             .targetContextNumber(hubToMmuValues.targetId())
             .exoSum(hubToMmuValues.exoSum())
-            .exoId(dataSourceIsRam ? 0 : hubToMmuValues.sourceId())
+            .exoId(dataSourceIsRam ? 0 : (int) hubToMmuValues.sourceId())
             .totalSize((int) hubToMmuValues.referenceSize())
             .build());
 
@@ -642,7 +642,7 @@ public class AnyToRamWithPadding implements MmuInstruction {
   }
 
   private void someDataFirstNonTrivialInstruction(MmuData mmuData) {
-    int firstMmioInstruction = 0;
+    int firstMmioInstruction;
     if (dataSourceIsRam) {
       firstMmioInstruction =
           firstDataTransferSingleTarget
@@ -669,8 +669,8 @@ public class AnyToRamWithPadding implements MmuInstruction {
   }
 
   private void someDataMiddleNonTrivialInstruction(MmuData mmuData, int rowNumber) {
-    final int sourceLimbOffset = minSourceLimbOffset + rowNumber;
-    int middleMmioInstruction = 0;
+    final long sourceLimbOffset = minSourceLimbOffset + rowNumber;
+    int middleMmioInstruction;
     if (dataSourceIsRam) {
       middleMmioInstruction =
           aligned ? Trace.MMIO_INST_RAM_TO_RAM_TRANSPLANT : Trace.MMIO_INST_RAM_TO_RAM_TWO_TARGET;
@@ -686,14 +686,13 @@ public class AnyToRamWithPadding implements MmuInstruction {
             .sourceLimbOffset(sourceLimbOffset)
             .targetLimbOffset(firstMiddleNonTrivialTargetLimbOffset + rowNumber - 1)
             .targetByteOffset(middleTargetByteOffset)
-            //   .limb(limb)
             .targetLimbIsTouchedTwice(mmioInstNeedsUpdateTemporaryTargetRam(middleMmioInstruction))
             .build());
   }
 
   private void someDataLastNonTrivialInstruction(MmuData mmuData) {
-    final int sourceLimbOffset = minSourceLimbOffset + totInitialNonTrivial - 1;
-    int lastMmioInstruction = 0;
+    final long sourceLimbOffset = minSourceLimbOffset + totInitialNonTrivial - 1;
+    int lastMmioInstruction;
     if (dataSourceIsRam) {
       lastMmioInstruction =
           lastDataTransferSingleTarget
@@ -712,7 +711,6 @@ public class AnyToRamWithPadding implements MmuInstruction {
             .sourceLimbOffset(sourceLimbOffset)
             .targetLimbOffset(firstMiddleNonTrivialTargetLimbOffset + totInitialNonTrivial - 2)
             .targetByteOffset(middleTargetByteOffset)
-            //   .limb(limb)
             .targetLimbIsTouchedTwice(
                 mmioInstNeedsUpdateTemporaryTargetRam(lastMmioInstruction)
                     || dataToPaddingTransitionTakesTwoMmioInstructions)

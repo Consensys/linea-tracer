@@ -32,7 +32,6 @@ import org.apache.tuweni.bytes.Bytes;
 
 public class Mmio implements Module {
   private final Mmu mmu;
-  // private final CallStackReader callStackReader;
 
   public Mmio(Mmu mmu) {
     this.mmu = mmu;
@@ -72,21 +71,6 @@ public class Mmio implements Module {
     for (MmuOperation mmuOperation : this.mmu.mmuOperations()) {
       final MmuData currentMmuData = mmuOperation.mmuData();
 
-      // final MmuToMmioConstantValues mmuToMmioConstantValues =
-      //    currentMmuData.mmuToMmioConstantValues();
-      //
-      // final int sourceContextNumber = mmuToMmioConstantValues.sourceContextNumber();
-      // if (sourceContextNumber != 0) {
-      //  final Bytes sourceMemory = callStackReader.valueFromMemory(sourceContextNumber);
-      //  currentMmuData.sourceRamBytes(sourceMemory);
-      // }
-      //
-      // final int targetContextNumber = mmuToMmioConstantValues.targetContextNumber();
-      // if (targetContextNumber != 0) {
-      //  final Bytes targetMemory = callStackReader.valueFromMemory(targetContextNumber);
-      //  currentMmuData.targetRamBytes(targetMemory);
-      // }
-
       for (int currentMmioInstNumber = 0;
           currentMmioInstNumber < currentMmuData.numberMmioInstructions();
           currentMmioInstNumber++) {
@@ -111,7 +95,6 @@ public class Mmio implements Module {
     final boolean isFast = isFastOperation(mmioData.instruction());
 
     for (short ct = 0; ct < numberOfRowOfMmioInstruction(mmioData.instruction()); ct++) {
-      ExoSumDecoder exoSumDecoder = mmioData.exoSumDecoder();
       trace
           .cnA(mmioData.cnA())
           .cnB(mmioData.cnB())
@@ -141,7 +124,7 @@ public class Mmio implements Module {
           .targetByteOffset(mmioData.targetByteOffset())
           .size(mmioData.size())
           .limb(mmioData.limb())
-          .totalSize(Bytes.ofUnsignedShort(mmioData.totalSize()))
+          .totalSize(Bytes.ofUnsignedLong(mmioData.totalSize()))
           .exoSum(mmioData.exoSum())
           .exoId(mmioData.exoId())
           .exoIsTxcd(mmioData.exoIsTxcd())

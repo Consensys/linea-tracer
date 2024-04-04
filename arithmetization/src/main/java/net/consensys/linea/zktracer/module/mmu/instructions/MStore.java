@@ -39,7 +39,7 @@ public class MStore implements MmuInstruction {
   private List<MmuWcpCallRecord> wcpCallRecords;
 
   private boolean aligned;
-  private int initialTargetLimbOffset;
+  private long initialTargetLimbOffset;
   private short initialTargetByteOffset;
 
   public MStore(Euc euc, Wcp wcp) {
@@ -55,15 +55,15 @@ public class MStore implements MmuInstruction {
     // row n°1
     final long dividend = mmuData.hubToMmuValues().targetOffset();
     final EucOperation eucOp = euc.callEUC(Bytes.ofUnsignedLong(dividend), Bytes.of(16));
-    final int rem = eucOp.remainder().toInt();
-    final int quot = eucOp.quotient().toInt();
+    final short rem = (short) eucOp.remainder().toInt();
+    final long quot = eucOp.quotient().toLong();
     initialTargetLimbOffset = quot;
-    initialTargetByteOffset = (short) rem;
+    initialTargetByteOffset = rem;
 
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividend)
-            .divisor(Trace.LLARGE)
+            .divisor((short) Trace.LLARGE)
             .quotient(quot)
             .remainder(rem)
             .build());
@@ -82,6 +82,7 @@ public class MStore implements MmuInstruction {
 
     mmuData.eucCallRecords(eucCallRecords);
     mmuData.wcpCallRecords(wcpCallRecords);
+
     // setting Out and Bin values
     mmuData.outAndBinValues(MmuOutAndBinValues.builder().build()); // all 0
 

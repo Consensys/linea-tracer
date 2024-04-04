@@ -47,7 +47,7 @@ public class RamToExoWithPadding implements MmuInstruction {
   private boolean lastLimbSingleSource;
   private boolean lastLimbIsFull;
 
-  private int initialSourceLimbOffset;
+  private long initialSourceLimbOffset;
   private short initialSourceByteOffset;
   private boolean hasRightPadding;
   private int paddingSize;
@@ -62,11 +62,6 @@ public class RamToExoWithPadding implements MmuInstruction {
 
   @Override
   public MmuData preProcess(MmuData mmuData, final CallStack callStack) {
-    final MmuOutAndBinValues mmuOutAndBinValues = mmuData.outAndBinValues();
-    aligned = mmuOutAndBinValues.bin1();
-    lastLimbByteSize = (short) mmuOutAndBinValues.out1();
-    lastLimbSingleSource = mmuOutAndBinValues.bin2();
-    lastLimbIsFull = mmuOutAndBinValues.bin3();
 
     final HubToMmuValues hubToMmuValues = mmuData.hubToMmuValues();
     row1(hubToMmuValues);
@@ -97,12 +92,12 @@ public class RamToExoWithPadding implements MmuInstruction {
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividend.toLong())
-            .divisor(LLARGE)
+            .divisor((short) LLARGE)
             .quotient(eucOp.quotient().toLong())
-            .remainder(eucOp.remainder().toLong())
+            .remainder((short) eucOp.remainder().toInt())
             .build());
 
-    initialSourceLimbOffset = eucOp.quotient().toInt();
+    initialSourceLimbOffset = eucOp.quotient().toLong();
     initialSourceByteOffset = (short) eucOp.remainder().toInt();
 
     final boolean isZeroResult = wcp.callISZERO(Bytes.ofUnsignedInt(initialSourceByteOffset));
@@ -136,9 +131,9 @@ public class RamToExoWithPadding implements MmuInstruction {
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividend.toLong())
-            .divisor(LLARGE)
+            .divisor((short) LLARGE)
             .quotient(eucOp.quotient().toLong())
-            .remainder(eucOp.remainder().toLong())
+            .remainder((short) eucOp.remainder().toInt())
             .build());
 
     mmuData.totalRightZeroesInitials(eucOp.quotient().toInt());
@@ -153,9 +148,9 @@ public class RamToExoWithPadding implements MmuInstruction {
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividend.toLong())
-            .divisor(LLARGE)
+            .divisor((short) LLARGE)
             .quotient(quotient.toLong())
-            .remainder(eucOp.remainder().toLong())
+            .remainder((short) eucOp.remainder().toInt())
             .build());
 
     final boolean isZeroResult = wcp.callISZERO(eucOp.remainder());
@@ -197,7 +192,7 @@ public class RamToExoWithPadding implements MmuInstruction {
             .successBit(hubToMmuValues.successBit())
             .exoSum(hubToMmuValues.exoSum())
             .phase(hubToMmuValues.phase())
-            .exoId(hubToMmuValues.targetId())
+            .exoId((int) hubToMmuValues.targetId())
             .kecId(hubToMmuValues.auxId())
             .totalSize((int) hubToMmuValues.referenceSize())
             .build());
@@ -237,7 +232,7 @@ public class RamToExoWithPadding implements MmuInstruction {
     final int lastMicroInst = calculateLastOrOnlyMicroInstruction();
 
     final int targetLimbOffset = mmuData.totalNonTrivialInitials() - 1;
-    final int sourceLimbOffset = initialSourceLimbOffset + mmuData.totalNonTrivialInitials() - 1;
+    final long sourceLimbOffset = initialSourceLimbOffset + mmuData.totalNonTrivialInitials() - 1;
 
     mmuData.mmuToMmioInstruction(
         MmuToMmioInstruction.builder()
@@ -287,7 +282,7 @@ public class RamToExoWithPadding implements MmuInstruction {
 
   private void middleMicroInstruction(
       MmuData mmuData, final int rowIndex, final int middleMicroInst) {
-    final int currentSourceLimbOffset = initialSourceLimbOffset + rowIndex;
+    final long currentSourceLimbOffset = initialSourceLimbOffset + rowIndex;
 
     mmuData.mmuToMmioInstruction(
         MmuToMmioInstruction.builder()

@@ -28,9 +28,9 @@ import net.consensys.linea.zktracer.types.Bytes16;
 public class MmuToMmioInstruction {
   private int mmioInstruction;
   private short size;
-  private int sourceLimbOffset;
+  private long sourceLimbOffset;
   private short sourceByteOffset;
-  private int targetLimbOffset;
+  private long targetLimbOffset;
   private short targetByteOffset;
   @Builder.Default private Bytes16 limb = Bytes16.ZERO;
   private boolean targetLimbIsTouchedTwice;

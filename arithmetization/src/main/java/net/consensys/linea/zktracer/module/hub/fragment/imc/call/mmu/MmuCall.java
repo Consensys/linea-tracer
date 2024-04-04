@@ -103,37 +103,37 @@ public class MmuCall implements TraceSubFragment {
   protected boolean exoIsEcData = false;
   private int exoSum = 0;
 
-  private MmuCall updateExoSum(final int pos) {
-    this.exoSum |= 1 << pos;
+  private MmuCall updateExoSum(final int exoValue) {
+    this.exoSum += exoValue;
     return this;
   }
 
   final MmuCall setRlpTxn() {
-    return this.exoIsRlpTxn(true).updateExoSum(Trace.EXO_SUM_INDEX_TXCD);
+    return this.exoIsRlpTxn(true).updateExoSum(Trace.EXO_SUM_WEIGHT_TXCD);
   }
 
   public final MmuCall setLog() {
-    return this.exoIsLog(true).updateExoSum(Trace.EXO_SUM_INDEX_LOG);
+    return this.exoIsLog(true).updateExoSum(Trace.EXO_SUM_WEIGHT_LOG);
   }
 
   public final MmuCall setRom() {
-    return this.exoIsRom(true).updateExoSum(Trace.EXO_SUM_INDEX_ROM);
+    return this.exoIsRom(true).updateExoSum(Trace.EXO_SUM_WEIGHT_ROM);
   }
 
   public final MmuCall setHash() {
-    return this.exoIsKec(true).updateExoSum(Trace.EXO_SUM_INDEX_KEC);
+    return this.exoIsKec(true).updateExoSum(Trace.EXO_SUM_WEIGHT_KEC);
   }
 
   final MmuCall setRipSha() {
-    return this.exoIsRipSha(true).updateExoSum(Trace.EXO_SUM_INDEX_RIPSHA);
+    return this.exoIsRipSha(true).updateExoSum(Trace.EXO_SUM_WEIGHT_RIPSHA);
   }
 
   final MmuCall setBlakeModexp() {
-    return this.exoIsBlakeModexp(true).updateExoSum(Trace.EXO_SUM_INDEX_BLAKEMODEXP);
+    return this.exoIsBlakeModexp(true).updateExoSum(Trace.EXO_SUM_WEIGHT_BLAKEMODEXP);
   }
 
   final MmuCall setEcData() {
-    return this.exoIsEcData(true).updateExoSum(Trace.EXO_SUM_INDEX_ECDATA);
+    return this.exoIsEcData(true).updateExoSum(Trace.EXO_SUM_WEIGHT_ECDATA);
   }
 
   public MmuCall(final int instruction) {
@@ -222,7 +222,8 @@ public class MmuCall implements TraceSubFragment {
 
   public static MmuCall mload(final Hub hub) {
     final long offset = Words.clampedToLong(hub.messageFrame().getStackItem(0));
-    final EWord loadedValue = EWord.of(hub.messageFrame().shadowReadMemory(offset, 32));
+    final EWord loadedValue =
+        EWord.of(hub.messageFrame().shadowReadMemory(offset, Trace.WORD_SIZE));
     return new MmuCall(MMU_INST_MLOAD)
         .sourceId(hub.currentFrame().contextNumber())
         .sourceOffset(EWord.of(offset))

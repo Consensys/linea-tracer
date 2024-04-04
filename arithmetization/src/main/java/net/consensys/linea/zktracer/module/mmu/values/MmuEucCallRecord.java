@@ -27,9 +27,9 @@ public class MmuEucCallRecord {
 
   @Builder.Default boolean flag = true;
   long dividend;
-  long divisor;
+  short divisor;
   long quotient;
-  long remainder;
+  short remainder;
 
   public long ceiling() {
     return this.flag && this.remainder != 0 && this.dividend != 0

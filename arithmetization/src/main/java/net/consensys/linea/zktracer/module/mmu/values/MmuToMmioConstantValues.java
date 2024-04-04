@@ -19,8 +19,8 @@ import lombok.Builder;
 
 @Builder
 public record MmuToMmioConstantValues(
-    int sourceContextNumber,
-    int targetContextNumber,
+    long sourceContextNumber,
+    long targetContextNumber,
     boolean successBit,
     int exoSum,
     boolean exoIsRom,
@@ -30,7 +30,7 @@ public record MmuToMmioConstantValues(
     boolean exoIsKeccak,
     boolean exoIsLog,
     boolean exoIsTxcd,
-    long phase,
+    int phase,
     int exoId,
     int kecId,
-    int totalSize) {}
+    long totalSize) {}

@@ -99,7 +99,7 @@ public class MmuOperation extends ModuleOperation {
     isMload = mmuInstruction == Trace.MMU_INST_MLOAD;
     isMstore = mmuInstruction == Trace.MMU_INST_MSTORE;
     isMstore8 = mmuInstruction == Trace.MMU_INST_MSTORE8;
-    isInvalidCodePrefix = mmuInstruction == Trace.INVALID_CODE_PREFIX_VALUE;
+    isInvalidCodePrefix = mmuInstruction == Trace.MMU_INST_INVALID_CODE_PREFIX;
     isRightPaddedWordExtraction = mmuInstruction == Trace.MMU_INST_RIGHT_PADDED_WORD_EXTRACTION;
     isRamToExoWithPadding = mmuInstruction == Trace.MMU_INST_RAM_TO_EXO_WITH_PADDING;
     isExoToRamTransplants = mmuInstruction == Trace.MMU_INST_EXO_TO_RAM_TRANSPLANTS;

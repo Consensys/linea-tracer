@@ -26,6 +26,7 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.InstructionFamily;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -63,7 +64,6 @@ public class Signals {
   @Getter private boolean exp;
   @Getter private boolean trm;
   @Getter private boolean hashInfo;
-  @Getter private boolean logInfo;
   @Getter private boolean romLex;
   @Getter private boolean rlpAddr;
   @Getter private boolean ecData;
@@ -151,7 +151,7 @@ public class Signals {
       }
 
       case EXTCODECOPY -> {
-        boolean nonzeroSize = !frame.getStackItem(2).isZero();
+        final boolean nonzeroSize = !frame.getStackItem(2).isZero();
         this.mxp = ex.outOfMemoryExpansion() || ex.outOfGas() || ex.none();
         this.trm = ex.outOfGas() || ex.none();
         this.mmu = ex.none() && nonzeroSize;
@@ -167,7 +167,11 @@ public class Signals {
 
       case LOG0, LOG1, LOG2, LOG3, LOG4 -> {
         this.mxp = ex.outOfMemoryExpansion() || ex.outOfGas() || ex.none();
-        this.mmu = ex.none() && !frame.getStackItem(1).isZero();
+        this.mmu =
+            ex.none()
+                && !frame
+                    .getStackItem(1)
+                    .isZero(); // TODO do not trigger the MMU if the context is going to revert
         // logInfo and logData are triggered via rlpRcpt at the end of the tx
       }
 
@@ -190,6 +194,11 @@ public class Signals {
         this.ecData = ex.none() && EC_PRECOMPILES.contains(target);
         this.exp =
             ex.none() && this.platformController.aborts().none() && target.equals(Address.MODEXP);
+
+        final Bytes returnLength =
+            opCode.callHasSevenArgument() ? frame.getStackItem(6) : frame.getStackItem(5);
+        final boolean returnLengthIsNotZero = !returnLength.isZero();
+        this.mmu = ex.none() && returnLengthIsNotZero;
       }
 
       case CREATE, CREATE2 -> {
@@ -260,11 +269,12 @@ public class Signals {
       case BALANCE, EXTCODESIZE, EXTCODEHASH, SELFDESTRUCT -> this.trm = true;
       case MLOAD, MSTORE, MSTORE8 -> {
         this.mxp = true;
-        this.mmu = !ex.any();
+        this.mmu = ex.none();
       }
       case CALLDATALOAD -> {
         this.oob = true;
-        this.mmu = frame.getInputData().size() > Words.clampedToLong(frame.getStackItem(0));
+        this.mmu =
+            ex.none() && frame.getInputData().size() > Words.clampedToLong(frame.getStackItem(0));
       }
       case SLOAD -> {}
       case SSTORE, JUMP, JUMPI -> this.oob = true;

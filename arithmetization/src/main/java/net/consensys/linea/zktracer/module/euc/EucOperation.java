@@ -42,7 +42,8 @@ public class EucOperation extends ModuleOperation {
     final Bytes quotientTrim = quotient.trimLeadingZeros();
     this.ctMax = Math.max(quotientTrim.size(), divisorTrim.size()) - 1;
     if (ctMax >= 8) {
-      throw new IllegalStateException("Max ByteSize of input is 8 for EUC, received" + ctMax + 1);
+      throw new IllegalArgumentException(
+          String.format("Max ByteSize of input is 8 for EUC, received %s", ctMax + 1));
     }
     this.dividend = dividend;
     this.divisor = divisorTrim;

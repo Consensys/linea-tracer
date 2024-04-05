@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.module.mmu.instructions;
 
-import static net.consensys.linea.zktracer.module.mmu.Trace.INVALID_CODE_PREFIX_VALUE;
+import static net.consensys.linea.zktracer.module.mmu.Trace.EIP_3541_MARKER;
 import static net.consensys.linea.zktracer.module.mmu.Trace.LLARGE;
 import static net.consensys.linea.zktracer.module.mmu.Trace.LLARGEMO;
 
@@ -84,7 +84,7 @@ public class InvalidCodePrefix implements MmuInstruction {
                 .sourceRamBytes()
                 .get((int) (LLARGE * initialSourceLimbOffset + initialSourceByteOffset)));
     Bytes arg1 = microLimb;
-    Bytes arg2 = Bytes.of(INVALID_CODE_PREFIX_VALUE);
+    Bytes arg2 = Bytes.of(EIP_3541_MARKER);
     boolean result = wcp.callEQ(arg1, arg2);
 
     wcpCallRecords.add(

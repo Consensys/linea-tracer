@@ -31,6 +31,7 @@ import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_PAIRING_DATA;
 import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_PAIRING_RESULT;
 import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_SHA2_256_DATA;
 import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_SHA2_256_RESULT;
+import static net.consensys.linea.zktracer.module.hub.Trace.WORD_SIZE;
 import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_ANY_TO_RAM_WITH_PADDING;
 import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_BLAKE;
 import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_EXO_TO_RAM_TRANSPLANTS;
@@ -155,12 +156,12 @@ public class MmuCall implements TraceSubFragment {
   }
 
   public static MmuCall callDataLoad(final Hub hub) {
-    final long offset = hub.currentFrame().callDataSource().offset();
-    final long size = hub.currentFrame().callDataSource().length();
+    final long callDataOffset = hub.currentFrame().callDataInfo().memorySpan().offset();
+    final long callDataSize = hub.currentFrame().callDataInfo().memorySpan().length();
 
     final long sourceOffset = Words.clampedToLong(hub.messageFrame().getStackItem(0));
 
-    if (sourceOffset >= size) {
+    if (sourceOffset >= callDataSize) {
       return nop();
     }
 
@@ -168,19 +169,21 @@ public class MmuCall implements TraceSubFragment {
         EWord.of(
             Bytes.wrap(
                 Arrays.copyOfRange(
-                    hub.currentFrame().callData().toArray(), (int) offset, (int) (offset + 32))));
+                    hub.currentFrame().callDataInfo().data().toArray(),
+                    (int) sourceOffset,
+                    (int) (sourceOffset + WORD_SIZE))));
 
     return new MmuCall(MMU_INST_RIGHT_PADDED_WORD_EXTRACTION)
         .sourceId(callDataContextNumber(hub))
-        .sourceOffset(EWord.of(hub.messageFrame().getStackItem(0)))
-        .referenceOffset(offset)
-        .referenceSize(size)
+        .sourceOffset(EWord.of(sourceOffset))
+        .referenceOffset(callDataOffset)
+        .referenceSize(callDataSize)
         .limb1(read.hi())
         .limb2(read.lo());
   }
 
   public static MmuCall callDataCopy(final Hub hub) {
-    final MemorySpan callDataSegment = hub.currentFrame().callDataSource();
+    final MemorySpan callDataSegment = hub.currentFrame().callDataInfo().memorySpan();
 
     return new MmuCall(MMU_INST_ANY_TO_RAM_WITH_PADDING)
         .sourceId(callDataContextNumber(hub))

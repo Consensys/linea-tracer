@@ -90,9 +90,7 @@ public class CallFrame {
   @Getter private long gasEndowment;
 
   /** the call data given to this frame. */
-  @Getter private Bytes callData = Bytes.EMPTY;
-  /** the call data position in the parent's RAM. */
-  @Getter private MemorySpan callDataSource;
+  @Getter CallDataInfo callDataInfo;
 
   /** the data returned by the latest callee. */
   @Getter @Setter private Bytes latestReturnData = Bytes.EMPTY;
@@ -117,22 +115,12 @@ public class CallFrame {
   /** the latched context of this callframe stack. */
   @Getter @Setter private StackContext pending;
 
-  /**
-   * Define the given {@link Bytes} as the 0-aligned call data for this frame
-   *
-   * @param callData the call data content
-   */
-  private void set0AlignedCallData(final Bytes callData) {
-    this.callData = callData;
-    this.callDataSource = new MemorySpan(0, callData.size());
-  }
-
   /** Create a MANTLE call frame. */
-  CallFrame(Bytes callData, int contextNumber) {
+  CallFrame(final Bytes callData, final int contextNumber) {
     this.type = CallFrameType.MANTLE;
     this.contextNumber = contextNumber;
     this.address = Address.ZERO;
-    this.set0AlignedCallData(callData);
+    this.callDataInfo = new CallDataInfo(callData, 0, callData.size(), contextNumber);
   }
 
   /** Create an empty call frame. */
@@ -172,6 +160,9 @@ public class CallFrame {
       Wei value,
       long gas,
       Bytes callData,
+      long callDataOffset,
+      long callDataSize,
+      long callDataContextNumber,
       int depth) {
     this.accountDeploymentNumber = accountDeploymentNumber;
     this.codeDeploymentNumber = codeDeploymentNumber;
@@ -185,8 +176,8 @@ public class CallFrame {
     this.parentFrame = caller;
     this.value = value;
     this.gasEndowment = gas;
-    this.callData = callData;
-    this.callDataSource = new MemorySpan(0, callData.size());
+    this.callDataInfo =
+        new CallDataInfo(callData, callDataOffset, callDataSize, callDataContextNumber);
     this.depth = depth;
     this.returnDataSource = MemorySpan.empty();
     this.latestReturnDataSource = MemorySpan.empty();
@@ -194,7 +185,7 @@ public class CallFrame {
   }
 
   public boolean isRoot() {
-    return this.depth == 1;
+    return this.depth == 0;
   }
 
   /**

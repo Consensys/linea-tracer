@@ -223,6 +223,14 @@ public enum OpCode {
         || this == OpCode.STATICCALL;
   }
 
+  public boolean callHasSixArgument() {
+    return this == OpCode.DELEGATECALL || this == OpCode.STATICCALL;
+  }
+
+  public boolean callHasSevenArgument() {
+    return this == OpCode.CALL || this == OpCode.CALLCODE;
+  }
+
   /**
    * Matches if the current {@link OpCode} is contained within a list of {@link OpCode}s.
    *

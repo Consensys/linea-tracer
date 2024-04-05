@@ -28,6 +28,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
@@ -831,7 +832,8 @@ public class Hub implements Module {
 
       final boolean shouldCopyTxCallData =
           !isDeployment && !frame.getInputData().isEmpty() && currentTx.requiresEvmExecution();
-
+      // TODO simplify this, the same bedRock context ( = root context ??)  seems to be generated in
+      // both case
       if (shouldCopyTxCallData) {
         this.callStack.newMantleAndBedrock(
             this.state.stamps().hub(),
@@ -884,6 +886,27 @@ public class Hub implements Module {
       }
       final int codeDeploymentNumber =
           this.transients.conflation().deploymentInfo().number(codeAddress);
+
+      Preconditions.checkArgument(
+          frame.getPC() == 0, "PC isn't zero"); // TODO delete, used only to debug
+
+      final int callDataOffsetStackArgument =
+          callStack.current().opCode().callHasSixArgument() ? 2 : 3;
+
+      final long callDataOffset =
+          isDeployment
+              ? 0
+              : Words.clampedToLong(
+                  callStack.current().frame().getStackItem(callDataOffsetStackArgument));
+
+      final long callDataSize =
+          isDeployment
+              ? 0
+              : Words.clampedToLong(
+                  callStack.current().frame().getStackItem(callDataOffsetStackArgument + 1));
+
+      final long callDataContextNumber = this.callStack.current().contextNumber();
+
       this.callStack.enter(
           this.state.stamps().hub(),
           frame.getRecipientAddress(),
@@ -893,6 +916,9 @@ public class Hub implements Module {
           frame.getValue(),
           frame.getRemainingGas(),
           frame.getInputData(),
+          callDataOffset,
+          callDataSize,
+          callDataContextNumber,
           this.transients.conflation().deploymentInfo().number(codeAddress),
           codeDeploymentNumber,
           isDeployment);

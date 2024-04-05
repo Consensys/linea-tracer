@@ -33,7 +33,7 @@ public class CallStackReader {
   public Bytes valueFromMemory(final long contextNumber) {
     final CallFrame callFrame = callStack.getByContextNumber(contextNumber);
     if (callFrame.type() == CallFrameType.MANTLE) {
-      return callFrame.callData();
+      return callFrame.callDataInfo().data();
     }
 
     final MessageFrame messageFrame = callFrame.frame();

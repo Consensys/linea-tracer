@@ -58,7 +58,7 @@ public final class CallStack {
       int accountDeploymentNumber,
       int codeDeploymentNumber,
       boolean codeDeploymentStatus) {
-    this.depth = 0;
+    this.depth = -1;
     this.enter(
         hubStamp,
         to,
@@ -68,6 +68,9 @@ public final class CallStack {
         value,
         gas,
         callData,
+        0,
+        callData.size(),
+        hubStamp,
         accountDeploymentNumber,
         codeDeploymentNumber,
         codeDeploymentStatus);
@@ -101,7 +104,7 @@ public final class CallStack {
       int accountDeploymentNumber,
       int codeDeploymentNumber,
       boolean codeDeploymentStatus) {
-    this.depth = 0;
+    this.depth = -1;
     this.frames.add(new CallFrame(callData, hubStamp));
     this.enter(
         hubStamp,
@@ -112,6 +115,9 @@ public final class CallStack {
         value,
         gas,
         callData,
+        0,
+        callData.size(),
+        hubStamp,
         accountDeploymentNumber,
         codeDeploymentNumber,
         codeDeploymentStatus);
@@ -171,10 +177,13 @@ public final class CallStack {
       Wei value,
       long gas,
       Bytes input,
+      long callDataOffset,
+      long callDataSize,
+      long callDataContextNumber,
       int accountDeploymentNumber,
       int codeDeploymentNumber,
       boolean isDeployment) {
-    final int caller = this.depth == 0 ? -1 : this.current;
+    final int caller = this.depth == -1 ? -1 : this.current;
     final int newTop = this.frames.size();
     this.depth += 1;
 
@@ -198,6 +207,9 @@ public final class CallStack {
             value,
             gas,
             callData,
+            callDataOffset,
+            callDataSize,
+            callDataContextNumber,
             this.depth);
 
     this.frames.add(newFrame);

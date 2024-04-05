@@ -31,17 +31,12 @@ import org.apache.tuweni.bytes.Bytes;
  * Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
 public class Trace {
-  public static final BigInteger EMPTY_KECCAK_HI =
-      new BigInteger("16434357337474432580558001204043214908");
-  public static final BigInteger EMPTY_KECCAK_LO =
-      new BigInteger("19024806816994025362060938983270537799");
+  public static final BigInteger EMPTY_KECCAK_HI = new BigInteger("16434357337474432580558001204043214908");
+  public static final BigInteger EMPTY_KECCAK_LO = new BigInteger("19024806816994025362060938983270537799");
   public static final int EMPTY_RIPEMD_HI = 0x9c1185a;
-  public static final BigInteger EMPTY_RIPEMD_LO =
-      new BigInteger("16442052386882578548602430796343695571");
-  public static final BigInteger EMPTY_SHA2_HI =
-      new BigInteger("18915786244935348617899154533661473682");
-  public static final BigInteger EMPTY_SHA2_LO =
-      new BigInteger("3296542996298665609207448061432114053");
+  public static final BigInteger EMPTY_RIPEMD_LO = new BigInteger("16442052386882578548602430796343695571");
+  public static final BigInteger EMPTY_SHA2_HI = new BigInteger("18915786244935348617899154533661473682");
+  public static final BigInteger EMPTY_SHA2_LO = new BigInteger("3296542996298665609207448061432114053");
   public static final int EVM_INST_ADD = 0x1;
   public static final int EVM_INST_ADDMOD = 0x8;
   public static final int EVM_INST_ADDRESS = 0x30;
@@ -438,11 +433,11 @@ public class Trace {
         new ColumnHeader("mmio.BYTE_B", 1, length),
         new ColumnHeader("mmio.BYTE_C", 1, length),
         new ColumnHeader("mmio.BYTE_LIMB", 1, length),
-        new ColumnHeader("mmio.CN_A", 8, length),
-        new ColumnHeader("mmio.CN_B", 8, length),
-        new ColumnHeader("mmio.CN_C", 8, length),
-        new ColumnHeader("mmio.CONTEXT_SOURCE", 8, length),
-        new ColumnHeader("mmio.CONTEXT_TARGET", 8, length),
+        new ColumnHeader("mmio.CN_A", 32, length),
+        new ColumnHeader("mmio.CN_B", 32, length),
+        new ColumnHeader("mmio.CN_C", 32, length),
+        new ColumnHeader("mmio.CONTEXT_SOURCE", 32, length),
+        new ColumnHeader("mmio.CONTEXT_TARGET", 32, length),
         new ColumnHeader("mmio.COUNTER", 2, length),
         new ColumnHeader("mmio.EXO_ID", 8, length),
         new ColumnHeader("mmio.EXO_IS_BLAKEMODEXP", 1, length),
@@ -454,10 +449,10 @@ public class Trace {
         new ColumnHeader("mmio.EXO_IS_TXCD", 1, length),
         new ColumnHeader("mmio.EXO_SUM", 8, length),
         new ColumnHeader("mmio.FAST", 1, length),
-        new ColumnHeader("mmio.INDEX_A", 8, length),
-        new ColumnHeader("mmio.INDEX_B", 8, length),
-        new ColumnHeader("mmio.INDEX_C", 8, length),
-        new ColumnHeader("mmio.INDEX_X", 8, length),
+        new ColumnHeader("mmio.INDEX_A", 32, length),
+        new ColumnHeader("mmio.INDEX_B", 32, length),
+        new ColumnHeader("mmio.INDEX_C", 32, length),
+        new ColumnHeader("mmio.INDEX_X", 32, length),
         new ColumnHeader("mmio.IS_LIMB_TO_RAM_ONE_TARGET", 1, length),
         new ColumnHeader("mmio.IS_LIMB_TO_RAM_TRANSPLANT", 1, length),
         new ColumnHeader("mmio.IS_LIMB_TO_RAM_TWO_TARGET", 1, length),
@@ -478,13 +473,13 @@ public class Trace {
         new ColumnHeader("mmio.PHASE", 8, length),
         new ColumnHeader("mmio.POW_256_1", 32, length),
         new ColumnHeader("mmio.POW_256_2", 32, length),
-        new ColumnHeader("mmio.SIZE", 8, length),
+        new ColumnHeader("mmio.SIZE", 32, length),
         new ColumnHeader("mmio.SLOW", 1, length),
         new ColumnHeader("mmio.SOURCE_BYTE_OFFSET", 2, length),
-        new ColumnHeader("mmio.SOURCE_LIMB_OFFSET", 8, length),
+        new ColumnHeader("mmio.SOURCE_LIMB_OFFSET", 32, length),
         new ColumnHeader("mmio.SUCCESS_BIT", 1, length),
         new ColumnHeader("mmio.TARGET_BYTE_OFFSET", 2, length),
-        new ColumnHeader("mmio.TARGET_LIMB_OFFSET", 8, length),
+        new ColumnHeader("mmio.TARGET_LIMB_OFFSET", 32, length),
         new ColumnHeader("mmio.TOTAL_SIZE", 32, length),
         new ColumnHeader("mmio.VAL_A", 32, length),
         new ColumnHeader("mmio.VAL_A_NEW", 32, length),
@@ -812,62 +807,82 @@ public class Trace {
     return this;
   }
 
-  public Trace cnA(final long b) {
+  public Trace cnA(final Bytes b) {
     if (filled.get(17)) {
       throw new IllegalStateException("mmio.CN_A already set");
     } else {
       filled.set(17);
     }
 
-    cnA.putLong(b);
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      cnA.put((byte) 0);
+    }
+    cnA.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace cnB(final long b) {
+  public Trace cnB(final Bytes b) {
     if (filled.get(18)) {
       throw new IllegalStateException("mmio.CN_B already set");
     } else {
       filled.set(18);
     }
 
-    cnB.putLong(b);
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      cnB.put((byte) 0);
+    }
+    cnB.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace cnC(final long b) {
+  public Trace cnC(final Bytes b) {
     if (filled.get(19)) {
       throw new IllegalStateException("mmio.CN_C already set");
     } else {
       filled.set(19);
     }
 
-    cnC.putLong(b);
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      cnC.put((byte) 0);
+    }
+    cnC.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace contextSource(final long b) {
+  public Trace contextSource(final Bytes b) {
     if (filled.get(20)) {
       throw new IllegalStateException("mmio.CONTEXT_SOURCE already set");
     } else {
       filled.set(20);
     }
 
-    contextSource.putLong(b);
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      contextSource.put((byte) 0);
+    }
+    contextSource.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace contextTarget(final long b) {
+  public Trace contextTarget(final Bytes b) {
     if (filled.get(21)) {
       throw new IllegalStateException("mmio.CONTEXT_TARGET already set");
     } else {
       filled.set(21);
     }
 
-    contextTarget.putLong(b);
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      contextTarget.put((byte) 0);
+    }
+    contextTarget.put(b.toArrayUnsafe());
 
     return this;
   }
@@ -1004,50 +1019,66 @@ public class Trace {
     return this;
   }
 
-  public Trace indexA(final long b) {
+  public Trace indexA(final Bytes b) {
     if (filled.get(33)) {
       throw new IllegalStateException("mmio.INDEX_A already set");
     } else {
       filled.set(33);
     }
 
-    indexA.putLong(b);
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      indexA.put((byte) 0);
+    }
+    indexA.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace indexB(final long b) {
+  public Trace indexB(final Bytes b) {
     if (filled.get(34)) {
       throw new IllegalStateException("mmio.INDEX_B already set");
     } else {
       filled.set(34);
     }
 
-    indexB.putLong(b);
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      indexB.put((byte) 0);
+    }
+    indexB.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace indexC(final long b) {
+  public Trace indexC(final Bytes b) {
     if (filled.get(35)) {
       throw new IllegalStateException("mmio.INDEX_C already set");
     } else {
       filled.set(35);
     }
 
-    indexC.putLong(b);
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      indexC.put((byte) 0);
+    }
+    indexC.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace indexX(final long b) {
+  public Trace indexX(final Bytes b) {
     if (filled.get(36)) {
       throw new IllegalStateException("mmio.INDEX_X already set");
     } else {
       filled.set(36);
     }
 
-    indexX.putLong(b);
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      indexX.put((byte) 0);
+    }
+    indexX.put(b.toArrayUnsafe());
 
     return this;
   }
@@ -1304,14 +1335,18 @@ public class Trace {
     return this;
   }
 
-  public Trace size(final long b) {
+  public Trace size(final Bytes b) {
     if (filled.get(57)) {
       throw new IllegalStateException("mmio.SIZE already set");
     } else {
       filled.set(57);
     }
 
-    size.putLong(b);
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      size.put((byte) 0);
+    }
+    size.put(b.toArrayUnsafe());
 
     return this;
   }
@@ -1340,14 +1375,18 @@ public class Trace {
     return this;
   }
 
-  public Trace sourceLimbOffset(final long b) {
+  public Trace sourceLimbOffset(final Bytes b) {
     if (filled.get(60)) {
       throw new IllegalStateException("mmio.SOURCE_LIMB_OFFSET already set");
     } else {
       filled.set(60);
     }
 
-    sourceLimbOffset.putLong(b);
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      sourceLimbOffset.put((byte) 0);
+    }
+    sourceLimbOffset.put(b.toArrayUnsafe());
 
     return this;
   }
@@ -1376,14 +1415,18 @@ public class Trace {
     return this;
   }
 
-  public Trace targetLimbOffset(final long b) {
+  public Trace targetLimbOffset(final Bytes b) {
     if (filled.get(63)) {
       throw new IllegalStateException("mmio.TARGET_LIMB_OFFSET already set");
     } else {
       filled.set(63);
     }
 
-    targetLimbOffset.putLong(b);
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      targetLimbOffset.put((byte) 0);
+    }
+    targetLimbOffset.put(b.toArrayUnsafe());
 
     return this;
   }
@@ -1861,23 +1904,23 @@ public class Trace {
     }
 
     if (!filled.get(17)) {
-      cnA.position(cnA.position() + 8);
+      cnA.position(cnA.position() + 32);
     }
 
     if (!filled.get(18)) {
-      cnB.position(cnB.position() + 8);
+      cnB.position(cnB.position() + 32);
     }
 
     if (!filled.get(19)) {
-      cnC.position(cnC.position() + 8);
+      cnC.position(cnC.position() + 32);
     }
 
     if (!filled.get(20)) {
-      contextSource.position(contextSource.position() + 8);
+      contextSource.position(contextSource.position() + 32);
     }
 
     if (!filled.get(21)) {
-      contextTarget.position(contextTarget.position() + 8);
+      contextTarget.position(contextTarget.position() + 32);
     }
 
     if (!filled.get(22)) {
@@ -1925,19 +1968,19 @@ public class Trace {
     }
 
     if (!filled.get(33)) {
-      indexA.position(indexA.position() + 8);
+      indexA.position(indexA.position() + 32);
     }
 
     if (!filled.get(34)) {
-      indexB.position(indexB.position() + 8);
+      indexB.position(indexB.position() + 32);
     }
 
     if (!filled.get(35)) {
-      indexC.position(indexC.position() + 8);
+      indexC.position(indexC.position() + 32);
     }
 
     if (!filled.get(36)) {
-      indexX.position(indexX.position() + 8);
+      indexX.position(indexX.position() + 32);
     }
 
     if (!filled.get(37)) {
@@ -2021,7 +2064,7 @@ public class Trace {
     }
 
     if (!filled.get(57)) {
-      size.position(size.position() + 8);
+      size.position(size.position() + 32);
     }
 
     if (!filled.get(58)) {
@@ -2033,7 +2076,7 @@ public class Trace {
     }
 
     if (!filled.get(60)) {
-      sourceLimbOffset.position(sourceLimbOffset.position() + 8);
+      sourceLimbOffset.position(sourceLimbOffset.position() + 32);
     }
 
     if (!filled.get(61)) {
@@ -2045,7 +2088,7 @@ public class Trace {
     }
 
     if (!filled.get(63)) {
-      targetLimbOffset.position(targetLimbOffset.position() + 8);
+      targetLimbOffset.position(targetLimbOffset.position() + 32);
     }
 
     if (!filled.get(64)) {

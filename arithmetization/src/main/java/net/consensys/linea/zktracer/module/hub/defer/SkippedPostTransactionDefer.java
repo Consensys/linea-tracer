@@ -74,13 +74,11 @@ public record SkippedPostTransactionDefer(
             hub,
             // 3 lines -- account changes
             // From
-            hub.factories().accountFragment().make(oldFromAccount, newFromAccount, false, 0, false),
+            hub.factories().accountFragment().make(oldFromAccount, newFromAccount),
             // To
-            hub.factories().accountFragment().make(oldToAccount, newToAccount, false, 0, false),
+            hub.factories().accountFragment().make(oldToAccount, newToAccount),
             // Miner
-            hub.factories()
-                .accountFragment()
-                .make(oldMinerAccount, newMinerAccount, false, 0, false),
+            hub.factories().accountFragment().make(oldMinerAccount, newMinerAccount),
 
             // 1 line -- transaction data
             TransactionFragment.prepare(

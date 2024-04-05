@@ -448,7 +448,8 @@ public class TxnData implements Module {
     final EWord coinbase = EWord.of(block.getCoinbaseAddress());
     final int codeFragmentIndex =
         tx.isDeployment() && tx.requiresEvmExecution()
-            ? this.romLex.getCfiByMetadata(ContractMetadata.underDeployment(tx.to(), 1))
+            ? this.romLex.getCodeFragmentIndexByMetadata(
+                ContractMetadata.underDeployment(tx.to(), 1))
             : 0;
     final List<BigInteger> outgoingHis = setOutgoingHisAndLos(tx).get(0);
     final List<BigInteger> outgoingLos = setOutgoingHisAndLos(tx).get(1);

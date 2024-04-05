@@ -24,12 +24,14 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
+import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.transients.DeploymentInfo;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -97,7 +99,7 @@ public class RomLex implements Module {
     this.chunks.pop();
   }
 
-  public int getCfiByMetadata(final ContractMetadata metadata) {
+  public int getCodeFragmentIndexByMetadata(final ContractMetadata metadata) {
     if (this.sortedChunks.isEmpty()) {
       throw new RuntimeException("Chunks have not been sorted yet");
     }
@@ -145,10 +147,12 @@ public class RomLex implements Module {
         .map(AccountState::getCode)
         .ifPresent(
             code -> {
-              int depNumber =
-                  hub.transients().conflation().deploymentInfo().number(tx.getTo().get());
-              boolean depStatus =
-                  hub.transients().conflation().deploymentInfo().isDeploying(tx.getTo().get());
+              final DeploymentInfo deploymentInfo = hub.transients().conflation().deploymentInfo();
+              final int depNumber = deploymentInfo.number(tx.getTo().get());
+              final boolean depStatus = deploymentInfo.isDeploying(tx.getTo().get());
+
+              Preconditions.checkState(
+                  !depStatus, "Deployment status of a deployed smart contract should be false");
 
               this.chunks.add(
                   new RomChunk(

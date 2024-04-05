@@ -55,9 +55,9 @@ public final class TransactionSnapshot extends ModuleOperation {
   private final Address to;
   /** Sender nonce */
   private final long nonce;
-  /** Number of addresses to pre-warm */
+  /** Number of addresses to pre-isWarm */
   private final int prewarmedAddressesCount;
-  /** Number of storage slots to pre-warm */
+  /** Number of storage slots to pre-isWarm */
   private final int prewarmedStorageKeysCount;
   /** Whether this transaction is a smart contract deployment */
   private final boolean isDeployment;

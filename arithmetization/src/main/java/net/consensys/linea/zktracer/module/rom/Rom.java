@@ -18,17 +18,15 @@ package net.consensys.linea.zktracer.module.rom;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.romLex.RomChunk;
 import net.consensys.linea.zktracer.module.romLex.RomLex;
 
+@RequiredArgsConstructor
 public class Rom implements Module {
   private final RomLex romLex;
-
-  public Rom(RomLex _romLex) {
-    this.romLex = _romLex;
-  }
 
   @Override
   public String moduleKey() {
@@ -55,11 +53,11 @@ public class Rom implements Module {
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
 
-    int cfi = 0;
-    final int cfiInfty = this.romLex.sortedChunks.size();
+    int codeFragmentIndex = 0;
+    final int codeFragmentIndexInfinity = this.romLex.sortedChunks.size();
     for (RomChunk chunk : this.romLex.sortedChunks) {
-      cfi += 1;
-      chunk.trace(trace, cfi, cfiInfty);
+      codeFragmentIndex += 1;
+      chunk.trace(trace, codeFragmentIndex, codeFragmentIndexInfinity);
     }
   }
 }

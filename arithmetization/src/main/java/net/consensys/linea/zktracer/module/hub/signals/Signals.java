@@ -26,7 +26,6 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.InstructionFamily;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -141,22 +140,22 @@ public class Signals {
     switch (opCode) {
       case CALLDATACOPY, CODECOPY -> {
         this.mxp = ex.outOfMemoryExpansion() || ex.outOfGas() || ex.none();
-        this.mmu = ex.none() && !frame.getStackItem(1).isZero();
+        this.mmu = ex.none() && !frame.getStackItem(2).isZero();
       }
 
       case RETURNDATACOPY -> {
         this.oob = ex.none() || ex.returnDataCopyFault();
         this.mxp = ex.none() || ex.outOfMemoryExpansion() || ex.outOfGas();
-        this.mmu = ex.none() && !frame.getStackItem(1).isZero();
+        this.mmu = ex.none() && !frame.getStackItem(2).isZero();
       }
 
       case EXTCODECOPY -> {
-        final boolean nonzeroSize = !frame.getStackItem(2).isZero();
+        final boolean nonzeroSize = !frame.getStackItem(3).isZero();
         this.mxp = ex.outOfMemoryExpansion() || ex.outOfGas() || ex.none();
         this.trm = ex.outOfGas() || ex.none();
         this.mmu = ex.none() && nonzeroSize;
 
-        Address address = Words.toAddress(frame.getStackItem(0));
+        final Address address = Words.toAddress(frame.getStackItem(0));
         final boolean targetAddressHasCode =
             Optional.ofNullable(frame.getWorldUpdater().get(address))
                 .map(AccountState::hasCode)
@@ -171,7 +170,8 @@ public class Signals {
             ex.none()
                 && !frame
                     .getStackItem(1)
-                    .isZero(); // TODO do not trigger the MMU if the context is going to revert
+                    .isZero(); // TODO do not trigger the MMU if the context is going to revert and
+        // check the HUB does increment or not the MMU stamp for reverted LOG
         // logInfo and logData are triggered via rlpRcpt at the end of the tx
       }
 
@@ -194,11 +194,6 @@ public class Signals {
         this.ecData = ex.none() && EC_PRECOMPILES.contains(target);
         this.exp =
             ex.none() && this.platformController.aborts().none() && target.equals(Address.MODEXP);
-
-        final Bytes returnLength =
-            opCode.callHasSevenArgument() ? frame.getStackItem(6) : frame.getStackItem(5);
-        final boolean returnLengthIsNotZero = !returnLength.isZero();
-        this.mmu = ex.none() && returnLengthIsNotZero;
       }
 
       case CREATE, CREATE2 -> {
@@ -227,7 +222,7 @@ public class Signals {
         this.mmu =
             ex.none()
                 && !frame.getStackItem(1).isZero()
-                && hub.currentFrame().requestedReturnDataTarget().length() > 0;
+                && !hub.currentFrame().requestedReturnDataTarget().isEmpty();
       }
 
       case RETURN -> {

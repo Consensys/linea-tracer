@@ -29,6 +29,8 @@ import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_MODEXP_MODULUS
 import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_MODEXP_RESULT;
 import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_PAIRING_DATA;
 import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_PAIRING_RESULT;
+import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_RIPEMD_DATA;
+import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_RIPEMD_RESULT;
 import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_SHA2_256_DATA;
 import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_SHA2_256_RESULT;
 import static net.consensys.linea.zktracer.module.hub.Trace.WORD_SIZE;
@@ -121,7 +123,7 @@ public class MmuCall implements TraceSubFragment {
     return this.exoIsRom(true).updateExoSum(Trace.EXO_SUM_WEIGHT_ROM);
   }
 
-  public final MmuCall setHash() {
+  public final MmuCall setKec() {
     return this.exoIsKec(true).updateExoSum(Trace.EXO_SUM_WEIGHT_KEC);
   }
 
@@ -152,7 +154,7 @@ public class MmuCall implements TraceSubFragment {
         .sourceOffset(EWord.of(hub.messageFrame().getStackItem(0)))
         .size(Words.clampedToLong(hub.messageFrame().getStackItem(1)))
         .referenceSize(Words.clampedToLong(hub.messageFrame().getStackItem(1)))
-        .setHash();
+        .setKec();
   }
 
   public static MmuCall callDataLoad(final Hub hub) {
@@ -332,9 +334,13 @@ public class MmuCall implements TraceSubFragment {
     }
   }
 
-  private static MmuCall
-      forRipeMd160Sha( // TODO fix with Olivier, seems wrong, misses exosum, phase wrong
-      final Hub hub, PrecompileInvocation p, int i, Bytes emptyHi, Bytes emptyLo) {
+  private static MmuCall forRipeMd160Sha(
+      final Hub hub,
+      PrecompileInvocation p,
+      int i,
+      Bytes emptyHi,
+      Bytes emptyLo,
+      final boolean isSha) {
     Preconditions.checkArgument(i >= 0 && i < 3);
 
     if (i == 0) {
@@ -347,7 +353,7 @@ public class MmuCall implements TraceSubFragment {
             .sourceOffset(EWord.of(p.callDataSource().offset()))
             .size(p.callDataSource().length())
             .referenceSize(p.callDataSource().length())
-            .phase(PHASE_SHA2_256_DATA)
+            .phase(isSha ? PHASE_SHA2_256_DATA : PHASE_RIPEMD_DATA)
             .setRipSha();
       }
     } else if (i == 1) {
@@ -362,7 +368,7 @@ public class MmuCall implements TraceSubFragment {
             .sourceId(hub.stamp() + 1)
             .targetId(hub.stamp() + 1)
             .size(32)
-            .phase(PHASE_SHA2_256_RESULT)
+            .phase(isSha ? PHASE_SHA2_256_RESULT : PHASE_RIPEMD_RESULT)
             .setRipSha();
       }
     } else {
@@ -382,12 +388,22 @@ public class MmuCall implements TraceSubFragment {
 
   public static MmuCall forSha2(final Hub hub, PrecompileInvocation p, int i) {
     return forRipeMd160Sha(
-        hub, p, i, bigIntegerToBytes(Trace.EMPTY_SHA2_HI), bigIntegerToBytes(Trace.EMPTY_SHA2_LO));
+        hub,
+        p,
+        i,
+        bigIntegerToBytes(Trace.EMPTY_SHA2_HI),
+        bigIntegerToBytes(Trace.EMPTY_SHA2_LO),
+        true);
   }
 
   public static MmuCall forRipeMd160(final Hub hub, PrecompileInvocation p, int i) {
     return forRipeMd160Sha(
-        hub, p, i, Bytes.of(Trace.EMPTY_RIPEMD_HI), bigIntegerToBytes(Trace.EMPTY_RIPEMD_LO));
+        hub,
+        p,
+        i,
+        Bytes.of(Trace.EMPTY_RIPEMD_HI),
+        bigIntegerToBytes(Trace.EMPTY_RIPEMD_LO),
+        false);
   }
 
   public static MmuCall forIdentity(final Hub hub, final PrecompileInvocation p, int i) {

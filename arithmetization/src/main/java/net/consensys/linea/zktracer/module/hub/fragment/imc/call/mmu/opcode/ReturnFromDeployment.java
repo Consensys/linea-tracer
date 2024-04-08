@@ -42,7 +42,7 @@ public class ReturnFromDeployment extends MmuCall implements RomLexDefer {
         .sourceOffset(EWord.of(hub.messageFrame().getStackItem(0)))
         .size(Words.clampedToLong(hub.messageFrame().getStackItem(1)))
         .referenceSize(Words.clampedToLong(hub.messageFrame().getStackItem(1)))
-        .setHash()
+        .setKec()
         .setRom();
   }
 

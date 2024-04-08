@@ -263,7 +263,7 @@ public class Signals {
       case SHL, SHR, SAR -> this.shf = !ex.outOfGas();
       case SHA3 -> {
         this.mxp = true;
-        this.hashInfo = ex.none() && !frame.getStackItem(0).isZero();
+        this.hashInfo = ex.none() && !frame.getStackItem(1).isZero();
         this.mmu = this.hashInfo;
       }
       case BALANCE, EXTCODESIZE, EXTCODEHASH, SELFDESTRUCT -> this.trm = true;

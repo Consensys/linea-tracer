@@ -92,6 +92,39 @@ public class Mmio implements Module {
   void trace(Trace trace, MmioData mmioData, final int stamp) {
 
     final boolean isFast = isFastOperation(mmioData.instruction());
+    final boolean requiresExoFlag = mmioData.operationRequiresOperation();
+
+    final boolean effectiveExoIsTxcd = requiresExoFlag && mmioData.exoIsTxcd();
+    final boolean effectiveExoIsRom = requiresExoFlag && mmioData.exoIsRom();
+    final boolean effectiveExoIsLog = requiresExoFlag && mmioData.exoIsLog();
+    final boolean effectiveExoIsEcData = requiresExoFlag && mmioData.exoIsEcData();
+    final boolean effectiveExoIsBlakeModexp = requiresExoFlag && mmioData.exoIsBlake2fModexp();
+    final boolean effectiveExoIsRipSha = requiresExoFlag && mmioData.exoIsRipSha();
+    final boolean effectiveExoIsKeccak = requiresExoFlag && mmioData.exoIsKeccak();
+
+    final boolean isLimbToRamOneTarget =
+        (mmioData.instruction() == Trace.MMIO_INST_LIMB_TO_RAM_ONE_TARGET);
+    final boolean isLimbToRamTransplant =
+        (mmioData.instruction() == Trace.MMIO_INST_LIMB_TO_RAM_TRANSPLANT);
+    final boolean isLimbToRamTwoTarget =
+        (mmioData.instruction() == Trace.MMIO_INST_LIMB_TO_RAM_TWO_TARGET);
+    final boolean isLimbVanishes = (mmioData.instruction() == Trace.MMIO_INST_LIMB_VANISHES);
+    final boolean isRamExcision = (mmioData.instruction() == Trace.MMIO_INST_RAM_EXCISION);
+    final boolean isRamToLimbOneSource =
+        (mmioData.instruction() == Trace.MMIO_INST_RAM_TO_LIMB_ONE_SOURCE);
+    final boolean isRamToLimbTransplant =
+        (mmioData.instruction() == Trace.MMIO_INST_RAM_TO_LIMB_TRANSPLANT);
+    final boolean isRamToLimbTwoSource =
+        (mmioData.instruction() == Trace.MMIO_INST_RAM_TO_LIMB_TWO_SOURCE);
+    final boolean isRamToRamPartial =
+        (mmioData.instruction() == Trace.MMIO_INST_RAM_TO_RAM_PARTIAL);
+    final boolean isRamToRamTransplant =
+        (mmioData.instruction() == Trace.MMIO_INST_RAM_TO_RAM_TRANSPLANT);
+    final boolean isRamToRamTwoSource =
+        (mmioData.instruction() == Trace.MMIO_INST_RAM_TO_RAM_TWO_SOURCE);
+    final boolean isRamToRamTwoTarget =
+        (mmioData.instruction() == Trace.MMIO_INST_RAM_TO_RAM_TWO_TARGET);
+    final boolean isRamVanishes = (mmioData.instruction() == Trace.MMIO_INST_RAM_VANISHES);
 
     for (short ct = 0; ct < numberOfRowOfMmioInstruction(mmioData.instruction()); ct++) {
       trace
@@ -126,31 +159,31 @@ public class Mmio implements Module {
           .totalSize(Bytes.ofUnsignedLong(mmioData.totalSize()))
           .exoSum(mmioData.exoSum())
           .exoId(mmioData.exoId())
-          .exoIsTxcd(mmioData.exoIsTxcd())
-          .exoIsRom(mmioData.exoIsRom())
-          .exoIsLog(mmioData.exoIsLog())
-          .exoIsEcdata(mmioData.exoIsEcData())
-          .exoIsBlakemodexp(mmioData.exoIsBlake2fModexp())
-          .exoIsRipsha(mmioData.exoIsRipSha())
-          .exoIsKec(mmioData.exoIsKeccak())
+          .exoIsTxcd(effectiveExoIsTxcd)
+          .exoIsRom(effectiveExoIsRom)
+          .exoIsLog(effectiveExoIsLog)
+          .exoIsEcdata(effectiveExoIsEcData)
+          .exoIsBlakemodexp(effectiveExoIsBlakeModexp)
+          .exoIsRipsha(effectiveExoIsRipSha)
+          .exoIsKec(effectiveExoIsKeccak)
           .kecId(mmioData.kecId())
           .phase(mmioData.phase())
           .successBit(mmioData.successBit())
           .fast(isFast)
           .slow(!isFast)
-          .isLimbToRamOneTarget(mmioData.instruction() == Trace.MMIO_INST_LIMB_TO_RAM_ONE_TARGET)
-          .isLimbToRamTransplant(mmioData.instruction() == Trace.MMIO_INST_LIMB_TO_RAM_TRANSPLANT)
-          .isLimbToRamTwoTarget(mmioData.instruction() == Trace.MMIO_INST_LIMB_TO_RAM_TWO_TARGET)
-          .isLimbVanishes(mmioData.instruction() == Trace.MMIO_INST_LIMB_VANISHES)
-          .isRamExcision(mmioData.instruction() == Trace.MMIO_INST_RAM_EXCISION)
-          .isRamToLimbOneSource(mmioData.instruction() == Trace.MMIO_INST_RAM_TO_LIMB_ONE_SOURCE)
-          .isRamToLimbTransplant(mmioData.instruction() == Trace.MMIO_INST_RAM_TO_LIMB_TRANSPLANT)
-          .isRamToLimbTwoSource(mmioData.instruction() == Trace.MMIO_INST_RAM_TO_LIMB_TWO_SOURCE)
-          .isRamToRamPartial(mmioData.instruction() == Trace.MMIO_INST_RAM_TO_RAM_PARTIAL)
-          .isRamToRamTransplant(mmioData.instruction() == Trace.MMIO_INST_RAM_TO_RAM_TRANSPLANT)
-          .isRamToRamTwoSource(mmioData.instruction() == Trace.MMIO_INST_RAM_TO_RAM_TWO_SOURCE)
-          .isRamToRamTwoTarget(mmioData.instruction() == Trace.MMIO_INST_RAM_TO_RAM_TWO_TARGET)
-          .isRamVanishes(mmioData.instruction() == Trace.MMIO_INST_RAM_VANISHES)
+          .isLimbToRamOneTarget(isLimbToRamOneTarget)
+          .isLimbToRamTransplant(isLimbToRamTransplant)
+          .isLimbToRamTwoTarget(isLimbToRamTwoTarget)
+          .isLimbVanishes(isLimbVanishes)
+          .isRamExcision(isRamExcision)
+          .isRamToLimbOneSource(isRamToLimbOneSource)
+          .isRamToLimbTransplant(isRamToLimbTransplant)
+          .isRamToLimbTwoSource(isRamToLimbTwoSource)
+          .isRamToRamPartial(isRamToRamPartial)
+          .isRamToRamTransplant(isRamToRamTransplant)
+          .isRamToRamTwoSource(isRamToRamTwoSource)
+          .isRamToRamTwoTarget(isRamToRamTwoTarget)
+          .isRamVanishes(isRamVanishes)
           .indexX(Bytes.minimalBytes(mmioData.indexX()))
           .byteLimb(UnsignedByte.of(mmioData.limb().get(ct)))
           .accLimb(mmioData.limb().slice(0, ct + 1))

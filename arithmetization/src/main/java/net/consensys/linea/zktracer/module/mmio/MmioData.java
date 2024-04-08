@@ -232,25 +232,6 @@ public class MmioData {
     pow2561 = power(bit2);
   }
 
-  //  public void updateLimbsInMemory(final CallStack callStack) {
-  //    StackContext pending = callStack.getByContextNumber(cnA).pending();
-  //    MemorySegmentSnapshot memorySegmentSnapshot = pending.memorySegmentSnapshot();
-  //
-  //    memorySegmentSnapshot.updateLimb(indexA, valANew);
-  //    memorySegmentSnapshot.updateLimb(indexB, valBNew);
-  //    memorySegmentSnapshot.updateLimb(indexC, valCNew);
-  //  }
-
-  // private void mergeAndCopyVals(
-  //     int sourceByteOffset, UnsignedByte[] valA, UnsignedByte[] valB, UnsignedByte[] valDest) {
-  //   UnsignedByte[] valASubArray = ArrayUtils.subarray(valA, sourceByteOffset, valA.length);
-  //   UnsignedByte[] valBSubArray = ArrayUtils.subarray(valB, 0, sourceByteOffset);
-  //
-  //   UnsignedByte[] valMerged =
-  //       (UnsignedByte[]) Stream.of(valASubArray, valBSubArray).flatMap(Stream::of).toArray();
-  //   System.arraycopy(valMerged, 0, valDest, 0, valMerged.length);
-  // }
-
   public void twoToOnePadded(
       final Bytes16 sourceBytes1,
       final Bytes16 sourceBytes2,
@@ -290,5 +271,16 @@ public class MmioData {
 
     pow2561 = power(bit4);
     pow2562 = antiPower(bit2);
+  }
+
+  public boolean operationRequiresOperation() {
+    return List.of(
+            Trace.MMIO_INST_LIMB_TO_RAM_TRANSPLANT,
+            Trace.MMIO_INST_LIMB_TO_RAM_ONE_TARGET,
+            Trace.MMIO_INST_LIMB_TO_RAM_TWO_TARGET,
+            Trace.MMIO_INST_RAM_TO_LIMB_TRANSPLANT,
+            Trace.MMIO_INST_RAM_TO_LIMB_ONE_SOURCE,
+            Trace.MMIO_INST_RAM_TO_LIMB_TWO_SOURCE)
+        .contains(this.instruction);
   }
 }

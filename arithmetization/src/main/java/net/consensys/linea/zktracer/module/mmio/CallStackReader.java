@@ -30,10 +30,19 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 public class CallStackReader {
   private final CallStack callStack;
 
-  public Bytes valueFromMemory(final long contextNumber) {
+  public Bytes valueFromMemory(final long contextNumber, final boolean ramIsSource) {
     final CallFrame callFrame = callStack.getByContextNumber(contextNumber);
+
     if (callFrame.type() == CallFrameType.MANTLE) {
       return callFrame.callDataInfo().data();
+    }
+
+    if (callFrame.type() == CallFrameType.PRECOMPILE_RETURN_DATA) {
+      if (ramIsSource) {
+        return callFrame.returnData();
+      } else {
+        return Bytes.EMPTY;
+      }
     }
 
     final MessageFrame messageFrame = callFrame.frame();

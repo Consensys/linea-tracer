@@ -89,7 +89,7 @@ public class MmuData {
 
     final long sourceContextNumber = mmuToMmioConstantValues.sourceContextNumber();
     if (sourceContextNumber != 0) {
-      final Bytes sourceMemory = callStackReader.valueFromMemory(sourceContextNumber);
+      final Bytes sourceMemory = callStackReader.valueFromMemory(sourceContextNumber, true);
       this.sourceRamBytes(sourceMemory);
     }
   }
@@ -99,7 +99,7 @@ public class MmuData {
 
     final long targetContextNumber = mmuToMmioConstantValues.targetContextNumber();
     if (targetContextNumber != 0) {
-      final Bytes targetMemory = callStackReader.valueFromMemory(targetContextNumber);
+      final Bytes targetMemory = callStackReader.valueFromMemory(targetContextNumber, false);
       this.targetRamBytes(targetMemory);
     }
   }

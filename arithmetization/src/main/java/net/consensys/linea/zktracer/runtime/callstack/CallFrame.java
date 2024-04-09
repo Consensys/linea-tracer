@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -121,6 +122,22 @@ public class CallFrame {
     this.contextNumber = contextNumber;
     this.address = Address.ZERO;
     this.callDataInfo = new CallDataInfo(callData, 0, callData.size(), contextNumber);
+  }
+
+  /** Create a PRECOMPILE_RETURN_DATA callFrame */
+  CallFrame(
+      final int contextNumber,
+      final Bytes precompileResult,
+      final int returnDataOffset,
+      final Address precompileAddress) {
+    Preconditions.checkArgument(
+        returnDataOffset == 0 || precompileAddress == Address.MODEXP,
+        "ReturnDataOffset is 0 for all precompile except Modexp");
+    this.type = CallFrameType.PRECOMPILE_RETURN_DATA;
+    this.contextNumber = contextNumber;
+    this.returnData = precompileResult;
+    this.returnDataSource = new MemorySpan(returnDataOffset, precompileResult.size());
+    this.address = precompileAddress;
   }
 
   /** Create an empty call frame. */

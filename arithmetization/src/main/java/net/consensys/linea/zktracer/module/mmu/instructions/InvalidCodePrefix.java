@@ -59,7 +59,7 @@ public class InvalidCodePrefix implements MmuInstruction {
   public MmuData preProcess(MmuData mmuData, final CallStack callStack) {
     // Set mmuData.sourceRamBytes
     CallStackReader callStackReader = new CallStackReader(callStack);
-    final Bytes sourceMemory = callStackReader.valueFromMemory(mmuData.hubToMmuValues().sourceId());
+    final Bytes sourceMemory = callStackReader.valueFromMemory(mmuData.hubToMmuValues().sourceId(), true);
     mmuData.sourceRamBytes(sourceMemory);
 
     // row n°1

@@ -111,7 +111,7 @@ public final class CallStack {
         to,
         to,
         toCode == null ? Bytecode.EMPTY : toCode,
-        type,
+        CallFrameType.BEDROCK,
         value,
         gas,
         callData,

@@ -335,12 +335,7 @@ public class MmuCall implements TraceSubFragment {
   }
 
   private static MmuCall forRipeMd160Sha(
-      final Hub hub,
-      PrecompileInvocation p,
-      int i,
-      Bytes emptyHi,
-      Bytes emptyLo,
-      final boolean isSha) {
+      final Hub hub, PrecompileInvocation p, int i, final boolean isSha) {
     Preconditions.checkArgument(i >= 0 && i < 3);
 
     if (i == 0) {
@@ -359,10 +354,16 @@ public class MmuCall implements TraceSubFragment {
     } else if (i == 1) {
       if (p.callDataSource().isEmpty()) {
         return new MmuCall(MMU_INST_MSTORE)
-            .targetId(hub.stamp() + 1)
+            .targetId(hub.stamp() + 1) // TODO the callFrame doesn't exist, need to create one.
             .targetOffset(EWord.ZERO)
-            .limb1(emptyHi)
-            .limb2(emptyLo);
+            .limb1(
+                isSha
+                    ? bigIntegerToBytes(Trace.EMPTY_SHA2_HI)
+                    : Bytes.ofUnsignedShort(Trace.EMPTY_RIPEMD_HI))
+            .limb2(
+                isSha
+                    ? bigIntegerToBytes(Trace.EMPTY_SHA2_LO)
+                    : bigIntegerToBytes(Trace.EMPTY_RIPEMD_LO));
       } else {
         return new MmuCall(MMU_INST_EXO_TO_RAM_TRANSPLANTS)
             .sourceId(hub.stamp() + 1)
@@ -387,23 +388,11 @@ public class MmuCall implements TraceSubFragment {
   }
 
   public static MmuCall forSha2(final Hub hub, PrecompileInvocation p, int i) {
-    return forRipeMd160Sha(
-        hub,
-        p,
-        i,
-        bigIntegerToBytes(Trace.EMPTY_SHA2_HI),
-        bigIntegerToBytes(Trace.EMPTY_SHA2_LO),
-        true);
+    return forRipeMd160Sha(hub, p, i, true);
   }
 
   public static MmuCall forRipeMd160(final Hub hub, PrecompileInvocation p, int i) {
-    return forRipeMd160Sha(
-        hub,
-        p,
-        i,
-        Bytes.of(Trace.EMPTY_RIPEMD_HI),
-        bigIntegerToBytes(Trace.EMPTY_RIPEMD_LO),
-        false);
+    return forRipeMd160Sha(hub, p, i, false);
   }
 
   public static MmuCall forIdentity(final Hub hub, final PrecompileInvocation p, int i) {

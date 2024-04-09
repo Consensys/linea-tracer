@@ -367,9 +367,9 @@ public class RlpTxn implements Module {
   }
 
   private void handlePhaseData(RlpTxnColumnsValue traceValue, Transaction tx, Trace trace) {
-    int phase = Trace.RLP_TXN_PHASE_DATA_VALUE;
-    boolean lt = true;
-    boolean lx = true;
+    final int phase = Trace.RLP_TXN_PHASE_DATA_VALUE;
+    final boolean lt = true;
+    final boolean lx = true;
 
     if (tx.getPayload().isEmpty()) {
       // Trivial case
@@ -427,8 +427,8 @@ public class RlpTxn implements Module {
       }
 
       // Tracing the Data: several 16-rows ct-loop
-      int nbstep = 16;
-      int nbloop = (traceValue.phaseByteSize - 1) / nbstep + 1;
+      final int nbstep = LLARGE;
+      final int nbloop = (traceValue.phaseByteSize - 1) / nbstep + 1;
       data = rightPadTo(data, nbstep * nbloop);
       for (int i = 0; i < nbloop; i++) {
         traceValue.partialReset(phase, nbstep, lt, lx);

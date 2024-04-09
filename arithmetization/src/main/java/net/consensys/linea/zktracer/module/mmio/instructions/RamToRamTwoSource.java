@@ -16,13 +16,13 @@
 package net.consensys.linea.zktracer.module.mmio.instructions;
 
 import static net.consensys.linea.zktracer.module.mmio.MmioPatterns.twoPartialToOne;
+import static net.consensys.linea.zktracer.types.Bytecodes.readLimb;
 
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.mmio.MmioData;
 import net.consensys.linea.zktracer.module.mmu.MmuData;
 import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioConstantValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioInstruction;
-import net.consensys.linea.zktracer.types.Bytecodes;
 import net.consensys.linea.zktracer.types.Bytes16;
 
 @RequiredArgsConstructor
@@ -53,9 +53,9 @@ public class RamToRamTwoSource implements MmioInstruction {
     mmioData.indexC(mmioData.targetLimbOffset());
     mmioData.indexX(0);
 
-    mmioData.valA(Bytes16.wrap(Bytecodes.readLimb(mmuData.sourceRamBytes(), mmioData.indexA())));
-    mmioData.valB(Bytes16.wrap(Bytecodes.readLimb(mmuData.targetRamBytes(), mmioData.indexB())));
-    mmioData.valC(Bytes16.wrap(Bytecodes.readLimb(mmuData.targetRamBytes(), mmioData.indexC())));
+    mmioData.valA(readLimb(mmuData.sourceRamBytes(), mmioData.indexA()));
+    mmioData.valB(readLimb(mmuData.targetRamBytes(), mmioData.indexB()));
+    mmioData.valC(readLimb(mmuData.targetRamBytes(), mmioData.indexC()));
     mmioData.limb(Bytes16.ZERO);
 
     mmioData.valANew(mmioData.valA());

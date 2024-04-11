@@ -31,7 +31,7 @@ publishing {
   }
   publications {
     mavenJava(MavenPublication) {
-      groupId "net.consensys.linea.besu.plugin"
+      groupId "net.consensys.linea.zktracer"
       version "${project.version}"
       from components.java
       artifact sourcesJar
@@ -43,7 +43,7 @@ publishing {
       suppressPomMetadataWarningsFor('testFixturesApiElements')
       suppressPomMetadataWarningsFor('testFixturesRuntimeElements')
       pom {
-        name = "Besu plugins - ${project.name}"
+        name = "Linea Arithmetization - ${project.name}"
         url = 'https://github.com/ConsenSys/linea-arithmetization'
         licenses {
           license {

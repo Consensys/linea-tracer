@@ -79,15 +79,14 @@ public class MmuData {
         Bytes.EMPTY,
         Bytes.EMPTY,
         new CallStackReader(callStack),
-      List.of(MMU_INST_ANY_TO_RAM_WITH_PADDING, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
-        .contains(mmuCall.instruction()),
-      List.of(
-          MMU_INST_BLAKE,
-          Trace.MMU_INST_MODEXP_DATA,
-          Trace.MMU_INST_MODEXP_ZERO,
-          Trace.MMU_INST_RAM_TO_EXO_WITH_PADDING)
-        .contains(mmuCall.instruction())
-      );
+        List.of(MMU_INST_ANY_TO_RAM_WITH_PADDING, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
+            .contains(mmuCall.instruction()),
+        List.of(
+                MMU_INST_BLAKE,
+                Trace.MMU_INST_MODEXP_DATA,
+                Trace.MMU_INST_MODEXP_ZERO,
+                Trace.MMU_INST_RAM_TO_EXO_WITH_PADDING)
+            .contains(mmuCall.instruction()));
   }
 
   public int numberMmioInstructions() {

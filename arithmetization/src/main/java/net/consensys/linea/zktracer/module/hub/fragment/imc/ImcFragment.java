@@ -198,7 +198,8 @@ public class ImcFragment implements TraceFragment {
         case CREATE -> r.callMmu(MmuCall.create(hub));
         case RETURN -> r.callMmu(
             hub.currentFrame().underDeployment()
-                ? MmuCall.returnFromDeployment(hub) //TODO Add a MMU call to MMU_INST_INVALID_CODE8PREFIX
+                ? MmuCall.returnFromDeployment(
+                    hub) // TODO Add a MMU call to MMU_INST_INVALID_CODE8PREFIX
                 : MmuCall.returnFromCall(hub));
         case CREATE2 -> r.callMmu(MmuCall.create2(hub));
         case REVERT -> r.callMmu(MmuCall.revert(hub));

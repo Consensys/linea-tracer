@@ -103,7 +103,8 @@ public class Mmu implements Module {
 
   public void call(final MmuCall mmuCall, final CallStack callStack) {
     MmuData mmuData = new MmuData(mmuCall, callStack);
-    mmuData.hubToMmuValues(HubToMmuValues.fromMmuCall(mmuCall, mmuData.exoLimbIsSource(), mmuData.exoLimbIsTarget()));
+    mmuData.hubToMmuValues(
+        HubToMmuValues.fromMmuCall(mmuCall, mmuData.exoLimbIsSource(), mmuData.exoLimbIsTarget()));
 
     final MmuInstructions mmuInstructions = new MmuInstructions(euc, wcp);
     mmuData = mmuInstructions.compute(mmuData, callStack);

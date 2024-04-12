@@ -20,10 +20,8 @@ import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_RAM_TO_EXO_
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.romLex.ContractMetadata;
-import net.consensys.linea.zktracer.module.romLex.RomLexDefer;
 import net.consensys.linea.zktracer.types.EWord;
 import org.hyperledger.besu.datatypes.Address;
-import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 
 /**
@@ -39,14 +37,13 @@ public class ReturnFromDeployment extends MmuCall {
 
     this.hub = hub;
 
-     final Address contractAddress = hub.currentFrame().frame().getContractAddress();
-     final int depNumber =
-       hub.transients().conflation().deploymentInfo().number(contractAddress);
-     final ContractMetadata contractMetadata =
-       ContractMetadata.underDeployment(contractAddress, depNumber);
- this.contract= contractMetadata;
+    // TODO: get the metaDaa directly from the hub
+    final Address contractAddress = hub.currentFrame().frame().getContractAddress();
+    final int depNumber = hub.transients().conflation().deploymentInfo().number(contractAddress);
+    final ContractMetadata contractMetadata =
+        ContractMetadata.underDeployment(contractAddress, depNumber);
+    this.contract = contractMetadata;
 
-    // this.hub.romLex().returnDefers().register(this);
     this.sourceId(hub.currentFrame().contextNumber())
         .auxId(hub.state().stamps().hashInfo())
         .sourceOffset(EWord.of(hub.messageFrame().getStackItem(0)))
@@ -60,9 +57,4 @@ public class ReturnFromDeployment extends MmuCall {
   public int targetId() {
     return this.hub.romLex().getCfiByMetadata(this.contract);
   }
-
-  //@Override
-  //public void updateContractMetadata(ContractMetadata metadata) {
-  //  this.contract = metadata;
-  //}
 }

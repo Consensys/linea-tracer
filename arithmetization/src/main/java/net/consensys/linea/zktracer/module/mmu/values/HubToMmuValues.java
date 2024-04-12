@@ -49,7 +49,8 @@ public class HubToMmuValues {
   private final boolean exoIsLog;
   private final boolean exoIsTxcd;
 
-  private HubToMmuValues(final MmuCall mmuCall, final boolean exoIsSource, final boolean exoIsTarget) {
+  private HubToMmuValues(
+      final MmuCall mmuCall, final boolean exoIsSource, final boolean exoIsTarget) {
     this.mmuInstruction = mmuCall.instruction();
     this.exoSum = mmuCall.exoSum();
     this.exoIsRom = mmuCall.exoIsRom();
@@ -59,8 +60,8 @@ public class HubToMmuValues {
     this.exoIsKeccak = mmuCall.exoIsKec();
     this.exoIsLog = mmuCall.exoIsLog();
     this.exoIsTxcd = mmuCall.exoIsRlpTxn();
-    this.sourceId = exoIsRom && exoIsSource? -1 : mmuCall.sourceId();
-    this.targetId = exoIsRom && exoIsTarget? -1 : mmuCall.targetId();
+    this.sourceId = exoIsRom && exoIsSource ? -1 : mmuCall.sourceId();
+    this.targetId = exoIsRom && exoIsTarget ? -1 : mmuCall.targetId();
     this.auxId = mmuCall.auxId();
     this.sourceOffsetHi = mmuCall.sourceOffset().hiBigInt();
     this.sourceOffsetLo = mmuCall.sourceOffset().loBigInt();
@@ -74,7 +75,8 @@ public class HubToMmuValues {
     this.phase = (int) mmuCall.phase();
   }
 
-  public static HubToMmuValues fromMmuCall(final MmuCall mmuCall, final boolean exoIsSource, final boolean exoIsTarget) {
+  public static HubToMmuValues fromMmuCall(
+      final MmuCall mmuCall, final boolean exoIsSource, final boolean exoIsTarget) {
     return new HubToMmuValues(mmuCall, exoIsSource, exoIsTarget);
   }
 }

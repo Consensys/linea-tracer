@@ -52,7 +52,6 @@ public class RomLex implements Module {
   private Bytes byteCode = Bytes.EMPTY;
   private Address address = Address.ZERO;
 
-  // @Getter private final DeferRegistry returnDefers = new DeferRegistry();
   @Getter private final DeferRegistry createDefers = new DeferRegistry();
 
   @Override
@@ -164,10 +163,8 @@ public class RomLex implements Module {
 
           final RomChunk chunk = new RomChunk(contractMetadata, true, false, code);
           this.chunks.add(chunk);
-         // this.returnDefers.trigger(contractMetadata);
           this.addressRomChunkMap.put(frame.getContractAddress(), chunk);
         }
-        //this.returnDefers.clear();
       }
 
       case CALL, CALLCODE, DELEGATECALL, STATICCALL -> {

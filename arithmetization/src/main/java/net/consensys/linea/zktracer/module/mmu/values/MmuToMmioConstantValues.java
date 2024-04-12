@@ -16,21 +16,28 @@
 package net.consensys.linea.zktracer.module.mmu.values;
 
 import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
 @Builder
-public record MmuToMmioConstantValues(
-    long sourceContextNumber,
-    long targetContextNumber,
-    boolean successBit,
-    int exoSum,
-    boolean exoIsRom,
-    boolean exoIsBlake2fModexp,
-    boolean exoIsEcData,
-    boolean exoIsRipSha,
-    boolean exoIsKeccak,
-    boolean exoIsLog,
-    boolean exoIsTxcd,
-    int phase,
-    int exoId,
-    int kecId,
-    long totalSize) {}
+@Getter
+@Accessors(fluent = true)
+public class MmuToMmioConstantValues {
+
+  private final long sourceContextNumber;
+  private final long targetContextNumber;
+  private final boolean successBit;
+  private final int exoSum;
+  private final boolean exoIsRom;
+  private final boolean exoIsBlake2fModexp;
+  private final boolean exoIsEcData;
+  private final boolean exoIsRipSha;
+  private final boolean exoIsKeccak;
+  private final boolean exoIsLog;
+  private final boolean exoIsTxcd;
+  private final int phase;
+  @Setter private int exoId;
+  private final int kecId;
+  private final long totalSize;
+}

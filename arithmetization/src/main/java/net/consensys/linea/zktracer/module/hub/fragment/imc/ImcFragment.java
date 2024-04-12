@@ -38,7 +38,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.Dep
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.ExceptionalCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.Jump;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.SStore;
-import net.consensys.linea.zktracer.module.mmu.values.HubToMmuValues;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.gas.GasConstants;
 import net.consensys.linea.zktracer.types.EWord;
@@ -199,7 +198,7 @@ public class ImcFragment implements TraceFragment {
         case CREATE -> r.callMmu(MmuCall.create(hub));
         case RETURN -> r.callMmu(
             hub.currentFrame().underDeployment()
-                ? MmuCall.returnFromDeployment(hub)
+                ? MmuCall.returnFromDeployment(hub) //TODO Add a MMU call to MMU_INST_INVALID_CODE8PREFIX
                 : MmuCall.returnFromCall(hub));
         case CREATE2 -> r.callMmu(MmuCall.create2(hub));
         case REVERT -> r.callMmu(MmuCall.revert(hub));
@@ -262,9 +261,8 @@ public class ImcFragment implements TraceFragment {
     } else {
       mmuIsSet = true;
     }
-    final HubToMmuValues hubToMmuValues = HubToMmuValues.fromMmuCall(f);
-    if (hubToMmuValues.mmuInstruction() != -1) {
-      this.hub.mmu().call(hubToMmuValues, this.hub.callStack());
+    if (f.instruction() != -1) {
+      this.hub.mmu().call(f, this.hub.callStack());
     }
 
     this.moduleCalls.add(f);

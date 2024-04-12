@@ -21,18 +21,7 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.testing.EvmExtension;
-import net.consensys.linea.zktracer.testing.ToyAccount;
-import net.consensys.linea.zktracer.testing.ToyExecutionEnvironment;
-import net.consensys.linea.zktracer.testing.ToyTransaction;
-import net.consensys.linea.zktracer.testing.ToyWorld;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.crypto.KeyPair;
-import org.hyperledger.besu.crypto.SECP256K1;
-import org.hyperledger.besu.datatypes.Address;
-import org.hyperledger.besu.datatypes.Hash;
-import org.hyperledger.besu.datatypes.TransactionType;
-import org.hyperledger.besu.datatypes.Wei;
-import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 

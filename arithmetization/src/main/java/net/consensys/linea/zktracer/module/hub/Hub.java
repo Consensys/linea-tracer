@@ -1145,6 +1145,7 @@ public class Hub implements Module {
             } else {
               parentFrame.latestReturnData(Bytes.EMPTY);
             }
+            final ImcFragment imcFragment = ImcFragment.forOpcode(this, frame); // TODO finish it
           }
           case REVERT -> {
             final Bytes returnData = this.transients.op().returnData();
@@ -1155,6 +1156,7 @@ public class Hub implements Module {
             } else {
               parentFrame.latestReturnData(Bytes.EMPTY);
             }
+            final ImcFragment imcFragment = ImcFragment.forOpcode(this, frame); // TODO finish it
           }
           case STOP, SELFDESTRUCT -> parentFrame.latestReturnData(Bytes.EMPTY);
         }

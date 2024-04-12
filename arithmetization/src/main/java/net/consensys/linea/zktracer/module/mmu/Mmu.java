@@ -26,6 +26,7 @@ import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.blake2fmodexpdata.Blake2fModexpData;
 import net.consensys.linea.zktracer.module.ec_data.EcData;
 import net.consensys.linea.zktracer.module.euc.Euc;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.mmu.values.HubToMmuValues;
 import net.consensys.linea.zktracer.module.rlp.txn.RlpTxn;
 import net.consensys.linea.zktracer.module.rlp.txrcpt.RlpTxrcpt;
@@ -90,6 +91,7 @@ public class Mmu implements Module {
     int mmioStamp = 0;
 
     for (MmuOperation mmuOp : this.mmuOperations) {
+      mmuOp.getCFI();
       mmuOp.setExoBytes(exoSumDecoder);
       mmuOp.fillLimb();
 
@@ -99,9 +101,9 @@ public class Mmu implements Module {
     }
   }
 
-  public void call(final HubToMmuValues hubToMmuValues, final CallStack callStack) {
-    MmuData mmuData = new MmuData(callStack);
-    mmuData.hubToMmuValues(hubToMmuValues);
+  public void call(final MmuCall mmuCall, final CallStack callStack) {
+    MmuData mmuData = new MmuData(mmuCall, callStack);
+    mmuData.hubToMmuValues(HubToMmuValues.fromMmuCall(mmuCall, mmuData.exoLimbIsSource(), mmuData.exoLimbIsTarget()));
 
     final MmuInstructions mmuInstructions = new MmuInstructions(euc, wcp);
     mmuData = mmuInstructions.compute(mmuData, callStack);

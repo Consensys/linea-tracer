@@ -25,13 +25,6 @@ import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_BLAKE;
 import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_EXO_TO_RAM_TRANSPLANTS;
 import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_INVALID_CODE_PREFIX;
 import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_MLOAD;
-import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_MODEXP_DATA;
-import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_MODEXP_ZERO;
-import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_MSTORE;
-import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_MSTORE8;
-import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_RAM_TO_EXO_WITH_PADDING;
-import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_RAM_TO_RAM_SANS_PADDING;
-import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_RIGHT_PADDED_WORD_EXTRACTION;
 import static net.consensys.linea.zktracer.types.Bytecodes.readBytes;
 import static net.consensys.linea.zktracer.types.Conversions.*;
 
@@ -127,6 +120,20 @@ public class MmuOperation extends ModuleOperation {
     isBlake = mmuInstruction == MMU_INST_BLAKE;
   }
 
+  public void getCFI() {
+    if (mmuData.hubToMmuValues().exoIsRom()) {
+      if (mmuData.exoLimbIsSource()) {
+        final int sourceId = mmuData.mmuCall().sourceId();
+        mmuData.hubToMmuValues().sourceId(sourceId);
+        mmuData.mmuToMmioConstantValues().exoId(sourceId);
+      } else {
+        final int targetId = mmuData.mmuCall().targetId();
+        mmuData.hubToMmuValues().targetId(targetId);
+        mmuData.mmuToMmioConstantValues().exoId(targetId);
+      }
+    }
+  }
+
   public void setExoBytes(ExoSumDecoder exoSumDecoder) {
     final int exoSum = mmuData.hubToMmuValues().exoSum();
 
@@ -134,7 +141,7 @@ public class MmuOperation extends ModuleOperation {
       mmuData.exoSumDecoder(exoSumDecoder);
       final int exoId =
           (int)
-              (exoLimbIsSource()
+              (mmuData.exoLimbIsSource()
                   ? this.mmuData.hubToMmuValues().sourceId()
                   : this.mmuData.hubToMmuValues().targetId());
       mmuData.exoBytes(exoSumDecoder.getExoBytes(mmuData.hubToMmuValues(), exoId));
@@ -154,8 +161,8 @@ public class MmuOperation extends ModuleOperation {
     }
 
     if (!mmuData.exoBytes().isEmpty()) {
-      final boolean exoIsSource = exoLimbIsSource();
-      final boolean exoIsTarget = exoLimbIsTarget();
+      final boolean exoIsSource = mmuData.exoLimbIsSource();
+      final boolean exoIsTarget = mmuData.exoLimbIsTarget();
       Preconditions.checkArgument(
           exoIsSource == !exoIsTarget, "ExoLimb is either the source or the target");
 
@@ -174,15 +181,6 @@ public class MmuOperation extends ModuleOperation {
 
   private boolean exoLimbIsSource() {
     return List.of(MMU_INST_ANY_TO_RAM_WITH_PADDING, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
-        .contains(this.mmuData.hubToMmuValues().mmuInstruction());
-  }
-
-  private boolean exoLimbIsTarget() {
-    return List.of(
-            MMU_INST_BLAKE,
-            Trace.MMU_INST_MODEXP_DATA,
-            Trace.MMU_INST_MODEXP_ZERO,
-            Trace.MMU_INST_RAM_TO_EXO_WITH_PADDING)
         .contains(this.mmuData.hubToMmuValues().mmuInstruction());
   }
 

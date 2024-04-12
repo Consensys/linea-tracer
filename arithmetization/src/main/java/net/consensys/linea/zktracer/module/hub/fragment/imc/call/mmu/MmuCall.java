@@ -271,11 +271,11 @@ public class MmuCall implements TraceSubFragment {
   }
 
   public static MmuCall create2(final Hub hub) {
-    return new Create2(hub);
+return new Create2(hub);
   }
 
   public static MmuCall revert(final Hub hub) {
-    return new MmuCall(MMU_INST_RAM_TO_EXO_WITH_PADDING)
+    return new MmuCall(MMU_INST_RAM_TO_RAM_SANS_PADDING)
         .sourceId(hub.currentFrame().contextNumber())
         .targetId(hub.callStack().getById(hub.currentFrame().parentFrame()).contextNumber())
         .sourceOffset(EWord.of(hub.messageFrame().getStackItem(0)))

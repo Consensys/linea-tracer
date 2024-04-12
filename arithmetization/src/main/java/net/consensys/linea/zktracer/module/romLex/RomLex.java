@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.romLex;
 
+import static net.consensys.linea.zktracer.module.romLex.Trace.LLARGE;
 import static net.consensys.linea.zktracer.types.AddressUtils.getCreate2Address;
 import static net.consensys.linea.zktracer.types.AddressUtils.getCreateAddress;
 
@@ -41,7 +42,6 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Accessors(fluent = true)
 public class RomLex implements Module {
-  private static final int LLARGE = 16;
   private static final RomChunkComparator ROM_CHUNK_COMPARATOR = new RomChunkComparator();
 
   private final Hub hub;
@@ -52,7 +52,7 @@ public class RomLex implements Module {
   private Bytes byteCode = Bytes.EMPTY;
   private Address address = Address.ZERO;
 
-  @Getter private final DeferRegistry returnDefers = new DeferRegistry();
+  // @Getter private final DeferRegistry returnDefers = new DeferRegistry();
   @Getter private final DeferRegistry createDefers = new DeferRegistry();
 
   @Override
@@ -164,10 +164,10 @@ public class RomLex implements Module {
 
           final RomChunk chunk = new RomChunk(contractMetadata, true, false, code);
           this.chunks.add(chunk);
-          this.returnDefers.trigger(contractMetadata);
+         // this.returnDefers.trigger(contractMetadata);
           this.addressRomChunkMap.put(frame.getContractAddress(), chunk);
         }
-        this.returnDefers.clear();
+        //this.returnDefers.clear();
       }
 
       case CALL, CALLCODE, DELEGATECALL, STATICCALL -> {
@@ -253,7 +253,7 @@ public class RomLex implements Module {
   public void traceEndConflation(final WorldView state) {
     this.sortedChunks.addAll(this.chunks);
     this.sortedChunks.sort(ROM_CHUNK_COMPARATOR);
-  } // TODO: should be done in the commit function
+  }
 
   @Override
   public int lineCount() {

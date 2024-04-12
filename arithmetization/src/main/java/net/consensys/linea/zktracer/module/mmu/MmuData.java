@@ -15,6 +15,10 @@
 
 package net.consensys.linea.zktracer.module.mmu;
 
+import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_ANY_TO_RAM_WITH_PADDING;
+import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_BLAKE;
+import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_EXO_TO_RAM_TRANSPLANTS;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +26,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.mmio.CallStackReader;
 import net.consensys.linea.zktracer.module.mmu.values.HubToMmuValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuEucCallRecord;
@@ -37,6 +42,7 @@ import org.apache.tuweni.bytes.Bytes;
 @Setter
 @Accessors(fluent = true)
 public class MmuData {
+  private final MmuCall mmuCall;
   private int totalLeftZeroesInitials;
   private int totalRightZeroesInitials;
   private int totalNonTrivialInitials;
@@ -52,9 +58,12 @@ public class MmuData {
   private Bytes sourceRamBytes;
   private Bytes targetRamBytes;
   private CallStackReader callStackReader;
+  private final boolean exoLimbIsSource;
+  private final boolean exoLimbIsTarget;
 
-  public MmuData(final CallStack callStack) {
+  public MmuData(final MmuCall mmuCall, final CallStack callStack) {
     this(
+        mmuCall,
         0,
         0,
         0,
@@ -69,7 +78,16 @@ public class MmuData {
         Bytes.EMPTY,
         Bytes.EMPTY,
         Bytes.EMPTY,
-        new CallStackReader(callStack));
+        new CallStackReader(callStack),
+      List.of(MMU_INST_ANY_TO_RAM_WITH_PADDING, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
+        .contains(mmuCall.instruction()),
+      List.of(
+          MMU_INST_BLAKE,
+          Trace.MMU_INST_MODEXP_DATA,
+          Trace.MMU_INST_MODEXP_ZERO,
+          Trace.MMU_INST_RAM_TO_EXO_WITH_PADDING)
+        .contains(mmuCall.instruction())
+      );
   }
 
   public int numberMmioInstructions() {

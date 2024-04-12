@@ -18,6 +18,7 @@ package net.consensys.linea.zktracer.module.mmu.values;
 import java.math.BigInteger;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
 import net.consensys.linea.zktracer.types.Bytes16;
@@ -26,8 +27,8 @@ import net.consensys.linea.zktracer.types.Bytes16;
 @Accessors(fluent = true)
 public class HubToMmuValues {
   private final int mmuInstruction;
-  private final long sourceId;
-  private final long targetId;
+  @Setter private long sourceId;
+  @Setter private long targetId;
   private final int auxId;
   private final BigInteger sourceOffsetHi;
   private final BigInteger sourceOffsetLo;
@@ -48,10 +49,18 @@ public class HubToMmuValues {
   private final boolean exoIsLog;
   private final boolean exoIsTxcd;
 
-  private HubToMmuValues(final MmuCall mmuCall) {
+  private HubToMmuValues(final MmuCall mmuCall, final boolean exoIsSource, final boolean exoIsTarget) {
     this.mmuInstruction = mmuCall.instruction();
-    this.sourceId = mmuCall.sourceId();
-    this.targetId = mmuCall.targetId();
+    this.exoSum = mmuCall.exoSum();
+    this.exoIsRom = mmuCall.exoIsRom();
+    this.exoIsBlake2fModexp = mmuCall.exoIsBlakeModexp();
+    this.exoIsEcData = mmuCall.exoIsEcData();
+    this.exoIsRipSha = mmuCall.exoIsRipSha();
+    this.exoIsKeccak = mmuCall.exoIsKec();
+    this.exoIsLog = mmuCall.exoIsLog();
+    this.exoIsTxcd = mmuCall.exoIsRlpTxn();
+    this.sourceId = exoIsRom && exoIsSource? -1 : mmuCall.sourceId();
+    this.targetId = exoIsRom && exoIsTarget? -1 : mmuCall.targetId();
     this.auxId = mmuCall.auxId();
     this.sourceOffsetHi = mmuCall.sourceOffset().hiBigInt();
     this.sourceOffsetLo = mmuCall.sourceOffset().loBigInt();
@@ -63,17 +72,9 @@ public class HubToMmuValues {
     this.limb1 = Bytes16.leftPad(mmuCall.limb1());
     this.limb2 = Bytes16.leftPad(mmuCall.limb2());
     this.phase = (int) mmuCall.phase();
-    this.exoSum = mmuCall.exoSum();
-    this.exoIsRom = mmuCall.exoIsRom();
-    this.exoIsBlake2fModexp = mmuCall.exoIsBlakeModexp();
-    this.exoIsEcData = mmuCall.exoIsEcData();
-    this.exoIsRipSha = mmuCall.exoIsRipSha();
-    this.exoIsKeccak = mmuCall.exoIsKec();
-    this.exoIsLog = mmuCall.exoIsLog();
-    this.exoIsTxcd = mmuCall.exoIsRlpTxn();
   }
 
-  public static HubToMmuValues fromMmuCall(final MmuCall mmuCall) {
-    return new HubToMmuValues(mmuCall);
+  public static HubToMmuValues fromMmuCall(final MmuCall mmuCall, final boolean exoIsSource, final boolean exoIsTarget) {
+    return new HubToMmuValues(mmuCall, exoIsSource, exoIsTarget);
   }
 }

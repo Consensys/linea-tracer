@@ -46,6 +46,30 @@ public final class CallStack {
   /** a "pointer" to the current {@link CallFrame} in <code>frames</code>. */
   private int current;
 
+  public void newPrecompileResult(
+    final int contextNumber,
+    final Bytes precompileResult,
+    final int returnDataOffset,
+    final Address precompileAddress){
+    this.depth = -1;
+    this.enter(
+      contextNumber,
+      precompileAddress,
+      precompileAddress,
+      Bytecode.EMPTY,
+      CallFrameType.PRECOMPILE_RETURN_DATA,
+      Wei.ZERO,
+      0,
+      precompileResult,
+      returnDataOffset,
+      precompileResult.size(),
+      contextNumber,
+      -1,
+      -1,
+      false);
+    this.current = this.frames.size() - 2;
+  }
+
   public void newBedrock(
       int hubStamp,
       //      Address from,

@@ -179,21 +179,21 @@ public class MmioPatterns {
       final short size) {
     final short numberByteFromFirstSource = (short) (LLARGE - sourceByteOffset);
     final short numberByteFromSecondSource = (short) (size - numberByteFromFirstSource);
-    return (Bytes16)
+    return Bytes16.wrap(
         Bytes.concatenate(
             target.slice(0, targetByteOffset),
             source1.slice(sourceByteOffset, numberByteFromFirstSource),
             source2.slice(0, numberByteFromSecondSource),
-            target.slice(targetByteOffset + size));
+            target.slice(targetByteOffset + size)));
   }
 
   public static Bytes16 excision(
       final Bytes16 target, final short targetByteOffset, final short size) {
-    return (Bytes16)
+    return Bytes16.wrap(
         Bytes.concatenate(
             target.slice(0, targetByteOffset),
             Bytes.repeat((byte) 0, size),
-            target.slice(targetByteOffset + size));
+            target.slice(targetByteOffset + size)));
   }
 
   public static void updateTemporaryTargetRam(

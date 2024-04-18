@@ -68,7 +68,7 @@ public class RamToRamSansPadding implements MmuInstruction {
   }
 
   @Override
-  public MmuData preProcess(MmuData mmuData, final CallStack callStack) {
+  public MmuData preProcess(final MmuData mmuData, final CallStack callStack) {
     final HubToMmuValues hubToMmuValues = mmuData.hubToMmuValues();
     row1(hubToMmuValues);
     row2(hubToMmuValues);
@@ -220,9 +220,10 @@ public class RamToRamSansPadding implements MmuInstruction {
   private void row5() {
     // row n°5
     final Bytes wcpArg1 = longToBytes(initialTargetByteOffset);
-    initialTboIsZero = wcp.callISZERO(wcpArg1);
+     final boolean wcpResult = wcp.callISZERO(wcpArg1);
+    initialTboIsZero = wcpResult;
     wcpCallRecords.add(
-        MmuWcpCallRecord.instIsZeroBuilder().arg1Lo(wcpArg1).result(firstLimbSingleSource).build());
+        MmuWcpCallRecord.instIsZeroBuilder().arg1Lo(wcpArg1).result(wcpResult).build());
 
     final Bytes dividend = longToBytes(lastLimbByteSize);
     EucOperation eucOp = euc.callEUC(dividend, Bytes.of(Trace.LLARGE));
@@ -241,7 +242,7 @@ public class RamToRamSansPadding implements MmuInstruction {
   }
 
   @Override
-  public MmuData setMicroInstructions(MmuData mmuData) {
+  public MmuData setMicroInstructions(final MmuData mmuData) {
     final HubToMmuValues hubToMmuValues = mmuData.hubToMmuValues();
 
     // Setting MMIO constant values
@@ -264,7 +265,7 @@ public class RamToRamSansPadding implements MmuInstruction {
       final int firstMiddleSlo =
           (int) (initialSloIncrement ? initialSourceLimbOffset + 1 : initialSourceLimbOffset);
       final int middleMicroInst =
-          aligned ? Trace.MMIO_INST_RAM_TO_LIMB_TRANSPLANT : Trace.MMIO_INST_RAM_TO_LIMB_TWO_SOURCE;
+          aligned ? Trace.MMIO_INST_RAM_TO_RAM_TRANSPLANT : Trace.MMIO_INST_RAM_TO_RAM_TWO_SOURCE;
       for (int i = 1; i < mmuData.totalNonTrivialInitials() - 1; i++) {
         middleMicroInstruction(mmuData, middleMicroInst, i, firstMiddleSlo);
       }
@@ -274,7 +275,7 @@ public class RamToRamSansPadding implements MmuInstruction {
     return mmuData;
   }
 
-  private void onlyMicroInstruction(MmuData mmuData) {
+  private void onlyMicroInstruction(final MmuData mmuData) {
     final int onlyMicroInst = calculateLastOrOnlyMicroInstruction();
 
     mmuData.mmuToMmioInstruction(
@@ -288,7 +289,7 @@ public class RamToRamSansPadding implements MmuInstruction {
             .build());
   }
 
-  private void firstMicroInstruction(MmuData mmuData) {
+  private void firstMicroInstruction(final MmuData mmuData) {
     final int onlyMicroInst = calculateFirstMicroInstruction();
 
     mmuData.mmuToMmioInstruction(
@@ -303,7 +304,7 @@ public class RamToRamSansPadding implements MmuInstruction {
   }
 
   private void middleMicroInstruction(
-      MmuData mmuData, int middleMicroInstruction, int i, int firstMiddleSlo) {
+      final MmuData mmuData, final int middleMicroInstruction, final int i, final int firstMiddleSlo) {
 
     mmuData.mmuToMmioInstruction(
         MmuToMmioInstruction.builder()
@@ -315,16 +316,16 @@ public class RamToRamSansPadding implements MmuInstruction {
             .build());
   }
 
-  private void lastMicroInstruction(MmuData mmuData, int firstMiddleSlo) {
+  private void lastMicroInstruction(final MmuData mmuData, final int firstMiddleSlo) {
     final int lastMicroInst = calculateLastOrOnlyMicroInstruction();
 
     mmuData.mmuToMmioInstruction(
         MmuToMmioInstruction.builder()
             .mmioInstruction(lastMicroInst)
             .size(lastLimbByteSize)
-            .sourceLimbOffset((firstMiddleSlo + totInitialNonTrivial - 1))
+            .sourceLimbOffset((firstMiddleSlo + totInitialNonTrivial - 2))
             .sourceByteOffset(middleSourceByteOffset)
-            .targetLimbOffset((initialTargetLimbOffset + totInitialNonTrivial))
+            .targetLimbOffset((initialTargetLimbOffset + totInitialNonTrivial -1))
             .build());
   }
 

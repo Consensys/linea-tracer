@@ -202,23 +202,29 @@ public class ModexpData implements MmuInstruction {
 
   private void row6() {
     // row n°6
-    final long dividend = initialSourceByteOffset + firstLimbByteSize;
-    EucOperation eucOp = euc.callEUC(longToBytes(dividend), Bytes.of(LLARGE));
-    middleSourceByteOffset = (short) eucOp.remainder().toInt();
-    eucCallRecords.add(
+    if (aligned){
+      lastLimbSingleSource = true;
+      eucCallRecords.add(MmuEucCallRecord.EMPTY_CALL);
+      wcpCallRecords.add(MmuWcpCallRecord.EMPTY_CALL);
+    } else {
+      final long dividend = initialSourceByteOffset + firstLimbByteSize;
+      EucOperation eucOp = euc.callEUC(longToBytes(dividend), Bytes.of(LLARGE));
+      middleSourceByteOffset = (short) eucOp.remainder().toInt();
+      eucCallRecords.add(
         MmuEucCallRecord.builder()
-            .dividend(dividend)
-            .divisor((short) LLARGE)
-            .quotient(eucOp.quotient().toLong())
-            .remainder((short) eucOp.remainder().toInt())
-            .build());
+          .dividend(dividend)
+          .divisor((short) LLARGE)
+          .quotient(eucOp.quotient().toLong())
+          .remainder((short) eucOp.remainder().toInt())
+          .build());
 
-    final Bytes wcpArg1 = longToBytes(middleSourceByteOffset + lastLimbByteSize - 1);
-    final Bytes wcpArg2 = Bytes.of(LLARGE);
-    final boolean wcpResult = wcp.callEQ(wcpArg1, wcpArg2);
-    lastLimbSingleSource = aligned ? true : wcpResult;
-    wcpCallRecords.add(
-        MmuWcpCallRecord.instEqBuilder().arg1Lo(wcpArg1).arg2Lo(wcpArg2).result(wcpResult).build());
+      final Bytes wcpArg1 = longToBytes(middleSourceByteOffset + lastLimbByteSize - 1);
+      final Bytes wcpArg2 = Bytes.of(LLARGE);
+      final boolean wcpResult = wcp.callLT(wcpArg1, wcpArg2);
+      lastLimbSingleSource = wcpResult;
+      wcpCallRecords.add(
+        MmuWcpCallRecord.instLtBuilder().arg1Lo(wcpArg1).arg2Lo(wcpArg2).result(wcpResult).build());
+    }
   }
 
   @Override

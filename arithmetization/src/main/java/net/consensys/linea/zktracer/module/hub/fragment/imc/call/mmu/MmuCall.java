@@ -15,24 +15,24 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu;
 
+import static net.consensys.linea.zktracer.module.hub.Trace.EC_DATA_PHASE_ECADD_DATA;
+import static net.consensys.linea.zktracer.module.hub.Trace.EC_DATA_PHASE_ECADD_RESULT;
+import static net.consensys.linea.zktracer.module.hub.Trace.EC_DATA_PHASE_ECMUL_DATA;
+import static net.consensys.linea.zktracer.module.hub.Trace.EC_DATA_PHASE_ECMUL_RESULT;
+import static net.consensys.linea.zktracer.module.hub.Trace.EC_DATA_PHASE_ECRECOVER_DATA;
+import static net.consensys.linea.zktracer.module.hub.Trace.EC_DATA_PHASE_ECRECOVER_RESULT;
+import static net.consensys.linea.zktracer.module.hub.Trace.EC_DATA_PHASE_PAIRING_DATA;
+import static net.consensys.linea.zktracer.module.hub.Trace.EC_DATA_PHASE_PAIRING_RESULT;
 import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_BLAKE_DATA;
 import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_BLAKE_RESULT;
-import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_ECADD_DATA;
-import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_ECADD_RESULT;
-import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_ECMUL_DATA;
-import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_ECMUL_RESULT;
-import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_ECRECOVER_DATA;
-import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_ECRECOVER_RESULT;
 import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_MODEXP_BASE;
 import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_MODEXP_EXPONENT;
 import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_MODEXP_MODULUS;
 import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_MODEXP_RESULT;
-import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_PAIRING_DATA;
-import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_PAIRING_RESULT;
 import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_RIPEMD_DATA;
 import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_RIPEMD_RESULT;
-import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_SHA2_256_DATA;
-import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_SHA2_256_RESULT;
+import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_SHA2_DATA;
+import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_SHA2_RESULT;
 import static net.consensys.linea.zktracer.module.hub.Trace.WORD_SIZE;
 import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_ANY_TO_RAM_WITH_PADDING;
 import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_BLAKE;
@@ -305,7 +305,7 @@ public class MmuCall implements TraceSubFragment {
           .size(p.callDataSource().length())
           .referenceSize(128)
           .successBit(recoverySuccessful)
-          .phase(PHASE_ECRECOVER_DATA)
+          .phase(EC_DATA_PHASE_ECRECOVER_DATA)
           .setEcData();
     } else if (i == 1) {
       if (recoverySuccessful) {
@@ -313,7 +313,7 @@ public class MmuCall implements TraceSubFragment {
             .sourceId(hub.stamp() + 1)
             .targetId(hub.stamp() + 1)
             .size(32)
-            .phase(PHASE_ECRECOVER_RESULT)
+            .phase(EC_DATA_PHASE_ECRECOVER_RESULT)
             .setEcData();
       } else {
         return nop();
@@ -348,7 +348,7 @@ public class MmuCall implements TraceSubFragment {
             .sourceOffset(EWord.of(p.callDataSource().offset()))
             .size(p.callDataSource().length())
             .referenceSize(p.callDataSource().length())
-            .phase(isSha ? PHASE_SHA2_256_DATA : PHASE_RIPEMD_DATA)
+            .phase(isSha ? PHASE_SHA2_DATA : PHASE_RIPEMD_DATA)
             .setRipSha();
       }
     } else if (i == 1) {
@@ -369,7 +369,7 @@ public class MmuCall implements TraceSubFragment {
             .sourceId(hub.stamp() + 1)
             .targetId(hub.stamp() + 1)
             .size(32)
-            .phase(isSha ? PHASE_SHA2_256_RESULT : PHASE_RIPEMD_RESULT)
+            .phase(isSha ? PHASE_SHA2_RESULT : PHASE_RIPEMD_RESULT)
             .setRipSha();
       }
     } else {
@@ -436,14 +436,14 @@ public class MmuCall implements TraceSubFragment {
           .referenceSize(128)
           .successBit(!p.ramFailure())
           .setEcData()
-          .phase(PHASE_ECADD_DATA);
+          .phase(EC_DATA_PHASE_ECADD_DATA);
     } else if (i == 1) {
       return new MmuCall(MMU_INST_EXO_TO_RAM_TRANSPLANTS)
           .sourceId(hub.stamp() + 1)
           .targetId(hub.stamp() + 1)
           .size(64)
           .setEcData()
-          .phase(PHASE_ECADD_RESULT);
+          .phase(EC_DATA_PHASE_ECADD_RESULT);
     } else {
       return new MmuCall(MMU_INST_RAM_TO_RAM_SANS_PADDING)
           .sourceId(hub.stamp() + 1)
@@ -465,14 +465,14 @@ public class MmuCall implements TraceSubFragment {
           .referenceSize(96)
           .successBit(!p.ramFailure())
           .setEcData()
-          .phase(PHASE_ECMUL_DATA);
+          .phase(EC_DATA_PHASE_ECMUL_DATA);
     } else if (i == 1) {
       return new MmuCall(MMU_INST_EXO_TO_RAM_TRANSPLANTS)
           .sourceId(hub.stamp() + 1)
           .targetId(hub.stamp() + 1)
           .size(64)
           .setEcData()
-          .phase(PHASE_ECMUL_RESULT);
+          .phase(EC_DATA_PHASE_ECMUL_RESULT);
     } else {
       return new MmuCall(MMU_INST_RAM_TO_RAM_SANS_PADDING)
           .sourceId(hub.stamp() + 1)
@@ -494,7 +494,7 @@ public class MmuCall implements TraceSubFragment {
           .referenceSize(p.callDataSource().length())
           .successBit(!p.ramFailure())
           .setEcData()
-          .phase(PHASE_PAIRING_DATA);
+          .phase(EC_DATA_PHASE_PAIRING_DATA);
     } else if (i == 1) {
       if (p.callDataSource().isEmpty()) {
         return new MmuCall(MMU_INST_MSTORE).targetId(hub.stamp() + 1).limb2(Bytes.of(1));
@@ -504,7 +504,7 @@ public class MmuCall implements TraceSubFragment {
             .targetId(hub.stamp() + 1)
             .size(32)
             .setEcData()
-            .phase(PHASE_PAIRING_RESULT);
+            .phase(EC_DATA_PHASE_PAIRING_RESULT);
       }
     } else {
       return new MmuCall(MMU_INST_RAM_TO_RAM_SANS_PADDING)

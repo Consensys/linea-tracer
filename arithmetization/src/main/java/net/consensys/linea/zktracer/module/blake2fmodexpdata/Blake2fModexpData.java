@@ -16,9 +16,11 @@
 package net.consensys.linea.zktracer.module.blake2fmodexpdata;
 
 import static net.consensys.linea.zktracer.module.blake2fmodexpdata.Trace.PHASE_BLAKE_DATA;
+import static net.consensys.linea.zktracer.module.blake2fmodexpdata.Trace.PHASE_BLAKE_RESULT;
 import static net.consensys.linea.zktracer.module.blake2fmodexpdata.Trace.PHASE_MODEXP_BASE;
 import static net.consensys.linea.zktracer.module.blake2fmodexpdata.Trace.PHASE_MODEXP_EXPONENT;
 import static net.consensys.linea.zktracer.module.blake2fmodexpdata.Trace.PHASE_MODEXP_MODULUS;
+import static net.consensys.linea.zktracer.module.blake2fmodexpdata.Trace.PHASE_MODEXP_RESULT;
 
 import java.nio.MappedByteBuffer;
 import java.util.List;
@@ -78,7 +80,9 @@ public class Blake2fModexpData implements Module {
       case PHASE_MODEXP_BASE -> op.modexpComponents.get().base();
       case PHASE_MODEXP_EXPONENT -> op.modexpComponents.get().exp();
       case PHASE_MODEXP_MODULUS -> op.modexpComponents.get().mod();
+      case PHASE_MODEXP_RESULT -> Bytes.EMPTY; //TODO
       case PHASE_BLAKE_DATA -> op.blake2fComponents.get().data();
+      case PHASE_BLAKE_RESULT -> Bytes.EMPTY; //TODO
       default -> throw new IllegalStateException("Unexpected value: " + phase);
     };
   }

@@ -220,7 +220,7 @@ public class RamToRamSansPadding implements MmuInstruction {
   private void row5() {
     // row n°5
     final Bytes wcpArg1 = longToBytes(initialTargetByteOffset);
-     final boolean wcpResult = wcp.callISZERO(wcpArg1);
+    final boolean wcpResult = wcp.callISZERO(wcpArg1);
     initialTboIsZero = wcpResult;
     wcpCallRecords.add(
         MmuWcpCallRecord.instIsZeroBuilder().arg1Lo(wcpArg1).result(wcpResult).build());
@@ -304,7 +304,10 @@ public class RamToRamSansPadding implements MmuInstruction {
   }
 
   private void middleMicroInstruction(
-      final MmuData mmuData, final int middleMicroInstruction, final int i, final int firstMiddleSlo) {
+      final MmuData mmuData,
+      final int middleMicroInstruction,
+      final int i,
+      final int firstMiddleSlo) {
 
     mmuData.mmuToMmioInstruction(
         MmuToMmioInstruction.builder()
@@ -325,7 +328,7 @@ public class RamToRamSansPadding implements MmuInstruction {
             .size(lastLimbByteSize)
             .sourceLimbOffset((firstMiddleSlo + totInitialNonTrivial - 2))
             .sourceByteOffset(middleSourceByteOffset)
-            .targetLimbOffset((initialTargetLimbOffset + totInitialNonTrivial -1))
+            .targetLimbOffset((initialTargetLimbOffset + totInitialNonTrivial - 1))
             .build());
   }
 

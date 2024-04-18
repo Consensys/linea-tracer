@@ -47,26 +47,26 @@ public final class CallStack {
   private int current;
 
   public void newPrecompileResult(
-    final int contextNumber,
-    final Bytes precompileResult,
-    final int returnDataOffset,
-    final Address precompileAddress){
+      final int contextNumber,
+      final Bytes precompileResult,
+      final int returnDataOffset,
+      final Address precompileAddress) {
     this.depth = -1;
     this.enter(
-      contextNumber,
-      precompileAddress,
-      precompileAddress,
-      Bytecode.EMPTY,
-      CallFrameType.PRECOMPILE_RETURN_DATA,
-      Wei.ZERO,
-      0,
-      precompileResult,
-      returnDataOffset,
-      precompileResult.size(),
-      contextNumber,
-      -1,
-      -1,
-      false);
+        contextNumber,
+        precompileAddress,
+        precompileAddress,
+        Bytecode.EMPTY,
+        CallFrameType.PRECOMPILE_RETURN_DATA,
+        Wei.ZERO,
+        0,
+        precompileResult,
+        returnDataOffset,
+        precompileResult.size(),
+        contextNumber,
+        -1,
+        -1,
+        false);
     this.current = this.frames.size() - 2;
   }
 

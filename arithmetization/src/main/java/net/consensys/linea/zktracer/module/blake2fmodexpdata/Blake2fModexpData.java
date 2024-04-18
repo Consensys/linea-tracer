@@ -80,9 +80,9 @@ public class Blake2fModexpData implements Module {
       case PHASE_MODEXP_BASE -> op.modexpComponents.get().base();
       case PHASE_MODEXP_EXPONENT -> op.modexpComponents.get().exp();
       case PHASE_MODEXP_MODULUS -> op.modexpComponents.get().mod();
-      case PHASE_MODEXP_RESULT -> Bytes.EMPTY; //TODO
+      case PHASE_MODEXP_RESULT -> Bytes.EMPTY; // TODO
       case PHASE_BLAKE_DATA -> op.blake2fComponents.get().data();
-      case PHASE_BLAKE_RESULT -> Bytes.EMPTY; //TODO
+      case PHASE_BLAKE_RESULT -> Bytes.EMPTY; // TODO
       default -> throw new IllegalStateException("Unexpected value: " + phase);
     };
   }

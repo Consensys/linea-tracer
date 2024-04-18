@@ -1415,13 +1415,14 @@ public class Hub implements Module {
             // TODO: fill the callee & requested return data for the current call frame
             // TODO: i.e. ensure that the precompile frame behaves as expected
 
-
             Optional<PrecompileInvocation> precompileInvocation =
                 targetPrecompile.map(p -> PrecompileInvocation.of(this, p));
 
-            // TODO: this is ugly, and surely not at the right place. It should provide the precompile result (from the precompile module)
-            if (targetPrecompile.isPresent()){
-              this.callStack.newPrecompileResult(this.stamp(), Bytes.EMPTY, 0, targetPrecompile.get().address);
+            // TODO: this is ugly, and surely not at the right place. It should provide the
+            // precompile result (from the precompile module)
+            if (targetPrecompile.isPresent()) {
+              this.callStack.newPrecompileResult(
+                  this.stamp(), Bytes.EMPTY, 0, targetPrecompile.get().address);
             }
 
             final NoCodeCallSection section =

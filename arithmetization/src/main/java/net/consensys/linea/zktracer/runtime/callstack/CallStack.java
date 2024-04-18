@@ -52,6 +52,7 @@ public final class CallStack {
       final int returnDataOffset,
       final Address precompileAddress) {
     this.depth = -1;
+    final int currentCallStackId = this.current;
     this.enter(
         contextNumber,
         precompileAddress,
@@ -67,7 +68,7 @@ public final class CallStack {
         -1,
         -1,
         false);
-    this.current = this.frames.size() - 2;
+    this.current = currentCallStackId;
   }
 
   public void newBedrock(

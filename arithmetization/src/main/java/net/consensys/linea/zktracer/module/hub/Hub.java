@@ -935,7 +935,9 @@ public class Hub implements Module {
     Optional<? extends Address> receiver = tx.getTo();
 
     if (receiver.isPresent()) {
-      return worldView.get(receiver.get()).hasCode();
+      Optional<Account> receiverInWorld = Optional.ofNullable(worldView.get(receiver.get()));
+
+      return receiverInWorld.map(AccountState::hasCode).orElse(false);
     }
 
     return !tx.getInit().get().isEmpty();
@@ -1420,6 +1422,7 @@ public class Hub implements Module {
 
             // TODO: this is ugly, and surely not at the right place. It should provide the
             // precompile result (from the precompile module)
+            // TODO useless (and potentially dangerous) if the precompile is a failure
             if (targetPrecompile.isPresent()) {
               this.callStack.newPrecompileResult(
                   this.stamp(), Bytes.EMPTY, 0, targetPrecompile.get().address);

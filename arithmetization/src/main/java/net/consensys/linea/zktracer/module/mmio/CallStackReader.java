@@ -33,7 +33,7 @@ public class CallStackReader {
   public Bytes valueFromMemory(final long contextNumber, final boolean ramIsSource) {
     final CallFrame callFrame = callStack.getByContextNumber(contextNumber);
 
-    if (callFrame.type() == CallFrameType.MANTLE) {
+    if (callFrame.type() == CallFrameType.MANTLE || callFrame.type() == CallFrameType.BEDROCK) {
       return callFrame.callDataInfo().data();
     }
 

@@ -312,7 +312,7 @@ public class MmuCall implements TraceSubFragment {
         return new MmuCall(MMU_INST_EXO_TO_RAM_TRANSPLANTS)
             .sourceId(hub.stamp() + 1)
             .targetId(hub.stamp() + 1)
-            .size(32)
+            .size(WORD_SIZE)
             .phase(EC_DATA_PHASE_ECRECOVER_RESULT)
             .setEcData();
       } else {
@@ -320,11 +320,12 @@ public class MmuCall implements TraceSubFragment {
       }
     } else {
       if (recoverySuccessful && !p.requestedReturnDataTarget().isEmpty()) {
+
         return new MmuCall(MMU_INST_RAM_TO_RAM_SANS_PADDING)
             .sourceId(hub.stamp() + 1)
             .targetId(hub.currentFrame().contextNumber())
             .sourceOffset(EWord.ZERO)
-            .size(32)
+            .size(WORD_SIZE)
             .referenceOffset(p.requestedReturnDataTarget().offset())
             .referenceSize(p.requestedReturnDataTarget().length());
 

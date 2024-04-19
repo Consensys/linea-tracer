@@ -28,7 +28,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
@@ -369,7 +368,7 @@ public class Hub implements Module {
    * @param world a view onto the state
    */
   void processStateSkip(WorldView world) {
-    this.state.stamps().stampHub();
+    this.state.stamps().stampHubIncrements();
     boolean isDeployment = this.transients.tx().besuTx().getTo().isEmpty();
 
     //
@@ -437,7 +436,7 @@ public class Hub implements Module {
         .ifPresent(
             preWarmed -> {
               if (!preWarmed.isEmpty()) {
-                this.state.stamps().stampHub();
+                this.state.stamps().stampHubIncrements();
 
                 Set<Address> seenAddresses = new HashSet<>();
                 Map<Address, Set<Bytes32>> seenKeys = new HashMap<>();
@@ -485,7 +484,7 @@ public class Hub implements Module {
    * @param world a view onto the state
    */
   void processStateInit(WorldView world) {
-    this.state.stamps().stampHub();
+    this.state.stamps().stampHubIncrements();
     final boolean isDeployment = this.transients.tx().besuTx().getTo().isEmpty();
     final Address toAddress = effectiveToAddress(this.transients.tx().besuTx());
     if (isDeployment) {
@@ -636,7 +635,7 @@ public class Hub implements Module {
 
   void processStateExec(MessageFrame frame) {
     this.currentFrame().frame(frame);
-    this.state.stamps().stampHub();
+    this.state.stamps().stampHubIncrements();
     this.pch.setup(frame);
     this.state.stamps().stampSubmodules(this.pch());
 
@@ -657,7 +656,7 @@ public class Hub implements Module {
 
   void processStateFinal(WorldView worldView, Transaction tx, boolean isSuccess) {
     this.transients().tx().state(TxState.TX_FINAL);
-    this.state.stamps().stampHub();
+    this.state.stamps().stampHubIncrements();
 
     Address fromAddress = this.transients.tx().besuTx().getSender();
     Account fromAccount = worldView.get(fromAddress);
@@ -886,9 +885,6 @@ public class Hub implements Module {
       }
       final int codeDeploymentNumber =
           this.transients.conflation().deploymentInfo().number(codeAddress);
-
-      Preconditions.checkArgument(
-          frame.getPC() == 0, "PC isn't zero"); // TODO delete, used only to debug
 
       final int callDataOffsetStackArgument =
           callStack.current().opCode().callHasSixArgument() ? 2 : 3;

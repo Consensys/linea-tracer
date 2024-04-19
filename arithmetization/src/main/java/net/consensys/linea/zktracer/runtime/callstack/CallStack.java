@@ -47,28 +47,32 @@ public final class CallStack {
   private int current;
 
   public void newPrecompileResult(
-      final int contextNumber,
+      final int hubStamp,
       final Bytes precompileResult,
       final int returnDataOffset,
       final Address precompileAddress) {
-    this.depth = -1;
-    final int currentCallStackId = this.current;
-    this.enter(
-        contextNumber,
-        precompileAddress,
-        precompileAddress,
-        Bytecode.EMPTY,
-        CallFrameType.PRECOMPILE_RETURN_DATA,
-        Wei.ZERO,
-        0,
-        precompileResult,
-        returnDataOffset,
-        precompileResult.size(),
-        contextNumber,
-        -1,
-        -1,
-        false);
-    this.current = currentCallStackId;
+
+    final CallFrame newFrame =
+        new CallFrame(
+            -1,
+            -1,
+            false,
+            this.frames.size(),
+            hubStamp,
+            precompileAddress,
+            precompileAddress,
+            Bytecode.EMPTY,
+            CallFrameType.PRECOMPILE_RETURN_DATA,
+            this.current,
+            Wei.ZERO,
+            0,
+            precompileResult,
+            returnDataOffset,
+            precompileResult.size(),
+            -1,
+            this.depth);
+
+    this.frames.add(newFrame);
   }
 
   public void newBedrock(
@@ -313,7 +317,7 @@ public final class CallStack {
       }
     }
 
-    throw new IllegalArgumentException("call frame not found");
+    throw new IllegalArgumentException(String.format("call frame CN %s not found", i));
   }
 
   /**

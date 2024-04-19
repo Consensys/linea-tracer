@@ -16,10 +16,11 @@
 package net.consensys.linea.zktracer.module.oob;
 
 class OobTestCommon {
-  // TODO: all these methods are deprecated since oobEvent has been removed, update them once oob is done
+  // TODO: all these methods are deprecated since oobEvent has been removed, update them once oob is
+  // done
   // Support methods to assert that the oob events are set correctly
   static boolean getOobEvent1AtRow(final Oob oob, int i) {
-    //return oob.getChunks().get(i).isOobEvent1();
+    // return oob.getChunks().get(i).isOobEvent1();
     return false;
   }
 

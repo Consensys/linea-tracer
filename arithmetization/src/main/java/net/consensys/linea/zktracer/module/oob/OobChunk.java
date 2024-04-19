@@ -975,7 +975,7 @@ public class OobChunk extends ModuleOperation {
 
   private void setModexpCds(PrcModexpCdsParameters prcModexpCdsParameters) {
     // row i
-    callToLT(0, BigInteger.ZERO, prcModexpCdsParameters.getCds(), BigInteger.ZERO, BigInteger.ZERO);
+    callToLT(0, BigInteger.ZERO, BigInteger.ZERO, BigInteger.ZERO, prcModexpCdsParameters.getCds());
     boolean extractBbs = bigIntegerToBoolean(outgoingResLo[0]);
 
     // row i + 1
@@ -1096,7 +1096,7 @@ public class OobChunk extends ModuleOperation {
     }
     // Set ebsCutoff
     prcModexpLeadParameters.setEbsCutoff(
-        ebsLessThan32 ? prcModexpLeadParameters.getEbs().intValue() : 0);
+        ebsLessThan32 ? prcModexpLeadParameters.getEbs().intValue() : 32);
 
     // Set subEbs32
     prcModexpLeadParameters.setSubEbs32(
@@ -1208,7 +1208,7 @@ public class OobChunk extends ModuleOperation {
         BigInteger.valueOf(213));
     boolean validCds = bigIntegerToBoolean(outgoingResLo[0]);
 
-    // row i
+    // row i + 1
     callToISZERO(1, BigInteger.ZERO, prcBlake2FCdsParameters.getReturnAtCapacity());
     boolean returnAtCapacityIsZero = bigIntegerToBoolean(outgoingResLo[1]);
 

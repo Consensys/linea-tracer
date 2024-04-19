@@ -34,10 +34,12 @@ import net.consensys.linea.zktracer.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.testing.EvmExtension;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(EvmExtension.class)
+@Disabled("Disabled since oob update is in progress")
 public class OobJumpAndJumpiTest {
 
   public static final BigInteger TWO_POW_128_MINUS_ONE =

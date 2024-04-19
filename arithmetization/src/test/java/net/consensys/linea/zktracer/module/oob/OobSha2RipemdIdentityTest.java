@@ -38,6 +38,10 @@ public class OobSha2RipemdIdentityTest {
   int[] argSizes =
       new int[] {0, 1, 10, 20, 31, 32, 33, 63, 64, 65, 95, 96, 97, 127, 128, 129, 1000, 2000};
 
+  // Excluding 0
+  // int[] argSizes = new int[] {1, 10, 20, 31, 32, 33, 63, 64, 65, 95, 96, 97, 127, 128, 129, 1000,
+  // 2000};
+
   @Test
   void TestSha2() throws NoSuchAlgorithmException {
     String data;

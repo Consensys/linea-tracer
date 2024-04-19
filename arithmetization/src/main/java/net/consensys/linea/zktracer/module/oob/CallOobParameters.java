@@ -40,6 +40,8 @@ public record CallOobParameters(EWord val, BigInteger bal, boolean nonZeroValue,
         .data3(bigIntegerToBytes(bal))
         .data4(nonZeroValue ? ONE : ZERO)
         .data5(ZERO)
-        .data6(bigIntegerToBytes(csd));
+        .data6(bigIntegerToBytes(csd))
+        .data7(ZERO) // TODO: temporary value; to fill when oob update is complete
+        .data8(ZERO); // TODO: temporary value; to fill when oob update is complete
   }
 }

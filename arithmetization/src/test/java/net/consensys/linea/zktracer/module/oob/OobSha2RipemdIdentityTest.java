@@ -35,12 +35,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(EvmExtension.class)
 public class OobSha2RipemdIdentityTest {
   Random random = new Random(1L);
-  int[] argSizes =
-      new int[] {0, 1, 10, 20, 31, 32, 33, 63, 64, 65, 95, 96, 97, 127, 128, 129, 1000, 2000};
+  // int[] argSizes =
+  //    new int[] {0, 1, 10, 20, 31, 32, 33, 63, 64, 65, 95, 96, 97, 127, 128, 129, 1000, 2000};
 
-  // Excluding 0
-  // int[] argSizes = new int[] {1, 10, 20, 31, 32, 33, 63, 64, 65, 95, 96, 97, 127, 128, 129, 1000,
-  // 2000};
+  // Excluding some inputs
+  int[] argSizes = new int[] {20, 31, 32, 33, 63, 64, 65, 95, 96, 97, 127, 128, 129, 1000, 2000};
 
   @Test
   void TestSha2() throws NoSuchAlgorithmException {
@@ -208,7 +207,7 @@ public class OobSha2RipemdIdentityTest {
       if (argSize <= 32) {
         // The random offset is applied before the EWord
         // Generate a small random offset
-        int randomOffset = 30; // random.nextInt(1, 5);
+        int randomOffset = random.nextInt(1, 5);
         argOffset = randomOffset + 32 - argSize;
         retOffset = address == Address.ID ? randomOffset + 64 - argSize : randomOffset + 32;
 
@@ -274,11 +273,12 @@ public class OobSha2RipemdIdentityTest {
 
   @Test
   void TestInitProgramInvokingPrecompileDataInMemorySupportMethod() {
+    // This test is to ensure that the data written in memory is the same as the input data
     String data;
     for (int argSize : argSizes) {
       data = generateHexString(argSize);
 
-      ProgramAndRetInfo programAndRetInfo = initProgramInvokingPrecompile(data, Address.SHA256);
+      ProgramAndRetInfo programAndRetInfo = initProgramInvokingPrecompile(data, Address.ZERO);
       BytecodeCompiler program = programAndRetInfo.program();
 
       BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());

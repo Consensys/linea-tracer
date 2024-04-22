@@ -31,93 +31,92 @@ import org.bouncycastle.util.encoders.Hex;
 import org.hyperledger.besu.datatypes.Address;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 @ExtendWith(EvmExtension.class)
 public class OobSha2RipemdIdentityTest {
   Random random = new Random(1L);
-  // int[] argSizes =
-  //    new int[] {0, 1, 10, 20, 31, 32, 33, 63, 64, 65, 95, 96, 97, 127, 128, 129, 1000, 2000};
+  static final int[] argSizes =
+      new int[] {0, 1, 10, 20, 31, 32, 33, 63, 64, 65, 95, 96, 97, 127, 128, 129, 1000, 2000};
 
-  // Excluding some inputs
-  int[] argSizes = new int[] {20, 31, 32, 33, 63, 64, 65, 95, 96, 97, 127, 128, 129, 1000, 2000};
-
-  @Test
-  void TestSha2() throws NoSuchAlgorithmException {
-    String data;
-    for (int argSize : argSizes) {
-      data = generateHexString(argSize);
-      ProgramAndRetInfo programAndRetInfo = initProgramInvokingPrecompile(data, Address.SHA256);
-      BytecodeCompiler program = programAndRetInfo.program();
-
-      BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-      bytecodeRunner.run();
-
-      String referenceComputedHash = sha256(data);
-      String prcComputedHash =
-          bytecodeRunner
-              .getHub()
-              .currentFrame()
-              .frame()
-              .shadowReadMemory(programAndRetInfo.retOffset, programAndRetInfo.retSize)
-              .toString();
-      System.out.println("Test SHA2-256 with random argSize = " + argSize);
-      System.out.println("Inp: 0x" + data);
-      System.out.println("Ref: " + referenceComputedHash);
-      System.out.println("Com: " + prcComputedHash);
-      assert (referenceComputedHash.equals(prcComputedHash));
-    }
+  // https://coderpad.io/blog/development/writing-a-parameterized-test-in-junit-with-examples/
+  // https://stackoverflow.com/questions/76124016/pass-externally-defined-variable-to-junit-valuesource-annotation-in-a-paramete
+  static int[] argSizesSource() {
+    return argSizes;
   }
 
-  @Test
-  void TestIdentity() {
-    String data;
-    for (int argSize : argSizes) {
-      data = generateHexString(argSize);
-      ProgramAndRetInfo programAndRetInfo = initProgramInvokingPrecompile(data, Address.ID);
-      BytecodeCompiler program = programAndRetInfo.program();
+  @ParameterizedTest
+  @MethodSource("argSizesSource")
+  void TestSha2(int argSize) throws NoSuchAlgorithmException {
+    String data = generateHexString(argSize);
+    ProgramAndRetInfo programAndRetInfo = initProgramInvokingPrecompile(data, Address.SHA256);
+    BytecodeCompiler program = programAndRetInfo.program();
 
-      BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-      bytecodeRunner.run();
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
+    bytecodeRunner.run();
 
-      String returnedData =
-          bytecodeRunner
-              .getHub()
-              .currentFrame()
-              .frame()
-              .shadowReadMemory(programAndRetInfo.retOffset, programAndRetInfo.retSize)
-              .toString();
-      System.out.println("Test IDENTITY with random argSize = " + argSize);
-      System.out.println("Inp: 0x" + data);
-      System.out.println("Ret: " + returnedData);
-      assert (("0x" + data.toLowerCase()).equals(returnedData));
-    }
+    String referenceComputedHash = sha256(data);
+    String prcComputedHash =
+        bytecodeRunner
+            .getHub()
+            .currentFrame()
+            .frame()
+            .shadowReadMemory(programAndRetInfo.retOffset, programAndRetInfo.retSize)
+            .toString();
+    System.out.println("Test SHA2-256 with random argSize = " + argSize);
+    System.out.println("Inp: 0x" + data);
+    System.out.println("Ref: " + referenceComputedHash);
+    System.out.println("Com: " + prcComputedHash);
+    assert (referenceComputedHash.equals(prcComputedHash));
   }
 
-  @Test
-  void TestRipmd() {
-    String data;
-    for (int argSize : argSizes) {
-      data = generateHexString(argSize);
-      ProgramAndRetInfo programAndRetInfo = initProgramInvokingPrecompile(data, Address.RIPEMD160);
-      BytecodeCompiler program = programAndRetInfo.program();
+  @ParameterizedTest
+  @MethodSource("argSizesSource")
+  void TestIdentity(int argSize) {
+    String data = generateHexString(argSize);
+    ProgramAndRetInfo programAndRetInfo = initProgramInvokingPrecompile(data, Address.ID);
+    BytecodeCompiler program = programAndRetInfo.program();
 
-      BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-      bytecodeRunner.run();
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
+    bytecodeRunner.run();
 
-      String referenceComputedHash = ripemd160(data);
-      String prcComputedHash =
-          bytecodeRunner
-              .getHub()
-              .currentFrame()
-              .frame()
-              .shadowReadMemory(programAndRetInfo.retOffset, programAndRetInfo.retSize)
-              .toString();
-      System.out.println("Test RIPEMD-160 with random argSize = " + argSize);
-      System.out.println("Inp: 0x" + data);
-      System.out.println("Ref: " + referenceComputedHash);
-      System.out.println("Com: " + prcComputedHash);
-      assert (referenceComputedHash.equals(prcComputedHash));
-    }
+    String returnedData =
+        bytecodeRunner
+            .getHub()
+            .currentFrame()
+            .frame()
+            .shadowReadMemory(programAndRetInfo.retOffset, programAndRetInfo.retSize)
+            .toString();
+    System.out.println("Test IDENTITY with random argSize = " + argSize);
+    System.out.println("Inp: 0x" + data);
+    System.out.println("Ret: " + returnedData);
+    assert (("0x" + data.toLowerCase()).equals(returnedData));
+  }
+
+  @ParameterizedTest
+  @MethodSource("argSizesSource")
+  void TestRipmd(int argSize) {
+    String data = generateHexString(argSize);
+    ProgramAndRetInfo programAndRetInfo = initProgramInvokingPrecompile(data, Address.RIPEMD160);
+    BytecodeCompiler program = programAndRetInfo.program();
+
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
+    bytecodeRunner.run();
+
+    String referenceComputedHash = ripemd160(data);
+    String prcComputedHash =
+        bytecodeRunner
+            .getHub()
+            .currentFrame()
+            .frame()
+            .shadowReadMemory(programAndRetInfo.retOffset, programAndRetInfo.retSize)
+            .toString();
+    System.out.println("Test RIPEMD-160 with random argSize = " + argSize);
+    System.out.println("Inp: 0x" + data);
+    System.out.println("Ref: " + referenceComputedHash);
+    System.out.println("Com: " + prcComputedHash);
+    assert (referenceComputedHash.equals(prcComputedHash));
   }
 
   // Support methods
@@ -271,29 +270,27 @@ public class OobSha2RipemdIdentityTest {
     return new ProgramAndRetInfo(program, argSize, argOffset, retSize, retOffset);
   }
 
-  @Test
-  void TestInitProgramInvokingPrecompileDataInMemorySupportMethod() {
+  @ParameterizedTest
+  @MethodSource("argSizesSource")
+  void TestInitProgramInvokingPrecompileDataInMemorySupportMethod(int argSize) {
     // This test is to ensure that the data written in memory is the same as the input data
-    String data;
-    for (int argSize : argSizes) {
-      data = generateHexString(argSize);
+    String data = generateHexString(argSize);
 
-      ProgramAndRetInfo programAndRetInfo = initProgramInvokingPrecompile(data, Address.ZERO);
-      BytecodeCompiler program = programAndRetInfo.program();
+    ProgramAndRetInfo programAndRetInfo = initProgramInvokingPrecompile(data, Address.ZERO);
+    BytecodeCompiler program = programAndRetInfo.program();
 
-      BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-      bytecodeRunner.run();
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
+    bytecodeRunner.run();
 
-      String dataInMemory =
-          bytecodeRunner
-              .getHub()
-              .currentFrame()
-              .frame()
-              .shadowReadMemory(programAndRetInfo.argOffset, programAndRetInfo.argSize)
-              .toString();
-      System.out.println("0x" + data);
-      System.out.println(dataInMemory);
-      assert (("0x" + data.toLowerCase()).equals(dataInMemory));
-    }
+    String dataInMemory =
+        bytecodeRunner
+            .getHub()
+            .currentFrame()
+            .frame()
+            .shadowReadMemory(programAndRetInfo.argOffset, programAndRetInfo.argSize)
+            .toString();
+    System.out.println("0x" + data);
+    System.out.println(dataInMemory);
+    assert (("0x" + data.toLowerCase()).equals(dataInMemory));
   }
 }

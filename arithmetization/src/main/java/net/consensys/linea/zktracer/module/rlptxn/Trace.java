@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.rlptxn;
 
-import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.BitSet;
 import java.util.List;
@@ -31,14 +30,6 @@ import org.apache.tuweni.bytes.Bytes;
  * Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
 public class Trace {
-  public static final int EC_DATA_PHASE_ECADD_DATA = 0x3;
-  public static final int EC_DATA_PHASE_ECADD_RESULT = 0x4;
-  public static final int EC_DATA_PHASE_ECMUL_DATA = 0x5;
-  public static final int EC_DATA_PHASE_ECMUL_RESULT = 0x6;
-  public static final int EC_DATA_PHASE_ECRECOVER_DATA = 0x1;
-  public static final int EC_DATA_PHASE_ECRECOVER_RESULT = 0x2;
-  public static final int EC_DATA_PHASE_PAIRING_DATA = 0x7;
-  public static final int EC_DATA_PHASE_PAIRING_RESULT = 0x8;
   public static final int EIP_3541_MARKER = 0xef;
   public static final BigInteger EMPTY_KECCAK_HI = new BigInteger("16434357337474432580558001204043214908");
   public static final BigInteger EMPTY_KECCAK_LO = new BigInteger("19024806816994025362060938983270537799");
@@ -370,6 +361,7 @@ public class Trace {
   private final MappedByteBuffer depth1;
   private final MappedByteBuffer depth2;
   private final MappedByteBuffer done;
+  private final MappedByteBuffer helloitsme;
   private final MappedByteBuffer indexData;
   private final MappedByteBuffer indexLt;
   private final MappedByteBuffer indexLx;
@@ -408,69 +400,72 @@ public class Trace {
   private final MappedByteBuffer requiresEvmExecution;
   private final MappedByteBuffer rlpLtBytesize;
   private final MappedByteBuffer rlpLxBytesize;
+  private final MappedByteBuffer toHashByProver;
   private final MappedByteBuffer type;
 
   static List<ColumnHeader> headers(int length) {
     return List.of(
-        new ColumnHeader("rlpTxn.ABS_TX_NUM", 8, length),
-        new ColumnHeader("rlpTxn.ABS_TX_NUM_INFINY", 4, length),
-        new ColumnHeader("rlpTxn.ACC_1", 32, length),
-        new ColumnHeader("rlpTxn.ACC_2", 32, length),
-        new ColumnHeader("rlpTxn.ACC_BYTESIZE", 2, length),
-        new ColumnHeader("rlpTxn.ACCESS_TUPLE_BYTESIZE", 4, length),
-        new ColumnHeader("rlpTxn.ADDR_HI", 8, length),
-        new ColumnHeader("rlpTxn.ADDR_LO", 32, length),
-        new ColumnHeader("rlpTxn.BIT", 1, length),
-        new ColumnHeader("rlpTxn.BIT_ACC", 1, length),
-        new ColumnHeader("rlpTxn.BYTE_1", 1, length),
-        new ColumnHeader("rlpTxn.BYTE_2", 1, length),
-        new ColumnHeader("rlpTxn.CODE_FRAGMENT_INDEX", 8, length),
-        new ColumnHeader("rlpTxn.COUNTER", 2, length),
-        new ColumnHeader("rlpTxn.DATA_GAS_COST", 8, length),
-        new ColumnHeader("rlpTxn.DATA_HI", 32, length),
-        new ColumnHeader("rlpTxn.DATA_LO", 32, length),
-        new ColumnHeader("rlpTxn.DEPTH_1", 1, length),
-        new ColumnHeader("rlpTxn.DEPTH_2", 1, length),
-        new ColumnHeader("rlpTxn.DONE", 1, length),
-        new ColumnHeader("rlpTxn.INDEX_DATA", 8, length),
-        new ColumnHeader("rlpTxn.INDEX_LT", 8, length),
-        new ColumnHeader("rlpTxn.INDEX_LX", 8, length),
-        new ColumnHeader("rlpTxn.INPUT_1", 32, length),
-        new ColumnHeader("rlpTxn.INPUT_2", 32, length),
-        new ColumnHeader("rlpTxn.IS_PREFIX", 1, length),
-        new ColumnHeader("rlpTxn.LC_CORRECTION", 1, length),
-        new ColumnHeader("rlpTxn.LIMB", 32, length),
-        new ColumnHeader("rlpTxn.LIMB_CONSTRUCTED", 1, length),
-        new ColumnHeader("rlpTxn.LT", 1, length),
-        new ColumnHeader("rlpTxn.LX", 1, length),
-        new ColumnHeader("rlpTxn.nADDR", 4, length),
-        new ColumnHeader("rlpTxn.nBYTES", 2, length),
-        new ColumnHeader("rlpTxn.nKEYS", 4, length),
-        new ColumnHeader("rlpTxn.nKEYS_PER_ADDR", 4, length),
-        new ColumnHeader("rlpTxn.nSTEP", 2, length),
-        new ColumnHeader("rlpTxn.PHASE_1", 1, length),
-        new ColumnHeader("rlpTxn.PHASE_10", 1, length),
-        new ColumnHeader("rlpTxn.PHASE_11", 1, length),
-        new ColumnHeader("rlpTxn.PHASE_12", 1, length),
-        new ColumnHeader("rlpTxn.PHASE_13", 1, length),
-        new ColumnHeader("rlpTxn.PHASE_14", 1, length),
-        new ColumnHeader("rlpTxn.PHASE_15", 1, length),
-        new ColumnHeader("rlpTxn.PHASE_2", 1, length),
-        new ColumnHeader("rlpTxn.PHASE_3", 1, length),
-        new ColumnHeader("rlpTxn.PHASE_4", 1, length),
-        new ColumnHeader("rlpTxn.PHASE_5", 1, length),
-        new ColumnHeader("rlpTxn.PHASE_6", 1, length),
-        new ColumnHeader("rlpTxn.PHASE_7", 1, length),
-        new ColumnHeader("rlpTxn.PHASE_8", 1, length),
-        new ColumnHeader("rlpTxn.PHASE_9", 1, length),
-        new ColumnHeader("rlpTxn.PHASE_END", 1, length),
-        new ColumnHeader("rlpTxn.PHASE_ID", 2, length),
-        new ColumnHeader("rlpTxn.PHASE_SIZE", 8, length),
-        new ColumnHeader("rlpTxn.POWER", 32, length),
-        new ColumnHeader("rlpTxn.REQUIRES_EVM_EXECUTION", 1, length),
-        new ColumnHeader("rlpTxn.RLP_LT_BYTESIZE", 4, length),
-        new ColumnHeader("rlpTxn.RLP_LX_BYTESIZE", 4, length),
-        new ColumnHeader("rlpTxn.TYPE", 2, length));
+        new ColumnHeader("rlptxn.ABS_TX_NUM", 4, length),
+        new ColumnHeader("rlptxn.ABS_TX_NUM_INFINY", 4, length),
+        new ColumnHeader("rlptxn.ACC_1", 32, length),
+        new ColumnHeader("rlptxn.ACC_2", 32, length),
+        new ColumnHeader("rlptxn.ACC_BYTESIZE", 2, length),
+        new ColumnHeader("rlptxn.ACCESS_TUPLE_BYTESIZE", 4, length),
+        new ColumnHeader("rlptxn.ADDR_HI", 8, length),
+        new ColumnHeader("rlptxn.ADDR_LO", 32, length),
+        new ColumnHeader("rlptxn.BIT", 1, length),
+        new ColumnHeader("rlptxn.BIT_ACC", 1, length),
+        new ColumnHeader("rlptxn.BYTE_1", 1, length),
+        new ColumnHeader("rlptxn.BYTE_2", 1, length),
+        new ColumnHeader("rlptxn.CODE_FRAGMENT_INDEX", 8, length),
+        new ColumnHeader("rlptxn.COUNTER", 2, length),
+        new ColumnHeader("rlptxn.DATA_GAS_COST", 8, length),
+        new ColumnHeader("rlptxn.DATA_HI", 32, length),
+        new ColumnHeader("rlptxn.DATA_LO", 32, length),
+        new ColumnHeader("rlptxn.DEPTH_1", 1, length),
+        new ColumnHeader("rlptxn.DEPTH_2", 1, length),
+        new ColumnHeader("rlptxn.DONE", 1, length),
+        new ColumnHeader("rlptxn.HELLOITSME", 32, length),
+        new ColumnHeader("rlptxn.INDEX_DATA", 8, length),
+        new ColumnHeader("rlptxn.INDEX_LT", 8, length),
+        new ColumnHeader("rlptxn.INDEX_LX", 8, length),
+        new ColumnHeader("rlptxn.INPUT_1", 32, length),
+        new ColumnHeader("rlptxn.INPUT_2", 32, length),
+        new ColumnHeader("rlptxn.IS_PREFIX", 1, length),
+        new ColumnHeader("rlptxn.LC_CORRECTION", 1, length),
+        new ColumnHeader("rlptxn.LIMB", 32, length),
+        new ColumnHeader("rlptxn.LIMB_CONSTRUCTED", 1, length),
+        new ColumnHeader("rlptxn.LT", 1, length),
+        new ColumnHeader("rlptxn.LX", 1, length),
+        new ColumnHeader("rlptxn.nADDR", 4, length),
+        new ColumnHeader("rlptxn.nBYTES", 2, length),
+        new ColumnHeader("rlptxn.nKEYS", 4, length),
+        new ColumnHeader("rlptxn.nKEYS_PER_ADDR", 4, length),
+        new ColumnHeader("rlptxn.nSTEP", 2, length),
+        new ColumnHeader("rlptxn.PHASE_1", 1, length),
+        new ColumnHeader("rlptxn.PHASE_10", 1, length),
+        new ColumnHeader("rlptxn.PHASE_11", 1, length),
+        new ColumnHeader("rlptxn.PHASE_12", 1, length),
+        new ColumnHeader("rlptxn.PHASE_13", 1, length),
+        new ColumnHeader("rlptxn.PHASE_14", 1, length),
+        new ColumnHeader("rlptxn.PHASE_15", 1, length),
+        new ColumnHeader("rlptxn.PHASE_2", 1, length),
+        new ColumnHeader("rlptxn.PHASE_3", 1, length),
+        new ColumnHeader("rlptxn.PHASE_4", 1, length),
+        new ColumnHeader("rlptxn.PHASE_5", 1, length),
+        new ColumnHeader("rlptxn.PHASE_6", 1, length),
+        new ColumnHeader("rlptxn.PHASE_7", 1, length),
+        new ColumnHeader("rlptxn.PHASE_8", 1, length),
+        new ColumnHeader("rlptxn.PHASE_9", 1, length),
+        new ColumnHeader("rlptxn.PHASE_END", 1, length),
+        new ColumnHeader("rlptxn.PHASE_ID", 2, length),
+        new ColumnHeader("rlptxn.PHASE_SIZE", 8, length),
+        new ColumnHeader("rlptxn.POWER", 32, length),
+        new ColumnHeader("rlptxn.REQUIRES_EVM_EXECUTION", 1, length),
+        new ColumnHeader("rlptxn.RLP_LT_BYTESIZE", 4, length),
+        new ColumnHeader("rlptxn.RLP_LX_BYTESIZE", 4, length),
+        new ColumnHeader("rlptxn.TO_HASH_BY_PROVER", 1, length),
+        new ColumnHeader("rlptxn.TYPE", 2, length));
   }
 
   public Trace(List<MappedByteBuffer> buffers) {
@@ -494,45 +489,47 @@ public class Trace {
     this.depth1 = buffers.get(17);
     this.depth2 = buffers.get(18);
     this.done = buffers.get(19);
-    this.indexData = buffers.get(20);
-    this.indexLt = buffers.get(21);
-    this.indexLx = buffers.get(22);
-    this.input1 = buffers.get(23);
-    this.input2 = buffers.get(24);
-    this.isPrefix = buffers.get(25);
-    this.lcCorrection = buffers.get(26);
-    this.limb = buffers.get(27);
-    this.limbConstructed = buffers.get(28);
-    this.lt = buffers.get(29);
-    this.lx = buffers.get(30);
-    this.nAddr = buffers.get(31);
-    this.nBytes = buffers.get(32);
-    this.nKeys = buffers.get(33);
-    this.nKeysPerAddr = buffers.get(34);
-    this.nStep = buffers.get(35);
-    this.phase1 = buffers.get(36);
-    this.phase10 = buffers.get(37);
-    this.phase11 = buffers.get(38);
-    this.phase12 = buffers.get(39);
-    this.phase13 = buffers.get(40);
-    this.phase14 = buffers.get(41);
-    this.phase15 = buffers.get(42);
-    this.phase2 = buffers.get(43);
-    this.phase3 = buffers.get(44);
-    this.phase4 = buffers.get(45);
-    this.phase5 = buffers.get(46);
-    this.phase6 = buffers.get(47);
-    this.phase7 = buffers.get(48);
-    this.phase8 = buffers.get(49);
-    this.phase9 = buffers.get(50);
-    this.phaseEnd = buffers.get(51);
-    this.phaseId = buffers.get(52);
-    this.phaseSize = buffers.get(53);
-    this.power = buffers.get(54);
-    this.requiresEvmExecution = buffers.get(55);
-    this.rlpLtBytesize = buffers.get(56);
-    this.rlpLxBytesize = buffers.get(57);
-    this.type = buffers.get(58);
+    this.helloitsme = buffers.get(20);
+    this.indexData = buffers.get(21);
+    this.indexLt = buffers.get(22);
+    this.indexLx = buffers.get(23);
+    this.input1 = buffers.get(24);
+    this.input2 = buffers.get(25);
+    this.isPrefix = buffers.get(26);
+    this.lcCorrection = buffers.get(27);
+    this.limb = buffers.get(28);
+    this.limbConstructed = buffers.get(29);
+    this.lt = buffers.get(30);
+    this.lx = buffers.get(31);
+    this.nAddr = buffers.get(32);
+    this.nBytes = buffers.get(33);
+    this.nKeys = buffers.get(34);
+    this.nKeysPerAddr = buffers.get(35);
+    this.nStep = buffers.get(36);
+    this.phase1 = buffers.get(37);
+    this.phase10 = buffers.get(38);
+    this.phase11 = buffers.get(39);
+    this.phase12 = buffers.get(40);
+    this.phase13 = buffers.get(41);
+    this.phase14 = buffers.get(42);
+    this.phase15 = buffers.get(43);
+    this.phase2 = buffers.get(44);
+    this.phase3 = buffers.get(45);
+    this.phase4 = buffers.get(46);
+    this.phase5 = buffers.get(47);
+    this.phase6 = buffers.get(48);
+    this.phase7 = buffers.get(49);
+    this.phase8 = buffers.get(50);
+    this.phase9 = buffers.get(51);
+    this.phaseEnd = buffers.get(52);
+    this.phaseId = buffers.get(53);
+    this.phaseSize = buffers.get(54);
+    this.power = buffers.get(55);
+    this.requiresEvmExecution = buffers.get(56);
+    this.rlpLtBytesize = buffers.get(57);
+    this.rlpLxBytesize = buffers.get(58);
+    this.toHashByProver = buffers.get(59);
+    this.type = buffers.get(60);
   }
 
   public int size() {
@@ -543,21 +540,21 @@ public class Trace {
     return this.currentLine;
   }
 
-  public Trace absTxNum(final long b) {
+  public Trace absTxNum(final int b) {
     if (filled.get(0)) {
-      throw new IllegalStateException("rlpTxn.ABS_TX_NUM already set");
+      throw new IllegalStateException("rlptxn.ABS_TX_NUM already set");
     } else {
       filled.set(0);
     }
 
-    absTxNum.putLong(b);
+    absTxNum.putInt(b);
 
     return this;
   }
 
   public Trace absTxNumInfiny(final int b) {
     if (filled.get(1)) {
-      throw new IllegalStateException("rlpTxn.ABS_TX_NUM_INFINY already set");
+      throw new IllegalStateException("rlptxn.ABS_TX_NUM_INFINY already set");
     } else {
       filled.set(1);
     }
@@ -569,7 +566,7 @@ public class Trace {
 
   public Trace acc1(final Bytes b) {
     if (filled.get(3)) {
-      throw new IllegalStateException("rlpTxn.ACC_1 already set");
+      throw new IllegalStateException("rlptxn.ACC_1 already set");
     } else {
       filled.set(3);
     }
@@ -585,7 +582,7 @@ public class Trace {
 
   public Trace acc2(final Bytes b) {
     if (filled.get(4)) {
-      throw new IllegalStateException("rlpTxn.ACC_2 already set");
+      throw new IllegalStateException("rlptxn.ACC_2 already set");
     } else {
       filled.set(4);
     }
@@ -601,7 +598,7 @@ public class Trace {
 
   public Trace accBytesize(final short b) {
     if (filled.get(5)) {
-      throw new IllegalStateException("rlpTxn.ACC_BYTESIZE already set");
+      throw new IllegalStateException("rlptxn.ACC_BYTESIZE already set");
     } else {
       filled.set(5);
     }
@@ -613,7 +610,7 @@ public class Trace {
 
   public Trace accessTupleBytesize(final int b) {
     if (filled.get(2)) {
-      throw new IllegalStateException("rlpTxn.ACCESS_TUPLE_BYTESIZE already set");
+      throw new IllegalStateException("rlptxn.ACCESS_TUPLE_BYTESIZE already set");
     } else {
       filled.set(2);
     }
@@ -625,7 +622,7 @@ public class Trace {
 
   public Trace addrHi(final long b) {
     if (filled.get(6)) {
-      throw new IllegalStateException("rlpTxn.ADDR_HI already set");
+      throw new IllegalStateException("rlptxn.ADDR_HI already set");
     } else {
       filled.set(6);
     }
@@ -637,7 +634,7 @@ public class Trace {
 
   public Trace addrLo(final Bytes b) {
     if (filled.get(7)) {
-      throw new IllegalStateException("rlpTxn.ADDR_LO already set");
+      throw new IllegalStateException("rlptxn.ADDR_LO already set");
     } else {
       filled.set(7);
     }
@@ -653,7 +650,7 @@ public class Trace {
 
   public Trace bit(final Boolean b) {
     if (filled.get(8)) {
-      throw new IllegalStateException("rlpTxn.BIT already set");
+      throw new IllegalStateException("rlptxn.BIT already set");
     } else {
       filled.set(8);
     }
@@ -665,7 +662,7 @@ public class Trace {
 
   public Trace bitAcc(final UnsignedByte b) {
     if (filled.get(9)) {
-      throw new IllegalStateException("rlpTxn.BIT_ACC already set");
+      throw new IllegalStateException("rlptxn.BIT_ACC already set");
     } else {
       filled.set(9);
     }
@@ -677,7 +674,7 @@ public class Trace {
 
   public Trace byte1(final UnsignedByte b) {
     if (filled.get(10)) {
-      throw new IllegalStateException("rlpTxn.BYTE_1 already set");
+      throw new IllegalStateException("rlptxn.BYTE_1 already set");
     } else {
       filled.set(10);
     }
@@ -689,7 +686,7 @@ public class Trace {
 
   public Trace byte2(final UnsignedByte b) {
     if (filled.get(11)) {
-      throw new IllegalStateException("rlpTxn.BYTE_2 already set");
+      throw new IllegalStateException("rlptxn.BYTE_2 already set");
     } else {
       filled.set(11);
     }
@@ -701,7 +698,7 @@ public class Trace {
 
   public Trace codeFragmentIndex(final long b) {
     if (filled.get(12)) {
-      throw new IllegalStateException("rlpTxn.CODE_FRAGMENT_INDEX already set");
+      throw new IllegalStateException("rlptxn.CODE_FRAGMENT_INDEX already set");
     } else {
       filled.set(12);
     }
@@ -713,7 +710,7 @@ public class Trace {
 
   public Trace counter(final short b) {
     if (filled.get(13)) {
-      throw new IllegalStateException("rlpTxn.COUNTER already set");
+      throw new IllegalStateException("rlptxn.COUNTER already set");
     } else {
       filled.set(13);
     }
@@ -725,7 +722,7 @@ public class Trace {
 
   public Trace dataGasCost(final long b) {
     if (filled.get(14)) {
-      throw new IllegalStateException("rlpTxn.DATA_GAS_COST already set");
+      throw new IllegalStateException("rlptxn.DATA_GAS_COST already set");
     } else {
       filled.set(14);
     }
@@ -737,7 +734,7 @@ public class Trace {
 
   public Trace dataHi(final Bytes b) {
     if (filled.get(15)) {
-      throw new IllegalStateException("rlpTxn.DATA_HI already set");
+      throw new IllegalStateException("rlptxn.DATA_HI already set");
     } else {
       filled.set(15);
     }
@@ -753,7 +750,7 @@ public class Trace {
 
   public Trace dataLo(final Bytes b) {
     if (filled.get(16)) {
-      throw new IllegalStateException("rlpTxn.DATA_LO already set");
+      throw new IllegalStateException("rlptxn.DATA_LO already set");
     } else {
       filled.set(16);
     }
@@ -769,7 +766,7 @@ public class Trace {
 
   public Trace depth1(final Boolean b) {
     if (filled.get(17)) {
-      throw new IllegalStateException("rlpTxn.DEPTH_1 already set");
+      throw new IllegalStateException("rlptxn.DEPTH_1 already set");
     } else {
       filled.set(17);
     }
@@ -781,7 +778,7 @@ public class Trace {
 
   public Trace depth2(final Boolean b) {
     if (filled.get(18)) {
-      throw new IllegalStateException("rlpTxn.DEPTH_2 already set");
+      throw new IllegalStateException("rlptxn.DEPTH_2 already set");
     } else {
       filled.set(18);
     }
@@ -793,7 +790,7 @@ public class Trace {
 
   public Trace done(final Boolean b) {
     if (filled.get(19)) {
-      throw new IllegalStateException("rlpTxn.DONE already set");
+      throw new IllegalStateException("rlptxn.DONE already set");
     } else {
       filled.set(19);
     }
@@ -803,11 +800,27 @@ public class Trace {
     return this;
   }
 
-  public Trace indexData(final long b) {
+  public Trace helloitsme(final Bytes b) {
     if (filled.get(20)) {
-      throw new IllegalStateException("rlpTxn.INDEX_DATA already set");
+      throw new IllegalStateException("rlptxn.HELLOITSME already set");
     } else {
       filled.set(20);
+    }
+
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      helloitsme.put((byte) 0);
+    }
+    helloitsme.put(b.toArrayUnsafe());
+
+    return this;
+  }
+
+  public Trace indexData(final long b) {
+    if (filled.get(21)) {
+      throw new IllegalStateException("rlptxn.INDEX_DATA already set");
+    } else {
+      filled.set(21);
     }
 
     indexData.putLong(b);
@@ -816,10 +829,10 @@ public class Trace {
   }
 
   public Trace indexLt(final long b) {
-    if (filled.get(21)) {
-      throw new IllegalStateException("rlpTxn.INDEX_LT already set");
+    if (filled.get(22)) {
+      throw new IllegalStateException("rlptxn.INDEX_LT already set");
     } else {
-      filled.set(21);
+      filled.set(22);
     }
 
     indexLt.putLong(b);
@@ -828,10 +841,10 @@ public class Trace {
   }
 
   public Trace indexLx(final long b) {
-    if (filled.get(22)) {
-      throw new IllegalStateException("rlpTxn.INDEX_LX already set");
+    if (filled.get(23)) {
+      throw new IllegalStateException("rlptxn.INDEX_LX already set");
     } else {
-      filled.set(22);
+      filled.set(23);
     }
 
     indexLx.putLong(b);
@@ -840,10 +853,10 @@ public class Trace {
   }
 
   public Trace input1(final Bytes b) {
-    if (filled.get(23)) {
-      throw new IllegalStateException("rlpTxn.INPUT_1 already set");
+    if (filled.get(24)) {
+      throw new IllegalStateException("rlptxn.INPUT_1 already set");
     } else {
-      filled.set(23);
+      filled.set(24);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -856,10 +869,10 @@ public class Trace {
   }
 
   public Trace input2(final Bytes b) {
-    if (filled.get(24)) {
-      throw new IllegalStateException("rlpTxn.INPUT_2 already set");
+    if (filled.get(25)) {
+      throw new IllegalStateException("rlptxn.INPUT_2 already set");
     } else {
-      filled.set(24);
+      filled.set(25);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -872,10 +885,10 @@ public class Trace {
   }
 
   public Trace isPrefix(final Boolean b) {
-    if (filled.get(25)) {
-      throw new IllegalStateException("rlpTxn.IS_PREFIX already set");
+    if (filled.get(26)) {
+      throw new IllegalStateException("rlptxn.IS_PREFIX already set");
     } else {
-      filled.set(25);
+      filled.set(26);
     }
 
     isPrefix.put((byte) (b ? 1 : 0));
@@ -884,10 +897,10 @@ public class Trace {
   }
 
   public Trace lcCorrection(final Boolean b) {
-    if (filled.get(26)) {
-      throw new IllegalStateException("rlpTxn.LC_CORRECTION already set");
+    if (filled.get(27)) {
+      throw new IllegalStateException("rlptxn.LC_CORRECTION already set");
     } else {
-      filled.set(26);
+      filled.set(27);
     }
 
     lcCorrection.put((byte) (b ? 1 : 0));
@@ -896,10 +909,10 @@ public class Trace {
   }
 
   public Trace limb(final Bytes b) {
-    if (filled.get(27)) {
-      throw new IllegalStateException("rlpTxn.LIMB already set");
+    if (filled.get(28)) {
+      throw new IllegalStateException("rlptxn.LIMB already set");
     } else {
-      filled.set(27);
+      filled.set(28);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -912,10 +925,10 @@ public class Trace {
   }
 
   public Trace limbConstructed(final Boolean b) {
-    if (filled.get(28)) {
-      throw new IllegalStateException("rlpTxn.LIMB_CONSTRUCTED already set");
+    if (filled.get(29)) {
+      throw new IllegalStateException("rlptxn.LIMB_CONSTRUCTED already set");
     } else {
-      filled.set(28);
+      filled.set(29);
     }
 
     limbConstructed.put((byte) (b ? 1 : 0));
@@ -924,10 +937,10 @@ public class Trace {
   }
 
   public Trace lt(final Boolean b) {
-    if (filled.get(29)) {
-      throw new IllegalStateException("rlpTxn.LT already set");
+    if (filled.get(30)) {
+      throw new IllegalStateException("rlptxn.LT already set");
     } else {
-      filled.set(29);
+      filled.set(30);
     }
 
     lt.put((byte) (b ? 1 : 0));
@@ -936,10 +949,10 @@ public class Trace {
   }
 
   public Trace lx(final Boolean b) {
-    if (filled.get(30)) {
-      throw new IllegalStateException("rlpTxn.LX already set");
+    if (filled.get(31)) {
+      throw new IllegalStateException("rlptxn.LX already set");
     } else {
-      filled.set(30);
+      filled.set(31);
     }
 
     lx.put((byte) (b ? 1 : 0));
@@ -948,10 +961,10 @@ public class Trace {
   }
 
   public Trace nAddr(final int b) {
-    if (filled.get(54)) {
-      throw new IllegalStateException("rlpTxn.nADDR already set");
+    if (filled.get(56)) {
+      throw new IllegalStateException("rlptxn.nADDR already set");
     } else {
-      filled.set(54);
+      filled.set(56);
     }
 
     nAddr.putInt(b);
@@ -960,10 +973,10 @@ public class Trace {
   }
 
   public Trace nBytes(final short b) {
-    if (filled.get(55)) {
-      throw new IllegalStateException("rlpTxn.nBYTES already set");
+    if (filled.get(57)) {
+      throw new IllegalStateException("rlptxn.nBYTES already set");
     } else {
-      filled.set(55);
+      filled.set(57);
     }
 
     nBytes.putShort(b);
@@ -972,10 +985,10 @@ public class Trace {
   }
 
   public Trace nKeys(final int b) {
-    if (filled.get(56)) {
-      throw new IllegalStateException("rlpTxn.nKEYS already set");
+    if (filled.get(58)) {
+      throw new IllegalStateException("rlptxn.nKEYS already set");
     } else {
-      filled.set(56);
+      filled.set(58);
     }
 
     nKeys.putInt(b);
@@ -984,10 +997,10 @@ public class Trace {
   }
 
   public Trace nKeysPerAddr(final int b) {
-    if (filled.get(57)) {
-      throw new IllegalStateException("rlpTxn.nKEYS_PER_ADDR already set");
+    if (filled.get(59)) {
+      throw new IllegalStateException("rlptxn.nKEYS_PER_ADDR already set");
     } else {
-      filled.set(57);
+      filled.set(59);
     }
 
     nKeysPerAddr.putInt(b);
@@ -996,10 +1009,10 @@ public class Trace {
   }
 
   public Trace nStep(final short b) {
-    if (filled.get(58)) {
-      throw new IllegalStateException("rlpTxn.nSTEP already set");
+    if (filled.get(60)) {
+      throw new IllegalStateException("rlptxn.nSTEP already set");
     } else {
-      filled.set(58);
+      filled.set(60);
     }
 
     nStep.putShort(b);
@@ -1008,10 +1021,10 @@ public class Trace {
   }
 
   public Trace phase1(final Boolean b) {
-    if (filled.get(31)) {
-      throw new IllegalStateException("rlpTxn.PHASE_1 already set");
+    if (filled.get(32)) {
+      throw new IllegalStateException("rlptxn.PHASE_1 already set");
     } else {
-      filled.set(31);
+      filled.set(32);
     }
 
     phase1.put((byte) (b ? 1 : 0));
@@ -1020,10 +1033,10 @@ public class Trace {
   }
 
   public Trace phase10(final Boolean b) {
-    if (filled.get(32)) {
-      throw new IllegalStateException("rlpTxn.PHASE_10 already set");
+    if (filled.get(33)) {
+      throw new IllegalStateException("rlptxn.PHASE_10 already set");
     } else {
-      filled.set(32);
+      filled.set(33);
     }
 
     phase10.put((byte) (b ? 1 : 0));
@@ -1032,10 +1045,10 @@ public class Trace {
   }
 
   public Trace phase11(final Boolean b) {
-    if (filled.get(33)) {
-      throw new IllegalStateException("rlpTxn.PHASE_11 already set");
+    if (filled.get(34)) {
+      throw new IllegalStateException("rlptxn.PHASE_11 already set");
     } else {
-      filled.set(33);
+      filled.set(34);
     }
 
     phase11.put((byte) (b ? 1 : 0));
@@ -1044,10 +1057,10 @@ public class Trace {
   }
 
   public Trace phase12(final Boolean b) {
-    if (filled.get(34)) {
-      throw new IllegalStateException("rlpTxn.PHASE_12 already set");
+    if (filled.get(35)) {
+      throw new IllegalStateException("rlptxn.PHASE_12 already set");
     } else {
-      filled.set(34);
+      filled.set(35);
     }
 
     phase12.put((byte) (b ? 1 : 0));
@@ -1056,10 +1069,10 @@ public class Trace {
   }
 
   public Trace phase13(final Boolean b) {
-    if (filled.get(35)) {
-      throw new IllegalStateException("rlpTxn.PHASE_13 already set");
+    if (filled.get(36)) {
+      throw new IllegalStateException("rlptxn.PHASE_13 already set");
     } else {
-      filled.set(35);
+      filled.set(36);
     }
 
     phase13.put((byte) (b ? 1 : 0));
@@ -1068,10 +1081,10 @@ public class Trace {
   }
 
   public Trace phase14(final Boolean b) {
-    if (filled.get(36)) {
-      throw new IllegalStateException("rlpTxn.PHASE_14 already set");
+    if (filled.get(37)) {
+      throw new IllegalStateException("rlptxn.PHASE_14 already set");
     } else {
-      filled.set(36);
+      filled.set(37);
     }
 
     phase14.put((byte) (b ? 1 : 0));
@@ -1080,10 +1093,10 @@ public class Trace {
   }
 
   public Trace phase15(final Boolean b) {
-    if (filled.get(37)) {
-      throw new IllegalStateException("rlpTxn.PHASE_15 already set");
+    if (filled.get(38)) {
+      throw new IllegalStateException("rlptxn.PHASE_15 already set");
     } else {
-      filled.set(37);
+      filled.set(38);
     }
 
     phase15.put((byte) (b ? 1 : 0));
@@ -1092,10 +1105,10 @@ public class Trace {
   }
 
   public Trace phase2(final Boolean b) {
-    if (filled.get(38)) {
-      throw new IllegalStateException("rlpTxn.PHASE_2 already set");
+    if (filled.get(39)) {
+      throw new IllegalStateException("rlptxn.PHASE_2 already set");
     } else {
-      filled.set(38);
+      filled.set(39);
     }
 
     phase2.put((byte) (b ? 1 : 0));
@@ -1104,10 +1117,10 @@ public class Trace {
   }
 
   public Trace phase3(final Boolean b) {
-    if (filled.get(39)) {
-      throw new IllegalStateException("rlpTxn.PHASE_3 already set");
+    if (filled.get(40)) {
+      throw new IllegalStateException("rlptxn.PHASE_3 already set");
     } else {
-      filled.set(39);
+      filled.set(40);
     }
 
     phase3.put((byte) (b ? 1 : 0));
@@ -1116,10 +1129,10 @@ public class Trace {
   }
 
   public Trace phase4(final Boolean b) {
-    if (filled.get(40)) {
-      throw new IllegalStateException("rlpTxn.PHASE_4 already set");
+    if (filled.get(41)) {
+      throw new IllegalStateException("rlptxn.PHASE_4 already set");
     } else {
-      filled.set(40);
+      filled.set(41);
     }
 
     phase4.put((byte) (b ? 1 : 0));
@@ -1128,10 +1141,10 @@ public class Trace {
   }
 
   public Trace phase5(final Boolean b) {
-    if (filled.get(41)) {
-      throw new IllegalStateException("rlpTxn.PHASE_5 already set");
+    if (filled.get(42)) {
+      throw new IllegalStateException("rlptxn.PHASE_5 already set");
     } else {
-      filled.set(41);
+      filled.set(42);
     }
 
     phase5.put((byte) (b ? 1 : 0));
@@ -1140,10 +1153,10 @@ public class Trace {
   }
 
   public Trace phase6(final Boolean b) {
-    if (filled.get(42)) {
-      throw new IllegalStateException("rlpTxn.PHASE_6 already set");
+    if (filled.get(43)) {
+      throw new IllegalStateException("rlptxn.PHASE_6 already set");
     } else {
-      filled.set(42);
+      filled.set(43);
     }
 
     phase6.put((byte) (b ? 1 : 0));
@@ -1152,10 +1165,10 @@ public class Trace {
   }
 
   public Trace phase7(final Boolean b) {
-    if (filled.get(43)) {
-      throw new IllegalStateException("rlpTxn.PHASE_7 already set");
+    if (filled.get(44)) {
+      throw new IllegalStateException("rlptxn.PHASE_7 already set");
     } else {
-      filled.set(43);
+      filled.set(44);
     }
 
     phase7.put((byte) (b ? 1 : 0));
@@ -1164,10 +1177,10 @@ public class Trace {
   }
 
   public Trace phase8(final Boolean b) {
-    if (filled.get(44)) {
-      throw new IllegalStateException("rlpTxn.PHASE_8 already set");
+    if (filled.get(45)) {
+      throw new IllegalStateException("rlptxn.PHASE_8 already set");
     } else {
-      filled.set(44);
+      filled.set(45);
     }
 
     phase8.put((byte) (b ? 1 : 0));
@@ -1176,10 +1189,10 @@ public class Trace {
   }
 
   public Trace phase9(final Boolean b) {
-    if (filled.get(45)) {
-      throw new IllegalStateException("rlpTxn.PHASE_9 already set");
+    if (filled.get(46)) {
+      throw new IllegalStateException("rlptxn.PHASE_9 already set");
     } else {
-      filled.set(45);
+      filled.set(46);
     }
 
     phase9.put((byte) (b ? 1 : 0));
@@ -1188,10 +1201,10 @@ public class Trace {
   }
 
   public Trace phaseEnd(final Boolean b) {
-    if (filled.get(46)) {
-      throw new IllegalStateException("rlpTxn.PHASE_END already set");
+    if (filled.get(47)) {
+      throw new IllegalStateException("rlptxn.PHASE_END already set");
     } else {
-      filled.set(46);
+      filled.set(47);
     }
 
     phaseEnd.put((byte) (b ? 1 : 0));
@@ -1200,10 +1213,10 @@ public class Trace {
   }
 
   public Trace phaseId(final short b) {
-    if (filled.get(47)) {
-      throw new IllegalStateException("rlpTxn.PHASE_ID already set");
+    if (filled.get(48)) {
+      throw new IllegalStateException("rlptxn.PHASE_ID already set");
     } else {
-      filled.set(47);
+      filled.set(48);
     }
 
     phaseId.putShort(b);
@@ -1212,10 +1225,10 @@ public class Trace {
   }
 
   public Trace phaseSize(final long b) {
-    if (filled.get(48)) {
-      throw new IllegalStateException("rlpTxn.PHASE_SIZE already set");
+    if (filled.get(49)) {
+      throw new IllegalStateException("rlptxn.PHASE_SIZE already set");
     } else {
-      filled.set(48);
+      filled.set(49);
     }
 
     phaseSize.putLong(b);
@@ -1224,10 +1237,10 @@ public class Trace {
   }
 
   public Trace power(final Bytes b) {
-    if (filled.get(49)) {
-      throw new IllegalStateException("rlpTxn.POWER already set");
+    if (filled.get(50)) {
+      throw new IllegalStateException("rlptxn.POWER already set");
     } else {
-      filled.set(49);
+      filled.set(50);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -1240,10 +1253,10 @@ public class Trace {
   }
 
   public Trace requiresEvmExecution(final Boolean b) {
-    if (filled.get(50)) {
-      throw new IllegalStateException("rlpTxn.REQUIRES_EVM_EXECUTION already set");
+    if (filled.get(51)) {
+      throw new IllegalStateException("rlptxn.REQUIRES_EVM_EXECUTION already set");
     } else {
-      filled.set(50);
+      filled.set(51);
     }
 
     requiresEvmExecution.put((byte) (b ? 1 : 0));
@@ -1252,10 +1265,10 @@ public class Trace {
   }
 
   public Trace rlpLtBytesize(final int b) {
-    if (filled.get(51)) {
-      throw new IllegalStateException("rlpTxn.RLP_LT_BYTESIZE already set");
+    if (filled.get(52)) {
+      throw new IllegalStateException("rlptxn.RLP_LT_BYTESIZE already set");
     } else {
-      filled.set(51);
+      filled.set(52);
     }
 
     rlpLtBytesize.putInt(b);
@@ -1264,10 +1277,10 @@ public class Trace {
   }
 
   public Trace rlpLxBytesize(final int b) {
-    if (filled.get(52)) {
-      throw new IllegalStateException("rlpTxn.RLP_LX_BYTESIZE already set");
+    if (filled.get(53)) {
+      throw new IllegalStateException("rlptxn.RLP_LX_BYTESIZE already set");
     } else {
-      filled.set(52);
+      filled.set(53);
     }
 
     rlpLxBytesize.putInt(b);
@@ -1275,11 +1288,23 @@ public class Trace {
     return this;
   }
 
-  public Trace type(final short b) {
-    if (filled.get(53)) {
-      throw new IllegalStateException("rlpTxn.TYPE already set");
+  public Trace toHashByProver(final Boolean b) {
+    if (filled.get(54)) {
+      throw new IllegalStateException("rlptxn.TO_HASH_BY_PROVER already set");
     } else {
-      filled.set(53);
+      filled.set(54);
+    }
+
+    toHashByProver.put((byte) (b ? 1 : 0));
+
+    return this;
+  }
+
+  public Trace type(final short b) {
+    if (filled.get(55)) {
+      throw new IllegalStateException("rlptxn.TYPE already set");
+    } else {
+      filled.set(55);
     }
 
     type.putShort(b);
@@ -1289,239 +1314,247 @@ public class Trace {
 
   public Trace validateRow() {
     if (!filled.get(0)) {
-      throw new IllegalStateException("rlpTxn.ABS_TX_NUM has not been filled");
+      throw new IllegalStateException("rlptxn.ABS_TX_NUM has not been filled");
     }
 
     if (!filled.get(1)) {
-      throw new IllegalStateException("rlpTxn.ABS_TX_NUM_INFINY has not been filled");
+      throw new IllegalStateException("rlptxn.ABS_TX_NUM_INFINY has not been filled");
     }
 
     if (!filled.get(3)) {
-      throw new IllegalStateException("rlpTxn.ACC_1 has not been filled");
+      throw new IllegalStateException("rlptxn.ACC_1 has not been filled");
     }
 
     if (!filled.get(4)) {
-      throw new IllegalStateException("rlpTxn.ACC_2 has not been filled");
+      throw new IllegalStateException("rlptxn.ACC_2 has not been filled");
     }
 
     if (!filled.get(5)) {
-      throw new IllegalStateException("rlpTxn.ACC_BYTESIZE has not been filled");
+      throw new IllegalStateException("rlptxn.ACC_BYTESIZE has not been filled");
     }
 
     if (!filled.get(2)) {
-      throw new IllegalStateException("rlpTxn.ACCESS_TUPLE_BYTESIZE has not been filled");
+      throw new IllegalStateException("rlptxn.ACCESS_TUPLE_BYTESIZE has not been filled");
     }
 
     if (!filled.get(6)) {
-      throw new IllegalStateException("rlpTxn.ADDR_HI has not been filled");
+      throw new IllegalStateException("rlptxn.ADDR_HI has not been filled");
     }
 
     if (!filled.get(7)) {
-      throw new IllegalStateException("rlpTxn.ADDR_LO has not been filled");
+      throw new IllegalStateException("rlptxn.ADDR_LO has not been filled");
     }
 
     if (!filled.get(8)) {
-      throw new IllegalStateException("rlpTxn.BIT has not been filled");
+      throw new IllegalStateException("rlptxn.BIT has not been filled");
     }
 
     if (!filled.get(9)) {
-      throw new IllegalStateException("rlpTxn.BIT_ACC has not been filled");
+      throw new IllegalStateException("rlptxn.BIT_ACC has not been filled");
     }
 
     if (!filled.get(10)) {
-      throw new IllegalStateException("rlpTxn.BYTE_1 has not been filled");
+      throw new IllegalStateException("rlptxn.BYTE_1 has not been filled");
     }
 
     if (!filled.get(11)) {
-      throw new IllegalStateException("rlpTxn.BYTE_2 has not been filled");
+      throw new IllegalStateException("rlptxn.BYTE_2 has not been filled");
     }
 
     if (!filled.get(12)) {
-      throw new IllegalStateException("rlpTxn.CODE_FRAGMENT_INDEX has not been filled");
+      throw new IllegalStateException("rlptxn.CODE_FRAGMENT_INDEX has not been filled");
     }
 
     if (!filled.get(13)) {
-      throw new IllegalStateException("rlpTxn.COUNTER has not been filled");
+      throw new IllegalStateException("rlptxn.COUNTER has not been filled");
     }
 
     if (!filled.get(14)) {
-      throw new IllegalStateException("rlpTxn.DATA_GAS_COST has not been filled");
+      throw new IllegalStateException("rlptxn.DATA_GAS_COST has not been filled");
     }
 
     if (!filled.get(15)) {
-      throw new IllegalStateException("rlpTxn.DATA_HI has not been filled");
+      throw new IllegalStateException("rlptxn.DATA_HI has not been filled");
     }
 
     if (!filled.get(16)) {
-      throw new IllegalStateException("rlpTxn.DATA_LO has not been filled");
+      throw new IllegalStateException("rlptxn.DATA_LO has not been filled");
     }
 
     if (!filled.get(17)) {
-      throw new IllegalStateException("rlpTxn.DEPTH_1 has not been filled");
+      throw new IllegalStateException("rlptxn.DEPTH_1 has not been filled");
     }
 
     if (!filled.get(18)) {
-      throw new IllegalStateException("rlpTxn.DEPTH_2 has not been filled");
+      throw new IllegalStateException("rlptxn.DEPTH_2 has not been filled");
     }
 
     if (!filled.get(19)) {
-      throw new IllegalStateException("rlpTxn.DONE has not been filled");
+      throw new IllegalStateException("rlptxn.DONE has not been filled");
     }
 
     if (!filled.get(20)) {
-      throw new IllegalStateException("rlpTxn.INDEX_DATA has not been filled");
+      throw new IllegalStateException("rlptxn.HELLOITSME has not been filled");
     }
 
     if (!filled.get(21)) {
-      throw new IllegalStateException("rlpTxn.INDEX_LT has not been filled");
+      throw new IllegalStateException("rlptxn.INDEX_DATA has not been filled");
     }
 
     if (!filled.get(22)) {
-      throw new IllegalStateException("rlpTxn.INDEX_LX has not been filled");
+      throw new IllegalStateException("rlptxn.INDEX_LT has not been filled");
     }
 
     if (!filled.get(23)) {
-      throw new IllegalStateException("rlpTxn.INPUT_1 has not been filled");
+      throw new IllegalStateException("rlptxn.INDEX_LX has not been filled");
     }
 
     if (!filled.get(24)) {
-      throw new IllegalStateException("rlpTxn.INPUT_2 has not been filled");
+      throw new IllegalStateException("rlptxn.INPUT_1 has not been filled");
     }
 
     if (!filled.get(25)) {
-      throw new IllegalStateException("rlpTxn.IS_PREFIX has not been filled");
+      throw new IllegalStateException("rlptxn.INPUT_2 has not been filled");
     }
 
     if (!filled.get(26)) {
-      throw new IllegalStateException("rlpTxn.LC_CORRECTION has not been filled");
+      throw new IllegalStateException("rlptxn.IS_PREFIX has not been filled");
     }
 
     if (!filled.get(27)) {
-      throw new IllegalStateException("rlpTxn.LIMB has not been filled");
+      throw new IllegalStateException("rlptxn.LC_CORRECTION has not been filled");
     }
 
     if (!filled.get(28)) {
-      throw new IllegalStateException("rlpTxn.LIMB_CONSTRUCTED has not been filled");
+      throw new IllegalStateException("rlptxn.LIMB has not been filled");
     }
 
     if (!filled.get(29)) {
-      throw new IllegalStateException("rlpTxn.LT has not been filled");
+      throw new IllegalStateException("rlptxn.LIMB_CONSTRUCTED has not been filled");
     }
 
     if (!filled.get(30)) {
-      throw new IllegalStateException("rlpTxn.LX has not been filled");
-    }
-
-    if (!filled.get(54)) {
-      throw new IllegalStateException("rlpTxn.nADDR has not been filled");
-    }
-
-    if (!filled.get(55)) {
-      throw new IllegalStateException("rlpTxn.nBYTES has not been filled");
-    }
-
-    if (!filled.get(56)) {
-      throw new IllegalStateException("rlpTxn.nKEYS has not been filled");
-    }
-
-    if (!filled.get(57)) {
-      throw new IllegalStateException("rlpTxn.nKEYS_PER_ADDR has not been filled");
-    }
-
-    if (!filled.get(58)) {
-      throw new IllegalStateException("rlpTxn.nSTEP has not been filled");
+      throw new IllegalStateException("rlptxn.LT has not been filled");
     }
 
     if (!filled.get(31)) {
-      throw new IllegalStateException("rlpTxn.PHASE_1 has not been filled");
+      throw new IllegalStateException("rlptxn.LX has not been filled");
+    }
+
+    if (!filled.get(56)) {
+      throw new IllegalStateException("rlptxn.nADDR has not been filled");
+    }
+
+    if (!filled.get(57)) {
+      throw new IllegalStateException("rlptxn.nBYTES has not been filled");
+    }
+
+    if (!filled.get(58)) {
+      throw new IllegalStateException("rlptxn.nKEYS has not been filled");
+    }
+
+    if (!filled.get(59)) {
+      throw new IllegalStateException("rlptxn.nKEYS_PER_ADDR has not been filled");
+    }
+
+    if (!filled.get(60)) {
+      throw new IllegalStateException("rlptxn.nSTEP has not been filled");
     }
 
     if (!filled.get(32)) {
-      throw new IllegalStateException("rlpTxn.PHASE_10 has not been filled");
+      throw new IllegalStateException("rlptxn.PHASE_1 has not been filled");
     }
 
     if (!filled.get(33)) {
-      throw new IllegalStateException("rlpTxn.PHASE_11 has not been filled");
+      throw new IllegalStateException("rlptxn.PHASE_10 has not been filled");
     }
 
     if (!filled.get(34)) {
-      throw new IllegalStateException("rlpTxn.PHASE_12 has not been filled");
+      throw new IllegalStateException("rlptxn.PHASE_11 has not been filled");
     }
 
     if (!filled.get(35)) {
-      throw new IllegalStateException("rlpTxn.PHASE_13 has not been filled");
+      throw new IllegalStateException("rlptxn.PHASE_12 has not been filled");
     }
 
     if (!filled.get(36)) {
-      throw new IllegalStateException("rlpTxn.PHASE_14 has not been filled");
+      throw new IllegalStateException("rlptxn.PHASE_13 has not been filled");
     }
 
     if (!filled.get(37)) {
-      throw new IllegalStateException("rlpTxn.PHASE_15 has not been filled");
+      throw new IllegalStateException("rlptxn.PHASE_14 has not been filled");
     }
 
     if (!filled.get(38)) {
-      throw new IllegalStateException("rlpTxn.PHASE_2 has not been filled");
+      throw new IllegalStateException("rlptxn.PHASE_15 has not been filled");
     }
 
     if (!filled.get(39)) {
-      throw new IllegalStateException("rlpTxn.PHASE_3 has not been filled");
+      throw new IllegalStateException("rlptxn.PHASE_2 has not been filled");
     }
 
     if (!filled.get(40)) {
-      throw new IllegalStateException("rlpTxn.PHASE_4 has not been filled");
+      throw new IllegalStateException("rlptxn.PHASE_3 has not been filled");
     }
 
     if (!filled.get(41)) {
-      throw new IllegalStateException("rlpTxn.PHASE_5 has not been filled");
+      throw new IllegalStateException("rlptxn.PHASE_4 has not been filled");
     }
 
     if (!filled.get(42)) {
-      throw new IllegalStateException("rlpTxn.PHASE_6 has not been filled");
+      throw new IllegalStateException("rlptxn.PHASE_5 has not been filled");
     }
 
     if (!filled.get(43)) {
-      throw new IllegalStateException("rlpTxn.PHASE_7 has not been filled");
+      throw new IllegalStateException("rlptxn.PHASE_6 has not been filled");
     }
 
     if (!filled.get(44)) {
-      throw new IllegalStateException("rlpTxn.PHASE_8 has not been filled");
+      throw new IllegalStateException("rlptxn.PHASE_7 has not been filled");
     }
 
     if (!filled.get(45)) {
-      throw new IllegalStateException("rlpTxn.PHASE_9 has not been filled");
+      throw new IllegalStateException("rlptxn.PHASE_8 has not been filled");
     }
 
     if (!filled.get(46)) {
-      throw new IllegalStateException("rlpTxn.PHASE_END has not been filled");
+      throw new IllegalStateException("rlptxn.PHASE_9 has not been filled");
     }
 
     if (!filled.get(47)) {
-      throw new IllegalStateException("rlpTxn.PHASE_ID has not been filled");
+      throw new IllegalStateException("rlptxn.PHASE_END has not been filled");
     }
 
     if (!filled.get(48)) {
-      throw new IllegalStateException("rlpTxn.PHASE_SIZE has not been filled");
+      throw new IllegalStateException("rlptxn.PHASE_ID has not been filled");
     }
 
     if (!filled.get(49)) {
-      throw new IllegalStateException("rlpTxn.POWER has not been filled");
+      throw new IllegalStateException("rlptxn.PHASE_SIZE has not been filled");
     }
 
     if (!filled.get(50)) {
-      throw new IllegalStateException("rlpTxn.REQUIRES_EVM_EXECUTION has not been filled");
+      throw new IllegalStateException("rlptxn.POWER has not been filled");
     }
 
     if (!filled.get(51)) {
-      throw new IllegalStateException("rlpTxn.RLP_LT_BYTESIZE has not been filled");
+      throw new IllegalStateException("rlptxn.REQUIRES_EVM_EXECUTION has not been filled");
     }
 
     if (!filled.get(52)) {
-      throw new IllegalStateException("rlpTxn.RLP_LX_BYTESIZE has not been filled");
+      throw new IllegalStateException("rlptxn.RLP_LT_BYTESIZE has not been filled");
     }
 
     if (!filled.get(53)) {
-      throw new IllegalStateException("rlpTxn.TYPE has not been filled");
+      throw new IllegalStateException("rlptxn.RLP_LX_BYTESIZE has not been filled");
+    }
+
+    if (!filled.get(54)) {
+      throw new IllegalStateException("rlptxn.TO_HASH_BY_PROVER has not been filled");
+    }
+
+    if (!filled.get(55)) {
+      throw new IllegalStateException("rlptxn.TYPE has not been filled");
     }
 
     filled.clear();
@@ -1532,7 +1565,7 @@ public class Trace {
 
   public Trace fillAndValidateRow() {
     if (!filled.get(0)) {
-      absTxNum.position(absTxNum.position() + 8);
+      absTxNum.position(absTxNum.position() + 4);
     }
 
     if (!filled.get(1)) {
@@ -1612,158 +1645,166 @@ public class Trace {
     }
 
     if (!filled.get(20)) {
-      indexData.position(indexData.position() + 8);
+      helloitsme.position(helloitsme.position() + 32);
     }
 
     if (!filled.get(21)) {
-      indexLt.position(indexLt.position() + 8);
+      indexData.position(indexData.position() + 8);
     }
 
     if (!filled.get(22)) {
-      indexLx.position(indexLx.position() + 8);
+      indexLt.position(indexLt.position() + 8);
     }
 
     if (!filled.get(23)) {
-      input1.position(input1.position() + 32);
+      indexLx.position(indexLx.position() + 8);
     }
 
     if (!filled.get(24)) {
-      input2.position(input2.position() + 32);
+      input1.position(input1.position() + 32);
     }
 
     if (!filled.get(25)) {
-      isPrefix.position(isPrefix.position() + 1);
+      input2.position(input2.position() + 32);
     }
 
     if (!filled.get(26)) {
-      lcCorrection.position(lcCorrection.position() + 1);
+      isPrefix.position(isPrefix.position() + 1);
     }
 
     if (!filled.get(27)) {
-      limb.position(limb.position() + 32);
+      lcCorrection.position(lcCorrection.position() + 1);
     }
 
     if (!filled.get(28)) {
-      limbConstructed.position(limbConstructed.position() + 1);
+      limb.position(limb.position() + 32);
     }
 
     if (!filled.get(29)) {
-      lt.position(lt.position() + 1);
+      limbConstructed.position(limbConstructed.position() + 1);
     }
 
     if (!filled.get(30)) {
-      lx.position(lx.position() + 1);
-    }
-
-    if (!filled.get(54)) {
-      nAddr.position(nAddr.position() + 4);
-    }
-
-    if (!filled.get(55)) {
-      nBytes.position(nBytes.position() + 2);
-    }
-
-    if (!filled.get(56)) {
-      nKeys.position(nKeys.position() + 4);
-    }
-
-    if (!filled.get(57)) {
-      nKeysPerAddr.position(nKeysPerAddr.position() + 4);
-    }
-
-    if (!filled.get(58)) {
-      nStep.position(nStep.position() + 2);
+      lt.position(lt.position() + 1);
     }
 
     if (!filled.get(31)) {
-      phase1.position(phase1.position() + 1);
+      lx.position(lx.position() + 1);
+    }
+
+    if (!filled.get(56)) {
+      nAddr.position(nAddr.position() + 4);
+    }
+
+    if (!filled.get(57)) {
+      nBytes.position(nBytes.position() + 2);
+    }
+
+    if (!filled.get(58)) {
+      nKeys.position(nKeys.position() + 4);
+    }
+
+    if (!filled.get(59)) {
+      nKeysPerAddr.position(nKeysPerAddr.position() + 4);
+    }
+
+    if (!filled.get(60)) {
+      nStep.position(nStep.position() + 2);
     }
 
     if (!filled.get(32)) {
-      phase10.position(phase10.position() + 1);
+      phase1.position(phase1.position() + 1);
     }
 
     if (!filled.get(33)) {
-      phase11.position(phase11.position() + 1);
+      phase10.position(phase10.position() + 1);
     }
 
     if (!filled.get(34)) {
-      phase12.position(phase12.position() + 1);
+      phase11.position(phase11.position() + 1);
     }
 
     if (!filled.get(35)) {
-      phase13.position(phase13.position() + 1);
+      phase12.position(phase12.position() + 1);
     }
 
     if (!filled.get(36)) {
-      phase14.position(phase14.position() + 1);
+      phase13.position(phase13.position() + 1);
     }
 
     if (!filled.get(37)) {
-      phase15.position(phase15.position() + 1);
+      phase14.position(phase14.position() + 1);
     }
 
     if (!filled.get(38)) {
-      phase2.position(phase2.position() + 1);
+      phase15.position(phase15.position() + 1);
     }
 
     if (!filled.get(39)) {
-      phase3.position(phase3.position() + 1);
+      phase2.position(phase2.position() + 1);
     }
 
     if (!filled.get(40)) {
-      phase4.position(phase4.position() + 1);
+      phase3.position(phase3.position() + 1);
     }
 
     if (!filled.get(41)) {
-      phase5.position(phase5.position() + 1);
+      phase4.position(phase4.position() + 1);
     }
 
     if (!filled.get(42)) {
-      phase6.position(phase6.position() + 1);
+      phase5.position(phase5.position() + 1);
     }
 
     if (!filled.get(43)) {
-      phase7.position(phase7.position() + 1);
+      phase6.position(phase6.position() + 1);
     }
 
     if (!filled.get(44)) {
-      phase8.position(phase8.position() + 1);
+      phase7.position(phase7.position() + 1);
     }
 
     if (!filled.get(45)) {
-      phase9.position(phase9.position() + 1);
+      phase8.position(phase8.position() + 1);
     }
 
     if (!filled.get(46)) {
-      phaseEnd.position(phaseEnd.position() + 1);
+      phase9.position(phase9.position() + 1);
     }
 
     if (!filled.get(47)) {
-      phaseId.position(phaseId.position() + 2);
+      phaseEnd.position(phaseEnd.position() + 1);
     }
 
     if (!filled.get(48)) {
-      phaseSize.position(phaseSize.position() + 8);
+      phaseId.position(phaseId.position() + 2);
     }
 
     if (!filled.get(49)) {
-      power.position(power.position() + 32);
+      phaseSize.position(phaseSize.position() + 8);
     }
 
     if (!filled.get(50)) {
-      requiresEvmExecution.position(requiresEvmExecution.position() + 1);
+      power.position(power.position() + 32);
     }
 
     if (!filled.get(51)) {
-      rlpLtBytesize.position(rlpLtBytesize.position() + 4);
+      requiresEvmExecution.position(requiresEvmExecution.position() + 1);
     }
 
     if (!filled.get(52)) {
-      rlpLxBytesize.position(rlpLxBytesize.position() + 4);
+      rlpLtBytesize.position(rlpLtBytesize.position() + 4);
     }
 
     if (!filled.get(53)) {
+      rlpLxBytesize.position(rlpLxBytesize.position() + 4);
+    }
+
+    if (!filled.get(54)) {
+      toHashByProver.position(toHashByProver.position() + 1);
+    }
+
+    if (!filled.get(55)) {
       type.position(type.position() + 2);
     }
 

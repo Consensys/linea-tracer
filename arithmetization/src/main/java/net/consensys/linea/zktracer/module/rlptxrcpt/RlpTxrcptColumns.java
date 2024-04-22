@@ -98,6 +98,6 @@ class RlpTxrcptColumns {
         + Trace.SUBPHASE_ID_WEIGHT_IS_OT * booleanToInt(this.isTopic)
         + Trace.SUBPHASE_ID_WEIGHT_IS_OD * booleanToInt(this.isData)
         + Trace.SUBPHASE_ID_WEIGHT_DEPTH * booleanToInt(this.depth1)
-        + Trace.SUBPHASE_ID_TOPIC_DELTA * booleanToInt(this.isTopic) * this.indexLocal;
+        + Trace.RLP_RCPT_SUBPHASE_ID_TOPIC_DELTA * booleanToInt(this.isTopic) * this.indexLocal;
   }
 }

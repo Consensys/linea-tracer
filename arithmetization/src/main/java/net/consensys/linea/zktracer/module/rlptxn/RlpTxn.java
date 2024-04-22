@@ -1115,7 +1115,7 @@ public class RlpTxn implements Module {
         .limbConstructed(traceValue.limbConstructed)
         .lt(traceValue.lt)
         .lx(traceValue.lx)
-
+        .toHashByProver(traceValue.limbConstructed && traceValue.lx)
         .nBytes((short) traceValue.nBytes)
         .nAddr(traceValue.nbAddr)
         .nKeys(traceValue.nbSto)

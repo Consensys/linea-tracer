@@ -13,13 +13,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.rlp.txrcpt;
+package net.consensys.linea.zktracer.module.rlptxrcpt;
 
 import static net.consensys.linea.zktracer.types.Conversions.booleanToInt;
 
 import java.math.BigInteger;
 
-import net.consensys.linea.zktracer.module.rlp_txrcpt.Trace;
 import org.apache.tuweni.bytes.Bytes;
 
 class RlpTxrcptColumns {

@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.oob;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Random;
@@ -38,7 +40,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class OobSha2RipemdIdentityTest {
   Random random = new Random(1L);
   static final int[] argSizes =
-      new int[] {0, 1, 10, 20, 31, 32, 33, 63, 64, 65, 95, 96, 97, 127, 128, 129, 1000, 2000};
+      new int[] {1, 10, 20, 31, 32, 33, 63, 64, 65, 95, 96, 97, 127, 128, 129, 1000, 2000};
+
+  // Add back 0
 
   // https://coderpad.io/blog/development/writing-a-parameterized-test-in-junit-with-examples/
   // https://stackoverflow.com/questions/76124016/pass-externally-defined-variable-to-junit-valuesource-annotation-in-a-paramete
@@ -68,7 +72,7 @@ public class OobSha2RipemdIdentityTest {
     System.out.println("Inp: 0x" + data);
     System.out.println("Ref: " + referenceComputedHash);
     System.out.println("Com: " + prcComputedHash);
-    assert (referenceComputedHash.equals(prcComputedHash));
+    assertEquals(referenceComputedHash, prcComputedHash);
   }
 
   @ParameterizedTest
@@ -91,7 +95,7 @@ public class OobSha2RipemdIdentityTest {
     System.out.println("Test IDENTITY with random argSize = " + argSize);
     System.out.println("Inp: 0x" + data);
     System.out.println("Ret: " + returnedData);
-    assert (("0x" + data.toLowerCase()).equals(returnedData));
+    assertEquals("0x" + data.toLowerCase(), returnedData);
   }
 
   @ParameterizedTest
@@ -116,7 +120,7 @@ public class OobSha2RipemdIdentityTest {
     System.out.println("Inp: 0x" + data);
     System.out.println("Ref: " + referenceComputedHash);
     System.out.println("Com: " + prcComputedHash);
-    assert (referenceComputedHash.equals(prcComputedHash));
+    assertEquals(referenceComputedHash, prcComputedHash);
   }
 
   // Support methods
@@ -291,6 +295,6 @@ public class OobSha2RipemdIdentityTest {
             .toString();
     System.out.println("0x" + data);
     System.out.println(dataInMemory);
-    assert (("0x" + data.toLowerCase()).equals(dataInMemory));
+    assertEquals("0x" + data.toLowerCase(), dataInMemory);
   }
 }

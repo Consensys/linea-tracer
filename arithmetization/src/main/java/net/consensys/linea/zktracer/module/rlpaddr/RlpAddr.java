@@ -52,7 +52,7 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @RequiredArgsConstructor
 public class RlpAddr implements Module {
-  private static final Bytes CREATE2_SHIFT = Bytes.ofUnsignedShort(Trace.CREATE2_SHIFT);
+  private static final Bytes CREATE2_SHIFT = Bytes.minimalBytes(Trace.CREATE2_SHIFT);
   private static final Bytes INT_SHORT = Bytes.ofUnsignedShort(RLP_PREFIX_INT_SHORT);
   private static final UnsignedByte BYTES_LLARGE = UnsignedByte.of(LLARGE);
 

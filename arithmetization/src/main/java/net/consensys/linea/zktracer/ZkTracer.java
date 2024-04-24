@@ -217,7 +217,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
     }
   }
 
-  @Override
+  //  @Override
   public void tracePrepareTransaction(WorldView worldView, Transaction transaction) {
     try {
       hashOfLastTransactionTraced = transaction.getHash();

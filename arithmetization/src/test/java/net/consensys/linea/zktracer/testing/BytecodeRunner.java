@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.testing;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import com.google.common.base.Preconditions;
@@ -38,6 +39,7 @@ import org.hyperledger.besu.ethereum.core.Transaction;
  */
 @Accessors(fluent = true)
 public final class BytecodeRunner {
+  public static final long DEFAULT_GAS_LIMIT = 50_000_000_000L;
   private final Bytes byteCode;
 
   ToyExecutionEnvironment toyExecutionEnvironment;
@@ -68,6 +70,8 @@ public final class BytecodeRunner {
     final ToyAccount senderAccount =
         ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
 
+    final Long selectedGasLimit = Optional.of(gasLimit).orElse(DEFAULT_GAS_LIMIT);
+
     final ToyAccount receiverAccount =
         ToyAccount.builder()
             .balance(senderBalance)
@@ -81,7 +85,7 @@ public final class BytecodeRunner {
             .sender(senderAccount)
             .to(receiverAccount)
             .keyPair(keyPair)
-            .gasLimit(gasLimit)
+            .gasLimit(selectedGasLimit)
             .build();
 
     final ToyWorld toyWorld =

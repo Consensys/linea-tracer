@@ -182,10 +182,10 @@ public class RlpAddr implements Module {
   }
 
   private void traceCreate(int stamp, RlpAddrChunk chunk, Trace trace) {
-    final int RECIPE1_NB_ROWS = MAX_CT_CREATE + 1;
+    final int recipe1NbRows = MAX_CT_CREATE + 1;
     final BigInteger nonce = chunk.nonce().orElseThrow();
 
-    Bytes nonceShifted = leftPadTo(bigIntegerToBytes(nonce), RECIPE1_NB_ROWS);
+    Bytes nonceShifted = leftPadTo(bigIntegerToBytes(nonce), recipe1NbRows);
     Boolean tinyNonZeroNonce = true;
     if (nonce.compareTo(BigInteger.ZERO) == 0 || nonce.compareTo(BigInteger.valueOf(128)) >= 0) {
       tinyNonZeroNonce = false;
@@ -195,11 +195,11 @@ public class RlpAddr implements Module {
     if (nonce.equals(BigInteger.ZERO)) {
       nonceByteSize = 0;
     }
-    ByteCountAndPowerOutput byteCounting = byteCounting(nonceByteSize, RECIPE1_NB_ROWS);
+    ByteCountAndPowerOutput byteCounting = byteCounting(nonceByteSize, recipe1NbRows);
 
     // Compute the bit decomposition of the last input's byte
-    final byte lastByte = nonceShifted.get(RECIPE1_NB_ROWS - 1);
-    BitDecOutput bitDecomposition = bitDecomposition(0xff & lastByte, RECIPE1_NB_ROWS);
+    final byte lastByte = nonceShifted.get(recipe1NbRows - 1);
+    BitDecOutput bitDecomposition = bitDecomposition(0xff & lastByte, recipe1NbRows);
 
     int size_rlp_nonce = nonceByteSize;
     if (!tinyNonZeroNonce) {
@@ -218,7 +218,7 @@ public class RlpAddr implements Module {
             Bytes.concatenate(
                 bigIntegerToBytes(
                     BigInteger.valueOf(
-                        128 + byteCounting.accByteSizeList().get(RECIPE1_NB_ROWS - 1))),
+                        128 + byteCounting.accByteSizeList().get(recipe1NbRows - 1))),
                 bigIntegerToBytes(nonce));
       }
     }
@@ -228,7 +228,7 @@ public class RlpAddr implements Module {
     final Bytes depAddressLo = chunk.rawHash().slice(LLARGE, LLARGE);
     final Bytes nonceBytes = bigIntegerToBytes(nonce);
 
-    for (int ct = 0; ct < RECIPE1_NB_ROWS; ct++) {
+    for (int ct = 0; ct < recipe1NbRows; ct++) {
       trace
           .stamp(stamp)
           .recipe(UnsignedByte.of(Trace.RLP_ADDR_RECIPE_1))

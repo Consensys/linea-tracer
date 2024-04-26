@@ -24,9 +24,9 @@ import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.shakiradata.RipeMdComponents;
 import net.consensys.linea.zktracer.module.shakiradata.ShakiraData;
 import net.consensys.linea.zktracer.module.shakiradata.ShakiraDataOperation;
+import net.consensys.linea.zktracer.module.shakiradata.ShakiraPrecompileType;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
@@ -113,11 +113,7 @@ public final class RipeMd160Blocks implements Module {
           this.lastDataCallHubStamp =
               this.data.call(
                   new ShakiraDataOperation(
-                      hub.stamp(),
-                      lastDataCallHubStamp,
-                      null,
-                      new RipeMdComponents(inputData),
-                      null));
+                      hub.stamp(), lastDataCallHubStamp, ShakiraPrecompileType.RIPEMD, inputData));
 
           this.counts.push(this.counts.pop() + blockCount);
         }

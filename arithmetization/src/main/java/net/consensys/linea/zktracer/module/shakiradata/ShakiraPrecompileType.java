@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.shakiradata;
 
-import org.apache.tuweni.bytes.Bytes;
-
-public record Sha2Components(Bytes data) {}
+public enum ShakiraPrecompileType {
+  SHA256,
+  KECCAK,
+  RIPEMD
+}

@@ -24,9 +24,9 @@ import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.shakiradata.Sha2Components;
 import net.consensys.linea.zktracer.module.shakiradata.ShakiraData;
 import net.consensys.linea.zktracer.module.shakiradata.ShakiraDataOperation;
+import net.consensys.linea.zktracer.module.shakiradata.ShakiraPrecompileType;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
@@ -109,11 +109,7 @@ public final class Sha256Blocks implements Module {
           this.lastDataCallHubStamp =
               this.data.call(
                   new ShakiraDataOperation(
-                      hub.stamp(),
-                      lastDataCallHubStamp,
-                      new Sha2Components(inputData),
-                      null,
-                      null));
+                      hub.stamp(), lastDataCallHubStamp, ShakiraPrecompileType.SHA256, inputData));
 
           this.counts.push(this.counts.pop() + blockCount);
         }

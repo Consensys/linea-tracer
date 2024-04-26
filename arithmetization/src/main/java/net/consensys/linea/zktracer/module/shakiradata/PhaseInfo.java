@@ -15,4 +15,6 @@
 
 package net.consensys.linea.zktracer.module.shakiradata;
 
-record PhaseInfo(int id, int indexMax, int limbSize) {}
+import net.consensys.linea.zktracer.types.UnsignedByte;
+
+record PhaseInfo(int id, int indexMax, int totalSize, UnsignedByte[] deltaBytes) {}

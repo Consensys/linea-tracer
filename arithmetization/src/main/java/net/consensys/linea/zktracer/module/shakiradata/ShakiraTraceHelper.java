@@ -22,24 +22,21 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.types.UnsignedByte;
-import org.apache.commons.lang3.function.TriFunction;
+import org.apache.tuweni.bytes.Bytes;
 
 @Builder
 @Accessors(fluent = true)
 public class ShakiraTraceHelper {
-  private static final int EMPTY_EXTRA_LIMB_SIZE = -1;
   private final int currentHubStamp;
   @Getter private int prevHubStamp;
   private final int startPhaseIndex;
   private final int endPhaseIndex;
-  private final int extraLimbSize;
+  private final Bytes dataPhaseInputData = Bytes.EMPTY;
 
   private final Map<Integer, PhaseInfo> phaseInfoMap;
   private final Trace trace;
   private final long stamp;
   private final BiConsumer<Integer, Integer> traceLimbConsumer;
-  private final TriFunction<PhaseInfo, Integer, Integer, Integer> currentRowIndexFunction;
-  private UnsignedByte[] hubStampDiffBytes;
 
   void trace() {
     boolean[] phaseFlags = new boolean[6];
@@ -56,17 +53,14 @@ public class ShakiraTraceHelper {
       final PhaseInfo phaseInfo = phaseInfoMap.get(phaseIndex);
 
       final int indexMax = phaseInfo.indexMax();
-      for (int index = 0; index <= indexMax; index++) {
-        int rowIndex = currentRowIndexFunction.apply(phaseInfo, phaseIndex, index);
-
+      for (int rowIndex = 0; rowIndex <= indexMax; rowIndex++) {
         trace
             .phase(UnsignedByte.of(phaseInfo.id()))
-            .deltaByte(hubStampDiffBytes[rowIndex])
+            .deltaByte(phaseInfo.deltaBytes()[rowIndex])
             .id(currentHubStamp)
-            .index(index)
+            .index(rowIndex)
             .indexMax(indexMax)
-            .totalSize(
-                extraLimbSize == EMPTY_EXTRA_LIMB_SIZE ? phaseInfo.limbSize() : extraLimbSize)
+            .totalSize(phaseInfo.totalSize())
             .ripshaStamp(stamp);
 
         traceLimbConsumer.accept(rowIndex, phaseIndex);
@@ -78,8 +72,13 @@ public class ShakiraTraceHelper {
             .isSha2Result(phaseFlags[3])
             .isRipemdData(phaseFlags[4])
             .isRipemdResult(phaseFlags[5])
-            .isExtra(isExtra)
-            .validateRow();
+            .isExtra(isExtra);
+
+        if (isExtra) {
+          trace.fillAndValidateRow();
+        } else {
+          trace.validateRow();
+        }
       }
 
       if (!isExtra) {

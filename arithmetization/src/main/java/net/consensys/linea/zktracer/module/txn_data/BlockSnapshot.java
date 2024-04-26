@@ -19,6 +19,9 @@ import java.util.Optional;
 
 import lombok.Getter;
 import net.consensys.linea.zktracer.container.stacked.list.StackedList;
+import net.consensys.linea.zktracer.module.euc.Euc;
+import net.consensys.linea.zktracer.module.wcp.Wcp;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
@@ -28,20 +31,24 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 /**
  * This class gathers the block-related information required to trace the {@link TxnData} module.
  */
+@Getter
 public class BlockSnapshot {
   /** Sequential ID of this block within a conflation */
-  @Getter int id;
+  int id;
   /** A list of {@link TransactionSnapshot} contained in this block */
-  @Getter private final StackedList<TransactionSnapshot> txs = new StackedList<>();
+  private final StackedList<TransactionSnapshot> txs = new StackedList<>();
   /** The base fee of this block */
-  @Getter private final Optional<Wei> baseFee;
+  private final Optional<Wei> baseFee;
   /** The coinbase of this block */
-  @Getter private final Address coinbaseAddress;
+  private final Address coinbaseAddress;
+
+  private final Bytes blockGasLimit;
 
   BlockSnapshot(int id, ProcessableBlockHeader header) {
     this.id = id;
     this.baseFee = header.getBaseFee().map(x -> (Wei) x);
     this.coinbaseAddress = header.getCoinbase();
+    this.blockGasLimit = Bytes.minimalBytes(header.getGasLimit());
   }
 
   /**
@@ -59,9 +66,10 @@ public class BlockSnapshot {
    * @param worldView a view on the state
    * @param tx the {@link Transaction}
    */
-  void captureTx(WorldView worldView, Transaction tx) {
+  void captureTx(Wcp wcp, Euc euc, WorldView worldView, Transaction tx) {
     final TransactionSnapshot snapshot =
-        TransactionSnapshot.fromTransaction(tx, worldView, this.baseFee);
+        TransactionSnapshot.fromTransaction(
+            wcp, euc, tx, worldView, this.baseFee, this.blockGasLimit);
     this.txs.add(snapshot);
   }
 
@@ -81,7 +89,9 @@ public class BlockSnapshot {
     currentTx.refundCounter(refundCounter);
     currentTx.leftoverGas(leftoverGas);
     currentTx.effectiveGasRefund(effectiveGasRefund);
-    currentTx.cumulativeGasConsumption(cumulativeGasUsed);
+    currentTx.cumulativeGasConsumption((int) cumulativeGasUsed);
+
+    currentTx.setCallsToEucAndWcp();
   }
 
   /**

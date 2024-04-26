@@ -108,6 +108,8 @@ import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.log.LogTopic;
 import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
+import org.hyperledger.besu.plugin.data.BlockBody;
+import org.hyperledger.besu.plugin.data.BlockHeader;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 @Slf4j
@@ -222,9 +224,9 @@ public class Hub implements Module {
     this.romLex = new RomLex(this);
     this.rom = new Rom(this.romLex);
     this.rlpTxn = new RlpTxn(this.romLex);
-    this.txnData = new TxnData(this, this.romLex, this.wcp);
-    this.ecData = new EcData(this, this.wcp, this.ext);
     this.euc = new Euc(this.wcp);
+    this.txnData = new TxnData(this, this.romLex, this.wcp, this.euc);
+    this.ecData = new EcData(this, this.wcp, this.ext);
     this.mmu =
         new Mmu(
             this.euc,
@@ -782,6 +784,11 @@ public class Hub implements Module {
     for (Module m : this.modules) {
       m.traceEndTx(world, tx, isSuccessful, output, logs, gasUsed);
     }
+  }
+
+  @Override
+  public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
+    this.txnData.traceEndBlock(blockHeader, blockBody);
   }
 
   private void unlatchStack(MessageFrame frame) {

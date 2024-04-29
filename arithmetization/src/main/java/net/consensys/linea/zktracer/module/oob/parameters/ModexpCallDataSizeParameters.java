@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys AG.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -16,40 +16,34 @@
 package net.consensys.linea.zktracer.module.oob.parameters;
 
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
+import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
 import java.math.BigInteger;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import net.consensys.linea.zktracer.module.oob.Trace;
-import net.consensys.linea.zktracer.types.EWord;
-import org.apache.tuweni.bytes.Bytes;
 
-public record ReturnDataContextOobParameters(EWord offset, EWord size, BigInteger rds)
-    implements OobParameters {
+@Getter
+@RequiredArgsConstructor
+public class ModexpCallDataSizeParameters implements OobParameters {
+  private final BigInteger cds;
 
-  public BigInteger offsetHi() {
-    return offset.hiBigInt();
-  }
-
-  public BigInteger offsetLo() {
-    return offset.loBigInt();
-  }
-
-  public BigInteger sizeHi() {
-    return size.hiBigInt();
-  }
-
-  public BigInteger sizeLo() {
-    return size.loBigInt();
-  }
+  @Setter private boolean extractBbs;
+  @Setter private boolean extractEbs;
+  @Setter private boolean extractMbs;
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .data1(bigIntegerToBytes(offsetHi()))
-        .data2(bigIntegerToBytes(offsetLo()))
-        .data3(bigIntegerToBytes(sizeHi()))
-        .data4(Bytes.wrap(sizeLo().toByteArray()))
-        .data5(bigIntegerToBytes(rds))
-        .data6(ZERO);
+        .data1(ZERO)
+        .data2(bigIntegerToBytes(cds))
+        .data3(booleanToBytes(extractBbs))
+        .data4(booleanToBytes(extractEbs))
+        .data5(booleanToBytes(extractMbs))
+        .data6(ZERO)
+        .data7(ZERO)
+        .data8(ZERO);
   }
 }

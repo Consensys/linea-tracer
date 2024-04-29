@@ -28,8 +28,8 @@ import org.apache.tuweni.bytes.Bytes;
 
 @Getter
 @RequiredArgsConstructor
-public class Blake2fContextDataSizeParameters implements OobParameters {
-  private final BigInteger contextDataSize;
+public class Blake2fCallDataSizeParameters implements OobParameters {
+  private final BigInteger cds;
   private final BigInteger returnAtCapacity;
 
   @Setter private boolean success;
@@ -39,7 +39,7 @@ public class Blake2fContextDataSizeParameters implements OobParameters {
   public Trace trace(Trace trace) {
     return trace
         .data1(ZERO)
-        .data2(bigIntegerToBytes(contextDataSize))
+        .data2(bigIntegerToBytes(cds))
         .data3(bigIntegerToBytes(returnAtCapacity))
         .data4(booleanToBytes(success)) // Set after the constructor
         .data5(ZERO)

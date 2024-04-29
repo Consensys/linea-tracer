@@ -58,22 +58,22 @@ import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.mod.Mod;
-import net.consensys.linea.zktracer.module.oob.parameters.Blake2fContextDataSizeParameters;
+import net.consensys.linea.zktracer.module.oob.parameters.Blake2fCallDataSizeParameters;
 import net.consensys.linea.zktracer.module.oob.parameters.Blake2fParamsParameters;
-import net.consensys.linea.zktracer.module.oob.parameters.CallDatLoadOobParameters;
+import net.consensys.linea.zktracer.module.oob.parameters.CallDataLoadOobParameters;
 import net.consensys.linea.zktracer.module.oob.parameters.CallOobParameters;
 import net.consensys.linea.zktracer.module.oob.parameters.CreateOobParameters;
 import net.consensys.linea.zktracer.module.oob.parameters.DeploymentOobParameters;
 import net.consensys.linea.zktracer.module.oob.parameters.JumpOobParameters;
 import net.consensys.linea.zktracer.module.oob.parameters.JumpiOobParameters;
-import net.consensys.linea.zktracer.module.oob.parameters.ModexpContextDataSizeParameters;
+import net.consensys.linea.zktracer.module.oob.parameters.ModexpCallDataSizeParameters;
 import net.consensys.linea.zktracer.module.oob.parameters.ModexpExtractParameters;
 import net.consensys.linea.zktracer.module.oob.parameters.ModexpLeadParameters;
 import net.consensys.linea.zktracer.module.oob.parameters.ModexpPricingParameters;
 import net.consensys.linea.zktracer.module.oob.parameters.ModexpXbsParameters;
 import net.consensys.linea.zktracer.module.oob.parameters.OobParameters;
 import net.consensys.linea.zktracer.module.oob.parameters.PrecompileCommonOobParameters;
-import net.consensys.linea.zktracer.module.oob.parameters.ReturnDataContextOobParameters;
+import net.consensys.linea.zktracer.module.oob.parameters.ReturnDataCopyOobParameters;
 import net.consensys.linea.zktracer.module.oob.parameters.SstoreOobParameters;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -374,16 +374,16 @@ public class OobChunk extends ModuleOperation {
         oobParameters = jumpiOobParameters;
         setJumpi(jumpiOobParameters);
       } else if (isRdc) {
-        ReturnDataContextOobParameters rdcOobParameters =
-            new ReturnDataContextOobParameters(
+        ReturnDataCopyOobParameters rdcOobParameters =
+            new ReturnDataCopyOobParameters(
                 EWord.of(frame.getStackItem(1)),
                 EWord.of(frame.getStackItem(2)),
                 BigInteger.valueOf(frame.getReturnData().size()));
         oobParameters = rdcOobParameters;
         setRdc(rdcOobParameters);
       } else if (isCdl) {
-        CallDatLoadOobParameters cdlOobParameters =
-            new CallDatLoadOobParameters(
+        CallDataLoadOobParameters cdlOobParameters =
+            new CallDataLoadOobParameters(
                 EWord.of(frame.getStackItem(0)), BigInteger.valueOf(frame.getInputData().size()));
         oobParameters = cdlOobParameters;
         setCdl(cdlOobParameters);
@@ -475,7 +475,7 @@ public class OobChunk extends ModuleOperation {
       final BigInteger cds = EWord.of(frame.getStackItem(cdsIndex)).toUnsignedBigInteger();
       // Note that this check will disappear since it will be the MXP module taking care of it
       if (cds.compareTo(EWord.of(frame.getStackItem(cdsIndex)).loBigInt()) > 0) {
-        throw new IllegalArgumentException("contextDataSize hi part is non-zero");
+        throw new IllegalArgumentException("cds hi part is non-zero");
       }
 
       final BigInteger returnAtCapacity =
@@ -501,7 +501,7 @@ public class OobChunk extends ModuleOperation {
                 ? Bytes.concatenate(unpaddedCallData, Bytes.repeat((byte) 0, 96 - cds.intValue()))
                 : unpaddedCallData;
 
-        // contextDataSize and the data below can be int when compared (after size check)
+        // cds and the data below can be int when compared (after size check)
         final BigInteger bbs = paddedCallData.slice(0, 32).toUnsignedBigInteger();
         final BigInteger ebs = paddedCallData.slice(32, 32).toUnsignedBigInteger();
         final BigInteger mbs = paddedCallData.slice(64, 32).toUnsignedBigInteger();
@@ -541,8 +541,8 @@ public class OobChunk extends ModuleOperation {
         }
 
         if (isModexpCds) {
-          final ModexpContextDataSizeParameters prcModexpCdsParameters =
-              new ModexpContextDataSizeParameters(cds);
+          final ModexpCallDataSizeParameters prcModexpCdsParameters =
+              new ModexpCallDataSizeParameters(cds);
           oobParameters = prcModexpCdsParameters;
           setModexpCds(prcModexpCdsParameters);
         } else if (isModexpXbs) {
@@ -588,8 +588,8 @@ public class OobChunk extends ModuleOperation {
         }
       } else if (isBlakePrecompile()) {
         if (isBlake2FCds) {
-          final Blake2fContextDataSizeParameters prcBlake2FCdsParameters =
-              new Blake2fContextDataSizeParameters(cds, returnAtCapacity);
+          final Blake2fCallDataSizeParameters prcBlake2FCdsParameters =
+              new Blake2fCallDataSizeParameters(cds, returnAtCapacity);
 
           oobParameters = prcBlake2FCdsParameters;
           setBlake2FCds(prcBlake2FCdsParameters);
@@ -773,7 +773,7 @@ public class OobChunk extends ModuleOperation {
         jumpiOobParameters.pcNewHi(),
         jumpiOobParameters.pcNewLo(),
         BigInteger.ZERO,
-        jumpiOobParameters.codeSize());
+        jumpiOobParameters.codesize());
     final boolean invalidPcNew = !bigIntegerToBoolean(outgoingResLo[0]);
 
     // row i + 1
@@ -781,7 +781,7 @@ public class OobChunk extends ModuleOperation {
     final boolean attemptJump = !bigIntegerToBoolean(outgoingResLo[1]);
   }
 
-  private void setRdc(ReturnDataContextOobParameters rdcOobParameters) {
+  private void setRdc(ReturnDataCopyOobParameters rdcOobParameters) {
     // row i
     callToISZERO(0, rdcOobParameters.offsetHi(), rdcOobParameters.sizeHi());
     final boolean rdcRoob = !bigIntegerToBoolean(outgoingResLo[0]);
@@ -814,14 +814,14 @@ public class OobChunk extends ModuleOperation {
     final boolean rdcSoob = bigIntegerToBoolean(outgoingResLo[2]);
   }
 
-  private void setCdl(CallDatLoadOobParameters cdlOobParameters) {
+  private void setCdl(CallDataLoadOobParameters cdlOobParameters) {
     // row i
     callToLT(
         0,
         cdlOobParameters.offsetHi(),
         cdlOobParameters.offsetLo(),
         BigInteger.ZERO,
-        cdlOobParameters.contextDataSize());
+        cdlOobParameters.cds());
     final boolean touchesRam = bigIntegerToBoolean(outgoingResLo[0]);
   }
 
@@ -1006,7 +1006,7 @@ public class OobChunk extends ModuleOperation {
     prcCommonOobParameters.setReturnGas(returnGas);
   }
 
-  private void setModexpCds(ModexpContextDataSizeParameters prcModexpCdsParameters) {
+  private void setModexpCds(ModexpCallDataSizeParameters prcModexpCdsParameters) {
     // row i
     callToLT(0, BigInteger.ZERO, BigInteger.ZERO, BigInteger.ZERO, prcModexpCdsParameters.getCds());
     final boolean extractBbs = bigIntegerToBoolean(outgoingResLo[0]);
@@ -1232,12 +1232,12 @@ public class OobChunk extends ModuleOperation {
     prcModexpExtractParameters.setExtractExponent(extractExponent);
   }
 
-  private void setBlake2FCds(Blake2fContextDataSizeParameters prcBlake2FCdsParameters) {
+  private void setBlake2FCds(Blake2fCallDataSizeParameters prcBlake2FCdsParameters) {
     // row i
     callToEQ(
         0,
         BigInteger.ZERO,
-        prcBlake2FCdsParameters.getContextDataSize(),
+        prcBlake2FCdsParameters.getCds(),
         BigInteger.ZERO,
         BigInteger.valueOf(213));
     final boolean validCds = bigIntegerToBoolean(outgoingResLo[0]);

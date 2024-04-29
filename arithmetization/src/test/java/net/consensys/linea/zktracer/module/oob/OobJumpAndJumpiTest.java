@@ -63,7 +63,7 @@ public class OobJumpAndJumpiTest {
     appendJumpDest(program); // PC = 107
     appendStop(program);
 
-    // codeSize = 109
+    // codesize = 109
 
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run();
@@ -95,7 +95,7 @@ public class OobJumpAndJumpiTest {
     appendJumpDest(program); // PC = 107
     appendStop(program);
 
-    // codeSize = 109
+    // codesize = 109
 
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run();
@@ -126,7 +126,7 @@ public class OobJumpAndJumpiTest {
 
     appendJumpDest(program); // PC = 107
 
-    // codeSize = 108
+    // codesize = 108
 
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run();
@@ -152,12 +152,12 @@ public class OobJumpAndJumpiTest {
     appendStop(program);
 
     appendJumpDest(program); // PC = 71
-    appendJump(EWord.of(108), program); // It fails because pc_new = 108 >= codeSize = 108
+    appendJump(EWord.of(108), program); // It fails because pc_new = 108 >= codesize = 108
     appendStop(program);
 
     appendJumpDest(program); // PC = 107
 
-    // codeSize = 108
+    // codesize = 108
 
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run();
@@ -293,7 +293,7 @@ public class OobJumpAndJumpiTest {
     appendJumpDest(program); // PC = 206
     appendStop(program);
 
-    // codeSize = 208
+    // codesize = 208
 
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run();
@@ -325,7 +325,7 @@ public class OobJumpAndJumpiTest {
     appendJumpDest(program); // PC = 206
     appendStop(program);
 
-    // codeSize = 208
+    // codesize = 208
 
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run();
@@ -356,7 +356,7 @@ public class OobJumpAndJumpiTest {
 
     appendJumpDest(program); // PC = 206
 
-    // codeSize = 207
+    // codesize = 207
 
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run();
@@ -383,12 +383,12 @@ public class OobJumpAndJumpiTest {
 
     appendJumpDest(program); // PC = 137
     appendJumpi(
-        EWord.of(207), EWord.of(1), program); // It fails because pc_new = 207 >= codeSize = 207
+        EWord.of(207), EWord.of(1), program); // It fails because pc_new = 207 >= codesize = 207
     appendStop(program);
 
     appendJumpDest(program); // PC = 206
 
-    // codeSize = 207
+    // codesize = 207
 
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run();
@@ -411,7 +411,7 @@ public class OobJumpAndJumpiTest {
 
     appendJumpDest(program); // PC = 68
 
-    // codeSize = 69
+    // codesize = 69
 
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run();
@@ -435,7 +435,7 @@ public class OobJumpAndJumpiTest {
 
     appendJumpDest(program); // PC = 68
 
-    // codeSize = 69
+    // codesize = 69
 
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run();
@@ -459,7 +459,7 @@ public class OobJumpAndJumpiTest {
 
     appendJumpDest(program); // PC = 68
 
-    // codeSize = 69
+    // codesize = 69
 
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run();
@@ -483,7 +483,7 @@ public class OobJumpAndJumpiTest {
 
     appendJumpDest(program); // PC = 68
 
-    // codeSize = 69
+    // codesize = 69
 
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run();

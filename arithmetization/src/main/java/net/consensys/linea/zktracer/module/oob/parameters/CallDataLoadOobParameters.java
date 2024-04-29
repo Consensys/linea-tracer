@@ -22,8 +22,7 @@ import java.math.BigInteger;
 import net.consensys.linea.zktracer.module.oob.Trace;
 import net.consensys.linea.zktracer.types.EWord;
 
-public record CallDatLoadOobParameters(EWord offset, BigInteger contextDataSize)
-    implements OobParameters {
+public record CallDataLoadOobParameters(EWord offset, BigInteger cds) implements OobParameters {
 
   public BigInteger offsetHi() {
     return offset.hiBigInt();
@@ -40,7 +39,7 @@ public record CallDatLoadOobParameters(EWord offset, BigInteger contextDataSize)
         .data2(bigIntegerToBytes(offsetLo()))
         .data3(ZERO)
         .data4(ZERO)
-        .data5(bigIntegerToBytes(contextDataSize))
+        .data5(bigIntegerToBytes(cds))
         .data6(ZERO);
   }
 }

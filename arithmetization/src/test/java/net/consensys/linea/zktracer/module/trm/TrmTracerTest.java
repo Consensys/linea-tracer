@@ -112,7 +112,7 @@ public class TrmTracerTest {
             BytecodeCompiler.newProgram()
                 .push(Bytes.fromHexString("0xff")) // rds
                 .push(Bytes.fromHexString("0x80")) // rdo
-                .push(Bytes.fromHexString("0x44")) // contextDataSize
+                .push(Bytes.fromHexString("0x44")) // cds
                 .push(Bytes.fromHexString("0x19")) // cdo
                 .push(Bytes.fromHexString("0xffffffffffff")) // value
                 .push(Bytes.ofUnsignedLong(rawAddr)) // address
@@ -127,7 +127,7 @@ public class TrmTracerTest {
             BytecodeCompiler.newProgram()
                 .push(Bytes.fromHexString("0xff")) // rds
                 .push(Bytes.fromHexString("0x80")) // rdo
-                .push(Bytes.fromHexString("0x44")) // contextDataSize
+                .push(Bytes.fromHexString("0x44")) // cds
                 .push(Bytes.fromHexString("0x19")) // cdo
                 .push(Bytes.ofUnsignedLong(rawAddr)) // address
                 .push(Bytes.fromHexString("0xffff")) // gas

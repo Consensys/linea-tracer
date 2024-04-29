@@ -22,7 +22,7 @@ import java.math.BigInteger;
 import net.consensys.linea.zktracer.module.oob.Trace;
 import net.consensys.linea.zktracer.types.EWord;
 
-public record JumpiOobParameters(EWord pcNew, EWord jumpCondition, BigInteger codeSize)
+public record JumpiOobParameters(EWord pcNew, EWord jumpCondition, BigInteger codesize)
     implements OobParameters {
 
   public BigInteger pcNewHi() {
@@ -48,7 +48,7 @@ public record JumpiOobParameters(EWord pcNew, EWord jumpCondition, BigInteger co
         .data2(bigIntegerToBytes(pcNewLo()))
         .data3(bigIntegerToBytes(jumpConditionHi()))
         .data4(bigIntegerToBytes(jumpConditionLo()))
-        .data5(bigIntegerToBytes(codeSize))
+        .data5(bigIntegerToBytes(codesize))
         .data6(ZERO);
   }
 }

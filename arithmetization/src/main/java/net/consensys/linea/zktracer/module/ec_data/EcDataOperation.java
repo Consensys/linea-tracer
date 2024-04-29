@@ -15,6 +15,14 @@
 
 package net.consensys.linea.zktracer.module.ec_data;
 
+import static net.consensys.linea.zktracer.module.ec_data.Trace.ECADD_ADDRESSS;
+import static net.consensys.linea.zktracer.module.ec_data.Trace.ECMUL_ADDRESS;
+import static net.consensys.linea.zktracer.module.ec_data.Trace.ECPAIRING_ADDRESS;
+import static net.consensys.linea.zktracer.module.ec_data.Trace.ECRECOVER_ADDRESS;
+import static net.consensys.linea.zktracer.module.ec_data.Trace.P_BN_HI;
+import static net.consensys.linea.zktracer.module.ec_data.Trace.P_BN_LO;
+import static net.consensys.linea.zktracer.module.ec_data.Trace.SECP256K1N_HI;
+import static net.consensys.linea.zktracer.module.ec_data.Trace.SECP256K1N_LO;
 import static net.consensys.linea.zktracer.types.Containers.repeat;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 
@@ -34,18 +42,10 @@ import org.hyperledger.besu.datatypes.Address;
 
 @Accessors(fluent = true)
 public class EcDataOperation extends ModuleOperation {
-  private static final int EC_RECOVER = 1;
-  private static final int EC_ADD = 6;
-  private static final int EC_MUL = 7;
-  private static final int EC_PAIRING = 8;
-  private static final Set<Integer> EC_TYPES = Set.of(EC_RECOVER, EC_ADD, EC_MUL, EC_PAIRING);
-
-  private static final EWord P =
-      EWord.ofHexString("0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47");
-  private static final EWord Q =
-      EWord.ofHexString("0x30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001");
-  private static final EWord SECP256_K1N =
-      EWord.ofHexString("0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f");
+  private static final Set<Integer> EC_TYPES =
+      Set.of(ECRECOVER_ADDRESS, ECADD_ADDRESSS, ECMUL_ADDRESS, ECPAIRING_ADDRESS);
+  private static final EWord P_BN = EWord.of(P_BN_HI, P_BN_LO);
+  private static final EWord SECP256K1N = EWord.of(SECP256K1N_HI, SECP256K1N_LO);
 
   private final Wcp wcp;
   private final Ext ext;
@@ -84,13 +84,13 @@ public class EcDataOperation extends ModuleOperation {
 
   private static int addressToEcType(final Address target) {
     if (target.equals(Address.ECREC)) {
-      return EC_RECOVER;
+      return ECRECOVER_ADDRESS;
     } else if (target.equals(Address.ALTBN128_ADD)) {
-      return EC_ADD;
+      return ECADD_ADDRESSS;
     } else if (target.equals(Address.ALTBN128_MUL)) {
-      return EC_MUL;
+      return ECMUL_ADDRESS;
     } else if (target.equals(Address.ALTBN128_PAIRING)) {
-      return EC_PAIRING;
+      return ECPAIRING_ADDRESS;
     } else {
       throw new IllegalArgumentException("invalid EC address");
     }
@@ -98,9 +98,10 @@ public class EcDataOperation extends ModuleOperation {
 
   private static int ecTypeToNRows(int ecType, final Bytes input) {
     return switch (ecType) {
-      case EC_RECOVER, EC_ADD -> 8;
-      case EC_MUL -> 6;
-      case EC_PAIRING -> input.size() / 16;
+      case ECRECOVER_ADDRESS -> 8;
+      case ECADD_ADDRESSS -> 12;
+      case ECMUL_ADDRESS -> 6;
+      case ECPAIRING_ADDRESS -> input.size() / 16;
       default -> throw new IllegalArgumentException("invalid EC type");
     };
   }
@@ -110,7 +111,7 @@ public class EcDataOperation extends ModuleOperation {
     Preconditions.checkArgument(EC_TYPES.contains(ecType), "invalid EC type");
 
     final int nRows = ecTypeToNRows(ecType, input);
-    final int minInputLength = ecType == EC_MUL ? 96 : 128;
+    final int minInputLength = ecType == ECMUL_ADDRESS ? 96 : 128;
     if (input.size() < minInputLength) {
       this.input = leftPadTo(input, minInputLength);
     } else {
@@ -121,7 +122,7 @@ public class EcDataOperation extends ModuleOperation {
     this.ecType = ecType;
     this.nRows = nRows;
     this.thisIsNotOnG2Index = -1;
-    if (ecType == EC_PAIRING) {
+    if (ecType == ECPAIRING_ADDRESS) {
       this.nPairings = input.size() / 192;
     } else {
       this.nPairings = 0;
@@ -160,10 +161,10 @@ public class EcDataOperation extends ModuleOperation {
     EcDataOperation r =
         new EcDataOperation(wcp, ext, currentContextNumber, previousContextNumber, ecType, input);
     switch (ecType) {
-      case EC_RECOVER -> r.handleRecover();
-      case EC_ADD -> r.handleAdd();
-      case EC_MUL -> r.handleMul();
-      case EC_PAIRING -> r.handlePairing();
+      case ECRECOVER_ADDRESS -> r.handleRecover();
+      case ECADD_ADDRESSS -> r.handleAdd();
+      case ECMUL_ADDRESS -> r.handleMul();
+      case ECPAIRING_ADDRESS -> r.handlePairing();
     }
     return r;
   }
@@ -226,8 +227,8 @@ public class EcDataOperation extends ModuleOperation {
     final Bytes r = this.input.slice(64, 32);
     final Bytes s = this.input.slice(96, 32);
 
-    this.comparisons.set(0, this.callWcp(0, OpCode.LT, r, SECP256_K1N)); // r < secp256k1N
-    this.comparisons.set(2, this.callWcp(1, OpCode.LT, s, SECP256_K1N)); // s < secp256k1N
+    this.comparisons.set(0, this.callWcp(0, OpCode.LT, r, SECP256K1N)); // r < secp256k1N
+    this.comparisons.set(2, this.callWcp(1, OpCode.LT, s, SECP256K1N)); // s < secp256k1N
     this.comparisons.set(1, this.callWcp(2, OpCode.LT, Bytes.EMPTY, r)); // 0 < r
     this.comparisons.set(3, this.callWcp(3, OpCode.LT, Bytes.EMPTY, s)); // 0 < s
     this.equalities.set(1, this.callWcp(4, OpCode.EQ, v, Bytes.of(27))); // v == 27
@@ -247,13 +248,17 @@ public class EcDataOperation extends ModuleOperation {
 
   private void handlePointOnC1(final Bytes x, final Bytes y, int u, int i) {
     this.squares.set(
-        6 * i + 2 * u, this.callExt(12 * i + 4 * u, OpCode.MULMOD, x, x, P)); // x² mod p
+        6 * i + 2 * u, this.callExt(12 * i + 4 * u, OpCode.MULMOD, x, x, P_BN)); // x² mod p
     this.squares.set(
-        1 + 2 * u + 6 * i, this.callExt(1 + 4 * u + 12 * i, OpCode.MULMOD, y, y, P)); // y² mod p
+        1 + 2 * u + 6 * i, this.callExt(1 + 4 * u + 12 * i, OpCode.MULMOD, y, y, P_BN)); // y² mod p
     this.cubes.set(
         2 * u + 6 * i,
         this.callExt(
-            2 + 4 * u + 12 * i, OpCode.MULMOD, this.squares.get(2 * u + 6 * i), x, P)); // x³ mod p
+            2 + 4 * u + 12 * i,
+            OpCode.MULMOD,
+            this.squares.get(2 * u + 6 * i),
+            x,
+            P_BN)); // x³ mod p
     this.cubes.set(
         1 + 2 * u + 6 * i,
         this.callExt(
@@ -261,11 +266,11 @@ public class EcDataOperation extends ModuleOperation {
             OpCode.ADDMOD,
             this.cubes.get(2 * u + 6 * i),
             Bytes.of(3),
-            P)); // x³ + 3 mod p
+            P_BN)); // x³ + 3 mod p
 
-    this.comparisons.set(2 * u + 6 * i, this.callWcp(4 * u + 12 * i, OpCode.LT, x, P)); // x < p
+    this.comparisons.set(2 * u + 6 * i, this.callWcp(4 * u + 12 * i, OpCode.LT, x, P_BN)); // x < p
     this.comparisons.set(
-        1 + 2 * u + 6 * i, this.callWcp(1 + 4 * u + 12 * i, OpCode.LT, y, P)); // y < p
+        1 + 2 * u + 6 * i, this.callWcp(1 + 4 * u + 12 * i, OpCode.LT, y, P_BN)); // y < p
 
     this.equalities.set(
         1 + 4 * u + 12 * i,
@@ -307,10 +312,10 @@ public class EcDataOperation extends ModuleOperation {
 
       this.handlePointOnC1(x, y, 0, i);
 
-      this.comparisons.set(6 * i + 2, this.callWcp(12 * i + 3, OpCode.LT, aIm, P));
-      this.comparisons.set(6 * i + 3, this.callWcp(12 * i + 4, OpCode.LT, aRe, P));
-      this.comparisons.set(6 * i + 4, this.callWcp(12 * i + 5, OpCode.LT, bIm, P));
-      this.comparisons.set(6 * i + 5, this.callWcp(12 * i + 6, OpCode.LT, bRe, P));
+      this.comparisons.set(6 * i + 2, this.callWcp(12 * i + 3, OpCode.LT, aIm, P_BN));
+      this.comparisons.set(6 * i + 3, this.callWcp(12 * i + 4, OpCode.LT, aRe, P_BN));
+      this.comparisons.set(6 * i + 4, this.callWcp(12 * i + 5, OpCode.LT, bIm, P_BN));
+      this.comparisons.set(6 * i + 5, this.callWcp(12 * i + 6, OpCode.LT, bRe, P_BN));
       this.equalities.set(12 * i + 7, true);
       this.equalities.set(12 * i + 11, true);
     }
@@ -328,7 +333,7 @@ public class EcDataOperation extends ModuleOperation {
   }
 
   private void traceRow(Trace trace, int i) {
-    trace.stamp(Bytes.ofUnsignedShort(this.contextNumber));
+    trace.stamp(this.contextNumber);
     // TODO: the rest
   }
 

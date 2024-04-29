@@ -107,12 +107,12 @@ public class ModExpLogChunk extends ExpChunk {
     final BigInteger cdo = frame.getStackItem(cdoIndex).toUnsignedBigInteger();
     final BigInteger cds = frame.getStackItem(cdsIndex).toUnsignedBigInteger();
 
-    // mxp should ensure that the hi part of cds is 0
+    // mxp should ensure that the hi part of contextDataSize is 0
 
     if (cds.signum() == 0) {
       return null;
     }
-    // Here cds != 0
+    // Here contextDataSize != 0
 
     final Bytes unpaddedCallData = frame.shadowReadMemory(cdo.longValue(), cds.longValue());
 

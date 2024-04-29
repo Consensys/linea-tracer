@@ -19,10 +19,10 @@ import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
-import java.util.Arrays;
 import java.util.List;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import net.consensys.linea.zktracer.module.Module;
@@ -35,6 +35,7 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 
+@RequiredArgsConstructor
 /** Implementation of a {@link Module} for out of bounds. */
 public class Oob implements Module {
 
@@ -51,24 +52,16 @@ public class Oob implements Module {
     return "OOB";
   }
 
-  public Oob(Hub hub, Add add, Mod mod, Wcp wcp) {
-    this.hub = hub;
-    this.add = add;
-    this.mod = mod;
-    this.wcp = wcp;
-  }
-
-  Address[] precompilesHandledByOob =
-      new Address[] {
-        Address.ECREC,
-        Address.SHA256,
-        Address.RIPEMD160,
-        Address.ID,
-        Address.ALTBN128_ADD,
-        Address.ALTBN128_MUL,
-        Address.ALTBN128_PAIRING,
-        Address.BLAKE2B_F_COMPRESSION
-      };
+  static final List<Address> PRECOMPILES_HANDLED_BY_OOB =
+      List.of(
+          Address.ECREC,
+          Address.SHA256,
+          Address.RIPEMD160,
+          Address.ID,
+          Address.ALTBN128_ADD,
+          Address.ALTBN128_MUL,
+          Address.ALTBN128_PAIRING,
+          Address.BLAKE2B_F_COMPRESSION);
 
   @Override
   public void tracePreOpcode(MessageFrame frame) { // This will be renamed to tracePreOp
@@ -78,7 +71,7 @@ public class Oob implements Module {
     if (hub.pch().exceptions().none() && hub.pch().aborts().none() && opCode.isCall()) {
       Address target = Words.toAddress(frame.getStackItem(1));
 
-      if (Arrays.asList(precompilesHandledByOob).contains(target)) {
+      if (PRECOMPILES_HANDLED_BY_OOB.contains(target)) {
         if (target.equals(Address.BLAKE2B_F_COMPRESSION)) {
           OobChunk oobChunk = new OobChunk(frame, add, mod, wcp, hub, true, 1, 0);
           this.chunks.add(oobChunk);

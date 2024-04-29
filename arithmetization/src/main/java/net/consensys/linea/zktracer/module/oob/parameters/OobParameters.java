@@ -13,13 +13,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.oob;
+package net.consensys.linea.zktracer.module.oob.parameters;
 
+import net.consensys.linea.zktracer.module.oob.Trace;
 import org.apache.tuweni.bytes.Bytes;
 
 public interface OobParameters {
-  static final Bytes ZERO = Bytes.EMPTY;
-  static final Bytes ONE = Bytes.of(1);
+  Bytes ZERO = Bytes.EMPTY;
+  Bytes ONE = Bytes.of(1);
 
   Trace trace(Trace trace);
 }

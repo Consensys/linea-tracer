@@ -66,7 +66,7 @@ public class ExpTest {
             .op(OpCode.MSTORE)
             .push(1) // retSize
             .push(0x9f) // retOffset
-            .push(0x63) // argSize (cds)
+            .push(0x63) // argSize (contextDataSize)
             .push(0) // argOffset (cdo)
             .push(5) // address
             .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas
@@ -201,7 +201,7 @@ public class ExpTest {
         .op(OpCode.MSTORE)
         .push(512) // retSize
         .push(minimalValidCds) // retOffset
-        .push(minimalValidCds) // argSize (cds)
+        .push(minimalValidCds) // argSize (contextDataSize)
         .push(0) // argOffset (cdo)
         .push(5) // address
         .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas

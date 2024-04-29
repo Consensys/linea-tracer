@@ -13,15 +13,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.oob;
+package net.consensys.linea.zktracer.module.oob.parameters;
 
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.math.BigInteger;
 
+import net.consensys.linea.zktracer.module.oob.Trace;
 import net.consensys.linea.zktracer.types.EWord;
 
-public record CallOobParameters(EWord val, BigInteger bal, boolean nonZeroValue, BigInteger csd)
+public record CreateOobParameters(
+    EWord val, BigInteger bal, BigInteger nonce, boolean hasCode, BigInteger csd)
     implements OobParameters {
 
   public BigInteger valHi() {
@@ -38,10 +40,8 @@ public record CallOobParameters(EWord val, BigInteger bal, boolean nonZeroValue,
         .data1(bigIntegerToBytes(valHi()))
         .data2(bigIntegerToBytes(valLo()))
         .data3(bigIntegerToBytes(bal))
-        .data4(nonZeroValue ? ONE : ZERO)
-        .data5(ZERO)
-        .data6(bigIntegerToBytes(csd))
-        .data7(ZERO) // TODO: temporary value; to fill when oob update is complete
-        .data8(ZERO); // TODO: temporary value; to fill when oob update is complete
+        .data4(bigIntegerToBytes(nonce))
+        .data5((hasCode ? ONE : ZERO))
+        .data6(bigIntegerToBytes(csd));
   }
 }

@@ -13,16 +13,18 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.oob;
+package net.consensys.linea.zktracer.module.oob.parameters;
 
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.math.BigInteger;
 
+import net.consensys.linea.zktracer.module.oob.Trace;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 
-public record RdcOobParameters(EWord offset, EWord size, BigInteger rds) implements OobParameters {
+public record ReturnDataContextOobParameters(EWord offset, EWord size, BigInteger rds)
+    implements OobParameters {
 
   public BigInteger offsetHi() {
     return offset.hiBigInt();

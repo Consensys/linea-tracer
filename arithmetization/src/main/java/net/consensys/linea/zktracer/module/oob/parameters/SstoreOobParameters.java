@@ -13,32 +13,24 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.oob;
+package net.consensys.linea.zktracer.module.oob.parameters;
 
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.math.BigInteger;
 
-import net.consensys.linea.zktracer.types.EWord;
+import net.consensys.linea.zktracer.module.oob.Trace;
 
-public record CdlOobParameters(EWord offset, BigInteger cds) implements OobParameters {
-
-  public BigInteger offsetHi() {
-    return offset.hiBigInt();
-  }
-
-  public BigInteger offsetLo() {
-    return offset.loBigInt();
-  }
+public record SstoreOobParameters(BigInteger gas) implements OobParameters {
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .data1(bigIntegerToBytes(offsetHi()))
-        .data2(bigIntegerToBytes(offsetLo()))
+        .data1(ZERO)
+        .data2(ZERO)
         .data3(ZERO)
         .data4(ZERO)
-        .data5(bigIntegerToBytes(cds))
+        .data5(bigIntegerToBytes(gas))
         .data6(ZERO);
   }
 }

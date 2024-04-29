@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.oob;
+package net.consensys.linea.zktracer.module.oob.parameters;
 
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
@@ -22,9 +22,10 @@ import java.math.BigInteger;
 
 import lombok.Getter;
 import lombok.Setter;
+import net.consensys.linea.zktracer.module.oob.Trace;
 
 @Getter
-public class PrcCommonOobParameters implements OobParameters {
+public class PrecompileCommonOobParameters implements OobParameters {
 
   private BigInteger callGas;
   private BigInteger cds;
@@ -34,7 +35,8 @@ public class PrcCommonOobParameters implements OobParameters {
   @Setter private boolean returnAtCapacityNonZero;
   @Setter private boolean cdsIsZero; // Necessary to compute extractCallData and emptyCallData
 
-  public PrcCommonOobParameters(BigInteger callGas, BigInteger cds, BigInteger returnAtCapacity) {
+  public PrecompileCommonOobParameters(
+      BigInteger callGas, BigInteger cds, BigInteger returnAtCapacity) {
     this.callGas = callGas;
     this.cds = cds;
     this.returnAtCapacity = returnAtCapacity;

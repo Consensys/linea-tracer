@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.oob;
+package net.consensys.linea.zktracer.module.oob.parameters;
 
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
@@ -21,25 +21,22 @@ import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 import java.math.BigInteger;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import net.consensys.linea.zktracer.module.oob.Trace;
 import org.apache.tuweni.bytes.Bytes;
 
 @Getter
-public class PrcModexpLeadParameters implements OobParameters {
+@RequiredArgsConstructor
+public class ModexpLeadParameters implements OobParameters {
+  private final BigInteger bbs;
+  private final BigInteger cds;
+  private final BigInteger ebs;
 
-  BigInteger bbs;
-  BigInteger cds;
-  BigInteger ebs;
   @Setter boolean loadLead;
   @Setter int cdsCutoff;
   @Setter int ebsCutoff;
   @Setter int subEbs32;
-
-  public PrcModexpLeadParameters(BigInteger bbs, BigInteger cds, BigInteger ebs) {
-    this.bbs = bbs;
-    this.cds = cds;
-    this.ebs = ebs;
-  }
 
   @Override
   public Trace trace(Trace trace) {

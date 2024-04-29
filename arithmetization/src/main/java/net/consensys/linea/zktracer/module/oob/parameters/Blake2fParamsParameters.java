@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.oob;
+package net.consensys.linea.zktracer.module.oob.parameters;
 
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
@@ -21,29 +21,30 @@ import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 import java.math.BigInteger;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import net.consensys.linea.zktracer.module.oob.Trace;
 
 @Getter
-public class PrcModexpCdsParameters implements OobParameters {
-  private BigInteger cds;
-  @Setter private boolean extractBbs;
-  @Setter private boolean extractEbs;
-  @Setter private boolean extractMbs;
+@RequiredArgsConstructor
+public class Blake2fParamsParameters implements OobParameters {
+  private final BigInteger callGas;
+  private final BigInteger blakeR;
+  private final BigInteger blakeF;
 
-  public PrcModexpCdsParameters(BigInteger cds) {
-    this.cds = cds;
-  }
+  @Setter private boolean success;
+  @Setter private BigInteger returnGas;
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .data1(ZERO)
-        .data2(bigIntegerToBytes(cds))
-        .data3(booleanToBytes(extractBbs))
-        .data4(booleanToBytes(extractEbs))
-        .data5(booleanToBytes(extractMbs))
-        .data6(ZERO)
-        .data7(ZERO)
+        .data1(bigIntegerToBytes(callGas))
+        .data2(ZERO)
+        .data3(ZERO)
+        .data4(booleanToBytes(success)) // Set after the constructor
+        .data5(bigIntegerToBytes(returnGas)) // Set after the constructor
+        .data6(bigIntegerToBytes(blakeR))
+        .data7(bigIntegerToBytes(blakeF))
         .data8(ZERO);
   }
 }

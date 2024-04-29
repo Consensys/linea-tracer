@@ -326,7 +326,7 @@ public class OobRdcTest {
     assertNumberOfOnesInOobEvent1(bytecodeRunner.getOob(), 0);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
-    // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
+    // contextDataSize is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assert (bytecodeRunner
         .getOob()
         .getChunks()
@@ -350,7 +350,7 @@ public class OobRdcTest {
     assertNumberOfOnesInOobEvent1(bytecodeRunner.getOob(), 0);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
-    // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
+    // contextDataSize is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assert (bytecodeRunner
         .getOob()
         .getChunks()
@@ -374,7 +374,7 @@ public class OobRdcTest {
     assertNumberOfOnesInOobEvent1(bytecodeRunner.getOob(), 0);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
-    // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
+    // contextDataSize is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assert (bytecodeRunner
         .getOob()
         .getChunks()
@@ -398,7 +398,7 @@ public class OobRdcTest {
     assertNumberOfOnesInOobEvent1(bytecodeRunner.getOob(), 0);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
-    // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
+    // contextDataSize is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assert (bytecodeRunner
         .getOob()
         .getChunks()
@@ -422,7 +422,7 @@ public class OobRdcTest {
     assertNumberOfOnesInOobEvent1(bytecodeRunner.getOob(), 0);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
-    // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
+    // contextDataSize is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assert (bytecodeRunner
         .getOob()
         .getChunks()
@@ -449,7 +449,7 @@ public class OobRdcTest {
     assertNumberOfOnesInOobEvent1(bytecodeRunner.getOob(), 1);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
-    // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
+    // contextDataSize is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assert (bytecodeRunner
         .getOob()
         .getChunks()
@@ -473,7 +473,7 @@ public class OobRdcTest {
     assertNumberOfOnesInOobEvent1(bytecodeRunner.getOob(), 1);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
-    // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
+    // contextDataSize is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assert (bytecodeRunner
         .getOob()
         .getChunks()
@@ -497,7 +497,7 @@ public class OobRdcTest {
     assertNumberOfOnesInOobEvent1(bytecodeRunner.getOob(), 1);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
-    // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
+    // contextDataSize is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assert (bytecodeRunner
         .getOob()
         .getChunks()
@@ -523,7 +523,7 @@ public class OobRdcTest {
     assertNumberOfOnesInOobEvent1(bytecodeRunner.getOob(), 1);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
-    // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
+    // contextDataSize is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assert (bytecodeRunner
         .getOob()
         .getChunks()
@@ -548,7 +548,7 @@ public class OobRdcTest {
     assertNumberOfOnesInOobEvent1(bytecodeRunner.getOob(), 1);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
-    // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
+    // contextDataSize is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assert (bytecodeRunner
         .getOob()
         .getChunks()
@@ -572,7 +572,7 @@ public class OobRdcTest {
     assertNumberOfOnesInOobEvent1(bytecodeRunner.getOob(), 1);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
-    // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
+    // contextDataSize is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assert (bytecodeRunner
         .getOob()
         .getChunks()
@@ -596,7 +596,7 @@ public class OobRdcTest {
     assertNumberOfOnesInOobEvent1(bytecodeRunner.getOob(), 1);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
-    // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
+    // contextDataSize is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assert (bytecodeRunner
         .getOob()
         .getChunks()
@@ -620,7 +620,7 @@ public class OobRdcTest {
     assertNumberOfOnesInOobEvent1(bytecodeRunner.getOob(), 1);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
-    // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
+    // contextDataSize is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assert (bytecodeRunner
         .getOob()
         .getChunks()
@@ -643,7 +643,7 @@ public class OobRdcTest {
     assertNumberOfOnesInOobEvent1(bytecodeRunner.getOob(), 1);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
-    // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
+    // contextDataSize is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assert (bytecodeRunner
         .getOob()
         .getChunks()
@@ -667,7 +667,7 @@ public class OobRdcTest {
     assertNumberOfOnesInOobEvent1(bytecodeRunner.getOob(), 1);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
-    // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
+    // contextDataSize is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assert (bytecodeRunner
         .getOob()
         .getChunks()
@@ -691,7 +691,7 @@ public class OobRdcTest {
     assertNumberOfOnesInOobEvent1(bytecodeRunner.getOob(), 1);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
-    // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
+    // contextDataSize is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assert (bytecodeRunner
         .getOob()
         .getChunks()
@@ -715,7 +715,7 @@ public class OobRdcTest {
     assertNumberOfOnesInOobEvent1(bytecodeRunner.getOob(), 1);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
-    // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
+    // contextDataSize is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assert (bytecodeRunner
         .getOob()
         .getChunks()
@@ -739,7 +739,7 @@ public class OobRdcTest {
     assertNumberOfOnesInOobEvent1(bytecodeRunner.getOob(), 1);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
-    // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
+    // contextDataSize is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assert (bytecodeRunner
         .getOob()
         .getChunks()
@@ -763,7 +763,7 @@ public class OobRdcTest {
     assertNumberOfOnesInOobEvent1(bytecodeRunner.getOob(), 1);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
-    // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
+    // contextDataSize is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assert (bytecodeRunner
         .getOob()
         .getChunks()
@@ -787,7 +787,7 @@ public class OobRdcTest {
     assertNumberOfOnesInOobEvent1(bytecodeRunner.getOob(), 1);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
-    // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
+    // contextDataSize is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assert (bytecodeRunner
         .getOob()
         .getChunks()

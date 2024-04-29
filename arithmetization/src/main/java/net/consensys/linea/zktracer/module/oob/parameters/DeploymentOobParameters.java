@@ -13,41 +13,33 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.oob;
+package net.consensys.linea.zktracer.module.oob.parameters;
 
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.math.BigInteger;
 
+import net.consensys.linea.zktracer.module.oob.Trace;
 import net.consensys.linea.zktracer.types.EWord;
 
-public record JumpiOobParameters(EWord pcNew, EWord jumpCondition, BigInteger codesize)
-    implements OobParameters {
+public record DeploymentOobParameters(EWord size) implements OobParameters {
 
-  public BigInteger pcNewHi() {
-    return pcNew.hiBigInt();
+  public BigInteger sizeHi() {
+    return size.hiBigInt();
   }
 
-  public BigInteger pcNewLo() {
-    return pcNew.loBigInt();
-  }
-
-  public BigInteger jumpConditionHi() {
-    return jumpCondition.hiBigInt();
-  }
-
-  public BigInteger jumpConditionLo() {
-    return jumpCondition.loBigInt();
+  public BigInteger sizeLo() {
+    return size.loBigInt();
   }
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .data1(bigIntegerToBytes(pcNewHi()))
-        .data2(bigIntegerToBytes(pcNewLo()))
-        .data3(bigIntegerToBytes(jumpConditionHi()))
-        .data4(bigIntegerToBytes(jumpConditionLo()))
-        .data5(bigIntegerToBytes(codesize))
+        .data1(bigIntegerToBytes(sizeHi()))
+        .data2(bigIntegerToBytes(sizeLo()))
+        .data3(ZERO)
+        .data4(ZERO)
+        .data5(ZERO)
         .data6(ZERO);
   }
 }

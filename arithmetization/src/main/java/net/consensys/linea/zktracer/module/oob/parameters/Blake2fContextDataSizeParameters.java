@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys AG.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.oob;
+package net.consensys.linea.zktracer.module.oob.parameters;
 
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
@@ -21,38 +21,30 @@ import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 import java.math.BigInteger;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import net.consensys.linea.zktracer.module.oob.Trace;
 import org.apache.tuweni.bytes.Bytes;
 
 @Getter
-public class PrcModexpPricingParameters implements OobParameters {
+@RequiredArgsConstructor
+public class Blake2fContextDataSizeParameters implements OobParameters {
+  private final BigInteger contextDataSize;
+  private final BigInteger returnAtCapacity;
 
-  private BigInteger callGas;
-  private BigInteger returnAtCapacity;
   @Setter private boolean success;
-  @Setter private BigInteger returnGas;
-  private BigInteger exponentLog;
-  private int maxMbsBbs;
   @Setter private boolean returnAtCapacityNonZero;
-
-  public PrcModexpPricingParameters(
-      BigInteger callGas, BigInteger returnAtCapacity, BigInteger exponentLog, int maxMbsBbs) {
-    this.callGas = callGas;
-    this.returnAtCapacity = returnAtCapacity;
-    this.exponentLog = exponentLog;
-    this.maxMbsBbs = maxMbsBbs;
-  }
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .data1(bigIntegerToBytes(callGas))
-        .data2(ZERO)
+        .data1(ZERO)
+        .data2(bigIntegerToBytes(contextDataSize))
         .data3(bigIntegerToBytes(returnAtCapacity))
-        .data4(booleanToBytes(success))
-        .data5(bigIntegerToBytes(returnGas))
-        .data6(bigIntegerToBytes(exponentLog))
-        .data7(Bytes.of(maxMbsBbs))
-        .data8(booleanToBytes(returnAtCapacityNonZero));
+        .data4(booleanToBytes(success)) // Set after the constructor
+        .data5(ZERO)
+        .data6(Bytes.of(0))
+        .data7(Bytes.of(0))
+        .data8(booleanToBytes(returnAtCapacityNonZero)); // Set after the constructor
   }
 }

@@ -13,32 +13,36 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.oob;
+package net.consensys.linea.zktracer.module.oob.parameters;
 
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.math.BigInteger;
 
+import net.consensys.linea.zktracer.module.oob.Trace;
 import net.consensys.linea.zktracer.types.EWord;
 
-public record JumpOobParameters(EWord pcNew, BigInteger codesize) implements OobParameters {
+public record CallOobParameters(EWord val, BigInteger bal, boolean nonZeroValue, BigInteger csd)
+    implements OobParameters {
 
-  public BigInteger pcNewHi() {
-    return pcNew.hiBigInt();
+  public BigInteger valHi() {
+    return val.hiBigInt();
   }
 
-  public BigInteger pcNewLo() {
-    return pcNew.loBigInt();
+  public BigInteger valLo() {
+    return val.loBigInt();
   }
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .data1(bigIntegerToBytes(pcNewHi()))
-        .data2(bigIntegerToBytes(pcNewLo()))
-        .data3(ZERO)
-        .data4(ZERO)
-        .data5(bigIntegerToBytes(codesize))
-        .data6(ZERO);
+        .data1(bigIntegerToBytes(valHi()))
+        .data2(bigIntegerToBytes(valLo()))
+        .data3(bigIntegerToBytes(bal))
+        .data4(nonZeroValue ? ONE : ZERO)
+        .data5(ZERO)
+        .data6(bigIntegerToBytes(csd))
+        .data7(ZERO) // TODO: temporary value; to fill when oob update is complete
+        .data8(ZERO); // TODO: temporary value; to fill when oob update is complete
   }
 }

@@ -641,9 +641,9 @@ public class Hub implements Module {
     if (this.pch.signals().ecData()) {
       this.ecData.tracePreOpcode(frame);
     }
-    if (this.pch.signals().logInfo()) {
-      // TODO: this.hashInfo.tracePreOpcode(frame);
-    }
+    //    if (this.pch.signals().logInfo()) {
+    //      // TODO: this.hashInfo.tracePreOpcode(frame);
+    //    }
   }
 
   void processStateExec(MessageFrame frame) {

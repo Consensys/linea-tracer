@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.oob;
+package net.consensys.linea.zktracer.module.oob.parameters;
 
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
@@ -21,36 +21,32 @@ import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 import java.math.BigInteger;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import net.consensys.linea.zktracer.module.oob.Trace;
 
 @Getter
-public class PrcModexpXbsParameters implements OobParameters {
+@RequiredArgsConstructor
+public class ModexpExtractParameters implements OobParameters {
+  private final BigInteger cds;
+  private final BigInteger bbs;
+  private final BigInteger ebs;
+  private final BigInteger mbs;
 
-  private BigInteger xbsHi;
-  private BigInteger xbsLo;
-  private BigInteger ybsLo;
-  private boolean computeMax;
-  @Setter private BigInteger maxXbsYbs;
-  @Setter private boolean xbsNonZero;
-
-  public PrcModexpXbsParameters(
-      BigInteger xbsHi, BigInteger xbsLo, BigInteger ybsLo, boolean computeMax) {
-    this.xbsHi = xbsHi;
-    this.xbsLo = xbsLo;
-    this.ybsLo = ybsLo;
-    this.computeMax = computeMax;
-  }
+  @Setter private boolean extractBase;
+  @Setter private boolean extractExponent;
+  @Setter private boolean extractModulus;
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .data1(bigIntegerToBytes(xbsHi))
-        .data2(bigIntegerToBytes(xbsLo))
-        .data3(bigIntegerToBytes(ybsLo))
-        .data4(booleanToBytes(computeMax))
-        .data5(ZERO)
-        .data6(ZERO)
-        .data7(bigIntegerToBytes(maxXbsYbs))
-        .data8(booleanToBytes(xbsNonZero));
+        .data1(ZERO)
+        .data2(bigIntegerToBytes(cds))
+        .data3(bigIntegerToBytes(bbs))
+        .data4(bigIntegerToBytes(ebs))
+        .data5(bigIntegerToBytes(mbs))
+        .data6(booleanToBytes(extractBase))
+        .data7(booleanToBytes(extractExponent))
+        .data8(booleanToBytes(extractModulus));
   }
 }

@@ -109,7 +109,7 @@ public final class TransactionSnapshot extends ModuleOperation {
   @Setter private long refundCounter;
   @Setter private long leftoverGas;
   @Setter private long effectiveGasRefund;
-  @Setter private int cumulativeGasConsumption;
+  @Setter private long cumulativeGasConsumption;
 
   @Setter private boolean getFullTip;
 
@@ -227,27 +227,6 @@ public final class TransactionSnapshot extends ModuleOperation {
     };
   }
 
-  /**
-   * Computes minimumNecessaryBalance := T_v + T_g * T_p where
-   *
-   * <p>T_v = value field of transaction
-   *
-   * <p>T_p = gas price for Type 0 & Type 1 transactions | max priority fee for Type 2 transactions
-   *
-   * @return
-   */
-  BigInteger getMaximalUpfrontCost() {
-    BigInteger minimumNecessaryBalance = this.value();
-    BigInteger gasLimit = BigInteger.valueOf(this.gasLimit());
-    BigInteger maximalGasPrice =
-        switch (this.type()) {
-          case FRONTIER, ACCESS_LIST -> this.effectiveGasPrice;
-          case EIP1559 -> this.maxFeePerGas().get().getAsBigInteger();
-          default -> throw new RuntimeException("transaction type not supported");
-        };
-    return minimumNecessaryBalance.add(gasLimit.multiply(maximalGasPrice));
-  }
-
   // getData should return either:
   // - call data (message call)
   // - init code (contract creation)
@@ -281,14 +260,6 @@ public final class TransactionSnapshot extends ModuleOperation {
         initialCost);
 
     return initialCost;
-  }
-
-  BigInteger getLimitMinusLeftoverGas() {
-    return BigInteger.valueOf(this.gasLimit() - this.leftoverGas());
-  }
-
-  BigInteger getLimitMinusLeftoverGasDividedByTwo() {
-    return this.getLimitMinusLeftoverGas().divide(BigInteger.TWO);
   }
 
   public void setRlptxnValues() {
@@ -406,9 +377,9 @@ public final class TransactionSnapshot extends ModuleOperation {
     // i+0
     final Bytes row0arg1 = bigIntegerToBytes(this.initialSenderBalance);
     final BigInteger value = this.value;
-    final BigInteger maxFeeBI = this.effectiveGasPrice;
+    final BigInteger maxFeeShortHand = setOutgoingLoRowPlus6();
     final BigInteger gasLimit = BigInteger.valueOf(this.gasLimit);
-    final Bytes row0arg2 = bigIntegerToBytes(value.multiply(maxFeeBI.and(gasLimit)));
+    final Bytes row0arg2 = bigIntegerToBytes(value.add(maxFeeShortHand.multiply(gasLimit)));
     wcp.callLT(row0arg1, row0arg2);
     this.callsToEucAndWcp.add(TxndataComparaisonRecord.callToLt(row0arg1, row0arg2, false));
 
@@ -421,7 +392,7 @@ public final class TransactionSnapshot extends ModuleOperation {
     // i+2
     final Bytes row2arg1 = Bytes.minimalBytes(this.gasLimit - this.leftoverGas);
     final Bytes row2arg2 = Bytes.of(2);
-    final Bytes refundLimit = euc.callEUC(row2arg1, row2arg2).remainder();
+    final Bytes refundLimit = euc.callEUC(row2arg1, row2arg2).quotient();
     this.callsToEucAndWcp.add(TxndataComparaisonRecord.callToEuc(row2arg1, row2arg2, refundLimit));
 
     // i+3
@@ -473,9 +444,39 @@ public final class TransactionSnapshot extends ModuleOperation {
   }
 
   public void setCallWcpLastTxOfBlock(final Bytes blockGasLimit) {
-    final Bytes arg1 = Bytes.ofUnsignedInt(this.cumulativeGasConsumption);
+    final Bytes arg1 = Bytes.minimalBytes(this.cumulativeGasConsumption);
     this.wcp.callLEQ(arg1, blockGasLimit);
     this.callsToEucAndWcp.add(TxndataComparaisonRecord.callToLeq(arg1, blockGasLimit, true));
+  }
+
+  public Bytes computeGasPriceColumn() {
+    switch (this.type) {
+      case FRONTIER, ACCESS_LIST -> {
+        return bigIntegerToBytes(effectiveGasPrice);
+      }
+      case EIP1559 -> {
+        return getFullTip
+            ? bigIntegerToBytes(
+                this.baseFee
+                    .get()
+                    .getAsBigInteger()
+                    .add(this.maxPriorityFeePerGas.get().getAsBigInteger()))
+            : bigIntegerToBytes(this.maxFeePerGas.get().getAsBigInteger());
+      }
+      default -> throw new IllegalArgumentException("Transaction type not supported");
+    }
+  }
+
+  private BigInteger setOutgoingLoRowPlus6() {
+    switch (this.type) {
+      case FRONTIER, ACCESS_LIST -> {
+        return this.effectiveGasPrice;
+      }
+      case EIP1559 -> {
+        return this.maxFeePerGas.get().getAsBigInteger();
+      }
+      default -> throw new IllegalArgumentException("Transaction type not supported");
+    }
   }
 
   @Override

@@ -151,20 +151,26 @@ public class TxnData implements Module {
 
     final EWord from = EWord.of(tx.from());
     final EWord to = EWord.of(tx.to());
+    final long toHi = to.hi().slice(12, 4).toLong();
     final EWord coinbase = EWord.of(block.getCoinbaseAddress());
+    final long coinbaseLo = coinbase.hi().trimLeadingZeros().toLong();
     final int codeFragmentIndex =
         tx.isDeployment() && tx.requiresEvmExecution()
             ? this.romLex.getCfiByMetadata(ContractMetadata.underDeployment(tx.to(), 1))
             : 0;
     final boolean copyTxCd = tx.requiresEvmExecution() && tx.callDataSize() != 0;
-    final boolean isLastTxOfTheBlock = relTxNum == relTxNumMax;
     final long fromHi = from.hi().slice(12, 4).toLong();
+    final Bytes gasPrice = tx.computeGasPriceColumn();
     final Bytes priorityFeePerGas =
         tx.type() == TransactionType.EIP1559
             ? bigIntegerToBytes(
                 tx.effectiveGasPrice().subtract(tx.baseFee().get().getAsBigInteger()))
-            : bigIntegerToBytes(tx.effectiveGasPrice());
+            : gasPrice;
+    final Bytes nonce = Bytes.ofUnsignedLong(tx.nonce());
+    final Bytes initialBalance = bigIntegerToBytes(tx.initialSenderBalance());
+    final Bytes value = bigIntegerToBytes(tx.value());
 
+    final boolean isLastTxOfTheBlock = relTxNum == relTxNumMax;
     final int ctMax = isLastTxOfTheBlock ? tx.maxCounter() + 1 : tx.maxCounter();
 
     for (int ct = 0; ct <= ctMax; ct++) {
@@ -179,18 +185,18 @@ public class TxnData implements Module {
           .ct(UnsignedByte.of(ct))
           .fromHi(fromHi)
           .fromLo(from.lo())
-          .nonce(Bytes.ofUnsignedLong(tx.nonce()))
-          .initialBalance(bigIntegerToBytes(tx.initialSenderBalance()))
-          .value(bigIntegerToBytes(tx.value()))
-          .toHi(to.hi().slice(12, 4).toLong())
+          .nonce(nonce)
+          .initialBalance(initialBalance)
+          .value(value)
+          .toHi(toHi)
           .toLo(to.lo())
           .isDep(tx.isDeployment())
           .gasLimit(Bytes.ofUnsignedLong(tx.gasLimit()))
           .gasInitiallyAvailable(Bytes.ofUnsignedLong(tx.gasLimit() - tx.getUpfrontGasCost()))
-          .gasPrice(bigIntegerToBytes(tx.effectiveGasPrice()))
+          .gasPrice(gasPrice)
           .priorityFeePerGas(priorityFeePerGas)
           .basefee(block.getBaseFee().orElseThrow())
-          .coinbaseHi(coinbase.hi().trimLeadingZeros().toLong())
+          .coinbaseHi(coinbaseLo)
           .coinbaseLo(coinbase.lo())
           .blockGasLimit(block.getBlockGasLimit())
           .callDataSize(tx.callDataSize())

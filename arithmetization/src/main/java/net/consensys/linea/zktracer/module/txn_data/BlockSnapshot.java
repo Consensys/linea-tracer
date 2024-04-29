@@ -89,7 +89,7 @@ public class BlockSnapshot {
     currentTx.refundCounter(refundCounter);
     currentTx.leftoverGas(leftoverGas);
     currentTx.effectiveGasRefund(effectiveGasRefund);
-    currentTx.cumulativeGasConsumption((int) cumulativeGasUsed);
+    currentTx.cumulativeGasConsumption(cumulativeGasUsed);
 
     currentTx.setCallsToEucAndWcp();
   }

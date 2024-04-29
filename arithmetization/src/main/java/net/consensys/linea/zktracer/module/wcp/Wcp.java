@@ -96,11 +96,11 @@ public class Wcp implements Module {
     return this.callLT(Bytes32.leftPad(arg1), Bytes32.leftPad(arg2));
   }
 
-  public boolean callLT(final int arg1,final int arg2) {
+  public boolean callLT(final int arg1, final int arg2) {
     return this.callLT(Bytes.ofUnsignedLong(arg1), Bytes.ofUnsignedLong(arg2));
   }
 
-  public boolean callGT(final Bytes32 arg1,final Bytes32 arg2) {
+  public boolean callGT(final Bytes32 arg1, final Bytes32 arg2) {
     this.operations.add(new WcpOperation(GTbv, arg1, arg2));
     return arg1.compareTo(arg2) > 0;
   }
@@ -113,12 +113,12 @@ public class Wcp implements Module {
     return this.callGT(Bytes.ofUnsignedLong(arg1), Bytes.ofUnsignedLong(arg2));
   }
 
-  public boolean callEQ(final Bytes32 arg1,final Bytes32 arg2) {
+  public boolean callEQ(final Bytes32 arg1, final Bytes32 arg2) {
     this.operations.add(new WcpOperation(EQbv, arg1, arg2));
     return arg1.compareTo(arg2) == 0;
   }
 
-  public boolean callEQ(final Bytes arg1,final Bytes arg2) {
+  public boolean callEQ(final Bytes arg1, final Bytes arg2) {
     return this.callEQ(Bytes32.leftPad(arg1), Bytes32.leftPad(arg2));
   }
 

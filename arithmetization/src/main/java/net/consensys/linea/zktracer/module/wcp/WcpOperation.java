@@ -78,7 +78,7 @@ public class WcpOperation extends ModuleOperation {
 
   final List<Boolean> bits = new ArrayList<>(LLARGE);
 
-  public WcpOperation(byte wcpInst, Bytes32 arg1, Bytes32 arg2) {
+  public WcpOperation(final byte wcpInst, final Bytes32 arg1, final Bytes32 arg2) {
     this.wcpInst = wcpInst;
     this.arg1 = arg1;
     this.arg2 = arg2;

@@ -18,9 +18,9 @@ package net.consensys.linea.zktracer.module.txn_data;
 import lombok.Builder;
 
 @Builder
-public record RlptxrcptOutgoing(short phase, int outgoing) {
+public record RlptxrcptOutgoing(short phase, long outgoing) {
 
-  public static RlptxrcptOutgoing set(final short phase, final int value) {
+  public static RlptxrcptOutgoing set(final short phase, final long value) {
     return RlptxrcptOutgoing.builder().phase(phase).outgoing(value).build();
   }
 

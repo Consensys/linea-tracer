@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Stack;
 import java.util.stream.Stream;
 
 import lombok.Getter;
@@ -126,6 +127,9 @@ public class Hub implements Module {
 
   /** provides phase-related volatile information */
   @Getter Transients transients;
+
+  /** accumulate the gas used since the beginning of the current block */
+  public final Stack<Integer> cumulatedGasUsed = new Stack<>();
 
   /**
    * Long-lived states, not used in tracing per se but keeping track of data of the associated
@@ -566,10 +570,6 @@ public class Hub implements Module {
     return this.callStack.current().frame();
   }
 
-  public long getRemainingGas() {
-    return 0; // TODO:
-  }
-
   private void handleStack(MessageFrame frame) {
     this.currentFrame().stack().processInstruction(this, frame, TAU * this.state.stamps().hub());
   }
@@ -761,6 +761,7 @@ public class Hub implements Module {
   public void popTransaction() {
     this.txStack.pop();
     this.state.pop();
+    this.cumulatedGasUsed.pop();
     for (Module m : this.modules) {
       m.popTransaction();
     }
@@ -773,7 +774,8 @@ public class Hub implements Module {
       boolean isSuccessful,
       Bytes output,
       List<Log> logs,
-      long gasUsed) {
+      long gasUsed,
+      long cumulatedGasUSed) {
     this.txStack.exitTransaction(this, isSuccessful);
     if (this.transients.tx().state() != TxState.TX_SKIP) {
       this.processStateFinal(world, tx, isSuccessful);
@@ -781,8 +783,11 @@ public class Hub implements Module {
 
     this.defers.runPostTx(this, world, tx, isSuccessful);
 
+    this.cumulatedGasUsed.push((int) (this.cumulatedGasUsed.lastElement() + gasUsed));
+
     for (Module m : this.modules) {
-      m.traceEndTx(world, tx, isSuccessful, output, logs, gasUsed);
+      m.traceEndTx(
+          world, tx, isSuccessful, output, logs, gasUsed, this.cumulatedGasUsed.lastElement());
     }
   }
 
@@ -1068,6 +1073,7 @@ public class Hub implements Module {
   @Override
   public void traceStartBlock(final ProcessableBlockHeader processableBlockHeader) {
     this.transients.block().update(processableBlockHeader);
+    this.cumulatedGasUsed.push(0);
     for (Module m : this.modules) {
       m.traceStartBlock(processableBlockHeader);
     }

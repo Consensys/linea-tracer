@@ -82,31 +82,13 @@ public class BlockSnapshot {
    * @param status true if the transaction was successful
    */
   void endTx(long cumulativeGasUsed, long leftoverGas, long refundCounter, boolean status) {
-    final long effectiveGasRefund = this.getEffectiveGasRefund(leftoverGas, refundCounter);
     final TransactionSnapshot currentTx = this.currentTx();
 
     currentTx.status(status);
     currentTx.refundCounter(refundCounter);
     currentTx.leftoverGas(leftoverGas);
-    currentTx.effectiveGasRefund(effectiveGasRefund);
     currentTx.cumulativeGasConsumption(cumulativeGasUsed);
 
     currentTx.setCallsToEucAndWcp();
-  }
-
-  /**
-   * Computes the amount of gas being effectively refunded during transaction finalization.
-   *
-   * @param leftoverGas
-   * @param refundCounter
-   * @return
-   */
-  long getEffectiveGasRefund(long leftoverGas, long refundCounter) {
-    long gasLimitMinusLeftoverGasOverTwo = 0;
-    if (!this.txs.isEmpty()) {
-      gasLimitMinusLeftoverGasOverTwo = (this.currentTx().gasLimit() - leftoverGas) >> 1;
-    }
-
-    return leftoverGas + Long.min(refundCounter, gasLimitMinusLeftoverGasOverTwo);
   }
 }

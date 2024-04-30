@@ -94,10 +94,11 @@ public class TxnData implements Module {
       boolean isSuccessful,
       Bytes output,
       List<Log> logs,
-      long cumulativeGasUsed) {
-    final long leftoverGas = hub.remainingGas();
+      long gasUsed,
+      long cumulatedGasUsed) {
+    final long leftoverGas = tx.getGasLimit() - gasUsed;
     final long refundCounter = hub.refundedGas();
-    this.currentBlock().endTx(cumulativeGasUsed, leftoverGas, refundCounter, isSuccessful);
+    this.currentBlock().endTx(cumulatedGasUsed, leftoverGas, refundCounter, isSuccessful);
   }
 
   @Override
@@ -164,7 +165,10 @@ public class TxnData implements Module {
     final Bytes priorityFeePerGas =
         tx.type() == TransactionType.EIP1559
             ? bigIntegerToBytes(
-                tx.effectiveGasPrice().subtract(tx.baseFee().get().getAsBigInteger()))
+                tx.maxFeePerGas()
+                    .get()
+                    .getAsBigInteger()
+                    .subtract(tx.baseFee().get().getAsBigInteger()))
             : gasPrice;
     final Bytes nonce = Bytes.ofUnsignedLong(tx.nonce());
     final Bytes initialBalance = bigIntegerToBytes(tx.initialSenderBalance());

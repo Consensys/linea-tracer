@@ -48,7 +48,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -139,7 +138,8 @@ public final class TransactionSnapshot extends ModuleOperation {
       BigInteger effectiveGasPrice,
       Optional<? extends Quantity> maxFeePerGas,
       Optional<? extends Quantity> maxPriorityFeePerGas,
-      Bytes blockGasLimit) {
+      Bytes blockGasLimit,
+      Optional<Wei> baseFee) {
 
     this.wcp = wcp;
     this.euc = euc;
@@ -164,7 +164,7 @@ public final class TransactionSnapshot extends ModuleOperation {
     this.valuesToRlptxn = new ArrayList<>();
     this.valuesToRlpTxrcpt = new ArrayList<>();
     this.blockGasLimit = blockGasLimit;
-    this.baseFee = baseFee();
+    this.baseFee = baseFee;
   }
 
   public static TransactionSnapshot fromTransaction(
@@ -204,7 +204,8 @@ public final class TransactionSnapshot extends ModuleOperation {
         computeEffectiveGasPrice(baseFee, tx),
         tx.getMaxFeePerGas(),
         tx.getMaxPriorityFeePerGas(),
-        blockGasLimit);
+        blockGasLimit,
+        baseFee);
   }
 
   // dataCost returns the gas cost of the call data / init code
@@ -252,12 +253,6 @@ public final class TransactionSnapshot extends ModuleOperation {
       initialCost += (long) this.prewarmedAddressesCount() * GAS_CONST_G_ACCESS_LIST_ADRESS;
       initialCost += (long) this.prewarmedStorageKeysCount() * GAS_CONST_G_ACCESS_LIST_STORAGE;
     }
-
-    Preconditions.checkState(
-        this.gasLimit() >= initialCost,
-        "gasLimit ({}) < initialGasCost ({})",
-        this.gasLimit(),
-        initialCost);
 
     return initialCost;
   }
@@ -396,10 +391,13 @@ public final class TransactionSnapshot extends ModuleOperation {
     this.callsToEucAndWcp.add(TxndataComparaisonRecord.callToEuc(row2arg1, row2arg2, refundLimit));
 
     // i+3
-    final Bytes row3arg1 = Bytes.minimalBytes(this.refundCounter);
-    final boolean getFullRefund = wcp.callLT(row3arg1, refundLimit);
+    final Bytes refundCounterMax = Bytes.minimalBytes(this.refundCounter);
+    final boolean getFullRefund = wcp.callLT(refundCounterMax, refundLimit);
     this.callsToEucAndWcp.add(
-        TxndataComparaisonRecord.callToLt(row3arg1, refundLimit, getFullRefund));
+        TxndataComparaisonRecord.callToLt(refundCounterMax, refundLimit, getFullRefund));
+
+    this.effectiveGasRefund(
+        getFullRefund ? leftoverGas + this.refundCounter : leftoverGas + refundLimit.toInt());
 
     // i+4
     final Bytes row4arg1 = Bytes.minimalBytes(this.payload.size());

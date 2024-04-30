@@ -85,7 +85,6 @@ public class TxTrace implements PostTransactionDefer {
 
   @Override
   public void runPostTx(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
-    this.leftoverGas = hub.getRemainingGas();
   }
 
   /**

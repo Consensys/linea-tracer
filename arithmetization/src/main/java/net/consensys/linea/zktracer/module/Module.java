@@ -47,7 +47,8 @@ public interface Module {
       boolean isSuccessful,
       Bytes output,
       List<Log> logs,
-      long gasUsed) {}
+      long gasUsed,
+      long cumulatedGasUsed) {}
 
   default void traceContextEnter(MessageFrame frame) {}
 

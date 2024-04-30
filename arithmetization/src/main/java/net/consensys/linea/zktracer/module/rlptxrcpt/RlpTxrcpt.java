@@ -75,8 +75,10 @@ public class RlpTxrcpt implements Module {
       boolean isSuccessful,
       Bytes output,
       List<Log> logList,
-      long gasUsed) {
-    RlpTxrcptChunk chunk = new RlpTxrcptChunk(tx.getType(), isSuccessful, gasUsed, logList);
+      long gasUsed,
+      long cumulatedGasUsed) {
+    RlpTxrcptChunk chunk =
+        new RlpTxrcptChunk(tx.getType(), isSuccessful, cumulatedGasUsed, logList);
     this.chunkList.add(chunk);
   }
 

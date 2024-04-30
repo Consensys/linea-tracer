@@ -74,7 +74,8 @@ import net.consensys.linea.zktracer.module.rlpaddr.RlpAddr;
 import net.consensys.linea.zktracer.module.rlptxn.RlpTxn;
 import net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxrcpt;
 import net.consensys.linea.zktracer.module.rom.Rom;
-import net.consensys.linea.zktracer.module.romlex.RomLex;
+import net.consensys.linea.zktracer.module.romLex.RomLex;
+import net.consensys.linea.zktracer.module.shakiradata.ShakiraData;
 import net.consensys.linea.zktracer.module.shf.Shf;
 import net.consensys.linea.zktracer.module.stp.Stp;
 import net.consensys.linea.zktracer.module.tables.bin.BinRt;
@@ -235,7 +236,7 @@ public class Hub implements Module {
   @Getter
   private final RomLex romLex;
   private final TxnData txnData;
-
+  private final ShakiraData shakiraData = new ShakiraData();
   private final ModexpEffectiveCall modexpEffectiveCall;
   private final Stp stp = new Stp(this, wcp, mod);
   private final L2Block l2Block;

@@ -50,7 +50,7 @@ public final class RipeMd160Blocks implements Module {
     return "PRECOMPILE_RIPEMD_BLOCKS";
   }
 
-  @Getter private final ShakiraData data = new ShakiraData();
+  @Getter private final ShakiraData data;
 
   private int lastDataCallHubStamp = 0;
 

@@ -47,7 +47,7 @@ public class ShakiraTraceHelper {
       if (phaseIndex == 0) {
         isExtra = true;
       } else {
-        phaseFlags[phaseIndex - phaseFlags.length - 1] = true;
+        phaseFlags[phaseIndex - (phaseFlags.length - 1)] = true;
       }
 
       final PhaseInfo phaseInfo = phaseInfoMap.get(phaseIndex);
@@ -82,7 +82,7 @@ public class ShakiraTraceHelper {
       }
 
       if (!isExtra) {
-        phaseFlags[phaseIndex - phaseFlags.length - 1] = false;
+        phaseFlags[phaseIndex - (phaseFlags.length - 1)] = false;
       }
     }
 

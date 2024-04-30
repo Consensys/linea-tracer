@@ -31,6 +31,15 @@ import org.apache.tuweni.bytes.Bytes;
  * Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
 public class Trace {
+  public static final int EC_DATA_PHASE_ECADD_DATA = 0x3;
+  public static final int EC_DATA_PHASE_ECADD_RESULT = 0x4;
+  public static final int EC_DATA_PHASE_ECMUL_DATA = 0x5;
+  public static final int EC_DATA_PHASE_ECMUL_RESULT = 0x6;
+  public static final int EC_DATA_PHASE_ECRECOVER_DATA = 0x1;
+  public static final int EC_DATA_PHASE_ECRECOVER_RESULT = 0x2;
+  public static final int EC_DATA_PHASE_PAIRING_DATA = 0x7;
+  public static final int EC_DATA_PHASE_PAIRING_RESULT = 0x8;
+  public static final int EIP_3541_MARKER = 0xef;
   public static final BigInteger EMPTY_KECCAK_HI =
       new BigInteger("16434357337474432580558001204043214908");
   public static final BigInteger EMPTY_KECCAK_LO =
@@ -241,7 +250,6 @@ public class Trace {
   public static final int INDEX_MAX_RIPEMD_RESULT = 0x1;
   public static final int INDEX_MAX_SHA2_DATA = 0xb;
   public static final int INDEX_MAX_SHA2_RESULT = 0x1;
-  public static final int INVALID_CODE_PREFIX_VALUE = 0xef;
   public static final int LLARGE = 0x10;
   public static final int LLARGEMO = 0xf;
   public static final int LLARGEPO = 0x11;
@@ -266,8 +274,6 @@ public class Trace {
   public static final int MMIO_INST_RAM_TO_RAM_TWO_TARGET = 0xfe33;
   public static final int MMIO_INST_RAM_VANISHES = 0xfe42;
   public static final int MMU_INST_ANY_TO_RAM_WITH_PADDING = 0xfe50;
-  public static final int MMU_INST_ANY_TO_RAM_WITH_PADDING_PURE_PADDING = 0xfe52;
-  public static final int MMU_INST_ANY_TO_RAM_WITH_PADDING_SOME_DATA = 0xfe51;
   public static final int MMU_INST_BLAKE = 0xfe80;
   public static final int MMU_INST_EXO_TO_RAM_TRANSPLANTS = 0xfe30;
   public static final int MMU_INST_INVALID_CODE_PREFIX = 0xfe00;
@@ -305,16 +311,16 @@ public class Trace {
   public static final int PHASE_BLAKE_DATA = 0x5;
   public static final int PHASE_BLAKE_PARAMS = 0x6;
   public static final int PHASE_BLAKE_RESULT = 0x7;
-  public static final int PHASE_KECCAK_DATA = 0x8;
-  public static final int PHASE_KECCAK_RESULT = 0x9;
+  public static final int PHASE_KECCAK_DATA = 0x5;
+  public static final int PHASE_KECCAK_RESULT = 0x6;
   public static final int PHASE_MODEXP_BASE = 0x1;
   public static final int PHASE_MODEXP_EXPONENT = 0x2;
   public static final int PHASE_MODEXP_MODULUS = 0x3;
   public static final int PHASE_MODEXP_RESULT = 0x4;
-  public static final int PHASE_RIPEMD_DATA = 0xc;
-  public static final int PHASE_RIPEMD_RESULT = 0xd;
-  public static final int PHASE_SHA2_DATA = 0xa;
-  public static final int PHASE_SHA2_RESULT = 0xb;
+  public static final int PHASE_RIPEMD_DATA = 0x3;
+  public static final int PHASE_RIPEMD_RESULT = 0x4;
+  public static final int PHASE_SHA2_DATA = 0x1;
+  public static final int PHASE_SHA2_RESULT = 0x2;
   public static final int REFUND_CONST_R_SCLEAR = 0x3a98;
   public static final int REFUND_CONST_R_SELFDESTRUCT = 0x5dc0;
   public static final int RLP_ADDR_RECIPE_1 = 0x1;

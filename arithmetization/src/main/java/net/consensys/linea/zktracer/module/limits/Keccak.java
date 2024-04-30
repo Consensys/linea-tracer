@@ -23,12 +23,17 @@ import java.util.Deque;
 import java.util.List;
 
 import com.google.common.base.Preconditions;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcRecoverEffectiveCall;
+import net.consensys.linea.zktracer.module.shakiradata.ShakiraData;
+import net.consensys.linea.zktracer.module.shakiradata.ShakiraDataOperation;
+import net.consensys.linea.zktracer.module.shakiradata.ShakiraPrecompileType;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 
@@ -43,6 +48,9 @@ public class Keccak implements Module {
   private final Hub hub;
   private final EcRecoverEffectiveCall ecRec;
   private final L2Block l2Block;
+  private int lastDataCallHubStamp = 0;
+
+  @Getter private final ShakiraData data;
 
   private final Deque<List<Long>> deployedCodesizes = new ArrayDeque<>();
   private final Deque<List<Long>> sha3Sizes = new ArrayDeque<>();
@@ -83,6 +91,15 @@ public class Keccak implements Module {
       if (frame.stackSize() > 1) {
         final long sha3Size = Words.clampedToLong(frame.getStackItem(1));
         this.sha3Sizes.peek().add(sha3Size);
+
+        final long sha3Offset = Words.clampedToLong(frame.getStackItem(0));
+        final Bytes inputData = frame.shadowReadMemory(sha3Offset, sha3Size);
+
+        // TODO: check if there is enough gas and other triggering conditions.
+        this.lastDataCallHubStamp =
+            this.data.call(
+                new ShakiraDataOperation(
+                    hub.stamp(), lastDataCallHubStamp, ShakiraPrecompileType.KECCAK, inputData));
       }
     }
 

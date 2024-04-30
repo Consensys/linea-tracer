@@ -39,7 +39,6 @@ import org.hyperledger.besu.crypto.Hash;
 public class ShakiraDataOperation extends ModuleOperation {
   private static final int PHASE_EXTRA = 0;
   private static final int INDEX_MAX_EXTRA = 2;
-  private static final int LIMB_INT_BYTE_SIZE = 16;
   private static final int TOTAL_SIZE_RESULT_PHASES = 32;
   private static final int TOTAL_SIZE_EXTRA_PHASES = 0;
   public static final int RESULT_ROWS_COUNT = 2;
@@ -61,16 +60,7 @@ public class ShakiraDataOperation extends ModuleOperation {
 
   @Override
   protected int computeLineCount() {
-    //    if (sha2Components.isPresent()) {
-    //      return SHA2_COMPONENTS_LINE_COUNT;
-    //    }
-    //
-    //    if (ripeMdComponents.isPresent()) {
-    //      return RIPEMD_COMPONENTS_LINE_COUNT;
-    //    }
-    //
-    //    return KECCAK_COMPONENTS_LINE_COUNT;
-    return 0;
+    return totalNumberOfRows(precompileInput);
   }
 
   void trace(Trace trace, int stamp) {
@@ -177,12 +167,13 @@ public class ShakiraDataOperation extends ModuleOperation {
         final Bytes limbRowData = extractLimbRowData(inputData, rowIndex);
         trace.limb(limbRowData);
 
-        final int nBytesAcc = Math.min((rowIndex + 1) * LIMB_INT_BYTE_SIZE, inputData.size());
-        final int nBytes = nBytesAcc - (rowIndex * LIMB_INT_BYTE_SIZE);
+        final int nBytesAcc = Math.min((rowIndex + 1) * Trace.LLARGE, inputData.size());
+        final int nBytes = nBytesAcc - (rowIndex * Trace.LLARGE);
         trace.nBytes(UnsignedByte.of(nBytes)).nBytesAcc(nBytesAcc);
 
       } else if (phaseIndex == resultPhase) {
-        trace.limb(computedResult.slice(LIMB_INT_BYTE_SIZE * rowIndex, LIMB_INT_BYTE_SIZE));
+        trace.limb(computedResult.slice(Trace.LLARGE * rowIndex, Trace.LLARGE));
+        trace.nBytes(UnsignedByte.ZERO).nBytesAcc(0L);
       }
     };
   }
@@ -200,7 +191,7 @@ public class ShakiraDataOperation extends ModuleOperation {
   }
 
   private static int totalNumberOfDataRows(Bytes inputData) {
-    return (inputData.size() + LIMB_INT_BYTE_SIZE - 1) / LIMB_INT_BYTE_SIZE;
+    return (inputData.size() + Trace.LLARGEMO) / Trace.LLARGE;
   }
 
   private static int totalNumberOfRows(Bytes inputData) {
@@ -251,15 +242,15 @@ public class ShakiraDataOperation extends ModuleOperation {
 
   private static Bytes extractLimbRowData(Bytes inputData, Integer rowIndex) {
     final int inputDataSize = inputData.size();
-    final int startLimbOffsetIndex = LIMB_INT_BYTE_SIZE * rowIndex;
+    final int startLimbOffsetIndex = Trace.LLARGE * rowIndex;
 
-    final boolean limbSizeIsLessThan16 = inputDataSize - startLimbOffsetIndex < LIMB_INT_BYTE_SIZE;
+    final boolean limbSizeIsLessThan16 = inputDataSize - startLimbOffsetIndex < Trace.LLARGE;
 
     return !limbSizeIsLessThan16
-        ? inputData.slice(startLimbOffsetIndex, LIMB_INT_BYTE_SIZE)
+        ? inputData.slice(startLimbOffsetIndex, Trace.LLARGE)
         : rightPadTo(
             inputData.slice(startLimbOffsetIndex, inputDataSize - startLimbOffsetIndex),
-            LIMB_INT_BYTE_SIZE);
+            Trace.LLARGE);
   }
 
   private UnsignedByte[] getHubStampDiffBytes(int currentHubStamp) {
@@ -269,7 +260,7 @@ public class ShakiraDataOperation extends ModuleOperation {
         hubStampBigInt.subtract(prevHubStampBigInt).subtract(BigInteger.ONE);
 
     Preconditions.checkArgument(
-        hubStampDiff.compareTo(BigInteger.valueOf(256 ^ 4)) < 0,
+        hubStampDiff.compareTo(BigInteger.valueOf((long) Math.pow(256, 4))) < 0,
         "Hub stamp difference should never exceed 256 ^ 4");
 
     return bytesToUnsignedBytes(leftPadTo(bigIntegerToBytes(hubStampDiff), 4).toArray());
@@ -304,11 +295,11 @@ public class ShakiraDataOperation extends ModuleOperation {
 
     System.arraycopy(hubStampDiffBytes, 0, deltaBytes, 0, hubStampDiffBytes.length);
 
-    final int remainder = inputData.size() % LIMB_INT_BYTE_SIZE;
-    final int lastNBytes = remainder == 0 ? LIMB_INT_BYTE_SIZE : remainder;
+    final int remainder = inputData.size() % Trace.LLARGE;
+    final int lastNBytes = remainder == 0 ? Trace.LLARGE : remainder;
 
     deltaBytes[deltaBytes.length - 2] = UnsignedByte.of(lastNBytes - 1);
-    deltaBytes[deltaBytes.length - 1] = UnsignedByte.of(256 - LIMB_INT_BYTE_SIZE + lastNBytes - 1);
+    deltaBytes[deltaBytes.length - 1] = UnsignedByte.of(256 - Trace.LLARGE + lastNBytes - 1);
 
     return deltaBytes;
   }

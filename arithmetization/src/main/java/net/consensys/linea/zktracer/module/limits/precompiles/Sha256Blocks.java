@@ -46,7 +46,7 @@ public final class Sha256Blocks implements Module {
   private final Hub hub;
   private final Stack<Integer> counts = new Stack<>();
 
-  @Getter private final ShakiraData data = new ShakiraData();
+  @Getter private final ShakiraData data;
   private int lastDataCallHubStamp = 0;
 
   @Override

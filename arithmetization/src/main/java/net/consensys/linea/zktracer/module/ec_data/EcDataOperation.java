@@ -15,14 +15,38 @@
 
 package net.consensys.linea.zktracer.module.ec_data;
 
-import static net.consensys.linea.zktracer.module.ec_data.Trace.ECADD_ADDRESSS;
-import static net.consensys.linea.zktracer.module.ec_data.Trace.ECMUL_ADDRESS;
-import static net.consensys.linea.zktracer.module.ec_data.Trace.ECPAIRING_ADDRESS;
-import static net.consensys.linea.zktracer.module.ec_data.Trace.ECRECOVER_ADDRESS;
+import static net.consensys.linea.zktracer.module.ec_data.Trace.ECADD;
+import static net.consensys.linea.zktracer.module.ec_data.Trace.ECMUL;
+import static net.consensys.linea.zktracer.module.ec_data.Trace.ECPAIRING;
+import static net.consensys.linea.zktracer.module.ec_data.Trace.ECRECOVER;
+import static net.consensys.linea.zktracer.module.ec_data.Trace.INDEX_MAX_ECADD_DATA;
+import static net.consensys.linea.zktracer.module.ec_data.Trace.INDEX_MAX_ECADD_RESULT;
+import static net.consensys.linea.zktracer.module.ec_data.Trace.INDEX_MAX_ECMUL_DATA;
+import static net.consensys.linea.zktracer.module.ec_data.Trace.INDEX_MAX_ECMUL_RESULT;
+import static net.consensys.linea.zktracer.module.ec_data.Trace.INDEX_MAX_ECPAIRING_DATA_MIN;
+import static net.consensys.linea.zktracer.module.ec_data.Trace.INDEX_MAX_ECPAIRING_RESULT;
+import static net.consensys.linea.zktracer.module.ec_data.Trace.INDEX_MAX_ECRECOVER_DATA;
+import static net.consensys.linea.zktracer.module.ec_data.Trace.INDEX_MAX_ECRECOVER_RESULT;
+import static net.consensys.linea.zktracer.module.ec_data.Trace.PHASE_ECADD_DATA;
+import static net.consensys.linea.zktracer.module.ec_data.Trace.PHASE_ECADD_RESULT;
+import static net.consensys.linea.zktracer.module.ec_data.Trace.PHASE_ECMUL_DATA;
+import static net.consensys.linea.zktracer.module.ec_data.Trace.PHASE_ECMUL_RESULT;
+import static net.consensys.linea.zktracer.module.ec_data.Trace.PHASE_ECPAIRING_DATA;
+import static net.consensys.linea.zktracer.module.ec_data.Trace.PHASE_ECPAIRING_RESULT;
+import static net.consensys.linea.zktracer.module.ec_data.Trace.PHASE_ECRECOVER_DATA;
+import static net.consensys.linea.zktracer.module.ec_data.Trace.PHASE_ECRECOVER_RESULT;
 import static net.consensys.linea.zktracer.module.ec_data.Trace.P_BN_HI;
 import static net.consensys.linea.zktracer.module.ec_data.Trace.P_BN_LO;
 import static net.consensys.linea.zktracer.module.ec_data.Trace.SECP256K1N_HI;
 import static net.consensys.linea.zktracer.module.ec_data.Trace.SECP256K1N_LO;
+import static net.consensys.linea.zktracer.module.ec_data.Trace.TOTAL_SIZE_ECADD_DATA;
+import static net.consensys.linea.zktracer.module.ec_data.Trace.TOTAL_SIZE_ECADD_RESULT;
+import static net.consensys.linea.zktracer.module.ec_data.Trace.TOTAL_SIZE_ECMUL_DATA;
+import static net.consensys.linea.zktracer.module.ec_data.Trace.TOTAL_SIZE_ECMUL_RESULT;
+import static net.consensys.linea.zktracer.module.ec_data.Trace.TOTAL_SIZE_ECPAIRING_DATA_MIN;
+import static net.consensys.linea.zktracer.module.ec_data.Trace.TOTAL_SIZE_ECPAIRING_RESULT;
+import static net.consensys.linea.zktracer.module.ec_data.Trace.TOTAL_SIZE_ECRECOVER_DATA;
+import static net.consensys.linea.zktracer.module.ec_data.Trace.TOTAL_SIZE_ECRECOVER_RESULT;
 import static net.consensys.linea.zktracer.types.Containers.repeat;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 
@@ -31,19 +55,17 @@ import java.util.Set;
 
 import com.google.common.base.Preconditions;
 import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.CurveOperations;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.ext.Ext;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.EWord;
+import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Address;
 
 @Accessors(fluent = true)
 public class EcDataOperation extends ModuleOperation {
-  private static final Set<Integer> EC_TYPES =
-      Set.of(ECRECOVER_ADDRESS, ECADD_ADDRESSS, ECMUL_ADDRESS, ECPAIRING_ADDRESS);
+  private static final Set<Integer> EC_TYPES = Set.of(ECRECOVER, ECADD, ECMUL, ECPAIRING);
   private static final EWord P_BN = EWord.of(P_BN_HI, P_BN_LO);
   private static final EWord SECP256K1N = EWord.of(SECP256K1N_HI, SECP256K1N_LO);
 
@@ -52,191 +74,256 @@ public class EcDataOperation extends ModuleOperation {
 
   private final int contextNumber;
   private final int contextNumberDelta;
-  private final Bytes input;
+  private final Bytes data;
 
   private final int ecType;
   private final int nRows;
-  /** -1 if no switch off (i.e. preliminary checks passed) */
-  private int hurdleSwitchOffRow;
+  private final int nRowsData;
+  private final int nRowsResult;
 
-  private final List<Boolean> comparisons;
-  private final List<Boolean> equalities;
-  private final List<Bytes> squares;
-  private final List<Bytes> cubes;
-  private final List<Bytes> limbs;
+  private final List<Bytes> limb;
+  private final List<Boolean> hurdle;
+  private boolean internalChecksPassed;
 
   // WCP interaction
-  private final List<Bytes> wcpArg1;
-  private final List<Bytes> wcpArg2;
-  private final List<OpCode> wcpInst;
+  private final List<Bytes> wcpArg1Hi;
+  private final List<Bytes> wcpArg1Lo;
+  private final List<Bytes> wcpArg2Hi;
+  private final List<Bytes> wcpArg2Lo;
   private final List<Boolean> wcpRes;
+  private final List<OpCode> wcpInst;
 
   // EXT interaction
-  private final List<Bytes> extArg1;
-  private final List<Bytes> extArg2;
-  private final List<Bytes> extArg3;
+  private final List<Bytes> extArg1Hi;
+  private final List<Bytes> extArg1Lo;
+  private final List<Bytes> extArg2Hi;
+  private final List<Bytes> extArg2Lo;
+  private final List<Bytes> extArg3Hi;
+  private final List<Bytes> extArg3Lo;
+  private final List<Bytes> extResHi;
+  private final List<Bytes> extResLo;
   private final List<OpCode> extInst;
-  private final List<Bytes> extRes;
 
   // pairing-specific
-  private int thisIsNotOnG2Index;
-  private final int nPairings;
+  private final int totalPairings;
+  private boolean successBit;
+  private boolean circuitSelectorEcrecover;
 
-  private static int addressToEcType(final Address target) {
-    if (target.equals(Address.ECREC)) {
-      return ECRECOVER_ADDRESS;
-    } else if (target.equals(Address.ALTBN128_ADD)) {
-      return ECADD_ADDRESSS;
-    } else if (target.equals(Address.ALTBN128_MUL)) {
-      return ECMUL_ADDRESS;
-    } else if (target.equals(Address.ALTBN128_PAIRING)) {
-      return ECPAIRING_ADDRESS;
+  private int getTotalSize(int ecType, boolean isData) {
+    if (isData) {
+      return switch (ecType) {
+        case ECRECOVER -> TOTAL_SIZE_ECRECOVER_DATA;
+        case ECADD -> TOTAL_SIZE_ECADD_DATA;
+        case ECMUL -> TOTAL_SIZE_ECMUL_DATA;
+        case ECPAIRING -> TOTAL_SIZE_ECPAIRING_DATA_MIN * this.totalPairings;
+        default -> throw new IllegalArgumentException("invalid EC type");
+      };
     } else {
-      throw new IllegalArgumentException("invalid EC address");
+      return switch (ecType) {
+        case ECRECOVER -> successBit ? TOTAL_SIZE_ECRECOVER_RESULT : 0;
+        case ECADD -> successBit ? TOTAL_SIZE_ECADD_RESULT : 0;
+        case ECMUL -> successBit ? TOTAL_SIZE_ECMUL_RESULT : 0;
+        case ECPAIRING -> successBit ? TOTAL_SIZE_ECPAIRING_RESULT : 0;
+        default -> throw new IllegalArgumentException("invalid EC type");
+      };
     }
   }
 
-  private static int ecTypeToNRows(int ecType, final Bytes input) {
-    return switch (ecType) {
-      case ECRECOVER_ADDRESS -> 8;
-      case ECADD_ADDRESSS -> 12;
-      case ECMUL_ADDRESS -> 6;
-      case ECPAIRING_ADDRESS -> input.size() / 16;
-      default -> throw new IllegalArgumentException("invalid EC type");
-    };
+  private static short getPhase(int ecType, boolean isData) {
+    if (isData) {
+      return switch (ecType) {
+        case ECRECOVER -> PHASE_ECRECOVER_DATA;
+        case ECADD -> PHASE_ECADD_DATA;
+        case ECMUL -> PHASE_ECMUL_DATA;
+        case ECPAIRING -> PHASE_ECPAIRING_DATA;
+        default -> throw new IllegalArgumentException("invalid EC type");
+      };
+    } else {
+      return switch (ecType) {
+        case ECRECOVER -> PHASE_ECRECOVER_RESULT;
+        case ECADD -> PHASE_ECADD_RESULT;
+        case ECMUL -> PHASE_ECMUL_RESULT;
+        case ECPAIRING -> PHASE_ECPAIRING_RESULT;
+        default -> throw new IllegalArgumentException("invalid EC type");
+      };
+    }
+  }
+
+  private int getIndexMax(int ecType, boolean isData) {
+    if (isData) {
+      return switch (ecType) {
+        case ECRECOVER -> INDEX_MAX_ECRECOVER_DATA;
+        case ECADD -> INDEX_MAX_ECADD_DATA;
+        case ECMUL -> INDEX_MAX_ECMUL_DATA;
+        case ECPAIRING -> (INDEX_MAX_ECPAIRING_DATA_MIN + 1) * this.totalPairings - 1;
+        default -> throw new IllegalArgumentException("invalid EC type");
+      };
+    } else {
+      return switch (ecType) {
+        case ECRECOVER -> INDEX_MAX_ECRECOVER_RESULT;
+        case ECADD -> INDEX_MAX_ECADD_RESULT;
+        case ECMUL -> INDEX_MAX_ECMUL_RESULT;
+        case ECPAIRING -> INDEX_MAX_ECPAIRING_RESULT;
+        default -> throw new IllegalArgumentException("invalid EC type");
+      };
+    }
   }
 
   private EcDataOperation(
-      Wcp wcp, Ext ext, int contextNumber, int previousContextNumber, int ecType, Bytes input) {
+      Wcp wcp, Ext ext, int contextNumber, int previousContextNumber, int ecType, Bytes data) {
     Preconditions.checkArgument(EC_TYPES.contains(ecType), "invalid EC type");
 
-    final int nRows = ecTypeToNRows(ecType, input);
-    final int minInputLength = ecType == ECMUL_ADDRESS ? 96 : 128;
-    if (input.size() < minInputLength) {
-      this.input = leftPadTo(input, minInputLength);
+    int minInputLength = ecType == ECMUL ? 96 : 128;
+    if (data.size() < minInputLength) {
+      this.data = leftPadTo(data, minInputLength);
     } else {
-      this.input = input;
+      this.data = data;
     }
+    this.ecType = ecType;
+
+    if (ecType == ECPAIRING) {
+      this.totalPairings = data.size() / 192;
+    } else {
+      this.totalPairings = 0;
+    }
+
+    this.nRowsData = getIndexMax(ecType, true) + 1;
+    this.nRowsResult = getIndexMax(ecType, false) + 1;
+    this.nRows = this.nRowsData + this.nRowsResult;
     this.contextNumber = contextNumber;
     this.contextNumberDelta = contextNumber - previousContextNumber;
-    this.ecType = ecType;
-    this.nRows = nRows;
-    this.thisIsNotOnG2Index = -1;
-    if (ecType == ECPAIRING_ADDRESS) {
-      this.nPairings = input.size() / 192;
-    } else {
-      this.nPairings = 0;
-    }
 
-    this.comparisons = repeat(false, nRows / 2);
-    this.equalities = repeat(false, nRows);
-    this.squares = repeat(Bytes.EMPTY, nRows / 2);
-    this.cubes = repeat(Bytes.EMPTY, nRows / 2);
-    this.limbs = repeat(Bytes.EMPTY, nRows / 2);
+    this.limb = repeat(Bytes.EMPTY, this.nRows);
+    this.hurdle = repeat(false, this.nRows);
+    this.wcpArg1Hi = repeat(Bytes.EMPTY, this.nRows);
+    this.wcpArg1Lo = repeat(Bytes.EMPTY, this.nRows);
+    this.wcpArg2Hi = repeat(Bytes.EMPTY, this.nRows);
+    this.wcpArg2Lo = repeat(Bytes.EMPTY, this.nRows);
+    this.wcpRes = repeat(false, this.nRows);
+    this.wcpInst = repeat(OpCode.INVALID, this.nRows);
 
-    this.wcpArg1 = repeat(Bytes.EMPTY, nRows);
-    this.wcpArg2 = repeat(Bytes.EMPTY, nRows);
-    this.wcpInst = repeat(OpCode.INVALID, nRows);
-    this.wcpRes = repeat(false, nRows);
-
-    this.extArg1 = repeat(Bytes.EMPTY, nRows);
-    this.extArg2 = repeat(Bytes.EMPTY, nRows);
-    this.extArg3 = repeat(Bytes.EMPTY, nRows);
-    this.extInst = repeat(OpCode.INVALID, nRows);
-    this.extRes = repeat(Bytes.EMPTY, nRows);
+    this.extArg1Hi = repeat(Bytes.EMPTY, this.nRows);
+    this.extArg1Lo = repeat(Bytes.EMPTY, this.nRows);
+    this.extArg2Hi = repeat(Bytes.EMPTY, this.nRows);
+    this.extArg2Lo = repeat(Bytes.EMPTY, this.nRows);
+    this.extArg3Hi = repeat(Bytes.EMPTY, this.nRows);
+    this.extArg3Lo = repeat(Bytes.EMPTY, this.nRows);
+    this.extResHi = repeat(Bytes.EMPTY, this.nRows);
+    this.extResLo = repeat(Bytes.EMPTY, this.nRows);
+    this.extInst = repeat(OpCode.INVALID, this.nRows);
 
     this.wcp = wcp;
     this.ext = ext;
+
+    // TODO: set predictions
+    this.successBit = true;
   }
 
   public static EcDataOperation of(
       Wcp wcp,
       Ext ext,
-      final Address to,
-      Bytes input,
+      final int ecType,
+      Bytes data,
       int currentContextNumber,
       int previousContextNumber) {
-    final int ecType = addressToEcType(to);
 
-    EcDataOperation r =
-        new EcDataOperation(wcp, ext, currentContextNumber, previousContextNumber, ecType, input);
+    EcDataOperation ecDataRes =
+        new EcDataOperation(wcp, ext, currentContextNumber, previousContextNumber, ecType, data);
     switch (ecType) {
-      case ECRECOVER_ADDRESS -> r.handleRecover();
-      case ECADD_ADDRESSS -> r.handleAdd();
-      case ECMUL_ADDRESS -> r.handleMul();
-      case ECPAIRING_ADDRESS -> r.handlePairing();
+      case ECRECOVER -> ecDataRes.handleRecover();
+        // case ECADD -> ecDataRes.handleAdd();
+        // case ECMUL -> ecDataRes.handleMul();
+        // case ECPAIRING -> ecDataRes.handlePairing();
     }
-    return r;
+    return ecDataRes;
   }
 
-  private boolean preliminaryChecksPassed() {
-    return this.hurdleSwitchOffRow == -1;
-  }
-
-  private boolean callWcp(int i, OpCode inst, Bytes arg1, Bytes arg2) {
-    final boolean r =
-        switch (inst) {
+  private boolean callWcp(int i, OpCode wcpInst, EWord arg1, EWord arg2) {
+    final boolean wcpRes =
+        switch (wcpInst) {
           case LT -> this.wcp.callLT(arg1, arg2);
           case EQ -> this.wcp.callEQ(arg1, arg2);
-          default -> throw new IllegalStateException("Unexpected value: " + inst);
+          default -> throw new IllegalStateException("Unexpected value: " + wcpInst);
         };
 
-    this.wcpArg1.set(i, arg1);
-    this.wcpArg2.set(i, arg2);
-    this.wcpInst.set(i, inst);
-    this.wcpRes.set(i, r);
-    return r;
+    this.wcpArg1Hi.set(i, arg1.hi());
+    this.wcpArg1Lo.set(i, arg1.lo());
+    this.wcpArg2Hi.set(i, arg2.hi());
+    this.wcpArg2Lo.set(i, arg1.lo());
+    this.wcpRes.set(i, wcpRes);
+    this.wcpInst.set(i, wcpInst);
+    return wcpRes;
   }
 
-  private Bytes callExt(int i, OpCode opCode, Bytes arg1, Bytes arg2, Bytes arg3) {
-    final Bytes result = ext.call(opCode, arg1, arg2, arg3);
-    this.extArg1.set(i, arg1);
-    this.extArg2.set(i, arg2);
-    this.extArg3.set(i, arg3);
-    this.extInst.set(i, opCode);
-    this.extRes.set(i, result);
+  private EWord callExt(int i, OpCode extInst, EWord arg1, EWord arg2, EWord arg3) {
+    final EWord extRes = EWord.of(ext.call(extInst, arg1, arg2, arg3));
 
-    return result;
-  }
-
-  private void fillHurdle() {
-    for (int i = 0; i < this.nRows; i++) {
-      boolean check = false;
-      switch (i % 4) {
-        case 1 -> {
-          check = true;
-        }
-        case 0, 2 -> {
-          check = this.comparisons.get(i / 2);
-        }
-        case 3 -> {
-          check = this.equalities.get(i);
-        }
-      }
-      if (!check) {
-        this.hurdleSwitchOffRow = i;
-        return;
-      }
-    }
-
-    this.hurdleSwitchOffRow = -1;
+    this.extArg1Hi.set(i, arg1.hi());
+    this.extArg1Lo.set(i, arg1.lo());
+    this.extArg2Hi.set(i, arg2.hi());
+    this.extArg2Lo.set(i, arg2.lo());
+    this.extArg3Hi.set(i, arg3.hi());
+    this.extArg3Lo.set(i, arg3.lo());
+    this.extResHi.set(i, extRes.hi());
+    this.extResLo.set(i, extRes.lo());
+    this.extInst.set(i, extInst);
+    return extRes;
   }
 
   void handleRecover() {
-    final Bytes v = this.input.slice(32, 32);
-    final Bytes r = this.input.slice(64, 32);
-    final Bytes s = this.input.slice(96, 32);
+    // Extract inputs
+    final EWord h = EWord.of(this.data.slice(0, 32));
+    final EWord v = EWord.of(this.data.slice(32, 32));
+    final EWord r = EWord.of(this.data.slice(64, 32));
+    final EWord s = EWord.of(this.data.slice(96, 32));
 
-    this.comparisons.set(0, this.callWcp(0, OpCode.LT, r, SECP256K1N)); // r < secp256k1N
-    this.comparisons.set(2, this.callWcp(1, OpCode.LT, s, SECP256K1N)); // s < secp256k1N
-    this.comparisons.set(1, this.callWcp(2, OpCode.LT, Bytes.EMPTY, r)); // 0 < r
-    this.comparisons.set(3, this.callWcp(3, OpCode.LT, Bytes.EMPTY, s)); // 0 < s
-    this.equalities.set(1, this.callWcp(4, OpCode.EQ, v, Bytes.of(27))); // v == 27
-    this.equalities.set(2, this.callWcp(5, OpCode.EQ, v, Bytes.of(28))); // v == 28
-    this.equalities.set(3, this.equalities.get(1) || this.equalities.get(2));
-    this.equalities.set(7, true);
+    // Set limb
+    limb.set(0, h.hi());
+    limb.set(1, h.lo());
+    limb.set(2, v.hi());
+    limb.set(3, v.lo());
+    limb.set(4, r.hi());
+    limb.set(5, r.lo());
+    limb.set(6, s.hi());
+    limb.set(7, s.lo());
 
-    this.fillHurdle();
+    // TODO: temporary just for testing
+    EWord recoveredAddress = EWord.ofHexString("0x7156526fbd7a3c72969b54f64e42c10fbb768c8a");
+    limb.set(8, recoveredAddress.hi());
+    limb.set(9, recoveredAddress.lo());
+
+    // Compute internal checks
+    // row i
+    boolean rIsInRange = callWcp(0, OpCode.LT, r, SECP256K1N); // r < secp256k1N
+
+    // row i + 1
+    boolean rIsPositive = callWcp(1, OpCode.LT, EWord.ZERO, r); // 0 < r
+
+    // row i + 2
+    boolean sIsInRange = callWcp(2, OpCode.LT, s, SECP256K1N); // s < secp256k1N
+
+    // row i + 3
+    boolean sIsPositive = callWcp(3, OpCode.LT, EWord.ZERO, s); // 0 < s
+
+    // row i+ 4
+    boolean vIs27 = callWcp(4, OpCode.EQ, v, EWord.of(0x27)); // v == 27
+
+    // row i + 5
+    boolean vIs28 = callWcp(5, OpCode.EQ, v, EWord.of(0x28)); // v == 28
+
+    // Set hurdle
+    hurdle.set(0, rIsInRange && rIsPositive);
+    hurdle.set(1, sIsInRange && sIsPositive);
+    hurdle.set(2, hurdle.get(0) && hurdle.get(1));
+    hurdle.set(INDEX_MAX_ECRECOVER_DATA, hurdle.get(2) && (vIs27 || vIs28));
+
+    // Set internal checks passed
+    this.internalChecksPassed = hurdle.get(INDEX_MAX_ECRECOVER_DATA);
+
+    // Set circuitSelectorEcrecover
+    if (this.internalChecksPassed) {
+      this.circuitSelectorEcrecover = true;
+    }
 
     // Very unlikely edge case: if the ext module is never used elsewhere, we need to insert a
     // useless row, in order to trigger the construction of the first empty row, useful for the ext
@@ -246,6 +333,7 @@ public class EcDataOperation extends ModuleOperation {
     this.ext.callADDMOD(Bytes.EMPTY, Bytes.EMPTY, Bytes.EMPTY);
   }
 
+  /*
   private void handlePointOnC1(final Bytes x, final Bytes y, int u, int i) {
     this.squares.set(
         6 * i + 2 * u, this.callExt(12 * i + 4 * u, OpCode.MULMOD, x, x, P_BN)); // x² mod p
@@ -331,20 +419,55 @@ public class EcDataOperation extends ModuleOperation {
       }
     }
   }
+  */
 
-  private void traceRow(Trace trace, int i) {
-    trace.stamp(this.contextNumber);
-    // TODO: the rest
-  }
-
-  void trace(Trace trace) {
+  void trace(int stamp, Trace trace) {
     for (int i = 0; i < this.nRows; i++) {
-      this.traceRow(trace, i);
+      boolean isData = i < this.nRowsData;
+      trace
+          .stamp(stamp)
+          .id(contextNumber)
+          .index(isData ? UnsignedByte.of(i) : UnsignedByte.of(i - this.nRowsData))
+          .limb(limb.get(i))
+          .totalSize(Bytes.of(getTotalSize(ecType, isData)))
+          .phase(getPhase(ecType, isData))
+          .indexMax(Bytes.of(getIndexMax(ecType, isData)))
+          .successBit(successBit)
+          .isEcrecoverData(ecType == ECRECOVER && isData)
+          .isEcrecoverResult(ecType == ECRECOVER && !isData)
+          .isEcaddData(ecType == ECADD && isData)
+          .isEcaddResult(ecType == ECADD && !isData)
+          .isEcmulData(ecType == ECMUL && isData)
+          .isEcmulResult(ecType == ECMUL && !isData)
+          .isEcpairingData(ecType == ECPAIRING && isData)
+          .isEcpairingResult(ecType == ECPAIRING && !isData)
+          .totalPairings(Bytes.of(totalPairings))
+          .accPairings(ecType == ECPAIRING && isData ? Bytes.of(1 + i) : Bytes.of(0))
+          .internalChecksPassed(internalChecksPassed)
+          .hurdle(hurdle.get(i))
+          .byteDelta(UnsignedByte.of(contextNumberDelta))
+          .circuitSelectorEcrecover(ecType == ECRECOVER && circuitSelectorEcrecover)
+          .wcpArg1Hi(wcpArg1Hi.get(i))
+          .wcpArg1Lo(wcpArg1Lo.get(i))
+          .wcpArg2Hi(wcpArg2Hi.get(i))
+          .wcpArg2Lo(wcpArg2Lo.get(i))
+          .wcpRes(wcpRes.get(i))
+          .wcpInst(wcpInst.get(i).unsignedByteValue())
+          .extArg1Hi(extArg1Hi.get(i))
+          .extArg1Lo(extArg1Lo.get(i))
+          .extArg2Hi(extArg2Hi.get(i))
+          .extArg2Lo(extArg2Lo.get(i))
+          .extArg3Hi(extArg3Hi.get(i))
+          .extArg3Lo(extArg3Lo.get(i))
+          .extResHi(extResHi.get(i))
+          .extResLo(extResLo.get(i))
+          .extInst(extInst.get(i).unsignedByteValue())
+          .fillAndValidateRow(); // TODO: add missing columns (stuff not related to ECRECOVER)
     }
   }
 
   @Override
   protected int computeLineCount() {
-    return this.nRows;
+    return this.nRowsData + this.nRowsResult;
   }
 }

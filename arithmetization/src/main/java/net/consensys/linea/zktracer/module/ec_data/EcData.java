@@ -60,25 +60,25 @@ public class EcData implements Module {
 
   @Override
   public void tracePreOpcode(MessageFrame frame) {
-    final Address to = Words.toAddress(frame.getStackItem(1));
-    if (!EC_PRECOMPILES.contains(to)) {
+    final Address target = Words.toAddress(frame.getStackItem(1));
+    if (!EC_PRECOMPILES.contains(target)) {
       return;
     }
     final MemorySpan callDataSource = hub.transients().op().callDataSegment();
 
-    if (to.equals(Address.ALTBN128_PAIRING)
+    if (target.equals(Address.ALTBN128_PAIRING)
         && (callDataSource.isEmpty() || callDataSource.length() % 192 != 0)) {
       return;
     }
 
-    final Bytes input = hub.transients().op().callData();
+    final Bytes data = hub.transients().op().callData();
 
     this.operations.add(
         EcDataOperation.of(
             this.wcp,
             this.ext,
-            to,
-            input,
+            target.get(19),
+            data,
             this.hub.currentFrame().contextNumber(),
             this.previousContextNumber));
     this.previousContextNumber = this.hub.currentFrame().contextNumber();
@@ -97,8 +97,10 @@ public class EcData implements Module {
   @Override
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
+    int stamp = 1;
     for (EcDataOperation op : this.operations) {
-      op.trace(trace);
+      op.trace(stamp, trace);
+      stamp++;
     }
   }
 }

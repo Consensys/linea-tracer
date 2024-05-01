@@ -303,7 +303,7 @@ public class Hub implements Module {
                 this.add,
                 this.bin,
                 this.blake2fModexpData,
-                //        this.ecData, // TODO: not yet
+                this.ecData, // TODO: wip
                 this.ext,
                 this.euc,
                 this.exp,

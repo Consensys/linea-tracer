@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module;
 
+import net.consensys.linea.zktracer.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.testing.EvmExtension;
 import org.apache.tuweni.bytes.Bytes;
@@ -36,6 +37,44 @@ public class EcDataTest {
     BytecodeRunner.of(
             Bytes.fromHexString(
                 "6080604052348015600f57600080fd5b5060476001601b6001620f00007ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe609360201b60201c565b605157605060ce565b5b60006040518060400160405280600e81526020017f7a6b2d65766d206973206c6966650000000000000000000000000000000000008152509050805160208201f35b600060405186815285602082015284604082015283606082015260008084608001836001610bb8fa9150608081016040525095945050505050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052600160045260246000fdfe"))
+        .run();
+  }
+
+  @Test
+  void testEcRecover() {
+    BytecodeRunner.of(
+            BytecodeCompiler.newProgram()
+                .assemble(
+                    """
+        ; First place the parameters in memory
+        PUSH32 0x456e9aea5e197a1f1af7a3e85a3212fa4049a3ba34c2289b4c860fc0b0c64ef3 ; hash
+        PUSH1 0
+        MSTORE
+        PUSH1 28 ; v
+        PUSH1 0x20
+        MSTORE
+        PUSH32 0x9242685bf161793cc25603c231bc2f568eb630ea16aa137d2664ac8038825608 ; r
+        PUSH1 0x40
+        MSTORE
+        PUSH32 0x4f8ae3bd7535248d0bd448298cc2e2071e56992d0774dc340c368ae950852ada ; s
+        PUSH1 0x60
+        MSTORE
+
+        ; Do the call
+        PUSH1 32 ; retSize
+        PUSH1 0x80 ; retOffset
+        PUSH1 0x80 ; argsSize
+        PUSH1 0 ; argsOffset
+        PUSH1 1 ; address
+        PUSH4 0xFFFFFFFF ; gas
+        STATICCALL
+
+        ; Put the result alone on the stack
+        POP
+        PUSH1 0x80
+        MLOAD
+        """)
+                .compile())
         .run();
   }
 }

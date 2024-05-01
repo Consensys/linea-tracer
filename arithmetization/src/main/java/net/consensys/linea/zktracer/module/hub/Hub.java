@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.Stack;
 import java.util.stream.Stream;
 
 import lombok.Getter;
@@ -128,9 +127,6 @@ public class Hub implements Module {
   /** provides phase-related volatile information */
   @Getter Transients transients;
 
-  /** accumulate the gas used since the beginning of the current block */
-  public final Stack<Integer> cumulatedGasUsed = new Stack<>();
-
   /**
    * Long-lived states, not used in tracing per se but keeping track of data of the associated
    * lifetime
@@ -198,9 +194,9 @@ public class Hub implements Module {
 
   @Getter private final Exp exp;
   @Getter private final Mmu mmu;
-  private final RlpTxrcpt rlpTxrcpt = new RlpTxrcpt();
-  private final LogInfo logInfo = new LogInfo(rlpTxrcpt);
-  private final LogData logData = new LogData(rlpTxrcpt);
+  private final RlpTxrcpt rlpTxrcpt;
+  private final LogInfo logInfo;
+  private final LogData logData;
   private final Trm trm = new Trm();
   private final RlpAddr rlpAddr = new RlpAddr(this, trm);
   private final Rom rom;
@@ -230,6 +226,9 @@ public class Hub implements Module {
     this.rlpTxn = new RlpTxn(this.romLex);
     this.euc = new Euc(this.wcp);
     this.txnData = new TxnData(this, this.romLex, this.wcp, this.euc);
+    this.rlpTxrcpt = new RlpTxrcpt(txnData);
+    this.logData = new LogData(rlpTxrcpt);
+    this.logInfo = new LogInfo(rlpTxrcpt);
     this.ecData = new EcData(this, this.wcp, this.ext);
     this.mmu =
         new Mmu(
@@ -285,13 +284,13 @@ public class Hub implements Module {
                     this.exp,
                     this.rlpAddr,
                     this.rlpTxn,
-                    this.rlpTxrcpt,
                     this.rom,
                     this.romLex,
                     this.shf,
                     this.stp,
                     this.trm,
                     this.txnData,
+                    this.rlpTxrcpt, // WARN: must be called AFTER txnData
                     this.wcp),
                 this.precompileLimitModules.stream())
             .toList();
@@ -761,7 +760,6 @@ public class Hub implements Module {
   public void popTransaction() {
     this.txStack.pop();
     this.state.pop();
-    this.cumulatedGasUsed.pop();
     for (Module m : this.modules) {
       m.popTransaction();
     }
@@ -774,8 +772,7 @@ public class Hub implements Module {
       boolean isSuccessful,
       Bytes output,
       List<Log> logs,
-      long gasUsed,
-      long cumulatedGasUSed) {
+      long gasUsed) {
     this.txStack.exitTransaction(this, isSuccessful);
     if (this.transients.tx().state() != TxState.TX_SKIP) {
       this.processStateFinal(world, tx, isSuccessful);
@@ -783,11 +780,8 @@ public class Hub implements Module {
 
     this.defers.runPostTx(this, world, tx, isSuccessful);
 
-    this.cumulatedGasUsed.push((int) (this.cumulatedGasUsed.lastElement() + gasUsed));
-
     for (Module m : this.modules) {
-      m.traceEndTx(
-          world, tx, isSuccessful, output, logs, gasUsed, this.cumulatedGasUsed.lastElement());
+      m.traceEndTx(world, tx, isSuccessful, output, logs, gasUsed);
     }
   }
 
@@ -1073,7 +1067,6 @@ public class Hub implements Module {
   @Override
   public void traceStartBlock(final ProcessableBlockHeader processableBlockHeader) {
     this.transients.block().update(processableBlockHeader);
-    this.cumulatedGasUsed.push(0);
     for (Module m : this.modules) {
       m.traceStartBlock(processableBlockHeader);
     }

@@ -240,7 +240,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
       long timeNs) {
     try {
       this.pin55.ifPresent(x -> x.traceEndTx(worldView, tx, status, output, logs, gasUsed));
-      this.hub.traceEndTx(worldView, tx, status, output, logs, gasUsed, 0);
+      this.hub.traceEndTx(worldView, tx, status, output, logs, gasUsed);
     } catch (final Exception e) {
       this.tracingExceptions.add(e);
     }

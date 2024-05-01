@@ -23,6 +23,7 @@ import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import java.nio.MappedByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
@@ -32,13 +33,11 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.romLex.ContractMetadata;
 import net.consensys.linea.zktracer.module.romLex.RomLex;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import net.consensys.linea.zktracer.opcode.gas.GasConstants;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.TransactionType;
-import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockBody;
@@ -62,6 +61,8 @@ public class TxnData implements Module {
   }
 
   private final List<BlockSnapshot> blocks = new ArrayList<>();
+  /** accumulate the gas used since the beginning of the current block */
+  public final Stack<Integer> cumulatedGasUsed = new Stack<>();
 
   @Override
   public void enterTransaction() {
@@ -71,6 +72,7 @@ public class TxnData implements Module {
   @Override
   public void popTransaction() {
     this.currentBlock().getTxs().pop();
+    this.cumulatedGasUsed.pop();
   }
 
   private BlockSnapshot currentBlock() {
@@ -80,6 +82,7 @@ public class TxnData implements Module {
   @Override
   public final void traceStartBlock(final ProcessableBlockHeader blockHeader) {
     this.blocks.add(new BlockSnapshot(this.blocks.size() + 1, blockHeader));
+    this.cumulatedGasUsed.push(0);
   }
 
   @Override
@@ -94,11 +97,16 @@ public class TxnData implements Module {
       boolean isSuccessful,
       Bytes output,
       List<Log> logs,
-      long gasUsed,
-      long cumulatedGasUsed) {
+      long gasUsed) {
     final long leftoverGas = tx.getGasLimit() - gasUsed;
     final long refundCounter = hub.refundedGas();
-    this.currentBlock().endTx(cumulatedGasUsed, leftoverGas, refundCounter, isSuccessful);
+    this.currentBlock().endTx(leftoverGas, refundCounter, isSuccessful);
+
+    final TransactionSnapshot currentTx = this.currentBlock().currentTx();
+
+    final int gasUsedMinusRefunded = (int) (currentTx.gasLimit() - currentTx.effectiveGasRefund());
+    this.cumulatedGasUsed.push((this.cumulatedGasUsed.lastElement() + gasUsedMinusRefunded));
+    this.currentBlock().currentTx().cumulativeGasConsumption(this.cumulatedGasUsed.lastElement());
   }
 
   @Override
@@ -124,16 +132,6 @@ public class TxnData implements Module {
       }
     }
     return traceSize;
-  }
-
-  // getRefundCounter returns the sum of SSTORE related refunds
-  // + the sum of SELFDESTRUCT related refunds.
-  // Reference: [EYP] §6.2. Execution. Equation (71)
-  long getRefundCounter(final MessageFrame frame) {
-    long sstoreGasRefunds = frame.getGasRefund();
-    long selfdestructGasRefunds =
-        (long) frame.getSelfDestructs().size() * GasConstants.R_SELF_DESTRUCT.cost();
-    return sstoreGasRefunds + selfdestructGasRefunds;
   }
 
   private void traceTx(

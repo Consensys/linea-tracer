@@ -76,18 +76,16 @@ public class BlockSnapshot {
   /**
    * Finishes capturing a transaction in this block.
    *
-   * @param cumulativeGasUsed
    * @param leftoverGas
    * @param refundCounter
    * @param status true if the transaction was successful
    */
-  void endTx(long cumulativeGasUsed, long leftoverGas, long refundCounter, boolean status) {
+  void endTx(final long leftoverGas, final long refundCounter, final boolean status) {
     final TransactionSnapshot currentTx = this.currentTx();
 
     currentTx.status(status);
     currentTx.refundCounter(refundCounter);
     currentTx.leftoverGas(leftoverGas);
-    currentTx.cumulativeGasConsumption(cumulativeGasUsed);
 
     currentTx.setCallsToEucAndWcp();
   }

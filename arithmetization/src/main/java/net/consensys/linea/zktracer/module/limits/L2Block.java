@@ -134,8 +134,7 @@ public class L2Block implements Module {
       boolean isSuccessful,
       Bytes output,
       List<Log> logs,
-      long gasUsed,
-      long cumulatedGasUsed) {
+      long gasUsed) {
     for (Log log : logs) {
       if (log.getLogger().equals(l2l1Address) && log.getTopics().contains(l2l1Topic)) {
         this.l2l1LogSizes.peek().add(log.getData().size());

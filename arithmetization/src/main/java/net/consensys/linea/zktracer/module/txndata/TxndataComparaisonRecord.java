@@ -13,11 +13,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.txn_data;
+package net.consensys.linea.zktracer.module.txndata;
 
-import static net.consensys.linea.zktracer.module.txn_data.Trace.EVM_INST_ISZERO;
-import static net.consensys.linea.zktracer.module.txn_data.Trace.EVM_INST_LT;
-import static net.consensys.linea.zktracer.module.txn_data.Trace.WCP_INST_LEQ;
+import static net.consensys.linea.zktracer.module.txndata.Trace.EVM_INST_ISZERO;
+import static net.consensys.linea.zktracer.module.txndata.Trace.EVM_INST_LT;
+import static net.consensys.linea.zktracer.module.txndata.Trace.WCP_INST_LEQ;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
 import lombok.Builder;

@@ -13,33 +13,33 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.txn_data;
+package net.consensys.linea.zktracer.module.txndata;
 
 import static net.consensys.linea.zktracer.module.Util.getTxTypeAsInt;
-import static net.consensys.linea.zktracer.module.txn_data.Trace.COMMON_RLP_TXN_PHASE_NUMBER_0;
-import static net.consensys.linea.zktracer.module.txn_data.Trace.COMMON_RLP_TXN_PHASE_NUMBER_1;
-import static net.consensys.linea.zktracer.module.txn_data.Trace.COMMON_RLP_TXN_PHASE_NUMBER_2;
-import static net.consensys.linea.zktracer.module.txn_data.Trace.COMMON_RLP_TXN_PHASE_NUMBER_3;
-import static net.consensys.linea.zktracer.module.txn_data.Trace.COMMON_RLP_TXN_PHASE_NUMBER_4;
-import static net.consensys.linea.zktracer.module.txn_data.Trace.COMMON_RLP_TXN_PHASE_NUMBER_5;
-import static net.consensys.linea.zktracer.module.txn_data.Trace.GAS_CONST_G_ACCESS_LIST_ADRESS;
-import static net.consensys.linea.zktracer.module.txn_data.Trace.GAS_CONST_G_ACCESS_LIST_STORAGE;
-import static net.consensys.linea.zktracer.module.txn_data.Trace.GAS_CONST_G_TRANSACTION;
-import static net.consensys.linea.zktracer.module.txn_data.Trace.GAS_CONST_G_TX_CREATE;
-import static net.consensys.linea.zktracer.module.txn_data.Trace.GAS_CONST_G_TX_DATA_NONZERO;
-import static net.consensys.linea.zktracer.module.txn_data.Trace.GAS_CONST_G_TX_DATA_ZERO;
-import static net.consensys.linea.zktracer.module.txn_data.Trace.LLARGE;
-import static net.consensys.linea.zktracer.module.txn_data.Trace.NB_ROWS_TYPE_0;
-import static net.consensys.linea.zktracer.module.txn_data.Trace.NB_ROWS_TYPE_1;
-import static net.consensys.linea.zktracer.module.txn_data.Trace.NB_ROWS_TYPE_2;
-import static net.consensys.linea.zktracer.module.txn_data.Trace.RLP_RCPT_SUBPHASE_ID_CUMUL_GAS;
-import static net.consensys.linea.zktracer.module.txn_data.Trace.RLP_RCPT_SUBPHASE_ID_STATUS_CODE;
-import static net.consensys.linea.zktracer.module.txn_data.Trace.RLP_RCPT_SUBPHASE_ID_TYPE;
-import static net.consensys.linea.zktracer.module.txn_data.Trace.TYPE_0_RLP_TXN_PHASE_NUMBER_6;
-import static net.consensys.linea.zktracer.module.txn_data.Trace.TYPE_1_RLP_TXN_PHASE_NUMBER_6;
-import static net.consensys.linea.zktracer.module.txn_data.Trace.TYPE_1_RLP_TXN_PHASE_NUMBER_7;
-import static net.consensys.linea.zktracer.module.txn_data.Trace.TYPE_2_RLP_TXN_PHASE_NUMBER_6;
-import static net.consensys.linea.zktracer.module.txn_data.Trace.TYPE_2_RLP_TXN_PHASE_NUMBER_7;
+import static net.consensys.linea.zktracer.module.txndata.Trace.COMMON_RLP_TXN_PHASE_NUMBER_0;
+import static net.consensys.linea.zktracer.module.txndata.Trace.COMMON_RLP_TXN_PHASE_NUMBER_1;
+import static net.consensys.linea.zktracer.module.txndata.Trace.COMMON_RLP_TXN_PHASE_NUMBER_2;
+import static net.consensys.linea.zktracer.module.txndata.Trace.COMMON_RLP_TXN_PHASE_NUMBER_3;
+import static net.consensys.linea.zktracer.module.txndata.Trace.COMMON_RLP_TXN_PHASE_NUMBER_4;
+import static net.consensys.linea.zktracer.module.txndata.Trace.COMMON_RLP_TXN_PHASE_NUMBER_5;
+import static net.consensys.linea.zktracer.module.txndata.Trace.GAS_CONST_G_ACCESS_LIST_ADRESS;
+import static net.consensys.linea.zktracer.module.txndata.Trace.GAS_CONST_G_ACCESS_LIST_STORAGE;
+import static net.consensys.linea.zktracer.module.txndata.Trace.GAS_CONST_G_TRANSACTION;
+import static net.consensys.linea.zktracer.module.txndata.Trace.GAS_CONST_G_TX_CREATE;
+import static net.consensys.linea.zktracer.module.txndata.Trace.GAS_CONST_G_TX_DATA_NONZERO;
+import static net.consensys.linea.zktracer.module.txndata.Trace.GAS_CONST_G_TX_DATA_ZERO;
+import static net.consensys.linea.zktracer.module.txndata.Trace.LLARGE;
+import static net.consensys.linea.zktracer.module.txndata.Trace.NB_ROWS_TYPE_0;
+import static net.consensys.linea.zktracer.module.txndata.Trace.NB_ROWS_TYPE_1;
+import static net.consensys.linea.zktracer.module.txndata.Trace.NB_ROWS_TYPE_2;
+import static net.consensys.linea.zktracer.module.txndata.Trace.RLP_RCPT_SUBPHASE_ID_CUMUL_GAS;
+import static net.consensys.linea.zktracer.module.txndata.Trace.RLP_RCPT_SUBPHASE_ID_STATUS_CODE;
+import static net.consensys.linea.zktracer.module.txndata.Trace.RLP_RCPT_SUBPHASE_ID_TYPE;
+import static net.consensys.linea.zktracer.module.txndata.Trace.TYPE_0_RLP_TXN_PHASE_NUMBER_6;
+import static net.consensys.linea.zktracer.module.txndata.Trace.TYPE_1_RLP_TXN_PHASE_NUMBER_6;
+import static net.consensys.linea.zktracer.module.txndata.Trace.TYPE_1_RLP_TXN_PHASE_NUMBER_7;
+import static net.consensys.linea.zktracer.module.txndata.Trace.TYPE_2_RLP_TXN_PHASE_NUMBER_6;
+import static net.consensys.linea.zktracer.module.txndata.Trace.TYPE_2_RLP_TXN_PHASE_NUMBER_7;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToInt;
 

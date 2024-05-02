@@ -13,9 +13,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.txn_data;
+package net.consensys.linea.zktracer.module.txndata;
 
-import static net.consensys.linea.zktracer.module.txn_data.Trace.RLP_TXN_PHASE_S;
+import static net.consensys.linea.zktracer.module.txndata.Trace.RLP_TXN_PHASE_S;
 
 import lombok.Builder;
 import org.apache.tuweni.bytes.Bytes;

@@ -110,10 +110,8 @@ public final class RipeMd160Blocks implements Module {
         final Bytes inputData = hub.transients().op().callData();
 
         if (hub.transients().op().gasAllowanceForCall() >= gasNeeded) {
-          this.lastDataCallHubStamp =
-              this.data.call(
-                  new ShakiraDataOperation(
-                      hub.stamp(), lastDataCallHubStamp, ShakiraPrecompileType.RIPEMD, inputData));
+          this.data.call(
+              new ShakiraDataOperation(hub.stamp(), ShakiraPrecompileType.RIPEMD, inputData));
 
           this.counts.push(this.counts.pop() + blockCount);
         }

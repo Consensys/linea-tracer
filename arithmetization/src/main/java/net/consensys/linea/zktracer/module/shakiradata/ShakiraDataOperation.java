@@ -28,6 +28,7 @@ import java.util.function.BiConsumer;
 import com.google.common.base.Preconditions;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.types.UnsignedByte;
@@ -44,46 +45,40 @@ public class ShakiraDataOperation extends ModuleOperation {
   public static final int RESULT_ROWS_COUNT = 2;
   public static final int EXTRA_ROWS_COUNT = 3;
 
-  @EqualsAndHashCode.Include private final int hubStamp;
-  @Getter private int prevHubStamp;
+  @Getter @EqualsAndHashCode.Include private final int hubStamp;
+  @Getter @Setter private int prevId;
+  @Getter @Setter private int currentId;
 
   @EqualsAndHashCode.Include private final ShakiraPrecompileType precompileType;
-  @EqualsAndHashCode.Include private final Bytes precompileInput;
+  @EqualsAndHashCode.Include private final Bytes hashInput;
 
-  public ShakiraDataOperation(
-      int hubStamp, int prevHubStamp, ShakiraPrecompileType precompileType, Bytes precompileInput) {
+  public ShakiraDataOperation(int hubStamp, ShakiraPrecompileType precompileType, Bytes hashInput) {
     this.hubStamp = hubStamp;
-    this.prevHubStamp = prevHubStamp;
     this.precompileType = precompileType;
-    this.precompileInput = precompileInput;
+    this.hashInput = hashInput;
   }
 
   @Override
   protected int computeLineCount() {
-    return totalNumberOfRows(precompileInput);
+    return totalNumberOfRows();
   }
 
   void trace(Trace trace, int stamp) {
-    final int currentHubStamp = this.hubStamp + 1;
-
-    var tracerBuilder =
-        ShakiraTraceHelper.builder()
-            .trace(trace)
-            .currentHubStamp(currentHubStamp)
-            .prevHubStamp(prevHubStamp)
-            .stamp(stamp);
+    var tracerBuilder = ShakiraTraceHelper.builder().trace(trace).currentId(currentId).stamp(stamp);
 
     switch (precompileType) {
       case SHA256 -> buildSha2Trace(trace, tracerBuilder);
       case KECCAK -> buildKeccakTrace(trace, tracerBuilder);
       case RIPEMD -> buildRipeMdTrace(trace, tracerBuilder);
     }
+
+    prevId = currentId;
   }
 
   private void buildRipeMdTrace(
       Trace trace, ShakiraTraceHelper.ShakiraTraceHelperBuilder tracerBuilder) {
-    final Map<Integer, PhaseInfo> phaseInfoMap = getPhaseInfoMap(hubStamp, precompileInput);
-    final Bytes result = computeRipeMdResult(precompileInput);
+    final Map<Integer, PhaseInfo> phaseInfoMap = getPhaseInfoMap();
+    final Bytes result = computeRipeMdResult(hashInput);
 
     final ShakiraTraceHelper ripeMdTraceHelper =
         tracerBuilder
@@ -92,11 +87,7 @@ public class ShakiraDataOperation extends ModuleOperation {
             .endPhaseIndex(Trace.PHASE_RIPEMD_RESULT)
             .traceLimbConsumer(
                 traceLimbConsumer(
-                    trace,
-                    Trace.PHASE_RIPEMD_DATA,
-                    Trace.PHASE_RIPEMD_RESULT,
-                    precompileInput,
-                    result))
+                    trace, Trace.PHASE_RIPEMD_DATA, Trace.PHASE_RIPEMD_RESULT, result))
             .build();
 
     final ShakiraTraceHelper extraTraceHelper =
@@ -104,14 +95,12 @@ public class ShakiraDataOperation extends ModuleOperation {
 
     ripeMdTraceHelper.trace();
     extraTraceHelper.trace();
-
-    prevHubStamp = ripeMdTraceHelper.prevHubStamp();
   }
 
   private void buildKeccakTrace(
       Trace trace, ShakiraTraceHelper.ShakiraTraceHelperBuilder tracerBuilder) {
-    final Map<Integer, PhaseInfo> phaseInfoMap = getPhaseInfoMap(hubStamp, precompileInput);
-    final Bytes result = computeKeccakResult(precompileInput);
+    final Map<Integer, PhaseInfo> phaseInfoMap = getPhaseInfoMap();
+    final Bytes result = computeKeccakResult(hashInput);
 
     final ShakiraTraceHelper keccakTraceHelper =
         tracerBuilder
@@ -120,11 +109,7 @@ public class ShakiraDataOperation extends ModuleOperation {
             .endPhaseIndex(Trace.PHASE_KECCAK_RESULT)
             .traceLimbConsumer(
                 traceLimbConsumer(
-                    trace,
-                    Trace.PHASE_KECCAK_DATA,
-                    Trace.PHASE_KECCAK_RESULT,
-                    precompileInput,
-                    result))
+                    trace, Trace.PHASE_KECCAK_DATA, Trace.PHASE_KECCAK_RESULT, result))
             .build();
 
     final ShakiraTraceHelper extraTraceHelper =
@@ -132,14 +117,12 @@ public class ShakiraDataOperation extends ModuleOperation {
 
     keccakTraceHelper.trace();
     extraTraceHelper.trace();
-
-    prevHubStamp = keccakTraceHelper.prevHubStamp();
   }
 
   private void buildSha2Trace(
       Trace trace, ShakiraTraceHelper.ShakiraTraceHelperBuilder tracerBuilder) {
-    final Map<Integer, PhaseInfo> phaseInfoMap = getPhaseInfoMap(hubStamp, precompileInput);
-    final Bytes result = computeSha256Result(precompileInput);
+    final Map<Integer, PhaseInfo> phaseInfoMap = getPhaseInfoMap();
+    final Bytes result = computeSha256Result(hashInput);
 
     final ShakiraTraceHelper sha2TraceHelper =
         tracerBuilder
@@ -147,8 +130,7 @@ public class ShakiraDataOperation extends ModuleOperation {
             .startPhaseIndex(Trace.PHASE_SHA2_DATA)
             .endPhaseIndex(Trace.PHASE_SHA2_RESULT)
             .traceLimbConsumer(
-                traceLimbConsumer(
-                    trace, Trace.PHASE_SHA2_DATA, Trace.PHASE_SHA2_RESULT, precompileInput, result))
+                traceLimbConsumer(trace, Trace.PHASE_SHA2_DATA, Trace.PHASE_SHA2_RESULT, result))
             .build();
 
     final ShakiraTraceHelper extraTraceHelper =
@@ -156,18 +138,16 @@ public class ShakiraDataOperation extends ModuleOperation {
 
     sha2TraceHelper.trace();
     extraTraceHelper.trace();
-
-    prevHubStamp = sha2TraceHelper.prevHubStamp();
   }
 
-  private static BiConsumer<Integer, Integer> traceLimbConsumer(
-      Trace trace, int dataPhase, int resultPhase, Bytes inputData, Bytes computedResult) {
+  private BiConsumer<Integer, Integer> traceLimbConsumer(
+      Trace trace, int dataPhase, int resultPhase, Bytes computedResult) {
     return (rowIndex, phaseIndex) -> {
       if (phaseIndex == dataPhase) {
-        final Bytes limbRowData = extractLimbRowData(inputData, rowIndex);
+        final Bytes limbRowData = extractLimbRowData(rowIndex);
         trace.limb(limbRowData);
 
-        final int nBytesAcc = Math.min((rowIndex + 1) * Trace.LLARGE, inputData.size());
+        final int nBytesAcc = Math.min((rowIndex + 1) * Trace.LLARGE, hashInput.size());
         final int nBytes = nBytesAcc - (rowIndex * Trace.LLARGE);
         trace.nBytes(UnsignedByte.of(nBytes)).nBytesAcc(nBytesAcc);
 
@@ -190,22 +170,20 @@ public class ShakiraDataOperation extends ModuleOperation {
     return leftPadTo(Hash.ripemd160(input), 32);
   }
 
-  private static int totalNumberOfDataRows(Bytes inputData) {
-    return (inputData.size() + Trace.LLARGEMO) / Trace.LLARGE;
+  private int totalNumberOfDataRows() {
+    return (hashInput.size() + Trace.LLARGEMO) / Trace.LLARGE;
   }
 
-  private static int totalNumberOfRows(Bytes inputData) {
-    return totalNumberOfDataRows(inputData) + RESULT_ROWS_COUNT + EXTRA_ROWS_COUNT;
+  private int totalNumberOfRows() {
+    return totalNumberOfDataRows() + RESULT_ROWS_COUNT + EXTRA_ROWS_COUNT;
   }
 
-  private Map<Integer, PhaseInfo> getPhaseInfoMap(int currentHubStamp, Bytes inputData) {
-    final int indexMaxDataPhases = totalNumberOfDataRows(inputData) - 1;
-    final int totalSizeDataPhases = inputData.size();
-    final UnsignedByte[] deltaBytesDataPhases = getDataPhaseDeltaBytes(currentHubStamp, inputData);
-    final UnsignedByte[] deltaBytesResultPhases =
-        getResultPhaseDeltaBytes(currentHubStamp, inputData);
-    final UnsignedByte[] deltaBytesExtraPhases =
-        getExtraPhaseDeltaBytes(currentHubStamp, inputData);
+  private Map<Integer, PhaseInfo> getPhaseInfoMap() {
+    final int indexMaxDataPhases = totalNumberOfDataRows() - 1;
+    final int totalSizeDataPhases = hashInput.size();
+    final UnsignedByte[] deltaBytesDataPhases = getDataPhaseDeltaBytes();
+    final UnsignedByte[] deltaBytesResultPhases = getResultPhaseDeltaBytes();
+    final UnsignedByte[] deltaBytesExtraPhases = getExtraPhaseDeltaBytes();
 
     return Map.of(
         Trace.PHASE_SHA2_DATA,
@@ -240,21 +218,21 @@ public class ShakiraDataOperation extends ModuleOperation {
             PHASE_EXTRA, INDEX_MAX_EXTRA, TOTAL_SIZE_EXTRA_PHASES, deltaBytesExtraPhases));
   }
 
-  private static Bytes extractLimbRowData(Bytes inputData, Integer rowIndex) {
-    final int inputDataSize = inputData.size();
+  private Bytes extractLimbRowData(Integer rowIndex) {
+    final int inputDataSize = hashInput.size();
     final int startLimbOffsetIndex = Trace.LLARGE * rowIndex;
 
     final boolean limbSizeIsLessThan16 = inputDataSize - startLimbOffsetIndex < Trace.LLARGE;
 
     return !limbSizeIsLessThan16
-        ? inputData.slice(startLimbOffsetIndex, Trace.LLARGE)
+        ? hashInput.slice(startLimbOffsetIndex, Trace.LLARGE)
         : rightPadTo(
-            inputData.slice(startLimbOffsetIndex, inputDataSize - startLimbOffsetIndex),
+            hashInput.slice(startLimbOffsetIndex, inputDataSize - startLimbOffsetIndex),
             Trace.LLARGE);
   }
 
   private UnsignedByte[] getHubStampDiffBytes(int currentHubStamp) {
-    final BigInteger prevHubStampBigInt = BigInteger.valueOf(prevHubStamp);
+    final BigInteger prevHubStampBigInt = BigInteger.valueOf(prevId);
     final BigInteger hubStampBigInt = BigInteger.valueOf(currentHubStamp);
     final BigInteger hubStampDiff =
         hubStampBigInt.subtract(prevHubStampBigInt).subtract(BigInteger.ONE);
@@ -266,36 +244,36 @@ public class ShakiraDataOperation extends ModuleOperation {
     return bytesToUnsignedBytes(leftPadTo(bigIntegerToBytes(hubStampDiff), 4).toArray());
   }
 
-  private UnsignedByte[] getDataPhaseDeltaBytes(int currentHubStamp, Bytes inputData) {
+  private UnsignedByte[] getDataPhaseDeltaBytes() {
     final int from = 0;
-    final int to = totalNumberOfDataRows(inputData);
+    final int to = totalNumberOfDataRows();
 
-    return Arrays.copyOfRange(getDeltaBytes(currentHubStamp, inputData), from, to);
+    return Arrays.copyOfRange(getDeltaBytes(), from, to);
   }
 
-  private UnsignedByte[] getResultPhaseDeltaBytes(int currentHubStamp, Bytes inputData) {
-    final int from = totalNumberOfDataRows(inputData);
+  private UnsignedByte[] getResultPhaseDeltaBytes() {
+    final int from = totalNumberOfDataRows();
     final int to = from + RESULT_ROWS_COUNT;
 
-    return Arrays.copyOfRange(getDeltaBytes(currentHubStamp, inputData), from, to);
+    return Arrays.copyOfRange(getDeltaBytes(), from, to);
   }
 
-  private UnsignedByte[] getExtraPhaseDeltaBytes(int currentHubStamp, Bytes inputData) {
-    final int from = totalNumberOfDataRows(inputData) + RESULT_ROWS_COUNT;
+  private UnsignedByte[] getExtraPhaseDeltaBytes() {
+    final int from = totalNumberOfDataRows() + RESULT_ROWS_COUNT;
     final int to = from + EXTRA_ROWS_COUNT;
 
-    return Arrays.copyOfRange(getDeltaBytes(currentHubStamp, inputData), from, to);
+    return Arrays.copyOfRange(getDeltaBytes(), from, to);
   }
 
-  private UnsignedByte[] getDeltaBytes(int currentHubStamp, Bytes inputData) {
-    final UnsignedByte[] deltaBytes = new UnsignedByte[totalNumberOfRows(inputData)];
+  private UnsignedByte[] getDeltaBytes() {
+    final UnsignedByte[] deltaBytes = new UnsignedByte[totalNumberOfRows()];
     Arrays.fill(deltaBytes, UnsignedByte.ZERO);
 
-    final UnsignedByte[] hubStampDiffBytes = getHubStampDiffBytes(currentHubStamp);
+    final UnsignedByte[] hubStampDiffBytes = getHubStampDiffBytes(currentId);
 
     System.arraycopy(hubStampDiffBytes, 0, deltaBytes, 0, hubStampDiffBytes.length);
 
-    final int remainder = inputData.size() % Trace.LLARGE;
+    final int remainder = hashInput.size() % Trace.LLARGE;
     final int lastNBytes = remainder == 0 ? Trace.LLARGE : remainder;
 
     deltaBytes[deltaBytes.length - 2] = UnsignedByte.of(lastNBytes - 1);

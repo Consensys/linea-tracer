@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.shakiradata;
 
 import java.nio.MappedByteBuffer;
+import java.util.Comparator;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
@@ -24,6 +25,8 @@ import net.consensys.linea.zktracer.module.Module;
 
 public class ShakiraData implements Module {
   private StackedSet<ShakiraDataOperation> state = new StackedSet<>();
+
+  private int lastDataCallId = 0;
 
   @Override
   public String moduleKey() {
@@ -50,17 +53,24 @@ public class ShakiraData implements Module {
     return Trace.headers(this.lineCount());
   }
 
-  public int call(final ShakiraDataOperation operation) {
+  public void call(final ShakiraDataOperation operation) {
     this.state.add(operation);
 
-    return operation.prevHubStamp();
+    operation.currentId(operation.hubStamp() + 1);
+    operation.prevId(lastDataCallId);
+
+    lastDataCallId = operation.currentId();
   }
 
   @Override
   public void commit(List<MappedByteBuffer> buffers) {
-    Trace trace = new Trace(buffers);
+    final Trace trace = new Trace(buffers);
+
+    final List<ShakiraDataOperation> sortedState =
+        this.state.stream().sorted(Comparator.comparing(ShakiraDataOperation::currentId)).toList();
+
     int stamp = 0;
-    for (ShakiraDataOperation o : this.state) {
+    for (ShakiraDataOperation o : sortedState) {
       stamp++;
       o.trace(trace, stamp);
     }

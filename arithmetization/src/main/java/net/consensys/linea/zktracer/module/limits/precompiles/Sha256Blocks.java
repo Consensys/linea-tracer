@@ -106,10 +106,8 @@ public final class Sha256Blocks implements Module {
         final Bytes inputData = hub.transients().op().callData();
 
         if (hasEnoughGas(this.hub)) {
-          this.lastDataCallHubStamp =
-              this.data.call(
-                  new ShakiraDataOperation(
-                      hub.stamp(), lastDataCallHubStamp, ShakiraPrecompileType.SHA256, inputData));
+          this.data.call(
+              new ShakiraDataOperation(hub.stamp(), ShakiraPrecompileType.SHA256, inputData));
 
           this.counts.push(this.counts.pop() + blockCount);
         }

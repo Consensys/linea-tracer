@@ -19,7 +19,6 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 
 import lombok.Builder;
-import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
@@ -27,8 +26,7 @@ import org.apache.tuweni.bytes.Bytes;
 @Builder
 @Accessors(fluent = true)
 public class ShakiraTraceHelper {
-  private final int currentHubStamp;
-  @Getter private int prevHubStamp;
+  private final int currentId;
   private final int startPhaseIndex;
   private final int endPhaseIndex;
   private final Bytes dataPhaseInputData = Bytes.EMPTY;
@@ -57,7 +55,7 @@ public class ShakiraTraceHelper {
         trace
             .phase(UnsignedByte.of(phaseInfo.id()))
             .deltaByte(phaseInfo.deltaBytes()[rowIndex])
-            .id(currentHubStamp)
+            .id(currentId)
             .index(rowIndex)
             .indexMax(indexMax)
             .totalSize(phaseInfo.totalSize())
@@ -85,7 +83,5 @@ public class ShakiraTraceHelper {
         phaseFlags[phaseIndex - (phaseFlags.length - 1)] = false;
       }
     }
-
-    prevHubStamp = currentHubStamp;
   }
 }

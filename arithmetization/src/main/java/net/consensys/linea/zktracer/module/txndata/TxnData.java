@@ -75,6 +75,11 @@ public class TxnData implements Module {
     this.cumulatedGasUsed.pop();
   }
 
+  @Override
+  public void traceStartConflation(final long blockCount) {
+    this.wcp.additionalRows.push(4);
+  }
+
   private BlockSnapshot currentBlock() {
     return this.blocks.get(this.blocks.size() - 1);
   }

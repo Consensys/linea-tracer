@@ -48,8 +48,11 @@ import static net.consensys.linea.zktracer.module.ec_data.Trace.TOTAL_SIZE_ECPAI
 import static net.consensys.linea.zktracer.module.ec_data.Trace.TOTAL_SIZE_ECRECOVER_DATA;
 import static net.consensys.linea.zktracer.module.ec_data.Trace.TOTAL_SIZE_ECRECOVER_RESULT;
 import static net.consensys.linea.zktracer.types.Containers.repeat;
+import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
+import static net.consensys.linea.zktracer.types.Conversions.bytesToUnsignedBytes;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Set;
 
@@ -72,8 +75,9 @@ public class EcDataOperation extends ModuleOperation {
   private final Wcp wcp;
   private final Ext ext;
 
-  private final int contextNumber;
-  private final int contextNumberDelta;
+  private final int id;
+  private final int previousId;
+  private final UnsignedByte[] byteDelta;
   private final Bytes data;
 
   private final int ecType;
@@ -106,10 +110,12 @@ public class EcDataOperation extends ModuleOperation {
   private final List<Bytes> extResLo;
   private final List<OpCode> extInst;
 
-  // pairing-specific
-  private final int totalPairings;
+  private final Bytes returnData;
   private boolean successBit;
   private boolean circuitSelectorEcrecover;
+
+  // pairing-specific
+  private final int totalPairings;
 
   private int getTotalSize(int ecType, boolean isData) {
     if (isData) {
@@ -171,8 +177,7 @@ public class EcDataOperation extends ModuleOperation {
     }
   }
 
-  private EcDataOperation(
-      Wcp wcp, Ext ext, int contextNumber, int previousContextNumber, int ecType, Bytes data) {
+  private EcDataOperation(Wcp wcp, Ext ext, int id, int previousId, int ecType, Bytes data, Bytes returnData, boolean successBit) {
     Preconditions.checkArgument(EC_TYPES.contains(ecType), "invalid EC type");
 
     int minInputLength = ecType == ECMUL ? 96 : 128;
@@ -192,8 +197,12 @@ public class EcDataOperation extends ModuleOperation {
     this.nRowsData = getIndexMax(ecType, true) + 1;
     this.nRowsResult = getIndexMax(ecType, false) + 1;
     this.nRows = this.nRowsData + this.nRowsResult;
-    this.contextNumber = contextNumber;
-    this.contextNumberDelta = contextNumber - previousContextNumber;
+    this.id = id;
+    this.previousId = previousId;
+    this.byteDelta =
+        bytesToUnsignedBytes(
+            leftPadTo(bigIntegerToBytes(BigInteger.valueOf(this.id - this.previousId - 1)), 4)
+                .toArray());
 
     this.limb = repeat(Bytes.EMPTY, this.nRows);
     this.hurdle = repeat(false, this.nRows);
@@ -220,20 +229,14 @@ public class EcDataOperation extends ModuleOperation {
     this.wcp = wcp;
     this.ext = ext;
 
-    // TODO: set predictions
-    this.successBit = true;
+    this.returnData = returnData;
+    this.successBit = successBit;
   }
 
   public static EcDataOperation of(
-      Wcp wcp,
-      Ext ext,
-      final int ecType,
-      Bytes data,
-      int currentContextNumber,
-      int previousContextNumber) {
+      Wcp wcp, Ext ext, int id, int previousId, final int ecType, Bytes data, Bytes returnData, boolean successBit) {
 
-    EcDataOperation ecDataRes =
-        new EcDataOperation(wcp, ext, currentContextNumber, previousContextNumber, ecType, data);
+    EcDataOperation ecDataRes = new EcDataOperation(wcp, ext, id, previousId, ecType, data, returnData, successBit);
     switch (ecType) {
       case ECRECOVER -> ecDataRes.handleRecover();
         // case ECADD -> ecDataRes.handleAdd();
@@ -294,8 +297,7 @@ public class EcDataOperation extends ModuleOperation {
     limb.set(6, s.hi());
     limb.set(7, s.lo());
 
-    // TODO: temporary just for testing
-    EWord recoveredAddress = EWord.ofHexString("0x7156526fbd7a3c72969b54f64e42c10fbb768c8a");
+    EWord recoveredAddress = EWord.of(returnData);
     limb.set(8, recoveredAddress.hi());
     limb.set(9, recoveredAddress.lo());
 
@@ -428,12 +430,12 @@ public class EcDataOperation extends ModuleOperation {
   }
   */
 
-  void trace(int stamp, Trace trace) {
+  void trace(Trace trace, int stamp) {
     for (int i = 0; i < this.nRows; i++) {
       boolean isData = i < this.nRowsData;
       trace
-          .stamp(stamp) // TODO: Shall we use the previous approach?
-          .id(contextNumber)
+          .stamp(stamp)
+          .id(id)
           .index(isData ? UnsignedByte.of(i) : UnsignedByte.of(i - this.nRowsData))
           .limb(limb.get(i))
           .totalSize(Bytes.of(getTotalSize(ecType, isData)))
@@ -452,7 +454,7 @@ public class EcDataOperation extends ModuleOperation {
           .accPairings(ecType == ECPAIRING && isData ? Bytes.of(1 + i) : Bytes.of(0))
           .internalChecksPassed(internalChecksPassed)
           .hurdle(hurdle.get(i))
-          .byteDelta(UnsignedByte.of(contextNumberDelta))
+          .byteDelta(i < 4 ? byteDelta[i] : UnsignedByte.of(0))
           .circuitSelectorEcrecover(ecType == ECRECOVER && circuitSelectorEcrecover)
           .wcpFlag(wcpFlag.get(i))
           .wcpArg1Hi(wcpArg1Hi.get(i))

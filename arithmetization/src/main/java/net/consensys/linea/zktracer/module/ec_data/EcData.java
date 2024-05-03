@@ -41,7 +41,7 @@ public class EcData implements Module {
   private final Hub hub;
   private final Wcp wcp;
   private final Ext ext;
-  private int previousContextNumber = 0;
+  private int previousId = 0;
 
   @Override
   public String moduleKey() {
@@ -72,16 +72,14 @@ public class EcData implements Module {
     }
 
     final Bytes data = hub.transients().op().callData();
+    // TODO: Get the actual return data
+    final Bytes returnData = Bytes.fromHexString("0x7156526fbd7a3c72969b54f64e42c10fbb768c8a");
+    final boolean successBit = !returnData.isEmpty();
 
     this.operations.add(
         EcDataOperation.of(
-            this.wcp,
-            this.ext,
-            target.get(19),
-            data,
-            this.hub.currentFrame().contextNumber(),
-            this.previousContextNumber));
-    this.previousContextNumber = this.hub.currentFrame().contextNumber();
+            this.wcp, this.ext, 1 + this.hub.stamp(), previousId, target.get(19), data, returnData, successBit));
+    this.previousId = 1 + this.hub.stamp();
   }
 
   @Override
@@ -97,10 +95,10 @@ public class EcData implements Module {
   @Override
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
-    int stamp = 1;
+    int stamp = 0;
     for (EcDataOperation op : this.operations) {
-      op.trace(stamp, trace);
       stamp++;
+      op.trace(trace, stamp);
     }
   }
 }

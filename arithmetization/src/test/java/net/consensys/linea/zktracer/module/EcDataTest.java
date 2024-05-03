@@ -42,9 +42,10 @@ public class EcDataTest {
 
   @Test
   void testEcRecover() {
-    BytecodeCompiler program = BytecodeCompiler.newProgram()
-      .assemble(
-        """
+    BytecodeCompiler program =
+        BytecodeCompiler.newProgram()
+            .assemble(
+                """
           ; First place the parameters in memory
           PUSH32 0x456e9aea5e197a1f1af7a3e85a3212fa4049a3ba34c2289b4c860fc0b0c64ef3 ; hash
           PUSH1 0
@@ -74,9 +75,6 @@ public class EcDataTest {
           MLOAD
           """);
 
-    BytecodeRunner.of(
-            program
-                .compile())
-        .run();
+    BytecodeRunner.of(program.compile()).run();
   }
 }

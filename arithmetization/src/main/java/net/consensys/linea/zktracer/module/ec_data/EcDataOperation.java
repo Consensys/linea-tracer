@@ -86,6 +86,7 @@ public class EcDataOperation extends ModuleOperation {
   private boolean internalChecksPassed;
 
   // WCP interaction
+  private final List<Boolean> wcpFlag;
   private final List<Bytes> wcpArg1Hi;
   private final List<Bytes> wcpArg1Lo;
   private final List<Bytes> wcpArg2Hi;
@@ -94,6 +95,7 @@ public class EcDataOperation extends ModuleOperation {
   private final List<OpCode> wcpInst;
 
   // EXT interaction
+  private final List<Boolean> extFlag;
   private final List<Bytes> extArg1Hi;
   private final List<Bytes> extArg1Lo;
   private final List<Bytes> extArg2Hi;
@@ -195,6 +197,8 @@ public class EcDataOperation extends ModuleOperation {
 
     this.limb = repeat(Bytes.EMPTY, this.nRows);
     this.hurdle = repeat(false, this.nRows);
+
+    this.wcpFlag = repeat(false, this.nRows);
     this.wcpArg1Hi = repeat(Bytes.EMPTY, this.nRows);
     this.wcpArg1Lo = repeat(Bytes.EMPTY, this.nRows);
     this.wcpArg2Hi = repeat(Bytes.EMPTY, this.nRows);
@@ -202,6 +206,7 @@ public class EcDataOperation extends ModuleOperation {
     this.wcpRes = repeat(false, this.nRows);
     this.wcpInst = repeat(OpCode.INVALID, this.nRows);
 
+    this.extFlag = repeat(false, this.nRows);
     this.extArg1Hi = repeat(Bytes.EMPTY, this.nRows);
     this.extArg1Lo = repeat(Bytes.EMPTY, this.nRows);
     this.extArg2Hi = repeat(Bytes.EMPTY, this.nRows);
@@ -246,10 +251,11 @@ public class EcDataOperation extends ModuleOperation {
           default -> throw new IllegalStateException("Unexpected value: " + wcpInst);
         };
 
+    this.wcpFlag.set(i, true);
     this.wcpArg1Hi.set(i, arg1.hi());
     this.wcpArg1Lo.set(i, arg1.lo());
     this.wcpArg2Hi.set(i, arg2.hi());
-    this.wcpArg2Lo.set(i, arg1.lo());
+    this.wcpArg2Lo.set(i, arg2.lo());
     this.wcpRes.set(i, wcpRes);
     this.wcpInst.set(i, wcpInst);
     return wcpRes;
@@ -258,6 +264,7 @@ public class EcDataOperation extends ModuleOperation {
   private EWord callExt(int i, OpCode extInst, EWord arg1, EWord arg2, EWord arg3) {
     final EWord extRes = EWord.of(ext.call(extInst, arg1, arg2, arg3));
 
+    this.extFlag.set(i, true);
     this.extArg1Hi.set(i, arg1.hi());
     this.extArg1Lo.set(i, arg1.lo());
     this.extArg2Hi.set(i, arg2.hi());
@@ -306,10 +313,10 @@ public class EcDataOperation extends ModuleOperation {
     boolean sIsPositive = callWcp(3, OpCode.LT, EWord.ZERO, s); // 0 < s
 
     // row i+ 4
-    boolean vIs27 = callWcp(4, OpCode.EQ, v, EWord.of(0x27)); // v == 27
+    boolean vIs27 = callWcp(4, OpCode.EQ, v, EWord.of(27)); // v == 27
 
     // row i + 5
-    boolean vIs28 = callWcp(5, OpCode.EQ, v, EWord.of(0x28)); // v == 28
+    boolean vIs28 = callWcp(5, OpCode.EQ, v, EWord.of(28)); // v == 28
 
     // Set hurdle
     hurdle.set(0, rIsInRange && rIsPositive);
@@ -425,7 +432,7 @@ public class EcDataOperation extends ModuleOperation {
     for (int i = 0; i < this.nRows; i++) {
       boolean isData = i < this.nRowsData;
       trace
-          .stamp(stamp)
+          .stamp(stamp) // TODO: Shall we use the previous approach?
           .id(contextNumber)
           .index(isData ? UnsignedByte.of(i) : UnsignedByte.of(i - this.nRowsData))
           .limb(limb.get(i))
@@ -447,12 +454,14 @@ public class EcDataOperation extends ModuleOperation {
           .hurdle(hurdle.get(i))
           .byteDelta(UnsignedByte.of(contextNumberDelta))
           .circuitSelectorEcrecover(ecType == ECRECOVER && circuitSelectorEcrecover)
+          .wcpFlag(wcpFlag.get(i))
           .wcpArg1Hi(wcpArg1Hi.get(i))
           .wcpArg1Lo(wcpArg1Lo.get(i))
           .wcpArg2Hi(wcpArg2Hi.get(i))
           .wcpArg2Lo(wcpArg2Lo.get(i))
           .wcpRes(wcpRes.get(i))
           .wcpInst(wcpInst.get(i).unsignedByteValue())
+          .extFlag(extFlag.get(i))
           .extArg1Hi(extArg1Hi.get(i))
           .extArg1Lo(extArg1Lo.get(i))
           .extArg2Hi(extArg2Hi.get(i))

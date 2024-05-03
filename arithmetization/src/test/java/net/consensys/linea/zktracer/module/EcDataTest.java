@@ -42,38 +42,40 @@ public class EcDataTest {
 
   @Test
   void testEcRecover() {
+    BytecodeCompiler program = BytecodeCompiler.newProgram()
+      .assemble(
+        """
+          ; First place the parameters in memory
+          PUSH32 0x456e9aea5e197a1f1af7a3e85a3212fa4049a3ba34c2289b4c860fc0b0c64ef3 ; hash
+          PUSH1 0
+          MSTORE
+          PUSH1 0x1C ; v (28)
+          PUSH1 0x20
+          MSTORE
+          PUSH32 0x9242685bf161793cc25603c231bc2f568eb630ea16aa137d2664ac8038825608 ; r
+          PUSH1 0x40
+          MSTORE
+          PUSH32 0x4f8ae3bd7535248d0bd448298cc2e2071e56992d0774dc340c368ae950852ada ; s
+          PUSH1 0x60
+          MSTORE
+
+          ; Do the call
+          PUSH1 0x20 ; retSize
+          PUSH1 0x80 ; retOffset
+          PUSH1 0x80 ; argsSize
+          PUSH1 0 ; argsOffset
+          PUSH1 1 ; address
+          PUSH4 0xFFFFFFFF ; gas
+          STATICCALL
+
+          ; Put the result alone on the stack
+          POP
+          PUSH1 0x80
+          MLOAD
+          """);
+
     BytecodeRunner.of(
-            BytecodeCompiler.newProgram()
-                .assemble(
-                    """
-        ; First place the parameters in memory
-        PUSH32 0x456e9aea5e197a1f1af7a3e85a3212fa4049a3ba34c2289b4c860fc0b0c64ef3 ; hash
-        PUSH1 0
-        MSTORE
-        PUSH1 28 ; v
-        PUSH1 0x20
-        MSTORE
-        PUSH32 0x9242685bf161793cc25603c231bc2f568eb630ea16aa137d2664ac8038825608 ; r
-        PUSH1 0x40
-        MSTORE
-        PUSH32 0x4f8ae3bd7535248d0bd448298cc2e2071e56992d0774dc340c368ae950852ada ; s
-        PUSH1 0x60
-        MSTORE
-
-        ; Do the call
-        PUSH1 32 ; retSize
-        PUSH1 0x80 ; retOffset
-        PUSH1 0x80 ; argsSize
-        PUSH1 0 ; argsOffset
-        PUSH1 1 ; address
-        PUSH4 0xFFFFFFFF ; gas
-        STATICCALL
-
-        ; Put the result alone on the stack
-        POP
-        PUSH1 0x80
-        MLOAD
-        """)
+            program
                 .compile())
         .run();
   }

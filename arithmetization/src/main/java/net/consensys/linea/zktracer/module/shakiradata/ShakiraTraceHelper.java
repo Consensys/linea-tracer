@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.shakiradata;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
@@ -37,7 +38,15 @@ public class ShakiraTraceHelper {
   private final BiConsumer<Integer, Integer> traceLimbConsumer;
 
   void trace() {
-    boolean[] phaseFlags = new boolean[6];
+    Map<Integer, Boolean> phaseFlags =
+        new HashMap<>(
+            Map.of(
+                Trace.PHASE_SHA2_DATA, false,
+                Trace.PHASE_SHA2_RESULT, false,
+                Trace.PHASE_RIPEMD_DATA, false,
+                Trace.PHASE_RIPEMD_RESULT, false,
+                Trace.PHASE_KECCAK_DATA, false,
+                Trace.PHASE_KECCAK_RESULT, false));
 
     boolean isExtra = false;
 
@@ -45,7 +54,7 @@ public class ShakiraTraceHelper {
       if (phaseIndex == 0) {
         isExtra = true;
       } else {
-        phaseFlags[phaseIndex - (phaseFlags.length - 1)] = true;
+        phaseFlags.put(phaseIndex, true);
       }
 
       final PhaseInfo phaseInfo = phaseInfoMap.get(phaseIndex);
@@ -64,12 +73,12 @@ public class ShakiraTraceHelper {
         traceLimbConsumer.accept(rowIndex, phaseIndex);
 
         trace
-            .isKeccakData(phaseFlags[0])
-            .isKeccakResult(phaseFlags[1])
-            .isSha2Data(phaseFlags[2])
-            .isSha2Result(phaseFlags[3])
-            .isRipemdData(phaseFlags[4])
-            .isRipemdResult(phaseFlags[5])
+            .isKeccakData(phaseFlags.get(Trace.PHASE_KECCAK_DATA))
+            .isKeccakResult(phaseFlags.get(Trace.PHASE_KECCAK_RESULT))
+            .isSha2Data(phaseFlags.get(Trace.PHASE_SHA2_DATA))
+            .isSha2Result(phaseFlags.get(Trace.PHASE_SHA2_RESULT))
+            .isRipemdData(phaseFlags.get(Trace.PHASE_RIPEMD_DATA))
+            .isRipemdResult(phaseFlags.get(Trace.PHASE_RIPEMD_RESULT))
             .isExtra(isExtra);
 
         if (isExtra) {
@@ -80,7 +89,7 @@ public class ShakiraTraceHelper {
       }
 
       if (!isExtra) {
-        phaseFlags[phaseIndex - (phaseFlags.length - 1)] = false;
+        phaseFlags.put(phaseIndex, false);
       }
     }
   }

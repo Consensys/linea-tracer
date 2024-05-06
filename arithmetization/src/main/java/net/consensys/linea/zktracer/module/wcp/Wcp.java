@@ -23,8 +23,9 @@ import static net.consensys.linea.zktracer.module.wcp.WcpOperation.LEQbv;
 import static net.consensys.linea.zktracer.module.wcp.WcpOperation.LTbv;
 
 import java.nio.MappedByteBuffer;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.List;
-import java.util.Stack;
 
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
@@ -39,7 +40,7 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 public class Wcp implements Module {
   private final StackedSet<WcpOperation> operations = new StackedSet<>();
   /** count the number of rows that could be added after the sequencer counts the number of line */
-  public final Stack<Integer> additionalRows = new Stack<>();
+  public final Deque<Integer> additionalRows = new ArrayDeque<>();
 
   private final Hub hub;
   private boolean batchUnderConstruction;
@@ -57,13 +58,18 @@ public class Wcp implements Module {
   @Override
   public void enterTransaction() {
     this.operations.enter();
-    this.additionalRows.push(0);
+    this.additionalRows.push(this.additionalRows.getFirst());
   }
 
   @Override
   public void popTransaction() {
     this.operations.pop();
     this.additionalRows.pop();
+  }
+
+  @Override
+  public void traceStartConflation(final long blockCount) {
+    this.additionalRows.push(0);
   }
 
   @Override
@@ -99,14 +105,9 @@ public class Wcp implements Module {
 
   @Override
   public int lineCount() {
-    int nbOfLine = this.operations.lineCount();
-
-    if (batchUnderConstruction) {
-      for (int i = 0; i < this.additionalRows.size(); i++) {
-        nbOfLine += this.additionalRows.get(i);
-      }
-    }
-    return nbOfLine;
+    return batchUnderConstruction
+        ? this.operations.lineCount() + this.additionalRows.getFirst()
+        : this.operations.lineCount();
   }
 
   public boolean callLT(final Bytes32 arg1, final Bytes32 arg2) {

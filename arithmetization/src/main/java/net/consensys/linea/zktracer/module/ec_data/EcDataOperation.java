@@ -58,6 +58,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import com.google.common.base.Preconditions;
+import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.ext.Ext;
@@ -90,7 +91,7 @@ public class EcDataOperation extends ModuleOperation {
   private final int nRowsData;
   private final int nRowsResult;
 
-  private final List<Bytes> limb;
+  @Getter private final List<Bytes> limb;
   private final List<Boolean> hurdle;
   private boolean internalChecksPassed;
 

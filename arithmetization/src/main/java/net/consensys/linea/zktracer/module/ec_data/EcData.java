@@ -19,6 +19,7 @@ import java.nio.MappedByteBuffer;
 import java.util.List;
 import java.util.Set;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
@@ -37,7 +38,7 @@ public class EcData implements Module {
   public static final Set<Address> EC_PRECOMPILES =
       Set.of(Address.ECREC, Address.ALTBN128_ADD, Address.ALTBN128_MUL, Address.ALTBN128_PAIRING);
 
-  private final StackedSet<EcDataOperation> operations = new StackedSet<>();
+  @Getter private final StackedSet<EcDataOperation> operations = new StackedSet<>();
   private final Hub hub;
   private final Wcp wcp;
   private final Ext ext;

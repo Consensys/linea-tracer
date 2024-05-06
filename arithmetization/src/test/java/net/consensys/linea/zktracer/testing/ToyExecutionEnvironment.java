@@ -35,6 +35,7 @@ import net.consensys.linea.blockcapture.snapshots.ConflationSnapshot;
 import net.consensys.linea.blockcapture.snapshots.TransactionSnapshot;
 import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.zktracer.ZkTracer;
+import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.*;
@@ -228,5 +229,9 @@ public class ToyExecutionEnvironment {
         MAX_STACK_SIZE,
         feeMarket,
         CoinbaseFeePriceCalculator.eip1559());
+  }
+
+  public Hub getHub() {
+    return tracer.getHub();
   }
 }

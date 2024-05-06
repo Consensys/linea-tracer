@@ -179,7 +179,7 @@ public class Hub implements Module {
   private final Module add = new Add(this);
   private final Module bin = new Bin(this);
   private final Blake2fModexpData blake2fModexpData = new Blake2fModexpData();
-  private final EcData ecData;
+  @Getter private final EcData ecData;
   private final Euc euc;
   private final Ext ext = new Ext(this);
   private final Module mul = new Mul(this);

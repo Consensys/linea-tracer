@@ -15,12 +15,16 @@
 
 package net.consensys.linea.zktracer.module;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.util.stream.Stream;
 
+import net.consensys.linea.zktracer.module.ec_data.EcDataOperation;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.testing.EvmExtension;
+import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -86,6 +90,14 @@ public class EcDataTest {
 
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run();
-    // TODO: check result
+
+    // Print recovered address (for debugging)
+    EcDataOperation ecDataOperation =
+        bytecodeRunner.getHub().ecData().getOperations().stream().toList().get(0);
+    EWord recoveredAddress =
+        EWord.of(
+            ecDataOperation.limb().get(8).toUnsignedBigInteger(),
+            ecDataOperation.limb().get(9).toUnsignedBigInteger());
+    System.out.println("recoveredAddress: " + recoveredAddress.toString());
   }
 }

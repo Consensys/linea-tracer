@@ -54,6 +54,7 @@ import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import com.google.common.base.Preconditions;
@@ -65,6 +66,10 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.crypto.Hash;
+import org.hyperledger.besu.crypto.SECP256K1;
+import org.hyperledger.besu.crypto.SECPPublicKey;
+import org.hyperledger.besu.crypto.SECPSignature;
 
 @Accessors(fluent = true)
 public class EcDataOperation extends ModuleOperation {
@@ -110,7 +115,7 @@ public class EcDataOperation extends ModuleOperation {
   private final List<Bytes> extResLo;
   private final List<OpCode> extInst;
 
-  private final Bytes returnData;
+  private Bytes returnData;
   private boolean successBit;
   private boolean circuitSelectorEcrecover;
 
@@ -177,7 +182,7 @@ public class EcDataOperation extends ModuleOperation {
     }
   }
 
-  private EcDataOperation(Wcp wcp, Ext ext, int id, int previousId, int ecType, Bytes data, Bytes returnData, boolean successBit) {
+  private EcDataOperation(Wcp wcp, Ext ext, int id, int previousId, int ecType, Bytes data) {
     Preconditions.checkArgument(EC_TYPES.contains(ecType), "invalid EC type");
 
     int minInputLength = ecType == ECMUL ? 96 : 128;
@@ -229,14 +234,18 @@ public class EcDataOperation extends ModuleOperation {
     this.wcp = wcp;
     this.ext = ext;
 
-    this.returnData = returnData;
-    this.successBit = successBit;
+    switch (ecType) {
+      case ECRECOVER -> handleRecover();
+        // case ECADD -> handleAdd();
+        // case ECMUL ->  handleMul();
+        // case ECPAIRING -> handlePairing();
+    }
   }
 
   public static EcDataOperation of(
-      Wcp wcp, Ext ext, int id, int previousId, final int ecType, Bytes data, Bytes returnData, boolean successBit) {
+      Wcp wcp, Ext ext, int id, int previousId, final int ecType, Bytes data) {
 
-    EcDataOperation ecDataRes = new EcDataOperation(wcp, ext, id, previousId, ecType, data, returnData, successBit);
+    EcDataOperation ecDataRes = new EcDataOperation(wcp, ext, id, previousId, ecType, data);
     switch (ecType) {
       case ECRECOVER -> ecDataRes.handleRecover();
         // case ECADD -> ecDataRes.handleAdd();
@@ -297,10 +306,6 @@ public class EcDataOperation extends ModuleOperation {
     limb.set(6, s.hi());
     limb.set(7, s.lo());
 
-    EWord recoveredAddress = EWord.of(returnData);
-    limb.set(8, recoveredAddress.hi());
-    limb.set(9, recoveredAddress.lo());
-
     // Compute internal checks
     // row i
     boolean rIsInRange = callWcp(0, OpCode.LT, r, SECP256K1N); // r < secp256k1N
@@ -329,10 +334,17 @@ public class EcDataOperation extends ModuleOperation {
     // Set internal checks passed
     this.internalChecksPassed = hurdle.get(INDEX_MAX_ECRECOVER_DATA);
 
-    // Set circuitSelectorEcrecover
+    EWord recoveredAddress = EWord.ZERO;
+
+    // Compute recoveredAddress, successBit and set circuitSelectorEcrecover
     if (this.internalChecksPassed) {
+      recoveredAddress = extractRecoveredAddress(h, v, r, s);
       this.circuitSelectorEcrecover = true;
     }
+
+    successBit = !recoveredAddress.isZero();
+    limb.set(8, recoveredAddress.hi());
+    limb.set(9, recoveredAddress.lo());
 
     // Very unlikely edge case: if the ext module is never used elsewhere, we need to insert a
     // useless row, in order to trigger the construction of the first empty row, useful for the ext
@@ -340,6 +352,22 @@ public class EcDataOperation extends ModuleOperation {
     // Because of the hashmap in the ext module, this useless row will only be inserted one time.
     // Tested by TestEcRecoverWithEmptyExt
     this.ext.callADDMOD(Bytes.EMPTY, Bytes.EMPTY, Bytes.EMPTY);
+  }
+
+  private static EWord extractRecoveredAddress(EWord h, EWord v, EWord r, EWord s) {
+    SECP256K1 secp256K1 = new SECP256K1();
+    Optional<SECPPublicKey> optionalRecoveredAddress =
+        secp256K1.recoverPublicKeyFromSignature(
+            h.toBytes(),
+            SECPSignature.create(
+                r.toBigInteger(),
+                s.toBigInteger(),
+                (byte) (v.toInt() - 27),
+                SECP256K1N.toBigInteger()));
+
+    return optionalRecoveredAddress
+        .map(e -> EWord.of(Hash.keccak256(e.getEncodedBytes()).slice(32 - 20)))
+        .orElse(EWord.ZERO);
   }
 
   /*

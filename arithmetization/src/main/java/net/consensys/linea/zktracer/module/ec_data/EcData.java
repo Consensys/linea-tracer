@@ -72,13 +72,9 @@ public class EcData implements Module {
     }
 
     final Bytes data = hub.transients().op().callData();
-    // TODO: Get the actual return data
-    final Bytes returnData = Bytes.fromHexString("0x7156526fbd7a3c72969b54f64e42c10fbb768c8a");
-    final boolean successBit = !returnData.isEmpty();
-
     this.operations.add(
         EcDataOperation.of(
-            this.wcp, this.ext, 1 + this.hub.stamp(), previousId, target.get(19), data, returnData, successBit));
+            this.wcp, this.ext, 1 + this.hub.stamp(), previousId, target.get(19), data));
     this.previousId = 1 + this.hub.stamp();
   }
 

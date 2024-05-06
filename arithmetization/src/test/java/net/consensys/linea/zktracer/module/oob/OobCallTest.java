@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.oob;
 
 import static net.consensys.linea.zktracer.module.oob.OobTestCommon.assertNumberOfOnesInOobEvent1;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -102,9 +103,9 @@ public class OobCallTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assert (hub.pch().exceptions().none());
+    assertTrue(hub.pch().exceptions().none());
 
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getOob(), 1);
+    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
   }
 
   // Support methods
@@ -177,9 +178,9 @@ public class OobCallTest {
 
     Hub hub = toyExecutionEnvironment.getHub();
 
-    assert (hub.pch().exceptions().none());
+    assertTrue(hub.pch().exceptions().none());
 
-    assertNumberOfOnesInOobEvent1(toyExecutionEnvironment.getOob(), numberOfOnesInOobEvent1);
+    assertNumberOfOnesInOobEvent1(toyExecutionEnvironment.getHub().oob(), numberOfOnesInOobEvent1);
   }
 
   private void testRecursiveCalls(EWord iterations) {
@@ -233,8 +234,8 @@ public class OobCallTest {
 
     Hub hub = toyExecutionEnvironment.getHub();
 
-    assert (hub.pch().exceptions().none());
+    assertTrue(hub.pch().exceptions().none());
 
-    assertNumberOfOnesInOobEvent1(toyExecutionEnvironment.getOob(), numberOfOnesInOobEvent1);
+    assertNumberOfOnesInOobEvent1(toyExecutionEnvironment.getHub().oob(), numberOfOnesInOobEvent1);
   }
 }

@@ -37,7 +37,6 @@ import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
-import net.consensys.linea.zktracer.module.oob.Oob;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.*;
 import org.hyperledger.besu.ethereum.core.*;
@@ -234,9 +233,5 @@ public class ToyExecutionEnvironment {
 
   public Hub getHub() {
     return tracer.getHub();
-  }
-
-  public Oob getOob() {
-    return tracer.getHub().oob();
   }
 }

@@ -24,7 +24,6 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.oob.Oob;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.KeyPair;
 import org.hyperledger.besu.crypto.SECP256K1;
@@ -104,9 +103,5 @@ public final class BytecodeRunner {
 
   public Hub getHub() {
     return toyExecutionEnvironment.getHub();
-  }
-
-  public Oob getOob() {
-    return toyExecutionEnvironment.getOob();
   }
 }

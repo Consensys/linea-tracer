@@ -76,7 +76,7 @@ import org.hyperledger.besu.crypto.SECPSignature;
 public class EcDataOperation extends ModuleOperation {
   private static final Set<Integer> EC_TYPES = Set.of(ECRECOVER, ECADD, ECMUL, ECPAIRING);
   private static final EWord P_BN = EWord.of(P_BN_HI, P_BN_LO);
-  private static final EWord SECP256K1N = EWord.of(SECP256K1N_HI, SECP256K1N_LO);
+  public static final EWord SECP256K1N = EWord.of(SECP256K1N_HI, SECP256K1N_LO);
 
   private final Wcp wcp;
   private final Ext ext;
@@ -93,7 +93,7 @@ public class EcDataOperation extends ModuleOperation {
 
   @Getter private final List<Bytes> limb;
   private final List<Boolean> hurdle;
-  private boolean internalChecksPassed;
+  @Getter private boolean internalChecksPassed;
 
   // WCP interaction
   private final List<Boolean> wcpFlag;
@@ -117,7 +117,7 @@ public class EcDataOperation extends ModuleOperation {
   private final List<OpCode> extInst;
 
   private Bytes returnData;
-  private boolean successBit;
+  @Getter private boolean successBit;
   private boolean circuitSelectorEcrecover;
 
   // pairing-specific
@@ -357,18 +357,22 @@ public class EcDataOperation extends ModuleOperation {
 
   private static EWord extractRecoveredAddress(EWord h, EWord v, EWord r, EWord s) {
     SECP256K1 secp256K1 = new SECP256K1();
-    Optional<SECPPublicKey> optionalRecoveredAddress =
-        secp256K1.recoverPublicKeyFromSignature(
-            h.toBytes(),
-            SECPSignature.create(
-                r.toBigInteger(),
-                s.toBigInteger(),
-                (byte) (v.toInt() - 27),
-                SECP256K1N.toBigInteger()));
-
-    return optionalRecoveredAddress
-        .map(e -> EWord.of(Hash.keccak256(e.getEncodedBytes()).slice(32 - 20)))
-        .orElse(EWord.ZERO);
+    try {
+      Optional<SECPPublicKey> optionalRecoveredAddress =
+          secp256K1.recoverPublicKeyFromSignature(
+              h.toBytes(),
+              SECPSignature.create(
+                  r.toBigInteger(),
+                  s.toBigInteger(),
+                  (byte) (v.toInt() - 27),
+                  SECP256K1N.toBigInteger()));
+      return optionalRecoveredAddress
+          .map(e -> EWord.of(Hash.keccak256(e.getEncodedBytes()).slice(32 - 20)))
+          .orElse(EWord.ZERO);
+    } catch (IllegalArgumentException e) {
+      System.err.print(e);
+      return EWord.ZERO;
+    }
   }
 
   /*

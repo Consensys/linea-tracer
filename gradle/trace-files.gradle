@@ -94,12 +94,26 @@ tasks.register('binRT', TraceFilesTask) {
 //
 // Put here modules following the conventional MODULE/columns.lisp, MODULE/constants.lisp naming scheme.
 //
-['mmu', 'blake2f_modexp_data', 'oob', 'exp', 'rlptxrcpt', 'rlpaddr', 'txndata'].each {moduleName ->
+['mmu', 'blake2f_modexp_data', 'exp', 'rlptxrcpt', 'rlpaddr', 'txndata'].each {moduleName ->
     tasks.register(moduleName, TraceFilesTask) {
         group "Trace files generation"
         dependsOn corsetExists
 
         module = moduleName
         files = [ "constants/constants.lisp", "${moduleName}/columns.lisp", "${moduleName}/constants.lisp"]
+    }
+}
+
+//
+// Put here modules following the conventional MODULE/columns.lisp, MODULE/constants.lisp naming scheme
+// without common constants.
+//
+['oob'].each {moduleName ->
+    tasks.register(moduleName, TraceFilesTask) {
+        group "Trace files generation"
+        dependsOn corsetExists
+
+        module = moduleName
+        files = [ "${moduleName}/columns.lisp", "${moduleName}/constants.lisp"]
     }
 }

@@ -39,7 +39,7 @@ import org.hyperledger.besu.ethereum.core.Transaction;
  */
 @Accessors(fluent = true)
 public final class BytecodeRunner {
-  public static final long DEFAULT_GAS_LIMIT = 50_000_000_000L;
+  public static final long DEFAULT_GAS_LIMIT = 25_000_000L;
   private final Bytes byteCode;
 
   ToyExecutionEnvironment toyExecutionEnvironment;

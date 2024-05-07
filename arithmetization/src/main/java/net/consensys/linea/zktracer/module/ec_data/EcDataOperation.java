@@ -210,6 +210,24 @@ public class EcDataOperation extends ModuleOperation {
             leftPadTo(bigIntegerToBytes(BigInteger.valueOf(this.id - this.previousId - 1)), 4)
                 .toArray());
 
+    /*
+    System.out.println(
+        "previousId: "
+            + Integer.toHexString(this.previousId)
+            + " -> id: "
+            + Integer.toHexString(this.id)
+            + " , byteDelta: "
+            + Arrays.stream(this.byteDelta).map(b -> Integer.toHexString(b.toInteger())).toList());
+
+    System.out.println(
+      "previousId: "
+        + this.previousId
+        + " -> id: "
+        + this.id
+        + " , byteDelta: "
+        + Arrays.stream(this.byteDelta).map(b -> b.toInteger()).toList());
+    */
+
     this.limb = repeat(Bytes.EMPTY, this.nRows);
     this.hurdle = repeat(false, this.nRows);
 

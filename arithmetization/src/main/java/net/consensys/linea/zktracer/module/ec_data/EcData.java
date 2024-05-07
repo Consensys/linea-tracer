@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.ec_data;
 
 import java.nio.MappedByteBuffer;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
@@ -93,7 +94,24 @@ public class EcData implements Module {
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
     int stamp = 0;
-    for (EcDataOperation op : this.operations) {
+
+    List<EcDataOperation> sortedOperations =
+        this.operations.stream()
+            .sorted(Comparator.comparingInt(EcDataOperation::previousId))
+            .toList();
+
+    for (EcDataOperation op : sortedOperations) {
+      /*
+      System.out.println(
+          "(tracing time) previousId: "
+              + Integer.toHexString(op.previousId())
+              + " -> id: "
+              + Integer.toHexString(op.id())
+              + " , byteDelta: "
+              + Arrays.stream(op.byteDelta()).map(b -> Integer.toHexString(b.toInteger())).toList()
+              + " , diff: "
+              + Integer.toHexString(op.id() - op.previousId() - 1));
+       */
       stamp++;
       op.trace(trace, stamp);
     }

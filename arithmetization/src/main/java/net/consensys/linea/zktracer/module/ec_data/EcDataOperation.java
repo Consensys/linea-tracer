@@ -81,9 +81,9 @@ public class EcDataOperation extends ModuleOperation {
   private final Wcp wcp;
   private final Ext ext;
 
-  private final int id;
-  private final int previousId;
-  private final UnsignedByte[] byteDelta;
+  @Getter private final int id;
+  @Getter private final int previousId;
+  @Getter private final UnsignedByte[] byteDelta;
   private final Bytes data;
 
   private final int ecType;
@@ -212,12 +212,14 @@ public class EcDataOperation extends ModuleOperation {
 
     /*
     System.out.println(
-        "previousId: "
+        "(ecdataoperation filling time) previousId: "
             + Integer.toHexString(this.previousId)
             + " -> id: "
             + Integer.toHexString(this.id)
             + " , byteDelta: "
-            + Arrays.stream(this.byteDelta).map(b -> Integer.toHexString(b.toInteger())).toList());
+            + Arrays.stream(this.byteDelta).map(b -> Integer.toHexString(b.toInteger())).toList()
+            + " , diff: "
+            + Integer.toHexString(this.id - this.previousId - 1));
 
     System.out.println(
       "previousId: "
@@ -225,8 +227,9 @@ public class EcDataOperation extends ModuleOperation {
         + " -> id: "
         + this.id
         + " , byteDelta: "
-        + Arrays.stream(this.byteDelta).map(b -> b.toInteger()).toList());
-    */
+        + Arrays.stream(this.byteDelta).map(b -> b.toInteger()).toList()
+        + " , diff: " + (this.id - this.previousId - 1));
+     */
 
     this.limb = repeat(Bytes.EMPTY, this.nRows);
     this.hurdle = repeat(false, this.nRows);
@@ -489,9 +492,9 @@ public class EcDataOperation extends ModuleOperation {
           .id(id)
           .index(isData ? UnsignedByte.of(i) : UnsignedByte.of(i - this.nRowsData))
           .limb(limb.get(i))
-          .totalSize(Bytes.of(getTotalSize(ecType, isData)))
+          .totalSize(Bytes.ofUnsignedLong(getTotalSize(ecType, isData)))
           .phase(getPhase(ecType, isData))
-          .indexMax(Bytes.of(getIndexMax(ecType, isData)))
+          .indexMax(Bytes.ofUnsignedLong(getIndexMax(ecType, isData)))
           .successBit(successBit)
           .isEcrecoverData(ecType == ECRECOVER && isData)
           .isEcrecoverResult(ecType == ECRECOVER && !isData)
@@ -501,8 +504,8 @@ public class EcDataOperation extends ModuleOperation {
           .isEcmulResult(ecType == ECMUL && !isData)
           .isEcpairingData(ecType == ECPAIRING && isData)
           .isEcpairingResult(ecType == ECPAIRING && !isData)
-          .totalPairings(Bytes.of(totalPairings))
-          .accPairings(ecType == ECPAIRING && isData ? Bytes.of(1 + i) : Bytes.of(0))
+          .totalPairings(Bytes.ofUnsignedLong(totalPairings))
+          .accPairings(ecType == ECPAIRING && isData ? Bytes.ofUnsignedLong(1 + i) : Bytes.of(0))
           .internalChecksPassed(internalChecksPassed)
           .hurdle(hurdle.get(i))
           .byteDelta(i < 4 ? byteDelta[i] : UnsignedByte.of(0))

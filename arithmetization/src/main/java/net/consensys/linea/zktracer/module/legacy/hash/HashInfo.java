@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys AG.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,63 +13,60 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.add;
+package net.consensys.linea.zktracer.module.legacy.hash;
 
-import java.nio.MappedByteBuffer;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.opcode.OpCode;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
-/** Implementation of a {@link Module} for addition/subtraction. */
 @RequiredArgsConstructor
-public class Add implements Module {
+public class HashInfo implements Module {
   private final Hub hub;
-
-  /** A set of the operations to trace */
-  private final StackedSet<AddOperation> chunks = new StackedSet<>();
+  private final Deque<Integer> state = new ArrayDeque<>();
 
   @Override
   public String moduleKey() {
-    return "ADD";
+    return "PUB_HASH_INFO";
   }
 
   @Override
   public void enterTransaction() {
-    this.chunks.enter();
+    this.state.push(0);
   }
 
   @Override
   public void popTransaction() {
-    this.chunks.pop();
-  }
-
-  @Override
-  public void tracePreOpcode(MessageFrame frame) {
-    this.chunks.add(new AddOperation(hub.opCode(), frame.getStackItem(0), frame.getStackItem(1)));
-  }
-
-  @Override
-  public List<ColumnHeader> columnsHeaders() {
-    return Trace.headers(this.lineCount());
-  }
-
-  @Override
-  public void commit(List<MappedByteBuffer> buffers) {
-    final Trace trace = new Trace(buffers);
-    int stamp = 0;
-    for (AddOperation op : this.chunks) {
-      stamp++;
-      op.trace(stamp, trace);
-    }
+    this.state.pop();
   }
 
   @Override
   public int lineCount() {
-    return this.chunks.size() * 16;
+    return this.state.stream().mapToInt(x -> x).sum();
+  }
+
+  @Override
+  public List<ColumnHeader> columnsHeaders() {
+    throw new IllegalStateException("should never be called");
+  }
+
+  private void add(int x) {
+    this.state.push(this.state.pop() + x);
+  }
+
+  @Override
+  public void tracePreOpcode(MessageFrame frame) {
+    final OpCode opCode = hub.opCode();
+    if (opCode == OpCode.CREATE2 || opCode == OpCode.SHA3) {
+      if (this.hub.pch().exceptions().none()) {
+        this.add(1);
+      }
+    }
   }
 }

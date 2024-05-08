@@ -289,7 +289,7 @@ public class MmuCall implements TraceSubFragment {
         .sourceId(hub.transients().tx().absNumber())
         .targetId(hub.stamp())
         .size(hub.transients().tx().besuTx().getData().map(Bytes::size).orElse(0))
-        .phase(Trace.RLP_TXN_PHASE_DATA_VALUE)
+        .phase(Trace.RLP_TXN_PHASE_DATA)
         .setRlpTxn();
   }
 

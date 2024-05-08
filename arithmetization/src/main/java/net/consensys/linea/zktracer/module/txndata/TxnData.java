@@ -146,8 +146,7 @@ public class TxnData implements Module {
       TransactionSnapshot tx,
       int absTxNumMax,
       int absTxNum,
-      int btcNumMax,
-      int btcNum,
+      int blockNum,
       int relTxNumMax,
       int relTxNum) {
 
@@ -185,8 +184,7 @@ public class TxnData implements Module {
       trace
           .absTxNumMax(absTxNumMax)
           .absTxNum(absTxNum)
-          .btcNumMax(btcNumMax)
-          .btcNum(btcNum)
+          .relBlock(blockNum)
           .relTxNumMax(relTxNumMax)
           .relTxNum(relTxNum)
           .isLastTxOfBlock(isLastTxOfTheBlock)
@@ -246,24 +244,19 @@ public class TxnData implements Module {
 
     int absTxNumMax = 0;
     int absTxNum = 0;
-    int batchNumMax = 0;
-    int btchNum = 0;
+    int blockNum = 0;
     for (BlockSnapshot block : this.blocks) {
       absTxNumMax += block.getTxs().size();
-      if (!block.getTxs().isEmpty()) {
-        batchNumMax += 1;
-      }
     }
     for (BlockSnapshot block : this.blocks) {
-      int relTxNumMax = block.getTxs().size();
+      final int relTxNumMax = block.getTxs().size();
       if (relTxNumMax != 0) {
-        btchNum++;
+        blockNum++;
         int relTxNum = 0;
         for (TransactionSnapshot tx : block.getTxs()) {
           absTxNum++;
           relTxNum++;
-          this.traceTx(
-              trace, block, tx, absTxNumMax, absTxNum, batchNumMax, btchNum, relTxNumMax, relTxNum);
+          this.traceTx(trace, block, tx, absTxNumMax, absTxNum, blockNum, relTxNumMax, relTxNum);
         }
       }
     }

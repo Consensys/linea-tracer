@@ -42,7 +42,7 @@ import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_RIPEMD;
 import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_SHA2;
 import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_SSTORE;
 import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_XCALL;
-import static net.consensys.linea.zktracer.module.oob.Trace.G_CALLSTIPEND;
+import static net.consensys.linea.zktracer.module.oob.Trace.GAS_CONST_G_CALL_STIPEND;
 import static net.consensys.linea.zktracer.module.oob.Trace.G_QUADDIVISOR;
 import static net.consensys.linea.zktracer.types.AddressUtils.getDeploymentAddress;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBoolean;
@@ -874,7 +874,7 @@ public class OobChunk extends ModuleOperation {
     callToLT(
         0,
         BigInteger.ZERO,
-        BigInteger.valueOf(G_CALLSTIPEND),
+        BigInteger.valueOf(GAS_CONST_G_CALL_STIPEND),
         BigInteger.ZERO,
         sstoreOobParameters.gas());
     final boolean sufficientGas = bigIntegerToBoolean(outgoingResLo[0]);

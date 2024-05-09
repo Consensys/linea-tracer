@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.blockdata;
 
 import static net.consensys.linea.zktracer.module.blockdata.Trace.MAX_CT;
+import static net.consensys.linea.zktracer.types.TransactionUtils.getChainIdFromTransaction;
 
 import java.nio.MappedByteBuffer;
 import java.util.ArrayDeque;
@@ -24,6 +25,7 @@ import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.module.rlptxn.RlpTxn;
 import net.consensys.linea.zktracer.module.txndata.TxnData;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.hyperledger.besu.plugin.data.BlockBody;
@@ -33,12 +35,16 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 public class Blockdata implements Module {
   private final Wcp wcp;
   private final TxnData txnData;
-  private final Deque<BlockdataOperation> operation = new ArrayDeque<>();
+  private final RlpTxn rlpTxn;
+  private final Deque<BlockdataOperation> operations = new ArrayDeque<>();
   private boolean batchUnderConstruction;
+  private final int TIMESTAMP_BYTESIZE = 4;
+  private int previousTimestamp = 0;
 
-  public Blockdata(Wcp wcp, TxnData txnData) {
+  public Blockdata(Wcp wcp, TxnData txnData, RlpTxn rlpTxn) {
     this.wcp = wcp;
     this.txnData = txnData;
+    this.rlpTxn = rlpTxn;
     this.batchUnderConstruction = true;
   }
 
@@ -50,17 +56,29 @@ public class Blockdata implements Module {
   @Override
   public void traceStartBlock(final ProcessableBlockHeader processableBlockHeader) {
     this.batchUnderConstruction = true;
+    this.wcp.additionalRows.push(this.wcp.additionalRows.pop() + TIMESTAMP_BYTESIZE);
   }
 
   @Override
   public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
-    this.batchUnderConstruction = false;
-    this.operation.add(
+    final int currentTimestamp = (int) blockHeader.getTimestamp();
+    this.operations.add(
         new BlockdataOperation(
             blockHeader.getCoinbase(),
-            blockHeader.getTimestamp(),
+            currentTimestamp,
             blockHeader.getNumber(),
-            blockHeader.getDifficulty().getAsBigInteger()));
+            blockHeader.getDifficulty().getAsBigInteger(),
+            this.txnData.currentBlock().getTxs().size()));
+
+    this.batchUnderConstruction = false;
+    this.wcp.callGT(currentTimestamp, previousTimestamp);
+    this.wcp.additionalRows.push(this.wcp.additionalRows.pop() - TIMESTAMP_BYTESIZE);
+    this.previousTimestamp = currentTimestamp;
+  }
+
+  @Override
+  public void traceStartConflation(final long blockCount) {
+    this.batchUnderConstruction = false; // Should be useless, but just to be sure
   }
 
   @Override
@@ -72,17 +90,26 @@ public class Blockdata implements Module {
   @Override
   public int lineCount() {
     final int numberOfBlock =
-        this.batchUnderConstruction ? this.operation.size() + 1 : this.operation.size();
+        this.batchUnderConstruction ? this.operations.size() + 1 : this.operations.size();
     return numberOfBlock * (MAX_CT + 1);
   }
 
   @Override
   public List<ColumnHeader> columnsHeaders() {
-    return List.of();
+    return Trace.headers(this.lineCount());
   }
 
   @Override
   public void commit(List<MappedByteBuffer> buffers) {
-    Module.super.commit(buffers);
+    final long firstBlockNumber = this.operations.getLast().absoluteBlockNumber();
+    final long chainId = getChainIdFromTransaction(this.rlpTxn.chunkList.get(0).tx());
+    final Trace trace = new Trace(buffers);
+    int relblock = 0;
+    for (BlockdataOperation blockData : this.operations) {
+      if (blockData.relTxMax() != 0) {
+        relblock += 1;
+        blockData.trace(trace, relblock, firstBlockNumber, chainId);
+      }
+    }
   }
 }

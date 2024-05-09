@@ -61,7 +61,7 @@ public class TxnData implements Module {
     return "TXN_DATA";
   }
 
-  private final List<BlockSnapshot> blocks = new ArrayList<>();
+  public final List<BlockSnapshot> blocks = new ArrayList<>();
   /** accumulate the gas used since the beginning of the current block */
   public final Deque<Integer> cumulatedGasUsed = new ArrayDeque<>();
 
@@ -82,7 +82,7 @@ public class TxnData implements Module {
         this.wcp.additionalRows.pop() + 4); /* 4 = byte length of LINEA_BLOCK_GAS_LIMIT */
   }
 
-  private BlockSnapshot currentBlock() {
+  public BlockSnapshot currentBlock() {
     return this.blocks.get(this.blocks.size() - 1);
   }
 

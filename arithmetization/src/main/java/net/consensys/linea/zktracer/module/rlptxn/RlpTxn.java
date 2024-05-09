@@ -43,6 +43,7 @@ import static net.consensys.linea.zktracer.module.rlputils.Pattern.innerRlpSize;
 import static net.consensys.linea.zktracer.module.rlputils.Pattern.outerRlpSize;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.longToUnsignedBigInteger;
+import static net.consensys.linea.zktracer.types.TransactionUtils.getChainIdFromTransaction;
 import static net.consensys.linea.zktracer.types.Utils.bitDecomposition;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
@@ -610,11 +611,9 @@ public class RlpTxn implements Module {
         traceValue,
         trace); // end of the phase if beta == 0
 
-    // if beta != 0, then RLP(beta) and then one row with RLP().RLP ()
+    // if beta != 0, then RLP(beta) and then one row with RLP().RLP()
     if (!betaIsZero) {
-      final BigInteger beta =
-          BigInteger.valueOf(
-              (V.longValueExact() - 35) / 2); // when b != 0, V = 2 beta + 35 or V = 2 beta + 36;
+      final BigInteger beta = BigInteger.valueOf(getChainIdFromTransaction(tx));
 
       rlpInt(phase, beta, 8, false, true, true, false, false, traceValue, trace);
 

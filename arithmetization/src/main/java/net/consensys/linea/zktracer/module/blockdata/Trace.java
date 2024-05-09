@@ -40,17 +40,12 @@ public class Trace {
   public static final int EC_DATA_PHASE_PAIRING_DATA = 0x7;
   public static final int EC_DATA_PHASE_PAIRING_RESULT = 0x8;
   public static final int EIP_3541_MARKER = 0xef;
-  public static final BigInteger EMPTY_KECCAK_HI =
-      new BigInteger("16434357337474432580558001204043214908");
-  public static final BigInteger EMPTY_KECCAK_LO =
-      new BigInteger("19024806816994025362060938983270537799");
+  public static final BigInteger EMPTY_KECCAK_HI = new BigInteger("16434357337474432580558001204043214908");
+  public static final BigInteger EMPTY_KECCAK_LO = new BigInteger("19024806816994025362060938983270537799");
   public static final int EMPTY_RIPEMD_HI = 0x9c1185a;
-  public static final BigInteger EMPTY_RIPEMD_LO =
-      new BigInteger("16442052386882578548602430796343695571");
-  public static final BigInteger EMPTY_SHA2_HI =
-      new BigInteger("18915786244935348617899154533661473682");
-  public static final BigInteger EMPTY_SHA2_LO =
-      new BigInteger("3296542996298665609207448061432114053");
+  public static final BigInteger EMPTY_RIPEMD_LO = new BigInteger("16442052386882578548602430796343695571");
+  public static final BigInteger EMPTY_SHA2_HI = new BigInteger("18915786244935348617899154533661473682");
+  public static final BigInteger EMPTY_SHA2_LO = new BigInteger("3296542996298665609207448061432114053");
   public static final int EVM_INST_ADD = 0x1;
   public static final int EVM_INST_ADDMOD = 0x8;
   public static final int EVM_INST_ADDRESS = 0x30;
@@ -245,15 +240,16 @@ public class Trace {
   public static final int GAS_CONST_G_VERY_LOW = 0x3;
   public static final int GAS_CONST_G_WARM_ACCESS = 0x64;
   public static final int GAS_CONST_G_ZERO = 0x0;
-  public static final int LINEA_BASE_FEE = 0x0;
+  public static final int LINEA_BASE_FEE = 0x7;
   public static final int LINEA_BLOCK_GAS_LIMIT = 0x3a2c940;
   public static final int LINEA_CHAIN_ID = 0xe708;
+  public static final int LINEA_DIFFICULTY = 0x2;
   public static final int LINEA_GOERLI_CHAIN_ID = 0xe704;
   public static final int LINEA_SEPOLIA_CHAIN_ID = 0xe705;
   public static final int LLARGE = 0x10;
   public static final int LLARGEMO = 0xf;
   public static final int LLARGEPO = 0x11;
-  public static final int MAX_CT = 0x7;
+  public static final int MAX_CT = 0x6;
   public static final int MISC_EXP_WEIGHT = 0x1;
   public static final int MISC_MMU_WEIGHT = 0x2;
   public static final int MISC_MXP_WEIGHT = 0x4;

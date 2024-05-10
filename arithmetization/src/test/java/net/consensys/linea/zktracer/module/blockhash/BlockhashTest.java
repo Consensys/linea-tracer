@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(EvmExtension.class)
-public class blockhashTest {
+public class BlockhashTest {
 
   // @Disabled("in our framework, BLOCKNUMBER is 0 thus breaking the wcp_lower_bound lookup")
   @Test
@@ -47,14 +47,14 @@ public class blockhashTest {
                 .op(OpCode.POP)
 
                 // arg of BlockHash is ridiculously big
-                .push(678976767)
+                .push(256)
                 .op(OpCode.NUMBER)
                 .op(OpCode.MUL)
                 .op(OpCode.BLOCKHASH)
                 .op(OpCode.POP)
 
                 // arg of BlockHash is ridiculously small
-                .push(12388765)
+                .push(256)
                 .op(OpCode.NUMBER)
                 .op(OpCode.DIV)
                 .op(OpCode.BLOCKHASH)
@@ -113,6 +113,20 @@ public class blockhashTest {
                 .op(OpCode.POP)
 
                 // arg of BlockHash is Blocknumber  -1
+                .push(1)
+                .op(OpCode.NUMBER)
+                .op(OpCode.ADD)
+                .op(OpCode.BLOCKHASH)
+                .op(OpCode.POP)
+
+                // Duplicate of arg of BlockHash is Blocknumber  -1
+                .push(1)
+                .op(OpCode.NUMBER)
+                .op(OpCode.ADD)
+                .op(OpCode.BLOCKHASH)
+                .op(OpCode.POP)
+
+                // Truplicate of arg of BlockHash is Blocknumber  -1
                 .push(1)
                 .op(OpCode.NUMBER)
                 .op(OpCode.ADD)

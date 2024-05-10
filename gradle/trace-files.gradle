@@ -39,35 +39,35 @@ tasks.register("hub", TraceFilesTask) {
 //
 // Reference table
 //
-tasks.register('instructionDecoder', TraceFilesTask) {
+tasks.register('instdecoder', TraceFilesTask) {
     group "Trace files generation"
     dependsOn corsetExists
 
     moduleDir = "tables/instructionDecoder"
     module = "instructionDecoder"
-    files = ["reference_tables/instruction_decoder.lisp"]
+    files = ["reftables/inst_decoder.lisp"]
 }
-tasks.register('shfRT', TraceFilesTask) {
+tasks.register('shfreftable', TraceFilesTask) {
     group "Trace files generation"
     dependsOn corsetExists
 
     moduleDir = "tables/shf"
     module = "ShfRt"
-    files = ["reference_tables/shfRT.lisp"]
+    files = ["reftables/shf_reftable.lisp"]
 }
-tasks.register('binRT', TraceFilesTask) {
+tasks.register('binreftable', TraceFilesTask) {
     group "Trace files generation"
     dependsOn corsetExists
 
     moduleDir = "tables/bin"
     module = "BinRt"
-    files = ["reference_tables/binRT.lisp"]
+    files = ["reftables/bin_reftable.lisp"]
 }
 
 //
 // Put here modules following the conventional MODULE/columns.lisp naming scheme.
 //
-['bin', 'blockhash', 'ec_data', 'euc', 'mmio', 'mxp', 'shf', 'wcp', 'rlptxn', 'rom', 'romLex', 'trm', 'stp', 'logInfo', 'logData'].each {moduleName ->
+['bin', 'blockhash', 'ec_data', 'euc', 'mmio', 'mxp', 'shf', 'wcp', 'rlptxn', 'rom', 'romlex', 'trm', 'stp', 'logInfo', 'logData'].each {moduleName ->
     tasks.register(moduleName, TraceFilesTask) {
         group "Trace files generation"
         dependsOn corsetExists

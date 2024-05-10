@@ -15,5 +15,126 @@
 
 package net.consensys.linea.zktracer.module.blockhash;
 
+import static net.consensys.linea.zktracer.module.blockhash.Trace.EVM_INST_BLOCKHASH_MAX_HISTORY;
+
+import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.testing.BytecodeCompiler;
+import net.consensys.linea.zktracer.testing.BytecodeRunner;
+import net.consensys.linea.zktracer.testing.EvmExtension;
+import org.apache.tuweni.bytes.Bytes;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+@ExtendWith(EvmExtension.class)
 public class blockhashTest {
+
+  @Disabled("in our framework, BLOCKNUMBER is 0 thus breaking the wcp_lower_bound lookup")
+  @Test
+  void someBlockhash() {
+    BytecodeRunner.of(
+            BytecodeCompiler.newProgram()
+
+                // arg of BlockHash is Blocknumber +1
+                .op(OpCode.NUMBER)
+                .push(1)
+                .op(OpCode.ADD)
+                .op(OpCode.BLOCKHASH)
+                .op(OpCode.POP)
+
+                // arg of BlockHash is Blocknumber
+                .op(OpCode.NUMBER)
+                .op(OpCode.BLOCKHASH)
+                .op(OpCode.POP)
+
+                // arg of BlockHash is ridiculously big
+                .push(678976767)
+                .op(OpCode.NUMBER)
+                .op(OpCode.MUL)
+                .op(OpCode.BLOCKHASH)
+                .op(OpCode.POP)
+
+                // arg of BlockHash is ridiculously small
+                .push(12388765)
+                .op(OpCode.NUMBER)
+                .op(OpCode.DIV)
+                .op(OpCode.BLOCKHASH)
+                .op(OpCode.POP)
+
+                // arg of BlockHash is 0
+                .push(0)
+                .op(OpCode.BLOCKHASH)
+                .op(OpCode.POP)
+
+                // arg of BlockHash is 1 (ie ridiculously small)
+                .push(1)
+                .op(OpCode.BLOCKHASH)
+                .op(OpCode.POP)
+
+                // another arg of BlockHash is ridiculously big
+                .push(
+                    Bytes.fromHexString(
+                        "0x123456789012345678901234567890123456789012345678901234567890"))
+                .op(OpCode.BLOCKHASH)
+                .op(OpCode.POP)
+
+                // arg of BlockHash is Blocknumber -256 -2
+                .push(EVM_INST_BLOCKHASH_MAX_HISTORY + 2)
+                .op(OpCode.NUMBER)
+                .op(OpCode.SUB)
+                .op(OpCode.BLOCKHASH)
+                .op(OpCode.POP)
+
+                // arg of BlockHash is Blocknumber -256 -1
+                .push(EVM_INST_BLOCKHASH_MAX_HISTORY + 1)
+                .op(OpCode.NUMBER)
+                .op(OpCode.SUB)
+                .op(OpCode.BLOCKHASH)
+                .op(OpCode.POP)
+
+                // arg of BlockHash is Blocknumber -256
+                .push(EVM_INST_BLOCKHASH_MAX_HISTORY)
+                .op(OpCode.NUMBER)
+                .op(OpCode.SUB)
+                .op(OpCode.BLOCKHASH)
+                .op(OpCode.POP)
+
+                // arg of BlockHash is Blocknumber -256 +1
+                .push(EVM_INST_BLOCKHASH_MAX_HISTORY - 1)
+                .op(OpCode.NUMBER)
+                .op(OpCode.SUB)
+                .op(OpCode.BLOCKHASH)
+                .op(OpCode.POP)
+
+                // arg of BlockHash is Blocknumber -256 +2
+                .push(EVM_INST_BLOCKHASH_MAX_HISTORY - 2)
+                .op(OpCode.NUMBER)
+                .op(OpCode.SUB)
+                .op(OpCode.BLOCKHASH)
+                .op(OpCode.POP)
+
+                // arg of BlockHash is Blocknumber  -1
+                .push(1)
+                .op(OpCode.NUMBER)
+                .op(OpCode.ADD)
+                .op(OpCode.BLOCKHASH)
+                .op(OpCode.POP)
+
+                // arg of BlockHash is Blocknumber  -2
+                .push(2)
+                .op(OpCode.NUMBER)
+                .op(OpCode.ADD)
+                .op(OpCode.BLOCKHASH)
+                .op(OpCode.POP)
+
+                // TODO: add test with different block in the conflated batch
+
+                .compile())
+        .run();
+  }
+
+  @Test
+  void blockhashWithEmptyStack() {
+    BytecodeRunner.of(BytecodeCompiler.newProgram().op(OpCode.BLOCKHASH).compile()).run();
+  }
 }

@@ -1343,7 +1343,8 @@ public class Trace {
 
   public Trace validateRow() {
     if (!filled.get(0)) {
-      throw new IllegalStateException("instdecoder.ADDRESS_TRIMMING_INSTRUCTION has not been filled");
+      throw new IllegalStateException(
+          "instdecoder.ADDRESS_TRIMMING_INSTRUCTION has not been filled");
     }
 
     if (!filled.get(1)) {

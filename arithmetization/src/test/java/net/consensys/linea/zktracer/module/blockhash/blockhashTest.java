@@ -22,14 +22,13 @@ import net.consensys.linea.zktracer.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.testing.EvmExtension;
 import org.apache.tuweni.bytes.Bytes;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(EvmExtension.class)
 public class blockhashTest {
 
-  //@Disabled("in our framework, BLOCKNUMBER is 0 thus breaking the wcp_lower_bound lookup")
+  // @Disabled("in our framework, BLOCKNUMBER is 0 thus breaking the wcp_lower_bound lookup")
   @Test
   void someBlockhash() {
     BytecodeRunner.of(

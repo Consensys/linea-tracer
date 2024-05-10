@@ -24,7 +24,6 @@ import static net.consensys.linea.zktracer.module.blockdata.Trace.EVM_INST_NUMBE
 import static net.consensys.linea.zktracer.module.blockdata.Trace.EVM_INST_TIMESTAMP;
 import static net.consensys.linea.zktracer.module.blockdata.Trace.LINEA_BASE_FEE;
 import static net.consensys.linea.zktracer.module.blockdata.Trace.LINEA_BLOCK_GAS_LIMIT;
-import static net.consensys.linea.zktracer.module.blockdata.Trace.LINEA_CHAIN_ID;
 import static net.consensys.linea.zktracer.module.blockdata.Trace.LLARGE;
 import static net.consensys.linea.zktracer.module.blockdata.Trace.MAX_CT;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
@@ -66,7 +65,8 @@ public class BlockdataOperation extends ModuleOperation {
     return MAX_CT + 1;
   }
 
-  public void trace(Trace trace, final int relBlock, final long firstBlockNumber, final long chainId) {
+  public void trace(
+      Trace trace, final int relBlock, final long firstBlockNumber, final long chainId) {
     for (short ct = 0; ct <= MAX_CT; ct++) {
       traceBlockConstant(trace, relBlock, firstBlockNumber);
       traceRowDependant(trace, ct, relBlock, chainId);
@@ -74,7 +74,8 @@ public class BlockdataOperation extends ModuleOperation {
     }
   }
 
-  private void traceRowDependant(Trace trace, final short ct, final int relBlock, final long chainId) {
+  private void traceRowDependant(
+      Trace trace, final short ct, final int relBlock, final long chainId) {
     trace.ct(ct);
 
     Bytes32 data;

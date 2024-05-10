@@ -62,7 +62,7 @@ public class Blockdata implements Module {
   @Override
   public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
     final int currentTimestamp = (int) blockHeader.getTimestamp();
-    this.operations.add(
+    this.operations.addLast(
         new BlockdataOperation(
             blockHeader.getCoinbase(),
             currentTimestamp,
@@ -101,7 +101,7 @@ public class Blockdata implements Module {
 
   @Override
   public void commit(List<MappedByteBuffer> buffers) {
-    final long firstBlockNumber = this.operations.getLast().absoluteBlockNumber();
+    final long firstBlockNumber = this.operations.getFirst().absoluteBlockNumber();
     final long chainId = getChainIdFromTransaction(this.rlpTxn.chunkList.get(0).tx());
     final Trace trace = new Trace(buffers);
     int relblock = 0;

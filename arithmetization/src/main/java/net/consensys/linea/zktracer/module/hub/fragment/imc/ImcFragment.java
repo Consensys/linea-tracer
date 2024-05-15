@@ -281,7 +281,7 @@ public class ImcFragment implements TraceFragment {
     return this;
   }
 
-  public ImcFragment callModexp(ExpCallForModexpLogComputation f) {
+  public ImcFragment callExp(ExpCallForModexpLogComputation f) {
     if (modExpIsSet) {
       throw new IllegalStateException("MODEXP already called");
     } else {

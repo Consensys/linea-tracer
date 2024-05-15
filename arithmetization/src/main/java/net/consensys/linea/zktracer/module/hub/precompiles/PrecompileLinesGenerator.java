@@ -155,7 +155,7 @@ public class PrecompileLinesGenerator {
                 .callOob(new ModexpLead(bbsInt, p.callDataSource().length(), ebsInt))
                 .callMmu(m.loadRawLeadingWord() ? MmuCall.forModExp(hub, p, 5) : MmuCall.nop());
         if (m.loadRawLeadingWord()) {
-          line5.callModexp(
+          line5.callExp(
               new ExpCallForModexpLogComputation(
                   m.rawLeadingWord(),
                   Math.min((int) (p.callDataSource().length() - 96 - bbsInt), 32),

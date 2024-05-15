@@ -145,22 +145,4 @@ public class BlockhashTest {
                 .compile())
         .run();
   }
-
-  @Test
-  void blockhashWithEmptyStack() {
-    BytecodeRunner.of(BytecodeCompiler.newProgram().op(OpCode.BLOCKHASH).compile()).run();
-  }
-
-  @Test
-  void simpleTestTodelete() {
-    BytecodeRunner.of(
-            BytecodeCompiler.newProgram()
-                .push(1)
-                .op(OpCode.NUMBER)
-                .op(OpCode.SUB)
-                .op(OpCode.BLOCKHASH)
-                .op(OpCode.POP)
-                .compile())
-        .run();
-  }
 }

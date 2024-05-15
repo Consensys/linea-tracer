@@ -32,7 +32,7 @@ import java.math.RoundingMode;
 
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.ModExpLogCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp.ExpCallForModexpLogComputation;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
@@ -40,7 +40,7 @@ import org.apache.tuweni.bytes.Bytes;
 
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @RequiredArgsConstructor
-public class ModExpLogChunk extends ExpChunk {
+public class ModexpLogOperation extends ExpOperation {
   public record LeadLogTrimLead(int leadLog, BigInteger trim) {
     public static LeadLogTrimLead fromArgs(EWord rawLead, int cdsCutoff, int ebsCutoff) {
       // min_cutoff
@@ -76,21 +76,21 @@ public class ModExpLogChunk extends ExpChunk {
     return false;
   }
 
-  public static ModExpLogChunk fromExpLogCall(final Wcp wcp, final ModExpLogCall c) {
+  public static ModexpLogOperation fromExpLogCall(final Wcp wcp, final ExpCallForModexpLogComputation c) {
     final LeadLogTrimLead leadLogTrimLead =
         LeadLogTrimLead.fromArgs(c.rawLeadingWord(), c.cdsCutoff(), c.ebsCutoff());
 
-    final ModExpLogChunk modExpLogChunk =
-        new ModExpLogChunk(
+    final ModexpLogOperation modExpLogOperation =
+        new ModexpLogOperation(
             c.rawLeadingWord(),
             c.cdsCutoff(),
             c.ebsCutoff(),
             BigInteger.valueOf(leadLogTrimLead.leadLog),
             EWord.of(leadLogTrimLead.trim));
 
-    modExpLogChunk.wcp = wcp;
-    modExpLogChunk.preCompute();
-    return modExpLogChunk;
+    modExpLogOperation.wcp = wcp;
+    modExpLogOperation.preCompute();
+    return modExpLogOperation;
   }
 
   @Override

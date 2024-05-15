@@ -23,7 +23,7 @@ import static net.consensys.linea.zktracer.opcode.gas.GasConstants.G_EXP_BYTE;
 
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.ExpLogCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp.ExpCallForExpPricing;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
@@ -31,7 +31,7 @@ import org.apache.tuweni.bytes.Bytes;
 
 @RequiredArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
-public class ExpLogChunk extends ExpChunk {
+public class ExpLogOperation extends ExpOperation {
   @EqualsAndHashCode.Include private final EWord exponent;
   private final long dynCost;
 
@@ -40,9 +40,9 @@ public class ExpLogChunk extends ExpChunk {
     return true;
   }
 
-  public static ExpLogChunk fromExpLogCall(final Wcp wcp, final ExpLogCall c) {
-    final ExpLogChunk r =
-        new ExpLogChunk(c.exponent(), (long) G_EXP_BYTE.cost() * c.exponent().byteLength());
+  public static ExpLogOperation fromExpLogCall(final Wcp wcp, final ExpCallForExpPricing c) {
+    final ExpLogOperation r =
+        new ExpLogOperation(c.exponent(), (long) G_EXP_BYTE.cost() * c.exponent().byteLength());
     r.wcp = wcp;
     r.preCompute();
 

@@ -23,15 +23,15 @@ import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.ExpLogCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.ModExpLogCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp.ExpCallForExpPricing;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp.ExpCallForModexpLogComputation;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 
 @Slf4j
 @RequiredArgsConstructor
 public class Exp implements Module {
   /** A list of the operations to trace */
-  private final StackedSet<ExpChunk> chunks = new StackedSet<>();
+  private final StackedSet<ExpOperation> chunks = new StackedSet<>();
 
   private final Wcp wcp;
 
@@ -60,12 +60,12 @@ public class Exp implements Module {
     return Trace.headers(this.lineCount());
   }
 
-  public void callExpLogCall(final ExpLogCall c) {
-    this.chunks.add(ExpLogChunk.fromExpLogCall(this.wcp, c));
+  public void callExpLogCall(final ExpCallForExpPricing c) {
+    this.chunks.add(ExpLogOperation.fromExpLogCall(this.wcp, c));
   }
 
-  public void callModExpLogCall(final ModExpLogCall c) {
-    this.chunks.add(ModExpLogChunk.fromExpLogCall(this.wcp, c));
+  public void callModExpLogCall(final ExpCallForModexpLogComputation c) {
+    this.chunks.add(ModexpLogOperation.fromExpLogCall(this.wcp, c));
   }
 
   @Override
@@ -74,7 +74,7 @@ public class Exp implements Module {
 
     int stamp = 0;
 
-    for (ExpChunk op : this.chunks) {
+    for (ExpOperation op : this.chunks) {
       stamp += 1;
       op.traceComputation(stamp, trace);
       op.traceMacro(stamp, trace);

@@ -18,33 +18,23 @@ package net.consensys.linea.zktracer.module.blockhash;
 import static net.consensys.linea.zktracer.module.blockhash.Trace.LLARGE;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes32;
 
+@Accessors(fluent = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
+@RequiredArgsConstructor
 public class BlockhashOperation extends ModuleOperation {
-  @EqualsAndHashCode.Include public final short relativeBlock;
-  @EqualsAndHashCode.Include public final Bytes32 opcodeArgument;
-  public final long absoluteBlockNumber;
+  @Getter @EqualsAndHashCode.Include private final short relativeBlock;
+  @Getter @EqualsAndHashCode.Include private final Bytes32 opcodeArgument;
+  private final long absoluteBlockNumber;
   private final boolean lowerBound;
   private final boolean upperBound;
-  public final Bytes32 result;
-
-  public BlockhashOperation(
-      final short relativeBlock,
-      final Bytes32 opcodeArgument,
-      final long absoluteBlockNumber,
-      final boolean lowerBound,
-      final boolean upperBound,
-      final Bytes32 result) {
-    this.relativeBlock = relativeBlock;
-    this.opcodeArgument = opcodeArgument;
-    this.absoluteBlockNumber = absoluteBlockNumber;
-    this.result = result;
-    this.lowerBound = lowerBound;
-    this.upperBound = upperBound;
-  }
+  @Getter private final Bytes32 result;
 
   @Override
   protected int computeLineCount() {

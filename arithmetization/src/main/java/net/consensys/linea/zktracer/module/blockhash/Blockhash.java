@@ -120,11 +120,11 @@ public class Blockhash implements Module {
     this.sortedOperations.addAll(this.operations);
     this.sortedOperations.sort(BLOCKHASH_COMPARATOR);
     if (!this.sortedOperations.isEmpty()) {
-      this.wcp.callGEQ(this.sortedOperations.get(0).opcodeArgument, Bytes32.ZERO);
+      this.wcp.callGEQ(this.sortedOperations.get(0).opcodeArgument(), Bytes32.ZERO);
       for (int i = 1; i < this.sortedOperations.size(); i++) {
         this.wcp.callGEQ(
-            this.sortedOperations.get(i).opcodeArgument,
-            this.sortedOperations.get(i - 1).opcodeArgument);
+            this.sortedOperations.get(i).opcodeArgument(),
+            this.sortedOperations.get(i - 1).opcodeArgument());
       }
     }
   }
@@ -144,9 +144,9 @@ public class Blockhash implements Module {
     final Trace trace = new Trace(buffers);
     for (BlockhashOperation op : this.sortedOperations) {
       final Bytes32 hash =
-          op.result == Bytes32.ZERO
-              ? this.blockHashMap.getOrDefault(op.opcodeArgument, Bytes32.ZERO)
-              : op.result;
+          op.result() == Bytes32.ZERO
+              ? this.blockHashMap.getOrDefault(op.opcodeArgument(), Bytes32.ZERO)
+              : op.result();
 
       op.trace(trace, hash);
     }

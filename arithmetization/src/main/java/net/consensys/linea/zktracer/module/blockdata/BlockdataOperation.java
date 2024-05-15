@@ -31,6 +31,7 @@ import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import java.math.BigInteger;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.types.UnsignedByte;
@@ -40,25 +41,13 @@ import org.hyperledger.besu.datatypes.Address;
 
 @Accessors(fluent = true)
 @Getter
+@RequiredArgsConstructor
 public class BlockdataOperation extends ModuleOperation {
   private final Address coinbase;
   private final long timestamp;
   private final long absoluteBlockNumber;
   private final BigInteger difficulty;
   private final int relTxMax;
-
-  public BlockdataOperation(
-      Address coinbase,
-      long timestamp,
-      long absoluteBlockNumber,
-      BigInteger difficulty,
-      int relTxMAx) {
-    this.coinbase = coinbase;
-    this.timestamp = timestamp;
-    this.absoluteBlockNumber = absoluteBlockNumber;
-    this.difficulty = difficulty;
-    this.relTxMax = relTxMAx;
-  }
 
   @Override
   protected int computeLineCount() {

@@ -23,11 +23,9 @@ import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import net.consensys.linea.zktracer.module.Module;
-import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.ExpLogCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.ModExpLogCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -35,7 +33,6 @@ public class Exp implements Module {
   /** A list of the operations to trace */
   private final StackedList<ExpChunk> chunks = new StackedList<>();
 
-  private final Hub hub;
   private final Wcp wcp;
 
   @Override
@@ -61,12 +58,6 @@ public class Exp implements Module {
   @Override
   public List<ColumnHeader> columnsHeaders() {
     return Trace.headers(this.lineCount());
-  }
-
-  @Override
-  public void tracePreOpcode(MessageFrame frame) {
-    // We can only come here from IMCFragment, at which point we are sure that everything will be OK
-    this.chunks.add(ExpLogChunk.fromMessageFrame(this.wcp, frame));
   }
 
   public void callExpLogCall(final ExpLogCall c) {

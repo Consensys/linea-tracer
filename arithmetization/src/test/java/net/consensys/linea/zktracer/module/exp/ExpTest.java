@@ -295,4 +295,20 @@ public class ExpTest {
 
     return "00".repeat(k - 1) + (ld.length() == 1 ? "0" + ld : ld) + "00".repeat(32 - k);
   }
+
+  @Test
+  void testExpNoDuplicate() {
+    BytecodeRunner.of(
+            BytecodeCompiler.newProgram()
+                .push(0x666)
+                .push(0x12)
+                .op(OpCode.EXP)
+                .op(OpCode.POP)
+                .push(0x666)
+                .push(0x12)
+                .op(OpCode.EXP)
+                .op(OpCode.POP)
+                .compile())
+        .run();
+  }
 }

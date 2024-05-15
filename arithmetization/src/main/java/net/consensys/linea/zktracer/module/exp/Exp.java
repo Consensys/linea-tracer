@@ -21,7 +21,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.stacked.list.StackedList;
+import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.ExpLogCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.ModExpLogCall;
@@ -31,7 +31,7 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 @RequiredArgsConstructor
 public class Exp implements Module {
   /** A list of the operations to trace */
-  private final StackedList<ExpChunk> chunks = new StackedList<>();
+  private final StackedSet<ExpChunk> chunks = new StackedSet<>();
 
   private final Wcp wcp;
 
@@ -72,11 +72,13 @@ public class Exp implements Module {
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
 
-    for (int i = 0; i < this.chunks.size(); i++) {
-      ExpChunk expChunk = this.chunks.get(i);
-      expChunk.traceComputation(i + 1, trace);
-      expChunk.traceMacro(i + 1, trace);
-      expChunk.tracePreprocessing(i + 1, trace);
+    int stamp = 0;
+
+    for (ExpChunk op : this.chunks) {
+      stamp += 1;
+      op.traceComputation(stamp, trace);
+      op.traceMacro(stamp, trace);
+      op.tracePreprocessing(stamp, trace);
     }
   }
 }

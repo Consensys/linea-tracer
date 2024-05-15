@@ -21,7 +21,7 @@ import static net.consensys.linea.zktracer.module.exp.Trace.EVM_INST_ISZERO;
 import static net.consensys.linea.zktracer.module.exp.Trace.EVM_INST_LT;
 import static net.consensys.linea.zktracer.module.exp.Trace.EXP_INST_MODEXPLOG;
 import static net.consensys.linea.zktracer.module.exp.Trace.LLARGE;
-import static net.consensys.linea.zktracer.module.exp.Trace.LLARGEMO;
+import static net.consensys.linea.zktracer.module.exp.Trace.LLARGEPO;
 import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_CMPTN_MODEXP_LOG;
 import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_PRPRC_MODEXP_LOG;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
@@ -125,21 +125,19 @@ public class ModExpLogChunk extends ExpChunk {
     pPreprocessingWcpArg1Hi[1] = Bytes.of(0);
     pPreprocessingWcpArg1Lo[1] = Bytes.of(minCutoff);
     pPreprocessingWcpArg2Hi[1] = Bytes.of(0);
-    pPreprocessingWcpArg2Lo[1] = Bytes.of(LLARGEMO);
+    pPreprocessingWcpArg2Lo[1] = Bytes.of(LLARGEPO);
     pPreprocessingWcpInst[1] = UnsignedByte.of(EVM_INST_LT);
-    final boolean minCutoffLeq16 = wcp.callLT(Bytes.of(minCutoff), Bytes.of(LLARGEMO));
+    final boolean minCutoffLeq16 = wcp.callLT(Bytes.of(minCutoff), Bytes.of(LLARGEPO));
     pPreprocessingWcpRes[1] = minCutoffLeq16;
-
-    // Lookup
 
     // Third row
     pPreprocessingWcpFlag[2] = true;
     pPreprocessingWcpArg1Hi[2] = Bytes.of(0);
     pPreprocessingWcpArg1Lo[2] = Bytes.of(this.ebsCutoff);
     pPreprocessingWcpArg2Hi[2] = Bytes.of(0);
-    pPreprocessingWcpArg2Lo[2] = Bytes.of(17);
+    pPreprocessingWcpArg2Lo[2] = Bytes.of(LLARGEPO);
     pPreprocessingWcpInst[2] = UnsignedByte.of(EVM_INST_LT);
-    pPreprocessingWcpRes[2] = wcp.callLT(Bytes.of(this.ebsCutoff), Bytes.of(LLARGEMO));
+    pPreprocessingWcpRes[2] = wcp.callLT(Bytes.of(this.ebsCutoff), Bytes.of(LLARGEPO));
 
     // Fourth row
     pPreprocessingWcpFlag[3] = true;

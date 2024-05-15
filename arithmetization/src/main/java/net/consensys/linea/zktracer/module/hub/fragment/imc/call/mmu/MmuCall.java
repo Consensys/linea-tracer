@@ -15,6 +15,17 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu;
 
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_ANY_TO_RAM_WITH_PADDING;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_BLAKE;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_EXO_TO_RAM_TRANSPLANTS;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_MLOAD;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_MODEXP_DATA;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_MODEXP_ZERO;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_MSTORE;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_MSTORE8;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_RAM_TO_EXO_WITH_PADDING;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_RAM_TO_RAM_SANS_PADDING;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_RIGHT_PADDED_WORD_EXTRACTION;
 import static net.consensys.linea.zktracer.module.hub.Trace.EC_DATA_PHASE_ECADD_DATA;
 import static net.consensys.linea.zktracer.module.hub.Trace.EC_DATA_PHASE_ECADD_RESULT;
 import static net.consensys.linea.zktracer.module.hub.Trace.EC_DATA_PHASE_ECMUL_DATA;
@@ -34,17 +45,6 @@ import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_RIPEMD_RESULT;
 import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_SHA2_DATA;
 import static net.consensys.linea.zktracer.module.hub.Trace.PHASE_SHA2_RESULT;
 import static net.consensys.linea.zktracer.module.hub.Trace.WORD_SIZE;
-import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_ANY_TO_RAM_WITH_PADDING;
-import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_BLAKE;
-import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_EXO_TO_RAM_TRANSPLANTS;
-import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_MLOAD;
-import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_MODEXP_DATA;
-import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_MODEXP_ZERO;
-import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_MSTORE;
-import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_MSTORE8;
-import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_RAM_TO_EXO_WITH_PADDING;
-import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_RAM_TO_RAM_SANS_PADDING;
-import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_RIGHT_PADDED_WORD_EXTRACTION;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.util.Arrays;

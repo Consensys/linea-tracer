@@ -15,8 +15,8 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes;
 
-import static net.consensys.linea.zktracer.module.oob.Trace.OOB_INST_jump;
-import static net.consensys.linea.zktracer.module.oob.Trace.OOB_INST_jumpi;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_jump;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_jumpi;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;

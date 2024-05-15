@@ -15,13 +15,13 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles;
 
-import static net.consensys.linea.zktracer.module.oob.Trace.OOB_INST_ecadd;
-import static net.consensys.linea.zktracer.module.oob.Trace.OOB_INST_ecmul;
-import static net.consensys.linea.zktracer.module.oob.Trace.OOB_INST_ecpairing;
-import static net.consensys.linea.zktracer.module.oob.Trace.OOB_INST_ecrecover;
-import static net.consensys.linea.zktracer.module.oob.Trace.OOB_INST_identity;
-import static net.consensys.linea.zktracer.module.oob.Trace.OOB_INST_ripemd;
-import static net.consensys.linea.zktracer.module.oob.Trace.OOB_INST_sha2;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_ecadd;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_ecmul;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_ecpairing;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_ecrecover;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_identity;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_ripemd;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_sha2;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;

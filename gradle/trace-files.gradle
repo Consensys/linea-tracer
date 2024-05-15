@@ -47,6 +47,7 @@ tasks.register('instdecoder', TraceFilesTask) {
     module = "instructionDecoder"
     files = ["reftables/inst_decoder.lisp"]
 }
+
 tasks.register('shfreftable', TraceFilesTask) {
     group "Trace files generation"
     dependsOn corsetExists
@@ -67,25 +68,38 @@ tasks.register('binreftable', TraceFilesTask) {
 //
 // Put here modules following the conventional MODULE/columns.lisp naming scheme.
 //
-['bin', 'blockhash', 'ec_data', 'euc', 'mmio', 'mxp', 'shf', 'wcp', 'rlptxn', 'rom', 'romlex', 'trm', 'stp', 'logInfo', 'logData'].each {moduleName ->
+['bin', 'blockhash', 'ecdata', 'euc', 'mmio', 'mxp', 'shf', 'wcp', 'rlptxn', 'rom', 'romlex', 'trm', 'stp', 'loginfo', 'logdata'].each {moduleName ->
     tasks.register(moduleName, TraceFilesTask) {
         group "Trace files generation"
         dependsOn corsetExists
 
         module = moduleName
-        files = ["${moduleName}/columns.lisp", "constants/constants.lisp"]
+        files = ["${moduleName}/columns.lisp"]
     }
 }
 
 //
 // Put here modules following the conventional MODULE/columns.lisp, MODULE/constants.lisp naming scheme.
 //
-['mmu', 'blake2f_modexp_data', 'blockdata', 'oob', 'exp', 'rlptxrcpt', 'rlpaddr', 'txndata'].each {moduleName ->
+['mmu', 'blake2fmodexpdata', 'blockdata', 'oob', 'exp', 'rlptxrcpt', 'rlpaddr', 'txndata'].each {moduleName ->
     tasks.register(moduleName, TraceFilesTask) {
         group "Trace files generation"
         dependsOn corsetExists
 
         module = moduleName
-        files = [ "constants/constants.lisp", "${moduleName}/columns.lisp", "${moduleName}/constants.lisp"]
+        files = ["${moduleName}/columns.lisp", "${moduleName}/constants.lisp"]
+    }
+}
+
+//
+// Put here modules following the conventional MODULE/columns.lisp, MODULE/constants.lisp naming scheme.
+//
+['constants'].each {moduleName ->
+    tasks.register(moduleName, TraceFilesTask) {
+        group "Trace files generation"
+        dependsOn corsetExists
+
+        module = moduleName
+        files = [ "${moduleName}/constants.lisp"]
     }
 }

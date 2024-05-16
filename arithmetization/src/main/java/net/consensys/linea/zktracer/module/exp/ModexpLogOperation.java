@@ -76,7 +76,8 @@ public class ModexpLogOperation extends ExpOperation {
     return false;
   }
 
-  public static ModexpLogOperation fromExpLogCall(final Wcp wcp, final ExpCallForModexpLogComputation c) {
+  public static ModexpLogOperation fromExpLogCall(
+      final Wcp wcp, final ExpCallForModexpLogComputation c) {
     final LeadLogTrimLead leadLogTrimLead =
         LeadLogTrimLead.fromArgs(c.rawLeadingWord(), c.cdsCutoff(), c.ebsCutoff());
 

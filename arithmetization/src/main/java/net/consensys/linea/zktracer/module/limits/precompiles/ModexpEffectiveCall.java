@@ -79,7 +79,9 @@ public class ModexpEffectiveCall implements Module {
         final BigInteger baseLength = slice(inputData, 0, EVM_WORD_SIZE).toUnsignedBigInteger();
         if (isOutOfProverInputBounds(baseLength)) {
           log.info(
-              "Too big argument, base byte length = {} > {}", baseLength, PROVER_MAX_INPUT_BYTE_SIZE);
+              "Too big argument, base byte length = {} > {}",
+              baseLength,
+              PROVER_MAX_INPUT_BYTE_SIZE);
           this.counts.pop();
           this.counts.push(Integer.MAX_VALUE);
           return;
@@ -92,7 +94,7 @@ public class ModexpEffectiveCall implements Module {
           log.info(
               "Too big argument, exponent byte length = {} > {}",
               expLength,
-            PROVER_MAX_INPUT_BYTE_SIZE);
+              PROVER_MAX_INPUT_BYTE_SIZE);
           this.counts.pop();
           this.counts.push(Integer.MAX_VALUE);
           return;
@@ -105,7 +107,7 @@ public class ModexpEffectiveCall implements Module {
           log.info(
               "Too big argument, modulo byte length = {} > {}",
               modLength,
-            PROVER_MAX_INPUT_BYTE_SIZE);
+              PROVER_MAX_INPUT_BYTE_SIZE);
           this.counts.pop();
           this.counts.push(Integer.MAX_VALUE);
           return;

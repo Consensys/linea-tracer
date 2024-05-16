@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Random;
 
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.opcode.OpCodes;
 import net.consensys.linea.zktracer.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.testing.ToyAccount;
 import net.consensys.linea.zktracer.testing.ToyExecutionEnvironment;
@@ -41,7 +40,6 @@ import org.hyperledger.besu.datatypes.TransactionType;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 public class StpTest {
   private static final Random RAND = new Random(666L);

@@ -13,9 +13,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.ec_data;
+package net.consensys.linea.zktracer.module.ecdata;
 
-import static net.consensys.linea.zktracer.module.ec_data.EcDataOperation.SECP256K1N;
+import static net.consensys.linea.zktracer.module.ecdata.EcDataOperation.SECP256K1N;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigInteger;

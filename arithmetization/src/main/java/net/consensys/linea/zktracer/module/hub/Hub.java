@@ -37,7 +37,9 @@ import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.bin.Bin;
 import net.consensys.linea.zktracer.module.blake2fmodexpdata.Blake2fModexpData;
-import net.consensys.linea.zktracer.module.ec_data.EcData;
+import net.consensys.linea.zktracer.module.blockdata.Blockdata;
+import net.consensys.linea.zktracer.module.blockhash.Blockhash;
+import net.consensys.linea.zktracer.module.ecdata.EcData;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.exp.Exp;
 import net.consensys.linea.zktracer.module.ext.Ext;
@@ -72,14 +74,14 @@ import net.consensys.linea.zktracer.module.rlpaddr.RlpAddr;
 import net.consensys.linea.zktracer.module.rlptxn.RlpTxn;
 import net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxrcpt;
 import net.consensys.linea.zktracer.module.rom.Rom;
-import net.consensys.linea.zktracer.module.romLex.RomLex;
+import net.consensys.linea.zktracer.module.romlex.RomLex;
 import net.consensys.linea.zktracer.module.shf.Shf;
 import net.consensys.linea.zktracer.module.stp.Stp;
 import net.consensys.linea.zktracer.module.tables.bin.BinRt;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.InstructionDecoder;
 import net.consensys.linea.zktracer.module.tables.shf.ShfRt;
 import net.consensys.linea.zktracer.module.trm.Trm;
-import net.consensys.linea.zktracer.module.txn_data.TxnData;
+import net.consensys.linea.zktracer.module.txndata.TxnData;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.*;
 import net.consensys.linea.zktracer.opcode.gas.projector.GasProjector;
@@ -108,6 +110,8 @@ import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.log.LogTopic;
 import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
+import org.hyperledger.besu.plugin.data.BlockBody;
+import org.hyperledger.besu.plugin.data.BlockHeader;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 @Slf4j
@@ -138,6 +142,22 @@ public class Hub implements Module {
 
   /** stores all data related to failure states & module activation */
   @Getter private final PlatformController pch;
+
+  @Override
+  public String moduleKey() {
+    return "HUB";
+  }
+
+  @Override
+  public List<ColumnHeader> columnsHeaders() {
+    return Trace.headers(this.lineCount());
+  }
+
+  @Override
+  public void commit(List<MappedByteBuffer> buffers) {
+    final Trace trace = new Trace(buffers);
+    this.state.commit(trace);
+  }
 
   public int stamp() {
     return this.state.stamps().hub();
@@ -176,25 +196,27 @@ public class Hub implements Module {
     this.state.currentTxTrace().add(section);
   }
 
+  @Getter private final Wcp wcp = new Wcp(this);
   private final Module add = new Add(this);
   private final Module bin = new Bin(this);
   private final Blake2fModexpData blake2fModexpData = new Blake2fModexpData();
   @Getter private final EcData ecData;
+  private final Blockdata blockdata;
+  private final Blockhash blockhash = new Blockhash(wcp);
   private final Euc euc;
   private final Ext ext = new Ext(this);
   private final Module mul = new Mul(this);
   private final Mod mod = new Mod();
   private final Module shf = new Shf();
-  @Getter private final Wcp wcp = new Wcp(this);
   private final RlpTxn rlpTxn;
   private final Module mxp;
   private final Mmio mmio;
 
   @Getter private final Exp exp;
   @Getter private final Mmu mmu;
-  private final RlpTxrcpt rlpTxrcpt = new RlpTxrcpt();
-  private final LogInfo logInfo = new LogInfo(rlpTxrcpt);
-  private final LogData logData = new LogData(rlpTxrcpt);
+  private final RlpTxrcpt rlpTxrcpt;
+  private final LogInfo logInfo;
+  private final LogData logData;
   private final Trm trm = new Trm();
   private final RlpAddr rlpAddr = new RlpAddr(this, trm);
   private final Rom rom;
@@ -218,13 +240,17 @@ public class Hub implements Module {
 
     this.pch = new PlatformController(this);
     this.mxp = new Mxp(this);
-    this.exp = new Exp(this, this.wcp);
+    this.exp = new Exp(this.wcp);
     this.romLex = new RomLex(this);
     this.rom = new Rom(this.romLex);
     this.rlpTxn = new RlpTxn(this.romLex);
-    this.txnData = new TxnData(this, this.romLex, this.wcp);
-    this.ecData = new EcData(this, this.wcp, this.ext);
     this.euc = new Euc(this.wcp);
+    this.txnData = new TxnData(this, this.romLex, this.wcp, this.euc);
+    this.blockdata = new Blockdata(this.wcp, this.txnData, this.rlpTxn);
+    this.rlpTxrcpt = new RlpTxrcpt(txnData);
+    this.logData = new LogData(rlpTxrcpt);
+    this.logInfo = new LogInfo(rlpTxrcpt);
+    this.ecData = new EcData(this, this.wcp, this.ext);
     this.mmu =
         new Mmu(
             this.euc,
@@ -266,6 +292,8 @@ public class Hub implements Module {
                     this.add,
                     this.bin,
                     this.blake2fModexpData,
+                    this.blockdata,
+                    this.blockhash,
                     this.ecData,
                     this.euc,
                     this.ext,
@@ -279,14 +307,14 @@ public class Hub implements Module {
                     this.exp,
                     this.rlpAddr,
                     this.rlpTxn,
-                    this.rlpTxrcpt,
                     this.rom,
                     this.romLex,
                     this.shf,
                     this.stp,
                     this.trm,
+                    this.wcp, /* WARN: must be called BEFORE txnData */
                     this.txnData,
-                    this.wcp),
+                    this.rlpTxrcpt /* WARN: must be called AFTER txnData */),
                 this.precompileLimitModules.stream())
             .toList();
   }
@@ -303,7 +331,9 @@ public class Hub implements Module {
                 this.add,
                 this.bin,
                 this.blake2fModexpData,
-                this.ecData, // TODO: wip
+                this.ecData,
+                this.blockdata,
+                this.blockhash,
                 this.ext,
                 this.euc,
                 this.exp,
@@ -338,8 +368,10 @@ public class Hub implements Module {
             Stream.of(
                 this,
                 this.romLex,
-                this.bin,
                 this.add,
+                this.bin,
+                this.blockdata,
+                this.blockhash,
                 this.ext,
                 this.ecData,
                 this.euc,
@@ -564,10 +596,6 @@ public class Hub implements Module {
     return this.callStack.current().frame();
   }
 
-  public long getRemainingGas() {
-    return 0; // TODO:
-  }
-
   private void handleStack(MessageFrame frame) {
     this.currentFrame().stack().processInstruction(this, frame, TAU * this.state.stamps().hub());
   }
@@ -606,10 +634,6 @@ public class Hub implements Module {
     if (this.pch.signals().shf()) {
       this.shf.tracePreOpcode(frame);
     }
-    if (this.pch.signals().mmu()) {
-      this.mmu.tracePreOpcode(frame);
-    }
-
     if (this.pch.signals().mxp()) {
       this.mxp.tracePreOpcode(frame);
     }
@@ -632,6 +656,9 @@ public class Hub implements Module {
     }
     if (this.pch.signals().ecData()) {
       this.ecData.tracePreOpcode(frame);
+    }
+    if (this.pch.signals().blockhash()) {
+      this.blockhash.tracePreOpcode(frame);
     }
   }
 
@@ -1033,7 +1060,11 @@ public class Hub implements Module {
       case ACCOUNT -> {}
       case COPY -> {}
       case TRANSACTION -> {}
-      case BATCH -> {}
+      case BATCH -> {
+        if (this.currentFrame().opCode() == OpCode.BLOCKHASH) {
+          this.blockhash.tracePostOpcode(frame);
+        }
+      }
       case STACK_RAM -> {
         if (this.pch.exceptions().noStackException()) {
           this.mxp.tracePostOpcode(frame);
@@ -1067,8 +1098,10 @@ public class Hub implements Module {
   }
 
   @Override
-  public String moduleKey() {
-    return "HUB";
+  public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
+    for (Module m : this.modules) {
+      m.traceEndBlock(blockHeader, blockBody);
+    }
   }
 
   @Override
@@ -1086,17 +1119,6 @@ public class Hub implements Module {
     for (Module m : this.modules) {
       m.traceEndConflation(state);
     }
-  }
-
-  @Override
-  public List<ColumnHeader> columnsHeaders() {
-    return Trace.headers(this.lineCount());
-  }
-
-  @Override
-  public void commit(List<MappedByteBuffer> buffers) {
-    final Trace trace = new Trace(buffers);
-    this.state.commit(trace);
   }
 
   public long refundedGas() {

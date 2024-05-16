@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.wcp;
+package net.consensys.linea.zktracer.module.blockhash;
 
 import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
@@ -58,6 +58,7 @@ public class Trace {
   public static final int EVM_INST_BALANCE = 0x31;
   public static final int EVM_INST_BASEFEE = 0x48;
   public static final int EVM_INST_BLOCKHASH = 0x40;
+  public static final int EVM_INST_BLOCKHASH_MAX_HISTORY = 0x100;
   public static final int EVM_INST_BYTE = 0x1a;
   public static final int EVM_INST_CALL = 0xf1;
   public static final int EVM_INST_CALLCODE = 0xf2;
@@ -244,7 +245,11 @@ public class Trace {
   public static final int GAS_CONST_G_VERY_LOW = 0x3;
   public static final int GAS_CONST_G_WARM_ACCESS = 0x64;
   public static final int GAS_CONST_G_ZERO = 0x0;
-  public static final int LINEA_BLOCK_GAS_LIMIT = 0x1c9c380;
+  public static final int LINEA_BASE_FEE = 0x0;
+  public static final int LINEA_BLOCK_GAS_LIMIT = 0x3a2c940;
+  public static final int LINEA_CHAIN_ID = 0xe708;
+  public static final int LINEA_GOERLI_CHAIN_ID = 0xe704;
+  public static final int LINEA_SEPOLIA_CHAIN_ID = 0xe705;
   public static final int LLARGE = 0x10;
   public static final int LLARGEMO = 0xf;
   public static final int LLARGEPO = 0x11;
@@ -356,126 +361,144 @@ public class Trace {
   private final BitSet filled = new BitSet();
   private int currentLine = 0;
 
-  private final MappedByteBuffer acc1;
-  private final MappedByteBuffer acc2;
-  private final MappedByteBuffer acc3;
-  private final MappedByteBuffer acc4;
-  private final MappedByteBuffer acc5;
-  private final MappedByteBuffer acc6;
-  private final MappedByteBuffer argument1Hi;
-  private final MappedByteBuffer argument1Lo;
-  private final MappedByteBuffer argument2Hi;
-  private final MappedByteBuffer argument2Lo;
-  private final MappedByteBuffer bit1;
-  private final MappedByteBuffer bit2;
-  private final MappedByteBuffer bit3;
-  private final MappedByteBuffer bit4;
-  private final MappedByteBuffer bits;
-  private final MappedByteBuffer byte1;
-  private final MappedByteBuffer byte2;
-  private final MappedByteBuffer byte3;
-  private final MappedByteBuffer byte4;
-  private final MappedByteBuffer byte5;
-  private final MappedByteBuffer byte6;
-  private final MappedByteBuffer counter;
-  private final MappedByteBuffer ctMax;
-  private final MappedByteBuffer inst;
-  private final MappedByteBuffer isEq;
-  private final MappedByteBuffer isGeq;
-  private final MappedByteBuffer isGt;
-  private final MappedByteBuffer isIszero;
-  private final MappedByteBuffer isLeq;
-  private final MappedByteBuffer isLt;
-  private final MappedByteBuffer isSgt;
-  private final MappedByteBuffer isSlt;
-  private final MappedByteBuffer neg1;
-  private final MappedByteBuffer neg2;
-  private final MappedByteBuffer oneLineInstruction;
-  private final MappedByteBuffer result;
-  private final MappedByteBuffer variableLengthInstruction;
-  private final MappedByteBuffer wordComparisonStamp;
+  private final MappedByteBuffer absBlock;
+  private final MappedByteBuffer blockHashHi;
+  private final MappedByteBuffer blockHashLo;
+  private final MappedByteBuffer blockNumberHi;
+  private final MappedByteBuffer blockNumberLo;
+  private final MappedByteBuffer byteHi0;
+  private final MappedByteBuffer byteHi1;
+  private final MappedByteBuffer byteHi10;
+  private final MappedByteBuffer byteHi11;
+  private final MappedByteBuffer byteHi12;
+  private final MappedByteBuffer byteHi13;
+  private final MappedByteBuffer byteHi14;
+  private final MappedByteBuffer byteHi15;
+  private final MappedByteBuffer byteHi2;
+  private final MappedByteBuffer byteHi3;
+  private final MappedByteBuffer byteHi4;
+  private final MappedByteBuffer byteHi5;
+  private final MappedByteBuffer byteHi6;
+  private final MappedByteBuffer byteHi7;
+  private final MappedByteBuffer byteHi8;
+  private final MappedByteBuffer byteHi9;
+  private final MappedByteBuffer byteLo0;
+  private final MappedByteBuffer byteLo1;
+  private final MappedByteBuffer byteLo10;
+  private final MappedByteBuffer byteLo11;
+  private final MappedByteBuffer byteLo12;
+  private final MappedByteBuffer byteLo13;
+  private final MappedByteBuffer byteLo14;
+  private final MappedByteBuffer byteLo15;
+  private final MappedByteBuffer byteLo2;
+  private final MappedByteBuffer byteLo3;
+  private final MappedByteBuffer byteLo4;
+  private final MappedByteBuffer byteLo5;
+  private final MappedByteBuffer byteLo6;
+  private final MappedByteBuffer byteLo7;
+  private final MappedByteBuffer byteLo8;
+  private final MappedByteBuffer byteLo9;
+  private final MappedByteBuffer inRange;
+  private final MappedByteBuffer iomf;
+  private final MappedByteBuffer lowerBoundCheck;
+  private final MappedByteBuffer relBlock;
+  private final MappedByteBuffer resHi;
+  private final MappedByteBuffer resLo;
+  private final MappedByteBuffer upperBoundCheck;
 
   static List<ColumnHeader> headers(int length) {
     return List.of(
-        new ColumnHeader("wcp.ACC_1", 32, length),
-        new ColumnHeader("wcp.ACC_2", 32, length),
-        new ColumnHeader("wcp.ACC_3", 32, length),
-        new ColumnHeader("wcp.ACC_4", 32, length),
-        new ColumnHeader("wcp.ACC_5", 32, length),
-        new ColumnHeader("wcp.ACC_6", 32, length),
-        new ColumnHeader("wcp.ARGUMENT_1_HI", 32, length),
-        new ColumnHeader("wcp.ARGUMENT_1_LO", 32, length),
-        new ColumnHeader("wcp.ARGUMENT_2_HI", 32, length),
-        new ColumnHeader("wcp.ARGUMENT_2_LO", 32, length),
-        new ColumnHeader("wcp.BIT_1", 1, length),
-        new ColumnHeader("wcp.BIT_2", 1, length),
-        new ColumnHeader("wcp.BIT_3", 1, length),
-        new ColumnHeader("wcp.BIT_4", 1, length),
-        new ColumnHeader("wcp.BITS", 1, length),
-        new ColumnHeader("wcp.BYTE_1", 1, length),
-        new ColumnHeader("wcp.BYTE_2", 1, length),
-        new ColumnHeader("wcp.BYTE_3", 1, length),
-        new ColumnHeader("wcp.BYTE_4", 1, length),
-        new ColumnHeader("wcp.BYTE_5", 1, length),
-        new ColumnHeader("wcp.BYTE_6", 1, length),
-        new ColumnHeader("wcp.COUNTER", 1, length),
-        new ColumnHeader("wcp.CT_MAX", 1, length),
-        new ColumnHeader("wcp.INST", 1, length),
-        new ColumnHeader("wcp.IS_EQ", 1, length),
-        new ColumnHeader("wcp.IS_GEQ", 1, length),
-        new ColumnHeader("wcp.IS_GT", 1, length),
-        new ColumnHeader("wcp.IS_ISZERO", 1, length),
-        new ColumnHeader("wcp.IS_LEQ", 1, length),
-        new ColumnHeader("wcp.IS_LT", 1, length),
-        new ColumnHeader("wcp.IS_SGT", 1, length),
-        new ColumnHeader("wcp.IS_SLT", 1, length),
-        new ColumnHeader("wcp.NEG_1", 1, length),
-        new ColumnHeader("wcp.NEG_2", 1, length),
-        new ColumnHeader("wcp.ONE_LINE_INSTRUCTION", 1, length),
-        new ColumnHeader("wcp.RESULT", 1, length),
-        new ColumnHeader("wcp.VARIABLE_LENGTH_INSTRUCTION", 1, length),
-        new ColumnHeader("wcp.WORD_COMPARISON_STAMP", 8, length));
+        new ColumnHeader("blockhash.ABS_BLOCK", 8, length),
+        new ColumnHeader("blockhash.BLOCK_HASH_HI", 32, length),
+        new ColumnHeader("blockhash.BLOCK_HASH_LO", 32, length),
+        new ColumnHeader("blockhash.BLOCK_NUMBER_HI", 32, length),
+        new ColumnHeader("blockhash.BLOCK_NUMBER_LO", 32, length),
+        new ColumnHeader("blockhash.BYTE_HI_0", 1, length),
+        new ColumnHeader("blockhash.BYTE_HI_1", 1, length),
+        new ColumnHeader("blockhash.BYTE_HI_10", 1, length),
+        new ColumnHeader("blockhash.BYTE_HI_11", 1, length),
+        new ColumnHeader("blockhash.BYTE_HI_12", 1, length),
+        new ColumnHeader("blockhash.BYTE_HI_13", 1, length),
+        new ColumnHeader("blockhash.BYTE_HI_14", 1, length),
+        new ColumnHeader("blockhash.BYTE_HI_15", 1, length),
+        new ColumnHeader("blockhash.BYTE_HI_2", 1, length),
+        new ColumnHeader("blockhash.BYTE_HI_3", 1, length),
+        new ColumnHeader("blockhash.BYTE_HI_4", 1, length),
+        new ColumnHeader("blockhash.BYTE_HI_5", 1, length),
+        new ColumnHeader("blockhash.BYTE_HI_6", 1, length),
+        new ColumnHeader("blockhash.BYTE_HI_7", 1, length),
+        new ColumnHeader("blockhash.BYTE_HI_8", 1, length),
+        new ColumnHeader("blockhash.BYTE_HI_9", 1, length),
+        new ColumnHeader("blockhash.BYTE_LO_0", 1, length),
+        new ColumnHeader("blockhash.BYTE_LO_1", 1, length),
+        new ColumnHeader("blockhash.BYTE_LO_10", 1, length),
+        new ColumnHeader("blockhash.BYTE_LO_11", 1, length),
+        new ColumnHeader("blockhash.BYTE_LO_12", 1, length),
+        new ColumnHeader("blockhash.BYTE_LO_13", 1, length),
+        new ColumnHeader("blockhash.BYTE_LO_14", 1, length),
+        new ColumnHeader("blockhash.BYTE_LO_15", 1, length),
+        new ColumnHeader("blockhash.BYTE_LO_2", 1, length),
+        new ColumnHeader("blockhash.BYTE_LO_3", 1, length),
+        new ColumnHeader("blockhash.BYTE_LO_4", 1, length),
+        new ColumnHeader("blockhash.BYTE_LO_5", 1, length),
+        new ColumnHeader("blockhash.BYTE_LO_6", 1, length),
+        new ColumnHeader("blockhash.BYTE_LO_7", 1, length),
+        new ColumnHeader("blockhash.BYTE_LO_8", 1, length),
+        new ColumnHeader("blockhash.BYTE_LO_9", 1, length),
+        new ColumnHeader("blockhash.IN_RANGE", 1, length),
+        new ColumnHeader("blockhash.IOMF", 1, length),
+        new ColumnHeader("blockhash.LOWER_BOUND_CHECK", 1, length),
+        new ColumnHeader("blockhash.REL_BLOCK", 2, length),
+        new ColumnHeader("blockhash.RES_HI", 32, length),
+        new ColumnHeader("blockhash.RES_LO", 32, length),
+        new ColumnHeader("blockhash.UPPER_BOUND_CHECK", 1, length));
   }
 
   public Trace(List<MappedByteBuffer> buffers) {
-    this.acc1 = buffers.get(0);
-    this.acc2 = buffers.get(1);
-    this.acc3 = buffers.get(2);
-    this.acc4 = buffers.get(3);
-    this.acc5 = buffers.get(4);
-    this.acc6 = buffers.get(5);
-    this.argument1Hi = buffers.get(6);
-    this.argument1Lo = buffers.get(7);
-    this.argument2Hi = buffers.get(8);
-    this.argument2Lo = buffers.get(9);
-    this.bit1 = buffers.get(10);
-    this.bit2 = buffers.get(11);
-    this.bit3 = buffers.get(12);
-    this.bit4 = buffers.get(13);
-    this.bits = buffers.get(14);
-    this.byte1 = buffers.get(15);
-    this.byte2 = buffers.get(16);
-    this.byte3 = buffers.get(17);
-    this.byte4 = buffers.get(18);
-    this.byte5 = buffers.get(19);
-    this.byte6 = buffers.get(20);
-    this.counter = buffers.get(21);
-    this.ctMax = buffers.get(22);
-    this.inst = buffers.get(23);
-    this.isEq = buffers.get(24);
-    this.isGeq = buffers.get(25);
-    this.isGt = buffers.get(26);
-    this.isIszero = buffers.get(27);
-    this.isLeq = buffers.get(28);
-    this.isLt = buffers.get(29);
-    this.isSgt = buffers.get(30);
-    this.isSlt = buffers.get(31);
-    this.neg1 = buffers.get(32);
-    this.neg2 = buffers.get(33);
-    this.oneLineInstruction = buffers.get(34);
-    this.result = buffers.get(35);
-    this.variableLengthInstruction = buffers.get(36);
-    this.wordComparisonStamp = buffers.get(37);
+    this.absBlock = buffers.get(0);
+    this.blockHashHi = buffers.get(1);
+    this.blockHashLo = buffers.get(2);
+    this.blockNumberHi = buffers.get(3);
+    this.blockNumberLo = buffers.get(4);
+    this.byteHi0 = buffers.get(5);
+    this.byteHi1 = buffers.get(6);
+    this.byteHi10 = buffers.get(7);
+    this.byteHi11 = buffers.get(8);
+    this.byteHi12 = buffers.get(9);
+    this.byteHi13 = buffers.get(10);
+    this.byteHi14 = buffers.get(11);
+    this.byteHi15 = buffers.get(12);
+    this.byteHi2 = buffers.get(13);
+    this.byteHi3 = buffers.get(14);
+    this.byteHi4 = buffers.get(15);
+    this.byteHi5 = buffers.get(16);
+    this.byteHi6 = buffers.get(17);
+    this.byteHi7 = buffers.get(18);
+    this.byteHi8 = buffers.get(19);
+    this.byteHi9 = buffers.get(20);
+    this.byteLo0 = buffers.get(21);
+    this.byteLo1 = buffers.get(22);
+    this.byteLo10 = buffers.get(23);
+    this.byteLo11 = buffers.get(24);
+    this.byteLo12 = buffers.get(25);
+    this.byteLo13 = buffers.get(26);
+    this.byteLo14 = buffers.get(27);
+    this.byteLo15 = buffers.get(28);
+    this.byteLo2 = buffers.get(29);
+    this.byteLo3 = buffers.get(30);
+    this.byteLo4 = buffers.get(31);
+    this.byteLo5 = buffers.get(32);
+    this.byteLo6 = buffers.get(33);
+    this.byteLo7 = buffers.get(34);
+    this.byteLo8 = buffers.get(35);
+    this.byteLo9 = buffers.get(36);
+    this.inRange = buffers.get(37);
+    this.iomf = buffers.get(38);
+    this.lowerBoundCheck = buffers.get(39);
+    this.relBlock = buffers.get(40);
+    this.resHi = buffers.get(41);
+    this.resLo = buffers.get(42);
+    this.upperBoundCheck = buffers.get(43);
   }
 
   public int size() {
@@ -486,653 +509,733 @@ public class Trace {
     return this.currentLine;
   }
 
-  public Trace acc1(final Bytes b) {
+  public Trace absBlock(final long b) {
     if (filled.get(0)) {
-      throw new IllegalStateException("wcp.ACC_1 already set");
+      throw new IllegalStateException("blockhash.ABS_BLOCK already set");
     } else {
       filled.set(0);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      acc1.put((byte) 0);
-    }
-    acc1.put(b.toArrayUnsafe());
+    absBlock.putLong(b);
 
     return this;
   }
 
-  public Trace acc2(final Bytes b) {
+  public Trace blockHashHi(final Bytes b) {
     if (filled.get(1)) {
-      throw new IllegalStateException("wcp.ACC_2 already set");
+      throw new IllegalStateException("blockhash.BLOCK_HASH_HI already set");
     } else {
       filled.set(1);
     }
 
     final byte[] bs = b.toArrayUnsafe();
     for (int i = bs.length; i < 32; i++) {
-      acc2.put((byte) 0);
+      blockHashHi.put((byte) 0);
     }
-    acc2.put(b.toArrayUnsafe());
+    blockHashHi.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace acc3(final Bytes b) {
+  public Trace blockHashLo(final Bytes b) {
     if (filled.get(2)) {
-      throw new IllegalStateException("wcp.ACC_3 already set");
+      throw new IllegalStateException("blockhash.BLOCK_HASH_LO already set");
     } else {
       filled.set(2);
     }
 
     final byte[] bs = b.toArrayUnsafe();
     for (int i = bs.length; i < 32; i++) {
-      acc3.put((byte) 0);
+      blockHashLo.put((byte) 0);
     }
-    acc3.put(b.toArrayUnsafe());
+    blockHashLo.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace acc4(final Bytes b) {
+  public Trace blockNumberHi(final Bytes b) {
     if (filled.get(3)) {
-      throw new IllegalStateException("wcp.ACC_4 already set");
+      throw new IllegalStateException("blockhash.BLOCK_NUMBER_HI already set");
     } else {
       filled.set(3);
     }
 
     final byte[] bs = b.toArrayUnsafe();
     for (int i = bs.length; i < 32; i++) {
-      acc4.put((byte) 0);
+      blockNumberHi.put((byte) 0);
     }
-    acc4.put(b.toArrayUnsafe());
+    blockNumberHi.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace acc5(final Bytes b) {
+  public Trace blockNumberLo(final Bytes b) {
     if (filled.get(4)) {
-      throw new IllegalStateException("wcp.ACC_5 already set");
+      throw new IllegalStateException("blockhash.BLOCK_NUMBER_LO already set");
     } else {
       filled.set(4);
     }
 
     final byte[] bs = b.toArrayUnsafe();
     for (int i = bs.length; i < 32; i++) {
-      acc5.put((byte) 0);
+      blockNumberLo.put((byte) 0);
     }
-    acc5.put(b.toArrayUnsafe());
+    blockNumberLo.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace acc6(final Bytes b) {
+  public Trace byteHi0(final UnsignedByte b) {
     if (filled.get(5)) {
-      throw new IllegalStateException("wcp.ACC_6 already set");
+      throw new IllegalStateException("blockhash.BYTE_HI_0 already set");
     } else {
       filled.set(5);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      acc6.put((byte) 0);
-    }
-    acc6.put(b.toArrayUnsafe());
+    byteHi0.put(b.toByte());
 
     return this;
   }
 
-  public Trace argument1Hi(final Bytes b) {
+  public Trace byteHi1(final UnsignedByte b) {
     if (filled.get(6)) {
-      throw new IllegalStateException("wcp.ARGUMENT_1_HI already set");
+      throw new IllegalStateException("blockhash.BYTE_HI_1 already set");
     } else {
       filled.set(6);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      argument1Hi.put((byte) 0);
-    }
-    argument1Hi.put(b.toArrayUnsafe());
+    byteHi1.put(b.toByte());
 
     return this;
   }
 
-  public Trace argument1Lo(final Bytes b) {
+  public Trace byteHi10(final UnsignedByte b) {
     if (filled.get(7)) {
-      throw new IllegalStateException("wcp.ARGUMENT_1_LO already set");
+      throw new IllegalStateException("blockhash.BYTE_HI_10 already set");
     } else {
       filled.set(7);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      argument1Lo.put((byte) 0);
-    }
-    argument1Lo.put(b.toArrayUnsafe());
+    byteHi10.put(b.toByte());
 
     return this;
   }
 
-  public Trace argument2Hi(final Bytes b) {
+  public Trace byteHi11(final UnsignedByte b) {
     if (filled.get(8)) {
-      throw new IllegalStateException("wcp.ARGUMENT_2_HI already set");
+      throw new IllegalStateException("blockhash.BYTE_HI_11 already set");
     } else {
       filled.set(8);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      argument2Hi.put((byte) 0);
-    }
-    argument2Hi.put(b.toArrayUnsafe());
+    byteHi11.put(b.toByte());
 
     return this;
   }
 
-  public Trace argument2Lo(final Bytes b) {
+  public Trace byteHi12(final UnsignedByte b) {
     if (filled.get(9)) {
-      throw new IllegalStateException("wcp.ARGUMENT_2_LO already set");
+      throw new IllegalStateException("blockhash.BYTE_HI_12 already set");
     } else {
       filled.set(9);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      argument2Lo.put((byte) 0);
-    }
-    argument2Lo.put(b.toArrayUnsafe());
+    byteHi12.put(b.toByte());
 
     return this;
   }
 
-  public Trace bit1(final Boolean b) {
-    if (filled.get(11)) {
-      throw new IllegalStateException("wcp.BIT_1 already set");
-    } else {
-      filled.set(11);
-    }
-
-    bit1.put((byte) (b ? 1 : 0));
-
-    return this;
-  }
-
-  public Trace bit2(final Boolean b) {
-    if (filled.get(12)) {
-      throw new IllegalStateException("wcp.BIT_2 already set");
-    } else {
-      filled.set(12);
-    }
-
-    bit2.put((byte) (b ? 1 : 0));
-
-    return this;
-  }
-
-  public Trace bit3(final Boolean b) {
-    if (filled.get(13)) {
-      throw new IllegalStateException("wcp.BIT_3 already set");
-    } else {
-      filled.set(13);
-    }
-
-    bit3.put((byte) (b ? 1 : 0));
-
-    return this;
-  }
-
-  public Trace bit4(final Boolean b) {
-    if (filled.get(14)) {
-      throw new IllegalStateException("wcp.BIT_4 already set");
-    } else {
-      filled.set(14);
-    }
-
-    bit4.put((byte) (b ? 1 : 0));
-
-    return this;
-  }
-
-  public Trace bits(final Boolean b) {
+  public Trace byteHi13(final UnsignedByte b) {
     if (filled.get(10)) {
-      throw new IllegalStateException("wcp.BITS already set");
+      throw new IllegalStateException("blockhash.BYTE_HI_13 already set");
     } else {
       filled.set(10);
     }
 
-    bits.put((byte) (b ? 1 : 0));
+    byteHi13.put(b.toByte());
 
     return this;
   }
 
-  public Trace byte1(final UnsignedByte b) {
+  public Trace byteHi14(final UnsignedByte b) {
+    if (filled.get(11)) {
+      throw new IllegalStateException("blockhash.BYTE_HI_14 already set");
+    } else {
+      filled.set(11);
+    }
+
+    byteHi14.put(b.toByte());
+
+    return this;
+  }
+
+  public Trace byteHi15(final UnsignedByte b) {
+    if (filled.get(12)) {
+      throw new IllegalStateException("blockhash.BYTE_HI_15 already set");
+    } else {
+      filled.set(12);
+    }
+
+    byteHi15.put(b.toByte());
+
+    return this;
+  }
+
+  public Trace byteHi2(final UnsignedByte b) {
+    if (filled.get(13)) {
+      throw new IllegalStateException("blockhash.BYTE_HI_2 already set");
+    } else {
+      filled.set(13);
+    }
+
+    byteHi2.put(b.toByte());
+
+    return this;
+  }
+
+  public Trace byteHi3(final UnsignedByte b) {
+    if (filled.get(14)) {
+      throw new IllegalStateException("blockhash.BYTE_HI_3 already set");
+    } else {
+      filled.set(14);
+    }
+
+    byteHi3.put(b.toByte());
+
+    return this;
+  }
+
+  public Trace byteHi4(final UnsignedByte b) {
     if (filled.get(15)) {
-      throw new IllegalStateException("wcp.BYTE_1 already set");
+      throw new IllegalStateException("blockhash.BYTE_HI_4 already set");
     } else {
       filled.set(15);
     }
 
-    byte1.put(b.toByte());
+    byteHi4.put(b.toByte());
 
     return this;
   }
 
-  public Trace byte2(final UnsignedByte b) {
+  public Trace byteHi5(final UnsignedByte b) {
     if (filled.get(16)) {
-      throw new IllegalStateException("wcp.BYTE_2 already set");
+      throw new IllegalStateException("blockhash.BYTE_HI_5 already set");
     } else {
       filled.set(16);
     }
 
-    byte2.put(b.toByte());
+    byteHi5.put(b.toByte());
 
     return this;
   }
 
-  public Trace byte3(final UnsignedByte b) {
+  public Trace byteHi6(final UnsignedByte b) {
     if (filled.get(17)) {
-      throw new IllegalStateException("wcp.BYTE_3 already set");
+      throw new IllegalStateException("blockhash.BYTE_HI_6 already set");
     } else {
       filled.set(17);
     }
 
-    byte3.put(b.toByte());
+    byteHi6.put(b.toByte());
 
     return this;
   }
 
-  public Trace byte4(final UnsignedByte b) {
+  public Trace byteHi7(final UnsignedByte b) {
     if (filled.get(18)) {
-      throw new IllegalStateException("wcp.BYTE_4 already set");
+      throw new IllegalStateException("blockhash.BYTE_HI_7 already set");
     } else {
       filled.set(18);
     }
 
-    byte4.put(b.toByte());
+    byteHi7.put(b.toByte());
 
     return this;
   }
 
-  public Trace byte5(final UnsignedByte b) {
+  public Trace byteHi8(final UnsignedByte b) {
     if (filled.get(19)) {
-      throw new IllegalStateException("wcp.BYTE_5 already set");
+      throw new IllegalStateException("blockhash.BYTE_HI_8 already set");
     } else {
       filled.set(19);
     }
 
-    byte5.put(b.toByte());
+    byteHi8.put(b.toByte());
 
     return this;
   }
 
-  public Trace byte6(final UnsignedByte b) {
+  public Trace byteHi9(final UnsignedByte b) {
     if (filled.get(20)) {
-      throw new IllegalStateException("wcp.BYTE_6 already set");
+      throw new IllegalStateException("blockhash.BYTE_HI_9 already set");
     } else {
       filled.set(20);
     }
 
-    byte6.put(b.toByte());
+    byteHi9.put(b.toByte());
 
     return this;
   }
 
-  public Trace counter(final UnsignedByte b) {
+  public Trace byteLo0(final UnsignedByte b) {
     if (filled.get(21)) {
-      throw new IllegalStateException("wcp.COUNTER already set");
+      throw new IllegalStateException("blockhash.BYTE_LO_0 already set");
     } else {
       filled.set(21);
     }
 
-    counter.put(b.toByte());
+    byteLo0.put(b.toByte());
 
     return this;
   }
 
-  public Trace ctMax(final UnsignedByte b) {
+  public Trace byteLo1(final UnsignedByte b) {
     if (filled.get(22)) {
-      throw new IllegalStateException("wcp.CT_MAX already set");
+      throw new IllegalStateException("blockhash.BYTE_LO_1 already set");
     } else {
       filled.set(22);
     }
 
-    ctMax.put(b.toByte());
+    byteLo1.put(b.toByte());
 
     return this;
   }
 
-  public Trace inst(final UnsignedByte b) {
+  public Trace byteLo10(final UnsignedByte b) {
     if (filled.get(23)) {
-      throw new IllegalStateException("wcp.INST already set");
+      throw new IllegalStateException("blockhash.BYTE_LO_10 already set");
     } else {
       filled.set(23);
     }
 
-    inst.put(b.toByte());
+    byteLo10.put(b.toByte());
 
     return this;
   }
 
-  public Trace isEq(final Boolean b) {
+  public Trace byteLo11(final UnsignedByte b) {
     if (filled.get(24)) {
-      throw new IllegalStateException("wcp.IS_EQ already set");
+      throw new IllegalStateException("blockhash.BYTE_LO_11 already set");
     } else {
       filled.set(24);
     }
 
-    isEq.put((byte) (b ? 1 : 0));
+    byteLo11.put(b.toByte());
 
     return this;
   }
 
-  public Trace isGeq(final Boolean b) {
+  public Trace byteLo12(final UnsignedByte b) {
     if (filled.get(25)) {
-      throw new IllegalStateException("wcp.IS_GEQ already set");
+      throw new IllegalStateException("blockhash.BYTE_LO_12 already set");
     } else {
       filled.set(25);
     }
 
-    isGeq.put((byte) (b ? 1 : 0));
+    byteLo12.put(b.toByte());
 
     return this;
   }
 
-  public Trace isGt(final Boolean b) {
+  public Trace byteLo13(final UnsignedByte b) {
     if (filled.get(26)) {
-      throw new IllegalStateException("wcp.IS_GT already set");
+      throw new IllegalStateException("blockhash.BYTE_LO_13 already set");
     } else {
       filled.set(26);
     }
 
-    isGt.put((byte) (b ? 1 : 0));
+    byteLo13.put(b.toByte());
 
     return this;
   }
 
-  public Trace isIszero(final Boolean b) {
+  public Trace byteLo14(final UnsignedByte b) {
     if (filled.get(27)) {
-      throw new IllegalStateException("wcp.IS_ISZERO already set");
+      throw new IllegalStateException("blockhash.BYTE_LO_14 already set");
     } else {
       filled.set(27);
     }
 
-    isIszero.put((byte) (b ? 1 : 0));
+    byteLo14.put(b.toByte());
 
     return this;
   }
 
-  public Trace isLeq(final Boolean b) {
+  public Trace byteLo15(final UnsignedByte b) {
     if (filled.get(28)) {
-      throw new IllegalStateException("wcp.IS_LEQ already set");
+      throw new IllegalStateException("blockhash.BYTE_LO_15 already set");
     } else {
       filled.set(28);
     }
 
-    isLeq.put((byte) (b ? 1 : 0));
+    byteLo15.put(b.toByte());
 
     return this;
   }
 
-  public Trace isLt(final Boolean b) {
+  public Trace byteLo2(final UnsignedByte b) {
     if (filled.get(29)) {
-      throw new IllegalStateException("wcp.IS_LT already set");
+      throw new IllegalStateException("blockhash.BYTE_LO_2 already set");
     } else {
       filled.set(29);
     }
 
-    isLt.put((byte) (b ? 1 : 0));
+    byteLo2.put(b.toByte());
 
     return this;
   }
 
-  public Trace isSgt(final Boolean b) {
+  public Trace byteLo3(final UnsignedByte b) {
     if (filled.get(30)) {
-      throw new IllegalStateException("wcp.IS_SGT already set");
+      throw new IllegalStateException("blockhash.BYTE_LO_3 already set");
     } else {
       filled.set(30);
     }
 
-    isSgt.put((byte) (b ? 1 : 0));
+    byteLo3.put(b.toByte());
 
     return this;
   }
 
-  public Trace isSlt(final Boolean b) {
+  public Trace byteLo4(final UnsignedByte b) {
     if (filled.get(31)) {
-      throw new IllegalStateException("wcp.IS_SLT already set");
+      throw new IllegalStateException("blockhash.BYTE_LO_4 already set");
     } else {
       filled.set(31);
     }
 
-    isSlt.put((byte) (b ? 1 : 0));
+    byteLo4.put(b.toByte());
 
     return this;
   }
 
-  public Trace neg1(final Boolean b) {
+  public Trace byteLo5(final UnsignedByte b) {
     if (filled.get(32)) {
-      throw new IllegalStateException("wcp.NEG_1 already set");
+      throw new IllegalStateException("blockhash.BYTE_LO_5 already set");
     } else {
       filled.set(32);
     }
 
-    neg1.put((byte) (b ? 1 : 0));
+    byteLo5.put(b.toByte());
 
     return this;
   }
 
-  public Trace neg2(final Boolean b) {
+  public Trace byteLo6(final UnsignedByte b) {
     if (filled.get(33)) {
-      throw new IllegalStateException("wcp.NEG_2 already set");
+      throw new IllegalStateException("blockhash.BYTE_LO_6 already set");
     } else {
       filled.set(33);
     }
 
-    neg2.put((byte) (b ? 1 : 0));
+    byteLo6.put(b.toByte());
 
     return this;
   }
 
-  public Trace oneLineInstruction(final Boolean b) {
+  public Trace byteLo7(final UnsignedByte b) {
     if (filled.get(34)) {
-      throw new IllegalStateException("wcp.ONE_LINE_INSTRUCTION already set");
+      throw new IllegalStateException("blockhash.BYTE_LO_7 already set");
     } else {
       filled.set(34);
     }
 
-    oneLineInstruction.put((byte) (b ? 1 : 0));
+    byteLo7.put(b.toByte());
 
     return this;
   }
 
-  public Trace result(final Boolean b) {
+  public Trace byteLo8(final UnsignedByte b) {
     if (filled.get(35)) {
-      throw new IllegalStateException("wcp.RESULT already set");
+      throw new IllegalStateException("blockhash.BYTE_LO_8 already set");
     } else {
       filled.set(35);
     }
 
-    result.put((byte) (b ? 1 : 0));
+    byteLo8.put(b.toByte());
 
     return this;
   }
 
-  public Trace variableLengthInstruction(final Boolean b) {
+  public Trace byteLo9(final UnsignedByte b) {
     if (filled.get(36)) {
-      throw new IllegalStateException("wcp.VARIABLE_LENGTH_INSTRUCTION already set");
+      throw new IllegalStateException("blockhash.BYTE_LO_9 already set");
     } else {
       filled.set(36);
     }
 
-    variableLengthInstruction.put((byte) (b ? 1 : 0));
+    byteLo9.put(b.toByte());
 
     return this;
   }
 
-  public Trace wordComparisonStamp(final long b) {
+  public Trace inRange(final Boolean b) {
     if (filled.get(37)) {
-      throw new IllegalStateException("wcp.WORD_COMPARISON_STAMP already set");
+      throw new IllegalStateException("blockhash.IN_RANGE already set");
     } else {
       filled.set(37);
     }
 
-    wordComparisonStamp.putLong(b);
+    inRange.put((byte) (b ? 1 : 0));
+
+    return this;
+  }
+
+  public Trace iomf(final Boolean b) {
+    if (filled.get(38)) {
+      throw new IllegalStateException("blockhash.IOMF already set");
+    } else {
+      filled.set(38);
+    }
+
+    iomf.put((byte) (b ? 1 : 0));
+
+    return this;
+  }
+
+  public Trace lowerBoundCheck(final Boolean b) {
+    if (filled.get(39)) {
+      throw new IllegalStateException("blockhash.LOWER_BOUND_CHECK already set");
+    } else {
+      filled.set(39);
+    }
+
+    lowerBoundCheck.put((byte) (b ? 1 : 0));
+
+    return this;
+  }
+
+  public Trace relBlock(final short b) {
+    if (filled.get(40)) {
+      throw new IllegalStateException("blockhash.REL_BLOCK already set");
+    } else {
+      filled.set(40);
+    }
+
+    relBlock.putShort(b);
+
+    return this;
+  }
+
+  public Trace resHi(final Bytes b) {
+    if (filled.get(41)) {
+      throw new IllegalStateException("blockhash.RES_HI already set");
+    } else {
+      filled.set(41);
+    }
+
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      resHi.put((byte) 0);
+    }
+    resHi.put(b.toArrayUnsafe());
+
+    return this;
+  }
+
+  public Trace resLo(final Bytes b) {
+    if (filled.get(42)) {
+      throw new IllegalStateException("blockhash.RES_LO already set");
+    } else {
+      filled.set(42);
+    }
+
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      resLo.put((byte) 0);
+    }
+    resLo.put(b.toArrayUnsafe());
+
+    return this;
+  }
+
+  public Trace upperBoundCheck(final Boolean b) {
+    if (filled.get(43)) {
+      throw new IllegalStateException("blockhash.UPPER_BOUND_CHECK already set");
+    } else {
+      filled.set(43);
+    }
+
+    upperBoundCheck.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
   public Trace validateRow() {
     if (!filled.get(0)) {
-      throw new IllegalStateException("wcp.ACC_1 has not been filled");
+      throw new IllegalStateException("blockhash.ABS_BLOCK has not been filled");
     }
 
     if (!filled.get(1)) {
-      throw new IllegalStateException("wcp.ACC_2 has not been filled");
+      throw new IllegalStateException("blockhash.BLOCK_HASH_HI has not been filled");
     }
 
     if (!filled.get(2)) {
-      throw new IllegalStateException("wcp.ACC_3 has not been filled");
+      throw new IllegalStateException("blockhash.BLOCK_HASH_LO has not been filled");
     }
 
     if (!filled.get(3)) {
-      throw new IllegalStateException("wcp.ACC_4 has not been filled");
+      throw new IllegalStateException("blockhash.BLOCK_NUMBER_HI has not been filled");
     }
 
     if (!filled.get(4)) {
-      throw new IllegalStateException("wcp.ACC_5 has not been filled");
+      throw new IllegalStateException("blockhash.BLOCK_NUMBER_LO has not been filled");
     }
 
     if (!filled.get(5)) {
-      throw new IllegalStateException("wcp.ACC_6 has not been filled");
+      throw new IllegalStateException("blockhash.BYTE_HI_0 has not been filled");
     }
 
     if (!filled.get(6)) {
-      throw new IllegalStateException("wcp.ARGUMENT_1_HI has not been filled");
+      throw new IllegalStateException("blockhash.BYTE_HI_1 has not been filled");
     }
 
     if (!filled.get(7)) {
-      throw new IllegalStateException("wcp.ARGUMENT_1_LO has not been filled");
+      throw new IllegalStateException("blockhash.BYTE_HI_10 has not been filled");
     }
 
     if (!filled.get(8)) {
-      throw new IllegalStateException("wcp.ARGUMENT_2_HI has not been filled");
+      throw new IllegalStateException("blockhash.BYTE_HI_11 has not been filled");
     }
 
     if (!filled.get(9)) {
-      throw new IllegalStateException("wcp.ARGUMENT_2_LO has not been filled");
-    }
-
-    if (!filled.get(11)) {
-      throw new IllegalStateException("wcp.BIT_1 has not been filled");
-    }
-
-    if (!filled.get(12)) {
-      throw new IllegalStateException("wcp.BIT_2 has not been filled");
-    }
-
-    if (!filled.get(13)) {
-      throw new IllegalStateException("wcp.BIT_3 has not been filled");
-    }
-
-    if (!filled.get(14)) {
-      throw new IllegalStateException("wcp.BIT_4 has not been filled");
+      throw new IllegalStateException("blockhash.BYTE_HI_12 has not been filled");
     }
 
     if (!filled.get(10)) {
-      throw new IllegalStateException("wcp.BITS has not been filled");
+      throw new IllegalStateException("blockhash.BYTE_HI_13 has not been filled");
+    }
+
+    if (!filled.get(11)) {
+      throw new IllegalStateException("blockhash.BYTE_HI_14 has not been filled");
+    }
+
+    if (!filled.get(12)) {
+      throw new IllegalStateException("blockhash.BYTE_HI_15 has not been filled");
+    }
+
+    if (!filled.get(13)) {
+      throw new IllegalStateException("blockhash.BYTE_HI_2 has not been filled");
+    }
+
+    if (!filled.get(14)) {
+      throw new IllegalStateException("blockhash.BYTE_HI_3 has not been filled");
     }
 
     if (!filled.get(15)) {
-      throw new IllegalStateException("wcp.BYTE_1 has not been filled");
+      throw new IllegalStateException("blockhash.BYTE_HI_4 has not been filled");
     }
 
     if (!filled.get(16)) {
-      throw new IllegalStateException("wcp.BYTE_2 has not been filled");
+      throw new IllegalStateException("blockhash.BYTE_HI_5 has not been filled");
     }
 
     if (!filled.get(17)) {
-      throw new IllegalStateException("wcp.BYTE_3 has not been filled");
+      throw new IllegalStateException("blockhash.BYTE_HI_6 has not been filled");
     }
 
     if (!filled.get(18)) {
-      throw new IllegalStateException("wcp.BYTE_4 has not been filled");
+      throw new IllegalStateException("blockhash.BYTE_HI_7 has not been filled");
     }
 
     if (!filled.get(19)) {
-      throw new IllegalStateException("wcp.BYTE_5 has not been filled");
+      throw new IllegalStateException("blockhash.BYTE_HI_8 has not been filled");
     }
 
     if (!filled.get(20)) {
-      throw new IllegalStateException("wcp.BYTE_6 has not been filled");
+      throw new IllegalStateException("blockhash.BYTE_HI_9 has not been filled");
     }
 
     if (!filled.get(21)) {
-      throw new IllegalStateException("wcp.COUNTER has not been filled");
+      throw new IllegalStateException("blockhash.BYTE_LO_0 has not been filled");
     }
 
     if (!filled.get(22)) {
-      throw new IllegalStateException("wcp.CT_MAX has not been filled");
+      throw new IllegalStateException("blockhash.BYTE_LO_1 has not been filled");
     }
 
     if (!filled.get(23)) {
-      throw new IllegalStateException("wcp.INST has not been filled");
+      throw new IllegalStateException("blockhash.BYTE_LO_10 has not been filled");
     }
 
     if (!filled.get(24)) {
-      throw new IllegalStateException("wcp.IS_EQ has not been filled");
+      throw new IllegalStateException("blockhash.BYTE_LO_11 has not been filled");
     }
 
     if (!filled.get(25)) {
-      throw new IllegalStateException("wcp.IS_GEQ has not been filled");
+      throw new IllegalStateException("blockhash.BYTE_LO_12 has not been filled");
     }
 
     if (!filled.get(26)) {
-      throw new IllegalStateException("wcp.IS_GT has not been filled");
+      throw new IllegalStateException("blockhash.BYTE_LO_13 has not been filled");
     }
 
     if (!filled.get(27)) {
-      throw new IllegalStateException("wcp.IS_ISZERO has not been filled");
+      throw new IllegalStateException("blockhash.BYTE_LO_14 has not been filled");
     }
 
     if (!filled.get(28)) {
-      throw new IllegalStateException("wcp.IS_LEQ has not been filled");
+      throw new IllegalStateException("blockhash.BYTE_LO_15 has not been filled");
     }
 
     if (!filled.get(29)) {
-      throw new IllegalStateException("wcp.IS_LT has not been filled");
+      throw new IllegalStateException("blockhash.BYTE_LO_2 has not been filled");
     }
 
     if (!filled.get(30)) {
-      throw new IllegalStateException("wcp.IS_SGT has not been filled");
+      throw new IllegalStateException("blockhash.BYTE_LO_3 has not been filled");
     }
 
     if (!filled.get(31)) {
-      throw new IllegalStateException("wcp.IS_SLT has not been filled");
+      throw new IllegalStateException("blockhash.BYTE_LO_4 has not been filled");
     }
 
     if (!filled.get(32)) {
-      throw new IllegalStateException("wcp.NEG_1 has not been filled");
+      throw new IllegalStateException("blockhash.BYTE_LO_5 has not been filled");
     }
 
     if (!filled.get(33)) {
-      throw new IllegalStateException("wcp.NEG_2 has not been filled");
+      throw new IllegalStateException("blockhash.BYTE_LO_6 has not been filled");
     }
 
     if (!filled.get(34)) {
-      throw new IllegalStateException("wcp.ONE_LINE_INSTRUCTION has not been filled");
+      throw new IllegalStateException("blockhash.BYTE_LO_7 has not been filled");
     }
 
     if (!filled.get(35)) {
-      throw new IllegalStateException("wcp.RESULT has not been filled");
+      throw new IllegalStateException("blockhash.BYTE_LO_8 has not been filled");
     }
 
     if (!filled.get(36)) {
-      throw new IllegalStateException("wcp.VARIABLE_LENGTH_INSTRUCTION has not been filled");
+      throw new IllegalStateException("blockhash.BYTE_LO_9 has not been filled");
     }
 
     if (!filled.get(37)) {
-      throw new IllegalStateException("wcp.WORD_COMPARISON_STAMP has not been filled");
+      throw new IllegalStateException("blockhash.IN_RANGE has not been filled");
+    }
+
+    if (!filled.get(38)) {
+      throw new IllegalStateException("blockhash.IOMF has not been filled");
+    }
+
+    if (!filled.get(39)) {
+      throw new IllegalStateException("blockhash.LOWER_BOUND_CHECK has not been filled");
+    }
+
+    if (!filled.get(40)) {
+      throw new IllegalStateException("blockhash.REL_BLOCK has not been filled");
+    }
+
+    if (!filled.get(41)) {
+      throw new IllegalStateException("blockhash.RES_HI has not been filled");
+    }
+
+    if (!filled.get(42)) {
+      throw new IllegalStateException("blockhash.RES_LO has not been filled");
+    }
+
+    if (!filled.get(43)) {
+      throw new IllegalStateException("blockhash.UPPER_BOUND_CHECK has not been filled");
     }
 
     filled.clear();
@@ -1143,155 +1246,179 @@ public class Trace {
 
   public Trace fillAndValidateRow() {
     if (!filled.get(0)) {
-      acc1.position(acc1.position() + 32);
+      absBlock.position(absBlock.position() + 8);
     }
 
     if (!filled.get(1)) {
-      acc2.position(acc2.position() + 32);
+      blockHashHi.position(blockHashHi.position() + 32);
     }
 
     if (!filled.get(2)) {
-      acc3.position(acc3.position() + 32);
+      blockHashLo.position(blockHashLo.position() + 32);
     }
 
     if (!filled.get(3)) {
-      acc4.position(acc4.position() + 32);
+      blockNumberHi.position(blockNumberHi.position() + 32);
     }
 
     if (!filled.get(4)) {
-      acc5.position(acc5.position() + 32);
+      blockNumberLo.position(blockNumberLo.position() + 32);
     }
 
     if (!filled.get(5)) {
-      acc6.position(acc6.position() + 32);
+      byteHi0.position(byteHi0.position() + 1);
     }
 
     if (!filled.get(6)) {
-      argument1Hi.position(argument1Hi.position() + 32);
+      byteHi1.position(byteHi1.position() + 1);
     }
 
     if (!filled.get(7)) {
-      argument1Lo.position(argument1Lo.position() + 32);
+      byteHi10.position(byteHi10.position() + 1);
     }
 
     if (!filled.get(8)) {
-      argument2Hi.position(argument2Hi.position() + 32);
+      byteHi11.position(byteHi11.position() + 1);
     }
 
     if (!filled.get(9)) {
-      argument2Lo.position(argument2Lo.position() + 32);
-    }
-
-    if (!filled.get(11)) {
-      bit1.position(bit1.position() + 1);
-    }
-
-    if (!filled.get(12)) {
-      bit2.position(bit2.position() + 1);
-    }
-
-    if (!filled.get(13)) {
-      bit3.position(bit3.position() + 1);
-    }
-
-    if (!filled.get(14)) {
-      bit4.position(bit4.position() + 1);
+      byteHi12.position(byteHi12.position() + 1);
     }
 
     if (!filled.get(10)) {
-      bits.position(bits.position() + 1);
+      byteHi13.position(byteHi13.position() + 1);
+    }
+
+    if (!filled.get(11)) {
+      byteHi14.position(byteHi14.position() + 1);
+    }
+
+    if (!filled.get(12)) {
+      byteHi15.position(byteHi15.position() + 1);
+    }
+
+    if (!filled.get(13)) {
+      byteHi2.position(byteHi2.position() + 1);
+    }
+
+    if (!filled.get(14)) {
+      byteHi3.position(byteHi3.position() + 1);
     }
 
     if (!filled.get(15)) {
-      byte1.position(byte1.position() + 1);
+      byteHi4.position(byteHi4.position() + 1);
     }
 
     if (!filled.get(16)) {
-      byte2.position(byte2.position() + 1);
+      byteHi5.position(byteHi5.position() + 1);
     }
 
     if (!filled.get(17)) {
-      byte3.position(byte3.position() + 1);
+      byteHi6.position(byteHi6.position() + 1);
     }
 
     if (!filled.get(18)) {
-      byte4.position(byte4.position() + 1);
+      byteHi7.position(byteHi7.position() + 1);
     }
 
     if (!filled.get(19)) {
-      byte5.position(byte5.position() + 1);
+      byteHi8.position(byteHi8.position() + 1);
     }
 
     if (!filled.get(20)) {
-      byte6.position(byte6.position() + 1);
+      byteHi9.position(byteHi9.position() + 1);
     }
 
     if (!filled.get(21)) {
-      counter.position(counter.position() + 1);
+      byteLo0.position(byteLo0.position() + 1);
     }
 
     if (!filled.get(22)) {
-      ctMax.position(ctMax.position() + 1);
+      byteLo1.position(byteLo1.position() + 1);
     }
 
     if (!filled.get(23)) {
-      inst.position(inst.position() + 1);
+      byteLo10.position(byteLo10.position() + 1);
     }
 
     if (!filled.get(24)) {
-      isEq.position(isEq.position() + 1);
+      byteLo11.position(byteLo11.position() + 1);
     }
 
     if (!filled.get(25)) {
-      isGeq.position(isGeq.position() + 1);
+      byteLo12.position(byteLo12.position() + 1);
     }
 
     if (!filled.get(26)) {
-      isGt.position(isGt.position() + 1);
+      byteLo13.position(byteLo13.position() + 1);
     }
 
     if (!filled.get(27)) {
-      isIszero.position(isIszero.position() + 1);
+      byteLo14.position(byteLo14.position() + 1);
     }
 
     if (!filled.get(28)) {
-      isLeq.position(isLeq.position() + 1);
+      byteLo15.position(byteLo15.position() + 1);
     }
 
     if (!filled.get(29)) {
-      isLt.position(isLt.position() + 1);
+      byteLo2.position(byteLo2.position() + 1);
     }
 
     if (!filled.get(30)) {
-      isSgt.position(isSgt.position() + 1);
+      byteLo3.position(byteLo3.position() + 1);
     }
 
     if (!filled.get(31)) {
-      isSlt.position(isSlt.position() + 1);
+      byteLo4.position(byteLo4.position() + 1);
     }
 
     if (!filled.get(32)) {
-      neg1.position(neg1.position() + 1);
+      byteLo5.position(byteLo5.position() + 1);
     }
 
     if (!filled.get(33)) {
-      neg2.position(neg2.position() + 1);
+      byteLo6.position(byteLo6.position() + 1);
     }
 
     if (!filled.get(34)) {
-      oneLineInstruction.position(oneLineInstruction.position() + 1);
+      byteLo7.position(byteLo7.position() + 1);
     }
 
     if (!filled.get(35)) {
-      result.position(result.position() + 1);
+      byteLo8.position(byteLo8.position() + 1);
     }
 
     if (!filled.get(36)) {
-      variableLengthInstruction.position(variableLengthInstruction.position() + 1);
+      byteLo9.position(byteLo9.position() + 1);
     }
 
     if (!filled.get(37)) {
-      wordComparisonStamp.position(wordComparisonStamp.position() + 8);
+      inRange.position(inRange.position() + 1);
+    }
+
+    if (!filled.get(38)) {
+      iomf.position(iomf.position() + 1);
+    }
+
+    if (!filled.get(39)) {
+      lowerBoundCheck.position(lowerBoundCheck.position() + 1);
+    }
+
+    if (!filled.get(40)) {
+      relBlock.position(relBlock.position() + 2);
+    }
+
+    if (!filled.get(41)) {
+      resHi.position(resHi.position() + 32);
+    }
+
+    if (!filled.get(42)) {
+      resLo.position(resLo.position() + 32);
+    }
+
+    if (!filled.get(43)) {
+      upperBoundCheck.position(upperBoundCheck.position() + 1);
     }
 
     filled.clear();

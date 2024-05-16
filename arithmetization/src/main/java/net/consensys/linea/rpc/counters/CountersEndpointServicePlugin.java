@@ -72,7 +72,5 @@ public class CountersEndpointServicePlugin extends AbstractLineaSharedOptionsPlu
 
   /** Start the RPC service. This method loads the OpCodes. */
   @Override
-  public void start() {
-    OpCodes.load();
-  }
+  public void start() {}
 }

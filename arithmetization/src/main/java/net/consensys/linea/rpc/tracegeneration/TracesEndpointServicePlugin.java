@@ -74,7 +74,5 @@ public class TracesEndpointServicePlugin extends AbstractLineaSharedOptionsPlugi
 
   /** Start the RPC service. This method loads the OpCodes. */
   @Override
-  public void start() {
-    OpCodes.load();
-  }
+  public void start() {}
 }

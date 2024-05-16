@@ -27,7 +27,6 @@ import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-@ExtendWith(EvmExtension.class)
 class ExampleTxTest {
 
   @Test

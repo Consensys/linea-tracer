@@ -21,7 +21,6 @@ import java.util.List;
 
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.testing.BytecodeCompiler;
-import net.consensys.linea.zktracer.testing.EvmExtension;
 import net.consensys.linea.zktracer.testing.ToyAccount;
 import net.consensys.linea.zktracer.testing.ToyExecutionEnvironment;
 import net.consensys.linea.zktracer.testing.ToyTransaction;
@@ -37,7 +36,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 /** Ensure that calling a contract with empty code does not generate a virtual STOP trace */
-@ExtendWith(EvmExtension.class)
 public class CallEmptyNoStopTest {
   @Test
   void test() {

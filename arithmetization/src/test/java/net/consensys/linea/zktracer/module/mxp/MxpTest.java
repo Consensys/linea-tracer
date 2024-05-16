@@ -27,7 +27,6 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.gas.MxpType;
 import net.consensys.linea.zktracer.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.testing.BytecodeRunner;
-import net.consensys.linea.zktracer.testing.EvmExtension;
 import net.consensys.linea.zktracer.testing.ToyAccount;
 import net.consensys.linea.zktracer.testing.ToyExecutionEnvironment;
 import net.consensys.linea.zktracer.testing.ToyTransaction;
@@ -46,7 +45,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 // https://github.com/Consensys/linea-besu-plugin/issues/197
 
-@ExtendWith(EvmExtension.class)
 public class MxpTest {
   private static final Random RAND = new Random(123456789123456L);
   public static final EWord TWO_POW_128 = EWord.of(EWord.ONE.shiftLeft(128));

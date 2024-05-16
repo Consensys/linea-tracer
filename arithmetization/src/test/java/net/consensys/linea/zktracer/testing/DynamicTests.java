@@ -48,7 +48,6 @@ public class DynamicTests {
   private final Module module;
 
   private DynamicTests(Module module) {
-    OpCodes.load();
     this.module = module;
     this.testCaseRegistry = new LinkedList<>();
   }

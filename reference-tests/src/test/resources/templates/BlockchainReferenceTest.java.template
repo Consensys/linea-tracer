@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /** The blockchain test operation testing framework entry point. */
 @Tag("BlockchainReferenceTest")
-@ExtendWith(EvmExtension.class)
 public class %%TESTS_NAME%% {
 
   private static final String[] TEST_CONFIG_FILE_DIR_PATH = new String[] {%%TESTS_FILE%%};

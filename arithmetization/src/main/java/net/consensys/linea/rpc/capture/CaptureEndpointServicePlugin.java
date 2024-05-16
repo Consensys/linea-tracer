@@ -66,7 +66,5 @@ public class CaptureEndpointServicePlugin extends AbstractLineaRequiredPlugin {
 
   /** Start the RPC service. This method loads the OpCodes. */
   @Override
-  public void start() {
-    OpCodes.load();
-  }
+  public void start() {}
 }

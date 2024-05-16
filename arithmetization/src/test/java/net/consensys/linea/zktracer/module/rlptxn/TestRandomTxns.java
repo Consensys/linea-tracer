@@ -48,7 +48,6 @@ class TestRandomTxns {
 
   @Test
   void test() {
-    OpCodes.load();
     ToyWorld.ToyWorldBuilder world = ToyWorld.builder();
     List<Transaction> txList = new ArrayList<>();
 

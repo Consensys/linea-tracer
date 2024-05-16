@@ -97,8 +97,6 @@ public class ContinuousTracingPlugin implements BesuPlugin {
       System.exit(1);
     }
 
-    OpCodes.load(); // must be loaded explicitly
-
     besuEvents.addBlockAddedListener(
         new ContinuousTracingBlockAddedListener(
             new ContinuousTracer(traceService, new CorsetValidator()),

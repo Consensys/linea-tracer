@@ -77,7 +77,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   public ZkTracer(final LineaL1L2BridgeConfiguration bridgeConfiguration) {
     this.hub = new Hub(bridgeConfiguration.contract(), bridgeConfiguration.topic());
     for (Module m : this.hub.getModulesToCount()) {
-      if (!this.spillings.containsKey(m.moduleKey())) {
+      if (!spillings.containsKey(m.moduleKey())) {
         throw new IllegalStateException(
             "Spilling for module " + m.moduleKey() + " not defined in spillings.toml");
       }
@@ -229,7 +229,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
                 modulesLineCount.put(
                     m.moduleKey(),
                     m.lineCount()
-                        + Optional.ofNullable(this.spillings.get(m.moduleKey()))
+                        + Optional.ofNullable(spillings.get(m.moduleKey()))
                             .orElseThrow(
                                 () ->
                                     new IllegalStateException(

@@ -661,7 +661,8 @@ public class Trace {
     }
 
     if (!filled.get(20)) {
-      throw new IllegalStateException("exp.RAW_ACC_xor_DATA_1_xor_WCP_ARG_1_HI has not been filled");
+      throw new IllegalStateException(
+          "exp.RAW_ACC_xor_DATA_1_xor_WCP_ARG_1_HI has not been filled");
     }
 
     if (!filled.get(14)) {
@@ -681,7 +682,8 @@ public class Trace {
     }
 
     if (!filled.get(21)) {
-      throw new IllegalStateException("exp.TRIM_ACC_xor_DATA_2_xor_WCP_ARG_1_LO has not been filled");
+      throw new IllegalStateException(
+          "exp.TRIM_ACC_xor_DATA_2_xor_WCP_ARG_1_LO has not been filled");
     }
 
     if (!filled.get(15)) {

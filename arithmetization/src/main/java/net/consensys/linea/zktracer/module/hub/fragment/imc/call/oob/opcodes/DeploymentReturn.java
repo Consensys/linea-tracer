@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes;
 
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_deployment;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_DEPLOYMENT;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
@@ -37,6 +37,6 @@ public record DeploymentReturn(EWord size) implements OobCall {
 
   @Override
   public int oobInstruction() {
-    return OOB_INST_deployment;
+    return OOB_INST_DEPLOYMENT;
   }
 }

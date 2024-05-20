@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 import lombok.Getter;
@@ -607,59 +608,69 @@ public class Hub implements Module {
       }
     }
 
+    List<CompletableFuture<Void>> futures = new ArrayList();
+
     if (this.pch.signals().romLex()) {
-      this.romLex.tracePreOpcode(frame);
+      futures.add(CompletableFuture.runAsync(() -> this.romLex.tracePreOpcode(frame)));
     }
     if (this.pch.signals().add()) {
-      this.add.tracePreOpcode(frame);
+      futures.add(CompletableFuture.runAsync(() -> this.add.tracePreOpcode(frame)));
     }
     if (this.pch.signals().bin()) {
-      this.bin.tracePreOpcode(frame);
+      futures.add(CompletableFuture.runAsync(() -> this.bin.tracePreOpcode(frame)));
     }
     if (this.pch.signals().rlpAddr()) {
-      this.rlpAddr.tracePreOpcode(frame);
+      futures.add(CompletableFuture.runAsync(() -> this.rlpAddr.tracePreOpcode(frame)));
     }
     if (this.pch.signals().mul()) {
-      this.mul.tracePreOpcode(frame);
+      futures.add(CompletableFuture.runAsync(() -> this.mul.tracePreOpcode(frame)));
     }
     if (this.pch.signals().ext()) {
-      this.ext.tracePreOpcode(frame);
+      futures.add(CompletableFuture.runAsync(() -> this.ext.tracePreOpcode(frame)));
     }
     if (this.pch.signals().mod()) {
-      this.mod.tracePreOpcode(frame);
+      futures.add(CompletableFuture.runAsync(() -> this.mod.tracePreOpcode(frame)));
     }
     if (this.pch.signals().wcp()) {
-      this.wcp.tracePreOpcode(frame);
+      futures.add(CompletableFuture.runAsync(() -> this.wcp.tracePreOpcode(frame)));
     }
     if (this.pch.signals().shf()) {
-      this.shf.tracePreOpcode(frame);
+      futures.add(CompletableFuture.runAsync(() -> this.shf.tracePreOpcode(frame)));
     }
+    if (this.pch.signals().mmu()) {
+      futures.add(CompletableFuture.runAsync(() -> this.mmu.tracePreOpcode(frame)));
+    }
+
     if (this.pch.signals().mxp()) {
-      this.mxp.tracePreOpcode(frame);
+      futures.add(CompletableFuture.runAsync(() -> this.mxp.tracePreOpcode(frame)));
     }
     if (this.pch.signals().oob()) {
       // TODO: this.oob.tracePreOpcode(frame);
     }
     if (this.pch.signals().stp()) {
-      this.stp.tracePreOpcode(frame);
+      futures.add(CompletableFuture.runAsync(() -> this.stp.tracePreOpcode(frame)));
     }
     if (this.pch.signals().exp()) {
-      this.exp.tracePreOpcode(frame);
-      this.modexpEffectiveCall.tracePreOpcode(frame);
+      futures.add(
+          CompletableFuture.runAsync(
+              () -> {
+                this.exp.tracePreOpcode(frame);
+                this.modexpEffectiveCall.tracePreOpcode(frame);
+              }));
       // if (this.pch.exceptions().none() && this.pch.aborts().none())
     }
     if (this.pch.signals().trm()) {
-      this.trm.tracePreOpcode(frame);
+      futures.add(CompletableFuture.runAsync(() -> this.trm.tracePreOpcode(frame)));
     }
     if (this.pch.signals().hashInfo()) {
       // TODO: this.hashInfo.tracePreOpcode(frame);
     }
     if (this.pch.signals().ecData()) {
-      this.ecData.tracePreOpcode(frame);
+      futures.add(CompletableFuture.runAsync(() -> this.ecData.tracePreOpcode(frame)));
     }
-    if (this.pch.signals().blockhash()) {
-      this.blockhash.tracePreOpcode(frame);
-    }
+
+    // Join all the executions
+    CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
   }
 
   void processStateExec(MessageFrame frame) {

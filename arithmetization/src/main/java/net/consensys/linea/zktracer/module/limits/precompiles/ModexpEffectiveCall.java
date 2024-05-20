@@ -44,12 +44,12 @@ import org.hyperledger.besu.evm.internal.Words;
 public class ModexpEffectiveCall implements Module {
   private final Hub hub;
 
-  @Getter private final Blake2fModexpData data = new Blake2fModexpData();
+  @Getter private final Blake2fModexpData blake2fModexpData;
   private final Stack<Integer> counts = new Stack<>();
-  private static final BigInteger PROVER_MAX_INPUT_BIT_SIZE = BigInteger.valueOf(4096 / 8);
+  private static final BigInteger PROVER_MAX_INPUT_BYTE_SIZE = BigInteger.valueOf(4096 / 8);
   private static final int EVM_WORD_SIZE = 32;
 
-  private int lastDataCallHubStamp = 0;
+  private long lastDataCallHubStamp = 0;
 
   @Override
   public String moduleKey() {
@@ -59,13 +59,11 @@ public class ModexpEffectiveCall implements Module {
   @Override
   public void enterTransaction() {
     counts.push(0);
-    this.data.enterTransaction();
   }
 
   @Override
   public void popTransaction() {
     counts.pop();
-    this.data.popTransaction();
   }
 
   @Override
@@ -81,7 +79,9 @@ public class ModexpEffectiveCall implements Module {
         final BigInteger baseLength = slice(inputData, 0, EVM_WORD_SIZE).toUnsignedBigInteger();
         if (isOutOfProverInputBounds(baseLength)) {
           log.info(
-              "Too big argument, base bit length = {} > {}", baseLength, PROVER_MAX_INPUT_BIT_SIZE);
+              "Too big argument, base byte length = {} > {}",
+              baseLength,
+              PROVER_MAX_INPUT_BYTE_SIZE);
           this.counts.pop();
           this.counts.push(Integer.MAX_VALUE);
           return;
@@ -92,9 +92,9 @@ public class ModexpEffectiveCall implements Module {
             slice(inputData, EVM_WORD_SIZE, EVM_WORD_SIZE).toUnsignedBigInteger();
         if (isOutOfProverInputBounds(expLength)) {
           log.info(
-              "Too big argument, expComponent bit length = {} > {}",
+              "Too big argument, exponent byte length = {} > {}",
               expLength,
-              PROVER_MAX_INPUT_BIT_SIZE);
+              PROVER_MAX_INPUT_BYTE_SIZE);
           this.counts.pop();
           this.counts.push(Integer.MAX_VALUE);
           return;
@@ -105,9 +105,9 @@ public class ModexpEffectiveCall implements Module {
             slice(inputData, 2 * EVM_WORD_SIZE, EVM_WORD_SIZE).toUnsignedBigInteger();
         if (isOutOfProverInputBounds(modLength)) {
           log.info(
-              "Too big argument, modulo bit length = {} > {}",
+              "Too big argument, modulo byte length = {} > {}",
               modLength,
-              PROVER_MAX_INPUT_BIT_SIZE);
+              PROVER_MAX_INPUT_BYTE_SIZE);
           this.counts.pop();
           this.counts.push(Integer.MAX_VALUE);
           return;
@@ -134,7 +134,7 @@ public class ModexpEffectiveCall implements Module {
 
         if (hub.transients().op().gasAllowanceForCall() >= gasPrice) {
           this.lastDataCallHubStamp =
-              this.data.call(
+              this.blake2fModexpData.call(
                   new Blake2fModexpDataOperation(
                       hub.stamp(),
                       lastDataCallHubStamp,
@@ -208,7 +208,7 @@ public class ModexpEffectiveCall implements Module {
   }
 
   private static boolean isOutOfProverInputBounds(BigInteger modexpComponentLength) {
-    return modexpComponentLength.compareTo(PROVER_MAX_INPUT_BIT_SIZE) > 0;
+    return modexpComponentLength.compareTo(PROVER_MAX_INPUT_BYTE_SIZE) > 0;
   }
 
   @Override

@@ -87,14 +87,18 @@ public class Trace {
   private final MappedByteBuffer cmp1;
   private final MappedByteBuffer cmp2;
   private final MappedByteBuffer ct;
-  private final MappedByteBuffer decOutput;
-  private final MappedByteBuffer decSigned;
   private final MappedByteBuffer inst;
+  private final MappedByteBuffer isDiv;
+  private final MappedByteBuffer isMod;
+  private final MappedByteBuffer isSdiv;
+  private final MappedByteBuffer isSmod;
+  private final MappedByteBuffer mli;
   private final MappedByteBuffer msb1;
   private final MappedByteBuffer msb2;
   private final MappedByteBuffer oli;
   private final MappedByteBuffer resHi;
   private final MappedByteBuffer resLo;
+  private final MappedByteBuffer signed;
   private final MappedByteBuffer stamp;
 
   static List<ColumnHeader> headers(int length) {
@@ -151,16 +155,20 @@ public class Trace {
         new ColumnHeader("mod.BYTE_R_3", 1, length),
         new ColumnHeader("mod.CMP_1", 1, length),
         new ColumnHeader("mod.CMP_2", 1, length),
-        new ColumnHeader("mod.CT", 32, length),
-        new ColumnHeader("mod.DEC_OUTPUT", 1, length),
-        new ColumnHeader("mod.DEC_SIGNED", 1, length),
-        new ColumnHeader("mod.INST", 32, length),
+        new ColumnHeader("mod.CT", 2, length),
+        new ColumnHeader("mod.INST", 1, length),
+        new ColumnHeader("mod.IS_DIV", 1, length),
+        new ColumnHeader("mod.IS_MOD", 1, length),
+        new ColumnHeader("mod.IS_SDIV", 1, length),
+        new ColumnHeader("mod.IS_SMOD", 1, length),
+        new ColumnHeader("mod.MLI", 1, length),
         new ColumnHeader("mod.MSB_1", 1, length),
         new ColumnHeader("mod.MSB_2", 1, length),
         new ColumnHeader("mod.OLI", 1, length),
         new ColumnHeader("mod.RES_HI", 32, length),
         new ColumnHeader("mod.RES_LO", 32, length),
-        new ColumnHeader("mod.STAMP", 32, length));
+        new ColumnHeader("mod.SIGNED", 1, length),
+        new ColumnHeader("mod.STAMP", 8, length));
   }
 
   public Trace(List<MappedByteBuffer> buffers) {
@@ -217,15 +225,19 @@ public class Trace {
     this.cmp1 = buffers.get(50);
     this.cmp2 = buffers.get(51);
     this.ct = buffers.get(52);
-    this.decOutput = buffers.get(53);
-    this.decSigned = buffers.get(54);
-    this.inst = buffers.get(55);
-    this.msb1 = buffers.get(56);
-    this.msb2 = buffers.get(57);
-    this.oli = buffers.get(58);
-    this.resHi = buffers.get(59);
-    this.resLo = buffers.get(60);
-    this.stamp = buffers.get(61);
+    this.inst = buffers.get(53);
+    this.isDiv = buffers.get(54);
+    this.isMod = buffers.get(55);
+    this.isSdiv = buffers.get(56);
+    this.isSmod = buffers.get(57);
+    this.mli = buffers.get(58);
+    this.msb1 = buffers.get(59);
+    this.msb2 = buffers.get(60);
+    this.oli = buffers.get(61);
+    this.resHi = buffers.get(62);
+    this.resLo = buffers.get(63);
+    this.signed = buffers.get(64);
+    this.stamp = buffers.get(65);
   }
 
   public int size() {
@@ -968,67 +980,95 @@ public class Trace {
     return this;
   }
 
-  public Trace ct(final Bytes b) {
+  public Trace ct(final short b) {
     if (filled.get(52)) {
       throw new IllegalStateException("mod.CT already set");
     } else {
       filled.set(52);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      ct.put((byte) 0);
-    }
-    ct.put(b.toArrayUnsafe());
+    ct.putShort(b);
 
     return this;
   }
 
-  public Trace decOutput(final Boolean b) {
+  public Trace inst(final UnsignedByte b) {
     if (filled.get(53)) {
-      throw new IllegalStateException("mod.DEC_OUTPUT already set");
+      throw new IllegalStateException("mod.INST already set");
     } else {
       filled.set(53);
     }
 
-    decOutput.put((byte) (b ? 1 : 0));
+    inst.put(b.toByte());
 
     return this;
   }
 
-  public Trace decSigned(final Boolean b) {
+  public Trace isDiv(final Boolean b) {
     if (filled.get(54)) {
-      throw new IllegalStateException("mod.DEC_SIGNED already set");
+      throw new IllegalStateException("mod.IS_DIV already set");
     } else {
       filled.set(54);
     }
 
-    decSigned.put((byte) (b ? 1 : 0));
+    isDiv.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
-  public Trace inst(final Bytes b) {
+  public Trace isMod(final Boolean b) {
     if (filled.get(55)) {
-      throw new IllegalStateException("mod.INST already set");
+      throw new IllegalStateException("mod.IS_MOD already set");
     } else {
       filled.set(55);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      inst.put((byte) 0);
+    isMod.put((byte) (b ? 1 : 0));
+
+    return this;
+  }
+
+  public Trace isSdiv(final Boolean b) {
+    if (filled.get(56)) {
+      throw new IllegalStateException("mod.IS_SDIV already set");
+    } else {
+      filled.set(56);
     }
-    inst.put(b.toArrayUnsafe());
+
+    isSdiv.put((byte) (b ? 1 : 0));
+
+    return this;
+  }
+
+  public Trace isSmod(final Boolean b) {
+    if (filled.get(57)) {
+      throw new IllegalStateException("mod.IS_SMOD already set");
+    } else {
+      filled.set(57);
+    }
+
+    isSmod.put((byte) (b ? 1 : 0));
+
+    return this;
+  }
+
+  public Trace mli(final Boolean b) {
+    if (filled.get(58)) {
+      throw new IllegalStateException("mod.MLI already set");
+    } else {
+      filled.set(58);
+    }
+
+    mli.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
   public Trace msb1(final Boolean b) {
-    if (filled.get(56)) {
+    if (filled.get(59)) {
       throw new IllegalStateException("mod.MSB_1 already set");
     } else {
-      filled.set(56);
+      filled.set(59);
     }
 
     msb1.put((byte) (b ? 1 : 0));
@@ -1037,10 +1077,10 @@ public class Trace {
   }
 
   public Trace msb2(final Boolean b) {
-    if (filled.get(57)) {
+    if (filled.get(60)) {
       throw new IllegalStateException("mod.MSB_2 already set");
     } else {
-      filled.set(57);
+      filled.set(60);
     }
 
     msb2.put((byte) (b ? 1 : 0));
@@ -1049,10 +1089,10 @@ public class Trace {
   }
 
   public Trace oli(final Boolean b) {
-    if (filled.get(58)) {
+    if (filled.get(61)) {
       throw new IllegalStateException("mod.OLI already set");
     } else {
-      filled.set(58);
+      filled.set(61);
     }
 
     oli.put((byte) (b ? 1 : 0));
@@ -1061,10 +1101,10 @@ public class Trace {
   }
 
   public Trace resHi(final Bytes b) {
-    if (filled.get(59)) {
+    if (filled.get(62)) {
       throw new IllegalStateException("mod.RES_HI already set");
     } else {
-      filled.set(59);
+      filled.set(62);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -1077,10 +1117,10 @@ public class Trace {
   }
 
   public Trace resLo(final Bytes b) {
-    if (filled.get(60)) {
+    if (filled.get(63)) {
       throw new IllegalStateException("mod.RES_LO already set");
     } else {
-      filled.set(60);
+      filled.set(63);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -1092,18 +1132,26 @@ public class Trace {
     return this;
   }
 
-  public Trace stamp(final Bytes b) {
-    if (filled.get(61)) {
-      throw new IllegalStateException("mod.STAMP already set");
+  public Trace signed(final Boolean b) {
+    if (filled.get(64)) {
+      throw new IllegalStateException("mod.SIGNED already set");
     } else {
-      filled.set(61);
+      filled.set(64);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      stamp.put((byte) 0);
+    signed.put((byte) (b ? 1 : 0));
+
+    return this;
+  }
+
+  public Trace stamp(final long b) {
+    if (filled.get(65)) {
+      throw new IllegalStateException("mod.STAMP already set");
+    } else {
+      filled.set(65);
     }
-    stamp.put(b.toArrayUnsafe());
+
+    stamp.putLong(b);
 
     return this;
   }
@@ -1322,38 +1370,54 @@ public class Trace {
     }
 
     if (!filled.get(53)) {
-      throw new IllegalStateException("mod.DEC_OUTPUT has not been filled");
-    }
-
-    if (!filled.get(54)) {
-      throw new IllegalStateException("mod.DEC_SIGNED has not been filled");
-    }
-
-    if (!filled.get(55)) {
       throw new IllegalStateException("mod.INST has not been filled");
     }
 
+    if (!filled.get(54)) {
+      throw new IllegalStateException("mod.IS_DIV has not been filled");
+    }
+
+    if (!filled.get(55)) {
+      throw new IllegalStateException("mod.IS_MOD has not been filled");
+    }
+
     if (!filled.get(56)) {
-      throw new IllegalStateException("mod.MSB_1 has not been filled");
+      throw new IllegalStateException("mod.IS_SDIV has not been filled");
     }
 
     if (!filled.get(57)) {
-      throw new IllegalStateException("mod.MSB_2 has not been filled");
+      throw new IllegalStateException("mod.IS_SMOD has not been filled");
     }
 
     if (!filled.get(58)) {
-      throw new IllegalStateException("mod.OLI has not been filled");
+      throw new IllegalStateException("mod.MLI has not been filled");
     }
 
     if (!filled.get(59)) {
-      throw new IllegalStateException("mod.RES_HI has not been filled");
+      throw new IllegalStateException("mod.MSB_1 has not been filled");
     }
 
     if (!filled.get(60)) {
-      throw new IllegalStateException("mod.RES_LO has not been filled");
+      throw new IllegalStateException("mod.MSB_2 has not been filled");
     }
 
     if (!filled.get(61)) {
+      throw new IllegalStateException("mod.OLI has not been filled");
+    }
+
+    if (!filled.get(62)) {
+      throw new IllegalStateException("mod.RES_HI has not been filled");
+    }
+
+    if (!filled.get(63)) {
+      throw new IllegalStateException("mod.RES_LO has not been filled");
+    }
+
+    if (!filled.get(64)) {
+      throw new IllegalStateException("mod.SIGNED has not been filled");
+    }
+
+    if (!filled.get(65)) {
       throw new IllegalStateException("mod.STAMP has not been filled");
     }
 
@@ -1573,43 +1637,59 @@ public class Trace {
     }
 
     if (!filled.get(52)) {
-      ct.position(ct.position() + 32);
+      ct.position(ct.position() + 2);
     }
 
     if (!filled.get(53)) {
-      decOutput.position(decOutput.position() + 1);
+      inst.position(inst.position() + 1);
     }
 
     if (!filled.get(54)) {
-      decSigned.position(decSigned.position() + 1);
+      isDiv.position(isDiv.position() + 1);
     }
 
     if (!filled.get(55)) {
-      inst.position(inst.position() + 32);
+      isMod.position(isMod.position() + 1);
     }
 
     if (!filled.get(56)) {
-      msb1.position(msb1.position() + 1);
+      isSdiv.position(isSdiv.position() + 1);
     }
 
     if (!filled.get(57)) {
-      msb2.position(msb2.position() + 1);
+      isSmod.position(isSmod.position() + 1);
     }
 
     if (!filled.get(58)) {
-      oli.position(oli.position() + 1);
+      mli.position(mli.position() + 1);
     }
 
     if (!filled.get(59)) {
-      resHi.position(resHi.position() + 32);
+      msb1.position(msb1.position() + 1);
     }
 
     if (!filled.get(60)) {
-      resLo.position(resLo.position() + 32);
+      msb2.position(msb2.position() + 1);
     }
 
     if (!filled.get(61)) {
-      stamp.position(stamp.position() + 32);
+      oli.position(oli.position() + 1);
+    }
+
+    if (!filled.get(62)) {
+      resHi.position(resHi.position() + 32);
+    }
+
+    if (!filled.get(63)) {
+      resLo.position(resLo.position() + 32);
+    }
+
+    if (!filled.get(64)) {
+      signed.position(signed.position() + 1);
+    }
+
+    if (!filled.get(65)) {
+      stamp.position(stamp.position() + 8);
     }
 
     filled.clear();

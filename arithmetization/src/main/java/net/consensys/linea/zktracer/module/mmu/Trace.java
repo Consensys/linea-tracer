@@ -30,100 +30,59 @@ import org.apache.tuweni.bytes.Bytes;
  * Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
 public class Trace {
-  public static final int EQ_ = 20;
-  public static final int INVALID_CODE_PREFIX_VALUE = 239;
-  public static final int ISZERO = 21;
-  public static final int LLARGE = 16;
-  public static final int LLARGEMO = 15;
-  public static final int LLARGEPO = 17;
-  public static final int LT = 16;
-  public static final int MMIO_INST_EXO_LIMB_VANISHES = 65280;
-  public static final int MMIO_INST_EXO_TO_RAM_LIMB_TRANSPLANT = 65312;
-  public static final int MMIO_INST_EXO_TO_RAM_SLIDE_CHUNK = 65313;
-  public static final int MMIO_INST_EXO_TO_RAM_SLIDE_OVERLAPPING_CHUNK = 65314;
-  public static final int MMIO_INST_LIMB_TO_RAM_OVERLAP = 65330;
-  public static final int MMIO_INST_LIMB_TO_RAM_TRANSPLANT = 65329;
-  public static final int MMIO_INST_LIMB_TO_RAM_WRITE_LSB = 65328;
-  public static final int MMIO_INST_PADDED_EXO_FROM_ONE_RAM = 65298;
-  public static final int MMIO_INST_PADDED_EXO_FROM_TWO_RAM = 65299;
-  public static final int MMIO_INST_PADDED_LIMB_FROM_ONE_RAM = 65345;
-  public static final int MMIO_INST_PADDED_LIMB_FROM_TWO_RAM = 65346;
-  public static final int MMIO_INST_RAM_EXCISION = 65376;
-  public static final int MMIO_INST_RAM_LIMB_VANISHES = 65377;
-  public static final int MMIO_INST_RAM_TO_EXO_LIMB_TRANSPLANT = 65296;
-  public static final int MMIO_INST_RAM_TO_LIMB_TRANSPLANT = 65344;
-  public static final int MMIO_INST_RAM_TO_RAM_LIMB_TRANSPLANT = 65360;
-  public static final int MMIO_INST_RAM_TO_RAM_SLIDE_CHUNK = 65361;
-  public static final int MMIO_INST_RAM_TO_RAM_SLIDE_OVERLAPPING_CHUNK = 65362;
-  public static final int MMIO_INST_TWO_RAM_TO_EXO_FULL = 65297;
-  public static final int MMU_INST_ANY_TO_RAM_WITH_PADDING = 65104;
-  public static final int MMU_INST_ANY_TO_RAM_WITH_PADDING_PURE_PADDING = 65106;
-  public static final int MMU_INST_ANY_TO_RAM_WITH_PADDING_SOME_DATA = 65105;
-  public static final int MMU_INST_BLAKE = 65152;
-  public static final int MMU_INST_EXO_TO_RAM_TRANSPLANTS = 65072;
-  public static final int MMU_INST_INVALID_CODE_PREFIX = 65024;
-  public static final int MMU_INST_MLOAD = 65025;
-  public static final int MMU_INST_MODEXP_DATA = 65136;
-  public static final int MMU_INST_MODEXP_ZERO = 65120;
-  public static final int MMU_INST_MSTORE = 65026;
-  public static final int MMU_INST_MSTORE8 = 83;
-  public static final int MMU_INST_NB_MICRO_ROWS_TOT_BLAKE_PARAM = 2;
-  public static final int MMU_INST_NB_MICRO_ROWS_TOT_INVALID_CODE_PREFIX = 1;
-  public static final int MMU_INST_NB_MICRO_ROWS_TOT_MLOAD = 2;
-  public static final int MMU_INST_NB_MICRO_ROWS_TOT_MODEXP_DATA = 32;
-  public static final int MMU_INST_NB_MICRO_ROWS_TOT_MODEXP_ZERO = 32;
-  public static final int MMU_INST_NB_MICRO_ROWS_TOT_MSTORE = 2;
-  public static final int MMU_INST_NB_MICRO_ROWS_TOT_MSTORE_EIGHT = 1;
-  public static final int MMU_INST_NB_MICRO_ROWS_TOT_RIGHT_PADDED_WORD_EXTRACTION = 2;
-  public static final int MMU_INST_NB_PP_ROWS_ANY_TO_RAM_WITH_PADDING_PURE_PADDING = 4;
-  public static final int MMU_INST_NB_PP_ROWS_ANY_TO_RAM_WITH_PADDING_PURE_PADDING_PO = 5;
-  public static final int MMU_INST_NB_PP_ROWS_ANY_TO_RAM_WITH_PADDING_SOME_DATA = 1;
-  public static final int MMU_INST_NB_PP_ROWS_ANY_TO_RAM_WITH_PADDING_SOME_DATA_PO = 2;
-  public static final int MMU_INST_NB_PP_ROWS_BLAKE_PARAM = 2;
-  public static final int MMU_INST_NB_PP_ROWS_BLAKE_PARAM_PO = 3;
-  public static final int MMU_INST_NB_PP_ROWS_EXO_TO_RAM_TRANSPLANTS = 1;
-  public static final int MMU_INST_NB_PP_ROWS_EXO_TO_RAM_TRANSPLANTS_PO = 2;
-  public static final int MMU_INST_NB_PP_ROWS_INVALID_CODE_PREFIX = 1;
-  public static final int MMU_INST_NB_PP_ROWS_INVALID_CODE_PREFIX_PO = 2;
-  public static final int MMU_INST_NB_PP_ROWS_MLOAD = 1;
-  public static final int MMU_INST_NB_PP_ROWS_MLOAD_PO = 2;
-  public static final int MMU_INST_NB_PP_ROWS_MLOAD_PT = 3;
-  public static final int MMU_INST_NB_PP_ROWS_MODEXP_DATA = 6;
-  public static final int MMU_INST_NB_PP_ROWS_MODEXP_DATA_PO = 7;
-  public static final int MMU_INST_NB_PP_ROWS_MODEXP_ZERO = 1;
-  public static final int MMU_INST_NB_PP_ROWS_MODEXP_ZERO_PO = 2;
-  public static final int MMU_INST_NB_PP_ROWS_MSTORE = 1;
-  public static final int MMU_INST_NB_PP_ROWS_MSTORE8 = 1;
-  public static final int MMU_INST_NB_PP_ROWS_MSTORE8_PO = 2;
-  public static final int MMU_INST_NB_PP_ROWS_MSTORE_PO = 2;
-  public static final int MMU_INST_NB_PP_ROWS_MSTORE_PT = 3;
-  public static final int MMU_INST_NB_PP_ROWS_RAM_TO_EXO_WITH_PADDING = 4;
-  public static final int MMU_INST_NB_PP_ROWS_RAM_TO_EXO_WITH_PADDING_PO = 5;
-  public static final int MMU_INST_NB_PP_ROWS_RAM_TO_RAM_SANS_PADDING = 5;
-  public static final int MMU_INST_NB_PP_ROWS_RAM_TO_RAM_SANS_PADDING_PO = 6;
-  public static final int MMU_INST_NB_PP_ROWS_RIGHT_PADDED_WORD_EXTRACTION = 5;
-  public static final int MMU_INST_NB_PP_ROWS_RIGHT_PADDED_WORD_EXTRACTION_PO = 6;
-  public static final int MMU_INST_NB_PP_ROWS_RIGHT_PADDED_WORD_EXTRACTION_PT = 7;
-  public static final int MMU_INST_RAM_TO_EXO_WITH_PADDING = 65056;
-  public static final int MMU_INST_RAM_TO_RAM_SANS_PADDING = 65088;
-  public static final int MMU_INST_RIGHT_PADDED_WORD_EXTRACTION = 65040;
-  public static final int WORD_SIZE = 32;
+  public static final int NB_MICRO_ROWS_TOT_BLAKE = 0x2;
+  public static final int NB_MICRO_ROWS_TOT_INVALID_CODE_PREFIX = 0x1;
+  public static final int NB_MICRO_ROWS_TOT_MLOAD = 0x2;
+  public static final int NB_MICRO_ROWS_TOT_MODEXP_DATA = 0x20;
+  public static final int NB_MICRO_ROWS_TOT_MODEXP_ZERO = 0x20;
+  public static final int NB_MICRO_ROWS_TOT_MSTORE = 0x2;
+  public static final int NB_MICRO_ROWS_TOT_MSTORE_EIGHT = 0x1;
+  public static final int NB_MICRO_ROWS_TOT_RIGHT_PADDED_WORD_EXTRACTION = 0x2;
+  public static final int NB_PP_ROWS_ANY_TO_RAM_WITH_PADDING_PURE_PADDING = 0x4;
+  public static final int NB_PP_ROWS_ANY_TO_RAM_WITH_PADDING_PURE_PADDING_PO = 0x5;
+  public static final int NB_PP_ROWS_ANY_TO_RAM_WITH_PADDING_SOME_DATA = 0x1;
+  public static final int NB_PP_ROWS_ANY_TO_RAM_WITH_PADDING_SOME_DATA_PO = 0x2;
+  public static final int NB_PP_ROWS_BLAKE = 0x2;
+  public static final int NB_PP_ROWS_BLAKE_PO = 0x3;
+  public static final int NB_PP_ROWS_BLAKE_PT = 0x4;
+  public static final int NB_PP_ROWS_EXO_TO_RAM_TRANSPLANTS = 0x1;
+  public static final int NB_PP_ROWS_EXO_TO_RAM_TRANSPLANTS_PO = 0x2;
+  public static final int NB_PP_ROWS_INVALID_CODE_PREFIX = 0x1;
+  public static final int NB_PP_ROWS_INVALID_CODE_PREFIX_PO = 0x2;
+  public static final int NB_PP_ROWS_MLOAD = 0x1;
+  public static final int NB_PP_ROWS_MLOAD_PO = 0x2;
+  public static final int NB_PP_ROWS_MLOAD_PT = 0x3;
+  public static final int NB_PP_ROWS_MODEXP_DATA = 0x6;
+  public static final int NB_PP_ROWS_MODEXP_DATA_PO = 0x7;
+  public static final int NB_PP_ROWS_MODEXP_ZERO = 0x1;
+  public static final int NB_PP_ROWS_MODEXP_ZERO_PO = 0x2;
+  public static final int NB_PP_ROWS_MSTORE = 0x1;
+  public static final int NB_PP_ROWS_MSTORE8 = 0x1;
+  public static final int NB_PP_ROWS_MSTORE8_PO = 0x2;
+  public static final int NB_PP_ROWS_MSTORE_PO = 0x2;
+  public static final int NB_PP_ROWS_MSTORE_PT = 0x3;
+  public static final int NB_PP_ROWS_RAM_TO_EXO_WITH_PADDING = 0x4;
+  public static final int NB_PP_ROWS_RAM_TO_EXO_WITH_PADDING_PO = 0x5;
+  public static final int NB_PP_ROWS_RAM_TO_RAM_SANS_PADDING = 0x5;
+  public static final int NB_PP_ROWS_RAM_TO_RAM_SANS_PADDING_PO = 0x6;
+  public static final int NB_PP_ROWS_RIGHT_PADDED_WORD_EXTRACTION = 0x5;
+  public static final int NB_PP_ROWS_RIGHT_PADDED_WORD_EXTRACTION_PO = 0x6;
+  public static final int NB_PP_ROWS_RIGHT_PADDED_WORD_EXTRACTION_PT = 0x7;
 
   private final BitSet filled = new BitSet();
   private int currentLine = 0;
 
-  private final MappedByteBuffer auxIdXorCnS;
+  private final MappedByteBuffer auxIdXorCnSXorEucA;
   private final MappedByteBuffer bin1;
   private final MappedByteBuffer bin2;
   private final MappedByteBuffer bin3;
   private final MappedByteBuffer bin4;
   private final MappedByteBuffer bin5;
-  private final MappedByteBuffer eucRem;
-  private final MappedByteBuffer exoSumXorCnT;
+  private final MappedByteBuffer exoSumXorExoId;
   private final MappedByteBuffer instXorInstXorCt;
   private final MappedByteBuffer isAnyToRamWithPaddingPurePadding;
   private final MappedByteBuffer isAnyToRamWithPaddingSomeData;
-  private final MappedByteBuffer isBlakeParam;
+  private final MappedByteBuffer isBlake;
   private final MappedByteBuffer isExoToRamTransplants;
   private final MappedByteBuffer isInvalidCodePrefix;
   private final MappedByteBuffer isMload;
@@ -134,6 +93,7 @@ public class Trace {
   private final MappedByteBuffer isRamToExoWithPadding;
   private final MappedByteBuffer isRamToRamSansPadding;
   private final MappedByteBuffer isRightPaddedWordExtraction;
+  private final MappedByteBuffer kecId;
   private final MappedByteBuffer limb1XorLimbXorWcpArg1Hi;
   private final MappedByteBuffer limb2XorWcpArg1Lo;
   private final MappedByteBuffer lzro;
@@ -152,27 +112,24 @@ public class Trace {
   private final MappedByteBuffer phase;
   private final MappedByteBuffer phaseXorExoSum;
   private final MappedByteBuffer prprc;
-  private final MappedByteBuffer refOffsetXorEucA;
-  private final MappedByteBuffer refSizeXorEucB;
+  private final MappedByteBuffer refOffsetXorCnTXorEucB;
+  private final MappedByteBuffer refSizeXorSloXorEucCeil;
   private final MappedByteBuffer rzFirst;
   private final MappedByteBuffer rzLast;
   private final MappedByteBuffer rzMddl;
   private final MappedByteBuffer rzOnly;
   private final MappedByteBuffer sboXorWcpInst;
   private final MappedByteBuffer size;
-  private final MappedByteBuffer sizeXorEucCeil;
-  private final MappedByteBuffer slo;
-  private final MappedByteBuffer srcIdXorId1;
-  private final MappedByteBuffer srcOffsetHiXorWcpArg2Hi;
-  private final MappedByteBuffer srcOffsetLoXorWcpArg2Lo;
+  private final MappedByteBuffer sizeXorTloXorEucQuot;
+  private final MappedByteBuffer srcIdXorTotalSizeXorEucRem;
+  private final MappedByteBuffer srcOffsetHiXorWcpArg2Lo;
+  private final MappedByteBuffer srcOffsetLo;
   private final MappedByteBuffer stamp;
   private final MappedByteBuffer successBitXorSuccessBitXorEucFlag;
   private final MappedByteBuffer tbo;
-  private final MappedByteBuffer tgtIdXorId2;
-  private final MappedByteBuffer tgtOffsetLoXorEucQuot;
-  private final MappedByteBuffer tlo;
+  private final MappedByteBuffer tgtId;
+  private final MappedByteBuffer tgtOffsetLo;
   private final MappedByteBuffer tot;
-  private final MappedByteBuffer totalSize;
   private final MappedByteBuffer totlz;
   private final MappedByteBuffer totnt;
   private final MappedByteBuffer totrz;
@@ -181,18 +138,17 @@ public class Trace {
 
   static List<ColumnHeader> headers(int length) {
     return List.of(
-        new ColumnHeader("mmu.AUX_ID_xor_CN_S", 32, length),
+        new ColumnHeader("mmu.AUX_ID_xor_CN_S_xor_EUC_A", 32, length),
         new ColumnHeader("mmu.BIN_1", 1, length),
         new ColumnHeader("mmu.BIN_2", 1, length),
         new ColumnHeader("mmu.BIN_3", 1, length),
         new ColumnHeader("mmu.BIN_4", 1, length),
         new ColumnHeader("mmu.BIN_5", 1, length),
-        new ColumnHeader("mmu.EUC_REM", 32, length),
-        new ColumnHeader("mmu.EXO_SUM_xor_CN_T", 32, length),
-        new ColumnHeader("mmu.INST_xor_INST_xor_CT", 32, length),
+        new ColumnHeader("mmu.EXO_SUM_xor_EXO_ID", 8, length),
+        new ColumnHeader("mmu.INST_xor_INST_xor_CT", 4, length),
         new ColumnHeader("mmu.IS_ANY_TO_RAM_WITH_PADDING_PURE_PADDING", 1, length),
         new ColumnHeader("mmu.IS_ANY_TO_RAM_WITH_PADDING_SOME_DATA", 1, length),
-        new ColumnHeader("mmu.IS_BLAKE_PARAM", 1, length),
+        new ColumnHeader("mmu.IS_BLAKE", 1, length),
         new ColumnHeader("mmu.IS_EXO_TO_RAM_TRANSPLANTS", 1, length),
         new ColumnHeader("mmu.IS_INVALID_CODE_PREFIX", 1, length),
         new ColumnHeader("mmu.IS_MLOAD", 1, length),
@@ -203,12 +159,13 @@ public class Trace {
         new ColumnHeader("mmu.IS_RAM_TO_EXO_WITH_PADDING", 1, length),
         new ColumnHeader("mmu.IS_RAM_TO_RAM_SANS_PADDING", 1, length),
         new ColumnHeader("mmu.IS_RIGHT_PADDED_WORD_EXTRACTION", 1, length),
+        new ColumnHeader("mmu.KEC_ID", 8, length),
         new ColumnHeader("mmu.LIMB_1_xor_LIMB_xor_WCP_ARG_1_HI", 32, length),
         new ColumnHeader("mmu.LIMB_2_xor_WCP_ARG_1_LO", 32, length),
         new ColumnHeader("mmu.LZRO", 1, length),
         new ColumnHeader("mmu.MACRO", 1, length),
         new ColumnHeader("mmu.MICRO", 1, length),
-        new ColumnHeader("mmu.MMIO_STAMP", 32, length),
+        new ColumnHeader("mmu.MMIO_STAMP", 8, length),
         new ColumnHeader("mmu.NT_FIRST", 1, length),
         new ColumnHeader("mmu.NT_LAST", 1, length),
         new ColumnHeader("mmu.NT_MDDL", 1, length),
@@ -218,60 +175,57 @@ public class Trace {
         new ColumnHeader("mmu.OUT_3", 32, length),
         new ColumnHeader("mmu.OUT_4", 32, length),
         new ColumnHeader("mmu.OUT_5", 32, length),
-        new ColumnHeader("mmu.PHASE", 32, length),
-        new ColumnHeader("mmu.PHASE_xor_EXO_SUM", 32, length),
+        new ColumnHeader("mmu.PHASE", 8, length),
+        new ColumnHeader("mmu.PHASE_xor_EXO_SUM", 8, length),
         new ColumnHeader("mmu.PRPRC", 1, length),
-        new ColumnHeader("mmu.REF_OFFSET_xor_EUC_A", 32, length),
-        new ColumnHeader("mmu.REF_SIZE_xor_EUC_B", 32, length),
+        new ColumnHeader("mmu.REF_OFFSET_xor_CN_T_xor_EUC_B", 32, length),
+        new ColumnHeader("mmu.REF_SIZE_xor_SLO_xor_EUC_CEIL", 32, length),
         new ColumnHeader("mmu.RZ_FIRST", 1, length),
         new ColumnHeader("mmu.RZ_LAST", 1, length),
         new ColumnHeader("mmu.RZ_MDDL", 1, length),
         new ColumnHeader("mmu.RZ_ONLY", 1, length),
         new ColumnHeader("mmu.SBO_xor_WCP_INST", 1, length),
         new ColumnHeader("mmu.SIZE", 1, length),
-        new ColumnHeader("mmu.SIZE_xor_EUC_CEIL", 32, length),
-        new ColumnHeader("mmu.SLO", 32, length),
-        new ColumnHeader("mmu.SRC_ID_xor_ID_1", 32, length),
-        new ColumnHeader("mmu.SRC_OFFSET_HI_xor_WCP_ARG_2_HI", 32, length),
-        new ColumnHeader("mmu.SRC_OFFSET_LO_xor_WCP_ARG_2_LO", 32, length),
-        new ColumnHeader("mmu.STAMP", 32, length),
+        new ColumnHeader("mmu.SIZE_xor_TLO_xor_EUC_QUOT", 32, length),
+        new ColumnHeader("mmu.SRC_ID_xor_TOTAL_SIZE_xor_EUC_REM", 32, length),
+        new ColumnHeader("mmu.SRC_OFFSET_HI_xor_WCP_ARG_2_LO", 32, length),
+        new ColumnHeader("mmu.SRC_OFFSET_LO", 32, length),
+        new ColumnHeader("mmu.STAMP", 8, length),
         new ColumnHeader("mmu.SUCCESS_BIT_xor_SUCCESS_BIT_xor_EUC_FLAG", 1, length),
         new ColumnHeader("mmu.TBO", 1, length),
-        new ColumnHeader("mmu.TGT_ID_xor_ID_2", 32, length),
-        new ColumnHeader("mmu.TGT_OFFSET_LO_xor_EUC_QUOT", 32, length),
-        new ColumnHeader("mmu.TLO", 32, length),
-        new ColumnHeader("mmu.TOT", 32, length),
-        new ColumnHeader("mmu.TOTAL_SIZE", 32, length),
-        new ColumnHeader("mmu.TOTLZ", 32, length),
-        new ColumnHeader("mmu.TOTNT", 32, length),
-        new ColumnHeader("mmu.TOTRZ", 32, length),
+        new ColumnHeader("mmu.TGT_ID", 32, length),
+        new ColumnHeader("mmu.TGT_OFFSET_LO", 32, length),
+        new ColumnHeader("mmu.TOT", 8, length),
+        new ColumnHeader("mmu.TOTLZ", 8, length),
+        new ColumnHeader("mmu.TOTNT", 8, length),
+        new ColumnHeader("mmu.TOTRZ", 8, length),
         new ColumnHeader("mmu.WCP_FLAG", 1, length),
         new ColumnHeader("mmu.WCP_RES", 1, length));
   }
 
   public Trace(List<MappedByteBuffer> buffers) {
-    this.auxIdXorCnS = buffers.get(0);
+    this.auxIdXorCnSXorEucA = buffers.get(0);
     this.bin1 = buffers.get(1);
     this.bin2 = buffers.get(2);
     this.bin3 = buffers.get(3);
     this.bin4 = buffers.get(4);
     this.bin5 = buffers.get(5);
-    this.eucRem = buffers.get(6);
-    this.exoSumXorCnT = buffers.get(7);
-    this.instXorInstXorCt = buffers.get(8);
-    this.isAnyToRamWithPaddingPurePadding = buffers.get(9);
-    this.isAnyToRamWithPaddingSomeData = buffers.get(10);
-    this.isBlakeParam = buffers.get(11);
-    this.isExoToRamTransplants = buffers.get(12);
-    this.isInvalidCodePrefix = buffers.get(13);
-    this.isMload = buffers.get(14);
-    this.isModexpData = buffers.get(15);
-    this.isModexpZero = buffers.get(16);
-    this.isMstore = buffers.get(17);
-    this.isMstore8 = buffers.get(18);
-    this.isRamToExoWithPadding = buffers.get(19);
-    this.isRamToRamSansPadding = buffers.get(20);
-    this.isRightPaddedWordExtraction = buffers.get(21);
+    this.exoSumXorExoId = buffers.get(6);
+    this.instXorInstXorCt = buffers.get(7);
+    this.isAnyToRamWithPaddingPurePadding = buffers.get(8);
+    this.isAnyToRamWithPaddingSomeData = buffers.get(9);
+    this.isBlake = buffers.get(10);
+    this.isExoToRamTransplants = buffers.get(11);
+    this.isInvalidCodePrefix = buffers.get(12);
+    this.isMload = buffers.get(13);
+    this.isModexpData = buffers.get(14);
+    this.isModexpZero = buffers.get(15);
+    this.isMstore = buffers.get(16);
+    this.isMstore8 = buffers.get(17);
+    this.isRamToExoWithPadding = buffers.get(18);
+    this.isRamToRamSansPadding = buffers.get(19);
+    this.isRightPaddedWordExtraction = buffers.get(20);
+    this.kecId = buffers.get(21);
     this.limb1XorLimbXorWcpArg1Hi = buffers.get(22);
     this.limb2XorWcpArg1Lo = buffers.get(23);
     this.lzro = buffers.get(24);
@@ -290,32 +244,29 @@ public class Trace {
     this.phase = buffers.get(37);
     this.phaseXorExoSum = buffers.get(38);
     this.prprc = buffers.get(39);
-    this.refOffsetXorEucA = buffers.get(40);
-    this.refSizeXorEucB = buffers.get(41);
+    this.refOffsetXorCnTXorEucB = buffers.get(40);
+    this.refSizeXorSloXorEucCeil = buffers.get(41);
     this.rzFirst = buffers.get(42);
     this.rzLast = buffers.get(43);
     this.rzMddl = buffers.get(44);
     this.rzOnly = buffers.get(45);
     this.sboXorWcpInst = buffers.get(46);
     this.size = buffers.get(47);
-    this.sizeXorEucCeil = buffers.get(48);
-    this.slo = buffers.get(49);
-    this.srcIdXorId1 = buffers.get(50);
-    this.srcOffsetHiXorWcpArg2Hi = buffers.get(51);
-    this.srcOffsetLoXorWcpArg2Lo = buffers.get(52);
-    this.stamp = buffers.get(53);
-    this.successBitXorSuccessBitXorEucFlag = buffers.get(54);
-    this.tbo = buffers.get(55);
-    this.tgtIdXorId2 = buffers.get(56);
-    this.tgtOffsetLoXorEucQuot = buffers.get(57);
-    this.tlo = buffers.get(58);
-    this.tot = buffers.get(59);
-    this.totalSize = buffers.get(60);
-    this.totlz = buffers.get(61);
-    this.totnt = buffers.get(62);
-    this.totrz = buffers.get(63);
-    this.wcpFlag = buffers.get(64);
-    this.wcpRes = buffers.get(65);
+    this.sizeXorTloXorEucQuot = buffers.get(48);
+    this.srcIdXorTotalSizeXorEucRem = buffers.get(49);
+    this.srcOffsetHiXorWcpArg2Lo = buffers.get(50);
+    this.srcOffsetLo = buffers.get(51);
+    this.stamp = buffers.get(52);
+    this.successBitXorSuccessBitXorEucFlag = buffers.get(53);
+    this.tbo = buffers.get(54);
+    this.tgtId = buffers.get(55);
+    this.tgtOffsetLo = buffers.get(56);
+    this.tot = buffers.get(57);
+    this.totlz = buffers.get(58);
+    this.totnt = buffers.get(59);
+    this.totrz = buffers.get(60);
+    this.wcpFlag = buffers.get(61);
+    this.wcpRes = buffers.get(62);
   }
 
   public int size() {
@@ -410,14 +361,14 @@ public class Trace {
     return this;
   }
 
-  public Trace isBlakeParam(final Boolean b) {
+  public Trace isBlake(final Boolean b) {
     if (filled.get(7)) {
-      throw new IllegalStateException("mmu.IS_BLAKE_PARAM already set");
+      throw new IllegalStateException("mmu.IS_BLAKE already set");
     } else {
       filled.set(7);
     }
 
-    isBlakeParam.put((byte) (b ? 1 : 0));
+    isBlake.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -578,18 +529,14 @@ public class Trace {
     return this;
   }
 
-  public Trace mmioStamp(final Bytes b) {
+  public Trace mmioStamp(final long b) {
     if (filled.get(21)) {
       throw new IllegalStateException("mmu.MMIO_STAMP already set");
     } else {
       filled.set(21);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      mmioStamp.put((byte) 0);
-    }
-    mmioStamp.put(b.toArrayUnsafe());
+    mmioStamp.putLong(b);
 
     return this;
   }
@@ -723,58 +670,50 @@ public class Trace {
   }
 
   public Trace pMacroAuxId(final Bytes b) {
-    if (filled.get(48)) {
+    if (filled.get(52)) {
       throw new IllegalStateException("mmu.macro/AUX_ID already set");
+    } else {
+      filled.set(52);
+    }
+
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      auxIdXorCnSXorEucA.put((byte) 0);
+    }
+    auxIdXorCnSXorEucA.put(b.toArrayUnsafe());
+
+    return this;
+  }
+
+  public Trace pMacroExoSum(final long b) {
+    if (filled.get(48)) {
+      throw new IllegalStateException("mmu.macro/EXO_SUM already set");
     } else {
       filled.set(48);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      auxIdXorCnS.put((byte) 0);
-    }
-    auxIdXorCnS.put(b.toArrayUnsafe());
+    exoSumXorExoId.putLong(b);
 
     return this;
   }
 
-  public Trace pMacroExoSum(final Bytes b) {
-    if (filled.get(49)) {
-      throw new IllegalStateException("mmu.macro/EXO_SUM already set");
-    } else {
-      filled.set(49);
-    }
-
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      exoSumXorCnT.put((byte) 0);
-    }
-    exoSumXorCnT.put(b.toArrayUnsafe());
-
-    return this;
-  }
-
-  public Trace pMacroInst(final Bytes b) {
+  public Trace pMacroInst(final int b) {
     if (filled.get(47)) {
       throw new IllegalStateException("mmu.macro/INST already set");
     } else {
       filled.set(47);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      instXorInstXorCt.put((byte) 0);
-    }
-    instXorInstXorCt.put(b.toArrayUnsafe());
+    instXorInstXorCt.putInt(b);
 
     return this;
   }
 
   public Trace pMacroLimb1(final Bytes b) {
-    if (filled.get(62)) {
+    if (filled.get(59)) {
       throw new IllegalStateException("mmu.macro/LIMB_1 already set");
     } else {
-      filled.set(62);
+      filled.set(59);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -787,10 +726,10 @@ public class Trace {
   }
 
   public Trace pMacroLimb2(final Bytes b) {
-    if (filled.get(63)) {
+    if (filled.get(60)) {
       throw new IllegalStateException("mmu.macro/LIMB_2 already set");
     } else {
-      filled.set(63);
+      filled.set(60);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -802,114 +741,110 @@ public class Trace {
     return this;
   }
 
-  public Trace pMacroPhase(final Bytes b) {
-    if (filled.get(50)) {
+  public Trace pMacroPhase(final long b) {
+    if (filled.get(49)) {
       throw new IllegalStateException("mmu.macro/PHASE already set");
     } else {
-      filled.set(50);
+      filled.set(49);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      phaseXorExoSum.put((byte) 0);
-    }
-    phaseXorExoSum.put(b.toArrayUnsafe());
+    phaseXorExoSum.putLong(b);
 
     return this;
   }
 
   public Trace pMacroRefOffset(final Bytes b) {
-    if (filled.get(57)) {
+    if (filled.get(53)) {
       throw new IllegalStateException("mmu.macro/REF_OFFSET already set");
     } else {
-      filled.set(57);
+      filled.set(53);
     }
 
     final byte[] bs = b.toArrayUnsafe();
     for (int i = bs.length; i < 32; i++) {
-      refOffsetXorEucA.put((byte) 0);
+      refOffsetXorCnTXorEucB.put((byte) 0);
     }
-    refOffsetXorEucA.put(b.toArrayUnsafe());
+    refOffsetXorCnTXorEucB.put(b.toArrayUnsafe());
 
     return this;
   }
 
   public Trace pMacroRefSize(final Bytes b) {
-    if (filled.get(58)) {
+    if (filled.get(54)) {
       throw new IllegalStateException("mmu.macro/REF_SIZE already set");
     } else {
-      filled.set(58);
+      filled.set(54);
     }
 
     final byte[] bs = b.toArrayUnsafe();
     for (int i = bs.length; i < 32; i++) {
-      refSizeXorEucB.put((byte) 0);
+      refSizeXorSloXorEucCeil.put((byte) 0);
     }
-    refSizeXorEucB.put(b.toArrayUnsafe());
+    refSizeXorSloXorEucCeil.put(b.toArrayUnsafe());
 
     return this;
   }
 
   public Trace pMacroSize(final Bytes b) {
-    if (filled.get(59)) {
+    if (filled.get(55)) {
       throw new IllegalStateException("mmu.macro/SIZE already set");
     } else {
-      filled.set(59);
+      filled.set(55);
     }
 
     final byte[] bs = b.toArrayUnsafe();
     for (int i = bs.length; i < 32; i++) {
-      sizeXorEucCeil.put((byte) 0);
+      sizeXorTloXorEucQuot.put((byte) 0);
     }
-    sizeXorEucCeil.put(b.toArrayUnsafe());
+    sizeXorTloXorEucQuot.put(b.toArrayUnsafe());
 
     return this;
   }
 
   public Trace pMacroSrcId(final Bytes b) {
-    if (filled.get(51)) {
+    if (filled.get(56)) {
       throw new IllegalStateException("mmu.macro/SRC_ID already set");
     } else {
-      filled.set(51);
+      filled.set(56);
     }
 
     final byte[] bs = b.toArrayUnsafe();
     for (int i = bs.length; i < 32; i++) {
-      srcIdXorId1.put((byte) 0);
+      srcIdXorTotalSizeXorEucRem.put((byte) 0);
     }
-    srcIdXorId1.put(b.toArrayUnsafe());
+    srcIdXorTotalSizeXorEucRem.put(b.toArrayUnsafe());
 
     return this;
   }
 
   public Trace pMacroSrcOffsetHi(final Bytes b) {
-    if (filled.get(64)) {
+    if (filled.get(61)) {
       throw new IllegalStateException("mmu.macro/SRC_OFFSET_HI already set");
     } else {
-      filled.set(64);
+      filled.set(61);
     }
 
     final byte[] bs = b.toArrayUnsafe();
     for (int i = bs.length; i < 32; i++) {
-      srcOffsetHiXorWcpArg2Hi.put((byte) 0);
+      srcOffsetHiXorWcpArg2Lo.put((byte) 0);
     }
-    srcOffsetHiXorWcpArg2Hi.put(b.toArrayUnsafe());
+    srcOffsetHiXorWcpArg2Lo.put(b.toArrayUnsafe());
 
     return this;
   }
 
   public Trace pMacroSrcOffsetLo(final Bytes b) {
-    if (filled.get(65)) {
+    if (filled.get(62)) {
       throw new IllegalStateException("mmu.macro/SRC_OFFSET_LO already set");
     } else {
-      filled.set(65);
+      filled.set(62);
     }
 
     final byte[] bs = b.toArrayUnsafe();
     for (int i = bs.length; i < 32; i++) {
-      srcOffsetLoXorWcpArg2Lo.put((byte) 0);
+      srcOffsetLo.put((byte) 0);
     }
-    srcOffsetLoXorWcpArg2Lo.put(b.toArrayUnsafe());
+    srcOffsetLo.put(b.toArrayUnsafe());
 
     return this;
   }
@@ -927,138 +862,122 @@ public class Trace {
   }
 
   public Trace pMacroTgtId(final Bytes b) {
-    if (filled.get(52)) {
+    if (filled.get(57)) {
       throw new IllegalStateException("mmu.macro/TGT_ID already set");
     } else {
-      filled.set(52);
+      filled.set(57);
     }
 
     final byte[] bs = b.toArrayUnsafe();
     for (int i = bs.length; i < 32; i++) {
-      tgtIdXorId2.put((byte) 0);
+      tgtId.put((byte) 0);
     }
-    tgtIdXorId2.put(b.toArrayUnsafe());
+    tgtId.put(b.toArrayUnsafe());
 
     return this;
   }
 
   public Trace pMacroTgtOffsetLo(final Bytes b) {
-    if (filled.get(60)) {
+    if (filled.get(58)) {
       throw new IllegalStateException("mmu.macro/TGT_OFFSET_LO already set");
     } else {
-      filled.set(60);
+      filled.set(58);
     }
 
     final byte[] bs = b.toArrayUnsafe();
     for (int i = bs.length; i < 32; i++) {
-      tgtOffsetLoXorEucQuot.put((byte) 0);
+      tgtOffsetLo.put((byte) 0);
     }
-    tgtOffsetLoXorEucQuot.put(b.toArrayUnsafe());
+    tgtOffsetLo.put(b.toArrayUnsafe());
 
     return this;
   }
 
   public Trace pMicroCnS(final Bytes b) {
-    if (filled.get(48)) {
-      throw new IllegalStateException("mmu.micro/CN_S already set");
-    } else {
-      filled.set(48);
-    }
-
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      auxIdXorCnS.put((byte) 0);
-    }
-    auxIdXorCnS.put(b.toArrayUnsafe());
-
-    return this;
-  }
-
-  public Trace pMicroCnT(final Bytes b) {
-    if (filled.get(49)) {
-      throw new IllegalStateException("mmu.micro/CN_T already set");
-    } else {
-      filled.set(49);
-    }
-
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      exoSumXorCnT.put((byte) 0);
-    }
-    exoSumXorCnT.put(b.toArrayUnsafe());
-
-    return this;
-  }
-
-  public Trace pMicroExoSum(final Bytes b) {
-    if (filled.get(50)) {
-      throw new IllegalStateException("mmu.micro/EXO_SUM already set");
-    } else {
-      filled.set(50);
-    }
-
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      phaseXorExoSum.put((byte) 0);
-    }
-    phaseXorExoSum.put(b.toArrayUnsafe());
-
-    return this;
-  }
-
-  public Trace pMicroId1(final Bytes b) {
-    if (filled.get(51)) {
-      throw new IllegalStateException("mmu.micro/ID_1 already set");
-    } else {
-      filled.set(51);
-    }
-
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      srcIdXorId1.put((byte) 0);
-    }
-    srcIdXorId1.put(b.toArrayUnsafe());
-
-    return this;
-  }
-
-  public Trace pMicroId2(final Bytes b) {
     if (filled.get(52)) {
-      throw new IllegalStateException("mmu.micro/ID_2 already set");
+      throw new IllegalStateException("mmu.micro/CN_S already set");
     } else {
       filled.set(52);
     }
 
     final byte[] bs = b.toArrayUnsafe();
     for (int i = bs.length; i < 32; i++) {
-      tgtIdXorId2.put((byte) 0);
+      auxIdXorCnSXorEucA.put((byte) 0);
     }
-    tgtIdXorId2.put(b.toArrayUnsafe());
+    auxIdXorCnSXorEucA.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace pMicroInst(final Bytes b) {
+  public Trace pMicroCnT(final Bytes b) {
+    if (filled.get(53)) {
+      throw new IllegalStateException("mmu.micro/CN_T already set");
+    } else {
+      filled.set(53);
+    }
+
+    final byte[] bs = b.toArrayUnsafe();
+    for (int i = bs.length; i < 32; i++) {
+      refOffsetXorCnTXorEucB.put((byte) 0);
+    }
+    refOffsetXorCnTXorEucB.put(b.toArrayUnsafe());
+
+    return this;
+  }
+
+  public Trace pMicroExoId(final long b) {
+    if (filled.get(48)) {
+      throw new IllegalStateException("mmu.micro/EXO_ID already set");
+    } else {
+      filled.set(48);
+    }
+
+    exoSumXorExoId.putLong(b);
+
+    return this;
+  }
+
+  public Trace pMicroExoSum(final long b) {
+    if (filled.get(49)) {
+      throw new IllegalStateException("mmu.micro/EXO_SUM already set");
+    } else {
+      filled.set(49);
+    }
+
+    phaseXorExoSum.putLong(b);
+
+    return this;
+  }
+
+  public Trace pMicroInst(final int b) {
     if (filled.get(47)) {
       throw new IllegalStateException("mmu.micro/INST already set");
     } else {
       filled.set(47);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      instXorInstXorCt.put((byte) 0);
+    instXorInstXorCt.putInt(b);
+
+    return this;
+  }
+
+  public Trace pMicroKecId(final long b) {
+    if (filled.get(50)) {
+      throw new IllegalStateException("mmu.micro/KEC_ID already set");
+    } else {
+      filled.set(50);
     }
-    instXorInstXorCt.put(b.toArrayUnsafe());
+
+    kecId.putLong(b);
 
     return this;
   }
 
   public Trace pMicroLimb(final Bytes b) {
-    if (filled.get(62)) {
+    if (filled.get(59)) {
       throw new IllegalStateException("mmu.micro/LIMB already set");
     } else {
-      filled.set(62);
+      filled.set(59);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -1070,18 +989,14 @@ public class Trace {
     return this;
   }
 
-  public Trace pMicroPhase(final Bytes b) {
-    if (filled.get(53)) {
+  public Trace pMicroPhase(final long b) {
+    if (filled.get(51)) {
       throw new IllegalStateException("mmu.micro/PHASE already set");
     } else {
-      filled.set(53);
+      filled.set(51);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      phase.put((byte) 0);
-    }
-    phase.put(b.toArrayUnsafe());
+    phase.putLong(b);
 
     return this;
   }
@@ -1119,9 +1034,9 @@ public class Trace {
 
     final byte[] bs = b.toArrayUnsafe();
     for (int i = bs.length; i < 32; i++) {
-      slo.put((byte) 0);
+      refSizeXorSloXorEucCeil.put((byte) 0);
     }
-    slo.put(b.toArrayUnsafe());
+    refSizeXorSloXorEucCeil.put(b.toArrayUnsafe());
 
     return this;
   }
@@ -1159,9 +1074,9 @@ public class Trace {
 
     final byte[] bs = b.toArrayUnsafe();
     for (int i = bs.length; i < 32; i++) {
-      tlo.put((byte) 0);
+      sizeXorTloXorEucQuot.put((byte) 0);
     }
-    tlo.put(b.toArrayUnsafe());
+    sizeXorTloXorEucQuot.put(b.toArrayUnsafe());
 
     return this;
   }
@@ -1175,73 +1090,69 @@ public class Trace {
 
     final byte[] bs = b.toArrayUnsafe();
     for (int i = bs.length; i < 32; i++) {
-      totalSize.put((byte) 0);
+      srcIdXorTotalSizeXorEucRem.put((byte) 0);
     }
-    totalSize.put(b.toArrayUnsafe());
+    srcIdXorTotalSizeXorEucRem.put(b.toArrayUnsafe());
 
     return this;
   }
 
-  public Trace pPrprcCt(final Bytes b) {
+  public Trace pPrprcCt(final int b) {
     if (filled.get(47)) {
       throw new IllegalStateException("mmu.prprc/CT already set");
     } else {
       filled.set(47);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      instXorInstXorCt.put((byte) 0);
-    }
-    instXorInstXorCt.put(b.toArrayUnsafe());
+    instXorInstXorCt.putInt(b);
 
     return this;
   }
 
   public Trace pPrprcEucA(final Bytes b) {
-    if (filled.get(57)) {
+    if (filled.get(52)) {
       throw new IllegalStateException("mmu.prprc/EUC_A already set");
     } else {
-      filled.set(57);
+      filled.set(52);
     }
 
     final byte[] bs = b.toArrayUnsafe();
     for (int i = bs.length; i < 32; i++) {
-      refOffsetXorEucA.put((byte) 0);
+      auxIdXorCnSXorEucA.put((byte) 0);
     }
-    refOffsetXorEucA.put(b.toArrayUnsafe());
+    auxIdXorCnSXorEucA.put(b.toArrayUnsafe());
 
     return this;
   }
 
   public Trace pPrprcEucB(final Bytes b) {
-    if (filled.get(58)) {
+    if (filled.get(53)) {
       throw new IllegalStateException("mmu.prprc/EUC_B already set");
     } else {
-      filled.set(58);
+      filled.set(53);
     }
 
     final byte[] bs = b.toArrayUnsafe();
     for (int i = bs.length; i < 32; i++) {
-      refSizeXorEucB.put((byte) 0);
+      refOffsetXorCnTXorEucB.put((byte) 0);
     }
-    refSizeXorEucB.put(b.toArrayUnsafe());
+    refOffsetXorCnTXorEucB.put(b.toArrayUnsafe());
 
     return this;
   }
 
   public Trace pPrprcEucCeil(final Bytes b) {
-    if (filled.get(59)) {
+    if (filled.get(54)) {
       throw new IllegalStateException("mmu.prprc/EUC_CEIL already set");
     } else {
-      filled.set(59);
+      filled.set(54);
     }
 
     final byte[] bs = b.toArrayUnsafe();
     for (int i = bs.length; i < 32; i++) {
-      sizeXorEucCeil.put((byte) 0);
+      refSizeXorSloXorEucCeil.put((byte) 0);
     }
-    sizeXorEucCeil.put(b.toArrayUnsafe());
+    refSizeXorSloXorEucCeil.put(b.toArrayUnsafe());
 
     return this;
   }
@@ -1259,42 +1170,42 @@ public class Trace {
   }
 
   public Trace pPrprcEucQuot(final Bytes b) {
-    if (filled.get(60)) {
+    if (filled.get(55)) {
       throw new IllegalStateException("mmu.prprc/EUC_QUOT already set");
     } else {
-      filled.set(60);
+      filled.set(55);
     }
 
     final byte[] bs = b.toArrayUnsafe();
     for (int i = bs.length; i < 32; i++) {
-      tgtOffsetLoXorEucQuot.put((byte) 0);
+      sizeXorTloXorEucQuot.put((byte) 0);
     }
-    tgtOffsetLoXorEucQuot.put(b.toArrayUnsafe());
+    sizeXorTloXorEucQuot.put(b.toArrayUnsafe());
 
     return this;
   }
 
   public Trace pPrprcEucRem(final Bytes b) {
-    if (filled.get(61)) {
+    if (filled.get(56)) {
       throw new IllegalStateException("mmu.prprc/EUC_REM already set");
     } else {
-      filled.set(61);
+      filled.set(56);
     }
 
     final byte[] bs = b.toArrayUnsafe();
     for (int i = bs.length; i < 32; i++) {
-      eucRem.put((byte) 0);
+      srcIdXorTotalSizeXorEucRem.put((byte) 0);
     }
-    eucRem.put(b.toArrayUnsafe());
+    srcIdXorTotalSizeXorEucRem.put(b.toArrayUnsafe());
 
     return this;
   }
 
   public Trace pPrprcWcpArg1Hi(final Bytes b) {
-    if (filled.get(62)) {
+    if (filled.get(59)) {
       throw new IllegalStateException("mmu.prprc/WCP_ARG_1_HI already set");
     } else {
-      filled.set(62);
+      filled.set(59);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -1307,10 +1218,10 @@ public class Trace {
   }
 
   public Trace pPrprcWcpArg1Lo(final Bytes b) {
-    if (filled.get(63)) {
+    if (filled.get(60)) {
       throw new IllegalStateException("mmu.prprc/WCP_ARG_1_LO already set");
     } else {
-      filled.set(63);
+      filled.set(60);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -1322,34 +1233,18 @@ public class Trace {
     return this;
   }
 
-  public Trace pPrprcWcpArg2Hi(final Bytes b) {
-    if (filled.get(64)) {
-      throw new IllegalStateException("mmu.prprc/WCP_ARG_2_HI already set");
-    } else {
-      filled.set(64);
-    }
-
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      srcOffsetHiXorWcpArg2Hi.put((byte) 0);
-    }
-    srcOffsetHiXorWcpArg2Hi.put(b.toArrayUnsafe());
-
-    return this;
-  }
-
   public Trace pPrprcWcpArg2Lo(final Bytes b) {
-    if (filled.get(65)) {
+    if (filled.get(61)) {
       throw new IllegalStateException("mmu.prprc/WCP_ARG_2_LO already set");
     } else {
-      filled.set(65);
+      filled.set(61);
     }
 
     final byte[] bs = b.toArrayUnsafe();
     for (int i = bs.length; i < 32; i++) {
-      srcOffsetLoXorWcpArg2Lo.put((byte) 0);
+      srcOffsetHiXorWcpArg2Lo.put((byte) 0);
     }
-    srcOffsetLoXorWcpArg2Lo.put(b.toArrayUnsafe());
+    srcOffsetHiXorWcpArg2Lo.put(b.toArrayUnsafe());
 
     return this;
   }
@@ -1450,89 +1345,69 @@ public class Trace {
     return this;
   }
 
-  public Trace stamp(final Bytes b) {
+  public Trace stamp(final long b) {
     if (filled.get(36)) {
       throw new IllegalStateException("mmu.STAMP already set");
     } else {
       filled.set(36);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      stamp.put((byte) 0);
-    }
-    stamp.put(b.toArrayUnsafe());
+    stamp.putLong(b);
 
     return this;
   }
 
-  public Trace tot(final Bytes b) {
+  public Trace tot(final long b) {
     if (filled.get(37)) {
       throw new IllegalStateException("mmu.TOT already set");
     } else {
       filled.set(37);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      tot.put((byte) 0);
-    }
-    tot.put(b.toArrayUnsafe());
+    tot.putLong(b);
 
     return this;
   }
 
-  public Trace totlz(final Bytes b) {
+  public Trace totlz(final long b) {
     if (filled.get(38)) {
       throw new IllegalStateException("mmu.TOTLZ already set");
     } else {
       filled.set(38);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      totlz.put((byte) 0);
-    }
-    totlz.put(b.toArrayUnsafe());
+    totlz.putLong(b);
 
     return this;
   }
 
-  public Trace totnt(final Bytes b) {
+  public Trace totnt(final long b) {
     if (filled.get(39)) {
       throw new IllegalStateException("mmu.TOTNT already set");
     } else {
       filled.set(39);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      totnt.put((byte) 0);
-    }
-    totnt.put(b.toArrayUnsafe());
+    totnt.putLong(b);
 
     return this;
   }
 
-  public Trace totrz(final Bytes b) {
+  public Trace totrz(final long b) {
     if (filled.get(40)) {
       throw new IllegalStateException("mmu.TOTRZ already set");
     } else {
       filled.set(40);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      totrz.put((byte) 0);
-    }
-    totrz.put(b.toArrayUnsafe());
+    totrz.putLong(b);
 
     return this;
   }
 
   public Trace validateRow() {
-    if (!filled.get(48)) {
-      throw new IllegalStateException("mmu.AUX_ID_xor_CN_S has not been filled");
+    if (!filled.get(52)) {
+      throw new IllegalStateException("mmu.AUX_ID_xor_CN_S_xor_EUC_A has not been filled");
     }
 
     if (!filled.get(0)) {
@@ -1555,12 +1430,8 @@ public class Trace {
       throw new IllegalStateException("mmu.BIN_5 has not been filled");
     }
 
-    if (!filled.get(61)) {
-      throw new IllegalStateException("mmu.EUC_REM has not been filled");
-    }
-
-    if (!filled.get(49)) {
-      throw new IllegalStateException("mmu.EXO_SUM_xor_CN_T has not been filled");
+    if (!filled.get(48)) {
+      throw new IllegalStateException("mmu.EXO_SUM_xor_EXO_ID has not been filled");
     }
 
     if (!filled.get(47)) {
@@ -1578,7 +1449,7 @@ public class Trace {
     }
 
     if (!filled.get(7)) {
-      throw new IllegalStateException("mmu.IS_BLAKE_PARAM has not been filled");
+      throw new IllegalStateException("mmu.IS_BLAKE has not been filled");
     }
 
     if (!filled.get(8)) {
@@ -1621,11 +1492,15 @@ public class Trace {
       throw new IllegalStateException("mmu.IS_RIGHT_PADDED_WORD_EXTRACTION has not been filled");
     }
 
-    if (!filled.get(62)) {
+    if (!filled.get(50)) {
+      throw new IllegalStateException("mmu.KEC_ID has not been filled");
+    }
+
+    if (!filled.get(59)) {
       throw new IllegalStateException("mmu.LIMB_1_xor_LIMB_xor_WCP_ARG_1_HI has not been filled");
     }
 
-    if (!filled.get(63)) {
+    if (!filled.get(60)) {
       throw new IllegalStateException("mmu.LIMB_2_xor_WCP_ARG_1_LO has not been filled");
     }
 
@@ -1681,11 +1556,11 @@ public class Trace {
       throw new IllegalStateException("mmu.OUT_5 has not been filled");
     }
 
-    if (!filled.get(53)) {
+    if (!filled.get(51)) {
       throw new IllegalStateException("mmu.PHASE has not been filled");
     }
 
-    if (!filled.get(50)) {
+    if (!filled.get(49)) {
       throw new IllegalStateException("mmu.PHASE_xor_EXO_SUM has not been filled");
     }
 
@@ -1693,12 +1568,12 @@ public class Trace {
       throw new IllegalStateException("mmu.PRPRC has not been filled");
     }
 
-    if (!filled.get(57)) {
-      throw new IllegalStateException("mmu.REF_OFFSET_xor_EUC_A has not been filled");
+    if (!filled.get(53)) {
+      throw new IllegalStateException("mmu.REF_OFFSET_xor_CN_T_xor_EUC_B has not been filled");
     }
 
-    if (!filled.get(58)) {
-      throw new IllegalStateException("mmu.REF_SIZE_xor_EUC_B has not been filled");
+    if (!filled.get(54)) {
+      throw new IllegalStateException("mmu.REF_SIZE_xor_SLO_xor_EUC_CEIL has not been filled");
     }
 
     if (!filled.get(32)) {
@@ -1725,24 +1600,20 @@ public class Trace {
       throw new IllegalStateException("mmu.SIZE has not been filled");
     }
 
-    if (!filled.get(59)) {
-      throw new IllegalStateException("mmu.SIZE_xor_EUC_CEIL has not been filled");
+    if (!filled.get(55)) {
+      throw new IllegalStateException("mmu.SIZE_xor_TLO_xor_EUC_QUOT has not been filled");
     }
 
-    if (!filled.get(54)) {
-      throw new IllegalStateException("mmu.SLO has not been filled");
+    if (!filled.get(56)) {
+      throw new IllegalStateException("mmu.SRC_ID_xor_TOTAL_SIZE_xor_EUC_REM has not been filled");
     }
 
-    if (!filled.get(51)) {
-      throw new IllegalStateException("mmu.SRC_ID_xor_ID_1 has not been filled");
+    if (!filled.get(61)) {
+      throw new IllegalStateException("mmu.SRC_OFFSET_HI_xor_WCP_ARG_2_LO has not been filled");
     }
 
-    if (!filled.get(64)) {
-      throw new IllegalStateException("mmu.SRC_OFFSET_HI_xor_WCP_ARG_2_HI has not been filled");
-    }
-
-    if (!filled.get(65)) {
-      throw new IllegalStateException("mmu.SRC_OFFSET_LO_xor_WCP_ARG_2_LO has not been filled");
+    if (!filled.get(62)) {
+      throw new IllegalStateException("mmu.SRC_OFFSET_LO has not been filled");
     }
 
     if (!filled.get(36)) {
@@ -1758,24 +1629,16 @@ public class Trace {
       throw new IllegalStateException("mmu.TBO has not been filled");
     }
 
-    if (!filled.get(52)) {
-      throw new IllegalStateException("mmu.TGT_ID_xor_ID_2 has not been filled");
+    if (!filled.get(57)) {
+      throw new IllegalStateException("mmu.TGT_ID has not been filled");
     }
 
-    if (!filled.get(60)) {
-      throw new IllegalStateException("mmu.TGT_OFFSET_LO_xor_EUC_QUOT has not been filled");
-    }
-
-    if (!filled.get(55)) {
-      throw new IllegalStateException("mmu.TLO has not been filled");
+    if (!filled.get(58)) {
+      throw new IllegalStateException("mmu.TGT_OFFSET_LO has not been filled");
     }
 
     if (!filled.get(37)) {
       throw new IllegalStateException("mmu.TOT has not been filled");
-    }
-
-    if (!filled.get(56)) {
-      throw new IllegalStateException("mmu.TOTAL_SIZE has not been filled");
     }
 
     if (!filled.get(38)) {
@@ -1805,8 +1668,8 @@ public class Trace {
   }
 
   public Trace fillAndValidateRow() {
-    if (!filled.get(48)) {
-      auxIdXorCnS.position(auxIdXorCnS.position() + 32);
+    if (!filled.get(52)) {
+      auxIdXorCnSXorEucA.position(auxIdXorCnSXorEucA.position() + 32);
     }
 
     if (!filled.get(0)) {
@@ -1829,16 +1692,12 @@ public class Trace {
       bin5.position(bin5.position() + 1);
     }
 
-    if (!filled.get(61)) {
-      eucRem.position(eucRem.position() + 32);
-    }
-
-    if (!filled.get(49)) {
-      exoSumXorCnT.position(exoSumXorCnT.position() + 32);
+    if (!filled.get(48)) {
+      exoSumXorExoId.position(exoSumXorExoId.position() + 8);
     }
 
     if (!filled.get(47)) {
-      instXorInstXorCt.position(instXorInstXorCt.position() + 32);
+      instXorInstXorCt.position(instXorInstXorCt.position() + 4);
     }
 
     if (!filled.get(5)) {
@@ -1850,7 +1709,7 @@ public class Trace {
     }
 
     if (!filled.get(7)) {
-      isBlakeParam.position(isBlakeParam.position() + 1);
+      isBlake.position(isBlake.position() + 1);
     }
 
     if (!filled.get(8)) {
@@ -1893,11 +1752,15 @@ public class Trace {
       isRightPaddedWordExtraction.position(isRightPaddedWordExtraction.position() + 1);
     }
 
-    if (!filled.get(62)) {
+    if (!filled.get(50)) {
+      kecId.position(kecId.position() + 8);
+    }
+
+    if (!filled.get(59)) {
       limb1XorLimbXorWcpArg1Hi.position(limb1XorLimbXorWcpArg1Hi.position() + 32);
     }
 
-    if (!filled.get(63)) {
+    if (!filled.get(60)) {
       limb2XorWcpArg1Lo.position(limb2XorWcpArg1Lo.position() + 32);
     }
 
@@ -1914,7 +1777,7 @@ public class Trace {
     }
 
     if (!filled.get(21)) {
-      mmioStamp.position(mmioStamp.position() + 32);
+      mmioStamp.position(mmioStamp.position() + 8);
     }
 
     if (!filled.get(22)) {
@@ -1953,24 +1816,24 @@ public class Trace {
       out5.position(out5.position() + 32);
     }
 
-    if (!filled.get(53)) {
-      phase.position(phase.position() + 32);
+    if (!filled.get(51)) {
+      phase.position(phase.position() + 8);
     }
 
-    if (!filled.get(50)) {
-      phaseXorExoSum.position(phaseXorExoSum.position() + 32);
+    if (!filled.get(49)) {
+      phaseXorExoSum.position(phaseXorExoSum.position() + 8);
     }
 
     if (!filled.get(31)) {
       prprc.position(prprc.position() + 1);
     }
 
-    if (!filled.get(57)) {
-      refOffsetXorEucA.position(refOffsetXorEucA.position() + 32);
+    if (!filled.get(53)) {
+      refOffsetXorCnTXorEucB.position(refOffsetXorCnTXorEucB.position() + 32);
     }
 
-    if (!filled.get(58)) {
-      refSizeXorEucB.position(refSizeXorEucB.position() + 32);
+    if (!filled.get(54)) {
+      refSizeXorSloXorEucCeil.position(refSizeXorSloXorEucCeil.position() + 32);
     }
 
     if (!filled.get(32)) {
@@ -1997,28 +1860,24 @@ public class Trace {
       size.position(size.position() + 1);
     }
 
-    if (!filled.get(59)) {
-      sizeXorEucCeil.position(sizeXorEucCeil.position() + 32);
+    if (!filled.get(55)) {
+      sizeXorTloXorEucQuot.position(sizeXorTloXorEucQuot.position() + 32);
     }
 
-    if (!filled.get(54)) {
-      slo.position(slo.position() + 32);
+    if (!filled.get(56)) {
+      srcIdXorTotalSizeXorEucRem.position(srcIdXorTotalSizeXorEucRem.position() + 32);
     }
 
-    if (!filled.get(51)) {
-      srcIdXorId1.position(srcIdXorId1.position() + 32);
+    if (!filled.get(61)) {
+      srcOffsetHiXorWcpArg2Lo.position(srcOffsetHiXorWcpArg2Lo.position() + 32);
     }
 
-    if (!filled.get(64)) {
-      srcOffsetHiXorWcpArg2Hi.position(srcOffsetHiXorWcpArg2Hi.position() + 32);
-    }
-
-    if (!filled.get(65)) {
-      srcOffsetLoXorWcpArg2Lo.position(srcOffsetLoXorWcpArg2Lo.position() + 32);
+    if (!filled.get(62)) {
+      srcOffsetLo.position(srcOffsetLo.position() + 32);
     }
 
     if (!filled.get(36)) {
-      stamp.position(stamp.position() + 32);
+      stamp.position(stamp.position() + 8);
     }
 
     if (!filled.get(41)) {
@@ -2029,36 +1888,28 @@ public class Trace {
       tbo.position(tbo.position() + 1);
     }
 
-    if (!filled.get(52)) {
-      tgtIdXorId2.position(tgtIdXorId2.position() + 32);
+    if (!filled.get(57)) {
+      tgtId.position(tgtId.position() + 32);
     }
 
-    if (!filled.get(60)) {
-      tgtOffsetLoXorEucQuot.position(tgtOffsetLoXorEucQuot.position() + 32);
-    }
-
-    if (!filled.get(55)) {
-      tlo.position(tlo.position() + 32);
+    if (!filled.get(58)) {
+      tgtOffsetLo.position(tgtOffsetLo.position() + 32);
     }
 
     if (!filled.get(37)) {
-      tot.position(tot.position() + 32);
-    }
-
-    if (!filled.get(56)) {
-      totalSize.position(totalSize.position() + 32);
+      tot.position(tot.position() + 8);
     }
 
     if (!filled.get(38)) {
-      totlz.position(totlz.position() + 32);
+      totlz.position(totlz.position() + 8);
     }
 
     if (!filled.get(39)) {
-      totnt.position(totnt.position() + 32);
+      totnt.position(totnt.position() + 8);
     }
 
     if (!filled.get(40)) {
-      totrz.position(totrz.position() + 32);
+      totrz.position(totrz.position() + 8);
     }
 
     if (!filled.get(42)) {

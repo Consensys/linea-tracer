@@ -64,7 +64,7 @@ public final class BytecodeRunner {
         ToyAccount.builder()
             .balance(Wei.fromEth(1))
             .nonce(6)
-            .address(Address.fromHexString("0x111111"))
+            .address(Address.fromHexString("0x1111111111111111111111111111111111111111"))
             .code(byteCode)
             .build();
 
@@ -73,7 +73,7 @@ public final class BytecodeRunner {
             .sender(senderAccount)
             .to(receiverAccount)
             .keyPair(keyPair)
-            .gasLimit(100_000_000L)
+            .gasLimit(25000000L)
             .build();
 
     final ToyWorld toyWorld =

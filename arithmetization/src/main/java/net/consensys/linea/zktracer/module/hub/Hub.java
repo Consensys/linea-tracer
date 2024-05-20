@@ -37,7 +37,10 @@ import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.bin.Bin;
-import net.consensys.linea.zktracer.module.ec_data.EcData;
+import net.consensys.linea.zktracer.module.blake2fmodexpdata.Blake2fModexpData;
+import net.consensys.linea.zktracer.module.blockdata.Blockdata;
+import net.consensys.linea.zktracer.module.blockhash.Blockhash;
+import net.consensys.linea.zktracer.module.ecdata.EcData;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.exp.Exp;
 import net.consensys.linea.zktracer.module.ext.Ext;
@@ -62,24 +65,25 @@ import net.consensys.linea.zktracer.module.limits.precompiles.EcRecoverEffective
 import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.Rip160Blocks;
 import net.consensys.linea.zktracer.module.limits.precompiles.Sha256Blocks;
-import net.consensys.linea.zktracer.module.logData.LogData;
-import net.consensys.linea.zktracer.module.logInfo.LogInfo;
+import net.consensys.linea.zktracer.module.logdata.LogData;
+import net.consensys.linea.zktracer.module.loginfo.LogInfo;
+import net.consensys.linea.zktracer.module.mmio.Mmio;
 import net.consensys.linea.zktracer.module.mmu.Mmu;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.mul.Mul;
 import net.consensys.linea.zktracer.module.mxp.Mxp;
-import net.consensys.linea.zktracer.module.rlp.addr.RlpAddr;
-import net.consensys.linea.zktracer.module.rlp.txn.RlpTxn;
-import net.consensys.linea.zktracer.module.rlp.txrcpt.RlpTxrcpt;
+import net.consensys.linea.zktracer.module.rlpaddr.RlpAddr;
+import net.consensys.linea.zktracer.module.rlptxn.RlpTxn;
+import net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxrcpt;
 import net.consensys.linea.zktracer.module.rom.Rom;
-import net.consensys.linea.zktracer.module.romLex.RomLex;
+import net.consensys.linea.zktracer.module.romlex.RomLex;
 import net.consensys.linea.zktracer.module.shf.Shf;
 import net.consensys.linea.zktracer.module.stp.Stp;
 import net.consensys.linea.zktracer.module.tables.bin.BinRt;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.InstructionDecoder;
 import net.consensys.linea.zktracer.module.tables.shf.ShfRt;
 import net.consensys.linea.zktracer.module.trm.Trm;
-import net.consensys.linea.zktracer.module.txn_data.TxnData;
+import net.consensys.linea.zktracer.module.txndata.TxnData;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.*;
 import net.consensys.linea.zktracer.opcode.gas.projector.GasProjector;
@@ -108,6 +112,8 @@ import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.log.LogTopic;
 import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
+import org.hyperledger.besu.plugin.data.BlockBody;
+import org.hyperledger.besu.plugin.data.BlockHeader;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 @Slf4j
@@ -125,7 +131,8 @@ public class Hub implements Module {
           Address.ALTBN128_PAIRING,
           Address.BLAKE2B_F_COMPRESSION);
   private static final int TAU = 8;
-  public static final GasProjector gp = new GasProjector();
+
+  public static final GasProjector GAS_PROJECTOR = new GasProjector();
 
   /** accumulate the trace information for the Hub */
   @Getter private final State state = new State();
@@ -135,7 +142,12 @@ public class Hub implements Module {
   /** provides phase-related volatile information */
   @Getter Transients transients;
 
+  /**
+   * Long-lived states, not used in tracing per se but keeping track of data of the associated
+   * lifetime
+   */
   @Getter CallStack callStack = new CallStack();
+
   @Getter TransactionStack txStack = new TransactionStack();
 
   /** Stores all the actions that must be deferred to a later time */
@@ -143,6 +155,22 @@ public class Hub implements Module {
 
   /** stores all data related to failure states & module activation */
   @Getter private final PlatformController pch;
+
+  @Override
+  public String moduleKey() {
+    return "HUB";
+  }
+
+  @Override
+  public List<ColumnHeader> columnsHeaders() {
+    return Trace.headers(this.lineCount());
+  }
+
+  @Override
+  public void commit(List<MappedByteBuffer> buffers) {
+    final Trace trace = new Trace(buffers);
+    this.state.commit(trace);
+  }
 
   public int stamp() {
     return this.state.stamps().hub();
@@ -181,28 +209,35 @@ public class Hub implements Module {
     this.state.currentTxTrace().add(section);
   }
 
+  @Getter private final Wcp wcp = new Wcp(this);
   private final Module add = new Add(this);
   private final Module bin = new Bin(this);
-  private final Ext ext = new Ext(this);
+  private final Blake2fModexpData blake2fModexpData = new Blake2fModexpData();
+  private final Blockdata blockdata;
+  private final Blockhash blockhash = new Blockhash(wcp);
   private final EcData ecData;
   private final Euc euc;
-  private final Mod mod = new Mod();
+  private final Ext ext = new Ext(this);
   private final Module mul = new Mul(this);
+  private final Mod mod = new Mod();
   private final Module shf = new Shf();
-  @Getter private final Wcp wcp = new Wcp(this);
   private final RlpTxn rlpTxn;
   private final Module mxp;
+  private final Mmio mmio;
+
   @Getter private final Exp exp;
-  private final Mmu mmu;
-  private final RlpTxrcpt rlpTxrcpt = new RlpTxrcpt();
-  private final LogInfo logInfo = new LogInfo(rlpTxrcpt);
-  private final LogData logData = new LogData(rlpTxrcpt);
-  private final RlpAddr rlpAddr = new RlpAddr(this);
+  @Getter private final Mmu mmu;
+  private final RlpTxrcpt rlpTxrcpt;
+  private final LogInfo logInfo;
+  private final LogData logData;
+  private final Trm trm = new Trm();
+  private final RlpAddr rlpAddr = new RlpAddr(this, trm);
   private final Rom rom;
+
   @Getter private final RomLex romLex;
   private final TxnData txnData;
-  private final Trm trm = new Trm();
-  private final ModexpEffectiveCall modexp;
+
+  private final ModexpEffectiveCall modexpEffectiveCall;
   private final Stp stp = new Stp(this, wcp, mod);
   private final L2Block l2Block;
 
@@ -217,18 +252,32 @@ public class Hub implements Module {
     this.factories = new Factories(this);
 
     this.pch = new PlatformController(this);
-    this.mmu = new Mmu(this.callStack);
     this.mxp = new Mxp(this);
-    this.exp = new Exp(this, this.wcp);
+    this.exp = new Exp(this.wcp);
     this.romLex = new RomLex(this);
     this.rom = new Rom(this.romLex);
     this.rlpTxn = new RlpTxn(this.romLex);
-    this.txnData = new TxnData(this, this.romLex, this.wcp);
-    this.ecData = new EcData(this, this.wcp, this.ext);
     this.euc = new Euc(this.wcp);
+    this.txnData = new TxnData(this, this.romLex, this.wcp, this.euc);
+    this.blockdata = new Blockdata(this.wcp, this.txnData, this.rlpTxn);
+    this.rlpTxrcpt = new RlpTxrcpt(txnData);
+    this.logData = new LogData(rlpTxrcpt);
+    this.logInfo = new LogInfo(rlpTxrcpt);
+    this.ecData = new EcData(this, this.wcp, this.ext);
+    this.mmu =
+        new Mmu(
+            this.euc,
+            this.wcp,
+            this.romLex,
+            this.rlpTxn,
+            this.rlpTxrcpt,
+            this.ecData,
+            this.blake2fModexpData,
+            this.callStack);
+    this.mmio = new Mmio(this.mmu);
 
     final EcRecoverEffectiveCall ecRec = new EcRecoverEffectiveCall(this);
-    this.modexp = new ModexpEffectiveCall(this);
+    this.modexpEffectiveCall = new ModexpEffectiveCall(this, this.blake2fModexpData);
     final EcPairingCallEffectiveCall ecPairingCall = new EcPairingCallEffectiveCall(this);
     final L2Block l2Block = new L2Block(l2l1ContractAddress, LogTopic.of(l2l1Topic));
 
@@ -237,12 +286,12 @@ public class Hub implements Module {
             new Sha256Blocks(this),
             ecRec,
             new Rip160Blocks(this),
-            this.modexp,
+            this.modexpEffectiveCall,
             new EcAddEffectiveCall(this),
             new EcMulEffectiveCall(this),
             ecPairingCall,
             new EcPairingMillerLoop(ecPairingCall),
-            new Blake2fRounds(this),
+            new Blake2fRounds(this, this.blake2fModexpData),
             // Block level limits
             l2Block,
             new Keccak(this, ecRec, l2Block),
@@ -253,27 +302,32 @@ public class Hub implements Module {
     this.modules =
         Stream.concat(
                 Stream.of(
-                    this.romLex, // WARN: must be called first
                     this.add,
                     this.bin,
+                    this.blake2fModexpData,
+                    this.blockdata,
+                    this.blockhash,
                     this.ecData,
                     this.euc,
                     this.ext,
                     this.logData,
                     this.logInfo,
+                    this.mmio,
+                    this.mmu,
                     this.mod,
                     this.mul,
                     this.mxp,
                     this.exp,
                     this.rlpAddr,
                     this.rlpTxn,
-                    this.rlpTxrcpt,
                     this.rom,
+                    this.romLex,
                     this.shf,
                     this.stp,
                     this.trm,
+                    this.wcp, /* WARN: must be called BEFORE txnData */
                     this.txnData,
-                    this.wcp),
+                    this.rlpTxrcpt /* WARN: must be called AFTER txnData */),
                 this.precompileLimitModules.stream())
             .toList();
   }
@@ -287,25 +341,30 @@ public class Hub implements Module {
             // Modules
             Stream.of(
                 this,
-                this.romLex,
                 this.add,
                 this.bin,
-                this.ext,
+                this.blake2fModexpData,
+                this.blockdata,
+                this.blockhash,
                 //        this.ecData, // TODO: not yet
+                this.ext,
                 this.euc,
+                this.exp,
                 this.logData,
                 this.logInfo,
+                this.mmu, // WARN: must be called before the MMIO
+                this.mmio,
                 this.mod,
-                this.modexp.data(),
                 this.mul,
                 this.mxp,
-                this.exp,
                 this.rlpAddr,
                 this.rlpTxn,
                 this.rlpTxrcpt,
                 this.rom,
+                this.romLex,
                 this.shf,
                 this.stp,
+                this.trm,
                 this.txnData,
                 this.wcp))
         .toList();
@@ -322,15 +381,18 @@ public class Hub implements Module {
             Stream.of(
                 this,
                 this.romLex,
-                this.bin,
                 this.add,
+                this.bin,
+                this.blockdata,
+                this.blockhash,
                 this.ext,
                 this.ecData,
                 this.euc,
+                this.mmu,
+                this.mmio,
                 this.logData,
                 this.logInfo,
                 this.mod,
-                this.mmu,
                 this.mul,
                 this.mxp,
                 this.exp,
@@ -422,6 +484,8 @@ public class Hub implements Module {
             preWarmed -> {
               if (!preWarmed.isEmpty()) {
                 Set<Address> seenAddresses = new HashSet<>(PRECOMPILE_ADDRESSES);
+                this.state.stamps().incrementHubStamp();
+
                 Map<Address, Set<Bytes32>> seenKeys = new HashMap<>();
                 List<TraceFragment> fragments = new ArrayList<>();
 
@@ -506,7 +570,6 @@ public class Hub implements Module {
   void processStateInit(WorldView world) {
     this.state.stamps().incrementHubStamp();
     final TransactionStack.MetaTransaction tx = this.transients.tx();
-
     final boolean isDeployment = tx.besuTx().getTo().isEmpty();
     final Address toAddress = effectiveToAddress(tx.besuTx());
     final DeploymentInfo deploymentInfo = this.transients.conflation().deploymentInfo();
@@ -578,7 +641,7 @@ public class Hub implements Module {
                 .make(preInitToSnapshot, postInitToSnapshot)
                 .requiresCodeFragmentIndex(true),
             ImcFragment.forTxInit(this),
-            ContextFragment.intializeExecutionContext(this),
+            ContextFragment.initializeExecutionContext(this),
             txFragment));
 
     tx.state(TxState.TX_EXEC);
@@ -593,10 +656,6 @@ public class Hub implements Module {
 
   public MessageFrame messageFrame() {
     return this.callStack.current().frame();
-  }
-
-  public long getRemainingGas() {
-    return 0; // TODO:
   }
 
   private void handleStack(MessageFrame frame) {
@@ -637,10 +696,6 @@ public class Hub implements Module {
     if (this.pch.signals().shf()) {
       this.shf.tracePreOpcode(frame);
     }
-    if (this.pch.signals().mmu()) {
-      this.mmu.tracePreOpcode(frame);
-    }
-
     if (this.pch.signals().mxp()) {
       this.mxp.tracePreOpcode(frame);
     }
@@ -652,7 +707,7 @@ public class Hub implements Module {
     }
     if (this.pch.signals().exp()) {
       this.exp.tracePreOpcode(frame);
-      this.modexp.tracePreOpcode(frame);
+      this.modexpEffectiveCall.tracePreOpcode(frame);
       // if (this.pch.exceptions().none() && this.pch.aborts().none())
     }
     if (this.pch.signals().trm()) {
@@ -664,11 +719,15 @@ public class Hub implements Module {
     if (this.pch.signals().ecData()) {
       this.ecData.tracePreOpcode(frame);
     }
+    if (this.pch.signals().blockhash()) {
+      this.blockhash.tracePreOpcode(frame);
+    }
   }
 
   void processStateExec(MessageFrame frame) {
     this.currentFrame().frame(frame);
     this.state.stamps().incrementHubStamp();
+
     this.pch.setup(frame);
     this.state.stamps().stampSubmodules(this.pch());
 
@@ -789,7 +848,7 @@ public class Hub implements Module {
 
     this.defers.postTx(this.state.currentTxTrace());
 
-    this.txStack.enterTransaction(tx);
+    this.txStack.enterTransaction(tx, requiresEvmExecution(world, tx));
 
     this.enterTransaction();
 
@@ -846,8 +905,9 @@ public class Hub implements Module {
     }
 
     StackContext pending = this.currentFrame().pending();
-    for (int i = 0; i < pending.getLines().size(); i++) {
-      StackLine line = pending.getLines().get(i);
+    for (int i = 0; i < pending.lines().size(); i++) {
+      StackLine line = pending.lines().get(i);
+
       if (line.needsResult()) {
         Bytes result = Bytes.EMPTY;
         // Only pop from the stack if no exceptions have been encountered
@@ -859,7 +919,7 @@ public class Hub implements Module {
         ((StackFragment) section.lines().get(i).specific())
             .stackOps()
             .get(line.resultColumn() - 1)
-            .setValue(result);
+            .value(result);
       }
     }
 
@@ -878,14 +938,20 @@ public class Hub implements Module {
 
     if (frame.getDepth() == 0) {
       // Bedrock...
-      final Address toAddress = effectiveToAddress(this.transients.tx().besuTx());
+      final TransactionStack.MetaTransaction currentTx = transients().tx();
+      final Address toAddress = effectiveToAddress(currentTx.besuTx());
       final boolean isDeployment = this.transients.tx().besuTx().getTo().isEmpty();
-      if (!isDeployment && !frame.getInputData().isEmpty()) {
+
+      final boolean shouldCopyTxCallData =
+          !isDeployment && !frame.getInputData().isEmpty() && currentTx.requiresEvmExecution();
+      // TODO simplify this, the same bedRock context ( = root context ??)  seems to be generated in
+      // both case
+      if (shouldCopyTxCallData) {
         this.callStack.newMantleAndBedrock(
             this.state.stamps().hub(),
             this.transients.tx().besuTx().getSender(),
             toAddress,
-            isDeployment ? CallFrameType.INIT_CODE : CallFrameType.STANDARD,
+            CallFrameType.MANTLE,
             new Bytecode(
                 toAddress == null
                     ? this.transients.tx().besuTx().getData().orElse(Bytes.EMPTY)
@@ -905,7 +971,7 @@ public class Hub implements Module {
             this.state.stamps().hub(),
             //            this.transients.tx().transaction().getSender(),
             toAddress,
-            isDeployment ? CallFrameType.INIT_CODE : CallFrameType.STANDARD,
+            CallFrameType.BEDROCK,
             new Bytecode(
                 toAddress == null
                     ? this.transients.tx().besuTx().getData().orElse(Bytes.EMPTY)
@@ -932,6 +998,24 @@ public class Hub implements Module {
       }
       final int codeDeploymentNumber =
           this.transients.conflation().deploymentInfo().number(codeAddress);
+
+      final int callDataOffsetStackArgument =
+          callStack.current().opCode().callHasSixArgument() ? 2 : 3;
+
+      final long callDataOffset =
+          isDeployment
+              ? 0
+              : Words.clampedToLong(
+                  callStack.current().frame().getStackItem(callDataOffsetStackArgument));
+
+      final long callDataSize =
+          isDeployment
+              ? 0
+              : Words.clampedToLong(
+                  callStack.current().frame().getStackItem(callDataOffsetStackArgument + 1));
+
+      final long callDataContextNumber = this.callStack.current().contextNumber();
+
       this.callStack.enter(
           this.state.stamps().hub(),
           frame.getRecipientAddress(),
@@ -941,6 +1025,9 @@ public class Hub implements Module {
           frame.getValue(),
           frame.getRemainingGas(),
           frame.getInputData(),
+          callDataOffset,
+          callDataSize,
+          callDataContextNumber,
           this.transients.conflation().deploymentInfo().number(codeAddress),
           codeDeploymentNumber,
           isDeployment);
@@ -951,6 +1038,18 @@ public class Hub implements Module {
         m.traceContextEnter(frame);
       }
     }
+  }
+
+  private boolean requiresEvmExecution(final WorldView worldView, final Transaction tx) {
+    Optional<? extends Address> receiver = tx.getTo();
+
+    if (receiver.isPresent()) {
+      Optional<Account> receiverInWorld = Optional.ofNullable(worldView.get(receiver.get()));
+
+      return receiverInWorld.map(AccountState::hasCode).orElse(false);
+    }
+
+    return !tx.getInit().get().isEmpty();
   }
 
   public void traceContextReEnter(MessageFrame frame) {
@@ -1045,7 +1144,11 @@ public class Hub implements Module {
       case ACCOUNT -> {}
       case COPY -> {}
       case TRANSACTION -> {}
-      case BATCH -> {}
+      case BATCH -> {
+        if (this.currentFrame().opCode() == OpCode.BLOCKHASH) {
+          this.blockhash.tracePostOpcode(frame);
+        }
+      }
       case STACK_RAM -> {
         if (this.pch.exceptions().noStackException()) {
           this.mxp.tracePostOpcode(frame);
@@ -1079,8 +1182,10 @@ public class Hub implements Module {
   }
 
   @Override
-  public String moduleKey() {
-    return "HUB";
+  public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
+    for (Module m : this.modules) {
+      m.traceEndBlock(blockHeader, blockBody);
+    }
   }
 
   @Override
@@ -1098,17 +1203,6 @@ public class Hub implements Module {
     for (Module m : this.modules) {
       m.traceEndConflation(state);
     }
-  }
-
-  @Override
-  public List<ColumnHeader> columnsHeaders() {
-    return Trace.headers(this.lineCount());
-  }
-
-  @Override
-  public void commit(List<MappedByteBuffer> buffers) {
-    final Trace trace = new Trace(buffers);
-    this.state.commit(trace);
   }
 
   public long refundedGas() {
@@ -1157,6 +1251,7 @@ public class Hub implements Module {
             } else {
               parentFrame.latestReturnData(Bytes.EMPTY);
             }
+            final ImcFragment imcFragment = ImcFragment.forOpcode(this, frame); // TODO finish it
           }
           case REVERT -> {
             final Bytes returnData = this.transients.op().returnData();
@@ -1167,6 +1262,7 @@ public class Hub implements Module {
             } else {
               parentFrame.latestReturnData(Bytes.EMPTY);
             }
+            final ImcFragment imcFragment = ImcFragment.forOpcode(this, frame); // TODO finish it
           }
           case STOP, SELFDESTRUCT -> parentFrame.latestReturnData(Bytes.EMPTY);
         }
@@ -1390,6 +1486,9 @@ public class Hub implements Module {
                             calledAccountSnapshot, calledAccountSnapshot, rawCalledAddress)));
           }
         } else if (this.pch.aborts().any()) {
+          //
+          // THERE IS AN ABORT
+          //
           TraceSection abortedSection =
               new FailedCallSection(
                   this,
@@ -1403,9 +1502,6 @@ public class Hub implements Module {
                   ContextFragment.nonExecutionEmptyReturnData(callStack));
           this.addTraceSection(abortedSection);
         } else {
-          //
-          // THERE IS AN ABORT
-          //
           final ImcFragment imcFragment = ImcFragment.forOpcode(this, frame);
 
           if (hasCode) {
@@ -1421,8 +1517,17 @@ public class Hub implements Module {
 
             // TODO: fill the callee & requested return data for the current call frame
             // TODO: i.e. ensure that the precompile frame behaves as expected
+
             Optional<PrecompileInvocation> precompileInvocation =
                 targetPrecompile.map(p -> PrecompileInvocation.of(this, p));
+
+            // TODO: this is ugly, and surely not at the right place. It should provide the
+            // precompile result (from the precompile module)
+            // TODO useless (and potentially dangerous) if the precompile is a failure
+            if (targetPrecompile.isPresent()) {
+              this.callStack.newPrecompileResult(
+                  this.stamp(), Bytes.EMPTY, 0, targetPrecompile.get().address);
+            }
 
             final NoCodeCallSection section =
                 new NoCodeCallSection(

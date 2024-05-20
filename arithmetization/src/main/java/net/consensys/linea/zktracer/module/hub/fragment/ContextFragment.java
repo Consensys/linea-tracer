@@ -41,7 +41,7 @@ public record ContextFragment(
         false);
   }
 
-  public static ContextFragment intializeExecutionContext(final Hub hub) {
+  public static ContextFragment initializeExecutionContext(final Hub hub) {
     return new ContextFragment(
         hub.callStack(),
         Either.right(hub.stamp() + 1),
@@ -104,18 +104,19 @@ public record ContextFragment(
         .pContextAccountDeploymentNumber(Bytes.ofUnsignedInt(callFrame.accountDeploymentNumber()))
         .pContextByteCodeDeploymentNumber(Bytes.ofUnsignedInt(callFrame.codeDeploymentNumber()))
         .pContextByteCodeDeploymentStatus(callFrame.underDeployment() ? Bytes.of(1) : Bytes.EMPTY)
-        .pContextCallerContextNumber(Bytes.ofUnsignedInt(parent.contextNumber()))
+        .pContextCallDataContextNumber(Bytes.ofUnsignedInt(parent.contextNumber()))
         .pContextCallerAddressHi(parentAddress.hi())
         .pContextCallerAddressLo(parentAddress.lo())
         .pContextCallValue(callFrame.value())
-        .pContextCallDataOffset(Bytes.ofUnsignedLong(callFrame.callDataSource().offset()))
-        .pContextCallDataSize(Bytes.ofUnsignedLong(callFrame.callDataSource().length()))
+        .pContextCallDataOffset(
+            Bytes.ofUnsignedLong(callFrame.callDataInfo().memorySpan().offset()))
+        .pContextCallDataSize(Bytes.ofUnsignedLong(callFrame.callDataInfo().memorySpan().length()))
         .pContextReturnAtOffset(
             Bytes.ofUnsignedLong(callFrame.requestedReturnDataTarget().offset()))
         .pContextReturnAtCapacity(
             Bytes.ofUnsignedLong(callFrame.requestedReturnDataTarget().length()))
         .pContextUpdate(updateCallerReturndata)
-        .pContextReturnerContextNumber(
+        .pContextReturnDataContextNumber(
             Bytes.ofUnsignedInt(
                 callFrame.lastCallee().map(c -> callStack.getById(c).contextNumber()).orElse(0)))
         .pContextReturnDataOffset(Bytes.ofUnsignedLong(returnDataSegment.offset()))

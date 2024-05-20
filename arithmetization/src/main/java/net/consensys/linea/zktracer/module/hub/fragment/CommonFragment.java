@@ -64,7 +64,7 @@ public final class CommonFragment implements TraceFragment {
       final Hub hub, final CallFrame frame, boolean tliCounter, int nonStackRowsCounter) {
     long refund = 0;
     if (hub.pch().exceptions().noStackException()) {
-      refund = Hub.gp.of(frame.frame(), hub.opCode()).refund();
+      refund = Hub.GAS_PROJECTOR.of(frame.frame(), hub.opCode()).refund();
     }
 
     return CommonFragment.builder()
@@ -155,11 +155,11 @@ public final class CommonFragment implements TraceFragment {
         .gasActual(Bytes.ofUnsignedLong(gasActual))
         .gasCost(Bytes.ofUnsignedLong(gasCost))
         .gasNext(Bytes.ofUnsignedLong(gasNext))
-        .refgas(Bytes.ofUnsignedLong(gasRefund))
-        .refgasNew(Bytes.EMPTY)
+        .refundCounter(Bytes.ofUnsignedInt(gasRefund))
+        .refundCounterNew(Bytes.EMPTY)
         .twoLineInstruction(twoLinesInstruction)
         .counterTli(twoLinesInstructionCounter)
-        .numberOfNonStackRows(Bytes.ofUnsignedShort(numberOfNonStackRows))
+        .nonStackRows(Bytes.ofUnsignedShort(numberOfNonStackRows))
         .counterNsr(Bytes.ofUnsignedShort(nonStackRowsCounter));
   }
 }

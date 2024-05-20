@@ -112,7 +112,7 @@ public class Trace {
         new ColumnHeader("wcp.ONE_LINE_INSTRUCTION", 1, length),
         new ColumnHeader("wcp.RESULT", 1, length),
         new ColumnHeader("wcp.VARIABLE_LENGTH_INSTRUCTION", 1, length),
-        new ColumnHeader("wcp.WORD_COMPARISON_STAMP", 32, length));
+        new ColumnHeader("wcp.WORD_COMPARISON_STAMP", 8, length));
   }
 
   public Trace(List<MappedByteBuffer> buffers) {
@@ -648,18 +648,14 @@ public class Trace {
     return this;
   }
 
-  public Trace wordComparisonStamp(final Bytes b) {
+  public Trace wordComparisonStamp(final long b) {
     if (filled.get(37)) {
       throw new IllegalStateException("wcp.WORD_COMPARISON_STAMP already set");
     } else {
       filled.set(37);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      wordComparisonStamp.put((byte) 0);
-    }
-    wordComparisonStamp.put(b.toArrayUnsafe());
+    wordComparisonStamp.putLong(b);
 
     return this;
   }
@@ -973,7 +969,7 @@ public class Trace {
     }
 
     if (!filled.get(37)) {
-      wordComparisonStamp.position(wordComparisonStamp.position() + 32);
+      wordComparisonStamp.position(wordComparisonStamp.position() + 8);
     }
 
     filled.clear();

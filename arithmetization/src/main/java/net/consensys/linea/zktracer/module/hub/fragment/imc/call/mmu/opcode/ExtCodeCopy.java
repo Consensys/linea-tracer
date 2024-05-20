@@ -15,11 +15,11 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.opcode;
 
-import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_ANY_TO_RAM_WITH_PADDING;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_ANY_TO_RAM_WITH_PADDING;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
-import net.consensys.linea.zktracer.module.romLex.ContractMetadata;
+import net.consensys.linea.zktracer.module.romlex.ContractMetadata;
 import net.consensys.linea.zktracer.types.EWord;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.internal.Words;
@@ -50,7 +50,7 @@ public class ExtCodeCopy extends MmuCall {
   }
 
   @Override
-  protected int sourceId() {
+  public int sourceId() {
     try {
       return this.hub.romLex().getCodeFragmentIndexByMetadata(this.contract);
     } catch (Exception ignored) {
@@ -60,7 +60,7 @@ public class ExtCodeCopy extends MmuCall {
   }
 
   @Override
-  protected long referenceSize() {
+  public long referenceSize() {
     return this.hub
         .romLex()
         .getChunkByMetadata(this.contract)

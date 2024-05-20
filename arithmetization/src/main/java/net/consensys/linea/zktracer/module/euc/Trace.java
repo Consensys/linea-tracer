@@ -49,17 +49,17 @@ public class Trace {
 
   static List<ColumnHeader> headers(int length) {
     return List.of(
-        new ColumnHeader("euc.CEIL", 8, length),
-        new ColumnHeader("euc.CT", 1, length),
-        new ColumnHeader("euc.CT_MAX", 1, length),
-        new ColumnHeader("euc.DIVIDEND", 8, length),
-        new ColumnHeader("euc.DIVISOR", 8, length),
+        new ColumnHeader("euc.CEIL", 32, length),
+        new ColumnHeader("euc.CT", 2, length),
+        new ColumnHeader("euc.CT_MAX", 2, length),
+        new ColumnHeader("euc.DIVIDEND", 32, length),
+        new ColumnHeader("euc.DIVISOR", 32, length),
         new ColumnHeader("euc.DIVISOR_BYTE", 1, length),
         new ColumnHeader("euc.DONE", 1, length),
         new ColumnHeader("euc.IOMF", 1, length),
-        new ColumnHeader("euc.QUOTIENT", 8, length),
+        new ColumnHeader("euc.QUOTIENT", 32, length),
         new ColumnHeader("euc.QUOTIENT_BYTE", 1, length),
-        new ColumnHeader("euc.REMAINDER", 8, length),
+        new ColumnHeader("euc.REMAINDER", 32, length),
         new ColumnHeader("euc.REMAINDER_BYTE", 1, length));
   }
 
@@ -102,26 +102,26 @@ public class Trace {
     return this;
   }
 
-  public Trace ct(final UnsignedByte b) {
+  public Trace ct(final short b) {
     if (filled.get(1)) {
       throw new IllegalStateException("euc.CT already set");
     } else {
       filled.set(1);
     }
 
-    ct.put(b.toByte());
+    ct.putShort(b);
 
     return this;
   }
 
-  public Trace ctMax(final UnsignedByte b) {
+  public Trace ctMax(final short b) {
     if (filled.get(2)) {
       throw new IllegalStateException("euc.CT_MAX already set");
     } else {
       filled.set(2);
     }
 
-    ctMax.put(b.toByte());
+    ctMax.putShort(b);
 
     return this;
   }
@@ -307,23 +307,23 @@ public class Trace {
 
   public Trace fillAndValidateRow() {
     if (!filled.get(0)) {
-      ceil.position(ceil.position() + 8);
+      ceil.position(ceil.position() + 32);
     }
 
     if (!filled.get(1)) {
-      ct.position(ct.position() + 1);
+      ct.position(ct.position() + 2);
     }
 
     if (!filled.get(2)) {
-      ctMax.position(ctMax.position() + 1);
+      ctMax.position(ctMax.position() + 2);
     }
 
     if (!filled.get(3)) {
-      dividend.position(dividend.position() + 8);
+      dividend.position(dividend.position() + 32);
     }
 
     if (!filled.get(4)) {
-      divisor.position(divisor.position() + 8);
+      divisor.position(divisor.position() + 32);
     }
 
     if (!filled.get(5)) {
@@ -339,7 +339,7 @@ public class Trace {
     }
 
     if (!filled.get(8)) {
-      quotient.position(quotient.position() + 8);
+      quotient.position(quotient.position() + 32);
     }
 
     if (!filled.get(9)) {
@@ -347,7 +347,7 @@ public class Trace {
     }
 
     if (!filled.get(10)) {
-      remainder.position(remainder.position() + 8);
+      remainder.position(remainder.position() + 32);
     }
 
     if (!filled.get(11)) {

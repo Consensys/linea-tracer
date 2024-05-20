@@ -21,8 +21,8 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
-import net.consensys.linea.zktracer.module.romLex.RomChunk;
-import net.consensys.linea.zktracer.module.romLex.RomLex;
+import net.consensys.linea.zktracer.module.romlex.RomChunk;
+import net.consensys.linea.zktracer.module.romlex.RomLex;
 
 @RequiredArgsConstructor
 public class Rom implements Module {
@@ -41,7 +41,7 @@ public class Rom implements Module {
 
   @Override
   public int lineCount() {
-    return this.romLex.chunks.lineCount();
+    return this.romLex.chunks().lineCount();
   }
 
   @Override
@@ -54,8 +54,8 @@ public class Rom implements Module {
     final Trace trace = new Trace(buffers);
 
     int codeFragmentIndex = 0;
-    final int codeFragmentIndexInfinity = this.romLex.sortedChunks.size();
-    for (RomChunk chunk : this.romLex.sortedChunks) {
+    final int codeFragmentIndexInfinity = this.romLex.sortedChunks().size();
+    for (RomChunk chunk : this.romLex.sortedChunks()) {
       codeFragmentIndex += 1;
       chunk.trace(trace, codeFragmentIndex, codeFragmentIndexInfinity);
     }

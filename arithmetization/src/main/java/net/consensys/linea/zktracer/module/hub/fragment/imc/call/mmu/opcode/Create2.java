@@ -15,12 +15,12 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.opcode;
 
-import static net.consensys.linea.zktracer.module.mmu.Trace.MMU_INST_RAM_TO_EXO_WITH_PADDING;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_RAM_TO_EXO_WITH_PADDING;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
-import net.consensys.linea.zktracer.module.romLex.ContractMetadata;
-import net.consensys.linea.zktracer.module.romLex.RomLexDefer;
+import net.consensys.linea.zktracer.module.romlex.ContractMetadata;
+import net.consensys.linea.zktracer.module.romlex.RomLexDefer;
 import net.consensys.linea.zktracer.types.EWord;
 import org.hyperledger.besu.evm.internal.Words;
 
@@ -42,12 +42,12 @@ public class Create2 extends MmuCall implements RomLexDefer {
         .sourceOffset(EWord.of(hub.messageFrame().getStackItem(1)))
         .size(Words.clampedToLong(hub.messageFrame().getStackItem(2)))
         .referenceSize(Words.clampedToLong(hub.messageFrame().getStackItem(2)))
-        .setHash()
+        .setKec()
         .setRom();
   }
 
   @Override
-  protected int targetId() {
+  public int targetId() {
     return this.hub.romLex().getCodeFragmentIndexByMetadata(this.contract);
   }
 

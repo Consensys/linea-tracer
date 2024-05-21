@@ -15,6 +15,14 @@
 
 package net.consensys.linea.zktracer.module.ecdata;
 
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_ECADD_DATA;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_ECADD_RESULT;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_ECMUL_DATA;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_ECMUL_RESULT;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_ECPAIRING_DATA;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_ECPAIRING_RESULT;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_ECRECOVER_DATA;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_ECRECOVER_RESULT;
 import static net.consensys.linea.zktracer.module.ecdata.Trace.ECADD;
 import static net.consensys.linea.zktracer.module.ecdata.Trace.ECMUL;
 import static net.consensys.linea.zktracer.module.ecdata.Trace.ECPAIRING;
@@ -27,14 +35,6 @@ import static net.consensys.linea.zktracer.module.ecdata.Trace.INDEX_MAX_ECPAIRI
 import static net.consensys.linea.zktracer.module.ecdata.Trace.INDEX_MAX_ECPAIRING_RESULT;
 import static net.consensys.linea.zktracer.module.ecdata.Trace.INDEX_MAX_ECRECOVER_DATA;
 import static net.consensys.linea.zktracer.module.ecdata.Trace.INDEX_MAX_ECRECOVER_RESULT;
-import static net.consensys.linea.zktracer.module.ecdata.Trace.PHASE_ECADD_DATA;
-import static net.consensys.linea.zktracer.module.ecdata.Trace.PHASE_ECADD_RESULT;
-import static net.consensys.linea.zktracer.module.ecdata.Trace.PHASE_ECMUL_DATA;
-import static net.consensys.linea.zktracer.module.ecdata.Trace.PHASE_ECMUL_RESULT;
-import static net.consensys.linea.zktracer.module.ecdata.Trace.PHASE_ECPAIRING_DATA;
-import static net.consensys.linea.zktracer.module.ecdata.Trace.PHASE_ECPAIRING_RESULT;
-import static net.consensys.linea.zktracer.module.ecdata.Trace.PHASE_ECRECOVER_DATA;
-import static net.consensys.linea.zktracer.module.ecdata.Trace.PHASE_ECRECOVER_RESULT;
 import static net.consensys.linea.zktracer.module.ecdata.Trace.P_BN_HI;
 import static net.consensys.linea.zktracer.module.ecdata.Trace.P_BN_LO;
 import static net.consensys.linea.zktracer.module.ecdata.Trace.SECP256K1N_HI;

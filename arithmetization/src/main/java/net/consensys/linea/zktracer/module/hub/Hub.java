@@ -63,8 +63,8 @@ import net.consensys.linea.zktracer.module.limits.precompiles.EcRecoverEffective
 import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.Rip160Blocks;
 import net.consensys.linea.zktracer.module.limits.precompiles.Sha256Blocks;
-import net.consensys.linea.zktracer.module.logData.LogData;
-import net.consensys.linea.zktracer.module.logInfo.LogInfo;
+import net.consensys.linea.zktracer.module.logdata.LogData;
+import net.consensys.linea.zktracer.module.loginfo.LogInfo;
 import net.consensys.linea.zktracer.module.mmio.Mmio;
 import net.consensys.linea.zktracer.module.mmu.Mmu;
 import net.consensys.linea.zktracer.module.mod.Mod;

@@ -608,7 +608,7 @@ public class Hub implements Module {
       }
     }
 
-    List<CompletableFuture<Void>> futures = new ArrayList();
+    List<CompletableFuture<Void>> futures = new ArrayList<>();
 
     if (this.pch.signals().romLex()) {
       futures.add(CompletableFuture.runAsync(() -> this.romLex.tracePreOpcode(frame)));
@@ -670,7 +670,7 @@ public class Hub implements Module {
     }
 
     // Join all the executions
-    CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+    CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[0])).join();
   }
 
   void processStateExec(MessageFrame frame) {

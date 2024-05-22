@@ -31,8 +31,6 @@ import org.apache.tuweni.bytes.Bytes;
  */
 public class Trace {
   public static final int EQ = 0x14;
-  public static final int EXP_EXPLOG = 0xee0a;
-  public static final int EXP_MODEXPLOG = 0xee05;
   public static final int G_EXPBYTES = 0x32;
   public static final int ISZERO = 0x15;
   public static final int LT = 0x10;

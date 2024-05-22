@@ -15,10 +15,10 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes;
 
-import static net.consensys.linea.zktracer.module.oob.Trace.OOB_INST_sstore;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_CALL_STIPEND;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_SSTORE;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
-import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
 import net.consensys.linea.zktracer.module.oob.OobDataChannel;
 import org.apache.tuweni.bytes.Bytes;
@@ -28,13 +28,13 @@ public record SStore(long gas) implements OobCall {
   public Bytes data(OobDataChannel i) {
     return switch (i) {
       case DATA_5 -> Bytes.ofUnsignedLong(gas);
-      case DATA_7 -> booleanToBytes(gas <= Trace.GAS_CONST_G_CALL_STIPEND);
+      case DATA_7 -> booleanToBytes(gas <= GAS_CONST_G_CALL_STIPEND);
       default -> Bytes.EMPTY;
     };
   }
 
   @Override
   public int oobInstruction() {
-    return OOB_INST_sstore;
+    return OOB_INST_SSTORE;
   }
 }

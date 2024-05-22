@@ -16,33 +16,34 @@
 package net.consensys.linea.zktracer.module.rlptxn;
 
 import static net.consensys.linea.zktracer.module.Util.getTxTypeAsInt;
-import static net.consensys.linea.zktracer.module.rlptxn.Trace.GAS_CONST_G_TX_DATA_NONZERO;
-import static net.consensys.linea.zktracer.module.rlptxn.Trace.GAS_CONST_G_TX_DATA_ZERO;
-import static net.consensys.linea.zktracer.module.rlptxn.Trace.LLARGE;
-import static net.consensys.linea.zktracer.module.rlptxn.Trace.RLP_PREFIX_INT_LONG;
-import static net.consensys.linea.zktracer.module.rlptxn.Trace.RLP_PREFIX_INT_SHORT;
-import static net.consensys.linea.zktracer.module.rlptxn.Trace.RLP_PREFIX_LIST_LONG;
-import static net.consensys.linea.zktracer.module.rlptxn.Trace.RLP_PREFIX_LIST_SHORT;
-import static net.consensys.linea.zktracer.module.rlptxn.Trace.RLP_TXN_PHASE_ACCESS_LIST;
-import static net.consensys.linea.zktracer.module.rlptxn.Trace.RLP_TXN_PHASE_BETA;
-import static net.consensys.linea.zktracer.module.rlptxn.Trace.RLP_TXN_PHASE_CHAIN_ID;
-import static net.consensys.linea.zktracer.module.rlptxn.Trace.RLP_TXN_PHASE_DATA;
-import static net.consensys.linea.zktracer.module.rlptxn.Trace.RLP_TXN_PHASE_GAS_LIMIT;
-import static net.consensys.linea.zktracer.module.rlptxn.Trace.RLP_TXN_PHASE_GAS_PRICE;
-import static net.consensys.linea.zktracer.module.rlptxn.Trace.RLP_TXN_PHASE_MAX_FEE_PER_GAS;
-import static net.consensys.linea.zktracer.module.rlptxn.Trace.RLP_TXN_PHASE_MAX_PRIORITY_FEE_PER_GAS;
-import static net.consensys.linea.zktracer.module.rlptxn.Trace.RLP_TXN_PHASE_NONCE;
-import static net.consensys.linea.zktracer.module.rlptxn.Trace.RLP_TXN_PHASE_R;
-import static net.consensys.linea.zktracer.module.rlptxn.Trace.RLP_TXN_PHASE_RLP_PREFIX;
-import static net.consensys.linea.zktracer.module.rlptxn.Trace.RLP_TXN_PHASE_S;
-import static net.consensys.linea.zktracer.module.rlptxn.Trace.RLP_TXN_PHASE_TO;
-import static net.consensys.linea.zktracer.module.rlptxn.Trace.RLP_TXN_PHASE_VALUE;
-import static net.consensys.linea.zktracer.module.rlptxn.Trace.RLP_TXN_PHASE_Y;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_TX_DATA_NONZERO;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_TX_DATA_ZERO;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.RLP_PREFIX_INT_LONG;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.RLP_PREFIX_INT_SHORT;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.RLP_PREFIX_LIST_LONG;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.RLP_PREFIX_LIST_SHORT;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.RLP_TXN_PHASE_ACCESS_LIST;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.RLP_TXN_PHASE_BETA;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.RLP_TXN_PHASE_CHAIN_ID;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.RLP_TXN_PHASE_DATA;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.RLP_TXN_PHASE_GAS_LIMIT;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.RLP_TXN_PHASE_GAS_PRICE;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.RLP_TXN_PHASE_MAX_FEE_PER_GAS;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.RLP_TXN_PHASE_MAX_PRIORITY_FEE_PER_GAS;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.RLP_TXN_PHASE_NONCE;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.RLP_TXN_PHASE_R;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.RLP_TXN_PHASE_RLP_PREFIX;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.RLP_TXN_PHASE_S;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.RLP_TXN_PHASE_TO;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.RLP_TXN_PHASE_VALUE;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.RLP_TXN_PHASE_Y;
 import static net.consensys.linea.zktracer.module.rlputils.Pattern.byteCounting;
 import static net.consensys.linea.zktracer.module.rlputils.Pattern.innerRlpSize;
 import static net.consensys.linea.zktracer.module.rlputils.Pattern.outerRlpSize;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.longToUnsignedBigInteger;
+import static net.consensys.linea.zktracer.types.TransactionUtils.getChainIdFromTransaction;
 import static net.consensys.linea.zktracer.types.Utils.bitDecomposition;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
@@ -60,8 +61,8 @@ import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.rlputils.ByteCountAndPowerOutput;
-import net.consensys.linea.zktracer.module.romLex.ContractMetadata;
-import net.consensys.linea.zktracer.module.romLex.RomLex;
+import net.consensys.linea.zktracer.module.romlex.ContractMetadata;
+import net.consensys.linea.zktracer.module.romlex.RomLex;
 import net.consensys.linea.zktracer.types.BitDecOutput;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
@@ -610,11 +611,9 @@ public class RlpTxn implements Module {
         traceValue,
         trace); // end of the phase if beta == 0
 
-    // if beta != 0, then RLP(beta) and then one row with RLP().RLP ()
+    // if beta != 0, then RLP(beta) and then one row with RLP().RLP()
     if (!betaIsZero) {
-      final BigInteger beta =
-          BigInteger.valueOf(
-              (V.longValueExact() - 35) / 2); // when b != 0, V = 2 beta + 35 or V = 2 beta + 36;
+      final BigInteger beta = BigInteger.valueOf(getChainIdFromTransaction(tx));
 
       rlpInt(phase, beta, 8, false, true, true, false, false, traceValue, trace);
 

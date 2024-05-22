@@ -19,8 +19,9 @@ import static com.google.common.math.BigIntegerMath.log2;
 import static java.lang.Byte.toUnsignedInt;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_BLAKE2F_cds;
-import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_BLAKE2F_params;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_CALL_STIPEND;
+import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_BLAKE2F_CDS;
+import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_BLAKE2F_PARAMS;
 import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_CALL;
 import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_CDL;
 import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_CREATE;
@@ -32,17 +33,16 @@ import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_ECRECOVER;
 import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_IDENTITY;
 import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_JUMP;
 import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_JUMPI;
-import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_MODEXP_cds;
-import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_MODEXP_extract;
-import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_MODEXP_lead;
-import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_MODEXP_pricing;
-import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_MODEXP_xbs;
+import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_MODEXP_CDS;
+import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_MODEXP_EXTRACT;
+import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_MODEXP_LEAD;
+import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_MODEXP_PRICING;
+import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_MODEXP_XBS;
 import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_RDC;
 import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_RIPEMD;
 import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_SHA2;
 import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_SSTORE;
 import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_XCALL;
-import static net.consensys.linea.zktracer.module.oob.Trace.GAS_CONST_G_CALL_STIPEND;
 import static net.consensys.linea.zktracer.module.oob.Trace.G_QUADDIVISOR;
 import static net.consensys.linea.zktracer.types.AddressUtils.getDeploymentAddress;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBoolean;
@@ -342,13 +342,13 @@ public class OobChunk extends ModuleOperation {
         + CT_MAX_ECADD * booleanToInt(isEcadd)
         + CT_MAX_ECMUL * booleanToInt(isEcmul)
         + CT_MAX_ECPAIRING * booleanToInt(isEcpairing)
-        + CT_MAX_BLAKE2F_cds * booleanToInt(isBlake2FCds)
-        + CT_MAX_BLAKE2F_params * booleanToInt(isBlake2FParams)
-        + CT_MAX_MODEXP_cds * booleanToInt(isModexpCds)
-        + CT_MAX_MODEXP_xbs * booleanToInt(isModexpXbs)
-        + CT_MAX_MODEXP_lead * booleanToInt(isModexpLead)
-        + CT_MAX_MODEXP_pricing * booleanToInt(prcModexpPricing)
-        + CT_MAX_MODEXP_extract * booleanToInt(prcModexpExtract);
+        + CT_MAX_BLAKE2F_CDS * booleanToInt(isBlake2FCds)
+        + CT_MAX_BLAKE2F_PARAMS * booleanToInt(isBlake2FParams)
+        + CT_MAX_MODEXP_CDS * booleanToInt(isModexpCds)
+        + CT_MAX_MODEXP_XBS * booleanToInt(isModexpXbs)
+        + CT_MAX_MODEXP_LEAD * booleanToInt(isModexpLead)
+        + CT_MAX_MODEXP_PRICING * booleanToInt(prcModexpPricing)
+        + CT_MAX_MODEXP_EXTRACT * booleanToInt(prcModexpExtract);
   }
 
   public int nRows() {

@@ -16,8 +16,9 @@
 package net.consensys.linea.zktracer.module.limits.precompiles;
 
 import java.nio.MappedByteBuffer;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.List;
-import java.util.Stack;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @RequiredArgsConstructor
 public final class RipeMd160Blocks implements Module {
@@ -43,7 +45,7 @@ public final class RipeMd160Blocks implements Module {
   private static final int RIPEMD160_ND_PADDED_ONE = 1;
 
   private final Hub hub;
-  private final Stack<Integer> counts = new Stack<>();
+  private final Deque<Integer> counts = new ArrayDeque<>();
 
   @Override
   public String moduleKey() {
@@ -53,8 +55,13 @@ public final class RipeMd160Blocks implements Module {
   @Getter private final ShakiraData shakiraData;
 
   @Override
-  public void enterTransaction() {
+  public void traceEndConflation(final WorldView state) {
     counts.push(0);
+  }
+
+  @Override
+  public void enterTransaction() {
+    counts.push(counts.getFirst());
   }
 
   @Override
@@ -119,11 +126,7 @@ public final class RipeMd160Blocks implements Module {
 
   @Override
   public int lineCount() {
-    int r = 0;
-    for (Integer count : this.counts) {
-      r += count;
-    }
-    return r;
+    return this.counts.getFirst();
   }
 
   @Override

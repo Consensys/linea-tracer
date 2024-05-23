@@ -47,9 +47,8 @@ public class Keccak implements Module {
   private final Hub hub;
   private final EcRecoverEffectiveCall ecRec;
   private final L2Block l2Block;
-  private int lastDataCallId = 0;
 
-  @Getter private final ShakiraData data;
+  @Getter private final ShakiraData shakiraData;
 
   private final Deque<List<Long>> deployedCodeSizes = new ArrayDeque<>();
   private final Deque<List<Long>> sha3Sizes = new ArrayDeque<>();
@@ -120,7 +119,8 @@ public class Keccak implements Module {
       final long codeOffset = Words.clampedToLong(frame.getStackItem(codeOffsetStackItemOffset));
       final Bytes byteCode = frame.shadowReadMemory(codeOffset, codeSize);
 
-      this.data.call(new ShakiraDataOperation(hub.stamp(), ShakiraPrecompileType.KECCAK, byteCode));
+      this.shakiraData.call(
+          new ShakiraDataOperation(hub.stamp(), ShakiraPrecompileType.KECCAK, byteCode));
     }
   }
 

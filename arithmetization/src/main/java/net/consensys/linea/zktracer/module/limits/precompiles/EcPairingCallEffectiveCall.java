@@ -126,11 +126,12 @@ public final class EcPairingCallEffectiveCall implements Module {
       if (target.equals(Address.ALTBN128_PAIRING)) {
         long length = hub.transients().op().callDataSegment().length();
 
-        final long nMillerLoop = (length / ECPAIRING_NB_BYTES_PER_MILLER_LOOP);
-        if (nMillerLoop * ECPAIRING_NB_BYTES_PER_MILLER_LOOP != length) {
+        if (length % ECPAIRING_NB_BYTES_PER_MILLER_LOOP != 0) {
           log.warn("[ECPairing] Argument is not a right size: " + length);
           return;
         }
+
+        final long nMillerLoop = (length / ECPAIRING_NB_BYTES_PER_MILLER_LOOP);
 
         if (hub.transients().op().gasAllowanceForCall()
             >= PRECOMPILE_BASE_GAS_FEE + PRECOMPILE_MILLER_LOOP_GAS_FEE * nMillerLoop) {

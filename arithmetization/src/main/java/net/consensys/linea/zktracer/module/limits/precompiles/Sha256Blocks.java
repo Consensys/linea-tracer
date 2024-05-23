@@ -56,7 +56,7 @@ public final class Sha256Blocks implements Module {
   }
 
   @Override
-  public void traceEndConflation(final WorldView state) {
+  public void traceStartConflation(final long blockCount) {
     counts.push(0);
   }
 

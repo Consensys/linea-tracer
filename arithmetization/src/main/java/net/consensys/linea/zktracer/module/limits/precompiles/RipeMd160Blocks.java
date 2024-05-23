@@ -15,6 +15,9 @@
 
 package net.consensys.linea.zktracer.module.limits.precompiles;
 
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE_MO;
+
 import java.nio.MappedByteBuffer;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -55,7 +58,7 @@ public final class RipeMd160Blocks implements Module {
   @Getter private final ShakiraData shakiraData;
 
   @Override
-  public void traceEndConflation(final WorldView state) {
+  public void traceStartConflation(final long blockCount) {
     counts.push(0);
   }
 
@@ -109,7 +112,7 @@ public final class RipeMd160Blocks implements Module {
                         + (RIPEMD160_BLOCKSIZE - 1))
                 / RIPEMD160_BLOCKSIZE;
 
-        final long wordCount = (dataByteLength + 31) / 32;
+        final long wordCount = (dataByteLength + WORD_SIZE_MO) / WORD_SIZE;
         final long gasNeeded = PRECOMPILE_BASE_GAS_FEE + PRECOMPILE_GAS_FEE_PER_EWORD * wordCount;
 
         final Bytes inputData = hub.transients().op().callData();

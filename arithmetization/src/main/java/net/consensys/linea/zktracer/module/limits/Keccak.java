@@ -61,9 +61,9 @@ public class Keccak implements Module {
 
   @Override
   public void enterTransaction() {
-    this.deployedCodeSizes.push(new ArrayList<>(8));
-    this.sha3Sizes.push(new ArrayList<>(100));
-    this.create2Sizes.push(new ArrayList<>(4));
+    this.deployedCodeSizes.push(new ArrayList<>());
+    this.sha3Sizes.push(new ArrayList<>());
+    this.create2Sizes.push(new ArrayList<>());
   }
 
   @Override

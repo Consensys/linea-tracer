@@ -62,7 +62,7 @@ public class ShakiraDataOperation extends ModuleOperation {
 
   @Override
   protected int computeLineCount() {
-    return totalNumberOfRows();
+    return indexMaxData + 1 + INDEX_MAX_RESULT + 1;
   }
 
   void trace(Trace trace, final int stamp) {
@@ -133,22 +133,20 @@ public class ShakiraDataOperation extends ModuleOperation {
           .isRipemdData(false)
           .isSha2Result(isShaResult)
           .isKeccakResult(isKecResult)
-          .isRipemdResult(isRipResult);
+          .isRipemdResult(isRipResult)
+          .nBytes((short) LLARGE)
+          .totalSize(WORD_SIZE);
 
       switch (ct) {
         case 0 -> trace
             .limb(result.slice(0, LLARGE))
-            .nBytes((short) LLARGE)
             .nBytesAcc(LLARGE)
-            .totalSize(WORD_SIZE)
             .selectorKeccakResHi(precompileType == KECCAK)
             .selectorKeccakResLo(false)
             .validateRow();
         case 1 -> trace
             .limb(result.slice(LLARGE, LLARGE))
-            .nBytes((short) LLARGE)
             .nBytesAcc(WORD_SIZE)
-            .totalSize(WORD_SIZE)
             .selectorKeccakResHi(false)
             .selectorKeccakResLo(precompileType == KECCAK)
             .validateRow();
@@ -162,9 +160,5 @@ public class ShakiraDataOperation extends ModuleOperation {
       case KECCAK -> Hash.keccak256(hashInput);
       case RIPEMD -> Hash.ripemd160(hashInput);
     };
-  }
-
-  private int totalNumberOfRows() {
-    return indexMaxData + 1 + INDEX_MAX_RESULT + 1;
   }
 }

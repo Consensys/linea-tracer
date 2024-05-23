@@ -15,6 +15,9 @@
 
 package net.consensys.linea.zktracer.module.limits.precompiles;
 
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE_MO;
+
 import java.nio.MappedByteBuffer;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -33,7 +36,6 @@ import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
-import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @RequiredArgsConstructor
 public final class Sha256Blocks implements Module {
@@ -82,7 +84,7 @@ public final class Sha256Blocks implements Module {
       final Address target = Words.toAddress(frame.getStackItem(1));
       if (target.equals(Address.SHA256)) {
         final long dataByteLength = hub.transients().op().callDataSegment().length();
-        final long wordCount = (dataByteLength + 31) / 32;
+        final long wordCount = (dataByteLength + WORD_SIZE_MO) / WORD_SIZE;
         return PRECOMPILE_BASE_GAS_FEE + PRECOMPILE_GAS_FEE_PER_EWORD * wordCount;
       }
     }

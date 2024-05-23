@@ -78,7 +78,7 @@ public class Keccak implements Module {
   }
 
   private static int numKeccak(long x) {
-    final long r = (x + 136) / 136;
+    final long r = (x + 136) / 136; // TODO: looks strange, to verify
     Preconditions.checkState(r < Integer.MAX_VALUE, "demented KECCAK");
     return (int) r;
   }

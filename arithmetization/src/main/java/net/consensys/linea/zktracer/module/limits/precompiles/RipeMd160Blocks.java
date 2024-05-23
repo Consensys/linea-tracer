@@ -36,7 +36,6 @@ import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
-import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @RequiredArgsConstructor
 public final class RipeMd160Blocks implements Module {
@@ -83,7 +82,7 @@ public final class RipeMd160Blocks implements Module {
       final Address target = Words.toAddress(hub.messageFrame().getStackItem(1));
       if (target.equals(Address.RIPEMD160)) {
         final long dataByteLength = hub.transients().op().callDataSegment().length();
-        final long wordCount = (dataByteLength + 31) / 32;
+        final long wordCount = (dataByteLength + WORD_SIZE_MO) / WORD_SIZE;
         return PRECOMPILE_BASE_GAS_FEE + PRECOMPILE_GAS_FEE_PER_EWORD * wordCount;
       }
     }

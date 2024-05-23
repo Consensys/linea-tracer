@@ -20,13 +20,12 @@ import java.util.Comparator;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 
 public class ShakiraData implements Module {
-  private StackedSet<ShakiraDataOperation> state = new StackedSet<>();
-
-  private int lastDataCallId = 0;
+  private StackedList<ShakiraDataOperation> operations = new StackedList<>();
 
   @Override
   public String moduleKey() {
@@ -35,17 +34,17 @@ public class ShakiraData implements Module {
 
   @Override
   public void enterTransaction() {
-    this.state.enter();
+    this.operations.enter();
   }
 
   @Override
   public void popTransaction() {
-    this.state.pop();
+    this.operations.pop();
   }
 
   @Override
   public int lineCount() {
-    return this.state.lineCount();
+    return this.operations.lineCount();
   }
 
   @Override
@@ -54,12 +53,7 @@ public class ShakiraData implements Module {
   }
 
   public void call(final ShakiraDataOperation operation) {
-    this.state.add(operation);
-
-    operation.currentId(operation.hubStamp() + 1);
-    operation.prevId(lastDataCallId);
-
-    lastDataCallId = operation.currentId();
+    this.operations.add(operation);
   }
 
   @Override
@@ -67,7 +61,7 @@ public class ShakiraData implements Module {
     final Trace trace = new Trace(buffers);
 
     final List<ShakiraDataOperation> sortedState =
-        this.state.stream().sorted(Comparator.comparing(ShakiraDataOperation::currentId)).toList();
+        this.operations.stream().sorted(Comparator.comparing(ShakiraDataOperation::currentId)).toList();
 
     int stamp = 0;
     for (ShakiraDataOperation o : sortedState) {

@@ -35,27 +35,22 @@ import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.Hash;
 
-@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @Accessors(fluent = true)
 public class ShakiraDataOperation extends ModuleOperation {
-  private static final int PHASE_EXTRA = 0;
-  private static final int INDEX_MAX_EXTRA = 2;
-  private static final int TOTAL_SIZE_RESULT_PHASES = 32;
-  private static final int TOTAL_SIZE_EXTRA_PHASES = 0;
-  public static final int RESULT_ROWS_COUNT = 2;
-  public static final int EXTRA_ROWS_COUNT = 3;
 
-  @Getter @EqualsAndHashCode.Include private final int hubStamp;
-  @Getter @Setter private int prevId;
-  @Getter @Setter private int currentId;
+  private final ShakiraPrecompileType precompileType;
+  private final Bytes hashInput;
+  private final long ID;
+  private final int inputSize;
+  private final short lastNBytes;
 
-  @EqualsAndHashCode.Include private final ShakiraPrecompileType precompileType;
-  @EqualsAndHashCode.Include private final Bytes hashInput;
 
-  public ShakiraDataOperation(int hubStamp, ShakiraPrecompileType precompileType, Bytes hashInput) {
-    this.hubStamp = hubStamp;
+  public ShakiraDataOperation(final long hubStamp, final ShakiraPrecompileType precompileType, final Bytes hashInput) {
+    this.ID = hubStamp+1;
     this.precompileType = precompileType;
     this.hashInput = hashInput;
+    this.inputSize = hashInput.size();
+    this.lastNBytes = inputSize / LLARGE
   }
 
   @Override

@@ -31,26 +31,15 @@ import org.apache.tuweni.bytes.Bytes;
  * Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
 public class Trace {
-  public static final int EC_DATA_PHASE_ECADD_DATA = 0x3;
-  public static final int EC_DATA_PHASE_ECADD_RESULT = 0x4;
-  public static final int EC_DATA_PHASE_ECMUL_DATA = 0x5;
-  public static final int EC_DATA_PHASE_ECMUL_RESULT = 0x6;
-  public static final int EC_DATA_PHASE_ECRECOVER_DATA = 0x1;
-  public static final int EC_DATA_PHASE_ECRECOVER_RESULT = 0x2;
-  public static final int EC_DATA_PHASE_PAIRING_DATA = 0x7;
-  public static final int EC_DATA_PHASE_PAIRING_RESULT = 0x8;
+  public static final int BLOCKHASH_MAX_HISTORY = 0x100;
+  public static final int CREATE2_SHIFT = 0xff;
   public static final int EIP_3541_MARKER = 0xef;
-  public static final BigInteger EMPTY_KECCAK_HI =
-      new BigInteger("16434357337474432580558001204043214908");
-  public static final BigInteger EMPTY_KECCAK_LO =
-      new BigInteger("19024806816994025362060938983270537799");
+  public static final BigInteger EMPTY_KECCAK_HI = new BigInteger("16434357337474432580558001204043214908");
+  public static final BigInteger EMPTY_KECCAK_LO = new BigInteger("19024806816994025362060938983270537799");
   public static final int EMPTY_RIPEMD_HI = 0x9c1185a;
-  public static final BigInteger EMPTY_RIPEMD_LO =
-      new BigInteger("16442052386882578548602430796343695571");
-  public static final BigInteger EMPTY_SHA2_HI =
-      new BigInteger("18915786244935348617899154533661473682");
-  public static final BigInteger EMPTY_SHA2_LO =
-      new BigInteger("3296542996298665609207448061432114053");
+  public static final BigInteger EMPTY_RIPEMD_LO = new BigInteger("16442052386882578548602430796343695571");
+  public static final BigInteger EMPTY_SHA2_HI = new BigInteger("18915786244935348617899154533661473682");
+  public static final BigInteger EMPTY_SHA2_LO = new BigInteger("3296542996298665609207448061432114053");
   public static final int EVM_INST_ADD = 0x1;
   public static final int EVM_INST_ADDMOD = 0x8;
   public static final int EVM_INST_ADDRESS = 0x30;
@@ -244,20 +233,22 @@ public class Trace {
   public static final int GAS_CONST_G_VERY_LOW = 0x3;
   public static final int GAS_CONST_G_WARM_ACCESS = 0x64;
   public static final int GAS_CONST_G_ZERO = 0x0;
-  public static final int INDEX_MAX_KECCAK_DATA = 0x0;
-  public static final int INDEX_MAX_KECCAK_RESULT = 0x1;
-  public static final int INDEX_MAX_RIPEMD_DATA = 0x3;
-  public static final int INDEX_MAX_RIPEMD_RESULT = 0x1;
-  public static final int INDEX_MAX_SHA2_DATA = 0xb;
-  public static final int INDEX_MAX_SHA2_RESULT = 0x1;
+  public static final int INDEX_MAX_RESULT = 0x1;
+  public static final int LINEA_BASE_FEE = 0x7;
+  public static final int LINEA_BLOCK_GAS_LIMIT = 0x3a2c940;
+  public static final int LINEA_CHAIN_ID = 0xe708;
+  public static final int LINEA_DIFFICULTY = 0x2;
+  public static final int LINEA_GOERLI_CHAIN_ID = 0xe704;
+  public static final int LINEA_SEPOLIA_CHAIN_ID = 0xe705;
   public static final int LLARGE = 0x10;
   public static final int LLARGEMO = 0xf;
   public static final int LLARGEPO = 0x11;
-  public static final int MISC_EXP_WEIGHT = 0x1;
-  public static final int MISC_MMU_WEIGHT = 0x2;
-  public static final int MISC_MXP_WEIGHT = 0x4;
-  public static final int MISC_OOB_WEIGHT = 0x8;
-  public static final int MISC_STP_WEIGHT = 0x10;
+  public static final int MAX_REFUND_QUOTIENT = 0x5;
+  public static final int MISC_WEIGHT_EXP = 0x1;
+  public static final int MISC_WEIGHT_MMU = 0x2;
+  public static final int MISC_WEIGHT_MXP = 0x4;
+  public static final int MISC_WEIGHT_OOB = 0x8;
+  public static final int MISC_WEIGHT_STP = 0x10;
   public static final int MMEDIUM = 0x8;
   public static final int MMEDIUMMO = 0x7;
   public static final int MMIO_INST_LIMB_TO_RAM_ONE_TARGET = 0xfe12;
@@ -281,36 +272,44 @@ public class Trace {
   public static final int MMU_INST_MODEXP_DATA = 0xfe70;
   public static final int MMU_INST_MODEXP_ZERO = 0xfe60;
   public static final int MMU_INST_MSTORE = 0xfe02;
-  public static final int MMU_INST_MSTORE8 = 0x53;
+  public static final int MMU_INST_MSTORE8 = 0xfe03;
   public static final int MMU_INST_RAM_TO_EXO_WITH_PADDING = 0xfe20;
   public static final int MMU_INST_RAM_TO_RAM_SANS_PADDING = 0xfe40;
   public static final int MMU_INST_RIGHT_PADDED_WORD_EXTRACTION = 0xfe10;
-  public static final int OOB_INST_blake_cds = 0xfa09;
-  public static final int OOB_INST_blake_params = 0xfb09;
-  public static final int OOB_INST_call = 0xca;
-  public static final int OOB_INST_cdl = 0x35;
-  public static final int OOB_INST_create = 0xce;
-  public static final int OOB_INST_deployment = 0xf3;
-  public static final int OOB_INST_ecadd = 0xff06;
-  public static final int OOB_INST_ecmul = 0xff07;
-  public static final int OOB_INST_ecpairing = 0xff08;
-  public static final int OOB_INST_ecrecover = 0xff01;
-  public static final int OOB_INST_identity = 0xff04;
-  public static final int OOB_INST_jump = 0x56;
-  public static final int OOB_INST_jumpi = 0x57;
-  public static final int OOB_INST_modexp_cds = 0xfa05;
-  public static final int OOB_INST_modexp_extract = 0xfe05;
-  public static final int OOB_INST_modexp_lead = 0xfc05;
-  public static final int OOB_INST_modexp_pricing = 0xfd05;
-  public static final int OOB_INST_modexp_xbs = 0xfb05;
-  public static final int OOB_INST_rdc = 0x3e;
-  public static final int OOB_INST_ripemd = 0xff03;
-  public static final int OOB_INST_sha2 = 0xff02;
-  public static final int OOB_INST_sstore = 0x55;
-  public static final int OOB_INST_xcall = 0xcc;
+  public static final int OOB_INST_BLAKE_CDS = 0xfa09;
+  public static final int OOB_INST_BLAKE_PARAMS = 0xfb09;
+  public static final int OOB_INST_CALL = 0xca;
+  public static final int OOB_INST_CDL = 0x35;
+  public static final int OOB_INST_CREATE = 0xce;
+  public static final int OOB_INST_DEPLOYMENT = 0xf3;
+  public static final int OOB_INST_ECADD = 0xff06;
+  public static final int OOB_INST_ECMUL = 0xff07;
+  public static final int OOB_INST_ECPAIRING = 0xff08;
+  public static final int OOB_INST_ECRECOVER = 0xff01;
+  public static final int OOB_INST_IDENTITY = 0xff04;
+  public static final int OOB_INST_JUMP = 0x56;
+  public static final int OOB_INST_JUMPI = 0x57;
+  public static final int OOB_INST_MODEXP_CDS = 0xfa05;
+  public static final int OOB_INST_MODEXP_EXTRACT = 0xfe05;
+  public static final int OOB_INST_MODEXP_LEAD = 0xfc05;
+  public static final int OOB_INST_MODEXP_PRICING = 0xfd05;
+  public static final int OOB_INST_MODEXP_XBS = 0xfb05;
+  public static final int OOB_INST_RDC = 0x3e;
+  public static final int OOB_INST_RIPEMD = 0xff03;
+  public static final int OOB_INST_SHA2 = 0xff02;
+  public static final int OOB_INST_SSTORE = 0x55;
+  public static final int OOB_INST_XCALL = 0xcc;
   public static final int PHASE_BLAKE_DATA = 0x5;
   public static final int PHASE_BLAKE_PARAMS = 0x6;
   public static final int PHASE_BLAKE_RESULT = 0x7;
+  public static final int PHASE_ECADD_DATA = 0x60a;
+  public static final int PHASE_ECADD_RESULT = 0x60b;
+  public static final int PHASE_ECMUL_DATA = 0x70a;
+  public static final int PHASE_ECMUL_RESULT = 0x70b;
+  public static final int PHASE_ECPAIRING_DATA = 0x80a;
+  public static final int PHASE_ECPAIRING_RESULT = 0x80b;
+  public static final int PHASE_ECRECOVER_DATA = 0x10a;
+  public static final int PHASE_ECRECOVER_RESULT = 0x10b;
   public static final int PHASE_KECCAK_DATA = 0x5;
   public static final int PHASE_KECCAK_RESULT = 0x6;
   public static final int PHASE_MODEXP_BASE = 0x1;
@@ -338,21 +337,21 @@ public class Trace {
   public static final int RLP_RCPT_SUBPHASE_ID_TOPIC_BASE = 0x41;
   public static final int RLP_RCPT_SUBPHASE_ID_TOPIC_DELTA = 0x60;
   public static final int RLP_RCPT_SUBPHASE_ID_TYPE = 0x7;
-  public static final int RLP_TXN_PHASE_ACCESS_LIST_VALUE = 0xb;
-  public static final int RLP_TXN_PHASE_BETA_VALUE = 0xc;
-  public static final int RLP_TXN_PHASE_CHAIN_ID_VALUE = 0x2;
-  public static final int RLP_TXN_PHASE_DATA_VALUE = 0xa;
-  public static final int RLP_TXN_PHASE_GAS_LIMIT_VALUE = 0x7;
-  public static final int RLP_TXN_PHASE_GAS_PRICE_VALUE = 0x4;
-  public static final int RLP_TXN_PHASE_MAX_FEE_PER_GAS_VALUE = 0x6;
-  public static final int RLP_TXN_PHASE_MAX_PRIORITY_FEE_PER_GAS_VALUE = 0x5;
-  public static final int RLP_TXN_PHASE_NONCE_VALUE = 0x3;
-  public static final int RLP_TXN_PHASE_RLP_PREFIX_VALUE = 0x1;
-  public static final int RLP_TXN_PHASE_R_VALUE = 0xe;
-  public static final int RLP_TXN_PHASE_S_VALUE = 0xf;
-  public static final int RLP_TXN_PHASE_TO_VALUE = 0x8;
-  public static final int RLP_TXN_PHASE_VALUE_VALUE = 0x9;
-  public static final int RLP_TXN_PHASE_Y_VALUE = 0xd;
+  public static final int RLP_TXN_PHASE_ACCESS_LIST = 0xb;
+  public static final int RLP_TXN_PHASE_BETA = 0xc;
+  public static final int RLP_TXN_PHASE_CHAIN_ID = 0x2;
+  public static final int RLP_TXN_PHASE_DATA = 0xa;
+  public static final int RLP_TXN_PHASE_GAS_LIMIT = 0x7;
+  public static final int RLP_TXN_PHASE_GAS_PRICE = 0x4;
+  public static final int RLP_TXN_PHASE_MAX_FEE_PER_GAS = 0x6;
+  public static final int RLP_TXN_PHASE_MAX_PRIORITY_FEE_PER_GAS = 0x5;
+  public static final int RLP_TXN_PHASE_NONCE = 0x3;
+  public static final int RLP_TXN_PHASE_R = 0xe;
+  public static final int RLP_TXN_PHASE_RLP_PREFIX = 0x1;
+  public static final int RLP_TXN_PHASE_S = 0xf;
+  public static final int RLP_TXN_PHASE_TO = 0x8;
+  public static final int RLP_TXN_PHASE_VALUE = 0x9;
+  public static final int RLP_TXN_PHASE_Y = 0xd;
   public static final int WCP_INST_GEQ = 0xe;
   public static final int WCP_INST_LEQ = 0xf;
   public static final int WORD_SIZE = 0x20;
@@ -361,11 +360,9 @@ public class Trace {
   private final BitSet filled = new BitSet();
   private int currentLine = 0;
 
-  private final MappedByteBuffer deltaByte;
   private final MappedByteBuffer id;
   private final MappedByteBuffer index;
   private final MappedByteBuffer indexMax;
-  private final MappedByteBuffer isExtra;
   private final MappedByteBuffer isKeccakData;
   private final MappedByteBuffer isKeccakResult;
   private final MappedByteBuffer isRipemdData;
@@ -377,46 +374,48 @@ public class Trace {
   private final MappedByteBuffer nBytesAcc;
   private final MappedByteBuffer phase;
   private final MappedByteBuffer ripshaStamp;
+  private final MappedByteBuffer selectorKeccakResHi;
+  private final MappedByteBuffer selectorKeccakResLo;
   private final MappedByteBuffer totalSize;
 
   static List<ColumnHeader> headers(int length) {
     return List.of(
-        new ColumnHeader("shakira.DELTA_BYTE", 1, length),
-        new ColumnHeader("shakira.ID", 8, length),
-        new ColumnHeader("shakira.INDEX", 8, length),
-        new ColumnHeader("shakira.INDEX_MAX", 8, length),
-        new ColumnHeader("shakira.IS_EXTRA", 1, length),
-        new ColumnHeader("shakira.IS_KECCAK_DATA", 1, length),
-        new ColumnHeader("shakira.IS_KECCAK_RESULT", 1, length),
-        new ColumnHeader("shakira.IS_RIPEMD_DATA", 1, length),
-        new ColumnHeader("shakira.IS_RIPEMD_RESULT", 1, length),
-        new ColumnHeader("shakira.IS_SHA2_DATA", 1, length),
-        new ColumnHeader("shakira.IS_SHA2_RESULT", 1, length),
-        new ColumnHeader("shakira.LIMB", 32, length),
-        new ColumnHeader("shakira.nBYTES", 1, length),
-        new ColumnHeader("shakira.nBYTES_ACC", 8, length),
-        new ColumnHeader("shakira.PHASE", 1, length),
-        new ColumnHeader("shakira.RIPSHA_STAMP", 8, length),
-        new ColumnHeader("shakira.TOTAL_SIZE", 8, length));
+        new ColumnHeader("shakiradata.ID", 8, length),
+        new ColumnHeader("shakiradata.INDEX", 8, length),
+        new ColumnHeader("shakiradata.INDEX_MAX", 8, length),
+        new ColumnHeader("shakiradata.IS_KECCAK_DATA", 1, length),
+        new ColumnHeader("shakiradata.IS_KECCAK_RESULT", 1, length),
+        new ColumnHeader("shakiradata.IS_RIPEMD_DATA", 1, length),
+        new ColumnHeader("shakiradata.IS_RIPEMD_RESULT", 1, length),
+        new ColumnHeader("shakiradata.IS_SHA2_DATA", 1, length),
+        new ColumnHeader("shakiradata.IS_SHA2_RESULT", 1, length),
+        new ColumnHeader("shakiradata.LIMB", 32, length),
+        new ColumnHeader("shakiradata.nBYTES", 2, length),
+        new ColumnHeader("shakiradata.nBYTES_ACC", 8, length),
+        new ColumnHeader("shakiradata.PHASE", 1, length),
+        new ColumnHeader("shakiradata.RIPSHA_STAMP", 8, length),
+        new ColumnHeader("shakiradata.SELECTOR_KECCAK_RES_HI", 1, length),
+        new ColumnHeader("shakiradata.SELECTOR_KECCAK_RES_LO", 1, length),
+        new ColumnHeader("shakiradata.TOTAL_SIZE", 8, length));
   }
 
   public Trace(List<MappedByteBuffer> buffers) {
-    this.deltaByte = buffers.get(0);
-    this.id = buffers.get(1);
-    this.index = buffers.get(2);
-    this.indexMax = buffers.get(3);
-    this.isExtra = buffers.get(4);
-    this.isKeccakData = buffers.get(5);
-    this.isKeccakResult = buffers.get(6);
-    this.isRipemdData = buffers.get(7);
-    this.isRipemdResult = buffers.get(8);
-    this.isSha2Data = buffers.get(9);
-    this.isSha2Result = buffers.get(10);
-    this.limb = buffers.get(11);
-    this.nBytes = buffers.get(12);
-    this.nBytesAcc = buffers.get(13);
-    this.phase = buffers.get(14);
-    this.ripshaStamp = buffers.get(15);
+    this.id = buffers.get(0);
+    this.index = buffers.get(1);
+    this.indexMax = buffers.get(2);
+    this.isKeccakData = buffers.get(3);
+    this.isKeccakResult = buffers.get(4);
+    this.isRipemdData = buffers.get(5);
+    this.isRipemdResult = buffers.get(6);
+    this.isSha2Data = buffers.get(7);
+    this.isSha2Result = buffers.get(8);
+    this.limb = buffers.get(9);
+    this.nBytes = buffers.get(10);
+    this.nBytesAcc = buffers.get(11);
+    this.phase = buffers.get(12);
+    this.ripshaStamp = buffers.get(13);
+    this.selectorKeccakResHi = buffers.get(14);
+    this.selectorKeccakResLo = buffers.get(15);
     this.totalSize = buffers.get(16);
   }
 
@@ -428,23 +427,11 @@ public class Trace {
     return this.currentLine;
   }
 
-  public Trace deltaByte(final UnsignedByte b) {
+  public Trace id(final long b) {
     if (filled.get(0)) {
-      throw new IllegalStateException("shakira.DELTA_BYTE already set");
+      throw new IllegalStateException("shakiradata.ID already set");
     } else {
       filled.set(0);
-    }
-
-    deltaByte.put(b.toByte());
-
-    return this;
-  }
-
-  public Trace id(final long b) {
-    if (filled.get(1)) {
-      throw new IllegalStateException("shakira.ID already set");
-    } else {
-      filled.set(1);
     }
 
     id.putLong(b);
@@ -453,10 +440,10 @@ public class Trace {
   }
 
   public Trace index(final long b) {
-    if (filled.get(2)) {
-      throw new IllegalStateException("shakira.INDEX already set");
+    if (filled.get(1)) {
+      throw new IllegalStateException("shakiradata.INDEX already set");
     } else {
-      filled.set(2);
+      filled.set(1);
     }
 
     index.putLong(b);
@@ -465,10 +452,10 @@ public class Trace {
   }
 
   public Trace indexMax(final long b) {
-    if (filled.get(3)) {
-      throw new IllegalStateException("shakira.INDEX_MAX already set");
+    if (filled.get(2)) {
+      throw new IllegalStateException("shakiradata.INDEX_MAX already set");
     } else {
-      filled.set(3);
+      filled.set(2);
     }
 
     indexMax.putLong(b);
@@ -476,23 +463,11 @@ public class Trace {
     return this;
   }
 
-  public Trace isExtra(final Boolean b) {
-    if (filled.get(4)) {
-      throw new IllegalStateException("shakira.IS_EXTRA already set");
-    } else {
-      filled.set(4);
-    }
-
-    isExtra.put((byte) (b ? 1 : 0));
-
-    return this;
-  }
-
   public Trace isKeccakData(final Boolean b) {
-    if (filled.get(5)) {
-      throw new IllegalStateException("shakira.IS_KECCAK_DATA already set");
+    if (filled.get(3)) {
+      throw new IllegalStateException("shakiradata.IS_KECCAK_DATA already set");
     } else {
-      filled.set(5);
+      filled.set(3);
     }
 
     isKeccakData.put((byte) (b ? 1 : 0));
@@ -501,10 +476,10 @@ public class Trace {
   }
 
   public Trace isKeccakResult(final Boolean b) {
-    if (filled.get(6)) {
-      throw new IllegalStateException("shakira.IS_KECCAK_RESULT already set");
+    if (filled.get(4)) {
+      throw new IllegalStateException("shakiradata.IS_KECCAK_RESULT already set");
     } else {
-      filled.set(6);
+      filled.set(4);
     }
 
     isKeccakResult.put((byte) (b ? 1 : 0));
@@ -513,10 +488,10 @@ public class Trace {
   }
 
   public Trace isRipemdData(final Boolean b) {
-    if (filled.get(7)) {
-      throw new IllegalStateException("shakira.IS_RIPEMD_DATA already set");
+    if (filled.get(5)) {
+      throw new IllegalStateException("shakiradata.IS_RIPEMD_DATA already set");
     } else {
-      filled.set(7);
+      filled.set(5);
     }
 
     isRipemdData.put((byte) (b ? 1 : 0));
@@ -525,10 +500,10 @@ public class Trace {
   }
 
   public Trace isRipemdResult(final Boolean b) {
-    if (filled.get(8)) {
-      throw new IllegalStateException("shakira.IS_RIPEMD_RESULT already set");
+    if (filled.get(6)) {
+      throw new IllegalStateException("shakiradata.IS_RIPEMD_RESULT already set");
     } else {
-      filled.set(8);
+      filled.set(6);
     }
 
     isRipemdResult.put((byte) (b ? 1 : 0));
@@ -537,10 +512,10 @@ public class Trace {
   }
 
   public Trace isSha2Data(final Boolean b) {
-    if (filled.get(9)) {
-      throw new IllegalStateException("shakira.IS_SHA2_DATA already set");
+    if (filled.get(7)) {
+      throw new IllegalStateException("shakiradata.IS_SHA2_DATA already set");
     } else {
-      filled.set(9);
+      filled.set(7);
     }
 
     isSha2Data.put((byte) (b ? 1 : 0));
@@ -549,10 +524,10 @@ public class Trace {
   }
 
   public Trace isSha2Result(final Boolean b) {
-    if (filled.get(10)) {
-      throw new IllegalStateException("shakira.IS_SHA2_RESULT already set");
+    if (filled.get(8)) {
+      throw new IllegalStateException("shakiradata.IS_SHA2_RESULT already set");
     } else {
-      filled.set(10);
+      filled.set(8);
     }
 
     isSha2Result.put((byte) (b ? 1 : 0));
@@ -561,10 +536,10 @@ public class Trace {
   }
 
   public Trace limb(final Bytes b) {
-    if (filled.get(11)) {
-      throw new IllegalStateException("shakira.LIMB already set");
+    if (filled.get(9)) {
+      throw new IllegalStateException("shakiradata.LIMB already set");
     } else {
-      filled.set(11);
+      filled.set(9);
     }
 
     final byte[] bs = b.toArrayUnsafe();
@@ -576,21 +551,21 @@ public class Trace {
     return this;
   }
 
-  public Trace nBytes(final UnsignedByte b) {
+  public Trace nBytes(final short b) {
     if (filled.get(15)) {
-      throw new IllegalStateException("shakira.nBYTES already set");
+      throw new IllegalStateException("shakiradata.nBYTES already set");
     } else {
       filled.set(15);
     }
 
-    nBytes.put(b.toByte());
+    nBytes.putShort(b);
 
     return this;
   }
 
   public Trace nBytesAcc(final long b) {
     if (filled.get(16)) {
-      throw new IllegalStateException("shakira.nBYTES_ACC already set");
+      throw new IllegalStateException("shakiradata.nBYTES_ACC already set");
     } else {
       filled.set(16);
     }
@@ -601,10 +576,10 @@ public class Trace {
   }
 
   public Trace phase(final UnsignedByte b) {
-    if (filled.get(12)) {
-      throw new IllegalStateException("shakira.PHASE already set");
+    if (filled.get(10)) {
+      throw new IllegalStateException("shakiradata.PHASE already set");
     } else {
-      filled.set(12);
+      filled.set(10);
     }
 
     phase.put(b.toByte());
@@ -613,10 +588,10 @@ public class Trace {
   }
 
   public Trace ripshaStamp(final long b) {
-    if (filled.get(13)) {
-      throw new IllegalStateException("shakira.RIPSHA_STAMP already set");
+    if (filled.get(11)) {
+      throw new IllegalStateException("shakiradata.RIPSHA_STAMP already set");
     } else {
-      filled.set(13);
+      filled.set(11);
     }
 
     ripshaStamp.putLong(b);
@@ -624,9 +599,33 @@ public class Trace {
     return this;
   }
 
+  public Trace selectorKeccakResHi(final Boolean b) {
+    if (filled.get(12)) {
+      throw new IllegalStateException("shakiradata.SELECTOR_KECCAK_RES_HI already set");
+    } else {
+      filled.set(12);
+    }
+
+    selectorKeccakResHi.put((byte) (b ? 1 : 0));
+
+    return this;
+  }
+
+  public Trace selectorKeccakResLo(final Boolean b) {
+    if (filled.get(13)) {
+      throw new IllegalStateException("shakiradata.SELECTOR_KECCAK_RES_LO already set");
+    } else {
+      filled.set(13);
+    }
+
+    selectorKeccakResLo.put((byte) (b ? 1 : 0));
+
+    return this;
+  }
+
   public Trace totalSize(final long b) {
     if (filled.get(14)) {
-      throw new IllegalStateException("shakira.TOTAL_SIZE already set");
+      throw new IllegalStateException("shakiradata.TOTAL_SIZE already set");
     } else {
       filled.set(14);
     }
@@ -638,71 +637,71 @@ public class Trace {
 
   public Trace validateRow() {
     if (!filled.get(0)) {
-      throw new IllegalStateException("shakira.DELTA_BYTE has not been filled");
+      throw new IllegalStateException("shakiradata.ID has not been filled");
     }
 
     if (!filled.get(1)) {
-      throw new IllegalStateException("shakira.ID has not been filled");
+      throw new IllegalStateException("shakiradata.INDEX has not been filled");
     }
 
     if (!filled.get(2)) {
-      throw new IllegalStateException("shakira.INDEX has not been filled");
+      throw new IllegalStateException("shakiradata.INDEX_MAX has not been filled");
     }
 
     if (!filled.get(3)) {
-      throw new IllegalStateException("shakira.INDEX_MAX has not been filled");
+      throw new IllegalStateException("shakiradata.IS_KECCAK_DATA has not been filled");
     }
 
     if (!filled.get(4)) {
-      throw new IllegalStateException("shakira.IS_EXTRA has not been filled");
+      throw new IllegalStateException("shakiradata.IS_KECCAK_RESULT has not been filled");
     }
 
     if (!filled.get(5)) {
-      throw new IllegalStateException("shakira.IS_KECCAK_DATA has not been filled");
+      throw new IllegalStateException("shakiradata.IS_RIPEMD_DATA has not been filled");
     }
 
     if (!filled.get(6)) {
-      throw new IllegalStateException("shakira.IS_KECCAK_RESULT has not been filled");
+      throw new IllegalStateException("shakiradata.IS_RIPEMD_RESULT has not been filled");
     }
 
     if (!filled.get(7)) {
-      throw new IllegalStateException("shakira.IS_RIPEMD_DATA has not been filled");
+      throw new IllegalStateException("shakiradata.IS_SHA2_DATA has not been filled");
     }
 
     if (!filled.get(8)) {
-      throw new IllegalStateException("shakira.IS_RIPEMD_RESULT has not been filled");
+      throw new IllegalStateException("shakiradata.IS_SHA2_RESULT has not been filled");
     }
 
     if (!filled.get(9)) {
-      throw new IllegalStateException("shakira.IS_SHA2_DATA has not been filled");
-    }
-
-    if (!filled.get(10)) {
-      throw new IllegalStateException("shakira.IS_SHA2_RESULT has not been filled");
-    }
-
-    if (!filled.get(11)) {
-      throw new IllegalStateException("shakira.LIMB has not been filled");
+      throw new IllegalStateException("shakiradata.LIMB has not been filled");
     }
 
     if (!filled.get(15)) {
-      throw new IllegalStateException("shakira.nBYTES has not been filled");
+      throw new IllegalStateException("shakiradata.nBYTES has not been filled");
     }
 
     if (!filled.get(16)) {
-      throw new IllegalStateException("shakira.nBYTES_ACC has not been filled");
+      throw new IllegalStateException("shakiradata.nBYTES_ACC has not been filled");
+    }
+
+    if (!filled.get(10)) {
+      throw new IllegalStateException("shakiradata.PHASE has not been filled");
+    }
+
+    if (!filled.get(11)) {
+      throw new IllegalStateException("shakiradata.RIPSHA_STAMP has not been filled");
     }
 
     if (!filled.get(12)) {
-      throw new IllegalStateException("shakira.PHASE has not been filled");
+      throw new IllegalStateException("shakiradata.SELECTOR_KECCAK_RES_HI has not been filled");
     }
 
     if (!filled.get(13)) {
-      throw new IllegalStateException("shakira.RIPSHA_STAMP has not been filled");
+      throw new IllegalStateException("shakiradata.SELECTOR_KECCAK_RES_LO has not been filled");
     }
 
     if (!filled.get(14)) {
-      throw new IllegalStateException("shakira.TOTAL_SIZE has not been filled");
+      throw new IllegalStateException("shakiradata.TOTAL_SIZE has not been filled");
     }
 
     filled.clear();
@@ -713,67 +712,67 @@ public class Trace {
 
   public Trace fillAndValidateRow() {
     if (!filled.get(0)) {
-      deltaByte.position(deltaByte.position() + 1);
-    }
-
-    if (!filled.get(1)) {
       id.position(id.position() + 8);
     }
 
-    if (!filled.get(2)) {
+    if (!filled.get(1)) {
       index.position(index.position() + 8);
     }
 
-    if (!filled.get(3)) {
+    if (!filled.get(2)) {
       indexMax.position(indexMax.position() + 8);
     }
 
-    if (!filled.get(4)) {
-      isExtra.position(isExtra.position() + 1);
-    }
-
-    if (!filled.get(5)) {
+    if (!filled.get(3)) {
       isKeccakData.position(isKeccakData.position() + 1);
     }
 
-    if (!filled.get(6)) {
+    if (!filled.get(4)) {
       isKeccakResult.position(isKeccakResult.position() + 1);
     }
 
-    if (!filled.get(7)) {
+    if (!filled.get(5)) {
       isRipemdData.position(isRipemdData.position() + 1);
     }
 
-    if (!filled.get(8)) {
+    if (!filled.get(6)) {
       isRipemdResult.position(isRipemdResult.position() + 1);
     }
 
-    if (!filled.get(9)) {
+    if (!filled.get(7)) {
       isSha2Data.position(isSha2Data.position() + 1);
     }
 
-    if (!filled.get(10)) {
+    if (!filled.get(8)) {
       isSha2Result.position(isSha2Result.position() + 1);
     }
 
-    if (!filled.get(11)) {
+    if (!filled.get(9)) {
       limb.position(limb.position() + 32);
     }
 
     if (!filled.get(15)) {
-      nBytes.position(nBytes.position() + 1);
+      nBytes.position(nBytes.position() + 2);
     }
 
     if (!filled.get(16)) {
       nBytesAcc.position(nBytesAcc.position() + 8);
     }
 
-    if (!filled.get(12)) {
+    if (!filled.get(10)) {
       phase.position(phase.position() + 1);
     }
 
-    if (!filled.get(13)) {
+    if (!filled.get(11)) {
       ripshaStamp.position(ripshaStamp.position() + 8);
+    }
+
+    if (!filled.get(12)) {
+      selectorKeccakResHi.position(selectorKeccakResHi.position() + 1);
+    }
+
+    if (!filled.get(13)) {
+      selectorKeccakResLo.position(selectorKeccakResLo.position() + 1);
     }
 
     if (!filled.get(14)) {

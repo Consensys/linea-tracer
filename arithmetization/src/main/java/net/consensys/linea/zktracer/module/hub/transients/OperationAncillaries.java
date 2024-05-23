@@ -50,8 +50,7 @@ public class OperationAncillaries {
   }
 
   /**
-   * Compute the gas allowance for the child context if in a CALL, throws
-   * otherwise.
+   * Compute the gas allowance for the child context if in a CALL, throws otherwise.
    *
    * @return the CALL gas allowance
    */
@@ -65,7 +64,7 @@ public class OperationAncillaries {
         value = EWord.of(hub.messageFrame().getStackItem(2));
       }
       final long stipend = value.isZero() ? 0 : GasConstants.G_CALL_STIPEND.cost();
-      final long upfrontCost = Hub.gp.of(hub.messageFrame(), opCode).total();
+      final long upfrontCost = Hub.GAS_PROJECTOR.of(hub.messageFrame(), opCode).total();
       return stipend
           + Math.max(
               Words.unsignedMin(
@@ -77,8 +76,7 @@ public class OperationAncillaries {
   }
 
   /**
-   * Returns the RAM segment of the caller containing the calldata if the
-   * {@link MessageFrame}
+   * Returns the RAM segment of the caller containing the calldata if the {@link MessageFrame}
    * operation is a call, throws otherwise.
    *
    * @param frame the execution context
@@ -106,8 +104,7 @@ public class OperationAncillaries {
   }
 
   /**
-   * Returns the RAM segment of the caller containing the calldata if the current
-   * operation is a
+   * Returns the RAM segment of the caller containing the calldata if the current operation is a
    * call, throws otherwise.
    *
    * @return the input data segment
@@ -117,8 +114,7 @@ public class OperationAncillaries {
   }
 
   /**
-   * Return the bytes of the calldata if the current operation is a call, throws
-   * otherwise.
+   * Return the bytes of the calldata if the current operation is a call, throws otherwise.
    *
    * @return the calldata content
    */
@@ -128,8 +124,7 @@ public class OperationAncillaries {
   }
 
   /**
-   * Return the bytes of the calldata if the current operation is a call, throws
-   * otherwise.
+   * Return the bytes of the calldata if the current operation is a call, throws otherwise.
    *
    * @param frame the execution context
    * @return the calldata content
@@ -140,8 +135,7 @@ public class OperationAncillaries {
   }
 
   /**
-   * Returns the RAM segment offered by the caller for the return data if the
-   * current operation is a
+   * Returns the RAM segment offered by the caller for the return data if the current operation is a
    * call, throws otherwise.
    *
    * @param frame the execution context
@@ -165,8 +159,7 @@ public class OperationAncillaries {
   }
 
   /**
-   * Returns the RAM segment offered by the caller for the return data if the
-   * current operation is a
+   * Returns the RAM segment offered by the caller for the return data if the current operation is a
    * call, throws otherwise.
    *
    * @return the return data target
@@ -176,8 +169,7 @@ public class OperationAncillaries {
   }
 
   /**
-   * Returns the RAM segment offered by the callee for the return data if the
-   * current operation is a
+   * Returns the RAM segment offered by the callee for the return data if the current operation is a
    * RETURN/REVERT, throws otherwise.
    *
    * @param frame the execution context
@@ -196,8 +188,7 @@ public class OperationAncillaries {
   }
 
   /**
-   * Returns the RAM segment offered by the caller for the return data if the
-   * current operation is a
+   * Returns the RAM segment offered by the caller for the return data if the current operation is a
    * call, throws otherwise.
    *
    * @return the return data target
@@ -207,8 +198,7 @@ public class OperationAncillaries {
   }
 
   /**
-   * Return the bytes of the calldata if the current operation is a call, throws
-   * otherwise.
+   * Return the bytes of the calldata if the current operation is a call, throws otherwise.
    *
    * @return the calldata content
    */
@@ -230,8 +220,7 @@ public class OperationAncillaries {
   }
 
   /**
-   * Return the bytes of the returndata if the current operation is a
-   * return/revert, throws
+   * Return the bytes of the returndata if the current operation is a return/revert, throws
    * otherwise.
    *
    * @param frame the execution context

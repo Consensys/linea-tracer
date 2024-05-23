@@ -15,6 +15,11 @@
 
 package net.consensys.linea.zktracer.module.shakiradata;
 
-import net.consensys.linea.zktracer.types.UnsignedByte;
+import java.util.Comparator;
 
-record PhaseInfo(int id, int indexMax, int totalSize, UnsignedByte[] deltaBytes) {}
+class ShakiraDataComparator implements Comparator<ShakiraDataOperation> {
+  @Override
+  public int compare(ShakiraDataOperation o1, ShakiraDataOperation o2) {
+    return (int) (o1.ID() - o2.ID());
+  }
+}

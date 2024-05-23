@@ -15,17 +15,29 @@
 
 package net.consensys.linea.zktracer.module.shakiradata;
 
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
+
 import java.nio.MappedByteBuffer;
-import java.util.Comparator;
+import java.util.ArrayList;
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.module.wcp.Wcp;
+import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.datatypes.Transaction;
+import org.hyperledger.besu.evm.log.Log;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 
+@RequiredArgsConstructor
 public class ShakiraData implements Module {
-  private StackedList<ShakiraDataOperation> operations = new StackedList<>();
+  private final Wcp wcp;
+  private final StackedSet<ShakiraDataOperation> operations = new StackedSet<>();
+  private List<ShakiraDataOperation> sortedOperations = new ArrayList<>();
+  private int numberOfOperationsAtStartTx = 0;
+  private final ShakiraDataComparator comparator = new ShakiraDataComparator();
 
   @Override
   public String moduleKey() {
@@ -39,6 +51,7 @@ public class ShakiraData implements Module {
 
   @Override
   public void popTransaction() {
+    this.sortedOperations.removeAll(this.operations.sets.getLast());
     this.operations.pop();
   }
 
@@ -54,19 +67,42 @@ public class ShakiraData implements Module {
 
   public void call(final ShakiraDataOperation operation) {
     this.operations.add(operation);
+    this.wcp.callGT(operation.lastNBytes(), 0);
+    this.wcp.callLEQ(operation.lastNBytes(), LLARGE);
+  }
+
+  @Override
+  public void traceStartTx(WorldView worldView, Transaction tx) {
+    this.numberOfOperationsAtStartTx = operations.size();
+  }
+
+  @Override
+  public void traceEndTx(
+      WorldView worldView,
+      Transaction tx,
+      boolean isSuccessful,
+      Bytes output,
+      List<Log> logs,
+      long gasUsed) {
+    final List<ShakiraDataOperation> newOperations =
+        new ArrayList<>(this.operations.sets.getLast());
+    newOperations.sort(comparator);
+    this.sortedOperations.addAll(newOperations);
+    final int numberOfOperationsAtEndTx = sortedOperations.size();
+    for (int i = numberOfOperationsAtStartTx; i < numberOfOperationsAtEndTx; i++) {
+      final long previousID = i == 0 ? 0 : sortedOperations.get(i - 1).ID();
+      this.wcp.callLT(previousID, sortedOperations.get(i).ID());
+    }
   }
 
   @Override
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
 
-    final List<ShakiraDataOperation> sortedState =
-        this.operations.stream().sorted(Comparator.comparing(ShakiraDataOperation::currentId)).toList();
-
     int stamp = 0;
-    for (ShakiraDataOperation o : sortedState) {
+    for (int i = 0; i < sortedOperations.size(); i++) {
       stamp++;
-      o.trace(trace, stamp);
+      sortedOperations.get(i).trace(trace, stamp);
     }
   }
 }

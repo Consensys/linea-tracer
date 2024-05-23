@@ -50,9 +50,7 @@ public final class RipeMd160Blocks implements Module {
     return "PRECOMPILE_RIPEMD_BLOCKS";
   }
 
-  @Getter private final ShakiraData data;
-
-  private int lastDataCallHubStamp = 0;
+  @Getter private final ShakiraData shakiraData;
 
   @Override
   public void enterTransaction() {
@@ -110,7 +108,7 @@ public final class RipeMd160Blocks implements Module {
         final Bytes inputData = hub.transients().op().callData();
 
         if (hub.transients().op().gasAllowanceForCall() >= gasNeeded) {
-          this.data.call(
+          this.shakiraData.call(
               new ShakiraDataOperation(hub.stamp(), ShakiraPrecompileType.RIPEMD, inputData));
 
           this.counts.push(this.counts.pop() + blockCount);

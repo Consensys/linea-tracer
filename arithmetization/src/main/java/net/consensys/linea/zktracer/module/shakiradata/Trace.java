@@ -50,7 +50,8 @@ public class Trace {
   private final MappedByteBuffer phase;
   private final MappedByteBuffer ripshaStamp;
   private final MappedByteBuffer selectorKeccakResHi;
-  private final MappedByteBuffer selectorKeccakResLo;
+  private final MappedByteBuffer selectorRipemdResHi;
+  private final MappedByteBuffer selectorSha2ResHi;
   private final MappedByteBuffer totalSize;
 
   static List<ColumnHeader> headers(int length) {
@@ -70,7 +71,8 @@ public class Trace {
         new ColumnHeader("shakiradata.PHASE", 1, length),
         new ColumnHeader("shakiradata.RIPSHA_STAMP", 8, length),
         new ColumnHeader("shakiradata.SELECTOR_KECCAK_RES_HI", 1, length),
-        new ColumnHeader("shakiradata.SELECTOR_KECCAK_RES_LO", 1, length),
+        new ColumnHeader("shakiradata.SELECTOR_RIPEMD_RES_HI", 1, length),
+        new ColumnHeader("shakiradata.SELECTOR_SHA2_RES_HI", 1, length),
         new ColumnHeader("shakiradata.TOTAL_SIZE", 8, length));
   }
 
@@ -90,8 +92,9 @@ public class Trace {
     this.phase = buffers.get(12);
     this.ripshaStamp = buffers.get(13);
     this.selectorKeccakResHi = buffers.get(14);
-    this.selectorKeccakResLo = buffers.get(15);
-    this.totalSize = buffers.get(16);
+    this.selectorRipemdResHi = buffers.get(15);
+    this.selectorSha2ResHi = buffers.get(16);
+    this.totalSize = buffers.get(17);
   }
 
   public int size() {
@@ -227,10 +230,10 @@ public class Trace {
   }
 
   public Trace nBytes(final short b) {
-    if (filled.get(15)) {
+    if (filled.get(16)) {
       throw new IllegalStateException("shakiradata.nBYTES already set");
     } else {
-      filled.set(15);
+      filled.set(16);
     }
 
     nBytes.putShort(b);
@@ -239,10 +242,10 @@ public class Trace {
   }
 
   public Trace nBytesAcc(final long b) {
-    if (filled.get(16)) {
+    if (filled.get(17)) {
       throw new IllegalStateException("shakiradata.nBYTES_ACC already set");
     } else {
-      filled.set(16);
+      filled.set(17);
     }
 
     nBytesAcc.putLong(b);
@@ -286,23 +289,35 @@ public class Trace {
     return this;
   }
 
-  public Trace selectorKeccakResLo(final Boolean b) {
+  public Trace selectorRipemdResHi(final Boolean b) {
     if (filled.get(13)) {
-      throw new IllegalStateException("shakiradata.SELECTOR_KECCAK_RES_LO already set");
+      throw new IllegalStateException("shakiradata.SELECTOR_RIPEMD_RES_HI already set");
     } else {
       filled.set(13);
     }
 
-    selectorKeccakResLo.put((byte) (b ? 1 : 0));
+    selectorRipemdResHi.put((byte) (b ? 1 : 0));
+
+    return this;
+  }
+
+  public Trace selectorSha2ResHi(final Boolean b) {
+    if (filled.get(14)) {
+      throw new IllegalStateException("shakiradata.SELECTOR_SHA2_RES_HI already set");
+    } else {
+      filled.set(14);
+    }
+
+    selectorSha2ResHi.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
   public Trace totalSize(final long b) {
-    if (filled.get(14)) {
+    if (filled.get(15)) {
       throw new IllegalStateException("shakiradata.TOTAL_SIZE already set");
     } else {
-      filled.set(14);
+      filled.set(15);
     }
 
     totalSize.putLong(b);
@@ -351,11 +366,11 @@ public class Trace {
       throw new IllegalStateException("shakiradata.LIMB has not been filled");
     }
 
-    if (!filled.get(15)) {
+    if (!filled.get(16)) {
       throw new IllegalStateException("shakiradata.nBYTES has not been filled");
     }
 
-    if (!filled.get(16)) {
+    if (!filled.get(17)) {
       throw new IllegalStateException("shakiradata.nBYTES_ACC has not been filled");
     }
 
@@ -372,10 +387,14 @@ public class Trace {
     }
 
     if (!filled.get(13)) {
-      throw new IllegalStateException("shakiradata.SELECTOR_KECCAK_RES_LO has not been filled");
+      throw new IllegalStateException("shakiradata.SELECTOR_RIPEMD_RES_HI has not been filled");
     }
 
     if (!filled.get(14)) {
+      throw new IllegalStateException("shakiradata.SELECTOR_SHA2_RES_HI has not been filled");
+    }
+
+    if (!filled.get(15)) {
       throw new IllegalStateException("shakiradata.TOTAL_SIZE has not been filled");
     }
 
@@ -426,11 +445,11 @@ public class Trace {
       limb.position(limb.position() + 32);
     }
 
-    if (!filled.get(15)) {
+    if (!filled.get(16)) {
       nBytes.position(nBytes.position() + 2);
     }
 
-    if (!filled.get(16)) {
+    if (!filled.get(17)) {
       nBytesAcc.position(nBytesAcc.position() + 8);
     }
 
@@ -447,10 +466,14 @@ public class Trace {
     }
 
     if (!filled.get(13)) {
-      selectorKeccakResLo.position(selectorKeccakResLo.position() + 1);
+      selectorRipemdResHi.position(selectorRipemdResHi.position() + 1);
     }
 
     if (!filled.get(14)) {
+      selectorSha2ResHi.position(selectorSha2ResHi.position() + 1);
+    }
+
+    if (!filled.get(15)) {
       totalSize.position(totalSize.position() + 8);
     }
 

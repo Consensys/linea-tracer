@@ -105,7 +105,8 @@ public class ShakiraDataOperation extends ModuleOperation {
           .isKeccakResult(false)
           .isRipemdResult(false)
           .selectorKeccakResHi(false)
-          .selectorKeccakResLo(false)
+          .selectorSha2ResHi(false)
+          .selectorRipemdResHi(false)
           .validateRow();
     }
   }
@@ -142,13 +143,15 @@ public class ShakiraDataOperation extends ModuleOperation {
             .limb(result.slice(0, LLARGE))
             .nBytesAcc(LLARGE)
             .selectorKeccakResHi(precompileType == KECCAK)
-            .selectorKeccakResLo(false)
+            .selectorSha2ResHi(precompileType == SHA256)
+            .selectorRipemdResHi(precompileType == RIPEMD)
             .validateRow();
         case 1 -> trace
             .limb(result.slice(LLARGE, LLARGE))
             .nBytesAcc(WORD_SIZE)
             .selectorKeccakResHi(false)
-            .selectorKeccakResLo(precompileType == KECCAK)
+            .selectorSha2ResHi(false)
+            .selectorRipemdResHi(false)
             .validateRow();
       }
     }

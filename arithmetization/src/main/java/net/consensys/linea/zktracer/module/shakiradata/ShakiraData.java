@@ -58,7 +58,7 @@ public class ShakiraData implements Module {
   @Override
   public int lineCount() {
     return this.operations.lineCount()
-        + 1; /*because the lookup HUB -> SHAKIRA requires at least two padding rows */
+        + 1; /*because the lookup HUB -> SHAKIRA requires at least two padding rows. TODO: should be done by Corset */
   }
 
   @Override
@@ -100,13 +100,13 @@ public class ShakiraData implements Module {
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
 
-    trace
-        .fillAndValidateRow(); /* WARN: do not remove, the lookup HUB -> SHAKIRA requires at least two padding rows */
+    /* WARN: do not remove, the lookup HUB -> SHAKIRA requires at least two padding rows. TODO: should be done by Corset*/
+    trace.fillAndValidateRow();
 
     int stamp = 0;
-    for (ShakiraDataOperation sortedOperation : sortedOperations) {
+    for (ShakiraDataOperation operation : sortedOperations) {
       stamp++;
-      sortedOperation.trace(trace, stamp);
+      operation.trace(trace, stamp);
     }
   }
 }

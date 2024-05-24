@@ -42,6 +42,8 @@ public record CreateOobParameters(
         .data3(bigIntegerToBytes(bal))
         .data4(bigIntegerToBytes(nonce))
         .data5((hasCode ? ONE : ZERO))
-        .data6(bigIntegerToBytes(csd));
+        .data6(bigIntegerToBytes(csd))
+        .data7(ZERO) // TODO: temporary value; to fill when oob update is complete
+        .data8(ZERO); // TODO: temporary value; to fill when oob update is complete
   }
 }

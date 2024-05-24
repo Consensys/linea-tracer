@@ -40,6 +40,8 @@ public record CallDataLoadOobParameters(EWord offset, BigInteger cds) implements
         .data3(ZERO)
         .data4(ZERO)
         .data5(bigIntegerToBytes(cds))
-        .data6(ZERO);
+        .data6(ZERO)
+        .data7(ZERO) // TODO: temporary value; to fill when oob update is complete
+        .data8(ZERO); // TODO: temporary value; to fill when oob update is complete
   }
 }

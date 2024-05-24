@@ -31,6 +31,8 @@ public record SstoreOobParameters(BigInteger gas) implements OobParameters {
         .data3(ZERO)
         .data4(ZERO)
         .data5(bigIntegerToBytes(gas))
-        .data6(ZERO);
+        .data6(ZERO)
+        .data7(ZERO) // TODO: temporary value; to fill when oob update is complete
+        .data8(ZERO); // TODO: temporary value; to fill when oob update is complete
   }
 }

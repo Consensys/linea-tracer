@@ -50,6 +50,8 @@ public record ReturnDataCopyOobParameters(EWord offset, EWord size, BigInteger r
         .data3(bigIntegerToBytes(sizeHi()))
         .data4(Bytes.wrap(sizeLo().toByteArray()))
         .data5(bigIntegerToBytes(rds))
-        .data6(ZERO);
+        .data6(ZERO)
+        .data7(ZERO) // TODO: temporary value; to fill when oob update is complete
+        .data8(ZERO); // TODO: temporary value; to fill when oob update is complete
   }
 }

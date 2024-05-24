@@ -49,6 +49,8 @@ public record JumpiOobParameters(EWord pcNew, EWord jumpCondition, BigInteger co
         .data3(bigIntegerToBytes(jumpConditionHi()))
         .data4(bigIntegerToBytes(jumpConditionLo()))
         .data5(bigIntegerToBytes(codesize))
-        .data6(ZERO);
+        .data6(ZERO)
+        .data7(ZERO) // TODO: temporary value; to fill when oob update is complete
+        .data8(ZERO); // TODO: temporary value; to fill when oob update is complete
   }
 }

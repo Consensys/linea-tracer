@@ -35,7 +35,7 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 public class ShakiraData implements Module {
   private final Wcp wcp;
   private final StackedSet<ShakiraDataOperation> operations = new StackedSet<>();
-  private List<ShakiraDataOperation> sortedOperations = new ArrayList<>();
+  private final List<ShakiraDataOperation> sortedOperations = new ArrayList<>();
   private int numberOfOperationsAtStartTx = 0;
   private final ShakiraDataComparator comparator = new ShakiraDataComparator();
 
@@ -57,7 +57,8 @@ public class ShakiraData implements Module {
 
   @Override
   public int lineCount() {
-    return this.operations.lineCount();
+    return this.operations.lineCount()
+        + 1; /*because the lookup HUB -> SHAKIRA requires at least two padding rows */
   }
 
   @Override
@@ -99,10 +100,13 @@ public class ShakiraData implements Module {
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
 
+    trace
+        .fillAndValidateRow(); /* WARN: do not remove, the lookup HUB -> SHAKIRA requires at least two padding rows */
+
     int stamp = 0;
-    for (int i = 0; i < sortedOperations.size(); i++) {
+    for (ShakiraDataOperation sortedOperation : sortedOperations) {
       stamp++;
-      sortedOperations.get(i).trace(trace, stamp);
+      sortedOperation.trace(trace, stamp);
     }
   }
 }

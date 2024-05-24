@@ -161,14 +161,14 @@ public class OobChunk extends ModuleOperation {
     this.wcp = wcp;
     this.hub = hub;
 
+    this.blake2FCallNumber = blake2FCallNumber;
+    this.modexpCallNumber = modexpCallNumber;
+
     if (isPrecompile) {
       setPrecomileFlagsAndWghtSumAndIncomingInst(frame);
     } else {
       setOpCodeFlagsAndWghtSumAndIncomingInst(frame);
     }
-
-    this.blake2FCallNumber = blake2FCallNumber;
-    this.modexpCallNumber = modexpCallNumber;
 
     // Init arrays
     int nRows = nRows();

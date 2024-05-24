@@ -23,6 +23,7 @@ import com.google.common.base.Preconditions;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ZkTracer;
+import net.consensys.linea.zktracer.module.constants.GlobalConstants;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.KeyPair;
@@ -57,7 +58,7 @@ public final class BytecodeRunner {
   @Setter private Consumer<ZkTracer> zkTracerValidator = zkTracer -> {};
 
   public void run() {
-    this.run(Wei.fromEth(1), 100_000_000L);
+    this.run(Wei.fromEth(1), (long) GlobalConstants.LINEA_BLOCK_GAS_LIMIT);
   }
 
   public void run(Wei senderBalance, Long gasLimit) {

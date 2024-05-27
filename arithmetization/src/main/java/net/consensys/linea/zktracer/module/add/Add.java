@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.add;
 
+import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
@@ -75,7 +76,8 @@ public class Add implements Module {
     return this.chunks.lineCount();
   }
 
-  public void callADD(Bytes32 arg1, Bytes32 arg2) {
+  public BigInteger callADD(Bytes32 arg1, Bytes32 arg2) {
     this.chunks.add(new AddOperation(OpCode.ADD, arg1, arg2));
+    return arg1.toUnsignedBigInteger().add(arg2.toUnsignedBigInteger());
   }
 }

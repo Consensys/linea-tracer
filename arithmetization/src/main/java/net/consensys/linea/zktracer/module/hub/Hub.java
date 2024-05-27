@@ -388,6 +388,7 @@ public class Hub implements Module {
                 this.mod,
                 this.mul,
                 this.mxp,
+                this.oob,
                 this.exp,
                 this.rlpAddr,
                 this.rlpTxn,

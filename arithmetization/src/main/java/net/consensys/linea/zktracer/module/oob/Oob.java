@@ -40,7 +40,7 @@ import org.hyperledger.besu.evm.internal.Words;
 public class Oob implements Module {
 
   /** A list of the operations to trace */
-  @Getter private final StackedList<OobChunk> chunks = new StackedList<>();
+  @Getter private final StackedList<OobOperation> chunks = new StackedList<>();
 
   private final Hub hub;
   private final Add add;
@@ -65,33 +65,33 @@ public class Oob implements Module {
 
   @Override
   public void tracePreOpcode(MessageFrame frame) { // This will be renamed to tracePreOp
-    this.chunks.add(new OobChunk(frame, add, mod, wcp, hub, false, 0, 0));
+    this.chunks.add(new OobOperation(frame, add, mod, wcp, hub, false, 0, 0));
     OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
 
-    if (hub.pch().exceptions().none() && hub.pch().aborts().none() && opCode.isCall()) {
+    if (opCode.isCall()) {
       Address target = Words.toAddress(frame.getStackItem(1));
 
       if (PRECOMPILES_HANDLED_BY_OOB.contains(target)) {
         if (target.equals(Address.BLAKE2B_F_COMPRESSION)) {
-          OobChunk oobChunk = new OobChunk(frame, add, mod, wcp, hub, true, 1, 0);
-          this.chunks.add(oobChunk);
-          boolean validCds = oobChunk.getOutgoingResLo()[0].equals(BigInteger.ONE);
+          OobOperation oobOperation = new OobOperation(frame, add, mod, wcp, hub, true, 1, 0);
+          this.chunks.add(oobOperation);
+          boolean validCds = oobOperation.getOutgoingResLo()[0].equals(BigInteger.ONE);
           if (validCds) {
-            this.chunks.add(new OobChunk(frame, add, mod, wcp, hub, true, 2, 0));
+            this.chunks.add(new OobOperation(frame, add, mod, wcp, hub, true, 2, 0));
           }
         } else if (target.equals(Address.MODEXP)) {
           for (int i = 1; i <= 7; i++) {
-            this.chunks.add(new OobChunk(frame, add, mod, wcp, hub, true, 0, i));
+            this.chunks.add(new OobOperation(frame, add, mod, wcp, hub, true, 0, i));
           }
         } else {
           // Other precompiles case
-          this.chunks.add(new OobChunk(frame, add, mod, wcp, hub, true, 0, 0));
+          this.chunks.add(new OobOperation(frame, add, mod, wcp, hub, true, 0, 0));
         }
       }
     }
   }
 
-  final void traceChunk(final OobChunk chunk, int stamp, Trace trace) {
+  final void traceChunk(final OobOperation chunk, int stamp, Trace trace) {
     int nRows = chunk.nRows();
 
     for (int ct = 0; ct < nRows; ct++) {
@@ -152,7 +152,7 @@ public class Oob implements Module {
 
   @Override
   public int lineCount() {
-    return this.chunks.stream().mapToInt(OobChunk::nRows).sum();
+    return this.chunks.stream().mapToInt(OobOperation::nRows).sum();
   }
 
   @Override

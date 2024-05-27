@@ -46,8 +46,8 @@ class OobTestCommon {
   static void assertNumberOfOnesInOobEvent1(final Oob oob, int numberOfOnesInOobEvent1) {
     /*
     int actualNumberOfOnesInOobEvent1 = 0;
-    for (OobChunk oobChunk : oob.getChunks()) {
-      actualNumberOfOnesInOobEvent1 += oobChunk.isOobEvent1() ? 1 : 0;
+    for (OobOperation oobOperation : oob.getOperations()) {
+      actualNumberOfOnesInOobEvent1 += oobOperation.isOobEvent1() ? 1 : 0;
     }
     assert (actualNumberOfOnesInOobEvent1 == numberOfOnesInOobEvent1);
     */

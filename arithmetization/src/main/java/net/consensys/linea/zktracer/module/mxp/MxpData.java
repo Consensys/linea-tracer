@@ -418,7 +418,7 @@ public class MxpData extends ModuleOperation {
   }
 
   protected void setBytes() {
-    int nRows = nRows();
+    final int nRows = nRows();
     Bytes32 b1 = UInt256.valueOf(acc1);
     Bytes32 b2 = UInt256.valueOf(acc2);
     Bytes32 b3 = UInt256.valueOf(acc3);
@@ -499,8 +499,8 @@ public class MxpData extends ModuleOperation {
     final EWord eSize1 = EWord.of(this.size1);
     final EWord eSize2 = EWord.of(this.size2);
 
-    int nRows = this.nRows();
-    int nRowsComplement = 32 - nRows;
+    final int nRows = this.nRows();
+    final int nRowsComplement = 32 - nRows;
 
     for (int i = 0; i < nRows; i++) {
       trace

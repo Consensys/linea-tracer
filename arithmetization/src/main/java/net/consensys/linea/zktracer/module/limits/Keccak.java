@@ -43,6 +43,8 @@ public class Keccak implements Module {
   private static final int L1_MSG_INDICES_BYTES = 8;
   private static final int L1_TIMESTAMPS_BYTES = 8;
   private static final int PUBKEY_BYTES = 64;
+  private static final int KECCAK_BIT_RATE = 1088;
+  private static final int KECCAK_BYTE_RATE = KECCAK_BIT_RATE / 8; // TODO: find correct name
 
   private final Hub hub;
   private final EcRecoverEffectiveCall ecRec;
@@ -73,12 +75,8 @@ public class Keccak implements Module {
     this.create2Sizes.pop();
   }
 
-  public static int numKeccak(int x) {
-    return (x + 136) / 136;
-  }
-
   private static int numKeccak(long x) {
-    final long r = (x + 136) / 136; // TODO: looks strange, to verify
+    final long r = (x + KECCAK_BYTE_RATE - 1) / KECCAK_BYTE_RATE;
     Preconditions.checkState(r < Integer.MAX_VALUE, "demented KECCAK");
     return (int) r;
   }
@@ -92,25 +90,25 @@ public class Keccak implements Module {
     if (pch.exceptions().none()) {
       // Capture calls to SHA3.
       if (opCode == OpCode.SHA3) {
-        callShakira(frame, 1, 0, this.sha3Sizes);
+        callShakira(frame, 0, 1, this.sha3Sizes);
       }
 
       // Capture contract deployment
       // TODO: compute the gas cost if we are under deployment.
       if (opCode == OpCode.RETURN && hub.currentFrame().underDeployment()) {
-        callShakira(frame, 1, 0, this.deployedCodeSizes);
+        callShakira(frame, 0, 1, this.deployedCodeSizes);
       }
 
       if (opCode == OpCode.CREATE2 && pch.aborts().none()) {
-        callShakira(frame, 2, 1, this.create2Sizes);
+        callShakira(frame, 1, 2, this.create2Sizes);
       }
     }
   }
 
   private void callShakira(
       final MessageFrame frame,
-      final int codeSizeStackItemOffset,
       final int codeOffsetStackItemOffset,
+      final int codeSizeStackItemOffset,
       final Deque<List<Long>> codeSizes) {
     final long codeSize = Words.clampedToLong(frame.getStackItem(codeSizeStackItemOffset));
     codeSizes.peek().add(codeSize);

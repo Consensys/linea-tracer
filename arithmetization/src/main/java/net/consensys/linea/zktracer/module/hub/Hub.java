@@ -61,7 +61,7 @@ import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingCallEffec
 import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingMillerLoop;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcRecoverEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.Rip160Blocks;
+import net.consensys.linea.zktracer.module.limits.precompiles.RipeMd160Blocks;
 import net.consensys.linea.zktracer.module.limits.precompiles.Sha256Blocks;
 import net.consensys.linea.zktracer.module.logdata.LogData;
 import net.consensys.linea.zktracer.module.loginfo.LogInfo;
@@ -76,6 +76,7 @@ import net.consensys.linea.zktracer.module.rlptxn.RlpTxn;
 import net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxrcpt;
 import net.consensys.linea.zktracer.module.rom.Rom;
 import net.consensys.linea.zktracer.module.romlex.RomLex;
+import net.consensys.linea.zktracer.module.shakiradata.ShakiraData;
 import net.consensys.linea.zktracer.module.shf.Shf;
 import net.consensys.linea.zktracer.module.stp.Stp;
 import net.consensys.linea.zktracer.module.tables.bin.BinRt;
@@ -224,7 +225,7 @@ public class Hub implements Module {
 
   @Getter private final RomLex romLex;
   private final TxnData txnData;
-
+  private final ShakiraData shakiraData = new ShakiraData(this.wcp);
   private final ModexpEffectiveCall modexpEffectiveCall;
   private final Stp stp = new Stp(this, wcp, mod);
   private final L2Block l2Block;
@@ -232,7 +233,10 @@ public class Hub implements Module {
   @Getter private final Oob oob;
 
   private final List<Module> modules;
-  /* Those modules are not traced, we just compute the number of calls to those precompile to meet the prover limits */
+  /*
+   * Those modules are not traced, we just compute the number of calls to those
+   * precompile to meet the prover limits
+   */
   private final List<Module> precompileLimitModules;
   private final List<Module> refTableModules;
 
@@ -274,9 +278,9 @@ public class Hub implements Module {
 
     this.precompileLimitModules =
         List.of(
-            new Sha256Blocks(this),
+            new Sha256Blocks(this, shakiraData),
             ecRec,
-            new Rip160Blocks(this),
+            new RipeMd160Blocks(this, shakiraData),
             this.modexpEffectiveCall,
             new EcAddEffectiveCall(this),
             new EcMulEffectiveCall(this),
@@ -285,7 +289,7 @@ public class Hub implements Module {
             new Blake2fRounds(this, this.blake2fModexpData),
             // Block level limits
             l2Block,
-            new Keccak(this, ecRec, l2Block),
+            new Keccak(this, ecRec, l2Block, shakiraData),
             new L2L1Logs(l2Block));
 
     this.refTableModules = List.of(new BinRt(), new InstructionDecoder(), new ShfRt());
@@ -314,6 +318,7 @@ public class Hub implements Module {
                     this.rlpTxn,
                     this.rom,
                     this.romLex,
+                    this.shakiraData,
                     this.shf,
                     this.stp,
                     this.trm,
@@ -338,7 +343,7 @@ public class Hub implements Module {
                 this.blake2fModexpData,
                 this.blockdata,
                 this.blockhash,
-                //        this.ecData, // TODO: not yet
+                // this.ecData, // TODO: not yet
                 this.ext,
                 this.euc,
                 this.exp,
@@ -355,6 +360,7 @@ public class Hub implements Module {
                 this.rlpTxrcpt,
                 this.rom,
                 this.romLex,
+                this.shakiraData,
                 this.shf,
                 this.stp,
                 this.trm,
@@ -867,7 +873,8 @@ public class Hub implements Module {
 
       final boolean shouldCopyTxCallData =
           !isDeployment && !frame.getInputData().isEmpty() && currentTx.requiresEvmExecution();
-      // TODO simplify this, the same bedRock context ( = root context ??)  seems to be generated in
+      // TODO simplify this, the same bedRock context ( = root context ??) seems to be
+      // generated in
       // both case
       if (shouldCopyTxCallData) {
         this.callStack.newMantleAndBedrock(
@@ -892,7 +899,7 @@ public class Hub implements Module {
       } else {
         this.callStack.newBedrock(
             this.state.stamps().hub(),
-            //            this.transients.tx().transaction().getSender(),
+            // this.transients.tx().transaction().getSender(),
             toAddress,
             CallFrameType.BEDROCK,
             new Bytecode(

@@ -52,6 +52,7 @@ import static net.consensys.linea.zktracer.types.Conversions.booleanToInt;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.container.ModuleOperation;
@@ -86,8 +87,10 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 
 @Getter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class OobOperation extends ModuleOperation {
-  private BigInteger oobInst;
+  @EqualsAndHashCode.Include private BigInteger oobInst;
+  @EqualsAndHashCode.Include private OobParameters oobParameters;
 
   private boolean isJump;
   private boolean isJumpi;
@@ -130,8 +133,6 @@ public class OobOperation extends ModuleOperation {
   private final BigInteger[] outgoingData4;
 
   private final BigInteger[] outgoingResLo;
-
-  private OobParameters oobParameters;
 
   private BigInteger wghtSum;
 

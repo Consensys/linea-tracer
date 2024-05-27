@@ -16,6 +16,9 @@
 package net.consensys.linea.zktracer.module.mxp;
 
 import static net.consensys.linea.zktracer.module.Util.max;
+import static net.consensys.linea.zktracer.module.mxp.Trace.CT_MAX_NON_TRIVIAL;
+import static net.consensys.linea.zktracer.module.mxp.Trace.CT_MAX_NON_TRIVIAL_BUT_MXPX;
+import static net.consensys.linea.zktracer.module.mxp.Trace.CT_MAX_TRIVIAL;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static org.hyperledger.besu.evm.internal.Words.clampedAdd;
 import static org.hyperledger.besu.evm.internal.Words.clampedMultiply;
@@ -46,8 +49,6 @@ import org.hyperledger.besu.evm.internal.Words;
 public class MxpData extends ModuleOperation {
   public static final BigInteger TWO_POW_128 = BigInteger.ONE.shiftLeft(128);
   public static final BigInteger TWO_POW_32 = BigInteger.ONE.shiftLeft(32);
-
-  // constants from protocol_params.go
 
   private final OpCodeData opCodeData;
   private final int contextNumber;
@@ -381,16 +382,16 @@ public class MxpData extends ModuleOperation {
     return mxpExecutionPath.NON_TRIVIAL;
   }
 
-  public int maxCt() {
+  public int ctMax() {
     return switch (this.getMxpExecutionPath()) {
-      case TRIVIAL -> 0;
-      case NON_TRIVIAL_BUT_MXPX -> 16;
-      case NON_TRIVIAL -> 3;
+      case TRIVIAL -> CT_MAX_TRIVIAL;
+      case NON_TRIVIAL_BUT_MXPX -> CT_MAX_NON_TRIVIAL_BUT_MXPX;
+      case NON_TRIVIAL -> CT_MAX_NON_TRIVIAL;
     };
   }
 
   public int nRows() {
-    return maxCt() + 1;
+    return ctMax() + 1;
   }
 
   protected void setAccQAndByteQQ() {

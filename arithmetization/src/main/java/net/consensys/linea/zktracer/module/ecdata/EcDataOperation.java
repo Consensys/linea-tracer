@@ -48,11 +48,8 @@ import static net.consensys.linea.zktracer.module.ecdata.Trace.TOTAL_SIZE_ECPAIR
 import static net.consensys.linea.zktracer.module.ecdata.Trace.TOTAL_SIZE_ECRECOVER_DATA;
 import static net.consensys.linea.zktracer.module.ecdata.Trace.TOTAL_SIZE_ECRECOVER_RESULT;
 import static net.consensys.linea.zktracer.types.Containers.repeat;
-import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
-import static net.consensys.linea.zktracer.types.Conversions.bytesToUnsignedBytes;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 
-import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -77,13 +74,12 @@ public class EcDataOperation extends ModuleOperation {
   private static final Set<Integer> EC_TYPES = Set.of(ECRECOVER, ECADD, ECMUL, ECPAIRING);
   private static final EWord P_BN = EWord.of(P_BN_HI, P_BN_LO);
   public static final EWord SECP256K1N = EWord.of(SECP256K1N_HI, SECP256K1N_LO);
+  public static final int nBYTES_OF_DELTA_BYTES = 4; // TODO: from Corset ?
 
   private final Wcp wcp;
   private final Ext ext;
 
-  @Getter private final int id;
-  @Getter private final int previousId;
-  @Getter private final UnsignedByte[] byteDelta;
+  @Getter private final long id;
   private final Bytes data;
 
   private final int ecType;
@@ -183,10 +179,10 @@ public class EcDataOperation extends ModuleOperation {
     }
   }
 
-  private EcDataOperation(Wcp wcp, Ext ext, int id, int previousId, int ecType, Bytes data) {
+  private EcDataOperation(Wcp wcp, Ext ext, int id, int ecType, Bytes data) {
     Preconditions.checkArgument(EC_TYPES.contains(ecType), "invalid EC type");
 
-    int minInputLength = ecType == ECMUL ? 96 : 128;
+    final int minInputLength = ecType == ECMUL ? 96 : 128;
     if (data.size() < minInputLength) {
       this.data = leftPadTo(data, minInputLength);
     } else {
@@ -204,11 +200,6 @@ public class EcDataOperation extends ModuleOperation {
     this.nRowsResult = getIndexMax(ecType, false) + 1;
     this.nRows = this.nRowsData + this.nRowsResult;
     this.id = id;
-    this.previousId = previousId;
-    this.byteDelta =
-        bytesToUnsignedBytes(
-            leftPadTo(bigIntegerToBytes(BigInteger.valueOf(this.id - this.previousId - 1)), 4)
-                .toArray());
 
     /*
     System.out.println(
@@ -264,10 +255,9 @@ public class EcDataOperation extends ModuleOperation {
     }
   }
 
-  public static EcDataOperation of(
-      Wcp wcp, Ext ext, int id, int previousId, final int ecType, Bytes data) {
+  public static EcDataOperation of(Wcp wcp, Ext ext, int id, final int ecType, Bytes data) {
 
-    EcDataOperation ecDataRes = new EcDataOperation(wcp, ext, id, previousId, ecType, data);
+    EcDataOperation ecDataRes = new EcDataOperation(wcp, ext, id, ecType, data);
     switch (ecType) {
       case ECRECOVER -> ecDataRes.handleRecover();
         // case ECADD -> ecDataRes.handleAdd();
@@ -484,7 +474,10 @@ public class EcDataOperation extends ModuleOperation {
   }
   */
 
-  void trace(Trace trace, int stamp) {
+  void trace(Trace trace, final int stamp, final long previousId) {
+    final Bytes deltaByte =
+        leftPadTo(Bytes.minimalBytes(id - previousId - 1), nBYTES_OF_DELTA_BYTES);
+
     for (int i = 0; i < this.nRows; i++) {
       boolean isData = i < this.nRowsData;
       trace
@@ -508,7 +501,8 @@ public class EcDataOperation extends ModuleOperation {
           .accPairings(ecType == ECPAIRING && isData ? Bytes.ofUnsignedLong(1 + i) : Bytes.of(0))
           .internalChecksPassed(internalChecksPassed)
           .hurdle(hurdle.get(i))
-          .byteDelta(i < 4 ? byteDelta[i] : UnsignedByte.of(0))
+          .byteDelta(
+              i < nBYTES_OF_DELTA_BYTES ? UnsignedByte.of(deltaByte.get(i)) : UnsignedByte.of(0))
           .circuitSelectorEcrecover(ecType == ECRECOVER && circuitSelectorEcrecover)
           .wcpFlag(wcpFlag.get(i))
           .wcpArg1Hi(wcpArg1Hi.get(i))

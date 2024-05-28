@@ -44,7 +44,6 @@ public class EcData implements Module {
   private final Hub hub;
   private final Wcp wcp;
   private final Ext ext;
-  private int previousId = 0;
 
   @Override
   public String moduleKey() {
@@ -76,9 +75,7 @@ public class EcData implements Module {
 
     final Bytes data = hub.transients().op().callData();
     this.operations.add(
-        EcDataOperation.of(
-            this.wcp, this.ext, 1 + this.hub.stamp(), previousId, target.get(19), data));
-    this.previousId = 1 + this.hub.stamp();
+        EcDataOperation.of(this.wcp, this.ext, 1 + this.hub.stamp(), target.get(19), data));
   }
 
   @Override
@@ -95,11 +92,10 @@ public class EcData implements Module {
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
     int stamp = 0;
+    long previousId = 0;
 
     List<EcDataOperation> sortedOperations =
-        this.operations.stream()
-            .sorted(Comparator.comparingInt(EcDataOperation::previousId))
-            .toList();
+        this.operations.stream().sorted(Comparator.comparingLong(EcDataOperation::id)).toList();
 
     for (EcDataOperation op : sortedOperations) {
       /*
@@ -114,7 +110,8 @@ public class EcData implements Module {
               + Integer.toHexString(op.id() - op.previousId() - 1));
        */
       stamp++;
-      op.trace(trace, stamp);
+      op.trace(trace, stamp, previousId);
+      previousId = op.id();
     }
   }
 }

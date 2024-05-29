@@ -201,7 +201,7 @@ public class Hub implements Module {
   @Getter private final Wcp wcp = new Wcp(this);
   private final Module add = new Add(this);
   private final Module bin = new Bin(this);
-  private final Blake2fModexpData blake2fModexpData = new Blake2fModexpData();
+  private final Blake2fModexpData blake2fModexpData = new Blake2fModexpData(this.wcp);
   @Getter private final EcData ecData;
   private final Blockdata blockdata;
   private final Blockhash blockhash = new Blockhash(wcp);

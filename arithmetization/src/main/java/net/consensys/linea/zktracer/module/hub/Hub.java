@@ -340,8 +340,7 @@ public class Hub implements Module {
                 this,
                 this.add,
                 this.bin,
-                // WARNING: Temporarily disabled.
-                //                this.blake2fModexpData,
+                this.blake2fModexpData,
                 this.ecData,
                 this.blockdata,
                 this.blockhash,
@@ -355,7 +354,7 @@ public class Hub implements Module {
                 this.mod,
                 this.mul,
                 this.mxp,
-                // WARNING: Temporarily disabled.
+                // TODO: Temporarily disabled.
                 //                this.oob,
                 this.rlpAddr,
                 this.rlpTxn,
@@ -396,7 +395,7 @@ public class Hub implements Module {
                 this.mod,
                 this.mul,
                 this.mxp,
-                // WARNING: Temporarily disabled.
+                // TODO: Temporarily disabled.
                 //                this.oob,
                 this.exp,
                 this.rlpAddr,

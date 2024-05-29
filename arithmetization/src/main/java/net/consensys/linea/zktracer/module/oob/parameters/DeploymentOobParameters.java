@@ -19,10 +19,15 @@ import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.math.BigInteger;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.oob.Trace;
 import net.consensys.linea.zktracer.types.EWord;
 
-public record DeploymentOobParameters(EWord size) implements OobParameters {
+@Getter
+@RequiredArgsConstructor
+public class DeploymentOobParameters implements OobParameters {
+  private final EWord size;
 
   public BigInteger sizeHi() {
     return size.hiBigInt();

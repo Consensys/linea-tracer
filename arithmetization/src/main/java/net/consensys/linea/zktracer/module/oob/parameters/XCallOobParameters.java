@@ -22,21 +22,33 @@ import java.math.BigInteger;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.oob.Trace;
+import net.consensys.linea.zktracer.types.EWord;
 
 @Getter
 @RequiredArgsConstructor
-public class SstoreOobParameters implements OobParameters {
-  private final BigInteger gas;
+public class XCallOobParameters implements OobParameters {
+  private final EWord val;
+  private final BigInteger bal;
+  private final boolean nonZeroValue;
+  private final BigInteger csd;
+
+  public BigInteger valHi() {
+    return val.hiBigInt();
+  }
+
+  public BigInteger valLo() {
+    return val.loBigInt();
+  }
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .data1(ZERO)
-        .data2(ZERO)
-        .data3(ZERO)
-        .data4(ZERO)
-        .data5(bigIntegerToBytes(gas))
-        .data6(ZERO)
+        .data1(bigIntegerToBytes(valHi()))
+        .data2(bigIntegerToBytes(valLo()))
+        .data3(bigIntegerToBytes(bal))
+        .data4(nonZeroValue ? ONE : ZERO)
+        .data5(ZERO)
+        .data6(bigIntegerToBytes(csd))
         .data7(ZERO) // TODO: temporary value; to fill when oob update is complete
         .data8(ZERO); // TODO: temporary value; to fill when oob update is complete
   }

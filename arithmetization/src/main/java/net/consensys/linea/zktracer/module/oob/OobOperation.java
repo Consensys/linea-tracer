@@ -76,6 +76,7 @@ import net.consensys.linea.zktracer.module.oob.parameters.OobParameters;
 import net.consensys.linea.zktracer.module.oob.parameters.PrecompileCommonOobParameters;
 import net.consensys.linea.zktracer.module.oob.parameters.ReturnDataCopyOobParameters;
 import net.consensys.linea.zktracer.module.oob.parameters.SstoreOobParameters;
+import net.consensys.linea.zktracer.module.oob.parameters.XCallOobParameters;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.EWord;
@@ -390,14 +391,14 @@ public class OobOperation extends ModuleOperation {
         setCdl(cdlOobParameters);
       } else if (isXCall) {
         // CallOobParameters is used since this is a subcase of CALL
-        CallOobParameters callOobParameters =
-            new CallOobParameters(
+        XCallOobParameters xCallOobParameters =
+            new XCallOobParameters(
                 EWord.of(frame.getStackItem(2)),
                 BigInteger.ZERO,
                 !frame.getStackItem(2).isZero(),
                 BigInteger.ZERO);
-        oobParameters = callOobParameters;
-        setXCall(callOobParameters);
+        oobParameters = xCallOobParameters;
+        setXCall(xCallOobParameters);
       } else if (isCall) {
         final Account callerAccount = frame.getWorldUpdater().get(frame.getRecipientAddress());
         // DELEGATECALL, STATICCALL cases
@@ -773,7 +774,7 @@ public class OobOperation extends ModuleOperation {
             jumpiOobParameters.pcNewHi(),
             jumpiOobParameters.pcNewLo(),
             BigInteger.ZERO,
-            jumpiOobParameters.codesize());
+            jumpiOobParameters.getCodeSize());
 
     // row i + 1
     final boolean attemptJump =
@@ -808,7 +809,7 @@ public class OobOperation extends ModuleOperation {
               EWord.of(sum).hiBigInt(),
               EWord.of(sum).loBigInt(),
               BigInteger.ZERO,
-              rdcOobParameters.rds());
+              rdcOobParameters.getRds());
     } else {
       noCall(2);
     }
@@ -822,12 +823,12 @@ public class OobOperation extends ModuleOperation {
             cdlOobParameters.offsetHi(),
             cdlOobParameters.offsetLo(),
             BigInteger.ZERO,
-            cdlOobParameters.cds());
+            cdlOobParameters.getCds());
   }
 
-  private void setXCall(CallOobParameters callOobParameters) {
+  private void setXCall(XCallOobParameters xCallOobParameters) {
     // row i
-    callToISZERO(0, callOobParameters.valHi(), callOobParameters.valLo());
+    callToISZERO(0, xCallOobParameters.valHi(), xCallOobParameters.valLo());
   }
 
   private void setCall(CallOobParameters callOobParameters) {
@@ -836,14 +837,18 @@ public class OobOperation extends ModuleOperation {
         callToLT(
             0,
             BigInteger.ZERO,
-            callOobParameters.bal(),
+            callOobParameters.getBal(),
             callOobParameters.valHi(),
             callOobParameters.valLo());
 
     // row i + 1
     final boolean callStackDepthAbort =
         !callToLT(
-            1, BigInteger.ZERO, callOobParameters.csd(), BigInteger.ZERO, BigInteger.valueOf(1024));
+            1,
+            BigInteger.ZERO,
+            callOobParameters.getCsd(),
+            BigInteger.ZERO,
+            BigInteger.valueOf(1024));
 
     // row i + 2
     callToISZERO(2, callOobParameters.valHi(), callOobParameters.valLo());
@@ -855,7 +860,7 @@ public class OobOperation extends ModuleOperation {
         callToLT(
             0,
             BigInteger.ZERO,
-            createOobParameters.bal(),
+            createOobParameters.getBal(),
             createOobParameters.valHi(),
             createOobParameters.valLo());
 
@@ -864,12 +869,12 @@ public class OobOperation extends ModuleOperation {
         !callToLT(
             1,
             BigInteger.ZERO,
-            createOobParameters.csd(),
+            createOobParameters.getCsd(),
             BigInteger.ZERO,
             BigInteger.valueOf(1024));
 
     // row i + 2
-    final boolean nonZeroNonce = !callToISZERO(2, BigInteger.ZERO, createOobParameters.nonce());
+    final boolean nonZeroNonce = !callToISZERO(2, BigInteger.ZERO, createOobParameters.getNonce());
   }
 
   private void setSstore(SstoreOobParameters sstoreOobParameters) {
@@ -880,7 +885,7 @@ public class OobOperation extends ModuleOperation {
             BigInteger.ZERO,
             BigInteger.valueOf(GAS_CONST_G_CALL_STIPEND),
             BigInteger.ZERO,
-            sstoreOobParameters.gas());
+            sstoreOobParameters.getGas());
   }
 
   private void setDeployment(DeploymentOobParameters deploymentOobParameters) {

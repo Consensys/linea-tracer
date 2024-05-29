@@ -19,10 +19,16 @@ import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.math.BigInteger;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.oob.Trace;
 import net.consensys.linea.zktracer.types.EWord;
 
-public record CallDataLoadOobParameters(EWord offset, BigInteger cds) implements OobParameters {
+@Getter
+@RequiredArgsConstructor
+public class CallDataLoadOobParameters implements OobParameters {
+  private final EWord offset;
+  private final BigInteger cds;
 
   public BigInteger offsetHi() {
     return offset.hiBigInt();

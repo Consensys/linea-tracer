@@ -931,7 +931,7 @@ public class OobOperation extends ModuleOperation {
     // Set failureCondition
     createOobParameters.setFailureCondition(
         !createOobParameters.isAbortingCondition()
-            && (!createOobParameters.isHasCode() || !nonzeroNonce));
+            && (createOobParameters.isHasCode() || nonzeroNonce));
   }
 
   private void setPrecompile(PrecompileCommonOobParameters prcOobParameters) {

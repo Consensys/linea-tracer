@@ -750,13 +750,19 @@ public class OobOperation extends ModuleOperation {
   // Methods to populate columns
   private void setJump(JumpOobParameters jumpOobParameters) {
     // row i
-    final boolean invalidPcNew =
-        !callToLT(
+    final boolean validPcNew =
+        callToLT(
             0,
             jumpOobParameters.pcNewHi(),
             jumpOobParameters.pcNewLo(),
             BigInteger.ZERO,
-            jumpOobParameters.codesize());
+            jumpOobParameters.getCodeSize());
+
+    // Set jumpGuaranteedException
+    jumpOobParameters.setJumpGuaranteedException(!validPcNew);
+
+    // Set jumpMustBeAttempted
+    jumpOobParameters.setJumpMustBeAttempted(validPcNew);
   }
 
   private void setJumpi(JumpiOobParameters jumpiOobParameters) {

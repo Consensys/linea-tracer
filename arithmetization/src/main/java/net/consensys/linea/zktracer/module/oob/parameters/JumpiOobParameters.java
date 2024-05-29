@@ -16,11 +16,13 @@
 package net.consensys.linea.zktracer.module.oob.parameters;
 
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
+import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
 import java.math.BigInteger;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import net.consensys.linea.zktracer.module.oob.Trace;
 import net.consensys.linea.zktracer.types.EWord;
 
@@ -30,6 +32,9 @@ public class JumpiOobParameters implements OobParameters {
   private final EWord pcNew;
   private final EWord jumpCondition;
   private final BigInteger codeSize;
+  @Setter boolean jumpNotAttempted;
+  @Setter boolean jumpGuanranteedException;
+  @Setter boolean jumpMustBeAttempted;
 
   public BigInteger pcNewHi() {
     return pcNew.hiBigInt();
@@ -55,8 +60,8 @@ public class JumpiOobParameters implements OobParameters {
         .data3(bigIntegerToBytes(jumpConditionHi()))
         .data4(bigIntegerToBytes(jumpConditionLo()))
         .data5(bigIntegerToBytes(codeSize))
-        .data6(ZERO)
-        .data7(ZERO) // TODO: temporary value; to fill when oob update is complete
-        .data8(ZERO); // TODO: temporary value; to fill when oob update is complete
+        .data6(booleanToBytes(jumpNotAttempted))
+        .data7(booleanToBytes(jumpGuanranteedException))
+        .data8(booleanToBytes(jumpMustBeAttempted));
   }
 }

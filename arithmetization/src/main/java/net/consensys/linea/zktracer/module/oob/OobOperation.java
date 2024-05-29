@@ -768,8 +768,8 @@ public class OobOperation extends ModuleOperation {
 
   private void setJumpi(JumpiOobParameters jumpiOobParameters) {
     // row i
-    final boolean invalidPcNew =
-        !callToLT(
+    final boolean validPcNew =
+        callToLT(
             0,
             jumpiOobParameters.pcNewHi(),
             jumpiOobParameters.pcNewLo(),
@@ -777,9 +777,17 @@ public class OobOperation extends ModuleOperation {
             jumpiOobParameters.getCodeSize());
 
     // row i + 1
-    final boolean attemptJump =
-        !callToISZERO(
-            1, jumpiOobParameters.jumpConditionHi(), jumpiOobParameters.jumpConditionLo());
+    final boolean jumpCondIsZero =
+        callToISZERO(1, jumpiOobParameters.jumpConditionHi(), jumpiOobParameters.jumpConditionLo());
+
+    // Set jumpNotAttempted
+    jumpiOobParameters.setJumpNotAttempted(jumpCondIsZero);
+
+    // Set jumpGuaranteedException
+    jumpiOobParameters.setJumpGuanranteedException(!jumpCondIsZero && !validPcNew);
+
+    // Set jumpMustBeAttempted
+    jumpiOobParameters.setJumpMustBeAttempted(!jumpCondIsZero && validPcNew);
   }
 
   private void setRdc(ReturnDataCopyOobParameters rdcOobParameters) {

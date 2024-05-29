@@ -16,11 +16,13 @@
 package net.consensys.linea.zktracer.module.oob.parameters;
 
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
+import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
 import java.math.BigInteger;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import net.consensys.linea.zktracer.module.oob.Trace;
 import net.consensys.linea.zktracer.types.EWord;
 
@@ -28,6 +30,7 @@ import net.consensys.linea.zktracer.types.EWord;
 @RequiredArgsConstructor
 public class DeploymentOobParameters implements OobParameters {
   private final EWord size;
+  @Setter boolean maxCodeSizeException;
 
   public BigInteger sizeHi() {
     return size.hiBigInt();
@@ -46,7 +49,7 @@ public class DeploymentOobParameters implements OobParameters {
         .data4(ZERO)
         .data5(ZERO)
         .data6(ZERO)
-        .data7(ZERO) // TODO: temporary value; to fill when oob update is complete
-        .data8(ZERO); // TODO: temporary value; to fill when oob update is complete
+        .data7(booleanToBytes(maxCodeSizeException))
+        .data8(ZERO);
   }
 }

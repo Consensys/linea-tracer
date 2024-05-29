@@ -389,6 +389,18 @@ public class OobOperation extends ModuleOperation {
                 EWord.of(frame.getStackItem(0)), BigInteger.valueOf(frame.getInputData().size()));
         oobParameters = cdlOobParameters;
         setCdl(cdlOobParameters);
+      } else if (isSstore) {
+        final SstoreOobParameters sstoreOobParameters =
+            new SstoreOobParameters(BigInteger.valueOf(frame.getRemainingGas()));
+
+        oobParameters = sstoreOobParameters;
+        setSstore(sstoreOobParameters);
+      } else if (isDeployment) {
+        final DeploymentOobParameters deploymentOobParameters =
+            new DeploymentOobParameters(EWord.of(frame.getStackItem(0)));
+
+        oobParameters = deploymentOobParameters;
+        setDeployment(deploymentOobParameters);
       } else if (isXCall) {
         // CallOobParameters is used since this is a subcase of CALL
         XCallOobParameters xCallOobParameters =
@@ -439,18 +451,6 @@ public class OobOperation extends ModuleOperation {
 
         oobParameters = createOobParameters;
         setCreate(createOobParameters);
-      } else if (isSstore) {
-        final SstoreOobParameters sstoreOobParameters =
-            new SstoreOobParameters(BigInteger.valueOf(frame.getRemainingGas()));
-
-        oobParameters = sstoreOobParameters;
-        setSstore(sstoreOobParameters);
-      } else if (isDeployment) {
-        final DeploymentOobParameters deploymentOobParameters =
-            new DeploymentOobParameters(EWord.of(frame.getStackItem(0)));
-
-        oobParameters = deploymentOobParameters;
-        setDeployment(deploymentOobParameters);
       }
     } else if (isPrecompile()) {
       // DELEGATECALL, STATICCALL cases
@@ -541,7 +541,6 @@ public class OobOperation extends ModuleOperation {
         } else {
           exponentLog = BigInteger.valueOf(8).multiply(ebs.subtract(BigInteger.valueOf(32)));
         }
-
         if (isModexpCds) {
           final ModexpCallDataSizeParameters prcModexpCdsParameters =
               new ModexpCallDataSizeParameters(cds);
@@ -810,8 +809,9 @@ public class OobOperation extends ModuleOperation {
         addFlag[1] ? rdcOobParameters.offsetLo().add(rdcOobParameters.sizeLo()) : BigInteger.ZERO;
 
     // row i + 2
+    boolean rdcSoob = false;
     if (!rdcRoob) {
-      final boolean rdcSoob =
+      rdcSoob =
           callToGT(
               2,
               EWord.of(sum).hiBigInt(),
@@ -821,6 +821,9 @@ public class OobOperation extends ModuleOperation {
     } else {
       noCall(2);
     }
+
+    // Set rdcx
+    rdcOobParameters.setRdcx(rdcRoob || rdcSoob);
   }
 
   private void setCdl(CallDataLoadOobParameters cdlOobParameters) {
@@ -832,6 +835,37 @@ public class OobOperation extends ModuleOperation {
             cdlOobParameters.offsetLo(),
             BigInteger.ZERO,
             cdlOobParameters.getCds());
+
+    // Set cdlOutOfBounds
+    cdlOobParameters.setCdlOutOfBounds(!touchesRam);
+  }
+
+  private void setSstore(SstoreOobParameters sstoreOobParameters) {
+    // row i
+    final boolean sufficientGas =
+        callToLT(
+            0,
+            BigInteger.ZERO,
+            BigInteger.valueOf(GAS_CONST_G_CALL_STIPEND),
+            BigInteger.ZERO,
+            sstoreOobParameters.getGas());
+
+    // Set sstorex
+    sstoreOobParameters.setSstorex(!sufficientGas);
+  }
+
+  private void setDeployment(DeploymentOobParameters deploymentOobParameters) {
+    // row i
+    final boolean exceedsMaxCodeSize =
+        callToLT(
+            0,
+            BigInteger.ZERO,
+            BigInteger.valueOf(24576),
+            deploymentOobParameters.sizeHi(),
+            deploymentOobParameters.sizeLo());
+
+    // Set maxCodeSizeException
+    deploymentOobParameters.setMaxCodeSizeException(exceedsMaxCodeSize);
   }
 
   private void setXCall(XCallOobParameters xCallOobParameters) {
@@ -883,28 +917,6 @@ public class OobOperation extends ModuleOperation {
 
     // row i + 2
     final boolean nonZeroNonce = !callToISZERO(2, BigInteger.ZERO, createOobParameters.getNonce());
-  }
-
-  private void setSstore(SstoreOobParameters sstoreOobParameters) {
-    // row i
-    final boolean sufficientGas =
-        callToLT(
-            0,
-            BigInteger.ZERO,
-            BigInteger.valueOf(GAS_CONST_G_CALL_STIPEND),
-            BigInteger.ZERO,
-            sstoreOobParameters.getGas());
-  }
-
-  private void setDeployment(DeploymentOobParameters deploymentOobParameters) {
-    // row i
-    final boolean exceedsMaxCodeSize =
-        callToLT(
-            0,
-            BigInteger.ZERO,
-            BigInteger.valueOf(24576),
-            deploymentOobParameters.sizeHi(),
-            deploymentOobParameters.sizeLo());
   }
 
   private void setPrecompile(PrecompileCommonOobParameters prcOobParameters) {

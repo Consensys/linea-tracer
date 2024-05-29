@@ -77,4 +77,9 @@ public class ReplayTests {
   void fatMxp() {
     replay("2492975-2492977.json.gz");
   }
+
+  @Test
+  void replayAfterArithmetizationSequencerSeparation() {
+    replay("2570864-2570864.json.gz");
+  }
 }

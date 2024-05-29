@@ -402,30 +402,24 @@ public class OobOperation extends ModuleOperation {
         oobParameters = deploymentOobParameters;
         setDeployment(deploymentOobParameters);
       } else if (isXCall) {
-        // CallOobParameters is used since this is a subcase of CALL
         XCallOobParameters xCallOobParameters =
-            new XCallOobParameters(
-                EWord.of(frame.getStackItem(2)),
-                BigInteger.ZERO,
-                !frame.getStackItem(2).isZero(),
-                BigInteger.ZERO);
+            new XCallOobParameters(EWord.of(frame.getStackItem(2)));
         oobParameters = xCallOobParameters;
         setXCall(xCallOobParameters);
       } else if (isCall) {
         final Account callerAccount = frame.getWorldUpdater().get(frame.getRecipientAddress());
         // DELEGATECALL, STATICCALL cases
-        EWord val = EWord.ZERO;
+        EWord value = EWord.ZERO;
         boolean nonZeroValue = false;
         // CALL, CALLCODE cases
         if (opCode == OpCode.CALL || opCode == OpCode.CALLCODE) {
-          val = EWord.of(frame.getStackItem(2));
+          value = EWord.of(frame.getStackItem(2));
           nonZeroValue = !frame.getStackItem(2).isZero();
         }
         CallOobParameters callOobParameters =
             new CallOobParameters(
-                val,
+                value,
                 callerAccount.getBalance().toUnsignedBigInteger(), // balance (caller address)
-                nonZeroValue,
                 BigInteger.valueOf(frame.getDepth()));
         oobParameters = callOobParameters;
         setCall(callOobParameters);
@@ -870,7 +864,14 @@ public class OobOperation extends ModuleOperation {
 
   private void setXCall(XCallOobParameters xCallOobParameters) {
     // row i
-    callToISZERO(0, xCallOobParameters.valHi(), xCallOobParameters.valLo());
+    boolean valueIsZero =
+        callToISZERO(0, xCallOobParameters.valueHi(), xCallOobParameters.valueLo());
+
+    // Set valueIsNonzero
+    xCallOobParameters.setValueIsNonzero(!valueIsZero);
+
+    // Set valueIsZero
+    xCallOobParameters.setValueIsZero(valueIsZero);
   }
 
   private void setCall(CallOobParameters callOobParameters) {
@@ -879,21 +880,27 @@ public class OobOperation extends ModuleOperation {
         callToLT(
             0,
             BigInteger.ZERO,
-            callOobParameters.getBal(),
-            callOobParameters.valHi(),
-            callOobParameters.valLo());
+            callOobParameters.getBalance(),
+            callOobParameters.valueHi(),
+            callOobParameters.valueLo());
 
     // row i + 1
     final boolean callStackDepthAbort =
         !callToLT(
             1,
             BigInteger.ZERO,
-            callOobParameters.getCsd(),
+            callOobParameters.getCallStackDepth(),
             BigInteger.ZERO,
             BigInteger.valueOf(1024));
 
     // row i + 2
-    callToISZERO(2, callOobParameters.valHi(), callOobParameters.valLo());
+    boolean valueIsZero = callToISZERO(2, callOobParameters.valueHi(), callOobParameters.valueLo());
+
+    // Set valueIsNonzero
+    callOobParameters.setValueIsNonzero(!valueIsZero);
+
+    // Set abortingCondition
+    callOobParameters.setAbortingCondition(insufficientBalanceAbort || callStackDepthAbort);
   }
 
   private void setCreate(CreateOobParameters createOobParameters) {
@@ -902,21 +909,29 @@ public class OobOperation extends ModuleOperation {
         callToLT(
             0,
             BigInteger.ZERO,
-            createOobParameters.getBal(),
-            createOobParameters.valHi(),
-            createOobParameters.valLo());
+            createOobParameters.getBalance(),
+            createOobParameters.valueHi(),
+            createOobParameters.valueLo());
 
     // row i + 1
     final boolean callStackDepthAbort =
         !callToLT(
             1,
             BigInteger.ZERO,
-            createOobParameters.getCsd(),
+            createOobParameters.getCallStackDepth(),
             BigInteger.ZERO,
             BigInteger.valueOf(1024));
 
     // row i + 2
-    final boolean nonZeroNonce = !callToISZERO(2, BigInteger.ZERO, createOobParameters.getNonce());
+    final boolean nonzeroNonce = !callToISZERO(2, BigInteger.ZERO, createOobParameters.getNonce());
+
+    // Set aborting condition
+    createOobParameters.setAbortingCondition(insufficientBalanceAbort || callStackDepthAbort);
+
+    // Set failureCondition
+    createOobParameters.setFailureCondition(
+        !createOobParameters.isAbortingCondition()
+            && (!createOobParameters.isHasCode() || !nonzeroNonce));
   }
 
   private void setPrecompile(PrecompileCommonOobParameters prcOobParameters) {

@@ -39,15 +39,21 @@ import org.jetbrains.annotations.NotNull;
 public class StackedSet<E extends ModuleOperation> implements StackedContainer, java.util.Set<E> {
   public final Deque<Set<E>> sets = new ArrayDeque<>();
   private final Map<E, Integer> occurrences = new HashMap<>();
+  private final Deque<Integer> cumulativeLineCount = new ArrayDeque<>() {{add(0);}};
+  private final Deque<Integer> size = new ArrayDeque<>() {{add(0);}};
 
   @Override
   public void enter() {
     this.sets.addLast(new HashSet<>());
+    this.cumulativeLineCount.addLast(this.cumulativeLineCount.getLast());
+    this.size.addLast(this.size.getLast());
   }
 
   @Override
   public void pop() {
-    Set<E> lastSet = this.sets.removeLast();
+    final Set<E> lastSet = this.sets.removeLast();
+    cumulativeLineCount.removeLast();
+    size.removeLast();
     for (E e : lastSet) {
       occurrences.computeIfPresent(
           e,
@@ -63,23 +69,11 @@ public class StackedSet<E extends ModuleOperation> implements StackedContainer, 
 
   @Override
   public int size() {
-    int size = 0;
-    for (Integer count : occurrences.values()) {
-      if (count != 0) {
-        size++;
-      }
-    }
-    return size;
+    return size.getLast();
   }
 
   public int lineCount() {
-    int sum = 0;
-    for (Map.Entry<E, Integer> entry : occurrences.entrySet()) {
-      if (entry.getValue() > 0) {
-        sum += entry.getKey().lineCount();
-      }
-    }
-    return sum;
+    return cumulativeLineCount.getLast();
   }
 
   @Override
@@ -125,6 +119,8 @@ public class StackedSet<E extends ModuleOperation> implements StackedContainer, 
 
     if (isNew) {
       occurrences.put(e, occurrences.getOrDefault(e, 0) + 1);
+      size.addLast(size.removeLast()+1);
+      cumulativeLineCount.addLast(cumulativeLineCount.removeLast() + e.lineCount());
     }
     return isNew;
   }
@@ -167,5 +163,7 @@ public class StackedSet<E extends ModuleOperation> implements StackedContainer, 
   public void clear() {
     this.sets.clear();
     this.occurrences.clear();
+    this.size.clear();
+    this.cumulativeLineCount.clear();
   }
 }

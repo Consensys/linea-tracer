@@ -173,7 +173,9 @@ public class Blake2fModexpDataOperation extends ModuleOperation {
     final BigInteger expBigInt = modexpComponents.get().exp().toUnsignedBigInteger();
     final BigInteger modBigInt = modexpComponents.get().mod().toUnsignedBigInteger();
 
-    return bigIntegerToBytes(baseBigInt.modPow(expBigInt, modBigInt));
+    return modBigInt.equals(BigInteger.ZERO)
+        ? Bytes.of(0)
+        : bigIntegerToBytes(baseBigInt.modPow(expBigInt, modBigInt));
   }
 
   private Bytes computeBlake2fResult() {

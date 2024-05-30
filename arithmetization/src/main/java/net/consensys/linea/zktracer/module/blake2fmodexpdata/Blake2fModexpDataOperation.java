@@ -51,7 +51,7 @@ public class Blake2fModexpDataOperation extends ModuleOperation {
       (INDEX_MAX_MODEXP_BASE + 1)
           + (INDEX_MAX_MODEXP_EXPONENT + 1)
           + (INDEX_MAX_MODEXP_MODULUS + 1)
-          + (INDEX_MAX_BLAKE_RESULT + 1);
+          + (INDEX_MAX_MODEXP_RESULT + 1);
   private static final int BLAKE2f_COMPONENTS_LINE_COUNT =
       (INDEX_MAX_BLAKE_DATA + 1) + (INDEX_MAX_BLAKE_PARAMS + 1) + (INDEX_MAX_BLAKE_RESULT + 1);
 

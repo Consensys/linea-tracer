@@ -660,8 +660,6 @@ public class Hub implements Module {
     }
     if (this.pch.signals().exp()) {
       this.exp.tracePreOpcode(frame);
-      this.modexpEffectiveCall.tracePreOpcode(frame);
-      // if (this.pch.exceptions().none() && this.pch.aborts().none())
     }
     if (this.pch.signals().trm()) {
       this.trm.tracePreOpcode(frame);

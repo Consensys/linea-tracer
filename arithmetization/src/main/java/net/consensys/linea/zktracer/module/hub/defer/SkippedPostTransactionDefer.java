@@ -50,21 +50,21 @@ public record SkippedPostTransactionDefer(
     AccountSnapshot newFromAccount =
         AccountSnapshot.fromAccount(
             state.get(fromAddress),
-            true,
+            this.oldFromAccount.isWarm(),
             hub.transients().conflation().deploymentInfo().number(fromAddress),
             false);
 
     AccountSnapshot newToAccount =
         AccountSnapshot.fromAccount(
             state.get(toAddress),
-            true,
+            this.oldToAccount.isWarm(),
             hub.transients().conflation().deploymentInfo().number(toAddress),
             false);
 
     AccountSnapshot newMinerAccount =
         AccountSnapshot.fromAccount(
             state.get(minerAddress),
-            true,
+            this.oldMinerAccount.isWarm(),
             hub.transients().conflation().deploymentInfo().number(minerAddress),
             false);
 

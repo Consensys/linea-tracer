@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.module.hub;
 
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
+import static net.consensys.linea.zktracer.types.AddressUtils.precompileAddress;
 
 import java.nio.MappedByteBuffer;
 import java.util.ArrayList;
@@ -95,6 +96,7 @@ import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.runtime.stack.StackContext;
 import net.consensys.linea.zktracer.runtime.stack.StackLine;
+import net.consensys.linea.zktracer.types.AddressUtils;
 import net.consensys.linea.zktracer.types.Bytecode;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.Precompile;
@@ -121,17 +123,7 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 @Slf4j
 @Accessors(fluent = true)
 public class Hub implements Module {
-  private static final Set<Address> PRECOMPILE_ADDRESSES =
-      Set.of(
-          Address.ECREC,
-          Address.SHA256,
-          Address.RIPEMD160,
-          Address.ID,
-          Address.MODEXP,
-          Address.ALTBN128_ADD,
-          Address.ALTBN128_MUL,
-          Address.ALTBN128_PAIRING,
-          Address.BLAKE2B_F_COMPRESSION);
+
   private static final int TAU = 8;
 
   public static final GasProjector GAS_PROJECTOR = new GasProjector();
@@ -432,44 +424,39 @@ public class Hub implements Module {
    */
   void processStateSkip(WorldView world) {
     this.state.stamps().incrementHubStamp();
-    boolean isDeployment = this.transients.tx().besuTx().getTo().isEmpty();
+    final boolean isDeployment = this.transients.tx().besuTx().getTo().isEmpty();
 
     //
     // 3 sections -- account changes
     //
     // From account information
-    Address fromAddress = this.transients.tx().besuTx().getSender();
-    AccountSnapshot oldFromAccount =
+    final Address fromAddress = this.transients.tx().besuTx().getSender();
+    final AccountSnapshot oldFromAccount =
         AccountSnapshot.fromAccount(
             world.get(fromAddress),
-            false,
+            isPrecompile(fromAddress),
             this.transients.conflation().deploymentInfo().number(fromAddress),
             false);
 
     // To account information
-    Address toAddress = effectiveToAddress(this.transients.tx().besuTx());
+    final Address toAddress = effectiveToAddress(this.transients.tx().besuTx());
     if (isDeployment) {
       this.transients.conflation().deploymentInfo().deploy(toAddress);
     }
-    boolean toIsWarm =
-        (fromAddress == toAddress)
-            || isPrecompile(toAddress); // should never happen – no TX to PC allowed
-    AccountSnapshot oldToAccount =
+    final AccountSnapshot oldToAccount =
         AccountSnapshot.fromAccount(
             world.get(toAddress),
-            toIsWarm,
+            isPrecompile(toAddress),
             this.transients.conflation().deploymentInfo().number(toAddress),
             false);
 
     // Miner account information
-    boolean minerIsWarm =
-        (this.transients.block().minerAddress() == fromAddress)
-            || (this.transients.block().minerAddress() == toAddress)
-            || isPrecompile(this.transients.block().minerAddress());
-    AccountSnapshot oldMinerAccount =
+    final Address minerAddress = this.transients.block().minerAddress();
+
+    final AccountSnapshot oldMinerAccount =
         AccountSnapshot.fromAccount(
-            world.get(this.transients.block().minerAddress()),
-            minerIsWarm,
+            world.get(minerAddress),
+            isPrecompile(minerAddress),
             this.transients
                 .conflation()
                 .deploymentInfo()
@@ -499,7 +486,7 @@ public class Hub implements Module {
         .ifPresent(
             preWarmed -> {
               if (!preWarmed.isEmpty()) {
-                Set<Address> seenAddresses = new HashSet<>(PRECOMPILE_ADDRESSES);
+                Set<Address> seenAddresses = new HashSet<>(precompileAddress);
                 this.state.stamps().incrementHubStamp();
 
                 Map<Address, Set<Bytes32>> seenKeys = new HashMap<>();
@@ -868,7 +855,7 @@ public class Hub implements Module {
 
     this.enterTransaction();
 
-    if (this.transients.tx().shouldSkip(world)) {
+    if (this.transients.tx().shouldSkip(world)) /* TODO: should use requiresEvmExecution instead of recomputing it */ {
       this.transients.tx().state(TxState.TX_SKIP);
       this.processStateSkip(world);
     } else {

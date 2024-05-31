@@ -57,7 +57,7 @@ public final class BytecodeRunner {
   @Setter private Consumer<ZkTracer> zkTracerValidator = zkTracer -> {};
 
   public void run() {
-    this.run(Wei.fromEth(1), (long) GlobalConstants.LINEA_BLOCK_GAS_LIMIT);
+    this.run(Wei.fromEth(999999999), (long) GlobalConstants.LINEA_BLOCK_GAS_LIMIT);
   }
 
   public void run(Wei senderBalance, Long gasLimit) {

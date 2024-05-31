@@ -125,7 +125,7 @@ public class Hub implements Module {
   public static final GasProjector GAS_PROJECTOR = new GasProjector();
 
   /** accumulate the trace information for the Hub */
-  @Getter private final State state = new State();
+  @Getter public final State state = new State();
   /** contain the factories for trace segments that need complex initialization */
   @Getter private final Factories factories;
 
@@ -879,6 +879,8 @@ public class Hub implements Module {
       Bytes output,
       List<Log> logs,
       long gasUsed) {
+    final long leftoverGas = currentTransaction.besuTransaction().getGasLimit() - gasUsed;
+    this.currentTransaction.completeLineaTransaction(isSuccessful, leftoverGas, this.refundedGas());
     this.txStack.exitTransaction(this, isSuccessful);
     if (this.transients.tx().state() != TxState.TX_SKIP) {
       this.processStateFinal(world, tx, isSuccessful);
@@ -1203,7 +1205,7 @@ public class Hub implements Module {
   }
 
   public long refundedGas() {
-    return this.state.currentTxTrace().refundedGas();
+    return this.state.currentTxTrace().refundCounter();
   }
 
   public long remainingGas() {

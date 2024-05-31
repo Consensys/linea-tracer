@@ -36,7 +36,7 @@ public class TxTrace implements PostTransactionDefer {
   /** A cache for the line count of this transaction */
   private int cachedLineCount = 0;
 
-  private long refundedGas = -1;
+  private long refundCounter = -1;
   @Getter private long leftoverGas = -1;
   @Getter private long gasRefundFinalCounter = 0; // TODO:
 
@@ -70,17 +70,17 @@ public class TxTrace implements PostTransactionDefer {
     this.trace.add(section);
   }
 
-  public long refundedGas() {
-    if (this.refundedGas == -1) {
-      this.refundedGas = 0;
+  public long refundCounter() {
+    if (this.refundCounter == -1) {
+      this.refundCounter = 0;
       for (TraceSection section : this.trace) {
         if (!section.hasReverted()) {
-          this.refundedGas += section.refundDelta();
+          this.refundCounter += section.refundDelta();
         }
       }
     }
 
-    return this.refundedGas;
+    return this.refundCounter;
   }
 
   @Override

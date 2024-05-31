@@ -91,7 +91,7 @@ public class State implements StackedContainer {
   /** Describes the Hub state during a given transaction. */
   @Accessors(fluent = true)
   @Getter
-  static class TxState {
+  public static class TxState {
     Stamps stamps;
     TxTrace txTrace;
 
@@ -116,7 +116,8 @@ public class State implements StackedContainer {
       private int hub = 0;
       private int mmu = 0;
       private int mxp = 0;
-      private int hashInfo = 0;
+      private int hashInfo = 0; // TODO: doesn't exist anymore
+      private int log = 0; // TODO: implement this
 
       public Stamps() {}
 

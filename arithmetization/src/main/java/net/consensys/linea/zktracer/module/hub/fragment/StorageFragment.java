@@ -17,7 +17,6 @@ package net.consensys.linea.zktracer.module.hub.fragment;
 
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.types.EWord;
-import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 
 /**
@@ -40,12 +39,11 @@ public record StorageFragment(
   @Override
   public Trace trace(Trace trace) {
     final EWord eAddress = EWord.of(address);
-
     return trace
         .peekAtStorage(true)
-        .pStorageAddressHi(eAddress.hi())
+        .pStorageAddressHi(eAddress.hi().toLong())
         .pStorageAddressLo(eAddress.lo())
-        .pStorageDeploymentNumber(Bytes.ofUnsignedInt(deploymentNumber))
+        .pStorageDeploymentNumber(deploymentNumber)
         .pStorageStorageKeyHi(key.hi())
         .pStorageStorageKeyLo(key.lo())
         .pStorageValueOrigHi(valOrig.hi())
@@ -57,9 +55,10 @@ public record StorageFragment(
         .pStorageWarmth(oldWarmth)
         .pStorageWarmthNew(newWarmth)
         .pStorageValueOrigIsZero(valOrig.isZero())
+        .pStorageValueCurrIsOrig(valCurr.equals(valOrig))
         .pStorageValueCurrIsZero(valCurr.isZero())
+        .pStorageValueNextIsCurr(valNext == valOrig)
         .pStorageValueNextIsZero(valNext.isZero())
-        .pStorageValueNextIsOrig(valNext == valOrig)
-        .pStorageValueNextIsCurr(valNext == valOrig);
+        .pStorageValueNextIsOrig(valNext == valOrig);
   }
 }

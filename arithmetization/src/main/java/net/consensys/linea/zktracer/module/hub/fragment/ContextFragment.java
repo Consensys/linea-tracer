@@ -91,35 +91,32 @@ public record ContextFragment(
     final EWord eAddress = callFrame.addressAsEWord();
     final EWord eCodeAddress = callFrame.codeAddressAsEWord();
     final EWord parentAddress = parent.addressAsEWord();
-
     return trace
         .peekAtContext(true)
-        .pContextContextNumber(Bytes.ofUnsignedInt(callFrame.contextNumber()))
-        .pContextCallStackDepth(Bytes.ofUnsignedInt(callFrame.depth()))
+        .pContextContextNumber(callFrame.contextNumber())
+        .pContextCallStackDepth((short) callFrame.depth())
+        .pContextIsRoot(callFrame.isRoot())
         .pContextIsStatic(callFrame.type().isStatic())
-        .pContextAccountAddressHi(eAddress.hi())
+        .pContextAccountAddressHi(eAddress.hi().toLong())
         .pContextAccountAddressLo(eAddress.lo())
-        .pContextByteCodeAddressHi(eCodeAddress.hi())
+        .pContextAccountDeploymentNumber(callFrame.accountDeploymentNumber())
+        .pContextByteCodeAddressHi(eCodeAddress.hi().toLong())
         .pContextByteCodeAddressLo(eCodeAddress.lo())
-        .pContextAccountDeploymentNumber(Bytes.ofUnsignedInt(callFrame.accountDeploymentNumber()))
-        .pContextByteCodeDeploymentNumber(Bytes.ofUnsignedInt(callFrame.codeDeploymentNumber()))
-        .pContextByteCodeDeploymentStatus(callFrame.underDeployment() ? Bytes.of(1) : Bytes.EMPTY)
-        .pContextCallDataContextNumber(Bytes.ofUnsignedInt(parent.contextNumber()))
-        .pContextCallerAddressHi(parentAddress.hi())
+        .pContextByteCodeDeploymentNumber(callFrame.codeDeploymentNumber())
+        .pContextByteCodeDeploymentStatus(callFrame.underDeployment() ? 1 : 0)
+        .pContextByteCodeCodeFragmentIndex(0) // TODO
+        .pContextCallerAddressHi(parentAddress.hi().toLong())
         .pContextCallerAddressLo(parentAddress.lo())
         .pContextCallValue(callFrame.value())
-        .pContextCallDataOffset(
-            Bytes.ofUnsignedLong(callFrame.callDataInfo().memorySpan().offset()))
-        .pContextCallDataSize(Bytes.ofUnsignedLong(callFrame.callDataInfo().memorySpan().length()))
-        .pContextReturnAtOffset(
-            Bytes.ofUnsignedLong(callFrame.requestedReturnDataTarget().offset()))
-        .pContextReturnAtCapacity(
-            Bytes.ofUnsignedLong(callFrame.requestedReturnDataTarget().length()))
+        .pContextCallDataContextNumber(parent.contextNumber())
+        .pContextCallDataOffset(callFrame.callDataInfo().memorySpan().offset())
+        .pContextCallDataSize(callFrame.callDataInfo().memorySpan().length())
+        .pContextReturnAtOffset(callFrame.requestedReturnDataTarget().offset())
+        .pContextReturnAtCapacity(callFrame.requestedReturnDataTarget().length())
         .pContextUpdate(updateCallerReturndata)
         .pContextReturnDataContextNumber(
-            Bytes.ofUnsignedInt(
-                callFrame.lastCallee().map(c -> callStack.getById(c).contextNumber()).orElse(0)))
-        .pContextReturnDataOffset(Bytes.ofUnsignedLong(returnDataSegment.offset()))
-        .pContextReturnDataSize(Bytes.ofUnsignedLong(returnDataSegment.length()));
+            callFrame.lastCallee().map(c -> callStack.getById(c).contextNumber()).orElse(0))
+        .pContextReturnDataOffset(returnDataSegment.offset())
+        .pContextReturnDataSize(returnDataSegment.length());
   }
 }

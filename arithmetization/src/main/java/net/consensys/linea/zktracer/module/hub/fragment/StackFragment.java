@@ -35,6 +35,7 @@ import net.consensys.linea.zktracer.runtime.stack.Action;
 import net.consensys.linea.zktracer.runtime.stack.Stack;
 import net.consensys.linea.zktracer.runtime.stack.StackOperation;
 import net.consensys.linea.zktracer.types.EWord;
+import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
@@ -181,93 +182,74 @@ public final class StackFragment implements TraceFragment {
       stampTracers.get(i).apply(Bytes.ofUnsignedLong(op.stackStamp()));
     }
 
+    final InstructionFamily currentInstFamily =
+        this.stack.getCurrentOpcodeData().instructionFamily();
+
     return trace
         .peekAtStack(true)
         // Instruction details
-        .pStackAlpha(Bytes.ofUnsignedInt(this.stack.getCurrentOpcodeData().stackSettings().alpha()))
-        .pStackDelta(Bytes.ofUnsignedInt(this.stack.getCurrentOpcodeData().stackSettings().delta()))
-        .pStackNbAdded(
-            Bytes.ofUnsignedInt(this.stack.getCurrentOpcodeData().stackSettings().nbAdded()))
+        .pStackAlpha(UnsignedByte.of(this.stack.getCurrentOpcodeData().stackSettings().alpha()))
+        .pStackDelta(UnsignedByte.of(this.stack.getCurrentOpcodeData().stackSettings().delta()))
+        .pStackNbAdded(UnsignedByte.of(this.stack.getCurrentOpcodeData().stackSettings().nbAdded()))
         .pStackNbRemoved(
-            Bytes.ofUnsignedInt(this.stack.getCurrentOpcodeData().stackSettings().nbRemoved()))
+            UnsignedByte.of(this.stack.getCurrentOpcodeData().stackSettings().nbRemoved()))
         .pStackInstruction(Bytes.of(this.stack.getCurrentOpcodeData().value()))
-        .pStackStaticGas(Bytes.ofUnsignedInt(staticGas))
-        .pStackPushValueHi(pushValue.hi())
-        .pStackPushValueLo(pushValue.lo())
+        .pStackStaticGas(staticGas)
+        // Opcode families
+        .pStackAccFlag(currentInstFamily == InstructionFamily.ACCOUNT)
+        .pStackAddFlag(currentInstFamily == InstructionFamily.ADD)
+        .pStackBinFlag(currentInstFamily == InstructionFamily.BIN)
+        .pStackBtcFlag(currentInstFamily == InstructionFamily.BATCH)
+        .pStackCallFlag(currentInstFamily == InstructionFamily.CALL)
+        .pStackConFlag(currentInstFamily == InstructionFamily.CONTEXT)
+        .pStackCopyFlag(currentInstFamily == InstructionFamily.COPY)
+        .pStackCreateFlag(currentInstFamily == InstructionFamily.CREATE)
+        .pStackDupFlag(currentInstFamily == InstructionFamily.DUP)
+        .pStackExtFlag(currentInstFamily == InstructionFamily.EXT)
+        .pStackHaltFlag(currentInstFamily == InstructionFamily.HALT)
+        .pStackInvalidFlag(currentInstFamily == InstructionFamily.INVALID)
+        .pStackJumpFlag(currentInstFamily == InstructionFamily.JUMP)
+        .pStackKecFlag(currentInstFamily == InstructionFamily.KEC)
+        .pStackLogFlag(currentInstFamily == InstructionFamily.LOG)
+        .pStackMachineStateFlag(currentInstFamily == InstructionFamily.MACHINE_STATE)
+        .pStackModFlag(currentInstFamily == InstructionFamily.MOD)
+        .pStackMulFlag(currentInstFamily == InstructionFamily.MUL)
+        .pStackPushpopFlag(currentInstFamily == InstructionFamily.PUSH_POP)
+        .pStackShfFlag(currentInstFamily == InstructionFamily.SHF)
+        .pStackStackramFlag(currentInstFamily == InstructionFamily.STACK_RAM)
+        .pStackStoFlag(currentInstFamily == InstructionFamily.STORAGE)
+        .pStackSwapFlag(currentInstFamily == InstructionFamily.SWAP)
+        .pStackTxnFlag(currentInstFamily == InstructionFamily.TRANSACTION)
+        .pStackWcpFlag(currentInstFamily == InstructionFamily.WCP)
         .pStackDecFlag1(this.stack.getCurrentOpcodeData().stackSettings().flag1())
         .pStackDecFlag2(this.stack.getCurrentOpcodeData().stackSettings().flag2())
         .pStackDecFlag3(this.stack.getCurrentOpcodeData().stackSettings().flag3())
         .pStackDecFlag4(this.stack.getCurrentOpcodeData().stackSettings().flag4())
+        .pStackMxpFlag(
+            Optional.ofNullable(this.stack.getCurrentOpcodeData().billing())
+                .map(b -> b.type() != MxpType.NONE)
+                .orElse(false))
+        .pStackStaticFlag(this.stack.getCurrentOpcodeData().stackSettings().forbiddenInStatic())
+        .pStackPushValueHi(pushValue.hi())
+        .pStackPushValueLo(pushValue.lo())
+        .pStackJumpDestinationVettingRequired(false) // TODO
         // Exception flag
         .pStackOpcx(exceptions.invalidOpcode())
         .pStackSux(exceptions.stackUnderflow())
         .pStackSox(exceptions.stackOverflow())
-        .pStackOogx(exceptions.outOfGas())
         .pStackMxpx(exceptions.outOfMemoryExpansion())
+        .pStackOogx(exceptions.outOfGas())
         .pStackRdcx(exceptions.returnDataCopyFault())
         .pStackJumpx(exceptions.jumpFault())
         .pStackStaticx(exceptions.staticFault())
         .pStackSstorex(exceptions.outOfSStore())
         .pStackIcpx(contextExceptions.invalidCodePrefix())
         .pStackMaxcsx(contextExceptions.codeSizeOverflow())
-        // Opcode families
-        .pStackAddFlag(
-            this.stack.getCurrentOpcodeData().instructionFamily() == InstructionFamily.ADD)
-        .pStackModFlag(
-            this.stack.getCurrentOpcodeData().instructionFamily() == InstructionFamily.MOD)
-        .pStackMulFlag(
-            this.stack.getCurrentOpcodeData().instructionFamily() == InstructionFamily.MUL)
-        .pStackExtFlag(
-            this.stack.getCurrentOpcodeData().instructionFamily() == InstructionFamily.EXT)
-        .pStackWcpFlag(
-            this.stack.getCurrentOpcodeData().instructionFamily() == InstructionFamily.WCP)
-        .pStackBinFlag(
-            this.stack.getCurrentOpcodeData().instructionFamily() == InstructionFamily.BIN)
-        .pStackShfFlag(
-            this.stack.getCurrentOpcodeData().instructionFamily() == InstructionFamily.SHF)
-        .pStackKecFlag(
-            this.stack.getCurrentOpcodeData().instructionFamily() == InstructionFamily.KEC)
-        .pStackConFlag(
-            this.stack.getCurrentOpcodeData().instructionFamily() == InstructionFamily.CONTEXT)
-        .pStackAccFlag(
-            this.stack.getCurrentOpcodeData().instructionFamily() == InstructionFamily.ACCOUNT)
-        .pStackCopyFlag(
-            this.stack.getCurrentOpcodeData().instructionFamily() == InstructionFamily.COPY)
-        .pStackTxnFlag(
-            this.stack.getCurrentOpcodeData().instructionFamily() == InstructionFamily.TRANSACTION)
-        .pStackBtcFlag(
-            this.stack.getCurrentOpcodeData().instructionFamily() == InstructionFamily.BATCH)
-        .pStackStackramFlag(
-            this.stack.getCurrentOpcodeData().instructionFamily() == InstructionFamily.STACK_RAM)
-        .pStackStoFlag(
-            this.stack.getCurrentOpcodeData().instructionFamily() == InstructionFamily.STORAGE)
-        .pStackJumpFlag(
-            this.stack.getCurrentOpcodeData().instructionFamily() == InstructionFamily.JUMP)
-        .pStackPushpopFlag(
-            this.stack.getCurrentOpcodeData().instructionFamily() == InstructionFamily.PUSH_POP)
-        .pStackDupFlag(
-            this.stack.getCurrentOpcodeData().instructionFamily() == InstructionFamily.DUP)
-        .pStackSwapFlag(
-            this.stack.getCurrentOpcodeData().instructionFamily() == InstructionFamily.SWAP)
-        .pStackLogFlag(
-            this.stack.getCurrentOpcodeData().instructionFamily() == InstructionFamily.LOG)
-        .pStackCreateFlag(
-            this.stack.getCurrentOpcodeData().instructionFamily() == InstructionFamily.CREATE)
-        .pStackCallFlag(
-            this.stack.getCurrentOpcodeData().instructionFamily() == InstructionFamily.CALL)
-        .pStackHaltFlag(
-            this.stack.getCurrentOpcodeData().instructionFamily() == InstructionFamily.HALT)
-        .pStackInvalidFlag(
-            this.stack.getCurrentOpcodeData().instructionFamily() == InstructionFamily.INVALID)
-        .pStackMxpFlag(
-            Optional.ofNullable(this.stack.getCurrentOpcodeData().billing())
-                .map(b -> b.type() != MxpType.NONE)
-                .orElse(false))
-        .pStackStaticFlag(this.stack.getCurrentOpcodeData().stackSettings().forbiddenInStatic())
         // Hash data
-        .pStackHashInfoSize(Bytes.ofUnsignedInt(hashInfoSize))
+        .pStackHashInfoFlag(this.hashInfoFlag)
         .pStackHashInfoKeccakHi(this.hashInfoKeccak.hi())
         .pStackHashInfoKeccakLo(this.hashInfoKeccak.lo())
-        .pStackHashInfoFlag(this.hashInfoFlag);
+        .pStackLogInfoFlag(false) // TODO
+    ;
   }
 }

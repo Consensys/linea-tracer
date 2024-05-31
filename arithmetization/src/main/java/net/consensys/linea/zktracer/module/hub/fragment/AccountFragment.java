@@ -95,24 +95,22 @@ public final class AccountFragment
 
     return trace
         .peekAtAccount(true)
-        .pAccountTrmFlag(this.addressToTrim.isPresent())
-        .pAccountTrmRawAddressHi(this.addressToTrim.map(a -> EWord.of(a).hi()).orElse(Bytes.EMPTY))
-        .pAccountAddressHi(eWho.hi())
+        .pAccountAddressHi(eWho.hi().toLong())
         .pAccountAddressLo(eWho.lo())
-        .pAccountIsPrecompile(isPrecompile(who))
         .pAccountNonce(Bytes.ofUnsignedLong(oldState.nonce()))
         .pAccountNonceNew(Bytes.ofUnsignedLong(newState.nonce()))
         .pAccountBalance(oldState.balance())
         .pAccountBalanceNew(newState.balance())
-        .pAccountCodeSize(Bytes.ofUnsignedInt(oldState.code().getSize()))
-        .pAccountCodeSizeNew(Bytes.ofUnsignedInt(newState.code().getSize()))
+        .pAccountCodeSize(oldState.code().getSize())
+        .pAccountCodeSizeNew(newState.code().getSize())
         .pAccountCodeHashHi(eCodeHash.hi())
-        .pAccountCodeHashLo(eCodeHash.lo())
         .pAccountCodeHashHiNew(eCodeHashNew.hi())
+        .pAccountCodeHashLo(eCodeHash.lo())
         .pAccountCodeHashLoNew(eCodeHashNew.lo())
         .pAccountHasCode(oldState.code().getCodeHash() != Hash.EMPTY)
         .pAccountHasCodeNew(newState.code().getCodeHash() != Hash.EMPTY)
-        .pAccountCodeFragmentIndex(Bytes.of(this.codeFragmentIndex))
+        .pAccountCodeFragmentIndex(this.codeFragmentIndex)
+        .pAccountRomLexFlag(false) // TODO
         .pAccountExists(
             oldState.nonce() > 0
                 || oldState.code().getCodeHash() != Hash.EMPTY
@@ -123,12 +121,26 @@ public final class AccountFragment
                 || !newState.balance().isZero())
         .pAccountWarmth(oldState.isWarm())
         .pAccountWarmthNew(newState.isWarm())
-        .pAccountDeploymentNumber(Bytes.ofUnsignedInt(oldState.deploymentNumber()))
-        .pAccountDeploymentNumberNew(Bytes.ofUnsignedInt(newState.deploymentNumber()))
-        .pAccountDeploymentNumberInfty(Bytes.ofUnsignedInt(deploymentNumberInfinity))
+        .pAccountMarkedForSelfdestruct(false) // TODO:
+        .pAccountMarkedForSelfdestructNew(false) // TODO
+        .pAccountDeploymentNumber(oldState.deploymentNumber())
+        .pAccountDeploymentNumberNew(newState.deploymentNumber())
         .pAccountDeploymentStatus(oldState.deploymentStatus())
         .pAccountDeploymentStatusNew(newState.deploymentStatus())
-        .pAccountDeploymentStatusInfty(existsInfinity);
+        .pAccountDeploymentNumberInfty(deploymentNumberInfinity)
+        .pAccountDeploymentStatusInfty(existsInfinity)
+        .pAccountTrmFlag(this.addressToTrim.isPresent())
+        .pAccountTrmRawAddressHi(this.addressToTrim.map(a -> EWord.of(a).hi()).orElse(Bytes.EMPTY))
+        .pAccountIsPrecompile(isPrecompile(who))
+        .pAccountRlpaddrFlag(false) // TODO
+        .pAccountRlpaddrRecipe(false) // TODO
+        .pAccountRlpaddrDepAddrHi(0) // TODO
+        .pAccountRlpaddrDepAddrLo(Bytes.EMPTY) // TODO
+        .pAccountRlpaddrSaltHi(Bytes.EMPTY) // TODO
+        .pAccountRlpaddrSaltLo(Bytes.EMPTY) // TODO
+        .pAccountRlpaddrKecHi(Bytes.EMPTY) // TODO
+        .pAccountRlpaddrKecLo(Bytes.EMPTY) // TODO
+    ;
   }
 
   @Override

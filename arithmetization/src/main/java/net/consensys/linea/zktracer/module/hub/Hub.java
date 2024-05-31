@@ -96,10 +96,7 @@ import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.runtime.stack.StackContext;
 import net.consensys.linea.zktracer.runtime.stack.StackLine;
-import net.consensys.linea.zktracer.types.Bytecode;
-import net.consensys.linea.zktracer.types.EWord;
-import net.consensys.linea.zktracer.types.Precompile;
-import net.consensys.linea.zktracer.types.TxState;
+import net.consensys.linea.zktracer.types.*;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
@@ -148,6 +145,11 @@ public class Hub implements Module {
 
   /** stores all data related to failure states & module activation */
   @Getter private final PlatformController pch;
+
+  @Getter private ProcessableBlockHeader currentBlockHeader;
+
+  /** LineaTransaction is an enhanced Besu transaction */
+  @Getter private LineaTransaction currentTransaction;
 
   @Override
   public String moduleKey() {
@@ -618,17 +620,7 @@ public class Hub implements Module {
             ? preInitToSnapshot.deploy(value, initBytecode)
             : preInitToSnapshot.credit(value, true);
 
-    final TransactionFragment txFragment =
-        TransactionFragment.prepare(
-            this.transients.conflation().number(),
-            this.transients.block().minerAddress(),
-            tx.besuTx(),
-            true,
-            ((org.hyperledger.besu.ethereum.core.Transaction) tx.besuTx())
-                .getEffectiveGasPrice(Optional.ofNullable(this.transients().block().baseFee())),
-            this.transients.block().baseFee(),
-            0 // TODO: find getInitialGas
-            );
+    final TransactionFragment txFragment = TransactionFragment.prepare(this.currentTransaction);
     this.defers.postTx(txFragment);
 
     final AccountFragment.AccountFragmentFactory accountFragmentFactory =
@@ -793,14 +785,7 @@ public class Hub implements Module {
               this,
               accountFragmentFactory.make(preFinalFromSnapshot, postFinalFromSnapshot),
               accountFragmentFactory.make(preFinalCoinbaseSnapshot, postFinalCoinbaseSnapshot),
-              TransactionFragment.prepare(
-                  this.transients.conflation().number(),
-                  this.transients.block().minerAddress(),
-                  tx,
-                  true,
-                  this.transients.tx().gasPrice(),
-                  this.transients.block().baseFee(),
-                  this.transients.tx().initialGas())));
+              TransactionFragment.prepare(this.currentTransaction)));
     } else {
       // Trace the exceptions of a transaction that could not even start
       // TODO: integrate with PCH
@@ -845,6 +830,15 @@ public class Hub implements Module {
     this.pch.reset();
     this.state.enter();
 
+    this.currentTransaction =
+        new LineaTransaction(
+            world,
+            this.transients.block().blockNumber(),
+            this.transients.block().minerAddress(),
+            this.transients.block().baseFee(),
+            txnData,
+            tx);
+
     this.defers.postTx(this.state.currentTxTrace());
 
     this.txStack.enterTransaction(tx, requiresEvmExecution(world, tx));
@@ -863,6 +857,7 @@ public class Hub implements Module {
     }
 
     for (Module m : this.modules) {
+      // TODO: should use a LineaTransaction as its argument
       m.traceStartTx(world, tx);
     }
   }
@@ -1177,7 +1172,7 @@ public class Hub implements Module {
 
   @Override
   public void traceStartBlock(final ProcessableBlockHeader processableBlockHeader) {
-    this.transients.block().update(processableBlockHeader);
+    this.transients.block().blockUpdate(processableBlockHeader);
     for (Module m : this.modules) {
       m.traceStartBlock(processableBlockHeader);
     }
@@ -1344,16 +1339,7 @@ public class Hub implements Module {
         this.addTraceSection(copySection);
       }
       case TRANSACTION -> this.addTraceSection(
-          new TransactionSection(
-              this,
-              TransactionFragment.prepare(
-                  this.transients.conflation().number(),
-                  frame.getMiningBeneficiary(),
-                  this.transients.tx().besuTx(),
-                  true,
-                  frame.getGasPrice(),
-                  frame.getBlockValues().getBaseFee().orElse(Wei.ZERO),
-                  this.transients.tx().initialGas())));
+          new TransactionSection(this, TransactionFragment.prepare(this.currentTransaction)));
       case STACK_RAM -> {
         switch (this.currentFrame().opCode()) {
           case CALLDATALOAD -> {

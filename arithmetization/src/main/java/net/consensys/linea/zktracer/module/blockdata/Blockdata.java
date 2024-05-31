@@ -23,6 +23,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 
+import lombok.Getter;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.rlptxn.RlpTxn;
@@ -36,7 +37,7 @@ public class Blockdata implements Module {
   private final Wcp wcp;
   private final TxnData txnData;
   private final RlpTxn rlpTxn;
-  private final Deque<BlockdataOperation> operations = new ArrayDeque<>();
+  @Getter final Deque<BlockdataOperation> operations = new ArrayDeque<>();
   private boolean batchUnderConstruction;
   private final int TIMESTAMP_BYTESIZE = 4;
   private int previousTimestamp = 0;

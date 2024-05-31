@@ -96,7 +96,6 @@ import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.runtime.stack.StackContext;
 import net.consensys.linea.zktracer.runtime.stack.StackLine;
-import net.consensys.linea.zktracer.types.AddressUtils;
 import net.consensys.linea.zktracer.types.Bytecode;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.Precompile;
@@ -855,7 +854,9 @@ public class Hub implements Module {
 
     this.enterTransaction();
 
-    if (this.transients.tx().shouldSkip(world)) /* TODO: should use requiresEvmExecution instead of recomputing it */ {
+    if (this.transients
+        .tx()
+        .shouldSkip(world)) /* TODO: should use requiresEvmExecution instead of recomputing it */ {
       this.transients.tx().state(TxState.TX_SKIP);
       this.processStateSkip(world);
     } else {

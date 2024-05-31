@@ -99,7 +99,7 @@ public class Keccak implements Module {
         callShakira(frame, 0, 1, this.deployedCodeSizes);
       }
 
-      if (opCode == OpCode.CREATE2 && pch.aborts().none()) {
+      if (opCode == OpCode.CREATE2 && pch.abortingConditions().none()) {
         callShakira(frame, 1, 2, this.create2Sizes);
       }
     }

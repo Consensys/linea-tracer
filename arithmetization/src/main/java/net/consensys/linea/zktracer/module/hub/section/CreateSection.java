@@ -79,9 +79,9 @@ public class CreateSection extends TraceSection
     this.opCode = hub.opCode();
     this.emptyInitCode = hub.transients().op().callDataSegment().isEmpty();
     this.initialGas = hub.messageFrame().getRemainingGas();
-    this.aborts = hub.pch().aborts().snapshot();
+    this.aborts = hub.pch().abortingConditions().snapshot();
     this.exceptions = hub.pch().exceptions().snapshot();
-    this.failures = hub.pch().failures().snapshot();
+    this.failures = hub.pch().failureConditions().snapshot();
 
     this.oldCreatorSnapshot = oldCreatorSnapshot;
     this.oldCreatedSnapshot = oldCreatedSnapshot;
@@ -157,8 +157,8 @@ public class CreateSection extends TraceSection
         ImcFragment.empty(hub)
             .callOob(
                 new Create(
-                    hub.pch().aborts().any(),
-                    hub.pch().failures().any(),
+                    hub.pch().abortingConditions().any(),
+                    hub.pch().failureConditions().any(),
                     EWord.of(hub.messageFrame().getStackItem(0)),
                     EWord.of(oldCreatedSnapshot.balance()),
                     oldCreatedSnapshot.nonce(),

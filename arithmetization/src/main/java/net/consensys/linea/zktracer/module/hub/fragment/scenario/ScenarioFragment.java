@@ -93,8 +93,8 @@ public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
             hub.currentFrame().id(),
             hub.callStack().futureId(),
             hub.pch().exceptions().any(),
-            hub.pch().aborts().any(),
-            hub.pch().failures().any(),
+            hub.pch().abortingConditions().any(),
+            hub.pch().failureConditions().any(),
             hub.pch().exceptions().invalidCodePrefix());
     hub.defers().postTx(r);
     return r;
@@ -108,8 +108,8 @@ public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
         hub.currentFrame().id(),
         hub.callStack().futureId(),
         hub.pch().exceptions().any(),
-        hub.pch().aborts().any(),
-        hub.pch().failures().any(),
+        hub.pch().abortingConditions().any(),
+        hub.pch().failureConditions().any(),
         hub.pch().exceptions().invalidCodePrefix());
   }
 

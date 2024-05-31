@@ -23,12 +23,17 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.State;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.TransactionStack;
+import net.consensys.linea.zktracer.module.hub.signals.AbortingConditions;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
+import net.consensys.linea.zktracer.module.hub.signals.FailureConditions;
 import net.consensys.linea.zktracer.opcode.InstructionFamily;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.TxState;
 import org.apache.tuweni.bytes.Bytes;
+import org.apache.tuweni.bytes.Bytes32;
+import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 
 import java.math.BigInteger;
 
@@ -42,7 +47,10 @@ public final class CommonFragment implements TraceFragment {
   private final State.TxState.Stamps stamps;
   private final InstructionFamily instructionFamily;
   private final Exceptions exceptions;
+  private final AbortingConditions abortingConditions;
+  private final FailureConditions failureConditions;
   private final int callFrameId;
+  private final int callerContextNumber;
   @Getter private final int contextNumber;
   @Setter private int contextNumberNew;
   private final int revertStamp;
@@ -52,7 +60,6 @@ public final class CommonFragment implements TraceFragment {
   @Setter private int pcNew;
   private int codeDeploymentNumber;
   private final boolean codeDeploymentStatus;
-  private final int callerContextNumber;
   private final long gasExpected;
   private final long gasActual;
   private final long gasCost;
@@ -64,10 +71,8 @@ public final class CommonFragment implements TraceFragment {
   @Getter @Setter private int numberOfNonStackRows;
   @Getter @Setter private int nonStackRowsCounter;
 
-  public static CommonFragment fromHub(
-          final Hub hub, final CallFrame frame, boolean tliCounter, int nonStackRowsCounter) {
+  public static CommonFragment fromHub(WorldView world, final Hub hub, final CallFrame frame, boolean tliCounter, int nonStackRowsCounter) {
     long refund = 0;
-
     boolean noStackException = hub.pch().exceptions().noStackException();
 
     if (noStackException) {
@@ -92,9 +97,11 @@ public final class CommonFragment implements TraceFragment {
             .stamps(hub.state.stamps())
             .instructionFamily(hub.opCodeData().instructionFamily())
             .exceptions(hub.pch().exceptions().snapshot())
+            .abortingConditions(hub.pch().abortingConditions().snapshot())
+            .failureConditions(hub.pch().failureConditions().snapshot())
             .callFrameId(frame.id())
             .contextNumber(frame.contextNumber())
-            .contextNumberNew(frame.contextNumber()) // TODO
+            .contextNumberNew(hub.contextNumberNew(world))
             .pc(pc)
             .pcNew(pcNew)
             .height((short) height)
@@ -139,8 +146,32 @@ public final class CommonFragment implements TraceFragment {
     return pc + 1;
   }
 
-  private static int computeContextNumberNew(final Hub hub) {
-    return 0; // TODO
+  private int computeContextNumberNew(WorldView world, final Hub hub) {
+    OpCode opCode = hub.opCode();
+    if (exceptions.any()
+            || opCode.getData().instructionFamily().equals(InstructionFamily.HALT)
+            || opCode.getData().instructionFamily().equals(InstructionFamily.INVALID)){
+      return callerContextNumber;
+    }
+
+    if (opCode.isCall()) {
+      // If abortingConditions Then contextNumberNew <-- contextNumber
+      Address calleeAddress = Address.extract((Bytes32) hub.currentFrame().frame().getStackItem(1));
+      if (world.get(calleeAddress).hasCode()) {
+        return 1 + hub.stamp();
+      }
+    }
+
+    if (opCode.isCreate()) {
+      // If (abortingConditions ∨ failureConditions) Then contextNumberNew <-- contextNumber
+      final int initCodeSize = hub.currentFrame().frame().getStackItem(2).toInt();
+      if (initCodeSize != 0) {
+        return 1 + hub.stamp();
+      }
+    }
+
+    return contextNumber;
+
   }
 
   public boolean txReverts() {

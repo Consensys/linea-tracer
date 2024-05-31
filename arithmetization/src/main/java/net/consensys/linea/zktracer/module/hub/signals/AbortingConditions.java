@@ -33,11 +33,11 @@ public final class AbortingConditions {
 
   /**
    * @param callStackOverflow too many nested contexts
-   * @param balanceTooLow trying to give more ETH than the caller has
+   * @param insufficientBalance trying to give more ETH than the caller has
    */
-  public AbortingConditions(boolean callStackOverflow, boolean balanceTooLow) {
+  public AbortingConditions(boolean callStackOverflow, boolean insufficientBalance) {
     this.callStackOverflow = callStackOverflow;
-    this.balanceTooLow = balanceTooLow;
+    this.balanceTooLow = insufficientBalance;
   }
 
   public static AbortingConditions of(Hub hub) {

@@ -129,7 +129,7 @@ public class ImcFragment implements TraceFragment {
                     EWord.of(hub.messageFrame().getStackItem(2)),
                     EWord.of(callerAccount.getBalance()),
                     hub.callStack().depth(),
-                    hub.pch().aborts().any()));
+                    hub.pch().abortingConditions().any()));
           }
         }
         default -> throw new IllegalArgumentException("unexpected opcode for IMC/CALL");
@@ -220,7 +220,7 @@ public class ImcFragment implements TraceFragment {
                           .map(AccountState::getBalance)
                           .orElse(Wei.ZERO)),
                   hub.callStack().depth(),
-                  hub.pch().aborts().any()));
+                  hub.pch().abortingConditions().any()));
         }
         case DELEGATECALL, STATICCALL -> {
           r.callOob(
@@ -231,7 +231,7 @@ public class ImcFragment implements TraceFragment {
                           .map(AccountState::getBalance)
                           .orElse(Wei.ZERO)),
                   hub.callStack().depth(),
-                  hub.pch().aborts().any()));
+                  hub.pch().abortingConditions().any()));
         }
         case RETURN -> {
           if (hub.currentFrame().underDeployment()) {

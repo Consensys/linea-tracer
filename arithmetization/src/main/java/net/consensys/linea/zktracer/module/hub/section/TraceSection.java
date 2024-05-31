@@ -32,10 +32,12 @@ import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TransactionFragment;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.runtime.stack.StackLine;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Accessors(fluent = true)
 /** A TraceSection gather the trace lines linked to a single operation */
 public abstract class TraceSection {
+  private WorldView world;
   @Getter private int stackHeight = 0;
   @Getter private int stackHeightNew = 0;
 
@@ -79,7 +81,7 @@ public abstract class TraceSection {
    * @return a {@link CommonFragment} representing the shared columns
    */
   private CommonFragment traceCommon(Hub hub, CallFrame frame) {
-    return CommonFragment.fromHub(hub, frame, this.stackRowsCounter == 2, this.nonStackRowsCounter);
+    return CommonFragment.fromHub(world, hub, frame, this.stackRowsCounter == 2, this.nonStackRowsCounter);
   }
 
   /** Default creator for an empty section. */
@@ -251,7 +253,7 @@ public abstract class TraceSection {
                 f.stack().snapshot(),
                 new StackLine().asStackOperations(),
                 hub.pch().exceptions().snapshot(),
-                hub.pch().aborts().snapshot(),
+                hub.pch().abortingConditions().snapshot(),
                 Hub.GAS_PROJECTOR.of(f.frame(), f.opCode()),
                 f.underDeployment()));
       }
@@ -263,7 +265,7 @@ public abstract class TraceSection {
                 f.stack().snapshot(),
                 line.asStackOperations(),
                 hub.pch().exceptions().snapshot(),
-                hub.pch().aborts().snapshot(),
+                hub.pch().abortingConditions().snapshot(),
                 Hub.GAS_PROJECTOR.of(f.frame(), f.opCode()),
                 f.underDeployment()));
       }

@@ -185,7 +185,7 @@ public class Signals {
         this.trm = ex.outOfGas() || ex.none();
 
         final boolean triggersAbortingCondition =
-            ex.none() && this.platformController.aborts().any();
+            ex.none() && this.platformController.abortingConditions().any();
 
         final Address target = Words.toAddress(frame.getStackItem(1));
         final boolean targetAddressHasNonEmptyCode =
@@ -196,15 +196,15 @@ public class Signals {
         this.romLex = ex.none() && !triggersAbortingCondition && targetAddressHasNonEmptyCode;
         this.ecData = ex.none() && EC_PRECOMPILES.contains(target);
         this.exp =
-            ex.none() && this.platformController.aborts().none() && target.equals(Address.MODEXP);
+            ex.none() && this.platformController.abortingConditions().none() && target.equals(Address.MODEXP);
       }
 
       case CREATE, CREATE2 -> {
-        boolean triggersAbortingCondition = ex.none() && this.platformController.aborts().any();
+        boolean triggersAbortingCondition = ex.none() && this.platformController.abortingConditions().any();
 
         boolean triggersFailureCondition = false;
-        if (ex.none() && this.platformController.aborts().none()) {
-          triggersFailureCondition = this.platformController.failures().any();
+        if (ex.none() && this.platformController.abortingConditions().none()) {
+          triggersFailureCondition = this.platformController.failureConditions().any();
         }
 
         final boolean nonzeroSize = !frame.getStackItem(2).isZero();

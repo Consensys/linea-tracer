@@ -63,7 +63,7 @@ import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingCallEffec
 import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingMillerLoop;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcRecoverEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.Rip160Blocks;
+import net.consensys.linea.zktracer.module.limits.precompiles.RipeMd160Blocks;
 import net.consensys.linea.zktracer.module.limits.precompiles.Sha256Blocks;
 import net.consensys.linea.zktracer.module.logdata.LogData;
 import net.consensys.linea.zktracer.module.loginfo.LogInfo;
@@ -72,11 +72,13 @@ import net.consensys.linea.zktracer.module.mmu.Mmu;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.mul.Mul;
 import net.consensys.linea.zktracer.module.mxp.Mxp;
+import net.consensys.linea.zktracer.module.oob.Oob;
 import net.consensys.linea.zktracer.module.rlpaddr.RlpAddr;
 import net.consensys.linea.zktracer.module.rlptxn.RlpTxn;
 import net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxrcpt;
 import net.consensys.linea.zktracer.module.rom.Rom;
 import net.consensys.linea.zktracer.module.romlex.RomLex;
+import net.consensys.linea.zktracer.module.shakiradata.ShakiraData;
 import net.consensys.linea.zktracer.module.shf.Shf;
 import net.consensys.linea.zktracer.module.stp.Stp;
 import net.consensys.linea.zktracer.module.tables.bin.BinRt;
@@ -213,9 +215,9 @@ public class Hub implements Module {
   private final Module add = new Add(this);
   private final Module bin = new Bin(this);
   private final Blake2fModexpData blake2fModexpData = new Blake2fModexpData();
+  @Getter private final EcData ecData;
   private final Blockdata blockdata;
   private final Blockhash blockhash = new Blockhash(wcp);
-  private final EcData ecData;
   private final Euc euc;
   private final Ext ext = new Ext(this);
   private final Module mul = new Mul(this);
@@ -236,13 +238,18 @@ public class Hub implements Module {
 
   @Getter private final RomLex romLex;
   private final TxnData txnData;
-
+  private final ShakiraData shakiraData = new ShakiraData(this.wcp);
   private final ModexpEffectiveCall modexpEffectiveCall;
   private final Stp stp = new Stp(this, wcp, mod);
   private final L2Block l2Block;
 
+  @Getter private final Oob oob;
+
   private final List<Module> modules;
-  /* Those modules are not traced, we just compute the number of calls to those precompile to meet the prover limits */
+  /*
+   * Those modules are not traced, we just compute the number of calls to those
+   * precompile to meet the prover limits
+   */
   private final List<Module> precompileLimitModules;
   private final List<Module> refTableModules;
 
@@ -264,6 +271,7 @@ public class Hub implements Module {
     this.logData = new LogData(rlpTxrcpt);
     this.logInfo = new LogInfo(rlpTxrcpt);
     this.ecData = new EcData(this, this.wcp, this.ext);
+    this.oob = new Oob(this, (Add) this.add, this.mod, this.wcp);
     this.mmu =
         new Mmu(
             this.euc,
@@ -283,9 +291,9 @@ public class Hub implements Module {
 
     this.precompileLimitModules =
         List.of(
-            new Sha256Blocks(this),
+            new Sha256Blocks(this, shakiraData),
             ecRec,
-            new Rip160Blocks(this),
+            new RipeMd160Blocks(this, shakiraData),
             this.modexpEffectiveCall,
             new EcAddEffectiveCall(this),
             new EcMulEffectiveCall(this),
@@ -294,7 +302,7 @@ public class Hub implements Module {
             new Blake2fRounds(this, this.blake2fModexpData),
             // Block level limits
             l2Block,
-            new Keccak(this, ecRec, l2Block),
+            new Keccak(this, ecRec, l2Block, shakiraData),
             new L2L1Logs(l2Block));
 
     this.refTableModules = List.of(new BinRt(), new InstructionDecoder(), new ShfRt());
@@ -317,11 +325,13 @@ public class Hub implements Module {
                     this.mod,
                     this.mul,
                     this.mxp,
+                    this.oob,
                     this.exp,
                     this.rlpAddr,
                     this.rlpTxn,
                     this.rom,
                     this.romLex,
+                    this.shakiraData,
                     this.shf,
                     this.stp,
                     this.trm,
@@ -343,10 +353,11 @@ public class Hub implements Module {
                 this,
                 this.add,
                 this.bin,
-                this.blake2fModexpData,
+                // WARNING: Temporarily disabled.
+                //                this.blake2fModexpData,
+                this.ecData,
                 this.blockdata,
                 this.blockhash,
-                //        this.ecData, // TODO: not yet
                 this.ext,
                 this.euc,
                 this.exp,
@@ -357,11 +368,14 @@ public class Hub implements Module {
                 this.mod,
                 this.mul,
                 this.mxp,
+                // WARNING: Temporarily disabled.
+                //                this.oob,
                 this.rlpAddr,
                 this.rlpTxn,
                 this.rlpTxrcpt,
                 this.rom,
                 this.romLex,
+                this.shakiraData,
                 this.shf,
                 this.stp,
                 this.trm,
@@ -395,6 +409,8 @@ public class Hub implements Module {
                 this.mod,
                 this.mul,
                 this.mxp,
+                // WARNING: Temporarily disabled.
+                //                this.oob,
                 this.exp,
                 this.rlpAddr,
                 this.rlpTxn,
@@ -700,7 +716,7 @@ public class Hub implements Module {
       this.mxp.tracePreOpcode(frame);
     }
     if (this.pch.signals().oob()) {
-      // TODO: this.oob.tracePreOpcode(frame);
+      this.oob.tracePreOpcode(frame);
     }
     if (this.pch.signals().stp()) {
       this.stp.tracePreOpcode(frame);
@@ -944,7 +960,8 @@ public class Hub implements Module {
 
       final boolean shouldCopyTxCallData =
           !isDeployment && !frame.getInputData().isEmpty() && currentTx.requiresEvmExecution();
-      // TODO simplify this, the same bedRock context ( = root context ??)  seems to be generated in
+      // TODO simplify this, the same bedRock context ( = root context ??) seems to be
+      // generated in
       // both case
       if (shouldCopyTxCallData) {
         this.callStack.newMantleAndBedrock(
@@ -969,7 +986,7 @@ public class Hub implements Module {
       } else {
         this.callStack.newBedrock(
             this.state.stamps().hub(),
-            //            this.transients.tx().transaction().getSender(),
+            // this.transients.tx().transaction().getSender(),
             toAddress,
             CallFrameType.BEDROCK,
             new Bytecode(

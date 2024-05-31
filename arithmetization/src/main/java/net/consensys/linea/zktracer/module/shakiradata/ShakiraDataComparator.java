@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,16 +13,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.config;
+package net.consensys.linea.zktracer.module.shakiradata;
 
-import lombok.Builder;
+import java.util.Comparator;
 
-/** The Linea transaction selectors configuration. */
-@Builder(toBuilder = true)
-public record LineaTransactionSelectorConfiguration(
-    int maxBlockCallDataSize,
-    String moduleLimitsFilePath,
-    int overLinesLimitCacheSize,
-    long maxGasPerBlock,
-    int unprofitableCacheSize,
-    int unprofitableRetryLimit) {}
+class ShakiraDataComparator implements Comparator<ShakiraDataOperation> {
+  @Override
+  public int compare(ShakiraDataOperation o1, ShakiraDataOperation o2) {
+    return (int) (o1.ID() - o2.ID());
+  }
+}

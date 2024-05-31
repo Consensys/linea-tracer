@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,20 +13,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.config;
+package net.consensys.linea.zktracer.module.shakiradata;
 
-import lombok.Builder;
-import org.hyperledger.besu.datatypes.Wei;
-
-/** The Linea profitability calculator configuration. */
-@Builder(toBuilder = true)
-public record LineaProfitabilityConfiguration(
-    int verificationGasCost,
-    int verificationCapacity,
-    int gasPriceRatio,
-    Wei gasPriceAdjustment,
-    double minMargin,
-    double estimateGasMinMargin,
-    double txPoolMinMargin,
-    boolean txPoolCheckApiEnabled,
-    boolean txPoolCheckP2pEnabled) {}
+public enum ShakiraPrecompileType {
+  SHA256,
+  KECCAK,
+  RIPEMD
+}

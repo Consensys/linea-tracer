@@ -15,28 +15,30 @@
 
 package net.consensys.linea.zktracer.module.limits.precompiles;
 
-import java.nio.MappedByteBuffer;
-import java.util.List;
-import java.util.Stack;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE_MO;
 
+import java.nio.MappedByteBuffer;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.List;
+
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.shakiradata.ShakiraData;
+import net.consensys.linea.zktracer.module.shakiradata.ShakiraDataOperation;
+import net.consensys.linea.zktracer.module.shakiradata.ShakiraPrecompileType;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 
 @RequiredArgsConstructor
 public final class Sha256Blocks implements Module {
-  private final Hub hub;
-  private final Stack<Integer> counts = new Stack<>();
-
-  @Override
-  public String moduleKey() {
-    return "PRECOMPILE_SHA2_BLOCKS";
-  }
 
   private static final int PRECOMPILE_BASE_GAS_FEE = 60;
   private static final int PRECOMPILE_GAS_FEE_PER_EWORD = 12;
@@ -45,9 +47,24 @@ public final class Sha256Blocks implements Module {
   private static final int SHA256_PADDING_LENGTH = 64;
   private static final int SHA256_NB_PADDED_ONE = 1;
 
+  private final Hub hub;
+  private final Deque<Integer> counts = new ArrayDeque<>();
+
+  @Getter private final ShakiraData shakiraData;
+
+  @Override
+  public String moduleKey() {
+    return "PRECOMPILE_SHA2_BLOCKS";
+  }
+
+  @Override
+  public void traceStartConflation(final long blockCount) {
+    counts.push(0);
+  }
+
   @Override
   public void enterTransaction() {
-    counts.push(0);
+    counts.push(counts.getFirst());
   }
 
   @Override
@@ -63,16 +80,15 @@ public final class Sha256Blocks implements Module {
     final OpCode opCode = hub.opCode();
     final MessageFrame frame = hub.messageFrame();
 
-    switch (opCode) {
-      case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
-        final Address target = Words.toAddress(frame.getStackItem(1));
-        if (target.equals(Address.SHA256)) {
-          final long dataByteLength = hub.transients().op().callDataSegment().length();
-          final long wordCount = (dataByteLength + 31) / 32;
-          return PRECOMPILE_BASE_GAS_FEE + PRECOMPILE_GAS_FEE_PER_EWORD * wordCount;
-        }
+    if (opCode.isCall()) {
+      final Address target = Words.toAddress(frame.getStackItem(1));
+      if (target.equals(Address.SHA256)) {
+        final long dataByteLength = hub.transients().op().callDataSegment().length();
+        final long wordCount = (dataByteLength + WORD_SIZE_MO) / WORD_SIZE;
+        return PRECOMPILE_BASE_GAS_FEE + PRECOMPILE_GAS_FEE_PER_EWORD * wordCount;
       }
     }
+
     return 0;
   }
 
@@ -80,38 +96,36 @@ public final class Sha256Blocks implements Module {
   public void tracePreOpcode(MessageFrame frame) {
     final OpCode opCode = hub.opCode();
 
-    switch (opCode) {
-      case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
-        final Address target = Words.toAddress(frame.getStackItem(1));
-        if (target.equals(Address.SHA256)) {
-          final long dataByteLength = hub.transients().op().callDataSegment().length();
-          if (dataByteLength == 0) {
-            return;
-          }
-          final int blockCount =
-              (int)
-                      (dataByteLength * 8
-                          + SHA256_NB_PADDED_ONE
-                          + SHA256_PADDING_LENGTH
-                          + (SHA256_BLOCKSIZE - 1))
-                  / SHA256_BLOCKSIZE;
+    if (opCode.isCall()) {
+      final Address target = Words.toAddress(frame.getStackItem(1));
+      if (target.equals(Address.SHA256)) {
+        final long dataByteLength = hub.transients().op().callDataSegment().length();
+        if (dataByteLength == 0) {
+          return;
+        }
+        final int blockCount =
+            (int)
+                    (dataByteLength * 8
+                        + SHA256_NB_PADDED_ONE
+                        + SHA256_PADDING_LENGTH
+                        + (SHA256_BLOCKSIZE - 1))
+                / SHA256_BLOCKSIZE;
 
-          if (hasEnoughGas(this.hub)) {
-            this.counts.push(this.counts.pop() + blockCount);
-          }
+        final Bytes inputData = hub.transients().op().callData();
+
+        if (hasEnoughGas(this.hub)) {
+          this.shakiraData.call(
+              new ShakiraDataOperation(hub.stamp(), ShakiraPrecompileType.SHA256, inputData));
+
+          this.counts.push(this.counts.pop() + blockCount);
         }
       }
-      default -> {}
     }
   }
 
   @Override
   public int lineCount() {
-    int r = 0;
-    for (int i = 0; i < this.counts.size(); i++) {
-      r += this.counts.get(i);
-    }
-    return r;
+    return counts.getFirst();
   }
 
   @Override

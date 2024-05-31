@@ -12,17 +12,27 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.config.converters;
+
+package net.consensys.linea.zktracer.module.oob.parameters;
+
+import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.math.BigInteger;
 
-import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Wei;
-import picocli.CommandLine;
+import net.consensys.linea.zktracer.module.oob.Trace;
 
-public class WeiConverter implements CommandLine.ITypeConverter<Bytes> {
+public record SstoreOobParameters(BigInteger gas) implements OobParameters {
+
   @Override
-  public Bytes convert(final String s) throws Exception {
-    return Wei.of(new BigInteger(s));
+  public Trace trace(Trace trace) {
+    return trace
+        .data1(ZERO)
+        .data2(ZERO)
+        .data3(ZERO)
+        .data4(ZERO)
+        .data5(bigIntegerToBytes(gas))
+        .data6(ZERO)
+        .data7(ZERO) // TODO: temporary value; to fill when oob update is complete
+        .data8(ZERO); // TODO: temporary value; to fill when oob update is complete
   }
 }

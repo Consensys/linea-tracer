@@ -12,14 +12,15 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.config.converters;
 
+package net.consensys.linea.zktracer.module.oob.parameters;
+
+import net.consensys.linea.zktracer.module.oob.Trace;
 import org.apache.tuweni.bytes.Bytes;
-import picocli.CommandLine;
 
-public class BytesConverter implements CommandLine.ITypeConverter<Bytes> {
-  @Override
-  public Bytes convert(final String s) throws Exception {
-    return Bytes.fromHexStringLenient(s);
-  }
+public interface OobParameters {
+  Bytes ZERO = Bytes.EMPTY;
+  Bytes ONE = Bytes.of(1);
+
+  Trace trace(Trace trace);
 }

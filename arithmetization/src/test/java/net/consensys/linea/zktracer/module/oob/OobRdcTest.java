@@ -26,6 +26,7 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.testing.EvmExtension;
+import org.hyperledger.besu.datatypes.Wei;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -48,6 +49,8 @@ public class OobRdcTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertFalse(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 0);
   }
 
@@ -62,6 +65,8 @@ public class OobRdcTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertFalse(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 0);
   }
 
@@ -76,6 +81,8 @@ public class OobRdcTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertFalse(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 0);
   }
 
@@ -90,6 +97,8 @@ public class OobRdcTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertFalse(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 0);
   }
 
@@ -104,6 +113,8 @@ public class OobRdcTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertFalse(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 0);
   }
 
@@ -121,6 +132,8 @@ public class OobRdcTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
   }
 
@@ -134,6 +147,8 @@ public class OobRdcTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
   }
 
@@ -147,6 +162,8 @@ public class OobRdcTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
   }
 
@@ -162,6 +179,8 @@ public class OobRdcTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
   }
 
@@ -176,6 +195,8 @@ public class OobRdcTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
   }
 
@@ -189,6 +210,8 @@ public class OobRdcTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
   }
 
@@ -202,6 +225,8 @@ public class OobRdcTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
   }
 
@@ -216,6 +241,8 @@ public class OobRdcTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
   }
 
@@ -229,6 +256,8 @@ public class OobRdcTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
   }
 
@@ -242,6 +271,8 @@ public class OobRdcTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
   }
 
@@ -255,6 +286,8 @@ public class OobRdcTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
   }
 
@@ -269,6 +302,8 @@ public class OobRdcTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
   }
 
@@ -282,6 +317,8 @@ public class OobRdcTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
   }
 
@@ -295,6 +332,8 @@ public class OobRdcTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
   }
 
@@ -308,6 +347,8 @@ public class OobRdcTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
   }
 
@@ -323,6 +364,8 @@ public class OobRdcTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertFalse(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 0);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
@@ -344,8 +387,10 @@ public class OobRdcTest {
     Hub hub = bytecodeRunner.getHub();
     System.out.println(bytecodeRunner.getHub().currentFrame().frame().getReturnData());
 
-    // assertFalse(hub.pch().exceptions().returnDataCopyFault()); TODO: reactivate when returnData
-    // is fixed for precompiles
+    // TODO: reactivate when returnData is fixed for precompiles
+    // assertFalse(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 0);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
@@ -366,8 +411,10 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    // assertFalse(hub.pch().exceptions().returnDataCopyFault()); TODO: reactivate when returnData
-    // is fixed for precompiles
+    // TODO: reactivate when returnData is fixed for precompiles
+    // assertFalse(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 0);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
@@ -388,8 +435,10 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    // assertFalse(hub.pch().exceptions().returnDataCopyFault()); TODO: reactivate when returnData
-    // is fixed for precompiles
+    // TODO: reactivate when returnData is fixed for precompiles
+    // assertFalse(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 0);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
@@ -410,8 +459,10 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    // assertFalse(hub.pch().exceptions().returnDataCopyFault()); TODO: reactivate when returnData
-    // is fixed for precompiles
+    // TODO: reactivate when returnData is fixed for precompiles
+    // assertFalse(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 0);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
@@ -437,6 +488,8 @@ public class OobRdcTest {
     System.out.println(bytecodeRunner.getHub().currentFrame().frame().getReturnData());
 
     assertTrue(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
@@ -458,6 +511,8 @@ public class OobRdcTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
@@ -479,6 +534,8 @@ public class OobRdcTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
@@ -502,6 +559,8 @@ public class OobRdcTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
@@ -524,6 +583,8 @@ public class OobRdcTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
@@ -545,6 +606,8 @@ public class OobRdcTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
@@ -566,6 +629,8 @@ public class OobRdcTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
@@ -587,6 +652,8 @@ public class OobRdcTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
@@ -607,6 +674,8 @@ public class OobRdcTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
@@ -628,6 +697,8 @@ public class OobRdcTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
@@ -649,6 +720,8 @@ public class OobRdcTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
@@ -670,6 +743,8 @@ public class OobRdcTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
@@ -691,6 +766,8 @@ public class OobRdcTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
@@ -712,6 +789,8 @@ public class OobRdcTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
@@ -733,6 +812,8 @@ public class OobRdcTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(hub.pch().exceptions().returnDataCopyFault());
+
+    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just removed
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1

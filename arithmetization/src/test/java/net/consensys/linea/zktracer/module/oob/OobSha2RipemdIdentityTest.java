@@ -67,6 +67,8 @@ public class OobSha2RipemdIdentityTest {
     System.out.println("Inp: 0x" + data);
     System.out.println("Ref: " + referenceComputedHash);
     System.out.println("Com: " + prcComputedHash);
+
+    // TODO: reactivate when returnData is fixed for precompiles
     // assertEquals(referenceComputedHash, prcComputedHash);
   }
 
@@ -84,6 +86,8 @@ public class OobSha2RipemdIdentityTest {
     System.out.println("Test IDENTITY with random argSize = " + argSize);
     System.out.println("Inp: 0x" + data);
     System.out.println("Ret: " + returnedData);
+
+    // TODO: reactivate when returnData is fixed for precompiles
     // assertEquals("0x" + data.toLowerCase(), returnedData);
   }
 
@@ -104,6 +108,8 @@ public class OobSha2RipemdIdentityTest {
     System.out.println("Inp: 0x" + data);
     System.out.println("Ref: " + referenceComputedHash);
     System.out.println("Com: " + prcComputedHash);
+
+    // TODO: reactivate when returnData is fixed for precompiles
     // assertEquals(referenceComputedHash, prcComputedHash);
   }
 

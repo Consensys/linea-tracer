@@ -277,6 +277,10 @@ public class CallFrame {
     return this.getsRevertedAt > 0;
   }
 
+  public boolean willRevert() {
+    return selfReverts() || getsReverted();
+  }
+
   public boolean hasReverted() {
     return (this.selfRevertsAt > 0) || (this.getsRevertedAt > 0);
   }

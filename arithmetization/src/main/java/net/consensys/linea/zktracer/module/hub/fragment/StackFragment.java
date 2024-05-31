@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -50,9 +51,10 @@ public final class StackFragment implements TraceFragment {
   @Setter private DeploymentExceptions contextExceptions;
   private final long staticGas;
   private EWord hashInfoKeccak = EWord.ZERO;
-  private final long hashInfoSize;
   private final boolean hashInfoFlag;
   @Getter private final OpCode opCode;
+  private final boolean jumpDestinationVettingRequired;
+  private final boolean willRevert;
 
   private StackFragment(
       final Hub hub,
@@ -62,7 +64,8 @@ public final class StackFragment implements TraceFragment {
       AbortingConditions aborts,
       DeploymentExceptions contextExceptions,
       GasProjection gp,
-      boolean isDeploying) {
+      boolean isDeploying,
+      boolean willRevert) {
     this.stack = stack;
     this.stackOps = stackOps;
     this.exceptions = exceptions;
@@ -78,12 +81,44 @@ public final class StackFragment implements TraceFragment {
               && gp.messageSize() > 0;
           default -> false;
         };
-    this.hashInfoSize = this.hashInfoFlag ? gp.messageSize() : 0;
-    this.staticGas = gp.staticGas();
-    if (this.opCode == OpCode.RETURN && exceptions.none()) {
-      this.hashInfoKeccak =
-          EWord.of(org.hyperledger.besu.crypto.Hash.keccak256(hub.transients().op().returnData()));
+    if (this.hashInfoFlag) {
+      Bytes memorySegmentToHash;
+      switch (this.opCode) {
+        case SHA3, RETURN -> {
+          long offset = hub.currentFrame().frame().getStackItem(0).toLong();
+          long size = hub.currentFrame().frame().getStackItem(1).toLong();
+          memorySegmentToHash = hub.messageFrame().shadowReadMemory(offset, size);
+        }
+        case CREATE2 -> {
+          long offset = hub.currentFrame().frame().getStackItem(1).toLong();
+          long size = hub.currentFrame().frame().getStackItem(2).toLong();
+          memorySegmentToHash = hub.messageFrame().shadowReadMemory(offset, size);
+        }
+        default ->
+                throw new UnsupportedOperationException("Hash was attempted by the following opcode: " + this.opCode().toString());
+      }
+      this.hashInfoKeccak = EWord.of(memorySegmentToHash);
     }
+
+    this.staticGas = gp.staticGas();
+
+    if (opCode.isJump() && !exceptions.stackException()) {
+      final BigInteger prospectivePcNew = hub.currentFrame().frame().getStackItem(0).toBigInteger();
+      final BigInteger codeSize = BigInteger.valueOf(hub.currentFrame().code().getSize());
+
+      boolean prospectivePcNewIsInBounds = codeSize.compareTo(prospectivePcNew) > 0;
+
+      if (opCode.equals(OpCode.JUMPI)) {
+        boolean nonzeroJumpCondition = !hub.currentFrame().frame().getStackItem(1).toBigInteger().equals(BigInteger.ZERO);
+        prospectivePcNewIsInBounds = prospectivePcNewIsInBounds && nonzeroJumpCondition;
+      }
+
+      jumpDestinationVettingRequired = prospectivePcNewIsInBounds;
+    } else {
+      jumpDestinationVettingRequired = false;
+    }
+
+    this.willRevert = willRevert;
   }
 
   public static StackFragment prepare(
@@ -93,7 +128,8 @@ public final class StackFragment implements TraceFragment {
       final Exceptions exceptions,
       final AbortingConditions aborts,
       final GasProjection gp,
-      boolean isDeploying) {
+      boolean isDeploying,
+      boolean willRevert) {
     return new StackFragment(
         hub,
         stack,
@@ -102,7 +138,8 @@ public final class StackFragment implements TraceFragment {
         aborts,
         DeploymentExceptions.empty(),
         gp,
-        isDeploying);
+        isDeploying,
+        willRevert);
   }
 
   public void feedHashedValue(MessageFrame frame) {
@@ -126,6 +163,12 @@ public final class StackFragment implements TraceFragment {
         default -> throw new IllegalStateException("unexpected opcode");
       }
     }
+  }
+
+  private boolean traceLog() {
+    return this.opCode.isLog()
+            && this.exceptions.none() // TODO: should be redundant (exceptions trigger reverts) --- this could be asserted
+            && !this.willRevert;
   }
 
   @Override
@@ -232,7 +275,7 @@ public final class StackFragment implements TraceFragment {
         .pStackStaticFlag(this.stack.getCurrentOpcodeData().stackSettings().forbiddenInStatic())
         .pStackPushValueHi(pushValue.hi())
         .pStackPushValueLo(pushValue.lo())
-        .pStackJumpDestinationVettingRequired(false) // TODO
+        .pStackJumpDestinationVettingRequired(this.jumpDestinationVettingRequired) // TODO: confirm this
         // Exception flag
         .pStackOpcx(exceptions.invalidOpcode())
         .pStackSux(exceptions.stackUnderflow())
@@ -249,7 +292,7 @@ public final class StackFragment implements TraceFragment {
         .pStackHashInfoFlag(this.hashInfoFlag)
         .pStackHashInfoKeccakHi(this.hashInfoKeccak.hi())
         .pStackHashInfoKeccakLo(this.hashInfoKeccak.lo())
-        .pStackLogInfoFlag(false) // TODO
-    ;
+        .pStackLogInfoFlag(this.traceLog()) // TODO: confirm this
+        ;
   }
 }

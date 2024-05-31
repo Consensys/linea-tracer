@@ -81,7 +81,8 @@ public abstract class TraceSection {
    * @return a {@link CommonFragment} representing the shared columns
    */
   private CommonFragment traceCommon(Hub hub, CallFrame frame) {
-    return CommonFragment.fromHub(world, hub, frame, this.stackRowsCounter == 2, this.nonStackRowsCounter);
+    return CommonFragment.fromHub(
+        world, hub, frame, this.stackRowsCounter == 2, this.nonStackRowsCounter);
   }
 
   /** Default creator for an empty section. */
@@ -255,7 +256,8 @@ public abstract class TraceSection {
                 hub.pch().exceptions().snapshot(),
                 hub.pch().abortingConditions().snapshot(),
                 Hub.GAS_PROJECTOR.of(f.frame(), f.opCode()),
-                f.underDeployment()));
+                f.underDeployment(),
+                f.willRevert()));
       }
     } else {
       for (StackLine line : f.pending().lines()) {
@@ -267,7 +269,8 @@ public abstract class TraceSection {
                 hub.pch().exceptions().snapshot(),
                 hub.pch().abortingConditions().snapshot(),
                 Hub.GAS_PROJECTOR.of(f.frame(), f.opCode()),
-                f.underDeployment()));
+                f.underDeployment(),
+                f.willRevert()));
       }
     }
     return r;

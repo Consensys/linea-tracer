@@ -71,18 +71,19 @@ public final class CommonFragment implements TraceFragment {
   @Getter @Setter private int numberOfNonStackRows;
   @Getter @Setter private int nonStackRowsCounter;
 
-  public static CommonFragment fromHub(WorldView world, final Hub hub, final CallFrame frame, boolean tliCounter, int nonStackRowsCounter) {
-    long refund = 0;
+  public static CommonFragment fromHub(WorldView world, final Hub hub, final CallFrame frame, boolean tliCounter, int nonStackRowCounter) {
+    long refundDelta = 0;
     boolean noStackException = hub.pch().exceptions().noStackException();
 
     if (noStackException) {
-      refund = Hub.GAS_PROJECTOR.of(frame.frame(), hub.opCode()).refund();
+      refundDelta = Hub.GAS_PROJECTOR.of(frame.frame(), hub.opCode()).refund();
     }
 
     int height = hub.currentFrame().stack().getHeight();
-    int heightNew = (noStackException
-            ? height - hub.opCode().getData().stackSettings().delta() + hub.opCode().getData().stackSettings().alpha()
-            : 0);
+    int heightNew =
+            (noStackException
+                    ? height - hub.opCode().getData().stackSettings().delta() + hub.opCode().getData().stackSettings().alpha()
+                    : 0);
 
     final int pc = frame.pc();
     final int pcNew = !noStackException
@@ -109,10 +110,10 @@ public final class CommonFragment implements TraceFragment {
             .codeDeploymentNumber(frame.codeDeploymentNumber())
             .codeDeploymentStatus(frame.underDeployment())
             .callerContextNumber(hub.callStack().getParentOf(frame.id()).contextNumber())
-            .refundDelta(refund)
+            .refundDelta(refundDelta)
             .twoLineInstruction(hub.opCodeData().stackSettings().twoLinesInstruction())
             .twoLineInstructionCounter(tliCounter)
-            .nonStackRowsCounter(nonStackRowsCounter)
+            .nonStackRowsCounter(nonStackRowCounter)
             .build();
   }
 
@@ -123,9 +124,9 @@ public final class CommonFragment implements TraceFragment {
       return pc + opCode.byteValue() - OpCode.PUSH1.byteValue() + 2;
     }
 
-    if (opCode.getData().instructionFamily().equals(InstructionFamily.JUMP)) {
-      BigInteger prospectivePcNew = hub.currentFrame().frame().getStackItem(0).toBigInteger();
-      BigInteger codeSize = BigInteger.valueOf(hub.currentFrame().code().getSize());
+    if (opCode.isJump()) {
+      final BigInteger prospectivePcNew = hub.currentFrame().frame().getStackItem(0).toBigInteger();
+      final BigInteger codeSize = BigInteger.valueOf(hub.currentFrame().code().getSize());
 
       final int attemptedPcNew = codeSize.compareTo(prospectivePcNew) > 0
               ? prospectivePcNew.intValueExact()
@@ -199,7 +200,7 @@ public final class CommonFragment implements TraceFragment {
     //                        frame.underDeployment()));
     final boolean selfReverts = frame.selfReverts();
     final boolean getsReverted = frame.getsReverted();
-
+    final boolean willRevert = frame.willRevert();
 
     return trace
             .absoluteTransactionNumber(tx.absNumber())
@@ -223,9 +224,9 @@ public final class CommonFragment implements TraceFragment {
             .mmuStamp(this.stamps.mmu())
             .mxpStamp(this.stamps.mxp())
             .contextNumber(contextNumber)
-            .contextNumberNew(contextNumberNew) // TODO
+            .contextNumberNew(contextNumberNew)
             .callerContextNumber(callerContextNumber)
-            .contextWillRevert(getsReverted || selfReverts)
+            .contextWillRevert(willRevert)
             .contextGetsReverted(getsReverted)
             .contextSelfReverts(selfReverts)
             .contextRevertStamp(revertStamp)
@@ -239,7 +240,7 @@ public final class CommonFragment implements TraceFragment {
             .gasCost(Bytes.ofUnsignedLong(gasCost))
             .gasNext(gasNext)
             .refundCounter(gasRefund)
-            .refundCounterNew(gasRefund + refundDelta)
+            .refundCounterNew(gasRefund + (willRevert ? 0 : refundDelta))
             .twoLineInstruction(twoLineInstruction)
             .counterTli(twoLineInstructionCounter)
             .nonStackRows((short) numberOfNonStackRows)

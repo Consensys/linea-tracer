@@ -32,7 +32,6 @@ import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.transients.DeploymentInfo;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
@@ -75,7 +74,7 @@ public class RomLex implements Module {
     this.chunks.pop();
   }
 
-  public int getCfiByMetadata(final ContractMetadata metadata) {
+  public int getCodeFragmentIndexByMetadata(final ContractMetadata metadata) {
     if (this.sortedChunks.isEmpty()) {
       throw new RuntimeException("Chunks have not been sorted yet");
     }

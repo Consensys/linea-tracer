@@ -164,8 +164,8 @@ public class Trace {
   private final MappedByteBuffer prcModexpXorMxpFlag;
   private final MappedByteBuffer prcRipemd160XorOogx;
   private final MappedByteBuffer prcSha2256XorOpcx;
-  private final MappedByteBuffer prcSuccessWillRevertXorPushpopFlag;
-  private final MappedByteBuffer prcSuccessWontRevertXorRdcx;
+  private final MappedByteBuffer prcSuccessCallerWillRevertXorPushpopFlag;
+  private final MappedByteBuffer prcSuccessCallerWontRevertXorRdcx;
   private final MappedByteBuffer priorityFeePerGas;
   private final MappedByteBuffer programCounter;
   private final MappedByteBuffer programCounterNew;
@@ -193,7 +193,7 @@ public class Trace {
   private final MappedByteBuffer rlpaddrRecipeXorStpOogxXorCreateAbortXorDecFlag4;
   private final MappedByteBuffer rlpaddrSaltHiXorMxpGasMxp;
   private final MappedByteBuffer rlpaddrSaltLoXorMxpOffset1Hi;
-  private final MappedByteBuffer romLexFlagXorStpWarmthXorCreateEmptyInitCodeWillRevertXorDupFlag;
+  private final MappedByteBuffer romlexFlagXorStpWarmthXorCreateEmptyInitCodeWillRevertXorDupFlag;
   private final MappedByteBuffer selfdestructExceptionXorStackItemPop4;
   private final MappedByteBuffer selfdestructWillRevertXorStaticx;
   private final MappedByteBuffer selfdestructWontRevertAlreadyMarkedXorStaticFlag;
@@ -418,8 +418,8 @@ public class Trace {
         new ColumnHeader("hub.PRC_MODEXP_xor_MXP_FLAG", 1, length),
         new ColumnHeader("hub.PRC_RIPEMD-160_xor_OOGX", 1, length),
         new ColumnHeader("hub.PRC_SHA2-256_xor_OPCX", 1, length),
-        new ColumnHeader("hub.PRC_SUCCESS_WILL_REVERT_xor_PUSHPOP_FLAG", 1, length),
-        new ColumnHeader("hub.PRC_SUCCESS_WONT_REVERT_xor_RDCX", 1, length),
+        new ColumnHeader("hub.PRC_SUCCESS_CALLER_WILL_REVERT_xor_PUSHPOP_FLAG", 1, length),
+        new ColumnHeader("hub.PRC_SUCCESS_CALLER_WONT_REVERT_xor_RDCX", 1, length),
         new ColumnHeader("hub.PRIORITY_FEE_PER_GAS", 32, length),
         new ColumnHeader("hub.PROGRAM_COUNTER", 8, length),
         new ColumnHeader("hub.PROGRAM_COUNTER_NEW", 8, length),
@@ -459,7 +459,7 @@ public class Trace {
         new ColumnHeader("hub.RLPADDR_SALT_HI_xor_MXP_GAS_MXP", 32, length),
         new ColumnHeader("hub.RLPADDR_SALT_LO_xor_MXP_OFFSET_1_HI", 32, length),
         new ColumnHeader(
-            "hub.ROM_LEX_FLAG_xor_STP_WARMTH_xor_CREATE_EMPTY_INIT_CODE_WILL_REVERT_xor_DUP_FLAG",
+            "hub.ROMLEX_FLAG_xor_STP_WARMTH_xor_CREATE_EMPTY_INIT_CODE_WILL_REVERT_xor_DUP_FLAG",
             1,
             length),
         new ColumnHeader("hub.SELFDESTRUCT_EXCEPTION_xor_STACK_ITEM_POP_4", 1, length),
@@ -646,8 +646,8 @@ public class Trace {
     this.prcModexpXorMxpFlag = buffers.get(105);
     this.prcRipemd160XorOogx = buffers.get(106);
     this.prcSha2256XorOpcx = buffers.get(107);
-    this.prcSuccessWillRevertXorPushpopFlag = buffers.get(108);
-    this.prcSuccessWontRevertXorRdcx = buffers.get(109);
+    this.prcSuccessCallerWillRevertXorPushpopFlag = buffers.get(108);
+    this.prcSuccessCallerWontRevertXorRdcx = buffers.get(109);
     this.priorityFeePerGas = buffers.get(110);
     this.programCounter = buffers.get(111);
     this.programCounterNew = buffers.get(112);
@@ -675,7 +675,7 @@ public class Trace {
     this.rlpaddrRecipeXorStpOogxXorCreateAbortXorDecFlag4 = buffers.get(134);
     this.rlpaddrSaltHiXorMxpGasMxp = buffers.get(135);
     this.rlpaddrSaltLoXorMxpOffset1Hi = buffers.get(136);
-    this.romLexFlagXorStpWarmthXorCreateEmptyInitCodeWillRevertXorDupFlag = buffers.get(137);
+    this.romlexFlagXorStpWarmthXorCreateEmptyInitCodeWillRevertXorDupFlag = buffers.get(137);
     this.selfdestructExceptionXorStackItemPop4 = buffers.get(138);
     this.selfdestructWillRevertXorStaticx = buffers.get(139);
     this.selfdestructWontRevertAlreadyMarkedXorStaticFlag = buffers.get(140);
@@ -1601,14 +1601,14 @@ public class Trace {
     return this;
   }
 
-  public Trace pAccountRomLexFlag(final Boolean b) {
+  public Trace pAccountRomlexFlag(final Boolean b) {
     if (filled.get(65)) {
-      throw new IllegalStateException("hub.account/ROM_LEX_FLAG already set");
+      throw new IllegalStateException("hub.account/ROMLEX_FLAG already set");
     } else {
       filled.set(65);
     }
 
-    romLexFlagXorStpWarmthXorCreateEmptyInitCodeWillRevertXorDupFlag.put((byte) (b ? 1 : 0));
+    romlexFlagXorStpWarmthXorCreateEmptyInitCodeWillRevertXorDupFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -2893,7 +2893,7 @@ public class Trace {
       filled.set(65);
     }
 
-    romLexFlagXorStpWarmthXorCreateEmptyInitCodeWillRevertXorDupFlag.put((byte) (b ? 1 : 0));
+    romlexFlagXorStpWarmthXorCreateEmptyInitCodeWillRevertXorDupFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3068,7 +3068,7 @@ public class Trace {
       filled.set(65);
     }
 
-    romLexFlagXorStpWarmthXorCreateEmptyInitCodeWillRevertXorDupFlag.put((byte) (b ? 1 : 0));
+    romlexFlagXorStpWarmthXorCreateEmptyInitCodeWillRevertXorDupFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3396,26 +3396,26 @@ public class Trace {
     return this;
   }
 
-  public Trace pScenarioPrcSuccessWillRevert(final Boolean b) {
+  public Trace pScenarioPrcSuccessCallerWillRevert(final Boolean b) {
     if (filled.get(85)) {
-      throw new IllegalStateException("hub.scenario/PRC_SUCCESS_WILL_REVERT already set");
+      throw new IllegalStateException("hub.scenario/PRC_SUCCESS_CALLER_WILL_REVERT already set");
     } else {
       filled.set(85);
     }
 
-    prcSuccessWillRevertXorPushpopFlag.put((byte) (b ? 1 : 0));
+    prcSuccessCallerWillRevertXorPushpopFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
-  public Trace pScenarioPrcSuccessWontRevert(final Boolean b) {
+  public Trace pScenarioPrcSuccessCallerWontRevert(final Boolean b) {
     if (filled.get(86)) {
-      throw new IllegalStateException("hub.scenario/PRC_SUCCESS_WONT_REVERT already set");
+      throw new IllegalStateException("hub.scenario/PRC_SUCCESS_CALLER_WONT_REVERT already set");
     } else {
       filled.set(86);
     }
 
-    prcSuccessWontRevertXorRdcx.put((byte) (b ? 1 : 0));
+    prcSuccessCallerWontRevertXorRdcx.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3745,7 +3745,7 @@ public class Trace {
       filled.set(65);
     }
 
-    romLexFlagXorStpWarmthXorCreateEmptyInitCodeWillRevertXorDupFlag.put((byte) (b ? 1 : 0));
+    romlexFlagXorStpWarmthXorCreateEmptyInitCodeWillRevertXorDupFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -4097,7 +4097,7 @@ public class Trace {
       filled.set(85);
     }
 
-    prcSuccessWillRevertXorPushpopFlag.put((byte) (b ? 1 : 0));
+    prcSuccessCallerWillRevertXorPushpopFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -4109,7 +4109,7 @@ public class Trace {
       filled.set(86);
     }
 
-    prcSuccessWontRevertXorRdcx.put((byte) (b ? 1 : 0));
+    prcSuccessCallerWontRevertXorRdcx.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -5961,11 +5961,12 @@ public class Trace {
 
     if (!filled.get(85)) {
       throw new IllegalStateException(
-          "hub.PRC_SUCCESS_WILL_REVERT_xor_PUSHPOP_FLAG has not been filled");
+          "hub.PRC_SUCCESS_CALLER_WILL_REVERT_xor_PUSHPOP_FLAG has not been filled");
     }
 
     if (!filled.get(86)) {
-      throw new IllegalStateException("hub.PRC_SUCCESS_WONT_REVERT_xor_RDCX has not been filled");
+      throw new IllegalStateException(
+          "hub.PRC_SUCCESS_CALLER_WONT_REVERT_xor_RDCX has not been filled");
     }
 
     if (!filled.get(129)) {
@@ -6093,7 +6094,7 @@ public class Trace {
 
     if (!filled.get(65)) {
       throw new IllegalStateException(
-          "hub.ROM_LEX_FLAG_xor_STP_WARMTH_xor_CREATE_EMPTY_INIT_CODE_WILL_REVERT_xor_DUP_FLAG has not been filled");
+          "hub.ROMLEX_FLAG_xor_STP_WARMTH_xor_CREATE_EMPTY_INIT_CODE_WILL_REVERT_xor_DUP_FLAG has not been filled");
     }
 
     if (!filled.get(94)) {
@@ -6793,12 +6794,12 @@ public class Trace {
     }
 
     if (!filled.get(85)) {
-      prcSuccessWillRevertXorPushpopFlag.position(
-          prcSuccessWillRevertXorPushpopFlag.position() + 1);
+      prcSuccessCallerWillRevertXorPushpopFlag.position(
+          prcSuccessCallerWillRevertXorPushpopFlag.position() + 1);
     }
 
     if (!filled.get(86)) {
-      prcSuccessWontRevertXorRdcx.position(prcSuccessWontRevertXorRdcx.position() + 1);
+      prcSuccessCallerWontRevertXorRdcx.position(prcSuccessCallerWontRevertXorRdcx.position() + 1);
     }
 
     if (!filled.get(129)) {
@@ -6922,8 +6923,8 @@ public class Trace {
     }
 
     if (!filled.get(65)) {
-      romLexFlagXorStpWarmthXorCreateEmptyInitCodeWillRevertXorDupFlag.position(
-          romLexFlagXorStpWarmthXorCreateEmptyInitCodeWillRevertXorDupFlag.position() + 1);
+      romlexFlagXorStpWarmthXorCreateEmptyInitCodeWillRevertXorDupFlag.position(
+          romlexFlagXorStpWarmthXorCreateEmptyInitCodeWillRevertXorDupFlag.position() + 1);
     }
 
     if (!filled.get(94)) {

@@ -111,7 +111,7 @@ public final class AccountFragment
         .pAccountHasCode(oldState.code().getCodeHash() != Hash.EMPTY)
         .pAccountHasCodeNew(newState.code().getCodeHash() != Hash.EMPTY)
         .pAccountCodeFragmentIndex(this.codeFragmentIndex)
-        .pAccountRomLexFlag(false) // TODO
+        .pAccountRomlexFlag(false) // TODO
         .pAccountExists(
             oldState.nonce() > 0
                 || oldState.code().getCodeHash() != Hash.EMPTY

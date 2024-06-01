@@ -319,9 +319,9 @@ public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
             precompileCall.map(x -> x.precompile().equals(Precompile.EC_PAIRING)).orElse(false))
         .pScenarioPrcBlake2F(
             precompileCall.map(x -> x.precompile().equals(Precompile.BLAKE2F)).orElse(false))
-        .pScenarioPrcSuccessWillRevert(
+        .pScenarioPrcSuccessCallerWillRevert(
             type.isPrecompile() && successfulPrecompileCall() && callerReverts)
-        .pScenarioPrcSuccessWontRevert(
+        .pScenarioPrcSuccessCallerWontRevert(
             type.isPrecompile() && successfulPrecompileCall() && !callerReverts)
         .pScenarioPrcFailureKnownToHub(
             precompileCall.map(PrecompileInvocation::hubFailure).orElse(false))

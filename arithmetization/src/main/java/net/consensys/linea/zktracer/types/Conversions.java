@@ -143,4 +143,8 @@ public class Conversions {
   public static Bytes booleanToBytes(boolean x) {
     return x ? ONE : Bytes.EMPTY;
   }
+
+  public static long bytesToLong(final Bytes input) {
+    return input.trimLeadingZeros().toLong();
+  }
 }

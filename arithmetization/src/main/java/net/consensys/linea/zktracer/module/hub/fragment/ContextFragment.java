@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment;
 
+import static net.consensys.linea.zktracer.types.Conversions.bytesToLong;
+
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
@@ -97,15 +99,15 @@ public record ContextFragment(
         .pContextCallStackDepth((short) callFrame.depth())
         .pContextIsRoot(callFrame.isRoot())
         .pContextIsStatic(callFrame.type().isStatic())
-        .pContextAccountAddressHi(eAddress.hi().toLong())
+        .pContextAccountAddressHi(bytesToLong(eAddress.hi()))
         .pContextAccountAddressLo(eAddress.lo())
         .pContextAccountDeploymentNumber(callFrame.accountDeploymentNumber())
-        .pContextByteCodeAddressHi(eCodeAddress.hi().toLong())
+        .pContextByteCodeAddressHi(bytesToLong(eCodeAddress.hi()))
         .pContextByteCodeAddressLo(eCodeAddress.lo())
         .pContextByteCodeDeploymentNumber(callFrame.codeDeploymentNumber())
         .pContextByteCodeDeploymentStatus(callFrame.underDeployment() ? 1 : 0)
         .pContextByteCodeCodeFragmentIndex(0) // TODO
-        .pContextCallerAddressHi(parentAddress.hi().toLong())
+        .pContextCallerAddressHi(bytesToLong(parentAddress.hi()))
         .pContextCallerAddressLo(parentAddress.lo())
         .pContextCallValue(callFrame.value())
         .pContextCallDataContextNumber(parent.contextNumber())

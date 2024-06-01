@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.hub.fragment;
 
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
+import static net.consensys.linea.zktracer.types.Conversions.bytesToLong;
 
 import lombok.Setter;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -52,13 +53,13 @@ public final class TransactionFragment implements TraceFragment, PostTransaction
     return trace
         .peekAtTransaction(true)
         .pTransactionBatchNum(transactionProcessingMetadata.getRelativeBlockNumber())
-        .pTransactionFromAddressHi(from.hi().toLong())
+        .pTransactionFromAddressHi(bytesToLong(from.hi()))
         .pTransactionFromAddressLo(from.lo())
         .pTransactionNonce(Bytes.ofUnsignedLong(tx.getNonce()))
         .pTransactionInitialBalance(
             bigIntegerToBytes(transactionProcessingMetadata.getInitialBalance()))
         .pTransactionValue(bigIntegerToBytes(tx.getValue().getAsBigInteger()))
-        .pTransactionToAddressHi(to.hi().toLong())
+        .pTransactionToAddressHi(bytesToLong(to.hi()))
         .pTransactionToAddressLo(to.lo())
         .pTransactionRequiresEvmExecution(transactionProcessingMetadata.requiresEvmExecution())
         .pTransactionCopyTxcd(transactionProcessingMetadata.copyTransactionCallData())
@@ -78,7 +79,7 @@ public final class TransactionFragment implements TraceFragment, PostTransaction
             Bytes.minimalBytes(transactionProcessingMetadata.getRefundCounterMax()))
         .pTransactionRefundEffective(
             Bytes.minimalBytes(transactionProcessingMetadata.getRefundEffective()))
-        .pTransactionCoinbaseAddressHi(miner.hi().toLong())
+        .pTransactionCoinbaseAddressHi(bytesToLong(miner.hi()))
         .pTransactionCoinbaseAddressLo(miner.lo());
   }
 

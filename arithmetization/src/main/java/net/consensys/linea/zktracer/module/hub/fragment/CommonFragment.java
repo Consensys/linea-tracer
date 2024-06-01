@@ -179,7 +179,9 @@ public final class CommonFragment implements TraceFragment {
   }
 
   public boolean txReverts() {
-    return hub.txStack().getById(this.absoluteTransactionNumber).statusCode();
+    return hub.txStack()
+        .getByAbsoluteTransactionNumber(this.absoluteTransactionNumber)
+        .statusCode();
   }
 
   @Override
@@ -189,7 +191,8 @@ public final class CommonFragment implements TraceFragment {
 
   public Trace trace(Trace trace, int stackHeight, int stackHeightNew) {
     final CallFrame frame = this.hub.callStack().getById(this.callFrameId);
-    final TransactionProcessingMetadata tx = hub.txStack().getById(this.absoluteTransactionNumber);
+    final TransactionProcessingMetadata tx =
+        hub.txStack().getByAbsoluteTransactionNumber(this.absoluteTransactionNumber);
     // TODO: after ROMLex merge
     final int codeFragmentIndex = 0;
     //        frame.type() == CallFrameType.MANTLE

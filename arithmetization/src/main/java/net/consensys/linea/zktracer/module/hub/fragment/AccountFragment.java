@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.hub.fragment;
 
 import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
+import static net.consensys.linea.zktracer.types.Conversions.bytesToLong;
 
 import java.util.Optional;
 
@@ -95,7 +96,7 @@ public final class AccountFragment
 
     return trace
         .peekAtAccount(true)
-        .pAccountAddressHi(eWho.hi().toLong())
+        .pAccountAddressHi(bytesToLong(eWho.hi()))
         .pAccountAddressLo(eWho.lo())
         .pAccountNonce(Bytes.ofUnsignedLong(oldState.nonce()))
         .pAccountNonceNew(Bytes.ofUnsignedLong(newState.nonce()))

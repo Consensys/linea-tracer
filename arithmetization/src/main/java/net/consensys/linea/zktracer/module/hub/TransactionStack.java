@@ -47,18 +47,8 @@ public class TransactionStack implements StackedContainer {
     return this.txs.get(this.txs.size() - 1);
   }
 
-  public TransactionProcessingMetadata getById(int id) {
-    return this.txs.get(id);
-  }
-
-  public TransactionProcessingMetadata getByAbsNumber(int id) {
-    for (TransactionProcessingMetadata tx : this.txs) {
-      if (tx.getAbsoluteTransactionNumber() == id) {
-        return tx;
-      }
-    }
-
-    throw new IndexOutOfBoundsException("unknown tx");
+  public TransactionProcessingMetadata getByAbsoluteTransactionNumber(final int id) {
+    return this.txs.get(id - 1);
   }
 
   @Override

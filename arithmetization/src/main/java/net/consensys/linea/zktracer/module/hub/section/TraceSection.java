@@ -206,7 +206,7 @@ public abstract class TraceSection {
         line.common.nonStackRowsCounter(nonStackLineCounter);
       }
       line.common.pcNew(hub.lastPc());
-      line.common.contextNumberNew(hub.lastContextNumber());
+      // line.common.contextNumberNew(hub.lastContextNumber()); //TODO understand this
       line.common.numberOfNonStackRows(nonStackLineNumbers);
     }
   }

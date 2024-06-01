@@ -50,7 +50,7 @@ public final class CommonFragment implements TraceFragment {
   private final int callFrameId;
   private final int callerContextNumber;
   @Getter private final int contextNumber;
-  @Setter private int contextNumberNew;
+  private final int contextNumberNew;
   private final int revertStamp;
   @Getter final short height;
   @Getter final short heightNew;

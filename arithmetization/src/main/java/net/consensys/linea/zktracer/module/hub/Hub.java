@@ -644,37 +644,54 @@ public class Hub implements Module {
   }
 
   public int contextNumberNew(WorldView world) {
-    OpCode opCode = this.opCode();
-    if (pch.exceptions().any()
-        || opCode.getData().instructionFamily().equals(InstructionFamily.HALT)
-        || opCode.getData().instructionFamily().equals(InstructionFamily.INVALID)) {
-      return this.callStack.depth() == 0 ? 0 : this.callStack().caller().contextNumber();
-    }
+    switch (this.state.getProcessingPhase()) {
+      case TX_SKIP, TX_WARM, TX_FINAL -> {
+        return 0;
+      }
+      case TX_INIT -> {
+        return this.state.stamps().hub() + 1;
+      }
+      case TX_EXEC -> {
+        final OpCode opCode = this.opCode();
 
-    final int currentContextNumber = this.callStack().current().contextNumber();
+        if (pch.exceptions().any()
+            || opCode.getData().instructionFamily().equals(InstructionFamily.HALT)
+            || opCode.getData().instructionFamily().equals(InstructionFamily.INVALID)) {
+          return this.callStack.depth() == 0 ? 0 : this.callStack().caller().contextNumber();
+        }
 
-    if (opCode.isCall()) {
-      if (pch().abortingConditions().any()) {
+        final int currentContextNumber = this.callStack().current().contextNumber();
+
+        if (opCode.isCall()) {
+          if (pch().abortingConditions().any()) {
+            return currentContextNumber;
+          }
+          Address calleeAddress =
+              Address.extract((Bytes32) this.currentFrame().frame().getStackItem(1));
+          if (world.get(calleeAddress).hasCode()) {
+            return 1 + stamp();
+          }
+        }
+
+        if (opCode.isCreate()) {
+          if (pch().abortingConditions().any() || pch().failureConditions().any()) {
+            return currentContextNumber;
+          }
+          final int initCodeSize = this.currentFrame().frame().getStackItem(2).toInt();
+          if (initCodeSize != 0) {
+            return 1 + stamp();
+          }
+        }
+
         return currentContextNumber;
       }
-      Address calleeAddress =
-          Address.extract((Bytes32) this.currentFrame().frame().getStackItem(1));
-      if (world.get(calleeAddress).hasCode()) {
-        return 1 + stamp();
+      default -> {
+        {
+          throw new IllegalStateException(
+              String.format("Hub can't be in the state %s", this.state.getProcessingPhase()));
+        }
       }
     }
-
-    if (opCode.isCreate()) {
-      if (pch().abortingConditions().any() || pch().failureConditions().any()) {
-        return currentContextNumber;
-      }
-      final int initCodeSize = this.currentFrame().frame().getStackItem(2).toInt();
-      if (initCodeSize != 0) {
-        return 1 + stamp();
-      }
-    }
-
-    return currentContextNumber;
   }
 
   public MessageFrame messageFrame() {

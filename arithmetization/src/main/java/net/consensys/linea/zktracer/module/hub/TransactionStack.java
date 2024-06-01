@@ -85,7 +85,7 @@ public class TransactionStack implements StackedContainer {
     if (hub.state.processingPhase != HubProcessingPhase.TX_SKIP) {
       hub.state.setProcessingPhase(HubProcessingPhase.TX_FINAL);
     }
-    this.current().setHubStampTransactionEnd(hub.stamp());
+    this.current().setHubStampTransactionEnd(hub.stamp() + 1);
   }
 
   public static long computeInitGas(Transaction tx) {

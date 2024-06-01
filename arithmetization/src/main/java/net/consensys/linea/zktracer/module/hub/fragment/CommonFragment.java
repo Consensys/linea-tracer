@@ -33,8 +33,6 @@ import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.HubProcessingPhase;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
-import org.apache.tuweni.bytes.Bytes32;
-import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Accessors(fluent = true, chain = false)
@@ -100,7 +98,7 @@ public final class CommonFragment implements TraceFragment {
         .absoluteTransactionNumber(hub.transients().tx().getAbsoluteTransactionNumber())
         .relativeBlockNumber(hub.transients().conflation().number())
         .hubProcessingPhase(hub.state.getProcessingPhase())
-        .stamps(hub.state.stamps())
+        .stamps(hub.state.stamps().snapshot())
         .instructionFamily(hub.opCodeData().instructionFamily())
         .exceptions(hub.pch().exceptions().snapshot())
         .abortingConditions(hub.pch().abortingConditions().snapshot())
@@ -149,33 +147,6 @@ public final class CommonFragment implements TraceFragment {
     }
 
     return pc + 1;
-  }
-
-  private int computeContextNumberNew(WorldView world, final Hub hub) {
-    OpCode opCode = hub.opCode();
-    if (exceptions.any()
-        || opCode.getData().instructionFamily().equals(InstructionFamily.HALT)
-        || opCode.getData().instructionFamily().equals(InstructionFamily.INVALID)) {
-      return callerContextNumber;
-    }
-
-    if (opCode.isCall()) {
-      // If abortingConditions Then contextNumberNew <-- contextNumber
-      Address calleeAddress = Address.extract((Bytes32) hub.currentFrame().frame().getStackItem(1));
-      if (world.get(calleeAddress).hasCode()) {
-        return 1 + hub.stamp();
-      }
-    }
-
-    if (opCode.isCreate()) {
-      // If (abortingConditions ∨ failureConditions) Then contextNumberNew <-- contextNumber
-      final int initCodeSize = hub.currentFrame().frame().getStackItem(2).toInt();
-      if (initCodeSize != 0) {
-        return 1 + hub.stamp();
-      }
-    }
-
-    return contextNumber;
   }
 
   public boolean txReverts() {

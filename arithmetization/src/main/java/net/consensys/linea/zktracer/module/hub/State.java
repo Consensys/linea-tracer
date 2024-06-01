@@ -28,7 +28,7 @@ import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
 import net.consensys.linea.zktracer.types.HubProcessingPhase;
 
 public class State implements StackedContainer {
-  private final Deque<TxState> state = new ArrayDeque<>(50);
+  private final Deque<TxState> state = new ArrayDeque<>();
 
   State() {}
 
@@ -110,7 +110,7 @@ public class State implements StackedContainer {
     }
 
     TxState spinOff() {
-      return new TxState(this.stamps.spinOff());
+      return new TxState(this.stamps.snapshot());
     }
 
     /** Stores all the stamps associated to the tracing of a transaction. */
@@ -132,7 +132,7 @@ public class State implements StackedContainer {
         this.hashInfo = hashInfoStamp;
       }
 
-      Stamps spinOff() {
+      public Stamps snapshot() {
         return new Stamps(this.hub, this.mmu, this.mxp, this.hashInfo);
       }
 

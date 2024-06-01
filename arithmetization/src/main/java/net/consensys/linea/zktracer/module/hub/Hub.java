@@ -1247,8 +1247,20 @@ public class Hub implements Module {
     return this.state.currentTxTrace().refundCounter();
   }
 
+  // TODO: how do these implementations of remainingGas()
+  //  and expectedGas() behave with respect to resuming
+  //  execution after a CALL / CREATE ? One of them is
+  //  necessarily false ...
   public long remainingGas() {
-    return 0; // TODO:
+    return this.state().getProcessingPhase() == HubProcessingPhase.TX_EXEC
+            ? this.currentFrame().frame().getRemainingGas()
+            : 0;
+  }
+
+  public long expectedGas() {
+    return this.state().getProcessingPhase() == HubProcessingPhase.TX_EXEC
+            ? this.currentFrame().frame().getRemainingGas()
+            : 0;
   }
 
   @Override

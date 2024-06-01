@@ -80,6 +80,12 @@ public final class CommonFragment implements TraceFragment {
     final long refundDelta =
         noStackException ? Hub.GAS_PROJECTOR.of(frame.frame(), hub.opCode()).refund() : 0;
 
+    // TODO: partial solution, will not work in general
+    final long gasExpected = hub.expectedGas();
+    final long gasActual = hub.remainingGas();
+    final long gasCost = noStackException ? Hub.GAS_PROJECTOR.of(frame.frame(), hub.opCode()).staticGas() : 0;
+    final long gasNext = hub.pch().exceptions().any() ? 0 : gasActual - gasCost;
+
     final int height = hub.currentFrame().stack().getHeight();
     final int heightNew =
         (noStackException
@@ -110,6 +116,10 @@ public final class CommonFragment implements TraceFragment {
         .heightNew((short) heightNew)
         .codeDeploymentNumber(frame.codeDeploymentNumber())
         .codeDeploymentStatus(frame.underDeployment())
+        .gasExpected(gasExpected)
+        .gasActual(gasActual)
+        .gasCost(gasCost)
+        .gasNext(gasNext)
         .callerContextNumber(hub.callStack().getParentOf(frame.id()).contextNumber())
         .refundDelta(refundDelta)
         .twoLineInstruction(hub.opCodeData().stackSettings().twoLinesInstruction())

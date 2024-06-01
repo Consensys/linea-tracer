@@ -27,9 +27,11 @@ import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.signals.AbortingConditions;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.signals.FailureConditions;
+import net.consensys.linea.zktracer.module.romlex.ContractMetadata;
 import net.consensys.linea.zktracer.opcode.InstructionFamily;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
+import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.types.HubProcessingPhase;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
@@ -83,7 +85,8 @@ public final class CommonFragment implements TraceFragment {
     // TODO: partial solution, will not work in general
     final long gasExpected = hub.expectedGas();
     final long gasActual = hub.remainingGas();
-    final long gasCost = noStackException ? Hub.GAS_PROJECTOR.of(frame.frame(), hub.opCode()).staticGas() : 0;
+    final long gasCost =
+        noStackException ? Hub.GAS_PROJECTOR.of(frame.frame(), hub.opCode()).staticGas() : 0;
     final long gasNext = hub.pch().exceptions().any() ? 0 : gasActual - gasCost;
 
     final int height = hub.currentFrame().stack().getHeight();
@@ -173,16 +176,16 @@ public final class CommonFragment implements TraceFragment {
     final TransactionProcessingMetadata tx =
         hub.txStack().getByAbsoluteTransactionNumber(this.absoluteTransactionNumber);
     // TODO: after ROMLex merge
-    final int codeFragmentIndex = 0;
-    //        frame.type() == CallFrameType.MANTLE
-    //            ? 0
-    //            : this.hub
-    //                .romLex()
-    //                .getCfiByMetadata(
-    //                    ContractMetadata.make(
-    //                        frame.codeAddress(),
-    //                        frame.codeDeploymentNumber(),
-    //                        frame.underDeployment()));
+    final int codeFragmentIndex =
+        frame.type() == CallFrameType.MANTLE
+            ? 0
+            : this.hub
+                .romLex()
+                .getCodeFragmentIndexByMetadata(
+                    ContractMetadata.make(
+                        frame.codeAddress(),
+                        frame.codeDeploymentNumber(),
+                        frame.underDeployment()));
     final boolean selfReverts = frame.selfReverts();
     final boolean getsReverted = frame.getsReverted();
     final boolean willRevert = frame.willRevert();

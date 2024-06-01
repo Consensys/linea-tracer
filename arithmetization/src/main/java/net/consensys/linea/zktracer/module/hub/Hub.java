@@ -1253,14 +1253,14 @@ public class Hub implements Module {
   //  necessarily false ...
   public long remainingGas() {
     return this.state().getProcessingPhase() == HubProcessingPhase.TX_EXEC
-            ? this.currentFrame().frame().getRemainingGas()
-            : 0;
+        ? this.currentFrame().frame().getRemainingGas()
+        : 0;
   }
 
   public long expectedGas() {
     return this.state().getProcessingPhase() == HubProcessingPhase.TX_EXEC
-            ? this.currentFrame().frame().getRemainingGas()
-            : 0;
+        ? this.currentFrame().frame().getRemainingGas()
+        : 0;
   }
 
   @Override

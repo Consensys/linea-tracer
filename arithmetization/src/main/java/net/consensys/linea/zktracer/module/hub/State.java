@@ -20,23 +20,27 @@ import java.util.Deque;
 import java.util.Iterator;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.StackedContainer;
 import net.consensys.linea.zktracer.module.hub.State.TxState.Stamps;
 import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
+import net.consensys.linea.zktracer.types.HubProcessingPhase;
 
 public class State implements StackedContainer {
   private final Deque<TxState> state = new ArrayDeque<>(50);
 
   State() {}
 
-  private TxState current() {
+  public TxState current() {
     return this.state.peek();
   }
 
   public Stamps stamps() {
     return this.current().stamps;
   }
+
+  @Getter @Setter HubProcessingPhase processingPhase;
 
   /**
    * @return the current transaction trace elements

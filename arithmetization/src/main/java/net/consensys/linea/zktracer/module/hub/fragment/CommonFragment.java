@@ -24,14 +24,14 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.State;
 import net.consensys.linea.zktracer.module.hub.Trace;
-import net.consensys.linea.zktracer.module.hub.TransactionStack;
 import net.consensys.linea.zktracer.module.hub.signals.AbortingConditions;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.signals.FailureConditions;
 import net.consensys.linea.zktracer.opcode.InstructionFamily;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
-import net.consensys.linea.zktracer.types.TxState;
+import net.consensys.linea.zktracer.types.HubProcessingPhase;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
@@ -41,9 +41,9 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 @Builder
 public final class CommonFragment implements TraceFragment {
   private final Hub hub;
-  private final int txId;
-  private final int batchNumber;
-  private final TxState txState;
+  private final int absoluteTransactionNumber;
+  private final int relativeBlockNumber;
+  private final HubProcessingPhase hubProcessingPhase;
   private final State.TxState.Stamps stamps;
   private final InstructionFamily instructionFamily;
   private final Exceptions exceptions;
@@ -97,9 +97,9 @@ public final class CommonFragment implements TraceFragment {
 
     return CommonFragment.builder()
         .hub(hub)
-        .txId(hub.transients().tx().id())
-        .batchNumber(hub.transients().conflation().number())
-        .txState(hub.transients().tx().state())
+        .absoluteTransactionNumber(hub.transients().tx().getAbsoluteTransactionNumber())
+        .relativeBlockNumber(hub.transients().conflation().number())
+        .hubProcessingPhase(hub.state.getProcessingPhase())
         .stamps(hub.state.stamps())
         .instructionFamily(hub.opCodeData().instructionFamily())
         .exceptions(hub.pch().exceptions().snapshot())
@@ -179,7 +179,7 @@ public final class CommonFragment implements TraceFragment {
   }
 
   public boolean txReverts() {
-    return hub.txStack().getById(this.txId).status();
+    return hub.txStack().getById(this.absoluteTransactionNumber).statusCode();
   }
 
   @Override
@@ -189,7 +189,7 @@ public final class CommonFragment implements TraceFragment {
 
   public Trace trace(Trace trace, int stackHeight, int stackHeightNew) {
     final CallFrame frame = this.hub.callStack().getById(this.callFrameId);
-    final TransactionStack.MetaTransaction tx = hub.txStack().getById(this.txId);
+    final TransactionProcessingMetadata tx = hub.txStack().getById(this.absoluteTransactionNumber);
     // TODO: after ROMLex merge
     final int codeFragmentIndex = 0;
     //        frame.type() == CallFrameType.MANTLE
@@ -206,17 +206,17 @@ public final class CommonFragment implements TraceFragment {
     final boolean willRevert = frame.willRevert();
 
     return trace
-        .absoluteTransactionNumber(tx.absNumber())
-        .batchNumber(this.batchNumber)
-        .txSkip(this.txState == TxState.TX_SKIP)
-        .txWarm(this.txState == TxState.TX_WARM)
-        .txInit(this.txState == TxState.TX_INIT)
-        .txExec(this.txState == TxState.TX_EXEC)
-        .txFinl(this.txState == TxState.TX_FINAL)
+        .absoluteTransactionNumber(tx.getAbsoluteTransactionNumber())
+        .batchNumber(this.relativeBlockNumber)
+        .txSkip(this.hubProcessingPhase == HubProcessingPhase.TX_SKIP)
+        .txWarm(this.hubProcessingPhase == HubProcessingPhase.TX_WARM)
+        .txInit(this.hubProcessingPhase == HubProcessingPhase.TX_INIT)
+        .txExec(this.hubProcessingPhase == HubProcessingPhase.TX_EXEC)
+        .txFinl(this.hubProcessingPhase == HubProcessingPhase.TX_FINAL)
         .hubStamp(this.stamps.hub())
-        .hubStampTransactionEnd(tx.endStamp())
+        .hubStampTransactionEnd(tx.getHubStampTransactionEnd())
         .contextMayChange(
-            this.txState == TxState.TX_EXEC
+            this.hubProcessingPhase == HubProcessingPhase.TX_EXEC
                 && ((instructionFamily == InstructionFamily.CALL
                         || instructionFamily == InstructionFamily.CREATE
                         || instructionFamily == InstructionFamily.HALT

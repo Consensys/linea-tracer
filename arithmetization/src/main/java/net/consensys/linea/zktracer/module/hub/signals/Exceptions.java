@@ -231,7 +231,7 @@ public final class Exceptions {
   }
 
   private static boolean isJumpFault(final MessageFrame frame, OpCode opCode) {
-    if (opCode == OpCode.JUMP || opCode == OpCode.JUMPI) {
+    if (opCode.isJump()) {
       final long target = Words.clampedToLong(frame.getStackItem(0));
       final boolean invalidDestination = frame.getCode().isJumpDestInvalid((int) target);
 

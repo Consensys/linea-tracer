@@ -106,7 +106,7 @@ public class TxnData implements Module {
       List<Log> logs,
       long gasUsed) {
     final long leftoverGas = tx.getGasLimit() - gasUsed;
-    final long refundCounter = hub.refundedGas();
+    final long refundCounter = hub.accruedRefunds();
     this.currentBlock().endTx(leftoverGas, refundCounter, isSuccessful);
 
     final TransactionSnapshot currentTx = this.currentBlock().currentTx();

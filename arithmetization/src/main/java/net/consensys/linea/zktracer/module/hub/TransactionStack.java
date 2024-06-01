@@ -28,28 +28,32 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.container.StackedContainer;
+import net.consensys.linea.zktracer.module.hub.transients.Block;
 import net.consensys.linea.zktracer.module.hub.transients.StorageInitialValues;
-import net.consensys.linea.zktracer.types.TxState;
+import net.consensys.linea.zktracer.types.HubProcessingPhase;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.datatypes.Quantity;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class TransactionStack implements StackedContainer {
-  private final List<MetaTransaction> txs = new ArrayList<>(100);
+  private final List<TransactionProcessingMetadata> txs = new ArrayList<>(100);
   private int currentAbsNumber;
+  private int relativeBlockNumber;
+  private int relativeTransactionNumber;
 
-  public MetaTransaction current() {
+  public TransactionProcessingMetadata current() {
     return this.txs.get(this.txs.size() - 1);
   }
 
-  public MetaTransaction getById(int id) {
+  public TransactionProcessingMetadata getById(int id) {
     return this.txs.get(id);
   }
 
-  public MetaTransaction getByAbsNumber(int id) {
-    for (MetaTransaction tx : this.txs) {
-      if (tx.absNumber == id) {
+  public TransactionProcessingMetadata getByAbsNumber(int id) {
+    for (TransactionProcessingMetadata tx : this.txs) {
+      if (tx.getAbsoluteTransactionNumber() == id) {
         return tx;
       }
     }
@@ -60,14 +64,20 @@ public class TransactionStack implements StackedContainer {
   @Override
   public void enter() {
     this.currentAbsNumber += 1;
+    this.relativeTransactionNumber += 1;
   }
 
   @Override
   public void pop() {
     this.currentAbsNumber -= 1;
+    this.relativeTransactionNumber -= 1;
   }
 
-  public void enterTransaction(final Transaction tx, final boolean requiresEvmExecution) {
+  public void resetBlock() {
+    this.relativeTransactionNumber = 0;
+  }
+
+  public void enterTransaction(final WorldView world, final Transaction tx, Block block) {
     this.enter();
     if (tx.getTo().isPresent() && isPrecompile(tx.getTo().get())) {
       throw new RuntimeException("Call to precompile forbidden");
@@ -75,22 +85,17 @@ public class TransactionStack implements StackedContainer {
       //      this.number++;
     }
 
-    final MetaTransaction newTx =
-        MetaTransaction.builder()
-            .besuTx(tx)
-            .absNumber(currentAbsNumber)
-            .status(null)
-            .initialGas(tx.getGasLimit())
-            .requiresEvmExecution(requiresEvmExecution)
-            .build();
+    final TransactionProcessingMetadata newTx =
+        new TransactionProcessingMetadata(
+            world, tx, block, relativeTransactionNumber, currentAbsNumber);
     this.txs.add(newTx);
   }
 
   public void exitTransaction(final Hub hub, boolean isSuccessful) {
-    if (this.current().state() != TxState.TX_SKIP) {
-      this.current().state(TxState.TX_FINAL);
+    if (hub.state.processingPhase != HubProcessingPhase.TX_SKIP) {
+      hub.state.setProcessingPhase(HubProcessingPhase.TX_FINAL);
     }
-    this.current().status(!isSuccessful).endStamp(hub.stamp());
+    this.current().setHubStampTransactionEnd(hub.stamp());
   }
 
   public static long computeInitGas(Transaction tx) {
@@ -106,7 +111,7 @@ public class TransactionStack implements StackedContainer {
     @Getter private int id;
     @Getter private Transaction besuTx;
     @Getter private int absNumber;
-    @Getter @Setter private TxState state;
+    @Getter @Setter private HubProcessingPhase state;
     @Setter @Builder.Default private Boolean status = null;
     @Getter private long initialGas;
     @Getter private final StorageInitialValues storage = new StorageInitialValues();

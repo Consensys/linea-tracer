@@ -23,56 +23,61 @@ import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.types.EWord;
-import net.consensys.linea.zktracer.types.LineaTransaction;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.TransactionType;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public final class TransactionFragment implements TraceFragment, PostTransactionDefer {
-  private final LineaTransaction lineaTransaction;
+  private final TransactionProcessingMetadata transactionProcessingMetadata;
   @Setter private TraceSection parentSection;
 
-  private TransactionFragment(LineaTransaction lineaTransaction) {
-    this.lineaTransaction = lineaTransaction;
+  private TransactionFragment(TransactionProcessingMetadata transactionProcessingMetadata) {
+    this.transactionProcessingMetadata = transactionProcessingMetadata;
   }
 
-  public static TransactionFragment prepare(LineaTransaction lineaTransaction) {
-    return new TransactionFragment(lineaTransaction);
+  public static TransactionFragment prepare(
+      TransactionProcessingMetadata transactionProcessingMetadata) {
+    return new TransactionFragment(transactionProcessingMetadata);
   }
 
   @Override
   public Trace trace(Trace trace) {
-    final Transaction tx = lineaTransaction.besuTransaction();
-    final EWord to = EWord.of(lineaTransaction.effectiveTo());
-    final EWord from = EWord.of(lineaTransaction.getSender());
-    final EWord miner = EWord.of(lineaTransaction.coinbase());
+    final Transaction tx = transactionProcessingMetadata.getBesuTransaction();
+    final EWord to = EWord.of(transactionProcessingMetadata.getEffectiveTo());
+    final EWord from = EWord.of(transactionProcessingMetadata.getSender());
+    final EWord miner = EWord.of(transactionProcessingMetadata.getCoinbase());
 
     return trace
         .peekAtTransaction(true)
-        .pTransactionBatchNum(lineaTransaction.relativeBlockNumber())
+        .pTransactionBatchNum(transactionProcessingMetadata.getRelativeBlockNumber())
         .pTransactionFromAddressHi(from.hi().toLong())
         .pTransactionFromAddressLo(from.lo())
         .pTransactionNonce(Bytes.ofUnsignedLong(tx.getNonce()))
-        .pTransactionInitialBalance(bigIntegerToBytes(lineaTransaction.initialBalance()))
+        .pTransactionInitialBalance(
+            bigIntegerToBytes(transactionProcessingMetadata.getInitialBalance()))
         .pTransactionValue(bigIntegerToBytes(tx.getValue().getAsBigInteger()))
         .pTransactionToAddressHi(to.hi().toLong())
         .pTransactionToAddressLo(to.lo())
-        .pTransactionRequiresEvmExecution(lineaTransaction.requiresEvmExecution())
-        .pTransactionCopyTxcd(lineaTransaction.copyTransactionCallData())
+        .pTransactionRequiresEvmExecution(transactionProcessingMetadata.requiresEvmExecution())
+        .pTransactionCopyTxcd(transactionProcessingMetadata.copyTransactionCallData())
         .pTransactionIsDeployment(tx.getTo().isEmpty())
         .pTransactionIsType2(tx.getType() == TransactionType.EIP1559)
         .pTransactionGasLimit(Bytes.minimalBytes(tx.getGasLimit()))
         .pTransactionGasInitiallyAvailable(
-            Bytes.minimalBytes(lineaTransaction.initiallyAvailableGas()))
-        .pTransactionGasPrice(Bytes.minimalBytes(lineaTransaction.effectiveGasPrice()))
-        .pTransactionBasefee(Bytes.minimalBytes(lineaTransaction.baseFee()))
+            Bytes.minimalBytes(transactionProcessingMetadata.getInitiallyAvailableGas()))
+        .pTransactionGasPrice(
+            Bytes.minimalBytes(transactionProcessingMetadata.getEffectiveGasPrice()))
+        .pTransactionBasefee(Bytes.minimalBytes(transactionProcessingMetadata.getBaseFee()))
         .pTransactionCallDataSize(tx.getData().map(Bytes::size).orElse(0))
         .pTransactionInitCodeSize(tx.getInit().map(Bytes::size).orElse(0))
-        .pTransactionStatusCode(lineaTransaction.statusCode())
-        .pTransactionGasLeftover(Bytes.minimalBytes(lineaTransaction.leftoverGas()))
-        .pTransactionRefundCounterInfinity(Bytes.minimalBytes(lineaTransaction.refundCounterMax()))
-        .pTransactionRefundEffective(Bytes.minimalBytes(lineaTransaction.refundEffective()))
+        .pTransactionStatusCode(transactionProcessingMetadata.statusCode())
+        .pTransactionGasLeftover(Bytes.minimalBytes(transactionProcessingMetadata.getLeftoverGas()))
+        .pTransactionRefundCounterInfinity(
+            Bytes.minimalBytes(transactionProcessingMetadata.getRefundCounterMax()))
+        .pTransactionRefundEffective(
+            Bytes.minimalBytes(transactionProcessingMetadata.getRefundEffective()))
         .pTransactionCoinbaseAddressHi(miner.hi().toLong())
         .pTransactionCoinbaseAddressLo(miner.lo());
   }

@@ -25,24 +25,29 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ZkTracer;
-import net.consensys.linea.zktracer.module.txndata.TxnData;
+import net.consensys.linea.zktracer.module.hub.transients.Block;
+import net.consensys.linea.zktracer.module.hub.transients.StorageInitialValues;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
-import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-@Accessors(fluent = true)
+@Accessors()
 @Getter
-public class LineaTransaction {
+public class TransactionProcessingMetadata {
+  final int absoluteTransactionNumber;
+  final int relativeTransactionNumber;
   final int relativeBlockNumber;
 
   final Transaction besuTransaction;
-  final int relativeTransactionNumber;
   final Address coinbase;
   final long baseFee;
 
   final boolean isDeployment;
+
+  @Accessors(fluent = true)
   final boolean requiresEvmExecution;
+
+  @Accessors(fluent = true)
   final boolean copyTransactionCallData;
 
   final BigInteger initialBalance;
@@ -55,24 +60,39 @@ public class LineaTransaction {
 
   final long effectiveGasPrice;
 
-  @Setter long refundCounterMax;
-  @Setter long refundEffective;
-  @Setter long leftoverGas;
-  @Setter boolean statusCode;
+  @Setter long refundCounterMax = 0;
+  @Setter long refundEffective = 0;
+  @Setter long leftoverGas = 0;
 
-  public LineaTransaction(
+  @Accessors(fluent = true)
+  @Setter
+  boolean statusCode = false;
+
+  @Setter int hubStampTransactionEnd;
+
+  @Accessors(fluent = true)
+  @Setter
+  boolean isSenderPreWarmed = false;
+
+  @Accessors(fluent = true)
+  @Setter
+  boolean isReceiverPreWarmed = false;
+
+  final StorageInitialValues storage = new StorageInitialValues();
+
+  public TransactionProcessingMetadata(
       WorldView world,
-      int relativeBlockNumber,
-      Address coinbase,
-      Wei baseFee,
-      TxnData txnData,
-      Transaction transaction) {
-    this.relativeBlockNumber = relativeBlockNumber;
-    this.coinbase = coinbase;
-    this.baseFee = baseFee.toLong();
+      Transaction transaction,
+      Block block,
+      int relativeTransactionNumber,
+      int absoluteTransactionNumber) {
+    this.absoluteTransactionNumber = absoluteTransactionNumber;
+    this.relativeBlockNumber = block.blockNumber();
+    this.coinbase = block.minerAddress();
+    this.baseFee = block.baseFee().toLong();
 
     this.besuTransaction = transaction;
-    this.relativeTransactionNumber = txnData.currentBlock().getTxs().size() + 1;
+    this.relativeTransactionNumber = relativeTransactionNumber;
 
     this.isDeployment = transaction.getTo().isEmpty();
     this.requiresEvmExecution = computeRequiresEvmExecution(world);
@@ -89,7 +109,7 @@ public class LineaTransaction {
 
     this.effectiveTo = effectiveToAddress(besuTransaction);
 
-    this.effectiveGasPrice = getEffectiveGasPrice();
+    this.effectiveGasPrice = computeEffectiveGasPrice();
   }
 
   private boolean computeCopyCallData() {
@@ -123,20 +143,21 @@ public class LineaTransaction {
   }
 
   public void completeLineaTransaction(
-      boolean statusCode, long leftoverGas, long refundCounterMax) {
+      boolean statusCode, long leftoverGas, long refundCounterMax, int hubStampTransactionEnd) {
     this.refundCounterMax = refundCounterMax;
     this.leftoverGas = leftoverGas;
     this.statusCode = statusCode;
-    this.refundEffective = getRefundEffective();
+    this.refundEffective = computeRefundEffective();
+    this.hubStampTransactionEnd = hubStampTransactionEnd;
   }
 
-  private long getRefundEffective() {
+  private long computeRefundEffective() {
     final long consumedGas = besuTransaction.getGasLimit() - leftoverGas;
     final long maxRefundableAmount = consumedGas / MAX_REFUND_QUOTIENT;
     return Math.min(maxRefundableAmount, refundCounterMax);
   }
 
-  private long getEffectiveGasPrice() {
+  private long computeEffectiveGasPrice() {
 
     final Transaction tx = besuTransaction;
     switch (tx.getType()) {
@@ -144,7 +165,7 @@ public class LineaTransaction {
         return tx.getGasPrice().get().getAsBigInteger().longValueExact();
       }
       case EIP1559 -> {
-        final long baseFee = baseFee();
+        final long baseFee = this.baseFee;
         final long maxPriorityFee =
             tx.getMaxPriorityFeePerGas().get().getAsBigInteger().longValue();
         final long maxFeePerGas = tx.getMaxFeePerGas().get().getAsBigInteger().longValueExact();
@@ -156,5 +177,9 @@ public class LineaTransaction {
 
   public Address getSender() {
     return besuTransaction.getSender();
+  }
+
+  public boolean requiresPrewarming() {
+    return requiresEvmExecution && (accessListCost != 0);
   }
 }

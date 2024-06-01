@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.types;
 
-public enum TxState {
+public enum HubProcessingPhase {
   TX_EXEC,
   TX_FINAL,
   TX_INIT,

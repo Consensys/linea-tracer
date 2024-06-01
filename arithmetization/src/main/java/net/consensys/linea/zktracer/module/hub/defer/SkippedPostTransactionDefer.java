@@ -81,6 +81,6 @@ public record SkippedPostTransactionDefer(
             hub.factories().accountFragment().make(oldMinerAccount, newMinerAccount),
 
             // 1 line -- transaction data
-            TransactionFragment.prepare(hub.currentTransaction())));
+            TransactionFragment.prepare(hub.txStack().current())));
   }
 }

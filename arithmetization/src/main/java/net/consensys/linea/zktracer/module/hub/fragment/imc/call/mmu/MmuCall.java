@@ -298,9 +298,9 @@ public class MmuCall implements TraceSubFragment {
 
   public static MmuCall txInit(final Hub hub) {
     return new MmuCall(MMU_INST_EXO_TO_RAM_TRANSPLANTS)
-        .sourceId(hub.transients().tx().absNumber())
+        .sourceId(hub.txStack().current().getAbsoluteTransactionNumber())
         .targetId(hub.stamp())
-        .size(hub.transients().tx().besuTx().getData().map(Bytes::size).orElse(0))
+        .size(hub.txStack().current().getBesuTransaction().getData().map(Bytes::size).orElse(0))
         .phase(RLP_TXN_PHASE_DATA)
         .setRlpTxn();
   }

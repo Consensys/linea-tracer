@@ -23,7 +23,6 @@ import java.util.Optional;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
-import net.consensys.linea.zktracer.module.hub.TransactionStack;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
@@ -41,6 +40,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.SSt
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.gas.GasConstants;
 import net.consensys.linea.zktracer.types.EWord;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.account.Account;
@@ -87,10 +87,10 @@ public class ImcFragment implements TraceFragment {
   public static ImcFragment forTxInit(final Hub hub) {
     // isdeployment == false
     // non empty calldata
-    final TransactionStack.MetaTransaction currentTx = hub.transients().tx();
-    final boolean isDeployment = currentTx.besuTx().getTo().isEmpty();
+    final TransactionProcessingMetadata currentTx = hub.txStack().current();
+    final boolean isDeployment = currentTx.getBesuTransaction().getTo().isEmpty();
 
-    final Optional<Bytes> txData = currentTx.besuTx().getData();
+    final Optional<Bytes> txData = currentTx.getBesuTransaction().getData();
     final boolean shouldCopyTxCallData =
         !isDeployment
             && txData.isPresent()

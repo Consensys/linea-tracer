@@ -31,7 +31,6 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-@Accessors()
 @Getter
 public class TransactionProcessingMetadata {
   final int absoluteTransactionNumber;

@@ -196,11 +196,14 @@ public class Signals {
         this.romLex = ex.none() && !triggersAbortingCondition && targetAddressHasNonEmptyCode;
         this.ecData = ex.none() && EC_PRECOMPILES.contains(target);
         this.exp =
-            ex.none() && this.platformController.abortingConditions().none() && target.equals(Address.MODEXP);
+            ex.none()
+                && this.platformController.abortingConditions().none()
+                && target.equals(Address.MODEXP);
       }
 
       case CREATE, CREATE2 -> {
-        boolean triggersAbortingCondition = ex.none() && this.platformController.abortingConditions().any();
+        boolean triggersAbortingCondition =
+            ex.none() && this.platformController.abortingConditions().any();
 
         boolean triggersFailureCondition = false;
         if (ex.none() && this.platformController.abortingConditions().none()) {

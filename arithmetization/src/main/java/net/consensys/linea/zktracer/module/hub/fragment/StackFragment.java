@@ -94,8 +94,8 @@ public final class StackFragment implements TraceFragment {
           long size = hub.currentFrame().frame().getStackItem(2).toLong();
           memorySegmentToHash = hub.messageFrame().shadowReadMemory(offset, size);
         }
-        default ->
-                throw new UnsupportedOperationException("Hash was attempted by the following opcode: " + this.opCode().toString());
+        default -> throw new UnsupportedOperationException(
+            "Hash was attempted by the following opcode: " + this.opCode().toString());
       }
       this.hashInfoKeccak = EWord.of(memorySegmentToHash);
     }
@@ -109,7 +109,8 @@ public final class StackFragment implements TraceFragment {
       boolean prospectivePcNewIsInBounds = codeSize.compareTo(prospectivePcNew) > 0;
 
       if (opCode.equals(OpCode.JUMPI)) {
-        boolean nonzeroJumpCondition = !hub.currentFrame().frame().getStackItem(1).toBigInteger().equals(BigInteger.ZERO);
+        boolean nonzeroJumpCondition =
+            !hub.currentFrame().frame().getStackItem(1).toBigInteger().equals(BigInteger.ZERO);
         prospectivePcNewIsInBounds = prospectivePcNewIsInBounds && nonzeroJumpCondition;
       }
 
@@ -167,8 +168,10 @@ public final class StackFragment implements TraceFragment {
 
   private boolean traceLog() {
     return this.opCode.isLog()
-            && this.exceptions.none() // TODO: should be redundant (exceptions trigger reverts) --- this could be asserted
-            && !this.willRevert;
+        && this.exceptions
+            .none() // TODO: should be redundant (exceptions trigger reverts) --- this could be
+        // asserted
+        && !this.willRevert;
   }
 
   @Override
@@ -275,7 +278,8 @@ public final class StackFragment implements TraceFragment {
         .pStackStaticFlag(this.stack.getCurrentOpcodeData().stackSettings().forbiddenInStatic())
         .pStackPushValueHi(pushValue.hi())
         .pStackPushValueLo(pushValue.lo())
-        .pStackJumpDestinationVettingRequired(this.jumpDestinationVettingRequired) // TODO: confirm this
+        .pStackJumpDestinationVettingRequired(
+            this.jumpDestinationVettingRequired) // TODO: confirm this
         // Exception flag
         .pStackOpcx(exceptions.invalidOpcode())
         .pStackSux(exceptions.stackUnderflow())
@@ -293,6 +297,6 @@ public final class StackFragment implements TraceFragment {
         .pStackHashInfoKeccakHi(this.hashInfoKeccak.hi())
         .pStackHashInfoKeccakLo(this.hashInfoKeccak.lo())
         .pStackLogInfoFlag(this.traceLog()) // TODO: confirm this
-        ;
+    ;
   }
 }

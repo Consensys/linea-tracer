@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment;
 
+import java.math.BigInteger;
+
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -34,8 +36,6 @@ import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.worldstate.WorldView;
-
-import java.math.BigInteger;
 
 @Accessors(fluent = true, chain = false)
 @Builder
@@ -71,7 +71,12 @@ public final class CommonFragment implements TraceFragment {
   @Getter @Setter private int numberOfNonStackRows;
   @Getter @Setter private int nonStackRowsCounter;
 
-  public static CommonFragment fromHub(WorldView world, final Hub hub, final CallFrame frame, boolean tliCounter, int nonStackRowCounter) {
+  public static CommonFragment fromHub(
+      WorldView world,
+      final Hub hub,
+      final CallFrame frame,
+      boolean tliCounter,
+      int nonStackRowCounter) {
     long refundDelta = 0;
     boolean noStackException = hub.pch().exceptions().noStackException();
 
@@ -81,40 +86,40 @@ public final class CommonFragment implements TraceFragment {
 
     int height = hub.currentFrame().stack().getHeight();
     int heightNew =
-            (noStackException
-                    ? height - hub.opCode().getData().stackSettings().delta() + hub.opCode().getData().stackSettings().alpha()
-                    : 0);
+        (noStackException
+            ? height
+                - hub.opCode().getData().stackSettings().delta()
+                + hub.opCode().getData().stackSettings().alpha()
+            : 0);
 
     final int pc = frame.pc();
-    final int pcNew = !noStackException
-            ? computePcNew(hub, pc)
-            : 0;
+    final int pcNew = !noStackException ? computePcNew(hub, pc) : 0;
 
     return CommonFragment.builder()
-            .hub(hub)
-            .txId(hub.transients().tx().id())
-            .batchNumber(hub.transients().conflation().number())
-            .txState(hub.transients().tx().state())
-            .stamps(hub.state.stamps())
-            .instructionFamily(hub.opCodeData().instructionFamily())
-            .exceptions(hub.pch().exceptions().snapshot())
-            .abortingConditions(hub.pch().abortingConditions().snapshot())
-            .failureConditions(hub.pch().failureConditions().snapshot())
-            .callFrameId(frame.id())
-            .contextNumber(frame.contextNumber())
-            .contextNumberNew(hub.contextNumberNew(world))
-            .pc(pc)
-            .pcNew(pcNew)
-            .height((short) height)
-            .heightNew((short) heightNew)
-            .codeDeploymentNumber(frame.codeDeploymentNumber())
-            .codeDeploymentStatus(frame.underDeployment())
-            .callerContextNumber(hub.callStack().getParentOf(frame.id()).contextNumber())
-            .refundDelta(refundDelta)
-            .twoLineInstruction(hub.opCodeData().stackSettings().twoLinesInstruction())
-            .twoLineInstructionCounter(tliCounter)
-            .nonStackRowsCounter(nonStackRowCounter)
-            .build();
+        .hub(hub)
+        .txId(hub.transients().tx().id())
+        .batchNumber(hub.transients().conflation().number())
+        .txState(hub.transients().tx().state())
+        .stamps(hub.state.stamps())
+        .instructionFamily(hub.opCodeData().instructionFamily())
+        .exceptions(hub.pch().exceptions().snapshot())
+        .abortingConditions(hub.pch().abortingConditions().snapshot())
+        .failureConditions(hub.pch().failureConditions().snapshot())
+        .callFrameId(frame.id())
+        .contextNumber(frame.contextNumber())
+        .contextNumberNew(hub.contextNumberNew(world))
+        .pc(pc)
+        .pcNew(pcNew)
+        .height((short) height)
+        .heightNew((short) heightNew)
+        .codeDeploymentNumber(frame.codeDeploymentNumber())
+        .codeDeploymentStatus(frame.underDeployment())
+        .callerContextNumber(hub.callStack().getParentOf(frame.id()).contextNumber())
+        .refundDelta(refundDelta)
+        .twoLineInstruction(hub.opCodeData().stackSettings().twoLinesInstruction())
+        .twoLineInstructionCounter(tliCounter)
+        .nonStackRowsCounter(nonStackRowCounter)
+        .build();
   }
 
   private static int computePcNew(final Hub hub, final int pc) {
@@ -128,9 +133,8 @@ public final class CommonFragment implements TraceFragment {
       final BigInteger prospectivePcNew = hub.currentFrame().frame().getStackItem(0).toBigInteger();
       final BigInteger codeSize = BigInteger.valueOf(hub.currentFrame().code().getSize());
 
-      final int attemptedPcNew = codeSize.compareTo(prospectivePcNew) > 0
-              ? prospectivePcNew.intValueExact()
-              : 0;
+      final int attemptedPcNew =
+          codeSize.compareTo(prospectivePcNew) > 0 ? prospectivePcNew.intValueExact() : 0;
 
       if (opCode.equals(OpCode.JUMP)) {
         return attemptedPcNew;
@@ -150,8 +154,8 @@ public final class CommonFragment implements TraceFragment {
   private int computeContextNumberNew(WorldView world, final Hub hub) {
     OpCode opCode = hub.opCode();
     if (exceptions.any()
-            || opCode.getData().instructionFamily().equals(InstructionFamily.HALT)
-            || opCode.getData().instructionFamily().equals(InstructionFamily.INVALID)){
+        || opCode.getData().instructionFamily().equals(InstructionFamily.HALT)
+        || opCode.getData().instructionFamily().equals(InstructionFamily.INVALID)) {
       return callerContextNumber;
     }
 
@@ -172,7 +176,6 @@ public final class CommonFragment implements TraceFragment {
     }
 
     return contextNumber;
-
   }
 
   public boolean txReverts() {
@@ -203,47 +206,47 @@ public final class CommonFragment implements TraceFragment {
     final boolean willRevert = frame.willRevert();
 
     return trace
-            .absoluteTransactionNumber(tx.absNumber())
-            .batchNumber(this.batchNumber)
-            .txSkip(this.txState == TxState.TX_SKIP)
-            .txWarm(this.txState == TxState.TX_WARM)
-            .txInit(this.txState == TxState.TX_INIT)
-            .txExec(this.txState == TxState.TX_EXEC)
-            .txFinl(this.txState == TxState.TX_FINAL)
-            .hubStamp(this.stamps.hub())
-            .hubStampTransactionEnd(tx.endStamp())
-            .contextMayChange(
-                    this.txState == TxState.TX_EXEC
-                            && ((instructionFamily == InstructionFamily.CALL
-                            || instructionFamily == InstructionFamily.CREATE
-                            || instructionFamily == InstructionFamily.HALT
-                            || instructionFamily == InstructionFamily.INVALID)
-                            || exceptions.any()))
-            .exceptionAhoy(exceptions.any())
-            .logInfoStamp(this.stamps.log())
-            .mmuStamp(this.stamps.mmu())
-            .mxpStamp(this.stamps.mxp())
-            .contextNumber(contextNumber)
-            .contextNumberNew(contextNumberNew)
-            .callerContextNumber(callerContextNumber)
-            .contextWillRevert(willRevert)
-            .contextGetsReverted(getsReverted)
-            .contextSelfReverts(selfReverts)
-            .contextRevertStamp(revertStamp)
-            .codeFragmentIndex(codeFragmentIndex)
-            .programCounter(pc)
-            .programCounterNew(pcNew)
-            .height((short) stackHeight)
-            .heightNew((short) stackHeightNew)
-            .gasExpected(gasExpected)
-            .gasActual(gasActual)
-            .gasCost(Bytes.ofUnsignedLong(gasCost))
-            .gasNext(gasNext)
-            .refundCounter(gasRefund)
-            .refundCounterNew(gasRefund + (willRevert ? 0 : refundDelta))
-            .twoLineInstruction(twoLineInstruction)
-            .counterTli(twoLineInstructionCounter)
-            .nonStackRows((short) numberOfNonStackRows)
-            .counterNsr((short) nonStackRowsCounter);
+        .absoluteTransactionNumber(tx.absNumber())
+        .batchNumber(this.batchNumber)
+        .txSkip(this.txState == TxState.TX_SKIP)
+        .txWarm(this.txState == TxState.TX_WARM)
+        .txInit(this.txState == TxState.TX_INIT)
+        .txExec(this.txState == TxState.TX_EXEC)
+        .txFinl(this.txState == TxState.TX_FINAL)
+        .hubStamp(this.stamps.hub())
+        .hubStampTransactionEnd(tx.endStamp())
+        .contextMayChange(
+            this.txState == TxState.TX_EXEC
+                && ((instructionFamily == InstructionFamily.CALL
+                        || instructionFamily == InstructionFamily.CREATE
+                        || instructionFamily == InstructionFamily.HALT
+                        || instructionFamily == InstructionFamily.INVALID)
+                    || exceptions.any()))
+        .exceptionAhoy(exceptions.any())
+        .logInfoStamp(this.stamps.log())
+        .mmuStamp(this.stamps.mmu())
+        .mxpStamp(this.stamps.mxp())
+        .contextNumber(contextNumber)
+        .contextNumberNew(contextNumberNew)
+        .callerContextNumber(callerContextNumber)
+        .contextWillRevert(willRevert)
+        .contextGetsReverted(getsReverted)
+        .contextSelfReverts(selfReverts)
+        .contextRevertStamp(revertStamp)
+        .codeFragmentIndex(codeFragmentIndex)
+        .programCounter(pc)
+        .programCounterNew(pcNew)
+        .height((short) stackHeight)
+        .heightNew((short) stackHeightNew)
+        .gasExpected(gasExpected)
+        .gasActual(gasActual)
+        .gasCost(Bytes.ofUnsignedLong(gasCost))
+        .gasNext(gasNext)
+        .refundCounter(gasRefund)
+        .refundCounterNew(gasRefund + (willRevert ? 0 : refundDelta))
+        .twoLineInstruction(twoLineInstruction)
+        .counterTli(twoLineInstructionCounter)
+        .nonStackRows((short) numberOfNonStackRows)
+        .counterNsr((short) nonStackRowsCounter);
   }
 }

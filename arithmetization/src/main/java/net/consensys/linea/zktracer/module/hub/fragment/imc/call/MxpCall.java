@@ -62,7 +62,7 @@ public record MxpCall(
     return trace
         .pMiscMxpFlag(true)
         .pMiscMxpMxpx(this.mxpException)
-        .pMiscMxpInst(Bytes.ofUnsignedInt(this.opCode))
+        .pMiscMxpInst(this.opCode)
         .pMiscMxpDeploys(this.deploys)
         .pMiscMxpWords(Bytes.ofUnsignedLong(this.memorySize))
         .pMiscMxpGasMxp(Bytes.ofUnsignedLong(this.gasMxp))

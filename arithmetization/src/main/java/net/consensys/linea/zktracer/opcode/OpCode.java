@@ -210,15 +210,17 @@ public enum OpCode {
     return UnsignedByte.of(byteValue());
   }
 
-  /** Returns true for JUMP-type instructions*/
-  public boolean isJump() { return this == OpCode.JUMP || this == OpCode.JUMPI; }
+  /** Returns true for JUMP-type instructions */
+  public boolean isJump() {
+    return this == OpCode.JUMP || this == OpCode.JUMPI;
+  }
 
   public boolean isLog() {
     return this == OpCode.LOG0
-            || this == OpCode.LOG1
-            || this == OpCode.LOG2
-            || this == OpCode.LOG3
-            || this == OpCode.LOG4;
+        || this == OpCode.LOG1
+        || this == OpCode.LOG2
+        || this == OpCode.LOG3
+        || this == OpCode.LOG4;
   }
 
   /** Returns whether the {@link OpCode} entails a contract creation. */

@@ -81,13 +81,6 @@ public record SkippedPostTransactionDefer(
             hub.factories().accountFragment().make(oldMinerAccount, newMinerAccount),
 
             // 1 line -- transaction data
-            TransactionFragment.prepare(
-                hub.transients().conflation().number(),
-                minerAddress,
-                tx,
-                false,
-                gasPrice,
-                baseFee,
-                hub.transients().tx().initialGas())));
+            TransactionFragment.prepare(hub.currentTransaction())));
   }
 }

@@ -650,8 +650,8 @@ public class Hub implements Module {
   public int contextNumberNew(WorldView world) {
     OpCode opCode = this.opCode();
     if (pch.exceptions().any()
-            || opCode.getData().instructionFamily().equals(InstructionFamily.HALT)
-            || opCode.getData().instructionFamily().equals(InstructionFamily.INVALID)){
+        || opCode.getData().instructionFamily().equals(InstructionFamily.HALT)
+        || opCode.getData().instructionFamily().equals(InstructionFamily.INVALID)) {
       return this.callStack().caller().contextNumber();
     }
 
@@ -661,7 +661,8 @@ public class Hub implements Module {
       if (pch().abortingConditions().any()) {
         return currentContextNumber;
       }
-      Address calleeAddress = Address.extract((Bytes32) this.currentFrame().frame().getStackItem(1));
+      Address calleeAddress =
+          Address.extract((Bytes32) this.currentFrame().frame().getStackItem(1));
       if (world.get(calleeAddress).hasCode()) {
         return 1 + stamp();
       }

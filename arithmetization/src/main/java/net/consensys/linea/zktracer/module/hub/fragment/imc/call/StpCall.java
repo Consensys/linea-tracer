@@ -35,16 +35,16 @@ public record StpCall(
   public Trace trace(Trace trace) {
     return trace
         .pMiscStpFlag(true)
-        .pMiscStpInstruction(Bytes.of(opCode))
+        .pMiscStpInstruction(opCode)
         .pMiscStpGasHi(gas.hi())
         .pMiscStpGasLo(gas.lo())
-        .pMiscStpValHi(value.hi())
-        .pMiscStpValLo(value.lo())
+        .pMiscStpValueHi(value.hi())
+        .pMiscStpValueLo(value.lo())
         .pMiscStpExists(exists)
         .pMiscStpWarmth(warm)
         .pMiscStpOogx(outOfGasException)
         .pMiscStpGasUpfrontGasCost(Bytes.ofUnsignedLong(upfront))
         .pMiscStpGasPaidOutOfPocket(Bytes.ofUnsignedLong(outOfPocket))
-        .pMiscStpGasStipend(Bytes.ofUnsignedLong(stipend));
+        .pMiscStpGasStipend(stipend);
   }
 }

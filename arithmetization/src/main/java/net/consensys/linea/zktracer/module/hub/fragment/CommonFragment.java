@@ -75,23 +75,21 @@ public final class CommonFragment implements TraceFragment {
       final CallFrame frame,
       boolean tliCounter,
       int nonStackRowCounter) {
-    long refundDelta = 0;
-    boolean noStackException = hub.pch().exceptions().noStackException();
 
-    if (noStackException) {
-      refundDelta = Hub.GAS_PROJECTOR.of(frame.frame(), hub.opCode()).refund();
-    }
+    final boolean noStackException = hub.pch().exceptions().noStackException();
+    final long refundDelta =
+        noStackException ? Hub.GAS_PROJECTOR.of(frame.frame(), hub.opCode()).refund() : 0;
 
-    int height = hub.currentFrame().stack().getHeight();
-    int heightNew =
+    final int height = hub.currentFrame().stack().getHeight();
+    final int heightNew =
         (noStackException
             ? height
                 - hub.opCode().getData().stackSettings().delta()
                 + hub.opCode().getData().stackSettings().alpha()
             : 0);
-
-    final int pc = frame.pc();
-    final int pcNew = !noStackException ? computePcNew(hub, pc) : 0;
+    final boolean hubInExecPhase = hub.state.getProcessingPhase() == HubProcessingPhase.TX_EXEC;
+    final int pc = hubInExecPhase ? frame.pc() : 0;
+    final int pcNew = noStackException && hubInExecPhase ? computePcNew(hub, pc) : 0;
 
     return CommonFragment.builder()
         .hub(hub)

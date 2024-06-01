@@ -301,7 +301,6 @@ opcodes:
       nbAdded: 1
       nbRemoved: 1
       staticGas: S_HUB
-      addressTrimmingInstruction: true
       flag1: true
   - mnemonic: ORIGIN
     value: 0x32
@@ -345,7 +344,6 @@ opcodes:
       nbAdded: 1
       nbRemoved: 1
       staticGas: G_VERY_LOW
-      oobFlag: true
       flag1: true
   - mnemonic: CALLDATASIZE
     value: 0x36
@@ -420,7 +418,6 @@ opcodes:
       nbAdded: 1
       nbRemoved: 1
       staticGas: S_HUB
-      addressTrimmingInstruction: true
       flag2: true
   - mnemonic: EXTCODECOPY
     value: 0x3c
@@ -432,7 +429,6 @@ opcodes:
       nbAdded: 0
       nbRemoved: 4
       staticGas: S_MXP
-      addressTrimmingInstruction: true
       flag4: true
     billing:
       byWord:
@@ -457,7 +453,6 @@ opcodes:
       delta: 3
       nbAdded: 0
       nbRemoved: 3
-      oobFlag: true
       staticGas: S_MXP
       flag2: true
     billing:
@@ -474,7 +469,6 @@ opcodes:
       nbAdded: 1
       nbRemoved: 1
       staticGas: S_HUB
-      addressTrimmingInstruction: true
       flag3: true
   - mnemonic: BLOCKHASH
     value: 0x40
@@ -638,7 +632,6 @@ opcodes:
       delta: 2
       nbAdded: 0
       nbRemoved: 2
-      oobFlag: true
       staticGas: S_HUB
       forbiddenInStatic: true
       flag1: true
@@ -652,7 +645,6 @@ opcodes:
       nbAdded: 0
       nbRemoved: 1
       staticGas: G_MID
-      oobFlag: true
       flag1: true
   - mnemonic: JUMPI
     value: 0x57
@@ -664,7 +656,6 @@ opcodes:
       nbAdded: 0
       nbRemoved: 2
       staticGas: G_MID
-      oobFlag: true
       flag2: true
   - mnemonic: PC
     value: 0x58
@@ -1511,7 +1502,6 @@ opcodes:
       delta: 3
       nbAdded: 1
       nbRemoved: 3
-      oobFlag: true
       staticGas: G_CREATE
       twoLinesInstruction: true
       forbiddenInStatic: true
@@ -1528,11 +1518,9 @@ opcodes:
       delta: 7
       nbAdded: 1
       nbRemoved: 7
-      oobFlag: true
       staticGas: S_CALL
       twoLinesInstruction: true
       forbiddenInStatic: true
-      addressTrimmingInstruction: true
       flag1: true
     billing:
       byMxp:
@@ -1546,10 +1534,8 @@ opcodes:
       delta: 7
       nbAdded: 1
       nbRemoved: 7
-      oobFlag: true
       staticGas: S_CALL
       twoLinesInstruction: true
-      addressTrimmingInstruction: true
       flag2: true
     billing:
       byMxp:
@@ -1563,7 +1549,6 @@ opcodes:
       delta: 2
       nbAdded: 0
       nbRemoved: 2
-      oobFlag: true
       staticGas: S_MXP
       flag1: true
     billing:
@@ -1581,7 +1566,6 @@ opcodes:
       nbRemoved: 6
       staticGas: S_CALL
       twoLinesInstruction: true
-      addressTrimmingInstruction: true
       flag3: true
     billing:
       byMxp:
@@ -1595,7 +1579,6 @@ opcodes:
       delta: 4
       nbAdded: 1
       nbRemoved: 4
-      oobFlag: true
       staticGas: G_CREATE
       twoLinesInstruction: true
       forbiddenInStatic: true
@@ -1615,7 +1598,6 @@ opcodes:
       nbRemoved: 6
       staticGas: S_CALL
       twoLinesInstruction: true
-      addressTrimmingInstruction: true
       flag4: true
     billing:
       byMxp:
@@ -1656,5 +1638,4 @@ opcodes:
       nbRemoved: 1
       staticGas: S_MXP
       forbiddenInStatic: true
-      addressTrimmingInstruction: true
       flag4: true

@@ -83,7 +83,6 @@ public final class InstructionDecoder implements Module {
         .staticGas(Bytes.ofUnsignedInt(op.stackSettings().staticGas().cost()))
         .twoLineInstruction(op.stackSettings().twoLinesInstruction())
         .staticFlag(op.stackSettings().forbiddenInStatic())
-        .addressTrimmingInstruction(op.stackSettings().addressTrimmingInstruction())
         .flag1(op.stackSettings().flag1())
         .flag2(op.stackSettings().flag2())
         .flag3(op.stackSettings().flag3())

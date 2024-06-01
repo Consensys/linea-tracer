@@ -652,7 +652,7 @@ public class Hub implements Module {
     if (pch.exceptions().any()
         || opCode.getData().instructionFamily().equals(InstructionFamily.HALT)
         || opCode.getData().instructionFamily().equals(InstructionFamily.INVALID)) {
-      return this.callStack().caller().contextNumber();
+      return this.callStack.depth() == 0 ? 0 : this.callStack().caller().contextNumber(); //TODO: when callStackDepth = 0
     }
 
     final int currentContextNumber = this.callStack().current().contextNumber();

@@ -27,6 +27,7 @@ import net.consensys.linea.zktracer.types.MemorySpan;
 import org.apache.tuweni.bytes.Bytes;
 
 public record ContextFragment(
+    Hub hub,
     CallStack callStack,
     // Left: callFrameId, Right: contextNumber
     Either<Integer, Integer> callFrameReference,
@@ -34,9 +35,10 @@ public record ContextFragment(
     boolean updateCallerReturndata)
     implements TraceFragment {
 
-  public static ContextFragment readContextData(final CallStack callStack) {
-
+  public static ContextFragment readContextData(final Hub hub) {
+    CallStack callStack = hub.callStack();
     return new ContextFragment(
+        hub,
         callStack,
         Either.left(callStack.current().id()),
         callStack.current().latestReturnDataSource().snapshot(),
@@ -45,6 +47,7 @@ public record ContextFragment(
 
   public static ContextFragment initializeExecutionContext(final Hub hub) {
     return new ContextFragment(
+        hub,
         hub.callStack(),
         Either.right(hub.stamp() + 1),
         MemorySpan.fromStartEnd(
@@ -52,32 +55,38 @@ public record ContextFragment(
         false);
   }
 
-  public static ContextFragment executionEmptyReturnData(final CallStack callStack) {
+  public static ContextFragment executionEmptyReturnData(final Hub hub) {
+    CallStack callStack = hub.callStack();
     return new ContextFragment(
-        callStack, Either.left(callStack.parent().id()), MemorySpan.empty(), true);
+        hub, callStack, Either.left(callStack.parent().id()), MemorySpan.empty(), true);
   }
 
-  public static ContextFragment nonExecutionEmptyReturnData(final CallStack callStack) {
+  public static ContextFragment nonExecutionEmptyReturnData(final Hub hub) {
+    CallStack callStack = hub.callStack();
     return new ContextFragment(
-        callStack, Either.left(callStack.parent().id()), MemorySpan.empty(), true);
+        hub, callStack, Either.left(callStack.parent().id()), MemorySpan.empty(), true);
   }
 
-  public static ContextFragment executionReturnData(final CallStack callStack) {
+  public static ContextFragment executionReturnData(final Hub hub) {
+    CallStack callStack = hub.callStack();
     return new ContextFragment(
+        hub,
         callStack,
         Either.left(callStack.parent().id()),
         callStack.current().returnDataSource(),
         true);
   }
 
-  public static ContextFragment enterContext(
-      final CallStack callStack, final CallFrame calledCallFrame) {
+  public static ContextFragment enterContext(final Hub hub, final CallFrame calledCallFrame) {
+    CallStack callStack = hub.callStack();
     return new ContextFragment(
-        callStack, Either.left(calledCallFrame.id()), MemorySpan.empty(), false);
+        hub, callStack, Either.left(calledCallFrame.id()), MemorySpan.empty(), false);
   }
 
-  public static ContextFragment providesReturnData(final CallStack callStack) {
+  public static ContextFragment providesReturnData(final Hub hub) {
+    CallStack callStack = hub.callStack();
     return new ContextFragment(
+        hub,
         callStack,
         Either.left(callStack.current().id()),
         callStack.current().latestReturnDataSource().snapshot(),
@@ -93,6 +102,7 @@ public record ContextFragment(
     final EWord eAddress = callFrame.addressAsEWord();
     final EWord eCodeAddress = callFrame.codeAddressAsEWord();
     final EWord callerAddress = EWord.of(callFrame.callerAddress());
+
     return trace
         .peekAtContext(true)
         .pContextContextNumber(callFrame.contextNumber())
@@ -106,7 +116,7 @@ public record ContextFragment(
         .pContextByteCodeAddressLo(eCodeAddress.lo())
         .pContextByteCodeDeploymentNumber(callFrame.codeDeploymentNumber())
         .pContextByteCodeDeploymentStatus(callFrame.underDeployment() ? 1 : 0)
-        .pContextByteCodeCodeFragmentIndex(0) // TODO
+        .pContextByteCodeCodeFragmentIndex(hub.getCfiByMetaData(callFrame.byteCodeAddress(), callFrame.codeDeploymentNumber(), callFrame.underDeployment()))
         .pContextCallerAddressHi(bytesToLong(callerAddress.hi()))
         .pContextCallerAddressLo(callerAddress.lo())
         .pContextCallValue(callFrame.value())

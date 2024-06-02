@@ -83,6 +83,7 @@ import net.consensys.linea.zktracer.module.rlpaddr.RlpAddr;
 import net.consensys.linea.zktracer.module.rlptxn.RlpTxn;
 import net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxrcpt;
 import net.consensys.linea.zktracer.module.rom.Rom;
+import net.consensys.linea.zktracer.module.romlex.ContractMetadata;
 import net.consensys.linea.zktracer.module.romlex.RomLex;
 import net.consensys.linea.zktracer.module.shakiradata.ShakiraData;
 import net.consensys.linea.zktracer.module.shf.Shf;
@@ -418,6 +419,13 @@ public class Hub implements Module {
                 this.l2Block),
             this.precompileLimitModules.stream())
         .toList();
+  }
+
+  public int getCfiByMetaData(
+      final Address address, final int deploymentNumber, final boolean deploymentStatus) {
+    return this.romLex()
+        .getCodeFragmentIndexByMetadata(
+            ContractMetadata.make(address, deploymentNumber, deploymentStatus));
   }
 
   /**
@@ -785,7 +793,7 @@ public class Hub implements Module {
     } else {
       this.addTraceSection(new StackOnlySection(this));
       this.currentTraceSection()
-          .addFragmentsWithoutStack(this, ContextFragment.executionEmptyReturnData(this.callStack));
+          .addFragmentsWithoutStack(this, ContextFragment.executionEmptyReturnData(this));
     }
   }
 
@@ -1337,17 +1345,16 @@ public class Hub implements Module {
           new KeccakSection(
               this, this.currentFrame(), ImcFragment.forOpcode(this, this.messageFrame())));
       case CONTEXT -> this.addTraceSection(
-          new ContextLogSection(this, ContextFragment.readContextData(callStack)));
+          new ContextLogSection(this, ContextFragment.readContextData(this)));
       case LOG -> {
-        this.addTraceSection(
-            new ContextLogSection(this, ContextFragment.readContextData(callStack)));
+        this.addTraceSection(new ContextLogSection(this, ContextFragment.readContextData(this)));
         LogInvocation.forOpcode(this);
       }
       case ACCOUNT -> {
         TraceSection accountSection = new AccountSection(this);
         if (this.opCodeData().stackSettings().flag1()) {
           accountSection.addFragment(
-              this, this.currentFrame(), ContextFragment.readContextData(callStack));
+              this, this.currentFrame(), ContextFragment.readContextData(this));
         }
 
         final Bytes rawTargetAddress =
@@ -1400,8 +1407,7 @@ public class Hub implements Module {
                       .makeWithTrm(accountSnapshot, accountSnapshot, rawTargetAddress)
                   : this.factories.accountFragment().make(accountSnapshot, accountSnapshot));
         } else {
-          copySection.addFragment(
-              this, this.currentFrame(), ContextFragment.readContextData(callStack));
+          copySection.addFragment(this, this.currentFrame(), ContextFragment.readContextData(this));
         }
         this.addTraceSection(copySection);
       }
@@ -1413,7 +1419,7 @@ public class Hub implements Module {
             final ImcFragment imcFragment = ImcFragment.forOpcode(this, frame);
 
             this.addTraceSection(
-                new StackRam(this, imcFragment, ContextFragment.readContextData(callStack)));
+                new StackRam(this, imcFragment, ContextFragment.readContextData(this)));
           }
           case MLOAD, MSTORE, MSTORE8 -> this.addTraceSection(
               new StackRam(this, ImcFragment.forOpcode(this, frame)));
@@ -1429,7 +1435,7 @@ public class Hub implements Module {
             this.addTraceSection(
                 new StorageSection(
                     this,
-                    ContextFragment.readContextData(callStack),
+                    ContextFragment.readContextData(this),
                     new StorageFragment(
                         address,
                         this.currentFrame().accountDeploymentNumber(),
@@ -1445,7 +1451,7 @@ public class Hub implements Module {
             this.addTraceSection(
                 new StorageSection(
                     this,
-                    ContextFragment.readContextData(callStack),
+                    ContextFragment.readContextData(this),
                     new StorageFragment(
                         address,
                         this.currentFrame().accountDeploymentNumber(),
@@ -1519,7 +1525,7 @@ public class Hub implements Module {
                     this,
                     ScenarioFragment.forCall(this, hasCode),
                     ImcFragment.forCall(this, myAccount, calledAccount),
-                    ContextFragment.readContextData(callStack)));
+                    ContextFragment.readContextData(this)));
           } else if (this.pch().exceptions().outOfMemoryExpansion()) {
             this.addTraceSection(
                 new FailedCallSection(
@@ -1546,12 +1552,12 @@ public class Hub implements Module {
                   this,
                   ScenarioFragment.forCall(this, hasCode),
                   ImcFragment.forCall(this, myAccount, calledAccount),
-                  ContextFragment.readContextData(callStack),
+                  ContextFragment.readContextData(this),
                   this.factories.accountFragment().make(myAccountSnapshot, myAccountSnapshot),
                   this.factories
                       .accountFragment()
                       .makeWithTrm(calledAccountSnapshot, calledAccountSnapshot, rawCalledAddress),
-                  ContextFragment.nonExecutionEmptyReturnData(callStack));
+                  ContextFragment.nonExecutionEmptyReturnData(this));
           this.addTraceSection(abortedSection);
         } else {
           final ImcFragment imcFragment = ImcFragment.forOpcode(this, frame);
@@ -1609,7 +1615,7 @@ public class Hub implements Module {
         JumpSection jumpSection =
             new JumpSection(
                 this,
-                ContextFragment.readContextData(callStack),
+                ContextFragment.readContextData(this),
                 this.factories.accountFragment().make(codeAccountSnapshot, codeAccountSnapshot),
                 ImcFragment.forOpcode(this, frame));
 
@@ -1620,8 +1626,7 @@ public class Hub implements Module {
     // In all cases, add a context fragment if an exception occurred
     if (this.pch().exceptions().any()) {
       this.currentTraceSection()
-          .addFragment(
-              this, this.currentFrame(), ContextFragment.executionEmptyReturnData(callStack));
+          .addFragment(this, this.currentFrame(), ContextFragment.executionEmptyReturnData(this));
     }
   }
 }

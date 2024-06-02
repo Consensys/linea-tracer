@@ -183,23 +183,23 @@ public class CreateSection extends TraceSection
       this.addFragmentsWithoutStack(
           hub,
           ImcFragment.empty(hub),
-          ContextFragment.readContextData(hub.callStack()),
-          ContextFragment.executionEmptyReturnData(hub.callStack()));
+          ContextFragment.readContextData(hub),
+          ContextFragment.executionEmptyReturnData(hub));
     } else if (this.exceptions.outOfMemoryExpansion()) {
       this.addFragmentsWithoutStack(
           hub,
           ImcFragment.empty(hub).callMxp(MxpCall.build(hub)),
-          ContextFragment.executionEmptyReturnData(hub.callStack()));
+          ContextFragment.executionEmptyReturnData(hub));
     } else if (this.exceptions.outOfGas()) {
       this.addFragmentsWithoutStack(
-          hub, commonImcFragment, ContextFragment.executionEmptyReturnData(hub.callStack()));
+          hub, commonImcFragment, ContextFragment.executionEmptyReturnData(hub));
     } else if (this.aborts.any()) {
       this.addFragmentsWithoutStack(
           hub,
           commonImcFragment,
-          ContextFragment.readContextData(hub.callStack()),
+          ContextFragment.readContextData(hub),
           accountFragmentFactory.make(oldCreatorSnapshot, newCreatorSnapshot),
-          ContextFragment.nonExecutionEmptyReturnData(hub.callStack()));
+          ContextFragment.nonExecutionEmptyReturnData(hub));
     } else if (this.failures.any()) {
       if (creatorReverted) {
         this.addFragmentsWithoutStack(
@@ -209,14 +209,14 @@ public class CreateSection extends TraceSection
             accountFragmentFactory.make(oldCreatedSnapshot, newCreatedSnapshot),
             accountFragmentFactory.make(newCreatorSnapshot, oldCreatorSnapshot),
             accountFragmentFactory.make(newCreatedSnapshot, oldCreatedSnapshot),
-            ContextFragment.nonExecutionEmptyReturnData(hub.callStack()));
+            ContextFragment.nonExecutionEmptyReturnData(hub));
       } else {
         this.addFragmentsWithoutStack(
             hub,
             commonImcFragment,
             accountFragmentFactory.make(oldCreatorSnapshot, newCreatorSnapshot),
             accountFragmentFactory.make(oldCreatedSnapshot, newCreatedSnapshot),
-            ContextFragment.nonExecutionEmptyReturnData(hub.callStack()));
+            ContextFragment.nonExecutionEmptyReturnData(hub));
       }
     } else {
       if (this.emptyInitCode) {
@@ -228,14 +228,14 @@ public class CreateSection extends TraceSection
               accountFragmentFactory.make(oldCreatedSnapshot, newCreatedSnapshot),
               accountFragmentFactory.make(newCreatorSnapshot, oldCreatorSnapshot),
               accountFragmentFactory.make(newCreatedSnapshot, oldCreatedSnapshot),
-              ContextFragment.nonExecutionEmptyReturnData(hub.callStack()));
+              ContextFragment.nonExecutionEmptyReturnData(hub));
         } else {
           this.addFragmentsWithoutStack(
               hub,
               commonImcFragment,
               accountFragmentFactory.make(oldCreatorSnapshot, newCreatorSnapshot),
               accountFragmentFactory.make(oldCreatedSnapshot, newCreatedSnapshot),
-              ContextFragment.nonExecutionEmptyReturnData(hub.callStack()));
+              ContextFragment.nonExecutionEmptyReturnData(hub));
         }
       } else {
         if (this.createSuccessful) {

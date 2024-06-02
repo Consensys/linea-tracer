@@ -126,7 +126,7 @@ public class SmartContractCallSection extends TraceSection
         hub,
         callerCallFrame,
         this.scenarioFragment,
-        ContextFragment.readContextData(hub.callStack()),
+        ContextFragment.readContextData(hub),
         this.imcFragment,
         accountFragmentFactory.make(
             this.preCallCallerAccountSnapshot, this.inCallCallerAccountSnapshot),
@@ -168,6 +168,6 @@ public class SmartContractCallSection extends TraceSection
     }
 
     this.addFragmentsWithoutStack(
-        hub, callerCallFrame, ContextFragment.enterContext(hub.callStack(), calledCallFrame));
+        hub, callerCallFrame, ContextFragment.enterContext(hub, calledCallFrame));
   }
 }

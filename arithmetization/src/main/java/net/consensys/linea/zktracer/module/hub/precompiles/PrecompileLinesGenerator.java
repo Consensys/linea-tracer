@@ -177,7 +177,7 @@ public class PrecompileLinesGenerator {
                         Math.max(mbsInt, bbsInt))));
 
         if (p.ramFailure()) {
-          r.add(ContextFragment.nonExecutionEmptyReturnData(hub.callStack()));
+          r.add(ContextFragment.nonExecutionEmptyReturnData(hub));
         } else {
           r.add(
               ImcFragment.empty(hub)
@@ -198,16 +198,16 @@ public class PrecompileLinesGenerator {
             r.add(ImcFragment.empty(hub).callMmu(MmuCall.forModExp(hub, p, 11)));
           }
 
-          r.add(ContextFragment.providesReturnData(hub.callStack()));
+          r.add(ContextFragment.providesReturnData(hub));
         }
       }
       case EC_ADD -> {
         if (p.hubFailure()) {
           r.add(ImcFragment.empty(hub).callOob(new EcAdd(p)));
-          r.add(ContextFragment.nonExecutionEmptyReturnData(hub.callStack()));
+          r.add(ContextFragment.nonExecutionEmptyReturnData(hub));
         } else if (p.ramFailure()) {
           r.add(ImcFragment.empty(hub).callOob(new EcAdd(p)).callMmu(MmuCall.forEcAdd(hub, p, 0)));
-          r.add(ContextFragment.nonExecutionEmptyReturnData(hub.callStack()));
+          r.add(ContextFragment.nonExecutionEmptyReturnData(hub));
         } else {
           r.add(ImcFragment.empty(hub).callOob(new EcAdd(p)).callMmu(MmuCall.forEcAdd(hub, p, 0)));
           r.add(
@@ -220,16 +220,16 @@ public class PrecompileLinesGenerator {
                       p.requestedReturnDataTarget().isEmpty()
                           ? MmuCall.nop()
                           : MmuCall.forEcAdd(hub, p, 2)));
-          r.add(ContextFragment.providesReturnData(hub.callStack()));
+          r.add(ContextFragment.providesReturnData(hub));
         }
       }
       case EC_MUL -> {
         if (p.hubFailure()) {
           r.add(ImcFragment.empty(hub).callOob(new EcMul(p)));
-          r.add(ContextFragment.nonExecutionEmptyReturnData(hub.callStack()));
+          r.add(ContextFragment.nonExecutionEmptyReturnData(hub));
         } else if (p.ramFailure()) {
           r.add(ImcFragment.empty(hub).callOob(new EcMul(p)).callMmu(MmuCall.forEcMul(hub, p, 0)));
-          r.add(ContextFragment.nonExecutionEmptyReturnData(hub.callStack()));
+          r.add(ContextFragment.nonExecutionEmptyReturnData(hub));
         } else {
           r.add(ImcFragment.empty(hub).callOob(new EcMul(p)).callMmu(MmuCall.forEcMul(hub, p, 0)));
           r.add(
@@ -242,19 +242,19 @@ public class PrecompileLinesGenerator {
                       p.requestedReturnDataTarget().isEmpty()
                           ? MmuCall.nop()
                           : MmuCall.forEcMul(hub, p, 2)));
-          r.add(ContextFragment.providesReturnData(hub.callStack()));
+          r.add(ContextFragment.providesReturnData(hub));
         }
       }
       case EC_PAIRING -> {
         if (p.hubFailure()) {
           r.add(ImcFragment.empty(hub).callOob(new EcPairing(p)));
-          r.add(ContextFragment.nonExecutionEmptyReturnData(hub.callStack()));
+          r.add(ContextFragment.nonExecutionEmptyReturnData(hub));
         } else if (p.ramFailure()) {
           r.add(
               ImcFragment.empty(hub)
                   .callOob(new EcPairing(p))
                   .callMmu(MmuCall.forEcPairing(hub, p, 0)));
-          r.add(ContextFragment.nonExecutionEmptyReturnData(hub.callStack()));
+          r.add(ContextFragment.nonExecutionEmptyReturnData(hub));
         } else {
           r.add(
               ImcFragment.empty(hub)
@@ -267,7 +267,7 @@ public class PrecompileLinesGenerator {
                       p.requestedReturnDataTarget().isEmpty()
                           ? MmuCall.nop()
                           : MmuCall.forEcPairing(hub, p, 2)));
-          r.add(ContextFragment.providesReturnData(hub.callStack()));
+          r.add(ContextFragment.providesReturnData(hub));
         }
       }
       case BLAKE2F -> {
@@ -296,8 +296,8 @@ public class PrecompileLinesGenerator {
 
     r.add(
         p.success()
-            ? ContextFragment.providesReturnData(hub.callStack())
-            : ContextFragment.nonExecutionEmptyReturnData(hub.callStack()));
+            ? ContextFragment.providesReturnData(hub)
+            : ContextFragment.nonExecutionEmptyReturnData(hub));
     return r;
   }
 }

@@ -120,7 +120,7 @@ public class NoCodeCallSection extends TraceSection
         callerCallFrame,
         this.scenarioFragment,
         this.imcFragment,
-        ContextFragment.readContextData(hub.callStack()),
+        ContextFragment.readContextData(hub),
         accountFragmentFactory.make(
             this.preCallCallerAccountSnapshot, this.postCallCallerAccountSnapshot),
         accountFragmentFactory.makeWithTrm(
@@ -158,7 +158,7 @@ public class NoCodeCallSection extends TraceSection
                 this.postCallCalledAccountSnapshot, this.preCallCalledAccountSnapshot));
       }
       this.addFragmentsWithoutStack(
-          hub, callerCallFrame, ContextFragment.nonExecutionEmptyReturnData(hub.callStack()));
+          hub, callerCallFrame, ContextFragment.nonExecutionEmptyReturnData(hub));
     }
   }
 }

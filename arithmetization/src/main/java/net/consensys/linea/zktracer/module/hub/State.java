@@ -25,7 +25,6 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.StackedContainer;
 import net.consensys.linea.zktracer.module.hub.State.TxState.Stamps;
 import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
-import net.consensys.linea.zktracer.types.HubProcessingPhase;
 
 public class State implements StackedContainer {
   private final Deque<TxState> state = new ArrayDeque<>();

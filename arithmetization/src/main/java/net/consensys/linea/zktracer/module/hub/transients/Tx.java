@@ -25,7 +25,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.container.StackedContainer;
-import net.consensys.linea.zktracer.types.HubProcessingPhase;
+import net.consensys.linea.zktracer.module.hub.HubProcessingPhase;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Quantity;
 import org.hyperledger.besu.datatypes.Transaction;

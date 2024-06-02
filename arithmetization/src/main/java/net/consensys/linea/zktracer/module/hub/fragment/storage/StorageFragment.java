@@ -13,30 +13,29 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.fragment;
+package net.consensys.linea.zktracer.module.hub.fragment.storage;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import net.consensys.linea.zktracer.module.hub.Trace;
+import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.types.EWord;
 import org.hyperledger.besu.datatypes.Address;
 
-/**
- * @param address target storage address
- * @param deploymentNumber storage account deployment number
- * @param key target storage slot
- * @param valOrig value @key at the beginning of *transaction*
- * @param valCurr value @key at the beginning of *opcode*
- */
-public record StorageFragment(
-    Address address,
-    int deploymentNumber,
-    EWord key,
-    EWord valOrig,
-    EWord valCurr,
-    EWord valNext,
-    boolean oldWarmth,
-    boolean newWarmth)
-    implements TraceFragment {
-  @Override
+@RequiredArgsConstructor
+@Getter
+public final class StorageFragment implements TraceFragment {
+  @Setter private StorageFragmentType type;
+  private final Address address;
+  private final int deploymentNumber;
+  private final EWord key;
+  private final EWord valOrig;
+  private final EWord valCurr;
+  private final EWord valNext;
+  private final boolean oldWarmth;
+  private final boolean newWarmth;
+
   public Trace trace(Trace trace) {
     final EWord eAddress = EWord.of(address);
     return trace

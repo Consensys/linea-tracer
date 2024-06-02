@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,18 +13,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub;
+package net.consensys.linea.zktracer.module.hub.fragment.account;
 
-import lombok.Getter;
-import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
-
-/** Contain factories for modules requiring access to longer-lived data. */
-@Accessors(fluent = true)
-public class Factories {
-  @Getter private final AccountFragment.AccountFragmentFactory accountFragment;
-
-  public Factories(final Hub hub) {
-    this.accountFragment = new AccountFragment.AccountFragmentFactory(hub.defers());
-  }
+public enum AccountFragmentType {
+  STANDARD,
+  REVERT_WITH_CURRENT,
+  REVERT_WITH_CHILD,
+  SELF_DESTRUCT
 }

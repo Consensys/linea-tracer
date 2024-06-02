@@ -16,15 +16,15 @@
 package net.consensys.linea.zktracer.module.hub;
 
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MAX_REFUND_QUOTIENT;
+import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC;
+import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_FINAL;
+import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_INIT;
+import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_SKIP;
+import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_WARM;
 import static net.consensys.linea.zktracer.types.AddressUtils.addressFromBytes;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 import static net.consensys.linea.zktracer.types.AddressUtils.precompileAddress;
-import static net.consensys.linea.zktracer.types.HubProcessingPhase.TX_EXEC;
-import static net.consensys.linea.zktracer.types.HubProcessingPhase.TX_FINAL;
-import static net.consensys.linea.zktracer.types.HubProcessingPhase.TX_INIT;
-import static net.consensys.linea.zktracer.types.HubProcessingPhase.TX_SKIP;
-import static net.consensys.linea.zktracer.types.HubProcessingPhase.TX_WARM;
 
 import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
@@ -54,8 +54,10 @@ import net.consensys.linea.zktracer.module.exp.Exp;
 import net.consensys.linea.zktracer.module.ext.Ext;
 import net.consensys.linea.zktracer.module.hub.defer.*;
 import net.consensys.linea.zktracer.module.hub.fragment.*;
+import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
 import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 import net.consensys.linea.zktracer.module.hub.section.*;
 import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
@@ -1461,7 +1463,8 @@ public class Hub implements Module {
           default -> throw new IllegalStateException("unexpected STACK_RAM opcode");
         }
       }
-      case STORAGE -> {
+      case STORAGE -> { // TODO:
+        /*
         Address address = this.currentFrame().accountAddress();
         EWord key = EWord.of(frame.getStackItem(0));
         switch (this.currentFrame().opCode()) {
@@ -1498,7 +1501,7 @@ public class Hub implements Module {
                         true)));
           }
           default -> throw new IllegalStateException("invalid operation in family STORAGE");
-        }
+        } */
       }
       case CREATE -> {
         Address myAddress = this.currentFrame().accountAddress();

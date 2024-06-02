@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.types;
+package net.consensys.linea.zktracer.module.hub;
 
 public enum HubProcessingPhase {
   TX_EXEC,

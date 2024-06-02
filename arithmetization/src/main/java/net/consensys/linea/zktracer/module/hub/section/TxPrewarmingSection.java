@@ -18,9 +18,9 @@ package net.consensys.linea.zktracer.module.hub.section;
 import java.util.List;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.fragment.AccountFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.StorageFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
 
 /**
  * A warmup section is generated if a transaction features pre-warmed addresses and/or keys. It

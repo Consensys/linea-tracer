@@ -641,7 +641,7 @@ public class Hub implements Module {
             accountFragmentFactory.make(preInitFromSnapshot, postInitFromSnapshot),
             accountFragmentFactory
                 .makeWithTrm(preInitToSnapshot, postInitToSnapshot, toAddress)
-                .requiresCodeFragmentIndex(true),
+                .requiresRomlex(true),
             ImcFragment.forTxInit(this),
             ContextFragment.initializeExecutionContext(this),
             txFragment));

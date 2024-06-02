@@ -67,11 +67,11 @@ public class TxFinalizationSection extends TraceSection {
     // SENDER account snapshots
     final Account senderAccount = worldView.get(senderAddress);
     final AccountSnapshot senderAccountSnapshotBeforeRefunds =
-            AccountSnapshot.fromAccount(
-                    senderAccount,
-                    true,
-                    deploymentInfo.number(senderAddress),
-                    deploymentInfo.isDeploying(senderAddress));
+        AccountSnapshot.fromAccount(
+            senderAccount,
+            true,
+            deploymentInfo.number(senderAddress),
+            deploymentInfo.isDeploying(senderAddress));
 
     final AccountSnapshot senderAccountSnapshotAfterGasRefund =
         senderAccountSnapshotBeforeRefunds.credit(senderWeiRefund);
@@ -82,9 +82,9 @@ public class TxFinalizationSection extends TraceSection {
     final AccountSnapshot coinbaseSnapshotBeforeFeeCollection =
         coinbaseIsSender
             ? senderAccountSnapshotAfterGasRefund
-                // worldView.get(address) returns null
-                // if there is no account at that address
-                // this is why we get a zero address
+            // worldView.get(address) returns null
+            // if there is no account at that address
+            // this is why we get a zero address
             : AccountSnapshot.fromAccount(
                 worldView.get(coinbaseAddress),
                 coinbaseWarmth,

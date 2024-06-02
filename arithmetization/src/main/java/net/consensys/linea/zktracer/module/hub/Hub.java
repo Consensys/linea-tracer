@@ -852,7 +852,7 @@ public class Hub implements Module {
                   deploymentInfo.isDeploying(coinbaseAddress));
 
       final AccountSnapshot coinbaseSnapshotAfterFeeCollection =
-          coinbaseSnapshotBeforeFeeCollection.credit(coinbaseFee);
+          coinbaseSnapshotBeforeFeeCollection.credit(coinbaseFee, coinbaseWarmth);
       this.addTraceSection(
           new TxFinalizationSection(
               this,
@@ -901,7 +901,7 @@ public class Hub implements Module {
                       deploymentInfo.number(coinbaseAddress),
                       deploymentInfo.isDeploying(coinbaseAddress));
 
-      AccountSnapshot coinbaseAfterFeeCollection = coinbaseBeforeFeeCollection.credit(coinbaseFee);
+      AccountSnapshot coinbaseAfterFeeCollection = coinbaseBeforeFeeCollection.credit(coinbaseFee, coinbaseWarmth);
 
       this.addTraceSection(
           new TxFinalizationSection(

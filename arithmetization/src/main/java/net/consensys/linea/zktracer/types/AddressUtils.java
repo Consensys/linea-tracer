@@ -105,6 +105,8 @@ public class AddressUtils {
   }
 
   public static Address addressFromBytes(final Bytes input) {
-    return Address.wrap(leftPadTo(input, Address.SIZE));
+    return input.size() == Address.SIZE
+        ? Address.wrap(input)
+        : Address.wrap(leftPadTo(input.trimLeadingZeros(), Address.SIZE));
   }
 }

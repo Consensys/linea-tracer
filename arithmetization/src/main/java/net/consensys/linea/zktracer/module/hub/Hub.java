@@ -678,7 +678,7 @@ public class Hub implements Module {
           if (pch().abortingConditions().any()) {
             return currentContextNumber;
           }
-          Address calleeAddress = addressFromBytes(this.currentFrame().frame().getStackItem(1));
+          Address calleeAddress = Words.toAddress(this.currentFrame().frame().getStackItem(1));
           if (world.get(calleeAddress).hasCode()) {
             return 1 + stamp();
           }
@@ -1425,7 +1425,10 @@ public class Hub implements Module {
               switch (this.currentFrame().opCode()) {
                 case CODECOPY -> this.currentFrame().byteCodeAddress();
                 case EXTCODECOPY -> frame.getStackItem(0);
-                default -> throw new IllegalStateException("unexpected opcode");
+                case CALLDATACOPY -> addressFromBytes(
+                    Bytes.fromHexString("0xdeadbeef")); // TODO: implement me please
+                default -> throw new IllegalStateException(
+                    String.format("unexpected opcode %s", this.opCode()));
               };
           final Address targetAddress = Words.toAddress(rawTargetAddress);
           final Account targetAccount = frame.getWorldUpdater().get(targetAddress);

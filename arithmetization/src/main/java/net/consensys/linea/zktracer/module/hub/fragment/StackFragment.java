@@ -42,6 +42,7 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.evm.internal.Words;
 
 @Accessors(fluent = true)
 public final class StackFragment implements TraceFragment {
@@ -85,19 +86,19 @@ public final class StackFragment implements TraceFragment {
       Bytes memorySegmentToHash;
       switch (this.opCode) {
         case SHA3, RETURN -> {
-          long offset = hub.currentFrame().frame().getStackItem(0).toLong();
-          long size = hub.currentFrame().frame().getStackItem(1).toLong();
+          final long offset = Words.clampedToLong(hub.currentFrame().frame().getStackItem(0));
+          final long size = Words.clampedToLong(hub.currentFrame().frame().getStackItem(1));
           memorySegmentToHash = hub.messageFrame().shadowReadMemory(offset, size);
         }
         case CREATE2 -> {
-          long offset = hub.currentFrame().frame().getStackItem(1).toLong();
-          long size = hub.currentFrame().frame().getStackItem(2).toLong();
+          final long offset = Words.clampedToLong(hub.currentFrame().frame().getStackItem(1));
+          final long size = Words.clampedToLong(hub.currentFrame().frame().getStackItem(2));
           memorySegmentToHash = hub.messageFrame().shadowReadMemory(offset, size);
         }
         default -> throw new UnsupportedOperationException(
             "Hash was attempted by the following opcode: " + this.opCode().toString());
       }
-      this.hashInfoKeccak = EWord.of(memorySegmentToHash);
+      this.hashInfoKeccak = EWord.of(Hash.hash(memorySegmentToHash));
     }
 
     this.staticGas = gp.staticGas();

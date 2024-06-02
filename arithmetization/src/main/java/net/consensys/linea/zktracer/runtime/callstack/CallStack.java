@@ -61,6 +61,7 @@ public final class CallStack {
             hubStamp,
             precompileAddress,
             precompileAddress,
+            precompileAddress,
             Bytecode.EMPTY,
             CallFrameType.PRECOMPILE_RETURN_DATA,
             this.current,
@@ -77,7 +78,7 @@ public final class CallStack {
 
   public void newBedrock(
       int hubStamp,
-      //      Address from,
+      Address from,
       Address to,
       CallFrameType type,
       Bytecode toCode,
@@ -92,6 +93,7 @@ public final class CallStack {
         hubStamp,
         to,
         to,
+        from,
         toCode == null ? Bytecode.EMPTY : toCode,
         type,
         value,
@@ -134,11 +136,12 @@ public final class CallStack {
       int codeDeploymentNumber,
       boolean codeDeploymentStatus) {
     this.depth = -1;
-    this.frames.add(new CallFrame(callData, hubStamp));
+    this.frames.add(new CallFrame(from, callData, hubStamp));
     this.enter(
         hubStamp,
         to,
         to,
+        from,
         toCode == null ? Bytecode.EMPTY : toCode,
         CallFrameType.BEDROCK,
         value,
@@ -187,7 +190,7 @@ public final class CallStack {
    * Creates a new call frame.
    *
    * @param hubStamp the hub stamp at the time of entry in the new frame
-   * @param address the {@link Address} of the bytecode being executed
+   * @param accountAddress the {@link Address} of the bytecode being executed
    * @param code the {@link Code} being executed
    * @param type the execution type of call frame
    * @param value the value given to this call frame
@@ -199,8 +202,9 @@ public final class CallStack {
    */
   public void enter(
       int hubStamp,
-      Address address,
-      Address codeAddress,
+      Address accountAddress,
+      Address byteCodeAddress,
+      Address callerAddress,
       Bytecode code,
       CallFrameType type,
       Wei value,
@@ -228,8 +232,9 @@ public final class CallStack {
             isDeployment,
             newTop,
             hubStamp,
-            address,
-            codeAddress,
+            accountAddress,
+            callerAddress,
+            byteCodeAddress,
             code,
             type,
             caller,

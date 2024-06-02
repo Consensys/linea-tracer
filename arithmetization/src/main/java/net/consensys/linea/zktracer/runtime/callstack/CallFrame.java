@@ -64,11 +64,13 @@ public class CallFrame {
   @Getter private final List<Integer> childFrames = new ArrayList<>();
 
   /** the {@link Address} of the account executing this {@link CallFrame}. */
-  @Getter private final Address address;
+  @Getter private final Address accountAddress;
   /** A memoized {@link EWord} conversion of `address` */
   private EWord eAddress = null;
   /** the {@link Address} of the code executed in this {@link CallFrame}. */
-  @Getter private Address codeAddress = Address.ZERO;
+  @Getter private Address byteCodeAddress = Address.ZERO;
+
+  @Getter private Address callerAddress = Address.ZERO;
   /** A memoized {@link EWord} conversion of `codeAddress` */
   private EWord eCodeAddress = null;
 
@@ -117,10 +119,10 @@ public class CallFrame {
   @Getter @Setter private StackContext pending;
 
   /** Create a MANTLE call frame. */
-  CallFrame(final Bytes callData, final int contextNumber) {
+  CallFrame(final Address origin, final Bytes callData, final int contextNumber) {
     this.type = CallFrameType.MANTLE;
     this.contextNumber = contextNumber;
-    this.address = Address.ZERO;
+    this.accountAddress = origin;
     this.callDataInfo = new CallDataInfo(callData, 0, callData.size(), contextNumber);
   }
 
@@ -137,14 +139,14 @@ public class CallFrame {
     this.contextNumber = contextNumber;
     this.returnData = precompileResult;
     this.returnDataSource = new MemorySpan(returnDataOffset, precompileResult.size());
-    this.address = precompileAddress;
+    this.accountAddress = precompileAddress;
   }
 
   /** Create an empty call frame. */
   CallFrame() {
     this.type = CallFrameType.EMPTY;
     this.contextNumber = 0;
-    this.address = Address.ZERO;
+    this.accountAddress = Address.ZERO;
     this.parentFrame = -1;
   }
 
@@ -156,7 +158,7 @@ public class CallFrame {
    * @param isDeployment whether the executing code is initcode
    * @param id the ID of this frame in the {@link CallStack}
    * @param hubStamp the hub stamp at the frame creation
-   * @param address the {@link Address} of this frame executor
+   * @param accountAddress the {@link Address} of this frame executor
    * @param type the {@link CallFrameType} of this frame
    * @param caller the ID of this frame caller in the {@link CallStack}
    * @param value how much ether was given to this frame
@@ -169,8 +171,9 @@ public class CallFrame {
       boolean isDeployment,
       int id,
       int hubStamp,
-      Address address,
-      Address codeAddress,
+      Address accountAddress,
+      Address callerAddress,
+      Address byteCodeAddress,
       Bytecode code,
       CallFrameType type,
       int caller,
@@ -186,8 +189,9 @@ public class CallFrame {
     this.underDeployment = isDeployment;
     this.id = id;
     this.contextNumber = hubStamp + 1;
-    this.address = address;
-    this.codeAddress = codeAddress;
+    this.accountAddress = accountAddress;
+    this.byteCodeAddress = byteCodeAddress;
+    this.callerAddress = callerAddress;
     this.code = code;
     this.type = type;
     this.parentFrame = caller;
@@ -212,7 +216,7 @@ public class CallFrame {
    */
   public EWord addressAsEWord() {
     if (this.eAddress == null) {
-      this.eAddress = EWord.of(this.address);
+      this.eAddress = EWord.of(this.accountAddress);
     }
     return this.eAddress;
   }
@@ -224,7 +228,7 @@ public class CallFrame {
    */
   public EWord codeAddressAsEWord() {
     if (this.eCodeAddress == null) {
-      this.eCodeAddress = EWord.of(this.codeAddress);
+      this.eCodeAddress = EWord.of(this.byteCodeAddress);
     }
     return this.eCodeAddress;
   }
@@ -248,7 +252,8 @@ public class CallFrame {
    * @return the executed contract metadata
    */
   public ContractMetadata metadata() {
-    return ContractMetadata.make(this.codeAddress, this.codeDeploymentNumber, this.underDeployment);
+    return ContractMetadata.make(
+        this.byteCodeAddress, this.codeDeploymentNumber, this.underDeployment);
   }
 
   private void revertChildren(CallStack callStack, int stamp) {

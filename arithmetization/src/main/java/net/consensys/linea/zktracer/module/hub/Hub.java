@@ -1015,7 +1015,7 @@ public class Hub implements Module {
       } else {
         this.callStack.newBedrock(
             this.state.stamps().hub(),
-            // this.transients.tx().transaction().getSender(),
+            this.txStack.current().getBesuTransaction().getSender(),
             toAddress,
             CallFrameType.BEDROCK,
             new Bytecode(
@@ -1066,6 +1066,7 @@ public class Hub implements Module {
           this.state.stamps().hub(),
           frame.getRecipientAddress(),
           frame.getContractAddress(),
+          frame.getRecipientAddress(), // TODO: this is likely false
           new Bytecode(frame.getCode().getBytes()),
           frameType,
           frame.getValue(),
@@ -1112,7 +1113,7 @@ public class Hub implements Module {
       this.transients
           .conflation()
           .deploymentInfo()
-          .unmarkDeploying(this.currentFrame().codeAddress());
+          .unmarkDeploying(this.currentFrame().byteCodeAddress());
 
       DeploymentExceptions contextExceptions =
           DeploymentExceptions.fromFrame(this.currentFrame(), frame);
@@ -1352,7 +1353,7 @@ public class Hub implements Module {
         final Bytes rawTargetAddress =
             switch (this.currentFrame().opCode()) {
               case BALANCE, EXTCODESIZE, EXTCODEHASH -> frame.getStackItem(0);
-              default -> this.currentFrame().address();
+              default -> this.currentFrame().accountAddress();
             };
         final Address targetAddress = Words.toAddress(rawTargetAddress);
         final Account targetAccount = frame.getWorldUpdater().get(targetAddress);
@@ -1377,7 +1378,7 @@ public class Hub implements Module {
 
           final Bytes rawTargetAddress =
               switch (this.currentFrame().opCode()) {
-                case CODECOPY -> this.currentFrame().codeAddress();
+                case CODECOPY -> this.currentFrame().byteCodeAddress();
                 case EXTCODECOPY -> frame.getStackItem(0);
                 default -> throw new IllegalStateException("unexpected opcode");
               };
@@ -1420,7 +1421,7 @@ public class Hub implements Module {
         }
       }
       case STORAGE -> {
-        Address address = this.currentFrame().address();
+        Address address = this.currentFrame().accountAddress();
         EWord key = EWord.of(frame.getStackItem(0));
         switch (this.currentFrame().opCode()) {
           case SSTORE -> {
@@ -1459,7 +1460,7 @@ public class Hub implements Module {
         }
       }
       case CREATE -> {
-        Address myAddress = this.currentFrame().address();
+        Address myAddress = this.currentFrame().accountAddress();
         Account myAccount = frame.getWorldUpdater().get(myAddress);
         AccountSnapshot myAccountSnapshot =
             AccountSnapshot.fromAccount(
@@ -1468,7 +1469,7 @@ public class Hub implements Module {
                 this.transients.conflation().deploymentInfo().number(myAddress),
                 this.transients.conflation().deploymentInfo().isDeploying(myAddress));
 
-        Address createdAddress = this.currentFrame().address();
+        Address createdAddress = this.currentFrame().accountAddress();
         Account createdAccount = frame.getWorldUpdater().get(createdAddress);
         AccountSnapshot createdAccountSnapshot =
             AccountSnapshot.fromAccount(
@@ -1484,7 +1485,7 @@ public class Hub implements Module {
       }
 
       case CALL -> {
-        final Address myAddress = this.currentFrame().address();
+        final Address myAddress = this.currentFrame().accountAddress();
         final Account myAccount = frame.getWorldUpdater().get(myAddress);
         final AccountSnapshot myAccountSnapshot =
             AccountSnapshot.fromAccount(
@@ -1597,12 +1598,12 @@ public class Hub implements Module {
       case JUMP -> {
         AccountSnapshot codeAccountSnapshot =
             AccountSnapshot.fromAccount(
-                frame.getWorldUpdater().get(this.currentFrame().codeAddress()),
+                frame.getWorldUpdater().get(this.currentFrame().byteCodeAddress()),
                 true,
                 this.transients
                     .conflation()
                     .deploymentInfo()
-                    .number(this.currentFrame().codeAddress()),
+                    .number(this.currentFrame().byteCodeAddress()),
                 this.currentFrame().underDeployment());
 
         JumpSection jumpSection =

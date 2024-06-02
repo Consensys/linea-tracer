@@ -54,7 +54,8 @@ public final class Jump implements OobCall {
 
     this.targetPc = EWord.of(targetPc);
     this.jumpCondition = EWord.of(jumpCondition);
-    this.codeSize = frame.getWorldUpdater().get(hub.currentFrame().codeAddress()).getCode().size();
+    this.codeSize =
+        frame.getWorldUpdater().get(hub.currentFrame().byteCodeAddress()).getCode().size();
     this.event2 = jumpCondition > 0;
   }
 

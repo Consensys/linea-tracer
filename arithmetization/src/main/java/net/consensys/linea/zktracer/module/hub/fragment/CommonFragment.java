@@ -180,7 +180,9 @@ public final class CommonFragment implements TraceFragment {
                 .romLex()
                 .getCodeFragmentIndexByMetadata(
                     ContractMetadata.make(
-                        frame.codeAddress(), frame.codeDeploymentNumber(), frame.underDeployment()))
+                        frame.byteCodeAddress(),
+                        frame.codeDeploymentNumber(),
+                        frame.underDeployment()))
             : 0;
     final boolean selfReverts = frame.selfReverts();
     final boolean getsReverted = frame.getsReverted();

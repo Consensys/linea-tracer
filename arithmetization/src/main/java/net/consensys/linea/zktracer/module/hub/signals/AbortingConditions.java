@@ -61,7 +61,7 @@ public final class AbortingConditions {
         switch (hub.currentFrame().opCode()) {
           case CALL, CALLCODE -> {
             if (hub.pch().exceptions().none()) {
-              final Address myAddress = hub.currentFrame().address();
+              final Address myAddress = hub.currentFrame().accountAddress();
               final Wei myBalance =
                   hub.messageFrame().getWorldUpdater().get(myAddress).getBalance();
               final Wei value = Wei.of(UInt256.fromBytes(hub.messageFrame().getStackItem(2)));
@@ -73,7 +73,7 @@ public final class AbortingConditions {
           }
           case CREATE, CREATE2 -> {
             if (hub.pch().exceptions().none()) {
-              final Address myAddress = hub.currentFrame().address();
+              final Address myAddress = hub.currentFrame().accountAddress();
               final Wei myBalance =
                   hub.messageFrame().getWorldUpdater().get(myAddress).getBalance();
               final Wei value = Wei.of(UInt256.fromBytes(hub.messageFrame().getStackItem(0)));

@@ -92,7 +92,7 @@ public record ContextFragment(
 
     final EWord eAddress = callFrame.addressAsEWord();
     final EWord eCodeAddress = callFrame.codeAddressAsEWord();
-    final EWord parentAddress = parent.addressAsEWord();
+    final EWord callerAddress = EWord.of(callFrame.callerAddress());
     return trace
         .peekAtContext(true)
         .pContextContextNumber(callFrame.contextNumber())
@@ -107,8 +107,8 @@ public record ContextFragment(
         .pContextByteCodeDeploymentNumber(callFrame.codeDeploymentNumber())
         .pContextByteCodeDeploymentStatus(callFrame.underDeployment() ? 1 : 0)
         .pContextByteCodeCodeFragmentIndex(0) // TODO
-        .pContextCallerAddressHi(bytesToLong(parentAddress.hi()))
-        .pContextCallerAddressLo(parentAddress.lo())
+        .pContextCallerAddressHi(bytesToLong(callerAddress.hi()))
+        .pContextCallerAddressLo(callerAddress.lo())
         .pContextCallValue(callFrame.value())
         .pContextCallDataContextNumber(parent.contextNumber())
         .pContextCallDataOffset(callFrame.callDataInfo().memorySpan().offset())

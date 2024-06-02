@@ -88,6 +88,14 @@ public class TransactionStack implements StackedContainer {
     this.current().setHubStampTransactionEnd(hub.stamp() + 1);
   }
 
+  public void setCodeFragmentIndex(Hub hub) {
+    for (TransactionProcessingMetadata tx : this.txs) {
+      final int cfi =
+          tx.requiresCfiUpdate() ? hub.getCfiByMetaData(tx.getEffectiveTo(), 1, true) : 0;
+      tx.setCodeFragmentIndex(cfi);
+    }
+  }
+
   public static long computeInitGas(Transaction tx) {
     boolean isDeployment = tx.getTo().isEmpty();
     return tx.getGasLimit()

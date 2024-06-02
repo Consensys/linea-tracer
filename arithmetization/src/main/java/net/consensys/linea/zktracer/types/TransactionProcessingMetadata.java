@@ -33,6 +33,7 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Getter
 public class TransactionProcessingMetadata {
+
   final int absoluteTransactionNumber;
   final int relativeTransactionNumber;
   final int relativeBlockNumber;
@@ -78,6 +79,8 @@ public class TransactionProcessingMetadata {
   boolean isReceiverPreWarmed = false;
 
   final StorageInitialValues storage = new StorageInitialValues();
+
+  @Setter int codeFragmentIndex = -1;
 
   public TransactionProcessingMetadata(
       WorldView world,
@@ -178,5 +181,9 @@ public class TransactionProcessingMetadata {
 
   public boolean requiresPrewarming() {
     return requiresEvmExecution && (accessListCost != 0);
+  }
+
+  public boolean requiresCfiUpdate() {
+    return requiresEvmExecution && isDeployment;
   }
 }

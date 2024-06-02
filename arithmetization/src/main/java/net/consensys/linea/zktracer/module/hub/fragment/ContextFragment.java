@@ -116,7 +116,11 @@ public record ContextFragment(
         .pContextByteCodeAddressLo(eCodeAddress.lo())
         .pContextByteCodeDeploymentNumber(callFrame.codeDeploymentNumber())
         .pContextByteCodeDeploymentStatus(callFrame.underDeployment() ? 1 : 0)
-        .pContextByteCodeCodeFragmentIndex(hub.getCfiByMetaData(callFrame.byteCodeAddress(), callFrame.codeDeploymentNumber(), callFrame.underDeployment()))
+        .pContextByteCodeCodeFragmentIndex(
+            hub.getCfiByMetaData(
+                callFrame.byteCodeAddress(),
+                callFrame.codeDeploymentNumber(),
+                callFrame.underDeployment()))
         .pContextCallerAddressHi(bytesToLong(callerAddress.hi()))
         .pContextCallerAddressLo(callerAddress.lo())
         .pContextCallValue(callFrame.value())

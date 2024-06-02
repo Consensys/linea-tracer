@@ -1257,6 +1257,7 @@ public class Hub implements Module {
     this.romLex.traceEndConflation(world);
 
     this.defers.runPostConflation(this, world);
+    this.txStack.setCodeFragmentIndex(this);
 
     for (Module m : this.modules) {
       if (!m.equals(this.romLex)) {

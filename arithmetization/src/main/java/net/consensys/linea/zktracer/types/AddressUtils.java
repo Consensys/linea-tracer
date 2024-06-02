@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.types;
 
+import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
+
 import java.util.List;
 
 import net.consensys.linea.zktracer.module.hub.transients.OperationAncillaries;
@@ -100,5 +102,9 @@ public class AddressUtils {
       throw new IllegalArgumentException("Must be called only for CREATE/CREATE2 opcode");
     }
     return opcode.equals(OpCode.CREATE) ? getCreateAddress(frame) : getCreate2Address(frame);
+  }
+
+  public static Address addressFromBytes(final Bytes input) {
+    return Address.wrap(leftPadTo(input, Address.SIZE));
   }
 }

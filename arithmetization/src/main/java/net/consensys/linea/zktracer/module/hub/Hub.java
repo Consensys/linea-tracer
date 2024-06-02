@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
+import static net.consensys.linea.zktracer.types.AddressUtils.addressFromBytes;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 import static net.consensys.linea.zktracer.types.AddressUtils.precompileAddress;
@@ -679,8 +680,7 @@ public class Hub implements Module {
           if (pch().abortingConditions().any()) {
             return currentContextNumber;
           }
-          Address calleeAddress =
-              Address.extract((Bytes32) this.currentFrame().frame().getStackItem(1));
+          Address calleeAddress = addressFromBytes(this.currentFrame().frame().getStackItem(1));
           if (world.get(calleeAddress).hasCode()) {
             return 1 + stamp();
           }

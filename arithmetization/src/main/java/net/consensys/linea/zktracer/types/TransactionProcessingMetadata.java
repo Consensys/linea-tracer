@@ -131,9 +131,9 @@ public class TransactionProcessingMetadata {
   }
 
   public long getUpfrontGasCost() {
+    // Note: Besu's dataCost computation contains the 21_000 transaction cost
     return dataCost
         + (isDeployment ? GAS_CONST_G_CREATE : 0)
-        + GAS_CONST_G_TRANSACTION
         + accessListCost;
   }
 

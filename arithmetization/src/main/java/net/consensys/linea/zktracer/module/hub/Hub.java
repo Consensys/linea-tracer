@@ -901,7 +901,8 @@ public class Hub implements Module {
                       deploymentInfo.number(coinbaseAddress),
                       deploymentInfo.isDeploying(coinbaseAddress));
 
-      AccountSnapshot coinbaseAfterFeeCollection = coinbaseBeforeFeeCollection.credit(coinbaseFee, coinbaseWarmth);
+      AccountSnapshot coinbaseAfterFeeCollection =
+          coinbaseBeforeFeeCollection.credit(coinbaseFee, coinbaseWarmth);
 
       this.addTraceSection(
           new TxFinalizationSection(

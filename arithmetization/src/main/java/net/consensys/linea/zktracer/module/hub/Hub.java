@@ -789,11 +789,11 @@ public class Hub implements Module {
     }
   }
 
-  void processStateFinal(WorldView worldView, Transaction tx, boolean isSuccess) {
+  void processStateFinal(WorldView worldView) {
     this.state.setProcessingPhase(TX_FINAL);
     this.state.stamps().incrementHubStamp();
 
-    final Address fromAddress = this.transients.tx().getBesuTransaction().getSender();
+    final Address fromAddress = this.txStack.current().getBesuTransaction().getSender();
     final Account fromAccount = worldView.get(fromAddress);
     final DeploymentInfo deploymentInfo = this.transients.conflation().deploymentInfo();
     final AccountSnapshot preFinalFromSnapshot =
@@ -811,26 +811,28 @@ public class Hub implements Module {
             deploymentInfo.number(fromAddress),
             deploymentInfo.isDeploying(fromAddress));
 
-    Account minerAccount = worldView.get(this.transients.block().minerAddress());
-    AccountSnapshot preFinalCoinbaseSnapshot =
+    final Address minerAddress = this.txStack.current().getCoinbase();
+    final Account minerAccount = worldView.get(minerAddress);
+
+    final AccountSnapshot preFinalCoinbaseSnapshot =
         AccountSnapshot.fromAccount(
             minerAccount,
             true,
-            deploymentInfo.number(this.transients.block().minerAddress()),
-            deploymentInfo.isDeploying(this.transients.block().minerAddress()));
+            deploymentInfo.number(minerAddress),
+            deploymentInfo.isDeploying(minerAddress));
 
     // TODO: still not finished
-    AccountSnapshot postFinalCoinbaseSnapshot =
+    final AccountSnapshot postFinalCoinbaseSnapshot =
         AccountSnapshot.fromAccount(
             minerAccount,
             true,
-            deploymentInfo.number(this.transients.block().minerAddress()),
-            deploymentInfo.isDeploying(this.transients.block().minerAddress()));
+            deploymentInfo.number(minerAddress),
+            deploymentInfo.isDeploying(minerAddress));
 
     final AccountFragment.AccountFragmentFactory accountFragmentFactory =
         this.factories.accountFragment();
 
-    if (isSuccess) {
+    if (this.txStack.current().statusCode()) {
       // if no revert: 2 account rows (sender, coinbase) + 1 tx row
       this.addTraceSection(
           new EndTransactionSection(
@@ -845,9 +847,9 @@ public class Hub implements Module {
       // this.exceptions = Exceptions.fromOutOfGas();
       // }
       // otherwise 4 account rows (sender, coinbase, sender, recipient) + 1 tx row
-      Address toAddress = this.transients.tx().getBesuTransaction().getSender();
-      Account toAccount = worldView.get(toAddress);
-      AccountSnapshot preFinalToSnapshot =
+      final Address toAddress = this.transients.tx().getBesuTransaction().getSender();
+      final Account toAccount = worldView.get(toAddress);
+      final AccountSnapshot preFinalToSnapshot =
           AccountSnapshot.fromAccount(
               toAccount,
               true,
@@ -855,7 +857,7 @@ public class Hub implements Module {
               deploymentInfo.isDeploying(toAddress));
 
       // TODO: still not finished
-      AccountSnapshot postFinalToSnapshot =
+      final AccountSnapshot postFinalToSnapshot =
           AccountSnapshot.fromAccount(
               toAccount,
               true,
@@ -926,8 +928,9 @@ public class Hub implements Module {
         .completeLineaTransaction(
             isSuccessful, leftoverGas, this.accruedRefunds(), this.state.stamps().hub());
     this.txStack.exitTransaction(this, isSuccessful);
+
     if (this.state.processingPhase != TX_SKIP) {
-      this.processStateFinal(world, tx, isSuccessful);
+      this.processStateFinal(world);
     }
 
     this.defers.runPostTx(this, world, tx, isSuccessful);

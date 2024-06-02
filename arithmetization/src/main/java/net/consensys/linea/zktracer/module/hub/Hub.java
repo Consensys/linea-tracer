@@ -15,8 +15,8 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
-import static net.consensys.linea.zktracer.types.AddressUtils.addressFromBytes;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MAX_REFUND_QUOTIENT;
+import static net.consensys.linea.zktracer.types.AddressUtils.addressFromBytes;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 import static net.consensys.linea.zktracer.types.AddressUtils.precompileAddress;
@@ -42,7 +42,6 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.bin.Bin;
@@ -794,7 +793,7 @@ public class Hub implements Module {
     }
   }
 
-  void processStateFinal(WorldView worldView){
+  void processStateFinal(WorldView worldView) {
     this.state.setProcessingPhase(TX_FINAL);
     this.state.stamps().incrementHubStamp();
 
@@ -805,7 +804,8 @@ public class Hub implements Module {
     final Address coinbaseAddress = tx.getCoinbase();
 
     final DeploymentInfo deploymentInfo = this.transients.conflation().deploymentInfo();
-    final boolean coinbaseWarmth = false; // TODO: get access to coinbase address warmth (still London!)
+    final boolean coinbaseWarmth =
+        false; // TODO: get access to coinbase address warmth (still London!)
 
     final Account senderAccount = worldView.get(senderAddress);
     final AccountSnapshot senderAccountSnapshotBeforeRefunds =
@@ -815,96 +815,101 @@ public class Hub implements Module {
             deploymentInfo.number(senderAddress),
             deploymentInfo.isDeploying(senderAddress));
 
-
     final long gasUsed = tx.getBesuTransaction().getGasLimit() - tx.getLeftoverGas();
     final long effectiveRefunds = Math.min(this.accruedRefunds(), gasUsed / MAX_REFUND_QUOTIENT);
     final long senderGasRefund = tx.getLeftoverGas() + effectiveRefunds;
 
     final long coinbaseGasReward = tx.getBesuTransaction().getGasLimit() - senderGasRefund;
-    final Wei coinbaseFee = Wei.of(
+    final Wei coinbaseFee =
+        Wei.of(
             BigInteger.valueOf(tx.getEffectiveGasPrice())
-                    .multiply(BigInteger.valueOf(coinbaseGasReward)));
+                .multiply(BigInteger.valueOf(coinbaseGasReward)));
 
     final AccountFragment.AccountFragmentFactory accountFragmentFactory =
-            this.factories.accountFragment();
+        this.factories.accountFragment();
 
     if (this.txStack.current().statusCode()) {
 
-      final Wei senderWeiRefund = Wei.of(
+      final Wei senderWeiRefund =
+          Wei.of(
               BigInteger.valueOf(senderGasRefund)
-                      .multiply(BigInteger.valueOf(tx.getEffectiveGasPrice())) );
+                  .multiply(BigInteger.valueOf(tx.getEffectiveGasPrice())));
 
       final AccountSnapshot senderAccountSnapshotAfterGasRefund =
-              senderAccountSnapshotBeforeRefunds.credit(senderWeiRefund);
+          senderAccountSnapshotBeforeRefunds.credit(senderWeiRefund);
 
       final boolean coinbaseIsSender = coinbaseAddress.equals(senderAddress);
 
       final AccountSnapshot coinbaseSnapshotBeforeFeeCollection =
-              coinbaseIsSender
-                      ? senderAccountSnapshotAfterGasRefund
-                      : AccountSnapshot.fromAccount(
-                      worldView.get(coinbaseAddress),
-                      coinbaseWarmth,
-                      deploymentInfo.number(coinbaseAddress),
-                      deploymentInfo.isDeploying(coinbaseAddress));
-
+          coinbaseIsSender
+              ? senderAccountSnapshotAfterGasRefund
+              : AccountSnapshot.fromAccount(
+                  worldView.get(coinbaseAddress),
+                  coinbaseWarmth,
+                  deploymentInfo.number(coinbaseAddress),
+                  deploymentInfo.isDeploying(coinbaseAddress));
 
       final AccountSnapshot coinbaseSnapshotAfterFeeCollection =
-              coinbaseSnapshotBeforeFeeCollection.credit(coinbaseFee);
+          coinbaseSnapshotBeforeFeeCollection.credit(coinbaseFee);
       this.addTraceSection(
-              new TxFinalizationSection(
-                      this,
-                      accountFragmentFactory.make(senderAccountSnapshotBeforeRefunds, senderAccountSnapshotAfterGasRefund),
-                      accountFragmentFactory.make(coinbaseSnapshotBeforeFeeCollection, coinbaseSnapshotAfterFeeCollection),
-                      TransactionFragment.prepare(this.txStack.current())));
+          new TxFinalizationSection(
+              this,
+              accountFragmentFactory.make(
+                  senderAccountSnapshotBeforeRefunds, senderAccountSnapshotAfterGasRefund),
+              accountFragmentFactory.make(
+                  coinbaseSnapshotBeforeFeeCollection, coinbaseSnapshotAfterFeeCollection),
+              TransactionFragment.prepare(this.txStack.current())));
     } else {
       // SENDER account snapshots
       final Wei senderWeiRefund =
-              Wei.of(
-                      BigInteger
-                              .valueOf(senderGasRefund)
-                              .multiply(BigInteger.valueOf(tx.getEffectiveGasPrice()))
-                              .add(tx.getBesuTransaction().getValue().getAsBigInteger()));
+          Wei.of(
+              BigInteger.valueOf(senderGasRefund)
+                  .multiply(BigInteger.valueOf(tx.getEffectiveGasPrice()))
+                  .add(tx.getBesuTransaction().getValue().getAsBigInteger()));
       final AccountSnapshot senderAccountSnapshotAfterGasAndBalanceRefund =
-              senderAccountSnapshotBeforeRefunds.credit(senderWeiRefund);
+          senderAccountSnapshotBeforeRefunds.credit(senderWeiRefund);
 
       // RECIPIENT account snapshots
       final boolean recipientIsSender = effectiveToAddress.equals(senderAddress);
       final AccountSnapshot effectiveToAccountSnapshotBeforeReimbursingValue =
-              recipientIsSender
-                      ? senderAccountSnapshotAfterGasAndBalanceRefund
-                      : AccountSnapshot.fromAccount(
-                      worldView.get(effectiveToAddress),
-                      true,
-                      deploymentInfo.number(effectiveToAddress),
-                      deploymentInfo.isDeploying(effectiveToAddress));
+          recipientIsSender
+              ? senderAccountSnapshotAfterGasAndBalanceRefund
+              : AccountSnapshot.fromAccount(
+                  worldView.get(effectiveToAddress),
+                  true,
+                  deploymentInfo.number(effectiveToAddress),
+                  deploymentInfo.isDeploying(effectiveToAddress));
 
       final AccountSnapshot effectiveToAccountSnapshotAfterReimbursingValue =
-              effectiveToAccountSnapshotBeforeReimbursingValue.debit((Wei) tx.getBesuTransaction().getValue());
+          effectiveToAccountSnapshotBeforeReimbursingValue.debit(
+              (Wei) tx.getBesuTransaction().getValue());
 
       // COINBASE account snapshots
       final boolean coinbaseIsRecipient = coinbaseAddress.equals(effectiveToAddress);
       final boolean coinbaseIsSender = coinbaseAddress.equals(senderAddress);
 
       AccountSnapshot coinbaseBeforeFeeCollection =
-              coinbaseIsRecipient
+          coinbaseIsRecipient
               ? effectiveToAccountSnapshotAfterReimbursingValue
-                      : coinbaseIsSender
-              ? senderAccountSnapshotAfterGasAndBalanceRefund
-                      : AccountSnapshot.fromAccount(
-                              worldView.get(coinbaseAddress),
+              : coinbaseIsSender
+                  ? senderAccountSnapshotAfterGasAndBalanceRefund
+                  : AccountSnapshot.fromAccount(
+                      worldView.get(coinbaseAddress),
                       coinbaseWarmth,
                       deploymentInfo.number(coinbaseAddress),
                       deploymentInfo.isDeploying(coinbaseAddress));
 
-      AccountSnapshot coinbaseAfterFeeCollection =
-              coinbaseBeforeFeeCollection.credit(coinbaseFee);
+      AccountSnapshot coinbaseAfterFeeCollection = coinbaseBeforeFeeCollection.credit(coinbaseFee);
 
       this.addTraceSection(
           new TxFinalizationSection(
               this,
-              accountFragmentFactory.make(senderAccountSnapshotBeforeRefunds, senderAccountSnapshotAfterGasAndBalanceRefund),
-              accountFragmentFactory.make(effectiveToAccountSnapshotBeforeReimbursingValue, effectiveToAccountSnapshotAfterReimbursingValue),
+              accountFragmentFactory.make(
+                  senderAccountSnapshotBeforeRefunds,
+                  senderAccountSnapshotAfterGasAndBalanceRefund),
+              accountFragmentFactory.make(
+                  effectiveToAccountSnapshotBeforeReimbursingValue,
+                  effectiveToAccountSnapshotAfterReimbursingValue),
               accountFragmentFactory.make(coinbaseBeforeFeeCollection, coinbaseAfterFeeCollection),
               TransactionFragment.prepare(this.txStack.current())));
     }

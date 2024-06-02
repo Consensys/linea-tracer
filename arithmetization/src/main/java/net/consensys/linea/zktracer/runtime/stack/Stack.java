@@ -345,7 +345,7 @@ public class Stack {
 
     hub.wcp().callLT(this.height, this.currentOpcodeData.stackSettings().delta());
     if (!this.isUnderflow()) {
-      hub.wcp().callGT(this.height - delta + alpha, 1024);
+      hub.wcp().callGT(this.height - delta + alpha, MAX_STACK_SIZE);
     }
 
     if (this.status.isFailure()) {

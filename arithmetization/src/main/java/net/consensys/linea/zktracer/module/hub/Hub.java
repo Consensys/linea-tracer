@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.hub;
 
 import static net.consensys.linea.zktracer.types.AddressUtils.addressFromBytes;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MAX_REFUND_QUOTIENT;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 import static net.consensys.linea.zktracer.types.AddressUtils.precompileAddress;
@@ -25,6 +26,7 @@ import static net.consensys.linea.zktracer.types.HubProcessingPhase.TX_INIT;
 import static net.consensys.linea.zktracer.types.HubProcessingPhase.TX_SKIP;
 import static net.consensys.linea.zktracer.types.HubProcessingPhase.TX_WARM;
 
+import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -568,7 +570,7 @@ public class Hub implements Module {
                 transactionProcessingMetadata.isReceiverPreWarmed(
                     seenAddresses.contains(receiverAddress));
 
-                this.addTraceSection(new WarmupSection(this, fragments));
+                this.addTraceSection(new TxPrewarmingSection(this, fragments));
               }
             });
   }
@@ -581,12 +583,12 @@ public class Hub implements Module {
   void processStateInit(WorldView world) {
     this.state.setProcessingPhase(TX_INIT);
     this.state.stamps().incrementHubStamp();
-    final TransactionProcessingMetadata tx = this.transients.tx();
-    final boolean isDeployment = tx.getBesuTransaction().getTo().isEmpty();
-    final Address toAddress = effectiveToAddress(tx.getBesuTransaction());
+    TransactionProcessingMetadata tx = this.txStack.current();
+    final boolean isDeployment = tx.isDeployment();
+    final Address toAddress = tx.getEffectiveTo();
     final DeploymentInfo deploymentInfo = this.transients.conflation().deploymentInfo();
 
-    final Address fromAddress = tx.getBesuTransaction().getSender();
+    final Address fromAddress = tx.getSender();
     final Account fromAccount = world.get(fromAddress);
     final AccountSnapshot preInitFromSnapshot =
         AccountSnapshot.fromAccount(
@@ -595,12 +597,7 @@ public class Hub implements Module {
             deploymentInfo.number(fromAddress),
             deploymentInfo.isDeploying(fromAddress));
 
-    final Wei transactionGasPrice =
-        ZkTracer.feeMarket
-            .getTransactionPriceCalculator()
-            .price(
-                (org.hyperledger.besu.ethereum.core.Transaction) tx.getBesuTransaction(),
-                Optional.of(this.transients.block().baseFee()));
+    final Wei transactionGasPrice = Wei.of(tx.getEffectiveGasPrice());
     final Wei value = (Wei) tx.getBesuTransaction().getValue();
     final AccountSnapshot postInitFromSnapshot =
         preInitFromSnapshot.debit(
@@ -630,14 +627,14 @@ public class Hub implements Module {
             ? preInitToSnapshot.deploy(value, initBytecode)
             : preInitToSnapshot.credit(value, true);
 
-    final TransactionFragment txFragment = TransactionFragment.prepare(this.txStack.current());
+    final TransactionFragment txFragment = TransactionFragment.prepare(tx);
     this.defers.postTx(txFragment);
 
     final AccountFragment.AccountFragmentFactory accountFragmentFactory =
         this.factories.accountFragment();
 
     this.addTraceSection(
-        new TxInitSection(
+        new TxInitializationSection(
             this,
             accountFragmentFactory.make(preInitFromSnapshot, postInitFromSnapshot),
             accountFragmentFactory
@@ -797,86 +794,119 @@ public class Hub implements Module {
     }
   }
 
-  void processStateFinal(WorldView worldView) {
+  void processStateFinal(WorldView worldView){
     this.state.setProcessingPhase(TX_FINAL);
     this.state.stamps().incrementHubStamp();
 
-    final Address fromAddress = this.txStack.current().getBesuTransaction().getSender();
-    final Account fromAccount = worldView.get(fromAddress);
+    final TransactionProcessingMetadata tx = this.txStack.current();
+
+    final Address senderAddress = tx.getSender();
+    final Address effectiveToAddress = tx.getEffectiveTo();
+    final Address coinbaseAddress = tx.getCoinbase();
+
     final DeploymentInfo deploymentInfo = this.transients.conflation().deploymentInfo();
-    final AccountSnapshot preFinalFromSnapshot =
-        AccountSnapshot.fromAccount(
-            fromAccount,
-            true,
-            deploymentInfo.number(fromAddress),
-            deploymentInfo.isDeploying(fromAddress));
+    final boolean coinbaseWarmth = false; // TODO: get access to coinbase address warmth (still London!)
 
-    // TODO: still no finished
-    final AccountSnapshot postFinalFromSnapshot =
+    final Account senderAccount = worldView.get(senderAddress);
+    final AccountSnapshot senderAccountSnapshotBeforeRefunds =
         AccountSnapshot.fromAccount(
-            fromAccount,
+            senderAccount,
             true,
-            deploymentInfo.number(fromAddress),
-            deploymentInfo.isDeploying(fromAddress));
+            deploymentInfo.number(senderAddress),
+            deploymentInfo.isDeploying(senderAddress));
 
-    final Address minerAddress = this.txStack.current().getCoinbase();
-    final Account minerAccount = worldView.get(minerAddress);
 
-    final AccountSnapshot preFinalCoinbaseSnapshot =
-        AccountSnapshot.fromAccount(
-            minerAccount,
-            true,
-            deploymentInfo.number(minerAddress),
-            deploymentInfo.isDeploying(minerAddress));
+    final long gasUsed = tx.getBesuTransaction().getGasLimit() - tx.getLeftoverGas();
+    final long effectiveRefunds = Math.min(this.accruedRefunds(), gasUsed / MAX_REFUND_QUOTIENT);
+    final long senderGasRefund = tx.getLeftoverGas() + effectiveRefunds;
 
-    // TODO: still not finished
-    final AccountSnapshot postFinalCoinbaseSnapshot =
-        AccountSnapshot.fromAccount(
-            minerAccount,
-            true,
-            deploymentInfo.number(minerAddress),
-            deploymentInfo.isDeploying(minerAddress));
+    final long coinbaseGasReward = tx.getBesuTransaction().getGasLimit() - senderGasRefund;
+    final Wei coinbaseFee = Wei.of(
+            BigInteger.valueOf(tx.getEffectiveGasPrice())
+                    .multiply(BigInteger.valueOf(coinbaseGasReward)));
 
     final AccountFragment.AccountFragmentFactory accountFragmentFactory =
-        this.factories.accountFragment();
+            this.factories.accountFragment();
 
     if (this.txStack.current().statusCode()) {
-      // if no revert: 2 account rows (sender, coinbase) + 1 tx row
-      this.addTraceSection(
-          new EndTransactionSection(
-              this,
-              accountFragmentFactory.make(preFinalFromSnapshot, postFinalFromSnapshot),
-              accountFragmentFactory.make(preFinalCoinbaseSnapshot, postFinalCoinbaseSnapshot),
-              TransactionFragment.prepare(this.txStack.current())));
-    } else {
-      // Trace the exceptions of a transaction that could not even start
-      // TODO: integrate with PCH
-      // if (this.exceptions == null) {
-      // this.exceptions = Exceptions.fromOutOfGas();
-      // }
-      // otherwise 4 account rows (sender, coinbase, sender, recipient) + 1 tx row
-      final Address toAddress = this.transients.tx().getBesuTransaction().getSender();
-      final Account toAccount = worldView.get(toAddress);
-      final AccountSnapshot preFinalToSnapshot =
-          AccountSnapshot.fromAccount(
-              toAccount,
-              true,
-              deploymentInfo.number(toAddress),
-              deploymentInfo.isDeploying(toAddress));
 
-      // TODO: still not finished
-      final AccountSnapshot postFinalToSnapshot =
-          AccountSnapshot.fromAccount(
-              toAccount,
-              true,
-              deploymentInfo.number(toAddress),
-              deploymentInfo.isDeploying(toAddress));
+      final Wei senderWeiRefund = Wei.of(
+              BigInteger.valueOf(senderGasRefund)
+                      .multiply(BigInteger.valueOf(tx.getEffectiveGasPrice())) );
+
+      final AccountSnapshot senderAccountSnapshotAfterGasRefund =
+              senderAccountSnapshotBeforeRefunds.credit(senderWeiRefund);
+
+      final boolean coinbaseIsSender = coinbaseAddress.equals(senderAddress);
+
+      final AccountSnapshot coinbaseSnapshotBeforeFeeCollection =
+              coinbaseIsSender
+                      ? senderAccountSnapshotAfterGasRefund
+                      : AccountSnapshot.fromAccount(
+                      worldView.get(coinbaseAddress),
+                      coinbaseWarmth,
+                      deploymentInfo.number(coinbaseAddress),
+                      deploymentInfo.isDeploying(coinbaseAddress));
+
+
+      final AccountSnapshot coinbaseSnapshotAfterFeeCollection =
+              coinbaseSnapshotBeforeFeeCollection.credit(coinbaseFee);
       this.addTraceSection(
-          new EndTransactionSection(
+              new TxFinalizationSection(
+                      this,
+                      accountFragmentFactory.make(senderAccountSnapshotBeforeRefunds, senderAccountSnapshotAfterGasRefund),
+                      accountFragmentFactory.make(coinbaseSnapshotBeforeFeeCollection, coinbaseSnapshotAfterFeeCollection),
+                      TransactionFragment.prepare(this.txStack.current())));
+    } else {
+      // SENDER account snapshots
+      final Wei senderWeiRefund =
+              Wei.of(
+                      BigInteger
+                              .valueOf(senderGasRefund)
+                              .multiply(BigInteger.valueOf(tx.getEffectiveGasPrice()))
+                              .add(tx.getBesuTransaction().getValue().getAsBigInteger()));
+      final AccountSnapshot senderAccountSnapshotAfterGasAndBalanceRefund =
+              senderAccountSnapshotBeforeRefunds.credit(senderWeiRefund);
+
+      // RECIPIENT account snapshots
+      final boolean recipientIsSender = effectiveToAddress.equals(senderAddress);
+      final AccountSnapshot effectiveToAccountSnapshotBeforeReimbursingValue =
+              recipientIsSender
+                      ? senderAccountSnapshotAfterGasAndBalanceRefund
+                      : AccountSnapshot.fromAccount(
+                      worldView.get(effectiveToAddress),
+                      true,
+                      deploymentInfo.number(effectiveToAddress),
+                      deploymentInfo.isDeploying(effectiveToAddress));
+
+      final AccountSnapshot effectiveToAccountSnapshotAfterReimbursingValue =
+              effectiveToAccountSnapshotBeforeReimbursingValue.debit((Wei) tx.getBesuTransaction().getValue());
+
+      // COINBASE account snapshots
+      final boolean coinbaseIsRecipient = coinbaseAddress.equals(effectiveToAddress);
+      final boolean coinbaseIsSender = coinbaseAddress.equals(senderAddress);
+
+      AccountSnapshot coinbaseBeforeFeeCollection =
+              coinbaseIsRecipient
+              ? effectiveToAccountSnapshotAfterReimbursingValue
+                      : coinbaseIsSender
+              ? senderAccountSnapshotAfterGasAndBalanceRefund
+                      : AccountSnapshot.fromAccount(
+                              worldView.get(coinbaseAddress),
+                      coinbaseWarmth,
+                      deploymentInfo.number(coinbaseAddress),
+                      deploymentInfo.isDeploying(coinbaseAddress));
+
+      AccountSnapshot coinbaseAfterFeeCollection =
+              coinbaseBeforeFeeCollection.credit(coinbaseFee);
+
+      this.addTraceSection(
+          new TxFinalizationSection(
               this,
-              accountFragmentFactory.make(preFinalFromSnapshot, postFinalFromSnapshot),
-              accountFragmentFactory.make(preFinalToSnapshot, postFinalToSnapshot),
-              accountFragmentFactory.make(preFinalCoinbaseSnapshot, postFinalCoinbaseSnapshot)));
+              accountFragmentFactory.make(senderAccountSnapshotBeforeRefunds, senderAccountSnapshotAfterGasAndBalanceRefund),
+              accountFragmentFactory.make(effectiveToAccountSnapshotBeforeReimbursingValue, effectiveToAccountSnapshotAfterReimbursingValue),
+              accountFragmentFactory.make(coinbaseBeforeFeeCollection, coinbaseAfterFeeCollection),
+              TransactionFragment.prepare(this.txStack.current())));
     }
   }
 
@@ -1257,7 +1287,6 @@ public class Hub implements Module {
     this.romLex.traceEndConflation(world);
 
     this.defers.runPostConflation(this, world);
-    this.txStack.setCodeFragmentIndex(this);
 
     for (Module m : this.modules) {
       if (!m.equals(this.romLex)) {

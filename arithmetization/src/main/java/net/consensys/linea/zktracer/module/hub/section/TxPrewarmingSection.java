@@ -27,8 +27,8 @@ import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
  * contains a succession of {@link AccountFragment } and {@link StorageFragment} representing the
  * pre-warmed addresses and eventual keys.
  */
-public class WarmupSection extends TraceSection {
-  public WarmupSection(Hub hub, List<TraceFragment> fragments) {
+public class TxPrewarmingSection extends TraceSection {
+  public TxPrewarmingSection(Hub hub, List<TraceFragment> fragments) {
     this.addFragmentsWithoutStack(hub, fragments.toArray(new TraceFragment[0]));
   }
 }

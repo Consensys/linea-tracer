@@ -18,8 +18,8 @@ package net.consensys.linea.zktracer.module.hub.section;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 
-public class TxInitSection extends TraceSection {
-  public TxInitSection(Hub hub, TraceFragment... chunks) {
+public class TxInitializationSection extends TraceSection {
+  public TxInitializationSection(Hub hub, TraceFragment... chunks) {
     this.addFragmentsWithoutStack(hub, chunks);
   }
 }

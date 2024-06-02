@@ -12,6 +12,17 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+
 package net.consensys.linea.zktracer.module.hub.section;
 
-public class TxFinalizationSection {}
+import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
+
+public class TxFinalizationSection extends TraceSection {
+  public TxFinalizationSection(Hub hub, TraceFragment... fragments) {
+    this.addFragmentsWithoutStack(hub, fragments);
+  }
+
+  @Override
+  public void seal(Hub hub) {}
+}

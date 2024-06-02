@@ -19,6 +19,7 @@ import java.nio.MappedByteBuffer;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -40,6 +41,8 @@ public interface Module {
   default void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {}
 
   default void traceStartTx(WorldView worldView, Transaction tx) {}
+
+  default void traceStartTx(TransactionProcessingMetadata transactionProcessingMetadata) {}
 
   default void traceEndTx(
       WorldView worldView,

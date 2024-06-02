@@ -47,13 +47,13 @@ import net.consensys.linea.zktracer.module.rlputils.ByteCountAndPowerOutput;
 import net.consensys.linea.zktracer.module.trm.Trm;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.BitDecOutput;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
-import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @RequiredArgsConstructor
 public class RlpAddr implements Module {
@@ -81,7 +81,8 @@ public class RlpAddr implements Module {
   }
 
   @Override
-  public void traceStartTx(WorldView world, Transaction tx) {
+  public void traceStartTx(TransactionProcessingMetadata txMetaData) {
+    final Transaction tx = txMetaData.getBesuTransaction();
     if (tx.getTo().isEmpty()) {
       final Address senderAddress = tx.getSender();
       final long nonce = tx.getNonce();

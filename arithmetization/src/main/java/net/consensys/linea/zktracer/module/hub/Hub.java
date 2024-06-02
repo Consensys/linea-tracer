@@ -897,8 +897,9 @@ public class Hub implements Module {
     }
 
     for (Module m : this.modules) {
-      // TODO: should use a LineaTransaction as its argument
+      // TODO: should use only a LineaTransaction as its argument
       m.traceStartTx(world, tx);
+      m.traceStartTx(this.txStack().current());
     }
   }
 

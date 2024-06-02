@@ -31,7 +31,6 @@ import net.consensys.linea.zktracer.module.romlex.ContractMetadata;
 import net.consensys.linea.zktracer.opcode.InstructionFamily;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
-import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.types.HubProcessingPhase;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
@@ -175,17 +174,14 @@ public final class CommonFragment implements TraceFragment {
     final CallFrame frame = this.hub.callStack().getById(this.callFrameId);
     final TransactionProcessingMetadata tx =
         hub.txStack().getByAbsoluteTransactionNumber(this.absoluteTransactionNumber);
-    // TODO: after ROMLex merge
     final int codeFragmentIndex =
-        frame.type() == CallFrameType.MANTLE
-            ? 0
-            : this.hub
+        this.hubProcessingPhase == HubProcessingPhase.TX_EXEC
+            ? this.hub
                 .romLex()
                 .getCodeFragmentIndexByMetadata(
                     ContractMetadata.make(
-                        frame.codeAddress(),
-                        frame.codeDeploymentNumber(),
-                        frame.underDeployment()));
+                        frame.codeAddress(), frame.codeDeploymentNumber(), frame.underDeployment()))
+            : 0;
     final boolean selfReverts = frame.selfReverts();
     final boolean getsReverted = frame.getsReverted();
     final boolean willRevert = frame.willRevert();

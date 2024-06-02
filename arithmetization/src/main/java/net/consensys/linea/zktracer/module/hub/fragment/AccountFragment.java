@@ -31,6 +31,7 @@ import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.defer.DeferRegistry;
 import net.consensys.linea.zktracer.module.hub.defer.PostConflationDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
+import net.consensys.linea.zktracer.module.romlex.ContractMetadata;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
@@ -151,11 +152,11 @@ public final class AccountFragment
   public void runPostConflation(Hub hub, WorldView world) {
     this.deploymentNumberInfinity = hub.transients().conflation().deploymentInfo().number(this.who);
     this.existsInfinity = world.get(this.who) != null;
-    //    this.codeFragmentIndex =
-    //        this.requiresCodeFragmentIndex
-    //            ? hub.romLex()
-    //                .getCodeFragmentIndexByMetadata(
-    //                    ContractMetadata.make(this.who, this.deploymentNumber, this.isDeployment))
-    //            : 0;
+    this.codeFragmentIndex =
+        this.requiresCodeFragmentIndex
+            ? hub.romLex()
+                .getCodeFragmentIndexByMetadata(
+                    ContractMetadata.make(this.who, this.deploymentNumber, this.isDeployment))
+            : 0;
   }
 }

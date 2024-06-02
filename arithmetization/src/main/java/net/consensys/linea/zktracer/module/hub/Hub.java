@@ -1235,11 +1235,15 @@ public class Hub implements Module {
   }
 
   @Override
-  public void traceEndConflation(final WorldView state) {
-    this.defers.runPostConflation(this, state);
+  public void traceEndConflation(final WorldView world) {
+    this.romLex.traceEndConflation(world);
+
+    this.defers.runPostConflation(this, world);
 
     for (Module m : this.modules) {
-      m.traceEndConflation(state);
+      if (!m.equals(this.romLex)) {
+        m.traceEndConflation(world);
+      }
     }
   }
 

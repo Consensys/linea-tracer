@@ -18,6 +18,11 @@ package net.consensys.linea.zktracer.module.hub;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 import static net.consensys.linea.zktracer.types.AddressUtils.precompileAddress;
+import static net.consensys.linea.zktracer.types.HubProcessingPhase.TX_EXEC;
+import static net.consensys.linea.zktracer.types.HubProcessingPhase.TX_FINAL;
+import static net.consensys.linea.zktracer.types.HubProcessingPhase.TX_INIT;
+import static net.consensys.linea.zktracer.types.HubProcessingPhase.TX_SKIP;
+import static net.consensys.linea.zktracer.types.HubProcessingPhase.TX_WARM;
 
 import java.nio.MappedByteBuffer;
 import java.util.ArrayList;
@@ -421,7 +426,7 @@ public class Hub implements Module {
    * @param world a view onto the state
    */
   void processStateSkip(WorldView world) {
-    this.state.setProcessingPhase(HubProcessingPhase.TX_SKIP);
+    this.state.setProcessingPhase(TX_SKIP);
     this.state.stamps().incrementHubStamp();
     final boolean isDeployment = this.txStack.current().getBesuTransaction().getTo().isEmpty();
 
@@ -478,7 +483,7 @@ public class Hub implements Module {
    * @param world a view onto the state
    */
   void processPrewarmingPhase(WorldView world) {
-    this.state.setProcessingPhase(HubProcessingPhase.TX_WARM);
+    this.state.setProcessingPhase(TX_WARM);
     this.txStack
         .current()
         .getBesuTransaction()
@@ -565,7 +570,7 @@ public class Hub implements Module {
    * @param world a view onto the state
    */
   void processStateInit(WorldView world) {
-    this.state.setProcessingPhase(HubProcessingPhase.TX_INIT);
+    this.state.setProcessingPhase(TX_INIT);
     this.state.stamps().incrementHubStamp();
     final TransactionProcessingMetadata tx = this.transients.tx();
     final boolean isDeployment = tx.getBesuTransaction().getTo().isEmpty();
@@ -627,13 +632,13 @@ public class Hub implements Module {
             this,
             accountFragmentFactory.make(preInitFromSnapshot, postInitFromSnapshot),
             accountFragmentFactory
-                .make(preInitToSnapshot, postInitToSnapshot)
+                .makeWithTrm(preInitToSnapshot, postInitToSnapshot, toAddress)
                 .requiresCodeFragmentIndex(true),
             ImcFragment.forTxInit(this),
             ContextFragment.initializeExecutionContext(this),
             txFragment));
 
-    this.state.setProcessingPhase(HubProcessingPhase.TX_EXEC);
+    this.state.setProcessingPhase(TX_EXEC);
   }
 
   public CallFrame currentFrame() {
@@ -785,7 +790,7 @@ public class Hub implements Module {
   }
 
   void processStateFinal(WorldView worldView, Transaction tx, boolean isSuccess) {
-    this.state.setProcessingPhase(HubProcessingPhase.TX_FINAL);
+    this.state.setProcessingPhase(TX_FINAL);
     this.state.stamps().incrementHubStamp();
 
     final Address fromAddress = this.transients.tx().getBesuTransaction().getSender();
@@ -920,7 +925,7 @@ public class Hub implements Module {
         .completeLineaTransaction(
             isSuccessful, leftoverGas, this.accruedRefunds(), this.state.stamps().hub());
     this.txStack.exitTransaction(this, isSuccessful);
-    if (this.state.processingPhase != HubProcessingPhase.TX_SKIP) {
+    if (this.state.processingPhase != TX_SKIP) {
       this.processStateFinal(world, tx, isSuccessful);
     }
 
@@ -1122,14 +1127,14 @@ public class Hub implements Module {
 
   @Override
   public void tracePreOpcode(final MessageFrame frame) {
-    if (this.state().processingPhase == HubProcessingPhase.TX_SKIP) {
+    if (this.state().processingPhase == TX_SKIP) {
       return;
     }
     this.processStateExec(frame);
   }
 
   public void tracePostExecution(MessageFrame frame, Operation.OperationResult operationResult) {
-    if (this.state.processingPhase == HubProcessingPhase.TX_SKIP) {
+    if (this.state.processingPhase == TX_SKIP) {
       return;
     }
 
@@ -1256,13 +1261,13 @@ public class Hub implements Module {
   //  execution after a CALL / CREATE ? One of them is
   //  necessarily false ...
   public long remainingGas() {
-    return this.state().getProcessingPhase() == HubProcessingPhase.TX_EXEC
+    return this.state().getProcessingPhase() == TX_EXEC
         ? this.currentFrame().frame().getRemainingGas()
         : 0;
   }
 
   public long expectedGas() {
-    return this.state().getProcessingPhase() == HubProcessingPhase.TX_EXEC
+    return this.state().getProcessingPhase() == TX_EXEC
         ? this.currentFrame().frame().getRemainingGas()
         : 0;
   }

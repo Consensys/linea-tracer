@@ -69,7 +69,7 @@ public final class AccountFragment
   private final boolean isDeployment;
   @Setter private boolean existsInfinity = false; // retconned on conflation end
   private int codeFragmentIndex;
-  @Setter private boolean requiresCodeFragmentIndex;
+  @Setter private boolean requiresRomlex;
   private final Optional<Bytes> addressToTrim;
 
   public AccountFragment(
@@ -112,7 +112,7 @@ public final class AccountFragment
         .pAccountHasCode(oldState.code().getCodeHash() != Hash.EMPTY)
         .pAccountHasCodeNew(newState.code().getCodeHash() != Hash.EMPTY)
         .pAccountCodeFragmentIndex(this.codeFragmentIndex)
-        .pAccountRomlexFlag(false) // TODO
+        .pAccountRomlexFlag(requiresRomlex)
         .pAccountExists(
             oldState.nonce() > 0
                 || oldState.code().getCodeHash() != Hash.EMPTY
@@ -153,7 +153,7 @@ public final class AccountFragment
     this.deploymentNumberInfinity = hub.transients().conflation().deploymentInfo().number(this.who);
     this.existsInfinity = world.get(this.who) != null;
     this.codeFragmentIndex =
-        this.requiresCodeFragmentIndex
+        this.requiresRomlex
             ? hub.romLex()
                 .getCodeFragmentIndexByMetadata(
                     ContractMetadata.make(this.who, this.deploymentNumber, this.isDeployment))

@@ -154,7 +154,7 @@ public class TransactionProcessingMetadata {
   private long computeRefundEffective() {
     final long consumedGas = besuTransaction.getGasLimit() - leftoverGas;
     final long maxRefundableAmount = consumedGas / MAX_REFUND_QUOTIENT;
-    return Math.min(maxRefundableAmount, refundCounterMax);
+    return leftoverGas + Math.min(maxRefundableAmount, refundCounterMax);
   }
 
   private long computeEffectiveGasPrice() {

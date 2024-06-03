@@ -25,6 +25,7 @@ import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.Either;
 import net.consensys.linea.zktracer.types.MemorySpan;
 import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.evm.internal.Words;
 
 public record ContextFragment(
     Hub hub,
@@ -103,6 +104,12 @@ public record ContextFragment(
     final EWord eCodeAddress = callFrame.codeAddressAsEWord();
     final EWord callerAddress = EWord.of(callFrame.callerAddress());
 
+    final int cfi =
+        hub.getCfiByMetaData(
+            Words.toAddress(eCodeAddress),
+            callFrame.codeDeploymentNumber(),
+            callFrame.underDeployment());
+
     return trace
         .peekAtContext(true)
         .pContextContextNumber(callFrame.contextNumber())
@@ -116,11 +123,7 @@ public record ContextFragment(
         .pContextByteCodeAddressLo(eCodeAddress.lo())
         .pContextByteCodeDeploymentNumber(callFrame.codeDeploymentNumber())
         .pContextByteCodeDeploymentStatus(callFrame.underDeployment() ? 1 : 0)
-        .pContextByteCodeCodeFragmentIndex(
-            hub.getCfiByMetaData(
-                callFrame.byteCodeAddress(),
-                callFrame.codeDeploymentNumber(),
-                callFrame.underDeployment()))
+        .pContextByteCodeCodeFragmentIndex(cfi)
         .pContextCallerAddressHi(bytesToLong(callerAddress.hi()))
         .pContextCallerAddressLo(callerAddress.lo())
         .pContextCallValue(callFrame.value())

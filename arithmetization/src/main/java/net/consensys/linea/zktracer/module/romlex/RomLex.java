@@ -86,7 +86,10 @@ public class RomLex implements Module {
       }
     }
 
-    throw new RuntimeException("RomChunk not found");
+    throw new RuntimeException(
+        String.format(
+            "RomChunk with address %s, deployment number %s and deploymentStatus %s not found",
+            metadata.address(), metadata.deploymentNumber(), !metadata.underDeployment()));
   }
 
   public Optional<RomChunk> getChunkByMetadata(final ContractMetadata metadata) {

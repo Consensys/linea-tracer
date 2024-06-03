@@ -32,6 +32,7 @@ import org.hyperledger.besu.evm.account.Account;
 @Setter
 @Accessors(fluent = true)
 public class AccountSnapshot {
+  // TODO: we require a MARKED_FOR_SELFDESTRUCT boolean
   private Address address;
   private long nonce;
   private Wei balance;
@@ -67,6 +68,11 @@ public class AccountSnapshot {
       boolean isWarm, int deploymentNumber, boolean deploymentStatus) {
     return new AccountSnapshot(
         Address.ZERO, 0, Wei.ZERO, isWarm, Bytecode.EMPTY, deploymentNumber, deploymentStatus);
+  }
+
+  public static AccountSnapshot fromAddress(
+          Address address, boolean isWarm, int deploymentNumber, boolean deploymentStatus) {
+    return new AccountSnapshot(address, 0, Wei.ZERO, isWarm, Bytecode.EMPTY, deploymentNumber, deploymentStatus);
   }
 
   public static AccountSnapshot fromAccount(

@@ -18,6 +18,7 @@ package net.consensys.linea.zktracer.module.hub.section;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MAX_REFUND_QUOTIENT;
 
 import java.math.BigInteger;
+import java.util.Optional;
 
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -79,6 +80,7 @@ public class TxFinalizationSection extends TraceSection {
     final boolean coinbaseIsSender = coinbaseAddress.equals(senderAddress);
 
     // COINBASE account snapshots
+    Optional<Account> optionalCoinbaseAccount = Optional.ofNullable(worldView.get(coinbaseAddress));
     final AccountSnapshot coinbaseSnapshotBeforeFeeCollection =
         coinbaseIsSender
             ? senderAccountSnapshotAfterGasRefund
@@ -86,11 +88,17 @@ public class TxFinalizationSection extends TraceSection {
             // worldView.get(address) returns null
             // if there is no account at that address
             // this is why we get a zero address
-            : AccountSnapshot.fromAccount(
-                worldView.get(coinbaseAddress),
-                coinbaseWarmth,
-                deploymentInfo.number(coinbaseAddress),
-                deploymentInfo.isDeploying(coinbaseAddress));
+            : optionalCoinbaseAccount.isPresent()
+                ? AccountSnapshot.fromAccount(
+                    optionalCoinbaseAccount,
+                    coinbaseWarmth,
+                    deploymentInfo.number(coinbaseAddress),
+                    deploymentInfo.isDeploying(coinbaseAddress))
+                : AccountSnapshot.fromAddress(
+                    coinbaseAddress,
+                    coinbaseWarmth,
+                    deploymentInfo.number(coinbaseAddress),
+                    deploymentInfo.isDeploying(coinbaseAddress));
 
     final AccountSnapshot coinbaseSnapshotAfterFeeCollection =
         coinbaseSnapshotBeforeFeeCollection.credit(coinbaseFee, coinbaseWarmth);

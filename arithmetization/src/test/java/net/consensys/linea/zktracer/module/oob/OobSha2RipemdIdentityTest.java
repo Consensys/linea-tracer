@@ -62,12 +62,7 @@ public class OobSha2RipemdIdentityTest {
 
     String referenceComputedHash = sha256(data);
     String prcComputedHash =
-        bytecodeRunner
-            .getHub()
-            .currentFrame()
-            .frame()
-            .shadowReadMemory(programAndRetInfo.retOffset, programAndRetInfo.retSize)
-            .toString();
+        bytecodeRunner.getHub().currentFrame().frame().getReturnData().toString();
     System.out.println("Test SHA2-256 with random argSize = " + argSize);
     System.out.println("Inp: 0x" + data);
     System.out.println("Ref: " + referenceComputedHash);
@@ -85,13 +80,8 @@ public class OobSha2RipemdIdentityTest {
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run();
 
-    String returnedData =
-        bytecodeRunner
-            .getHub()
-            .currentFrame()
-            .frame()
-            .shadowReadMemory(programAndRetInfo.retOffset, programAndRetInfo.retSize)
-            .toString();
+    String returnedData = bytecodeRunner.getHub().currentFrame().frame().getReturnData().toString();
+    System.out.println(returnedData);
     System.out.println("Test IDENTITY with random argSize = " + argSize);
     System.out.println("Inp: 0x" + data);
     System.out.println("Ret: " + returnedData);
@@ -110,12 +100,7 @@ public class OobSha2RipemdIdentityTest {
 
     String referenceComputedHash = ripemd160(data);
     String prcComputedHash =
-        bytecodeRunner
-            .getHub()
-            .currentFrame()
-            .frame()
-            .shadowReadMemory(programAndRetInfo.retOffset, programAndRetInfo.retSize)
-            .toString();
+        bytecodeRunner.getHub().currentFrame().frame().getReturnData().toString();
     System.out.println("Test RIPEMD-160 with random argSize = " + argSize);
     System.out.println("Inp: 0x" + data);
     System.out.println("Ref: " + referenceComputedHash);

@@ -15,13 +15,18 @@
 
 package net.consensys.linea.zktracer.module.wcp;
 
+import static net.consensys.linea.zktracer.module.wcp.WcpOperation.EQbv;
 import static net.consensys.linea.zktracer.module.wcp.WcpOperation.GEQbv;
+import static net.consensys.linea.zktracer.module.wcp.WcpOperation.GTbv;
+import static net.consensys.linea.zktracer.module.wcp.WcpOperation.ISZERObv;
 import static net.consensys.linea.zktracer.module.wcp.WcpOperation.LEQbv;
+import static net.consensys.linea.zktracer.module.wcp.WcpOperation.LTbv;
 
 import java.nio.MappedByteBuffer;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
@@ -30,12 +35,20 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 
-@RequiredArgsConstructor
 public class Wcp implements Module {
   private final StackedSet<WcpOperation> operations = new StackedSet<>();
+  /** count the number of rows that could be added after the sequencer counts the number of line */
+  public final Deque<Integer> additionalRows = new ArrayDeque<>();
 
   private final Hub hub;
+  private boolean batchUnderConstruction;
+
+  public Wcp(Hub hub) {
+    this.hub = hub;
+    this.batchUnderConstruction = true;
+  }
 
   @Override
   public String moduleKey() {
@@ -45,11 +58,18 @@ public class Wcp implements Module {
   @Override
   public void enterTransaction() {
     this.operations.enter();
+    this.additionalRows.push(this.additionalRows.getFirst());
   }
 
   @Override
   public void popTransaction() {
     this.operations.pop();
+    this.additionalRows.pop();
+  }
+
+  @Override
+  public void traceStartConflation(final long blockCount) {
+    this.additionalRows.push(0);
   }
 
   @Override
@@ -79,61 +99,80 @@ public class Wcp implements Module {
   }
 
   @Override
-  public int lineCount() {
-    return this.operations.lineCount();
+  public void traceEndConflation(final WorldView state) {
+    this.batchUnderConstruction = false;
   }
 
-  public boolean callLT(Bytes32 arg1, Bytes32 arg2) {
-    this.operations.add(new WcpOperation(OpCode.LT.byteValue(), arg1, arg2));
+  @Override
+  public int lineCount() {
+    return batchUnderConstruction
+        ? this.operations.lineCount() + this.additionalRows.getFirst()
+        : this.operations.lineCount();
+  }
+
+  public boolean callLT(final Bytes32 arg1, final Bytes32 arg2) {
+    this.operations.add(new WcpOperation(LTbv, arg1, arg2));
     return arg1.compareTo(arg2) < 0;
   }
 
-  public boolean callLT(Bytes arg1, Bytes arg2) {
+  public boolean callLT(final Bytes arg1, final Bytes arg2) {
     return this.callLT(Bytes32.leftPad(arg1), Bytes32.leftPad(arg2));
   }
 
-  public boolean callLT(int arg1, int arg2) {
+  public boolean callLT(final long arg1, final long arg2) {
     return this.callLT(Bytes.ofUnsignedLong(arg1), Bytes.ofUnsignedLong(arg2));
   }
 
-  public boolean callGT(Bytes32 arg1, Bytes32 arg2) {
-    this.operations.add(new WcpOperation(OpCode.GT.byteValue(), arg1, arg2));
+  public boolean callGT(final Bytes32 arg1, final Bytes32 arg2) {
+    this.operations.add(new WcpOperation(GTbv, arg1, arg2));
     return arg1.compareTo(arg2) > 0;
   }
 
-  public boolean callGT(Bytes arg1, Bytes arg2) {
+  public boolean callGT(final Bytes arg1, final Bytes arg2) {
     return this.callGT(Bytes32.leftPad(arg1), Bytes32.leftPad(arg2));
   }
 
-  public boolean callGT(int arg1, int arg2) {
+  public boolean callGT(final int arg1, final int arg2) {
     return this.callGT(Bytes.ofUnsignedLong(arg1), Bytes.ofUnsignedLong(arg2));
   }
 
-  public boolean callEQ(Bytes32 arg1, Bytes32 arg2) {
-    this.operations.add(new WcpOperation(OpCode.EQ.byteValue(), arg1, arg2));
+  public boolean callEQ(final Bytes32 arg1, final Bytes32 arg2) {
+    this.operations.add(new WcpOperation(EQbv, arg1, arg2));
     return arg1.compareTo(arg2) == 0;
   }
 
-  public boolean callEQ(Bytes arg1, Bytes arg2) {
+  public boolean callEQ(final Bytes arg1, final Bytes arg2) {
     return this.callEQ(Bytes32.leftPad(arg1), Bytes32.leftPad(arg2));
   }
 
-  public boolean callISZERO(Bytes32 arg1) {
-    this.operations.add(new WcpOperation(OpCode.ISZERO.byteValue(), arg1, Bytes32.ZERO));
+  public boolean callISZERO(final Bytes32 arg1) {
+    this.operations.add(new WcpOperation(ISZERObv, arg1, Bytes32.ZERO));
     return arg1.isZero();
   }
 
-  public boolean callISZERO(Bytes arg1) {
+  public boolean callISZERO(final Bytes arg1) {
     return this.callISZERO(Bytes32.leftPad(arg1));
   }
 
-  public boolean callLEQ(Bytes32 arg1, Bytes32 arg2) {
+  public boolean callLEQ(final Bytes32 arg1, final Bytes32 arg2) {
     this.operations.add(new WcpOperation(LEQbv, arg1, arg2));
     return arg1.compareTo(arg2) <= 0;
   }
 
-  public boolean callGEQ(Bytes32 arg1, Bytes32 arg2) {
+  public boolean callLEQ(final long arg1, final long arg2) {
+    return this.callLEQ(Bytes.ofUnsignedLong(arg1), Bytes.ofUnsignedLong(arg2));
+  }
+
+  public boolean callLEQ(final Bytes arg1, final Bytes arg2) {
+    return this.callLEQ(Bytes32.leftPad(arg1), Bytes32.leftPad(arg2));
+  }
+
+  public boolean callGEQ(final Bytes32 arg1, final Bytes32 arg2) {
     this.operations.add(new WcpOperation(GEQbv, arg1, arg2));
     return arg1.compareTo(arg2) >= 0;
+  }
+
+  public boolean callGEQ(final Bytes arg1, final Bytes arg2) {
+    return this.callGEQ(Bytes32.leftPad(arg1), Bytes32.leftPad(arg2));
   }
 }

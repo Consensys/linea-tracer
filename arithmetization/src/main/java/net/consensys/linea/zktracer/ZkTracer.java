@@ -79,7 +79,6 @@ public class ZkTracer implements ConflationAwareOperationTracer {
 
     // Load opcodes configured in src/main/resources/opcodes.yml.
     OpCodes.load();
-
     // Load spillings configured in src/main/resources/spillings.toml.
     try {
       final TomlTable table =
@@ -218,7 +217,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
     }
   }
 
-  @Override
+  //  @Override
   public void tracePrepareTransaction(WorldView worldView, Transaction transaction) {
     try {
       hashOfLastTransactionTraced = transaction.getHash();

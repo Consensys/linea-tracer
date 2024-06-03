@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.signals;
 
-import static net.consensys.linea.zktracer.module.ec_data.EcData.EC_PRECOMPILES;
+import static net.consensys.linea.zktracer.module.ecdata.EcData.EC_PRECOMPILES;
 
 import java.util.Optional;
 import java.util.Set;
@@ -48,6 +48,7 @@ public class Signals {
           InstructionFamily.INVALID);
 
   @Getter private boolean add;
+  @Getter private boolean blockhash;
   @Getter private boolean bin;
   @Getter private boolean mul;
   @Getter private boolean ext;
@@ -63,7 +64,6 @@ public class Signals {
   @Getter private boolean exp;
   @Getter private boolean trm;
   @Getter private boolean hashInfo;
-  @Getter private boolean logInfo;
   @Getter private boolean romLex;
   @Getter private boolean rlpAddr;
   @Getter private boolean ecData;
@@ -72,6 +72,7 @@ public class Signals {
 
   public void reset() {
     this.add = false;
+    this.blockhash = false;
     this.bin = false;
     this.mul = false;
     this.ext = false;
@@ -95,6 +96,7 @@ public class Signals {
   public Signals snapshot() {
     Signals r = new Signals(null);
     r.add = this.add;
+    r.blockhash = this.blockhash;
     r.bin = this.bin;
     r.mul = this.mul;
     r.ext = this.ext;
@@ -141,22 +143,22 @@ public class Signals {
     switch (opCode) {
       case CALLDATACOPY, CODECOPY -> {
         this.mxp = ex.outOfMemoryExpansion() || ex.outOfGas() || ex.none();
-        this.mmu = ex.none() && !frame.getStackItem(1).isZero();
+        this.mmu = ex.none() && !frame.getStackItem(2).isZero();
       }
 
       case RETURNDATACOPY -> {
         this.oob = ex.none() || ex.returnDataCopyFault();
         this.mxp = ex.none() || ex.outOfMemoryExpansion() || ex.outOfGas();
-        this.mmu = ex.none() && !frame.getStackItem(1).isZero();
+        this.mmu = ex.none() && !frame.getStackItem(2).isZero();
       }
 
       case EXTCODECOPY -> {
-        boolean nonzeroSize = !frame.getStackItem(2).isZero();
+        final boolean nonzeroSize = !frame.getStackItem(3).isZero();
         this.mxp = ex.outOfMemoryExpansion() || ex.outOfGas() || ex.none();
         this.trm = ex.outOfGas() || ex.none();
         this.mmu = ex.none() && nonzeroSize;
 
-        Address address = Words.toAddress(frame.getStackItem(0));
+        final Address address = Words.toAddress(frame.getStackItem(0));
         final boolean targetAddressHasCode =
             Optional.ofNullable(frame.getWorldUpdater().get(address))
                 .map(AccountState::hasCode)
@@ -167,7 +169,12 @@ public class Signals {
 
       case LOG0, LOG1, LOG2, LOG3, LOG4 -> {
         this.mxp = ex.outOfMemoryExpansion() || ex.outOfGas() || ex.none();
-        this.mmu = ex.none() && !frame.getStackItem(1).isZero();
+        this.mmu =
+            ex.none()
+                && !frame
+                    .getStackItem(1)
+                    .isZero(); // TODO do not trigger the MMU if the context is going to revert and
+        // check the HUB does increment or not the MMU stamp for reverted LOG
         // logInfo and logData are triggered via rlpRcpt at the end of the tx
       }
 
@@ -218,7 +225,7 @@ public class Signals {
         this.mmu =
             ex.none()
                 && !frame.getStackItem(1).isZero()
-                && hub.currentFrame().requestedReturnDataTarget().length() > 0;
+                && !hub.currentFrame().requestedReturnDataTarget().isEmpty();
       }
 
       case RETURN -> {
@@ -254,21 +261,23 @@ public class Signals {
       case SHL, SHR, SAR -> this.shf = !ex.outOfGas();
       case SHA3 -> {
         this.mxp = true;
-        this.hashInfo = ex.none() && !frame.getStackItem(0).isZero();
+        this.hashInfo = ex.none() && !frame.getStackItem(1).isZero();
         this.mmu = this.hashInfo;
       }
       case BALANCE, EXTCODESIZE, EXTCODEHASH, SELFDESTRUCT -> this.trm = true;
       case MLOAD, MSTORE, MSTORE8 -> {
         this.mxp = true;
-        this.mmu = !ex.any();
+        this.mmu = ex.none();
       }
       case CALLDATALOAD -> {
         this.oob = true;
-        this.mmu = frame.getInputData().size() > Words.clampedToLong(frame.getStackItem(0));
+        this.mmu =
+            ex.none() && frame.getInputData().size() > Words.clampedToLong(frame.getStackItem(0));
       }
       case SLOAD -> {}
       case SSTORE, JUMP, JUMPI -> this.oob = true;
       case MSIZE -> this.mxp = ex.none();
+      case BLOCKHASH -> this.blockhash = ex.none();
     }
   }
 }

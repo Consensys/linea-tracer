@@ -11,7 +11,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public class Gas implements Module {
   /** A list of the operations to trace */
-  private final StackedList<GasChunk> chunks = new StackedList<>();
+  private final StackedList<GasOperation> chunks = new StackedList<>();
 
   @Override
   public String moduleKey() {
@@ -41,7 +41,7 @@ public class Gas implements Module {
   @Override
   public void tracePreOpcode(MessageFrame frame) {
     GasParameters gasParameters = extractGasParameters(frame);
-    this.chunks.add(new GasChunk(gasParameters));
+    this.chunks.add(new GasOperation(gasParameters));
   }
 
   private GasParameters extractGasParameters(MessageFrame frame) {
@@ -52,8 +52,8 @@ public class Gas implements Module {
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
     for (int i = 0; i < this.chunks.size(); i++) {
-      GasChunk gasChunk = this.chunks.get(i);
-      gasChunk.trace(i + 1, trace);
+      GasOperation gasOperation = this.chunks.get(i);
+      gasOperation.trace(i + 1, trace);
     }
   }
 }

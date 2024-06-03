@@ -37,7 +37,7 @@ import org.jetbrains.annotations.NotNull;
  * @param <E> the type of elements stored in the set
  */
 public class StackedSet<E extends ModuleOperation> implements StackedContainer, java.util.Set<E> {
-  private final Deque<Set<E>> sets = new ArrayDeque<>();
+  public final Deque<Set<E>> sets = new ArrayDeque<>();
   private final Map<E, Integer> occurrences = new HashMap<>();
 
   @Override
@@ -122,6 +122,7 @@ public class StackedSet<E extends ModuleOperation> implements StackedContainer, 
   @Override
   public boolean add(E e) {
     final boolean isNew = this.sets.peekLast().add(e);
+
     if (isNew) {
       occurrences.put(e, occurrences.getOrDefault(e, 0) + 1);
     }

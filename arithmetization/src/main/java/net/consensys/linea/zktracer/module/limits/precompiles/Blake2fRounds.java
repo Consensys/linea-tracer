@@ -16,8 +16,9 @@
 package net.consensys.linea.zktracer.module.limits.precompiles;
 
 import java.nio.MappedByteBuffer;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.List;
-import java.util.Stack;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -42,11 +43,9 @@ public final class Blake2fRounds implements Module {
   private static final int BLAKE2f_INPUT_SIZE = 213;
   private final Hub hub;
 
-  @Getter private final Blake2fModexpData data = new Blake2fModexpData();
+  @Getter private final Blake2fModexpData blake2fModexpData;
 
-  private int lastDataCallHubStamp = 0;
-
-  private final Stack<Integer> counts = new Stack<>();
+  private final Deque<Integer> counts = new ArrayDeque<>();
 
   @Override
   public String moduleKey() {
@@ -54,8 +53,13 @@ public final class Blake2fRounds implements Module {
   }
 
   @Override
-  public void enterTransaction() {
+  public void traceStartConflation(final long blockCount) {
     counts.push(0);
+  }
+
+  @Override
+  public void enterTransaction() {
+    counts.push(counts.getFirst());
   }
 
   @Override
@@ -67,18 +71,15 @@ public final class Blake2fRounds implements Module {
     final OpCode opCode = hub.opCode();
     final MessageFrame frame = hub.messageFrame();
 
-    return switch (opCode) {
-      case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
-        final Address target = Words.toAddress(frame.getStackItem(1));
-        if (target.equals(Address.BLAKE2B_F_COMPRESSION)) {
-          final long length = hub.transients().op().callDataSegment().length();
-          yield length != BLAKE2f_INPUT_SIZE;
-        } else {
-          yield false;
-        }
+    if (opCode.isCall()) {
+      final Address target = Words.toAddress(frame.getStackItem(1));
+      if (target.equals(Address.BLAKE2B_F_COMPRESSION)) {
+        final long length = hub.transients().op().callDataSegment().length();
+        return length != BLAKE2f_INPUT_SIZE;
       }
-      default -> false;
-    };
+    }
+
+    return false;
   }
 
   public static boolean isRamFailure(final Hub hub) {
@@ -89,25 +90,22 @@ public final class Blake2fRounds implements Module {
       return false;
     }
 
-    return switch (opCode) {
-      case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
-        final Address target = Words.toAddress(frame.getStackItem(1));
-        if (target.equals(Address.BLAKE2B_F_COMPRESSION)) {
-          final long offset = hub.transients().op().callDataSegment().offset();
-          final int f =
-              frame.shadowReadMemory(offset, BLAKE2f_INPUT_SIZE).get(BLAKE2f_INPUT_SIZE - 1);
-          final int r =
-              frame
-                  .shadowReadMemory(offset, BLAKE2f_INPUT_SIZE)
-                  .slice(0, 4)
-                  .toInt(); // The number of round is equal to the gas to pay
-          yield !((f == 0 || f == 1) && hub.transients().op().gasAllowanceForCall() >= r);
-        } else {
-          yield false;
-        }
+    if (opCode.isCall()) {
+      final Address target = Words.toAddress(frame.getStackItem(1));
+      if (target.equals(Address.BLAKE2B_F_COMPRESSION)) {
+        final long offset = hub.transients().op().callDataSegment().offset();
+        final int f =
+            frame.shadowReadMemory(offset, BLAKE2f_INPUT_SIZE).get(BLAKE2f_INPUT_SIZE - 1);
+        final int r =
+            frame
+                .shadowReadMemory(offset, BLAKE2f_INPUT_SIZE)
+                .slice(0, 4)
+                .toInt(); // The number of round is equal to the gas to pay
+        return !((f == 0 || f == 1) && hub.transients().op().gasAllowanceForCall() >= r);
       }
-      default -> false;
-    };
+    }
+
+    return false;
   }
 
   public static long gasCost(final Hub hub) {
@@ -135,23 +133,21 @@ public final class Blake2fRounds implements Module {
   public static PrecompileMetadata metadata(final Hub hub) {
     final OpCode opCode = hub.opCode();
 
-    switch (opCode) {
-      case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
-        final Address target = Words.toAddress(hub.messageFrame().getStackItem(1));
-        if (target.equals(Address.BLAKE2B_F_COMPRESSION)) {
-          final long length = hub.transients().op().callDataSegment().length();
+    if (opCode.isCall()) {
+      final Address target = Words.toAddress(hub.messageFrame().getStackItem(1));
+      if (target.equals(Address.BLAKE2B_F_COMPRESSION)) {
+        final long length = hub.transients().op().callDataSegment().length();
 
-          if (length == BLAKE2f_INPUT_SIZE) {
-            final int f = hub.transients().op().callData().get(BLAKE2f_INPUT_SIZE - 1);
-            if (f == 0 || f == 1) {
-              final int r =
-                  hub.transients()
-                      .op()
-                      .callData()
-                      .slice(0, 4)
-                      .toInt(); // The number of round is equal to the gas to pay
-              return new Blake2fMetadata(r, f);
-            }
+        if (length == BLAKE2f_INPUT_SIZE) {
+          final int f = hub.transients().op().callData().get(BLAKE2f_INPUT_SIZE - 1);
+          if (f == 0 || f == 1) {
+            final int r =
+                hub.transients()
+                    .op()
+                    .callData()
+                    .slice(0, 4)
+                    .toInt(); // The number of round is equal to the gas to pay
+            return new Blake2fMetadata(r, f);
           }
         }
       }
@@ -164,7 +160,7 @@ public final class Blake2fRounds implements Module {
   public void tracePreOpcode(MessageFrame frame) {
     final OpCode opCode = hub.opCode();
 
-    if (opCode.isAnyOf(OpCode.CALL, OpCode.STATICCALL, OpCode.DELEGATECALL, OpCode.CALLCODE)) {
+    if (opCode.isCall()) {
       final Address target = Words.toAddress(frame.getStackItem(1));
 
       if (target.equals(Address.BLAKE2B_F_COMPRESSION)) {
@@ -179,16 +175,11 @@ public final class Blake2fRounds implements Module {
 
             final int rInt = r.toInt();
 
-            final Bytes data = inputData.slice(4, BLAKE2f_INPUT_SIZE - 4);
-
             if (opInfo.gasAllowanceForCall() >= rInt) {
-              this.lastDataCallHubStamp =
-                  this.data.call(
-                      new Blake2fModexpDataOperation(
-                          hub.stamp(),
-                          lastDataCallHubStamp,
-                          null,
-                          new Blake2fComponents(inputData, data, r, Bytes.of(f))));
+              final Bytes data = inputData.slice(4, BLAKE2f_INPUT_SIZE - 5);
+              this.blake2fModexpData.call(
+                  new Blake2fModexpDataOperation(
+                      hub.stamp(), null, new Blake2fComponents(data, r, Bytes.of(f))));
               this.counts.push(this.counts.pop() + rInt);
             }
           }
@@ -199,11 +190,7 @@ public final class Blake2fRounds implements Module {
 
   @Override
   public int lineCount() {
-    int r = 0;
-    for (int i = 0; i < this.counts.size(); i++) {
-      r += this.counts.get(i);
-    }
-    return r;
+    return counts.getFirst();
   }
 
   @Override

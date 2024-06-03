@@ -1,6 +1,8 @@
 # These values should be set from `corset debug -s zkevm.bin`
 [spillings]
 ADD = 2
+BLOCKDATA = 6
+BLOCKHASH = 1
 BIN = 16
 EC_DATA = 12
 EUC = 1
@@ -15,6 +17,7 @@ MOD = 8
 MUL = 9
 MXP = 4
 MMU = 10
+MMIO = 16 # TODO
 RLP_ADDR = 7
 TX_RLP = 7
 RLP_TXRCPT = 7
@@ -25,6 +28,7 @@ SHF = 16
 STP = 4
 TRM = 7
 WCP = 16
+OOB = 5
 
 PRECOMPILE_ECRECOVER_EFFECTIVE_CALL = 0
 PRECOMPILE_SHA2_BLOCKS      = 0

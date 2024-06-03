@@ -15,6 +15,9 @@
 
 package net.consensys.linea.zktracer.testing;
 
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LINEA_BASE_FEE;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LINEA_BLOCK_GAS_LIMIT;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LINEA_DIFFICULTY;
 import static net.consensys.linea.zktracer.runtime.stack.Stack.MAX_STACK_SIZE;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -35,6 +38,7 @@ import net.consensys.linea.blockcapture.snapshots.ConflationSnapshot;
 import net.consensys.linea.blockcapture.snapshots.TransactionSnapshot;
 import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.zktracer.ZkTracer;
+import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.*;
@@ -61,7 +65,7 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 @Slf4j
 public class ToyExecutionEnvironment {
   public static final BigInteger CHAIN_ID = BigInteger.valueOf(1337);
-  private static final CorsetValidator corsetValidator = new CorsetValidator();
+  private static final CorsetValidator CORSET_VALIDATOR = new CorsetValidator();
 
   private static final Address DEFAULT_SENDER_ADDRESS = Address.fromHexString("0xe8f1b89");
   private static final Wei DEFAULT_VALUE = Wei.ZERO;
@@ -69,10 +73,14 @@ public class ToyExecutionEnvironment {
   private static final Bytes DEFAULT_BYTECODE = Bytes.EMPTY;
   private static final long DEFAULT_GAS_LIMIT = 1_000_000;
   private static final ToyWorld DEFAULT_TOY_WORLD = ToyWorld.empty();
-  private static final Wei DEFAULT_BASE_FEE = Wei.of(1_000_000L);
+  private static final Wei DEFAULT_BASE_FEE = Wei.of(LINEA_BASE_FEE);
 
   private static final GasCalculator gasCalculator = ZkTracer.gasCalculator;
   private static final Address minerAddress = Address.fromHexString("0x1234532342");
+  private static final long DEFAULT_BLOCK_NUMBER = 6678980;
+  private static final long DEFAULT_TIME_STAMP = 1347310;
+  private static final Hash DEFAULT_HASH =
+      Hash.fromHexStringLenient("0xdeadbeef123123666dead666dead666");
 
   private final ToyWorld toyWorld;
   private final EVM evm = MainnetEVMs.london(EvmConfiguration.DEFAULT);
@@ -95,7 +103,7 @@ public class ToyExecutionEnvironment {
       final Path traceFile = Files.createTempFile(null, ".lt");
       this.tracer.writeToFile(traceFile);
       log.info("trace written to `{}`", traceFile);
-      assertThat(corsetValidator.validate(traceFile).isValid()).isTrue();
+      assertThat(CORSET_VALIDATOR.validate(traceFile).isValid()).isTrue();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -152,7 +160,6 @@ public class ToyExecutionEnvironment {
 
       for (Transaction tx : body.getTransactions()) {
         transactionProcessor.processTransaction(
-            null,
             overridenToyWorld.updater(),
             (ProcessableBlockHeader) header,
             tx,
@@ -173,7 +180,12 @@ public class ToyExecutionEnvironment {
     BlockHeader header =
         BlockHeaderBuilder.createDefault()
             .baseFee(DEFAULT_BASE_FEE)
+            .gasLimit(LINEA_BLOCK_GAS_LIMIT)
+            .difficulty(Difficulty.of(LINEA_DIFFICULTY))
+            .number(DEFAULT_BLOCK_NUMBER)
             .coinbase(minerAddress)
+            .timestamp(DEFAULT_TIME_STAMP)
+            .parentHash(DEFAULT_HASH)
             .buildBlockHeader();
     BlockBody mockBlockBody = new BlockBody(transactions, new ArrayList<>());
 
@@ -185,7 +197,6 @@ public class ToyExecutionEnvironment {
     for (Transaction tx : mockBlockBody.getTransactions()) {
       final TransactionProcessingResult result =
           transactionProcessor.processTransaction(
-              null,
               toyWorld.updater(),
               (ProcessableBlockHeader) header,
               tx,
@@ -228,5 +239,9 @@ public class ToyExecutionEnvironment {
         MAX_STACK_SIZE,
         feeMarket,
         CoinbaseFeePriceCalculator.eip1559());
+  }
+
+  public Hub getHub() {
+    return tracer.getHub();
   }
 }

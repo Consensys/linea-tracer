@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes;
 
-import static net.consensys.linea.zktracer.module.oob.Trace.OOB_INST_cdl;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_CDL;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -28,7 +28,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 public record CallDataLoad(EWord readOffset, EWord callDataSize) implements OobCall {
   public static CallDataLoad build(Hub hub, MessageFrame frame) {
     return new CallDataLoad(
-        EWord.of(frame.getStackItem(0)), EWord.of(hub.currentFrame().callData().size()));
+        EWord.of(frame.getStackItem(0)), EWord.of(hub.currentFrame().callDataInfo().data().size()));
   }
 
   @Override
@@ -44,6 +44,6 @@ public record CallDataLoad(EWord readOffset, EWord callDataSize) implements OobC
 
   @Override
   public int oobInstruction() {
-    return OOB_INST_cdl;
+    return OOB_INST_CDL;
   }
 }

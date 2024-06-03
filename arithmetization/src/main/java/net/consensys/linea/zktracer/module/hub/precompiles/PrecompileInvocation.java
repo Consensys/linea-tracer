@@ -24,7 +24,7 @@ import net.consensys.linea.zktracer.module.limits.precompiles.EcMulEffectiveCall
 import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingCallEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcRecoverEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.Rip160Blocks;
+import net.consensys.linea.zktracer.module.limits.precompiles.RipeMd160Blocks;
 import net.consensys.linea.zktracer.module.limits.precompiles.Sha256Blocks;
 import net.consensys.linea.zktracer.types.MemorySpan;
 import net.consensys.linea.zktracer.types.Precompile;
@@ -56,7 +56,9 @@ public record PrecompileInvocation(
     /* If applicable, the gas given to a precompile */
     long gasAllowance,
     /* The amount of gas to be given back to the caller */
-    long returnGas) {
+    long returnGas,
+    /* The HubStamp at the time of the call of the precompile*/
+    int hubStamp) {
 
   public boolean success() {
     return !this.hubFailure && !this.ramFailure;
@@ -75,7 +77,7 @@ public record PrecompileInvocation(
         switch (p) {
           case EC_RECOVER -> !EcRecoverEffectiveCall.hasEnoughGas(hub);
           case SHA2_256 -> !Sha256Blocks.hasEnoughGas(hub);
-          case RIPEMD_160 -> !Rip160Blocks.hasEnoughGas(hub);
+          case RIPEMD_160 -> !RipeMd160Blocks.hasEnoughGas(hub);
           case IDENTITY -> switch (hub.opCode()) {
             case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
               final Address target = Words.toAddress(hub.messageFrame().getStackItem(1));
@@ -110,7 +112,7 @@ public record PrecompileInvocation(
               case BLAKE2F -> Blake2fRounds.isRamFailure(hub);
             };
 
-    final long opCodeGas = Hub.gp.of(hub.messageFrame(), hub.opCode()).total();
+    final long opCodeGas = Hub.GAS_PROJECTOR.of(hub.messageFrame(), hub.opCode()).total();
 
     final long precompilePrice =
         hubFailure || ramFailure
@@ -118,7 +120,7 @@ public record PrecompileInvocation(
             : switch (p) {
               case EC_RECOVER -> EcRecoverEffectiveCall.gasCost();
               case SHA2_256 -> Sha256Blocks.gasCost(hub);
-              case RIPEMD_160 -> Rip160Blocks.gasCost(hub);
+              case RIPEMD_160 -> RipeMd160Blocks.gasCost(hub);
               case IDENTITY -> switch (hub.opCode()) {
                 case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
                   final Address target = Words.toAddress(hub.messageFrame().getStackItem(1));
@@ -169,6 +171,7 @@ public record PrecompileInvocation(
         .gasAtCall(hub.messageFrame().getRemainingGas())
         .gasAllowance(hub.transients().op().gasAllowanceForCall())
         .returnGas(returnGas)
+        .hubStamp(hub.stamp())
         .build();
   }
 }

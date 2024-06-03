@@ -82,6 +82,7 @@ public class TxFinalizationSection extends TraceSection {
     final AccountSnapshot coinbaseSnapshotBeforeFeeCollection =
         coinbaseIsSender
             ? senderAccountSnapshotAfterGasRefund
+            // WARNING!
             // worldView.get(address) returns null
             // if there is no account at that address
             // this is why we get a zero address

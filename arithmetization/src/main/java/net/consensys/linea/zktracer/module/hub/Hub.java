@@ -854,6 +854,14 @@ public class Hub implements Module {
       this.processStateInit(world);
     }
 
+    /*
+        TODO: the ID = 0 (universal parent context) context should
+        1. be shared by all transactions in a conflation (OK)
+        2. should be the father of all root contexts
+        3. should have the current root context as its lastCallee()
+    */
+    this.callStack.getById(0).universalParentReturnDataContextNumber(this.stamp() + 1);
+
     for (Module m : this.modules) {
       // TODO: should use only a LineaTransaction as its argument
       m.traceStartTx(world, tx);
@@ -1278,7 +1286,7 @@ public class Hub implements Module {
             final Bytes returnData = this.transients.op().returnData();
             this.currentFrame().returnDataSource(transients.op().returnDataSegment());
             this.currentFrame().returnData(returnData);
-            if (!this.pch.exceptions().any()) {
+            if (this.pch.exceptions().none()) {
               parentFrame.latestReturnData(returnData);
             } else {
               parentFrame.latestReturnData(Bytes.EMPTY);

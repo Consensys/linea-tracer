@@ -136,7 +136,9 @@ public record ContextFragment(
         .pContextReturnAtCapacity(callFrame.requestedReturnDataTarget().length())
         .pContextUpdate(updateCallerReturndata)
         .pContextReturnDataContextNumber(
-            callFrame.lastCallee().map(c -> callStack.getById(c).contextNumber()).orElse(0))
+            callFrame.id() == 0
+                ? callFrame.universalParentReturnDataContextNumber
+                : callFrame.lastCallee().map(c -> callStack.getById(c).contextNumber()).orElse(0))
         .pContextReturnDataOffset(returnDataSegment.offset())
         .pContextReturnDataSize(returnDataSegment.length());
   }

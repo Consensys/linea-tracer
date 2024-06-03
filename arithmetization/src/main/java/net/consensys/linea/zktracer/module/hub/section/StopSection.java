@@ -14,47 +14,41 @@
  */
 package net.consensys.linea.zktracer.module.hub.section;
 
+import static net.consensys.linea.zktracer.module.hub.fragment.ContextFragment.executionProvidesEmptyReturnData;
+import static net.consensys.linea.zktracer.module.hub.fragment.ContextFragment.readContextData;
+
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 
-import static net.consensys.linea.zktracer.module.hub.fragment.ContextFragment.executionProvidesEmptyReturnData;
-import static net.consensys.linea.zktracer.module.hub.fragment.ContextFragment.readContextData;
-
 public class StopSection extends TraceSection {
 
-    public StopSection() {}
+  public StopSection() {}
 
-    public StopSection(Hub hub, TraceFragment... fragments) {
-        this.addFragmentsAndStack(hub, fragments);
-    }
+  public StopSection(Hub hub, TraceFragment... fragments) {
+    this.addFragmentsAndStack(hub, fragments);
+  }
 
-    public static StopSection messageCallStopSection(Hub hub) {
-        return new StopSection(
-                hub,
-                readContextData(hub),
-                executionProvidesEmptyReturnData(hub)
-        );
-    }
+  public static StopSection messageCallStopSection(Hub hub) {
+    return new StopSection(hub, readContextData(hub), executionProvidesEmptyReturnData(hub));
+  }
 
-    public static StopSection revertedDeploymentStopSection(Hub hub) {
-        AccountFragment.AccountFragmentFactory accountFragmentFactory =
-                hub.factories().accountFragment();
-        return new StopSection(
-                hub,
-                readContextData(hub),
-                // current (under deployment => deployed with empty byte code)
-                // undoing of the above
-                executionProvidesEmptyReturnData(hub)
-        );
-    }
+  public static StopSection revertedDeploymentStopSection(Hub hub) {
+    AccountFragment.AccountFragmentFactory accountFragmentFactory =
+        hub.factories().accountFragment();
+    return new StopSection(
+        hub,
+        readContextData(hub),
+        // current (under deployment => deployed with empty byte code)
+        // undoing of the above
+        executionProvidesEmptyReturnData(hub));
+  }
 
-    public static StopSection unrevertedDeploymentStopSection(Hub hub) {
-        return new StopSection(
-                hub,
-                readContextData(hub),
-                // current (under deployment => deployed with empty byte code)
-                executionProvidesEmptyReturnData(hub)
-        );
-    }
+  public static StopSection unrevertedDeploymentStopSection(Hub hub) {
+    return new StopSection(
+        hub,
+        readContextData(hub),
+        // current (under deployment => deployed with empty byte code)
+        executionProvidesEmptyReturnData(hub));
+  }
 }

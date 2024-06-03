@@ -43,6 +43,8 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 public class CallFrame {
   public static final CallFrame EMPTY = new CallFrame();
 
+  @Setter public int universalParentReturnDataContextNumber;
+
   /** the position of this {@link CallFrame} in the {@link CallStack}. */
   @Getter private int id;
   /** the context number of the frame, i.e. the hub stamp at its creation */

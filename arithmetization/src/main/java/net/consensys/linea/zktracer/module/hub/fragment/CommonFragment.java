@@ -91,7 +91,7 @@ public final class CommonFragment implements TraceFragment {
             : 0);
     final boolean hubInExecPhase = hub.state.getProcessingPhase() == HubProcessingPhase.TX_EXEC;
     final int pc = hubInExecPhase ? frame.pc() : 0;
-    final int pcNew = noStackException && hubInExecPhase ? computePcNew(hub, pc) : 0;
+    final int pcNew = computePcNew(hub, pc, noStackException, hubInExecPhase);
 
     return CommonFragment.builder()
         .hub(hub)
@@ -124,8 +124,9 @@ public final class CommonFragment implements TraceFragment {
         .build();
   }
 
-  private static int computePcNew(final Hub hub, final int pc) {
+  private static int computePcNew(final Hub hub, final int pc, boolean noStackException, boolean hubInExecPhase) {
     OpCode opCode = hub.opCode();
+    if (!(noStackException && hubInExecPhase)) {return 0;}
 
     if (opCode.getData().isPush()) {
       return pc + opCode.byteValue() - OpCode.PUSH1.byteValue() + 2;
@@ -136,7 +137,7 @@ public final class CommonFragment implements TraceFragment {
       final BigInteger codeSize = BigInteger.valueOf(hub.currentFrame().code().getSize());
 
       final int attemptedPcNew =
-          codeSize.compareTo(prospectivePcNew) > 0 ? prospectivePcNew.intValueExact() : 0;
+              codeSize.compareTo(prospectivePcNew) > 0 ? prospectivePcNew.intValueExact() : 0;
 
       if (opCode.equals(OpCode.JUMP)) {
         return attemptedPcNew;
@@ -148,7 +149,7 @@ public final class CommonFragment implements TraceFragment {
           return attemptedPcNew;
         }
       }
-    }
+    };
 
     return pc + 1;
   }

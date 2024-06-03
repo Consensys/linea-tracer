@@ -13,17 +13,24 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.section;
+package net.consensys.linea.zktracer.module.hub.section.calls;
+
+import java.util.List;
+import java.util.Optional;
 
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.defer.NextContextDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostExecDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
+import net.consensys.linea.zktracer.module.hub.defer.ReEnterContextDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioFragment;
+import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
+import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileLinesGenerator;
+import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
@@ -33,48 +40,57 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class SmartContractCallSection extends TraceSection
-    implements PostTransactionDefer, PostExecDefer, NextContextDefer {
+public class NoCodeCallSection extends TraceSection
+    implements PostTransactionDefer, PostExecDefer, ReEnterContextDefer {
   private final Bytes rawCalledAddress;
+  private final Optional<PrecompileInvocation> precompileInvocation;
   private final CallFrame callerCallFrame;
   private final int calledCallFrameId;
+  private boolean callSuccessful = false;
   private final AccountSnapshot preCallCallerAccountSnapshot;
   private final AccountSnapshot preCallCalledAccountSnapshot;
 
-  private AccountSnapshot inCallCallerAccountSnapshot;
-  private AccountSnapshot inCallCalledAccountSnapshot;
-
   private AccountSnapshot postCallCallerAccountSnapshot;
   private AccountSnapshot postCallCalledAccountSnapshot;
-
-  private final ScenarioFragment scenarioFragment;
   private final ImcFragment imcFragment;
+  private final ScenarioFragment scenarioFragment;
 
-  public SmartContractCallSection(
+  private Optional<List<TraceFragment>> maybePrecompileLines = Optional.empty();
+
+  public NoCodeCallSection(
       Hub hub,
+      Optional<PrecompileInvocation> targetPrecompile,
       AccountSnapshot preCallCallerAccountSnapshot,
       AccountSnapshot preCallCalledAccountSnapshot,
       Bytes rawCalledAddress,
       ImcFragment imcFragment) {
     this.rawCalledAddress = rawCalledAddress;
-    this.callerCallFrame = hub.currentFrame();
-    this.calledCallFrameId = hub.callStack().futureId();
+    this.precompileInvocation = targetPrecompile;
     this.preCallCallerAccountSnapshot = preCallCallerAccountSnapshot;
     this.preCallCalledAccountSnapshot = preCallCalledAccountSnapshot;
+    this.callerCallFrame = hub.currentFrame();
+    this.calledCallFrameId = hub.callStack().futureId();
     this.imcFragment = imcFragment;
     this.scenarioFragment =
-        ScenarioFragment.forSmartContractCallSection(
-            hub, calledCallFrameId, this.callerCallFrame.id());
-
+        ScenarioFragment.forNoCodeCallSection(
+            hub, precompileInvocation, this.callerCallFrame.id(), this.calledCallFrameId);
     this.addStack(hub);
 
     hub.defers().postExec(this);
-    hub.defers().nextContext(this, hub.currentFrame().id());
     hub.defers().postTx(this);
+    hub.defers().reEntry(this);
+  }
+
+  @Override
+  public void runAtReEnter(Hub hub, MessageFrame frame) {
+    // The precompile lines will read the return data, so they need to be added after re-entry.
+    this.maybePrecompileLines =
+        this.precompileInvocation.map(p -> PrecompileLinesGenerator.generateFor(hub, p));
   }
 
   @Override
   public void runPostExec(Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
+    this.callSuccessful = !frame.getStackItem(0).isZero();
     final Address callerAddress = preCallCallerAccountSnapshot.address();
     final Account callerAccount = frame.getWorldUpdater().get(callerAddress);
     final Address calledAddress = preCallCalledAccountSnapshot.address();
@@ -95,79 +111,55 @@ public class SmartContractCallSection extends TraceSection
   }
 
   @Override
-  public void runNextContext(Hub hub, MessageFrame frame) {
-    final Address callerAddress = preCallCallerAccountSnapshot.address();
-    final Account callerAccount = frame.getWorldUpdater().get(callerAddress);
-    final Address calledAddress = preCallCalledAccountSnapshot.address();
-    final Account calledAccount = frame.getWorldUpdater().get(calledAddress);
-
-    this.inCallCallerAccountSnapshot =
-        AccountSnapshot.fromAccount(
-            callerAccount,
-            frame.isAddressWarm(callerAddress),
-            hub.transients().conflation().deploymentInfo().number(callerAddress),
-            hub.transients().conflation().deploymentInfo().isDeploying(callerAddress));
-    this.inCallCalledAccountSnapshot =
-        AccountSnapshot.fromAccount(
-            calledAccount,
-            frame.isAddressWarm(calledAddress),
-            hub.transients().conflation().deploymentInfo().number(calledAddress),
-            hub.transients().conflation().deploymentInfo().isDeploying(calledAddress));
-  }
-
-  @Override
   public void runPostTx(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
     final AccountFragment.AccountFragmentFactory accountFragmentFactory =
         hub.factories().accountFragment();
-    final CallFrame calledCallFrame = hub.callStack().getById(this.calledCallFrameId);
     this.scenarioFragment.runPostTx(hub, state, tx, isSuccessful);
 
     this.addFragmentsWithoutStack(
         hub,
         callerCallFrame,
         this.scenarioFragment,
-        ContextFragment.readContextData(hub),
         this.imcFragment,
+        ContextFragment.readContextData(hub),
         accountFragmentFactory.make(
-            this.preCallCallerAccountSnapshot, this.inCallCallerAccountSnapshot),
+            this.preCallCallerAccountSnapshot, this.postCallCallerAccountSnapshot),
         accountFragmentFactory.makeWithTrm(
             this.preCallCalledAccountSnapshot,
-            this.inCallCalledAccountSnapshot,
+            this.postCallCalledAccountSnapshot,
             this.rawCalledAddress));
 
-    if (callerCallFrame.hasReverted()) {
-      if (calledCallFrame.hasReverted()) {
+    if (precompileInvocation.isPresent()) {
+      if (this.callSuccessful && callerCallFrame.hasReverted()) {
         this.addFragmentsWithoutStack(
             hub,
             callerCallFrame,
             accountFragmentFactory.make(
-                this.inCallCallerAccountSnapshot, this.preCallCallerAccountSnapshot),
-            accountFragmentFactory.make(
-                this.inCallCalledAccountSnapshot, this.postCallCalledAccountSnapshot),
+                this.postCallCallerAccountSnapshot, this.preCallCallerAccountSnapshot),
             accountFragmentFactory.make(
                 this.postCallCalledAccountSnapshot, this.preCallCalledAccountSnapshot));
-      } else {
-        this.addFragmentsWithoutStack(
-            hub,
-            callerCallFrame,
-            accountFragmentFactory.make(
-                this.inCallCallerAccountSnapshot, this.preCallCallerAccountSnapshot),
-            accountFragmentFactory.make(
-                this.inCallCalledAccountSnapshot, this.preCallCalledAccountSnapshot));
+      }
+      this.addFragmentsWithoutStack(
+          hub,
+          ScenarioFragment.forPrecompileEpilogue(
+              hub, precompileInvocation.get(), callerCallFrame.id(), calledCallFrameId));
+      for (TraceFragment f :
+          this.maybePrecompileLines.orElseThrow(
+              () -> new IllegalStateException("missing precompile lines"))) {
+        this.addFragment(hub, callerCallFrame, f);
       }
     } else {
-      if (calledCallFrame.hasReverted()) {
+      if (callerCallFrame.hasReverted()) {
         this.addFragmentsWithoutStack(
             hub,
             callerCallFrame,
             accountFragmentFactory.make(
-                this.inCallCallerAccountSnapshot, this.postCallCallerAccountSnapshot),
+                this.postCallCallerAccountSnapshot, this.preCallCallerAccountSnapshot),
             accountFragmentFactory.make(
-                this.inCallCalledAccountSnapshot, this.postCallCalledAccountSnapshot));
+                this.postCallCalledAccountSnapshot, this.preCallCalledAccountSnapshot));
       }
+      this.addFragmentsWithoutStack(
+          hub, callerCallFrame, ContextFragment.nonExecutionEmptyReturnData(hub));
     }
-
-    this.addFragmentsWithoutStack(
-        hub, callerCallFrame, ContextFragment.enterContext(hub, calledCallFrame));
   }
 }

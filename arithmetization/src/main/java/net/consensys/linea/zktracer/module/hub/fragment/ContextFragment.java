@@ -56,7 +56,7 @@ public record ContextFragment(
         false);
   }
 
-  public static ContextFragment executionEmptyReturnData(final Hub hub) {
+  public static ContextFragment executionProvidesEmptyReturnData(final Hub hub) {
     CallStack callStack = hub.callStack();
     return new ContextFragment(
         hub, callStack, Either.left(callStack.parent().id()), MemorySpan.empty(), true);

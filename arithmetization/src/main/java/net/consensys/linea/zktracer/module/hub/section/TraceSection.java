@@ -204,8 +204,9 @@ public abstract class TraceSection {
         nonStackLineCounter++;
         line.common.nonStackRowsCounter(nonStackLineCounter);
       }
-      line.common.pcNew(hub.lastPc());
-      // line.common.contextNumberNew(hub.lastContextNumber()); //TODO understand this
+      // TODO: delete as both are computed in CommonFragment ...
+      // line.common.pcNew();
+      // line.common.contextNumberNew(hub.lastContextNumber());
       line.common.numberOfNonStackRows(nonStackLineNumbers);
     }
   }

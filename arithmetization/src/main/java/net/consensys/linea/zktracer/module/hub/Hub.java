@@ -59,6 +59,9 @@ import net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioFragmen
 import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
 import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 import net.consensys.linea.zktracer.module.hub.section.*;
+import net.consensys.linea.zktracer.module.hub.section.calls.FailedCallSection;
+import net.consensys.linea.zktracer.module.hub.section.calls.NoCodeCallSection;
+import net.consensys.linea.zktracer.module.hub.section.calls.SmartContractCallSection;
 import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
 import net.consensys.linea.zktracer.module.hub.transients.DeploymentInfo;
 import net.consensys.linea.zktracer.module.hub.transients.Transients;
@@ -204,6 +207,10 @@ public class Hub implements Module {
     } else {
       return this.state.currentTxTrace().currentSection().contextNumber();
     }
+  }
+
+  public void addFragmentsAndStack(TraceFragment... fragments) {
+    currentTraceSection().addFragmentsAndStack(this, fragments);
   }
 
   public void addTraceSection(TraceSection section) {
@@ -801,7 +808,7 @@ public class Hub implements Module {
     } else {
       this.addTraceSection(new StackOnlySection(this));
       this.currentTraceSection()
-          .addFragmentsWithoutStack(this, ContextFragment.executionEmptyReturnData(this));
+          .addFragmentsWithoutStack(this, ContextFragment.executionProvidesEmptyReturnData(this));
     }
   }
 
@@ -1249,6 +1256,7 @@ public class Hub implements Module {
       }
       case HALT -> {
         final CallFrame parentFrame = this.callStack.parent();
+        // this.addTraceSection(new StackOnlySection(this));
 
         switch (this.opCode()) {
           case RETURN -> {
@@ -1277,11 +1285,18 @@ public class Hub implements Module {
             }
             final ImcFragment imcFragment = ImcFragment.forOpcode(this, frame); // TODO finish it
           }
-          case STOP, SELFDESTRUCT -> parentFrame.latestReturnData(Bytes.EMPTY);
+          case STOP -> {
+            parentFrame.latestReturnData(Bytes.EMPTY);
+            if (!currentFrame().underDeployment()) {
+              this.addTraceSection(StopSection.messageCallStopSection(this));
+            }
+          }
+          case SELFDESTRUCT -> {
+            parentFrame.latestReturnData(Bytes.EMPTY);
+          }
         }
-
-        this.addTraceSection(new StackOnlySection(this));
       }
+
       case KEC -> this.addTraceSection(
           new KeccakSection(
               this, this.currentFrame(), ImcFragment.forOpcode(this, this.messageFrame())));
@@ -1571,7 +1586,7 @@ public class Hub implements Module {
     // In all cases, add a context fragment if an exception occurred
     if (this.pch().exceptions().any()) {
       this.currentTraceSection()
-          .addFragment(this, this.currentFrame(), ContextFragment.executionEmptyReturnData(this));
+          .addFragment(this, this.currentFrame(), ContextFragment.executionProvidesEmptyReturnData(this));
     }
   }
 }

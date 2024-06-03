@@ -20,14 +20,16 @@ import static net.consensys.linea.zktracer.types.Conversions.booleanToInt;
 
 import java.math.BigInteger;
 
+import lombok.EqualsAndHashCode;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class GasOperation extends ModuleOperation {
 
   final short ctMax = 7;
-  GasParameters gasParameters;
+  @EqualsAndHashCode.Include GasParameters gasParameters;
   Bytes acc1;
   Bytes acc2;
 

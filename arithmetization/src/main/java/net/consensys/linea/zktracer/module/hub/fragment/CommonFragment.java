@@ -33,7 +33,6 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Accessors(fluent = true, chain = false)
 @Builder
@@ -70,11 +69,7 @@ public final class CommonFragment implements TraceFragment {
   @Getter @Setter private int nonStackRowsCounter;
 
   public static CommonFragment fromHub(
-      WorldView world,
-      final Hub hub,
-      final CallFrame frame,
-      boolean tliCounter,
-      int nonStackRowCounter) {
+      final Hub hub, final CallFrame frame, boolean tliCounter, int nonStackRowCounter) {
 
     final boolean noStackException = hub.pch().exceptions().noStackException();
     final long refundDelta =
@@ -110,7 +105,7 @@ public final class CommonFragment implements TraceFragment {
         .failureConditions(hub.pch().failureConditions().snapshot())
         .callFrameId(frame.id())
         .contextNumber(frame.contextNumber())
-        .contextNumberNew(hub.contextNumberNew(world))
+        .contextNumberNew(hub.contextNumberNew(frame))
         .pc(pc)
         .pcNew(pcNew)
         .height((short) height)

@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 import com.google.common.base.Preconditions;
@@ -653,7 +654,7 @@ public class Hub implements Module {
     return this.callStack.current();
   }
 
-  public int contextNumberNew(WorldView world) {
+  public int contextNumberNew(CallFrame frame) {
     switch (this.state.getProcessingPhase()) {
       case TX_SKIP, TX_WARM, TX_FINAL -> {
         return 0;
@@ -676,10 +677,21 @@ public class Hub implements Module {
           if (pch().abortingConditions().any()) {
             return currentContextNumber;
           }
-          Address calleeAddress = Words.toAddress(this.currentFrame().frame().getStackItem(1));
-          if (world.get(calleeAddress).hasCode()) {
-            return 1 + stamp();
-          }
+
+          final Address calleeAddress =
+              Words.toAddress(this.currentFrame().frame().getStackItem(1));
+
+          AtomicInteger newContext = new AtomicInteger(currentContextNumber);
+
+          Optional.ofNullable(frame.frame().getWorldUpdater().get(calleeAddress))
+              .map(AccountState::getCode)
+              .ifPresent(
+                  byteCode -> {
+                    if (!byteCode.isEmpty()) {
+                      newContext.set(1 + this.stamp());
+                    }
+                  });
+          return newContext.get();
         }
 
         if (opCode.isCreate()) {

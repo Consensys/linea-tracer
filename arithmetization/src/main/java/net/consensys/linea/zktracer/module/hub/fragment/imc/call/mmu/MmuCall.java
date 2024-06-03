@@ -690,7 +690,10 @@ public class MmuCall implements TraceSubFragment {
   public Trace trace(Trace trace) {
     return trace
         .pMiscMmuFlag(this.enabled())
-        .pMiscMmuInst(this.instruction())
+        .pMiscMmuInst(
+            this.instruction() == -1
+                ? 0
+                : this.instruction()) // TODO: WTF I wanted to put -1? Only for debug?
         .pMiscMmuTgtId(this.targetId())
         .pMiscMmuSrcId(this.sourceId())
         .pMiscMmuAuxId(this.auxId())

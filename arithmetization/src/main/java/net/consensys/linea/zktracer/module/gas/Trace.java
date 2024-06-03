@@ -30,6 +30,7 @@ import org.apache.tuweni.bytes.Bytes;
  * Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
 public class Trace {
+  public static final int CT_MAX = 0x7;
 
   private final BitSet filled = new BitSet();
   private int currentLine = 0;

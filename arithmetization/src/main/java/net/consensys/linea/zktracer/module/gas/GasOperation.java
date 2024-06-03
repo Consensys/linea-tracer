@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.gas;
 
+import static net.consensys.linea.zktracer.module.gas.Trace.CT_MAX;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToInt;
 
@@ -27,8 +28,6 @@ import org.apache.tuweni.bytes.Bytes;
 
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class GasOperation extends ModuleOperation {
-
-  final short ctMax = 7;
   @EqualsAndHashCode.Include GasParameters gasParameters;
   Bytes acc1;
   Bytes acc2;
@@ -45,11 +44,11 @@ public class GasOperation extends ModuleOperation {
 
   @Override
   protected int computeLineCount() {
-    return ctMax + 1;
+    return CT_MAX + 1;
   }
 
   public void trace(int stamp, Trace trace) {
-    for (short i = 0; i < ctMax + 1; i++) {
+    for (short i = 0; i < CT_MAX + 1; i++) {
       trace
           .stamp(stamp)
           .ct(i)

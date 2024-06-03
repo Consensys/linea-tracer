@@ -20,6 +20,7 @@ import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_FINA
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_INIT;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_SKIP;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_WARM;
+import static net.consensys.linea.zktracer.module.hub.Trace.MULTIPLIER___STACK_HEIGHT;
 import static net.consensys.linea.zktracer.types.AddressUtils.addressFromBytes;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
@@ -131,9 +132,6 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 @Slf4j
 @Accessors(fluent = true)
 public class Hub implements Module {
-
-  private static final int TAU = 8;
-
   public static final GasProjector GAS_PROJECTOR = new GasProjector();
 
   /** accumulate the trace information for the Hub */
@@ -727,7 +725,9 @@ public class Hub implements Module {
   }
 
   private void handleStack(MessageFrame frame) {
-    this.currentFrame().stack().processInstruction(this, frame, TAU * this.state.stamps().hub());
+    this.currentFrame()
+        .stack()
+        .processInstruction(this, frame, MULTIPLIER___STACK_HEIGHT * this.state.stamps().hub());
   }
 
   void triggerModules(MessageFrame frame) {
@@ -1586,7 +1586,8 @@ public class Hub implements Module {
     // In all cases, add a context fragment if an exception occurred
     if (this.pch().exceptions().any()) {
       this.currentTraceSection()
-          .addFragment(this, this.currentFrame(), ContextFragment.executionProvidesEmptyReturnData(this));
+          .addFragment(
+              this, this.currentFrame(), ContextFragment.executionProvidesEmptyReturnData(this));
     }
   }
 }

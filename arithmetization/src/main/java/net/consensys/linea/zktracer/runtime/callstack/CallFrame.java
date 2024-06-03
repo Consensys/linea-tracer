@@ -148,6 +148,7 @@ public class CallFrame {
     this.contextNumber = 0;
     this.accountAddress = Address.ZERO;
     this.parentFrame = -1;
+    this.callDataInfo = new CallDataInfo(Bytes.EMPTY, 0, 0, 0);
   }
 
   /**

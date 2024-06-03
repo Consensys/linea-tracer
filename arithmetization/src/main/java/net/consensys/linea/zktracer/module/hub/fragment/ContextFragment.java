@@ -105,10 +105,12 @@ public record ContextFragment(
     final EWord callerAddress = EWord.of(callFrame.callerAddress());
 
     final int cfi =
-        hub.getCfiByMetaData(
-            Words.toAddress(eCodeAddress),
-            callFrame.codeDeploymentNumber(),
-            callFrame.underDeployment());
+        callFrame == CallFrame.EMPTY
+            ? 0
+            : hub.getCfiByMetaData(
+                Words.toAddress(eCodeAddress),
+                callFrame.codeDeploymentNumber(),
+                callFrame.underDeployment());
 
     return trace
         .peekAtContext(true)

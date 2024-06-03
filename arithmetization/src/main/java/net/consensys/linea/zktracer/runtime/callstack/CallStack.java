@@ -40,7 +40,12 @@ public final class CallStack {
   /** the maximal depth of the call stack (as defined by Ethereum) */
   static final int MAX_CALLSTACK_SIZE = 1024;
   /** a never-pruned-tree of the {@link CallFrame} executed by the {@link Hub} */
-  private final List<CallFrame> frames = new ArrayList<>();
+  private final List<CallFrame> frames =
+      new ArrayList<>() {
+        {
+          add(CallFrame.EMPTY);
+        }
+      };
   /** the current depth of the call stack. */
   @Getter private int depth;
   /** a "pointer" to the current {@link CallFrame} in <code>frames</code>. */

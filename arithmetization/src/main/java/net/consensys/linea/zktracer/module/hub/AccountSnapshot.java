@@ -71,8 +71,9 @@ public class AccountSnapshot {
   }
 
   public static AccountSnapshot fromAddress(
-          Address address, boolean isWarm, int deploymentNumber, boolean deploymentStatus) {
-    return new AccountSnapshot(address, 0, Wei.ZERO, isWarm, Bytecode.EMPTY, deploymentNumber, deploymentStatus);
+      Address address, boolean isWarm, int deploymentNumber, boolean deploymentStatus) {
+    return new AccountSnapshot(
+        address, 0, Wei.ZERO, isWarm, Bytecode.EMPTY, deploymentNumber, deploymentStatus);
   }
 
   public static AccountSnapshot fromAccount(

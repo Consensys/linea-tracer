@@ -102,9 +102,11 @@ public class TransactionProcessingMetadata {
 
     this.initialBalance = getInitialBalance(world);
 
+    // Note: Besu's dataCost computation contains the 21_000 transaction cost
     this.dataCost =
         ZkTracer.gasCalculator.transactionIntrinsicGasCost(
-            besuTransaction.getPayload(), isDeployment);
+                besuTransaction.getPayload(), isDeployment)
+            - GAS_CONST_G_TRANSACTION;
     this.accessListCost =
         besuTransaction.getAccessList().map(ZkTracer.gasCalculator::accessListGasCost).orElse(0L);
     this.initiallyAvailableGas = getInitiallyAvailableGas();
@@ -134,8 +136,10 @@ public class TransactionProcessingMetadata {
   }
 
   public long getUpfrontGasCost() {
-    // Note: Besu's dataCost computation contains the 21_000 transaction cost
-    return dataCost + (isDeployment ? GAS_CONST_G_CREATE : 0) + accessListCost;
+    return dataCost
+        + (isDeployment ? GAS_CONST_G_CREATE : 0)
+        + GAS_CONST_G_TRANSACTION
+        + accessListCost;
   }
 
   public long getInitiallyAvailableGas() {

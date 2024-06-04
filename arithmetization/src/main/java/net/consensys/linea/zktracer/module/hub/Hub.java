@@ -157,8 +157,6 @@ public class Hub implements Module {
   /** stores all data related to failure states & module activation */
   @Getter private final PlatformController pch;
 
-  @Getter private ProcessableBlockHeader currentBlockHeader;
-
   @Override
   public String moduleKey() {
     return "HUB";
@@ -189,22 +187,6 @@ public class Hub implements Module {
 
   TraceSection currentTraceSection() {
     return this.state.currentTxTrace().currentSection();
-  }
-
-  public int lastPc() {
-    if (this.state.currentTxTrace().isEmpty()) {
-      return 0;
-    } else {
-      return this.state.currentTxTrace().currentSection().pc();
-    }
-  }
-
-  public int lastContextNumber() {
-    if (this.state.currentTxTrace().isEmpty()) {
-      return 0;
-    } else {
-      return this.state.currentTxTrace().currentSection().contextNumber();
-    }
   }
 
   public void addFragmentsAndStack(TraceFragment... fragments) {

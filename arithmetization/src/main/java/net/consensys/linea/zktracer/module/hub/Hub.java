@@ -1088,8 +1088,6 @@ public class Hub implements Module {
     }
   }
 
-
-
   @Override
   public void tracePreOpcode(final MessageFrame frame) {
     if (OpCode.of(frame.getCurrentOperation().getOpcode()).isCall()) {

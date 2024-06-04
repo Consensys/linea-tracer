@@ -41,7 +41,7 @@ public final class CallStack {
   static final int MAX_CALLSTACK_SIZE = 1024;
   /** a never-pruned-tree of the {@link CallFrame} executed by the {@link Hub} */
   private final List<CallFrame> frames =
-      new ArrayList<>() {
+      new ArrayList<>(50) {
         {
           add(CallFrame.EMPTY);
         }

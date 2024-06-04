@@ -149,6 +149,7 @@ public class Hub implements Module {
    */
   @Getter CallStack callStack = new CallStack();
 
+  /** Stores the transaction Metadata of all the transaction of the conflated block */
   @Getter TransactionStack txStack = new TransactionStack();
 
   /** Stores all the actions that must be deferred to a later time */

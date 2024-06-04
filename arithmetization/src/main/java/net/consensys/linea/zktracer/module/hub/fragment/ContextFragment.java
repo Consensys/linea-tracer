@@ -20,6 +20,7 @@ import static net.consensys.linea.zktracer.types.Conversions.bytesToLong;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
+import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.Either;
@@ -106,6 +107,8 @@ public record ContextFragment(
 
     final int cfi =
         callFrame == CallFrame.EMPTY
+                || callFrame.type() == CallFrameType.BEDROCK
+                || callFrame.type() == CallFrameType.MANTLE
             ? 0
             : hub.getCfiByMetaData(
                 Words.toAddress(eCodeAddress),

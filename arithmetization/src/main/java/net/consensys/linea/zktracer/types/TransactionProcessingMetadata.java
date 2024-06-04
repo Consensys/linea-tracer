@@ -80,6 +80,10 @@ public class TransactionProcessingMetadata {
   @Setter
   boolean isReceiverPreWarmed = false;
 
+  @Accessors(fluent = true)
+  @Setter
+  boolean isMinerWarmAtEndTx = false;
+
   final StorageInitialValues storage = new StorageInitialValues();
 
   @Setter int codeFragmentIndex = -1;
@@ -148,16 +152,21 @@ public class TransactionProcessingMetadata {
     return besuTransaction.getGasLimit() - getUpfrontGasCost();
   }
 
+  public void setPreFinalisationValues(
+      final long leftOverGas,
+      final long refundCounterMax,
+      final boolean minerIsWarmAtFinalisation) {
+    this.isMinerWarmAtEndTx(minerIsWarmAtFinalisation);
+    this.refundCounterMax = refundCounterMax;
+    this.setLeftoverGas(leftOverGas);
+    this.refundEffective = computeRefundEffective();
+  }
+
   public void completeLineaTransaction(
       final boolean statusCode,
-      final long leftoverGas,
-      final long refundCounterMax,
       final int hubStampTransactionEnd,
       final HubProcessingPhase hubPhase) {
-    this.refundCounterMax = refundCounterMax;
-    this.leftoverGas = leftoverGas;
     this.statusCode = statusCode;
-    this.refundEffective = computeRefundEffective();
     this.hubStampTransactionEnd =
         (hubPhase == TX_SKIP) ? hubStampTransactionEnd : hubStampTransactionEnd + 1;
   }
@@ -196,5 +205,9 @@ public class TransactionProcessingMetadata {
 
   public boolean requiresCfiUpdate() {
     return requiresEvmExecution && isDeployment;
+  }
+
+  public long getGasUsed() {
+    return besuTransaction.getGasLimit() - leftoverGas;
   }
 }

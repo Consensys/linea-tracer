@@ -753,8 +753,7 @@ public class Hub implements Module {
     this.state.setProcessingPhase(TX_FINAL);
     this.state.stamps().incrementHubStamp();
 
-    final boolean coinbaseWarmth =
-        false; // TODO: get access to coinbase address warmth (still London!)
+    final boolean coinbaseWarmth = txStack.current().isMinerWarmAtEndTx();
 
     if (this.txStack.current().statusCode()) {
       this.addTraceSection(
@@ -815,6 +814,37 @@ public class Hub implements Module {
   }
 
   @Override
+  public void traceContextExit(MessageFrame frame) {
+    if (frame.getDepth() > 0) {
+      this.transients
+          .conflation()
+          .deploymentInfo()
+          .unmarkDeploying(this.currentFrame().byteCodeAddress());
+
+      DeploymentExceptions contextExceptions =
+          DeploymentExceptions.fromFrame(this.currentFrame(), frame);
+      this.currentTraceSection().setContextExceptions(contextExceptions);
+      if (contextExceptions.any()) {
+        this.callStack.revert(this.state.stamps().hub());
+      }
+
+      this.callStack.exit();
+
+      for (Module m : this.modules) {
+        m.traceContextExit(frame);
+      }
+    }
+
+    if (frame.getDepth() == 0) {
+      final long leftOverGas = frame.getRemainingGas();
+      final long gasRefund = frame.getGasRefund();
+      final boolean minerIsWarm = frame.isAddressWarm(txStack.current().getCoinbase());
+
+      txStack.current().setPreFinalisationValues(leftOverGas, gasRefund, minerIsWarm);
+    }
+  }
+
+  @Override
   public void traceEndTx(
       WorldView world,
       Transaction tx,
@@ -822,15 +852,10 @@ public class Hub implements Module {
       Bytes output,
       List<Log> logs,
       long gasUsed) {
-    final long leftoverGas = txStack.current().getBesuTransaction().getGasLimit() - gasUsed;
     txStack
         .current()
         .completeLineaTransaction(
-            isSuccessful,
-            leftoverGas,
-            this.accruedRefunds(),
-            this.state.stamps().hub(),
-            this.state.getProcessingPhase());
+            isSuccessful, this.state.stamps().hub(), this.state.getProcessingPhase());
 
     if (this.state.processingPhase != TX_SKIP) {
       this.processStateFinal(world);
@@ -1007,29 +1032,6 @@ public class Hub implements Module {
     if (this.currentFrame().needsUnlatchingAtReEntry() != null) {
       this.unlatchStack(frame, this.currentFrame().needsUnlatchingAtReEntry());
       this.currentFrame().needsUnlatchingAtReEntry(null);
-    }
-  }
-
-  @Override
-  public void traceContextExit(MessageFrame frame) {
-    if (frame.getDepth() > 0) {
-      this.transients
-          .conflation()
-          .deploymentInfo()
-          .unmarkDeploying(this.currentFrame().byteCodeAddress());
-
-      DeploymentExceptions contextExceptions =
-          DeploymentExceptions.fromFrame(this.currentFrame(), frame);
-      this.currentTraceSection().setContextExceptions(contextExceptions);
-      if (contextExceptions.any()) {
-        this.callStack.revert(this.state.stamps().hub());
-      }
-
-      this.callStack.exit();
-
-      for (Module m : this.modules) {
-        m.traceContextExit(frame);
-      }
     }
   }
 

@@ -23,7 +23,6 @@ import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_WARM
 import static net.consensys.linea.zktracer.module.hub.Trace.MULTIPLIER___STACK_HEIGHT;
 import static net.consensys.linea.zktracer.types.AddressUtils.addressFromBytes;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
-import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 import static net.consensys.linea.zktracer.types.AddressUtils.precompileAddress;
 
 import java.nio.MappedByteBuffer;
@@ -427,53 +426,8 @@ public class Hub implements Module {
   void processStateSkip(WorldView world) {
     this.state.setProcessingPhase(TX_SKIP);
     this.state.stamps().incrementHubStamp();
-    final boolean isDeployment = this.txStack.current().getBesuTransaction().getTo().isEmpty();
-
-    //
-    // 3 sections -- account changes
-    //
-    // From account information
-    final Address fromAddress = this.txStack.current().getBesuTransaction().getSender();
-    final AccountSnapshot oldFromAccount =
-        AccountSnapshot.fromAccount(
-            world.get(fromAddress),
-            isPrecompile(fromAddress),
-            this.transients.conflation().deploymentInfo().number(fromAddress),
-            false);
-
-    // To account information
-    final Address toAddress = this.txStack.current().getEffectiveTo();
-    if (isDeployment) {
-      this.transients.conflation().deploymentInfo().deploy(toAddress);
-    }
-    final AccountSnapshot oldToAccount =
-        AccountSnapshot.fromAccount(
-            world.get(toAddress),
-            isPrecompile(toAddress),
-            this.transients.conflation().deploymentInfo().number(toAddress),
-            false);
-
-    // Miner account information
-    final Address minerAddress = this.txStack.current().getCoinbase();
-
-    final AccountSnapshot oldMinerAccount =
-        AccountSnapshot.fromAccount(
-            world.get(minerAddress),
-            isPrecompile(minerAddress),
-            this.transients
-                .conflation()
-                .deploymentInfo()
-                .number(this.transients.block().minerAddress()),
-            false);
-
-    // Putatively updateCallerReturnData deployment number
     this.defers.postTx(
-        new SkippedPostTransactionDefer(
-            oldFromAccount,
-            oldToAccount,
-            oldMinerAccount,
-            Wei.of(this.txStack.current().getEffectiveGasPrice()),
-            this.transients.block().baseFee()));
+        new SkippedPostTransactionDefer(world, this.txStack.current(), this.transients));
   }
 
   /**
@@ -823,7 +777,6 @@ public class Hub implements Module {
     this.pch.reset();
     this.state.enter();
     this.txStack.enterTransaction(world, tx, transients.block());
-
     this.defers.postTx(this.state.currentTxTrace());
 
     this.enterTransaction();

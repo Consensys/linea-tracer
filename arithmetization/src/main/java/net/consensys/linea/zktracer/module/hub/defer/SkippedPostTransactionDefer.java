@@ -15,38 +15,69 @@
 
 package net.consensys.linea.zktracer.module.hub.defer;
 
+import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
+
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.TransactionFragment;
 import net.consensys.linea.zktracer.module.hub.section.TxSkippedSection;
+import net.consensys.linea.zktracer.module.hub.transients.Transients;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
-import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 /**
  * SkippedTransaction latches data at the pre-execution of the transaction data that will be used
  * later, through a {@link PostTransactionDefer}, to generate the trace chunks required for the
  * proving of a pure transaction.
- *
- * @param oldFromAccount
- * @param oldToAccount
- * @param oldMinerAccount
  */
-public record SkippedPostTransactionDefer(
-    AccountSnapshot oldFromAccount,
-    AccountSnapshot oldToAccount,
-    AccountSnapshot oldMinerAccount,
-    Wei gasPrice,
-    Wei baseFee)
-    implements PostTransactionDefer {
+public class SkippedPostTransactionDefer implements PostTransactionDefer {
+  final TransactionProcessingMetadata txMetadata;
+  final AccountSnapshot oldFromAccount;
+  final AccountSnapshot oldToAccount;
+  final AccountSnapshot oldMinerAccount;
+
+  public SkippedPostTransactionDefer(
+      WorldView world, TransactionProcessingMetadata txMetadata, Transients transients) {
+    this.txMetadata = txMetadata;
+
+    // From account information
+    final Address fromAddress = txMetadata.getBesuTransaction().getSender();
+    this.oldFromAccount =
+        AccountSnapshot.fromAccount(
+            world.get(fromAddress),
+            isPrecompile(fromAddress),
+            transients.conflation().deploymentInfo().number(fromAddress),
+            false);
+
+    // To account information
+    final Address toAddress = txMetadata.getEffectiveTo();
+    if (txMetadata.isDeployment()) {
+      transients.conflation().deploymentInfo().deploy(toAddress);
+    }
+    this.oldToAccount =
+        AccountSnapshot.fromAccount(
+            world.get(toAddress),
+            isPrecompile(toAddress),
+            transients.conflation().deploymentInfo().number(toAddress),
+            false);
+
+    // Miner account information
+    final Address minerAddress = txMetadata.getCoinbase();
+    this.oldMinerAccount =
+        AccountSnapshot.fromAccount(
+            world.get(minerAddress),
+            isPrecompile(minerAddress),
+            transients.conflation().deploymentInfo().number(transients.block().minerAddress()),
+            false);
+  }
+
   @Override
   public void runPostTx(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
-    final TransactionProcessingMetadata txMetaData = hub.txStack().current();
     final Address fromAddress = this.oldFromAccount.address();
     final Address toAddress = this.oldToAccount.address();
-    final Address minerAddress = txMetaData.getCoinbase();
+    final Address minerAddress = this.txMetadata.getCoinbase();
     hub.transients().conflation().deploymentInfo().unmarkDeploying(toAddress);
 
     final AccountSnapshot newFromAccount =

@@ -63,13 +63,6 @@ public class TransactionStack implements StackedContainer {
     this.txs.add(newTx);
   }
 
-  public void exitTransaction(final Hub hub, boolean isSuccessful) {
-    if (hub.state.processingPhase != HubProcessingPhase.TX_SKIP) {
-      hub.state.setProcessingPhase(HubProcessingPhase.TX_FINAL);
-    }
-    this.current().setHubStampTransactionEnd(hub.stamp() + 1);
-  }
-
   public void setCodeFragmentIndex(Hub hub) {
     for (TransactionProcessingMetadata tx : this.txs) {
       final int cfi =

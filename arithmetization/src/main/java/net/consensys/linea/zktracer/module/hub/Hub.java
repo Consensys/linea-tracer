@@ -442,7 +442,7 @@ public class Hub implements Module {
             false);
 
     // To account information
-    final Address toAddress = effectiveToAddress(this.txStack.current().getBesuTransaction());
+    final Address toAddress = this.txStack.current().getEffectiveTo();
     if (isDeployment) {
       this.transients.conflation().deploymentInfo().deploy(toAddress);
     }
@@ -454,7 +454,7 @@ public class Hub implements Module {
             false);
 
     // Miner account information
-    final Address minerAddress = this.transients.block().minerAddress();
+    final Address minerAddress = this.txStack.current().getCoinbase();
 
     final AccountSnapshot oldMinerAccount =
         AccountSnapshot.fromAccount(
@@ -873,8 +873,11 @@ public class Hub implements Module {
     txStack
         .current()
         .completeLineaTransaction(
-            isSuccessful, leftoverGas, this.accruedRefunds(), this.state.stamps().hub());
-    this.txStack.exitTransaction(this, isSuccessful);
+            isSuccessful,
+            leftoverGas,
+            this.accruedRefunds(),
+            this.state.stamps().hub(),
+            this.state.getProcessingPhase());
 
     if (this.state.processingPhase != TX_SKIP) {
       this.processStateFinal(world);

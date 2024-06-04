@@ -106,9 +106,7 @@ public record ContextFragment(
     final EWord callerAddress = EWord.of(callFrame.callerAddress());
 
     final int cfi =
-        callFrame == CallFrame.EMPTY
-                || callFrame.type() == CallFrameType.BEDROCK
-                || callFrame.type() == CallFrameType.MANTLE
+        callFrame == CallFrame.EMPTY || callFrame.type() == CallFrameType.MANTLE
             ? 0
             : hub.getCfiByMetaData(
                 Words.toAddress(eCodeAddress),

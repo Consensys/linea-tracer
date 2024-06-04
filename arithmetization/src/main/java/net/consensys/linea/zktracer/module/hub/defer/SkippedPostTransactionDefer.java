@@ -19,6 +19,7 @@ import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.TransactionFragment;
 import net.consensys.linea.zktracer.module.hub.section.TxSkippedSection;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
@@ -42,26 +43,27 @@ public record SkippedPostTransactionDefer(
     implements PostTransactionDefer {
   @Override
   public void runPostTx(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
-    Address fromAddress = this.oldFromAccount.address();
-    Address toAddress = this.oldToAccount.address();
-    Address minerAddress = this.oldMinerAccount.address();
+    final TransactionProcessingMetadata txMetaData = hub.txStack().current();
+    final Address fromAddress = this.oldFromAccount.address();
+    final Address toAddress = this.oldToAccount.address();
+    final Address minerAddress = txMetaData.getCoinbase();
     hub.transients().conflation().deploymentInfo().unmarkDeploying(toAddress);
 
-    AccountSnapshot newFromAccount =
+    final AccountSnapshot newFromAccount =
         AccountSnapshot.fromAccount(
             state.get(fromAddress),
             this.oldFromAccount.isWarm(),
             hub.transients().conflation().deploymentInfo().number(fromAddress),
             false);
 
-    AccountSnapshot newToAccount =
+    final AccountSnapshot newToAccount =
         AccountSnapshot.fromAccount(
             state.get(toAddress),
             this.oldToAccount.isWarm(),
             hub.transients().conflation().deploymentInfo().number(toAddress),
             false);
 
-    AccountSnapshot newMinerAccount =
+    final AccountSnapshot newMinerAccount =
         AccountSnapshot.fromAccount(
             state.get(minerAddress),
             this.oldMinerAccount.isWarm(),

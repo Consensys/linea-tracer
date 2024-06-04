@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.types;
 
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.*;
+import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_SKIP;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 
 import java.math.BigInteger;
@@ -25,6 +26,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ZkTracer;
+import net.consensys.linea.zktracer.module.hub.HubProcessingPhase;
 import net.consensys.linea.zktracer.module.hub.transients.Block;
 import net.consensys.linea.zktracer.module.hub.transients.StorageInitialValues;
 import org.hyperledger.besu.datatypes.Address;
@@ -147,12 +149,17 @@ public class TransactionProcessingMetadata {
   }
 
   public void completeLineaTransaction(
-      boolean statusCode, long leftoverGas, long refundCounterMax, int hubStampTransactionEnd) {
+      final boolean statusCode,
+      final long leftoverGas,
+      final long refundCounterMax,
+      final int hubStampTransactionEnd,
+      final HubProcessingPhase hubPhase) {
     this.refundCounterMax = refundCounterMax;
     this.leftoverGas = leftoverGas;
     this.statusCode = statusCode;
     this.refundEffective = computeRefundEffective();
-    this.hubStampTransactionEnd = hubStampTransactionEnd;
+    this.hubStampTransactionEnd =
+        (hubPhase == TX_SKIP) ? hubStampTransactionEnd : hubStampTransactionEnd + 1;
   }
 
   private long computeRefundEffective() {

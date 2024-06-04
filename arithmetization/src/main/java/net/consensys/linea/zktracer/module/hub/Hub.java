@@ -149,9 +149,6 @@ public class Hub implements Module {
   /** stores all data related to failure states & module activation */
   @Getter private final PlatformController pch;
 
-  /** indicates if the current call is a precompile call */
-  private boolean isPrecompileCall = false;
-
   @Override
   public String moduleKey() {
     return "HUB";
@@ -1090,10 +1087,6 @@ public class Hub implements Module {
 
   @Override
   public void tracePreOpcode(final MessageFrame frame) {
-    if (OpCode.of(frame.getCurrentOperation().getOpcode()).isCall()) {
-      Address target = Words.toAddress(frame.getStackItem(1));
-      isPrecompileCall = isPrecompile(target);
-    }
     if (this.transients.tx().state() == TxState.TX_SKIP) {
       return;
     }
@@ -1101,11 +1094,6 @@ public class Hub implements Module {
   }
 
   public void tracePostExecution(MessageFrame frame, Operation.OperationResult operationResult) {
-    if (isPrecompileCall) {
-      // this.currentFrame().frame().setReturnData(frame.getOutputData());
-    }
-    isPrecompileCall = false;
-
     if (this.transients.tx().state() == TxState.TX_SKIP) {
       return;
     }

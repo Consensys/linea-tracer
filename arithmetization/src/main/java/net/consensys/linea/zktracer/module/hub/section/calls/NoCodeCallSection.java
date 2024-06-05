@@ -24,6 +24,7 @@ import net.consensys.linea.zktracer.module.hub.defer.PostExecDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.defer.ReEnterContextDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
@@ -123,11 +124,14 @@ public class NoCodeCallSection extends TraceSection
         this.imcFragment,
         ContextFragment.readContextData(hub),
         accountFragmentFactory.make(
-            this.preCallCallerAccountSnapshot, this.postCallCallerAccountSnapshot),
+            this.preCallCallerAccountSnapshot,
+            this.postCallCallerAccountSnapshot,
+            DomSubStampsSubFragment.standardDomSubStamps(hub, 0)),
         accountFragmentFactory.makeWithTrm(
             this.preCallCalledAccountSnapshot,
             this.postCallCalledAccountSnapshot,
-            this.rawCalledAddress));
+            this.rawCalledAddress,
+            DomSubStampsSubFragment.standardDomSubStamps(hub, 1)));
 
     if (precompileInvocation.isPresent()) {
       if (this.callSuccessful && callerCallFrame.hasReverted()) {
@@ -135,9 +139,13 @@ public class NoCodeCallSection extends TraceSection
             hub,
             callerCallFrame,
             accountFragmentFactory.make(
-                this.postCallCallerAccountSnapshot, this.preCallCallerAccountSnapshot),
+                this.postCallCallerAccountSnapshot,
+                this.preCallCallerAccountSnapshot,
+                DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 2)),
             accountFragmentFactory.make(
-                this.postCallCalledAccountSnapshot, this.preCallCalledAccountSnapshot));
+                this.postCallCalledAccountSnapshot,
+                this.preCallCalledAccountSnapshot,
+                DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 3)));
       }
       this.addFragmentsWithoutStack(
           hub,
@@ -154,9 +162,13 @@ public class NoCodeCallSection extends TraceSection
             hub,
             callerCallFrame,
             accountFragmentFactory.make(
-                this.postCallCallerAccountSnapshot, this.preCallCallerAccountSnapshot),
+                this.postCallCallerAccountSnapshot,
+                this.preCallCallerAccountSnapshot,
+                DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 2)),
             accountFragmentFactory.make(
-                this.postCallCalledAccountSnapshot, this.preCallCalledAccountSnapshot));
+                this.postCallCalledAccountSnapshot,
+                this.preCallCalledAccountSnapshot,
+                DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 3)));
       }
       this.addFragmentsWithoutStack(
           hub, callerCallFrame, ContextFragment.nonExecutionEmptyReturnData(hub));

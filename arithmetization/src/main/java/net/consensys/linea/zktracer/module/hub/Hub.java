@@ -469,11 +469,17 @@ public class Hub implements Module {
                       AccountSnapshot.fromAccount(
                           world.get(address), true, deploymentNumber, false);
 
+                  DomSubStampsSubFragment domSubStampsSubFragment =
+                      new DomSubStampsSubFragment(
+                          DomSubStampsSubFragment.DomSubType.STANDARD, this.stamp(), 0, 0, 0, 0, 0);
                   fragments.add(
                       this.factories
                           .accountFragment()
                           .makeWithTrm(
-                              preWarmingAccountSnapshot, postWarmingAccountSnapshot, address));
+                              preWarmingAccountSnapshot,
+                              postWarmingAccountSnapshot,
+                              address,
+                              domSubStampsSubFragment));
 
                   seenAddresses.add(address);
 
@@ -530,30 +536,32 @@ public class Hub implements Module {
     final Address toAddress = tx.getEffectiveTo();
     final DeploymentInfo deploymentInfo = this.transients.conflation().deploymentInfo();
 
-    final Address fromAddress = tx.getSender();
-    final Account fromAccount = world.get(fromAddress);
-    final AccountSnapshot preInitFromSnapshot =
+    final Address senderAddress = tx.getSender();
+    final Account senderAccount = world.get(senderAddress);
+    final AccountSnapshot senderBeforePayingForTransaction =
         AccountSnapshot.fromAccount(
-            fromAccount,
+            senderAccount,
             tx.isSenderPreWarmed(),
-            deploymentInfo.number(fromAddress),
-            deploymentInfo.isDeploying(fromAddress));
+            deploymentInfo.number(senderAddress),
+            deploymentInfo.isDeploying(senderAddress));
+    final DomSubStampsSubFragment senderDomSubStamps =
+        DomSubStampsSubFragment.standardDomSubStamps(this, 0);
 
     final Wei transactionGasPrice = Wei.of(tx.getEffectiveGasPrice());
     final Wei value = (Wei) tx.getBesuTransaction().getValue();
-    final AccountSnapshot postInitFromSnapshot =
-        preInitFromSnapshot.debit(
+    final AccountSnapshot senderAfterPayingForTransaction =
+        senderBeforePayingForTransaction.debit(
             transactionGasPrice.multiply(tx.getBesuTransaction().getGasLimit()).add(value), true);
 
-    final boolean isSelfCredit = toAddress.equals(fromAddress);
+    final boolean isSelfCredit = toAddress.equals(senderAddress);
 
-    final Account toAccount = world.get(toAddress);
+    final Account recipientAccount = world.get(toAddress);
 
-    final AccountSnapshot preInitToSnapshot =
+    final AccountSnapshot recipientBeforeValueTransfer =
         isSelfCredit
-            ? postInitFromSnapshot
+            ? senderAfterPayingForTransaction
             : AccountSnapshot.fromAccount(
-                toAccount,
+                recipientAccount,
                 tx.isReceiverPreWarmed(),
                 deploymentInfo.number(toAddress),
                 deploymentInfo.isDeploying(toAddress));
@@ -564,10 +572,12 @@ public class Hub implements Module {
 
     final Bytecode initBytecode =
         new Bytecode(tx.getBesuTransaction().getInit().orElse(Bytes.EMPTY));
-    final AccountSnapshot postInitToSnapshot =
+    final AccountSnapshot recipientAfterValueTransfer =
         isDeployment
-            ? preInitToSnapshot.deploy(value, initBytecode)
-            : preInitToSnapshot.credit(value, true);
+            ? recipientBeforeValueTransfer.deploy(value, initBytecode)
+            : recipientBeforeValueTransfer.credit(value, true);
+    final DomSubStampsSubFragment recipientDomSubStamps =
+        DomSubStampsSubFragment.standardDomSubStamps(this, 1);
 
     final TransactionFragment txFragment = TransactionFragment.prepare(tx);
     this.defers.postTx(txFragment);
@@ -578,9 +588,16 @@ public class Hub implements Module {
     this.addTraceSection(
         new TxInitializationSection(
             this,
-            accountFragmentFactory.make(preInitFromSnapshot, postInitFromSnapshot),
+            accountFragmentFactory.make(
+                senderBeforePayingForTransaction,
+                senderAfterPayingForTransaction,
+                senderDomSubStamps),
             accountFragmentFactory
-                .makeWithTrm(preInitToSnapshot, postInitToSnapshot, toAddress)
+                .makeWithTrm(
+                    recipientBeforeValueTransfer,
+                    recipientAfterValueTransfer,
+                    toAddress,
+                    recipientDomSubStamps)
                 .requiresRomlex(true),
             ImcFragment.forTxInit(this),
             ContextFragment.initializeExecutionContext(this),
@@ -1258,7 +1275,7 @@ public class Hub implements Module {
       }
       case ACCOUNT -> {
         TraceSection accountSection = new AccountSection(this);
-        if (this.opCodeData().stackSettings().flag1()) {
+        if (this.opCode().isAnyOf(OpCode.SELFBALANCE, OpCode.CODESIZE)) {
           accountSection.addFragment(
               this, this.currentFrame(), ContextFragment.readContextData(this));
         }
@@ -1270,25 +1287,43 @@ public class Hub implements Module {
             };
         final Address targetAddress = Words.toAddress(rawTargetAddress);
         final Account targetAccount = frame.getWorldUpdater().get(targetAddress);
-        final AccountSnapshot accountSnapshot =
+        final AccountSnapshot accountBefore =
             AccountSnapshot.fromAccount(
                 targetAccount,
                 frame.isAddressWarm(targetAddress),
                 this.transients.conflation().deploymentInfo().number(targetAddress),
                 this.transients.conflation().deploymentInfo().isDeploying(targetAddress));
+        final AccountSnapshot accountAfter =
+            AccountSnapshot.fromAccount(
+                targetAccount,
+                true,
+                this.transients.conflation().deploymentInfo().number(targetAddress),
+                this.transients.conflation().deploymentInfo().isDeploying(targetAddress));
+        final DomSubStampsSubFragment doingDomSubStamps =
+            DomSubStampsSubFragment.standardDomSubStamps(this, 0);
         accountSection.addFragment(
             this,
             this.currentFrame(),
             this.factories
                 .accountFragment()
-                .makeWithTrm(accountSnapshot, accountSnapshot, rawTargetAddress));
+                .makeWithTrm(accountBefore, accountAfter, rawTargetAddress, doingDomSubStamps));
+
+        if (this.currentFrame().willRevert()) {
+          final DomSubStampsSubFragment undoingDomSubStamps =
+              DomSubStampsSubFragment.revertWithCurrentDomSubStamps(this, 0);
+          accountSection.addFragment(
+              this,
+              this.currentFrame(),
+              this.factories
+                  .accountFragment()
+                  .make(accountBefore, accountAfter, undoingDomSubStamps));
+        }
 
         this.addTraceSection(accountSection);
       }
       case COPY -> {
         TraceSection copySection = new CopySection(this);
-        if (this.opCodeData().stackSettings().flag1()) {
-
+        if (!this.opCode().equals(OpCode.RETURNDATACOPY)) {
           final Bytes rawTargetAddress =
               switch (this.currentFrame().opCode()) {
                 case CODECOPY -> this.currentFrame().byteCodeAddress();
@@ -1300,21 +1335,45 @@ public class Hub implements Module {
               };
           final Address targetAddress = Words.toAddress(rawTargetAddress);
           final Account targetAccount = frame.getWorldUpdater().get(targetAddress);
-          AccountSnapshot accountSnapshot =
+
+          AccountSnapshot accountBefore =
               AccountSnapshot.fromAccount(
                   targetAccount,
                   frame.isAddressWarm(targetAddress),
                   this.transients.conflation().deploymentInfo().number(targetAddress),
                   this.transients.conflation().deploymentInfo().isDeploying(targetAddress));
 
+          AccountSnapshot accountAfter =
+              AccountSnapshot.fromAccount(
+                  targetAccount,
+                  true,
+                  this.transients.conflation().deploymentInfo().number(targetAddress),
+                  this.transients.conflation().deploymentInfo().isDeploying(targetAddress));
+
+          DomSubStampsSubFragment doingDomSubStamps =
+              DomSubStampsSubFragment.standardDomSubStamps(this, 0);
           copySection.addFragment(
               this,
               this.currentFrame(),
               this.currentFrame().opCode() == OpCode.EXTCODECOPY
                   ? this.factories
                       .accountFragment()
-                      .makeWithTrm(accountSnapshot, accountSnapshot, rawTargetAddress)
-                  : this.factories.accountFragment().make(accountSnapshot, accountSnapshot));
+                      .makeWithTrm(
+                          accountBefore, accountBefore, rawTargetAddress, doingDomSubStamps)
+                  : this.factories
+                      .accountFragment()
+                      .make(accountBefore, accountAfter, doingDomSubStamps));
+
+          if (this.callStack.current().willRevert()) {
+            DomSubStampsSubFragment undoingDomSubStamps =
+                DomSubStampsSubFragment.revertWithCurrentDomSubStamps(this, 0);
+            copySection.addFragment(
+                this,
+                this.currentFrame(),
+                this.factories
+                    .accountFragment()
+                    .make(accountAfter, accountBefore, undoingDomSubStamps));
+          }
         } else {
           copySection.addFragment(this, this.currentFrame(), ContextFragment.readContextData(this));
         }
@@ -1451,7 +1510,10 @@ public class Hub implements Module {
                     this.factories
                         .accountFragment()
                         .makeWithTrm(
-                            calledAccountSnapshot, calledAccountSnapshot, rawCalledAddress)));
+                            calledAccountSnapshot,
+                            calledAccountSnapshot,
+                            rawCalledAddress,
+                            DomSubStampsSubFragment.standardDomSubStamps(this, 0))));
           }
         } else if (this.pch.abortingConditions().any()) {
           //
@@ -1463,10 +1525,19 @@ public class Hub implements Module {
                   ScenarioFragment.forCall(this, hasCode),
                   ImcFragment.forCall(this, myAccount, calledAccount),
                   ContextFragment.readContextData(this),
-                  this.factories.accountFragment().make(myAccountSnapshot, myAccountSnapshot),
                   this.factories
                       .accountFragment()
-                      .makeWithTrm(calledAccountSnapshot, calledAccountSnapshot, rawCalledAddress),
+                      .make(
+                          myAccountSnapshot,
+                          myAccountSnapshot,
+                          DomSubStampsSubFragment.standardDomSubStamps(this, 0)),
+                  this.factories
+                      .accountFragment()
+                      .makeWithTrm(
+                          calledAccountSnapshot,
+                          calledAccountSnapshot,
+                          rawCalledAddress,
+                          DomSubStampsSubFragment.standardDomSubStamps(this, 1)),
                   ContextFragment.nonExecutionEmptyReturnData(this));
           this.addTraceSection(abortedSection);
         } else {
@@ -1526,7 +1597,12 @@ public class Hub implements Module {
             new JumpSection(
                 this,
                 ContextFragment.readContextData(this),
-                this.factories.accountFragment().make(codeAccountSnapshot, codeAccountSnapshot),
+                this.factories
+                    .accountFragment()
+                    .make(
+                        codeAccountSnapshot,
+                        codeAccountSnapshot,
+                        DomSubStampsSubFragment.standardDomSubStamps(this, 0)),
                 ImcFragment.forOpcode(this, frame));
 
         this.addTraceSection(jumpSection);

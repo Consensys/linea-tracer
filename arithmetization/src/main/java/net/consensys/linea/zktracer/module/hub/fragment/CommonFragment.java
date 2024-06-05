@@ -181,6 +181,13 @@ public final class CommonFragment implements TraceFragment {
     final boolean selfReverts = frame.selfReverts();
     final boolean getsReverted = frame.getsReverted();
     final boolean willRevert = frame.willRevert();
+    final boolean contextMayChange =
+        this.hubProcessingPhase == HubProcessingPhase.TX_EXEC
+            && ((instructionFamily == InstructionFamily.CALL
+                    || instructionFamily == InstructionFamily.CREATE
+                    || instructionFamily == InstructionFamily.HALT
+                    || instructionFamily == InstructionFamily.INVALID)
+                || exceptions.any());
 
     return trace
         .absoluteTransactionNumber(tx.getAbsoluteTransactionNumber())
@@ -192,17 +199,12 @@ public final class CommonFragment implements TraceFragment {
         .txFinl(this.hubProcessingPhase == HubProcessingPhase.TX_FINAL)
         .hubStamp(this.stamps.hub())
         .hubStampTransactionEnd(tx.getHubStampTransactionEnd())
-        .contextMayChange(
-            this.hubProcessingPhase == HubProcessingPhase.TX_EXEC
-                && ((instructionFamily == InstructionFamily.CALL
-                        || instructionFamily == InstructionFamily.CREATE
-                        || instructionFamily == InstructionFamily.HALT
-                        || instructionFamily == InstructionFamily.INVALID)
-                    || exceptions.any()))
+        .contextMayChange(contextMayChange)
         .exceptionAhoy(exceptions.any())
         .logInfoStamp(this.stamps.log())
         .mmuStamp(this.stamps.mmu())
         .mxpStamp(this.stamps.mxp())
+        // nontrivial dom / sub are traced in storage or account fragments only
         .contextNumber(contextNumber)
         .contextNumberNew(contextNumberNew)
         .callerContextNumber(callerContextNumber)
@@ -215,6 +217,7 @@ public final class CommonFragment implements TraceFragment {
         .programCounterNew(pcNew)
         .height((short) stackHeight)
         .heightNew((short) stackHeightNew)
+        // peeking flags are traced in the respective fragments
         .gasExpected(gasExpected)
         .gasActual(gasActual)
         .gasCost(Bytes.ofUnsignedLong(gasCost))

@@ -31,6 +31,7 @@ import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.defer.DeferRegistry;
 import net.consensys.linea.zktracer.module.hub.defer.PostConflationDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
+import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.romlex.ContractMetadata;
 import net.consensys.linea.zktracer.types.EWord;
@@ -52,13 +53,21 @@ public final class AccountFragment
   public static class AccountFragmentFactory {
     private final DeferRegistry defers;
 
-    public AccountFragment make(AccountSnapshot oldState, AccountSnapshot newState) {
-      return new AccountFragment(this.defers, oldState, newState, Optional.empty());
+    public AccountFragment make(
+        AccountSnapshot oldState,
+        AccountSnapshot newState,
+        DomSubStampsSubFragment domSubStampsSubFragment) {
+      return new AccountFragment(
+          this.defers, oldState, newState, Optional.empty(), domSubStampsSubFragment);
     }
 
     public AccountFragment makeWithTrm(
-        AccountSnapshot oldState, AccountSnapshot newState, Bytes toTrim) {
-      return new AccountFragment(this.defers, oldState, newState, Optional.of(toTrim));
+        AccountSnapshot oldState,
+        AccountSnapshot newState,
+        Bytes toTrim,
+        DomSubStampsSubFragment domSubStampsSubFragment) {
+      return new AccountFragment(
+          this.defers, oldState, newState, Optional.of(toTrim), domSubStampsSubFragment);
     }
   }
 
@@ -72,12 +81,14 @@ public final class AccountFragment
   private int codeFragmentIndex;
   @Setter private boolean requiresRomlex;
   private final Optional<Bytes> addressToTrim;
+  private final DomSubStampsSubFragment domSubStampsSubFragment;
 
   public AccountFragment(
       final DeferRegistry defers,
       AccountSnapshot oldState,
       AccountSnapshot newState,
-      Optional<Bytes> addressToTrim) {
+      Optional<Bytes> addressToTrim,
+      DomSubStampsSubFragment domSubStampsSubFragment) {
     Preconditions.checkArgument(oldState.address().equals(newState.address()));
 
     this.who = oldState.address();
@@ -86,6 +97,7 @@ public final class AccountFragment
     this.deploymentNumber = newState.deploymentNumber();
     this.isDeployment = newState.deploymentStatus();
     this.addressToTrim = addressToTrim;
+    this.domSubStampsSubFragment = domSubStampsSubFragment;
 
     defers.postConflation(this);
   }
@@ -95,6 +107,9 @@ public final class AccountFragment
     final EWord eWho = EWord.of(who);
     final EWord eCodeHash = EWord.of(oldState.code().getCodeHash());
     final EWord eCodeHashNew = EWord.of(newState.code().getCodeHash());
+
+    // tracing
+    this.domSubStampsSubFragment.trace(trace);
 
     return trace
         .peekAtAccount(true)

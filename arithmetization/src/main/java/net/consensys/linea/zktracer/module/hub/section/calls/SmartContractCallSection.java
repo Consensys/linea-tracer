@@ -21,6 +21,7 @@ import net.consensys.linea.zktracer.module.hub.defer.NextContextDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostExecDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioFragment;
@@ -40,13 +41,13 @@ public class SmartContractCallSection extends TraceSection
   private final CallFrame callerCallFrame;
   private final int calledCallFrameId;
   private final AccountSnapshot preCallCallerAccountSnapshot;
-  private final AccountSnapshot preCallCalledAccountSnapshot;
+  private final AccountSnapshot preCallCalleeAccountSnapshot;
 
   private AccountSnapshot inCallCallerAccountSnapshot;
-  private AccountSnapshot inCallCalledAccountSnapshot;
+  private AccountSnapshot inCallCalleeAccountSnapshot;
 
   private AccountSnapshot postCallCallerAccountSnapshot;
-  private AccountSnapshot postCallCalledAccountSnapshot;
+  private AccountSnapshot postCallCalleeAccountSnapshot;
 
   private final ScenarioFragment scenarioFragment;
   private final ImcFragment imcFragment;
@@ -54,14 +55,14 @@ public class SmartContractCallSection extends TraceSection
   public SmartContractCallSection(
       Hub hub,
       AccountSnapshot preCallCallerAccountSnapshot,
-      AccountSnapshot preCallCalledAccountSnapshot,
+      AccountSnapshot preCallCalleeAccountSnapshot,
       Bytes rawCalledAddress,
       ImcFragment imcFragment) {
     this.rawCalledAddress = rawCalledAddress;
     this.callerCallFrame = hub.currentFrame();
     this.calledCallFrameId = hub.callStack().futureId();
     this.preCallCallerAccountSnapshot = preCallCallerAccountSnapshot;
-    this.preCallCalledAccountSnapshot = preCallCalledAccountSnapshot;
+    this.preCallCalleeAccountSnapshot = preCallCalleeAccountSnapshot;
     this.imcFragment = imcFragment;
     this.scenarioFragment =
         ScenarioFragment.forSmartContractCallSection(
@@ -78,7 +79,7 @@ public class SmartContractCallSection extends TraceSection
   public void runPostExec(Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
     final Address callerAddress = preCallCallerAccountSnapshot.address();
     final Account callerAccount = frame.getWorldUpdater().get(callerAddress);
-    final Address calledAddress = preCallCalledAccountSnapshot.address();
+    final Address calledAddress = preCallCalleeAccountSnapshot.address();
     final Account calledAccount = frame.getWorldUpdater().get(calledAddress);
 
     this.postCallCallerAccountSnapshot =
@@ -87,7 +88,7 @@ public class SmartContractCallSection extends TraceSection
             frame.isAddressWarm(callerAddress),
             hub.transients().conflation().deploymentInfo().number(callerAddress),
             hub.transients().conflation().deploymentInfo().isDeploying(callerAddress));
-    this.postCallCalledAccountSnapshot =
+    this.postCallCalleeAccountSnapshot =
         AccountSnapshot.fromAccount(
             calledAccount,
             frame.isAddressWarm(calledAddress),
@@ -99,7 +100,7 @@ public class SmartContractCallSection extends TraceSection
   public void runNextContext(Hub hub, MessageFrame frame) {
     final Address callerAddress = preCallCallerAccountSnapshot.address();
     final Account callerAccount = frame.getWorldUpdater().get(callerAddress);
-    final Address calledAddress = preCallCalledAccountSnapshot.address();
+    final Address calledAddress = preCallCalleeAccountSnapshot.address();
     final Account calledAccount = frame.getWorldUpdater().get(calledAddress);
 
     this.inCallCallerAccountSnapshot =
@@ -108,7 +109,7 @@ public class SmartContractCallSection extends TraceSection
             frame.isAddressWarm(callerAddress),
             hub.transients().conflation().deploymentInfo().number(callerAddress),
             hub.transients().conflation().deploymentInfo().isDeploying(callerAddress));
-    this.inCallCalledAccountSnapshot =
+    this.inCallCalleeAccountSnapshot =
         AccountSnapshot.fromAccount(
             calledAccount,
             frame.isAddressWarm(calledAddress),
@@ -123,6 +124,12 @@ public class SmartContractCallSection extends TraceSection
     final CallFrame calledCallFrame = hub.callStack().getById(this.calledCallFrameId);
     this.scenarioFragment.runPostTx(hub, state, tx, isSuccessful);
 
+    DomSubStampsSubFragment firstCallerDoingDomSubStamps =
+        DomSubStampsSubFragment.standardDomSubStamps(hub, 0);
+
+    DomSubStampsSubFragment firstCalleeDoingDomSubStamps =
+        DomSubStampsSubFragment.standardDomSubStamps(hub, 1);
+
     this.addFragmentsWithoutStack(
         hub,
         callerCallFrame,
@@ -130,41 +137,69 @@ public class SmartContractCallSection extends TraceSection
         ContextFragment.readContextData(hub),
         this.imcFragment,
         accountFragmentFactory.make(
-            this.preCallCallerAccountSnapshot, this.inCallCallerAccountSnapshot),
+            this.preCallCallerAccountSnapshot,
+            this.inCallCallerAccountSnapshot,
+            firstCallerDoingDomSubStamps),
         accountFragmentFactory.makeWithTrm(
-            this.preCallCalledAccountSnapshot,
-            this.inCallCalledAccountSnapshot,
-            this.rawCalledAddress));
+            this.preCallCalleeAccountSnapshot,
+            this.inCallCalleeAccountSnapshot,
+            this.rawCalledAddress,
+            firstCalleeDoingDomSubStamps));
 
-    if (callerCallFrame.hasReverted()) {
-      if (calledCallFrame.hasReverted()) {
+    // caller: WILL_REVERT
+    // child:  FAILURE
+    // TODO: get the right account snapshots
+    if (callerCallFrame.willRevert() && calledCallFrame.selfReverts()) {
+      this.addFragmentsWithoutStack(
+          hub,
+          callerCallFrame,
+          accountFragmentFactory.make(
+              this.inCallCallerAccountSnapshot,
+              this.preCallCallerAccountSnapshot,
+              DomSubStampsSubFragment.revertsWithChildDomSubStamps(hub, calledCallFrame, 2)),
+          accountFragmentFactory.make(
+              this.inCallCalleeAccountSnapshot,
+              this.postCallCalleeAccountSnapshot,
+              DomSubStampsSubFragment.revertsWithChildDomSubStamps(hub, calledCallFrame, 3)),
+          accountFragmentFactory.make(
+              this.postCallCalleeAccountSnapshot,
+              this.preCallCalleeAccountSnapshot,
+              DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 4)));
+    }
+
+    // caller: WILL_REVERT
+    // child:  SUCCESS
+    // TODO: get the right account snapshots
+    if (callerCallFrame.willRevert() && !calledCallFrame.selfReverts()) {
+      this.addFragmentsWithoutStack(
+          hub,
+          callerCallFrame,
+          accountFragmentFactory.make(
+              this.inCallCallerAccountSnapshot,
+              this.preCallCallerAccountSnapshot,
+              DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 2)),
+          accountFragmentFactory.make(
+              this.inCallCalleeAccountSnapshot,
+              this.preCallCalleeAccountSnapshot,
+              DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 3)));
+    }
+
+    // caller: WONT_REVERT
+    // child:  FAILURE
+    // TODO: get the right account snapshots
+    if (!callerCallFrame.willRevert() && calledCallFrame.selfReverts()) {
+      if (calledCallFrame.selfReverts()) {
         this.addFragmentsWithoutStack(
             hub,
             callerCallFrame,
             accountFragmentFactory.make(
-                this.inCallCallerAccountSnapshot, this.preCallCallerAccountSnapshot),
+                this.inCallCallerAccountSnapshot,
+                this.postCallCallerAccountSnapshot,
+                DomSubStampsSubFragment.revertsWithChildDomSubStamps(hub, calledCallFrame, 2)),
             accountFragmentFactory.make(
-                this.inCallCalledAccountSnapshot, this.postCallCalledAccountSnapshot),
-            accountFragmentFactory.make(
-                this.postCallCalledAccountSnapshot, this.preCallCalledAccountSnapshot));
-      } else {
-        this.addFragmentsWithoutStack(
-            hub,
-            callerCallFrame,
-            accountFragmentFactory.make(
-                this.inCallCallerAccountSnapshot, this.preCallCallerAccountSnapshot),
-            accountFragmentFactory.make(
-                this.inCallCalledAccountSnapshot, this.preCallCalledAccountSnapshot));
-      }
-    } else {
-      if (calledCallFrame.hasReverted()) {
-        this.addFragmentsWithoutStack(
-            hub,
-            callerCallFrame,
-            accountFragmentFactory.make(
-                this.inCallCallerAccountSnapshot, this.postCallCallerAccountSnapshot),
-            accountFragmentFactory.make(
-                this.inCallCalledAccountSnapshot, this.postCallCalledAccountSnapshot));
+                this.inCallCalleeAccountSnapshot,
+                this.postCallCalleeAccountSnapshot,
+                DomSubStampsSubFragment.revertsWithChildDomSubStamps(hub, calledCallFrame, 3)));
       }
     }
 

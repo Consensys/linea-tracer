@@ -152,6 +152,7 @@ public class MmuCall implements TraceSubFragment {
     return this.exoIsEcData(true).updateExoSum(EXO_SUM_WEIGHT_ECDATA);
   }
 
+  // TODO: make the instruction an enum
   public MmuCall(final int instruction) {
     this.instruction = instruction;
   }

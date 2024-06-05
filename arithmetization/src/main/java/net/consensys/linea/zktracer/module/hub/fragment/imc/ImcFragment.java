@@ -88,11 +88,11 @@ public class ImcFragment implements TraceFragment {
     // isdeployment == false
     // non empty calldata
     final TransactionProcessingMetadata currentTx = hub.txStack().current();
-    final boolean isDeployment = currentTx.getBesuTransaction().getTo().isEmpty();
+    final boolean isMessageCallTransaction = currentTx.getBesuTransaction().getTo().isPresent();
 
     final Optional<Bytes> txData = currentTx.getBesuTransaction().getData();
     final boolean shouldCopyTxCallData =
-        !isDeployment
+        isMessageCallTransaction
             && txData.isPresent()
             && !txData.get().isEmpty()
             && currentTx.requiresEvmExecution();

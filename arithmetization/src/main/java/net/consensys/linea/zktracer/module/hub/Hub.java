@@ -1037,16 +1037,17 @@ public class Hub implements Module {
 
   @Override
   public void tracePreOpcode(final MessageFrame frame) {
-    if (this.state().processingPhase == TX_SKIP) {
-      return;
-    }
+    Preconditions.checkArgument(
+        this.state().processingPhase != TX_SKIP,
+        "There can't be any execution if the HUB is in the a skip phase");
+
     this.processStateExec(frame);
   }
 
   public void tracePostExecution(MessageFrame frame, Operation.OperationResult operationResult) {
-    if (this.state.processingPhase == TX_SKIP) {
-      return;
-    }
+    Preconditions.checkArgument(
+        this.state().processingPhase != TX_SKIP,
+        "There can't be any execution if the HUB is in the a skip phase");
 
     if (this.currentFrame().opCode().isCreate() && operationResult.getHaltReason() == null) {
       this.handleCreate(Words.toAddress(frame.getStackItem(0)));

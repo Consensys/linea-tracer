@@ -56,15 +56,26 @@ public class TransactionProcessingMetadata {
 
   final long dataCost;
   final long accessListCost;
+
+  /* g in the EYP, defined by g = TG - g0 */
   final long initiallyAvailableGas;
 
   final Address effectiveTo;
 
   final long effectiveGasPrice;
 
-  @Setter long refundCounterMax = 0;
-  @Setter long refundEffective = 0;
-  @Setter long leftoverGas = 0;
+  /* g' in the EYP*/
+  @Setter long leftoverGas = -1;
+  /*  Ar in the EYP*/
+  @Setter long refundCounterMax = -1;
+  /* g* - g' in the EYP*/
+  @Setter long refundEffective = -1;
+  /* Tg - g' in the EYP*/
+  @Setter long gasUsed = -1;
+  /* g* in the EYP */
+  @Setter long gasRefunded = -1;
+  /* Tg - g* in the EYP */
+  @Setter long totalGasUsed = -1;
 
   @Accessors(fluent = true)
   @Setter
@@ -160,6 +171,9 @@ public class TransactionProcessingMetadata {
     this.refundCounterMax = refundCounterMax;
     this.setLeftoverGas(leftOverGas);
     this.refundEffective = computeRefundEffective();
+    this.gasUsed = computeGasUsed();
+    this.gasRefunded = computeRefunded();
+    this.totalGasUsed = computeTotalGasUsed();
   }
 
   public void completeLineaTransaction(
@@ -172,13 +186,11 @@ public class TransactionProcessingMetadata {
   }
 
   private long computeRefundEffective() {
-    final long consumedGas = besuTransaction.getGasLimit() - leftoverGas;
-    final long maxRefundableAmount = consumedGas / MAX_REFUND_QUOTIENT;
-    return leftoverGas + Math.min(maxRefundableAmount, refundCounterMax);
+    final long maxRefundableAmount = this.getGasUsed() / MAX_REFUND_QUOTIENT;
+    return Math.min(maxRefundableAmount, refundCounterMax);
   }
 
   private long computeEffectiveGasPrice() {
-
     final Transaction tx = besuTransaction;
     switch (tx.getType()) {
       case FRONTIER, ACCESS_LIST -> {
@@ -187,7 +199,7 @@ public class TransactionProcessingMetadata {
       case EIP1559 -> {
         final long baseFee = this.baseFee;
         final long maxPriorityFee =
-            tx.getMaxPriorityFeePerGas().get().getAsBigInteger().longValue();
+            tx.getMaxPriorityFeePerGas().get().getAsBigInteger().longValueExact();
         final long maxFeePerGas = tx.getMaxFeePerGas().get().getAsBigInteger().longValueExact();
         return Math.min(baseFee + maxPriorityFee, maxFeePerGas);
       }
@@ -207,7 +219,18 @@ public class TransactionProcessingMetadata {
     return requiresEvmExecution && isDeployment;
   }
 
-  public long getGasUsed() {
+  /* Tg - g' in the EYP*/
+  public long computeGasUsed() {
     return besuTransaction.getGasLimit() - leftoverGas;
+  }
+
+  /* g* in the EYP */
+  public long computeRefunded() {
+    return leftoverGas + this.refundEffective;
+  }
+
+  /* Tg - g* in the EYP */
+  public long computeTotalGasUsed() {
+    return besuTransaction.getGasLimit() - getGasRefunded();
   }
 }

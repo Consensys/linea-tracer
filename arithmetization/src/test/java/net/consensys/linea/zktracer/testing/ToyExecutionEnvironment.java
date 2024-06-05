@@ -77,9 +77,10 @@ public class ToyExecutionEnvironment {
   private static final Wei DEFAULT_BASE_FEE = Wei.of(LINEA_BASE_FEE);
 
   private static final GasCalculator gasCalculator = ZkTracer.gasCalculator;
-  private static final Address minerAddress = Address.fromHexString("0x1234532342");
+  public static final Address minerAddress =
+      Address.fromHexString("0xc019ba5e00000000c019ba5e00000000c019ba5e");
   private static final long DEFAULT_BLOCK_NUMBER = 6678980;
-  private static final long DEFAULT_TIME_STAMP = 1347310;
+  private static final long DEFAULT_TIME_STAMP = 14071789;
   private static final Hash DEFAULT_HASH =
       Hash.fromHexStringLenient("0xdeadbeef123123666dead666dead666");
 

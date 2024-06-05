@@ -47,10 +47,8 @@ public class TxFinalizationSection extends TraceSection {
 
     final DeploymentInfo deploymentInfo = hub.transients().conflation().deploymentInfo();
 
-    final long gasUsed = tx.getBesuTransaction().getGasLimit() - tx.getLeftoverGas();
-    final long effectiveRefunds = Math.min(hub.accruedRefunds(), gasUsed / MAX_REFUND_QUOTIENT);
-    final long senderGasRefund = tx.getLeftoverGas() + effectiveRefunds;
-    final long coinbaseGasReward = tx.getBesuTransaction().getGasLimit() - senderGasRefund;
+    final long senderGasRefund = tx.getGasRefunded();
+    final long coinbaseGasReward = tx.getTotalGasUsed();
 
     final Wei coinbaseFee =
         Wei.of(

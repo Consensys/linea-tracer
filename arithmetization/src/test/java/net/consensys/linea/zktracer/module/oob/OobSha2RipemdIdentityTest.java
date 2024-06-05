@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import com.google.common.io.BaseEncoding;
+import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.testing.BytecodeRunner;
@@ -40,9 +41,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class OobSha2RipemdIdentityTest {
   Random random = new Random(1L);
   static final int[] argSizes =
-      new int[] {1, 10, 20, 31, 32, 33, 63, 64, 65, 95, 96, 97, 127, 128, 129, 1000, 2000};
-
-  // Add back 0
+      new int[] {0, 1, 10, 20, 31, 32, 33, 63, 64, 65, 95, 96, 97, 127, 128, 129, 1000, 2000};
 
   // https://coderpad.io/blog/development/writing-a-parameterized-test-in-junit-with-examples/
   // https://stackoverflow.com/questions/76124016/pass-externally-defined-variable-to-junit-valuesource-annotation-in-a-paramete
@@ -61,15 +60,17 @@ public class OobSha2RipemdIdentityTest {
     bytecodeRunner.run();
 
     String referenceComputedHash = sha256(data);
-    String prcComputedHash =
-        bytecodeRunner.getHub().currentFrame().frame().getReturnData().toString();
-    System.out.println("Test SHA2-256 with random argSize = " + argSize);
-    System.out.println("Inp: 0x" + data);
-    System.out.println("Ref: " + referenceComputedHash);
-    System.out.println("Com: " + prcComputedHash);
+    final Hub hub = bytecodeRunner.getHub();
+    String prcComputedHash = hub.currentFrame().frame().getReturnData().toString();
 
-    // TODO: reactivate when returnData is fixed for precompiles
-    // assertEquals(referenceComputedHash, prcComputedHash);
+    // String returnDataSizeMaybe = hub.currentFrame().frame().getStackItem(0).toString();
+    // System.out.println("RETURNDATASIZE after a SHA2 CALL:" + returnDataSizeMaybe);
+    // System.out.println("Test SHA2-256 with random argSize = " + argSize);
+    // System.out.println("Inp: 0x" + data);
+    // System.out.println("Ref: " + referenceComputedHash);
+    // System.out.println("Com: " + prcComputedHash);
+
+    assertEquals(referenceComputedHash, prcComputedHash);
   }
 
   @ParameterizedTest
@@ -83,12 +84,11 @@ public class OobSha2RipemdIdentityTest {
     bytecodeRunner.run();
 
     String returnedData = bytecodeRunner.getHub().currentFrame().frame().getReturnData().toString();
-    System.out.println("Test IDENTITY with random argSize = " + argSize);
-    System.out.println("Inp: 0x" + data);
-    System.out.println("Ret: " + returnedData);
-
-    // TODO: reactivate when returnData is fixed for precompiles
-    // assertEquals("0x" + data.toLowerCase(), returnedData);
+    // System.out.println(returnedData);
+    // System.out.println("Test IDENTITY with random argSize = " + argSize);
+    // System.out.println("Inp: 0x" + data);
+    // System.out.println("Ret: " + returnedData);
+    assertEquals("0x" + data.toLowerCase(), returnedData);
   }
 
   @ParameterizedTest
@@ -104,13 +104,13 @@ public class OobSha2RipemdIdentityTest {
     String referenceComputedHash = ripemd160(data);
     String prcComputedHash =
         bytecodeRunner.getHub().currentFrame().frame().getReturnData().toString();
-    System.out.println("Test RIPEMD-160 with random argSize = " + argSize);
-    System.out.println("Inp: 0x" + data);
-    System.out.println("Ref: " + referenceComputedHash);
-    System.out.println("Com: " + prcComputedHash);
 
-    // TODO: reactivate when returnData is fixed for precompiles
-    // assertEquals(referenceComputedHash, prcComputedHash);
+    // System.out.println("Test RIPEMD-160 with random argSize = " + argSize);
+    // System.out.println("Inp: 0x" + data);
+    // System.out.println("Ref: " + referenceComputedHash);
+    // System.out.println("Com: " + prcComputedHash);
+
+    assertEquals(referenceComputedHash, prcComputedHash);
   }
 
   // Support methods
@@ -259,7 +259,8 @@ public class OobSha2RipemdIdentityTest {
         . // address
         push("FFFFFFFF")
         . // gas
-        op(OpCode.STATICCALL);
+        op(OpCode.STATICCALL)
+        .op(OpCode.RETURNDATASIZE);
 
     return new ProgramAndRetInfo(program, argSize, argOffset, retSize, retOffset);
   }

@@ -31,6 +31,7 @@ import net.consensys.linea.zktracer.module.hub.transients.Block;
 import net.consensys.linea.zktracer.module.hub.transients.StorageInitialValues;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
+import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Getter
@@ -232,5 +233,23 @@ public class TransactionProcessingMetadata {
   /* Tg - g* in the EYP */
   public long computeTotalGasUsed() {
     return besuTransaction.getGasLimit() - getGasRefunded();
+  }
+
+  public long weiPerGasForMiner() {
+    return switch (besuTransaction.getType()) {
+      case FRONTIER, ACCESS_LIST -> effectiveGasPrice;
+      case EIP1559 -> effectiveGasPrice - baseFee;
+      default -> throw new IllegalStateException(
+          "Transaction Type not supported: " + besuTransaction.getType());
+    };
+  }
+
+  public Wei getMinerReward() {
+    return Wei.of(
+        BigInteger.valueOf(totalGasUsed).multiply(BigInteger.valueOf(weiPerGasForMiner())));
+  }
+
+  public Wei getGasRefundInWei() {
+    return Wei.of(BigInteger.valueOf(gasRefunded).multiply(BigInteger.valueOf(effectiveGasPrice)));
   }
 }

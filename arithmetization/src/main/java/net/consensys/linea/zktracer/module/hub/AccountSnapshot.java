@@ -59,6 +59,15 @@ public class AccountSnapshot {
     return this;
   }
 
+  // TODO: Warning, does it really creates a copy or a pointer ??
+  public static AccountSnapshot deepCopy(final AccountSnapshot accountSnapshot) {
+    return AccountSnapshot.fromAccount(
+        (Account) accountSnapshot,
+        accountSnapshot.isWarm(),
+        accountSnapshot.deploymentNumber(),
+        accountSnapshot.deploymentStatus());
+  }
+
   public static AccountSnapshot fromAccount(
       Account account, boolean isWarm, int deploymentNumber, boolean deploymentStatus) {
     return fromAccount(Optional.ofNullable(account), isWarm, deploymentNumber, deploymentStatus);

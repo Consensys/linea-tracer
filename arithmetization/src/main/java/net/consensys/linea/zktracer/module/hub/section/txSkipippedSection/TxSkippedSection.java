@@ -13,10 +13,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.section;
+package net.consensys.linea.zktracer.module.hub.section.txSkipippedSection;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
+import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 
 public class TxSkippedSection extends TraceSection {
   public TxSkippedSection(Hub hub, TraceFragment... chunks) {

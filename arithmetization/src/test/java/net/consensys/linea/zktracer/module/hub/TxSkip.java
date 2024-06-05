@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
+import static net.consensys.linea.zktracer.testing.ToyExecutionEnvironment.DEFAULT_MINER_ADDRESS;
+
 import java.util.List;
 
 import net.consensys.linea.zktracer.testing.EvmExtension;
@@ -47,7 +49,12 @@ public class TxSkip {
             .address(Address.fromHexString("0xdead000000000000000000000000000beef"))
             .build();
 
-    // final ToyAccount minerAccount = ToyAccount.builder().address(minerAddress).build();
+    final ToyAccount minerAccount =
+        ToyAccount.builder()
+            .address(DEFAULT_MINER_ADDRESS)
+            .balance(Wei.fromEth(2))
+            .nonce(5)
+            .build();
 
     final KeyPair senderKeyPair1 = new SECP256K1().generateKeyPair();
     final Address senderAddress1 =
@@ -179,7 +186,7 @@ public class TxSkip {
         ToyWorld.builder()
             .accounts(
                 List.of(
-                    // minerAccount,
+                    minerAccount,
                     senderAccount1,
                     senderAccount2,
                     senderAccount3,

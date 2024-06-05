@@ -62,6 +62,8 @@ import net.consensys.linea.zktracer.module.hub.section.*;
 import net.consensys.linea.zktracer.module.hub.section.calls.FailedCallSection;
 import net.consensys.linea.zktracer.module.hub.section.calls.NoCodeCallSection;
 import net.consensys.linea.zktracer.module.hub.section.calls.SmartContractCallSection;
+import net.consensys.linea.zktracer.module.hub.section.txFinalization.TxFinalizationPostTxDefer;
+import net.consensys.linea.zktracer.module.hub.section.txSkipippedSection.SkippedPostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
 import net.consensys.linea.zktracer.module.hub.transients.DeploymentInfo;
 import net.consensys.linea.zktracer.module.hub.transients.Transients;
@@ -766,21 +768,6 @@ public class Hub implements Module {
     }
   }
 
-  void processStateFinal(WorldView worldView) {
-    this.state.setProcessingPhase(TX_FINAL);
-    this.state.stamps().incrementHubStamp();
-
-    final boolean coinbaseWarmth = txStack.current().isMinerWarmAtEndTx();
-
-    if (this.txStack.current().statusCode()) {
-      this.addTraceSection(
-          TxFinalizationSection.finalizeSuccessfulTransaction(this, worldView, coinbaseWarmth));
-    } else {
-      this.addTraceSection(
-          TxFinalizationSection.finalizeUnsuccessfulTransaction(this, worldView, coinbaseWarmth));
-    }
-  }
-
   @Override
   public void enterTransaction() {
     for (Module m : this.modules) {
@@ -858,6 +845,10 @@ public class Hub implements Module {
       final boolean minerIsWarm = frame.isAddressWarm(txStack.current().getCoinbase());
 
       txStack.current().setPreFinalisationValues(leftOverGas, gasRefund, minerIsWarm);
+
+      if (this.state.getProcessingPhase() != TX_SKIP) {
+        this.defers.postTx(new TxFinalizationPostTxDefer(this, frame.getWorldUpdater()));
+      }
     }
   }
 
@@ -875,7 +866,8 @@ public class Hub implements Module {
             isSuccessful, this.state.stamps().hub(), this.state.getProcessingPhase());
 
     if (this.state.processingPhase != TX_SKIP) {
-      this.processStateFinal(world);
+      this.state.setProcessingPhase(TX_FINAL);
+      this.state.stamps().incrementHubStamp();
     }
 
     this.defers.runPostTx(this, world, tx, isSuccessful);

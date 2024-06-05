@@ -20,9 +20,13 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 
@@ -32,8 +36,31 @@ public class CorsetValidator {
 
   private static final String ZK_EVM_RELATIVE_PATH = "/zkevm-constraints/zkevm.bin";
 
+  /** Specifies the default zkEVM.bin file to use (including its path). */
   private String defaultZkEvm = null;
+  /** Specifies the Corset binary to use (including its path). */
   private String corsetBin;
+
+  /**
+   * Specifies whether field arithmetic should be used. To best reflect the prover, this should be
+   * enabled.
+   */
+  @Getter @Setter private boolean fieldArithmetic = true;
+
+  /**
+   * Specifies whether constraints should be expanded. For example, normalisation expressions are
+   * expanded into columns containing the multiplicative inverse, etc. To best reflect the prover,
+   * this should be enabled. Also, the effect of this option is limited unless field arithmetic is
+   * also enabled.
+   */
+  @Getter @Setter private boolean expansion = true;
+
+  /**
+   * Specifies whether expansion of "auto constraints" should be performed. This is the final step
+   * of expansion taking us to the lowest level. To best reflect the prover, this should be enabled.
+   * However, it is not enabled by default because this imposes a high performance overhead.
+   */
+  @Getter @Setter private boolean autoConstraints = false;
 
   public CorsetValidator() {
     initCorset();
@@ -41,25 +68,18 @@ public class CorsetValidator {
   }
 
   public Result validate(final Path filename) throws RuntimeException {
+    if (defaultZkEvm == null) {
+      throw new IllegalArgumentException("Default zkevm.bin not set.");
+    }
     return validate(filename, defaultZkEvm);
   }
 
   public Result validate(final Path filename, final String zkEvmBin) throws RuntimeException {
     final Process corsetValidationProcess;
     try {
+      List<String> options = buildOptions(filename, zkEvmBin);
       corsetValidationProcess =
-          new ProcessBuilder(
-                  corsetBin,
-                  "check",
-                  "-T",
-                  filename.toAbsolutePath().toString(),
-                  "-q",
-                  "-r",
-                  "-d",
-                  "-s",
-                  "-t",
-                  Optional.ofNullable(System.getenv("CORSET_THREADS")).orElse("2"),
-                  zkEvmBin)
+          new ProcessBuilder(options)
               .redirectInput(ProcessBuilder.Redirect.INHERIT)
               .redirectErrorStream(true)
               .start();
@@ -158,5 +178,58 @@ public class CorsetValidator {
     }
 
     log.warn("Could not find default path for zkevm.bin");
+  }
+
+  /**
+   * Construct the list of options to be used when running Corset.
+   *
+   * @return
+   */
+  private List<String> buildOptions(Path filename, String zkEvmBin) {
+    ArrayList<String> options = new ArrayList<>();
+    // Specify corset binary
+    options.add(corsetBin);
+    // Specify corset "check" command.
+    options.add("check");
+    // Specify corset trace file to use
+    options.add("-T");
+    options.add(filename.toAbsolutePath().toString());
+    // Specify reporting options where:
+    //
+    // -q Decrease logging verbosity
+    // -r detail failing constraint
+    // -d dim unimportant expressions for failing constraints
+    // -s display original source along with compiled form
+    options.add("-qrds");
+    // Enable field arithmetic (if applicable)
+    if (fieldArithmetic) {
+      options.add("-N");
+    }
+    // Enable expansion (if applicable)
+    if (expansion) {
+      options.add("-eeee");
+    }
+    // Enable auto constraints (if applicable)
+    if (autoConstraints) {
+      options.add("--auto-constraints");
+      options.add("nhood,sorts");
+    }
+    // Specify number of threads to use.
+    options.add("-t");
+    options.add(determineNumberOfThreads());
+    // Specify the zkevm.bin file.
+    options.add(zkEvmBin);
+    // Done
+    return options;
+  }
+
+  /**
+   * Determine the number of threads to use when checking constraints. The default is "2", but this
+   * can be overriden using an environment variable <code>CORSET_THREADS</code>.
+   *
+   * @return
+   */
+  private String determineNumberOfThreads() {
+    return Optional.ofNullable(System.getenv("CORSET_THREADS")).orElse("2");
   }
 }

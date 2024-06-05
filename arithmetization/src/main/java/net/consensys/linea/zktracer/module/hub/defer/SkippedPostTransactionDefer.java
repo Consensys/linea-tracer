@@ -19,6 +19,7 @@ import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TransactionFragment;
 import net.consensys.linea.zktracer.module.hub.section.TxSkippedSection;
 import net.consensys.linea.zktracer.module.hub.transients.Transients;
@@ -107,11 +108,26 @@ public class SkippedPostTransactionDefer implements PostTransactionDefer {
             hub,
             // 3 lines -- account changes
             // From
-            hub.factories().accountFragment().make(oldFromAccount, newFromAccount),
+            hub.factories()
+                .accountFragment()
+                .make(
+                    oldFromAccount,
+                    newFromAccount,
+                    DomSubStampsSubFragment.standardDomSubStamps(hub, 0)),
             // To
-            hub.factories().accountFragment().make(oldToAccount, newToAccount),
+            hub.factories()
+                .accountFragment()
+                .make(
+                    oldToAccount,
+                    newToAccount,
+                    DomSubStampsSubFragment.standardDomSubStamps(hub, 1)),
             // Miner
-            hub.factories().accountFragment().make(oldMinerAccount, newMinerAccount),
+            hub.factories()
+                .accountFragment()
+                .make(
+                    oldMinerAccount,
+                    newMinerAccount,
+                    DomSubStampsSubFragment.standardDomSubStamps(hub, 2)),
 
             // 1 line -- transaction data
             TransactionFragment.prepare(hub.txStack().current())));

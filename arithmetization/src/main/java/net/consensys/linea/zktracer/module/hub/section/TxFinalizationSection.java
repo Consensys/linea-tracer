@@ -105,9 +105,13 @@ public class TxFinalizationSection extends TraceSection {
     return new TxFinalizationSection(
         hub,
         accountFragmentFactory.make(
-            senderAccountSnapshotBeforeRefunds, senderAccountSnapshotAfterGasRefund),
+            senderAccountSnapshotBeforeRefunds,
+            senderAccountSnapshotAfterGasRefund,
+            DomSubStampsSubFragment.standardDomSubStamps(hub, 0)),
         accountFragmentFactory.make(
-            coinbaseSnapshotBeforeFeeCollection, coinbaseSnapshotAfterFeeCollection),
+            coinbaseSnapshotBeforeFeeCollection,
+            coinbaseSnapshotAfterFeeCollection,
+            DomSubStampsSubFragment.standardDomSubStamps(hub, 1)),
         TransactionFragment.prepare(hub.txStack().current()));
   }
 
@@ -188,11 +192,17 @@ public class TxFinalizationSection extends TraceSection {
     return new TxFinalizationSection(
         hub,
         accountFragmentFactory.make(
-            senderAccountSnapshotBeforeRefunds, senderAccountSnapshotAfterGasAndBalanceRefund),
+            senderAccountSnapshotBeforeRefunds,
+            senderAccountSnapshotAfterGasAndBalanceRefund,
+            DomSubStampsSubFragment.standardDomSubStamps(hub, 0)),
         accountFragmentFactory.make(
             effectiveToAccountSnapshotBeforeReimbursingValue,
-            effectiveToAccountSnapshotAfterReimbursingValue),
-        accountFragmentFactory.make(coinbaseBeforeFeeCollection, coinbaseAfterFeeCollection),
+            effectiveToAccountSnapshotAfterReimbursingValue,
+            DomSubStampsSubFragment.standardDomSubStamps(hub, 1)),
+        accountFragmentFactory.make(
+            coinbaseBeforeFeeCollection,
+            coinbaseAfterFeeCollection,
+            DomSubStampsSubFragment.standardDomSubStamps(hub, 2)),
         TransactionFragment.prepare(hub.txStack().current()));
   }
 

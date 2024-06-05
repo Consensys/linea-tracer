@@ -170,8 +170,8 @@ public class TransactionProcessingMetadata {
     this.isMinerWarmAtEndTx(minerIsWarmAtFinalisation);
     this.refundCounterMax = refundCounterMax;
     this.setLeftoverGas(leftOverGas);
-    this.refundEffective = computeRefundEffective();
     this.gasUsed = computeGasUsed();
+    this.refundEffective = computeRefundEffective();
     this.gasRefunded = computeRefunded();
     this.totalGasUsed = computeTotalGasUsed();
   }

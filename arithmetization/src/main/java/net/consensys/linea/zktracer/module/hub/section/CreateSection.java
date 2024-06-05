@@ -24,6 +24,7 @@ import net.consensys.linea.zktracer.module.hub.defer.PostExecDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.defer.ReEnterContextDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
@@ -148,7 +149,7 @@ public class CreateSection extends TraceSection
   public void runPostTx(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
     final AccountFragment.AccountFragmentFactory accountFragmentFactory =
         hub.factories().accountFragment();
-    final boolean creatorReverted = hub.callStack().getById(this.creatorContextId).hasReverted();
+    final boolean creatorWillRevert = hub.callStack().getById(this.creatorContextId).hasReverted();
     final GasProjection projection = Hub.GAS_PROJECTOR.of(hub.messageFrame(), hub.opCode());
     final long upfrontCost =
         projection.memoryExpansion() + projection.linearPerWord() + GasConstants.G_TX_CREATE.cost();
@@ -198,85 +199,179 @@ public class CreateSection extends TraceSection
           hub,
           commonImcFragment,
           ContextFragment.readContextData(hub),
-          accountFragmentFactory.make(oldCreatorSnapshot, newCreatorSnapshot),
+          accountFragmentFactory.make(
+              oldCreatorSnapshot,
+              newCreatorSnapshot,
+              DomSubStampsSubFragment.standardDomSubStamps(hub, 0)),
           ContextFragment.nonExecutionEmptyReturnData(hub));
     } else if (this.failures.any()) {
-      if (creatorReverted) {
+      if (creatorWillRevert) {
         this.addFragmentsWithoutStack(
             hub,
             commonImcFragment,
-            accountFragmentFactory.make(oldCreatorSnapshot, newCreatorSnapshot),
-            accountFragmentFactory.make(oldCreatedSnapshot, newCreatedSnapshot),
-            accountFragmentFactory.make(newCreatorSnapshot, oldCreatorSnapshot),
-            accountFragmentFactory.make(newCreatedSnapshot, oldCreatedSnapshot),
+            accountFragmentFactory.make(
+                oldCreatorSnapshot,
+                newCreatorSnapshot,
+                DomSubStampsSubFragment.standardDomSubStamps(hub, 0)),
+            accountFragmentFactory.make(
+                oldCreatedSnapshot,
+                newCreatedSnapshot,
+                DomSubStampsSubFragment.standardDomSubStamps(hub, 1)),
+            accountFragmentFactory.make(
+                newCreatorSnapshot,
+                oldCreatorSnapshot,
+                DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 2)),
+            accountFragmentFactory.make(
+                newCreatedSnapshot,
+                oldCreatedSnapshot,
+                DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 3)),
             ContextFragment.nonExecutionEmptyReturnData(hub));
       } else {
         this.addFragmentsWithoutStack(
             hub,
             commonImcFragment,
-            accountFragmentFactory.make(oldCreatorSnapshot, newCreatorSnapshot),
-            accountFragmentFactory.make(oldCreatedSnapshot, newCreatedSnapshot),
+            accountFragmentFactory.make(
+                oldCreatorSnapshot,
+                newCreatorSnapshot,
+                DomSubStampsSubFragment.standardDomSubStamps(hub, 0)),
+            accountFragmentFactory.make(
+                oldCreatedSnapshot,
+                newCreatedSnapshot,
+                DomSubStampsSubFragment.standardDomSubStamps(hub, 1)),
             ContextFragment.nonExecutionEmptyReturnData(hub));
       }
     } else {
+      // entry into the CREATE operation
       if (this.emptyInitCode) {
-        if (creatorReverted) {
+        if (creatorWillRevert) {
           this.addFragmentsWithoutStack(
               hub,
               commonImcFragment,
-              accountFragmentFactory.make(oldCreatorSnapshot, newCreatorSnapshot),
-              accountFragmentFactory.make(oldCreatedSnapshot, newCreatedSnapshot),
-              accountFragmentFactory.make(newCreatorSnapshot, oldCreatorSnapshot),
-              accountFragmentFactory.make(newCreatedSnapshot, oldCreatedSnapshot),
+              accountFragmentFactory.make(
+                  oldCreatorSnapshot,
+                  newCreatorSnapshot,
+                  DomSubStampsSubFragment.standardDomSubStamps(hub, 0)),
+              accountFragmentFactory.make(
+                  oldCreatedSnapshot,
+                  newCreatedSnapshot,
+                  DomSubStampsSubFragment.standardDomSubStamps(hub, 1)),
+              accountFragmentFactory.make(
+                  newCreatorSnapshot,
+                  oldCreatorSnapshot,
+                  DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 2)),
+              accountFragmentFactory.make(
+                  newCreatedSnapshot,
+                  oldCreatedSnapshot,
+                  DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 3)),
               ContextFragment.nonExecutionEmptyReturnData(hub));
         } else {
           this.addFragmentsWithoutStack(
               hub,
               commonImcFragment,
-              accountFragmentFactory.make(oldCreatorSnapshot, newCreatorSnapshot),
-              accountFragmentFactory.make(oldCreatedSnapshot, newCreatedSnapshot),
+              accountFragmentFactory.make(
+                  oldCreatorSnapshot,
+                  newCreatorSnapshot,
+                  DomSubStampsSubFragment.standardDomSubStamps(hub, 0)),
+              accountFragmentFactory.make(
+                  oldCreatedSnapshot,
+                  newCreatedSnapshot,
+                  DomSubStampsSubFragment.standardDomSubStamps(hub, 1)),
               ContextFragment.nonExecutionEmptyReturnData(hub));
         }
       } else {
+        // non empty code
+        final int createeContextId = hub.callStack().futureId();
         if (this.createSuccessful) {
-          if (creatorReverted) {
+          if (creatorWillRevert) {
             this.addFragmentsWithoutStack(
                 hub,
                 commonImcFragment,
-                accountFragmentFactory.make(oldCreatorSnapshot, midCreatorSnapshot),
-                accountFragmentFactory.make(oldCreatedSnapshot, midCreatedSnapshot),
-                accountFragmentFactory.make(midCreatorSnapshot, oldCreatorSnapshot),
-                accountFragmentFactory.make(midCreatedSnapshot, oldCreatedSnapshot),
+                accountFragmentFactory.make(
+                    oldCreatorSnapshot,
+                    midCreatorSnapshot,
+                    DomSubStampsSubFragment.standardDomSubStamps(hub, 0)),
+                accountFragmentFactory.make(
+                    oldCreatedSnapshot,
+                    midCreatedSnapshot,
+                    DomSubStampsSubFragment.standardDomSubStamps(hub, 1)),
+                accountFragmentFactory.make(
+                    midCreatorSnapshot,
+                    oldCreatorSnapshot,
+                    DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 2)),
+                accountFragmentFactory.make(
+                    midCreatedSnapshot,
+                    oldCreatedSnapshot,
+                    DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 3)),
                 ContextFragment.initializeExecutionContext(hub));
 
           } else {
             this.addFragmentsWithoutStack(
                 hub,
                 commonImcFragment,
-                accountFragmentFactory.make(oldCreatorSnapshot, midCreatorSnapshot),
-                accountFragmentFactory.make(oldCreatedSnapshot, midCreatedSnapshot),
+                accountFragmentFactory.make(
+                    oldCreatorSnapshot,
+                    midCreatorSnapshot,
+                    DomSubStampsSubFragment.standardDomSubStamps(hub, 0)),
+                accountFragmentFactory.make(
+                    oldCreatedSnapshot,
+                    midCreatedSnapshot,
+                    DomSubStampsSubFragment.standardDomSubStamps(hub, 1)),
                 ContextFragment.initializeExecutionContext(hub));
           }
         } else {
-          if (creatorReverted) {
+          if (creatorWillRevert) {
             this.addFragmentsWithoutStack(
                 hub,
                 commonImcFragment,
-                accountFragmentFactory.make(oldCreatorSnapshot, midCreatorSnapshot),
-                accountFragmentFactory.make(oldCreatedSnapshot, midCreatedSnapshot),
-                accountFragmentFactory.make(midCreatorSnapshot, newCreatorSnapshot),
-                accountFragmentFactory.make(midCreatedSnapshot, newCreatedSnapshot),
-                accountFragmentFactory.make(newCreatorSnapshot, oldCreatorSnapshot),
-                accountFragmentFactory.make(newCreatedSnapshot, oldCreatedSnapshot),
+                accountFragmentFactory.make(
+                    oldCreatorSnapshot,
+                    midCreatorSnapshot,
+                    DomSubStampsSubFragment.standardDomSubStamps(hub, 0)),
+                accountFragmentFactory.make(
+                    oldCreatedSnapshot,
+                    midCreatedSnapshot,
+                    DomSubStampsSubFragment.standardDomSubStamps(hub, 1)),
+                accountFragmentFactory.make(
+                    midCreatorSnapshot,
+                    newCreatorSnapshot,
+                    DomSubStampsSubFragment.revertsWithChildDomSubStamps(
+                        hub, hub.callStack().getById(createeContextId), 2)),
+                accountFragmentFactory.make(
+                    midCreatedSnapshot,
+                    newCreatedSnapshot,
+                    DomSubStampsSubFragment.revertsWithChildDomSubStamps(
+                        hub, hub.callStack().getById(createeContextId), 3)),
+                accountFragmentFactory.make(
+                    newCreatorSnapshot,
+                    oldCreatorSnapshot,
+                    DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 4)),
+                accountFragmentFactory.make(
+                    newCreatedSnapshot,
+                    oldCreatedSnapshot,
+                    DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 5)),
                 ContextFragment.initializeExecutionContext(hub));
           } else {
             this.addFragmentsWithoutStack(
                 hub,
                 commonImcFragment,
-                accountFragmentFactory.make(oldCreatorSnapshot, midCreatorSnapshot),
-                accountFragmentFactory.make(oldCreatedSnapshot, midCreatedSnapshot),
-                accountFragmentFactory.make(midCreatorSnapshot, newCreatorSnapshot),
-                accountFragmentFactory.make(midCreatedSnapshot, newCreatedSnapshot),
+                accountFragmentFactory.make(
+                    oldCreatorSnapshot,
+                    midCreatorSnapshot,
+                    DomSubStampsSubFragment.standardDomSubStamps(hub, 0)),
+                accountFragmentFactory.make(
+                    oldCreatedSnapshot,
+                    midCreatedSnapshot,
+                    DomSubStampsSubFragment.standardDomSubStamps(hub, 1)),
+                accountFragmentFactory.make(
+                    midCreatorSnapshot,
+                    newCreatorSnapshot,
+                    DomSubStampsSubFragment.revertsWithChildDomSubStamps(
+                        hub, hub.callStack().getById(createeContextId), 2)),
+                accountFragmentFactory.make(
+                    midCreatedSnapshot,
+                    newCreatedSnapshot,
+                    DomSubStampsSubFragment.revertsWithChildDomSubStamps(
+                        hub, hub.callStack().getById(createeContextId), 3)),
                 ContextFragment.initializeExecutionContext(hub));
           }
         }

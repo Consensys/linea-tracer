@@ -78,7 +78,7 @@ public final class TransactionFragment implements TraceFragment, PostTransaction
         .pTransactionRefundCounterInfinity(
             Bytes.minimalBytes(transactionProcessingMetadata.getRefundCounterMax()))
         .pTransactionRefundEffective(
-            Bytes.minimalBytes(transactionProcessingMetadata.getRefundEffective()))
+            Bytes.minimalBytes(transactionProcessingMetadata.getGasRefunded()))
         .pTransactionCoinbaseAddressHi(bytesToLong(miner.hi()))
         .pTransactionCoinbaseAddressLo(miner.lo());
   }

@@ -358,8 +358,7 @@ public class Hub implements Module {
                 this.mod,
                 this.mul,
                 this.mxp,
-                // TODO: Temporarily disabled.
-                //                this.oob,
+                this.oob,
                 this.rlpAddr,
                 this.rlpTxn,
                 this.rlpTxrcpt,
@@ -399,8 +398,7 @@ public class Hub implements Module {
                 this.mod,
                 this.mul,
                 this.mxp,
-                // TODO: Temporarily disabled.
-                //                this.oob,
+                this.oob,
                 this.exp,
                 this.rlpAddr,
                 this.rlpTxn,

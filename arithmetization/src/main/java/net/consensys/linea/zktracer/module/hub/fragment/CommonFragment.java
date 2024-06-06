@@ -69,7 +69,7 @@ public final class CommonFragment implements TraceFragment {
   @Getter @Setter private int nonStackRowsCounter;
 
   public static CommonFragment fromHub(
-      final Hub hub, final CallFrame frame, boolean tliCounter, int nonStackRowCounter) {
+      final Hub hub, final CallFrame frame, boolean counterTli, int counterNsr) {
 
     final boolean noStackException = hub.pch().exceptions().noStackException();
     final long refundDelta =
@@ -123,8 +123,8 @@ public final class CommonFragment implements TraceFragment {
         .callerContextNumber(hub.callStack().getParentOf(frame.id()).contextNumber())
         .refundDelta(refundDelta)
         .twoLineInstruction(hub.opCodeData().stackSettings().twoLinesInstruction())
-        .twoLineInstructionCounter(tliCounter)
-        .nonStackRowsCounter(nonStackRowCounter)
+        .twoLineInstructionCounter(counterTli)
+        .nonStackRowsCounter(counterNsr)
         .build();
   }
 
@@ -174,7 +174,7 @@ public final class CommonFragment implements TraceFragment {
     throw new UnsupportedOperationException("should never be called");
   }
 
-  public Trace trace(Trace trace, int stackHeight, int stackHeightNew) {
+  public Trace trace(Trace trace, int stackHeight, int stackHeightNew, short nonStackRows) {
     final CallFrame frame = this.hub.callStack().getById(this.callFrameId);
     final TransactionProcessingMetadata tx =
         hub.txStack().getByAbsoluteTransactionNumber(this.absoluteTransactionNumber);
@@ -231,7 +231,7 @@ public final class CommonFragment implements TraceFragment {
         .refundCounterNew(gasRefund + (willRevert ? 0 : refundDelta))
         .twoLineInstruction(twoLineInstruction)
         .counterTli(twoLineInstructionCounter)
-        .nonStackRows((short) numberOfNonStackRows)
+        .nonStackRows(nonStackRows)
         .counterNsr((short) nonStackRowsCounter);
   }
 }

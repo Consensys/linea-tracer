@@ -38,17 +38,29 @@ public record ContextFragment(
     boolean updateCallerReturndata)
     implements TraceFragment {
 
-  // TODO: in the spec readContextData accepts an argument
-  //  which is _some_ context number, not necessarily that
-  //  of the currently executing execution context.
-  public static ContextFragment readCurrentContextData(final Hub hub) {
+  public static ContextFragment readContextDataByContextNumber(
+      final Hub hub, final int contextNumber) {
     CallStack callStack = hub.callStack();
     return new ContextFragment(
         hub,
         callStack,
-        Either.left(callStack.current().id()),
+        Either.right(contextNumber),
         callStack.current().latestReturnDataSource().snapshot(),
         false);
+  }
+
+  public static ContextFragment readContextDataById(final Hub hub, final int contextId) {
+    CallStack callStack = hub.callStack();
+    return new ContextFragment(
+        hub,
+        callStack,
+        Either.left(contextId),
+        callStack.current().latestReturnDataSource().snapshot(),
+        false);
+  }
+
+  public static ContextFragment readCurrentContextData(final Hub hub) {
+    return readContextDataById(hub, hub.callStack().current().id());
   }
 
   public static ContextFragment initializeExecutionContext(final Hub hub) {

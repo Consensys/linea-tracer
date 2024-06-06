@@ -54,11 +54,11 @@ public abstract class TraceSection {
      * @param trace where to trace the line
      * @return the trace builder
      */
-    public Trace trace(Trace trace, int stackInt, int stackHeight) {
+    public Trace trace(Trace trace, int stackInt, int stackHeight, short nonStackRows) {
       Preconditions.checkNotNull(common);
       Preconditions.checkNotNull(specific);
 
-      common.trace(trace, stackInt, stackHeight);
+      common.trace(trace, stackInt, stackHeight, nonStackRows);
       specific.trace(trace);
 
       return trace.fillAndValidateRow();
@@ -66,9 +66,11 @@ public abstract class TraceSection {
   }
 
   /** Count the stack lines */
-  @Getter private int stackRowsCounter;
+  @Getter private int stackRowCounter;
   /** Count the non-stack lines */
-  private int nonStackRowsCounter;
+  public int nonStackRowCounter;
+
+  @Setter public short nonStackRows;
 
   @Getter @Setter private TxTrace parentTrace;
 
@@ -81,7 +83,7 @@ public abstract class TraceSection {
    * @return a {@link CommonFragment} representing the shared columns
    */
   private CommonFragment traceCommon(Hub hub, CallFrame frame) {
-    return CommonFragment.fromHub(hub, frame, this.stackRowsCounter == 2, this.nonStackRowsCounter);
+    return CommonFragment.fromHub(hub, frame, this.stackRowCounter == 2, this.nonStackRowCounter);
   }
 
   /** Default creator for an empty section. */
@@ -97,11 +99,11 @@ public abstract class TraceSection {
     Preconditions.checkArgument(!(fragment instanceof CommonFragment));
 
     if (fragment instanceof StackFragment) {
-      this.stackRowsCounter++;
+      this.stackRowCounter++;
     } else if (fragment instanceof TransactionFragment f) {
       f.setParentSection(this);
     } else {
-      this.nonStackRowsCounter++;
+      this.nonStackRowCounter++;
     }
 
     this.lines.add(new TraceLine(traceCommon(hub, callFrame), fragment));

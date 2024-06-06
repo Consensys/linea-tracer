@@ -94,7 +94,8 @@ public class TxTrace implements PostTransactionDefer {
   public void commit(Trace hubTrace) {
     for (TraceSection opSection : this.trace) {
       for (TraceSection.TraceLine line : opSection.lines()) {
-        line.trace(hubTrace, opSection.stackHeight(), opSection.stackHeightNew());
+        line.trace(
+            hubTrace, opSection.stackHeight(), opSection.stackHeightNew(), opSection.nonStackRows);
       }
     }
   }

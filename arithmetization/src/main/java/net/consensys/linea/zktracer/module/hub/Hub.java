@@ -1437,7 +1437,13 @@ public class Hub implements Module {
                     this, ContextFragment.readCurrentContextData(this), doingStorageFragment);
 
             // undoing the previous changes (value + warmth) if current context will revert
-            if (this.callStack().current().willRevert()) {
+            if (this.pch.exceptions().staticFault()) {
+              // TODO: make sure that whenever we enounter an exception _of any kind_
+              //  we trace the final context row where we update the caller return data
+              //  to be empty.
+              storageSection.nonStackRows = 1 + 1;
+            } else if (this.callStack().current().willRevert()) {
+              storageSection.nonStackRows = (short) (1 + 2 + (this.pch.exceptions().any() ? 1 : 0));
               StorageFragment undoingStorageFragment =
                   new StorageFragment(
                       this.state,
@@ -1455,6 +1461,7 @@ public class Hub implements Module {
               state.updateOrInsertStorageSlotOccurrence(
                   storageSlotIdentifier, undoingStorageFragment);
             } else {
+              storageSection.nonStackRows = 1 + 1;
               state.updateOrInsertStorageSlotOccurrence(
                   storageSlotIdentifier, doingStorageFragment);
             }
@@ -1484,6 +1491,7 @@ public class Hub implements Module {
 
             // undoing the previous changes (warmth) if current context will revert
             if (this.callStack().current().willRevert()) {
+              storageSection.nonStackRows = (short) (1 + 2 + (this.pch.exceptions().any() ? 1 : 0));
               StorageFragment undoingStorageFragment =
                   new StorageFragment(
                       this.state,
@@ -1501,6 +1509,7 @@ public class Hub implements Module {
               state.updateOrInsertStorageSlotOccurrence(
                   storageSlotIdentifier, undoingStorageFragment);
             } else {
+              storageSection.nonStackRows = 1 + 1;
               state.updateOrInsertStorageSlotOccurrence(
                   storageSlotIdentifier, doingStorageFragment);
             }

@@ -25,7 +25,8 @@ import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class TransactionStack implements StackedContainer {
-  private final List<TransactionProcessingMetadata> txs = new ArrayList<>(200);
+  private final List<TransactionProcessingMetadata> txs =
+      new ArrayList<>(200); // TODO: write the allocated memory from .toml file
   private int currentAbsNumber;
   private int relativeTransactionNumber;
 

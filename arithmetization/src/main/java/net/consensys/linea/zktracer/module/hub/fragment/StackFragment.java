@@ -104,14 +104,19 @@ public final class StackFragment implements TraceFragment {
     this.staticGas = gp.staticGas();
 
     if (opCode.isJump() && !exceptions.stackException()) {
-      final BigInteger prospectivePcNew = hub.currentFrame().frame().getStackItem(0).toBigInteger();
+      final BigInteger prospectivePcNew =
+          hub.currentFrame().frame().getStackItem(0).toUnsignedBigInteger();
       final BigInteger codeSize = BigInteger.valueOf(hub.currentFrame().code().getSize());
 
       boolean prospectivePcNewIsInBounds = codeSize.compareTo(prospectivePcNew) > 0;
 
       if (opCode.equals(OpCode.JUMPI)) {
         boolean nonzeroJumpCondition =
-            !hub.currentFrame().frame().getStackItem(1).toBigInteger().equals(BigInteger.ZERO);
+            !hub.currentFrame()
+                .frame()
+                .getStackItem(1)
+                .toUnsignedBigInteger()
+                .equals(BigInteger.ZERO);
         prospectivePcNewIsInBounds = prospectivePcNewIsInBounds && nonzeroJumpCondition;
       }
 

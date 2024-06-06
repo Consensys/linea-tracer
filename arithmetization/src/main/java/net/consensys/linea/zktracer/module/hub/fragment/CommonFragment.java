@@ -80,7 +80,11 @@ public final class CommonFragment implements TraceFragment {
     final long gasActual = hub.remainingGas();
     final long gasCost =
         noStackException ? Hub.GAS_PROJECTOR.of(frame.frame(), hub.opCode()).staticGas() : 0;
-    final long gasNext = hub.pch().exceptions().any() ? 0 : gasActual - gasCost;
+    final long gasNext =
+        hub.pch().exceptions().any()
+            ? 0
+            : Math.max(
+                gasActual - gasCost, 0); // TODO: ugly, to fix just to not trace negative value
 
     final int height = hub.currentFrame().stack().getHeight();
     final int heightNew =
@@ -136,7 +140,8 @@ public final class CommonFragment implements TraceFragment {
     }
 
     if (opCode.isJump()) {
-      final BigInteger prospectivePcNew = hub.currentFrame().frame().getStackItem(0).toBigInteger();
+      final BigInteger prospectivePcNew =
+          hub.currentFrame().frame().getStackItem(0).toUnsignedBigInteger();
       final BigInteger codeSize = BigInteger.valueOf(hub.currentFrame().code().getSize());
 
       final int attemptedPcNew =
@@ -147,7 +152,7 @@ public final class CommonFragment implements TraceFragment {
       }
 
       if (opCode.equals(OpCode.JUMPI)) {
-        BigInteger condition = hub.currentFrame().frame().getStackItem(1).toBigInteger();
+        BigInteger condition = hub.currentFrame().frame().getStackItem(1).toUnsignedBigInteger();
         if (!condition.equals(BigInteger.ZERO)) {
           return attemptedPcNew;
         }

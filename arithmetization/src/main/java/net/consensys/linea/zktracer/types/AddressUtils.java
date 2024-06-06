@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.types;
 
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 
 import java.util.List;
@@ -108,5 +109,13 @@ public class AddressUtils {
     return input.size() == Address.SIZE
         ? Address.wrap(input)
         : Address.wrap(leftPadTo(input.trimLeadingZeros(), Address.SIZE));
+  }
+
+  public static long highPart(Address address) {
+    return address.slice(0, 4).toLong();
+  }
+
+  public static Bytes lowPart(Address address) {
+    return address.slice(4, LLARGE);
   }
 }

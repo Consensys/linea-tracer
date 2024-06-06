@@ -15,17 +15,18 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment;
 
+import static net.consensys.linea.zktracer.types.AddressUtils.highPart;
+import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
-import static net.consensys.linea.zktracer.types.Conversions.bytesToLong;
 
 import lombok.Setter;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
-import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.TransactionType;
 import org.hyperledger.besu.evm.worldstate.WorldView;
@@ -46,21 +47,21 @@ public final class TransactionFragment implements TraceFragment, PostTransaction
   @Override
   public Trace trace(Trace trace) {
     final Transaction tx = transactionProcessingMetadata.getBesuTransaction();
-    final EWord to = EWord.of(transactionProcessingMetadata.getEffectiveTo());
-    final EWord from = EWord.of(transactionProcessingMetadata.getSender());
-    final EWord miner = EWord.of(transactionProcessingMetadata.getCoinbase());
+    final Address to = transactionProcessingMetadata.getEffectiveTo();
+    final Address from = transactionProcessingMetadata.getSender();
+    final Address miner = transactionProcessingMetadata.getCoinbase();
 
     return trace
         .peekAtTransaction(true)
         .pTransactionBatchNum(transactionProcessingMetadata.getRelativeBlockNumber())
-        .pTransactionFromAddressHi(bytesToLong(from.hi()))
-        .pTransactionFromAddressLo(from.lo())
+        .pTransactionFromAddressHi(highPart(from))
+        .pTransactionFromAddressLo(lowPart(from))
         .pTransactionNonce(Bytes.ofUnsignedLong(tx.getNonce()))
         .pTransactionInitialBalance(
             bigIntegerToBytes(transactionProcessingMetadata.getInitialBalance()))
         .pTransactionValue(bigIntegerToBytes(tx.getValue().getAsBigInteger()))
-        .pTransactionToAddressHi(bytesToLong(to.hi()))
-        .pTransactionToAddressLo(to.lo())
+        .pTransactionToAddressHi(highPart(to))
+        .pTransactionToAddressLo(lowPart(to))
         .pTransactionRequiresEvmExecution(transactionProcessingMetadata.requiresEvmExecution())
         .pTransactionCopyTxcd(transactionProcessingMetadata.copyTransactionCallData())
         .pTransactionIsDeployment(tx.getTo().isEmpty())
@@ -79,8 +80,8 @@ public final class TransactionFragment implements TraceFragment, PostTransaction
             Bytes.minimalBytes(transactionProcessingMetadata.getRefundCounterMax()))
         .pTransactionRefundEffective(
             Bytes.minimalBytes(transactionProcessingMetadata.getGasRefunded()))
-        .pTransactionCoinbaseAddressHi(bytesToLong(miner.hi()))
-        .pTransactionCoinbaseAddressLo(miner.lo());
+        .pTransactionCoinbaseAddressHi(highPart(miner))
+        .pTransactionCoinbaseAddressLo(lowPart(miner));
   }
 
   @Override

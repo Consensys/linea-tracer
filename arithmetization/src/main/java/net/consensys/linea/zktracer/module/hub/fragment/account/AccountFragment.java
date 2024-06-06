@@ -15,8 +15,9 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.account;
 
+import static net.consensys.linea.zktracer.types.AddressUtils.highPart;
 import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
-import static net.consensys.linea.zktracer.types.Conversions.bytesToLong;
+import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
 
 import java.util.Optional;
 
@@ -104,7 +105,6 @@ public final class AccountFragment
 
   @Override
   public Trace trace(Trace trace) {
-    final EWord eWho = EWord.of(who);
     final EWord eCodeHash = EWord.of(oldState.code().getCodeHash());
     final EWord eCodeHashNew = EWord.of(newState.code().getCodeHash());
 
@@ -113,8 +113,8 @@ public final class AccountFragment
 
     return trace
         .peekAtAccount(true)
-        .pAccountAddressHi(bytesToLong(eWho.hi()))
-        .pAccountAddressLo(eWho.lo())
+        .pAccountAddressHi(highPart(who))
+        .pAccountAddressLo(lowPart(who))
         .pAccountNonce(Bytes.ofUnsignedLong(oldState.nonce()))
         .pAccountNonceNew(Bytes.ofUnsignedLong(newState.nonce()))
         .pAccountBalance(oldState.balance())

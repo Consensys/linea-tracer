@@ -15,17 +15,18 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment;
 
-import static net.consensys.linea.zktracer.types.Conversions.bytesToLong;
+import static net.consensys.linea.zktracer.types.AddressUtils.highPart;
+import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
-import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.Either;
 import net.consensys.linea.zktracer.types.MemorySpan;
 import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.internal.Words;
 
 public record ContextFragment(
@@ -104,15 +105,15 @@ public record ContextFragment(
         this.callFrameReference.map(this.callStack::getById, this.callStack::getByContextNumber);
     final CallFrame parent = callStack.getParentOf(callFrame.id());
 
-    final EWord eAddress = callFrame.addressAsEWord();
-    final EWord eCodeAddress = callFrame.codeAddressAsEWord();
-    final EWord callerAddress = EWord.of(callFrame.callerAddress());
+    final Address address = callFrame.accountAddress();
+    final Address codeAddress = callFrame.byteCodeAddress();
+    final Address callerAddress = callFrame.callerAddress();
 
     final int cfi =
         callFrame == CallFrame.EMPTY || callFrame.type() == CallFrameType.MANTLE
             ? 0
             : hub.getCfiByMetaData(
-                Words.toAddress(eCodeAddress),
+                Words.toAddress(codeAddress),
                 callFrame.codeDeploymentNumber(),
                 callFrame.underDeployment());
 
@@ -122,16 +123,16 @@ public record ContextFragment(
         .pContextCallStackDepth((short) callFrame.depth())
         .pContextIsRoot(callFrame.isRoot())
         .pContextIsStatic(callFrame.type().isStatic())
-        .pContextAccountAddressHi(bytesToLong(eAddress.hi()))
-        .pContextAccountAddressLo(eAddress.lo())
+        .pContextAccountAddressHi(highPart(address))
+        .pContextAccountAddressLo(lowPart(address))
         .pContextAccountDeploymentNumber(callFrame.accountDeploymentNumber())
-        .pContextByteCodeAddressHi(bytesToLong(eCodeAddress.hi()))
-        .pContextByteCodeAddressLo(eCodeAddress.lo())
+        .pContextByteCodeAddressHi(highPart(codeAddress))
+        .pContextByteCodeAddressLo(lowPart(codeAddress))
         .pContextByteCodeDeploymentNumber(callFrame.codeDeploymentNumber())
         .pContextByteCodeDeploymentStatus(callFrame.underDeployment() ? 1 : 0)
         .pContextByteCodeCodeFragmentIndex(cfi)
-        .pContextCallerAddressHi(bytesToLong(callerAddress.hi()))
-        .pContextCallerAddressLo(callerAddress.lo())
+        .pContextCallerAddressHi(highPart(callerAddress))
+        .pContextCallerAddressLo(lowPart(callerAddress))
         .pContextCallValue(callFrame.value())
         .pContextCallDataContextNumber(parent.contextNumber())
         .pContextCallDataOffset(callFrame.callDataInfo().memorySpan().offset())

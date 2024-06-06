@@ -15,6 +15,9 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.storage;
 
+import static net.consensys.linea.zktracer.types.AddressUtils.highPart;
+import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -39,11 +42,10 @@ public final class StorageFragment implements TraceFragment {
   private final DomSubStampsSubFragment domSubStampsSubFragment;
 
   public Trace trace(Trace trace) {
-    final EWord eAddress = EWord.of(address);
     return trace
         .peekAtStorage(true)
-        .pStorageAddressHi(eAddress.hi().toLong())
-        .pStorageAddressLo(eAddress.lo())
+        .pStorageAddressHi(highPart(address))
+        .pStorageAddressLo(lowPart(address))
         .pStorageDeploymentNumber(deploymentNumber)
         .pStorageStorageKeyHi(key.hi())
         .pStorageStorageKeyLo(key.lo())

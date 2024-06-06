@@ -23,6 +23,10 @@ public class StorageSection extends TraceSection {
     this.addFragmentsAndStack(hub, chunks);
   }
 
+  public void addFragment(Hub hub, TraceFragment fragment) {
+    this.addFragmentsWithoutStack(hub, fragment);
+  }
+
   @Override
   public void seal(Hub hub) {}
 }

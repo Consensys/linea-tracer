@@ -19,6 +19,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import net.consensys.linea.zktracer.module.hub.Trace;
+import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.types.EWord;
 import org.hyperledger.besu.datatypes.Address;
@@ -35,6 +36,7 @@ public final class StorageFragment implements TraceFragment {
   private final EWord valNext;
   private final boolean oldWarmth;
   private final boolean newWarmth;
+  private final DomSubStampsSubFragment domSubStampsSubFragment;
 
   public Trace trace(Trace trace) {
     final EWord eAddress = EWord.of(address);

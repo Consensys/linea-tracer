@@ -504,7 +504,8 @@ public class Hub implements Module {
                             value,
                             value,
                             seenKeys.computeIfAbsent(address, x -> new HashSet<>()).contains(key),
-                            true));
+                            true,
+                            DomSubStampsSubFragment.standardDomSubStamps(this, 0)));
 
                     seenKeys.get(address).add(key);
                   }
@@ -677,7 +678,8 @@ public class Hub implements Module {
   }
 
   public MessageFrame messageFrame() {
-    return this.callStack.current().frame();
+    MessageFrame frame = this.callStack.current().frame();
+    return frame;
   }
 
   private void handleStack(MessageFrame frame) {
@@ -1392,45 +1394,89 @@ public class Hub implements Module {
           default -> throw new IllegalStateException("unexpected STACK_RAM opcode");
         }
       }
-      case STORAGE -> { // TODO:
-        /*
+      case STORAGE -> {
         Address address = this.currentFrame().accountAddress();
         EWord key = EWord.of(frame.getStackItem(0));
         switch (this.currentFrame().opCode()) {
           case SSTORE -> {
             EWord valNext = EWord.of(frame.getStackItem(0));
-            this.addTraceSection(
+
+            // doing the SSTORE operation
+            StorageFragment doingStorageFragment =
+                new StorageFragment(
+                    address,
+                    this.currentFrame().accountDeploymentNumber(),
+                    key,
+                    this.txStack.current().getStorage().getOriginalValueOrUpdate(address, key),
+                    EWord.of(frame.getTransientStorageValue(address, key)),
+                    valNext,
+                    frame.isStorageWarm(address, key),
+                    true,
+                    DomSubStampsSubFragment.standardDomSubStamps(this, 0));
+
+            StorageSection storageSection =
                 new StorageSection(
-                    this,
-                    ContextFragment.readContextData(this),
-                    new StorageFragment(
-                        address,
-                        this.currentFrame().accountDeploymentNumber(),
-                        key,
-                        this.txStack.current().getStorage().getOriginalValueOrUpdate(address, key),
-                        EWord.of(frame.getTransientStorageValue(address, key)),
-                        valNext,
-                        frame.isStorageWarm(address, key),
-                        true)));
+                    this, ContextFragment.readContextData(this), doingStorageFragment);
+
+            // undoing the previous changes (value + warmth) if current context will revert
+            if (this.callStack().current().willRevert()) {
+              StorageFragment undoingStorageFragment =
+                  new StorageFragment(
+                      address,
+                      this.currentFrame().accountDeploymentNumber(),
+                      key,
+                      this.txStack.current().getStorage().getOriginalValueOrUpdate(address, key),
+                      valNext,
+                      EWord.of(frame.getTransientStorageValue(address, key)),
+                      true,
+                      frame.isStorageWarm(address, key),
+                      DomSubStampsSubFragment.revertWithCurrentDomSubStamps(this, 1));
+              storageSection.addFragment(this, undoingStorageFragment);
+            }
+
+            this.addTraceSection(storageSection);
           }
           case SLOAD -> {
-            EWord valCurrent = EWord.of(frame.getTransientStorageValue(address, key));
-            this.addTraceSection(
+            EWord valueCurrent = EWord.of(frame.getTransientStorageValue(address, key));
+
+            // doing the SLOAD operation
+            StorageFragment doingStorageFragment =
+                new StorageFragment(
+                    address,
+                    this.currentFrame().accountDeploymentNumber(),
+                    key,
+                    this.txStack.current().getStorage().getOriginalValueOrUpdate(address, key),
+                    valueCurrent,
+                    valueCurrent,
+                    frame.isStorageWarm(address, key),
+                    true,
+                    DomSubStampsSubFragment.standardDomSubStamps(this, 0));
+
+            StorageSection storageSection =
                 new StorageSection(
-                    this,
-                    ContextFragment.readContextData(this),
-                    new StorageFragment(
-                        address,
-                        this.currentFrame().accountDeploymentNumber(),
-                        key,
-                        this.txStack.current().getStorage().getOriginalValueOrUpdate(address, key),
-                        valCurrent,
-                        valCurrent,
-                        frame.isStorageWarm(address, key),
-                        true)));
+                    this, ContextFragment.readContextData(this), doingStorageFragment);
+
+            // undoing the previous changes (warmth) if current context will revert
+            if (this.callStack().current().willRevert()) {
+              StorageFragment undoingStorageFragment =
+                  new StorageFragment(
+                      address,
+                      this.currentFrame().accountDeploymentNumber(),
+                      key,
+                      this.txStack.current().getStorage().getOriginalValueOrUpdate(address, key),
+                      valueCurrent,
+                      valueCurrent,
+                      true,
+                      frame.isStorageWarm(address, key),
+                      DomSubStampsSubFragment.revertWithCurrentDomSubStamps(this, 1));
+
+              storageSection.addFragment(this, undoingStorageFragment);
+            }
+
+            this.addTraceSection(storageSection);
           }
           default -> throw new IllegalStateException("invalid operation in family STORAGE");
-        } */
+        }
       }
       case CREATE -> {
         Address myAddress = this.currentFrame().accountAddress();

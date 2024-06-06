@@ -134,7 +134,7 @@ public class SmartContractCallSection extends TraceSection
         hub,
         callerCallFrame,
         this.scenarioFragment,
-        ContextFragment.readContextData(hub),
+        ContextFragment.readCurrentContextData(hub),
         this.imcFragment,
         accountFragmentFactory.make(
             this.preCallCallerAccountSnapshot,

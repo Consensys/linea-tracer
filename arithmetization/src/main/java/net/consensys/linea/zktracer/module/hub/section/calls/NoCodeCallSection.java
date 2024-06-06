@@ -122,7 +122,7 @@ public class NoCodeCallSection extends TraceSection
         callerCallFrame,
         this.scenarioFragment,
         this.imcFragment,
-        ContextFragment.readContextData(hub),
+        ContextFragment.readCurrentContextData(hub),
         accountFragmentFactory.make(
             this.preCallCallerAccountSnapshot,
             this.postCallCallerAccountSnapshot,

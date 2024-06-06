@@ -18,18 +18,23 @@ package net.consensys.linea.zktracer.module.hub.fragment.storage;
 import static net.consensys.linea.zktracer.types.AddressUtils.highPart;
 import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
 
+import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import net.consensys.linea.zktracer.module.hub.State;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.types.EWord;
 import org.hyperledger.besu.datatypes.Address;
 
+import java.util.HashMap;
+
 @RequiredArgsConstructor
 @Getter
 public final class StorageFragment implements TraceFragment {
+  private final State hubState;
   @Setter private StorageFragmentType type;
   private final Address address;
   private final int deploymentNumber;
@@ -40,8 +45,17 @@ public final class StorageFragment implements TraceFragment {
   private final boolean oldWarmth;
   private final boolean newWarmth;
   private final DomSubStampsSubFragment domSubStampsSubFragment;
+  private final int blockNumber;
 
   public Trace trace(Trace trace) {
+
+    HashMap<State.EphemeralStorageSlotIdentifier, State.StorageFragmentPair> current = hubState.firstAndLastStorageSlotOccurrences.get(blockNumber);
+    State.EphemeralStorageSlotIdentifier storageSlotIdentifier = new State.EphemeralStorageSlotIdentifier(address, deploymentNumber, key);
+    Preconditions.checkArgument(current.containsKey(storageSlotIdentifier));
+
+    final boolean isFirstOccurrence = current.get(storageSlotIdentifier).getFirstOccurrence() == this;
+    final boolean isFinalOccurrence = current.get(storageSlotIdentifier).getFinalOccurrence() == this;
+
     return trace
         .peekAtStorage(true)
         .pStorageAddressHi(highPart(address))
@@ -62,6 +76,8 @@ public final class StorageFragment implements TraceFragment {
         .pStorageValueCurrIsZero(valCurr.isZero())
         .pStorageValueNextIsCurr(valNext == valOrig)
         .pStorageValueNextIsZero(valNext.isZero())
-        .pStorageValueNextIsOrig(valNext == valOrig);
+        .pStorageValueNextIsOrig(valNext == valOrig)
+            .pStorageUnconstrainedFirst(isFirstOccurrence)
+    .pStorageUnconstrainedFinal(isFinalOccurrence);
   }
 }

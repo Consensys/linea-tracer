@@ -184,7 +184,7 @@ public class CreateSection extends TraceSection
       this.addFragmentsWithoutStack(
           hub,
           ImcFragment.empty(hub),
-          ContextFragment.readContextData(hub),
+          ContextFragment.readCurrentContextData(hub),
           ContextFragment.executionProvidesEmptyReturnData(hub));
     } else if (this.exceptions.outOfMemoryExpansion()) {
       this.addFragmentsWithoutStack(
@@ -198,7 +198,7 @@ public class CreateSection extends TraceSection
       this.addFragmentsWithoutStack(
           hub,
           commonImcFragment,
-          ContextFragment.readContextData(hub),
+          ContextFragment.readCurrentContextData(hub),
           accountFragmentFactory.make(
               oldCreatorSnapshot,
               newCreatorSnapshot,

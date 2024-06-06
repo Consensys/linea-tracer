@@ -19,11 +19,11 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 
 public class StorageSection extends TraceSection {
-  public StorageSection(Hub hub, TraceFragment... chunks) {
+  public StorageSection(Hub hub, final TraceFragment... chunks) {
     this.addFragmentsAndStack(hub, chunks);
   }
 
-  public void addFragment(Hub hub, TraceFragment fragment) {
+  public void addFragment(Hub hub, final TraceFragment fragment) {
     this.addFragmentsWithoutStack(hub, fragment);
   }
 

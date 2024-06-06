@@ -15,7 +15,7 @@
 package net.consensys.linea.zktracer.module.hub.section;
 
 import static net.consensys.linea.zktracer.module.hub.fragment.ContextFragment.executionProvidesEmptyReturnData;
-import static net.consensys.linea.zktracer.module.hub.fragment.ContextFragment.readContextData;
+import static net.consensys.linea.zktracer.module.hub.fragment.ContextFragment.readCurrentContextData;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
@@ -30,7 +30,7 @@ public class StopSection extends TraceSection {
   }
 
   public static StopSection messageCallStopSection(Hub hub) {
-    return new StopSection(hub, readContextData(hub), executionProvidesEmptyReturnData(hub));
+    return new StopSection(hub, readCurrentContextData(hub), executionProvidesEmptyReturnData(hub));
   }
 
   public static StopSection revertedDeploymentStopSection(Hub hub) {
@@ -38,7 +38,7 @@ public class StopSection extends TraceSection {
         hub.factories().accountFragment();
     return new StopSection(
         hub,
-        readContextData(hub),
+        readCurrentContextData(hub),
         // current (under deployment => deployed with empty byte code)
         // undoing of the above
         executionProvidesEmptyReturnData(hub));
@@ -47,7 +47,7 @@ public class StopSection extends TraceSection {
   public static StopSection unrevertedDeploymentStopSection(Hub hub) {
     return new StopSection(
         hub,
-        readContextData(hub),
+        readCurrentContextData(hub),
         // current (under deployment => deployed with empty byte code)
         executionProvidesEmptyReturnData(hub));
   }

@@ -471,7 +471,7 @@ public class Hub implements Module {
                       AccountSnapshot.fromAccount(
                           world.get(address), true, deploymentNumber, false);
 
-                  DomSubStampsSubFragment domSubStampsSubFragment =
+                  final DomSubStampsSubFragment domSubStampsSubFragment =
                       new DomSubStampsSubFragment(
                           DomSubStampsSubFragment.DomSubType.STANDARD, this.stamp(), 0, 0, 0, 0, 0);
                   fragments.add(
@@ -485,7 +485,7 @@ public class Hub implements Module {
 
                   seenAddresses.add(address);
 
-                  List<Bytes32> keys = entry.storageKeys();
+                  final List<Bytes32> keys = entry.storageKeys();
                   for (Bytes32 k : keys) {
                     this.state.stamps().incrementHubStamp();
 

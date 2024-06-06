@@ -104,7 +104,7 @@ public class SimpleStorageConsistency {
                     .op(OpCode.SSTORE)
                     .compile())
             .nonce(116)
-            .address(Address.fromHexString("0xdead000000000000000000000000000beef"))
+            .address(Address.fromHexString("0xdead0000000000000000000000000000beef"))
             .build();
 
     final Transaction simpleWarm =

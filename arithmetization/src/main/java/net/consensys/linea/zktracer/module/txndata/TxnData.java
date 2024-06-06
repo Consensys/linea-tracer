@@ -173,7 +173,7 @@ public class TxnData implements Module {
                     .get()
                     .getAsBigInteger()
                     .subtract(tx.baseFee().get().getAsBigInteger()))
-            : gasPrice;
+            : Bytes.EMPTY;
     final Bytes nonce = Bytes.ofUnsignedLong(tx.nonce());
     final Bytes initialBalance = bigIntegerToBytes(tx.initialSenderBalance());
     final Bytes value = bigIntegerToBytes(tx.value());

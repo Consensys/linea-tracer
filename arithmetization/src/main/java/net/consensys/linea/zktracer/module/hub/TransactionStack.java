@@ -33,6 +33,11 @@ public class TransactionStack implements StackedContainer {
     return this.txs.get(this.txs.size() - 1);
   }
 
+  /* WARN: can't be called if currentAbsNumber == 1*/
+  public TransactionProcessingMetadata previous() {
+    return this.txs.get(this.txs.size() - 2);
+  }
+
   public TransactionProcessingMetadata getByAbsoluteTransactionNumber(final int id) {
     return this.txs.get(id - 1);
   }
@@ -69,5 +74,9 @@ public class TransactionStack implements StackedContainer {
           tx.requiresCfiUpdate() ? hub.getCfiByMetaData(tx.getEffectiveTo(), 1, true) : 0;
       tx.setCodeFragmentIndex(cfi);
     }
+  }
+
+  public int getAccumulativeGasUsedInBlockBeforeTxStart() {
+    return this.relativeTransactionNumber == 1 ? 0 : this.previous().getAccumulatedGasUsedInBlock();
   }
 }

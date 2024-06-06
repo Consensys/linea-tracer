@@ -844,7 +844,13 @@ public class Hub implements Module {
       final long gasRefund = frame.getGasRefund();
       final boolean minerIsWarm = frame.isAddressWarm(txStack.current().getCoinbase());
 
-      txStack.current().setPreFinalisationValues(leftOverGas, gasRefund, minerIsWarm);
+      txStack
+          .current()
+          .setPreFinalisationValues(
+              leftOverGas,
+              gasRefund,
+              minerIsWarm,
+              this.txStack.getAccumulativeGasUsedInBlockBeforeTxStart());
 
       if (this.state.getProcessingPhase() != TX_SKIP) {
         this.defers.postTx(new TxFinalizationPostTxDefer(this, frame.getWorldUpdater()));
@@ -863,7 +869,7 @@ public class Hub implements Module {
     txStack
         .current()
         .completeLineaTransaction(
-            isSuccessful, this.state.stamps().hub(), this.state.getProcessingPhase());
+            isSuccessful, this.state.stamps().hub(), this.state.getProcessingPhase(), logs);
 
     if (this.state.processingPhase != TX_SKIP) {
       this.state.setProcessingPhase(TX_FINAL);

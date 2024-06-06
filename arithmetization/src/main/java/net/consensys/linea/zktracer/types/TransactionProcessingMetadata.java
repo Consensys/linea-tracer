@@ -20,6 +20,7 @@ import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_SKIP
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 
 import java.math.BigInteger;
+import java.util.List;
 import java.util.Optional;
 
 import lombok.Getter;
@@ -32,6 +33,7 @@ import net.consensys.linea.zktracer.module.hub.transients.StorageInitialValues;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
+import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Getter
@@ -84,6 +86,8 @@ public class TransactionProcessingMetadata {
 
   @Setter int hubStampTransactionEnd;
 
+  @Setter int accumulatedGasUsedInBlock = -1;
+
   @Accessors(fluent = true)
   @Setter
   boolean isSenderPreWarmed = false;
@@ -96,16 +100,18 @@ public class TransactionProcessingMetadata {
   @Setter
   boolean isMinerWarmAtEndTx = false;
 
+  @Setter List<Log> logs;
+
   final StorageInitialValues storage = new StorageInitialValues();
 
   @Setter int codeFragmentIndex = -1;
 
   public TransactionProcessingMetadata(
-      WorldView world,
-      Transaction transaction,
-      Block block,
-      int relativeTransactionNumber,
-      int absoluteTransactionNumber) {
+      final WorldView world,
+      final Transaction transaction,
+      final Block block,
+      final int relativeTransactionNumber,
+      final int absoluteTransactionNumber) {
     this.absoluteTransactionNumber = absoluteTransactionNumber;
     this.relativeBlockNumber = block.blockNumber();
     this.coinbase = block.minerAddress();
@@ -132,6 +138,32 @@ public class TransactionProcessingMetadata {
     this.effectiveTo = effectiveToAddress(besuTransaction);
 
     this.effectiveGasPrice = computeEffectiveGasPrice();
+  }
+
+  public void setPreFinalisationValues(
+      final long leftOverGas,
+      final long refundCounterMax,
+      final boolean minerIsWarmAtFinalisation,
+      final int accumulatedGasUsedInBlockAtStartTx) {
+    this.isMinerWarmAtEndTx(minerIsWarmAtFinalisation);
+    this.refundCounterMax = refundCounterMax;
+    this.setLeftoverGas(leftOverGas);
+    this.gasUsed = computeGasUsed();
+    this.refundEffective = computeRefundEffective();
+    this.gasRefunded = computeRefunded();
+    this.totalGasUsed = computeTotalGasUsed();
+    this.accumulatedGasUsedInBlock = (int) (accumulatedGasUsedInBlockAtStartTx + totalGasUsed);
+  }
+
+  public void completeLineaTransaction(
+      final boolean statusCode,
+      final int hubStampTransactionEnd,
+      final HubProcessingPhase hubPhase,
+      List<Log> logs) {
+    this.statusCode = statusCode;
+    this.hubStampTransactionEnd =
+        (hubPhase == TX_SKIP) ? hubStampTransactionEnd : hubStampTransactionEnd + 1;
+    this.logs = logs;
   }
 
   private boolean computeCopyCallData() {
@@ -162,28 +194,6 @@ public class TransactionProcessingMetadata {
 
   public long getInitiallyAvailableGas() {
     return besuTransaction.getGasLimit() - getUpfrontGasCost();
-  }
-
-  public void setPreFinalisationValues(
-      final long leftOverGas,
-      final long refundCounterMax,
-      final boolean minerIsWarmAtFinalisation) {
-    this.isMinerWarmAtEndTx(minerIsWarmAtFinalisation);
-    this.refundCounterMax = refundCounterMax;
-    this.setLeftoverGas(leftOverGas);
-    this.gasUsed = computeGasUsed();
-    this.refundEffective = computeRefundEffective();
-    this.gasRefunded = computeRefunded();
-    this.totalGasUsed = computeTotalGasUsed();
-  }
-
-  public void completeLineaTransaction(
-      final boolean statusCode,
-      final int hubStampTransactionEnd,
-      final HubProcessingPhase hubPhase) {
-    this.statusCode = statusCode;
-    this.hubStampTransactionEnd =
-        (hubPhase == TX_SKIP) ? hubStampTransactionEnd : hubStampTransactionEnd + 1;
   }
 
   private long computeRefundEffective() {

@@ -18,6 +18,8 @@ package net.consensys.linea.zktracer.module.hub.fragment.storage;
 import static net.consensys.linea.zktracer.types.AddressUtils.highPart;
 import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
 
+import java.util.HashMap;
+
 import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -27,18 +29,13 @@ import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.types.EWord;
-import org.hyperledger.besu.datatypes.Address;
-
-import java.util.HashMap;
 
 @RequiredArgsConstructor
 @Getter
 public final class StorageFragment implements TraceFragment {
   private final State hubState;
   @Setter private StorageFragmentType type;
-  private final Address address;
-  private final int deploymentNumber;
-  private final EWord key;
+  private final State.StorageSlotIdentifier storageSlotIdentifier;
   private final EWord valOrig;
   private final EWord valCurr;
   private final EWord valNext;
@@ -49,20 +46,22 @@ public final class StorageFragment implements TraceFragment {
 
   public Trace trace(Trace trace) {
 
-    HashMap<State.EphemeralStorageSlotIdentifier, State.StorageFragmentPair> current = hubState.firstAndLastStorageSlotOccurrences.get(blockNumber);
-    State.EphemeralStorageSlotIdentifier storageSlotIdentifier = new State.EphemeralStorageSlotIdentifier(address, deploymentNumber, key);
+    HashMap<State.StorageSlotIdentifier, State.StorageFragmentPair> current =
+        hubState.firstAndLastStorageSlotOccurrences.get(blockNumber - 1);
     Preconditions.checkArgument(current.containsKey(storageSlotIdentifier));
 
-    final boolean isFirstOccurrence = current.get(storageSlotIdentifier).getFirstOccurrence() == this;
-    final boolean isFinalOccurrence = current.get(storageSlotIdentifier).getFinalOccurrence() == this;
+    final boolean isFirstOccurrence =
+        current.get(storageSlotIdentifier).getFirstOccurrence() == this;
+    final boolean isFinalOccurrence =
+        current.get(storageSlotIdentifier).getFinalOccurrence() == this;
 
     return trace
         .peekAtStorage(true)
-        .pStorageAddressHi(highPart(address))
-        .pStorageAddressLo(lowPart(address))
-        .pStorageDeploymentNumber(deploymentNumber)
-        .pStorageStorageKeyHi(key.hi())
-        .pStorageStorageKeyLo(key.lo())
+        .pStorageAddressHi(highPart(storageSlotIdentifier.getAddress()))
+        .pStorageAddressLo(lowPart(storageSlotIdentifier.getAddress()))
+        .pStorageDeploymentNumber(storageSlotIdentifier.getDeploymentNumber())
+        .pStorageStorageKeyHi(EWord.of(storageSlotIdentifier.getStorageKey()).hi())
+        .pStorageStorageKeyLo(EWord.of(storageSlotIdentifier.getStorageKey()).lo())
         .pStorageValueOrigHi(valOrig.hi())
         .pStorageValueOrigLo(valOrig.lo())
         .pStorageValueCurrHi(valCurr.hi())
@@ -77,7 +76,7 @@ public final class StorageFragment implements TraceFragment {
         .pStorageValueNextIsCurr(valNext == valOrig)
         .pStorageValueNextIsZero(valNext.isZero())
         .pStorageValueNextIsOrig(valNext == valOrig)
-            .pStorageUnconstrainedFirst(isFirstOccurrence)
-    .pStorageUnconstrainedFinal(isFinalOccurrence);
+        .pStorageUnconstrainedFirst(isFirstOccurrence)
+        .pStorageUnconstrainedFinal(isFinalOccurrence);
   }
 }

@@ -17,21 +17,22 @@ package net.consensys.linea.zktracer.module.hub;
 
 import java.util.*;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.StackedContainer;
 import net.consensys.linea.zktracer.module.hub.State.TxState.Stamps;
 import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
 import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
-import org.apache.tuweni.bytes.Bytes;
+import net.consensys.linea.zktracer.types.EWord;
 import org.hyperledger.besu.datatypes.Address;
 
 public class State implements StackedContainer {
   private final Deque<TxState> state = new ArrayDeque<>();
 
   State() {}
-
 
   public TxState current() {
     return this.state.peek();
@@ -43,12 +44,20 @@ public class State implements StackedContainer {
 
   @Getter @Setter HubProcessingPhase processingPhase;
 
-  public record EphemeralStorageSlotIdentifier(Address address, int deploymentNumber, Bytes storageKey) {}
+  @RequiredArgsConstructor
+  @EqualsAndHashCode
+  @Getter
+  public static class StorageSlotIdentifier {
+    final Address address;
+    final int deploymentNumber;
+    final EWord storageKey;
+  }
 
-  public void updateOrInsertStorageSlotOccurrence(EphemeralStorageSlotIdentifier slotIdentifier, StorageFragment storageFragment) {
+  public void updateOrInsertStorageSlotOccurrence(
+      StorageSlotIdentifier slotIdentifier, StorageFragment storageFragment) {
     int size = firstAndLastStorageSlotOccurrences.size();
-    HashMap<EphemeralStorageSlotIdentifier, StorageFragmentPair> current  =
-            firstAndLastStorageSlotOccurrences.get(size - 1);
+    HashMap<StorageSlotIdentifier, StorageFragmentPair> current =
+        firstAndLastStorageSlotOccurrences.get(size - 1);
     if (current.containsKey(slotIdentifier)) {
       current.get(slotIdentifier).update(storageFragment);
     } else {
@@ -72,8 +81,8 @@ public class State implements StackedContainer {
   }
 
   // initialized here
-  public ArrayList<HashMap<EphemeralStorageSlotIdentifier, StorageFragmentPair>> firstAndLastStorageSlotOccurrences
-          = new ArrayList<>();
+  public ArrayList<HashMap<StorageSlotIdentifier, StorageFragmentPair>>
+      firstAndLastStorageSlotOccurrences = new ArrayList<>();
 
   /**
    * @return the current transaction trace elements

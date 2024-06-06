@@ -95,12 +95,12 @@ public class SimpleStorageConsistency {
                     .op(OpCode.SLOAD)
                     .op(OpCode.POP)
                     // SSTORE value 1
-                    .push(key)
                     .push(value1)
+                    .push(key)
                     .op(OpCode.SSTORE)
                     // SSTORE value 2
-                    .push(key)
                     .push(value2)
+                    .push(key)
                     .op(OpCode.SSTORE)
                     .compile())
             .nonce(116)

@@ -495,17 +495,15 @@ public class Hub implements Module {
                             .map(account -> EWord.of(account.getStorageValue(key)))
                             .orElse(EWord.ZERO);
 
-                    State.EphemeralStorageSlotIdentifier storageSlotIdentifier =
-                            new State.EphemeralStorageSlotIdentifier(
-                                    address,
-                                    deploymentInfo.number(address),
-                                    k);
+                    State.StorageSlotIdentifier storageSlotIdentifier =
+                        new State.StorageSlotIdentifier(
+                            address, deploymentInfo.number(address), EWord.of(k));
 
-                    StorageFragment storageFragment = new StorageFragment(
+                    StorageFragment storageFragment =
+                        new StorageFragment(
                             this.state,
-                            address,
-                            deploymentInfo.number(address),
-                            EWord.of(key),
+                            new State.StorageSlotIdentifier(
+                                address, deploymentInfo.number(address), EWord.of(key)),
                             value,
                             value,
                             value,
@@ -516,7 +514,8 @@ public class Hub implements Module {
 
                     fragments.add(storageFragment);
 
-                    state.updateOrInsertStorageSlotOccurrence(storageSlotIdentifier, storageFragment);
+                    state.updateOrInsertStorageSlotOccurrence(
+                        storageSlotIdentifier, storageFragment);
 
                     seenKeys.get(address).add(key);
                   }
@@ -1282,7 +1281,8 @@ public class Hub implements Module {
       case CONTEXT -> this.addTraceSection(
           new ContextLogSection(this, ContextFragment.readCurrentContextData(this)));
       case LOG -> {
-        this.addTraceSection(new ContextLogSection(this, ContextFragment.readCurrentContextData(this)));
+        this.addTraceSection(
+            new ContextLogSection(this, ContextFragment.readCurrentContextData(this)));
         LogInvocation.forOpcode(this);
       }
       case ACCOUNT -> {
@@ -1387,7 +1387,8 @@ public class Hub implements Module {
                     .make(accountAfter, accountBefore, undoingDomSubStamps));
           }
         } else {
-          copySection.addFragment(this, this.currentFrame(), ContextFragment.readCurrentContextData(this));
+          copySection.addFragment(
+              this, this.currentFrame(), ContextFragment.readCurrentContextData(this));
         }
         this.addTraceSection(copySection);
       }
@@ -1410,33 +1411,26 @@ public class Hub implements Module {
         Address address = this.currentFrame().accountAddress();
         EWord key = EWord.of(frame.getStackItem(0));
 
-        State.EphemeralStorageSlotIdentifier storageSlotIdentifier =
-                new State.EphemeralStorageSlotIdentifier(
-                        address,
-                        currentFrame().accountDeploymentNumber(),
-                        key
-                );
+        State.StorageSlotIdentifier storageSlotIdentifier =
+            new State.StorageSlotIdentifier(address, currentFrame().accountDeploymentNumber(), key);
 
         switch (this.currentFrame().opCode()) {
           case SSTORE -> {
             EWord valNext = EWord.of(frame.getStackItem(0));
 
-
             // doing the SSTORE operation
             StorageFragment doingStorageFragment =
                 new StorageFragment(
-                        this.state,
-                    address,
-                    this.currentFrame().accountDeploymentNumber(),
-                    key,
+                    this.state,
+                    new State.StorageSlotIdentifier(
+                        address, this.currentFrame().accountDeploymentNumber(), key),
                     this.txStack.current().getStorage().getOriginalValueOrUpdate(address, key),
                     EWord.of(frame.getTransientStorageValue(address, key)),
                     valNext,
                     frame.isStorageWarm(address, key),
                     true,
                     DomSubStampsSubFragment.standardDomSubStamps(this, 0),
-            this.state.firstAndLastStorageSlotOccurrences.size()
-                );
+                    this.state.firstAndLastStorageSlotOccurrences.size());
 
             StorageSection storageSection =
                 new StorageSection(
@@ -1446,23 +1440,23 @@ public class Hub implements Module {
             if (this.callStack().current().willRevert()) {
               StorageFragment undoingStorageFragment =
                   new StorageFragment(
-                          this.state,
-                      address,
-                      this.currentFrame().accountDeploymentNumber(),
-                      key,
+                      this.state,
+                      new State.StorageSlotIdentifier(
+                          address, this.currentFrame().accountDeploymentNumber(), key),
                       this.txStack.current().getStorage().getOriginalValueOrUpdate(address, key),
                       valNext,
                       EWord.of(frame.getTransientStorageValue(address, key)),
                       true,
                       frame.isStorageWarm(address, key),
                       DomSubStampsSubFragment.revertWithCurrentDomSubStamps(this, 1),
-                          this.state.firstAndLastStorageSlotOccurrences.size()
-                  );
+                      this.state.firstAndLastStorageSlotOccurrences.size());
 
               storageSection.addFragment(this, undoingStorageFragment);
-              state.updateOrInsertStorageSlotOccurrence(storageSlotIdentifier, undoingStorageFragment);
+              state.updateOrInsertStorageSlotOccurrence(
+                  storageSlotIdentifier, undoingStorageFragment);
             } else {
-              state.updateOrInsertStorageSlotOccurrence(storageSlotIdentifier, doingStorageFragment);
+              state.updateOrInsertStorageSlotOccurrence(
+                  storageSlotIdentifier, doingStorageFragment);
             }
 
             this.addTraceSection(storageSection);
@@ -1473,18 +1467,16 @@ public class Hub implements Module {
             // doing the SLOAD operation
             StorageFragment doingStorageFragment =
                 new StorageFragment(
-                        this.state,
-                    address,
-                    this.currentFrame().accountDeploymentNumber(),
-                    key,
+                    this.state,
+                    new State.StorageSlotIdentifier(
+                        address, this.currentFrame().accountDeploymentNumber(), key),
                     this.txStack.current().getStorage().getOriginalValueOrUpdate(address, key),
                     valueCurrent,
                     valueCurrent,
                     frame.isStorageWarm(address, key),
                     true,
                     DomSubStampsSubFragment.standardDomSubStamps(this, 0),
-                          this.state.firstAndLastStorageSlotOccurrences.size()
-                  );
+                    this.state.firstAndLastStorageSlotOccurrences.size());
 
             StorageSection storageSection =
                 new StorageSection(
@@ -1494,23 +1486,23 @@ public class Hub implements Module {
             if (this.callStack().current().willRevert()) {
               StorageFragment undoingStorageFragment =
                   new StorageFragment(
-                          this.state,
-                      address,
-                      this.currentFrame().accountDeploymentNumber(),
-                      key,
+                      this.state,
+                      new State.StorageSlotIdentifier(
+                          address, this.currentFrame().accountDeploymentNumber(), key),
                       this.txStack.current().getStorage().getOriginalValueOrUpdate(address, key),
                       valueCurrent,
                       valueCurrent,
                       true,
                       frame.isStorageWarm(address, key),
                       DomSubStampsSubFragment.revertWithCurrentDomSubStamps(this, 1),
-                          this.state.firstAndLastStorageSlotOccurrences.size()
-                  );
+                      this.state.firstAndLastStorageSlotOccurrences.size());
 
               storageSection.addFragment(this, undoingStorageFragment);
-              state.updateOrInsertStorageSlotOccurrence(storageSlotIdentifier, undoingStorageFragment);
+              state.updateOrInsertStorageSlotOccurrence(
+                  storageSlotIdentifier, undoingStorageFragment);
             } else {
-              state.updateOrInsertStorageSlotOccurrence(storageSlotIdentifier, doingStorageFragment);
+              state.updateOrInsertStorageSlotOccurrence(
+                  storageSlotIdentifier, doingStorageFragment);
             }
 
             this.addTraceSection(storageSection);

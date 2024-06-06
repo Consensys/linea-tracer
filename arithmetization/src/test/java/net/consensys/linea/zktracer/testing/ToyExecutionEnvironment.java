@@ -243,7 +243,7 @@ public class ToyExecutionEnvironment {
         contractCreationProcessor,
         messageCallProcessor,
         true,
-        true,
+        false,
         MAX_STACK_SIZE,
         feeMarket,
         CoinbaseFeePriceCalculator.eip1559());

@@ -1,10 +1,11 @@
-Il nous faudrait des
-- shared/domSubFragment
-- stack/logInfoFragment
-- stack/hashInfoFragment
-- stack/jumpDestinationVettingFragment
-- address/rlpAddrFragment
-- address/romlexFragment
-- address/trimFragment
-- misc/childContextDataFragment
-- gasFragment (?)
+We require the following subfragments:
+- [ ] stack/logInfoFragment
+- [ ] stack/hashInfoFragment
+- [ ] stack/jumpDestinationVettingFragment
+- [ ] address/rlpAddrFragment
+- [ ] address/romlexFragment
+- [ ] address/trimFragment (makeWithTrim)
+- [x] address/domSubFragment
+- [ ] storage/domSubFragment
+- [ ] misc/childContextDataFragment
+- [ ] gasFragment (?)

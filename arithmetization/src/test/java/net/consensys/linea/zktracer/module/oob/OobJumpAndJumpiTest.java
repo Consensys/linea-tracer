@@ -69,12 +69,6 @@ public class OobJumpAndJumpiTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertFalse(hub.pch().exceptions().jumpFault());
-
-    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just
-    // removed
-    // boolean[] oobEvent1 = new boolean[] {false, false, false};
-    // boolean[] oobEvent2 = new boolean[] {false, false, false};
-    // assertOobEvents(bytecodeRunner.getHub().oob(), oobEvent1, oobEvent2);
   }
 
   @Test
@@ -103,12 +97,6 @@ public class OobJumpAndJumpiTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertFalse(hub.pch().exceptions().jumpFault());
-
-    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just
-    // removed
-    // boolean[] oobEvent1 = new boolean[] {false, false, false};
-    // boolean[] oobEvent2 = new boolean[] {false, false, false};
-    // assertOobEvents(bytecodeRunner.getHub().oob(), oobEvent1, oobEvent2);
   }
 
   @Test
@@ -136,12 +124,6 @@ public class OobJumpAndJumpiTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(hub.pch().exceptions().jumpFault());
-
-    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just
-    // removed
-    // boolean[] oobEvent1 = new boolean[] {false, false, false};
-    // boolean[] oobEvent2 = new boolean[] {false, false, false};
-    // assertOobEvents(bytecodeRunner.getHub().oob(), oobEvent1, oobEvent2);
   }
 
   @Test
@@ -169,12 +151,6 @@ public class OobJumpAndJumpiTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(hub.pch().exceptions().jumpFault());
-
-    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just
-    // removed
-    // boolean[] oobEvent1 = new boolean[] {false, false, true};
-    // boolean[] oobEvent2 = new boolean[] {false, false, false};
-    // assertOobEvents(bytecodeRunner.getHub().oob(), oobEvent1, oobEvent2);
   }
 
   @Test
@@ -221,12 +197,6 @@ public class OobJumpAndJumpiTest {
 
     Hub hub = bytecodeRunner.getHub();
     assertFalse(hub.pch().exceptions().jumpFault());
-
-    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just
-    // removed
-    // boolean[] oobEvent1 = new boolean[N_JUMPS];
-    // boolean[] oobEvent2 = new boolean[N_JUMPS];
-    // assertOobEvents(bytecodeRunner.getHub().oob(), oobEvent1, oobEvent2);
   }
 
   @Test
@@ -277,12 +247,6 @@ public class OobJumpAndJumpiTest {
 
     Hub hub = bytecodeRunner.getHub();
     assertFalse(hub.pch().exceptions().jumpFault());
-
-    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just
-    // removed
-    // boolean[] oobEvent1 = new boolean[N_JUMPS];
-    // boolean[] oobEvent2 = new boolean[N_JUMPS];
-    // assertOobEvents(bytecodeRunner.getHub().oob(), oobEvent1, oobEvent2);
   }
 
   @Test
@@ -311,12 +275,6 @@ public class OobJumpAndJumpiTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertFalse(hub.pch().exceptions().jumpFault());
-
-    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just
-    // removed
-    // boolean[] oobEvent1 = new boolean[] {false, false, false};
-    // boolean[] oobEvent2 = new boolean[] {true, true, true};
-    // assertOobEvents(bytecodeRunner.getHub().oob(), oobEvent1, oobEvent2);
   }
 
   @Test
@@ -345,12 +303,6 @@ public class OobJumpAndJumpiTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertFalse(hub.pch().exceptions().jumpFault());
-
-    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just
-    // removed
-    // boolean[] oobEvent1 = new boolean[] {false, false, false};
-    // boolean[] oobEvent2 = new boolean[] {true, true, true};
-    // assertOobEvents(bytecodeRunner.getHub().oob(), oobEvent1, oobEvent2);
   }
 
   @Test
@@ -378,12 +330,6 @@ public class OobJumpAndJumpiTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(hub.pch().exceptions().jumpFault());
-
-    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just
-    // removed
-    // boolean[] oobEvent1 = new boolean[] {false, false, false};
-    // boolean[] oobEvent2 = new boolean[] {true, true, true};
-    // assertOobEvents(bytecodeRunner.getHub().oob(), oobEvent1, oobEvent2);
   }
 
   @Test
@@ -412,12 +358,6 @@ public class OobJumpAndJumpiTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(hub.pch().exceptions().jumpFault());
-
-    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just
-    // removed
-    // boolean[] oobEvent1 = new boolean[] {false, false, true};
-    // boolean[] oobEvent2 = new boolean[] {true, true, true};
-    // assertOobEvents(bytecodeRunner.getHub().oob(), oobEvent1, oobEvent2);
   }
 
   @Test
@@ -437,12 +377,6 @@ public class OobJumpAndJumpiTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertFalse(hub.pch().exceptions().jumpFault());
-
-    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just
-    // removed
-    // boolean[] oobEvent1 = new boolean[] {false};
-    // boolean[] oobEvent2 = new boolean[] {false};
-    // assertOobEvents(bytecodeRunner.getHub().oob(), oobEvent1, oobEvent2);
   }
 
   @Test
@@ -463,12 +397,6 @@ public class OobJumpAndJumpiTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertFalse(hub.pch().exceptions().jumpFault());
-
-    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just
-    // removed
-    // boolean[] oobEvent1 = new boolean[] {false};
-    // boolean[] oobEvent2 = new boolean[] {true};
-    // assertOobEvents(bytecodeRunner.getHub().oob(), oobEvent1, oobEvent2);
   }
 
   @Test
@@ -489,12 +417,6 @@ public class OobJumpAndJumpiTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertFalse(hub.pch().exceptions().jumpFault());
-
-    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just
-    // removed
-    // boolean[] oobEvent1 = new boolean[] {false};
-    // boolean[] oobEvent2 = new boolean[] {true};
-    // assertOobEvents(bytecodeRunner.getHub().oob(), oobEvent1, oobEvent2);
   }
 
   @Test
@@ -515,12 +437,6 @@ public class OobJumpAndJumpiTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertFalse(hub.pch().exceptions().jumpFault());
-
-    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just
-    // removed
-    // boolean[] oobEvent1 = new boolean[] {false};
-    // boolean[] oobEvent2 = new boolean[] {true};
-    // assertOobEvents(bytecodeRunner.getHub().oob(), oobEvent1, oobEvent2);
   }
 
   @Test
@@ -572,13 +488,6 @@ public class OobJumpAndJumpiTest {
 
     Hub hub = bytecodeRunner.getHub();
     assertFalse(hub.pch().exceptions().jumpFault());
-
-    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just
-    // removed
-    // boolean[] oobEvent1 = new boolean[N_JUMPIS];
-    // boolean[] oobEvent2 = new boolean[N_JUMPIS];
-    // Arrays.fill(oobEvent2, true);
-    // assertOobEvents(bytecodeRunner.getHub().oob(), oobEvent1, oobEvent2);
   }
 
   @Test
@@ -634,13 +543,6 @@ public class OobJumpAndJumpiTest {
 
     Hub hub = bytecodeRunner.getHub();
     assertFalse(hub.pch().exceptions().jumpFault());
-
-    // TODO: oobEvents do not exist anymore, these checks may be replaced with low priority or just
-    // removed
-    // boolean[] oobEvent1 = new boolean[N_JUMPIS];
-    // boolean[] oobEvent2 = new boolean[N_JUMPIS];
-    // Arrays.fill(oobEvent2, true);
-    // assertOobEvents(bytecodeRunner.getHub().oob(), oobEvent1, oobEvent2);
   }
 
   // Support methods

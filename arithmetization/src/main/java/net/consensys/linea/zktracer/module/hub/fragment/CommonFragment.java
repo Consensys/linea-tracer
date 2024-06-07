@@ -108,7 +108,7 @@ public final class CommonFragment implements TraceFragment {
         .abortingConditions(hub.pch().abortingConditions().snapshot())
         .failureConditions(hub.pch().failureConditions().snapshot())
         .callFrameId(frame.id())
-        .contextNumber(frame.contextNumber())
+        .contextNumber(hubInExecPhase ? frame.contextNumber() : 0)
         .contextNumberNew(hub.contextNumberNew(frame))
         .pc(pc)
         .pcNew(pcNew)

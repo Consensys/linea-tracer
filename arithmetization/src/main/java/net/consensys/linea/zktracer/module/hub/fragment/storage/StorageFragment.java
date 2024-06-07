@@ -46,7 +46,7 @@ public final class StorageFragment implements TraceFragment {
 
   public Trace trace(Trace trace) {
 
-    HashMap<State.StorageSlotIdentifier, State.StorageFragmentPair> current =
+    final HashMap<State.StorageSlotIdentifier, State.StorageFragmentPair> current =
         hubState.firstAndLastStorageSlotOccurrences.get(blockNumber - 1);
     Preconditions.checkArgument(current.containsKey(storageSlotIdentifier));
 

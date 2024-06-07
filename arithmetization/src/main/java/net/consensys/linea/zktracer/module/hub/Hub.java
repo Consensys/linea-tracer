@@ -1289,18 +1289,18 @@ public class Hub implements Module {
         }
       }
       case STORAGE -> {
-        Address address = this.currentFrame().accountAddress();
-        EWord key = EWord.of(frame.getStackItem(0));
+        final Address address = this.currentFrame().accountAddress();
+        final EWord key = EWord.of(frame.getStackItem(0));
 
-        State.StorageSlotIdentifier storageSlotIdentifier =
+        final State.StorageSlotIdentifier storageSlotIdentifier =
             new State.StorageSlotIdentifier(address, currentFrame().accountDeploymentNumber(), key);
 
         switch (this.currentFrame().opCode()) {
           case SSTORE -> {
-            EWord valNext = EWord.of(frame.getStackItem(0));
+            final EWord valNext = EWord.of(frame.getStackItem(0));
 
             // doing the SSTORE operation
-            StorageFragment doingStorageFragment =
+            final StorageFragment doingStorageFragment =
                 new StorageFragment(
                     this.state,
                     new State.StorageSlotIdentifier(
@@ -1313,7 +1313,7 @@ public class Hub implements Module {
                     DomSubStampsSubFragment.standardDomSubStamps(this, 0),
                     this.state.firstAndLastStorageSlotOccurrences.size());
 
-            StorageSection storageSection =
+            final StorageSection storageSection =
                 new StorageSection(
                     this, ContextFragment.readCurrentContextData(this), doingStorageFragment);
 
@@ -1325,7 +1325,7 @@ public class Hub implements Module {
               storageSection.nonStackRows = 1 + 1;
             } else if (this.callStack().current().willRevert()) {
               storageSection.nonStackRows = (short) (1 + 2 + (this.pch.exceptions().any() ? 1 : 0));
-              StorageFragment undoingStorageFragment =
+              final StorageFragment undoingStorageFragment =
                   new StorageFragment(
                       this.state,
                       new State.StorageSlotIdentifier(
@@ -1350,10 +1350,10 @@ public class Hub implements Module {
             this.addTraceSection(storageSection);
           }
           case SLOAD -> {
-            EWord valueCurrent = EWord.of(frame.getTransientStorageValue(address, key));
+            final EWord valueCurrent = EWord.of(frame.getTransientStorageValue(address, key));
 
             // doing the SLOAD operation
-            StorageFragment doingStorageFragment =
+            final StorageFragment doingStorageFragment =
                 new StorageFragment(
                     this.state,
                     new State.StorageSlotIdentifier(
@@ -1366,14 +1366,14 @@ public class Hub implements Module {
                     DomSubStampsSubFragment.standardDomSubStamps(this, 0),
                     this.state.firstAndLastStorageSlotOccurrences.size());
 
-            StorageSection storageSection =
+            final StorageSection storageSection =
                 new StorageSection(
                     this, ContextFragment.readCurrentContextData(this), doingStorageFragment);
 
             // undoing the previous changes (warmth) if current context will revert
             if (this.callStack().current().willRevert()) {
               storageSection.nonStackRows = (short) (1 + 2 + (this.pch.exceptions().any() ? 1 : 0));
-              StorageFragment undoingStorageFragment =
+              final StorageFragment undoingStorageFragment =
                   new StorageFragment(
                       this.state,
                       new State.StorageSlotIdentifier(

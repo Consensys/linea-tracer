@@ -21,7 +21,6 @@ import static net.consensys.linea.zktracer.types.AddressUtils.precompileAddress;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -34,6 +33,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
 import net.consensys.linea.zktracer.module.hub.transients.DeploymentInfo;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
+import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.datatypes.AccessListEntry;
@@ -53,7 +53,7 @@ public class PreWarmingMacroSection {
             accessList -> {
               if (!accessList.isEmpty()) {
                 Set<Address> seenAddresses = new HashSet<>(precompileAddress);
-                Map<Address, Set<Bytes32>> seenKeys = new HashMap<>();
+                HashMap<Address, Set<Bytes>> seenKeys = new HashMap<>();
 
                 for (AccessListEntry entry : accessList) {
                   hub.state.stamps().incrementHubStamp();
@@ -68,6 +68,7 @@ public class PreWarmingMacroSection {
                       "Deployment status during TX_INIT phase of any address should always be false");
 
                   final boolean isAccountWarm = seenAddresses.contains(address);
+
                   final AccountSnapshot preWarmingAccountSnapshot =
                       AccountSnapshot.fromAccount(
                           world.get(address), isAccountWarm, deploymentNumber, false);

@@ -22,7 +22,6 @@ import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
 import java.util.Optional;
 
 import com.google.common.base.Preconditions;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -37,7 +36,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.romlex.ContractMetadata;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.worldstate.WorldView;
@@ -72,7 +70,6 @@ public final class AccountFragment
     }
   }
 
-  @Getter private final Address who;
   private final AccountSnapshot oldState;
   private final AccountSnapshot newState;
   @Setter private int deploymentNumberInfinity = 0; // retconned on conflation end
@@ -92,7 +89,6 @@ public final class AccountFragment
       DomSubStampsSubFragment domSubStampsSubFragment) {
     Preconditions.checkArgument(oldState.address().equals(newState.address()));
 
-    this.who = oldState.address();
     this.oldState = oldState;
     this.newState = newState;
     this.deploymentNumber = newState.deploymentNumber();
@@ -113,8 +109,8 @@ public final class AccountFragment
 
     return trace
         .peekAtAccount(true)
-        .pAccountAddressHi(highPart(who))
-        .pAccountAddressLo(lowPart(who))
+        .pAccountAddressHi(highPart(oldState.address()))
+        .pAccountAddressLo(lowPart(oldState.address()))
         .pAccountNonce(Bytes.ofUnsignedLong(oldState.nonce()))
         .pAccountNonceNew(Bytes.ofUnsignedLong(newState.nonce()))
         .pAccountBalance(oldState.balance())
@@ -149,7 +145,7 @@ public final class AccountFragment
         .pAccountDeploymentStatusInfty(existsInfinity)
         .pAccountTrmFlag(this.addressToTrim.isPresent())
         .pAccountTrmRawAddressHi(this.addressToTrim.map(a -> EWord.of(a).hi()).orElse(Bytes.EMPTY))
-        .pAccountIsPrecompile(isPrecompile(who))
+        .pAccountIsPrecompile(isPrecompile(oldState.address()))
         .pAccountRlpaddrFlag(false) // TODO
         .pAccountRlpaddrRecipe(false) // TODO
         .pAccountRlpaddrDepAddrHi(0) // TODO
@@ -166,13 +162,15 @@ public final class AccountFragment
 
   @Override
   public void runPostConflation(Hub hub, WorldView world) {
-    this.deploymentNumberInfinity = hub.transients().conflation().deploymentInfo().number(this.who);
-    this.existsInfinity = world.get(this.who) != null;
+    this.deploymentNumberInfinity =
+        hub.transients().conflation().deploymentInfo().number(this.oldState.address());
+    this.existsInfinity = world.get(this.oldState.address()) != null;
     this.codeFragmentIndex =
         this.requiresRomlex
             ? hub.romLex()
                 .getCodeFragmentIndexByMetadata(
-                    ContractMetadata.make(this.who, this.deploymentNumber, this.isDeployment))
+                    ContractMetadata.make(
+                        this.oldState.address(), this.deploymentNumber, this.isDeployment))
             : 0;
   }
 }

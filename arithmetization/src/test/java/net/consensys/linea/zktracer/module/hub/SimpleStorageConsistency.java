@@ -24,7 +24,6 @@ import net.consensys.linea.zktracer.testing.ToyAccount;
 import net.consensys.linea.zktracer.testing.ToyExecutionEnvironment;
 import net.consensys.linea.zktracer.testing.ToyTransaction;
 import net.consensys.linea.zktracer.testing.ToyWorld;
-import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.crypto.KeyPair;
 import org.hyperledger.besu.crypto.SECP256K1;
@@ -40,7 +39,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(EvmExtension.class)
 public class SimpleStorageConsistency {
 
-  private final Address receiverAddress = Address.wrap(Bytes.random(20));
+  private final Address receiverAddress =
+      Address.fromHexString("0x00000bad0000000000000000000000000000b077");
 
   final KeyPair senderKeyPair1 = new SECP256K1().generateKeyPair();
   final Address senderAddress1 =
@@ -104,7 +104,6 @@ public class SimpleStorageConsistency {
                     .op(OpCode.SSTORE)
                     .compile())
             .nonce(116)
-            .address(Address.fromHexString("0xdead0000000000000000000000000000beef"))
             .build();
 
     final Transaction simpleWarm =

@@ -96,6 +96,7 @@ import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.runtime.stack.StackContext;
 import net.consensys.linea.zktracer.runtime.stack.StackLine;
+import net.consensys.linea.zktracer.types.AddressUtils;
 import net.consensys.linea.zktracer.types.Bytecode;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.Precompile;
@@ -1417,7 +1418,7 @@ public class Hub implements Module {
                 this.transients.conflation().deploymentInfo().number(myAddress),
                 this.transients.conflation().deploymentInfo().isDeploying(myAddress));
 
-        Address createdAddress = this.currentFrame().address();
+        Address createdAddress = AddressUtils.getCreateAddress(frame);
         Account createdAccount = frame.getWorldUpdater().get(createdAddress);
         AccountSnapshot createdAccountSnapshot =
             AccountSnapshot.fromAccount(

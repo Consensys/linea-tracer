@@ -178,7 +178,7 @@ public class State implements StackedContainer {
         return new Stamps(this.hub, this.mmu, this.mxp, this.hashInfo);
       }
 
-      void incrementHubStamp() {
+      public void incrementHubStamp() {
         this.hub++;
       }
 

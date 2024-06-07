@@ -13,14 +13,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.section;
-
-import java.util.List;
+package net.consensys.linea.zktracer.module.hub.section.txPreWarming;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
+import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 
 /**
  * A warmup section is generated if a transaction features pre-warmed addresses and/or keys. It
@@ -28,7 +27,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
  * pre-warmed addresses and eventual keys.
  */
 public class TxPrewarmingSection extends TraceSection {
-  public TxPrewarmingSection(Hub hub, List<TraceFragment> fragments) {
-    this.addFragmentsWithoutStack(hub, fragments.toArray(new TraceFragment[0]));
+  public TxPrewarmingSection(Hub hub, TraceFragment fragment) {
+    this.addFragmentsWithoutStack(hub, fragment);
   }
 }

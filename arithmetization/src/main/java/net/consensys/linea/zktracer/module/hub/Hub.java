@@ -23,16 +23,11 @@ import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_WARM
 import static net.consensys.linea.zktracer.module.hub.Trace.MULTIPLIER___STACK_HEIGHT;
 import static net.consensys.linea.zktracer.types.AddressUtils.addressFromBytes;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
-import static net.consensys.linea.zktracer.types.AddressUtils.precompileAddress;
 
 import java.nio.MappedByteBuffer;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
@@ -63,6 +58,7 @@ import net.consensys.linea.zktracer.module.hub.section.calls.FailedCallSection;
 import net.consensys.linea.zktracer.module.hub.section.calls.NoCodeCallSection;
 import net.consensys.linea.zktracer.module.hub.section.calls.SmartContractCallSection;
 import net.consensys.linea.zktracer.module.hub.section.txFinalization.TxFinalizationPostTxDefer;
+import net.consensys.linea.zktracer.module.hub.section.txPreWarming.PreWarmingMacroSection;
 import net.consensys.linea.zktracer.module.hub.section.txSkipippedSection.SkippedPostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
 import net.consensys.linea.zktracer.module.hub.transients.DeploymentInfo;
@@ -112,9 +108,6 @@ import net.consensys.linea.zktracer.runtime.stack.StackContext;
 import net.consensys.linea.zktracer.runtime.stack.StackLine;
 import net.consensys.linea.zktracer.types.*;
 import org.apache.tuweni.bytes.Bytes;
-import org.apache.tuweni.bytes.Bytes32;
-import org.apache.tuweni.units.bigints.UInt256;
-import org.hyperledger.besu.datatypes.AccessListEntry;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
@@ -421,122 +414,6 @@ public class Hub implements Module {
   }
 
   /**
-   * Traces a skipped transaction, i.e. a “pure” transaction without EVM execution.
-   *
-   * @param world a view onto the state
-   */
-  void processStateSkip(WorldView world) {
-    this.state.setProcessingPhase(TX_SKIP);
-    this.state.stamps().incrementHubStamp();
-    this.defers.postTx(
-        new SkippedPostTransactionDefer(world, this.txStack.current(), this.transients));
-  }
-
-  /**
-   * Traces the isWarm-up information of a transaction
-   *
-   * @param world a view onto the state
-   */
-  void processPrewarmingPhase(WorldView world) {
-    this.state.setProcessingPhase(TX_WARM);
-    this.txStack
-        .current()
-        .getBesuTransaction()
-        .getAccessList()
-        .ifPresent(
-            accessList -> {
-              if (!accessList.isEmpty()) {
-                Set<Address> seenAddresses = new HashSet<>(precompileAddress);
-                Map<Address, Set<Bytes32>> seenKeys = new HashMap<>();
-                List<TraceFragment> fragments = new ArrayList<>();
-
-                for (AccessListEntry entry : accessList) {
-                  this.state.stamps().incrementHubStamp();
-                  final Address address = entry.address();
-
-                  final DeploymentInfo deploymentInfo =
-                      this.transients.conflation().deploymentInfo();
-
-                  final int deploymentNumber = deploymentInfo.number(address);
-                  Preconditions.checkArgument(
-                      !deploymentInfo.isDeploying(address),
-                      "Deployment status during TX_INIT phase of any address should always be false");
-
-                  final boolean isAccountWarm = seenAddresses.contains(address);
-                  final AccountSnapshot preWarmingAccountSnapshot =
-                      AccountSnapshot.fromAccount(
-                          world.get(address), isAccountWarm, deploymentNumber, false);
-
-                  final AccountSnapshot postWarmingAccountSnapshot =
-                      AccountSnapshot.fromAccount(
-                          world.get(address), true, deploymentNumber, false);
-
-                  final DomSubStampsSubFragment domSubStampsSubFragment =
-                      new DomSubStampsSubFragment(
-                          DomSubStampsSubFragment.DomSubType.STANDARD, this.stamp(), 0, 0, 0, 0, 0);
-                  fragments.add(
-                      this.factories
-                          .accountFragment()
-                          .makeWithTrm(
-                              preWarmingAccountSnapshot,
-                              postWarmingAccountSnapshot,
-                              address,
-                              domSubStampsSubFragment));
-
-                  seenAddresses.add(address);
-
-                  final List<Bytes32> keys = entry.storageKeys();
-                  for (Bytes32 k : keys) {
-                    this.state.stamps().incrementHubStamp();
-
-                    final UInt256 key = UInt256.fromBytes(k);
-                    final EWord value =
-                        Optional.ofNullable(world.get(address))
-                            .map(account -> EWord.of(account.getStorageValue(key)))
-                            .orElse(EWord.ZERO);
-
-                    State.StorageSlotIdentifier storageSlotIdentifier =
-                        new State.StorageSlotIdentifier(
-                            address, deploymentInfo.number(address), EWord.of(k));
-
-                    StorageFragment storageFragment =
-                        new StorageFragment(
-                            this.state,
-                            new State.StorageSlotIdentifier(
-                                address, deploymentInfo.number(address), EWord.of(key)),
-                            value,
-                            value,
-                            value,
-                            seenKeys.computeIfAbsent(address, x -> new HashSet<>()).contains(key),
-                            true,
-                            DomSubStampsSubFragment.standardDomSubStamps(this, 0),
-                            this.state.firstAndLastStorageSlotOccurrences.size());
-
-                    fragments.add(storageFragment);
-
-                    state.updateOrInsertStorageSlotOccurrence(
-                        storageSlotIdentifier, storageFragment);
-
-                    seenKeys.get(address).add(key);
-                  }
-                }
-
-                final TransactionProcessingMetadata transactionProcessingMetadata =
-                    this.txStack.current();
-                final Transaction besuTx = transactionProcessingMetadata.getBesuTransaction();
-                final Address senderAddress = besuTx.getSender();
-                final Address receiverAddress = effectiveToAddress(besuTx);
-                transactionProcessingMetadata.isSenderPreWarmed(
-                    seenAddresses.contains(senderAddress));
-                transactionProcessingMetadata.isReceiverPreWarmed(
-                    seenAddresses.contains(receiverAddress));
-
-                this.addTraceSection(new TxPrewarmingSection(this, fragments));
-              }
-            });
-  }
-
-  /**
    * Trace the preamble of a transaction
    *
    * @param world a view onto the state
@@ -797,10 +674,14 @@ public class Hub implements Module {
     this.enterTransaction();
 
     if (!this.txStack.current().requiresEvmExecution()) {
-      this.processStateSkip(world);
+      this.state.setProcessingPhase(TX_SKIP);
+      this.state.stamps().incrementHubStamp();
+      this.defers.postTx(
+          new SkippedPostTransactionDefer(world, this.txStack.current(), this.transients));
     } else {
       if (this.txStack.current().requiresPrewarming()) {
-        this.processPrewarmingPhase(world);
+        this.state.setProcessingPhase(TX_WARM);
+        new PreWarmingMacroSection(world, this);
       }
       this.processStateInit(world);
     }

@@ -55,6 +55,9 @@ public final class StorageFragment implements TraceFragment {
     final boolean isFinalOccurrence =
         current.get(storageSlotIdentifier).getFinalOccurrence() == this;
 
+    // tracing
+    this.domSubStampsSubFragment.trace(trace);
+
     return trace
         .peekAtStorage(true)
         .pStorageAddressHi(highPart(storageSlotIdentifier.getAddress()))

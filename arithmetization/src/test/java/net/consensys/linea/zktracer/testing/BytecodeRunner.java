@@ -87,8 +87,19 @@ public final class BytecodeRunner {
             .gasLimit(selectedGasLimit)
             .build();
 
+
+    final ToyAccount smartContractAccount =
+        ToyAccount.builder()
+            .balance(Wei.fromEth(1))
+            .nonce(7)
+            .address(Address.fromHexString("0xca11ee"))
+            .code(Bytes.fromHexString("0x63deadbeef00"))
+            .build();
+
     final ToyWorld toyWorld =
-        ToyWorld.builder().accounts(List.of(senderAccount, receiverAccount)).build();
+        ToyWorld.builder()
+            .accounts(List.of(senderAccount, receiverAccount, smartContractAccount))
+            .build();
 
     toyExecutionEnvironment =
         ToyExecutionEnvironment.builder()

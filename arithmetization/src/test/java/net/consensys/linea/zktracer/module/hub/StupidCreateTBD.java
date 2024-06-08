@@ -29,17 +29,19 @@ public class StupidCreateTBD {
   @Test
   void testStupidCreateTBD() {
     BytecodeRunner.of(
-        BytecodeCompiler.newProgram()
-          .push(Bytes.fromHexString("0x63deadbeef000000000000000000000000000000000000000000000000000000"))
-          .push(Bytes.of(0x00))
-          .op(OpCode.MSTORE)
-          .push(0x05)
-          .push(0x00)
-          .push(0x00)
-          .op(OpCode.CREATE)
-          .op(OpCode.DUP1)
-          .compile())
-      .run();
+            BytecodeCompiler.newProgram()
+                .push(
+                    Bytes.fromHexString(
+                        "0x63deadbeef000000000000000000000000000000000000000000000000000000"))
+                .push(Bytes.of(0x00))
+                .op(OpCode.MSTORE)
+                .push(0x05)
+                .push(0x00)
+                .push(0x00)
+                .op(OpCode.CREATE)
+                .op(OpCode.DUP1)
+                .compile())
+        .run();
   }
 
   @Test
@@ -47,17 +49,16 @@ public class StupidCreateTBD {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     program
-      .push("63deadbeef000000000000000000000000000000000000000000000000000000")
-      .push(0)
-      .op(OpCode.MSTORE)
-      .push(0x04)
-      .push(0)
-      .push(0)
-      .op(OpCode.CREATE)
-      .op(OpCode.DUP1);
+        .push("63deadbeef000000000000000000000000000000000000000000000000000000")
+        .push(0)
+        .op(OpCode.MSTORE)
+        .push(0x04)
+        .push(0)
+        .push(0)
+        .op(OpCode.CREATE)
+        .op(OpCode.DUP1);
 
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run();
   }
-
 }

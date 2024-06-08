@@ -17,34 +17,94 @@ package net.consensys.linea.zktracer.module.hub.section;
 import static net.consensys.linea.zktracer.module.hub.fragment.ContextFragment.executionProvidesEmptyReturnData;
 import static net.consensys.linea.zktracer.module.hub.fragment.ContextFragment.readCurrentContextData;
 
+import com.google.common.base.Preconditions;
+import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
+import net.consensys.linea.zktracer.types.Bytecode;
+import org.hyperledger.besu.datatypes.Address;
 
 public class StopSection extends TraceSection {
 
-  public StopSection() {}
+  public static void appendTo(Hub hub) {
+    if (!hub.currentFrame().underDeployment()) {
+      hub.addTraceSection(messageCallStopSection(hub));
+    } else if (hub.currentFrame().willRevert()) {
+      hub.addTraceSection(deploymentStopSection(hub));
+    }
+  }
 
   public StopSection(Hub hub, TraceFragment... fragments) {
     this.addFragmentsAndStack(hub, fragments);
   }
 
   public static StopSection messageCallStopSection(Hub hub) {
-    return new StopSection(hub, readCurrentContextData(hub), executionProvidesEmptyReturnData(hub));
+    StopSection messageCallStopSetion =
+        new StopSection(hub, readCurrentContextData(hub), executionProvidesEmptyReturnData(hub));
+    messageCallStopSetion.nonStackRows = 2;
+    return messageCallStopSetion;
   }
 
-  public static StopSection revertedDeploymentStopSection(Hub hub) {
+  public static StopSection deploymentStopSection(Hub hub) {
     AccountFragment.AccountFragmentFactory accountFragmentFactory =
         hub.factories().accountFragment();
-    return new StopSection(
-        hub,
-        readCurrentContextData(hub),
-        // current (under deployment => deployed with empty byte code)
-        // undoing of the above
-        executionProvidesEmptyReturnData(hub));
+
+    final Address address = hub.currentFrame().accountAddress();
+    final int deploymentNumber = hub.transients().conflation().deploymentInfo().number(address);
+    final boolean deploymentStatus =
+        hub.transients().conflation().deploymentInfo().isDeploying(address);
+
+    // we should be deploying
+    Preconditions.checkArgument(deploymentStatus);
+
+    AccountSnapshot beforeEmptyDeployment =
+        AccountSnapshot.fromAddress(address, true, deploymentNumber, deploymentStatus);
+    AccountSnapshot afterEmptyDeployment = beforeEmptyDeployment.deployByteCode(Bytecode.EMPTY);
+    StopSection stopWhileDeploying =
+        new StopSection(
+            hub,
+            readCurrentContextData(hub),
+            // current (under deployment => deployed with empty byte code)
+            accountFragmentFactory.make(
+                beforeEmptyDeployment,
+                afterEmptyDeployment,
+                DomSubStampsSubFragment.standardDomSubStamps(hub, 0)));
+
+    if (hub.currentFrame().willRevert()) {
+      // undoing of the above
+      stopWhileDeploying.addFragmentsWithoutStack(
+          hub,
+          accountFragmentFactory.make(
+              afterEmptyDeployment,
+              beforeEmptyDeployment,
+              DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 1)),
+          executionProvidesEmptyReturnData(hub));
+
+      stopWhileDeploying.nonStackRows = 4;
+    } else {
+      stopWhileDeploying.addFragmentsWithoutStack(hub, executionProvidesEmptyReturnData(hub));
+
+      stopWhileDeploying.nonStackRows = 3;
+    }
+
+    return stopWhileDeploying;
   }
 
   public static StopSection unrevertedDeploymentStopSection(Hub hub) {
+
+    AccountFragment.AccountFragmentFactory accountFragmentFactory =
+        hub.factories().accountFragment();
+
+    final Address address = hub.currentFrame().accountAddress();
+    final int deploymentNumber = hub.transients().conflation().deploymentInfo().number(address);
+    final boolean deploymentStatus =
+        hub.transients().conflation().deploymentInfo().isDeploying(address);
+
+    // we should be deploying
+    Preconditions.checkArgument(deploymentStatus);
+
     return new StopSection(
         hub,
         readCurrentContextData(hub),

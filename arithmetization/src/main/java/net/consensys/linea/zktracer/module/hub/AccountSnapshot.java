@@ -124,7 +124,7 @@ public class AccountSnapshot {
         this.deploymentStatus);
   }
 
-  public AccountSnapshot deploy(Wei value) {
+  public AccountSnapshot initiateDeployment(Wei value) {
     return new AccountSnapshot(
         this.address,
         this.nonce + 1,
@@ -135,9 +135,11 @@ public class AccountSnapshot {
         this.deploymentStatus);
   }
 
-  public AccountSnapshot deploy(Wei value, Bytecode code) {
+  // TODO: does this update the deployment number in the deploymentInfo object ?
+  public AccountSnapshot initiateDeployment(Wei value, Bytecode code) {
     Preconditions.checkState(
-        !this.deploymentStatus, "Deployment status should be false before deploying.");
+        !this.deploymentStatus,
+        "Deployment status should be false before initiating a deployment.");
     return new AccountSnapshot(
         this.address,
         this.nonce + 1,
@@ -146,6 +148,14 @@ public class AccountSnapshot {
         code,
         this.deploymentNumber + 1,
         true);
+  }
+
+  public AccountSnapshot deployByteCode(Bytecode code) {
+    Preconditions.checkState(
+        this.deploymentStatus, "Deployment status should be true before deploying byte code.");
+
+    return new AccountSnapshot(
+        this.address, this.nonce, this.balance, true, code, this.deploymentNumber, false);
   }
 
   public AccountSnapshot credit(Wei value) {

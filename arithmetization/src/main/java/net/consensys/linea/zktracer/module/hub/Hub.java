@@ -464,7 +464,7 @@ public class Hub implements Module {
         new Bytecode(tx.getBesuTransaction().getInit().orElse(Bytes.EMPTY));
     final AccountSnapshot recipientAfterValueTransfer =
         isDeployment
-            ? recipientBeforeValueTransfer.deploy(value, initBytecode)
+            ? recipientBeforeValueTransfer.initiateDeployment(value, initBytecode)
             : recipientBeforeValueTransfer.credit(value, true);
     final DomSubStampsSubFragment recipientDomSubStamps =
         DomSubStampsSubFragment.standardDomSubStamps(this, 1);
@@ -1146,9 +1146,7 @@ public class Hub implements Module {
           }
           case STOP -> {
             parentFrame.latestReturnData(Bytes.EMPTY);
-            if (!currentFrame().underDeployment()) {
-              this.addTraceSection(StopSection.messageCallStopSection(this));
-            }
+            StopSection.appendTo(this);
           }
           case SELFDESTRUCT -> {
             parentFrame.latestReturnData(Bytes.EMPTY);
@@ -1297,7 +1295,7 @@ public class Hub implements Module {
 
         switch (this.currentFrame().opCode()) {
           case SSTORE -> {
-            final EWord valNext = EWord.of(frame.getStackItem(0));
+            final EWord valNext = EWord.of(frame.getStackItem(1));
 
             // doing the SSTORE operation
             final StorageFragment doingStorageFragment =
@@ -1313,8 +1311,8 @@ public class Hub implements Module {
                     DomSubStampsSubFragment.standardDomSubStamps(this, 0),
                     this.state.firstAndLastStorageSlotOccurrences.size());
 
-            final StorageSection storageSection =
-                new StorageSection(
+            final SstoreSection SStoreSection =
+                new SstoreSection(
                     this, ContextFragment.readCurrentContextData(this), doingStorageFragment);
 
             // undoing the previous changes (value + warmth) if current context will revert
@@ -1322,9 +1320,9 @@ public class Hub implements Module {
               // TODO: make sure that whenever we enounter an exception _of any kind_
               //  we trace the final context row where we update the caller return data
               //  to be empty.
-              storageSection.nonStackRows = 1 + 1;
+              SStoreSection.nonStackRows = 1 + 1;
             } else if (this.callStack().current().willRevert()) {
-              storageSection.nonStackRows = (short) (1 + 2 + (this.pch.exceptions().any() ? 1 : 0));
+              SStoreSection.nonStackRows = (short) (1 + 2 + (this.pch.exceptions().any() ? 1 : 0));
               final StorageFragment undoingStorageFragment =
                   new StorageFragment(
                       this.state,
@@ -1338,64 +1336,19 @@ public class Hub implements Module {
                       DomSubStampsSubFragment.revertWithCurrentDomSubStamps(this, 1),
                       this.state.firstAndLastStorageSlotOccurrences.size());
 
-              storageSection.addFragment(this, undoingStorageFragment);
+              SStoreSection.addFragment(this, undoingStorageFragment);
               state.updateOrInsertStorageSlotOccurrence(
                   storageSlotIdentifier, undoingStorageFragment);
             } else {
-              storageSection.nonStackRows = 1 + 1;
+              SStoreSection.nonStackRows = 1 + 1;
               state.updateOrInsertStorageSlotOccurrence(
                   storageSlotIdentifier, doingStorageFragment);
             }
 
-            this.addTraceSection(storageSection);
+            this.addTraceSection(SStoreSection);
           }
           case SLOAD -> {
-            final EWord valueCurrent = EWord.of(frame.getTransientStorageValue(address, key));
-
-            // doing the SLOAD operation
-            final StorageFragment doingStorageFragment =
-                new StorageFragment(
-                    this.state,
-                    new State.StorageSlotIdentifier(
-                        address, this.currentFrame().accountDeploymentNumber(), key),
-                    this.txStack.current().getStorage().getOriginalValueOrUpdate(address, key),
-                    valueCurrent,
-                    valueCurrent,
-                    frame.isStorageWarm(address, key),
-                    true,
-                    DomSubStampsSubFragment.standardDomSubStamps(this, 0),
-                    this.state.firstAndLastStorageSlotOccurrences.size());
-
-            final StorageSection storageSection =
-                new StorageSection(
-                    this, ContextFragment.readCurrentContextData(this), doingStorageFragment);
-
-            // undoing the previous changes (warmth) if current context will revert
-            if (this.callStack().current().willRevert()) {
-              storageSection.nonStackRows = (short) (1 + 2 + (this.pch.exceptions().any() ? 1 : 0));
-              final StorageFragment undoingStorageFragment =
-                  new StorageFragment(
-                      this.state,
-                      new State.StorageSlotIdentifier(
-                          address, this.currentFrame().accountDeploymentNumber(), key),
-                      this.txStack.current().getStorage().getOriginalValueOrUpdate(address, key),
-                      valueCurrent,
-                      valueCurrent,
-                      true,
-                      frame.isStorageWarm(address, key),
-                      DomSubStampsSubFragment.revertWithCurrentDomSubStamps(this, 1),
-                      this.state.firstAndLastStorageSlotOccurrences.size());
-
-              storageSection.addFragment(this, undoingStorageFragment);
-              state.updateOrInsertStorageSlotOccurrence(
-                  storageSlotIdentifier, undoingStorageFragment);
-            } else {
-              storageSection.nonStackRows = 1 + 1;
-              state.updateOrInsertStorageSlotOccurrence(
-                  storageSlotIdentifier, doingStorageFragment);
-            }
-
-            this.addTraceSection(storageSection);
+            SloadSection.appendSection(this);
           }
           default -> throw new IllegalStateException("invalid operation in family STORAGE");
         }

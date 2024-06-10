@@ -617,7 +617,7 @@ opcodes:
     value: 0x54
     instructionFamily: STORAGE
     stackSettings:
-      pattern: ONE_ONE
+      pattern: LOAD_STORE
       alpha: 1
       delta: 1
       nbAdded: 1
@@ -627,7 +627,7 @@ opcodes:
     value: 0x55
     instructionFamily: STORAGE
     stackSettings:
-      pattern: TWO_ZERO
+      pattern: LOAD_STORE
       alpha: 0
       delta: 2
       nbAdded: 0

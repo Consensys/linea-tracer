@@ -38,6 +38,7 @@ import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.evm.internal.Words;
 
 @Accessors(fluent = true)
 public class CallFrame {
@@ -88,6 +89,16 @@ public class CallFrame {
   /** the CFI of this frame bytecode if applicable */
   @Getter private int codeFragmentIndex = -1;
 
+  public int getCodeFragmentIndex(Hub hub) {
+    return
+            this == CallFrame.EMPTY || this.type() == CallFrameType.MANTLE
+                    ? 0
+                    : hub.getCfiByMetaData(
+                    Words.toAddress(this.codeAddressAsEWord()),
+                    this.codeDeploymentNumber(),
+                    this.isDeployment());
+  }
+
   @Getter @Setter private int pc;
   @Getter @Setter private OpCode opCode = OpCode.STOP;
   @Getter @Setter private OpCodeData opCodeData = OpCodes.of(OpCode.STOP);
@@ -114,7 +125,7 @@ public class CallFrame {
   @Getter private MemorySpan requestedReturnDataTarget = MemorySpan.empty();
 
   /** the latest child context to have been called from this frame */
-  @Getter @Setter private int returnDataContextNumber = -1;
+  @Getter @Setter private int returnDataContextNumber = 0;
 
   @Getter @Setter private int selfRevertsAt = 0;
   @Getter @Setter private int getsRevertedAt = 0;

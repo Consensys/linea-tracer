@@ -84,8 +84,10 @@ public class StopSection extends TraceSection {
               beforeEmptyDeployment,
               DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 1)),
           executionProvidesEmptyReturnData(hub));
+
     } else {
       stopWhileDeploying.addFragmentsWithoutStack(hub, executionProvidesEmptyReturnData(hub));
+
     }
 
     return stopWhileDeploying;

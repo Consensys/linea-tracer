@@ -494,6 +494,10 @@ public class Hub implements Module {
     this.state.setProcessingPhase(TX_EXEC);
   }
 
+  public int newChildContextNumber() {
+    return 1 + this.stamp();
+  }
+
   public CallFrame currentFrame() {
     if (this.callStack().isEmpty()) {
       return CallFrame.EMPTY;
@@ -507,7 +511,7 @@ public class Hub implements Module {
         return 0;
       }
       case TX_INIT -> {
-        return this.state.stamps().hub() + 1;
+        return newChildContextNumber();
       }
       case TX_EXEC -> {
         final OpCode opCode = this.opCode();
@@ -535,7 +539,7 @@ public class Hub implements Module {
               .ifPresent(
                   byteCode -> {
                     if (!byteCode.isEmpty()) {
-                      newContext.set(1 + this.stamp());
+                      newContext.set(newChildContextNumber());
                     }
                   });
           return newContext.get();
@@ -547,7 +551,7 @@ public class Hub implements Module {
           }
           final int initCodeSize = this.currentFrame().frame().getStackItem(2).toInt();
           if (initCodeSize != 0) {
-            return 1 + stamp();
+            return newChildContextNumber();
           }
         }
 

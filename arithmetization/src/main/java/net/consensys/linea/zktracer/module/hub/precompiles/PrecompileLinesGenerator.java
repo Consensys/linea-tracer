@@ -198,7 +198,7 @@ public class PrecompileLinesGenerator {
             r.add(ImcFragment.empty(hub).callMmu(MmuCall.forModExp(hub, p, 11)));
           }
 
-          r.add(ContextFragment.providesReturnData(hub));
+          r.add(ContextFragment.providesReturnData(hub, hub.currentFrame().contextNumber(), hub.newChildContextNumber()));
         }
       }
       case EC_ADD -> {
@@ -220,7 +220,7 @@ public class PrecompileLinesGenerator {
                       p.requestedReturnDataTarget().isEmpty()
                           ? MmuCall.nop()
                           : MmuCall.forEcAdd(hub, p, 2)));
-          r.add(ContextFragment.providesReturnData(hub));
+          r.add(ContextFragment.providesReturnData(hub, hub.currentFrame().contextNumber(), hub.newChildContextNumber()));
         }
       }
       case EC_MUL -> {
@@ -242,7 +242,7 @@ public class PrecompileLinesGenerator {
                       p.requestedReturnDataTarget().isEmpty()
                           ? MmuCall.nop()
                           : MmuCall.forEcMul(hub, p, 2)));
-          r.add(ContextFragment.providesReturnData(hub));
+          r.add(ContextFragment.providesReturnData(hub, hub.currentFrame().contextNumber(), hub.newChildContextNumber()));
         }
       }
       case EC_PAIRING -> {
@@ -267,7 +267,7 @@ public class PrecompileLinesGenerator {
                       p.requestedReturnDataTarget().isEmpty()
                           ? MmuCall.nop()
                           : MmuCall.forEcPairing(hub, p, 2)));
-          r.add(ContextFragment.providesReturnData(hub));
+          r.add(ContextFragment.providesReturnData(hub, hub.currentFrame().contextNumber(), hub.newChildContextNumber()));
         }
       }
       case BLAKE2F -> {
@@ -296,7 +296,7 @@ public class PrecompileLinesGenerator {
 
     r.add(
         p.success()
-            ? ContextFragment.providesReturnData(hub)
+            ? ContextFragment.providesReturnData(hub, hub.currentFrame().contextNumber(), hub.newChildContextNumber())
             : ContextFragment.nonExecutionEmptyReturnData(hub));
     return r;
   }

@@ -165,29 +165,11 @@ public abstract class TraceSection {
   }
 
   /**
-   * Returns the context number associated with the operation encoded by this TraceLine.
-   *
-   * @return the CN
-   */
-  public final int contextNumber() {
-    return this.lines.get(0).common.contextNumber();
-  }
-
-  /**
-   * Returns the program counter associated with the operation encoded by this TraceSection.
-   *
-   * @return the PC
-   */
-  public final int pc() {
-    return this.lines.get(0).common.pc();
-  }
-
-  /**
    * This method is called when the TraceSection is finished, to build required information
    * post-hoc.
    */
   public void seal() {
-    int numberOfNonStackRows =
+    final int numberOfNonStackRows =
         (int) this.lines.stream().filter(l -> !(l.specific instanceof StackFragment)).count();
     int nonStackLineCounter = 0;
     for (TraceLine line : this.lines) {
@@ -195,9 +177,6 @@ public abstract class TraceSection {
         nonStackLineCounter++;
         line.common.nonStackRowsCounter(nonStackLineCounter);
       }
-      // TODO: delete as both are computed in CommonFragment ...
-      // line.common.pcNew();
-      // line.common.contextNumberNew(hub.lastContextNumber());
       line.common.numberOfNonStackRows(numberOfNonStackRows);
     }
   }

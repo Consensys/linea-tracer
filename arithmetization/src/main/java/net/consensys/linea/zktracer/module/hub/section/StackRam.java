@@ -22,7 +22,4 @@ public class StackRam extends TraceSection {
   public StackRam(Hub hub, TraceFragment... chunks) {
     this.addFragmentsAndStack(hub, chunks);
   }
-
-  @Override
-  public void seal(Hub hub) {}
 }

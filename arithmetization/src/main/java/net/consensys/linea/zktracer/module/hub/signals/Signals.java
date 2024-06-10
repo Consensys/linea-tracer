@@ -237,7 +237,10 @@ public class Signals {
 
         // WARN: Static part, other modules may be dynamically requested in the hub
         this.mxp =
-            ex.outOfMemoryExpansion() || ex.outOfGasException() || ex.invalidCodePrefix() || ex.none();
+            ex.outOfMemoryExpansion()
+                || ex.outOfGasException()
+                || ex.invalidCodePrefix()
+                || ex.none();
         this.oob = isDeployment && (ex.codeSizeOverflow() || ex.none());
         this.mmu =
             (isDeployment && ex.invalidCodePrefix())

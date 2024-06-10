@@ -43,7 +43,6 @@ public class StopSection extends TraceSection {
   public static StopSection messageCallStopSection(Hub hub) {
     StopSection messageCallStopSetion =
         new StopSection(hub, readCurrentContextData(hub), executionProvidesEmptyReturnData(hub));
-    messageCallStopSetion.nonStackRows = 2;
     return messageCallStopSetion;
   }
 
@@ -81,12 +80,8 @@ public class StopSection extends TraceSection {
               beforeEmptyDeployment,
               DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 1)),
           executionProvidesEmptyReturnData(hub));
-
-      stopWhileDeploying.nonStackRows = 4;
     } else {
       stopWhileDeploying.addFragmentsWithoutStack(hub, executionProvidesEmptyReturnData(hub));
-
-      stopWhileDeploying.nonStackRows = 3;
     }
 
     return stopWhileDeploying;

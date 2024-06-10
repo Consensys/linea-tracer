@@ -29,7 +29,6 @@ import net.consensys.linea.zktracer.module.hub.TxTrace;
 import net.consensys.linea.zktracer.module.hub.fragment.CommonFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.StackFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.TransactionFragment;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.runtime.stack.StackLine;
 import org.hyperledger.besu.evm.worldstate.WorldView;
@@ -54,11 +53,11 @@ public abstract class TraceSection {
      * @param trace where to trace the line
      * @return the trace builder
      */
-    public Trace trace(Trace trace, int stackInt, int stackHeight, short nonStackRows) {
+    public Trace trace(Trace trace, int stackInt, int stackHeight) {
       Preconditions.checkNotNull(common);
       Preconditions.checkNotNull(specific);
 
-      common.trace(trace, stackInt, stackHeight, nonStackRows);
+      common.trace(trace, stackInt, stackHeight);
       specific.trace(trace);
 
       return trace.fillAndValidateRow();
@@ -70,7 +69,7 @@ public abstract class TraceSection {
   /** Count the non-stack lines */
   public int nonStackRowCounter;
 
-  @Setter public short nonStackRows;
+  public int numberOfNonStackRows;
 
   @Getter @Setter private TxTrace parentTrace;
 
@@ -83,7 +82,8 @@ public abstract class TraceSection {
    * @return a {@link CommonFragment} representing the shared columns
    */
   private CommonFragment traceCommon(Hub hub, CallFrame frame) {
-    return CommonFragment.fromHub(hub, frame, this.stackRowCounter == 2, this.nonStackRowCounter);
+    return CommonFragment.fromHub(
+        hub, frame, this.stackRowCounter == 2, this.nonStackRowCounter, this.numberOfNonStackRows);
   }
 
   /** Default creator for an empty section. */
@@ -97,15 +97,6 @@ public abstract class TraceSection {
    */
   public final void addFragment(Hub hub, CallFrame callFrame, TraceFragment fragment) {
     Preconditions.checkArgument(!(fragment instanceof CommonFragment));
-
-    if (fragment instanceof StackFragment) {
-      this.stackRowCounter++;
-    } else if (fragment instanceof TransactionFragment f) {
-      f.setParentSection(this);
-    } else {
-      this.nonStackRowCounter++;
-    }
-
     this.lines.add(new TraceLine(traceCommon(hub, callFrame), fragment));
   }
 
@@ -194,11 +185,9 @@ public abstract class TraceSection {
   /**
    * This method is called when the TraceSection is finished, to build required information
    * post-hoc.
-   *
-   * @param hub the linked {@link Hub} context
    */
-  public void seal(Hub hub) {
-    int nonStackLineNumbers =
+  public void seal() {
+    int numberOfNonStackRows =
         (int) this.lines.stream().filter(l -> !(l.specific instanceof StackFragment)).count();
     int nonStackLineCounter = 0;
     for (TraceLine line : this.lines) {
@@ -209,7 +198,7 @@ public abstract class TraceSection {
       // TODO: delete as both are computed in CommonFragment ...
       // line.common.pcNew();
       // line.common.contextNumberNew(hub.lastContextNumber());
-      line.common.numberOfNonStackRows(nonStackLineNumbers);
+      line.common.numberOfNonStackRows(numberOfNonStackRows);
     }
   }
 

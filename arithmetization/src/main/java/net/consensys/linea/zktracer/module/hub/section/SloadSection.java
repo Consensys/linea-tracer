@@ -54,8 +54,7 @@ public class SloadSection extends TraceSection {
 
     ContextFragment readCurrentContext = ContextFragment.readCurrentContextData(hub);
     ImcFragment miscFragmentForSload = ImcFragment.empty(hub);
-    StorageFragment doingSload =
-        doingSload(hub, address, storageKey, valueOriginal, valueCurrent);
+    StorageFragment doingSload = doingSload(hub, address, storageKey, valueOriginal, valueCurrent);
 
     sloadSection.addFragmentsAndStack(
         hub, hub.currentFrame(), readCurrentContext, miscFragmentForSload, doingSload);
@@ -69,14 +68,12 @@ public class SloadSection extends TraceSection {
           undoingSload(hub, address, storageKey, valueOriginal, valueCurrent);
 
       // TODO: make sure we trace a context when there is an exception
-      sloadSection.nonStackRowCounter = outOfGasException ? 5 : 4;
       sloadSection.addFragment(hub, hub.currentFrame(), undoingSload);
       hub.state.updateOrInsertStorageSlotOccurrence(storageSlotIdentifier, undoingSload);
       return;
     }
 
     hub.state.updateOrInsertStorageSlotOccurrence(storageSlotIdentifier, doingSload);
-    sloadSection.nonStackRows = 3;
   }
 
   private static StorageFragment doingSload(

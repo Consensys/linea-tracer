@@ -22,7 +22,4 @@ public class ContextLogSection extends TraceSection {
   public ContextLogSection(Hub hub, TraceFragment... chunks) {
     this.addFragmentsAndStack(hub, chunks);
   }
-
-  @Override
-  public void seal(Hub hub) {}
 }

@@ -51,7 +51,7 @@ public class SstoreSection extends TraceSection {
     Address address = hub.currentFrame().accountAddress();
     EWord key = EWord.of(hub.messageFrame().getStackItem(0));
     this.storageSlotIdentifier =
-            new State.StorageSlotIdentifier(address, hub.currentFrame().accountDeploymentNumber(), key);
+        new State.StorageSlotIdentifier(address, hub.currentFrame().accountDeploymentNumber(), key);
     this.valueCurrent = EWord.of(hub.messageFrame().getTransientStorageValue(address, key));
     this.valueNext = EWord.of(hub.messageFrame().getStackItem(1));
   }
@@ -65,7 +65,7 @@ public class SstoreSection extends TraceSection {
     final Address address = storageSlotIdentifier.getAddress();
     final EWord storageKey = storageSlotIdentifier.getStorageKey();
     final EWord valueOriginal =
-            hub.txStack().current().getStorage().getOriginalValueOrUpdate(address, storageKey);
+        hub.txStack().current().getStorage().getOriginalValueOrUpdate(address, storageKey);
     final EWord valueCurrent = sstoreSection.valueCurrent;
     final EWord valueNext = sstoreSection.valueNext;
 
@@ -75,12 +75,10 @@ public class SstoreSection extends TraceSection {
     final boolean contextWillRevert = hub.callStack().current().willRevert();
 
     ContextFragment readCurrentContext = ContextFragment.readCurrentContextData(hub);
-    sstoreSection.addFragmentsAndStack(
-            hub, hub.currentFrame(), readCurrentContext);
+    sstoreSection.addFragmentsAndStack(hub, hub.currentFrame(), readCurrentContext);
 
     // TODO: make sure we trace a context when there is an exception
     if (staticContextException) {
-      sstoreSection.nonStackRows = 2;
       return;
     }
 
@@ -89,59 +87,61 @@ public class SstoreSection extends TraceSection {
 
     // TODO: make sure we trace a context when there is an exception
     if (sstoreException) {
-      sstoreSection.nonStackRows = 3;
       return;
     }
 
     StorageFragment doingSstore =
-            doingSstore(hub, address, storageKey, valueOriginal, valueCurrent, valueNext);
+        doingSstore(hub, address, storageKey, valueOriginal, valueCurrent, valueNext);
     StorageFragment undoingSstore =
-            undoingSstore(hub, address, storageKey, valueOriginal, valueCurrent, valueNext);
+        undoingSstore(hub, address, storageKey, valueOriginal, valueCurrent, valueNext);
 
     sstoreSection.addFragment(hub, hub.currentFrame(), doingSstore);
 
     // TODO: make sure we trace a context when there is an exception (oogx case)
     if (outOfGasException || contextWillRevert) {
       sstoreSection.addFragment(hub, hub.currentFrame(), undoingSstore);
-      sstoreSection.nonStackRows = (short) (4 + (hub.pch().exceptions().any() ? 1 :0));
-      return;
     }
-
-    sstoreSection.nonStackRows = 3;
   }
 
   private static StorageFragment doingSstore(
-          Hub hub, Address address, EWord storageKey, EWord valueOriginal, EWord valueCurrent, EWord valueNext) {
+      Hub hub,
+      Address address,
+      EWord storageKey,
+      EWord valueOriginal,
+      EWord valueCurrent,
+      EWord valueNext) {
 
     return new StorageFragment(
-            hub.state,
-            new State.StorageSlotIdentifier(
-                    address, hub.currentFrame().accountDeploymentNumber(), storageKey),
-            valueOriginal,
-            valueCurrent,
-            valueNext,
-            hub.currentFrame().frame().isStorageWarm(address, storageKey),
-            true,
-            DomSubStampsSubFragment.standardDomSubStamps(hub, 0),
-            hub.state.firstAndLastStorageSlotOccurrences.size());
+        hub.state,
+        new State.StorageSlotIdentifier(
+            address, hub.currentFrame().accountDeploymentNumber(), storageKey),
+        valueOriginal,
+        valueCurrent,
+        valueNext,
+        hub.currentFrame().frame().isStorageWarm(address, storageKey),
+        true,
+        DomSubStampsSubFragment.standardDomSubStamps(hub, 0),
+        hub.state.firstAndLastStorageSlotOccurrences.size());
   }
 
   private static StorageFragment undoingSstore(
-          Hub hub, Address address, EWord storageKey, EWord valueOriginal, EWord valueCurrent, EWord valueNext) {
+      Hub hub,
+      Address address,
+      EWord storageKey,
+      EWord valueOriginal,
+      EWord valueCurrent,
+      EWord valueNext) {
 
     return new StorageFragment(
-            hub.state,
-            new State.StorageSlotIdentifier(
-                    address, hub.currentFrame().accountDeploymentNumber(), storageKey),
-            valueOriginal,
-            valueNext,
-            valueCurrent,
-            true,
-            hub.currentFrame().frame().isStorageWarm(address, storageKey),
-            DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 1),
-            hub.state.firstAndLastStorageSlotOccurrences.size());
+        hub.state,
+        new State.StorageSlotIdentifier(
+            address, hub.currentFrame().accountDeploymentNumber(), storageKey),
+        valueOriginal,
+        valueNext,
+        valueCurrent,
+        true,
+        hub.currentFrame().frame().isStorageWarm(address, storageKey),
+        DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 1),
+        hub.state.firstAndLastStorageSlotOccurrences.size());
   }
-
-  @Override
-  public void seal(Hub hub) {}
 }

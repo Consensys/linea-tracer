@@ -51,7 +51,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.*;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
 import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 import net.consensys.linea.zktracer.module.hub.section.*;
 import net.consensys.linea.zktracer.module.hub.section.calls.FailedCallSection;
@@ -189,7 +188,6 @@ public class Hub implements Module {
   }
 
   public void addTraceSection(TraceSection section) {
-    section.seal(this);
     this.state.currentTxTrace().add(section);
   }
 
@@ -1297,57 +1295,41 @@ public class Hub implements Module {
           case SSTORE -> {
             SstoreSection.appendSection(this);
             /**
-            final EWord valNext = EWord.of(frame.getStackItem(1));
-
-            // doing the SSTORE operation
-            final StorageFragment doingStorageFragment =
-                new StorageFragment(
-                    this.state,
-                    new State.StorageSlotIdentifier(
-                        address, this.currentFrame().accountDeploymentNumber(), key),
-                    this.txStack.current().getStorage().getOriginalValueOrUpdate(address, key),
-                    EWord.of(frame.getTransientStorageValue(address, key)),
-                    valNext,
-                    frame.isStorageWarm(address, key),
-                    true,
-                    DomSubStampsSubFragment.standardDomSubStamps(this, 0),
-                    this.state.firstAndLastStorageSlotOccurrences.size());
-
-            final SstoreSection SStoreSection =
-                new SstoreSection(
-                    this, ContextFragment.readCurrentContextData(this), doingStorageFragment);
-
-            // undoing the previous changes (value + warmth) if current context will revert
-            if (this.pch.exceptions().staticException()) {
-              // TODO: make sure that whenever we enounter an exception _of any kind_
-              //  we trace the final context row where we update the caller return data
-              //  to be empty.
-              SStoreSection.nonStackRows = 1 + 1;
-            } else if (this.callStack().current().willRevert()) {
-              SStoreSection.nonStackRows = (short) (1 + 2 + (this.pch.exceptions().any() ? 1 : 0));
-              final StorageFragment undoingStorageFragment =
-                  new StorageFragment(
-                      this.state,
-                      new State.StorageSlotIdentifier(
-                          address, this.currentFrame().accountDeploymentNumber(), key),
-                      this.txStack.current().getStorage().getOriginalValueOrUpdate(address, key),
-                      valNext,
-                      EWord.of(frame.getTransientStorageValue(address, key)),
-                      true,
-                      frame.isStorageWarm(address, key),
-                      DomSubStampsSubFragment.revertWithCurrentDomSubStamps(this, 1),
-                      this.state.firstAndLastStorageSlotOccurrences.size());
-
-              SStoreSection.addFragment(this, undoingStorageFragment);
-              state.updateOrInsertStorageSlotOccurrence(
-                  storageSlotIdentifier, undoingStorageFragment);
-            } else {
-              SStoreSection.nonStackRows = 1 + 1;
-              state.updateOrInsertStorageSlotOccurrence(
-                  storageSlotIdentifier, doingStorageFragment);
-            }
-
-            this.addTraceSection(SStoreSection);
+             * final EWord valNext = EWord.of(frame.getStackItem(1));
+             *
+             * <p>// doing the SSTORE operation final StorageFragment doingStorageFragment = new
+             * StorageFragment( this.state, new State.StorageSlotIdentifier( address,
+             * this.currentFrame().accountDeploymentNumber(), key),
+             * this.txStack.current().getStorage().getOriginalValueOrUpdate(address, key),
+             * EWord.of(frame.getTransientStorageValue(address, key)), valNext,
+             * frame.isStorageWarm(address, key), true,
+             * DomSubStampsSubFragment.standardDomSubStamps(this, 0),
+             * this.state.firstAndLastStorageSlotOccurrences.size());
+             *
+             * <p>final SstoreSection SStoreSection = new SstoreSection( this,
+             * ContextFragment.readCurrentContextData(this), doingStorageFragment);
+             *
+             * <p>// undoing the previous changes (value + warmth) if current context will revert if
+             * (this.pch.exceptions().staticException()) { // TODO: make sure that whenever we
+             * enounter an exception _of any kind_ // we trace the final context row where we update
+             * the caller return data // to be empty. SStoreSection.nonStackRows = 1 + 1; } else if
+             * (this.callStack().current().willRevert()) { SStoreSection.nonStackRows = (short) (1 +
+             * 2 + (this.pch.exceptions().any() ? 1 : 0)); final StorageFragment
+             * undoingStorageFragment = new StorageFragment( this.state, new
+             * State.StorageSlotIdentifier( address, this.currentFrame().accountDeploymentNumber(),
+             * key), this.txStack.current().getStorage().getOriginalValueOrUpdate(address, key),
+             * valNext, EWord.of(frame.getTransientStorageValue(address, key)), true,
+             * frame.isStorageWarm(address, key),
+             * DomSubStampsSubFragment.revertWithCurrentDomSubStamps(this, 1),
+             * this.state.firstAndLastStorageSlotOccurrences.size());
+             *
+             * <p>SStoreSection.addFragment(this, undoingStorageFragment);
+             * state.updateOrInsertStorageSlotOccurrence( storageSlotIdentifier,
+             * undoingStorageFragment); } else { SStoreSection.nonStackRows = 1 + 1;
+             * state.updateOrInsertStorageSlotOccurrence( storageSlotIdentifier,
+             * doingStorageFragment); }
+             *
+             * <p>this.addTraceSection(SStoreSection);
              */
           }
           case SLOAD -> {

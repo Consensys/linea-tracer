@@ -22,7 +22,4 @@ public class JumpSection extends TraceSection {
   public JumpSection(Hub hub, TraceFragment... chunks) {
     this.addFragmentsAndStack(hub, chunks);
   }
-
-  @Override
-  public void seal(Hub hub) {}
 }

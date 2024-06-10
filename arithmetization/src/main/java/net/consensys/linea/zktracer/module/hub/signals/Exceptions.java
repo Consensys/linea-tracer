@@ -160,11 +160,11 @@ public final class Exceptions {
         stackUnderflow,
         stackOverflow,
         outOfMemoryExpansion,
-            outOfGasException,
+        outOfGasException,
         returnDataCopyFault,
         jumpFault,
-            staticException,
-            sstoreException,
+        staticException,
+        sstoreException,
         invalidCodePrefix,
         codeSizeOverflow);
   }

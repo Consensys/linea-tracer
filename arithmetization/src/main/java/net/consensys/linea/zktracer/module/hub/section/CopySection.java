@@ -22,7 +22,4 @@ public class CopySection extends TraceSection {
   public CopySection(Hub hub, TraceFragment... chunks) {
     this.addFragmentsAndStack(hub, chunks);
   }
-
-  @Override
-  public void seal(Hub hub) {}
 }

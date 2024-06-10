@@ -22,7 +22,4 @@ public class AccountSection extends TraceSection {
   public AccountSection(Hub hub, TraceFragment... chunks) {
     this.addFragmentsAndStack(hub, chunks);
   }
-
-  @Override
-  public void seal(Hub hub) {}
 }

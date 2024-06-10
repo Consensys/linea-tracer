@@ -22,7 +22,4 @@ public class StackOnlySection extends TraceSection {
   public StackOnlySection(Hub hub, TraceFragment... chunks) {
     this.addFragmentsAndStack(hub, chunks);
   }
-
-  @Override
-  public void seal(Hub hub) {}
 }

@@ -20,6 +20,7 @@ import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
+import net.consensys.linea.zktracer.opcode.gas.projector.Call;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
@@ -35,7 +36,7 @@ public record ContextFragment(
     // Left: callFrameId, Right: contextNumber
     Either<Integer, Integer> callFrameReference,
     MemorySpan returnDataSegment,
-    boolean updateCallerReturndata)
+    boolean updateReturnData)
     implements TraceFragment {
 
   public static ContextFragment readContextDataByContextNumber(
@@ -127,8 +128,9 @@ public record ContextFragment(
             : hub.getCfiByMetaData(
                 Words.toAddress(codeAddress),
                 callFrame.codeDeploymentNumber(),
-                callFrame.underDeployment());
+                callFrame.isDeployment());
 
+    hub.callStack().parent().returnDataContextNumber();
     return trace
         .peekAtContext(true)
         .pContextContextNumber(callFrame.contextNumber())
@@ -141,7 +143,7 @@ public record ContextFragment(
         .pContextByteCodeAddressHi(highPart(codeAddress))
         .pContextByteCodeAddressLo(lowPart(codeAddress))
         .pContextByteCodeDeploymentNumber(callFrame.codeDeploymentNumber())
-        .pContextByteCodeDeploymentStatus(callFrame.underDeployment() ? 1 : 0)
+        .pContextByteCodeDeploymentStatus(callFrame.isDeployment() ? 1 : 0)
         .pContextByteCodeCodeFragmentIndex(cfi)
         .pContextCallerAddressHi(highPart(callerAddress))
         .pContextCallerAddressLo(lowPart(callerAddress))
@@ -151,7 +153,7 @@ public record ContextFragment(
         .pContextCallDataSize(callFrame.callDataInfo().memorySpan().length())
         .pContextReturnAtOffset(callFrame.requestedReturnDataTarget().offset())
         .pContextReturnAtCapacity(callFrame.requestedReturnDataTarget().length())
-        .pContextUpdate(updateCallerReturndata)
+        .pContextUpdate(updateReturnData)
         .pContextReturnDataContextNumber(
             callFrame.id() == 0
                 ? callFrame.universalParentReturnDataContextNumber

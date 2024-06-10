@@ -99,7 +99,7 @@ public class MxpData extends ModuleOperation {
     this.wordsNew = frame.memoryWordSize();
     this.cMem = memoryCost(frame.memoryWordSize());
     this.cMemNew = memoryCost(frame.memoryWordSize());
-    this.deploys = hub.currentFrame().underDeployment();
+    this.deploys = hub.currentFrame().isDeployment();
 
     setOffsetsAndSizes(frame);
     setRoob();

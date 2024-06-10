@@ -1409,8 +1409,8 @@ public class Hub implements Module {
         }
       }
       case CREATE -> {
-        Address myAddress = this.currentFrame().address();
-        Account myAccount = frame.getWorldUpdater().get(myAddress);
+        final Address myAddress = this.currentFrame().address();
+        final Account myAccount = frame.getWorldUpdater().get(myAddress);
         AccountSnapshot myAccountSnapshot =
             AccountSnapshot.fromAccount(
                 myAccount,
@@ -1418,8 +1418,8 @@ public class Hub implements Module {
                 this.transients.conflation().deploymentInfo().number(myAddress),
                 this.transients.conflation().deploymentInfo().isDeploying(myAddress));
 
-        Address createdAddress = AddressUtils.getCreateAddress(frame);
-        Account createdAccount = frame.getWorldUpdater().get(createdAddress);
+        final Address createdAddress = AddressUtils.getCreateAddress(frame);
+        final Account createdAccount = frame.getWorldUpdater().get(createdAddress);
         AccountSnapshot createdAccountSnapshot =
             AccountSnapshot.fromAccount(
                 createdAccount,

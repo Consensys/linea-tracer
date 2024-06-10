@@ -173,14 +173,14 @@ public class CreateSection extends TraceSection
                     EWord.ZERO,
                     false,
                     oldCreatedSnapshot.isWarm(),
-                    this.exceptions.outOfGas(),
+                    this.exceptions.outOfGasException(),
                     upfrontCost,
                     allButOneSixtyFourth(this.initialGas - upfrontCost),
                     0));
 
     this.scenarioFragment.runPostTx(hub, state, tx, isSuccessful);
     this.addFragmentsWithoutStack(hub, scenarioFragment);
-    if (this.exceptions.staticFault()) {
+    if (this.exceptions.staticException()) {
       this.addFragmentsWithoutStack(
           hub,
           ImcFragment.empty(hub),
@@ -191,7 +191,7 @@ public class CreateSection extends TraceSection
           hub,
           ImcFragment.empty(hub).callMxp(MxpCall.build(hub)),
           ContextFragment.executionProvidesEmptyReturnData(hub));
-    } else if (this.exceptions.outOfGas()) {
+    } else if (this.exceptions.outOfGasException()) {
       this.addFragmentsWithoutStack(
           hub, commonImcFragment, ContextFragment.executionProvidesEmptyReturnData(hub));
     } else if (this.aborts.any()) {

@@ -1295,6 +1295,8 @@ public class Hub implements Module {
 
         switch (this.currentFrame().opCode()) {
           case SSTORE -> {
+            SstoreSection.appendSection(this);
+            /**
             final EWord valNext = EWord.of(frame.getStackItem(1));
 
             // doing the SSTORE operation
@@ -1316,7 +1318,7 @@ public class Hub implements Module {
                     this, ContextFragment.readCurrentContextData(this), doingStorageFragment);
 
             // undoing the previous changes (value + warmth) if current context will revert
-            if (this.pch.exceptions().staticFault()) {
+            if (this.pch.exceptions().staticException()) {
               // TODO: make sure that whenever we enounter an exception _of any kind_
               //  we trace the final context row where we update the caller return data
               //  to be empty.
@@ -1346,6 +1348,7 @@ public class Hub implements Module {
             }
 
             this.addTraceSection(SStoreSection);
+             */
           }
           case SLOAD -> {
             SloadSection.appendSection(this);
@@ -1407,7 +1410,7 @@ public class Hub implements Module {
           //
           // THERE IS AN EXCEPTION
           //
-          if (this.pch().exceptions().staticFault()) {
+          if (this.pch().exceptions().staticException()) {
             this.addTraceSection(
                 new FailedCallSection(
                     this,
@@ -1420,7 +1423,7 @@ public class Hub implements Module {
                     this,
                     ScenarioFragment.forCall(this, hasCode),
                     ImcFragment.forCall(this, myAccount, calledAccount)));
-          } else if (this.pch().exceptions().outOfGas()) {
+          } else if (this.pch().exceptions().outOfGasException()) {
             this.addTraceSection(
                 new FailedCallSection(
                     this,

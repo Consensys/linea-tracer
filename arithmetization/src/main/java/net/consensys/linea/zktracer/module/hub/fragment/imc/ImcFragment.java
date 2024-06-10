@@ -155,7 +155,7 @@ public class ImcFragment implements TraceFragment {
               calledAccount
                   .map(a -> hub.messageFrame().isAddressWarm(a.getAddress()))
                   .orElse(false),
-              hub.pch().exceptions().outOfGas(),
+              hub.pch().exceptions().outOfGasException(),
               upfrontCost,
               Math.max(
                   Words.unsignedMin(

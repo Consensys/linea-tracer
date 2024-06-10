@@ -16,51 +16,130 @@
 package net.consensys.linea.zktracer.module.hub.section;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
+import net.consensys.linea.zktracer.module.hub.State;
+import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
+import net.consensys.linea.zktracer.types.EWord;
+import org.hyperledger.besu.datatypes.Address;
 
 public class SstoreSection extends TraceSection {
 
+  final Hub hub;
+  final State.StorageSlotIdentifier storageSlotIdentifier;
+  final EWord valueCurrent;
+  final EWord valueNext;
+
   public static void appendTo(Hub hub) {
 
-    if (hub.pch().exceptions().staticFault()) {
+    if (hub.pch().exceptions().staticException()) {
       // static exception SSTORE section
-      hub.addTraceSection(staticxSstoreSection(hub));
-    } else if (hub.pch().exceptions().outOfGas()) {
+    } else if (hub.pch().exceptions().sstoreException()) {
+      // SSTORE specific exception (avaible gas <= G_callstipend = 2300)
+    } else if (hub.pch().exceptions().outOfGasException()) {
       // out of gas exception SSTORE section
-      hub.addTraceSection(oogxSstoreSection(hub));
     } else if (hub.callStack().current().willRevert()) {
       // reverted SSTORE section
-      hub.addTraceSection(revertedSstoreSection(hub));
     } else {
       // reverted SSTORE section
-      hub.addTraceSection(unrevertedSstoreSection(hub));
     }
   }
 
-  private SstoreSection() {}
-
-  private static SstoreSection staticxSstoreSection(Hub hub) {
-    return new SstoreSection();
+  private SstoreSection(Hub hub) {
+    this.hub = hub;
+    Address address = hub.currentFrame().accountAddress();
+    EWord key = EWord.of(hub.messageFrame().getStackItem(0));
+    this.storageSlotIdentifier =
+            new State.StorageSlotIdentifier(address, hub.currentFrame().accountDeploymentNumber(), key);
+    this.valueCurrent = EWord.of(hub.messageFrame().getTransientStorageValue(address, key));
+    this.valueNext = EWord.of(hub.messageFrame().getStackItem(1));
   }
 
-  private static SstoreSection oogxSstoreSection(Hub hub) {
-    return new SstoreSection();
+  public static void appendSection(Hub hub) {
+
+    final SstoreSection sstoreSection = new SstoreSection(hub);
+    hub.addTraceSection(sstoreSection);
+
+    final State.StorageSlotIdentifier storageSlotIdentifier = sstoreSection.storageSlotIdentifier;
+    final Address address = storageSlotIdentifier.getAddress();
+    final EWord storageKey = storageSlotIdentifier.getStorageKey();
+    final EWord valueOriginal =
+            hub.txStack().current().getStorage().getOriginalValueOrUpdate(address, storageKey);
+    final EWord valueCurrent = sstoreSection.valueCurrent;
+    final EWord valueNext = sstoreSection.valueNext;
+
+    final boolean staticContextException = hub.pch().exceptions().staticException();
+    final boolean sstoreException = hub.pch().exceptions().sstoreException();
+    final boolean outOfGasException = hub.pch().exceptions().outOfGasException();
+    final boolean contextWillRevert = hub.callStack().current().willRevert();
+
+    ContextFragment readCurrentContext = ContextFragment.readCurrentContextData(hub);
+    sstoreSection.addFragmentsAndStack(
+            hub, hub.currentFrame(), readCurrentContext);
+
+    // TODO: make sure we trace a context when there is an exception
+    if (staticContextException) {
+      sstoreSection.nonStackRows = 2;
+      return;
+    }
+
+    ImcFragment miscForSstore = ImcFragment.forOpcode(hub, hub.messageFrame());
+    sstoreSection.addFragment(hub, hub.currentFrame(), miscForSstore);
+
+    // TODO: make sure we trace a context when there is an exception
+    if (sstoreException) {
+      sstoreSection.nonStackRows = 3;
+      return;
+    }
+
+    StorageFragment doingSstore =
+            doingSstore(hub, address, storageKey, valueOriginal, valueCurrent, valueNext);
+    StorageFragment undoingSstore =
+            undoingSstore(hub, address, storageKey, valueOriginal, valueCurrent, valueNext);
+
+    sstoreSection.addFragment(hub, hub.currentFrame(), doingSstore);
+
+    // TODO: make sure we trace a context when there is an exception (oogx case)
+    if (outOfGasException || contextWillRevert) {
+      sstoreSection.addFragment(hub, hub.currentFrame(), undoingSstore);
+      sstoreSection.nonStackRows = (short) (4 + (hub.pch().exceptions().any() ? 1 :0));
+      return;
+    }
+
+    sstoreSection.nonStackRows = 3;
   }
 
-  private static SstoreSection revertedSstoreSection(Hub hub) {
-    return new SstoreSection();
+  private static StorageFragment doingSstore(
+          Hub hub, Address address, EWord storageKey, EWord valueOriginal, EWord valueCurrent, EWord valueNext) {
+
+    return new StorageFragment(
+            hub.state,
+            new State.StorageSlotIdentifier(
+                    address, hub.currentFrame().accountDeploymentNumber(), storageKey),
+            valueOriginal,
+            valueCurrent,
+            valueNext,
+            hub.currentFrame().frame().isStorageWarm(address, storageKey),
+            true,
+            DomSubStampsSubFragment.standardDomSubStamps(hub, 0),
+            hub.state.firstAndLastStorageSlotOccurrences.size());
   }
 
-  private static SstoreSection unrevertedSstoreSection(Hub hub) {
-    return new SstoreSection();
-  }
+  private static StorageFragment undoingSstore(
+          Hub hub, Address address, EWord storageKey, EWord valueOriginal, EWord valueCurrent, EWord valueNext) {
 
-  public SstoreSection(Hub hub, final TraceFragment... chunks) {
-    this.addFragmentsAndStack(hub, chunks);
-  }
-
-  public void addFragment(Hub hub, final TraceFragment fragment) {
-    this.addFragmentsWithoutStack(hub, fragment);
+    return new StorageFragment(
+            hub.state,
+            new State.StorageSlotIdentifier(
+                    address, hub.currentFrame().accountDeploymentNumber(), storageKey),
+            valueOriginal,
+            valueNext,
+            valueCurrent,
+            true,
+            hub.currentFrame().frame().isStorageWarm(address, storageKey),
+            DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 1),
+            hub.state.firstAndLastStorageSlotOccurrences.size());
   }
 
   @Override

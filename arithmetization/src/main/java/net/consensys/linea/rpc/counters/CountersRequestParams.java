@@ -16,13 +16,15 @@
 package net.consensys.linea.rpc.counters;
 
 import java.security.InvalidParameterException;
+import java.util.Map;
 
+import net.consensys.linea.rpc.Converters;
 import net.consensys.linea.zktracer.ZkTracer;
 
 /** Holds needed parameters for sending an execution trace generation request. */
 @SuppressWarnings("unused")
-public record CountersRequestParams(long blockNumber, String runtimeVersion) {
-  private static final int EXPECTED_PARAMS_SIZE = 2;
+public record CountersRequestParams(long blockNumber, String expectedTracesEngineVersion) {
+  private static final int EXPECTED_PARAMS_SIZE = 1;
 
   /**
    * Parses a list of params to a {@link CountersRequestParams} object.
@@ -34,11 +36,14 @@ public record CountersRequestParams(long blockNumber, String runtimeVersion) {
     // validate params size
     if (params.length != EXPECTED_PARAMS_SIZE) {
       throw new InvalidParameterException(
-          String.format("Expected %d parameters but got %d", EXPECTED_PARAMS_SIZE, params.length));
+          "Expected a single params object in the params array but got %d"
+              .formatted(params.length));
     }
 
-    long blockNumber = Long.parseLong(params[0].toString());
-    String version = params[1].toString();
+    final Map<String, Object> countersParams = Converters.objectToMap(params[0]);
+
+    final long blockNumber = (long) countersParams.get("blockNumber");
+    final String version = countersParams.get("expectedTracesEngineVersion").toString();
 
     if (!version.equals(getTracerRuntime())) {
       throw new InvalidParameterException(

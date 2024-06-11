@@ -20,6 +20,7 @@ import java.util.Map;
 import com.google.common.base.Stopwatch;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.ethereum.api.jsonrpc.internal.response.RpcErrorType;
@@ -30,29 +31,21 @@ import org.hyperledger.besu.plugin.services.rpc.PluginRpcRequest;
 
 /** This class is used to generate trace counters. */
 @Slf4j
-public class GenerateCountersV0 {
+@RequiredArgsConstructor
+public class GenerateCountersV2 {
   private static final int CACHE_SIZE = 10_000;
-  static final Cache<Long, Map<String, Integer>> cache =
+  private static final Cache<Long, Map<String, Integer>> CACHE =
       CacheBuilder.newBuilder().maximumSize(CACHE_SIZE).build();
 
   private final BesuContext besuContext;
   private TraceService traceService;
-
-  /**
-   * Constructor for RollupGenerateCountersV0.
-   *
-   * @param besuContext the BesuContext to be used.
-   */
-  public GenerateCountersV0(final BesuContext besuContext) {
-    this.besuContext = besuContext;
-  }
 
   public String getNamespace() {
     return "rollup";
   }
 
   public String getName() {
-    return "getTracesCountersByBlockNumberV0";
+    return "getBlockTracesCountersV2";
   }
 
   /**
@@ -78,9 +71,9 @@ public class GenerateCountersV0 {
 
       final Counters r =
           new Counters(
-              params.runtimeVersion(),
+              params.expectedTracesEngineVersion(),
               requestedBlockNumber,
-              cache
+              CACHE
                   .asMap()
                   .computeIfAbsent(
                       requestedBlockNumber,

@@ -59,6 +59,8 @@ dependencies {
   implementation 'io.tmio:tuweni-units'
   implementation 'io.tmio:tuweni-toml'
 
+  implementation 'commons-beanutils:commons-beanutils'
+
   implementation 'org.bouncycastle:bcprov-jdk18on'
   implementation 'org.hibernate.validator:hibernate-validator'
 

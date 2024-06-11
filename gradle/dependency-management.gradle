@@ -16,7 +16,9 @@
 repositories {
   maven {
     url "https://artifacts.consensys.net/public/linea-besu/maven/"
-    content { includeGroupByRegex('io\\.consensys\\..*') }
+    content {
+      includeGroupByRegex('io\\.consensys\\..*')
+    }
   }
   maven {
     url 'https://hyperledger.jfrog.io/hyperledger/besu-maven'
@@ -67,6 +69,7 @@ dependencyManagement {
 
     dependency 'commons-io:commons-io:2.11.0'
     dependency 'org.apache.commons:commons-lang3:3.13.0'
+    dependency 'commons-beanutils:commons-beanutils:1.9.4'
     dependency 'com.google.guava:guava:32.1.2-jre'
 
     // Besu dependencies

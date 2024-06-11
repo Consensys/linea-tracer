@@ -20,6 +20,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import com.google.common.base.Stopwatch;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.ethereum.api.jsonrpc.internal.response.RpcErrorType;
@@ -36,21 +37,18 @@ import org.hyperledger.besu.plugin.services.rpc.PluginRpcRequest;
  * based on the provided request parameters and writes them to a file.
  */
 @Slf4j
-public class GenerateConflatedTracesV0 {
+@RequiredArgsConstructor
+public class GenerateConflatedTracesV2 {
   private final BesuContext besuContext;
   private Path tracesPath;
   private TraceService traceService;
-
-  public GenerateConflatedTracesV0(final BesuContext besuContext) {
-    this.besuContext = besuContext;
-  }
 
   public String getNamespace() {
     return "rollup";
   }
 
   public String getName() {
-    return "generateConflatedTracesToFileV0";
+    return "generateConflatedTracesToFileV2";
   }
 
   /**
@@ -71,8 +69,8 @@ public class GenerateConflatedTracesV0 {
     try {
       TraceRequestParams params = TraceRequestParams.createTraceParams(request.getParams());
 
-      final long fromBlock = params.fromBlock();
-      final long toBlock = params.toBlock();
+      final long fromBlock = params.startBlockNumber();
+      final long toBlock = params.endBlockNumber();
       final ZkTracer tracer = new ZkTracer();
       traceService.trace(
           fromBlock,
@@ -82,9 +80,9 @@ public class GenerateConflatedTracesV0 {
           tracer);
       log.info("[TRACING] trace for {}-{} computed in {}", fromBlock, toBlock, sw);
       sw.reset().start();
-      final String path = writeTraceToFile(tracer, params.runtimeVersion());
+      final String path = writeTraceToFile(tracer, params.expectedTracesEngineVersion());
       log.info("[TRACING] trace for {}-{} serialized to {} in {}", path, toBlock, fromBlock, sw);
-      return new TraceFile(params.runtimeVersion(), path);
+      return new TraceFile(params.expectedTracesEngineVersion(), path);
     } catch (Exception ex) {
       throw new PluginRpcEndpointException(RpcErrorType.PLUGIN_INTERNAL_ERROR, ex.getMessage());
     }

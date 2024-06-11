@@ -287,7 +287,8 @@ public class TxndataOperation extends ModuleOperation {
     this.setRlptxnValues();
     this.setRlptxrcptValues();
 
-    final boolean isLastTxOfTheBlock = tx.getRelativeBlockNumber() == block.getNbOfTxsInBlock();
+    final boolean isLastTxOfTheBlock =
+        tx.getRelativeTransactionNumber() == block.getNbOfTxsInBlock();
     if (isLastTxOfTheBlock) {
       this.valuesToRlptxn.add(RlptxnOutgoing.empty());
       this.valuesToRlpTxrcpt.add(RlptxrcptOutgoing.emptyValue());

@@ -23,8 +23,6 @@ import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
-import static net.consensys.linea.zktracer.module.hub.Trace.MULTIPLIER___STACK_HEIGHT;
-
 public class Stack {
   public static final int MAX_STACK_SIZE = 1024;
 
@@ -60,7 +58,9 @@ public class Stack {
 
   private void oneZero(MessageFrame frame, StackContext pending) {
     Bytes val = getStack(frame, 0);
-    pending.addLine(new IndexedStackOperation(1, StackOperation.pop(this.height, val, stackStampWithOffset(0))));
+    pending.addLine(
+        new IndexedStackOperation(
+            1, StackOperation.pop(this.height, val, stackStampWithOffset(0))));
   }
 
   private void twoZero(MessageFrame frame, StackContext pending) {
@@ -68,13 +68,16 @@ public class Stack {
     Bytes val2 = getStack(frame, 1);
 
     pending.addLine(
-        new IndexedStackOperation(1, StackOperation.pop(this.height, val1, stackStampWithOffset(0))),
-        new IndexedStackOperation(2, StackOperation.pop(this.height, val2, stackStampWithOffset(1))));
+        new IndexedStackOperation(
+            1, StackOperation.pop(this.height, val1, stackStampWithOffset(0))),
+        new IndexedStackOperation(
+            2, StackOperation.pop(this.height, val2, stackStampWithOffset(1))));
   }
 
   private void zeroOne(MessageFrame ignoredFrame, StackContext pending) {
     pending.addArmingLine(
-        new IndexedStackOperation(4, StackOperation.push(this.height + 1, stackStampWithOffset(0))));
+        new IndexedStackOperation(
+            4, StackOperation.push(this.height + 1, stackStampWithOffset(0))));
   }
 
   private void oneOne(MessageFrame frame, StackContext pending) {
@@ -90,9 +93,12 @@ public class Stack {
     Bytes val2 = getStack(frame, 1);
 
     pending.addArmingLine(
-        new IndexedStackOperation(1, StackOperation.pop(this.height, val1, stackStampWithOffset(0))),
-        new IndexedStackOperation(2, StackOperation.pop(this.height - 1, val2, stackStampWithOffset(1))),
-        new IndexedStackOperation(4, StackOperation.push(this.height - 1, stackStampWithOffset(2))));
+        new IndexedStackOperation(
+            1, StackOperation.pop(this.height, val1, stackStampWithOffset(0))),
+        new IndexedStackOperation(
+            2, StackOperation.pop(this.height - 1, val2, stackStampWithOffset(1))),
+        new IndexedStackOperation(
+            4, StackOperation.push(this.height - 1, stackStampWithOffset(2))));
   }
 
   private void threeOne(MessageFrame frame, StackContext pending) {
@@ -101,10 +107,14 @@ public class Stack {
     Bytes val3 = getStack(frame, 2);
 
     pending.addArmingLine(
-        new IndexedStackOperation(1, StackOperation.pop(this.height, val1, stackStampWithOffset(0))),
-        new IndexedStackOperation(2, StackOperation.pop(this.height - 1, val2, stackStampWithOffset(1))),
-        new IndexedStackOperation(3, StackOperation.pop(this.height - 2, val3, stackStampWithOffset(2))),
-        new IndexedStackOperation(4, StackOperation.push(this.height - 2, stackStampWithOffset(3))));
+        new IndexedStackOperation(
+            1, StackOperation.pop(this.height, val1, stackStampWithOffset(0))),
+        new IndexedStackOperation(
+            2, StackOperation.pop(this.height - 1, val2, stackStampWithOffset(1))),
+        new IndexedStackOperation(
+            3, StackOperation.pop(this.height - 2, val3, stackStampWithOffset(2))),
+        new IndexedStackOperation(
+            4, StackOperation.push(this.height - 2, stackStampWithOffset(3))));
   }
 
   private void loadStore(MessageFrame frame, StackContext pending) {
@@ -113,13 +123,16 @@ public class Stack {
       Bytes val2 = getStack(frame, 1);
 
       pending.addLine(
-          new IndexedStackOperation(1, StackOperation.pop(this.height, val1, stackStampWithOffset(0))),
-          new IndexedStackOperation(4, StackOperation.pop(this.height - 1, val2, stackStampWithOffset(1))));
+          new IndexedStackOperation(
+              1, StackOperation.pop(this.height, val1, stackStampWithOffset(0))),
+          new IndexedStackOperation(
+              4, StackOperation.pop(this.height - 1, val2, stackStampWithOffset(1))));
     } else {
       Bytes val = getStack(frame, 0);
 
       pending.addArmingLine(
-          new IndexedStackOperation(1, StackOperation.pop(this.height, val, stackStampWithOffset(0))),
+          new IndexedStackOperation(
+              1, StackOperation.pop(this.height, val, stackStampWithOffset(0))),
           new IndexedStackOperation(4, StackOperation.push(this.height, stackStampWithOffset(1))));
     }
   }
@@ -129,9 +142,12 @@ public class Stack {
     Bytes val = getStack(frame, depth);
 
     pending.addLine(
-        new IndexedStackOperation(1, StackOperation.pop(this.height - depth, val, stackStampWithOffset(0))),
-        new IndexedStackOperation( 2, StackOperation.pushImmediate(this.height - depth, val, stackStampWithOffset(1))),
-        new IndexedStackOperation( 4, StackOperation.pushImmediate(this.height + 1, val, stackStampWithOffset(2))));
+        new IndexedStackOperation(
+            1, StackOperation.pop(this.height - depth, val, stackStampWithOffset(0))),
+        new IndexedStackOperation(
+            2, StackOperation.pushImmediate(this.height - depth, val, stackStampWithOffset(1))),
+        new IndexedStackOperation(
+            4, StackOperation.pushImmediate(this.height + 1, val, stackStampWithOffset(2))));
   }
 
   private void swap(MessageFrame frame, StackContext pending) {
@@ -140,10 +156,14 @@ public class Stack {
     Bytes val2 = getStack(frame, depth);
 
     pending.addLine(
-        new IndexedStackOperation(1, StackOperation.pop(this.height - depth, val1, stackStampWithOffset(0))),
-        new IndexedStackOperation(2, StackOperation.pop(this.height, val2, stackStampWithOffset(1))),
-        new IndexedStackOperation( 3, StackOperation.pushImmediate(this.height - depth, val2, stackStampWithOffset(2))),
-        new IndexedStackOperation( 4, StackOperation.pushImmediate(this.height, val1, stackStampWithOffset(3))));
+        new IndexedStackOperation(
+            1, StackOperation.pop(this.height - depth, val1, stackStampWithOffset(0))),
+        new IndexedStackOperation(
+            2, StackOperation.pop(this.height, val2, stackStampWithOffset(1))),
+        new IndexedStackOperation(
+            3, StackOperation.pushImmediate(this.height - depth, val2, stackStampWithOffset(2))),
+        new IndexedStackOperation(
+            4, StackOperation.pushImmediate(this.height, val1, stackStampWithOffset(3))));
   }
 
   private void log(MessageFrame frame, StackContext pending) {
@@ -152,8 +172,10 @@ public class Stack {
 
     // Stack line 1
     pending.addLine(
-        new IndexedStackOperation(1, StackOperation.pop(this.height, offset, stackStampWithOffset(0))),
-        new IndexedStackOperation(2, StackOperation.pop(this.height - 1, size, stackStampWithOffset(1))));
+        new IndexedStackOperation(
+            1, StackOperation.pop(this.height, offset, stackStampWithOffset(0))),
+        new IndexedStackOperation(
+            2, StackOperation.pop(this.height - 1, size, stackStampWithOffset(1))));
 
     // Stack line 2
     IndexedStackOperation[] line2 = new IndexedStackOperation[] {};
@@ -163,7 +185,9 @@ public class Stack {
         Bytes topic1 = getStack(frame, 2);
 
         line2 =
-            new IndexedStackOperation[] { new IndexedStackOperation( 1, StackOperation.pop(this.height - 2, topic1, stackStampWithOffset(0))),
+            new IndexedStackOperation[] {
+              new IndexedStackOperation(
+                  1, StackOperation.pop(this.height - 2, topic1, stackStampWithOffset(0))),
             };
       }
       case LOG2 -> {
@@ -172,8 +196,10 @@ public class Stack {
 
         line2 =
             new IndexedStackOperation[] {
-              new IndexedStackOperation( 1, StackOperation.pop(this.height - 2, topic1, stackStampWithOffset(2))),
-              new IndexedStackOperation( 2, StackOperation.pop(this.height - 3, topic2, stackStampWithOffset(3))),
+              new IndexedStackOperation(
+                  1, StackOperation.pop(this.height - 2, topic1, stackStampWithOffset(2))),
+              new IndexedStackOperation(
+                  2, StackOperation.pop(this.height - 3, topic2, stackStampWithOffset(3))),
             };
       }
       case LOG3 -> {
@@ -183,9 +209,12 @@ public class Stack {
 
         line2 =
             new IndexedStackOperation[] {
-              new IndexedStackOperation( 1, StackOperation.pop(this.height - 2, topic1, stackStampWithOffset(2))),
-              new IndexedStackOperation( 2, StackOperation.pop(this.height - 3, topic2, stackStampWithOffset(3))),
-              new IndexedStackOperation( 3, StackOperation.pop(this.height - 4, topic3, stackStampWithOffset(4))),
+              new IndexedStackOperation(
+                  1, StackOperation.pop(this.height - 2, topic1, stackStampWithOffset(2))),
+              new IndexedStackOperation(
+                  2, StackOperation.pop(this.height - 3, topic2, stackStampWithOffset(3))),
+              new IndexedStackOperation(
+                  3, StackOperation.pop(this.height - 4, topic3, stackStampWithOffset(4))),
             };
       }
       case LOG4 -> {
@@ -196,10 +225,14 @@ public class Stack {
 
         line2 =
             new IndexedStackOperation[] {
-              new IndexedStackOperation( 1, StackOperation.pop(this.height - 2, topic1, stackStampWithOffset(2))),
-              new IndexedStackOperation( 2, StackOperation.pop(this.height - 3, topic2, stackStampWithOffset(3))),
-              new IndexedStackOperation( 3, StackOperation.pop(this.height - 4, topic3, stackStampWithOffset(4))),
-              new IndexedStackOperation( 4, StackOperation.pop(this.height - 5, topic4, stackStampWithOffset(5))),
+              new IndexedStackOperation(
+                  1, StackOperation.pop(this.height - 2, topic1, stackStampWithOffset(2))),
+              new IndexedStackOperation(
+                  2, StackOperation.pop(this.height - 3, topic2, stackStampWithOffset(3))),
+              new IndexedStackOperation(
+                  3, StackOperation.pop(this.height - 4, topic3, stackStampWithOffset(4))),
+              new IndexedStackOperation(
+                  4, StackOperation.pop(this.height - 5, topic4, stackStampWithOffset(5))),
             };
       }
       default -> throw new RuntimeException("not a LOGx");
@@ -215,9 +248,12 @@ public class Stack {
       Bytes val3 = getStack(frame, 3);
 
       pending.addLine(
-          new IndexedStackOperation(1, StackOperation.pop(this.height - 1, val1, stackStampWithOffset(1))),
-          new IndexedStackOperation(2, StackOperation.pop(this.height - 3, val3, stackStampWithOffset(2))),
-          new IndexedStackOperation(3, StackOperation.pop(this.height - 2, val2, stackStampWithOffset(3))),
+          new IndexedStackOperation(
+              1, StackOperation.pop(this.height - 1, val1, stackStampWithOffset(1))),
+          new IndexedStackOperation(
+              2, StackOperation.pop(this.height - 3, val3, stackStampWithOffset(2))),
+          new IndexedStackOperation(
+              3, StackOperation.pop(this.height - 2, val2, stackStampWithOffset(3))),
           new IndexedStackOperation(4, StackOperation.pop(this.height, val0, this.stamp)));
     } else {
       Bytes val1 = getStack(frame, 0);
@@ -225,9 +261,12 @@ public class Stack {
       Bytes val3 = getStack(frame, 1);
 
       pending.addLine(
-          new IndexedStackOperation(1, StackOperation.pop(this.height, val1, stackStampWithOffset(1))),
-          new IndexedStackOperation(2, StackOperation.pop(this.height - 2, val2, stackStampWithOffset(2))),
-          new IndexedStackOperation(3, StackOperation.pop(this.height - 1, val3, stackStampWithOffset(3))));
+          new IndexedStackOperation(
+              1, StackOperation.pop(this.height, val1, stackStampWithOffset(1))),
+          new IndexedStackOperation(
+              2, StackOperation.pop(this.height - 2, val2, stackStampWithOffset(2))),
+          new IndexedStackOperation(
+              3, StackOperation.pop(this.height - 1, val3, stackStampWithOffset(3))));
     }
   }
 
@@ -246,27 +285,41 @@ public class Stack {
       Bytes val7 = getStack(frame, 6);
 
       pending.addLine(
-          new IndexedStackOperation(1, StackOperation.pop(this.height - 3, val4, stackStampWithOffset(3))),
-          new IndexedStackOperation(2, StackOperation.pop(this.height - 4, val5, stackStampWithOffset(4))),
-          new IndexedStackOperation(3, StackOperation.pop(this.height - 5, val6, stackStampWithOffset(5))),
-          new IndexedStackOperation(4, StackOperation.pop(this.height - 6, val7, stackStampWithOffset(6))));
+          new IndexedStackOperation(
+              1, StackOperation.pop(this.height - 3, val4, stackStampWithOffset(3))),
+          new IndexedStackOperation(
+              2, StackOperation.pop(this.height - 4, val5, stackStampWithOffset(4))),
+          new IndexedStackOperation(
+              3, StackOperation.pop(this.height - 5, val6, stackStampWithOffset(5))),
+          new IndexedStackOperation(
+              4, StackOperation.pop(this.height - 6, val7, stackStampWithOffset(6))));
       pending.addArmingLine(
-          new IndexedStackOperation(1, StackOperation.pop(this.height, val1, stackStampWithOffset(0))),
-          new IndexedStackOperation(2, StackOperation.pop(this.height - 1, val2, stackStampWithOffset(1))),
-          new IndexedStackOperation(3, StackOperation.pop(this.height - 2, val3, stackStampWithOffset(2))),
-          new IndexedStackOperation(4, StackOperation.push(this.height - 6, stackStampWithOffset(6))));
+          new IndexedStackOperation(
+              1, StackOperation.pop(this.height, val1, stackStampWithOffset(0))),
+          new IndexedStackOperation(
+              2, StackOperation.pop(this.height - 1, val2, stackStampWithOffset(1))),
+          new IndexedStackOperation(
+              3, StackOperation.pop(this.height - 2, val3, stackStampWithOffset(2))),
+          new IndexedStackOperation(
+              4, StackOperation.push(this.height - 6, stackStampWithOffset(6))));
     } else {
 
       pending.addLine(
-          new IndexedStackOperation(1, StackOperation.pop(this.height - 2, val3, stackStampWithOffset(3))),
-          new IndexedStackOperation(2, StackOperation.pop(this.height - 3, val4, stackStampWithOffset(4))),
-          new IndexedStackOperation(3, StackOperation.pop(this.height - 4, val5, stackStampWithOffset(5))),
-          new IndexedStackOperation(4, StackOperation.pop(this.height - 5, val6, stackStampWithOffset(6))));
+          new IndexedStackOperation(
+              1, StackOperation.pop(this.height - 2, val3, stackStampWithOffset(3))),
+          new IndexedStackOperation(
+              2, StackOperation.pop(this.height - 3, val4, stackStampWithOffset(4))),
+          new IndexedStackOperation(
+              3, StackOperation.pop(this.height - 4, val5, stackStampWithOffset(5))),
+          new IndexedStackOperation(
+              4, StackOperation.pop(this.height - 5, val6, stackStampWithOffset(6))));
 
       pending.addArmingLine(
           new IndexedStackOperation(1, StackOperation.pop(this.height, val1, this.stamp)),
-          new IndexedStackOperation(2, StackOperation.pop(this.height - 1, val2, stackStampWithOffset(1))),
-          new IndexedStackOperation(4, StackOperation.push(this.height - 5, stackStampWithOffset(7))));
+          new IndexedStackOperation(
+              2, StackOperation.pop(this.height - 1, val2, stackStampWithOffset(1))),
+          new IndexedStackOperation(
+              4, StackOperation.push(this.height - 5, stackStampWithOffset(7))));
     }
   }
 
@@ -275,22 +328,29 @@ public class Stack {
     Bytes val2 = getStack(frame, 2);
 
     pending.addLine(
-        new IndexedStackOperation(1, StackOperation.pop(this.height - 1, val1, stackStampWithOffset(1))),
-        new IndexedStackOperation(2, StackOperation.pop(this.height - 2, val2, stackStampWithOffset(2))));
+        new IndexedStackOperation(
+            1, StackOperation.pop(this.height - 1, val1, stackStampWithOffset(1))),
+        new IndexedStackOperation(
+            2, StackOperation.pop(this.height - 2, val2, stackStampWithOffset(2))));
     if (this.currentOpcodeData.stackSettings().flag1()) {
       Bytes val3 = getStack(frame, 3);
       Bytes val4 = getStack(frame, 0);
 
       pending.addArmingLine(
-          new IndexedStackOperation(2, StackOperation.pop(this.height - 3, val3, stackStampWithOffset(3))),
-          new IndexedStackOperation(3, StackOperation.pop(this.height, val4, stackStampWithOffset(0))),
-          new IndexedStackOperation(4, StackOperation.push(this.height - 3, stackStampWithOffset(4))));
+          new IndexedStackOperation(
+              2, StackOperation.pop(this.height - 3, val3, stackStampWithOffset(3))),
+          new IndexedStackOperation(
+              3, StackOperation.pop(this.height, val4, stackStampWithOffset(0))),
+          new IndexedStackOperation(
+              4, StackOperation.push(this.height - 3, stackStampWithOffset(4))));
     } else {
       Bytes val4 = getStack(frame, 0);
 
       pending.addArmingLine(
-          new IndexedStackOperation(3, StackOperation.pop(this.height, val4, stackStampWithOffset(0))),
-          new IndexedStackOperation(4, StackOperation.push(this.height - 2, stackStampWithOffset(4))));
+          new IndexedStackOperation(
+              3, StackOperation.pop(this.height, val4, stackStampWithOffset(0))),
+          new IndexedStackOperation(
+              4, StackOperation.push(this.height - 2, stackStampWithOffset(4))));
     }
   }
 

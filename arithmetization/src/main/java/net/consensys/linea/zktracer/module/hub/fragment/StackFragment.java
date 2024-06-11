@@ -175,7 +175,8 @@ public final class StackFragment implements TraceFragment {
   private boolean traceLog() {
     return this.opCode.isLog()
         && this.exceptions
-            .none() // TODO: should be redundant (exceptions trigger reverts) --- this could be asserted
+            .none() // TODO: should be redundant (exceptions trigger reverts) --- this could be
+        // asserted
         && !this.willRevert;
   }
 

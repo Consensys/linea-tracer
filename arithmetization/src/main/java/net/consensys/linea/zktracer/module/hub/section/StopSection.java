@@ -87,7 +87,6 @@ public class StopSection extends TraceSection {
 
     } else {
       stopWhileDeploying.addFragmentsWithoutStack(hub, executionProvidesEmptyReturnData(hub));
-
     }
 
     return stopWhileDeploying;

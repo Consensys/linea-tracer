@@ -230,7 +230,8 @@ public class MmuCall implements TraceSubFragment {
   public static MmuCall returnDataCopy(final Hub hub) {
     final MemorySpan returnDataSegment = hub.currentFrame().latestReturnDataSource();
     return new MmuCall(MMU_INST_ANY_TO_RAM_WITH_PADDING)
-        .sourceId(hub.callStack().getById(hub.currentFrame().returnDataContextNumber()).contextNumber())
+        .sourceId(
+            hub.callStack().getById(hub.currentFrame().returnDataContextNumber()).contextNumber())
         .targetId(hub.currentFrame().contextNumber())
         .sourceOffset(EWord.of(hub.messageFrame().getStackItem(1)))
         .targetOffset(EWord.of(hub.messageFrame().getStackItem(0)))

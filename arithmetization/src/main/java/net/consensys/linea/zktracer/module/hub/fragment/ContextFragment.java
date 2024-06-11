@@ -21,13 +21,11 @@ import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
-import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.types.Either;
 import net.consensys.linea.zktracer.types.MemorySpan;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
-import org.hyperledger.besu.evm.internal.Words;
 
 public record ContextFragment(
     Hub hub,
@@ -72,7 +70,8 @@ public record ContextFragment(
         hub.callStack(),
         Either.right(hub.stamp() + 1),
         0,
-        MemorySpan.fromStartEnd(0, hub.txStack().current().getBesuTransaction().getData().map(Bytes::size).orElse(0)),
+        MemorySpan.fromStartEnd(
+            0, hub.txStack().current().getBesuTransaction().getData().map(Bytes::size).orElse(0)),
         false);
   }
 
@@ -80,22 +79,22 @@ public record ContextFragment(
     CallStack callStack = hub.callStack();
     return new ContextFragment(
         hub,
-            callStack,
-            Either.left(callStack.parent().id()),
-            hub.callStack().current().contextNumber(),
-            MemorySpan.empty(),
-            true);
+        callStack,
+        Either.left(callStack.parent().id()),
+        hub.callStack().current().contextNumber(),
+        MemorySpan.empty(),
+        true);
   }
 
   public static ContextFragment nonExecutionEmptyReturnData(final Hub hub) {
     CallStack callStack = hub.callStack();
     return new ContextFragment(
         hub,
-            callStack,
-            Either.left(callStack.current().id()),
-            hub.newChildContextNumber(),
-            MemorySpan.empty(),
-            true);
+        callStack,
+        Either.left(callStack.current().id()),
+        hub.newChildContextNumber(),
+        MemorySpan.empty(),
+        true);
   }
 
   public static ContextFragment executionReturnData(final Hub hub) {
@@ -112,15 +111,11 @@ public record ContextFragment(
   public static ContextFragment enterContext(final Hub hub, final CallFrame calledCallFrame) {
     CallStack callStack = hub.callStack();
     return new ContextFragment(
-        hub,
-            callStack,
-            Either.left(calledCallFrame.id()),
-            0,
-            MemorySpan.empty(),
-            false);
+        hub, callStack, Either.left(calledCallFrame.id()), 0, MemorySpan.empty(), false);
   }
 
-  public static ContextFragment providesReturnData(final Hub hub, int receiverContextNumber, int providerContextNumber) {
+  public static ContextFragment providesReturnData(
+      final Hub hub, int receiverContextNumber, int providerContextNumber) {
     CallStack callStack = hub.callStack();
     return new ContextFragment(
         hub,
@@ -140,7 +135,6 @@ public record ContextFragment(
     final Address address = callFrame.accountAddress();
     final Address codeAddress = callFrame.byteCodeAddress();
     final Address callerAddress = callFrame.callerAddress();
-
 
     return trace
         .peekAtContext(true)
@@ -166,9 +160,10 @@ public record ContextFragment(
         .pContextReturnAtCapacity(callFrame.requestedReturnDataTarget().length())
         .pContextUpdate(updateReturnData)
         .pContextReturnDataContextNumber(returnDataContextNumber)
-//             callFrame.id() == 0
-//                 ? callFrame.universalParentReturnDataContextNumber
-//                 : callFrame.lastCallee().map(c -> callStack.getById(c).contextNumber()).orElse(0))
+        //             callFrame.id() == 0
+        //                 ? callFrame.universalParentReturnDataContextNumber
+        //                 : callFrame.lastCallee().map(c ->
+        // callStack.getById(c).contextNumber()).orElse(0))
         .pContextReturnDataOffset(returnDataSegment.offset())
         .pContextReturnDataSize(returnDataSegment.length());
   }

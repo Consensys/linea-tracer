@@ -90,13 +90,12 @@ public class CallFrame {
   @Getter private int codeFragmentIndex = -1;
 
   public int getCodeFragmentIndex(Hub hub) {
-    return
-            this == CallFrame.EMPTY || this.type() == CallFrameType.MANTLE
-                    ? 0
-                    : hub.getCfiByMetaData(
-                    Words.toAddress(this.codeAddressAsEWord()),
-                    this.codeDeploymentNumber(),
-                    this.isDeployment());
+    return this == CallFrame.EMPTY || this.type() == CallFrameType.MANTLE
+        ? 0
+        : hub.getCfiByMetaData(
+            Words.toAddress(this.codeAddressAsEWord()),
+            this.codeDeploymentNumber(),
+            this.isDeployment());
   }
 
   @Getter @Setter private int pc;
@@ -139,7 +138,8 @@ public class CallFrame {
     updateParentContextReturnData(hub, Bytes.EMPTY, MemorySpan.empty());
   }
 
-  public static void updateParentContextReturnData(Hub hub, Bytes returnData, MemorySpan returnDataSource) {
+  public static void updateParentContextReturnData(
+      Hub hub, Bytes returnData, MemorySpan returnDataSource) {
     CallFrame parent = hub.callStack().parent();
     parent.returnDataContextNumber = hub.currentFrame().contextNumber;
     parent.latestReturnData = returnData;

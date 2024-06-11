@@ -71,6 +71,8 @@ public final class TransactionFragment implements TraceFragment, PostTransaction
             Bytes.minimalBytes(transactionProcessingMetadata.getInitiallyAvailableGas()))
         .pTransactionGasPrice(
             Bytes.minimalBytes(transactionProcessingMetadata.getEffectiveGasPrice()))
+        .pTransactionPriorityFeePerGas(
+            Bytes.minimalBytes(transactionProcessingMetadata.weiPerGasForMiner()))
         .pTransactionBasefee(Bytes.minimalBytes(transactionProcessingMetadata.getBaseFee()))
         .pTransactionCallDataSize(tx.getData().map(Bytes::size).orElse(0))
         .pTransactionInitCodeSize(tx.getInit().map(Bytes::size).orElse(0))

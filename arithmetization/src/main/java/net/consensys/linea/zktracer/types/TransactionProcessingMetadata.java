@@ -262,4 +262,18 @@ public class TransactionProcessingMetadata {
   public Wei getGasRefundInWei() {
     return Wei.of(BigInteger.valueOf(gasRefunded).multiply(BigInteger.valueOf(effectiveGasPrice)));
   }
+
+  public int numberWarmedAddress() {
+    return this.besuTransaction.getAccessList().isPresent()
+        ? this.besuTransaction.getAccessList().get().size()
+        : 0;
+  }
+
+  public int numberWarmedKey() {
+    return this.besuTransaction.getAccessList().isPresent()
+        ? this.besuTransaction.getAccessList().get().stream()
+            .mapToInt(accessListEntry -> accessListEntry.storageKeys().size())
+            .sum()
+        : 0;
+  }
 }

@@ -245,7 +245,7 @@ public class Hub implements Module {
     this.rom = new Rom(this.romLex);
     this.rlpTxn = new RlpTxn(this.romLex);
     this.euc = new Euc(this.wcp);
-    this.txnData = new TxnData(this, this.romLex, this.wcp, this.euc);
+    this.txnData = new TxnData(this.wcp, this.euc);
     this.blockdata = new Blockdata(this.wcp, this.txnData, this.rlpTxn);
     this.rlpTxrcpt = new RlpTxrcpt(txnData);
     this.logData = new LogData(rlpTxrcpt);
@@ -293,7 +293,6 @@ public class Hub implements Module {
                     this.add,
                     this.bin,
                     this.blake2fModexpData,
-                    this.blockdata,
                     this.blockhash,
                     this.ecData,
                     this.euc,
@@ -317,6 +316,7 @@ public class Hub implements Module {
                     this.trm,
                     this.wcp, /* WARN: must be called BEFORE txnData */
                     this.txnData,
+                    this.blockdata, /* WARN: must be called AFTER txnData */
                     this.rlpTxrcpt /* WARN: must be called AFTER txnData */),
                 this.precompileLimitModules.stream())
             .toList();
@@ -770,7 +770,9 @@ public class Hub implements Module {
     this.defers.runPostTx(this, world, tx, isSuccessful);
 
     for (Module m : this.modules) {
+      // TODO shift all module to the method with TxMetaData
       m.traceEndTx(world, tx, isSuccessful, output, logs, gasUsed);
+      m.traceEndTx(txStack.current(), logs);
     }
   }
 
@@ -1059,19 +1061,13 @@ public class Hub implements Module {
 
   @Override
   public void traceEndConflation(final WorldView world) {
-    this.romLex.traceEndConflation(world);
-
+    this.romLex.determineCodeFragmentIndex();
+    this.txStack.setCodeFragmentIndex(this);
     this.defers.runPostConflation(this, world);
 
     for (Module m : this.modules) {
-      if (!m.equals(this.romLex)) {
-        m.traceEndConflation(world);
-      }
+      m.traceEndConflation(world);
     }
-  }
-
-  public long accruedRefunds() {
-    return this.state.currentTxTrace().refundCounter();
   }
 
   // TODO: how do these implementations of remainingGas()

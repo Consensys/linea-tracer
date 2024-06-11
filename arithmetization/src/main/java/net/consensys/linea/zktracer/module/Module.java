@@ -52,6 +52,8 @@ public interface Module {
       List<Log> logs,
       long gasUsed) {}
 
+  default void traceEndTx(TransactionProcessingMetadata tx, List<Log> logs) {}
+
   default void traceContextEnter(MessageFrame frame) {}
 
   default void traceContextExit(MessageFrame frame) {}

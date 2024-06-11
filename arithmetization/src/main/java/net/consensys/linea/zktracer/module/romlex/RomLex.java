@@ -278,8 +278,7 @@ public class RomLex implements Module {
         .validateRow();
   }
 
-  @Override
-  public void traceEndConflation(final WorldView state) {
+  public void determineCodeFragmentIndex() {
     this.sortedChunks.addAll(this.chunks);
     this.sortedChunks.sort(ROM_CHUNK_COMPARATOR);
   }

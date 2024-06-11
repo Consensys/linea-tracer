@@ -14,7 +14,7 @@
  */
 package net.consensys.linea.zktracer.module.hub.section;
 
-import lombok.RequiredArgsConstructor;
+import lombok.Getter;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.State;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
@@ -22,39 +22,38 @@ import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
 import net.consensys.linea.zktracer.types.EWord;
+import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 
-@RequiredArgsConstructor
+@Getter
 public class SloadSection extends TraceSection {
 
   final Hub hub;
-  final State.StorageSlotIdentifier storageSlotIdentifier;
-  final EWord valueCurrent;
+  final WorldView world;
 
-  private SloadSection(Hub hub) {
+  private SloadSection(Hub hub, WorldView world) {
     this.hub = hub;
-    Address address = hub.currentFrame().accountAddress();
-    EWord key = EWord.of(hub.messageFrame().getStackItem(0));
-    this.storageSlotIdentifier =
-        new State.StorageSlotIdentifier(address, hub.currentFrame().accountDeploymentNumber(), key);
-    this.valueCurrent = EWord.of(hub.messageFrame().getTransientStorageValue(address, key));
+    this.world = world;
   }
 
-  public static void appendSection(Hub hub) {
+  public static void appendSection(Hub hub, WorldView world) {
 
-    final SloadSection sloadSection = new SloadSection(hub);
+    final SloadSection sloadSection = new SloadSection(hub, world);
     hub.addTraceSection(sloadSection);
 
-    final State.StorageSlotIdentifier storageSlotIdentifier = sloadSection.storageSlotIdentifier;
-    final Address address = storageSlotIdentifier.getAddress();
-    final EWord storageKey = storageSlotIdentifier.getStorageKey();
+    final Address address = hub.currentFrame().accountAddress();
+    final int deploymentNumber = hub.currentFrame().codeDeploymentNumber();
+    final EWord storageKey = EWord.of(hub.messageFrame().getStackItem(0));
     final EWord valueOriginal =
-        hub.txStack().current().getStorage().getOriginalValueOrUpdate(address, storageKey);
-    final EWord valueCurrent = sloadSection.valueCurrent;
+        EWord.of(world.get(address).getOriginalStorageValue(UInt256.fromBytes(storageKey)));
+    final EWord valueCurrent =
+        EWord.of(world.get(address).getStorageValue(UInt256.fromBytes(storageKey)));
 
     ContextFragment readCurrentContext = ContextFragment.readCurrentContextData(hub);
     ImcFragment miscFragmentForSload = ImcFragment.empty(hub);
-    StorageFragment doingSload = doingSload(hub, address, storageKey, valueOriginal, valueCurrent);
+    StorageFragment doingSload =
+        doingSload(hub, address, deploymentNumber, storageKey, valueOriginal, valueCurrent);
 
     sloadSection.addFragmentsAndStack(
         hub, hub.currentFrame(), readCurrentContext, miscFragmentForSload, doingSload);
@@ -65,24 +64,24 @@ public class SloadSection extends TraceSection {
     if (outOfGasException || contextWillRevert) {
 
       final StorageFragment undoingSload =
-          undoingSload(hub, address, storageKey, valueOriginal, valueCurrent);
+          undoingSload(hub, address, deploymentNumber, storageKey, valueOriginal, valueCurrent);
 
       // TODO: make sure we trace a context when there is an exception
       sloadSection.addFragment(hub, hub.currentFrame(), undoingSload);
-      hub.state.updateOrInsertStorageSlotOccurrence(storageSlotIdentifier, undoingSload);
-      return;
     }
-
-    hub.state.updateOrInsertStorageSlotOccurrence(storageSlotIdentifier, doingSload);
   }
 
   private static StorageFragment doingSload(
-      Hub hub, Address address, EWord storageKey, EWord valueOriginal, EWord valueCurrent) {
+      Hub hub,
+      Address address,
+      int deploymentNumber,
+      EWord storageKey,
+      EWord valueOriginal,
+      EWord valueCurrent) {
 
     return new StorageFragment(
         hub.state,
-        new State.StorageSlotIdentifier(
-            address, hub.currentFrame().accountDeploymentNumber(), storageKey),
+        new State.StorageSlotIdentifier(address, deploymentNumber, storageKey),
         valueOriginal,
         valueCurrent,
         valueCurrent,
@@ -93,12 +92,16 @@ public class SloadSection extends TraceSection {
   }
 
   private static StorageFragment undoingSload(
-      Hub hub, Address address, EWord storageKey, EWord valueOriginal, EWord valueCurrent) {
+      Hub hub,
+      Address address,
+      int deploymentNumber,
+      EWord storageKey,
+      EWord valueOriginal,
+      EWord valueCurrent) {
 
     return new StorageFragment(
         hub.state,
-        new State.StorageSlotIdentifier(
-            address, hub.currentFrame().accountDeploymentNumber(), storageKey),
+        new State.StorageSlotIdentifier(address, deploymentNumber, storageKey),
         valueOriginal,
         valueCurrent,
         valueCurrent,

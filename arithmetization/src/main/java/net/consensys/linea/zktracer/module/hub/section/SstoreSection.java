@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.section;
 
+import lombok.Getter;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.State;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
@@ -22,37 +23,34 @@ import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
 import net.consensys.linea.zktracer.types.EWord;
+import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 
+@Getter
 public class SstoreSection extends TraceSection {
 
   final Hub hub;
-  final State.StorageSlotIdentifier storageSlotIdentifier;
-  final EWord valueCurrent;
-  final EWord valueNext;
+  final WorldView world;
 
-  private SstoreSection(Hub hub) {
+  private SstoreSection(Hub hub, WorldView world) {
     this.hub = hub;
-    Address address = hub.currentFrame().accountAddress();
-    EWord key = EWord.of(hub.messageFrame().getStackItem(0));
-    this.storageSlotIdentifier =
-        new State.StorageSlotIdentifier(address, hub.currentFrame().accountDeploymentNumber(), key);
-    this.valueCurrent = EWord.of(hub.messageFrame().getTransientStorageValue(address, key));
-    this.valueNext = EWord.of(hub.messageFrame().getStackItem(1));
+    this.world = world;
   }
 
-  public static void appendSection(Hub hub) {
+  public static void appendSection(Hub hub, WorldView world) {
 
-    final SstoreSection sstoreSection = new SstoreSection(hub);
+    final SstoreSection sstoreSection = new SstoreSection(hub, world);
     hub.addTraceSection(sstoreSection);
 
-    final State.StorageSlotIdentifier storageSlotIdentifier = sstoreSection.storageSlotIdentifier;
-    final Address address = storageSlotIdentifier.getAddress();
-    final EWord storageKey = storageSlotIdentifier.getStorageKey();
+    final Address address = hub.currentFrame().accountAddress();
+    final int deploymentNumber = hub.currentFrame().codeDeploymentNumber();
+    final EWord storageKey = EWord.of(hub.messageFrame().getStackItem(0));
     final EWord valueOriginal =
-        hub.txStack().current().getStorage().getOriginalValueOrUpdate(address, storageKey);
-    final EWord valueCurrent = sstoreSection.valueCurrent;
-    final EWord valueNext = sstoreSection.valueNext;
+        EWord.of(world.get(address).getOriginalStorageValue(UInt256.fromBytes(storageKey)));
+    final EWord valueCurrent =
+        EWord.of(world.get(address).getStorageValue(UInt256.fromBytes(storageKey)));
+    final EWord valueNext = EWord.of(hub.messageFrame().getStackItem(1));
 
     final boolean staticContextException = hub.pch().exceptions().staticException();
     final boolean sstoreException = hub.pch().exceptions().sstoreException();
@@ -76,14 +74,16 @@ public class SstoreSection extends TraceSection {
     }
 
     StorageFragment doingSstore =
-        doingSstore(hub, address, storageKey, valueOriginal, valueCurrent, valueNext);
-    StorageFragment undoingSstore =
-        undoingSstore(hub, address, storageKey, valueOriginal, valueCurrent, valueNext);
+        doingSstore(
+            hub, address, deploymentNumber, storageKey, valueOriginal, valueCurrent, valueNext);
 
     sstoreSection.addFragment(hub, hub.currentFrame(), doingSstore);
 
     // TODO: make sure we trace a context when there is an exception (oogx case)
     if (outOfGasException || contextWillRevert) {
+      StorageFragment undoingSstore =
+          undoingSstore(
+              hub, address, deploymentNumber, storageKey, valueOriginal, valueCurrent, valueNext);
       sstoreSection.addFragment(hub, hub.currentFrame(), undoingSstore);
     }
   }
@@ -91,6 +91,7 @@ public class SstoreSection extends TraceSection {
   private static StorageFragment doingSstore(
       Hub hub,
       Address address,
+      int deploymentNumber,
       EWord storageKey,
       EWord valueOriginal,
       EWord valueCurrent,
@@ -98,8 +99,7 @@ public class SstoreSection extends TraceSection {
 
     return new StorageFragment(
         hub.state,
-        new State.StorageSlotIdentifier(
-            address, hub.currentFrame().accountDeploymentNumber(), storageKey),
+        new State.StorageSlotIdentifier(address, deploymentNumber, storageKey),
         valueOriginal,
         valueCurrent,
         valueNext,
@@ -112,6 +112,7 @@ public class SstoreSection extends TraceSection {
   private static StorageFragment undoingSstore(
       Hub hub,
       Address address,
+      int deploymentNumber,
       EWord storageKey,
       EWord valueOriginal,
       EWord valueCurrent,
@@ -119,8 +120,7 @@ public class SstoreSection extends TraceSection {
 
     return new StorageFragment(
         hub.state,
-        new State.StorageSlotIdentifier(
-            address, hub.currentFrame().accountDeploymentNumber(), storageKey),
+        new State.StorageSlotIdentifier(address, deploymentNumber, storageKey),
         valueOriginal,
         valueNext,
         valueCurrent,

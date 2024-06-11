@@ -36,9 +36,9 @@ public final class StorageFragment implements TraceFragment {
   private final State hubState;
   @Setter private StorageFragmentType type;
   private final State.StorageSlotIdentifier storageSlotIdentifier;
-  private final EWord valOrig;
-  private final EWord valCurr;
-  private final EWord valNext;
+  private final EWord valueOriginal;
+  private final EWord valueCurrent;
+  private final EWord valueNext;
   private final boolean oldWarmth;
   private final boolean newWarmth;
   private final DomSubStampsSubFragment domSubStampsSubFragment;
@@ -65,20 +65,20 @@ public final class StorageFragment implements TraceFragment {
         .pStorageDeploymentNumber(storageSlotIdentifier.getDeploymentNumber())
         .pStorageStorageKeyHi(EWord.of(storageSlotIdentifier.getStorageKey()).hi())
         .pStorageStorageKeyLo(EWord.of(storageSlotIdentifier.getStorageKey()).lo())
-        .pStorageValueOrigHi(valOrig.hi())
-        .pStorageValueOrigLo(valOrig.lo())
-        .pStorageValueCurrHi(valCurr.hi())
-        .pStorageValueCurrLo(valCurr.lo())
-        .pStorageValueNextHi(valNext.hi())
-        .pStorageValueNextLo(valNext.lo())
+        .pStorageValueOrigHi(valueOriginal.hi())
+        .pStorageValueOrigLo(valueOriginal.lo())
+        .pStorageValueCurrHi(valueCurrent.hi())
+        .pStorageValueCurrLo(valueCurrent.lo())
+        .pStorageValueNextHi(valueNext.hi())
+        .pStorageValueNextLo(valueNext.lo())
         .pStorageWarmth(oldWarmth)
         .pStorageWarmthNew(newWarmth)
-        .pStorageValueOrigIsZero(valOrig.isZero())
-        .pStorageValueCurrIsOrig(valCurr.equals(valOrig))
-        .pStorageValueCurrIsZero(valCurr.isZero())
-        .pStorageValueNextIsCurr(valNext.equals(valCurr))
-        .pStorageValueNextIsZero(valNext.isZero())
-        .pStorageValueNextIsOrig(valNext.equals(valOrig))
+        .pStorageValueOrigIsZero(valueOriginal.isZero())
+        .pStorageValueCurrIsOrig(valueCurrent.equals(valueOriginal))
+        .pStorageValueCurrIsZero(valueCurrent.isZero())
+        .pStorageValueNextIsCurr(valueNext.equals(valueCurrent))
+        .pStorageValueNextIsZero(valueNext.isZero())
+        .pStorageValueNextIsOrig(valueNext.equals(valueOriginal))
         .pStorageUnconstrainedFirst(isFirstOccurrence)
         .pStorageUnconstrainedFinal(isFinalOccurrence);
   }

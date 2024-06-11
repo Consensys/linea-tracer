@@ -1286,10 +1286,10 @@ public class Hub implements Module {
       case STORAGE -> {
         switch (this.currentFrame().opCode()) {
           case SSTORE -> {
-            SstoreSection.appendSection(this);
+            SstoreSection.appendSection(this, frame.getWorldUpdater());
           }
           case SLOAD -> {
-            SloadSection.appendSection(this);
+            SloadSection.appendSection(this, frame.getWorldUpdater());
           }
           default -> throw new IllegalStateException("invalid operation in family STORAGE");
         }

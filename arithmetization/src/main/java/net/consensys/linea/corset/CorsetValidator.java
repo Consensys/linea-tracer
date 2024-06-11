@@ -21,6 +21,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -30,6 +31,28 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 
+/**
+ * <p></p>Responsible for running the command-line <code>corset</code> tool to check that a given trace
+ * is accepted by the zkevm constraints.  The <code>corset</code> tool has variables levels of
+ * "expansion" which it can apply before performing the check.  Greater levels of expansion imply more
+ * accurate checks (i.e. more realistic compared to the prover).  Furthermore, <code>corset</code> can be
+ * configured to use field arithmetic or simply big integers (with the latter option intended to offer
+ * faster but much less precise checking).  The default configuration is set to give good accuracy, but
+ * without significant overhead.  A greater level can be configured by enabling the
+ * <code>autoConstraints</code>.</p>
+ *
+ * <p>The configuration can be set using the environment variable <code>CORSET_FLAGS</code>.  Example
+ * values for this environment variable include <code>fields,expand</code> (sets
+ * <code>fieldArithmetic=true</code> and <code>expansion=0</code>) and <code>fields,expand,expand,
+ * auto</code> (enables <code>fieldArithmetic</code> and <code>autoConstraints</code> and sets
+ * <code>expansion=2</code>).
+ * Note,
+ * it
+ * doesn't make sense to
+ * have <code>expand</code> without
+ * <code>fields</code>.  Likewise, it doesn't make sense to have <code>auto</code> without
+ * <code>expand</code>.</p>
+ */
 @Slf4j
 public class CorsetValidator {
   public record Result(boolean isValid, File traceFile, String corsetOutput) {}
@@ -48,12 +71,12 @@ public class CorsetValidator {
   @Getter @Setter private boolean fieldArithmetic = true;
 
   /**
-   * Specifies whether constraints should be expanded. For example, normalisation expressions are
-   * expanded into columns containing the multiplicative inverse, etc. To best reflect the prover,
-   * this should be enabled. Also, the effect of this option is limited unless field arithmetic is
-   * also enabled.
+   * Specifies how much expansion should be applied to constraints (max is 4). For example,
+   * normalisation expressions are expanded into columns containing the multiplicative inverse, etc.
+   * To best reflect the prover, this should be enabled. Also, the effect of this option is limited
+   * unless field arithmetic is also enabled.
    */
-  @Getter @Setter private boolean expansion = true;
+  @Getter @Setter private int expansion = 4;
 
   /**
    * Specifies whether expansion of "auto constraints" should be performed. This is the final step
@@ -64,6 +87,7 @@ public class CorsetValidator {
 
   public CorsetValidator() {
     initCorset();
+    configCorset();
     initDefaultZkEvm();
   }
 
@@ -155,6 +179,48 @@ public class CorsetValidator {
     }
   }
 
+  /**
+   * Configure corset from the <code>CORSET_FLAGS</code> environment variable (if set).  If the
+   * environment variable is not set, the default configuration is retained.  If the environment
+   * variable is set, but its value is malformed then an exception is raised.
+   */
+  private void configCorset() {
+    String flags = System.getenv().get("CORSET_FLAGS");
+    if (flags != null) {
+        log.info("Configuring corset from CORSET_FLAGS environment variable: \"%s\"".formatted(flags));
+        // Reset default configuration
+        this.fieldArithmetic = false;
+        this.expansion = 0;
+        this.autoConstraints = false;
+        // Check for default case (empty string)
+        if(!flags.isEmpty()) {
+          // split flags by separator
+          String[] splitFlags = flags.split(",");
+          // Build configuration based on flags
+          for(String flag : splitFlags) {
+            switch (flag) {
+              case "fields":
+                this.fieldArithmetic = true;
+                break;
+              case "expand":
+                if(expansion >= 4) {
+                  throw new RuntimeException(("Malformed Corset configuration flags (expansion " +
+                          "beyond four meaningless): %s").formatted(flags));
+                }
+                this.expansion++;
+                break;
+              case "auto":
+                this.autoConstraints = true;
+                break;
+              default:
+                // Error
+                throw new RuntimeException("Unknown Corset configuration flag: %s".formatted(flag));
+            }
+          }
+        }
+    }
+  }
+
   private void initDefaultZkEvm() {
     final String currentDir;
 
@@ -206,8 +272,9 @@ public class CorsetValidator {
       options.add("-N");
     }
     // Enable expansion (if applicable)
-    if (expansion) {
-      options.add("-eeee");
+    if (expansion != 0) {
+      String es = "e".repeat(expansion);
+      options.add("-" + es);
     }
     // Enable auto constraints (if applicable)
     if (autoConstraints) {
@@ -219,6 +286,7 @@ public class CorsetValidator {
     options.add(determineNumberOfThreads());
     // Specify the zkevm.bin file.
     options.add(zkEvmBin);
+    log.info("Corset options: " + options);
     // Done
     return options;
   }

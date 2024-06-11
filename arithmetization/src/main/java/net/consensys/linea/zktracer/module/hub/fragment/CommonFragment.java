@@ -119,7 +119,7 @@ public final class CommonFragment implements TraceFragment {
         .height((short) height)
         .heightNew((short) heightNew)
         .codeDeploymentNumber(frame.codeDeploymentNumber())
-        .codeDeploymentStatus(frame.underDeployment())
+        .codeDeploymentStatus(frame.isDeployment())
         .gasExpected(gasExpected)
         .gasActual(gasActual)
         .gasCost(gasCost)
@@ -186,7 +186,7 @@ public final class CommonFragment implements TraceFragment {
     final int codeFragmentIndex =
         this.hubProcessingPhase == HubProcessingPhase.TX_EXEC
             ? this.hub.getCfiByMetaData(
-                frame.byteCodeAddress(), frame.codeDeploymentNumber(), frame.underDeployment())
+                frame.byteCodeAddress(), frame.codeDeploymentNumber(), frame.isDeployment())
             : 0;
     final boolean selfReverts = frame.selfReverts();
     final boolean getsReverted = frame.getsReverted();

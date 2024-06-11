@@ -48,7 +48,7 @@ public record MxpCall(
     return new MxpCall(
         hub.pch().exceptions().outOfMemoryExpansion(),
         hub.currentFrame().opCodeData().value(),
-        opCode == OpCode.RETURN && hub.currentFrame().underDeployment(),
+        opCode == OpCode.RETURN && hub.currentFrame().isDeployment(),
         hub.currentFrame().frame().memoryWordSize(),
         gasMxp,
         offset1,

@@ -31,21 +31,6 @@ public class SstoreSection extends TraceSection {
   final EWord valueCurrent;
   final EWord valueNext;
 
-  public static void appendTo(Hub hub) {
-
-    if (hub.pch().exceptions().staticException()) {
-      // static exception SSTORE section
-    } else if (hub.pch().exceptions().sstoreException()) {
-      // SSTORE specific exception (avaible gas <= G_callstipend = 2300)
-    } else if (hub.pch().exceptions().outOfGasException()) {
-      // out of gas exception SSTORE section
-    } else if (hub.callStack().current().willRevert()) {
-      // reverted SSTORE section
-    } else {
-      // reverted SSTORE section
-    }
-  }
-
   private SstoreSection(Hub hub) {
     this.hub = hub;
     Address address = hub.currentFrame().accountAddress();

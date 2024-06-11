@@ -226,7 +226,7 @@ public abstract class TraceSection {
                 hub.pch().exceptions().snapshot(),
                 hub.pch().abortingConditions().snapshot(),
                 Hub.GAS_PROJECTOR.of(f.frame(), f.opCode()),
-                f.underDeployment(),
+                f.isDeployment(),
                 f.willRevert()));
       }
     } else {
@@ -239,7 +239,7 @@ public abstract class TraceSection {
                 hub.pch().exceptions().snapshot(),
                 hub.pch().abortingConditions().snapshot(),
                 Hub.GAS_PROJECTOR.of(f.frame(), f.opCode()),
-                f.underDeployment(),
+                f.isDeployment(),
                 f.willRevert()));
       }
     }

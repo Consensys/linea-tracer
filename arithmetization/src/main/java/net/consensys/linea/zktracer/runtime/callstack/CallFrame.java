@@ -38,6 +38,7 @@ import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.evm.internal.Words;
 
 @Accessors(fluent = true)
 public class CallFrame {
@@ -56,7 +57,11 @@ public class CallFrame {
   /** */
   @Getter private int codeDeploymentNumber;
   /** */
-  @Getter private boolean underDeployment;
+  @Getter private boolean isDeployment;
+
+  public boolean isMessageCall() {
+    return !isDeployment;
+  }
 
   @Getter @Setter private TraceSection needsUnlatchingAtReEntry = null;
 
@@ -84,6 +89,16 @@ public class CallFrame {
   /** the CFI of this frame bytecode if applicable */
   @Getter private int codeFragmentIndex = -1;
 
+  public int getCodeFragmentIndex(Hub hub) {
+    return
+            this == CallFrame.EMPTY || this.type() == CallFrameType.MANTLE
+                    ? 0
+                    : hub.getCfiByMetaData(
+                    Words.toAddress(this.codeAddressAsEWord()),
+                    this.codeDeploymentNumber(),
+                    this.isDeployment());
+  }
+
   @Getter @Setter private int pc;
   @Getter @Setter private OpCode opCode = OpCode.STOP;
   @Getter @Setter private OpCodeData opCodeData = OpCodes.of(OpCode.STOP);
@@ -110,7 +125,7 @@ public class CallFrame {
   @Getter private MemorySpan requestedReturnDataTarget = MemorySpan.empty();
 
   /** the latest child context to have been called from this frame */
-  @Getter private int currentReturner = -1;
+  @Getter @Setter private int returnDataContextNumber = 0;
 
   @Getter @Setter private int selfRevertsAt = 0;
   @Getter @Setter private int getsRevertedAt = 0;
@@ -119,6 +134,17 @@ public class CallFrame {
   @Getter private final Stack stack = new Stack();
   /** the latched context of this callframe stack. */
   @Getter @Setter private StackContext pending;
+
+  public static void provideParentContextWithEmptyReturnData(Hub hub) {
+    updateParentContextReturnData(hub, Bytes.EMPTY, MemorySpan.empty());
+  }
+
+  public static void updateParentContextReturnData(Hub hub, Bytes returnData, MemorySpan returnDataSource) {
+    CallFrame parent = hub.callStack().parent();
+    parent.returnDataContextNumber = hub.currentFrame().contextNumber;
+    parent.latestReturnData = returnData;
+    parent.returnDataSource(returnDataSource);
+  }
 
   /** Create a MANTLE call frame. */
   CallFrame(final Address origin, final Bytes callData, final int contextNumber) {
@@ -189,7 +215,7 @@ public class CallFrame {
       int depth) {
     this.accountDeploymentNumber = accountDeploymentNumber;
     this.codeDeploymentNumber = codeDeploymentNumber;
-    this.underDeployment = isDeployment;
+    this.isDeployment = isDeployment;
     this.id = id;
     this.contextNumber = hubStamp + 1;
     this.accountAddress = accountAddress;
@@ -256,7 +282,7 @@ public class CallFrame {
    */
   public ContractMetadata metadata() {
     return ContractMetadata.make(
-        this.byteCodeAddress, this.codeDeploymentNumber, this.underDeployment);
+        this.byteCodeAddress, this.codeDeploymentNumber, this.isDeployment);
   }
 
   private void revertChildren(CallStack callStack, int stamp) {

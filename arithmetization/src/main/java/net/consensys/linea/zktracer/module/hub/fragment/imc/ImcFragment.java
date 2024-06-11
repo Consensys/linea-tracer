@@ -197,7 +197,7 @@ public class ImcFragment implements TraceFragment {
         case LOG0, LOG1, LOG2, LOG3, LOG4 -> r.callMmu(MmuCall.log(hub));
         case CREATE -> r.callMmu(MmuCall.create(hub));
         case RETURN -> r.callMmu(
-            hub.currentFrame().underDeployment()
+            hub.currentFrame().isDeployment()
                 ? MmuCall.returnFromDeployment(
                     hub) // TODO Add a MMU call to MMU_INST_INVALID_CODE8PREFIX
                 : MmuCall.returnFromCall(hub));
@@ -234,7 +234,7 @@ public class ImcFragment implements TraceFragment {
                   hub.pch().abortingConditions().any()));
         }
         case RETURN -> {
-          if (hub.currentFrame().underDeployment()) {
+          if (hub.currentFrame().isDeployment()) {
             r.callOob(new DeploymentReturn(EWord.of(frame.getStackItem(1))));
           }
         }

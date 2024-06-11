@@ -494,6 +494,10 @@ public class Hub implements Module {
     this.state.setProcessingPhase(TX_EXEC);
   }
 
+  public int newChildContextNumber() {
+    return 1 + this.stamp();
+  }
+
   public CallFrame currentFrame() {
     if (this.callStack().isEmpty()) {
       return CallFrame.EMPTY;
@@ -507,7 +511,7 @@ public class Hub implements Module {
         return 0;
       }
       case TX_INIT -> {
-        return this.state.stamps().hub() + 1;
+        return newChildContextNumber();
       }
       case TX_EXEC -> {
         final OpCode opCode = this.opCode();
@@ -535,7 +539,7 @@ public class Hub implements Module {
               .ifPresent(
                   byteCode -> {
                     if (!byteCode.isEmpty()) {
-                      newContext.set(1 + this.stamp());
+                      newContext.set(newChildContextNumber());
                     }
                   });
           return newContext.get();
@@ -547,7 +551,7 @@ public class Hub implements Module {
           }
           final int initCodeSize = this.currentFrame().frame().getStackItem(2).toInt();
           if (initCodeSize != 0) {
-            return 1 + stamp();
+            return newChildContextNumber();
           }
         }
 
@@ -1120,7 +1124,7 @@ public class Hub implements Module {
             }
             this.currentFrame().returnDataSource(transients.op().returnDataSegment());
             this.currentFrame().returnData(returnData);
-            if (!this.pch.exceptions().any() && !this.currentFrame().underDeployment()) {
+            if (!this.pch.exceptions().any() && !this.currentFrame().isDeployment()) {
               parentFrame.latestReturnData(returnData);
             } else {
               parentFrame.latestReturnData(Bytes.EMPTY);
@@ -1281,56 +1285,9 @@ public class Hub implements Module {
         }
       }
       case STORAGE -> {
-        final Address address = this.currentFrame().accountAddress();
-        final EWord key = EWord.of(frame.getStackItem(0));
-
-        final State.StorageSlotIdentifier storageSlotIdentifier =
-            new State.StorageSlotIdentifier(address, currentFrame().accountDeploymentNumber(), key);
-
         switch (this.currentFrame().opCode()) {
-          case SSTORE -> {
-            SstoreSection.appendSection(this);
-            /**
-             * final EWord valNext = EWord.of(frame.getStackItem(1));
-             *
-             * <p>// doing the SSTORE operation final StorageFragment doingStorageFragment = new
-             * StorageFragment( this.state, new State.StorageSlotIdentifier( address,
-             * this.currentFrame().accountDeploymentNumber(), key),
-             * this.txStack.current().getStorage().getOriginalValueOrUpdate(address, key),
-             * EWord.of(frame.getTransientStorageValue(address, key)), valNext,
-             * frame.isStorageWarm(address, key), true,
-             * DomSubStampsSubFragment.standardDomSubStamps(this, 0),
-             * this.state.firstAndLastStorageSlotOccurrences.size());
-             *
-             * <p>final SstoreSection SStoreSection = new SstoreSection( this,
-             * ContextFragment.readCurrentContextData(this), doingStorageFragment);
-             *
-             * <p>// undoing the previous changes (value + warmth) if current context will revert if
-             * (this.pch.exceptions().staticException()) { // TODO: make sure that whenever we
-             * enounter an exception _of any kind_ // we trace the final context row where we update
-             * the caller return data // to be empty. SStoreSection.nonStackRows = 1 + 1; } else if
-             * (this.callStack().current().willRevert()) { SStoreSection.nonStackRows = (short) (1 +
-             * 2 + (this.pch.exceptions().any() ? 1 : 0)); final StorageFragment
-             * undoingStorageFragment = new StorageFragment( this.state, new
-             * State.StorageSlotIdentifier( address, this.currentFrame().accountDeploymentNumber(),
-             * key), this.txStack.current().getStorage().getOriginalValueOrUpdate(address, key),
-             * valNext, EWord.of(frame.getTransientStorageValue(address, key)), true,
-             * frame.isStorageWarm(address, key),
-             * DomSubStampsSubFragment.revertWithCurrentDomSubStamps(this, 1),
-             * this.state.firstAndLastStorageSlotOccurrences.size());
-             *
-             * <p>SStoreSection.addFragment(this, undoingStorageFragment);
-             * state.updateOrInsertStorageSlotOccurrence( storageSlotIdentifier,
-             * undoingStorageFragment); } else { SStoreSection.nonStackRows = 1 + 1;
-             * state.updateOrInsertStorageSlotOccurrence( storageSlotIdentifier,
-             * doingStorageFragment); }
-             *
-             * <p>this.addTraceSection(SStoreSection);
-             */
-          }
-          case SLOAD -> {
-            SloadSection.appendSection(this);
-          }
+          case SSTORE -> { SstoreSection.appendSection(this); }
+          case SLOAD -> { SloadSection.appendSection(this); }
           default -> throw new IllegalStateException("invalid operation in family STORAGE");
         }
       }
@@ -1491,7 +1448,7 @@ public class Hub implements Module {
                     .conflation()
                     .deploymentInfo()
                     .number(this.currentFrame().byteCodeAddress()),
-                this.currentFrame().underDeployment());
+                this.currentFrame().isDeployment());
 
         JumpSection jumpSection =
             new JumpSection(

@@ -23,17 +23,21 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
+import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.Bytecode;
 import org.hyperledger.besu.datatypes.Address;
 
 public class StopSection extends TraceSection {
 
   public static void appendTo(Hub hub) {
-    if (!hub.currentFrame().underDeployment()) {
+    CallFrame.provideParentContextWithEmptyReturnData(hub);
+
+    if (hub.currentFrame().isMessageCall()) {
       hub.addTraceSection(messageCallStopSection(hub));
-    } else if (hub.currentFrame().willRevert()) {
-      hub.addTraceSection(deploymentStopSection(hub));
+      return;
     }
+
+    hub.addTraceSection(deploymentStopSection(hub));
   }
 
   public StopSection(Hub hub, TraceFragment... fragments) {
@@ -80,8 +84,10 @@ public class StopSection extends TraceSection {
               beforeEmptyDeployment,
               DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 1)),
           executionProvidesEmptyReturnData(hub));
+
     } else {
       stopWhileDeploying.addFragmentsWithoutStack(hub, executionProvidesEmptyReturnData(hub));
+
     }
 
     return stopWhileDeploying;

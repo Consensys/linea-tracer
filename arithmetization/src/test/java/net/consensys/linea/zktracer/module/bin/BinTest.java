@@ -49,4 +49,20 @@ public class BinTest {
                 .compile())
         .run();
   }
+
+  @Test
+  void testSignextendRef() {
+    BytecodeRunner.of(
+            BytecodeCompiler.newProgram()
+                .push(0xFF)
+                .push(0)
+                .op(OpCode.SIGNEXTEND)
+                .op(OpCode.POP)
+                .push(0x7F)
+                .push(0)
+                .op(OpCode.SIGNEXTEND)
+                .op(OpCode.POP)
+                .compile())
+        .run();
+  }
 }

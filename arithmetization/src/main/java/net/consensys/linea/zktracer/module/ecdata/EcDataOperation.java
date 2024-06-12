@@ -122,6 +122,7 @@ public class EcDataOperation extends ModuleOperation {
 
   // pairing-specific
   private final int totalPairings;
+  private final boolean notOnG2AccMax = false; // TODO: compute it
 
   private int getTotalSize(int ecType, boolean isData) {
     if (isData) {
@@ -264,9 +265,9 @@ public class EcDataOperation extends ModuleOperation {
     EcDataOperation ecDataRes = new EcDataOperation(wcp, ext, id, ecType, data);
     switch (ecType) {
       case ECRECOVER -> ecDataRes.handleRecover();
-        // case ECADD -> ecDataRes.handleAdd();
-        // case ECMUL -> ecDataRes.handleMul();
-        // case ECPAIRING -> ecDataRes.handlePairing();
+      case ECADD -> ecDataRes.handleAdd();
+      case ECMUL -> ecDataRes.handleMul();
+      case ECPAIRING -> ecDataRes.handlePairing();
     }
     return ecDataRes;
   }
@@ -371,30 +372,6 @@ public class EcDataOperation extends ModuleOperation {
     this.ext.callADDMOD(Bytes.EMPTY, Bytes.EMPTY, Bytes.EMPTY);
   }
 
-  private static EWord extractRecoveredAddress(EWord h, EWord v, EWord r, EWord s) {
-    SECP256K1 secp256K1 = new SECP256K1();
-    try {
-      Optional<SECPPublicKey> optionalRecoveredAddress =
-          secp256K1.recoverPublicKeyFromSignature(
-              h.toBytes(),
-              SECPSignature.create(
-                  r.toUnsignedBigInteger(),
-                  s.toUnsignedBigInteger(),
-                  (byte) (v.toInt() - 27),
-                  SECP256K1N.toUnsignedBigInteger()));
-      return optionalRecoveredAddress
-          .map(e -> EWord.of(Hash.keccak256(e.getEncodedBytes()).slice(32 - 20)))
-          .orElse(EWord.ZERO);
-    } catch (IllegalArgumentException e) {
-      System.err.print(e);
-      return EWord.ZERO;
-    }
-  }
-
-  private boolean callToC1Membership(int k, EWord pX, EWord pY) {
-    return true;
-  }
-
   void handleAdd() {
     // Extract inputs
     final EWord pX = EWord.of(this.data.slice(0, 32));
@@ -475,7 +452,65 @@ public class EcDataOperation extends ModuleOperation {
     limb.set(11, resY.lo());
   }
 
-  void handlePairing() {}
+  void handlePairing() {
+    for (int accPairings = 1; accPairings <= this.totalPairings; accPairings++) {
+      // Extract inputs
+      final int bytesOffset = (accPairings - 1) * 192;
+      final EWord aX = EWord.of(this.data.slice(bytesOffset, 32));
+      final EWord aY = EWord.of(this.data.slice(32 + bytesOffset, 32));
+      final EWord bXIm = EWord.of(this.data.slice(64 + bytesOffset, 32));
+      final EWord bXRe = EWord.of(this.data.slice(96 + bytesOffset, 32));
+      final EWord bYIm = EWord.of(this.data.slice(128 + bytesOffset, 32));
+      final EWord bYRe = EWord.of(this.data.slice(160 + bytesOffset, 32));
+
+      // Set limb
+      final int rowsOffset = (accPairings - 1) * (INDEX_MAX_ECPAIRING_DATA_MIN + 1); // 12
+      limb.set(rowsOffset, aX.hi());
+      limb.set(1 + rowsOffset, aX.lo());
+      limb.set(2 + rowsOffset, aY.hi());
+      limb.set(3 + rowsOffset, aY.lo());
+      limb.set(4 + rowsOffset, bXIm.hi());
+      limb.set(5 + rowsOffset, bXIm.lo());
+      limb.set(6 + rowsOffset, bXRe.hi());
+      limb.set(7 + rowsOffset, bXRe.lo());
+      limb.set(8 + rowsOffset, bYIm.hi());
+      limb.set(9 + rowsOffset, bYIm.lo());
+      limb.set(10 + rowsOffset, bYRe.hi());
+      limb.set(11 + rowsOffset, bYRe.lo());
+
+      // Compute internal checks
+      // row i
+      boolean c1Membership = callToC1Membership(rowsOffset, aX, aY);
+
+      // row i + 4
+      boolean wellFormedCoordinate =
+          callToWellFormedCoordinates(4 + rowsOffset, bXIm, bXRe, bYIm, bYRe);
+
+      // Complete set hurdle and internal checks passed
+      if (accPairings == 1) {
+        hurdle.set(INDEX_MAX_ECPAIRING_DATA_MIN, c1Membership && wellFormedCoordinate);
+        this.internalChecksPassed = c1Membership && wellFormedCoordinate;
+      } else {
+        boolean prevInternalChecksPassed = this.internalChecksPassed;
+        hurdle.set(
+            INDEX_MAX_ECPAIRING_DATA_MIN - 1 + rowsOffset, c1Membership && wellFormedCoordinate);
+        hurdle.set(
+            INDEX_MAX_ECPAIRING_DATA_MIN + rowsOffset,
+            c1Membership && wellFormedCoordinate && prevInternalChecksPassed);
+        this.internalChecksPassed =
+            c1Membership && wellFormedCoordinate && prevInternalChecksPassed;
+      }
+    }
+
+    // This is after all pairings have been processed
+
+    // Compute successBit and set circuitSelectorEcpairing
+    if (!this.internalChecksPassed || this.notOnG2AccMax) {
+      this.successBit = false;
+    } else {
+      this.successBit = true; // TODO: Gnark?
+    }
+  }
 
   void trace(Trace trace, final int stamp, final long previousId) {
     final Bytes deltaByte =
@@ -528,12 +563,41 @@ public class EcDataOperation extends ModuleOperation {
           .extResHi(extResHi.get(i))
           .extResLo(extResLo.get(i))
           .extInst(extInst.get(i).unsignedByteValue())
-          .fillAndValidateRow(); // TODO: add missing columns (stuff not related to ECRECOVER)
+          .fillAndValidateRow(); // TODO: add missing columns and manage complexity of ECPAIRING
     }
   }
 
   @Override
   protected int computeLineCount() {
     return this.nRowsData + this.nRowsResult;
+  }
+
+  private static EWord extractRecoveredAddress(EWord h, EWord v, EWord r, EWord s) {
+    SECP256K1 secp256K1 = new SECP256K1();
+    try {
+      Optional<SECPPublicKey> optionalRecoveredAddress =
+          secp256K1.recoverPublicKeyFromSignature(
+              h.toBytes(),
+              SECPSignature.create(
+                  r.toUnsignedBigInteger(),
+                  s.toUnsignedBigInteger(),
+                  (byte) (v.toInt() - 27),
+                  SECP256K1N.toUnsignedBigInteger()));
+      return optionalRecoveredAddress
+          .map(e -> EWord.of(Hash.keccak256(e.getEncodedBytes()).slice(32 - 20)))
+          .orElse(EWord.ZERO);
+    } catch (IllegalArgumentException e) {
+      System.err.print(e);
+      return EWord.ZERO;
+    }
+  }
+
+  private boolean callToC1Membership(int k, EWord pX, EWord pY) {
+    return true; // TODO
+  }
+
+  private boolean callToWellFormedCoordinates(
+      int k, EWord bXIm, EWord bXRe, EWord bYIm, EWord bYRe) {
+    return true; // TODO
   }
 }

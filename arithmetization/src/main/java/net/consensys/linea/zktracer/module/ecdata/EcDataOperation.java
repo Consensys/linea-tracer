@@ -115,6 +115,10 @@ public class EcDataOperation extends ModuleOperation {
   private Bytes returnData;
   @Getter private boolean successBit;
   private boolean circuitSelectorEcrecover;
+  private boolean circuitSelectorEcadd;
+  private boolean circuitSelectorEcmul;
+  private boolean circuitSelectorEcpairing;
+  private boolean circuitSelectorG2Membership;
 
   // pairing-specific
   private final int totalPairings;
@@ -249,9 +253,9 @@ public class EcDataOperation extends ModuleOperation {
 
     switch (ecType) {
       case ECRECOVER -> handleRecover();
-        // case ECADD -> handleAdd();
-        // case ECMUL ->  handleMul();
-        // case ECPAIRING -> handlePairing();
+      case ECADD -> handleAdd();
+      case ECMUL -> handleMul();
+      case ECPAIRING -> handlePairing();
     }
   }
 
@@ -308,7 +312,7 @@ public class EcDataOperation extends ModuleOperation {
     final EWord r = EWord.of(this.data.slice(64, 32));
     final EWord s = EWord.of(this.data.slice(96, 32));
 
-    // Set limb
+    // Set input limb
     limb.set(0, h.hi());
     limb.set(1, h.lo());
     limb.set(2, v.hi());
@@ -354,6 +358,7 @@ public class EcDataOperation extends ModuleOperation {
       this.circuitSelectorEcrecover = true;
     }
 
+    // Set output limb
     successBit = !recoveredAddress.isZero();
     limb.set(8, recoveredAddress.hi());
     limb.set(9, recoveredAddress.lo());
@@ -386,93 +391,91 @@ public class EcDataOperation extends ModuleOperation {
     }
   }
 
-  /*
-  private void handlePointOnC1(final Bytes x, final Bytes y, int u, int i) {
-    this.squares.set(
-        6 * i + 2 * u, this.callExt(12 * i + 4 * u, OpCode.MULMOD, x, x, P_BN)); // x² mod p
-    this.squares.set(
-        1 + 2 * u + 6 * i, this.callExt(1 + 4 * u + 12 * i, OpCode.MULMOD, y, y, P_BN)); // y² mod p
-    this.cubes.set(
-        2 * u + 6 * i,
-        this.callExt(
-            2 + 4 * u + 12 * i,
-            OpCode.MULMOD,
-            this.squares.get(2 * u + 6 * i),
-            x,
-            P_BN)); // x³ mod p
-    this.cubes.set(
-        1 + 2 * u + 6 * i,
-        this.callExt(
-            3 + 4 * u + 12 * i,
-            OpCode.ADDMOD,
-            this.cubes.get(2 * u + 6 * i),
-            Bytes.of(3),
-            P_BN)); // x³ + 3 mod p
-
-    this.comparisons.set(2 * u + 6 * i, this.callWcp(4 * u + 12 * i, OpCode.LT, x, P_BN)); // x < p
-    this.comparisons.set(
-        1 + 2 * u + 6 * i, this.callWcp(1 + 4 * u + 12 * i, OpCode.LT, y, P_BN)); // y < p
-
-    this.equalities.set(
-        1 + 4 * u + 12 * i,
-        this.callWcp(
-            2 + 4 * u + 12 * i,
-            OpCode.EQ,
-            this.squares.get(1 + 2 * u + 6 * i),
-            this.cubes.get(1 + 2 * u + 6 * i))); // y² = x³ + 3
-    this.equalities.set(2 + 4 * u + 12 * i, x.isZero() && y.isZero()); // (x, y) == (0, 0)
-    this.equalities.set(
-        3 + 4 * u + 12 * i,
-        this.equalities.get(1 + 4 * u + 12 * i) || this.equalities.get(2 + 4 * u + 12 * i));
+  private boolean callToC1Membership(int k, EWord pX, EWord pY) {
+    return true;
   }
 
   void handleAdd() {
-    for (int u = 0; u < 2; u++) {
-      final Bytes x = this.input.slice(64 * u, 32);
-      final Bytes y = this.input.slice(64 * u + 32, 32);
-      this.handlePointOnC1(x, y, u, 0);
-    }
+    // Extract inputs
+    final EWord pX = EWord.of(this.data.slice(0, 32));
+    final EWord pY = EWord.of(this.data.slice(32, 32));
+    final EWord qX = EWord.of(this.data.slice(64, 32));
+    final EWord qY = EWord.of(this.data.slice(96, 32));
+
+    // Set limb
+    limb.set(0, pX.hi());
+    limb.set(1, pX.lo());
+    limb.set(2, pY.hi());
+    limb.set(3, pY.lo());
+    limb.set(4, qX.hi());
+    limb.set(5, qX.lo());
+    limb.set(6, qY.hi());
+    limb.set(7, qY.lo());
+
+    // Compute internal checks
+    // row i
+    boolean c1MembershipFirstPoint = callToC1Membership(0, pX, pY);
+
+    // row i + 4
+    boolean c1MembershipSecondPoint = callToC1Membership(4, qX, qY);
+
+    // Complete set hurdle
+    hurdle.set(INDEX_MAX_ECRECOVER_DATA, c1MembershipFirstPoint && c1MembershipSecondPoint);
+
+    // Set intenral checks passed
+    this.internalChecksPassed = hurdle.get(INDEX_MAX_ECADD_DATA);
+
+    // Compute successBit and set circuitSelectorEcadd
+    this.successBit = this.internalChecksPassed;
+    this.circuitSelectorEcadd = this.internalChecksPassed;
+
+    // Set output limb
+    EWord resX = EWord.ZERO; // TODO
+    EWord resY = EWord.ZERO; // TODO
+    limb.set(8, resX.hi());
+    limb.set(9, resX.lo());
+    limb.set(10, resY.hi());
+    limb.set(11, resY.lo());
   }
 
   void handleMul() {
-    final Bytes x = this.input.slice(0, 32);
-    final Bytes y = this.input.slice(32, 32);
-    this.handlePointOnC1(x, y, 0, 0);
-    this.comparisons.set(2, true);
-    this.fillHurdle();
+    // Extract inputs
+    final EWord pX = EWord.of(this.data.slice(0, 32));
+    final EWord pY = EWord.of(this.data.slice(32, 32));
+    final EWord n = EWord.of(this.data.slice(64, 32));
+
+    // Set limb
+    limb.set(0, pX.hi());
+    limb.set(1, pX.lo());
+    limb.set(2, pY.hi());
+    limb.set(3, pY.lo());
+    limb.set(4, n.hi());
+    limb.set(5, n.lo());
+
+    // Compute internal checks
+    // row i
+    boolean c1Membership = callToC1Membership(0, pX, pY);
+
+    // Complete set hurdle
+    hurdle.set(INDEX_MAX_ECRECOVER_DATA, c1Membership);
+
+    // Set intenral checks passed
+    this.internalChecksPassed = hurdle.get(INDEX_MAX_ECMUL_DATA);
+
+    // Compute successBit and set circuitSelectorEcmul
+    this.successBit = this.internalChecksPassed;
+    this.circuitSelectorEcmul = this.internalChecksPassed;
+
+    // Set output limb
+    EWord resX = EWord.ZERO; // TODO
+    EWord resY = EWord.ZERO; // TODO
+    limb.set(8, resX.hi());
+    limb.set(9, resX.lo());
+    limb.set(10, resY.hi());
+    limb.set(11, resY.lo());
   }
 
-  void handlePairing() {
-    for (int i = 0; i < this.nPairings; i++) {
-      final Bytes x = this.input.slice(i * 192, 32);
-      final Bytes y = this.input.slice(i * 192 + 32, 32);
-      final Bytes aIm = this.input.slice(i * 192 + 64, 32);
-      final Bytes aRe = this.input.slice(i * 192 + 96, 32);
-      final Bytes bIm = this.input.slice(i * 192 + 128, 32);
-      final Bytes bRe = this.input.slice(i * 192 + 160, 32);
-
-      this.handlePointOnC1(x, y, 0, i);
-
-      this.comparisons.set(6 * i + 2, this.callWcp(12 * i + 3, OpCode.LT, aIm, P_BN));
-      this.comparisons.set(6 * i + 3, this.callWcp(12 * i + 4, OpCode.LT, aRe, P_BN));
-      this.comparisons.set(6 * i + 4, this.callWcp(12 * i + 5, OpCode.LT, bIm, P_BN));
-      this.comparisons.set(6 * i + 5, this.callWcp(12 * i + 6, OpCode.LT, bRe, P_BN));
-      this.equalities.set(12 * i + 7, true);
-      this.equalities.set(12 * i + 11, true);
-    }
-
-    this.fillHurdle();
-
-    if (this.preliminaryChecksPassed()) {
-      for (int i = 0; i < this.nPairings; i++) {
-        if (!CurveOperations.isOnG2(this.input.slice(192 * i + 64, 192 - 64))) {
-          this.thisIsNotOnG2Index = i;
-          break;
-        }
-      }
-    }
-  }
-  */
+  void handlePairing() {}
 
   void trace(Trace trace, final int stamp, final long previousId) {
     final Bytes deltaByte =
@@ -503,7 +506,11 @@ public class EcDataOperation extends ModuleOperation {
           .hurdle(hurdle.get(i))
           .byteDelta(
               i < nBYTES_OF_DELTA_BYTES ? UnsignedByte.of(deltaByte.get(i)) : UnsignedByte.of(0))
-          .circuitSelectorEcrecover(ecType == ECRECOVER && circuitSelectorEcrecover)
+          .circuitSelectorEcrecover(circuitSelectorEcrecover)
+          .circuitSelectorEcadd(circuitSelectorEcadd)
+          .circuitSelectorEcmul(circuitSelectorEcmul)
+          .circuitSelectorEcpairing(circuitSelectorEcpairing)
+          .circuitSelectorG2Membership(circuitSelectorG2Membership)
           .wcpFlag(wcpFlag.get(i))
           .wcpArg1Hi(wcpArg1Hi.get(i))
           .wcpArg1Lo(wcpArg1Lo.get(i))

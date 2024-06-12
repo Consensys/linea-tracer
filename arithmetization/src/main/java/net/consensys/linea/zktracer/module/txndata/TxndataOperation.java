@@ -78,7 +78,7 @@ public class TxndataOperation extends ModuleOperation {
     final Bytes row0arg2 =
         bigIntegerToBytes(
             value.add(
-                BigInteger.valueOf(tx.getEffectiveGasPrice())
+                outgoingLowRow6()
                     .multiply(BigInteger.valueOf(tx.getBesuTransaction().getGasLimit()))));
     wcp.callLT(row0arg1, row0arg2);
     this.callsToEucAndWcp.add(TxnDataComparisonRecord.callToLt(row0arg1, row0arg2, false));
@@ -240,8 +240,7 @@ public class TxndataOperation extends ModuleOperation {
                 (short) TYPE_2_RLP_TXN_PHASE_NUMBER_6,
                 bigIntegerToBytes(
                     tx.getBesuTransaction().getMaxPriorityFeePerGas().get().getAsBigInteger()),
-                bigIntegerToBytes(
-                    tx.getBesuTransaction().getMaxFeePerGas().get().getAsBigInteger())));
+                bigIntegerToBytes(outgoingLowRow6())));
 
         // i+7
         this.valuesToRlptxn.add(
@@ -282,6 +281,15 @@ public class TxndataOperation extends ModuleOperation {
     this.callsToEucAndWcp.add(TxnDataComparisonRecord.callToLeq(arg1, blockGasLimit, true));
   }
 
+  private BigInteger outgoingLowRow6() {
+    return switch (tx.getBesuTransaction().getType()) {
+      case FRONTIER, ACCESS_LIST -> tx.getBesuTransaction().getGasPrice().get().getAsBigInteger();
+      case EIP1559 -> tx.getBesuTransaction().getMaxFeePerGas().get().getAsBigInteger();
+      default -> throw new RuntimeException(
+          "Transaction type not supported:" + tx.getBesuTransaction().getType());
+    };
+  }
+
   public void traceTx(Trace trace, BlockSnapshot block, int absTxNumMax) {
 
     this.setRlptxnValues();
@@ -308,8 +316,8 @@ public class TxndataOperation extends ModuleOperation {
     final Bytes baseFee = block.getBaseFee().get().toMinimalBytes();
     final long coinbaseHi = highPart(block.getCoinbaseAddress());
     final Bytes coinbaseLo = lowPart(block.getCoinbaseAddress());
-    final int callDataSize = tx.isDeployment() ? tx.getBesuTransaction().getPayload().size() : 0;
-    final int initCodeSize = tx.isDeployment() ? 0 : tx.getBesuTransaction().getPayload().size();
+    final int callDataSize = tx.isDeployment() ? 0 : tx.getBesuTransaction().getPayload().size();
+    final int initCodeSize = tx.isDeployment() ? tx.getBesuTransaction().getPayload().size() : 0;
     final Bytes gasLeftOver = Bytes.minimalBytes(tx.getLeftoverGas());
     final Bytes refundCounter = Bytes.minimalBytes(tx.getRefundCounterMax());
     final Bytes refundEffective = Bytes.minimalBytes(tx.getGasRefunded());

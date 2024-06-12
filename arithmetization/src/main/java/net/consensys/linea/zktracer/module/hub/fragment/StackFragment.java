@@ -290,7 +290,7 @@ public final class StackFragment implements TraceFragment {
         .pStackOpcx(exceptions.invalidOpcode())
         .pStackSux(exceptions.stackUnderflow())
         .pStackSox(exceptions.stackOverflow())
-        .pStackMxpx(exceptions.outOfMemoryExpansion())
+        .pStackMxpx(exceptions.memoryExpansionException())
         .pStackOogx(exceptions.outOfGasException())
         .pStackRdcx(exceptions.returnDataCopyFault())
         .pStackJumpx(exceptions.jumpFault())

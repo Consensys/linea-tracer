@@ -186,7 +186,7 @@ public class CreateSection extends TraceSection
           ImcFragment.empty(hub),
           ContextFragment.readCurrentContextData(hub),
           ContextFragment.executionProvidesEmptyReturnData(hub));
-    } else if (this.exceptions.outOfMemoryExpansion()) {
+    } else if (this.exceptions.memoryExpansionException()) {
       this.addFragmentsWithoutStack(
           hub,
           ImcFragment.empty(hub).callMxp(MxpCall.build(hub)),

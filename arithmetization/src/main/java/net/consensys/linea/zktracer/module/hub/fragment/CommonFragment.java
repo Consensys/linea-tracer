@@ -15,12 +15,16 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment;
 
+import static net.consensys.linea.zktracer.opcode.OpCode.SSTORE;
+
 import java.math.BigInteger;
+import java.util.function.Supplier;
 
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.HubProcessingPhase;
 import net.consensys.linea.zktracer.module.hub.State;
@@ -31,12 +35,27 @@ import net.consensys.linea.zktracer.module.hub.signals.FailureConditions;
 import net.consensys.linea.zktracer.opcode.InstructionFamily;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
+import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
+import org.apache.tuweni.bytes.Bytes32;
+import org.apache.tuweni.units.bigints.UInt256;
+import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.datatypes.Wei;
+import org.hyperledger.besu.evm.EVM;
+import org.hyperledger.besu.evm.EvmSpecVersion;
+import org.hyperledger.besu.evm.account.Account;
+import org.hyperledger.besu.evm.fluent.EVMExecutor;
+import org.hyperledger.besu.evm.internal.EvmConfiguration;
+import org.hyperledger.besu.evm.operation.Operation;
+import org.hyperledger.besu.evm.operation.OperationRegistry;
+import org.hyperledger.besu.evm.operation.SelfDestructOperation;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Accessors(fluent = true, chain = false)
 @Builder
 public final class CommonFragment implements TraceFragment {
+
   private final Hub hub;
   private final int absoluteTransactionNumber;
   private final int relativeBlockNumber;
@@ -57,10 +76,10 @@ public final class CommonFragment implements TraceFragment {
   @Setter private int pcNew;
   private int codeDeploymentNumber;
   private final boolean codeDeploymentStatus;
-  private final long gasExpected;
-  private final long gasActual;
-  private final long gasCost;
-  private final long gasNext;
+  @Setter long gasExpected;
+  @Getter long gasActual;
+  @Setter long gasCost;
+  @Setter long gasNext;
   @Getter private final long refundDelta;
   @Setter private long gasRefund;
   @Getter @Setter private boolean twoLineInstruction;
@@ -70,25 +89,33 @@ public final class CommonFragment implements TraceFragment {
 
   public static CommonFragment fromHub(
       final Hub hub,
-      final CallFrame frame,
+      final CallFrame callFrame,
       boolean counterTli,
       int counterNsr,
       int numberOfNonStackRows) {
 
     final boolean noStackException = hub.pch().exceptions().noStackException();
     final long refundDelta =
-        noStackException ? Hub.GAS_PROJECTOR.of(frame.frame(), hub.opCode()).refund() : 0;
+        noStackException ? Hub.GAS_PROJECTOR.of(callFrame.frame(), hub.opCode()).refund() : 0;
 
     // TODO: partial solution, will not work in general
     final long gasExpected = hub.expectedGas();
     final long gasActual = hub.remainingGas();
-    final long gasCost =
-        noStackException ? Hub.GAS_PROJECTOR.of(frame.frame(), hub.opCode()).staticGas() : 0;
-    final long gasNext =
-        hub.pch().exceptions().any()
-            ? 0
-            : Math.max(
-                gasActual - gasCost, 0); // TODO: ugly, to fix just to not trace negative value
+
+//    final boolean gasCostComputationIsRequired =
+//            (hub.state.getProcessingPhase() == HubProcessingPhase.TX_EXEC)
+//                    & noStackException
+//                    & (hub.pch().exceptions().outOfGasException() || hub.pch().exceptions().none());
+//    final long gasCost =
+//            gasCostComputationIsRequired
+//                    ? CommonFragment.computeGasCost(hub, callFrame.frame().getWorldUpdater())
+//                    : 0;
+//
+//    final long gasNext =
+//        hub.pch().exceptions().any()
+//            ? 0
+//            : Math.max(
+//                gasActual - gasCost, 0); // TODO: ugly, to fix just to not trace negative value
 
     final int height = hub.currentFrame().stack().getHeight();
     final int heightNew =
@@ -98,7 +125,7 @@ public final class CommonFragment implements TraceFragment {
                 + hub.opCode().getData().stackSettings().alpha()
             : 0);
     final boolean hubInExecPhase = hub.state.getProcessingPhase() == HubProcessingPhase.TX_EXEC;
-    final int pc = hubInExecPhase ? frame.pc() : 0;
+    final int pc = hubInExecPhase ? callFrame.pc() : 0;
     final int pcNew = computePcNew(hub, pc, noStackException, hubInExecPhase);
 
     return CommonFragment.builder()
@@ -111,20 +138,20 @@ public final class CommonFragment implements TraceFragment {
         .exceptions(hub.pch().exceptions().snapshot())
         .abortingConditions(hub.pch().abortingConditions().snapshot())
         .failureConditions(hub.pch().failureConditions().snapshot())
-        .callFrameId(frame.id())
-        .contextNumber(hubInExecPhase ? frame.contextNumber() : 0)
-        .contextNumberNew(hub.contextNumberNew(frame))
+        .callFrameId(callFrame.id())
+        .contextNumber(hubInExecPhase ? callFrame.contextNumber() : 0)
+        .contextNumberNew(hub.contextNumberNew(callFrame))
         .pc(pc)
         .pcNew(pcNew)
         .height((short) height)
         .heightNew((short) heightNew)
-        .codeDeploymentNumber(frame.codeDeploymentNumber())
-        .codeDeploymentStatus(frame.isDeployment())
+        .codeDeploymentNumber(callFrame.codeDeploymentNumber())
+        .codeDeploymentStatus(callFrame.isDeployment())
         .gasExpected(gasExpected)
         .gasActual(gasActual)
-        .gasCost(gasCost)
-        .gasNext(gasNext)
-        .callerContextNumber(hub.callStack().getParentOf(frame.id()).contextNumber())
+//        .gasCost(gasCost)
+//        .gasNext(gasNext)
+        .callerContextNumber(hub.callStack().getParentOf(callFrame.id()).contextNumber())
         .refundDelta(refundDelta)
         .twoLineInstruction(hub.opCodeData().stackSettings().twoLinesInstruction())
         .twoLineInstructionCounter(counterTli)
@@ -238,5 +265,88 @@ public final class CommonFragment implements TraceFragment {
         .counterTli(twoLineInstructionCounter)
         .nonStackRows((short) numberOfNonStackRows)
         .counterNsr((short) nonStackRowsCounter);
+  }
+
+  static long computeGasCost(Hub hub, WorldView world) {
+
+    switch (hub.opCodeData().instructionFamily()) {
+      case ADD, MOD, SHF, BIN, WCP, EXT, BATCH, MACHINE_STATE, PUSH_POP, DUP, SWAP, INVALID -> {
+        if (hub.pch().exceptions().outOfGasException() || hub.pch().exceptions().none()) {
+          return hub.opCode().getData().stackSettings().staticGas().cost();
+        }
+        return 0;
+      }
+      case STORAGE -> {
+        switch (hub.opCode()) {
+          case SSTORE -> {
+            return gasCostSstore(hub, world);
+          }
+          case SLOAD -> {
+            return gasCostSload(hub, world);
+          }
+          default -> throw new RuntimeException(
+              "Gas cost not covered for " + hub.opCode().toString());
+        }
+      }
+      case HALT -> {
+        switch (hub.opCode()) {
+          case STOP -> { return 0; }
+          case RETURN, REVERT -> {
+            Bytes offset = hub.messageFrame().getStackItem(0);
+            Bytes size = hub.messageFrame().getStackItem(0);
+            return hub.pch().exceptions().memoryExpansionException()
+                    ? 0
+                    : ZkTracer.gasCalculator.memoryExpansionGasCost(hub.messageFrame(), offset.toLong(), size.toLong());
+          }
+          case SELFDESTRUCT -> {
+            SelfDestructOperation op = new SelfDestructOperation(ZkTracer.gasCalculator);
+            Operation.OperationResult operationResult = op.execute(hub.messageFrame(), new EVM(new OperationRegistry(), ZkTracer.gasCalculator, EvmConfiguration.DEFAULT, EvmSpecVersion.LONDON));
+            long gasCost = operationResult.getGasCost();
+            Address recipient = Address.extract((Bytes32) hub.messageFrame().getStackItem(0));
+            Wei inheritance = world.get(hub.messageFrame().getRecipientAddress()).getBalance();
+            return ZkTracer.gasCalculator.selfDestructOperationGasCost(world.get(recipient), inheritance);
+          }
+        }
+        return 0;}
+      default -> {
+        throw new RuntimeException("Gas cost not covered for " + hub.opCode().toString());
+      }
+    }
+  }
+
+  static long gasCostSstore(Hub hub, WorldView world) {
+
+    final Address address = hub.currentFrame().accountAddress();
+    final EWord storageKey = EWord.of(hub.messageFrame().getStackItem(0));
+
+    final UInt256 storageKeyUint256 = UInt256.fromBytes(hub.messageFrame().getStackItem(0));
+    final UInt256 valueNextUint256 = UInt256.fromBytes(hub.messageFrame().getStackItem(1));
+
+    final Supplier<UInt256> valueCurrentSupplier =
+        () -> world.get(address).getStorageValue(storageKeyUint256);
+    final Supplier<UInt256> valueOriginalSupplier =
+        () -> world.get(address).getOriginalStorageValue(storageKeyUint256);
+
+    final long storageCost =
+        ZkTracer.gasCalculator.calculateStorageCost(
+            valueNextUint256, valueCurrentSupplier, valueOriginalSupplier);
+    final boolean storageSlotWarmth = hub.currentFrame().frame().isStorageWarm(address, storageKey);
+
+    return storageCost + (storageSlotWarmth ? 0L : ZkTracer.gasCalculator.getColdSloadCost());
+  }
+
+  static long gasCostSload(Hub hub, WorldView world) {
+    final Address address = hub.currentFrame().accountAddress();
+    final EWord storageKey = EWord.of(hub.messageFrame().getStackItem(0));
+    final boolean storageSlotWarmth = hub.currentFrame().frame().isStorageWarm(address, storageKey);
+
+    return ZkTracer.gasCalculator.getSloadOperationGasCost()
+        + (storageSlotWarmth
+            ? ZkTracer.gasCalculator.getWarmStorageReadCost()
+            : ZkTracer.gasCalculator.getColdSloadCost());
+  }
+
+  static long Bull() {
+    return 0x1337;
   }
 }

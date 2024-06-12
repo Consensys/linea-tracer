@@ -142,19 +142,19 @@ public class Signals {
 
     switch (opCode) {
       case CALLDATACOPY, CODECOPY -> {
-        this.mxp = ex.outOfMemoryExpansion() || ex.outOfGasException() || ex.none();
+        this.mxp = ex.memoryExpansionException() || ex.outOfGasException() || ex.none();
         this.mmu = ex.none() && !frame.getStackItem(2).isZero();
       }
 
       case RETURNDATACOPY -> {
         this.oob = ex.none() || ex.returnDataCopyFault();
-        this.mxp = ex.none() || ex.outOfMemoryExpansion() || ex.outOfGasException();
+        this.mxp = ex.none() || ex.memoryExpansionException() || ex.outOfGasException();
         this.mmu = ex.none() && !frame.getStackItem(2).isZero();
       }
 
       case EXTCODECOPY -> {
         final boolean nonzeroSize = !frame.getStackItem(3).isZero();
-        this.mxp = ex.outOfMemoryExpansion() || ex.outOfGasException() || ex.none();
+        this.mxp = ex.memoryExpansionException() || ex.outOfGasException() || ex.none();
         this.trm = ex.outOfGasException() || ex.none();
         this.mmu = ex.none() && nonzeroSize;
 
@@ -168,7 +168,7 @@ public class Signals {
       }
 
       case LOG0, LOG1, LOG2, LOG3, LOG4 -> {
-        this.mxp = ex.outOfMemoryExpansion() || ex.outOfGasException() || ex.none();
+        this.mxp = ex.memoryExpansionException() || ex.outOfGasException() || ex.none();
         this.mmu =
             ex.none()
                 && !frame
@@ -224,7 +224,7 @@ public class Signals {
       }
 
       case REVERT -> {
-        this.mxp = ex.outOfMemoryExpansion() || ex.outOfGasException() || ex.none();
+        this.mxp = ex.memoryExpansionException() || ex.outOfGasException() || ex.none();
         this.mmu =
             ex.none()
                 && !frame.getStackItem(1).isZero()
@@ -237,7 +237,7 @@ public class Signals {
 
         // WARN: Static part, other modules may be dynamically requested in the hub
         this.mxp =
-            ex.outOfMemoryExpansion()
+            ex.memoryExpansionException()
                 || ex.outOfGasException()
                 || ex.invalidCodePrefix()
                 || ex.none();

@@ -37,6 +37,7 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.bin.Bin;
@@ -60,6 +61,7 @@ import net.consensys.linea.zktracer.module.hub.section.calls.SmartContractCallSe
 import net.consensys.linea.zktracer.module.hub.section.txFinalization.TxFinalizationPostTxDefer;
 import net.consensys.linea.zktracer.module.hub.section.txPreWarming.PreWarmingMacroSection;
 import net.consensys.linea.zktracer.module.hub.section.txSkipippedSection.SkippedPostTransactionDefer;
+import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
 import net.consensys.linea.zktracer.module.hub.transients.DeploymentInfo;
 import net.consensys.linea.zktracer.module.hub.transients.Transients;
@@ -960,6 +962,30 @@ public class Hub implements Module {
         this.state().processingPhase != TX_SKIP,
         "There can't be any execution if the HUB is in the a skip phase");
 
+    long gasCost = operationResult.getGasCost();
+    TraceSection currentSection = this.state.currentTxTrace().currentSection();
+
+    Exceptions exceptions = this.pch().exceptions();
+    boolean memoryExpansionException = exceptions.memoryExpansionException();
+    boolean outOfGasException = exceptions.outOfGasException();
+    boolean unexceptional = exceptions.none();
+
+    // Setting gas cost IN MOST CASES
+    // TODO:
+    //  * complete this for CREATE's and CALL's
+    //  * make sure this aligns with exception handling of the zkevm
+    if ((!memoryExpansionException & outOfGasException) || unexceptional) {
+      for (TraceSection.TraceLine line : currentSection.lines()) {
+        line.common().gasCost(gasCost);
+        line.common().gasNext(line.common().gasActual() - gasCost);
+      }
+    } else {
+      for (TraceSection.TraceLine line : currentSection.lines()) {
+        line.common().gasCost(0xdeadbeefL); // TODO: fill with correct values --- likely 0
+        line.common().gasNext(0xdeadbeefL);
+      }
+    }
+
     if (this.currentFrame().opCode().isCreate() && operationResult.getHaltReason() == null) {
       this.handleCreate(Words.toAddress(frame.getStackItem(0)));
     }
@@ -1355,7 +1381,7 @@ public class Hub implements Module {
                     ScenarioFragment.forCall(this, hasCode),
                     ImcFragment.forCall(this, myAccount, calledAccount),
                     ContextFragment.readCurrentContextData(this)));
-          } else if (this.pch().exceptions().outOfMemoryExpansion()) {
+          } else if (this.pch().exceptions().memoryExpansionException()) {
             this.addTraceSection(
                 new FailedCallSection(
                     this,

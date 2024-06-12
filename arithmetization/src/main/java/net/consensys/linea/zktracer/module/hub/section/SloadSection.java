@@ -22,6 +22,8 @@ import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
 import net.consensys.linea.zktracer.types.EWord;
+import org.apache.tuweni.bytes.Bytes;
+import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.worldstate.WorldView;
@@ -42,9 +44,9 @@ public class SloadSection extends TraceSection {
     final SloadSection sloadSection = new SloadSection(hub, world);
     hub.addTraceSection(sloadSection);
 
-    final Address address = hub.currentFrame().accountAddress();
+    final Address address = hub.messageFrame().getRecipientAddress();
     final int deploymentNumber = hub.currentFrame().codeDeploymentNumber();
-    final EWord storageKey = EWord.of(hub.messageFrame().getStackItem(0));
+    final Bytes32 storageKey = (Bytes32) (hub.messageFrame().getStackItem(0));
     final EWord valueOriginal =
         EWord.of(world.get(address).getOriginalStorageValue(UInt256.fromBytes(storageKey)));
     final EWord valueCurrent =
@@ -75,17 +77,19 @@ public class SloadSection extends TraceSection {
       Hub hub,
       Address address,
       int deploymentNumber,
-      EWord storageKey,
+      Bytes32 storageKey,
       EWord valueOriginal,
       EWord valueCurrent) {
 
+    final boolean incomingWarmth = hub.messageFrame().isStorageWarm(address, storageKey);
+
     return new StorageFragment(
         hub.state,
-        new State.StorageSlotIdentifier(address, deploymentNumber, storageKey),
+        new State.StorageSlotIdentifier(address, deploymentNumber, EWord.of(storageKey)),
         valueOriginal,
         valueCurrent,
         valueCurrent,
-        hub.currentFrame().frame().isStorageWarm(address, storageKey),
+        incomingWarmth,
         true,
         DomSubStampsSubFragment.standardDomSubStamps(hub, 0),
         hub.state.firstAndLastStorageSlotOccurrences.size());
@@ -95,18 +99,20 @@ public class SloadSection extends TraceSection {
       Hub hub,
       Address address,
       int deploymentNumber,
-      EWord storageKey,
+      Bytes32 storageKey,
       EWord valueOriginal,
       EWord valueCurrent) {
 
+    final boolean initiallyIncomingWarmth = hub.messageFrame().isStorageWarm(address, storageKey);
+
     return new StorageFragment(
         hub.state,
-        new State.StorageSlotIdentifier(address, deploymentNumber, storageKey),
+        new State.StorageSlotIdentifier(address, deploymentNumber, EWord.of(storageKey)),
         valueOriginal,
         valueCurrent,
         valueCurrent,
         true,
-        hub.currentFrame().frame().isStorageWarm(address, storageKey),
+        initiallyIncomingWarmth,
         DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 1),
         hub.state.firstAndLastStorageSlotOccurrences.size());
   }

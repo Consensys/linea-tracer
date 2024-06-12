@@ -41,7 +41,7 @@ public final class Exceptions {
   private boolean invalidOpcode;
   private boolean stackUnderflow;
   private boolean stackOverflow;
-  private boolean outOfMemoryExpansion;
+  private boolean memoryExpansionException;
   private boolean outOfGasException;
   private boolean returnDataCopyFault;
   private boolean jumpFault;
@@ -54,7 +54,7 @@ public final class Exceptions {
    * @param invalidOpcode unknown opcode
    * @param stackUnderflow stack underflow
    * @param stackOverflow stack overflow
-   * @param outOfMemoryExpansion tried to use memory too far away
+   * @param memoryExpansionException tried to use memory too far away
    * @param outOfGasException not enough gas for instruction
    * @param returnDataCopyFault trying to read pas the RETURNDATA end
    * @param jumpFault jumping to an invalid destination
@@ -65,7 +65,7 @@ public final class Exceptions {
       boolean invalidOpcode,
       boolean stackUnderflow,
       boolean stackOverflow,
-      boolean outOfMemoryExpansion,
+      boolean memoryExpansionException,
       boolean outOfGasException,
       boolean returnDataCopyFault,
       boolean jumpFault,
@@ -77,7 +77,7 @@ public final class Exceptions {
     this.invalidOpcode = invalidOpcode;
     this.stackUnderflow = stackUnderflow;
     this.stackOverflow = stackOverflow;
-    this.outOfMemoryExpansion = outOfMemoryExpansion;
+    this.memoryExpansionException = memoryExpansionException;
     this.outOfGasException = outOfGasException;
     this.returnDataCopyFault = returnDataCopyFault;
     this.jumpFault = jumpFault;
@@ -98,7 +98,7 @@ public final class Exceptions {
     if (this.stackOverflow) {
       return "Stack overflow";
     }
-    if (this.outOfMemoryExpansion) {
+    if (this.memoryExpansionException) {
       return "Out of MXP";
     }
     if (this.outOfGasException) {
@@ -129,7 +129,7 @@ public final class Exceptions {
     this.invalidOpcode = false;
     this.stackUnderflow = false;
     this.stackOverflow = false;
-    this.outOfMemoryExpansion = false;
+    this.memoryExpansionException = false;
     this.outOfGasException = false;
     this.returnDataCopyFault = false;
     this.jumpFault = false;
@@ -159,7 +159,7 @@ public final class Exceptions {
         invalidOpcode,
         stackUnderflow,
         stackOverflow,
-        outOfMemoryExpansion,
+        memoryExpansionException,
         outOfGasException,
         returnDataCopyFault,
         jumpFault,
@@ -176,7 +176,7 @@ public final class Exceptions {
     return this.invalidOpcode
         || this.stackUnderflow
         || this.stackOverflow
-        || this.outOfMemoryExpansion
+        || this.memoryExpansionException
         || this.outOfGasException
         || this.returnDataCopyFault
         || this.jumpFault
@@ -350,8 +350,8 @@ public final class Exceptions {
           MLOAD,
           MSTORE,
           MSTORE8 -> {
-        this.outOfMemoryExpansion = isMemoryExpansionFault(frame, opCode, gp);
-        if (this.outOfMemoryExpansion) {
+        this.memoryExpansionException = isMemoryExpansionFault(frame, opCode, gp);
+        if (this.memoryExpansionException) {
           return;
         }
 
@@ -366,8 +366,8 @@ public final class Exceptions {
           return;
         }
 
-        this.outOfMemoryExpansion = isMemoryExpansionFault(frame, opCode, gp);
-        if (this.outOfMemoryExpansion) {
+        this.memoryExpansionException = isMemoryExpansionFault(frame, opCode, gp);
+        if (this.memoryExpansionException) {
           return;
         }
 

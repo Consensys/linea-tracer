@@ -39,8 +39,8 @@ public final class StorageFragment implements TraceFragment {
   private final EWord valueOriginal;
   private final EWord valueCurrent;
   private final EWord valueNext;
-  private final boolean oldWarmth;
-  private final boolean newWarmth;
+  private final boolean incomingWarmth;
+  private final boolean outgoingWarmth;
   private final DomSubStampsSubFragment domSubStampsSubFragment;
   private final int blockNumber;
 
@@ -71,8 +71,8 @@ public final class StorageFragment implements TraceFragment {
         .pStorageValueCurrLo(valueCurrent.lo())
         .pStorageValueNextHi(valueNext.hi())
         .pStorageValueNextLo(valueNext.lo())
-        .pStorageWarmth(oldWarmth)
-        .pStorageWarmthNew(newWarmth)
+        .pStorageWarmth(incomingWarmth)
+        .pStorageWarmthNew(outgoingWarmth)
         .pStorageValueOrigIsZero(valueOriginal.isZero())
         .pStorageValueCurrIsOrig(valueCurrent.equals(valueOriginal))
         .pStorageValueCurrIsZero(valueCurrent.isZero())

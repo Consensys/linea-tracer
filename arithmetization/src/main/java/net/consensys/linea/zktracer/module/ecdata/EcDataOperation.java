@@ -23,6 +23,8 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHAS
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_ECPAIRING_RESULT;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_ECRECOVER_DATA;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_ECRECOVER_RESULT;
+import static net.consensys.linea.zktracer.module.ecdata.Trace.CT_MAX_LARGE_POINT;
+import static net.consensys.linea.zktracer.module.ecdata.Trace.CT_MAX_SMALL_POINT;
 import static net.consensys.linea.zktracer.module.ecdata.Trace.ECADD;
 import static net.consensys.linea.zktracer.module.ecdata.Trace.ECMUL;
 import static net.consensys.linea.zktracer.module.ecdata.Trace.ECPAIRING;
@@ -122,7 +124,19 @@ public class EcDataOperation extends ModuleOperation {
 
   // pairing-specific
   private final int totalPairings;
-  private final boolean notOnG2AccMax = false; // TODO: compute it
+
+  // ct
+  // ctMax
+  // isSmallPoint
+  // isLargePoint
+  // TODO: the attributes may be array of boolean in some case
+  private final boolean notOnG2 = false; // counter-constant
+  private final boolean notOnG2Acc = false; // counter-constant
+  private final boolean notOnG2AccMax = false; // index-constant
+  private final boolean isInfinity = false; // counter-constant
+  private final boolean overallTrivialPairing = false; // counter-constant
+  private final boolean g2MembershipTestRequired = false; // counter-constant
+  private final boolean acceptablePairOfPointForPairingCircuit = false; // pair-of-points-constant
 
   private int getTotalSize(int ecType, boolean isData) {
     if (isData) {
@@ -516,8 +530,18 @@ public class EcDataOperation extends ModuleOperation {
     final Bytes deltaByte =
         leftPadTo(Bytes.minimalBytes(id - previousId - 1), nBYTES_OF_DELTA_BYTES);
 
+    int ct = 0;
+    boolean isSmallPoint = false;
+    boolean isLargePoint = false;
+
     for (int i = 0; i < this.nRows; i++) {
       boolean isData = i < this.nRowsData;
+
+      // Turn isSmallPoint on if we are in the first row of a new pairing
+      if (ecType == ECPAIRING && isData && ct == 0 && !isLargePoint) {
+        isSmallPoint = true;
+      }
+
       trace
           .stamp(stamp)
           .id(id)
@@ -541,11 +565,11 @@ public class EcDataOperation extends ModuleOperation {
           .hurdle(hurdle.get(i))
           .byteDelta(
               i < nBYTES_OF_DELTA_BYTES ? UnsignedByte.of(deltaByte.get(i)) : UnsignedByte.of(0))
-          .ct((short) 0) // TODO
-          .ctMax((short) 0) // TODO
-          .isSmallPoint(false) // TODO
-          .isLargePoint(false) // TODO
-          .notOnG2(false) // TODO
+          .ct((short) (ecType == ECPAIRING && isData ? ct : 0))
+          .ctMax(
+              (short) (isSmallPoint ? CT_MAX_SMALL_POINT : (isLargePoint ? CT_MAX_LARGE_POINT : 0)))
+          .isSmallPoint(ecType == ECPAIRING && isData && isSmallPoint)
+          .notOnG2(ecType == ECPAIRING && isData && isLargePoint)
           .notOnG2Acc(false) // TODO
           .notOnG2AccMax(false) // TODO
           .isInfinity(false) // TODO
@@ -575,6 +599,19 @@ public class EcDataOperation extends ModuleOperation {
           .extResLo(extResLo.get(i))
           .extInst(extInst.get(i).unsignedByteValue())
           .validateRow();
+
+      // Update ct, isSmallPoint, isLargePoint
+      if (ecType == ECPAIRING && isData) {
+        ct++;
+        if (isSmallPoint && ct == CT_MAX_SMALL_POINT) {
+          isSmallPoint = false;
+          isLargePoint = true;
+          ct = 0;
+        } else if (isLargePoint && ct == CT_MAX_LARGE_POINT) {
+          isLargePoint = false;
+          ct = 0;
+        }
+      }
     }
   }
 

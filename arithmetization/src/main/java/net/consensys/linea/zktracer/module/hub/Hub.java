@@ -654,8 +654,6 @@ public class Hub implements Module {
       this.traceOperation(frame);
     } else {
       this.addTraceSection(new StackOnlySection(this));
-      this.currentTraceSection()
-          .addFragmentsWithoutStack(this, ContextFragment.executionProvidesEmptyReturnData(this));
     }
   }
 
@@ -968,21 +966,35 @@ public class Hub implements Module {
     final boolean memoryExpansionException = exceptions.memoryExpansionException();
     final boolean outOfGasException = exceptions.outOfGasException();
     final boolean unexceptional = exceptions.none();
+    final boolean exceptional = exceptions.any();
+    // adds the final context row to reset the caller's return data
+    if (exceptional) {
+      this.currentTraceSection()
+          .addFragmentsWithoutStack(this, ContextFragment.executionProvidesEmptyReturnData(this));
+    }
 
     // Setting gas cost IN MOST CASES
     // TODO:
     //  * complete this for CREATE's and CALL's
+    //    + are we getting the correct cost (i.e. excluding the 63/64-th's) ?
     //  * make sure this aligns with exception handling of the zkevm
-    //  * write a method `final boolean requiresGasCostInsertion()` (huge switch case)
+    //  * write a method `final boolean requiresGasCost()` (huge switch case)
     if ((!memoryExpansionException & outOfGasException) || unexceptional) {
       for (TraceSection.TraceLine line : currentSection.lines()) {
         line.common().gasCost(gasCost);
-        line.common().gasNext(line.common().gasActual() - gasCost);
+        line.common().gasNext(unexceptional ? line.common().gasActual() - gasCost : 0);
+      }
+
+      // we add a context fragment updating the CALLER CONTEXT's
+      // return data to be empty
+      if (exceptions.any()) {
+        currentSection.addFragment(
+            this, this.currentFrame(), ContextFragment.executionProvidesEmptyReturnData(this));
       }
     } else {
       for (TraceSection.TraceLine line : currentSection.lines()) {
         line.common().gasCost(0xdeadbeefL); // TODO: fill with correct values --- likely 0
-        line.common().gasNext(0xdeadbeefL);
+        line.common().gasNext(0);
       }
     }
 

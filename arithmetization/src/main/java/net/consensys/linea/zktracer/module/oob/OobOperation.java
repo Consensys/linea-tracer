@@ -20,6 +20,20 @@ import static java.lang.Byte.toUnsignedInt;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_CALL_STIPEND;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_BLAKE_CDS;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_BLAKE_PARAMS;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_ECADD;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_ECMUL;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_ECPAIRING;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_ECRECOVER;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_IDENTITY;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_MODEXP_CDS;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_MODEXP_EXTRACT;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_MODEXP_LEAD;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_MODEXP_PRICING;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_MODEXP_XBS;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_RIPEMD;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_SHA2;
 import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_BLAKE2F_CDS;
 import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_BLAKE2F_PARAMS;
 import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_CALL;
@@ -239,59 +253,59 @@ public class OobOperation extends ModuleOperation {
 
     if (target.equals(Address.ECREC)) {
       isEcRecover = true;
-      wghtSum = Bytes.fromHexString("FF01").toUnsignedBigInteger();
+      wghtSum = BigInteger.valueOf(OOB_INST_ECRECOVER);
     } else if (target.equals(Address.SHA256)) {
       isSha2 = true;
-      wghtSum = Bytes.fromHexString("FF02").toUnsignedBigInteger();
+      wghtSum =  BigInteger.valueOf(OOB_INST_SHA2);
     } else if (target.equals(Address.RIPEMD160)) {
       isRipemd = true;
-      wghtSum = Bytes.fromHexString("FF03").toUnsignedBigInteger();
+      wghtSum = BigInteger.valueOf(OOB_INST_RIPEMD);
     } else if (target.equals(Address.ID)) {
       isIdentity = true;
-      wghtSum = Bytes.fromHexString("FF04").toUnsignedBigInteger();
+      wghtSum = BigInteger.valueOf(OOB_INST_IDENTITY);
     } else if (target.equals(Address.ALTBN128_ADD)) {
       isEcadd = true;
-      wghtSum = Bytes.fromHexString("FF06").toUnsignedBigInteger();
+      wghtSum =BigInteger.valueOf(OOB_INST_ECADD);
     } else if (target.equals(Address.ALTBN128_MUL)) {
       isEcmul = true;
-      wghtSum = Bytes.fromHexString("FF07").toUnsignedBigInteger();
+      wghtSum = BigInteger.valueOf(OOB_INST_ECMUL);
     } else if (target.equals(Address.ALTBN128_PAIRING)) {
       isEcpairing = true;
-      wghtSum = Bytes.fromHexString("FF08").toUnsignedBigInteger();
+      wghtSum = BigInteger.valueOf(OOB_INST_ECPAIRING);
     } else if (target.equals(Address.BLAKE2B_F_COMPRESSION)) {
       if (blake2FCallNumber == 1) {
         isBlake2FCds = true;
-        wghtSum = Bytes.fromHexString("FA09").toUnsignedBigInteger();
+        wghtSum = BigInteger.valueOf(OOB_INST_BLAKE_CDS);
       } else if (blake2FCallNumber == 2) {
         isBlake2FParams = true;
-        wghtSum = Bytes.fromHexString("FB09").toUnsignedBigInteger();
+        wghtSum = BigInteger.valueOf(OOB_INST_BLAKE_PARAMS);
       }
     } else if (target.equals(Address.MODEXP)) {
       switch (modexpCallNumber) {
         case 1:
           isModexpCds = true;
-          wghtSum = Bytes.fromHexString("FA05").toUnsignedBigInteger();
+          wghtSum = BigInteger.valueOf(OOB_INST_MODEXP_CDS);
         case 2:
           isModexpXbs = true;
           isModexpBbs = true;
-          wghtSum = Bytes.fromHexString("FB05").toUnsignedBigInteger();
+          wghtSum = BigInteger.valueOf(OOB_INST_MODEXP_XBS);
         case 3:
           isModexpXbs = true;
           isModexpEbs = true;
-          wghtSum = Bytes.fromHexString("FB05").toUnsignedBigInteger();
+          wghtSum = BigInteger.valueOf(OOB_INST_MODEXP_XBS);
         case 4:
           isModexpXbs = true;
           isModexpMbs = true;
-          wghtSum = Bytes.fromHexString("FB05").toUnsignedBigInteger();
+          wghtSum = BigInteger.valueOf(OOB_INST_MODEXP_XBS);
         case 5:
           isModexpLead = true;
-          wghtSum = Bytes.fromHexString("FC05").toUnsignedBigInteger();
+          wghtSum = BigInteger.valueOf(OOB_INST_MODEXP_LEAD);
         case 6:
           prcModexpPricing = true;
-          wghtSum = Bytes.fromHexString("FD05").toUnsignedBigInteger();
+          wghtSum = BigInteger.valueOf(OOB_INST_MODEXP_PRICING);
         case 7:
           prcModexpExtract = true;
-          wghtSum = Bytes.fromHexString("FE05").toUnsignedBigInteger();
+          wghtSum = BigInteger.valueOf(OOB_INST_MODEXP_EXTRACT);
       }
     } else {
       throw new IllegalArgumentException("Precompile not relevant for Oob");

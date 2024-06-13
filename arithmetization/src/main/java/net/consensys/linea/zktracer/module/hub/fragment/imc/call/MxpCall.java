@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call;
 
+import static net.consensys.linea.zktracer.opcode.OpCode.EXTCODECOPY;
+
 import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -67,71 +69,128 @@ public class MxpCall implements TraceSubFragment {
     Preconditions.checkArgument(hub.opCode().equals(OpCode.MSIZE));
     return new MxpCall(
         hub,
-        getOpcode(hub),
-        getDeploys(hub),
+        OpCode.MSIZE,
+        false,
         EWord.ZERO,
         EWord.ZERO,
         EWord.ZERO,
         EWord.ZERO,
-        getMemoryExpansionException(hub),
+        false,
         hub.messageFrame().memoryWordSize(),
         0);
   }
 
-  public MxpCall mxpCallType2(Hub hub, EWord offset1) {
+  public MxpCall mxpCallType2(Hub hub) {
+
+    EWord offset = EWord.of(hub.messageFrame().getStackItem(0));
+
     return new MxpCall(
         hub,
         getOpcode(hub),
-        getDeploys(hub),
-        EWord.ZERO,
+        false,
+        offset,
         EWord.ZERO,
         EWord.ZERO,
         EWord.ZERO,
         getMemoryExpansionException(hub),
         hub.messageFrame().memoryWordSize(),
-        0);
+        0x1337L); // TODO
   }
 
   public MxpCall mxpCallType3(Hub hub) {
+
+    EWord offset = EWord.of(hub.messageFrame().getStackItem(0));
+
     return new MxpCall(
         hub,
-        getOpcode(hub),
-        getDeploys(hub),
-        EWord.ZERO,
+        OpCode.MSTORE8,
+        false,
+        offset,
         EWord.ZERO,
         EWord.ZERO,
         EWord.ZERO,
         getMemoryExpansionException(hub),
         hub.messageFrame().memoryWordSize(),
-        0);
+        0x1337L); // TODO
   }
 
-  public MxpCall mxpCallType4(Hub hub) {
+  public static MxpCall mxpCallType4(Hub hub) {
+
+    final OpCode opCode = getOpcode(hub);
+    int offsetIndex;
+    int sizeIndex;
+
+    switch (opCode) {
+      case SHA3, LOG0, LOG1, LOG2, LOG3, LOG4, RETURN, REVERT -> {
+        offsetIndex = 0;
+        sizeIndex = 1;
+      }
+      case CALLDATACOPY, CODECOPY, RETURNDATACOPY -> {
+        offsetIndex = 0;
+        sizeIndex = 2;
+      }
+      case EXTCODECOPY -> {
+        offsetIndex = 1;
+        sizeIndex = 3;
+      }
+      case CREATE, CREATE2 -> {
+        offsetIndex = 1;
+        sizeIndex = 2;
+      }
+      default -> {
+        throw new RuntimeException("MXP Type 4 incompatible opcode");
+      }
+    }
+
+    EWord offset = EWord.of(hub.messageFrame().getStackItem(offsetIndex));
+    EWord size = EWord.of(hub.messageFrame().getStackItem(sizeIndex));
+
     return new MxpCall(
         hub,
-        getOpcode(hub),
+        opCode,
         getDeploys(hub),
-        EWord.ZERO,
-        EWord.ZERO,
+        offset,
+        size,
         EWord.ZERO,
         EWord.ZERO,
         getMemoryExpansionException(hub),
         hub.messageFrame().memoryWordSize(),
-        0);
+        0x1337L); // TODO
   }
 
   public MxpCall mxpCallType5(Hub hub) {
+
+    final OpCode opCode = getOpcode(hub);
+    int extra;
+
+    switch (opCode) {
+      case CALL, CALLCODE -> {
+        extra = 1;
+      }
+      case DELEGATECALL, STATICCALL -> {
+        extra = 0;
+      }
+      default -> {
+        throw new RuntimeException("MXP Type 5 incompatible opcode");
+      }
+    }
+
+    EWord callDataOffset = EWord.of(hub.messageFrame().getStackItem(2 + extra));
+    EWord callDataSize = EWord.of(hub.messageFrame().getStackItem(3 + extra));
+    EWord returnAtOffset = EWord.of(hub.messageFrame().getStackItem(4 + extra));
+    EWord returnAtCapacity = EWord.of(hub.messageFrame().getStackItem(5 + extra));
+
     return new MxpCall(
         hub,
         getOpcode(hub),
-        getDeploys(hub),
-        EWord.ZERO,
-        EWord.ZERO,
-        EWord.ZERO,
-        EWord.ZERO,
+        false,
+        callDataOffset,
+        callDataSize,
+        returnAtOffset,
+        returnAtCapacity,
         getMemoryExpansionException(hub),
         hub.messageFrame().memoryWordSize(),
-        0);
+        0x1337L); // TODO
   }
 
   static OpCode getOpcode(Hub hub) {
@@ -146,7 +205,7 @@ public class MxpCall implements TraceSubFragment {
     return hub.pch().exceptions().memoryExpansionException();
   }
 
-  final boolean type4InstructionMayTriggerNonTrivialOperation(Hub hub) {
+  public final boolean type4InstructionMayTriggerNonTrivialOperation(Hub hub) {
     return !getMemoryExpansionException(hub) && !this.size1.isZero();
   }
 

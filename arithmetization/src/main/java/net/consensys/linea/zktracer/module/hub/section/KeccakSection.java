@@ -16,11 +16,27 @@
 package net.consensys.linea.zktracer.module.hub.section;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
-import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
 
 public class KeccakSection extends TraceSection {
-  public KeccakSection(Hub hub, CallFrame callFrame, TraceFragment... chunks) {
-    this.addFragmentsAndStack(hub, callFrame, chunks);
+
+  public static boolean appendToTrace(Hub hub) {
+
+    ImcFragment imcFragment = ImcFragment.empty(hub);
+
+    MxpCall mxpCall = MxpCall.mxpCallType4(hub);
+
+    final boolean mayTriggerNonTrivialOperation =
+        mxpCall.type4InstructionMayTriggerNonTrivialOperation(hub);
+    final boolean triggerMmu = mayTriggerNonTrivialOperation & hub.pch().exceptions().none();
+
+    if (triggerMmu) {
+      imcFragment.callMmu(MmuCall.sha3(hub));
+      // TODO: we must trigger hashInfo iff triggerMmu
+    }
+
+    return triggerMmu;
   }
 }

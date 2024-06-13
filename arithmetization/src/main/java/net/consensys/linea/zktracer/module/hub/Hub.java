@@ -109,6 +109,7 @@ import net.consensys.linea.zktracer.runtime.stack.StackContext;
 import net.consensys.linea.zktracer.runtime.stack.StackLine;
 import net.consensys.linea.zktracer.types.*;
 import org.apache.tuweni.bytes.Bytes;
+import org.bouncycastle.crypto.digests.KeccakDigest;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
@@ -660,6 +661,14 @@ public class Hub implements Module {
     }
 
     if (this.currentFrame().stack().isOk()) {
+      // TODO: this is insufficient because it neglects:
+      //  - exceptions other than stack exceptions e.g.
+      //    * STATICX
+      //    * MXPX
+      //    * OOGX
+      //  - it COULD (unlikely ?) produce issues with ABORTS
+      //  - it COULD interfere with CALL's to precompiles that don't reach EC_DATA e.g.
+      //    * ECRECOVER, ECADD, ECMUL, ECPAIRING with zero call data size parameter
       if (this.pch.signals().ecData()) {
         this.previousOperationWasCallToEcPrecompile = true;
       }
@@ -1208,9 +1217,28 @@ public class Hub implements Module {
         }
       }
 
-      case KEC -> this.addTraceSection(
-          new KeccakSection(
-              this, this.currentFrame(), ImcFragment.forOpcode(this, this.messageFrame())));
+      case KEC -> {
+        final boolean triggerMmu = KeccakSection.appendToTrace(this);
+
+        // we trigger the HASH_INFO flag
+        TraceSection currentSection = this.state.currentTxTrace().currentSection();
+        for (TraceSection.TraceLine line : currentSection.lines()) {
+          if (line.specific() instanceof StackFragment) {
+            ((StackFragment) line.specific()).hashInfoFlag = triggerMmu;
+
+            // TODO: this shouldn't be done by us ...
+            Bytes offset = this.messageFrame().getStackItem(0);
+            Bytes size = this.messageFrame().getStackItem(1);
+            Bytes dataToHash = this.messageFrame().shadowReadMemory(offset.toLong(), size.toLong());
+            KeccakDigest keccakDigest = new KeccakDigest(256);
+            keccakDigest.update(dataToHash.toArray(), 0, dataToHash.size());
+            byte[] hashOutput = new byte[keccakDigest.getDigestSize()];
+            keccakDigest.doFinal(hashOutput, 0);
+            ((StackFragment) line.specific()).hash = Bytes.of(hashOutput);
+          }
+        }
+      }
+
       case CONTEXT -> this.addTraceSection(
           new ContextLogSection(this, ContextFragment.readCurrentContextData(this)));
       case LOG -> {

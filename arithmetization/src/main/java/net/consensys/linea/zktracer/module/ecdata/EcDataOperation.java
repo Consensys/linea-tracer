@@ -541,6 +541,17 @@ public class EcDataOperation extends ModuleOperation {
           .hurdle(hurdle.get(i))
           .byteDelta(
               i < nBYTES_OF_DELTA_BYTES ? UnsignedByte.of(deltaByte.get(i)) : UnsignedByte.of(0))
+          .ct((short) 0) // TODO
+          .ctMax((short) 0) // TODO
+          .isSmallPoint(false) // TODO
+          .isLargePoint(false) // TODO
+          .notOnG2(false) // TODO
+          .notOnG2Acc(false) // TODO
+          .notOnG2AccMax(false) // TODO
+          .isInfinity(false) // TODO
+          .overallTrivialPairing(false) // TODO
+          .g2MembershipTestRequired(false) // TODO
+          .acceptablePairOfPointForPairingCircuit(false) // TODO
           .circuitSelectorEcrecover(circuitSelectorEcrecover)
           .circuitSelectorEcadd(circuitSelectorEcadd)
           .circuitSelectorEcmul(circuitSelectorEcmul)
@@ -563,7 +574,7 @@ public class EcDataOperation extends ModuleOperation {
           .extResHi(extResHi.get(i))
           .extResLo(extResLo.get(i))
           .extInst(extInst.get(i).unsignedByteValue())
-          .fillAndValidateRow(); // TODO: add missing columns and manage complexity of ECPAIRING
+          .validateRow();
     }
   }
 

@@ -56,7 +56,7 @@ public class CorsetValidator {
 
   /** Specifies the default zkEVM.bin file to use (including its path). */
   private String defaultZkEvm = null;
-  
+
   /** Specifies the Corset binary to use (including its path). */
   private String corsetBin;
 

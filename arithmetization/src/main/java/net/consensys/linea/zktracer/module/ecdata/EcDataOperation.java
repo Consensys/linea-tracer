@@ -58,6 +58,7 @@ import java.util.Set;
 
 import com.google.common.base.Preconditions;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.ext.Ext;
@@ -114,7 +115,6 @@ public class EcDataOperation extends ModuleOperation {
   private final List<Bytes> extResLo;
   private final List<OpCode> extInst;
 
-  private Bytes returnData;
   @Getter private boolean successBit;
   private boolean circuitSelectorEcrecover;
   private boolean circuitSelectorEcadd;
@@ -137,6 +137,8 @@ public class EcDataOperation extends ModuleOperation {
   private final boolean overallTrivialPairing = false; // counter-constant
   private final boolean g2MembershipTestRequired = false; // counter-constant
   private final boolean acceptablePairOfPointForPairingCircuit = false; // pair-of-points-constant
+
+  @Setter private Bytes returnData; // TODO: propagate to the trace (limb)
 
   private int getTotalSize(int ecType, boolean isData) {
     if (isData) {
@@ -365,7 +367,7 @@ public class EcDataOperation extends ModuleOperation {
     // Set internal checks passed
     this.internalChecksPassed = hurdle.get(INDEX_MAX_ECRECOVER_DATA);
 
-    EWord recoveredAddress = EWord.ZERO;
+    EWord recoveredAddress = EWord.ZERO; // TODO: use returnData
 
     // Compute recoveredAddress, successBit and set circuitSelectorEcrecover
     if (this.internalChecksPassed) {
@@ -524,6 +526,8 @@ public class EcDataOperation extends ModuleOperation {
     } else {
       this.successBit = true; // TODO: Gnark?
     }
+
+    // TODO: use returnData
   }
 
   void trace(Trace trace, final int stamp, final long previousId) {
@@ -569,7 +573,8 @@ public class EcDataOperation extends ModuleOperation {
           .ctMax(
               (short) (isSmallPoint ? CT_MAX_SMALL_POINT : (isLargePoint ? CT_MAX_LARGE_POINT : 0)))
           .isSmallPoint(ecType == ECPAIRING && isData && isSmallPoint)
-          .notOnG2(ecType == ECPAIRING && isData && isLargePoint)
+          .isLargePoint(ecType == ECPAIRING && isData && isLargePoint)
+          .notOnG2(false ) // TODO
           .notOnG2Acc(false) // TODO
           .notOnG2AccMax(false) // TODO
           .isInfinity(false) // TODO

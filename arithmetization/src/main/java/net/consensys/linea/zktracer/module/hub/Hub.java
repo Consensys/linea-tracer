@@ -245,6 +245,8 @@ public class Hub implements Module {
   private final List<Module> precompileLimitModules;
   private final List<Module> refTableModules;
 
+  private boolean previousOperationWasCallToEcPrecompile;
+
   public Hub(final Address l2l1ContractAddress, final Bytes l2l1Topic) {
     this.l2Block = new L2Block(l2l1ContractAddress, LogTopic.of(l2l1Topic));
     this.transients = new Transients(this);
@@ -723,6 +725,10 @@ public class Hub implements Module {
   }
 
   void processStateExec(MessageFrame frame) {
+    if (previousOperationWasCallToEcPrecompile) {
+      this.ecData.getMostRecentEcdDataOperation().returnData(frame.getReturnData());
+      previousOperationWasCallToEcPrecompile = false;
+    }
     this.currentFrame().frame(frame);
     this.state.stamps().incrementHubStamp();
 
@@ -736,6 +742,9 @@ public class Hub implements Module {
     }
 
     if (this.currentFrame().stack().isOk()) {
+      if (this.pch.signals().ecData()) {
+        this.previousOperationWasCallToEcPrecompile = true;
+      }
       this.traceOperation(frame);
     } else {
       this.addTraceSection(new StackOnlySection(this));

@@ -16,45 +16,20 @@
 package net.consensys.linea.rpc.tracegeneration;
 
 import java.security.InvalidParameterException;
-import java.util.Map;
 
-import net.consensys.linea.rpc.Converters;
 import net.consensys.linea.zktracer.ZkTracer;
 
 /** Holds needed parameters for sending an execution trace generation request. */
-@SuppressWarnings("unused")
 public record TraceRequestParams(
     long startBlockNumber, long endBlockNumber, String expectedTracesEngineVersion) {
-  private static final int EXPECTED_PARAMS_SIZE = 1;
 
-  /**
-   * Parses a list of params to a {@link TraceRequestParams} object.
-   *
-   * @param params an array of parameters.
-   * @return a parsed {@link TraceRequestParams} object..
-   */
-  public static TraceRequestParams createTraceParams(final Object[] params) {
-    // validate params size
-    if (params.length != EXPECTED_PARAMS_SIZE) {
-      throw new InvalidParameterException(
-          "Expected a single params object in the params array but got %d"
-              .formatted(params.length));
-    }
-
-    final Map<String, Object> traceParams = Converters.objectToMap(params[0]);
-
-    final long fromBlock = (long) traceParams.get("startBlockNumber");
-    final long toBlock = (long) traceParams.get("endBlockNumber");
-    final String version = traceParams.get("expectedTracesEngineVersion").toString();
-
-    if (!version.equals(getTracerRuntime())) {
+  public void validateTracerVersion() {
+    if (!expectedTracesEngineVersion.equals(getTracerRuntime())) {
       throw new InvalidParameterException(
           String.format(
               "INVALID_TRACES_VERSION: Runtime version is %s, requesting version %s",
-              getTracerRuntime(), version));
+              getTracerRuntime(), expectedTracesEngineVersion));
     }
-
-    return new TraceRequestParams(fromBlock, toBlock, version);
   }
 
   private static String getTracerRuntime() {

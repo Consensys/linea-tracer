@@ -18,11 +18,13 @@ package net.consensys.linea.rpc.tracegeneration;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.InvalidParameterException;
 
 import com.google.common.base.Stopwatch;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ZkTracer;
+import net.consensys.linea.zktracer.json.JsonConverter;
 import org.hyperledger.besu.ethereum.api.jsonrpc.internal.response.RpcErrorType;
 import org.hyperledger.besu.plugin.BesuContext;
 import org.hyperledger.besu.plugin.services.BesuConfiguration;
@@ -39,6 +41,8 @@ import org.hyperledger.besu.plugin.services.rpc.PluginRpcRequest;
 @Slf4j
 @RequiredArgsConstructor
 public class GenerateConflatedTracesV2 {
+  private static final JsonConverter CONVERTER = JsonConverter.builder().build();
+
   private final BesuContext besuContext;
   private Path tracesPath;
   private TraceService traceService;
@@ -66,8 +70,20 @@ public class GenerateConflatedTracesV2 {
       this.tracesPath = getTracesPath();
     }
 
+    final Object[] rawParams = request.getParams();
+
+    // validate params size
+    if (rawParams.length != 1) {
+      throw new InvalidParameterException(
+          "Expected a single params object in the params array but got %d"
+              .formatted(rawParams.length));
+    }
+
     try {
-      TraceRequestParams params = TraceRequestParams.createTraceParams(request.getParams());
+      TraceRequestParams params =
+          CONVERTER.fromJson(CONVERTER.toJson(rawParams[0]), TraceRequestParams.class);
+
+      params.validateTracerVersion();
 
       final long fromBlock = params.startBlockNumber();
       final long toBlock = params.endBlockNumber();

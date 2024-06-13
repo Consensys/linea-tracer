@@ -961,18 +961,19 @@ public class Hub implements Module {
         this.state().processingPhase != TX_SKIP,
         "There can't be any execution if the HUB is in the a skip phase");
 
-    long gasCost = operationResult.getGasCost();
-    TraceSection currentSection = this.state.currentTxTrace().currentSection();
+    final long gasCost = operationResult.getGasCost();
+    final TraceSection currentSection = this.state.currentTxTrace().currentSection();
 
-    Exceptions exceptions = this.pch().exceptions();
-    boolean memoryExpansionException = exceptions.memoryExpansionException();
-    boolean outOfGasException = exceptions.outOfGasException();
-    boolean unexceptional = exceptions.none();
+    final Exceptions exceptions = this.pch().exceptions();
+    final boolean memoryExpansionException = exceptions.memoryExpansionException();
+    final boolean outOfGasException = exceptions.outOfGasException();
+    final boolean unexceptional = exceptions.none();
 
     // Setting gas cost IN MOST CASES
     // TODO:
     //  * complete this for CREATE's and CALL's
     //  * make sure this aligns with exception handling of the zkevm
+    //  * write a method `final boolean requiresGasCostInsertion()` (huge switch case)
     if ((!memoryExpansionException & outOfGasException) || unexceptional) {
       for (TraceSection.TraceLine line : currentSection.lines()) {
         line.common().gasCost(gasCost);

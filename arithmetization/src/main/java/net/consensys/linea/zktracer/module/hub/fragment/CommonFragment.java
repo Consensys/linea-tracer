@@ -44,8 +44,6 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.EVM;
 import org.hyperledger.besu.evm.EvmSpecVersion;
-import org.hyperledger.besu.evm.account.Account;
-import org.hyperledger.besu.evm.fluent.EVMExecutor;
 import org.hyperledger.besu.evm.internal.EvmConfiguration;
 import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.operation.OperationRegistry;
@@ -102,20 +100,22 @@ public final class CommonFragment implements TraceFragment {
     final long gasExpected = hub.expectedGas();
     final long gasActual = hub.remainingGas();
 
-//    final boolean gasCostComputationIsRequired =
-//            (hub.state.getProcessingPhase() == HubProcessingPhase.TX_EXEC)
-//                    & noStackException
-//                    & (hub.pch().exceptions().outOfGasException() || hub.pch().exceptions().none());
-//    final long gasCost =
-//            gasCostComputationIsRequired
-//                    ? CommonFragment.computeGasCost(hub, callFrame.frame().getWorldUpdater())
-//                    : 0;
-//
-//    final long gasNext =
-//        hub.pch().exceptions().any()
-//            ? 0
-//            : Math.max(
-//                gasActual - gasCost, 0); // TODO: ugly, to fix just to not trace negative value
+    //    final boolean gasCostComputationIsRequired =
+    //            (hub.state.getProcessingPhase() == HubProcessingPhase.TX_EXEC)
+    //                    & noStackException
+    //                    & (hub.pch().exceptions().outOfGasException() ||
+    // hub.pch().exceptions().none());
+    //    final long gasCost =
+    //            gasCostComputationIsRequired
+    //                    ? CommonFragment.computeGasCost(hub, callFrame.frame().getWorldUpdater())
+    //                    : 0;
+    //
+    //    final long gasNext =
+    //        hub.pch().exceptions().any()
+    //            ? 0
+    //            : Math.max(
+    //                gasActual - gasCost, 0); // TODO: ugly, to fix just to not trace negative
+    // value
 
     final int height = hub.currentFrame().stack().getHeight();
     final int heightNew =
@@ -149,8 +149,8 @@ public final class CommonFragment implements TraceFragment {
         .codeDeploymentStatus(callFrame.isDeployment())
         .gasExpected(gasExpected)
         .gasActual(gasActual)
-//        .gasCost(gasCost)
-//        .gasNext(gasNext)
+        //        .gasCost(gasCost)
+        //        .gasNext(gasNext)
         .callerContextNumber(hub.callStack().getParentOf(callFrame.id()).contextNumber())
         .refundDelta(refundDelta)
         .twoLineInstruction(hub.opCodeData().stackSettings().twoLinesInstruction())
@@ -290,24 +290,36 @@ public final class CommonFragment implements TraceFragment {
       }
       case HALT -> {
         switch (hub.opCode()) {
-          case STOP -> { return 0; }
+          case STOP -> {
+            return 0;
+          }
           case RETURN, REVERT -> {
             Bytes offset = hub.messageFrame().getStackItem(0);
             Bytes size = hub.messageFrame().getStackItem(0);
             return hub.pch().exceptions().memoryExpansionException()
-                    ? 0
-                    : ZkTracer.gasCalculator.memoryExpansionGasCost(hub.messageFrame(), offset.toLong(), size.toLong());
+                ? 0
+                : ZkTracer.gasCalculator.memoryExpansionGasCost(
+                    hub.messageFrame(), offset.toLong(), size.toLong());
           }
           case SELFDESTRUCT -> {
             SelfDestructOperation op = new SelfDestructOperation(ZkTracer.gasCalculator);
-            Operation.OperationResult operationResult = op.execute(hub.messageFrame(), new EVM(new OperationRegistry(), ZkTracer.gasCalculator, EvmConfiguration.DEFAULT, EvmSpecVersion.LONDON));
+            Operation.OperationResult operationResult =
+                op.execute(
+                    hub.messageFrame(),
+                    new EVM(
+                        new OperationRegistry(),
+                        ZkTracer.gasCalculator,
+                        EvmConfiguration.DEFAULT,
+                        EvmSpecVersion.LONDON));
             long gasCost = operationResult.getGasCost();
             Address recipient = Address.extract((Bytes32) hub.messageFrame().getStackItem(0));
             Wei inheritance = world.get(hub.messageFrame().getRecipientAddress()).getBalance();
-            return ZkTracer.gasCalculator.selfDestructOperationGasCost(world.get(recipient), inheritance);
+            return ZkTracer.gasCalculator.selfDestructOperationGasCost(
+                world.get(recipient), inheritance);
           }
         }
-        return 0;}
+        return 0;
+      }
       default -> {
         throw new RuntimeException("Gas cost not covered for " + hub.opCode().toString());
       }

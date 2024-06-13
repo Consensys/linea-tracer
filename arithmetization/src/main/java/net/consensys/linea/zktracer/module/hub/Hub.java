@@ -235,6 +235,8 @@ public class Hub implements Module {
   private final List<Module> precompileLimitModules;
   private final List<Module> refTableModules;
 
+  private boolean previousOperationWasCallToEcPrecompile;
+
   public Hub(final Address l2l1ContractAddress, final Bytes l2l1Topic) {
     this.l2Block = new L2Block(l2l1ContractAddress, LogTopic.of(l2l1Topic));
     this.transients = new Transients(this);
@@ -638,6 +640,12 @@ public class Hub implements Module {
   }
 
   void processStateExec(MessageFrame frame) {
+
+    if (previousOperationWasCallToEcPrecompile) {
+      this.ecData.getEcDataOperation().returnData(frame.getReturnData());
+      previousOperationWasCallToEcPrecompile = false;
+    }
+
     this.currentFrame().frame(frame);
     this.state.stamps().incrementHubStamp();
 
@@ -646,13 +654,18 @@ public class Hub implements Module {
 
     this.handleStack(frame);
     this.triggerModules(frame);
+
     if (this.pch().exceptions().any() || this.currentFrame().opCode() == OpCode.REVERT) {
       this.callStack.revert(this.state.stamps().hub());
     }
 
     if (this.currentFrame().stack().isOk()) {
+      if (this.pch.signals().ecData()) {
+        this.previousOperationWasCallToEcPrecompile = true;
+      }
       this.traceOperation(frame);
     } else {
+
       this.addTraceSection(new StackOnlySection(this));
     }
   }
@@ -963,10 +976,12 @@ public class Hub implements Module {
     final TraceSection currentSection = this.state.currentTxTrace().currentSection();
 
     final Exceptions exceptions = this.pch().exceptions();
+
     final boolean memoryExpansionException = exceptions.memoryExpansionException();
     final boolean outOfGasException = exceptions.outOfGasException();
     final boolean unexceptional = exceptions.none();
     final boolean exceptional = exceptions.any();
+
     // adds the final context row to reset the caller's return data
     if (exceptional) {
       this.currentTraceSection()
@@ -1004,6 +1019,10 @@ public class Hub implements Module {
 
     this.defers.runPostExec(this, frame, operationResult);
     this.romLex.tracePostOpcode(frame);
+
+    if (this.previousOperationWasCallToEcPrecompile) {
+      this.ecData.getEcDataOperation().returnData(frame.getReturnData());
+    }
 
     if (this.currentFrame().needsUnlatchingAtReEntry() == null) {
       this.unlatchStack(frame);

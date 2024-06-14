@@ -37,15 +37,13 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 /** A TraceSection gather the trace lines linked to a single operation */
 public abstract class TraceSection {
   private WorldView world;
-  @Getter
-  private int stackHeight = 0;
-  @Getter
-  private int stackHeightNew = 0;
+  @Getter private int stackHeight = 0;
+  @Getter private int stackHeightNew = 0;
 
   /**
    * A TraceLine stores the information required to generate a trace line.
    *
-   * @param common   data required to trace shared columns
+   * @param common data required to trace shared columns
    * @param specific data required to trace perspective-specific columns
    */
   public record TraceLine(CommonFragment common, TraceFragment specific) {
@@ -67,24 +65,17 @@ public abstract class TraceSection {
   }
 
   /** Count the stack lines */
-  @Getter
-  private int stackRowsCounter;
+  @Getter private int stackRowsCounter;
 
   /** Count the non-stack lines */
   public int nonStackRowCounter;
 
   public int numberOfNonStackRows;
 
-  @Getter
-  @Setter
-  private TxTrace parentTrace;
+  @Getter @Setter private TxTrace parentTrace;
 
-  /**
-   * A list of {@link TraceLine} representing the trace lines associated with this
-   * section.
-   */
-  @Getter
-  List<TraceLine> lines = new ArrayList<>(32);
+  /** A list of {@link TraceLine} representing the trace lines associated with this section. */
+  @Getter List<TraceLine> lines = new ArrayList<>(32);
 
   /**
    * Fill the columns shared by all type of lines.
@@ -93,17 +84,16 @@ public abstract class TraceSection {
    */
   private CommonFragment traceCommon(Hub hub, CallFrame frame) {
     return CommonFragment.fromHub(
-        hub, frame, this.stackRowCounter == 2, this.nonStackRowCounter, this.numberOfNonStackRows);
+        hub, frame, this.stackRowsCounter == 2, this.nonStackRowCounter, this.numberOfNonStackRows);
   }
 
   /** Default creator for an empty section. */
-  public TraceSection() {
-  }
+  public TraceSection() {}
 
   /**
    * Add a fragment to the section while pairing it to its common piece.
    *
-   * @param hub      the execution context
+   * @param hub the execution context
    * @param fragment the fragment to insert
    */
   public final void addFragment(Hub hub, CallFrame callFrame, TraceFragment fragment) {
@@ -125,10 +115,9 @@ public abstract class TraceSection {
   }
 
   /**
-   * Create several {@link TraceLine} within this section for the specified
-   * fragments.
+   * Create several {@link TraceLine} within this section for the specified fragments.
    *
-   * @param hub       the Hub linked to fragments execution
+   * @param hub the Hub linked to fragments execution
    * @param fragments the fragments to add to the section
    */
   public final void addFragmentsWithoutStack(
@@ -139,10 +128,9 @@ public abstract class TraceSection {
   }
 
   /**
-   * Create several {@link TraceLine} within this section for the specified
-   * fragments.
+   * Create several {@link TraceLine} within this section for the specified fragments.
    *
-   * @param hub       the Hub linked to fragments execution
+   * @param hub the Hub linked to fragments execution
    * @param fragments the fragments to add to the section
    */
   public final void addFragmentsWithoutStack(Hub hub, TraceFragment... fragments) {
@@ -152,15 +140,12 @@ public abstract class TraceSection {
   }
 
   /**
-   * Insert {@link TraceLine} related to the current state of the stack, then
-   * insert the provided
+   * Insert {@link TraceLine} related to the current state of the stack, then insert the provided
    * fragments in a single swoop.
    *
-   * @param hub       the execution context
-   * @param callFrame the {@link CallFrame} containing the execution context;
-   *                  typically the current
-   *                  one in the hub for most instructions, but may be the parent
-   *                  one for e.g. CREATE*
+   * @param hub the execution context
+   * @param callFrame the {@link CallFrame} containing the execution context; typically the current
+   *     one in the hub for most instructions, but may be the parent one for e.g. CREATE*
    * @param fragments the fragments to insert
    */
   public final void addFragmentsAndStack(Hub hub, CallFrame callFrame, TraceFragment... fragments) {
@@ -169,11 +154,10 @@ public abstract class TraceSection {
   }
 
   /**
-   * Insert {@link TraceLine} related to the current state of the stack of the
-   * current {@link
+   * Insert {@link TraceLine} related to the current state of the stack of the current {@link
    * CallFrame}, then insert the provided fragments in a single swoop.
    *
-   * @param hub       the execution context
+   * @param hub the execution context
    * @param fragments the fragments to insert
    */
   public final void addFragmentsAndStack(Hub hub, TraceFragment... fragments) {
@@ -182,13 +166,12 @@ public abstract class TraceSection {
   }
 
   /**
-   * This method is called when the TraceSection is finished, to build required
-   * information
+   * This method is called when the TraceSection is finished, to build required information
    * post-hoc.
    */
   public void seal() {
-    final int numberOfNonStackRows = (int) this.lines.stream().filter(l -> !(l.specific instanceof StackFragment))
-        .count();
+    final int numberOfNonStackRows =
+        (int) this.lines.stream().filter(l -> !(l.specific instanceof StackFragment)).count();
     int nonStackLineCounter = 0;
     for (TraceLine line : this.lines) {
       if (!(line.specific instanceof StackFragment)) {
@@ -200,8 +183,7 @@ public abstract class TraceSection {
   }
 
   /**
-   * Returns whether the opcode encoded in this section is part of a reverted
-   * context. As it is
+   * Returns whether the opcode encoded in this section is part of a reverted context. As it is
    * section-specific, we simply take the first one.
    *
    * @return true if the context reverted
@@ -211,8 +193,7 @@ public abstract class TraceSection {
   }
 
   /**
-   * Returns the gas refund delta incurred by this operation. As it is
-   * section-specific, we simply
+   * Returns the gas refund delta incurred by this operation. As it is section-specific, we simply
    * take the first one.
    *
    * @return the gas delta
@@ -222,8 +203,7 @@ public abstract class TraceSection {
   }
 
   /**
-   * Update the stack fragments of the section with the provided
-   * {@link DeploymentExceptions}.
+   * Update the stack fragments of the section with the provided {@link DeploymentExceptions}.
    *
    * @param contEx the computed exceptions
    */

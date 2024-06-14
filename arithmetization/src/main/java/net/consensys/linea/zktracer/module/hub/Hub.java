@@ -763,8 +763,10 @@ public class Hub implements Module {
       Bytes output,
       List<Log> logs,
       long gasUsed) {
-    this.txStack.current().completeLineaTransaction(isSuccessful, this.state.stamps().hub(), this.state()
-      .getProcessingPhase(), logs);
+    this.txStack
+        .current()
+        .completeLineaTransaction(
+            isSuccessful, this.state.stamps().hub(), this.state().getProcessingPhase(), logs);
     if (this.state.getProcessingPhase() != TX_SKIP) {
       this.defers.postTx(new TxFinalizationPostTxDefer(this, world));
     }

@@ -32,9 +32,7 @@ import org.hyperledger.besu.evm.Code;
 /**
  * This class represents the call hierarchy of a transaction.
  *
- * <p>
- * Although it is accessible in a stack-like manner, it is actually a tree, the
- * stack access
+ * <p>Although it is accessible in a stack-like manner, it is actually a tree, the stack access
  * representing the path from the latest leaf to the root context.
  */
 @Accessors(fluent = true)
@@ -43,14 +41,15 @@ public final class CallStack {
   static final int MAX_CALLSTACK_SIZE = 1024;
 
   /** a never-pruned-tree of the {@link CallFrame} executed by the {@link Hub} */
-  private final List<CallFrame> frames = new ArrayList<>(50) {
-    {
-      add(CallFrame.EMPTY);
-    }
-  };
+  private final List<CallFrame> frames =
+      new ArrayList<>(50) {
+        {
+          add(CallFrame.EMPTY);
+        }
+      };
+
   /** the current depth of the call stack. */
-  @Getter
-  private int depth;
+  @Getter private int depth;
 
   /** a "pointer" to the current {@link CallFrame} in <code>frames</code>. */
   private int current;
@@ -61,25 +60,26 @@ public final class CallStack {
       final int returnDataOffset,
       final Address precompileAddress) {
 
-    final CallFrame newFrame = new CallFrame(
-        -1,
-        -1,
-        false,
-        this.frames.size(),
-        hubStamp,
-        precompileAddress,
-        precompileAddress,
-        precompileAddress,
-        Bytecode.EMPTY,
-        CallFrameType.PRECOMPILE_RETURN_DATA,
-        this.current,
-        Wei.ZERO,
-        0,
-        precompileResult,
-        returnDataOffset,
-        precompileResult.size(),
-        -1,
-        this.depth);
+    final CallFrame newFrame =
+        new CallFrame(
+            -1,
+            -1,
+            false,
+            this.frames.size(),
+            hubStamp,
+            precompileAddress,
+            precompileAddress,
+            precompileAddress,
+            Bytecode.EMPTY,
+            CallFrameType.PRECOMPILE_RETURN_DATA,
+            this.current,
+            Wei.ZERO,
+            0,
+            precompileResult,
+            returnDataOffset,
+            precompileResult.size(),
+            -1,
+            this.depth);
 
     this.frames.add(newFrame);
   }
@@ -117,8 +117,7 @@ public final class CallStack {
   }
 
   /**
-   * A “mantle” {@link CallFrame} holds the call data for a message call with a
-   * non-empty call data
+   * A “mantle” {@link CallFrame} holds the call data for a message call with a non-empty call data
    *
    * @param hubStamp
    * @param from
@@ -198,15 +197,13 @@ public final class CallStack {
   /**
    * Creates a new call frame.
    *
-   * @param hubStamp                the hub stamp at the time of entry in the new
-   *                                frame
-   * @param accountAddress          the {@link Address} of the bytecode being
-   *                                executed
-   * @param code                    the {@link Code} being executed
-   * @param type                    the execution type of call frame
-   * @param value                   the value given to this call frame
-   * @param gas                     the gas provided to this call frame
-   * @param input                   the call data sent to this call frame
+   * @param hubStamp the hub stamp at the time of entry in the new frame
+   * @param accountAddress the {@link Address} of the bytecode being executed
+   * @param code the {@link Code} being executed
+   * @param type the execution type of call frame
+   * @param value the value given to this call frame
+   * @param gas the gas provided to this call frame
+   * @param input the call data sent to this call frame
    * @param accountDeploymentNumber
    * @param codeDeploymentNumber
    * @param isDeployment
@@ -236,25 +233,26 @@ public final class CallStack {
       callData = input;
     }
 
-    CallFrame newFrame = new CallFrame(
-        accountDeploymentNumber,
-        codeDeploymentNumber,
-        isDeployment,
-        newTop,
-        hubStamp,
-        accountAddress,
-        callerAddress,
-        byteCodeAddress,
-        code,
-        type,
-        caller,
-        value,
-        gas,
-        callData,
-        callDataOffset,
-        callDataSize,
-        callDataContextNumber,
-        this.depth);
+    CallFrame newFrame =
+        new CallFrame(
+            accountDeploymentNumber,
+            codeDeploymentNumber,
+            isDeployment,
+            newTop,
+            hubStamp,
+            accountAddress,
+            callerAddress,
+            byteCodeAddress,
+            code,
+            type,
+            caller,
+            value,
+            gas,
+            callData,
+            callDataOffset,
+            callDataSize,
+            callDataContextNumber,
+            this.depth);
 
     this.frames.add(newFrame);
     this.current = newTop;
@@ -265,8 +263,7 @@ public final class CallStack {
   }
 
   /**
-   * Exit the current context, sets it return data for the caller to read, and
-   * marks its last
+   * Exit the current context, sets it return data for the caller to read, and marks its last
    * position in the hub traces.
    */
   public void exit() {
@@ -283,8 +280,7 @@ public final class CallStack {
   }
 
   /**
-   * @return whether the call stack is at its maximum capacity and a new frame
-   *         would overflow it
+   * @return whether the call stack is at its maximum capacity and a new frame would overflow it
    */
   public boolean wouldOverflow() {
     return this.depth >= MAX_CALLSTACK_SIZE;

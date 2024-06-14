@@ -753,24 +753,6 @@ public class Hub implements Module {
         m.traceContextExit(frame);
       }
     }
-
-    if (frame.getDepth() == 0) {
-      final long leftOverGas = frame.getRemainingGas();
-      final long gasRefund = frame.getGasRefund();
-      final boolean minerIsWarm = frame.isAddressWarm(txStack.current().getCoinbase());
-
-      txStack
-          .current()
-          .setPreFinalisationValues(
-              leftOverGas,
-              gasRefund,
-              minerIsWarm,
-              this.txStack.getAccumulativeGasUsedInBlockBeforeTxStart());
-
-      if (this.state.getProcessingPhase() != TX_SKIP) {
-        this.defers.postTx(new TxFinalizationPostTxDefer(this, frame.getWorldUpdater()));
-      }
-    }
   }
 
   @Override
@@ -781,14 +763,10 @@ public class Hub implements Module {
       Bytes output,
       List<Log> logs,
       long gasUsed) {
-    txStack
-        .current()
-        .completeLineaTransaction(
-            isSuccessful, this.state.stamps().hub(), this.state.getProcessingPhase(), logs);
-
-    if (this.state.processingPhase != TX_SKIP) {
-      this.state.setProcessingPhase(TX_FINAL);
-      this.state.stamps().incrementHubStamp();
+    this.txStack.current().completeLineaTransaction(isSuccessful, this.state.stamps().hub(), this.state()
+      .getProcessingPhase(), logs);
+    if (this.state.getProcessingPhase() != TX_SKIP) {
+      this.defers.postTx(new TxFinalizationPostTxDefer(this, world));
     }
 
     this.defers.runPostTx(this, world, tx, isSuccessful);

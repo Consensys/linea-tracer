@@ -44,50 +44,75 @@ import org.hyperledger.besu.evm.internal.Words;
 public class CallFrame {
   public static final CallFrame EMPTY = new CallFrame();
 
-  @Setter public int universalParentReturnDataContextNumber;
+  @Setter
+  public int universalParentReturnDataContextNumber;
 
   /** the position of this {@link CallFrame} in the {@link CallStack}. */
-  @Getter private int id;
+  @Getter
+  private int id;
+
   /** the context number of the frame, i.e. the hub stamp at its creation */
-  @Getter private final int contextNumber;
+  @Getter
+  private final int contextNumber;
+
   /** the depth of this CallFrame within its call hierarchy. */
-  @Getter private int depth;
+  @Getter
+  private int depth;
+
   /** */
-  @Getter private int accountDeploymentNumber;
+  @Getter
+  private int accountDeploymentNumber;
+
   /** */
-  @Getter private int codeDeploymentNumber;
+  @Getter
+  private int codeDeploymentNumber;
+
   /** */
-  @Getter private boolean isDeployment;
+  @Getter
+  private boolean isDeployment;
 
   public boolean isMessageCall() {
     return !isDeployment;
   }
 
-  @Getter @Setter private TraceSection needsUnlatchingAtReEntry = null;
+  @Getter
+  @Setter
+  private TraceSection needsUnlatchingAtReEntry = null;
 
   /** the ID of this {@link CallFrame} parent in the {@link CallStack}. */
-  @Getter private int parentFrame;
+  @Getter
+  private int parentFrame;
+
   /** all the {@link CallFrame} that have been called by this frame. */
-  @Getter private final List<Integer> childFrames = new ArrayList<>();
+  @Getter
+  private final List<Integer> childFrames = new ArrayList<>();
 
   /** the {@link Address} of the account executing this {@link CallFrame}. */
-  @Getter private final Address accountAddress;
+  @Getter
+  private final Address accountAddress;
   /** A memoized {@link EWord} conversion of `address` */
   private EWord eAddress = null;
-  /** the {@link Address} of the code executed in this {@link CallFrame}. */
-  @Getter private Address byteCodeAddress = Address.ZERO;
 
-  @Getter private Address callerAddress = Address.ZERO;
+  /** the {@link Address} of the code executed in this {@link CallFrame}. */
+  @Getter
+  private Address byteCodeAddress = Address.ZERO;
+
+  @Getter
+  private Address callerAddress = Address.ZERO;
   /** A memoized {@link EWord} conversion of `codeAddress` */
   private EWord eCodeAddress = null;
 
   /** the {@link CallFrameType} of this frame. */
-  @Getter private final CallFrameType type;
+  @Getter
+  private final CallFrameType type;
 
   /** the {@link Bytecode} executing within this frame. */
-  @Getter private Bytecode code = Bytecode.EMPTY;
+  @Getter
+  private Bytecode code = Bytecode.EMPTY;
+
   /** the CFI of this frame bytecode if applicable */
-  @Getter private int codeFragmentIndex = -1;
+  @Getter
+  private int codeFragmentIndex = -1;
 
   public int getCodeFragmentIndex(Hub hub) {
     return this == CallFrame.EMPTY || this.type() == CallFrameType.MANTLE
@@ -98,41 +123,77 @@ public class CallFrame {
             this.isDeployment());
   }
 
-  @Getter @Setter private int pc;
-  @Getter @Setter private OpCode opCode = OpCode.STOP;
-  @Getter @Setter private OpCodeData opCodeData = OpCodes.of(OpCode.STOP);
-  @Getter private MessageFrame frame;
+  @Getter
+  @Setter
+  private int pc;
+  @Getter
+  @Setter
+  private OpCode opCode = OpCode.STOP;
+  @Getter
+  @Setter
+  private OpCodeData opCodeData = OpCodes.of(OpCode.STOP);
+  @Getter
+  private MessageFrame frame;
 
   /** the ether amount given to this frame. */
-  @Getter private Wei value = Wei.fromHexString("0xBadF00d"); // Marker for debugging
+  @Getter
+  private Wei value = Wei.fromHexString("0xBadF00d"); // Marker for debugging
+
   /** the gas given to this frame. */
-  @Getter private long gasEndowment;
+  @Getter
+  private long gasEndowment;
 
   /** the call data given to this frame. */
-  @Getter CallDataInfo callDataInfo;
+  @Getter
+  CallDataInfo callDataInfo;
 
   /** the data returned by the latest callee. */
-  @Getter @Setter private Bytes latestReturnData = Bytes.EMPTY;
+  @Getter
+  @Setter
+  private Bytes latestReturnData = Bytes.EMPTY;
+
   /** returnData position within the latest callee memory space. */
-  @Getter @Setter private MemorySpan latestReturnDataSource = new MemorySpan(0, 0);
+  @Getter
+  @Setter
+  private MemorySpan latestReturnDataSource = new MemorySpan(0, 0);
 
   /** the return data provided by this frame */
-  @Getter @Setter private Bytes returnData = Bytes.EMPTY;
+  @Getter
+  @Setter
+  private Bytes returnData = Bytes.EMPTY;
+
   /** where this frame store its return data in its own RAM */
-  @Getter @Setter private MemorySpan returnDataSource;
-  /** where this frame is expected to write its returnData within its parent's memory space. */
-  @Getter private MemorySpan requestedReturnDataTarget = MemorySpan.empty();
+  @Getter
+  @Setter
+  private MemorySpan returnDataSource;
+
+  /**
+   * where this frame is expected to write its returnData within its parent's
+   * memory space.
+   */
+  @Getter
+  private MemorySpan requestedReturnDataTarget = MemorySpan.empty();
 
   /** the latest child context to have been called from this frame */
-  @Getter @Setter private int returnDataContextNumber = 0;
+  @Getter
+  @Setter
+  private int returnDataContextNumber = 0;
 
-  @Getter @Setter private int selfRevertsAt = 0;
-  @Getter @Setter private int getsRevertedAt = 0;
+  @Getter
+  @Setter
+  private int selfRevertsAt = 0;
+  @Getter
+  @Setter
+  private int getsRevertedAt = 0;
 
   /** this frame {@link Stack}. */
-  @Getter private final Stack stack = new Stack();
+  @Getter
+  private final Stack stack = new Stack();
+
   /** the latched context of this callframe stack. */
-  @Getter @Setter private StackContext pending;
+  @Getter
+  @Setter
+  private StackContext pending;
 
   public static void provideParentContextWithEmptyReturnData(Hub hub) {
     updateParentContextReturnData(hub, Bytes.EMPTY, MemorySpan.empty());
@@ -183,16 +244,17 @@ public class CallFrame {
    * Create a normal (non-root) call frame.
    *
    * @param accountDeploymentNumber the DN of this frame in the {@link Hub}
-   * @param codeDeploymentNumber the DN of this frame in the {@link Hub}
-   * @param isDeployment whether the executing code is initcode
-   * @param id the ID of this frame in the {@link CallStack}
-   * @param hubStamp the hub stamp at the frame creation
-   * @param accountAddress the {@link Address} of this frame executor
-   * @param type the {@link CallFrameType} of this frame
-   * @param caller the ID of this frame caller in the {@link CallStack}
-   * @param value how much ether was given to this frame
-   * @param gas how much gas was given to this frame
-   * @param callData {@link Bytes} containing this frame call data
+   * @param codeDeploymentNumber    the DN of this frame in the {@link Hub}
+   * @param isDeployment            whether the executing code is initcode
+   * @param id                      the ID of this frame in the {@link CallStack}
+   * @param hubStamp                the hub stamp at the frame creation
+   * @param accountAddress          the {@link Address} of this frame executor
+   * @param type                    the {@link CallFrameType} of this frame
+   * @param caller                  the ID of this frame caller in the
+   *                                {@link CallStack}
+   * @param value                   how much ether was given to this frame
+   * @param gas                     how much gas was given to this frame
+   * @param callData                {@link Bytes} containing this frame call data
    */
   CallFrame(
       int accountDeploymentNumber,
@@ -226,8 +288,7 @@ public class CallFrame {
     this.parentFrame = caller;
     this.value = value;
     this.gasEndowment = gas;
-    this.callDataInfo =
-        new CallDataInfo(callData, callDataOffset, callDataSize, callDataContextNumber);
+    this.callDataInfo = new CallDataInfo(callData, callDataOffset, callDataSize, callDataContextNumber);
     this.depth = depth;
     this.returnDataSource = MemorySpan.empty();
     this.latestReturnDataSource = MemorySpan.empty();
@@ -251,7 +312,8 @@ public class CallFrame {
   }
 
   /**
-   * Return the address of the code executed within this callframe as an {@link EWord}.
+   * Return the address of the code executed within this callframe as an
+   * {@link EWord}.
    *
    * @return the address
    */
@@ -276,7 +338,8 @@ public class CallFrame {
   }
 
   /**
-   * Returns a {@link ContractMetadata} instance representing the executed contract.
+   * Returns a {@link ContractMetadata} instance representing the executed
+   * contract.
    *
    * @return the executed contract metadata
    */

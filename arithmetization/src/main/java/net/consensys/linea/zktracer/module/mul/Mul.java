@@ -30,6 +30,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 @RequiredArgsConstructor
 public class Mul implements Module {
   private final Hub hub;
+
   /** A set of the operations to trace */
   private final StackedSet<MulOperation> operations = new StackedSet<>();
 

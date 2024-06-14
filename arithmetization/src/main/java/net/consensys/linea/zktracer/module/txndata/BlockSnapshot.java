@@ -25,17 +25,20 @@ import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 /**
- * This class gathers the block-related information required to trace the {@link TxnData} module.
+ * This class gathers the block-related information required to trace the
+ * {@link TxnData} module.
  */
 @Getter
 public class BlockSnapshot {
   /** The base fee of this block */
   private final Optional<Wei> baseFee;
+
   /** The coinbase of this block */
   private final Address coinbaseAddress;
 
   private final Bytes blockGasLimit;
-  @Setter private int nbOfTxsInBlock;
+  @Setter
+  private int nbOfTxsInBlock;
 
   BlockSnapshot(ProcessableBlockHeader header) {
     this.baseFee = header.getBaseFee().map(x -> (Wei) x);

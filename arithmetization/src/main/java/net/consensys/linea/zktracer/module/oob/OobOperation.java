@@ -256,7 +256,7 @@ public class OobOperation extends ModuleOperation {
       wghtSum = BigInteger.valueOf(OOB_INST_ECRECOVER);
     } else if (target.equals(Address.SHA256)) {
       isSha2 = true;
-      wghtSum =  BigInteger.valueOf(OOB_INST_SHA2);
+      wghtSum = BigInteger.valueOf(OOB_INST_SHA2);
     } else if (target.equals(Address.RIPEMD160)) {
       isRipemd = true;
       wghtSum = BigInteger.valueOf(OOB_INST_RIPEMD);
@@ -265,7 +265,7 @@ public class OobOperation extends ModuleOperation {
       wghtSum = BigInteger.valueOf(OOB_INST_IDENTITY);
     } else if (target.equals(Address.ALTBN128_ADD)) {
       isEcadd = true;
-      wghtSum =BigInteger.valueOf(OOB_INST_ECADD);
+      wghtSum = BigInteger.valueOf(OOB_INST_ECADD);
     } else if (target.equals(Address.ALTBN128_MUL)) {
       isEcmul = true;
       wghtSum = BigInteger.valueOf(OOB_INST_ECMUL);

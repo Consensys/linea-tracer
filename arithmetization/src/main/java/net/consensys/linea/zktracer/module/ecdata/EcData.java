@@ -37,7 +37,8 @@ import org.hyperledger.besu.evm.internal.Words;
 @RequiredArgsConstructor
 public class EcData implements Module {
   public static final Set<Address> EC_PRECOMPILES =
-      Set.of(Address.ECREC, Address.ALTBN128_ADD, Address.ALTBN128_MUL, Address.ALTBN128_PAIRING);
+      Set.of(Address.ECREC); // TODO: add again later , Address.ALTBN128_ADD, Address.ALTBN128_MUL,
+  // Address.ALTBN128_PAIRING);
 
   @Getter private final StackedSet<EcDataOperation> operations = new StackedSet<>();
   private final Hub hub;

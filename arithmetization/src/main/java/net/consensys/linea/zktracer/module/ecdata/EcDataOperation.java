@@ -574,7 +574,7 @@ public class EcDataOperation extends ModuleOperation {
               (short) (isSmallPoint ? CT_MAX_SMALL_POINT : (isLargePoint ? CT_MAX_LARGE_POINT : 0)))
           .isSmallPoint(ecType == ECPAIRING && isData && isSmallPoint)
           .isLargePoint(ecType == ECPAIRING && isData && isLargePoint)
-          .notOnG2(false ) // TODO
+          .notOnG2(false) // TODO
           .notOnG2Acc(false) // TODO
           .notOnG2AccMax(false) // TODO
           .isInfinity(false) // TODO

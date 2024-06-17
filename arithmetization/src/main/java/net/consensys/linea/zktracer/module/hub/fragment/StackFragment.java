@@ -152,7 +152,7 @@ public final class StackFragment implements TraceFragment {
 
   public void feedHashedValue(MessageFrame frame) {
     if (hashInfoFlag) {
-      switch (this.opCode) {
+      switch (OpCode.of(frame.getCurrentOperation().getOpcode())) {
         case SHA3 -> this.hashInfoKeccak = EWord.of(frame.getStackItem(0));
         case CREATE2 -> {
           Address newAddress = EWord.of(frame.getStackItem(0)).toAddress();

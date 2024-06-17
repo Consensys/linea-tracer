@@ -23,6 +23,7 @@ import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 
+
 /**
  * WARNING: This code is generated automatically.
  *

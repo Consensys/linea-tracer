@@ -15,11 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
-import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC;
-import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_FINAL;
-import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_INIT;
-import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_SKIP;
-import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_WARM;
+import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.*;
 import static net.consensys.linea.zktracer.module.hub.Trace.MULTIPLIER___STACK_HEIGHT;
 import static net.consensys.linea.zktracer.types.AddressUtils.addressFromBytes;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
@@ -207,11 +203,15 @@ public class Hub implements Module {
   private final Mod mod = new Mod();
   private final Module shf = new Shf();
   private final RlpTxn rlpTxn;
-  private final Module mxp;
   private final Mmio mmio;
 
+  // sub-fragments of the MISCELLANEOUS / IMC perspective
   @Getter private final Exp exp;
   @Getter private final Mmu mmu;
+  @Getter private final Mxp mxp;
+  @Getter private final Oob oob;
+  @Getter private final Stp stp = new Stp(this, wcp, mod);
+
   private final RlpTxrcpt rlpTxrcpt;
   private final LogInfo logInfo;
   private final LogData logData;
@@ -223,10 +223,7 @@ public class Hub implements Module {
   private final TxnData txnData;
   private final ShakiraData shakiraData = new ShakiraData(this.wcp);
   private final ModexpEffectiveCall modexpEffectiveCall;
-  private final Stp stp = new Stp(this, wcp, mod);
   private final L2Block l2Block;
-
-  @Getter private final Oob oob;
 
   private final List<Module> modules;
   /*
@@ -1226,15 +1223,18 @@ public class Hub implements Module {
           if (line.specific() instanceof StackFragment) {
             ((StackFragment) line.specific()).hashInfoFlag = triggerMmu;
 
-            // TODO: this shouldn't be done by us ...
-            Bytes offset = this.messageFrame().getStackItem(0);
-            Bytes size = this.messageFrame().getStackItem(1);
-            Bytes dataToHash = this.messageFrame().shadowReadMemory(offset.toLong(), size.toLong());
-            KeccakDigest keccakDigest = new KeccakDigest(256);
-            keccakDigest.update(dataToHash.toArray(), 0, dataToHash.size());
-            byte[] hashOutput = new byte[keccakDigest.getDigestSize()];
-            keccakDigest.doFinal(hashOutput, 0);
-            ((StackFragment) line.specific()).hash = Bytes.of(hashOutput);
+            if (triggerMmu) {
+              // TODO: this shouldn't be done by us ...
+              Bytes offset = this.messageFrame().getStackItem(0);
+              Bytes size = this.messageFrame().getStackItem(1);
+              Bytes dataToHash =
+                  this.messageFrame().shadowReadMemory(offset.toLong(), size.toLong());
+              KeccakDigest keccakDigest = new KeccakDigest(256);
+              keccakDigest.update(dataToHash.toArray(), 0, dataToHash.size());
+              byte[] hashOutput = new byte[keccakDigest.getDigestSize()];
+              keccakDigest.doFinal(hashOutput, 0);
+              ((StackFragment) line.specific()).hash = Bytes.of(hashOutput);
+            }
           }
         }
       }
@@ -1371,10 +1371,10 @@ public class Hub implements Module {
       case STORAGE -> {
         switch (this.currentFrame().opCode()) {
           case SSTORE -> {
-            SstoreSection.appendSection(this, frame.getWorldUpdater());
+            SstoreSection.appendSectionTo(this, frame.getWorldUpdater());
           }
           case SLOAD -> {
-            SloadSection.appendSection(this, frame.getWorldUpdater());
+            SloadSection.appendSectionTo(this, frame.getWorldUpdater());
           }
           default -> throw new IllegalStateException("invalid operation in family STORAGE");
         }
@@ -1560,5 +1560,9 @@ public class Hub implements Module {
           .addFragment(
               this, this.currentFrame(), ContextFragment.executionProvidesEmptyReturnData(this));
     }
+  }
+
+  public TraceSection getCurrentSection() {
+    return this.state.currentTxTrace().currentSection();
   }
 }

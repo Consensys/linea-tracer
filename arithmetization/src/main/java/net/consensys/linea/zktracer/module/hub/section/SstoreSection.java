@@ -39,19 +39,14 @@ public class SstoreSection extends TraceSection {
     this.world = world;
   }
 
-  public static void appendSection(Hub hub, WorldView world) {
-
-    final SstoreSection sstoreSection = new SstoreSection(hub, world);
-    hub.addTraceSection(sstoreSection);
+  public static void appendSectionTo(Hub hub, WorldView world) {
 
     final Address address = hub.messageFrame().getRecipientAddress();
     final int deploymentNumber = hub.currentFrame().codeDeploymentNumber();
     final Bytes32 storageKey = (Bytes32) hub.messageFrame().getStackItem(0);
 
-    final EWord valueOriginal =
-        EWord.of(world.get(address).getOriginalStorageValue(UInt256.fromBytes(storageKey)));
-    final EWord valueCurrent =
-        EWord.of(world.get(address).getStorageValue(UInt256.fromBytes(storageKey)));
+    final EWord valueOriginal = EWord.of(world.get(address).getOriginalStorageValue(UInt256.fromBytes(storageKey)));
+    final EWord valueCurrent = EWord.of(world.get(address).getStorageValue(UInt256.fromBytes(storageKey)));
     final EWord valueNext = EWord.of(hub.messageFrame().getStackItem(1));
 
     final boolean staticContextException = hub.pch().exceptions().staticException();
@@ -59,18 +54,19 @@ public class SstoreSection extends TraceSection {
     final boolean outOfGasException = hub.pch().exceptions().outOfGasException();
     final boolean contextWillRevert = hub.callStack().current().willRevert();
 
-    ContextFragment readCurrentContext = ContextFragment.readCurrentContextData(hub);
-    sstoreSection.addFragmentsAndStack(hub, hub.currentFrame(), readCurrentContext);
+    final SstoreSection currentSection = new SstoreSection(hub, world);
+    hub.addTraceSection(currentSection);
 
-    // TODO: make sure we trace a context when there is an exception
+    ContextFragment readCurrentContext = ContextFragment.readCurrentContextData(hub);
+    currentSection.addFragmentsAndStack(hub, hub.currentFrame(), readCurrentContext);
+
     if (staticContextException) {
       return;
     }
 
     ImcFragment miscForSstore = ImcFragment.forOpcode(hub, hub.messageFrame());
-    sstoreSection.addFragment(hub, hub.currentFrame(), miscForSstore);
+    currentSection.addFragment(hub, hub.currentFrame(), miscForSstore);
 
-    // TODO: make sure we trace a context when there is an exception
     if (sstoreException) {
       return;
     }
@@ -79,14 +75,13 @@ public class SstoreSection extends TraceSection {
         doingSstore(
             hub, address, deploymentNumber, storageKey, valueOriginal, valueCurrent, valueNext);
 
-    sstoreSection.addFragment(hub, hub.currentFrame(), doingSstore);
+    currentSection.addFragment(hub, hub.currentFrame(), doingSstore);
 
-    // TODO: make sure we trace a context when there is an exception (oogx case)
     if (outOfGasException || contextWillRevert) {
       StorageFragment undoingSstore =
           undoingSstore(
               hub, address, deploymentNumber, storageKey, valueOriginal, valueCurrent, valueNext);
-      sstoreSection.addFragment(hub, hub.currentFrame(), undoingSstore);
+      currentSection.addFragment(hub, hub.currentFrame(), undoingSstore);
     }
   }
 

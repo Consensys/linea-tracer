@@ -38,7 +38,7 @@ public class SloadSection extends TraceSection {
     this.world = world;
   }
 
-  public static void appendSection(Hub hub, WorldView world) {
+  public static void appendSectionTo(Hub hub, WorldView world) {
 
     final SloadSection sloadSection = new SloadSection(hub, world);
     hub.addTraceSection(sloadSection);

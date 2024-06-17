@@ -26,15 +26,15 @@ public class KeccakSection extends TraceSection {
 
     ImcFragment imcFragment = ImcFragment.empty(hub);
 
-    MxpCall mxpCall = MxpCall.mxpCallType4(hub);
+    MxpCall mxpCall = new MxpCall(hub);
+    imcFragment.callMxp(mxpCall);
 
-    final boolean mayTriggerNonTrivialOperation =
-        mxpCall.type4InstructionMayTriggerNonTrivialOperation(hub);
+    final boolean mayTriggerNonTrivialOperation = mxpCall.isMayTriggerNonTrivialMmuOperation();
     final boolean triggerMmu = mayTriggerNonTrivialOperation & hub.pch().exceptions().none();
 
     if (triggerMmu) {
       imcFragment.callMmu(MmuCall.sha3(hub));
-      // TODO: we must trigger hashInfo iff triggerMmu
+      // TODO: trigger hashInfo (iff triggerMmu)
     }
 
     return triggerMmu;

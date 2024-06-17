@@ -75,6 +75,30 @@ public class MxpTest {
   final OpCode[] opCodesHalting = new OpCode[] {OpCode.RETURN, OpCode.REVERT};
 
   @Test
+  void testSeveralKeccaks() {
+    BytecodeRunner.of(
+            BytecodeCompiler.newProgram()
+                .push(0)
+                .push(0)
+                .op(OpCode.SHA3)
+                .op(OpCode.POP)
+                .push(64)
+                .push(13)
+                .op(OpCode.SHA3)
+                .op(OpCode.POP)
+                .push(11)
+                .push(75)
+                .op(OpCode.SHA3)
+                .op(OpCode.POP)
+                .push(32)
+                .push(32)
+                .op(OpCode.SHA3)
+                .op(OpCode.POP)
+                .compile())
+        .run();
+  }
+
+  @Test
   void testMxpMinimalNonEmptyReturn() {
     BytecodeRunner.of(Bytes.fromHexString("6101006000f3")).run();
   }

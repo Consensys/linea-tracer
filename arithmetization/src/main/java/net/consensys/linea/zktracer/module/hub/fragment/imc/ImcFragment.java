@@ -252,6 +252,7 @@ public class ImcFragment implements TraceFragment {
     } else {
       oobIsSet = true;
     }
+    // TODO: this.hub.oob().call(f, this.hub);
     this.moduleCalls.add(f);
     return this;
   }
@@ -298,6 +299,7 @@ public class ImcFragment implements TraceFragment {
     } else {
       mxpIsSet = true;
     }
+    this.hub.mxp().call(f);
     this.moduleCalls.add(f);
     return this;
   }
@@ -308,6 +310,7 @@ public class ImcFragment implements TraceFragment {
     } else {
       stpIsSet = true;
     }
+    // TODO: this.hub.stp().call(f, this.hub);
     this.moduleCalls.add(f);
     return this;
   }

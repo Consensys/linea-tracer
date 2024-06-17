@@ -74,13 +74,13 @@ public class RlpTxrcpt implements Module {
   }
 
   @Override
-  public void traceEndTx(TransactionProcessingMetadata txMetaData, List<Log> logList) {
+  public void traceEndTx(TransactionProcessingMetadata txMetaData) {
     RlpTxrcptChunk chunk =
         new RlpTxrcptChunk(
             txMetaData.getBesuTransaction().getType(),
             txMetaData.statusCode(),
             txMetaData.getAccumulatedGasUsedInBlock(),
-            logList);
+            txMetaData.getLogs());
     this.chunkList.add(chunk);
   }
 

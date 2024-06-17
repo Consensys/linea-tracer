@@ -753,6 +753,25 @@ public class Hub implements Module {
         m.traceContextExit(frame);
       }
     }
+
+    // We take a snapshot before exiting the transaction
+    if (frame.getDepth() == 0) {
+      final long leftOverGas = frame.getRemainingGas();
+      final long gasRefund = frame.getGasRefund();
+      final boolean minerIsWarm = frame.isAddressWarm(txStack.current().getCoinbase());
+
+      txStack
+          .current()
+          .setPreFinalisationValues(
+              leftOverGas,
+              gasRefund,
+              minerIsWarm,
+              this.txStack.getAccumulativeGasUsedInBlockBeforeTxStart());
+
+      if (this.state.getProcessingPhase() != TX_SKIP) {
+        this.defers.postTx(new TxFinalizationPostTxDefer(this, frame.getWorldUpdater()));
+      }
+    }
   }
 
   @Override
@@ -776,7 +795,7 @@ public class Hub implements Module {
     for (Module m : this.modules) {
       // TODO shift all module to the method with TxMetaData
       m.traceEndTx(world, tx, isSuccessful, output, logs, gasUsed);
-      m.traceEndTx(txStack.current(), logs);
+      m.traceEndTx(txStack.current());
     }
   }
 

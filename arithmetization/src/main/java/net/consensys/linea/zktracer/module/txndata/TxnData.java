@@ -26,7 +26,6 @@ import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
-import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
@@ -67,7 +66,7 @@ public class TxnData implements Module {
   }
 
   @Override
-  public void traceEndTx(TransactionProcessingMetadata tx, List<Log> logs) {
+  public void traceEndTx(TransactionProcessingMetadata tx) {
     this.txs.add(new TxndataOperation(wcp, euc, tx));
   }
 

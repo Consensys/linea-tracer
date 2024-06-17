@@ -19,12 +19,19 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
+import org.apache.tuweni.bytes.Bytes;
+import org.bouncycastle.crypto.digests.KeccakDigest;
 
 public class KeccakSection extends TraceSection {
 
-  public static boolean appendToTrace(Hub hub) {
+  public static void appendToTrace(Hub hub) {
+
+
+    final KeccakSection currentSection = new KeccakSection();
+    hub.addTraceSection(currentSection);
 
     ImcFragment imcFragment = ImcFragment.empty(hub);
+    currentSection.addFragmentsAndStack(hub, hub.currentFrame(), imcFragment);
 
     MxpCall mxpCall = new MxpCall(hub);
     imcFragment.callMxp(mxpCall);
@@ -34,9 +41,23 @@ public class KeccakSection extends TraceSection {
 
     if (triggerMmu) {
       imcFragment.callMmu(MmuCall.sha3(hub));
-      // TODO: trigger hashInfo (iff triggerMmu)
+
+      // TODO: computing the hash shouldn't be done here
+      Bytes offset = hub.messageFrame().getStackItem(0);
+      Bytes size = hub.messageFrame().getStackItem(1);
+      Bytes dataToHash = hub.messageFrame().shadowReadMemory(offset.toLong(), size.toLong());
+      KeccakDigest keccakDigest = new KeccakDigest(256);
+      keccakDigest.update(dataToHash.toArray(), 0, dataToHash.size());
+      byte[] hashOutput = new byte[keccakDigest.getDigestSize()];
+      keccakDigest.doFinal(hashOutput, 0);
+
+      // retroactively set HASH_INFO_FLAG and HASH_INFO_KECCAK_HI, HASH_INFO_KECCAK_LO
+      currentSection.triggerHashInfo(Bytes.of(hashOutput));
     }
 
-    return triggerMmu;
+  }
+
+
+  private KeccakSection() {
   }
 }

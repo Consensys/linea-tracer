@@ -31,6 +31,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.StackFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.runtime.stack.StackLine;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Accessors(fluent = true)
@@ -245,5 +246,15 @@ public abstract class TraceSection {
       }
     }
     return r;
+  }
+
+  public void triggerHashInfo(Bytes hash) {
+
+    for (TraceSection.TraceLine line : this.lines()) {
+      if (line.specific() instanceof StackFragment) {
+        ((StackFragment) line.specific()).hashInfoFlag = true;
+        ((StackFragment) line.specific()).hash = hash;
+      }
+    }
   }
 }

@@ -252,7 +252,7 @@ public class ImcFragment implements TraceFragment {
     } else {
       oobIsSet = true;
     }
-    // TODO: this.hub.oob().call(f, this.hub);
+    this.hub.oob().call(f, this.hub);
     this.moduleCalls.add(f);
     return this;
   }

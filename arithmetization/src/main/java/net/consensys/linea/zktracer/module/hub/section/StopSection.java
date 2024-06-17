@@ -33,21 +33,23 @@ public class StopSection extends TraceSection {
     CallFrame.provideParentContextWithEmptyReturnData(hub);
 
     if (hub.currentFrame().isMessageCall()) {
-      hub.addTraceSection(messageCallStopSection(hub));
+      StopSection messageCallStopSection = messageCallStopSection(hub);
+      hub.addTraceSection(messageCallStopSection);
       return;
     }
 
-    hub.addTraceSection(deploymentStopSection(hub));
+    StopSection deploymentStopSection = deploymentStopSection(hub);
+    hub.addTraceSection(deploymentStopSection);
   }
 
-  public StopSection(Hub hub, TraceFragment... fragments) {
+  private StopSection(Hub hub, TraceFragment... fragments) {
     this.addFragmentsAndStack(hub, fragments);
   }
 
   public static StopSection messageCallStopSection(Hub hub) {
-    StopSection messageCallStopSetion =
+    StopSection messageCallStopSection =
         new StopSection(hub, readCurrentContextData(hub), executionProvidesEmptyReturnData(hub));
-    return messageCallStopSetion;
+    return messageCallStopSection;
   }
 
   public static StopSection deploymentStopSection(Hub hub) {
@@ -90,25 +92,5 @@ public class StopSection extends TraceSection {
     }
 
     return stopWhileDeploying;
-  }
-
-  public static StopSection unrevertedDeploymentStopSection(Hub hub) {
-
-    AccountFragment.AccountFragmentFactory accountFragmentFactory =
-        hub.factories().accountFragment();
-
-    final Address address = hub.currentFrame().accountAddress();
-    final int deploymentNumber = hub.transients().conflation().deploymentInfo().number(address);
-    final boolean deploymentStatus =
-        hub.transients().conflation().deploymentInfo().isDeploying(address);
-
-    // we should be deploying
-    Preconditions.checkArgument(deploymentStatus);
-
-    return new StopSection(
-        hub,
-        readCurrentContextData(hub),
-        // current (under deployment => deployed with empty byte code)
-        executionProvidesEmptyReturnData(hub));
   }
 }

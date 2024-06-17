@@ -1215,29 +1215,8 @@ public class Hub implements Module {
       }
 
       case KEC -> {
-        final boolean triggerMmu = KeccakSection.appendToTrace(this);
-
-        // we trigger the HASH_INFO flag
-        TraceSection currentSection = this.state.currentTxTrace().currentSection();
-        for (TraceSection.TraceLine line : currentSection.lines()) {
-          if (line.specific() instanceof StackFragment) {
-            ((StackFragment) line.specific()).hashInfoFlag = triggerMmu;
-
-            if (triggerMmu) {
-              // TODO: this shouldn't be done by us ...
-              Bytes offset = this.messageFrame().getStackItem(0);
-              Bytes size = this.messageFrame().getStackItem(1);
-              Bytes dataToHash =
-                  this.messageFrame().shadowReadMemory(offset.toLong(), size.toLong());
-              KeccakDigest keccakDigest = new KeccakDigest(256);
-              keccakDigest.update(dataToHash.toArray(), 0, dataToHash.size());
-              byte[] hashOutput = new byte[keccakDigest.getDigestSize()];
-              keccakDigest.doFinal(hashOutput, 0);
-              ((StackFragment) line.specific()).hash = Bytes.of(hashOutput);
-            }
-          }
-        }
-      }
+        KeccakSection.appendToTrace(this);
+    }
 
       case CONTEXT -> this.addTraceSection(
           new ContextLogSection(this, ContextFragment.readCurrentContextData(this)));

@@ -57,6 +57,7 @@ public class SstoreSection extends TraceSection {
     final SstoreSection currentSection = new SstoreSection(hub, world);
     hub.addTraceSection(currentSection);
 
+    // CONTEXT fragment
     ContextFragment readCurrentContext = ContextFragment.readCurrentContextData(hub);
     currentSection.addFragmentsAndStack(hub, hub.currentFrame(), readCurrentContext);
 
@@ -64,6 +65,7 @@ public class SstoreSection extends TraceSection {
       return;
     }
 
+    // MISC fragment
     ImcFragment miscForSstore = ImcFragment.forOpcode(hub, hub.messageFrame());
     currentSection.addFragment(hub, hub.currentFrame(), miscForSstore);
 
@@ -71,12 +73,14 @@ public class SstoreSection extends TraceSection {
       return;
     }
 
+    // STORAGE fragment (for doing)
     StorageFragment doingSstore =
         doingSstore(
             hub, address, deploymentNumber, storageKey, valueOriginal, valueCurrent, valueNext);
 
     currentSection.addFragment(hub, hub.currentFrame(), doingSstore);
 
+    // STORAGE fragment (for undoing)
     if (outOfGasException || contextWillRevert) {
       StorageFragment undoingSstore =
           undoingSstore(

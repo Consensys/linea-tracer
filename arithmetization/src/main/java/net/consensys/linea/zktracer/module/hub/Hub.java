@@ -767,6 +767,10 @@ public class Hub implements Module {
               gasRefund,
               minerIsWarm,
               this.txStack.getAccumulativeGasUsedInBlockBeforeTxStart());
+      if (this.state.getProcessingPhase() != TX_SKIP) {
+        this.state.setProcessingPhase(TX_FINAL);
+        this.defers.postTx(new TxFinalizationPostTxDefer(this, frame.getWorldUpdater()));
+      }
     }
   }
 
@@ -782,10 +786,9 @@ public class Hub implements Module {
         .current()
         .completeLineaTransaction(
             isSuccessful, this.state.stamps().hub(), this.state().getProcessingPhase(), logs);
-    if (this.state.getProcessingPhase() != TX_SKIP) {
-      this.state.setProcessingPhase(TX_FINAL);
+
+    if (!(this.state.getProcessingPhase() == TX_SKIP)) {
       this.state.stamps().incrementHubStamp();
-      this.defers.postTx(new TxFinalizationPostTxDefer(this, world));
     }
 
     this.defers.runPostTx(this, world, tx, isSuccessful);

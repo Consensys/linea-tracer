@@ -105,7 +105,6 @@ import net.consensys.linea.zktracer.runtime.stack.StackContext;
 import net.consensys.linea.zktracer.runtime.stack.StackLine;
 import net.consensys.linea.zktracer.types.*;
 import org.apache.tuweni.bytes.Bytes;
-import org.bouncycastle.crypto.digests.KeccakDigest;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
@@ -1216,7 +1215,7 @@ public class Hub implements Module {
 
       case KEC -> {
         KeccakSection.appendToTrace(this);
-    }
+      }
 
       case CONTEXT -> this.addTraceSection(
           new ContextLogSection(this, ContextFragment.readCurrentContextData(this)));

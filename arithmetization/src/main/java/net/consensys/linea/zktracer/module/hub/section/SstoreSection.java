@@ -45,8 +45,10 @@ public class SstoreSection extends TraceSection {
     final int deploymentNumber = hub.currentFrame().codeDeploymentNumber();
     final Bytes32 storageKey = (Bytes32) hub.messageFrame().getStackItem(0);
 
-    final EWord valueOriginal = EWord.of(world.get(address).getOriginalStorageValue(UInt256.fromBytes(storageKey)));
-    final EWord valueCurrent = EWord.of(world.get(address).getStorageValue(UInt256.fromBytes(storageKey)));
+    final EWord valueOriginal =
+        EWord.of(world.get(address).getOriginalStorageValue(UInt256.fromBytes(storageKey)));
+    final EWord valueCurrent =
+        EWord.of(world.get(address).getStorageValue(UInt256.fromBytes(storageKey)));
     final EWord valueNext = EWord.of(hub.messageFrame().getStackItem(1));
 
     final boolean staticContextException = hub.pch().exceptions().staticException();

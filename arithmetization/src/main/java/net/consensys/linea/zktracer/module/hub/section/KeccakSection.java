@@ -26,7 +26,6 @@ public class KeccakSection extends TraceSection {
 
   public static void appendToTrace(Hub hub) {
 
-
     final KeccakSection currentSection = new KeccakSection();
     hub.addTraceSection(currentSection);
 
@@ -54,10 +53,7 @@ public class KeccakSection extends TraceSection {
       // retroactively set HASH_INFO_FLAG and HASH_INFO_KECCAK_HI, HASH_INFO_KECCAK_LO
       currentSection.triggerHashInfo(Bytes.of(hashOutput));
     }
-
   }
 
-
-  private KeccakSection() {
-  }
+  private KeccakSection() {}
 }

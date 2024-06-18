@@ -16,27 +16,14 @@
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles;
 
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_IDENTITY;
-import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
+import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
 import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
-import net.consensys.linea.zktracer.module.oob.OobDataChannel;
-import org.apache.tuweni.bytes.Bytes;
 
-public record Identity(PrecompileInvocation p) implements OobCall {
-  @Override
-  public Bytes data(OobDataChannel i) {
-    return switch (i) {
-      case DATA_1 -> Bytes.ofUnsignedLong(p.gasAllowance());
-      case DATA_2 -> Bytes.ofUnsignedLong(p.callDataSource().length());
-      case DATA_3 -> Bytes.ofUnsignedLong(p.requestedReturnDataTarget().length());
-      case DATA_4 -> booleanToBytes(p.hubSuccess());
-      case DATA_5 -> Bytes.ofUnsignedLong(p.returnGas());
-      case DATA_6 -> booleanToBytes(p.hubSuccess() && !p.callDataSource().isEmpty());
-      case DATA_7 -> booleanToBytes(p.hubSuccess() && p.callDataSource().isEmpty());
-      case DATA_8 -> booleanToBytes(!p.requestedReturnDataTarget().isEmpty());
-    };
-  }
+@RequiredArgsConstructor
+public class Identity extends OobCall {
+  final PrecompileInvocation p;
 
   @Override
   public int oobInstruction() {

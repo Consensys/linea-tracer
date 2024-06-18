@@ -22,39 +22,18 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_IDENTITY;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_RIPEMD;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_SHA2;
-import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
+import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
 import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
-import net.consensys.linea.zktracer.module.oob.OobDataChannel;
-import net.consensys.linea.zktracer.types.Precompile;
-import org.apache.tuweni.bytes.Bytes;
 
-public record SimplePrecompileCall(
-    PrecompileInvocation scenario, long callGas, long callDataSize, long returnDataRequestedSize)
-    implements OobCall {
-
-  @Override
-  public Bytes data(OobDataChannel i) {
-    return switch (i) {
-      case DATA_1 -> Bytes.ofUnsignedLong(callGas);
-      case DATA_2 -> Bytes.ofUnsignedLong(callDataSize);
-      case DATA_3 -> Bytes.ofUnsignedLong(returnDataRequestedSize);
-      case DATA_4 -> scenario.hubFailure() ? Bytes.EMPTY : Bytes.of(1);
-      case DATA_5 -> scenario.hubSuccess()
-          ? Bytes.ofUnsignedLong(callGas - scenario.precompilePrice())
-          : Bytes.EMPTY;
-      case DATA_6 -> scenario.precompile().equals(Precompile.EC_PAIRING)
-          ? booleanToBytes(scenario.hubSuccess() && callDataSize > 0 && callDataSize % 192 == 0)
-          : booleanToBytes(scenario.hubSuccess() && callDataSize > 0);
-      case DATA_7 -> booleanToBytes(scenario.hubSuccess() && callDataSize == 0);
-      case DATA_8 -> booleanToBytes(returnDataRequestedSize > 0);
-    };
-  }
+@RequiredArgsConstructor
+public class SimplePrecompileCall extends OobCall {
+  final PrecompileInvocation p;
 
   @Override
   public int oobInstruction() {
-    return switch (scenario.precompile()) {
+    return switch (p.precompile()) {
       case EC_RECOVER -> OOB_INST_ECRECOVER;
       case SHA2_256 -> OOB_INST_SHA2;
       case RIPEMD_160 -> OOB_INST_RIPEMD;

@@ -16,24 +16,10 @@
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes;
 
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_DEPLOYMENT;
-import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
-import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
-import net.consensys.linea.zktracer.module.oob.OobDataChannel;
-import net.consensys.linea.zktracer.types.EWord;
-import org.apache.tuweni.bytes.Bytes;
 
-public record DeploymentReturn(EWord size) implements OobCall {
-  @Override
-  public Bytes data(OobDataChannel i) {
-    return switch (i) {
-      case DATA_1 -> size.hi();
-      case DATA_2 -> size.lo();
-      case DATA_7 -> booleanToBytes(size.greaterThan(EWord.of(Exceptions.MAX_CODE_SIZE)));
-      default -> Bytes.EMPTY;
-    };
-  }
+public class DeploymentReturn extends OobCall {
 
   @Override
   public int oobInstruction() {

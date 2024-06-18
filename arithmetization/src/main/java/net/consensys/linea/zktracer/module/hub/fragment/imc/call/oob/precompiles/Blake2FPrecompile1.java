@@ -16,24 +16,14 @@
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles;
 
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_BLAKE_CDS;
-import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
+import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
 import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
-import net.consensys.linea.zktracer.module.oob.OobDataChannel;
-import org.apache.tuweni.bytes.Bytes;
 
-public record Blake2FPrecompile1(PrecompileInvocation p) implements OobCall {
-  @Override
-  public Bytes data(OobDataChannel i) {
-    return switch (i) {
-      case DATA_2 -> Bytes.ofUnsignedLong(p.callDataSource().length());
-      case DATA_3 -> Bytes.ofUnsignedLong(p.requestedReturnDataTarget().length());
-      case DATA_4 -> booleanToBytes(p.hubSuccess());
-      case DATA_8 -> booleanToBytes(!p.requestedReturnDataTarget().isEmpty());
-      default -> Bytes.EMPTY;
-    };
-  }
+@RequiredArgsConstructor
+public class Blake2FPrecompile1 extends OobCall {
+  final PrecompileInvocation p;
 
   @Override
   public int oobInstruction() {

@@ -16,26 +16,14 @@
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles;
 
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_MODEXP_XBS;
-import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
+import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
-import net.consensys.linea.zktracer.module.oob.OobDataChannel;
-import net.consensys.linea.zktracer.types.EWord;
-import org.apache.tuweni.bytes.Bytes;
+import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 
-public record ModexpXbs(EWord xbs, EWord ybs, boolean compute) implements OobCall {
-  @Override
-  public Bytes data(OobDataChannel i) {
-    return switch (i) {
-      case DATA_1 -> xbs.hi();
-      case DATA_2 -> xbs.lo();
-      case DATA_3 -> ybs.lo();
-      case DATA_4 -> booleanToBytes(compute);
-      case DATA_7 -> compute ? (xbs.greaterOrEqualThan(ybs) ? xbs : ybs) : Bytes.EMPTY;
-      case DATA_8 -> compute ? booleanToBytes(!xbs.isZero()) : Bytes.EMPTY;
-      default -> Bytes.EMPTY;
-    };
-  }
+@RequiredArgsConstructor
+public class ModexpXbs extends OobCall {
+  final PrecompileInvocation p;
 
   @Override
   public int oobInstruction() {

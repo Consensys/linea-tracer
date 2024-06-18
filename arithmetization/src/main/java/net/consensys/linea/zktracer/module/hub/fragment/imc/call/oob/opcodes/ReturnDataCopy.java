@@ -16,30 +16,10 @@
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes;
 
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_RDC;
-import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
-import net.consensys.linea.zktracer.module.oob.OobDataChannel;
-import net.consensys.linea.zktracer.types.EWord;
-import org.apache.tuweni.bytes.Bytes;
 
-public record ReturnDataCopy(EWord offset, EWord size, long returnDataSize) implements OobCall {
-  @Override
-  public Bytes data(OobDataChannel i) {
-    return switch (i) {
-      case DATA_1 -> offset.hi();
-      case DATA_2 -> offset.lo();
-      case DATA_3 -> size.hi();
-      case DATA_4 -> size.lo();
-      case DATA_5 -> Bytes.ofUnsignedLong(returnDataSize);
-      case DATA_7 -> booleanToBytes(
-          !(offset.hi().isZero()
-                  && size.hi().isZero()
-                  && offset.add(size).lessOrEqualThan(EWord.of(returnDataSize)))
-              || size.isZero() && offset.greaterOrEqualThan(EWord.of(returnDataSize)));
-      default -> Bytes.EMPTY;
-    };
-  }
+public class ReturnDataCopy extends OobCall {
 
   @Override
   public int oobInstruction() {

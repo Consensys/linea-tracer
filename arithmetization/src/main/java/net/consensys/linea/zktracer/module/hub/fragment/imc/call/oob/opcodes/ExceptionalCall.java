@@ -16,24 +16,10 @@
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes;
 
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_XCALL;
-import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
-import net.consensys.linea.zktracer.module.oob.OobDataChannel;
-import net.consensys.linea.zktracer.types.EWord;
-import org.apache.tuweni.bytes.Bytes;
 
-public record ExceptionalCall(EWord value) implements OobCall {
-  @Override
-  public Bytes data(OobDataChannel i) {
-    return switch (i) {
-      case DATA_1 -> value.hi();
-      case DATA_2 -> value.lo();
-      case DATA_7 -> booleanToBytes(value.isZero());
-      case DATA_8 -> booleanToBytes(!value.isZero());
-      default -> Bytes.EMPTY;
-    };
-  }
+public class ExceptionalCall extends OobCall {
 
   @Override
   public int oobInstruction() {

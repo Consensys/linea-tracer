@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.oob;
 
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_CREATE;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.math.BigInteger;
@@ -142,7 +143,11 @@ public class Oob implements Module {
   }
 
   public void call(OobCall oobCall, Hub hub) {
-    // TODO!!!
+    // TODO: send the oobCall to OobOperation and fill it with the data
+    switch (oobCall.oobInstruction()) {
+      case OOB_INST_CREATE:
+        oobCall.data1(bigIntegerToBytes(BigInteger.ONE)).data2(bigIntegerToBytes(BigInteger.ONE));
+    }
   }
 
   @Override

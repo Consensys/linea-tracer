@@ -16,28 +16,14 @@
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles;
 
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_MODEXP_LEAD;
-import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
+import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
-import net.consensys.linea.zktracer.module.oob.OobDataChannel;
-import org.apache.tuweni.bytes.Bytes;
+import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 
-public record ModexpLead(int bbsLo, long callDataSize, int ebsLo) implements OobCall {
-
-  @Override
-  public Bytes data(OobDataChannel i) {
-    return switch (i) {
-      case DATA_1 -> Bytes.ofUnsignedLong(bbsLo);
-      case DATA_2 -> Bytes.ofUnsignedLong(callDataSize);
-      case DATA_3 -> Bytes.ofUnsignedLong(ebsLo);
-      case DATA_4 -> booleanToBytes(callDataSize > 96 + bbsLo && ebsLo > 0);
-      case DATA_6 -> Bytes.ofUnsignedInt(
-          callDataSize > 96 + bbsLo ? Math.min(callDataSize - 96 - bbsLo, 32) : 0);
-      case DATA_7 -> Bytes.ofUnsignedLong(Math.min(ebsLo, 32));
-      case DATA_8 -> Bytes.ofUnsignedLong(ebsLo < 32 ? 0 : ebsLo - 32);
-      default -> Bytes.EMPTY;
-    };
-  }
+@RequiredArgsConstructor
+public class ModexpLead extends OobCall {
+  final PrecompileInvocation p;
 
   @Override
   public int oobInstruction() {

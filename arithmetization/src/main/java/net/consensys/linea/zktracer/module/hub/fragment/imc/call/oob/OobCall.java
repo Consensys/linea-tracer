@@ -15,37 +15,41 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob;
 
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
-import net.consensys.linea.zktracer.module.oob.OobDataChannel;
 import org.apache.tuweni.bytes.Bytes;
 
 /** This interface defines the API required to execute a call to the OOB module. */
-public interface OobCall extends TraceSubFragment {
-  /**
-   * Given a data channel number, returns the data that should be sent to the OOB through this
-   * channel.
-   *
-   * @param i the channel number
-   * @return the data to send to the OOB through the channel DATA_i
-   */
-  Bytes data(OobDataChannel i);
+@Accessors(fluent = true)
+@Setter
+public abstract class OobCall implements TraceSubFragment {
+  // TODO: check if we need 0 instead of EMPTY
+  Bytes data1 = Bytes.EMPTY;
+  Bytes data2 = Bytes.EMPTY;
+  Bytes data3 = Bytes.EMPTY;
+  Bytes data4 = Bytes.EMPTY;
+  Bytes data5 = Bytes.EMPTY;
+  Bytes data6 = Bytes.EMPTY;
+  Bytes data7 = Bytes.EMPTY;
+  Bytes data8 = Bytes.EMPTY;
 
   /** The instruction to trigger in the OOB for this call. */
-  int oobInstruction();
+  public abstract int oobInstruction();
 
   @Override
-  default Trace trace(Trace trace) {
+  public Trace trace(Trace trace) {
     return trace
         .pMiscOobFlag(true)
-        .pMiscOobData1(this.data(OobDataChannel.of(0)))
-        .pMiscOobData2(this.data(OobDataChannel.of(1)))
-        .pMiscOobData3(this.data(OobDataChannel.of(2)))
-        .pMiscOobData4(this.data(OobDataChannel.of(3)))
-        .pMiscOobData5(this.data(OobDataChannel.of(4)))
-        .pMiscOobData6(this.data(OobDataChannel.of(5)))
-        .pMiscOobData7(this.data(OobDataChannel.of(6)))
-        .pMiscOobData8(this.data(OobDataChannel.of(7)))
+        .pMiscOobData1(data1)
+        .pMiscOobData2(data2)
+        .pMiscOobData3(data3)
+        .pMiscOobData4(data4)
+        .pMiscOobData5(data5)
+        .pMiscOobData6(data6)
+        .pMiscOobData7(data7)
+        .pMiscOobData8(data8)
         .pMiscOobInst(this.oobInstruction());
   }
 }

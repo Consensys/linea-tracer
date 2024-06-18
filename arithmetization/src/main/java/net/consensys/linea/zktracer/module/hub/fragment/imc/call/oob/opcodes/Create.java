@@ -16,35 +16,10 @@
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes;
 
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_CREATE;
-import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
-import net.consensys.linea.zktracer.module.oob.OobDataChannel;
-import net.consensys.linea.zktracer.types.EWord;
-import org.apache.tuweni.bytes.Bytes;
 
-public record Create(
-    boolean hasAbort,
-    boolean hasFailure,
-    EWord value,
-    EWord creatorBalance,
-    long createdNonce,
-    boolean createdHasCode,
-    int callStackDepth)
-    implements OobCall {
-  @Override
-  public Bytes data(OobDataChannel i) {
-    return switch (i) {
-      case DATA_1 -> value.hi();
-      case DATA_2 -> value.lo();
-      case DATA_3 -> creatorBalance.lo();
-      case DATA_4 -> Bytes.ofUnsignedLong(createdNonce);
-      case DATA_5 -> booleanToBytes(createdHasCode);
-      case DATA_6 -> Bytes.ofUnsignedLong(callStackDepth);
-      case DATA_7 -> booleanToBytes(hasAbort);
-      case DATA_8 -> booleanToBytes(hasFailure);
-    };
-  }
+public class Create extends OobCall {
 
   @Override
   public int oobInstruction() {

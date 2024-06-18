@@ -16,31 +16,10 @@
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes;
 
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_CDL;
-import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
-import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
-import net.consensys.linea.zktracer.module.oob.OobDataChannel;
-import net.consensys.linea.zktracer.types.EWord;
-import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.evm.frame.MessageFrame;
 
-public record CallDataLoad(EWord readOffset, EWord callDataSize) implements OobCall {
-  public static CallDataLoad build(Hub hub, MessageFrame frame) {
-    return new CallDataLoad(
-        EWord.of(frame.getStackItem(0)), EWord.of(hub.currentFrame().callDataInfo().data().size()));
-  }
-
-  @Override
-  public Bytes data(OobDataChannel i) {
-    return switch (i) {
-      case DATA_1 -> this.readOffset.hi();
-      case DATA_2 -> this.readOffset.lo();
-      case DATA_5 -> this.callDataSize;
-      case DATA_7 -> booleanToBytes(this.readOffset.greaterOrEqualThan(this.callDataSize));
-      default -> Bytes.EMPTY;
-    };
-  }
+public class CallDataLoad extends OobCall {
 
   @Override
   public int oobInstruction() {

@@ -16,23 +16,14 @@
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles;
 
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_MODEXP_CDS;
-import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
+import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
-import net.consensys.linea.zktracer.module.oob.OobDataChannel;
-import org.apache.tuweni.bytes.Bytes;
+import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 
-public record ModexpCds(long callDataSize) implements OobCall {
-  @Override
-  public Bytes data(OobDataChannel i) {
-    return switch (i) {
-      case DATA_2 -> Bytes.ofUnsignedLong(callDataSize);
-      case DATA_3 -> booleanToBytes(callDataSize > 0);
-      case DATA_4 -> booleanToBytes(callDataSize > 32);
-      case DATA_5 -> booleanToBytes(callDataSize > 64);
-      default -> Bytes.EMPTY;
-    };
-  }
+@RequiredArgsConstructor
+public class ModexpCds extends OobCall {
+  final PrecompileInvocation p;
 
   @Override
   public int oobInstruction() {

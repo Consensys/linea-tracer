@@ -156,15 +156,7 @@ public class CreateSection extends TraceSection
 
     final ImcFragment commonImcFragment =
         ImcFragment.empty(hub)
-            .callOob(
-                new Create(
-                    hub.pch().abortingConditions().any(),
-                    hub.pch().failureConditions().any(),
-                    EWord.of(hub.messageFrame().getStackItem(0)),
-                    EWord.of(oldCreatedSnapshot.balance()),
-                    oldCreatedSnapshot.nonce(),
-                    !oldCreatedSnapshot.code().isEmpty(),
-                    hub.callStack().depth()))
+            .callOob(new Create())
             .callMxp(MxpCall.build(hub))
             .callStp(
                 new StpCall(

@@ -16,29 +16,14 @@
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles;
 
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_BLAKE_PARAMS;
-import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
+import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
-import net.consensys.linea.zktracer.module.hub.precompiles.Blake2fMetadata;
 import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
-import net.consensys.linea.zktracer.module.oob.OobDataChannel;
-import org.apache.tuweni.bytes.Bytes;
 
-public record Blake2FPrecompile2(PrecompileInvocation p) implements OobCall {
-
-  @Override
-  public Bytes data(OobDataChannel i) {
-    final Blake2fMetadata metadata = (Blake2fMetadata) p.metadata();
-    return switch (i) {
-      case DATA_1 -> Bytes.ofUnsignedLong(p.gasAtCall());
-      case DATA_4 -> booleanToBytes(p.ramSuccess());
-      case DATA_5 -> Bytes.ofUnsignedLong(p.ramSuccess() ? p.precompilePrice() - p.gasAtCall() : 0);
-      case DATA_6 -> Bytes.ofUnsignedLong(metadata.r());
-      case DATA_7 -> Bytes.ofUnsignedLong(metadata.f());
-
-      default -> Bytes.EMPTY;
-    };
-  }
+@RequiredArgsConstructor
+public class Blake2FPrecompile2 extends OobCall {
+  final PrecompileInvocation p;
 
   @Override
   public int oobInstruction() {

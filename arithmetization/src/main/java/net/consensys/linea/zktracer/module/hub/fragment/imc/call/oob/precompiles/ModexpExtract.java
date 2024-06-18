@@ -16,27 +16,14 @@
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles;
 
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_MODEXP_EXTRACT;
-import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
+import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
-import net.consensys.linea.zktracer.module.oob.OobDataChannel;
-import org.apache.tuweni.bytes.Bytes;
+import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 
-public record ModexpExtract(long callDataSize, int bbsLo, int ebsLo, int mbsLo) implements OobCall {
-  @Override
-  public Bytes data(OobDataChannel i) {
-    final boolean modulusExtraction = callDataSize > 96 + bbsLo + ebsLo && mbsLo > 0;
-    return switch (i) {
-      case DATA_2 -> Bytes.ofUnsignedLong(callDataSize);
-      case DATA_3 -> Bytes.ofUnsignedLong(bbsLo);
-      case DATA_4 -> Bytes.ofUnsignedLong(ebsLo);
-      case DATA_5 -> Bytes.ofUnsignedLong(mbsLo);
-      case DATA_6 -> booleanToBytes(modulusExtraction && bbsLo > 0);
-      case DATA_7 -> booleanToBytes(modulusExtraction && ebsLo > 0);
-      case DATA_8 -> booleanToBytes(modulusExtraction);
-      default -> Bytes.EMPTY;
-    };
-  }
+@RequiredArgsConstructor
+public class ModexpExtract extends OobCall {
+  final PrecompileInvocation p;
 
   @Override
   public int oobInstruction() {

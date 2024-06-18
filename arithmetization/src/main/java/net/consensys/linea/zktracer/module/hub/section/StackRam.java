@@ -35,7 +35,7 @@ public class StackRam extends TraceSection {
         imcFragment.callMxp(mxpCall);
       }
       case CALLDATALOAD -> {
-        OobCall oobCall = CallDataLoad.build(hub, hub.messageFrame());
+        OobCall oobCall = new CallDataLoad();
         imcFragment.callOob(oobCall);
       }
     }

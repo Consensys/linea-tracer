@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
-import net.consensys.linea.zktracer.module.exp.ModexpLogOperation;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
@@ -40,7 +39,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpXbs;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.RipeMd160;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.Sha2;
-import net.consensys.linea.zktracer.types.EWord;
 
 @RequiredArgsConstructor
 public class PrecompileLinesGenerator {
@@ -136,23 +134,22 @@ public class PrecompileLinesGenerator {
         final int ebsInt = m.ebs().toUnsignedBigInteger().intValueExact();
         final int mbsInt = m.mbs().toUnsignedBigInteger().intValueExact();
 
-        r.add(
-            ImcFragment.empty(hub).callOob(new ModexpCds(p.requestedReturnDataTarget().length())));
+        r.add(ImcFragment.empty(hub).callOob(new ModexpCds(p)));
         r.add(
             ImcFragment.empty(hub)
-                .callOob(new ModexpXbs(m.bbs(), EWord.ZERO, false))
+                .callOob(new ModexpXbs(p))
                 .callMmu(m.extractBbs() ? MmuCall.forModExp(hub, p, 2) : MmuCall.nop()));
         r.add(
             ImcFragment.empty(hub)
-                .callOob(new ModexpXbs(m.ebs(), EWord.ZERO, false))
+                .callOob(new ModexpXbs(p))
                 .callMmu(m.extractEbs() ? MmuCall.forModExp(hub, p, 3) : MmuCall.nop()));
         r.add(
             ImcFragment.empty(hub)
-                .callOob(new ModexpXbs(m.mbs(), m.bbs(), true))
+                .callOob(new ModexpXbs(p))
                 .callMmu(m.extractEbs() ? MmuCall.forModExp(hub, p, 4) : MmuCall.nop()));
         final ImcFragment line5 =
             ImcFragment.empty(hub)
-                .callOob(new ModexpLead(bbsInt, p.callDataSource().length(), ebsInt))
+                .callOob(new ModexpLead(p))
                 .callMmu(m.loadRawLeadingWord() ? MmuCall.forModExp(hub, p, 5) : MmuCall.nop());
         if (m.loadRawLeadingWord()) {
           line5.callExp(
@@ -162,26 +159,14 @@ public class PrecompileLinesGenerator {
                   Math.min(ebsInt, 32)));
         }
         r.add(line5);
-        r.add(
-            ImcFragment.empty(hub)
-                .callOob(
-                    new ModexpPricing(
-                        p,
-                        m.loadRawLeadingWord()
-                            ? ModexpLogOperation.LeadLogTrimLead.fromArgs(
-                                    m.rawLeadingWord(),
-                                    Math.min((int) (p.callDataSource().length() - 96 - bbsInt), 32),
-                                    Math.min(ebsInt, 32))
-                                .leadLog()
-                            : 0,
-                        Math.max(mbsInt, bbsInt))));
+        r.add(ImcFragment.empty(hub).callOob(new ModexpPricing(p)));
 
         if (p.ramFailure()) {
           r.add(ContextFragment.nonExecutionEmptyReturnData(hub));
         } else {
           r.add(
               ImcFragment.empty(hub)
-                  .callOob(new ModexpExtract(p.callDataSource().length(), bbsInt, ebsInt, mbsInt))
+                  .callOob(new ModexpExtract(p))
                   .callMmu(m.extractModulus() ? MmuCall.forModExp(hub, p, 7) : MmuCall.nop()));
 
           if (m.extractModulus()) {

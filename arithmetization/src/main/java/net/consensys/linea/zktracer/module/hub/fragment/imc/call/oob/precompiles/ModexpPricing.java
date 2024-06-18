@@ -16,28 +16,14 @@
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles;
 
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_MODEXP_PRICING;
-import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
+import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
 import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
-import net.consensys.linea.zktracer.module.oob.OobDataChannel;
-import org.apache.tuweni.bytes.Bytes;
 
-public record ModexpPricing(PrecompileInvocation p, int exponentLog, int maxMbsBbs)
-    implements OobCall {
-  @Override
-  public Bytes data(OobDataChannel i) {
-    return switch (i) {
-      case DATA_1 -> Bytes.ofUnsignedLong(p.gasAtCall());
-      case DATA_3 -> Bytes.ofUnsignedLong(p.requestedReturnDataTarget().length());
-      case DATA_4 -> booleanToBytes(p.success());
-      case DATA_5 -> Bytes.ofUnsignedLong(p.success() ? p.gasAtCall() - p.precompilePrice() : 0);
-      case DATA_6 -> Bytes.ofUnsignedLong(exponentLog);
-      case DATA_7 -> Bytes.ofUnsignedLong(maxMbsBbs);
-      case DATA_8 -> booleanToBytes(!p.requestedReturnDataTarget().isEmpty());
-      default -> Bytes.EMPTY;
-    };
-  }
+@RequiredArgsConstructor
+public class ModexpPricing extends OobCall {
+  final PrecompileInvocation p;
 
   @Override
   public int oobInstruction() {

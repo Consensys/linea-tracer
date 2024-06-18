@@ -36,15 +36,14 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.Cal
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.DeploymentReturn;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.ExceptionalCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.Jump;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.Jumpi;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.SStore;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.gas.GasConstants;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.account.Account;
-import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 
@@ -122,14 +121,9 @@ public class ImcFragment implements TraceFragment {
       switch (hub.opCode()) {
         case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
           if (hub.opCode().equals(OpCode.CALL) && hub.pch().exceptions().any()) {
-            r.callOob(new ExceptionalCall(EWord.of(hub.messageFrame().getStackItem(2))));
+            r.callOob(new ExceptionalCall());
           } else {
-            r.callOob(
-                new Call(
-                    EWord.of(hub.messageFrame().getStackItem(2)),
-                    EWord.of(callerAccount.getBalance()),
-                    hub.callStack().depth(),
-                    hub.pch().abortingConditions().any()));
+            r.callOob(new Call());
           }
         }
         default -> throw new IllegalArgumentException("unexpected opcode for IMC/CALL");
@@ -208,34 +202,19 @@ public class ImcFragment implements TraceFragment {
 
     if (hub.pch().signals().oob()) {
       switch (hub.opCode()) {
-        case JUMP, JUMPI -> r.callOob(new Jump(hub, frame));
-        case CALLDATALOAD -> r.callOob(CallDataLoad.build(hub, frame));
-        case SSTORE -> r.callOob(new SStore(frame.getRemainingGas()));
+        case JUMP -> r.callOob(new Jump());
+        case JUMPI -> r.callOob(new Jumpi());
+        case CALLDATALOAD -> r.callOob(new CallDataLoad());
+        case SSTORE -> r.callOob(new SStore());
         case CALL, CALLCODE -> {
-          r.callOob(
-              new Call(
-                  EWord.of(frame.getStackItem(2)),
-                  EWord.of(
-                      Optional.ofNullable(frame.getWorldUpdater().get(frame.getRecipientAddress()))
-                          .map(AccountState::getBalance)
-                          .orElse(Wei.ZERO)),
-                  hub.callStack().depth(),
-                  hub.pch().abortingConditions().any()));
+          r.callOob(new Call());
         }
         case DELEGATECALL, STATICCALL -> {
-          r.callOob(
-              new Call(
-                  EWord.ZERO,
-                  EWord.of(
-                      Optional.ofNullable(frame.getWorldUpdater().get(frame.getRecipientAddress()))
-                          .map(AccountState::getBalance)
-                          .orElse(Wei.ZERO)),
-                  hub.callStack().depth(),
-                  hub.pch().abortingConditions().any()));
+          r.callOob(new Call());
         }
         case RETURN -> {
           if (hub.currentFrame().isDeployment()) {
-            r.callOob(new DeploymentReturn(EWord.of(frame.getStackItem(1))));
+            r.callOob(new DeploymentReturn());
           }
         }
         default -> throw new IllegalArgumentException(

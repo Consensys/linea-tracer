@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys AG.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -23,31 +23,43 @@ import java.math.BigInteger;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
+import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 import net.consensys.linea.zktracer.module.oob.Trace;
 import org.apache.tuweni.bytes.Bytes;
 
 @Getter
+@Setter
 @RequiredArgsConstructor
-public class ModexpPricingParameters implements OobParameters {
-  private final BigInteger callGas;
-  private final BigInteger returnAtCapacity;
-  @Setter private boolean success;
-  private final BigInteger exponentLog;
-  private final int maxMbsBbs;
+public class Blake2fCallDataSizeOobCall implements OobCall {
 
-  @Setter private BigInteger returnGas;
-  @Setter private boolean returnAtCapacityNonZero;
+  final PrecompileInvocation p;
+  BigInteger cds;
+  BigInteger returnAtCapacity;
+
+  boolean success;
+  boolean returnAtCapacityNonZero;
+
+  @Override
+  public int oobInstruction() {
+    return 0;
+  }
+
+  @Override
+  public net.consensys.linea.zktracer.module.hub.Trace trace(net.consensys.linea.zktracer.module.hub.Trace trace) {
+    return null;
+  }
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .data1(bigIntegerToBytes(callGas))
-        .data2(ZERO)
-        .data3(bigIntegerToBytes(returnAtCapacity))
-        .data4(booleanToBytes(success))
-        .data5(bigIntegerToBytes(returnGas))
-        .data6(bigIntegerToBytes(exponentLog))
-        .data7(Bytes.of(maxMbsBbs))
-        .data8(booleanToBytes(returnAtCapacityNonZero));
+            .data1(ZERO)
+            .data2(bigIntegerToBytes(cds))
+            .data3(bigIntegerToBytes(returnAtCapacity))
+            .data4(booleanToBytes(success)) // Set after the constructor
+            .data5(ZERO)
+            .data6(Bytes.of(0))
+            .data7(Bytes.of(0))
+            .data8(booleanToBytes(returnAtCapacityNonZero)); // Set after the constructor
   }
 }

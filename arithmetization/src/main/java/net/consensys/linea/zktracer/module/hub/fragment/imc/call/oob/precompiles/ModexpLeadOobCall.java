@@ -23,27 +23,47 @@ import java.math.BigInteger;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
+import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 import net.consensys.linea.zktracer.module.oob.Trace;
+import org.apache.tuweni.bytes.Bytes;
 
 @Getter
+@Setter
 @RequiredArgsConstructor
-public class ModexpCallDataSizeParameters implements OobParameters {
-  private final BigInteger cds;
+public class ModexpLeadOobCall implements OobCall {
 
-  @Setter private boolean extractBbs;
-  @Setter private boolean extractEbs;
-  @Setter private boolean extractMbs;
+  final PrecompileInvocation p;
+  BigInteger bbs;
+  BigInteger cds;
+  BigInteger ebs;
+
+  boolean loadLead;
+  int cdsCutoff;
+  int ebsCutoff;
+  int subEbs32;
+
+  @Override
+  public int oobInstruction() {
+    return 0;
+  }
+
+  @Override
+  public net.consensys.linea.zktracer.module.hub.Trace trace(net.consensys.linea.zktracer.module.hub.Trace trace) {
+    return null;
+  }
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .data1(ZERO)
-        .data2(bigIntegerToBytes(cds))
-        .data3(booleanToBytes(extractBbs))
-        .data4(booleanToBytes(extractEbs))
-        .data5(booleanToBytes(extractMbs))
-        .data6(ZERO)
-        .data7(ZERO)
-        .data8(ZERO);
+            .data1(bigIntegerToBytes(bbs))
+            .data2(bigIntegerToBytes(cds))
+            .data3(bigIntegerToBytes(ebs))
+            .data4(booleanToBytes(loadLead))
+            .data5(ZERO)
+            .data6(Bytes.of(cdsCutoff))
+            .data7(Bytes.of(ebsCutoff))
+            .data8(Bytes.of(subEbs32));
   }
+
 }

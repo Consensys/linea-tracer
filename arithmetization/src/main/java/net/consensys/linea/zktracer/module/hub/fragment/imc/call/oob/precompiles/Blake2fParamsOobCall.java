@@ -23,30 +23,45 @@ import java.math.BigInteger;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
+import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 import net.consensys.linea.zktracer.module.oob.Trace;
 
 @Getter
+@Setter
 @RequiredArgsConstructor
-public class ModexpExtractParameters implements OobParameters {
-  private final BigInteger cds;
-  private final BigInteger bbs;
-  private final BigInteger ebs;
-  private final BigInteger mbs;
+public class Blake2fParamsOobCall implements OobCall {
 
-  @Setter private boolean extractBase;
-  @Setter private boolean extractExponent;
-  @Setter private boolean extractModulus;
+  final PrecompileInvocation p;
+
+  BigInteger callGas;
+  BigInteger blakeR;
+  BigInteger blakeF;
+
+  boolean success;
+  BigInteger returnGas;
+
+  @Override
+  public int oobInstruction() {
+    return 0;
+  }
+
+  @Override
+  public net.consensys.linea.zktracer.module.hub.Trace trace(net.consensys.linea.zktracer.module.hub.Trace trace) {
+    return null;
+  }
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .data1(ZERO)
-        .data2(bigIntegerToBytes(cds))
-        .data3(bigIntegerToBytes(bbs))
-        .data4(bigIntegerToBytes(ebs))
-        .data5(bigIntegerToBytes(mbs))
-        .data6(booleanToBytes(extractBase))
-        .data7(booleanToBytes(extractExponent))
-        .data8(booleanToBytes(extractModulus));
+            .data1(bigIntegerToBytes(callGas))
+            .data2(ZERO)
+            .data3(ZERO)
+            .data4(booleanToBytes(success)) // Set after the constructor
+            .data5(bigIntegerToBytes(returnGas)) // Set after the constructor
+            .data6(bigIntegerToBytes(blakeR))
+            .data7(bigIntegerToBytes(blakeF))
+            .data8(ZERO);
   }
+
 }

@@ -23,28 +23,45 @@ import java.math.BigInteger;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
+import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 import net.consensys.linea.zktracer.module.oob.Trace;
 
 @Getter
+@Setter
 @RequiredArgsConstructor
-public class Blake2fParamsParameters implements OobParameters {
-  private final BigInteger callGas;
-  private final BigInteger blakeR;
-  private final BigInteger blakeF;
+public class ModexpXbsOobCall implements OobCall {
 
-  @Setter private boolean success;
-  @Setter private BigInteger returnGas;
+  final PrecompileInvocation p;
+  BigInteger xbsHi;
+  BigInteger xbsLo;
+  BigInteger ybsLo;
+  boolean computeMax;
+
+  BigInteger maxXbsYbs;
+  boolean xbsNonZero;
+
+  @Override
+  public int oobInstruction() {
+    return 0;
+  }
+
+  @Override
+  public net.consensys.linea.zktracer.module.hub.Trace trace(net.consensys.linea.zktracer.module.hub.Trace trace) {
+    return null;
+  }
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .data1(bigIntegerToBytes(callGas))
-        .data2(ZERO)
-        .data3(ZERO)
-        .data4(booleanToBytes(success)) // Set after the constructor
-        .data5(bigIntegerToBytes(returnGas)) // Set after the constructor
-        .data6(bigIntegerToBytes(blakeR))
-        .data7(bigIntegerToBytes(blakeF))
-        .data8(ZERO);
+            .data1(bigIntegerToBytes(xbsHi))
+            .data2(bigIntegerToBytes(xbsLo))
+            .data3(bigIntegerToBytes(ybsLo))
+            .data4(booleanToBytes(computeMax))
+            .data5(ZERO)
+            .data6(ZERO)
+            .data7(bigIntegerToBytes(maxXbsYbs))
+            .data8(booleanToBytes(xbsNonZero));
   }
+
 }

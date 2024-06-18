@@ -69,14 +69,14 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.Jum
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.ReturnDataCopyOobParameters;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.SstoreOobParameters;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.XCallOobParameters;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.Blake2fCallDataSizeParameters;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.Blake2fParamsParameters;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpCallDataSizeParameters;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpExtractParameters;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpLeadParameters;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpPricingParameters;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpXbsParameters;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.PrecompileCommonOobParameters;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.Blake2fCallDataSizeOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.Blake2fParamsOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpCallDataSizeOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpExtractOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpLeadOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpPricingOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpXbsOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.PrecompileCommonOobCall;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -482,8 +482,8 @@ public class OobOperation extends ModuleOperation {
           EWord.of(frame.getStackItem(returnAtCapacityIndex)).toUnsignedBigInteger();
 
       if (isCommonPrecompile()) {
-        PrecompileCommonOobParameters prcCommonOobParameters =
-            new PrecompileCommonOobParameters(callGas, cds, returnAtCapacity);
+        PrecompileCommonOobCall prcCommonOobParameters =
+            new PrecompileCommonOobCall(callGas, cds, returnAtCapacity);
         oobParameters = prcCommonOobParameters;
         setPrecompile(prcCommonOobParameters);
         if (isEcRecover || isEcadd || isEcmul) {
@@ -540,55 +540,55 @@ public class OobOperation extends ModuleOperation {
           exponentLog = BigInteger.valueOf(8).multiply(ebs.subtract(BigInteger.valueOf(32)));
         }
         if (isModexpCds) {
-          final ModexpCallDataSizeParameters prcModexpCdsParameters =
-              new ModexpCallDataSizeParameters(cds);
+          final ModexpCallDataSizeOobCall prcModexpCdsParameters =
+              new ModexpCallDataSizeOobCall(cds);
           oobParameters = prcModexpCdsParameters;
           setModexpCds(prcModexpCdsParameters);
         } else if (isModexpXbs) {
-          final ModexpXbsParameters prcModexpXbsParameters;
+          final ModexpXbsOobCall prcModexpXbsOobCall;
           if (isModexpBbs) {
-            prcModexpXbsParameters =
-                new ModexpXbsParameters(
+            prcModexpXbsOobCall =
+                new ModexpXbsOobCall(
                     EWord.of(bbs).hiBigInt(), EWord.of(bbs).loBigInt(), BigInteger.ZERO, false);
           } else if (isModexpEbs) {
-            prcModexpXbsParameters =
-                new ModexpXbsParameters(
+            prcModexpXbsOobCall =
+                new ModexpXbsOobCall(
                     EWord.of(ebs).hiBigInt(), EWord.of(ebs).loBigInt(), BigInteger.ZERO, false);
           } else {
             // isModexpMbs
-            prcModexpXbsParameters =
-                new ModexpXbsParameters(
+            prcModexpXbsOobCall =
+                new ModexpXbsOobCall(
                     EWord.of(mbs).hiBigInt(),
                     EWord.of(mbs).loBigInt(),
                     EWord.of(bbs).loBigInt(),
                     true);
           }
-          oobParameters = prcModexpXbsParameters;
-          setModexpXbs(prcModexpXbsParameters);
+          oobParameters = prcModexpXbsOobCall;
+          setModexpXbs(prcModexpXbsOobCall);
         } else if (isModexpLead) {
-          final ModexpLeadParameters prcModexpLeadParameters =
-              new ModexpLeadParameters(bbs, cds, ebs);
+          final ModexpLeadOobCall prcModexpLeadOobCall =
+              new ModexpLeadOobCall(bbs, cds, ebs);
 
-          oobParameters = prcModexpLeadParameters;
-          setModexpLead(prcModexpLeadParameters);
+          oobParameters = prcModexpLeadOobCall;
+          setModexpLead(prcModexpLeadOobCall);
         } else if (prcModexpPricing) {
           int maxMbsBbs = max(mbs.intValue(), bbs.intValue());
-          final ModexpPricingParameters prcModexpPricingParameters =
-              new ModexpPricingParameters(callGas, returnAtCapacity, exponentLog, maxMbsBbs);
+          final ModexpPricingOobCall prcModexpPricingOobCall =
+              new ModexpPricingOobCall(callGas, returnAtCapacity, exponentLog, maxMbsBbs);
 
-          oobParameters = prcModexpPricingParameters;
-          setPrcModexpPricing(prcModexpPricingParameters);
+          oobParameters = prcModexpPricingOobCall;
+          setPrcModexpPricing(prcModexpPricingOobCall);
         } else if (prcModexpExtract) {
-          final ModexpExtractParameters prcModexpExtractParameters =
-              new ModexpExtractParameters(cds, bbs, ebs, mbs);
+          final ModexpExtractOobCall prcModexpExtractOobCall =
+              new ModexpExtractOobCall(cds, bbs, ebs, mbs);
 
-          oobParameters = prcModexpExtractParameters;
-          setPrcModexpExtract(prcModexpExtractParameters);
+          oobParameters = prcModexpExtractOobCall;
+          setPrcModexpExtract(prcModexpExtractOobCall);
         }
       } else if (isBlakePrecompile()) {
         if (isBlake2FCds) {
-          final Blake2fCallDataSizeParameters prcBlake2FCdsParameters =
-              new Blake2fCallDataSizeParameters(cds, returnAtCapacity);
+          final Blake2fCallDataSizeOobCall prcBlake2FCdsParameters =
+              new Blake2fCallDataSizeOobCall(cds, returnAtCapacity);
 
           oobParameters = prcBlake2FCdsParameters;
           setBlake2FCds(prcBlake2FCdsParameters);
@@ -603,11 +603,11 @@ public class OobOperation extends ModuleOperation {
               BigInteger.valueOf(
                   toUnsignedInt(frame.shadowReadMemory(argsOffset, cds.longValue()).get(212)));
 
-          final Blake2fParamsParameters prcBlake2FParamsParameters =
-              new Blake2fParamsParameters(callGas, blakeR, blakeF);
+          final Blake2fParamsOobCall prcBlake2FParamsOobCall =
+              new Blake2fParamsOobCall(callGas, blakeR, blakeF);
 
-          oobParameters = prcBlake2FParamsParameters;
-          setBlake2FParams(prcBlake2FParamsParameters);
+          oobParameters = prcBlake2FParamsOobCall;
+          setBlake2FParams(prcBlake2FParamsOobCall);
         }
       } else {
         throw new RuntimeException("no opcode or precompile flag was set to true");
@@ -938,7 +938,7 @@ public class OobOperation extends ModuleOperation {
             && (createOobParameters.isHasCode() || nonzeroNonce));
   }
 
-  private void setPrecompile(PrecompileCommonOobParameters prcOobParameters) {
+  private void setPrecompile(PrecompileCommonOobCall prcOobParameters) {
     // row i
     final boolean cdsIsZero = callToISZERO(0, BigInteger.ZERO, prcOobParameters.getCds());
 
@@ -954,7 +954,7 @@ public class OobOperation extends ModuleOperation {
   }
 
   private void setPrcEcRecoverPrcEcaddPrcEcmul(
-      PrecompileCommonOobParameters prcCommonOobParameters) {
+      PrecompileCommonOobCall prcCommonOobParameters) {
     precompileCost =
         BigInteger.valueOf(
             3000L * booleanToInt(isEcRecover)
@@ -981,7 +981,7 @@ public class OobOperation extends ModuleOperation {
   }
 
   private void setPrcSha2PrcRipemdPrcIdentity(
-      PrecompileCommonOobParameters prcCommonOobParameters) {
+      PrecompileCommonOobCall prcCommonOobParameters) {
     // row i + 2
     final BigInteger ceil =
         callToDIV(
@@ -1018,7 +1018,7 @@ public class OobOperation extends ModuleOperation {
     prcCommonOobParameters.setReturnGas(returnGas);
   }
 
-  private void setEcpairing(PrecompileCommonOobParameters prcCommonOobParameters) {
+  private void setEcpairing(PrecompileCommonOobCall prcCommonOobParameters) {
     // row i + 2
     final BigInteger remainder =
         callToMOD(
@@ -1064,7 +1064,7 @@ public class OobOperation extends ModuleOperation {
     prcCommonOobParameters.setReturnGas(returnGas);
   }
 
-  private void setModexpCds(ModexpCallDataSizeParameters prcModexpCdsParameters) {
+  private void setModexpCds(ModexpCallDataSizeOobCall prcModexpCdsParameters) {
     // row i
     final boolean extractBbs =
         callToLT(
@@ -1098,13 +1098,13 @@ public class OobOperation extends ModuleOperation {
     prcModexpCdsParameters.setExtractMbs(extractMbs);
   }
 
-  private void setModexpXbs(ModexpXbsParameters prcModexpXbsParameters) {
+  private void setModexpXbs(ModexpXbsOobCall prcModexpXbsOobCall) {
     // row i
     final boolean compTo512 =
         callToLT(
             0,
-            prcModexpXbsParameters.getXbsHi(),
-            prcModexpXbsParameters.getXbsLo(),
+            prcModexpXbsOobCall.getXbsHi(),
+            prcModexpXbsOobCall.getXbsLo(),
             BigInteger.ZERO,
             BigInteger.valueOf(513));
 
@@ -1113,34 +1113,34 @@ public class OobOperation extends ModuleOperation {
         callToLT(
             1,
             BigInteger.ZERO,
-            prcModexpXbsParameters.getXbsLo(),
+            prcModexpXbsOobCall.getXbsLo(),
             BigInteger.ZERO,
-            prcModexpXbsParameters.getYbsLo());
+            prcModexpXbsOobCall.getYbsLo());
 
     // row i + 2
-    callToISZERO(2, BigInteger.ZERO, prcModexpXbsParameters.getXbsLo());
+    callToISZERO(2, BigInteger.ZERO, prcModexpXbsOobCall.getXbsLo());
 
     // Set maxXbsYbs and xbsNonZero
-    if (!prcModexpXbsParameters.isComputeMax()) {
-      prcModexpXbsParameters.setMaxXbsYbs(BigInteger.ZERO);
-      prcModexpXbsParameters.setXbsNonZero(false);
+    if (!prcModexpXbsOobCall.isComputeMax()) {
+      prcModexpXbsOobCall.setMaxXbsYbs(BigInteger.ZERO);
+      prcModexpXbsOobCall.setXbsNonZero(false);
     } else {
-      prcModexpXbsParameters.setMaxXbsYbs(
-          comp ? prcModexpXbsParameters.getYbsLo() : prcModexpXbsParameters.getXbsLo());
-      prcModexpXbsParameters.setXbsNonZero(!bigIntegerToBoolean(outgoingResLo[2]));
+      prcModexpXbsOobCall.setMaxXbsYbs(
+          comp ? prcModexpXbsOobCall.getYbsLo() : prcModexpXbsOobCall.getXbsLo());
+      prcModexpXbsOobCall.setXbsNonZero(!bigIntegerToBoolean(outgoingResLo[2]));
     }
   }
 
-  private void setModexpLead(ModexpLeadParameters prcModexpLeadParameters) {
+  private void setModexpLead(ModexpLeadOobCall prcModexpLeadOobCall) {
     // row i
-    final boolean ebsIsZero = callToISZERO(0, BigInteger.ZERO, prcModexpLeadParameters.getEbs());
+    final boolean ebsIsZero = callToISZERO(0, BigInteger.ZERO, prcModexpLeadOobCall.getEbs());
 
     // row i + 1
     final boolean ebsLessThan32 =
         callToLT(
             1,
             BigInteger.ZERO,
-            prcModexpLeadParameters.getEbs(),
+            prcModexpLeadOobCall.getEbs(),
             BigInteger.ZERO,
             BigInteger.valueOf(32));
 
@@ -1149,9 +1149,9 @@ public class OobOperation extends ModuleOperation {
         callToLT(
             2,
             BigInteger.ZERO,
-            BigInteger.valueOf(96).add(prcModexpLeadParameters.getBbs()),
+            BigInteger.valueOf(96).add(prcModexpLeadOobCall.getBbs()),
             BigInteger.ZERO,
-            prcModexpLeadParameters.getCds());
+            prcModexpLeadOobCall.getCds());
 
     // row i + 3
     boolean comp = false;
@@ -1160,9 +1160,9 @@ public class OobOperation extends ModuleOperation {
           callToLT(
               3,
               BigInteger.ZERO,
-              prcModexpLeadParameters
+              prcModexpLeadOobCall
                   .getCds()
-                  .subtract(BigInteger.valueOf(96).add(prcModexpLeadParameters.getBbs())),
+                  .subtract(BigInteger.valueOf(96).add(prcModexpLeadOobCall.getBbs())),
               BigInteger.ZERO,
               BigInteger.valueOf(32));
     } else {
@@ -1171,37 +1171,37 @@ public class OobOperation extends ModuleOperation {
 
     // Set loadLead
     final boolean loadLead = callDataContainsExponentBytes && !ebsIsZero;
-    prcModexpLeadParameters.setLoadLead(loadLead);
+    prcModexpLeadOobCall.setLoadLead(loadLead);
 
     // Set cdsCutoff
     if (!callDataContainsExponentBytes) {
-      prcModexpLeadParameters.setCdsCutoff(0);
+      prcModexpLeadOobCall.setCdsCutoff(0);
     } else {
-      prcModexpLeadParameters.setCdsCutoff(
+      prcModexpLeadOobCall.setCdsCutoff(
           comp
-              ? (prcModexpLeadParameters
+              ? (prcModexpLeadOobCall
                   .getCds()
-                  .subtract(BigInteger.valueOf(96).add(prcModexpLeadParameters.getBbs()))
+                  .subtract(BigInteger.valueOf(96).add(prcModexpLeadOobCall.getBbs()))
                   .intValue())
               : 32);
     }
     // Set ebsCutoff
-    prcModexpLeadParameters.setEbsCutoff(
-        ebsLessThan32 ? prcModexpLeadParameters.getEbs().intValue() : 32);
+    prcModexpLeadOobCall.setEbsCutoff(
+        ebsLessThan32 ? prcModexpLeadOobCall.getEbs().intValue() : 32);
 
     // Set subEbs32
-    prcModexpLeadParameters.setSubEbs32(
-        ebsLessThan32 ? 0 : prcModexpLeadParameters.getEbs().intValue() - 32);
+    prcModexpLeadOobCall.setSubEbs32(
+        ebsLessThan32 ? 0 : prcModexpLeadOobCall.getEbs().intValue() - 32);
   }
 
-  private void setPrcModexpPricing(ModexpPricingParameters prcModexpPricingParameters) {
+  private void setPrcModexpPricing(ModexpPricingOobCall prcModexpPricingOobCall) {
     // row i
     final boolean returnAtCapacityIsZero =
-        callToISZERO(0, BigInteger.ZERO, prcModexpPricingParameters.getReturnAtCapacity());
+        callToISZERO(0, BigInteger.ZERO, prcModexpPricingOobCall.getReturnAtCapacity());
 
     // row i + 1
     final boolean exponentLogIsZero =
-        callToISZERO(1, BigInteger.ZERO, prcModexpPricingParameters.getExponentLog());
+        callToISZERO(1, BigInteger.ZERO, prcModexpPricingOobCall.getExponentLog());
 
     // row i + 2
     final BigInteger fOfMax =
@@ -1209,8 +1209,8 @@ public class OobOperation extends ModuleOperation {
             2,
             BigInteger.ZERO,
             BigInteger.valueOf(
-                (long) prcModexpPricingParameters.getMaxMbsBbs()
-                        * prcModexpPricingParameters.getMaxMbsBbs()
+                (long) prcModexpPricingOobCall.getMaxMbsBbs()
+                        * prcModexpPricingOobCall.getMaxMbsBbs()
                     + 7),
             BigInteger.ZERO,
             BigInteger.valueOf(8));
@@ -1218,7 +1218,7 @@ public class OobOperation extends ModuleOperation {
     // row i + 3
     BigInteger bigNumerator;
     if (!exponentLogIsZero) {
-      bigNumerator = fOfMax.multiply(prcModexpPricingParameters.getExponentLog());
+      bigNumerator = fOfMax.multiply(prcModexpPricingOobCall.getExponentLog());
     } else {
       bigNumerator = fOfMax;
     }
@@ -1237,33 +1237,33 @@ public class OobOperation extends ModuleOperation {
         !callToLT(
             5,
             BigInteger.ZERO,
-            prcModexpPricingParameters.getCallGas(),
+            prcModexpPricingOobCall.getCallGas(),
             BigInteger.ZERO,
             precompileCost);
 
     // Set ramSuccess
-    prcModexpPricingParameters.setSuccess(ramSuccess);
+    prcModexpPricingOobCall.setSuccess(ramSuccess);
 
     // Set returnGas
     final BigInteger returnGas =
         ramSuccess
-            ? prcModexpPricingParameters.getCallGas().subtract(precompileCost)
+            ? prcModexpPricingOobCall.getCallGas().subtract(precompileCost)
             : BigInteger.ZERO;
-    prcModexpPricingParameters.setReturnGas(returnGas);
+    prcModexpPricingOobCall.setReturnGas(returnGas);
 
     // Set returnAtCapacityNonZero
-    prcModexpPricingParameters.setReturnAtCapacityNonZero(!returnAtCapacityIsZero);
+    prcModexpPricingOobCall.setReturnAtCapacityNonZero(!returnAtCapacityIsZero);
   }
 
-  private void setPrcModexpExtract(ModexpExtractParameters prcModexpExtractParameters) {
+  private void setPrcModexpExtract(ModexpExtractOobCall prcModexpExtractOobCall) {
     // row i
-    final boolean bbsIsZero = callToISZERO(0, BigInteger.ZERO, prcModexpExtractParameters.getBbs());
+    final boolean bbsIsZero = callToISZERO(0, BigInteger.ZERO, prcModexpExtractOobCall.getBbs());
 
     // row i + 1
-    final boolean ebsIsZero = callToISZERO(1, BigInteger.ZERO, prcModexpExtractParameters.getEbs());
+    final boolean ebsIsZero = callToISZERO(1, BigInteger.ZERO, prcModexpExtractOobCall.getEbs());
 
     // row i + 2
-    final boolean mbsIsZero = callToISZERO(2, BigInteger.ZERO, prcModexpExtractParameters.getMbs());
+    final boolean mbsIsZero = callToISZERO(2, BigInteger.ZERO, prcModexpExtractOobCall.getMbs());
 
     // row i + 3
     final boolean callDataExtendsBeyondExponent =
@@ -1271,24 +1271,24 @@ public class OobOperation extends ModuleOperation {
             3,
             BigInteger.ZERO,
             BigInteger.valueOf(96)
-                .add(prcModexpExtractParameters.getBbs().add(prcModexpExtractParameters.getEbs())),
+                .add(prcModexpExtractOobCall.getBbs().add(prcModexpExtractOobCall.getEbs())),
             BigInteger.ZERO,
-            prcModexpExtractParameters.getCds());
+            prcModexpExtractOobCall.getCds());
 
     // Set extractModulus
     final boolean extractModulus = callDataExtendsBeyondExponent && !mbsIsZero;
-    prcModexpExtractParameters.setExtractModulus(extractModulus);
+    prcModexpExtractOobCall.setExtractModulus(extractModulus);
 
     // Set extractBase
     final boolean extractBase = extractModulus && !bbsIsZero;
-    prcModexpExtractParameters.setExtractBase(extractBase);
+    prcModexpExtractOobCall.setExtractBase(extractBase);
 
     // Set extractExponent
     final boolean extractExponent = extractModulus && !ebsIsZero;
-    prcModexpExtractParameters.setExtractExponent(extractExponent);
+    prcModexpExtractOobCall.setExtractExponent(extractExponent);
   }
 
-  private void setBlake2FCds(Blake2fCallDataSizeParameters prcBlake2FCdsParameters) {
+  private void setBlake2FCds(Blake2fCallDataSizeOobCall prcBlake2FCdsParameters) {
     // row i
     final boolean validCds =
         callToEQ(
@@ -1309,40 +1309,40 @@ public class OobOperation extends ModuleOperation {
     prcBlake2FCdsParameters.setReturnAtCapacityNonZero(!returnAtCapacityIsZero);
   }
 
-  private void setBlake2FParams(Blake2fParamsParameters prcBlake2FParamsParameters) {
+  private void setBlake2FParams(Blake2fParamsOobCall prcBlake2FParamsOobCall) {
     // row i
     final boolean sufficientGas =
         !callToLT(
             0,
             BigInteger.ZERO,
-            prcBlake2FParamsParameters.getCallGas(),
+            prcBlake2FParamsOobCall.getCallGas(),
             BigInteger.ZERO,
-            prcBlake2FParamsParameters.getBlakeR()); // = ramSuccess
+            prcBlake2FParamsOobCall.getBlakeR()); // = ramSuccess
 
     // row i + 1
     final boolean fIsABit =
         callToEQ(
             1,
             BigInteger.ZERO,
-            prcBlake2FParamsParameters.getBlakeF(),
+            prcBlake2FParamsOobCall.getBlakeF(),
             BigInteger.ZERO,
-            prcBlake2FParamsParameters
+            prcBlake2FParamsOobCall
                 .getBlakeF()
-                .multiply(prcBlake2FParamsParameters.getBlakeF()));
+                .multiply(prcBlake2FParamsOobCall.getBlakeF()));
 
     // Set ramSuccess
     final boolean ramSuccess = sufficientGas && fIsABit;
-    prcBlake2FParamsParameters.setSuccess(ramSuccess);
+    prcBlake2FParamsOobCall.setSuccess(ramSuccess);
 
     // Set returnGas
     final BigInteger returnGas =
         ramSuccess
-            ? (prcBlake2FParamsParameters
+            ? (prcBlake2FParamsOobCall
                 .getCallGas()
-                .subtract(prcBlake2FParamsParameters.getBlakeR()))
+                .subtract(prcBlake2FParamsOobCall.getBlakeR()))
             : BigInteger.ZERO;
 
-    prcBlake2FParamsParameters.setReturnGas(returnGas);
+    prcBlake2FParamsOobCall.setReturnGas(returnGas);
   }
 
   @Override

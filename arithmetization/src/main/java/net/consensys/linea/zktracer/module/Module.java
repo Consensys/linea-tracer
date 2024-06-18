@@ -20,10 +20,7 @@ import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
-import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
-import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
@@ -40,17 +37,8 @@ public interface Module {
 
   default void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {}
 
-  default void traceStartTx(WorldView worldView, Transaction tx) {}
-
-  default void traceStartTx(TransactionProcessingMetadata transactionProcessingMetadata) {}
-
-  default void traceEndTx(
-      WorldView worldView,
-      Transaction tx,
-      boolean isSuccessful,
-      Bytes output,
-      List<Log> logs,
-      long gasUsed) {}
+  default void traceStartTx(
+      WorldView worldView, TransactionProcessingMetadata transactionProcessingMetadata) {}
 
   default void traceEndTx(TransactionProcessingMetadata tx) {}
 

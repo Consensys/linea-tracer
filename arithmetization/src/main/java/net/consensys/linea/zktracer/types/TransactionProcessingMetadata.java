@@ -22,11 +22,13 @@ import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ZkTracer;
+import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.HubProcessingPhase;
 import net.consensys.linea.zktracer.module.hub.transients.Block;
 import net.consensys.linea.zktracer.module.hub.transients.StorageInitialValues;
@@ -106,6 +108,8 @@ public class TransactionProcessingMetadata {
 
   @Setter int codeFragmentIndex = -1;
 
+  @Setter Set<AccountSnapshot> destructedAccountsSnapshot;
+
   public TransactionProcessingMetadata(
       final WorldView world,
       final Transaction transaction,
@@ -156,14 +160,19 @@ public class TransactionProcessingMetadata {
   }
 
   public void completeLineaTransaction(
+      WorldView world,
       final boolean statusCode,
       final int hubStampTransactionEnd,
       final HubProcessingPhase hubPhase,
-      List<Log> logs) {
+      final List<Log> logs,
+      final Set<Address> selfDestructs) {
     this.statusCode = statusCode;
     this.hubStampTransactionEnd =
         (hubPhase == TX_SKIP) ? hubStampTransactionEnd : hubStampTransactionEnd + 1;
     this.logs = logs;
+    for (Address address : selfDestructs) {
+      this.destructedAccountsSnapshot.add(AccountSnapshot.fromWorld(world, address));
+    }
   }
 
   private boolean computeCopyCallData() {

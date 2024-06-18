@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.section.txSkipippedSection;
+package net.consensys.linea.zktracer.module.hub.section;
 
 import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 
@@ -21,6 +21,7 @@ import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TransactionFragment;
 import net.consensys.linea.zktracer.module.hub.transients.Transients;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
@@ -33,13 +34,13 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
  * later, through a {@link PostTransactionDefer}, to generate the trace chunks required for the
  * proving of a pure transaction.
  */
-public class SkippedPostTransactionDefer implements PostTransactionDefer {
+public class TxSkippedSectionDefers implements PostTransactionDefer {
   final TransactionProcessingMetadata txMetadata;
   final AccountSnapshot oldFromAccount;
   final AccountSnapshot oldToAccount;
   final AccountSnapshot oldMinerAccount;
 
-  public SkippedPostTransactionDefer(
+  public TxSkippedSectionDefers(
       WorldView world, TransactionProcessingMetadata txMetadata, Transients transients) {
     this.txMetadata = txMetadata;
 
@@ -131,5 +132,11 @@ public class SkippedPostTransactionDefer implements PostTransactionDefer {
 
             // 1 line -- transaction data
             TransactionFragment.prepare(hub.txStack().current())));
+  }
+
+  public class TxSkippedSection extends TraceSection {
+    public TxSkippedSection(Hub hub, TraceFragment... fragments) {
+      this.addFragmentsWithoutStack(hub, fragments);
+    }
   }
 }

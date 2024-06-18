@@ -13,13 +13,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.section.txFinalization;
+package net.consensys.linea.zktracer.module.hub.section;
 
 import lombok.Setter;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TransactionFragment;
 import net.consensys.linea.zktracer.module.hub.transients.DeploymentInfo;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
@@ -221,5 +222,11 @@ public class TxFinalizationPostTxDefer implements PostTransactionDefer {
 
   private boolean noAccountCollision() {
     return !senderIsMiner() && !senderIsTo() && !toIsMiner();
+  }
+
+  public class TxFinalizationSection extends TraceSection {
+    public TxFinalizationSection(Hub hub, TraceFragment... fragments) {
+      this.addFragmentsWithoutStack(hub, fragments);
+    }
   }
 }

@@ -54,6 +54,7 @@ import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @RequiredArgsConstructor
 public class RlpAddr implements Module {
@@ -81,7 +82,7 @@ public class RlpAddr implements Module {
   }
 
   @Override
-  public void traceStartTx(TransactionProcessingMetadata txMetaData) {
+  public void traceStartTx(WorldView world, TransactionProcessingMetadata txMetaData) {
     final Transaction tx = txMetaData.getBesuTransaction();
     if (tx.getTo().isEmpty()) {
       final Address senderAddress = tx.getSender();

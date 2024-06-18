@@ -32,6 +32,7 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.TransactionType;
 import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class Trm implements Module {
   static final int MAX_CT = LLARGE;
@@ -73,7 +74,7 @@ public class Trm implements Module {
   }
 
   @Override
-  public void traceStartTx(TransactionProcessingMetadata txMetaData) {
+  public void traceStartTx(WorldView world, TransactionProcessingMetadata txMetaData) {
     // Add effective receiver Address
     this.trimmings.add(new TrmOperation(EWord.of(txMetaData.getEffectiveTo())));
 

@@ -26,6 +26,7 @@ import net.consensys.linea.zktracer.types.Bytecode;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.account.Account;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @AllArgsConstructor
 @Getter
@@ -54,18 +55,9 @@ public class AccountSnapshot {
     return this;
   }
 
-  public AccountSnapshot incrementNonce() {
-    this.nonce++;
-    return this;
-  }
-
-  // TODO: Warning, does it really creates a copy or a pointer ??
-  public static AccountSnapshot deepCopy(final AccountSnapshot accountSnapshot) {
-    return AccountSnapshot.fromAccount(
-        (Account) accountSnapshot,
-        accountSnapshot.isWarm(),
-        accountSnapshot.deploymentNumber(),
-        accountSnapshot.deploymentStatus());
+  public static AccountSnapshot fromWorld(WorldView world, Address address) {
+    final Account account = world.get(address);
+    return fromAccount(account, true, 0, false); // TODO: implement warm, depNumber and Status
   }
 
   public static AccountSnapshot fromAccount(
@@ -102,17 +94,6 @@ public class AccountSnapshot {
         .orElseGet(() -> AccountSnapshot.empty(isWarm, deploymentNumber, deploymentStatus));
   }
 
-  public AccountSnapshot debit(Wei quantity) {
-    return new AccountSnapshot(
-        this.address,
-        this.nonce + 1,
-        this.balance.subtract(quantity),
-        this.isWarm,
-        this.code,
-        this.deploymentNumber,
-        this.deploymentStatus);
-  }
-
   public AccountSnapshot debit(Wei quantity, boolean isWarm) {
     return new AccountSnapshot(
         this.address,
@@ -121,17 +102,6 @@ public class AccountSnapshot {
         isWarm,
         this.code,
         this.deploymentNumber,
-        this.deploymentStatus);
-  }
-
-  public AccountSnapshot initiateDeployment(Wei value) {
-    return new AccountSnapshot(
-        this.address,
-        this.nonce + 1,
-        this.balance.add(value),
-        this.isWarm,
-        this.code,
-        this.deploymentNumber + 1,
         this.deploymentStatus);
   }
 
@@ -156,17 +126,6 @@ public class AccountSnapshot {
 
     return new AccountSnapshot(
         this.address, this.nonce, this.balance, true, code, this.deploymentNumber, false);
-  }
-
-  public AccountSnapshot credit(Wei value) {
-    return new AccountSnapshot(
-        this.address,
-        this.nonce,
-        this.balance.add(value),
-        true,
-        this.code,
-        this.deploymentNumber,
-        this.deploymentStatus);
   }
 
   public AccountSnapshot credit(Wei value, boolean isWarm) {

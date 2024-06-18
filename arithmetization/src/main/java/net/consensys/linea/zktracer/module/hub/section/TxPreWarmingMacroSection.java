@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.section.txPreWarming;
+package net.consensys.linea.zktracer.module.hub.section;
 
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 import static net.consensys.linea.zktracer.types.AddressUtils.precompileAddress;
@@ -29,6 +29,7 @@ import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.State;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
 import net.consensys.linea.zktracer.module.hub.transients.DeploymentInfo;
 import net.consensys.linea.zktracer.types.EWord;
@@ -41,8 +42,8 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class PreWarmingMacroSection {
-  public PreWarmingMacroSection(WorldView world, Hub hub) {
+public class TxPreWarmingMacroSection {
+  public TxPreWarmingMacroSection(WorldView world, Hub hub) {
 
     final TransactionProcessingMetadata currentTxMetadata = hub.txStack().current();
 
@@ -136,5 +137,11 @@ public class PreWarmingMacroSection {
                 currentTxMetadata.isReceiverPreWarmed(seenAddresses.contains(receiverAddress));
               }
             });
+  }
+
+  public class TxPrewarmingSection extends TraceSection {
+    public TxPrewarmingSection(Hub hub, TraceFragment fragment) {
+      this.addFragmentsWithoutStack(hub, fragment);
+    }
   }
 }

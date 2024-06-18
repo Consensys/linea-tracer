@@ -15,22 +15,9 @@
 
 package net.consensys.linea.zktracer.module.oob;
 
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_BLAKE_CDS;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_BLAKE_PARAMS;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_ECADD;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_ECMUL;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_ECPAIRING;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_ECRECOVER;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_IDENTITY;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_MODEXP_CDS;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_MODEXP_EXTRACT;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_MODEXP_LEAD;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_MODEXP_PRICING;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_MODEXP_XBS;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_RIPEMD;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_SHA2;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
+import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
@@ -65,52 +52,8 @@ public class Oob implements Module {
     return "OOB";
   }
 
-  static final List<Integer> PRECOMPILES_HANDLED_BY_OOB =
-      List.of(
-          OOB_INST_ECRECOVER,
-          OOB_INST_SHA2,
-          OOB_INST_RIPEMD,
-          OOB_INST_IDENTITY,
-          OOB_INST_ECADD,
-          OOB_INST_ECMUL,
-          OOB_INST_ECPAIRING,
-          OOB_INST_BLAKE_CDS,
-          OOB_INST_BLAKE_PARAMS,
-          OOB_INST_MODEXP_CDS,
-          OOB_INST_MODEXP_XBS,
-          OOB_INST_MODEXP_LEAD,
-          OOB_INST_MODEXP_PRICING,
-          OOB_INST_MODEXP_EXTRACT);
-
   public void call(OobCall oobCall) {
-    // TODO: this logic can be refined. It is quick-and-dirty for now
-    boolean isPrecompile = PRECOMPILES_HANDLED_BY_OOB.contains(oobCall.oobInstruction());
-    int blake2FCallNumber =
-        switch (oobCall.oobInstruction()) {
-          case OOB_INST_BLAKE_CDS -> 1;
-          case OOB_INST_BLAKE_PARAMS -> 2;
-          default -> 0;
-        };
-    int modexpCallNumber =
-        switch (oobCall.oobInstruction()) {
-          case OOB_INST_MODEXP_CDS -> 1;
-          case OOB_INST_MODEXP_XBS -> 2;
-          case OOB_INST_MODEXP_LEAD -> 3;
-          case OOB_INST_MODEXP_PRICING -> 4;
-          case OOB_INST_MODEXP_EXTRACT -> 5;
-          default -> 0;
-        };
-    OobOperation oobOperation =
-        new OobOperation(
-            oobCall,
-            hub.messageFrame(),
-            add,
-            mod,
-            wcp,
-            hub,
-            isPrecompile,
-            blake2FCallNumber,
-            modexpCallNumber);
+    OobOperation oobOperation = new OobOperation(oobCall, hub.messageFrame(), add, mod, wcp, hub);
     this.chunks.add(oobOperation);
   }
 
@@ -160,7 +103,7 @@ public class Oob implements Module {
           .stamp(stamp)
           .ct((short) ct)
           .ctMax((short) chunk.maxCt())
-          .oobInst(bigIntegerToBytes(chunk.getOobInst()))
+          .oobInst(bigIntegerToBytes(BigInteger.valueOf(chunk.getOobInst())))
           .isJump(chunk.isJump())
           .isJumpi(chunk.isJumpi())
           .isRdc(chunk.isRdc())

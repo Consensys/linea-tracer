@@ -20,6 +20,29 @@ import static java.lang.Byte.toUnsignedInt;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_CALL_STIPEND;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_BLAKE_CDS;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_BLAKE_PARAMS;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_CALL;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_CDL;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_CREATE;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_DEPLOYMENT;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_ECADD;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_ECMUL;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_ECPAIRING;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_ECRECOVER;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_IDENTITY;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_JUMP;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_JUMPI;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_MODEXP_CDS;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_MODEXP_EXTRACT;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_MODEXP_LEAD;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_MODEXP_PRICING;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_MODEXP_XBS;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_RDC;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_RIPEMD;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_SHA2;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_SSTORE;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_XCALL;
 import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_BLAKE2F_CDS;
 import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_BLAKE2F_PARAMS;
 import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_CALL;
@@ -91,7 +114,7 @@ import org.hyperledger.besu.evm.internal.Words;
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class OobOperation extends ModuleOperation {
-  @EqualsAndHashCode.Include private BigInteger oobInst;
+  @EqualsAndHashCode.Include private int oobInst;
   @EqualsAndHashCode.Include @Setter private OobCall oobCall;
 
   private boolean isJump;
@@ -136,7 +159,7 @@ public class OobOperation extends ModuleOperation {
 
   private final BigInteger[] outgoingResLo;
 
-  private BigInteger wghtSum;
+  private int wghtSum;
 
   private BigInteger precompileCost;
 
@@ -144,11 +167,7 @@ public class OobOperation extends ModuleOperation {
   private final Add add;
   private final Mod mod;
   private final Wcp wcp;
-
   private final Hub hub;
-
-  private final int blake2FCallNumber;
-  private final int modexpCallNumber;
 
   public OobOperation(
       OobCall oobCall,
@@ -156,10 +175,7 @@ public class OobOperation extends ModuleOperation {
       final Add add,
       final Mod mod,
       final Wcp wcp,
-      final Hub hub,
-      boolean isPrecompile,
-      int blake2FCallNumber,
-      int modexpCallNumber) {
+      final Hub hub) {
     this.oobCall = oobCall;
 
     this.add = add;
@@ -167,14 +183,7 @@ public class OobOperation extends ModuleOperation {
     this.wcp = wcp;
     this.hub = hub;
 
-    this.blake2FCallNumber = blake2FCallNumber;
-    this.modexpCallNumber = modexpCallNumber;
-
-    if (isPrecompile) {
-      setPrecomileFlagsAndWghtSumAndIncomingInst(frame);
-    } else {
-      setOpCodeFlagsAndWghtSumAndIncomingInst(frame);
-    }
+    setFlagsAndWghtSumAndIncomingInst();
 
     // Init arrays
     int nRows = nRows();
@@ -193,112 +202,100 @@ public class OobOperation extends ModuleOperation {
     populateColumns(frame);
   }
 
-  private void setOpCodeFlagsAndWghtSumAndIncomingInst(MessageFrame frame) {
-    final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
-    // In the case of CALLs and CREATEs this value will be replaced
-    wghtSum = BigInteger.valueOf(Byte.toUnsignedInt(opCode.byteValue()));
-
-    switch (opCode) {
-      case JUMP:
+  private void setFlagsAndWghtSumAndIncomingInst() {
+    switch (oobCall.oobInstruction()) {
+      case OOB_INST_JUMP -> {
         isJump = true;
-        break;
-      case JUMPI:
+        wghtSum = OOB_INST_JUMP;
+      }
+      case OOB_INST_JUMPI -> {
         isJumpi = true;
-        break;
-      case RETURNDATACOPY:
+        wghtSum = OOB_INST_JUMPI;
+      }
+      case OOB_INST_RDC -> {
         isRdc = true;
-        break;
-      case CALLDATALOAD:
+        wghtSum = OOB_INST_RDC;
+      }
+      case OOB_INST_CDL -> {
         isCdl = true;
-        break;
-      case CALL, CALLCODE, DELEGATECALL, STATICCALL:
-        if (opCode == OpCode.CALL
-            && !hub.pch().exceptions().stackUnderflow()
-            && hub.pch().exceptions().any()) {
-          isXCall = true;
-          wghtSum = BigInteger.valueOf(0xCC);
-        } else {
-          isCall = true;
-          wghtSum = BigInteger.valueOf(0xCA);
-        }
-        break;
-      case CREATE, CREATE2:
+        wghtSum = OOB_INST_CDL;
+      }
+      case OOB_INST_CALL -> {
+        isCall = true;
+        wghtSum = OOB_INST_CALL;
+      }
+      case OOB_INST_XCALL -> {
+        isXCall = true;
+        wghtSum = OOB_INST_XCALL;
+      }
+      case OOB_INST_CREATE -> {
         isCreate = true;
-        wghtSum = BigInteger.valueOf(0xCE);
-        break;
-      case SSTORE:
+        wghtSum = OOB_INST_CREATE;
+      }
+      case OOB_INST_SSTORE -> {
         isSstore = true;
-        break;
-      case RETURN:
+        wghtSum = OOB_INST_SSTORE;
+      }
+      case OOB_INST_DEPLOYMENT -> {
         isDeployment = true;
-        break;
-      default:
-        throw new IllegalArgumentException("OpCode not relevant for Oob");
-    }
-    oobInst = wghtSum;
-  }
-
-  private void setPrecomileFlagsAndWghtSumAndIncomingInst(MessageFrame frame) {
-    final Address target = Words.toAddress(frame.getStackItem(1));
-
-    if (target.equals(Address.ECREC)) {
-      isEcRecover = true;
-      wghtSum = Bytes.fromHexString("FF01").toUnsignedBigInteger();
-    } else if (target.equals(Address.SHA256)) {
-      isSha2 = true;
-      wghtSum = Bytes.fromHexString("FF02").toUnsignedBigInteger();
-    } else if (target.equals(Address.RIPEMD160)) {
-      isRipemd = true;
-      wghtSum = Bytes.fromHexString("FF03").toUnsignedBigInteger();
-    } else if (target.equals(Address.ID)) {
-      isIdentity = true;
-      wghtSum = Bytes.fromHexString("FF04").toUnsignedBigInteger();
-    } else if (target.equals(Address.ALTBN128_ADD)) {
-      isEcadd = true;
-      wghtSum = Bytes.fromHexString("FF06").toUnsignedBigInteger();
-    } else if (target.equals(Address.ALTBN128_MUL)) {
-      isEcmul = true;
-      wghtSum = Bytes.fromHexString("FF07").toUnsignedBigInteger();
-    } else if (target.equals(Address.ALTBN128_PAIRING)) {
-      isEcpairing = true;
-      wghtSum = Bytes.fromHexString("FF08").toUnsignedBigInteger();
-    } else if (target.equals(Address.BLAKE2B_F_COMPRESSION)) {
-      if (blake2FCallNumber == 1) {
+        wghtSum = OOB_INST_DEPLOYMENT;
+      }
+      case OOB_INST_ECRECOVER -> {
+        isEcRecover = true;
+        wghtSum = OOB_INST_ECRECOVER;
+      }
+      case OOB_INST_SHA2 -> {
+        isSha2 = true;
+        wghtSum = OOB_INST_SHA2;
+      }
+      case OOB_INST_RIPEMD -> {
+        isRipemd = true;
+        wghtSum = OOB_INST_RIPEMD;
+      }
+      case OOB_INST_IDENTITY -> {
+        isIdentity = true;
+        wghtSum = OOB_INST_IDENTITY;
+      }
+      case OOB_INST_ECADD -> {
+        isEcadd = true;
+        wghtSum = OOB_INST_ECADD;
+      }
+      case OOB_INST_ECMUL -> {
+        isEcmul = true;
+        wghtSum = OOB_INST_ECMUL;
+      }
+      case OOB_INST_ECPAIRING -> {
+        isEcpairing = true;
+        wghtSum = OOB_INST_ECPAIRING;
+      }
+      case OOB_INST_BLAKE_CDS -> {
         isBlake2FCds = true;
-        wghtSum = Bytes.fromHexString("FA09").toUnsignedBigInteger();
-      } else if (blake2FCallNumber == 2) {
+        wghtSum = OOB_INST_BLAKE_CDS;
+      }
+      case OOB_INST_BLAKE_PARAMS -> {
         isBlake2FParams = true;
-        wghtSum = Bytes.fromHexString("FB09").toUnsignedBigInteger();
+        wghtSum = OOB_INST_BLAKE_PARAMS;
       }
-    } else if (target.equals(Address.MODEXP)) {
-      switch (modexpCallNumber) {
-        case 1:
-          isModexpCds = true;
-          wghtSum = Bytes.fromHexString("FA05").toUnsignedBigInteger();
-        case 2:
-          isModexpXbs = true;
-          isModexpBbs = true;
-          wghtSum = Bytes.fromHexString("FB05").toUnsignedBigInteger();
-        case 3:
-          isModexpXbs = true;
-          isModexpEbs = true;
-          wghtSum = Bytes.fromHexString("FB05").toUnsignedBigInteger();
-        case 4:
-          isModexpXbs = true;
-          isModexpMbs = true;
-          wghtSum = Bytes.fromHexString("FB05").toUnsignedBigInteger();
-        case 5:
-          isModexpLead = true;
-          wghtSum = Bytes.fromHexString("FC05").toUnsignedBigInteger();
-        case 6:
-          prcModexpPricing = true;
-          wghtSum = Bytes.fromHexString("FD05").toUnsignedBigInteger();
-        case 7:
-          prcModexpExtract = true;
-          wghtSum = Bytes.fromHexString("FE05").toUnsignedBigInteger();
+      case OOB_INST_MODEXP_CDS -> {
+        isModexpCds = true;
+        wghtSum = OOB_INST_MODEXP_CDS;
       }
-    } else {
-      throw new IllegalArgumentException("Precompile not relevant for Oob");
+      case OOB_INST_MODEXP_XBS -> {
+        isModexpXbs = true;
+        wghtSum = OOB_INST_MODEXP_XBS;
+      }
+      case OOB_INST_MODEXP_LEAD -> {
+        isModexpLead = true;
+        wghtSum = OOB_INST_MODEXP_LEAD;
+      }
+      case OOB_INST_MODEXP_PRICING -> {
+        prcModexpPricing = true;
+        wghtSum = OOB_INST_MODEXP_PRICING;
+      }
+      case OOB_INST_MODEXP_EXTRACT -> {
+        prcModexpExtract = true;
+        wghtSum = OOB_INST_MODEXP_EXTRACT;
+      }
     }
     oobInst = wghtSum;
   }

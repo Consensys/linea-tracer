@@ -53,8 +53,7 @@ public class Oob implements Module {
   }
 
   public void call(OobCall oobCall) {
-    OobOperation oobOperation = new OobOperation(oobCall, hub.messageFrame(), add, mod, wcp, hub);
-    this.chunks.add(oobOperation);
+    this.chunks.add(new OobOperation(oobCall, hub.messageFrame(), add, mod, wcp, hub));
   }
 
   @Override

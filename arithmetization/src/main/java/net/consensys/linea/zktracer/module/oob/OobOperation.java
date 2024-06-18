@@ -949,7 +949,7 @@ public class OobOperation extends ModuleOperation {
 
     // Set hubSuccess
     final boolean hubSuccess = !insufficientGas;
-    prcCommonOobParameters.setSuccess(hubSuccess);
+    prcCommonOobParameters.setHubSuccess(hubSuccess);
 
     // Set returnGas
     final BigInteger returnGas =
@@ -986,7 +986,7 @@ public class OobOperation extends ModuleOperation {
 
     // Set hubSuccess
     final boolean hubSuccess = !insufficientGas;
-    prcCommonOobParameters.setSuccess(hubSuccess);
+    prcCommonOobParameters.setHubSuccess(hubSuccess);
 
     // Set returnGas
     final BigInteger returnGas =
@@ -1032,7 +1032,7 @@ public class OobOperation extends ModuleOperation {
 
     // Set hubSuccess
     final boolean hubSuccess = isMultipleOf192 && !insufficientGas;
-    prcCommonOobParameters.setSuccess(hubSuccess);
+    prcCommonOobParameters.setHubSuccess(hubSuccess);
 
     // Set returnGas
     final BigInteger returnGas =
@@ -1218,7 +1218,7 @@ public class OobOperation extends ModuleOperation {
             precompileCost);
 
     // Set ramSuccess
-    prcModexpPricingOobCall.setSuccess(ramSuccess);
+    prcModexpPricingOobCall.setRamSuccess(ramSuccess);
 
     // Set returnGas
     final BigInteger returnGas =
@@ -1279,7 +1279,7 @@ public class OobOperation extends ModuleOperation {
         callToISZERO(1, BigInteger.ZERO, prcBlake2FCdsParameters.getReturnAtCapacity());
 
     // Set hubSuccess
-    prcBlake2FCdsParameters.setSuccess(validCds);
+    prcBlake2FCdsParameters.setHubSuccess(validCds);
 
     // Set returnAtCapacityNonZero
     prcBlake2FCdsParameters.setReturnAtCapacityNonZero(!returnAtCapacityIsZero);
@@ -1306,7 +1306,7 @@ public class OobOperation extends ModuleOperation {
 
     // Set ramSuccess
     final boolean ramSuccess = sufficientGas && fIsABit;
-    prcBlake2FParamsOobCall.setSuccess(ramSuccess);
+    prcBlake2FParamsOobCall.setRamSuccess(ramSuccess);
 
     // Set returnGas
     final BigInteger returnGas =

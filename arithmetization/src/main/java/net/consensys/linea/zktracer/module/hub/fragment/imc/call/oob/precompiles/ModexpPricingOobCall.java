@@ -37,7 +37,7 @@ public class ModexpPricingOobCall implements OobCall {
   final PrecompileInvocation p;
   BigInteger callGas;
   BigInteger returnAtCapacity;
-  boolean success;
+  boolean ramSuccess;
   BigInteger exponentLog;
   int maxMbsBbs;
 
@@ -56,7 +56,7 @@ public class ModexpPricingOobCall implements OobCall {
         .data1(bigIntegerToBytes(callGas))
         .data2(ZERO)
         .data3(bigIntegerToBytes(returnAtCapacity))
-        .data4(booleanToBytes(success))
+        .data4(booleanToBytes(ramSuccess))
         .data5(bigIntegerToBytes(returnGas))
         .data6(bigIntegerToBytes(exponentLog))
         .data7(Bytes.of(maxMbsBbs))
@@ -71,7 +71,7 @@ public class ModexpPricingOobCall implements OobCall {
         .pMiscOobData1(bigIntegerToBytes(callGas))
         .pMiscOobData2(ZERO)
         .pMiscOobData3(bigIntegerToBytes(returnAtCapacity))
-        .pMiscOobData4(booleanToBytes(success))
+        .pMiscOobData4(booleanToBytes(ramSuccess))
         .pMiscOobData5(bigIntegerToBytes(returnGas))
         .pMiscOobData6(bigIntegerToBytes(exponentLog))
         .pMiscOobData7(Bytes.of(maxMbsBbs))

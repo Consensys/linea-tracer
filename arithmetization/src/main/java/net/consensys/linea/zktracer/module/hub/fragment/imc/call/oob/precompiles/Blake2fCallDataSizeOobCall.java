@@ -27,7 +27,6 @@ import lombok.Setter;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
 import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
-import org.apache.tuweni.bytes.Bytes;
 
 @Getter
 @Setter
@@ -38,7 +37,7 @@ public class Blake2fCallDataSizeOobCall implements OobCall {
   BigInteger cds;
   BigInteger returnAtCapacity;
 
-  boolean success;
+  boolean hubSuccess;
   boolean returnAtCapacityNonZero;
 
   @Override
@@ -53,7 +52,7 @@ public class Blake2fCallDataSizeOobCall implements OobCall {
         .data1(ZERO)
         .data2(bigIntegerToBytes(cds))
         .data3(bigIntegerToBytes(returnAtCapacity))
-        .data4(booleanToBytes(success)) // Set after the constructor
+        .data4(booleanToBytes(hubSuccess)) // Set after the constructor
         .data5(ZERO)
         .data6(ZERO)
         .data7(ZERO)
@@ -68,7 +67,7 @@ public class Blake2fCallDataSizeOobCall implements OobCall {
         .pMiscOobData1(ZERO)
         .pMiscOobData2(bigIntegerToBytes(cds))
         .pMiscOobData3(bigIntegerToBytes(returnAtCapacity))
-        .pMiscOobData4(booleanToBytes(success)) // Set after the constructor
+        .pMiscOobData4(booleanToBytes(hubSuccess)) // Set after the constructor
         .pMiscOobData5(ZERO)
         .pMiscOobData6(ZERO)
         .pMiscOobData7(ZERO)

@@ -90,7 +90,7 @@ public class CreateSection extends TraceSection
 
     this.addStack(hub);
 
-    // Will be traced in one (and only one!) of these depending on the success of
+    // Will be traced in one (and only one!) of these depending on the hubSuccess of
     // the operation
     hub.defers().postExec(this);
     hub.defers().nextContext(this, hub.currentFrame().id());

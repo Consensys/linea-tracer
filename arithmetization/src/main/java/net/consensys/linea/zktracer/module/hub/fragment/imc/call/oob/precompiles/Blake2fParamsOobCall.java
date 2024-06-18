@@ -39,7 +39,7 @@ public class Blake2fParamsOobCall implements OobCall {
   BigInteger blakeR;
   BigInteger blakeF;
 
-  boolean success;
+  boolean ramSuccess;
   BigInteger returnGas;
 
   @Override
@@ -54,7 +54,7 @@ public class Blake2fParamsOobCall implements OobCall {
         .data1(bigIntegerToBytes(callGas))
         .data2(ZERO)
         .data3(ZERO)
-        .data4(booleanToBytes(success)) // Set after the constructor
+        .data4(booleanToBytes(ramSuccess)) // Set after the constructor
         .data5(bigIntegerToBytes(returnGas)) // Set after the constructor
         .data6(bigIntegerToBytes(blakeR))
         .data7(bigIntegerToBytes(blakeF))
@@ -69,7 +69,7 @@ public class Blake2fParamsOobCall implements OobCall {
         .pMiscOobData1(bigIntegerToBytes(callGas))
         .pMiscOobData2(ZERO)
         .pMiscOobData3(ZERO)
-        .pMiscOobData4(booleanToBytes(success)) // Set after the constructor
+        .pMiscOobData4(booleanToBytes(ramSuccess)) // Set after the constructor
         .pMiscOobData5(bigIntegerToBytes(returnGas)) // Set after the constructor
         .pMiscOobData6(bigIntegerToBytes(blakeR))
         .pMiscOobData7(bigIntegerToBytes(blakeF))

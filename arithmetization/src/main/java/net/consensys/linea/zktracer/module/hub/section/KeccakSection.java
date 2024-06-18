@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.hub.section;
 
+import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
+
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
@@ -42,9 +44,9 @@ public class KeccakSection extends TraceSection {
       imcFragment.callMmu(MmuCall.sha3(hub));
 
       // TODO: computing the hash shouldn't be done here
-      Bytes offset = hub.messageFrame().getStackItem(0);
-      Bytes size = hub.messageFrame().getStackItem(1);
-      Bytes dataToHash = hub.messageFrame().shadowReadMemory(offset.toLong(), size.toLong());
+      final long offset = clampedToLong(hub.messageFrame().getStackItem(0));
+      final long size = clampedToLong(hub.messageFrame().getStackItem(1));
+      Bytes dataToHash = hub.messageFrame().shadowReadMemory(offset, size);
       KeccakDigest keccakDigest = new KeccakDigest(256);
       keccakDigest.update(dataToHash.toArray(), 0, dataToHash.size());
       byte[] hashOutput = new byte[keccakDigest.getDigestSize()];

@@ -55,7 +55,8 @@ public final class StackFragment implements TraceFragment {
   @Setter public boolean hashInfoFlag;
   @Setter public Bytes hash;
   @Getter private final OpCode opCode;
-  private final boolean jumpDestinationVettingRequired;
+  @Setter private boolean jumpDestinationVettingRequired;
+  @Setter private boolean validJumpDestination;
   private final boolean willRevert;
 
   private StackFragment(

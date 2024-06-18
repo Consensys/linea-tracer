@@ -257,4 +257,18 @@ public abstract class TraceSection {
       }
     }
   }
+
+  public void triggerJumpDestinationVetting(Hub hub) {
+
+    int pcNew = hub.messageFrame().getStackItem(0).toInt();
+
+    boolean invalidJumpDestination = hub.messageFrame().getCode().isJumpDestInvalid(pcNew);
+
+    for (TraceSection.TraceLine line : this.lines()) {
+      if (line.specific() instanceof StackFragment) {
+        ((StackFragment) line.specific()).jumpDestinationVettingRequired(true);
+        ((StackFragment) line.specific()).validJumpDestination(invalidJumpDestination);
+      }
+    }
+  }
 }

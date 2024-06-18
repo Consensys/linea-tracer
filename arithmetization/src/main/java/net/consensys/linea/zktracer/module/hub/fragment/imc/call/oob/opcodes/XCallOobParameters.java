@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.oob.parameters;
+package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes;
 
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
@@ -28,29 +28,29 @@ import net.consensys.linea.zktracer.types.EWord;
 
 @Getter
 @RequiredArgsConstructor
-public class CallDataLoadOobParameters implements OobParameters {
-  private final EWord offset;
-  private final BigInteger cds;
-  @Setter boolean cdlOutOfBounds;
+public class XCallOobParameters implements OobParameters {
+  private final EWord value;
+  @Setter boolean valueIsNonzero;
+  @Setter boolean valueIsZero;
 
-  public BigInteger offsetHi() {
-    return offset.hiBigInt();
+  public BigInteger valueHi() {
+    return value.hiBigInt();
   }
 
-  public BigInteger offsetLo() {
-    return offset.loBigInt();
+  public BigInteger valueLo() {
+    return value.loBigInt();
   }
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .data1(bigIntegerToBytes(offsetHi()))
-        .data2(bigIntegerToBytes(offsetLo()))
+        .data1(bigIntegerToBytes(valueHi()))
+        .data2(bigIntegerToBytes(valueLo()))
         .data3(ZERO)
         .data4(ZERO)
-        .data5(bigIntegerToBytes(cds))
+        .data5(ZERO)
         .data6(ZERO)
-        .data7(booleanToBytes(cdlOutOfBounds))
-        .data8(ZERO);
+        .data7(booleanToBytes(valueIsNonzero))
+        .data8(booleanToBytes(valueIsZero));
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys AG.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.oob.parameters;
+package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles;
 
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
@@ -24,42 +24,28 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import net.consensys.linea.zktracer.module.oob.Trace;
-import net.consensys.linea.zktracer.types.EWord;
 
 @Getter
 @RequiredArgsConstructor
-public class ReturnDataCopyOobParameters implements OobParameters {
-  private final EWord offset;
-  private final EWord size;
-  private final BigInteger rds;
-  @Setter private boolean rdcx;
+public class ModexpXbsParameters implements OobParameters {
+  private final BigInteger xbsHi;
+  private final BigInteger xbsLo;
+  private final BigInteger ybsLo;
+  private final boolean computeMax;
 
-  public BigInteger offsetHi() {
-    return offset.hiBigInt();
-  }
-
-  public BigInteger offsetLo() {
-    return offset.loBigInt();
-  }
-
-  public BigInteger sizeHi() {
-    return size.hiBigInt();
-  }
-
-  public BigInteger sizeLo() {
-    return size.loBigInt();
-  }
+  @Setter private BigInteger maxXbsYbs;
+  @Setter private boolean xbsNonZero;
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .data1(bigIntegerToBytes(offsetHi()))
-        .data2(bigIntegerToBytes(offsetLo()))
-        .data3(bigIntegerToBytes(sizeHi()))
-        .data4(bigIntegerToBytes(sizeLo()))
-        .data5(bigIntegerToBytes(rds))
+        .data1(bigIntegerToBytes(xbsHi))
+        .data2(bigIntegerToBytes(xbsLo))
+        .data3(bigIntegerToBytes(ybsLo))
+        .data4(booleanToBytes(computeMax))
+        .data5(ZERO)
         .data6(ZERO)
-        .data7(booleanToBytes(rdcx))
-        .data8(ZERO);
+        .data7(bigIntegerToBytes(maxXbsYbs))
+        .data8(booleanToBytes(xbsNonZero));
   }
 }

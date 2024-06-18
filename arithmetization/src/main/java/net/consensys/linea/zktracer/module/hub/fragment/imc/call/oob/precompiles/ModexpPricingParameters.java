@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.oob.parameters;
+package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles;
 
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
@@ -24,23 +24,30 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import net.consensys.linea.zktracer.module.oob.Trace;
+import org.apache.tuweni.bytes.Bytes;
 
 @Getter
 @RequiredArgsConstructor
-public class SstoreOobParameters implements OobParameters {
-  private final BigInteger gas;
-  @Setter boolean sstorex;
+public class ModexpPricingParameters implements OobParameters {
+  private final BigInteger callGas;
+  private final BigInteger returnAtCapacity;
+  @Setter private boolean success;
+  private final BigInteger exponentLog;
+  private final int maxMbsBbs;
+
+  @Setter private BigInteger returnGas;
+  @Setter private boolean returnAtCapacityNonZero;
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .data1(ZERO)
+        .data1(bigIntegerToBytes(callGas))
         .data2(ZERO)
-        .data3(ZERO)
-        .data4(ZERO)
-        .data5(bigIntegerToBytes(gas))
-        .data6(ZERO)
-        .data7(booleanToBytes(sstorex))
-        .data8(ZERO);
+        .data3(bigIntegerToBytes(returnAtCapacity))
+        .data4(booleanToBytes(success))
+        .data5(bigIntegerToBytes(returnGas))
+        .data6(bigIntegerToBytes(exponentLog))
+        .data7(Bytes.of(maxMbsBbs))
+        .data8(booleanToBytes(returnAtCapacityNonZero));
   }
 }

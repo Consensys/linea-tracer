@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.oob.parameters;
+package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes;
 
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
@@ -21,33 +21,46 @@ import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 import java.math.BigInteger;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
 import net.consensys.linea.zktracer.module.oob.Trace;
-import org.apache.tuweni.bytes.Bytes;
+import net.consensys.linea.zktracer.types.EWord;
 
 @Getter
-@RequiredArgsConstructor
-public class ModexpPricingParameters implements OobParameters {
-  private final BigInteger callGas;
-  private final BigInteger returnAtCapacity;
-  @Setter private boolean success;
-  private final BigInteger exponentLog;
-  private final int maxMbsBbs;
+@Setter
+public class DeploymentOobCall implements OobCall {
+  EWord size;
+  boolean maxCodeSizeException;
 
-  @Setter private BigInteger returnGas;
-  @Setter private boolean returnAtCapacityNonZero;
+  public BigInteger sizeHi() {
+    return size.hiBigInt();
+  }
+
+  public BigInteger sizeLo() {
+    return size.loBigInt();
+  }
+
+  @Override
+  public int oobInstruction() {
+    return 0;
+  }
+
+  @Override
+  public net.consensys.linea.zktracer.module.hub.Trace trace(
+      net.consensys.linea.zktracer.module.hub.Trace trace) {
+    return null;
+  }
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .data1(bigIntegerToBytes(callGas))
-        .data2(ZERO)
-        .data3(bigIntegerToBytes(returnAtCapacity))
-        .data4(booleanToBytes(success))
-        .data5(bigIntegerToBytes(returnGas))
-        .data6(bigIntegerToBytes(exponentLog))
-        .data7(Bytes.of(maxMbsBbs))
-        .data8(booleanToBytes(returnAtCapacityNonZero));
+        .data1(bigIntegerToBytes(sizeHi()))
+        .data2(bigIntegerToBytes(sizeLo()))
+        .data3(ZERO)
+        .data4(ZERO)
+        .data5(ZERO)
+        .data6(ZERO)
+        .data7(booleanToBytes(maxCodeSizeException))
+        .data8(ZERO);
   }
 }

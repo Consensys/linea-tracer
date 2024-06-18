@@ -1,5 +1,5 @@
 /*
- * Copyright ConsenSys AG.
+ * Copyright Consensys Software Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.oob.parameters;
+package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes;
 
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
@@ -21,29 +21,47 @@ import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 import java.math.BigInteger;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
 import net.consensys.linea.zktracer.module.oob.Trace;
+import net.consensys.linea.zktracer.types.EWord;
 
 @Getter
-@RequiredArgsConstructor
-public class ModexpCallDataSizeParameters implements OobParameters {
-  private final BigInteger cds;
+@Setter
+public class CallDataLoadOobCall implements OobCall {
+  EWord offset;
+  BigInteger cds;
+  boolean cdlOutOfBounds;
 
-  @Setter private boolean extractBbs;
-  @Setter private boolean extractEbs;
-  @Setter private boolean extractMbs;
+  public BigInteger offsetHi() {
+    return offset.hiBigInt();
+  }
+
+  public BigInteger offsetLo() {
+    return offset.loBigInt();
+  }
+
+  @Override
+  public int oobInstruction() {
+    return 0;
+  }
+
+  @Override
+  public net.consensys.linea.zktracer.module.hub.Trace trace(
+      net.consensys.linea.zktracer.module.hub.Trace trace) {
+    return null;
+  }
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .data1(ZERO)
-        .data2(bigIntegerToBytes(cds))
-        .data3(booleanToBytes(extractBbs))
-        .data4(booleanToBytes(extractEbs))
-        .data5(booleanToBytes(extractMbs))
+        .data1(bigIntegerToBytes(offsetHi()))
+        .data2(bigIntegerToBytes(offsetLo()))
+        .data3(ZERO)
+        .data4(ZERO)
+        .data5(bigIntegerToBytes(cds))
         .data6(ZERO)
-        .data7(ZERO)
+        .data7(booleanToBytes(cdlOutOfBounds))
         .data8(ZERO);
   }
 }

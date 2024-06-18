@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.oob;
 
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_CREATE;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.math.BigInteger;
@@ -49,6 +48,8 @@ public class Oob implements Module {
   private final Mod mod;
   private final Wcp wcp;
 
+  private OobOperation oobOperation;
+
   @Override
   public String moduleKey() {
     return "OOB";
@@ -65,9 +66,16 @@ public class Oob implements Module {
           Address.ALTBN128_PAIRING,
           Address.BLAKE2B_F_COMPRESSION);
 
+  public void call(OobCall oobCall) {
+    oobOperation.setOobCall(oobCall);
+    // TODO: add oobCall to the constructor of oobOperation
+  }
+
   @Override
   public void tracePreOpcode(MessageFrame frame) { // This will be renamed to tracePreOp
-    this.chunks.add(new OobOperation(frame, add, mod, wcp, hub, false, 0, 0));
+    // TODO: this implementation will die, we just use call to trigger OOB
+    oobOperation = new OobOperation(frame, add, mod, wcp, hub, false, 0, 0);
+    this.chunks.add(oobOperation);
     OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
 
     if (opCode.isCall()) {
@@ -75,19 +83,22 @@ public class Oob implements Module {
 
       if (PRECOMPILES_HANDLED_BY_OOB.contains(target)) {
         if (target.equals(Address.BLAKE2B_F_COMPRESSION)) {
-          OobOperation oobOperation = new OobOperation(frame, add, mod, wcp, hub, true, 1, 0);
+          oobOperation = new OobOperation(frame, add, mod, wcp, hub, true, 1, 0);
           this.chunks.add(oobOperation);
           boolean validCds = oobOperation.getOutgoingResLo()[0].equals(BigInteger.ONE);
           if (validCds) {
-            this.chunks.add(new OobOperation(frame, add, mod, wcp, hub, true, 2, 0));
+            oobOperation = new OobOperation(frame, add, mod, wcp, hub, true, 2, 0);
+            this.chunks.add(oobOperation);
           }
         } else if (target.equals(Address.MODEXP)) {
           for (int i = 1; i <= 7; i++) {
-            this.chunks.add(new OobOperation(frame, add, mod, wcp, hub, true, 0, i));
+            oobOperation = new OobOperation(frame, add, mod, wcp, hub, true, 0, i);
+            this.chunks.add(oobOperation);
           }
         } else {
           // Other precompiles case
-          this.chunks.add(new OobOperation(frame, add, mod, wcp, hub, true, 0, 0));
+          oobOperation = new OobOperation(frame, add, mod, wcp, hub, true, 0, 0);
+          this.chunks.add(oobOperation);
         }
       }
     }
@@ -139,14 +150,6 @@ public class Oob implements Module {
           .outgoingData4(bigIntegerToBytes(chunk.getOutgoingData4()[ct]))
           .outgoingResLo(bigIntegerToBytes(chunk.getOutgoingResLo()[ct]))
           .validateRow();
-    }
-  }
-
-  public void call(OobCall oobCall, Hub hub) {
-    // TODO: send the oobCall to OobOperation and fill it with the data
-    switch (oobCall.oobInstruction()) {
-      case OOB_INST_CREATE:
-        oobCall.data1(bigIntegerToBytes(BigInteger.ONE)).data2(bigIntegerToBytes(BigInteger.ONE));
     }
   }
 

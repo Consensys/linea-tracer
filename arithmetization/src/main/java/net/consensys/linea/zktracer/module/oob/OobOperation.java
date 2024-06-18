@@ -54,29 +54,30 @@ import java.math.RoundingMode;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.Setter;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.CallDataLoadOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.CallOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.CreateOobParameters;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.DeploymentOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.JumpOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.JumpiOobParameters;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.ReturnDataCopyOobParameters;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.SstoreOobParameters;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.XCallOobParameters;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.Blake2fCallDataSizeParameters;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.Blake2fParamsParameters;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpCallDataSizeParameters;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpExtractParameters;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpLeadParameters;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpPricingParameters;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpXbsParameters;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.PrecompileCommonOobParameters;
 import net.consensys.linea.zktracer.module.mod.Mod;
-import net.consensys.linea.zktracer.module.oob.parameters.Blake2fCallDataSizeParameters;
-import net.consensys.linea.zktracer.module.oob.parameters.Blake2fParamsParameters;
-import net.consensys.linea.zktracer.module.oob.parameters.CallDataLoadOobParameters;
-import net.consensys.linea.zktracer.module.oob.parameters.CallOobParameters;
-import net.consensys.linea.zktracer.module.oob.parameters.CreateOobParameters;
-import net.consensys.linea.zktracer.module.oob.parameters.DeploymentOobParameters;
-import net.consensys.linea.zktracer.module.oob.parameters.JumpOobParameters;
-import net.consensys.linea.zktracer.module.oob.parameters.JumpiOobParameters;
-import net.consensys.linea.zktracer.module.oob.parameters.ModexpCallDataSizeParameters;
-import net.consensys.linea.zktracer.module.oob.parameters.ModexpExtractParameters;
-import net.consensys.linea.zktracer.module.oob.parameters.ModexpLeadParameters;
-import net.consensys.linea.zktracer.module.oob.parameters.ModexpPricingParameters;
-import net.consensys.linea.zktracer.module.oob.parameters.ModexpXbsParameters;
-import net.consensys.linea.zktracer.module.oob.parameters.OobParameters;
-import net.consensys.linea.zktracer.module.oob.parameters.PrecompileCommonOobParameters;
-import net.consensys.linea.zktracer.module.oob.parameters.ReturnDataCopyOobParameters;
-import net.consensys.linea.zktracer.module.oob.parameters.SstoreOobParameters;
-import net.consensys.linea.zktracer.module.oob.parameters.XCallOobParameters;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.EWord;
@@ -92,6 +93,8 @@ import org.hyperledger.besu.evm.internal.Words;
 public class OobOperation extends ModuleOperation {
   @EqualsAndHashCode.Include private BigInteger oobInst;
   @EqualsAndHashCode.Include private OobParameters oobParameters;
+
+  @Setter OobCall oobCall;
 
   private boolean isJump;
   private boolean isJumpi;
@@ -158,6 +161,7 @@ public class OobOperation extends ModuleOperation {
       boolean isPrecompile,
       int blake2FCallNumber,
       int modexpCallNumber) {
+
     this.add = add;
     this.mod = mod;
     this.wcp = wcp;
@@ -362,11 +366,11 @@ public class OobOperation extends ModuleOperation {
 
     if (isInst()) {
       if (isJump) {
-        JumpOobParameters jumpOobParameters =
-            new JumpOobParameters(
-                EWord.of(frame.getStackItem(0)), BigInteger.valueOf(frame.getCode().getSize()));
-        oobParameters = jumpOobParameters;
-        setJump(jumpOobParameters);
+        JumpOobCall jumpOobCall = (JumpOobCall) oobCall;
+        jumpOobCall.setPcNew(EWord.of(frame.getStackItem(0)));
+        jumpOobCall.setCodeSize(BigInteger.valueOf(frame.getCode().getSize()));
+        oobCall = jumpOobCall;
+        setJump(jumpOobCall);
       } else if (isJumpi) {
         JumpiOobParameters jumpiOobParameters =
             new JumpiOobParameters(
@@ -384,8 +388,8 @@ public class OobOperation extends ModuleOperation {
         oobParameters = rdcOobParameters;
         setRdc(rdcOobParameters);
       } else if (isCdl) {
-        CallDataLoadOobParameters cdlOobParameters =
-            new CallDataLoadOobParameters(
+        CallDataLoadOobCall cdlOobParameters =
+            new CallDataLoadOobCall(
                 EWord.of(frame.getStackItem(0)), BigInteger.valueOf(frame.getInputData().size()));
         oobParameters = cdlOobParameters;
         setCdl(cdlOobParameters);
@@ -396,11 +400,11 @@ public class OobOperation extends ModuleOperation {
         oobParameters = sstoreOobParameters;
         setSstore(sstoreOobParameters);
       } else if (isDeployment) {
-        final DeploymentOobParameters deploymentOobParameters =
-            new DeploymentOobParameters(EWord.of(frame.getStackItem(0)));
+        final DeploymentOobCall deploymentOobCall =
+            new DeploymentOobCall(EWord.of(frame.getStackItem(0)));
 
-        oobParameters = deploymentOobParameters;
-        setDeployment(deploymentOobParameters);
+        oobParameters = deploymentOobCall;
+        setDeployment(deploymentOobCall);
       } else if (isXCall) {
         XCallOobParameters xCallOobParameters =
             new XCallOobParameters(EWord.of(frame.getStackItem(2)));
@@ -416,8 +420,8 @@ public class OobOperation extends ModuleOperation {
           value = EWord.of(frame.getStackItem(2));
           nonZeroValue = !frame.getStackItem(2).isZero();
         }
-        CallOobParameters callOobParameters =
-            new CallOobParameters(
+        CallOobCall callOobParameters =
+            new CallOobCall(
                 value,
                 callerAccount.getBalance().toUnsignedBigInteger(), // balance (caller address)
                 BigInteger.valueOf(frame.getDepth()));
@@ -742,21 +746,21 @@ public class OobOperation extends ModuleOperation {
   }
 
   // Methods to populate columns
-  private void setJump(JumpOobParameters jumpOobParameters) {
+  private void setJump(JumpOobCall jumpOobCall) {
     // row i
     final boolean validPcNew =
         callToLT(
             0,
-            jumpOobParameters.pcNewHi(),
-            jumpOobParameters.pcNewLo(),
+            jumpOobCall.pcNewHi(),
+            jumpOobCall.pcNewLo(),
             BigInteger.ZERO,
-            jumpOobParameters.getCodeSize());
+            jumpOobCall.getCodeSize());
 
     // Set jumpGuaranteedException
-    jumpOobParameters.setJumpGuaranteedException(!validPcNew);
+    jumpOobCall.setJumpGuaranteedException(!validPcNew);
 
     // Set jumpMustBeAttempted
-    jumpOobParameters.setJumpMustBeAttempted(validPcNew);
+    jumpOobCall.setJumpMustBeAttempted(validPcNew);
   }
 
   private void setJumpi(JumpiOobParameters jumpiOobParameters) {
@@ -820,7 +824,7 @@ public class OobOperation extends ModuleOperation {
     rdcOobParameters.setRdcx(rdcRoob || rdcSoob);
   }
 
-  private void setCdl(CallDataLoadOobParameters cdlOobParameters) {
+  private void setCdl(CallDataLoadOobCall cdlOobParameters) {
     // row i
     final boolean touchesRam =
         callToLT(
@@ -848,18 +852,18 @@ public class OobOperation extends ModuleOperation {
     sstoreOobParameters.setSstorex(!sufficientGas);
   }
 
-  private void setDeployment(DeploymentOobParameters deploymentOobParameters) {
+  private void setDeployment(DeploymentOobCall deploymentOobCall) {
     // row i
     final boolean exceedsMaxCodeSize =
         callToLT(
             0,
             BigInteger.ZERO,
             BigInteger.valueOf(24576),
-            deploymentOobParameters.sizeHi(),
-            deploymentOobParameters.sizeLo());
+            deploymentOobCall.sizeHi(),
+            deploymentOobCall.sizeLo());
 
     // Set maxCodeSizeException
-    deploymentOobParameters.setMaxCodeSizeException(exceedsMaxCodeSize);
+    deploymentOobCall.setMaxCodeSizeException(exceedsMaxCodeSize);
   }
 
   private void setXCall(XCallOobParameters xCallOobParameters) {
@@ -874,7 +878,7 @@ public class OobOperation extends ModuleOperation {
     xCallOobParameters.setValueIsZero(valueIsZero);
   }
 
-  private void setCall(CallOobParameters callOobParameters) {
+  private void setCall(CallOobCall callOobParameters) {
     // row i
     boolean insufficientBalanceAbort =
         callToLT(

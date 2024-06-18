@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.oob.parameters;
+package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes;
 
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
@@ -21,37 +21,49 @@ import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 import java.math.BigInteger;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
 import net.consensys.linea.zktracer.module.oob.Trace;
 import net.consensys.linea.zktracer.types.EWord;
 
 @Getter
-@RequiredArgsConstructor
-public class JumpOobParameters implements OobParameters {
-  private final EWord pcNew;
-  private final BigInteger codeSize;
-  @Setter boolean jumpGuaranteedException;
-  @Setter boolean jumpMustBeAttempted;
+@Setter
+public class CallOobCall implements OobCall {
+  EWord value;
+  BigInteger balance;
+  BigInteger callStackDepth;
+  boolean valueIsNonzero;
+  boolean abortingCondition;
 
-  public BigInteger pcNewHi() {
-    return pcNew.hiBigInt();
+  public BigInteger valueHi() {
+    return value.hiBigInt();
   }
 
-  public BigInteger pcNewLo() {
-    return pcNew.loBigInt();
+  public BigInteger valueLo() {
+    return value.loBigInt();
+  }
+
+  @Override
+  public int oobInstruction() {
+    return 0;
+  }
+
+  @Override
+  public net.consensys.linea.zktracer.module.hub.Trace trace(
+      net.consensys.linea.zktracer.module.hub.Trace trace) {
+    return null;
   }
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .data1(bigIntegerToBytes(pcNewHi()))
-        .data2(bigIntegerToBytes(pcNewLo()))
-        .data3(ZERO)
+        .data1(bigIntegerToBytes(valueHi()))
+        .data2(bigIntegerToBytes(valueLo()))
+        .data3(bigIntegerToBytes(balance))
         .data4(ZERO)
-        .data5(bigIntegerToBytes(codeSize))
-        .data6(ZERO)
-        .data7(booleanToBytes(jumpGuaranteedException))
-        .data8(booleanToBytes(jumpMustBeAttempted));
+        .data5(ZERO)
+        .data6(bigIntegerToBytes(callStackDepth))
+        .data7(booleanToBytes(valueIsNonzero))
+        .data8(booleanToBytes(abortingCondition));
   }
 }

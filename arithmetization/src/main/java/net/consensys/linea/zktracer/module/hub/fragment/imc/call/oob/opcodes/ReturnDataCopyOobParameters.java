@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.oob.parameters;
+package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes;
 
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
@@ -28,40 +28,38 @@ import net.consensys.linea.zktracer.types.EWord;
 
 @Getter
 @RequiredArgsConstructor
-public class JumpiOobParameters implements OobParameters {
-  private final EWord pcNew;
-  private final EWord jumpCondition;
-  private final BigInteger codeSize;
-  @Setter boolean jumpNotAttempted;
-  @Setter boolean jumpGuanranteedException;
-  @Setter boolean jumpMustBeAttempted;
+public class ReturnDataCopyOobParameters implements OobParameters {
+  private final EWord offset;
+  private final EWord size;
+  private final BigInteger rds;
+  @Setter private boolean rdcx;
 
-  public BigInteger pcNewHi() {
-    return pcNew.hiBigInt();
+  public BigInteger offsetHi() {
+    return offset.hiBigInt();
   }
 
-  public BigInteger pcNewLo() {
-    return pcNew.loBigInt();
+  public BigInteger offsetLo() {
+    return offset.loBigInt();
   }
 
-  public BigInteger jumpConditionHi() {
-    return jumpCondition.hiBigInt();
+  public BigInteger sizeHi() {
+    return size.hiBigInt();
   }
 
-  public BigInteger jumpConditionLo() {
-    return jumpCondition.loBigInt();
+  public BigInteger sizeLo() {
+    return size.loBigInt();
   }
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .data1(bigIntegerToBytes(pcNewHi()))
-        .data2(bigIntegerToBytes(pcNewLo()))
-        .data3(bigIntegerToBytes(jumpConditionHi()))
-        .data4(bigIntegerToBytes(jumpConditionLo()))
-        .data5(bigIntegerToBytes(codeSize))
-        .data6(booleanToBytes(jumpNotAttempted))
-        .data7(booleanToBytes(jumpGuanranteedException))
-        .data8(booleanToBytes(jumpMustBeAttempted));
+        .data1(bigIntegerToBytes(offsetHi()))
+        .data2(bigIntegerToBytes(offsetLo()))
+        .data3(bigIntegerToBytes(sizeHi()))
+        .data4(bigIntegerToBytes(sizeLo()))
+        .data5(bigIntegerToBytes(rds))
+        .data6(ZERO)
+        .data7(booleanToBytes(rdcx))
+        .data8(ZERO);
   }
 }

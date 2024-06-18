@@ -31,13 +31,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp.ExpCallForE
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp.ExpCallForModexpLogComputation;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.Call;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.CallDataLoad;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.DeploymentReturn;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.ExceptionalCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.Jump;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.Jumpi;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.SStore;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.JumpOobCall;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.gas.GasConstants;
 import net.consensys.linea.zktracer.types.EWord;
@@ -202,7 +196,7 @@ public class ImcFragment implements TraceFragment {
 
     if (hub.pch().signals().oob()) {
       switch (hub.opCode()) {
-        case JUMP -> r.callOob(new Jump());
+        case JUMP -> r.callOob(new JumpOobCall());
         case JUMPI -> r.callOob(new Jumpi());
         case CALLDATALOAD -> r.callOob(new CallDataLoad());
         case SSTORE -> r.callOob(new SStore());

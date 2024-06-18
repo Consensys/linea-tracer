@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.oob.parameters;
+package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles;
 
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
@@ -28,26 +28,23 @@ import org.apache.tuweni.bytes.Bytes;
 
 @Getter
 @RequiredArgsConstructor
-public class ModexpLeadParameters implements OobParameters {
-  private final BigInteger bbs;
+public class Blake2fCallDataSizeParameters implements OobParameters {
   private final BigInteger cds;
-  private final BigInteger ebs;
+  private final BigInteger returnAtCapacity;
 
-  @Setter boolean loadLead;
-  @Setter int cdsCutoff;
-  @Setter int ebsCutoff;
-  @Setter int subEbs32;
+  @Setter private boolean success;
+  @Setter private boolean returnAtCapacityNonZero;
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .data1(bigIntegerToBytes(bbs))
+        .data1(ZERO)
         .data2(bigIntegerToBytes(cds))
-        .data3(bigIntegerToBytes(ebs))
-        .data4(booleanToBytes(loadLead))
+        .data3(bigIntegerToBytes(returnAtCapacity))
+        .data4(booleanToBytes(success)) // Set after the constructor
         .data5(ZERO)
-        .data6(Bytes.of(cdsCutoff))
-        .data7(Bytes.of(ebsCutoff))
-        .data8(Bytes.of(subEbs32));
+        .data6(Bytes.of(0))
+        .data7(Bytes.of(0))
+        .data8(booleanToBytes(returnAtCapacityNonZero)); // Set after the constructor
   }
 }

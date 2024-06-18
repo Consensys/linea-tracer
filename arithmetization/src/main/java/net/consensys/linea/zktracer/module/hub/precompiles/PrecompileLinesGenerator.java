@@ -25,20 +25,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp.ExpCallForModexpLogComputation;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.Blake2FPrecompile1;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.Blake2FPrecompile2;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.EcAdd;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.EcMul;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.EcPairing;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.EcRecover;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.Identity;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpCds;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpExtract;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpLead;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpPricing;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpXbs;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.RipeMd160;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.Sha2;
 
 @RequiredArgsConstructor
 public class PrecompileLinesGenerator {

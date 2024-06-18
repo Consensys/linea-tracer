@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.oob.parameters;
+package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes;
 
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
@@ -28,29 +28,40 @@ import net.consensys.linea.zktracer.types.EWord;
 
 @Getter
 @RequiredArgsConstructor
-public class XCallOobParameters implements OobParameters {
-  private final EWord value;
-  @Setter boolean valueIsNonzero;
-  @Setter boolean valueIsZero;
+public class JumpiOobParameters implements OobParameters {
+  private final EWord pcNew;
+  private final EWord jumpCondition;
+  private final BigInteger codeSize;
+  @Setter boolean jumpNotAttempted;
+  @Setter boolean jumpGuanranteedException;
+  @Setter boolean jumpMustBeAttempted;
 
-  public BigInteger valueHi() {
-    return value.hiBigInt();
+  public BigInteger pcNewHi() {
+    return pcNew.hiBigInt();
   }
 
-  public BigInteger valueLo() {
-    return value.loBigInt();
+  public BigInteger pcNewLo() {
+    return pcNew.loBigInt();
+  }
+
+  public BigInteger jumpConditionHi() {
+    return jumpCondition.hiBigInt();
+  }
+
+  public BigInteger jumpConditionLo() {
+    return jumpCondition.loBigInt();
   }
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .data1(bigIntegerToBytes(valueHi()))
-        .data2(bigIntegerToBytes(valueLo()))
-        .data3(ZERO)
-        .data4(ZERO)
-        .data5(ZERO)
-        .data6(ZERO)
-        .data7(booleanToBytes(valueIsNonzero))
-        .data8(booleanToBytes(valueIsZero));
+        .data1(bigIntegerToBytes(pcNewHi()))
+        .data2(bigIntegerToBytes(pcNewLo()))
+        .data3(bigIntegerToBytes(jumpConditionHi()))
+        .data4(bigIntegerToBytes(jumpConditionLo()))
+        .data5(bigIntegerToBytes(codeSize))
+        .data6(booleanToBytes(jumpNotAttempted))
+        .data7(booleanToBytes(jumpGuanranteedException))
+        .data8(booleanToBytes(jumpMustBeAttempted));
   }
 }

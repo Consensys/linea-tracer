@@ -275,7 +275,7 @@ opcodes:
       delta: 2
       nbAdded: 1
       nbRemoved: 2
-      staticGas: S_MXP
+      staticGas: G_KECCAK_256
     billing:
       byWord:
         type: TYPE_4

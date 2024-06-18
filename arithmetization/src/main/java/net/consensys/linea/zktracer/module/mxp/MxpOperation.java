@@ -115,6 +115,8 @@ public class MxpOperation extends ModuleOperation {
     setAccAAndFirstTwoBytesOfByteR();
     setExpands();
     setWordsNew(frame);
+    setCMemNew();
+    setCosts();
     setMtntop();
 
     // "tracing" the remaining fields of the MxpCall
@@ -127,7 +129,6 @@ public class MxpOperation extends ModuleOperation {
   }
 
   void compute() {
-    setCMemNew();
     setComp();
     setAcc1and2();
     setAcc3();
@@ -135,7 +136,6 @@ public class MxpOperation extends ModuleOperation {
     setAccWAndLastTwoBytesOfByteR();
     setAccQAndByteQQ();
     setBytes();
-    setCosts();
   }
 
   private void setInitializeByteArrays() {

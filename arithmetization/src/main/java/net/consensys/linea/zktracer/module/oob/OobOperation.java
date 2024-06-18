@@ -149,7 +149,7 @@ public class OobOperation extends ModuleOperation {
 
   private final BigInteger[] outgoingResLo;
 
-  private BigInteger wghtSum;
+  private int wghtSum;
 
   private BigInteger precompileCost;
 
@@ -206,7 +206,7 @@ public class OobOperation extends ModuleOperation {
   private void setOpCodeFlagsAndWghtSumAndIncomingInst(MessageFrame frame) {
     final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
     // In the case of CALLs and CREATEs this value will be replaced
-    wghtSum = BigInteger.valueOf(Byte.toUnsignedInt(opCode.byteValue()));
+    wghtSum = Byte.toUnsignedInt(opCode.byteValue());
 
     switch (opCode) {
       case JUMP:
@@ -226,15 +226,15 @@ public class OobOperation extends ModuleOperation {
             && !hub.pch().exceptions().stackUnderflow()
             && hub.pch().exceptions().any()) {
           isXCall = true;
-          wghtSum = BigInteger.valueOf(0xCC);
+          wghtSum = 0xCC;
         } else {
           isCall = true;
-          wghtSum = BigInteger.valueOf(0xCA);
+          wghtSum = 0xCA;
         }
         break;
       case CREATE, CREATE2:
         isCreate = true;
-        wghtSum = BigInteger.valueOf(0xCE);
+        wghtSum = 0xCE;
         break;
       case SSTORE:
         isSstore = true;
@@ -245,7 +245,7 @@ public class OobOperation extends ModuleOperation {
       default:
         throw new IllegalArgumentException("OpCode not relevant for Oob");
     }
-    oobInst = wghtSum;
+    oobInst = BigInteger.valueOf(wghtSum);
   }
 
   private void setPrecomileFlagsAndWghtSumAndIncomingInst(MessageFrame frame) {
@@ -253,64 +253,64 @@ public class OobOperation extends ModuleOperation {
 
     if (target.equals(Address.ECREC)) {
       isEcRecover = true;
-      wghtSum = BigInteger.valueOf(OOB_INST_ECRECOVER);
+      wghtSum = OOB_INST_ECRECOVER;
     } else if (target.equals(Address.SHA256)) {
       isSha2 = true;
-      wghtSum = BigInteger.valueOf(OOB_INST_SHA2);
+      wghtSum = OOB_INST_SHA2;
     } else if (target.equals(Address.RIPEMD160)) {
       isRipemd = true;
-      wghtSum = BigInteger.valueOf(OOB_INST_RIPEMD);
+      wghtSum = OOB_INST_RIPEMD;
     } else if (target.equals(Address.ID)) {
       isIdentity = true;
-      wghtSum = BigInteger.valueOf(OOB_INST_IDENTITY);
+      wghtSum = OOB_INST_IDENTITY;
     } else if (target.equals(Address.ALTBN128_ADD)) {
       isEcadd = true;
-      wghtSum = BigInteger.valueOf(OOB_INST_ECADD);
+      wghtSum = OOB_INST_ECADD;
     } else if (target.equals(Address.ALTBN128_MUL)) {
       isEcmul = true;
-      wghtSum = BigInteger.valueOf(OOB_INST_ECMUL);
+      wghtSum = OOB_INST_ECMUL;
     } else if (target.equals(Address.ALTBN128_PAIRING)) {
       isEcpairing = true;
-      wghtSum = BigInteger.valueOf(OOB_INST_ECPAIRING);
+      wghtSum = OOB_INST_ECPAIRING;
     } else if (target.equals(Address.BLAKE2B_F_COMPRESSION)) {
       if (blake2FCallNumber == 1) {
         isBlake2FCds = true;
-        wghtSum = BigInteger.valueOf(OOB_INST_BLAKE_CDS);
+        wghtSum = OOB_INST_BLAKE_CDS;
       } else if (blake2FCallNumber == 2) {
         isBlake2FParams = true;
-        wghtSum = BigInteger.valueOf(OOB_INST_BLAKE_PARAMS);
+        wghtSum = OOB_INST_BLAKE_PARAMS;
       }
     } else if (target.equals(Address.MODEXP)) {
       switch (modexpCallNumber) {
         case 1:
           isModexpCds = true;
-          wghtSum = BigInteger.valueOf(OOB_INST_MODEXP_CDS);
+          wghtSum = OOB_INST_MODEXP_CDS;
         case 2:
           isModexpXbs = true;
           isModexpBbs = true;
-          wghtSum = BigInteger.valueOf(OOB_INST_MODEXP_XBS);
+          wghtSum = OOB_INST_MODEXP_XBS;
         case 3:
           isModexpXbs = true;
           isModexpEbs = true;
-          wghtSum = BigInteger.valueOf(OOB_INST_MODEXP_XBS);
+          wghtSum = OOB_INST_MODEXP_XBS;
         case 4:
           isModexpXbs = true;
           isModexpMbs = true;
-          wghtSum = BigInteger.valueOf(OOB_INST_MODEXP_XBS);
+          wghtSum = OOB_INST_MODEXP_XBS;
         case 5:
           isModexpLead = true;
-          wghtSum = BigInteger.valueOf(OOB_INST_MODEXP_LEAD);
+          wghtSum = OOB_INST_MODEXP_LEAD;
         case 6:
           prcModexpPricing = true;
-          wghtSum = BigInteger.valueOf(OOB_INST_MODEXP_PRICING);
+          wghtSum = OOB_INST_MODEXP_PRICING;
         case 7:
           prcModexpExtract = true;
-          wghtSum = BigInteger.valueOf(OOB_INST_MODEXP_EXTRACT);
+          wghtSum = OOB_INST_MODEXP_EXTRACT;
       }
     } else {
       throw new IllegalArgumentException("Precompile not relevant for Oob");
     }
-    oobInst = wghtSum;
+    oobInst = BigInteger.valueOf(wghtSum);
   }
 
   public boolean isInst() {

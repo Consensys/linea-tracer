@@ -55,8 +55,8 @@ public class Blake2fCallDataSizeOobCall implements OobCall {
         .data3(bigIntegerToBytes(returnAtCapacity))
         .data4(booleanToBytes(success)) // Set after the constructor
         .data5(ZERO)
-        .data6(Bytes.of(0))
-        .data7(Bytes.of(0))
+        .data6(ZERO)
+        .data7(ZERO)
         .data8(booleanToBytes(returnAtCapacityNonZero)); // Set after the constructor
   }
 
@@ -70,8 +70,8 @@ public class Blake2fCallDataSizeOobCall implements OobCall {
         .pMiscOobData3(bigIntegerToBytes(returnAtCapacity))
         .pMiscOobData4(booleanToBytes(success)) // Set after the constructor
         .pMiscOobData5(ZERO)
-        .pMiscOobData6(Bytes.of(0))
-        .pMiscOobData7(Bytes.of(0))
+        .pMiscOobData6(ZERO)
+        .pMiscOobData7(ZERO)
         .pMiscOobData8(booleanToBytes(returnAtCapacityNonZero)); // Set after the constructor
   }
 }

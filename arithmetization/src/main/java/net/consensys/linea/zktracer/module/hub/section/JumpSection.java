@@ -26,6 +26,8 @@ import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.JumpOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.JumpiOobCall;
 import net.consensys.linea.zktracer.module.hub.transients.DeploymentInfo;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.hyperledger.besu.datatypes.Address;
@@ -69,32 +71,32 @@ public class JumpSection extends TraceSection {
 
     // MISCELLANEOUS fragment
     /////////////////////////
-    ImcFragment miscRow = ImcFragment.empty(hub);
+    ImcFragment miscellaneousRow = ImcFragment.empty(hub);
     OobCall oobCall;
     boolean mustAttemptJump = false;
     switch (hub.opCode()) {
       case OpCode.JUMP -> {
-        JumpOobCall jumpOobCall = new JumpOobCall(hub);
-        miscRow.callOob(jumpOobCall);
-        mustAttemptJump = jumpOobCall.getJumpMustBeAttempted();
+        JumpOobCall jumpOobCall = new JumpOobCall();
+        miscellaneousRow.callOob(jumpOobCall);
+        mustAttemptJump = jumpOobCall.isJumpMustBeAttempted();
         oobCall = jumpOobCall;
       }
       case OpCode.JUMPI -> {
-        JumpiOobCall jumpiOobCall = new JumpiOobCall(hub);
-        miscRow.callOob(jumpiOobCall);
-        mustAttemptJump = jumpiOobCall.getJumpMustBeAttempted();
+        JumpiOobCall jumpiOobCall = new JumpiOobCall();
+        miscellaneousRow.callOob(jumpiOobCall);
+        mustAttemptJump = jumpiOobCall.isJumpMustBeAttempted();
         oobCall = jumpiOobCall;
       }
       default -> throw new RuntimeException(
           hub.opCode().name() + " not part of the JUMP instruction family");
     }
 
-    miscRow.callOob(oobCall);
+    miscellaneousRow.callOob(oobCall);
 
     // CONTEXT, ACCOUNT, MISCELLANEOUS
     //////////////////////////////////
     currentSection.addFragmentsWithoutStack(
-        hub, contextRowCurrentContext, accountRowCodeAccount, miscRow);
+        hub, contextRowCurrentContext, accountRowCodeAccount, miscellaneousRow);
 
     // jump destination vetting
     ///////////////////////////

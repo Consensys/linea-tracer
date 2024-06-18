@@ -369,42 +369,35 @@ public class OobOperation extends ModuleOperation {
         JumpOobCall jumpOobCall = (JumpOobCall) oobCall;
         jumpOobCall.setPcNew(EWord.of(frame.getStackItem(0)));
         jumpOobCall.setCodeSize(BigInteger.valueOf(frame.getCode().getSize()));
-        oobCall = jumpOobCall;
         setJump(jumpOobCall);
       } else if (isJumpi) {
         JumpiOobCall jumpiOobCall = (JumpiOobCall) oobCall;
         jumpiOobCall.setPcNew(EWord.of(frame.getStackItem(0)));
         jumpiOobCall.setJumpCondition(EWord.of(frame.getStackItem(1)));
         jumpiOobCall.setCodeSize(BigInteger.valueOf(frame.getCode().getSize()));
-        oobCall = jumpiOobCall;
         setJumpi(jumpiOobCall);
       } else if (isRdc) {
         ReturnDataCopyOobCall rdcOobCall = (ReturnDataCopyOobCall) oobCall;
         rdcOobCall.setOffset(EWord.of(frame.getStackItem(0)));
         rdcOobCall.setSize(EWord.of(frame.getStackItem(1)));
         rdcOobCall.setRds(BigInteger.valueOf(frame.getReturnData().size()));
-        oobCall = rdcOobCall;
         setRdc(rdcOobCall);
       } else if (isCdl) {
         CallDataLoadOobCall cdlOobCall = (CallDataLoadOobCall) oobCall;
         cdlOobCall.setOffset(EWord.of(frame.getStackItem(0)));
         cdlOobCall.setCds(BigInteger.valueOf(frame.getInputData().size()));
-        oobCall = cdlOobCall;
         setCdl(cdlOobCall);
       } else if (isSstore) {
         final SstoreOobCall sstoreOobCall = (SstoreOobCall) oobCall;
         sstoreOobCall.setGas(BigInteger.valueOf(frame.getRemainingGas()));
-        oobCall = sstoreOobCall;
         setSstore(sstoreOobCall);
       } else if (isDeployment) {
         final DeploymentOobCall deploymentOobCall = (DeploymentOobCall) oobCall;
         deploymentOobCall.setSize(EWord.of(frame.getStackItem(0)));
-        oobCall = deploymentOobCall;
         setDeployment(deploymentOobCall);
       } else if (isXCall) {
         XCallOobCall xCallOobCall = (XCallOobCall) oobCall;
         xCallOobCall.setValue(EWord.of(frame.getStackItem(2)));
-        oobCall = xCallOobCall;
         setXCall(xCallOobCall);
       } else if (isCall) {
         final Account callerAccount = frame.getWorldUpdater().get(frame.getRecipientAddress());
@@ -420,7 +413,6 @@ public class OobOperation extends ModuleOperation {
         callOobCall.setValue(value);
         callOobCall.setBalance(callerAccount.getBalance().toUnsignedBigInteger());
         callOobCall.setCallStackDepth(BigInteger.valueOf(frame.getDepth()));
-        oobCall = callOobCall;
         setCall(callOobCall);
       } else if (isCreate) {
         final Account creatorAccount = frame.getWorldUpdater().get(frame.getRecipientAddress());
@@ -440,7 +432,6 @@ public class OobOperation extends ModuleOperation {
         createOobCall.setNonce(BigInteger.valueOf(nonce));
         createOobCall.setHasCode(hasCode);
         createOobCall.setCallStackDepth(BigInteger.valueOf(frame.getDepth()));
-        oobCall = createOobCall;
         setCreate(createOobCall);
       }
     } else if (isPrecompile()) {
@@ -480,7 +471,6 @@ public class OobOperation extends ModuleOperation {
         prcCommonOobCall.setCallGas(callGas);
         prcCommonOobCall.setCds(cds);
         prcCommonOobCall.setReturnAtCapacity(returnAtCapacity);
-        oobCall = prcCommonOobCall;
         setPrcCommon(prcCommonOobCall);
         if (isEcRecover || isEcadd || isEcmul) {
           setPrcEcRecoverPrcEcaddPrcEcmul(prcCommonOobCall);
@@ -538,7 +528,6 @@ public class OobOperation extends ModuleOperation {
         if (isModexpCds) {
           final ModexpCallDataSizeOobCall prcModexpCdsCall = (ModexpCallDataSizeOobCall) oobCall;
           prcModexpCdsCall.setCds(cds);
-          oobCall = prcModexpCdsCall;
           setModexpCds(prcModexpCdsCall);
         } else if (isModexpXbs) {
           final ModexpXbsOobCall prcModexpXbsOobCall;
@@ -562,14 +551,12 @@ public class OobOperation extends ModuleOperation {
             prcModexpXbsOobCall.setYbsLo(EWord.of(bbs).loBigInt());
             prcModexpXbsOobCall.setComputeMax(true);
           }
-          oobCall = prcModexpXbsOobCall;
           setModexpXbs(prcModexpXbsOobCall);
         } else if (isModexpLead) {
           final ModexpLeadOobCall prcModexpLeadOobCall = (ModexpLeadOobCall) oobCall;
           prcModexpLeadOobCall.setBbs(bbs);
           prcModexpLeadOobCall.setCds(cds);
           prcModexpLeadOobCall.setEbs(ebs);
-          oobCall = prcModexpLeadOobCall;
           setModexpLead(prcModexpLeadOobCall);
         } else if (prcModexpPricing) {
           int maxMbsBbs = max(mbs.intValue(), bbs.intValue());
@@ -578,7 +565,6 @@ public class OobOperation extends ModuleOperation {
           prcModexpPricingOobCall.setReturnAtCapacity(returnAtCapacity);
           prcModexpPricingOobCall.setExponentLog(exponentLog);
           prcModexpPricingOobCall.setMaxMbsBbs(maxMbsBbs);
-          oobCall = prcModexpPricingOobCall;
           setPrcModexpPricing(prcModexpPricingOobCall);
         } else if (prcModexpExtract) {
           final ModexpExtractOobCall prcModexpExtractOobCall = (ModexpExtractOobCall) oobCall;
@@ -586,7 +572,6 @@ public class OobOperation extends ModuleOperation {
           prcModexpExtractOobCall.setBbs(bbs);
           prcModexpExtractOobCall.setEbs(ebs);
           prcModexpExtractOobCall.setMbs(mbs);
-          oobCall = prcModexpExtractOobCall;
           setPrcModexpExtract(prcModexpExtractOobCall);
         }
       } else if (isBlakePrecompile()) {
@@ -594,7 +579,6 @@ public class OobOperation extends ModuleOperation {
           final Blake2fCallDataSizeOobCall prcBlake2FCdsCall = (Blake2fCallDataSizeOobCall) oobCall;
           prcBlake2FCdsCall.setCds(cds);
           prcBlake2FCdsCall.setReturnAtCapacity(returnAtCapacity);
-          oobCall = prcBlake2FCdsCall;
           setBlake2FCds(prcBlake2FCdsCall);
         } else if (isBlake2FParams) {
           final BigInteger blakeR =
@@ -612,7 +596,6 @@ public class OobOperation extends ModuleOperation {
           prcBlake2FParamsOobCall.setBlakeR(blakeR);
           prcBlake2FParamsOobCall.setBlakeF(blakeF);
 
-          oobCall = prcBlake2FParamsOobCall;
           setBlake2FParams(prcBlake2FParamsOobCall);
         }
       } else {

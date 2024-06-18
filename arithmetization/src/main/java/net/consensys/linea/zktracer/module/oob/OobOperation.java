@@ -22,6 +22,8 @@ import static java.lang.Math.min;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_CALL_STIPEND;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_BLAKE_CDS;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_BLAKE_PARAMS;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_CALL;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_CREATE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_ECADD;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_ECMUL;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_ECPAIRING;
@@ -34,6 +36,7 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_MODEXP_XBS;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_RIPEMD;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_SHA2;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_XCALL;
 import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_BLAKE2F_CDS;
 import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_BLAKE2F_PARAMS;
 import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_CALL;
@@ -226,15 +229,15 @@ public class OobOperation extends ModuleOperation {
             && !hub.pch().exceptions().stackUnderflow()
             && hub.pch().exceptions().any()) {
           isXCall = true;
-          wghtSum = 0xCC;
+          wghtSum = OOB_INST_XCALL;
         } else {
           isCall = true;
-          wghtSum = 0xCA;
+          wghtSum = OOB_INST_CALL;
         }
         break;
       case CREATE, CREATE2:
         isCreate = true;
-        wghtSum = 0xCE;
+        wghtSum = OOB_INST_CREATE;
         break;
       case SSTORE:
         isSstore = true;

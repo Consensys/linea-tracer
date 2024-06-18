@@ -21,6 +21,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.CallDataLoadOobCall;
 
 public class StackRam extends TraceSection {
 
@@ -34,7 +35,7 @@ public class StackRam extends TraceSection {
         imcFragment.callMxp(mxpCall);
       }
       case CALLDATALOAD -> {
-        OobCall oobCall = new CallDataLoad();
+        OobCall oobCall = new CallDataLoadOobCall();
         imcFragment.callOob(oobCall);
       }
     }

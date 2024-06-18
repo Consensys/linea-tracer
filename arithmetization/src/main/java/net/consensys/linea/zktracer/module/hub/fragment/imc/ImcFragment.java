@@ -31,7 +31,13 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp.ExpCallForE
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp.ExpCallForModexpLogComputation;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.CallDataLoadOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.CallOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.DeploymentOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.JumpOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.JumpiOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.SstoreOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.XCallOobCall;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.gas.GasConstants;
 import net.consensys.linea.zktracer.types.EWord;
@@ -115,9 +121,9 @@ public class ImcFragment implements TraceFragment {
       switch (hub.opCode()) {
         case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
           if (hub.opCode().equals(OpCode.CALL) && hub.pch().exceptions().any()) {
-            r.callOob(new ExceptionalCall());
+            r.callOob(new XCallOobCall());
           } else {
-            r.callOob(new Call());
+            r.callOob(new CallOobCall());
           }
         }
         default -> throw new IllegalArgumentException("unexpected opcode for IMC/CALL");
@@ -197,18 +203,18 @@ public class ImcFragment implements TraceFragment {
     if (hub.pch().signals().oob()) {
       switch (hub.opCode()) {
         case JUMP -> r.callOob(new JumpOobCall());
-        case JUMPI -> r.callOob(new Jumpi());
-        case CALLDATALOAD -> r.callOob(new CallDataLoad());
-        case SSTORE -> r.callOob(new SStore());
+        case JUMPI -> r.callOob(new JumpiOobCall());
+        case CALLDATALOAD -> r.callOob(new CallDataLoadOobCall());
+        case SSTORE -> r.callOob(new SstoreOobCall());
         case CALL, CALLCODE -> {
-          r.callOob(new Call());
+          r.callOob(new CallOobCall());
         }
         case DELEGATECALL, STATICCALL -> {
-          r.callOob(new Call());
+          r.callOob(new CallOobCall());
         }
         case RETURN -> {
           if (hub.currentFrame().isDeployment()) {
-            r.callOob(new DeploymentReturn());
+            r.callOob(new DeploymentOobCall());
           }
         }
         default -> throw new IllegalArgumentException(
@@ -225,7 +231,7 @@ public class ImcFragment implements TraceFragment {
     } else {
       oobIsSet = true;
     }
-    this.hub.oob().call(f, this.hub);
+    this.hub.oob().call(f);
     this.moduleCalls.add(f);
     return this;
   }

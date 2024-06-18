@@ -25,6 +25,14 @@ import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp.ExpCallForModexpLogComputation;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.Blake2fCallDataSizeOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.Blake2fParamsOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpCallDataSizeOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpExtractOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpLeadOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpPricingOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpXbsOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.PrecompileCommonOobCall;
 
 @RequiredArgsConstructor
 public class PrecompileLinesGenerator {
@@ -33,14 +41,14 @@ public class PrecompileLinesGenerator {
     switch (p.precompile()) {
       case EC_RECOVER -> {
         if (p.hubFailure()) {
-          r.add(ImcFragment.empty(hub).callOob(new EcRecover(p)));
+          r.add(ImcFragment.empty(hub).callOob(new PrecompileCommonOobCall(p)));
         } else {
           final boolean recoverySuccessful =
               ((EcRecoverMetadata) p.metadata()).recoverySuccessful();
 
           r.add(
               ImcFragment.empty(hub)
-                  .callOob(new EcRecover(p))
+                  .callOob(new PrecompileCommonOobCall(p))
                   .callMmu(
                       p.callDataSource().isEmpty()
                           ? MmuCall.nop()
@@ -61,11 +69,11 @@ public class PrecompileLinesGenerator {
       }
       case SHA2_256 -> {
         if (p.hubFailure()) {
-          r.add(ImcFragment.empty(hub).callOob(new Sha2(p)));
+          r.add(ImcFragment.empty(hub).callOob(new PrecompileCommonOobCall(p)));
         } else {
           r.add(
               ImcFragment.empty(hub)
-                  .callOob(new Sha2(p))
+                  .callOob(new PrecompileCommonOobCall(p))
                   .callMmu(
                       p.callDataSource().isEmpty() ? MmuCall.nop() : MmuCall.forSha2(hub, p, 0)));
           r.add(
@@ -80,11 +88,11 @@ public class PrecompileLinesGenerator {
       }
       case RIPEMD_160 -> {
         if (p.hubFailure()) {
-          r.add(ImcFragment.empty(hub).callOob(new RipeMd160(p)));
+          r.add(ImcFragment.empty(hub).callOob(new PrecompileCommonOobCall(p)));
         } else {
           r.add(
               ImcFragment.empty(hub)
-                  .callOob(new Sha2(p))
+                  .callOob(new PrecompileCommonOobCall(p))
                   .callMmu(
                       p.callDataSource().isEmpty()
                           ? MmuCall.nop()
@@ -105,11 +113,11 @@ public class PrecompileLinesGenerator {
       }
       case IDENTITY -> {
         if (p.hubFailure()) {
-          r.add(ImcFragment.empty(hub).callOob(new Identity(p)));
+          r.add(ImcFragment.empty(hub).callOob(new PrecompileCommonOobCall(p)));
         } else {
           r.add(
               ImcFragment.empty(hub)
-                  .callOob(new Identity(p))
+                  .callOob(new PrecompileCommonOobCall(p))
                   .callMmu(MmuCall.forIdentity(hub, p, 0)));
           r.add(ImcFragment.empty(hub).callMmu(MmuCall.forIdentity(hub, p, 1)));
         }
@@ -120,22 +128,22 @@ public class PrecompileLinesGenerator {
         final int ebsInt = m.ebs().toUnsignedBigInteger().intValueExact();
         final int mbsInt = m.mbs().toUnsignedBigInteger().intValueExact();
 
-        r.add(ImcFragment.empty(hub).callOob(new ModexpCds(p)));
+        r.add(ImcFragment.empty(hub).callOob(new ModexpCallDataSizeOobCall(p)));
         r.add(
             ImcFragment.empty(hub)
-                .callOob(new ModexpXbs(p))
+                .callOob(new ModexpXbsOobCall(p))
                 .callMmu(m.extractBbs() ? MmuCall.forModExp(hub, p, 2) : MmuCall.nop()));
         r.add(
             ImcFragment.empty(hub)
-                .callOob(new ModexpXbs(p))
+                .callOob(new ModexpXbsOobCall(p))
                 .callMmu(m.extractEbs() ? MmuCall.forModExp(hub, p, 3) : MmuCall.nop()));
         r.add(
             ImcFragment.empty(hub)
-                .callOob(new ModexpXbs(p))
+                .callOob(new ModexpXbsOobCall(p))
                 .callMmu(m.extractEbs() ? MmuCall.forModExp(hub, p, 4) : MmuCall.nop()));
         final ImcFragment line5 =
             ImcFragment.empty(hub)
-                .callOob(new ModexpLead(p))
+                .callOob(new ModexpLeadOobCall(p))
                 .callMmu(m.loadRawLeadingWord() ? MmuCall.forModExp(hub, p, 5) : MmuCall.nop());
         if (m.loadRawLeadingWord()) {
           line5.callExp(
@@ -145,14 +153,14 @@ public class PrecompileLinesGenerator {
                   Math.min(ebsInt, 32)));
         }
         r.add(line5);
-        r.add(ImcFragment.empty(hub).callOob(new ModexpPricing(p)));
+        r.add(ImcFragment.empty(hub).callOob(new ModexpPricingOobCall(p)));
 
         if (p.ramFailure()) {
           r.add(ContextFragment.nonExecutionEmptyReturnData(hub));
         } else {
           r.add(
               ImcFragment.empty(hub)
-                  .callOob(new ModexpExtract(p))
+                  .callOob(new ModexpExtractOobCall(p))
                   .callMmu(m.extractModulus() ? MmuCall.forModExp(hub, p, 7) : MmuCall.nop()));
 
           if (m.extractModulus()) {
@@ -176,13 +184,19 @@ public class PrecompileLinesGenerator {
       }
       case EC_ADD -> {
         if (p.hubFailure()) {
-          r.add(ImcFragment.empty(hub).callOob(new EcAdd(p)));
+          r.add(ImcFragment.empty(hub).callOob(new PrecompileCommonOobCall(p)));
           r.add(ContextFragment.nonExecutionEmptyReturnData(hub));
         } else if (p.ramFailure()) {
-          r.add(ImcFragment.empty(hub).callOob(new EcAdd(p)).callMmu(MmuCall.forEcAdd(hub, p, 0)));
+          r.add(
+              ImcFragment.empty(hub)
+                  .callOob(new PrecompileCommonOobCall(p))
+                  .callMmu(MmuCall.forEcAdd(hub, p, 0)));
           r.add(ContextFragment.nonExecutionEmptyReturnData(hub));
         } else {
-          r.add(ImcFragment.empty(hub).callOob(new EcAdd(p)).callMmu(MmuCall.forEcAdd(hub, p, 0)));
+          r.add(
+              ImcFragment.empty(hub)
+                  .callOob(new PrecompileCommonOobCall(p))
+                  .callMmu(MmuCall.forEcAdd(hub, p, 0)));
           r.add(
               ImcFragment.empty(hub)
                   .callMmu(
@@ -200,13 +214,19 @@ public class PrecompileLinesGenerator {
       }
       case EC_MUL -> {
         if (p.hubFailure()) {
-          r.add(ImcFragment.empty(hub).callOob(new EcMul(p)));
+          r.add(ImcFragment.empty(hub).callOob(new PrecompileCommonOobCall(p)));
           r.add(ContextFragment.nonExecutionEmptyReturnData(hub));
         } else if (p.ramFailure()) {
-          r.add(ImcFragment.empty(hub).callOob(new EcMul(p)).callMmu(MmuCall.forEcMul(hub, p, 0)));
+          r.add(
+              ImcFragment.empty(hub)
+                  .callOob(new PrecompileCommonOobCall(p))
+                  .callMmu(MmuCall.forEcMul(hub, p, 0)));
           r.add(ContextFragment.nonExecutionEmptyReturnData(hub));
         } else {
-          r.add(ImcFragment.empty(hub).callOob(new EcMul(p)).callMmu(MmuCall.forEcMul(hub, p, 0)));
+          r.add(
+              ImcFragment.empty(hub)
+                  .callOob(new PrecompileCommonOobCall(p))
+                  .callMmu(MmuCall.forEcMul(hub, p, 0)));
           r.add(
               ImcFragment.empty(hub)
                   .callMmu(
@@ -224,18 +244,18 @@ public class PrecompileLinesGenerator {
       }
       case EC_PAIRING -> {
         if (p.hubFailure()) {
-          r.add(ImcFragment.empty(hub).callOob(new EcPairing(p)));
+          r.add(ImcFragment.empty(hub).callOob(new PrecompileCommonOobCall(p)));
           r.add(ContextFragment.nonExecutionEmptyReturnData(hub));
         } else if (p.ramFailure()) {
           r.add(
               ImcFragment.empty(hub)
-                  .callOob(new EcPairing(p))
+                  .callOob(new PrecompileCommonOobCall(p))
                   .callMmu(MmuCall.forEcPairing(hub, p, 0)));
           r.add(ContextFragment.nonExecutionEmptyReturnData(hub));
         } else {
           r.add(
               ImcFragment.empty(hub)
-                  .callOob(new EcPairing(p))
+                  .callOob(new PrecompileCommonOobCall(p))
                   .callMmu(MmuCall.forEcPairing(hub, p, 0)));
           r.add(ImcFragment.empty(hub).callMmu(MmuCall.forEcPairing(hub, p, 1)));
           r.add(
@@ -251,21 +271,21 @@ public class PrecompileLinesGenerator {
       }
       case BLAKE2F -> {
         if (p.hubFailure()) {
-          r.add(ImcFragment.empty(hub).callOob(new Blake2FPrecompile1(p)));
+          r.add(ImcFragment.empty(hub).callOob(new Blake2fCallDataSizeOobCall(p)));
         } else if (p.ramFailure()) {
           r.add(
               ImcFragment.empty(hub)
-                  .callOob(new Blake2FPrecompile1(p))
+                  .callOob(new Blake2fCallDataSizeOobCall(p))
                   .callMmu(MmuCall.forBlake2f(hub, p, 0)));
-          r.add(ImcFragment.empty(hub).callOob(new Blake2FPrecompile2(p)));
+          r.add(ImcFragment.empty(hub).callOob(new Blake2fParamsOobCall(p)));
         } else {
           r.add(
               ImcFragment.empty(hub)
-                  .callOob(new Blake2FPrecompile1(p))
+                  .callOob(new Blake2fCallDataSizeOobCall(p))
                   .callMmu(MmuCall.forBlake2f(hub, p, 0)));
           r.add(
               ImcFragment.empty(hub)
-                  .callOob(new Blake2FPrecompile2(p))
+                  .callOob(new Blake2fParamsOobCall(p))
                   .callMmu(MmuCall.forBlake2f(hub, p, 1)));
           r.add(ImcFragment.empty(hub).callMmu(MmuCall.forBlake2f(hub, p, 2)));
           r.add(ImcFragment.empty(hub).callMmu(MmuCall.forBlake2f(hub, p, 3)));

@@ -29,6 +29,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.StpCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.CreateOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.signals.AbortingConditions;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
@@ -155,7 +156,7 @@ public class CreateSection extends TraceSection
 
     final ImcFragment commonImcFragment =
         ImcFragment.empty(hub)
-            .callOob(new Create())
+            .callOob(new CreateOobCall())
             .callMxp(MxpCall.build(hub))
             .callStp(
                 new StpCall(

@@ -15,9 +15,22 @@
 
 package net.consensys.linea.zktracer.module.oob;
 
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_BLAKE_CDS;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_BLAKE_PARAMS;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_ECADD;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_ECMUL;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_ECPAIRING;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_ECRECOVER;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_IDENTITY;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_MODEXP_CDS;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_MODEXP_EXTRACT;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_MODEXP_LEAD;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_MODEXP_PRICING;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_MODEXP_XBS;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_RIPEMD;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_SHA2;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
-import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
@@ -31,10 +44,7 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import net.consensys.linea.zktracer.opcode.OpCode;
-import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
-import org.hyperledger.besu.evm.internal.Words;
 
 @RequiredArgsConstructor
 /** Implementation of a {@link Module} for out of bounds. */
@@ -55,25 +65,58 @@ public class Oob implements Module {
     return "OOB";
   }
 
-  static final List<Address> PRECOMPILES_HANDLED_BY_OOB =
+  static final List<Integer> PRECOMPILES_HANDLED_BY_OOB =
       List.of(
-          Address.ECREC,
-          Address.SHA256,
-          Address.RIPEMD160,
-          Address.ID,
-          Address.ALTBN128_ADD,
-          Address.ALTBN128_MUL,
-          Address.ALTBN128_PAIRING,
-          Address.BLAKE2B_F_COMPRESSION);
+          OOB_INST_ECRECOVER,
+          OOB_INST_SHA2,
+          OOB_INST_RIPEMD,
+          OOB_INST_IDENTITY,
+          OOB_INST_ECADD,
+          OOB_INST_ECMUL,
+          OOB_INST_ECPAIRING,
+          OOB_INST_BLAKE_CDS,
+          OOB_INST_BLAKE_PARAMS,
+          OOB_INST_MODEXP_CDS,
+          OOB_INST_MODEXP_XBS,
+          OOB_INST_MODEXP_LEAD,
+          OOB_INST_MODEXP_PRICING,
+          OOB_INST_MODEXP_EXTRACT);
 
   public void call(OobCall oobCall) {
-    oobOperation.setOobCall(oobCall);
-    // TODO: add oobCall to the constructor of oobOperation
+    // TODO: this logic can be refined. It is quick-and-dirty for now
+    boolean isPrecompile = PRECOMPILES_HANDLED_BY_OOB.contains(oobCall.oobInstruction());
+    int blake2FCallNumber =
+        switch (oobCall.oobInstruction()) {
+          case OOB_INST_BLAKE_CDS -> 1;
+          case OOB_INST_BLAKE_PARAMS -> 2;
+          default -> 0;
+        };
+    int modexpCallNumber =
+        switch (oobCall.oobInstruction()) {
+          case OOB_INST_MODEXP_CDS -> 1;
+          case OOB_INST_MODEXP_XBS -> 2;
+          case OOB_INST_MODEXP_LEAD -> 3;
+          case OOB_INST_MODEXP_PRICING -> 4;
+          case OOB_INST_MODEXP_EXTRACT -> 5;
+          default -> 0;
+        };
+    OobOperation oobOperation =
+        new OobOperation(
+            oobCall,
+            hub.messageFrame(),
+            add,
+            mod,
+            wcp,
+            hub,
+            isPrecompile,
+            blake2FCallNumber,
+            modexpCallNumber);
+    this.chunks.add(oobOperation);
   }
 
   @Override
-  public void tracePreOpcode(MessageFrame frame) { // This will be renamed to tracePreOp
-    // TODO: this implementation will die, we just use call to trigger OOB
+  public void tracePreOpcode(MessageFrame frame) { // TODO: maybe move in the hub
+    /*
     oobOperation = new OobOperation(frame, add, mod, wcp, hub, false, 0, 0);
     this.chunks.add(oobOperation);
     OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
@@ -102,6 +145,7 @@ public class Oob implements Module {
         }
       }
     }
+    */
   }
 
   final void traceChunk(final OobOperation chunk, int stamp, Trace trace) {

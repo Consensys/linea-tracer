@@ -796,7 +796,6 @@ public class Hub implements Module {
       default -> {}
     }
   }
-  
 
   private void handleCreate(Address target) {
     this.transients.conflation().deploymentInfo().deploy(target);

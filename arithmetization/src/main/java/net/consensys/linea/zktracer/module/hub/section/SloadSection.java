@@ -45,7 +45,7 @@ public class SloadSection extends TraceSection {
 
     final Address address = hub.messageFrame().getRecipientAddress();
     final int deploymentNumber = hub.currentFrame().codeDeploymentNumber();
-    final Bytes32 storageKey = (Bytes32) (hub.messageFrame().getStackItem(0));
+    final Bytes32 storageKey = Bytes32.leftPad(hub.messageFrame().getStackItem(0));
     final EWord valueOriginal =
         EWord.of(world.get(address).getOriginalStorageValue(UInt256.fromBytes(storageKey)));
     final EWord valueCurrent =

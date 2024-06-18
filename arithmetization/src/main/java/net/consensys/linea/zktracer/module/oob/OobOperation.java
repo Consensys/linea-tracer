@@ -62,6 +62,7 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.CallDataLoadOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.CallOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.CreateOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.DeploymentOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.JumpOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.JumpiOobCall;
@@ -91,9 +92,7 @@ import org.hyperledger.besu.evm.internal.Words;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class OobOperation extends ModuleOperation {
   @EqualsAndHashCode.Include private BigInteger oobInst;
-  @EqualsAndHashCode.Include private OobParameters oobParameters;
-
-  @Setter OobCall oobCall;
+  @EqualsAndHashCode.Include @Setter private OobCall oobCall;
 
   private boolean isJump;
   private boolean isJumpi;
@@ -371,42 +370,39 @@ public class OobOperation extends ModuleOperation {
         oobCall = jumpOobCall;
         setJump(jumpOobCall);
       } else if (isJumpi) {
-        JumpiOobCall jumpiOobCall =
-            new JumpiOobCall(
-                EWord.of(frame.getStackItem(0)),
-                EWord.of(frame.getStackItem(1)),
-                BigInteger.valueOf(frame.getCode().getSize()));
-        oobParameters = jumpiOobCall;
+        JumpiOobCall jumpiOobCall = (JumpiOobCall) oobCall;
+        jumpiOobCall.setPcNew(EWord.of(frame.getStackItem(0)));
+        jumpiOobCall.setJumpCondition(EWord.of(frame.getStackItem(1)));
+        jumpiOobCall.setCodeSize(BigInteger.valueOf(frame.getCode().getSize()));
+        oobCall = jumpiOobCall;
         setJumpi(jumpiOobCall);
       } else if (isRdc) {
-        ReturnDataCopyOobCall rdcOobParameters =
-            new ReturnDataCopyOobCall(
-                EWord.of(frame.getStackItem(1)),
-                EWord.of(frame.getStackItem(2)),
-                BigInteger.valueOf(frame.getReturnData().size()));
-        oobParameters = rdcOobParameters;
-        setRdc(rdcOobParameters);
+        ReturnDataCopyOobCall rdcOobCall = (ReturnDataCopyOobCall) oobCall;
+        rdcOobCall.setOffset(EWord.of(frame.getStackItem(0)));
+        rdcOobCall.setSize(EWord.of(frame.getStackItem(1)));
+        rdcOobCall.setRds(BigInteger.valueOf(frame.getReturnData().size()));
+        oobCall = rdcOobCall;
+        setRdc(rdcOobCall);
       } else if (isCdl) {
-        CallDataLoadOobCall cdlOobParameters =
-            new CallDataLoadOobCall(
-                EWord.of(frame.getStackItem(0)), BigInteger.valueOf(frame.getInputData().size()));
-        oobParameters = cdlOobParameters;
-        setCdl(cdlOobParameters);
+        CallDataLoadOobCall cdlOobCall = (CallDataLoadOobCall) oobCall;
+        cdlOobCall.setOffset(EWord.of(frame.getStackItem(0)));
+        cdlOobCall.setCds(BigInteger.valueOf(frame.getInputData().size()));
+        oobCall = cdlOobCall;
+        setCdl(cdlOobCall);
       } else if (isSstore) {
-        final SstoreOobCall sstoreOobCall =
-            new SstoreOobCall(BigInteger.valueOf(frame.getRemainingGas()));
-
-        oobParameters = sstoreOobCall;
+        final SstoreOobCall sstoreOobCall = (SstoreOobCall) oobCall;
+        sstoreOobCall.setGas(BigInteger.valueOf(frame.getRemainingGas()));
+        oobCall = sstoreOobCall;
         setSstore(sstoreOobCall);
       } else if (isDeployment) {
-        final DeploymentOobCall deploymentOobCall =
-            new DeploymentOobCall(EWord.of(frame.getStackItem(0)));
-
-        oobParameters = deploymentOobCall;
+        final DeploymentOobCall deploymentOobCall = (DeploymentOobCall) oobCall;
+        deploymentOobCall.setSize(EWord.of(frame.getStackItem(0)));
+        oobCall = deploymentOobCall;
         setDeployment(deploymentOobCall);
       } else if (isXCall) {
-        XCallOobCall xCallOobCall = new XCallOobCall(EWord.of(frame.getStackItem(2)));
-        oobParameters = xCallOobCall;
+        XCallOobCall xCallOobCall = (XCallOobCall) oobCall;
+        xCallOobCall.setValue(EWord.of(frame.getStackItem(2)));
+        oobCall = xCallOobCall;
         setXCall(xCallOobCall);
       } else if (isCall) {
         final Account callerAccount = frame.getWorldUpdater().get(frame.getRecipientAddress());
@@ -418,13 +414,12 @@ public class OobOperation extends ModuleOperation {
           value = EWord.of(frame.getStackItem(2));
           nonZeroValue = !frame.getStackItem(2).isZero();
         }
-        CallOobCall callOobParameters =
-            new CallOobCall(
-                value,
-                callerAccount.getBalance().toUnsignedBigInteger(), // balance (caller address)
-                BigInteger.valueOf(frame.getDepth()));
-        oobParameters = callOobParameters;
-        setCall(callOobParameters);
+        CallOobCall callOobCall = (CallOobCall) oobCall;
+        callOobCall.setValue(value);
+        callOobCall.setBalance(callerAccount.getBalance().toUnsignedBigInteger());
+        callOobCall.setCallStackDepth(BigInteger.valueOf(frame.getDepth()));
+        oobCall = callOobCall;
+        setCall(callOobCall);
       } else if (isCreate) {
         final Account creatorAccount = frame.getWorldUpdater().get(frame.getRecipientAddress());
         final Address deploymentAddress = getDeploymentAddress(frame);
@@ -437,16 +432,14 @@ public class OobOperation extends ModuleOperation {
           hasCode = deployedAccount.hasCode();
         }
 
-        final CreateOobParameters createOobParameters =
-            new CreateOobParameters(
-                EWord.of(frame.getStackItem(0)),
-                creatorAccount.getBalance().toUnsignedBigInteger(), // balance (creator address)
-                BigInteger.valueOf(nonce), // nonce (deployment address)
-                hasCode, // has_code (deployment address)
-                BigInteger.valueOf(frame.getDepth()));
-
-        oobParameters = createOobParameters;
-        setCreate(createOobParameters);
+        final CreateOobCall createOobCall = (CreateOobCall) oobCall;
+        createOobCall.setValue(EWord.of(frame.getStackItem(0)));
+        createOobCall.setBalance(creatorAccount.getBalance().toUnsignedBigInteger());
+        createOobCall.setNonce(BigInteger.valueOf(nonce));
+        createOobCall.setHasCode(hasCode);
+        createOobCall.setCallStackDepth(BigInteger.valueOf(frame.getDepth()));
+        oobCall = createOobCall;
+        setCreate(createOobCall);
       }
     } else if (isPrecompile()) {
       // DELEGATECALL, STATICCALL cases
@@ -784,24 +777,18 @@ public class OobOperation extends ModuleOperation {
     jumpiOobCall.setJumpMustBeAttempted(!jumpCondIsZero && validPcNew);
   }
 
-  private void setRdc(ReturnDataCopyOobCall rdcOobParameters) {
+  private void setRdc(ReturnDataCopyOobCall rdcOobCall) {
     // row i
-    final boolean rdcRoob =
-        !callToISZERO(0, rdcOobParameters.offsetHi(), rdcOobParameters.sizeHi());
+    final boolean rdcRoob = !callToISZERO(0, rdcOobCall.offsetHi(), rdcOobCall.sizeHi());
 
     // row i + 1
     if (!rdcRoob) {
-      callToADD(
-          1,
-          BigInteger.ZERO,
-          rdcOobParameters.offsetLo(),
-          BigInteger.ZERO,
-          rdcOobParameters.sizeLo());
+      callToADD(1, BigInteger.ZERO, rdcOobCall.offsetLo(), BigInteger.ZERO, rdcOobCall.sizeLo());
     } else {
       noCall(1);
     }
     final BigInteger sum =
-        addFlag[1] ? rdcOobParameters.offsetLo().add(rdcOobParameters.sizeLo()) : BigInteger.ZERO;
+        addFlag[1] ? rdcOobCall.offsetLo().add(rdcOobCall.sizeLo()) : BigInteger.ZERO;
 
     // row i + 2
     boolean rdcSoob = false;
@@ -812,27 +799,23 @@ public class OobOperation extends ModuleOperation {
               EWord.of(sum).hiBigInt(),
               EWord.of(sum).loBigInt(),
               BigInteger.ZERO,
-              rdcOobParameters.getRds());
+              rdcOobCall.getRds());
     } else {
       noCall(2);
     }
 
     // Set rdcx
-    rdcOobParameters.setRdcx(rdcRoob || rdcSoob);
+    rdcOobCall.setRdcx(rdcRoob || rdcSoob);
   }
 
-  private void setCdl(CallDataLoadOobCall cdlOobParameters) {
+  private void setCdl(CallDataLoadOobCall cdlOobCall) {
     // row i
     final boolean touchesRam =
         callToLT(
-            0,
-            cdlOobParameters.offsetHi(),
-            cdlOobParameters.offsetLo(),
-            BigInteger.ZERO,
-            cdlOobParameters.getCds());
+            0, cdlOobCall.offsetHi(), cdlOobCall.offsetLo(), BigInteger.ZERO, cdlOobCall.getCds());
 
     // Set cdlOutOfBounds
-    cdlOobParameters.setCdlOutOfBounds(!touchesRam);
+    cdlOobCall.setCdlOutOfBounds(!touchesRam);
   }
 
   private void setSstore(SstoreOobCall sstoreOobCall) {
@@ -874,64 +857,63 @@ public class OobOperation extends ModuleOperation {
     xCallOobCall.setValueIsZero(valueIsZero);
   }
 
-  private void setCall(CallOobCall callOobParameters) {
+  private void setCall(CallOobCall callOobCall) {
     // row i
     boolean insufficientBalanceAbort =
         callToLT(
             0,
             BigInteger.ZERO,
-            callOobParameters.getBalance(),
-            callOobParameters.valueHi(),
-            callOobParameters.valueLo());
+            callOobCall.getBalance(),
+            callOobCall.valueHi(),
+            callOobCall.valueLo());
 
     // row i + 1
     final boolean callStackDepthAbort =
         !callToLT(
             1,
             BigInteger.ZERO,
-            callOobParameters.getCallStackDepth(),
+            callOobCall.getCallStackDepth(),
             BigInteger.ZERO,
             BigInteger.valueOf(1024));
 
     // row i + 2
-    boolean valueIsZero = callToISZERO(2, callOobParameters.valueHi(), callOobParameters.valueLo());
+    boolean valueIsZero = callToISZERO(2, callOobCall.valueHi(), callOobCall.valueLo());
 
     // Set valueIsNonzero
-    callOobParameters.setValueIsNonzero(!valueIsZero);
+    callOobCall.setValueIsNonzero(!valueIsZero);
 
     // Set abortingCondition
-    callOobParameters.setAbortingCondition(insufficientBalanceAbort || callStackDepthAbort);
+    callOobCall.setAbortingCondition(insufficientBalanceAbort || callStackDepthAbort);
   }
 
-  private void setCreate(CreateOobParameters createOobParameters) {
+  private void setCreate(CreateOobCall createOobCall) {
     // row i
     final boolean insufficientBalanceAbort =
         callToLT(
             0,
             BigInteger.ZERO,
-            createOobParameters.getBalance(),
-            createOobParameters.valueHi(),
-            createOobParameters.valueLo());
+            createOobCall.getBalance(),
+            createOobCall.valueHi(),
+            createOobCall.valueLo());
 
     // row i + 1
     final boolean callStackDepthAbort =
         !callToLT(
             1,
             BigInteger.ZERO,
-            createOobParameters.getCallStackDepth(),
+            createOobCall.getCallStackDepth(),
             BigInteger.ZERO,
             BigInteger.valueOf(1024));
 
     // row i + 2
-    final boolean nonzeroNonce = !callToISZERO(2, BigInteger.ZERO, createOobParameters.getNonce());
+    final boolean nonzeroNonce = !callToISZERO(2, BigInteger.ZERO, createOobCall.getNonce());
 
     // Set aborting condition
-    createOobParameters.setAbortingCondition(insufficientBalanceAbort || callStackDepthAbort);
+    createOobCall.setAbortingCondition(insufficientBalanceAbort || callStackDepthAbort);
 
     // Set failureCondition
-    createOobParameters.setFailureCondition(
-        !createOobParameters.isAbortingCondition()
-            && (createOobParameters.isHasCode() || nonzeroNonce));
+    createOobCall.setFailureCondition(
+        !createOobCall.isAbortingCondition() && (createOobCall.isHasCode() || nonzeroNonce));
   }
 
   private void setPrecompile(PrecompileCommonOobCall prcOobParameters) {

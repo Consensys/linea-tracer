@@ -108,7 +108,7 @@ public class Oob implements Module {
     int nRows = chunk.nRows();
 
     for (int ct = 0; ct < nRows; ct++) {
-      trace = chunk.getOobParameters().trace(trace);
+      trace = chunk.getOobCall().trace(trace);
 
       // Note: if a value is bigger than 128, do not use Bytes.of and use Bytes.ofUnsignedType
       // instead (according to size)

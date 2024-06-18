@@ -46,20 +46,21 @@ public class Blake2fCallDataSizeOobCall implements OobCall {
   }
 
   @Override
-  public net.consensys.linea.zktracer.module.hub.Trace trace(net.consensys.linea.zktracer.module.hub.Trace trace) {
+  public net.consensys.linea.zktracer.module.hub.Trace trace(
+      net.consensys.linea.zktracer.module.hub.Trace trace) {
     return null;
   }
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-            .data1(ZERO)
-            .data2(bigIntegerToBytes(cds))
-            .data3(bigIntegerToBytes(returnAtCapacity))
-            .data4(booleanToBytes(success)) // Set after the constructor
-            .data5(ZERO)
-            .data6(Bytes.of(0))
-            .data7(Bytes.of(0))
-            .data8(booleanToBytes(returnAtCapacityNonZero)); // Set after the constructor
+        .data1(ZERO)
+        .data2(bigIntegerToBytes(cds))
+        .data3(bigIntegerToBytes(returnAtCapacity))
+        .data4(booleanToBytes(success)) // Set after the constructor
+        .data5(ZERO)
+        .data6(Bytes.of(0))
+        .data7(Bytes.of(0))
+        .data8(booleanToBytes(returnAtCapacityNonZero)); // Set after the constructor
   }
 }

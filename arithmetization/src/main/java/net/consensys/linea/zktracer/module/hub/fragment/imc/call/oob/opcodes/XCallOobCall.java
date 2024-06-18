@@ -21,26 +21,47 @@ import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 import java.math.BigInteger;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
 import net.consensys.linea.zktracer.module.oob.Trace;
+import net.consensys.linea.zktracer.types.EWord;
 
 @Getter
-@RequiredArgsConstructor
-public class SstoreOobParameters implements OobParameters {
-  private final BigInteger gas;
-  @Setter boolean sstorex;
+@Setter
+public class XCallOobCall implements OobCall {
+  EWord value;
+  boolean valueIsNonzero;
+  boolean valueIsZero;
+
+  public BigInteger valueHi() {
+    return value.hiBigInt();
+  }
+
+  public BigInteger valueLo() {
+    return value.loBigInt();
+  }
+
+  @Override
+  public int oobInstruction() {
+    return 0;
+  }
+
+  @Override
+  public net.consensys.linea.zktracer.module.hub.Trace trace(
+      net.consensys.linea.zktracer.module.hub.Trace trace) {
+    return null;
+  }
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .data1(ZERO)
-        .data2(ZERO)
+        .data1(bigIntegerToBytes(valueHi()))
+        .data2(bigIntegerToBytes(valueLo()))
         .data3(ZERO)
         .data4(ZERO)
-        .data5(bigIntegerToBytes(gas))
+        .data5(ZERO)
         .data6(ZERO)
-        .data7(booleanToBytes(sstorex))
-        .data8(ZERO);
+        .data7(booleanToBytes(valueIsNonzero))
+        .data8(booleanToBytes(valueIsZero));
   }
 }

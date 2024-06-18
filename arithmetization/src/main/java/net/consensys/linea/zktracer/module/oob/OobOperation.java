@@ -62,13 +62,12 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.CallDataLoadOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.CallOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.CreateOobParameters;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.DeploymentOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.JumpOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.JumpiOobParameters;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.ReturnDataCopyOobParameters;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.SstoreOobParameters;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.XCallOobParameters;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.JumpiOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.ReturnDataCopyOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.SstoreOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.XCallOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.Blake2fCallDataSizeOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.Blake2fParamsOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpCallDataSizeOobCall;
@@ -372,16 +371,16 @@ public class OobOperation extends ModuleOperation {
         oobCall = jumpOobCall;
         setJump(jumpOobCall);
       } else if (isJumpi) {
-        JumpiOobParameters jumpiOobParameters =
-            new JumpiOobParameters(
+        JumpiOobCall jumpiOobCall =
+            new JumpiOobCall(
                 EWord.of(frame.getStackItem(0)),
                 EWord.of(frame.getStackItem(1)),
                 BigInteger.valueOf(frame.getCode().getSize()));
-        oobParameters = jumpiOobParameters;
-        setJumpi(jumpiOobParameters);
+        oobParameters = jumpiOobCall;
+        setJumpi(jumpiOobCall);
       } else if (isRdc) {
-        ReturnDataCopyOobParameters rdcOobParameters =
-            new ReturnDataCopyOobParameters(
+        ReturnDataCopyOobCall rdcOobParameters =
+            new ReturnDataCopyOobCall(
                 EWord.of(frame.getStackItem(1)),
                 EWord.of(frame.getStackItem(2)),
                 BigInteger.valueOf(frame.getReturnData().size()));
@@ -394,11 +393,11 @@ public class OobOperation extends ModuleOperation {
         oobParameters = cdlOobParameters;
         setCdl(cdlOobParameters);
       } else if (isSstore) {
-        final SstoreOobParameters sstoreOobParameters =
-            new SstoreOobParameters(BigInteger.valueOf(frame.getRemainingGas()));
+        final SstoreOobCall sstoreOobCall =
+            new SstoreOobCall(BigInteger.valueOf(frame.getRemainingGas()));
 
-        oobParameters = sstoreOobParameters;
-        setSstore(sstoreOobParameters);
+        oobParameters = sstoreOobCall;
+        setSstore(sstoreOobCall);
       } else if (isDeployment) {
         final DeploymentOobCall deploymentOobCall =
             new DeploymentOobCall(EWord.of(frame.getStackItem(0)));
@@ -406,10 +405,9 @@ public class OobOperation extends ModuleOperation {
         oobParameters = deploymentOobCall;
         setDeployment(deploymentOobCall);
       } else if (isXCall) {
-        XCallOobParameters xCallOobParameters =
-            new XCallOobParameters(EWord.of(frame.getStackItem(2)));
-        oobParameters = xCallOobParameters;
-        setXCall(xCallOobParameters);
+        XCallOobCall xCallOobCall = new XCallOobCall(EWord.of(frame.getStackItem(2)));
+        oobParameters = xCallOobCall;
+        setXCall(xCallOobCall);
       } else if (isCall) {
         final Account callerAccount = frame.getWorldUpdater().get(frame.getRecipientAddress());
         // DELEGATECALL, STATICCALL cases
@@ -566,8 +564,7 @@ public class OobOperation extends ModuleOperation {
           oobParameters = prcModexpXbsOobCall;
           setModexpXbs(prcModexpXbsOobCall);
         } else if (isModexpLead) {
-          final ModexpLeadOobCall prcModexpLeadOobCall =
-              new ModexpLeadOobCall(bbs, cds, ebs);
+          final ModexpLeadOobCall prcModexpLeadOobCall = new ModexpLeadOobCall(bbs, cds, ebs);
 
           oobParameters = prcModexpLeadOobCall;
           setModexpLead(prcModexpLeadOobCall);
@@ -763,31 +760,31 @@ public class OobOperation extends ModuleOperation {
     jumpOobCall.setJumpMustBeAttempted(validPcNew);
   }
 
-  private void setJumpi(JumpiOobParameters jumpiOobParameters) {
+  private void setJumpi(JumpiOobCall jumpiOobCall) {
     // row i
     final boolean validPcNew =
         callToLT(
             0,
-            jumpiOobParameters.pcNewHi(),
-            jumpiOobParameters.pcNewLo(),
+            jumpiOobCall.pcNewHi(),
+            jumpiOobCall.pcNewLo(),
             BigInteger.ZERO,
-            jumpiOobParameters.getCodeSize());
+            jumpiOobCall.getCodeSize());
 
     // row i + 1
     final boolean jumpCondIsZero =
-        callToISZERO(1, jumpiOobParameters.jumpConditionHi(), jumpiOobParameters.jumpConditionLo());
+        callToISZERO(1, jumpiOobCall.jumpConditionHi(), jumpiOobCall.jumpConditionLo());
 
     // Set jumpNotAttempted
-    jumpiOobParameters.setJumpNotAttempted(jumpCondIsZero);
+    jumpiOobCall.setJumpNotAttempted(jumpCondIsZero);
 
     // Set jumpGuaranteedException
-    jumpiOobParameters.setJumpGuanranteedException(!jumpCondIsZero && !validPcNew);
+    jumpiOobCall.setJumpGuanranteedException(!jumpCondIsZero && !validPcNew);
 
     // Set jumpMustBeAttempted
-    jumpiOobParameters.setJumpMustBeAttempted(!jumpCondIsZero && validPcNew);
+    jumpiOobCall.setJumpMustBeAttempted(!jumpCondIsZero && validPcNew);
   }
 
-  private void setRdc(ReturnDataCopyOobParameters rdcOobParameters) {
+  private void setRdc(ReturnDataCopyOobCall rdcOobParameters) {
     // row i
     final boolean rdcRoob =
         !callToISZERO(0, rdcOobParameters.offsetHi(), rdcOobParameters.sizeHi());
@@ -838,7 +835,7 @@ public class OobOperation extends ModuleOperation {
     cdlOobParameters.setCdlOutOfBounds(!touchesRam);
   }
 
-  private void setSstore(SstoreOobParameters sstoreOobParameters) {
+  private void setSstore(SstoreOobCall sstoreOobCall) {
     // row i
     final boolean sufficientGas =
         callToLT(
@@ -846,10 +843,10 @@ public class OobOperation extends ModuleOperation {
             BigInteger.ZERO,
             BigInteger.valueOf(GAS_CONST_G_CALL_STIPEND),
             BigInteger.ZERO,
-            sstoreOobParameters.getGas());
+            sstoreOobCall.getGas());
 
     // Set sstorex
-    sstoreOobParameters.setSstorex(!sufficientGas);
+    sstoreOobCall.setSstorex(!sufficientGas);
   }
 
   private void setDeployment(DeploymentOobCall deploymentOobCall) {
@@ -866,16 +863,15 @@ public class OobOperation extends ModuleOperation {
     deploymentOobCall.setMaxCodeSizeException(exceedsMaxCodeSize);
   }
 
-  private void setXCall(XCallOobParameters xCallOobParameters) {
+  private void setXCall(XCallOobCall xCallOobCall) {
     // row i
-    boolean valueIsZero =
-        callToISZERO(0, xCallOobParameters.valueHi(), xCallOobParameters.valueLo());
+    boolean valueIsZero = callToISZERO(0, xCallOobCall.valueHi(), xCallOobCall.valueLo());
 
     // Set valueIsNonzero
-    xCallOobParameters.setValueIsNonzero(!valueIsZero);
+    xCallOobCall.setValueIsNonzero(!valueIsZero);
 
     // Set valueIsZero
-    xCallOobParameters.setValueIsZero(valueIsZero);
+    xCallOobCall.setValueIsZero(valueIsZero);
   }
 
   private void setCall(CallOobCall callOobParameters) {
@@ -953,8 +949,7 @@ public class OobOperation extends ModuleOperation {
     prcOobParameters.setReturnAtCapacityNonZero(!returnAtCapacityIsZero);
   }
 
-  private void setPrcEcRecoverPrcEcaddPrcEcmul(
-      PrecompileCommonOobCall prcCommonOobParameters) {
+  private void setPrcEcRecoverPrcEcaddPrcEcmul(PrecompileCommonOobCall prcCommonOobParameters) {
     precompileCost =
         BigInteger.valueOf(
             3000L * booleanToInt(isEcRecover)
@@ -980,8 +975,7 @@ public class OobOperation extends ModuleOperation {
     prcCommonOobParameters.setReturnGas(returnGas);
   }
 
-  private void setPrcSha2PrcRipemdPrcIdentity(
-      PrecompileCommonOobCall prcCommonOobParameters) {
+  private void setPrcSha2PrcRipemdPrcIdentity(PrecompileCommonOobCall prcCommonOobParameters) {
     // row i + 2
     final BigInteger ceil =
         callToDIV(
@@ -1326,9 +1320,7 @@ public class OobOperation extends ModuleOperation {
             BigInteger.ZERO,
             prcBlake2FParamsOobCall.getBlakeF(),
             BigInteger.ZERO,
-            prcBlake2FParamsOobCall
-                .getBlakeF()
-                .multiply(prcBlake2FParamsOobCall.getBlakeF()));
+            prcBlake2FParamsOobCall.getBlakeF().multiply(prcBlake2FParamsOobCall.getBlakeF()));
 
     // Set ramSuccess
     final boolean ramSuccess = sufficientGas && fIsABit;
@@ -1337,9 +1329,7 @@ public class OobOperation extends ModuleOperation {
     // Set returnGas
     final BigInteger returnGas =
         ramSuccess
-            ? (prcBlake2FParamsOobCall
-                .getCallGas()
-                .subtract(prcBlake2FParamsOobCall.getBlakeR()))
+            ? (prcBlake2FParamsOobCall.getCallGas().subtract(prcBlake2FParamsOobCall.getBlakeR()))
             : BigInteger.ZERO;
 
     prcBlake2FParamsOobCall.setReturnGas(returnGas);

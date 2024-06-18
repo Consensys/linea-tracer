@@ -47,21 +47,21 @@ public class ModexpXbsOobCall implements OobCall {
   }
 
   @Override
-  public net.consensys.linea.zktracer.module.hub.Trace trace(net.consensys.linea.zktracer.module.hub.Trace trace) {
+  public net.consensys.linea.zktracer.module.hub.Trace trace(
+      net.consensys.linea.zktracer.module.hub.Trace trace) {
     return null;
   }
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-            .data1(bigIntegerToBytes(xbsHi))
-            .data2(bigIntegerToBytes(xbsLo))
-            .data3(bigIntegerToBytes(ybsLo))
-            .data4(booleanToBytes(computeMax))
-            .data5(ZERO)
-            .data6(ZERO)
-            .data7(bigIntegerToBytes(maxXbsYbs))
-            .data8(booleanToBytes(xbsNonZero));
+        .data1(bigIntegerToBytes(xbsHi))
+        .data2(bigIntegerToBytes(xbsLo))
+        .data3(bigIntegerToBytes(ybsLo))
+        .data4(booleanToBytes(computeMax))
+        .data5(ZERO)
+        .data6(ZERO)
+        .data7(bigIntegerToBytes(maxXbsYbs))
+        .data8(booleanToBytes(xbsNonZero));
   }
-
 }

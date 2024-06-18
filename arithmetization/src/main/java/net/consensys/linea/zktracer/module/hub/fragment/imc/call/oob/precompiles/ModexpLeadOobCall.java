@@ -49,21 +49,21 @@ public class ModexpLeadOobCall implements OobCall {
   }
 
   @Override
-  public net.consensys.linea.zktracer.module.hub.Trace trace(net.consensys.linea.zktracer.module.hub.Trace trace) {
+  public net.consensys.linea.zktracer.module.hub.Trace trace(
+      net.consensys.linea.zktracer.module.hub.Trace trace) {
     return null;
   }
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-            .data1(bigIntegerToBytes(bbs))
-            .data2(bigIntegerToBytes(cds))
-            .data3(bigIntegerToBytes(ebs))
-            .data4(booleanToBytes(loadLead))
-            .data5(ZERO)
-            .data6(Bytes.of(cdsCutoff))
-            .data7(Bytes.of(ebsCutoff))
-            .data8(Bytes.of(subEbs32));
+        .data1(bigIntegerToBytes(bbs))
+        .data2(bigIntegerToBytes(cds))
+        .data3(bigIntegerToBytes(ebs))
+        .data4(booleanToBytes(loadLead))
+        .data5(ZERO)
+        .data6(Bytes.of(cdsCutoff))
+        .data7(Bytes.of(ebsCutoff))
+        .data8(Bytes.of(subEbs32));
   }
-
 }

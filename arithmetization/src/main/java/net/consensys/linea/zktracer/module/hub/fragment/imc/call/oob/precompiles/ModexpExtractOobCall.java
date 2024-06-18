@@ -48,21 +48,21 @@ public class ModexpExtractOobCall implements OobCall {
   }
 
   @Override
-  public net.consensys.linea.zktracer.module.hub.Trace trace(net.consensys.linea.zktracer.module.hub.Trace trace) {
+  public net.consensys.linea.zktracer.module.hub.Trace trace(
+      net.consensys.linea.zktracer.module.hub.Trace trace) {
     return null;
   }
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-            .data1(ZERO)
-            .data2(bigIntegerToBytes(cds))
-            .data3(bigIntegerToBytes(bbs))
-            .data4(bigIntegerToBytes(ebs))
-            .data5(bigIntegerToBytes(mbs))
-            .data6(booleanToBytes(extractBase))
-            .data7(booleanToBytes(extractExponent))
-            .data8(booleanToBytes(extractModulus));
+        .data1(ZERO)
+        .data2(bigIntegerToBytes(cds))
+        .data3(bigIntegerToBytes(bbs))
+        .data4(bigIntegerToBytes(ebs))
+        .data5(bigIntegerToBytes(mbs))
+        .data6(booleanToBytes(extractBase))
+        .data7(booleanToBytes(extractExponent))
+        .data8(booleanToBytes(extractModulus));
   }
-
 }

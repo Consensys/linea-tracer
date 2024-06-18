@@ -47,7 +47,8 @@ public class PrecompileCommonOobCall implements OobCall {
   }
 
   @Override
-  public net.consensys.linea.zktracer.module.hub.Trace trace(net.consensys.linea.zktracer.module.hub.Trace trace) {
+  public net.consensys.linea.zktracer.module.hub.Trace trace(
+      net.consensys.linea.zktracer.module.hub.Trace trace) {
     return null;
   }
 
@@ -56,14 +57,13 @@ public class PrecompileCommonOobCall implements OobCall {
     boolean extractCallData = success && !cdsIsZero;
     boolean emptyCallData = success && cdsIsZero;
     return trace
-            .data1(bigIntegerToBytes(callGas))
-            .data2(bigIntegerToBytes(cds))
-            .data3(bigIntegerToBytes(returnAtCapacity))
-            .data4(booleanToBytes(success)) // Set after the constructor
-            .data5(bigIntegerToBytes(returnGas)) // Set after the constructor
-            .data6(booleanToBytes(extractCallData)) // Derived from other parameters
-            .data7(booleanToBytes(emptyCallData)) // Derived from other parameters
-            .data8(booleanToBytes(returnAtCapacityNonZero)); // Set after the constructor
+        .data1(bigIntegerToBytes(callGas))
+        .data2(bigIntegerToBytes(cds))
+        .data3(bigIntegerToBytes(returnAtCapacity))
+        .data4(booleanToBytes(success)) // Set after the constructor
+        .data5(bigIntegerToBytes(returnGas)) // Set after the constructor
+        .data6(booleanToBytes(extractCallData)) // Derived from other parameters
+        .data7(booleanToBytes(emptyCallData)) // Derived from other parameters
+        .data8(booleanToBytes(returnAtCapacityNonZero)); // Set after the constructor
   }
-
 }

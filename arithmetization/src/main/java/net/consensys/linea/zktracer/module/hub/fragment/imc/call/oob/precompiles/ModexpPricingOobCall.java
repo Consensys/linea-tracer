@@ -49,21 +49,21 @@ public class ModexpPricingOobCall implements OobCall {
   }
 
   @Override
-  public net.consensys.linea.zktracer.module.hub.Trace trace(net.consensys.linea.zktracer.module.hub.Trace trace) {
+  public net.consensys.linea.zktracer.module.hub.Trace trace(
+      net.consensys.linea.zktracer.module.hub.Trace trace) {
     return null;
   }
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-            .data1(bigIntegerToBytes(callGas))
-            .data2(ZERO)
-            .data3(bigIntegerToBytes(returnAtCapacity))
-            .data4(booleanToBytes(success))
-            .data5(bigIntegerToBytes(returnGas))
-            .data6(bigIntegerToBytes(exponentLog))
-            .data7(Bytes.of(maxMbsBbs))
-            .data8(booleanToBytes(returnAtCapacityNonZero));
+        .data1(bigIntegerToBytes(callGas))
+        .data2(ZERO)
+        .data3(bigIntegerToBytes(returnAtCapacity))
+        .data4(booleanToBytes(success))
+        .data5(bigIntegerToBytes(returnGas))
+        .data6(bigIntegerToBytes(exponentLog))
+        .data7(Bytes.of(maxMbsBbs))
+        .data8(booleanToBytes(returnAtCapacityNonZero));
   }
-
 }

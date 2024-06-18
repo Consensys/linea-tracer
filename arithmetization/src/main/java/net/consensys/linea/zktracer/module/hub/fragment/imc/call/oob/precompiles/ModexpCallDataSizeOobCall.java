@@ -45,21 +45,21 @@ public class ModexpCallDataSizeOobCall implements OobCall {
   }
 
   @Override
-  public net.consensys.linea.zktracer.module.hub.Trace trace(net.consensys.linea.zktracer.module.hub.Trace trace) {
+  public net.consensys.linea.zktracer.module.hub.Trace trace(
+      net.consensys.linea.zktracer.module.hub.Trace trace) {
     return null;
   }
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-            .data1(ZERO)
-            .data2(bigIntegerToBytes(cds))
-            .data3(booleanToBytes(extractBbs))
-            .data4(booleanToBytes(extractEbs))
-            .data5(booleanToBytes(extractMbs))
-            .data6(ZERO)
-            .data7(ZERO)
-            .data8(ZERO);
+        .data1(ZERO)
+        .data2(bigIntegerToBytes(cds))
+        .data3(booleanToBytes(extractBbs))
+        .data4(booleanToBytes(extractEbs))
+        .data5(booleanToBytes(extractMbs))
+        .data6(ZERO)
+        .data7(ZERO)
+        .data8(ZERO);
   }
-
 }

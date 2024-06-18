@@ -21,20 +21,20 @@ import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 import java.math.BigInteger;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
 import net.consensys.linea.zktracer.module.oob.Trace;
 import net.consensys.linea.zktracer.types.EWord;
 
 @Getter
-@RequiredArgsConstructor
-public class JumpiOobParameters implements OobParameters {
-  private final EWord pcNew;
-  private final EWord jumpCondition;
-  private final BigInteger codeSize;
-  @Setter boolean jumpNotAttempted;
-  @Setter boolean jumpGuanranteedException;
-  @Setter boolean jumpMustBeAttempted;
+@Setter
+public class JumpiOobCall implements OobCall {
+  EWord pcNew;
+  EWord jumpCondition;
+  BigInteger codeSize;
+  boolean jumpNotAttempted;
+  boolean jumpGuanranteedException;
+  boolean jumpMustBeAttempted;
 
   public BigInteger pcNewHi() {
     return pcNew.hiBigInt();
@@ -53,6 +53,11 @@ public class JumpiOobParameters implements OobParameters {
   }
 
   @Override
+  public int oobInstruction() {
+    return 0;
+  }
+
+  @Override
   public Trace trace(Trace trace) {
     return trace
         .data1(bigIntegerToBytes(pcNewHi()))
@@ -63,5 +68,11 @@ public class JumpiOobParameters implements OobParameters {
         .data6(booleanToBytes(jumpNotAttempted))
         .data7(booleanToBytes(jumpGuanranteedException))
         .data8(booleanToBytes(jumpMustBeAttempted));
+  }
+
+  @Override
+  public net.consensys.linea.zktracer.module.hub.Trace trace(
+      net.consensys.linea.zktracer.module.hub.Trace trace) {
+    return null;
   }
 }

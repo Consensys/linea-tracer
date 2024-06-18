@@ -21,45 +21,37 @@ import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 import java.math.BigInteger;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
 import net.consensys.linea.zktracer.module.oob.Trace;
-import net.consensys.linea.zktracer.types.EWord;
 
 @Getter
-@RequiredArgsConstructor
-public class ReturnDataCopyOobParameters implements OobParameters {
-  private final EWord offset;
-  private final EWord size;
-  private final BigInteger rds;
-  @Setter private boolean rdcx;
+@Setter
+public class SstoreOobCall implements OobCall {
+  BigInteger gas;
+  boolean sstorex;
 
-  public BigInteger offsetHi() {
-    return offset.hiBigInt();
+  @Override
+  public int oobInstruction() {
+    return 0;
   }
 
-  public BigInteger offsetLo() {
-    return offset.loBigInt();
-  }
-
-  public BigInteger sizeHi() {
-    return size.hiBigInt();
-  }
-
-  public BigInteger sizeLo() {
-    return size.loBigInt();
+  @Override
+  public net.consensys.linea.zktracer.module.hub.Trace trace(
+      net.consensys.linea.zktracer.module.hub.Trace trace) {
+    return null;
   }
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .data1(bigIntegerToBytes(offsetHi()))
-        .data2(bigIntegerToBytes(offsetLo()))
-        .data3(bigIntegerToBytes(sizeHi()))
-        .data4(bigIntegerToBytes(sizeLo()))
-        .data5(bigIntegerToBytes(rds))
+        .data1(ZERO)
+        .data2(ZERO)
+        .data3(ZERO)
+        .data4(ZERO)
+        .data5(bigIntegerToBytes(gas))
         .data6(ZERO)
-        .data7(booleanToBytes(rdcx))
+        .data7(booleanToBytes(sstorex))
         .data8(ZERO);
   }
 }

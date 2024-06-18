@@ -47,21 +47,21 @@ public class Blake2fParamsOobCall implements OobCall {
   }
 
   @Override
-  public net.consensys.linea.zktracer.module.hub.Trace trace(net.consensys.linea.zktracer.module.hub.Trace trace) {
+  public net.consensys.linea.zktracer.module.hub.Trace trace(
+      net.consensys.linea.zktracer.module.hub.Trace trace) {
     return null;
   }
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-            .data1(bigIntegerToBytes(callGas))
-            .data2(ZERO)
-            .data3(ZERO)
-            .data4(booleanToBytes(success)) // Set after the constructor
-            .data5(bigIntegerToBytes(returnGas)) // Set after the constructor
-            .data6(bigIntegerToBytes(blakeR))
-            .data7(bigIntegerToBytes(blakeF))
-            .data8(ZERO);
+        .data1(bigIntegerToBytes(callGas))
+        .data2(ZERO)
+        .data3(ZERO)
+        .data4(booleanToBytes(success)) // Set after the constructor
+        .data5(bigIntegerToBytes(returnGas)) // Set after the constructor
+        .data6(bigIntegerToBytes(blakeR))
+        .data7(bigIntegerToBytes(blakeF))
+        .data8(ZERO);
   }
-
 }

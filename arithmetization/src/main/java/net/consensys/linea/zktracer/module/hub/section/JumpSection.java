@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.hub.section;
 
+import static net.consensys.linea.zktracer.module.hub.AccountSnapshot.fromAddress;
+
 import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -28,8 +30,6 @@ import net.consensys.linea.zktracer.module.hub.transients.DeploymentInfo;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.worldstate.WorldView;
-
-import static net.consensys.linea.zktracer.module.hub.AccountSnapshot.fromAddress;
 
 public class JumpSection extends TraceSection {
 
@@ -50,7 +50,8 @@ public class JumpSection extends TraceSection {
     // ACCOUNT fragment
     ///////////////////
     Address codeAddress = hub.messageFrame().getContractAddress();
-    AccountFragment.AccountFragmentFactory accountFragmentFactory = new AccountFragment.AccountFragmentFactory(hub.defers());
+    AccountFragment.AccountFragmentFactory accountFragmentFactory =
+        new AccountFragment.AccountFragmentFactory(hub.defers());
 
     DeploymentInfo deploymentInfo = hub.transients().conflation().deploymentInfo();
     final int deploymentNumber = deploymentInfo.number(codeAddress);
@@ -59,15 +60,12 @@ public class JumpSection extends TraceSection {
     final boolean warmth = hub.messageFrame().isAddressWarm(codeAddress);
     Preconditions.checkArgument(warmth);
 
-    AccountSnapshot codeAccount = fromAddress(
-            codeAddress,
-            warmth,
-            deploymentNumber,
-            deploymentStatus
-    );
+    AccountSnapshot codeAccount =
+        fromAddress(codeAddress, warmth, deploymentNumber, deploymentStatus);
 
-    AccountFragment accountRowCodeAccount = accountFragmentFactory.make(codeAccount, codeAccount, DomSubStampsSubFragment.standardDomSubStamps(hub, 0));
-
+    AccountFragment accountRowCodeAccount =
+        accountFragmentFactory.make(
+            codeAccount, codeAccount, DomSubStampsSubFragment.standardDomSubStamps(hub, 0));
 
     // MISCELLANEOUS fragment
     /////////////////////////
@@ -87,19 +85,16 @@ public class JumpSection extends TraceSection {
         mustAttemptJump = jumpiOobCall.getJumpMustBeAttempted();
         oobCall = jumpiOobCall;
       }
-      default -> throw new RuntimeException(hub.opCode().name() + " not part of the JUMP instruction family");
+      default -> throw new RuntimeException(
+          hub.opCode().name() + " not part of the JUMP instruction family");
     }
 
     miscRow.callOob(oobCall);
 
-
     // CONTEXT, ACCOUNT, MISCELLANEOUS
     //////////////////////////////////
-    currentSection.addFragmentsWithoutStack(hub,
-            contextRowCurrentContext,
-            accountRowCodeAccount,
-            miscRow
-    );
+    currentSection.addFragmentsWithoutStack(
+        hub, contextRowCurrentContext, accountRowCodeAccount, miscRow);
 
     // jump destination vetting
     ///////////////////////////

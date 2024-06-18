@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes;
 
+import static net.consensys.linea.zktracer.module.txndata.Trace.OOB_INST_CDL;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
@@ -22,8 +23,8 @@ import java.math.BigInteger;
 
 import lombok.Getter;
 import lombok.Setter;
+import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
-import net.consensys.linea.zktracer.module.oob.Trace;
 import net.consensys.linea.zktracer.types.EWord;
 
 @Getter
@@ -43,17 +44,12 @@ public class CallDataLoadOobCall implements OobCall {
 
   @Override
   public int oobInstruction() {
-    return 0;
+    return OOB_INST_CDL;
   }
 
   @Override
-  public net.consensys.linea.zktracer.module.hub.Trace trace(
-      net.consensys.linea.zktracer.module.hub.Trace trace) {
-    return null;
-  }
-
-  @Override
-  public Trace trace(Trace trace) {
+  public net.consensys.linea.zktracer.module.oob.Trace trace(
+      net.consensys.linea.zktracer.module.oob.Trace trace) {
     return trace
         .data1(bigIntegerToBytes(offsetHi()))
         .data2(bigIntegerToBytes(offsetLo()))
@@ -63,5 +59,20 @@ public class CallDataLoadOobCall implements OobCall {
         .data6(ZERO)
         .data7(booleanToBytes(cdlOutOfBounds))
         .data8(ZERO);
+  }
+
+  @Override
+  public Trace trace(Trace trace) {
+    return trace
+        .pMiscOobFlag(true)
+        .pMiscOobInst(oobInstruction())
+        .pMiscOobData1(bigIntegerToBytes(offsetHi()))
+        .pMiscOobData2(bigIntegerToBytes(offsetLo()))
+        .pMiscOobData3(ZERO)
+        .pMiscOobData4(ZERO)
+        .pMiscOobData5(bigIntegerToBytes(cds))
+        .pMiscOobData6(ZERO)
+        .pMiscOobData7(booleanToBytes(cdlOutOfBounds))
+        .pMiscOobData8(ZERO);
   }
 }

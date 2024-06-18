@@ -66,6 +66,7 @@ public class JumpOobCall implements OobCall {
   public Trace trace(Trace trace) {
     return trace
         .pMiscOobFlag(true)
+        .pMiscOobInst(oobInstruction())
         .pMiscOobData1(bigIntegerToBytes(pcNewHi()))
         .pMiscOobData2(bigIntegerToBytes(pcNewLo()))
         .pMiscOobData3(ZERO)
@@ -73,7 +74,6 @@ public class JumpOobCall implements OobCall {
         .pMiscOobData5(bigIntegerToBytes(codeSize))
         .pMiscOobData6(ZERO)
         .pMiscOobData7(booleanToBytes(jumpGuaranteedException))
-        .pMiscOobData8(booleanToBytes(jumpMustBeAttempted))
-        .pMiscOobInst(OOB_INST_JUMP);
+        .pMiscOobData8(booleanToBytes(jumpMustBeAttempted));
   }
 }

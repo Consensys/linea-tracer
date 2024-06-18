@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles;
 
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_MODEXP_XBS;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
@@ -23,9 +24,9 @@ import java.math.BigInteger;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
 import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
-import net.consensys.linea.zktracer.module.oob.Trace;
 
 @Getter
 @Setter
@@ -43,17 +44,12 @@ public class ModexpXbsOobCall implements OobCall {
 
   @Override
   public int oobInstruction() {
-    return 0;
+    return OOB_INST_MODEXP_XBS;
   }
 
   @Override
-  public net.consensys.linea.zktracer.module.hub.Trace trace(
-      net.consensys.linea.zktracer.module.hub.Trace trace) {
-    return null;
-  }
-
-  @Override
-  public Trace trace(Trace trace) {
+  public net.consensys.linea.zktracer.module.oob.Trace trace(
+      net.consensys.linea.zktracer.module.oob.Trace trace) {
     return trace
         .data1(bigIntegerToBytes(xbsHi))
         .data2(bigIntegerToBytes(xbsLo))
@@ -63,5 +59,20 @@ public class ModexpXbsOobCall implements OobCall {
         .data6(ZERO)
         .data7(bigIntegerToBytes(maxXbsYbs))
         .data8(booleanToBytes(xbsNonZero));
+  }
+
+  @Override
+  public Trace trace(Trace trace) {
+    return trace
+        .pMiscOobFlag(true)
+        .pMiscOobInst(oobInstruction())
+        .pMiscOobData1(bigIntegerToBytes(xbsHi))
+        .pMiscOobData2(bigIntegerToBytes(xbsLo))
+        .pMiscOobData3(bigIntegerToBytes(ybsLo))
+        .pMiscOobData4(booleanToBytes(computeMax))
+        .pMiscOobData5(ZERO)
+        .pMiscOobData6(ZERO)
+        .pMiscOobData7(bigIntegerToBytes(maxXbsYbs))
+        .pMiscOobData8(booleanToBytes(xbsNonZero));
   }
 }

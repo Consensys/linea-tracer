@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles;
 
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_BLAKE_CDS;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
@@ -23,9 +24,9 @@ import java.math.BigInteger;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
 import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
-import net.consensys.linea.zktracer.module.oob.Trace;
 import org.apache.tuweni.bytes.Bytes;
 
 @Getter
@@ -42,17 +43,12 @@ public class Blake2fCallDataSizeOobCall implements OobCall {
 
   @Override
   public int oobInstruction() {
-    return 0;
+    return OOB_INST_BLAKE_CDS;
   }
 
   @Override
-  public net.consensys.linea.zktracer.module.hub.Trace trace(
-      net.consensys.linea.zktracer.module.hub.Trace trace) {
-    return null;
-  }
-
-  @Override
-  public Trace trace(Trace trace) {
+  public net.consensys.linea.zktracer.module.oob.Trace trace(
+      net.consensys.linea.zktracer.module.oob.Trace trace) {
     return trace
         .data1(ZERO)
         .data2(bigIntegerToBytes(cds))
@@ -62,5 +58,20 @@ public class Blake2fCallDataSizeOobCall implements OobCall {
         .data6(Bytes.of(0))
         .data7(Bytes.of(0))
         .data8(booleanToBytes(returnAtCapacityNonZero)); // Set after the constructor
+  }
+
+  @Override
+  public Trace trace(Trace trace) {
+    return trace
+        .pMiscOobFlag(true)
+        .pMiscOobInst(oobInstruction())
+        .pMiscOobData1(ZERO)
+        .pMiscOobData2(bigIntegerToBytes(cds))
+        .pMiscOobData3(bigIntegerToBytes(returnAtCapacity))
+        .pMiscOobData4(booleanToBytes(success)) // Set after the constructor
+        .pMiscOobData5(ZERO)
+        .pMiscOobData6(Bytes.of(0))
+        .pMiscOobData7(Bytes.of(0))
+        .pMiscOobData8(booleanToBytes(returnAtCapacityNonZero)); // Set after the constructor
   }
 }

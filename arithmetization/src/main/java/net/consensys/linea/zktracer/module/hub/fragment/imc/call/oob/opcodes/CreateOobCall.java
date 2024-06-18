@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes;
 
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_CREATE;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
@@ -22,8 +23,8 @@ import java.math.BigInteger;
 
 import lombok.Getter;
 import lombok.Setter;
+import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
-import net.consensys.linea.zktracer.module.oob.Trace;
 import net.consensys.linea.zktracer.types.EWord;
 
 @Getter
@@ -47,17 +48,12 @@ public class CreateOobCall implements OobCall {
 
   @Override
   public int oobInstruction() {
-    return 0;
+    return OOB_INST_CREATE;
   }
 
   @Override
-  public net.consensys.linea.zktracer.module.hub.Trace trace(
-      net.consensys.linea.zktracer.module.hub.Trace trace) {
-    return null;
-  }
-
-  @Override
-  public Trace trace(Trace trace) {
+  public net.consensys.linea.zktracer.module.oob.Trace trace(
+      net.consensys.linea.zktracer.module.oob.Trace trace) {
     return trace
         .data1(bigIntegerToBytes(valueHi()))
         .data2(bigIntegerToBytes(valueLo()))
@@ -67,5 +63,20 @@ public class CreateOobCall implements OobCall {
         .data6(bigIntegerToBytes(callStackDepth))
         .data7(booleanToBytes(abortingCondition))
         .data8(booleanToBytes(failureCondition));
+  }
+
+  @Override
+  public Trace trace(Trace trace) {
+    return trace
+        .pMiscOobFlag(true)
+        .pMiscOobInst(oobInstruction())
+        .pMiscOobData1(bigIntegerToBytes(valueHi()))
+        .pMiscOobData2(bigIntegerToBytes(valueLo()))
+        .pMiscOobData3(bigIntegerToBytes(balance))
+        .pMiscOobData4(bigIntegerToBytes(nonce))
+        .pMiscOobData5(booleanToBytes(hasCode))
+        .pMiscOobData6(bigIntegerToBytes(callStackDepth))
+        .pMiscOobData7(booleanToBytes(abortingCondition))
+        .pMiscOobData8(booleanToBytes(failureCondition));
   }
 }

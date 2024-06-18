@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes;
 
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_JUMPI;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
@@ -22,8 +23,8 @@ import java.math.BigInteger;
 
 import lombok.Getter;
 import lombok.Setter;
+import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
-import net.consensys.linea.zktracer.module.oob.Trace;
 import net.consensys.linea.zktracer.types.EWord;
 
 @Getter
@@ -54,11 +55,27 @@ public class JumpiOobCall implements OobCall {
 
   @Override
   public int oobInstruction() {
-    return 0;
+    return OOB_INST_JUMPI;
   }
 
   @Override
   public Trace trace(Trace trace) {
+    return trace
+        .pMiscOobFlag(true)
+        .pMiscOobInst(oobInstruction())
+        .pMiscOobData1(bigIntegerToBytes(pcNewHi()))
+        .pMiscOobData2(bigIntegerToBytes(pcNewLo()))
+        .pMiscOobData3(bigIntegerToBytes(jumpConditionHi()))
+        .pMiscOobData4(bigIntegerToBytes(jumpConditionLo()))
+        .pMiscOobData5(bigIntegerToBytes(codeSize))
+        .pMiscOobData6(booleanToBytes(jumpNotAttempted))
+        .pMiscOobData7(booleanToBytes(jumpGuanranteedException))
+        .pMiscOobData8(booleanToBytes(jumpMustBeAttempted));
+  }
+
+  @Override
+  public net.consensys.linea.zktracer.module.oob.Trace trace(
+      net.consensys.linea.zktracer.module.oob.Trace trace) {
     return trace
         .data1(bigIntegerToBytes(pcNewHi()))
         .data2(bigIntegerToBytes(pcNewLo()))
@@ -68,11 +85,5 @@ public class JumpiOobCall implements OobCall {
         .data6(booleanToBytes(jumpNotAttempted))
         .data7(booleanToBytes(jumpGuanranteedException))
         .data8(booleanToBytes(jumpMustBeAttempted));
-  }
-
-  @Override
-  public net.consensys.linea.zktracer.module.hub.Trace trace(
-      net.consensys.linea.zktracer.module.hub.Trace trace) {
-    return null;
   }
 }

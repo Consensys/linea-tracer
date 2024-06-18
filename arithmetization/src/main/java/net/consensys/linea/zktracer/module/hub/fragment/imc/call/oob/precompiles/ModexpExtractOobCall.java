@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles;
 
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_MODEXP_EXTRACT;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
@@ -23,9 +24,9 @@ import java.math.BigInteger;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
 import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
-import net.consensys.linea.zktracer.module.oob.Trace;
 
 @Getter
 @Setter
@@ -44,17 +45,12 @@ public class ModexpExtractOobCall implements OobCall {
 
   @Override
   public int oobInstruction() {
-    return 0;
+    return OOB_INST_MODEXP_EXTRACT;
   }
 
   @Override
-  public net.consensys.linea.zktracer.module.hub.Trace trace(
-      net.consensys.linea.zktracer.module.hub.Trace trace) {
-    return null;
-  }
-
-  @Override
-  public Trace trace(Trace trace) {
+  public net.consensys.linea.zktracer.module.oob.Trace trace(
+      net.consensys.linea.zktracer.module.oob.Trace trace) {
     return trace
         .data1(ZERO)
         .data2(bigIntegerToBytes(cds))
@@ -64,5 +60,20 @@ public class ModexpExtractOobCall implements OobCall {
         .data6(booleanToBytes(extractBase))
         .data7(booleanToBytes(extractExponent))
         .data8(booleanToBytes(extractModulus));
+  }
+
+  @Override
+  public Trace trace(Trace trace) {
+    return trace
+        .pMiscOobFlag(true)
+        .pMiscOobInst(oobInstruction())
+        .pMiscOobData1(ZERO)
+        .pMiscOobData2(bigIntegerToBytes(cds))
+        .pMiscOobData3(bigIntegerToBytes(bbs))
+        .pMiscOobData4(bigIntegerToBytes(ebs))
+        .pMiscOobData5(bigIntegerToBytes(mbs))
+        .pMiscOobData6(booleanToBytes(extractBase))
+        .pMiscOobData7(booleanToBytes(extractExponent))
+        .pMiscOobData8(booleanToBytes(extractModulus));
   }
 }

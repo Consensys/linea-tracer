@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles;
 
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_MODEXP_LEAD;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
@@ -23,9 +24,9 @@ import java.math.BigInteger;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
 import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
-import net.consensys.linea.zktracer.module.oob.Trace;
 import org.apache.tuweni.bytes.Bytes;
 
 @Getter
@@ -45,17 +46,12 @@ public class ModexpLeadOobCall implements OobCall {
 
   @Override
   public int oobInstruction() {
-    return 0;
+    return OOB_INST_MODEXP_LEAD;
   }
 
   @Override
-  public net.consensys.linea.zktracer.module.hub.Trace trace(
-      net.consensys.linea.zktracer.module.hub.Trace trace) {
-    return null;
-  }
-
-  @Override
-  public Trace trace(Trace trace) {
+  public net.consensys.linea.zktracer.module.oob.Trace trace(
+      net.consensys.linea.zktracer.module.oob.Trace trace) {
     return trace
         .data1(bigIntegerToBytes(bbs))
         .data2(bigIntegerToBytes(cds))
@@ -65,5 +61,20 @@ public class ModexpLeadOobCall implements OobCall {
         .data6(Bytes.of(cdsCutoff))
         .data7(Bytes.of(ebsCutoff))
         .data8(Bytes.of(subEbs32));
+  }
+
+  @Override
+  public Trace trace(Trace trace) {
+    return trace
+        .pMiscOobFlag(true)
+        .pMiscOobInst(oobInstruction())
+        .pMiscOobData1(bigIntegerToBytes(bbs))
+        .pMiscOobData2(bigIntegerToBytes(cds))
+        .pMiscOobData3(bigIntegerToBytes(ebs))
+        .pMiscOobData4(booleanToBytes(loadLead))
+        .pMiscOobData5(ZERO)
+        .pMiscOobData6(Bytes.of(cdsCutoff))
+        .pMiscOobData7(Bytes.of(ebsCutoff))
+        .pMiscOobData8(Bytes.of(subEbs32));
   }
 }

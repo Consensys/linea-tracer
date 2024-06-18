@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes;
 
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_DEPLOYMENT;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
@@ -22,8 +23,8 @@ import java.math.BigInteger;
 
 import lombok.Getter;
 import lombok.Setter;
+import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
-import net.consensys.linea.zktracer.module.oob.Trace;
 import net.consensys.linea.zktracer.types.EWord;
 
 @Getter
@@ -42,17 +43,12 @@ public class DeploymentOobCall implements OobCall {
 
   @Override
   public int oobInstruction() {
-    return 0;
+    return OOB_INST_DEPLOYMENT;
   }
 
   @Override
-  public net.consensys.linea.zktracer.module.hub.Trace trace(
-      net.consensys.linea.zktracer.module.hub.Trace trace) {
-    return null;
-  }
-
-  @Override
-  public Trace trace(Trace trace) {
+  public net.consensys.linea.zktracer.module.oob.Trace trace(
+      net.consensys.linea.zktracer.module.oob.Trace trace) {
     return trace
         .data1(bigIntegerToBytes(sizeHi()))
         .data2(bigIntegerToBytes(sizeLo()))
@@ -62,5 +58,20 @@ public class DeploymentOobCall implements OobCall {
         .data6(ZERO)
         .data7(booleanToBytes(maxCodeSizeException))
         .data8(ZERO);
+  }
+
+  @Override
+  public Trace trace(Trace trace) {
+    return trace
+        .pMiscOobFlag(true)
+        .pMiscOobInst(oobInstruction())
+        .pMiscOobData1(bigIntegerToBytes(sizeHi()))
+        .pMiscOobData2(bigIntegerToBytes(sizeLo()))
+        .pMiscOobData3(ZERO)
+        .pMiscOobData4(ZERO)
+        .pMiscOobData5(ZERO)
+        .pMiscOobData6(ZERO)
+        .pMiscOobData7(booleanToBytes(maxCodeSizeException))
+        .pMiscOobData8(ZERO);
   }
 }

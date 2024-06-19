@@ -15,22 +15,42 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp;
 
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EXP_INST_EXPLOG;
-import static net.consensys.linea.zktracer.opcode.gas.GasConstants.G_EXP_BYTE;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EXP_INST_MODEXPLOG;
+import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
+import java.math.BigInteger;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import net.consensys.linea.zktracer.module.hub.Trace;
-import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
+import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 
-public record ExpCallForExpPricing(EWord exponent) implements TraceSubFragment {
+@Setter
+@Getter
+@RequiredArgsConstructor
+public class ModexplogExpCall implements ExpCall {
+  final PrecompileInvocation precompileInvocation;
+  EWord rawLeadingWord;
+  int cdsCutoff;
+  int ebsCutoff;
+  BigInteger leadLog;
+
+  @Override
+  public int expInstruction() {
+    return EXP_INST_MODEXPLOG;
+  }
+
   @Override
   public Trace trace(Trace trace) {
     return trace
         .pMiscExpFlag(true)
-        .pMiscExpInst(EXP_INST_EXPLOG)
-        .pMiscExpData1(exponent.hi())
-        .pMiscExpData2(exponent.lo())
-        .pMiscExpData5(Bytes.ofUnsignedShort(G_EXP_BYTE.cost() * exponent.byteLength()));
+        .pMiscExpData1(rawLeadingWord.hi())
+        .pMiscExpData2(rawLeadingWord.lo())
+        .pMiscExpData3(Bytes.ofUnsignedShort(cdsCutoff))
+        .pMiscExpData4(Bytes.ofUnsignedShort(ebsCutoff))
+        .pMiscExpData5(bigIntegerToBytes(this.leadLog));
   }
 }

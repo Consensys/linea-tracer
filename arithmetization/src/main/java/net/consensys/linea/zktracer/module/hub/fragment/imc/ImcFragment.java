@@ -27,8 +27,8 @@ import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.StpCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp.ExpCallForExpPricing;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp.ExpCallForModexpLogComputation;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp.ExpCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp.ExplogExpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.CallDataLoadOobCall;
@@ -170,7 +170,7 @@ public class ImcFragment implements TraceFragment {
     }
 
     if (hub.pch().signals().exp()) {
-      r.callExp(new ExpCallForExpPricing(EWord.of(hub.messageFrame().getStackItem(1))));
+      r.callExp(new ExplogExpCall());
     }
 
     if (hub.pch().signals().exp() && !hub.pch().exceptions().stackException()) {
@@ -250,7 +250,19 @@ public class ImcFragment implements TraceFragment {
     return this;
   }
 
-  public ImcFragment callExp(ExpCallForExpPricing f) {
+  public ImcFragment callExp(ExpCall f) {
+    if (expIsSet) {
+      throw new IllegalStateException("EXP already called");
+    } else {
+      expIsSet = true;
+    }
+    this.hub.exp().call(f);
+    this.moduleCalls.add(f);
+    return this;
+  }
+
+  /*
+  public ImcFragment callExp(ExplogExpCall f) {
     if (expIsSet) {
       throw new IllegalStateException("EXP already called");
     } else {
@@ -260,8 +272,10 @@ public class ImcFragment implements TraceFragment {
     this.moduleCalls.add(f);
     return this;
   }
+  */
 
-  public ImcFragment callExp(ExpCallForModexpLogComputation f) {
+  /*
+  public ImcFragment callExp(ModexplogExpCall f) {
     if (modExpIsSet) {
       throw new IllegalStateException("MODEXP already called");
     } else {
@@ -271,6 +285,7 @@ public class ImcFragment implements TraceFragment {
     this.moduleCalls.add(f);
     return this;
   }
+  */
 
   public ImcFragment callMxp(MxpCall f) {
     if (mxpIsSet) {

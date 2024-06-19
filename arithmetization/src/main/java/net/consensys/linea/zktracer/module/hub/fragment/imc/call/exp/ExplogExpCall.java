@@ -15,26 +15,32 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp;
 
-import net.consensys.linea.zktracer.module.exp.ModexpLogOperation;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EXP_INST_EXPLOG;
+
+import lombok.Getter;
+import lombok.Setter;
 import net.consensys.linea.zktracer.module.hub.Trace;
-import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 
-public record ExpCallForModexpLogComputation(EWord rawLeadingWord, int cdsCutoff, int ebsCutoff)
-    implements TraceSubFragment {
+@Getter
+@Setter
+public class ExplogExpCall implements ExpCall {
+  EWord exponent;
+  long dynCost;
+
+  @Override
+  public int expInstruction() {
+    return EXP_INST_EXPLOG;
+  }
 
   @Override
   public Trace trace(Trace trace) {
     return trace
         .pMiscExpFlag(true)
-        .pMiscExpData1(rawLeadingWord.hi())
-        .pMiscExpData2(rawLeadingWord.lo())
-        .pMiscExpData3(Bytes.ofUnsignedShort(cdsCutoff))
-        .pMiscExpData4(Bytes.ofUnsignedShort(ebsCutoff))
-        .pMiscExpData5(
-            Bytes.ofUnsignedShort(
-                ModexpLogOperation.LeadLogTrimLead.fromArgs(rawLeadingWord, cdsCutoff, ebsCutoff)
-                    .leadLog()));
+        .pMiscExpInst(EXP_INST_EXPLOG)
+        .pMiscExpData1(exponent.hi())
+        .pMiscExpData2(exponent.lo())
+        .pMiscExpData5(Bytes.ofUnsignedLong(this.dynCost));
   }
 }

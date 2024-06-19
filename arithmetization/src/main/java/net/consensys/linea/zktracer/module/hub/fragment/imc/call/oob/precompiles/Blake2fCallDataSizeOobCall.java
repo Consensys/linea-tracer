@@ -32,11 +32,9 @@ import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 @Setter
 @RequiredArgsConstructor
 public class Blake2fCallDataSizeOobCall implements OobCall {
-
   final PrecompileInvocation p;
   BigInteger cds;
   BigInteger returnAtCapacity;
-
   boolean hubSuccess;
   boolean returnAtCapacityNonZero;
 

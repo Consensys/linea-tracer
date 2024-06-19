@@ -23,7 +23,7 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp.ExpCallForModexpLogComputation;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp.ModexplogExpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.Blake2fCallDataSizeOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.Blake2fParamsOobCall;
@@ -146,15 +146,10 @@ public class PrecompileLinesGenerator {
                 .callOob(new ModexpLeadOobCall(p))
                 .callMmu(m.loadRawLeadingWord() ? MmuCall.forModExp(hub, p, 5) : MmuCall.nop());
         if (m.loadRawLeadingWord()) {
-          line5.callExp(
-              new ExpCallForModexpLogComputation(
-                  m.rawLeadingWord(),
-                  Math.min((int) (p.callDataSource().length() - 96 - bbsInt), 32),
-                  Math.min(ebsInt, 32)));
+          line5.callExp(new ModexplogExpCall(p));
         }
         r.add(line5);
         r.add(ImcFragment.empty(hub).callOob(new ModexpPricingOobCall(p)));
-
         if (p.ramFailure()) {
           r.add(ContextFragment.nonExecutionEmptyReturnData(hub));
         } else {

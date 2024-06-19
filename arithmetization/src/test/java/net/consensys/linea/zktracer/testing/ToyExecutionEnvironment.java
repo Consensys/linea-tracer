@@ -1,18 +1,3 @@
-/*
- * Copyright Consensys Software Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
 package net.consensys.linea.zktracer.testing;
 
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LINEA_BASE_FEE;
@@ -26,6 +11,7 @@ import java.io.Reader;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -55,7 +41,6 @@ import org.hyperledger.besu.evm.EVM;
 import org.hyperledger.besu.evm.MainnetEVMs;
 import org.hyperledger.besu.evm.gascalculator.GasCalculator;
 import org.hyperledger.besu.evm.internal.EvmConfiguration;
-import org.hyperledger.besu.evm.precompile.MainnetPrecompiledContracts;
 import org.hyperledger.besu.evm.precompile.PrecompileContractRegistry;
 import org.hyperledger.besu.evm.processor.ContractCreationProcessor;
 import org.hyperledger.besu.evm.processor.MessageCallProcessor;
@@ -80,21 +65,27 @@ public class ToyExecutionEnvironment {
   private static final Address minerAddress = Address.fromHexString("0x1234532342");
   private static final long DEFAULT_BLOCK_NUMBER = 6678980;
   private static final long DEFAULT_TIME_STAMP = 1347310;
-  private static final Hash DEFAULT_HASH =
-      Hash.fromHexStringLenient("0xdeadbeef123123666dead666dead666");
+  private static final Hash DEFAULT_HASH = Hash.fromHexStringLenient("0xdeadbeef123123666dead666dead666");
 
   private final ToyWorld toyWorld;
   private final EVM evm = MainnetEVMs.london(EvmConfiguration.DEFAULT);
-  @Builder.Default private BigInteger chainId = CHAIN_ID;
-  @Singular private final List<Transaction> transactions;
+  @Builder.Default
+  private BigInteger chainId = CHAIN_ID;
+  @Singular
+  private final List<Transaction> transactions;
 
   /**
-   * A function applied to the {@link TransactionProcessingResult} of each transaction; by default,
+   * A function applied to the {@link TransactionProcessingResult} of each
+   * transaction; by default,
    * asserts that the transaction is successful.
    */
-  @Builder.Default private final Consumer<TransactionProcessingResult> testValidator = x -> {};
+  @Builder.Default
+  private final Consumer<TransactionProcessingResult> testValidator = x -> {
+  };
 
-  @Builder.Default private final Consumer<ZkTracer> zkTracerValidator = x -> {};
+  @Builder.Default
+  private final Consumer<ZkTracer> zkTracerValidator = x -> {
+  };
 
   private static final FeeMarket feeMarket = FeeMarket.london(-1);
   private final ZkTracer tracer = new ZkTracer();
@@ -110,13 +101,32 @@ public class ToyExecutionEnvironment {
     }
   }
 
+  public void checkTracer(String inputFilePath) {
+    // Generate the output file path based on the input file path
+    Path inputPath = Paths.get(inputFilePath);
+    String outputFileName = inputPath.getFileName().toString().replace(".json.gz", ".lt");
+    Path outputPath = inputPath.getParent().resolve(outputFileName);
+
+
+      this.tracer.writeToFile(outputPath);
+      log.info("trace written to `{}`", outputPath);
+      assertThat(CORSET_VALIDATOR.validate(outputPath).isValid()).isTrue();
+
+  }
+
   public void run() {
     this.execute();
     this.checkTracer();
   }
 
+  public void run(String inputFilePath) {
+    this.execute();
+    this.checkTracer(inputFilePath);
+  }
+
   /**
-   * Given a file containing the JSON serialization of a {@link ConflationSnapshot}, loads it,
+   * Given a file containing the JSON serialization of a
+   * {@link ConflationSnapshot}, loads it,
    * updates this's state to mirror it, and replays it.
    *
    * @param replayFile the file containing the conflation
@@ -134,9 +144,24 @@ public class ToyExecutionEnvironment {
     this.checkTracer();
   }
 
+  public void replay(final Reader replayFile, String inputFilePath) {
+    Gson gson = new Gson();
+    ConflationSnapshot conflation;
+    try {
+      conflation = gson.fromJson(replayFile, ConflationSnapshot.class);
+    } catch (Exception e) {
+      log.error(e.getMessage());
+      return;
+    }
+    this.executeFrom(conflation);
+    this.checkTracer(inputFilePath);
+  }
+
   /**
-   * Loads the states and the conflation defined in a {@link ConflationSnapshot}, mimick the
-   * accounts, storage and blocks state as it was on the blockchain before the conflation played
+   * Loads the states and the conflation defined in a {@link ConflationSnapshot},
+   * mimick the
+   * accounts, storage and blocks state as it was on the blockchain before the
+   * conflation played
    * out, then execute and check it.
    *
    * @param conflation the conflation to replay
@@ -153,10 +178,9 @@ public class ToyExecutionEnvironment {
     tracer.traceStartConflation(conflation.blocks().size());
     for (BlockSnapshot blockSnapshot : conflation.blocks()) {
       BlockHeader header = blockSnapshot.header().toBlockHeader();
-      BlockBody body =
-          new BlockBody(
-              blockSnapshot.txs().stream().map(TransactionSnapshot::toTransaction).toList(),
-              new ArrayList<>());
+      BlockBody body = new BlockBody(
+          blockSnapshot.txs().stream().map(TransactionSnapshot::toTransaction).toList(),
+          new ArrayList<>());
       tracer.traceStartBlock(header, body);
 
       for (Transaction tx : body.getTransactions()) {
@@ -178,16 +202,15 @@ public class ToyExecutionEnvironment {
   }
 
   private void execute() {
-    BlockHeader header =
-        BlockHeaderBuilder.createDefault()
-            .baseFee(DEFAULT_BASE_FEE)
-            .gasLimit(LINEA_BLOCK_GAS_LIMIT)
-            .difficulty(Difficulty.of(LINEA_DIFFICULTY))
-            .number(DEFAULT_BLOCK_NUMBER)
-            .coinbase(minerAddress)
-            .timestamp(DEFAULT_TIME_STAMP)
-            .parentHash(DEFAULT_HASH)
-            .buildBlockHeader();
+    BlockHeader header = BlockHeaderBuilder.createDefault()
+        .baseFee(DEFAULT_BASE_FEE)
+        .gasLimit(LINEA_BLOCK_GAS_LIMIT)
+        .difficulty(Difficulty.of(LINEA_DIFFICULTY))
+        .number(DEFAULT_BLOCK_NUMBER)
+        .coinbase(minerAddress)
+        .timestamp(DEFAULT_TIME_STAMP)
+        .parentHash(DEFAULT_HASH)
+        .buildBlockHeader();
     BlockBody mockBlockBody = new BlockBody(transactions, new ArrayList<>());
 
     final MainnetTransactionProcessor transactionProcessor = getMainnetTransactionProcessor();
@@ -196,18 +219,17 @@ public class ToyExecutionEnvironment {
     tracer.traceStartBlock(header, mockBlockBody);
 
     for (Transaction tx : mockBlockBody.getTransactions()) {
-      final TransactionProcessingResult result =
-          transactionProcessor.processTransaction(
-              toyWorld.updater(),
-              (ProcessableBlockHeader) header,
-              tx,
-              header.getCoinbase(),
-              tracer,
-              blockId -> {
-                throw new RuntimeException("Block hash lookup not yet supported");
-              },
-              false,
-              Wei.ZERO);
+      final TransactionProcessingResult result = transactionProcessor.processTransaction(
+          toyWorld.updater(),
+          (ProcessableBlockHeader) header,
+          tx,
+          header.getCoinbase(),
+          tracer,
+          blockId -> {
+            throw new RuntimeException("Block hash lookup not yet supported");
+          },
+          false,
+          Wei.ZERO);
 
       this.testValidator.accept(result);
       this.zkTracerValidator.accept(tracer);
@@ -217,17 +239,10 @@ public class ToyExecutionEnvironment {
   }
 
   private MainnetTransactionProcessor getMainnetTransactionProcessor() {
+    final MessageCallProcessor messageCallProcessor = new MessageCallProcessor(evm, new PrecompileContractRegistry());
 
-    PrecompileContractRegistry precompileContractRegistry = new PrecompileContractRegistry();
-
-    MainnetPrecompiledContracts.populateForIstanbul(
-        precompileContractRegistry, evm.getGasCalculator());
-
-    final MessageCallProcessor messageCallProcessor =
-        new MessageCallProcessor(evm, precompileContractRegistry);
-
-    final ContractCreationProcessor contractCreationProcessor =
-        new ContractCreationProcessor(evm.getGasCalculator(), evm, false, List.of(), 0);
+    final ContractCreationProcessor contractCreationProcessor = new ContractCreationProcessor(evm.getGasCalculator(),
+        evm, false, List.of(), 0);
 
     return new MainnetTransactionProcessor(
         gasCalculator,

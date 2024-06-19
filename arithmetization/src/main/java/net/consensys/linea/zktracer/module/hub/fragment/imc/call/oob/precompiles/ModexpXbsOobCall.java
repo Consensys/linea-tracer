@@ -34,6 +34,7 @@ import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 public class ModexpXbsOobCall implements OobCall {
 
   final PrecompileInvocation p;
+  final ModexpXbsCase modexpXbsCase;
   BigInteger xbsHi;
   BigInteger xbsLo;
   BigInteger ybsLo;

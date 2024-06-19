@@ -170,24 +170,19 @@ public class OobOperation extends ModuleOperation {
   private final Wcp wcp;
   private final Hub hub;
 
-  ModexpXbsCase modexpXbsCase;
-
   public OobOperation(
       OobCall oobCall,
       final MessageFrame frame,
       final Add add,
       final Mod mod,
       final Wcp wcp,
-      final Hub hub,
-      ModexpXbsCase modexpXbsCase) {
+      final Hub hub) {
     this.oobCall = oobCall;
 
     this.add = add;
     this.mod = mod;
     this.wcp = wcp;
     this.hub = hub;
-
-    this.modexpXbsCase = modexpXbsCase;
 
     setFlagsAndWghtSumAndIncomingInstAndMaxCt();
 
@@ -307,12 +302,13 @@ public class OobOperation extends ModuleOperation {
       }
       case OOB_INST_MODEXP_XBS -> {
         isModexpXbs = true;
-        switch (modexpXbsCase) {
+
+        switch (((ModexpXbsOobCall) oobCall).getModexpXbsCase()) {
           case OOB_INST_MODEXP_BBS -> isModexpBbs = true;
           case OOB_INST_MODEXP_EBS -> isModexpEbs = true;
           case OOB_INST_MODEXP_MBS -> isModexpMbs = true;
-          case NONE -> throw new IllegalArgumentException("Invalid modexpXbsCase");
         }
+
         wghtSum = OOB_INST_MODEXP_XBS;
         maxCt = CT_MAX_MODEXP_XBS;
       }

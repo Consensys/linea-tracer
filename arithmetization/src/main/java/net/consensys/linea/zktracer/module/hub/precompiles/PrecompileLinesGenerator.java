@@ -31,6 +31,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpExtractOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpLeadOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpPricingOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpXbsCase;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpXbsOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.PrecompileCommonOobCall;
 
@@ -131,15 +132,15 @@ public class PrecompileLinesGenerator {
         r.add(ImcFragment.empty(hub).callOob(new ModexpCallDataSizeOobCall(p)));
         r.add(
             ImcFragment.empty(hub)
-                .callOob(new ModexpXbsOobCall(p))
+                .callOob(new ModexpXbsOobCall(p, ModexpXbsCase.OOB_INST_MODEXP_BBS))
                 .callMmu(m.extractBbs() ? MmuCall.forModExp(hub, p, 2) : MmuCall.nop()));
         r.add(
             ImcFragment.empty(hub)
-                .callOob(new ModexpXbsOobCall(p))
+                .callOob(new ModexpXbsOobCall(p, ModexpXbsCase.OOB_INST_MODEXP_EBS))
                 .callMmu(m.extractEbs() ? MmuCall.forModExp(hub, p, 3) : MmuCall.nop()));
         r.add(
             ImcFragment.empty(hub)
-                .callOob(new ModexpXbsOobCall(p))
+                .callOob(new ModexpXbsOobCall(p, ModexpXbsCase.OOB_INST_MODEXP_MBS))
                 .callMmu(m.extractEbs() ? MmuCall.forModExp(hub, p, 4) : MmuCall.nop()));
         final ImcFragment line5 =
             ImcFragment.empty(hub)

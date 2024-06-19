@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.oob;
 
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_MODEXP_XBS;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.math.BigInteger;
@@ -53,20 +52,8 @@ public class Oob implements Module {
     return "OOB";
   }
 
-  ModexpXbsCase modexpXbsCase = ModexpXbsCase.NONE;
-
   public void call(OobCall oobCall) {
-    // If OOB_INST_MODEXP_XBS is executed, set the modexpXbsCase
-    if (oobCall.oobInstruction() == OOB_INST_MODEXP_XBS) {
-      modexpXbsCase = modexpXbsCase.next();
-    }
-    // Add the operation to the chunks
-    this.chunks.add(
-        new OobOperation(oobCall, hub.messageFrame(), add, mod, wcp, hub, modexpXbsCase));
-    // Reset the modexpXbsCase after the operation
-    if (modexpXbsCase == ModexpXbsCase.OOB_INST_MODEXP_MBS) {
-      modexpXbsCase = ModexpXbsCase.NONE;
-    }
+    this.chunks.add(new OobOperation(oobCall, hub.messageFrame(), add, mod, wcp, hub));
   }
 
   @Override

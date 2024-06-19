@@ -117,6 +117,7 @@ public class OobOperation extends ModuleOperation {
   @EqualsAndHashCode.Include private int oobInst;
   @EqualsAndHashCode.Include @Setter private OobCall oobCall;
 
+  private int maxCt;
   private boolean isJump;
   private boolean isJumpi;
   private boolean isRdc;
@@ -169,13 +170,16 @@ public class OobOperation extends ModuleOperation {
   private final Wcp wcp;
   private final Hub hub;
 
+  ModexpXbsCase modexpXbsCase;
+
   public OobOperation(
       OobCall oobCall,
       final MessageFrame frame,
       final Add add,
       final Mod mod,
       final Wcp wcp,
-      final Hub hub) {
+      final Hub hub,
+      ModexpXbsCase modexpXbsCase) {
     this.oobCall = oobCall;
 
     this.add = add;
@@ -183,7 +187,9 @@ public class OobOperation extends ModuleOperation {
     this.wcp = wcp;
     this.hub = hub;
 
-    setFlagsAndWghtSumAndIncomingInst();
+    this.modexpXbsCase = modexpXbsCase;
+
+    setFlagsAndWghtSumAndIncomingInstAndMaxCt();
 
     // Init arrays
     int nRows = nRows();
@@ -202,99 +208,128 @@ public class OobOperation extends ModuleOperation {
     populateColumns(frame);
   }
 
-  private void setFlagsAndWghtSumAndIncomingInst() {
+  private void setFlagsAndWghtSumAndIncomingInstAndMaxCt() {
     switch (oobCall.oobInstruction()) {
       case OOB_INST_JUMP -> {
         isJump = true;
         wghtSum = OOB_INST_JUMP;
+        maxCt = CT_MAX_JUMP;
       }
       case OOB_INST_JUMPI -> {
         isJumpi = true;
         wghtSum = OOB_INST_JUMPI;
+        maxCt = CT_MAX_JUMPI;
       }
       case OOB_INST_RDC -> {
         isRdc = true;
         wghtSum = OOB_INST_RDC;
+        maxCt = CT_MAX_RDC;
       }
       case OOB_INST_CDL -> {
         isCdl = true;
         wghtSum = OOB_INST_CDL;
+        maxCt = CT_MAX_CDL;
       }
       case OOB_INST_CALL -> {
         isCall = true;
         wghtSum = OOB_INST_CALL;
+        maxCt = CT_MAX_CALL;
       }
       case OOB_INST_XCALL -> {
         isXCall = true;
         wghtSum = OOB_INST_XCALL;
+        maxCt = CT_MAX_XCALL;
       }
       case OOB_INST_CREATE -> {
         isCreate = true;
         wghtSum = OOB_INST_CREATE;
+        maxCt = CT_MAX_CREATE;
       }
       case OOB_INST_SSTORE -> {
         isSstore = true;
         wghtSum = OOB_INST_SSTORE;
+        maxCt = CT_MAX_SSTORE;
       }
       case OOB_INST_DEPLOYMENT -> {
         isDeployment = true;
         wghtSum = OOB_INST_DEPLOYMENT;
+        maxCt = CT_MAX_DEPLOYMENT;
       }
       case OOB_INST_ECRECOVER -> {
         isEcRecover = true;
         wghtSum = OOB_INST_ECRECOVER;
+        maxCt = CT_MAX_ECRECOVER;
       }
       case OOB_INST_SHA2 -> {
         isSha2 = true;
         wghtSum = OOB_INST_SHA2;
+        maxCt = CT_MAX_SHA2;
       }
       case OOB_INST_RIPEMD -> {
         isRipemd = true;
         wghtSum = OOB_INST_RIPEMD;
+        maxCt = CT_MAX_RIPEMD;
       }
       case OOB_INST_IDENTITY -> {
         isIdentity = true;
         wghtSum = OOB_INST_IDENTITY;
+        maxCt = CT_MAX_IDENTITY;
       }
       case OOB_INST_ECADD -> {
         isEcadd = true;
         wghtSum = OOB_INST_ECADD;
+        maxCt = CT_MAX_ECADD;
       }
       case OOB_INST_ECMUL -> {
         isEcmul = true;
         wghtSum = OOB_INST_ECMUL;
+        maxCt = CT_MAX_ECMUL;
       }
       case OOB_INST_ECPAIRING -> {
         isEcpairing = true;
         wghtSum = OOB_INST_ECPAIRING;
+        maxCt = CT_MAX_ECPAIRING;
       }
       case OOB_INST_BLAKE_CDS -> {
         isBlake2FCds = true;
         wghtSum = OOB_INST_BLAKE_CDS;
+        maxCt = CT_MAX_BLAKE2F_CDS;
       }
       case OOB_INST_BLAKE_PARAMS -> {
         isBlake2FParams = true;
         wghtSum = OOB_INST_BLAKE_PARAMS;
+        maxCt = CT_MAX_BLAKE2F_PARAMS;
       }
       case OOB_INST_MODEXP_CDS -> {
         isModexpCds = true;
         wghtSum = OOB_INST_MODEXP_CDS;
+        maxCt = CT_MAX_MODEXP_CDS;
       }
       case OOB_INST_MODEXP_XBS -> {
         isModexpXbs = true;
+        switch (modexpXbsCase) {
+          case OOB_INST_MODEXP_BBS -> isModexpBbs = true;
+          case OOB_INST_MODEXP_EBS -> isModexpEbs = true;
+          case OOB_INST_MODEXP_MBS -> isModexpMbs = true;
+          case NONE -> throw new IllegalArgumentException("Invalid modexpXbsCase");
+        }
         wghtSum = OOB_INST_MODEXP_XBS;
+        maxCt = CT_MAX_MODEXP_XBS;
       }
       case OOB_INST_MODEXP_LEAD -> {
         isModexpLead = true;
         wghtSum = OOB_INST_MODEXP_LEAD;
+        maxCt = CT_MAX_MODEXP_LEAD;
       }
       case OOB_INST_MODEXP_PRICING -> {
         prcModexpPricing = true;
         wghtSum = OOB_INST_MODEXP_PRICING;
+        maxCt = CT_MAX_MODEXP_PRICING;
       }
       case OOB_INST_MODEXP_EXTRACT -> {
         prcModexpExtract = true;
         wghtSum = OOB_INST_MODEXP_EXTRACT;
+        maxCt = CT_MAX_MODEXP_EXTRACT;
       }
     }
     oobInst = wghtSum;
@@ -328,34 +363,8 @@ public class OobOperation extends ModuleOperation {
     return isCommonPrecompile() || isBlakePrecompile() || isModexpPrecompile();
   }
 
-  public int maxCt() {
-    return CT_MAX_JUMP * booleanToInt(isJump)
-        + CT_MAX_JUMPI * booleanToInt(isJumpi)
-        + CT_MAX_RDC * booleanToInt(isRdc)
-        + CT_MAX_CDL * booleanToInt(isCdl)
-        + CT_MAX_XCALL * booleanToInt(isXCall)
-        + CT_MAX_CALL * booleanToInt(isCall)
-        + CT_MAX_CREATE * booleanToInt(isCreate)
-        + CT_MAX_SSTORE * booleanToInt(isSstore)
-        + CT_MAX_DEPLOYMENT * booleanToInt(isDeployment)
-        + CT_MAX_ECRECOVER * booleanToInt(isEcRecover)
-        + CT_MAX_SHA2 * booleanToInt(isSha2)
-        + CT_MAX_RIPEMD * booleanToInt(isRipemd)
-        + CT_MAX_IDENTITY * booleanToInt(isIdentity)
-        + CT_MAX_ECADD * booleanToInt(isEcadd)
-        + CT_MAX_ECMUL * booleanToInt(isEcmul)
-        + CT_MAX_ECPAIRING * booleanToInt(isEcpairing)
-        + CT_MAX_BLAKE2F_CDS * booleanToInt(isBlake2FCds)
-        + CT_MAX_BLAKE2F_PARAMS * booleanToInt(isBlake2FParams)
-        + CT_MAX_MODEXP_CDS * booleanToInt(isModexpCds)
-        + CT_MAX_MODEXP_XBS * booleanToInt(isModexpXbs)
-        + CT_MAX_MODEXP_LEAD * booleanToInt(isModexpLead)
-        + CT_MAX_MODEXP_PRICING * booleanToInt(prcModexpPricing)
-        + CT_MAX_MODEXP_EXTRACT * booleanToInt(prcModexpExtract);
-  }
-
   public int nRows() {
-    return maxCt() + 1;
+    return maxCt + 1;
   }
 
   private void populateColumns(final MessageFrame frame) {
@@ -540,13 +549,14 @@ public class OobOperation extends ModuleOperation {
             prcModexpXbsOobCall.setXbsLo(EWord.of(ebs).loBigInt());
             prcModexpXbsOobCall.setYbsLo(BigInteger.ZERO);
             prcModexpXbsOobCall.setComputeMax(false);
-          } else {
-            // isModexpMbs
+          } else if (isModexpMbs) {
             prcModexpXbsOobCall = (ModexpXbsOobCall) oobCall;
             prcModexpXbsOobCall.setXbsHi(EWord.of(mbs).hiBigInt());
             prcModexpXbsOobCall.setXbsLo(EWord.of(mbs).loBigInt());
             prcModexpXbsOobCall.setYbsLo(EWord.of(bbs).loBigInt());
             prcModexpXbsOobCall.setComputeMax(true);
+          } else {
+            throw new RuntimeException("modexpXbsCase is not set to a valid value");
           }
           setModexpXbs(prcModexpXbsOobCall);
         } else if (isModexpLead) {

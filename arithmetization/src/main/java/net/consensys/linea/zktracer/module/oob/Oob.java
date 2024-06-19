@@ -56,7 +56,7 @@ public class Oob implements Module {
   ModexpXbsCase modexpXbsCase = ModexpXbsCase.NONE;
 
   public void call(OobCall oobCall) {
-    // If the call is a modexpXbs, set the modexpXbsCase
+    // If OOB_INST_MODEXP_XBS is executed, set the modexpXbsCase
     if (oobCall.oobInstruction() == OOB_INST_MODEXP_XBS) {
       modexpXbsCase = modexpXbsCase.next();
     }

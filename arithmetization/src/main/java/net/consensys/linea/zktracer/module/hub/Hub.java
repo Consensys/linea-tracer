@@ -725,7 +725,6 @@ public class Hub implements Module {
     }
 
     this.defers.runPostExec(this, frame, operationResult);
-    this.romLex.tracePostOpcode(frame);
 
     if (this.previousOperationWasCallToEcPrecompile) {
       this.ecData.getEcDataOperation().returnData(frame.getReturnData());
@@ -736,52 +735,22 @@ public class Hub implements Module {
     }
 
     switch (this.opCodeData().instructionFamily()) {
-      case ADD -> {
-        if (this.pch.exceptions().noStackException()) {
-          this.add.tracePostOpcode(frame);
-        }
-      }
-      case MOD -> {
-        if (this.pch.exceptions().noStackException()) {
-          this.mod.tracePostOpcode(frame);
-        }
-      }
-      case MUL -> {
-        if (this.pch.exceptions().noStackException()) {
-          this.mul.tracePostOpcode(frame);
-        }
-      }
-      case EXT -> {
-        if (this.pch.exceptions().noStackException()) {
-          this.ext.tracePostOpcode(frame);
-        }
-      }
-      case WCP -> {
-        if (this.pch.exceptions().noStackException()) {
-          this.wcp.tracePostOpcode(frame);
-        }
-      }
+      case ADD -> {}
+      case MOD -> {}
+      case MUL -> {}
+      case EXT -> {}
+      case WCP -> {}
       case BIN -> {}
-      case SHF -> {
-        if (this.pch.exceptions().noStackException()) {
-          this.shf.tracePostOpcode(frame);
-        }
-      }
+      case SHF -> {}
       case KEC -> {}
       case CONTEXT -> {}
       case ACCOUNT -> {}
       case COPY -> {}
       case TRANSACTION -> {}
       case BATCH -> {
-        if (this.currentFrame().opCode() == OpCode.BLOCKHASH) {
-          this.blockhash.tracePostOpcode(frame);
-        }
+        this.blockhash.tracePostOpcode(frame);
       }
-      case STACK_RAM -> {
-        if (this.pch.exceptions().noStackException()) {
-          this.mxp.tracePostOpcode(frame);
-        }
-      }
+      case STACK_RAM -> {}
       case STORAGE -> {}
       case JUMP -> {}
       case MACHINE_STATE -> {}
@@ -789,7 +758,9 @@ public class Hub implements Module {
       case DUP -> {}
       case SWAP -> {}
       case LOG -> {}
-      case CREATE -> {}
+      case CREATE -> {
+        this.romLex.tracePostOpcode(frame);
+      }
       case CALL -> {}
       case HALT -> {}
       case INVALID -> {}

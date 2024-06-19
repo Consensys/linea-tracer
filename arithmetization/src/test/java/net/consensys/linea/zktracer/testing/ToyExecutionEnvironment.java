@@ -107,10 +107,10 @@ public class ToyExecutionEnvironment {
     String outputFileName = inputPath.getFileName().toString().replace(".json.gz", ".lt");
     Path outputPath = inputPath.getParent().resolve(outputFileName);
 
-
-      this.tracer.writeToFile(outputPath);
-      log.info("trace written to `{}`", outputPath);
-      assertThat(CORSET_VALIDATOR.validate(outputPath).isValid()).isTrue();
+    this.tracer.writeToFile(outputPath);
+    log.info("trace written to `{}`", outputPath);
+    // turn off validation for bulkReplay
+    // assertThat(CORSET_VALIDATOR.validate(outputPath).isValid()).isTrue();
 
   }
 

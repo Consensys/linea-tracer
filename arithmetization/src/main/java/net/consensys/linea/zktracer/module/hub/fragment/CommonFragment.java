@@ -130,8 +130,8 @@ public final class CommonFragment implements TraceFragment {
 
     return CommonFragment.builder()
         .hub(hub)
-        .absoluteTransactionNumber(hub.transients().tx().getAbsoluteTransactionNumber())
-        .relativeBlockNumber(hub.transients().conflation().number())
+        .absoluteTransactionNumber(hub.txStack().current().getAbsoluteTransactionNumber())
+        .relativeBlockNumber(hub.txStack().current().getRelativeBlockNumber())
         .hubProcessingPhase(hub.state.getProcessingPhase())
         .stamps(hub.state.stamps().snapshot())
         .instructionFamily(hub.opCodeData().instructionFamily())

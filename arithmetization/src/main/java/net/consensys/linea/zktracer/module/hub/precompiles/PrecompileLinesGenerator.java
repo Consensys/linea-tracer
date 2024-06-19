@@ -23,7 +23,7 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp.ModexplogExpCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp.ModexpLogExpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.Blake2fCallDataSizeOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.Blake2fParamsOobCall;
@@ -147,7 +147,7 @@ public class PrecompileLinesGenerator {
                 .callOob(new ModexpLeadOobCall(p))
                 .callMmu(m.loadRawLeadingWord() ? MmuCall.forModExp(hub, p, 5) : MmuCall.nop());
         if (m.loadRawLeadingWord()) {
-          line5.callExp(new ModexplogExpCall(p));
+          line5.callExp(new ModexpLogExpCall(p));
         }
         r.add(line5);
         r.add(ImcFragment.empty(hub).callOob(new ModexpPricingOobCall(p)));

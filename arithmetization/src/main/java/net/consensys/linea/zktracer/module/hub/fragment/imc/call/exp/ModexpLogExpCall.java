@@ -31,8 +31,8 @@ import org.apache.tuweni.bytes.Bytes;
 @Setter
 @Getter
 @RequiredArgsConstructor
-public class ModexplogExpCall implements ExpCall {
-  final PrecompileInvocation precompileInvocation;
+public class ModexpLogExpCall implements ExpCall {
+  final PrecompileInvocation p;
   EWord rawLeadingWord;
   int cdsCutoff;
   int ebsCutoff;

@@ -35,13 +35,14 @@ import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 
+import com.google.common.base.Preconditions;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp.ExpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp.ExplogExpCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp.ModexplogExpCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp.ModexpLogExpCall;
 import net.consensys.linea.zktracer.module.hub.precompiles.ModExpMetadata;
 import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
@@ -108,13 +109,15 @@ public class ExpOperation extends ModuleOperation {
       preComputeForExplog();
     } else if (expCall.expInstruction() == EXP_INST_MODEXPLOG) {
       this.isExpLog = false;
-      ModexplogExpCall modexplogExpCall = (ModexplogExpCall) expCall;
+      ModexpLogExpCall modexplogExpCall = (ModexpLogExpCall) expCall;
 
       // Extract inputs
-      PrecompileInvocation precompileInvocation = modexplogExpCall.getPrecompileInvocation();
+      PrecompileInvocation precompileInvocation = modexplogExpCall.getP();
       ModExpMetadata modexpMetadata = (ModExpMetadata) precompileInvocation.metadata();
       final int bbsInt = modexpMetadata.bbs().toUnsignedBigInteger().intValueExact();
       final int ebsInt = modexpMetadata.ebs().toUnsignedBigInteger().intValueExact();
+      Preconditions.checkArgument(
+          precompileInvocation.callDataSource().length() - 96 - bbsInt >= 0);
       this.rawLead = modexpMetadata.rawLeadingWord();
       this.cdsCutoff =
           Math.min((int) (precompileInvocation.callDataSource().length() - 96 - bbsInt), 32);

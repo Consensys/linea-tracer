@@ -253,7 +253,7 @@ public class Signals {
       }
 
       case EXP -> {
-        this.exp = true;
+        this.exp = true; // TODO: use expCall instead
         this.mul = !ex.outOfGasException();
       }
 

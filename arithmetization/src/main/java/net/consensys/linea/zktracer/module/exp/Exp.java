@@ -61,16 +61,6 @@ public class Exp implements Module {
     return Trace.headers(this.lineCount());
   }
 
-  /*
-  public void callExpLogCall(final ExplogExpCall c) {
-    this.chunks.add(ExpLogOperation.fromExpLogCall(this.wcp, c));
-  }
-
-  public void callModExpLogCall(final ModexplogExpCall c) {
-    this.chunks.add(ModexpLogOperation.fromExpLogCall(this.wcp, c));
-  }
-   */
-
   public void call(ExpCall expCall) {
     this.chunks.add(new ExpOperation(expCall, wcp, hub));
   }

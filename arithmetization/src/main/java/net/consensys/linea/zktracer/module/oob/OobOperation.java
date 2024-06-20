@@ -71,12 +71,12 @@ import static net.consensys.linea.zktracer.types.AddressUtils.getDeploymentAddre
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBoolean;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBigInteger;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToInt;
-import static net.consensys.linea.zktracer.types.Conversions.hiPart;
 import static net.consensys.linea.zktracer.types.Conversions.lowPart;
 
 import java.math.BigInteger;
 import java.math.RoundingMode;
 
+import com.google.common.base.Preconditions;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -613,6 +613,10 @@ public class OobOperation extends ModuleOperation {
   // Constraint systems for populating lookups
   private void callToADD(
       int k, BigInteger arg1Hi, BigInteger arg1Lo, BigInteger arg2Hi, BigInteger arg2Lo) {
+    Preconditions.checkArgument(arg1Hi.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg1Lo.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg2Hi.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg2Lo.toByteArray().length <= 16);
     final EWord arg1 = EWord.of(arg1Hi, arg1Lo);
     final EWord arg2 = EWord.of(arg2Hi, arg2Lo);
     addFlag[k] = true;
@@ -632,6 +636,10 @@ public class OobOperation extends ModuleOperation {
 
   private BigInteger callToDIV(
       int k, BigInteger arg1Hi, BigInteger arg1Lo, BigInteger arg2Hi, BigInteger arg2Lo) {
+    Preconditions.checkArgument(arg1Hi.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg1Lo.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg2Hi.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg2Lo.toByteArray().length <= 16);
     final EWord arg1 = EWord.of(arg1Hi, arg1Lo);
     final EWord arg2 = EWord.of(arg2Hi, arg2Lo);
     addFlag[k] = false;
@@ -648,6 +656,10 @@ public class OobOperation extends ModuleOperation {
 
   private BigInteger callToMOD(
       int k, BigInteger arg1Hi, BigInteger arg1Lo, BigInteger arg2Hi, BigInteger arg2Lo) {
+    Preconditions.checkArgument(arg1Hi.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg1Lo.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg2Hi.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg2Lo.toByteArray().length <= 16);
     final EWord arg1 = EWord.of(arg1Hi, arg1Lo);
     final EWord arg2 = EWord.of(arg2Hi, arg2Lo);
     addFlag[k] = false;
@@ -664,6 +676,10 @@ public class OobOperation extends ModuleOperation {
 
   private boolean callToLT(
       int k, BigInteger arg1Hi, BigInteger arg1Lo, BigInteger arg2Hi, BigInteger arg2Lo) {
+    Preconditions.checkArgument(arg1Hi.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg1Lo.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg2Hi.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg2Lo.toByteArray().length <= 16);
     final EWord arg1 = EWord.of(arg1Hi, arg1Lo);
     final EWord arg2 = EWord.of(arg2Hi, arg2Lo);
     addFlag[k] = false;
@@ -681,6 +697,10 @@ public class OobOperation extends ModuleOperation {
 
   private boolean callToGT(
       int k, BigInteger arg1Hi, BigInteger arg1Lo, BigInteger arg2Hi, BigInteger arg2Lo) {
+    Preconditions.checkArgument(arg1Hi.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg1Lo.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg2Hi.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg2Lo.toByteArray().length <= 16);
     final EWord arg1 = EWord.of(arg1Hi, arg1Lo);
     final EWord arg2 = EWord.of(arg2Hi, arg2Lo);
     addFlag[k] = false;
@@ -696,11 +716,9 @@ public class OobOperation extends ModuleOperation {
     return r;
   }
 
-  private boolean callToISZERO(final int k, final BigInteger arg1) {
-    return callToISZERO(k, hiPart(arg1), lowPart(arg1));
-  }
-
   private boolean callToISZERO(final int k, final BigInteger arg1Hi, final BigInteger arg1Lo) {
+    Preconditions.checkArgument(arg1Hi.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg1Lo.toByteArray().length <= 16);
     final EWord arg1 = EWord.of(arg1Hi, arg1Lo);
     addFlag[k] = false;
     modFlag[k] = false;
@@ -717,6 +735,10 @@ public class OobOperation extends ModuleOperation {
 
   private boolean callToEQ(
       int k, BigInteger arg1Hi, BigInteger arg1Lo, BigInteger arg2Hi, BigInteger arg2Lo) {
+    Preconditions.checkArgument(arg1Hi.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg1Lo.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg2Hi.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg2Lo.toByteArray().length <= 16);
     final EWord arg1 = EWord.of(arg1Hi, arg1Lo);
     final EWord arg2 = EWord.of(arg2Hi, arg2Lo);
     addFlag[k] = false;
@@ -927,10 +949,20 @@ public class OobOperation extends ModuleOperation {
 
   private void setPrcCommon(PrecompileCommonOobCall prcOobCall) {
     // row i
-    final boolean cdsIsZero = callToISZERO(0, prcOobCall.getCds());
+    final boolean cdsIsZero =
+        callToISZERO(
+            0,
+            BigInteger.ZERO,
+            lowPart(prcOobCall.getCds())); // TODO: kill it, cds should already be smaller than
 
     // row i + 1
-    final boolean returnAtCapacityIsZero = callToISZERO(1, prcOobCall.getReturnAtCapacity());
+    final boolean returnAtCapacityIsZero =
+        callToISZERO(
+            1,
+            BigInteger.ZERO,
+            lowPart(
+                prcOobCall
+                    .getReturnAtCapacity())); // TODO: kill it, r@c should already be smaller than
 
     // Set cdsIsZero
     prcOobCall.setCdsIsZero(cdsIsZero);
@@ -999,8 +1031,9 @@ public class OobOperation extends ModuleOperation {
     final BigInteger remainder =
         callToMOD(
             2,
-            hiPart(prcCommonOobCall.getCds()),
-            lowPart(prcCommonOobCall.getCds()),
+            BigInteger.ZERO,
+            lowPart(prcCommonOobCall.getCds()), // TODO: kill it, cds should already be smaller than
+            // 16 bytes
             BigInteger.ZERO,
             BigInteger.valueOf(192));
 

@@ -52,6 +52,8 @@ import org.apache.tuweni.bytes.Bytes;
 
 @Getter
 public class ExpOperation extends ModuleOperation {
+  @EqualsAndHashCode.Include ExpCall expCall;
+
   protected short pComputationPltJmp = 0;
   protected Bytes pComputationRawAcc; // (last row) paired with RawByte
   protected Bytes pComputationTrimAcc = Bytes.EMPTY; // (last row) paired with TrimByte
@@ -74,18 +76,6 @@ public class ExpOperation extends ModuleOperation {
 
   boolean isExpLog;
 
-  // EXPLOG specific
-  @EqualsAndHashCode.Include private EWord exponent;
-  private long dynCost;
-
-  // MODEXPLOG specific
-  @EqualsAndHashCode.Include private EWord rawLead;
-  @EqualsAndHashCode.Include private int cdsCutoff;
-  @EqualsAndHashCode.Include private int ebsCutoff;
-  private BigInteger leadLog;
-  private EWord trim;
-
-  ExpCall expCall;
   private Wcp wcp;
   private Hub hub;
 
@@ -98,15 +88,15 @@ public class ExpOperation extends ModuleOperation {
       ExplogExpCall explogExpCall = (ExplogExpCall) expCall;
 
       // Extract inputs
-      this.exponent = EWord.of(hub.messageFrame().getStackItem(1));
-      this.dynCost = (long) G_EXP_BYTE.cost() * exponent.byteLength();
+      EWord exponent = EWord.of(hub.messageFrame().getStackItem(1));
+      long dynCost = (long) G_EXP_BYTE.cost() * exponent.byteLength();
 
       // Fill expCall
       explogExpCall.setExponent(exponent);
       explogExpCall.setDynCost(dynCost);
 
       // Execute preprocessing
-      preComputeForExplog();
+      preComputeForExplog(explogExpCall);
     } else if (expCall.expInstruction() == EXP_INST_MODEXPLOG) {
       this.isExpLog = false;
       ModexpLogExpCall modexplogExpCall = (ModexpLogExpCall) expCall;
@@ -118,11 +108,11 @@ public class ExpOperation extends ModuleOperation {
       final int ebsInt = modexpMetadata.ebs().toUnsignedBigInteger().intValueExact();
       Preconditions.checkArgument(
           precompileInvocation.callDataSource().length() - 96 - bbsInt >= 0);
-      this.rawLead = modexpMetadata.rawLeadingWord();
-      this.cdsCutoff =
+      EWord rawLead = modexpMetadata.rawLeadingWord();
+      int cdsCutoff =
           Math.min((int) (precompileInvocation.callDataSource().length() - 96 - bbsInt), 32);
-      this.ebsCutoff = Math.min(ebsInt, 32);
-      this.leadLog =
+      int ebsCutoff = Math.min(ebsInt, 32);
+      BigInteger leadLog =
           BigInteger.valueOf(LeadLogTrimLead.fromArgs(rawLead, cdsCutoff, ebsCutoff).leadLog());
 
       // Fill expCall
@@ -132,34 +122,34 @@ public class ExpOperation extends ModuleOperation {
       modexplogExpCall.setLeadLog(leadLog);
 
       // Execute preprocessing
-      preComputeForModexpLog();
+      preComputeForModexpLog(modexplogExpCall);
     }
   }
 
-  public void preComputeForExplog() {
+  public void preComputeForExplog(ExplogExpCall explogExpCall) {
     pMacroExpInst = EXP_INST_EXPLOG;
-    pMacroData1 = this.exponent.hi();
-    pMacroData2 = this.exponent.lo();
-    pMacroData5 = Bytes.ofUnsignedLong(this.dynCost);
+    pMacroData1 = explogExpCall.getExponent().hi();
+    pMacroData2 = explogExpCall.getExponent().lo();
+    pMacroData5 = Bytes.ofUnsignedLong(explogExpCall.getDynCost());
     initArrays(MAX_CT_PRPRC_EXP_LOG + 1);
 
     // Preprocessing
     // First row
     pPreprocessingWcpFlag[0] = true;
     pPreprocessingWcpArg1Hi[0] = Bytes.EMPTY;
-    pPreprocessingWcpArg1Lo[0] = this.exponent.hi();
+    pPreprocessingWcpArg1Lo[0] = explogExpCall.getExponent().hi();
     pPreprocessingWcpArg2Hi[0] = Bytes.EMPTY;
     pPreprocessingWcpArg2Lo[0] = Bytes.EMPTY;
     pPreprocessingWcpInst[0] = UnsignedByte.of(ISZERO);
-    final boolean expnHiIsZero = wcp.callISZERO(this.exponent.hi());
+    final boolean expnHiIsZero = wcp.callISZERO(explogExpCall.getExponent().hi());
     ;
     pPreprocessingWcpRes[0] = expnHiIsZero;
 
     // Linking constraints and fill rawAcc
     pComputationPltJmp = 16;
-    pComputationRawAcc = this.exponent.hi();
+    pComputationRawAcc = explogExpCall.getExponent().hi();
     if (expnHiIsZero) {
-      pComputationRawAcc = this.exponent.lo();
+      pComputationRawAcc = explogExpCall.getExponent().lo();
     }
 
     // Fill trimAcc
@@ -172,18 +162,25 @@ public class ExpOperation extends ModuleOperation {
     }
   }
 
-  public void preComputeForModexpLog() {
+  public void preComputeForModexpLog(ModexpLogExpCall modexplogExpCall) {
     pMacroExpInst = EXP_INST_MODEXPLOG;
-    pMacroData1 = this.rawLead.hi();
-    pMacroData2 = this.rawLead.lo();
-    pMacroData3 = Bytes.of(this.cdsCutoff);
-    pMacroData4 = Bytes.of(this.ebsCutoff);
-    pMacroData5 = bigIntegerToBytes(this.leadLog);
+    pMacroData1 = modexplogExpCall.getRawLeadingWord().hi();
+    pMacroData2 = modexplogExpCall.getRawLeadingWord().lo();
+    pMacroData3 = Bytes.of(modexplogExpCall.getCdsCutoff());
+    pMacroData4 = Bytes.of(modexplogExpCall.getEbsCutoff());
+    pMacroData5 = bigIntegerToBytes(modexplogExpCall.getLeadLog());
     initArrays(MAX_CT_PRPRC_MODEXP_LOG + 1);
 
     // Preprocessing
-    final BigInteger trimLimb =
-        this.trim.hi().isZero() ? this.trim.loBigInt() : this.trim.hiBigInt();
+    EWord trim =
+        EWord.of(
+            LeadLogTrimLead.fromArgs(
+                    modexplogExpCall.getRawLeadingWord(),
+                    modexplogExpCall.getCdsCutoff(),
+                    modexplogExpCall.getEbsCutoff())
+                .trim());
+
+    final BigInteger trimLimb = trim.hi().isZero() ? trim.loBigInt() : trim.hiBigInt();
     final int trimLog = trimLimb.signum() == 0 ? 0 : log2(trimLimb, RoundingMode.FLOOR);
     final int nBitsOfLeadingByteExcludingLeadingBit = trimLog % 8;
     final int nBytesExcludingLeadingByte = trimLog / 8;
@@ -191,12 +188,14 @@ public class ExpOperation extends ModuleOperation {
     // First row
     pPreprocessingWcpFlag[0] = true;
     pPreprocessingWcpArg1Hi[0] = Bytes.of(0);
-    pPreprocessingWcpArg1Lo[0] = Bytes.of(this.cdsCutoff);
+    pPreprocessingWcpArg1Lo[0] = Bytes.of(modexplogExpCall.getCdsCutoff());
     pPreprocessingWcpArg2Hi[0] = Bytes.of(0);
-    pPreprocessingWcpArg2Lo[0] = Bytes.of(this.ebsCutoff);
+    pPreprocessingWcpArg2Lo[0] = Bytes.of(modexplogExpCall.getEbsCutoff());
     pPreprocessingWcpInst[0] = UnsignedByte.of(EVM_INST_LT);
-    pPreprocessingWcpRes[0] = wcp.callLT(Bytes.of(this.cdsCutoff), Bytes.of(this.ebsCutoff));
-    final int minCutoff = min(this.cdsCutoff, this.ebsCutoff);
+    pPreprocessingWcpRes[0] =
+        wcp.callLT(
+            Bytes.of(modexplogExpCall.getCdsCutoff()), Bytes.of(modexplogExpCall.getEbsCutoff()));
+    final int minCutoff = min(modexplogExpCall.getCdsCutoff(), modexplogExpCall.getEbsCutoff());
 
     // Second row
     pPreprocessingWcpFlag[1] = true;
@@ -211,20 +210,21 @@ public class ExpOperation extends ModuleOperation {
     // Third row
     pPreprocessingWcpFlag[2] = true;
     pPreprocessingWcpArg1Hi[2] = Bytes.of(0);
-    pPreprocessingWcpArg1Lo[2] = Bytes.of(this.ebsCutoff);
+    pPreprocessingWcpArg1Lo[2] = Bytes.of(modexplogExpCall.getEbsCutoff());
     pPreprocessingWcpArg2Hi[2] = Bytes.of(0);
     pPreprocessingWcpArg2Lo[2] = Bytes.of(LLARGEPO);
     pPreprocessingWcpInst[2] = UnsignedByte.of(EVM_INST_LT);
-    pPreprocessingWcpRes[2] = wcp.callLT(Bytes.of(this.ebsCutoff), Bytes.of(LLARGEPO));
+    pPreprocessingWcpRes[2] =
+        wcp.callLT(Bytes.of(modexplogExpCall.getEbsCutoff()), Bytes.of(LLARGEPO));
 
     // Fourth row
     pPreprocessingWcpFlag[3] = true;
     pPreprocessingWcpArg1Hi[3] = Bytes.of(0);
-    pPreprocessingWcpArg1Lo[3] = this.rawLead.hi();
+    pPreprocessingWcpArg1Lo[3] = modexplogExpCall.getRawLeadingWord().hi();
     pPreprocessingWcpArg2Hi[3] = Bytes.of(0);
     pPreprocessingWcpArg2Lo[3] = Bytes.of(0);
     pPreprocessingWcpInst[3] = UnsignedByte.of(EVM_INST_ISZERO);
-    final boolean rawHiPartIsZero = wcp.callISZERO(this.rawLead.hi());
+    final boolean rawHiPartIsZero = wcp.callISZERO(modexplogExpCall.getRawLeadingWord().hi());
     pPreprocessingWcpRes[3] = rawHiPartIsZero;
 
     // Fifth row
@@ -241,11 +241,11 @@ public class ExpOperation extends ModuleOperation {
 
     // Linking constraints and fill rawAcc
     if (minCutoffLeq16) {
-      pComputationRawAcc = leftPadTo(this.rawLead.hi(), LLARGE);
+      pComputationRawAcc = leftPadTo(modexplogExpCall.getRawLeadingWord().hi(), LLARGE);
     } else if (!rawHiPartIsZero) {
-      pComputationRawAcc = leftPadTo(this.rawLead.hi(), LLARGE);
+      pComputationRawAcc = leftPadTo(modexplogExpCall.getRawLeadingWord().hi(), LLARGE);
     } else {
-      pComputationRawAcc = leftPadTo(this.rawLead.lo(), LLARGE);
+      pComputationRawAcc = leftPadTo(modexplogExpCall.getRawLeadingWord().lo(), LLARGE);
     }
 
     // Fill pltJmp

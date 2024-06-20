@@ -77,6 +77,7 @@ import static net.consensys.linea.zktracer.types.Conversions.lowPart;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 
+import com.google.common.base.Preconditions;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -613,6 +614,10 @@ public class OobOperation extends ModuleOperation {
   // Constraint systems for populating lookups
   private void callToADD(
       int k, BigInteger arg1Hi, BigInteger arg1Lo, BigInteger arg2Hi, BigInteger arg2Lo) {
+    Preconditions.checkArgument(arg1Hi.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg1Lo.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg2Hi.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg2Lo.toByteArray().length <= 16);
     final EWord arg1 = EWord.of(arg1Hi, arg1Lo);
     final EWord arg2 = EWord.of(arg2Hi, arg2Lo);
     addFlag[k] = true;
@@ -632,6 +637,10 @@ public class OobOperation extends ModuleOperation {
 
   private BigInteger callToDIV(
       int k, BigInteger arg1Hi, BigInteger arg1Lo, BigInteger arg2Hi, BigInteger arg2Lo) {
+    Preconditions.checkArgument(arg1Hi.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg1Lo.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg2Hi.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg2Lo.toByteArray().length <= 16);
     final EWord arg1 = EWord.of(arg1Hi, arg1Lo);
     final EWord arg2 = EWord.of(arg2Hi, arg2Lo);
     addFlag[k] = false;
@@ -648,6 +657,10 @@ public class OobOperation extends ModuleOperation {
 
   private BigInteger callToMOD(
       int k, BigInteger arg1Hi, BigInteger arg1Lo, BigInteger arg2Hi, BigInteger arg2Lo) {
+    Preconditions.checkArgument(arg1Hi.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg1Lo.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg2Hi.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg2Lo.toByteArray().length <= 16);
     final EWord arg1 = EWord.of(arg1Hi, arg1Lo);
     final EWord arg2 = EWord.of(arg2Hi, arg2Lo);
     addFlag[k] = false;
@@ -664,6 +677,10 @@ public class OobOperation extends ModuleOperation {
 
   private boolean callToLT(
       int k, BigInteger arg1Hi, BigInteger arg1Lo, BigInteger arg2Hi, BigInteger arg2Lo) {
+    Preconditions.checkArgument(arg1Hi.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg1Lo.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg2Hi.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg2Lo.toByteArray().length <= 16);
     final EWord arg1 = EWord.of(arg1Hi, arg1Lo);
     final EWord arg2 = EWord.of(arg2Hi, arg2Lo);
     addFlag[k] = false;
@@ -681,6 +698,10 @@ public class OobOperation extends ModuleOperation {
 
   private boolean callToGT(
       int k, BigInteger arg1Hi, BigInteger arg1Lo, BigInteger arg2Hi, BigInteger arg2Lo) {
+    Preconditions.checkArgument(arg1Hi.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg1Lo.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg2Hi.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg2Lo.toByteArray().length <= 16);
     final EWord arg1 = EWord.of(arg1Hi, arg1Lo);
     final EWord arg2 = EWord.of(arg2Hi, arg2Lo);
     addFlag[k] = false;
@@ -697,10 +718,14 @@ public class OobOperation extends ModuleOperation {
   }
 
   private boolean callToISZERO(final int k, final BigInteger arg1) {
+    // TODO: temporary hack to manage cases where the supposed to be lo part is greater than 16
+    // bytes, kill it
     return callToISZERO(k, hiPart(arg1), lowPart(arg1));
   }
 
   private boolean callToISZERO(final int k, final BigInteger arg1Hi, final BigInteger arg1Lo) {
+    Preconditions.checkArgument(arg1Hi.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg1Lo.toByteArray().length <= 16);
     final EWord arg1 = EWord.of(arg1Hi, arg1Lo);
     addFlag[k] = false;
     modFlag[k] = false;
@@ -717,6 +742,10 @@ public class OobOperation extends ModuleOperation {
 
   private boolean callToEQ(
       int k, BigInteger arg1Hi, BigInteger arg1Lo, BigInteger arg2Hi, BigInteger arg2Lo) {
+    Preconditions.checkArgument(arg1Hi.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg1Lo.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg2Hi.toByteArray().length <= 16);
+    Preconditions.checkArgument(arg2Lo.toByteArray().length <= 16);
     final EWord arg1 = EWord.of(arg1Hi, arg1Lo);
     final EWord arg2 = EWord.of(arg2Hi, arg2Lo);
     addFlag[k] = false;

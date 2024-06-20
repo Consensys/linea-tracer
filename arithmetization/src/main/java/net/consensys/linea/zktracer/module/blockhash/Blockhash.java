@@ -28,6 +28,7 @@ import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
+import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -80,6 +81,10 @@ public class Blockhash implements Module {
 
   @Override
   public void tracePreOpcode(MessageFrame frame) {
+    final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
+    if (opCode != OpCode.BLOCKHASH) {
+      return;
+    }
     this.opcodeArgument = Bytes32.leftPad(frame.getStackItem(0));
     lowerBound =
         this.wcp.callGEQ(
@@ -99,6 +104,10 @@ public class Blockhash implements Module {
 
   @Override
   public void tracePostOpcode(MessageFrame frame) {
+    final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
+    if (opCode != OpCode.BLOCKHASH) {
+      return;
+    }
     final Bytes32 result = Bytes32.leftPad(frame.getStackItem(0));
     this.operations.add(
         new BlockhashOperation(

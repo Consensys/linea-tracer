@@ -173,10 +173,10 @@ public class Hub implements Module {
 
   /** List of all modules of the ZK-evm */
   // stateless modules
-  @Getter private final Wcp wcp = new Wcp(this);
+  @Getter private final Wcp wcp = new Wcp();
 
-  private final Module add = new Add(this);
-  private final Module bin = new Bin(this);
+  private final Module add = new Add();
+  private final Module bin = new Bin();
   private final Blockdata blockdata;
   private final Blockhash blockhash = new Blockhash(wcp);
   private final Euc euc;
@@ -664,8 +664,7 @@ public class Hub implements Module {
     }
   }
 
-  @Override
-  public void tracePreOpcode(final MessageFrame frame) {
+  public void tracePreExecution(final MessageFrame frame) {
     Preconditions.checkArgument(
         this.state().processingPhase != TX_SKIP,
         "There can't be any execution if the HUB is in the a skip phase");

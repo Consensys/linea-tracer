@@ -52,7 +52,7 @@ public class PrecompileCommonOobCall implements OobCall {
 
   @Override
   public int oobInstruction() {
-    return switch (p.precompile().address.toInt()) {
+    return switch (p.precompile().address.trimLeadingZeros().toInt()) {
       case 1 -> OOB_INST_ECRECOVER;
       case 2 -> OOB_INST_SHA2;
       case 3 -> OOB_INST_RIPEMD;

@@ -253,7 +253,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   public void tracePreExecution(final MessageFrame frame) {
     if (frame.getCode().getSize() > 0) {
       try {
-        this.hub.tracePreOpcode(frame);
+        this.hub.tracePreExecution(frame);
         this.pin55.ifPresent(x -> x.tracePreOpcode(frame));
       } catch (final Exception e) {
         this.tracingExceptions.add(e);

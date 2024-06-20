@@ -71,6 +71,8 @@ import static net.consensys.linea.zktracer.types.AddressUtils.getDeploymentAddre
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBoolean;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBigInteger;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToInt;
+import static net.consensys.linea.zktracer.types.Conversions.hiPart;
+import static net.consensys.linea.zktracer.types.Conversions.lowPart;
 
 import java.math.BigInteger;
 import java.math.RoundingMode;
@@ -460,9 +462,10 @@ public class OobOperation extends ModuleOperation {
 
       final BigInteger cds = EWord.of(frame.getStackItem(cdsIndex)).toUnsignedBigInteger();
       // Note that this check will disappear since it will be the MXP module taking care of it
-      if (cds.compareTo(EWord.of(frame.getStackItem(cdsIndex)).loBigInt()) > 0) {
-        throw new IllegalArgumentException("cds hi part is non-zero");
-      }
+      /* TODO: reenable this check */
+      // if (cds.compareTo(EWord.of(frame.getStackItem(cdsIndex)).loBigInt()) > 0) {
+      //  throw new IllegalArgumentException("cds hi part is non-zero");
+      // }
 
       final BigInteger returnAtCapacity =
           EWord.of(frame.getStackItem(returnAtCapacityIndex)).toUnsignedBigInteger();
@@ -693,7 +696,11 @@ public class OobOperation extends ModuleOperation {
     return r;
   }
 
-  private boolean callToISZERO(int k, BigInteger arg1Hi, BigInteger arg1Lo) {
+  private boolean callToISZERO(final int k, final BigInteger arg1) {
+    return callToISZERO(k, hiPart(arg1), lowPart(arg1));
+  }
+
+  private boolean callToISZERO(final int k, final BigInteger arg1Hi, final BigInteger arg1Lo) {
     final EWord arg1 = EWord.of(arg1Hi, arg1Lo);
     addFlag[k] = false;
     modFlag[k] = false;
@@ -920,11 +927,10 @@ public class OobOperation extends ModuleOperation {
 
   private void setPrcCommon(PrecompileCommonOobCall prcOobCall) {
     // row i
-    final boolean cdsIsZero = callToISZERO(0, BigInteger.ZERO, prcOobCall.getCds());
+    final boolean cdsIsZero = callToISZERO(0, prcOobCall.getCds());
 
     // row i + 1
-    final boolean returnAtCapacityIsZero =
-        callToISZERO(1, BigInteger.ZERO, prcOobCall.getReturnAtCapacity());
+    final boolean returnAtCapacityIsZero = callToISZERO(1, prcOobCall.getReturnAtCapacity());
 
     // Set cdsIsZero
     prcOobCall.setCdsIsZero(cdsIsZero);
@@ -993,8 +999,8 @@ public class OobOperation extends ModuleOperation {
     final BigInteger remainder =
         callToMOD(
             2,
-            BigInteger.ZERO,
-            prcCommonOobCall.getCds(),
+            hiPart(prcCommonOobCall.getCds()),
+            lowPart(prcCommonOobCall.getCds()),
             BigInteger.ZERO,
             BigInteger.valueOf(192));
 

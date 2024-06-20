@@ -39,11 +39,11 @@ public class JumpSection extends TraceSection {
     final JumpSection currentSection = new JumpSection(hub);
     currentSection.addFragmentsAndStack(hub); // TODO strange to not give any fragments
 
+    hub.addTraceSection(currentSection);
+
     if (hub.pch().exceptions().outOfGasException()) {
       return;
     }
-
-    hub.addTraceSection(currentSection);
 
     // CONTEXT fragment
     ///////////////////

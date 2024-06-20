@@ -71,7 +71,6 @@ import static net.consensys.linea.zktracer.types.AddressUtils.getDeploymentAddre
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBoolean;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBigInteger;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToInt;
-import static net.consensys.linea.zktracer.types.Conversions.hiPart;
 import static net.consensys.linea.zktracer.types.Conversions.lowPart;
 
 import java.math.BigInteger;
@@ -717,12 +716,6 @@ public class OobOperation extends ModuleOperation {
     return r;
   }
 
-  private boolean callToISZERO(final int k, final BigInteger arg1) {
-    // TODO: temporary hack to manage cases where the supposed to be lo part is greater than 16
-    // bytes, kill it
-    return callToISZERO(k, hiPart(arg1), lowPart(arg1));
-  }
-
   private boolean callToISZERO(final int k, final BigInteger arg1Hi, final BigInteger arg1Lo) {
     Preconditions.checkArgument(arg1Hi.toByteArray().length <= 16);
     Preconditions.checkArgument(arg1Lo.toByteArray().length <= 16);
@@ -956,10 +949,20 @@ public class OobOperation extends ModuleOperation {
 
   private void setPrcCommon(PrecompileCommonOobCall prcOobCall) {
     // row i
-    final boolean cdsIsZero = callToISZERO(0, prcOobCall.getCds());
+    final boolean cdsIsZero =
+        callToISZERO(
+            0,
+            BigInteger.ZERO,
+            lowPart(prcOobCall.getCds())); // TODO: kill it, cds should already be smaller than
 
     // row i + 1
-    final boolean returnAtCapacityIsZero = callToISZERO(1, prcOobCall.getReturnAtCapacity());
+    final boolean returnAtCapacityIsZero =
+        callToISZERO(
+            1,
+            BigInteger.ZERO,
+            lowPart(
+                prcOobCall
+                    .getReturnAtCapacity())); // TODO: kill it, r@c should already be smaller than
 
     // Set cdsIsZero
     prcOobCall.setCdsIsZero(cdsIsZero);
@@ -1028,8 +1031,9 @@ public class OobOperation extends ModuleOperation {
     final BigInteger remainder =
         callToMOD(
             2,
-            hiPart(prcCommonOobCall.getCds()),
-            lowPart(prcCommonOobCall.getCds()),
+            BigInteger.ZERO,
+            lowPart(prcCommonOobCall.getCds()), // TODO: kill it, cds should already be smaller than
+            // 16 bytes
             BigInteger.ZERO,
             BigInteger.valueOf(192));
 

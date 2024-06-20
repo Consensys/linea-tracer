@@ -25,7 +25,6 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.StackedContainer;
 import net.consensys.linea.zktracer.module.hub.State.TxState.Stamps;
 import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
-import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
 import net.consensys.linea.zktracer.types.EWord;
 import org.hyperledger.besu.datatypes.Address;
 
@@ -160,35 +159,31 @@ public class State implements StackedContainer {
     @Getter
     public static class Stamps {
       private int hub = 0;
-      private int mmu = 0;
-      private int mxp = 0;
-      private int hashInfo = 0; // TODO: doesn't exist anymore
       private int log = 0; // TODO: implement this
+      private int mxp = 0; // increments only at commit time
+      private int mmu = 0; // increments only at commit time
 
       public Stamps() {}
 
-      public Stamps(int hubStamp, int mmuStamp, int mxpStamp, int hashInfoStamp) {
+      public Stamps(final int hubStamp, final int logStamp) {
         this.hub = hubStamp;
-        this.mmu = mmuStamp;
-        this.mxp = mxpStamp;
-        this.hashInfo = hashInfoStamp;
+        this.log = logStamp;
       }
 
       public Stamps snapshot() {
-        return new Stamps(this.hub, this.mmu, this.mxp, this.hashInfo);
+        return new Stamps(this.hub, this.log);
       }
 
       public void incrementHubStamp() {
         this.hub++;
       }
 
-      void stampSubmodules(final PlatformController platformController) {
-        if (platformController.signals().mmu()) {
-          this.mmu++;
-        }
-        if (platformController.signals().mxp()) {
-          this.mxp++;
-        }
+      public void incrementMmuStamp() {
+        this.mmu++;
+      }
+
+      public void incrementMxpStamp() {
+        this.mxp++;
       }
     }
   }

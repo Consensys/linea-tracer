@@ -58,8 +58,8 @@ public abstract class TraceSection {
       Preconditions.checkNotNull(common);
       Preconditions.checkNotNull(specific);
 
+      specific.trace(trace); // Warn: need to be called before common.trace to update stamps
       common.trace(trace, stackInt, stackHeight);
-      specific.trace(trace);
 
       return trace.fillAndValidateRow();
     }

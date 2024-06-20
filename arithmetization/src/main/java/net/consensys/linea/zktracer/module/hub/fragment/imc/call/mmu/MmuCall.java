@@ -61,6 +61,7 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 import com.google.common.base.Preconditions;
 import lombok.Getter;
@@ -68,6 +69,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.State;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.opcode.CodeCopy;
@@ -109,6 +111,9 @@ public class MmuCall implements TraceSubFragment {
   protected Bytes limb1 = Bytes.EMPTY;
   protected Bytes limb2 = Bytes.EMPTY;
   protected long phase = 0;
+
+  private Optional<Bytes> sourceRamBytes = Optional.empty();
+  private Optional<Bytes> targetRamBytes = Optional.empty();
 
   protected boolean exoIsRlpTxn = false;
   protected boolean exoIsLog = false;
@@ -164,7 +169,7 @@ public class MmuCall implements TraceSubFragment {
   public static MmuCall sha3(final Hub hub) {
     return new MmuCall(MMU_INST_RAM_TO_EXO_WITH_PADDING)
         .sourceId(hub.currentFrame().contextNumber())
-        .auxId(hub.state().stamps().hashInfo())
+        .auxId(hub.state().stamps().hub())
         .sourceOffset(EWord.of(hub.messageFrame().getStackItem(0)))
         .size(Words.clampedToLong(hub.messageFrame().getStackItem(1)))
         .referenceSize(Words.clampedToLong(hub.messageFrame().getStackItem(1)))
@@ -689,7 +694,8 @@ public class MmuCall implements TraceSubFragment {
   }
 
   @Override
-  public Trace trace(Trace trace) {
+  public Trace trace(Trace trace, State.TxState.Stamps stamps) {
+    stamps.incrementMmuStamp();
     return trace
         .pMiscMmuFlag(this.enabled())
         .pMiscMmuInst(

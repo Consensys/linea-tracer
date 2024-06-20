@@ -314,7 +314,7 @@ public class ImcFragment implements TraceFragment {
     trace.peekAtMiscellaneous(true);
 
     for (TraceSubFragment subFragment : this.moduleCalls) {
-      subFragment.trace(trace);
+      subFragment.trace(trace, this.hub.state.stamps());
     }
 
     return trace;

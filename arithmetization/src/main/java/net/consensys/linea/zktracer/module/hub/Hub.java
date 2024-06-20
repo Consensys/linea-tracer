@@ -992,7 +992,6 @@ public class Hub implements Module {
     this.state.stamps().incrementHubStamp();
 
     this.pch.setup(frame);
-    this.state.stamps().stampSubmodules(this.pch());
 
     this.handleStack(frame);
     this.triggerModules(frame);

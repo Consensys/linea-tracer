@@ -19,6 +19,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.State;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
@@ -54,7 +55,8 @@ public class MxpCall implements TraceSubFragment {
     return !getMemoryExpansionException(hub) && !this.size1.isZero();
   }
 
-  public Trace trace(Trace trace) {
+  public Trace trace(Trace trace, State.TxState.Stamps stamps) {
+    stamps.incrementMxpStamp();
     return trace
         .pMiscMxpFlag(true)
         .pMiscMxpInst(this.opCodeData.mnemonic().byteValue())

@@ -119,18 +119,72 @@ public class EcDataOperation extends ModuleOperation {
   // pairing-specific
   private final int totalPairings;
 
-  // ct
-  // ctMax
-  // isSmallPoint
-  // isLargePoint
-  // TODO: the attributes may be array of boolean in some case
+  // TODO: wip
   private final boolean notOnG2 = false; // counter-constant
   private final boolean notOnG2Acc = false; // counter-constant
   private final boolean notOnG2AccMax = false; // index-constant
-  private final boolean isInfinity = false; // counter-constant
-  private final boolean overallTrivialPairing = false; // counter-constant
+  private List<Boolean> isInfinity; // counter-constant
+  private List<Boolean> overallTrivialPairing; // counter-constant
   private final boolean g2MembershipTestRequired = false; // counter-constant
   private final boolean acceptablePairOfPointForPairingCircuit = false; // pair-of-points-constant
+
+  private EcDataOperation(Wcp wcp, Ext ext, int id, int ecType, Bytes data) {
+    Preconditions.checkArgument(EC_TYPES.contains(ecType), "invalid EC type");
+
+    final int minInputLength = ecType == ECMUL ? 96 : 128;
+    if (data.size() < minInputLength) {
+      this.data = leftPadTo(data, minInputLength);
+    } else {
+      this.data = data;
+    }
+    this.ecType = ecType;
+
+    if (ecType == ECPAIRING) {
+      this.totalPairings = data.size() / 192;
+    } else {
+      this.totalPairings = 0;
+    }
+
+    this.nRowsData = getIndexMax(ecType, true) + 1;
+    this.nRowsResult = getIndexMax(ecType, false) + 1;
+    this.nRows = this.nRowsData + this.nRowsResult;
+    this.id = id;
+
+    this.limb = repeat(Bytes.EMPTY, this.nRows);
+    this.hurdle = repeat(false, this.nRows);
+
+    this.wcpFlag = repeat(false, this.nRows);
+    this.wcpArg1Hi = repeat(Bytes.EMPTY, this.nRows);
+    this.wcpArg1Lo = repeat(Bytes.EMPTY, this.nRows);
+    this.wcpArg2Hi = repeat(Bytes.EMPTY, this.nRows);
+    this.wcpArg2Lo = repeat(Bytes.EMPTY, this.nRows);
+    this.wcpRes = repeat(false, this.nRows);
+    this.wcpInst = repeat(OpCode.INVALID, this.nRows);
+
+    this.extFlag = repeat(false, this.nRows);
+    this.extArg1Hi = repeat(Bytes.EMPTY, this.nRows);
+    this.extArg1Lo = repeat(Bytes.EMPTY, this.nRows);
+    this.extArg2Hi = repeat(Bytes.EMPTY, this.nRows);
+    this.extArg2Lo = repeat(Bytes.EMPTY, this.nRows);
+    this.extArg3Hi = repeat(Bytes.EMPTY, this.nRows);
+    this.extArg3Lo = repeat(Bytes.EMPTY, this.nRows);
+    this.extResHi = repeat(Bytes.EMPTY, this.nRows);
+    this.extResLo = repeat(Bytes.EMPTY, this.nRows);
+    this.extInst = repeat(OpCode.INVALID, this.nRows);
+
+    this.wcp = wcp;
+    this.ext = ext;
+
+    this.isInfinity = repeat(false, this.nRows);
+    this.overallTrivialPairing = repeat(true, this.nRows);
+
+    switch (ecType) {
+      case ECRECOVER -> handleRecover();
+      case ECADD -> handleAdd();
+      case ECMUL -> handleMul();
+      case ECPAIRING -> handlePairing();
+    }
+  }
 
   public void setReturnData(Bytes returnData) {
     switch (ecType) {
@@ -253,82 +307,6 @@ public class EcDataOperation extends ModuleOperation {
         case ECPAIRING -> INDEX_MAX_ECPAIRING_RESULT;
         default -> throw new IllegalArgumentException("invalid EC type");
       };
-    }
-  }
-
-  private EcDataOperation(Wcp wcp, Ext ext, int id, int ecType, Bytes data) {
-    Preconditions.checkArgument(EC_TYPES.contains(ecType), "invalid EC type");
-
-    final int minInputLength = ecType == ECMUL ? 96 : 128;
-    if (data.size() < minInputLength) {
-      this.data = leftPadTo(data, minInputLength);
-    } else {
-      this.data = data;
-    }
-    this.ecType = ecType;
-
-    if (ecType == ECPAIRING) {
-      this.totalPairings = data.size() / 192;
-    } else {
-      this.totalPairings = 0;
-    }
-
-    this.nRowsData = getIndexMax(ecType, true) + 1;
-    this.nRowsResult = getIndexMax(ecType, false) + 1;
-    this.nRows = this.nRowsData + this.nRowsResult;
-    this.id = id;
-
-    /*
-    System.out.println(
-        "(ecdataoperation filling time) previousId: "
-            + Integer.toHexString(this.previousId)
-            + " -> id: "
-            + Integer.toHexString(this.id)
-            + " , byteDelta: "
-            + Arrays.stream(this.byteDelta).map(b -> Integer.toHexString(b.toInteger())).toList()
-            + " , diff: "
-            + Integer.toHexString(this.id - this.previousId - 1));
-
-    System.out.println(
-      "previousId: "
-        + this.previousId
-        + " -> id: "
-        + this.id
-        + " , byteDelta: "
-        + Arrays.stream(this.byteDelta).map(b -> b.toInteger()).toList()
-        + " , diff: " + (this.id - this.previousId - 1));
-     */
-
-    this.limb = repeat(Bytes.EMPTY, this.nRows);
-    this.hurdle = repeat(false, this.nRows);
-
-    this.wcpFlag = repeat(false, this.nRows);
-    this.wcpArg1Hi = repeat(Bytes.EMPTY, this.nRows);
-    this.wcpArg1Lo = repeat(Bytes.EMPTY, this.nRows);
-    this.wcpArg2Hi = repeat(Bytes.EMPTY, this.nRows);
-    this.wcpArg2Lo = repeat(Bytes.EMPTY, this.nRows);
-    this.wcpRes = repeat(false, this.nRows);
-    this.wcpInst = repeat(OpCode.INVALID, this.nRows);
-
-    this.extFlag = repeat(false, this.nRows);
-    this.extArg1Hi = repeat(Bytes.EMPTY, this.nRows);
-    this.extArg1Lo = repeat(Bytes.EMPTY, this.nRows);
-    this.extArg2Hi = repeat(Bytes.EMPTY, this.nRows);
-    this.extArg2Lo = repeat(Bytes.EMPTY, this.nRows);
-    this.extArg3Hi = repeat(Bytes.EMPTY, this.nRows);
-    this.extArg3Lo = repeat(Bytes.EMPTY, this.nRows);
-    this.extResHi = repeat(Bytes.EMPTY, this.nRows);
-    this.extResLo = repeat(Bytes.EMPTY, this.nRows);
-    this.extInst = repeat(OpCode.INVALID, this.nRows);
-
-    this.wcp = wcp;
-    this.ext = ext;
-
-    switch (ecType) {
-      case ECRECOVER -> handleRecover();
-      case ECADD -> handleAdd();
-      case ECMUL -> handleMul();
-      case ECPAIRING -> handlePairing();
     }
   }
 
@@ -501,6 +479,8 @@ public class EcDataOperation extends ModuleOperation {
   }
 
   void handlePairing() {
+    boolean atLeastOneLargePointIsNotInfinity = false;
+
     for (int accPairings = 1; accPairings <= this.totalPairings; accPairings++) {
       // Extract inputs
       final int bytesOffset = (accPairings - 1) * 192;
@@ -525,6 +505,19 @@ public class EcDataOperation extends ModuleOperation {
       limb.set(9 + rowsOffset, bYIm.lo());
       limb.set(10 + rowsOffset, bYRe.hi());
       limb.set(11 + rowsOffset, bYRe.lo());
+
+      boolean isSmallPointInfinity = aX.isZero() && aY.isZero();
+      boolean isLargePointInfinity =
+          bXIm.isZero() && bXRe.isZero() && bYIm.isZero() && bYRe.isZero();
+
+      // Set isInfinity and overallTrivialPairing
+      for (int i = 0; i < 12; i++) {
+        isInfinity.set(i + rowsOffset, i < 4 ? isSmallPointInfinity : isLargePointInfinity);
+        if (!isLargePointInfinity && !atLeastOneLargePointIsNotInfinity) {
+          atLeastOneLargePointIsNotInfinity = true;
+        }
+        overallTrivialPairing.set(i + rowsOffset, atLeastOneLargePointIsNotInfinity);
+      }
 
       // Compute internal checks
       // row i
@@ -607,8 +600,8 @@ public class EcDataOperation extends ModuleOperation {
           .notOnG2(false) // TODO
           .notOnG2Acc(false) // TODO
           .notOnG2AccMax(false) // TODO
-          .isInfinity(false) // TODO
-          .overallTrivialPairing(false) // TODO
+          .isInfinity(isInfinity.get(i))
+          .overallTrivialPairing(overallTrivialPairing.get(i))
           .g2MembershipTestRequired(false) // TODO
           .acceptablePairOfPointForPairingCircuit(false) // TODO
           .circuitSelectorEcrecover(circuitSelectorEcrecover)

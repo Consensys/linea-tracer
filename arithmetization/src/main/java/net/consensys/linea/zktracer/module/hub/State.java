@@ -158,8 +158,8 @@ public class State implements StackedContainer {
     @Accessors(fluent = true)
     @Getter
     public static class Stamps {
-      private int hub = 0;
-      private int log = 0; // TODO: implement this
+      private int hub = 0; // increments during execution
+      private int log = 0; // increments at RunPostTx
       private int mxp = 0; // increments only at commit time
       private int mmu = 0; // increments only at commit time
 
@@ -184,6 +184,10 @@ public class State implements StackedContainer {
 
       public void incrementMxpStamp() {
         this.mxp++;
+      }
+
+      public int incrementLogStamp() {
+        return this.log++;
       }
     }
   }

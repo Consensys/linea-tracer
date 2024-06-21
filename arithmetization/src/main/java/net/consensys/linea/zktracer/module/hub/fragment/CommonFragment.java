@@ -240,7 +240,7 @@ public final class CommonFragment implements TraceFragment {
         .exceptionAhoy(exceptions.any())
         .logInfoStamp(this.stamps.log())
         .mmuStamp(this.hub.state().stamps().mmu())
-        .mxpStamp(this.hub.state.stamps().mxp())
+        .mxpStamp(this.hub.state().stamps().mxp())
         // nontrivial dom / sub are traced in storage or account fragments only
         .contextNumber(contextNumber)
         .contextNumberNew(contextNumberNew)

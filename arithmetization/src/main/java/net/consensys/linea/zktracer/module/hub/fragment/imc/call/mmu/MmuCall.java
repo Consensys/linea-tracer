@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu;
 
+import static net.consensys.linea.zktracer.module.Util.slice;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EMPTY_RIPEMD_HI;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EMPTY_RIPEMD_LO;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EMPTY_SHA2_HI;
@@ -76,11 +77,11 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.opcode.Code
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.opcode.Create;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.opcode.Create2;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.opcode.ExtCodeCopy;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.opcode.LogX;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.opcode.ReturnFromDeployment;
 import net.consensys.linea.zktracer.module.hub.precompiles.Blake2fMetadata;
 import net.consensys.linea.zktracer.module.hub.precompiles.ModExpMetadata;
 import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
+import net.consensys.linea.zktracer.runtime.LogInvocation;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.MemorySpan;
@@ -114,6 +115,7 @@ public class MmuCall implements TraceSubFragment {
 
   private Optional<Bytes> sourceRamBytes = Optional.empty();
   private Optional<Bytes> targetRamBytes = Optional.empty();
+  private Optional<Bytes> exoBytes = Optional.empty();
 
   protected boolean exoIsRlpTxn = false;
   protected boolean exoIsLog = false;
@@ -137,8 +139,8 @@ public class MmuCall implements TraceSubFragment {
     return this.exoIsLog(true).updateExoSum(EXO_SUM_WEIGHT_LOG);
   }
 
-  public final MmuCall setRom() {
-    return this.exoIsRom(true).updateExoSum(EXO_SUM_WEIGHT_ROM);
+  public final void setRom() {
+    this.exoIsRom(true).updateExoSum(EXO_SUM_WEIGHT_ROM);
   }
 
   public final MmuCall setKec() {
@@ -224,6 +226,23 @@ public class MmuCall implements TraceSubFragment {
         : hub.callStack().parent().contextNumber();
   }
 
+  public static MmuCall LogX(final Hub hub, final LogInvocation logInvocation) {
+    return new MmuCall(MMU_INST_RAM_TO_EXO_WITH_PADDING)
+        .sourceId(logInvocation.callFrame.contextNumber())
+        .targetId(hub.state.stamps().incrementLogStamp())
+        .sourceOffset(logInvocation.offset)
+        .size(logInvocation.size)
+        .referenceSize(logInvocation.size)
+        .sourceRamBytes(Optional.of(logInvocation.ramSourceBytes))
+        .exoBytes(
+            Optional.of(
+                slice(
+                    logInvocation.ramSourceBytes,
+                    (int) Words.clampedToLong(logInvocation.offset),
+                    (int) logInvocation.size)))
+        .setLog();
+  }
+
   public static MmuCall codeCopy(final Hub hub) {
     return new CodeCopy(hub);
   }
@@ -273,9 +292,9 @@ public class MmuCall implements TraceSubFragment {
         .limb2(storedValue.lo());
   }
 
-  public static MmuCall log(final Hub hub) {
-    return new LogX(hub);
-  }
+  // public static MmuCall log(final Hub hub) {
+  //   return new LogX(hub);
+  // }
 
   public static MmuCall create(final Hub hub) {
     return new Create(hub);

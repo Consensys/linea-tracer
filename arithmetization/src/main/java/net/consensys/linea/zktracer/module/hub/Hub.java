@@ -96,7 +96,6 @@ import net.consensys.linea.zktracer.module.txndata.TxnData;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.*;
 import net.consensys.linea.zktracer.opcode.gas.projector.GasProjector;
-import net.consensys.linea.zktracer.runtime.LogInvocation;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
@@ -1099,9 +1098,7 @@ public class Hub implements Module {
       case CONTEXT -> this.addTraceSection(
           new ContextLogSection(this, ContextFragment.readCurrentContextData(this)));
       case LOG -> {
-        this.addTraceSection(
-            new ContextLogSection(this, ContextFragment.readCurrentContextData(this)));
-        LogInvocation.forOpcode(this);
+        new LogSection(this);
       }
       case ACCOUNT -> {
         TraceSection accountSection = new AccountSection(this);

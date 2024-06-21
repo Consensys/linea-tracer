@@ -188,7 +188,7 @@ public class ImcFragment implements TraceFragment {
         case MLOAD -> r.callMmu(MmuCall.mload(hub));
         case MSTORE -> r.callMmu(MmuCall.mstore(hub));
         case MSTORE8 -> r.callMmu(MmuCall.mstore8(hub));
-        case LOG0, LOG1, LOG2, LOG3, LOG4 -> r.callMmu(MmuCall.log(hub));
+          // case LOG0, LOG1, LOG2, LOG3, LOG4 -> r.callMmu(MmuCall.log(hub)); done elsewhere
         case CREATE -> r.callMmu(MmuCall.create(hub));
         case RETURN -> r.callMmu(
             hub.currentFrame().isDeployment()

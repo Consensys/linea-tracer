@@ -76,7 +76,7 @@ public abstract class TraceSection {
   @Getter @Setter private TxTrace parentTrace;
 
   /** A list of {@link TraceLine} representing the trace lines associated with this section. */
-  @Getter List<TraceLine> lines = new ArrayList<>(32);
+  @Getter List<TraceLine> lines = new ArrayList<>(32); // TODO: Overkill no ?
 
   /**
    * Fill the columns shared by all type of lines.
@@ -135,8 +135,8 @@ public abstract class TraceSection {
    * @param fragments the fragments to add to the section
    */
   public final void addFragmentsWithoutStack(Hub hub, TraceFragment... fragments) {
-    for (TraceFragment chunk : fragments) {
-      this.addFragment(hub, hub.currentFrame(), chunk);
+    for (TraceFragment fragment : fragments) {
+      this.addFragment(hub, hub.currentFrame(), fragment);
     }
   }
 

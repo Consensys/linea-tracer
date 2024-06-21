@@ -53,12 +53,10 @@ import static net.consensys.linea.zktracer.types.Containers.repeat;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import com.google.common.base.Preconditions;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.ext.Ext;
@@ -67,10 +65,6 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.crypto.Hash;
-import org.hyperledger.besu.crypto.SECP256K1;
-import org.hyperledger.besu.crypto.SECPPublicKey;
-import org.hyperledger.besu.crypto.SECPSignature;
 
 @Accessors(fluent = true)
 public class EcDataOperation extends ModuleOperation {
@@ -138,7 +132,69 @@ public class EcDataOperation extends ModuleOperation {
   private final boolean g2MembershipTestRequired = false; // counter-constant
   private final boolean acceptablePairOfPointForPairingCircuit = false; // pair-of-points-constant
 
-  @Setter private Bytes returnData; // TODO: propagate to the trace (limb)
+  public void setReturnData(Bytes returnData) {
+    switch (ecType) {
+      case ECRECOVER -> {
+        EWord recoveredAddress = EWord.ZERO;
+
+        // Extract output
+        if (this.internalChecksPassed) {
+          recoveredAddress = EWord.of(returnData);
+        }
+
+        // Set success bit and output limb
+        successBit = !recoveredAddress.isZero();
+        limb.set(8, recoveredAddress.hi());
+        limb.set(9, recoveredAddress.lo());
+      }
+      case ECADD -> {
+        EWord resX = EWord.ZERO;
+        EWord resY = EWord.ZERO;
+
+        // Extract output
+        if (this.internalChecksPassed) {
+          resX = EWord.of(returnData.slice(0, 32));
+          resY = EWord.of(returnData.slice(32, 32));
+        }
+
+        // Set success bit and output limb
+        successBit = !resX.isZero() && !resY.isZero();
+        limb.set(8, resX.hi());
+        limb.set(9, resX.lo());
+        limb.set(10, resY.hi());
+        limb.set(11, resY.lo());
+      }
+      case ECMUL -> {
+        EWord resX = EWord.ZERO;
+        EWord resY = EWord.ZERO;
+
+        // Extract output
+        if (this.internalChecksPassed) {
+          resX = EWord.of(returnData.slice(0, 32));
+          resY = EWord.of(returnData.slice(32, 32));
+        }
+
+        // Set success bit and output limb
+        successBit = !resX.isZero() && !resY.isZero();
+        limb.set(6, resX.hi());
+        limb.set(7, resX.lo());
+        limb.set(8, resY.hi());
+        limb.set(9, resY.lo());
+      }
+      case ECPAIRING -> {
+        EWord pairingResult = EWord.ZERO;
+
+        // Extract output
+        if (this.internalChecksPassed) {
+          pairingResult = EWord.of(returnData);
+        }
+
+        // Set output limb
+        limb.set(limb.size() - 2, pairingResult.hi());
+        limb.set(limb.size() - 1, pairingResult.lo());
+      }
+    }
+  }
 
   private int getTotalSize(int ecType, boolean isData) {
     if (isData) {
@@ -367,18 +423,10 @@ public class EcDataOperation extends ModuleOperation {
     // Set internal checks passed
     this.internalChecksPassed = hurdle.get(INDEX_MAX_ECRECOVER_DATA);
 
-    EWord recoveredAddress = EWord.ZERO; // TODO: use returnData
-
-    // Compute recoveredAddress, successBit and set circuitSelectorEcrecover
+    // Set circuitSelectorEcrecover
     if (this.internalChecksPassed) {
-      recoveredAddress = extractRecoveredAddress(h, v, r, s);
       this.circuitSelectorEcrecover = true;
     }
-
-    // Set output limb
-    successBit = !recoveredAddress.isZero();
-    limb.set(8, recoveredAddress.hi());
-    limb.set(9, recoveredAddress.lo());
 
     // Very unlikely edge case: if the ext module is never used elsewhere, we need to insert a
     // useless row, in order to trigger the construction of the first empty row, useful for the ext
@@ -421,14 +469,6 @@ public class EcDataOperation extends ModuleOperation {
     // Compute successBit and set circuitSelectorEcadd
     this.successBit = this.internalChecksPassed;
     this.circuitSelectorEcadd = this.internalChecksPassed;
-
-    // Set output limb
-    EWord resX = EWord.ZERO; // TODO
-    EWord resY = EWord.ZERO; // TODO
-    limb.set(8, resX.hi());
-    limb.set(9, resX.lo());
-    limb.set(10, resY.hi());
-    limb.set(11, resY.lo());
   }
 
   void handleMul() {
@@ -458,14 +498,6 @@ public class EcDataOperation extends ModuleOperation {
     // Compute successBit and set circuitSelectorEcmul
     this.successBit = this.internalChecksPassed;
     this.circuitSelectorEcmul = this.internalChecksPassed;
-
-    // Set output limb
-    EWord resX = EWord.ZERO; // TODO
-    EWord resY = EWord.ZERO; // TODO
-    limb.set(8, resX.hi());
-    limb.set(9, resX.lo());
-    limb.set(10, resY.hi());
-    limb.set(11, resY.lo());
   }
 
   void handlePairing() {
@@ -526,8 +558,6 @@ public class EcDataOperation extends ModuleOperation {
     } else {
       this.successBit = true; // TODO: Gnark?
     }
-
-    // TODO: use returnData
   }
 
   void trace(Trace trace, final int stamp, final long previousId) {
@@ -623,26 +653,6 @@ public class EcDataOperation extends ModuleOperation {
   @Override
   protected int computeLineCount() {
     return this.nRowsData + this.nRowsResult;
-  }
-
-  private static EWord extractRecoveredAddress(EWord h, EWord v, EWord r, EWord s) {
-    SECP256K1 secp256K1 = new SECP256K1();
-    try {
-      Optional<SECPPublicKey> optionalRecoveredAddress =
-          secp256K1.recoverPublicKeyFromSignature(
-              h.toBytes(),
-              SECPSignature.create(
-                  r.toUnsignedBigInteger(),
-                  s.toUnsignedBigInteger(),
-                  (byte) (v.toInt() - 27),
-                  SECP256K1N.toUnsignedBigInteger()));
-      return optionalRecoveredAddress
-          .map(e -> EWord.of(Hash.keccak256(e.getEncodedBytes()).slice(32 - 20)))
-          .orElse(EWord.ZERO);
-    } catch (IllegalArgumentException e) {
-      System.err.print(e);
-      return EWord.ZERO;
-    }
   }
 
   private boolean callToC1Membership(int k, EWord pX, EWord pY) {

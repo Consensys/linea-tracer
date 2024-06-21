@@ -726,7 +726,7 @@ public class Hub implements Module {
 
   void processStateExec(MessageFrame frame) {
     if (previousOperationWasCallToEcPrecompile) {
-      this.ecData.getMostRecentEcdDataOperation().returnData(frame.getReturnData());
+      this.ecData.getEcdDataOperation().setReturnData(frame.getReturnData());
       previousOperationWasCallToEcPrecompile = false;
     }
     this.currentFrame().frame(frame);

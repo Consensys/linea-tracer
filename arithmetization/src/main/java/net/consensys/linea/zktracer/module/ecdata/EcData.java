@@ -45,7 +45,7 @@ public class EcData implements Module {
   private final Wcp wcp;
   private final Ext ext;
 
-  @Getter private EcDataOperation mostRecentEcdDataOperation;
+  @Getter private EcDataOperation ecdDataOperation;
 
   @Override
   public String moduleKey() {
@@ -77,9 +77,9 @@ public class EcData implements Module {
 
     final Bytes data = hub.transients().op().callData();
 
-    this.mostRecentEcdDataOperation =
+    this.ecdDataOperation =
         EcDataOperation.of(this.wcp, this.ext, 1 + this.hub.stamp(), target.get(19), data);
-    this.operations.add(mostRecentEcdDataOperation);
+    this.operations.add(ecdDataOperation);
   }
 
   @Override

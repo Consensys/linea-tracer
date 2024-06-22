@@ -185,9 +185,9 @@ public class ZkTracer implements ConflationAwareOperationTracer {
       this.tracingExceptions.add(e);
     }
 
-    if (!this.tracingExceptions.isEmpty()) {
-      throw new TracingExceptions(this.tracingExceptions);
-    }
+//    if (!this.tracingExceptions.isEmpty()) {
+//      throw new TracingExceptions(this.tracingExceptions);
+//    }
   }
 
   @Override
@@ -315,9 +315,9 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   }
 
   private void maybeThrowTracingExceptions() {
-    if (!this.tracingExceptions.isEmpty()) {
-      throw new TracingExceptions(this.tracingExceptions);
-    }
+//    if (!this.tracingExceptions.isEmpty()) {
+//      throw new TracingExceptions(this.tracingExceptions);
+//    }
   }
 
   public Map<String, Integer> getModulesLineCount() {

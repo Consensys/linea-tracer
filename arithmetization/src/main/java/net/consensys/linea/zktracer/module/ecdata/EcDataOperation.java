@@ -115,8 +115,6 @@ public class EcDataOperation extends ModuleOperation {
   private boolean circuitSelectorEcrecover;
   private boolean circuitSelectorEcadd;
   private boolean circuitSelectorEcmul;
-  private boolean circuitSelectorEcpairing;
-  private boolean circuitSelectorG2Membership;
 
   // pairing-specific
   private final int totalPairings;
@@ -127,8 +125,8 @@ public class EcDataOperation extends ModuleOperation {
   private boolean notOnG2AccMax; // index-constant
   private List<Boolean> isInfinity; // counter-constant
   private List<Boolean> overallTrivialPairing; // counter-constant
-  private final boolean g2MembershipTestRequired = false; // counter-constant
-  private final boolean acceptablePairOfPointForPairingCircuit = false; // pair-of-points-constant
+  private List<Boolean> g2MembershipTestRequired; // counter-constant
+  private List<Boolean> acceptablePairOfPointForPairingCircuit; // pair-of-points-constant
 
   private EcDataOperation(Wcp wcp, Ext ext, int id, int ecType, Bytes data) {
     Preconditions.checkArgument(EC_TYPES.contains(ecType), "invalid EC type");
@@ -142,45 +140,47 @@ public class EcDataOperation extends ModuleOperation {
     this.ecType = ecType;
 
     if (ecType == ECPAIRING) {
-      this.totalPairings = data.size() / 192;
+      totalPairings = data.size() / 192;
     } else {
-      this.totalPairings = 0;
+      totalPairings = 0;
     }
 
-    this.nRowsData = getIndexMax(ecType, true) + 1;
-    this.nRowsResult = getIndexMax(ecType, false) + 1;
-    this.nRows = this.nRowsData + this.nRowsResult;
+    nRowsData = getIndexMax(ecType, true) + 1;
+    nRowsResult = getIndexMax(ecType, false) + 1;
+    nRows = nRowsData + nRowsResult;
     this.id = id;
 
-    this.limb = repeat(Bytes.EMPTY, this.nRows);
-    this.hurdle = repeat(false, this.nRows);
+    limb = repeat(Bytes.EMPTY, nRows);
+    hurdle = repeat(false, nRows);
 
-    this.wcpFlag = repeat(false, this.nRows);
-    this.wcpArg1Hi = repeat(Bytes.EMPTY, this.nRows);
-    this.wcpArg1Lo = repeat(Bytes.EMPTY, this.nRows);
-    this.wcpArg2Hi = repeat(Bytes.EMPTY, this.nRows);
-    this.wcpArg2Lo = repeat(Bytes.EMPTY, this.nRows);
-    this.wcpRes = repeat(false, this.nRows);
-    this.wcpInst = repeat(OpCode.INVALID, this.nRows);
+    wcpFlag = repeat(false, nRows);
+    wcpArg1Hi = repeat(Bytes.EMPTY, nRows);
+    wcpArg1Lo = repeat(Bytes.EMPTY, nRows);
+    wcpArg2Hi = repeat(Bytes.EMPTY, nRows);
+    wcpArg2Lo = repeat(Bytes.EMPTY, nRows);
+    wcpRes = repeat(false, nRows);
+    wcpInst = repeat(OpCode.INVALID, nRows);
 
-    this.extFlag = repeat(false, this.nRows);
-    this.extArg1Hi = repeat(Bytes.EMPTY, this.nRows);
-    this.extArg1Lo = repeat(Bytes.EMPTY, this.nRows);
-    this.extArg2Hi = repeat(Bytes.EMPTY, this.nRows);
-    this.extArg2Lo = repeat(Bytes.EMPTY, this.nRows);
-    this.extArg3Hi = repeat(Bytes.EMPTY, this.nRows);
-    this.extArg3Lo = repeat(Bytes.EMPTY, this.nRows);
-    this.extResHi = repeat(Bytes.EMPTY, this.nRows);
-    this.extResLo = repeat(Bytes.EMPTY, this.nRows);
-    this.extInst = repeat(OpCode.INVALID, this.nRows);
+    extFlag = repeat(false, nRows);
+    extArg1Hi = repeat(Bytes.EMPTY, nRows);
+    extArg1Lo = repeat(Bytes.EMPTY, nRows);
+    extArg2Hi = repeat(Bytes.EMPTY, nRows);
+    extArg2Lo = repeat(Bytes.EMPTY, nRows);
+    extArg3Hi = repeat(Bytes.EMPTY, nRows);
+    extArg3Lo = repeat(Bytes.EMPTY, nRows);
+    extResHi = repeat(Bytes.EMPTY, nRows);
+    extResLo = repeat(Bytes.EMPTY, nRows);
+    extInst = repeat(OpCode.INVALID, nRows);
 
     this.wcp = wcp;
     this.ext = ext;
 
-    this.isInfinity = repeat(false, this.nRows);
-    this.overallTrivialPairing = repeat(true, this.nRows);
-    this.notOnG2 = repeat(false, this.nRows);
-    this.notOnG2Acc = repeat(false, this.nRows);
+    isInfinity = repeat(false, nRows);
+    overallTrivialPairing = repeat(true, nRows);
+    notOnG2 = repeat(false, nRows);
+    notOnG2Acc = repeat(false, nRows);
+    g2MembershipTestRequired = repeat(false, nRows);
+    acceptablePairOfPointForPairingCircuit = repeat(false, nRows);
 
     switch (ecType) {
       case ECRECOVER -> handleRecover();
@@ -196,7 +196,7 @@ public class EcDataOperation extends ModuleOperation {
         EWord recoveredAddress = EWord.ZERO;
 
         // Extract output
-        if (this.internalChecksPassed) {
+        if (internalChecksPassed) {
           recoveredAddress = EWord.of(returnData);
         }
 
@@ -210,7 +210,7 @@ public class EcDataOperation extends ModuleOperation {
         EWord resY = EWord.ZERO;
 
         // Extract output
-        if (this.internalChecksPassed) {
+        if (internalChecksPassed) {
           resX = EWord.of(returnData.slice(0, 32));
           resY = EWord.of(returnData.slice(32, 32));
         }
@@ -227,7 +227,7 @@ public class EcDataOperation extends ModuleOperation {
         EWord resY = EWord.ZERO;
 
         // Extract output
-        if (this.internalChecksPassed) {
+        if (internalChecksPassed) {
           resX = EWord.of(returnData.slice(0, 32));
           resY = EWord.of(returnData.slice(32, 32));
         }
@@ -243,7 +243,7 @@ public class EcDataOperation extends ModuleOperation {
         EWord pairingResult = EWord.ZERO;
 
         // Extract output
-        if (this.internalChecksPassed) {
+        if (internalChecksPassed) {
           pairingResult = EWord.of(returnData);
         }
 
@@ -260,7 +260,7 @@ public class EcDataOperation extends ModuleOperation {
         case ECRECOVER -> TOTAL_SIZE_ECRECOVER_DATA;
         case ECADD -> TOTAL_SIZE_ECADD_DATA;
         case ECMUL -> TOTAL_SIZE_ECMUL_DATA;
-        case ECPAIRING -> TOTAL_SIZE_ECPAIRING_DATA_MIN * this.totalPairings;
+        case ECPAIRING -> TOTAL_SIZE_ECPAIRING_DATA_MIN * totalPairings;
         default -> throw new IllegalArgumentException("invalid EC type");
       };
     } else {
@@ -300,7 +300,7 @@ public class EcDataOperation extends ModuleOperation {
         case ECRECOVER -> INDEX_MAX_ECRECOVER_DATA;
         case ECADD -> INDEX_MAX_ECADD_DATA;
         case ECMUL -> INDEX_MAX_ECMUL_DATA;
-        case ECPAIRING -> (INDEX_MAX_ECPAIRING_DATA_MIN + 1) * this.totalPairings - 1;
+        case ECPAIRING -> (INDEX_MAX_ECPAIRING_DATA_MIN + 1) * totalPairings - 1;
         default -> throw new IllegalArgumentException("invalid EC type");
       };
     } else {
@@ -329,16 +329,16 @@ public class EcDataOperation extends ModuleOperation {
   private boolean callWcp(int i, OpCode wcpInst, EWord arg1, EWord arg2) {
     final boolean wcpRes =
         switch (wcpInst) {
-          case LT -> this.wcp.callLT(arg1, arg2);
-          case EQ -> this.wcp.callEQ(arg1, arg2);
+          case LT -> wcp.callLT(arg1, arg2);
+          case EQ -> wcp.callEQ(arg1, arg2);
           default -> throw new IllegalStateException("Unexpected value: " + wcpInst);
         };
 
-    this.wcpFlag.set(i, true);
-    this.wcpArg1Hi.set(i, arg1.hi());
-    this.wcpArg1Lo.set(i, arg1.lo());
-    this.wcpArg2Hi.set(i, arg2.hi());
-    this.wcpArg2Lo.set(i, arg2.lo());
+    wcpFlag.set(i, true);
+    wcpArg1Hi.set(i, arg1.hi());
+    wcpArg1Lo.set(i, arg1.lo());
+    wcpArg2Hi.set(i, arg2.hi());
+    wcpArg2Lo.set(i, arg2.lo());
     this.wcpRes.set(i, wcpRes);
     this.wcpInst.set(i, wcpInst);
     return wcpRes;
@@ -347,25 +347,25 @@ public class EcDataOperation extends ModuleOperation {
   private EWord callExt(int i, OpCode extInst, EWord arg1, EWord arg2, EWord arg3) {
     final EWord extRes = EWord.of(ext.call(extInst, arg1, arg2, arg3));
 
-    this.extFlag.set(i, true);
-    this.extArg1Hi.set(i, arg1.hi());
-    this.extArg1Lo.set(i, arg1.lo());
-    this.extArg2Hi.set(i, arg2.hi());
-    this.extArg2Lo.set(i, arg2.lo());
-    this.extArg3Hi.set(i, arg3.hi());
-    this.extArg3Lo.set(i, arg3.lo());
-    this.extResHi.set(i, extRes.hi());
-    this.extResLo.set(i, extRes.lo());
+    extFlag.set(i, true);
+    extArg1Hi.set(i, arg1.hi());
+    extArg1Lo.set(i, arg1.lo());
+    extArg2Hi.set(i, arg2.hi());
+    extArg2Lo.set(i, arg2.lo());
+    extArg3Hi.set(i, arg3.hi());
+    extArg3Lo.set(i, arg3.lo());
+    extResHi.set(i, extRes.hi());
+    extResLo.set(i, extRes.lo());
     this.extInst.set(i, extInst);
     return extRes;
   }
 
   void handleRecover() {
     // Extract inputs
-    final EWord h = EWord.of(this.data.slice(0, 32));
-    final EWord v = EWord.of(this.data.slice(32, 32));
-    final EWord r = EWord.of(this.data.slice(64, 32));
-    final EWord s = EWord.of(this.data.slice(96, 32));
+    final EWord h = EWord.of(data.slice(0, 32));
+    final EWord v = EWord.of(data.slice(32, 32));
+    final EWord r = EWord.of(data.slice(64, 32));
+    final EWord s = EWord.of(data.slice(96, 32));
 
     // Set input limb
     limb.set(0, h.hi());
@@ -403,11 +403,11 @@ public class EcDataOperation extends ModuleOperation {
     hurdle.set(INDEX_MAX_ECRECOVER_DATA, hurdle.get(2) && (vIs27 || vIs28));
 
     // Set internal checks passed
-    this.internalChecksPassed = hurdle.get(INDEX_MAX_ECRECOVER_DATA);
+    internalChecksPassed = hurdle.get(INDEX_MAX_ECRECOVER_DATA);
 
     // Set circuitSelectorEcrecover
-    if (this.internalChecksPassed) {
-      this.circuitSelectorEcrecover = true;
+    if (internalChecksPassed) {
+      circuitSelectorEcrecover = true;
     }
 
     // Very unlikely edge case: if the ext module is never used elsewhere, we need to insert a
@@ -415,15 +415,15 @@ public class EcDataOperation extends ModuleOperation {
     // lookup.
     // Because of the hashmap in the ext module, this useless row will only be inserted one time.
     // Tested by TestEcRecoverWithEmptyExt
-    this.ext.callADDMOD(Bytes.EMPTY, Bytes.EMPTY, Bytes.EMPTY);
+    ext.callADDMOD(Bytes.EMPTY, Bytes.EMPTY, Bytes.EMPTY);
   }
 
   void handleAdd() {
     // Extract inputs
-    final EWord pX = EWord.of(this.data.slice(0, 32));
-    final EWord pY = EWord.of(this.data.slice(32, 32));
-    final EWord qX = EWord.of(this.data.slice(64, 32));
-    final EWord qY = EWord.of(this.data.slice(96, 32));
+    final EWord pX = EWord.of(data.slice(0, 32));
+    final EWord pY = EWord.of(data.slice(32, 32));
+    final EWord qX = EWord.of(data.slice(64, 32));
+    final EWord qY = EWord.of(data.slice(96, 32));
 
     // Set limb
     limb.set(0, pX.hi());
@@ -446,18 +446,18 @@ public class EcDataOperation extends ModuleOperation {
     hurdle.set(INDEX_MAX_ECRECOVER_DATA, c1MembershipFirstPoint && c1MembershipSecondPoint);
 
     // Set intenral checks passed
-    this.internalChecksPassed = hurdle.get(INDEX_MAX_ECADD_DATA);
+    internalChecksPassed = hurdle.get(INDEX_MAX_ECADD_DATA);
 
     // Compute successBit and set circuitSelectorEcadd
-    this.successBit = this.internalChecksPassed;
-    this.circuitSelectorEcadd = this.internalChecksPassed;
+    successBit = internalChecksPassed;
+    circuitSelectorEcadd = internalChecksPassed;
   }
 
   void handleMul() {
     // Extract inputs
-    final EWord pX = EWord.of(this.data.slice(0, 32));
-    final EWord pY = EWord.of(this.data.slice(32, 32));
-    final EWord n = EWord.of(this.data.slice(64, 32));
+    final EWord pX = EWord.of(data.slice(0, 32));
+    final EWord pY = EWord.of(data.slice(32, 32));
+    final EWord n = EWord.of(data.slice(64, 32));
 
     // Set limb
     limb.set(0, pX.hi());
@@ -475,11 +475,11 @@ public class EcDataOperation extends ModuleOperation {
     hurdle.set(INDEX_MAX_ECRECOVER_DATA, c1Membership);
 
     // Set intenral checks passed
-    this.internalChecksPassed = hurdle.get(INDEX_MAX_ECMUL_DATA);
+    internalChecksPassed = hurdle.get(INDEX_MAX_ECMUL_DATA);
 
     // Compute successBit and set circuitSelectorEcmul
-    this.successBit = this.internalChecksPassed;
-    this.circuitSelectorEcmul = this.internalChecksPassed;
+    successBit = internalChecksPassed;
+    circuitSelectorEcmul = internalChecksPassed;
   }
 
   void handlePairing() {
@@ -487,15 +487,15 @@ public class EcDataOperation extends ModuleOperation {
     boolean atLeastOneLargePointIsNotOnG2 = false;
     boolean firstLargePointNotOnG2 = false;
 
-    for (int accPairings = 1; accPairings <= this.totalPairings; accPairings++) {
+    for (int accPairings = 1; accPairings <= totalPairings; accPairings++) {
       // Extract inputs
       final int bytesOffset = (accPairings - 1) * 192;
-      final EWord aX = EWord.of(this.data.slice(bytesOffset, 32));
-      final EWord aY = EWord.of(this.data.slice(32 + bytesOffset, 32));
-      final EWord bXIm = EWord.of(this.data.slice(64 + bytesOffset, 32));
-      final EWord bXRe = EWord.of(this.data.slice(96 + bytesOffset, 32));
-      final EWord bYIm = EWord.of(this.data.slice(128 + bytesOffset, 32));
-      final EWord bYRe = EWord.of(this.data.slice(160 + bytesOffset, 32));
+      final EWord aX = EWord.of(data.slice(bytesOffset, 32));
+      final EWord aY = EWord.of(data.slice(32 + bytesOffset, 32));
+      final EWord bXIm = EWord.of(data.slice(64 + bytesOffset, 32));
+      final EWord bXRe = EWord.of(data.slice(96 + bytesOffset, 32));
+      final EWord bYIm = EWord.of(data.slice(128 + bytesOffset, 32));
+      final EWord bYRe = EWord.of(data.slice(160 + bytesOffset, 32));
 
       // Set limb
       final int rowsOffset = (accPairings - 1) * (INDEX_MAX_ECPAIRING_DATA_MIN + 1); // 12
@@ -521,8 +521,8 @@ public class EcDataOperation extends ModuleOperation {
           callToWellFormedCoordinates(4 + rowsOffset, bXIm, bXRe, bYIm, bYRe);
 
       // Check additional flags
-      boolean isSmallPointInfinity = aX.isZero() && aY.isZero();
-      boolean isLargePointInfinity =
+      boolean smallPointIsAtInfinity = aX.isZero() && aY.isZero();
+      boolean largePointIsAtInfinity =
           bXIm.isZero() && bXRe.isZero() && bYIm.isZero() && bYRe.isZero();
 
       // Check if the large point is on G2
@@ -537,8 +537,8 @@ public class EcDataOperation extends ModuleOperation {
 
       // Set isInfinity, overallTrivialPairing, notOnG2, notOnG2Acc
       for (int i = 0; i < 12; i++) {
-        isInfinity.set(i + rowsOffset, i < 4 ? isSmallPointInfinity : isLargePointInfinity);
-        if (!isLargePointInfinity && !atLeastOneLargePointIsNotInfinity) {
+        isInfinity.set(i + rowsOffset, i < 4 ? smallPointIsAtInfinity : largePointIsAtInfinity);
+        if (!largePointIsAtInfinity && !atLeastOneLargePointIsNotInfinity) {
           atLeastOneLargePointIsNotInfinity = true;
         }
         overallTrivialPairing.set(i + rowsOffset, atLeastOneLargePointIsNotInfinity);
@@ -555,16 +555,15 @@ public class EcDataOperation extends ModuleOperation {
       // Complete set hurdle and internal checks passed
       if (accPairings == 1) {
         hurdle.set(INDEX_MAX_ECPAIRING_DATA_MIN, c1Membership && wellFormedCoordinate);
-        this.internalChecksPassed = c1Membership && wellFormedCoordinate;
+        internalChecksPassed = c1Membership && wellFormedCoordinate;
       } else {
-        boolean prevInternalChecksPassed = this.internalChecksPassed;
+        boolean prevInternalChecksPassed = internalChecksPassed;
         hurdle.set(
             INDEX_MAX_ECPAIRING_DATA_MIN - 1 + rowsOffset, c1Membership && wellFormedCoordinate);
         hurdle.set(
             INDEX_MAX_ECPAIRING_DATA_MIN + rowsOffset,
             c1Membership && wellFormedCoordinate && prevInternalChecksPassed);
-        this.internalChecksPassed =
-            c1Membership && wellFormedCoordinate && prevInternalChecksPassed;
+        internalChecksPassed = c1Membership && wellFormedCoordinate && prevInternalChecksPassed;
       }
     }
 
@@ -572,10 +571,13 @@ public class EcDataOperation extends ModuleOperation {
 
     // Compute successBit and set circuitSelectorEcpairing
     if (!internalChecksPassed || notOnG2AccMax) {
-      this.successBit = false;
+      successBit = false;
     } else {
-      this.successBit = true; // TODO: Gnark?
+      successBit = true;
     }
+
+    // acceptablePairOfPointForPairingCircuit, g2MembershipTestRequired, circuitSelectorEcpairing,
+    // circuitSelectorG2Membership are set in the trace method
   }
 
   void trace(Trace trace, final int stamp, final long previousId) {
@@ -585,19 +587,28 @@ public class EcDataOperation extends ModuleOperation {
     int ct = 0;
     boolean isSmallPoint = false;
     boolean isLargePoint = false;
+    boolean smallPointIsAtInfinity = false;
+    boolean largePointIsAtInfinity = false;
 
-    for (int i = 0; i < this.nRows; i++) {
-      boolean isData = i < this.nRowsData;
+    for (int i = 0; i < nRows; i++) {
+      boolean isData = i < nRowsData;
 
       // Turn isSmallPoint on if we are in the first row of a new pairing
       if (ecType == ECPAIRING && isData && ct == 0 && !isLargePoint) {
         isSmallPoint = true;
+        smallPointIsAtInfinity = isInfinity.get(i);
+        largePointIsAtInfinity = isInfinity.get(i + 4);
       }
+
+      boolean g2MembershipTestRequired =
+          !notOnG2AccMax && !largePointIsAtInfinity && smallPointIsAtInfinity;
+      boolean acceptablePairOfPointForPairingCircuit =
+          !notOnG2AccMax && !largePointIsAtInfinity && !smallPointIsAtInfinity;
 
       trace
           .stamp(stamp)
           .id(id)
-          .index(isData ? UnsignedByte.of(i) : UnsignedByte.of(i - this.nRowsData))
+          .index(isData ? UnsignedByte.of(i) : UnsignedByte.of(i - nRowsData))
           .limb(limb.get(i))
           .totalSize(Bytes.ofUnsignedLong(getTotalSize(ecType, isData)))
           .phase(getPhase(ecType, isData))
@@ -627,13 +638,13 @@ public class EcDataOperation extends ModuleOperation {
           .notOnG2AccMax(notOnG2AccMax)
           .isInfinity(isInfinity.get(i))
           .overallTrivialPairing(overallTrivialPairing.get(i))
-          .g2MembershipTestRequired(false) // TODO
-          .acceptablePairOfPointForPairingCircuit(false) // TODO
+          .g2MembershipTestRequired(g2MembershipTestRequired)
+          .acceptablePairOfPointForPairingCircuit(acceptablePairOfPointForPairingCircuit)
           .circuitSelectorEcrecover(circuitSelectorEcrecover)
           .circuitSelectorEcadd(circuitSelectorEcadd)
           .circuitSelectorEcmul(circuitSelectorEcmul)
-          .circuitSelectorEcpairing(circuitSelectorEcpairing)
-          .circuitSelectorG2Membership(circuitSelectorG2Membership)
+          .circuitSelectorEcpairing(acceptablePairOfPointForPairingCircuit)
+          .circuitSelectorG2Membership(g2MembershipTestRequired)
           .wcpFlag(wcpFlag.get(i))
           .wcpArg1Hi(wcpArg1Hi.get(i))
           .wcpArg1Lo(wcpArg1Lo.get(i))
@@ -663,6 +674,8 @@ public class EcDataOperation extends ModuleOperation {
         } else if (isLargePoint && ct == CT_MAX_LARGE_POINT) {
           isLargePoint = false;
           ct = 0;
+          smallPointIsAtInfinity = false;
+          largePointIsAtInfinity = false;
         }
       }
     }
@@ -670,7 +683,7 @@ public class EcDataOperation extends ModuleOperation {
 
   @Override
   protected int computeLineCount() {
-    return this.nRowsData + this.nRowsResult;
+    return nRowsData + nRowsResult;
   }
 
   private boolean callToC1Membership(int k, EWord pX, EWord pY) {

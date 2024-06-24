@@ -123,10 +123,10 @@ public class Blockhash implements Module {
 
   @Override
   public void traceEndConflation(WorldView state) {
-    final BlockhashComparator BLOCKHASH_COMPARATOR = new BlockhashComparator();
     this.sortedOperations.addAll(this.operations);
-    this.sortedOperations.sort(BLOCKHASH_COMPARATOR);
     if (!this.sortedOperations.isEmpty()) {
+      final BlockhashComparator BLOCKHASH_COMPARATOR = new BlockhashComparator();
+      this.sortedOperations.sort(BLOCKHASH_COMPARATOR);
       this.wcp.callGEQ(this.sortedOperations.get(0).opcodeArgument(), Bytes32.ZERO);
       for (int i = 1; i < this.sortedOperations.size(); i++) {
         this.wcp.callGEQ(

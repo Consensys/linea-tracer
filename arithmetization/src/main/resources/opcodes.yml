@@ -575,7 +575,7 @@ opcodes:
     value: 0x51
     instructionFamily: STACK_RAM
     stackSettings:
-      pattern: ONE_ONE
+      pattern: LOAD_STORE
       alpha: 1
       delta: 1
       nbAdded: 1
@@ -589,7 +589,7 @@ opcodes:
     value: 0x52
     instructionFamily: STACK_RAM
     stackSettings:
-      pattern: TWO_ZERO
+      pattern: LOAD_STORE
       alpha: 0
       delta: 2
       nbAdded: 0
@@ -603,7 +603,7 @@ opcodes:
     value: 0x53
     instructionFamily: STACK_RAM
     stackSettings:
-      pattern: TWO_ZERO
+      pattern: LOAD_STORE
       alpha: 0
       delta: 2
       nbAdded: 0
@@ -1550,7 +1550,7 @@ opcodes:
       delta: 2
       nbAdded: 0
       nbRemoved: 2
-      staticGas: S_MXP
+      staticGas: G_ZERO
       flag1: true
     billing:
       byByte:
@@ -1637,6 +1637,6 @@ opcodes:
       delta: 1
       nbAdded: 0
       nbRemoved: 1
-      staticGas: S_MXP
+      staticGas: S_MXP #TODO check
       forbiddenInStatic: true
       flag4: true

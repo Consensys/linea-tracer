@@ -98,7 +98,6 @@ import org.hyperledger.besu.evm.internal.Words;
 @Getter
 @Accessors(fluent = true)
 public class MmuCall implements TraceSubFragment {
-  protected boolean enabled = true;
   protected int instruction = 0;
   protected int sourceId = 0;
   protected int targetId = 0;
@@ -716,7 +715,7 @@ public class MmuCall implements TraceSubFragment {
   public Trace trace(Trace trace, State.TxState.Stamps stamps) {
     stamps.incrementMmuStamp();
     return trace
-        .pMiscMmuFlag(this.enabled())
+        .pMiscMmuFlag(true)
         .pMiscMmuInst(
             this.instruction() == -1
                 ? 0

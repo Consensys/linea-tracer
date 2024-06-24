@@ -77,4 +77,14 @@ public class ReplayTests {
   void fatMxp() {
     replay("2492975-2492977.json.gz");
   }
+
+  @Test
+  void betaV1FirstFailure() {
+    replay("5389571-5389577.json.gz");
+  }
+
+  @Test
+  void betaV1SecondFailure() {
+    replay("5389582-5389584.json.gz");
+  }
 }

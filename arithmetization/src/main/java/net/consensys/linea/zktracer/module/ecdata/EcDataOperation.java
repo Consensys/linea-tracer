@@ -244,7 +244,7 @@ public class EcDataOperation extends ModuleOperation {
         }
 
         // Set output limb
-        if (overallTrivialPairing.get(overallTrivialPairing.size()-1)) {
+        if (overallTrivialPairing.get(overallTrivialPairing.size() - 1)) {
           // TODO: is it necessary to set the result rows explicitly in case of trivial pairing?
           limb.set(limb.size() - 2, Bytes.of(0));
           limb.set(limb.size() - 1, Bytes.of(1));
@@ -639,7 +639,7 @@ public class EcDataOperation extends ModuleOperation {
           .notOnG2Acc(notOnG2Acc.get(i))
           .notOnG2AccMax(notOnG2AccMax)
           .isInfinity(isInfinity.get(i))
-          .overallTrivialPairing(overallTrivialPairing.get(i))
+          .overallTrivialPairing(ecType == ECPAIRING && isData && overallTrivialPairing.get(i))
           .g2MembershipTestRequired(g2MembershipTestRequired)
           .acceptablePairOfPointForPairingCircuit(acceptablePairOfPointForPairingCircuit)
           .circuitSelectorEcrecover(circuitSelectorEcrecover)

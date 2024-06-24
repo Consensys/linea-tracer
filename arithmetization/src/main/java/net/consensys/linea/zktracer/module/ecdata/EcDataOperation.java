@@ -193,6 +193,7 @@ public class EcDataOperation extends ModuleOperation {
 
         // Extract output
         if (internalChecksPassed) {
+          System.out.println(returnData.toArray().length);
           recoveredAddress = EWord.of(returnData);
         }
 
@@ -206,7 +207,8 @@ public class EcDataOperation extends ModuleOperation {
         EWord resY = EWord.ZERO;
 
         // Extract output
-        if (internalChecksPassed) {
+        if (internalChecksPassed && returnData.toArray().length == 64) {
+          System.out.println(returnData.toArray().length);
           resX = EWord.of(returnData.slice(0, 32));
           resY = EWord.of(returnData.slice(32, 32));
         }
@@ -223,7 +225,8 @@ public class EcDataOperation extends ModuleOperation {
         EWord resY = EWord.ZERO;
 
         // Extract output
-        if (internalChecksPassed) {
+        if (internalChecksPassed && returnData.toArray().length == 64) {
+          System.out.println(returnData.toArray().length);
           resX = EWord.of(returnData.slice(0, 32));
           resY = EWord.of(returnData.slice(32, 32));
         }
@@ -240,6 +243,7 @@ public class EcDataOperation extends ModuleOperation {
 
         // Extract output
         if (internalChecksPassed) {
+          System.out.println(returnData.toArray().length);
           pairingResult = EWord.of(returnData);
         }
 
@@ -594,7 +598,7 @@ public class EcDataOperation extends ModuleOperation {
 
     for (int i = 0; i < nRows; i++) {
       boolean isData = i < nRowsData;
-
+      // TODO: double check when is necessary to combine with "and" several conditions
       // Turn isSmallPoint on if we are in the first row of a new pairing
       if (ecType == ECPAIRING && isData && ct == 0 && !isLargePoint) {
         isSmallPoint = true;

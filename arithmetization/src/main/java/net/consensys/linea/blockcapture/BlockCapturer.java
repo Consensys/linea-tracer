@@ -141,17 +141,9 @@ public class BlockCapturer implements ConflationAwareOperationTracer {
       }
 
         // Failure condition if created address already exists
-      case CREATE -> {
+      case CREATE, CREATE2 -> {
         if (frame.stackSize() > 0) {
-          final Address target = AddressUtils.getCreateAddress(frame);
-          this.reaper.touchAddress(target);
-        }
-      }
-
-        // Failure condition if created address already exists
-      case CREATE2 -> {
-        if (frame.stackSize() > 0) {
-          final Address target = AddressUtils.getCreate2Address(frame);
+          final Address target = AddressUtils.getDeploymentAddress(frame);
           this.reaper.touchAddress(target);
         }
       }

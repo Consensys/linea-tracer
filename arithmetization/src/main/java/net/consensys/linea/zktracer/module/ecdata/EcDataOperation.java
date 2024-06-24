@@ -125,8 +125,6 @@ public class EcDataOperation extends ModuleOperation {
   private boolean notOnG2AccMax; // index-constant
   private List<Boolean> isInfinity; // counter-constant
   private List<Boolean> overallTrivialPairing; // counter-constant
-  private List<Boolean> g2MembershipTestRequired; // counter-constant
-  private List<Boolean> acceptablePairOfPointForPairingCircuit; // pair-of-points-constant
 
   private EcDataOperation(Wcp wcp, Ext ext, int id, int ecType, Bytes data) {
     Preconditions.checkArgument(EC_TYPES.contains(ecType), "invalid EC type");
@@ -179,8 +177,6 @@ public class EcDataOperation extends ModuleOperation {
     overallTrivialPairing = repeat(true, nRows);
     notOnG2 = repeat(false, nRows);
     notOnG2Acc = repeat(false, nRows);
-    g2MembershipTestRequired = repeat(false, nRows);
-    acceptablePairOfPointForPairingCircuit = repeat(false, nRows);
 
     switch (ecType) {
       case ECRECOVER -> handleRecover();
@@ -248,8 +244,14 @@ public class EcDataOperation extends ModuleOperation {
         }
 
         // Set output limb
-        limb.set(limb.size() - 2, pairingResult.hi());
-        limb.set(limb.size() - 1, pairingResult.lo());
+        if (overallTrivialPairing.get(overallTrivialPairing.size()-1)) {
+          // TODO: is it necessary to set the result rows explicitly in case of trivial pairing?
+          limb.set(limb.size() - 2, Bytes.of(0));
+          limb.set(limb.size() - 1, Bytes.of(1));
+        } else {
+          limb.set(limb.size() - 2, pairingResult.hi());
+          limb.set(limb.size() - 1, pairingResult.lo());
+        }
       }
     }
   }
@@ -541,7 +543,7 @@ public class EcDataOperation extends ModuleOperation {
         if (!largePointIsAtInfinity && !atLeastOneLargePointIsNotInfinity) {
           atLeastOneLargePointIsNotInfinity = true;
         }
-        overallTrivialPairing.set(i + rowsOffset, atLeastOneLargePointIsNotInfinity);
+        overallTrivialPairing.set(i + rowsOffset, !atLeastOneLargePointIsNotInfinity);
 
         if (i > 3) {
           notOnG2.set(i + rowsOffset, firstLargePointNotOnG2);

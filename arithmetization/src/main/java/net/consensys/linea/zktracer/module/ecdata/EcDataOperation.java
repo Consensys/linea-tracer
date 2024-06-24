@@ -65,6 +65,8 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.crypto.altbn128.AltBn128Fq2Point;
+import org.hyperledger.besu.crypto.altbn128.Fq2;
 
 @Accessors(fluent = true)
 public class EcDataOperation extends ModuleOperation {
@@ -120,9 +122,9 @@ public class EcDataOperation extends ModuleOperation {
   private final int totalPairings;
 
   // TODO: wip
-  private final boolean notOnG2 = false; // counter-constant
-  private final boolean notOnG2Acc = false; // counter-constant
-  private final boolean notOnG2AccMax = false; // index-constant
+  private List<Boolean> notOnG2; // counter-constant
+  private List<Boolean> notOnG2Acc; // counter-constant
+  private boolean notOnG2AccMax; // index-constant
   private List<Boolean> isInfinity; // counter-constant
   private List<Boolean> overallTrivialPairing; // counter-constant
   private final boolean g2MembershipTestRequired = false; // counter-constant
@@ -177,6 +179,8 @@ public class EcDataOperation extends ModuleOperation {
 
     this.isInfinity = repeat(false, this.nRows);
     this.overallTrivialPairing = repeat(true, this.nRows);
+    this.notOnG2 = repeat(false, this.nRows);
+    this.notOnG2Acc = repeat(false, this.nRows);
 
     switch (ecType) {
       case ECRECOVER -> handleRecover();
@@ -480,6 +484,8 @@ public class EcDataOperation extends ModuleOperation {
 
   void handlePairing() {
     boolean atLeastOneLargePointIsNotInfinity = false;
+    boolean atLeastOneLargePointIsNotOnG2 = false;
+    boolean firstLargePointNotOnG2 = false;
 
     for (int accPairings = 1; accPairings <= this.totalPairings; accPairings++) {
       // Extract inputs
@@ -506,19 +512,6 @@ public class EcDataOperation extends ModuleOperation {
       limb.set(10 + rowsOffset, bYRe.hi());
       limb.set(11 + rowsOffset, bYRe.lo());
 
-      boolean isSmallPointInfinity = aX.isZero() && aY.isZero();
-      boolean isLargePointInfinity =
-          bXIm.isZero() && bXRe.isZero() && bYIm.isZero() && bYRe.isZero();
-
-      // Set isInfinity and overallTrivialPairing
-      for (int i = 0; i < 12; i++) {
-        isInfinity.set(i + rowsOffset, i < 4 ? isSmallPointInfinity : isLargePointInfinity);
-        if (!isLargePointInfinity && !atLeastOneLargePointIsNotInfinity) {
-          atLeastOneLargePointIsNotInfinity = true;
-        }
-        overallTrivialPairing.set(i + rowsOffset, atLeastOneLargePointIsNotInfinity);
-      }
-
       // Compute internal checks
       // row i
       boolean c1Membership = callToC1Membership(rowsOffset, aX, aY);
@@ -526,6 +519,38 @@ public class EcDataOperation extends ModuleOperation {
       // row i + 4
       boolean wellFormedCoordinate =
           callToWellFormedCoordinates(4 + rowsOffset, bXIm, bXRe, bYIm, bYRe);
+
+      // Check additional flags
+      boolean isSmallPointInfinity = aX.isZero() && aY.isZero();
+      boolean isLargePointInfinity =
+          bXIm.isZero() && bXRe.isZero() && bYIm.isZero() && bYRe.isZero();
+
+      // Check if the large point is on G2
+      final Fq2 bX = Fq2.create(bXRe.toUnsignedBigInteger(), bXIm.toUnsignedBigInteger());
+      final Fq2 bY = Fq2.create(bYRe.toUnsignedBigInteger(), bYIm.toUnsignedBigInteger());
+      final AltBn128Fq2Point b = new AltBn128Fq2Point(bX, bY);
+      if (!atLeastOneLargePointIsNotOnG2 && (!b.isOnCurve() || !b.isInGroup())) {
+        atLeastOneLargePointIsNotOnG2 = true;
+        firstLargePointNotOnG2 = true;
+        notOnG2AccMax = true;
+      }
+
+      // Set isInfinity, overallTrivialPairing, notOnG2, notOnG2Acc
+      for (int i = 0; i < 12; i++) {
+        isInfinity.set(i + rowsOffset, i < 4 ? isSmallPointInfinity : isLargePointInfinity);
+        if (!isLargePointInfinity && !atLeastOneLargePointIsNotInfinity) {
+          atLeastOneLargePointIsNotInfinity = true;
+        }
+        overallTrivialPairing.set(i + rowsOffset, atLeastOneLargePointIsNotInfinity);
+
+        if (i > 3) {
+          notOnG2.set(i + rowsOffset, firstLargePointNotOnG2);
+        }
+        notOnG2Acc.set(i + rowsOffset, atLeastOneLargePointIsNotOnG2);
+      }
+
+      // Set firstLargePointNotOnG2 back to false
+      firstLargePointNotOnG2 = false;
 
       // Complete set hurdle and internal checks passed
       if (accPairings == 1) {
@@ -546,7 +571,7 @@ public class EcDataOperation extends ModuleOperation {
     // This is after all pairings have been processed
 
     // Compute successBit and set circuitSelectorEcpairing
-    if (!this.internalChecksPassed || this.notOnG2AccMax) {
+    if (!internalChecksPassed || notOnG2AccMax) {
       this.successBit = false;
     } else {
       this.successBit = true; // TODO: Gnark?
@@ -597,9 +622,9 @@ public class EcDataOperation extends ModuleOperation {
               (short) (isSmallPoint ? CT_MAX_SMALL_POINT : (isLargePoint ? CT_MAX_LARGE_POINT : 0)))
           .isSmallPoint(ecType == ECPAIRING && isData && isSmallPoint)
           .isLargePoint(ecType == ECPAIRING && isData && isLargePoint)
-          .notOnG2(false) // TODO
-          .notOnG2Acc(false) // TODO
-          .notOnG2AccMax(false) // TODO
+          .notOnG2(notOnG2Acc.get(i))
+          .notOnG2Acc(notOnG2Acc.get(i))
+          .notOnG2AccMax(notOnG2AccMax)
           .isInfinity(isInfinity.get(i))
           .overallTrivialPairing(overallTrivialPairing.get(i))
           .g2MembershipTestRequired(false) // TODO

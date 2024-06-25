@@ -13,26 +13,20 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.fragment;
+package net.consensys.linea.zktracer.module.hub.fragment.common;
 
-import static net.consensys.linea.zktracer.opcode.OpCode.SSTORE;
+import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC;
 
 import java.math.BigInteger;
 import java.util.function.Supplier;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.HubProcessingPhase;
-import net.consensys.linea.zktracer.module.hub.State;
 import net.consensys.linea.zktracer.module.hub.Trace;
-import net.consensys.linea.zktracer.module.hub.signals.AbortingConditions;
-import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
-import net.consensys.linea.zktracer.module.hub.signals.FailureConditions;
-import net.consensys.linea.zktracer.opcode.InstructionFamily;
+import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.EWord;
@@ -51,41 +45,21 @@ import org.hyperledger.besu.evm.operation.SelfDestructOperation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Accessors(fluent = true, chain = false)
-@Builder
+@RequiredArgsConstructor
 public final class CommonFragment implements TraceFragment {
 
-  private final Hub hub;
-  private final int absoluteTransactionNumber;
-  private final int relativeBlockNumber;
-  private final HubProcessingPhase hubProcessingPhase;
-  private final State.TxState.Stamps stamps;
-  private final InstructionFamily instructionFamily;
-  private final Exceptions exceptions;
-  private final AbortingConditions abortingConditions;
-  private final FailureConditions failureConditions;
-  private final int callFrameId;
-  private final int callerContextNumber;
-  @Getter private final int contextNumber;
-  private final int contextNumberNew;
-  private final int revertStamp;
-  @Getter final short height;
-  @Getter final short heightNew;
-  @Getter private final int pc;
-  @Setter private int pcNew;
-  private int codeDeploymentNumber;
-  private final boolean codeDeploymentStatus;
-  @Setter long gasExpected;
-  @Getter long gasActual;
-  @Setter long gasCost;
-  @Setter long gasNext;
-  @Getter private final long refundDelta;
-  @Setter private long gasRefund;
-  @Getter @Setter private boolean twoLineInstruction;
-  @Getter @Setter private boolean twoLineInstructionCounter;
-  @Getter @Setter private int numberOfNonStackRows;
-  @Getter @Setter private int nonStackRowsCounter;
+  private final CommonFragmentValues commonFragmentValues;
+  private final int nonStackRowsCounter;
+  private final boolean twoLineInstructionCounter;
 
-  public static CommonFragment fromHub(
+  public CommonFragment(
+      CommonFragmentValues commonValues, int stackLineCounter, int nonStackLineCounter) {
+    this.commonFragmentValues = commonValues;
+    this.twoLineInstructionCounter = stackLineCounter == 1;
+    this.nonStackRowsCounter = nonStackLineCounter;
+  }
+
+  /* public static CommonFragment fromHub(
       final Hub hub,
       final CallFrame callFrame,
       boolean counterTli,
@@ -94,7 +68,7 @@ public final class CommonFragment implements TraceFragment {
 
     final boolean noStackException = hub.pch().exceptions().noStackException();
     final long refundDelta =
-        noStackException ? Hub.GAS_PROJECTOR.of(callFrame.frame(), hub.opCode()).refund() : 0;
+        noStackException ? Hub.GfAS_PROJECTOR.of(callFrame.frame(), hub.opCode()).refund() : 0;
 
     // TODO: partial solution, will not work in general
     final long gasExpected = hub.expectedGas();
@@ -159,8 +133,9 @@ public final class CommonFragment implements TraceFragment {
         .numberOfNonStackRows(numberOfNonStackRows)
         .build();
   }
+   */
 
-  private static int computePcNew(
+  static int computePcNew(
       final Hub hub, final int pc, boolean noStackException, boolean hubInExecPhase) {
     OpCode opCode = hub.opCode();
     if (!(noStackException && hubInExecPhase)) {
@@ -196,74 +171,53 @@ public final class CommonFragment implements TraceFragment {
   }
 
   public boolean txReverts() {
-    return hub.txStack()
-        .getByAbsoluteTransactionNumber(this.absoluteTransactionNumber)
-        .statusCode();
+    return commonFragmentValues.txMetadata.statusCode();
   }
 
-  @Override
   public Trace trace(Trace trace) {
-    throw new UnsupportedOperationException("should never be called");
-  }
-
-  public Trace trace(Trace trace, int stackHeight, int stackHeightNew) {
-    final CallFrame frame = this.hub.callStack().getById(this.callFrameId);
-    final TransactionProcessingMetadata tx =
-        hub.txStack().getByAbsoluteTransactionNumber(this.absoluteTransactionNumber);
-    final int codeFragmentIndex =
-        this.hubProcessingPhase == HubProcessingPhase.TX_EXEC
-            ? this.hub.getCfiByMetaData(
-                frame.byteCodeAddress(), frame.codeDeploymentNumber(), frame.isDeployment())
-            : 0;
-    final boolean selfReverts = frame.selfReverts();
-    final boolean getsReverted = frame.getsReverted();
-    final boolean willRevert = frame.willRevert();
-    final boolean contextMayChange =
-        this.hubProcessingPhase == HubProcessingPhase.TX_EXEC
-            && ((instructionFamily == InstructionFamily.CALL
-                    || instructionFamily == InstructionFamily.CREATE
-                    || instructionFamily == InstructionFamily.HALT
-                    || instructionFamily == InstructionFamily.INVALID)
-                || exceptions.any());
+    final CallFrame frame = commonFragmentValues.callFrame;
+    final TransactionProcessingMetadata tx = commonFragmentValues.txMetadata;
 
     return trace
         .absoluteTransactionNumber(tx.getAbsoluteTransactionNumber())
-        .batchNumber(this.relativeBlockNumber)
-        .txSkip(this.hubProcessingPhase == HubProcessingPhase.TX_SKIP)
-        .txWarm(this.hubProcessingPhase == HubProcessingPhase.TX_WARM)
-        .txInit(this.hubProcessingPhase == HubProcessingPhase.TX_INIT)
-        .txExec(this.hubProcessingPhase == HubProcessingPhase.TX_EXEC)
-        .txFinl(this.hubProcessingPhase == HubProcessingPhase.TX_FINAL)
-        .hubStamp(this.stamps.hub())
+        .batchNumber(tx.getRelativeBlockNumber())
+        .txSkip(commonFragmentValues.hubProcessingPhase == HubProcessingPhase.TX_SKIP)
+        .txWarm(commonFragmentValues.hubProcessingPhase == HubProcessingPhase.TX_WARM)
+        .txInit(commonFragmentValues.hubProcessingPhase == HubProcessingPhase.TX_INIT)
+        .txExec(commonFragmentValues.hubProcessingPhase == HubProcessingPhase.TX_EXEC)
+        .txFinl(commonFragmentValues.hubProcessingPhase == HubProcessingPhase.TX_FINAL)
+        .hubStamp(commonFragmentValues.hubStamp)
         .hubStampTransactionEnd(tx.getHubStampTransactionEnd())
-        .contextMayChange(contextMayChange)
-        .exceptionAhoy(exceptions.any())
-        .logInfoStamp(this.stamps.log())
-        .mmuStamp(this.hub.state().stamps().mmu())
-        .mxpStamp(this.hub.state().stamps().mxp())
+        .contextMayChange(commonFragmentValues.contextMayChange)
+        .exceptionAhoy(commonFragmentValues.exceptionAhoy)
+        .logInfoStamp(commonFragmentValues.logStamp)
+        .mmuStamp(commonFragmentValues.stamps.mmu())
+        .mxpStamp(commonFragmentValues.stamps.mxp())
         // nontrivial dom / sub are traced in storage or account fragments only
-        .contextNumber(contextNumber)
-        .contextNumberNew(contextNumberNew)
-        .callerContextNumber(callerContextNumber)
-        .contextWillRevert(willRevert)
-        .contextGetsReverted(getsReverted)
-        .contextSelfReverts(selfReverts)
-        .contextRevertStamp(revertStamp)
-        .codeFragmentIndex(codeFragmentIndex)
-        .programCounter(pc)
-        .programCounterNew(pcNew)
-        .height((short) stackHeight)
-        .heightNew((short) stackHeightNew)
+        .contextNumber(
+            commonFragmentValues.hubProcessingPhase == TX_EXEC ? frame.contextNumber() : 0)
+        .contextNumberNew(commonFragmentValues.contextNumberNew)
+        .callerContextNumber(
+            commonFragmentValues.callStack.getById(frame.parentFrame()).contextNumber())
+        .contextWillRevert(frame.willRevert())
+        .contextGetsReverted(frame.getsReverted())
+        .contextSelfReverts(frame.selfReverts())
+        .contextRevertStamp(commonFragmentValues.cnRevertStamp)
+        .codeFragmentIndex(commonFragmentValues.codeFragmentIndex)
+        .programCounter(commonFragmentValues.pc)
+        .programCounterNew(commonFragmentValues.pcNew)
+        .height(commonFragmentValues.height)
+        .heightNew(commonFragmentValues.heightNew)
         // peeking flags are traced in the respective fragments
-        .gasExpected(gasExpected)
-        .gasActual(gasActual)
-        .gasCost(Bytes.ofUnsignedLong(gasCost))
-        .gasNext(gasNext)
-        .refundCounter(gasRefund)
-        .refundCounterNew(gasRefund + (willRevert ? 0 : refundDelta))
-        .twoLineInstruction(twoLineInstruction)
+        .gasExpected(commonFragmentValues.gasExpected)
+        .gasActual(commonFragmentValues.gasActual)
+        .gasCost(Bytes.ofUnsignedLong(commonFragmentValues.gasCost))
+        .gasNext(commonFragmentValues.gasNext)
+        .refundCounter(commonFragmentValues.gasRefund)
+        .refundCounterNew(commonFragmentValues.gasRefundNew)
+        .twoLineInstruction(commonFragmentValues.TLI)
         .counterTli(twoLineInstructionCounter)
-        .nonStackRows((short) numberOfNonStackRows)
+        .nonStackRows((short) commonFragmentValues.numberOfNonStackRows)
         .counterNsr((short) nonStackRowsCounter);
   }
 
@@ -356,9 +310,5 @@ public final class CommonFragment implements TraceFragment {
         + (storageSlotWarmth
             ? ZkTracer.gasCalculator.getWarmStorageReadCost()
             : ZkTracer.gasCalculator.getColdSloadCost());
-  }
-
-  static long Bull() {
-    return 0x1337;
   }
 }

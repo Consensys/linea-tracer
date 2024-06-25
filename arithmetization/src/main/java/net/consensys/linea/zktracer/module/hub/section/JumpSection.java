@@ -36,8 +36,8 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 public class JumpSection extends TraceSection {
 
   public static void appendToTrace(Hub hub, WorldView worldView) {
-    final JumpSection currentSection = new JumpSection();
-    currentSection.addFragmentsAndStack(hub);
+    final JumpSection currentSection = new JumpSection(hub);
+    currentSection.addFragmentsAndStack(hub); // TODO strange to not give any fragments
 
     if (hub.pch().exceptions().outOfGasException()) {
       return;
@@ -96,7 +96,7 @@ public class JumpSection extends TraceSection {
     // CONTEXT, ACCOUNT, MISCELLANEOUS
     //////////////////////////////////
     currentSection.addFragmentsWithoutStack(
-        hub, contextRowCurrentContext, accountRowCodeAccount, miscellaneousRow);
+        contextRowCurrentContext, accountRowCodeAccount, miscellaneousRow);
 
     // jump destination vetting
     ///////////////////////////
@@ -105,9 +105,12 @@ public class JumpSection extends TraceSection {
     }
   }
 
-  private JumpSection() {}
+  private JumpSection(Hub hub) {
+    super(hub);
+  }
 
   public JumpSection(Hub hub, TraceFragment... chunks) {
+    super(hub);
     this.addFragmentsAndStack(hub, chunks);
   }
 }

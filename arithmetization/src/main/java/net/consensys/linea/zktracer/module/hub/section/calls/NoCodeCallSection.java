@@ -65,6 +65,7 @@ public class NoCodeCallSection extends TraceSection
       AccountSnapshot preCallCalledAccountSnapshot,
       Bytes rawCalledAddress,
       ImcFragment imcFragment) {
+    super(hub);
     this.rawCalledAddress = rawCalledAddress;
     this.precompileInvocation = targetPrecompile;
     this.preCallCallerAccountSnapshot = preCallCallerAccountSnapshot;
@@ -118,8 +119,6 @@ public class NoCodeCallSection extends TraceSection
     this.scenarioFragment.runPostTx(hub, state, tx, isSuccessful);
 
     this.addFragmentsWithoutStack(
-        hub,
-        callerCallFrame,
         this.scenarioFragment,
         this.imcFragment,
         ContextFragment.readCurrentContextData(hub),
@@ -136,8 +135,6 @@ public class NoCodeCallSection extends TraceSection
     if (precompileInvocation.isPresent()) {
       if (this.callSuccessful && callerCallFrame.hasReverted()) {
         this.addFragmentsWithoutStack(
-            hub,
-            callerCallFrame,
             accountFragmentFactory.make(
                 this.postCallCallerAccountSnapshot,
                 this.preCallCallerAccountSnapshot,
@@ -148,19 +145,16 @@ public class NoCodeCallSection extends TraceSection
                 DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 3)));
       }
       this.addFragmentsWithoutStack(
-          hub,
           ScenarioFragment.forPrecompileEpilogue(
               hub, precompileInvocation.get(), callerCallFrame.id(), calledCallFrameId));
       for (TraceFragment f :
           this.maybePrecompileLines.orElseThrow(
               () -> new IllegalStateException("missing precompile lines"))) {
-        this.addFragment(hub, callerCallFrame, f);
+        this.addFragment(f);
       }
     } else {
       if (callerCallFrame.hasReverted()) {
         this.addFragmentsWithoutStack(
-            hub,
-            callerCallFrame,
             accountFragmentFactory.make(
                 this.postCallCallerAccountSnapshot,
                 this.preCallCallerAccountSnapshot,
@@ -170,8 +164,7 @@ public class NoCodeCallSection extends TraceSection
                 this.preCallCalledAccountSnapshot,
                 DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 3)));
       }
-      this.addFragmentsWithoutStack(
-          hub, callerCallFrame, ContextFragment.nonExecutionEmptyReturnData(hub));
+      this.addFragmentsWithoutStack(ContextFragment.nonExecutionEmptyReturnData(hub));
     }
   }
 }

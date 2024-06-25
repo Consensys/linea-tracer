@@ -43,6 +43,7 @@ public class StopSection extends TraceSection {
   }
 
   private StopSection(Hub hub, TraceFragment... fragments) {
+    super(hub);
     this.addFragmentsAndStack(hub, fragments);
   }
 
@@ -80,7 +81,6 @@ public class StopSection extends TraceSection {
     if (hub.currentFrame().willRevert()) {
       // undoing of the above
       stopWhileDeploying.addFragmentsWithoutStack(
-          hub,
           accountFragmentFactory.make(
               afterEmptyDeployment,
               beforeEmptyDeployment,
@@ -88,7 +88,7 @@ public class StopSection extends TraceSection {
           executionProvidesEmptyReturnData(hub));
 
     } else {
-      stopWhileDeploying.addFragmentsWithoutStack(hub, executionProvidesEmptyReturnData(hub));
+      stopWhileDeploying.addFragmentsWithoutStack(executionProvidesEmptyReturnData(hub));
     }
 
     return stopWhileDeploying;

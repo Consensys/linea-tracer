@@ -30,12 +30,10 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Getter
 public class SstoreSection extends TraceSection {
-
-  final Hub hub;
   final WorldView world;
 
   private SstoreSection(Hub hub, WorldView world) {
-    this.hub = hub;
+    super(hub);
     this.world = world;
   }
 
@@ -61,7 +59,7 @@ public class SstoreSection extends TraceSection {
 
     // CONTEXT fragment
     ContextFragment readCurrentContext = ContextFragment.readCurrentContextData(hub);
-    currentSection.addFragmentsAndStack(hub, hub.currentFrame(), readCurrentContext);
+    currentSection.addFragmentsAndStack(hub, readCurrentContext);
 
     if (staticContextException) {
       return;
@@ -69,7 +67,7 @@ public class SstoreSection extends TraceSection {
 
     // MISC fragment
     ImcFragment miscForSstore = ImcFragment.forOpcode(hub, hub.messageFrame());
-    currentSection.addFragment(hub, hub.currentFrame(), miscForSstore);
+    currentSection.addFragment(miscForSstore);
 
     if (sstoreException) {
       return;
@@ -80,14 +78,14 @@ public class SstoreSection extends TraceSection {
         doingSstore(
             hub, address, deploymentNumber, storageKey, valueOriginal, valueCurrent, valueNext);
 
-    currentSection.addFragment(hub, hub.currentFrame(), doingSstore);
+    currentSection.addFragment(doingSstore);
 
     // STORAGE fragment (for undoing)
     if (outOfGasException || contextWillRevert) {
       StorageFragment undoingSstore =
           undoingSstore(
               hub, address, deploymentNumber, storageKey, valueOriginal, valueCurrent, valueNext);
-      currentSection.addFragment(hub, hub.currentFrame(), undoingSstore);
+      currentSection.addFragment(undoingSstore);
     }
   }
 

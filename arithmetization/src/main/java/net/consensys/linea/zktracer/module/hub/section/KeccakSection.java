@@ -28,11 +28,11 @@ public class KeccakSection extends TraceSection {
 
   public static void appendToTrace(Hub hub) {
 
-    final KeccakSection currentSection = new KeccakSection();
+    final KeccakSection currentSection = new KeccakSection(hub);
     hub.addTraceSection(currentSection);
 
     ImcFragment imcFragment = ImcFragment.empty(hub);
-    currentSection.addFragmentsAndStack(hub, hub.currentFrame(), imcFragment);
+    currentSection.addFragmentsAndStack(hub, imcFragment);
 
     MxpCall mxpCall = new MxpCall(hub);
     imcFragment.callMxp(mxpCall);
@@ -57,5 +57,7 @@ public class KeccakSection extends TraceSection {
     }
   }
 
-  private KeccakSection() {}
+  private KeccakSection(Hub hub) {
+    super(hub);
+  }
 }

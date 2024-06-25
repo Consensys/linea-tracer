@@ -29,12 +29,10 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Getter
 public class SloadSection extends TraceSection {
-
-  final Hub hub;
   final WorldView world;
 
   private SloadSection(Hub hub, WorldView world) {
-    this.hub = hub;
+    super(hub);
     this.world = world;
   }
 
@@ -56,8 +54,7 @@ public class SloadSection extends TraceSection {
     StorageFragment doingSload =
         doingSload(hub, address, deploymentNumber, storageKey, valueOriginal, valueCurrent);
 
-    sloadSection.addFragmentsAndStack(
-        hub, hub.currentFrame(), readCurrentContext, miscFragmentForSload, doingSload);
+    sloadSection.addFragmentsAndStack(hub, readCurrentContext, miscFragmentForSload, doingSload);
 
     final boolean outOfGasException = hub.pch().exceptions().outOfGasException();
     final boolean contextWillRevert = hub.callStack().current().willRevert();
@@ -68,7 +65,7 @@ public class SloadSection extends TraceSection {
           undoingSload(hub, address, deploymentNumber, storageKey, valueOriginal, valueCurrent);
 
       // TODO: make sure we trace a context when there is an exception
-      sloadSection.addFragment(hub, hub.currentFrame(), undoingSload);
+      sloadSection.addFragment(undoingSload);
     }
   }
 

@@ -64,6 +64,7 @@ public class StackRam extends TraceSection {
   }
 
   public StackRam(Hub hub, TraceFragment... chunks) {
+    super(hub);
     this.addFragmentsAndStack(hub, chunks);
   }
 }

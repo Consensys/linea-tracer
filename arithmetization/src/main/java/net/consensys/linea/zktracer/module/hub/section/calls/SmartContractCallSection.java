@@ -58,6 +58,7 @@ public class SmartContractCallSection extends TraceSection
       AccountSnapshot preCallCalleeAccountSnapshot,
       Bytes rawCalledAddress,
       ImcFragment imcFragment) {
+    super(hub);
     this.rawCalledAddress = rawCalledAddress;
     this.callerCallFrame = hub.currentFrame();
     this.calledCallFrameId = hub.callStack().futureId();
@@ -131,8 +132,6 @@ public class SmartContractCallSection extends TraceSection
         DomSubStampsSubFragment.standardDomSubStamps(hub, 1);
 
     this.addFragmentsWithoutStack(
-        hub,
-        callerCallFrame,
         this.scenarioFragment,
         ContextFragment.readCurrentContextData(hub),
         this.imcFragment,
@@ -151,8 +150,6 @@ public class SmartContractCallSection extends TraceSection
     // TODO: get the right account snapshots
     if (callerCallFrame.willRevert() && calledCallFrame.selfReverts()) {
       this.addFragmentsWithoutStack(
-          hub,
-          callerCallFrame,
           accountFragmentFactory.make(
               this.inCallCallerAccountSnapshot,
               this.preCallCallerAccountSnapshot,
@@ -172,8 +169,6 @@ public class SmartContractCallSection extends TraceSection
     // TODO: get the right account snapshots
     if (callerCallFrame.willRevert() && !calledCallFrame.selfReverts()) {
       this.addFragmentsWithoutStack(
-          hub,
-          callerCallFrame,
           accountFragmentFactory.make(
               this.inCallCallerAccountSnapshot,
               this.preCallCallerAccountSnapshot,
@@ -190,8 +185,6 @@ public class SmartContractCallSection extends TraceSection
     if (!callerCallFrame.willRevert() && calledCallFrame.selfReverts()) {
       if (calledCallFrame.selfReverts()) {
         this.addFragmentsWithoutStack(
-            hub,
-            callerCallFrame,
             accountFragmentFactory.make(
                 this.inCallCallerAccountSnapshot,
                 this.postCallCallerAccountSnapshot,
@@ -203,7 +196,6 @@ public class SmartContractCallSection extends TraceSection
       }
     }
 
-    this.addFragmentsWithoutStack(
-        hub, callerCallFrame, ContextFragment.enterContext(hub, calledCallFrame));
+    this.addFragmentsWithoutStack(ContextFragment.enterContext(hub, calledCallFrame));
   }
 }

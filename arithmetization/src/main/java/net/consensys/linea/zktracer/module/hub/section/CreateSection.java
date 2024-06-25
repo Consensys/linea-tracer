@@ -76,6 +76,7 @@ public class CreateSection extends TraceSection
 
   public CreateSection(
       Hub hub, AccountSnapshot oldCreatorSnapshot, AccountSnapshot oldCreatedSnapshot) {
+    super(hub);
     this.creatorContextId = hub.currentFrame().id();
     this.opCode = hub.opCode();
     this.emptyInitCode = hub.transients().op().callDataSegment().isEmpty();
@@ -171,24 +172,21 @@ public class CreateSection extends TraceSection
                     0));
 
     this.scenarioFragment.runPostTx(hub, state, tx, isSuccessful);
-    this.addFragmentsWithoutStack(hub, scenarioFragment);
+    this.addFragmentsWithoutStack(scenarioFragment);
     if (this.exceptions.staticException()) {
       this.addFragmentsWithoutStack(
-          hub,
           ImcFragment.empty(hub),
           ContextFragment.readCurrentContextData(hub),
           ContextFragment.executionProvidesEmptyReturnData(hub));
     } else if (this.exceptions.memoryExpansionException()) {
       this.addFragmentsWithoutStack(
-          hub,
           ImcFragment.empty(hub).callMxp(MxpCall.build(hub)),
           ContextFragment.executionProvidesEmptyReturnData(hub));
     } else if (this.exceptions.outOfGasException()) {
       this.addFragmentsWithoutStack(
-          hub, commonImcFragment, ContextFragment.executionProvidesEmptyReturnData(hub));
+          commonImcFragment, ContextFragment.executionProvidesEmptyReturnData(hub));
     } else if (this.aborts.any()) {
       this.addFragmentsWithoutStack(
-          hub,
           commonImcFragment,
           ContextFragment.readCurrentContextData(hub),
           accountFragmentFactory.make(
@@ -199,7 +197,6 @@ public class CreateSection extends TraceSection
     } else if (this.failures.any()) {
       if (creatorWillRevert) {
         this.addFragmentsWithoutStack(
-            hub,
             commonImcFragment,
             accountFragmentFactory.make(
                 oldCreatorSnapshot,
@@ -220,7 +217,6 @@ public class CreateSection extends TraceSection
             ContextFragment.nonExecutionEmptyReturnData(hub));
       } else {
         this.addFragmentsWithoutStack(
-            hub,
             commonImcFragment,
             accountFragmentFactory.make(
                 oldCreatorSnapshot,
@@ -237,7 +233,6 @@ public class CreateSection extends TraceSection
       if (this.emptyInitCode) {
         if (creatorWillRevert) {
           this.addFragmentsWithoutStack(
-              hub,
               commonImcFragment,
               accountFragmentFactory.make(
                   oldCreatorSnapshot,
@@ -258,7 +253,6 @@ public class CreateSection extends TraceSection
               ContextFragment.nonExecutionEmptyReturnData(hub));
         } else {
           this.addFragmentsWithoutStack(
-              hub,
               commonImcFragment,
               accountFragmentFactory.make(
                   oldCreatorSnapshot,
@@ -276,7 +270,6 @@ public class CreateSection extends TraceSection
         if (this.createSuccessful) {
           if (creatorWillRevert) {
             this.addFragmentsWithoutStack(
-                hub,
                 commonImcFragment,
                 accountFragmentFactory.make(
                     oldCreatorSnapshot,
@@ -298,7 +291,6 @@ public class CreateSection extends TraceSection
 
           } else {
             this.addFragmentsWithoutStack(
-                hub,
                 commonImcFragment,
                 accountFragmentFactory.make(
                     oldCreatorSnapshot,
@@ -313,7 +305,6 @@ public class CreateSection extends TraceSection
         } else {
           if (creatorWillRevert) {
             this.addFragmentsWithoutStack(
-                hub,
                 commonImcFragment,
                 accountFragmentFactory.make(
                     oldCreatorSnapshot,
@@ -344,7 +335,6 @@ public class CreateSection extends TraceSection
                 ContextFragment.initializeExecutionContext(hub));
           } else {
             this.addFragmentsWithoutStack(
-                hub,
                 commonImcFragment,
                 accountFragmentFactory.make(
                     oldCreatorSnapshot,

@@ -49,7 +49,7 @@ public class LogSection implements PostTransactionDefer {
 
     if (hub.currentFrame().frame().isStatic()) {
       // static exception
-      sectionPrequel.addFragmentsWithoutStack(hub, finalContextRow);
+      sectionPrequel.addFragmentsWithoutStack(finalContextRow);
     } else {
       logData = Optional.of(new LogInvocation(hub));
       mxpSubFragment = Optional.of(MxpCall.build(hub));
@@ -65,15 +65,16 @@ public class LogSection implements PostTransactionDefer {
       if (mmuTrigger) {
         miscFragment.get().callMmu(MmuCall.LogX(hub, this.logData.get()));
       }
-      this.sectionPrequel.addFragment(hub, logData.get().callFrame, miscFragment.get());
+      this.sectionPrequel.addFragment(miscFragment.get());
       if (mxpX || oogX) {
-        this.sectionPrequel.addFragment(hub, logData.get().callFrame, finalContextRow);
+        this.sectionPrequel.addFragment(finalContextRow);
       }
     }
   }
 
   public static class LogCommonSection extends TraceSection {
     public LogCommonSection(Hub hub, ContextFragment fragment) {
+      super(hub);
       this.addFragmentsAndStack(hub, fragment);
     }
   }

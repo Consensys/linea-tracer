@@ -136,7 +136,8 @@ public class TxSkippedSectionDefers implements PostTransactionDefer {
 
   public class TxSkippedSection extends TraceSection {
     public TxSkippedSection(Hub hub, TraceFragment... fragments) {
-      this.addFragmentsWithoutStack(hub, fragments);
+      super(hub);
+      this.addFragmentsWithoutStack(fragments);
     }
   }
 }

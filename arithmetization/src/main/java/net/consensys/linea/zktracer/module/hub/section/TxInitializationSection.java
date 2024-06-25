@@ -40,7 +40,7 @@ public class TxInitializationSection {
 
     hub.state.setProcessingPhase(TX_INIT);
     hub.state.stamps().incrementHubStamp();
-    TransactionProcessingMetadata tx = hub.txStack().current();
+    final TransactionProcessingMetadata tx = hub.txStack().current();
     final boolean isDeployment = tx.isDeployment();
     final Address toAddress = tx.getEffectiveTo();
     final DeploymentInfo deploymentInfo = hub.transients().conflation().deploymentInfo();
@@ -117,7 +117,8 @@ public class TxInitializationSection {
 
   public class InitializationSection extends TraceSection {
     public InitializationSection(Hub hub, TraceFragment... fragments) {
-      this.addFragmentsWithoutStack(hub, fragments);
+      super(hub);
+      this.addFragmentsWithoutStack(fragments);
     }
   }
 }

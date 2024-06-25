@@ -686,10 +686,13 @@ public class Hub implements Module {
     final boolean unexceptional = exceptions.none();
     final boolean exceptional = exceptions.any();
 
+    // TODO: Might be dangerous : in some cases, we add fragments at the end of the transaction ...
+    // In LogSection it is manually added
+
     // adds the final context row to reset the caller's return data
     if (exceptional) {
       this.currentTraceSection()
-          .addFragmentsWithoutStack(this, ContextFragment.executionProvidesEmptyReturnData(this));
+          .addFragmentsWithoutStack(ContextFragment.executionProvidesEmptyReturnData(this));
     }
 
     // Setting gas cost IN MOST CASES
@@ -699,22 +702,13 @@ public class Hub implements Module {
     //  * make sure this aligns with exception handling of the zkevm
     //  * write a method `final boolean requiresGasCost()` (huge switch case)
     if ((!memoryExpansionException & outOfGasException) || unexceptional) {
-      for (TraceSection.TraceLine line : currentSection.lines()) {
-        line.common().gasCost(gasCost);
-        line.common().gasNext(unexceptional ? line.common().gasActual() - gasCost : 0);
-      }
-
-      // we add a context fragment updating the CALLER CONTEXT's
-      // return data to be empty
-      if (exceptions.any()) {
-        currentSection.addFragment(
-            this, this.currentFrame(), ContextFragment.executionProvidesEmptyReturnData(this));
-      }
+      currentSection.commonValues.gasCost(gasCost);
+      currentSection.commonValues.gasNext(
+          unexceptional ? currentSection.commonValues.gasActual - gasCost : 0);
     } else {
-      for (TraceSection.TraceLine line : currentSection.lines()) {
-        line.common().gasCost(0xdeadbeefL); // TODO: fill with correct values --- likely 0
-        line.common().gasNext(0);
-      }
+      currentSection.commonValues.gasCost(
+          0xdeadbeefL); // TODO: fill with correct values --- likely 0
+      currentSection.commonValues.gasNext(0);
     }
 
     if (this.currentFrame().opCode().isCreate() && operationResult.getHaltReason() == null) {
@@ -952,7 +946,7 @@ public class Hub implements Module {
       return;
     }
 
-    StackContext pending = this.currentFrame().pending();
+    final StackContext pending = this.currentFrame().pending();
     for (int i = 0; i < pending.lines().size(); i++) {
       StackLine line = pending.lines().get(i);
 
@@ -964,20 +958,21 @@ public class Hub implements Module {
         }
 
         // This works because we are certain that the stack chunks are the first.
-        ((StackFragment) section.lines().get(i).specific())
+        ((StackFragment) section.fragments().get(i))
             .stackOps()
             .get(line.resultColumn() - 1)
             .value(result);
       }
     }
 
-    if (this.pch.exceptions().none()) {
-      for (TraceSection.TraceLine line : section.lines()) {
-        if (line.specific() instanceof StackFragment stackFragment) {
-          stackFragment.feedHashedValue(frame);
-        }
-      }
-    }
+    // TODO: this seems useless now
+    // if (this.pch.exceptions().none()) {
+    //  for (TraceSection.TraceLine line : section.fragments()) {
+    //    if (line.specific() instanceof StackFragment stackFragment) {
+    //      stackFragment.feedHashedValue(frame);
+    //    }
+    //  }
+    // }
   }
 
   void processStateExec(MessageFrame frame) {
@@ -1103,8 +1098,7 @@ public class Hub implements Module {
       case ACCOUNT -> {
         TraceSection accountSection = new AccountSection(this);
         if (this.opCode().isAnyOf(OpCode.SELFBALANCE, OpCode.CODESIZE)) {
-          accountSection.addFragment(
-              this, this.currentFrame(), ContextFragment.readCurrentContextData(this));
+          accountSection.addFragment(ContextFragment.readCurrentContextData(this));
         }
 
         final Bytes rawTargetAddress =
@@ -1129,8 +1123,6 @@ public class Hub implements Module {
         final DomSubStampsSubFragment doingDomSubStamps =
             DomSubStampsSubFragment.standardDomSubStamps(this, 0);
         accountSection.addFragment(
-            this,
-            this.currentFrame(),
             this.factories
                 .accountFragment()
                 .makeWithTrm(accountBefore, accountAfter, rawTargetAddress, doingDomSubStamps));
@@ -1139,8 +1131,6 @@ public class Hub implements Module {
           final DomSubStampsSubFragment undoingDomSubStamps =
               DomSubStampsSubFragment.revertWithCurrentDomSubStamps(this, 0);
           accountSection.addFragment(
-              this,
-              this.currentFrame(),
               this.factories
                   .accountFragment()
                   .make(accountBefore, accountAfter, undoingDomSubStamps));
@@ -1180,8 +1170,6 @@ public class Hub implements Module {
           DomSubStampsSubFragment doingDomSubStamps =
               DomSubStampsSubFragment.standardDomSubStamps(this, 0);
           copySection.addFragment(
-              this,
-              this.currentFrame(),
               this.currentFrame().opCode() == OpCode.EXTCODECOPY
                   ? this.factories
                       .accountFragment()
@@ -1195,15 +1183,12 @@ public class Hub implements Module {
             DomSubStampsSubFragment undoingDomSubStamps =
                 DomSubStampsSubFragment.revertWithCurrentDomSubStamps(this, 0);
             copySection.addFragment(
-                this,
-                this.currentFrame(),
                 this.factories
                     .accountFragment()
                     .make(accountAfter, accountBefore, undoingDomSubStamps));
           }
         } else {
-          copySection.addFragment(
-              this, this.currentFrame(), ContextFragment.readCurrentContextData(this));
+          copySection.addFragment(ContextFragment.readCurrentContextData(this));
         }
         this.addTraceSection(copySection);
       }
@@ -1411,8 +1396,7 @@ public class Hub implements Module {
     // In all cases, add a context fragment if an exception occurred
     if (this.pch().exceptions().any()) {
       this.currentTraceSection()
-          .addFragment(
-              this, this.currentFrame(), ContextFragment.executionProvidesEmptyReturnData(this));
+          .addFragment(ContextFragment.executionProvidesEmptyReturnData(this));
     }
   }
 

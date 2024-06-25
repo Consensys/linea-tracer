@@ -64,6 +64,7 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.altbn128.AltBn128Fq2Point;
 import org.hyperledger.besu.crypto.altbn128.Fq2;
@@ -208,6 +209,7 @@ public class EcDataOperation extends ModuleOperation {
 
         // Extract output
         if (internalChecksPassed && returnData.toArray().length == 64) {
+          // TODO: ensure if the check on size is necessary (is 0x a valid output?)
           System.out.println(returnData.toArray().length);
           resX = EWord.of(returnData.slice(0, 32));
           resY = EWord.of(returnData.slice(32, 32));
@@ -226,6 +228,7 @@ public class EcDataOperation extends ModuleOperation {
 
         // Extract output
         if (internalChecksPassed && returnData.toArray().length == 64) {
+          // TODO: ensure if the check on size is necessary (is 0x a valid output?)
           System.out.println(returnData.toArray().length);
           resX = EWord.of(returnData.slice(0, 32));
           resY = EWord.of(returnData.slice(32, 32));
@@ -249,7 +252,8 @@ public class EcDataOperation extends ModuleOperation {
 
         // Set output limb
         if (overallTrivialPairing.get(overallTrivialPairing.size() - 1)) {
-          // TODO: is it necessary to set the result rows explicitly in case of trivial pairing?
+          // TODO: it seems in case of a trivial pairing the returned result is 0, but we want it to
+          // be 1. Double check it
           limb.set(limb.size() - 2, Bytes.of(0));
           limb.set(limb.size() - 1, Bytes.of(1));
         } else {
@@ -321,7 +325,6 @@ public class EcDataOperation extends ModuleOperation {
   }
 
   public static EcDataOperation of(Wcp wcp, Ext ext, int id, final int ecType, Bytes data) {
-
     EcDataOperation ecDataRes = new EcDataOperation(wcp, ext, id, ecType, data);
     switch (ecType) {
       case ECRECOVER -> ecDataRes.handleRecover();
@@ -443,10 +446,10 @@ public class EcDataOperation extends ModuleOperation {
 
     // Compute internal checks
     // row i
-    boolean c1MembershipFirstPoint = callToC1Membership(0, pX, pY);
+    boolean c1MembershipFirstPoint = callToC1Membership(0, pX, pY).getLeft();
 
     // row i + 4
-    boolean c1MembershipSecondPoint = callToC1Membership(4, qX, qY);
+    boolean c1MembershipSecondPoint = callToC1Membership(4, qX, qY).getLeft();
 
     // Complete set hurdle
     hurdle.set(INDEX_MAX_ECRECOVER_DATA, c1MembershipFirstPoint && c1MembershipSecondPoint);
@@ -475,7 +478,7 @@ public class EcDataOperation extends ModuleOperation {
 
     // Compute internal checks
     // row i
-    boolean c1Membership = callToC1Membership(0, pX, pY);
+    boolean c1Membership = callToC1Membership(0, pX, pY).getLeft();
 
     // Complete set hurdle
     hurdle.set(INDEX_MAX_ECRECOVER_DATA, c1Membership);
@@ -520,16 +523,16 @@ public class EcDataOperation extends ModuleOperation {
 
       // Compute internal checks
       // row i
-      boolean c1Membership = callToC1Membership(rowsOffset, aX, aY);
+      Pair<Boolean, Boolean> callToC1MembershipReturnedValues =
+          callToC1Membership(rowsOffset, aX, aY);
+      boolean c1Membership = callToC1MembershipReturnedValues.getLeft();
+      boolean smallPointIsAtInfinity = callToC1MembershipReturnedValues.getRight();
 
       // row i + 4
-      boolean wellFormedCoordinate =
+      Pair<Boolean, Boolean> callToWellFormedCoordinatesReturnedValues =
           callToWellFormedCoordinates(4 + rowsOffset, bXIm, bXRe, bYIm, bYRe);
-
-      // Check additional flags
-      boolean smallPointIsAtInfinity = aX.isZero() && aY.isZero();
-      boolean largePointIsAtInfinity =
-          bXIm.isZero() && bXRe.isZero() && bYIm.isZero() && bYRe.isZero();
+      boolean wellFormedCoordinates = callToWellFormedCoordinatesReturnedValues.getLeft();
+      boolean largePointIsAtInfinity = callToWellFormedCoordinatesReturnedValues.getRight();
 
       // Check if the large point is on G2
       final Fq2 bX = Fq2.create(bXRe.toUnsignedBigInteger(), bXIm.toUnsignedBigInteger());
@@ -542,17 +545,18 @@ public class EcDataOperation extends ModuleOperation {
       }
 
       // Set isInfinity, overallTrivialPairing, notOnG2, notOnG2Acc
-      for (int i = 0; i < 12; i++) {
-        isInfinity.set(i + rowsOffset, i < 4 ? smallPointIsAtInfinity : largePointIsAtInfinity);
+      for (int i = 0; i <= INDEX_MAX_ECPAIRING_DATA_MIN; i++) {
         if (!largePointIsAtInfinity && !atLeastOneLargePointIsNotInfinity) {
           atLeastOneLargePointIsNotInfinity = true;
         }
         overallTrivialPairing.set(i + rowsOffset, !atLeastOneLargePointIsNotInfinity);
 
-        if (i > 3) {
-          notOnG2.set(i + rowsOffset, firstLargePointNotOnG2);
+        if (i > CT_MAX_SMALL_POINT && firstLargePointNotOnG2) {
+          notOnG2.set(i + rowsOffset, true);
+          notOnG2Acc.set(i + rowsOffset, true);
+        } else {
+          notOnG2Acc.set(i + rowsOffset, atLeastOneLargePointIsNotOnG2);
         }
-        notOnG2Acc.set(i + rowsOffset, atLeastOneLargePointIsNotOnG2);
       }
 
       // Set firstLargePointNotOnG2 back to false
@@ -560,16 +564,16 @@ public class EcDataOperation extends ModuleOperation {
 
       // Complete set hurdle and internal checks passed
       if (accPairings == 1) {
-        hurdle.set(INDEX_MAX_ECPAIRING_DATA_MIN, c1Membership && wellFormedCoordinate);
-        internalChecksPassed = c1Membership && wellFormedCoordinate;
+        hurdle.set(INDEX_MAX_ECPAIRING_DATA_MIN, c1Membership && wellFormedCoordinates);
+        internalChecksPassed = c1Membership && wellFormedCoordinates;
       } else {
         boolean prevInternalChecksPassed = internalChecksPassed;
         hurdle.set(
-            INDEX_MAX_ECPAIRING_DATA_MIN - 1 + rowsOffset, c1Membership && wellFormedCoordinate);
+            INDEX_MAX_ECPAIRING_DATA_MIN - 1 + rowsOffset, c1Membership && wellFormedCoordinates);
         hurdle.set(
             INDEX_MAX_ECPAIRING_DATA_MIN + rowsOffset,
-            c1Membership && wellFormedCoordinate && prevInternalChecksPassed);
-        internalChecksPassed = c1Membership && wellFormedCoordinate && prevInternalChecksPassed;
+            c1Membership && wellFormedCoordinates && prevInternalChecksPassed);
+        internalChecksPassed = c1Membership && wellFormedCoordinates && prevInternalChecksPassed;
       }
     }
 
@@ -600,16 +604,23 @@ public class EcDataOperation extends ModuleOperation {
       boolean isData = i < nRowsData;
       // TODO: double check when is necessary to combine with "and" several conditions
       // Turn isSmallPoint on if we are in the first row of a new pairing
-      if (ecType == ECPAIRING && isData && ct == 0 && !isLargePoint) {
+      if (ecType == ECPAIRING && isData && ct == 0 && !isSmallPoint && !isLargePoint) {
         isSmallPoint = true;
         smallPointIsAtInfinity = isInfinity.get(i);
-        largePointIsAtInfinity = isInfinity.get(i + 4);
+        largePointIsAtInfinity = isInfinity.get(i + CT_MAX_SMALL_POINT + 1);
       }
 
       boolean g2MembershipTestRequired =
           !notOnG2AccMax && !largePointIsAtInfinity && smallPointIsAtInfinity;
       boolean acceptablePairOfPointForPairingCircuit =
           !notOnG2AccMax && !largePointIsAtInfinity && !smallPointIsAtInfinity;
+
+      // For debugging
+      if (ecType != ECPAIRING || !isData) {
+        Preconditions.checkArgument(ct == 0);
+      }
+      Preconditions.checkArgument(!(isSmallPoint && isLargePoint));
+      //
 
       trace
           .stamp(stamp)
@@ -634,16 +645,20 @@ public class EcDataOperation extends ModuleOperation {
           .hurdle(hurdle.get(i))
           .byteDelta(
               i < nBYTES_OF_DELTA_BYTES ? UnsignedByte.of(deltaByte.get(i)) : UnsignedByte.of(0))
-          .ct((short) (ecType == ECPAIRING && isData ? ct : 0))
+          .ct((short) ct)
           .ctMax(
               (short) (isSmallPoint ? CT_MAX_SMALL_POINT : (isLargePoint ? CT_MAX_LARGE_POINT : 0)))
-          .isSmallPoint(ecType == ECPAIRING && isData && isSmallPoint)
-          .isLargePoint(ecType == ECPAIRING && isData && isLargePoint)
+          .isSmallPoint(isSmallPoint)
+          .isLargePoint(isLargePoint)
           .notOnG2(notOnG2Acc.get(i))
           .notOnG2Acc(notOnG2Acc.get(i))
           .notOnG2AccMax(notOnG2AccMax)
           .isInfinity(isInfinity.get(i))
-          .overallTrivialPairing(ecType == ECPAIRING && isData && overallTrivialPairing.get(i))
+          .overallTrivialPairing(
+              ecType == ECPAIRING
+                  && isData
+                  && overallTrivialPairing.get(
+                      i)) // Preconditions necessary because default value is true
           .g2MembershipTestRequired(g2MembershipTestRequired)
           .acceptablePairOfPointForPairingCircuit(acceptablePairOfPointForPairingCircuit)
           .circuitSelectorEcrecover(circuitSelectorEcrecover)
@@ -673,11 +688,11 @@ public class EcDataOperation extends ModuleOperation {
       // Update ct, isSmallPoint, isLargePoint
       if (ecType == ECPAIRING && isData) {
         ct++;
-        if (isSmallPoint && ct == CT_MAX_SMALL_POINT) {
+        if (isSmallPoint && ct == CT_MAX_SMALL_POINT + 1) {
           isSmallPoint = false;
           isLargePoint = true;
           ct = 0;
-        } else if (isLargePoint && ct == CT_MAX_LARGE_POINT) {
+        } else if (isLargePoint && ct == CT_MAX_LARGE_POINT + 1) {
           isLargePoint = false;
           ct = 0;
           smallPointIsAtInfinity = false;
@@ -692,12 +707,56 @@ public class EcDataOperation extends ModuleOperation {
     return nRowsData + nRowsResult;
   }
 
-  private boolean callToC1Membership(int k, EWord pX, EWord pY) {
-    return true; // TODO
+  private Pair<Boolean, Boolean> callToC1Membership(int k, EWord pX, EWord pY) {
+    // EXT
+    EWord pYSquare = callExt(k, OpCode.MULMOD, pY, pY, P_BN);
+    EWord pXSquare = callExt(k + 1, OpCode.MULMOD, pX, pX, P_BN);
+    EWord pXCube = callExt(k + 2, OpCode.MULMOD, pXSquare, pX, P_BN);
+    EWord pXCubePlus3 = callExt(k + 3, OpCode.ADDMOD, pXCube, EWord.of(3), P_BN);
+
+    // WCP
+    boolean pXIsInRange = callWcp(k, OpCode.LT, pX, SECP256K1N);
+    boolean pYIsInRange = callWcp(k + 1, OpCode.LT, pY, SECP256K1N);
+    boolean pSatisfiesCubic = callWcp(k + 2, OpCode.EQ, pYSquare, pXCubePlus3);
+
+    // Set hurdle
+    boolean pIsRange = pXIsInRange && pYIsInRange;
+    boolean pIsPointAtInfinity = pIsRange && pX.isZero() && pY.isZero();
+    boolean c1Membership = pIsRange && (pIsPointAtInfinity || pSatisfiesCubic);
+    hurdle.set(k + 1, pIsRange);
+    hurdle.set(k, c1Membership);
+
+    // Set isInfinity
+    for (int i = 0; i <= CT_MAX_SMALL_POINT; i++) {
+      isInfinity.set(i + k, pIsPointAtInfinity);
+    }
+
+    return Pair.of(c1Membership, pIsPointAtInfinity);
   }
 
-  private boolean callToWellFormedCoordinates(
+  private Pair<Boolean, Boolean> callToWellFormedCoordinates(
       int k, EWord bXIm, EWord bXRe, EWord bYIm, EWord bYRe) {
-    return true; // TODO
+    // WCP
+    boolean bXImIsInRange = callWcp(k, OpCode.LT, bXIm, P_BN);
+    boolean bXReIsInRange = callWcp(k + 1, OpCode.LT, bXRe, P_BN);
+    boolean bYImIsInRange = callWcp(k + 2, OpCode.LT, bYIm, P_BN);
+    boolean bYReIsInRange = callWcp(k + 3, OpCode.LT, bYRe, P_BN);
+
+    // Set hurdle
+    boolean bXIsRange = bXImIsInRange && bXReIsInRange;
+    boolean bYIsRange = bYImIsInRange && bYReIsInRange;
+    boolean wellFormedCoordinates = bXIsRange && bYIsRange;
+    boolean bIsPointAtInfinity =
+        wellFormedCoordinates && bXIm.isZero() && bXRe.isZero() && bYIm.isZero() && bYRe.isZero();
+    hurdle.set(k + 2, bXIsRange);
+    hurdle.set(k + 1, bYIsRange);
+    hurdle.set(k, wellFormedCoordinates);
+
+    // Set isInfinity
+    for (int i = 0; i <= CT_MAX_LARGE_POINT; i++) {
+      isInfinity.set(i + k, bIsPointAtInfinity);
+    }
+
+    return Pair.of(wellFormedCoordinates, bIsPointAtInfinity);
   }
 }

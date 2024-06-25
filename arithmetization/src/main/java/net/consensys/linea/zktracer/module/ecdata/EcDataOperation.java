@@ -452,7 +452,7 @@ public class EcDataOperation extends ModuleOperation {
     boolean c1MembershipSecondPoint = callToC1Membership(4, qX, qY).getLeft();
 
     // Complete set hurdle
-    hurdle.set(INDEX_MAX_ECRECOVER_DATA, c1MembershipFirstPoint && c1MembershipSecondPoint);
+    hurdle.set(INDEX_MAX_ECADD_DATA, c1MembershipFirstPoint && c1MembershipSecondPoint);
 
     // Set intenral checks passed
     internalChecksPassed = hurdle.get(INDEX_MAX_ECADD_DATA);
@@ -481,7 +481,7 @@ public class EcDataOperation extends ModuleOperation {
     boolean c1Membership = callToC1Membership(0, pX, pY).getLeft();
 
     // Complete set hurdle
-    hurdle.set(INDEX_MAX_ECRECOVER_DATA, c1Membership);
+    hurdle.set(INDEX_MAX_ECMUL_DATA, c1Membership);
 
     // Set intenral checks passed
     internalChecksPassed = hurdle.get(INDEX_MAX_ECMUL_DATA);
@@ -562,18 +562,20 @@ public class EcDataOperation extends ModuleOperation {
       // Set firstLargePointNotOnG2 back to false
       firstLargePointNotOnG2 = false;
 
-      // Complete set hurdle and internal checks passed
+      // Set hurdle and internal checks passed
       if (accPairings == 1) {
-        hurdle.set(INDEX_MAX_ECPAIRING_DATA_MIN, c1Membership && wellFormedCoordinates);
         internalChecksPassed = c1Membership && wellFormedCoordinates;
+
+        hurdle.set(INDEX_MAX_ECPAIRING_DATA_MIN, internalChecksPassed);
       } else {
         boolean prevInternalChecksPassed = internalChecksPassed;
+        internalChecksPassed = c1Membership && wellFormedCoordinates && prevInternalChecksPassed;
+
         hurdle.set(
             INDEX_MAX_ECPAIRING_DATA_MIN - 1 + rowsOffset, c1Membership && wellFormedCoordinates);
         hurdle.set(
             INDEX_MAX_ECPAIRING_DATA_MIN + rowsOffset,
-            c1Membership && wellFormedCoordinates && prevInternalChecksPassed);
-        internalChecksPassed = c1Membership && wellFormedCoordinates && prevInternalChecksPassed;
+          internalChecksPassed);
       }
     }
 
@@ -715,8 +717,8 @@ public class EcDataOperation extends ModuleOperation {
     EWord pXCubePlus3 = callExt(k + 3, OpCode.ADDMOD, pXCube, EWord.of(3), P_BN);
 
     // WCP
-    boolean pXIsInRange = callWcp(k, OpCode.LT, pX, SECP256K1N);
-    boolean pYIsInRange = callWcp(k + 1, OpCode.LT, pY, SECP256K1N);
+    boolean pXIsInRange = callWcp(k, OpCode.LT, pX, P_BN);
+    boolean pYIsInRange = callWcp(k + 1, OpCode.LT, pY, P_BN);
     boolean pSatisfiesCubic = callWcp(k + 2, OpCode.EQ, pYSquare, pXCubePlus3);
 
     // Set hurdle

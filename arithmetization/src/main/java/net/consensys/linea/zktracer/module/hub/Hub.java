@@ -725,7 +725,8 @@ public class Hub implements Module {
   }
 
   void processStateExec(MessageFrame frame) {
-    if (previousOperationWasCallToEcPrecompile) {
+    // TODO: is the second check necessary?
+    if (previousOperationWasCallToEcPrecompile && this.ecData.getOperations().size() > 0) {
       this.ecData.getEcdDataOperation().setReturnData(frame.getReturnData());
       previousOperationWasCallToEcPrecompile = false;
     }

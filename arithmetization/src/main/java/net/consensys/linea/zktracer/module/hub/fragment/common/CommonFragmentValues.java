@@ -16,7 +16,8 @@
 package net.consensys.linea.zktracer.module.hub.fragment.common;
 
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC;
-import static net.consensys.linea.zktracer.module.hub.fragment.common.CommonFragment.computePcNew;
+
+import java.math.BigInteger;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.HubProcessingPhase;
 import net.consensys.linea.zktracer.module.hub.State;
 import net.consensys.linea.zktracer.opcode.InstructionFamily;
+import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
@@ -70,25 +72,12 @@ public class CommonFragmentValues {
     this.stamps = hub.state().stamps();
     this.callFrame = hub.currentFrame();
     this.exceptionAhoy = hub.pch().exceptions().any();
-    this.contextNumberNew =
-        hub.contextNumberNew(
-            callFrame); // TODO this should be in seal method, looking at CN of following section
+    this.contextNumberNew = hub.contextNumberNew(callFrame);
     this.cnRevertStamp = 0; // TODO
     this.pc = hubProcessingPhase == TX_EXEC ? hub.currentFrame().pc() : 0;
-    this.pcNew =
-        computePcNew(
-            hub,
-            pc,
-            noStackException,
-            hub.state.getProcessingPhase()
-                == TX_EXEC); // TODO this should be in seal method, looking at PC of following
+    this.pcNew = computePcNew(hub, pc, noStackException, hub.state.getProcessingPhase() == TX_EXEC);
     this.height = (short) callFrame.stack().getHeight();
-    this.heightNew =
-        (short)
-            callFrame
-                .stack()
-                .getHeightNew(); // TODO this should be in seal method, looking at height of
-    // following
+    this.heightNew = (short) callFrame.stack().getHeightNew();
     this.refundDelta =
         noStackException ? Hub.GAS_PROJECTOR.of(callFrame.frame(), hub.opCode()).refund() : 0;
 
@@ -103,5 +92,40 @@ public class CommonFragmentValues {
                     || instructionFamily == InstructionFamily.HALT
                     || instructionFamily == InstructionFamily.INVALID)
                 || exceptionAhoy);
+  }
+
+  static int computePcNew(
+      final Hub hub, final int pc, boolean noStackException, boolean hubInExecPhase) {
+    OpCode opCode = hub.opCode();
+    if (!(noStackException && hubInExecPhase)) {
+      return 0;
+    }
+
+    if (opCode.getData().isPush()) {
+      return pc + opCode.byteValue() - OpCode.PUSH1.byteValue() + 2;
+    }
+
+    if (opCode.isJump()) {
+      final BigInteger prospectivePcNew =
+          hub.currentFrame().frame().getStackItem(0).toUnsignedBigInteger();
+      final BigInteger codeSize = BigInteger.valueOf(hub.currentFrame().code().getSize());
+
+      final int attemptedPcNew =
+          codeSize.compareTo(prospectivePcNew) > 0 ? prospectivePcNew.intValueExact() : 0;
+
+      if (opCode.equals(OpCode.JUMP)) {
+        return attemptedPcNew;
+      }
+
+      if (opCode.equals(OpCode.JUMPI)) {
+        BigInteger condition = hub.currentFrame().frame().getStackItem(1).toUnsignedBigInteger();
+        if (!condition.equals(BigInteger.ZERO)) {
+          return attemptedPcNew;
+        }
+      }
+    }
+    ;
+
+    return pc + 1;
   }
 }

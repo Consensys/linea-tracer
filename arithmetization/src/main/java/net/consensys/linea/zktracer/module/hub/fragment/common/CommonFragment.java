@@ -17,7 +17,6 @@ package net.consensys.linea.zktracer.module.hub.fragment.common;
 
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC;
 
-import java.math.BigInteger;
 import java.util.function.Supplier;
 
 import lombok.RequiredArgsConstructor;
@@ -27,7 +26,6 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.HubProcessingPhase;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
-import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
@@ -57,117 +55,6 @@ public final class CommonFragment implements TraceFragment {
     this.commonFragmentValues = commonValues;
     this.twoLineInstructionCounter = stackLineCounter == 1;
     this.nonStackRowsCounter = nonStackLineCounter;
-  }
-
-  /* public static CommonFragment fromHub(
-      final Hub hub,
-      final CallFrame callFrame,
-      boolean counterTli,
-      int counterNsr,
-      int numberOfNonStackRows) {
-
-    final boolean noStackException = hub.pch().exceptions().noStackException();
-    final long refundDelta =
-        noStackException ? Hub.GfAS_PROJECTOR.of(callFrame.frame(), hub.opCode()).refund() : 0;
-
-    // TODO: partial solution, will not work in general
-    final long gasExpected = hub.expectedGas();
-    final long gasActual = hub.remainingGas();
-
-    //    final boolean gasCostComputationIsRequired =
-    //            (hub.state.getProcessingPhase() == HubProcessingPhase.TX_EXEC)
-    //                    & noStackException
-    //                    & (hub.pch().exceptions().outOfGasException() ||
-    // hub.pch().exceptions().none());
-    //    final long gasCost =
-    //            gasCostComputationIsRequired
-    //                    ? CommonFragment.computeGasCost(hub, callFrame.frame().getWorldUpdater())
-    //                    : 0;
-    //
-    //    final long gasNext =
-    //        hub.pch().exceptions().any()
-    //            ? 0
-    //            : Math.max(
-    //                gasActual - gasCost, 0); // TODO: ugly, to fix just to not trace negative
-    // value
-
-    final int height = hub.currentFrame().stack().getHeight();
-    final int heightNew =
-        (noStackException
-            ? height
-                - hub.opCode().getData().stackSettings().delta()
-                + hub.opCode().getData().stackSettings().alpha()
-            : 0);
-    final boolean hubInExecPhase = hub.state.getProcessingPhase() == HubProcessingPhase.TX_EXEC;
-    final int pc = hubInExecPhase ? callFrame.pc() : 0;
-    final int pcNew = computePcNew(hub, pc, noStackException, hubInExecPhase);
-
-    return CommonFragment.builder()
-        .hub(hub)
-        .absoluteTransactionNumber(hub.txStack().current().getAbsoluteTransactionNumber())
-        .relativeBlockNumber(hub.txStack().current().getRelativeBlockNumber())
-        .hubProcessingPhase(hub.state.getProcessingPhase())
-        .stamps(hub.state.stamps().snapshot())
-        .instructionFamily(hub.opCodeData().instructionFamily())
-        .exceptions(hub.pch().exceptions().snapshot())
-        .abortingConditions(hub.pch().abortingConditions().snapshot())
-        .failureConditions(hub.pch().failureConditions().snapshot())
-        .callFrameId(callFrame.id())
-        .contextNumber(hubInExecPhase ? callFrame.contextNumber() : 0)
-        .contextNumberNew(hub.contextNumberNew(callFrame))
-        .pc(pc)
-        .pcNew(pcNew)
-        .height((short) height)
-        .heightNew((short) heightNew)
-        .codeDeploymentNumber(callFrame.codeDeploymentNumber())
-        .codeDeploymentStatus(callFrame.isDeployment())
-        .gasExpected(gasExpected)
-        .gasActual(gasActual)
-        //        .gasCost(gasCost)
-        //        .gasNext(gasNext)
-        .callerContextNumber(hub.callStack().getParentOf(callFrame.id()).contextNumber())
-        .refundDelta(refundDelta)
-        .twoLineInstruction(hub.opCodeData().stackSettings().twoLinesInstruction())
-        .twoLineInstructionCounter(counterTli)
-        .nonStackRowsCounter(counterNsr)
-        .numberOfNonStackRows(numberOfNonStackRows)
-        .build();
-  }
-   */
-
-  static int computePcNew(
-      final Hub hub, final int pc, boolean noStackException, boolean hubInExecPhase) {
-    OpCode opCode = hub.opCode();
-    if (!(noStackException && hubInExecPhase)) {
-      return 0;
-    }
-
-    if (opCode.getData().isPush()) {
-      return pc + opCode.byteValue() - OpCode.PUSH1.byteValue() + 2;
-    }
-
-    if (opCode.isJump()) {
-      final BigInteger prospectivePcNew =
-          hub.currentFrame().frame().getStackItem(0).toUnsignedBigInteger();
-      final BigInteger codeSize = BigInteger.valueOf(hub.currentFrame().code().getSize());
-
-      final int attemptedPcNew =
-          codeSize.compareTo(prospectivePcNew) > 0 ? prospectivePcNew.intValueExact() : 0;
-
-      if (opCode.equals(OpCode.JUMP)) {
-        return attemptedPcNew;
-      }
-
-      if (opCode.equals(OpCode.JUMPI)) {
-        BigInteger condition = hub.currentFrame().frame().getStackItem(1).toUnsignedBigInteger();
-        if (!condition.equals(BigInteger.ZERO)) {
-          return attemptedPcNew;
-        }
-      }
-    }
-    ;
-
-    return pc + 1;
   }
 
   public boolean txReverts() {

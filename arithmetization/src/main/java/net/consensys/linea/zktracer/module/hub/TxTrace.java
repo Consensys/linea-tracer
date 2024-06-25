@@ -68,6 +68,9 @@ public class TxTrace implements PostTransactionDefer {
    */
   public void add(TraceSection section) {
     section.parentTrace(this);
+    if (!this.trace.isEmpty()) {
+      this.trace.getLast().nextSection(section);
+    }
     this.trace.add(section);
   }
 

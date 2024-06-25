@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.hub.section;
 
+import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +26,6 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.DeploymentExceptions;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.HubProcessingPhase;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.TxTrace;
 import net.consensys.linea.zktracer.module.hub.fragment.StackFragment;
@@ -42,58 +43,14 @@ public abstract class TraceSection {
   private final Hub hub;
   public final CommonFragmentValues commonValues;
   @Getter List<TraceFragment> fragments = new ArrayList<>();
-  @Getter private int stackHeight = 0; // To delete
-  @Getter private int stackHeightNew = 0; // To delete
-
-  /** Count the stack lines */
-  @Getter private int stackRowsCounter = 0;
-
-  /** Count the non-stack lines */
-  public int nonStackRowCounter = 0;
-
-  public int numberOfNonStackRows = -1;
   @Getter @Setter private TxTrace parentTrace;
+  @Setter public TraceSection nextSection = null;
 
   /** Default creator for an empty section. */
   public TraceSection(Hub hub) {
     this.hub = hub;
     this.commonValues = new CommonFragmentValues(hub);
   }
-
-  /// **
-  // * A TraceLine stores the information required to generate a trace line.
-  // *
-  // * @param common data required to trace shared columns
-  // * @param specific data required to trace perspective-specific columns
-  // */
-  // public record TraceLine(CommonFragment common, TraceFragment specific) {
-  //  /**
-  //   * Trace the line in the given trace builder.
-  //   *
-  //   * @param trace where to trace the line
-  //   * @return the trace builder
-  //   */
-  //  public Trace trace(Trace trace, int stackInt, int stackHeight) {
-  //    Preconditions.checkNotNull(common);
-  //    Preconditions.checkNotNull(specific);
-  //
-  //    specific.trace(trace); // Warn: need to be called before common.trace to update stamps
-  //    common.trace(trace, stackInt, stackHeight);
-  //
-  //    return trace.fillAndValidateRow();
-  //  }
-  // }
-
-  /// **
-  // * Fill the columns shared by all type of lines.
-  // *
-  // * @return a {@link CommonFragment} representing the shared columns
-  // */
-  // private CommonFragment traceCommon(Hub hub, CallFrame frame) {
-  //  return CommonFragment.fromHub(
-  //      hub, frame, this.stackRowsCounter == 2, this.nonStackRowCounter,
-  // this.numberOfNonStackRows);
-  // }
 
   /**
    * Add a fragment to the section.
@@ -139,17 +96,14 @@ public abstract class TraceSection {
     this.addFragmentsWithoutStack(fragments);
   }
 
-  /**
-   * This method is called when the TraceSection is finished, to build required information
-   * post-hoc.
-   */
+  /** This method is called at commit time, to build required information post-hoc. */
   public void seal() {
     commonValues.numberOfNonStackRows(
         (int) this.fragments.stream().filter(l -> !(l instanceof StackFragment)).count());
     commonValues.TLI(
         (int) this.fragments.stream().filter(l -> (l instanceof StackFragment)).count() == 2);
     commonValues.codeFragmentIndex(
-        this.commonValues.hubProcessingPhase == HubProcessingPhase.TX_EXEC
+        this.commonValues.hubProcessingPhase == TX_EXEC
             ? this.hub.getCfiByMetaData(
                 this.commonValues.callFrame().byteCodeAddress(),
                 this.commonValues.callFrame().codeDeploymentNumber(),
@@ -179,7 +133,7 @@ public abstract class TraceSection {
   }
 
   private List<TraceFragment> makeStackFragments(final Hub hub, CallFrame f) {
-    List<TraceFragment> r = new ArrayList<>(2);
+    final List<TraceFragment> r = new ArrayList<>(2);
     if (f.pending().lines().isEmpty()) {
       for (int i = 0; i < (f.opCodeData().stackSettings().twoLinesInstruction() ? 2 : 1); i++) {
         r.add(

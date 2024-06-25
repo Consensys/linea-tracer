@@ -120,12 +120,14 @@ public class EcDataOperation extends ModuleOperation {
   // pairing-specific
   private final int totalPairings;
 
-  // TODO: wip
   private List<Boolean> notOnG2; // counter-constant
   private List<Boolean> notOnG2Acc; // counter-constant
   private boolean notOnG2AccMax; // index-constant
   private List<Boolean> isInfinity; // counter-constant
   private List<Boolean> overallTrivialPairing; // counter-constant
+
+  // For debugging
+  private boolean returnDataSet = false;
 
   private EcDataOperation(Wcp wcp, Ext ext, int id, int ecType, Bytes data) {
     Preconditions.checkArgument(EC_TYPES.contains(ecType), "invalid EC type");
@@ -216,7 +218,7 @@ public class EcDataOperation extends ModuleOperation {
         }
 
         // Set success bit and output limb
-        successBit = !resX.isZero() && !resY.isZero();
+        successBit = internalChecksPassed;
         limb.set(8, resX.hi());
         limb.set(9, resX.lo());
         limb.set(10, resY.hi());
@@ -235,7 +237,7 @@ public class EcDataOperation extends ModuleOperation {
         }
 
         // Set success bit and output limb
-        successBit = !resX.isZero() && !resY.isZero();
+        successBit = internalChecksPassed;
         limb.set(6, resX.hi());
         limb.set(7, resX.lo());
         limb.set(8, resY.hi());
@@ -260,11 +262,22 @@ public class EcDataOperation extends ModuleOperation {
           limb.set(limb.size() - 2, pairingResult.hi());
           limb.set(limb.size() - 1, pairingResult.lo());
         }
+
+        // Set successBit
+        if (!internalChecksPassed || notOnG2AccMax) {
+          successBit = false;
+        } else {
+          successBit = true;
+        }
       }
     }
+    returnDataSet = true;
   }
 
   private int getTotalSize(int ecType, boolean isData) {
+    ;
+    Preconditions.checkArgument(returnDataSet, "returnData must be set before");
+
     if (isData) {
       return switch (ecType) {
         case ECRECOVER -> TOTAL_SIZE_ECRECOVER_DATA;
@@ -414,6 +427,8 @@ public class EcDataOperation extends ModuleOperation {
     // Set internal checks passed
     internalChecksPassed = hurdle.get(INDEX_MAX_ECRECOVER_DATA);
 
+    // Success bit is set in setReturnData
+
     // Set circuitSelectorEcrecover
     if (internalChecksPassed) {
       circuitSelectorEcrecover = true;
@@ -457,8 +472,9 @@ public class EcDataOperation extends ModuleOperation {
     // Set intenral checks passed
     internalChecksPassed = hurdle.get(INDEX_MAX_ECADD_DATA);
 
-    // Compute successBit and set circuitSelectorEcadd
-    successBit = internalChecksPassed;
+    // Success bit is set in setReturnData
+
+    // set circuitSelectorEcadd
     circuitSelectorEcadd = internalChecksPassed;
   }
 
@@ -486,8 +502,9 @@ public class EcDataOperation extends ModuleOperation {
     // Set intenral checks passed
     internalChecksPassed = hurdle.get(INDEX_MAX_ECMUL_DATA);
 
-    // Compute successBit and set circuitSelectorEcmul
-    successBit = internalChecksPassed;
+    // Success bit is set in setReturnData
+
+    // Set circuitSelectorEcmul
     circuitSelectorEcmul = internalChecksPassed;
   }
 
@@ -573,26 +590,21 @@ public class EcDataOperation extends ModuleOperation {
 
         hurdle.set(
             INDEX_MAX_ECPAIRING_DATA_MIN - 1 + rowsOffset, c1Membership && wellFormedCoordinates);
-        hurdle.set(
-            INDEX_MAX_ECPAIRING_DATA_MIN + rowsOffset,
-          internalChecksPassed);
+        hurdle.set(INDEX_MAX_ECPAIRING_DATA_MIN + rowsOffset, internalChecksPassed);
       }
     }
 
     // This is after all pairings have been processed
 
-    // Compute successBit and set circuitSelectorEcpairing
-    if (!internalChecksPassed || notOnG2AccMax) {
-      successBit = false;
-    } else {
-      successBit = true;
-    }
+    // Success bit is set in setReturnData
 
     // acceptablePairOfPointForPairingCircuit, g2MembershipTestRequired, circuitSelectorEcpairing,
     // circuitSelectorG2Membership are set in the trace method
   }
 
   void trace(Trace trace, final int stamp, final long previousId) {
+    Preconditions.checkArgument(returnDataSet, "returnData must be set before");
+
     final Bytes deltaByte =
         leftPadTo(Bytes.minimalBytes(id - previousId - 1), nBYTES_OF_DELTA_BYTES);
 
@@ -617,12 +629,10 @@ public class EcDataOperation extends ModuleOperation {
       boolean acceptablePairOfPointForPairingCircuit =
           !notOnG2AccMax && !largePointIsAtInfinity && !smallPointIsAtInfinity;
 
-      // For debugging
       if (ecType != ECPAIRING || !isData) {
         Preconditions.checkArgument(ct == 0);
       }
       Preconditions.checkArgument(!(isSmallPoint && isLargePoint));
-      //
 
       trace
           .stamp(stamp)
@@ -660,7 +670,7 @@ public class EcDataOperation extends ModuleOperation {
               ecType == ECPAIRING
                   && isData
                   && overallTrivialPairing.get(
-                      i)) // Preconditions necessary because default value is true
+                      i)) // && of conditions necessary because default value is true
           .g2MembershipTestRequired(g2MembershipTestRequired)
           .acceptablePairOfPointForPairingCircuit(acceptablePairOfPointForPairingCircuit)
           .circuitSelectorEcrecover(circuitSelectorEcrecover)

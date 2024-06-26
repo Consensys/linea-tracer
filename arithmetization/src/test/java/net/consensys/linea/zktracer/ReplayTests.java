@@ -77,4 +77,7 @@ public class ReplayTests {
   void fatMxp() {
     replay("2492975-2492977.json.gz");
   }
+
+  @Test
+  void failRlpAddress() {replay("5995097.json.gz");}
 }

@@ -632,7 +632,6 @@ public class EcDataOperation extends ModuleOperation {
 
     for (int i = 0; i < nRows; i++) {
       boolean isData = i < nRowsData;
-      // TODO: double check when is necessary to combine with "and" several conditions
       // Turn isSmallPoint on if we are in the first row of a new pairing
       if (ecType == ECPAIRING && isData && ct == 0 && !isSmallPoint && !isLargePoint) {
         isSmallPoint = true;
@@ -640,8 +639,17 @@ public class EcDataOperation extends ModuleOperation {
         largePointIsAtInfinity = isInfinity.get(i + CT_MAX_SMALL_POINT + 1);
       }
 
+      boolean notOnG2AccMax =
+          ecType == ECPAIRING
+              && isData
+              && this
+                  .notOnG2AccMax; // && conditions is necessary since we want IS_ECPAIRING_DATA = 1
+
       boolean g2MembershipTestRequired =
-          !notOnG2AccMax && !largePointIsAtInfinity && smallPointIsAtInfinity;
+          notOnG2AccMax
+              ? isLargePoint && !largePointIsAtInfinity && notOnG2.get(i)
+              : isLargePoint && !largePointIsAtInfinity && smallPointIsAtInfinity;
+
       boolean acceptablePairOfPointForPairingCircuit =
           !notOnG2AccMax && !largePointIsAtInfinity && !smallPointIsAtInfinity;
 
@@ -689,7 +697,7 @@ public class EcDataOperation extends ModuleOperation {
               ecType == ECPAIRING
                   && isData
                   && overallTrivialPairing.get(
-                      i)) // && of conditions necessary because default value is true
+                      i)) // && conditions necessary because default value is true
           .g2MembershipTestRequired(g2MembershipTestRequired)
           .acceptablePairOfPointForPairingCircuit(acceptablePairOfPointForPairingCircuit)
           .circuitSelectorEcrecover(circuitSelectorEcrecover)

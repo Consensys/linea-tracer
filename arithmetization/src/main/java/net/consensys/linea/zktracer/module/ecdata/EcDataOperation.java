@@ -510,6 +510,7 @@ public class EcDataOperation extends ModuleOperation {
 
   void handlePairing() {
     boolean atLeastOneLargePointIsNotInfinity = false;
+    boolean firstLargePointNotInfinity = false;
     boolean atLeastOneLargePointIsNotOnG2 = false;
     boolean firstLargePointNotOnG2 = false;
 
@@ -565,16 +566,31 @@ public class EcDataOperation extends ModuleOperation {
       for (int i = 0; i <= INDEX_MAX_ECPAIRING_DATA_MIN; i++) {
         if (!largePointIsAtInfinity && !atLeastOneLargePointIsNotInfinity) {
           atLeastOneLargePointIsNotInfinity = true;
+          firstLargePointNotInfinity = true;
         }
-        overallTrivialPairing.set(i + rowsOffset, !atLeastOneLargePointIsNotInfinity);
 
-        if (i > CT_MAX_SMALL_POINT && firstLargePointNotOnG2) {
-          notOnG2.set(i + rowsOffset, true);
-          notOnG2Acc.set(i + rowsOffset, true);
+        if (firstLargePointNotInfinity) {
+          if (i > CT_MAX_SMALL_POINT) {
+            // Transition should happen at the beginning of large point
+            overallTrivialPairing.set(i + rowsOffset, false);
+          }
+        } else {
+          overallTrivialPairing.set(i + rowsOffset, !atLeastOneLargePointIsNotInfinity);
+        }
+
+        if (firstLargePointNotOnG2) {
+          if (i > CT_MAX_SMALL_POINT) {
+            // Transition should happen at the beginning of large point
+            notOnG2.set(i + rowsOffset, true);
+            notOnG2Acc.set(i + rowsOffset, true);
+          }
         } else {
           notOnG2Acc.set(i + rowsOffset, atLeastOneLargePointIsNotOnG2);
         }
       }
+
+      // Set firstLargePointNotInfinity back to false
+      firstLargePointNotInfinity = false;
 
       // Set firstLargePointNotOnG2 back to false
       firstLargePointNotOnG2 = false;
@@ -652,7 +668,10 @@ public class EcDataOperation extends ModuleOperation {
           .isEcpairingData(ecType == ECPAIRING && isData)
           .isEcpairingResult(ecType == ECPAIRING && !isData)
           .totalPairings(Bytes.ofUnsignedLong(totalPairings))
-          .accPairings(ecType == ECPAIRING && isData ? Bytes.ofUnsignedLong(1 + i) : Bytes.of(0))
+          .accPairings(
+              ecType == ECPAIRING && isData
+                  ? Bytes.ofUnsignedLong(1 + i / (INDEX_MAX_ECPAIRING_DATA_MIN + 1))
+                  : Bytes.of(0))
           .internalChecksPassed(internalChecksPassed)
           .hurdle(hurdle.get(i))
           .byteDelta(
@@ -662,7 +681,7 @@ public class EcDataOperation extends ModuleOperation {
               (short) (isSmallPoint ? CT_MAX_SMALL_POINT : (isLargePoint ? CT_MAX_LARGE_POINT : 0)))
           .isSmallPoint(isSmallPoint)
           .isLargePoint(isLargePoint)
-          .notOnG2(notOnG2Acc.get(i))
+          .notOnG2(notOnG2.get(i))
           .notOnG2Acc(notOnG2Acc.get(i))
           .notOnG2AccMax(notOnG2AccMax)
           .isInfinity(isInfinity.get(i))

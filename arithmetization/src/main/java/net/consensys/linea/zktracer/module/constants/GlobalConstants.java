@@ -25,7 +25,8 @@ import java.math.BigInteger;
  */
 public class GlobalConstants {
   public static final int BLOCKHASH_MAX_HISTORY = 0x100;
-  public static final int EIP_3541_MARKER = 0xef;
+  public static final byte EIP_3541_MARKER = (byte) 0xef;
+  public static final int MAX_CODE_SIZE = 24576;
   public static final BigInteger EMPTY_KECCAK_HI =
       new BigInteger("16434357337474432580558001204043214908");
   public static final BigInteger EMPTY_KECCAK_LO =

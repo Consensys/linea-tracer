@@ -5,10 +5,10 @@ an [existing implementation in Go](https://github.com/Consensys/zk-evm/).
 
 ## Development Setup
 
-### Install Java 17
+### Install Java 21
 
 ```
-brew install openjdk@17
+brew install openjdk@21
 ```
 
 ### Install the Go toolchain
@@ -155,6 +155,19 @@ ______________________________________________________________________
 corset check -T <JSON_FILE> -v zkevm-constraints/zkevm.bin
 ```
 
+## Disable Corset Expansion
+
+Corset expansion means that generated traces are checked as accurately
+as possible.  However, this slows testing down to some extent.  It can
+be easily disabled in IntelliJ:
+   
+   - Go to `Run | Edit Configurations`
+   
+   ![idea_disable_corset_expansion.png](images/idea_disable_corset_expansion.png)
+
+   and add `CORSET_FLAGS=` under `Environment Variables`.  This turns
+   off all expansion modes, including field arithmetic.
+   
 ## Plugins
 
 Plugins are documented [here](PLUGINS.md).

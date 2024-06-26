@@ -84,10 +84,6 @@ public class StpCall implements TraceSubFragment {
     } else {
       stpCall.upfrontGasCost += GasConstants.G_COLD_ACCOUNT_ACCESS.cost();
     }
-    // TODO: in the previous implementation (in Stp.java)
-    //  ``toExists`` was only computed for CALLCODE (which is wrong)
-    //  now it's for both CALL and CALLCODE.
-    //  Check in tests if this is right.
     if (callWouldLeadToAccountCreation) {
       stpCall.upfrontGasCost += GasConstants.G_NEW_ACCOUNT.cost();
     }
@@ -114,13 +110,9 @@ public class StpCall implements TraceSubFragment {
   }
 
   public StpCall stpCallForCreates(Hub hub, long memoryExpansionGas) {
-    // set up hub, memoryExpansionGas, opCode and gasActual;
     StpCall stpCall = new StpCall(hub, memoryExpansionGas);
     MessageFrame frame = hub.messageFrame();
 
-    // TODO: in old Stp.java was given the balance
-    //  rather than the value of the instruction;
-    //  how did it not blow up in tests ?
     stpCall.gas = EWord.ZERO; // irrelevant
     stpCall.value = EWord.of(frame.getStackItem(0));
     stpCall.exists = false; // irrelevant

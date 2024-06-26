@@ -45,7 +45,7 @@ public class Stp implements Module {
   private final Mod mod;
 
   public void call(StpCall stpCall, MessageFrame messageFrame) {
-    this.operations.add(new StpOperation(stpCall, messageFrame));
+    this.operations.add(new StpOperation(stpCall));
   }
 
   @Override
@@ -119,15 +119,7 @@ public class Stp implements Module {
     stpCall.outOfGasException(stpCall.gasActual() < stpCall.upfrontGasCost());
     final Address deploymentAddress = getDeploymentAddress(frame);
     final long gasActual = frame.getRemainingGas();
-    return new StpOperation(
-        this.hub.opCode(),
-        gasActual,
-        upfrontGasCost,
-        gasActual < upfrontGasCost,
-        stpCall.memoryExpansionGas(),
-        frame.getWorldUpdater().get(frame.getContractAddress()).getBalance(),
-        deploymentAddress,
-        Bytes32.leftPad(frame.getStackItem(0)));
+    return new StpOperation( stpCall);
   }
 
   private StpOperation stpOperationForCall(StpCall stpCall) {
@@ -157,18 +149,7 @@ public class Stp implements Module {
       gasPrelim += GasConstants.G_NEW_ACCOUNT.cost();
     }
     final boolean oogx = gasActual < gasPrelim;
-    return new StpOperation(
-        opcode,
-        gasActual,
-        gasPrelim,
-        oogx,
-        gasMxp,
-        frame.getWorldUpdater().get(frame.getContractAddress()).getBalance(),
-        to,
-        value,
-        toExists,
-        toWarm,
-        Bytes32.leftPad(frame.getStackItem(0)));
+    return new StpOperation(stpCall);
   }
 
   static boolean callCanTransferValue(OpCode opCode) {

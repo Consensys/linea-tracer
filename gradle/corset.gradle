@@ -16,7 +16,7 @@ tasks.register('corsetExists') {
     doLast {
         def result = exec{
             ignoreExitValue = true
-            commandLine "corset -V"
+            commandLine "corset", "-V"
         }
         if (result.getExitValue() != 0){
             throw new GradleException('Corset not found, skipping corsetTests')
@@ -25,7 +25,7 @@ tasks.register('corsetExists') {
 }
 
 tasks.register('buildZkevmBin', Exec) {
-    // dependsOn corsetExists
+//    dependsOn corsetExists
     workingDir "${project.rootDir}/zkevm-constraints/"
     commandLine 'make', 'zkevm.bin'
 

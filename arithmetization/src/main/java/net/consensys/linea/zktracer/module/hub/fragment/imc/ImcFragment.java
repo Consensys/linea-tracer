@@ -140,7 +140,7 @@ public class ImcFragment implements TraceFragment {
 
       // TODO: @Olivier get memory expansion gas
       long memoryExpansionGas = 0xdeadbeefL;
-      StpCall stpCall = new StpCall(hub.messageFrame(), memoryExpansionGas);
+      StpCall stpCall = new StpCall(hub, memoryExpansionGas);
 
       r.callStp(stpCall);
 

@@ -228,7 +228,7 @@ public class MmuCall implements TraceSubFragment {
   public static MmuCall LogX(final Hub hub, final LogInvocation logInvocation) {
     return new MmuCall(MMU_INST_RAM_TO_EXO_WITH_PADDING)
         .sourceId(logInvocation.callFrame.contextNumber())
-        .targetId(hub.state.stamps().incrementLogStamp())
+        .targetId(hub.state.stamps().log())
         .sourceOffset(logInvocation.offset)
         .size(logInvocation.size)
         .referenceSize(logInvocation.size)

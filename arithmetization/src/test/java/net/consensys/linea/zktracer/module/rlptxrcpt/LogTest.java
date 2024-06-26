@@ -39,6 +39,9 @@ public class LogTest {
                 .push(33) // size
                 .push(4) // offset
                 .op(OpCode.LOG2)
+                // .push(1)
+                // .push(0)
+                // .op(OpCode.MSTORE)
                 .compile())
         .run();
   }

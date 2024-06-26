@@ -686,9 +686,7 @@ public class Hub implements Module {
     final boolean unexceptional = exceptions.none();
     final boolean exceptional = exceptions.any();
 
-    // TODO: Might be dangerous : in some cases, we add fragments at the end of the transaction ...
-    // In LogSection it is manually added
-
+    /* TODO: Might be dangerous : in some cases, we add fragments at the end of the transaction, we need an other mechanism ... */
     // adds the final context row to reset the caller's return data
     if (exceptional) {
       this.currentTraceSection()

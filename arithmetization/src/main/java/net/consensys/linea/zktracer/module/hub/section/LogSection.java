@@ -30,7 +30,6 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 public class LogSection implements PostTransactionDefer {
 
   final LogCommonSection sectionPrequel;
-  final ContextFragment finalContextRow;
 
   final boolean mxpX;
   final boolean oogX;
@@ -42,15 +41,11 @@ public class LogSection implements PostTransactionDefer {
   public LogSection(Hub hub) {
     this.sectionPrequel = new LogCommonSection(hub, ContextFragment.readCurrentContextData(hub));
     hub.addTraceSection(sectionPrequel);
-    this.finalContextRow = ContextFragment.executionProvidesEmptyReturnData(hub);
 
     this.mxpX = hub.pch().exceptions().memoryExpansionException();
     this.oogX = hub.pch().exceptions().outOfGasException();
 
-    if (hub.currentFrame().frame().isStatic()) {
-      // static exception
-      sectionPrequel.addFragmentsWithoutStack(finalContextRow);
-    } else {
+    if (!hub.currentFrame().frame().isStatic()) {
       logData = Optional.of(new LogInvocation(hub));
       mxpSubFragment = Optional.of(MxpCall.build(hub));
       miscFragment = Optional.of(ImcFragment.empty(hub)); // TODO: .callMxp(mxpSubFragment.get()));
@@ -61,14 +56,15 @@ public class LogSection implements PostTransactionDefer {
   @Override
   public void runPostTx(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
     if (logData.isPresent()) {
+      if (!this.logData.get().reverted()) {
+        hub.state.stamps().incrementLogStamp();
+        this.sectionPrequel.commonValues.logStamp(hub.state.stamps().log());
+      }
       final boolean mmuTrigger = !this.logData.get().reverted() && this.logData.get().size != 0;
       if (mmuTrigger) {
         miscFragment.get().callMmu(MmuCall.LogX(hub, this.logData.get()));
       }
       this.sectionPrequel.addFragment(miscFragment.get());
-      if (mxpX || oogX) {
-        this.sectionPrequel.addFragment(finalContextRow);
-      }
     }
   }
 

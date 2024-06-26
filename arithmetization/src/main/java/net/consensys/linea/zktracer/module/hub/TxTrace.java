@@ -68,8 +68,14 @@ public class TxTrace implements PostTransactionDefer {
    */
   public void add(TraceSection section) {
     section.parentTrace(this);
-    if (!this.trace.isEmpty()) {
-      this.trace.getLast().nextSection(section);
+    // Link the current section with the previous and next one
+    final TraceSection previousSection = this.trace.isEmpty() ? null : this.trace.getLast();
+    if (previousSection != null) {
+      previousSection.nextSection(section);
+      section.previousSection(previousSection);
+    } else {
+      // If this section is the first section of the transaction, set the logStamp
+      section.commonValues.logStamp(section.commonValues.stamps.log());
     }
     this.trace.add(section);
   }

@@ -25,6 +25,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.DeploymentExceptions;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.State;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.signals.AbortingConditions;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
@@ -58,6 +59,7 @@ public final class StackFragment implements TraceFragment {
   @Setter private boolean jumpDestinationVettingRequired;
   @Setter private boolean validJumpDestination;
   private final boolean willRevert;
+  private final State.TxState.Stamps stamps;
 
   private StackFragment(
       final Hub hub,
@@ -128,6 +130,7 @@ public final class StackFragment implements TraceFragment {
     }
 
     this.willRevert = willRevert;
+    this.stamps = hub.state().stamps();
   }
 
   public static StackFragment prepare(

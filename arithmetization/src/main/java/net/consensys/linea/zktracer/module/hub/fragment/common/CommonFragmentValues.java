@@ -40,7 +40,7 @@ public class CommonFragmentValues {
   public final int hubStamp;
   public final CallStack callStack;
   public final State.TxState.Stamps stamps; // for MMU and MXP stamps
-  @Setter public int logStamp; // TODO
+  @Setter public int logStamp = -1;
   @Getter final CallFrame callFrame;
   public final boolean exceptionAhoy;
   public final int contextNumberNew;

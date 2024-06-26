@@ -44,6 +44,9 @@ public abstract class TraceSection {
   public final CommonFragmentValues commonValues;
   @Getter List<TraceFragment> fragments = new ArrayList<>();
   @Getter @Setter private TxTrace parentTrace;
+  /* A link to the previous section */
+  @Setter public TraceSection previousSection = null;
+  /* A link to the next section */
   @Setter public TraceSection nextSection = null;
 
   /** Default creator for an empty section. */
@@ -109,6 +112,11 @@ public abstract class TraceSection {
                 this.commonValues.callFrame().codeDeploymentNumber(),
                 this.commonValues.callFrame().isDeployment())
             : 0);
+
+    /* If the logStamp hasn't been set (either by being first section of the tx, or by the LogSection), set it to the previous section logStamp */
+    if (commonValues.logStamp == -1) {
+      commonValues.logStamp(this.previousSection.commonValues.logStamp);
+    }
   }
 
   public final boolean hasReverted() {

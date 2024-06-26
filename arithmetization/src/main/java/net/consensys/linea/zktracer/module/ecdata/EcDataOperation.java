@@ -275,7 +275,6 @@ public class EcDataOperation extends ModuleOperation {
   }
 
   private int getTotalSize(int ecType, boolean isData) {
-    ;
     Preconditions.checkArgument(returnDataSet, "returnData must be set before");
 
     if (isData) {

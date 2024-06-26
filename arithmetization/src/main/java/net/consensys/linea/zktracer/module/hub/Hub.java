@@ -572,7 +572,7 @@ public class Hub implements Module {
           this.transients.conflation().deploymentInfo().number(codeAddress);
 
       final int callDataOffsetStackArgument =
-          callStack.current().opCode().callHasSixArgument() ? 2 : 3;
+          callStack.current().opCode().callMayNotTransferValue() ? 2 : 3;
 
       final long callDataOffset =
           isDeployment

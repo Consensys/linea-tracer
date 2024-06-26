@@ -27,10 +27,12 @@ import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.StpCall;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.gas.GasConstants;
+import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -42,26 +44,30 @@ public class Stp implements Module {
   private final Wcp wcp;
   private final Mod mod;
 
+  public void call(StpCall stpCall, MessageFrame messageFrame) {
+    this.operations.add(new StpOperation(stpCall, messageFrame));
+  }
+
   @Override
   public String moduleKey() {
     return "STP";
   }
 
-  private final StackedSet<StpChunk> chunks = new StackedSet<>();
+  private final StackedSet<StpOperation> operations = new StackedSet<>();
 
   @Override
   public void enterTransaction() {
-    this.chunks.enter();
+    this.operations.enter();
   }
 
   @Override
   public void popTransaction() {
-    this.chunks.pop();
+    this.operations.pop();
   }
 
   @Override
   public int lineCount() {
-    return this.chunks.lineCount();
+    return this.operations.lineCount();
   }
 
   @Override
@@ -75,47 +81,57 @@ public class Stp implements Module {
 
     switch (opCode) {
       case CREATE, CREATE2 -> {
-        final StpChunk chunk = getCreateData(frame);
-        this.chunks.add(chunk);
-        this.wcp.callLT(longToBytes32(chunk.gasActual()), Bytes32.ZERO);
-        this.wcp.callLT(longToBytes32(chunk.gasActual()), longToBytes32(chunk.gasPrelim()));
-        if (!chunk.oogx()) {
-          this.mod.callDIV(longToBytes32(chunk.getGDiff()), longToBytes32(64L));
+        final StpOperation stpOperation = stpOperationForCreate(frame);
+        StpCall stpCall = stpOperation.stpCall();
+        this.operations.add(stpOperation);
+        this.wcp.callLT(longToBytes32(stpCall.gasActual()), Bytes32.ZERO);
+        this.wcp.callLT(longToBytes32(stpCall.gasActual()), longToBytes32(stpCall.upfrontGasCost()));
+        if (!stpCall.outOfGasException()) {
+          this.mod.callDIV(longToBytes32(stpOperation.getGDiff()), longToBytes32(64L));
         }
       }
       case CALL, CALLCODE, DELEGATECALL, STATICCALL -> {
-        final StpChunk chunk = getCallData(frame);
-        this.chunks.add(chunk);
-        this.wcp.callLT(longToBytes32(chunk.gasActual()), Bytes32.ZERO);
-        if (callCanTransferValue(chunk.opCode())) {
-          this.wcp.callISZERO(Bytes32.leftPad(chunk.value()));
+        final StpOperation stpOperation = stpOperationForCall(frame);
+        StpCall stpCall = stpOperation.stpCall();
+        this.operations.add(stpOperation);
+        this.wcp.callLT(longToBytes32(stpCall.gasActual()), Bytes32.ZERO);
+        if (callCanTransferValue(stpCall.opCode())) {
+          this.wcp.callISZERO(Bytes32.leftPad(stpCall.value()));
         }
-        this.wcp.callLT(longToBytes32(chunk.gasActual()), longToBytes32(chunk.gasPrelim()));
-        if (!chunk.oogx()) {
-          this.mod.callDIV(longToBytes32(chunk.getGDiff()), longToBytes32(64L));
-          this.wcp.callLT(chunk.gas().orElseThrow(), longToBytes32(chunk.get63of64GDiff()));
+        this.wcp.callLT(longToBytes32(stpCall.gasActual()), longToBytes32(stpCall.upfrontGasCost()));
+        if (!stpCall.outOfGasException()) {
+          this.mod.callDIV(longToBytes32(stpOperation.getGDiff()), longToBytes32(64L));
+          this.wcp.callLT(stpCall.gas(), longToBytes32(stpOperation.get63of64GDiff()));
         }
       }
     }
   }
 
-  private StpChunk getCreateData(final MessageFrame frame) {
-    final Address to = getDeploymentAddress(frame);
-    final long gasRemaining = frame.getRemainingGas();
-    final long gasMxp = getGasMxpCreate(frame);
-    final long gasPrelim = GasConstants.G_CREATE.cost() + gasMxp;
-    return new StpChunk(
+  private StpOperation stpOperationForCreate(StpCall stpCall) {
+    Hub hub = stpCall.hub();
+    MessageFrame frame = hub.messageFrame();
+    stpCall.gasActual(frame.getRemainingGas());
+    stpCall.gas(EWord.ZERO);
+    stpCall.value(EWord.of(frame.getWorldUpdater().get(frame.getContractAddress()).getBalance()));
+    stpCall.exists(false); // irrelevant
+    stpCall.warm(false); // irrelevant
+    stpCall.upfrontGasCost(GasConstants.G_CREATE.cost() + stpCall.memoryExpansionGas());
+    stpCall.outOfGasException(stpCall.gasActual() < stpCall.upfrontGasCost());
+    final Address deploymentAddress = getDeploymentAddress(frame);
+    final long gasActual = frame.getRemainingGas();
+    return new StpOperation(
         this.hub.opCode(),
-        gasRemaining,
-        gasPrelim,
-        gasRemaining < gasPrelim,
-        gasMxp,
+        gasActual,
+        upfrontGasCost,
+        gasActual < upfrontGasCost,
+        stpCall.memoryExpansionGas(),
         frame.getWorldUpdater().get(frame.getContractAddress()).getBalance(),
-        to,
+        deploymentAddress,
         Bytes32.leftPad(frame.getStackItem(0)));
   }
 
-  private StpChunk getCallData(final MessageFrame frame) {
+  private StpOperation stpOperationForCall(StpCall stpCall) {
+    MessageFrame frame = stpCall.hub().messageFrame();
     final OpCode opcode = this.hub.opCode();
     final long gasActual = frame.getRemainingGas();
     final Bytes32 value =
@@ -141,7 +157,7 @@ public class Stp implements Module {
       gasPrelim += GasConstants.G_NEW_ACCOUNT.cost();
     }
     final boolean oogx = gasActual < gasPrelim;
-    return new StpChunk(
+    return new StpOperation(
         opcode,
         gasActual,
         gasPrelim,
@@ -213,7 +229,7 @@ public class Stp implements Module {
     final Trace trace = new Trace(buffers);
 
     int stamp = 0;
-    for (StpChunk chunk : chunks) {
+    for (StpOperation chunk : operations) {
       stamp++;
       chunk.trace(trace, stamp);
     }

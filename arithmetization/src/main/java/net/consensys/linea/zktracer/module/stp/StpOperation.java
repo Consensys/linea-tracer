@@ -26,84 +26,68 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
+import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.StpCall;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.gas.GasConstants;
+import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
+import org.hyperledger.besu.evm.frame.MessageFrame;
 
-@RequiredArgsConstructor
 @Accessors(fluent = true)
 @Getter
-public final class StpChunk extends ModuleOperation {
-  private final OpCode opCode;
-  private final Long gasActual;
-  private final Long gasPrelim;
-  private final Boolean oogx;
-  private final Long gasMxp;
-  private final Wei balance;
-  private final Address to;
-  private final Bytes32 value;
-  private final Optional<Boolean> toExists;
-  private final Optional<Boolean> toWarm;
-  private final Optional<Bytes32> gas;
+public final class StpOperation extends ModuleOperation {
+  private final StpCall stpCall;
 
-  // Used by Create's instruction
-  public StpChunk(
-      OpCode opcode,
-      Long gasActual,
-      Long gasPrelim,
-      Boolean oogx,
-      Long gasMxp,
-      Wei balance,
-      Address to,
-      Bytes32 value) {
-    this(
-        opcode,
-        gasActual,
-        gasPrelim,
-        oogx,
-        gasMxp,
-        balance,
-        to,
-        value,
-        Optional.empty(),
-        Optional.empty(),
-        Optional.empty());
+  public StpOperation(StpCall stpCall) {
+    this.stpCall = stpCall;
   }
 
-  // Used by Call's instruction
-  public StpChunk(
-      OpCode opcode,
-      Long gasActual,
-      Long gasPrelim,
-      Boolean oogx,
-      Long gasMxp,
-      Wei balance,
-      Address to,
-      Bytes32 value,
-      Boolean toExists,
-      Boolean toWarm,
-      Bytes32 gas) {
-    this(
-        opcode,
-        gasActual,
-        gasPrelim,
-        oogx,
-        gasMxp,
-        balance,
-        to,
-        value,
-        Optional.of(toExists),
-        Optional.of(toWarm),
-        Optional.of(gas));
+  private boolean isCallType() {
+    return stpCall
+        .opCode()
+        .isAnyOf(OpCode.CALL, OpCode.CALLCODE, OpCode.DELEGATECALL, OpCode.STATICCALL);
+  }
+
+  private boolean callCanTransferValue() {
+    return stpCall.opCode().isAnyOf(OpCode.CALL, OpCode.CALLCODE);
+  }
+
+  private boolean isCall() {
+    return stpCall.opCode() == OpCode.CALL;
+  }
+
+  private boolean isCallCode() {
+    return stpCall.opCode() == OpCode.CALLCODE;
+  }
+
+  private boolean isDelegateCall() {
+    return stpCall.opCode() == OpCode.DELEGATECALL;
+  }
+
+  private boolean isStaticCall() {
+    return stpCall.opCode() == OpCode.STATICCALL;
+  }
+
+  private boolean isCreateType() {
+    return stpCall.opCode().isAnyOf(OpCode.CREATE, OpCode.CREATE2);
+  }
+
+  private boolean isCreate() {
+    return stpCall.opCode() == OpCode.CREATE;
+  }
+
+  private boolean isCreate2() {
+    return stpCall.opCode() == OpCode.CREATE2;
   }
 
   long getGDiff() {
-    Preconditions.checkArgument(!this.oogx());
-    return this.gasActual() - this.gasPrelim();
+    Preconditions.checkArgument(!stpCall.outOfGasException());
+    return stpCall.gasActual() - stpCall.upfrontGasCost();
   }
 
   long getGDiffOver64() {
@@ -115,7 +99,7 @@ public final class StpChunk extends ModuleOperation {
   }
 
   void trace(Trace trace, int stamp) {
-    if (this.opCode().isCreate()) {
+    if (stpCall.opCode().isCreate()) {
       this.traceCreate(trace, stamp);
     } else {
       this.traceCall(trace, stamp);
@@ -124,37 +108,37 @@ public final class StpChunk extends ModuleOperation {
 
   private void traceCreate(Trace trace, int stamp) {
     final int ctMax = this.maxCt();
-    final long gasOopkt = this.oogx() ? 0 : this.get63of64GDiff();
+    final long gasOopkt = stpCall.outOfGasException() ? 0 : this.get63of64GDiff();
 
     for (int ct = 0; ct <= ctMax; ct++) {
       trace
           .stamp(stamp)
           .ct(UnsignedByte.of(ct))
           .ctMax(UnsignedByte.of(ctMax))
-          .instruction(UnsignedByte.of(this.opCode().byteValue()))
-          .isCreate(this.opCode() == OpCode.CREATE)
-          .isCreate2(this.opCode() == OpCode.CREATE2)
-          .isCall(false)
-          .isCallcode(false)
-          .isDelegatecall(false)
-          .isStaticcall(false)
-          .gasHi(Bytes.EMPTY)
-          .gasLo(Bytes.EMPTY)
-          .valHi(this.value().slice(0, 16))
-          .valLo(this.value().slice(16, 16))
-          .exists(false) // TODO document this
-          .warm(false) // TODO document this
-          .outOfGasException(this.oogx())
-          .gasActual(Bytes.ofUnsignedLong(this.gasActual()))
-          .gasMxp(Bytes.ofUnsignedLong(this.gasMxp()))
-          .gasUpfront(Bytes.ofUnsignedLong(this.gasPrelim()))
+          .instruction(UnsignedByte.of(stpCall.opCode().byteValue()))
+          .isCreate(isCreate())
+          .isCreate2(isCreate2())
+          .isCall(isCall())
+          .isCallcode(isCallCode())
+          .isDelegatecall(isDelegateCall())
+          .isStaticcall(isStaticCall())
+          // .gasHi(Bytes.EMPTY)
+          // .gasLo(Bytes.EMPTY)
+          .valHi(stpCall.value().slice(0, 16))
+          .valLo(stpCall.value().slice(16, 16))
+          // .exists(false)
+          // .warm(false)
+          .outOfGasException(stpCall.outOfGasException())
+          .gasActual(Bytes.ofUnsignedLong(stpCall.gasActual()))
+          .gasMxp(Bytes.ofUnsignedLong(stpCall.memoryExpansionGas()))
+          .gasUpfront(Bytes.ofUnsignedLong(stpCall.upfrontGasCost()))
           .gasOutOfPocket(Bytes.ofUnsignedLong(gasOopkt))
-          .gasStipend(Bytes.EMPTY)
+          .gasStipend(Bytes.ofUnsignedLong(stpCall.stipend()))
           .arg1Hi(Bytes.EMPTY);
 
       switch (ct) {
         case 0 -> trace
-            .arg1Lo(Bytes.ofUnsignedLong(this.gasActual()))
+            .arg1Lo(Bytes.ofUnsignedLong(stpCall.gasActual()))
             .arg2Lo(Bytes.EMPTY)
             .exogenousModuleInstruction(UnsignedByte.of(OpCode.LT.byteValue()))
             .resLo(Bytes.EMPTY) // we REQUIRE that the currently available gas is nonnegative
@@ -162,10 +146,10 @@ public final class StpChunk extends ModuleOperation {
             .modFlag(false)
             .validateRow();
         case 1 -> trace
-            .arg1Lo(Bytes.ofUnsignedLong(this.gasActual()))
-            .arg2Lo(Bytes.ofUnsignedLong(this.gasPrelim()))
+            .arg1Lo(Bytes.ofUnsignedLong(stpCall.gasActual()))
+            .arg2Lo(Bytes.ofUnsignedLong(stpCall.upfrontGasCost()))
             .exogenousModuleInstruction(UnsignedByte.of(OpCode.LT.byteValue()))
-            .resLo(Bytes.of(this.oogx() ? 1 : 0))
+            .resLo(Bytes.of(stpCall.outOfGasException() ? 1 : 0))
             .wcpFlag(true)
             .modFlag(false)
             .validateRow();
@@ -184,48 +168,35 @@ public final class StpChunk extends ModuleOperation {
 
   private void traceCall(Trace trace, int stamp) {
     final int ctMax = this.maxCt();
-    final long gasStipend =
-        (!this.oogx() && callCanTransferValue(this.opCode()) && !this.value().isZero())
-            ? GasConstants.G_CALL_STIPEND.cost()
-            : 0;
-    final Bytes gasOopkt =
-        this.oogx()
-            ? Bytes.EMPTY
-            : bigIntegerToBytes(
-                this.gas()
-                    .orElseThrow()
-                    .toUnsignedBigInteger()
-                    .min(BigInteger.valueOf(get63of64GDiff())));
-
     for (int ct = 0; ct <= ctMax; ct++) {
       trace
           .stamp(stamp)
           .ct(UnsignedByte.of(ct))
           .ctMax(UnsignedByte.of(ctMax))
-          .instruction(UnsignedByte.of(this.opCode().byteValue()))
-          .isCreate(false)
-          .isCreate2(false)
-          .isCall(this.opCode() == OpCode.CALL)
-          .isCallcode(this.opCode() == OpCode.CALLCODE)
-          .isDelegatecall(this.opCode() == OpCode.DELEGATECALL)
-          .isStaticcall(this.opCode() == OpCode.STATICCALL)
-          .gasHi(this.gas().orElseThrow().slice(0, 16))
-          .gasLo(this.gas().orElseThrow().slice(16))
-          .valHi(this.value().slice(0, 16))
-          .valLo(this.value().slice(16))
-          .exists(this.toExists().orElseThrow())
-          .warm(this.toWarm().orElseThrow())
-          .outOfGasException(this.oogx())
-          .gasActual(Bytes.ofUnsignedLong(this.gasActual()))
-          .gasMxp(Bytes.ofUnsignedLong(this.gasMxp()))
-          .gasUpfront(Bytes.ofUnsignedLong(this.gasPrelim()))
-          .gasOutOfPocket(gasOopkt)
-          .gasStipend(Bytes.ofUnsignedLong(gasStipend));
+          .instruction(UnsignedByte.of(stpCall.opCode().byteValue()))
+          .isCreate(isCreate())
+          .isCreate2(isCreate2())
+          .isCall(isCall())
+          .isCallcode(isCallCode())
+          .isDelegatecall(isDelegateCall())
+          .isStaticcall(isStaticCall())
+          .gasHi(stpCall.gas().slice(0, 16))
+          .gasLo(stpCall.gas().slice(16))
+          .valHi(stpCall.value().slice(0, 16))
+          .valLo(stpCall.value().slice(16))
+          .exists(stpCall.exists())
+          .warm(stpCall.warm())
+          .outOfGasException(stpCall.outOfGasException())
+          .gasActual(Bytes.ofUnsignedLong(stpCall.gasActual()))
+          .gasMxp(Bytes.ofUnsignedLong(stpCall.memoryExpansionGas()))
+          .gasUpfront(Bytes.ofUnsignedLong(stpCall.upfrontGasCost()))
+          .gasOutOfPocket(Bytes.ofUnsignedLong(stpCall.gasPaidOutOfPocket()))
+          .gasStipend(Bytes.ofUnsignedLong(stpCall.stipend()));
 
       switch (ct) {
         case 0 -> trace
             .arg1Hi(Bytes.EMPTY)
-            .arg1Lo(Bytes.ofUnsignedLong(this.gasActual()))
+            .arg1Lo(Bytes.ofUnsignedLong(stpCall.gasActual()))
             .arg2Lo(Bytes.EMPTY)
             .exogenousModuleInstruction(UnsignedByte.of(OpCode.LT.byteValue()))
             .resLo(Bytes.EMPTY) // we REQUIRE that the currently available gas is nonnegative
@@ -233,20 +204,20 @@ public final class StpChunk extends ModuleOperation {
             .modFlag(false)
             .validateRow();
         case 1 -> trace
-            .arg1Hi(this.value().slice(0, 16))
-            .arg1Lo(this.value().slice(16, 16))
+            .arg1Hi(stpCall.value().slice(0, 16))
+            .arg1Lo(stpCall.value().slice(16, 16))
             .arg2Lo(Bytes.EMPTY)
             .exogenousModuleInstruction(UnsignedByte.of(OpCode.ISZERO.byteValue()))
-            .resLo(Bytes.of(this.value().isZero() ? 1 : 0))
-            .wcpFlag(callCanTransferValue(this.opCode()))
+            .resLo(Bytes.of(stpCall.value().isZero() ? 1 : 0))
+            .wcpFlag(stpCall.opCode().callCanTransferValue())
             .modFlag(false)
             .validateRow();
         case 2 -> trace
             .arg1Hi(Bytes.EMPTY)
-            .arg1Lo(Bytes.ofUnsignedLong(this.gasActual()))
-            .arg2Lo(Bytes.ofUnsignedLong(this.gasPrelim()))
+            .arg1Lo(Bytes.ofUnsignedLong(stpCall.gasActual()))
+            .arg2Lo(Bytes.ofUnsignedLong(stpCall.upfrontGasCost()))
             .exogenousModuleInstruction(UnsignedByte.of(OpCode.LT.byteValue()))
-            .resLo(Bytes.of(this.oogx() ? 1 : 0))
+            .resLo(Bytes.of(stpCall.outOfGasException() ? 1 : 0))
             .wcpFlag(true)
             .modFlag(false)
             .validateRow();
@@ -261,14 +232,13 @@ public final class StpChunk extends ModuleOperation {
             .modFlag(true)
             .validateRow();
         case 4 -> trace
-            .arg1Hi(this.gas().orElseThrow().slice(0, 16))
-            .arg1Lo(this.gas().orElseThrow().slice(16, 16))
+            .arg1Hi(stpCall.gas().slice(0, 16))
+            .arg1Lo(stpCall.gas().slice(16, 16))
             .arg2Lo(Bytes.ofUnsignedLong(getGDiff() - getGDiffOver64()))
             .exogenousModuleInstruction(UnsignedByte.of(OpCode.LT.byteValue()))
             .resLo(
                 Bytes.of(
-                    this.gas()
-                                .orElseThrow()
+                    stpCall.gas()
                                 .toUnsignedBigInteger()
                                 .compareTo(BigInteger.valueOf(get63of64GDiff()))
                             < 0
@@ -283,10 +253,10 @@ public final class StpChunk extends ModuleOperation {
   }
 
   private int maxCt() {
-    if (this.oogx) {
-      return this.opCode.isCreate() ? 1 : 2;
+    if (stpCall.outOfGasException()) {
+      return stpCall.opCode().isCreate() ? 1 : 2;
     } else {
-      return this.opCode.isCreate() ? 2 : 4;
+      return stpCall.opCode().isCreate() ? 2 : 4;
     }
   }
 

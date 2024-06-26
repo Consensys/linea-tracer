@@ -15,8 +15,6 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc;
 
-import static net.consensys.linea.zktracer.module.UtilCalculator.allButOneSixtyFourth;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -140,23 +138,28 @@ public class ImcFragment implements TraceFragment {
       final long stipend = value.isZero() ? 0 : GasConstants.G_CALL_STIPEND.cost();
       final long upfrontCost = Hub.GAS_PROJECTOR.of(hub.messageFrame(), hub.opCode()).total();
 
-      r.callStp(
-          new StpCall(
-              hub.opCode().byteValue(),
-              EWord.of(gas),
-              value,
-              calledAccount.isPresent(),
-              calledAccount
-                  .map(a -> hub.messageFrame().isAddressWarm(a.getAddress()))
-                  .orElse(false),
-              hub.pch().exceptions().outOfGasException(),
-              upfrontCost,
-              Math.max(
-                  Words.unsignedMin(
-                      allButOneSixtyFourth(hub.messageFrame().getRemainingGas() - upfrontCost),
-                      gas),
-                  0),
-              stipend));
+      // TODO: @Olivier get memory expansion gas
+      long memoryExpansionGas = 0xdeadbeefL;
+      StpCall stpCall = new StpCall(hub.messageFrame(), memoryExpansionGas);
+
+      r.callStp(stpCall);
+
+      //              EWord.of(gas),
+      //              value,
+      //              calledAccount.isPresent(),
+      //              calledAccount
+      //                  .map(a -> hub.messageFrame().isAddressWarm(a.getAddress()))
+      //                  .orElse(false),
+      //              hub.pch().exceptions().outOfGasException(),
+      //              upfrontCost,
+      //              Math.max(
+      //                  Words.unsignedMin(
+      //                      allButOneSixtyFourth(hub.messageFrame().getRemainingGas() -
+      // upfrontCost),
+      //                      gas),
+      //                  0),
+      //              stipend)
+      //    );
     }
 
     return r;
@@ -304,7 +307,7 @@ public class ImcFragment implements TraceFragment {
     } else {
       stpIsSet = true;
     }
-    // TODO: this.hub.stp().call(f, this.hub);
+    this.hub.stp().call(f, hub.messageFrame());
     this.moduleCalls.add(f);
     return this;
   }

@@ -99,10 +99,10 @@ public class AddressUtils {
 
   public static Address getDeploymentAddress(final MessageFrame frame) {
     OpCode opcode = OpCode.of(frame.getCurrentOperation().getOpcode());
-    if (!opcode.equals(OpCode.CREATE2) && !opcode.equals(OpCode.CREATE)) {
-      throw new IllegalArgumentException("Must be called only for CREATE/CREATE2 opcode");
+    if (opcode.isAnyOf(OpCode.CREATE, OpCode.CREATE2)) {
+      return opcode.equals(OpCode.CREATE) ? getCreateAddress(frame) : getCreate2Address(frame);
     }
-    return opcode.equals(OpCode.CREATE) ? getCreateAddress(frame) : getCreate2Address(frame);
+    throw new IllegalArgumentException("Must be called only for CREATE/CREATE2 opcode");
   }
 
   public static Address addressFromBytes(final Bytes input) {

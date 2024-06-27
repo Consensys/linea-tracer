@@ -115,9 +115,9 @@ public class TxInitializationSection {
     hub.state.setProcessingPhase(TX_EXEC);
   }
 
-  public class InitializationSection extends TraceSection {
+  public static class InitializationSection extends TraceSection {
     public InitializationSection(Hub hub, TraceFragment... fragments) {
-      super(hub);
+      super(hub, (short) 5);
       this.addFragmentsWithoutStack(fragments);
     }
   }

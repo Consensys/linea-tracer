@@ -226,7 +226,7 @@ public class TxFinalizationPostTxDefer implements PostTransactionDefer {
 
   public class TxFinalizationSection extends TraceSection {
     public TxFinalizationSection(Hub hub, TraceFragment... fragments) {
-      super(hub);
+      super(hub, (short) (txMetadata.statusCode() ? 3 : 4));
       this.addFragmentsWithoutStack(fragments);
     }
   }

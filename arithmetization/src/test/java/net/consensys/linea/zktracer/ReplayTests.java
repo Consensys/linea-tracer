@@ -45,11 +45,39 @@ public class ReplayTests {
 
   public static void replayBulk(String directory) {
     Path dirPath = Paths.get(directory);
+    Path conflatedDirPath = Paths.get(directory, "../conflated");
+    Path replayedDirPath = Paths.get(directory, "../replayed");
+
+    // Create conflated and replayed directories if they do not exist
+    try {
+      if (!Files.exists(conflatedDirPath)) {
+        Files.createDirectory(conflatedDirPath);
+      }
+      if (!Files.exists(replayedDirPath)) {
+        Files.createDirectory(replayedDirPath);
+      }
+    } catch (IOException e) {
+      log.error("Error creating directories {} or {}: {}", conflatedDirPath, replayedDirPath, e.getMessage());
+      throw new RuntimeException(e);
+    }
+
     try (DirectoryStream<Path> stream = Files.newDirectoryStream(dirPath, "*.json.gz")) {
       for (Path entry : stream) {
         String filePath = entry.toString();
         System.out.println("Replaying file: " + filePath);
         replay(filePath);
+
+        // Move the .lt file to conflated directory with .tmp suffix
+        Path ltFilePath = Paths.get(filePath.replace(".json.gz", ".lt"));
+        if (Files.exists(ltFilePath)) {
+          Path targetLtPath = conflatedDirPath.resolve(ltFilePath.getFileName().toString() + ".tmp");
+          Files.move(ltFilePath, targetLtPath);
+          Files.move(targetLtPath, targetLtPath.resolveSibling(targetLtPath.getFileName().toString().replace(".tmp", "")));
+        }
+
+        // Move the .json.gz file to replayed directory
+        Path targetJsonPath = replayedDirPath.resolve(entry.getFileName());
+        Files.move(entry, targetJsonPath);
       }
     } catch (IOException e) {
       log.error("Error reading directory {}: {}", directory, e.getMessage());
@@ -69,6 +97,6 @@ public class ReplayTests {
 
   @Test
   void bulkReplayTest() {
-    replayBulk("src/test/resources/replays2");
+    replayBulk("/home/ubuntu/zkevm-monorepo/prover/integration_test/replays");
   }
 }

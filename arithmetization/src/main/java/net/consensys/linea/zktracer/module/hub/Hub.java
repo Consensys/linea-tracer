@@ -726,7 +726,8 @@ public class Hub implements Module {
   }
 
   void processStateExec(MessageFrame frame) {
-    // TODO: is the second check necessary?
+    // TODO: in some case we invoke ecData with no operation thus the second check
+    // TODO: should this happen at all?
     if (previousOperationWasCallToEcPrecompile && this.ecData.getOperations().size() > 0) {
       this.ecData.getEcdDataOperation().setReturnData(frame.getReturnData());
       previousOperationWasCallToEcPrecompile = false;

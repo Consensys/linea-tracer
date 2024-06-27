@@ -74,7 +74,7 @@ public class EcDataOperation extends ModuleOperation {
   private static final Set<Integer> EC_TYPES = Set.of(ECRECOVER, ECADD, ECMUL, ECPAIRING);
   private static final EWord P_BN = EWord.of(P_BN_HI, P_BN_LO);
   public static final EWord SECP256K1N = EWord.of(SECP256K1N_HI, SECP256K1N_LO);
-  public static final int nBYTES_OF_DELTA_BYTES = 4; // TODO: from Corset ?
+  public static final int nBYTES_OF_DELTA_BYTES = 4;
 
   private final Wcp wcp;
   private final Ext ext;
@@ -211,7 +211,7 @@ public class EcDataOperation extends ModuleOperation {
 
         // Extract output
         if (internalChecksPassed && returnData.toArray().length == 64) {
-          // TODO: ensure if the check on size is necessary (is 0x a valid output?)
+          // TODO: in some cases we get 0x as return data and we set it as 0. Is it correct?
           System.out.println(returnData.toArray().length);
           resX = EWord.of(returnData.slice(0, 32));
           resY = EWord.of(returnData.slice(32, 32));
@@ -230,7 +230,7 @@ public class EcDataOperation extends ModuleOperation {
 
         // Extract output
         if (internalChecksPassed && returnData.toArray().length == 64) {
-          // TODO: ensure if the check on size is necessary (is 0x a valid output?)
+          // TODO: in some cases we get 0x as return data and we set it as 0. Is it correct?
           System.out.println(returnData.toArray().length);
           resX = EWord.of(returnData.slice(0, 32));
           resY = EWord.of(returnData.slice(32, 32));
@@ -253,9 +253,9 @@ public class EcDataOperation extends ModuleOperation {
         }
 
         // Set output limb
-        if (overallTrivialPairing.get(overallTrivialPairing.size() - 1)) {
-          // TODO: it seems in case of a trivial pairing the returned result is 0, but we want it to
-          // be 1. Double check it
+        if (overallTrivialPairing.get(
+            overallTrivialPairing.size() - 1 - (INDEX_MAX_ECPAIRING_RESULT + 1))) {
+          // TODO: if trivial pairing result is 0, but we set it to 1. Is it correct?
           limb.set(limb.size() - 2, Bytes.of(0));
           limb.set(limb.size() - 1, Bytes.of(1));
         } else {
@@ -623,6 +623,7 @@ public class EcDataOperation extends ModuleOperation {
     final Bytes deltaByte =
         leftPadTo(Bytes.minimalBytes(id - previousId - 1), nBYTES_OF_DELTA_BYTES);
 
+    // Part of the columns are computed here
     int ct = 0;
     boolean isSmallPoint = false;
     boolean isLargePoint = false;
@@ -643,12 +644,10 @@ public class EcDataOperation extends ModuleOperation {
               && isData
               && this
                   .notOnG2AccMax; // && conditions is necessary since we want IS_ECPAIRING_DATA = 1
-
       boolean g2MembershipTestRequired =
           notOnG2AccMax
               ? isLargePoint && !largePointIsAtInfinity && notOnG2.get(i)
               : isLargePoint && !largePointIsAtInfinity && smallPointIsAtInfinity;
-
       boolean acceptablePairOfPointForPairingCircuit =
           !notOnG2AccMax && !largePointIsAtInfinity && !smallPointIsAtInfinity;
 

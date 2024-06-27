@@ -101,17 +101,6 @@ public class EcData implements Module {
         this.operations.stream().sorted(Comparator.comparingLong(EcDataOperation::id)).toList();
 
     for (EcDataOperation op : sortedOperations) {
-      /*
-      System.out.println(
-          "(tracing time) previousId: "
-              + Integer.toHexString(op.previousId())
-              + " -> id: "
-              + Integer.toHexString(op.id())
-              + " , byteDelta: "
-              + Arrays.stream(op.byteDelta()).map(b -> Integer.toHexString(b.toInteger())).toList()
-              + " , diff: "
-              + Integer.toHexString(op.id() - op.previousId() - 1));
-       */
       stamp++;
       op.trace(trace, stamp, previousId);
       previousId = op.id();

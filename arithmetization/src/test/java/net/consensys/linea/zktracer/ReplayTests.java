@@ -81,6 +81,11 @@ public class ReplayTests {
   }
 
   @Test
+  void failingMmuModexp() {
+    replay("5995162.json.gz");
+  }
+
+  @Test
   void failRlpAddress() {
     replay("5995097.json.gz");
   }

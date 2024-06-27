@@ -180,13 +180,17 @@ public class EcDataOperation extends ModuleOperation {
     overallTrivialPairing = repeat(true, nRows);
     notOnG2 = repeat(false, nRows);
     notOnG2Acc = repeat(false, nRows);
+  }
 
+  public static EcDataOperation of(Wcp wcp, Ext ext, int id, final int ecType, Bytes data) {
+    EcDataOperation ecDataRes = new EcDataOperation(wcp, ext, id, ecType, data);
     switch (ecType) {
-      case ECRECOVER -> handleRecover();
-      case ECADD -> handleAdd();
-      case ECMUL -> handleMul();
-      case ECPAIRING -> handlePairing();
+      case ECRECOVER -> ecDataRes.handleRecover();
+      case ECADD -> ecDataRes.handleAdd();
+      case ECMUL -> ecDataRes.handleMul();
+      case ECPAIRING -> ecDataRes.handlePairing();
     }
+    return ecDataRes;
   }
 
   public void setReturnData(Bytes returnData) {
@@ -209,6 +213,10 @@ public class EcDataOperation extends ModuleOperation {
         EWord resX = EWord.ZERO;
         EWord resY = EWord.ZERO;
 
+        if (internalChecksPassed && returnData.toArray().length < 64) {
+          System.out.println(limb);
+        }
+
         // Extract output
         if (internalChecksPassed && returnData.toArray().length == 64) {
           // TODO: in some cases we get 0x as return data and we set it as 0. Is it correct?
@@ -227,6 +235,10 @@ public class EcDataOperation extends ModuleOperation {
       case ECMUL -> {
         EWord resX = EWord.ZERO;
         EWord resY = EWord.ZERO;
+
+        if (internalChecksPassed && returnData.toArray().length < 64) {
+          System.out.println(limb);
+        }
 
         // Extract output
         if (internalChecksPassed && returnData.toArray().length == 64) {
@@ -334,17 +346,6 @@ public class EcDataOperation extends ModuleOperation {
         default -> throw new IllegalArgumentException("invalid EC type");
       };
     }
-  }
-
-  public static EcDataOperation of(Wcp wcp, Ext ext, int id, final int ecType, Bytes data) {
-    EcDataOperation ecDataRes = new EcDataOperation(wcp, ext, id, ecType, data);
-    switch (ecType) {
-      case ECRECOVER -> ecDataRes.handleRecover();
-      case ECADD -> ecDataRes.handleAdd();
-      case ECMUL -> ecDataRes.handleMul();
-      case ECPAIRING -> ecDataRes.handlePairing();
-    }
-    return ecDataRes;
   }
 
   private boolean callWcp(int i, OpCode wcpInst, EWord arg1, EWord arg2) {

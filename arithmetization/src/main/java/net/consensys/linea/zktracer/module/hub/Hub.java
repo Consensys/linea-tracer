@@ -726,8 +726,7 @@ public class Hub implements Module {
   }
 
   void processStateExec(MessageFrame frame) {
-    // TODO: in some case we invoke ecData with no operation thus the second check
-    // TODO: should this happen at all?
+    // Note: in some cases there is no operation since ECPAIRING arguments are invalid
     if (previousOperationWasCallToEcPrecompile && this.ecData.getOperations().size() > 0) {
       this.ecData.getEcdDataOperation().setReturnData(frame.getReturnData());
       previousOperationWasCallToEcPrecompile = false;

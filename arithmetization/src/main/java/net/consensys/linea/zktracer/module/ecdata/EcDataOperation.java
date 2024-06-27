@@ -213,13 +213,9 @@ public class EcDataOperation extends ModuleOperation {
         EWord resX = EWord.ZERO;
         EWord resY = EWord.ZERO;
 
-        if (internalChecksPassed && returnData.toArray().length < 64) {
-          System.out.println(limb);
-        }
-
         // Extract output
-        if (internalChecksPassed && returnData.toArray().length == 64) {
-          // TODO: in some cases we get 0x as return data and we set it as 0. Is it correct?
+        if (internalChecksPassed && returnData.toArray().length != 0) {
+          Preconditions.checkArgument(returnData.toArray().length == 64);
           System.out.println(returnData.toArray().length);
           resX = EWord.of(returnData.slice(0, 32));
           resY = EWord.of(returnData.slice(32, 32));
@@ -236,13 +232,9 @@ public class EcDataOperation extends ModuleOperation {
         EWord resX = EWord.ZERO;
         EWord resY = EWord.ZERO;
 
-        if (internalChecksPassed && returnData.toArray().length < 64) {
-          System.out.println(limb);
-        }
-
         // Extract output
-        if (internalChecksPassed && returnData.toArray().length == 64) {
-          // TODO: in some cases we get 0x as return data and we set it as 0. Is it correct?
+        if (internalChecksPassed && returnData.toArray().length != 0) {
+          Preconditions.checkArgument(returnData.toArray().length == 64);
           System.out.println(returnData.toArray().length);
           resX = EWord.of(returnData.slice(0, 32));
           resY = EWord.of(returnData.slice(32, 32));
@@ -265,15 +257,8 @@ public class EcDataOperation extends ModuleOperation {
         }
 
         // Set output limb
-        if (overallTrivialPairing.get(
-            overallTrivialPairing.size() - 1 - (INDEX_MAX_ECPAIRING_RESULT + 1))) {
-          // TODO: if trivial pairing result is 0, but we set it to 1. Is it correct?
-          limb.set(limb.size() - 2, Bytes.of(0));
-          limb.set(limb.size() - 1, Bytes.of(1));
-        } else {
-          limb.set(limb.size() - 2, pairingResult.hi());
-          limb.set(limb.size() - 1, pairingResult.lo());
-        }
+        limb.set(limb.size() - 2, pairingResult.hi());
+        limb.set(limb.size() - 1, pairingResult.lo());
 
         // Set successBit
         if (!internalChecksPassed || notOnG2AccMax) {

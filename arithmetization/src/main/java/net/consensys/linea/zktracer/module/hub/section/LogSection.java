@@ -15,8 +15,6 @@
 
 package net.consensys.linea.zktracer.module.hub.section;
 
-import java.util.Optional;
-
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
@@ -29,48 +27,58 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class LogSection implements PostTransactionDefer {
 
-  final LogCommonSection sectionPrequel;
+  LogCommonSection sectionPrequel;
+
+  final boolean isStatic;
 
   final boolean mxpX;
   final boolean oogX;
 
-  Optional<ImcFragment> miscFragment = Optional.empty();
-  Optional<MxpCall> mxpSubFragment = Optional.empty();
-  Optional<LogInvocation> logData = Optional.empty();
+  ImcFragment miscFragment;
+  MxpCall mxpSubFragment;
+  LogInvocation logData;
 
   public LogSection(Hub hub) {
-    this.sectionPrequel = new LogCommonSection(hub, ContextFragment.readCurrentContextData(hub));
-    hub.addTraceSection(sectionPrequel);
-
     this.mxpX = hub.pch().exceptions().memoryExpansionException();
     this.oogX = hub.pch().exceptions().outOfGasException();
 
-    if (!hub.currentFrame().frame().isStatic()) {
-      logData = Optional.of(new LogInvocation(hub));
-      mxpSubFragment = Optional.of(MxpCall.build(hub));
-      miscFragment = Optional.of(ImcFragment.empty(hub)); // TODO: .callMxp(mxpSubFragment.get()));
-      hub.defers().postTx(this);
+    // Static Case
+    if (hub.currentFrame().frame().isStatic()) {
+      isStatic = true;
+      hub.addTraceSection(
+          new LogCommonSection(hub, (short) 4, ContextFragment.readCurrentContextData(hub)));
+      return;
     }
+
+    // General Case
+    isStatic = false;
+    this.sectionPrequel =
+        new LogCommonSection(hub, (short) 5, ContextFragment.readCurrentContextData(hub));
+    hub.addTraceSection(sectionPrequel);
+    logData = new LogInvocation(hub);
+    mxpSubFragment = MxpCall.build(hub);
+    miscFragment = ImcFragment.empty(hub); // TODO: .callMxp(mxpSubFragment.get()));
+    hub.defers().postTx(this);
   }
 
   @Override
   public void runPostTx(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
-    if (logData.isPresent()) {
-      if (!this.logData.get().reverted()) {
+    if (!isStatic) {
+      if (!this.logData.reverted()) {
         hub.state.stamps().incrementLogStamp();
         this.sectionPrequel.commonValues.logStamp(hub.state.stamps().log());
       }
-      final boolean mmuTrigger = !this.logData.get().reverted() && this.logData.get().size != 0;
+      final boolean mmuTrigger = !this.logData.reverted() && this.logData.size != 0;
       if (mmuTrigger) {
-        miscFragment.get().callMmu(MmuCall.LogX(hub, this.logData.get()));
+        miscFragment.callMmu(MmuCall.LogX(hub, this.logData));
       }
-      this.sectionPrequel.addFragment(miscFragment.get());
+      this.sectionPrequel.addFragment(miscFragment);
     }
   }
 
   public static class LogCommonSection extends TraceSection {
-    public LogCommonSection(Hub hub, ContextFragment fragment) {
-      super(hub);
+    public LogCommonSection(Hub hub, short maxNbOfRows, ContextFragment fragment) {
+      super(hub, maxNbOfRows);
       this.addFragmentsAndStack(hub, fragment);
     }
   }

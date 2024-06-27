@@ -42,17 +42,27 @@ import org.hyperledger.besu.evm.internal.Words;
 public abstract class TraceSection {
   private final Hub hub;
   public final CommonFragmentValues commonValues;
-  @Getter List<TraceFragment> fragments = new ArrayList<>();
+  @Getter List<TraceFragment> fragments;
   @Getter @Setter private TxTrace parentTrace;
   /* A link to the previous section */
   @Setter public TraceSection previousSection = null;
   /* A link to the next section */
   @Setter public TraceSection nextSection = null;
 
-  /** Default creator for an empty section. */
+  /** Default creator for an empty section. Prefer the creator where we specify the max nb o rows */
   public TraceSection(Hub hub) {
     this.hub = hub;
     this.commonValues = new CommonFragmentValues(hub);
+    this.fragments =
+        new ArrayList<>(
+            22); // 22 is the maximum number of lines in a section (Successfull reverted Modexp)
+  }
+
+  /** Default creator specifying the max number of rows the section can contain. */
+  public TraceSection(final Hub hub, final short maxNbOfLines) {
+    this.hub = hub;
+    this.commonValues = new CommonFragmentValues(hub);
+    this.fragments = new ArrayList<>(maxNbOfLines);
   }
 
   /**

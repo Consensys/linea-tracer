@@ -71,12 +71,10 @@ import static net.consensys.linea.zktracer.types.AddressUtils.getDeploymentAddre
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBoolean;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBigInteger;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToInt;
-import static net.consensys.linea.zktracer.types.Conversions.lowPart;
 
 import java.math.BigInteger;
 import java.math.RoundingMode;
 
-import com.google.common.base.Preconditions;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -613,12 +611,15 @@ public class OobOperation extends ModuleOperation {
   // Constraint systems for populating lookups
   private void callToADD(
       int k, BigInteger arg1Hi, BigInteger arg1Lo, BigInteger arg2Hi, BigInteger arg2Lo) {
-    Preconditions.checkArgument(arg1Hi.toByteArray().length <= 16);
-    Preconditions.checkArgument(arg1Lo.toByteArray().length <= 16);
-    Preconditions.checkArgument(arg2Hi.toByteArray().length <= 16);
-    Preconditions.checkArgument(arg2Lo.toByteArray().length <= 16);
-    final EWord arg1 = EWord.of(arg1Hi, arg1Lo);
-    final EWord arg2 = EWord.of(arg2Hi, arg2Lo);
+    // TODO: reactivate preconditions and remove conditional initialization
+    // Preconditions.checkArgument(arg1Hi.toByteArray().length <= 16);
+    // Preconditions.checkArgument(arg1Lo.toByteArray().length <= 16);
+    // Preconditions.checkArgument(arg2Hi.toByteArray().length <= 16);
+    // Preconditions.checkArgument(arg2Lo.toByteArray().length <= 16);
+    final EWord arg1 =
+        arg1Lo.toByteArray().length <= 16 ? EWord.of(arg1Hi, arg1Lo) : EWord.of(arg1Lo);
+    final EWord arg2 =
+        arg2Lo.toByteArray().length <= 16 ? EWord.of(arg2Hi, arg2Lo) : EWord.of(arg2Lo);
     addFlag[k] = true;
     modFlag[k] = false;
     wcpFlag[k] = false;
@@ -636,12 +637,15 @@ public class OobOperation extends ModuleOperation {
 
   private BigInteger callToDIV(
       int k, BigInteger arg1Hi, BigInteger arg1Lo, BigInteger arg2Hi, BigInteger arg2Lo) {
-    Preconditions.checkArgument(arg1Hi.toByteArray().length <= 16);
-    Preconditions.checkArgument(arg1Lo.toByteArray().length <= 16);
-    Preconditions.checkArgument(arg2Hi.toByteArray().length <= 16);
-    Preconditions.checkArgument(arg2Lo.toByteArray().length <= 16);
-    final EWord arg1 = EWord.of(arg1Hi, arg1Lo);
-    final EWord arg2 = EWord.of(arg2Hi, arg2Lo);
+    // TODO: reactivate preconditions and remove conditional initialization
+    // Preconditions.checkArgument(arg1Hi.toByteArray().length <= 16);
+    // Preconditions.checkArgument(arg1Lo.toByteArray().length <= 16);
+    // Preconditions.checkArgument(arg2Hi.toByteArray().length <= 16);
+    // Preconditions.checkArgument(arg2Lo.toByteArray().length <= 16);
+    final EWord arg1 =
+        arg1Lo.toByteArray().length <= 16 ? EWord.of(arg1Hi, arg1Lo) : EWord.of(arg1Lo);
+    final EWord arg2 =
+        arg2Lo.toByteArray().length <= 16 ? EWord.of(arg2Hi, arg2Lo) : EWord.of(arg2Lo);
     addFlag[k] = false;
     modFlag[k] = true;
     wcpFlag[k] = false;
@@ -656,12 +660,15 @@ public class OobOperation extends ModuleOperation {
 
   private BigInteger callToMOD(
       int k, BigInteger arg1Hi, BigInteger arg1Lo, BigInteger arg2Hi, BigInteger arg2Lo) {
-    Preconditions.checkArgument(arg1Hi.toByteArray().length <= 16);
-    Preconditions.checkArgument(arg1Lo.toByteArray().length <= 16);
-    Preconditions.checkArgument(arg2Hi.toByteArray().length <= 16);
-    Preconditions.checkArgument(arg2Lo.toByteArray().length <= 16);
-    final EWord arg1 = EWord.of(arg1Hi, arg1Lo);
-    final EWord arg2 = EWord.of(arg2Hi, arg2Lo);
+    // TODO: reactivate preconditions and remove conditional initialization
+    // Preconditions.checkArgument(arg1Hi.toByteArray().length <= 16);
+    // Preconditions.checkArgument(arg1Lo.toByteArray().length <= 16);
+    // Preconditions.checkArgument(arg2Hi.toByteArray().length <= 16);
+    // Preconditions.checkArgument(arg2Lo.toByteArray().length <= 16);
+    final EWord arg1 =
+        arg1Lo.toByteArray().length <= 16 ? EWord.of(arg1Hi, arg1Lo) : EWord.of(arg1Lo);
+    final EWord arg2 =
+        arg2Lo.toByteArray().length <= 16 ? EWord.of(arg2Hi, arg2Lo) : EWord.of(arg2Lo);
     addFlag[k] = false;
     modFlag[k] = true;
     wcpFlag[k] = false;
@@ -676,12 +683,15 @@ public class OobOperation extends ModuleOperation {
 
   private boolean callToLT(
       int k, BigInteger arg1Hi, BigInteger arg1Lo, BigInteger arg2Hi, BigInteger arg2Lo) {
-    Preconditions.checkArgument(arg1Hi.toByteArray().length <= 16);
-    Preconditions.checkArgument(arg1Lo.toByteArray().length <= 16);
-    Preconditions.checkArgument(arg2Hi.toByteArray().length <= 16);
-    Preconditions.checkArgument(arg2Lo.toByteArray().length <= 16);
-    final EWord arg1 = EWord.of(arg1Hi, arg1Lo);
-    final EWord arg2 = EWord.of(arg2Hi, arg2Lo);
+    // TODO: reactivate preconditions and remove conditional initialization
+    // Preconditions.checkArgument(arg1Hi.toByteArray().length <= 16);
+    // Preconditions.checkArgument(arg1Lo.toByteArray().length <= 16);
+    // Preconditions.checkArgument(arg2Hi.toByteArray().length <= 16);
+    // Preconditions.checkArgument(arg2Lo.toByteArray().length <= 16);
+    final EWord arg1 =
+        arg1Lo.toByteArray().length <= 16 ? EWord.of(arg1Hi, arg1Lo) : EWord.of(arg1Lo);
+    final EWord arg2 =
+        arg2Lo.toByteArray().length <= 16 ? EWord.of(arg2Hi, arg2Lo) : EWord.of(arg2Lo);
     addFlag[k] = false;
     modFlag[k] = false;
     wcpFlag[k] = true;
@@ -697,12 +707,15 @@ public class OobOperation extends ModuleOperation {
 
   private boolean callToGT(
       int k, BigInteger arg1Hi, BigInteger arg1Lo, BigInteger arg2Hi, BigInteger arg2Lo) {
-    Preconditions.checkArgument(arg1Hi.toByteArray().length <= 16);
-    Preconditions.checkArgument(arg1Lo.toByteArray().length <= 16);
-    Preconditions.checkArgument(arg2Hi.toByteArray().length <= 16);
-    Preconditions.checkArgument(arg2Lo.toByteArray().length <= 16);
-    final EWord arg1 = EWord.of(arg1Hi, arg1Lo);
-    final EWord arg2 = EWord.of(arg2Hi, arg2Lo);
+    // TODO: reactivate preconditions and remove conditional initialization
+    // Preconditions.checkArgument(arg1Hi.toByteArray().length <= 16);
+    // Preconditions.checkArgument(arg1Lo.toByteArray().length <= 16);
+    // Preconditions.checkArgument(arg2Hi.toByteArray().length <= 16);
+    // Preconditions.checkArgument(arg2Lo.toByteArray().length <= 16);
+    final EWord arg1 =
+        arg1Lo.toByteArray().length <= 16 ? EWord.of(arg1Hi, arg1Lo) : EWord.of(arg1Lo);
+    final EWord arg2 =
+        arg2Lo.toByteArray().length <= 16 ? EWord.of(arg2Hi, arg2Lo) : EWord.of(arg2Lo);
     addFlag[k] = false;
     modFlag[k] = false;
     wcpFlag[k] = true;
@@ -717,9 +730,11 @@ public class OobOperation extends ModuleOperation {
   }
 
   private boolean callToISZERO(final int k, final BigInteger arg1Hi, final BigInteger arg1Lo) {
-    Preconditions.checkArgument(arg1Hi.toByteArray().length <= 16);
-    Preconditions.checkArgument(arg1Lo.toByteArray().length <= 16);
-    final EWord arg1 = EWord.of(arg1Hi, arg1Lo);
+    // TODO: reactivate preconditions and remove conditional initialization
+    // Preconditions.checkArgument(arg1Hi.toByteArray().length <= 16);
+    // Preconditions.checkArgument(arg1Lo.toByteArray().length <= 16);
+    final EWord arg1 =
+        arg1Lo.toByteArray().length <= 16 ? EWord.of(arg1Hi, arg1Lo) : EWord.of(arg1Lo);
     addFlag[k] = false;
     modFlag[k] = false;
     wcpFlag[k] = true;
@@ -735,12 +750,15 @@ public class OobOperation extends ModuleOperation {
 
   private boolean callToEQ(
       int k, BigInteger arg1Hi, BigInteger arg1Lo, BigInteger arg2Hi, BigInteger arg2Lo) {
-    Preconditions.checkArgument(arg1Hi.toByteArray().length <= 16);
-    Preconditions.checkArgument(arg1Lo.toByteArray().length <= 16);
-    Preconditions.checkArgument(arg2Hi.toByteArray().length <= 16);
-    Preconditions.checkArgument(arg2Lo.toByteArray().length <= 16);
-    final EWord arg1 = EWord.of(arg1Hi, arg1Lo);
-    final EWord arg2 = EWord.of(arg2Hi, arg2Lo);
+    // TODO: reactivate preconditions and remove conditional initialization
+    // Preconditions.checkArgument(arg1Hi.toByteArray().length <= 16);
+    // Preconditions.checkArgument(arg1Lo.toByteArray().length <= 16);
+    // Preconditions.checkArgument(arg2Hi.toByteArray().length <= 16);
+    // Preconditions.checkArgument(arg2Lo.toByteArray().length <= 16);
+    final EWord arg1 =
+        arg1Lo.toByteArray().length <= 16 ? EWord.of(arg1Hi, arg1Lo) : EWord.of(arg1Lo);
+    final EWord arg2 =
+        arg2Lo.toByteArray().length <= 16 ? EWord.of(arg2Hi, arg2Lo) : EWord.of(arg2Lo);
     addFlag[k] = false;
     modFlag[k] = false;
     wcpFlag[k] = true;
@@ -949,20 +967,11 @@ public class OobOperation extends ModuleOperation {
 
   private void setPrcCommon(PrecompileCommonOobCall prcOobCall) {
     // row i
-    final boolean cdsIsZero =
-        callToISZERO(
-            0,
-            BigInteger.ZERO,
-            lowPart(prcOobCall.getCds())); // TODO: kill it, cds should already be smaller than
+    final boolean cdsIsZero = callToISZERO(0, BigInteger.ZERO, prcOobCall.getCds());
 
     // row i + 1
     final boolean returnAtCapacityIsZero =
-        callToISZERO(
-            1,
-            BigInteger.ZERO,
-            lowPart(
-                prcOobCall
-                    .getReturnAtCapacity())); // TODO: kill it, r@c should already be smaller than
+        callToISZERO(1, BigInteger.ZERO, prcOobCall.getReturnAtCapacity());
 
     // Set cdsIsZero
     prcOobCall.setCdsIsZero(cdsIsZero);
@@ -1032,7 +1041,7 @@ public class OobOperation extends ModuleOperation {
         callToMOD(
             2,
             BigInteger.ZERO,
-            lowPart(prcCommonOobCall.getCds()), // TODO: kill it, cds should already be smaller than
+            prcCommonOobCall.getCds(),
             // 16 bytes
             BigInteger.ZERO,
             BigInteger.valueOf(192));

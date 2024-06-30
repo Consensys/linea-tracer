@@ -15,28 +15,16 @@
 
 package net.consensys.linea.zktracer.module.stp;
 
-import static net.consensys.linea.zktracer.module.stp.Stp.callCanTransferValue;
-import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
-
 import java.math.BigInteger;
-import java.util.Optional;
 
 import com.google.common.base.Preconditions;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
-import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.StpCall;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.opcode.gas.GasConstants;
-import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
-import org.apache.tuweni.bytes.Bytes32;
-import org.hyperledger.besu.datatypes.Address;
-import org.hyperledger.besu.datatypes.Wei;
-import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @Accessors(fluent = true)
 @Getter
@@ -122,12 +110,12 @@ public final class StpOperation extends ModuleOperation {
           .isCallcode(isCallCode())
           .isDelegatecall(isDelegateCall())
           .isStaticcall(isStaticCall())
-          // .gasHi(Bytes.EMPTY)
-          // .gasLo(Bytes.EMPTY)
+          // .gasHi(Bytes.EMPTY) // redundant
+          // .gasLo(Bytes.EMPTY) // redundant
           .valHi(stpCall.value().slice(0, 16))
           .valLo(stpCall.value().slice(16, 16))
-          // .exists(false)
-          // .warm(false)
+          // .exists(false) // redundant
+          // .warm(false)   // redundant
           .outOfGasException(stpCall.outOfGasException())
           .gasActual(Bytes.ofUnsignedLong(stpCall.gasActual()))
           .gasMxp(Bytes.ofUnsignedLong(stpCall.memoryExpansionGas()))
@@ -238,7 +226,8 @@ public final class StpOperation extends ModuleOperation {
             .exogenousModuleInstruction(UnsignedByte.of(OpCode.LT.byteValue()))
             .resLo(
                 Bytes.of(
-                    stpCall.gas()
+                    stpCall
+                                .gas()
                                 .toUnsignedBigInteger()
                                 .compareTo(BigInteger.valueOf(get63of64GDiff()))
                             < 0

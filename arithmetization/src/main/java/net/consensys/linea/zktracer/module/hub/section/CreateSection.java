@@ -15,8 +15,6 @@
 
 package net.consensys.linea.zktracer.module.hub.section;
 
-import static net.consensys.linea.zktracer.module.UtilCalculator.allButOneSixtyFourth;
-
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.NextContextDefer;
@@ -28,7 +26,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.StpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.CreateOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.signals.AbortingConditions;
@@ -37,7 +34,6 @@ import net.consensys.linea.zktracer.module.hub.signals.FailureConditions;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.gas.GasConstants;
 import net.consensys.linea.zktracer.opcode.gas.projector.GasProjection;
-import net.consensys.linea.zktracer.types.EWord;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -156,20 +152,19 @@ public class CreateSection extends TraceSection
         projection.memoryExpansion() + projection.linearPerWord() + GasConstants.G_TX_CREATE.cost();
 
     final ImcFragment commonImcFragment =
-        ImcFragment.empty(hub)
-            .callOob(new CreateOobCall())
-            .callMxp(MxpCall.build(hub))
-            .callStp(
-                new StpCall(
-                    this.opCode.byteValue(),
-                    EWord.of(this.initialGas),
-                    EWord.ZERO,
-                    false,
-                    oldCreatedSnapshot.isWarm(),
-                    this.exceptions.outOfGasException(),
-                    upfrontCost,
-                    allButOneSixtyFourth(this.initialGas - upfrontCost),
-                    0));
+        ImcFragment.empty(hub).callOob(new CreateOobCall()).callMxp(MxpCall.build(hub))
+        //         .callStp(
+        //             new StpCall(
+        //                 this.opCode.byteValue(),
+        //                 EWord.of(this.initialGas),
+        //                 EWord.ZERO,
+        //                 false,
+        //                 oldCreatedSnapshot.isWarm(),
+        //                 this.exceptions.outOfGasException(),
+        //                 upfrontCost,
+        //                 allButOneSixtyFourth(this.initialGas - upfrontCost),
+        //                 0))
+        ;
 
     this.scenarioFragment.runPostTx(hub, state, tx, isSuccessful);
     this.addFragmentsWithoutStack(scenarioFragment);

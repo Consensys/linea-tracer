@@ -307,7 +307,7 @@ public class ImcFragment implements TraceFragment {
     } else {
       stpIsSet = true;
     }
-    this.hub.stp().call(f, hub.messageFrame());
+    this.hub.stp().call(f);
     this.moduleCalls.add(f);
     return this;
   }

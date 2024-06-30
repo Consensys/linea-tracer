@@ -56,30 +56,33 @@ public class StpCall implements TraceSubFragment {
     this.opCode = hub.opCode();
     this.gasActual = hub.messageFrame().getRemainingGas();
     Preconditions.checkArgument(this.opCode.isCall() || this.opCode.isCreate());
+
+    if (this.opCode.isCall()) {
+      this.stpCallForCalls(hub);
+    } else {
+      this.stpCallForCreates(hub);
+    }
   }
 
-  public StpCall stpCallForCalls(Hub hub, long memoryExpansionGas) {
-    // set up hub, memoryExpansionGas, opCode and gasActual;
-    StpCall stpCall = new StpCall(hub, memoryExpansionGas);
+  public void stpCallForCalls(Hub hub) {
     MessageFrame frame = hub.messageFrame();
 
-    final boolean instructionCanTransferValue = stpCall.opCode.callCanTransferValue();
+    final boolean instructionCanTransferValue = this.opCode.callCanTransferValue();
     final Address to = Words.toAddress(frame.getStackItem(1));
     Account toAccount = frame.getWorldUpdater().getAccount(to);
-    stpCall.gas = EWord.of(frame.getStackItem(0));
-    stpCall.value = (instructionCanTransferValue) ? EWord.of(frame.getStackItem(2)) : EWord.ZERO;
-    stpCall.exists = toAccount != null ? !toAccount.isEmpty() : false;
-    stpCall.warm = frame.isAddressWarm(to);
+    this.gas = EWord.of(frame.getStackItem(0));
+    this.value = (instructionCanTransferValue) ? EWord.of(frame.getStackItem(2)) : EWord.ZERO;
+    this.exists = toAccount != null ? !toAccount.isEmpty() : false;
+    this.warm = frame.isAddressWarm(to);
 
-    final boolean isCALL = stpCall.opCode.equals(OpCode.CALL);
+    final boolean isCALL = this.opCode.equals(OpCode.CALL);
     final boolean nonzeroValueTransfer = !value.isZero();
 
-    stpCall.upfrontGasCost = upfrontGasCostForCalls(isCALL, nonzeroValueTransfer);
-    stpCall.outOfGasException = stpCall.gasActual < stpCall.upfrontGasCost;
-    stpCall.gasPaidOutOfPocket = stpCall.gasPaidOutOfPocketForCalls();
-    stpCall.stipend = !outOfGasException && nonzeroValueTransfer ? GasConstants.G_CALL_STIPEND.cost() : 0;
-
-    return stpCall;
+    this.upfrontGasCost = upfrontGasCostForCalls(isCALL, nonzeroValueTransfer);
+    this.outOfGasException = this.gasActual < this.upfrontGasCost;
+    this.gasPaidOutOfPocket = this.gasPaidOutOfPocketForCalls();
+    this.stipend =
+        !outOfGasException && nonzeroValueTransfer ? GasConstants.G_CALL_STIPEND.cost() : 0;
   }
 
   private long gasPaidOutOfPocketForCalls() {
@@ -89,26 +92,23 @@ public class StpCall implements TraceSubFragment {
       long gasMinusUpfront = gasActual - upfrontGasCost;
       long oneSixtyFourths = gasMinusUpfront >> 6;
       long maxGasAllowance = gasMinusUpfront - oneSixtyFourths;
-      return
-              gas().toUnsignedBigInteger().compareTo(BigInteger.valueOf(maxGasAllowance)) > 0
-                      ? maxGasAllowance
-                      : gas.toLong();
+      return gas().toUnsignedBigInteger().compareTo(BigInteger.valueOf(maxGasAllowance)) > 0
+          ? maxGasAllowance
+          : gas.toLong();
     }
   }
 
-  public StpCall stpCallForCreates(Hub hub, long memoryExpansionGas) {
-    StpCall stpCall = new StpCall(hub, memoryExpansionGas);
+  public void stpCallForCreates(Hub hub) {
     MessageFrame frame = hub.messageFrame();
 
-    stpCall.gas = EWord.ZERO; // irrelevant
-    stpCall.value = EWord.of(frame.getStackItem(0));
-    stpCall.exists = false; // irrelevant
-    stpCall.warm = false; // irrelevant
-    stpCall.upfrontGasCost = GasConstants.G_CREATE.cost() + stpCall.memoryExpansionGas;
-    stpCall.outOfGasException = stpCall.gasActual < stpCall.upfrontGasCost;
-    stpCall.gasPaidOutOfPocket = stpCall.computeGasPaidOutOfPocketForCreates();
-    stpCall.stipend = 0; // irrelevant
-    return stpCall;
+    this.gas = EWord.ZERO; // irrelevant
+    this.value = EWord.of(frame.getStackItem(0));
+    this.exists = false; // irrelevant
+    this.warm = false; // irrelevant
+    this.upfrontGasCost = GasConstants.G_CREATE.cost() + this.memoryExpansionGas;
+    this.outOfGasException = this.gasActual < this.upfrontGasCost;
+    this.gasPaidOutOfPocket = this.computeGasPaidOutOfPocketForCreates();
+    this.stipend = 0; // irrelevant
   }
 
   private long computeGasPaidOutOfPocketForCreates() {
@@ -124,8 +124,7 @@ public class StpCall implements TraceSubFragment {
 
     boolean toIsWarm = this.warm();
     long upfrontGasCost = this.memoryExpansionGas;
-    final boolean callWouldLeadToAccountCreation =
-            isCALL && nonzeroValueTransfer && !this.exists;
+    final boolean callWouldLeadToAccountCreation = isCALL && nonzeroValueTransfer && !this.exists;
     if (nonzeroValueTransfer) upfrontGasCost += GasConstants.G_CALL_VALUE.cost();
     if (toIsWarm) upfrontGasCost += GasConstants.G_WARM_ACCESS.cost();
     else upfrontGasCost += GasConstants.G_COLD_ACCOUNT_ACCESS.cost();

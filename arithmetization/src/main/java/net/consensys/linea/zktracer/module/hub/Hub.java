@@ -197,7 +197,7 @@ public class Hub implements Module {
   private final TxnData txnData;
 
   // modules triggered by sub-fragments of the MISCELLANEOUS / IMC perspective
-  @Getter private final Stp stp = new Stp(this, wcp, mod);
+  @Getter private final Stp stp = new Stp(wcp, mod);
   @Getter private final Exp exp;
   @Getter private final Mmu mmu;
   @Getter private final Mxp mxp;
@@ -1090,6 +1090,7 @@ public class Hub implements Module {
 
       case CONTEXT -> this.addTraceSection(
           new ContextLogSection(this, ContextFragment.readCurrentContextData(this)));
+
       case LOG -> {
         new LogSection(this);
       }

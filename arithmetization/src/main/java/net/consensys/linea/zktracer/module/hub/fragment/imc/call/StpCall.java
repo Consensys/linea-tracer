@@ -64,38 +64,25 @@ public class StpCall implements TraceSubFragment {
     MessageFrame frame = hub.messageFrame();
 
     final boolean instructionCanTransferValue = stpCall.opCode.callCanTransferValue();
-    final boolean isCALL = stpCall.opCode.equals(OpCode.CALL);
     final Address to = Words.toAddress(frame.getStackItem(1));
     Account toAccount = frame.getWorldUpdater().getAccount(to);
     stpCall.gas = EWord.of(frame.getStackItem(0));
     stpCall.value = (instructionCanTransferValue) ? EWord.of(frame.getStackItem(2)) : EWord.ZERO;
     stpCall.exists = toAccount != null ? !toAccount.isEmpty() : false;
     stpCall.warm = frame.isAddressWarm(to);
-    stpCall.upfrontGasCost = memoryExpansionGas;
 
+    final boolean isCALL = stpCall.opCode.equals(OpCode.CALL);
     final boolean nonzeroValueTransfer = !value.isZero();
-    final boolean callWouldLeadToAccountCreation =
-        isCALL && nonzeroValueTransfer && !stpCall.exists;
-    if (nonzeroValueTransfer) {
-      stpCall.upfrontGasCost += GasConstants.G_CALL_VALUE.cost();
-    }
-    if (stpCall.warm) {
-      stpCall.upfrontGasCost += GasConstants.G_WARM_ACCESS.cost();
-    } else {
-      stpCall.upfrontGasCost += GasConstants.G_COLD_ACCOUNT_ACCESS.cost();
-    }
-    if (callWouldLeadToAccountCreation) {
-      stpCall.upfrontGasCost += GasConstants.G_NEW_ACCOUNT.cost();
-    }
 
+    stpCall.upfrontGasCost = upfrontGasCostForCalls(isCALL, nonzeroValueTransfer);
     stpCall.outOfGasException = stpCall.gasActual < stpCall.upfrontGasCost;
-    stpCall.gasPaidOutOfPocket = stpCall.computeGasPaidOutOfPocketForCalls();
+    stpCall.gasPaidOutOfPocket = stpCall.gasPaidOutOfPocketForCalls();
     stpCall.stipend = !outOfGasException && nonzeroValueTransfer ? GasConstants.G_CALL_STIPEND.cost() : 0;
 
     return stpCall;
   }
 
-  private long computeGasPaidOutOfPocketForCalls() {
+  private long gasPaidOutOfPocketForCalls() {
     if (outOfGasException) {
       return gasPaidOutOfPocket = 0;
     } else {
@@ -131,6 +118,20 @@ public class StpCall implements TraceSubFragment {
       long gasMinusUpfrontCost = gasActual - upfrontGasCost;
       return gasMinusUpfrontCost - (gasMinusUpfrontCost >> 6);
     }
+  }
+
+  private long upfrontGasCostForCalls(boolean isCALL, boolean nonzeroValueTransfer) {
+
+    boolean toIsWarm = this.warm();
+    long upfrontGasCost = this.memoryExpansionGas;
+    final boolean callWouldLeadToAccountCreation =
+            isCALL && nonzeroValueTransfer && !this.exists;
+    if (nonzeroValueTransfer) upfrontGasCost += GasConstants.G_CALL_VALUE.cost();
+    if (toIsWarm) upfrontGasCost += GasConstants.G_WARM_ACCESS.cost();
+    else upfrontGasCost += GasConstants.G_COLD_ACCOUNT_ACCESS.cost();
+    if (callWouldLeadToAccountCreation) upfrontGasCost += GasConstants.G_NEW_ACCOUNT.cost();
+
+    return upfrontGasCost;
   }
 
   @Override

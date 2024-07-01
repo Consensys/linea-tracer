@@ -59,7 +59,8 @@ import net.consensys.linea.zktracer.module.hub.transients.Transients;
 import net.consensys.linea.zktracer.module.limits.Keccak;
 import net.consensys.linea.zktracer.module.limits.L2Block;
 import net.consensys.linea.zktracer.module.limits.L2L1Logs;
-import net.consensys.linea.zktracer.module.limits.precompiles.Blake2fRounds;
+import net.consensys.linea.zktracer.module.limits.precompiles.BlakeEffectiveCall;
+import net.consensys.linea.zktracer.module.limits.precompiles.BlakeRounds;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcAddEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcMulEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingEffectiveCall;
@@ -286,6 +287,7 @@ public class Hub implements Module {
     this.modexpEffectiveCall = new ModexpEffectiveCall(this, this.blakeModexpData);
     final EcPairingEffectiveCall ecPairingCall = new EcPairingEffectiveCall(this);
     final L2Block l2Block = new L2Block(l2l1ContractAddress, LogTopic.of(l2l1Topic));
+    final BlakeRounds blakeRounds = new BlakeRounds(this, this.blakeModexpData);
 
     this.precompileLimitModules =
         List.of(
@@ -297,7 +299,8 @@ public class Hub implements Module {
             new EcMulEffectiveCall(this),
             ecPairingCall,
             new EcPairingMillerLoop(ecPairingCall),
-            new Blake2fRounds(this, this.blakeModexpData),
+            blakeRounds,
+            new BlakeEffectiveCall(blakeRounds),
             // Block level limits
             l2Block,
             new Keccak(this, ecRec, l2Block, shakiraData),

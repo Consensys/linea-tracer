@@ -26,7 +26,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.StpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp.ExpCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp.ExplogExpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.CallDataLoadOobCall;
@@ -172,9 +171,11 @@ public class ImcFragment implements TraceFragment {
       r.callMxp(MxpCall.build(hub));
     }
 
+    /* TODO: this has been commented out since signals will die
     if (hub.pch().signals().exp()) {
       r.callExp(new ExplogExpCall());
     }
+    */
 
     if (hub.pch().signals().exp() && !hub.pch().exceptions().stackException()) {
       hub.exp().tracePreOpcode(frame);

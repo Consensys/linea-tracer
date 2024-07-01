@@ -1037,8 +1037,7 @@ public class Hub implements Module {
           .addTraceSection(new StackOnlySection(this));
       case MUL -> {
         if (this.opCode() == OpCode.EXP) {
-          this.addTraceSection(
-              new ExpSection(this, ImcFragment.forOpcode(this, this.messageFrame())));
+          this.addTraceSection(new ExpSection(this));
         } else {
           this.addTraceSection(new StackOnlySection(this));
         }

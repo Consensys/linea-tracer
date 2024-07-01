@@ -49,7 +49,9 @@ public abstract class TraceSection {
   /* A link to the next section */
   @Setter public TraceSection nextSection = null;
 
-  /** Default creator for an empty section. Prefer the creator where we specify the max nb of rows */
+  /**
+   * Default creator for an empty section. Prefer the creator where we specify the max nb of rows
+   */
   public TraceSection(Hub hub) {
     this.hub = hub;
     this.commonValues = new CommonFragmentValues(hub);

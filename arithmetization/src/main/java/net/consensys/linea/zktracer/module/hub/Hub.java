@@ -359,7 +359,8 @@ public class Hub implements Module {
                 this.ext,
                 this.euc,
                 this.exp,
-                this.gas,
+                // TODO: GAS module has no columnHeaders and cannot be traced. Needs a fix!
+                //                this.gas,
                 this.logData,
                 this.logInfo,
                 this.mmu, // WARN: must be called before the MMIO

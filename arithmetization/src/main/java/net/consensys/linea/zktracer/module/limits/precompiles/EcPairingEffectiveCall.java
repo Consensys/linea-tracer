@@ -45,7 +45,7 @@ public final class EcPairingEffectiveCall implements Module {
 
   @Override
   public String moduleKey() {
-    return "PRECOMPILE_ECPAIRING_EFFECTIVE_CALL";
+    return "PRECOMPILE_ECPAIRING_EFFECTIVE_CALLS";
   }
 
   @Override

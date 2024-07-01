@@ -45,6 +45,7 @@ import net.consensys.linea.zktracer.module.ecdata.EcData;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.exp.Exp;
 import net.consensys.linea.zktracer.module.ext.Ext;
+import net.consensys.linea.zktracer.module.gas.Gas;
 import net.consensys.linea.zktracer.module.hub.defer.*;
 import net.consensys.linea.zktracer.module.hub.fragment.*;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
@@ -214,6 +215,7 @@ public class Hub implements Module {
   private final Blockhash blockhash = new Blockhash(wcp);
   private final Euc euc;
   private final Ext ext = new Ext(this);
+  private final Gas gas = new Gas();
   private final Module mul = new Mul(this);
   private final Mod mod = new Mod();
   private final Module shf = new Shf();
@@ -314,6 +316,7 @@ public class Hub implements Module {
                     this.ecData,
                     this.euc,
                     this.ext,
+                    this.gas,
                     this.logData,
                     this.logInfo,
                     this.mmio,
@@ -356,6 +359,7 @@ public class Hub implements Module {
                 this.ext,
                 this.euc,
                 this.exp,
+                this.gas,
                 this.logData,
                 this.logInfo,
                 this.mmu, // WARN: must be called before the MMIO
@@ -385,36 +389,43 @@ public class Hub implements Module {
    * @return the modules to count
    */
   public List<Module> getModulesToCount() {
+    final Stream<Module> regularModulesStream =
+        Stream.of(
+            this,
+            this.romLex,
+            this.add,
+            this.bin,
+            this.blakeModexpData,
+            this.blockdata,
+            this.blockhash,
+            this.ext,
+            this.ecData,
+            this.euc,
+            this.gas,
+            this.mmu,
+            this.mmio,
+            this.logData,
+            this.logInfo,
+            this.mod,
+            this.mul,
+            this.mxp,
+            this.oob,
+            this.exp,
+            this.rlpAddr,
+            this.rlpTxn,
+            this.rlpTxnRcpt,
+            this.rom,
+            this.shakiraData,
+            this.shf,
+            this.stp,
+            this.trm,
+            this.txnData,
+            this.wcp,
+            this.l2Block);
+
     return Stream.concat(
-            Stream.of(
-                this,
-                this.romLex,
-                this.add,
-                this.bin,
-                this.blockdata,
-                this.blockhash,
-                this.ext,
-                this.ecData,
-                this.euc,
-                this.mmu,
-                this.mmio,
-                this.logData,
-                this.logInfo,
-                this.mod,
-                this.mul,
-                this.mxp,
-                this.oob,
-                this.exp,
-                this.rlpAddr,
-                this.rlpTxn,
-                this.rlpTxnRcpt,
-                this.rom,
-                this.shf,
-                this.trm,
-                this.txnData,
-                this.wcp,
-                this.l2Block),
-            this.precompileLimitModules.stream())
+            this.refTableModules.stream(),
+            Stream.concat(regularModulesStream, this.precompileLimitModules.stream()))
         .toList();
   }
 

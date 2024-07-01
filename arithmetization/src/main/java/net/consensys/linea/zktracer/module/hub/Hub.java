@@ -1036,10 +1036,17 @@ public class Hub implements Module {
       case ADD, MOD, SHF, BIN, WCP, EXT, BATCH, MACHINE_STATE, PUSH_POP, DUP, SWAP, INVALID -> this
           .addTraceSection(new StackOnlySection(this));
       case MUL -> {
-        if (this.opCode() == OpCode.EXP) {
-          this.addTraceSection(new ExpSection(this));
-        } else {
-          this.addTraceSection(new StackOnlySection(this));
+        switch (this.opCode()) {
+          case OpCode.EXP -> {
+            this.addTraceSection(new ExpSection(this));
+          }
+          case OpCode.MUL -> {
+            this.addTraceSection(new StackOnlySection(this));
+          }
+          default -> {
+            throw new IllegalStateException(
+                String.format("opcode %s not part of the MUL instruction family", this.opCode()));
+          }
         }
       }
       case HALT -> {

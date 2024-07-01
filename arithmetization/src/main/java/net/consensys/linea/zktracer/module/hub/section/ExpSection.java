@@ -24,7 +24,6 @@ public class ExpSection extends TraceSection {
   public ExpSection(Hub hub) {
     super(hub, (short) 3);
     final ExpCall expCall = new ExplogExpCall();
-    // TODO: should expCall be filled here?
     final ImcFragment miscFragment = ImcFragment.empty(hub).callExp(expCall);
     this.addFragmentsAndStack(hub, miscFragment);
   }

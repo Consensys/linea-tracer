@@ -173,11 +173,11 @@ public class CreateSection extends TraceSection
           ImcFragment.empty(hub),
           ContextFragment.readCurrentContextData(hub),
           ContextFragment.executionProvidesEmptyReturnData(hub));
-    } else if (this.exceptions.memoryExpansionException()) {
+    } else if (this.exceptions.memoryExpansion()) {
       this.addFragmentsWithoutStack(
           ImcFragment.empty(hub).callMxp(MxpCall.build(hub)),
           ContextFragment.executionProvidesEmptyReturnData(hub));
-    } else if (this.exceptions.outOfGasException()) {
+    } else if (this.exceptions.outOfGas()) {
       this.addFragmentsWithoutStack(
           commonImcFragment, ContextFragment.executionProvidesEmptyReturnData(hub));
     } else if (this.aborts.any()) {

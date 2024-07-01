@@ -50,8 +50,8 @@ public class SstoreSection extends TraceSection {
     final EWord valueNext = EWord.of(hub.messageFrame().getStackItem(1));
 
     final boolean staticContextException = hub.pch().exceptions().staticException();
-    final boolean sstoreException = hub.pch().exceptions().sstoreException();
-    final boolean outOfGasException = hub.pch().exceptions().outOfGasException();
+    final boolean sstoreException = hub.pch().exceptions().sstore();
+    final boolean outOfGasException = hub.pch().exceptions().outOfGas();
     final boolean contextWillRevert = hub.callStack().current().willRevert();
 
     final SstoreSection currentSection = new SstoreSection(hub, world);
@@ -104,7 +104,7 @@ public class SstoreSection extends TraceSection {
         valueOriginal,
         valueCurrent,
         valueNext,
-        hub.messageFrame().isStorageWarm(address, storageKey),
+        hub.messageFrame().getWarmedUpStorage().contains(address, storageKey),
         true,
         DomSubStampsSubFragment.standardDomSubStamps(hub, 0),
         hub.state.firstAndLastStorageSlotOccurrences.size());
@@ -126,7 +126,7 @@ public class SstoreSection extends TraceSection {
         valueNext,
         valueCurrent,
         true,
-        hub.messageFrame().isStorageWarm(address, storageKey),
+        hub.messageFrame().getWarmedUpStorage().contains(address, storageKey),
         DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 1),
         hub.state.firstAndLastStorageSlotOccurrences.size());
   }

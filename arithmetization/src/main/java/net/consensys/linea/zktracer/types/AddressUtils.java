@@ -98,7 +98,7 @@ public class AddressUtils {
   }
 
   public static Address getDeploymentAddress(final MessageFrame frame) {
-    OpCode opcode = OpCode.of(frame.getCurrentOperation().getOpcode());
+    final OpCode opcode = OpCode.of(frame.getCurrentOperation().getOpcode());
     if (opcode.isAnyOf(OpCode.CREATE, OpCode.CREATE2)) {
       return opcode.equals(OpCode.CREATE) ? getCreateAddress(frame) : getCreate2Address(frame);
     }

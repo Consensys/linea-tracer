@@ -37,13 +37,13 @@ import org.hyperledger.besu.evm.internal.Words;
 @RequiredArgsConstructor
 public class EcData implements Module {
   public static final Set<Address> EC_PRECOMPILES =
-      Set.of(Address.ECREC); // TODO: add later Address.ALTBN128_ADD, Address.ALTBN128_MUL,
-  // Address.ALTBN128_PAIRING);
+      Set.of(Address.ECREC, Address.ALTBN128_ADD, Address.ALTBN128_MUL, Address.ALTBN128_PAIRING);
 
   @Getter private final StackedSet<EcDataOperation> operations = new StackedSet<>();
   private final Hub hub;
   private final Wcp wcp;
   private final Ext ext;
+
   @Getter private EcDataOperation ecDataOperation;
 
   @Override
@@ -75,7 +75,8 @@ public class EcData implements Module {
     }
 
     final Bytes data = hub.transients().op().callData();
-    ecDataOperation =
+
+    this.ecDataOperation =
         EcDataOperation.of(this.wcp, this.ext, 1 + this.hub.stamp(), target.get(19), data);
     this.operations.add(ecDataOperation);
   }
@@ -100,17 +101,6 @@ public class EcData implements Module {
         this.operations.stream().sorted(Comparator.comparingLong(EcDataOperation::id)).toList();
 
     for (EcDataOperation op : sortedOperations) {
-      /*
-      System.out.println(
-          "(tracing time) previousId: "
-              + Integer.toHexString(op.previousId())
-              + " -> id: "
-              + Integer.toHexString(op.id())
-              + " , byteDelta: "
-              + Arrays.stream(op.byteDelta()).map(b -> Integer.toHexString(b.toInteger())).toList()
-              + " , diff: "
-              + Integer.toHexString(op.id() - op.previousId() - 1));
-       */
       stamp++;
       op.trace(trace, stamp, previousId);
       previousId = op.id();

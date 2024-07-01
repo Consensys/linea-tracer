@@ -56,7 +56,7 @@ public class SloadSection extends TraceSection {
 
     sloadSection.addFragmentsAndStack(hub, readCurrentContext, miscFragmentForSload, doingSload);
 
-    final boolean outOfGasException = hub.pch().exceptions().outOfGasException();
+    final boolean outOfGasException = hub.pch().exceptions().outOfGas();
     final boolean contextWillRevert = hub.callStack().current().willRevert();
 
     if (outOfGasException || contextWillRevert) {
@@ -77,7 +77,8 @@ public class SloadSection extends TraceSection {
       EWord valueOriginal,
       EWord valueCurrent) {
 
-    final boolean incomingWarmth = hub.messageFrame().isStorageWarm(address, storageKey);
+    final boolean incomingWarmth =
+        hub.messageFrame().getWarmedUpStorage().contains(address, storageKey);
 
     return new StorageFragment(
         hub.state,
@@ -99,7 +100,8 @@ public class SloadSection extends TraceSection {
       EWord valueOriginal,
       EWord valueCurrent) {
 
-    final boolean initiallyIncomingWarmth = hub.messageFrame().isStorageWarm(address, storageKey);
+    final boolean initiallyIncomingWarmth =
+        hub.messageFrame().getWarmedUpStorage().contains(address, storageKey);
 
     return new StorageFragment(
         hub.state,

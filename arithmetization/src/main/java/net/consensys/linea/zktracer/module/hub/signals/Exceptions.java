@@ -41,12 +41,12 @@ public final class Exceptions {
   private boolean invalidOpcode;
   private boolean stackUnderflow;
   private boolean stackOverflow;
-  private boolean memoryExpansionException;
-  private boolean outOfGasException;
+  private boolean memoryExpansion;
+  private boolean outOfGas;
   private boolean returnDataCopyFault;
   private boolean jumpFault;
   private boolean staticException;
-  private boolean sstoreException;
+  private boolean sstore;
   private boolean invalidCodePrefix;
   private boolean codeSizeOverflow;
 
@@ -54,35 +54,35 @@ public final class Exceptions {
    * @param invalidOpcode unknown opcode
    * @param stackUnderflow stack underflow
    * @param stackOverflow stack overflow
-   * @param memoryExpansionException tried to use memory too far away
-   * @param outOfGasException not enough gas for instruction
+   * @param memoryExpansion tried to use memory too far away
+   * @param outOfGas not enough gas for instruction
    * @param returnDataCopyFault trying to read pas the RETURNDATA end
    * @param jumpFault jumping to an invalid destination
    * @param staticException trying to execute a non-static instruction in a static context
-   * @param sstoreException not enough gas to execute an SSTORE
+   * @param sstore not enough gas to execute an SSTORE
    */
   public Exceptions(
       boolean invalidOpcode,
       boolean stackUnderflow,
       boolean stackOverflow,
-      boolean memoryExpansionException,
-      boolean outOfGasException,
+      boolean memoryExpansion,
+      boolean outOfGas,
       boolean returnDataCopyFault,
       boolean jumpFault,
       boolean staticException,
-      boolean sstoreException,
+      boolean sstore,
       boolean invalidCodePrefix,
       boolean codeSizeOverflow) {
     this.hub = null;
     this.invalidOpcode = invalidOpcode;
     this.stackUnderflow = stackUnderflow;
     this.stackOverflow = stackOverflow;
-    this.memoryExpansionException = memoryExpansionException;
-    this.outOfGasException = outOfGasException;
+    this.memoryExpansion = memoryExpansion;
+    this.outOfGas = outOfGas;
     this.returnDataCopyFault = returnDataCopyFault;
     this.jumpFault = jumpFault;
     this.staticException = staticException;
-    this.sstoreException = sstoreException;
+    this.sstore = sstore;
     this.invalidCodePrefix = invalidCodePrefix;
     this.codeSizeOverflow = codeSizeOverflow;
   }
@@ -98,10 +98,10 @@ public final class Exceptions {
     if (this.stackOverflow) {
       return "Stack overflow";
     }
-    if (this.memoryExpansionException) {
+    if (this.memoryExpansion) {
       return "Out of MXP";
     }
-    if (this.outOfGasException) {
+    if (this.outOfGas) {
       return "Out of gas";
     }
     if (this.returnDataCopyFault) {
@@ -113,7 +113,7 @@ public final class Exceptions {
     if (this.staticException) {
       return "Static fault";
     }
-    if (this.sstoreException) {
+    if (this.sstore) {
       return "Out of SSTORE";
     }
     if (this.invalidCodePrefix) {
@@ -129,12 +129,12 @@ public final class Exceptions {
     this.invalidOpcode = false;
     this.stackUnderflow = false;
     this.stackOverflow = false;
-    this.memoryExpansionException = false;
-    this.outOfGasException = false;
+    this.memoryExpansion = false;
+    this.outOfGas = false;
     this.returnDataCopyFault = false;
     this.jumpFault = false;
     this.staticException = false;
-    this.sstoreException = false;
+    this.sstore = false;
     this.invalidCodePrefix = false;
     this.codeSizeOverflow = false;
   }
@@ -160,12 +160,12 @@ public final class Exceptions {
         invalidOpcode,
         stackUnderflow,
         stackOverflow,
-        memoryExpansionException,
-        outOfGasException,
+        memoryExpansion,
+        outOfGas,
         returnDataCopyFault,
         jumpFault,
         staticException,
-        sstoreException,
+        sstore,
         invalidCodePrefix,
         codeSizeOverflow);
   }
@@ -177,12 +177,12 @@ public final class Exceptions {
     return this.invalidOpcode
         || this.stackUnderflow
         || this.stackOverflow
-        || this.memoryExpansionException
-        || this.outOfGasException
+        || this.memoryExpansion
+        || this.outOfGas
         || this.returnDataCopyFault
         || this.jumpFault
         || this.staticException
-        || this.sstoreException
+        || this.sstore
         || this.invalidCodePrefix
         || this.codeSizeOverflow;
   }
@@ -351,13 +351,13 @@ public final class Exceptions {
           MLOAD,
           MSTORE,
           MSTORE8 -> {
-        this.memoryExpansionException = isMemoryExpansionFault(frame, opCode, gp);
-        if (this.memoryExpansionException) {
+        this.memoryExpansion = isMemoryExpansionFault(frame, opCode, gp);
+        if (this.memoryExpansion) {
           return;
         }
 
-        this.outOfGasException = isOutOfGas(frame, opCode, gp);
-        if (this.outOfGasException) {
+        this.outOfGas = isOutOfGas(frame, opCode, gp);
+        if (this.outOfGas) {
           return;
         }
       }
@@ -367,20 +367,20 @@ public final class Exceptions {
           return;
         }
 
-        this.memoryExpansionException = isMemoryExpansionFault(frame, opCode, gp);
-        if (this.memoryExpansionException) {
+        this.memoryExpansion = isMemoryExpansionFault(frame, opCode, gp);
+        if (this.memoryExpansion) {
           return;
         }
 
-        this.outOfGasException = isOutOfGas(frame, opCode, gp);
-        if (this.outOfGasException) {
+        this.outOfGas = isOutOfGas(frame, opCode, gp);
+        if (this.outOfGas) {
           return;
         }
       }
       case STOP -> {}
       case JUMP, JUMPI -> {
-        this.outOfGasException = isOutOfGas(frame, opCode, gp);
-        if (this.outOfGasException) {
+        this.outOfGas = isOutOfGas(frame, opCode, gp);
+        if (this.outOfGas) {
           return;
         }
 
@@ -390,19 +390,19 @@ public final class Exceptions {
         }
       }
       case SSTORE -> {
-        this.sstoreException = isOutOfSStore(frame, opCode);
-        if (this.sstoreException) {
+        this.sstore = isOutOfSStore(frame, opCode);
+        if (this.sstore) {
           return;
         }
 
-        this.outOfGasException = isOutOfGas(frame, opCode, gp);
-        if (this.outOfGasException) {
+        this.outOfGas = isOutOfGas(frame, opCode, gp);
+        if (this.outOfGas) {
           return;
         }
       }
       default -> {
-        this.outOfGasException = isOutOfGas(frame, opCode, gp);
-        if (this.outOfGasException) {
+        this.outOfGas = isOutOfGas(frame, opCode, gp);
+        if (this.outOfGas) {
           return;
         }
       }

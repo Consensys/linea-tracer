@@ -427,7 +427,7 @@ public class Hub implements Module {
   @Override
   public void traceStartBlock(final ProcessableBlockHeader processableBlockHeader) {
     this.state.firstAndLastStorageSlotOccurrences.add(new HashMap<>());
-    this.transients.block().blockUpdate(processableBlockHeader);
+    this.transients().block().update(processableBlockHeader);
     this.txStack.resetBlock();
     for (Module m : this.modules) {
       m.traceStartBlock(processableBlockHeader);
@@ -681,8 +681,8 @@ public class Hub implements Module {
 
     final Exceptions exceptions = this.pch().exceptions();
 
-    final boolean memoryExpansionException = exceptions.memoryExpansionException();
-    final boolean outOfGasException = exceptions.outOfGasException();
+    final boolean memoryExpansionException = exceptions.memoryExpansion();
+    final boolean outOfGasException = exceptions.outOfGas();
     final boolean unexceptional = exceptions.none();
     final boolean exceptional = exceptions.any();
 
@@ -1278,13 +1278,13 @@ public class Hub implements Module {
                     ScenarioFragment.forCall(this, hasCode),
                     ImcFragment.forCall(this, myAccount, calledAccount),
                     ContextFragment.readCurrentContextData(this)));
-          } else if (this.pch().exceptions().memoryExpansionException()) {
+          } else if (this.pch().exceptions().memoryExpansion()) {
             this.addTraceSection(
                 new FailedCallSection(
                     this,
                     ScenarioFragment.forCall(this, hasCode),
                     ImcFragment.forCall(this, myAccount, calledAccount)));
-          } else if (this.pch().exceptions().outOfGasException()) {
+          } else if (this.pch().exceptions().outOfGas()) {
             this.addTraceSection(
                 new FailedCallSection(
                     this,

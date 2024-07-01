@@ -24,35 +24,27 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(EvmExtension.class)
 public class StpTests {
 
-    private void forceWarmRecipient(BytecodeCompiler bytecode, Address recipient, boolean forceWarmth) {
-        if (forceWarmth) {
-            bytecode.push(recipient)
-                    .op(OpCode.BALANCE)
-                    .op(OpCode.POP)
-                    ;
-        }
+  private void forceWarmRecipient(
+      BytecodeCompiler bytecode, Address recipient, boolean forceWarmth) {
+    if (forceWarmth) {
+      bytecode.push(recipient).op(OpCode.BALANCE).op(OpCode.POP);
     }
+  }
 
-   //  private void appendCall(BytecodeCompiler bytecode, Address recipient, Wei value) {
-   //
-   //      bytecode
-   //              .push() // return at capacity
-   //              .push() // return at offset
-   //              .push() // call data size
-   //              .push() // call data offset
-   //              .push() // value
-   //              .push() // address
-   //              .push() // gas
-   //  }
-    private void appendCallcode(BytecodeCompiler bytecode, Address recipient, Wei value) {
+  //  private void appendCall(BytecodeCompiler bytecode, Address recipient, Wei value) {
+  //
+  //      bytecode
+  //              .push() // return at capacity
+  //              .push() // return at offset
+  //              .push() // call data size
+  //              .push() // call data offset
+  //              .push() // value
+  //              .push() // address
+  //              .push() // gas
+  //  }
+  private void appendCallcode(BytecodeCompiler bytecode, Address recipient, Wei value) {}
 
-    }
-    private void appendDelegatecall(BytecodeCompiler bytecode, Address recipient) {
+  private void appendDelegatecall(BytecodeCompiler bytecode, Address recipient) {}
 
-    }
-    private void appendStaticcall(BytecodeCompiler bytecode, Address recipient, Wei value) {
-
-    }
+  private void appendStaticcall(BytecodeCompiler bytecode, Address recipient, Wei value) {}
 }
-
-

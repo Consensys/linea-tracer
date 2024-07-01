@@ -42,6 +42,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
  * | jq '.result.capture' -r
  * | gzip > arithmetization/src/test/resources/replays/my-test-case.json.gz
  * }</pre>
+ *
+ * One can run this command: scripts/capture.pl --start xxx --end yyy --output my-test-case.json.gz
  */
 @Slf4j
 @ExtendWith(EvmExtension.class)
@@ -79,5 +81,15 @@ public class ReplayTests {
   @Test
   void fatMxp() {
     replay("2492975-2492977.json.gz");
+  }
+
+  @Test
+  void failingMmuModexp() {
+    replay("5995162.json.gz");
+  }
+
+  @Test
+  void failRlpAddress() {
+    replay("5995097.json.gz");
   }
 }

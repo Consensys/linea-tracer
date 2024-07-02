@@ -42,7 +42,7 @@ public class JumpSection extends TraceSection {
 
     hub.addTraceSection(currentSection);
 
-    if (Exceptions.outOfGas(hub.pch().exceptions())) {
+    if (Exceptions.outOfGasException(hub.pch().exceptions())) {
       return;
     }
 

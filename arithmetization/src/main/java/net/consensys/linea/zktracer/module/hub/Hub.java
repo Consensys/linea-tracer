@@ -689,8 +689,8 @@ public class Hub implements Module {
 
     final short exceptions = this.pch().exceptions();
 
-    final boolean memoryExpansionException = Exceptions.outOfMemoryExpansion(exceptions);
-    final boolean outOfGasException = Exceptions.outOfGas(exceptions);
+    final boolean memoryExpansionException = Exceptions.memoryExpansionException(exceptions);
+    final boolean outOfGasException = Exceptions.outOfGasException(exceptions);
     final boolean unexceptional = Exceptions.none(exceptions);
     final boolean exceptional = Exceptions.any(exceptions);
 
@@ -1294,13 +1294,13 @@ public class Hub implements Module {
                     ImcFragment.forCall(this, myAccount, calledAccount),
                     ContextFragment.readContextDataByContextNumber(
                         this, this.currentFrame().contextNumber()))); // TODO
-          } else if (Exceptions.outOfMemoryExpansion(this.pch().exceptions())) {
+          } else if (Exceptions.memoryExpansionException(this.pch().exceptions())) {
             this.addTraceSection(
                 new FailedCallSection(
                     this,
                     ScenarioFragment.forCall(this, hasCode),
                     ImcFragment.forCall(this, myAccount, calledAccount)));
-          } else if (Exceptions.outOfGas(this.pch().exceptions())) {
+          } else if (Exceptions.outOfGasException(this.pch().exceptions())) {
             this.addTraceSection(
                 new FailedCallSection(
                     this,

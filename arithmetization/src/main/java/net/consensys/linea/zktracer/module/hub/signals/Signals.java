@@ -143,22 +143,22 @@ public class Signals {
     switch (opCode) {
       case CALLDATACOPY, CODECOPY -> {
         this.mxp =
-            Exceptions.outOfMemoryExpansion(ex) || Exceptions.outOfGas(ex) || Exceptions.none(ex);
+            Exceptions.memoryExpansionException(ex) || Exceptions.outOfGasException(ex) || Exceptions.none(ex);
         this.mmu = Exceptions.none(ex) && !frame.getStackItem(2).isZero();
       }
 
       case RETURNDATACOPY -> {
         this.oob = Exceptions.none(ex) || Exceptions.returnDataCopyFault(ex);
         this.mxp =
-            Exceptions.none(ex) || Exceptions.outOfMemoryExpansion(ex) || Exceptions.outOfGas(ex);
+            Exceptions.none(ex) || Exceptions.memoryExpansionException(ex) || Exceptions.outOfGasException(ex);
         this.mmu = Exceptions.none(ex) && !frame.getStackItem(2).isZero();
       }
 
       case EXTCODECOPY -> {
         final boolean nonzeroSize = !frame.getStackItem(3).isZero();
         this.mxp =
-            Exceptions.outOfMemoryExpansion(ex) || Exceptions.outOfGas(ex) || Exceptions.none(ex);
-        this.trm = Exceptions.outOfGas(ex) || Exceptions.none(ex);
+            Exceptions.memoryExpansionException(ex) || Exceptions.outOfGasException(ex) || Exceptions.none(ex);
+        this.trm = Exceptions.outOfGasException(ex) || Exceptions.none(ex);
         this.mmu = Exceptions.none(ex) && nonzeroSize;
 
         final Address address = Words.toAddress(frame.getStackItem(0));
@@ -172,7 +172,7 @@ public class Signals {
 
       case LOG0, LOG1, LOG2, LOG3, LOG4 -> {
         this.mxp =
-            Exceptions.outOfMemoryExpansion(ex) || Exceptions.outOfGas(ex) || Exceptions.none(ex);
+            Exceptions.memoryExpansionException(ex) || Exceptions.outOfGasException(ex) || Exceptions.none(ex);
         this.mmu =
             Exceptions.none(ex)
                 && !frame
@@ -184,9 +184,9 @@ public class Signals {
 
       case CALL, DELEGATECALL, STATICCALL, CALLCODE -> {
         this.mxp = !Exceptions.staticFault(ex);
-        this.stp = Exceptions.outOfGas(ex) || Exceptions.none(ex);
+        this.stp = Exceptions.outOfGasException(ex) || Exceptions.none(ex);
         this.oob = opCode.equals(OpCode.CALL) && Exceptions.staticFault(ex) || Exceptions.none(ex);
-        this.trm = Exceptions.outOfGas(ex) || Exceptions.none(ex);
+        this.trm = Exceptions.outOfGasException(ex) || Exceptions.none(ex);
 
         final boolean triggersAbortingCondition =
             Exceptions.none(ex) && this.platformController.abortingConditions().any();
@@ -219,7 +219,7 @@ public class Signals {
         final boolean isCreate2 = opCode == OpCode.CREATE2;
 
         this.mxp = !Exceptions.staticFault(ex);
-        this.stp = Exceptions.outOfGas(ex) || Exceptions.none(ex);
+        this.stp = Exceptions.outOfGasException(ex) || Exceptions.none(ex);
         this.oob = Exceptions.none(ex);
         this.rlpAddr = Exceptions.none(ex) && !triggersAbortingCondition;
         this.hashInfo =
@@ -234,7 +234,7 @@ public class Signals {
 
       case REVERT -> {
         this.mxp =
-            Exceptions.outOfMemoryExpansion(ex) || Exceptions.outOfGas(ex) || Exceptions.none(ex);
+            Exceptions.memoryExpansionException(ex) || Exceptions.outOfGasException(ex) || Exceptions.none(ex);
         this.mmu =
             Exceptions.none(ex)
                 && !frame.getStackItem(1).isZero()
@@ -247,8 +247,8 @@ public class Signals {
 
         // WARN: Static part, other modules may be dynamically requested in the hub
         this.mxp =
-            Exceptions.outOfMemoryExpansion(ex)
-                || Exceptions.outOfGas(ex)
+            Exceptions.memoryExpansionException(ex)
+                || Exceptions.outOfGasException(ex)
                 || Exceptions.invalidCodePrefix(ex)
                 || Exceptions.none(ex);
         this.oob = isDeployment && (Exceptions.codeSizeOverflow(ex) || Exceptions.none(ex));
@@ -264,17 +264,17 @@ public class Signals {
 
       case EXP -> {
         this.exp = true; // TODO: use expCall instead
-        this.mul = !Exceptions.outOfGas(ex);
+        this.mul = !Exceptions.outOfGasException(ex);
       }
 
         // other opcodes
-      case ADD, SUB -> this.add = !Exceptions.outOfGas(ex);
-      case MUL -> this.mul = !Exceptions.outOfGas(ex);
-      case DIV, SDIV, MOD, SMOD -> this.mod = !Exceptions.outOfGas(ex);
-      case ADDMOD, MULMOD -> this.ext = !Exceptions.outOfGas(ex);
-      case LT, GT, SLT, SGT, EQ, ISZERO -> this.wcp = !Exceptions.outOfGas(ex);
-      case AND, OR, XOR, NOT, SIGNEXTEND, BYTE -> this.bin = !Exceptions.outOfGas(ex);
-      case SHL, SHR, SAR -> this.shf = !Exceptions.outOfGas(ex);
+      case ADD, SUB -> this.add = !Exceptions.outOfGasException(ex);
+      case MUL -> this.mul = !Exceptions.outOfGasException(ex);
+      case DIV, SDIV, MOD, SMOD -> this.mod = !Exceptions.outOfGasException(ex);
+      case ADDMOD, MULMOD -> this.ext = !Exceptions.outOfGasException(ex);
+      case LT, GT, SLT, SGT, EQ, ISZERO -> this.wcp = !Exceptions.outOfGasException(ex);
+      case AND, OR, XOR, NOT, SIGNEXTEND, BYTE -> this.bin = !Exceptions.outOfGasException(ex);
+      case SHL, SHR, SAR -> this.shf = !Exceptions.outOfGasException(ex);
       case SHA3 -> {
         this.mxp = true;
         this.hashInfo = Exceptions.none(ex) && !frame.getStackItem(1).isZero();

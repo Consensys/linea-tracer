@@ -57,7 +57,7 @@ public class SloadSection extends TraceSection {
 
     sloadSection.addFragmentsAndStack(hub, readCurrentContext, miscFragmentForSload, doingSload);
 
-    final boolean outOfGasException = Exceptions.outOfGas(hub.pch().exceptions());
+    final boolean outOfGasException = Exceptions.outOfGasException(hub.pch().exceptions());
     final boolean contextWillRevert = hub.callStack().current().willRevert();
 
     if (outOfGasException || contextWillRevert) {

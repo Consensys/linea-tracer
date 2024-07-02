@@ -52,7 +52,7 @@ public class SstoreSection extends TraceSection {
 
     final boolean staticContextException = Exceptions.staticFault(hub.pch().exceptions());
     final boolean sstoreException = Exceptions.outOfSStore(hub.pch().exceptions());
-    final boolean outOfGasException = Exceptions.outOfGas(hub.pch().exceptions());
+    final boolean outOfGasException = Exceptions.outOfGasException(hub.pch().exceptions());
     final boolean contextWillRevert = hub.callStack().current().willRevert();
 
     final SstoreSection currentSection = new SstoreSection(hub, world);

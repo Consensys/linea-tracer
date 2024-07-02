@@ -113,7 +113,7 @@ public final class CommonFragment implements TraceFragment {
 
     switch (hub.opCodeData().instructionFamily()) {
       case ADD, MOD, SHF, BIN, WCP, EXT, BATCH, MACHINE_STATE, PUSH_POP, DUP, SWAP, INVALID -> {
-        if (Exceptions.outOfGas(hub.pch().exceptions())
+        if (Exceptions.outOfGasException(hub.pch().exceptions())
             || Exceptions.none(hub.pch().exceptions())) {
           return hub.opCode().getData().stackSettings().staticGas().cost();
         }
@@ -139,7 +139,7 @@ public final class CommonFragment implements TraceFragment {
           case RETURN, REVERT -> {
             Bytes offset = hub.messageFrame().getStackItem(0);
             Bytes size = hub.messageFrame().getStackItem(0);
-            return Exceptions.outOfMemoryExpansion(hub.pch().exceptions())
+            return Exceptions.memoryExpansionException(hub.pch().exceptions())
                 ? 0
                 : ZkTracer.gasCalculator.memoryExpansionGasCost(
                     hub.messageFrame(), offset.toLong(), size.toLong());

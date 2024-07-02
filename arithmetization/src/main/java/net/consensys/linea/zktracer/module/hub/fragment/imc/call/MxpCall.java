@@ -49,7 +49,7 @@ public class MxpCall implements TraceSubFragment {
   }
 
   static boolean getMemoryExpansionException(Hub hub) {
-    return Exceptions.outOfMemoryExpansion(hub.pch().exceptions());
+    return Exceptions.memoryExpansionException(hub.pch().exceptions());
   }
 
   public final boolean type4InstructionMayTriggerNonTrivialOperation(Hub hub) {

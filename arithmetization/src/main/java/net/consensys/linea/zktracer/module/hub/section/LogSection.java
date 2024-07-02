@@ -39,8 +39,8 @@ public class LogSection implements PostTransactionDefer {
   LogInvocation logData;
 
   public LogSection(Hub hub) {
-    this.mxpX = Exceptions.outOfMemoryExpansion(hub.pch().exceptions());
-    this.oogX = Exceptions.outOfGas(hub.pch().exceptions());
+    this.mxpX = Exceptions.memoryExpansionException(hub.pch().exceptions());
+    this.oogX = Exceptions.outOfGasException(hub.pch().exceptions());
 
     // Static Case
     if (hub.currentFrame().frame().isStatic()) {

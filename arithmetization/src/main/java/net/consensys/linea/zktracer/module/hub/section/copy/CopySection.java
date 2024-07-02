@@ -35,10 +35,10 @@ public class CopySection extends TraceSection {
 
   public static void appendToTrace(Hub hub) {
     switch (hub.opCode()) {
-      case OpCode.CALLDATACOPY -> hub.addTraceSection(new CallDataCopySection(hub));
-      case OpCode.RETURNDATACOPY -> hub.addTraceSection(new ReturnDataCopySection(hub));
-      case OpCode.CODECOPY -> hub.addTraceSection(new CodeCopySection(hub));
-      case OpCode.EXTCODECOPY -> hub.addTraceSection(new ExtCodeCopySection(hub));
+      case OpCode.CALLDATACOPY -> new CallDataCopySection(hub);
+      case OpCode.RETURNDATACOPY -> new ReturnDataCopySection(hub);
+      case OpCode.CODECOPY -> new CodeCopySection(hub);
+      case OpCode.EXTCODECOPY -> new ExtCodeCopySection(hub);
     }
   }
 }

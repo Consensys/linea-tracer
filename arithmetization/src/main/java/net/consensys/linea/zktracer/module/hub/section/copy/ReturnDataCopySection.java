@@ -20,8 +20,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 
 public class ReturnDataCopySection extends TraceSection {
-  public ReturnDataCopySection(Hub hub, TraceFragment... chunks) {
-    super(hub);
-    this.addFragmentsAndStack(hub, chunks);
-  }
+
+  public ReturnDataCopySection(Hub hub) { super(hub); }
 }

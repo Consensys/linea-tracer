@@ -26,13 +26,6 @@ public class CopySection extends TraceSection {
     super(hub);
   }
 
-  /*
-  public CopySection(Hub hub, TraceFragment... chunks) {
-    super(hub);
-    this.addFragmentsAndStack(hub, chunks);
-  }
-   */
-
   public static void appendToTrace(Hub hub) {
     switch (hub.opCode()) {
       case OpCode.CALLDATACOPY -> new CallDataCopySection(hub);

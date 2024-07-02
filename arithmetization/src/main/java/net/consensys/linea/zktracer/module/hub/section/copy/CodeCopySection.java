@@ -79,9 +79,9 @@ public class CodeCopySection extends TraceSection {
 
     if (mxpCall.mxpx) {
       AccountFragment accountReadingFragment =
-        hub.factories()
-          .accountFragment()
-          .makeWithTrm(accountBefore, accountBefore, rawTargetAddress, doingDomSubStamps);
+          hub.factories()
+              .accountFragment()
+              .makeWithTrm(accountBefore, accountBefore, rawTargetAddress, doingDomSubStamps);
 
       codeCopySection.addFragment(accountReadingFragment);
       return;

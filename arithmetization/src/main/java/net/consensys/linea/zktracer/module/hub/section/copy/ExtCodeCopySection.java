@@ -15,12 +15,12 @@
 
 package net.consensys.linea.zktracer.module.hub.section.copy;
 
-import com.slack.api.model.Message;
+import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.none;
+import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.outOfGasException;
+
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
-import net.consensys.linea.zktracer.module.hub.Factories;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
@@ -31,9 +31,6 @@ import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.frame.MessageFrame;
-
-import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.none;
-import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.outOfGasException;
 
 public class ExtCodeCopySection extends TraceSection {
 
@@ -62,21 +59,22 @@ public class ExtCodeCopySection extends TraceSection {
     final Account targetAccount = frame.getWorldUpdater().get(targetAddress);
 
     AccountSnapshot accountBefore =
-            AccountSnapshot.fromAccount(
-                    targetAccount,
-                    frame.isAddressWarm(targetAddress),
-                    hub.transients().conflation().deploymentInfo().number(targetAddress),
-                    hub.transients().conflation().deploymentInfo().isDeploying(targetAddress));
+        AccountSnapshot.fromAccount(
+            targetAccount,
+            frame.isAddressWarm(targetAddress),
+            hub.transients().conflation().deploymentInfo().number(targetAddress),
+            hub.transients().conflation().deploymentInfo().isDeploying(targetAddress));
 
     DomSubStampsSubFragment doingDomSubStamps =
-            DomSubStampsSubFragment.standardDomSubStamps(hub, 0);
+        DomSubStampsSubFragment.standardDomSubStamps(hub, 0);
 
     final short exceptions = hub.pch().exceptions();
 
     // The OOGX case
     if (outOfGasException(exceptions)) {
       // the last context row will be added automatically
-      AccountFragment accountReadingFragment = hub.factories()
+      AccountFragment accountReadingFragment =
+          hub.factories()
               .accountFragment()
               .makeWithTrm(accountBefore, accountBefore, rawTargetAddress, doingDomSubStamps);
 
@@ -91,13 +89,14 @@ public class ExtCodeCopySection extends TraceSection {
     }
 
     AccountSnapshot accountAfter =
-            AccountSnapshot.fromAccount(
-                    targetAccount,
-                    true,
-                    hub.transients().conflation().deploymentInfo().number(targetAddress),
-                    hub.transients().conflation().deploymentInfo().isDeploying(targetAddress));
+        AccountSnapshot.fromAccount(
+            targetAccount,
+            true,
+            hub.transients().conflation().deploymentInfo().number(targetAddress),
+            hub.transients().conflation().deploymentInfo().isDeploying(targetAddress));
 
-    AccountFragment accountDoingFragment = hub.factories()
+    AccountFragment accountDoingFragment =
+        hub.factories()
             .accountFragment()
             .makeWithTrm(accountBefore, accountAfter, rawTargetAddress, doingDomSubStamps);
 
@@ -106,14 +105,14 @@ public class ExtCodeCopySection extends TraceSection {
     // affected by issue #785
     if (hub.callStack().current().willRevert()) {
       DomSubStampsSubFragment undoingDomSubStamps =
-              DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 1);
+          DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 1);
       AccountFragment undoingAccountFragment =
-              hub.factories()
-                      .accountFragment()
-                      .make(accountAfter, accountBefore, undoingDomSubStamps);
+          hub.factories().accountFragment().make(accountAfter, accountBefore, undoingDomSubStamps);
       extCodeCopySection.addFragment(undoingAccountFragment);
     }
   }
 
-  public ExtCodeCopySection(Hub hub) { super(hub); }
+  public ExtCodeCopySection(Hub hub) {
+    super(hub);
+  }
 }

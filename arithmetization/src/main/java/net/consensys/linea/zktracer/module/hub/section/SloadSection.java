@@ -21,6 +21,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
+import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
@@ -56,7 +57,7 @@ public class SloadSection extends TraceSection {
 
     sloadSection.addFragmentsAndStack(hub, readCurrentContext, miscFragmentForSload, doingSload);
 
-    final boolean outOfGasException = hub.pch().exceptions().outOfGas();
+    final boolean outOfGasException = Exceptions.outOfGas(hub.pch().exceptions());
     final boolean contextWillRevert = hub.callStack().current().willRevert();
 
     if (outOfGasException || contextWillRevert) {

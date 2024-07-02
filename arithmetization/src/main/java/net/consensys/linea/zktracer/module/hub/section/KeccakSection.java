@@ -21,6 +21,7 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
+import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import org.apache.tuweni.bytes.Bytes;
 import org.bouncycastle.crypto.digests.KeccakDigest;
 
@@ -38,7 +39,8 @@ public class KeccakSection extends TraceSection {
     imcFragment.callMxp(mxpCall);
 
     final boolean mayTriggerNonTrivialOperation = mxpCall.isMayTriggerNonTrivialMmuOperation();
-    final boolean triggerMmu = mayTriggerNonTrivialOperation & hub.pch().exceptions().none();
+    final boolean triggerMmu =
+        mayTriggerNonTrivialOperation & Exceptions.none(hub.pch().exceptions());
 
     if (triggerMmu) {
       imcFragment.callMmu(MmuCall.sha3(hub));

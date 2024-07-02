@@ -38,7 +38,7 @@ import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.internal.Words;
 
 @Accessors(fluent = true)
-/** A TraceSection gather the trace lines linked to a single operation */
+/* A TraceSection gather the trace lines linked to a single operation */
 public abstract class TraceSection {
   private final Hub hub;
   public final CommonFragmentValues commonValues;
@@ -161,7 +161,7 @@ public abstract class TraceSection {
                 hub,
                 f.stack().snapshot(),
                 new StackLine().asStackOperations(),
-                hub.pch().exceptions().snapshot(),
+                hub.pch().exceptions(),
                 hub.pch().abortingConditions().snapshot(),
                 Hub.GAS_PROJECTOR.of(f.frame(), f.opCode()),
                 f.isDeployment(),
@@ -174,7 +174,7 @@ public abstract class TraceSection {
                 hub,
                 f.stack().snapshot(),
                 line.asStackOperations(),
-                hub.pch().exceptions().snapshot(),
+                hub.pch().exceptions(),
                 hub.pch().abortingConditions().snapshot(),
                 Hub.GAS_PROJECTOR.of(f.frame(), f.opCode()),
                 f.isDeployment(),

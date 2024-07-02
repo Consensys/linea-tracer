@@ -21,6 +21,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
+import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.runtime.LogInvocation;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.worldstate.WorldView;
@@ -39,8 +40,8 @@ public class LogSection implements PostTransactionDefer {
   LogInvocation logData;
 
   public LogSection(Hub hub) {
-    this.mxpX = hub.pch().exceptions().memoryExpansion();
-    this.oogX = hub.pch().exceptions().outOfGas();
+    this.mxpX = Exceptions.outOfMemoryExpansion(hub.pch().exceptions());
+    this.oogX = Exceptions.outOfGas(hub.pch().exceptions());
 
     // Static Case
     if (hub.currentFrame().frame().isStatic()) {

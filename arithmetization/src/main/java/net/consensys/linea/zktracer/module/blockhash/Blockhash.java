@@ -60,7 +60,7 @@ public class Blockhash implements Module {
 
   @Override
   public String moduleKey() {
-    return "BLOCKHASH";
+    return "BLOCK_HASH";
   }
 
   @Override

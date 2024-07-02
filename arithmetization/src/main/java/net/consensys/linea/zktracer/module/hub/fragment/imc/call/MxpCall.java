@@ -22,6 +22,7 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.State;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
+import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
@@ -48,7 +49,7 @@ public class MxpCall implements TraceSubFragment {
   }
 
   static boolean getMemoryExpansionException(Hub hub) {
-    return hub.pch().exceptions().memoryExpansion();
+    return Exceptions.outOfMemoryExpansion(hub.pch().exceptions());
   }
 
   public final boolean type4InstructionMayTriggerNonTrivialOperation(Hub hub) {

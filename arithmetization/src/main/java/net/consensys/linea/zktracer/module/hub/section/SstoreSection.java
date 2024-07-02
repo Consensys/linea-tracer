@@ -22,6 +22,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
+import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
@@ -49,9 +50,9 @@ public class SstoreSection extends TraceSection {
         EWord.of(world.get(address).getStorageValue(UInt256.fromBytes(storageKey)));
     final EWord valueNext = EWord.of(hub.messageFrame().getStackItem(1));
 
-    final boolean staticContextException = hub.pch().exceptions().staticException();
-    final boolean sstoreException = hub.pch().exceptions().sstore();
-    final boolean outOfGasException = hub.pch().exceptions().outOfGas();
+    final boolean staticContextException = Exceptions.staticFault(hub.pch().exceptions());
+    final boolean sstoreException = Exceptions.outOfSStore(hub.pch().exceptions());
+    final boolean outOfGasException = Exceptions.outOfGas(hub.pch().exceptions());
     final boolean contextWillRevert = hub.callStack().current().willRevert();
 
     final SstoreSection currentSection = new SstoreSection(hub, world);

@@ -26,6 +26,7 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.HubProcessingPhase;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
+import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
@@ -112,7 +113,8 @@ public final class CommonFragment implements TraceFragment {
 
     switch (hub.opCodeData().instructionFamily()) {
       case ADD, MOD, SHF, BIN, WCP, EXT, BATCH, MACHINE_STATE, PUSH_POP, DUP, SWAP, INVALID -> {
-        if (hub.pch().exceptions().outOfGas() || hub.pch().exceptions().none()) {
+        if (Exceptions.outOfGas(hub.pch().exceptions())
+            || Exceptions.none(hub.pch().exceptions())) {
           return hub.opCode().getData().stackSettings().staticGas().cost();
         }
         return 0;
@@ -137,7 +139,7 @@ public final class CommonFragment implements TraceFragment {
           case RETURN, REVERT -> {
             Bytes offset = hub.messageFrame().getStackItem(0);
             Bytes size = hub.messageFrame().getStackItem(0);
-            return hub.pch().exceptions().memoryExpansion()
+            return Exceptions.outOfMemoryExpansion(hub.pch().exceptions())
                 ? 0
                 : ZkTracer.gasCalculator.memoryExpansionGasCost(
                     hub.messageFrame(), offset.toLong(), size.toLong());

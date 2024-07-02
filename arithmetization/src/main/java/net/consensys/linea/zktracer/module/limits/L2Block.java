@@ -51,7 +51,7 @@ public class L2Block implements Module {
 
   @Override
   public String moduleKey() {
-    return "BLOCK_L1SIZE";
+    return "BLOCK_L1_SIZE";
   }
 
   @Override

@@ -28,6 +28,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.JumpOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.JumpiOobCall;
+import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.transients.DeploymentInfo;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.hyperledger.besu.datatypes.Address;
@@ -41,7 +42,7 @@ public class JumpSection extends TraceSection {
 
     hub.addTraceSection(currentSection);
 
-    if (hub.pch().exceptions().outOfGas()) {
+    if (Exceptions.outOfGas(hub.pch().exceptions())) {
       return;
     }
 

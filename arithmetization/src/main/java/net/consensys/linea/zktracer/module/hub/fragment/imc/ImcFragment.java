@@ -35,6 +35,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.Jum
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.JumpiOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.SstoreOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.XCallOobCall;
+import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.gas.GasConstants;
 import net.consensys.linea.zktracer.types.EWord;
@@ -117,7 +118,7 @@ public class ImcFragment implements TraceFragment {
     if (hub.pch().signals().oob()) {
       switch (hub.opCode()) {
         case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
-          if (hub.opCode().equals(OpCode.CALL) && hub.pch().exceptions().any()) {
+          if (hub.opCode().equals(OpCode.CALL) && Exceptions.any(hub.pch().exceptions())) {
             r.callOob(new XCallOobCall());
           } else {
             r.callOob(new CallOobCall());
@@ -177,7 +178,7 @@ public class ImcFragment implements TraceFragment {
     }
     */
 
-    if (hub.pch().signals().exp() && !hub.pch().exceptions().stackException()) {
+    if (hub.pch().signals().exp() && !Exceptions.stackException(hub.pch().exceptions())) {
       hub.exp().tracePreOpcode(frame);
     }
 

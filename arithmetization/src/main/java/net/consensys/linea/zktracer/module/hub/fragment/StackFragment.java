@@ -49,7 +49,7 @@ import org.hyperledger.besu.evm.internal.Words;
 public final class StackFragment implements TraceFragment {
   private final Stack stack;
   @Getter private final List<StackOperation> stackOps;
-  private final Exceptions exceptions;
+  private final short exceptions;
   @Setter private DeploymentExceptions contextExceptions;
   private final long staticGas;
   private EWord hashInfoKeccak = EWord.ZERO;
@@ -65,7 +65,7 @@ public final class StackFragment implements TraceFragment {
       final Hub hub,
       Stack stack,
       List<StackOperation> stackOps,
-      Exceptions exceptions,
+      short exceptions,
       AbortingConditions aborts,
       DeploymentExceptions contextExceptions,
       GasProjection gp,
@@ -78,9 +78,9 @@ public final class StackFragment implements TraceFragment {
     this.opCode = stack.getCurrentOpcodeData().mnemonic();
     this.hashInfoFlag =
         switch (this.opCode) {
-          case SHA3 -> exceptions.none() && gp.messageSize() > 0;
-          case RETURN -> exceptions.none() && gp.messageSize() > 0 && isDeploying;
-          case CREATE2 -> exceptions.none()
+          case SHA3 -> Exceptions.none(exceptions) && gp.messageSize() > 0;
+          case RETURN -> Exceptions.none(exceptions) && gp.messageSize() > 0 && isDeploying;
+          case CREATE2 -> Exceptions.none(exceptions)
               && contextExceptions.none()
               && aborts.none()
               && gp.messageSize() > 0;
@@ -107,7 +107,7 @@ public final class StackFragment implements TraceFragment {
 
     this.staticGas = gp.staticGas();
 
-    if (opCode.isJump() && !exceptions.stackException()) {
+    if (opCode.isJump() && !Exceptions.stackException(exceptions)) {
       final BigInteger prospectivePcNew =
           hub.currentFrame().frame().getStackItem(0).toUnsignedBigInteger();
       final BigInteger codeSize = BigInteger.valueOf(hub.currentFrame().code().getSize());
@@ -137,7 +137,7 @@ public final class StackFragment implements TraceFragment {
       final Hub hub,
       final Stack stack,
       final List<StackOperation> stackOperations,
-      final Exceptions exceptions,
+      final short exceptions,
       final AbortingConditions aborts,
       final GasProjection gp,
       boolean isDeploying,
@@ -179,9 +179,9 @@ public final class StackFragment implements TraceFragment {
 
   private boolean traceLog() {
     return this.opCode.isLog()
-        && this.exceptions
-            .none() // TODO: should be redundant (exceptions trigger reverts) --- this could be
-        // asserted
+        && Exceptions.none(
+            this.exceptions) // TODO: should be redundant (exceptions trigger reverts) --- this
+        // could be asserted
         && !this.willRevert;
   }
 
@@ -292,15 +292,15 @@ public final class StackFragment implements TraceFragment {
         .pStackJumpDestinationVettingRequired(
             this.jumpDestinationVettingRequired) // TODO: confirm this
         // Exception flag
-        .pStackOpcx(exceptions.invalidOpcode())
-        .pStackSux(exceptions.stackUnderflow())
-        .pStackSox(exceptions.stackOverflow())
-        .pStackMxpx(exceptions.memoryExpansion())
-        .pStackOogx(exceptions.outOfGas())
-        .pStackRdcx(exceptions.returnDataCopyFault())
-        .pStackJumpx(exceptions.jumpFault())
-        .pStackStaticx(exceptions.staticException())
-        .pStackSstorex(exceptions.sstore())
+        .pStackOpcx(Exceptions.invalidCodePrefix(exceptions))
+        .pStackSux(Exceptions.stackUnderflow(exceptions))
+        .pStackSox(Exceptions.stackOverflow(exceptions))
+        .pStackMxpx(Exceptions.outOfMemoryExpansion(exceptions))
+        .pStackOogx(Exceptions.outOfGas(exceptions))
+        .pStackRdcx(Exceptions.returnDataCopyFault(exceptions))
+        .pStackJumpx(Exceptions.jumpFault(exceptions))
+        .pStackStaticx(Exceptions.staticFault(exceptions))
+        .pStackSstorex(Exceptions.outOfSStore(exceptions))
         .pStackIcpx(contextExceptions.invalidCodePrefix())
         .pStackMaxcsx(contextExceptions.codeSizeOverflow())
         // Hash data

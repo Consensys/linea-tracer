@@ -32,7 +32,7 @@ public class PlatformController {
   @Getter private final Signals signals;
 
   /** The exceptions raised during the execution of the current operation */
-  @Getter private final Exceptions exceptions;
+  @Getter private short exceptions;
 
   /** The aborting conditions raised during the execution of the current operation */
   @Getter private final AbortingConditions abortingConditions;
@@ -41,7 +41,7 @@ public class PlatformController {
 
   public PlatformController(final Hub hub) {
     this.hub = hub;
-    this.exceptions = new Exceptions(hub);
+    this.exceptions = Exceptions.NONE;
     this.abortingConditions = new AbortingConditions();
     this.signals = new Signals(this);
     this.failureConditions = new FailureConditions(hub);
@@ -50,7 +50,7 @@ public class PlatformController {
   /** Reset all information */
   public void reset() {
     this.signals.reset();
-    this.exceptions.reset();
+    this.exceptions = Exceptions.NONE;
     this.abortingConditions.reset();
     this.failureConditions.reset();
   }
@@ -64,8 +64,8 @@ public class PlatformController {
   public void setup(MessageFrame frame) {
     this.reset();
 
-    this.exceptions.prepare(frame, Hub.GAS_PROJECTOR);
-    if (this.exceptions.none()) {
+    this.exceptions |= Exceptions.fromFrame(hub, frame);
+    if (Exceptions.none(this.exceptions)) {
       this.abortingConditions.prepare(hub);
       if (abortingConditions.none()) {
         this.failureConditions.prepare(frame);

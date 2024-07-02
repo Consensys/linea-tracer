@@ -26,6 +26,7 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.HubProcessingPhase;
 import net.consensys.linea.zktracer.module.hub.State;
+import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.opcode.InstructionFamily;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
@@ -62,7 +63,7 @@ public class CommonFragmentValues {
   @Setter public int codeFragmentIndex = -1;
 
   public CommonFragmentValues(Hub hub) {
-    final boolean noStackException = hub.pch().exceptions().noStackException();
+    final boolean noStackException = !Exceptions.stackException(hub.pch().exceptions());
     final InstructionFamily instructionFamily = hub.opCode().getData().instructionFamily();
 
     this.txMetadata = hub.txStack().current();
@@ -71,7 +72,7 @@ public class CommonFragmentValues {
     this.callStack = hub.callStack();
     this.stamps = hub.state().stamps();
     this.callFrame = hub.currentFrame();
-    this.exceptionAhoy = hub.pch().exceptions().any();
+    this.exceptionAhoy = Exceptions.any(hub.pch().exceptions());
     this.contextNumberNew = hub.contextNumberNew(callFrame);
     this.cnRevertStamp = 0; // TODO
     this.pc = hubProcessingPhase == TX_EXEC ? hub.currentFrame().pc() : 0;

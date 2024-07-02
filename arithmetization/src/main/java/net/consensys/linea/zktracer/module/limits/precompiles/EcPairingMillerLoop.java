@@ -18,19 +18,17 @@ package net.consensys.linea.zktracer.module.limits.precompiles;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
 
+@RequiredArgsConstructor
 public final class EcPairingMillerLoop implements Module {
-  private final EcPairingCallEffectiveCall ecpairingCall;
-
-  public EcPairingMillerLoop(EcPairingCallEffectiveCall ecpairingCall) {
-    this.ecpairingCall = ecpairingCall;
-  }
+  private final EcPairingEffectiveCall ecpairingCall;
 
   @Override
   public String moduleKey() {
-    return "PRECOMPILE_ECPAIRING_MILLER_LOOP";
+    return "PRECOMPILE_ECPAIRING_MILLER_LOOPS";
   }
 
   @Override
@@ -41,7 +39,12 @@ public final class EcPairingMillerLoop implements Module {
 
   @Override
   public int lineCount() {
-    final long r = ecpairingCall.getCounts().stream().mapToLong(EcPairingLimit::nMillerLoop).sum();
+    long r = 0;
+
+    for (EcPairingLimit count : this.ecpairingCall.counts()) {
+      r += count.numberOfMillerLoops();
+    }
+
     if (r > Integer.MAX_VALUE) {
       throw new RuntimeException("Ludicrous EcPairing calls");
     }
@@ -51,11 +54,11 @@ public final class EcPairingMillerLoop implements Module {
 
   @Override
   public List<ColumnHeader> columnsHeaders() {
-    throw new IllegalStateException("should never be called");
+    throw new UnsupportedOperationException("should never be called");
   }
 
   @Override
   public void commit(List<MappedByteBuffer> buffers) {
-    throw new IllegalStateException("should never be called");
+    throw new UnsupportedOperationException("should never be called");
   }
 }

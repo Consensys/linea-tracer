@@ -50,7 +50,7 @@ public class Blockdata implements Module {
 
   @Override
   public String moduleKey() {
-    return "BLOCKDATA";
+    return "BLOCK_DATA";
   }
 
   @Override
@@ -106,10 +106,8 @@ public class Blockdata implements Module {
     final Trace trace = new Trace(buffers);
     int relblock = 0;
     for (BlockdataOperation blockData : this.operations) {
-      if (blockData.relTxMax() != 0) {
-        relblock += 1;
-        blockData.trace(trace, relblock, firstBlockNumber, chainId);
-      }
+      relblock += 1;
+      blockData.trace(trace, relblock, firstBlockNumber, chainId);
     }
   }
 }

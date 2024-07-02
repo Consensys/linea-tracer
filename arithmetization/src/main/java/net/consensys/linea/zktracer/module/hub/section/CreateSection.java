@@ -47,7 +47,7 @@ public class CreateSection extends TraceSection
   private final OpCode opCode;
   private final long initialGas;
   private final AbortingConditions aborts;
-  private final Exceptions exceptions;
+  private final short exceptions;
   private final FailureConditions failures;
   private final ScenarioFragment scenarioFragment;
 
@@ -78,7 +78,7 @@ public class CreateSection extends TraceSection
     this.emptyInitCode = hub.transients().op().callDataSegment().isEmpty();
     this.initialGas = hub.messageFrame().getRemainingGas();
     this.aborts = hub.pch().abortingConditions().snapshot();
-    this.exceptions = hub.pch().exceptions().snapshot();
+    this.exceptions = hub.pch().exceptions();
     this.failures = hub.pch().failureConditions().snapshot();
 
     this.oldCreatorSnapshot = oldCreatorSnapshot;
@@ -168,16 +168,16 @@ public class CreateSection extends TraceSection
 
     this.scenarioFragment.runPostTx(hub, state, tx, isSuccessful);
     this.addFragmentsWithoutStack(scenarioFragment);
-    if (this.exceptions.staticException()) {
+    if (Exceptions.staticFault(this.exceptions)) {
       this.addFragmentsWithoutStack(
           ImcFragment.empty(hub),
           ContextFragment.readCurrentContextData(hub),
           ContextFragment.executionProvidesEmptyReturnData(hub));
-    } else if (this.exceptions.memoryExpansion()) {
+    } else if (Exceptions.outOfMemoryExpansion(this.exceptions)) {
       this.addFragmentsWithoutStack(
           ImcFragment.empty(hub).callMxp(MxpCall.build(hub)),
           ContextFragment.executionProvidesEmptyReturnData(hub));
-    } else if (this.exceptions.outOfGas()) {
+    } else if (Exceptions.outOfGas(this.exceptions)) {
       this.addFragmentsWithoutStack(
           commonImcFragment, ContextFragment.executionProvidesEmptyReturnData(hub));
     } else if (this.aborts.any()) {

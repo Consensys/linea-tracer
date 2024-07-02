@@ -15,13 +15,83 @@
 
 package net.consensys.linea.zktracer.module.hub.section.copy;
 
+import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.outOfGasException;
+
+import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
+import org.apache.tuweni.bytes.Bytes;
+import org.apache.tuweni.bytes.Bytes32;
+import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.evm.account.Account;
+import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public class CodeCopySection extends TraceSection {
-  public CodeCopySection(Hub hub, TraceFragment... chunks) {
+
+  public static void appendToTrace(Hub hub) {
+    final CodeCopySection codeCopySection = new CodeCopySection(hub);
+    hub.addTraceSection(codeCopySection);
+
+    // Miscellaneous row
+    ImcFragment imcFragment = ImcFragment.empty(hub);
+    codeCopySection.addFragmentsAndStack(hub, imcFragment);
+
+    // triggerOob = false
+    // triggerMxp = true
+    MxpCall mxpCall = new MxpCall(hub);
+    imcFragment.callMxp(mxpCall);
+    boolean xahoy = mxpCall.mxpx || outOfGasException(hub.pch().exceptions());
+    final boolean triggerMmu = !xahoy && mxpCall.isMayTriggerNonTrivialMmuOperation();
+    if (triggerMmu) {
+      MmuCall mmuCall = MmuCall.codeCopy(hub);
+      imcFragment.callMmu(mmuCall);
+    }
+
+    // Context row
+    // TODO: use ContextFragment.readContextDataByContextNumber(hub, CN)
+    ContextFragment contextFragment =
+        xahoy
+            ? ContextFragment.executionProvidesEmptyReturnData(hub)
+            : ContextFragment.readCurrentContextData(hub);
+    codeCopySection.addFragment(contextFragment);
+
+    // Account row
+    final MessageFrame frame = hub.messageFrame();
+    final Bytes rawTargetAddress = frame.getStackItem(0);
+    final Address targetAddress = Address.extract((Bytes32) rawTargetAddress);
+    final Account targetAccount = frame.getWorldUpdater().get(targetAddress);
+
+    AccountSnapshot accountBefore =
+        AccountSnapshot.fromAccount(
+            targetAccount,
+            frame.isAddressWarm(targetAddress),
+            hub.transients().conflation().deploymentInfo().number(targetAddress),
+            hub.transients().conflation().deploymentInfo().isDeploying(targetAddress));
+
+    DomSubStampsSubFragment doingDomSubStamps =
+        DomSubStampsSubFragment.standardDomSubStamps(hub, 0);
+
+    if (mxpCall.mxpx) {
+      AccountFragment accountReadingFragment =
+        hub.factories()
+          .accountFragment()
+          .makeWithTrm(accountBefore, accountBefore, rawTargetAddress, doingDomSubStamps);
+
+      codeCopySection.addFragment(accountReadingFragment);
+      return;
+    }
+    if (!xahoy) {
+      // ?
+    }
+  }
+
+  public CodeCopySection(Hub hub) {
     super(hub);
-    this.addFragmentsAndStack(hub, chunks);
   }
 }

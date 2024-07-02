@@ -17,7 +17,6 @@ package net.consensys.linea.zktracer.module.hub;
 
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.*;
 import static net.consensys.linea.zktracer.module.hub.Trace.MULTIPLIER___STACK_HEIGHT;
-import static net.consensys.linea.zktracer.types.AddressUtils.addressFromBytes;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 import static net.consensys.linea.zktracer.types.AddressUtils.getCreateAddress;
 
@@ -57,6 +56,7 @@ import net.consensys.linea.zktracer.module.hub.section.TxSkippedSectionDefers;
 import net.consensys.linea.zktracer.module.hub.section.calls.FailedCallSection;
 import net.consensys.linea.zktracer.module.hub.section.calls.NoCodeCallSection;
 import net.consensys.linea.zktracer.module.hub.section.calls.SmartContractCallSection;
+import net.consensys.linea.zktracer.module.hub.section.copy.CopySection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
 import net.consensys.linea.zktracer.module.hub.transients.Transients;
@@ -1152,14 +1152,15 @@ public class Hub implements Module {
         this.addTraceSection(accountSection);
       }
       case COPY -> {
+        CopySection.appendToTrace(this);
+
+        /*
         TraceSection copySection = new CopySection(this);
-        if (!this.opCode().equals(OpCode.RETURNDATACOPY)) {
+        if (!this.opCode().equals(OpCode.RETURNDATACOPY) && !this.opCode().equals(OpCode.CALLDATACOPY)) {
           final Bytes rawTargetAddress =
               switch (this.currentFrame().opCode()) {
                 case CODECOPY -> this.currentFrame().byteCodeAddress();
                 case EXTCODECOPY -> frame.getStackItem(0);
-                case CALLDATACOPY -> addressFromBytes(
-                    Bytes.fromHexString("0xdeadbeef")); // TODO: implement me please
                 default -> throw new IllegalStateException(
                     String.format("unexpected opcode %s", this.opCode()));
               };
@@ -1180,6 +1181,9 @@ public class Hub implements Module {
                   this.transients.conflation().deploymentInfo().number(targetAddress),
                   this.transients.conflation().deploymentInfo().isDeploying(targetAddress));
 
+          // TODO: this is deprecated, update it. Factories creates an account row (accountFragment)
+          // ImcFragment is for miscellaneaous rows
+          // ContextFragment
           DomSubStampsSubFragment doingDomSubStamps =
               DomSubStampsSubFragment.standardDomSubStamps(this, 0);
           copySection.addFragment(
@@ -1204,6 +1208,7 @@ public class Hub implements Module {
           copySection.addFragment(ContextFragment.readCurrentContextData(this));
         }
         this.addTraceSection(copySection);
+        */
       }
       case TRANSACTION -> this.addTraceSection(
           new TransactionSection(this, TransactionFragment.prepare(this.txStack.current())));

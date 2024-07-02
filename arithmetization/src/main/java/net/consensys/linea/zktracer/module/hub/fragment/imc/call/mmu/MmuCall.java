@@ -34,7 +34,6 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_MODEXP_DATA;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_MODEXP_ZERO;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_MSTORE;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_MSTORE8;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_RAM_TO_EXO_WITH_PADDING;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_RAM_TO_RAM_SANS_PADDING;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_RIGHT_PADDED_WORD_EXTRACTION;
@@ -61,7 +60,6 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.RLP_
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
-import java.util.Arrays;
 import java.util.Optional;
 
 import com.google.common.base.Preconditions;
@@ -177,33 +175,6 @@ public class MmuCall implements TraceSubFragment {
         .setKec();
   }
 
-  public static MmuCall callDataLoad(final Hub hub) {
-    final long callDataOffset = hub.currentFrame().callDataInfo().memorySpan().offset();
-    final long callDataSize = hub.currentFrame().callDataInfo().memorySpan().length();
-
-    final long sourceOffset = Words.clampedToLong(hub.messageFrame().getStackItem(0));
-
-    if (sourceOffset >= callDataSize) {
-      return nop();
-    }
-
-    final EWord read =
-        EWord.of(
-            Bytes.wrap(
-                Arrays.copyOfRange(
-                    hub.currentFrame().callDataInfo().data().toArray(),
-                    (int) sourceOffset,
-                    (int) (sourceOffset + WORD_SIZE))));
-
-    return new MmuCall(MMU_INST_RIGHT_PADDED_WORD_EXTRACTION)
-        .sourceId(callDataContextNumber(hub))
-        .sourceOffset(EWord.of(sourceOffset))
-        .referenceOffset(callDataOffset)
-        .referenceSize(callDataSize)
-        .limb1(read.hi())
-        .limb2(read.lo());
-  }
-
   public static MmuCall callDataCopy(final Hub hub) {
     final MemorySpan callDataSegment = hub.currentFrame().callDataInfo().memorySpan();
 
@@ -217,7 +188,7 @@ public class MmuCall implements TraceSubFragment {
         .referenceSize(callDataSegment.length());
   }
 
-  private static int callDataContextNumber(final Hub hub) {
+  public static int callDataContextNumber(final Hub hub) {
     final CallFrame currentFrame = hub.callStack().current();
 
     return currentFrame.isRoot()
@@ -262,38 +233,6 @@ public class MmuCall implements TraceSubFragment {
         .referenceOffset(returnDataSegment.offset())
         .referenceSize(returnDataSegment.length());
   }
-
-  public static MmuCall mload(final Hub hub) {
-    final long offset = Words.clampedToLong(hub.messageFrame().getStackItem(0));
-    final EWord loadedValue = EWord.of(hub.messageFrame().shadowReadMemory(offset, WORD_SIZE));
-    return new MmuCall(MMU_INST_MLOAD)
-        .sourceId(hub.currentFrame().contextNumber())
-        .sourceOffset(EWord.of(offset))
-        .limb1(loadedValue.hi())
-        .limb2(loadedValue.lo());
-  }
-
-  public static MmuCall mstore(final Hub hub) {
-    final EWord storedValue = EWord.of(hub.messageFrame().getStackItem(1));
-    return new MmuCall(MMU_INST_MSTORE)
-        .targetId(hub.currentFrame().contextNumber())
-        .targetOffset(EWord.of(hub.messageFrame().getStackItem(0)))
-        .limb1(storedValue.hi())
-        .limb2(storedValue.lo());
-  }
-
-  public static MmuCall mstore8(final Hub hub) {
-    final EWord storedValue = EWord.of(hub.messageFrame().getStackItem(1));
-    return new MmuCall(MMU_INST_MSTORE8)
-        .targetId(hub.currentFrame().contextNumber())
-        .targetOffset(EWord.of(hub.messageFrame().getStackItem(0)))
-        .limb1(storedValue.hi())
-        .limb2(storedValue.lo());
-  }
-
-  // public static MmuCall log(final Hub hub) {
-  //   return new LogX(hub);
-  // }
 
   public static MmuCall create(final Hub hub) {
     return new Create(hub);

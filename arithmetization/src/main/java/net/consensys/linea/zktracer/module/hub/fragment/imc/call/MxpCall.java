@@ -60,7 +60,7 @@ public class MxpCall implements TraceSubFragment {
     stamps.incrementMxpStamp();
     return trace
         .pMiscMxpFlag(true)
-        .pMiscMxpInst(this.opCodeData.mnemonic().byteValue())
+        .pMiscMxpInst(this.opCodeData.value())
         .pMiscMxpDeploys(this.deploys)
         .pMiscMxpOffset1Hi(this.offset1.hi())
         .pMiscMxpOffset1Lo(this.offset1.lo())

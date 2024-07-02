@@ -28,7 +28,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.call.StpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp.ExpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.CallDataLoadOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.CallOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.DeploymentOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.JumpOobCall;
@@ -184,16 +183,17 @@ public class ImcFragment implements TraceFragment {
 
     if (hub.pch().signals().mmu()) {
       switch (hub.opCode()) {
+          // commented instruction are done elsewhere, everything should be deleted
         case SHA3 -> r.callMmu(MmuCall.sha3(hub));
-        case CALLDATALOAD -> r.callMmu(MmuCall.callDataLoad(hub));
+          // case CALLDATALOAD -> r.callMmu(MmuCall.callDataLoad(hub));
         case CALLDATACOPY -> r.callMmu(MmuCall.callDataCopy(hub));
         case CODECOPY -> r.callMmu(MmuCall.codeCopy(hub));
         case EXTCODECOPY -> r.callMmu(MmuCall.extCodeCopy(hub));
         case RETURNDATACOPY -> r.callMmu(MmuCall.returnDataCopy(hub));
-        case MLOAD -> r.callMmu(MmuCall.mload(hub));
-        case MSTORE -> r.callMmu(MmuCall.mstore(hub));
-        case MSTORE8 -> r.callMmu(MmuCall.mstore8(hub));
-          // case LOG0, LOG1, LOG2, LOG3, LOG4 -> r.callMmu(MmuCall.log(hub)); done elsewhere
+          // case MLOAD -> r.callMmu(MmuCall.mload(hub));
+          // case MSTORE -> r.callMmu(MmuCall.mstore(hub));
+          // case MSTORE8 -> r.callMmu(MmuCall.mstore8(hub));
+          // case LOG0, LOG1, LOG2, LOG3, LOG4 -> r.callMmu(MmuCall.log(hub));
         case CREATE -> r.callMmu(MmuCall.create(hub));
         case RETURN -> r.callMmu(
             hub.currentFrame().isDeployment()
@@ -209,7 +209,7 @@ public class ImcFragment implements TraceFragment {
       switch (hub.opCode()) {
         case JUMP -> r.callOob(new JumpOobCall());
         case JUMPI -> r.callOob(new JumpiOobCall());
-        case CALLDATALOAD -> r.callOob(new CallDataLoadOobCall());
+          // case CALLDATALOAD -> r.callOob(new CallDataLoadOobCall());
         case SSTORE -> r.callOob(new SstoreOobCall());
         case CALL, CALLCODE -> {
           r.callOob(new CallOobCall());

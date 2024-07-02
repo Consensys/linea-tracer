@@ -1208,18 +1208,13 @@ public class Hub implements Module {
       case TRANSACTION -> this.addTraceSection(
           new TransactionSection(this, TransactionFragment.prepare(this.txStack.current())));
       case STACK_RAM -> {
-        this.addTraceSection(new StackRam(this));
-        // switch (this.currentFrame().opCode()) {
-        //   case CALLDATALOAD -> {
-        //     final ImcFragment imcFragment = ImcFragment.forOpcode(this, frame);
-        //
-        //     this.addTraceSection(
-        //         new StackRam(this, imcFragment, ContextFragment.readCurrentContextData(this)));
-        //   }
-        //   case MLOAD, MSTORE, MSTORE8 -> this.addTraceSection(
-        //       new StackRam(this, ImcFragment.forOpcode(this, frame)));
-        //   default -> throw new IllegalStateException("unexpected STACK_RAM opcode");
-        // }
+        switch (this.currentFrame().opCode()) {
+          case CALLDATALOAD -> {
+            this.addTraceSection(new CallDataLoadSection(this));
+          }
+          case MLOAD, MSTORE, MSTORE8 -> this.addTraceSection(new StackRamSection(this));
+          default -> throw new IllegalStateException("unexpected STACK_RAM opcode");
+        }
       }
       case STORAGE -> {
         switch (this.currentFrame().opCode()) {

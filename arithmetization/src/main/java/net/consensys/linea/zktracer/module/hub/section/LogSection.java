@@ -36,7 +36,6 @@ public class LogSection implements PostTransactionDefer {
   final boolean oogX;
 
   ImcFragment miscFragment;
-  MxpCall mxpSubFragment;
   LogInvocation logData;
 
   public LogSection(Hub hub) {
@@ -57,8 +56,11 @@ public class LogSection implements PostTransactionDefer {
         new LogCommonSection(hub, (short) 5, ContextFragment.readCurrentContextData(hub));
     hub.addTraceSection(sectionPrequel);
     logData = new LogInvocation(hub);
-    mxpSubFragment = MxpCall.build(hub);
-    miscFragment = ImcFragment.empty(hub); // TODO: .callMxp(mxpSubFragment.get()));
+
+    final MxpCall mxpCall = new MxpCall(hub);
+    miscFragment = ImcFragment.empty(hub).callMxp(mxpCall);
+    this.sectionPrequel.addFragment(miscFragment);
+
     hub.defers().postTx(this);
   }
 
@@ -73,7 +75,6 @@ public class LogSection implements PostTransactionDefer {
       if (mmuTrigger) {
         miscFragment.callMmu(MmuCall.LogX(hub, this.logData));
       }
-      this.sectionPrequel.addFragment(miscFragment);
     }
   }
 

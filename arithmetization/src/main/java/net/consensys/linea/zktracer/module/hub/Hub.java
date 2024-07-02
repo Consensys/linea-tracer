@@ -38,33 +38,36 @@ import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.bin.Bin;
-import net.consensys.linea.zktracer.module.blake2fmodexpdata.Blake2fModexpData;
+import net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpData;
 import net.consensys.linea.zktracer.module.blockdata.Blockdata;
 import net.consensys.linea.zktracer.module.blockhash.Blockhash;
 import net.consensys.linea.zktracer.module.ecdata.EcData;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.exp.Exp;
 import net.consensys.linea.zktracer.module.ext.Ext;
+import net.consensys.linea.zktracer.module.gas.Gas;
 import net.consensys.linea.zktracer.module.hub.defer.*;
 import net.consensys.linea.zktracer.module.hub.fragment.*;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 import net.consensys.linea.zktracer.module.hub.section.*;
+import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
 import net.consensys.linea.zktracer.module.hub.transients.DeploymentInfo;
 import net.consensys.linea.zktracer.module.hub.transients.Transients;
 import net.consensys.linea.zktracer.module.limits.Keccak;
 import net.consensys.linea.zktracer.module.limits.L2Block;
 import net.consensys.linea.zktracer.module.limits.L2L1Logs;
-import net.consensys.linea.zktracer.module.limits.precompiles.Blake2fRounds;
+import net.consensys.linea.zktracer.module.limits.precompiles.BlakeEffectiveCall;
+import net.consensys.linea.zktracer.module.limits.precompiles.BlakeRounds;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcAddEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcMulEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingCallEffectiveCall;
+import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingMillerLoop;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcRecoverEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.RipeMd160Blocks;
+import net.consensys.linea.zktracer.module.limits.precompiles.RipemdBlocks;
 import net.consensys.linea.zktracer.module.limits.precompiles.Sha256Blocks;
 import net.consensys.linea.zktracer.module.logdata.LogData;
 import net.consensys.linea.zktracer.module.loginfo.LogInfo;
@@ -76,7 +79,7 @@ import net.consensys.linea.zktracer.module.mxp.Mxp;
 import net.consensys.linea.zktracer.module.oob.Oob;
 import net.consensys.linea.zktracer.module.rlpaddr.RlpAddr;
 import net.consensys.linea.zktracer.module.rlptxn.RlpTxn;
-import net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxrcpt;
+import net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxnRcpt;
 import net.consensys.linea.zktracer.module.rom.Rom;
 import net.consensys.linea.zktracer.module.romlex.RomLex;
 import net.consensys.linea.zktracer.module.shakiradata.ShakiraData;
@@ -207,12 +210,13 @@ public class Hub implements Module {
   @Getter private final Wcp wcp = new Wcp(this);
   private final Module add = new Add(this);
   private final Module bin = new Bin(this);
-  private final Blake2fModexpData blake2fModexpData = new Blake2fModexpData(this.wcp);
+  private final BlakeModexpData blakeModexpData = new BlakeModexpData(this.wcp);
   @Getter private final EcData ecData;
   private final Blockdata blockdata;
   private final Blockhash blockhash = new Blockhash(wcp);
   private final Euc euc;
   private final Ext ext = new Ext(this);
+  private final Gas gas = new Gas();
   private final Module mul = new Mul(this);
   private final Mod mod = new Mod();
   private final Module shf = new Shf();
@@ -222,7 +226,7 @@ public class Hub implements Module {
 
   @Getter private final Exp exp;
   @Getter private final Mmu mmu;
-  private final RlpTxrcpt rlpTxrcpt;
+  private final RlpTxnRcpt rlpTxnRcpt;
   private final LogInfo logInfo;
   private final LogData logData;
   private final Trm trm = new Trm();
@@ -246,6 +250,8 @@ public class Hub implements Module {
   private final List<Module> precompileLimitModules;
   private final List<Module> refTableModules;
 
+  private boolean previousOperationWasCallToEcPrecompile;
+
   public Hub(final Address l2l1ContractAddress, final Bytes l2l1Topic) {
     this.l2Block = new L2Block(l2l1ContractAddress, LogTopic.of(l2l1Topic));
     this.transients = new Transients(this);
@@ -260,9 +266,9 @@ public class Hub implements Module {
     this.euc = new Euc(this.wcp);
     this.txnData = new TxnData(this, this.romLex, this.wcp, this.euc);
     this.blockdata = new Blockdata(this.wcp, this.txnData, this.rlpTxn);
-    this.rlpTxrcpt = new RlpTxrcpt(txnData);
-    this.logData = new LogData(rlpTxrcpt);
-    this.logInfo = new LogInfo(rlpTxrcpt);
+    this.rlpTxnRcpt = new RlpTxnRcpt(txnData);
+    this.logData = new LogData(rlpTxnRcpt);
+    this.logInfo = new LogInfo(rlpTxnRcpt);
     this.ecData = new EcData(this, this.wcp, this.ext);
     this.oob = new Oob(this, (Add) this.add, this.mod, this.wcp);
     this.mmu =
@@ -271,28 +277,30 @@ public class Hub implements Module {
             this.wcp,
             this.romLex,
             this.rlpTxn,
-            this.rlpTxrcpt,
+            this.rlpTxnRcpt,
             this.ecData,
-            this.blake2fModexpData,
+            this.blakeModexpData,
             this.callStack);
     this.mmio = new Mmio(this.mmu);
 
     final EcRecoverEffectiveCall ecRec = new EcRecoverEffectiveCall(this);
-    this.modexpEffectiveCall = new ModexpEffectiveCall(this, this.blake2fModexpData);
-    final EcPairingCallEffectiveCall ecPairingCall = new EcPairingCallEffectiveCall(this);
+    this.modexpEffectiveCall = new ModexpEffectiveCall(this, this.blakeModexpData);
+    final EcPairingEffectiveCall ecPairingCall = new EcPairingEffectiveCall(this);
     final L2Block l2Block = new L2Block(l2l1ContractAddress, LogTopic.of(l2l1Topic));
+    final BlakeRounds blakeRounds = new BlakeRounds(this, this.blakeModexpData);
 
     this.precompileLimitModules =
         List.of(
             new Sha256Blocks(this, shakiraData),
             ecRec,
-            new RipeMd160Blocks(this, shakiraData),
+            new RipemdBlocks(this, shakiraData),
             this.modexpEffectiveCall,
             new EcAddEffectiveCall(this),
             new EcMulEffectiveCall(this),
             ecPairingCall,
             new EcPairingMillerLoop(ecPairingCall),
-            new Blake2fRounds(this, this.blake2fModexpData),
+            blakeRounds,
+            new BlakeEffectiveCall(blakeRounds),
             // Block level limits
             l2Block,
             new Keccak(this, ecRec, l2Block, shakiraData),
@@ -305,12 +313,13 @@ public class Hub implements Module {
                 Stream.of(
                     this.add,
                     this.bin,
-                    this.blake2fModexpData,
+                    this.blakeModexpData,
                     this.blockdata,
                     this.blockhash,
                     this.ecData,
                     this.euc,
                     this.ext,
+                    this.gas,
                     this.logData,
                     this.logInfo,
                     this.mmio,
@@ -330,7 +339,7 @@ public class Hub implements Module {
                     this.trm,
                     this.wcp, /* WARN: must be called BEFORE txnData */
                     this.txnData,
-                    this.rlpTxrcpt /* WARN: must be called AFTER txnData */),
+                    this.rlpTxnRcpt /* WARN: must be called AFTER txnData */),
                 this.precompileLimitModules.stream())
             .toList();
   }
@@ -346,13 +355,15 @@ public class Hub implements Module {
                 this,
                 this.add,
                 this.bin,
-                this.blake2fModexpData,
+                this.blakeModexpData,
                 this.ecData,
                 this.blockdata,
                 this.blockhash,
                 this.ext,
                 this.euc,
                 this.exp,
+                // TODO: GAS module has no columnHeaders and cannot be traced. Needs a fix!
+                //                this.gas,
                 this.logData,
                 this.logInfo,
                 this.mmu, // WARN: must be called before the MMIO
@@ -363,7 +374,7 @@ public class Hub implements Module {
                 this.oob,
                 this.rlpAddr,
                 this.rlpTxn,
-                this.rlpTxrcpt,
+                this.rlpTxnRcpt,
                 this.rom,
                 this.romLex,
                 this.shakiraData,
@@ -382,36 +393,43 @@ public class Hub implements Module {
    * @return the modules to count
    */
   public List<Module> getModulesToCount() {
+    final Stream<Module> regularModulesStream =
+        Stream.of(
+            this,
+            this.romLex,
+            this.add,
+            this.bin,
+            this.blakeModexpData,
+            this.blockdata,
+            this.blockhash,
+            this.ext,
+            this.ecData,
+            this.euc,
+            this.gas,
+            this.mmu,
+            this.mmio,
+            this.logData,
+            this.logInfo,
+            this.mod,
+            this.mul,
+            this.mxp,
+            this.oob,
+            this.exp,
+            this.rlpAddr,
+            this.rlpTxn,
+            this.rlpTxnRcpt,
+            this.rom,
+            this.shakiraData,
+            this.shf,
+            this.stp,
+            this.trm,
+            this.txnData,
+            this.wcp,
+            this.l2Block);
+
     return Stream.concat(
-            Stream.of(
-                this,
-                this.romLex,
-                this.add,
-                this.bin,
-                this.blockdata,
-                this.blockhash,
-                this.ext,
-                this.ecData,
-                this.euc,
-                this.mmu,
-                this.mmio,
-                this.logData,
-                this.logInfo,
-                this.mod,
-                this.mul,
-                this.mxp,
-                this.oob,
-                this.exp,
-                this.rlpAddr,
-                this.rlpTxn,
-                this.rlpTxrcpt,
-                this.rom,
-                this.shf,
-                this.trm,
-                this.txnData,
-                this.wcp,
-                this.l2Block),
-            this.precompileLimitModules.stream())
+            this.refTableModules.stream(),
+            Stream.concat(regularModulesStream, this.precompileLimitModules.stream()))
         .toList();
   }
 
@@ -664,7 +682,7 @@ public class Hub implements Module {
   }
 
   void triggerModules(MessageFrame frame) {
-    if (this.pch.exceptions().none() && this.pch.aborts().none()) {
+    if (Exceptions.none(this.pch.exceptions()) && this.pch.aborts().none()) {
       for (Module precompileLimit : this.precompileLimitModules) {
         precompileLimit.tracePreOpcode(frame);
       }
@@ -724,6 +742,11 @@ public class Hub implements Module {
   }
 
   void processStateExec(MessageFrame frame) {
+    // Note: in some cases there is no operation since ECPAIRING arguments are invalid
+    if (previousOperationWasCallToEcPrecompile && this.ecData.getOperations().size() > 0) {
+      this.ecData.getEcdDataOperation().setReturnData(frame.getReturnData());
+      previousOperationWasCallToEcPrecompile = false;
+    }
     this.currentFrame().frame(frame);
     this.state.stamps().incrementHubStamp();
 
@@ -732,11 +755,14 @@ public class Hub implements Module {
 
     this.handleStack(frame);
     this.triggerModules(frame);
-    if (this.pch().exceptions().any() || this.currentFrame().opCode() == OpCode.REVERT) {
+    if (Exceptions.any(this.pch().exceptions()) || this.currentFrame().opCode() == OpCode.REVERT) {
       this.callStack.revert(this.state.stamps().hub());
     }
 
     if (this.currentFrame().stack().isOk()) {
+      if (this.pch.signals().ecData()) {
+        this.previousOperationWasCallToEcPrecompile = true;
+      }
       this.traceOperation(frame);
     } else {
       this.addTraceSection(new StackOnlySection(this));
@@ -805,7 +831,7 @@ public class Hub implements Module {
       // Trace the exceptions of a transaction that could not even start
       // TODO: integrate with PCH
       // if (this.exceptions == null) {
-      // this.exceptions = Exceptions.fromOutOfGas();
+      // this.exceptions = Exceptions.OUT_OF_GAS;
       // }
       // otherwise 4 account rows (sender, coinbase, sender, recipient) + 1 tx row
       Address toAddress = this.transients.tx().besuTx().getSender();
@@ -912,7 +938,7 @@ public class Hub implements Module {
       if (line.needsResult()) {
         Bytes result = Bytes.EMPTY;
         // Only pop from the stack if no exceptions have been encountered
-        if (this.pch.exceptions().none()) {
+        if (Exceptions.none(this.pch.exceptions())) {
           result = frame.getStackItem(0).copy();
         }
 
@@ -924,7 +950,7 @@ public class Hub implements Module {
       }
     }
 
-    if (this.pch.exceptions().none()) {
+    if (Exceptions.none(this.pch.exceptions())) {
       for (TraceSection.TraceLine line : section.lines()) {
         if (line.specific() instanceof StackFragment stackFragment) {
           stackFragment.feedHashedValue(frame);
@@ -1111,33 +1137,33 @@ public class Hub implements Module {
 
     switch (this.opCodeData().instructionFamily()) {
       case ADD -> {
-        if (this.pch.exceptions().noStackException()) {
+        if (Exceptions.noStackException(this.pch.exceptions())) {
           this.add.tracePostOpcode(frame);
         }
       }
       case MOD -> {
-        if (this.pch.exceptions().noStackException()) {
+        if (Exceptions.noStackException(this.pch.exceptions())) {
           this.mod.tracePostOpcode(frame);
         }
       }
       case MUL -> {
-        if (this.pch.exceptions().noStackException()) {
+        if (Exceptions.noStackException(this.pch.exceptions())) {
           this.mul.tracePostOpcode(frame);
         }
       }
       case EXT -> {
-        if (this.pch.exceptions().noStackException()) {
+        if (Exceptions.noStackException(this.pch.exceptions())) {
           this.ext.tracePostOpcode(frame);
         }
       }
       case WCP -> {
-        if (this.pch.exceptions().noStackException()) {
+        if (Exceptions.noStackException(this.pch.exceptions())) {
           this.wcp.tracePostOpcode(frame);
         }
       }
       case BIN -> {}
       case SHF -> {
-        if (this.pch.exceptions().noStackException()) {
+        if (Exceptions.noStackException(this.pch.exceptions())) {
           this.shf.tracePostOpcode(frame);
         }
       }
@@ -1152,7 +1178,7 @@ public class Hub implements Module {
         }
       }
       case STACK_RAM -> {
-        if (this.pch.exceptions().noStackException()) {
+        if (Exceptions.noStackException(this.pch.exceptions())) {
           this.mxp.tracePostOpcode(frame);
         }
       }
@@ -1243,12 +1269,12 @@ public class Hub implements Module {
           case RETURN -> {
             Bytes returnData = Bytes.EMPTY;
             // Trying to read memory with absurd arguments will throw an exception
-            if (pch.exceptions().none()) {
+            if (Exceptions.none(pch.exceptions())) {
               returnData = this.transients.op().returnData();
             }
             this.currentFrame().returnDataSource(transients.op().returnDataSegment());
             this.currentFrame().returnData(returnData);
-            if (!this.pch.exceptions().any() && !this.currentFrame().underDeployment()) {
+            if (!Exceptions.any(this.pch.exceptions()) && !this.currentFrame().underDeployment()) {
               parentFrame.latestReturnData(returnData);
             } else {
               parentFrame.latestReturnData(Bytes.EMPTY);
@@ -1259,7 +1285,7 @@ public class Hub implements Module {
             final Bytes returnData = this.transients.op().returnData();
             this.currentFrame().returnDataSource(transients.op().returnDataSegment());
             this.currentFrame().returnData(returnData);
-            if (!this.pch.exceptions().any()) {
+            if (!Exceptions.any(this.pch.exceptions())) {
               parentFrame.latestReturnData(returnData);
             } else {
               parentFrame.latestReturnData(Bytes.EMPTY);
@@ -1387,7 +1413,7 @@ public class Hub implements Module {
                             .getOriginalValueOrUpdate(address, key, valNext),
                         EWord.of(frame.getTransientStorageValue(address, key)),
                         valNext,
-                        frame.isStorageWarm(address, key),
+                        frame.getWarmedUpStorage().contains(address, key),
                         true)));
           }
           case SLOAD -> {
@@ -1403,7 +1429,7 @@ public class Hub implements Module {
                         this.transients.tx().storage().getOriginalValueOrUpdate(address, key),
                         valCurrent,
                         valCurrent,
-                        frame.isStorageWarm(address, key),
+                        frame.getWarmedUpStorage().contains(address, key),
                         true)));
           }
           default -> throw new IllegalStateException("invalid operation in family STORAGE");
@@ -1459,24 +1485,24 @@ public class Hub implements Module {
 
         Optional<Precompile> targetPrecompile = Precompile.maybeOf(calledAddress);
 
-        if (this.pch().exceptions().any()) {
+        if (Exceptions.any(this.pch().exceptions())) {
           //
           // THERE IS AN EXCEPTION
           //
-          if (this.pch().exceptions().staticFault()) {
+          if (Exceptions.staticFault(this.pch().exceptions())) {
             this.addTraceSection(
                 new FailedCallSection(
                     this,
                     ScenarioFragment.forCall(this, hasCode),
                     ImcFragment.forCall(this, myAccount, calledAccount),
                     ContextFragment.readContextData(callStack)));
-          } else if (this.pch().exceptions().outOfMemoryExpansion()) {
+          } else if (Exceptions.outOfMemoryExpansion(this.pch().exceptions())) {
             this.addTraceSection(
                 new FailedCallSection(
                     this,
                     ScenarioFragment.forCall(this, hasCode),
                     ImcFragment.forCall(this, myAccount, calledAccount)));
-          } else if (this.pch().exceptions().outOfGas()) {
+          } else if (Exceptions.outOfGas(this.pch().exceptions())) {
             this.addTraceSection(
                 new FailedCallSection(
                     this,
@@ -1568,7 +1594,7 @@ public class Hub implements Module {
     }
 
     // In all cases, add a context fragment if an exception occurred
-    if (this.pch().exceptions().any()) {
+    if (Exceptions.any(this.pch().exceptions())) {
       this.currentTraceSection()
           .addFragment(
               this, this.currentFrame(), ContextFragment.executionEmptyReturnData(callStack));

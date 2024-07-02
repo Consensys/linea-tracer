@@ -13,20 +13,22 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.tables.shf;
+package net.consensys.linea.zktracer.module.limits.precompiles;
 
-import java.nio.MappedByteBuffer;
 import java.util.List;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
-import net.consensys.linea.zktracer.types.UnsignedByte;
-import org.apache.tuweni.bytes.Bytes;
 
-public record ShfRt() implements Module {
+@RequiredArgsConstructor
+public final class BlakeEffectiveCall implements Module {
+  @Getter private final BlakeRounds blakeRounds;
+
   @Override
   public String moduleKey() {
-    return "SHF_REFERENCE_TABLE";
+    return "PRECOMPILE_BLAKE_EFFECTIVE_CALLS";
   }
 
   @Override
@@ -37,28 +39,15 @@ public record ShfRt() implements Module {
 
   @Override
   public int lineCount() {
-    return 256 * 9;
+    int r = 0;
+    for (BlakeLimit count : this.blakeRounds.counts()) {
+      r += count.numberOfEffectiveCalls();
+    }
+    return r;
   }
 
   @Override
   public List<ColumnHeader> columnsHeaders() {
-    return Trace.headers(this.lineCount());
-  }
-
-  public void commit(List<MappedByteBuffer> buffers) {
-    final Trace trace = new Trace(buffers);
-    for (int a = 0; a <= 255; a++) {
-      final UnsignedByte unsignedByteA = UnsignedByte.of(a);
-      for (int uShp = 0; uShp <= 8; uShp++) {
-        trace
-            .byte1(UnsignedByte.of(a))
-            .las(unsignedByteA.shiftLeft(8 - uShp))
-            .mshp(UnsignedByte.of(uShp))
-            .rap(unsignedByteA.shiftRight(uShp))
-            .ones(UnsignedByte.of((Bytes.fromHexString("0xFF").shiftRight(uShp)).not().toInt()))
-            .iomf(true)
-            .validateRow();
-      }
-    }
+    throw new UnsupportedOperationException("should never be called");
   }
 }

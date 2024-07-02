@@ -12,27 +12,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-tasks.register('corsetExists') {
-    doLast {
-        def result = exec{
-            ignoreExitValue = true
-            commandLine "corset", "-V"
-        }
-        if (result.getExitValue() != 0){
-            throw new GradleException('Corset not found, skipping corsetTests')
-        }
-    }
-}
 
-tasks.register('buildZkevmBin', Exec) {
+package net.consensys.linea.zktracer.module.limits.precompiles;
 
-    // dependsOn corsetExists
-    workingDir "${project.rootDir}/zkevm-constraints/"
-    commandLine 'make', 'zkevm.bin'
-
-    //store the output instead of printing to the console
-    standardOutput = new ByteArrayOutputStream()
-    ext.output = {
-        return standardOutput.toString()
-    }
-}
+record BlakeLimit(int numberOfRounds, int numberOfEffectiveCalls) {}

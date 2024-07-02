@@ -1103,7 +1103,7 @@ public class Hub implements Module {
       }
 
       case CONTEXT -> this.addTraceSection(
-          new ContextLogSection(this, ContextFragment.readCurrentContextData(this)));
+          new ContextSection(this, ContextFragment.readCurrentContextData(this)));
 
       case LOG -> {
         new LogSection(this);

@@ -45,7 +45,7 @@ public class StackRamSection extends TraceSection implements PostTransactionDefe
   final EWord value;
 
   public StackRamSection(Hub hub) {
-    super(hub, (short) (hub.opCode().equals(OpCode.CALLDATALOAD) ? 4 : 3));
+    super(hub, (short) 3);
     this.addStack(hub);
 
     this.instruction = hub.opCode();

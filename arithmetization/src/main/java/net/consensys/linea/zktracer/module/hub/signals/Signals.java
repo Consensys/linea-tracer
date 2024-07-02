@@ -143,21 +143,27 @@ public class Signals {
     switch (opCode) {
       case CALLDATACOPY, CODECOPY -> {
         this.mxp =
-            Exceptions.memoryExpansionException(ex) || Exceptions.outOfGasException(ex) || Exceptions.none(ex);
+            Exceptions.memoryExpansionException(ex)
+                || Exceptions.outOfGasException(ex)
+                || Exceptions.none(ex);
         this.mmu = Exceptions.none(ex) && !frame.getStackItem(2).isZero();
       }
 
       case RETURNDATACOPY -> {
         this.oob = Exceptions.none(ex) || Exceptions.returnDataCopyFault(ex);
         this.mxp =
-            Exceptions.none(ex) || Exceptions.memoryExpansionException(ex) || Exceptions.outOfGasException(ex);
+            Exceptions.none(ex)
+                || Exceptions.memoryExpansionException(ex)
+                || Exceptions.outOfGasException(ex);
         this.mmu = Exceptions.none(ex) && !frame.getStackItem(2).isZero();
       }
 
       case EXTCODECOPY -> {
         final boolean nonzeroSize = !frame.getStackItem(3).isZero();
         this.mxp =
-            Exceptions.memoryExpansionException(ex) || Exceptions.outOfGasException(ex) || Exceptions.none(ex);
+            Exceptions.memoryExpansionException(ex)
+                || Exceptions.outOfGasException(ex)
+                || Exceptions.none(ex);
         this.trm = Exceptions.outOfGasException(ex) || Exceptions.none(ex);
         this.mmu = Exceptions.none(ex) && nonzeroSize;
 
@@ -172,7 +178,9 @@ public class Signals {
 
       case LOG0, LOG1, LOG2, LOG3, LOG4 -> {
         this.mxp =
-            Exceptions.memoryExpansionException(ex) || Exceptions.outOfGasException(ex) || Exceptions.none(ex);
+            Exceptions.memoryExpansionException(ex)
+                || Exceptions.outOfGasException(ex)
+                || Exceptions.none(ex);
         this.mmu =
             Exceptions.none(ex)
                 && !frame
@@ -234,7 +242,9 @@ public class Signals {
 
       case REVERT -> {
         this.mxp =
-            Exceptions.memoryExpansionException(ex) || Exceptions.outOfGasException(ex) || Exceptions.none(ex);
+            Exceptions.memoryExpansionException(ex)
+                || Exceptions.outOfGasException(ex)
+                || Exceptions.none(ex);
         this.mmu =
             Exceptions.none(ex)
                 && !frame.getStackItem(1).isZero()

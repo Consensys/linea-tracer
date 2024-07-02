@@ -16,11 +16,11 @@
 package net.consensys.linea.zktracer.module.hub.section;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 
-public class ContextLogSection extends TraceSection {
-  public ContextLogSection(Hub hub, TraceFragment... chunks) {
-    super(hub);
-    this.addFragmentsAndStack(hub, chunks);
+public class ContextSection extends TraceSection {
+  public ContextSection(Hub hub, ContextFragment fragment) {
+    super(hub, (short) 3);
+    this.addFragmentsAndStack(hub, fragment);
   }
 }

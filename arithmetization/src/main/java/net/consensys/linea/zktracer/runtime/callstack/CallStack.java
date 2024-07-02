@@ -42,7 +42,9 @@ public final class CallStack {
 
   /** a never-pruned-tree of the {@link CallFrame} executed by the {@link Hub} */
   private final List<CallFrame> frames =
-      new ArrayList<>(50) {
+      new ArrayList<>(
+          50) { // TODO: PERF as the List of TraceSection, we should have an estimate based on
+        // gasLimit on the nb of CallFrame a tx might have
         {
           add(CallFrame.EMPTY);
         }

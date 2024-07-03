@@ -90,13 +90,13 @@ public class CreateSection extends TraceSection
 
     // Will be traced in one (and only one!) of these depending on the hubSuccess of
     // the operation
-    hub.defers().postExec(this);
-    hub.defers().nextContext(this, hub.currentFrame().id());
+    hub.defers().schedulePostExecution(this);
+    hub.defers().scheduleForContextReEntry(this, hub.currentFrame().id());
     hub.defers().reEntry(this);
   }
 
   @Override
-  public void runPostExec(Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
+  public void resolvePostExecution(Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
     Address creatorAddress = oldCreatorSnapshot.address();
     this.midCreatorSnapshot =
         AccountSnapshot.fromAccount(
@@ -115,14 +115,14 @@ public class CreateSection extends TraceSection
     // Pre-emptively set new* snapshots in case we never enter the child frame.
     // Will be overwritten if we enter the child frame and runNextContext is explicitly called by
     // the defer registry.
-    this.runAtReEnter(hub, frame);
+    this.resolveAtContextReEntry(hub, frame);
   }
 
   @Override
-  public void runNextContext(Hub hub, MessageFrame frame) {}
+  public void resolveWithNextContext(Hub hub, MessageFrame frame) {}
 
   @Override
-  public void runAtReEnter(Hub hub, MessageFrame frame) {
+  public void resolveAtContextReEntry(Hub hub, MessageFrame frame) {
     this.createSuccessful = !frame.getStackItem(0).isZero();
 
     Address creatorAddress = oldCreatorSnapshot.address();
@@ -143,7 +143,7 @@ public class CreateSection extends TraceSection
   }
 
   @Override
-  public void runPostTx(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+  public void resolvePostTransaction(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
     final AccountFragment.AccountFragmentFactory accountFragmentFactory =
         hub.factories().accountFragment();
     final boolean creatorWillRevert = hub.callStack().getById(this.creatorContextId).hasReverted();
@@ -166,7 +166,7 @@ public class CreateSection extends TraceSection
         //                 0))
         ;
 
-    this.scenarioFragment.runPostTx(hub, state, tx, isSuccessful);
+    this.scenarioFragment.resolvePostTransaction(hub, state, tx, isSuccessful);
     this.addFragmentsWithoutStack(scenarioFragment);
     if (Exceptions.staticFault(this.exceptions)) {
       this.addFragmentsWithoutStack(

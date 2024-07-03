@@ -12,18 +12,6 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-
 package net.consensys.linea.zktracer.module.hub.defer;
-
-import net.consensys.linea.zktracer.module.hub.Hub;
-import org.hyperledger.besu.datatypes.Transaction;
-import org.hyperledger.besu.evm.worldstate.WorldView;
-
-public interface PostConflationDefer {
-  /**
-   * This method will be triggered as soon as the current conflation has finished its execution.
-   *
-   * @param hub the {@link Hub} in which the {@link Transaction} took place
-   */
-  void resolvePostConflation(Hub hub, WorldView world);
+public interface PostRollbackDefer {
 }

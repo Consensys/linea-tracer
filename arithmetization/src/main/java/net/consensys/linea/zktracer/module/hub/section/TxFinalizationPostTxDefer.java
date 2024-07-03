@@ -69,7 +69,7 @@ public class TxFinalizationPostTxDefer implements PostTransactionDefer {
   }
 
   @Override
-  public void runPostTx(Hub hub, WorldView world, Transaction tx, boolean isSuccessful) {
+  public void resolvePostTransaction(Hub hub, WorldView world, Transaction tx, boolean isSuccessful) {
     final DeploymentInfo depInfo = hub.transients().conflation().deploymentInfo();
 
     final Address fromAddress = fromAccountBeforeTxFinalization.address();

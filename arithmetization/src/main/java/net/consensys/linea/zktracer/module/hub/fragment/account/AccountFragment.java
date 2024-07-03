@@ -96,7 +96,7 @@ public final class AccountFragment
     this.addressToTrim = addressToTrim;
     this.domSubStampsSubFragment = domSubStampsSubFragment;
 
-    defers.postConflation(this);
+    defers.schedulePostConflation(this);
   }
 
   @Override
@@ -158,10 +158,10 @@ public final class AccountFragment
   }
 
   @Override
-  public void runPostTx(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {}
+  public void resolvePostTransaction(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {}
 
   @Override
-  public void runPostConflation(Hub hub, WorldView world) {
+  public void resolvePostConflation(Hub hub, WorldView world) {
     this.deploymentNumberInfinity =
         hub.transients().conflation().deploymentInfo().number(this.oldState.address());
     this.existsInfinity = world.get(this.oldState.address()) != null;

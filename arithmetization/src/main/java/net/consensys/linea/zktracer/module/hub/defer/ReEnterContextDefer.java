@@ -19,5 +19,5 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public interface ReEnterContextDefer {
-  void runAtReEnter(final Hub hub, final MessageFrame frame);
+  void resolveAtContextReEntry(final Hub hub, final MessageFrame frame);
 }

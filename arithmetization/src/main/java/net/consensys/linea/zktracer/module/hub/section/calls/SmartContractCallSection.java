@@ -71,13 +71,13 @@ public class SmartContractCallSection extends TraceSection
 
     this.addStack(hub);
 
-    hub.defers().postExec(this);
-    hub.defers().nextContext(this, hub.currentFrame().id());
-    hub.defers().postTx(this);
+    hub.defers().schedulePostExecution(this);
+    hub.defers().scheduleForContextReEntry(this, hub.currentFrame().id());
+    hub.defers().schedulePostTransaction(this);
   }
 
   @Override
-  public void runPostExec(Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
+  public void resolvePostExecution(Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
     final Address callerAddress = preCallCallerAccountSnapshot.address();
     final Account callerAccount = frame.getWorldUpdater().get(callerAddress);
     final Address calledAddress = preCallCalleeAccountSnapshot.address();
@@ -98,7 +98,7 @@ public class SmartContractCallSection extends TraceSection
   }
 
   @Override
-  public void runNextContext(Hub hub, MessageFrame frame) {
+  public void resolveWithNextContext(Hub hub, MessageFrame frame) {
     final Address callerAddress = preCallCallerAccountSnapshot.address();
     final Account callerAccount = frame.getWorldUpdater().get(callerAddress);
     final Address calledAddress = preCallCalleeAccountSnapshot.address();
@@ -119,11 +119,11 @@ public class SmartContractCallSection extends TraceSection
   }
 
   @Override
-  public void runPostTx(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+  public void resolvePostTransaction(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
     final AccountFragment.AccountFragmentFactory accountFragmentFactory =
         hub.factories().accountFragment();
     final CallFrame calledCallFrame = hub.callStack().getById(this.calledCallFrameId);
-    this.scenarioFragment.runPostTx(hub, state, tx, isSuccessful);
+    this.scenarioFragment.resolvePostTransaction(hub, state, tx, isSuccessful);
 
     DomSubStampsSubFragment firstCallerDoingDomSubStamps =
         DomSubStampsSubFragment.standardDomSubStamps(hub, 0);

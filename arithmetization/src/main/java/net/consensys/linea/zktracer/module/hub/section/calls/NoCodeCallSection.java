@@ -78,20 +78,20 @@ public class NoCodeCallSection extends TraceSection
             hub, precompileInvocation, this.callerCallFrame.id(), this.calledCallFrameId);
     this.addStack(hub);
 
-    hub.defers().postExec(this);
-    hub.defers().postTx(this);
+    hub.defers().schedulePostExecution(this);
+    hub.defers().schedulePostTransaction(this);
     hub.defers().reEntry(this);
   }
 
   @Override
-  public void runAtReEnter(Hub hub, MessageFrame frame) {
+  public void resolveAtContextReEntry(Hub hub, MessageFrame frame) {
     // The precompile lines will read the return data, so they need to be added after re-entry.
     this.maybePrecompileLines =
         this.precompileInvocation.map(p -> PrecompileLinesGenerator.generateFor(hub, p));
   }
 
   @Override
-  public void runPostExec(Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
+  public void resolvePostExecution(Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
     this.callSuccessful = !frame.getStackItem(0).isZero();
     final Address callerAddress = preCallCallerAccountSnapshot.address();
     final Account callerAccount = frame.getWorldUpdater().get(callerAddress);
@@ -113,10 +113,10 @@ public class NoCodeCallSection extends TraceSection
   }
 
   @Override
-  public void runPostTx(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+  public void resolvePostTransaction(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
     final AccountFragment.AccountFragmentFactory accountFragmentFactory =
         hub.factories().accountFragment();
-    this.scenarioFragment.runPostTx(hub, state, tx, isSuccessful);
+    this.scenarioFragment.resolvePostTransaction(hub, state, tx, isSuccessful);
 
     this.addFragmentsWithoutStack(
         this.scenarioFragment,

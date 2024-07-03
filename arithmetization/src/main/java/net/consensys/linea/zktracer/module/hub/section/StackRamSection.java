@@ -66,11 +66,11 @@ public class StackRamSection extends TraceSection implements PostTransactionDefe
 
     this.addFragment(imcFragment);
 
-    hub.defers().postTx(this);
+    hub.defers().schedulePostTransaction(this);
   }
 
   @Override
-  public void runPostTx(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+  public void resolvePostTransaction(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
     if (Exceptions.none(exception)) {
       switch (instruction) {
         case MSTORE -> {

@@ -20,5 +20,5 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.operation.Operation;
 
 public interface PostExecDefer {
-  void runPostExec(Hub hub, MessageFrame frame, Operation.OperationResult operationResult);
+  void resolvePostExecution(Hub hub, MessageFrame frame, Operation.OperationResult operationResult);
 }

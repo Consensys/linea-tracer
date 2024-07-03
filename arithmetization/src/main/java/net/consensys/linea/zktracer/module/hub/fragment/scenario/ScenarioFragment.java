@@ -97,7 +97,7 @@ public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
             hub.pch().abortingConditions().any(),
             hub.pch().failureConditions().any(),
             Exceptions.invalidCodePrefix(hub.pch().exceptions()));
-    hub.defers().postTx(r);
+    hub.defers().schedulePostTransaction(r);
     return r;
   }
 
@@ -224,7 +224,7 @@ public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
   }
 
   @Override
-  public void runPostTx(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+  public void resolvePostTransaction(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
     this.fillPostCallInformation(hub);
   }
 

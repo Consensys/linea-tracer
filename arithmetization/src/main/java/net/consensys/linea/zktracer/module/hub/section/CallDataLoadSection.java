@@ -70,11 +70,11 @@ public class CallDataLoadSection extends TraceSection implements PostTransaction
     final ContextFragment context = readCurrentContextData(hub);
     this.addFragment(context);
 
-    hub.defers().postTx(this);
+    hub.defers().schedulePostTransaction(this);
   }
 
   @Override
-  public void runPostTx(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+  public void resolvePostTransaction(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
     if (Exceptions.none(exception)) {
 
       if (Words.clampedToLong(sourceOffset) >= callDataSize) {

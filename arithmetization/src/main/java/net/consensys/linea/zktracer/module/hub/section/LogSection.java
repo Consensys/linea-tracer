@@ -61,11 +61,11 @@ public class LogSection implements PostTransactionDefer {
     miscFragment = ImcFragment.empty(hub).callMxp(mxpCall);
     this.sectionPrequel.addFragment(miscFragment);
 
-    hub.defers().postTx(this);
+    hub.defers().schedulePostTransaction(this);
   }
 
   @Override
-  public void runPostTx(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+  public void resolvePostTransaction(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
     if (!isStatic) {
       if (!this.logData.reverted()) {
         hub.state.stamps().incrementLogStamp();

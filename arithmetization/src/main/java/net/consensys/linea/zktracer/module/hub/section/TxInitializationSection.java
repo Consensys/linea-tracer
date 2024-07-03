@@ -89,7 +89,7 @@ public class TxInitializationSection {
         DomSubStampsSubFragment.standardDomSubStamps(hub, 1);
 
     final TransactionFragment txFragment = TransactionFragment.prepare(tx);
-    hub.defers().postTx(txFragment);
+    hub.defers().schedulePostTransaction(txFragment);
 
     final AccountFragment.AccountFragmentFactory accountFragmentFactory =
         hub.factories().accountFragment();

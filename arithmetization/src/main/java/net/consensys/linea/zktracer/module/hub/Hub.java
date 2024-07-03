@@ -425,7 +425,7 @@ public class Hub implements Module {
   public void traceEndConflation(final WorldView world) {
     this.romLex.determineCodeFragmentIndex();
     this.txStack.setCodeFragmentIndex(this);
-    this.defers.runPostConflation(this, world);
+    this.defers.resolvePostConflation(this, world);
 
     for (Module m : this.modules) {
       m.traceEndConflation(world);
@@ -453,14 +453,14 @@ public class Hub implements Module {
     this.pch.reset();
     this.state.enter();
     this.txStack.enterTransaction(world, tx, transients.block());
-    this.defers.postTx(this.state.currentTxTrace());
+    this.defers.schedulePostTransaction(this.state.currentTxTrace());
 
     this.enterTransaction();
 
     if (!this.txStack.current().requiresEvmExecution()) {
       this.state.setProcessingPhase(TX_SKIP);
       this.state.stamps().incrementHubStamp();
-      this.defers.postTx(
+      this.defers.schedulePostTransaction(
           new TxSkippedSectionDefers(world, this.txStack.current(), this.transients));
     } else {
       if (this.txStack.current().requiresPrewarming()) {
@@ -504,7 +504,7 @@ public class Hub implements Module {
       this.state.stamps().incrementHubStamp();
     }
 
-    this.defers.runPostTx(this, world, tx, isSuccessful);
+    this.defers.resolvePostTransaction(this, world, tx, isSuccessful);
 
     for (Module m : this.modules) {
       m.traceEndTx(txStack.current());
@@ -613,7 +613,7 @@ public class Hub implements Module {
           codeDeploymentNumber,
           isDeployment);
 
-      this.defers.runNextContext(this, frame);
+      this.defers.resolveWithNextContext(this, frame);
 
       for (Module m : this.modules) {
         m.traceContextEnter(frame);
@@ -622,7 +622,7 @@ public class Hub implements Module {
   }
 
   public void traceContextReEnter(MessageFrame frame) {
-    this.defers.runReEntry(this, frame);
+    this.defers.resolveAtReEntry(this, frame);
     if (this.currentFrame().needsUnlatchingAtReEntry() != null) {
       this.unlatchStack(frame, this.currentFrame().needsUnlatchingAtReEntry());
       this.currentFrame().needsUnlatchingAtReEntry(null);
@@ -666,7 +666,7 @@ public class Hub implements Module {
               this.txStack.getAccumulativeGasUsedInBlockBeforeTxStart());
       if (this.state.getProcessingPhase() != TX_SKIP) {
         this.state.setProcessingPhase(TX_FINAL);
-        this.defers.postTx(new TxFinalizationPostTxDefer(this, frame.getWorldUpdater()));
+        this.defers.schedulePostTransaction(new TxFinalizationPostTxDefer(this, frame.getWorldUpdater()));
       }
     }
   }
@@ -721,7 +721,7 @@ public class Hub implements Module {
       this.handleCreate(Words.toAddress(frame.getStackItem(0)));
     }
 
-    this.defers.runPostExec(this, frame, operationResult);
+    this.defers.resolvePostExecution(this, frame, operationResult);
 
     if (this.previousOperationWasCallToEcPrecompile) {
       this.ecData.getEcDataOperation().returnData(frame.getReturnData());
@@ -1152,7 +1152,7 @@ public class Hub implements Module {
         this.addTraceSection(accountSection);
       }
       case COPY -> {
-        CopySection.appendToTrace(this);
+        CopySection.addTraceSection(this);
 
         /*
         TraceSection copySection = new CopySection(this);

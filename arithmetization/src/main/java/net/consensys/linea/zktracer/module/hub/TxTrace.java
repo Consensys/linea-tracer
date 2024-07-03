@@ -94,7 +94,8 @@ public class TxTrace implements PostTransactionDefer {
   }
 
   @Override
-  public void resolvePostTransaction(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {}
+  public void resolvePostTransaction(
+      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {}
 
   /**
    * Generate the final numeric trace from the accumulated information.

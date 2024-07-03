@@ -158,7 +158,8 @@ public final class AccountFragment
   }
 
   @Override
-  public void resolvePostTransaction(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {}
+  public void resolvePostTransaction(
+      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {}
 
   @Override
   public void resolvePostConflation(Hub hub, WorldView world) {

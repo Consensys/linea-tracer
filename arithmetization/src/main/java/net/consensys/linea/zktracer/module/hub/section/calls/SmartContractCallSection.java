@@ -77,7 +77,8 @@ public class SmartContractCallSection extends TraceSection
   }
 
   @Override
-  public void resolvePostExecution(Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
+  public void resolvePostExecution(
+      Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
     final Address callerAddress = preCallCallerAccountSnapshot.address();
     final Account callerAccount = frame.getWorldUpdater().get(callerAddress);
     final Address calledAddress = preCallCalleeAccountSnapshot.address();
@@ -119,7 +120,8 @@ public class SmartContractCallSection extends TraceSection
   }
 
   @Override
-  public void resolvePostTransaction(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+  public void resolvePostTransaction(
+      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
     final AccountFragment.AccountFragmentFactory accountFragmentFactory =
         hub.factories().accountFragment();
     final CallFrame calledCallFrame = hub.callStack().getById(this.calledCallFrameId);

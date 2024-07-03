@@ -76,7 +76,8 @@ public class TxSkippedSectionDefers implements PostTransactionDefer {
   }
 
   @Override
-  public void resolvePostTransaction(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+  public void resolvePostTransaction(
+      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
     final Address fromAddress = this.oldFromAccount.address();
     final Address toAddress = this.oldToAccount.address();
     final Address minerAddress = this.txMetadata.getCoinbase();

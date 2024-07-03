@@ -70,7 +70,8 @@ public class StackRamSection extends TraceSection implements PostTransactionDefe
   }
 
   @Override
-  public void resolvePostTransaction(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+  public void resolvePostTransaction(
+      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
     if (Exceptions.none(exception)) {
       switch (instruction) {
         case MSTORE -> {

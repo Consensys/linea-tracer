@@ -74,7 +74,8 @@ public class CallDataLoadSection extends TraceSection implements PostTransaction
   }
 
   @Override
-  public void resolvePostTransaction(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+  public void resolvePostTransaction(
+      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
     if (Exceptions.none(exception)) {
 
       if (Words.clampedToLong(sourceOffset) >= callDataSize) {

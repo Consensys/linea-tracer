@@ -91,7 +91,8 @@ public class NoCodeCallSection extends TraceSection
   }
 
   @Override
-  public void resolvePostExecution(Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
+  public void resolvePostExecution(
+      Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
     this.callSuccessful = !frame.getStackItem(0).isZero();
     final Address callerAddress = preCallCallerAccountSnapshot.address();
     final Account callerAccount = frame.getWorldUpdater().get(callerAddress);
@@ -113,7 +114,8 @@ public class NoCodeCallSection extends TraceSection
   }
 
   @Override
-  public void resolvePostTransaction(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+  public void resolvePostTransaction(
+      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
     final AccountFragment.AccountFragmentFactory accountFragmentFactory =
         hub.factories().accountFragment();
     this.scenarioFragment.resolvePostTransaction(hub, state, tx, isSuccessful);

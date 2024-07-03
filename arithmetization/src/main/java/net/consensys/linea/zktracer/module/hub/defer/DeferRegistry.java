@@ -198,7 +198,8 @@ public class DeferRegistry {
    * @param tx the current {@link Transaction}
    */
   // TODO: should use the TransactionProcessingMetadata
-  public void resolvePostTransaction(Hub hub, WorldView world, Transaction tx, boolean isSuccessful) {
+  public void resolvePostTransaction(
+      Hub hub, WorldView world, Transaction tx, boolean isSuccessful) {
     for (PostTransactionDefer defer : this.postTransactionDefers) {
       defer.resolvePostTransaction(hub, world, tx, isSuccessful);
     }

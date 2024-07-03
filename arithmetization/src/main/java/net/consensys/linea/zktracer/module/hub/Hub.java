@@ -666,7 +666,8 @@ public class Hub implements Module {
               this.txStack.getAccumulativeGasUsedInBlockBeforeTxStart());
       if (this.state.getProcessingPhase() != TX_SKIP) {
         this.state.setProcessingPhase(TX_FINAL);
-        this.defers.schedulePostTransaction(new TxFinalizationPostTxDefer(this, frame.getWorldUpdater()));
+        this.defers.schedulePostTransaction(
+            new TxFinalizationPostTxDefer(this, frame.getWorldUpdater()));
       }
     }
   }

@@ -96,7 +96,8 @@ public class CreateSection extends TraceSection
   }
 
   @Override
-  public void resolvePostExecution(Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
+  public void resolvePostExecution(
+      Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
     Address creatorAddress = oldCreatorSnapshot.address();
     this.midCreatorSnapshot =
         AccountSnapshot.fromAccount(
@@ -143,7 +144,8 @@ public class CreateSection extends TraceSection
   }
 
   @Override
-  public void resolvePostTransaction(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+  public void resolvePostTransaction(
+      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
     final AccountFragment.AccountFragmentFactory accountFragmentFactory =
         hub.factories().accountFragment();
     final boolean creatorWillRevert = hub.callStack().getById(this.creatorContextId).hasReverted();

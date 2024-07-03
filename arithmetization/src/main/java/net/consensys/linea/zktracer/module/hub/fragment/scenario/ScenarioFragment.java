@@ -224,7 +224,8 @@ public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
   }
 
   @Override
-  public void resolvePostTransaction(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+  public void resolvePostTransaction(
+      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
     this.fillPostCallInformation(hub);
   }
 

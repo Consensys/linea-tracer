@@ -87,5 +87,6 @@ public final class TransactionFragment implements TraceFragment, PostTransaction
   }
 
   @Override
-  public void resolvePostTransaction(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {}
+  public void resolvePostTransaction(
+      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {}
 }

@@ -65,7 +65,8 @@ public class LogSection implements PostTransactionDefer {
   }
 
   @Override
-  public void resolvePostTransaction(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+  public void resolvePostTransaction(
+      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
     if (!isStatic) {
       if (!this.logData.reverted()) {
         hub.state.stamps().incrementLogStamp();

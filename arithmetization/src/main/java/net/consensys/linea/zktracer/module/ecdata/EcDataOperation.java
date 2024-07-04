@@ -261,10 +261,17 @@ public class EcDataOperation extends ModuleOperation {
         limb.set(limb.size() - 1, pairingResult.lo());
 
         // Set successBit
+        /*
         if (!internalChecksPassed || notOnG2AccMax) {
           successBit = false;
         } else {
           successBit = true;
+        }
+        */
+        if (!internalChecksPassed) {
+          successBit = false;
+        } else {
+          successBit = !notOnG2AccMax;
         }
       }
     }
@@ -634,9 +641,8 @@ public class EcDataOperation extends ModuleOperation {
           notOnG2AccMax
               ? isLargePoint && !largePointIsAtInfinity && notOnG2.get(i)
               : isLargePoint && !largePointIsAtInfinity && smallPointIsAtInfinity;
-      boolean acceptablePairOfPointForPairingCircuit =
-          !notOnG2AccMax && !largePointIsAtInfinity && !smallPointIsAtInfinity;
-
+      boolean acceptablePairOfPointsForPairingCircuit =
+        ecType == ECPAIRING && !notOnG2AccMax && !largePointIsAtInfinity && !smallPointIsAtInfinity;
       if (ecType != ECPAIRING || !isData) {
         Preconditions.checkArgument(ct == 0);
       }
@@ -683,11 +689,11 @@ public class EcDataOperation extends ModuleOperation {
                   && overallTrivialPairing.get(
                       i)) // && conditions necessary because default value is true
           .g2MembershipTestRequired(g2MembershipTestRequired)
-          .acceptablePairOfPointForPairingCircuit(acceptablePairOfPointForPairingCircuit)
+          .acceptablePairOfPointForPairingCircuit(acceptablePairOfPointsForPairingCircuit) // TODO: fix name
           .circuitSelectorEcrecover(circuitSelectorEcrecover)
           .circuitSelectorEcadd(circuitSelectorEcadd)
           .circuitSelectorEcmul(circuitSelectorEcmul)
-          .circuitSelectorEcpairing(acceptablePairOfPointForPairingCircuit)
+          .circuitSelectorEcpairing(acceptablePairOfPointsForPairingCircuit)
           .circuitSelectorG2Membership(g2MembershipTestRequired)
           .wcpFlag(wcpFlag.get(i))
           .wcpArg1Hi(wcpArg1Hi.get(i))

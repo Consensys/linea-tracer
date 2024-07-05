@@ -606,7 +606,7 @@ public class EcDataOperation extends ModuleOperation {
 
     // Success bit is set in setReturnData
 
-    // acceptablePairOfPointForPairingCircuit, g2MembershipTestRequired, circuitSelectorEcpairing,
+    // acceptablePairOfPointsForPairingCircuit, g2MembershipTestRequired, circuitSelectorEcpairing,
     // circuitSelectorG2Membership are set in the trace method
   }
 
@@ -642,7 +642,12 @@ public class EcDataOperation extends ModuleOperation {
               ? isLargePoint && !largePointIsAtInfinity && notOnG2.get(i)
               : isLargePoint && !largePointIsAtInfinity && smallPointIsAtInfinity;
       boolean acceptablePairOfPointsForPairingCircuit =
-        ecType == ECPAIRING && !notOnG2AccMax && !largePointIsAtInfinity && !smallPointIsAtInfinity;
+          ecType == ECPAIRING
+              && successBit
+              && !notOnG2AccMax
+              && !largePointIsAtInfinity
+              && !smallPointIsAtInfinity;
+
       if (ecType != ECPAIRING || !isData) {
         Preconditions.checkArgument(ct == 0);
       }
@@ -689,7 +694,7 @@ public class EcDataOperation extends ModuleOperation {
                   && overallTrivialPairing.get(
                       i)) // && conditions necessary because default value is true
           .g2MembershipTestRequired(g2MembershipTestRequired)
-          .acceptablePairOfPointForPairingCircuit(acceptablePairOfPointsForPairingCircuit) // TODO: fix name
+          .acceptablePairOfPointsForPairingCircuit(acceptablePairOfPointsForPairingCircuit)
           .circuitSelectorEcrecover(circuitSelectorEcrecover)
           .circuitSelectorEcadd(circuitSelectorEcadd)
           .circuitSelectorEcmul(circuitSelectorEcmul)

@@ -15,12 +15,15 @@
 package net.consensys.linea.continoustracing;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.continoustracing.exception.InvalidBlockTraceException;
+import net.consensys.linea.continoustracing.exception.TraceOutputException;
 import net.consensys.linea.continoustracing.exception.TraceVerificationException;
 import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.zktracer.ZkTracer;
@@ -31,19 +34,15 @@ import org.hyperledger.besu.plugin.data.TransactionTraceResult;
 import org.hyperledger.besu.plugin.services.TraceService;
 
 @Slf4j
+@RequiredArgsConstructor
 public class ContinuousTracer {
-  private static final Optional<Path> TRACES_PATH =
-      Optional.ofNullable(System.getenv("TRACES_DIR")).map(Paths::get);
   private final TraceService traceService;
   private final CorsetValidator corsetValidator;
 
-  public ContinuousTracer(final TraceService traceService, final CorsetValidator corsetValidator) {
-    this.traceService = traceService;
-    this.corsetValidator = corsetValidator;
-  }
-
   public CorsetValidator.Result verifyTraceOfBlock(
-      final Hash blockHash, final String zkEvmBin, final ZkTracer zkTracer)
+      final Hash blockHash,
+      final ContinuousTracingConfiguration continuousTracingConfiguration,
+      final ZkTracer zkTracer)
       throws TraceVerificationException, InvalidBlockTraceException {
     zkTracer.traceStartConflation(1);
 
@@ -53,9 +52,6 @@ public class ContinuousTracer {
     } catch (final Exception e) {
       throw new TraceVerificationException(blockHash, e.getMessage());
     } finally {
-      // TODO: After consulting with the Arithmetization team, it is ok to pass the world state as
-      // null for now, but it
-      //  should be fixed at some point.
       zkTracer.traceEndConflation(null);
     }
 
@@ -70,10 +66,16 @@ public class ContinuousTracer {
 
     final CorsetValidator.Result result;
     try {
+      final Optional<Path> tracesOutputPath =
+          Optional.of(Paths.get(continuousTracingConfiguration.tracesDir()));
+
+      Files.createDirectories(tracesOutputPath.get());
+
       result =
           corsetValidator.validate(
-              TRACES_PATH.map(zkTracer::writeToTmpFile).orElseGet(zkTracer::writeToTmpFile),
-              zkEvmBin);
+              tracesOutputPath.map(zkTracer::writeToTmpFile).orElseGet(zkTracer::writeToTmpFile),
+              continuousTracingConfiguration.zkEvmBin());
+
       if (!result.isValid()) {
         log.error("Trace of block {} is not valid", blockHash.toHexString());
         return result;
@@ -82,6 +84,8 @@ public class ContinuousTracer {
       log.error(
           "Error while validating trace of block {}: {}", blockHash.toHexString(), e.getMessage());
       throw new TraceVerificationException(blockHash, e.getMessage());
+    } catch (IOException e) {
+      throw new TraceOutputException(e.getMessage());
     }
 
     try {

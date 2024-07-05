@@ -22,12 +22,12 @@ import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
 
 @RequiredArgsConstructor
-public class EcPairingG2MembershipTests implements Module {
+public class EcPairingG2MembershipCalls implements Module {
   private final EcPairingFinalExponentiations ecPairingFinalExponentiations;
 
   @Override
   public String moduleKey() {
-    return "PRECOMPILE_ECPAIRING_G2_MEMBERSHIP_TESTS";
+    return "PRECOMPILE_ECPAIRING_G2_MEMBERSHIP_CALLS";
   }
 
   @Override

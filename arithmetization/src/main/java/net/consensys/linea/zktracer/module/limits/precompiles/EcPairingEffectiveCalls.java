@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.limits.precompiles;
 
+import static net.consensys.linea.zktracer.CurveOperations.*;
+
 import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.List;
@@ -38,14 +40,12 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 
-import static net.consensys.linea.zktracer.CurveOperations.*;
-
 @Slf4j
 @RequiredArgsConstructor
 @Accessors(fluent = true)
-public final class EcPairingEffectiveCall implements Module {
+public final class EcPairingEffectiveCalls implements Module {
   private final Hub hub;
-  @Getter private final Stack<EcPairingLimit> counts = new Stack<>();
+  @Getter private final Stack<EcPairingTallier> counts = new Stack<>();
   private static final int PRECOMPILE_BASE_GAS_FEE = 45_000; // cf EIP-1108
   private static final int PRECOMPILE_MILLER_LOOP_GAS_FEE = 34_000; // cf EIP-1108
   private static final int ECPAIRING_NB_BYTES_PER_MILLER_LOOP = 192;
@@ -59,16 +59,108 @@ public final class EcPairingEffectiveCall implements Module {
 
   @Override
   public void enterTransaction() {
-    counts.push(new EcPairingLimit(
-            0,
-            0,
-            0,
-            0));
+    counts.push(new EcPairingTallier(0, 0, 0, 0));
   }
 
   @Override
   public void popTransaction() {
     counts.pop();
+  }
+
+  @Override
+  public int lineCount() {
+    int r = 0;
+    for (EcPairingTallier count : this.counts) {
+      r += (int) count.numberOfFinalExponentiations();
+    }
+    return r;
+  }
+
+  @Override
+  public List<ColumnHeader> columnsHeaders() {
+    throw new UnsupportedOperationException("should never be called");
+  }
+
+  @Override
+  public void commit(List<MappedByteBuffer> buffers) {
+    throw new UnsupportedOperationException("should never be called");
+  }
+
+  @Override
+  public void tracePreOpcode(MessageFrame frame) {
+
+    if (irrelevantOperation(frame)) {
+      return;
+    }
+
+    final MemorySpan callDataSpan = hub.transients().op().callDataSegment();
+    final long callDataSize = callDataSpan.length();
+    final long callDataSizeMod192 = callDataSize % ECPAIRING_NB_BYTES_PER_MILLER_LOOP;
+    final long nMillerLoop = (callDataSize / ECPAIRING_NB_BYTES_PER_MILLER_LOOP);
+    if (callDataSizeMod192 != 0) {
+      log.warn(
+          "[ECPAIRING] faulty call data size: {} ≡ {} mod {}",
+          callDataSize,
+          callDataSizeMod192,
+          ECPAIRING_NB_BYTES_PER_MILLER_LOOP);
+      return;
+    }
+
+    final long gasAllowance = hub.transients().op().gasAllowanceForCall();
+    final long precompileCost =
+        PRECOMPILE_BASE_GAS_FEE + PRECOMPILE_MILLER_LOOP_GAS_FEE * nMillerLoop;
+    if (gasAllowance < precompileCost) {
+      log.warn(
+          "[ECPAIRING] insufficient gas: gas allowance = {}, precompile cost = {}",
+          gasAllowance,
+          precompileCost);
+      return;
+    }
+
+    if (callDataSize == 0) {
+      return;
+    }
+
+    /*
+    At this point:
+      - call data size is a positive multiple of 192
+      - the precompile call is given sufficient gas
+     */
+
+    final EcPairingTallier currentEcpairingTallier = this.counts.pop();
+    final long additionalRows = 12 * nMillerLoop + 2;
+
+    if (!internalChecksPassed(frame, callDataSpan)) {
+      this.counts.push(
+          new EcPairingTallier(
+              currentEcpairingTallier.numberOfLines() + additionalRows,
+              currentEcpairingTallier.numberOfMillerLoops(),
+              currentEcpairingTallier.numberOfFinalExponentiations(),
+              currentEcpairingTallier.numberOfG2MembershipTests()));
+      return;
+    }
+
+    if (callDataContainsMalformedLargePoint(frame, callDataSpan)) {
+      this.counts.push(
+          new EcPairingTallier(
+              currentEcpairingTallier.numberOfLines() + additionalRows,
+              currentEcpairingTallier.numberOfMillerLoops(),
+              currentEcpairingTallier.numberOfFinalExponentiations(),
+              currentEcpairingTallier.numberOfG2MembershipTests() + 1));
+      return;
+    }
+
+    EcpairingCounts preciseCount = preciseCount(frame, callDataSpan);
+
+    this.counts.push(
+        new EcPairingTallier(
+            currentEcpairingTallier.numberOfLines() + additionalRows,
+            currentEcpairingTallier.numberOfMillerLoops() + preciseCount.nontrivialPairs(),
+            currentEcpairingTallier.numberOfFinalExponentiations() + preciseCount.nontrivialPairs()
+                    == 0
+                ? 0
+                : 1,
+            currentEcpairingTallier.numberOfG2MembershipTests() + preciseCount.membershipTests()));
   }
 
   public static boolean isHubFailure(final Hub hub) {
@@ -134,96 +226,6 @@ public final class EcPairingEffectiveCall implements Module {
     return 0;
   }
 
-  @Override
-  public void tracePreOpcode(MessageFrame frame) {
-
-    if (irrelevantOperation(frame)) {
-      return;
-    }
-
-    final MemorySpan callDataSpan = hub.transients().op().callDataSegment();
-    final long callDataSize = callDataSpan.length();
-    final long callDataSizeMod192 = callDataSize % ECPAIRING_NB_BYTES_PER_MILLER_LOOP;
-    final long nMillerLoop = (callDataSize / ECPAIRING_NB_BYTES_PER_MILLER_LOOP);
-    if (callDataSizeMod192 != 0) {
-      log.warn("[ECPAIRING] faulty call data size: {} ≡ {} mod {}", callDataSize, callDataSizeMod192, ECPAIRING_NB_BYTES_PER_MILLER_LOOP);
-      return;
-    }
-
-    final long gasAllowance = hub.transients().op().gasAllowanceForCall();
-    final long precompileCost = PRECOMPILE_BASE_GAS_FEE + PRECOMPILE_MILLER_LOOP_GAS_FEE * nMillerLoop;
-    if (gasAllowance < precompileCost) {
-      log.warn("[ECPAIRING] insufficient gas: gas allowance = {}, precompile cost = {}", gasAllowance, precompileCost);
-      return;
-    }
-
-    if (callDataSize == 0) {
-      return;
-    }
-
-    /*
-    At this point:
-      - call data size is a positive multiple of 192
-      - the precompile call is given sufficient gas
-     */
-
-    final EcPairingLimit currentEcpairingLimit = this.counts.pop();
-    final long additionalRows = 12 * nMillerLoop + 2;
-
-    if (!internalChecksPassed(frame, callDataSpan)) {
-      this.counts.push(
-              new EcPairingLimit(
-                      currentEcpairingLimit.numberOfLines() + additionalRows,
-                      currentEcpairingLimit.numberOfMillerLoops(),
-                      currentEcpairingLimit.numberOfFinalExponentiations(),
-                      currentEcpairingLimit.numberOfG2MembershipTests()
-                      )
-      );
-      return;
-    }
-
-    if (callDataContainsMalformedLargePoint(frame, callDataSpan)) {
-      this.counts.push(
-              new EcPairingLimit(
-                      currentEcpairingLimit.numberOfLines() + additionalRows,
-                      currentEcpairingLimit.numberOfMillerLoops(),
-                      currentEcpairingLimit.numberOfFinalExponentiations(),
-                      currentEcpairingLimit.numberOfG2MembershipTests() + 1
-              )
-      );
-      return;
-    }
-
-    EcpairingCounts preciseCount = preciseCount(frame, callDataSpan);
-
-    this.counts.push(
-            new EcPairingLimit(
-                    currentEcpairingLimit.numberOfLines() + additionalRows,
-                    currentEcpairingLimit.numberOfMillerLoops() + preciseCount.nontrivialPairs(),
-                    currentEcpairingLimit.numberOfFinalExponentiations() + preciseCount.nontrivialPairs() == 0 ? 0 : 1,
-                    currentEcpairingLimit.numberOfG2MembershipTests() + preciseCount.membershipTests()
-                    ));
-  }
-
-  @Override
-  public int lineCount() {
-    int r = 0;
-    for (EcPairingLimit count : this.counts) {
-      r += (int) count.numberOfFinalExponentiations();
-    }
-    return r;
-  }
-
-  @Override
-  public List<ColumnHeader> columnsHeaders() {
-    throw new UnsupportedOperationException("should never be called");
-  }
-
-  @Override
-  public void commit(List<MappedByteBuffer> buffers) {
-    throw new UnsupportedOperationException("should never be called");
-  }
-
   static boolean irrelevantOperation(MessageFrame frame) {
     final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
     final Address target = Words.toAddress(frame.getStackItem(1));
@@ -241,10 +243,14 @@ public final class EcPairingEffectiveCall implements Module {
         return false;
       }
 
-      final BigInteger pXIm = extractParameter(coordinates.slice(ECPAIRING_NB_BYTES_PER_SMALL_POINT, 32));
-      final BigInteger pXRe = extractParameter(coordinates.slice(ECPAIRING_NB_BYTES_PER_SMALL_POINT + 32, 32));
-      final BigInteger pYIm = extractParameter(coordinates.slice(ECPAIRING_NB_BYTES_PER_SMALL_POINT + 64, 32));
-      final BigInteger pYRe = extractParameter(coordinates.slice(ECPAIRING_NB_BYTES_PER_SMALL_POINT + 96, 32));
+      final BigInteger pXIm =
+          extractParameter(coordinates.slice(ECPAIRING_NB_BYTES_PER_SMALL_POINT, 32));
+      final BigInteger pXRe =
+          extractParameter(coordinates.slice(ECPAIRING_NB_BYTES_PER_SMALL_POINT + 32, 32));
+      final BigInteger pYIm =
+          extractParameter(coordinates.slice(ECPAIRING_NB_BYTES_PER_SMALL_POINT + 64, 32));
+      final BigInteger pYRe =
+          extractParameter(coordinates.slice(ECPAIRING_NB_BYTES_PER_SMALL_POINT + 96, 32));
       final Fq2 pX = Fq2.create(pXRe, pXIm);
       final Fq2 pY = Fq2.create(pYRe, pYIm);
 
@@ -263,8 +269,11 @@ public final class EcPairingEffectiveCall implements Module {
     long nPairsOfPoints = callData.length() / ECPAIRING_NB_BYTES_PER_MILLER_LOOP;
 
     for (long i = 0; i < nPairsOfPoints; i++) {
-      final Bytes largeCoordinates = frame.shadowReadMemory(offset + ECPAIRING_NB_BYTES_PER_SMALL_POINT, ECPAIRING_NB_BYTES_PER_LARGE_POINT);
+      final Bytes largeCoordinates =
+          frame.shadowReadMemory(
+              offset + ECPAIRING_NB_BYTES_PER_SMALL_POINT, ECPAIRING_NB_BYTES_PER_LARGE_POINT);
 
+      // curve membership implicitly tested
       if (!isOnG2(largeCoordinates)) {
         return false;
       }
@@ -277,12 +286,21 @@ public final class EcPairingEffectiveCall implements Module {
 
   @Getter
   private class EcpairingCounts {
-          int nontrivialPairs;
-          int membershipTests;
-          int trivialPairs;
-    private void incrementPairingPairs() { this.nontrivialPairs++; }
-    private void incrementMembershipTests() { this.membershipTests++; }
-    private void incrementTrivialPairs() { this.trivialPairs++; }
+    int nontrivialPairs; // a pair of the form (A, B) with [A ≠ ∞] ∧ [B ≠ ∞]
+    int membershipTests; // a pair of the form (A, B) with [A ≡ ∞] ∧ [B ≠ ∞]
+    int trivialPairs; // a pair of the form (A, B) with  [B ≡ ∞]; likely useless ...
+
+    private void incrementPairingPairs() {
+      this.nontrivialPairs++;
+    }
+
+    private void incrementMembershipTests() {
+      this.membershipTests++;
+    }
+
+    private void incrementTrivialPairs() {
+      this.trivialPairs++;
+    }
   }
 
   private EcpairingCounts preciseCount(MessageFrame frame, MemorySpan callData) {
@@ -296,19 +314,24 @@ public final class EcPairingEffectiveCall implements Module {
 
       final BigInteger smallPointX = extractParameter(coordinates.slice(0, 32));
       final BigInteger smallPointY = extractParameter(coordinates.slice(32, 32));
-      final AltBn128Point smallPoint = new AltBn128Point(Fq.create(smallPointX), Fq.create(smallPointY));
+      final AltBn128Point smallPoint =
+          new AltBn128Point(Fq.create(smallPointX), Fq.create(smallPointY));
       final boolean smallPointIsPointAtInfinity = smallPoint.isInfinity();
 
-      final BigInteger largePointXIm = extractParameter(coordinates.slice(ECPAIRING_NB_BYTES_PER_SMALL_POINT, 32));
-      final BigInteger largePointXRe = extractParameter(coordinates.slice(ECPAIRING_NB_BYTES_PER_SMALL_POINT + 32, 32));
-      final BigInteger largePointYIm = extractParameter(coordinates.slice(ECPAIRING_NB_BYTES_PER_SMALL_POINT + 64, 32));
-      final BigInteger largePointYRe = extractParameter(coordinates.slice(ECPAIRING_NB_BYTES_PER_SMALL_POINT + 96, 32));
+      final BigInteger largePointXIm =
+          extractParameter(coordinates.slice(ECPAIRING_NB_BYTES_PER_SMALL_POINT, 32));
+      final BigInteger largePointXRe =
+          extractParameter(coordinates.slice(ECPAIRING_NB_BYTES_PER_SMALL_POINT + 32, 32));
+      final BigInteger largePointYIm =
+          extractParameter(coordinates.slice(ECPAIRING_NB_BYTES_PER_SMALL_POINT + 64, 32));
+      final BigInteger largePointYRe =
+          extractParameter(coordinates.slice(ECPAIRING_NB_BYTES_PER_SMALL_POINT + 96, 32));
       final Fq2 largePointX = Fq2.create(largePointXRe, largePointXIm);
       final Fq2 largePointY = Fq2.create(largePointYRe, largePointYIm);
       AltBn128Fq2Point largePoint = new AltBn128Fq2Point(largePointX, largePointY);
       final boolean largePointIsPointAtInfinity = largePoint.isInfinity();
 
-      if (smallPointIsPointAtInfinity && largePointIsPointAtInfinity) {
+      if (largePointIsPointAtInfinity) {
         counts.incrementTrivialPairs();
       }
 

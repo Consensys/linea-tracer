@@ -12,7 +12,6 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-
 package net.consensys.linea.zktracer.module.limits.precompiles;
 
 import java.nio.MappedByteBuffer;
@@ -23,12 +22,12 @@ import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
 
 @RequiredArgsConstructor
-public final class EcPairingMillerLoop implements Module {
-  private final EcPairingEffectiveCall ecpairingCall;
+public class EcPairingG2MembershipTests implements Module {
+  private final EcPairingEffectiveCalls ecPairingEffectiveCalls;
 
   @Override
   public String moduleKey() {
-    return "PRECOMPILE_ECPAIRING_MILLER_LOOPS";
+    return "PRECOMPILE_ECPAIRING_G2_MEMBERSHIP_TESTS";
   }
 
   @Override
@@ -39,17 +38,17 @@ public final class EcPairingMillerLoop implements Module {
 
   @Override
   public int lineCount() {
-    long r = 0;
+    long g2MembershipTests = 0;
 
-    for (EcPairingLimit count : this.ecpairingCall.counts()) {
-      r += count.numberOfMillerLoops();
+    for (EcPairingTallier count : this.ecPairingEffectiveCalls.counts()) {
+      g2MembershipTests += count.numberOfG2MembershipTests();
     }
 
-    if (r > Integer.MAX_VALUE) {
-      throw new RuntimeException("Ludicrous EcPairing calls");
+    if (g2MembershipTests > Integer.MAX_VALUE) {
+      throw new RuntimeException("Ludicrous amount of " + moduleKey());
     }
 
-    return (int) r;
+    return (int) g2MembershipTests;
   }
 
   @Override

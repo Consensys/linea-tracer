@@ -63,8 +63,8 @@ import net.consensys.linea.zktracer.module.limits.precompiles.BlakeEffectiveCall
 import net.consensys.linea.zktracer.module.limits.precompiles.BlakeRounds;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcAddEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcMulEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingMillerLoop;
+import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingEffectiveCalls;
+import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingMillerLoops;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcRecoverEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.RipemdBlocks;
@@ -285,7 +285,7 @@ public class Hub implements Module {
 
     final EcRecoverEffectiveCall ecRec = new EcRecoverEffectiveCall(this);
     this.modexpEffectiveCall = new ModexpEffectiveCall(this, this.blakeModexpData);
-    final EcPairingEffectiveCall ecPairingCall = new EcPairingEffectiveCall(this);
+    final EcPairingEffectiveCalls ecPairingCall = new EcPairingEffectiveCalls(this);
     final L2Block l2Block = new L2Block(l2l1ContractAddress, LogTopic.of(l2l1Topic));
     final BlakeRounds blakeRounds = new BlakeRounds(this, this.blakeModexpData);
 
@@ -298,7 +298,7 @@ public class Hub implements Module {
             new EcAddEffectiveCall(this),
             new EcMulEffectiveCall(this),
             ecPairingCall,
-            new EcPairingMillerLoop(ecPairingCall),
+            new EcPairingMillerLoops(ecPairingCall),
             blakeRounds,
             new BlakeEffectiveCall(blakeRounds),
             // Block level limits

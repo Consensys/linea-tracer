@@ -16,7 +16,4 @@
 package net.consensys.linea.zktracer.module.limits.precompiles;
 
 record EcPairingTallier(
-    long numberOfLines,
-    long numberOfMillerLoops,
-    long numberOfFinalExponentiations,
-    long numberOfG2MembershipTests) {}
+    long numberOfMillerLoops, long numberOfFinalExponentiations, long numberOfG2MembershipTests) {}

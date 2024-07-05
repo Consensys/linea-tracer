@@ -43,7 +43,7 @@ import org.hyperledger.besu.evm.internal.Words;
 @Slf4j
 @RequiredArgsConstructor
 @Accessors(fluent = true)
-public final class EcPairingEffectiveCalls implements Module {
+public final class EcPairingFinalExponentiations implements Module {
   private final Hub hub;
   @Getter private final Stack<EcPairingTallier> counts = new Stack<>();
   private static final int PRECOMPILE_BASE_GAS_FEE = 45_000; // cf EIP-1108
@@ -54,12 +54,12 @@ public final class EcPairingEffectiveCalls implements Module {
 
   @Override
   public String moduleKey() {
-    return "PRECOMPILE_ECPAIRING_EFFECTIVE_CALLS";
+    return "PRECOMPILE_ECPAIRING_FINAL_EXPONENTIATIONS";
   }
 
   @Override
   public void enterTransaction() {
-    counts.push(new EcPairingTallier(0, 0, 0, 0));
+    counts.push(new EcPairingTallier(0, 0, 0));
   }
 
   @Override
@@ -133,7 +133,6 @@ public final class EcPairingEffectiveCalls implements Module {
     if (!internalChecksPassed(frame, callDataSpan)) {
       this.counts.push(
           new EcPairingTallier(
-              currentEcpairingTallier.numberOfLines() + additionalRows,
               currentEcpairingTallier.numberOfMillerLoops(),
               currentEcpairingTallier.numberOfFinalExponentiations(),
               currentEcpairingTallier.numberOfG2MembershipTests()));
@@ -143,7 +142,6 @@ public final class EcPairingEffectiveCalls implements Module {
     if (callDataContainsMalformedLargePoint(frame, callDataSpan)) {
       this.counts.push(
           new EcPairingTallier(
-              currentEcpairingTallier.numberOfLines() + additionalRows,
               currentEcpairingTallier.numberOfMillerLoops(),
               currentEcpairingTallier.numberOfFinalExponentiations(),
               currentEcpairingTallier.numberOfG2MembershipTests() + 1));
@@ -154,7 +152,6 @@ public final class EcPairingEffectiveCalls implements Module {
 
     this.counts.push(
         new EcPairingTallier(
-            currentEcpairingTallier.numberOfLines() + additionalRows,
             currentEcpairingTallier.numberOfMillerLoops() + preciseCount.nontrivialPairs(),
             currentEcpairingTallier.numberOfFinalExponentiations() + preciseCount.nontrivialPairs()
                     == 0

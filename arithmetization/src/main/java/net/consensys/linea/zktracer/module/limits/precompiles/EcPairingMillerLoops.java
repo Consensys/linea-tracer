@@ -24,7 +24,7 @@ import net.consensys.linea.zktracer.module.Module;
 
 @RequiredArgsConstructor
 public final class EcPairingMillerLoops implements Module {
-  private final EcPairingEffectiveCalls ecpairingCall;
+  private final EcPairingFinalExponentiations ecpairingCall;
 
   @Override
   public String moduleKey() {

@@ -63,7 +63,7 @@ import net.consensys.linea.zktracer.module.limits.precompiles.BlakeEffectiveCall
 import net.consensys.linea.zktracer.module.limits.precompiles.BlakeRounds;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcAddEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcMulEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingEffectiveCalls;
+import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingFinalExponentiations;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingMillerLoops;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcRecoverEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall;
@@ -285,7 +285,7 @@ public class Hub implements Module {
 
     final EcRecoverEffectiveCall ecRec = new EcRecoverEffectiveCall(this);
     this.modexpEffectiveCall = new ModexpEffectiveCall(this, this.blakeModexpData);
-    final EcPairingEffectiveCalls ecPairingCall = new EcPairingEffectiveCalls(this);
+    final EcPairingFinalExponentiations ecPairingCall = new EcPairingFinalExponentiations(this);
     final L2Block l2Block = new L2Block(l2l1ContractAddress, LogTopic.of(l2l1Topic));
     final BlakeRounds blakeRounds = new BlakeRounds(this, this.blakeModexpData);
 

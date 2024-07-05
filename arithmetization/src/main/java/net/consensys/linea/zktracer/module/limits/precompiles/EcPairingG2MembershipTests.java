@@ -23,7 +23,7 @@ import net.consensys.linea.zktracer.module.Module;
 
 @RequiredArgsConstructor
 public class EcPairingG2MembershipTests implements Module {
-  private final EcPairingEffectiveCalls ecPairingEffectiveCalls;
+  private final EcPairingFinalExponentiations ecPairingFinalExponentiations;
 
   @Override
   public String moduleKey() {
@@ -40,7 +40,7 @@ public class EcPairingG2MembershipTests implements Module {
   public int lineCount() {
     long g2MembershipTests = 0;
 
-    for (EcPairingTallier count : this.ecPairingEffectiveCalls.counts()) {
+    for (EcPairingTallier count : this.ecPairingFinalExponentiations.counts()) {
       g2MembershipTests += count.numberOfG2MembershipTests();
     }
 

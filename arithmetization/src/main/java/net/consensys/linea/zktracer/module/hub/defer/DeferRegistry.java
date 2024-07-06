@@ -16,13 +16,18 @@
 package net.consensys.linea.zktracer.module.hub.defer;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
+import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.operation.Operation;
+import org.hyperledger.besu.evm.worldstate.WorldState;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 /**
@@ -45,109 +50,10 @@ public class DeferRegistry {
   /** A list of actions deferred until the end of the current opcode execution */
   private final List<Pair<Integer, NextContextDefer>> contextReentry = new ArrayList<>();
 
-  private final List<Pair<Integer, List<PostRollbackDefer>>> rollbackDefers = new ArrayList<>();
-
-  /*
-  For every context X that is RESPONSIBLE for triggering a rollback i.e.
-  - executes the REVERT opcode or
-  - triggers an exceptional halting condition
-  should have an entry in the rollbackDefers sub-registry.
-
-      < context_number_of_X, List < RollbackDefers > >
-
-   this list should contain all the stuff that will be undone / make explicit
-   at the precise time where the context reverts.
-
-   Note: we could have such a list for EVERY context, with that list being either
-   - empty if this context isn't responsible for a rollback
-   - nonempty and containing everything susceptible to be rolled back by itself o
-     an ancestor
-
-   Choice
-
-   A does a CALL
-       B is the callee context
-       B does a CALL
-           C is the callee context
-           C does a CREATE
-               D is the createe context
-               D is successful
-               D exits with exit code 1 (success)
-           C resumes execution
-           C fucks up
-           C now has to undo everything that happened in C and D
-           C exits with exit code 0 (failure)
-       B resumes execution
-       B is successful
-       B exits with exit code 1 (success)
-   A resumes execution
-   A does a CALL
-       E executes
-       E is successful
-       E exits with exit code 1 (success)
-   A resumes execution
-   A fucks up
-   A is responsible for undoing everything done by A, B and E
-
-   for a context you would have the following information
-   - SUCCESS / FAILURE
-   - ALREADY_ROLLED_BACK
-   - better: in stead of saying: 'this context was already rolled back' and remembering
-     that decision we simply clear the corresponding list; and we always rollback everything
-     in the descendant contexts
-
-   A does  a CALL
-      enter B
-      B does a CALL
-         enter C
-         C success, exits with exits code 1
-      B resumes
-      B succeeds
-   A resumes execution
-   A fucks up
-   A is responsible for reverting all its descendants (B and C)
-
-
-   Extra difficulty:
-   - nice stuff:
-      - nonces, warmth, deployments, ... get rolled back with any rollback
-      - balance transfers get rolled back with child failure
-
-   A does a CREATE with value v
-      A's balance does bal_A -= v
-      A's nonce does nonce_A += 1
-         B is the createe
-         B's balance does bal_B += v
-         B's nonce does nonce_B = 1
-         B fucks up
-         B exits with exit code 0
-      bal_A += v
-      bal_B -= v
-      nonces stay the same ! for A and B ...
-   A resumes execution
-
-   if A is rolled back later then its nonce goes back to its initial value "n"
-   if A isn't rolled back later then its nonce remains at "n + 1"
-
-   directDescendantSelfRevertRegistry
-   - everytime there is a CALL / CREATE we add 'it' (i.e. that operation) to that sub-registry
-   - every time a context comes to a halt we need to determine if it
-     exited with exit code 1 or 0
-   - if the exit code is 0 we need to undo the balance transfer
-
-   In other words we should have a LIST (not a tree) of such CALL's / CREATE's
-   We add items to it with every CALL / CREATE
-   Everytime we exit a context (special care has to be taken for EOA's / PRECOMPILE's)
-   we pop the top item of this list
-   and depending on whether or not the exit code is 1 / 0 we "resolve" that item.
-   if EXIT_CODE = 1 no resolution is required ( return; )
-   if EXIT_CODE = 0 then the balance must be resolved;
-      - i.e. we need to resolve a CALL_SECTION or a CREATE_SECTION
-
-   This means that
-   - CallSection must implement the DirectDescendantSelfRevertRegistry
-   - CreateSection must implement the DirectDescendantSelfRevertRegistry
-   */
+  /** A collection of actions whose execution is deferred to a hypothetical
+   *  future rollback. This collection maps a context to all actions that
+   *  would have to be done if that execution context were to be rolled back. */
+  private final Map<Integer, List<PostRollbackDefer>> rollbackDefers = new HashMap<>();
 
   /** Schedule an action to be executed after the completion of the current opcode. */
   public void scheduleForContextReEntry(NextContextDefer defer, int frameId) {
@@ -255,5 +161,27 @@ public class DeferRegistry {
     //  deployment terminates and we re-enter the creator context ...
     //  But what if we have nested CREATE's ?
     //  A creates B, and during deployment B creates C ... ?!
+  }
+
+  /*
+  resolveAfterRollback should be invoked when precisely after a rollback
+  was acted upon in terms of rolling back modifications to
+  - state
+  - accrued state
+  but the caller (or creator), if present, hasn't resumed execution yet.
+  In particular the "current frame" is expected to be the frame responsible
+  for the rollback.
+   */
+  public void resolvePostRollback(Hub hub, WorldState worldState, CallFrame frameToRollBack) {
+    int currentId = frameToRollBack.id();
+    for (PostRollbackDefer defer: hub.defers().rollbackDefers.get(currentId)) {
+      defer.resolvePostRollback(hub, worldState);
+    }
+    hub.defers().rollbackDefers.get(currentId).clear();
+
+    CallStack callStack = hub.callStack();
+    hub.currentFrame().childFrames().stream()
+            .map(callStack::getById)
+            .forEach(frame -> resolvePostRollback(hub, worldState, frame));
   }
 }

@@ -14,4 +14,9 @@
  */
 package net.consensys.linea.zktracer.module.hub.defer;
 
-public interface PostRollbackDefer {}
+import net.consensys.linea.zktracer.module.hub.Hub;
+import org.hyperledger.besu.evm.worldstate.WorldView;
+
+public interface PostRollbackDefer {
+    void resolvePostRollback(Hub hub, WorldView worldView);
+}

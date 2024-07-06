@@ -41,7 +41,7 @@ public final class CallStack {
   static final int MAX_CALLSTACK_SIZE = 1024;
 
   /** a never-pruned-tree of the {@link CallFrame} executed by the {@link Hub} */
-  private final List<CallFrame> frames =
+  @Getter private final List<CallFrame> frames =
       new ArrayList<>(
           50) { // TODO: PERF as the List of TraceSection, we should have an estimate based on
         // gasLimit on the nb of CallFrame a tx might have

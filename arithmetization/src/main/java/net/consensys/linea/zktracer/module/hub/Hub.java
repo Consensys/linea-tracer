@@ -56,6 +56,7 @@ import net.consensys.linea.zktracer.module.hub.section.TxSkippedSectionDefers;
 import net.consensys.linea.zktracer.module.hub.section.calls.FailedCallSection;
 import net.consensys.linea.zktracer.module.hub.section.calls.NoCodeCallSection;
 import net.consensys.linea.zktracer.module.hub.section.calls.SmartContractCallSection;
+import net.consensys.linea.zktracer.module.hub.section.copy.CopySection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
 import net.consensys.linea.zktracer.module.hub.transients.Transients;
@@ -1117,63 +1118,8 @@ public class Hub implements Module {
       }
 
       case COPY -> {
-
-        /*
-        CopySection.addTraceSection(this);
-        TraceSection copySection = new CopySection(this);
-        if (!this.opCode().equals(OpCode.RETURNDATACOPY) && !this.opCode().equals(OpCode.CALLDATACOPY)) {
-          final Bytes rawTargetAddress =
-              switch (this.currentFrame().opCode()) {
-                case CODECOPY -> this.currentFrame().byteCodeAddress();
-                case EXTCODECOPY -> frame.getStackItem(0);
-                default -> throw new IllegalStateException(
-                    String.format("unexpected opcode %s", this.opCode()));
-              };
-          final Address targetAddress = Words.toAddress(rawTargetAddress);
-          final Account targetAccount = frame.getWorldUpdater().get(targetAddress);
-
-          AccountSnapshot accountBefore =
-              AccountSnapshot.fromAccount(
-                  targetAccount,
-                  frame.isAddressWarm(targetAddress),
-                  this.transients.conflation().deploymentInfo().number(targetAddress),
-                  this.transients.conflation().deploymentInfo().isDeploying(targetAddress));
-
-          AccountSnapshot accountAfter =
-              AccountSnapshot.fromAccount(
-                  targetAccount,
-                  true,
-                  this.transients.conflation().deploymentInfo().number(targetAddress),
-                  this.transients.conflation().deploymentInfo().isDeploying(targetAddress));
-
-          // TODO: this is deprecated, update it. Factories creates an account row (accountFragment)
-          // ImcFragment is for miscellaneaous rows
-          // ContextFragment
-          DomSubStampsSubFragment doingDomSubStamps =
-              DomSubStampsSubFragment.standardDomSubStamps(this, 0);
-          copySection.addFragment(
-              this.currentFrame().opCode() == OpCode.EXTCODECOPY
-                  ? this.factories
-                      .accountFragment()
-                      .makeWithTrm(
-                          accountBefore, accountBefore, rawTargetAddress, doingDomSubStamps)
-                  : this.factories
-                      .accountFragment()
-                      .make(accountBefore, accountAfter, doingDomSubStamps));
-
-          if (this.callStack.current().willRevert()) {
-            DomSubStampsSubFragment undoingDomSubStamps =
-                DomSubStampsSubFragment.revertWithCurrentDomSubStamps(this, 0);
-            copySection.addFragment(
-                this.factories
-                    .accountFragment()
-                    .make(accountAfter, accountBefore, undoingDomSubStamps));
-          }
-        } else {
-          copySection.addFragment(ContextFragment.readCurrentContextData(this));
-        }
-        this.addTraceSection(copySection);
-        */
+        final CopySection copySection = new CopySection(this);
+        copySection.populateSection(this);
       }
 
       case TRANSACTION -> this.addTraceSection(

@@ -26,15 +26,77 @@ public class CopySection extends TraceSection {
     super(hub);
   }
 
-  public static void appendToTrace(Hub hub) {
+  public void populateSection(Hub hub) {
+
+    /*
+    CopySection.addTraceSection(this);
+    TraceSection copySection = new CopySection(this);
+    if (!this.opCode().equals(OpCode.RETURNDATACOPY) && !this.opCode().equals(OpCode.CALLDATACOPY)) {
+      final Bytes rawTargetAddress =
+          switch (this.currentFrame().opCode()) {
+            case CODECOPY -> this.currentFrame().byteCodeAddress();
+            case EXTCODECOPY -> frame.getStackItem(0);
+            default -> throw new IllegalStateException(
+                String.format("unexpected opcode %s", this.opCode()));
+          };
+      final Address targetAddress = Words.toAddress(rawTargetAddress);
+      final Account targetAccount = frame.getWorldUpdater().get(targetAddress);
+
+      AccountSnapshot accountBefore =
+          AccountSnapshot.fromAccount(
+              targetAccount,
+              frame.isAddressWarm(targetAddress),
+              this.transients.conflation().deploymentInfo().number(targetAddress),
+              this.transients.conflation().deploymentInfo().isDeploying(targetAddress));
+
+      AccountSnapshot accountAfter =
+          AccountSnapshot.fromAccount(
+              targetAccount,
+              true,
+              this.transients.conflation().deploymentInfo().number(targetAddress),
+              this.transients.conflation().deploymentInfo().isDeploying(targetAddress));
+
+      // TODO: this is deprecated, update it. Factories creates an account row (accountFragment)
+      // ImcFragment is for miscellaneaous rows
+      // ContextFragment
+      DomSubStampsSubFragment doingDomSubStamps =
+          DomSubStampsSubFragment.standardDomSubStamps(this, 0);
+      copySection.addFragment(
+          this.currentFrame().opCode() == OpCode.EXTCODECOPY
+              ? this.factories
+                  .accountFragment()
+                  .makeWithTrm(
+                      accountBefore, accountBefore, rawTargetAddress, doingDomSubStamps)
+              : this.factories
+                  .accountFragment()
+                  .make(accountBefore, accountAfter, doingDomSubStamps));
+
+      if (this.callStack.current().willRevert()) {
+        DomSubStampsSubFragment undoingDomSubStamps =
+            DomSubStampsSubFragment.revertWithCurrentDomSubStamps(this, 0);
+        copySection.addFragment(
+            this.factories
+                .accountFragment()
+                .make(accountAfter, accountBefore, undoingDomSubStamps));
+      }
+    } else {
+      copySection.addFragment(ContextFragment.readCurrentContextData(this));
+    }
+    this.addTraceSection(copySection);
+    */
+
     switch (hub.opCode()) {
       case OpCode.CALLDATACOPY -> new CallDataCopySection(hub);
-      case OpCode.RETURNDATACOPY -> new ReturnDataCopySection(hub);
+      case OpCode.RETURNDATACOPY -> {
+        ReturnDataCopySection returnDataCopySection = new ReturnDataCopySection(hub);
+        hub.addTraceSection(returnDataCopySection);
+        returnDataCopySection.populateSection(hub);
+      }
       case OpCode.CODECOPY -> new CodeCopySection(hub);
       case OpCode.EXTCODECOPY -> {
         ExtCodeCopySection extCodeCopySection = new ExtCodeCopySection(hub);
-        extCodeCopySection.populateSection(hub);
-      }
+        hub.addTraceSection(extCodeCopySection);
+        extCodeCopySection.populate(hub);
       }
     }
   }

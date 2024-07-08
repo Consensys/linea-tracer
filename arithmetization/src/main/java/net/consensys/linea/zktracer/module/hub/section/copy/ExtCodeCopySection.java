@@ -30,7 +30,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
-import net.consensys.linea.zktracer.types.Bytecode;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
@@ -51,19 +50,18 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
 
   public ExtCodeCopySection(Hub hub) {
     super(hub);
-
     final MessageFrame frame = hub.messageFrame();
     this.rawAddress = frame.getStackItem(0);
     this.address = Address.extract((Bytes32) this.rawAddress);
-    this.incomingDeploymentNumber = hub.transients().conflation().deploymentInfo().number(this.address);
-    this.incomingDeploymentStatus = hub.transients().conflation().deploymentInfo().isDeploying(this.address);
+    this.incomingDeploymentNumber =
+        hub.transients().conflation().deploymentInfo().number(this.address);
+    this.incomingDeploymentStatus =
+        hub.transients().conflation().deploymentInfo().isDeploying(this.address);
     this.incomingWarmth = frame.isAddressWarm(this.address);
     this.exceptions = hub.pch().exceptions();
   }
 
-  public void populateSection(Hub hub) {
-
-    hub.addTraceSection(this);
+  public void populate(Hub hub) {
 
     ImcFragment imcFragment = ImcFragment.empty(hub);
     this.addFragmentsAndStack(hub, imcFragment);
@@ -73,7 +71,8 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
     MxpCall mxpCall = new MxpCall(hub);
     imcFragment.callMxp(mxpCall);
 
-    Preconditions.checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(this.exceptions));
+    Preconditions.checkArgument(
+        mxpCall.mxpx == Exceptions.memoryExpansionException(this.exceptions));
 
     // The MXPX case
     ////////////////
@@ -101,7 +100,8 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
       AccountFragment accountReadingFragment =
           hub.factories()
               .accountFragment()
-              .makeWithTrm(this.accountBefore, this.accountBefore, this.rawAddress, doingDomSubStamps);
+              .makeWithTrm(
+                  this.accountBefore, this.accountBefore, this.rawAddress, doingDomSubStamps);
 
       this.addFragment(accountReadingFragment);
       return;
@@ -109,7 +109,8 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
 
     // The unexceptional case
     /////////////////////////
-    final boolean triggerMmu = none(this.exceptions) && mxpCall.isMayTriggerNonTrivialMmuOperation();
+    final boolean triggerMmu =
+        none(this.exceptions) && mxpCall.isMayTriggerNonTrivialMmuOperation();
     if (triggerMmu) {
       MmuCall mmuCall = MmuCall.extCodeCopy(hub);
       imcFragment.callMmu(mmuCall);
@@ -117,53 +118,54 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
 
     this.accountAfter =
         AccountSnapshot.fromAccount(
-            foreignAccount,
-            true,
-            this.incomingDeploymentNumber,
-            this.incomingDeploymentStatus);
+            foreignAccount, true, this.incomingDeploymentNumber, this.incomingDeploymentStatus);
 
     AccountFragment accountDoingFragment =
-        hub.factories().accountFragment()
+        hub.factories()
+            .accountFragment()
             .makeWithTrm(this.accountBefore, this.accountAfter, this.rawAddress, doingDomSubStamps);
 
     this.addFragment(accountDoingFragment);
+
+    // an EXTCODECOPY section is only scheduled
+    // for rollback if it is unexceptional
     hub.defers().scheduleForPostRollback(this, hub.currentFrame());
   }
 
   @Override
   public void resolvePostRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
 
-    Account revertFrom = messageFrame.getWorldUpdater().get(this.address);
-    final int deploymentNumberAtRollback = hub.transients().conflation().deploymentInfo().number(this.address);
-    final boolean deploymentStatusAtRollback = hub.transients().conflation().deploymentInfo().isDeploying(this.address);
+    final int deploymentNumberAtRollback =
+        hub.transients().conflation().deploymentInfo().number(this.address);
+    final boolean deploymentStatusAtRollback =
+        hub.transients().conflation().deploymentInfo().isDeploying(this.address);
 
-    AccountSnapshot revertFromSnapshot = new AccountSnapshot(
-            this.address,
-            revertFrom.getNonce(),
-            revertFrom.getBalance(),
-            true,
-            new Bytecode(revertFrom.getCode().copy()), // stolen from AccountSnapshot.java
+    AccountSnapshot revertFromSnapshot =
+        new AccountSnapshot(
+            this.accountAfter.address(),
+            this.accountAfter.nonce(),
+            this.accountAfter.balance(),
+            this.accountAfter.isWarm(),
+            this.accountAfter.code(),
             deploymentNumberAtRollback,
-            deploymentStatusAtRollback
-    );
+            deploymentStatusAtRollback);
 
-    AccountSnapshot revertToSnapshot = new AccountSnapshot(
-            this.address,
-            revertFrom.getNonce(),
-            revertFrom.getBalance(),
-            this.incomingWarmth,
-            new Bytecode(revertFrom.getCode().copy()), // stolen from AccountSnapshot.java
+    AccountSnapshot revertToSnapshot =
+        new AccountSnapshot(
+            this.accountBefore.address(),
+            this.accountBefore.nonce(),
+            this.accountBefore.balance(),
+            this.accountBefore.isWarm(),
+            this.accountBefore.code(),
             deploymentNumberAtRollback,
-            deploymentStatusAtRollback
-    );
+            deploymentStatusAtRollback);
 
-
-    DomSubStampsSubFragment undoingDomSubStamps = DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 1);
+    DomSubStampsSubFragment undoingDomSubStamps =
+        DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 1);
     AccountFragment undoingAccountFragment =
-            hub.factories().accountFragment().make(
-                    revertFromSnapshot,
-                    revertToSnapshot,
-                    undoingDomSubStamps);
+        hub.factories()
+            .accountFragment()
+            .make(revertFromSnapshot, revertToSnapshot, undoingDomSubStamps);
 
     this.addFragment(undoingAccountFragment);
   }

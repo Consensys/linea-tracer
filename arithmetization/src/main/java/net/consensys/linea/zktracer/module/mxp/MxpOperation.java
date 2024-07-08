@@ -89,17 +89,15 @@ public class MxpOperation extends ModuleOperation {
   private long linCost = 0;
 
   public MxpOperation(final MxpCall mxpCall) {
-    this.mxpCall = mxpCall;
 
     final Hub hub = mxpCall.hub;
-
     final MessageFrame frame = hub.messageFrame();
 
+    this.mxpCall = mxpCall;
     this.mxpCall.setOpCodeData(hub.opCodeData());
     this.mxpCall.setDeploys(
         mxpCall.getOpCodeData().mnemonic() == OpCode.RETURN & hub.currentFrame().isDeployment());
     this.mxpCall.setMemorySizeInWords(frame.memoryWordSize());
-
     this.wordsNew = frame.memoryWordSize(); // will (may) be updated later
     this.cMem = memoryCost(frame.memoryWordSize());
     this.cMemNew = memoryCost(frame.memoryWordSize()); // will (may) be updated later

@@ -15,12 +15,61 @@
 
 package net.consensys.linea.zktracer.module.hub.section.copy;
 
+import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.ReturnDataCopyOobCall;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
+import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 
 public class ReturnDataCopySection extends TraceSection {
 
+  final short exceptions;
+
   public ReturnDataCopySection(Hub hub) {
     super(hub);
+    this.exceptions = hub.pch().exceptions();
+  }
+
+  public void populateSection(Hub hub) {
+
+    ContextFragment currentContext = ContextFragment.readCurrentContextData(hub);
+    this.addFragmentsAndStack(hub, currentContext);
+
+    ImcFragment imcFragment = ImcFragment.empty(hub);
+    this.addFragment(imcFragment);
+
+    ReturnDataCopyOobCall oobCall = new ReturnDataCopyOobCall();
+    imcFragment.callOob(oobCall);
+
+    final boolean returnDataCopyException = oobCall.isRdcx();
+    Preconditions.checkArgument(
+        returnDataCopyException == Exceptions.returnDataCopyFault(this.exceptions));
+
+    if (returnDataCopyException) {
+      return;
+    }
+
+    MxpCall mxpCall = new MxpCall(hub);
+    imcFragment.callMxp(mxpCall);
+
+    final boolean memoryExpansionException = mxpCall.mxpx;
+    Preconditions.checkArgument(
+        memoryExpansionException == Exceptions.memoryExpansionException(this.exceptions));
+
+    // if MXPX ∨ OOGX
+    if (Exceptions.any(this.exceptions)) {
+      return;
+    }
+
+    // beyond this point unexceptional
+    final boolean triggerMmu = mxpCall.mayTriggerNonTrivialMmuOperation;
+    if (triggerMmu) {
+      MmuCall mmuCall = MmuCall.returnDataCopy(hub);
+      imcFragment.callMmu(mmuCall);
+    }
   }
 }

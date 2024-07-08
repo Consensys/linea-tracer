@@ -32,18 +32,18 @@ public class Exceptions {
   private Exceptions() {}
 
   public static final short NONE = 0; // no exceptions occurred
-  private static final short INVALID_OPCODE = 1; // unknown opcode
-  private static final short STACK_UNDERFLOW = 2; // stack underflow
-  private static final short STACK_OVERFLOW = 4; // stack overflow
-  private static final short MEMORY_EXPANSION_EXCEPTION = 8; // tried to use memory too far away
-  private static final short OUT_OF_GAS_EXCEPTION = 16; // not enough gas for instruction
-  private static final short RETURN_DATA_COPY_FAULT = 32; // trying to read past the RETURNDATA end
-  private static final short JUMP_FAULT = 64; // jumping to an invalid destination
-  private static final short STATIC_FAULT =
+  public static final short INVALID_OPCODE = 1; // unknown opcode
+  public static final short STACK_UNDERFLOW = 2; // stack underflow
+  public static final short STACK_OVERFLOW = 4; // stack overflow
+  public static final short MEMORY_EXPANSION_EXCEPTION = 8; // tried to use memory too far away
+  public static final short OUT_OF_GAS_EXCEPTION = 16; // not enough gas for instruction
+  public static final short RETURN_DATA_COPY_FAULT = 32; // trying to read past the RETURNDATA end
+  public static final short JUMP_FAULT = 64; // jumping to an invalid destination
+  public static final short STATIC_FAULT =
       128; // trying to execute non-static instruction in a static context
-  private static final short OUT_OF_SSTORE = 256; // not enough gas to execute an SSTORE
-  private static final short INVALID_CODE_PREFIX = 512;
-  private static final short CODE_SIZE_OVERFLOW = 2048;
+  public static final short OUT_OF_SSTORE = 256; // not enough gas to execute an SSTORE
+  public static final short INVALID_CODE_PREFIX = 512;
+  public static final short CODE_SIZE_OVERFLOW = 2048;
 
   public static boolean stackException(final short bitmask) {
     return stackOverflow(bitmask) || stackUnderflow(bitmask);

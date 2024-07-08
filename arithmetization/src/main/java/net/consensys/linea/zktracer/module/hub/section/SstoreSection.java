@@ -18,49 +18,57 @@ package net.consensys.linea.zktracer.module.hub.section;
 import lombok.Getter;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.State;
+import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
+import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Getter
-public class SstoreSection extends TraceSection {
+public class SstoreSection extends TraceSection implements PostRollbackDefer {
+  final Address address;
+  final int deploymentNumber;
+  final Bytes32 storageKey;
+  final boolean incomingWarmth;
+  final EWord valueOriginal;
+  final EWord valueCurrent;
+  final EWord valueNext;
   final WorldView world;
+  final short exceptions;
 
-  private SstoreSection(Hub hub, WorldView world) {
+  public SstoreSection(Hub hub, WorldView world) {
     super(hub);
     this.world = world;
+    this.address = hub.messageFrame().getRecipientAddress();
+    this.deploymentNumber = hub.currentFrame().accountDeploymentNumber();
+    this.storageKey = Bytes32.leftPad(hub.messageFrame().getStackItem(0));
+    this.incomingWarmth = hub.messageFrame().getWarmedUpStorage().contains(address, storageKey);
+    this.valueOriginal =
+        EWord.of(world.get(address).getOriginalStorageValue(UInt256.fromBytes(storageKey)));
+    this.valueCurrent = EWord.of(world.get(address).getStorageValue(UInt256.fromBytes(storageKey)));
+    this.valueNext = EWord.of(hub.messageFrame().getStackItem(1));
+    this.exceptions = hub.pch().exceptions();
+
+    hub.addTraceSection(this);
+    hub.defers().scheduleForPostRollback(this, hub.currentFrame());
   }
 
-  public static void appendSectionTo(Hub hub, WorldView world) {
+  public void populateSection(Hub hub, WorldView world) {
 
-    final Address address = hub.messageFrame().getRecipientAddress();
-    final int deploymentNumber = hub.currentFrame().codeDeploymentNumber();
-    final Bytes32 storageKey = Bytes32.leftPad(hub.messageFrame().getStackItem(0));
-
-    final EWord valueOriginal =
-        EWord.of(world.get(address).getOriginalStorageValue(UInt256.fromBytes(storageKey)));
-    final EWord valueCurrent =
-        EWord.of(world.get(address).getStorageValue(UInt256.fromBytes(storageKey)));
-    final EWord valueNext = EWord.of(hub.messageFrame().getStackItem(1));
-
-    final boolean staticContextException = Exceptions.staticFault(hub.pch().exceptions());
-    final boolean sstoreException = Exceptions.outOfSStore(hub.pch().exceptions());
-    final boolean outOfGasException = Exceptions.outOfGasException(hub.pch().exceptions());
-    final boolean contextWillRevert = hub.callStack().current().willRevert();
-
-    final SstoreSection currentSection = new SstoreSection(hub, world);
-    hub.addTraceSection(currentSection);
+    final boolean staticContextException = Exceptions.staticFault(this.exceptions);
+    final boolean sstoreException = Exceptions.outOfSStore(this.exceptions);
 
     // CONTEXT fragment
     ContextFragment readCurrentContext = ContextFragment.readCurrentContextData(hub);
-    currentSection.addFragmentsAndStack(hub, readCurrentContext);
+    this.addFragmentsAndStack(hub, readCurrentContext);
 
     if (staticContextException) {
       return;
@@ -68,67 +76,59 @@ public class SstoreSection extends TraceSection {
 
     // MISC fragment
     ImcFragment miscForSstore = ImcFragment.forOpcode(hub, hub.messageFrame());
-    currentSection.addFragment(miscForSstore);
+    this.addFragment(miscForSstore);
 
     if (sstoreException) {
       return;
     }
 
     // STORAGE fragment (for doing)
-    StorageFragment doingSstore =
-        doingSstore(
-            hub, address, deploymentNumber, storageKey, valueOriginal, valueCurrent, valueNext);
-
-    currentSection.addFragment(doingSstore);
-
-    // STORAGE fragment (for undoing)
-    if (outOfGasException || contextWillRevert) {
-      StorageFragment undoingSstore =
-          undoingSstore(
-              hub, address, deploymentNumber, storageKey, valueOriginal, valueCurrent, valueNext);
-      currentSection.addFragment(undoingSstore);
-    }
+    StorageFragment doingSstore = this.doingSstore(hub);
+    this.addFragment(doingSstore);
   }
 
-  private static StorageFragment doingSstore(
-      Hub hub,
-      Address address,
-      int deploymentNumber,
-      Bytes32 storageKey,
-      EWord valueOriginal,
-      EWord valueCurrent,
-      EWord valueNext) {
+  private StorageFragment doingSstore(Hub hub) {
 
     return new StorageFragment(
         hub.state,
-        new State.StorageSlotIdentifier(address, deploymentNumber, EWord.of(storageKey)),
-        valueOriginal,
-        valueCurrent,
-        valueNext,
-        hub.messageFrame().getWarmedUpStorage().contains(address, storageKey),
+        new State.StorageSlotIdentifier(
+            this.address, this.deploymentNumber, EWord.of(this.storageKey)),
+        this.valueOriginal,
+        this.valueCurrent,
+        this.valueNext,
+        this.incomingWarmth,
         true,
         DomSubStampsSubFragment.standardDomSubStamps(hub, 0),
         hub.state.firstAndLastStorageSlotOccurrences.size());
   }
 
-  private static StorageFragment undoingSstore(
-      Hub hub,
-      Address address,
-      int deploymentNumber,
-      Bytes32 storageKey,
-      EWord valueOriginal,
-      EWord valueCurrent,
-      EWord valueNext) {
+  @Override
+  public void resolvePostRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
 
-    return new StorageFragment(
-        hub.state,
-        new State.StorageSlotIdentifier(address, deploymentNumber, EWord.of(storageKey)),
-        valueOriginal,
-        valueNext,
-        valueCurrent,
-        true,
-        hub.messageFrame().getWarmedUpStorage().contains(address, storageKey),
-        DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 1),
-        hub.state.firstAndLastStorageSlotOccurrences.size());
+    if (!this.undoingRequired()) {
+      return;
+    }
+
+    final DomSubStampsSubFragment undoingDomSubStamps =
+        DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 0);
+
+    final StorageFragment undoingSstoreStorageFragment =
+        new StorageFragment(
+            hub.state,
+            new State.StorageSlotIdentifier(
+                this.address, this.deploymentNumber, EWord.of(this.storageKey)),
+            this.valueOriginal,
+            this.valueNext,
+            this.valueCurrent,
+            true,
+            this.incomingWarmth,
+            undoingDomSubStamps,
+            hub.state.firstAndLastStorageSlotOccurrences.size());
+
+    this.addFragment(undoingSstoreStorageFragment);
+  }
+
+  private boolean undoingRequired() {
+    return Exceptions.outOfGasException(this.exceptions) || Exceptions.none(this.exceptions);
   }
 }

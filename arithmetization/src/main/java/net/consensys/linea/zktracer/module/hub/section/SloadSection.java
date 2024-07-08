@@ -17,102 +17,102 @@ package net.consensys.linea.zktracer.module.hub.section;
 import lombok.Getter;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.State;
+import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
+import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Getter
-public class SloadSection extends TraceSection {
+public class SloadSection extends TraceSection implements PostRollbackDefer {
+  final Address address;
+  final int deploymentNumber;
+  final Bytes32 storageKey;
+  final boolean incomingWarmth;
+  final EWord valueOriginal;
+  final EWord valueCurrent;
   final WorldView world;
+  final short exceptions;
 
-  private SloadSection(Hub hub, WorldView world) {
+  public SloadSection(Hub hub, WorldView world) {
     super(hub);
     this.world = world;
+    this.address = hub.messageFrame().getRecipientAddress();
+    this.deploymentNumber = hub.currentFrame().accountDeploymentNumber();
+    this.storageKey = Bytes32.leftPad(hub.messageFrame().getStackItem(0));
+    this.incomingWarmth = hub.messageFrame().getWarmedUpStorage().contains(address, storageKey);
+    this.valueOriginal =
+        EWord.of(world.get(address).getOriginalStorageValue(UInt256.fromBytes(storageKey)));
+    this.valueCurrent = EWord.of(world.get(address).getStorageValue(UInt256.fromBytes(storageKey)));
+    this.exceptions = hub.pch().exceptions();
+
+    hub.addTraceSection(this);
+    hub.defers().scheduleForPostRollback(this, hub.currentFrame());
   }
 
-  public static void appendSectionTo(Hub hub, WorldView world) {
+  public void populateSection(Hub hub, WorldView world) {
 
-    final SloadSection sloadSection = new SloadSection(hub, world);
-    hub.addTraceSection(sloadSection);
-
-    final Address address = hub.messageFrame().getRecipientAddress();
-    final int deploymentNumber = hub.currentFrame().codeDeploymentNumber();
-    final Bytes32 storageKey = Bytes32.leftPad(hub.messageFrame().getStackItem(0));
-    final EWord valueOriginal =
-        EWord.of(world.get(address).getOriginalStorageValue(UInt256.fromBytes(storageKey)));
-    final EWord valueCurrent =
-        EWord.of(world.get(address).getStorageValue(UInt256.fromBytes(storageKey)));
-
+    // NOTE: SLOAD can only trigger
+    // - stackUnderflowException
+    // - outOfGasException
+    // in the present case we don't have a stack exception
     ContextFragment readCurrentContext = ContextFragment.readCurrentContextData(hub);
     ImcFragment miscFragmentForSload = ImcFragment.empty(hub);
-    StorageFragment doingSload =
-        doingSload(hub, address, deploymentNumber, storageKey, valueOriginal, valueCurrent);
+    StorageFragment doingSload = doingSload(hub);
 
-    sloadSection.addFragmentsAndStack(hub, readCurrentContext, miscFragmentForSload, doingSload);
-
-    final boolean outOfGasException = Exceptions.outOfGasException(hub.pch().exceptions());
-    final boolean contextWillRevert = hub.callStack().current().willRevert();
-
-    if (outOfGasException || contextWillRevert) {
-
-      final StorageFragment undoingSload =
-          undoingSload(hub, address, deploymentNumber, storageKey, valueOriginal, valueCurrent);
-
-      // TODO: make sure we trace a context when there is an exception
-      sloadSection.addFragment(undoingSload);
-    }
+    this.addFragmentsAndStack(hub, readCurrentContext, miscFragmentForSload, doingSload);
   }
 
-  private static StorageFragment doingSload(
-      Hub hub,
-      Address address,
-      int deploymentNumber,
-      Bytes32 storageKey,
-      EWord valueOriginal,
-      EWord valueCurrent) {
-
-    final boolean incomingWarmth =
-        hub.messageFrame().getWarmedUpStorage().contains(address, storageKey);
+  private StorageFragment doingSload(Hub hub) {
 
     return new StorageFragment(
         hub.state,
-        new State.StorageSlotIdentifier(address, deploymentNumber, EWord.of(storageKey)),
-        valueOriginal,
-        valueCurrent,
-        valueCurrent,
-        incomingWarmth,
+        new State.StorageSlotIdentifier(
+            this.address, this.deploymentNumber, EWord.of(this.storageKey)),
+        this.valueOriginal,
+        this.valueCurrent,
+        this.valueCurrent,
+        this.incomingWarmth,
         true,
         DomSubStampsSubFragment.standardDomSubStamps(hub, 0),
         hub.state.firstAndLastStorageSlotOccurrences.size());
   }
 
-  private static StorageFragment undoingSload(
-      Hub hub,
-      Address address,
-      int deploymentNumber,
-      Bytes32 storageKey,
-      EWord valueOriginal,
-      EWord valueCurrent) {
+  @Override
+  public void resolvePostRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
 
-    final boolean initiallyIncomingWarmth =
-        hub.messageFrame().getWarmedUpStorage().contains(address, storageKey);
+    if (!this.undoingRequired()) {
+      return;
+    }
 
-    return new StorageFragment(
-        hub.state,
-        new State.StorageSlotIdentifier(address, deploymentNumber, EWord.of(storageKey)),
-        valueOriginal,
-        valueCurrent,
-        valueCurrent,
-        true,
-        initiallyIncomingWarmth,
-        DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 1),
-        hub.state.firstAndLastStorageSlotOccurrences.size());
+    final DomSubStampsSubFragment undoingDomSubStamps =
+        DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 0);
+
+    final StorageFragment undoingSloadStorageFragment =
+        new StorageFragment(
+            hub.state,
+            new State.StorageSlotIdentifier(
+                this.address, this.deploymentNumber, EWord.of(this.storageKey)),
+            this.valueOriginal,
+            this.valueCurrent,
+            this.valueCurrent,
+            true,
+            this.incomingWarmth,
+            undoingDomSubStamps,
+            hub.state.firstAndLastStorageSlotOccurrences.size());
+
+    this.addFragment(undoingSloadStorageFragment);
+  }
+
+  private boolean undoingRequired() {
+    return Exceptions.outOfGasException(this.exceptions) || Exceptions.none(this.exceptions);
   }
 }

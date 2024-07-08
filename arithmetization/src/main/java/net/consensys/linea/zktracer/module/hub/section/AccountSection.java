@@ -47,12 +47,20 @@ public class AccountSection extends TraceSection implements PostRollbackDefer {
     }
 
     final DomSubStampsSubFragment doingDomSubStamps =
-            DomSubStampsSubFragment.standardDomSubStamps(hub, 0);
+        DomSubStampsSubFragment.standardDomSubStamps(hub, 0);
 
     AccountFragment doingAccountFragment =
-            hub.opCode().isAnyOf(OpCode.SELFBALANCE, OpCode.CODESIZE)
-                    ? hub.factories().accountFragment().make(this.accountSnapshotBefore, this.accountSnapshotAfter, doingDomSubStamps)
-                    : hub.factories().accountFragment().makeWithTrm(this.accountSnapshotBefore, this.accountSnapshotAfter, this.rawTargetAddress, doingDomSubStamps);
+        hub.opCode().isAnyOf(OpCode.SELFBALANCE, OpCode.CODESIZE)
+            ? hub.factories()
+                .accountFragment()
+                .make(this.accountSnapshotBefore, this.accountSnapshotAfter, doingDomSubStamps)
+            : hub.factories()
+                .accountFragment()
+                .makeWithTrm(
+                    this.accountSnapshotBefore,
+                    this.accountSnapshotAfter,
+                    this.rawTargetAddress,
+                    doingDomSubStamps);
 
     this.addFragment(doingAccountFragment);
   }
@@ -63,63 +71,67 @@ public class AccountSection extends TraceSection implements PostRollbackDefer {
 
     MessageFrame frame = hub.messageFrame();
     this.rawTargetAddress =
-            switch (hub.opCode()) {
-              case BALANCE, EXTCODESIZE, EXTCODEHASH -> frame.getStackItem(0);
-              case SELFBALANCE -> frame.getRecipientAddress();
-              case CODESIZE -> frame.getContractAddress();
-              default -> throw new RuntimeException("invalid opcode");
-            };
+        switch (hub.opCode()) {
+          case BALANCE, EXTCODESIZE, EXTCODEHASH -> frame.getStackItem(0);
+          case SELFBALANCE -> frame.getRecipientAddress();
+          case CODESIZE -> frame.getContractAddress();
+          default -> throw new RuntimeException("invalid opcode");
+        };
 
     this.targetAddress = Words.toAddress(this.rawTargetAddress);
     this.intialWarmth = frame.isAddressWarm(targetAddress);
     this.accountSnapshotBefore =
-            AccountSnapshot.fromAccount(
-                    getTargetAccount(hub),
-                    this.intialWarmth,
-                    hub.transients().conflation().deploymentInfo().number(targetAddress),
-                    hub.transients().conflation().deploymentInfo().isDeploying(targetAddress));
+        AccountSnapshot.fromAccount(
+            getTargetAccount(hub),
+            this.intialWarmth,
+            hub.transients().conflation().deploymentInfo().number(targetAddress),
+            hub.transients().conflation().deploymentInfo().isDeploying(targetAddress));
     this.accountSnapshotAfter =
-            AccountSnapshot.fromAccount(
-                    getTargetAccount(hub),
-                    true, // QUESTION: is this true even if we revert with the instruction ? ANSWER: yes.
-                    hub.transients().conflation().deploymentInfo().number(targetAddress),
-                    hub.transients().conflation().deploymentInfo().isDeploying(targetAddress));
+        AccountSnapshot.fromAccount(
+            getTargetAccount(hub),
+            true, // QUESTION: is this true even if we revert with the instruction ? ANSWER: yes.
+            hub.transients().conflation().deploymentInfo().number(targetAddress),
+            hub.transients().conflation().deploymentInfo().isDeploying(targetAddress));
   }
 
   private Account getTargetAccount(Hub hub) {
     return hub.messageFrame().getWorldUpdater().get(targetAddress);
   }
 
+  // TODO: make sure the resolvePostRollback method
+  //  gets called before the final context row is
+  //  added; simplest solution: have that final context
+  //  row in a separate list.
   public void resolvePostRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
 
     final DomSubStampsSubFragment undoingDomSubStamps =
-            DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 0);
+        DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 0);
 
-    final int deploymentNumberAtRollback = hub.transients().conflation().deploymentInfo().number(targetAddress);
-    final boolean deploymentStatusAtRollback = hub.transients().conflation().deploymentInfo().isDeploying(targetAddress);
-    AccountSnapshot revertFrom = new AccountSnapshot(
+    final int deploymentNumberAtRollback =
+        hub.transients().conflation().deploymentInfo().number(targetAddress);
+    final boolean deploymentStatusAtRollback =
+        hub.transients().conflation().deploymentInfo().isDeploying(targetAddress);
+    AccountSnapshot revertFrom =
+        new AccountSnapshot(
             this.accountSnapshotAfter.address(),
             this.accountSnapshotAfter.nonce(), // TODO: this will blow up!
             this.accountSnapshotAfter.balance(),
             this.accountSnapshotAfter.isWarm(),
             this.accountSnapshotAfter.code(),
             deploymentNumberAtRollback,
-            deploymentStatusAtRollback
-    );
+            deploymentStatusAtRollback);
 
-    AccountSnapshot revertTo = new AccountSnapshot(
+    AccountSnapshot revertTo =
+        new AccountSnapshot(
             this.accountSnapshotBefore.address(),
             this.accountSnapshotBefore.nonce(), // TODO: this will blow up!
             this.accountSnapshotBefore.balance(),
             this.accountSnapshotBefore.isWarm(),
             this.accountSnapshotBefore.code(),
             deploymentNumberAtRollback,
-            deploymentStatusAtRollback
-    );
+            deploymentStatusAtRollback);
 
     this.addFragment(
-            hub.factories()
-                    .accountFragment()
-                    .make(revertFrom, revertTo, undoingDomSubStamps));
+        hub.factories().accountFragment().make(revertFrom, revertTo, undoingDomSubStamps));
   }
 }

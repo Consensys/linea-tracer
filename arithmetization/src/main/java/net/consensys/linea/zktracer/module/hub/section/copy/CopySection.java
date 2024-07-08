@@ -31,7 +31,11 @@ public class CopySection extends TraceSection {
       case OpCode.CALLDATACOPY -> new CallDataCopySection(hub);
       case OpCode.RETURNDATACOPY -> new ReturnDataCopySection(hub);
       case OpCode.CODECOPY -> new CodeCopySection(hub);
-      case OpCode.EXTCODECOPY -> new ExtCodeCopySection(hub);
+      case OpCode.EXTCODECOPY -> {
+        ExtCodeCopySection extCodeCopySection = new ExtCodeCopySection(hub);
+        extCodeCopySection.populateSection(hub);
+      }
+      }
     }
   }
 }

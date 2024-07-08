@@ -37,7 +37,6 @@ import org.hyperledger.besu.plugin.services.BesuEvents;
 public class ContinuousTracingBlockAddedListener implements BesuEvents.BlockAddedListener {
   private final ContinuousTracer continuousTracer;
   private final TraceFailureHandler traceFailureHandler;
-  private final ContinuousTracingConfiguration continuousTracingConfiguration;
 
   static final int BLOCK_PARALLELISM = 5;
   final ThreadPoolExecutor pool =
@@ -59,8 +58,7 @@ public class ContinuousTracingBlockAddedListener implements BesuEvents.BlockAdde
 
           try {
             final CorsetValidator.Result traceResult =
-                continuousTracer.verifyTraceOfBlock(
-                    blockHash, continuousTracingConfiguration, new ZkTracer());
+                continuousTracer.verifyTraceOfBlock(blockHash, new ZkTracer());
             Files.delete(traceResult.traceFile().toPath());
 
             if (!traceResult.isValid()) {

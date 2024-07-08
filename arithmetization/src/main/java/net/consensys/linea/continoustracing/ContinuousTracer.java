@@ -20,7 +20,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.continoustracing.exception.InvalidBlockTraceException;
 import net.consensys.linea.continoustracing.exception.TraceOutputException;
@@ -34,15 +33,23 @@ import org.hyperledger.besu.plugin.data.TransactionTraceResult;
 import org.hyperledger.besu.plugin.services.TraceService;
 
 @Slf4j
-@RequiredArgsConstructor
 public class ContinuousTracer {
   private final TraceService traceService;
   private final CorsetValidator corsetValidator;
+  private final ContinuousTracingConfiguration continuousTracingConfiguration;
+  private final Optional<Path> tracesOutputPath;
 
-  public CorsetValidator.Result verifyTraceOfBlock(
-      final Hash blockHash,
-      final ContinuousTracingConfiguration continuousTracingConfiguration,
-      final ZkTracer zkTracer)
+  public ContinuousTracer(
+      TraceService traceService,
+      CorsetValidator corsetValidator,
+      ContinuousTracingConfiguration continuousTracingConfiguration) {
+    this.traceService = traceService;
+    this.corsetValidator = corsetValidator;
+    this.continuousTracingConfiguration = continuousTracingConfiguration;
+    this.tracesOutputPath = initTracesOutputPath();
+  }
+
+  public CorsetValidator.Result verifyTraceOfBlock(final Hash blockHash, final ZkTracer zkTracer)
       throws TraceVerificationException, InvalidBlockTraceException {
     zkTracer.traceStartConflation(1);
 
@@ -66,11 +73,6 @@ public class ContinuousTracer {
 
     final CorsetValidator.Result result;
     try {
-      final Optional<Path> tracesOutputPath =
-          Optional.of(Paths.get(continuousTracingConfiguration.tracesDir()));
-
-      Files.createDirectories(tracesOutputPath.get());
-
       result =
           corsetValidator.validate(
               tracesOutputPath.map(zkTracer::writeToTmpFile).orElseGet(zkTracer::writeToTmpFile),
@@ -84,8 +86,6 @@ public class ContinuousTracer {
       log.error(
           "Error while validating trace of block {}: {}", blockHash.toHexString(), e.getMessage());
       throw new TraceVerificationException(blockHash, e.getMessage());
-    } catch (IOException e) {
-      throw new TraceOutputException(e.getMessage());
     }
 
     try {
@@ -96,5 +96,18 @@ public class ContinuousTracer {
 
     log.info("Trace of block {} is valid", blockHash.toHexString());
     return result;
+  }
+
+  private Optional<Path> initTracesOutputPath() {
+    final Optional<Path> tracesOutputPath =
+        Optional.of(Paths.get(continuousTracingConfiguration.tracesDir()));
+
+    try {
+      Files.createDirectories(tracesOutputPath.get());
+    } catch (IOException e) {
+      throw new TraceOutputException(e.getMessage());
+    }
+
+    return tracesOutputPath;
   }
 }

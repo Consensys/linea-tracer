@@ -56,7 +56,6 @@ import net.consensys.linea.zktracer.module.hub.section.TxSkippedSectionDefers;
 import net.consensys.linea.zktracer.module.hub.section.calls.FailedCallSection;
 import net.consensys.linea.zktracer.module.hub.section.calls.NoCodeCallSection;
 import net.consensys.linea.zktracer.module.hub.section.calls.SmartContractCallSection;
-import net.consensys.linea.zktracer.module.hub.section.copy.CopySection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
 import net.consensys.linea.zktracer.module.hub.transients.Transients;
@@ -640,8 +639,10 @@ public class Hub implements Module {
       DeploymentExceptions contextExceptions =
           DeploymentExceptions.fromFrame(this.currentFrame(), frame);
       this.currentTraceSection().setContextExceptions(contextExceptions);
+
       if (contextExceptions.any()) {
         this.callStack.revert(this.state.stamps().hub());
+        this.defers.resolvePostRollback(this, frame, this.currentFrame());
       }
 
       this.callStack.exit();
@@ -1110,52 +1111,13 @@ public class Hub implements Module {
         new LogSection(this);
       }
       case ACCOUNT -> {
-        TraceSection accountSection = new AccountSection(this);
-        if (this.opCode().isAnyOf(OpCode.SELFBALANCE, OpCode.CODESIZE)) {
-          accountSection.addFragment(ContextFragment.readCurrentContextData(this));
-        }
-
-        final Bytes rawTargetAddress =
-            switch (this.currentFrame().opCode()) {
-              case BALANCE, EXTCODESIZE, EXTCODEHASH -> frame.getStackItem(0);
-              default -> this.currentFrame().accountAddress();
-            };
-        final Address targetAddress = Words.toAddress(rawTargetAddress);
-        final Account targetAccount = frame.getWorldUpdater().get(targetAddress);
-        final AccountSnapshot accountBefore =
-            AccountSnapshot.fromAccount(
-                targetAccount,
-                frame.isAddressWarm(targetAddress),
-                this.transients.conflation().deploymentInfo().number(targetAddress),
-                this.transients.conflation().deploymentInfo().isDeploying(targetAddress));
-        final AccountSnapshot accountAfter =
-            AccountSnapshot.fromAccount(
-                targetAccount,
-                true,
-                this.transients.conflation().deploymentInfo().number(targetAddress),
-                this.transients.conflation().deploymentInfo().isDeploying(targetAddress));
-        final DomSubStampsSubFragment doingDomSubStamps =
-            DomSubStampsSubFragment.standardDomSubStamps(this, 0);
-        accountSection.addFragment(
-            this.factories
-                .accountFragment()
-                .makeWithTrm(accountBefore, accountAfter, rawTargetAddress, doingDomSubStamps));
-
-        if (this.currentFrame().willRevert()) {
-          final DomSubStampsSubFragment undoingDomSubStamps =
-              DomSubStampsSubFragment.revertWithCurrentDomSubStamps(this, 0);
-          accountSection.addFragment(
-              this.factories
-                  .accountFragment()
-                  .make(accountBefore, accountAfter, undoingDomSubStamps));
-        }
-
-        this.addTraceSection(accountSection);
+        final AccountSection accountSection = new AccountSection(this);
+        accountSection.appendToTrace(this);
       }
       case COPY -> {
-        CopySection.addTraceSection(this);
 
         /*
+        CopySection.addTraceSection(this);
         TraceSection copySection = new CopySection(this);
         if (!this.opCode().equals(OpCode.RETURNDATACOPY) && !this.opCode().equals(OpCode.CALLDATACOPY)) {
           final Bytes rawTargetAddress =

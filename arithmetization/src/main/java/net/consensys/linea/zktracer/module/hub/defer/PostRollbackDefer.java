@@ -15,8 +15,15 @@
 package net.consensys.linea.zktracer.module.hub.defer;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
-import org.hyperledger.besu.evm.worldstate.WorldView;
+import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
+import org.hyperledger.besu.evm.frame.MessageFrame;
+
+// import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public interface PostRollbackDefer {
-    void resolvePostRollback(Hub hub, WorldView worldView);
+  /**
+   * @param messageFrame access point to world state & accrued state
+   * @param callFrame reference to call frame whose actions are to be undone
+   */
+  public void resolvePostRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame);
 }

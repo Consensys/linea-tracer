@@ -27,7 +27,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.operation.Operation;
-import org.hyperledger.besu.evm.worldstate.WorldState;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 /**
@@ -50,10 +49,12 @@ public class DeferRegistry {
   /** A list of actions deferred until the end of the current opcode execution */
   private final List<Pair<Integer, NextContextDefer>> contextReentry = new ArrayList<>();
 
-  /** A collection of actions whose execution is deferred to a hypothetical
-   *  future rollback. This collection maps a context to all actions that
-   *  would have to be done if that execution context were to be rolled back. */
-  private final Map<Integer, List<PostRollbackDefer>> rollbackDefers = new HashMap<>();
+  /**
+   * A collection of actions whose execution is deferred to a hypothetical future rollback. This
+   * collection maps a context to all actions that would have to be done if that execution context
+   * were to be rolled back.
+   */
+  private final Map<CallFrame, List<PostRollbackDefer>> rollbackDefers = new HashMap<>();
 
   /** Schedule an action to be executed after the completion of the current opcode. */
   public void scheduleForContextReEntry(NextContextDefer defer, int frameId) {
@@ -78,6 +79,10 @@ public class DeferRegistry {
   /** Schedule an action to be executed at the re-entry in the current context. */
   public void reEntry(ReEnterContextDefer defer) {
     this.reEntryDefers.add(defer);
+  }
+
+  public void scheduleForPostRollback(PostRollbackDefer defer, CallFrame callFrame) {
+    this.rollbackDefers.get(callFrame).add(defer);
   }
 
   /**
@@ -163,25 +168,28 @@ public class DeferRegistry {
     //  A creates B, and during deployment B creates C ... ?!
   }
 
-  /*
-  resolveAfterRollback should be invoked when precisely after a rollback
-  was acted upon in terms of rolling back modifications to
-  - state
-  - accrued state
-  but the caller (or creator), if present, hasn't resumed execution yet.
-  In particular the "current frame" is expected to be the frame responsible
-  for the rollback.
+  /**
+   * Should be invoked when precisely after a rollback was acted upon in terms of rolling back
+   * modifications to WORLD STATE and ACCRUED STATE but the caller (or creator), if present, hasn't
+   * resumed execution yet, and if there isn't one because this is the root context of the
+   * transaction, we haven't entered the "transaction finalization phase."
+   *
+   * <p>Note that the "current messageFrame" is expected to STILL BE the messageFrame responsible
+   * for the rollback.
    */
-  public void resolvePostRollback(Hub hub, WorldState worldState, CallFrame frameToRollBack) {
-    int currentId = frameToRollBack.id();
-    for (PostRollbackDefer defer: hub.defers().rollbackDefers.get(currentId)) {
-      defer.resolvePostRollback(hub, worldState);
-    }
-    hub.defers().rollbackDefers.get(currentId).clear();
+  public void resolvePostRollback(
+      final Hub hub, final MessageFrame messageFrame, CallFrame currentCallFrame) {
 
+    // roll back current context
+    for (PostRollbackDefer defer : hub.defers().rollbackDefers.get(currentCallFrame)) {
+      defer.resolvePostRollback(hub, messageFrame, currentCallFrame);
+    }
+    hub.defers().rollbackDefers.get(currentCallFrame).clear();
+
+    // recursively roll back child call frames
     CallStack callStack = hub.callStack();
-    hub.currentFrame().childFrames().stream()
-            .map(callStack::getById)
-            .forEach(frame -> resolvePostRollback(hub, worldState, frame));
+    currentCallFrame.childFrames().stream()
+        .map(callStack::getById)
+        .forEach(childCallFrame -> resolvePostRollback(hub, messageFrame, childCallFrame));
   }
 }

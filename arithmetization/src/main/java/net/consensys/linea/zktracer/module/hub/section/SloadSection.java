@@ -58,7 +58,7 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
     hub.defers().scheduleForPostRollback(this, hub.currentFrame());
   }
 
-  public void populateSection(Hub hub, WorldView world) {
+  public void populateSection(Hub hub) {
 
     // NOTE: SLOAD can only trigger
     // - stackUnderflowException

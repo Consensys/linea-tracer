@@ -25,7 +25,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.JumpOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.JumpiOobCall;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
@@ -36,11 +35,10 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class JumpSection extends TraceSection {
 
-  public static void appendToTrace(Hub hub, WorldView worldView) {
-    final JumpSection currentSection = new JumpSection(hub);
-    currentSection.addFragmentsAndStack(hub); // TODO strange to not give any fragments
+  public void populateSection(Hub hub) {
 
-    hub.addTraceSection(currentSection);
+    this.addFragmentsAndStack(hub);
+    hub.addTraceSection(this);
 
     if (Exceptions.outOfGasException(hub.pch().exceptions())) {
       return;
@@ -54,7 +52,7 @@ public class JumpSection extends TraceSection {
     ///////////////////
     Address codeAddress = hub.messageFrame().getContractAddress();
     AccountFragment.AccountFragmentFactory accountFragmentFactory =
-        new AccountFragment.AccountFragmentFactory(hub.defers());
+        hub.factories().accountFragment();
 
     DeploymentInfo deploymentInfo = hub.transients().conflation().deploymentInfo();
     final int deploymentNumber = deploymentInfo.number(codeAddress);
@@ -73,45 +71,35 @@ public class JumpSection extends TraceSection {
     // MISCELLANEOUS fragment
     /////////////////////////
     ImcFragment miscellaneousRow = ImcFragment.empty(hub);
-    OobCall oobCall;
     boolean mustAttemptJump = false;
     switch (hub.opCode()) {
       case OpCode.JUMP -> {
         JumpOobCall jumpOobCall = new JumpOobCall();
         miscellaneousRow.callOob(jumpOobCall);
         mustAttemptJump = jumpOobCall.isJumpMustBeAttempted();
-        oobCall = jumpOobCall;
       }
       case OpCode.JUMPI -> {
         JumpiOobCall jumpiOobCall = new JumpiOobCall();
         miscellaneousRow.callOob(jumpiOobCall);
         mustAttemptJump = jumpiOobCall.isJumpMustBeAttempted();
-        oobCall = jumpiOobCall;
       }
       default -> throw new RuntimeException(
           hub.opCode().name() + " not part of the JUMP instruction family");
     }
 
-    miscellaneousRow.callOob(oobCall);
-
     // CONTEXT, ACCOUNT, MISCELLANEOUS
     //////////////////////////////////
-    currentSection.addFragmentsWithoutStack(
+    this.addFragmentsWithoutStack(
         contextRowCurrentContext, accountRowCodeAccount, miscellaneousRow);
 
     // jump destination vetting
     ///////////////////////////
     if (mustAttemptJump) {
-      currentSection.triggerJumpDestinationVetting(hub);
+      this.triggerJumpDestinationVetting(hub);
     }
   }
 
-  private JumpSection(Hub hub) {
+  public JumpSection(Hub hub) {
     super(hub);
-  }
-
-  public JumpSection(Hub hub, TraceFragment... chunks) {
-    super(hub);
-    this.addFragmentsAndStack(hub, chunks);
   }
 }

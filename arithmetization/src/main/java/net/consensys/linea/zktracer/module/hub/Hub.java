@@ -1110,10 +1110,12 @@ public class Hub implements Module {
       case LOG -> {
         new LogSection(this);
       }
+
       case ACCOUNT -> {
         final AccountSection accountSection = new AccountSection(this);
         accountSection.appendToTrace(this);
       }
+
       case COPY -> {
 
         /*
@@ -1173,8 +1175,10 @@ public class Hub implements Module {
         this.addTraceSection(copySection);
         */
       }
+
       case TRANSACTION -> this.addTraceSection(
           new TransactionSection(this, TransactionFragment.prepare(this.txStack.current())));
+
       case STACK_RAM -> {
         switch (this.currentFrame().opCode()) {
           case CALLDATALOAD -> {
@@ -1184,19 +1188,21 @@ public class Hub implements Module {
           default -> throw new IllegalStateException("unexpected STACK_RAM opcode");
         }
       }
+
       case STORAGE -> {
         switch (this.currentFrame().opCode()) {
           case SSTORE -> {
             final SstoreSection sstoreSection = new SstoreSection(this, frame.getWorldUpdater());
-            sstoreSection.populateSection(this, frame.getWorldUpdater());
+            sstoreSection.populateSection(this);
           }
           case SLOAD -> {
             final SloadSection sloadSection = new SloadSection(this, frame.getWorldUpdater());
-            sloadSection.populateSection(this, frame.getWorldUpdater());
+            sloadSection.populateSection(this);
           }
           default -> throw new IllegalStateException("invalid operation in family STORAGE");
         }
       }
+
       case CREATE -> {
         final Address myAddress = this.currentFrame().accountAddress();
         final Account myAccount = frame.getWorldUpdater().get(myAddress);
@@ -1347,29 +1353,8 @@ public class Hub implements Module {
       }
 
       case JUMP -> {
-        AccountSnapshot codeAccountSnapshot =
-            AccountSnapshot.fromAccount(
-                frame.getWorldUpdater().get(this.currentFrame().byteCodeAddress()),
-                true,
-                this.transients
-                    .conflation()
-                    .deploymentInfo()
-                    .number(this.currentFrame().byteCodeAddress()),
-                this.currentFrame().isDeployment());
-
-        JumpSection jumpSection =
-            new JumpSection(
-                this,
-                ContextFragment.readCurrentContextData(this),
-                this.factories
-                    .accountFragment()
-                    .make(
-                        codeAccountSnapshot,
-                        codeAccountSnapshot,
-                        DomSubStampsSubFragment.standardDomSubStamps(this, 0)),
-                ImcFragment.forOpcode(this, frame));
-
-        this.addTraceSection(jumpSection);
+        JumpSection jumpSection = new JumpSection(this);
+        jumpSection.populateSection(this);
       }
     }
 

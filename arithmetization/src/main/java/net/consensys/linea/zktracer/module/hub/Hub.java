@@ -1310,7 +1310,9 @@ public class Hub implements Module {
       }
     }
 
-    // In all cases, add a context fragment if an exception occurred
+    // NOTE: whenever there is an exception, a context row is added at the end to update the
+    // caller context with empty return data
+    ////////////////////////////////////////////////////////////////////////////////////////
     if (Exceptions.any(this.pch().exceptions())) {
       this.currentTraceSection()
           .addFragment(ContextFragment.executionProvidesEmptyReturnData(this));

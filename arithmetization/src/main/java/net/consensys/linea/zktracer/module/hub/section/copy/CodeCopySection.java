@@ -15,8 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.section.copy;
 
-import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.outOfGasException;
-
+import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
@@ -27,71 +26,87 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
-import org.apache.tuweni.bytes.Bytes;
-import org.apache.tuweni.bytes.Bytes32;
+import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class CodeCopySection implements PostTransactionDefer {
-  CodeCopyCommonSection sectionPrequel;
+public class CodeCopySection extends TraceSection implements PostTransactionDefer {
   ImcFragment imcFragment;
   boolean triggerMmu;
+  final short exceptions;
 
   public CodeCopySection(Hub hub) {
-    this.sectionPrequel = new CodeCopyCommonSection(hub);
-    hub.addTraceSection(sectionPrequel);
+    // 4 = 1 (stack row) + 3 (up to 3 non-stack rows)
+    super(hub, (short) 4);
+    this.exceptions = hub.pch().exceptions();
+    this.populate(hub);
+    hub.addTraceSection(this);
+  }
 
+  public void populate(Hub hub) {
     // Miscellaneous row
     imcFragment = ImcFragment.empty(hub);
-    this.sectionPrequel.addFragmentsAndStack(hub, imcFragment);
+    this.addFragmentsAndStack(hub, imcFragment);
 
     // triggerOob = false
     // triggerMxp = true
     MxpCall mxpCall = new MxpCall(hub);
     imcFragment.callMxp(mxpCall);
-    boolean xahoy = mxpCall.mxpx || outOfGasException(hub.pch().exceptions());
+    boolean mxpx = mxpCall.mxpx;
+    Preconditions.checkArgument(mxpx == Exceptions.memoryExpansionException(exceptions));
+
+    // The MXPX case
+    ////////////////
+    if (mxpx) {
+      return;
+    }
+
+    boolean xahoy = Exceptions.any(exceptions);
+    Preconditions.checkArgument(xahoy == (exceptions == Exceptions.OUT_OF_GAS_EXCEPTION));
+
+    // The OOGX case
+    ////////////////
+    if (Exceptions.any(exceptions)) {
+      return;
+    }
+
+    // Beyond this point we are in the xahoy = false case
 
     // Context row
-    // TODO: use ContextFragment.readContextDataByContextNumber(hub, CN)
-    ContextFragment contextFragment =
-        xahoy
-            ? ContextFragment.executionProvidesEmptyReturnData(hub)
-            : ContextFragment.readCurrentContextData(hub);
-    this.sectionPrequel.addFragment(contextFragment);
+    ContextFragment contextFragment = ContextFragment.readCurrentContextData(hub);
+    this.addFragment(contextFragment);
 
     // Account row
     final MessageFrame frame = hub.messageFrame();
-    final Bytes rawTargetAddress = frame.getStackItem(0);
-    final Address targetAddress = Address.extract((Bytes32) rawTargetAddress);
-    final Account targetAccount = frame.getWorldUpdater().get(targetAddress);
+    final Address codeAddress = frame.getContractAddress();
+    final Account codeAccount = frame.getWorldUpdater().get(codeAddress);
 
-    AccountSnapshot accountBefore =
+    boolean warmth = frame.isAddressWarm(codeAddress);
+    Preconditions.checkArgument(warmth);
+
+    AccountSnapshot codeAccountSnapshot =
         AccountSnapshot.fromAccount(
-            targetAccount,
-            frame.isAddressWarm(targetAddress),
-            hub.transients().conflation().deploymentInfo().number(targetAddress),
-            hub.transients().conflation().deploymentInfo().isDeploying(targetAddress));
+            codeAccount,
+            warmth,
+            hub.transients().conflation().deploymentInfo().number(codeAddress),
+            hub.transients().conflation().deploymentInfo().isDeploying(codeAddress));
 
     DomSubStampsSubFragment doingDomSubStamps =
-        DomSubStampsSubFragment.standardDomSubStamps(hub, 0);
+        DomSubStampsSubFragment.standardDomSubStamps(hub, 0); // Specifics for CODECOPY
 
-    if (mxpCall.mxpx) {
-      AccountFragment accountReadingFragment =
-          hub.factories()
-              .accountFragment()
-              .makeWithTrm(accountBefore, accountBefore, rawTargetAddress, doingDomSubStamps);
+    AccountFragment accountReadingFragment =
+        hub.factories()
+            .accountFragment()
+            .make(codeAccountSnapshot, codeAccountSnapshot, doingDomSubStamps);
 
-      this.sectionPrequel.addFragment(accountReadingFragment);
-      return;
-    }
-    if (!xahoy) {
-      // TODO: ?
-    }
+    accountReadingFragment.requiresRomlex(true);
 
-    triggerMmu = !xahoy && mxpCall.isMayTriggerNonTrivialMmuOperation();
+    this.addFragment(accountReadingFragment);
+
+    triggerMmu = mxpCall.isMayTriggerNonTrivialMmuOperation();
     hub.defers().schedulePostTransaction(this);
   }
 
@@ -101,13 +116,6 @@ public class CodeCopySection implements PostTransactionDefer {
     if (triggerMmu) {
       MmuCall mmuCall = MmuCall.codeCopy(hub);
       imcFragment.callMmu(mmuCall);
-    }
-  }
-
-  public static class CodeCopyCommonSection extends TraceSection {
-    public CodeCopyCommonSection(Hub hub) {
-      super(hub);
-      // TODO: do we need something else here?
     }
   }
 }

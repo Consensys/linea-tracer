@@ -48,7 +48,7 @@ public class CallDataCopySection extends TraceSection {
     imcFragment.callMxp(mxpCall);
 
     Preconditions.checkArgument(
-            mxpCall.mxpx == Exceptions.memoryExpansionException(this.exceptions));
+        mxpCall.mxpx == Exceptions.memoryExpansionException(this.exceptions));
 
     // the only allowable exceptions are
     // - memoryExpansionException (MXPX)

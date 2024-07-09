@@ -33,7 +33,9 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
  * Stores different categories of actions whose execution must be deferred later in the normal
  * transaction execution process.
  */
-public class DeferRegistry {
+// TODO: fix naming and implement the missing interfaces
+public class DeferRegistry
+    implements PostExecDefer, PostRollbackDefer, PostTransactionDefer, PostConflationDefer {
   /** A list of actions deferred until the end of the current conflation execution */
   private final List<PostConflationDefer> postConflationDefers = new ArrayList<>();
 
@@ -109,6 +111,7 @@ public class DeferRegistry {
    * @param tx the current {@link Transaction}
    */
   // TODO: should use the TransactionProcessingMetadata
+  @Override
   public void resolvePostTransaction(
       Hub hub, WorldView world, Transaction tx, boolean isSuccessful) {
     for (PostTransactionDefer defer : this.postTransactionDefers) {
@@ -122,6 +125,7 @@ public class DeferRegistry {
    *
    * @param hub the {@link Hub} context
    */
+  @Override
   public void resolvePostConflation(Hub hub, WorldView world) {
     for (PostConflationDefer defer : this.postConflationDefers) {
       defer.resolvePostConflation(hub, world);
@@ -136,6 +140,7 @@ public class DeferRegistry {
    * @param frame the {@link MessageFrame} of the transaction
    * @param result the {@link Operation.OperationResult} of the transaction
    */
+  @Override
   public void resolvePostExecution(Hub hub, MessageFrame frame, Operation.OperationResult result) {
     for (PostExecDefer defer : this.postExecDefers) {
       defer.resolvePostExecution(hub, frame, result);
@@ -149,6 +154,7 @@ public class DeferRegistry {
    * @param hub the {@link Hub} context
    * @param frame the {@link MessageFrame} of the transaction
    */
+  // (ReEnterContextDefer?)
   public void resolveAtReEntry(Hub hub, MessageFrame frame) {
     for (ReEnterContextDefer defer : this.reEntryDefers) {
       defer.resolveAtContextReEntry(hub, frame);
@@ -177,6 +183,7 @@ public class DeferRegistry {
    * <p>Note that the "current messageFrame" is expected to STILL BE the messageFrame responsible
    * for the rollback.
    */
+  @Override
   public void resolvePostRollback(
       final Hub hub, final MessageFrame messageFrame, CallFrame currentCallFrame) {
 

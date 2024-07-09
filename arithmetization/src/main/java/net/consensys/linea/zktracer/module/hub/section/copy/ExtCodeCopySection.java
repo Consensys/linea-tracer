@@ -113,8 +113,7 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
 
     // The unexceptional case
     /////////////////////////
-    final boolean triggerMmu =
-        none(this.exceptions) && mxpCall.mayTriggerNonTrivialMmuOperation;
+    final boolean triggerMmu = none(this.exceptions) && mxpCall.mayTriggerNonTrivialMmuOperation;
     if (triggerMmu) {
       MmuCall mmuCall = MmuCall.extCodeCopy(hub);
       imcFragment.callMmu(mmuCall);

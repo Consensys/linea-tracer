@@ -30,11 +30,15 @@ public class ReturnDataCopySection extends TraceSection {
   final short exceptions;
 
   public ReturnDataCopySection(Hub hub) {
-    super(hub);
+    // 4 = 1 + 3
+    super(hub, (short) 4);
     this.exceptions = hub.pch().exceptions();
+
+    this.populate(hub);
+    hub.addTraceSection(this);
   }
 
-  public void populateSection(Hub hub) {
+  public void populate(Hub hub) {
 
     ContextFragment currentContext = ContextFragment.readCurrentContextData(hub);
     this.addFragmentsAndStack(hub, currentContext);

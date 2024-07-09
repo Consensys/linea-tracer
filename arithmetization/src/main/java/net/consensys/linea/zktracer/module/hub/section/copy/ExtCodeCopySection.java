@@ -49,7 +49,8 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
   AccountSnapshot accountAfter;
 
   public ExtCodeCopySection(Hub hub) {
-    super(hub);
+    // 4 = 1 + 3
+    super(hub, (short) 4);
     final MessageFrame frame = hub.messageFrame();
     this.rawAddress = frame.getStackItem(0);
     this.address = Address.extract((Bytes32) this.rawAddress);
@@ -59,6 +60,9 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
         hub.transients().conflation().deploymentInfo().isDeploying(this.address);
     this.incomingWarmth = frame.isAddressWarm(this.address);
     this.exceptions = hub.pch().exceptions();
+
+    this.populate(hub);
+    hub.addTraceSection(this);
   }
 
   public void populate(Hub hub) {
@@ -110,11 +114,15 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
     // The unexceptional case
     /////////////////////////
     final boolean triggerMmu =
-        none(this.exceptions) && mxpCall.isMayTriggerNonTrivialMmuOperation();
+        none(this.exceptions) && mxpCall.mayTriggerNonTrivialMmuOperation;
     if (triggerMmu) {
       MmuCall mmuCall = MmuCall.extCodeCopy(hub);
       imcFragment.callMmu(mmuCall);
     }
+
+    // TODO: make sure that hasCode returns false during deployments
+    //  in particular: write tests for that scenario
+    final boolean triggerCfi = triggerMmu && foreignAccount.hasCode();
 
     this.accountAfter =
         AccountSnapshot.fromAccount(
@@ -124,7 +132,7 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
         hub.factories()
             .accountFragment()
             .makeWithTrm(this.accountBefore, this.accountAfter, this.rawAddress, doingDomSubStamps);
-
+    accountDoingFragment.requiresRomlex(triggerCfi);
     this.addFragment(accountDoingFragment);
 
     // an EXTCODECOPY section is only scheduled

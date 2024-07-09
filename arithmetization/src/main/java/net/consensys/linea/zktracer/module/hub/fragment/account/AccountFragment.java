@@ -44,6 +44,17 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 public final class AccountFragment
     implements TraceFragment, PostTransactionDefer, PostConflationDefer {
 
+  private final AccountSnapshot oldState;
+  private final AccountSnapshot newState;
+  @Setter private int deploymentNumberInfinity = 0; // retconned on conflation end
+  private final int deploymentNumber;
+  private final boolean isDeployment;
+  @Setter private boolean existsInfinity = false; // retconned on conflation end
+  @Setter private boolean requiresRomlex;
+  private int codeFragmentIndex;
+  private final Optional<Bytes> addressToTrim;
+  private final DomSubStampsSubFragment domSubStampsSubFragment;
+
   /**
    * {@link AccountFragment} creation requires access to a {@link DeferRegistry} for post-conflation
    * data gathering, which is provided by this factory.
@@ -69,17 +80,6 @@ public final class AccountFragment
           this.defers, oldState, newState, Optional.of(toTrim), domSubStampsSubFragment);
     }
   }
-
-  private final AccountSnapshot oldState;
-  private final AccountSnapshot newState;
-  @Setter private int deploymentNumberInfinity = 0; // retconned on conflation end
-  private final int deploymentNumber;
-  private final boolean isDeployment;
-  @Setter private boolean existsInfinity = false; // retconned on conflation end
-  private int codeFragmentIndex;
-  @Setter private boolean requiresRomlex;
-  private final Optional<Bytes> addressToTrim;
-  private final DomSubStampsSubFragment domSubStampsSubFragment;
 
   public AccountFragment(
       final DeferRegistry defers,

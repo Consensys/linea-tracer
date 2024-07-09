@@ -92,7 +92,7 @@ public class CodeCopySection implements PostTransactionDefer {
     }
 
     triggerMmu = !xahoy && mxpCall.isMayTriggerNonTrivialMmuOperation();
-    hub.defers().resolvePostTransaction(hub, null, null, true); // TODO: pass the right parameters
+    hub.defers().schedulePostTransaction(this);
   }
 
   @Override

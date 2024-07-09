@@ -61,10 +61,10 @@ public abstract class TraceSection {
   }
 
   /** Default creator specifying the max number of rows the section can contain. */
-  public TraceSection(final Hub hub, final short maxNbOfLines) {
+  public TraceSection(final Hub hub, final short maxNumberOfLines) {
     this.hub = hub;
     this.commonValues = new CommonFragmentValues(hub);
-    this.fragments = new ArrayList<>(maxNbOfLines);
+    this.fragments = new ArrayList<>(maxNumberOfLines);
   }
 
   /**

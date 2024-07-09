@@ -56,7 +56,7 @@ import net.consensys.linea.zktracer.module.hub.section.TxSkippedSectionDefers;
 import net.consensys.linea.zktracer.module.hub.section.calls.FailedCallSection;
 import net.consensys.linea.zktracer.module.hub.section.calls.NoCodeCallSection;
 import net.consensys.linea.zktracer.module.hub.section.calls.SmartContractCallSection;
-import net.consensys.linea.zktracer.module.hub.section.copy.CopySection;
+import net.consensys.linea.zktracer.module.hub.section.copy.*;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
 import net.consensys.linea.zktracer.module.hub.transients.Transients;
@@ -1118,8 +1118,14 @@ public class Hub implements Module {
       }
 
       case COPY -> {
-        final CopySection copySection = new CopySection(this);
-        copySection.populateSection(this);
+        switch (this.opCode()) {
+          case OpCode.CALLDATACOPY -> new CallDataCopySection(this);
+          case OpCode.RETURNDATACOPY -> new ReturnDataCopySection(this);
+          case OpCode.CODECOPY -> new CodeCopySection(this);
+          case OpCode.EXTCODECOPY -> new ExtCodeCopySection(this);
+          default -> throw new RuntimeException(
+              "Invalid instruction: " + this.opCode().toString() + " not in the COPY family");
+        }
       }
 
       case TRANSACTION -> this.addTraceSection(

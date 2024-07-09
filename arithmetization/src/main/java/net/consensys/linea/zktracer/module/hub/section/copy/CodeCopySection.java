@@ -92,11 +92,12 @@ public class CodeCopySection implements PostTransactionDefer {
     }
 
     triggerMmu = !xahoy && mxpCall.isMayTriggerNonTrivialMmuOperation();
-    hub.defers().postTx(this);
+    hub.defers().resolvePostTransaction(hub, null, null, true); // TODO: pass the right parameters
   }
 
   @Override
-  public void runPostTx(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+  public void resolvePostTransaction(
+      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
     if (triggerMmu) {
       MmuCall mmuCall = MmuCall.codeCopy(hub);
       imcFragment.callMmu(mmuCall);

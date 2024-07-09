@@ -699,7 +699,11 @@ public class Hub implements Module {
     final boolean exceptional = Exceptions.any(exceptions);
 
     /* TODO: Might be dangerous : in some cases, we add fragments at the end of the transaction, we need an other mechanism ... */
-    // adds the final context row to reset the caller's return data
+    // NOTE: whenever there is an exception, a context row
+    // is added at the end of the section; its purpose is
+    // to update the caller / creator context with empty
+    // return data.
+    //////////////////////////////////////////////////////
     if (exceptional) {
       this.currentTraceSection()
           .addFragmentsWithoutStack(ContextFragment.executionProvidesEmptyReturnData(this));
@@ -1306,16 +1310,6 @@ public class Hub implements Module {
       }
 
       case JUMP -> new JumpSection(this);
-    }
-
-    // NOTE: whenever there is an exception, a context row
-    // is added at the end of the section; its purpose is
-    // to update the caller / creator context with empty
-    // return data.
-    ///////////////////////////////////////////////////////
-    if (Exceptions.any(this.pch().exceptions())) {
-      this.currentTraceSection()
-          .addFragment(ContextFragment.executionProvidesEmptyReturnData(this));
     }
   }
 

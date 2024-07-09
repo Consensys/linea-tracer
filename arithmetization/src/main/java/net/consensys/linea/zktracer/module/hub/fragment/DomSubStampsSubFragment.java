@@ -50,7 +50,7 @@ public class DomSubStampsSubFragment implements TraceSubFragment {
         hub.stamp(),
         0,
         subOffset,
-        hub.callStack().current().getsRevertedAt(),
+        hub.callStack().current().revertStamp(),
         0,
         0);
   }
@@ -58,7 +58,7 @@ public class DomSubStampsSubFragment implements TraceSubFragment {
   public static DomSubStampsSubFragment revertsWithChildDomSubStamps(
       final Hub hub, final CallFrame child, final int subOffset) {
     return new DomSubStampsSubFragment(
-        DomSubType.REVERTS_WITH_CHILD, hub.stamp(), 0, subOffset, 0, child.getsRevertedAt(), 0);
+        DomSubType.REVERTS_WITH_CHILD, hub.stamp(), 0, subOffset, 0, child.revertStamp(), 0);
   }
 
   public static DomSubStampsSubFragment selfdestructDomSubStamps(final Hub hub) {

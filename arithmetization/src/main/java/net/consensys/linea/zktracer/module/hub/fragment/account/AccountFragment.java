@@ -135,7 +135,7 @@ public final class AccountFragment
                 || !newState.balance().isZero())
         .pAccountWarmth(oldState.isWarm())
         .pAccountWarmthNew(newState.isWarm())
-        .pAccountMarkedForSelfdestruct(false) // TODO:
+        .pAccountMarkedForSelfdestruct(false) // TODO
         .pAccountMarkedForSelfdestructNew(false) // TODO
         .pAccountDeploymentNumber(oldState.deploymentNumber())
         .pAccountDeploymentNumberNew(newState.deploymentNumber())

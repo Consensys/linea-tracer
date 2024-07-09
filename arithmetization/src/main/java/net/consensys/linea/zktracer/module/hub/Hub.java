@@ -493,6 +493,7 @@ public class Hub implements Module {
     this.txStack
         .current()
         .completeLineaTransaction(
+            this,
             world,
             isSuccessful,
             this.state.stamps().hub(),
@@ -1304,15 +1305,14 @@ public class Hub implements Module {
         }
       }
 
-      case JUMP -> {
-        JumpSection jumpSection = new JumpSection(this);
-        jumpSection.populateSection(this);
-      }
+      case JUMP -> new JumpSection(this);
     }
 
-    // NOTE: whenever there is an exception, a context row is added at the end to update the
-    // caller context with empty return data
-    ////////////////////////////////////////////////////////////////////////////////////////
+    // NOTE: whenever there is an exception, a context row
+    // is added at the end of the section; its purpose is
+    // to update the caller / creator context with empty
+    // return data.
+    ///////////////////////////////////////////////////////
     if (Exceptions.any(this.pch().exceptions())) {
       this.currentTraceSection()
           .addFragment(ContextFragment.executionProvidesEmptyReturnData(this));

@@ -140,8 +140,9 @@ public class CallFrame {
   /** the latest child context to have been called from this frame */
   @Getter @Setter private int returnDataContextNumber = 0;
 
-  @Getter @Setter private int selfRevertsAt = 0;
-  @Getter @Setter private int getsRevertedAt = 0;
+  @Getter @Setter private boolean selfReverts = false;
+  @Getter @Setter private boolean getsReverted = false;
+  @Getter @Setter private int revertStamp = 0;
 
   /** this frame {@link Stack}. */
   @Getter private final Stack stack = new Stack();
@@ -300,30 +301,23 @@ public class CallFrame {
         this.byteCodeAddress, this.codeDeploymentNumber, this.isDeployment);
   }
 
-  private void revertChildren(CallStack callStack, int stamp) {
-    if (this.getsRevertedAt == 0) {
-      this.getsRevertedAt = stamp;
+  private void revertChildren(CallStack callStack, int parentRevertStamp) {
       this.childFrames.stream()
           .map(callStack::getById)
-          .forEach(frame -> frame.revertChildren(callStack, stamp));
+          .forEach(frame -> {
+            frame.getsReverted = true;
+            if (!frame.selfReverts) { frame.revertStamp = parentRevertStamp; }
+            frame.revertChildren(callStack, parentRevertStamp);
+          });
+  }
+
+  public void revert(CallStack callStack, int revertStamp) {
+    if (this.selfReverts) {
+      throw new IllegalStateException("a context can not self-revert twice");
     }
-  }
-
-  public void revert(CallStack callStack, int stamp) {
-    if (this.selfRevertsAt == 0) {
-      this.selfRevertsAt = stamp;
-      this.revertChildren(callStack, stamp);
-    } else if (stamp != this.selfRevertsAt) {
-      throw new IllegalStateException("a context can not self-reverse twice");
-    }
-  }
-
-  public boolean selfReverts() {
-    return this.selfRevertsAt > 0;
-  }
-
-  public boolean getsReverted() {
-    return this.getsRevertedAt > 0;
+    this.selfReverts = true;
+    this.revertStamp = revertStamp;
+    this.revertChildren(callStack, revertStamp);
   }
 
   public boolean willRevert() {
@@ -331,7 +325,7 @@ public class CallFrame {
   }
 
   public boolean hasReverted() {
-    return (this.selfRevertsAt > 0) || (this.getsRevertedAt > 0);
+    return this.selfReverts || this.getsReverted;
   }
 
   public void frame(MessageFrame frame) {

@@ -26,7 +26,6 @@ import net.consensys.linea.zktracer.types.Bytecode;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.account.Account;
-import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @AllArgsConstructor
 @Getter
@@ -42,6 +41,18 @@ public class AccountSnapshot {
   private int deploymentNumber;
   private boolean deploymentStatus;
 
+  public static AccountSnapshot canonical(Hub hub, Address address) {
+    final Account account = hub.messageFrame().getWorldUpdater().getAccount(address);
+    return new AccountSnapshot(
+        address,
+        account.getNonce(),
+        account.getBalance(),
+        hub.messageFrame().isAddressWarm(address),
+        new Bytecode(account.getCode()),
+        hub.transients.conflation().deploymentInfo().number(address),
+        hub.transients.conflation().deploymentInfo().isDeploying(address));
+  }
+
   public AccountSnapshot decrementBalance(Wei quantity) {
     Preconditions.checkState(
         this.balance.greaterOrEqualThan(quantity),
@@ -55,10 +66,11 @@ public class AccountSnapshot {
     return this;
   }
 
-  public static AccountSnapshot fromWorld(WorldView world, Address address) {
-    final Account account = world.get(address);
-    return fromAccount(account, true, 0, false); // TODO: implement warm, depNumber and Status
-  }
+  // Deprecated ?
+  //   public static AccountSnapshot fromWorld(WorldView world, Address address) {
+  //     final Account account = world.get(address);
+  //     return fromAccount(account, true, 0, false); // TODO: implement warm, depNumber and Status
+  //   }
 
   public static AccountSnapshot fromAccount(
       Account account, boolean isWarm, int deploymentNumber, boolean deploymentStatus) {

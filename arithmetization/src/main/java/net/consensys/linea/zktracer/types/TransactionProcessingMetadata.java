@@ -29,6 +29,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
+import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.HubProcessingPhase;
 import net.consensys.linea.zktracer.module.hub.transients.Block;
 import net.consensys.linea.zktracer.module.hub.transients.StorageInitialValues;
@@ -160,6 +161,7 @@ public class TransactionProcessingMetadata {
   }
 
   public void completeLineaTransaction(
+      Hub hub,
       WorldView world,
       final boolean statusCode,
       final int hubStampTransactionEnd,
@@ -171,7 +173,7 @@ public class TransactionProcessingMetadata {
         (hubPhase == TX_SKIP) ? hubStampTransactionEnd : hubStampTransactionEnd + 1;
     this.logs = logs;
     for (Address address : selfDestructs) {
-      this.destructedAccountsSnapshot.add(AccountSnapshot.fromWorld(world, address));
+      this.destructedAccountsSnapshot.add(AccountSnapshot.canonical(hub, address));
     }
   }
 

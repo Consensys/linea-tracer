@@ -90,7 +90,7 @@ public final class CommonFragment implements TraceFragment {
         .contextWillRevert(frame.willRevert())
         .contextGetsReverted(frame.getsReverted())
         .contextSelfReverts(frame.selfReverts())
-        .contextRevertStamp(commonFragmentValues.cnRevertStamp)
+        .contextRevertStamp(frame.revertStamp())
         .codeFragmentIndex(commonFragmentValues.codeFragmentIndex)
         .programCounter(commonFragmentValues.pc)
         .programCounterNew(commonFragmentValues.pcNew)

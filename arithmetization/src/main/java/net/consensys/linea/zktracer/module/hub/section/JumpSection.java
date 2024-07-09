@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.section;
 
-import static net.consensys.linea.zktracer.module.hub.AccountSnapshot.fromAddress;
+import static net.consensys.linea.zktracer.module.hub.AccountSnapshot.*;
 
 import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
@@ -33,10 +33,17 @@ import org.hyperledger.besu.datatypes.Address;
 
 public class JumpSection extends TraceSection {
 
+  public JumpSection(Hub hub) {
+    // 5 = 1 + 4
+    // There are up to 4 NSR's
+    super(hub, (short) 5);
+    this.populateSection(hub);
+    hub.addTraceSection(this);
+  }
+
   public void populateSection(Hub hub) {
 
     this.addFragmentsAndStack(hub);
-    hub.addTraceSection(this);
 
     if (Exceptions.outOfGasException(hub.pch().exceptions())) {
       return;
@@ -49,8 +56,6 @@ public class JumpSection extends TraceSection {
     // ACCOUNT fragment
     ///////////////////
     Address codeAddress = hub.messageFrame().getContractAddress();
-    AccountFragment.AccountFragmentFactory accountFragmentFactory =
-        hub.factories().accountFragment();
 
     DeploymentInfo deploymentInfo = hub.transients().conflation().deploymentInfo();
     final int deploymentNumber = deploymentInfo.number(codeAddress);
@@ -59,12 +64,12 @@ public class JumpSection extends TraceSection {
     final boolean warmth = hub.messageFrame().isAddressWarm(codeAddress);
     Preconditions.checkArgument(warmth);
 
-    AccountSnapshot codeAccount =
-        fromAddress(codeAddress, warmth, deploymentNumber, deploymentStatus);
+    AccountSnapshot codeAccount = canonical(hub, codeAddress);
 
     AccountFragment accountRowCodeAccount =
-        accountFragmentFactory.make(
-            codeAccount, codeAccount, DomSubStampsSubFragment.standardDomSubStamps(hub, 0));
+        hub.factories()
+            .accountFragment()
+            .make(codeAccount, codeAccount, DomSubStampsSubFragment.standardDomSubStamps(hub, 0));
 
     // MISCELLANEOUS fragment
     /////////////////////////
@@ -95,9 +100,5 @@ public class JumpSection extends TraceSection {
     if (mustAttemptJump) {
       this.triggerJumpDestinationVetting(hub);
     }
-  }
-
-  public JumpSection(Hub hub) {
-    super(hub);
   }
 }

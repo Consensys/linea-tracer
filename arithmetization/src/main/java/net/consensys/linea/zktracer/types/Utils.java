@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.types;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 
 import com.google.common.base.Preconditions;
@@ -82,5 +83,19 @@ public class Utils {
       output.bitAccList().add(nbStep - i - 1, bitAcc);
     }
     return output;
+  }
+
+  /**
+   * Adds an offset to a hexadecimal string representation of a number. This method takes a
+   * hexadecimal string and an integer offset, adds the offset to the number represented by the
+   * hexadecimal string, and returns the result as a hexadecimal string.
+   *
+   * @param offset The integer offset to add to the number represented by the hexadecimal string.
+   * @param hexString The hexadecimal string representation of the number to which the offset will
+   *     be added.
+   * @return A hexadecimal string representing the sum of the original number and the offset.
+   */
+  public static String addOffsetToHexString(int offset, String hexString) {
+    return new BigInteger(hexString, 16).add(BigInteger.valueOf(offset)).toString(16);
   }
 }

@@ -28,25 +28,16 @@ import org.junit.jupiter.params.provider.MethodSource;
 @ExtendWith(EvmExtension.class)
 public class JumpTests {
 
-  // NOTE: the bytecode we propose will at time use the following offsets (unless the initial push
-  // is large!) bytecode:
+  // NOTE: the bytecode we propose will at time use the following offsets (unless pcNew is large)
+  // bytecode:
   // - PUSHX pcNew // offsets: 0, 1
   // - JUMP // offset: 2
   // - INVALID // offset: 3
   // - JUMPDEST // offset: 4
   // - PUSH1 0x5b // offsets: 5, 6 <- 0x5b is the byte value of JUMPDEST
-
-  // NOTE: in general the offsets are the following:
-  // - PUSHX pcNew // offsets: 0, 1 ... pcNewByteSize
-  // - JUMP // offset: pcNewByteSize + 1
-  // - INVALID // offset: pcNewByteSize + 2
-  // - JUMPDEST // offset: pcNewByteSize + 3
-  // - PUSH1 0x5b // offsets: pcNewByteSize + 4, pcNewByteSize + 5 <- 0x5b is the byte value of
-  // JUMPDEST
   @ParameterizedTest
   @MethodSource("provideJumpScenario")
   void testCodeForJumpScenario(String description, String pcNew) {
-    // int pcNewByteSize = (int) Math.ceil((double) new BigInteger(pcNew, 16).bitLength() / 8);
     BytecodeRunner.of(
             BytecodeCompiler.newProgram()
                 .push(pcNew)

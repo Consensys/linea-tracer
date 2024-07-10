@@ -14,6 +14,9 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing;
 
+import static net.consensys.linea.zktracer.types.Utils.addOffsetToHexString;
+
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -30,15 +33,15 @@ import org.junit.jupiter.params.provider.MethodSource;
 @ExtendWith(EvmExtension.class)
 public class JumpiTests {
 
-  // NOTE: the bytecode we propose will at time use the following offsets (unless one of the two
-  // initial push
-  // is large!) bytecode:
-  // - PUSH1 b // 0, 1
-  // - PUSHX pcNew // offsets: 2, 3
-  // - JUMPI // offset: 4
-  // - INVALID // offset: 5
-  // - JUMPDEST // offset: 6
-  // - PUSH1 0x5b // offsets: 7, 8 <- 0x5b is the byte value of JUMPDEST
+  // NOTE: the bytecode we propose will at time use the following offsets (unless pcNew is large)
+  // bytecode:
+  // - PUSH1 b // 0, 1, ..., jumpiConditionByteOffset + 1
+  // - PUSHX pcNew // offsets: jumpiConditionByteOffset + 2, jumpiConditionByteOffset + 3
+  // - JUMPI // offset: jumpiConditionByteOffset + 4
+  // - INVALID // offset: jumpiConditionByteOffset + 5
+  // - JUMPDEST // offset: jumpiConditionByteOffset + 6
+  // - PUSH1 0x5b // offsets: jumpiConditionByteOffset + 7, jumpiConditionByteOffset + 8 <- 0x5b is
+  // byte value of JUMPDEST
   @ParameterizedTest
   @MethodSource("provideJumpiScenario")
   void testCodeForJumpiScenario(String description, String jumpiCondition, String pcNew) {
@@ -60,11 +63,11 @@ public class JumpiTests {
         List.of(
             "0",
             "1",
-            "0xdeadbeefdeadcafedeadbeefdeadcafe",
-            "0xffffffffffffffffffffffffffffffff",
-            "0x0100000000000000000000000000000001",
-            "0xcafefeedcafebabecafefeedcafebabecafefeedcafebabecafefeedcafebabe",
-            "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+            "deadbeefdeadcafedeadbeefdeadcafe",
+            "ffffffffffffffffffffffffffffffff",
+            "0100000000000000000000000000000001",
+            "cafefeedcafebabecafefeedcafebabecafefeedcafebabecafefeedcafebabe",
+            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
     for (String jumpiCondition : jumpiConditions) {
       jumpiScenarios.addAll(provideJumpiScenarioForJumpiCondition(jumpiCondition));
     }
@@ -72,22 +75,46 @@ public class JumpiTests {
   }
 
   private static List<Arguments> provideJumpiScenarioForJumpiCondition(String jumpiCondition) {
+    int jumpiConditionByteSize =
+        jumpiCondition.equals("0")
+            ? 1
+            : (int) Math.ceil((double) new BigInteger(jumpiCondition, 16).bitLength() / 8);
+    int jumpiConditionByteOffset = jumpiConditionByteSize - 1;
     return List.of(
-        Arguments.of("jumpOntoJumpDestTest", jumpiCondition, "6"),
-        Arguments.of("jumpOntoInvalidTest", jumpiCondition, "5"),
-        Arguments.of("jumpOntoJumpDestByteOwnedBySomePush", jumpiCondition, "8"),
-        Arguments.of("jumpOutOfBoundsSmall", jumpiCondition, "ff"),
         Arguments.of(
-            "jumpOutOfBoundsMaxUint128", jumpiCondition, "ffffffffffffffffffffffffffffffff"),
+            "jumpOntoJumpDestTest",
+            jumpiCondition,
+            addOffsetToHexString(jumpiConditionByteOffset, "6")),
         Arguments.of(
-            "jumpOutOfBoundsTwoToThe128", jumpiCondition, "0100000000000000000000000000000000"),
+            "jumpOntoInvalidTest",
+            jumpiCondition,
+            addOffsetToHexString(jumpiConditionByteOffset, "5")),
+        Arguments.of(
+            "jumpOntoJumpDestByteOwnedBySomePush",
+            jumpiCondition,
+            addOffsetToHexString(jumpiConditionByteOffset, "8")),
+        // NOTE: in the cases below we add
+        Arguments.of(
+            "jumpOutOfBoundsSmall",
+            jumpiCondition,
+            addOffsetToHexString(jumpiConditionByteOffset, "ff")),
+        Arguments.of(
+            "jumpOutOfBoundsMaxUint128",
+            jumpiCondition,
+            addOffsetToHexString(jumpiConditionByteOffset, "ffffffffffffffffffffffffffffffff")),
+        Arguments.of(
+            "jumpOutOfBoundsTwoToThe128",
+            jumpiCondition,
+            addOffsetToHexString(jumpiConditionByteOffset, "0100000000000000000000000000000000")),
         Arguments.of(
             "jumpOutOfBoundsTwoToThe128Plus4",
             jumpiCondition,
-            "0100000000000000000000000000000004"),
+            addOffsetToHexString(jumpiConditionByteOffset, "0100000000000000000000000000000004")),
         Arguments.of(
             "jumpOutOfBoundsMaxUint256",
             jumpiCondition,
-            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"));
+            addOffsetToHexString(
+                jumpiConditionByteOffset,
+                "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")));
   }
 }

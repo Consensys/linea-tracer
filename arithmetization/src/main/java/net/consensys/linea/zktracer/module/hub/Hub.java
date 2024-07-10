@@ -721,7 +721,7 @@ public class Hub implements Module {
           unexceptional ? currentSection.commonValues.gasActual - gasCost : 0);
     } else {
       currentSection.commonValues.gasCost(
-          0xdeadbeefL); // TODO: fill with correct values --- likely 0
+          0); // TODO: fill with correct values --- make sure this works in all cases
       currentSection.commonValues.gasNext(0);
     }
 

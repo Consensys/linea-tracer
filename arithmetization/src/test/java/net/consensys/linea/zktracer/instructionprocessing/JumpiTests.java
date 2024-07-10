@@ -25,6 +25,7 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.testing.EvmExtension;
+import org.apache.tuweni.bytes.Bytes;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -45,16 +46,17 @@ public class JumpiTests {
   @ParameterizedTest
   @MethodSource("provideJumpiScenario")
   void jumpiScenarioTest(String description, String jumpiCondition, String pcNew) {
-    BytecodeRunner.of(
-            BytecodeCompiler.newProgram()
-                .push(jumpiCondition)
-                .push(pcNew)
-                .op(OpCode.JUMP)
-                .op(OpCode.INVALID)
-                .op(OpCode.JUMPDEST)
-                .push(OpCode.JUMPDEST.byteValue()) // false JUMPDEST
-                .compile())
-        .run();
+    final Bytes bytecode =
+        BytecodeCompiler.newProgram()
+            .push(jumpiCondition)
+            .push(pcNew)
+            .op(OpCode.JUMP)
+            .op(OpCode.INVALID)
+            .op(OpCode.JUMPDEST)
+            .push(OpCode.JUMPDEST.byteValue()) // false JUMPDEST
+            .compile();
+    System.out.println(bytecode.toHexString());
+    BytecodeRunner.of(bytecode).run();
   }
 
   private static Stream<Arguments> provideJumpiScenario() {
@@ -79,11 +81,11 @@ public class JumpiTests {
   }
 
   private static List<Arguments> provideJumpiScenarioForJumpiCondition(String jumpiCondition) {
-    int jumpiConditionByteSize =
+    final int jumpiConditionByteSize =
         jumpiCondition.equals("0")
             ? 1
             : (int) Math.ceil((double) new BigInteger(jumpiCondition, 16).bitLength() / 8);
-    int jumpiConditionByteOffset = jumpiConditionByteSize - 1;
+    final int jumpiConditionByteOffset = jumpiConditionByteSize - 1;
     return List.of(
         Arguments.of(
             "jumpiOntoValidJumpDestination",

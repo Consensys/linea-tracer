@@ -65,7 +65,7 @@ public final class CommonFragment implements TraceFragment {
   public Trace trace(Trace trace) {
     final CallFrame frame = commonFragmentValues.callFrame;
     final TransactionProcessingMetadata tx = commonFragmentValues.txMetadata;
-
+    final boolean isExec = commonFragmentValues.hubProcessingPhase == TX_EXEC;
     return trace
         .absoluteTransactionNumber(tx.getAbsoluteTransactionNumber())
         .batchNumber(tx.getRelativeBlockNumber())
@@ -77,20 +77,19 @@ public final class CommonFragment implements TraceFragment {
         .hubStamp(commonFragmentValues.hubStamp)
         .hubStampTransactionEnd(tx.getHubStampTransactionEnd())
         .contextMayChange(commonFragmentValues.contextMayChange)
-        .exceptionAhoy(commonFragmentValues.exceptionAhoy)
+        .exceptionAhoy(commonFragmentValues.exceptionAhoy && isExec)
         .logInfoStamp(commonFragmentValues.logStamp)
         .mmuStamp(commonFragmentValues.stamps.mmu())
         .mxpStamp(commonFragmentValues.stamps.mxp())
         // nontrivial dom / sub are traced in storage or account fragments only
-        .contextNumber(
-            commonFragmentValues.hubProcessingPhase == TX_EXEC ? frame.contextNumber() : 0)
+        .contextNumber(isExec ? frame.contextNumber() : 0)
         .contextNumberNew(commonFragmentValues.contextNumberNew)
         .callerContextNumber(
             commonFragmentValues.callStack.getById(frame.parentFrame()).contextNumber())
-        .contextWillRevert(frame.willRevert())
-        .contextGetsReverted(frame.getsReverted())
-        .contextSelfReverts(frame.selfReverts())
-        .contextRevertStamp(frame.revertStamp())
+        .contextWillRevert(frame.willRevert() && isExec)
+        .contextGetsReverted(frame.getsReverted() && isExec)
+        .contextSelfReverts(frame.selfReverts() && isExec)
+        .contextRevertStamp(isExec ? frame.revertStamp() : 0)
         .codeFragmentIndex(commonFragmentValues.codeFragmentIndex)
         .programCounter(commonFragmentValues.pc)
         .programCounterNew(commonFragmentValues.pcNew)

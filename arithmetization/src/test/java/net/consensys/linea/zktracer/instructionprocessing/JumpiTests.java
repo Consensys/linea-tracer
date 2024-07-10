@@ -30,7 +30,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 @ExtendWith(EvmExtension.class)
 public class JumpiTests {
 
-  // NOTE: the bytecode we propose will at time use the following offsets (unless one of the two initial push
+  // NOTE: the bytecode we propose will at time use the following offsets (unless one of the two
+  // initial push
   // is large!) bytecode:
   // - PUSH1 b // 0, 1
   // - PUSHX pcNew // offsets: 2, 3
@@ -55,8 +56,16 @@ public class JumpiTests {
 
   private static Stream<Arguments> provideJumpiScenario() {
     List<Arguments> jumpiScenarios = new ArrayList<>();
-    List<String> jumpiConditions = List.of("0", "1", "0xdeadbeefdeadcafedeadbeefdeadcafe", "0xffffffffffffffffffffffffffffffff", "0x0100000000000000000000000000000001", "0xcafefeedcafebabecafefeedcafebabecafefeedcafebabecafefeedcafebabe", "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-    for (String jumpiCondition: jumpiConditions) {
+    List<String> jumpiConditions =
+        List.of(
+            "0",
+            "1",
+            "0xdeadbeefdeadcafedeadbeefdeadcafe",
+            "0xffffffffffffffffffffffffffffffff",
+            "0x0100000000000000000000000000000001",
+            "0xcafefeedcafebabecafefeedcafebabecafefeedcafebabecafefeedcafebabe",
+            "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+    for (String jumpiCondition : jumpiConditions) {
       jumpiScenarios.addAll(provideJumpiScenarioForJumpiCondition(jumpiCondition));
     }
     return jumpiScenarios.stream();

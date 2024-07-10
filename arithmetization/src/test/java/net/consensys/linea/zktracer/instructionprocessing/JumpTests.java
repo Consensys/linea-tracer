@@ -51,15 +51,19 @@ public class JumpTests {
 
   private static Stream<Arguments> provideJumpScenario() {
     return Stream.of(
-        Arguments.of("jumpOntoJumpDestTest", "4"),
-        Arguments.of("jumpOntoInvalidTest", "3"),
-        Arguments.of("jumpOntoJumpDestByteOwnedBySomePush", "6"),
-        Arguments.of("jumpOutOfBoundsSmall", "0xff"),
-        Arguments.of("jumpOutOfBoundsMaxUint128", "0xffffffffffffffffffffffffffffffff"),
-        Arguments.of("jumpOutOfBoundsTwoToThe128", "0x0100000000000000000000000000000000"),
-        Arguments.of("jumpOutOfBoundsTwoToThe128Plus4", "0x0100000000000000000000000000000004"),
-        Arguments.of(
-            "jumpOutOfBoundsMaxUint256",
-            "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"));
+            Arguments.of("jumpOntoJumpDestTest", "4"),
+            Arguments.of("jumpOntoInvalidTest", "3"),
+            Arguments.of("jumpOntoJumpDestByteOwnedBySomePush", "6"),
+            Arguments.of("jumpOutOfBoundsSmall", "0xff"),
+            Arguments.of("jumpOutOfBoundsMaxUint128", "0xffffffffffffffffffffffffffffffff"),
+            Arguments.of("jumpOutOfBoundsTwoToThe128", "0x0100000000000000000000000000000000"),
+            Arguments.of("jumpOutOfBoundsTwoToThe128Plus4", "0x0100000000000000000000000000000004"),
+            Arguments.of(
+                "jumpOutOfBoundsMaxUint256",
+                "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"));
+        /*
+        In order to run a specific test case (for example, the first one) use the following:
+        .filter(arguments -> "jumpOntoJumpDestTest".equals(arguments.get()[0]));
+          */
   }
 }

@@ -14,6 +14,8 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Stream;
 
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -28,7 +30,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 @ExtendWith(EvmExtension.class)
 public class JumpiTests {
 
-  // NOTE: the bytecode we propose will at time use the following offsets (unless the initial push
+  // NOTE: the bytecode we propose will at time use the following offsets (unless one of the two initial push
   // is large!) bytecode:
   // - PUSH1 b // 0, 1
   // - PUSHX pcNew // offsets: 2, 3
@@ -38,10 +40,10 @@ public class JumpiTests {
   // - PUSH1 0x5b // offsets: 7, 8 <- 0x5b is the byte value of JUMPDEST
   @ParameterizedTest
   @MethodSource("provideJumpiScenario")
-  void testCodeForJumpiScenario(String description, boolean jumpiCondition, String pcNew) {
+  void testCodeForJumpiScenario(String description, String jumpiCondition, String pcNew) {
     BytecodeRunner.of(
             BytecodeCompiler.newProgram()
-                .push(jumpiCondition ? 1 : 0)
+                .push(jumpiCondition)
                 .push(pcNew)
                 .op(OpCode.JUMP)
                 .op(OpCode.INVALID)
@@ -52,12 +54,16 @@ public class JumpiTests {
   }
 
   private static Stream<Arguments> provideJumpiScenario() {
-    return Stream.concat(
-        provideJumpiScenarioForJumpiCondition(true), provideJumpiScenarioForJumpiCondition(false));
+    List<Arguments> jumpiScenarios = new ArrayList<>();
+    List<String> jumpiConditions = List.of("0", "1", "0xdeadbeefdeadcafedeadceefdeadcafe", "0xffffffffffffffffffffffffffffffff", "0x0100000000000000000000000000000001", "0xcafefeedcafebabecafefeedcafebabecafefeedcafebabecafefeedcafebabe", "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+    for (String jumpiCondition: jumpiConditions) {
+      jumpiScenarios.addAll(provideJumpiScenarioForJumpiCondition(jumpiCondition));
+    }
+    return jumpiScenarios.stream();
   }
 
-  private static Stream<Arguments> provideJumpiScenarioForJumpiCondition(boolean jumpiCondition) {
-    return Stream.of(
+  private static List<Arguments> provideJumpiScenarioForJumpiCondition(String jumpiCondition) {
+    return List.of(
         Arguments.of("jumpOntoJumpDestTest", jumpiCondition, "6"),
         Arguments.of("jumpOntoInvalidTest", jumpiCondition, "5"),
         Arguments.of("jumpOntoJumpDestByteOwnedBySomePush", jumpiCondition, "8"),

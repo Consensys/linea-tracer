@@ -23,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum GasConstants {
   G_ZERO(0),
-  G_JUMP_DEST(0),
+  G_JUMP_DEST(1),
   G_BASE(2),
   G_VERY_LOW(3),
   G_LOW(5),
@@ -65,7 +65,8 @@ public enum GasConstants {
   // below are markers for gas that is computed in other modules
   // that is: hub, memory expansion, stipend, precompile info
   S_MXP(0),
-  S_CALL(0), // computing the cost of a CALL requires HUB data (warmth, account existence, ...), MXP
+  S_CALL(0),
+  // computing the cost of a CALL requires HUB data (warmth, account existence, ...), MXP
   // data for memory expansion, STP data for gas stipend <- made it its own type
   S_HUB(0),
   S_STP(0),

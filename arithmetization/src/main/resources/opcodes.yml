@@ -1419,7 +1419,7 @@ opcodes:
       nbAdded: 0
       nbRemoved: 2
       staticGas: G_LOG_0
-      twoLinesInstruction: true
+      twoLineInstruction: true
       forbiddenInStatic: true
     billing:
       byByte:
@@ -1435,7 +1435,7 @@ opcodes:
       nbAdded: 0
       nbRemoved: 3
       staticGas: G_LOG_1
-      twoLinesInstruction: true
+      twoLineInstruction: true
       forbiddenInStatic: true
       flag1: true
     billing:
@@ -1452,7 +1452,7 @@ opcodes:
       nbAdded: 0
       nbRemoved: 4
       staticGas: G_LOG_2
-      twoLinesInstruction: true
+      twoLineInstruction: true
       forbiddenInStatic: true
       flag2: true
     billing:
@@ -1469,7 +1469,7 @@ opcodes:
       nbAdded: 0
       nbRemoved: 5
       staticGas: G_LOG_3
-      twoLinesInstruction: true
+      twoLineInstruction: true
       forbiddenInStatic: true
       flag3: true
     billing:
@@ -1486,7 +1486,7 @@ opcodes:
       nbAdded: 0
       nbRemoved: 6
       staticGas: G_LOG_4
-      twoLinesInstruction: true
+      twoLineInstruction: true
       forbiddenInStatic: true
       flag4: true
     billing:
@@ -1503,7 +1503,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 3
       staticGas: G_CREATE
-      twoLinesInstruction: true
+      twoLineInstruction: true
       forbiddenInStatic: true
       flag1: true
     billing:
@@ -1520,7 +1520,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 7
       staticGas: S_CALL
-      twoLinesInstruction: true
+      twoLineInstruction: true
       forbiddenInStatic: true
       flag1: true
     billing:
@@ -1536,7 +1536,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 7
       staticGas: S_CALL
-      twoLinesInstruction: true
+      twoLineInstruction: true
       flag2: true
     billing:
       byMxp:
@@ -1566,7 +1566,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 6
       staticGas: S_CALL
-      twoLinesInstruction: true
+      twoLineInstruction: true
       flag3: true
     billing:
       byMxp:
@@ -1581,7 +1581,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 4
       staticGas: G_CREATE
-      twoLinesInstruction: true
+      twoLineInstruction: true
       forbiddenInStatic: true
       flag2: true
     billing:
@@ -1598,7 +1598,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 6
       staticGas: S_CALL
-      twoLinesInstruction: true
+      twoLineInstruction: true
       flag4: true
     billing:
       byMxp:

@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.section;
 
+import net.consensys.linea.zktracer.module.constants.GlobalConstants;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.NextContextDefer;
@@ -32,7 +33,6 @@ import net.consensys.linea.zktracer.module.hub.signals.AbortingConditions;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.signals.FailureConditions;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.opcode.gas.GasConstants;
 import net.consensys.linea.zktracer.opcode.gas.projector.GasProjection;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -151,7 +151,9 @@ public class CreateSection extends TraceSection
     final boolean creatorWillRevert = hub.callStack().getById(this.creatorContextId).hasReverted();
     final GasProjection projection = Hub.GAS_PROJECTOR.of(hub.messageFrame(), hub.opCode());
     final long upfrontCost =
-        projection.memoryExpansion() + projection.linearPerWord() + GasConstants.G_TX_CREATE.cost();
+        projection.memoryExpansion()
+            + projection.linearPerWord()
+            + GlobalConstants.GAS_CONST_G_TX_CREATE;
 
     final ImcFragment commonImcFragment =
         ImcFragment.empty(hub).callOob(new CreateOobCall()).callMxp(MxpCall.build(hub))

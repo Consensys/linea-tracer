@@ -29,13 +29,13 @@ import java.util.Arrays;
 import com.google.common.base.Preconditions;
 import lombok.Getter;
 import net.consensys.linea.zktracer.container.ModuleOperation;
+import net.consensys.linea.zktracer.module.constants.GlobalConstants;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
 import net.consensys.linea.zktracer.module.hub.transients.OperationAncillaries;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.gas.BillingRate;
-import net.consensys.linea.zktracer.opcode.gas.GasConstants;
 import net.consensys.linea.zktracer.opcode.gas.MxpType;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.MemorySpan;
@@ -299,7 +299,7 @@ public class MxpOperation extends ModuleOperation {
             ? clampedMultiply(length / 512, length)
             : lengthSquare / 512;
 
-    return clampedAdd(clampedMultiply(GasConstants.G_MEMORY.cost(), length), base);
+    return clampedAdd(clampedMultiply(GlobalConstants.GAS_CONST_G_MEMORY, length), base);
   }
 
   private long getLinCost(OpCodeData opCodeData, long sizeInBytes) {

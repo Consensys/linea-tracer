@@ -21,11 +21,11 @@ import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.module.constants.GlobalConstants;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.opcode.gas.GasConstants;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
@@ -82,7 +82,7 @@ public class StpCall implements TraceSubFragment {
     this.outOfGasException = this.gasActual < this.upfrontGasCost;
     this.gasPaidOutOfPocket = this.gasPaidOutOfPocketForCalls();
     this.stipend =
-        !outOfGasException && nonzeroValueTransfer ? GasConstants.G_CALL_STIPEND.cost() : 0;
+        !outOfGasException && nonzeroValueTransfer ? GlobalConstants.GAS_CONST_G_CALL_STIPEND : 0;
   }
 
   private long gasPaidOutOfPocketForCalls() {
@@ -105,7 +105,7 @@ public class StpCall implements TraceSubFragment {
     this.value = EWord.of(frame.getStackItem(0));
     this.exists = false; // irrelevant
     this.warm = false; // irrelevant
-    this.upfrontGasCost = GasConstants.G_CREATE.cost() + this.memoryExpansionGas;
+    this.upfrontGasCost = GlobalConstants.GAS_CONST_G_CREATE + this.memoryExpansionGas;
     this.outOfGasException = this.gasActual < this.upfrontGasCost;
     this.gasPaidOutOfPocket = this.computeGasPaidOutOfPocketForCreates();
     this.stipend = 0; // irrelevant
@@ -125,10 +125,10 @@ public class StpCall implements TraceSubFragment {
     boolean toIsWarm = this.warm();
     long upfrontGasCost = this.memoryExpansionGas;
     final boolean callWouldLeadToAccountCreation = isCALL && nonzeroValueTransfer && !this.exists;
-    if (nonzeroValueTransfer) upfrontGasCost += GasConstants.G_CALL_VALUE.cost();
-    if (toIsWarm) upfrontGasCost += GasConstants.G_WARM_ACCESS.cost();
-    else upfrontGasCost += GasConstants.G_COLD_ACCOUNT_ACCESS.cost();
-    if (callWouldLeadToAccountCreation) upfrontGasCost += GasConstants.G_NEW_ACCOUNT.cost();
+    if (nonzeroValueTransfer) upfrontGasCost += GlobalConstants.GAS_CONST_G_CALL_VALUE;
+    if (toIsWarm) upfrontGasCost += GlobalConstants.GAS_CONST_G_WARM_ACCESS;
+    else upfrontGasCost += GlobalConstants.GAS_CONST_G_COLD_ACCOUNT_ACCESS;
+    if (callWouldLeadToAccountCreation) upfrontGasCost += GlobalConstants.GAS_CONST_G_NEW_ACCOUNT;
 
     return upfrontGasCost;
   }

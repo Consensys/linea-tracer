@@ -28,7 +28,6 @@ import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_CMPTN_EXP_LOG
 import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_CMPTN_MODEXP_LOG;
 import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_PRPRC_EXP_LOG;
 import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_PRPRC_MODEXP_LOG;
-import static net.consensys.linea.zktracer.opcode.gas.GasConstants.G_EXP_BYTE;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 
@@ -39,6 +38,7 @@ import com.google.common.base.Preconditions;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.consensys.linea.zktracer.container.ModuleOperation;
+import net.consensys.linea.zktracer.module.constants.GlobalConstants;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp.ExpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp.ExplogExpCall;
@@ -89,7 +89,7 @@ public class ExpOperation extends ModuleOperation {
 
       // Extract inputs
       EWord exponent = EWord.of(hub.messageFrame().getStackItem(1));
-      long dynCost = (long) G_EXP_BYTE.cost() * exponent.byteLength();
+      long dynCost = (long) GlobalConstants.GAS_CONST_G_EXP_BYTE * exponent.byteLength();
 
       // Fill expCall
       explogExpCall.setExponent(exponent);

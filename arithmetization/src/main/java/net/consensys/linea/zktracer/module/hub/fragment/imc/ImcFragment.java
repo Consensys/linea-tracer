@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import net.consensys.linea.zktracer.module.constants.GlobalConstants;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
@@ -36,7 +37,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.Sst
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.XCallOobCall;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.opcode.gas.GasConstants;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
@@ -134,7 +134,7 @@ public class ImcFragment implements TraceFragment {
         value = EWord.of(hub.messageFrame().getStackItem(2));
       }
 
-      final long stipend = value.isZero() ? 0 : GasConstants.G_CALL_STIPEND.cost();
+      final long stipend = value.isZero() ? 0 : GlobalConstants.GAS_CONST_G_CALL_STIPEND;
       final long upfrontCost = Hub.GAS_PROJECTOR.of(hub.messageFrame(), hub.opCode()).total();
 
       // TODO: @Olivier get memory expansion gas

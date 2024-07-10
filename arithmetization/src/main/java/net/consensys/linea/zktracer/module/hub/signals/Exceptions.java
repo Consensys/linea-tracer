@@ -18,10 +18,10 @@ package net.consensys.linea.zktracer.module.hub.signals;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EIP_3541_MARKER;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MAX_CODE_SIZE;
 
+import net.consensys.linea.zktracer.module.constants.GlobalConstants;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
-import net.consensys.linea.zktracer.opcode.gas.GasConstants;
 import net.consensys.linea.zktracer.opcode.gas.projector.GasProjector;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -185,7 +185,8 @@ public class Exceptions {
   }
 
   private static boolean isOutOfSStore(MessageFrame frame, OpCode opCode) {
-    return opCode == OpCode.SSTORE && frame.getRemainingGas() <= GasConstants.G_CALL_STIPEND.cost();
+    return opCode == OpCode.SSTORE
+        && frame.getRemainingGas() <= GlobalConstants.GAS_CONST_G_CALL_STIPEND;
   }
 
   private static boolean isInvalidCodePrefix(MessageFrame frame) {

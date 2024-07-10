@@ -402,7 +402,7 @@ public class Stack {
     if (this.status.isFailure()) {
       this.heightNew = 0;
 
-      if (this.currentOpcodeData.stackSettings().twoLinesInstruction()) {
+      if (this.currentOpcodeData.stackSettings().twoLineInstruction()) {
         this.stamp += callFrame.pending().addEmptyLines(2);
       } else {
         this.stamp += callFrame.pending().addEmptyLines(1);

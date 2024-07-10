@@ -155,7 +155,7 @@ public abstract class TraceSection {
   private List<TraceFragment> makeStackFragments(final Hub hub, CallFrame f) {
     final List<TraceFragment> r = new ArrayList<>(2);
     if (f.pending().lines().isEmpty()) {
-      for (int i = 0; i < (f.opCodeData().stackSettings().twoLinesInstruction() ? 2 : 1); i++) {
+      for (int i = 0; i < (f.opCodeData().stackSettings().twoLineInstruction() ? 2 : 1); i++) {
         r.add(
             StackFragment.prepare(
                 hub,

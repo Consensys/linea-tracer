@@ -51,11 +51,11 @@ public class JumpTests {
 
   private static Stream<Arguments> provideJumpScenario() {
     return Stream.of(
-        Arguments.of("jumpOntoJumpDestTest", "4"),
-        Arguments.of("jumpOntoInvalidTest", "3"),
-        Arguments.of("jumpOntoJumpDestByteOwnedBySomePush", "6"),
+        Arguments.of("jumpOntoValidJumpDestination", "4"),
+        Arguments.of("jumpOntoINVALID", "3"),
+        Arguments.of("jumpOntoPushByteEqualToJUMPDEST", "6"),
         Arguments.of("jumpOutOfBoundsSmall", "ff"),
-        Arguments.of("jumpOutOfBoundsMaxUint128", "ffffffffffffffffffffffffffffffff"),
+        Arguments.of("jumpOutOfBoundsMaxUint128",    "ffffffffffffffffffffffffffffffff"),
         Arguments.of("jumpOutOfBoundsTwoToThe128", "0100000000000000000000000000000000"),
         Arguments.of("jumpOutOfBoundsTwoToThe128Plus4", "0100000000000000000000000000000004"),
         Arguments.of(

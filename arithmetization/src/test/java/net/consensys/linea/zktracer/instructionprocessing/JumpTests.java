@@ -25,11 +25,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(EvmExtension.class)
 public class JumpTests {
 
-  /**
-   * NOTE: the bytecode we propose will at time use the following offsets (unless the initial push
-   * is large!) bytecode: PUSHX pcNew // offsets: 0, 1 JUMP // offset: 2 INVALID // offset: 3
-   * JUMPDEST // offset: 4 PUSH1 0x5b // offsets: 5, 6 <- 0x5b is the byte value of JUMPDEST
-   */
+  // NOTE: the bytecode we propose will at time use the following offsets (unless the initial push
+  // is large!) bytecode:
+  // - PUSHX pcNew // offsets: 0, 1
+  // - JUMP // offset: 2
+  // - INVALID // offset: 3
+  // - JUMPDEST // offset: 4
+  // - PUSH1 0x5b // offsets: 5, 6 <- 0x5b is the byte value of JUMPDEST
   Bytes testCodeForJumpScenario(String pcNew) {
     return BytecodeCompiler.newProgram()
         .push(pcNew)
@@ -52,7 +54,7 @@ public class JumpTests {
 
   @Test
   void jumpOntoJumpDestByteOwnedBySomePush() {
-    BytecodeRunner.of(testCodeForJumpScenario("5")).run();
+    BytecodeRunner.of(testCodeForJumpScenario("6")).run();
   }
 
   @Test

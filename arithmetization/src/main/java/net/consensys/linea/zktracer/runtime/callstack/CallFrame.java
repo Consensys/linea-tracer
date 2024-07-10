@@ -302,13 +302,16 @@ public class CallFrame {
   }
 
   private void revertChildren(CallStack callStack, int parentRevertStamp) {
-      this.childFrames.stream()
-          .map(callStack::getById)
-          .forEach(frame -> {
-            frame.getsReverted = true;
-            if (!frame.selfReverts) { frame.revertStamp = parentRevertStamp; }
-            frame.revertChildren(callStack, parentRevertStamp);
-          });
+    this.childFrames.stream()
+        .map(callStack::getById)
+        .forEach(
+            frame -> {
+              frame.getsReverted = true;
+              if (!frame.selfReverts) {
+                frame.revertStamp = parentRevertStamp;
+              }
+              frame.revertChildren(callStack, parentRevertStamp);
+            });
   }
 
   public void revert(CallStack callStack, int revertStamp) {

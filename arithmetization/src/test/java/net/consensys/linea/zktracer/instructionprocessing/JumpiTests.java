@@ -35,7 +35,7 @@ public class JumpiTests {
   // is large!) bytecode:
   // - PUSH1 b // 0, 1
   // - PUSHX pcNew // offsets: 2, 3
-  // - JUMP // offset: 4
+  // - JUMPI // offset: 4
   // - INVALID // offset: 5
   // - JUMPDEST // offset: 6
   // - PUSH1 0x5b // offsets: 7, 8 <- 0x5b is the byte value of JUMPDEST
@@ -76,18 +76,18 @@ public class JumpiTests {
         Arguments.of("jumpOntoJumpDestTest", jumpiCondition, "6"),
         Arguments.of("jumpOntoInvalidTest", jumpiCondition, "5"),
         Arguments.of("jumpOntoJumpDestByteOwnedBySomePush", jumpiCondition, "8"),
-        Arguments.of("jumpOutOfBoundsSmall", jumpiCondition, "0xff"),
+        Arguments.of("jumpOutOfBoundsSmall", jumpiCondition, "ff"),
         Arguments.of(
-            "jumpOutOfBoundsMaxUint128", jumpiCondition, "0xffffffffffffffffffffffffffffffff"),
+            "jumpOutOfBoundsMaxUint128", jumpiCondition, "ffffffffffffffffffffffffffffffff"),
         Arguments.of(
-            "jumpOutOfBoundsTwoToThe128", jumpiCondition, "0x0100000000000000000000000000000000"),
+            "jumpOutOfBoundsTwoToThe128", jumpiCondition, "0100000000000000000000000000000000"),
         Arguments.of(
             "jumpOutOfBoundsTwoToThe128Plus4",
             jumpiCondition,
-            "0x0100000000000000000000000000000004"),
+            "0100000000000000000000000000000004"),
         Arguments.of(
             "jumpOutOfBoundsMaxUint256",
             jumpiCondition,
-            "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"));
+            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"));
   }
 }

@@ -35,9 +35,18 @@ public class JumpTests {
   // - INVALID // offset: 3
   // - JUMPDEST // offset: 4
   // - PUSH1 0x5b // offsets: 5, 6 <- 0x5b is the byte value of JUMPDEST
+
+  // NOTE: in general the offsets are the following:
+  // - PUSHX pcNew // offsets: 0, 1 ... pcNewByteSize
+  // - JUMP // offset: pcNewByteSize + 1
+  // - INVALID // offset: pcNewByteSize + 2
+  // - JUMPDEST // offset: pcNewByteSize + 3
+  // - PUSH1 0x5b // offsets: pcNewByteSize + 4, pcNewByteSize + 5 <- 0x5b is the byte value of
+  // JUMPDEST
   @ParameterizedTest
   @MethodSource("provideJumpScenario")
   void testCodeForJumpScenario(String description, String pcNew) {
+    // int pcNewByteSize = (int) Math.ceil((double) new BigInteger(pcNew, 16).bitLength() / 8);
     BytecodeRunner.of(
             BytecodeCompiler.newProgram()
                 .push(pcNew)
@@ -54,13 +63,13 @@ public class JumpTests {
         Arguments.of("jumpOntoJumpDestTest", "4"),
         Arguments.of("jumpOntoInvalidTest", "3"),
         Arguments.of("jumpOntoJumpDestByteOwnedBySomePush", "6"),
-        Arguments.of("jumpOutOfBoundsSmall", "0xff"),
-        Arguments.of("jumpOutOfBoundsMaxUint128", "0xffffffffffffffffffffffffffffffff"),
-        Arguments.of("jumpOutOfBoundsTwoToThe128", "0x0100000000000000000000000000000000"),
-        Arguments.of("jumpOutOfBoundsTwoToThe128Plus4", "0x0100000000000000000000000000000004"),
+        Arguments.of("jumpOutOfBoundsSmall", "ff"),
+        Arguments.of("jumpOutOfBoundsMaxUint128", "ffffffffffffffffffffffffffffffff"),
+        Arguments.of("jumpOutOfBoundsTwoToThe128", "0100000000000000000000000000000000"),
+        Arguments.of("jumpOutOfBoundsTwoToThe128Plus4", "0100000000000000000000000000000004"),
         Arguments.of(
             "jumpOutOfBoundsMaxUint256",
-            "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"));
+            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"));
     /*
     In order to run a specific test case (for example, the first one) use the following:
     .filter(arguments -> "jumpOntoJumpDestTest".equals(arguments.get()[0]));

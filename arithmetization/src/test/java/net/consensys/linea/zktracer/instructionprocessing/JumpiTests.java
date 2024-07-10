@@ -44,7 +44,7 @@ public class JumpiTests {
   // byte value of JUMPDEST
   @ParameterizedTest
   @MethodSource("provideJumpiScenario")
-  void testCodeForJumpiScenario(String description, String jumpiCondition, String pcNew) {
+  void jumpiScenarioTest(String description, String jumpiCondition, String pcNew) {
     BytecodeRunner.of(
             BytecodeCompiler.newProgram()
                 .push(jumpiCondition)

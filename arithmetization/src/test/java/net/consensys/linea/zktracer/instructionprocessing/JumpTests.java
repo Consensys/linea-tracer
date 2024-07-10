@@ -37,7 +37,7 @@ public class JumpTests {
   // - PUSH1 0x5b // offsets: 5, 6 <- 0x5b is the byte value of JUMPDEST
   @ParameterizedTest
   @MethodSource("provideJumpScenario")
-  void testCodeForJumpScenario(String description, String pcNew) {
+  void jumpScenarioTest(String description, String pcNew) {
     BytecodeRunner.of(
             BytecodeCompiler.newProgram()
                 .push(pcNew)

@@ -68,9 +68,10 @@ public class JumpiTests {
             "ffffffffffffffffffffffffffffffff", // max Bytes16 (hi = 0x00)
             "0100000000000000000000000000000000", // 256 ^16     (hi = 0x01, lo = 0x00)
             "0100000000000000000000000000000001", // 256 ^16 + 1 (hi = 0x01, lo = 0x01)
-            "cafefeedcafebabecafefeedcafebabecafefeedcafebabecafefeedcafebabe", // some random Bytes32
+            "cafefeedcafebabecafefeedcafebabecafefeedcafebabecafefeedcafebabe", // some random
+            // Bytes32
             "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" // max Bytes32
-        );
+            );
     for (String jumpiCondition : jumpiConditions) {
       jumpiScenarios.addAll(provideJumpiScenarioForJumpiCondition(jumpiCondition));
     }
@@ -85,11 +86,11 @@ public class JumpiTests {
     int jumpiConditionByteOffset = jumpiConditionByteSize - 1;
     return List.of(
         Arguments.of(
-            "jumpiOntoJumpDestTest",
+            "jumpiOntoValidJumpDestination",
             jumpiCondition,
             addOffsetToHexString(jumpiConditionByteOffset, "6")),
         Arguments.of(
-            "jumpiOntoInvalidTest",
+            "jumpiOntoINVALID",
             jumpiCondition,
             addOffsetToHexString(jumpiConditionByteOffset, "5")),
         Arguments.of(

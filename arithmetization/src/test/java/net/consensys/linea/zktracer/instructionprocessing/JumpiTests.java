@@ -26,20 +26,22 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 @ExtendWith(EvmExtension.class)
-public class JumpTests {
+public class JumpiTests {
 
   // NOTE: the bytecode we propose will at time use the following offsets (unless the initial push
   // is large!) bytecode:
-  // - PUSHX pcNew // offsets: 0, 1
-  // - JUMP // offset: 2
-  // - INVALID // offset: 3
-  // - JUMPDEST // offset: 4
-  // - PUSH1 0x5b // offsets: 5, 6 <- 0x5b is the byte value of JUMPDEST
+  // - PUSH1 b // 0, 1
+  // - PUSHX pcNew // offsets: 2, 3
+  // - JUMP // offset: 4
+  // - INVALID // offset: 5
+  // - JUMPDEST // offset: 6
+  // - PUSH1 0x5b // offsets: 7, 8 <- 0x5b is the byte value of JUMPDEST
   @ParameterizedTest
-  @MethodSource("provideJumpScenario")
-  void testCodeForJumpScenario(String description, String pcNew) {
+  @MethodSource("provideJumpiScenario")
+  void testCodeForJumpiScenario(String description, boolean jumpiCondition, String pcNew) {
     BytecodeRunner.of(
             BytecodeCompiler.newProgram()
+                .push(jumpiCondition ? 1 : 0)
                 .push(pcNew)
                 .op(OpCode.JUMP)
                 .op(OpCode.INVALID)
@@ -49,17 +51,28 @@ public class JumpTests {
         .run();
   }
 
-  private static Stream<Arguments> provideJumpScenario() {
+  private static Stream<Arguments> provideJumpiScenario() {
+    return Stream.concat(
+        provideJumpiScenarioForJumpiCondition(true), provideJumpiScenarioForJumpiCondition(false));
+  }
+
+  private static Stream<Arguments> provideJumpiScenarioForJumpiCondition(boolean jumpiCondition) {
     return Stream.of(
-        Arguments.of("jumpOntoJumpDestTest", "4"),
-        Arguments.of("jumpOntoInvalidTest", "3"),
-        Arguments.of("jumpOntoJumpDestByteOwnedBySomePush", "6"),
-        Arguments.of("jumpOutOfBoundsSmall", "0xff"),
-        Arguments.of("jumpOutOfBoundsMaxUint128", "0xffffffffffffffffffffffffffffffff"),
-        Arguments.of("jumpOutOfBoundsTwoToThe128", "0x0100000000000000000000000000000000"),
-        Arguments.of("jumpOutOfBoundsTwoToThe128Plus4", "0x0100000000000000000000000000000004"),
+        Arguments.of("jumpOntoJumpDestTest", jumpiCondition, "6"),
+        Arguments.of("jumpOntoInvalidTest", jumpiCondition, "5"),
+        Arguments.of("jumpOntoJumpDestByteOwnedBySomePush", jumpiCondition, "8"),
+        Arguments.of("jumpOutOfBoundsSmall", jumpiCondition, "0xff"),
+        Arguments.of(
+            "jumpOutOfBoundsMaxUint128", jumpiCondition, "0xffffffffffffffffffffffffffffffff"),
+        Arguments.of(
+            "jumpOutOfBoundsTwoToThe128", jumpiCondition, "0x0100000000000000000000000000000000"),
+        Arguments.of(
+            "jumpOutOfBoundsTwoToThe128Plus4",
+            jumpiCondition,
+            "0x0100000000000000000000000000000004"),
         Arguments.of(
             "jumpOutOfBoundsMaxUint256",
+            jumpiCondition,
             "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"));
   }
 }

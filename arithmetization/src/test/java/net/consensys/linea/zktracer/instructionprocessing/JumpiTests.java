@@ -55,7 +55,7 @@ public class JumpiTests {
 
   private static Stream<Arguments> provideJumpiScenario() {
     List<Arguments> jumpiScenarios = new ArrayList<>();
-    List<String> jumpiConditions = List.of("0", "1", "0xdeadbeefdeadcafedeadceefdeadcafe", "0xffffffffffffffffffffffffffffffff", "0x0100000000000000000000000000000001", "0xcafefeedcafebabecafefeedcafebabecafefeedcafebabecafefeedcafebabe", "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+    List<String> jumpiConditions = List.of("0", "1", "0xdeadbeefdeadcafedeadbeefdeadcafe", "0xffffffffffffffffffffffffffffffff", "0x0100000000000000000000000000000001", "0xcafefeedcafebabecafefeedcafebabecafefeedcafebabecafefeedcafebabe", "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
     for (String jumpiCondition: jumpiConditions) {
       jumpiScenarios.addAll(provideJumpiScenarioForJumpiCondition(jumpiCondition));
     }

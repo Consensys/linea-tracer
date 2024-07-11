@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -564,7 +563,7 @@ public class OobJumpAndJumpiTest {
 
   private List<Integer> generatePermutation(int jumpDestinationsSize) {
     List<Integer> permutation =
-        ThreadLocalRandom.current()
+        random
             .ints(0, jumpDestinationsSize - 1)
             .distinct()
             .limit(jumpDestinationsSize - 1)

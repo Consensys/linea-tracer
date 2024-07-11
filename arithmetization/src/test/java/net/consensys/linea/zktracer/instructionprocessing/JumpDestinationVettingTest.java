@@ -14,7 +14,11 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing;
 
+import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
+
+import java.math.BigInteger;
 import java.util.Random;
+import java.util.stream.Stream;
 
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.testing.BytecodeCompiler;
@@ -23,7 +27,8 @@ import net.consensys.linea.zktracer.testing.EvmExtension;
 import org.apache.tuweni.bytes.Bytes;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 @ExtendWith(EvmExtension.class)
 public class JumpDestinationVettingTest {
@@ -31,8 +36,9 @@ public class JumpDestinationVettingTest {
   final int N_JUMPS = 10;
 
   @ParameterizedTest
-  @ValueSource(ints = {1, 5, 15, 16, 17, 20, 31, 32})
-  void jumpDestinationVettingTest(int positionOfDeceptiveJumpDest) {
+  @MethodSource("jumpDestinationVettingCases")
+  void jumpDestinationVettingTest(
+      int positionOfDeceptiveJumpDest, OpCode pushK, int pushKArgumentLength) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     int nTotalInvalid = 0;
     for (int i = 0; i < N_JUMPS; i++) {
@@ -46,8 +52,10 @@ public class JumpDestinationVettingTest {
       if (i < N_JUMPS - 1) {
         program.op(OpCode.JUMPDEST);
       } else {
-        String deceptivePush = generateDeceptivePush(positionOfDeceptiveJumpDest);
-        program.push(deceptivePush);
+        String pushKBytecode = Bytes.of(pushK.byteValue()).toHexString().substring(2);
+        String deceptivePush =
+            generateDeceptivePush(positionOfDeceptiveJumpDest, pushKArgumentLength);
+        program.immediate(bigIntegerToBytes(new BigInteger(pushKBytecode + deceptivePush, 16)));
       }
     }
     Bytes bytecode = program.compile();
@@ -55,12 +63,13 @@ public class JumpDestinationVettingTest {
     BytecodeRunner.of(bytecode).run();
   }
 
-  public String generateDeceptivePush(int positionOfDeceptiveJumpDest) {
-    if (positionOfDeceptiveJumpDest < 1 || positionOfDeceptiveJumpDest > 32) {
-      throw new IllegalArgumentException("positionOfDeceptiveJumpDest must be between 1 and 32");
+  public String generateDeceptivePush(int positionOfDeceptiveJumpDest, int pushKArgumentLength) {
+    if (positionOfDeceptiveJumpDest < 1 || positionOfDeceptiveJumpDest > pushKArgumentLength) {
+      throw new IllegalArgumentException(
+          "positionOfDeceptiveJumpDest must be between 1 and pushKArgumentLength");
     }
     StringBuilder deceptivePush = new StringBuilder();
-    for (int i = 1; i <= 31; i++) {
+    for (int i = 1; i <= pushKArgumentLength; i++) {
       if (i == positionOfDeceptiveJumpDest) {
         deceptivePush.append("5b"); // deceptive JUMPDEST "pointed" by the last JUMP
       } else {
@@ -71,5 +80,22 @@ public class JumpDestinationVettingTest {
       }
     }
     return deceptivePush.toString();
+  }
+
+  static Stream<Arguments> jumpDestinationVettingCases() {
+    return Stream.of(
+        Arguments.of(1, OpCode.PUSH7, 5), // "Incomplete" push
+        Arguments.of(1, OpCode.PUSH1, 1),
+        Arguments.of(1, OpCode.PUSH2, 2),
+        Arguments.of(2, OpCode.PUSH2, 2),
+        Arguments.of(1, OpCode.PUSH32, 32),
+        Arguments.of(2, OpCode.PUSH32, 32),
+        Arguments.of(15, OpCode.PUSH32, 32),
+        Arguments.of(16, OpCode.PUSH32, 32),
+        Arguments.of(17, OpCode.PUSH32, 32),
+        Arguments.of(20, OpCode.PUSH32, 32),
+        Arguments.of(31, OpCode.PUSH32, 32),
+        Arguments.of(32, OpCode.PUSH32, 32));
+    // TODO: add more test cases
   }
 }

@@ -64,6 +64,9 @@ public class JumpDestinationVettingTest {
   }
 
   public String generateDeceptivePush(int positionOfDeceptiveJumpDest, int pushKArgumentLength) {
+    if (pushKArgumentLength == 0) {
+      return "";
+    }
     if (positionOfDeceptiveJumpDest < 1 || positionOfDeceptiveJumpDest > pushKArgumentLength) {
       throw new IllegalArgumentException(
           "positionOfDeceptiveJumpDest must be between 1 and pushKArgumentLength");
@@ -84,7 +87,6 @@ public class JumpDestinationVettingTest {
 
   static Stream<Arguments> jumpDestinationVettingCases() {
     return Stream.of(
-        Arguments.of(1, OpCode.PUSH7, 5), // "Incomplete" push
         Arguments.of(1, OpCode.PUSH1, 1),
         Arguments.of(1, OpCode.PUSH2, 2),
         Arguments.of(2, OpCode.PUSH2, 2),
@@ -95,7 +97,17 @@ public class JumpDestinationVettingTest {
         Arguments.of(17, OpCode.PUSH32, 32),
         Arguments.of(20, OpCode.PUSH32, 32),
         Arguments.of(31, OpCode.PUSH32, 32),
-        Arguments.of(32, OpCode.PUSH32, 32));
-    // TODO: add more test cases
+        Arguments.of(32, OpCode.PUSH32, 32),
+        Arguments.of(1, OpCode.PUSH7, 5), // generic "incomplete" push
+        Arguments.of(1, OpCode.PUSH7, 0), // minimal edge case
+        Arguments.of(1, OpCode.PUSH7, 1), // the bytecode terminates in PUSH7 B1
+        Arguments.of(1, OpCode.PUSH16, 0), // minimal edge case + missing 16 bytes
+        Arguments.of(1, OpCode.PUSH16, 1), // minimal edge case + missing 16 bytes
+        Arguments.of(1, OpCode.PUSH17, 0), // minimal edge case + missing 16 bytes
+        Arguments.of(1, OpCode.PUSH17, 1), // minimal edge case + missing 16 bytes
+        Arguments.of(1, OpCode.PUSH23, 7), // differs by 16
+        Arguments.of(1, OpCode.PUSH32, 0), // minimal edge case, the final opcode is PUSH32
+        Arguments.of(1, OpCode.PUSH32, 1), // the bytecode terminates in PUSH32 B1
+        Arguments.of(1, OpCode.PUSH32, 31)); // missing a single byte
   }
 }

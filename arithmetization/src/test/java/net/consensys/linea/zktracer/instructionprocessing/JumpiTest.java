@@ -32,7 +32,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 @ExtendWith(EvmExtension.class)
-public class JumpiTests {
+public class JumpiTest {
 
   // NOTE: the bytecode we propose will at time use the following offsets (unless pcNew is large)
   // bytecode:
@@ -99,7 +99,6 @@ public class JumpiTests {
             "jumpiOntoJumpDestByteOwnedBySomePush",
             jumpiCondition,
             addOffsetToHexString(jumpiConditionByteOffset, "8")),
-        // NOTE: in the cases below we add
         Arguments.of(
             "jumpiOutOfBoundsSmall",
             jumpiCondition,

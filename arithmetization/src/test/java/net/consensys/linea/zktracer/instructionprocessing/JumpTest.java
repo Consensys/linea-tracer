@@ -27,7 +27,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 @ExtendWith(EvmExtension.class)
-public class JumpTests {
+public class JumpTest {
 
   // NOTE: the bytecode we propose will at time use the following offsets (unless pcNew is large)
   // bytecode:

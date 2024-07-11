@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -547,9 +548,11 @@ public class OobJumpAndJumpiTest {
   }
 
   // Support methods
+  private Random random = new Random(1);
+
   private List<Integer> generateJumpDestinations(
       int N_JUMPS, int MAX_JUMPDESTINATION, int SPREADING_FACTOR) {
-    return ThreadLocalRandom.current()
+    return random
         .ints(1, MAX_JUMPDESTINATION)
         .distinct()
         .limit(N_JUMPS)

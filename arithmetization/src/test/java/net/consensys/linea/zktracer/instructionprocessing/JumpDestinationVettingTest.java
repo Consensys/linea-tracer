@@ -86,18 +86,23 @@ public class JumpDestinationVettingTest {
   }
 
   static Stream<Arguments> jumpDestinationVettingCases() {
+    // NOTE: these tests cases are chosen to test also ROM
     return Stream.of(
-        Arguments.of(1, OpCode.PUSH1, 1),
-        Arguments.of(1, OpCode.PUSH2, 2),
-        Arguments.of(2, OpCode.PUSH2, 2),
-        Arguments.of(1, OpCode.PUSH32, 32),
+        Arguments.of(1, OpCode.PUSH1, 1), // minimal complete push
+        Arguments.of(
+            1, OpCode.PUSH2, 2), // deceptive jump destination in the beginning and small push
+        Arguments.of(2, OpCode.PUSH2, 2), // deceptive jump destination in the end and small push
+        Arguments.of(
+            1, OpCode.PUSH32, 32), // deceptive jump destination in the beginning and large push
         Arguments.of(2, OpCode.PUSH32, 32),
         Arguments.of(15, OpCode.PUSH32, 32),
-        Arguments.of(16, OpCode.PUSH32, 32),
-        Arguments.of(17, OpCode.PUSH32, 32),
+        Arguments.of(
+            16, OpCode.PUSH32, 32), // deceptive jump destination before middle and large push
+        Arguments.of(
+            17, OpCode.PUSH32, 32), // deceptive jump destination after middle and large push
         Arguments.of(20, OpCode.PUSH32, 32),
         Arguments.of(31, OpCode.PUSH32, 32),
-        Arguments.of(32, OpCode.PUSH32, 32),
+        Arguments.of(32, OpCode.PUSH32, 32), // deceptive jump destination in the end and large push
         Arguments.of(1, OpCode.PUSH7, 5), // generic "incomplete" push
         Arguments.of(1, OpCode.PUSH7, 0), // minimal edge case
         Arguments.of(1, OpCode.PUSH7, 1), // the bytecode terminates in PUSH7 B1

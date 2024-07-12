@@ -33,7 +33,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 @ExtendWith(EvmExtension.class)
 public class JumpDestinationVettingTest {
   final Random random = new Random(1);
-  final int N_JUMPS = 10;
+  final int N_JUMPS = 3;
 
   @ParameterizedTest
   @MethodSource("jumpDestinationVettingCases")

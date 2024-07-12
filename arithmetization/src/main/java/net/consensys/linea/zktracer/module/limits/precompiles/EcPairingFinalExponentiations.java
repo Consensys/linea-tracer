@@ -223,10 +223,22 @@ public final class EcPairingFinalExponentiations implements Module {
     return 0;
   }
 
+  /**
+   * Specifies if an opcode is irrelevant to the tracing of ECPAIRING.
+   *
+   * @param frame
+   * @return true if the current operation is either not a call or would throw a stack exception;
+   *     otherwise it returns true if the target of the CALL isn't the ECPAIRING precompile;
+   */
   static boolean irrelevantOperation(MessageFrame frame) {
     final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
+
+    if (!opCode.isCall() || frame.stackSize() < 2) {
+      return true;
+    }
+
     final Address target = Words.toAddress(frame.getStackItem(1));
-    return (!opCode.isCall() || !target.equals(Address.ALTBN128_PAIRING));
+    return !target.equals(Address.ALTBN128_PAIRING);
   }
 
   private boolean internalChecksPassed(MessageFrame frame, MemorySpan callData) {

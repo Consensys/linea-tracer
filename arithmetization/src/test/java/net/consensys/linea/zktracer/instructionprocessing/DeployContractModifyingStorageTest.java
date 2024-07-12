@@ -48,30 +48,39 @@ public class DeployContractModifyingStorageTest {
     ToyAccount userAccount =
         ToyAccount.builder().balance(Wei.fromEth(1)).nonce(1).address(userAddress).build();
 
-    // Contract modifying storage
-    ToyAccount contractModifyingStorageAccount =
-        ToyAccount.builder()
-            .balance(Wei.fromEth(1))
-            .nonce(2)
-            .address(Address.fromHexString("0x")) // NOTE: here the address is intentionally set to 0x
-            .code(Bytes.fromHexString("addherebytecodeofthecontractwithout0x"))
-            .build();
-
-    // Is this transaction necessary only if we want to invoke a specific function of the contract?
-    // If so, we need it only in the other test case
+    // Deployment transaction
     Transaction tx =
         ToyTransaction.builder()
             .sender(userAccount)
-            .to(contractModifyingStorageAccount)
-            .payload(Bytes.fromHexString("addherepayloadofthetransactionwith0x"))
+            //.to()
+            .payload(Bytes.fromHexString("addhereinitializationcodewith0x"))
             .transactionType(TransactionType.FRONTIER)
             .gasLimit(0xffffffffL)
             .value(Wei.ZERO)
             .keyPair(keyPair)
             .build();
+    /*
+    - Initialization code is what you give in the payload of the transaction in case the "to" address is empty
+      - It should contain some SLOAD and SSTORE
+      - Have at least 2 storages keys to interact with (ideally 4). Both of them should be SLOAD and SSTORE several times. One should
+      contain 0 and 2-3 containing non-zero.
+      - Preferably interacting with the same storage key several times
+      - Finish by deploying bytecode
+      - At the end, it returns a slice of memory that will become the deployed bytecode
+        - That bytecode should do some SLOAD and SSTORE
+        - Preferably interacting with the same storage key several times
+        - In particular, with the storage key that was used in the initialization but also new others
+
+        Remix:
+        - Deploy contract, initialization code is called "input". The construct should generate SLOAD nad SSTORE by modifying some variables in storage.
+        - Create variables (in storage by default), SLOAD them (not explicitly), modify them, SSTORE them (not explicitly).
+        - The same contract can have a function doing the same stuff.
+      */
+
+
 
     ToyWorld toyWorld =
-        ToyWorld.builder().accounts(List.of(userAccount, contractModifyingStorageAccount)).build();
+        ToyWorld.builder().accounts(List.of(userAccount)).build();
 
     ToyExecutionEnvironment toyExecutionEnvironment =
         ToyExecutionEnvironment.builder()
@@ -84,5 +93,7 @@ public class DeployContractModifyingStorageTest {
   }
 
   @Test
-  void deployContractModifyingStorageInFunctionTest() {}
+  void deployContractModifyingStorageInFunctionTest() {
+
+  }
 }

@@ -64,6 +64,7 @@ import net.consensys.linea.zktracer.module.limits.precompiles.BlakeRounds;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcAddEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcMulEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingFinalExponentiations;
+import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingG2MembershipCalls;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingMillerLoops;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcRecoverEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall;
@@ -298,6 +299,7 @@ public class Hub implements Module {
             new EcAddEffectiveCall(this),
             new EcMulEffectiveCall(this),
             ecPairingCall,
+            new EcPairingG2MembershipCalls(ecPairingCall),
             new EcPairingMillerLoops(ecPairingCall),
             blakeRounds,
             new BlakeEffectiveCall(blakeRounds),
@@ -1082,9 +1084,9 @@ public class Hub implements Module {
 
   public void traceContextReEnter(MessageFrame frame) {
     this.defers.runReEntry(this, frame);
-    if (this.currentFrame().needsUnlatchingAtReEntry() != null) {
-      this.unlatchStack(frame, this.currentFrame().needsUnlatchingAtReEntry());
-      this.currentFrame().needsUnlatchingAtReEntry(null);
+    if (this.currentFrame().sectionToUnlatch() != null) {
+      this.unlatchStack(frame, this.currentFrame().sectionToUnlatch());
+      this.currentFrame().sectionToUnlatch(null);
     }
   }
 
@@ -1131,7 +1133,7 @@ public class Hub implements Module {
     this.defers.runPostExec(this, frame, operationResult);
     this.romLex.tracePostOpcode(frame);
 
-    if (this.currentFrame().needsUnlatchingAtReEntry() == null) {
+    if (this.currentFrame().sectionToUnlatch() == null) {
       this.unlatchStack(frame);
     }
 
@@ -1457,7 +1459,7 @@ public class Hub implements Module {
         CreateSection createSection =
             new CreateSection(this, myAccountSnapshot, createdAccountSnapshot);
         this.addTraceSection(createSection);
-        this.currentFrame().needsUnlatchingAtReEntry(createSection);
+        this.currentFrame().sectionToUnlatch(createSection);
       }
 
       case CALL -> {
@@ -1537,7 +1539,7 @@ public class Hub implements Module {
                 new SmartContractCallSection(
                     this, myAccountSnapshot, calledAccountSnapshot, rawCalledAddress, imcFragment);
             this.addTraceSection(section);
-            this.currentFrame().needsUnlatchingAtReEntry(section);
+            this.currentFrame().sectionToUnlatch(section);
           } else {
             //
             // CALL EXECUTED
@@ -1566,7 +1568,7 @@ public class Hub implements Module {
                     rawCalledAddress,
                     imcFragment);
             this.addTraceSection(section);
-            this.currentFrame().needsUnlatchingAtReEntry(section);
+            this.currentFrame().sectionToUnlatch(section);
           }
         }
       }

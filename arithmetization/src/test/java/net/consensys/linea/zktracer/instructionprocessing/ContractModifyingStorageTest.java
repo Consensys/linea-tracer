@@ -55,10 +55,8 @@ public class ContractModifyingStorageTest {
 
   @Test
   void contractModifyingStorageInConstructorTest() {
-    /* NOTE: The contract in this method is compiled by using
-    solc *.sol --bin-runtime --evm-version london -o compiledContracts
-    i.e., we do not include the init code of the contracts in the bytecode
-    */
+    // Deploy
+    // arithmetization/src/test/resources/contracts/contractModifyingStorage/ContractModifyingStorageInConstructor.sol
 
     // User address
     KeyPair keyPair = new SECP256K1().generateKeyPair();
@@ -94,10 +92,8 @@ public class ContractModifyingStorageTest {
 
   @Test
   void contractModifyingStorageInFunctionTest() {
-    /* NOTE: The contract in this method is compiled by using
-    solc *.sol --bin-runtime --evm-version london -o compiledContracts
-    i.e., we do not include the init code of the contracts in the bytecode
-    */
+    // Deploy
+    // arithmetization/src/test/resources/contracts/contractModifyingStorage/ContractModifyingStorageInFunction.sol
 
     // User address
     KeyPair keyPair = new SECP256K1().generateKeyPair();

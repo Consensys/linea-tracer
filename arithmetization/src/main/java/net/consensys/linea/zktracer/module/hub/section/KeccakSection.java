@@ -15,51 +15,56 @@
 
 package net.consensys.linea.zktracer.module.hub.section;
 
-import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
-
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.defer.PostExecDefer;
+import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
-import org.apache.tuweni.bytes.Bytes;
-import org.bouncycastle.crypto.digests.KeccakDigest;
+import org.hyperledger.besu.datatypes.Transaction;
+import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.evm.operation.Operation;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class KeccakSection extends TraceSection {
+public class KeccakSection extends TraceSection implements PostExecDefer, PostTransactionDefer {
 
-  public static void appendToTrace(Hub hub) {
+  final ImcFragment miscFragment;
+  final boolean triggerMmu;
+  MmuCall mmuCall;
 
-    final KeccakSection currentSection = new KeccakSection(hub);
-    hub.addTraceSection(currentSection);
+  public KeccakSection(Hub hub) {
+    super(hub, (short) 3);
+    hub.addTraceSection(this);
 
-    ImcFragment imcFragment = ImcFragment.empty(hub);
-    currentSection.addFragmentsAndStack(hub, imcFragment);
+    hub.addTraceSection(this);
 
-    MxpCall mxpCall = new MxpCall(hub);
-    imcFragment.callMxp(mxpCall);
+    miscFragment = ImcFragment.empty(hub);
+    this.addFragmentsAndStack(hub, miscFragment);
+
+    final MxpCall mxpCall = new MxpCall(hub);
+    miscFragment.callMxp(mxpCall);
 
     final boolean mayTriggerNonTrivialOperation = mxpCall.isMayTriggerNonTrivialMmuOperation();
-    final boolean triggerMmu =
-        mayTriggerNonTrivialOperation & Exceptions.none(hub.pch().exceptions());
+    triggerMmu = mayTriggerNonTrivialOperation & Exceptions.none(hub.pch().exceptions());
 
     if (triggerMmu) {
-      imcFragment.callMmu(MmuCall.sha3(hub));
-
-      // TODO: computing the hash shouldn't be done here
-      final long offset = clampedToLong(hub.messageFrame().getStackItem(0));
-      final long size = clampedToLong(hub.messageFrame().getStackItem(1));
-      Bytes dataToHash = hub.messageFrame().shadowReadMemory(offset, size);
-      KeccakDigest keccakDigest = new KeccakDigest(256);
-      keccakDigest.update(dataToHash.toArray(), 0, dataToHash.size());
-      byte[] hashOutput = new byte[keccakDigest.getDigestSize()];
-      keccakDigest.doFinal(hashOutput, 0);
-
-      // retroactively set HASH_INFO_FLAG and HASH_INFO_KECCAK_HI, HASH_INFO_KECCAK_LO
-      currentSection.triggerHashInfo(Bytes.of(hashOutput));
+      hub.defers().schedulePostExecution(this);
+      hub.defers().schedulePostTransaction(this);
+      mmuCall = MmuCall.sha3(hub);
     }
   }
 
-  private KeccakSection(Hub hub) {
-    super(hub);
+  @Override
+  public void resolvePostTransaction(
+      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+    miscFragment.callMmu(mmuCall);
+  }
+
+  @Override
+  public void resolvePostExecution(
+      Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
+    // retroactively set HASH_INFO_FLAG and HASH_INFO_KECCAK_HI, HASH_INFO_KECCAK_LO
+    this.triggerHashInfo(frame.getStackItem(0));
   }
 }

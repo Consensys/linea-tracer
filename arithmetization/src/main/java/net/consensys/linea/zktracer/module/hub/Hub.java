@@ -1110,7 +1110,7 @@ public class Hub implements Module {
       }
 
       case KEC -> {
-        KeccakSection.appendToTrace(this);
+        new KeccakSection(this);
       }
 
       case CONTEXT -> this.addTraceSection(

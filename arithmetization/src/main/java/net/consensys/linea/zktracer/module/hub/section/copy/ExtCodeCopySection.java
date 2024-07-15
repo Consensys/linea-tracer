@@ -22,6 +22,7 @@ import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
+import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
@@ -33,10 +34,13 @@ import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class ExtCodeCopySection extends TraceSection implements PostRollbackDefer {
+public class ExtCodeCopySection extends TraceSection
+    implements PostRollbackDefer, PostTransactionDefer {
 
   final Bytes rawAddress;
   final Address address;
@@ -116,6 +120,7 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
     triggerMmu = none(this.exceptions) && mxpCall.mayTriggerNonTrivialMmuOperation;
     if (triggerMmu) {
       mmuCall = MmuCall.extCodeCopy(hub);
+      hub.defers().schedulePostTransaction(this);
     }
 
     // TODO: make sure that hasCode returns false during deployments
@@ -140,10 +145,6 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
 
   @Override
   public void resolvePostRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
-
-    if (triggerMmu) {
-      miscFragment.callMmu(mmuCall);
-    }
 
     final int deploymentNumberAtRollback =
         hub.transients().conflation().deploymentInfo().number(this.address);
@@ -178,5 +179,13 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
             .make(revertFromSnapshot, revertToSnapshot, undoingDomSubStamps);
 
     this.addFragment(undoingAccountFragment);
+  }
+
+  @Override
+  public void resolvePostTransaction(
+      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+    if (triggerMmu) {
+      miscFragment.callMmu(mmuCall);
+    }
   }
 }

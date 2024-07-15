@@ -169,6 +169,11 @@ public class MmuCall implements TraceSubFragment {
   public static MmuCall sha3(final Hub hub) {
     return new MmuCall(MMU_INST_RAM_TO_EXO_WITH_PADDING)
         .sourceId(hub.currentFrame().contextNumber())
+        .sourceRamBytes(
+            Optional.of(
+                hub.currentFrame()
+                    .frame()
+                    .shadowReadMemory(0, hub.currentFrame().frame().memoryByteSize())))
         .auxId(hub.state().stamps().hub())
         .sourceOffset(EWord.of(hub.messageFrame().getStackItem(0)))
         .size(Words.clampedToLong(hub.messageFrame().getStackItem(1)))

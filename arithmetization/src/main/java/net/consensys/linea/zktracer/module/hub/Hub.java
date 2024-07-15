@@ -1057,12 +1057,8 @@ public class Hub implements Module {
           .addTraceSection(new StackOnlySection(this));
       case MUL -> {
         switch (this.opCode()) {
-          case OpCode.EXP -> {
-            this.addTraceSection(new ExpSection(this));
-          }
-          case OpCode.MUL -> {
-            this.addTraceSection(new StackOnlySection(this));
-          }
+          case OpCode.EXP -> new ExpSection(this);
+          case OpCode.MUL -> new StackOnlySection(this);
           default -> {
             throw new IllegalStateException(
                 String.format("opcode %s not part of the MUL instruction family", this.opCode()));
@@ -1105,22 +1101,15 @@ public class Hub implements Module {
             parentFrame.latestReturnData(Bytes.EMPTY);
           }
           case SELFDESTRUCT -> {
+            // TODO
             parentFrame.latestReturnData(Bytes.EMPTY);
           }
         }
       }
 
-      case KEC -> {
-        new KeccakSection(this);
-      }
-
-      case CONTEXT -> this.addTraceSection(
-          new ContextSection(this, ContextFragment.readCurrentContextData(this)));
-
-      case LOG -> {
-        new LogSection(this);
-      }
-
+      case KEC -> new KeccakSection(this);
+      case CONTEXT -> new ContextSection(this);
+      case LOG -> new LogSection(this);
       case ACCOUNT -> {
         final AccountSection accountSection = new AccountSection(this);
         accountSection.appendToTrace(this);
@@ -1137,8 +1126,7 @@ public class Hub implements Module {
         }
       }
 
-      case TRANSACTION -> this.addTraceSection(
-          new TransactionSection(this, TransactionFragment.prepare(this.txStack.current())));
+      case TRANSACTION -> new TransactionSection(this);
 
       case STACK_RAM -> {
         switch (this.currentFrame().opCode()) {

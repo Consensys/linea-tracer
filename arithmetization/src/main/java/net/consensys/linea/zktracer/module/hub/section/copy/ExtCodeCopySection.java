@@ -59,7 +59,6 @@ public class ExtCodeCopySection extends TraceSection
   public ExtCodeCopySection(Hub hub) {
     // 4 = 1 + 3
     super(hub, (short) 4);
-
     hub.addTraceSection(this);
 
     final MessageFrame frame = hub.messageFrame();

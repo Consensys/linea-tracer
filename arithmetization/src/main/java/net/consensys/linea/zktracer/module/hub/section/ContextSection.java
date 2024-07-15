@@ -19,8 +19,11 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 
 public class ContextSection extends TraceSection {
-  public ContextSection(Hub hub, ContextFragment fragment) {
+  public ContextSection(Hub hub) {
     super(hub, (short) 3);
-    this.addFragmentsAndStack(hub, fragment);
+    hub.addTraceSection(this);
+
+    ContextFragment currentContext = ContextFragment.readCurrentContextData(hub);
+    this.addFragmentsAndStack(hub, currentContext);
   }
 }

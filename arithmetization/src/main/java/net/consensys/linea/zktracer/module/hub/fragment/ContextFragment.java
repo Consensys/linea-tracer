@@ -86,6 +86,13 @@ public record ContextFragment(
         true);
   }
 
+  public static ContextFragment executionProvidesEmptyReturnData(final Hub hub, int contextNumber) {
+    CallStack callStack = hub.callStack();
+    int parentId = callStack.getByContextNumber(contextNumber).parentFrame();
+    return new ContextFragment(
+        hub, callStack, Either.left(parentId), contextNumber, MemorySpan.empty(), true);
+  }
+
   public static ContextFragment nonExecutionEmptyReturnData(final Hub hub) {
     CallStack callStack = hub.callStack();
     return new ContextFragment(

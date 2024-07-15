@@ -1101,8 +1101,8 @@ public class Hub implements Module {
             final ImcFragment imcFragment = ImcFragment.forOpcode(this, frame); // TODO finish it
           }
           case STOP -> {
+            new StopSection(this);
             parentFrame.latestReturnData(Bytes.EMPTY);
-            StopSection.appendTo(this);
           }
           case SELFDESTRUCT -> {
             parentFrame.latestReturnData(Bytes.EMPTY);

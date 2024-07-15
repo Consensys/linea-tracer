@@ -20,78 +20,111 @@ import static net.consensys.linea.zktracer.module.hub.fragment.ContextFragment.r
 import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
+import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
+import net.consensys.linea.zktracer.module.hub.transients.DeploymentInfo;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.Bytecode;
 import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.datatypes.Transaction;
+import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class StopSection extends TraceSection {
+public class StopSection extends TraceSection implements PostRollbackDefer, PostTransactionDefer {
 
-  public static void appendTo(Hub hub) {
-    CallFrame.provideParentContextWithEmptyReturnData(hub);
+  final Address address;
+  final int deploymentNumber;
+  final boolean deploymentStatus;
+  final int contextNumber;
 
-    if (hub.currentFrame().isMessageCall()) {
-      StopSection messageCallStopSection = messageCallStopSection(hub);
-      hub.addTraceSection(messageCallStopSection);
+  public StopSection(Hub hub) {
+    // 3 = 1 + 2 (max NON_STACK_ROWS in message call case)
+    // 5 = 1 + 4 (max NON_STACK_ROWS in deployment case)
+    super(hub, hub.callStack().current().isMessageCall() ? (short) 3 : (short) 5);
+    hub.addTraceSection(this);
+
+    this.address = hub.currentFrame().accountAddress();
+    this.contextNumber = hub.currentFrame().contextNumber();
+    {
+      DeploymentInfo deploymentInfo = hub.transients().conflation().deploymentInfo();
+      this.deploymentNumber = deploymentInfo.number(address);
+      this.deploymentStatus = deploymentInfo.isDeploying(address);
+    }
+
+    Preconditions.checkArgument(
+        hub.currentFrame().isDeployment() == this.deploymentStatus); // sanity check
+
+    // Message call case
+    ////////////////////
+    if (!this.deploymentStatus) {
+      this.addFragmentsAndStack(hub, readCurrentContextData(hub));
       return;
     }
 
-    StopSection deploymentStopSection = deploymentStopSection(hub);
-    hub.addTraceSection(deploymentStopSection);
+    // Deployment case
+    //////////////////
+    this.deploymentStopSection(hub);
+    hub.defers().scheduleForPostRollback(this, hub.currentFrame());
   }
 
-  private StopSection(Hub hub, TraceFragment... fragments) {
-    super(hub);
-    this.addFragmentsAndStack(hub, fragments);
-  }
+  public void deploymentStopSection(Hub hub) {
 
-  public static StopSection messageCallStopSection(Hub hub) {
-    StopSection messageCallStopSection =
-        new StopSection(hub, readCurrentContextData(hub), executionProvidesEmptyReturnData(hub));
-    return messageCallStopSection;
-  }
-
-  public static StopSection deploymentStopSection(Hub hub) {
-    AccountFragment.AccountFragmentFactory accountFragmentFactory =
-        hub.factories().accountFragment();
-
-    final Address address = hub.currentFrame().accountAddress();
-    final int deploymentNumber = hub.transients().conflation().deploymentInfo().number(address);
-    final boolean deploymentStatus =
-        hub.transients().conflation().deploymentInfo().isDeploying(address);
-
-    // we should be deploying
-    Preconditions.checkArgument(deploymentStatus);
-
-    AccountSnapshot beforeEmptyDeployment =
-        AccountSnapshot.fromAddress(address, true, deploymentNumber, deploymentStatus);
-    AccountSnapshot afterEmptyDeployment = beforeEmptyDeployment.deployByteCode(Bytecode.EMPTY);
-    StopSection stopWhileDeploying =
-        new StopSection(
-            hub,
-            readCurrentContextData(hub),
-            // current (under deployment => deployed with empty byte code)
-            accountFragmentFactory.make(
-                beforeEmptyDeployment,
+    AccountSnapshot priorEmptyDeployment = AccountSnapshot.canonical(hub, address);
+    AccountSnapshot afterEmptyDeployment = priorEmptyDeployment.deployByteCode(Bytecode.EMPTY);
+    AccountFragment doingAccountFragment =
+        hub.factories()
+            .accountFragment()
+            .make(
+                priorEmptyDeployment,
                 afterEmptyDeployment,
-                DomSubStampsSubFragment.standardDomSubStamps(hub, 0)));
+                DomSubStampsSubFragment.standardDomSubStamps(hub, 0));
 
-    if (hub.currentFrame().willRevert()) {
-      // undoing of the above
-      stopWhileDeploying.addFragmentsWithoutStack(
-          accountFragmentFactory.make(
-              afterEmptyDeployment,
-              beforeEmptyDeployment,
-              DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 1)),
-          executionProvidesEmptyReturnData(hub));
+    this.addFragmentsAndStack(hub, readCurrentContextData(hub), doingAccountFragment);
+  }
 
-    } else {
-      stopWhileDeploying.addFragmentsWithoutStack(executionProvidesEmptyReturnData(hub));
+  /**
+   * Adds the missing account "undoing operation" to the StopSection provided the relevant context
+   * reverted and the STOP instruction happened in a deployment context.
+   *
+   * @param hub
+   * @param messageFrame access point to world state & accrued state
+   * @param callFrame reference to call frame whose actions are to be undone
+   */
+  @Override
+  public void resolvePostRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
+
+    if (!this.deploymentStatus) {
+      return;
     }
 
-    return stopWhileDeploying;
+    Preconditions.checkArgument(this.fragments().getLast() instanceof AccountFragment);
+    AccountFragment lastAccountFragment = (AccountFragment) this.fragments().getLast();
+
+    this.addFragmentsWithoutStack(
+        hub.factories()
+            .accountFragment()
+            .make(
+                lastAccountFragment.newState(),
+                lastAccountFragment.oldState(),
+                DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 1)));
+  }
+
+  /**
+   * Adds the missing context fragment in all cases. This context fragment squashes the caller
+   * (parent) context return data.
+   *
+   * @param hub the {@link Hub} in which the {@link Transaction} took place
+   * @param state a view onto the current blockchain state
+   * @param tx the {@link Transaction} that just executed
+   * @param isSuccessful
+   */
+  @Override
+  public void resolvePostTransaction(
+      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+
+    this.addFragmentsWithoutStack(executionProvidesEmptyReturnData(hub, this.contextNumber));
   }
 }

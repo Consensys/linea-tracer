@@ -22,6 +22,7 @@ import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
 import java.util.Optional;
 
 import com.google.common.base.Preconditions;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -44,8 +45,8 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 public final class AccountFragment
     implements TraceFragment, PostTransactionDefer, PostConflationDefer {
 
-  private final AccountSnapshot oldState;
-  private final AccountSnapshot newState;
+  @Getter private final AccountSnapshot oldState;
+  @Getter private final AccountSnapshot newState;
   @Setter private int deploymentNumberInfinity = 0; // retconned on conflation end
   private final int deploymentNumber;
   private final boolean isDeployment;

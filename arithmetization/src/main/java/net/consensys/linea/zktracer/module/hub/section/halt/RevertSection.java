@@ -48,16 +48,14 @@ public class RevertSection extends TraceSection implements PostTransactionDefer 
     // triggerMxp = true
     MxpCall mxpCall = new MxpCall(hub);
     imcFragment.callMxp(mxpCall);
-    Preconditions.checkArgument(
-            mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions));
+    Preconditions.checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions));
 
     triggerMmu =
-            (Exceptions.none(exceptions))
-                    && !hub.currentFrame().isRoot()
-                    && mxpCall.isMayTriggerNonTrivialMmuOperation() // i.e. size ≠ 0 ∧ ¬MXPX
-                    && !hub.currentFrame().requestedReturnDataTarget().isEmpty();
+        (Exceptions.none(exceptions))
+            && !hub.currentFrame().isRoot()
+            && mxpCall.isMayTriggerNonTrivialMmuOperation() // i.e. size ≠ 0 ∧ ¬MXPX
+            && !hub.currentFrame().requestedReturnDataTarget().isEmpty();
     mmuCall = (Exceptions.none(exceptions)) ? MmuCall.revert(hub) : new MmuCall();
-
 
     // The XAHOY case
     /////////////////
@@ -72,7 +70,7 @@ public class RevertSection extends TraceSection implements PostTransactionDefer 
 
   @Override
   public void resolvePostTransaction(
-          Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
     if (triggerMmu) {
       imcFragment.callMmu(mmuCall);
     }

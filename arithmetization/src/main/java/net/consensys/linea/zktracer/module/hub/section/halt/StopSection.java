@@ -117,8 +117,8 @@ public class StopSection extends TraceSection implements PostRollbackDefer, Post
   }
 
   /**
-   * Adds the missing context fragment. This context fragment squashes the caller
-   * (parent) context return data. Applies in all cases.
+   * Adds the missing context fragment. This context fragment squashes the caller (parent) context
+   * return data. Applies in all cases.
    *
    * @param hub the {@link Hub} in which the {@link Transaction} took place
    * @param state a view onto the current blockchain state

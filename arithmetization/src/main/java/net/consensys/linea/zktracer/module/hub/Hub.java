@@ -57,6 +57,7 @@ import net.consensys.linea.zktracer.module.hub.section.calls.FailedCallSection;
 import net.consensys.linea.zktracer.module.hub.section.calls.NoCodeCallSection;
 import net.consensys.linea.zktracer.module.hub.section.calls.SmartContractCallSection;
 import net.consensys.linea.zktracer.module.hub.section.copy.*;
+import net.consensys.linea.zktracer.module.hub.section.halt.RevertSection;
 import net.consensys.linea.zktracer.module.hub.section.halt.StopSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
@@ -1086,15 +1087,15 @@ public class Hub implements Module {
             final ImcFragment imcFragment = ImcFragment.forOpcode(this, frame); // TODO finish it
           }
           case REVERT -> {
+            new RevertSection(this);
             final Bytes returnData = this.transients.op().returnData();
             this.currentFrame().returnDataSource(transients.op().returnDataSegment());
             this.currentFrame().returnData(returnData);
-            if (!Exceptions.any(this.pch.exceptions())) {
+            if (Exceptions.none(this.pch.exceptions())) {
               parentFrame.latestReturnData(returnData);
             } else {
               parentFrame.latestReturnData(Bytes.EMPTY);
             }
-            final ImcFragment imcFragment = ImcFragment.forOpcode(this, frame); // TODO finish it
           }
           case STOP -> {
             new StopSection(this);

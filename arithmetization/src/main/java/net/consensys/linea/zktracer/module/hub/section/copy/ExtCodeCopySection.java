@@ -75,7 +75,10 @@ public class ExtCodeCopySection extends TraceSection
     miscFragment = ImcFragment.empty(hub);
     this.addFragmentsAndStack(hub, miscFragment);
 
+    // triggerExp = false
     // triggerOob = false
+    // triggerStp = false
+
     // triggerMxp = true
     final MxpCall mxpCall = new MxpCall(hub);
     miscFragment.callMxp(mxpCall);

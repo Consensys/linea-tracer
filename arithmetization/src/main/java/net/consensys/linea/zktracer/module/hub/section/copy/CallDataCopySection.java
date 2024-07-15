@@ -17,16 +17,22 @@ package net.consensys.linea.zktracer.module.hub.section.copy;
 
 import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
+import org.hyperledger.besu.datatypes.Transaction;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class CallDataCopySection extends TraceSection {
+public class CallDataCopySection extends TraceSection implements PostTransactionDefer {
 
   final short exceptions;
+  final ImcFragment miscFragment;
+  boolean triggerMmu = false;
+  MmuCall mmuCall;
 
   public CallDataCopySection(Hub hub) {
     // 3 = 1 + 2
@@ -34,18 +40,14 @@ public class CallDataCopySection extends TraceSection {
     this.exceptions = hub.pch().exceptions();
 
     hub.addTraceSection(this);
-    this.populate(hub);
-  }
 
-  public void populate(Hub hub) {
-
-    ImcFragment imcFragment = ImcFragment.empty(hub);
-    this.addFragmentsAndStack(hub, imcFragment);
+    miscFragment = ImcFragment.empty(hub);
+    this.addFragmentsAndStack(hub, miscFragment);
 
     // triggerOob = false
     // triggerMxp = true
-    MxpCall mxpCall = new MxpCall(hub);
-    imcFragment.callMxp(mxpCall);
+    final MxpCall mxpCall = new MxpCall(hub);
+    miscFragment.callMxp(mxpCall);
 
     Preconditions.checkArgument(
         mxpCall.mxpx == Exceptions.memoryExpansionException(this.exceptions));
@@ -71,15 +73,22 @@ public class CallDataCopySection extends TraceSection {
     // The unexceptional case
     /////////////////////////
 
-    ContextFragment currentContext = ContextFragment.readCurrentContextData(hub);
+    final ContextFragment currentContext = ContextFragment.readCurrentContextData(hub);
     this.addFragment(currentContext);
 
-    final boolean triggerMmu = mxpCall.mayTriggerNonTrivialMmuOperation;
+    triggerMmu = mxpCall.mayTriggerNonTrivialMmuOperation;
     if (!triggerMmu) {
       return;
     }
 
-    MmuCall mmuCall = MmuCall.callDataCopy(hub);
-    imcFragment.callMmu(mmuCall);
+    mmuCall = MmuCall.callDataCopy(hub);
+  }
+
+  @Override
+  public void resolvePostTransaction(
+      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+    if (triggerMmu) {
+      miscFragment.callMmu(mmuCall);
+    }
   }
 }

@@ -17,6 +17,8 @@ package net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.opcode;
 
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_ANY_TO_RAM_WITH_PADDING;
 
+import java.util.Optional;
+
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.romlex.ContractMetadata;
@@ -35,7 +37,7 @@ public class ExtCodeCopy extends MmuCall {
   public ExtCodeCopy(final Hub hub) {
     super(MMU_INST_ANY_TO_RAM_WITH_PADDING);
     this.hub = hub;
-    Address sourceAddress = Words.toAddress(hub.messageFrame().getStackItem(0));
+    final Address sourceAddress = Words.toAddress(hub.messageFrame().getStackItem(0));
     this.contract =
         ContractMetadata.make(
             sourceAddress,
@@ -43,6 +45,11 @@ public class ExtCodeCopy extends MmuCall {
             hub.transients().conflation().deploymentInfo().isDeploying(sourceAddress));
 
     this.targetId(hub.currentFrame().contextNumber())
+        .targetRamBytes(
+            Optional.of(
+                hub.currentFrame()
+                    .frame()
+                    .shadowReadMemory(0, hub.currentFrame().frame().memoryByteSize())))
         .sourceOffset(EWord.of(hub.messageFrame().getStackItem(2)))
         .targetOffset(EWord.of(hub.messageFrame().getStackItem(1)))
         .size(Words.clampedToLong(hub.messageFrame().getStackItem(3)))

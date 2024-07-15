@@ -48,9 +48,16 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
   AccountSnapshot accountBefore;
   AccountSnapshot accountAfter;
 
+  final ImcFragment miscFragment;
+  boolean triggerMmu = false;
+  MmuCall mmuCall;
+
   public ExtCodeCopySection(Hub hub) {
     // 4 = 1 + 3
     super(hub, (short) 4);
+
+    hub.addTraceSection(this);
+
     final MessageFrame frame = hub.messageFrame();
     this.rawAddress = frame.getStackItem(0);
     this.address = Address.extract((Bytes32) this.rawAddress);
@@ -61,19 +68,13 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
     this.incomingWarmth = frame.isAddressWarm(this.address);
     this.exceptions = hub.pch().exceptions();
 
-    this.populate(hub);
-    hub.addTraceSection(this);
-  }
-
-  public void populate(Hub hub) {
-
-    ImcFragment imcFragment = ImcFragment.empty(hub);
-    this.addFragmentsAndStack(hub, imcFragment);
+    miscFragment = ImcFragment.empty(hub);
+    this.addFragmentsAndStack(hub, miscFragment);
 
     // triggerOob = false
     // triggerMxp = true
-    MxpCall mxpCall = new MxpCall(hub);
-    imcFragment.callMxp(mxpCall);
+    final MxpCall mxpCall = new MxpCall(hub);
+    miscFragment.callMxp(mxpCall);
 
     Preconditions.checkArgument(
         mxpCall.mxpx == Exceptions.memoryExpansionException(this.exceptions));
@@ -84,7 +85,6 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
       return;
     }
 
-    final MessageFrame frame = hub.messageFrame();
     final Account foreignAccount = frame.getWorldUpdater().get(this.address);
 
     this.accountBefore =
@@ -94,14 +94,14 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
             this.incomingDeploymentNumber,
             this.incomingDeploymentStatus);
 
-    DomSubStampsSubFragment doingDomSubStamps =
+    final DomSubStampsSubFragment doingDomSubStamps =
         DomSubStampsSubFragment.standardDomSubStamps(hub, 0);
 
     // The OOGX case
     ////////////////
     if (outOfGasException(this.exceptions)) {
       // the last context row will be added automatically
-      AccountFragment accountReadingFragment =
+      final AccountFragment accountReadingFragment =
           hub.factories()
               .accountFragment()
               .makeWithTrm(
@@ -113,10 +113,9 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
 
     // The unexceptional case
     /////////////////////////
-    final boolean triggerMmu = none(this.exceptions) && mxpCall.mayTriggerNonTrivialMmuOperation;
+    triggerMmu = none(this.exceptions) && mxpCall.mayTriggerNonTrivialMmuOperation;
     if (triggerMmu) {
-      MmuCall mmuCall = MmuCall.extCodeCopy(hub);
-      imcFragment.callMmu(mmuCall);
+      mmuCall = MmuCall.extCodeCopy(hub);
     }
 
     // TODO: make sure that hasCode returns false during deployments
@@ -127,7 +126,7 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
         AccountSnapshot.fromAccount(
             foreignAccount, true, this.incomingDeploymentNumber, this.incomingDeploymentStatus);
 
-    AccountFragment accountDoingFragment =
+    final AccountFragment accountDoingFragment =
         hub.factories()
             .accountFragment()
             .makeWithTrm(this.accountBefore, this.accountAfter, this.rawAddress, doingDomSubStamps);
@@ -142,12 +141,16 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
   @Override
   public void resolvePostRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
 
+    if (triggerMmu) {
+      miscFragment.callMmu(mmuCall);
+    }
+
     final int deploymentNumberAtRollback =
         hub.transients().conflation().deploymentInfo().number(this.address);
     final boolean deploymentStatusAtRollback =
         hub.transients().conflation().deploymentInfo().isDeploying(this.address);
 
-    AccountSnapshot revertFromSnapshot =
+    final AccountSnapshot revertFromSnapshot =
         new AccountSnapshot(
             this.accountAfter.address(),
             this.accountAfter.nonce(),
@@ -157,7 +160,7 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
             deploymentNumberAtRollback,
             deploymentStatusAtRollback);
 
-    AccountSnapshot revertToSnapshot =
+    final AccountSnapshot revertToSnapshot =
         new AccountSnapshot(
             this.accountBefore.address(),
             this.accountBefore.nonce(),
@@ -167,9 +170,9 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
             deploymentNumberAtRollback,
             deploymentStatusAtRollback);
 
-    DomSubStampsSubFragment undoingDomSubStamps =
+    final DomSubStampsSubFragment undoingDomSubStamps =
         DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 1);
-    AccountFragment undoingAccountFragment =
+    final AccountFragment undoingAccountFragment =
         hub.factories()
             .accountFragment()
             .make(revertFromSnapshot, revertToSnapshot, undoingDomSubStamps);

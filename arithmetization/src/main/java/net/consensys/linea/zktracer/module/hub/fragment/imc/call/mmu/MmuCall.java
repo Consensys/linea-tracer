@@ -84,6 +84,7 @@ import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.MemorySpan;
 import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 
 /**
@@ -178,9 +179,18 @@ public class MmuCall implements TraceSubFragment {
   public static MmuCall callDataCopy(final Hub hub) {
     final MemorySpan callDataSegment = hub.currentFrame().callDataInfo().memorySpan();
 
+    final int callDataContextNumber = callDataContextNumber(hub);
+    final MessageFrame callFrame = hub.callStack().getById(callDataContextNumber).frame();
+
     return new MmuCall(MMU_INST_ANY_TO_RAM_WITH_PADDING)
-        .sourceId(callDataContextNumber(hub))
+        .sourceId(callDataContextNumber)
+        .sourceRamBytes(Optional.of(callFrame.shadowReadMemory(0, callFrame.memoryByteSize())))
         .targetId(hub.currentFrame().contextNumber())
+        .targetRamBytes(
+            Optional.of(
+                hub.currentFrame()
+                    .frame()
+                    .shadowReadMemory(0, hub.currentFrame().frame().memoryByteSize())))
         .sourceOffset(EWord.of(hub.messageFrame().getStackItem(1)))
         .targetOffset(EWord.of(hub.messageFrame().getStackItem(0)))
         .size(Words.clampedToLong(hub.messageFrame().getStackItem(2)))
@@ -223,10 +233,19 @@ public class MmuCall implements TraceSubFragment {
 
   public static MmuCall returnDataCopy(final Hub hub) {
     final MemorySpan returnDataSegment = hub.currentFrame().latestReturnDataSource();
+    final CallFrame returnerFrame =
+        hub.callStack().getById(hub.currentFrame().returnDataContextNumber());
     return new MmuCall(MMU_INST_ANY_TO_RAM_WITH_PADDING)
-        .sourceId(
-            hub.callStack().getById(hub.currentFrame().returnDataContextNumber()).contextNumber())
+        .sourceId(returnerFrame.contextNumber())
+        .sourceRamBytes(
+            Optional.of(
+                returnerFrame.frame().shadowReadMemory(0, returnerFrame.frame().memoryByteSize())))
         .targetId(hub.currentFrame().contextNumber())
+        .targetRamBytes(
+            Optional.of(
+                hub.currentFrame()
+                    .frame()
+                    .shadowReadMemory(0, hub.currentFrame().frame().memoryByteSize())))
         .sourceOffset(EWord.of(hub.messageFrame().getStackItem(1)))
         .targetOffset(EWord.of(hub.messageFrame().getStackItem(0)))
         .size(Words.clampedToLong(hub.messageFrame().getStackItem(2)))

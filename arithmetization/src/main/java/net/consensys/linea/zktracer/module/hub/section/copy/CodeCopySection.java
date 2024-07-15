@@ -34,28 +34,26 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class CodeCopySection extends TraceSection implements PostTransactionDefer {
-  ImcFragment imcFragment;
+  final ImcFragment imcFragment;
   boolean triggerMmu;
   final short exceptions;
+  MmuCall mmuCall;
 
   public CodeCopySection(Hub hub) {
     // 4 = 1 (stack row) + 3 (up to 3 non-stack rows)
     super(hub, (short) 4);
     this.exceptions = hub.pch().exceptions();
-    this.populate(hub);
     hub.addTraceSection(this);
-  }
 
-  public void populate(Hub hub) {
     // Miscellaneous row
     imcFragment = ImcFragment.empty(hub);
     this.addFragmentsAndStack(hub, imcFragment);
 
     // triggerOob = false
     // triggerMxp = true
-    MxpCall mxpCall = new MxpCall(hub);
+    final MxpCall mxpCall = new MxpCall(hub);
     imcFragment.callMxp(mxpCall);
-    boolean mxpx = mxpCall.mxpx;
+    final boolean mxpx = mxpCall.mxpx;
     Preconditions.checkArgument(mxpx == Exceptions.memoryExpansionException(exceptions));
 
     // The MXPX case
@@ -64,7 +62,7 @@ public class CodeCopySection extends TraceSection implements PostTransactionDefe
       return;
     }
 
-    boolean xahoy = Exceptions.any(exceptions);
+    final boolean xahoy = Exceptions.any(exceptions);
     Preconditions.checkArgument(xahoy == (exceptions == Exceptions.OUT_OF_GAS_EXCEPTION));
 
     // The OOGX case
@@ -76,7 +74,7 @@ public class CodeCopySection extends TraceSection implements PostTransactionDefe
     // Beyond this point we are in the xahoy = false case
 
     // Context row
-    ContextFragment contextFragment = ContextFragment.readCurrentContextData(hub);
+    final ContextFragment contextFragment = ContextFragment.readCurrentContextData(hub);
     this.addFragment(contextFragment);
 
     // Account row
@@ -84,20 +82,20 @@ public class CodeCopySection extends TraceSection implements PostTransactionDefe
     final Address codeAddress = frame.getContractAddress();
     final Account codeAccount = frame.getWorldUpdater().get(codeAddress);
 
-    boolean warmth = frame.isAddressWarm(codeAddress);
+    final boolean warmth = frame.isAddressWarm(codeAddress);
     Preconditions.checkArgument(warmth);
 
-    AccountSnapshot codeAccountSnapshot =
+    final AccountSnapshot codeAccountSnapshot =
         AccountSnapshot.fromAccount(
             codeAccount,
             warmth,
             hub.transients().conflation().deploymentInfo().number(codeAddress),
             hub.transients().conflation().deploymentInfo().isDeploying(codeAddress));
 
-    DomSubStampsSubFragment doingDomSubStamps =
+    final DomSubStampsSubFragment doingDomSubStamps =
         DomSubStampsSubFragment.standardDomSubStamps(hub, 0); // Specifics for CODECOPY
 
-    AccountFragment accountReadingFragment =
+    final AccountFragment accountReadingFragment =
         hub.factories()
             .accountFragment()
             .make(codeAccountSnapshot, codeAccountSnapshot, doingDomSubStamps);
@@ -107,6 +105,9 @@ public class CodeCopySection extends TraceSection implements PostTransactionDefe
     this.addFragment(accountReadingFragment);
 
     triggerMmu = mxpCall.isMayTriggerNonTrivialMmuOperation();
+    if (triggerMmu) {
+      mmuCall = MmuCall.codeCopy(hub);
+    }
     hub.defers().schedulePostTransaction(this);
   }
 
@@ -114,7 +115,6 @@ public class CodeCopySection extends TraceSection implements PostTransactionDefe
   public void resolvePostTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
     if (triggerMmu) {
-      MmuCall mmuCall = MmuCall.codeCopy(hub);
       imcFragment.callMmu(mmuCall);
     }
   }

@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.module.hub.section.copy;
 
 import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
@@ -24,30 +25,32 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.ReturnDataCopyOobCall;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
+import org.hyperledger.besu.datatypes.Transaction;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class ReturnDataCopySection extends TraceSection {
+public class ReturnDataCopySection extends TraceSection implements PostTransactionDefer {
 
   final short exceptions;
+
+  final ImcFragment miscFragment;
+  boolean triggerMmu = false;
+  MmuCall mmuCall;
 
   public ReturnDataCopySection(Hub hub) {
     // 4 = 1 + 3
     super(hub, (short) 4);
     this.exceptions = hub.pch().exceptions();
 
-    this.populate(hub);
     hub.addTraceSection(this);
-  }
 
-  public void populate(Hub hub) {
-
-    ContextFragment currentContext = ContextFragment.readCurrentContextData(hub);
+    final ContextFragment currentContext = ContextFragment.readCurrentContextData(hub);
     this.addFragmentsAndStack(hub, currentContext);
 
-    ImcFragment imcFragment = ImcFragment.empty(hub);
-    this.addFragment(imcFragment);
+    miscFragment = ImcFragment.empty(hub);
+    this.addFragment(miscFragment);
 
-    ReturnDataCopyOobCall oobCall = new ReturnDataCopyOobCall();
-    imcFragment.callOob(oobCall);
+    final ReturnDataCopyOobCall oobCall = new ReturnDataCopyOobCall();
+    miscFragment.callOob(oobCall);
 
     final boolean returnDataCopyException = oobCall.isRdcx();
     Preconditions.checkArgument(
@@ -57,8 +60,8 @@ public class ReturnDataCopySection extends TraceSection {
       return;
     }
 
-    MxpCall mxpCall = new MxpCall(hub);
-    imcFragment.callMxp(mxpCall);
+    final MxpCall mxpCall = new MxpCall(hub);
+    miscFragment.callMxp(mxpCall);
 
     final boolean memoryExpansionException = mxpCall.mxpx;
     Preconditions.checkArgument(
@@ -70,10 +73,17 @@ public class ReturnDataCopySection extends TraceSection {
     }
 
     // beyond this point unexceptional
-    final boolean triggerMmu = mxpCall.mayTriggerNonTrivialMmuOperation;
+    triggerMmu = mxpCall.mayTriggerNonTrivialMmuOperation;
     if (triggerMmu) {
-      MmuCall mmuCall = MmuCall.returnDataCopy(hub);
-      imcFragment.callMmu(mmuCall);
+      mmuCall = MmuCall.returnDataCopy(hub);
+    }
+  }
+
+  @Override
+  public void resolvePostTransaction(
+      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+    if (triggerMmu) {
+      miscFragment.callMmu(mmuCall);
     }
   }
 }

@@ -236,7 +236,7 @@ public final class CallStack {
       callData = input;
     }
 
-    CallFrame newFrame =
+    final CallFrame newFrame =
         new CallFrame(
             accountDeploymentNumber,
             codeDeploymentNumber,

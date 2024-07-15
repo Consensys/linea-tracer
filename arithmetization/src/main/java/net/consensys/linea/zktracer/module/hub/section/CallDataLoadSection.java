@@ -56,7 +56,7 @@ public class CallDataLoadSection extends TraceSection implements PostTransaction
     this.currentContextNumber = hub.currentFrame().contextNumber();
     this.callDataSize = hub.currentFrame().callDataInfo().memorySpan().length();
     this.callDataOffset = hub.currentFrame().callDataInfo().memorySpan().offset();
-    this.sourceOffset = (EWord) hub.currentFrame().frame().getStackItem(0);
+    this.sourceOffset = EWord.of(hub.currentFrame().frame().getStackItem(0));
     this.callDataCN = hub.currentFrame().callDataInfo().callDataContextNumber();
     this.callDataRam = hub.currentFrame().callDataInfo().data();
 

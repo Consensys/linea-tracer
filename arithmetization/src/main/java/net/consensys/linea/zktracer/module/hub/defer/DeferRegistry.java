@@ -83,6 +83,10 @@ public class DeferRegistry
     this.reEntryDefers.add(defer);
   }
 
+  public void enterFrame(final CallFrame callFrame) {
+    this.rollbackDefers.put(callFrame, new ArrayList<>());
+  }
+
   public void scheduleForPostRollback(PostRollbackDefer defer, CallFrame callFrame) {
     this.rollbackDefers.get(callFrame).add(defer);
   }

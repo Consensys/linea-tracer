@@ -547,6 +547,7 @@ public class Hub implements Module {
                 ? 0
                 : this.transients.conflation().deploymentInfo().number(toAddress),
             this.transients.conflation().deploymentInfo().isDeploying(toAddress));
+        this.defers.enterFrame(this.callStack.current());
       } else {
         this.callStack.newBedrock(
             this.state.stamps().hub(),
@@ -567,6 +568,7 @@ public class Hub implements Module {
                 ? 0
                 : this.transients.conflation().deploymentInfo().number(toAddress),
             this.transients.conflation().deploymentInfo().isDeploying(toAddress));
+        this.defers.enterFrame(this.callStack.current());
       }
     } else {
       // ...or CALL
@@ -614,6 +616,7 @@ public class Hub implements Module {
           codeDeploymentNumber,
           isDeployment);
 
+      this.defers.enterFrame(this.callStack.current());
       this.defers.resolveWithNextContext(this, frame);
 
       for (Module m : this.modules) {

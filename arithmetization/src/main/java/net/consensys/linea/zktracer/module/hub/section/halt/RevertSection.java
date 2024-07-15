@@ -43,7 +43,6 @@ public class RevertSection extends TraceSection {
         // triggerExp = false
         // triggerOob = false
         // triggerStp = false
-
         // triggerMxp = true
         MxpCall mxpCall = new MxpCall(hub);
         imcFragment.callMxp(mxpCall);

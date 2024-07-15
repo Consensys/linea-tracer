@@ -22,6 +22,7 @@ import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
+import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
@@ -39,27 +40,30 @@ public class StopSection extends TraceSection implements PostRollbackDefer, Post
   final int deploymentNumber;
   final boolean deploymentStatus;
   final int contextNumber;
+  final ContextFragment parentContextReturnDataRest;
 
   public StopSection(Hub hub) {
-    // 3 = 1 + 2 (max NON_STACK_ROWS in message call case)
-    // 5 = 1 + 4 (max NON_STACK_ROWS in deployment case)
+    // 3 = 1 + max_NON_STACK_ROWS in message call case
+    // 5 = 1 + max_NON_STACK_ROWS in deployment case
     super(hub, hub.callStack().current().isMessageCall() ? (short) 3 : (short) 5);
     hub.addTraceSection(this);
+    hub.defers().schedulePostTransaction(this); // always
 
-    this.address = hub.currentFrame().accountAddress();
-    this.contextNumber = hub.currentFrame().contextNumber();
+    address = hub.currentFrame().accountAddress();
+    contextNumber = hub.currentFrame().contextNumber();
     {
       DeploymentInfo deploymentInfo = hub.transients().conflation().deploymentInfo();
-      this.deploymentNumber = deploymentInfo.number(address);
-      this.deploymentStatus = deploymentInfo.isDeploying(address);
+      deploymentNumber = deploymentInfo.number(address);
+      deploymentStatus = deploymentInfo.isDeploying(address);
     }
+    parentContextReturnDataRest = executionProvidesEmptyReturnData(hub);
 
     Preconditions.checkArgument(
-        hub.currentFrame().isDeployment() == this.deploymentStatus); // sanity check
+        hub.currentFrame().isDeployment() == deploymentStatus); // sanity check
 
     // Message call case
     ////////////////////
-    if (!this.deploymentStatus) {
+    if (!deploymentStatus) {
       this.addFragmentsAndStack(hub, readCurrentContextData(hub));
       return;
     }
@@ -67,7 +71,7 @@ public class StopSection extends TraceSection implements PostRollbackDefer, Post
     // Deployment case
     //////////////////
     this.deploymentStopSection(hub);
-    hub.defers().scheduleForPostRollback(this, hub.currentFrame());
+    hub.defers().scheduleForPostRollback(this, hub.currentFrame()); // for deployments only
   }
 
   public void deploymentStopSection(Hub hub) {
@@ -113,8 +117,8 @@ public class StopSection extends TraceSection implements PostRollbackDefer, Post
   }
 
   /**
-   * Adds the missing context fragment in all cases. This context fragment squashes the caller
-   * (parent) context return data.
+   * Adds the missing context fragment. This context fragment squashes the caller
+   * (parent) context return data. Applies in all cases.
    *
    * @param hub the {@link Hub} in which the {@link Transaction} took place
    * @param state a view onto the current blockchain state
@@ -124,7 +128,6 @@ public class StopSection extends TraceSection implements PostRollbackDefer, Post
   @Override
   public void resolvePostTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
-
-    this.addFragmentsWithoutStack(executionProvidesEmptyReturnData(hub, this.contextNumber));
+    this.addFragmentsWithoutStack(this.parentContextReturnDataRest);
   }
 }

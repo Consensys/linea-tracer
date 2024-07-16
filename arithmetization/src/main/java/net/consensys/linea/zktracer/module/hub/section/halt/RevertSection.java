@@ -29,7 +29,7 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 public class RevertSection extends TraceSection implements PostTransactionDefer {
 
   final ImcFragment imcFragment;
-  final MmuCall mmuCall;
+  MmuCall mmuCall;
   final boolean triggerMmu;
 
   public RevertSection(Hub hub) {
@@ -55,7 +55,11 @@ public class RevertSection extends TraceSection implements PostTransactionDefer 
             && !hub.currentFrame().isRoot()
             && mxpCall.isMayTriggerNonTrivialMmuOperation() // i.e. size ≠ 0 ∧ ¬MXPX
             && !hub.currentFrame().requestedReturnDataTarget().isEmpty();
-    mmuCall = (Exceptions.none(exceptions)) ? MmuCall.revert(hub) : new MmuCall();
+
+    if (triggerMmu) {
+      mmuCall = MmuCall.revert(hub);
+      hub.defers().schedulePostTransaction(this);
+    }
 
     // The XAHOY case
     /////////////////
@@ -63,16 +67,14 @@ public class RevertSection extends TraceSection implements PostTransactionDefer 
       return;
     }
 
-    ContextFragment currentContext = ContextFragment.readCurrentContextData(hub);
-    ContextFragment parentContext = ContextFragment.executionProvidesEmptyReturnData(hub);
+    final ContextFragment currentContext = ContextFragment.readCurrentContextData(hub);
+    final ContextFragment parentContext = ContextFragment.executionProvidesEmptyReturnData(hub);
     this.addFragmentsWithoutStack(currentContext, parentContext);
   }
 
   @Override
   public void resolvePostTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
-    if (triggerMmu) {
-      imcFragment.callMmu(mmuCall);
-    }
+    imcFragment.callMmu(mmuCall);
   }
 }

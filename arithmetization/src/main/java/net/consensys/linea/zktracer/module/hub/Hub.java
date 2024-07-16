@@ -1054,8 +1054,18 @@ public class Hub implements Module {
 
   void traceOperation(MessageFrame frame) {
     switch (this.opCodeData().instructionFamily()) {
-      case ADD, MOD, SHF, BIN, WCP, EXT, BATCH, MACHINE_STATE, PUSH_POP, DUP, SWAP, INVALID -> this
-          .addTraceSection(new StackOnlySection(this));
+      case ADD,
+          MOD,
+          SHF,
+          BIN,
+          WCP,
+          EXT,
+          BATCH,
+          MACHINE_STATE,
+          PUSH_POP,
+          DUP,
+          SWAP,
+          INVALID -> new StackOnlySection(this);
       case MUL -> {
         switch (this.opCode()) {
           case OpCode.EXP -> new ExpSection(this);
@@ -1111,11 +1121,7 @@ public class Hub implements Module {
       case KEC -> new KeccakSection(this);
       case CONTEXT -> new ContextSection(this);
       case LOG -> new LogSection(this);
-      case ACCOUNT -> {
-        final AccountSection accountSection = new AccountSection(this);
-        accountSection.appendToTrace(this);
-      }
-
+      case ACCOUNT -> new AccountSection(this);
       case COPY -> {
         switch (this.opCode()) {
           case OpCode.CALLDATACOPY -> new CallDataCopySection(this);
@@ -1131,24 +1137,16 @@ public class Hub implements Module {
 
       case STACK_RAM -> {
         switch (this.currentFrame().opCode()) {
-          case CALLDATALOAD -> {
-            this.addTraceSection(new CallDataLoadSection(this));
-          }
-          case MLOAD, MSTORE, MSTORE8 -> this.addTraceSection(new StackRamSection(this));
+          case CALLDATALOAD -> new CallDataLoadSection(this);
+          case MLOAD, MSTORE, MSTORE8 -> new StackRamSection(this);
           default -> throw new IllegalStateException("unexpected STACK_RAM opcode");
         }
       }
 
       case STORAGE -> {
         switch (this.currentFrame().opCode()) {
-          case SSTORE -> {
-            final SstoreSection sstoreSection = new SstoreSection(this, frame.getWorldUpdater());
-            sstoreSection.populateSection(this);
-          }
-          case SLOAD -> {
-            final SloadSection sloadSection = new SloadSection(this, frame.getWorldUpdater());
-            sloadSection.populateSection(this);
-          }
+          case SSTORE -> new SstoreSection(this, frame.getWorldUpdater());
+          case SLOAD -> new SloadSection(this, frame.getWorldUpdater());
           default -> throw new IllegalStateException("invalid operation in family STORAGE");
         }
       }

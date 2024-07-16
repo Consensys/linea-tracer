@@ -59,9 +59,6 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
 
     hub.addTraceSection(this);
     hub.defers().scheduleForPostRollback(this, hub.currentFrame());
-  }
-
-  public void populateSection(Hub hub) {
 
     final boolean staticContextException = Exceptions.staticFault(this.exceptions);
     final boolean sstoreException = Exceptions.outOfSStore(this.exceptions);

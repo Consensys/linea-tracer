@@ -50,6 +50,7 @@ public class CallDataLoadSection extends TraceSection implements PostTransaction
 
   public CallDataLoadSection(Hub hub) {
     super(hub, (short) (hub.opCode().equals(OpCode.CALLDATALOAD) ? 4 : 3));
+    hub.addTraceSection(this);
     this.addStack(hub);
 
     this.exception = hub.pch().exceptions();

@@ -67,9 +67,10 @@ public class AccountSection extends TraceSection implements PostRollbackDefer {
 
   public AccountSection(Hub hub) {
     super(hub);
+    hub.addTraceSection(this);
     this.addFragmentsAndStack(hub);
 
-    MessageFrame frame = hub.messageFrame();
+    final MessageFrame frame = hub.messageFrame();
     this.rawTargetAddress =
         switch (hub.opCode()) {
           case BALANCE, EXTCODESIZE, EXTCODEHASH -> frame.getStackItem(0);

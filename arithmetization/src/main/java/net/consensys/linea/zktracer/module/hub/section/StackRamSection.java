@@ -46,6 +46,7 @@ public class StackRamSection extends TraceSection implements PostTransactionDefe
 
   public StackRamSection(Hub hub) {
     super(hub, (short) 3);
+    hub.addTraceSection(this);
     this.addStack(hub);
 
     this.instruction = hub.opCode();

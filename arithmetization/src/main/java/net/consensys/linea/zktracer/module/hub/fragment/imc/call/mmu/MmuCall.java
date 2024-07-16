@@ -84,7 +84,6 @@ import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.MemorySpan;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 
 /**
@@ -185,11 +184,11 @@ public class MmuCall implements TraceSubFragment {
     final MemorySpan callDataSegment = hub.currentFrame().callDataInfo().memorySpan();
 
     final int callDataContextNumber = callDataContextNumber(hub);
-    final MessageFrame callFrame = hub.callStack().getById(callDataContextNumber).frame();
+    final CallFrame callFrame = hub.callStack().getByContextNumber(callDataContextNumber);
 
     return new MmuCall(MMU_INST_ANY_TO_RAM_WITH_PADDING)
         .sourceId(callDataContextNumber)
-        .sourceRamBytes(Optional.of(callFrame.shadowReadMemory(0, callFrame.memoryByteSize())))
+        .sourceRamBytes(Optional.of(callFrame.callDataInfo().data()))
         .targetId(hub.currentFrame().contextNumber())
         .targetRamBytes(
             Optional.of(

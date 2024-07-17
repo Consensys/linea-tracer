@@ -87,15 +87,11 @@ public class ImcFragment implements TraceFragment {
     final boolean isMessageCallTransaction = currentTx.getBesuTransaction().getTo().isPresent();
 
     final Optional<Bytes> txData = currentTx.getBesuTransaction().getData();
-    final boolean shouldCopyTxCallData =
-        isMessageCallTransaction
-            && txData.isPresent()
-            && !txData.get().isEmpty()
-            && currentTx.requiresEvmExecution();
+    final boolean shouldCopyTxCallData = currentTx.copyTransactionCallData();
 
-    final ImcFragment emptyFragment = ImcFragment.empty(hub);
+    final ImcFragment miscFragment = ImcFragment.empty(hub);
 
-    return shouldCopyTxCallData ? emptyFragment.callMmu(MmuCall.txInit(hub)) : emptyFragment;
+    return shouldCopyTxCallData ? miscFragment.callMmu(MmuCall.txInit(hub)) : miscFragment;
   }
 
   /**
@@ -167,11 +163,12 @@ public class ImcFragment implements TraceFragment {
   public static ImcFragment forOpcode(Hub hub, MessageFrame frame) {
     final ImcFragment r = new ImcFragment(hub);
 
+    /* TODO: this has been commented out since signals will die
     if (hub.pch().signals().mxp()) {
       r.callMxp(MxpCall.build(hub));
     }
 
-    /* TODO: this has been commented out since signals will die
+
     if (hub.pch().signals().exp()) {
       r.callExp(new ExplogExpCall());
     }
@@ -184,12 +181,12 @@ public class ImcFragment implements TraceFragment {
     if (hub.pch().signals().mmu()) {
       switch (hub.opCode()) {
           // commented instruction are done elsewhere, everything should be deleted
-        case SHA3 -> r.callMmu(MmuCall.sha3(hub));
+          // case SHA3 -> r.callMmu(MmuCall.sha3(hub));
           // case CALLDATALOAD -> r.callMmu(MmuCall.callDataLoad(hub));
-        case CALLDATACOPY -> r.callMmu(MmuCall.callDataCopy(hub));
-        case CODECOPY -> r.callMmu(MmuCall.codeCopy(hub));
-        case EXTCODECOPY -> r.callMmu(MmuCall.extCodeCopy(hub));
-        case RETURNDATACOPY -> r.callMmu(MmuCall.returnDataCopy(hub));
+          // case CALLDATACOPY -> r.callMmu(MmuCall.callDataCopy(hub));
+          // case CODECOPY -> r.callMmu(MmuCall.codeCopy(hub));
+          // case EXTCODECOPY -> r.callMmu(MmuCall.extCodeCopy(hub));
+          // case RETURNDATACOPY -> r.callMmu(MmuCall.returnDataCopy(hub));
           // case MLOAD -> r.callMmu(MmuCall.mload(hub));
           // case MSTORE -> r.callMmu(MmuCall.mstore(hub));
           // case MSTORE8 -> r.callMmu(MmuCall.mstore8(hub));

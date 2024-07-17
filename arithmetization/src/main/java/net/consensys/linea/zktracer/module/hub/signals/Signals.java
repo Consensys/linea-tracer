@@ -57,7 +57,7 @@ public class Signals {
   @Getter private boolean shf;
 
   @Getter private boolean gas;
-  @Getter private boolean mmu;
+  @Getter private boolean mmu; // TODO: SHOULD DIE
   @Getter private boolean mxp;
   @Getter private boolean oob;
   @Getter private boolean stp;

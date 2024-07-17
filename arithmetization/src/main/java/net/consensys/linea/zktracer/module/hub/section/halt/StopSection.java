@@ -40,7 +40,7 @@ public class StopSection extends TraceSection implements PostRollbackDefer, Post
   final int deploymentNumber;
   final boolean deploymentStatus;
   final int contextNumber;
-  final ContextFragment parentContextReturnDataRest;
+  final ContextFragment parentContextReturnDataReset;
 
   public StopSection(Hub hub) {
     // 3 = 1 + max_NON_STACK_ROWS in message call case
@@ -56,7 +56,7 @@ public class StopSection extends TraceSection implements PostRollbackDefer, Post
       deploymentNumber = deploymentInfo.number(address);
       deploymentStatus = deploymentInfo.isDeploying(address);
     }
-    parentContextReturnDataRest = executionProvidesEmptyReturnData(hub);
+    parentContextReturnDataReset = executionProvidesEmptyReturnData(hub);
 
     Preconditions.checkArgument(
         hub.currentFrame().isDeployment() == deploymentStatus); // sanity check
@@ -128,6 +128,6 @@ public class StopSection extends TraceSection implements PostRollbackDefer, Post
   @Override
   public void resolvePostTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
-    this.addFragmentsWithoutStack(this.parentContextReturnDataRest);
+    this.addFragmentsWithoutStack(this.parentContextReturnDataReset);
   }
 }

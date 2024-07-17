@@ -32,35 +32,12 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 /** This machine generates lines */
 @RequiredArgsConstructor
 public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
-  private enum CallType {
-    /** describes a normal call */
-    CALL,
-    /** describes the second scenario line required by a call to a precompile */
-    PRECOMPILE,
-    /** describes a call into initcode */
-    CREATE,
-    /** describes a RETURN from initcode */
-    CODE_DEPOSIT;
 
-    boolean isCall() {
-      return this == CALL;
-    }
-
-    boolean isPrecompile() {
-      return this == PRECOMPILE;
-    }
-
-    boolean isCreate() {
-      return this == CREATE;
-    }
-
-    boolean isDeposit() {
-      return this == CODE_DEPOSIT;
-    }
-  }
+  ScenarioEnum scenario;
+  // TODO: add the duplicate values required for PRC calls
 
   private final Optional<PrecompileInvocation> precompileCall;
-  private final CallType type;
+  private final ScenarioEnum type;
 
   /**
    * Is set if: - this is a CALL to an EOA or a precompile - this is a CREATE with an empty initcode
@@ -89,7 +66,7 @@ public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
     ScenarioFragment r =
         new ScenarioFragment(
             Optional.empty(),
-            CallType.CALL,
+            ScenarioEnum.CALL,
             targetHasCode,
             hub.currentFrame().id(),
             hub.callStack().futureId(),
@@ -104,7 +81,7 @@ public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
   public static ScenarioFragment forCreate(final Hub hub, boolean targetHasCode) {
     return new ScenarioFragment(
         Optional.empty(),
-        CallType.CREATE,
+        ScenarioEnum.CREATE,
         targetHasCode,
         hub.currentFrame().id(),
         hub.callStack().futureId(),
@@ -119,7 +96,7 @@ public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
     final ScenarioFragment r =
         new ScenarioFragment(
             Optional.empty(),
-            CallType.CALL,
+            ScenarioEnum.CALL,
             true,
             callerFrameId,
             calledFrameId,
@@ -138,12 +115,20 @@ public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
     if (precompileCall.isPresent()) {
       r =
           new ScenarioFragment(
-              precompileCall, CallType.CALL, false, callerId, calleeId, false, false, false, false);
+              precompileCall,
+              ScenarioEnum.CALL,
+              false,
+              callerId,
+              calleeId,
+              false,
+              false,
+              false,
+              false);
     } else {
       r =
           new ScenarioFragment(
               Optional.empty(),
-              CallType.CALL,
+              ScenarioEnum.CALL,
               false,
               callerId,
               calleeId,
@@ -164,7 +149,7 @@ public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
     final ScenarioFragment r =
         new ScenarioFragment(
             Optional.of(precompile),
-            CallType.PRECOMPILE,
+            ScenarioEnum.PRECOMPILE,
             false,
             callerId,
             calleeId,

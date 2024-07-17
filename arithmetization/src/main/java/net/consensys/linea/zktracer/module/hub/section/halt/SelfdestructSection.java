@@ -98,16 +98,17 @@ public class SelfdestructSection extends TraceSection
     //   * selfDestroyerFirstAccountFragment
     // - The recipient account, if it is not the current account, receive that balance (+= balance),
     // otherwise remains 0 (i+3)
+    //   * recipientFirstAccountFragment
     // - The recipient address will become warm (i+3)
     //   * recipientFirstAccountFragment
 
-    // TODO: look at EXTCODECOPY, RETURN, ACCOUNT
+    // take a look at EXTCODECOPY, RETURN, ACCOUNT for reference
   }
 
   @Override
   public void resolvePostRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
     /* willRevert case
-    TODO: undo the modifications we applied to selfDestroyerFirstAccountFragment and recipientFirstAccountFragment
+    undo the modifications we applied to selfDestroyerFirstAccountFragment and recipientFirstAccountFragment
     this will add account rows
      */
   }
@@ -115,14 +116,14 @@ public class SelfdestructSection extends TraceSection
   @Override
   public void resolvePostTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
-    // will not revert (sub cases: already marked, not yet marked)
-    // not yet marked corresponds to when SELFDESTRUCT produces no exceptions, will not be reverted
-    // and it
-    // is the first time this account will be succeseful in self destructing
-    // already marked corresponds to when SELFDESTRUCT produces no exceptions, will not be reverted
-    // and it
-    // is not the first time this account will be successful in self destructing
-    // mark for self destruct is associated to an address and a deployment number
+    // will not revert (subcases: already marked, not yet marked)
+    // - not yet marked corresponds to when SELFDESTRUCT produces no exceptions, will not be
+    // reverted
+    // ,and it is the first time this account will be successful in self-destructing
+    // - already marked corresponds to when SELFDESTRUCT produces no exceptions, will not be
+    // reverted
+    // ,and it is not the first time this account will be successful in self-destructing
+    // mark for self-destructing is associated to an address and a deployment number
     // use a maps that keeps track the (hub stamp, call frame) of all the unexceptional
     // SELFDESTRUCT for a given (address, deployment number)
     // at the end of the transaction we have that map
@@ -133,10 +134,10 @@ public class SelfdestructSection extends TraceSection
     // the first time (selfDestructTime) we find a call frame that has not been reverted, we
     // remember the hub stamp
     // this produces a new map (address, deployment number) -> selfDestructTime (of the first
-    // succeseful and unreverted
+    // successful and un-reverted
     // SELFDESTRUCT)
-    // we know have a map of all (addresse, deployment number) that have been succeseful in self
-    // destructing
+    // we know have a map of all (address, deployment number) that have been successful in
+    // self-destructing
     // and the hub stamp in which it happened
     // for every account row in the entire trace, we can now decide what to write in the
     // MARKED_FOR_SELFDESTRUCT and MARKED_FOR_SELFDESTRUCT_NEW columns

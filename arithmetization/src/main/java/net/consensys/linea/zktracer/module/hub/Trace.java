@@ -244,63 +244,63 @@ public class Trace {
 
   static List<ColumnHeader> headers(int length) {
     return List.of(
-        new ColumnHeader("hub.ABSOLUTE_TRANSACTION_NUMBER", 4, length),
+        new ColumnHeader("hub.ABSOLUTE_TRANSACTION_NUMBER", 2, length),
         new ColumnHeader("hub.acc_FINAL", 1, length),
         new ColumnHeader("hub.acc_FIRST", 1, length),
         new ColumnHeader(
             "hub.ADDRESS_HI_xor_ACCOUNT_ADDRESS_HI_xor_CCRS_STAMP_xor_PRC_CALLEE_GAS_xor_STATIC_GAS_xor_ADDRESS_HI_xor_BATCH_NUM",
-            8,
+            4,
             length),
         new ColumnHeader(
             "hub.ADDRESS_LO_xor_ACCOUNT_ADDRESS_LO_xor_EXP_DATA_1_xor_HASH_INFO_KECCAK_HI_xor_ADDRESS_LO_xor_COINBASE_ADDRESS_LO",
-            32,
+            16,
             length),
         new ColumnHeader("hub.ALPHA", 1, length),
         new ColumnHeader(
             "hub.BALANCE_NEW_xor_CALLER_ADDRESS_LO_xor_EXP_DATA_3_xor_PUSH_VALUE_HI_xor_STORAGE_KEY_LO_xor_INITIAL_BALANCE",
-            32,
+            16,
             length),
         new ColumnHeader(
             "hub.BALANCE_xor_BYTE_CODE_ADDRESS_LO_xor_EXP_DATA_2_xor_HASH_INFO_KECCAK_LO_xor_STORAGE_KEY_HI_xor_FROM_ADDRESS_LO",
-            32,
+            16,
             length),
-        new ColumnHeader("hub.BATCH_NUMBER", 4, length),
-        new ColumnHeader("hub.CALL_DATA_OFFSET_xor_MMU_SIZE", 8, length),
-        new ColumnHeader("hub.CALL_DATA_SIZE_xor_MMU_SRC_ID", 8, length),
+        new ColumnHeader("hub.BATCH_NUMBER", 2, length),
+        new ColumnHeader("hub.CALL_DATA_OFFSET_xor_MMU_SIZE", 4, length),
+        new ColumnHeader("hub.CALL_DATA_SIZE_xor_MMU_SRC_ID", 4, length),
         new ColumnHeader("hub.CALL_STACK_DEPTH", 2, length),
-        new ColumnHeader("hub.CALLER_CONTEXT_NUMBER", 8, length),
-        new ColumnHeader("hub.CODE_FRAGMENT_INDEX", 8, length),
+        new ColumnHeader("hub.CALLER_CONTEXT_NUMBER", 4, length),
+        new ColumnHeader("hub.CODE_FRAGMENT_INDEX", 4, length),
         new ColumnHeader(
             "hub.CODE_FRAGMENT_INDEX_xor_ACCOUNT_DEPLOYMENT_NUMBER_xor_EXP_INST_xor_PRC_CALLER_GAS_xor_DEPLOYMENT_NUMBER_xor_CALL_DATA_SIZE",
-            8,
+            4,
             length),
         new ColumnHeader(
-            "hub.CODE_HASH_HI_NEW_xor_EXP_DATA_5_xor_VALUE_CURR_LO_xor_VALUE", 32, length),
+            "hub.CODE_HASH_HI_NEW_xor_EXP_DATA_5_xor_VALUE_CURR_LO_xor_VALUE", 16, length),
         new ColumnHeader(
             "hub.CODE_HASH_HI_xor_CALL_VALUE_xor_EXP_DATA_4_xor_PUSH_VALUE_LO_xor_VALUE_CURR_HI_xor_TO_ADDRESS_LO",
-            32,
+            16,
             length),
-        new ColumnHeader("hub.CODE_HASH_LO_NEW_xor_MMU_LIMB_2_xor_VALUE_NEXT_LO", 32, length),
-        new ColumnHeader("hub.CODE_HASH_LO_xor_MMU_LIMB_1_xor_VALUE_NEXT_HI", 32, length),
+        new ColumnHeader("hub.CODE_HASH_LO_NEW_xor_MMU_LIMB_2_xor_VALUE_NEXT_LO", 16, length),
+        new ColumnHeader("hub.CODE_HASH_LO_xor_MMU_LIMB_1_xor_VALUE_NEXT_HI", 16, length),
         new ColumnHeader(
             "hub.CODE_SIZE_NEW_xor_BYTE_CODE_CODE_FRAGMENT_INDEX_xor_MMU_EXO_SUM_xor_PRC_CDS_xor_FROM_ADDRESS_HI",
-            8,
+            4,
             length),
         new ColumnHeader(
             "hub.CODE_SIZE_xor_BYTE_CODE_ADDRESS_HI_xor_MMU_AUX_ID_xor_PRC_CDO_xor_DEPLOYMENT_NUMBER_INFTY_xor_COINBASE_ADDRESS_HI",
-            8,
+            4,
             length),
         new ColumnHeader("hub.con_AGAIN", 1, length),
         new ColumnHeader("hub.con_FIRST", 1, length),
         new ColumnHeader("hub.CONTEXT_GETS_REVERTED", 1, length),
         new ColumnHeader("hub.CONTEXT_MAY_CHANGE", 1, length),
-        new ColumnHeader("hub.CONTEXT_NUMBER", 8, length),
-        new ColumnHeader("hub.CONTEXT_NUMBER_NEW", 8, length),
-        new ColumnHeader("hub.CONTEXT_NUMBER_xor_MMU_TGT_ID", 8, length),
-        new ColumnHeader("hub.CONTEXT_REVERT_STAMP", 8, length),
+        new ColumnHeader("hub.CONTEXT_NUMBER", 4, length),
+        new ColumnHeader("hub.CONTEXT_NUMBER_NEW", 4, length),
+        new ColumnHeader("hub.CONTEXT_NUMBER_xor_MMU_TGT_ID", 4, length),
+        new ColumnHeader("hub.CONTEXT_REVERT_STAMP", 4, length),
         new ColumnHeader("hub.CONTEXT_SELF_REVERTS", 1, length),
         new ColumnHeader("hub.CONTEXT_WILL_REVERT", 1, length),
-        new ColumnHeader("hub.COUNTER_NSR", 2, length),
+        new ColumnHeader("hub.COUNTER_NSR", 1, length),
         new ColumnHeader("hub.COUNTER_TLI", 1, length),
         new ColumnHeader("hub.CREATE_FAILURE_CONDITION_WONT_REVERT_xor_ICPX", 1, length),
         new ColumnHeader(
@@ -315,15 +315,15 @@ public class Trace {
         new ColumnHeader("hub.DELTA", 1, length),
         new ColumnHeader(
             "hub.DEPLOYMENT_NUMBER_INFTY_xor_BYTE_CODE_DEPLOYMENT_STATUS_xor_MMU_PHASE_xor_PRC_RAO_xor_TO_ADDRESS_HI",
-            8,
+            4,
             length),
         new ColumnHeader(
             "hub.DEPLOYMENT_NUMBER_NEW_xor_CALLER_ADDRESS_HI_xor_MMU_REF_OFFSET_xor_PRC_RETURN_GAS",
-            8,
+            4,
             length),
         new ColumnHeader(
             "hub.DEPLOYMENT_NUMBER_xor_BYTE_CODE_DEPLOYMENT_NUMBER_xor_MMU_INST_xor_PRC_RAC_xor_INIT_CODE_SIZE",
-            8,
+            4,
             length),
         new ColumnHeader(
             "hub.DEPLOYMENT_STATUS_INFTY_xor_IS_STATIC_xor_EXP_FLAG_xor_CALL_EOA_SUCCESS_CALLER_WILL_REVERT_xor_ADD_FLAG_xor_UNCONSTRAINED_FIRST_xor_IS_DEPLOYMENT",
@@ -337,7 +337,7 @@ public class Trace {
             "hub.DEPLOYMENT_STATUS_xor_IS_ROOT_xor_CCSR_FLAG_xor_CALL_ABORT_xor_ACC_FLAG_xor_UNCONSTRAINED_FINAL_xor_COPY_TXCD",
             1,
             length),
-        new ColumnHeader("hub.DOM_STAMP", 8, length),
+        new ColumnHeader("hub.DOM_STAMP", 4, length),
         new ColumnHeader("hub.EXCEPTION_AHOY", 1, length),
         new ColumnHeader(
             "hub.EXISTS_NEW_xor_MXP_DEPLOYS_xor_CALL_PRC_FAILURE_xor_CALL_FLAG_xor_VALUE_CURR_IS_ZERO_xor_STATUS_CODE",
@@ -347,12 +347,12 @@ public class Trace {
             "hub.EXISTS_xor_MMU_SUCCESS_BIT_xor_CALL_EXCEPTION_xor_BTC_FLAG_xor_VALUE_CURR_IS_ORIG_xor_REQUIRES_EVM_EXECUTION",
             1,
             length),
-        new ColumnHeader("hub.GAS_ACTUAL", 8, length),
-        new ColumnHeader("hub.GAS_COST", 32, length),
-        new ColumnHeader("hub.GAS_EXPECTED", 8, length),
-        new ColumnHeader("hub.GAS_LIMIT", 32, length),
-        new ColumnHeader("hub.GAS_NEXT", 8, length),
-        new ColumnHeader("hub.GAS_PRICE", 32, length),
+        new ColumnHeader("hub.GAS_ACTUAL", 4, length),
+        new ColumnHeader("hub.GAS_COST", 8, length),
+        new ColumnHeader("hub.GAS_EXPECTED", 4, length),
+        new ColumnHeader("hub.GAS_LIMIT", 8, length),
+        new ColumnHeader("hub.GAS_NEXT", 4, length),
+        new ColumnHeader("hub.GAS_PRICE", 8, length),
         new ColumnHeader(
             "hub.HAS_CODE_NEW_xor_MXP_MTNTOP_xor_CALL_PRC_SUCCESS_CALLER_WONT_REVERT_xor_COPY_FLAG_xor_VALUE_NEXT_IS_ORIG",
             1,
@@ -361,17 +361,17 @@ public class Trace {
             "hub.HAS_CODE_xor_MXP_FLAG_xor_CALL_PRC_SUCCESS_CALLER_WILL_REVERT_xor_CON_FLAG_xor_VALUE_NEXT_IS_CURR",
             1,
             length),
-        new ColumnHeader("hub.HASH_INFO_STAMP", 8, length),
+        new ColumnHeader("hub.HASH_INFO_STAMP", 4, length),
         new ColumnHeader("hub.HEIGHT", 2, length),
         new ColumnHeader("hub.HEIGHT_NEW", 2, length),
-        new ColumnHeader("hub.HUB_STAMP", 8, length),
-        new ColumnHeader("hub.HUB_STAMP_TRANSACTION_END", 8, length),
+        new ColumnHeader("hub.HUB_STAMP", 4, length),
+        new ColumnHeader("hub.HUB_STAMP_TRANSACTION_END", 4, length),
         new ColumnHeader("hub.INSTRUCTION", 32, length),
         new ColumnHeader(
             "hub.IS_PRECOMPILE_xor_MXP_MXPX_xor_CALL_SMC_FAILURE_CALLER_WILL_REVERT_xor_CREATE_FLAG_xor_VALUE_NEXT_IS_ZERO",
             1,
             length),
-        new ColumnHeader("hub.LOG_INFO_STAMP", 8, length),
+        new ColumnHeader("hub.LOG_INFO_STAMP", 4, length),
         new ColumnHeader(
             "hub.MARKED_FOR_SELFDESTRUCT_NEW_xor_STP_EXISTS_xor_CALL_SMC_SUCCESS_CALLER_WILL_REVERT_xor_DEC_FLAG_2_xor_WARMTH",
             1,
@@ -380,30 +380,30 @@ public class Trace {
             "hub.MARKED_FOR_SELFDESTRUCT_xor_OOB_FLAG_xor_CALL_SMC_FAILURE_CALLER_WONT_REVERT_xor_DEC_FLAG_1_xor_VALUE_ORIG_IS_ZERO",
             1,
             length),
-        new ColumnHeader("hub.MMU_STAMP", 8, length),
-        new ColumnHeader("hub.MXP_OFFSET_2_HI", 32, length),
-        new ColumnHeader("hub.MXP_OFFSET_2_LO", 32, length),
-        new ColumnHeader("hub.MXP_SIZE_1_HI", 32, length),
-        new ColumnHeader("hub.MXP_SIZE_1_LO", 32, length),
-        new ColumnHeader("hub.MXP_SIZE_2_HI", 32, length),
-        new ColumnHeader("hub.MXP_SIZE_2_LO", 32, length),
-        new ColumnHeader("hub.MXP_STAMP", 8, length),
-        new ColumnHeader("hub.MXP_WORDS", 32, length),
+        new ColumnHeader("hub.MMU_STAMP", 4, length),
+        new ColumnHeader("hub.MXP_OFFSET_2_HI", 16, length),
+        new ColumnHeader("hub.MXP_OFFSET_2_LO", 16, length),
+        new ColumnHeader("hub.MXP_SIZE_1_HI", 16, length),
+        new ColumnHeader("hub.MXP_SIZE_1_LO", 16, length),
+        new ColumnHeader("hub.MXP_SIZE_2_HI", 16, length),
+        new ColumnHeader("hub.MXP_SIZE_2_LO", 16, length),
+        new ColumnHeader("hub.MXP_STAMP", 4, length),
+        new ColumnHeader("hub.MXP_WORDS", 16, length),
         new ColumnHeader("hub.NB_ADDED", 1, length),
         new ColumnHeader("hub.NB_REMOVED", 1, length),
-        new ColumnHeader("hub.NON_STACK_ROWS", 2, length),
-        new ColumnHeader("hub.NONCE", 32, length),
+        new ColumnHeader("hub.NON_STACK_ROWS", 1, length),
+        new ColumnHeader("hub.NONCE", 8, length),
         new ColumnHeader(
-            "hub.NONCE_NEW_xor_STP_GAS_PAID_OUT_OF_POCKET_xor_GAS_INITIALLY_AVAILABLE", 32, length),
-        new ColumnHeader("hub.NONCE_xor_STP_GAS_MXP_xor_BASEFEE", 32, length),
-        new ColumnHeader("hub.OOB_DATA_1", 32, length),
-        new ColumnHeader("hub.OOB_DATA_2", 32, length),
-        new ColumnHeader("hub.OOB_DATA_3", 32, length),
-        new ColumnHeader("hub.OOB_DATA_4", 32, length),
-        new ColumnHeader("hub.OOB_DATA_5", 32, length),
-        new ColumnHeader("hub.OOB_DATA_6", 32, length),
-        new ColumnHeader("hub.OOB_DATA_7", 32, length),
-        new ColumnHeader("hub.OOB_DATA_8", 32, length),
+            "hub.NONCE_NEW_xor_STP_GAS_PAID_OUT_OF_POCKET_xor_GAS_INITIALLY_AVAILABLE", 8, length),
+        new ColumnHeader("hub.NONCE_xor_STP_GAS_MXP_xor_BASEFEE", 8, length),
+        new ColumnHeader("hub.OOB_DATA_1", 16, length),
+        new ColumnHeader("hub.OOB_DATA_2", 16, length),
+        new ColumnHeader("hub.OOB_DATA_3", 16, length),
+        new ColumnHeader("hub.OOB_DATA_4", 16, length),
+        new ColumnHeader("hub.OOB_DATA_5", 16, length),
+        new ColumnHeader("hub.OOB_DATA_6", 16, length),
+        new ColumnHeader("hub.OOB_DATA_7", 16, length),
+        new ColumnHeader("hub.OOB_DATA_8", 16, length),
         new ColumnHeader("hub.PEEK_AT_ACCOUNT", 1, length),
         new ColumnHeader("hub.PEEK_AT_CONTEXT", 1, length),
         new ColumnHeader("hub.PEEK_AT_MISCELLANEOUS", 1, length),
@@ -424,18 +424,18 @@ public class Trace {
         new ColumnHeader("hub.PRC_SHA2-256_xor_OPCX", 1, length),
         new ColumnHeader("hub.PRC_SUCCESS_CALLER_WILL_REVERT_xor_PUSHPOP_FLAG", 1, length),
         new ColumnHeader("hub.PRC_SUCCESS_CALLER_WONT_REVERT_xor_RDCX", 1, length),
-        new ColumnHeader("hub.PRIORITY_FEE_PER_GAS", 32, length),
-        new ColumnHeader("hub.PROGRAM_COUNTER", 8, length),
-        new ColumnHeader("hub.PROGRAM_COUNTER_NEW", 8, length),
-        new ColumnHeader("hub.REFUND_COUNTER", 8, length),
-        new ColumnHeader("hub.REFUND_COUNTER_INFINITY", 32, length),
-        new ColumnHeader("hub.REFUND_COUNTER_NEW", 8, length),
-        new ColumnHeader("hub.REFUND_EFFECTIVE", 32, length),
-        new ColumnHeader("hub.RETURN_AT_CAPACITY_xor_MXP_INST", 8, length),
-        new ColumnHeader("hub.RETURN_AT_OFFSET_xor_OOB_INST", 8, length),
-        new ColumnHeader("hub.RETURN_DATA_CONTEXT_NUMBER_xor_STP_GAS_STIPEND", 8, length),
-        new ColumnHeader("hub.RETURN_DATA_OFFSET_xor_STP_INSTRUCTION", 8, length),
-        new ColumnHeader("hub.RETURN_DATA_SIZE", 8, length),
+        new ColumnHeader("hub.PRIORITY_FEE_PER_GAS", 8, length),
+        new ColumnHeader("hub.PROGRAM_COUNTER", 4, length),
+        new ColumnHeader("hub.PROGRAM_COUNTER_NEW", 4, length),
+        new ColumnHeader("hub.REFUND_COUNTER", 4, length),
+        new ColumnHeader("hub.REFUND_COUNTER_INFINITY", 8, length),
+        new ColumnHeader("hub.REFUND_COUNTER_NEW", 4, length),
+        new ColumnHeader("hub.REFUND_EFFECTIVE", 8, length),
+        new ColumnHeader("hub.RETURN_AT_CAPACITY_xor_MXP_INST", 4, length),
+        new ColumnHeader("hub.RETURN_AT_OFFSET_xor_OOB_INST", 4, length),
+        new ColumnHeader("hub.RETURN_DATA_CONTEXT_NUMBER_xor_STP_GAS_STIPEND", 4, length),
+        new ColumnHeader("hub.RETURN_DATA_OFFSET_xor_STP_INSTRUCTION", 4, length),
+        new ColumnHeader("hub.RETURN_DATA_SIZE", 4, length),
         new ColumnHeader("hub.RETURN_EXCEPTION_xor_SHF_FLAG", 1, length),
         new ColumnHeader("hub.RETURN_FROM_DEPLOYMENT_EMPTY_CODE_WILL_REVERT_xor_SOX", 1, length),
         new ColumnHeader(
@@ -449,19 +449,19 @@ public class Trace {
         new ColumnHeader(
             "hub.RETURN_FROM_MESSAGE_CALL_WONT_TOUCH_RAM_xor_STACK_ITEM_POP_3", 1, length),
         new ColumnHeader(
-            "hub.RLPADDR_DEP_ADDR_HI_xor_CALL_DATA_CONTEXT_NUMBER_xor_MMU_REF_SIZE", 8, length),
+            "hub.RLPADDR_DEP_ADDR_HI_xor_CALL_DATA_CONTEXT_NUMBER_xor_MMU_REF_SIZE", 4, length),
         new ColumnHeader(
-            "hub.RLPADDR_DEP_ADDR_LO_xor_MMU_SRC_OFFSET_HI_xor_VALUE_ORIG_HI", 32, length),
+            "hub.RLPADDR_DEP_ADDR_LO_xor_MMU_SRC_OFFSET_HI_xor_VALUE_ORIG_HI", 16, length),
         new ColumnHeader(
             "hub.RLPADDR_FLAG_xor_STP_FLAG_xor_CALL_SMC_SUCCESS_CALLER_WONT_REVERT_xor_DEC_FLAG_3_xor_WARMTH_NEW",
             1,
             length),
-        new ColumnHeader("hub.RLPADDR_KEC_HI_xor_MMU_SRC_OFFSET_LO_xor_VALUE_ORIG_LO", 32, length),
-        new ColumnHeader("hub.RLPADDR_KEC_LO_xor_MMU_TGT_OFFSET_LO", 32, length),
+        new ColumnHeader("hub.RLPADDR_KEC_HI_xor_MMU_SRC_OFFSET_LO_xor_VALUE_ORIG_LO", 16, length),
+        new ColumnHeader("hub.RLPADDR_KEC_LO_xor_MMU_TGT_OFFSET_LO", 16, length),
         new ColumnHeader(
             "hub.RLPADDR_RECIPE_xor_STP_OOGX_xor_CREATE_ABORT_xor_DEC_FLAG_4", 1, length),
-        new ColumnHeader("hub.RLPADDR_SALT_HI_xor_MXP_GAS_MXP", 32, length),
-        new ColumnHeader("hub.RLPADDR_SALT_LO_xor_MXP_OFFSET_1_HI", 32, length),
+        new ColumnHeader("hub.RLPADDR_SALT_HI_xor_MXP_GAS_MXP", 16, length),
+        new ColumnHeader("hub.RLPADDR_SALT_LO_xor_MXP_OFFSET_1_HI", 16, length),
         new ColumnHeader(
             "hub.ROMLEX_FLAG_xor_STP_WARMTH_xor_CREATE_EMPTY_INIT_CODE_WILL_REVERT_xor_DUP_FLAG",
             1,
@@ -488,17 +488,17 @@ public class Trace {
         new ColumnHeader("hub.STACK_ITEM_VALUE_LO_4", 32, length),
         new ColumnHeader("hub.sto_FINAL", 1, length),
         new ColumnHeader("hub.sto_FIRST", 1, length),
-        new ColumnHeader("hub.STP_GAS_HI", 32, length),
-        new ColumnHeader("hub.STP_GAS_LO", 32, length),
-        new ColumnHeader("hub.STP_GAS_UPFRONT_GAS_COST_xor_GAS_LEFTOVER", 32, length),
-        new ColumnHeader("hub.STP_VALUE_HI", 32, length),
-        new ColumnHeader("hub.STP_VALUE_LO", 32, length),
-        new ColumnHeader("hub.SUB_STAMP", 8, length),
+        new ColumnHeader("hub.STP_GAS_HI", 16, length),
+        new ColumnHeader("hub.STP_GAS_LO", 16, length),
+        new ColumnHeader("hub.STP_GAS_UPFRONT_GAS_COST_xor_GAS_LEFTOVER", 8, length),
+        new ColumnHeader("hub.STP_VALUE_HI", 16, length),
+        new ColumnHeader("hub.STP_VALUE_LO", 16, length),
+        new ColumnHeader("hub.SUB_STAMP", 4, length),
         new ColumnHeader("hub.SUX", 1, length),
         new ColumnHeader("hub.SWAP_FLAG", 1, length),
         new ColumnHeader(
             "hub.TRM_FLAG_xor_CREATE_EMPTY_INIT_CODE_WONT_REVERT_xor_EXT_FLAG", 1, length),
-        new ColumnHeader("hub.TRM_RAW_ADDRESS_HI_xor_MXP_OFFSET_1_LO", 32, length),
+        new ColumnHeader("hub.TRM_RAW_ADDRESS_HI_xor_MXP_OFFSET_1_LO", 16, length),
         new ColumnHeader("hub.TWO_LINE_INSTRUCTION", 1, length),
         new ColumnHeader("hub.TX_EXEC", 1, length),
         new ColumnHeader("hub.TX_FINL", 1, length),
@@ -734,14 +734,18 @@ public class Trace {
     return this.currentLine;
   }
 
-  public Trace absoluteTransactionNumber(final int b) {
+  public Trace absoluteTransactionNumber(final long b) {
     if (filled.get(0)) {
       throw new IllegalStateException("hub.ABSOLUTE_TRANSACTION_NUMBER already set");
     } else {
       filled.set(0);
     }
 
-    absoluteTransactionNumber.putInt(b);
+    if (b >= 65536L) {
+      throw new IllegalArgumentException("absoluteTransactionNumber has invalid value (" + b + ")");
+    }
+    absoluteTransactionNumber.put((byte) (b >> 8));
+    absoluteTransactionNumber.put((byte) b);
 
     return this;
   }
@@ -770,14 +774,18 @@ public class Trace {
     return this;
   }
 
-  public Trace batchNumber(final int b) {
+  public Trace batchNumber(final long b) {
     if (filled.get(1)) {
       throw new IllegalStateException("hub.BATCH_NUMBER already set");
     } else {
       filled.set(1);
     }
 
-    batchNumber.putInt(b);
+    if (b >= 65536L) {
+      throw new IllegalArgumentException("batchNumber has invalid value (" + b + ")");
+    }
+    batchNumber.put((byte) (b >> 8));
+    batchNumber.put((byte) b);
 
     return this;
   }
@@ -789,7 +797,13 @@ public class Trace {
       filled.set(2);
     }
 
-    callerContextNumber.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("callerContextNumber has invalid value (" + b + ")");
+    }
+    callerContextNumber.put((byte) (b >> 24));
+    callerContextNumber.put((byte) (b >> 16));
+    callerContextNumber.put((byte) (b >> 8));
+    callerContextNumber.put((byte) b);
 
     return this;
   }
@@ -801,7 +815,13 @@ public class Trace {
       filled.set(3);
     }
 
-    codeFragmentIndex.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("codeFragmentIndex has invalid value (" + b + ")");
+    }
+    codeFragmentIndex.put((byte) (b >> 24));
+    codeFragmentIndex.put((byte) (b >> 16));
+    codeFragmentIndex.put((byte) (b >> 8));
+    codeFragmentIndex.put((byte) b);
 
     return this;
   }
@@ -861,7 +881,13 @@ public class Trace {
       filled.set(6);
     }
 
-    contextNumber.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("contextNumber has invalid value (" + b + ")");
+    }
+    contextNumber.put((byte) (b >> 24));
+    contextNumber.put((byte) (b >> 16));
+    contextNumber.put((byte) (b >> 8));
+    contextNumber.put((byte) b);
 
     return this;
   }
@@ -873,7 +899,13 @@ public class Trace {
       filled.set(7);
     }
 
-    contextNumberNew.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("contextNumberNew has invalid value (" + b + ")");
+    }
+    contextNumberNew.put((byte) (b >> 24));
+    contextNumberNew.put((byte) (b >> 16));
+    contextNumberNew.put((byte) (b >> 8));
+    contextNumberNew.put((byte) b);
 
     return this;
   }
@@ -885,7 +917,13 @@ public class Trace {
       filled.set(8);
     }
 
-    contextRevertStamp.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("contextRevertStamp has invalid value (" + b + ")");
+    }
+    contextRevertStamp.put((byte) (b >> 24));
+    contextRevertStamp.put((byte) (b >> 16));
+    contextRevertStamp.put((byte) (b >> 8));
+    contextRevertStamp.put((byte) b);
 
     return this;
   }
@@ -914,14 +952,17 @@ public class Trace {
     return this;
   }
 
-  public Trace counterNsr(final short b) {
+  public Trace counterNsr(final long b) {
     if (filled.get(11)) {
       throw new IllegalStateException("hub.COUNTER_NSR already set");
     } else {
       filled.set(11);
     }
 
-    counterNsr.putShort(b);
+    if (b >= 256L) {
+      throw new IllegalArgumentException("counterNsr has invalid value (" + b + ")");
+    }
+    counterNsr.put((byte) b);
 
     return this;
   }
@@ -945,7 +986,13 @@ public class Trace {
       filled.set(13);
     }
 
-    domStamp.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("domStamp has invalid value (" + b + ")");
+    }
+    domStamp.put((byte) (b >> 24));
+    domStamp.put((byte) (b >> 16));
+    domStamp.put((byte) (b >> 8));
+    domStamp.put((byte) b);
 
     return this;
   }
@@ -969,7 +1016,13 @@ public class Trace {
       filled.set(15);
     }
 
-    gasActual.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("gasActual has invalid value (" + b + ")");
+    }
+    gasActual.put((byte) (b >> 24));
+    gasActual.put((byte) (b >> 16));
+    gasActual.put((byte) (b >> 8));
+    gasActual.put((byte) b);
 
     return this;
   }
@@ -981,11 +1034,20 @@ public class Trace {
       filled.set(16);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 64) {
+      throw new IllegalArgumentException("gasCost has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 8; i++) {
       gasCost.put((byte) 0);
     }
-    gasCost.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      gasCost.put(bs.get(j));
+    }
 
     return this;
   }
@@ -997,7 +1059,13 @@ public class Trace {
       filled.set(17);
     }
 
-    gasExpected.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("gasExpected has invalid value (" + b + ")");
+    }
+    gasExpected.put((byte) (b >> 24));
+    gasExpected.put((byte) (b >> 16));
+    gasExpected.put((byte) (b >> 8));
+    gasExpected.put((byte) b);
 
     return this;
   }
@@ -1009,7 +1077,13 @@ public class Trace {
       filled.set(18);
     }
 
-    gasNext.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("gasNext has invalid value (" + b + ")");
+    }
+    gasNext.put((byte) (b >> 24));
+    gasNext.put((byte) (b >> 16));
+    gasNext.put((byte) (b >> 8));
+    gasNext.put((byte) b);
 
     return this;
   }
@@ -1021,31 +1095,45 @@ public class Trace {
       filled.set(19);
     }
 
-    hashInfoStamp.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("hashInfoStamp has invalid value (" + b + ")");
+    }
+    hashInfoStamp.put((byte) (b >> 24));
+    hashInfoStamp.put((byte) (b >> 16));
+    hashInfoStamp.put((byte) (b >> 8));
+    hashInfoStamp.put((byte) b);
 
     return this;
   }
 
-  public Trace height(final short b) {
+  public Trace height(final long b) {
     if (filled.get(20)) {
       throw new IllegalStateException("hub.HEIGHT already set");
     } else {
       filled.set(20);
     }
 
-    height.putShort(b);
+    if (b >= 2048L) {
+      throw new IllegalArgumentException("height has invalid value (" + b + ")");
+    }
+    height.put((byte) (b >> 8));
+    height.put((byte) b);
 
     return this;
   }
 
-  public Trace heightNew(final short b) {
+  public Trace heightNew(final long b) {
     if (filled.get(21)) {
       throw new IllegalStateException("hub.HEIGHT_NEW already set");
     } else {
       filled.set(21);
     }
 
-    heightNew.putShort(b);
+    if (b >= 2048L) {
+      throw new IllegalArgumentException("heightNew has invalid value (" + b + ")");
+    }
+    heightNew.put((byte) (b >> 8));
+    heightNew.put((byte) b);
 
     return this;
   }
@@ -1057,7 +1145,13 @@ public class Trace {
       filled.set(22);
     }
 
-    hubStamp.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("hubStamp has invalid value (" + b + ")");
+    }
+    hubStamp.put((byte) (b >> 24));
+    hubStamp.put((byte) (b >> 16));
+    hubStamp.put((byte) (b >> 8));
+    hubStamp.put((byte) b);
 
     return this;
   }
@@ -1069,7 +1163,13 @@ public class Trace {
       filled.set(23);
     }
 
-    hubStampTransactionEnd.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("hubStampTransactionEnd has invalid value (" + b + ")");
+    }
+    hubStampTransactionEnd.put((byte) (b >> 24));
+    hubStampTransactionEnd.put((byte) (b >> 16));
+    hubStampTransactionEnd.put((byte) (b >> 8));
+    hubStampTransactionEnd.put((byte) b);
 
     return this;
   }
@@ -1081,7 +1181,13 @@ public class Trace {
       filled.set(24);
     }
 
-    logInfoStamp.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("logInfoStamp has invalid value (" + b + ")");
+    }
+    logInfoStamp.put((byte) (b >> 24));
+    logInfoStamp.put((byte) (b >> 16));
+    logInfoStamp.put((byte) (b >> 8));
+    logInfoStamp.put((byte) b);
 
     return this;
   }
@@ -1093,7 +1199,13 @@ public class Trace {
       filled.set(25);
     }
 
-    mmuStamp.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("mmuStamp has invalid value (" + b + ")");
+    }
+    mmuStamp.put((byte) (b >> 24));
+    mmuStamp.put((byte) (b >> 16));
+    mmuStamp.put((byte) (b >> 8));
+    mmuStamp.put((byte) b);
 
     return this;
   }
@@ -1105,19 +1217,28 @@ public class Trace {
       filled.set(26);
     }
 
-    mxpStamp.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("mxpStamp has invalid value (" + b + ")");
+    }
+    mxpStamp.put((byte) (b >> 24));
+    mxpStamp.put((byte) (b >> 16));
+    mxpStamp.put((byte) (b >> 8));
+    mxpStamp.put((byte) b);
 
     return this;
   }
 
-  public Trace nonStackRows(final short b) {
+  public Trace nonStackRows(final long b) {
     if (filled.get(27)) {
       throw new IllegalStateException("hub.NON_STACK_ROWS already set");
     } else {
       filled.set(27);
     }
 
-    nonStackRows.putShort(b);
+    if (b >= 256L) {
+      throw new IllegalArgumentException("nonStackRows has invalid value (" + b + ")");
+    }
+    nonStackRows.put((byte) b);
 
     return this;
   }
@@ -1129,8 +1250,20 @@ public class Trace {
       filled.set(106);
     }
 
-    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum
-        .putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum has invalid value ("
+              + b
+              + ")");
+    }
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum.put(
+        (byte) (b >> 24));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum.put(
+        (byte) (b >> 16));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum.put(
+        (byte) (b >> 8));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum.put(
+        (byte) b);
 
     return this;
   }
@@ -1142,13 +1275,25 @@ public class Trace {
       filled.set(131);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "addressLoXorAccountAddressLoXorExpData1XorHashInfoKeccakHiXorAddressLoXorCoinbaseAddressLo has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       addressLoXorAccountAddressLoXorExpData1XorHashInfoKeccakHiXorAddressLoXorCoinbaseAddressLo
           .put((byte) 0);
     }
-    addressLoXorAccountAddressLoXorExpData1XorHashInfoKeccakHiXorAddressLoXorCoinbaseAddressLo.put(
-        b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      addressLoXorAccountAddressLoXorExpData1XorHashInfoKeccakHiXorAddressLoXorCoinbaseAddressLo
+          .put(bs.get(j));
+    }
 
     return this;
   }
@@ -1160,13 +1305,25 @@ public class Trace {
       filled.set(132);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "balanceXorByteCodeAddressLoXorExpData2XorHashInfoKeccakLoXorStorageKeyHiXorFromAddressLo has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       balanceXorByteCodeAddressLoXorExpData2XorHashInfoKeccakLoXorStorageKeyHiXorFromAddressLo.put(
           (byte) 0);
     }
-    balanceXorByteCodeAddressLoXorExpData2XorHashInfoKeccakLoXorStorageKeyHiXorFromAddressLo.put(
-        b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      balanceXorByteCodeAddressLoXorExpData2XorHashInfoKeccakLoXorStorageKeyHiXorFromAddressLo.put(
+          bs.get(j));
+    }
 
     return this;
   }
@@ -1178,13 +1335,25 @@ public class Trace {
       filled.set(133);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "balanceNewXorCallerAddressLoXorExpData3XorPushValueHiXorStorageKeyLoXorInitialBalance has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       balanceNewXorCallerAddressLoXorExpData3XorPushValueHiXorStorageKeyLoXorInitialBalance.put(
           (byte) 0);
     }
-    balanceNewXorCallerAddressLoXorExpData3XorPushValueHiXorStorageKeyLoXorInitialBalance.put(
-        b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      balanceNewXorCallerAddressLoXorExpData3XorPushValueHiXorStorageKeyLoXorInitialBalance.put(
+          bs.get(j));
+    }
 
     return this;
   }
@@ -1196,8 +1365,20 @@ public class Trace {
       filled.set(107);
     }
 
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCallDataSize has invalid value ("
+              + b
+              + ")");
+    }
     codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCallDataSize
-        .putLong(b);
+        .put((byte) (b >> 24));
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCallDataSize
+        .put((byte) (b >> 16));
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCallDataSize
+        .put((byte) (b >> 8));
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCallDataSize
+        .put((byte) b);
 
     return this;
   }
@@ -1209,12 +1390,23 @@ public class Trace {
       filled.set(134);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "codeHashHiXorCallValueXorExpData4XorPushValueLoXorValueCurrHiXorToAddressLo has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       codeHashHiXorCallValueXorExpData4XorPushValueLoXorValueCurrHiXorToAddressLo.put((byte) 0);
     }
-    codeHashHiXorCallValueXorExpData4XorPushValueLoXorValueCurrHiXorToAddressLo.put(
-        b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      codeHashHiXorCallValueXorExpData4XorPushValueLoXorValueCurrHiXorToAddressLo.put(bs.get(j));
+    }
 
     return this;
   }
@@ -1226,11 +1418,23 @@ public class Trace {
       filled.set(135);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "codeHashHiNewXorExpData5XorValueCurrLoXorValue has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       codeHashHiNewXorExpData5XorValueCurrLoXorValue.put((byte) 0);
     }
-    codeHashHiNewXorExpData5XorValueCurrLoXorValue.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      codeHashHiNewXorExpData5XorValueCurrLoXorValue.put(bs.get(j));
+    }
 
     return this;
   }
@@ -1242,11 +1446,21 @@ public class Trace {
       filled.set(136);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "codeHashLoXorMmuLimb1XorValueNextHi has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       codeHashLoXorMmuLimb1XorValueNextHi.put((byte) 0);
     }
-    codeHashLoXorMmuLimb1XorValueNextHi.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      codeHashLoXorMmuLimb1XorValueNextHi.put(bs.get(j));
+    }
 
     return this;
   }
@@ -1258,11 +1472,21 @@ public class Trace {
       filled.set(137);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "codeHashLoNewXorMmuLimb2XorValueNextLo has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       codeHashLoNewXorMmuLimb2XorValueNextLo.put((byte) 0);
     }
-    codeHashLoNewXorMmuLimb2XorValueNextLo.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      codeHashLoNewXorMmuLimb2XorValueNextLo.put(bs.get(j));
+    }
 
     return this;
   }
@@ -1274,8 +1498,20 @@ public class Trace {
       filled.set(108);
     }
 
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorCoinbaseAddressHi has invalid value ("
+              + b
+              + ")");
+    }
     codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorCoinbaseAddressHi
-        .putLong(b);
+        .put((byte) (b >> 24));
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorCoinbaseAddressHi
+        .put((byte) (b >> 16));
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorCoinbaseAddressHi
+        .put((byte) (b >> 8));
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorCoinbaseAddressHi
+        .put((byte) b);
 
     return this;
   }
@@ -1287,7 +1523,19 @@ public class Trace {
       filled.set(109);
     }
 
-    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorFromAddressHi.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorFromAddressHi has invalid value ("
+              + b
+              + ")");
+    }
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorFromAddressHi.put(
+        (byte) (b >> 24));
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorFromAddressHi.put(
+        (byte) (b >> 16));
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorFromAddressHi.put(
+        (byte) (b >> 8));
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorFromAddressHi.put((byte) b);
 
     return this;
   }
@@ -1299,7 +1547,19 @@ public class Trace {
       filled.set(110);
     }
 
-    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorInitCodeSize.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorInitCodeSize has invalid value ("
+              + b
+              + ")");
+    }
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorInitCodeSize.put(
+        (byte) (b >> 24));
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorInitCodeSize.put(
+        (byte) (b >> 16));
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorInitCodeSize.put(
+        (byte) (b >> 8));
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorInitCodeSize.put((byte) b);
 
     return this;
   }
@@ -1311,7 +1571,20 @@ public class Trace {
       filled.set(111);
     }
 
-    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRaoXorToAddressHi.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRaoXorToAddressHi has invalid value ("
+              + b
+              + ")");
+    }
+    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRaoXorToAddressHi.put(
+        (byte) (b >> 24));
+    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRaoXorToAddressHi.put(
+        (byte) (b >> 16));
+    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRaoXorToAddressHi.put(
+        (byte) (b >> 8));
+    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRaoXorToAddressHi.put(
+        (byte) b);
 
     return this;
   }
@@ -1323,7 +1596,16 @@ public class Trace {
       filled.set(112);
     }
 
-    deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas has invalid value ("
+              + b
+              + ")");
+    }
+    deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.put((byte) (b >> 24));
+    deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.put((byte) (b >> 16));
+    deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.put((byte) (b >> 8));
+    deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.put((byte) b);
 
     return this;
   }
@@ -1465,11 +1747,21 @@ public class Trace {
       filled.set(122);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 64) {
+      throw new IllegalArgumentException(
+          "nonceXorStpGasMxpXorBasefee has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 8; i++) {
       nonceXorStpGasMxpXorBasefee.put((byte) 0);
     }
-    nonceXorStpGasMxpXorBasefee.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      nonceXorStpGasMxpXorBasefee.put(bs.get(j));
+    }
 
     return this;
   }
@@ -1481,11 +1773,23 @@ public class Trace {
       filled.set(123);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 64) {
+      throw new IllegalArgumentException(
+          "nonceNewXorStpGasPaidOutOfPocketXorGasInitiallyAvailable has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 8; i++) {
       nonceNewXorStpGasPaidOutOfPocketXorGasInitiallyAvailable.put((byte) 0);
     }
-    nonceNewXorStpGasPaidOutOfPocketXorGasInitiallyAvailable.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      nonceNewXorStpGasPaidOutOfPocketXorGasInitiallyAvailable.put(bs.get(j));
+    }
 
     return this;
   }
@@ -1497,7 +1801,14 @@ public class Trace {
       filled.set(113);
     }
 
-    rlpaddrDepAddrHiXorCallDataContextNumberXorMmuRefSize.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "rlpaddrDepAddrHiXorCallDataContextNumberXorMmuRefSize has invalid value (" + b + ")");
+    }
+    rlpaddrDepAddrHiXorCallDataContextNumberXorMmuRefSize.put((byte) (b >> 24));
+    rlpaddrDepAddrHiXorCallDataContextNumberXorMmuRefSize.put((byte) (b >> 16));
+    rlpaddrDepAddrHiXorCallDataContextNumberXorMmuRefSize.put((byte) (b >> 8));
+    rlpaddrDepAddrHiXorCallDataContextNumberXorMmuRefSize.put((byte) b);
 
     return this;
   }
@@ -1509,11 +1820,23 @@ public class Trace {
       filled.set(138);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "rlpaddrDepAddrLoXorMmuSrcOffsetHiXorValueOrigHi has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       rlpaddrDepAddrLoXorMmuSrcOffsetHiXorValueOrigHi.put((byte) 0);
     }
-    rlpaddrDepAddrLoXorMmuSrcOffsetHiXorValueOrigHi.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      rlpaddrDepAddrLoXorMmuSrcOffsetHiXorValueOrigHi.put(bs.get(j));
+    }
 
     return this;
   }
@@ -1538,11 +1861,23 @@ public class Trace {
       filled.set(139);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "rlpaddrKecHiXorMmuSrcOffsetLoXorValueOrigLo has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       rlpaddrKecHiXorMmuSrcOffsetLoXorValueOrigLo.put((byte) 0);
     }
-    rlpaddrKecHiXorMmuSrcOffsetLoXorValueOrigLo.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      rlpaddrKecHiXorMmuSrcOffsetLoXorValueOrigLo.put(bs.get(j));
+    }
 
     return this;
   }
@@ -1554,11 +1889,21 @@ public class Trace {
       filled.set(140);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "rlpaddrKecLoXorMmuTgtOffsetLo has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       rlpaddrKecLoXorMmuTgtOffsetLo.put((byte) 0);
     }
-    rlpaddrKecLoXorMmuTgtOffsetLo.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      rlpaddrKecLoXorMmuTgtOffsetLo.put(bs.get(j));
+    }
 
     return this;
   }
@@ -1582,11 +1927,21 @@ public class Trace {
       filled.set(141);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "rlpaddrSaltHiXorMxpGasMxp has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       rlpaddrSaltHiXorMxpGasMxp.put((byte) 0);
     }
-    rlpaddrSaltHiXorMxpGasMxp.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      rlpaddrSaltHiXorMxpGasMxp.put(bs.get(j));
+    }
 
     return this;
   }
@@ -1598,11 +1953,21 @@ public class Trace {
       filled.set(142);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "rlpaddrSaltLoXorMxpOffset1Hi has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       rlpaddrSaltLoXorMxpOffset1Hi.put((byte) 0);
     }
-    rlpaddrSaltLoXorMxpOffset1Hi.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      rlpaddrSaltLoXorMxpOffset1Hi.put(bs.get(j));
+    }
 
     return this;
   }
@@ -1638,11 +2003,21 @@ public class Trace {
       filled.set(143);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "trmRawAddressHiXorMxpOffset1Lo has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       trmRawAddressHiXorMxpOffset1Lo.put((byte) 0);
     }
-    trmRawAddressHiXorMxpOffset1Lo.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      trmRawAddressHiXorMxpOffset1Lo.put(bs.get(j));
+    }
 
     return this;
   }
@@ -1678,8 +2053,20 @@ public class Trace {
       filled.set(106);
     }
 
-    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum
-        .putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum has invalid value ("
+              + b
+              + ")");
+    }
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum.put(
+        (byte) (b >> 24));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum.put(
+        (byte) (b >> 16));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum.put(
+        (byte) (b >> 8));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum.put(
+        (byte) b);
 
     return this;
   }
@@ -1691,13 +2078,25 @@ public class Trace {
       filled.set(131);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "addressLoXorAccountAddressLoXorExpData1XorHashInfoKeccakHiXorAddressLoXorCoinbaseAddressLo has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       addressLoXorAccountAddressLoXorExpData1XorHashInfoKeccakHiXorAddressLoXorCoinbaseAddressLo
           .put((byte) 0);
     }
-    addressLoXorAccountAddressLoXorExpData1XorHashInfoKeccakHiXorAddressLoXorCoinbaseAddressLo.put(
-        b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      addressLoXorAccountAddressLoXorExpData1XorHashInfoKeccakHiXorAddressLoXorCoinbaseAddressLo
+          .put(bs.get(j));
+    }
 
     return this;
   }
@@ -1709,8 +2108,20 @@ public class Trace {
       filled.set(107);
     }
 
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCallDataSize has invalid value ("
+              + b
+              + ")");
+    }
     codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCallDataSize
-        .putLong(b);
+        .put((byte) (b >> 24));
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCallDataSize
+        .put((byte) (b >> 16));
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCallDataSize
+        .put((byte) (b >> 8));
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCallDataSize
+        .put((byte) b);
 
     return this;
   }
@@ -1722,8 +2133,20 @@ public class Trace {
       filled.set(108);
     }
 
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorCoinbaseAddressHi has invalid value ("
+              + b
+              + ")");
+    }
     codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorCoinbaseAddressHi
-        .putLong(b);
+        .put((byte) (b >> 24));
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorCoinbaseAddressHi
+        .put((byte) (b >> 16));
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorCoinbaseAddressHi
+        .put((byte) (b >> 8));
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorCoinbaseAddressHi
+        .put((byte) b);
 
     return this;
   }
@@ -1735,13 +2158,25 @@ public class Trace {
       filled.set(132);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "balanceXorByteCodeAddressLoXorExpData2XorHashInfoKeccakLoXorStorageKeyHiXorFromAddressLo has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       balanceXorByteCodeAddressLoXorExpData2XorHashInfoKeccakLoXorStorageKeyHiXorFromAddressLo.put(
           (byte) 0);
     }
-    balanceXorByteCodeAddressLoXorExpData2XorHashInfoKeccakLoXorStorageKeyHiXorFromAddressLo.put(
-        b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      balanceXorByteCodeAddressLoXorExpData2XorHashInfoKeccakLoXorStorageKeyHiXorFromAddressLo.put(
+          bs.get(j));
+    }
 
     return this;
   }
@@ -1753,7 +2188,19 @@ public class Trace {
       filled.set(109);
     }
 
-    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorFromAddressHi.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorFromAddressHi has invalid value ("
+              + b
+              + ")");
+    }
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorFromAddressHi.put(
+        (byte) (b >> 24));
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorFromAddressHi.put(
+        (byte) (b >> 16));
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorFromAddressHi.put(
+        (byte) (b >> 8));
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorFromAddressHi.put((byte) b);
 
     return this;
   }
@@ -1765,7 +2212,19 @@ public class Trace {
       filled.set(110);
     }
 
-    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorInitCodeSize.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorInitCodeSize has invalid value ("
+              + b
+              + ")");
+    }
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorInitCodeSize.put(
+        (byte) (b >> 24));
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorInitCodeSize.put(
+        (byte) (b >> 16));
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorInitCodeSize.put(
+        (byte) (b >> 8));
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorInitCodeSize.put((byte) b);
 
     return this;
   }
@@ -1777,7 +2236,20 @@ public class Trace {
       filled.set(111);
     }
 
-    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRaoXorToAddressHi.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRaoXorToAddressHi has invalid value ("
+              + b
+              + ")");
+    }
+    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRaoXorToAddressHi.put(
+        (byte) (b >> 24));
+    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRaoXorToAddressHi.put(
+        (byte) (b >> 16));
+    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRaoXorToAddressHi.put(
+        (byte) (b >> 8));
+    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRaoXorToAddressHi.put(
+        (byte) b);
 
     return this;
   }
@@ -1789,7 +2261,14 @@ public class Trace {
       filled.set(113);
     }
 
-    rlpaddrDepAddrHiXorCallDataContextNumberXorMmuRefSize.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "rlpaddrDepAddrHiXorCallDataContextNumberXorMmuRefSize has invalid value (" + b + ")");
+    }
+    rlpaddrDepAddrHiXorCallDataContextNumberXorMmuRefSize.put((byte) (b >> 24));
+    rlpaddrDepAddrHiXorCallDataContextNumberXorMmuRefSize.put((byte) (b >> 16));
+    rlpaddrDepAddrHiXorCallDataContextNumberXorMmuRefSize.put((byte) (b >> 8));
+    rlpaddrDepAddrHiXorCallDataContextNumberXorMmuRefSize.put((byte) b);
 
     return this;
   }
@@ -1801,7 +2280,13 @@ public class Trace {
       filled.set(114);
     }
 
-    callDataOffsetXorMmuSize.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("callDataOffsetXorMmuSize has invalid value (" + b + ")");
+    }
+    callDataOffsetXorMmuSize.put((byte) (b >> 24));
+    callDataOffsetXorMmuSize.put((byte) (b >> 16));
+    callDataOffsetXorMmuSize.put((byte) (b >> 8));
+    callDataOffsetXorMmuSize.put((byte) b);
 
     return this;
   }
@@ -1813,19 +2298,29 @@ public class Trace {
       filled.set(115);
     }
 
-    callDataSizeXorMmuSrcId.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("callDataSizeXorMmuSrcId has invalid value (" + b + ")");
+    }
+    callDataSizeXorMmuSrcId.put((byte) (b >> 24));
+    callDataSizeXorMmuSrcId.put((byte) (b >> 16));
+    callDataSizeXorMmuSrcId.put((byte) (b >> 8));
+    callDataSizeXorMmuSrcId.put((byte) b);
 
     return this;
   }
 
-  public Trace pContextCallStackDepth(final short b) {
+  public Trace pContextCallStackDepth(final long b) {
     if (filled.get(105)) {
       throw new IllegalStateException("hub.context/CALL_STACK_DEPTH already set");
     } else {
       filled.set(105);
     }
 
-    callStackDepth.putShort(b);
+    if (b >= 2048L) {
+      throw new IllegalArgumentException("callStackDepth has invalid value (" + b + ")");
+    }
+    callStackDepth.put((byte) (b >> 8));
+    callStackDepth.put((byte) b);
 
     return this;
   }
@@ -1837,12 +2332,23 @@ public class Trace {
       filled.set(134);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "codeHashHiXorCallValueXorExpData4XorPushValueLoXorValueCurrHiXorToAddressLo has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       codeHashHiXorCallValueXorExpData4XorPushValueLoXorValueCurrHiXorToAddressLo.put((byte) 0);
     }
-    codeHashHiXorCallValueXorExpData4XorPushValueLoXorValueCurrHiXorToAddressLo.put(
-        b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      codeHashHiXorCallValueXorExpData4XorPushValueLoXorValueCurrHiXorToAddressLo.put(bs.get(j));
+    }
 
     return this;
   }
@@ -1854,7 +2360,16 @@ public class Trace {
       filled.set(112);
     }
 
-    deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas has invalid value ("
+              + b
+              + ")");
+    }
+    deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.put((byte) (b >> 24));
+    deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.put((byte) (b >> 16));
+    deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.put((byte) (b >> 8));
+    deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.put((byte) b);
 
     return this;
   }
@@ -1866,13 +2381,25 @@ public class Trace {
       filled.set(133);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "balanceNewXorCallerAddressLoXorExpData3XorPushValueHiXorStorageKeyLoXorInitialBalance has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       balanceNewXorCallerAddressLoXorExpData3XorPushValueHiXorStorageKeyLoXorInitialBalance.put(
           (byte) 0);
     }
-    balanceNewXorCallerAddressLoXorExpData3XorPushValueHiXorStorageKeyLoXorInitialBalance.put(
-        b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      balanceNewXorCallerAddressLoXorExpData3XorPushValueHiXorStorageKeyLoXorInitialBalance.put(
+          bs.get(j));
+    }
 
     return this;
   }
@@ -1884,7 +2411,13 @@ public class Trace {
       filled.set(116);
     }
 
-    contextNumberXorMmuTgtId.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("contextNumberXorMmuTgtId has invalid value (" + b + ")");
+    }
+    contextNumberXorMmuTgtId.put((byte) (b >> 24));
+    contextNumberXorMmuTgtId.put((byte) (b >> 16));
+    contextNumberXorMmuTgtId.put((byte) (b >> 8));
+    contextNumberXorMmuTgtId.put((byte) b);
 
     return this;
   }
@@ -1922,7 +2455,14 @@ public class Trace {
       filled.set(117);
     }
 
-    returnAtCapacityXorMxpInst.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "returnAtCapacityXorMxpInst has invalid value (" + b + ")");
+    }
+    returnAtCapacityXorMxpInst.put((byte) (b >> 24));
+    returnAtCapacityXorMxpInst.put((byte) (b >> 16));
+    returnAtCapacityXorMxpInst.put((byte) (b >> 8));
+    returnAtCapacityXorMxpInst.put((byte) b);
 
     return this;
   }
@@ -1934,7 +2474,13 @@ public class Trace {
       filled.set(118);
     }
 
-    returnAtOffsetXorOobInst.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("returnAtOffsetXorOobInst has invalid value (" + b + ")");
+    }
+    returnAtOffsetXorOobInst.put((byte) (b >> 24));
+    returnAtOffsetXorOobInst.put((byte) (b >> 16));
+    returnAtOffsetXorOobInst.put((byte) (b >> 8));
+    returnAtOffsetXorOobInst.put((byte) b);
 
     return this;
   }
@@ -1946,7 +2492,14 @@ public class Trace {
       filled.set(119);
     }
 
-    returnDataContextNumberXorStpGasStipend.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "returnDataContextNumberXorStpGasStipend has invalid value (" + b + ")");
+    }
+    returnDataContextNumberXorStpGasStipend.put((byte) (b >> 24));
+    returnDataContextNumberXorStpGasStipend.put((byte) (b >> 16));
+    returnDataContextNumberXorStpGasStipend.put((byte) (b >> 8));
+    returnDataContextNumberXorStpGasStipend.put((byte) b);
 
     return this;
   }
@@ -1958,7 +2511,14 @@ public class Trace {
       filled.set(120);
     }
 
-    returnDataOffsetXorStpInstruction.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "returnDataOffsetXorStpInstruction has invalid value (" + b + ")");
+    }
+    returnDataOffsetXorStpInstruction.put((byte) (b >> 24));
+    returnDataOffsetXorStpInstruction.put((byte) (b >> 16));
+    returnDataOffsetXorStpInstruction.put((byte) (b >> 8));
+    returnDataOffsetXorStpInstruction.put((byte) b);
 
     return this;
   }
@@ -1970,7 +2530,13 @@ public class Trace {
       filled.set(121);
     }
 
-    returnDataSize.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("returnDataSize has invalid value (" + b + ")");
+    }
+    returnDataSize.put((byte) (b >> 24));
+    returnDataSize.put((byte) (b >> 16));
+    returnDataSize.put((byte) (b >> 8));
+    returnDataSize.put((byte) b);
 
     return this;
   }
@@ -1995,8 +2561,20 @@ public class Trace {
       filled.set(106);
     }
 
-    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum
-        .putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum has invalid value ("
+              + b
+              + ")");
+    }
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum.put(
+        (byte) (b >> 24));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum.put(
+        (byte) (b >> 16));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum.put(
+        (byte) (b >> 8));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum.put(
+        (byte) b);
 
     return this;
   }
@@ -2021,13 +2599,25 @@ public class Trace {
       filled.set(131);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "addressLoXorAccountAddressLoXorExpData1XorHashInfoKeccakHiXorAddressLoXorCoinbaseAddressLo has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       addressLoXorAccountAddressLoXorExpData1XorHashInfoKeccakHiXorAddressLoXorCoinbaseAddressLo
           .put((byte) 0);
     }
-    addressLoXorAccountAddressLoXorExpData1XorHashInfoKeccakHiXorAddressLoXorCoinbaseAddressLo.put(
-        b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      addressLoXorAccountAddressLoXorExpData1XorHashInfoKeccakHiXorAddressLoXorCoinbaseAddressLo
+          .put(bs.get(j));
+    }
 
     return this;
   }
@@ -2039,13 +2629,25 @@ public class Trace {
       filled.set(132);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "balanceXorByteCodeAddressLoXorExpData2XorHashInfoKeccakLoXorStorageKeyHiXorFromAddressLo has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       balanceXorByteCodeAddressLoXorExpData2XorHashInfoKeccakLoXorStorageKeyHiXorFromAddressLo.put(
           (byte) 0);
     }
-    balanceXorByteCodeAddressLoXorExpData2XorHashInfoKeccakLoXorStorageKeyHiXorFromAddressLo.put(
-        b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      balanceXorByteCodeAddressLoXorExpData2XorHashInfoKeccakLoXorStorageKeyHiXorFromAddressLo.put(
+          bs.get(j));
+    }
 
     return this;
   }
@@ -2057,13 +2659,25 @@ public class Trace {
       filled.set(133);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "balanceNewXorCallerAddressLoXorExpData3XorPushValueHiXorStorageKeyLoXorInitialBalance has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       balanceNewXorCallerAddressLoXorExpData3XorPushValueHiXorStorageKeyLoXorInitialBalance.put(
           (byte) 0);
     }
-    balanceNewXorCallerAddressLoXorExpData3XorPushValueHiXorStorageKeyLoXorInitialBalance.put(
-        b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      balanceNewXorCallerAddressLoXorExpData3XorPushValueHiXorStorageKeyLoXorInitialBalance.put(
+          bs.get(j));
+    }
 
     return this;
   }
@@ -2075,12 +2689,23 @@ public class Trace {
       filled.set(134);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "codeHashHiXorCallValueXorExpData4XorPushValueLoXorValueCurrHiXorToAddressLo has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       codeHashHiXorCallValueXorExpData4XorPushValueLoXorValueCurrHiXorToAddressLo.put((byte) 0);
     }
-    codeHashHiXorCallValueXorExpData4XorPushValueLoXorValueCurrHiXorToAddressLo.put(
-        b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      codeHashHiXorCallValueXorExpData4XorPushValueLoXorValueCurrHiXorToAddressLo.put(bs.get(j));
+    }
 
     return this;
   }
@@ -2092,11 +2717,23 @@ public class Trace {
       filled.set(135);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "codeHashHiNewXorExpData5XorValueCurrLoXorValue has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       codeHashHiNewXorExpData5XorValueCurrLoXorValue.put((byte) 0);
     }
-    codeHashHiNewXorExpData5XorValueCurrLoXorValue.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      codeHashHiNewXorExpData5XorValueCurrLoXorValue.put(bs.get(j));
+    }
 
     return this;
   }
@@ -2121,8 +2758,20 @@ public class Trace {
       filled.set(107);
     }
 
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCallDataSize has invalid value ("
+              + b
+              + ")");
+    }
     codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCallDataSize
-        .putLong(b);
+        .put((byte) (b >> 24));
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCallDataSize
+        .put((byte) (b >> 16));
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCallDataSize
+        .put((byte) (b >> 8));
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCallDataSize
+        .put((byte) b);
 
     return this;
   }
@@ -2134,8 +2783,20 @@ public class Trace {
       filled.set(108);
     }
 
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorCoinbaseAddressHi has invalid value ("
+              + b
+              + ")");
+    }
     codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorCoinbaseAddressHi
-        .putLong(b);
+        .put((byte) (b >> 24));
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorCoinbaseAddressHi
+        .put((byte) (b >> 16));
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorCoinbaseAddressHi
+        .put((byte) (b >> 8));
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorCoinbaseAddressHi
+        .put((byte) b);
 
     return this;
   }
@@ -2147,7 +2808,19 @@ public class Trace {
       filled.set(109);
     }
 
-    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorFromAddressHi.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorFromAddressHi has invalid value ("
+              + b
+              + ")");
+    }
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorFromAddressHi.put(
+        (byte) (b >> 24));
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorFromAddressHi.put(
+        (byte) (b >> 16));
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorFromAddressHi.put(
+        (byte) (b >> 8));
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorFromAddressHi.put((byte) b);
 
     return this;
   }
@@ -2172,7 +2845,19 @@ public class Trace {
       filled.set(110);
     }
 
-    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorInitCodeSize.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorInitCodeSize has invalid value ("
+              + b
+              + ")");
+    }
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorInitCodeSize.put(
+        (byte) (b >> 24));
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorInitCodeSize.put(
+        (byte) (b >> 16));
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorInitCodeSize.put(
+        (byte) (b >> 8));
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorInitCodeSize.put((byte) b);
 
     return this;
   }
@@ -2184,11 +2869,21 @@ public class Trace {
       filled.set(136);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "codeHashLoXorMmuLimb1XorValueNextHi has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       codeHashLoXorMmuLimb1XorValueNextHi.put((byte) 0);
     }
-    codeHashLoXorMmuLimb1XorValueNextHi.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      codeHashLoXorMmuLimb1XorValueNextHi.put(bs.get(j));
+    }
 
     return this;
   }
@@ -2200,11 +2895,21 @@ public class Trace {
       filled.set(137);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "codeHashLoNewXorMmuLimb2XorValueNextLo has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       codeHashLoNewXorMmuLimb2XorValueNextLo.put((byte) 0);
     }
-    codeHashLoNewXorMmuLimb2XorValueNextLo.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      codeHashLoNewXorMmuLimb2XorValueNextLo.put(bs.get(j));
+    }
 
     return this;
   }
@@ -2216,7 +2921,20 @@ public class Trace {
       filled.set(111);
     }
 
-    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRaoXorToAddressHi.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRaoXorToAddressHi has invalid value ("
+              + b
+              + ")");
+    }
+    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRaoXorToAddressHi.put(
+        (byte) (b >> 24));
+    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRaoXorToAddressHi.put(
+        (byte) (b >> 16));
+    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRaoXorToAddressHi.put(
+        (byte) (b >> 8));
+    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRaoXorToAddressHi.put(
+        (byte) b);
 
     return this;
   }
@@ -2228,7 +2946,16 @@ public class Trace {
       filled.set(112);
     }
 
-    deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas has invalid value ("
+              + b
+              + ")");
+    }
+    deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.put((byte) (b >> 24));
+    deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.put((byte) (b >> 16));
+    deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.put((byte) (b >> 8));
+    deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.put((byte) b);
 
     return this;
   }
@@ -2240,7 +2967,14 @@ public class Trace {
       filled.set(113);
     }
 
-    rlpaddrDepAddrHiXorCallDataContextNumberXorMmuRefSize.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "rlpaddrDepAddrHiXorCallDataContextNumberXorMmuRefSize has invalid value (" + b + ")");
+    }
+    rlpaddrDepAddrHiXorCallDataContextNumberXorMmuRefSize.put((byte) (b >> 24));
+    rlpaddrDepAddrHiXorCallDataContextNumberXorMmuRefSize.put((byte) (b >> 16));
+    rlpaddrDepAddrHiXorCallDataContextNumberXorMmuRefSize.put((byte) (b >> 8));
+    rlpaddrDepAddrHiXorCallDataContextNumberXorMmuRefSize.put((byte) b);
 
     return this;
   }
@@ -2252,7 +2986,13 @@ public class Trace {
       filled.set(114);
     }
 
-    callDataOffsetXorMmuSize.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("callDataOffsetXorMmuSize has invalid value (" + b + ")");
+    }
+    callDataOffsetXorMmuSize.put((byte) (b >> 24));
+    callDataOffsetXorMmuSize.put((byte) (b >> 16));
+    callDataOffsetXorMmuSize.put((byte) (b >> 8));
+    callDataOffsetXorMmuSize.put((byte) b);
 
     return this;
   }
@@ -2264,7 +3004,13 @@ public class Trace {
       filled.set(115);
     }
 
-    callDataSizeXorMmuSrcId.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("callDataSizeXorMmuSrcId has invalid value (" + b + ")");
+    }
+    callDataSizeXorMmuSrcId.put((byte) (b >> 24));
+    callDataSizeXorMmuSrcId.put((byte) (b >> 16));
+    callDataSizeXorMmuSrcId.put((byte) (b >> 8));
+    callDataSizeXorMmuSrcId.put((byte) b);
 
     return this;
   }
@@ -2276,11 +3022,23 @@ public class Trace {
       filled.set(138);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "rlpaddrDepAddrLoXorMmuSrcOffsetHiXorValueOrigHi has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       rlpaddrDepAddrLoXorMmuSrcOffsetHiXorValueOrigHi.put((byte) 0);
     }
-    rlpaddrDepAddrLoXorMmuSrcOffsetHiXorValueOrigHi.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      rlpaddrDepAddrLoXorMmuSrcOffsetHiXorValueOrigHi.put(bs.get(j));
+    }
 
     return this;
   }
@@ -2292,11 +3050,23 @@ public class Trace {
       filled.set(139);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "rlpaddrKecHiXorMmuSrcOffsetLoXorValueOrigLo has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       rlpaddrKecHiXorMmuSrcOffsetLoXorValueOrigLo.put((byte) 0);
     }
-    rlpaddrKecHiXorMmuSrcOffsetLoXorValueOrigLo.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      rlpaddrKecHiXorMmuSrcOffsetLoXorValueOrigLo.put(bs.get(j));
+    }
 
     return this;
   }
@@ -2321,7 +3091,13 @@ public class Trace {
       filled.set(116);
     }
 
-    contextNumberXorMmuTgtId.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("contextNumberXorMmuTgtId has invalid value (" + b + ")");
+    }
+    contextNumberXorMmuTgtId.put((byte) (b >> 24));
+    contextNumberXorMmuTgtId.put((byte) (b >> 16));
+    contextNumberXorMmuTgtId.put((byte) (b >> 8));
+    contextNumberXorMmuTgtId.put((byte) b);
 
     return this;
   }
@@ -2333,11 +3109,21 @@ public class Trace {
       filled.set(140);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "rlpaddrKecLoXorMmuTgtOffsetLo has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       rlpaddrKecLoXorMmuTgtOffsetLo.put((byte) 0);
     }
-    rlpaddrKecLoXorMmuTgtOffsetLo.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      rlpaddrKecLoXorMmuTgtOffsetLo.put(bs.get(j));
+    }
 
     return this;
   }
@@ -2375,11 +3161,21 @@ public class Trace {
       filled.set(141);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "rlpaddrSaltHiXorMxpGasMxp has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       rlpaddrSaltHiXorMxpGasMxp.put((byte) 0);
     }
-    rlpaddrSaltHiXorMxpGasMxp.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      rlpaddrSaltHiXorMxpGasMxp.put(bs.get(j));
+    }
 
     return this;
   }
@@ -2391,7 +3187,14 @@ public class Trace {
       filled.set(117);
     }
 
-    returnAtCapacityXorMxpInst.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "returnAtCapacityXorMxpInst has invalid value (" + b + ")");
+    }
+    returnAtCapacityXorMxpInst.put((byte) (b >> 24));
+    returnAtCapacityXorMxpInst.put((byte) (b >> 16));
+    returnAtCapacityXorMxpInst.put((byte) (b >> 8));
+    returnAtCapacityXorMxpInst.put((byte) b);
 
     return this;
   }
@@ -2429,11 +3232,21 @@ public class Trace {
       filled.set(142);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "rlpaddrSaltLoXorMxpOffset1Hi has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       rlpaddrSaltLoXorMxpOffset1Hi.put((byte) 0);
     }
-    rlpaddrSaltLoXorMxpOffset1Hi.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      rlpaddrSaltLoXorMxpOffset1Hi.put(bs.get(j));
+    }
 
     return this;
   }
@@ -2445,11 +3258,21 @@ public class Trace {
       filled.set(143);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "trmRawAddressHiXorMxpOffset1Lo has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       trmRawAddressHiXorMxpOffset1Lo.put((byte) 0);
     }
-    trmRawAddressHiXorMxpOffset1Lo.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      trmRawAddressHiXorMxpOffset1Lo.put(bs.get(j));
+    }
 
     return this;
   }
@@ -2461,11 +3284,21 @@ public class Trace {
       filled.set(144);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "mxpOffset2Hi has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       mxpOffset2Hi.put((byte) 0);
     }
-    mxpOffset2Hi.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      mxpOffset2Hi.put(bs.get(j));
+    }
 
     return this;
   }
@@ -2477,11 +3310,21 @@ public class Trace {
       filled.set(145);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "mxpOffset2Lo has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       mxpOffset2Lo.put((byte) 0);
     }
-    mxpOffset2Lo.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      mxpOffset2Lo.put(bs.get(j));
+    }
 
     return this;
   }
@@ -2493,11 +3336,21 @@ public class Trace {
       filled.set(146);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "mxpSize1Hi has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       mxpSize1Hi.put((byte) 0);
     }
-    mxpSize1Hi.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      mxpSize1Hi.put(bs.get(j));
+    }
 
     return this;
   }
@@ -2509,11 +3362,21 @@ public class Trace {
       filled.set(147);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "mxpSize1Lo has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       mxpSize1Lo.put((byte) 0);
     }
-    mxpSize1Lo.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      mxpSize1Lo.put(bs.get(j));
+    }
 
     return this;
   }
@@ -2525,11 +3388,21 @@ public class Trace {
       filled.set(148);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "mxpSize2Hi has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       mxpSize2Hi.put((byte) 0);
     }
-    mxpSize2Hi.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      mxpSize2Hi.put(bs.get(j));
+    }
 
     return this;
   }
@@ -2541,11 +3414,21 @@ public class Trace {
       filled.set(149);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "mxpSize2Lo has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       mxpSize2Lo.put((byte) 0);
     }
-    mxpSize2Lo.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      mxpSize2Lo.put(bs.get(j));
+    }
 
     return this;
   }
@@ -2557,11 +3440,20 @@ public class Trace {
       filled.set(150);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException("mxpWords has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       mxpWords.put((byte) 0);
     }
-    mxpWords.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      mxpWords.put(bs.get(j));
+    }
 
     return this;
   }
@@ -2573,11 +3465,20 @@ public class Trace {
       filled.set(151);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException("oobData1 has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       oobData1.put((byte) 0);
     }
-    oobData1.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      oobData1.put(bs.get(j));
+    }
 
     return this;
   }
@@ -2589,11 +3490,20 @@ public class Trace {
       filled.set(152);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException("oobData2 has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       oobData2.put((byte) 0);
     }
-    oobData2.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      oobData2.put(bs.get(j));
+    }
 
     return this;
   }
@@ -2605,11 +3515,20 @@ public class Trace {
       filled.set(153);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException("oobData3 has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       oobData3.put((byte) 0);
     }
-    oobData3.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      oobData3.put(bs.get(j));
+    }
 
     return this;
   }
@@ -2621,11 +3540,20 @@ public class Trace {
       filled.set(154);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException("oobData4 has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       oobData4.put((byte) 0);
     }
-    oobData4.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      oobData4.put(bs.get(j));
+    }
 
     return this;
   }
@@ -2637,11 +3565,20 @@ public class Trace {
       filled.set(155);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException("oobData5 has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       oobData5.put((byte) 0);
     }
-    oobData5.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      oobData5.put(bs.get(j));
+    }
 
     return this;
   }
@@ -2653,11 +3590,20 @@ public class Trace {
       filled.set(156);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException("oobData6 has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       oobData6.put((byte) 0);
     }
-    oobData6.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      oobData6.put(bs.get(j));
+    }
 
     return this;
   }
@@ -2669,11 +3615,20 @@ public class Trace {
       filled.set(157);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException("oobData7 has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       oobData7.put((byte) 0);
     }
-    oobData7.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      oobData7.put(bs.get(j));
+    }
 
     return this;
   }
@@ -2685,11 +3640,20 @@ public class Trace {
       filled.set(158);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException("oobData8 has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       oobData8.put((byte) 0);
     }
-    oobData8.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      oobData8.put(bs.get(j));
+    }
 
     return this;
   }
@@ -2714,7 +3678,13 @@ public class Trace {
       filled.set(118);
     }
 
-    returnAtOffsetXorOobInst.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("returnAtOffsetXorOobInst has invalid value (" + b + ")");
+    }
+    returnAtOffsetXorOobInst.put((byte) (b >> 24));
+    returnAtOffsetXorOobInst.put((byte) (b >> 16));
+    returnAtOffsetXorOobInst.put((byte) (b >> 8));
+    returnAtOffsetXorOobInst.put((byte) b);
 
     return this;
   }
@@ -2752,11 +3722,20 @@ public class Trace {
       filled.set(159);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException("stpGasHi has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       stpGasHi.put((byte) 0);
     }
-    stpGasHi.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      stpGasHi.put(bs.get(j));
+    }
 
     return this;
   }
@@ -2768,11 +3747,20 @@ public class Trace {
       filled.set(160);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException("stpGasLo has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       stpGasLo.put((byte) 0);
     }
-    stpGasLo.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      stpGasLo.put(bs.get(j));
+    }
 
     return this;
   }
@@ -2784,11 +3772,21 @@ public class Trace {
       filled.set(122);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 64) {
+      throw new IllegalArgumentException(
+          "nonceXorStpGasMxpXorBasefee has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 8; i++) {
       nonceXorStpGasMxpXorBasefee.put((byte) 0);
     }
-    nonceXorStpGasMxpXorBasefee.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      nonceXorStpGasMxpXorBasefee.put(bs.get(j));
+    }
 
     return this;
   }
@@ -2800,11 +3798,23 @@ public class Trace {
       filled.set(123);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 64) {
+      throw new IllegalArgumentException(
+          "nonceNewXorStpGasPaidOutOfPocketXorGasInitiallyAvailable has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 8; i++) {
       nonceNewXorStpGasPaidOutOfPocketXorGasInitiallyAvailable.put((byte) 0);
     }
-    nonceNewXorStpGasPaidOutOfPocketXorGasInitiallyAvailable.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      nonceNewXorStpGasPaidOutOfPocketXorGasInitiallyAvailable.put(bs.get(j));
+    }
 
     return this;
   }
@@ -2816,7 +3826,14 @@ public class Trace {
       filled.set(119);
     }
 
-    returnDataContextNumberXorStpGasStipend.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "returnDataContextNumberXorStpGasStipend has invalid value (" + b + ")");
+    }
+    returnDataContextNumberXorStpGasStipend.put((byte) (b >> 24));
+    returnDataContextNumberXorStpGasStipend.put((byte) (b >> 16));
+    returnDataContextNumberXorStpGasStipend.put((byte) (b >> 8));
+    returnDataContextNumberXorStpGasStipend.put((byte) b);
 
     return this;
   }
@@ -2828,11 +3845,21 @@ public class Trace {
       filled.set(124);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 64) {
+      throw new IllegalArgumentException(
+          "stpGasUpfrontGasCostXorGasLeftover has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 8; i++) {
       stpGasUpfrontGasCostXorGasLeftover.put((byte) 0);
     }
-    stpGasUpfrontGasCostXorGasLeftover.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      stpGasUpfrontGasCostXorGasLeftover.put(bs.get(j));
+    }
 
     return this;
   }
@@ -2844,7 +3871,14 @@ public class Trace {
       filled.set(120);
     }
 
-    returnDataOffsetXorStpInstruction.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "returnDataOffsetXorStpInstruction has invalid value (" + b + ")");
+    }
+    returnDataOffsetXorStpInstruction.put((byte) (b >> 24));
+    returnDataOffsetXorStpInstruction.put((byte) (b >> 16));
+    returnDataOffsetXorStpInstruction.put((byte) (b >> 8));
+    returnDataOffsetXorStpInstruction.put((byte) b);
 
     return this;
   }
@@ -2868,11 +3902,21 @@ public class Trace {
       filled.set(161);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "stpValueHi has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       stpValueHi.put((byte) 0);
     }
-    stpValueHi.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      stpValueHi.put(bs.get(j));
+    }
 
     return this;
   }
@@ -2884,11 +3928,21 @@ public class Trace {
       filled.set(162);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "stpValueLo has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       stpValueLo.put((byte) 0);
     }
-    stpValueLo.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      stpValueLo.put(bs.get(j));
+    }
 
     return this;
   }
@@ -3204,8 +4258,20 @@ public class Trace {
       filled.set(106);
     }
 
-    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum
-        .putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum has invalid value ("
+              + b
+              + ")");
+    }
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum.put(
+        (byte) (b >> 24));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum.put(
+        (byte) (b >> 16));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum.put(
+        (byte) (b >> 8));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum.put(
+        (byte) b);
 
     return this;
   }
@@ -3217,8 +4283,20 @@ public class Trace {
       filled.set(107);
     }
 
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCallDataSize has invalid value ("
+              + b
+              + ")");
+    }
     codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCallDataSize
-        .putLong(b);
+        .put((byte) (b >> 24));
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCallDataSize
+        .put((byte) (b >> 16));
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCallDataSize
+        .put((byte) (b >> 8));
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCallDataSize
+        .put((byte) b);
 
     return this;
   }
@@ -3230,8 +4308,20 @@ public class Trace {
       filled.set(108);
     }
 
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorCoinbaseAddressHi has invalid value ("
+              + b
+              + ")");
+    }
     codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorCoinbaseAddressHi
-        .putLong(b);
+        .put((byte) (b >> 24));
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorCoinbaseAddressHi
+        .put((byte) (b >> 16));
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorCoinbaseAddressHi
+        .put((byte) (b >> 8));
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorCoinbaseAddressHi
+        .put((byte) b);
 
     return this;
   }
@@ -3243,7 +4333,19 @@ public class Trace {
       filled.set(109);
     }
 
-    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorFromAddressHi.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorFromAddressHi has invalid value ("
+              + b
+              + ")");
+    }
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorFromAddressHi.put(
+        (byte) (b >> 24));
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorFromAddressHi.put(
+        (byte) (b >> 16));
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorFromAddressHi.put(
+        (byte) (b >> 8));
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorFromAddressHi.put((byte) b);
 
     return this;
   }
@@ -3351,7 +4453,19 @@ public class Trace {
       filled.set(110);
     }
 
-    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorInitCodeSize.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorInitCodeSize has invalid value ("
+              + b
+              + ")");
+    }
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorInitCodeSize.put(
+        (byte) (b >> 24));
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorInitCodeSize.put(
+        (byte) (b >> 16));
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorInitCodeSize.put(
+        (byte) (b >> 8));
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorInitCodeSize.put((byte) b);
 
     return this;
   }
@@ -3363,7 +4477,20 @@ public class Trace {
       filled.set(111);
     }
 
-    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRaoXorToAddressHi.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRaoXorToAddressHi has invalid value ("
+              + b
+              + ")");
+    }
+    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRaoXorToAddressHi.put(
+        (byte) (b >> 24));
+    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRaoXorToAddressHi.put(
+        (byte) (b >> 16));
+    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRaoXorToAddressHi.put(
+        (byte) (b >> 8));
+    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRaoXorToAddressHi.put(
+        (byte) b);
 
     return this;
   }
@@ -3375,7 +4502,16 @@ public class Trace {
       filled.set(112);
     }
 
-    deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas has invalid value ("
+              + b
+              + ")");
+    }
+    deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.put((byte) (b >> 24));
+    deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.put((byte) (b >> 16));
+    deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.put((byte) (b >> 8));
+    deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.put((byte) b);
 
     return this;
   }
@@ -3802,13 +4938,25 @@ public class Trace {
       filled.set(131);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "addressLoXorAccountAddressLoXorExpData1XorHashInfoKeccakHiXorAddressLoXorCoinbaseAddressLo has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       addressLoXorAccountAddressLoXorExpData1XorHashInfoKeccakHiXorAddressLoXorCoinbaseAddressLo
           .put((byte) 0);
     }
-    addressLoXorAccountAddressLoXorExpData1XorHashInfoKeccakHiXorAddressLoXorCoinbaseAddressLo.put(
-        b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      addressLoXorAccountAddressLoXorExpData1XorHashInfoKeccakHiXorAddressLoXorCoinbaseAddressLo
+          .put(bs.get(j));
+    }
 
     return this;
   }
@@ -3820,13 +4968,25 @@ public class Trace {
       filled.set(132);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "balanceXorByteCodeAddressLoXorExpData2XorHashInfoKeccakLoXorStorageKeyHiXorFromAddressLo has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       balanceXorByteCodeAddressLoXorExpData2XorHashInfoKeccakLoXorStorageKeyHiXorFromAddressLo.put(
           (byte) 0);
     }
-    balanceXorByteCodeAddressLoXorExpData2XorHashInfoKeccakLoXorStorageKeyHiXorFromAddressLo.put(
-        b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      balanceXorByteCodeAddressLoXorExpData2XorHashInfoKeccakLoXorStorageKeyHiXorFromAddressLo.put(
+          bs.get(j));
+    }
 
     return this;
   }
@@ -3850,11 +5010,21 @@ public class Trace {
       filled.set(163);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 256) {
+      throw new IllegalArgumentException(
+          "instruction has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 32; i++) {
       instruction.put((byte) 0);
     }
-    instruction.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      instruction.put(bs.get(j));
+    }
 
     return this;
   }
@@ -4071,13 +5241,25 @@ public class Trace {
       filled.set(133);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "balanceNewXorCallerAddressLoXorExpData3XorPushValueHiXorStorageKeyLoXorInitialBalance has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       balanceNewXorCallerAddressLoXorExpData3XorPushValueHiXorStorageKeyLoXorInitialBalance.put(
           (byte) 0);
     }
-    balanceNewXorCallerAddressLoXorExpData3XorPushValueHiXorStorageKeyLoXorInitialBalance.put(
-        b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      balanceNewXorCallerAddressLoXorExpData3XorPushValueHiXorStorageKeyLoXorInitialBalance.put(
+          bs.get(j));
+    }
 
     return this;
   }
@@ -4089,12 +5271,23 @@ public class Trace {
       filled.set(134);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "codeHashHiXorCallValueXorExpData4XorPushValueLoXorValueCurrHiXorToAddressLo has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       codeHashHiXorCallValueXorExpData4XorPushValueLoXorValueCurrHiXorToAddressLo.put((byte) 0);
     }
-    codeHashHiXorCallValueXorExpData4XorPushValueLoXorValueCurrHiXorToAddressLo.put(
-        b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      codeHashHiXorCallValueXorExpData4XorPushValueLoXorValueCurrHiXorToAddressLo.put(bs.get(j));
+    }
 
     return this;
   }
@@ -4166,11 +5359,21 @@ public class Trace {
       filled.set(164);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 256) {
+      throw new IllegalArgumentException(
+          "stackItemHeight1 has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 32; i++) {
       stackItemHeight1.put((byte) 0);
     }
-    stackItemHeight1.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      stackItemHeight1.put(bs.get(j));
+    }
 
     return this;
   }
@@ -4182,11 +5385,21 @@ public class Trace {
       filled.set(165);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 256) {
+      throw new IllegalArgumentException(
+          "stackItemHeight2 has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 32; i++) {
       stackItemHeight2.put((byte) 0);
     }
-    stackItemHeight2.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      stackItemHeight2.put(bs.get(j));
+    }
 
     return this;
   }
@@ -4198,11 +5411,21 @@ public class Trace {
       filled.set(166);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 256) {
+      throw new IllegalArgumentException(
+          "stackItemHeight3 has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 32; i++) {
       stackItemHeight3.put((byte) 0);
     }
-    stackItemHeight3.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      stackItemHeight3.put(bs.get(j));
+    }
 
     return this;
   }
@@ -4214,11 +5437,21 @@ public class Trace {
       filled.set(167);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 256) {
+      throw new IllegalArgumentException(
+          "stackItemHeight4 has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 32; i++) {
       stackItemHeight4.put((byte) 0);
     }
-    stackItemHeight4.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      stackItemHeight4.put(bs.get(j));
+    }
 
     return this;
   }
@@ -4278,11 +5511,21 @@ public class Trace {
       filled.set(168);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 256) {
+      throw new IllegalArgumentException(
+          "stackItemStamp1 has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 32; i++) {
       stackItemStamp1.put((byte) 0);
     }
-    stackItemStamp1.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      stackItemStamp1.put(bs.get(j));
+    }
 
     return this;
   }
@@ -4294,11 +5537,21 @@ public class Trace {
       filled.set(169);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 256) {
+      throw new IllegalArgumentException(
+          "stackItemStamp2 has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 32; i++) {
       stackItemStamp2.put((byte) 0);
     }
-    stackItemStamp2.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      stackItemStamp2.put(bs.get(j));
+    }
 
     return this;
   }
@@ -4310,11 +5563,21 @@ public class Trace {
       filled.set(170);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 256) {
+      throw new IllegalArgumentException(
+          "stackItemStamp3 has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 32; i++) {
       stackItemStamp3.put((byte) 0);
     }
-    stackItemStamp3.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      stackItemStamp3.put(bs.get(j));
+    }
 
     return this;
   }
@@ -4326,11 +5589,21 @@ public class Trace {
       filled.set(171);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 256) {
+      throw new IllegalArgumentException(
+          "stackItemStamp4 has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 32; i++) {
       stackItemStamp4.put((byte) 0);
     }
-    stackItemStamp4.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      stackItemStamp4.put(bs.get(j));
+    }
 
     return this;
   }
@@ -4342,11 +5615,21 @@ public class Trace {
       filled.set(172);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 256) {
+      throw new IllegalArgumentException(
+          "stackItemValueHi1 has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 32; i++) {
       stackItemValueHi1.put((byte) 0);
     }
-    stackItemValueHi1.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      stackItemValueHi1.put(bs.get(j));
+    }
 
     return this;
   }
@@ -4358,11 +5641,21 @@ public class Trace {
       filled.set(173);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 256) {
+      throw new IllegalArgumentException(
+          "stackItemValueHi2 has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 32; i++) {
       stackItemValueHi2.put((byte) 0);
     }
-    stackItemValueHi2.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      stackItemValueHi2.put(bs.get(j));
+    }
 
     return this;
   }
@@ -4374,11 +5667,21 @@ public class Trace {
       filled.set(174);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 256) {
+      throw new IllegalArgumentException(
+          "stackItemValueHi3 has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 32; i++) {
       stackItemValueHi3.put((byte) 0);
     }
-    stackItemValueHi3.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      stackItemValueHi3.put(bs.get(j));
+    }
 
     return this;
   }
@@ -4390,11 +5693,21 @@ public class Trace {
       filled.set(175);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 256) {
+      throw new IllegalArgumentException(
+          "stackItemValueHi4 has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 32; i++) {
       stackItemValueHi4.put((byte) 0);
     }
-    stackItemValueHi4.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      stackItemValueHi4.put(bs.get(j));
+    }
 
     return this;
   }
@@ -4406,11 +5719,21 @@ public class Trace {
       filled.set(176);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 256) {
+      throw new IllegalArgumentException(
+          "stackItemValueLo1 has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 32; i++) {
       stackItemValueLo1.put((byte) 0);
     }
-    stackItemValueLo1.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      stackItemValueLo1.put(bs.get(j));
+    }
 
     return this;
   }
@@ -4422,11 +5745,21 @@ public class Trace {
       filled.set(177);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 256) {
+      throw new IllegalArgumentException(
+          "stackItemValueLo2 has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 32; i++) {
       stackItemValueLo2.put((byte) 0);
     }
-    stackItemValueLo2.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      stackItemValueLo2.put(bs.get(j));
+    }
 
     return this;
   }
@@ -4438,11 +5771,21 @@ public class Trace {
       filled.set(178);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 256) {
+      throw new IllegalArgumentException(
+          "stackItemValueLo3 has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 32; i++) {
       stackItemValueLo3.put((byte) 0);
     }
-    stackItemValueLo3.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      stackItemValueLo3.put(bs.get(j));
+    }
 
     return this;
   }
@@ -4454,11 +5797,21 @@ public class Trace {
       filled.set(179);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 256) {
+      throw new IllegalArgumentException(
+          "stackItemValueLo4 has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 32; i++) {
       stackItemValueLo4.put((byte) 0);
     }
-    stackItemValueLo4.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      stackItemValueLo4.put(bs.get(j));
+    }
 
     return this;
   }
@@ -4494,8 +5847,20 @@ public class Trace {
       filled.set(106);
     }
 
-    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum
-        .putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum has invalid value ("
+              + b
+              + ")");
+    }
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum.put(
+        (byte) (b >> 24));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum.put(
+        (byte) (b >> 16));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum.put(
+        (byte) (b >> 8));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum.put(
+        (byte) b);
 
     return this;
   }
@@ -4579,8 +5944,20 @@ public class Trace {
       filled.set(106);
     }
 
-    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum
-        .putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum has invalid value ("
+              + b
+              + ")");
+    }
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum.put(
+        (byte) (b >> 24));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum.put(
+        (byte) (b >> 16));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum.put(
+        (byte) (b >> 8));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum.put(
+        (byte) b);
 
     return this;
   }
@@ -4592,13 +5969,25 @@ public class Trace {
       filled.set(131);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "addressLoXorAccountAddressLoXorExpData1XorHashInfoKeccakHiXorAddressLoXorCoinbaseAddressLo has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       addressLoXorAccountAddressLoXorExpData1XorHashInfoKeccakHiXorAddressLoXorCoinbaseAddressLo
           .put((byte) 0);
     }
-    addressLoXorAccountAddressLoXorExpData1XorHashInfoKeccakHiXorAddressLoXorCoinbaseAddressLo.put(
-        b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      addressLoXorAccountAddressLoXorExpData1XorHashInfoKeccakHiXorAddressLoXorCoinbaseAddressLo
+          .put(bs.get(j));
+    }
 
     return this;
   }
@@ -4610,8 +5999,20 @@ public class Trace {
       filled.set(107);
     }
 
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCallDataSize has invalid value ("
+              + b
+              + ")");
+    }
     codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCallDataSize
-        .putLong(b);
+        .put((byte) (b >> 24));
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCallDataSize
+        .put((byte) (b >> 16));
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCallDataSize
+        .put((byte) (b >> 8));
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCallDataSize
+        .put((byte) b);
 
     return this;
   }
@@ -4623,8 +6024,20 @@ public class Trace {
       filled.set(108);
     }
 
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorCoinbaseAddressHi has invalid value ("
+              + b
+              + ")");
+    }
     codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorCoinbaseAddressHi
-        .putLong(b);
+        .put((byte) (b >> 24));
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorCoinbaseAddressHi
+        .put((byte) (b >> 16));
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorCoinbaseAddressHi
+        .put((byte) (b >> 8));
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorCoinbaseAddressHi
+        .put((byte) b);
 
     return this;
   }
@@ -4636,13 +6049,25 @@ public class Trace {
       filled.set(132);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "balanceXorByteCodeAddressLoXorExpData2XorHashInfoKeccakLoXorStorageKeyHiXorFromAddressLo has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       balanceXorByteCodeAddressLoXorExpData2XorHashInfoKeccakLoXorStorageKeyHiXorFromAddressLo.put(
           (byte) 0);
     }
-    balanceXorByteCodeAddressLoXorExpData2XorHashInfoKeccakLoXorStorageKeyHiXorFromAddressLo.put(
-        b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      balanceXorByteCodeAddressLoXorExpData2XorHashInfoKeccakLoXorStorageKeyHiXorFromAddressLo.put(
+          bs.get(j));
+    }
 
     return this;
   }
@@ -4654,13 +6079,25 @@ public class Trace {
       filled.set(133);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "balanceNewXorCallerAddressLoXorExpData3XorPushValueHiXorStorageKeyLoXorInitialBalance has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       balanceNewXorCallerAddressLoXorExpData3XorPushValueHiXorStorageKeyLoXorInitialBalance.put(
           (byte) 0);
     }
-    balanceNewXorCallerAddressLoXorExpData3XorPushValueHiXorStorageKeyLoXorInitialBalance.put(
-        b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      balanceNewXorCallerAddressLoXorExpData3XorPushValueHiXorStorageKeyLoXorInitialBalance.put(
+          bs.get(j));
+    }
 
     return this;
   }
@@ -4711,12 +6148,23 @@ public class Trace {
       filled.set(134);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "codeHashHiXorCallValueXorExpData4XorPushValueLoXorValueCurrHiXorToAddressLo has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       codeHashHiXorCallValueXorExpData4XorPushValueLoXorValueCurrHiXorToAddressLo.put((byte) 0);
     }
-    codeHashHiXorCallValueXorExpData4XorPushValueLoXorValueCurrHiXorToAddressLo.put(
-        b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      codeHashHiXorCallValueXorExpData4XorPushValueLoXorValueCurrHiXorToAddressLo.put(bs.get(j));
+    }
 
     return this;
   }
@@ -4754,11 +6202,23 @@ public class Trace {
       filled.set(135);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "codeHashHiNewXorExpData5XorValueCurrLoXorValue has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       codeHashHiNewXorExpData5XorValueCurrLoXorValue.put((byte) 0);
     }
-    codeHashHiNewXorExpData5XorValueCurrLoXorValue.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      codeHashHiNewXorExpData5XorValueCurrLoXorValue.put(bs.get(j));
+    }
 
     return this;
   }
@@ -4770,11 +6230,21 @@ public class Trace {
       filled.set(136);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "codeHashLoXorMmuLimb1XorValueNextHi has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       codeHashLoXorMmuLimb1XorValueNextHi.put((byte) 0);
     }
-    codeHashLoXorMmuLimb1XorValueNextHi.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      codeHashLoXorMmuLimb1XorValueNextHi.put(bs.get(j));
+    }
 
     return this;
   }
@@ -4825,11 +6295,21 @@ public class Trace {
       filled.set(137);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "codeHashLoNewXorMmuLimb2XorValueNextLo has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       codeHashLoNewXorMmuLimb2XorValueNextLo.put((byte) 0);
     }
-    codeHashLoNewXorMmuLimb2XorValueNextLo.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      codeHashLoNewXorMmuLimb2XorValueNextLo.put(bs.get(j));
+    }
 
     return this;
   }
@@ -4841,11 +6321,23 @@ public class Trace {
       filled.set(138);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "rlpaddrDepAddrLoXorMmuSrcOffsetHiXorValueOrigHi has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       rlpaddrDepAddrLoXorMmuSrcOffsetHiXorValueOrigHi.put((byte) 0);
     }
-    rlpaddrDepAddrLoXorMmuSrcOffsetHiXorValueOrigHi.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      rlpaddrDepAddrLoXorMmuSrcOffsetHiXorValueOrigHi.put(bs.get(j));
+    }
 
     return this;
   }
@@ -4870,11 +6362,23 @@ public class Trace {
       filled.set(139);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "rlpaddrKecHiXorMmuSrcOffsetLoXorValueOrigLo has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       rlpaddrKecHiXorMmuSrcOffsetLoXorValueOrigLo.put((byte) 0);
     }
-    rlpaddrKecHiXorMmuSrcOffsetLoXorValueOrigLo.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      rlpaddrKecHiXorMmuSrcOffsetLoXorValueOrigLo.put(bs.get(j));
+    }
 
     return this;
   }
@@ -4912,11 +6416,21 @@ public class Trace {
       filled.set(122);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 64) {
+      throw new IllegalArgumentException(
+          "nonceXorStpGasMxpXorBasefee has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 8; i++) {
       nonceXorStpGasMxpXorBasefee.put((byte) 0);
     }
-    nonceXorStpGasMxpXorBasefee.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      nonceXorStpGasMxpXorBasefee.put(bs.get(j));
+    }
 
     return this;
   }
@@ -4928,8 +6442,20 @@ public class Trace {
       filled.set(106);
     }
 
-    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum
-        .putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum has invalid value ("
+              + b
+              + ")");
+    }
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum.put(
+        (byte) (b >> 24));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum.put(
+        (byte) (b >> 16));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum.put(
+        (byte) (b >> 8));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum.put(
+        (byte) b);
 
     return this;
   }
@@ -4941,8 +6467,20 @@ public class Trace {
       filled.set(107);
     }
 
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCallDataSize has invalid value ("
+              + b
+              + ")");
+    }
     codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCallDataSize
-        .putLong(b);
+        .put((byte) (b >> 24));
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCallDataSize
+        .put((byte) (b >> 16));
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCallDataSize
+        .put((byte) (b >> 8));
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCallDataSize
+        .put((byte) b);
 
     return this;
   }
@@ -4954,8 +6492,20 @@ public class Trace {
       filled.set(108);
     }
 
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorCoinbaseAddressHi has invalid value ("
+              + b
+              + ")");
+    }
     codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorCoinbaseAddressHi
-        .putLong(b);
+        .put((byte) (b >> 24));
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorCoinbaseAddressHi
+        .put((byte) (b >> 16));
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorCoinbaseAddressHi
+        .put((byte) (b >> 8));
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorCoinbaseAddressHi
+        .put((byte) b);
 
     return this;
   }
@@ -4967,13 +6517,25 @@ public class Trace {
       filled.set(131);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "addressLoXorAccountAddressLoXorExpData1XorHashInfoKeccakHiXorAddressLoXorCoinbaseAddressLo has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       addressLoXorAccountAddressLoXorExpData1XorHashInfoKeccakHiXorAddressLoXorCoinbaseAddressLo
           .put((byte) 0);
     }
-    addressLoXorAccountAddressLoXorExpData1XorHashInfoKeccakHiXorAddressLoXorCoinbaseAddressLo.put(
-        b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      addressLoXorAccountAddressLoXorExpData1XorHashInfoKeccakHiXorAddressLoXorCoinbaseAddressLo
+          .put(bs.get(j));
+    }
 
     return this;
   }
@@ -4998,7 +6560,19 @@ public class Trace {
       filled.set(109);
     }
 
-    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorFromAddressHi.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorFromAddressHi has invalid value ("
+              + b
+              + ")");
+    }
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorFromAddressHi.put(
+        (byte) (b >> 24));
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorFromAddressHi.put(
+        (byte) (b >> 16));
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorFromAddressHi.put(
+        (byte) (b >> 8));
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorFromAddressHi.put((byte) b);
 
     return this;
   }
@@ -5010,13 +6584,25 @@ public class Trace {
       filled.set(132);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "balanceXorByteCodeAddressLoXorExpData2XorHashInfoKeccakLoXorStorageKeyHiXorFromAddressLo has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       balanceXorByteCodeAddressLoXorExpData2XorHashInfoKeccakLoXorStorageKeyHiXorFromAddressLo.put(
           (byte) 0);
     }
-    balanceXorByteCodeAddressLoXorExpData2XorHashInfoKeccakLoXorStorageKeyHiXorFromAddressLo.put(
-        b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      balanceXorByteCodeAddressLoXorExpData2XorHashInfoKeccakLoXorStorageKeyHiXorFromAddressLo.put(
+          bs.get(j));
+    }
 
     return this;
   }
@@ -5028,11 +6614,23 @@ public class Trace {
       filled.set(123);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 64) {
+      throw new IllegalArgumentException(
+          "nonceNewXorStpGasPaidOutOfPocketXorGasInitiallyAvailable has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 8; i++) {
       nonceNewXorStpGasPaidOutOfPocketXorGasInitiallyAvailable.put((byte) 0);
     }
-    nonceNewXorStpGasPaidOutOfPocketXorGasInitiallyAvailable.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      nonceNewXorStpGasPaidOutOfPocketXorGasInitiallyAvailable.put(bs.get(j));
+    }
 
     return this;
   }
@@ -5044,11 +6642,21 @@ public class Trace {
       filled.set(124);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 64) {
+      throw new IllegalArgumentException(
+          "stpGasUpfrontGasCostXorGasLeftover has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 8; i++) {
       stpGasUpfrontGasCostXorGasLeftover.put((byte) 0);
     }
-    stpGasUpfrontGasCostXorGasLeftover.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      stpGasUpfrontGasCostXorGasLeftover.put(bs.get(j));
+    }
 
     return this;
   }
@@ -5060,11 +6668,20 @@ public class Trace {
       filled.set(125);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 64) {
+      throw new IllegalArgumentException("gasLimit has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 8; i++) {
       gasLimit.put((byte) 0);
     }
-    gasLimit.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      gasLimit.put(bs.get(j));
+    }
 
     return this;
   }
@@ -5076,11 +6693,20 @@ public class Trace {
       filled.set(126);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 64) {
+      throw new IllegalArgumentException("gasPrice has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 8; i++) {
       gasPrice.put((byte) 0);
     }
-    gasPrice.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      gasPrice.put(bs.get(j));
+    }
 
     return this;
   }
@@ -5092,7 +6718,19 @@ public class Trace {
       filled.set(110);
     }
 
-    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorInitCodeSize.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorInitCodeSize has invalid value ("
+              + b
+              + ")");
+    }
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorInitCodeSize.put(
+        (byte) (b >> 24));
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorInitCodeSize.put(
+        (byte) (b >> 16));
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorInitCodeSize.put(
+        (byte) (b >> 8));
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorInitCodeSize.put((byte) b);
 
     return this;
   }
@@ -5104,13 +6742,25 @@ public class Trace {
       filled.set(133);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "balanceNewXorCallerAddressLoXorExpData3XorPushValueHiXorStorageKeyLoXorInitialBalance has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       balanceNewXorCallerAddressLoXorExpData3XorPushValueHiXorStorageKeyLoXorInitialBalance.put(
           (byte) 0);
     }
-    balanceNewXorCallerAddressLoXorExpData3XorPushValueHiXorStorageKeyLoXorInitialBalance.put(
-        b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      balanceNewXorCallerAddressLoXorExpData3XorPushValueHiXorStorageKeyLoXorInitialBalance.put(
+          bs.get(j));
+    }
 
     return this;
   }
@@ -5148,11 +6798,20 @@ public class Trace {
       filled.set(127);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 64) {
+      throw new IllegalArgumentException("nonce has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 8; i++) {
       nonce.put((byte) 0);
     }
-    nonce.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      nonce.put(bs.get(j));
+    }
 
     return this;
   }
@@ -5164,11 +6823,21 @@ public class Trace {
       filled.set(128);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 64) {
+      throw new IllegalArgumentException(
+          "priorityFeePerGas has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 8; i++) {
       priorityFeePerGas.put((byte) 0);
     }
-    priorityFeePerGas.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      priorityFeePerGas.put(bs.get(j));
+    }
 
     return this;
   }
@@ -5180,11 +6849,21 @@ public class Trace {
       filled.set(129);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 64) {
+      throw new IllegalArgumentException(
+          "refundCounterInfinity has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 8; i++) {
       refundCounterInfinity.put((byte) 0);
     }
-    refundCounterInfinity.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      refundCounterInfinity.put(bs.get(j));
+    }
 
     return this;
   }
@@ -5196,11 +6875,21 @@ public class Trace {
       filled.set(130);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 64) {
+      throw new IllegalArgumentException(
+          "refundEffective has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 8; i++) {
       refundEffective.put((byte) 0);
     }
-    refundEffective.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      refundEffective.put(bs.get(j));
+    }
 
     return this;
   }
@@ -5238,7 +6927,20 @@ public class Trace {
       filled.set(111);
     }
 
-    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRaoXorToAddressHi.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRaoXorToAddressHi has invalid value ("
+              + b
+              + ")");
+    }
+    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRaoXorToAddressHi.put(
+        (byte) (b >> 24));
+    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRaoXorToAddressHi.put(
+        (byte) (b >> 16));
+    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRaoXorToAddressHi.put(
+        (byte) (b >> 8));
+    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRaoXorToAddressHi.put(
+        (byte) b);
 
     return this;
   }
@@ -5250,12 +6952,23 @@ public class Trace {
       filled.set(134);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "codeHashHiXorCallValueXorExpData4XorPushValueLoXorValueCurrHiXorToAddressLo has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       codeHashHiXorCallValueXorExpData4XorPushValueLoXorValueCurrHiXorToAddressLo.put((byte) 0);
     }
-    codeHashHiXorCallValueXorExpData4XorPushValueLoXorValueCurrHiXorToAddressLo.put(
-        b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      codeHashHiXorCallValueXorExpData4XorPushValueLoXorValueCurrHiXorToAddressLo.put(bs.get(j));
+    }
 
     return this;
   }
@@ -5267,11 +6980,23 @@ public class Trace {
       filled.set(135);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "codeHashHiNewXorExpData5XorValueCurrLoXorValue has invalid width ("
+              + bs.bitLength()
+              + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       codeHashHiNewXorExpData5XorValueCurrLoXorValue.put((byte) 0);
     }
-    codeHashHiNewXorExpData5XorValueCurrLoXorValue.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      codeHashHiNewXorExpData5XorValueCurrLoXorValue.put(bs.get(j));
+    }
 
     return this;
   }
@@ -5367,7 +7092,13 @@ public class Trace {
       filled.set(35);
     }
 
-    programCounter.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("programCounter has invalid value (" + b + ")");
+    }
+    programCounter.put((byte) (b >> 24));
+    programCounter.put((byte) (b >> 16));
+    programCounter.put((byte) (b >> 8));
+    programCounter.put((byte) b);
 
     return this;
   }
@@ -5379,7 +7110,13 @@ public class Trace {
       filled.set(36);
     }
 
-    programCounterNew.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("programCounterNew has invalid value (" + b + ")");
+    }
+    programCounterNew.put((byte) (b >> 24));
+    programCounterNew.put((byte) (b >> 16));
+    programCounterNew.put((byte) (b >> 8));
+    programCounterNew.put((byte) b);
 
     return this;
   }
@@ -5391,7 +7128,13 @@ public class Trace {
       filled.set(37);
     }
 
-    refundCounter.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("refundCounter has invalid value (" + b + ")");
+    }
+    refundCounter.put((byte) (b >> 24));
+    refundCounter.put((byte) (b >> 16));
+    refundCounter.put((byte) (b >> 8));
+    refundCounter.put((byte) b);
 
     return this;
   }
@@ -5403,7 +7146,13 @@ public class Trace {
       filled.set(38);
     }
 
-    refundCounterNew.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("refundCounterNew has invalid value (" + b + ")");
+    }
+    refundCounterNew.put((byte) (b >> 24));
+    refundCounterNew.put((byte) (b >> 16));
+    refundCounterNew.put((byte) (b >> 8));
+    refundCounterNew.put((byte) b);
 
     return this;
   }
@@ -5439,7 +7188,13 @@ public class Trace {
       filled.set(39);
     }
 
-    subStamp.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("subStamp has invalid value (" + b + ")");
+    }
+    subStamp.put((byte) (b >> 24));
+    subStamp.put((byte) (b >> 16));
+    subStamp.put((byte) (b >> 8));
+    subStamp.put((byte) b);
 
     return this;
   }
@@ -6305,7 +8060,7 @@ public class Trace {
 
   public Trace fillAndValidateRow() {
     if (!filled.get(0)) {
-      absoluteTransactionNumber.position(absoluteTransactionNumber.position() + 4);
+      absoluteTransactionNumber.position(absoluteTransactionNumber.position() + 2);
     }
 
     if (!filled.get(46)) {
@@ -6321,7 +8076,7 @@ public class Trace {
           .position(
               addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum
                       .position()
-                  + 8);
+                  + 4);
     }
 
     if (!filled.get(131)) {
@@ -6329,7 +8084,7 @@ public class Trace {
           .position(
               addressLoXorAccountAddressLoXorExpData1XorHashInfoKeccakHiXorAddressLoXorCoinbaseAddressLo
                       .position()
-                  + 32);
+                  + 16);
     }
 
     if (!filled.get(101)) {
@@ -6341,7 +8096,7 @@ public class Trace {
           .position(
               balanceNewXorCallerAddressLoXorExpData3XorPushValueHiXorStorageKeyLoXorInitialBalance
                       .position()
-                  + 32);
+                  + 16);
     }
 
     if (!filled.get(132)) {
@@ -6349,19 +8104,19 @@ public class Trace {
           .position(
               balanceXorByteCodeAddressLoXorExpData2XorHashInfoKeccakLoXorStorageKeyHiXorFromAddressLo
                       .position()
-                  + 32);
+                  + 16);
     }
 
     if (!filled.get(1)) {
-      batchNumber.position(batchNumber.position() + 4);
+      batchNumber.position(batchNumber.position() + 2);
     }
 
     if (!filled.get(114)) {
-      callDataOffsetXorMmuSize.position(callDataOffsetXorMmuSize.position() + 8);
+      callDataOffsetXorMmuSize.position(callDataOffsetXorMmuSize.position() + 4);
     }
 
     if (!filled.get(115)) {
-      callDataSizeXorMmuSrcId.position(callDataSizeXorMmuSrcId.position() + 8);
+      callDataSizeXorMmuSrcId.position(callDataSizeXorMmuSrcId.position() + 4);
     }
 
     if (!filled.get(105)) {
@@ -6369,11 +8124,11 @@ public class Trace {
     }
 
     if (!filled.get(2)) {
-      callerContextNumber.position(callerContextNumber.position() + 8);
+      callerContextNumber.position(callerContextNumber.position() + 4);
     }
 
     if (!filled.get(3)) {
-      codeFragmentIndex.position(codeFragmentIndex.position() + 8);
+      codeFragmentIndex.position(codeFragmentIndex.position() + 4);
     }
 
     if (!filled.get(107)) {
@@ -6381,34 +8136,34 @@ public class Trace {
           .position(
               codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCallDataSize
                       .position()
-                  + 8);
+                  + 4);
     }
 
     if (!filled.get(135)) {
       codeHashHiNewXorExpData5XorValueCurrLoXorValue.position(
-          codeHashHiNewXorExpData5XorValueCurrLoXorValue.position() + 32);
+          codeHashHiNewXorExpData5XorValueCurrLoXorValue.position() + 16);
     }
 
     if (!filled.get(134)) {
       codeHashHiXorCallValueXorExpData4XorPushValueLoXorValueCurrHiXorToAddressLo.position(
           codeHashHiXorCallValueXorExpData4XorPushValueLoXorValueCurrHiXorToAddressLo.position()
-              + 32);
+              + 16);
     }
 
     if (!filled.get(137)) {
       codeHashLoNewXorMmuLimb2XorValueNextLo.position(
-          codeHashLoNewXorMmuLimb2XorValueNextLo.position() + 32);
+          codeHashLoNewXorMmuLimb2XorValueNextLo.position() + 16);
     }
 
     if (!filled.get(136)) {
       codeHashLoXorMmuLimb1XorValueNextHi.position(
-          codeHashLoXorMmuLimb1XorValueNextHi.position() + 32);
+          codeHashLoXorMmuLimb1XorValueNextHi.position() + 16);
     }
 
     if (!filled.get(109)) {
       codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorFromAddressHi.position(
           codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorFromAddressHi.position()
-              + 8);
+              + 4);
     }
 
     if (!filled.get(108)) {
@@ -6416,7 +8171,7 @@ public class Trace {
           .position(
               codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorCoinbaseAddressHi
                       .position()
-                  + 8);
+                  + 4);
     }
 
     if (!filled.get(48)) {
@@ -6436,19 +8191,19 @@ public class Trace {
     }
 
     if (!filled.get(6)) {
-      contextNumber.position(contextNumber.position() + 8);
+      contextNumber.position(contextNumber.position() + 4);
     }
 
     if (!filled.get(7)) {
-      contextNumberNew.position(contextNumberNew.position() + 8);
+      contextNumberNew.position(contextNumberNew.position() + 4);
     }
 
     if (!filled.get(116)) {
-      contextNumberXorMmuTgtId.position(contextNumberXorMmuTgtId.position() + 8);
+      contextNumberXorMmuTgtId.position(contextNumberXorMmuTgtId.position() + 4);
     }
 
     if (!filled.get(8)) {
-      contextRevertStamp.position(contextRevertStamp.position() + 8);
+      contextRevertStamp.position(contextRevertStamp.position() + 4);
     }
 
     if (!filled.get(9)) {
@@ -6460,7 +8215,7 @@ public class Trace {
     }
 
     if (!filled.get(11)) {
-      counterNsr.position(counterNsr.position() + 2);
+      counterNsr.position(counterNsr.position() + 1);
     }
 
     if (!filled.get(12)) {
@@ -6500,18 +8255,18 @@ public class Trace {
       deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRaoXorToAddressHi.position(
           deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRaoXorToAddressHi
                   .position()
-              + 8);
+              + 4);
     }
 
     if (!filled.get(112)) {
       deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.position(
-          deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.position() + 8);
+          deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.position() + 4);
     }
 
     if (!filled.get(110)) {
       deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorInitCodeSize.position(
           deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorInitCodeSize.position()
-              + 8);
+              + 4);
     }
 
     if (!filled.get(53)) {
@@ -6539,7 +8294,7 @@ public class Trace {
     }
 
     if (!filled.get(13)) {
-      domStamp.position(domStamp.position() + 8);
+      domStamp.position(domStamp.position() + 4);
     }
 
     if (!filled.get(14)) {
@@ -6562,27 +8317,27 @@ public class Trace {
     }
 
     if (!filled.get(15)) {
-      gasActual.position(gasActual.position() + 8);
+      gasActual.position(gasActual.position() + 4);
     }
 
     if (!filled.get(16)) {
-      gasCost.position(gasCost.position() + 32);
+      gasCost.position(gasCost.position() + 8);
     }
 
     if (!filled.get(17)) {
-      gasExpected.position(gasExpected.position() + 8);
+      gasExpected.position(gasExpected.position() + 4);
     }
 
     if (!filled.get(125)) {
-      gasLimit.position(gasLimit.position() + 32);
+      gasLimit.position(gasLimit.position() + 8);
     }
 
     if (!filled.get(18)) {
-      gasNext.position(gasNext.position() + 8);
+      gasNext.position(gasNext.position() + 4);
     }
 
     if (!filled.get(126)) {
-      gasPrice.position(gasPrice.position() + 32);
+      gasPrice.position(gasPrice.position() + 8);
     }
 
     if (!filled.get(58)) {
@@ -6599,7 +8354,7 @@ public class Trace {
     }
 
     if (!filled.get(19)) {
-      hashInfoStamp.position(hashInfoStamp.position() + 8);
+      hashInfoStamp.position(hashInfoStamp.position() + 4);
     }
 
     if (!filled.get(20)) {
@@ -6611,11 +8366,11 @@ public class Trace {
     }
 
     if (!filled.get(22)) {
-      hubStamp.position(hubStamp.position() + 8);
+      hubStamp.position(hubStamp.position() + 4);
     }
 
     if (!filled.get(23)) {
-      hubStampTransactionEnd.position(hubStampTransactionEnd.position() + 8);
+      hubStampTransactionEnd.position(hubStampTransactionEnd.position() + 4);
     }
 
     if (!filled.get(163)) {
@@ -6631,7 +8386,7 @@ public class Trace {
     }
 
     if (!filled.get(24)) {
-      logInfoStamp.position(logInfoStamp.position() + 8);
+      logInfoStamp.position(logInfoStamp.position() + 4);
     }
 
     if (!filled.get(61)) {
@@ -6651,39 +8406,39 @@ public class Trace {
     }
 
     if (!filled.get(25)) {
-      mmuStamp.position(mmuStamp.position() + 8);
+      mmuStamp.position(mmuStamp.position() + 4);
     }
 
     if (!filled.get(144)) {
-      mxpOffset2Hi.position(mxpOffset2Hi.position() + 32);
+      mxpOffset2Hi.position(mxpOffset2Hi.position() + 16);
     }
 
     if (!filled.get(145)) {
-      mxpOffset2Lo.position(mxpOffset2Lo.position() + 32);
+      mxpOffset2Lo.position(mxpOffset2Lo.position() + 16);
     }
 
     if (!filled.get(146)) {
-      mxpSize1Hi.position(mxpSize1Hi.position() + 32);
+      mxpSize1Hi.position(mxpSize1Hi.position() + 16);
     }
 
     if (!filled.get(147)) {
-      mxpSize1Lo.position(mxpSize1Lo.position() + 32);
+      mxpSize1Lo.position(mxpSize1Lo.position() + 16);
     }
 
     if (!filled.get(148)) {
-      mxpSize2Hi.position(mxpSize2Hi.position() + 32);
+      mxpSize2Hi.position(mxpSize2Hi.position() + 16);
     }
 
     if (!filled.get(149)) {
-      mxpSize2Lo.position(mxpSize2Lo.position() + 32);
+      mxpSize2Lo.position(mxpSize2Lo.position() + 16);
     }
 
     if (!filled.get(26)) {
-      mxpStamp.position(mxpStamp.position() + 8);
+      mxpStamp.position(mxpStamp.position() + 4);
     }
 
     if (!filled.get(150)) {
-      mxpWords.position(mxpWords.position() + 32);
+      mxpWords.position(mxpWords.position() + 16);
     }
 
     if (!filled.get(103)) {
@@ -6695,52 +8450,52 @@ public class Trace {
     }
 
     if (!filled.get(27)) {
-      nonStackRows.position(nonStackRows.position() + 2);
+      nonStackRows.position(nonStackRows.position() + 1);
     }
 
     if (!filled.get(127)) {
-      nonce.position(nonce.position() + 32);
+      nonce.position(nonce.position() + 8);
     }
 
     if (!filled.get(123)) {
       nonceNewXorStpGasPaidOutOfPocketXorGasInitiallyAvailable.position(
-          nonceNewXorStpGasPaidOutOfPocketXorGasInitiallyAvailable.position() + 32);
+          nonceNewXorStpGasPaidOutOfPocketXorGasInitiallyAvailable.position() + 8);
     }
 
     if (!filled.get(122)) {
-      nonceXorStpGasMxpXorBasefee.position(nonceXorStpGasMxpXorBasefee.position() + 32);
+      nonceXorStpGasMxpXorBasefee.position(nonceXorStpGasMxpXorBasefee.position() + 8);
     }
 
     if (!filled.get(151)) {
-      oobData1.position(oobData1.position() + 32);
+      oobData1.position(oobData1.position() + 16);
     }
 
     if (!filled.get(152)) {
-      oobData2.position(oobData2.position() + 32);
+      oobData2.position(oobData2.position() + 16);
     }
 
     if (!filled.get(153)) {
-      oobData3.position(oobData3.position() + 32);
+      oobData3.position(oobData3.position() + 16);
     }
 
     if (!filled.get(154)) {
-      oobData4.position(oobData4.position() + 32);
+      oobData4.position(oobData4.position() + 16);
     }
 
     if (!filled.get(155)) {
-      oobData5.position(oobData5.position() + 32);
+      oobData5.position(oobData5.position() + 16);
     }
 
     if (!filled.get(156)) {
-      oobData6.position(oobData6.position() + 32);
+      oobData6.position(oobData6.position() + 16);
     }
 
     if (!filled.get(157)) {
-      oobData7.position(oobData7.position() + 32);
+      oobData7.position(oobData7.position() + 16);
     }
 
     if (!filled.get(158)) {
-      oobData8.position(oobData8.position() + 32);
+      oobData8.position(oobData8.position() + 16);
     }
 
     if (!filled.get(28)) {
@@ -6825,52 +8580,52 @@ public class Trace {
     }
 
     if (!filled.get(128)) {
-      priorityFeePerGas.position(priorityFeePerGas.position() + 32);
+      priorityFeePerGas.position(priorityFeePerGas.position() + 8);
     }
 
     if (!filled.get(35)) {
-      programCounter.position(programCounter.position() + 8);
+      programCounter.position(programCounter.position() + 4);
     }
 
     if (!filled.get(36)) {
-      programCounterNew.position(programCounterNew.position() + 8);
+      programCounterNew.position(programCounterNew.position() + 4);
     }
 
     if (!filled.get(37)) {
-      refundCounter.position(refundCounter.position() + 8);
+      refundCounter.position(refundCounter.position() + 4);
     }
 
     if (!filled.get(129)) {
-      refundCounterInfinity.position(refundCounterInfinity.position() + 32);
+      refundCounterInfinity.position(refundCounterInfinity.position() + 8);
     }
 
     if (!filled.get(38)) {
-      refundCounterNew.position(refundCounterNew.position() + 8);
+      refundCounterNew.position(refundCounterNew.position() + 4);
     }
 
     if (!filled.get(130)) {
-      refundEffective.position(refundEffective.position() + 32);
+      refundEffective.position(refundEffective.position() + 8);
     }
 
     if (!filled.get(117)) {
-      returnAtCapacityXorMxpInst.position(returnAtCapacityXorMxpInst.position() + 8);
+      returnAtCapacityXorMxpInst.position(returnAtCapacityXorMxpInst.position() + 4);
     }
 
     if (!filled.get(118)) {
-      returnAtOffsetXorOobInst.position(returnAtOffsetXorOobInst.position() + 8);
+      returnAtOffsetXorOobInst.position(returnAtOffsetXorOobInst.position() + 4);
     }
 
     if (!filled.get(119)) {
       returnDataContextNumberXorStpGasStipend.position(
-          returnDataContextNumberXorStpGasStipend.position() + 8);
+          returnDataContextNumberXorStpGasStipend.position() + 4);
     }
 
     if (!filled.get(120)) {
-      returnDataOffsetXorStpInstruction.position(returnDataOffsetXorStpInstruction.position() + 8);
+      returnDataOffsetXorStpInstruction.position(returnDataOffsetXorStpInstruction.position() + 4);
     }
 
     if (!filled.get(121)) {
-      returnDataSize.position(returnDataSize.position() + 8);
+      returnDataSize.position(returnDataSize.position() + 4);
     }
 
     if (!filled.get(86)) {
@@ -6909,12 +8664,12 @@ public class Trace {
 
     if (!filled.get(113)) {
       rlpaddrDepAddrHiXorCallDataContextNumberXorMmuRefSize.position(
-          rlpaddrDepAddrHiXorCallDataContextNumberXorMmuRefSize.position() + 8);
+          rlpaddrDepAddrHiXorCallDataContextNumberXorMmuRefSize.position() + 4);
     }
 
     if (!filled.get(138)) {
       rlpaddrDepAddrLoXorMmuSrcOffsetHiXorValueOrigHi.position(
-          rlpaddrDepAddrLoXorMmuSrcOffsetHiXorValueOrigHi.position() + 32);
+          rlpaddrDepAddrLoXorMmuSrcOffsetHiXorValueOrigHi.position() + 16);
     }
 
     if (!filled.get(62)) {
@@ -6925,11 +8680,11 @@ public class Trace {
 
     if (!filled.get(139)) {
       rlpaddrKecHiXorMmuSrcOffsetLoXorValueOrigLo.position(
-          rlpaddrKecHiXorMmuSrcOffsetLoXorValueOrigLo.position() + 32);
+          rlpaddrKecHiXorMmuSrcOffsetLoXorValueOrigLo.position() + 16);
     }
 
     if (!filled.get(140)) {
-      rlpaddrKecLoXorMmuTgtOffsetLo.position(rlpaddrKecLoXorMmuTgtOffsetLo.position() + 32);
+      rlpaddrKecLoXorMmuTgtOffsetLo.position(rlpaddrKecLoXorMmuTgtOffsetLo.position() + 16);
     }
 
     if (!filled.get(63)) {
@@ -6938,11 +8693,11 @@ public class Trace {
     }
 
     if (!filled.get(141)) {
-      rlpaddrSaltHiXorMxpGasMxp.position(rlpaddrSaltHiXorMxpGasMxp.position() + 32);
+      rlpaddrSaltHiXorMxpGasMxp.position(rlpaddrSaltHiXorMxpGasMxp.position() + 16);
     }
 
     if (!filled.get(142)) {
-      rlpaddrSaltLoXorMxpOffset1Hi.position(rlpaddrSaltLoXorMxpOffset1Hi.position() + 32);
+      rlpaddrSaltLoXorMxpOffset1Hi.position(rlpaddrSaltLoXorMxpOffset1Hi.position() + 16);
     }
 
     if (!filled.get(64)) {
@@ -7042,28 +8797,28 @@ public class Trace {
     }
 
     if (!filled.get(159)) {
-      stpGasHi.position(stpGasHi.position() + 32);
+      stpGasHi.position(stpGasHi.position() + 16);
     }
 
     if (!filled.get(160)) {
-      stpGasLo.position(stpGasLo.position() + 32);
+      stpGasLo.position(stpGasLo.position() + 16);
     }
 
     if (!filled.get(124)) {
       stpGasUpfrontGasCostXorGasLeftover.position(
-          stpGasUpfrontGasCostXorGasLeftover.position() + 32);
+          stpGasUpfrontGasCostXorGasLeftover.position() + 8);
     }
 
     if (!filled.get(161)) {
-      stpValueHi.position(stpValueHi.position() + 32);
+      stpValueHi.position(stpValueHi.position() + 16);
     }
 
     if (!filled.get(162)) {
-      stpValueLo.position(stpValueLo.position() + 32);
+      stpValueLo.position(stpValueLo.position() + 16);
     }
 
     if (!filled.get(39)) {
-      subStamp.position(subStamp.position() + 8);
+      subStamp.position(subStamp.position() + 4);
     }
 
     if (!filled.get(97)) {
@@ -7080,7 +8835,7 @@ public class Trace {
     }
 
     if (!filled.get(143)) {
-      trmRawAddressHiXorMxpOffset1Lo.position(trmRawAddressHiXorMxpOffset1Lo.position() + 32);
+      trmRawAddressHiXorMxpOffset1Lo.position(trmRawAddressHiXorMxpOffset1Lo.position() + 16);
     }
 
     if (!filled.get(40)) {

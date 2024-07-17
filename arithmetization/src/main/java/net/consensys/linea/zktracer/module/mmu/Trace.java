@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.mmu;
 
+import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.BitSet;
 import java.util.List;
@@ -138,14 +139,14 @@ public class Trace {
 
   static List<ColumnHeader> headers(int length) {
     return List.of(
-        new ColumnHeader("mmu.AUX_ID_xor_CN_S_xor_EUC_A", 32, length),
+        new ColumnHeader("mmu.AUX_ID_xor_CN_S_xor_EUC_A", 8, length),
         new ColumnHeader("mmu.BIN_1", 1, length),
         new ColumnHeader("mmu.BIN_2", 1, length),
         new ColumnHeader("mmu.BIN_3", 1, length),
         new ColumnHeader("mmu.BIN_4", 1, length),
         new ColumnHeader("mmu.BIN_5", 1, length),
-        new ColumnHeader("mmu.EXO_SUM_xor_EXO_ID", 8, length),
-        new ColumnHeader("mmu.INST_xor_INST_xor_CT", 4, length),
+        new ColumnHeader("mmu.EXO_SUM_xor_EXO_ID", 4, length),
+        new ColumnHeader("mmu.INST_xor_INST_xor_CT", 2, length),
         new ColumnHeader("mmu.IS_ANY_TO_RAM_WITH_PADDING_PURE_PADDING", 1, length),
         new ColumnHeader("mmu.IS_ANY_TO_RAM_WITH_PADDING_SOME_DATA", 1, length),
         new ColumnHeader("mmu.IS_BLAKE", 1, length),
@@ -159,46 +160,46 @@ public class Trace {
         new ColumnHeader("mmu.IS_RAM_TO_EXO_WITH_PADDING", 1, length),
         new ColumnHeader("mmu.IS_RAM_TO_RAM_SANS_PADDING", 1, length),
         new ColumnHeader("mmu.IS_RIGHT_PADDED_WORD_EXTRACTION", 1, length),
-        new ColumnHeader("mmu.KEC_ID", 8, length),
-        new ColumnHeader("mmu.LIMB_1_xor_LIMB_xor_WCP_ARG_1_HI", 32, length),
-        new ColumnHeader("mmu.LIMB_2_xor_WCP_ARG_1_LO", 32, length),
+        new ColumnHeader("mmu.KEC_ID", 4, length),
+        new ColumnHeader("mmu.LIMB_1_xor_LIMB_xor_WCP_ARG_1_HI", 16, length),
+        new ColumnHeader("mmu.LIMB_2_xor_WCP_ARG_1_LO", 16, length),
         new ColumnHeader("mmu.LZRO", 1, length),
         new ColumnHeader("mmu.MACRO", 1, length),
         new ColumnHeader("mmu.MICRO", 1, length),
-        new ColumnHeader("mmu.MMIO_STAMP", 8, length),
+        new ColumnHeader("mmu.MMIO_STAMP", 4, length),
         new ColumnHeader("mmu.NT_FIRST", 1, length),
         new ColumnHeader("mmu.NT_LAST", 1, length),
         new ColumnHeader("mmu.NT_MDDL", 1, length),
         new ColumnHeader("mmu.NT_ONLY", 1, length),
-        new ColumnHeader("mmu.OUT_1", 32, length),
-        new ColumnHeader("mmu.OUT_2", 32, length),
-        new ColumnHeader("mmu.OUT_3", 32, length),
-        new ColumnHeader("mmu.OUT_4", 32, length),
-        new ColumnHeader("mmu.OUT_5", 32, length),
-        new ColumnHeader("mmu.PHASE", 8, length),
-        new ColumnHeader("mmu.PHASE_xor_EXO_SUM", 8, length),
+        new ColumnHeader("mmu.OUT_1", 8, length),
+        new ColumnHeader("mmu.OUT_2", 8, length),
+        new ColumnHeader("mmu.OUT_3", 8, length),
+        new ColumnHeader("mmu.OUT_4", 8, length),
+        new ColumnHeader("mmu.OUT_5", 8, length),
+        new ColumnHeader("mmu.PHASE", 4, length),
+        new ColumnHeader("mmu.PHASE_xor_EXO_SUM", 4, length),
         new ColumnHeader("mmu.PRPRC", 1, length),
-        new ColumnHeader("mmu.REF_OFFSET_xor_CN_T_xor_EUC_B", 32, length),
-        new ColumnHeader("mmu.REF_SIZE_xor_SLO_xor_EUC_CEIL", 32, length),
+        new ColumnHeader("mmu.REF_OFFSET_xor_CN_T_xor_EUC_B", 8, length),
+        new ColumnHeader("mmu.REF_SIZE_xor_SLO_xor_EUC_CEIL", 8, length),
         new ColumnHeader("mmu.RZ_FIRST", 1, length),
         new ColumnHeader("mmu.RZ_LAST", 1, length),
         new ColumnHeader("mmu.RZ_MDDL", 1, length),
         new ColumnHeader("mmu.RZ_ONLY", 1, length),
         new ColumnHeader("mmu.SBO_xor_WCP_INST", 1, length),
         new ColumnHeader("mmu.SIZE", 1, length),
-        new ColumnHeader("mmu.SIZE_xor_TLO_xor_EUC_QUOT", 32, length),
-        new ColumnHeader("mmu.SRC_ID_xor_TOTAL_SIZE_xor_EUC_REM", 32, length),
-        new ColumnHeader("mmu.SRC_OFFSET_HI_xor_WCP_ARG_2_LO", 32, length),
-        new ColumnHeader("mmu.SRC_OFFSET_LO", 32, length),
-        new ColumnHeader("mmu.STAMP", 8, length),
+        new ColumnHeader("mmu.SIZE_xor_TLO_xor_EUC_QUOT", 8, length),
+        new ColumnHeader("mmu.SRC_ID_xor_TOTAL_SIZE_xor_EUC_REM", 8, length),
+        new ColumnHeader("mmu.SRC_OFFSET_HI_xor_WCP_ARG_2_LO", 16, length),
+        new ColumnHeader("mmu.SRC_OFFSET_LO", 16, length),
+        new ColumnHeader("mmu.STAMP", 4, length),
         new ColumnHeader("mmu.SUCCESS_BIT_xor_SUCCESS_BIT_xor_EUC_FLAG", 1, length),
         new ColumnHeader("mmu.TBO", 1, length),
-        new ColumnHeader("mmu.TGT_ID", 32, length),
-        new ColumnHeader("mmu.TGT_OFFSET_LO", 32, length),
-        new ColumnHeader("mmu.TOT", 8, length),
-        new ColumnHeader("mmu.TOTLZ", 8, length),
-        new ColumnHeader("mmu.TOTNT", 8, length),
-        new ColumnHeader("mmu.TOTRZ", 8, length),
+        new ColumnHeader("mmu.TGT_ID", 8, length),
+        new ColumnHeader("mmu.TGT_OFFSET_LO", 8, length),
+        new ColumnHeader("mmu.TOT", 4, length),
+        new ColumnHeader("mmu.TOTLZ", 4, length),
+        new ColumnHeader("mmu.TOTNT", 4, length),
+        new ColumnHeader("mmu.TOTRZ", 4, length),
         new ColumnHeader("mmu.WCP_FLAG", 1, length),
         new ColumnHeader("mmu.WCP_RES", 1, length));
   }
@@ -536,7 +537,12 @@ public class Trace {
       filled.set(21);
     }
 
-    mmioStamp.putLong(b);
+    if(b >= 4294967296L) { throw new IllegalArgumentException("mmioStamp has invalid value (" + b + ")"); }
+    mmioStamp.put((byte) (b >> 24));
+    mmioStamp.put((byte) (b >> 16));
+    mmioStamp.put((byte) (b >> 8));
+    mmioStamp.put((byte) b);
+
 
     return this;
   }
@@ -596,11 +602,14 @@ public class Trace {
       filled.set(26);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      out1.put((byte) 0);
-    }
-    out1.put(b.toArrayUnsafe());
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if(bs.bitLength() > 64) { throw new IllegalArgumentException("out1 has invalid width (" + bs.size() + ")"); }
+    // Write padding (if necessary)
+    for(int i=bs.size(); i<8; i++) { out1.put((byte) 0); }
+    // Write bytes
+    for(int j=0; j<bs.size(); j++) { out1.put(bs.get(j)); }
 
     return this;
   }
@@ -612,11 +621,14 @@ public class Trace {
       filled.set(27);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      out2.put((byte) 0);
-    }
-    out2.put(b.toArrayUnsafe());
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if(bs.bitLength() > 64) { throw new IllegalArgumentException("out2 has invalid width (" + bs.size() + ")"); }
+    // Write padding (if necessary)
+    for(int i=bs.size(); i<8; i++) { out2.put((byte) 0); }
+    // Write bytes
+    for(int j=0; j<bs.size(); j++) { out2.put(bs.get(j)); }
 
     return this;
   }
@@ -628,11 +640,14 @@ public class Trace {
       filled.set(28);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      out3.put((byte) 0);
-    }
-    out3.put(b.toArrayUnsafe());
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if(bs.bitLength() > 64) { throw new IllegalArgumentException("out3 has invalid width (" + bs.size() + ")"); }
+    // Write padding (if necessary)
+    for(int i=bs.size(); i<8; i++) { out3.put((byte) 0); }
+    // Write bytes
+    for(int j=0; j<bs.size(); j++) { out3.put(bs.get(j)); }
 
     return this;
   }
@@ -644,11 +659,14 @@ public class Trace {
       filled.set(29);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      out4.put((byte) 0);
-    }
-    out4.put(b.toArrayUnsafe());
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if(bs.bitLength() > 64) { throw new IllegalArgumentException("out4 has invalid width (" + bs.size() + ")"); }
+    // Write padding (if necessary)
+    for(int i=bs.size(); i<8; i++) { out4.put((byte) 0); }
+    // Write bytes
+    for(int j=0; j<bs.size(); j++) { out4.put(bs.get(j)); }
 
     return this;
   }
@@ -660,11 +678,14 @@ public class Trace {
       filled.set(30);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      out5.put((byte) 0);
-    }
-    out5.put(b.toArrayUnsafe());
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if(bs.bitLength() > 64) { throw new IllegalArgumentException("out5 has invalid width (" + bs.size() + ")"); }
+    // Write padding (if necessary)
+    for(int i=bs.size(); i<8; i++) { out5.put((byte) 0); }
+    // Write bytes
+    for(int j=0; j<bs.size(); j++) { out5.put(bs.get(j)); }
 
     return this;
   }
@@ -676,11 +697,14 @@ public class Trace {
       filled.set(52);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      auxIdXorCnSXorEucA.put((byte) 0);
-    }
-    auxIdXorCnSXorEucA.put(b.toArrayUnsafe());
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if(bs.bitLength() > 64) { throw new IllegalArgumentException("auxIdXorCnSXorEucA has invalid width (" + bs.size() + ")"); }
+    // Write padding (if necessary)
+    for(int i=bs.size(); i<8; i++) { auxIdXorCnSXorEucA.put((byte) 0); }
+    // Write bytes
+    for(int j=0; j<bs.size(); j++) { auxIdXorCnSXorEucA.put(bs.get(j)); }
 
     return this;
   }
@@ -692,19 +716,27 @@ public class Trace {
       filled.set(48);
     }
 
-    exoSumXorExoId.putLong(b);
+    if(b >= 4294967296L) { throw new IllegalArgumentException("exoSumXorExoId has invalid value (" + b + ")"); }
+    exoSumXorExoId.put((byte) (b >> 24));
+    exoSumXorExoId.put((byte) (b >> 16));
+    exoSumXorExoId.put((byte) (b >> 8));
+    exoSumXorExoId.put((byte) b);
+
 
     return this;
   }
 
-  public Trace pMacroInst(final int b) {
+  public Trace pMacroInst(final long b) {
     if (filled.get(47)) {
       throw new IllegalStateException("mmu.macro/INST already set");
     } else {
       filled.set(47);
     }
 
-    instXorInstXorCt.putInt(b);
+    if(b >= 65536L) { throw new IllegalArgumentException("instXorInstXorCt has invalid value (" + b + ")"); }
+    instXorInstXorCt.put((byte) (b >> 8));
+    instXorInstXorCt.put((byte) b);
+
 
     return this;
   }
@@ -716,11 +748,14 @@ public class Trace {
       filled.set(59);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      limb1XorLimbXorWcpArg1Hi.put((byte) 0);
-    }
-    limb1XorLimbXorWcpArg1Hi.put(b.toArrayUnsafe());
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if(bs.bitLength() > 128) { throw new IllegalArgumentException("limb1XorLimbXorWcpArg1Hi has invalid width (" + bs.size() + ")"); }
+    // Write padding (if necessary)
+    for(int i=bs.size(); i<16; i++) { limb1XorLimbXorWcpArg1Hi.put((byte) 0); }
+    // Write bytes
+    for(int j=0; j<bs.size(); j++) { limb1XorLimbXorWcpArg1Hi.put(bs.get(j)); }
 
     return this;
   }
@@ -732,11 +767,14 @@ public class Trace {
       filled.set(60);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      limb2XorWcpArg1Lo.put((byte) 0);
-    }
-    limb2XorWcpArg1Lo.put(b.toArrayUnsafe());
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if(bs.bitLength() > 128) { throw new IllegalArgumentException("limb2XorWcpArg1Lo has invalid width (" + bs.size() + ")"); }
+    // Write padding (if necessary)
+    for(int i=bs.size(); i<16; i++) { limb2XorWcpArg1Lo.put((byte) 0); }
+    // Write bytes
+    for(int j=0; j<bs.size(); j++) { limb2XorWcpArg1Lo.put(bs.get(j)); }
 
     return this;
   }
@@ -748,7 +786,12 @@ public class Trace {
       filled.set(49);
     }
 
-    phaseXorExoSum.putLong(b);
+    if(b >= 4294967296L) { throw new IllegalArgumentException("phaseXorExoSum has invalid value (" + b + ")"); }
+    phaseXorExoSum.put((byte) (b >> 24));
+    phaseXorExoSum.put((byte) (b >> 16));
+    phaseXorExoSum.put((byte) (b >> 8));
+    phaseXorExoSum.put((byte) b);
+
 
     return this;
   }
@@ -760,11 +803,14 @@ public class Trace {
       filled.set(53);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      refOffsetXorCnTXorEucB.put((byte) 0);
-    }
-    refOffsetXorCnTXorEucB.put(b.toArrayUnsafe());
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if(bs.bitLength() > 64) { throw new IllegalArgumentException("refOffsetXorCnTXorEucB has invalid width (" + bs.size() + ")"); }
+    // Write padding (if necessary)
+    for(int i=bs.size(); i<8; i++) { refOffsetXorCnTXorEucB.put((byte) 0); }
+    // Write bytes
+    for(int j=0; j<bs.size(); j++) { refOffsetXorCnTXorEucB.put(bs.get(j)); }
 
     return this;
   }
@@ -776,11 +822,14 @@ public class Trace {
       filled.set(54);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      refSizeXorSloXorEucCeil.put((byte) 0);
-    }
-    refSizeXorSloXorEucCeil.put(b.toArrayUnsafe());
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if(bs.bitLength() > 64) { throw new IllegalArgumentException("refSizeXorSloXorEucCeil has invalid width (" + bs.size() + ")"); }
+    // Write padding (if necessary)
+    for(int i=bs.size(); i<8; i++) { refSizeXorSloXorEucCeil.put((byte) 0); }
+    // Write bytes
+    for(int j=0; j<bs.size(); j++) { refSizeXorSloXorEucCeil.put(bs.get(j)); }
 
     return this;
   }
@@ -792,11 +841,14 @@ public class Trace {
       filled.set(55);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      sizeXorTloXorEucQuot.put((byte) 0);
-    }
-    sizeXorTloXorEucQuot.put(b.toArrayUnsafe());
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if(bs.bitLength() > 64) { throw new IllegalArgumentException("sizeXorTloXorEucQuot has invalid width (" + bs.size() + ")"); }
+    // Write padding (if necessary)
+    for(int i=bs.size(); i<8; i++) { sizeXorTloXorEucQuot.put((byte) 0); }
+    // Write bytes
+    for(int j=0; j<bs.size(); j++) { sizeXorTloXorEucQuot.put(bs.get(j)); }
 
     return this;
   }
@@ -808,11 +860,14 @@ public class Trace {
       filled.set(56);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      srcIdXorTotalSizeXorEucRem.put((byte) 0);
-    }
-    srcIdXorTotalSizeXorEucRem.put(b.toArrayUnsafe());
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if(bs.bitLength() > 64) { throw new IllegalArgumentException("srcIdXorTotalSizeXorEucRem has invalid width (" + bs.size() + ")"); }
+    // Write padding (if necessary)
+    for(int i=bs.size(); i<8; i++) { srcIdXorTotalSizeXorEucRem.put((byte) 0); }
+    // Write bytes
+    for(int j=0; j<bs.size(); j++) { srcIdXorTotalSizeXorEucRem.put(bs.get(j)); }
 
     return this;
   }
@@ -824,11 +879,14 @@ public class Trace {
       filled.set(61);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      srcOffsetHiXorWcpArg2Lo.put((byte) 0);
-    }
-    srcOffsetHiXorWcpArg2Lo.put(b.toArrayUnsafe());
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if(bs.bitLength() > 128) { throw new IllegalArgumentException("srcOffsetHiXorWcpArg2Lo has invalid width (" + bs.size() + ")"); }
+    // Write padding (if necessary)
+    for(int i=bs.size(); i<16; i++) { srcOffsetHiXorWcpArg2Lo.put((byte) 0); }
+    // Write bytes
+    for(int j=0; j<bs.size(); j++) { srcOffsetHiXorWcpArg2Lo.put(bs.get(j)); }
 
     return this;
   }
@@ -840,11 +898,14 @@ public class Trace {
       filled.set(62);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      srcOffsetLo.put((byte) 0);
-    }
-    srcOffsetLo.put(b.toArrayUnsafe());
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if(bs.bitLength() > 128) { throw new IllegalArgumentException("srcOffsetLo has invalid width (" + bs.size() + ")"); }
+    // Write padding (if necessary)
+    for(int i=bs.size(); i<16; i++) { srcOffsetLo.put((byte) 0); }
+    // Write bytes
+    for(int j=0; j<bs.size(); j++) { srcOffsetLo.put(bs.get(j)); }
 
     return this;
   }
@@ -868,11 +929,14 @@ public class Trace {
       filled.set(57);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      tgtId.put((byte) 0);
-    }
-    tgtId.put(b.toArrayUnsafe());
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if(bs.bitLength() > 64) { throw new IllegalArgumentException("tgtId has invalid width (" + bs.size() + ")"); }
+    // Write padding (if necessary)
+    for(int i=bs.size(); i<8; i++) { tgtId.put((byte) 0); }
+    // Write bytes
+    for(int j=0; j<bs.size(); j++) { tgtId.put(bs.get(j)); }
 
     return this;
   }
@@ -884,11 +948,14 @@ public class Trace {
       filled.set(58);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      tgtOffsetLo.put((byte) 0);
-    }
-    tgtOffsetLo.put(b.toArrayUnsafe());
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if(bs.bitLength() > 64) { throw new IllegalArgumentException("tgtOffsetLo has invalid width (" + bs.size() + ")"); }
+    // Write padding (if necessary)
+    for(int i=bs.size(); i<8; i++) { tgtOffsetLo.put((byte) 0); }
+    // Write bytes
+    for(int j=0; j<bs.size(); j++) { tgtOffsetLo.put(bs.get(j)); }
 
     return this;
   }
@@ -900,11 +967,14 @@ public class Trace {
       filled.set(52);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      auxIdXorCnSXorEucA.put((byte) 0);
-    }
-    auxIdXorCnSXorEucA.put(b.toArrayUnsafe());
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if(bs.bitLength() > 64) { throw new IllegalArgumentException("auxIdXorCnSXorEucA has invalid width (" + bs.size() + ")"); }
+    // Write padding (if necessary)
+    for(int i=bs.size(); i<8; i++) { auxIdXorCnSXorEucA.put((byte) 0); }
+    // Write bytes
+    for(int j=0; j<bs.size(); j++) { auxIdXorCnSXorEucA.put(bs.get(j)); }
 
     return this;
   }
@@ -916,11 +986,14 @@ public class Trace {
       filled.set(53);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      refOffsetXorCnTXorEucB.put((byte) 0);
-    }
-    refOffsetXorCnTXorEucB.put(b.toArrayUnsafe());
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if(bs.bitLength() > 64) { throw new IllegalArgumentException("refOffsetXorCnTXorEucB has invalid width (" + bs.size() + ")"); }
+    // Write padding (if necessary)
+    for(int i=bs.size(); i<8; i++) { refOffsetXorCnTXorEucB.put((byte) 0); }
+    // Write bytes
+    for(int j=0; j<bs.size(); j++) { refOffsetXorCnTXorEucB.put(bs.get(j)); }
 
     return this;
   }
@@ -932,7 +1005,12 @@ public class Trace {
       filled.set(48);
     }
 
-    exoSumXorExoId.putLong(b);
+    if(b >= 4294967296L) { throw new IllegalArgumentException("exoSumXorExoId has invalid value (" + b + ")"); }
+    exoSumXorExoId.put((byte) (b >> 24));
+    exoSumXorExoId.put((byte) (b >> 16));
+    exoSumXorExoId.put((byte) (b >> 8));
+    exoSumXorExoId.put((byte) b);
+
 
     return this;
   }
@@ -944,19 +1022,27 @@ public class Trace {
       filled.set(49);
     }
 
-    phaseXorExoSum.putLong(b);
+    if(b >= 4294967296L) { throw new IllegalArgumentException("phaseXorExoSum has invalid value (" + b + ")"); }
+    phaseXorExoSum.put((byte) (b >> 24));
+    phaseXorExoSum.put((byte) (b >> 16));
+    phaseXorExoSum.put((byte) (b >> 8));
+    phaseXorExoSum.put((byte) b);
+
 
     return this;
   }
 
-  public Trace pMicroInst(final int b) {
+  public Trace pMicroInst(final long b) {
     if (filled.get(47)) {
       throw new IllegalStateException("mmu.micro/INST already set");
     } else {
       filled.set(47);
     }
 
-    instXorInstXorCt.putInt(b);
+    if(b >= 65536L) { throw new IllegalArgumentException("instXorInstXorCt has invalid value (" + b + ")"); }
+    instXorInstXorCt.put((byte) (b >> 8));
+    instXorInstXorCt.put((byte) b);
+
 
     return this;
   }
@@ -968,7 +1054,12 @@ public class Trace {
       filled.set(50);
     }
 
-    kecId.putLong(b);
+    if(b >= 4294967296L) { throw new IllegalArgumentException("kecId has invalid value (" + b + ")"); }
+    kecId.put((byte) (b >> 24));
+    kecId.put((byte) (b >> 16));
+    kecId.put((byte) (b >> 8));
+    kecId.put((byte) b);
+
 
     return this;
   }
@@ -980,11 +1071,14 @@ public class Trace {
       filled.set(59);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      limb1XorLimbXorWcpArg1Hi.put((byte) 0);
-    }
-    limb1XorLimbXorWcpArg1Hi.put(b.toArrayUnsafe());
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if(bs.bitLength() > 128) { throw new IllegalArgumentException("limb1XorLimbXorWcpArg1Hi has invalid width (" + bs.size() + ")"); }
+    // Write padding (if necessary)
+    for(int i=bs.size(); i<16; i++) { limb1XorLimbXorWcpArg1Hi.put((byte) 0); }
+    // Write bytes
+    for(int j=0; j<bs.size(); j++) { limb1XorLimbXorWcpArg1Hi.put(bs.get(j)); }
 
     return this;
   }
@@ -996,7 +1090,12 @@ public class Trace {
       filled.set(51);
     }
 
-    phase.putLong(b);
+    if(b >= 4294967296L) { throw new IllegalArgumentException("phase has invalid value (" + b + ")"); }
+    phase.put((byte) (b >> 24));
+    phase.put((byte) (b >> 16));
+    phase.put((byte) (b >> 8));
+    phase.put((byte) b);
+
 
     return this;
   }
@@ -1032,11 +1131,14 @@ public class Trace {
       filled.set(54);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      refSizeXorSloXorEucCeil.put((byte) 0);
-    }
-    refSizeXorSloXorEucCeil.put(b.toArrayUnsafe());
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if(bs.bitLength() > 64) { throw new IllegalArgumentException("refSizeXorSloXorEucCeil has invalid width (" + bs.size() + ")"); }
+    // Write padding (if necessary)
+    for(int i=bs.size(); i<8; i++) { refSizeXorSloXorEucCeil.put((byte) 0); }
+    // Write bytes
+    for(int j=0; j<bs.size(); j++) { refSizeXorSloXorEucCeil.put(bs.get(j)); }
 
     return this;
   }
@@ -1072,11 +1174,14 @@ public class Trace {
       filled.set(55);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      sizeXorTloXorEucQuot.put((byte) 0);
-    }
-    sizeXorTloXorEucQuot.put(b.toArrayUnsafe());
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if(bs.bitLength() > 64) { throw new IllegalArgumentException("sizeXorTloXorEucQuot has invalid width (" + bs.size() + ")"); }
+    // Write padding (if necessary)
+    for(int i=bs.size(); i<8; i++) { sizeXorTloXorEucQuot.put((byte) 0); }
+    // Write bytes
+    for(int j=0; j<bs.size(); j++) { sizeXorTloXorEucQuot.put(bs.get(j)); }
 
     return this;
   }
@@ -1088,23 +1193,29 @@ public class Trace {
       filled.set(56);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      srcIdXorTotalSizeXorEucRem.put((byte) 0);
-    }
-    srcIdXorTotalSizeXorEucRem.put(b.toArrayUnsafe());
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if(bs.bitLength() > 64) { throw new IllegalArgumentException("srcIdXorTotalSizeXorEucRem has invalid width (" + bs.size() + ")"); }
+    // Write padding (if necessary)
+    for(int i=bs.size(); i<8; i++) { srcIdXorTotalSizeXorEucRem.put((byte) 0); }
+    // Write bytes
+    for(int j=0; j<bs.size(); j++) { srcIdXorTotalSizeXorEucRem.put(bs.get(j)); }
 
     return this;
   }
 
-  public Trace pPrprcCt(final int b) {
+  public Trace pPrprcCt(final long b) {
     if (filled.get(47)) {
       throw new IllegalStateException("mmu.prprc/CT already set");
     } else {
       filled.set(47);
     }
 
-    instXorInstXorCt.putInt(b);
+    if(b >= 65536L) { throw new IllegalArgumentException("instXorInstXorCt has invalid value (" + b + ")"); }
+    instXorInstXorCt.put((byte) (b >> 8));
+    instXorInstXorCt.put((byte) b);
+
 
     return this;
   }
@@ -1116,11 +1227,14 @@ public class Trace {
       filled.set(52);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      auxIdXorCnSXorEucA.put((byte) 0);
-    }
-    auxIdXorCnSXorEucA.put(b.toArrayUnsafe());
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if(bs.bitLength() > 64) { throw new IllegalArgumentException("auxIdXorCnSXorEucA has invalid width (" + bs.size() + ")"); }
+    // Write padding (if necessary)
+    for(int i=bs.size(); i<8; i++) { auxIdXorCnSXorEucA.put((byte) 0); }
+    // Write bytes
+    for(int j=0; j<bs.size(); j++) { auxIdXorCnSXorEucA.put(bs.get(j)); }
 
     return this;
   }
@@ -1132,11 +1246,14 @@ public class Trace {
       filled.set(53);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      refOffsetXorCnTXorEucB.put((byte) 0);
-    }
-    refOffsetXorCnTXorEucB.put(b.toArrayUnsafe());
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if(bs.bitLength() > 64) { throw new IllegalArgumentException("refOffsetXorCnTXorEucB has invalid width (" + bs.size() + ")"); }
+    // Write padding (if necessary)
+    for(int i=bs.size(); i<8; i++) { refOffsetXorCnTXorEucB.put((byte) 0); }
+    // Write bytes
+    for(int j=0; j<bs.size(); j++) { refOffsetXorCnTXorEucB.put(bs.get(j)); }
 
     return this;
   }
@@ -1148,11 +1265,14 @@ public class Trace {
       filled.set(54);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      refSizeXorSloXorEucCeil.put((byte) 0);
-    }
-    refSizeXorSloXorEucCeil.put(b.toArrayUnsafe());
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if(bs.bitLength() > 64) { throw new IllegalArgumentException("refSizeXorSloXorEucCeil has invalid width (" + bs.size() + ")"); }
+    // Write padding (if necessary)
+    for(int i=bs.size(); i<8; i++) { refSizeXorSloXorEucCeil.put((byte) 0); }
+    // Write bytes
+    for(int j=0; j<bs.size(); j++) { refSizeXorSloXorEucCeil.put(bs.get(j)); }
 
     return this;
   }
@@ -1176,11 +1296,14 @@ public class Trace {
       filled.set(55);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      sizeXorTloXorEucQuot.put((byte) 0);
-    }
-    sizeXorTloXorEucQuot.put(b.toArrayUnsafe());
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if(bs.bitLength() > 64) { throw new IllegalArgumentException("sizeXorTloXorEucQuot has invalid width (" + bs.size() + ")"); }
+    // Write padding (if necessary)
+    for(int i=bs.size(); i<8; i++) { sizeXorTloXorEucQuot.put((byte) 0); }
+    // Write bytes
+    for(int j=0; j<bs.size(); j++) { sizeXorTloXorEucQuot.put(bs.get(j)); }
 
     return this;
   }
@@ -1192,11 +1315,14 @@ public class Trace {
       filled.set(56);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      srcIdXorTotalSizeXorEucRem.put((byte) 0);
-    }
-    srcIdXorTotalSizeXorEucRem.put(b.toArrayUnsafe());
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if(bs.bitLength() > 64) { throw new IllegalArgumentException("srcIdXorTotalSizeXorEucRem has invalid width (" + bs.size() + ")"); }
+    // Write padding (if necessary)
+    for(int i=bs.size(); i<8; i++) { srcIdXorTotalSizeXorEucRem.put((byte) 0); }
+    // Write bytes
+    for(int j=0; j<bs.size(); j++) { srcIdXorTotalSizeXorEucRem.put(bs.get(j)); }
 
     return this;
   }
@@ -1208,11 +1334,14 @@ public class Trace {
       filled.set(59);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      limb1XorLimbXorWcpArg1Hi.put((byte) 0);
-    }
-    limb1XorLimbXorWcpArg1Hi.put(b.toArrayUnsafe());
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if(bs.bitLength() > 128) { throw new IllegalArgumentException("limb1XorLimbXorWcpArg1Hi has invalid width (" + bs.size() + ")"); }
+    // Write padding (if necessary)
+    for(int i=bs.size(); i<16; i++) { limb1XorLimbXorWcpArg1Hi.put((byte) 0); }
+    // Write bytes
+    for(int j=0; j<bs.size(); j++) { limb1XorLimbXorWcpArg1Hi.put(bs.get(j)); }
 
     return this;
   }
@@ -1224,11 +1353,14 @@ public class Trace {
       filled.set(60);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      limb2XorWcpArg1Lo.put((byte) 0);
-    }
-    limb2XorWcpArg1Lo.put(b.toArrayUnsafe());
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if(bs.bitLength() > 128) { throw new IllegalArgumentException("limb2XorWcpArg1Lo has invalid width (" + bs.size() + ")"); }
+    // Write padding (if necessary)
+    for(int i=bs.size(); i<16; i++) { limb2XorWcpArg1Lo.put((byte) 0); }
+    // Write bytes
+    for(int j=0; j<bs.size(); j++) { limb2XorWcpArg1Lo.put(bs.get(j)); }
 
     return this;
   }
@@ -1240,11 +1372,14 @@ public class Trace {
       filled.set(61);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
-      srcOffsetHiXorWcpArg2Lo.put((byte) 0);
-    }
-    srcOffsetHiXorWcpArg2Lo.put(b.toArrayUnsafe());
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if(bs.bitLength() > 128) { throw new IllegalArgumentException("srcOffsetHiXorWcpArg2Lo has invalid width (" + bs.size() + ")"); }
+    // Write padding (if necessary)
+    for(int i=bs.size(); i<16; i++) { srcOffsetHiXorWcpArg2Lo.put((byte) 0); }
+    // Write bytes
+    for(int j=0; j<bs.size(); j++) { srcOffsetHiXorWcpArg2Lo.put(bs.get(j)); }
 
     return this;
   }
@@ -1352,7 +1487,12 @@ public class Trace {
       filled.set(36);
     }
 
-    stamp.putLong(b);
+    if(b >= 4294967296L) { throw new IllegalArgumentException("stamp has invalid value (" + b + ")"); }
+    stamp.put((byte) (b >> 24));
+    stamp.put((byte) (b >> 16));
+    stamp.put((byte) (b >> 8));
+    stamp.put((byte) b);
+
 
     return this;
   }
@@ -1364,7 +1504,12 @@ public class Trace {
       filled.set(37);
     }
 
-    tot.putLong(b);
+    if(b >= 4294967296L) { throw new IllegalArgumentException("tot has invalid value (" + b + ")"); }
+    tot.put((byte) (b >> 24));
+    tot.put((byte) (b >> 16));
+    tot.put((byte) (b >> 8));
+    tot.put((byte) b);
+
 
     return this;
   }
@@ -1376,7 +1521,12 @@ public class Trace {
       filled.set(38);
     }
 
-    totlz.putLong(b);
+    if(b >= 4294967296L) { throw new IllegalArgumentException("totlz has invalid value (" + b + ")"); }
+    totlz.put((byte) (b >> 24));
+    totlz.put((byte) (b >> 16));
+    totlz.put((byte) (b >> 8));
+    totlz.put((byte) b);
+
 
     return this;
   }
@@ -1388,7 +1538,12 @@ public class Trace {
       filled.set(39);
     }
 
-    totnt.putLong(b);
+    if(b >= 4294967296L) { throw new IllegalArgumentException("totnt has invalid value (" + b + ")"); }
+    totnt.put((byte) (b >> 24));
+    totnt.put((byte) (b >> 16));
+    totnt.put((byte) (b >> 8));
+    totnt.put((byte) b);
+
 
     return this;
   }
@@ -1400,7 +1555,12 @@ public class Trace {
       filled.set(40);
     }
 
-    totrz.putLong(b);
+    if(b >= 4294967296L) { throw new IllegalArgumentException("totrz has invalid value (" + b + ")"); }
+    totrz.put((byte) (b >> 24));
+    totrz.put((byte) (b >> 16));
+    totrz.put((byte) (b >> 8));
+    totrz.put((byte) b);
+
 
     return this;
   }
@@ -1439,13 +1599,11 @@ public class Trace {
     }
 
     if (!filled.get(5)) {
-      throw new IllegalStateException(
-          "mmu.IS_ANY_TO_RAM_WITH_PADDING_PURE_PADDING has not been filled");
+      throw new IllegalStateException("mmu.IS_ANY_TO_RAM_WITH_PADDING_PURE_PADDING has not been filled");
     }
 
     if (!filled.get(6)) {
-      throw new IllegalStateException(
-          "mmu.IS_ANY_TO_RAM_WITH_PADDING_SOME_DATA has not been filled");
+      throw new IllegalStateException("mmu.IS_ANY_TO_RAM_WITH_PADDING_SOME_DATA has not been filled");
     }
 
     if (!filled.get(7)) {
@@ -1621,8 +1779,7 @@ public class Trace {
     }
 
     if (!filled.get(41)) {
-      throw new IllegalStateException(
-          "mmu.SUCCESS_BIT_xor_SUCCESS_BIT_xor_EUC_FLAG has not been filled");
+      throw new IllegalStateException("mmu.SUCCESS_BIT_xor_SUCCESS_BIT_xor_EUC_FLAG has not been filled");
     }
 
     if (!filled.get(46)) {
@@ -1669,7 +1826,7 @@ public class Trace {
 
   public Trace fillAndValidateRow() {
     if (!filled.get(52)) {
-      auxIdXorCnSXorEucA.position(auxIdXorCnSXorEucA.position() + 32);
+      auxIdXorCnSXorEucA.position(auxIdXorCnSXorEucA.position() + 8);
     }
 
     if (!filled.get(0)) {
@@ -1693,11 +1850,11 @@ public class Trace {
     }
 
     if (!filled.get(48)) {
-      exoSumXorExoId.position(exoSumXorExoId.position() + 8);
+      exoSumXorExoId.position(exoSumXorExoId.position() + 4);
     }
 
     if (!filled.get(47)) {
-      instXorInstXorCt.position(instXorInstXorCt.position() + 4);
+      instXorInstXorCt.position(instXorInstXorCt.position() + 2);
     }
 
     if (!filled.get(5)) {
@@ -1753,15 +1910,15 @@ public class Trace {
     }
 
     if (!filled.get(50)) {
-      kecId.position(kecId.position() + 8);
+      kecId.position(kecId.position() + 4);
     }
 
     if (!filled.get(59)) {
-      limb1XorLimbXorWcpArg1Hi.position(limb1XorLimbXorWcpArg1Hi.position() + 32);
+      limb1XorLimbXorWcpArg1Hi.position(limb1XorLimbXorWcpArg1Hi.position() + 16);
     }
 
     if (!filled.get(60)) {
-      limb2XorWcpArg1Lo.position(limb2XorWcpArg1Lo.position() + 32);
+      limb2XorWcpArg1Lo.position(limb2XorWcpArg1Lo.position() + 16);
     }
 
     if (!filled.get(18)) {
@@ -1777,7 +1934,7 @@ public class Trace {
     }
 
     if (!filled.get(21)) {
-      mmioStamp.position(mmioStamp.position() + 8);
+      mmioStamp.position(mmioStamp.position() + 4);
     }
 
     if (!filled.get(22)) {
@@ -1797,31 +1954,31 @@ public class Trace {
     }
 
     if (!filled.get(26)) {
-      out1.position(out1.position() + 32);
+      out1.position(out1.position() + 8);
     }
 
     if (!filled.get(27)) {
-      out2.position(out2.position() + 32);
+      out2.position(out2.position() + 8);
     }
 
     if (!filled.get(28)) {
-      out3.position(out3.position() + 32);
+      out3.position(out3.position() + 8);
     }
 
     if (!filled.get(29)) {
-      out4.position(out4.position() + 32);
+      out4.position(out4.position() + 8);
     }
 
     if (!filled.get(30)) {
-      out5.position(out5.position() + 32);
+      out5.position(out5.position() + 8);
     }
 
     if (!filled.get(51)) {
-      phase.position(phase.position() + 8);
+      phase.position(phase.position() + 4);
     }
 
     if (!filled.get(49)) {
-      phaseXorExoSum.position(phaseXorExoSum.position() + 8);
+      phaseXorExoSum.position(phaseXorExoSum.position() + 4);
     }
 
     if (!filled.get(31)) {
@@ -1829,11 +1986,11 @@ public class Trace {
     }
 
     if (!filled.get(53)) {
-      refOffsetXorCnTXorEucB.position(refOffsetXorCnTXorEucB.position() + 32);
+      refOffsetXorCnTXorEucB.position(refOffsetXorCnTXorEucB.position() + 8);
     }
 
     if (!filled.get(54)) {
-      refSizeXorSloXorEucCeil.position(refSizeXorSloXorEucCeil.position() + 32);
+      refSizeXorSloXorEucCeil.position(refSizeXorSloXorEucCeil.position() + 8);
     }
 
     if (!filled.get(32)) {
@@ -1861,23 +2018,23 @@ public class Trace {
     }
 
     if (!filled.get(55)) {
-      sizeXorTloXorEucQuot.position(sizeXorTloXorEucQuot.position() + 32);
+      sizeXorTloXorEucQuot.position(sizeXorTloXorEucQuot.position() + 8);
     }
 
     if (!filled.get(56)) {
-      srcIdXorTotalSizeXorEucRem.position(srcIdXorTotalSizeXorEucRem.position() + 32);
+      srcIdXorTotalSizeXorEucRem.position(srcIdXorTotalSizeXorEucRem.position() + 8);
     }
 
     if (!filled.get(61)) {
-      srcOffsetHiXorWcpArg2Lo.position(srcOffsetHiXorWcpArg2Lo.position() + 32);
+      srcOffsetHiXorWcpArg2Lo.position(srcOffsetHiXorWcpArg2Lo.position() + 16);
     }
 
     if (!filled.get(62)) {
-      srcOffsetLo.position(srcOffsetLo.position() + 32);
+      srcOffsetLo.position(srcOffsetLo.position() + 16);
     }
 
     if (!filled.get(36)) {
-      stamp.position(stamp.position() + 8);
+      stamp.position(stamp.position() + 4);
     }
 
     if (!filled.get(41)) {
@@ -1889,27 +2046,27 @@ public class Trace {
     }
 
     if (!filled.get(57)) {
-      tgtId.position(tgtId.position() + 32);
+      tgtId.position(tgtId.position() + 8);
     }
 
     if (!filled.get(58)) {
-      tgtOffsetLo.position(tgtOffsetLo.position() + 32);
+      tgtOffsetLo.position(tgtOffsetLo.position() + 8);
     }
 
     if (!filled.get(37)) {
-      tot.position(tot.position() + 8);
+      tot.position(tot.position() + 4);
     }
 
     if (!filled.get(38)) {
-      totlz.position(totlz.position() + 8);
+      totlz.position(totlz.position() + 4);
     }
 
     if (!filled.get(39)) {
-      totnt.position(totnt.position() + 8);
+      totnt.position(totnt.position() + 4);
     }
 
     if (!filled.get(40)) {
-      totrz.position(totrz.position() + 8);
+      totrz.position(totrz.position() + 4);
     }
 
     if (!filled.get(42)) {

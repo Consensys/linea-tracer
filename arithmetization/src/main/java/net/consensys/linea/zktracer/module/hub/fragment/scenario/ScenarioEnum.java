@@ -40,7 +40,11 @@ public enum ScenarioEnum {
   RETURN_FROM_DEPLOYMENT_NONEMPTY_CODE_WILL_REVERT,
   RETURN_FROM_DEPLOYMENT_NONEMPTY_CODE_WONT_REVERT,
   /** scenarios related to SELFDESTRUCT */
-  SELFDESTRUCT,
+  SELFDESTRUCT, // duplicated logic?
+  SELFDESTRUCT_EXCEPTION,
+  SELFDESTRUCT_WILL_REVERT,
+  SELFDESTRUCT_WONT_REVERT_ALREADY_MARKED,
+  SELFDESTRUCT_WONT_REVERT_NOT_YET_MARKED,
   /** describes the second scenario line required by a call to a precompile */
   PRECOMPILE;
 
@@ -75,6 +79,15 @@ public enum ScenarioEnum {
         RETURN_FROM_DEPLOYMENT_EMPTY_CODE_WONT_REVERT,
         RETURN_FROM_DEPLOYMENT_NONEMPTY_CODE_WILL_REVERT,
         RETURN_FROM_DEPLOYMENT_NONEMPTY_CODE_WONT_REVERT);
+  }
+
+  boolean isSelfDestruct() {
+    return this.isAnyOf(
+        SELFDESTRUCT,
+        SELFDESTRUCT_EXCEPTION,
+        SELFDESTRUCT_WILL_REVERT,
+        SELFDESTRUCT_WONT_REVERT_ALREADY_MARKED,
+        SELFDESTRUCT_WONT_REVERT_NOT_YET_MARKED);
   }
 
   public boolean isAnyOf(ScenarioEnum... scenarios) {

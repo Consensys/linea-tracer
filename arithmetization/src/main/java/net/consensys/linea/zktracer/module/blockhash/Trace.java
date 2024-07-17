@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.blockhash;
 
-import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.BitSet;
 import java.util.List;
@@ -190,14 +189,15 @@ public class Trace {
       filled.set(0);
     }
 
-    if(b >= 281474976710656L) { throw new IllegalArgumentException("absBlock has invalid value (" + b + ")"); }
+    if (b >= 281474976710656L) {
+      throw new IllegalArgumentException("absBlock has invalid value (" + b + ")");
+    }
     absBlock.put((byte) (b >> 40));
     absBlock.put((byte) (b >> 32));
     absBlock.put((byte) (b >> 24));
     absBlock.put((byte) (b >> 16));
     absBlock.put((byte) (b >> 8));
     absBlock.put((byte) b);
-
 
     return this;
   }
@@ -212,11 +212,18 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 128) { throw new IllegalArgumentException("blockHashHi has invalid width (" + bs.size() + ")"); }
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "blockHashHi has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<16; i++) { blockHashHi.put((byte) 0); }
+    for (int i = bs.size(); i < 16; i++) {
+      blockHashHi.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { blockHashHi.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      blockHashHi.put(bs.get(j));
+    }
 
     return this;
   }
@@ -231,11 +238,18 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 128) { throw new IllegalArgumentException("blockHashLo has invalid width (" + bs.size() + ")"); }
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "blockHashLo has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<16; i++) { blockHashLo.put((byte) 0); }
+    for (int i = bs.size(); i < 16; i++) {
+      blockHashLo.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { blockHashLo.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      blockHashLo.put(bs.get(j));
+    }
 
     return this;
   }
@@ -250,11 +264,18 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 128) { throw new IllegalArgumentException("blockNumberHi has invalid width (" + bs.size() + ")"); }
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "blockNumberHi has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<16; i++) { blockNumberHi.put((byte) 0); }
+    for (int i = bs.size(); i < 16; i++) {
+      blockNumberHi.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { blockNumberHi.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      blockNumberHi.put(bs.get(j));
+    }
 
     return this;
   }
@@ -269,11 +290,18 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 128) { throw new IllegalArgumentException("blockNumberLo has invalid width (" + bs.size() + ")"); }
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "blockNumberLo has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<16; i++) { blockNumberLo.put((byte) 0); }
+    for (int i = bs.size(); i < 16; i++) {
+      blockNumberLo.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { blockNumberLo.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      blockNumberLo.put(bs.get(j));
+    }
 
     return this;
   }
@@ -705,9 +733,10 @@ public class Trace {
       filled.set(40);
     }
 
-    if(b >= 256L) { throw new IllegalArgumentException("relBlock has invalid value (" + b + ")"); }
+    if (b >= 256L) {
+      throw new IllegalArgumentException("relBlock has invalid value (" + b + ")");
+    }
     relBlock.put((byte) b);
-
 
     return this;
   }
@@ -722,11 +751,17 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 128) { throw new IllegalArgumentException("resHi has invalid width (" + bs.size() + ")"); }
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException("resHi has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<16; i++) { resHi.put((byte) 0); }
+    for (int i = bs.size(); i < 16; i++) {
+      resHi.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { resHi.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      resHi.put(bs.get(j));
+    }
 
     return this;
   }
@@ -741,11 +776,17 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 128) { throw new IllegalArgumentException("resLo has invalid width (" + bs.size() + ")"); }
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException("resLo has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<16; i++) { resLo.put((byte) 0); }
+    for (int i = bs.size(); i < 16; i++) {
+      resLo.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { resLo.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      resLo.put(bs.get(j));
+    }
 
     return this;
   }

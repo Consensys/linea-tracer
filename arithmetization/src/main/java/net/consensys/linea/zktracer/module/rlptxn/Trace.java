@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.rlptxn;
 
-import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.BitSet;
 import java.util.List;
@@ -238,10 +237,11 @@ public class Trace {
       filled.set(0);
     }
 
-    if(b >= 65536L) { throw new IllegalArgumentException("absTxNum has invalid value (" + b + ")"); }
+    if (b >= 65536L) {
+      throw new IllegalArgumentException("absTxNum has invalid value (" + b + ")");
+    }
     absTxNum.put((byte) (b >> 8));
     absTxNum.put((byte) b);
-
 
     return this;
   }
@@ -253,10 +253,11 @@ public class Trace {
       filled.set(1);
     }
 
-    if(b >= 65536L) { throw new IllegalArgumentException("absTxNumInfiny has invalid value (" + b + ")"); }
+    if (b >= 65536L) {
+      throw new IllegalArgumentException("absTxNumInfiny has invalid value (" + b + ")");
+    }
     absTxNumInfiny.put((byte) (b >> 8));
     absTxNumInfiny.put((byte) b);
-
 
     return this;
   }
@@ -271,11 +272,17 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 128) { throw new IllegalArgumentException("acc1 has invalid width (" + bs.size() + ")"); }
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException("acc1 has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<16; i++) { acc1.put((byte) 0); }
+    for (int i = bs.size(); i < 16; i++) {
+      acc1.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { acc1.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      acc1.put(bs.get(j));
+    }
 
     return this;
   }
@@ -290,11 +297,17 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 128) { throw new IllegalArgumentException("acc2 has invalid width (" + bs.size() + ")"); }
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException("acc2 has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<16; i++) { acc2.put((byte) 0); }
+    for (int i = bs.size(); i < 16; i++) {
+      acc2.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { acc2.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      acc2.put(bs.get(j));
+    }
 
     return this;
   }
@@ -306,9 +319,10 @@ public class Trace {
       filled.set(5);
     }
 
-    if(b >= 32L) { throw new IllegalArgumentException("accBytesize has invalid value (" + b + ")"); }
+    if (b >= 32L) {
+      throw new IllegalArgumentException("accBytesize has invalid value (" + b + ")");
+    }
     accBytesize.put((byte) b);
-
 
     return this;
   }
@@ -320,11 +334,12 @@ public class Trace {
       filled.set(2);
     }
 
-    if(b >= 16777216L) { throw new IllegalArgumentException("accessTupleBytesize has invalid value (" + b + ")"); }
+    if (b >= 16777216L) {
+      throw new IllegalArgumentException("accessTupleBytesize has invalid value (" + b + ")");
+    }
     accessTupleBytesize.put((byte) (b >> 16));
     accessTupleBytesize.put((byte) (b >> 8));
     accessTupleBytesize.put((byte) b);
-
 
     return this;
   }
@@ -336,12 +351,13 @@ public class Trace {
       filled.set(6);
     }
 
-    if(b >= 4294967296L) { throw new IllegalArgumentException("addrHi has invalid value (" + b + ")"); }
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("addrHi has invalid value (" + b + ")");
+    }
     addrHi.put((byte) (b >> 24));
     addrHi.put((byte) (b >> 16));
     addrHi.put((byte) (b >> 8));
     addrHi.put((byte) b);
-
 
     return this;
   }
@@ -356,11 +372,17 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 128) { throw new IllegalArgumentException("addrLo has invalid width (" + bs.size() + ")"); }
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException("addrLo has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<16; i++) { addrLo.put((byte) 0); }
+    for (int i = bs.size(); i < 16; i++) {
+      addrLo.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { addrLo.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      addrLo.put(bs.get(j));
+    }
 
     return this;
   }
@@ -420,12 +442,13 @@ public class Trace {
       filled.set(12);
     }
 
-    if(b >= 4294967296L) { throw new IllegalArgumentException("codeFragmentIndex has invalid value (" + b + ")"); }
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("codeFragmentIndex has invalid value (" + b + ")");
+    }
     codeFragmentIndex.put((byte) (b >> 24));
     codeFragmentIndex.put((byte) (b >> 16));
     codeFragmentIndex.put((byte) (b >> 8));
     codeFragmentIndex.put((byte) b);
-
 
     return this;
   }
@@ -437,9 +460,10 @@ public class Trace {
       filled.set(13);
     }
 
-    if(b >= 32L) { throw new IllegalArgumentException("counter has invalid value (" + b + ")"); }
+    if (b >= 32L) {
+      throw new IllegalArgumentException("counter has invalid value (" + b + ")");
+    }
     counter.put((byte) b);
-
 
     return this;
   }
@@ -451,12 +475,13 @@ public class Trace {
       filled.set(14);
     }
 
-    if(b >= 4294967296L) { throw new IllegalArgumentException("dataGasCost has invalid value (" + b + ")"); }
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("dataGasCost has invalid value (" + b + ")");
+    }
     dataGasCost.put((byte) (b >> 24));
     dataGasCost.put((byte) (b >> 16));
     dataGasCost.put((byte) (b >> 8));
     dataGasCost.put((byte) b);
-
 
     return this;
   }
@@ -471,11 +496,17 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 128) { throw new IllegalArgumentException("dataHi has invalid width (" + bs.size() + ")"); }
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException("dataHi has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<16; i++) { dataHi.put((byte) 0); }
+    for (int i = bs.size(); i < 16; i++) {
+      dataHi.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { dataHi.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      dataHi.put(bs.get(j));
+    }
 
     return this;
   }
@@ -490,11 +521,17 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 128) { throw new IllegalArgumentException("dataLo has invalid width (" + bs.size() + ")"); }
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException("dataLo has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<16; i++) { dataLo.put((byte) 0); }
+    for (int i = bs.size(); i < 16; i++) {
+      dataLo.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { dataLo.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      dataLo.put(bs.get(j));
+    }
 
     return this;
   }
@@ -542,12 +579,13 @@ public class Trace {
       filled.set(20);
     }
 
-    if(b >= 4294967296L) { throw new IllegalArgumentException("indexData has invalid value (" + b + ")"); }
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("indexData has invalid value (" + b + ")");
+    }
     indexData.put((byte) (b >> 24));
     indexData.put((byte) (b >> 16));
     indexData.put((byte) (b >> 8));
     indexData.put((byte) b);
-
 
     return this;
   }
@@ -559,12 +597,13 @@ public class Trace {
       filled.set(21);
     }
 
-    if(b >= 4294967296L) { throw new IllegalArgumentException("indexLt has invalid value (" + b + ")"); }
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("indexLt has invalid value (" + b + ")");
+    }
     indexLt.put((byte) (b >> 24));
     indexLt.put((byte) (b >> 16));
     indexLt.put((byte) (b >> 8));
     indexLt.put((byte) b);
-
 
     return this;
   }
@@ -576,12 +615,13 @@ public class Trace {
       filled.set(22);
     }
 
-    if(b >= 4294967296L) { throw new IllegalArgumentException("indexLx has invalid value (" + b + ")"); }
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("indexLx has invalid value (" + b + ")");
+    }
     indexLx.put((byte) (b >> 24));
     indexLx.put((byte) (b >> 16));
     indexLx.put((byte) (b >> 8));
     indexLx.put((byte) b);
-
 
     return this;
   }
@@ -596,11 +636,17 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 128) { throw new IllegalArgumentException("input1 has invalid width (" + bs.size() + ")"); }
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException("input1 has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<16; i++) { input1.put((byte) 0); }
+    for (int i = bs.size(); i < 16; i++) {
+      input1.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { input1.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      input1.put(bs.get(j));
+    }
 
     return this;
   }
@@ -615,11 +661,17 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 128) { throw new IllegalArgumentException("input2 has invalid width (" + bs.size() + ")"); }
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException("input2 has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<16; i++) { input2.put((byte) 0); }
+    for (int i = bs.size(); i < 16; i++) {
+      input2.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { input2.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      input2.put(bs.get(j));
+    }
 
     return this;
   }
@@ -838,11 +890,17 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 128) { throw new IllegalArgumentException("limb has invalid width (" + bs.size() + ")"); }
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException("limb has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<16; i++) { limb.put((byte) 0); }
+    for (int i = bs.size(); i < 16; i++) {
+      limb.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { limb.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      limb.put(bs.get(j));
+    }
 
     return this;
   }
@@ -890,10 +948,11 @@ public class Trace {
       filled.set(55);
     }
 
-    if(b >= 65536L) { throw new IllegalArgumentException("nAddr has invalid value (" + b + ")"); }
+    if (b >= 65536L) {
+      throw new IllegalArgumentException("nAddr has invalid value (" + b + ")");
+    }
     nAddr.put((byte) (b >> 8));
     nAddr.put((byte) b);
-
 
     return this;
   }
@@ -905,9 +964,10 @@ public class Trace {
       filled.set(56);
     }
 
-    if(b >= 32L) { throw new IllegalArgumentException("nBytes has invalid value (" + b + ")"); }
+    if (b >= 32L) {
+      throw new IllegalArgumentException("nBytes has invalid value (" + b + ")");
+    }
     nBytes.put((byte) b);
-
 
     return this;
   }
@@ -919,10 +979,11 @@ public class Trace {
       filled.set(57);
     }
 
-    if(b >= 65536L) { throw new IllegalArgumentException("nKeys has invalid value (" + b + ")"); }
+    if (b >= 65536L) {
+      throw new IllegalArgumentException("nKeys has invalid value (" + b + ")");
+    }
     nKeys.put((byte) (b >> 8));
     nKeys.put((byte) b);
-
 
     return this;
   }
@@ -934,10 +995,11 @@ public class Trace {
       filled.set(58);
     }
 
-    if(b >= 65536L) { throw new IllegalArgumentException("nKeysPerAddr has invalid value (" + b + ")"); }
+    if (b >= 65536L) {
+      throw new IllegalArgumentException("nKeysPerAddr has invalid value (" + b + ")");
+    }
     nKeysPerAddr.put((byte) (b >> 8));
     nKeysPerAddr.put((byte) b);
-
 
     return this;
   }
@@ -949,9 +1011,10 @@ public class Trace {
       filled.set(59);
     }
 
-    if(b >= 32L) { throw new IllegalArgumentException("nStep has invalid value (" + b + ")"); }
+    if (b >= 32L) {
+      throw new IllegalArgumentException("nStep has invalid value (" + b + ")");
+    }
     nStep.put((byte) b);
-
 
     return this;
   }
@@ -963,9 +1026,10 @@ public class Trace {
       filled.set(46);
     }
 
-    if(b >= 32L) { throw new IllegalArgumentException("phase has invalid value (" + b + ")"); }
+    if (b >= 32L) {
+      throw new IllegalArgumentException("phase has invalid value (" + b + ")");
+    }
     phase.put((byte) b);
-
 
     return this;
   }
@@ -989,12 +1053,13 @@ public class Trace {
       filled.set(48);
     }
 
-    if(b >= 4294967296L) { throw new IllegalArgumentException("phaseSize has invalid value (" + b + ")"); }
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("phaseSize has invalid value (" + b + ")");
+    }
     phaseSize.put((byte) (b >> 24));
     phaseSize.put((byte) (b >> 16));
     phaseSize.put((byte) (b >> 8));
     phaseSize.put((byte) b);
-
 
     return this;
   }
@@ -1009,11 +1074,17 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 128) { throw new IllegalArgumentException("power has invalid width (" + bs.size() + ")"); }
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException("power has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<16; i++) { power.put((byte) 0); }
+    for (int i = bs.size(); i < 16; i++) {
+      power.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { power.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      power.put(bs.get(j));
+    }
 
     return this;
   }
@@ -1037,11 +1108,12 @@ public class Trace {
       filled.set(51);
     }
 
-    if(b >= 16777216L) { throw new IllegalArgumentException("rlpLtBytesize has invalid value (" + b + ")"); }
+    if (b >= 16777216L) {
+      throw new IllegalArgumentException("rlpLtBytesize has invalid value (" + b + ")");
+    }
     rlpLtBytesize.put((byte) (b >> 16));
     rlpLtBytesize.put((byte) (b >> 8));
     rlpLtBytesize.put((byte) b);
-
 
     return this;
   }
@@ -1053,11 +1125,12 @@ public class Trace {
       filled.set(52);
     }
 
-    if(b >= 16777216L) { throw new IllegalArgumentException("rlpLxBytesize has invalid value (" + b + ")"); }
+    if (b >= 16777216L) {
+      throw new IllegalArgumentException("rlpLxBytesize has invalid value (" + b + ")");
+    }
     rlpLxBytesize.put((byte) (b >> 16));
     rlpLxBytesize.put((byte) (b >> 8));
     rlpLxBytesize.put((byte) b);
-
 
     return this;
   }
@@ -1081,9 +1154,10 @@ public class Trace {
       filled.set(54);
     }
 
-    if(b >= 8L) { throw new IllegalArgumentException("type has invalid value (" + b + ")"); }
+    if (b >= 8L) {
+      throw new IllegalArgumentException("type has invalid value (" + b + ")");
+    }
     type.put((byte) b);
-
 
     return this;
   }
@@ -1218,7 +1292,8 @@ public class Trace {
     }
 
     if (!filled.get(32)) {
-      throw new IllegalStateException("rlptxn.IS_PHASE_MAX_PRIORITY_FEE_PER_GAS has not been filled");
+      throw new IllegalStateException(
+          "rlptxn.IS_PHASE_MAX_PRIORITY_FEE_PER_GAS has not been filled");
     }
 
     if (!filled.get(33)) {

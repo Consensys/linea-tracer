@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.blake2fmodexpdata;
 
-import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.BitSet;
 import java.util.List;
@@ -105,14 +104,15 @@ public class Trace {
       filled.set(0);
     }
 
-    if(b >= 281474976710656L) { throw new IllegalArgumentException("id has invalid value (" + b + ")"); }
+    if (b >= 281474976710656L) {
+      throw new IllegalArgumentException("id has invalid value (" + b + ")");
+    }
     id.put((byte) (b >> 40));
     id.put((byte) (b >> 32));
     id.put((byte) (b >> 24));
     id.put((byte) (b >> 16));
     id.put((byte) (b >> 8));
     id.put((byte) b);
-
 
     return this;
   }
@@ -235,11 +235,17 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 128) { throw new IllegalArgumentException("limb has invalid width (" + bs.size() + ")"); }
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException("limb has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<16; i++) { limb.put((byte) 0); }
+    for (int i = bs.size(); i < 16; i++) {
+      limb.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { limb.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      limb.put(bs.get(j));
+    }
 
     return this;
   }

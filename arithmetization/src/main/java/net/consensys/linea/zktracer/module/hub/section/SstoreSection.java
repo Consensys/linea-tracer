@@ -22,6 +22,7 @@ import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.SstoreOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
@@ -72,8 +73,10 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
     }
 
     // MISC fragment
-    ImcFragment miscForSstore = ImcFragment.forOpcode(hub, hub.messageFrame());
+    ImcFragment miscForSstore = ImcFragment.empty(hub);
     this.addFragment(miscForSstore);
+    
+    miscForSstore.callOob(new SstoreOobCall());
 
     if (sstoreException) {
       return;

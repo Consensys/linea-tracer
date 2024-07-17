@@ -57,6 +57,7 @@ import net.consensys.linea.zktracer.module.hub.section.calls.FailedCallSection;
 import net.consensys.linea.zktracer.module.hub.section.calls.NoCodeCallSection;
 import net.consensys.linea.zktracer.module.hub.section.calls.SmartContractCallSection;
 import net.consensys.linea.zktracer.module.hub.section.copy.*;
+import net.consensys.linea.zktracer.module.hub.section.create.CreateSection;
 import net.consensys.linea.zktracer.module.hub.section.halt.RevertSection;
 import net.consensys.linea.zktracer.module.hub.section.halt.StopSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
@@ -1152,6 +1153,7 @@ public class Hub implements Module {
       }
 
       case CREATE -> {
+        new CreateSection(this);
         final Address myAddress = this.currentFrame().accountAddress();
         final Account myAccount = frame.getWorldUpdater().get(myAddress);
         AccountSnapshot myAccountSnapshot =
@@ -1170,8 +1172,8 @@ public class Hub implements Module {
                 this.transients.conflation().deploymentInfo().number(createdAddress),
                 this.transients.conflation().deploymentInfo().isDeploying(createdAddress));
 
-        CreateSection createSection =
-            new CreateSection(this, myAccountSnapshot, createdAccountSnapshot);
+        CreateSectionOld createSection =
+            new CreateSectionOld(this, myAccountSnapshot, createdAccountSnapshot);
         this.addTraceSection(createSection);
         this.currentFrame().needsUnlatchingAtReEntry(createSection);
       }

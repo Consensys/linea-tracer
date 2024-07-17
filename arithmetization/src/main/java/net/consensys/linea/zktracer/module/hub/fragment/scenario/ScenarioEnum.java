@@ -15,10 +15,21 @@
 package net.consensys.linea.zktracer.module.hub.fragment.scenario;
 
 public enum ScenarioEnum {
+  /** unset values, to be defined */
+  UNDEFINED,
   /** scenarios related to CALL-type instructions */
   CALL,
   /** scenarios related to CREATE(2) instructions */
-  CREATE,
+  CREATE_EXCEPTION,
+  CREATE_ABORT,
+  CREATE_FAILURE_CONDITION_WILL_REVERT,
+  CREATE_FAILURE_CONDITION_WONT_REVERT,
+  CREATE_EMPTY_INIT_CODE_WILL_REVERT,
+  CREATE_EMPTY_INIT_CODE_WONT_REVERT,
+  CREATE_NON_EMPTY_INIT_CODE_FAILURE_WILL_REVERT,
+  CREATE_NON_EMPTY_INIT_CODE_FAILURE_WONT_REVERT,
+  CREATE_NON_EMPTY_INIT_CODE_SUCCESS_WILL_REVERT,
+  CREATE_NON_EMPTY_INIT_CODE_SUCCESS_WONT_REVERT,
   /** scenarios related to RETURN */
   RETURN,
   RETURN_EXCEPTION,
@@ -41,8 +52,18 @@ public enum ScenarioEnum {
     return this == PRECOMPILE;
   }
 
-  boolean isCreate() {
-    return this == CREATE;
+  public boolean isCreate() {
+    return this.isAnyOf(
+        CREATE_EXCEPTION,
+        CREATE_ABORT,
+        CREATE_FAILURE_CONDITION_WILL_REVERT,
+        CREATE_FAILURE_CONDITION_WONT_REVERT,
+        CREATE_EMPTY_INIT_CODE_WILL_REVERT,
+        CREATE_EMPTY_INIT_CODE_WONT_REVERT,
+        CREATE_NON_EMPTY_INIT_CODE_FAILURE_WILL_REVERT,
+        CREATE_NON_EMPTY_INIT_CODE_FAILURE_WONT_REVERT,
+        CREATE_NON_EMPTY_INIT_CODE_SUCCESS_WILL_REVERT,
+        CREATE_NON_EMPTY_INIT_CODE_SUCCESS_WONT_REVERT);
   }
 
   boolean isReturn() {

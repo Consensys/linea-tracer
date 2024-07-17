@@ -28,7 +28,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.CreateOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.signals.AbortingConditions;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.signals.FailureConditions;
@@ -40,7 +39,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class CreateSection extends TraceSection
+public class CreateSectionOld extends TraceSection
     implements PostExecDefer, NextContextDefer, PostTransactionDefer, ReEnterContextDefer {
   private final int creatorContextId;
   private final boolean emptyInitCode;
@@ -49,7 +48,6 @@ public class CreateSection extends TraceSection
   private final AbortingConditions aborts;
   private final short exceptions;
   private final FailureConditions failures;
-  private final ScenarioFragment scenarioFragment;
 
   // Just before create
   private final AccountSnapshot oldCreatorSnapshot;
@@ -70,7 +68,7 @@ public class CreateSection extends TraceSection
     return !oldCreatedSnapshot.code().isEmpty();
   }
 
-  public CreateSection(
+  public CreateSectionOld(
       Hub hub, AccountSnapshot oldCreatorSnapshot, AccountSnapshot oldCreatedSnapshot) {
     super(hub);
     this.creatorContextId = hub.currentFrame().id();
@@ -84,7 +82,7 @@ public class CreateSection extends TraceSection
     this.oldCreatorSnapshot = oldCreatorSnapshot;
     this.oldCreatedSnapshot = oldCreatedSnapshot;
 
-    this.scenarioFragment = ScenarioFragment.forCreate(hub, this.targetHasCode());
+    // this.scenarioFragment = ScenarioFragment.forCreate(hub, this.targetHasCode());
 
     this.addStack(hub);
 
@@ -170,8 +168,8 @@ public class CreateSection extends TraceSection
         //                 0))
         ;
 
-    this.scenarioFragment.resolvePostTransaction(hub, state, tx, isSuccessful);
-    this.addFragmentsWithoutStack(scenarioFragment);
+    // this.scenarioFragment.resolvePostTransaction(hub, state, tx, isSuccessful);
+    // this.addFragmentsWithoutStack(scenarioFragment);
     if (Exceptions.staticFault(this.exceptions)) {
       this.addFragmentsWithoutStack(
           ImcFragment.empty(hub),

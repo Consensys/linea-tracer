@@ -81,7 +81,7 @@ public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
   public static ScenarioFragment forCreate(final Hub hub, boolean targetHasCode) {
     return new ScenarioFragment(
         Optional.empty(),
-        ScenarioEnum.CREATE,
+        ScenarioEnum.CREATE_EXCEPTION, // this is wrong, but all will be deleted
         targetHasCode,
         hub.currentFrame().id(),
         hub.callStack().futureId(),
@@ -274,20 +274,23 @@ public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
                 && !targetIsPrecompile()
                 && !targetHasCode
                 && callerReverts)
-        .pScenarioCreateException(type.isCreate() && raisedException)
-        .pScenarioCreateAbort(type.isCreate() && hasAborted)
-        .pScenarioCreateFailureConditionWillRevert(type.isCreate() && hasFailed && callerReverts)
-        .pScenarioCreateFailureConditionWontRevert(type.isCreate() && hasFailed && !callerReverts)
-        .pScenarioCreateEmptyInitCodeWillRevert(type.isCreate() && !targetHasCode && callerReverts)
-        .pScenarioCreateEmptyInitCodeWontRevert(type.isCreate() && !targetHasCode && !callerReverts)
-        .pScenarioCreateNonemptyInitCodeFailureWillRevert(
-            type.isCreate() && targetHasCode && creationFailed() && callerReverts)
-        .pScenarioCreateNonemptyInitCodeFailureWontRevert(
-            type.isCreate() && targetHasCode && creationFailed() && !callerReverts)
-        .pScenarioCreateNonemptyInitCodeSuccessWillRevert(
-            type.isCreate() && targetHasCode && !creationFailed() && callerReverts)
-        .pScenarioCreateNonemptyInitCodeSuccessWontRevert(
-            type.isCreate() && targetHasCode && !creationFailed() && !callerReverts)
+        // .pScenarioCreateException(type.isCreate() && raisedException)
+        // .pScenarioCreateAbort(type.isCreate() && hasAborted)
+        // .pScenarioCreateFailureConditionWillRevert(type.isCreate() && hasFailed && callerReverts)
+        // .pScenarioCreateFailureConditionWontRevert(type.isCreate() && hasFailed &&
+        // !callerReverts)
+        // .pScenarioCreateEmptyInitCodeWillRevert(type.isCreate() && !targetHasCode &&
+        // callerReverts)
+        // .pScenarioCreateEmptyInitCodeWontRevert(type.isCreate() && !targetHasCode &&
+        // !callerReverts)
+        // .pScenarioCreateNonemptyInitCodeFailureWillRevert(
+        //    type.isCreate() && targetHasCode && creationFailed() && callerReverts)
+        // .pScenarioCreateNonemptyInitCodeFailureWontRevert(
+        //    type.isCreate() && targetHasCode && creationFailed() && !callerReverts)
+        // .pScenarioCreateNonemptyInitCodeSuccessWillRevert(
+        //    type.isCreate() && targetHasCode && !creationFailed() && callerReverts)
+        // .pScenarioCreateNonemptyInitCodeSuccessWontRevert(
+        //    type.isCreate() && targetHasCode && !creationFailed() && !callerReverts)
         .pScenarioPrcEcrecover(
             precompileCall.map(x -> x.precompile().equals(Precompile.EC_RECOVER)).orElse(false))
         .pScenarioPrcSha2256(

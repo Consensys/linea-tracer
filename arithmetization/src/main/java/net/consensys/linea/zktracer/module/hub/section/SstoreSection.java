@@ -75,7 +75,7 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
     // MISC fragment
     ImcFragment miscForSstore = ImcFragment.empty(hub);
     this.addFragment(miscForSstore);
-    
+
     miscForSstore.callOob(new SstoreOobCall());
 
     if (sstoreException) {

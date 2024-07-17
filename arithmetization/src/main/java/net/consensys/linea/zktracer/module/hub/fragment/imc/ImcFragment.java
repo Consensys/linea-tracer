@@ -160,6 +160,7 @@ public class ImcFragment implements TraceFragment {
     return r;
   }
 
+  // TODO: should be deleted
   public static ImcFragment forOpcode(Hub hub, MessageFrame frame) {
     final ImcFragment r = new ImcFragment(hub);
 

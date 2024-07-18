@@ -30,7 +30,6 @@ import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
-import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
@@ -40,17 +39,11 @@ public class SelfdestructSection extends TraceSection
   final short exceptions;
 
   final Address address;
-  final int incomingDeploymentNumber;
-  final boolean incomingDeploymentStatus;
-  final boolean incomingWarmth;
   AccountSnapshot accountBefore;
   // AccountSnapshot accountAfter;
 
   final Bytes recipientRawAddress;
   final Address recipientAddress;
-  final int recipientIncomingDeploymentNumber;
-  final boolean recipientIncomingDeploymentStatus;
-  final boolean recipientIncomingWarmth;
   AccountSnapshot recipientAccountBefore;
   // AccountSnapshot recipientAccountAfter;
 
@@ -68,35 +61,15 @@ public class SelfdestructSection extends TraceSection
     final MessageFrame frame = hub.messageFrame();
 
     // Account
-    this.address = frame.getSenderAddress(); // TODO: is this correct?
-    this.incomingDeploymentNumber =
-        hub.transients().conflation().deploymentInfo().number(this.address);
-    this.incomingDeploymentStatus =
-        hub.transients().conflation().deploymentInfo().isDeploying(this.address);
-    this.incomingWarmth = frame.isAddressWarm(this.address);
-    final Account accountAccount = frame.getWorldUpdater().get(this.address);
-    this.accountBefore =
-        AccountSnapshot.fromAccount(
-            accountAccount,
-            this.incomingWarmth,
-            this.incomingDeploymentNumber,
-            this.incomingDeploymentStatus);
+    this.address = frame.getSenderAddress();
+    // final Account accountAccount = frame.getWorldUpdater().get(this.address);
+    this.accountBefore = AccountSnapshot.canonical(hub, this.address);
 
     // Recipient
     this.recipientRawAddress = frame.getStackItem(0);
     this.recipientAddress = Address.extract((Bytes32) this.recipientRawAddress);
-    this.recipientIncomingDeploymentNumber =
-        hub.transients().conflation().deploymentInfo().number(this.recipientAddress);
-    this.recipientIncomingDeploymentStatus =
-        hub.transients().conflation().deploymentInfo().isDeploying(this.recipientAddress);
-    this.recipientIncomingWarmth = frame.isAddressWarm(this.recipientAddress);
-    final Account recipientAccount = frame.getWorldUpdater().get(this.recipientAddress);
-    this.recipientAccountBefore =
-        AccountSnapshot.fromAccount(
-            recipientAccount,
-            this.recipientIncomingWarmth,
-            this.recipientIncomingDeploymentNumber,
-            this.recipientIncomingDeploymentStatus);
+    // final recipientAccount = frame.getWorldUpdater().get(this.recipientAddress);
+    this.recipientAccountBefore = AccountSnapshot.canonical(hub, this.recipientAddress);
     //
 
     SelfdestructScenarioFragment selfdestructScenarioFragment = new SelfdestructScenarioFragment();
@@ -127,7 +100,6 @@ public class SelfdestructSection extends TraceSection
               .make(
                   this.accountBefore,
                   this.accountBefore,
-                  // this.accountAddress, no need to explicitly pass the address?
                   DomSubStampsSubFragment.standardDomSubStamps(hub, 0));
 
       // TODO: check if the account has balance or not

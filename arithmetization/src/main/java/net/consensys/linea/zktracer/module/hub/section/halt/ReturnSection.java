@@ -46,10 +46,10 @@ public class ReturnSection
 
     exceptions = hub.pch().exceptions();
 
-    ReturnScenarioFragment returnScenarioFragment = new ReturnScenarioFragment();
-    ContextFragment currentContextFragment = ContextFragment.readCurrentContextData(hub);
+    final ReturnScenarioFragment returnScenarioFragment = new ReturnScenarioFragment();
+    final ContextFragment currentContextFragment = ContextFragment.readCurrentContextData(hub);
     imcFragment = ImcFragment.empty(hub);
-    MxpCall mxpCall = new MxpCall(hub);
+    final MxpCall mxpCall = new MxpCall(hub);
     imcFragment.callMxp(mxpCall);
 
     this.addStack(hub);
@@ -73,12 +73,12 @@ public class ReturnSection
       return;
     }
 
-    boolean triggerMmuForInvalidCodePrefix = Exceptions.invalidCodePrefix(exceptions);
+    final boolean triggerMmuForInvalidCodePrefix = Exceptions.invalidCodePrefix(exceptions);
     if (triggerMmuForInvalidCodePrefix) {
-      // mmuCall = MmuCall.invalidCodePrefix();
+      // mmuCall = MmuCall.invalidCodePrefix(); TODO:
     }
 
-    boolean triggerOobForNonemptyDeployments =
+    final boolean triggerOobForNonemptyDeployments =
         Exceptions.none(exceptions)
             && hub.currentFrame().isDeployment()
             && mxpCall.isMayTriggerNonTrivialMmuOperation();

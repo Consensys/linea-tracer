@@ -55,6 +55,7 @@ public final class AccountFragment
   private int codeFragmentIndex;
   private final Optional<Bytes> addressToTrim;
   private final DomSubStampsSubFragment domSubStampsSubFragment;
+  @Setter private RlpAddrSubFragment rlpAddrSubFragment;
 
   /**
    * {@link AccountFragment} creation requires access to a {@link DeferRegistry} for post-conflation
@@ -107,6 +108,7 @@ public final class AccountFragment
 
     // tracing
     this.domSubStampsSubFragment.trace(trace);
+    this.rlpAddrSubFragment.trace(trace);
 
     return trace
         .peekAtAccount(true)
@@ -146,16 +148,7 @@ public final class AccountFragment
         .pAccountDeploymentStatusInfty(existsInfinity)
         .pAccountTrmFlag(this.addressToTrim.isPresent())
         .pAccountTrmRawAddressHi(this.addressToTrim.map(a -> EWord.of(a).hi()).orElse(Bytes.EMPTY))
-        .pAccountIsPrecompile(isPrecompile(oldState.address()))
-        .pAccountRlpaddrFlag(false) // TODO
-        .pAccountRlpaddrRecipe(false) // TODO
-        .pAccountRlpaddrDepAddrHi(0) // TODO
-        .pAccountRlpaddrDepAddrLo(Bytes.EMPTY) // TODO
-        .pAccountRlpaddrSaltHi(Bytes.EMPTY) // TODO
-        .pAccountRlpaddrSaltLo(Bytes.EMPTY) // TODO
-        .pAccountRlpaddrKecHi(Bytes.EMPTY) // TODO
-        .pAccountRlpaddrKecLo(Bytes.EMPTY) // TODO
-    ;
+        .pAccountIsPrecompile(isPrecompile(oldState.address()));
   }
 
   @Override

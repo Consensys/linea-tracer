@@ -1028,7 +1028,6 @@ public class Hub implements Module {
       }
       this.traceOperation(frame);
     } else {
-
       this.addTraceSection(new StackOnlySection(this));
     }
   }
@@ -1154,6 +1153,7 @@ public class Hub implements Module {
 
       case CREATE -> {
         new CreateSection(this);
+
         final Address myAddress = this.currentFrame().accountAddress();
         final Account myAccount = frame.getWorldUpdater().get(myAddress);
         AccountSnapshot myAccountSnapshot =

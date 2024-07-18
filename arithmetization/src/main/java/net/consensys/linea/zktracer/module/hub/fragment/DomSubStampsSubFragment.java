@@ -43,6 +43,10 @@ public class DomSubStampsSubFragment implements TraceSubFragment {
     return new DomSubStampsSubFragment(DomSubType.STANDARD, hub.stamp(), domOffset, 0, 0, 0, 0);
   }
 
+  public static DomSubStampsSubFragment standardDomSubStamps(final int h, final int domOffset) {
+    return new DomSubStampsSubFragment(DomSubType.STANDARD, h, domOffset, 0, 0, 0, 0);
+  }
+
   public static DomSubStampsSubFragment revertWithCurrentDomSubStamps(
       final Hub hub, final int subOffset) {
     return new DomSubStampsSubFragment(

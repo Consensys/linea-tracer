@@ -15,28 +15,37 @@
 
 package net.consensys.linea.zktracer.module.hub.section.create;
 
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioEnum.CREATE_EMPTY_INIT_CODE_WONT_REVERT;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioEnum.CREATE_FAILURE_CONDITION_WONT_REVERT;
+import static net.consensys.linea.zktracer.types.AddressUtils.getCreateAddress;
+
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.defer.PostExecDefer;
+import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
+import net.consensys.linea.zktracer.module.hub.defer.ReEnterContextDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.StpCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.CreateOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioEnum;
-import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.AbortingConditions;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
-import net.consensys.linea.zktracer.module.hub.signals.FailureConditions;
+import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.evm.operation.Operation;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class CreateSection {
+public class CreateSection implements PostExecDefer, ReEnterContextDefer, PostTransactionDefer {
+  private FillCreateSection createSection;
+  private boolean failure;
 
   private int creatorContextId;
   private boolean emptyInitCode;
@@ -56,24 +65,27 @@ public class CreateSection {
   private boolean createSuccessful;
 
   /* true if the putatively created account already has code **/
-
   private boolean targetHasCode() {
     return !oldCreatedSnapshot.code().isEmpty();
   }
 
-  // row i+ 0
-  private final CreateScenarioFragment scenarioFragment = new CreateScenarioFragment();
   // row i+2
   private final ImcFragment imcFragment;
+  private MmuCall mmuCall;
+
+  // row i+ ?
+  private ContextFragment lastContextFragment;
 
   public CreateSection(Hub hub) {
     final short exception = hub.pch().exceptions();
 
+    // row i +1
     final ContextFragment commonContext = ContextFragment.readCurrentContextData(hub);
+
     imcFragment = ImcFragment.empty(hub);
 
     if (Exceptions.staticFault(exception)) {
-      new ExceptionalCreate(hub, commonContext);
+      new ExceptionalCreate(hub, commonContext, imcFragment);
       return;
     }
 
@@ -81,7 +93,7 @@ public class CreateSection {
     imcFragment.callMxp(mxpCall);
 
     if (Exceptions.memoryExpansionException(exception)) {
-      new ExceptionalCreate(hub, commonContext);
+      new ExceptionalCreate(hub, commonContext, imcFragment);
       return;
     }
 
@@ -90,7 +102,7 @@ public class CreateSection {
     imcFragment.callStp(stpCall);
 
     if (Exceptions.outOfGasException(exception)) {
-      new ExceptionalCreate(hub, commonContext);
+      new ExceptionalCreate(hub, commonContext, imcFragment);
       return;
     }
 
@@ -99,8 +111,6 @@ public class CreateSection {
 
     // We are now with unexceptional create
     final AbortingConditions aborts = hub.pch().abortingConditions().snapshot();
-    this.creatorContextId = hub.currentFrame().id();
-    this.emptyInitCode = hub.transients().op().callDataSegment().isEmpty();
 
     final CallFrame callFrame = hub.currentFrame();
     final MessageFrame frame = callFrame.frame();
@@ -115,52 +125,115 @@ public class CreateSection {
             hub.transients().conflation().deploymentInfo().isDeploying(creatorAddress));
 
     if (aborts.any()) {
-      new AbortCreate(hub, commonContext);
+      new AbortCreate(hub, commonContext, imcFragment, oldCreatorSnapshot);
       return;
     }
 
     // We are now with unexceptional, non-aborting create
-    final FailureConditions failures = hub.pch().failureConditions().snapshot();
+    hub.defers().schedulePostExecution(this);
+    hub.defers().reEntry(this);
+    hub.defers().schedulePostTransaction(this);
 
-    // final Address createdAddress = getCreateAddress(frame);
-    // final Account createdAccount = frame.getWorldUpdater().get(createdAddress);
-    // oldCreatedSnapshot =
-    //    AccountSnapshot.fromAccount(
-    //        createdAccount,
-    //        frame.isAddressWarm(createdAddress),
-    //        hub.transients().conflation().deploymentInfo().number(createdAddress),
-    //        hub.transients().conflation().deploymentInfo().isDeploying(createdAddress));
+    final Address createdAddress = getCreateAddress(frame);
+    final Account createdAccount = frame.getWorldUpdater().get(createdAddress);
+    oldCreatedSnapshot =
+        AccountSnapshot.fromAccount(
+            createdAccount,
+            frame.isAddressWarm(createdAddress),
+            hub.transients().conflation().deploymentInfo().number(createdAddress),
+            hub.transients().conflation().deploymentInfo().isDeploying(createdAddress));
 
+    failure = hub.pch().failureConditions().any();
+    emptyInitCode = hub.transients().op().callDataSegment().isEmpty();
+
+    if (failure || emptyInitCode) {
+      final ScenarioEnum scenario =
+          failure ? CREATE_FAILURE_CONDITION_WONT_REVERT : CREATE_EMPTY_INIT_CODE_WONT_REVERT;
+      this.createSection = new FailureOrEmptyInitCreate(hub, scenario, commonContext, imcFragment);
+      this.lastContextFragment = ContextFragment.nonExecutionEmptyReturnData(hub);
+      if (hub.opCode() == OpCode.CREATE2 && !emptyInitCode) {
+        this.mmuCall = MmuCall.create2(hub);
+      }
+      return;
+    }
+
+    // Finally, non-exceptional, non-aborting, non-failing, non-emptyInitCode create
+    this.createSection = new NonEmptyInitCodeCreate(hub, commonContext, imcFragment);
   }
 
-  private class ExceptionalCreate extends TraceSection {
-    public ExceptionalCreate(final Hub hub, final ContextFragment commonContext) {
-      super(hub, (short) 6);
-      hub.addTraceSection(this);
+  @Override
+  public void resolvePostExecution(
+      Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
+    final Address creatorAddress = oldCreatorSnapshot.address();
+    this.midCreatorSnapshot =
+        AccountSnapshot.fromAccount(
+            frame.getWorldUpdater().get(creatorAddress),
+            true,
+            hub.transients().conflation().deploymentInfo().number(creatorAddress),
+            hub.transients().conflation().deploymentInfo().isDeploying(creatorAddress));
 
-      scenarioFragment.setScenario(ScenarioEnum.CREATE_EXCEPTION);
+    final Address createdAddress = oldCreatedSnapshot.address();
+    this.midCreatedSnapshot =
+        AccountSnapshot.fromAccount(
+            frame.getWorldUpdater().get(createdAddress),
+            true,
+            hub.transients().conflation().deploymentInfo().number(createdAddress),
+            hub.transients().conflation().deploymentInfo().isDeploying(createdAddress));
 
-      this.addFragmentsAndStack(hub, scenarioFragment, commonContext, imcFragment);
-    }
+    // Pre-emptively set new* snapshots in case we never enter the child frame.
+    // Will be overwritten if we enter the child frame and runNextContext is explicitly called by
+    // the defer registry.
+    this.resolveAtContextReEntry(hub, frame);
   }
 
-  private class AbortCreate extends TraceSection {
-    public AbortCreate(final Hub hub, final ContextFragment commonContext) {
-      super(hub, (short) 7);
-      hub.addTraceSection(this);
+  @Override
+  public void resolveAtContextReEntry(Hub hub, MessageFrame frame) {
+    this.createSuccessful = !frame.getStackItem(0).isZero();
 
-      scenarioFragment.setScenario(ScenarioEnum.CREATE_ABORT);
+    final Address creatorAddress = oldCreatorSnapshot.address();
+    this.newCreatorSnapshot =
+        AccountSnapshot.fromAccount(
+            frame.getWorldUpdater().get(creatorAddress),
+            true,
+            hub.transients().conflation().deploymentInfo().number(creatorAddress),
+            hub.transients().conflation().deploymentInfo().isDeploying(creatorAddress));
 
-      final AccountFragment.AccountFragmentFactory accountFragmentFactory =
-          hub.factories().accountFragment();
-      final AccountFragment creatorAccountFragment =
-          accountFragmentFactory.make(
-              oldCreatorSnapshot,
-              oldCreatorSnapshot,
-              DomSubStampsSubFragment.standardDomSubStamps(hub, 0));
+    final Address createdAddress = oldCreatedSnapshot.address();
+    this.newCreatedSnapshot =
+        AccountSnapshot.fromAccount(
+            frame.getWorldUpdater().get(createdAddress),
+            true,
+            hub.transients().conflation().deploymentInfo().number(createdAddress),
+            hub.transients().conflation().deploymentInfo().isDeploying(createdAddress));
+  }
 
-      this.addFragmentsAndStack(
-          hub, scenarioFragment, commonContext, imcFragment, creatorAccountFragment);
+  @Override
+  public void resolvePostTransaction(
+      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+    if (this.mmuCall != null) {
+      this.imcFragment.callMmu(this.mmuCall);
     }
+
+    this.createSection.fillAccountFragment(
+        hub,
+        oldCreatorSnapshot,
+        midCreatorSnapshot,
+        newCreatorSnapshot,
+        oldCreatedSnapshot,
+        midCreatedSnapshot,
+        newCreatedSnapshot);
+
+    if (hub.callStack().getById(this.creatorContextId).hasReverted()) {
+      this.createSection.fillReverting(
+          hub,
+          oldCreatorSnapshot,
+          midCreatorSnapshot,
+          newCreatorSnapshot,
+          oldCreatedSnapshot,
+          midCreatedSnapshot,
+          newCreatedSnapshot);
+    }
+
+    this.createSection.fillContextFragment(this.lastContextFragment);
   }
 }

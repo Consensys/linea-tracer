@@ -17,17 +17,21 @@ package net.consensys.linea.zktracer.module.hub.fragment.scenario;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.ReturnScenarioFragment.ReturnScenario.*;
 
 import com.google.common.base.Preconditions;
+import lombok.Getter;
 import lombok.Setter;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 
-@Setter
 public class CreateScenarioFragment implements TraceFragment {
 
-  ScenarioEnum scenario;
+  @Setter @Getter private ScenarioEnum scenario;
 
   public CreateScenarioFragment() {
     this.scenario = ScenarioEnum.UNDEFINED;
+  }
+
+  public CreateScenarioFragment(ScenarioEnum scenario) {
+    this.scenario = scenario;
   }
 
   @Override
@@ -36,7 +40,6 @@ public class CreateScenarioFragment implements TraceFragment {
     return trace
         .peekAtScenario(true)
         // CREATE scenarios
-        ////////////////////
         .pScenarioCreateException(scenario == ScenarioEnum.CREATE_EXCEPTION)
         .pScenarioCreateAbort(scenario == ScenarioEnum.CREATE_ABORT)
         .pScenarioCreateFailureConditionWillRevert(

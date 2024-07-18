@@ -86,7 +86,7 @@ public class TxInitializationSection {
         isDeployment
             ? recipientBeforeValueTransfer.initiateDeployment(
                 value, initBytecode, deploymentInfo.getDeploymentNumber(toAddress))
-            : recipientBeforeValueTransfer.credit(value, true);
+            : recipientBeforeValueTransfer.credit(value).turnOnWarmth();
     final DomSubStampsSubFragment recipientDomSubStamps =
         DomSubStampsSubFragment.standardDomSubStamps(hub, 1);
 

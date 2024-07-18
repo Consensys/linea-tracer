@@ -40,15 +40,18 @@ public class SelfdestructSection extends TraceSection
 
   final Address address;
   AccountSnapshot accountBefore;
-  // AccountSnapshot accountAfter;
+  AccountSnapshot accountAfter;
 
   final Bytes recipientRawAddress;
   final Address recipientAddress;
   AccountSnapshot recipientAccountBefore;
-  // AccountSnapshot recipientAccountAfter;
+  AccountSnapshot recipientAccountAfter;
 
   AccountFragment selfDestroyerFirstAccountFragment;
   AccountFragment recipientFirstAccountFragment;
+
+  AccountFragment selfDestroyerSecondAccountFragment;
+  AccountFragment recipientSecondAccountFragment;
 
   public SelfdestructSection(Hub hub) {
     // up to 8 = 1 + 7 rows
@@ -102,8 +105,6 @@ public class SelfdestructSection extends TraceSection
                   this.accountBefore,
                   DomSubStampsSubFragment.standardDomSubStamps(hub, 0));
 
-      // TODO: check if the account has balance or not
-
       this.addFragment(selfDestroyerFirstAccountFragment); // i+2
 
       // ACC fragment (2)
@@ -134,6 +135,36 @@ public class SelfdestructSection extends TraceSection
     // - The recipient address will become warm (i+3)
     //   * recipientFirstAccountFragment
 
+    // Here we complete the SELFDESTRUCT without knowing yet if it will be reverted yet (not yet
+    // marked case?)
+    // ACC fragment (?)
+    this.accountAfter = this.accountBefore.debit(this.accountBefore.balance());
+    selfDestroyerSecondAccountFragment =
+        hub.factories()
+            .accountFragment()
+            .make(
+                this.accountBefore,
+                this.accountAfter,
+                DomSubStampsSubFragment.selfdestructDomSubStamps(hub));
+    this.addFragment(selfDestroyerSecondAccountFragment);
+
+    // ACC fragment (?)
+    this.recipientAccountAfter =
+        !recipientAddress.equals(address)
+            ? this.recipientAccountBefore.credit(this.accountBefore.balance())
+            : this.recipientAccountBefore.debit(
+                this.recipientAccountBefore
+                    .balance()); // NOTE: in the second case account is equal to recipientAccount
+    this.recipientAccountAfter = this.recipientAccountAfter.turnOnWarmth();
+    recipientSecondAccountFragment =
+        hub.factories()
+            .accountFragment()
+            .make(
+                this.recipientAccountBefore,
+                this.recipientAccountAfter,
+                DomSubStampsSubFragment.selfdestructDomSubStamps(hub));
+    this.addFragment(recipientSecondAccountFragment);
+
     // take a look at EXTCODECOPY, RETURN, ACCOUNT for reference
   }
 
@@ -141,7 +172,7 @@ public class SelfdestructSection extends TraceSection
   public void resolvePostRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
     /* willRevert case
     undo the modifications we applied to selfDestroyerFirstAccountFragment and recipientFirstAccountFragment
-    this will add account rows
+    this will add account rows. Shall we basically go back from after to before?
      */
   }
 

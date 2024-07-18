@@ -163,12 +163,12 @@ public class AccountSnapshot {
         this.address, this.nonce, this.balance, true, code, this.deploymentNumber, false);
   }
 
-  public AccountSnapshot credit(Wei value, boolean isWarm) {
+  public AccountSnapshot credit(Wei value) {
     return new AccountSnapshot(
         this.address,
         this.nonce,
         this.balance.add(value),
-        isWarm,
+        this.isWarm,
         this.code,
         this.deploymentNumber,
         this.deploymentStatus);

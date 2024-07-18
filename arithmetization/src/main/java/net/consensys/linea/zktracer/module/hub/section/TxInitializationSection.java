@@ -58,9 +58,10 @@ public class TxInitializationSection {
 
     final Wei transactionGasPrice = Wei.of(tx.getEffectiveGasPrice());
     final Wei value = (Wei) tx.getBesuTransaction().getValue();
+    final Wei valueAndGasCost =
+        transactionGasPrice.multiply(tx.getBesuTransaction().getGasLimit()).add(value);
     final AccountSnapshot senderAfterPayingForTransaction =
-        senderBeforePayingForTransaction.debit(
-            transactionGasPrice.multiply(tx.getBesuTransaction().getGasLimit()).add(value), true);
+        senderBeforePayingForTransaction.debit(valueAndGasCost).turnOnWarmth().raiseNonce();
 
     final boolean isSelfCredit = toAddress.equals(senderAddress);
 
@@ -83,7 +84,8 @@ public class TxInitializationSection {
         new Bytecode(tx.getBesuTransaction().getInit().orElse(Bytes.EMPTY));
     final AccountSnapshot recipientAfterValueTransfer =
         isDeployment
-            ? recipientBeforeValueTransfer.initiateDeployment(value, initBytecode)
+            ? recipientBeforeValueTransfer.initiateDeployment(
+                value, initBytecode, deploymentInfo.getDeploymentNumber(toAddress))
             : recipientBeforeValueTransfer.credit(value, true);
     final DomSubStampsSubFragment recipientDomSubStamps =
         DomSubStampsSubFragment.standardDomSubStamps(hub, 1);

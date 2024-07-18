@@ -56,7 +56,8 @@ public class AccountSnapshot {
   public AccountSnapshot decrementBalance(Wei quantity) {
     Preconditions.checkState(
         this.balance.greaterOrEqualThan(quantity),
-        "Insufficient balance: %s".formatted(this.balance));
+        "Insufficient balance\n     Address: %s\n     Balance: %s\n     Value: %s"
+            .formatted(this.address, this.balance, quantity));
     this.balance = this.balance.subtract(quantity);
     return this;
   }
@@ -106,19 +107,41 @@ public class AccountSnapshot {
         .orElseGet(() -> AccountSnapshot.empty(isWarm, deploymentNumber, deploymentStatus));
   }
 
-  public AccountSnapshot debit(Wei quantity, boolean isWarm) {
+  public AccountSnapshot debit(Wei quantity) {
+    return new AccountSnapshot(
+        this.address,
+        this.nonce,
+        this.balance.subtract(quantity),
+        this.isWarm,
+        this.code,
+        this.deploymentNumber,
+        this.deploymentStatus);
+  }
+
+  public AccountSnapshot turnOnWarmth() {
+    return new AccountSnapshot(
+        this.address,
+        this.nonce,
+        this.balance,
+        true,
+        this.code,
+        this.deploymentNumber,
+        this.deploymentStatus);
+  }
+
+  public AccountSnapshot raiseNonce() {
     return new AccountSnapshot(
         this.address,
         this.nonce + 1,
-        this.balance.subtract(quantity),
-        isWarm,
+        this.balance,
+        this.isWarm,
         this.code,
         this.deploymentNumber,
         this.deploymentStatus);
   }
 
   // TODO: does this update the deployment number in the deploymentInfo object ?
-  public AccountSnapshot initiateDeployment(Wei value, Bytecode code) {
+  public AccountSnapshot initiateDeployment(Wei value, Bytecode code, int updatedDeploymentNumber) {
     Preconditions.checkState(
         !this.deploymentStatus,
         "Deployment status should be false before initiating a deployment.");
@@ -128,7 +151,7 @@ public class AccountSnapshot {
         this.balance.add(value),
         true,
         code,
-        this.deploymentNumber + 1,
+        updatedDeploymentNumber,
         true);
   }
 

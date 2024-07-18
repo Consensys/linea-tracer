@@ -15,21 +15,44 @@
 package net.consensys.linea.zktracer.module.hub.section.halt;
 
 import com.google.common.base.Preconditions;
+import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.SelfdestructScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
+import org.apache.tuweni.bytes.Bytes;
+import org.apache.tuweni.bytes.Bytes32;
+import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
+import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class SelfdestructSection extends TraceSection
     implements PostRollbackDefer, PostTransactionDefer {
+
+  final short exceptions;
+
+  final Address address;
+  final int incomingDeploymentNumber;
+  final boolean incomingDeploymentStatus;
+  final boolean incomingWarmth;
+  AccountSnapshot accountBefore;
+  // AccountSnapshot accountAfter;
+
+  final Bytes recipientRawAddress;
+  final Address recipientAddress;
+  final int recipientIncomingDeploymentNumber;
+  final boolean recipientIncomingDeploymentStatus;
+  final boolean recipientIncomingWarmth;
+  AccountSnapshot recipientAccountBefore;
+  // AccountSnapshot recipientAccountAfter;
 
   AccountFragment selfDestroyerFirstAccountFragment;
   AccountFragment recipientFirstAccountFragment;
@@ -39,7 +62,42 @@ public class SelfdestructSection extends TraceSection
     super(hub, (short) 8);
     hub.addTraceSection(this);
 
-    short exceptions = hub.pch().exceptions();
+    // Init
+    this.exceptions = hub.pch().exceptions();
+
+    final MessageFrame frame = hub.messageFrame();
+
+    // Account
+    this.address = frame.getSenderAddress(); // TODO: is this correct?
+    this.incomingDeploymentNumber =
+        hub.transients().conflation().deploymentInfo().number(this.address);
+    this.incomingDeploymentStatus =
+        hub.transients().conflation().deploymentInfo().isDeploying(this.address);
+    this.incomingWarmth = frame.isAddressWarm(this.address);
+    final Account accountAccount = frame.getWorldUpdater().get(this.address);
+    this.accountBefore =
+        AccountSnapshot.fromAccount(
+            accountAccount,
+            this.incomingWarmth,
+            this.incomingDeploymentNumber,
+            this.incomingDeploymentStatus);
+
+    // Recipient
+    this.recipientRawAddress = frame.getStackItem(0);
+    this.recipientAddress = Address.extract((Bytes32) this.recipientRawAddress);
+    this.recipientIncomingDeploymentNumber =
+        hub.transients().conflation().deploymentInfo().number(this.recipientAddress);
+    this.recipientIncomingDeploymentStatus =
+        hub.transients().conflation().deploymentInfo().isDeploying(this.recipientAddress);
+    this.recipientIncomingWarmth = frame.isAddressWarm(this.recipientAddress);
+    final Account recipientAccount = frame.getWorldUpdater().get(this.recipientAddress);
+    this.recipientAccountBefore =
+        AccountSnapshot.fromAccount(
+            recipientAccount,
+            this.recipientIncomingWarmth,
+            this.recipientIncomingDeploymentNumber,
+            this.recipientIncomingDeploymentStatus);
+    //
 
     SelfdestructScenarioFragment selfdestructScenarioFragment = new SelfdestructScenarioFragment();
     // SCN fragment
@@ -63,27 +121,29 @@ public class SelfdestructSection extends TraceSection
       Preconditions.checkArgument(exceptions == Exceptions.OUT_OF_GAS_EXCEPTION);
 
       // ACC fragment (1)
-      selfDestroyerFirstAccountFragment = null;
-      /*
-      Use current account and see if it has balance or not:
-      hub.factories()
-                .accountFragment()
-                .makeWithTrm(
-                    this.accountBefore, this.accountBefore, this.rawAddress, TODOdoingDomSubStamps);
-       */
+      selfDestroyerFirstAccountFragment =
+          hub.factories()
+              .accountFragment()
+              .make(
+                  this.accountBefore,
+                  this.accountBefore,
+                  // this.accountAddress, no need to explicitly pass the address?
+                  DomSubStampsSubFragment.standardDomSubStamps(hub, 0));
+
+      // TODO: check if the account has balance or not
+
       this.addFragment(selfDestroyerFirstAccountFragment); // i+2
 
       // ACC fragment (2)
-      recipientFirstAccountFragment = null;
-      /*
-      Account recipient of the SELFDESTRUCT
-      See EXTCODECOPY for an example of how to create an AccountFragment:
-       hub.factories()
-                .accountFragment()
-                .makeWithTrm(
-                    this.accountBefore, this.accountBefore, this.rawAddress, TODOdoingDomSubStamps);
-      We do not modify accounts in exception cases, otherwise we do
-       */
+      recipientFirstAccountFragment =
+          hub.factories()
+              .accountFragment()
+              .makeWithTrm(
+                  this.recipientAccountBefore,
+                  this.recipientAccountBefore,
+                  this.recipientRawAddress,
+                  DomSubStampsSubFragment.standardDomSubStamps(hub, 1));
+
       this.addFragment(recipientFirstAccountFragment); // i+3
 
       return;

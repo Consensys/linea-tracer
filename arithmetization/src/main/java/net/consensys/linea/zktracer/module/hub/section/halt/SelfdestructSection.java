@@ -174,6 +174,22 @@ public class SelfdestructSection extends TraceSection
     undo the modifications we applied to selfDestroyerFirstAccountFragment and recipientFirstAccountFragment
     this will add account rows. Shall we basically go back from after to before?
      */
+    // TODO: check if we can we use the same AccountSnapshot objects to revert the changes?
+    this.addFragment(
+        hub.factories()
+            .accountFragment()
+            .make(
+                this.accountAfter,
+                this.accountBefore,
+                DomSubStampsSubFragment.selfdestructDomSubStamps(hub)));
+
+    this.addFragment(
+        hub.factories()
+            .accountFragment()
+            .make(
+                this.recipientAccountAfter,
+                this.recipientAccountBefore,
+                DomSubStampsSubFragment.selfdestructDomSubStamps(hub)));
   }
 
   @Override

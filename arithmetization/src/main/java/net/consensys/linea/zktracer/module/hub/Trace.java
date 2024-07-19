@@ -79,6 +79,7 @@ public class Trace {
   private final MappedByteBuffer contextWillRevert;
   private final MappedByteBuffer counterNsr;
   private final MappedByteBuffer counterTli;
+  private final MappedByteBuffer createFailureConditionWillRevertXorHashInfoFlag;
   private final MappedByteBuffer createFailureConditionWontRevertXorIcpx;
   private final MappedByteBuffer createNonemptyInitCodeFailureWillRevertXorInvalidFlag;
   private final MappedByteBuffer createNonemptyInitCodeFailureWontRevertXorJumpx;
@@ -195,10 +196,10 @@ public class Trace {
       rlpaddrFlagXorStpFlagXorCallSmcSuccessCallerWontRevertXorDecFlag3XorWarmthNew;
   private final MappedByteBuffer rlpaddrKecHiXorMmuSrcOffsetLoXorValueOrigLo;
   private final MappedByteBuffer rlpaddrKecLoXorMmuTgtOffsetLo;
-  private final MappedByteBuffer rlpaddrRecipeXorStpOogxXorCreateAbortXorDecFlag4;
+  private final MappedByteBuffer rlpaddrRecipe;
   private final MappedByteBuffer rlpaddrSaltHiXorMxpGasMxp;
   private final MappedByteBuffer rlpaddrSaltLoXorMxpOffset1Hi;
-  private final MappedByteBuffer romlexFlagXorStpWarmthXorCreateEmptyInitCodeWillRevertXorDupFlag;
+  private final MappedByteBuffer romlexFlagXorStpOogxXorCreateAbortXorDecFlag4;
   private final MappedByteBuffer selfdestructExceptionXorStackItemPop4;
   private final MappedByteBuffer selfdestructWillRevertXorStaticx;
   private final MappedByteBuffer selfdestructWontRevertAlreadyMarkedXorStaticFlag;
@@ -229,7 +230,7 @@ public class Trace {
   private final MappedByteBuffer subStamp;
   private final MappedByteBuffer sux;
   private final MappedByteBuffer swapFlag;
-  private final MappedByteBuffer trmFlagXorCreateEmptyInitCodeWontRevertXorExtFlag;
+  private final MappedByteBuffer trmFlagXorStpWarmthXorCreateEmptyInitCodeWillRevertXorDupFlag;
   private final MappedByteBuffer trmRawAddressHiXorMxpOffset1Lo;
   private final MappedByteBuffer twoLineInstruction;
   private final MappedByteBuffer txExec;
@@ -238,8 +239,8 @@ public class Trace {
   private final MappedByteBuffer txSkip;
   private final MappedByteBuffer txWarm;
   private final MappedByteBuffer txnFlag;
-  private final MappedByteBuffer warmthNewXorCreateFailureConditionWillRevertXorHashInfoFlag;
-  private final MappedByteBuffer warmthXorCreateExceptionXorHaltFlag;
+  private final MappedByteBuffer warmthNewXorCreateExceptionXorHaltFlag;
+  private final MappedByteBuffer warmthXorCreateEmptyInitCodeWontRevertXorExtFlag;
   private final MappedByteBuffer wcpFlag;
 
   static List<ColumnHeader> headers(int length) {
@@ -302,6 +303,7 @@ public class Trace {
         new ColumnHeader("hub.CONTEXT_WILL_REVERT", 1, length),
         new ColumnHeader("hub.COUNTER_NSR", 1, length),
         new ColumnHeader("hub.COUNTER_TLI", 1, length),
+        new ColumnHeader("hub.CREATE_FAILURE_CONDITION_WILL_REVERT_xor_HASH_INFO_FLAG", 1, length),
         new ColumnHeader("hub.CREATE_FAILURE_CONDITION_WONT_REVERT_xor_ICPX", 1, length),
         new ColumnHeader(
             "hub.CREATE_NONEMPTY_INIT_CODE_FAILURE_WILL_REVERT_xor_INVALID_FLAG", 1, length),
@@ -458,14 +460,10 @@ public class Trace {
             length),
         new ColumnHeader("hub.RLPADDR_KEC_HI_xor_MMU_SRC_OFFSET_LO_xor_VALUE_ORIG_LO", 16, length),
         new ColumnHeader("hub.RLPADDR_KEC_LO_xor_MMU_TGT_OFFSET_LO", 16, length),
-        new ColumnHeader(
-            "hub.RLPADDR_RECIPE_xor_STP_OOGX_xor_CREATE_ABORT_xor_DEC_FLAG_4", 1, length),
+        new ColumnHeader("hub.RLPADDR_RECIPE", 1, length),
         new ColumnHeader("hub.RLPADDR_SALT_HI_xor_MXP_GAS_MXP", 16, length),
         new ColumnHeader("hub.RLPADDR_SALT_LO_xor_MXP_OFFSET_1_HI", 16, length),
-        new ColumnHeader(
-            "hub.ROMLEX_FLAG_xor_STP_WARMTH_xor_CREATE_EMPTY_INIT_CODE_WILL_REVERT_xor_DUP_FLAG",
-            1,
-            length),
+        new ColumnHeader("hub.ROMLEX_FLAG_xor_STP_OOGX_xor_CREATE_ABORT_xor_DEC_FLAG_4", 1, length),
         new ColumnHeader("hub.SELFDESTRUCT_EXCEPTION_xor_STACK_ITEM_POP_4", 1, length),
         new ColumnHeader("hub.SELFDESTRUCT_WILL_REVERT_xor_STATICX", 1, length),
         new ColumnHeader("hub.SELFDESTRUCT_WONT_REVERT_ALREADY_MARKED_xor_STATIC_FLAG", 1, length),
@@ -497,7 +495,9 @@ public class Trace {
         new ColumnHeader("hub.SUX", 1, length),
         new ColumnHeader("hub.SWAP_FLAG", 1, length),
         new ColumnHeader(
-            "hub.TRM_FLAG_xor_CREATE_EMPTY_INIT_CODE_WONT_REVERT_xor_EXT_FLAG", 1, length),
+            "hub.TRM_FLAG_xor_STP_WARMTH_xor_CREATE_EMPTY_INIT_CODE_WILL_REVERT_xor_DUP_FLAG",
+            1,
+            length),
         new ColumnHeader("hub.TRM_RAW_ADDRESS_HI_xor_MXP_OFFSET_1_LO", 16, length),
         new ColumnHeader("hub.TWO_LINE_INSTRUCTION", 1, length),
         new ColumnHeader("hub.TX_EXEC", 1, length),
@@ -506,11 +506,9 @@ public class Trace {
         new ColumnHeader("hub.TX_SKIP", 1, length),
         new ColumnHeader("hub.TX_WARM", 1, length),
         new ColumnHeader("hub.TXN_FLAG", 1, length),
+        new ColumnHeader("hub.WARMTH_NEW_xor_CREATE_EXCEPTION_xor_HALT_FLAG", 1, length),
         new ColumnHeader(
-            "hub.WARMTH_NEW_xor_CREATE_FAILURE_CONDITION_WILL_REVERT_xor_HASH_INFO_FLAG",
-            1,
-            length),
-        new ColumnHeader("hub.WARMTH_xor_CREATE_EXCEPTION_xor_HALT_FLAG", 1, length),
+            "hub.WARMTH_xor_CREATE_EMPTY_INIT_CODE_WONT_REVERT_xor_EXT_FLAG", 1, length),
         new ColumnHeader("hub.WCP_FLAG", 1, length));
   }
 
@@ -560,170 +558,171 @@ public class Trace {
     this.contextWillRevert = buffers.get(30);
     this.counterNsr = buffers.get(31);
     this.counterTli = buffers.get(32);
-    this.createFailureConditionWontRevertXorIcpx = buffers.get(33);
-    this.createNonemptyInitCodeFailureWillRevertXorInvalidFlag = buffers.get(34);
-    this.createNonemptyInitCodeFailureWontRevertXorJumpx = buffers.get(35);
-    this.createNonemptyInitCodeSuccessWillRevertXorJumpDestinationVettingRequired = buffers.get(36);
-    this.createNonemptyInitCodeSuccessWontRevertXorJumpFlag = buffers.get(37);
-    this.delta = buffers.get(38);
+    this.createFailureConditionWillRevertXorHashInfoFlag = buffers.get(33);
+    this.createFailureConditionWontRevertXorIcpx = buffers.get(34);
+    this.createNonemptyInitCodeFailureWillRevertXorInvalidFlag = buffers.get(35);
+    this.createNonemptyInitCodeFailureWontRevertXorJumpx = buffers.get(36);
+    this.createNonemptyInitCodeSuccessWillRevertXorJumpDestinationVettingRequired = buffers.get(37);
+    this.createNonemptyInitCodeSuccessWontRevertXorJumpFlag = buffers.get(38);
+    this.delta = buffers.get(39);
     this.deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRaoXorToAddressHi =
-        buffers.get(39);
-    this.deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas = buffers.get(40);
+        buffers.get(40);
+    this.deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas = buffers.get(41);
     this.deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorInitCodeSize =
-        buffers.get(41);
-    this
-            .deploymentStatusInftyXorIsStaticXorExpFlagXorCallEoaSuccessCallerWillRevertXorAddFlagXorUnconstrainedFirstXorIsDeployment =
         buffers.get(42);
     this
-            .deploymentStatusNewXorUpdateXorMmuFlagXorCallEoaSuccessCallerWontRevertXorBinFlagXorValueCurrChangesXorIsType2 =
+            .deploymentStatusInftyXorIsStaticXorExpFlagXorCallEoaSuccessCallerWillRevertXorAddFlagXorUnconstrainedFirstXorIsDeployment =
         buffers.get(43);
     this
-            .deploymentStatusXorIsRootXorCcsrFlagXorCallAbortXorAccFlagXorUnconstrainedFinalXorCopyTxcd =
+            .deploymentStatusNewXorUpdateXorMmuFlagXorCallEoaSuccessCallerWontRevertXorBinFlagXorValueCurrChangesXorIsType2 =
         buffers.get(44);
-    this.domStamp = buffers.get(45);
-    this.exceptionAhoy = buffers.get(46);
+    this
+            .deploymentStatusXorIsRootXorCcsrFlagXorCallAbortXorAccFlagXorUnconstrainedFinalXorCopyTxcd =
+        buffers.get(45);
+    this.domStamp = buffers.get(46);
+    this.exceptionAhoy = buffers.get(47);
     this.existsNewXorMxpDeploysXorCallPrcFailureXorCallFlagXorValueCurrIsZeroXorStatusCode =
-        buffers.get(47);
-    this.existsXorMmuSuccessBitXorCallExceptionXorBtcFlagXorValueCurrIsOrigXorRequiresEvmExecution =
         buffers.get(48);
-    this.gasActual = buffers.get(49);
-    this.gasCost = buffers.get(50);
-    this.gasExpected = buffers.get(51);
-    this.gasLimit = buffers.get(52);
-    this.gasNext = buffers.get(53);
-    this.gasPrice = buffers.get(54);
+    this.existsXorMmuSuccessBitXorCallExceptionXorBtcFlagXorValueCurrIsOrigXorRequiresEvmExecution =
+        buffers.get(49);
+    this.gasActual = buffers.get(50);
+    this.gasCost = buffers.get(51);
+    this.gasExpected = buffers.get(52);
+    this.gasLimit = buffers.get(53);
+    this.gasNext = buffers.get(54);
+    this.gasPrice = buffers.get(55);
     this.hasCodeNewXorMxpMtntopXorCallPrcSuccessCallerWontRevertXorCopyFlagXorValueNextIsOrig =
-        buffers.get(55);
-    this.hasCodeXorMxpFlagXorCallPrcSuccessCallerWillRevertXorConFlagXorValueNextIsCurr =
         buffers.get(56);
-    this.hashInfoStamp = buffers.get(57);
-    this.height = buffers.get(58);
-    this.heightNew = buffers.get(59);
-    this.hubStamp = buffers.get(60);
-    this.hubStampTransactionEnd = buffers.get(61);
-    this.instruction = buffers.get(62);
+    this.hasCodeXorMxpFlagXorCallPrcSuccessCallerWillRevertXorConFlagXorValueNextIsCurr =
+        buffers.get(57);
+    this.hashInfoStamp = buffers.get(58);
+    this.height = buffers.get(59);
+    this.heightNew = buffers.get(60);
+    this.hubStamp = buffers.get(61);
+    this.hubStampTransactionEnd = buffers.get(62);
+    this.instruction = buffers.get(63);
     this.isPrecompileXorMxpMxpxXorCallSmcFailureCallerWillRevertXorCreateFlagXorValueNextIsZero =
-        buffers.get(63);
-    this.logInfoStamp = buffers.get(64);
+        buffers.get(64);
+    this.logInfoStamp = buffers.get(65);
     this.markedForSelfdestructNewXorStpExistsXorCallSmcSuccessCallerWillRevertXorDecFlag2XorWarmth =
-        buffers.get(65);
+        buffers.get(66);
     this
             .markedForSelfdestructXorOobFlagXorCallSmcFailureCallerWontRevertXorDecFlag1XorValueOrigIsZero =
-        buffers.get(66);
-    this.mmuStamp = buffers.get(67);
-    this.mxpOffset2Hi = buffers.get(68);
-    this.mxpOffset2Lo = buffers.get(69);
-    this.mxpSize1Hi = buffers.get(70);
-    this.mxpSize1Lo = buffers.get(71);
-    this.mxpSize2Hi = buffers.get(72);
-    this.mxpSize2Lo = buffers.get(73);
-    this.mxpStamp = buffers.get(74);
-    this.mxpWords = buffers.get(75);
-    this.nbAdded = buffers.get(76);
-    this.nbRemoved = buffers.get(77);
-    this.nonStackRows = buffers.get(78);
-    this.nonce = buffers.get(79);
-    this.nonceNewXorStpGasPaidOutOfPocketXorGasInitiallyAvailable = buffers.get(80);
-    this.nonceXorStpGasMxpXorBasefee = buffers.get(81);
-    this.oobData1 = buffers.get(82);
-    this.oobData2 = buffers.get(83);
-    this.oobData3 = buffers.get(84);
-    this.oobData4 = buffers.get(85);
-    this.oobData5 = buffers.get(86);
-    this.oobData6 = buffers.get(87);
-    this.oobData7 = buffers.get(88);
-    this.oobData8 = buffers.get(89);
-    this.peekAtAccount = buffers.get(90);
-    this.peekAtContext = buffers.get(91);
-    this.peekAtMiscellaneous = buffers.get(92);
-    this.peekAtScenario = buffers.get(93);
-    this.peekAtStack = buffers.get(94);
-    this.peekAtStorage = buffers.get(95);
-    this.peekAtTransaction = buffers.get(96);
-    this.prcBlake2FXorKecFlag = buffers.get(97);
-    this.prcEcaddXorLogFlag = buffers.get(98);
-    this.prcEcmulXorLogInfoFlag = buffers.get(99);
-    this.prcEcpairingXorMachineStateFlag = buffers.get(100);
-    this.prcEcrecoverXorMaxcsx = buffers.get(101);
-    this.prcFailureKnownToHubXorModFlag = buffers.get(102);
-    this.prcFailureKnownToRamXorMulFlag = buffers.get(103);
-    this.prcIdentityXorMxpx = buffers.get(104);
-    this.prcModexpXorMxpFlag = buffers.get(105);
-    this.prcRipemd160XorOogx = buffers.get(106);
-    this.prcSha2256XorOpcx = buffers.get(107);
-    this.prcSuccessCallerWillRevertXorPushpopFlag = buffers.get(108);
-    this.prcSuccessCallerWontRevertXorRdcx = buffers.get(109);
-    this.priorityFeePerGas = buffers.get(110);
-    this.programCounter = buffers.get(111);
-    this.programCounterNew = buffers.get(112);
-    this.refundCounter = buffers.get(113);
-    this.refundCounterInfinity = buffers.get(114);
-    this.refundCounterNew = buffers.get(115);
-    this.refundEffective = buffers.get(116);
-    this.returnAtCapacityXorMxpInst = buffers.get(117);
-    this.returnAtOffsetXorOobInst = buffers.get(118);
-    this.returnDataContextNumberXorStpGasStipend = buffers.get(119);
-    this.returnDataOffsetXorStpInstruction = buffers.get(120);
-    this.returnDataSize = buffers.get(121);
-    this.returnExceptionXorShfFlag = buffers.get(122);
-    this.returnFromDeploymentEmptyCodeWillRevertXorSox = buffers.get(123);
-    this.returnFromDeploymentEmptyCodeWontRevertXorSstorex = buffers.get(124);
-    this.returnFromDeploymentNonemptyCodeWillRevertXorStackramFlag = buffers.get(125);
-    this.returnFromDeploymentNonemptyCodeWontRevertXorStackItemPop1 = buffers.get(126);
-    this.returnFromMessageCallWillTouchRamXorStackItemPop2 = buffers.get(127);
-    this.returnFromMessageCallWontTouchRamXorStackItemPop3 = buffers.get(128);
-    this.rlpaddrDepAddrHiXorCallDataContextNumberXorMmuRefSize = buffers.get(129);
-    this.rlpaddrDepAddrLoXorMmuSrcOffsetHiXorValueOrigHi = buffers.get(130);
+        buffers.get(67);
+    this.mmuStamp = buffers.get(68);
+    this.mxpOffset2Hi = buffers.get(69);
+    this.mxpOffset2Lo = buffers.get(70);
+    this.mxpSize1Hi = buffers.get(71);
+    this.mxpSize1Lo = buffers.get(72);
+    this.mxpSize2Hi = buffers.get(73);
+    this.mxpSize2Lo = buffers.get(74);
+    this.mxpStamp = buffers.get(75);
+    this.mxpWords = buffers.get(76);
+    this.nbAdded = buffers.get(77);
+    this.nbRemoved = buffers.get(78);
+    this.nonStackRows = buffers.get(79);
+    this.nonce = buffers.get(80);
+    this.nonceNewXorStpGasPaidOutOfPocketXorGasInitiallyAvailable = buffers.get(81);
+    this.nonceXorStpGasMxpXorBasefee = buffers.get(82);
+    this.oobData1 = buffers.get(83);
+    this.oobData2 = buffers.get(84);
+    this.oobData3 = buffers.get(85);
+    this.oobData4 = buffers.get(86);
+    this.oobData5 = buffers.get(87);
+    this.oobData6 = buffers.get(88);
+    this.oobData7 = buffers.get(89);
+    this.oobData8 = buffers.get(90);
+    this.peekAtAccount = buffers.get(91);
+    this.peekAtContext = buffers.get(92);
+    this.peekAtMiscellaneous = buffers.get(93);
+    this.peekAtScenario = buffers.get(94);
+    this.peekAtStack = buffers.get(95);
+    this.peekAtStorage = buffers.get(96);
+    this.peekAtTransaction = buffers.get(97);
+    this.prcBlake2FXorKecFlag = buffers.get(98);
+    this.prcEcaddXorLogFlag = buffers.get(99);
+    this.prcEcmulXorLogInfoFlag = buffers.get(100);
+    this.prcEcpairingXorMachineStateFlag = buffers.get(101);
+    this.prcEcrecoverXorMaxcsx = buffers.get(102);
+    this.prcFailureKnownToHubXorModFlag = buffers.get(103);
+    this.prcFailureKnownToRamXorMulFlag = buffers.get(104);
+    this.prcIdentityXorMxpx = buffers.get(105);
+    this.prcModexpXorMxpFlag = buffers.get(106);
+    this.prcRipemd160XorOogx = buffers.get(107);
+    this.prcSha2256XorOpcx = buffers.get(108);
+    this.prcSuccessCallerWillRevertXorPushpopFlag = buffers.get(109);
+    this.prcSuccessCallerWontRevertXorRdcx = buffers.get(110);
+    this.priorityFeePerGas = buffers.get(111);
+    this.programCounter = buffers.get(112);
+    this.programCounterNew = buffers.get(113);
+    this.refundCounter = buffers.get(114);
+    this.refundCounterInfinity = buffers.get(115);
+    this.refundCounterNew = buffers.get(116);
+    this.refundEffective = buffers.get(117);
+    this.returnAtCapacityXorMxpInst = buffers.get(118);
+    this.returnAtOffsetXorOobInst = buffers.get(119);
+    this.returnDataContextNumberXorStpGasStipend = buffers.get(120);
+    this.returnDataOffsetXorStpInstruction = buffers.get(121);
+    this.returnDataSize = buffers.get(122);
+    this.returnExceptionXorShfFlag = buffers.get(123);
+    this.returnFromDeploymentEmptyCodeWillRevertXorSox = buffers.get(124);
+    this.returnFromDeploymentEmptyCodeWontRevertXorSstorex = buffers.get(125);
+    this.returnFromDeploymentNonemptyCodeWillRevertXorStackramFlag = buffers.get(126);
+    this.returnFromDeploymentNonemptyCodeWontRevertXorStackItemPop1 = buffers.get(127);
+    this.returnFromMessageCallWillTouchRamXorStackItemPop2 = buffers.get(128);
+    this.returnFromMessageCallWontTouchRamXorStackItemPop3 = buffers.get(129);
+    this.rlpaddrDepAddrHiXorCallDataContextNumberXorMmuRefSize = buffers.get(130);
+    this.rlpaddrDepAddrLoXorMmuSrcOffsetHiXorValueOrigHi = buffers.get(131);
     this.rlpaddrFlagXorStpFlagXorCallSmcSuccessCallerWontRevertXorDecFlag3XorWarmthNew =
-        buffers.get(131);
-    this.rlpaddrKecHiXorMmuSrcOffsetLoXorValueOrigLo = buffers.get(132);
-    this.rlpaddrKecLoXorMmuTgtOffsetLo = buffers.get(133);
-    this.rlpaddrRecipeXorStpOogxXorCreateAbortXorDecFlag4 = buffers.get(134);
-    this.rlpaddrSaltHiXorMxpGasMxp = buffers.get(135);
-    this.rlpaddrSaltLoXorMxpOffset1Hi = buffers.get(136);
-    this.romlexFlagXorStpWarmthXorCreateEmptyInitCodeWillRevertXorDupFlag = buffers.get(137);
-    this.selfdestructExceptionXorStackItemPop4 = buffers.get(138);
-    this.selfdestructWillRevertXorStaticx = buffers.get(139);
-    this.selfdestructWontRevertAlreadyMarkedXorStaticFlag = buffers.get(140);
-    this.selfdestructWontRevertNotYetMarkedXorStoFlag = buffers.get(141);
-    this.stackItemHeight1 = buffers.get(142);
-    this.stackItemHeight2 = buffers.get(143);
-    this.stackItemHeight3 = buffers.get(144);
-    this.stackItemHeight4 = buffers.get(145);
-    this.stackItemStamp1 = buffers.get(146);
-    this.stackItemStamp2 = buffers.get(147);
-    this.stackItemStamp3 = buffers.get(148);
-    this.stackItemStamp4 = buffers.get(149);
-    this.stackItemValueHi1 = buffers.get(150);
-    this.stackItemValueHi2 = buffers.get(151);
-    this.stackItemValueHi3 = buffers.get(152);
-    this.stackItemValueHi4 = buffers.get(153);
-    this.stackItemValueLo1 = buffers.get(154);
-    this.stackItemValueLo2 = buffers.get(155);
-    this.stackItemValueLo3 = buffers.get(156);
-    this.stackItemValueLo4 = buffers.get(157);
-    this.stoFinal = buffers.get(158);
-    this.stoFirst = buffers.get(159);
-    this.stpGasHi = buffers.get(160);
-    this.stpGasLo = buffers.get(161);
-    this.stpGasUpfrontGasCostXorGasLeftover = buffers.get(162);
-    this.stpValueHi = buffers.get(163);
-    this.stpValueLo = buffers.get(164);
-    this.subStamp = buffers.get(165);
-    this.sux = buffers.get(166);
-    this.swapFlag = buffers.get(167);
-    this.trmFlagXorCreateEmptyInitCodeWontRevertXorExtFlag = buffers.get(168);
-    this.trmRawAddressHiXorMxpOffset1Lo = buffers.get(169);
-    this.twoLineInstruction = buffers.get(170);
-    this.txExec = buffers.get(171);
-    this.txFinl = buffers.get(172);
-    this.txInit = buffers.get(173);
-    this.txSkip = buffers.get(174);
-    this.txWarm = buffers.get(175);
-    this.txnFlag = buffers.get(176);
-    this.warmthNewXorCreateFailureConditionWillRevertXorHashInfoFlag = buffers.get(177);
-    this.warmthXorCreateExceptionXorHaltFlag = buffers.get(178);
-    this.wcpFlag = buffers.get(179);
+        buffers.get(132);
+    this.rlpaddrKecHiXorMmuSrcOffsetLoXorValueOrigLo = buffers.get(133);
+    this.rlpaddrKecLoXorMmuTgtOffsetLo = buffers.get(134);
+    this.rlpaddrRecipe = buffers.get(135);
+    this.rlpaddrSaltHiXorMxpGasMxp = buffers.get(136);
+    this.rlpaddrSaltLoXorMxpOffset1Hi = buffers.get(137);
+    this.romlexFlagXorStpOogxXorCreateAbortXorDecFlag4 = buffers.get(138);
+    this.selfdestructExceptionXorStackItemPop4 = buffers.get(139);
+    this.selfdestructWillRevertXorStaticx = buffers.get(140);
+    this.selfdestructWontRevertAlreadyMarkedXorStaticFlag = buffers.get(141);
+    this.selfdestructWontRevertNotYetMarkedXorStoFlag = buffers.get(142);
+    this.stackItemHeight1 = buffers.get(143);
+    this.stackItemHeight2 = buffers.get(144);
+    this.stackItemHeight3 = buffers.get(145);
+    this.stackItemHeight4 = buffers.get(146);
+    this.stackItemStamp1 = buffers.get(147);
+    this.stackItemStamp2 = buffers.get(148);
+    this.stackItemStamp3 = buffers.get(149);
+    this.stackItemStamp4 = buffers.get(150);
+    this.stackItemValueHi1 = buffers.get(151);
+    this.stackItemValueHi2 = buffers.get(152);
+    this.stackItemValueHi3 = buffers.get(153);
+    this.stackItemValueHi4 = buffers.get(154);
+    this.stackItemValueLo1 = buffers.get(155);
+    this.stackItemValueLo2 = buffers.get(156);
+    this.stackItemValueLo3 = buffers.get(157);
+    this.stackItemValueLo4 = buffers.get(158);
+    this.stoFinal = buffers.get(159);
+    this.stoFirst = buffers.get(160);
+    this.stpGasHi = buffers.get(161);
+    this.stpGasLo = buffers.get(162);
+    this.stpGasUpfrontGasCostXorGasLeftover = buffers.get(163);
+    this.stpValueHi = buffers.get(164);
+    this.stpValueLo = buffers.get(165);
+    this.subStamp = buffers.get(166);
+    this.sux = buffers.get(167);
+    this.swapFlag = buffers.get(168);
+    this.trmFlagXorStpWarmthXorCreateEmptyInitCodeWillRevertXorDupFlag = buffers.get(169);
+    this.trmRawAddressHiXorMxpOffset1Lo = buffers.get(170);
+    this.twoLineInstruction = buffers.get(171);
+    this.txExec = buffers.get(172);
+    this.txFinl = buffers.get(173);
+    this.txInit = buffers.get(174);
+    this.txSkip = buffers.get(175);
+    this.txWarm = buffers.get(176);
+    this.txnFlag = buffers.get(177);
+    this.warmthNewXorCreateExceptionXorHaltFlag = buffers.get(178);
+    this.warmthXorCreateEmptyInitCodeWontRevertXorExtFlag = buffers.get(179);
+    this.wcpFlag = buffers.get(180);
   }
 
   public int size() {
@@ -1244,10 +1243,10 @@ public class Trace {
   }
 
   public Trace pAccountAddressHi(final long b) {
-    if (filled.get(106)) {
+    if (filled.get(107)) {
       throw new IllegalStateException("hub.account/ADDRESS_HI already set");
     } else {
-      filled.set(106);
+      filled.set(107);
     }
 
     if (b >= 4294967296L) {
@@ -1269,10 +1268,10 @@ public class Trace {
   }
 
   public Trace pAccountAddressLo(final Bytes b) {
-    if (filled.get(131)) {
+    if (filled.get(132)) {
       throw new IllegalStateException("hub.account/ADDRESS_LO already set");
     } else {
-      filled.set(131);
+      filled.set(132);
     }
 
     // Trim array to size
@@ -1299,10 +1298,10 @@ public class Trace {
   }
 
   public Trace pAccountBalance(final Bytes b) {
-    if (filled.get(132)) {
+    if (filled.get(133)) {
       throw new IllegalStateException("hub.account/BALANCE already set");
     } else {
-      filled.set(132);
+      filled.set(133);
     }
 
     // Trim array to size
@@ -1329,10 +1328,10 @@ public class Trace {
   }
 
   public Trace pAccountBalanceNew(final Bytes b) {
-    if (filled.get(133)) {
+    if (filled.get(134)) {
       throw new IllegalStateException("hub.account/BALANCE_NEW already set");
     } else {
-      filled.set(133);
+      filled.set(134);
     }
 
     // Trim array to size
@@ -1359,10 +1358,10 @@ public class Trace {
   }
 
   public Trace pAccountCodeFragmentIndex(final long b) {
-    if (filled.get(107)) {
+    if (filled.get(108)) {
       throw new IllegalStateException("hub.account/CODE_FRAGMENT_INDEX already set");
     } else {
-      filled.set(107);
+      filled.set(108);
     }
 
     if (b >= 4294967296L) {
@@ -1384,10 +1383,10 @@ public class Trace {
   }
 
   public Trace pAccountCodeHashHi(final Bytes b) {
-    if (filled.get(134)) {
+    if (filled.get(135)) {
       throw new IllegalStateException("hub.account/CODE_HASH_HI already set");
     } else {
-      filled.set(134);
+      filled.set(135);
     }
 
     // Trim array to size
@@ -1412,10 +1411,10 @@ public class Trace {
   }
 
   public Trace pAccountCodeHashHiNew(final Bytes b) {
-    if (filled.get(135)) {
+    if (filled.get(136)) {
       throw new IllegalStateException("hub.account/CODE_HASH_HI_NEW already set");
     } else {
-      filled.set(135);
+      filled.set(136);
     }
 
     // Trim array to size
@@ -1440,10 +1439,10 @@ public class Trace {
   }
 
   public Trace pAccountCodeHashLo(final Bytes b) {
-    if (filled.get(136)) {
+    if (filled.get(137)) {
       throw new IllegalStateException("hub.account/CODE_HASH_LO already set");
     } else {
-      filled.set(136);
+      filled.set(137);
     }
 
     // Trim array to size
@@ -1466,10 +1465,10 @@ public class Trace {
   }
 
   public Trace pAccountCodeHashLoNew(final Bytes b) {
-    if (filled.get(137)) {
+    if (filled.get(138)) {
       throw new IllegalStateException("hub.account/CODE_HASH_LO_NEW already set");
     } else {
-      filled.set(137);
+      filled.set(138);
     }
 
     // Trim array to size
@@ -1492,10 +1491,10 @@ public class Trace {
   }
 
   public Trace pAccountCodeSize(final long b) {
-    if (filled.get(108)) {
+    if (filled.get(109)) {
       throw new IllegalStateException("hub.account/CODE_SIZE already set");
     } else {
-      filled.set(108);
+      filled.set(109);
     }
 
     if (b >= 4294967296L) {
@@ -1517,10 +1516,10 @@ public class Trace {
   }
 
   public Trace pAccountCodeSizeNew(final long b) {
-    if (filled.get(109)) {
+    if (filled.get(110)) {
       throw new IllegalStateException("hub.account/CODE_SIZE_NEW already set");
     } else {
-      filled.set(109);
+      filled.set(110);
     }
 
     if (b >= 4294967296L) {
@@ -1541,10 +1540,10 @@ public class Trace {
   }
 
   public Trace pAccountDeploymentNumber(final long b) {
-    if (filled.get(110)) {
+    if (filled.get(111)) {
       throw new IllegalStateException("hub.account/DEPLOYMENT_NUMBER already set");
     } else {
-      filled.set(110);
+      filled.set(111);
     }
 
     if (b >= 4294967296L) {
@@ -1565,10 +1564,10 @@ public class Trace {
   }
 
   public Trace pAccountDeploymentNumberInfty(final long b) {
-    if (filled.get(111)) {
+    if (filled.get(112)) {
       throw new IllegalStateException("hub.account/DEPLOYMENT_NUMBER_INFTY already set");
     } else {
-      filled.set(111);
+      filled.set(112);
     }
 
     if (b >= 4294967296L) {
@@ -1590,10 +1589,10 @@ public class Trace {
   }
 
   public Trace pAccountDeploymentNumberNew(final long b) {
-    if (filled.get(112)) {
+    if (filled.get(113)) {
       throw new IllegalStateException("hub.account/DEPLOYMENT_NUMBER_NEW already set");
     } else {
-      filled.set(112);
+      filled.set(113);
     }
 
     if (b >= 4294967296L) {
@@ -1741,10 +1740,10 @@ public class Trace {
   }
 
   public Trace pAccountNonce(final Bytes b) {
-    if (filled.get(122)) {
+    if (filled.get(123)) {
       throw new IllegalStateException("hub.account/NONCE already set");
     } else {
-      filled.set(122);
+      filled.set(123);
     }
 
     // Trim array to size
@@ -1767,10 +1766,10 @@ public class Trace {
   }
 
   public Trace pAccountNonceNew(final Bytes b) {
-    if (filled.get(123)) {
+    if (filled.get(124)) {
       throw new IllegalStateException("hub.account/NONCE_NEW already set");
     } else {
-      filled.set(123);
+      filled.set(124);
     }
 
     // Trim array to size
@@ -1795,10 +1794,10 @@ public class Trace {
   }
 
   public Trace pAccountRlpaddrDepAddrHi(final long b) {
-    if (filled.get(113)) {
+    if (filled.get(114)) {
       throw new IllegalStateException("hub.account/RLPADDR_DEP_ADDR_HI already set");
     } else {
-      filled.set(113);
+      filled.set(114);
     }
 
     if (b >= 4294967296L) {
@@ -1814,10 +1813,10 @@ public class Trace {
   }
 
   public Trace pAccountRlpaddrDepAddrLo(final Bytes b) {
-    if (filled.get(138)) {
+    if (filled.get(139)) {
       throw new IllegalStateException("hub.account/RLPADDR_DEP_ADDR_LO already set");
     } else {
-      filled.set(138);
+      filled.set(139);
     }
 
     // Trim array to size
@@ -1855,10 +1854,10 @@ public class Trace {
   }
 
   public Trace pAccountRlpaddrKecHi(final Bytes b) {
-    if (filled.get(139)) {
+    if (filled.get(140)) {
       throw new IllegalStateException("hub.account/RLPADDR_KEC_HI already set");
     } else {
-      filled.set(139);
+      filled.set(140);
     }
 
     // Trim array to size
@@ -1883,10 +1882,10 @@ public class Trace {
   }
 
   public Trace pAccountRlpaddrKecLo(final Bytes b) {
-    if (filled.get(140)) {
+    if (filled.get(141)) {
       throw new IllegalStateException("hub.account/RLPADDR_KEC_LO already set");
     } else {
-      filled.set(140);
+      filled.set(141);
     }
 
     // Trim array to size
@@ -1908,23 +1907,26 @@ public class Trace {
     return this;
   }
 
-  public Trace pAccountRlpaddrRecipe(final Boolean b) {
-    if (filled.get(63)) {
+  public Trace pAccountRlpaddrRecipe(final long b) {
+    if (filled.get(105)) {
       throw new IllegalStateException("hub.account/RLPADDR_RECIPE already set");
     } else {
-      filled.set(63);
+      filled.set(105);
     }
 
-    rlpaddrRecipeXorStpOogxXorCreateAbortXorDecFlag4.put((byte) (b ? 1 : 0));
+    if (b >= 256L) {
+      throw new IllegalArgumentException("rlpaddrRecipe has invalid value (" + b + ")");
+    }
+    rlpaddrRecipe.put((byte) b);
 
     return this;
   }
 
   public Trace pAccountRlpaddrSaltHi(final Bytes b) {
-    if (filled.get(141)) {
+    if (filled.get(142)) {
       throw new IllegalStateException("hub.account/RLPADDR_SALT_HI already set");
     } else {
-      filled.set(141);
+      filled.set(142);
     }
 
     // Trim array to size
@@ -1947,10 +1949,10 @@ public class Trace {
   }
 
   public Trace pAccountRlpaddrSaltLo(final Bytes b) {
-    if (filled.get(142)) {
+    if (filled.get(143)) {
       throw new IllegalStateException("hub.account/RLPADDR_SALT_LO already set");
     } else {
-      filled.set(142);
+      filled.set(143);
     }
 
     // Trim array to size
@@ -1973,34 +1975,34 @@ public class Trace {
   }
 
   public Trace pAccountRomlexFlag(final Boolean b) {
-    if (filled.get(64)) {
+    if (filled.get(63)) {
       throw new IllegalStateException("hub.account/ROMLEX_FLAG already set");
     } else {
-      filled.set(64);
+      filled.set(63);
     }
 
-    romlexFlagXorStpWarmthXorCreateEmptyInitCodeWillRevertXorDupFlag.put((byte) (b ? 1 : 0));
+    romlexFlagXorStpOogxXorCreateAbortXorDecFlag4.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
   public Trace pAccountTrmFlag(final Boolean b) {
-    if (filled.get(65)) {
+    if (filled.get(64)) {
       throw new IllegalStateException("hub.account/TRM_FLAG already set");
     } else {
-      filled.set(65);
+      filled.set(64);
     }
 
-    trmFlagXorCreateEmptyInitCodeWontRevertXorExtFlag.put((byte) (b ? 1 : 0));
+    trmFlagXorStpWarmthXorCreateEmptyInitCodeWillRevertXorDupFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
   public Trace pAccountTrmRawAddressHi(final Bytes b) {
-    if (filled.get(143)) {
+    if (filled.get(144)) {
       throw new IllegalStateException("hub.account/TRM_RAW_ADDRESS_HI already set");
     } else {
-      filled.set(143);
+      filled.set(144);
     }
 
     // Trim array to size
@@ -2023,34 +2025,34 @@ public class Trace {
   }
 
   public Trace pAccountWarmth(final Boolean b) {
-    if (filled.get(66)) {
+    if (filled.get(65)) {
       throw new IllegalStateException("hub.account/WARMTH already set");
     } else {
-      filled.set(66);
+      filled.set(65);
     }
 
-    warmthXorCreateExceptionXorHaltFlag.put((byte) (b ? 1 : 0));
+    warmthXorCreateEmptyInitCodeWontRevertXorExtFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
   public Trace pAccountWarmthNew(final Boolean b) {
-    if (filled.get(67)) {
+    if (filled.get(66)) {
       throw new IllegalStateException("hub.account/WARMTH_NEW already set");
     } else {
-      filled.set(67);
+      filled.set(66);
     }
 
-    warmthNewXorCreateFailureConditionWillRevertXorHashInfoFlag.put((byte) (b ? 1 : 0));
+    warmthNewXorCreateExceptionXorHaltFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
   public Trace pContextAccountAddressHi(final long b) {
-    if (filled.get(106)) {
+    if (filled.get(107)) {
       throw new IllegalStateException("hub.context/ACCOUNT_ADDRESS_HI already set");
     } else {
-      filled.set(106);
+      filled.set(107);
     }
 
     if (b >= 4294967296L) {
@@ -2072,10 +2074,10 @@ public class Trace {
   }
 
   public Trace pContextAccountAddressLo(final Bytes b) {
-    if (filled.get(131)) {
+    if (filled.get(132)) {
       throw new IllegalStateException("hub.context/ACCOUNT_ADDRESS_LO already set");
     } else {
-      filled.set(131);
+      filled.set(132);
     }
 
     // Trim array to size
@@ -2102,10 +2104,10 @@ public class Trace {
   }
 
   public Trace pContextAccountDeploymentNumber(final long b) {
-    if (filled.get(107)) {
+    if (filled.get(108)) {
       throw new IllegalStateException("hub.context/ACCOUNT_DEPLOYMENT_NUMBER already set");
     } else {
-      filled.set(107);
+      filled.set(108);
     }
 
     if (b >= 4294967296L) {
@@ -2127,10 +2129,10 @@ public class Trace {
   }
 
   public Trace pContextByteCodeAddressHi(final long b) {
-    if (filled.get(108)) {
+    if (filled.get(109)) {
       throw new IllegalStateException("hub.context/BYTE_CODE_ADDRESS_HI already set");
     } else {
-      filled.set(108);
+      filled.set(109);
     }
 
     if (b >= 4294967296L) {
@@ -2152,10 +2154,10 @@ public class Trace {
   }
 
   public Trace pContextByteCodeAddressLo(final Bytes b) {
-    if (filled.get(132)) {
+    if (filled.get(133)) {
       throw new IllegalStateException("hub.context/BYTE_CODE_ADDRESS_LO already set");
     } else {
-      filled.set(132);
+      filled.set(133);
     }
 
     // Trim array to size
@@ -2182,10 +2184,10 @@ public class Trace {
   }
 
   public Trace pContextByteCodeCodeFragmentIndex(final long b) {
-    if (filled.get(109)) {
+    if (filled.get(110)) {
       throw new IllegalStateException("hub.context/BYTE_CODE_CODE_FRAGMENT_INDEX already set");
     } else {
-      filled.set(109);
+      filled.set(110);
     }
 
     if (b >= 4294967296L) {
@@ -2206,10 +2208,10 @@ public class Trace {
   }
 
   public Trace pContextByteCodeDeploymentNumber(final long b) {
-    if (filled.get(110)) {
+    if (filled.get(111)) {
       throw new IllegalStateException("hub.context/BYTE_CODE_DEPLOYMENT_NUMBER already set");
     } else {
-      filled.set(110);
+      filled.set(111);
     }
 
     if (b >= 4294967296L) {
@@ -2230,10 +2232,10 @@ public class Trace {
   }
 
   public Trace pContextByteCodeDeploymentStatus(final long b) {
-    if (filled.get(111)) {
+    if (filled.get(112)) {
       throw new IllegalStateException("hub.context/BYTE_CODE_DEPLOYMENT_STATUS already set");
     } else {
-      filled.set(111);
+      filled.set(112);
     }
 
     if (b >= 4294967296L) {
@@ -2255,10 +2257,10 @@ public class Trace {
   }
 
   public Trace pContextCallDataContextNumber(final long b) {
-    if (filled.get(113)) {
+    if (filled.get(114)) {
       throw new IllegalStateException("hub.context/CALL_DATA_CONTEXT_NUMBER already set");
     } else {
-      filled.set(113);
+      filled.set(114);
     }
 
     if (b >= 4294967296L) {
@@ -2274,10 +2276,10 @@ public class Trace {
   }
 
   public Trace pContextCallDataOffset(final long b) {
-    if (filled.get(114)) {
+    if (filled.get(115)) {
       throw new IllegalStateException("hub.context/CALL_DATA_OFFSET already set");
     } else {
-      filled.set(114);
+      filled.set(115);
     }
 
     if (b >= 4294967296L) {
@@ -2292,10 +2294,10 @@ public class Trace {
   }
 
   public Trace pContextCallDataSize(final long b) {
-    if (filled.get(115)) {
+    if (filled.get(116)) {
       throw new IllegalStateException("hub.context/CALL_DATA_SIZE already set");
     } else {
-      filled.set(115);
+      filled.set(116);
     }
 
     if (b >= 4294967296L) {
@@ -2310,10 +2312,10 @@ public class Trace {
   }
 
   public Trace pContextCallStackDepth(final long b) {
-    if (filled.get(105)) {
+    if (filled.get(106)) {
       throw new IllegalStateException("hub.context/CALL_STACK_DEPTH already set");
     } else {
-      filled.set(105);
+      filled.set(106);
     }
 
     if (b >= 2048L) {
@@ -2326,10 +2328,10 @@ public class Trace {
   }
 
   public Trace pContextCallValue(final Bytes b) {
-    if (filled.get(134)) {
+    if (filled.get(135)) {
       throw new IllegalStateException("hub.context/CALL_VALUE already set");
     } else {
-      filled.set(134);
+      filled.set(135);
     }
 
     // Trim array to size
@@ -2354,10 +2356,10 @@ public class Trace {
   }
 
   public Trace pContextCallerAddressHi(final long b) {
-    if (filled.get(112)) {
+    if (filled.get(113)) {
       throw new IllegalStateException("hub.context/CALLER_ADDRESS_HI already set");
     } else {
-      filled.set(112);
+      filled.set(113);
     }
 
     if (b >= 4294967296L) {
@@ -2375,10 +2377,10 @@ public class Trace {
   }
 
   public Trace pContextCallerAddressLo(final Bytes b) {
-    if (filled.get(133)) {
+    if (filled.get(134)) {
       throw new IllegalStateException("hub.context/CALLER_ADDRESS_LO already set");
     } else {
-      filled.set(133);
+      filled.set(134);
     }
 
     // Trim array to size
@@ -2405,10 +2407,10 @@ public class Trace {
   }
 
   public Trace pContextContextNumber(final long b) {
-    if (filled.get(116)) {
+    if (filled.get(117)) {
       throw new IllegalStateException("hub.context/CONTEXT_NUMBER already set");
     } else {
-      filled.set(116);
+      filled.set(117);
     }
 
     if (b >= 4294967296L) {
@@ -2449,10 +2451,10 @@ public class Trace {
   }
 
   public Trace pContextReturnAtCapacity(final long b) {
-    if (filled.get(117)) {
+    if (filled.get(118)) {
       throw new IllegalStateException("hub.context/RETURN_AT_CAPACITY already set");
     } else {
-      filled.set(117);
+      filled.set(118);
     }
 
     if (b >= 4294967296L) {
@@ -2468,10 +2470,10 @@ public class Trace {
   }
 
   public Trace pContextReturnAtOffset(final long b) {
-    if (filled.get(118)) {
+    if (filled.get(119)) {
       throw new IllegalStateException("hub.context/RETURN_AT_OFFSET already set");
     } else {
-      filled.set(118);
+      filled.set(119);
     }
 
     if (b >= 4294967296L) {
@@ -2486,10 +2488,10 @@ public class Trace {
   }
 
   public Trace pContextReturnDataContextNumber(final long b) {
-    if (filled.get(119)) {
+    if (filled.get(120)) {
       throw new IllegalStateException("hub.context/RETURN_DATA_CONTEXT_NUMBER already set");
     } else {
-      filled.set(119);
+      filled.set(120);
     }
 
     if (b >= 4294967296L) {
@@ -2505,10 +2507,10 @@ public class Trace {
   }
 
   public Trace pContextReturnDataOffset(final long b) {
-    if (filled.get(120)) {
+    if (filled.get(121)) {
       throw new IllegalStateException("hub.context/RETURN_DATA_OFFSET already set");
     } else {
-      filled.set(120);
+      filled.set(121);
     }
 
     if (b >= 4294967296L) {
@@ -2524,10 +2526,10 @@ public class Trace {
   }
 
   public Trace pContextReturnDataSize(final long b) {
-    if (filled.get(121)) {
+    if (filled.get(122)) {
       throw new IllegalStateException("hub.context/RETURN_DATA_SIZE already set");
     } else {
-      filled.set(121);
+      filled.set(122);
     }
 
     if (b >= 4294967296L) {
@@ -2555,10 +2557,10 @@ public class Trace {
   }
 
   public Trace pMiscCcrsStamp(final long b) {
-    if (filled.get(106)) {
+    if (filled.get(107)) {
       throw new IllegalStateException("hub.misc/CCRS_STAMP already set");
     } else {
-      filled.set(106);
+      filled.set(107);
     }
 
     if (b >= 4294967296L) {
@@ -2593,10 +2595,10 @@ public class Trace {
   }
 
   public Trace pMiscExpData1(final Bytes b) {
-    if (filled.get(131)) {
+    if (filled.get(132)) {
       throw new IllegalStateException("hub.misc/EXP_DATA_1 already set");
     } else {
-      filled.set(131);
+      filled.set(132);
     }
 
     // Trim array to size
@@ -2623,10 +2625,10 @@ public class Trace {
   }
 
   public Trace pMiscExpData2(final Bytes b) {
-    if (filled.get(132)) {
+    if (filled.get(133)) {
       throw new IllegalStateException("hub.misc/EXP_DATA_2 already set");
     } else {
-      filled.set(132);
+      filled.set(133);
     }
 
     // Trim array to size
@@ -2653,10 +2655,10 @@ public class Trace {
   }
 
   public Trace pMiscExpData3(final Bytes b) {
-    if (filled.get(133)) {
+    if (filled.get(134)) {
       throw new IllegalStateException("hub.misc/EXP_DATA_3 already set");
     } else {
-      filled.set(133);
+      filled.set(134);
     }
 
     // Trim array to size
@@ -2683,10 +2685,10 @@ public class Trace {
   }
 
   public Trace pMiscExpData4(final Bytes b) {
-    if (filled.get(134)) {
+    if (filled.get(135)) {
       throw new IllegalStateException("hub.misc/EXP_DATA_4 already set");
     } else {
-      filled.set(134);
+      filled.set(135);
     }
 
     // Trim array to size
@@ -2711,10 +2713,10 @@ public class Trace {
   }
 
   public Trace pMiscExpData5(final Bytes b) {
-    if (filled.get(135)) {
+    if (filled.get(136)) {
       throw new IllegalStateException("hub.misc/EXP_DATA_5 already set");
     } else {
-      filled.set(135);
+      filled.set(136);
     }
 
     // Trim array to size
@@ -2752,10 +2754,10 @@ public class Trace {
   }
 
   public Trace pMiscExpInst(final long b) {
-    if (filled.get(107)) {
+    if (filled.get(108)) {
       throw new IllegalStateException("hub.misc/EXP_INST already set");
     } else {
-      filled.set(107);
+      filled.set(108);
     }
 
     if (b >= 4294967296L) {
@@ -2777,10 +2779,10 @@ public class Trace {
   }
 
   public Trace pMiscMmuAuxId(final long b) {
-    if (filled.get(108)) {
+    if (filled.get(109)) {
       throw new IllegalStateException("hub.misc/MMU_AUX_ID already set");
     } else {
-      filled.set(108);
+      filled.set(109);
     }
 
     if (b >= 4294967296L) {
@@ -2802,10 +2804,10 @@ public class Trace {
   }
 
   public Trace pMiscMmuExoSum(final long b) {
-    if (filled.get(109)) {
+    if (filled.get(110)) {
       throw new IllegalStateException("hub.misc/MMU_EXO_SUM already set");
     } else {
-      filled.set(109);
+      filled.set(110);
     }
 
     if (b >= 4294967296L) {
@@ -2839,10 +2841,10 @@ public class Trace {
   }
 
   public Trace pMiscMmuInst(final long b) {
-    if (filled.get(110)) {
+    if (filled.get(111)) {
       throw new IllegalStateException("hub.misc/MMU_INST already set");
     } else {
-      filled.set(110);
+      filled.set(111);
     }
 
     if (b >= 4294967296L) {
@@ -2863,10 +2865,10 @@ public class Trace {
   }
 
   public Trace pMiscMmuLimb1(final Bytes b) {
-    if (filled.get(136)) {
+    if (filled.get(137)) {
       throw new IllegalStateException("hub.misc/MMU_LIMB_1 already set");
     } else {
-      filled.set(136);
+      filled.set(137);
     }
 
     // Trim array to size
@@ -2889,10 +2891,10 @@ public class Trace {
   }
 
   public Trace pMiscMmuLimb2(final Bytes b) {
-    if (filled.get(137)) {
+    if (filled.get(138)) {
       throw new IllegalStateException("hub.misc/MMU_LIMB_2 already set");
     } else {
-      filled.set(137);
+      filled.set(138);
     }
 
     // Trim array to size
@@ -2915,10 +2917,10 @@ public class Trace {
   }
 
   public Trace pMiscMmuPhase(final long b) {
-    if (filled.get(111)) {
+    if (filled.get(112)) {
       throw new IllegalStateException("hub.misc/MMU_PHASE already set");
     } else {
-      filled.set(111);
+      filled.set(112);
     }
 
     if (b >= 4294967296L) {
@@ -2940,10 +2942,10 @@ public class Trace {
   }
 
   public Trace pMiscMmuRefOffset(final long b) {
-    if (filled.get(112)) {
+    if (filled.get(113)) {
       throw new IllegalStateException("hub.misc/MMU_REF_OFFSET already set");
     } else {
-      filled.set(112);
+      filled.set(113);
     }
 
     if (b >= 4294967296L) {
@@ -2961,10 +2963,10 @@ public class Trace {
   }
 
   public Trace pMiscMmuRefSize(final long b) {
-    if (filled.get(113)) {
+    if (filled.get(114)) {
       throw new IllegalStateException("hub.misc/MMU_REF_SIZE already set");
     } else {
-      filled.set(113);
+      filled.set(114);
     }
 
     if (b >= 4294967296L) {
@@ -2980,10 +2982,10 @@ public class Trace {
   }
 
   public Trace pMiscMmuSize(final long b) {
-    if (filled.get(114)) {
+    if (filled.get(115)) {
       throw new IllegalStateException("hub.misc/MMU_SIZE already set");
     } else {
-      filled.set(114);
+      filled.set(115);
     }
 
     if (b >= 4294967296L) {
@@ -2998,10 +3000,10 @@ public class Trace {
   }
 
   public Trace pMiscMmuSrcId(final long b) {
-    if (filled.get(115)) {
+    if (filled.get(116)) {
       throw new IllegalStateException("hub.misc/MMU_SRC_ID already set");
     } else {
-      filled.set(115);
+      filled.set(116);
     }
 
     if (b >= 4294967296L) {
@@ -3016,10 +3018,10 @@ public class Trace {
   }
 
   public Trace pMiscMmuSrcOffsetHi(final Bytes b) {
-    if (filled.get(138)) {
+    if (filled.get(139)) {
       throw new IllegalStateException("hub.misc/MMU_SRC_OFFSET_HI already set");
     } else {
-      filled.set(138);
+      filled.set(139);
     }
 
     // Trim array to size
@@ -3044,10 +3046,10 @@ public class Trace {
   }
 
   public Trace pMiscMmuSrcOffsetLo(final Bytes b) {
-    if (filled.get(139)) {
+    if (filled.get(140)) {
       throw new IllegalStateException("hub.misc/MMU_SRC_OFFSET_LO already set");
     } else {
-      filled.set(139);
+      filled.set(140);
     }
 
     // Trim array to size
@@ -3085,10 +3087,10 @@ public class Trace {
   }
 
   public Trace pMiscMmuTgtId(final long b) {
-    if (filled.get(116)) {
+    if (filled.get(117)) {
       throw new IllegalStateException("hub.misc/MMU_TGT_ID already set");
     } else {
-      filled.set(116);
+      filled.set(117);
     }
 
     if (b >= 4294967296L) {
@@ -3103,10 +3105,10 @@ public class Trace {
   }
 
   public Trace pMiscMmuTgtOffsetLo(final Bytes b) {
-    if (filled.get(140)) {
+    if (filled.get(141)) {
       throw new IllegalStateException("hub.misc/MMU_TGT_OFFSET_LO already set");
     } else {
-      filled.set(140);
+      filled.set(141);
     }
 
     // Trim array to size
@@ -3155,10 +3157,10 @@ public class Trace {
   }
 
   public Trace pMiscMxpGasMxp(final Bytes b) {
-    if (filled.get(141)) {
+    if (filled.get(142)) {
       throw new IllegalStateException("hub.misc/MXP_GAS_MXP already set");
     } else {
-      filled.set(141);
+      filled.set(142);
     }
 
     // Trim array to size
@@ -3181,10 +3183,10 @@ public class Trace {
   }
 
   public Trace pMiscMxpInst(final long b) {
-    if (filled.get(117)) {
+    if (filled.get(118)) {
       throw new IllegalStateException("hub.misc/MXP_INST already set");
     } else {
-      filled.set(117);
+      filled.set(118);
     }
 
     if (b >= 4294967296L) {
@@ -3226,10 +3228,10 @@ public class Trace {
   }
 
   public Trace pMiscMxpOffset1Hi(final Bytes b) {
-    if (filled.get(142)) {
+    if (filled.get(143)) {
       throw new IllegalStateException("hub.misc/MXP_OFFSET_1_HI already set");
     } else {
-      filled.set(142);
+      filled.set(143);
     }
 
     // Trim array to size
@@ -3252,10 +3254,10 @@ public class Trace {
   }
 
   public Trace pMiscMxpOffset1Lo(final Bytes b) {
-    if (filled.get(143)) {
+    if (filled.get(144)) {
       throw new IllegalStateException("hub.misc/MXP_OFFSET_1_LO already set");
     } else {
-      filled.set(143);
+      filled.set(144);
     }
 
     // Trim array to size
@@ -3278,10 +3280,10 @@ public class Trace {
   }
 
   public Trace pMiscMxpOffset2Hi(final Bytes b) {
-    if (filled.get(144)) {
+    if (filled.get(145)) {
       throw new IllegalStateException("hub.misc/MXP_OFFSET_2_HI already set");
     } else {
-      filled.set(144);
+      filled.set(145);
     }
 
     // Trim array to size
@@ -3304,10 +3306,10 @@ public class Trace {
   }
 
   public Trace pMiscMxpOffset2Lo(final Bytes b) {
-    if (filled.get(145)) {
+    if (filled.get(146)) {
       throw new IllegalStateException("hub.misc/MXP_OFFSET_2_LO already set");
     } else {
-      filled.set(145);
+      filled.set(146);
     }
 
     // Trim array to size
@@ -3330,10 +3332,10 @@ public class Trace {
   }
 
   public Trace pMiscMxpSize1Hi(final Bytes b) {
-    if (filled.get(146)) {
+    if (filled.get(147)) {
       throw new IllegalStateException("hub.misc/MXP_SIZE_1_HI already set");
     } else {
-      filled.set(146);
+      filled.set(147);
     }
 
     // Trim array to size
@@ -3356,10 +3358,10 @@ public class Trace {
   }
 
   public Trace pMiscMxpSize1Lo(final Bytes b) {
-    if (filled.get(147)) {
+    if (filled.get(148)) {
       throw new IllegalStateException("hub.misc/MXP_SIZE_1_LO already set");
     } else {
-      filled.set(147);
+      filled.set(148);
     }
 
     // Trim array to size
@@ -3382,10 +3384,10 @@ public class Trace {
   }
 
   public Trace pMiscMxpSize2Hi(final Bytes b) {
-    if (filled.get(148)) {
+    if (filled.get(149)) {
       throw new IllegalStateException("hub.misc/MXP_SIZE_2_HI already set");
     } else {
-      filled.set(148);
+      filled.set(149);
     }
 
     // Trim array to size
@@ -3408,10 +3410,10 @@ public class Trace {
   }
 
   public Trace pMiscMxpSize2Lo(final Bytes b) {
-    if (filled.get(149)) {
+    if (filled.get(150)) {
       throw new IllegalStateException("hub.misc/MXP_SIZE_2_LO already set");
     } else {
-      filled.set(149);
+      filled.set(150);
     }
 
     // Trim array to size
@@ -3434,10 +3436,10 @@ public class Trace {
   }
 
   public Trace pMiscMxpWords(final Bytes b) {
-    if (filled.get(150)) {
+    if (filled.get(151)) {
       throw new IllegalStateException("hub.misc/MXP_WORDS already set");
     } else {
-      filled.set(150);
+      filled.set(151);
     }
 
     // Trim array to size
@@ -3459,10 +3461,10 @@ public class Trace {
   }
 
   public Trace pMiscOobData1(final Bytes b) {
-    if (filled.get(151)) {
+    if (filled.get(152)) {
       throw new IllegalStateException("hub.misc/OOB_DATA_1 already set");
     } else {
-      filled.set(151);
+      filled.set(152);
     }
 
     // Trim array to size
@@ -3484,10 +3486,10 @@ public class Trace {
   }
 
   public Trace pMiscOobData2(final Bytes b) {
-    if (filled.get(152)) {
+    if (filled.get(153)) {
       throw new IllegalStateException("hub.misc/OOB_DATA_2 already set");
     } else {
-      filled.set(152);
+      filled.set(153);
     }
 
     // Trim array to size
@@ -3509,10 +3511,10 @@ public class Trace {
   }
 
   public Trace pMiscOobData3(final Bytes b) {
-    if (filled.get(153)) {
+    if (filled.get(154)) {
       throw new IllegalStateException("hub.misc/OOB_DATA_3 already set");
     } else {
-      filled.set(153);
+      filled.set(154);
     }
 
     // Trim array to size
@@ -3534,10 +3536,10 @@ public class Trace {
   }
 
   public Trace pMiscOobData4(final Bytes b) {
-    if (filled.get(154)) {
+    if (filled.get(155)) {
       throw new IllegalStateException("hub.misc/OOB_DATA_4 already set");
     } else {
-      filled.set(154);
+      filled.set(155);
     }
 
     // Trim array to size
@@ -3559,10 +3561,10 @@ public class Trace {
   }
 
   public Trace pMiscOobData5(final Bytes b) {
-    if (filled.get(155)) {
+    if (filled.get(156)) {
       throw new IllegalStateException("hub.misc/OOB_DATA_5 already set");
     } else {
-      filled.set(155);
+      filled.set(156);
     }
 
     // Trim array to size
@@ -3584,10 +3586,10 @@ public class Trace {
   }
 
   public Trace pMiscOobData6(final Bytes b) {
-    if (filled.get(156)) {
+    if (filled.get(157)) {
       throw new IllegalStateException("hub.misc/OOB_DATA_6 already set");
     } else {
-      filled.set(156);
+      filled.set(157);
     }
 
     // Trim array to size
@@ -3609,10 +3611,10 @@ public class Trace {
   }
 
   public Trace pMiscOobData7(final Bytes b) {
-    if (filled.get(157)) {
+    if (filled.get(158)) {
       throw new IllegalStateException("hub.misc/OOB_DATA_7 already set");
     } else {
-      filled.set(157);
+      filled.set(158);
     }
 
     // Trim array to size
@@ -3634,10 +3636,10 @@ public class Trace {
   }
 
   public Trace pMiscOobData8(final Bytes b) {
-    if (filled.get(158)) {
+    if (filled.get(159)) {
       throw new IllegalStateException("hub.misc/OOB_DATA_8 already set");
     } else {
-      filled.set(158);
+      filled.set(159);
     }
 
     // Trim array to size
@@ -3672,10 +3674,10 @@ public class Trace {
   }
 
   public Trace pMiscOobInst(final long b) {
-    if (filled.get(118)) {
+    if (filled.get(119)) {
       throw new IllegalStateException("hub.misc/OOB_INST already set");
     } else {
-      filled.set(118);
+      filled.set(119);
     }
 
     if (b >= 4294967296L) {
@@ -3716,10 +3718,10 @@ public class Trace {
   }
 
   public Trace pMiscStpGasHi(final Bytes b) {
-    if (filled.get(159)) {
+    if (filled.get(160)) {
       throw new IllegalStateException("hub.misc/STP_GAS_HI already set");
     } else {
-      filled.set(159);
+      filled.set(160);
     }
 
     // Trim array to size
@@ -3741,10 +3743,10 @@ public class Trace {
   }
 
   public Trace pMiscStpGasLo(final Bytes b) {
-    if (filled.get(160)) {
+    if (filled.get(161)) {
       throw new IllegalStateException("hub.misc/STP_GAS_LO already set");
     } else {
-      filled.set(160);
+      filled.set(161);
     }
 
     // Trim array to size
@@ -3766,10 +3768,10 @@ public class Trace {
   }
 
   public Trace pMiscStpGasMxp(final Bytes b) {
-    if (filled.get(122)) {
+    if (filled.get(123)) {
       throw new IllegalStateException("hub.misc/STP_GAS_MXP already set");
     } else {
-      filled.set(122);
+      filled.set(123);
     }
 
     // Trim array to size
@@ -3792,10 +3794,10 @@ public class Trace {
   }
 
   public Trace pMiscStpGasPaidOutOfPocket(final Bytes b) {
-    if (filled.get(123)) {
+    if (filled.get(124)) {
       throw new IllegalStateException("hub.misc/STP_GAS_PAID_OUT_OF_POCKET already set");
     } else {
-      filled.set(123);
+      filled.set(124);
     }
 
     // Trim array to size
@@ -3820,10 +3822,10 @@ public class Trace {
   }
 
   public Trace pMiscStpGasStipend(final long b) {
-    if (filled.get(119)) {
+    if (filled.get(120)) {
       throw new IllegalStateException("hub.misc/STP_GAS_STIPEND already set");
     } else {
-      filled.set(119);
+      filled.set(120);
     }
 
     if (b >= 4294967296L) {
@@ -3839,10 +3841,10 @@ public class Trace {
   }
 
   public Trace pMiscStpGasUpfrontGasCost(final Bytes b) {
-    if (filled.get(124)) {
+    if (filled.get(125)) {
       throw new IllegalStateException("hub.misc/STP_GAS_UPFRONT_GAS_COST already set");
     } else {
-      filled.set(124);
+      filled.set(125);
     }
 
     // Trim array to size
@@ -3865,10 +3867,10 @@ public class Trace {
   }
 
   public Trace pMiscStpInstruction(final long b) {
-    if (filled.get(120)) {
+    if (filled.get(121)) {
       throw new IllegalStateException("hub.misc/STP_INSTRUCTION already set");
     } else {
-      filled.set(120);
+      filled.set(121);
     }
 
     if (b >= 4294967296L) {
@@ -3890,16 +3892,16 @@ public class Trace {
       filled.set(63);
     }
 
-    rlpaddrRecipeXorStpOogxXorCreateAbortXorDecFlag4.put((byte) (b ? 1 : 0));
+    romlexFlagXorStpOogxXorCreateAbortXorDecFlag4.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
   public Trace pMiscStpValueHi(final Bytes b) {
-    if (filled.get(161)) {
+    if (filled.get(162)) {
       throw new IllegalStateException("hub.misc/STP_VALUE_HI already set");
     } else {
-      filled.set(161);
+      filled.set(162);
     }
 
     // Trim array to size
@@ -3922,10 +3924,10 @@ public class Trace {
   }
 
   public Trace pMiscStpValueLo(final Bytes b) {
-    if (filled.get(162)) {
+    if (filled.get(163)) {
       throw new IllegalStateException("hub.misc/STP_VALUE_LO already set");
     } else {
-      filled.set(162);
+      filled.set(163);
     }
 
     // Trim array to size
@@ -3954,7 +3956,7 @@ public class Trace {
       filled.set(64);
     }
 
-    romlexFlagXorStpWarmthXorCreateEmptyInitCodeWillRevertXorDupFlag.put((byte) (b ? 1 : 0));
+    trmFlagXorStpWarmthXorCreateEmptyInitCodeWillRevertXorDupFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -4117,7 +4119,7 @@ public class Trace {
       filled.set(63);
     }
 
-    rlpaddrRecipeXorStpOogxXorCreateAbortXorDecFlag4.put((byte) (b ? 1 : 0));
+    romlexFlagXorStpOogxXorCreateAbortXorDecFlag4.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -4130,7 +4132,7 @@ public class Trace {
       filled.set(64);
     }
 
-    romlexFlagXorStpWarmthXorCreateEmptyInitCodeWillRevertXorDupFlag.put((byte) (b ? 1 : 0));
+    trmFlagXorStpWarmthXorCreateEmptyInitCodeWillRevertXorDupFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -4143,7 +4145,7 @@ public class Trace {
       filled.set(65);
     }
 
-    trmFlagXorCreateEmptyInitCodeWontRevertXorExtFlag.put((byte) (b ? 1 : 0));
+    warmthXorCreateEmptyInitCodeWontRevertXorExtFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -4155,7 +4157,7 @@ public class Trace {
       filled.set(66);
     }
 
-    warmthXorCreateExceptionXorHaltFlag.put((byte) (b ? 1 : 0));
+    warmthNewXorCreateExceptionXorHaltFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -4168,7 +4170,7 @@ public class Trace {
       filled.set(67);
     }
 
-    warmthNewXorCreateFailureConditionWillRevertXorHashInfoFlag.put((byte) (b ? 1 : 0));
+    createFailureConditionWillRevertXorHashInfoFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -4252,10 +4254,10 @@ public class Trace {
   }
 
   public Trace pScenarioPrcCalleeGas(final long b) {
-    if (filled.get(106)) {
+    if (filled.get(107)) {
       throw new IllegalStateException("hub.scenario/PRC_CALLEE_GAS already set");
     } else {
-      filled.set(106);
+      filled.set(107);
     }
 
     if (b >= 4294967296L) {
@@ -4277,10 +4279,10 @@ public class Trace {
   }
 
   public Trace pScenarioPrcCallerGas(final long b) {
-    if (filled.get(107)) {
+    if (filled.get(108)) {
       throw new IllegalStateException("hub.scenario/PRC_CALLER_GAS already set");
     } else {
-      filled.set(107);
+      filled.set(108);
     }
 
     if (b >= 4294967296L) {
@@ -4302,10 +4304,10 @@ public class Trace {
   }
 
   public Trace pScenarioPrcCdo(final long b) {
-    if (filled.get(108)) {
+    if (filled.get(109)) {
       throw new IllegalStateException("hub.scenario/PRC_CDO already set");
     } else {
-      filled.set(108);
+      filled.set(109);
     }
 
     if (b >= 4294967296L) {
@@ -4327,10 +4329,10 @@ public class Trace {
   }
 
   public Trace pScenarioPrcCds(final long b) {
-    if (filled.get(109)) {
+    if (filled.get(110)) {
       throw new IllegalStateException("hub.scenario/PRC_CDS already set");
     } else {
-      filled.set(109);
+      filled.set(110);
     }
 
     if (b >= 4294967296L) {
@@ -4447,10 +4449,10 @@ public class Trace {
   }
 
   public Trace pScenarioPrcRac(final long b) {
-    if (filled.get(110)) {
+    if (filled.get(111)) {
       throw new IllegalStateException("hub.scenario/PRC_RAC already set");
     } else {
-      filled.set(110);
+      filled.set(111);
     }
 
     if (b >= 4294967296L) {
@@ -4471,10 +4473,10 @@ public class Trace {
   }
 
   public Trace pScenarioPrcRao(final long b) {
-    if (filled.get(111)) {
+    if (filled.get(112)) {
       throw new IllegalStateException("hub.scenario/PRC_RAO already set");
     } else {
-      filled.set(111);
+      filled.set(112);
     }
 
     if (b >= 4294967296L) {
@@ -4496,10 +4498,10 @@ public class Trace {
   }
 
   public Trace pScenarioPrcReturnGas(final long b) {
-    if (filled.get(112)) {
+    if (filled.get(113)) {
       throw new IllegalStateException("hub.scenario/PRC_RETURN_GAS already set");
     } else {
-      filled.set(112);
+      filled.set(113);
     }
 
     if (b >= 4294967296L) {
@@ -4866,7 +4868,7 @@ public class Trace {
       filled.set(63);
     }
 
-    rlpaddrRecipeXorStpOogxXorCreateAbortXorDecFlag4.put((byte) (b ? 1 : 0));
+    romlexFlagXorStpOogxXorCreateAbortXorDecFlag4.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -4890,7 +4892,7 @@ public class Trace {
       filled.set(64);
     }
 
-    romlexFlagXorStpWarmthXorCreateEmptyInitCodeWillRevertXorDupFlag.put((byte) (b ? 1 : 0));
+    trmFlagXorStpWarmthXorCreateEmptyInitCodeWillRevertXorDupFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -4902,7 +4904,7 @@ public class Trace {
       filled.set(65);
     }
 
-    trmFlagXorCreateEmptyInitCodeWontRevertXorExtFlag.put((byte) (b ? 1 : 0));
+    warmthXorCreateEmptyInitCodeWontRevertXorExtFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -4914,7 +4916,7 @@ public class Trace {
       filled.set(66);
     }
 
-    warmthXorCreateExceptionXorHaltFlag.put((byte) (b ? 1 : 0));
+    warmthNewXorCreateExceptionXorHaltFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -4926,16 +4928,16 @@ public class Trace {
       filled.set(67);
     }
 
-    warmthNewXorCreateFailureConditionWillRevertXorHashInfoFlag.put((byte) (b ? 1 : 0));
+    createFailureConditionWillRevertXorHashInfoFlag.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
   public Trace pStackHashInfoKeccakHi(final Bytes b) {
-    if (filled.get(131)) {
+    if (filled.get(132)) {
       throw new IllegalStateException("hub.stack/HASH_INFO_KECCAK_HI already set");
     } else {
-      filled.set(131);
+      filled.set(132);
     }
 
     // Trim array to size
@@ -4962,10 +4964,10 @@ public class Trace {
   }
 
   public Trace pStackHashInfoKeccakLo(final Bytes b) {
-    if (filled.get(132)) {
+    if (filled.get(133)) {
       throw new IllegalStateException("hub.stack/HASH_INFO_KECCAK_LO already set");
     } else {
-      filled.set(132);
+      filled.set(133);
     }
 
     // Trim array to size
@@ -5004,10 +5006,10 @@ public class Trace {
   }
 
   public Trace pStackInstruction(final Bytes b) {
-    if (filled.get(163)) {
+    if (filled.get(164)) {
       throw new IllegalStateException("hub.stack/INSTRUCTION already set");
     } else {
-      filled.set(163);
+      filled.set(164);
     }
 
     // Trim array to size
@@ -5235,10 +5237,10 @@ public class Trace {
   }
 
   public Trace pStackPushValueHi(final Bytes b) {
-    if (filled.get(133)) {
+    if (filled.get(134)) {
       throw new IllegalStateException("hub.stack/PUSH_VALUE_HI already set");
     } else {
-      filled.set(133);
+      filled.set(134);
     }
 
     // Trim array to size
@@ -5265,10 +5267,10 @@ public class Trace {
   }
 
   public Trace pStackPushValueLo(final Bytes b) {
-    if (filled.get(134)) {
+    if (filled.get(135)) {
       throw new IllegalStateException("hub.stack/PUSH_VALUE_LO already set");
     } else {
-      filled.set(134);
+      filled.set(135);
     }
 
     // Trim array to size
@@ -5353,10 +5355,10 @@ public class Trace {
   }
 
   public Trace pStackStackItemHeight1(final Bytes b) {
-    if (filled.get(164)) {
+    if (filled.get(165)) {
       throw new IllegalStateException("hub.stack/STACK_ITEM_HEIGHT_1 already set");
     } else {
-      filled.set(164);
+      filled.set(165);
     }
 
     // Trim array to size
@@ -5379,10 +5381,10 @@ public class Trace {
   }
 
   public Trace pStackStackItemHeight2(final Bytes b) {
-    if (filled.get(165)) {
+    if (filled.get(166)) {
       throw new IllegalStateException("hub.stack/STACK_ITEM_HEIGHT_2 already set");
     } else {
-      filled.set(165);
+      filled.set(166);
     }
 
     // Trim array to size
@@ -5405,10 +5407,10 @@ public class Trace {
   }
 
   public Trace pStackStackItemHeight3(final Bytes b) {
-    if (filled.get(166)) {
+    if (filled.get(167)) {
       throw new IllegalStateException("hub.stack/STACK_ITEM_HEIGHT_3 already set");
     } else {
-      filled.set(166);
+      filled.set(167);
     }
 
     // Trim array to size
@@ -5431,10 +5433,10 @@ public class Trace {
   }
 
   public Trace pStackStackItemHeight4(final Bytes b) {
-    if (filled.get(167)) {
+    if (filled.get(168)) {
       throw new IllegalStateException("hub.stack/STACK_ITEM_HEIGHT_4 already set");
     } else {
-      filled.set(167);
+      filled.set(168);
     }
 
     // Trim array to size
@@ -5505,10 +5507,10 @@ public class Trace {
   }
 
   public Trace pStackStackItemStamp1(final Bytes b) {
-    if (filled.get(168)) {
+    if (filled.get(169)) {
       throw new IllegalStateException("hub.stack/STACK_ITEM_STAMP_1 already set");
     } else {
-      filled.set(168);
+      filled.set(169);
     }
 
     // Trim array to size
@@ -5531,10 +5533,10 @@ public class Trace {
   }
 
   public Trace pStackStackItemStamp2(final Bytes b) {
-    if (filled.get(169)) {
+    if (filled.get(170)) {
       throw new IllegalStateException("hub.stack/STACK_ITEM_STAMP_2 already set");
     } else {
-      filled.set(169);
+      filled.set(170);
     }
 
     // Trim array to size
@@ -5557,10 +5559,10 @@ public class Trace {
   }
 
   public Trace pStackStackItemStamp3(final Bytes b) {
-    if (filled.get(170)) {
+    if (filled.get(171)) {
       throw new IllegalStateException("hub.stack/STACK_ITEM_STAMP_3 already set");
     } else {
-      filled.set(170);
+      filled.set(171);
     }
 
     // Trim array to size
@@ -5583,10 +5585,10 @@ public class Trace {
   }
 
   public Trace pStackStackItemStamp4(final Bytes b) {
-    if (filled.get(171)) {
+    if (filled.get(172)) {
       throw new IllegalStateException("hub.stack/STACK_ITEM_STAMP_4 already set");
     } else {
-      filled.set(171);
+      filled.set(172);
     }
 
     // Trim array to size
@@ -5609,10 +5611,10 @@ public class Trace {
   }
 
   public Trace pStackStackItemValueHi1(final Bytes b) {
-    if (filled.get(172)) {
+    if (filled.get(173)) {
       throw new IllegalStateException("hub.stack/STACK_ITEM_VALUE_HI_1 already set");
     } else {
-      filled.set(172);
+      filled.set(173);
     }
 
     // Trim array to size
@@ -5635,10 +5637,10 @@ public class Trace {
   }
 
   public Trace pStackStackItemValueHi2(final Bytes b) {
-    if (filled.get(173)) {
+    if (filled.get(174)) {
       throw new IllegalStateException("hub.stack/STACK_ITEM_VALUE_HI_2 already set");
     } else {
-      filled.set(173);
+      filled.set(174);
     }
 
     // Trim array to size
@@ -5661,10 +5663,10 @@ public class Trace {
   }
 
   public Trace pStackStackItemValueHi3(final Bytes b) {
-    if (filled.get(174)) {
+    if (filled.get(175)) {
       throw new IllegalStateException("hub.stack/STACK_ITEM_VALUE_HI_3 already set");
     } else {
-      filled.set(174);
+      filled.set(175);
     }
 
     // Trim array to size
@@ -5687,10 +5689,10 @@ public class Trace {
   }
 
   public Trace pStackStackItemValueHi4(final Bytes b) {
-    if (filled.get(175)) {
+    if (filled.get(176)) {
       throw new IllegalStateException("hub.stack/STACK_ITEM_VALUE_HI_4 already set");
     } else {
-      filled.set(175);
+      filled.set(176);
     }
 
     // Trim array to size
@@ -5713,10 +5715,10 @@ public class Trace {
   }
 
   public Trace pStackStackItemValueLo1(final Bytes b) {
-    if (filled.get(176)) {
+    if (filled.get(177)) {
       throw new IllegalStateException("hub.stack/STACK_ITEM_VALUE_LO_1 already set");
     } else {
-      filled.set(176);
+      filled.set(177);
     }
 
     // Trim array to size
@@ -5739,10 +5741,10 @@ public class Trace {
   }
 
   public Trace pStackStackItemValueLo2(final Bytes b) {
-    if (filled.get(177)) {
+    if (filled.get(178)) {
       throw new IllegalStateException("hub.stack/STACK_ITEM_VALUE_LO_2 already set");
     } else {
-      filled.set(177);
+      filled.set(178);
     }
 
     // Trim array to size
@@ -5765,10 +5767,10 @@ public class Trace {
   }
 
   public Trace pStackStackItemValueLo3(final Bytes b) {
-    if (filled.get(178)) {
+    if (filled.get(179)) {
       throw new IllegalStateException("hub.stack/STACK_ITEM_VALUE_LO_3 already set");
     } else {
-      filled.set(178);
+      filled.set(179);
     }
 
     // Trim array to size
@@ -5791,10 +5793,10 @@ public class Trace {
   }
 
   public Trace pStackStackItemValueLo4(final Bytes b) {
-    if (filled.get(179)) {
+    if (filled.get(180)) {
       throw new IllegalStateException("hub.stack/STACK_ITEM_VALUE_LO_4 already set");
     } else {
-      filled.set(179);
+      filled.set(180);
     }
 
     // Trim array to size
@@ -5841,10 +5843,10 @@ public class Trace {
   }
 
   public Trace pStackStaticGas(final long b) {
-    if (filled.get(106)) {
+    if (filled.get(107)) {
       throw new IllegalStateException("hub.stack/STATIC_GAS already set");
     } else {
-      filled.set(106);
+      filled.set(107);
     }
 
     if (b >= 4294967296L) {
@@ -5938,10 +5940,10 @@ public class Trace {
   }
 
   public Trace pStorageAddressHi(final long b) {
-    if (filled.get(106)) {
+    if (filled.get(107)) {
       throw new IllegalStateException("hub.storage/ADDRESS_HI already set");
     } else {
-      filled.set(106);
+      filled.set(107);
     }
 
     if (b >= 4294967296L) {
@@ -5963,10 +5965,10 @@ public class Trace {
   }
 
   public Trace pStorageAddressLo(final Bytes b) {
-    if (filled.get(131)) {
+    if (filled.get(132)) {
       throw new IllegalStateException("hub.storage/ADDRESS_LO already set");
     } else {
-      filled.set(131);
+      filled.set(132);
     }
 
     // Trim array to size
@@ -5993,10 +5995,10 @@ public class Trace {
   }
 
   public Trace pStorageDeploymentNumber(final long b) {
-    if (filled.get(107)) {
+    if (filled.get(108)) {
       throw new IllegalStateException("hub.storage/DEPLOYMENT_NUMBER already set");
     } else {
-      filled.set(107);
+      filled.set(108);
     }
 
     if (b >= 4294967296L) {
@@ -6018,10 +6020,10 @@ public class Trace {
   }
 
   public Trace pStorageDeploymentNumberInfty(final long b) {
-    if (filled.get(108)) {
+    if (filled.get(109)) {
       throw new IllegalStateException("hub.storage/DEPLOYMENT_NUMBER_INFTY already set");
     } else {
-      filled.set(108);
+      filled.set(109);
     }
 
     if (b >= 4294967296L) {
@@ -6043,10 +6045,10 @@ public class Trace {
   }
 
   public Trace pStorageStorageKeyHi(final Bytes b) {
-    if (filled.get(132)) {
+    if (filled.get(133)) {
       throw new IllegalStateException("hub.storage/STORAGE_KEY_HI already set");
     } else {
-      filled.set(132);
+      filled.set(133);
     }
 
     // Trim array to size
@@ -6073,10 +6075,10 @@ public class Trace {
   }
 
   public Trace pStorageStorageKeyLo(final Bytes b) {
-    if (filled.get(133)) {
+    if (filled.get(134)) {
       throw new IllegalStateException("hub.storage/STORAGE_KEY_LO already set");
     } else {
-      filled.set(133);
+      filled.set(134);
     }
 
     // Trim array to size
@@ -6142,10 +6144,10 @@ public class Trace {
   }
 
   public Trace pStorageValueCurrHi(final Bytes b) {
-    if (filled.get(134)) {
+    if (filled.get(135)) {
       throw new IllegalStateException("hub.storage/VALUE_CURR_HI already set");
     } else {
-      filled.set(134);
+      filled.set(135);
     }
 
     // Trim array to size
@@ -6196,10 +6198,10 @@ public class Trace {
   }
 
   public Trace pStorageValueCurrLo(final Bytes b) {
-    if (filled.get(135)) {
+    if (filled.get(136)) {
       throw new IllegalStateException("hub.storage/VALUE_CURR_LO already set");
     } else {
-      filled.set(135);
+      filled.set(136);
     }
 
     // Trim array to size
@@ -6224,10 +6226,10 @@ public class Trace {
   }
 
   public Trace pStorageValueNextHi(final Bytes b) {
-    if (filled.get(136)) {
+    if (filled.get(137)) {
       throw new IllegalStateException("hub.storage/VALUE_NEXT_HI already set");
     } else {
-      filled.set(136);
+      filled.set(137);
     }
 
     // Trim array to size
@@ -6289,10 +6291,10 @@ public class Trace {
   }
 
   public Trace pStorageValueNextLo(final Bytes b) {
-    if (filled.get(137)) {
+    if (filled.get(138)) {
       throw new IllegalStateException("hub.storage/VALUE_NEXT_LO already set");
     } else {
-      filled.set(137);
+      filled.set(138);
     }
 
     // Trim array to size
@@ -6315,10 +6317,10 @@ public class Trace {
   }
 
   public Trace pStorageValueOrigHi(final Bytes b) {
-    if (filled.get(138)) {
+    if (filled.get(139)) {
       throw new IllegalStateException("hub.storage/VALUE_ORIG_HI already set");
     } else {
-      filled.set(138);
+      filled.set(139);
     }
 
     // Trim array to size
@@ -6356,10 +6358,10 @@ public class Trace {
   }
 
   public Trace pStorageValueOrigLo(final Bytes b) {
-    if (filled.get(139)) {
+    if (filled.get(140)) {
       throw new IllegalStateException("hub.storage/VALUE_ORIG_LO already set");
     } else {
-      filled.set(139);
+      filled.set(140);
     }
 
     // Trim array to size
@@ -6410,10 +6412,10 @@ public class Trace {
   }
 
   public Trace pTransactionBasefee(final Bytes b) {
-    if (filled.get(122)) {
+    if (filled.get(123)) {
       throw new IllegalStateException("hub.transaction/BASEFEE already set");
     } else {
-      filled.set(122);
+      filled.set(123);
     }
 
     // Trim array to size
@@ -6436,10 +6438,10 @@ public class Trace {
   }
 
   public Trace pTransactionBatchNum(final long b) {
-    if (filled.get(106)) {
+    if (filled.get(107)) {
       throw new IllegalStateException("hub.transaction/BATCH_NUM already set");
     } else {
-      filled.set(106);
+      filled.set(107);
     }
 
     if (b >= 4294967296L) {
@@ -6461,10 +6463,10 @@ public class Trace {
   }
 
   public Trace pTransactionCallDataSize(final long b) {
-    if (filled.get(107)) {
+    if (filled.get(108)) {
       throw new IllegalStateException("hub.transaction/CALL_DATA_SIZE already set");
     } else {
-      filled.set(107);
+      filled.set(108);
     }
 
     if (b >= 4294967296L) {
@@ -6486,10 +6488,10 @@ public class Trace {
   }
 
   public Trace pTransactionCoinbaseAddressHi(final long b) {
-    if (filled.get(108)) {
+    if (filled.get(109)) {
       throw new IllegalStateException("hub.transaction/COINBASE_ADDRESS_HI already set");
     } else {
-      filled.set(108);
+      filled.set(109);
     }
 
     if (b >= 4294967296L) {
@@ -6511,10 +6513,10 @@ public class Trace {
   }
 
   public Trace pTransactionCoinbaseAddressLo(final Bytes b) {
-    if (filled.get(131)) {
+    if (filled.get(132)) {
       throw new IllegalStateException("hub.transaction/COINBASE_ADDRESS_LO already set");
     } else {
-      filled.set(131);
+      filled.set(132);
     }
 
     // Trim array to size
@@ -6554,10 +6556,10 @@ public class Trace {
   }
 
   public Trace pTransactionFromAddressHi(final long b) {
-    if (filled.get(109)) {
+    if (filled.get(110)) {
       throw new IllegalStateException("hub.transaction/FROM_ADDRESS_HI already set");
     } else {
-      filled.set(109);
+      filled.set(110);
     }
 
     if (b >= 4294967296L) {
@@ -6578,10 +6580,10 @@ public class Trace {
   }
 
   public Trace pTransactionFromAddressLo(final Bytes b) {
-    if (filled.get(132)) {
+    if (filled.get(133)) {
       throw new IllegalStateException("hub.transaction/FROM_ADDRESS_LO already set");
     } else {
-      filled.set(132);
+      filled.set(133);
     }
 
     // Trim array to size
@@ -6608,10 +6610,10 @@ public class Trace {
   }
 
   public Trace pTransactionGasInitiallyAvailable(final Bytes b) {
-    if (filled.get(123)) {
+    if (filled.get(124)) {
       throw new IllegalStateException("hub.transaction/GAS_INITIALLY_AVAILABLE already set");
     } else {
-      filled.set(123);
+      filled.set(124);
     }
 
     // Trim array to size
@@ -6636,10 +6638,10 @@ public class Trace {
   }
 
   public Trace pTransactionGasLeftover(final Bytes b) {
-    if (filled.get(124)) {
+    if (filled.get(125)) {
       throw new IllegalStateException("hub.transaction/GAS_LEFTOVER already set");
     } else {
-      filled.set(124);
+      filled.set(125);
     }
 
     // Trim array to size
@@ -6662,10 +6664,10 @@ public class Trace {
   }
 
   public Trace pTransactionGasLimit(final Bytes b) {
-    if (filled.get(125)) {
+    if (filled.get(126)) {
       throw new IllegalStateException("hub.transaction/GAS_LIMIT already set");
     } else {
-      filled.set(125);
+      filled.set(126);
     }
 
     // Trim array to size
@@ -6687,10 +6689,10 @@ public class Trace {
   }
 
   public Trace pTransactionGasPrice(final Bytes b) {
-    if (filled.get(126)) {
+    if (filled.get(127)) {
       throw new IllegalStateException("hub.transaction/GAS_PRICE already set");
     } else {
-      filled.set(126);
+      filled.set(127);
     }
 
     // Trim array to size
@@ -6712,10 +6714,10 @@ public class Trace {
   }
 
   public Trace pTransactionInitCodeSize(final long b) {
-    if (filled.get(110)) {
+    if (filled.get(111)) {
       throw new IllegalStateException("hub.transaction/INIT_CODE_SIZE already set");
     } else {
-      filled.set(110);
+      filled.set(111);
     }
 
     if (b >= 4294967296L) {
@@ -6736,10 +6738,10 @@ public class Trace {
   }
 
   public Trace pTransactionInitialBalance(final Bytes b) {
-    if (filled.get(133)) {
+    if (filled.get(134)) {
       throw new IllegalStateException("hub.transaction/INITIAL_BALANCE already set");
     } else {
-      filled.set(133);
+      filled.set(134);
     }
 
     // Trim array to size
@@ -6792,10 +6794,10 @@ public class Trace {
   }
 
   public Trace pTransactionNonce(final Bytes b) {
-    if (filled.get(127)) {
+    if (filled.get(128)) {
       throw new IllegalStateException("hub.transaction/NONCE already set");
     } else {
-      filled.set(127);
+      filled.set(128);
     }
 
     // Trim array to size
@@ -6817,10 +6819,10 @@ public class Trace {
   }
 
   public Trace pTransactionPriorityFeePerGas(final Bytes b) {
-    if (filled.get(128)) {
+    if (filled.get(129)) {
       throw new IllegalStateException("hub.transaction/PRIORITY_FEE_PER_GAS already set");
     } else {
-      filled.set(128);
+      filled.set(129);
     }
 
     // Trim array to size
@@ -6843,10 +6845,10 @@ public class Trace {
   }
 
   public Trace pTransactionRefundCounterInfinity(final Bytes b) {
-    if (filled.get(129)) {
+    if (filled.get(130)) {
       throw new IllegalStateException("hub.transaction/REFUND_COUNTER_INFINITY already set");
     } else {
-      filled.set(129);
+      filled.set(130);
     }
 
     // Trim array to size
@@ -6869,10 +6871,10 @@ public class Trace {
   }
 
   public Trace pTransactionRefundEffective(final Bytes b) {
-    if (filled.get(130)) {
+    if (filled.get(131)) {
       throw new IllegalStateException("hub.transaction/REFUND_EFFECTIVE already set");
     } else {
-      filled.set(130);
+      filled.set(131);
     }
 
     // Trim array to size
@@ -6921,10 +6923,10 @@ public class Trace {
   }
 
   public Trace pTransactionToAddressHi(final long b) {
-    if (filled.get(111)) {
+    if (filled.get(112)) {
       throw new IllegalStateException("hub.transaction/TO_ADDRESS_HI already set");
     } else {
-      filled.set(111);
+      filled.set(112);
     }
 
     if (b >= 4294967296L) {
@@ -6946,10 +6948,10 @@ public class Trace {
   }
 
   public Trace pTransactionToAddressLo(final Bytes b) {
-    if (filled.get(134)) {
+    if (filled.get(135)) {
       throw new IllegalStateException("hub.transaction/TO_ADDRESS_LO already set");
     } else {
-      filled.set(134);
+      filled.set(135);
     }
 
     // Trim array to size
@@ -6974,10 +6976,10 @@ public class Trace {
   }
 
   public Trace pTransactionValue(final Bytes b) {
-    if (filled.get(135)) {
+    if (filled.get(136)) {
       throw new IllegalStateException("hub.transaction/VALUE already set");
     } else {
-      filled.set(135);
+      filled.set(136);
     }
 
     // Trim array to size
@@ -7284,12 +7286,12 @@ public class Trace {
       throw new IllegalStateException("hub.acc_FIRST has not been filled");
     }
 
-    if (!filled.get(106)) {
+    if (!filled.get(107)) {
       throw new IllegalStateException(
           "hub.ADDRESS_HI_xor_ACCOUNT_ADDRESS_HI_xor_CCRS_STAMP_xor_PRC_CALLEE_GAS_xor_STATIC_GAS_xor_ADDRESS_HI_xor_BATCH_NUM has not been filled");
     }
 
-    if (!filled.get(131)) {
+    if (!filled.get(132)) {
       throw new IllegalStateException(
           "hub.ADDRESS_LO_xor_ACCOUNT_ADDRESS_LO_xor_EXP_DATA_1_xor_HASH_INFO_KECCAK_HI_xor_ADDRESS_LO_xor_COINBASE_ADDRESS_LO has not been filled");
     }
@@ -7298,12 +7300,12 @@ public class Trace {
       throw new IllegalStateException("hub.ALPHA has not been filled");
     }
 
-    if (!filled.get(133)) {
+    if (!filled.get(134)) {
       throw new IllegalStateException(
           "hub.BALANCE_NEW_xor_CALLER_ADDRESS_LO_xor_EXP_DATA_3_xor_PUSH_VALUE_HI_xor_STORAGE_KEY_LO_xor_INITIAL_BALANCE has not been filled");
     }
 
-    if (!filled.get(132)) {
+    if (!filled.get(133)) {
       throw new IllegalStateException(
           "hub.BALANCE_xor_BYTE_CODE_ADDRESS_LO_xor_EXP_DATA_2_xor_HASH_INFO_KECCAK_LO_xor_STORAGE_KEY_HI_xor_FROM_ADDRESS_LO has not been filled");
     }
@@ -7312,15 +7314,15 @@ public class Trace {
       throw new IllegalStateException("hub.BATCH_NUMBER has not been filled");
     }
 
-    if (!filled.get(114)) {
+    if (!filled.get(115)) {
       throw new IllegalStateException("hub.CALL_DATA_OFFSET_xor_MMU_SIZE has not been filled");
     }
 
-    if (!filled.get(115)) {
+    if (!filled.get(116)) {
       throw new IllegalStateException("hub.CALL_DATA_SIZE_xor_MMU_SRC_ID has not been filled");
     }
 
-    if (!filled.get(105)) {
+    if (!filled.get(106)) {
       throw new IllegalStateException("hub.CALL_STACK_DEPTH has not been filled");
     }
 
@@ -7332,37 +7334,37 @@ public class Trace {
       throw new IllegalStateException("hub.CODE_FRAGMENT_INDEX has not been filled");
     }
 
-    if (!filled.get(107)) {
+    if (!filled.get(108)) {
       throw new IllegalStateException(
           "hub.CODE_FRAGMENT_INDEX_xor_ACCOUNT_DEPLOYMENT_NUMBER_xor_EXP_INST_xor_PRC_CALLER_GAS_xor_DEPLOYMENT_NUMBER_xor_CALL_DATA_SIZE has not been filled");
     }
 
-    if (!filled.get(135)) {
+    if (!filled.get(136)) {
       throw new IllegalStateException(
           "hub.CODE_HASH_HI_NEW_xor_EXP_DATA_5_xor_VALUE_CURR_LO_xor_VALUE has not been filled");
     }
 
-    if (!filled.get(134)) {
+    if (!filled.get(135)) {
       throw new IllegalStateException(
           "hub.CODE_HASH_HI_xor_CALL_VALUE_xor_EXP_DATA_4_xor_PUSH_VALUE_LO_xor_VALUE_CURR_HI_xor_TO_ADDRESS_LO has not been filled");
     }
 
-    if (!filled.get(137)) {
+    if (!filled.get(138)) {
       throw new IllegalStateException(
           "hub.CODE_HASH_LO_NEW_xor_MMU_LIMB_2_xor_VALUE_NEXT_LO has not been filled");
     }
 
-    if (!filled.get(136)) {
+    if (!filled.get(137)) {
       throw new IllegalStateException(
           "hub.CODE_HASH_LO_xor_MMU_LIMB_1_xor_VALUE_NEXT_HI has not been filled");
     }
 
-    if (!filled.get(109)) {
+    if (!filled.get(110)) {
       throw new IllegalStateException(
           "hub.CODE_SIZE_NEW_xor_BYTE_CODE_CODE_FRAGMENT_INDEX_xor_MMU_EXO_SUM_xor_PRC_CDS_xor_FROM_ADDRESS_HI has not been filled");
     }
 
-    if (!filled.get(108)) {
+    if (!filled.get(109)) {
       throw new IllegalStateException(
           "hub.CODE_SIZE_xor_BYTE_CODE_ADDRESS_HI_xor_MMU_AUX_ID_xor_PRC_CDO_xor_DEPLOYMENT_NUMBER_INFTY_xor_COINBASE_ADDRESS_HI has not been filled");
     }
@@ -7391,7 +7393,7 @@ public class Trace {
       throw new IllegalStateException("hub.CONTEXT_NUMBER_NEW has not been filled");
     }
 
-    if (!filled.get(116)) {
+    if (!filled.get(117)) {
       throw new IllegalStateException("hub.CONTEXT_NUMBER_xor_MMU_TGT_ID has not been filled");
     }
 
@@ -7413,6 +7415,11 @@ public class Trace {
 
     if (!filled.get(12)) {
       throw new IllegalStateException("hub.COUNTER_TLI has not been filled");
+    }
+
+    if (!filled.get(67)) {
+      throw new IllegalStateException(
+          "hub.CREATE_FAILURE_CONDITION_WILL_REVERT_xor_HASH_INFO_FLAG has not been filled");
     }
 
     if (!filled.get(68)) {
@@ -7444,17 +7451,17 @@ public class Trace {
       throw new IllegalStateException("hub.DELTA has not been filled");
     }
 
-    if (!filled.get(111)) {
+    if (!filled.get(112)) {
       throw new IllegalStateException(
           "hub.DEPLOYMENT_NUMBER_INFTY_xor_BYTE_CODE_DEPLOYMENT_STATUS_xor_MMU_PHASE_xor_PRC_RAO_xor_TO_ADDRESS_HI has not been filled");
     }
 
-    if (!filled.get(112)) {
+    if (!filled.get(113)) {
       throw new IllegalStateException(
           "hub.DEPLOYMENT_NUMBER_NEW_xor_CALLER_ADDRESS_HI_xor_MMU_REF_OFFSET_xor_PRC_RETURN_GAS has not been filled");
     }
 
-    if (!filled.get(110)) {
+    if (!filled.get(111)) {
       throw new IllegalStateException(
           "hub.DEPLOYMENT_NUMBER_xor_BYTE_CODE_DEPLOYMENT_NUMBER_xor_MMU_INST_xor_PRC_RAC_xor_INIT_CODE_SIZE has not been filled");
     }
@@ -7504,7 +7511,7 @@ public class Trace {
       throw new IllegalStateException("hub.GAS_EXPECTED has not been filled");
     }
 
-    if (!filled.get(125)) {
+    if (!filled.get(126)) {
       throw new IllegalStateException("hub.GAS_LIMIT has not been filled");
     }
 
@@ -7512,7 +7519,7 @@ public class Trace {
       throw new IllegalStateException("hub.GAS_NEXT has not been filled");
     }
 
-    if (!filled.get(126)) {
+    if (!filled.get(127)) {
       throw new IllegalStateException("hub.GAS_PRICE has not been filled");
     }
 
@@ -7546,7 +7553,7 @@ public class Trace {
       throw new IllegalStateException("hub.HUB_STAMP_TRANSACTION_END has not been filled");
     }
 
-    if (!filled.get(163)) {
+    if (!filled.get(164)) {
       throw new IllegalStateException("hub.INSTRUCTION has not been filled");
     }
 
@@ -7573,27 +7580,27 @@ public class Trace {
       throw new IllegalStateException("hub.MMU_STAMP has not been filled");
     }
 
-    if (!filled.get(144)) {
+    if (!filled.get(145)) {
       throw new IllegalStateException("hub.MXP_OFFSET_2_HI has not been filled");
     }
 
-    if (!filled.get(145)) {
+    if (!filled.get(146)) {
       throw new IllegalStateException("hub.MXP_OFFSET_2_LO has not been filled");
     }
 
-    if (!filled.get(146)) {
+    if (!filled.get(147)) {
       throw new IllegalStateException("hub.MXP_SIZE_1_HI has not been filled");
     }
 
-    if (!filled.get(147)) {
+    if (!filled.get(148)) {
       throw new IllegalStateException("hub.MXP_SIZE_1_LO has not been filled");
     }
 
-    if (!filled.get(148)) {
+    if (!filled.get(149)) {
       throw new IllegalStateException("hub.MXP_SIZE_2_HI has not been filled");
     }
 
-    if (!filled.get(149)) {
+    if (!filled.get(150)) {
       throw new IllegalStateException("hub.MXP_SIZE_2_LO has not been filled");
     }
 
@@ -7601,7 +7608,7 @@ public class Trace {
       throw new IllegalStateException("hub.MXP_STAMP has not been filled");
     }
 
-    if (!filled.get(150)) {
+    if (!filled.get(151)) {
       throw new IllegalStateException("hub.MXP_WORDS has not been filled");
     }
 
@@ -7617,48 +7624,48 @@ public class Trace {
       throw new IllegalStateException("hub.NON_STACK_ROWS has not been filled");
     }
 
-    if (!filled.get(127)) {
+    if (!filled.get(128)) {
       throw new IllegalStateException("hub.NONCE has not been filled");
     }
 
-    if (!filled.get(123)) {
+    if (!filled.get(124)) {
       throw new IllegalStateException(
           "hub.NONCE_NEW_xor_STP_GAS_PAID_OUT_OF_POCKET_xor_GAS_INITIALLY_AVAILABLE has not been filled");
     }
 
-    if (!filled.get(122)) {
+    if (!filled.get(123)) {
       throw new IllegalStateException("hub.NONCE_xor_STP_GAS_MXP_xor_BASEFEE has not been filled");
     }
 
-    if (!filled.get(151)) {
+    if (!filled.get(152)) {
       throw new IllegalStateException("hub.OOB_DATA_1 has not been filled");
     }
 
-    if (!filled.get(152)) {
+    if (!filled.get(153)) {
       throw new IllegalStateException("hub.OOB_DATA_2 has not been filled");
     }
 
-    if (!filled.get(153)) {
+    if (!filled.get(154)) {
       throw new IllegalStateException("hub.OOB_DATA_3 has not been filled");
     }
 
-    if (!filled.get(154)) {
+    if (!filled.get(155)) {
       throw new IllegalStateException("hub.OOB_DATA_4 has not been filled");
     }
 
-    if (!filled.get(155)) {
+    if (!filled.get(156)) {
       throw new IllegalStateException("hub.OOB_DATA_5 has not been filled");
     }
 
-    if (!filled.get(156)) {
+    if (!filled.get(157)) {
       throw new IllegalStateException("hub.OOB_DATA_6 has not been filled");
     }
 
-    if (!filled.get(157)) {
+    if (!filled.get(158)) {
       throw new IllegalStateException("hub.OOB_DATA_7 has not been filled");
     }
 
-    if (!filled.get(158)) {
+    if (!filled.get(159)) {
       throw new IllegalStateException("hub.OOB_DATA_8 has not been filled");
     }
 
@@ -7747,7 +7754,7 @@ public class Trace {
           "hub.PRC_SUCCESS_CALLER_WONT_REVERT_xor_RDCX has not been filled");
     }
 
-    if (!filled.get(128)) {
+    if (!filled.get(129)) {
       throw new IllegalStateException("hub.PRIORITY_FEE_PER_GAS has not been filled");
     }
 
@@ -7763,7 +7770,7 @@ public class Trace {
       throw new IllegalStateException("hub.REFUND_COUNTER has not been filled");
     }
 
-    if (!filled.get(129)) {
+    if (!filled.get(130)) {
       throw new IllegalStateException("hub.REFUND_COUNTER_INFINITY has not been filled");
     }
 
@@ -7771,29 +7778,29 @@ public class Trace {
       throw new IllegalStateException("hub.REFUND_COUNTER_NEW has not been filled");
     }
 
-    if (!filled.get(130)) {
+    if (!filled.get(131)) {
       throw new IllegalStateException("hub.REFUND_EFFECTIVE has not been filled");
     }
 
-    if (!filled.get(117)) {
+    if (!filled.get(118)) {
       throw new IllegalStateException("hub.RETURN_AT_CAPACITY_xor_MXP_INST has not been filled");
     }
 
-    if (!filled.get(118)) {
-      throw new IllegalStateException("hub.RETURN_AT_OFFSET_xor_OOB_INST has not been filled");
-    }
-
     if (!filled.get(119)) {
-      throw new IllegalStateException(
-          "hub.RETURN_DATA_CONTEXT_NUMBER_xor_STP_GAS_STIPEND has not been filled");
+      throw new IllegalStateException("hub.RETURN_AT_OFFSET_xor_OOB_INST has not been filled");
     }
 
     if (!filled.get(120)) {
       throw new IllegalStateException(
-          "hub.RETURN_DATA_OFFSET_xor_STP_INSTRUCTION has not been filled");
+          "hub.RETURN_DATA_CONTEXT_NUMBER_xor_STP_GAS_STIPEND has not been filled");
     }
 
     if (!filled.get(121)) {
+      throw new IllegalStateException(
+          "hub.RETURN_DATA_OFFSET_xor_STP_INSTRUCTION has not been filled");
+    }
+
+    if (!filled.get(122)) {
       throw new IllegalStateException("hub.RETURN_DATA_SIZE has not been filled");
     }
 
@@ -7831,12 +7838,12 @@ public class Trace {
           "hub.RETURN_FROM_MESSAGE_CALL_WONT_TOUCH_RAM_xor_STACK_ITEM_POP_3 has not been filled");
     }
 
-    if (!filled.get(113)) {
+    if (!filled.get(114)) {
       throw new IllegalStateException(
           "hub.RLPADDR_DEP_ADDR_HI_xor_CALL_DATA_CONTEXT_NUMBER_xor_MMU_REF_SIZE has not been filled");
     }
 
-    if (!filled.get(138)) {
+    if (!filled.get(139)) {
       throw new IllegalStateException(
           "hub.RLPADDR_DEP_ADDR_LO_xor_MMU_SRC_OFFSET_HI_xor_VALUE_ORIG_HI has not been filled");
     }
@@ -7846,33 +7853,32 @@ public class Trace {
           "hub.RLPADDR_FLAG_xor_STP_FLAG_xor_CALL_SMC_SUCCESS_CALLER_WONT_REVERT_xor_DEC_FLAG_3_xor_WARMTH_NEW has not been filled");
     }
 
-    if (!filled.get(139)) {
+    if (!filled.get(140)) {
       throw new IllegalStateException(
           "hub.RLPADDR_KEC_HI_xor_MMU_SRC_OFFSET_LO_xor_VALUE_ORIG_LO has not been filled");
     }
 
-    if (!filled.get(140)) {
+    if (!filled.get(141)) {
       throw new IllegalStateException(
           "hub.RLPADDR_KEC_LO_xor_MMU_TGT_OFFSET_LO has not been filled");
     }
 
-    if (!filled.get(63)) {
-      throw new IllegalStateException(
-          "hub.RLPADDR_RECIPE_xor_STP_OOGX_xor_CREATE_ABORT_xor_DEC_FLAG_4 has not been filled");
-    }
-
-    if (!filled.get(141)) {
-      throw new IllegalStateException("hub.RLPADDR_SALT_HI_xor_MXP_GAS_MXP has not been filled");
+    if (!filled.get(105)) {
+      throw new IllegalStateException("hub.RLPADDR_RECIPE has not been filled");
     }
 
     if (!filled.get(142)) {
+      throw new IllegalStateException("hub.RLPADDR_SALT_HI_xor_MXP_GAS_MXP has not been filled");
+    }
+
+    if (!filled.get(143)) {
       throw new IllegalStateException(
           "hub.RLPADDR_SALT_LO_xor_MXP_OFFSET_1_HI has not been filled");
     }
 
-    if (!filled.get(64)) {
+    if (!filled.get(63)) {
       throw new IllegalStateException(
-          "hub.ROMLEX_FLAG_xor_STP_WARMTH_xor_CREATE_EMPTY_INIT_CODE_WILL_REVERT_xor_DUP_FLAG has not been filled");
+          "hub.ROMLEX_FLAG_xor_STP_OOGX_xor_CREATE_ABORT_xor_DEC_FLAG_4 has not been filled");
     }
 
     if (!filled.get(93)) {
@@ -7895,67 +7901,67 @@ public class Trace {
           "hub.SELFDESTRUCT_WONT_REVERT_NOT_YET_MARKED_xor_STO_FLAG has not been filled");
     }
 
-    if (!filled.get(164)) {
+    if (!filled.get(165)) {
       throw new IllegalStateException("hub.STACK_ITEM_HEIGHT_1 has not been filled");
     }
 
-    if (!filled.get(165)) {
+    if (!filled.get(166)) {
       throw new IllegalStateException("hub.STACK_ITEM_HEIGHT_2 has not been filled");
     }
 
-    if (!filled.get(166)) {
+    if (!filled.get(167)) {
       throw new IllegalStateException("hub.STACK_ITEM_HEIGHT_3 has not been filled");
     }
 
-    if (!filled.get(167)) {
+    if (!filled.get(168)) {
       throw new IllegalStateException("hub.STACK_ITEM_HEIGHT_4 has not been filled");
     }
 
-    if (!filled.get(168)) {
+    if (!filled.get(169)) {
       throw new IllegalStateException("hub.STACK_ITEM_STAMP_1 has not been filled");
     }
 
-    if (!filled.get(169)) {
+    if (!filled.get(170)) {
       throw new IllegalStateException("hub.STACK_ITEM_STAMP_2 has not been filled");
     }
 
-    if (!filled.get(170)) {
+    if (!filled.get(171)) {
       throw new IllegalStateException("hub.STACK_ITEM_STAMP_3 has not been filled");
     }
 
-    if (!filled.get(171)) {
+    if (!filled.get(172)) {
       throw new IllegalStateException("hub.STACK_ITEM_STAMP_4 has not been filled");
     }
 
-    if (!filled.get(172)) {
+    if (!filled.get(173)) {
       throw new IllegalStateException("hub.STACK_ITEM_VALUE_HI_1 has not been filled");
     }
 
-    if (!filled.get(173)) {
+    if (!filled.get(174)) {
       throw new IllegalStateException("hub.STACK_ITEM_VALUE_HI_2 has not been filled");
     }
 
-    if (!filled.get(174)) {
+    if (!filled.get(175)) {
       throw new IllegalStateException("hub.STACK_ITEM_VALUE_HI_3 has not been filled");
     }
 
-    if (!filled.get(175)) {
+    if (!filled.get(176)) {
       throw new IllegalStateException("hub.STACK_ITEM_VALUE_HI_4 has not been filled");
     }
 
-    if (!filled.get(176)) {
+    if (!filled.get(177)) {
       throw new IllegalStateException("hub.STACK_ITEM_VALUE_LO_1 has not been filled");
     }
 
-    if (!filled.get(177)) {
+    if (!filled.get(178)) {
       throw new IllegalStateException("hub.STACK_ITEM_VALUE_LO_2 has not been filled");
     }
 
-    if (!filled.get(178)) {
+    if (!filled.get(179)) {
       throw new IllegalStateException("hub.STACK_ITEM_VALUE_LO_3 has not been filled");
     }
 
-    if (!filled.get(179)) {
+    if (!filled.get(180)) {
       throw new IllegalStateException("hub.STACK_ITEM_VALUE_LO_4 has not been filled");
     }
 
@@ -7967,24 +7973,24 @@ public class Trace {
       throw new IllegalStateException("hub.sto_FIRST has not been filled");
     }
 
-    if (!filled.get(159)) {
+    if (!filled.get(160)) {
       throw new IllegalStateException("hub.STP_GAS_HI has not been filled");
     }
 
-    if (!filled.get(160)) {
+    if (!filled.get(161)) {
       throw new IllegalStateException("hub.STP_GAS_LO has not been filled");
     }
 
-    if (!filled.get(124)) {
+    if (!filled.get(125)) {
       throw new IllegalStateException(
           "hub.STP_GAS_UPFRONT_GAS_COST_xor_GAS_LEFTOVER has not been filled");
     }
 
-    if (!filled.get(161)) {
+    if (!filled.get(162)) {
       throw new IllegalStateException("hub.STP_VALUE_HI has not been filled");
     }
 
-    if (!filled.get(162)) {
+    if (!filled.get(163)) {
       throw new IllegalStateException("hub.STP_VALUE_LO has not been filled");
     }
 
@@ -8000,12 +8006,12 @@ public class Trace {
       throw new IllegalStateException("hub.SWAP_FLAG has not been filled");
     }
 
-    if (!filled.get(65)) {
+    if (!filled.get(64)) {
       throw new IllegalStateException(
-          "hub.TRM_FLAG_xor_CREATE_EMPTY_INIT_CODE_WONT_REVERT_xor_EXT_FLAG has not been filled");
+          "hub.TRM_FLAG_xor_STP_WARMTH_xor_CREATE_EMPTY_INIT_CODE_WILL_REVERT_xor_DUP_FLAG has not been filled");
     }
 
-    if (!filled.get(143)) {
+    if (!filled.get(144)) {
       throw new IllegalStateException(
           "hub.TRM_RAW_ADDRESS_HI_xor_MXP_OFFSET_1_LO has not been filled");
     }
@@ -8038,14 +8044,14 @@ public class Trace {
       throw new IllegalStateException("hub.TXN_FLAG has not been filled");
     }
 
-    if (!filled.get(67)) {
-      throw new IllegalStateException(
-          "hub.WARMTH_NEW_xor_CREATE_FAILURE_CONDITION_WILL_REVERT_xor_HASH_INFO_FLAG has not been filled");
-    }
-
     if (!filled.get(66)) {
       throw new IllegalStateException(
-          "hub.WARMTH_xor_CREATE_EXCEPTION_xor_HALT_FLAG has not been filled");
+          "hub.WARMTH_NEW_xor_CREATE_EXCEPTION_xor_HALT_FLAG has not been filled");
+    }
+
+    if (!filled.get(65)) {
+      throw new IllegalStateException(
+          "hub.WARMTH_xor_CREATE_EMPTY_INIT_CODE_WONT_REVERT_xor_EXT_FLAG has not been filled");
     }
 
     if (!filled.get(100)) {
@@ -8071,7 +8077,7 @@ public class Trace {
       accFirst.position(accFirst.position() + 1);
     }
 
-    if (!filled.get(106)) {
+    if (!filled.get(107)) {
       addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum
           .position(
               addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorBatchNum
@@ -8079,7 +8085,7 @@ public class Trace {
                   + 4);
     }
 
-    if (!filled.get(131)) {
+    if (!filled.get(132)) {
       addressLoXorAccountAddressLoXorExpData1XorHashInfoKeccakHiXorAddressLoXorCoinbaseAddressLo
           .position(
               addressLoXorAccountAddressLoXorExpData1XorHashInfoKeccakHiXorAddressLoXorCoinbaseAddressLo
@@ -8091,7 +8097,7 @@ public class Trace {
       alpha.position(alpha.position() + 1);
     }
 
-    if (!filled.get(133)) {
+    if (!filled.get(134)) {
       balanceNewXorCallerAddressLoXorExpData3XorPushValueHiXorStorageKeyLoXorInitialBalance
           .position(
               balanceNewXorCallerAddressLoXorExpData3XorPushValueHiXorStorageKeyLoXorInitialBalance
@@ -8099,7 +8105,7 @@ public class Trace {
                   + 16);
     }
 
-    if (!filled.get(132)) {
+    if (!filled.get(133)) {
       balanceXorByteCodeAddressLoXorExpData2XorHashInfoKeccakLoXorStorageKeyHiXorFromAddressLo
           .position(
               balanceXorByteCodeAddressLoXorExpData2XorHashInfoKeccakLoXorStorageKeyHiXorFromAddressLo
@@ -8111,15 +8117,15 @@ public class Trace {
       batchNumber.position(batchNumber.position() + 2);
     }
 
-    if (!filled.get(114)) {
+    if (!filled.get(115)) {
       callDataOffsetXorMmuSize.position(callDataOffsetXorMmuSize.position() + 4);
     }
 
-    if (!filled.get(115)) {
+    if (!filled.get(116)) {
       callDataSizeXorMmuSrcId.position(callDataSizeXorMmuSrcId.position() + 4);
     }
 
-    if (!filled.get(105)) {
+    if (!filled.get(106)) {
       callStackDepth.position(callStackDepth.position() + 2);
     }
 
@@ -8131,7 +8137,7 @@ public class Trace {
       codeFragmentIndex.position(codeFragmentIndex.position() + 4);
     }
 
-    if (!filled.get(107)) {
+    if (!filled.get(108)) {
       codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCallDataSize
           .position(
               codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCallDataSize
@@ -8139,34 +8145,34 @@ public class Trace {
                   + 4);
     }
 
-    if (!filled.get(135)) {
+    if (!filled.get(136)) {
       codeHashHiNewXorExpData5XorValueCurrLoXorValue.position(
           codeHashHiNewXorExpData5XorValueCurrLoXorValue.position() + 16);
     }
 
-    if (!filled.get(134)) {
+    if (!filled.get(135)) {
       codeHashHiXorCallValueXorExpData4XorPushValueLoXorValueCurrHiXorToAddressLo.position(
           codeHashHiXorCallValueXorExpData4XorPushValueLoXorValueCurrHiXorToAddressLo.position()
               + 16);
     }
 
-    if (!filled.get(137)) {
+    if (!filled.get(138)) {
       codeHashLoNewXorMmuLimb2XorValueNextLo.position(
           codeHashLoNewXorMmuLimb2XorValueNextLo.position() + 16);
     }
 
-    if (!filled.get(136)) {
+    if (!filled.get(137)) {
       codeHashLoXorMmuLimb1XorValueNextHi.position(
           codeHashLoXorMmuLimb1XorValueNextHi.position() + 16);
     }
 
-    if (!filled.get(109)) {
+    if (!filled.get(110)) {
       codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorFromAddressHi.position(
           codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorFromAddressHi.position()
               + 4);
     }
 
-    if (!filled.get(108)) {
+    if (!filled.get(109)) {
       codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorCoinbaseAddressHi
           .position(
               codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorCoinbaseAddressHi
@@ -8198,7 +8204,7 @@ public class Trace {
       contextNumberNew.position(contextNumberNew.position() + 4);
     }
 
-    if (!filled.get(116)) {
+    if (!filled.get(117)) {
       contextNumberXorMmuTgtId.position(contextNumberXorMmuTgtId.position() + 4);
     }
 
@@ -8220,6 +8226,11 @@ public class Trace {
 
     if (!filled.get(12)) {
       counterTli.position(counterTli.position() + 1);
+    }
+
+    if (!filled.get(67)) {
+      createFailureConditionWillRevertXorHashInfoFlag.position(
+          createFailureConditionWillRevertXorHashInfoFlag.position() + 1);
     }
 
     if (!filled.get(68)) {
@@ -8251,19 +8262,19 @@ public class Trace {
       delta.position(delta.position() + 1);
     }
 
-    if (!filled.get(111)) {
+    if (!filled.get(112)) {
       deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRaoXorToAddressHi.position(
           deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRaoXorToAddressHi
                   .position()
               + 4);
     }
 
-    if (!filled.get(112)) {
+    if (!filled.get(113)) {
       deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.position(
           deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.position() + 4);
     }
 
-    if (!filled.get(110)) {
+    if (!filled.get(111)) {
       deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorInitCodeSize.position(
           deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorInitCodeSize.position()
               + 4);
@@ -8328,7 +8339,7 @@ public class Trace {
       gasExpected.position(gasExpected.position() + 4);
     }
 
-    if (!filled.get(125)) {
+    if (!filled.get(126)) {
       gasLimit.position(gasLimit.position() + 8);
     }
 
@@ -8336,7 +8347,7 @@ public class Trace {
       gasNext.position(gasNext.position() + 4);
     }
 
-    if (!filled.get(126)) {
+    if (!filled.get(127)) {
       gasPrice.position(gasPrice.position() + 8);
     }
 
@@ -8373,7 +8384,7 @@ public class Trace {
       hubStampTransactionEnd.position(hubStampTransactionEnd.position() + 4);
     }
 
-    if (!filled.get(163)) {
+    if (!filled.get(164)) {
       instruction.position(instruction.position() + 32);
     }
 
@@ -8409,27 +8420,27 @@ public class Trace {
       mmuStamp.position(mmuStamp.position() + 4);
     }
 
-    if (!filled.get(144)) {
+    if (!filled.get(145)) {
       mxpOffset2Hi.position(mxpOffset2Hi.position() + 16);
     }
 
-    if (!filled.get(145)) {
+    if (!filled.get(146)) {
       mxpOffset2Lo.position(mxpOffset2Lo.position() + 16);
     }
 
-    if (!filled.get(146)) {
+    if (!filled.get(147)) {
       mxpSize1Hi.position(mxpSize1Hi.position() + 16);
     }
 
-    if (!filled.get(147)) {
+    if (!filled.get(148)) {
       mxpSize1Lo.position(mxpSize1Lo.position() + 16);
     }
 
-    if (!filled.get(148)) {
+    if (!filled.get(149)) {
       mxpSize2Hi.position(mxpSize2Hi.position() + 16);
     }
 
-    if (!filled.get(149)) {
+    if (!filled.get(150)) {
       mxpSize2Lo.position(mxpSize2Lo.position() + 16);
     }
 
@@ -8437,7 +8448,7 @@ public class Trace {
       mxpStamp.position(mxpStamp.position() + 4);
     }
 
-    if (!filled.get(150)) {
+    if (!filled.get(151)) {
       mxpWords.position(mxpWords.position() + 16);
     }
 
@@ -8453,48 +8464,48 @@ public class Trace {
       nonStackRows.position(nonStackRows.position() + 1);
     }
 
-    if (!filled.get(127)) {
+    if (!filled.get(128)) {
       nonce.position(nonce.position() + 8);
     }
 
-    if (!filled.get(123)) {
+    if (!filled.get(124)) {
       nonceNewXorStpGasPaidOutOfPocketXorGasInitiallyAvailable.position(
           nonceNewXorStpGasPaidOutOfPocketXorGasInitiallyAvailable.position() + 8);
     }
 
-    if (!filled.get(122)) {
+    if (!filled.get(123)) {
       nonceXorStpGasMxpXorBasefee.position(nonceXorStpGasMxpXorBasefee.position() + 8);
     }
 
-    if (!filled.get(151)) {
+    if (!filled.get(152)) {
       oobData1.position(oobData1.position() + 16);
     }
 
-    if (!filled.get(152)) {
+    if (!filled.get(153)) {
       oobData2.position(oobData2.position() + 16);
     }
 
-    if (!filled.get(153)) {
+    if (!filled.get(154)) {
       oobData3.position(oobData3.position() + 16);
     }
 
-    if (!filled.get(154)) {
+    if (!filled.get(155)) {
       oobData4.position(oobData4.position() + 16);
     }
 
-    if (!filled.get(155)) {
+    if (!filled.get(156)) {
       oobData5.position(oobData5.position() + 16);
     }
 
-    if (!filled.get(156)) {
+    if (!filled.get(157)) {
       oobData6.position(oobData6.position() + 16);
     }
 
-    if (!filled.get(157)) {
+    if (!filled.get(158)) {
       oobData7.position(oobData7.position() + 16);
     }
 
-    if (!filled.get(158)) {
+    if (!filled.get(159)) {
       oobData8.position(oobData8.position() + 16);
     }
 
@@ -8579,7 +8590,7 @@ public class Trace {
       prcSuccessCallerWontRevertXorRdcx.position(prcSuccessCallerWontRevertXorRdcx.position() + 1);
     }
 
-    if (!filled.get(128)) {
+    if (!filled.get(129)) {
       priorityFeePerGas.position(priorityFeePerGas.position() + 8);
     }
 
@@ -8595,7 +8606,7 @@ public class Trace {
       refundCounter.position(refundCounter.position() + 4);
     }
 
-    if (!filled.get(129)) {
+    if (!filled.get(130)) {
       refundCounterInfinity.position(refundCounterInfinity.position() + 8);
     }
 
@@ -8603,28 +8614,28 @@ public class Trace {
       refundCounterNew.position(refundCounterNew.position() + 4);
     }
 
-    if (!filled.get(130)) {
+    if (!filled.get(131)) {
       refundEffective.position(refundEffective.position() + 8);
     }
 
-    if (!filled.get(117)) {
+    if (!filled.get(118)) {
       returnAtCapacityXorMxpInst.position(returnAtCapacityXorMxpInst.position() + 4);
     }
 
-    if (!filled.get(118)) {
+    if (!filled.get(119)) {
       returnAtOffsetXorOobInst.position(returnAtOffsetXorOobInst.position() + 4);
     }
 
-    if (!filled.get(119)) {
+    if (!filled.get(120)) {
       returnDataContextNumberXorStpGasStipend.position(
           returnDataContextNumberXorStpGasStipend.position() + 4);
     }
 
-    if (!filled.get(120)) {
+    if (!filled.get(121)) {
       returnDataOffsetXorStpInstruction.position(returnDataOffsetXorStpInstruction.position() + 4);
     }
 
-    if (!filled.get(121)) {
+    if (!filled.get(122)) {
       returnDataSize.position(returnDataSize.position() + 4);
     }
 
@@ -8662,12 +8673,12 @@ public class Trace {
           returnFromMessageCallWontTouchRamXorStackItemPop3.position() + 1);
     }
 
-    if (!filled.get(113)) {
+    if (!filled.get(114)) {
       rlpaddrDepAddrHiXorCallDataContextNumberXorMmuRefSize.position(
           rlpaddrDepAddrHiXorCallDataContextNumberXorMmuRefSize.position() + 4);
     }
 
-    if (!filled.get(138)) {
+    if (!filled.get(139)) {
       rlpaddrDepAddrLoXorMmuSrcOffsetHiXorValueOrigHi.position(
           rlpaddrDepAddrLoXorMmuSrcOffsetHiXorValueOrigHi.position() + 16);
     }
@@ -8678,31 +8689,30 @@ public class Trace {
               + 1);
     }
 
-    if (!filled.get(139)) {
+    if (!filled.get(140)) {
       rlpaddrKecHiXorMmuSrcOffsetLoXorValueOrigLo.position(
           rlpaddrKecHiXorMmuSrcOffsetLoXorValueOrigLo.position() + 16);
     }
 
-    if (!filled.get(140)) {
+    if (!filled.get(141)) {
       rlpaddrKecLoXorMmuTgtOffsetLo.position(rlpaddrKecLoXorMmuTgtOffsetLo.position() + 16);
     }
 
-    if (!filled.get(63)) {
-      rlpaddrRecipeXorStpOogxXorCreateAbortXorDecFlag4.position(
-          rlpaddrRecipeXorStpOogxXorCreateAbortXorDecFlag4.position() + 1);
-    }
-
-    if (!filled.get(141)) {
-      rlpaddrSaltHiXorMxpGasMxp.position(rlpaddrSaltHiXorMxpGasMxp.position() + 16);
+    if (!filled.get(105)) {
+      rlpaddrRecipe.position(rlpaddrRecipe.position() + 1);
     }
 
     if (!filled.get(142)) {
+      rlpaddrSaltHiXorMxpGasMxp.position(rlpaddrSaltHiXorMxpGasMxp.position() + 16);
+    }
+
+    if (!filled.get(143)) {
       rlpaddrSaltLoXorMxpOffset1Hi.position(rlpaddrSaltLoXorMxpOffset1Hi.position() + 16);
     }
 
-    if (!filled.get(64)) {
-      romlexFlagXorStpWarmthXorCreateEmptyInitCodeWillRevertXorDupFlag.position(
-          romlexFlagXorStpWarmthXorCreateEmptyInitCodeWillRevertXorDupFlag.position() + 1);
+    if (!filled.get(63)) {
+      romlexFlagXorStpOogxXorCreateAbortXorDecFlag4.position(
+          romlexFlagXorStpOogxXorCreateAbortXorDecFlag4.position() + 1);
     }
 
     if (!filled.get(93)) {
@@ -8724,67 +8734,67 @@ public class Trace {
           selfdestructWontRevertNotYetMarkedXorStoFlag.position() + 1);
     }
 
-    if (!filled.get(164)) {
+    if (!filled.get(165)) {
       stackItemHeight1.position(stackItemHeight1.position() + 32);
     }
 
-    if (!filled.get(165)) {
+    if (!filled.get(166)) {
       stackItemHeight2.position(stackItemHeight2.position() + 32);
     }
 
-    if (!filled.get(166)) {
+    if (!filled.get(167)) {
       stackItemHeight3.position(stackItemHeight3.position() + 32);
     }
 
-    if (!filled.get(167)) {
+    if (!filled.get(168)) {
       stackItemHeight4.position(stackItemHeight4.position() + 32);
     }
 
-    if (!filled.get(168)) {
+    if (!filled.get(169)) {
       stackItemStamp1.position(stackItemStamp1.position() + 32);
     }
 
-    if (!filled.get(169)) {
+    if (!filled.get(170)) {
       stackItemStamp2.position(stackItemStamp2.position() + 32);
     }
 
-    if (!filled.get(170)) {
+    if (!filled.get(171)) {
       stackItemStamp3.position(stackItemStamp3.position() + 32);
     }
 
-    if (!filled.get(171)) {
+    if (!filled.get(172)) {
       stackItemStamp4.position(stackItemStamp4.position() + 32);
     }
 
-    if (!filled.get(172)) {
+    if (!filled.get(173)) {
       stackItemValueHi1.position(stackItemValueHi1.position() + 32);
     }
 
-    if (!filled.get(173)) {
+    if (!filled.get(174)) {
       stackItemValueHi2.position(stackItemValueHi2.position() + 32);
     }
 
-    if (!filled.get(174)) {
+    if (!filled.get(175)) {
       stackItemValueHi3.position(stackItemValueHi3.position() + 32);
     }
 
-    if (!filled.get(175)) {
+    if (!filled.get(176)) {
       stackItemValueHi4.position(stackItemValueHi4.position() + 32);
     }
 
-    if (!filled.get(176)) {
+    if (!filled.get(177)) {
       stackItemValueLo1.position(stackItemValueLo1.position() + 32);
     }
 
-    if (!filled.get(177)) {
+    if (!filled.get(178)) {
       stackItemValueLo2.position(stackItemValueLo2.position() + 32);
     }
 
-    if (!filled.get(178)) {
+    if (!filled.get(179)) {
       stackItemValueLo3.position(stackItemValueLo3.position() + 32);
     }
 
-    if (!filled.get(179)) {
+    if (!filled.get(180)) {
       stackItemValueLo4.position(stackItemValueLo4.position() + 32);
     }
 
@@ -8796,24 +8806,24 @@ public class Trace {
       stoFirst.position(stoFirst.position() + 1);
     }
 
-    if (!filled.get(159)) {
+    if (!filled.get(160)) {
       stpGasHi.position(stpGasHi.position() + 16);
     }
 
-    if (!filled.get(160)) {
+    if (!filled.get(161)) {
       stpGasLo.position(stpGasLo.position() + 16);
     }
 
-    if (!filled.get(124)) {
+    if (!filled.get(125)) {
       stpGasUpfrontGasCostXorGasLeftover.position(
           stpGasUpfrontGasCostXorGasLeftover.position() + 8);
     }
 
-    if (!filled.get(161)) {
+    if (!filled.get(162)) {
       stpValueHi.position(stpValueHi.position() + 16);
     }
 
-    if (!filled.get(162)) {
+    if (!filled.get(163)) {
       stpValueLo.position(stpValueLo.position() + 16);
     }
 
@@ -8829,12 +8839,12 @@ public class Trace {
       swapFlag.position(swapFlag.position() + 1);
     }
 
-    if (!filled.get(65)) {
-      trmFlagXorCreateEmptyInitCodeWontRevertXorExtFlag.position(
-          trmFlagXorCreateEmptyInitCodeWontRevertXorExtFlag.position() + 1);
+    if (!filled.get(64)) {
+      trmFlagXorStpWarmthXorCreateEmptyInitCodeWillRevertXorDupFlag.position(
+          trmFlagXorStpWarmthXorCreateEmptyInitCodeWillRevertXorDupFlag.position() + 1);
     }
 
-    if (!filled.get(143)) {
+    if (!filled.get(144)) {
       trmRawAddressHiXorMxpOffset1Lo.position(trmRawAddressHiXorMxpOffset1Lo.position() + 16);
     }
 
@@ -8866,14 +8876,14 @@ public class Trace {
       txnFlag.position(txnFlag.position() + 1);
     }
 
-    if (!filled.get(67)) {
-      warmthNewXorCreateFailureConditionWillRevertXorHashInfoFlag.position(
-          warmthNewXorCreateFailureConditionWillRevertXorHashInfoFlag.position() + 1);
+    if (!filled.get(66)) {
+      warmthNewXorCreateExceptionXorHaltFlag.position(
+          warmthNewXorCreateExceptionXorHaltFlag.position() + 1);
     }
 
-    if (!filled.get(66)) {
-      warmthXorCreateExceptionXorHaltFlag.position(
-          warmthXorCreateExceptionXorHaltFlag.position() + 1);
+    if (!filled.get(65)) {
+      warmthXorCreateEmptyInitCodeWontRevertXorExtFlag.position(
+          warmthXorCreateEmptyInitCodeWontRevertXorExtFlag.position() + 1);
     }
 
     if (!filled.get(100)) {

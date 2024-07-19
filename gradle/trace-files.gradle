@@ -29,7 +29,7 @@
 //
 tasks.register("hub", TraceFilesTask) {
     group "Trace files generation"
-    dependsOn corsetExists
+    // dependsOn corsetExists
 
     module = 'hub'
     files = ['hub/constants.lisp', 'hub/columns/account.lisp', 'hub/columns/context.lisp', 'hub/columns/shared.lisp', 'hub/columns/stack.lisp',

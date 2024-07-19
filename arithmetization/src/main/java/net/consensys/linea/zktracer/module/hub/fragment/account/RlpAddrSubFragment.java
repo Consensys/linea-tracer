@@ -59,7 +59,7 @@ public class RlpAddrSubFragment implements TraceSubFragment {
   public Trace trace(Trace trace) {
     return trace
         .pAccountRlpaddrFlag(true)
-        .pAccountRlpaddrRecipe(recipe == 2) // TODO: regenerate Trace.java and update it
+        .pAccountRlpaddrRecipe(recipe)
         .pAccountRlpaddrDepAddrHi(highPart(depAddress))
         .pAccountRlpaddrDepAddrLo(lowPart(depAddress))
         .pAccountRlpaddrSaltHi(salt.slice(0, LLARGE))

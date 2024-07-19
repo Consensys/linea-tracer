@@ -33,8 +33,7 @@ import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class ReturnSection
-    extends TraceSection implements PostTransactionDefer, PostRollbackDefer {
+public class ReturnSection extends TraceSection implements PostTransactionDefer, PostRollbackDefer {
 
   final short exceptions;
   final ImcFragment imcFragment;
@@ -101,12 +100,9 @@ public class ReturnSection
   }
 
   @Override
-  public void resolvePostRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
-
-  }
+  public void resolvePostRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {}
 
   @Override
-  public void resolvePostTransaction(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
-
-  }
+  public void resolvePostTransaction(
+      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {}
 }

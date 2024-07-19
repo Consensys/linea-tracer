@@ -35,7 +35,7 @@ import java.util.Set;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.consensys.linea.config.LineaL1L2BridgeConfiguration;
+import net.consensys.linea.plugins.config.LineaL1L2BridgeConfiguration;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.Pin55;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -231,7 +231,6 @@ public class ZkTracer implements ConflationAwareOperationTracer {
     }
   }
 
-  @Override
   public void traceEndTransaction(
       WorldView worldView,
       Transaction tx,
@@ -323,6 +322,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   public Map<String, Integer> getModulesLineCount() {
     maybeThrowTracingExceptions();
     final HashMap<String, Integer> modulesLineCount = new HashMap<>();
+
     hub.getModulesToCount()
         .forEach(
             m ->
@@ -336,7 +336,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
                                         "Module "
                                             + m.moduleKey()
                                             + " not found in spillings.toml"))));
-    modulesLineCount.put("BLOCK_TX", hub.cumulatedTxCount());
+    modulesLineCount.put("BLOCK_TRANSACTIONS", hub.cumulatedTxCount());
     return modulesLineCount;
   }
 

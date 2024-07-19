@@ -17,6 +17,8 @@ package net.consensys.linea.zktracer.module.hub.section.halt;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.ReturnScenarioFragment.ReturnScenario.RETURN_EXCEPTION;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
+import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
@@ -26,9 +28,13 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.XCa
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.ReturnScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
+import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
+import org.hyperledger.besu.datatypes.Transaction;
+import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class ReturnSection
-    extends TraceSection { // implements PostTransactionDefer, PostRollbackDefer {
+    extends TraceSection implements PostTransactionDefer, PostRollbackDefer {
 
   final short exceptions;
   final ImcFragment imcFragment;
@@ -37,6 +43,7 @@ public class ReturnSection
   boolean triggerOob = false;
   boolean triggerHashInfo = false;
   boolean messageCallTouchesRam = false;
+  boolean returnFromDeployment;
 
   public ReturnSection(Hub hub) {
     // 5 = 1 + 4
@@ -57,6 +64,9 @@ public class ReturnSection
     this.addFragment(currentContextFragment);
     this.addFragment(imcFragment);
 
+    // Exceptional RETURN's
+    ///////////////////////
+
     if (Exceptions.any(exceptions)) {
       returnScenarioFragment.setScenario(RETURN_EXCEPTION);
     }
@@ -75,12 +85,28 @@ public class ReturnSection
 
     final boolean triggerMmuForInvalidCodePrefix = Exceptions.invalidCodePrefix(exceptions);
     if (triggerMmuForInvalidCodePrefix) {
-      // mmuCall = MmuCall.invalidCodePrefix(); TODO:
+      // TODO: @françois: invalidCodePrefix currently unavailable
+      // mmuCall = MmuCall.invalidCodePrefix();
     }
+
+    // Unexceptional RETURN's
+    /////////////////////////
 
     final boolean triggerOobForNonemptyDeployments =
         Exceptions.none(exceptions)
             && hub.currentFrame().isDeployment()
             && mxpCall.isMayTriggerNonTrivialMmuOperation();
+
+    // returnFromDeployment =
+  }
+
+  @Override
+  public void resolvePostRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
+
+  }
+
+  @Override
+  public void resolvePostTransaction(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+
   }
 }

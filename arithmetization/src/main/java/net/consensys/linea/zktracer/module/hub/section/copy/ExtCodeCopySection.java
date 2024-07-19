@@ -70,9 +70,10 @@ public class ExtCodeCopySection extends TraceSection
         hub.transients().conflation().deploymentInfo().isDeploying(this.address);
     this.incomingWarmth = frame.isAddressWarm(this.address);
     this.exceptions = hub.pch().exceptions();
+    this.miscFragment = ImcFragment.empty(hub);
 
-    miscFragment = ImcFragment.empty(hub);
-    this.addFragmentsAndStack(hub, miscFragment);
+    this.addStack(hub);
+    this.addFragment(this.miscFragment);
 
     // triggerExp = false
     // triggerOob = false
@@ -80,7 +81,7 @@ public class ExtCodeCopySection extends TraceSection
 
     // triggerMxp = true
     final MxpCall mxpCall = new MxpCall(hub);
-    miscFragment.callMxp(mxpCall);
+    this.miscFragment.callMxp(mxpCall);
 
     Preconditions.checkArgument(
         mxpCall.mxpx == Exceptions.memoryExpansionException(this.exceptions));

@@ -20,9 +20,14 @@ import static net.consensys.linea.zktracer.types.AddressUtils.highPart;
 import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
 
 import lombok.RequiredArgsConstructor;
+import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
+import net.consensys.linea.zktracer.module.hub.transients.OperationAncillaries;
+import net.consensys.linea.zktracer.opcode.OpCode;
+import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
+import org.hyperledger.besu.crypto.Hash;
 import org.hyperledger.besu.datatypes.Address;
 
 @RequiredArgsConstructor
@@ -32,21 +37,29 @@ public class RlpAddrSubFragment implements TraceSubFragment {
   private final Bytes32 salt;
   private final Bytes32 keccak;
 
-  public static RlpAddrSubFragment rlpAddrSubFragmentForCreate2(
-      final Address depAddress, final Bytes32 Salt, final Bytes32 Keccak) {
-    return new RlpAddrSubFragment((short) 2, depAddress, Salt, Keccak);
-  }
-
-  public static RlpAddrSubFragment rlpAddrSubFragmentForCreate(final Address depAddress) {
-    return new RlpAddrSubFragment(
-        (short) 1, depAddress, (Bytes32) Bytes32.EMPTY, (Bytes32) Bytes32.EMPTY);
+  public static RlpAddrSubFragment makeFragment(Hub hub, Address createdAddress) {
+    final OpCode currentOpCode = hub.opCode();
+    switch (currentOpCode) {
+      case CREATE2 -> {
+        final Bytes32 salt = Bytes32.leftPad(hub.currentFrame().frame().getStackItem(3));
+        final Bytes initCode = OperationAncillaries.callData(hub.currentFrame().frame());
+        final Bytes32 hash =
+            Hash.keccak256(initCode); // TODO: could be done better, we compute the HASH two times
+        return new RlpAddrSubFragment((short) 2, createdAddress, salt, hash);
+      }
+      case CREATE -> {
+        return new RlpAddrSubFragment(
+            (short) 1, createdAddress, (Bytes32) Bytes32.EMPTY, (Bytes32) Bytes32.EMPTY);
+      }
+      default -> throw new IllegalStateException("Unexpected value: " + currentOpCode);
+    }
   }
 
   @Override
   public Trace trace(Trace trace) {
     return trace
         .pAccountRlpaddrFlag(true)
-        .pAccountRlpaddrRecipe(recipe == 2)
+        .pAccountRlpaddrRecipe(recipe == 2) // TODO: regenerate Trace.java and update it
         .pAccountRlpaddrDepAddrHi(highPart(depAddress))
         .pAccountRlpaddrDepAddrLo(lowPart(depAddress))
         .pAccountRlpaddrSaltHi(salt.slice(0, LLARGE))

@@ -25,6 +25,7 @@ import net.consensys.linea.zktracer.module.hub.defer.PostExecDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.defer.ReEnterContextDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.account.RlpAddrSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.StpCall;
@@ -62,7 +63,10 @@ public class CreateSection implements PostExecDefer, ReEnterContextDefer, PostTr
   private AccountSnapshot newCreatorSnapshot;
   private AccountSnapshot newCreatedSnapshot;
 
-  private boolean createSuccessful;
+  private RlpAddrSubFragment rlpAddrSubFragment;
+
+  /* true if the CREATE was successful **/
+  private boolean createSuccessful = false;
 
   /* true if the putatively created account already has code **/
   private boolean targetHasCode() {
@@ -134,6 +138,8 @@ public class CreateSection implements PostExecDefer, ReEnterContextDefer, PostTr
     hub.defers().reEntry(this);
     hub.defers().schedulePostTransaction(this);
 
+    this.creatorContextId = hub.currentFrame().id();
+
     final Address createdAddress = getCreateAddress(frame);
     final Account createdAccount = frame.getWorldUpdater().get(createdAddress);
     oldCreatedSnapshot =
@@ -142,6 +148,8 @@ public class CreateSection implements PostExecDefer, ReEnterContextDefer, PostTr
             frame.isAddressWarm(createdAddress),
             hub.transients().conflation().deploymentInfo().number(createdAddress),
             hub.transients().conflation().deploymentInfo().isDeploying(createdAddress));
+
+    rlpAddrSubFragment = RlpAddrSubFragment.makeFragment(hub, createdAddress);
 
     failure = hub.pch().failureConditions().any();
     emptyInitCode = hub.transients().op().callDataSegment().isEmpty();
@@ -188,7 +196,7 @@ public class CreateSection implements PostExecDefer, ReEnterContextDefer, PostTr
 
   @Override
   public void resolveAtContextReEntry(Hub hub, MessageFrame frame) {
-    this.createSuccessful = !frame.getStackItem(0).isZero();
+    this.createSuccessful = !frame.getStackItem(0).isZero(); // TODO: are we sure it's working ??
 
     final Address creatorAddress = oldCreatorSnapshot.address();
     this.newCreatorSnapshot =
@@ -210,12 +218,14 @@ public class CreateSection implements PostExecDefer, ReEnterContextDefer, PostTr
   @Override
   public void resolvePostTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+
     if (this.mmuCall != null) {
       this.imcFragment.callMmu(this.mmuCall);
     }
 
     this.createSection.fillAccountFragment(
         hub,
+        rlpAddrSubFragment,
         oldCreatorSnapshot,
         midCreatorSnapshot,
         newCreatorSnapshot,
@@ -223,9 +233,19 @@ public class CreateSection implements PostExecDefer, ReEnterContextDefer, PostTr
         midCreatedSnapshot,
         newCreatedSnapshot);
 
-    if (hub.callStack().getById(this.creatorContextId).hasReverted()) {
+    final CallFrame createCallFrame = hub.callStack().getById(this.creatorContextId);
+    if (createCallFrame.hasReverted()) {
+      final int childRevertStamp =
+          createCallFrame.childFrames().isEmpty()
+              ? 0
+              : hub.callStack()
+                  .getById(createCallFrame.childFrames().getFirst())
+                  .revertStamp(); // TODO: not sure about this
+      final int currentRevertStamp = createCallFrame.revertStamp();
       this.createSection.fillReverting(
           hub,
+          childRevertStamp,
+          currentRevertStamp,
           oldCreatorSnapshot,
           midCreatorSnapshot,
           newCreatorSnapshot,

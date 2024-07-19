@@ -18,6 +18,7 @@ package net.consensys.linea.zktracer.module.hub.section.create;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.account.RlpAddrSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 
@@ -31,10 +32,26 @@ public class NonEmptyInitCodeCreate extends TraceSection implements FillCreateSe
   @Override
   public void fillAccountFragment(
       Hub hub,
+      RlpAddrSubFragment rlpAddrSubFragment,
       AccountSnapshot oldCreatorSnapshot,
       AccountSnapshot midCreatorSnapshot,
       AccountSnapshot newCreatorSnapshot,
       AccountSnapshot oldCreatedSnapshot,
       AccountSnapshot midCreatedSnapshot,
       AccountSnapshot newCreatedSnapshot) {}
+
+  @Override
+  public void fillReverting(
+      Hub hub,
+      int childRevertStamp,
+      int currentRevertStamp,
+      AccountSnapshot oldCreatorSnapshot,
+      AccountSnapshot midCreatorSnapshot,
+      AccountSnapshot newCreatorSnapshot,
+      AccountSnapshot oldCreatedSnapshot,
+      AccountSnapshot midCreatedSnapshot,
+      AccountSnapshot newCreatedSnapshot) {}
+
+  @Override
+  public void fillContextFragment(ContextFragment contextFragment) {}
 }

@@ -18,10 +18,12 @@ package net.consensys.linea.zktracer.module.hub.section.create;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.account.RlpAddrSubFragment;
 
 public interface FillCreateSection {
   void fillAccountFragment(
       final Hub hub,
+      final RlpAddrSubFragment rlpAddrSubFragment,
       final AccountSnapshot oldCreatorSnapshot,
       final AccountSnapshot midCreatorSnapshot,
       final AccountSnapshot newCreatorSnapshot,
@@ -31,6 +33,8 @@ public interface FillCreateSection {
 
   void fillReverting(
       final Hub hub,
+      final int childRevertStamp,
+      final int currentRevertStamp,
       final AccountSnapshot oldCreatorSnapshot,
       final AccountSnapshot midCreatorSnapshot,
       final AccountSnapshot newCreatorSnapshot,

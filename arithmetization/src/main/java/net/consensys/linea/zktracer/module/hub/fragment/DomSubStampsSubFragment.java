@@ -39,6 +39,7 @@ public class DomSubStampsSubFragment implements TraceSubFragment {
   final int childRevertStamp;
   final int transactionEndStamp;
 
+  // TODO: to be use with care, as stamps might have changed
   public static DomSubStampsSubFragment standardDomSubStamps(final Hub hub, final int domOffset) {
     return new DomSubStampsSubFragment(DomSubType.STANDARD, hub.stamp(), domOffset, 0, 0, 0, 0);
   }
@@ -47,6 +48,7 @@ public class DomSubStampsSubFragment implements TraceSubFragment {
     return new DomSubStampsSubFragment(DomSubType.STANDARD, h, domOffset, 0, 0, 0, 0);
   }
 
+  // TODO: to be use with care, as stamps might have changed
   public static DomSubStampsSubFragment revertWithCurrentDomSubStamps(
       final Hub hub, final int subOffset) {
     return new DomSubStampsSubFragment(
@@ -59,12 +61,26 @@ public class DomSubStampsSubFragment implements TraceSubFragment {
         0);
   }
 
+  public static DomSubStampsSubFragment revertWithCurrentDomSubStamps(
+      final int h, final int revertStamp, final int subOffset) {
+    return new DomSubStampsSubFragment(
+        DomSubType.REVERTS_WITH_CURRENT, h, 0, subOffset, revertStamp, 0, 0);
+  }
+
+  // TODO: to be use with care, as stamps might have changed
   public static DomSubStampsSubFragment revertsWithChildDomSubStamps(
       final Hub hub, final CallFrame child, final int subOffset) {
     return new DomSubStampsSubFragment(
         DomSubType.REVERTS_WITH_CHILD, hub.stamp(), 0, subOffset, 0, child.revertStamp(), 0);
   }
 
+  public static DomSubStampsSubFragment revertsWithChildDomSubStamps(
+      final int h, final int childRevertStamp, final int subOffset) {
+    return new DomSubStampsSubFragment(
+        DomSubType.REVERTS_WITH_CHILD, h, 0, subOffset, 0, childRevertStamp, 0);
+  }
+
+  // TODO: to be use with care, as stamps might have changed
   public static DomSubStampsSubFragment selfdestructDomSubStamps(final Hub hub) {
     return new DomSubStampsSubFragment(
         DomSubType.SELFDESTRUCT,

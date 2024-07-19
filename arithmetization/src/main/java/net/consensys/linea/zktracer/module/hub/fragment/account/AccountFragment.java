@@ -108,7 +108,9 @@ public final class AccountFragment
 
     // tracing
     this.domSubStampsSubFragment.trace(trace);
-    this.rlpAddrSubFragment.trace(trace);
+    if (rlpAddrSubFragment != null) {
+      this.rlpAddrSubFragment.trace(trace);
+    }
 
     return trace
         .peekAtAccount(true)

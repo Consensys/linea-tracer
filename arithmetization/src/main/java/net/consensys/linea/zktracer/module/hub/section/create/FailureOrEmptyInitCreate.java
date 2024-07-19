@@ -52,6 +52,8 @@ public class FailureOrEmptyInitCreate extends TraceSection implements FillCreate
   @Override
   public void fillAccountFragment(
       Hub hub,
+      boolean createSuccess,
+      int childRevertStamp,
       RlpAddrSubFragment rlpAddrSubFragment,
       AccountSnapshot oldCreatorSnapshot,
       AccountSnapshot midCreatorSnapshot,
@@ -81,7 +83,7 @@ public class FailureOrEmptyInitCreate extends TraceSection implements FillCreate
   @Override
   public void fillReverting(
       Hub hub,
-      int childRevertStamp,
+      boolean createSuccess,
       int currentRevertStamp,
       AccountSnapshot oldCreatorSnapshot,
       AccountSnapshot midCreatorSnapshot,

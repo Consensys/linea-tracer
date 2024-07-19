@@ -77,13 +77,13 @@ public class CreateSection implements PostExecDefer, ReEnterContextDefer, PostTr
   private final ImcFragment imcFragment;
   private MmuCall mmuCall;
 
-  // row i+ ?
+  // row i+?
   private ContextFragment lastContextFragment;
 
   public CreateSection(Hub hub) {
     final short exception = hub.pch().exceptions();
 
-    // row i +1
+    // row i + 1
     final ContextFragment commonContext = ContextFragment.readCurrentContextData(hub);
 
     imcFragment = ImcFragment.empty(hub);
@@ -167,6 +167,8 @@ public class CreateSection implements PostExecDefer, ReEnterContextDefer, PostTr
 
     // Finally, non-exceptional, non-aborting, non-failing, non-emptyInitCode create
     this.createSection = new NonEmptyInitCodeCreate(hub, commonContext, imcFragment);
+    this.mmuCall = hub.opCode() == OpCode.CREATE2 ? MmuCall.create2(hub) : MmuCall.create(hub);
+    this.lastContextFragment = ContextFragment.initializeExecutionContext(hub);
   }
 
   @Override
@@ -223,8 +225,17 @@ public class CreateSection implements PostExecDefer, ReEnterContextDefer, PostTr
       this.imcFragment.callMmu(this.mmuCall);
     }
 
+    final CallFrame createCallFrame = hub.callStack().getById(this.creatorContextId);
+    final int childRevertStamp =
+        createCallFrame.childFrames().isEmpty()
+            ? 0
+            : hub.callStack()
+                .getById(createCallFrame.childFrames().getFirst())
+                .revertStamp(); // TODO: not sure about this
     this.createSection.fillAccountFragment(
         hub,
+        createSuccessful,
+        childRevertStamp,
         rlpAddrSubFragment,
         oldCreatorSnapshot,
         midCreatorSnapshot,
@@ -233,18 +244,11 @@ public class CreateSection implements PostExecDefer, ReEnterContextDefer, PostTr
         midCreatedSnapshot,
         newCreatedSnapshot);
 
-    final CallFrame createCallFrame = hub.callStack().getById(this.creatorContextId);
     if (createCallFrame.hasReverted()) {
-      final int childRevertStamp =
-          createCallFrame.childFrames().isEmpty()
-              ? 0
-              : hub.callStack()
-                  .getById(createCallFrame.childFrames().getFirst())
-                  .revertStamp(); // TODO: not sure about this
       final int currentRevertStamp = createCallFrame.revertStamp();
       this.createSection.fillReverting(
           hub,
-          childRevertStamp,
+          createSuccessful,
           currentRevertStamp,
           oldCreatorSnapshot,
           midCreatorSnapshot,

@@ -17,6 +17,8 @@ package net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.opcode;
 
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_RAM_TO_EXO_WITH_PADDING;
 
+import java.util.Optional;
+
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.romlex.ContractMetadata;
@@ -38,6 +40,11 @@ public class Create extends MmuCall implements RomLexDefer {
     this.hub.romLex().createDefers().register(this);
 
     this.sourceId(hub.currentFrame().contextNumber())
+        .sourceRamBytes(
+            Optional.of(
+                hub.currentFrame()
+                    .frame()
+                    .shadowReadMemory(0, hub.currentFrame().frame().memoryByteSize())))
         .sourceOffset(EWord.of(hub.messageFrame().getStackItem(1)))
         .size(Words.clampedToLong(hub.messageFrame().getStackItem(2)))
         .referenceSize(Words.clampedToLong(hub.messageFrame().getStackItem(2)))

@@ -18,7 +18,6 @@ package net.consensys.linea.zktracer.module.hub;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.*;
 import static net.consensys.linea.zktracer.module.hub.Trace.MULTIPLIER___STACK_HEIGHT;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
-import static net.consensys.linea.zktracer.types.AddressUtils.getCreateAddress;
 
 import java.nio.MappedByteBuffer;
 import java.util.HashMap;
@@ -1151,32 +1150,7 @@ public class Hub implements Module {
         }
       }
 
-      case CREATE -> {
-        new CreateSection(this);
-
-        final Address myAddress = this.currentFrame().accountAddress();
-        final Account myAccount = frame.getWorldUpdater().get(myAddress);
-        AccountSnapshot myAccountSnapshot =
-            AccountSnapshot.fromAccount(
-                myAccount,
-                frame.isAddressWarm(myAddress),
-                this.transients.conflation().deploymentInfo().number(myAddress),
-                this.transients.conflation().deploymentInfo().isDeploying(myAddress));
-
-        final Address createdAddress = getCreateAddress(frame);
-        final Account createdAccount = frame.getWorldUpdater().get(createdAddress);
-        AccountSnapshot createdAccountSnapshot =
-            AccountSnapshot.fromAccount(
-                createdAccount,
-                frame.isAddressWarm(createdAddress),
-                this.transients.conflation().deploymentInfo().number(createdAddress),
-                this.transients.conflation().deploymentInfo().isDeploying(createdAddress));
-
-        CreateSectionOld createSection =
-            new CreateSectionOld(this, myAccountSnapshot, createdAccountSnapshot);
-        this.addTraceSection(createSection);
-        this.currentFrame().needsUnlatchingAtReEntry(createSection);
-      }
+      case CREATE -> new CreateSection(this);
 
       case CALL -> {
         final Address myAddress = this.currentFrame().accountAddress();

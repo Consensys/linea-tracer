@@ -23,6 +23,8 @@ import net.consensys.linea.zktracer.module.hub.fragment.account.RlpAddrSubFragme
 public interface FillCreateSection {
   void fillAccountFragment(
       final Hub hub,
+      final boolean createSuccess,
+      final int childRevertStamp,
       final RlpAddrSubFragment rlpAddrSubFragment,
       final AccountSnapshot oldCreatorSnapshot,
       final AccountSnapshot midCreatorSnapshot,
@@ -33,7 +35,7 @@ public interface FillCreateSection {
 
   void fillReverting(
       final Hub hub,
-      final int childRevertStamp,
+      final boolean createSuccess,
       final int currentRevertStamp,
       final AccountSnapshot oldCreatorSnapshot,
       final AccountSnapshot midCreatorSnapshot,

@@ -47,12 +47,13 @@ public class L2Block implements Module {
 
   /** The byte size of the RLP-encoded transaction of the conflation */
   @Getter private final Deque<Integer> sizesRlpEncodedTxs = new ArrayDeque<>();
+
   /** The byte size of the L2->L1 logs messages of the conflation */
   @Getter private final Deque<List<Integer>> l2l1LogSizes = new ArrayDeque<>();
 
   @Override
   public String moduleKey() {
-    return "BLOCK_L1SIZE";
+    return "BLOCK_L1_SIZE";
   }
 
   @Override

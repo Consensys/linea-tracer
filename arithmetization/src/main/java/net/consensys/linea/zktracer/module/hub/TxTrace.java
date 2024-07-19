@@ -33,12 +33,15 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 public class TxTrace implements PostTransactionDefer {
   /** The {@link TraceSection} of which this transaction trace is made of */
   @Getter private final List<TraceSection> trace = new ArrayList<>();
+
   /** A cache for the line count of this transaction */
   private int cachedLineCount = 0;
 
   private long refundedGas = -1;
   @Getter private long leftoverGas = -1;
   @Getter private long gasRefundFinalCounter = 0; // TODO:
+
+  private static final int PARALLELIZATION_THRESHOLD = 10_000;
 
   public int size() {
     return this.trace.size();
@@ -71,16 +74,22 @@ public class TxTrace implements PostTransactionDefer {
   }
 
   public long refundedGas() {
-    if (this.refundedGas == -1) {
-      this.refundedGas = 0;
-      for (TraceSection section : this.trace) {
-        if (!section.hasReverted()) {
-          this.refundedGas += section.refundDelta();
+    if (this.trace.size() >= PARALLELIZATION_THRESHOLD) {
+      return this.trace.parallelStream()
+          .filter(section -> !section.hasReverted())
+          .mapToLong(TraceSection::refundDelta)
+          .sum();
+    } else {
+      if (this.refundedGas == -1) {
+        this.refundedGas = 0;
+        for (TraceSection section : this.trace) {
+          if (!section.hasReverted()) {
+            this.refundedGas += section.refundDelta();
+          }
         }
       }
+      return this.refundedGas;
     }
-
-    return this.refundedGas;
   }
 
   @Override

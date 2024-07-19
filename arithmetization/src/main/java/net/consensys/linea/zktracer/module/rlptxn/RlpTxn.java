@@ -88,7 +88,7 @@ public class RlpTxn implements Module {
 
   @Override
   public String moduleKey() {
-    return "TX_RLP";
+    return "RLP_TXN";
   }
 
   public static final Bytes BYTES_PREFIX_SHORT_INT = Bytes.of(RLP_PREFIX_INT_SHORT);
@@ -140,7 +140,7 @@ public class RlpTxn implements Module {
     traceValue.requiresEvmExecution = chunk.requireEvmExecution();
     traceValue.codeFragmentIndex =
         chunk.tx().getTo().isEmpty() && chunk.requireEvmExecution()
-            ? this.romLex.getCfiByMetadata(
+            ? this.romLex.getCodeFragmentIndexByMetadata(
                 ContractMetadata.underDeployment(
                     Address.contractAddress(chunk.tx().getSender(), chunk.tx().getNonce()), 1))
             : 0;
@@ -1065,6 +1065,7 @@ public class RlpTxn implements Module {
     traceValue.phaseEnd = phaseEnd;
     traceRow(traceValue, trace);
   }
+
   // Define the Tracer
   private void traceRow(RlpTxnColumnsValue traceValue, Trace builder) {
     // Decrements RLP_BYTESIZE

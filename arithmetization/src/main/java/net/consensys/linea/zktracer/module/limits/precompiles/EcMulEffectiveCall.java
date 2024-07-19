@@ -40,7 +40,7 @@ public final class EcMulEffectiveCall implements Module {
 
   @Override
   public String moduleKey() {
-    return "PRECOMPILE_ECMUL_EFFECTIVE_CALL";
+    return "PRECOMPILE_ECMUL_EFFECTIVE_CALLS";
   }
 
   private static final int PRECOMPILE_GAS_FEE = 6000; // cf EIP-1108
@@ -59,15 +59,12 @@ public final class EcMulEffectiveCall implements Module {
   public void tracePreOpcode(MessageFrame frame) {
     final OpCode opCode = hub.opCode();
 
-    switch (opCode) {
-      case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
-        final Address target = Words.toAddress(frame.getStackItem(1));
-        if (target.equals(Address.ALTBN128_MUL)
-            && hub.transients().op().gasAllowanceForCall() >= PRECOMPILE_GAS_FEE) {
-          this.counts.push(this.counts.pop() + 1);
-        }
+    if (opCode.isCall()) {
+      final Address target = Words.toAddress(frame.getStackItem(1));
+      if (target.equals(Address.ALTBN128_MUL)
+          && hub.transients().op().gasAllowanceForCall() >= PRECOMPILE_GAS_FEE) {
+        this.counts.push(this.counts.pop() + 1);
       }
-      default -> {}
     }
   }
 

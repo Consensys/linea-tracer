@@ -26,24 +26,16 @@ public enum OobDataChannel {
   DATA_8;
 
   public static OobDataChannel of(int i) {
-    if (i == 0) {
-      return DATA_1;
-    } else if (i == 1) {
-      return DATA_2;
-    } else if (i == 2) {
-      return DATA_3;
-    } else if (i == 3) {
-      return DATA_4;
-    } else if (i == 4) {
-      return DATA_5;
-    } else if (i == 5) {
-      return DATA_6;
-    } else if (i == 6) {
-      return DATA_7;
-    } else if (i == 7) {
-      return DATA_8;
-    }
-
-    throw new IllegalArgumentException("unknown OOB data channel");
+    return switch (i) {
+      case 0 -> DATA_1;
+      case 1 -> DATA_2;
+      case 2 -> DATA_3;
+      case 3 -> DATA_4;
+      case 4 -> DATA_5;
+      case 5 -> DATA_6;
+      case 6 -> DATA_7;
+      case 7 -> DATA_8;
+      default -> throw new IllegalArgumentException("unknown OOB data channel: %d".formatted(i));
+    };
   }
 }

@@ -61,35 +61,12 @@ publishing {
   }
 }
 
-artifacts {
-  archives tasks.distTar
-  archives tasks.distZip
-}
-
 tasks.register('cloudsmithUpload') {
-  dependsOn([distTar, distZip])
   doLast {
     exec {
-      executable project.file("scripts/cloudsmith-upload.sh")
-      args rootProject.version, distTar.archiveFile.get(), distZip.archiveFile.get()
+      executable rootProject.file("scripts/cloudsmith-upload.sh")
+      args rootProject.version, project.layout.buildDirectory.get()
     }
   }
 }
 
-tasks.register("verifyDistributions") {
-  dependsOn distTar
-  dependsOn distZip
-  def distTarFile = distTar.outputs.files.singleFile
-  def distZipFile = distZip.outputs.files.singleFile
-  def minDistributionSize = 20000000
-
-  // Sanity check the distributions by checking they are at least a reasonable size
-  doFirst {
-    if (distTarFile.length() < minDistributionSize) {
-      throw new GradleException("Distribution tar is suspiciously small: " + distTarFile.length() + " bytes")
-    }
-    if (distZipFile.length() < minDistributionSize) {
-      throw new GradleException("Distribution zip is suspiciously small: " + distZipFile.length() + " bytes")
-    }
-  }
-}

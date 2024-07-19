@@ -17,7 +17,7 @@ import java.time.LocalTime
 
 apply plugin: 'jacoco'
 jacoco {
-  toolVersion = '0.8.8'
+  toolVersion = '0.8.12'
 }
 
 /*
@@ -50,6 +50,7 @@ test {
     '--add-opens',
     'java.base/java.util.concurrent=ALL-UNNAMED'
   ]
+
   Set toImport = [
     'root.log.level',
     'evm.log.level'

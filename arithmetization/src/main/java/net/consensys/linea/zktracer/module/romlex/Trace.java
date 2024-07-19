@@ -37,6 +37,8 @@ public class Trace {
   private final MappedByteBuffer addressLo;
   private final MappedByteBuffer codeFragmentIndex;
   private final MappedByteBuffer codeFragmentIndexInfty;
+  private final MappedByteBuffer codeHashHi;
+  private final MappedByteBuffer codeHashLo;
   private final MappedByteBuffer codeSize;
   private final MappedByteBuffer commitToState;
   private final MappedByteBuffer deploymentNumber;
@@ -45,13 +47,15 @@ public class Trace {
 
   static List<ColumnHeader> headers(int length) {
     return List.of(
-        new ColumnHeader("romlex.ADDRESS_HI", 8, length),
-        new ColumnHeader("romlex.ADDRESS_LO", 32, length),
-        new ColumnHeader("romlex.CODE_FRAGMENT_INDEX", 8, length),
-        new ColumnHeader("romlex.CODE_FRAGMENT_INDEX_INFTY", 8, length),
-        new ColumnHeader("romlex.CODE_SIZE", 8, length),
+        new ColumnHeader("romlex.ADDRESS_HI", 4, length),
+        new ColumnHeader("romlex.ADDRESS_LO", 16, length),
+        new ColumnHeader("romlex.CODE_FRAGMENT_INDEX", 4, length),
+        new ColumnHeader("romlex.CODE_FRAGMENT_INDEX_INFTY", 4, length),
+        new ColumnHeader("romlex.CODE_HASH_HI", 16, length),
+        new ColumnHeader("romlex.CODE_HASH_LO", 16, length),
+        new ColumnHeader("romlex.CODE_SIZE", 4, length),
         new ColumnHeader("romlex.COMMIT_TO_STATE", 1, length),
-        new ColumnHeader("romlex.DEPLOYMENT_NUMBER", 4, length),
+        new ColumnHeader("romlex.DEPLOYMENT_NUMBER", 2, length),
         new ColumnHeader("romlex.DEPLOYMENT_STATUS", 1, length),
         new ColumnHeader("romlex.READ_FROM_STATE", 1, length));
   }
@@ -61,11 +65,13 @@ public class Trace {
     this.addressLo = buffers.get(1);
     this.codeFragmentIndex = buffers.get(2);
     this.codeFragmentIndexInfty = buffers.get(3);
-    this.codeSize = buffers.get(4);
-    this.commitToState = buffers.get(5);
-    this.deploymentNumber = buffers.get(6);
-    this.deploymentStatus = buffers.get(7);
-    this.readFromState = buffers.get(8);
+    this.codeHashHi = buffers.get(4);
+    this.codeHashLo = buffers.get(5);
+    this.codeSize = buffers.get(6);
+    this.commitToState = buffers.get(7);
+    this.deploymentNumber = buffers.get(8);
+    this.deploymentStatus = buffers.get(9);
+    this.readFromState = buffers.get(10);
   }
 
   public int size() {
@@ -83,7 +89,13 @@ public class Trace {
       filled.set(0);
     }
 
-    addressHi.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("addressHi has invalid value (" + b + ")");
+    }
+    addressHi.put((byte) (b >> 24));
+    addressHi.put((byte) (b >> 16));
+    addressHi.put((byte) (b >> 8));
+    addressHi.put((byte) b);
 
     return this;
   }
@@ -95,11 +107,21 @@ public class Trace {
       filled.set(1);
     }
 
-    final byte[] bs = b.toArrayUnsafe();
-    for (int i = bs.length; i < 32; i++) {
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "addressLo has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
       addressLo.put((byte) 0);
     }
-    addressLo.put(b.toArrayUnsafe());
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      addressLo.put(bs.get(j));
+    }
 
     return this;
   }
@@ -111,7 +133,13 @@ public class Trace {
       filled.set(2);
     }
 
-    codeFragmentIndex.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("codeFragmentIndex has invalid value (" + b + ")");
+    }
+    codeFragmentIndex.put((byte) (b >> 24));
+    codeFragmentIndex.put((byte) (b >> 16));
+    codeFragmentIndex.put((byte) (b >> 8));
+    codeFragmentIndex.put((byte) b);
 
     return this;
   }
@@ -123,28 +151,92 @@ public class Trace {
       filled.set(3);
     }
 
-    codeFragmentIndexInfty.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("codeFragmentIndexInfty has invalid value (" + b + ")");
+    }
+    codeFragmentIndexInfty.put((byte) (b >> 24));
+    codeFragmentIndexInfty.put((byte) (b >> 16));
+    codeFragmentIndexInfty.put((byte) (b >> 8));
+    codeFragmentIndexInfty.put((byte) b);
+
+    return this;
+  }
+
+  public Trace codeHashHi(final Bytes b) {
+    if (filled.get(4)) {
+      throw new IllegalStateException("romlex.CODE_HASH_HI already set");
+    } else {
+      filled.set(4);
+    }
+
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "codeHashHi has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
+      codeHashHi.put((byte) 0);
+    }
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      codeHashHi.put(bs.get(j));
+    }
+
+    return this;
+  }
+
+  public Trace codeHashLo(final Bytes b) {
+    if (filled.get(5)) {
+      throw new IllegalStateException("romlex.CODE_HASH_LO already set");
+    } else {
+      filled.set(5);
+    }
+
+    // Trim array to size
+    Bytes bs = b.trimLeadingZeros();
+    // Sanity check against expected width
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "codeHashLo has invalid width (" + bs.bitLength() + "bits)");
+    }
+    // Write padding (if necessary)
+    for (int i = bs.size(); i < 16; i++) {
+      codeHashLo.put((byte) 0);
+    }
+    // Write bytes
+    for (int j = 0; j < bs.size(); j++) {
+      codeHashLo.put(bs.get(j));
+    }
 
     return this;
   }
 
   public Trace codeSize(final long b) {
-    if (filled.get(4)) {
+    if (filled.get(6)) {
       throw new IllegalStateException("romlex.CODE_SIZE already set");
     } else {
-      filled.set(4);
+      filled.set(6);
     }
 
-    codeSize.putLong(b);
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("codeSize has invalid value (" + b + ")");
+    }
+    codeSize.put((byte) (b >> 24));
+    codeSize.put((byte) (b >> 16));
+    codeSize.put((byte) (b >> 8));
+    codeSize.put((byte) b);
 
     return this;
   }
 
   public Trace commitToState(final Boolean b) {
-    if (filled.get(5)) {
+    if (filled.get(7)) {
       throw new IllegalStateException("romlex.COMMIT_TO_STATE already set");
     } else {
-      filled.set(5);
+      filled.set(7);
     }
 
     commitToState.put((byte) (b ? 1 : 0));
@@ -152,23 +244,27 @@ public class Trace {
     return this;
   }
 
-  public Trace deploymentNumber(final int b) {
-    if (filled.get(6)) {
+  public Trace deploymentNumber(final long b) {
+    if (filled.get(8)) {
       throw new IllegalStateException("romlex.DEPLOYMENT_NUMBER already set");
     } else {
-      filled.set(6);
+      filled.set(8);
     }
 
-    deploymentNumber.putInt(b);
+    if (b >= 65536L) {
+      throw new IllegalArgumentException("deploymentNumber has invalid value (" + b + ")");
+    }
+    deploymentNumber.put((byte) (b >> 8));
+    deploymentNumber.put((byte) b);
 
     return this;
   }
 
   public Trace deploymentStatus(final Boolean b) {
-    if (filled.get(7)) {
+    if (filled.get(9)) {
       throw new IllegalStateException("romlex.DEPLOYMENT_STATUS already set");
     } else {
-      filled.set(7);
+      filled.set(9);
     }
 
     deploymentStatus.put((byte) (b ? 1 : 0));
@@ -177,10 +273,10 @@ public class Trace {
   }
 
   public Trace readFromState(final Boolean b) {
-    if (filled.get(8)) {
+    if (filled.get(10)) {
       throw new IllegalStateException("romlex.READ_FROM_STATE already set");
     } else {
-      filled.set(8);
+      filled.set(10);
     }
 
     readFromState.put((byte) (b ? 1 : 0));
@@ -206,22 +302,30 @@ public class Trace {
     }
 
     if (!filled.get(4)) {
-      throw new IllegalStateException("romlex.CODE_SIZE has not been filled");
+      throw new IllegalStateException("romlex.CODE_HASH_HI has not been filled");
     }
 
     if (!filled.get(5)) {
-      throw new IllegalStateException("romlex.COMMIT_TO_STATE has not been filled");
+      throw new IllegalStateException("romlex.CODE_HASH_LO has not been filled");
     }
 
     if (!filled.get(6)) {
-      throw new IllegalStateException("romlex.DEPLOYMENT_NUMBER has not been filled");
+      throw new IllegalStateException("romlex.CODE_SIZE has not been filled");
     }
 
     if (!filled.get(7)) {
-      throw new IllegalStateException("romlex.DEPLOYMENT_STATUS has not been filled");
+      throw new IllegalStateException("romlex.COMMIT_TO_STATE has not been filled");
     }
 
     if (!filled.get(8)) {
+      throw new IllegalStateException("romlex.DEPLOYMENT_NUMBER has not been filled");
+    }
+
+    if (!filled.get(9)) {
+      throw new IllegalStateException("romlex.DEPLOYMENT_STATUS has not been filled");
+    }
+
+    if (!filled.get(10)) {
       throw new IllegalStateException("romlex.READ_FROM_STATE has not been filled");
     }
 
@@ -233,38 +337,46 @@ public class Trace {
 
   public Trace fillAndValidateRow() {
     if (!filled.get(0)) {
-      addressHi.position(addressHi.position() + 8);
+      addressHi.position(addressHi.position() + 4);
     }
 
     if (!filled.get(1)) {
-      addressLo.position(addressLo.position() + 32);
+      addressLo.position(addressLo.position() + 16);
     }
 
     if (!filled.get(2)) {
-      codeFragmentIndex.position(codeFragmentIndex.position() + 8);
+      codeFragmentIndex.position(codeFragmentIndex.position() + 4);
     }
 
     if (!filled.get(3)) {
-      codeFragmentIndexInfty.position(codeFragmentIndexInfty.position() + 8);
+      codeFragmentIndexInfty.position(codeFragmentIndexInfty.position() + 4);
     }
 
     if (!filled.get(4)) {
-      codeSize.position(codeSize.position() + 8);
+      codeHashHi.position(codeHashHi.position() + 16);
     }
 
     if (!filled.get(5)) {
-      commitToState.position(commitToState.position() + 1);
+      codeHashLo.position(codeHashLo.position() + 16);
     }
 
     if (!filled.get(6)) {
-      deploymentNumber.position(deploymentNumber.position() + 4);
+      codeSize.position(codeSize.position() + 4);
     }
 
     if (!filled.get(7)) {
-      deploymentStatus.position(deploymentStatus.position() + 1);
+      commitToState.position(commitToState.position() + 1);
     }
 
     if (!filled.get(8)) {
+      deploymentNumber.position(deploymentNumber.position() + 2);
+    }
+
+    if (!filled.get(9)) {
+      deploymentStatus.position(deploymentStatus.position() + 1);
+    }
+
+    if (!filled.get(10)) {
       readFromState.position(readFromState.position() + 1);
     }
 

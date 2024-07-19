@@ -39,6 +39,7 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class Wcp implements Module {
   private final StackedSet<WcpOperation> operations = new StackedSet<>();
+
   /** count the number of rows that could be added after the sequencer counts the number of line */
   public final Deque<Integer> additionalRows = new ArrayDeque<>();
 
@@ -119,7 +120,7 @@ public class Wcp implements Module {
     return this.callLT(Bytes32.leftPad(arg1), Bytes32.leftPad(arg2));
   }
 
-  public boolean callLT(final int arg1, final int arg2) {
+  public boolean callLT(final long arg1, final long arg2) {
     return this.callLT(Bytes.ofUnsignedLong(arg1), Bytes.ofUnsignedLong(arg2));
   }
 
@@ -157,6 +158,10 @@ public class Wcp implements Module {
   public boolean callLEQ(final Bytes32 arg1, final Bytes32 arg2) {
     this.operations.add(new WcpOperation(LEQbv, arg1, arg2));
     return arg1.compareTo(arg2) <= 0;
+  }
+
+  public boolean callLEQ(final long arg1, final long arg2) {
+    return this.callLEQ(Bytes.ofUnsignedLong(arg1), Bytes.ofUnsignedLong(arg2));
   }
 
   public boolean callLEQ(final Bytes arg1, final Bytes arg2) {

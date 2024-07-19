@@ -30,16 +30,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.consensys.linea.config.LineaL1L2BridgeConfiguration;
+import net.consensys.linea.plugins.config.LineaL1L2BridgeConfiguration;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.Pin55;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.types.Utils;
 import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.PendingTransaction;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -77,6 +79,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   @Getter private final Hub hub;
   private final Optional<Pin55> pin55;
   private Hash hashOfLastTransactionTraced = Hash.EMPTY;
+
   /** Accumulate all the exceptions that happened at tracing time. */
   @Getter private final List<Exception> tracingExceptions = new FiniteList<>(50);
 
@@ -224,7 +227,6 @@ public class ZkTracer implements ConflationAwareOperationTracer {
     }
   }
 
-  @Override
   public void traceEndTransaction(
       WorldView worldView,
       Transaction tx,
@@ -232,6 +234,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
       Bytes output,
       List<Log> logs,
       long gasUsed,
+      Set<Address> selfDestructs,
       long timeNs) {
     try {
       this.pin55.ifPresent(x -> x.traceEndTx(worldView, tx, status, output, logs, gasUsed));
@@ -315,6 +318,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   public Map<String, Integer> getModulesLineCount() {
     maybeThrowTracingExceptions();
     final HashMap<String, Integer> modulesLineCount = new HashMap<>();
+
     hub.getModulesToCount()
         .forEach(
             m ->
@@ -328,7 +332,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
                                         "Module "
                                             + m.moduleKey()
                                             + " not found in spillings.toml"))));
-    modulesLineCount.put("BLOCK_TX", hub.cumulatedTxCount());
+    modulesLineCount.put("BLOCK_TRANSACTIONS", hub.cumulatedTxCount());
     return modulesLineCount;
   }
 

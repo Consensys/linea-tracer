@@ -38,7 +38,8 @@ import net.consensys.linea.blockcapture.snapshots.ConflationSnapshot;
 import net.consensys.linea.blockcapture.snapshots.TransactionSnapshot;
 import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.zktracer.ZkTracer;
-import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
+import net.consensys.linea.zktracer.module.constants.GlobalConstants;
+import net.consensys.linea.zktracer.module.hub.Hub;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.*;
 import org.hyperledger.besu.ethereum.core.*;
@@ -54,6 +55,7 @@ import org.hyperledger.besu.evm.EVM;
 import org.hyperledger.besu.evm.MainnetEVMs;
 import org.hyperledger.besu.evm.gascalculator.GasCalculator;
 import org.hyperledger.besu.evm.internal.EvmConfiguration;
+import org.hyperledger.besu.evm.precompile.MainnetPrecompiledContracts;
 import org.hyperledger.besu.evm.precompile.PrecompileContractRegistry;
 import org.hyperledger.besu.evm.processor.ContractCreationProcessor;
 import org.hyperledger.besu.evm.processor.MessageCallProcessor;
@@ -159,7 +161,6 @@ public class ToyExecutionEnvironment {
 
       for (Transaction tx : body.getTransactions()) {
         transactionProcessor.processTransaction(
-            null,
             overridenToyWorld.updater(),
             (ProcessableBlockHeader) header,
             tx,
@@ -197,7 +198,6 @@ public class ToyExecutionEnvironment {
     for (Transaction tx : mockBlockBody.getTransactions()) {
       final TransactionProcessingResult result =
           transactionProcessor.processTransaction(
-              null,
               toyWorld.updater(),
               (ProcessableBlockHeader) header,
               tx,
@@ -217,8 +217,14 @@ public class ToyExecutionEnvironment {
   }
 
   private MainnetTransactionProcessor getMainnetTransactionProcessor() {
+
+    PrecompileContractRegistry precompileContractRegistry = new PrecompileContractRegistry();
+
+    MainnetPrecompiledContracts.populateForIstanbul(
+        precompileContractRegistry, evm.getGasCalculator());
+
     final MessageCallProcessor messageCallProcessor =
-        new MessageCallProcessor(evm, new PrecompileContractRegistry());
+        new MessageCallProcessor(evm, precompileContractRegistry);
 
     final ContractCreationProcessor contractCreationProcessor =
         new ContractCreationProcessor(evm.getGasCalculator(), evm, false, List.of(), 0);
@@ -232,7 +238,7 @@ public class ToyExecutionEnvironment {
             false,
             Optional.of(this.chainId),
             Set.of(TransactionType.FRONTIER, TransactionType.ACCESS_LIST, TransactionType.EIP1559),
-            Exceptions.MAX_CODE_SIZE),
+            GlobalConstants.MAX_CODE_SIZE),
         contractCreationProcessor,
         messageCallProcessor,
         true,
@@ -240,5 +246,9 @@ public class ToyExecutionEnvironment {
         MAX_STACK_SIZE,
         feeMarket,
         CoinbaseFeePriceCalculator.eip1559());
+  }
+
+  public Hub getHub() {
+    return tracer.getHub();
   }
 }

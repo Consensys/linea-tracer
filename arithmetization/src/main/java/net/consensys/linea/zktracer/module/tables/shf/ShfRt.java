@@ -26,7 +26,7 @@ import org.apache.tuweni.bytes.Bytes;
 public record ShfRt() implements Module {
   @Override
   public String moduleKey() {
-    return "shfRT";
+    return "SHF_REFERENCE_TABLE";
   }
 
   @Override
@@ -53,7 +53,7 @@ public record ShfRt() implements Module {
         trace
             .byte1(UnsignedByte.of(a))
             .las(unsignedByteA.shiftLeft(8 - uShp))
-            .mshp((short) uShp)
+            .mshp(UnsignedByte.of(uShp))
             .rap(unsignedByteA.shiftRight(uShp))
             .ones(UnsignedByte.of((Bytes.fromHexString("0xFF").shiftRight(uShp)).not().toInt()))
             .iomf(true)

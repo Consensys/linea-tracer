@@ -29,7 +29,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public class AddressUtils {
   private static final Bytes CREATE2_PREFIX = Bytes.of(0xff);
-  private static final List<Address> precompileAddress =
+  public static final List<Address> precompileAddress =
       List.of(
           Address.ECREC,
           Address.SHA256,
@@ -57,6 +57,9 @@ public class AddressUtils {
         .orElse(Address.contractAddress(tx.getSender(), tx.getNonce()));
   }
 
+  /* Warning: this method uses the nonce as currently found in the state
+  however, CREATE raises the nonce and so this method should only be called
+  pre OpCode and pre transaction for deployment */
   public static Address getCreateAddress(final MessageFrame frame) {
     return Address.extract(getCreateRawAddress(frame));
   }
@@ -92,7 +95,7 @@ public class AddressUtils {
   }
 
   public static Address getDeploymentAddress(final MessageFrame frame) {
-    OpCode opcode = OpCode.of(frame.getCurrentOperation().getOpcode());
+    final OpCode opcode = OpCode.of(frame.getCurrentOperation().getOpcode());
     if (!opcode.equals(OpCode.CREATE2) && !opcode.equals(OpCode.CREATE)) {
       throw new IllegalArgumentException("Must be called only for CREATE/CREATE2 opcode");
     }

@@ -312,15 +312,18 @@ public class MmuCall implements TraceSubFragment {
     final int precompileContextNumber = p.hubStamp() + 1;
 
     if (i == 0) {
-      return new MmuCall(MMU_INST_RAM_TO_EXO_WITH_PADDING)
-          .sourceId(hub.currentFrame().contextNumber())
-          .targetId(precompileContextNumber)
-          .sourceOffset(EWord.of(p.callDataSource().offset()))
-          .size(p.callDataSource().length())
-          .referenceSize(128)
-          .successBit(recoverySuccessful)
-          .phase(PHASE_ECRECOVER_DATA)
-          .setEcData();
+      final long inputSize = p.callDataSource().length();
+      return inputSize == 0
+          ? nop()
+          : new MmuCall(MMU_INST_RAM_TO_EXO_WITH_PADDING)
+              .sourceId(hub.currentFrame().contextNumber())
+              .targetId(precompileContextNumber)
+              .sourceOffset(EWord.of(p.callDataSource().offset()))
+              .size(inputSize)
+              .referenceSize(128)
+              .successBit(recoverySuccessful)
+              .phase(PHASE_ECRECOVER_DATA)
+              .setEcData();
     } else if (i == 1) {
       if (recoverySuccessful) {
         return new MmuCall(MMU_INST_EXO_TO_RAM_TRANSPLANTS)
@@ -373,8 +376,7 @@ public class MmuCall implements TraceSubFragment {
         return new MmuCall(MMU_INST_MSTORE)
             .targetId(precompileContextNumber)
             .targetOffset(EWord.ZERO)
-            .limb1(
-                isSha ? bigIntegerToBytes(EMPTY_SHA2_HI) : Bytes.ofUnsignedShort(EMPTY_RIPEMD_HI))
+            .limb1(isSha ? bigIntegerToBytes(EMPTY_SHA2_HI) : Bytes.ofUnsignedLong(EMPTY_RIPEMD_HI))
             .limb2(isSha ? bigIntegerToBytes(EMPTY_SHA2_LO) : bigIntegerToBytes(EMPTY_RIPEMD_LO));
       } else {
         return new MmuCall(MMU_INST_EXO_TO_RAM_TRANSPLANTS)
@@ -443,15 +445,18 @@ public class MmuCall implements TraceSubFragment {
     Preconditions.checkArgument(i >= 0 && i < 3);
     final int precompileContextNumber = p.hubStamp() + 1;
     if (i == 0) {
-      return new MmuCall(MMU_INST_RAM_TO_EXO_WITH_PADDING)
-          .sourceId(hub.currentFrame().contextNumber())
-          .targetId(precompileContextNumber)
-          .sourceOffset(EWord.of(p.callDataSource().offset()))
-          .size(p.callDataSource().length())
-          .referenceSize(128)
-          .successBit(!p.ramFailure())
-          .setEcData()
-          .phase(PHASE_ECADD_DATA);
+      final long inputSize = p.callDataSource().length();
+      return inputSize == 0
+          ? nop()
+          : new MmuCall(MMU_INST_RAM_TO_EXO_WITH_PADDING)
+              .sourceId(hub.currentFrame().contextNumber())
+              .targetId(precompileContextNumber)
+              .sourceOffset(EWord.of(p.callDataSource().offset()))
+              .size(inputSize)
+              .referenceSize(128)
+              .successBit(!p.ramFailure())
+              .setEcData()
+              .phase(PHASE_ECADD_DATA);
     } else if (i == 1) {
       return new MmuCall(MMU_INST_EXO_TO_RAM_TRANSPLANTS)
           .sourceId(precompileContextNumber)
@@ -473,15 +478,18 @@ public class MmuCall implements TraceSubFragment {
     Preconditions.checkArgument(i >= 0 && i < 3);
     final int precompileContextNumber = p.hubStamp() + 1;
     if (i == 0) {
-      return new MmuCall(MMU_INST_RAM_TO_EXO_WITH_PADDING)
-          .sourceId(hub.currentFrame().contextNumber())
-          .targetId(precompileContextNumber)
-          .sourceOffset(EWord.of(p.callDataSource().offset()))
-          .size(p.callDataSource().length())
-          .referenceSize(96)
-          .successBit(!p.ramFailure())
-          .setEcData()
-          .phase(PHASE_ECMUL_DATA);
+      final long inputSize = p.callDataSource().length();
+      return inputSize == 0
+          ? nop()
+          : new MmuCall(MMU_INST_RAM_TO_EXO_WITH_PADDING)
+              .sourceId(hub.currentFrame().contextNumber())
+              .targetId(precompileContextNumber)
+              .sourceOffset(EWord.of(p.callDataSource().offset()))
+              .size(inputSize)
+              .referenceSize(96)
+              .successBit(!p.ramFailure())
+              .setEcData()
+              .phase(PHASE_ECMUL_DATA);
     } else if (i == 1) {
       return new MmuCall(MMU_INST_EXO_TO_RAM_TRANSPLANTS)
           .sourceId(precompileContextNumber)
@@ -503,15 +511,18 @@ public class MmuCall implements TraceSubFragment {
     Preconditions.checkArgument(i >= 0 && i < 3);
     final int precompileContextNumber = p.hubStamp() + 1;
     if (i == 0) {
-      return new MmuCall(MMU_INST_RAM_TO_EXO_WITH_PADDING)
-          .sourceId(hub.currentFrame().contextNumber())
-          .targetId(precompileContextNumber)
-          .sourceOffset(EWord.of(p.callDataSource().offset()))
-          .size(p.callDataSource().length())
-          .referenceSize(p.callDataSource().length())
-          .successBit(!p.ramFailure())
-          .setEcData()
-          .phase(PHASE_ECPAIRING_DATA);
+      final long inputSize = p.callDataSource().length();
+      return inputSize == 0
+          ? nop()
+          : new MmuCall(MMU_INST_RAM_TO_EXO_WITH_PADDING)
+              .sourceId(hub.currentFrame().contextNumber())
+              .targetId(precompileContextNumber)
+              .sourceOffset(EWord.of(p.callDataSource().offset()))
+              .size(inputSize)
+              .referenceSize(p.callDataSource().length())
+              .successBit(!p.ramFailure())
+              .setEcData()
+              .phase(PHASE_ECPAIRING_DATA);
     } else if (i == 1) {
       if (p.callDataSource().isEmpty()) {
         return new MmuCall(MMU_INST_MSTORE).targetId(precompileContextNumber).limb2(Bytes.of(1));

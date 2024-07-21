@@ -129,8 +129,10 @@ public record ContextFragment(
         callStack,
         Either.right(receiverContextNumber),
         providerContextNumber,
-        callStack.current().latestReturnDataSource().snapshot(), // TODO: is this what we want ?
+        callStack.current().latestReturnDataSource().snapshot(),
         true);
+    // TODO: is this what we want ?
+    //  also: will the latestReturnData have been updated ?
   }
 
   @Override

@@ -14,8 +14,8 @@
  */
 package net.consensys.linea.zktracer.module.hub.section.halt;
 
-import static net.consensys.linea.zktracer.module.hub.fragment.scenario.ReturnScenarioFragment.ReturnScenario.RETURN_EXCEPTION;
-
+import com.google.common.base.Preconditions;
+import lombok.Getter;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
@@ -33,16 +33,22 @@ import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.ReturnScenarioFragment.ReturnScenario.*;
+
+@Getter
 public class ReturnSection extends TraceSection implements PostTransactionDefer, PostRollbackDefer {
 
   final short exceptions;
-  final ImcFragment imcFragment;
-  MmuCall mmuCall;
-  boolean triggerMmu = false;
-  boolean triggerOob = false;
-  boolean triggerHashInfo = false;
-  boolean messageCallTouchesRam = false;
-  boolean returnFromDeployment;
+  final boolean returnFromDeployment;
+  final boolean returnFromMessageCall; // not stricly speaking necessary
+  ReturnScenarioFragment returnScenarioFragment;
+  final ImcFragment firstImcFragment;
+  MmuCall firstMmuCall;
+  MmuCall secondMmuCall;
+
+  ContextFragment squashCreatorReturnData;
+  @Getter public boolean emptyDeployment;
+  @Getter public boolean deploymentWasReverted = false;
 
   public ReturnSection(Hub hub) {
     // 5 = 1 + 4
@@ -51,58 +57,162 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
     hub.addTraceSection(this);
 
     exceptions = hub.pch().exceptions();
+    returnFromMessageCall = hub.currentFrame().isMessageCall();
+    returnFromDeployment = hub.currentFrame().isDeployment();
+    firstImcFragment = ImcFragment.empty(hub);
 
-    final ReturnScenarioFragment returnScenarioFragment = new ReturnScenarioFragment();
+    returnScenarioFragment = new ReturnScenarioFragment();
     final ContextFragment currentContextFragment = ContextFragment.readCurrentContextData(hub);
-    imcFragment = ImcFragment.empty(hub);
     final MxpCall mxpCall = new MxpCall(hub);
-    imcFragment.callMxp(mxpCall);
+    firstImcFragment.callMxp(mxpCall);
 
     this.addStack(hub);
     this.addFragment(returnScenarioFragment);
     this.addFragment(currentContextFragment);
-    this.addFragment(imcFragment);
+    this.addFragment(firstImcFragment);
 
     // Exceptional RETURN's
+    ///////////////////////
     ///////////////////////
 
     if (Exceptions.any(exceptions)) {
       returnScenarioFragment.setScenario(RETURN_EXCEPTION);
     }
 
+    // Memory expansion exception (MXPX)
+    // Out of gas exception (OOGX)
+    ////////////////////////////////////
     if (Exceptions.memoryExpansionException(exceptions)
         || Exceptions.outOfGasException(exceptions)) {
+      // Note: the context fragment will be added elsewhere
       return;
     }
 
+
+    // Max code size exception (MAXCSX)
+    ///////////////////////////////////
     boolean triggerOobForMaxCodeSizeException = Exceptions.codeSizeOverflow(exceptions);
     if (triggerOobForMaxCodeSizeException) {
+      Preconditions.checkArgument(hub.currentFrame().isDeployment());
       OobCall oobCall = new XCallOobCall();
-      imcFragment.callOob(oobCall);
+      firstImcFragment.callOob(oobCall);
       return;
     }
 
+    // Invalid code prefix exception (ICPX)
+    ///////////////////////////////////////
     final boolean triggerMmuForInvalidCodePrefix = Exceptions.invalidCodePrefix(exceptions);
     if (triggerMmuForInvalidCodePrefix) {
+      Preconditions.checkArgument(hub.currentFrame().isDeployment());
       // TODO: @françois: invalidCodePrefix currently unavailable
-      // mmuCall = MmuCall.invalidCodePrefix();
+      // TODO: @olivier: hub.defers().schedulePostTransaction(hub);
+      //  firstMmuCall = MmuCall.invalidCodePrefix();
+      return;
     }
 
-    // Unexceptional RETURN's
-    /////////////////////////
+    Preconditions.checkArgument(Exceptions.none(exceptions));
 
-    final boolean triggerOobForNonemptyDeployments =
-        Exceptions.none(exceptions)
-            && hub.currentFrame().isDeployment()
-            && mxpCall.isMayTriggerNonTrivialMmuOperation();
+    // Unexceptional RETURN's
+    // (we have exceptions ≡ ∅ by the checkArgument)
+    ////////////////////////////////////////////////
+    ////////////////////////////////////////////////
+
+    final boolean nontrivialMmOperation = mxpCall.isMayTriggerNonTrivialMmuOperation();
+
+    // RETURN_FROM_MESSAGE_CALL cases
+    /////////////////////////////////
+    /////////////////////////////////
+    if (returnFromMessageCall) {
+      // TODO: remove final long returnAtCapacity = hub.currentFrame().requestedReturnDataTarget().length();
+      final boolean messageCallReturnTouchesRam =
+              !hub.currentFrame().isRoot()
+                      && nontrivialMmOperation // [size ≠ 0] ∧ ¬MXPX
+                      && !hub.currentFrame().requestedReturnDataTarget().isEmpty(); // [r@c ≠ 0]
+
+      returnScenarioFragment.setScenario(
+              messageCallReturnTouchesRam
+              ? RETURN_FROM_MESSAGE_CALL_WILL_TOUCH_RAM
+              : RETURN_FROM_MESSAGE_CALL_WONT_TOUCH_RAM);
+
+        if (messageCallReturnTouchesRam) {
+            firstMmuCall = MmuCall.returnFromCall(hub);
+            hub.defers().schedulePostTransaction(this);
+        } else {
+          // TODO: should we add the following ? It shouldn't be necessary ...
+          //  mmuCall = MmuCall.nop();
+          //  hub.defers().schedulePostTransaction(this);
+        }
+
+        ContextFragment updateCallerReturnData = ContextFragment.providesReturnData(
+                hub,
+                hub.callStack().getById(hub.currentFrame().parentFrame()).contextNumber(),
+                hub.currentFrame().contextNumber());
+        this.addFragment(updateCallerReturnData);
+
+
+        return;
+    }
+
+    // RETURN_FROM_DEPLOYMENT cases
+    ///////////////////////////////
+    ///////////////////////////////
+    if (returnFromDeployment) {
+
+      hub.defers().scheduleForPostRollback(this, hub.currentFrame());
+      final boolean triggerOobForNonemptyDeployments =
+                      mxpCall.isMayTriggerNonTrivialMmuOperation();
+
+      final long byteCodeSize = hub.messageFrame().getStackItem(1).toLong();
+      final boolean emptyDeployment = byteCodeSize == 0;
+
+      if (emptyDeployment) {
+        return;
+      }
+
+      // TODO:
+      //  firstMmuCall = MmuCall.invalidCodePrefix();
+
+      // TODO: we need to implement the mechanism that will append the
+      //  context row which will squash the creator's return data after
+      //  any and all account-rows.
+      //
+      // TODO: make sure this works if the current context is the root
+      //  context (deployment transaction) in particular the following
+      //  ``Either.left(callStack.parent().id())''
+      squashCreatorReturnData = ContextFragment.executionProvidesEmptyReturnData(hub);
+    }
+
 
     // returnFromDeployment =
   }
 
   @Override
-  public void resolvePostRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {}
+  public void resolvePostRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
+    // TODO
+    Preconditions.checkArgument(returnFromDeployment);
+    returnScenarioFragment.setScenario(
+            emptyDeployment
+                    ? RETURN_FROM_DEPLOYMENT_EMPTY_CODE_WILL_REVERT
+                    : RETURN_FROM_DEPLOYMENT_NONEMPTY_CODE_WILL_REVERT);
+
+    this.addFragment(squashCreatorReturnData);
+
+    deploymentWasReverted = true;
+  }
 
   @Override
   public void resolvePostTransaction(
-      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {}
+          Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+    // TODO
+
+    if (returnFromDeployment && !deploymentWasReverted) {
+      returnScenarioFragment.setScenario(
+              emptyDeployment
+                      ? RETURN_FROM_DEPLOYMENT_EMPTY_CODE_WONT_REVERT
+                      : RETURN_FROM_DEPLOYMENT_NONEMPTY_CODE_WONT_REVERT);
+    }
+
+    firstImcFragment.callMmu(firstMmuCall);
+    this.addFragment(squashCreatorReturnData);
+  }
 }

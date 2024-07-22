@@ -72,23 +72,10 @@ public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
             hub.callStack().futureId(),
             Exceptions.any(hub.pch().exceptions()),
             hub.pch().abortingConditions().any(),
-            hub.pch().failureConditions().any(),
+            false,
             Exceptions.invalidCodePrefix(hub.pch().exceptions()));
     hub.defers().schedulePostTransaction(r);
     return r;
-  }
-
-  public static ScenarioFragment forCreate(final Hub hub, boolean targetHasCode) {
-    return new ScenarioFragment(
-        Optional.empty(),
-        ScenarioEnum.CREATE_EXCEPTION, // this is wrong, but all will be deleted
-        targetHasCode,
-        hub.currentFrame().id(),
-        hub.callStack().futureId(),
-        Exceptions.any(hub.pch().exceptions()),
-        hub.pch().abortingConditions().any(),
-        hub.pch().failureConditions().any(),
-        Exceptions.invalidCodePrefix(hub.pch().exceptions()));
   }
 
   public static ScenarioFragment forSmartContractCallSection(

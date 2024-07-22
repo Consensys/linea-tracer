@@ -924,7 +924,9 @@ public class Hub implements Module {
     if (this.pch.signals().hashInfo()) {
       // TODO: this.hashInfo.tracePreOpcode(frame);
     }
-    if (this.pch.signals().ecData()) {
+    if (this.pch
+        .signals()
+        .ecData()) { // TODO why do we have this ? Shouldn't it be triggered by a precompileLimits ?
       this.ecData.tracePreOpcode(frame);
     }
     if (this.pch.signals().blockhash()) {
@@ -983,15 +985,6 @@ public class Hub implements Module {
             .value(result);
       }
     }
-
-    // TODO: this seems useless now
-    // if (this.pch.exceptions().none()) {
-    //  for (TraceSection.TraceLine line : section.fragments()) {
-    //    if (line.specific() instanceof StackFragment stackFragment) {
-    //      stackFragment.feedHashedValue(frame);
-    //    }
-    //  }
-    // }
   }
 
   void processStateExec(MessageFrame frame) {

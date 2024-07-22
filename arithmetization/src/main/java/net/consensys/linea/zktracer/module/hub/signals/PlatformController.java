@@ -44,7 +44,7 @@ public class PlatformController {
     this.exceptions = Exceptions.NONE;
     this.abortingConditions = new AbortingConditions();
     this.signals = new Signals(this);
-    this.failureConditions = new FailureConditions(hub);
+    this.failureConditions = new FailureConditions();
   }
 
   /** Reset all information */

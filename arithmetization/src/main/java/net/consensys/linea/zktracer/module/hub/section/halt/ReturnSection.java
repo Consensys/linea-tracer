@@ -23,6 +23,8 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
@@ -32,6 +34,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.scenario.ReturnScenarioF
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
+import net.consensys.linea.zktracer.types.Bytecode;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -40,11 +43,16 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 @Getter
 public class ReturnSection extends TraceSection implements PostTransactionDefer, PostRollbackDefer {
 
+  final int hubStamp;
+  final CallFrame currentFrame;
   final short exceptions;
   final boolean returnFromDeployment;
   final boolean returnFromMessageCall; // not stricly speaking necessary
   final ReturnScenarioFragment returnScenarioFragment;
   final ImcFragment firstImcFragment;
+  ImcFragment secondImcFragment;
+  AccountFragment deploymentFragment;
+  AccountFragment undoingDeploymentAccountFragment;
   MmuCall firstMmuCall;
   MmuCall secondMmuCall;
 
@@ -58,6 +66,8 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
     super(hub, Exceptions.any(hub.pch().exceptions()) ? (short) 5 : (short) 8);
     hub.addTraceSection(this);
 
+    hubStamp = hub.stamp();
+    currentFrame = hub.currentFrame();
     exceptions = hub.pch().exceptions();
     returnFromMessageCall = hub.currentFrame().isMessageCall();
     returnFromDeployment = hub.currentFrame().isDeployment();
@@ -134,7 +144,8 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
               : RETURN_FROM_MESSAGE_CALL_WONT_TOUCH_RAM);
 
       if (messageCallReturnTouchesRam) {
-        firstMmuCall = MmuCall.returnFromCall(hub);
+        firstMmuCall = MmuCall.returnFromMessageCall(hub);
+        Preconditions.checkArgument(!firstMmuCall.successBit());
         hub.defers().schedulePostTransaction(this);
       }
       // no need for the else case (and a nop) as per @François
@@ -162,15 +173,40 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
 
       Address deploymentAddress = hub.messageFrame().getRecipientAddress();
       AccountSnapshot accountBeforeDeployment = AccountSnapshot.canonical(hub, deploymentAddress);
-      AccountSnapshot accountAfterDeployment = AccountSnapshot.canonical(hub, deploymentAddress);
 
+      // Empty deployments
+      ////////////////////
       if (emptyDeployment) {
+
+        AccountSnapshot accountAfterEmptyDeployment = accountBeforeDeployment.deployByteCode(Bytecode.EMPTY);
+        AccountFragment emptyDeploymentAccountFragment = hub.factories().accountFragment().make(
+                accountBeforeDeployment,
+                accountAfterEmptyDeployment,
+                DomSubStampsSubFragment.standardDomSubStamps(hub, 0)
+        );
+        this.addFragment(emptyDeploymentAccountFragment);
+
+        // Note:
+        //  - triggerHASHINFO isn't required;
+        //  - triggerROMLEX isn't required either;
 
         return;
       }
 
+      // Nonempty deployments
+      ///////////////////////
       hub.defers().schedulePostTransaction(this);
+
       firstMmuCall = MmuCall.invalidCodePrefix(hub);
+      Preconditions.checkArgument(firstMmuCall.successBit());
+
+      secondImcFragment = ImcFragment.empty(hub);
+      secondMmuCall = MmuCall.returnFromDeployment(hub);
+      this.addFragment(secondImcFragment);
+
+      // TODO: we require the
+      //  - triggerHashInfo stuff on the first stack row
+      //  - triggerROMLEX on the deploymentAccountFragment row
 
       // TODO: we need to implement the mechanism that will append the
       //  context row which will squash the creator's return data after
@@ -194,8 +230,17 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
             ? RETURN_FROM_DEPLOYMENT_EMPTY_CODE_WILL_REVERT
             : RETURN_FROM_DEPLOYMENT_NONEMPTY_CODE_WILL_REVERT);
 
-    this.addFragment(squashParentContextReturnData);
+    // TODO: do we account for updates to
+    //  - deploymentNumber and status ? Presumably, but if so by coincidence
+    //  - MARKED_FOR_SELF_DESTRUCT(_NEW) ? No
+    //  -
+    undoingDeploymentAccountFragment = hub.factories().accountFragment().make(
+            deploymentFragment.newState(),
+            deploymentFragment.oldState(),
+            DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hubStamp, hub.currentFrame().revertStamp(), 1)
+    );
 
+    this.addFragment(undoingDeploymentAccountFragment);
     deploymentWasReverted = true;
   }
 
@@ -211,13 +256,9 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
               : RETURN_FROM_DEPLOYMENT_NONEMPTY_CODE_WONT_REVERT);
     }
 
-    if (firstMmuCall != null) {
-      firstImcFragment.callMmu(firstMmuCall);
-    }
-    // TODO:
-    // if (secondMmuCall != null) {
-    //  secondImcFragment.callMmu(secondMmuCall);
-    // }
+    if (firstMmuCall != null) firstImcFragment.callMmu(firstMmuCall);
+    if (secondMmuCall != null) secondImcFragment.callMmu(secondMmuCall);
+
     this.addFragment(squashParentContextReturnData);
   }
 }

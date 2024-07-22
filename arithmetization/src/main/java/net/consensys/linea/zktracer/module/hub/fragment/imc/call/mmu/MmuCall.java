@@ -267,7 +267,7 @@ public class MmuCall implements TraceSubFragment {
     return new ReturnFromDeployment(hub);
   }
 
-  public static MmuCall returnFromCall(final Hub hub) {
+  public static MmuCall returnFromMessageCall(final Hub hub) {
     return MmuCall.revert(hub);
   }
 

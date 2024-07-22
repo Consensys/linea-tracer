@@ -22,6 +22,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.module.hub.defer.PostExecDefer;
 import net.consensys.linea.zktracer.types.Bytecode;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
@@ -32,7 +33,6 @@ import org.hyperledger.besu.evm.account.Account;
 @Setter
 @Accessors(fluent = true)
 public class AccountSnapshot {
-  // TODO: we require a MARKED_FOR_SELFDESTRUCT boolean
   private Address address;
   private long nonce;
   private Wei balance;
@@ -40,6 +40,17 @@ public class AccountSnapshot {
   private Bytecode code;
   private int deploymentNumber;
   private boolean deploymentStatus;
+  // TODO: we require a MARKED_FOR_SELFDESTRUCT boolean
+  //  The implementation will be
+  //  1. is (address, deploymentNumber) ∈ effectiveSelfdestructsMap Then
+  //       - get the relevant selfDestructTime
+  //       - MARKED_FOR_SELFDESTRUCT     = [hubStamp > selfDestructTime]
+  //       - MARKED_FOR_SELFDESTRUCT_NEW = hubStamp ≥ selfDestructTime
+
+  // public enum AccountRowType {
+  //   STANDARD,
+  //   DEFERRED,
+  // }
 
   public static AccountSnapshot canonical(Hub hub, Address address) {
     final Account account = hub.messageFrame().getWorldUpdater().getAccount(address);

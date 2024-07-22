@@ -292,5 +292,37 @@ public class SelfdestructSection extends TraceSection
     // in the already marked case we know that this action has already been scheduled for the future
 
     // every transaction should start with an empty map
+
+    // TODO: review and comment the code below
+    
+    for (Map.Entry<AddressDeploymentNumberKey, List<HubStampCallFrameValue>> entry :
+        hub.txStack().current().getUnexceptionalSelfDestructMap().entrySet()) {
+
+      AddressDeploymentNumberKey addressDeploymentNumberKey = entry.getKey();
+      List<HubStampCallFrameValue> hubStampCallFrameValues = entry.getValue();
+
+      int selfDestructTime = -1;
+      for (HubStampCallFrameValue hubStampCallFrameValue : hubStampCallFrameValues) {
+        if (hubStampCallFrameValue.callFrame().revertStamp() == -1) {
+          selfDestructTime = hubStampCallFrameValue.hubStamp();
+          hub.txStack()
+              .current()
+              .getEffectiveSelfDestructMap()
+              .put(addressDeploymentNumberKey, selfDestructTime);
+          break;
+        }
+      }
+
+      if (selfDestructTime != -1) {
+        AccountFragment accountFragment =
+            hub.factories()
+                .accountFragment()
+                .make(
+                    this.accountAfter,
+                    AccountSnapshot.empty(false, 0, false),
+                    DomSubStampsSubFragment.selfdestructDomSubStamps(hub));
+        this.addFragment(accountFragment);
+      }
+    }
   }
 }

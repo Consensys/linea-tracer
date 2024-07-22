@@ -116,6 +116,8 @@ public class TransactionProcessingMetadata {
   @Getter
   Map<AddressDeploymentNumberKey, List<HubStampCallFrameValue>> unexceptionalSelfDestructMap;
 
+  @Getter Map<AddressDeploymentNumberKey, Integer> effectiveSelfDestructMap;
+
   public record AddressDeploymentNumberKey(Address address, int deploymentNumber) {}
   ;
 

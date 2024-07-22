@@ -15,11 +15,18 @@
 
 package net.consensys.linea.zktracer.module.ecdata;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
+
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.testing.BytecodeRunner;
 import org.apache.tuweni.bytes.Bytes;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 public class EcPairingrTest {
   @Test
@@ -62,5 +69,47 @@ public class EcPairingrTest {
 
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("ecPairingSource")
+  void testEcPairingForScenario(
+      String Ax, String Ay, String BxIm, String BxRe, String ByIm, String ByRe) {
+    // small point: (Ax,Ay)
+    // large point: (BxRe + i*BxIm, ByRe + i*ByIm)
+    BytecodeCompiler program =
+        BytecodeCompiler.newProgram()
+            // point supposed to be in C1
+            .push(Ax) // Ax
+            .push(Ay) // Ay
+            // point supposed to be in G2
+            .push(BxIm) // BxIm
+            .push(BxRe) // BxRe
+            .push(ByIm) // ByIm
+            .push(ByRe) // ByRe
+            .push(0x20) // retSize
+            .push(0) // retOffset
+            .push(192) // argSize
+            .push(0) // argOffset
+            .push(8) // address
+            .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas
+            .op(OpCode.STATICCALL);
+
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
+    bytecodeRunner.run();
+  }
+
+  private static Stream<Arguments> ecPairingSource() {
+    // TODO: add other cases based on https://github.com/Consensys/linea-arithmetization/issues/822
+    List<Arguments> arguments = new ArrayList<>();
+    arguments.add(
+        Arguments.of(
+            "26d7d8759964ac70b4d5cdf698ad5f70da246752481ea37da637551a60a2a57f",
+            "13991eda70bd3bd91c43e7c93f8f89c949bd271ba8f9f5a38bce7248f1f6056b",
+            "13eb8555f322c3885846df8a505693a0012493a30c34196a529f964a684c0cb2",
+            "18335a998f3db61d3d0b63cd1371789a9a8a5ed4fb1a4adaa20ab9573251a9d0",
+            "20494259608bfb4cd04716ba62e1350ce90d00d8af00a5170f46f59ae72d060c",
+            "257a64fbc5a9cf9c3f7be349d09efa099305fe61f364c31c082ef6a81c815c1d"));
+    return arguments.stream();
   }
 }

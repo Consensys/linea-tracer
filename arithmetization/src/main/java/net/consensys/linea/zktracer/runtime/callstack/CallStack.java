@@ -339,16 +339,28 @@ public final class CallStack {
   /**
    * Returns the parent of the ith {@link CallFrame} in this call stack.
    *
-   * @param i ID of the call frame whose parent to fetch
+   * @param id ID of the call frame whose parent to fetch
    * @return the ith call frame parent
    * @throws IndexOutOfBoundsException if the index is out of range
    */
-  public CallFrame getParentOf(int i) {
+  public CallFrame getParentCallFrameById(int id) {
     if (this.frames.isEmpty()) {
       return CallFrame.EMPTY;
     }
 
-    return this.getById(this.frames.get(i).parentFrame());
+    return this.getById(this.frames.get(id).parentFrame());
+  }
+
+  /**
+   * Retrieves the context number of the parent {@link CallFrame} for a given call frame ID.
+   *
+   * @param id the ID of the call frame whose parent's context number is to be retrieved.
+   * @return the context number of the parent call frame. If the call frame has no parent, or if the
+   *     specified ID does not correspond to a valid call frame, this method returns the context
+   *     number of the {@link CallFrame#EMPTY} which is typically 0.
+   */
+  public int getParentContextNumberById(int id) {
+    return this.getParentCallFrameById(id).contextNumber();
   }
 
   public void revert(int stamp) {
@@ -358,7 +370,7 @@ public final class CallStack {
   public String pretty() {
     StringBuilder r = new StringBuilder(2000);
     for (CallFrame c : this.frames) {
-      final CallFrame parent = this.getParentOf(c.id());
+      final CallFrame parent = this.getParentCallFrameById(c.id());
       r.append(" ".repeat(c.depth()));
       r.append(
           "%d/%d (<- %d/%d): %s"

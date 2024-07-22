@@ -15,6 +15,7 @@
 package net.consensys.linea.zktracer.module.hub.section.halt;
 
 import com.google.common.base.Preconditions;
+import lombok.Getter;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
@@ -36,7 +37,10 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 public class SelfdestructSection extends TraceSection
     implements PostRollbackDefer, PostTransactionDefer {
 
+  final int hubStamp;
   final short exceptions;
+
+  SelfdestructScenarioFragment selfdestructScenarioFragment;
 
   final Address address;
   AccountSnapshot accountBefore;
@@ -44,14 +48,13 @@ public class SelfdestructSection extends TraceSection
 
   final Bytes recipientRawAddress;
   final Address recipientAddress;
+  AccountFragment selfDestroyerFirstAccountFragment;
+  AccountFragment recipientFirstAccountFragment;
   AccountSnapshot recipientAccountBefore;
   AccountSnapshot recipientAccountAfter;
 
-  AccountFragment selfDestroyerFirstAccountFragment;
-  AccountFragment recipientFirstAccountFragment;
-
-  AccountFragment selfDestroyerSecondAccountFragment;
-  AccountFragment recipientSecondAccountFragment;
+  final boolean selfDestructTagetsItself;
+  @Getter boolean selfDestructWasReverted = false;
 
   public SelfdestructSection(Hub hub) {
     // up to 8 = 1 + 7 rows
@@ -59,6 +62,7 @@ public class SelfdestructSection extends TraceSection
     hub.addTraceSection(this);
 
     // Init
+    hubStamp = hub.stamp();
     this.exceptions = hub.pch().exceptions();
 
     final MessageFrame frame = hub.messageFrame();
@@ -72,10 +76,15 @@ public class SelfdestructSection extends TraceSection
     this.recipientRawAddress = frame.getStackItem(0);
     this.recipientAddress = Address.extract((Bytes32) this.recipientRawAddress);
     // final recipientAccount = frame.getWorldUpdater().get(this.recipientAddress);
-    this.recipientAccountBefore = AccountSnapshot.canonical(hub, this.recipientAddress);
-    //
 
-    SelfdestructScenarioFragment selfdestructScenarioFragment = new SelfdestructScenarioFragment();
+    this.selfDestructTagetsItself = this.address.equals(this.recipientAddress);
+
+    this.recipientAccountBefore =
+        selfDestructTagetsItself
+            ? this.accountAfter.deepCopy()
+            : AccountSnapshot.canonical(hub, this.recipientAddress);
+
+    selfdestructScenarioFragment = new SelfdestructScenarioFragment();
     // SCN fragment
     this.addFragment(selfdestructScenarioFragment);
     if (Exceptions.any(exceptions)) {
@@ -122,7 +131,7 @@ public class SelfdestructSection extends TraceSection
       return;
     }
 
-    // Unexceptional case (add CON row in the end manually in any case)
+    // Unexceptional case
     hub.defers().scheduleForPostRollback(this, hub.currentFrame());
     hub.defers().schedulePostTransaction(this);
 
@@ -135,37 +144,31 @@ public class SelfdestructSection extends TraceSection
     // - The recipient address will become warm (i+3)
     //   * recipientFirstAccountFragment
 
-    // Here we complete the SELFDESTRUCT without knowing yet if it will be reverted yet (not yet
-    // marked case?)
-    // ACC fragment (?)
     this.accountAfter = this.accountBefore.debit(this.accountBefore.balance());
-    selfDestroyerSecondAccountFragment =
+    selfDestroyerFirstAccountFragment =
         hub.factories()
             .accountFragment()
             .make(
                 this.accountBefore,
                 this.accountAfter,
                 DomSubStampsSubFragment.selfdestructDomSubStamps(hub));
-    this.addFragment(selfDestroyerSecondAccountFragment);
+    this.addFragment(selfDestroyerFirstAccountFragment);
 
-    // ACC fragment (?)
     this.recipientAccountAfter =
-        !recipientAddress.equals(address)
-            ? this.recipientAccountBefore.credit(this.accountBefore.balance())
-            : this.recipientAccountBefore.debit(
-                this.recipientAccountBefore
+        this.selfDestructTagetsItself
+            ? this.accountAfter.deepCopy()
+            : this.recipientAccountBefore.credit(
+                this.accountBefore
                     .balance()); // NOTE: in the second case account is equal to recipientAccount
     this.recipientAccountAfter = this.recipientAccountAfter.turnOnWarmth();
-    recipientSecondAccountFragment =
+    recipientFirstAccountFragment =
         hub.factories()
             .accountFragment()
             .make(
                 this.recipientAccountBefore,
                 this.recipientAccountAfter,
                 DomSubStampsSubFragment.selfdestructDomSubStamps(hub));
-    this.addFragment(recipientSecondAccountFragment);
-
-    // take a look at EXTCODECOPY, RETURN, ACCOUNT for reference
+    this.addFragment(recipientFirstAccountFragment);
   }
 
   @Override
@@ -174,22 +177,35 @@ public class SelfdestructSection extends TraceSection
     undo the modifications we applied to selfDestroyerFirstAccountFragment and recipientFirstAccountFragment
     this will add account rows. Shall we basically go back from after to before?
      */
-    // TODO: check if we can we use the same AccountSnapshot objects to revert the changes?
-    this.addFragment(
+    final AccountFragment selfDestroyerUndoingAccountFragment =
         hub.factories()
             .accountFragment()
             .make(
                 this.accountAfter,
                 this.accountBefore,
-                DomSubStampsSubFragment.selfdestructDomSubStamps(hub)));
+                DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
+                    hubStamp, callFrame.revertStamp(), 2));
+    this.addFragment(selfDestroyerUndoingAccountFragment);
 
-    this.addFragment(
+    final AccountFragment recipientUndoingAccountFragment =
         hub.factories()
             .accountFragment()
             .make(
                 this.recipientAccountAfter,
                 this.recipientAccountBefore,
-                DomSubStampsSubFragment.selfdestructDomSubStamps(hub)));
+                DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
+                    hubStamp, callFrame.revertStamp(), 3));
+    this.addFragment(recipientUndoingAccountFragment);
+
+    ContextFragment squashParentContextReturnData =
+        ContextFragment.executionProvidesEmptyReturnData(
+            hub, hub.callStack().getParentContextNumberById(callFrame.id()));
+    this.addFragment(squashParentContextReturnData);
+
+    selfDestructWasReverted = true;
+
+    selfdestructScenarioFragment.setScenario(
+        SelfdestructScenarioFragment.SelfdestructScenario.SELFDESTRUCT_WILL_REVERT);
   }
 
   @Override

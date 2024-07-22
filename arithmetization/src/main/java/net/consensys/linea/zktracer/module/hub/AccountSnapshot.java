@@ -173,4 +173,16 @@ public class AccountSnapshot {
         this.deploymentNumber,
         this.deploymentStatus);
   }
+
+  // TODO: confirm with Tsvetan if this creates a proper deep copy
+  public AccountSnapshot deepCopy() {
+    return new AccountSnapshot(
+        this.address,
+        this.nonce,
+        this.balance,
+        this.isWarm,
+        this.code,
+        this.deploymentNumber,
+        this.deploymentStatus);
+  }
 }

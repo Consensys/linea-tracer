@@ -18,6 +18,7 @@ import static net.consensys.linea.zktracer.module.hub.fragment.scenario.ReturnSc
 
 import com.google.common.base.Preconditions;
 import lombok.Getter;
+import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
@@ -31,6 +32,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.scenario.ReturnScenarioF
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
+import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
@@ -46,7 +48,7 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
   MmuCall firstMmuCall;
   MmuCall secondMmuCall;
 
-  ContextFragment squashCreatorReturnData;
+  ContextFragment squashParentContextReturnData;
   @Getter public boolean emptyDeployment;
   @Getter public boolean deploymentWasReverted = false;
 
@@ -84,7 +86,7 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
     ////////////////////////////////////
     if (Exceptions.memoryExpansionException(exceptions)
         || Exceptions.outOfGasException(exceptions)) {
-      // Note: the context fragment will be added elsewhere
+      // Note: the missing context fragment is added elsewhere
       return;
     }
 
@@ -121,8 +123,6 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
     /////////////////////////////////
     /////////////////////////////////
     if (returnFromMessageCall) {
-      // TODO: remove final long returnAtCapacity =
-      // hub.currentFrame().requestedReturnDataTarget().length();
       final boolean messageCallReturnTouchesRam =
           !hub.currentFrame().isRoot()
               && nontrivialMmOperation // [size ≠ 0] ∧ ¬MXPX
@@ -136,11 +136,8 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
       if (messageCallReturnTouchesRam) {
         firstMmuCall = MmuCall.returnFromCall(hub);
         hub.defers().schedulePostTransaction(this);
-      } else {
-        // TODO: should we add the following ? It shouldn't be necessary ... @FB: no, no need.
-        //  mmuCall = MmuCall.nop();
-        //  hub.defers().schedulePostTransaction(this);
       }
+      // no need for the else case (and a nop) as per @François
 
       ContextFragment updateCallerReturnData =
           ContextFragment.providesReturnData(
@@ -156,15 +153,19 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
     ///////////////////////////////
     ///////////////////////////////
     if (returnFromDeployment) {
-
       hub.defers().scheduleForPostRollback(this, hub.currentFrame());
-
-      final boolean triggerOobForNonemptyDeployments = mxpCall.isMayTriggerNonTrivialMmuOperation();
 
       final long byteCodeSize = hub.messageFrame().getStackItem(1).toLong();
       final boolean emptyDeployment = byteCodeSize == 0;
+      final boolean triggerOobForNonemptyDeployments = mxpCall.isMayTriggerNonTrivialMmuOperation();
+      Preconditions.checkArgument(triggerOobForNonemptyDeployments == !emptyDeployment);
+
+      Address deploymentAddress = hub.messageFrame().getRecipientAddress();
+      AccountSnapshot accountBeforeDeployment = AccountSnapshot.canonical(hub, deploymentAddress);
+      AccountSnapshot accountAfterDeployment = AccountSnapshot.canonical(hub, deploymentAddress);
 
       if (emptyDeployment) {
+
         return;
       }
 
@@ -178,7 +179,7 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
       // TODO: make sure this works if the current context is the root
       //  context (deployment transaction) in particular the following
       //  ``Either.left(callStack.parent().id())''
-      squashCreatorReturnData = ContextFragment.executionProvidesEmptyReturnData(hub);
+      squashParentContextReturnData = ContextFragment.executionProvidesEmptyReturnData(hub);
     }
 
     // returnFromDeployment =
@@ -193,7 +194,7 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
             ? RETURN_FROM_DEPLOYMENT_EMPTY_CODE_WILL_REVERT
             : RETURN_FROM_DEPLOYMENT_NONEMPTY_CODE_WILL_REVERT);
 
-    this.addFragment(squashCreatorReturnData);
+    this.addFragment(squashParentContextReturnData);
 
     deploymentWasReverted = true;
   }
@@ -217,6 +218,6 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
     // if (secondMmuCall != null) {
     //  secondImcFragment.callMmu(secondMmuCall);
     // }
-    this.addFragment(squashCreatorReturnData);
+    this.addFragment(squashParentContextReturnData);
   }
 }

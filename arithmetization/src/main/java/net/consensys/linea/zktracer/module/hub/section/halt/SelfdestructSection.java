@@ -218,33 +218,42 @@ public class SelfdestructSection extends TraceSection
     // - not yet marked corresponds to when SELFDESTRUCT produces no exceptions, will not be
     // reverted
     // ,and it is the first time this account will be successful in self-destructing
+
     // - already marked corresponds to when SELFDESTRUCT produces no exceptions, will not be
     // reverted
     // ,and it is not the first time this account will be successful in self-destructing
+
     // mark for self-destructing is associated to an address and a deployment number
-    // use a maps that keeps track the (hub stamp, call frame) of all the unexceptional
+    // use a maps that keeps track of the (hub stamp, call frame) of all the unexceptional
     // SELFDESTRUCT for a given (address, deployment number)
+
     // at the end of the transaction we have that map
+
     // we analyse that map:
     // for every (address, deployment number) we walk through the list of [(hub stamp, call frame),
     // ...]
+
     // for every call frame we know if it was reverted or not
+
     // the first time (selfDestructTime) we find a call frame that has not been reverted, we
     // remember the hub stamp
+
     // this produces a new map (address, deployment number) -> selfDestructTime (of the first
     // successful and un-reverted
     // SELFDESTRUCT)
-    // we know have a map of all (address, deployment number) that have been successful in
+
+    // we now have a map of all (address, deployment number) that have been successful in
     // self-destructing
     // and the hub stamp in which it happened
+
     // for every account row in the entire trace, we can now decide what to write in the
-    // MARKED_FOR_SELFDESTRUCT and MARKED_FOR_SELFDESTRUCT_NEW columns
+    // MARKED_FOR_SELFDESTRUCT and MARKED_FOR_SELFDESTRUCT_NEW columns:
     // MARKED_FOR_SELFDESTRUCT = [hub stamp < selfDestructTime]
     // MARKED_FOR_SELFDESTRUCT_NEW = [hub stamp >= selfDestructTime]
 
     // This will only be triggered at the hub stamp = selfDestructTime
-    // i+4 for not yet marked case
-    // we wipe the entire account
+    // we wipe the entire account in the "not yet marked" case (precisely when not yet marked
+    // transitions from false to true) (see row i+4 of not yet marked case)
     // in the already marked case we know that this action has already been scheduled for the future
 
     // every transaction should start with an empty map

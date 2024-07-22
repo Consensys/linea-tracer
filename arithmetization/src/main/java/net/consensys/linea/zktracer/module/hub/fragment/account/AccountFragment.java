@@ -57,6 +57,11 @@ public final class AccountFragment
   private final DomSubStampsSubFragment domSubStampsSubFragment;
   @Setter private RlpAddrSubFragment rlpAddrSubFragment;
 
+  // TODO: will be needed to properly compute MARKED_FOR_SELFDESTRUCT
+  //  and to have the correct value of the hub stamp for the subordinate
+  //  stamp of any reverting scenario. @Olivier @Francois @Lorenzo
+  // final int hubStamp;
+
   /**
    * {@link AccountFragment} creation requires access to a {@link DeferRegistry} for post-conflation
    * data gathering, which is provided by this factory.
@@ -98,7 +103,12 @@ public final class AccountFragment
     this.addressToTrim = addressToTrim;
     this.domSubStampsSubFragment = domSubStampsSubFragment;
 
+    // This allows us to properly fill EXISTS_INFTY, DEPLOYMENT_NUMBER_INFTY and CODE_FRAGMENT_INDEX
     defers.schedulePostConflation(this);
+
+    // This allows us to properly fill MARKED_FOR_SELFDESTRUCT and MARKED_FOR_SELFDESTRUCT_NEW,
+    // among other things
+    defers.schedulePostTransaction(this);
   }
 
   @Override
@@ -155,7 +165,9 @@ public final class AccountFragment
 
   @Override
   public void resolvePostTransaction(
-      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {}
+      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+    // TODO
+  }
 
   @Override
   public void resolvePostConflation(Hub hub, WorldView world) {

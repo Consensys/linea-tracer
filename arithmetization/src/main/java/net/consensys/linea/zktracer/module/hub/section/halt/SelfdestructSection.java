@@ -37,6 +37,7 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 public class SelfdestructSection extends TraceSection
     implements PostRollbackDefer, PostTransactionDefer {
 
+  final int id;
   final int hubStamp;
   final short exceptions;
 
@@ -53,7 +54,7 @@ public class SelfdestructSection extends TraceSection
   AccountSnapshot recipientAccountBefore;
   AccountSnapshot recipientAccountAfter;
 
-  final boolean selfDestructTagetsItself;
+  final boolean selfDestructTargetsItself;
   @Getter boolean selfDestructWasReverted = false;
 
   public SelfdestructSection(Hub hub) {
@@ -62,6 +63,7 @@ public class SelfdestructSection extends TraceSection
     hub.addTraceSection(this);
 
     // Init
+    this.id = hub.currentFrame().id();
     hubStamp = hub.stamp();
     this.exceptions = hub.pch().exceptions();
 
@@ -69,18 +71,16 @@ public class SelfdestructSection extends TraceSection
 
     // Account
     this.address = frame.getSenderAddress();
-    // final Account accountAccount = frame.getWorldUpdater().get(this.address);
     this.accountBefore = AccountSnapshot.canonical(hub, this.address);
 
     // Recipient
     this.recipientRawAddress = frame.getStackItem(0);
     this.recipientAddress = Address.extract((Bytes32) this.recipientRawAddress);
-    // final recipientAccount = frame.getWorldUpdater().get(this.recipientAddress);
 
-    this.selfDestructTagetsItself = this.address.equals(this.recipientAddress);
+    this.selfDestructTargetsItself = this.address.equals(this.recipientAddress);
 
     this.recipientAccountBefore =
-        selfDestructTagetsItself
+        selfDestructTargetsItself
             ? this.accountAfter.deepCopy()
             : AccountSnapshot.canonical(hub, this.recipientAddress);
 
@@ -105,7 +105,6 @@ public class SelfdestructSection extends TraceSection
     if (Exceptions.any(exceptions)) {
       Preconditions.checkArgument(exceptions == Exceptions.OUT_OF_GAS_EXCEPTION);
 
-      // ACC fragment (1)
       selfDestroyerFirstAccountFragment =
           hub.factories()
               .accountFragment()
@@ -114,9 +113,8 @@ public class SelfdestructSection extends TraceSection
                   this.accountBefore,
                   DomSubStampsSubFragment.standardDomSubStamps(hub, 0));
 
-      this.addFragment(selfDestroyerFirstAccountFragment); // i+2
+      this.addFragment(selfDestroyerFirstAccountFragment);
 
-      // ACC fragment (2)
       recipientFirstAccountFragment =
           hub.factories()
               .accountFragment()
@@ -126,7 +124,7 @@ public class SelfdestructSection extends TraceSection
                   this.recipientRawAddress,
                   DomSubStampsSubFragment.standardDomSubStamps(hub, 1));
 
-      this.addFragment(recipientFirstAccountFragment); // i+3
+      this.addFragment(recipientFirstAccountFragment);
 
       return;
     }
@@ -155,7 +153,7 @@ public class SelfdestructSection extends TraceSection
     this.addFragment(selfDestroyerFirstAccountFragment);
 
     this.recipientAccountAfter =
-        this.selfDestructTagetsItself
+        this.selfDestructTargetsItself
             ? this.accountAfter.deepCopy()
             : this.recipientAccountBefore.credit(
                 this.accountBefore
@@ -173,10 +171,8 @@ public class SelfdestructSection extends TraceSection
 
   @Override
   public void resolvePostRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
-    /* willRevert case
-    undo the modifications we applied to selfDestroyerFirstAccountFragment and recipientFirstAccountFragment
-    this will add account rows. Shall we basically go back from after to before?
-     */
+    // Undo the modifications we applied to selfDestroyerFirstAccountFragment and
+    // recipientFirstAccountFragment
     final AccountFragment selfDestroyerUndoingAccountFragment =
         hub.factories()
             .accountFragment()
@@ -199,7 +195,7 @@ public class SelfdestructSection extends TraceSection
 
     ContextFragment squashParentContextReturnData =
         ContextFragment.executionProvidesEmptyReturnData(
-            hub, hub.callStack().getParentContextNumberById(callFrame.id()));
+            hub, hub.callStack().getParentContextNumberById(this.id));
     this.addFragment(squashParentContextReturnData);
 
     selfDestructWasReverted = true;
@@ -211,6 +207,13 @@ public class SelfdestructSection extends TraceSection
   @Override
   public void resolvePostTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+    // if selfDestructWasReverted = false then we are in the WONT_REVERT case
+    // We still need to understand in which of the below cases we are:
+    // selfdestructScenarioFragment.setScenario(
+    //  SelfdestructScenarioFragment.SelfdestructScenario.SELFDESTRUCT_WONT_REVERT_NOT_YET_MARKED);
+    // selfdestructScenarioFragment.setScenario(
+    //  SelfdestructScenarioFragment.SelfdestructScenario.SELFDESTRUCT_WONT_REVERT_ALREADY_MARKED);
+
     // will not revert (subcases: already marked, not yet marked)
     // - not yet marked corresponds to when SELFDESTRUCT produces no exceptions, will not be
     // reverted

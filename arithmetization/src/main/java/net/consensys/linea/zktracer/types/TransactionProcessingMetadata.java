@@ -114,12 +114,12 @@ public class TransactionProcessingMetadata {
   @Setter Set<AccountSnapshot> destructedAccountsSnapshot;
 
   @Getter
-  Map<AddressDeploymentNumberPair, List<HubStampCallFramePair>> unexceptionalSelfDestructMap;
+  Map<AddressDeploymentNumberKey, List<HubStampCallFrameValue>> unexceptionalSelfDestructMap;
 
-  public record AddressDeploymentNumberPair(Address address, int deploymentNumber) {}
+  public record AddressDeploymentNumberKey(Address address, int deploymentNumber) {}
   ;
 
-  public record HubStampCallFramePair(int hubStamp, CallFrame callFrame) {}
+  public record HubStampCallFrameValue(int hubStamp, CallFrame callFrame) {}
   ;
 
   public TransactionProcessingMetadata(

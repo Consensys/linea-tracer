@@ -30,8 +30,8 @@ import net.consensys.linea.zktracer.module.hub.fragment.scenario.SelfdestructSce
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
-import net.consensys.linea.zktracer.types.TransactionProcessingMetadata.AddressDeploymentNumberPair;
-import net.consensys.linea.zktracer.types.TransactionProcessingMetadata.HubStampCallFramePair;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata.AddressDeploymentNumberKey;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata.HubStampCallFrameValue;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
@@ -135,23 +135,23 @@ public class SelfdestructSection extends TraceSection
     }
 
     // Unexceptional case
-    Map<AddressDeploymentNumberPair, List<HubStampCallFramePair>> unexceptionalSelfDestructMap =
+    Map<AddressDeploymentNumberKey, List<HubStampCallFrameValue>> unexceptionalSelfDestructMap =
         hub.txStack().current().getUnexceptionalSelfDestructMap();
 
-    AddressDeploymentNumberPair addressDeploymentNumberPair =
-        new AddressDeploymentNumberPair(this.address, this.accountBefore.deploymentNumber());
+    AddressDeploymentNumberKey addressDeploymentNumberKey =
+        new AddressDeploymentNumberKey(this.address, this.accountBefore.deploymentNumber());
 
-    if (unexceptionalSelfDestructMap.containsKey(addressDeploymentNumberPair)) {
-      List<HubStampCallFramePair> hubStampCallFramePairs =
-          unexceptionalSelfDestructMap.get(addressDeploymentNumberPair);
-      hubStampCallFramePairs.add(new HubStampCallFramePair(hubStamp, hub.currentFrame()));
+    if (unexceptionalSelfDestructMap.containsKey(addressDeploymentNumberKey)) {
+      List<HubStampCallFrameValue> hubStampCallFrameValues =
+          unexceptionalSelfDestructMap.get(addressDeploymentNumberKey);
+      hubStampCallFrameValues.add(new HubStampCallFrameValue(hubStamp, hub.currentFrame()));
       // TODO: double check that re-adding the list to the map is not necessary, as the list is a
       //  reference
-      //  unexceptionalSelfDestructMap.put(addressDeploymentNumberPair, hubStampCallFramePairs);
+      //  unexceptionalSelfDestructMap.put(addressDeploymentNumberKey, hubStampCallFrameValues);
     } else {
       unexceptionalSelfDestructMap.put(
-          new AddressDeploymentNumberPair(this.address, this.accountBefore.deploymentNumber()),
-          List.of(new HubStampCallFramePair(hubStamp, hub.currentFrame())));
+          new AddressDeploymentNumberKey(this.address, this.accountBefore.deploymentNumber()),
+          List.of(new HubStampCallFrameValue(hubStamp, hub.currentFrame())));
     }
 
     hub.defers().scheduleForPostRollback(this, hub.currentFrame());

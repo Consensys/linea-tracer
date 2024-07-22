@@ -30,6 +30,7 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EXO_
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_ANY_TO_RAM_WITH_PADDING;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_BLAKE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_EXO_TO_RAM_TRANSPLANTS;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_INVALID_CODE_PREFIX;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_MLOAD;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_MODEXP_DATA;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_MODEXP_ZERO;
@@ -79,6 +80,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.opcode.Retu
 import net.consensys.linea.zktracer.module.hub.precompiles.Blake2fMetadata;
 import net.consensys.linea.zktracer.module.hub.precompiles.ModExpMetadata;
 import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
+import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.runtime.LogInvocation;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.EWord;
@@ -271,6 +273,18 @@ public class MmuCall implements TraceSubFragment {
 
   public static MmuCall create2(final Hub hub) {
     return new Create2(hub);
+  }
+
+  public static MmuCall invalidCodePrefix(final Hub hub) {
+    return new MmuCall(MMU_INST_INVALID_CODE_PREFIX)
+        .sourceId(hub.currentFrame().contextNumber())
+        .sourceRamBytes(
+            Optional.of(
+                hub.currentFrame()
+                    .frame()
+                    .shadowReadMemory(0, hub.currentFrame().frame().memoryByteSize())))
+        .sourceOffset(EWord.of(hub.messageFrame().getStackItem(0)))
+        .successBit(Exceptions.any(hub.pch().exceptions()));
   }
 
   public static MmuCall revert(final Hub hub) {

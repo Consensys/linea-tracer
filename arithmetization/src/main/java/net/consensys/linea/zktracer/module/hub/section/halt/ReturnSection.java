@@ -14,6 +14,8 @@
  */
 package net.consensys.linea.zktracer.module.hub.section.halt;
 
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.ReturnScenarioFragment.ReturnScenario.*;
+
 import com.google.common.base.Preconditions;
 import lombok.Getter;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -33,15 +35,13 @@ import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-import static net.consensys.linea.zktracer.module.hub.fragment.scenario.ReturnScenarioFragment.ReturnScenario.*;
-
 @Getter
 public class ReturnSection extends TraceSection implements PostTransactionDefer, PostRollbackDefer {
 
   final short exceptions;
   final boolean returnFromDeployment;
   final boolean returnFromMessageCall; // not stricly speaking necessary
-  ReturnScenarioFragment returnScenarioFragment;
+  final ReturnScenarioFragment returnScenarioFragment;
   final ImcFragment firstImcFragment;
   MmuCall firstMmuCall;
   MmuCall secondMmuCall;
@@ -88,7 +88,6 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
       return;
     }
 
-
     // Max code size exception (MAXCSX)
     ///////////////////////////////////
     boolean triggerOobForMaxCodeSizeException = Exceptions.codeSizeOverflow(exceptions);
@@ -104,9 +103,8 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
     final boolean triggerMmuForInvalidCodePrefix = Exceptions.invalidCodePrefix(exceptions);
     if (triggerMmuForInvalidCodePrefix) {
       Preconditions.checkArgument(hub.currentFrame().isDeployment());
-      // TODO: @françois: invalidCodePrefix currently unavailable
-      // TODO: @olivier: hub.defers().schedulePostTransaction(hub);
-      //  firstMmuCall = MmuCall.invalidCodePrefix();
+      firstMmuCall = MmuCall.invalidCodePrefix(hub);
+      hub.defers().schedulePostTransaction(this);
       return;
     }
 
@@ -123,34 +121,35 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
     /////////////////////////////////
     /////////////////////////////////
     if (returnFromMessageCall) {
-      // TODO: remove final long returnAtCapacity = hub.currentFrame().requestedReturnDataTarget().length();
+      // TODO: remove final long returnAtCapacity =
+      // hub.currentFrame().requestedReturnDataTarget().length();
       final boolean messageCallReturnTouchesRam =
-              !hub.currentFrame().isRoot()
-                      && nontrivialMmOperation // [size ≠ 0] ∧ ¬MXPX
-                      && !hub.currentFrame().requestedReturnDataTarget().isEmpty(); // [r@c ≠ 0]
+          !hub.currentFrame().isRoot()
+              && nontrivialMmOperation // [size ≠ 0] ∧ ¬MXPX
+              && !hub.currentFrame().requestedReturnDataTarget().isEmpty(); // [r@c ≠ 0]
 
       returnScenarioFragment.setScenario(
-              messageCallReturnTouchesRam
+          messageCallReturnTouchesRam
               ? RETURN_FROM_MESSAGE_CALL_WILL_TOUCH_RAM
               : RETURN_FROM_MESSAGE_CALL_WONT_TOUCH_RAM);
 
-        if (messageCallReturnTouchesRam) {
-            firstMmuCall = MmuCall.returnFromCall(hub);
-            hub.defers().schedulePostTransaction(this);
-        } else {
-          // TODO: should we add the following ? It shouldn't be necessary ...
-          //  mmuCall = MmuCall.nop();
-          //  hub.defers().schedulePostTransaction(this);
-        }
+      if (messageCallReturnTouchesRam) {
+        firstMmuCall = MmuCall.returnFromCall(hub);
+        hub.defers().schedulePostTransaction(this);
+      } else {
+        // TODO: should we add the following ? It shouldn't be necessary ... @FB: no, no need.
+        //  mmuCall = MmuCall.nop();
+        //  hub.defers().schedulePostTransaction(this);
+      }
 
-        ContextFragment updateCallerReturnData = ContextFragment.providesReturnData(
-                hub,
-                hub.callStack().getById(hub.currentFrame().parentFrame()).contextNumber(),
-                hub.currentFrame().contextNumber());
-        this.addFragment(updateCallerReturnData);
+      ContextFragment updateCallerReturnData =
+          ContextFragment.providesReturnData(
+              hub,
+              hub.callStack().getById(hub.currentFrame().parentFrame()).contextNumber(),
+              hub.currentFrame().contextNumber());
+      this.addFragment(updateCallerReturnData);
 
-
-        return;
+      return;
     }
 
     // RETURN_FROM_DEPLOYMENT cases
@@ -159,8 +158,8 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
     if (returnFromDeployment) {
 
       hub.defers().scheduleForPostRollback(this, hub.currentFrame());
-      final boolean triggerOobForNonemptyDeployments =
-                      mxpCall.isMayTriggerNonTrivialMmuOperation();
+
+      final boolean triggerOobForNonemptyDeployments = mxpCall.isMayTriggerNonTrivialMmuOperation();
 
       final long byteCodeSize = hub.messageFrame().getStackItem(1).toLong();
       final boolean emptyDeployment = byteCodeSize == 0;
@@ -169,8 +168,8 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
         return;
       }
 
-      // TODO:
-      //  firstMmuCall = MmuCall.invalidCodePrefix();
+      hub.defers().schedulePostTransaction(this);
+      firstMmuCall = MmuCall.invalidCodePrefix(hub);
 
       // TODO: we need to implement the mechanism that will append the
       //  context row which will squash the creator's return data after
@@ -182,7 +181,6 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
       squashCreatorReturnData = ContextFragment.executionProvidesEmptyReturnData(hub);
     }
 
-
     // returnFromDeployment =
   }
 
@@ -191,9 +189,9 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
     // TODO
     Preconditions.checkArgument(returnFromDeployment);
     returnScenarioFragment.setScenario(
-            emptyDeployment
-                    ? RETURN_FROM_DEPLOYMENT_EMPTY_CODE_WILL_REVERT
-                    : RETURN_FROM_DEPLOYMENT_NONEMPTY_CODE_WILL_REVERT);
+        emptyDeployment
+            ? RETURN_FROM_DEPLOYMENT_EMPTY_CODE_WILL_REVERT
+            : RETURN_FROM_DEPLOYMENT_NONEMPTY_CODE_WILL_REVERT);
 
     this.addFragment(squashCreatorReturnData);
 
@@ -202,17 +200,23 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
 
   @Override
   public void resolvePostTransaction(
-          Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
     // TODO
 
     if (returnFromDeployment && !deploymentWasReverted) {
       returnScenarioFragment.setScenario(
-              emptyDeployment
-                      ? RETURN_FROM_DEPLOYMENT_EMPTY_CODE_WONT_REVERT
-                      : RETURN_FROM_DEPLOYMENT_NONEMPTY_CODE_WONT_REVERT);
+          emptyDeployment
+              ? RETURN_FROM_DEPLOYMENT_EMPTY_CODE_WONT_REVERT
+              : RETURN_FROM_DEPLOYMENT_NONEMPTY_CODE_WONT_REVERT);
     }
 
-    firstImcFragment.callMmu(firstMmuCall);
+    if (firstMmuCall != null) {
+      firstImcFragment.callMmu(firstMmuCall);
+    }
+    // TODO:
+    // if (secondMmuCall != null) {
+    //  secondImcFragment.callMmu(secondMmuCall);
+    // }
     this.addFragment(squashCreatorReturnData);
   }
 }

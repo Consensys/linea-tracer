@@ -14,6 +14,9 @@
  */
 package net.consensys.linea.zktracer.module.hub.section.halt;
 
+import java.util.List;
+import java.util.Map;
+
 import com.google.common.base.Preconditions;
 import lombok.Getter;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
@@ -27,6 +30,8 @@ import net.consensys.linea.zktracer.module.hub.fragment.scenario.SelfdestructSce
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata.AddressDeploymentNumberPair;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata.HubStampCallFramePair;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
@@ -130,6 +135,25 @@ public class SelfdestructSection extends TraceSection
     }
 
     // Unexceptional case
+    Map<AddressDeploymentNumberPair, List<HubStampCallFramePair>> unexceptionalSelfDestructMap =
+        hub.txStack().current().getUnexceptionalSelfDestructMap();
+
+    AddressDeploymentNumberPair addressDeploymentNumberPair =
+        new AddressDeploymentNumberPair(this.address, this.accountBefore.deploymentNumber());
+
+    if (unexceptionalSelfDestructMap.containsKey(addressDeploymentNumberPair)) {
+      List<HubStampCallFramePair> hubStampCallFramePairs =
+          unexceptionalSelfDestructMap.get(addressDeploymentNumberPair);
+      hubStampCallFramePairs.add(new HubStampCallFramePair(hubStamp, hub.currentFrame()));
+      // TODO: double check that re-adding the list to the map is not necessary, as the list is a
+      //  reference
+      //  unexceptionalSelfDestructMap.put(addressDeploymentNumberPair, hubStampCallFramePairs);
+    } else {
+      unexceptionalSelfDestructMap.put(
+          new AddressDeploymentNumberPair(this.address, this.accountBefore.deploymentNumber()),
+          List.of(new HubStampCallFramePair(hubStamp, hub.currentFrame())));
+    }
+
     hub.defers().scheduleForPostRollback(this, hub.currentFrame());
     hub.defers().schedulePostTransaction(this);
 
@@ -226,6 +250,17 @@ public class SelfdestructSection extends TraceSection
     // mark for self-destructing is associated to an address and a deployment number
     // use a maps that keeps track of the (hub stamp, call frame) of all the unexceptional
     // SELFDESTRUCT for a given (address, deployment number)
+
+    // we need the callFrame in order to tell us, when we walk through this map at the end of the
+    // transaction (transactionEnd),
+    // if the SELFDESTRUCT took place in a frame that will be reverted/roll back (in this case, we
+    // can ignore it)
+    // later this information will be used to filter out the reverted SELFDESTRUCT
+    // once we have this filtered map, for every pair (address, deploymentNumber),
+    // we can compute its selfDestructTime = the first hubStamp such that is successful and not
+    // reverted
+    // these SELFDESTRUCT will be finished at the end of the transaction by wiping the corresponding
+    // accounts
 
     // at the end of the transaction we have that map
 

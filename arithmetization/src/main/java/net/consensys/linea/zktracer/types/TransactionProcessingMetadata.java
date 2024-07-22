@@ -21,6 +21,7 @@ import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -33,6 +34,7 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.HubProcessingPhase;
 import net.consensys.linea.zktracer.module.hub.transients.Block;
 import net.consensys.linea.zktracer.module.hub.transients.StorageInitialValues;
+import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
@@ -110,6 +112,15 @@ public class TransactionProcessingMetadata {
   @Setter int codeFragmentIndex = -1;
 
   @Setter Set<AccountSnapshot> destructedAccountsSnapshot;
+
+  @Getter
+  Map<AddressDeploymentNumberPair, List<HubStampCallFramePair>> unexceptionalSelfDestructMap;
+
+  public record AddressDeploymentNumberPair(Address address, int deploymentNumber) {}
+  ;
+
+  public record HubStampCallFramePair(int hubStamp, CallFrame callFrame) {}
+  ;
 
   public TransactionProcessingMetadata(
       final WorldView world,

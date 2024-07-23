@@ -16,10 +16,15 @@
 package net.consensys.linea.zktracer.types;
 
 import java.math.BigInteger;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.google.common.base.Preconditions;
 import org.apache.tuweni.bytes.Bytes;
+import org.apache.tuweni.toml.Toml;
+import org.apache.tuweni.toml.TomlTable;
 
 public class Utils {
 
@@ -97,5 +102,16 @@ public class Utils {
    */
   public static String addOffsetToHexString(int offset, String hexString) {
     return new BigInteger(hexString, 16).add(BigInteger.valueOf(offset)).toString(16);
+  }
+
+  public static Map<String, Integer> computeSpillings() throws IOException {
+    final Map<String, Integer> spillings = new HashMap<>();
+
+    final TomlTable table =
+        Toml.parse(Utils.class.getClassLoader().getResourceAsStream("spillings.toml"))
+            .getTable("spillings");
+    table.toMap().keySet().forEach(k -> spillings.put(k, Math.toIntExact(table.getLong(k))));
+
+    return spillings;
   }
 }

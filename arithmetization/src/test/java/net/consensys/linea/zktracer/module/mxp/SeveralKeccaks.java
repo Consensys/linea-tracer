@@ -17,12 +17,15 @@ package net.consensys.linea.zktracer.module.mxp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.testing.BytecodeRunner;
-import net.consensys.linea.zktracer.testing.EvmExtension;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
-@ExtendWith(EvmExtension.class)
 public class SeveralKeccaks {
+  @Test
+  public void testMul() {
+    BytecodeRunner.of(BytecodeCompiler.newProgram().push(32).push(7).op(OpCode.MUL).compile())
+        .run();
+  }
+
   @Test
   void testSeveralKeccaks() {
     BytecodeRunner.of(

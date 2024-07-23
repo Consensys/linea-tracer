@@ -23,13 +23,12 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EXP_
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EXP_INST_MODEXPLOG;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGEPO;
-import static net.consensys.linea.zktracer.module.exp.Trace.ISZERO;
-import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_CMPTN_EXP_LOG;
-import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_CMPTN_MODEXP_LOG;
-import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_PRPRC_EXP_LOG;
-import static net.consensys.linea.zktracer.module.exp.Trace.MAX_CT_PRPRC_MODEXP_LOG;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
+import static net.consensys.linea.zktracer.module.exp.Trace.CT_MAX_CMPTN_EXP_LOG;
+import static net.consensys.linea.zktracer.module.exp.Trace.CT_MAX_CMPTN_MODEXP_LOG;
+import static net.consensys.linea.zktracer.module.exp.Trace.CT_MAX_PRPRC_EXP_LOG;
+import static net.consensys.linea.zktracer.module.exp.Trace.CT_MAX_PRPRC_MODEXP_LOG;
 
 import java.math.BigInteger;
 import java.math.RoundingMode;
@@ -131,7 +130,7 @@ public class ExpOperation extends ModuleOperation {
     pMacroData1 = explogExpCall.getExponent().hi();
     pMacroData2 = explogExpCall.getExponent().lo();
     pMacroData5 = Bytes.ofUnsignedLong(explogExpCall.getDynCost());
-    initArrays(MAX_CT_PRPRC_EXP_LOG + 1);
+    initArrays(CT_MAX_PRPRC_EXP_LOG + 1);
 
     // Preprocessing
     // First row
@@ -140,7 +139,7 @@ public class ExpOperation extends ModuleOperation {
     pPreprocessingWcpArg1Lo[0] = explogExpCall.getExponent().hi();
     pPreprocessingWcpArg2Hi[0] = Bytes.EMPTY;
     pPreprocessingWcpArg2Lo[0] = Bytes.EMPTY;
-    pPreprocessingWcpInst[0] = UnsignedByte.of(ISZERO);
+    pPreprocessingWcpInst[0] = UnsignedByte.of(EVM_INST_ISZERO);
     final boolean expnHiIsZero = wcp.callISZERO(explogExpCall.getExponent().hi());
     ;
     pPreprocessingWcpRes[0] = expnHiIsZero;
@@ -153,7 +152,7 @@ public class ExpOperation extends ModuleOperation {
     }
 
     // Fill trimAcc
-    short maxCt = (short) MAX_CT_CMPTN_EXP_LOG;
+    short maxCt = (short) CT_MAX_CMPTN_EXP_LOG;
     for (short i = 0; i < maxCt + 1; i++) {
       boolean pltBit = i >= pComputationPltJmp;
       byte rawByte = pComputationRawAcc.get(i);
@@ -169,7 +168,7 @@ public class ExpOperation extends ModuleOperation {
     pMacroData3 = Bytes.of(modexplogExpCall.getCdsCutoff());
     pMacroData4 = Bytes.of(modexplogExpCall.getEbsCutoff());
     pMacroData5 = bigIntegerToBytes(modexplogExpCall.getLeadLog());
-    initArrays(MAX_CT_PRPRC_MODEXP_LOG + 1);
+    initArrays(CT_MAX_PRPRC_MODEXP_LOG + 1);
 
     // Preprocessing
     EWord trim =
@@ -260,7 +259,7 @@ public class ExpOperation extends ModuleOperation {
     }
 
     // Fill trimAcc
-    final short maxCt = (short) MAX_CT_CMPTN_MODEXP_LOG;
+    final short maxCt = (short) CT_MAX_CMPTN_MODEXP_LOG;
     for (short i = 0; i < maxCt + 1; i++) {
       final boolean pltBit = i >= pComputationPltJmp;
       final byte rawByte = pComputationRawAcc.get(i);
@@ -278,7 +277,7 @@ public class ExpOperation extends ModuleOperation {
     short pComputationTanzbAcc = 0; // Paired with Tanzb
     boolean manzb;
     short pComputationManzbAcc = 0; // Paired with Manzb
-    short maxCt = (short) (isExpLog() ? MAX_CT_CMPTN_EXP_LOG : MAX_CT_CMPTN_MODEXP_LOG);
+    short maxCt = (short) (isExpLog() ? CT_MAX_CMPTN_EXP_LOG : CT_MAX_CMPTN_MODEXP_LOG);
 
     for (short i = 0; i < maxCt + 1; i++) {
       /*
@@ -321,7 +320,7 @@ public class ExpOperation extends ModuleOperation {
   }
 
   final void traceMacro(int stamp, Trace trace) {
-    // We assume MAX_CT_MACRO_EXP_LOG = MAX_CT_MACRO_MODEXP_LOG = 0;
+    // We assume CT_MAX_MACRO_EXP_LOG = CT_MAX_MACRO_MODEXP_LOG = 0;
     trace
         .macro(true)
         .stamp(stamp)
@@ -339,7 +338,7 @@ public class ExpOperation extends ModuleOperation {
   }
 
   final void tracePreprocessing(int stamp, Trace trace) {
-    short maxCt = (short) (isExpLog() ? MAX_CT_PRPRC_EXP_LOG : MAX_CT_PRPRC_MODEXP_LOG);
+    short maxCt = (short) (isExpLog() ? CT_MAX_PRPRC_EXP_LOG : CT_MAX_PRPRC_MODEXP_LOG);
     for (short i = 0; i < maxCt + 1; i++) {
       trace
           .prprc(true)
@@ -377,9 +376,9 @@ public class ExpOperation extends ModuleOperation {
   protected int computeLineCount() {
     // We assume MAX_CT_MACRO_EXP_LOG = MAX_CT_MACRO_MODEXP_LOG = 0;
     if (this.isExpLog()) {
-      return MAX_CT_CMPTN_EXP_LOG + MAX_CT_PRPRC_EXP_LOG + 3;
+      return CT_MAX_CMPTN_EXP_LOG + CT_MAX_PRPRC_EXP_LOG + 3;
     }
-    return MAX_CT_CMPTN_MODEXP_LOG + MAX_CT_PRPRC_MODEXP_LOG + 3;
+    return CT_MAX_CMPTN_MODEXP_LOG + CT_MAX_PRPRC_MODEXP_LOG + 3;
   }
 
   public record LeadLogTrimLead(int leadLog, BigInteger trim) {

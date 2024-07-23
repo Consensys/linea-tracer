@@ -247,7 +247,7 @@ public class SelfdestructSection extends TraceSection
 
     // We modify the account fragment to reflect the self-destruct time
 
-    int selfDestructTime = effectiveSelfDestructMap.get(ephemeralAccount);
+    final int selfDestructTime = effectiveSelfDestructMap.get(ephemeralAccount);
 
     Preconditions.checkArgument(this.hubStamp >= selfDestructTime);
 

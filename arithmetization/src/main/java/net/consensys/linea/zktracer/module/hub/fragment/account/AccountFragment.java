@@ -180,8 +180,8 @@ public final class AccountFragment
         new TransactionProcessingMetadata.EphemeralAccount(
             this.newState.address(), this.newState.deploymentNumber());
     Preconditions.checkArgument(effectiveSelfDestructMap.containsKey(ephemeralAccount));
-    int selfDestructStamp = effectiveSelfDestructMap.get(ephemeralAccount);
-    this.markedForSelfDestruct = this.hubStamp == selfDestructStamp;
+    final int selfDestructTime = effectiveSelfDestructMap.get(ephemeralAccount);
+    this.markedForSelfDestruct = this.hubStamp == selfDestructTime;
   }
 
   @Override

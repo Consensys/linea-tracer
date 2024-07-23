@@ -262,4 +262,8 @@ public enum OpCode {
 
     return false;
   }
+
+  public short numberOfStackRows() {
+    return (short) (this.getData().stackSettings().twoLineInstruction() ? 2 : 1);
+  }
 }

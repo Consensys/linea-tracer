@@ -36,6 +36,7 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class StopSection extends TraceSection implements PostRollbackDefer, PostTransactionDefer {
 
+  final int hubStamp;
   final Address address;
   final int deploymentNumber;
   final boolean deploymentStatus;
@@ -49,6 +50,7 @@ public class StopSection extends TraceSection implements PostRollbackDefer, Post
     hub.addTraceSection(this);
     hub.defers().schedulePostTransaction(this); // always
 
+    hubStamp = hub.stamp();
     address = hub.currentFrame().accountAddress();
     contextNumber = hub.currentFrame().contextNumber();
     {
@@ -105,7 +107,9 @@ public class StopSection extends TraceSection implements PostRollbackDefer, Post
     }
 
     Preconditions.checkArgument(this.fragments().getLast() instanceof AccountFragment);
+
     AccountFragment lastAccountFragment = (AccountFragment) this.fragments().getLast();
+    DomSubStampsSubFragment undoingDomSubStamps = DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hubStamp, hub.callStack().current().revertStamp(), 1);
 
     this.addFragmentsWithoutStack(
         hub.factories()
@@ -113,7 +117,8 @@ public class StopSection extends TraceSection implements PostRollbackDefer, Post
             .make(
                 lastAccountFragment.newState(),
                 lastAccountFragment.oldState(),
-                DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 1)));
+                    undoingDomSubStamps
+                ));
   }
 
   /**

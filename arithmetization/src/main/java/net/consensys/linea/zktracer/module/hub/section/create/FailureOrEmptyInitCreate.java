@@ -31,7 +31,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioEnum;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 
 public class FailureOrEmptyInitCreate extends TraceSection implements FillCreateSection {
-  private final int hubStamp;
   final CreateScenarioFragment scenarioFragment;
 
   public FailureOrEmptyInitCreate(
@@ -41,8 +40,6 @@ public class FailureOrEmptyInitCreate extends TraceSection implements FillCreate
       final ImcFragment imcFragment) {
     super(hub, (short) 10);
     hub.addTraceSection(this);
-
-    this.hubStamp = hub.stamp();
 
     this.scenarioFragment = new CreateScenarioFragment(scenario);
 
@@ -68,14 +65,14 @@ public class FailureOrEmptyInitCreate extends TraceSection implements FillCreate
         accountFragmentFactory.make(
             oldCreatorSnapshot,
             newCreatorSnapshot,
-            DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 0));
+            DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
     creatorAccountFragment.rlpAddrSubFragment(rlpAddrSubFragment);
 
     final AccountFragment createdAccountFragment =
         accountFragmentFactory.make(
             oldCreatedSnapshot,
             newCreatedSnapshot,
-            DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 1));
+            DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1));
 
     this.addFragmentsWithoutStack(creatorAccountFragment, createdAccountFragment);
   }
@@ -104,12 +101,12 @@ public class FailureOrEmptyInitCreate extends TraceSection implements FillCreate
         accountFragmentFactory.make(
             newCreatorSnapshot,
             oldCreatorSnapshot,
-            DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hubStamp, currentRevertStamp, 2));
+            DomSubStampsSubFragment.revertWithCurrentDomSubStamps(this.hubStamp(), currentRevertStamp, 2));
     final AccountFragment undoCreatedAccountFragment =
         accountFragmentFactory.make(
             newCreatedSnapshot,
             oldCreatedSnapshot,
-            DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hubStamp, currentRevertStamp, 3));
+            DomSubStampsSubFragment.revertWithCurrentDomSubStamps(this.hubStamp(), currentRevertStamp, 3));
 
     this.addFragmentsWithoutStack(undoCreatorAccountFragment, undoCreatedAccountFragment);
   }

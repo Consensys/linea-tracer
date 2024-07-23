@@ -238,4 +238,8 @@ public abstract class TraceSection {
       hubTrace.fillAndValidateRow();
     }
   }
+
+  public int hubStamp() {
+    return commonValues.hubStamp;
+  }
 }

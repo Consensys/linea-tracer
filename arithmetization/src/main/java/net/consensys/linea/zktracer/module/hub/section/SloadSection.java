@@ -33,17 +33,21 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Getter
 public class SloadSection extends TraceSection implements PostRollbackDefer {
+
+  final WorldView world;
   final Address address;
   final int deploymentNumber;
   final Bytes32 storageKey;
   final boolean incomingWarmth;
   final EWord valueOriginal;
   final EWord valueCurrent;
-  final WorldView world;
   final short exceptions;
 
   public SloadSection(Hub hub, WorldView world) {
-    super(hub);
+    // exceptional case:   1 (stack row) + 5 (non stack rows)
+    // unexceptional case: 1 (stack row) + 4 (non stack rows)
+    super(hub, (short) (hub.opCode().numberOfStackRows() + (Exceptions.any(hub.pch().exceptions()) ? 6 : 5)));
+
     this.world = world;
     this.address = hub.messageFrame().getRecipientAddress();
     this.deploymentNumber = hub.currentFrame().accountDeploymentNumber();
@@ -90,8 +94,10 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
       return;
     }
 
+    // TODO: make sure that the "current" execution context is the one that is being rolled back
+    //  so that we can use its revert stamp ()
     final DomSubStampsSubFragment undoingDomSubStamps =
-        DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 0);
+            DomSubStampsSubFragment.revertWithCurrentDomSubStamps(this.hubStamp(), hub.callStack().current().revertStamp(), 0);
 
     final StorageFragment undoingSloadStorageFragment =
         new StorageFragment(

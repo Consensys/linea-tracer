@@ -52,8 +52,8 @@ public final class StackFragment implements TraceFragment {
   private final short exceptions;
   @Setter private DeploymentExceptions contextExceptions;
   private final long staticGas;
-  private EWord hashInfoKeccak = EWord.ZERO;
   @Setter public boolean hashInfoFlag;
+  private EWord hashInfoKeccak = EWord.ZERO;
   @Setter public Bytes hash;
   @Getter private final OpCode opCode;
   @Setter private boolean jumpDestinationVettingRequired;

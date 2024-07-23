@@ -15,12 +15,15 @@
 
 package net.consensys.linea.zktracer.module.hub.section;
 
+import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
+import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
+import net.consensys.linea.zktracer.opcode.InstructionFamily;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import org.apache.tuweni.bytes.Bytes;
@@ -31,6 +34,7 @@ import org.hyperledger.besu.evm.internal.Words;
 
 public class AccountSection extends TraceSection implements PostRollbackDefer {
 
+  final short exceptions;
   final Bytes rawTargetAddress;
   final Address targetAddress;
   final boolean intialWarmth;
@@ -65,10 +69,24 @@ public class AccountSection extends TraceSection implements PostRollbackDefer {
     this.addFragment(doingAccountFragment);
   }
 
+  private static short maxNumberOfRows(Hub hub) {
+    OpCode opCode = hub.opCode();
+
+    if (opCode.isAnyOf(OpCode.BALANCE, OpCode.EXTCODESIZE, OpCode.EXTCODEHASH)) {
+      return (short) (opCode.numberOfStackRows() + 3);
+    }
+
+    return (short) (opCode.numberOfStackRows() + (Exceptions.any(hub.pch().exceptions())
+            ? 1
+            : 2));
+  }
+
   public AccountSection(Hub hub) {
-    super(hub);
+    super(hub, maxNumberOfRows(hub));
     hub.addTraceSection(this);
-    this.addFragmentsAndStack(hub);
+    this.addStack(hub);
+
+    exceptions = hub.pch().exceptions();
 
     final MessageFrame frame = hub.messageFrame();
     this.rawTargetAddress =
@@ -106,7 +124,7 @@ public class AccountSection extends TraceSection implements PostRollbackDefer {
   public void resolvePostRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
 
     final DomSubStampsSubFragment undoingDomSubStamps =
-        DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 0);
+        DomSubStampsSubFragment.revertWithCurrentDomSubStamps(this.hubStamp(), hub.currentFrame().revertStamp(), 0);
 
     final int deploymentNumberAtRollback =
         hub.transients().conflation().deploymentInfo().number(targetAddress);

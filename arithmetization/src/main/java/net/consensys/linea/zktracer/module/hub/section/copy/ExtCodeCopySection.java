@@ -42,6 +42,7 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 public class ExtCodeCopySection extends TraceSection
     implements PostRollbackDefer, PostTransactionDefer {
 
+  final int hubStamp;
   final Bytes rawAddress;
   final Address address;
   final int incomingDeploymentNumber;
@@ -62,26 +63,26 @@ public class ExtCodeCopySection extends TraceSection
     hub.addTraceSection(this);
 
     final MessageFrame frame = hub.messageFrame();
-    this.rawAddress = frame.getStackItem(0);
-    this.address = Address.extract((Bytes32) this.rawAddress);
-    this.incomingDeploymentNumber =
-        hub.transients().conflation().deploymentInfo().number(this.address);
-    this.incomingDeploymentStatus =
-        hub.transients().conflation().deploymentInfo().isDeploying(this.address);
-    this.incomingWarmth = frame.isAddressWarm(this.address);
-    this.exceptions = hub.pch().exceptions();
-    this.miscFragment = ImcFragment.empty(hub);
+    hubStamp = hub.stamp();
+    rawAddress = frame.getStackItem(0);
+    address = Address.extract((Bytes32) rawAddress);
+    incomingDeploymentNumber =
+        hub.transients().conflation().deploymentInfo().number(address);
+    incomingDeploymentStatus =
+        hub.transients().conflation().deploymentInfo().isDeploying(address);
+    incomingWarmth = frame.isAddressWarm(address);
+    exceptions = hub.pch().exceptions();
+    miscFragment = ImcFragment.empty(hub);
 
     this.addStack(hub);
-    this.addFragment(this.miscFragment);
+    this.addFragment(miscFragment);
 
     // triggerExp = false
     // triggerOob = false
     // triggerStp = false
-
     // triggerMxp = true
     final MxpCall mxpCall = new MxpCall(hub);
-    this.miscFragment.callMxp(mxpCall);
+    miscFragment.callMxp(mxpCall);
 
     Preconditions.checkArgument(
         mxpCall.mxpx == Exceptions.memoryExpansionException(this.exceptions));
@@ -97,22 +98,22 @@ public class ExtCodeCopySection extends TraceSection
     this.accountBefore =
         AccountSnapshot.fromAccount(
             foreignAccount,
-            this.incomingWarmth,
-            this.incomingDeploymentNumber,
-            this.incomingDeploymentStatus);
+            incomingWarmth,
+            incomingDeploymentNumber,
+            incomingDeploymentStatus);
 
     final DomSubStampsSubFragment doingDomSubStamps =
         DomSubStampsSubFragment.standardDomSubStamps(hub, 0);
 
     // The OOGX case
     ////////////////
-    if (outOfGasException(this.exceptions)) {
+    if (outOfGasException(exceptions)) {
       // the last context row will be added automatically
       final AccountFragment accountReadingFragment =
           hub.factories()
               .accountFragment()
               .makeWithTrm(
-                  this.accountBefore, this.accountBefore, this.rawAddress, doingDomSubStamps);
+                  accountBefore, accountBefore, rawAddress, doingDomSubStamps);
 
       this.addFragment(accountReadingFragment);
       return;
@@ -120,7 +121,7 @@ public class ExtCodeCopySection extends TraceSection
 
     // The unexceptional case
     /////////////////////////
-    triggerMmu = none(this.exceptions) && mxpCall.mayTriggerNonTrivialMmuOperation;
+    triggerMmu = none(exceptions) && mxpCall.mayTriggerNonTrivialMmuOperation;
     if (triggerMmu) {
       mmuCall = MmuCall.extCodeCopy(hub);
       hub.defers().schedulePostTransaction(this);
@@ -132,12 +133,12 @@ public class ExtCodeCopySection extends TraceSection
 
     this.accountAfter =
         AccountSnapshot.fromAccount(
-            foreignAccount, true, this.incomingDeploymentNumber, this.incomingDeploymentStatus);
+            foreignAccount, true, incomingDeploymentNumber, incomingDeploymentStatus);
 
     final AccountFragment accountDoingFragment =
         hub.factories()
             .accountFragment()
-            .makeWithTrm(this.accountBefore, this.accountAfter, this.rawAddress, doingDomSubStamps);
+            .makeWithTrm(accountBefore, accountAfter, rawAddress, doingDomSubStamps);
     accountDoingFragment.requiresRomlex(triggerCfi);
     this.addFragment(accountDoingFragment);
     hub.romLex().triggerRomLex(hub.messageFrame());
@@ -151,32 +152,32 @@ public class ExtCodeCopySection extends TraceSection
   public void resolvePostRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
 
     final int deploymentNumberAtRollback =
-        hub.transients().conflation().deploymentInfo().number(this.address);
+        hub.transients().conflation().deploymentInfo().number(address);
     final boolean deploymentStatusAtRollback =
-        hub.transients().conflation().deploymentInfo().isDeploying(this.address);
+        hub.transients().conflation().deploymentInfo().isDeploying(address);
 
     final AccountSnapshot revertFromSnapshot =
         new AccountSnapshot(
-            this.accountAfter.address(),
-            this.accountAfter.nonce(),
-            this.accountAfter.balance(),
-            this.accountAfter.isWarm(),
-            this.accountAfter.code(),
+            accountAfter.address(),
+            accountAfter.nonce(),
+            accountAfter.balance(),
+            accountAfter.isWarm(),
+            accountAfter.code(),
             deploymentNumberAtRollback,
             deploymentStatusAtRollback);
 
     final AccountSnapshot revertToSnapshot =
         new AccountSnapshot(
-            this.accountBefore.address(),
-            this.accountBefore.nonce(),
-            this.accountBefore.balance(),
-            this.accountBefore.isWarm(),
-            this.accountBefore.code(),
+            accountBefore.address(),
+            accountBefore.nonce(),
+            accountBefore.balance(),
+            accountBefore.isWarm(),
+            accountBefore.code(),
             deploymentNumberAtRollback,
             deploymentStatusAtRollback);
 
     final DomSubStampsSubFragment undoingDomSubStamps =
-        DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 1);
+        DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hubStamp, callFrame.revertStamp(), 1);
     final AccountFragment undoingAccountFragment =
         hub.factories()
             .accountFragment()

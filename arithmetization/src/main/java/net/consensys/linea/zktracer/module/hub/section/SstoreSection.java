@@ -35,6 +35,8 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Getter
 public class SstoreSection extends TraceSection implements PostRollbackDefer {
+
+  final WorldView world;
   final Address address;
   final int deploymentNumber;
   final Bytes32 storageKey;
@@ -42,11 +44,12 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
   final EWord valueOriginal;
   final EWord valueCurrent;
   final EWord valueNext;
-  final WorldView world;
   final short exceptions;
 
+  // TODO: there should be a better way to
   public SstoreSection(Hub hub, WorldView world) {
-    super(hub);
+    super(hub, (short) (hub.opCode().numberOfStackRows() + (Exceptions.any(hub.pch().exceptions()) ? 6 : 5)));
+
     this.world = world;
     this.address = hub.messageFrame().getRecipientAddress();
     this.deploymentNumber = hub.currentFrame().accountDeploymentNumber();
@@ -110,7 +113,7 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
     }
 
     final DomSubStampsSubFragment undoingDomSubStamps =
-        DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 0);
+        DomSubStampsSubFragment.revertWithCurrentDomSubStamps(this.hubStamp(), hub.callStack().current().revertStamp(), 0);
 
     final StorageFragment undoingSstoreStorageFragment =
         new StorageFragment(

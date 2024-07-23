@@ -68,7 +68,7 @@ public class CommonFragmentValues {
 
     this.txMetadata = hub.txStack().current();
     this.hubProcessingPhase = hub.state().getProcessingPhase();
-    this.hubStamp = hub.state().stamps().hub();
+    this.hubStamp = hub.stamp();
     this.callStack = hub.callStack();
     this.stamps = hub.state().stamps();
     this.callFrame = hub.currentFrame();

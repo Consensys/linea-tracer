@@ -32,7 +32,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioEnum;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 
 public class NonEmptyInitCodeCreate extends TraceSection implements FillCreateSection {
-  final int hubStamp;
   final CreateScenarioFragment scenarioFragment;
 
   public NonEmptyInitCodeCreate(
@@ -40,7 +39,6 @@ public class NonEmptyInitCodeCreate extends TraceSection implements FillCreateSe
     super(hub, (short) 11);
     hub.addTraceSection(this);
 
-    this.hubStamp = hub.stamp();
     this.scenarioFragment = new CreateScenarioFragment();
 
     this.addFragmentsAndStack(hub, scenarioFragment, commonContext, imcFragment);
@@ -72,14 +70,14 @@ public class NonEmptyInitCodeCreate extends TraceSection implements FillCreateSe
         accountFragmentFactory.make(
             oldCreatorSnapshot,
             midCreatorSnapshot,
-            DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 0));
+            DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
     oldToMidCreatorAccountFragment.rlpAddrSubFragment(rlpAddrSubFragment);
 
     final AccountFragment oldToMidCreatedAccountFragment =
         accountFragmentFactory.make(
             oldCreatedSnapshot,
             midCreatedSnapshot,
-            DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 1));
+            DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1));
     oldToMidCreatedAccountFragment.requiresRomlex(true);
 
     this.addFragmentsWithoutStack(oldToMidCreatorAccountFragment, oldToMidCreatedAccountFragment);
@@ -89,13 +87,13 @@ public class NonEmptyInitCodeCreate extends TraceSection implements FillCreateSe
           accountFragmentFactory.make(
               midCreatorSnapshot,
               newCreatorSnapshot,
-              DomSubStampsSubFragment.revertsWithChildDomSubStamps(hubStamp, childRevertStamp, 2));
+              DomSubStampsSubFragment.revertsWithChildDomSubStamps(this.hubStamp(), childRevertStamp, 2));
 
       final AccountFragment midToNewCreatedAccountFragment =
           accountFragmentFactory.make(
               midCreatedSnapshot,
               newCreatedSnapshot,
-              DomSubStampsSubFragment.revertsWithChildDomSubStamps(hubStamp, childRevertStamp, 3));
+              DomSubStampsSubFragment.revertsWithChildDomSubStamps(this.hubStamp(), childRevertStamp, 3));
 
       this.addFragmentsWithoutStack(midToNewCreatorAccountFragment, midToNewCreatedAccountFragment);
     }
@@ -127,13 +125,13 @@ public class NonEmptyInitCodeCreate extends TraceSection implements FillCreateSe
             createSuccess ? midCreatorSnapshot : newCreatorSnapshot,
             oldCreatorSnapshot,
             DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
-                hubStamp, currentRevertStamp, createSuccess ? 2 : 4));
+                this.hubStamp(), currentRevertStamp, createSuccess ? 2 : 4));
     final AccountFragment undoCreatedAccountFragment =
         accountFragmentFactory.make(
             createSuccess ? midCreatedSnapshot : newCreatedSnapshot,
             oldCreatedSnapshot,
             DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
-                hubStamp, currentRevertStamp, createSuccess ? 3 : 5));
+                this.hubStamp(), currentRevertStamp, createSuccess ? 3 : 5));
 
     this.addFragmentsWithoutStack(undoCreatorAccountFragment, undoCreatedAccountFragment);
   }

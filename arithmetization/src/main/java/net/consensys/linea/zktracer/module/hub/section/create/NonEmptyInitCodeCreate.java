@@ -44,6 +44,7 @@ public class NonEmptyInitCodeCreate extends TraceSection implements FillCreateSe
     this.scenarioFragment = new CreateScenarioFragment();
 
     this.addFragmentsAndStack(hub, scenarioFragment, commonContext, imcFragment);
+    hub.romLex().triggerRomLex(hub.messageFrame());
   }
 
   @Override
@@ -79,6 +80,7 @@ public class NonEmptyInitCodeCreate extends TraceSection implements FillCreateSe
             oldCreatedSnapshot,
             midCreatedSnapshot,
             DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 1));
+    oldToMidCreatedAccountFragment.requiresRomlex(true);
 
     this.addFragmentsWithoutStack(oldToMidCreatorAccountFragment, oldToMidCreatedAccountFragment);
 

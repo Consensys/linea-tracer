@@ -44,7 +44,7 @@ public class CommonFragmentValues {
   @Setter public int logStamp = -1;
   @Getter final CallFrame callFrame;
   public final boolean exceptionAhoy;
-  public final int contextNumberNew;
+  @Setter public int contextNumberNew;
   public final int cnRevertStamp;
   public final int pc;
   public final int pcNew;
@@ -73,7 +73,7 @@ public class CommonFragmentValues {
     this.stamps = hub.state().stamps();
     this.callFrame = hub.currentFrame();
     this.exceptionAhoy = Exceptions.any(hub.pch().exceptions());
-    this.contextNumberNew = hub.contextNumberNew(callFrame);
+    // this.contextNumberNew = hub.contextNumberNew(callFrame);
     this.cnRevertStamp = 0; // TODO
     this.pc = hubProcessingPhase == TX_EXEC ? hub.currentFrame().pc() : 0;
     this.pcNew = computePcNew(hub, pc, noStackException, hub.state.getProcessingPhase() == TX_EXEC);

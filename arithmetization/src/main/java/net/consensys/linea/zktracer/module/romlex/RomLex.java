@@ -26,12 +26,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.defer.PostExecDefer;
+import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
@@ -40,10 +43,11 @@ import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
+import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Accessors(fluent = true)
-public class RomLex implements Module {
+public class RomLex implements Module, PostExecDefer {
   private static final RomChunkComparator ROM_CHUNK_COMPARATOR = new RomChunkComparator();
 
   private final Hub hub;
@@ -148,16 +152,17 @@ public class RomLex implements Module {
             });
   }
 
-  @Override
-  public void tracePreOpcode(MessageFrame frame) {
-    switch (this.hub.opCode()) {
+  public void triggerRomLex(final MessageFrame frame) {
+    switch (OpCode.of(frame.getCurrentOperation().getOpcode())) {
       case CREATE -> {
+        hub.defers().schedulePostExecution(this);
         this.byteCode = this.hub.transients().op().callData();
         if (!this.byteCode.isEmpty()) {
           this.address = getCreateAddress(frame);
         }
       }
       case CREATE2 -> {
+        hub.defers().schedulePostExecution(this);
         this.byteCode = this.hub.transients().op().callData();
         if (!this.byteCode.isEmpty()) {
           this.address = getCreate2Address(frame);
@@ -240,24 +245,19 @@ public class RomLex implements Module {
   }
 
   @Override
-  public void tracePostOpcode(MessageFrame frame) {
-    if (byteCode.isEmpty()) {
-      return;
-    }
-    switch (hub.opCode()) {
-      case CREATE, CREATE2 -> {
-        final int depNumber = hub.transients().conflation().deploymentInfo().number(this.address);
-        final boolean depStatus =
-            hub.transients().conflation().deploymentInfo().isDeploying(this.address);
-        final ContractMetadata contractMetadata =
-            ContractMetadata.make(this.address, depNumber, depStatus);
+  public void resolvePostExecution(
+      Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
+    Preconditions.checkArgument(hub.opCode().isCreate());
+    final int depNumber = hub.transients().conflation().deploymentInfo().number(this.address);
+    final boolean depStatus =
+        hub.transients().conflation().deploymentInfo().isDeploying(this.address);
+    final ContractMetadata contractMetadata =
+        ContractMetadata.make(this.address, depNumber, depStatus);
 
-        final RomChunk chunk = new RomChunk(contractMetadata, true, false, this.byteCode);
-        this.chunks.add(chunk);
-        this.createDefers.trigger(contractMetadata);
-        this.addressRomChunkMap.put(this.address, chunk);
-      }
-    }
+    final RomChunk chunk = new RomChunk(contractMetadata, true, false, this.byteCode);
+    this.chunks.add(chunk);
+    this.createDefers.trigger(contractMetadata);
+    this.addressRomChunkMap.put(this.address, chunk);
   }
 
   // This is the tracing for ROMLEX module

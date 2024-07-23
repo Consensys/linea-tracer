@@ -294,7 +294,7 @@ public class SelfdestructSection extends TraceSection
     // every transaction should start with an empty map
 
     // TODO: review and comment the code below
-    
+
     for (Map.Entry<AddressDeploymentNumberKey, List<HubStampCallFrameValue>> entry :
         hub.txStack().current().getUnexceptionalSelfDestructMap().entrySet()) {
 

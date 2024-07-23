@@ -16,6 +16,9 @@
 package net.consensys.linea.zktracer.module.hub.section;
 
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC;
+import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_FINAL;
+import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_SKIP;
+import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_WARM;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +29,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.DeploymentExceptions;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.HubProcessingPhase;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.TxTrace;
 import net.consensys.linea.zktracer.module.hub.fragment.StackFragment;
@@ -124,11 +128,22 @@ public abstract class TraceSection {
                 this.commonValues.callFrame().codeDeploymentNumber(),
                 this.commonValues.callFrame().isDeployment())
             : 0);
+    commonValues.contextNumberNew(computeContextNumberNew());
 
     /* If the logStamp hasn't been set (either by being first section of the tx, or by the LogSection), set it to the previous section logStamp */
     if (commonValues.logStamp == -1) {
       commonValues.logStamp(this.previousSection.commonValues.logStamp);
     }
+  }
+
+  private int computeContextNumberNew() {
+    final HubProcessingPhase currentPhase = this.commonValues.hubProcessingPhase;
+    if (currentPhase == TX_WARM || currentPhase == TX_FINAL || currentPhase == TX_SKIP) {
+      return 0;
+    }
+    return this.nextSection.commonValues.hubProcessingPhase == TX_EXEC
+        ? this.nextSection.commonValues.callFrame().contextNumber()
+        : 0;
   }
 
   public final boolean hasReverted() {

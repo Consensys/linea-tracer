@@ -19,6 +19,8 @@ import static net.consensys.linea.zktracer.module.hub.fragment.scenario.Scenario
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioEnum.CREATE_FAILURE_CONDITION_WONT_REVERT;
 import static net.consensys.linea.zktracer.types.AddressUtils.getCreateAddress;
 
+import java.util.Optional;
+
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostExecDefer;
@@ -40,16 +42,15 @@ import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.account.Account;
+import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class CreateSection implements PostExecDefer, ReEnterContextDefer, PostTransactionDefer {
   private FillCreateSection createSection;
-  private boolean failure;
 
   private int creatorContextId;
-  private boolean emptyInitCode;
 
   // Just before create
   private AccountSnapshot oldCreatorSnapshot;
@@ -67,11 +68,6 @@ public class CreateSection implements PostExecDefer, ReEnterContextDefer, PostTr
 
   /* true if the CREATE was successful **/
   private boolean createSuccessful = false;
-
-  /* true if the putatively created account already has code **/
-  private boolean targetHasCode() {
-    return !oldCreatedSnapshot.code().isEmpty();
-  }
 
   // row i+2
   private final ImcFragment imcFragment;
@@ -151,8 +147,15 @@ public class CreateSection implements PostExecDefer, ReEnterContextDefer, PostTr
 
     rlpAddrSubFragment = RlpAddrSubFragment.makeFragment(hub, createdAddress);
 
-    failure = hub.pch().failureConditions().any();
-    emptyInitCode = hub.transients().op().callDataSegment().isEmpty();
+    final Optional<Account> deploymentAccount =
+        Optional.ofNullable(frame.getWorldUpdater().get(createdAddress));
+    final boolean createdAddressHasNonZeroNonce =
+        deploymentAccount.map(a -> a.getNonce() != 0).orElse(false);
+    final boolean createdAddressHasNonEmptyCode =
+        deploymentAccount.map(AccountState::hasCode).orElse(false);
+
+    final boolean failure = createdAddressHasNonZeroNonce || createdAddressHasNonEmptyCode;
+    final boolean emptyInitCode = hub.transients().op().callDataSegment().isEmpty();
 
     if (failure || emptyInitCode) {
       final ScenarioEnum scenario =

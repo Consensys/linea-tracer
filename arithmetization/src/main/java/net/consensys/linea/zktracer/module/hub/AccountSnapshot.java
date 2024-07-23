@@ -22,7 +22,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.module.hub.defer.PostExecDefer;
 import net.consensys.linea.zktracer.types.Bytecode;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
@@ -40,6 +39,7 @@ public class AccountSnapshot {
   private Bytecode code;
   private int deploymentNumber;
   private boolean deploymentStatus;
+
   // TODO: we require a MARKED_FOR_SELFDESTRUCT boolean
   //  The implementation will be
   //  1. is (address, deploymentNumber) ∈ effectiveSelfdestructsMap Then

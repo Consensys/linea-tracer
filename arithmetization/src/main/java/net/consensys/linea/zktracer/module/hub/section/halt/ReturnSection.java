@@ -178,12 +178,15 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
       ////////////////////
       if (emptyDeployment) {
 
-        AccountSnapshot accountAfterEmptyDeployment = accountBeforeDeployment.deployByteCode(Bytecode.EMPTY);
-        AccountFragment emptyDeploymentAccountFragment = hub.factories().accountFragment().make(
-                accountBeforeDeployment,
-                accountAfterEmptyDeployment,
-                DomSubStampsSubFragment.standardDomSubStamps(hub, 0)
-        );
+        AccountSnapshot accountAfterEmptyDeployment =
+            accountBeforeDeployment.deployByteCode(Bytecode.EMPTY);
+        AccountFragment emptyDeploymentAccountFragment =
+            hub.factories()
+                .accountFragment()
+                .make(
+                    accountBeforeDeployment,
+                    accountAfterEmptyDeployment,
+                    DomSubStampsSubFragment.standardDomSubStamps(hub, 0));
         this.addFragment(emptyDeploymentAccountFragment);
 
         // Note:
@@ -234,11 +237,14 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
     //  - deploymentNumber and status ? Presumably, but if so by coincidence
     //  - MARKED_FOR_SELF_DESTRUCT(_NEW) ? No
     //  -
-    undoingDeploymentAccountFragment = hub.factories().accountFragment().make(
-            deploymentFragment.newState(),
-            deploymentFragment.oldState(),
-            DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hubStamp, hub.currentFrame().revertStamp(), 1)
-    );
+    undoingDeploymentAccountFragment =
+        hub.factories()
+            .accountFragment()
+            .make(
+                deploymentFragment.newState(),
+                deploymentFragment.oldState(),
+                DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
+                    hubStamp, hub.currentFrame().revertStamp(), 1));
 
     this.addFragment(undoingDeploymentAccountFragment);
     deploymentWasReverted = true;

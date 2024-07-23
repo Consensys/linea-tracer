@@ -30,10 +30,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp.ExpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.CallOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.DeploymentOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.JumpOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.JumpiOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.SstoreOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.XCallOobCall;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -41,7 +37,6 @@ import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.account.Account;
-import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 
 /**
@@ -55,7 +50,6 @@ public class ImcFragment implements TraceFragment {
   private final Hub hub;
 
   private boolean expIsSet = false;
-  private boolean modExpIsSet = false;
   private boolean oobIsSet = false;
   private boolean mxpIsSet = false;
   private boolean mmuIsSet = false;
@@ -160,74 +154,6 @@ public class ImcFragment implements TraceFragment {
     return r;
   }
 
-  // TODO: should be deleted
-  public static ImcFragment forOpcode(Hub hub, MessageFrame frame) {
-    final ImcFragment r = new ImcFragment(hub);
-
-    /* TODO: this has been commented out since signals will die
-    if (hub.pch().signals().mxp()) {
-      r.callMxp(MxpCall.build(hub));
-    }
-
-
-    if (hub.pch().signals().exp()) {
-      r.callExp(new ExplogExpCall());
-    }
-    */
-
-    if (hub.pch().signals().exp() && !Exceptions.stackException(hub.pch().exceptions())) {
-      hub.exp().tracePreOpcode(frame);
-    }
-
-    if (hub.pch().signals().mmu()) {
-      switch (hub.opCode()) {
-          // commented instruction are done elsewhere, everything should be deleted
-          // case SHA3 -> r.callMmu(MmuCall.sha3(hub));
-          // case CALLDATALOAD -> r.callMmu(MmuCall.callDataLoad(hub));
-          // case CALLDATACOPY -> r.callMmu(MmuCall.callDataCopy(hub));
-          // case CODECOPY -> r.callMmu(MmuCall.codeCopy(hub));
-          // case EXTCODECOPY -> r.callMmu(MmuCall.extCodeCopy(hub));
-          // case RETURNDATACOPY -> r.callMmu(MmuCall.returnDataCopy(hub));
-          // case MLOAD -> r.callMmu(MmuCall.mload(hub));
-          // case MSTORE -> r.callMmu(MmuCall.mstore(hub));
-          // case MSTORE8 -> r.callMmu(MmuCall.mstore8(hub));
-          // case LOG0, LOG1, LOG2, LOG3, LOG4 -> r.callMmu(MmuCall.log(hub));
-          // case CREATE -> r.callMmu(MmuCall.create(hub));
-        case RETURN -> r.callMmu(
-            hub.currentFrame().isDeployment()
-                ? MmuCall.returnFromDeployment(
-                    hub) // TODO Add a MMU call to MMU_INST_INVALID_CODE8PREFIX
-                : MmuCall.returnFromMessageCall(hub));
-          //  case CREATE2 -> r.callMmu(MmuCall.create2(hub));
-        case REVERT -> r.callMmu(MmuCall.revert(hub));
-      }
-    }
-
-    if (hub.pch().signals().oob()) {
-      switch (hub.opCode()) {
-        case JUMP -> r.callOob(new JumpOobCall());
-        case JUMPI -> r.callOob(new JumpiOobCall());
-          // case CALLDATALOAD -> r.callOob(new CallDataLoadOobCall());
-        case SSTORE -> r.callOob(new SstoreOobCall());
-        case CALL, CALLCODE -> {
-          r.callOob(new CallOobCall());
-        }
-        case DELEGATECALL, STATICCALL -> {
-          r.callOob(new CallOobCall());
-        }
-        case RETURN -> {
-          if (hub.currentFrame().isDeployment()) {
-            r.callOob(new DeploymentOobCall());
-          }
-        }
-        default -> throw new IllegalArgumentException(
-            "unexpected opcode for OoB %s".formatted(hub.opCode()));
-      }
-    }
-
-    return r;
-  }
-
   public ImcFragment callOob(OobCall f) {
     if (oobIsSet) {
       throw new IllegalStateException("OOB already called");
@@ -263,32 +189,6 @@ public class ImcFragment implements TraceFragment {
     this.moduleCalls.add(f);
     return this;
   }
-
-  /*
-  public ImcFragment callExp(ExplogExpCall f) {
-    if (expIsSet) {
-      throw new IllegalStateException("EXP already called");
-    } else {
-      expIsSet = true;
-    }
-    this.hub.exp().callExpLogCall(f);
-    this.moduleCalls.add(f);
-    return this;
-  }
-  */
-
-  /*
-  public ImcFragment callExp(ModexplogExpCall f) {
-    if (modExpIsSet) {
-      throw new IllegalStateException("MODEXP already called");
-    } else {
-      modExpIsSet = true;
-    }
-    this.hub.exp().callModExpLogCall(f);
-    this.moduleCalls.add(f);
-    return this;
-  }
-  */
 
   public ImcFragment callMxp(MxpCall f) {
     if (mxpIsSet) {

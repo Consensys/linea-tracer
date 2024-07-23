@@ -63,7 +63,6 @@ public class Signals {
   @Getter private boolean exp;
   @Getter private boolean trm;
   @Getter private boolean hashInfo;
-  @Getter private boolean romLex;
   @Getter private boolean rlpAddr;
   @Getter private boolean ecData;
 
@@ -86,7 +85,6 @@ public class Signals {
     this.exp = false;
     this.trm = false;
     this.hashInfo = false;
-    this.romLex = false;
     this.rlpAddr = false;
     this.ecData = false;
   }
@@ -109,7 +107,6 @@ public class Signals {
     r.exp = this.exp;
     r.trm = this.trm;
     r.hashInfo = this.hashInfo;
-    r.romLex = this.romLex;
     r.rlpAddr = this.rlpAddr;
     r.ecData = this.ecData;
 
@@ -153,38 +150,11 @@ public class Signals {
                 .map(AccountState::hasCode)
                 .orElse(false);
 
-        this.romLex =
-            Exceptions.none(ex) && !triggersAbortingCondition && targetAddressHasNonEmptyCode;
         this.ecData = Exceptions.none(ex) && EC_PRECOMPILES.contains(target);
         this.exp =
             Exceptions.none(ex)
                 && this.platformController.abortingConditions().none()
                 && target.equals(Address.MODEXP);
-      }
-
-      case CREATE, CREATE2 -> {
-        boolean triggersAbortingCondition =
-            Exceptions.none(ex) && this.platformController.abortingConditions().any();
-
-        boolean triggersFailureCondition = false;
-        if (Exceptions.none(ex) && this.platformController.abortingConditions().none()) {
-          triggersFailureCondition = this.platformController.failureConditions().any();
-        }
-
-        final boolean nonzeroSize = !frame.getStackItem(2).isZero();
-        final boolean isCreate2 = opCode == OpCode.CREATE2;
-
-        this.mxp = !Exceptions.staticFault(ex);
-        this.stp = Exceptions.outOfGasException(ex) || Exceptions.none(ex);
-        this.oob = Exceptions.none(ex);
-        this.rlpAddr = Exceptions.none(ex) && !triggersAbortingCondition;
-        this.hashInfo =
-            Exceptions.none(ex) && !triggersAbortingCondition && nonzeroSize && isCreate2;
-        this.romLex =
-            Exceptions.none(ex)
-                && !triggersAbortingCondition
-                && nonzeroSize
-                && !triggersFailureCondition;
       }
 
       case REVERT -> this.mxp =
@@ -203,7 +173,6 @@ public class Signals {
                 || Exceptions.invalidCodePrefix(ex)
                 || Exceptions.none(ex);
         this.oob = isDeployment && (Exceptions.codeSizeOverflow(ex) || Exceptions.none(ex));
-        this.romLex = this.hashInfo = isDeployment && Exceptions.none(ex) && sizeNonZero;
       }
 
       case EXP -> {

@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 import com.google.common.base.Preconditions;
@@ -800,67 +799,6 @@ public class Hub implements Module {
     return this.callStack.current();
   }
 
-  public int contextNumberNew(CallFrame frame) {
-    switch (this.state.getProcessingPhase()) {
-      case TX_SKIP, TX_WARM, TX_FINAL -> {
-        return 0;
-      }
-      case TX_INIT -> {
-        return newChildContextNumber();
-      }
-      case TX_EXEC -> {
-        final OpCode opCode = this.opCode();
-
-        if (Exceptions.any(pch.exceptions())
-            || opCode.getData().instructionFamily().equals(InstructionFamily.HALT)
-            || opCode.getData().instructionFamily().equals(InstructionFamily.INVALID)) {
-          return this.callStack.depth() == 0 ? 0 : this.callStack().caller().contextNumber();
-        }
-
-        final int currentContextNumber = this.callStack().current().contextNumber();
-
-        if (opCode.isCall()) {
-          if (pch().abortingConditions().any()) {
-            return currentContextNumber;
-          }
-
-          final Address calleeAddress =
-              Words.toAddress(this.currentFrame().frame().getStackItem(1));
-
-          AtomicInteger newContext = new AtomicInteger(currentContextNumber);
-
-          Optional.ofNullable(frame.frame().getWorldUpdater().get(calleeAddress))
-              .map(AccountState::getCode)
-              .ifPresent(
-                  byteCode -> {
-                    if (!byteCode.isEmpty()) {
-                      newContext.set(newChildContextNumber());
-                    }
-                  });
-          return newContext.get();
-        }
-
-        if (opCode.isCreate()) {
-          if (pch().abortingConditions().any() || pch().failureConditions().any()) {
-            return currentContextNumber;
-          }
-          final int initCodeSize = this.currentFrame().frame().getStackItem(2).toInt();
-          if (initCodeSize != 0) {
-            return newChildContextNumber();
-          }
-        }
-
-        return currentContextNumber;
-      }
-      default -> {
-        {
-          throw new IllegalStateException(
-              String.format("Hub can't be in the state %s", this.state.getProcessingPhase()));
-        }
-      }
-    }
-  }
-
   public MessageFrame messageFrame() {
     MessageFrame frame = this.callStack.current().frame();
     return frame;
@@ -879,9 +817,6 @@ public class Hub implements Module {
       }
     }
 
-    if (this.pch.signals().romLex()) {
-      this.romLex.tracePreOpcode(frame);
-    }
     if (this.pch.signals().add()) {
       this.add.tracePreOpcode(frame);
     }
@@ -1086,7 +1021,7 @@ public class Hub implements Module {
             } else {
               parentFrame.latestReturnData(Bytes.EMPTY);
             }
-            final ImcFragment imcFragment = ImcFragment.forOpcode(this, frame); // TODO finish it
+            // final ImcFragment imcFragment = ImcFragment.forOpcode(this, frame); // TODO finish it
           }
           case REVERT -> {
             new RevertSection(this);
@@ -1228,7 +1163,8 @@ public class Hub implements Module {
                   ContextFragment.nonExecutionEmptyReturnData(this));
           this.addTraceSection(abortedSection);
         } else {
-          final ImcFragment imcFragment = ImcFragment.forOpcode(this, frame);
+          final ImcFragment imcFragment = /* ImcFragment.forOpcode(this, frame)*/
+              ImcFragment.empty(this);
 
           if (hasCode) {
             final SmartContractCallSection section =

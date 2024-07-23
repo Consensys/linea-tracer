@@ -20,17 +20,14 @@ import java.util.List;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
-import org.hyperledger.besu.datatypes.Transaction;
-import org.hyperledger.besu.evm.worldstate.WorldView;
 
 /**
  * Stores all the trace sections associated to the same transaction, stored in chronological order
  * of creation.
  */
 @Accessors(fluent = true)
-public class TxTrace implements PostTransactionDefer {
+public class TxTrace {
   /** The {@link TraceSection} of which this transaction trace is made of */
   @Getter private final List<TraceSection> trace = new ArrayList<>();
 
@@ -100,10 +97,6 @@ public class TxTrace implements PostTransactionDefer {
       return this.refundCounter;
     }
   }
-
-  @Override
-  public void resolvePostTransaction(
-      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {}
 
   /**
    * Generate the final numeric trace from the accumulated information.

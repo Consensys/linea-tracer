@@ -29,7 +29,7 @@ import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class TxFinalizationPostTxDefer implements PostTransactionDefer {
+public class TxFinalizationSection implements PostTransactionDefer {
   private final TransactionProcessingMetadata txMetadata;
   private final AccountSnapshot fromAccountBeforeTxFinalization;
   private final AccountSnapshot toAccountBeforeTxFinalization;
@@ -38,7 +38,7 @@ public class TxFinalizationPostTxDefer implements PostTransactionDefer {
   private @Setter AccountSnapshot toAccountAfterTxFinalization;
   private @Setter AccountSnapshot minerAccountAfterTxFinalization;
 
-  public TxFinalizationPostTxDefer(Hub hub, WorldView world) {
+  public TxFinalizationSection(Hub hub, WorldView world) {
     this.txMetadata = hub.txStack().current();
 
     final DeploymentInfo depInfo = hub.transients().conflation().deploymentInfo();
@@ -66,6 +66,8 @@ public class TxFinalizationPostTxDefer implements PostTransactionDefer {
             txMetadata.isMinerWarmAtEndTx(),
             depInfo.number(minerAddress),
             depInfo.isDeploying(minerAddress));
+
+    hub.defers().schedulePostTransaction(this);
   }
 
   @Override
@@ -104,7 +106,7 @@ public class TxFinalizationPostTxDefer implements PostTransactionDefer {
   private void successfulFinalization(Hub hub) {
     if (!senderIsMiner()) {
       hub.addTraceSection(
-          new TxFinalizationSection(
+          new FinalizationSection(
               hub,
               hub.factories()
                   .accountFragment()
@@ -122,7 +124,7 @@ public class TxFinalizationPostTxDefer implements PostTransactionDefer {
     } else {
       // TODO: verify it works
       hub.addTraceSection(
-          new TxFinalizationSection(
+          new FinalizationSection(
               hub,
               hub.factories()
                   .accountFragment()
@@ -142,10 +144,9 @@ public class TxFinalizationPostTxDefer implements PostTransactionDefer {
   }
 
   private void unsuccessfulFinalization(Hub hub) {
-
     if (noAccountCollision()) {
       hub.addTraceSection(
-          new TxFinalizationSection(
+          new FinalizationSection(
               hub,
               hub.factories()
                   .accountFragment()
@@ -169,7 +170,7 @@ public class TxFinalizationPostTxDefer implements PostTransactionDefer {
     } else {
       // TODO: test this
       hub.addTraceSection(
-          new TxFinalizationSection(
+          new FinalizationSection(
               hub,
               hub.factories()
                   .accountFragment()
@@ -225,8 +226,8 @@ public class TxFinalizationPostTxDefer implements PostTransactionDefer {
     return !senderIsMiner() && !senderIsTo() && !toIsMiner();
   }
 
-  public class TxFinalizationSection extends TraceSection {
-    public TxFinalizationSection(Hub hub, TraceFragment... fragments) {
+  public class FinalizationSection extends TraceSection {
+    public FinalizationSection(Hub hub, TraceFragment... fragments) {
       super(hub, (short) (txMetadata.statusCode() ? 3 : 4));
       this.addFragmentsWithoutStack(fragments);
     }

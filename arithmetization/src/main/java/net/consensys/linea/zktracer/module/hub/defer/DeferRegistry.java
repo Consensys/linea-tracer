@@ -118,6 +118,12 @@ public class DeferRegistry
   @Override
   public void resolvePostTransaction(
       Hub hub, WorldView world, Transaction tx, boolean isSuccessful) {
+    final List<PostTransactionDefer> postTransactionDefersFirstRound =
+        new ArrayList<>(this.postTransactionDefers);
+    this.postTransactionDefers.clear();
+    for (PostTransactionDefer defer : postTransactionDefersFirstRound) {
+      defer.resolvePostTransaction(hub, world, tx, isSuccessful);
+    }
     for (PostTransactionDefer defer : this.postTransactionDefers) {
       defer.resolvePostTransaction(hub, world, tx, isSuccessful);
     }

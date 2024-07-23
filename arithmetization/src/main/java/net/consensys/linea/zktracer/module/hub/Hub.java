@@ -48,7 +48,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 import net.consensys.linea.zktracer.module.hub.section.*;
-import net.consensys.linea.zktracer.module.hub.section.TxFinalizationPostTxDefer;
+import net.consensys.linea.zktracer.module.hub.section.TxFinalizationSection;
 import net.consensys.linea.zktracer.module.hub.section.TxPreWarmingMacroSection;
 import net.consensys.linea.zktracer.module.hub.section.TxSkippedSectionDefers;
 import net.consensys.linea.zktracer.module.hub.section.calls.FailedCallSection;
@@ -455,7 +455,6 @@ public class Hub implements Module {
     this.pch.reset();
     this.state.enter();
     this.txStack.enterTransaction(world, tx, transients.block());
-    this.defers.schedulePostTransaction(this.state.currentTxTrace());
 
     this.enterTransaction();
 
@@ -674,8 +673,7 @@ public class Hub implements Module {
               this.txStack.getAccumulativeGasUsedInBlockBeforeTxStart());
       if (this.state.getProcessingPhase() != TX_SKIP) {
         this.state.setProcessingPhase(TX_FINAL);
-        this.defers.schedulePostTransaction(
-            new TxFinalizationPostTxDefer(this, frame.getWorldUpdater()));
+        new TxFinalizationSection(this, frame.getWorldUpdater());
       }
     }
   }

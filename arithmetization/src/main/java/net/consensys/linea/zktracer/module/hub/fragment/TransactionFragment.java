@@ -20,18 +20,15 @@ import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import lombok.Setter;
-import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
-import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.TransactionType;
-import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public final class TransactionFragment implements TraceFragment, PostTransactionDefer {
+public final class TransactionFragment implements TraceFragment {
   private final TransactionProcessingMetadata transactionProcessingMetadata;
   @Setter private TraceSection parentSection;
 
@@ -85,8 +82,4 @@ public final class TransactionFragment implements TraceFragment, PostTransaction
         .pTransactionCoinbaseAddressHi(highPart(miner))
         .pTransactionCoinbaseAddressLo(lowPart(miner));
   }
-
-  @Override
-  public void resolvePostTransaction(
-      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {}
 }

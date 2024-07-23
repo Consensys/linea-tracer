@@ -101,12 +101,14 @@ public class FailureOrEmptyInitCreate extends TraceSection implements FillCreate
         accountFragmentFactory.make(
             newCreatorSnapshot,
             oldCreatorSnapshot,
-            DomSubStampsSubFragment.revertWithCurrentDomSubStamps(this.hubStamp(), currentRevertStamp, 2));
+            DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
+                this.hubStamp(), currentRevertStamp, 2));
     final AccountFragment undoCreatedAccountFragment =
         accountFragmentFactory.make(
             newCreatedSnapshot,
             oldCreatedSnapshot,
-            DomSubStampsSubFragment.revertWithCurrentDomSubStamps(this.hubStamp(), currentRevertStamp, 3));
+            DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
+                this.hubStamp(), currentRevertStamp, 3));
 
     this.addFragmentsWithoutStack(undoCreatorAccountFragment, undoCreatedAccountFragment);
   }

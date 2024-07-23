@@ -46,7 +46,10 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
   public SloadSection(Hub hub, WorldView world) {
     // exceptional case:   1 (stack row) + 5 (non stack rows)
     // unexceptional case: 1 (stack row) + 4 (non stack rows)
-    super(hub, (short) (hub.opCode().numberOfStackRows() + (Exceptions.any(hub.pch().exceptions()) ? 6 : 5)));
+    super(
+        hub,
+        (short)
+            (hub.opCode().numberOfStackRows() + (Exceptions.any(hub.pch().exceptions()) ? 6 : 5)));
 
     this.world = world;
     this.address = hub.messageFrame().getRecipientAddress();
@@ -97,7 +100,8 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
     // TODO: make sure that the "current" execution context is the one that is being rolled back
     //  so that we can use its revert stamp ()
     final DomSubStampsSubFragment undoingDomSubStamps =
-            DomSubStampsSubFragment.revertWithCurrentDomSubStamps(this.hubStamp(), hub.callStack().current().revertStamp(), 0);
+        DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
+            this.hubStamp(), hub.callStack().current().revertStamp(), 0);
 
     final StorageFragment undoingSloadStorageFragment =
         new StorageFragment(

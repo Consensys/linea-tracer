@@ -109,7 +109,9 @@ public class StopSection extends TraceSection implements PostRollbackDefer, Post
     Preconditions.checkArgument(this.fragments().getLast() instanceof AccountFragment);
 
     AccountFragment lastAccountFragment = (AccountFragment) this.fragments().getLast();
-    DomSubStampsSubFragment undoingDomSubStamps = DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hubStamp, hub.callStack().current().revertStamp(), 1);
+    DomSubStampsSubFragment undoingDomSubStamps =
+        DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
+            hubStamp, hub.callStack().current().revertStamp(), 1);
 
     this.addFragmentsWithoutStack(
         hub.factories()
@@ -117,8 +119,7 @@ public class StopSection extends TraceSection implements PostRollbackDefer, Post
             .make(
                 lastAccountFragment.newState(),
                 lastAccountFragment.oldState(),
-                    undoingDomSubStamps
-                ));
+                undoingDomSubStamps));
   }
 
   /**

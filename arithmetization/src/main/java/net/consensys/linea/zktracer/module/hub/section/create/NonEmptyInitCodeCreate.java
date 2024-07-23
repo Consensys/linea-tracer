@@ -87,13 +87,15 @@ public class NonEmptyInitCodeCreate extends TraceSection implements FillCreateSe
           accountFragmentFactory.make(
               midCreatorSnapshot,
               newCreatorSnapshot,
-              DomSubStampsSubFragment.revertsWithChildDomSubStamps(this.hubStamp(), childRevertStamp, 2));
+              DomSubStampsSubFragment.revertsWithChildDomSubStamps(
+                  this.hubStamp(), childRevertStamp, 2));
 
       final AccountFragment midToNewCreatedAccountFragment =
           accountFragmentFactory.make(
               midCreatedSnapshot,
               newCreatedSnapshot,
-              DomSubStampsSubFragment.revertsWithChildDomSubStamps(this.hubStamp(), childRevertStamp, 3));
+              DomSubStampsSubFragment.revertsWithChildDomSubStamps(
+                  this.hubStamp(), childRevertStamp, 3));
 
       this.addFragmentsWithoutStack(midToNewCreatorAccountFragment, midToNewCreatedAccountFragment);
     }

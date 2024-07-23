@@ -162,19 +162,6 @@ public class Signals {
               || Exceptions.outOfGasException(ex)
               || Exceptions.none(ex);
 
-      case RETURN -> {
-        final boolean isDeployment = frame.getType() == MessageFrame.Type.CONTRACT_CREATION;
-        final boolean sizeNonZero = !frame.getStackItem(1).isZero();
-
-        // WARN: Static part, other modules may be dynamically requested in the hub
-        this.mxp =
-            Exceptions.memoryExpansionException(ex)
-                || Exceptions.outOfGasException(ex)
-                || Exceptions.invalidCodePrefix(ex)
-                || Exceptions.none(ex);
-        this.oob = isDeployment && (Exceptions.codeSizeOverflow(ex) || Exceptions.none(ex));
-      }
-
       case EXP -> {
         this.exp = true; // TODO: use expCall instead
         this.mul = !Exceptions.outOfGasException(ex);

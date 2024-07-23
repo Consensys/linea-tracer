@@ -66,10 +66,8 @@ public class ExtCodeCopySection extends TraceSection
     hubStamp = hub.stamp();
     rawAddress = frame.getStackItem(0);
     address = Address.extract((Bytes32) rawAddress);
-    incomingDeploymentNumber =
-        hub.transients().conflation().deploymentInfo().number(address);
-    incomingDeploymentStatus =
-        hub.transients().conflation().deploymentInfo().isDeploying(address);
+    incomingDeploymentNumber = hub.transients().conflation().deploymentInfo().number(address);
+    incomingDeploymentStatus = hub.transients().conflation().deploymentInfo().isDeploying(address);
     incomingWarmth = frame.isAddressWarm(address);
     exceptions = hub.pch().exceptions();
     miscFragment = ImcFragment.empty(hub);
@@ -97,10 +95,7 @@ public class ExtCodeCopySection extends TraceSection
 
     this.accountBefore =
         AccountSnapshot.fromAccount(
-            foreignAccount,
-            incomingWarmth,
-            incomingDeploymentNumber,
-            incomingDeploymentStatus);
+            foreignAccount, incomingWarmth, incomingDeploymentNumber, incomingDeploymentStatus);
 
     final DomSubStampsSubFragment doingDomSubStamps =
         DomSubStampsSubFragment.standardDomSubStamps(hub, 0);
@@ -112,8 +107,7 @@ public class ExtCodeCopySection extends TraceSection
       final AccountFragment accountReadingFragment =
           hub.factories()
               .accountFragment()
-              .makeWithTrm(
-                  accountBefore, accountBefore, rawAddress, doingDomSubStamps);
+              .makeWithTrm(accountBefore, accountBefore, rawAddress, doingDomSubStamps);
 
       this.addFragment(accountReadingFragment);
       return;

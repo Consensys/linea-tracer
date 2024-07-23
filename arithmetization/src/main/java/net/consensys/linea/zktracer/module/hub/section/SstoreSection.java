@@ -46,9 +46,11 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
   final EWord valueNext;
   final short exceptions;
 
-  // TODO: there should be a better way to
   public SstoreSection(Hub hub, WorldView world) {
-    super(hub, (short) (hub.opCode().numberOfStackRows() + (Exceptions.any(hub.pch().exceptions()) ? 6 : 5)));
+    super(
+        hub,
+        (short)
+            (hub.opCode().numberOfStackRows() + (Exceptions.any(hub.pch().exceptions()) ? 6 : 5)));
 
     this.world = world;
     this.address = hub.messageFrame().getRecipientAddress();
@@ -113,7 +115,8 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
     }
 
     final DomSubStampsSubFragment undoingDomSubStamps =
-        DomSubStampsSubFragment.revertWithCurrentDomSubStamps(this.hubStamp(), hub.callStack().current().revertStamp(), 0);
+        DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
+            this.hubStamp(), hub.callStack().current().revertStamp(), 0);
 
     final StorageFragment undoingSstoreStorageFragment =
         new StorageFragment(

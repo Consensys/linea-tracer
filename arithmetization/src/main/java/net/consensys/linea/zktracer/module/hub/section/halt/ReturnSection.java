@@ -15,6 +15,7 @@
 package net.consensys.linea.zktracer.module.hub.section.halt;
 
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.ReturnScenarioFragment.ReturnScenario.*;
+import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
 import com.google.common.base.Preconditions;
 import lombok.Getter;
@@ -150,7 +151,7 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
       }
       // no need for the else case (and a nop) as per @François
 
-      ContextFragment updateCallerReturnData =
+      final ContextFragment updateCallerReturnData =
           ContextFragment.providesReturnData(
               hub,
               hub.callStack().getById(hub.currentFrame().parentFrame()).contextNumber(),
@@ -171,16 +172,17 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
       final boolean triggerOobForNonemptyDeployments = mxpCall.isMayTriggerNonTrivialMmuOperation();
       Preconditions.checkArgument(triggerOobForNonemptyDeployments == !emptyDeployment);
 
-      Address deploymentAddress = hub.messageFrame().getRecipientAddress();
-      AccountSnapshot accountBeforeDeployment = AccountSnapshot.canonical(hub, deploymentAddress);
+      final Address deploymentAddress = hub.messageFrame().getRecipientAddress();
+      final AccountSnapshot accountBeforeDeployment =
+          AccountSnapshot.canonical(hub, deploymentAddress);
 
       // Empty deployments
       ////////////////////
       if (emptyDeployment) {
 
-        AccountSnapshot accountAfterEmptyDeployment =
+        final AccountSnapshot accountAfterEmptyDeployment =
             accountBeforeDeployment.deployByteCode(Bytecode.EMPTY);
-        AccountFragment emptyDeploymentAccountFragment =
+        final AccountFragment emptyDeploymentAccountFragment =
             hub.factories()
                 .accountFragment()
                 .make(
@@ -207,9 +209,24 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
       secondMmuCall = MmuCall.returnFromDeployment(hub);
       this.addFragment(secondImcFragment);
 
+      final long offset = clampedToLong(hub.messageFrame().getStackItem(0));
+      final Bytecode deploymentCode =
+          new Bytecode(hub.messageFrame().shadowReadMemory(offset, byteCodeSize));
+
       // TODO: we require the
       //  - triggerHashInfo stuff on the first stack row
-      //  - triggerROMLEX on the deploymentAccountFragment row
+      //  - triggerROMLEX on the deploymentAccountFragment row (done)
+      final AccountFragment nonemptyDeploymentAccountFragment =
+          hub.factories()
+              .accountFragment()
+              .make(
+                  accountBeforeDeployment,
+                  accountBeforeDeployment.deployByteCode(deploymentCode),
+                  DomSubStampsSubFragment.standardDomSubStamps(hub, 0));
+      nonemptyDeploymentAccountFragment.requiresRomlex(true);
+      hub.romLex().triggerRomLex(hub.messageFrame());
+
+      this.addFragment(nonemptyDeploymentAccountFragment);
 
       // TODO: we need to implement the mechanism that will append the
       //  context row which will squash the creator's return data after

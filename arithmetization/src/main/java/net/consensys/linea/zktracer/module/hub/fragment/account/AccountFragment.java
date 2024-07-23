@@ -19,6 +19,7 @@ import static net.consensys.linea.zktracer.types.AddressUtils.highPart;
 import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
 
+import java.util.Map;
 import java.util.Optional;
 
 import com.google.common.base.Preconditions;
@@ -36,6 +37,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.romlex.ContractMetadata;
 import net.consensys.linea.zktracer.types.EWord;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -56,6 +58,10 @@ public final class AccountFragment
   private final Optional<Bytes> addressToTrim;
   private final DomSubStampsSubFragment domSubStampsSubFragment;
   @Setter private RlpAddrSubFragment rlpAddrSubFragment;
+  private boolean markedForSelfDestruct;
+  private boolean markedForSelfDestructNew;
+  final int hubStamp;
+  final TransactionProcessingMetadata transactionProcessingMetadata;
 
   // TODO: will be needed to properly compute MARKED_FOR_SELFDESTRUCT
   //  and to have the correct value of the hub stamp for the subordinate
@@ -68,14 +74,14 @@ public final class AccountFragment
    */
   @RequiredArgsConstructor
   public static class AccountFragmentFactory {
-    private final DeferRegistry defers;
+    private final Hub hub;
 
     public AccountFragment make(
         AccountSnapshot oldState,
         AccountSnapshot newState,
         DomSubStampsSubFragment domSubStampsSubFragment) {
       return new AccountFragment(
-          this.defers, oldState, newState, Optional.empty(), domSubStampsSubFragment);
+          hub, oldState, newState, Optional.empty(), domSubStampsSubFragment);
     }
 
     public AccountFragment makeWithTrm(
@@ -84,17 +90,20 @@ public final class AccountFragment
         Bytes toTrim,
         DomSubStampsSubFragment domSubStampsSubFragment) {
       return new AccountFragment(
-          this.defers, oldState, newState, Optional.of(toTrim), domSubStampsSubFragment);
+          hub, oldState, newState, Optional.of(toTrim), domSubStampsSubFragment);
     }
   }
 
   public AccountFragment(
-      final DeferRegistry defers,
+      Hub hub,
       AccountSnapshot oldState,
       AccountSnapshot newState,
       Optional<Bytes> addressToTrim,
       DomSubStampsSubFragment domSubStampsSubFragment) {
     Preconditions.checkArgument(oldState.address().equals(newState.address()));
+
+    this.transactionProcessingMetadata = hub.txStack().current();
+    this.hubStamp = hub.stamp();
 
     this.oldState = oldState;
     this.newState = newState;
@@ -104,11 +113,11 @@ public final class AccountFragment
     this.domSubStampsSubFragment = domSubStampsSubFragment;
 
     // This allows us to properly fill EXISTS_INFTY, DEPLOYMENT_NUMBER_INFTY and CODE_FRAGMENT_INDEX
-    defers.schedulePostConflation(this);
+    hub.defers().schedulePostConflation(this);
 
     // This allows us to properly fill MARKED_FOR_SELFDESTRUCT and MARKED_FOR_SELFDESTRUCT_NEW,
     // among other things
-    defers.schedulePostTransaction(this);
+    hub.defers().schedulePostTransaction(this);
   }
 
   @Override
@@ -150,8 +159,8 @@ public final class AccountFragment
                 || !newState.balance().isZero())
         .pAccountWarmth(oldState.isWarm())
         .pAccountWarmthNew(newState.isWarm())
-        .pAccountMarkedForSelfdestruct(false) // TODO
-        .pAccountMarkedForSelfdestructNew(false) // TODO
+        .pAccountMarkedForSelfdestruct(markedForSelfDestruct)
+        .pAccountMarkedForSelfdestructNew(markedForSelfDestructNew)
         .pAccountDeploymentNumber(oldState.deploymentNumber())
         .pAccountDeploymentNumberNew(newState.deploymentNumber())
         .pAccountDeploymentStatus(oldState.deploymentStatus())
@@ -166,7 +175,19 @@ public final class AccountFragment
   @Override
   public void resolvePostTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
-    // TODO
+    Map<TransactionProcessingMetadata.EphemeralAccount, Integer> effectiveSelfDestructMap =
+        this.transactionProcessingMetadata.getEffectiveSelfDestructMap();
+    TransactionProcessingMetadata.EphemeralAccount ephemeralAccount =
+        new TransactionProcessingMetadata.EphemeralAccount(
+            this.oldState.address(), this.oldState.deploymentNumber());
+    if (effectiveSelfDestructMap.containsKey(ephemeralAccount)) {
+      final int selfDestructTime = effectiveSelfDestructMap.get(ephemeralAccount);
+      this.markedForSelfDestruct = this.hubStamp < selfDestructTime;
+      this.markedForSelfDestructNew = this.hubStamp >= selfDestructTime;
+    } else {
+      this.markedForSelfDestruct = false;
+      this.markedForSelfDestructNew = false;
+    }
   }
 
   @Override

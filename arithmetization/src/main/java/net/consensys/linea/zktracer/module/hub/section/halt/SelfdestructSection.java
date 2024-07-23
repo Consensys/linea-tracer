@@ -45,6 +45,7 @@ public class SelfdestructSection extends TraceSection
 
   final int id;
   final int hubStamp;
+  final TransactionProcessingMetadata transactionProcessingMetadata;
   final short exceptions;
 
   SelfdestructScenarioFragment selfdestructScenarioFragment;
@@ -63,18 +64,15 @@ public class SelfdestructSection extends TraceSection
   final boolean selfDestructTargetsItself;
   @Getter boolean selfDestructWasReverted = false;
 
-  final TransactionProcessingMetadata transactionProcessingMetadata;
-
   public SelfdestructSection(Hub hub) {
     // up to 8 = 1 + 7 rows
     super(hub, (short) 8);
     hub.addTraceSection(this);
 
-    this.transactionProcessingMetadata = hub.txStack().current();
-
     // Init
     this.id = hub.currentFrame().id();
-    hubStamp = hub.stamp();
+    this.transactionProcessingMetadata = hub.txStack().current();
+    this.hubStamp = hub.stamp();
     this.exceptions = hub.pch().exceptions();
 
     final MessageFrame frame = hub.messageFrame();
@@ -249,7 +247,7 @@ public class SelfdestructSection extends TraceSection
 
     // We modify the account fragment to reflect the self-destruct time
 
-    int selfDestructTime = effectiveSelfDestructMap.get(ephemeralAccount);
+    final int selfDestructTime = effectiveSelfDestructMap.get(ephemeralAccount);
 
     Preconditions.checkArgument(this.hubStamp >= selfDestructTime);
 

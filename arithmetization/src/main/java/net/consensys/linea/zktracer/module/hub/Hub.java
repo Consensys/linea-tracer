@@ -385,6 +385,7 @@ public class Hub implements Module {
                     this.exp,
                     this.rlpAddr,
                     this.rlpTxn,
+                    this.rlpTxnRcpt,
                     this.rom,
                     this.romLex,
                     this.shakiraData,
@@ -393,9 +394,7 @@ public class Hub implements Module {
                     this.trm,
                     this.wcp, /* WARN: must be called BEFORE txnData */
                     this.txnData,
-                    this.blockdata, /* WARN: must be called AFTER txnData */
-                    this
-                        .rlpTxnRcpt /* WARN: must be called AFTER txnData TODO: is it still the case ? */),
+                    this.blockdata /* WARN: must be called AFTER txnData */),
                 this.precompileLimitModules.stream())
             .toList();
   }
@@ -508,11 +507,11 @@ public class Hub implements Module {
       this.state.stamps().incrementHubStamp();
     }
 
-    this.defers.resolvePostTransaction(this, world, tx, isSuccessful);
-
     for (Module m : this.modules) {
       m.traceEndTx(txStack.current());
     }
+
+    this.defers.resolvePostTransaction(this, world, tx, isSuccessful);
   }
 
   @Override

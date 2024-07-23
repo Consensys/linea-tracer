@@ -54,7 +54,7 @@ public class TxInitializationSection {
             deploymentInfo.number(senderAddress),
             deploymentInfo.isDeploying(senderAddress));
     final DomSubStampsSubFragment senderDomSubStamps =
-        DomSubStampsSubFragment.standardDomSubStamps(hub, 0);
+        DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0);
 
     final Wei transactionGasPrice = Wei.of(tx.getEffectiveGasPrice());
     final Wei value = (Wei) tx.getBesuTransaction().getValue();
@@ -88,7 +88,7 @@ public class TxInitializationSection {
                 value, initBytecode, deploymentInfo.getDeploymentNumber(toAddress))
             : recipientBeforeValueTransfer.credit(value).turnOnWarmth();
     final DomSubStampsSubFragment recipientDomSubStamps =
-        DomSubStampsSubFragment.standardDomSubStamps(hub, 1);
+        DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1);
 
     final TransactionFragment txFragment = TransactionFragment.prepare(tx);
 

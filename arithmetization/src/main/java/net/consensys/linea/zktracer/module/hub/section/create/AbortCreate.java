@@ -43,7 +43,7 @@ class AbortCreate extends TraceSection {
         accountFragmentFactory.make(
             oldCreatorSnapshot,
             oldCreatorSnapshot,
-            DomSubStampsSubFragment.standardDomSubStamps(hub, 0));
+            DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
 
     final ContextFragment contextFragment = ContextFragment.nonExecutionEmptyReturnData(hub);
 

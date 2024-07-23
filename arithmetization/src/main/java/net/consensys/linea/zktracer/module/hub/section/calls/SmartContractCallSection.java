@@ -128,10 +128,10 @@ public class SmartContractCallSection extends TraceSection
     this.scenarioFragment.resolvePostTransaction(hub, state, tx, isSuccessful);
 
     DomSubStampsSubFragment firstCallerDoingDomSubStamps =
-        DomSubStampsSubFragment.standardDomSubStamps(hub, 0);
+        DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0);
 
     DomSubStampsSubFragment firstCalleeDoingDomSubStamps =
-        DomSubStampsSubFragment.standardDomSubStamps(hub, 1);
+        DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1);
 
     this.addFragmentsWithoutStack(
         this.scenarioFragment,

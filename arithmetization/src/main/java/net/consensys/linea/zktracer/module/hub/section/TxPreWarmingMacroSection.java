@@ -119,7 +119,7 @@ public class TxPreWarmingMacroSection {
                             value,
                             seenKeys.computeIfAbsent(address, x -> new HashSet<>()).contains(key),
                             true,
-                            DomSubStampsSubFragment.standardDomSubStamps(hub, 0),
+                            DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0),
                             hub.state.firstAndLastStorageSlotOccurrences.size());
 
                     hub.addTraceSection(new TxPrewarmingSection(hub, storageFragment));

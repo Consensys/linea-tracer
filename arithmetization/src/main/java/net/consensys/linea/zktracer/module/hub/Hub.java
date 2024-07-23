@@ -700,7 +700,7 @@ public class Hub implements Module {
               minerIsWarm,
               this.txStack.getAccumulativeGasUsedInBlockBeforeTxStart());
       if (this.state.getProcessingPhase() != TX_SKIP) {
-        this.state.setProcessingPhase(TX_FINAL);
+        this.state.setProcessingPhase(TX_FINL);
         new TxFinalizationSection(this, frame.getWorldUpdater());
       }
     }
@@ -1149,7 +1149,7 @@ public class Hub implements Module {
                             calledAccountSnapshot,
                             calledAccountSnapshot,
                             rawCalledAddress,
-                            DomSubStampsSubFragment.standardDomSubStamps(this, 0))));
+                            DomSubStampsSubFragment.standardDomSubStamps(this.stamp(), 0))));
           }
         } else if (this.pch.abortingConditions().any()) {
           //
@@ -1166,14 +1166,14 @@ public class Hub implements Module {
                       .make(
                           myAccountSnapshot,
                           myAccountSnapshot,
-                          DomSubStampsSubFragment.standardDomSubStamps(this, 0)),
+                          DomSubStampsSubFragment.standardDomSubStamps(this.stamp(), 0)),
                   this.factories
                       .accountFragment()
                       .makeWithTrm(
                           calledAccountSnapshot,
                           calledAccountSnapshot,
                           rawCalledAddress,
-                          DomSubStampsSubFragment.standardDomSubStamps(this, 1)),
+                          DomSubStampsSubFragment.standardDomSubStamps(this.stamp(), 1)),
                   ContextFragment.nonExecutionEmptyReturnData(this));
           this.addTraceSection(abortedSection);
         } else {

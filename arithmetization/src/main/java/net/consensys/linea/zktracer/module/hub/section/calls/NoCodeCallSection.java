@@ -127,12 +127,12 @@ public class NoCodeCallSection extends TraceSection
         accountFragmentFactory.make(
             this.preCallCallerAccountSnapshot,
             this.postCallCallerAccountSnapshot,
-            DomSubStampsSubFragment.standardDomSubStamps(hub, 0)),
+            DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0)),
         accountFragmentFactory.makeWithTrm(
             this.preCallCalledAccountSnapshot,
             this.postCallCalledAccountSnapshot,
             this.rawCalledAddress,
-            DomSubStampsSubFragment.standardDomSubStamps(hub, 1)));
+            DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1)));
 
     if (precompileInvocation.isPresent()) {
       if (this.callSuccessful && callerCallFrame.hasReverted()) {

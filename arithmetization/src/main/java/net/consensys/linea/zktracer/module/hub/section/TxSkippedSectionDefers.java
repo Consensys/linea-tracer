@@ -115,21 +115,21 @@ public class TxSkippedSectionDefers implements PostTransactionDefer {
                 .make(
                     oldFromAccount,
                     newFromAccount,
-                    DomSubStampsSubFragment.standardDomSubStamps(hub, 0)),
+                    DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0)),
             // To
             hub.factories()
                 .accountFragment()
                 .make(
                     oldToAccount,
                     newToAccount,
-                    DomSubStampsSubFragment.standardDomSubStamps(hub, 1)),
+                    DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1)),
             // Miner
             hub.factories()
                 .accountFragment()
                 .make(
                     oldMinerAccount,
                     newMinerAccount,
-                    DomSubStampsSubFragment.standardDomSubStamps(hub, 2)),
+                    DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 2)),
 
             // 1 line -- transaction data
             TransactionFragment.prepare(hub.txStack().current())));

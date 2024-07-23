@@ -98,7 +98,7 @@ public class ExtCodeCopySection extends TraceSection
             foreignAccount, incomingWarmth, incomingDeploymentNumber, incomingDeploymentStatus);
 
     final DomSubStampsSubFragment doingDomSubStamps =
-        DomSubStampsSubFragment.standardDomSubStamps(hub, 0);
+        DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0);
 
     // The OOGX case
     ////////////////

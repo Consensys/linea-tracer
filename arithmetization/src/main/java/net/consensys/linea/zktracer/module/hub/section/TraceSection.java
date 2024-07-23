@@ -16,7 +16,7 @@
 package net.consensys.linea.zktracer.module.hub.section;
 
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC;
-import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_FINAL;
+import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_FINL;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_INIT;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_SKIP;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_WARM;
@@ -124,7 +124,6 @@ public abstract class TraceSection {
         (int) this.fragments.stream().filter(l -> !(l instanceof StackFragment)).count());
     commonValues.TLI(
         (int) this.fragments.stream().filter(l -> (l instanceof StackFragment)).count() == 2);
-
     commonValues.codeFragmentIndex(
         currentPhase == TX_EXEC
             ? this.hub.getCfiByMetaData(
@@ -132,7 +131,6 @@ public abstract class TraceSection {
                 this.commonValues.callFrame().codeDeploymentNumber(),
                 this.commonValues.callFrame().isDeployment())
             : 0);
-
     commonValues.contextNumberNew(computeContextNumberNew());
 
     commonValues.gasRefund(
@@ -149,7 +147,7 @@ public abstract class TraceSection {
 
   private int computeContextNumberNew() {
     final HubProcessingPhase currentPhase = this.commonValues.hubProcessingPhase;
-    if (currentPhase == TX_WARM || currentPhase == TX_FINAL || currentPhase == TX_SKIP) {
+    if (currentPhase == TX_WARM || currentPhase == TX_FINL || currentPhase == TX_SKIP) {
       return 0;
     }
     return this.nextSection.commonValues.hubProcessingPhase == TX_EXEC

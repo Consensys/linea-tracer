@@ -113,13 +113,13 @@ public class TxFinalizationSection implements PostTransactionDefer {
                   .make(
                       this.fromAccountBeforeTxFinalization,
                       this.fromAccountAfterTxFinalization,
-                      DomSubStampsSubFragment.standardDomSubStamps(hub, 0)),
+                      DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0)),
               hub.factories()
                   .accountFragment()
                   .make(
                       this.minerAccountBeforeTxFinalization,
                       this.minerAccountAfterTxFinalization,
-                      DomSubStampsSubFragment.standardDomSubStamps(hub, 1)),
+                      DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1)),
               TransactionFragment.prepare(hub.txStack().current())));
     } else {
       // TODO: verify it works
@@ -132,13 +132,13 @@ public class TxFinalizationSection implements PostTransactionDefer {
                       this.fromAccountBeforeTxFinalization,
                       this.fromAccountBeforeTxFinalization.incrementBalance(
                           txMetadata.getGasRefundInWei()),
-                      DomSubStampsSubFragment.standardDomSubStamps(hub, 0)),
+                      DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0)),
               hub.factories()
                   .accountFragment()
                   .make(
                       this.fromAccountBeforeTxFinalization,
                       this.minerAccountAfterTxFinalization,
-                      DomSubStampsSubFragment.standardDomSubStamps(hub, 1)),
+                      DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1)),
               TransactionFragment.prepare(hub.txStack().current())));
     }
   }
@@ -153,19 +153,19 @@ public class TxFinalizationSection implements PostTransactionDefer {
                   .make(
                       this.fromAccountBeforeTxFinalization,
                       this.fromAccountAfterTxFinalization,
-                      DomSubStampsSubFragment.standardDomSubStamps(hub, 0)),
+                      DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0)),
               hub.factories()
                   .accountFragment()
                   .make(
                       this.toAccountBeforeTxFinalization,
                       this.toAccountAfterTxFinalization,
-                      DomSubStampsSubFragment.standardDomSubStamps(hub, 1)),
+                      DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1)),
               hub.factories()
                   .accountFragment()
                   .make(
                       this.minerAccountBeforeTxFinalization,
                       this.minerAccountAfterTxFinalization,
-                      DomSubStampsSubFragment.standardDomSubStamps(hub, 2)),
+                      DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 2)),
               TransactionFragment.prepare(hub.txStack().current())));
     } else {
       // TODO: test this
@@ -179,7 +179,7 @@ public class TxFinalizationSection implements PostTransactionDefer {
                       this.fromAccountBeforeTxFinalization
                           .incrementBalance((Wei) txMetadata.getBesuTransaction().getValue())
                           .incrementBalance(txMetadata.getGasRefundInWei()),
-                      DomSubStampsSubFragment.standardDomSubStamps(hub, 0)),
+                      DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0)),
               hub.factories()
                   .accountFragment()
                   .make(
@@ -191,7 +191,7 @@ public class TxFinalizationSection implements PostTransactionDefer {
                               (Wei) txMetadata.getBesuTransaction().getValue())
                           : this.toAccountBeforeTxFinalization.decrementBalance(
                               (Wei) txMetadata.getBesuTransaction().getValue()),
-                      DomSubStampsSubFragment.standardDomSubStamps(hub, 1)),
+                      DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1)),
               hub.factories()
                   .accountFragment()
                   .make(
@@ -199,7 +199,7 @@ public class TxFinalizationSection implements PostTransactionDefer {
                           txMetadata.getMinerReward()),
                       this.minerAccountAfterTxFinalization.incrementBalance(
                           txMetadata.getMinerReward()),
-                      DomSubStampsSubFragment.standardDomSubStamps(hub, 2)),
+                      DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 2)),
               TransactionFragment.prepare(hub.txStack().current())));
     }
   }

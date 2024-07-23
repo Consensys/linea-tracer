@@ -86,7 +86,7 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
         this.valueCurrent,
         this.incomingWarmth,
         true,
-        DomSubStampsSubFragment.standardDomSubStamps(hub, 0),
+        DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0),
         hub.state.firstAndLastStorageSlotOccurrences.size());
   }
 

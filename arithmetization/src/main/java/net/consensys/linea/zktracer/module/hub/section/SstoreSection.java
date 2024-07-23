@@ -113,7 +113,7 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
         this.valueNext,
         this.incomingWarmth,
         true,
-        DomSubStampsSubFragment.standardDomSubStamps(hub, 0),
+        DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0),
         hub.state.firstAndLastStorageSlotOccurrences.size());
   }
 

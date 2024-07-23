@@ -49,7 +49,7 @@ public class AccountSection extends TraceSection implements PostRollbackDefer {
     }
 
     final DomSubStampsSubFragment doingDomSubStamps =
-        DomSubStampsSubFragment.standardDomSubStamps(hub, 0);
+        DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0);
 
     AccountFragment doingAccountFragment =
         hub.opCode().isAnyOf(OpCode.SELFBALANCE, OpCode.CODESIZE)

@@ -39,16 +39,12 @@ public class DomSubStampsSubFragment implements TraceSubFragment {
   final int childRevertStamp;
   final int transactionEndStamp;
 
-  // TODO: to be use with care, as stamps might have changed
-  public static DomSubStampsSubFragment standardDomSubStamps(final Hub hub, final int domOffset) {
-    return new DomSubStampsSubFragment(DomSubType.STANDARD, hub.stamp(), domOffset, 0, 0, 0, 0);
-  }
-
   public static DomSubStampsSubFragment standardDomSubStamps(final int h, final int domOffset) {
     return new DomSubStampsSubFragment(DomSubType.STANDARD, h, domOffset, 0, 0, 0, 0);
   }
 
   // TODO: to be use with care, as stamps might have changed
+  // TODO: remove altogether
   public static DomSubStampsSubFragment revertWithCurrentDomSubStamps(
       final Hub hub, final int subOffset) {
     return new DomSubStampsSubFragment(

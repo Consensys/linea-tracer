@@ -188,7 +188,7 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
                 .make(
                     accountBeforeDeployment,
                     accountAfterEmptyDeployment,
-                    DomSubStampsSubFragment.standardDomSubStamps(hub, 0));
+                    DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
         this.addFragment(emptyDeploymentAccountFragment);
 
         // Note:
@@ -222,7 +222,7 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
               .make(
                   accountBeforeDeployment,
                   accountBeforeDeployment.deployByteCode(deploymentCode),
-                  DomSubStampsSubFragment.standardDomSubStamps(hub, 0));
+                  DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
       nonemptyDeploymentAccountFragment.requiresRomlex(true);
       hub.romLex().triggerRomLex(hub.messageFrame());
 

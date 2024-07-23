@@ -86,7 +86,7 @@ public class StopSection extends TraceSection implements PostRollbackDefer, Post
             .make(
                 priorEmptyDeployment,
                 afterEmptyDeployment,
-                DomSubStampsSubFragment.standardDomSubStamps(hub, 0));
+                DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
 
     this.addFragmentsAndStack(hub, readCurrentContextData(hub), doingAccountFragment);
   }

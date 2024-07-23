@@ -93,7 +93,7 @@ public class CodeCopySection extends TraceSection implements PostTransactionDefe
             hub.transients().conflation().deploymentInfo().isDeploying(codeAddress));
 
     final DomSubStampsSubFragment doingDomSubStamps =
-        DomSubStampsSubFragment.standardDomSubStamps(hub, 0); // Specifics for CODECOPY
+        DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0); // Specifics for CODECOPY
 
     final AccountFragment accountReadingFragment =
         hub.factories()

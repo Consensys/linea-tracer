@@ -28,7 +28,7 @@ import net.consensys.linea.zktracer.opcode.gas.MxpType;
 import net.consensys.linea.zktracer.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.testing.ToyAccount;
-import net.consensys.linea.zktracer.testing.ToyExecutionEnvironment;
+import net.consensys.linea.zktracer.testing.ToyExecutionEnvironmentV2;
 import net.consensys.linea.zktracer.testing.ToyTransaction;
 import net.consensys.linea.zktracer.testing.ToyWorld;
 import net.consensys.linea.zktracer.types.EWord;
@@ -268,12 +268,7 @@ public class MxpTest {
                     contractMO2Account))
             .build();
 
-    ToyExecutionEnvironment.builder()
-        .toyWorld(toyWorld)
-        .transaction(tx)
-        .testValidator(x -> {})
-        .build()
-        .run();
+    ToyExecutionEnvironmentV2.builder().toyWorld(toyWorld).transaction(tx).build().run();
   }
 
   // Support methods

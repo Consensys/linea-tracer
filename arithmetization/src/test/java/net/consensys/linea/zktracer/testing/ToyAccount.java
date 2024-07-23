@@ -20,7 +20,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Suppliers;
@@ -179,14 +178,10 @@ public class ToyAccount implements MutableAccount {
 
   public ReferenceTestWorldState.AccountMock toAccountMock() {
     Map<String, String> accountMockStorage = new HashMap<>();
-    for(Map.Entry<UInt256, UInt256> e: storage.entrySet()) {
+    for (Map.Entry<UInt256, UInt256> e : storage.entrySet()) {
       accountMockStorage.put(e.getKey().toHexString(), e.getValue().toHexString());
     }
     return new ReferenceTestWorldState.AccountMock(
-            Long.toHexString(nonce),
-            balance.toHexString(),
-            accountMockStorage,
-            code.toHexString()
-    );
+        Long.toHexString(nonce), balance.toHexString(), accountMockStorage, code.toHexString());
   }
 }

@@ -21,9 +21,12 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LINE
 import static net.consensys.linea.zktracer.runtime.stack.Stack.MAX_STACK_SIZE;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
-import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import lombok.Builder;
 import lombok.Singular;
@@ -63,202 +66,207 @@ import org.hyperledger.besu.evm.worldstate.WorldUpdater;
 @Builder
 @Slf4j
 public class ToyExecutionEnvironmentV2 {
-    public static final BigInteger CHAIN_ID = BigInteger.valueOf(1337);
-    private static final CorsetValidator CORSET_VALIDATOR = new CorsetValidator();
+  public static final BigInteger CHAIN_ID = BigInteger.valueOf(1337);
+  private static final CorsetValidator CORSET_VALIDATOR = new CorsetValidator();
 
-    private static final Address DEFAULT_SENDER_ADDRESS = Address.fromHexString("0xe8f1b89");
-    private static final Wei DEFAULT_VALUE = Wei.ZERO;
-    private static final Bytes DEFAULT_INPUT_DATA = Bytes.EMPTY;
-    private static final Bytes DEFAULT_BYTECODE = Bytes.EMPTY;
-    private static final long DEFAULT_GAS_LIMIT = 1_000_000;
-    private static final ToyWorld DEFAULT_TOY_WORLD = ToyWorld.empty();
-    private static final Wei DEFAULT_BASE_FEE = Wei.of(LINEA_BASE_FEE);
+  private static final Address DEFAULT_SENDER_ADDRESS = Address.fromHexString("0xe8f1b89");
+  private static final Wei DEFAULT_VALUE = Wei.ZERO;
+  private static final Bytes DEFAULT_INPUT_DATA = Bytes.EMPTY;
+  private static final Bytes DEFAULT_BYTECODE = Bytes.EMPTY;
+  private static final long DEFAULT_GAS_LIMIT = 1_000_000;
+  private static final ToyWorld DEFAULT_TOY_WORLD = ToyWorld.empty();
+  private static final Wei DEFAULT_BASE_FEE = Wei.of(LINEA_BASE_FEE);
 
-    private static final GasCalculator gasCalculator = ZkTracer.gasCalculator;
-    private static final Address minerAddress = Address.fromHexString("0x1234532342");
-    private static final long DEFAULT_BLOCK_NUMBER = 6678980;
-    private static final long DEFAULT_TIME_STAMP = 1347310;
-    private static final Hash DEFAULT_HASH =
-            Hash.fromHexStringLenient("0xdeadbeef123123666dead666dead666");
-    private static final EVM evm = MainnetEVMs.london(EvmConfiguration.DEFAULT);
+  private static final GasCalculator gasCalculator = ZkTracer.gasCalculator;
+  private static final Address minerAddress = Address.fromHexString("0x1234532342");
+  private static final long DEFAULT_BLOCK_NUMBER = 6678980;
+  private static final long DEFAULT_TIME_STAMP = 1347310;
+  private static final Hash DEFAULT_HASH =
+      Hash.fromHexStringLenient("0xdeadbeef123123666dead666dead666");
+  private static final EVM evm = MainnetEVMs.london(EvmConfiguration.DEFAULT);
 
+  private final ToyWorld toyWorld;
+  @Singular private final List<Transaction> transactions;
 
-    private final ToyWorld toyWorld;
-    @Singular private final List<Transaction> transactions;
-    
-    
-    private static final FeeMarket feeMarket = FeeMarket.london(-1);
+  private static final FeeMarket feeMarket = FeeMarket.london(-1);
 
-    public void run() {
-        executeTest(this.buildGeneralStateTestCaseSpec());
-    }
-    private static MainnetTransactionProcessor getMainnetTransactionProcessor() {
+  public void run() {
+    executeTest(this.buildGeneralStateTestCaseSpec(), toyWorld);
+  }
 
-        PrecompileContractRegistry precompileContractRegistry = new PrecompileContractRegistry();
+  private static MainnetTransactionProcessor getMainnetTransactionProcessor() {
 
-        MainnetPrecompiledContracts.populateForIstanbul(
-                precompileContractRegistry, evm.getGasCalculator());
+    PrecompileContractRegistry precompileContractRegistry = new PrecompileContractRegistry();
 
-        final MessageCallProcessor messageCallProcessor =
-                new MessageCallProcessor(evm, precompileContractRegistry);
+    MainnetPrecompiledContracts.populateForIstanbul(
+        precompileContractRegistry, evm.getGasCalculator());
 
-        final ContractCreationProcessor contractCreationProcessor =
-                new ContractCreationProcessor(evm.getGasCalculator(), evm, false, List.of(), 0);
+    final MessageCallProcessor messageCallProcessor =
+        new MessageCallProcessor(evm, precompileContractRegistry);
 
-        return new MainnetTransactionProcessor(
-                gasCalculator,
-                new TransactionValidatorFactory(
-                        gasCalculator,
-                        new LondonTargetingGasLimitCalculator(0L, new LondonFeeMarket(0)),
-                        new LondonFeeMarket(0L),
-                        false,
-                        Optional.of(CHAIN_ID),
-                        Set.of(TransactionType.FRONTIER, TransactionType.ACCESS_LIST, TransactionType.EIP1559),
-                        GlobalConstants.MAX_CODE_SIZE),
-                contractCreationProcessor,
-                messageCallProcessor,
-                true,
-                true,
-                MAX_STACK_SIZE,
-                feeMarket,
-                CoinbaseFeePriceCalculator.eip1559());
-    }
+    final ContractCreationProcessor contractCreationProcessor =
+        new ContractCreationProcessor(evm.getGasCalculator(), evm, false, List.of(), 0);
 
-    public GeneralStateTestCaseEipSpec buildGeneralStateTestCaseSpec() {
-        Map<String, ReferenceTestWorldState.AccountMock> accountMockMap = new HashMap<>();
-        for(ToyAccount toyAccount: toyWorld.getAccounts()){
-            accountMockMap.put(toyAccount.getAddress().toHexString(), toyAccount.toAccountMock());
-        }
-        ReferenceTestWorldState referenceTestWorldState = ReferenceTestWorldState.create(
-                accountMockMap,
-                evm.getEvmConfiguration()
-        );
-        BlockHeader blockHeader =
-                BlockHeaderBuilder.createDefault()
-                        .baseFee(DEFAULT_BASE_FEE)
-                        .gasLimit(LINEA_BLOCK_GAS_LIMIT)
-                        .difficulty(Difficulty.of(LINEA_DIFFICULTY))
-                        .number(DEFAULT_BLOCK_NUMBER)
-                        .coinbase(minerAddress)
-                        .timestamp(DEFAULT_TIME_STAMP)
-                        .parentHash(DEFAULT_HASH)
-                        .buildBlockHeader();
+    return new MainnetTransactionProcessor(
+        gasCalculator,
+        new TransactionValidatorFactory(
+            gasCalculator,
+            new LondonTargetingGasLimitCalculator(0L, new LondonFeeMarket(0)),
+            new LondonFeeMarket(0L),
+            false,
+            Optional.of(CHAIN_ID),
+            Set.of(TransactionType.FRONTIER, TransactionType.ACCESS_LIST, TransactionType.EIP1559),
+            GlobalConstants.MAX_CODE_SIZE),
+        contractCreationProcessor,
+        messageCallProcessor,
+        true,
+        true,
+        MAX_STACK_SIZE,
+        feeMarket,
+        CoinbaseFeePriceCalculator.eip1559());
+  }
 
-        return new GeneralStateTestCaseEipSpec(
-                /*fork*/evm.getEvmVersion().getName().toLowerCase(),
-                /*transactionSupplier*/transactions::getFirst,
-                /*initialWorldState*/referenceTestWorldState,
-                /*expectedRootHash*/null,
-                /*expectedLogsHash*/null,
-                blockHeader,
-                /*dataIndex*/ -1,
-                /*gasIndex*/ -1,
-                /*valueIndex*/ -1,
-                /*expectException*/ null
-                );
-    }
+  public GeneralStateTestCaseEipSpec buildGeneralStateTestCaseSpec() {
+    Map<String, ReferenceTestWorldState.AccountMock> accountMockMap =
+        toyWorld.getAddressAccountMap().entrySet().stream()
+            .collect(
+                Collectors.toMap(
+                    entry -> entry.getKey().toHexString(),
+                    entry -> entry.getValue().toAccountMock()));
+    ReferenceTestWorldState referenceTestWorldState =
+        ReferenceTestWorldState.create(accountMockMap, evm.getEvmConfiguration());
+    BlockHeader blockHeader =
+        BlockHeaderBuilder.createDefault()
+            .baseFee(DEFAULT_BASE_FEE)
+            .gasLimit(LINEA_BLOCK_GAS_LIMIT)
+            .difficulty(Difficulty.of(LINEA_DIFFICULTY))
+            .number(DEFAULT_BLOCK_NUMBER)
+            .coinbase(minerAddress)
+            .timestamp(DEFAULT_TIME_STAMP)
+            .parentHash(DEFAULT_HASH)
+            .buildBlockHeader();
 
-    public static void executeTest(final GeneralStateTestCaseEipSpec spec) {
-        final BlockHeader blockHeader = spec.getBlockHeader();
-        final ReferenceTestWorldState initialWorldState = spec.getInitialWorldState();
-        final Transaction transaction = spec.getTransaction();
-        final BlockBody blockBody = new BlockBody(List.of(transaction), new ArrayList<>());
+    return new GeneralStateTestCaseEipSpec(
+        /*fork*/ evm.getEvmVersion().getName().toLowerCase(),
+        /*transactionSupplier*/ transactions::getFirst,
+        /*initialWorldState*/ referenceTestWorldState,
+        /*expectedRootHash*/ null,
+        /*expectedLogsHash*/ null,
+        blockHeader,
+        /*dataIndex*/ -1,
+        /*gasIndex*/ -1,
+        /*valueIndex*/ -1,
+        /*expectException*/ null);
+  }
 
-        // Sometimes the tests ask us assemble an invalid transaction.  If we have
-        // no valid transaction then there is no test.  GeneralBlockChain tests
-        // will handle the case where we receive the TXs in a serialized form.
-        if (transaction == null) {
-            assertThat(spec.getExpectException())
-                    .withFailMessage("Transaction was not assembled, but no exception was expected")
-                    .isNotNull();
-            return;
-        }
+  public static void executeTest(final GeneralStateTestCaseEipSpec spec, final ToyWorld toyWorld) {
+    final BlockHeader blockHeader = spec.getBlockHeader();
+    final ReferenceTestWorldState initialWorldState = spec.getInitialWorldState();
+    final Transaction transaction = spec.getTransaction();
+    final BlockBody blockBody = new BlockBody(List.of(transaction), new ArrayList<>());
 
-        final MutableWorldState worldState = initialWorldState.copy();
-        // Several of the GeneralStateTests check if the transaction could potentially
-        // consume more gas than is left for the block it's attempted to be included in.
-        // This check is performed within the `BlockImporter` rather than inside the
-        // `TransactionProcessor`, so these tests are skipped.
-        if (transaction.getGasLimit() > blockHeader.getGasLimit() - blockHeader.getGasUsed()) {
-            return;
-        }
-
-        final MainnetTransactionProcessor processor = getMainnetTransactionProcessor();
-        final WorldUpdater worldStateUpdater = worldState.updater();
-        final ReferenceTestBlockchain blockchain = new ReferenceTestBlockchain(blockHeader.getNumber());
-        final Wei blobGasPrice = feeMarket
-                        .blobGasPricePerGas(blockHeader.getExcessBlobGas().orElse(BlobGas.ZERO));
-
-        final ZkTracer tracer = new ZkTracer();
-
-        tracer.traceStartConflation(1);
-        tracer.traceStartBlock(blockHeader, blockBody);
-
-        final TransactionProcessingResult result =
-                processor.processTransaction(
-                        worldStateUpdater,
-                        blockHeader,
-                        transaction,
-                        blockHeader.getCoinbase(),
-                        tracer,
-                        new CachingBlockHashLookup(blockHeader, blockchain),
-                        false,
-                        TransactionValidationParams.processingBlock(),
-                        blobGasPrice);
-        if (result.isInvalid()) {
-            assertThat(spec.getExpectException())
-                    .withFailMessage(() -> result.getValidationResult().getErrorMessage())
-                    .isNotNull();
-            return;
-        }
-
-
-        tracer.traceEndBlock(blockHeader, blockBody);
-        tracer.traceEndConflation(worldStateUpdater);
-
-        assertThat(spec.getExpectException())
-                .withFailMessage("Exception was expected - " + spec.getExpectException())
-                .isNull();
-
-        final Account coinbase = worldStateUpdater.getOrCreate(spec.getBlockHeader().getCoinbase());
-        if (coinbase != null && coinbase.isEmpty() && shouldClearEmptyAccounts(spec.getFork())) {
-            worldStateUpdater.deleteAccount(coinbase.getAddress());
-        }
-        worldStateUpdater.commit();
-        worldState.persist(blockHeader);
-
-        // Check the world state root hash.
-        final Hash expectedRootHash = spec.getExpectedRootHash();
-        Optional.ofNullable(expectedRootHash).ifPresent(
-                expected -> {
-                    assertThat(worldState.rootHash())
-                            .withFailMessage(
-                                    "Unexpected world state root hash; expected state: %s, computed state: %s",
-                                    spec.getExpectedRootHash(), worldState.rootHash())
-                            .isEqualTo(expected);
-                }
-        );
-
-        // Check the logs.
-        final Hash expectedLogsHash = spec.getExpectedLogsHash();
-        Optional.ofNullable(expectedLogsHash)
-                .ifPresent(
-                        expected -> {
-                            final List<Log> logs = result.getLogs();
-
-                            assertThat(Hash.hash(RLP.encode(out -> out.writeList(logs, Log::writeTo))))
-                                    .withFailMessage("Unmatched logs hash. Generated logs: %s", logs)
-                                    .isEqualTo(expected);
-                        });
-
-        assertThat(CORSET_VALIDATOR.validate(tracer.writeToTmpFile()).isValid()).isTrue();
+    // Sometimes the tests ask us assemble an invalid transaction.  If we have
+    // no valid transaction then there is no test.  GeneralBlockChain tests
+    // will handle the case where we receive the TXs in a serialized form.
+    if (transaction == null) {
+      assertThat(spec.getExpectException())
+          .withFailMessage("Transaction was not assembled, but no exception was expected")
+          .isNotNull();
+      return;
     }
 
-    private static final List<String> SPECS_PRIOR_TO_DELETING_EMPTY_ACCOUNTS =
-            Arrays.asList("Frontier", "Homestead", "EIP150");
+    final MutableWorldState worldState = initialWorldState;
+    // Several of the GeneralStateTests check if the transaction could potentially
+    // consume more gas than is left for the block it's attempted to be included in.
+    // This check is performed within the `BlockImporter` rather than inside the
+    // `TransactionProcessor`, so these tests are skipped.
 
-    private static boolean shouldClearEmptyAccounts(final String eip) {
-        return !SPECS_PRIOR_TO_DELETING_EMPTY_ACCOUNTS.contains(eip);
+    //    if (transaction.getGasLimit() > blockHeader.getGasLimit() - blockHeader.getGasUsed()) {
+    //      return;
+    //    }
+
+    final MainnetTransactionProcessor processor = getMainnetTransactionProcessor();
+    final WorldUpdater worldStateUpdater = worldState.updater();
+    final ReferenceTestBlockchain blockchain = new ReferenceTestBlockchain(blockHeader.getNumber());
+    final Wei blobGasPrice =
+        feeMarket.blobGasPricePerGas(blockHeader.getExcessBlobGas().orElse(BlobGas.ZERO));
+
+    final ZkTracer tracer = new ZkTracer();
+
+    tracer.traceStartConflation(1);
+    tracer.traceStartBlock(blockHeader, blockBody);
+
+    final TransactionProcessingResult result =
+        processor.processTransaction(
+            worldStateUpdater,
+            blockHeader,
+            transaction,
+            blockHeader.getCoinbase(),
+            tracer,
+            new CachingBlockHashLookup(blockHeader, blockchain),
+            false,
+            TransactionValidationParams.processingBlock(),
+            blobGasPrice);
+
+    if (result.isInvalid()) {
+      assertThat(spec.getExpectException())
+          .withFailMessage(() -> result.getValidationResult().getErrorMessage())
+          .isNotNull();
+      return;
     }
 
+    tracer.traceEndBlock(blockHeader, blockBody);
+    tracer.traceEndConflation(worldStateUpdater);
+
+    assertThat(spec.getExpectException())
+        .withFailMessage("Exception was expected - " + spec.getExpectException())
+        .isNull();
+
+    final Account coinbase = worldStateUpdater.getOrCreate(spec.getBlockHeader().getCoinbase());
+    if (coinbase != null && coinbase.isEmpty() && shouldClearEmptyAccounts(spec.getFork())) {
+      worldStateUpdater.deleteAccount(coinbase.getAddress());
+    }
+    worldStateUpdater.commit();
+    worldState.persist(blockHeader);
+
+    // Check the world state root hash.
+    final Hash expectedRootHash = spec.getExpectedRootHash();
+    Optional.ofNullable(expectedRootHash)
+        .ifPresent(
+            expected -> {
+              assertThat(worldState.rootHash())
+                  .withFailMessage(
+                      "Unexpected world state root hash; expected state: %s, computed state: %s",
+                      spec.getExpectedRootHash(), worldState.rootHash())
+                  .isEqualTo(expected);
+            });
+
+    // Check the logs.
+    final Hash expectedLogsHash = spec.getExpectedLogsHash();
+    Optional.ofNullable(expectedLogsHash)
+        .ifPresent(
+            expected -> {
+              final List<Log> logs = result.getLogs();
+
+              assertThat(Hash.hash(RLP.encode(out -> out.writeList(logs, Log::writeTo))))
+                  .withFailMessage("Unmatched logs hash. Generated logs: %s", logs)
+                  .isEqualTo(expected);
+            });
+
+    try {
+      final Path traceFile = Files.createTempFile(null, ".lt");
+      tracer.writeToFile(traceFile);
+      log.info("trace written to `{}`", traceFile);
+      assertThat(CORSET_VALIDATOR.validate(traceFile).isValid()).isTrue();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private static final List<String> SPECS_PRIOR_TO_DELETING_EMPTY_ACCOUNTS =
+      Arrays.asList("Frontier", "Homestead", "EIP150");
+
+  private static boolean shouldClearEmptyAccounts(final String eip) {
+    return !SPECS_PRIOR_TO_DELETING_EMPTY_ACCOUNTS.contains(eip);
+  }
 }

@@ -41,8 +41,8 @@ import org.hyperledger.besu.evm.worldstate.WorldUpdater;
 public class ToyWorld implements WorldUpdater {
   private ToyWorld parent;
   @Getter private List<ToyAccount> accounts;
-  private Map<Address, ToyAccount> addressAccountMap;
   private AuthorizedCodeService authorizedCodeService;
+  @Getter private Map<Address, ToyAccount> addressAccountMap;
 
   private ToyWorld() {
     this(null, new ArrayList<>());

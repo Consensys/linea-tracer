@@ -23,12 +23,12 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EXP_
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EXP_INST_MODEXPLOG;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGEPO;
-import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
-import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 import static net.consensys.linea.zktracer.module.exp.Trace.CT_MAX_CMPTN_EXP_LOG;
 import static net.consensys.linea.zktracer.module.exp.Trace.CT_MAX_CMPTN_MODEXP_LOG;
 import static net.consensys.linea.zktracer.module.exp.Trace.CT_MAX_PRPRC_EXP_LOG;
 import static net.consensys.linea.zktracer.module.exp.Trace.CT_MAX_PRPRC_MODEXP_LOG;
+import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
+import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 
 import java.math.BigInteger;
 import java.math.RoundingMode;

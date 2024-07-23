@@ -28,7 +28,6 @@ import net.consensys.linea.plugins.continoustracing.ContinuousTracingConfigurati
 import net.consensys.linea.plugins.exception.InvalidBlockTraceException;
 import net.consensys.linea.plugins.exception.TraceVerificationException;
 import net.consensys.linea.zktracer.ZkTracer;
-import net.consensys.linea.zktracer.testing.EvmExtension;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.plugin.data.BlockTraceResult;
 import org.hyperledger.besu.plugin.data.TransactionTraceResult;
@@ -42,7 +41,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-@ExtendWith(EvmExtension.class)
 public class ContinuousTracerTest {
   private static final Hash BLOCK_HASH =
       Hash.fromHexString("0x0000000000000000000000000000000000000000000000000000000000000042");

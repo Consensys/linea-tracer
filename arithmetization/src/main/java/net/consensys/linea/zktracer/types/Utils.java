@@ -15,8 +15,8 @@
 
 package net.consensys.linea.zktracer.types;
 
-import java.math.BigInteger;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;

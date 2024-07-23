@@ -85,9 +85,9 @@ public class TxTrace implements PostTransactionDefer {
   public long refundCounter() {
     if (this.trace.size() >= PARALLELIZATION_THRESHOLD) {
       return this.trace.parallelStream()
-        .filter(section -> !section.hasReverted())
-        .mapToLong(TraceSection::refundDelta)
-        .sum();
+          .filter(section -> !section.hasReverted())
+          .mapToLong(TraceSection::refundDelta)
+          .sum();
     } else {
       if (this.refundCounter == -1) {
         this.refundCounter = 0;

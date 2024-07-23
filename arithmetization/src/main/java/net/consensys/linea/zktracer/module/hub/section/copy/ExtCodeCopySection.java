@@ -140,6 +140,7 @@ public class ExtCodeCopySection extends TraceSection
             .makeWithTrm(this.accountBefore, this.accountAfter, this.rawAddress, doingDomSubStamps);
     accountDoingFragment.requiresRomlex(triggerCfi);
     this.addFragment(accountDoingFragment);
+    hub.romLex().triggerRomLex(hub.messageFrame());
 
     // an EXTCODECOPY section is only scheduled
     // for rollback if it is unexceptional

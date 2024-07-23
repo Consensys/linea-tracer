@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.section;
 
+import com.google.common.base.Preconditions;
 import lombok.Getter;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.State;
@@ -44,7 +45,6 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
   final EWord valueOriginal;
   final EWord valueCurrent;
   final EWord valueNext;
-  final short exceptions;
 
   public SstoreSection(Hub hub, WorldView world) {
     super(
@@ -61,16 +61,15 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
         EWord.of(world.get(address).getOriginalStorageValue(UInt256.fromBytes(storageKey)));
     this.valueCurrent = EWord.of(world.get(address).getStorageValue(UInt256.fromBytes(storageKey)));
     this.valueNext = EWord.of(hub.messageFrame().getStackItem(1));
-    this.exceptions = hub.pch().exceptions();
+    final short exceptions = hub.pch().exceptions();
 
     hub.addTraceSection(this);
-    hub.defers().scheduleForPostRollback(this, hub.currentFrame());
 
-    final boolean staticContextException = Exceptions.staticFault(this.exceptions);
-    final boolean sstoreException = Exceptions.outOfSStore(this.exceptions);
+    final boolean staticContextException = Exceptions.staticFault(exceptions);
+    final boolean sstoreException = Exceptions.outOfSStore(exceptions);
 
     // CONTEXT fragment
-    ContextFragment readCurrentContext = ContextFragment.readCurrentContextData(hub);
+    final ContextFragment readCurrentContext = ContextFragment.readCurrentContextData(hub);
     this.addFragmentsAndStack(hub, readCurrentContext);
 
     if (staticContextException) {
@@ -78,7 +77,7 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
     }
 
     // MISC fragment
-    ImcFragment miscForSstore = ImcFragment.empty(hub);
+    final ImcFragment miscForSstore = ImcFragment.empty(hub);
     this.addFragment(miscForSstore);
 
     miscForSstore.callOob(new SstoreOobCall());
@@ -87,9 +86,20 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
       return;
     }
 
+    Preconditions.checkArgument(
+        Exceptions.outOfGasException(exceptions) || Exceptions.none(exceptions));
+
+    hub.defers().scheduleForPostRollback(this, hub.currentFrame());
+
     // STORAGE fragment (for doing)
-    StorageFragment doingSstore = this.doingSstore(hub);
+    final StorageFragment doingSstore = this.doingSstore(hub);
     this.addFragment(doingSstore);
+
+    // set the refundDelta
+    this.commonValues.refundDelta(
+        Hub.GAS_PROJECTOR
+            .of(hub.currentFrame().frame(), hub.opCode())
+            .refund()); // TODO should use Besu's value
   }
 
   private StorageFragment doingSstore(Hub hub) {
@@ -109,11 +119,6 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
 
   @Override
   public void resolvePostRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
-
-    if (!this.undoingRequired()) {
-      return;
-    }
-
     final DomSubStampsSubFragment undoingDomSubStamps =
         DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
             this.hubStamp(), hub.callStack().current().revertStamp(), 0);
@@ -132,9 +137,8 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
             hub.state.firstAndLastStorageSlotOccurrences.size());
 
     this.addFragment(undoingSstoreStorageFragment);
-  }
 
-  private boolean undoingRequired() {
-    return Exceptions.outOfGasException(this.exceptions) || Exceptions.none(this.exceptions);
+    // undo the refund
+    this.commonValues.refundDelta(0);
   }
 }

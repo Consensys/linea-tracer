@@ -55,9 +55,9 @@ public class CommonFragmentValues {
   public final boolean contextMayChange;
   @Setter long gasCost; // Set at Post Execution
   @Setter long gasNext; // Set at Post Execution
-  @Getter public final long refundDelta;
-  @Setter public long gasRefund; // TODO
-  @Setter public long gasRefundNew; /* TODO gasRefund + (willRevert ? 0 : refundDelta) */
+  @Setter public long refundDelta = 0; // 0 is default Value, can be modified only by SSTORE section
+  @Setter public long gasRefund; // Set at commit time
+  @Setter public long gasRefundNew; // Set at commit time
   @Setter public int numberOfNonStackRows;
   @Setter public boolean TLI;
   @Setter public int codeFragmentIndex = -1;
@@ -79,8 +79,6 @@ public class CommonFragmentValues {
     this.pcNew = computePcNew(hub, pc, noStackException, hub.state.getProcessingPhase() == TX_EXEC);
     this.height = (short) callFrame.stack().getHeight();
     this.heightNew = (short) callFrame.stack().getHeightNew();
-    this.refundDelta =
-        noStackException ? Hub.GAS_PROJECTOR.of(callFrame.frame(), hub.opCode()).refund() : 0;
 
     // TODO: partial solution, will not work in general
     this.gasExpected = hub.expectedGas();

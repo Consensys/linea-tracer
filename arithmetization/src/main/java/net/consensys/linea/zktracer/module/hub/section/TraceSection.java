@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.module.hub.section;
 
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_FINAL;
+import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_INIT;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_SKIP;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_WARM;
 
@@ -117,18 +118,28 @@ public abstract class TraceSection {
 
   /** This method is called at commit time, to build required information post-hoc. */
   public void seal() {
+    final HubProcessingPhase currentPhase = this.commonValues.hubProcessingPhase;
+
     commonValues.numberOfNonStackRows(
         (int) this.fragments.stream().filter(l -> !(l instanceof StackFragment)).count());
     commonValues.TLI(
         (int) this.fragments.stream().filter(l -> (l instanceof StackFragment)).count() == 2);
+
     commonValues.codeFragmentIndex(
-        this.commonValues.hubProcessingPhase == TX_EXEC
+        currentPhase == TX_EXEC
             ? this.hub.getCfiByMetaData(
                 this.commonValues.callFrame().byteCodeAddress(),
                 this.commonValues.callFrame().codeDeploymentNumber(),
                 this.commonValues.callFrame().isDeployment())
             : 0);
+
     commonValues.contextNumberNew(computeContextNumberNew());
+
+    commonValues.gasRefund(
+        currentPhase == TX_SKIP || currentPhase == TX_WARM || currentPhase == TX_INIT
+            ? 0
+            : this.previousSection.commonValues.gasRefundNew);
+    commonValues.gasRefundNew(commonValues.gasRefund + commonValues.refundDelta);
 
     /* If the logStamp hasn't been set (either by being first section of the tx, or by the LogSection), set it to the previous section logStamp */
     if (commonValues.logStamp == -1) {
@@ -148,10 +159,6 @@ public abstract class TraceSection {
 
   public final boolean hasReverted() {
     return this.commonValues.callFrame().hasReverted();
-  }
-
-  public final long refundDelta() {
-    return this.commonValues.refundDelta();
   }
 
   /**

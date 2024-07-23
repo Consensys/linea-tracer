@@ -20,6 +20,7 @@ import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_SKIP
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 
 import java.math.BigInteger;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -32,6 +33,7 @@ import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.HubProcessingPhase;
+import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.transients.Block;
 import net.consensys.linea.zktracer.module.hub.transients.StorageInitialValues;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
@@ -42,7 +44,7 @@ import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Getter
-public class TransactionProcessingMetadata {
+public class TransactionProcessingMetadata implements PostTransactionDefer {
 
   final int absoluteTransactionNumber;
   final int relativeTransactionNumber;
@@ -114,14 +116,16 @@ public class TransactionProcessingMetadata {
   @Setter Set<AccountSnapshot> destructedAccountsSnapshot;
 
   @Getter
-  Map<AddressDeploymentNumberKey, List<HubStampCallFrameValue>> unexceptionalSelfDestructMap;
+  Map<EphemeralAccount, List<AttemptedSelfDestruct>> unexceptionalSelfDestructMap = new HashMap<>();
 
-  @Getter Map<AddressDeploymentNumberKey, Integer> effectiveSelfDestructMap;
+  @Getter Map<EphemeralAccount, Integer> effectiveSelfDestructMap = new HashMap<>();
 
-  public record AddressDeploymentNumberKey(Address address, int deploymentNumber) {}
+  // Ephermeral accounts are both accounts that have been deployed on-chain
+  // and accounts that live for a limited time
+  public record EphemeralAccount(Address address, int deploymentNumber) {}
   ;
 
-  public record HubStampCallFrameValue(int hubStamp, CallFrame callFrame) {}
+  public record AttemptedSelfDestruct(int hubStamp, CallFrame callFrame) {}
   ;
 
   public TransactionProcessingMetadata(
@@ -163,6 +167,7 @@ public class TransactionProcessingMetadata {
       final long refundCounterMax,
       final boolean minerIsWarmAtFinalisation,
       final int accumulatedGasUsedInBlockAtStartTx) {
+
     this.isMinerWarmAtEndTx(minerIsWarmAtFinalisation);
     this.refundCounterMax = refundCounterMax;
     this.setLeftoverGas(leftOverGas);
@@ -299,5 +304,27 @@ public class TransactionProcessingMetadata {
             .mapToInt(accessListEntry -> accessListEntry.storageKeys().size())
             .sum()
         : 0;
+  }
+
+  @Override
+  public void resolvePostTransaction(
+      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+    for (Map.Entry<EphemeralAccount, List<AttemptedSelfDestruct>> entry :
+        this.unexceptionalSelfDestructMap.entrySet()) {
+
+      EphemeralAccount ephemeralAccount = entry.getKey();
+      List<AttemptedSelfDestruct> attemptedSelfDestructs = entry.getValue();
+
+      // For each address, deployment number, we find selfDestructTime as
+      // the time in which the first unexceptional and un-reverted SELFDESTRUCT occurs
+      // Then we add this value in a new map
+      for (AttemptedSelfDestruct attemptedSelfDestruct : attemptedSelfDestructs) {
+        if (attemptedSelfDestruct.callFrame().revertStamp() == 0) {
+          int selfDestructTime = attemptedSelfDestruct.hubStamp();
+          this.effectiveSelfDestructMap.put(ephemeralAccount, selfDestructTime);
+          break;
+        }
+      }
+    }
   }
 }

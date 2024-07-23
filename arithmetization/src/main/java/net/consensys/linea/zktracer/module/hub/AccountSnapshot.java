@@ -196,4 +196,9 @@ public class AccountSnapshot {
         this.deploymentNumber,
         this.deploymentStatus);
   }
+
+  public AccountSnapshot wipe() {
+    return new AccountSnapshot(
+        this.address, 0, Wei.of(0), this.isWarm, Bytecode.EMPTY, this.deploymentNumber + 1, false);
+  }
 }

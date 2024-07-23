@@ -30,8 +30,9 @@ import net.consensys.linea.zktracer.module.hub.fragment.scenario.SelfdestructSce
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
-import net.consensys.linea.zktracer.types.TransactionProcessingMetadata.AddressDeploymentNumberKey;
-import net.consensys.linea.zktracer.types.TransactionProcessingMetadata.HubStampCallFrameValue;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata.AttemptedSelfDestruct;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata.EphemeralAccount;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
@@ -62,10 +63,14 @@ public class SelfdestructSection extends TraceSection
   final boolean selfDestructTargetsItself;
   @Getter boolean selfDestructWasReverted = false;
 
+  final TransactionProcessingMetadata transactionProcessingMetadata;
+
   public SelfdestructSection(Hub hub) {
     // up to 8 = 1 + 7 rows
     super(hub, (short) 8);
     hub.addTraceSection(this);
+
+    this.transactionProcessingMetadata = hub.txStack().current();
 
     // Init
     this.id = hub.currentFrame().id();
@@ -135,23 +140,23 @@ public class SelfdestructSection extends TraceSection
     }
 
     // Unexceptional case
-    Map<AddressDeploymentNumberKey, List<HubStampCallFrameValue>> unexceptionalSelfDestructMap =
+    Map<EphemeralAccount, List<AttemptedSelfDestruct>> unexceptionalSelfDestructMap =
         hub.txStack().current().getUnexceptionalSelfDestructMap();
 
-    AddressDeploymentNumberKey addressDeploymentNumberKey =
-        new AddressDeploymentNumberKey(this.address, this.accountBefore.deploymentNumber());
+    EphemeralAccount ephemeralAccount =
+        new EphemeralAccount(this.address, this.accountBefore.deploymentNumber());
 
-    if (unexceptionalSelfDestructMap.containsKey(addressDeploymentNumberKey)) {
-      List<HubStampCallFrameValue> hubStampCallFrameValues =
-          unexceptionalSelfDestructMap.get(addressDeploymentNumberKey);
-      hubStampCallFrameValues.add(new HubStampCallFrameValue(hubStamp, hub.currentFrame()));
+    if (unexceptionalSelfDestructMap.containsKey(ephemeralAccount)) {
+      List<AttemptedSelfDestruct> attemptedSelfDestructs =
+          unexceptionalSelfDestructMap.get(ephemeralAccount);
+      attemptedSelfDestructs.add(new AttemptedSelfDestruct(hubStamp, hub.currentFrame()));
       // TODO: double check that re-adding the list to the map is not necessary, as the list is a
       //  reference
       //  unexceptionalSelfDestructMap.put(addressDeploymentNumberKey, hubStampCallFrameValues);
     } else {
       unexceptionalSelfDestructMap.put(
-          new AddressDeploymentNumberKey(this.address, this.accountBefore.deploymentNumber()),
-          List.of(new HubStampCallFrameValue(hubStamp, hub.currentFrame())));
+          new EphemeralAccount(this.address, this.accountBefore.deploymentNumber()),
+          List.of(new AttemptedSelfDestruct(hubStamp, hub.currentFrame())));
     }
 
     hub.defers().scheduleForPostRollback(this, hub.currentFrame());
@@ -231,100 +236,46 @@ public class SelfdestructSection extends TraceSection
   @Override
   public void resolvePostTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
-    // if selfDestructWasReverted = false then we are in the WONT_REVERT case
-    // We still need to understand in which of the below cases we are:
-    // selfdestructScenarioFragment.setScenario(
-    //  SelfdestructScenarioFragment.SelfdestructScenario.SELFDESTRUCT_WONT_REVERT_NOT_YET_MARKED);
-    // selfdestructScenarioFragment.setScenario(
-    //  SelfdestructScenarioFragment.SelfdestructScenario.SELFDESTRUCT_WONT_REVERT_ALREADY_MARKED);
+    if (selfDestructWasReverted) {
+      return;
+    }
 
-    // will not revert (subcases: already marked, not yet marked)
-    // - not yet marked corresponds to when SELFDESTRUCT produces no exceptions, will not be
-    // reverted
-    // ,and it is the first time this account will be successful in self-destructing
+    Map<EphemeralAccount, Integer> effectiveSelfDestructMap =
+        this.transactionProcessingMetadata.getEffectiveSelfDestructMap();
+    EphemeralAccount ephemeralAccount =
+        new EphemeralAccount(this.address, this.accountAfter.deploymentNumber());
 
-    // - already marked corresponds to when SELFDESTRUCT produces no exceptions, will not be
-    // reverted
-    // ,and it is not the first time this account will be successful in self-destructing
+    Preconditions.checkArgument(effectiveSelfDestructMap.containsKey(ephemeralAccount));
 
-    // mark for self-destructing is associated to an address and a deployment number
-    // use a maps that keeps track of the (hub stamp, call frame) of all the unexceptional
-    // SELFDESTRUCT for a given (address, deployment number)
+    // We modify the account fragment to reflect the self-destruct time
 
-    // we need the callFrame in order to tell us, when we walk through this map at the end of the
-    // transaction (transactionEnd),
-    // if the SELFDESTRUCT took place in a frame that will be reverted/roll back (in this case, we
-    // can ignore it)
-    // later this information will be used to filter out the reverted SELFDESTRUCT
-    // once we have this filtered map, for every pair (address, deploymentNumber),
-    // we can compute its selfDestructTime = the first hubStamp such that is successful and not
-    // reverted
-    // these SELFDESTRUCT will be finished at the end of the transaction by wiping the corresponding
-    // accounts
+    int selfDestructTime = effectiveSelfDestructMap.get(ephemeralAccount);
 
-    // at the end of the transaction we have that map
+    Preconditions.checkArgument(this.hubStamp >= selfDestructTime);
 
-    // we analyse that map:
-    // for every (address, deployment number) we walk through the list of [(hub stamp, call frame),
-    // ...]
+    AccountSnapshot accountBeforeSelfDestruct =
+        this.transactionProcessingMetadata.getDestructedAccountsSnapshot().stream()
+            .filter(accountSnapshot -> accountSnapshot.address().equals(this.address))
+            .findFirst()
+            .orElseThrow(() -> new IllegalStateException("Account not found"));
 
-    // for every call frame we know if it was reverted or not
+    if (this.hubStamp == selfDestructTime) {
+      selfdestructScenarioFragment.setScenario(
+          SelfdestructScenarioFragment.SelfdestructScenario
+              .SELFDESTRUCT_WONT_REVERT_NOT_YET_MARKED);
 
-    // the first time (selfDestructTime) we find a call frame that has not been reverted, we
-    // remember the hub stamp
-
-    // this produces a new map (address, deployment number) -> selfDestructTime (of the first
-    // successful and un-reverted
-    // SELFDESTRUCT)
-
-    // we now have a map of all (address, deployment number) that have been successful in
-    // self-destructing
-    // and the hub stamp in which it happened
-
-    // for every account row in the entire trace, we can now decide what to write in the
-    // MARKED_FOR_SELFDESTRUCT and MARKED_FOR_SELFDESTRUCT_NEW columns:
-    // MARKED_FOR_SELFDESTRUCT = [hub stamp < selfDestructTime]
-    // MARKED_FOR_SELFDESTRUCT_NEW = [hub stamp >= selfDestructTime]
-
-    // This will only be triggered at the hub stamp = selfDestructTime
-    // we wipe the entire account in the "not yet marked" case (precisely when not yet marked
-    // transitions from false to true) (see row i+4 of not yet marked case)
-    // in the already marked case we know that this action has already been scheduled for the future
-
-    // every transaction should start with an empty map
-
-    for (Map.Entry<AddressDeploymentNumberKey, List<HubStampCallFrameValue>> entry :
-        hub.txStack().current().getUnexceptionalSelfDestructMap().entrySet()) {
-
-      AddressDeploymentNumberKey addressDeploymentNumberKey = entry.getKey();
-      List<HubStampCallFrameValue> hubStampCallFrameValues = entry.getValue();
-
-      // For each address, deployment number, we find selfDestructTime as
-      // the time in which the first unexceptional and un-reverted SELFDESTRUCT occurs
-      // Then we add this value in a new map
-      int selfDestructTime = -1;
-      for (HubStampCallFrameValue hubStampCallFrameValue : hubStampCallFrameValues) {
-        if (hubStampCallFrameValue.callFrame().revertStamp() == -1) {
-          selfDestructTime = hubStampCallFrameValue.hubStamp();
-          hub.txStack()
-              .current()
-              .getEffectiveSelfDestructMap()
-              .put(addressDeploymentNumberKey, selfDestructTime);
-          break;
-        }
-      }
-
-      // We modify the account fragment to reflect the self-destruct time
-      if (selfDestructTime != -1) {
-        AccountFragment accountFragment =
-            hub.factories()
-                .accountFragment()
-                .make(
-                    this.accountAfter,
-                    AccountSnapshot.empty(false, 0, false),
-                    DomSubStampsSubFragment.selfdestructDomSubStamps(hub));
-        this.addFragment(accountFragment);
-      }
+      AccountFragment accountWipingFragment =
+          hub.factories()
+              .accountFragment()
+              .make(
+                  accountBeforeSelfDestruct,
+                  this.accountAfter.wipe(),
+                  DomSubStampsSubFragment.selfdestructDomSubStamps(hub));
+      this.addFragment(accountWipingFragment);
+    } else {
+      selfdestructScenarioFragment.setScenario(
+          SelfdestructScenarioFragment.SelfdestructScenario
+              .SELFDESTRUCT_WONT_REVERT_ALREADY_MARKED);
     }
   }
 }

@@ -142,7 +142,12 @@ public class CallFrame {
 
   @Getter @Setter private boolean selfReverts = false;
   @Getter @Setter private boolean getsReverted = false;
-  @Getter @Setter private int revertStamp = 0;
+
+  @Getter @Setter
+  private int revertStamp =
+      0; // the hub stamp at which this frame reverts (0 means it does not revert)
+
+  // TODO: create an enum with WILL_REVERT, WONT_REVERT
 
   /** this frame {@link Stack}. */
   @Getter private final Stack stack = new Stack();

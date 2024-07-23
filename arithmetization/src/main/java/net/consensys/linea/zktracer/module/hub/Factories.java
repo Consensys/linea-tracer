@@ -25,6 +25,6 @@ public class Factories {
   @Getter private final AccountFragment.AccountFragmentFactory accountFragment;
 
   public Factories(final Hub hub) {
-    this.accountFragment = new AccountFragment.AccountFragmentFactory(hub.defers());
+    this.accountFragment = new AccountFragment.AccountFragmentFactory(hub);
   }
 }

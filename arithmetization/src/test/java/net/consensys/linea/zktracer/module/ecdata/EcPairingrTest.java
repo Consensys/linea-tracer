@@ -53,12 +53,25 @@ public class EcPairingrTest {
         BytecodeCompiler.newProgram()
             // random point in C1
             .push("26d7d8759964ac70b4d5cdf698ad5f70da246752481ea37da637551a60a2a57f") // Ax
+            .push(0)
+            .op(OpCode.MSTORE)
             .push("13991eda70bd3bd91c43e7c93f8f89c949bd271ba8f9f5a38bce7248f1f6056b") // Ay
+            .push(0x20)
+            .op(OpCode.MSTORE)
             // random point in G2
             .push("13eb8555f322c3885846df8a505693a0012493a30c34196a529f964a684c0cb2") // BxIm
+            .push(0x40)
+            .op(OpCode.MSTORE)
             .push("18335a998f3db61d3d0b63cd1371789a9a8a5ed4fb1a4adaa20ab9573251a9d0") // BxRe
+            .push(0x60)
+            .op(OpCode.MSTORE)
             .push("20494259608bfb4cd04716ba62e1350ce90d00d8af00a5170f46f59ae72d060c") // ByIm
+            .push(0x80)
+            .op(OpCode.MSTORE)
             .push("257a64fbc5a9cf9c3f7be349d09efa099305fe61f364c31c082ef6a81c815c1d") // ByRe
+            .push(0xA0)
+            .op(OpCode.MSTORE)
+            // Do the call
             .push(0x20) // retSize
             .push(0) // retOffset
             .push(192) // argSize
@@ -81,12 +94,24 @@ public class EcPairingrTest {
         BytecodeCompiler.newProgram()
             // point supposed to be in C1
             .push(Ax) // Ax
+            .push(0)
+            .op(OpCode.MSTORE)
             .push(Ay) // Ay
+            .push(0x20)
+            .op(OpCode.MSTORE)
             // point supposed to be in G2
             .push(BxIm) // BxIm
+            .push(0x40)
+            .op(OpCode.MSTORE)
             .push(BxRe) // BxRe
+            .push(0x60)
+            .op(OpCode.MSTORE)
             .push(ByIm) // ByIm
+            .push(0x80)
+            .op(OpCode.MSTORE)
             .push(ByRe) // ByRe
+            .push(0xA0)
+            .op(OpCode.MSTORE)
             .push(0x20) // retSize
             .push(0) // retOffset
             .push(192) // argSize

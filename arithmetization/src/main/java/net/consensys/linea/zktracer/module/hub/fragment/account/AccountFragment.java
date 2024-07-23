@@ -59,6 +59,7 @@ public final class AccountFragment
   private final DomSubStampsSubFragment domSubStampsSubFragment;
   @Setter private RlpAddrSubFragment rlpAddrSubFragment;
   private boolean markedForSelfDestruct;
+  private boolean markedForSelfDestructNew;
   final int hubStamp;
   final TransactionProcessingMetadata transactionProcessingMetadata;
 
@@ -159,7 +160,7 @@ public final class AccountFragment
         .pAccountWarmth(oldState.isWarm())
         .pAccountWarmthNew(newState.isWarm())
         .pAccountMarkedForSelfdestruct(markedForSelfDestruct)
-        .pAccountMarkedForSelfdestructNew(!markedForSelfDestruct)
+        .pAccountMarkedForSelfdestructNew(markedForSelfDestructNew)
         .pAccountDeploymentNumber(oldState.deploymentNumber())
         .pAccountDeploymentNumberNew(newState.deploymentNumber())
         .pAccountDeploymentStatus(oldState.deploymentStatus())
@@ -178,10 +179,15 @@ public final class AccountFragment
         this.transactionProcessingMetadata.getEffectiveSelfDestructMap();
     TransactionProcessingMetadata.EphemeralAccount ephemeralAccount =
         new TransactionProcessingMetadata.EphemeralAccount(
-            this.newState.address(), this.newState.deploymentNumber());
-    Preconditions.checkArgument(effectiveSelfDestructMap.containsKey(ephemeralAccount));
-    final int selfDestructTime = effectiveSelfDestructMap.get(ephemeralAccount);
-    this.markedForSelfDestruct = this.hubStamp == selfDestructTime;
+            this.oldState.address(), this.oldState.deploymentNumber());
+    if (effectiveSelfDestructMap.containsKey(ephemeralAccount)) {
+      final int selfDestructTime = effectiveSelfDestructMap.get(ephemeralAccount);
+      this.markedForSelfDestruct = this.hubStamp < selfDestructTime;
+      this.markedForSelfDestructNew = this.hubStamp >= selfDestructTime;
+    } else {
+      this.markedForSelfDestruct = false;
+      this.markedForSelfDestructNew = false;
+    }
   }
 
   @Override

@@ -250,7 +250,6 @@ public class MxpTest {
                 Bytes.fromHexString(
                     "0x1b4d679d0000000000000000000000003328358128832a260c76a4141e19e2a943cd4b6d0000000000000000000000005e17b14add6c386305a32928f985b29bba34eff5000000000000000000000000e2899bddfd890e320e643044c6b95b9b0b84157a000000000000000000000000d4fc541236927e2eaf8f27606bd7309c1fc2cbee0000000000000000000000005fd6eb55d12e759a21c09ef703fe0cba1dc9d88d"))
             .transactionType(TransactionType.FRONTIER)
-            .gasLimit(0xffffffffL)
             .value(Wei.ZERO)
             .keyPair(keyPair)
             .build();

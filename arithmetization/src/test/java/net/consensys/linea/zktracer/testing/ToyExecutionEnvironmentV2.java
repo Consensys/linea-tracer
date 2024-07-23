@@ -29,7 +29,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import lombok.Builder;
-import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.zktracer.ZkTracer;
@@ -86,12 +85,12 @@ public class ToyExecutionEnvironmentV2 {
   private static final EVM evm = MainnetEVMs.london(EvmConfiguration.DEFAULT);
 
   private final ToyWorld toyWorld;
-  @Singular private final List<Transaction> transactions;
+  private final Transaction transaction;
 
   private static final FeeMarket feeMarket = FeeMarket.london(-1);
 
   public void run() {
-    executeTest(this.buildGeneralStateTestCaseSpec(), toyWorld);
+    executeTest(this.buildGeneralStateTestCaseSpec());
   }
 
   private static MainnetTransactionProcessor getMainnetTransactionProcessor() {
@@ -148,7 +147,7 @@ public class ToyExecutionEnvironmentV2 {
 
     return new GeneralStateTestCaseEipSpec(
         /*fork*/ evm.getEvmVersion().getName().toLowerCase(),
-        /*transactionSupplier*/ transactions::getFirst,
+        /*transactionSupplier*/ () -> transaction,
         /*initialWorldState*/ referenceTestWorldState,
         /*expectedRootHash*/ null,
         /*expectedLogsHash*/ null,
@@ -159,7 +158,7 @@ public class ToyExecutionEnvironmentV2 {
         /*expectException*/ null);
   }
 
-  public static void executeTest(final GeneralStateTestCaseEipSpec spec, final ToyWorld toyWorld) {
+  public static void executeTest(final GeneralStateTestCaseEipSpec spec) {
     final BlockHeader blockHeader = spec.getBlockHeader();
     final ReferenceTestWorldState initialWorldState = spec.getInitialWorldState();
     final Transaction transaction = spec.getTransaction();
@@ -181,9 +180,9 @@ public class ToyExecutionEnvironmentV2 {
     // This check is performed within the `BlockImporter` rather than inside the
     // `TransactionProcessor`, so these tests are skipped.
 
-    //    if (transaction.getGasLimit() > blockHeader.getGasLimit() - blockHeader.getGasUsed()) {
-    //      return;
-    //    }
+    if (transaction.getGasLimit() > blockHeader.getGasLimit() - blockHeader.getGasUsed()) {
+      throw new IllegalArgumentException("Transaction gas limit higher that avaliable in block");
+    }
 
     final MainnetTransactionProcessor processor = getMainnetTransactionProcessor();
     final WorldUpdater worldStateUpdater = worldState.updater();

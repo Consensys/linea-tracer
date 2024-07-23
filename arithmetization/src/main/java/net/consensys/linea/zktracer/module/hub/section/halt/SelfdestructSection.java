@@ -293,14 +293,15 @@ public class SelfdestructSection extends TraceSection
 
     // every transaction should start with an empty map
 
-    // TODO: review and comment the code below
-
     for (Map.Entry<AddressDeploymentNumberKey, List<HubStampCallFrameValue>> entry :
         hub.txStack().current().getUnexceptionalSelfDestructMap().entrySet()) {
 
       AddressDeploymentNumberKey addressDeploymentNumberKey = entry.getKey();
       List<HubStampCallFrameValue> hubStampCallFrameValues = entry.getValue();
 
+      // For each address, deployment number, we find selfDestructTime as
+      // the time in which the first unexceptional and un-reverted SELFDESTRUCT occurs
+      // Then we add this value in a new map
       int selfDestructTime = -1;
       for (HubStampCallFrameValue hubStampCallFrameValue : hubStampCallFrameValues) {
         if (hubStampCallFrameValue.callFrame().revertStamp() == -1) {
@@ -313,6 +314,7 @@ public class SelfdestructSection extends TraceSection
         }
       }
 
+      // We modify the account fragment to reflect the self-destruct time
       if (selfDestructTime != -1) {
         AccountFragment accountFragment =
             hub.factories()

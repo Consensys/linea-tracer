@@ -16,7 +16,7 @@
 package net.consensys.linea.zktracer.module.hub;
 
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC;
-import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_FINAL;
+import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_FINL;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_SKIP;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_WARM;
 import static net.consensys.linea.zktracer.module.hub.Trace.MULTIPLIER___STACK_HEIGHT;
@@ -576,7 +576,6 @@ public class Hub implements Module {
                 ? 0
                 : this.transients.conflation().deploymentInfo().number(toAddress),
             this.transients.conflation().deploymentInfo().isDeploying(toAddress));
-        this.defers.enterFrame(this.callStack.current());
       } else {
         this.callStack.newBedrock(
             this.state.stamps().hub(),
@@ -597,7 +596,6 @@ public class Hub implements Module {
                 ? 0
                 : this.transients.conflation().deploymentInfo().number(toAddress),
             this.transients.conflation().deploymentInfo().isDeploying(toAddress));
-        this.defers.enterFrame(this.callStack.current());
       }
     } else {
       // ...or CALL
@@ -645,8 +643,7 @@ public class Hub implements Module {
           codeDeploymentNumber,
           isDeployment);
 
-      this.defers.enterFrame(this.callStack.current());
-      this.defers.resolveWithNextContext(this, frame);
+      this.defers.resolveUponEnteringChildContext(this, frame);
 
       for (Module m : this.modules) {
         m.traceContextEnter(frame);
@@ -655,7 +652,7 @@ public class Hub implements Module {
   }
 
   public void traceContextReEnter(MessageFrame frame) {
-    this.defers.resolveAtReEntry(this, frame);
+    this.defers.resolveAtContextReEntry(this, this.currentFrame());
     if (this.currentFrame().sectionToUnlatch() != null) {
       this.unlatchStack(frame, this.currentFrame().sectionToUnlatch());
       this.currentFrame().sectionToUnlatch(null);
@@ -988,9 +985,9 @@ public class Hub implements Module {
   }
 
   // TODO: how do these implementations of remainingGas()
-  // and expectedGas() behave with respect to resuming
-  // execution after a CALL / CREATE ? One of them is
-  // necessarily false ...
+  //  and expectedGas() behave with respect to resuming
+  //  execution after a CALL / CREATE ? One of them is
+  //  necessarily false ...
   public long remainingGas() {
     return this.state().getProcessingPhase() == TX_EXEC
         ? this.currentFrame().frame().getRemainingGas()
@@ -1174,7 +1171,7 @@ public class Hub implements Module {
                           calledAccountSnapshot,
                           rawCalledAddress,
                           DomSubStampsSubFragment.standardDomSubStamps(this.stamp(), 1)),
-                  ContextFragment.nonExecutionEmptyReturnData(this));
+                  ContextFragment.nonExecutionProvidesEmptyReturnData(this));
           this.addTraceSection(abortedSection);
         } else {
           final ImcFragment imcFragment = /* ImcFragment.forOpcode(this, frame)*/
@@ -1192,7 +1189,7 @@ public class Hub implements Module {
             //
 
             // TODO: fill the callee & requested return data for the current call frame
-            // TODO: i.e. ensure that the precompile frame behaves as expected
+            //  i.e. ensure that the precompile frame behaves as expected
 
             Optional<PrecompileInvocation> precompileInvocation =
                 targetPrecompile.map(p -> PrecompileInvocation.of(this, p));

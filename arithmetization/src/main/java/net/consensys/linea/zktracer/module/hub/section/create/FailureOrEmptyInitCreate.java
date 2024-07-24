@@ -36,14 +36,14 @@ public class FailureOrEmptyInitCreate extends TraceSection implements FillCreate
   public FailureOrEmptyInitCreate(
       final Hub hub,
       final ScenarioEnum scenario,
-      final ContextFragment commonContext,
+      final ContextFragment currentContextFragment,
       final ImcFragment imcFragment) {
     super(hub, (short) 10);
     hub.addTraceSection(this);
 
     this.scenarioFragment = new CreateScenarioFragment(scenario);
 
-    this.addFragmentsAndStack(hub, scenarioFragment, commonContext, imcFragment);
+    this.addFragmentsAndStack(hub, scenarioFragment, currentContextFragment, imcFragment);
   }
 
   @Override

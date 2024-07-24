@@ -17,7 +17,7 @@ package net.consensys.linea.zktracer.module.hub.section.calls;
 
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.defer.NextContextDefer;
+import net.consensys.linea.zktracer.module.hub.defer.ChildContextEntryDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostExecDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
@@ -36,7 +36,7 @@ import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class SmartContractCallSection extends TraceSection
-    implements PostTransactionDefer, PostExecDefer, NextContextDefer {
+    implements PostTransactionDefer, PostExecDefer, ChildContextEntryDefer {
   private final Bytes rawCalledAddress;
   private final CallFrame callerCallFrame;
   private final int calledCallFrameId;
@@ -72,8 +72,11 @@ public class SmartContractCallSection extends TraceSection
     this.addStack(hub);
 
     hub.defers().schedulePostExecution(this);
-    hub.defers().scheduleForContextReEntry(this, hub.currentFrame().id());
+    hub.defers().scheduleForImmediateContextEntry(this);
     hub.defers().schedulePostTransaction(this);
+
+    // TODO: remove (but: ContextFragment calleeContextInitializationFragment = ContextFragment.initializeNewExecutionContext(hub);
+    //  should be added to the section
   }
 
   @Override
@@ -99,7 +102,7 @@ public class SmartContractCallSection extends TraceSection
   }
 
   @Override
-  public void resolveWithNextContext(Hub hub, MessageFrame frame) {
+  public void resolveUponEnteringChildContext(Hub hub, MessageFrame frame) {
     final Address callerAddress = preCallCallerAccountSnapshot.address();
     final Account callerAccount = frame.getWorldUpdater().get(callerAddress);
     final Address calledAddress = preCallCalleeAccountSnapshot.address();
@@ -198,6 +201,6 @@ public class SmartContractCallSection extends TraceSection
       }
     }
 
-    this.addFragmentsWithoutStack(ContextFragment.enterContext(hub, calledCallFrame));
+    // this.addFragmentsWithoutStack(ContextFragment.enterContext(hub, calledCallFrame));
   }
 }

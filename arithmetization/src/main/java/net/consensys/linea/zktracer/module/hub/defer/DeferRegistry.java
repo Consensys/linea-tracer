@@ -15,15 +15,11 @@
 
 package net.consensys.linea.zktracer.module.hub.defer;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
-import org.apache.commons.lang3.tuple.Pair;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.operation.Operation;
@@ -35,21 +31,26 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
  */
 // TODO: fix naming and implement the missing interfaces
 public class DeferRegistry
-    implements PostExecDefer, PostRollbackDefer, PostTransactionDefer, PostConflationDefer {
-  /** A list of actions deferred until the end of the current conflation execution */
-  private final List<PostConflationDefer> postConflationDefers = new ArrayList<>();
-
-  /** A list of actions deferred until the end of the current transaction */
-  private final List<PostTransactionDefer> postTransactionDefers = new ArrayList<>();
+    implements PostExecDefer,
+        PostRollbackDefer,
+        PostTransactionDefer,
+        PostConflationDefer,
+        ChildContextEntryDefer {
 
   /** A list of actions deferred until the end of the current opcode execution */
   private final List<PostExecDefer> postExecDefers = new ArrayList<>();
 
   /** A list of actions deferred until the end of the current opcode execution */
-  private final List<ReEnterContextDefer> reEntryDefers = new ArrayList<>();
+  private final List<ChildContextEntryDefer> childContextEntryDefers = new ArrayList<>();
 
   /** A list of actions deferred until the end of the current opcode execution */
-  private final List<Pair<Integer, NextContextDefer>> contextReentry = new ArrayList<>();
+  private final Map<CallFrame, List<ReEnterContextDefer>> contextReEntryDefers = new HashMap<>();
+
+  /** A list of actions deferred until the end of the current transaction */
+  private final List<PostTransactionDefer> postTransactionDefers = new ArrayList<>();
+
+  /** A list of actions deferred until the end of the current conflation execution */
+  private final List<PostConflationDefer> postConflationDefers = new ArrayList<>();
 
   /**
    * A collection of actions whose execution is deferred to a hypothetical future rollback. This
@@ -59,8 +60,8 @@ public class DeferRegistry
   private final Map<CallFrame, List<PostRollbackDefer>> rollbackDefers = new HashMap<>();
 
   /** Schedule an action to be executed after the completion of the current opcode. */
-  public void scheduleForContextReEntry(NextContextDefer defer, int frameId) {
-    this.contextReentry.add(Pair.of(frameId, defer));
+  public void scheduleForImmediateContextEntry(ChildContextEntryDefer defer) {
+    this.childContextEntryDefers.add(defer);
   }
 
   /** Schedule an action to be executed after the completion of the current opcode. */
@@ -79,32 +80,18 @@ public class DeferRegistry
   }
 
   /** Schedule an action to be executed at the re-entry in the current context. */
-  public void reEntry(ReEnterContextDefer defer) {
-    this.reEntryDefers.add(defer);
-  }
-
-  public void enterFrame(final CallFrame callFrame) {
-    this.rollbackDefers.put(callFrame, new ArrayList<>());
+  public void scheduleForContextReEntry(ReEnterContextDefer defer, CallFrame callFrame) {
+    if (!contextReEntryDefers.containsKey(callFrame)) {
+      contextReEntryDefers.put(callFrame, new ArrayList<>());
+    }
+    contextReEntryDefers.get(callFrame).add(defer);
   }
 
   public void scheduleForPostRollback(PostRollbackDefer defer, CallFrame callFrame) {
-    this.rollbackDefers.get(callFrame).add(defer);
-  }
-
-  /**
-   * Trigger the execution of the actions deferred to the next context.
-   *
-   * @param hub a {@link Hub} context
-   * @param frame the new context {@link MessageFrame}
-   */
-  public void resolveWithNextContext(Hub hub, MessageFrame frame) {
-    for (Pair<Integer, NextContextDefer> defer : this.contextReentry) {
-      if (hub.currentFrame().parentFrameId() == defer.getLeft()) {
-        defer.getRight().resolveWithNextContext(hub, frame);
-      }
+    if (!rollbackDefers.containsKey(callFrame)) {
+      rollbackDefers.put(callFrame, new ArrayList<>());
     }
-    // TODO: we clear everything ?!? not just the one that was just resolved ?
-    this.contextReentry.clear();
+    rollbackDefers.get(callFrame).add(defer);
   }
 
   /**
@@ -162,26 +149,15 @@ public class DeferRegistry
    * Trigger the execution of the actions deferred to the re-entry in the current context.
    *
    * @param hub the {@link Hub} context
-   * @param frame the {@link MessageFrame} of the transaction
+   * @param callFrame the {@link CallFrame} of the transaction
    */
-  // (ReEnterContextDefer?)
-  public void resolveAtReEntry(Hub hub, MessageFrame frame) {
-    for (ReEnterContextDefer defer : this.reEntryDefers) {
-      defer.resolveAtContextReEntry(hub, frame);
+  public void resolveAtContextReEntry(Hub hub, CallFrame callFrame) {
+    if (this.contextReEntryDefers.containsKey(callFrame)) {
+      for (ReEnterContextDefer defer : this.contextReEntryDefers.get(callFrame)) {
+        defer.resolveAtContextReEntry(hub, callFrame);
+      }
+      this.contextReEntryDefers.remove(callFrame);
     }
-    // TODO: make sure this is correct;
-    //  it used to be this.postExecDefers.clear()
-    //  ... obvious mistake ?
-    this.reEntryDefers.clear();
-    // TODO: how would us clearing the reentryDefers not
-    //  fail in case you have e.g. A calls B calls C ?
-    //  When we 're-enter' B after finishing with C wouldn't
-    //  we try to resolve the re-entry business of A ? Which
-    //  is too early ... ?
-    //  Note: this is used for CREATE's, specifically for when
-    //  deployment terminates and we re-enter the creator context ...
-    //  But what if we have nested CREATE's ?
-    //  A creates B, and during deployment B creates C ... ?!
   }
 
   /**
@@ -208,5 +184,13 @@ public class DeferRegistry
     currentCallFrame.childFrames().stream()
         .map(callStack::getById)
         .forEach(childCallFrame -> resolvePostRollback(hub, messageFrame, childCallFrame));
+  }
+
+  @Override
+  public void resolveUponEnteringChildContext(Hub hub, MessageFrame frame) {
+    for (ChildContextEntryDefer defer : this.childContextEntryDefers) {
+      defer.resolveUponEnteringChildContext(hub, frame);
+    }
+    this.childContextEntryDefers.clear();
   }
 }

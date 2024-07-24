@@ -69,7 +69,10 @@ public class JumpSection extends TraceSection {
     AccountFragment accountRowCodeAccount =
         hub.factories()
             .accountFragment()
-            .make(codeAccount, codeAccount, DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
+            .make(
+                codeAccount,
+                codeAccount,
+                DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
 
     // MISCELLANEOUS fragment
     /////////////////////////

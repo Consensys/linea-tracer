@@ -24,7 +24,6 @@ import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.types.Either;
 import net.consensys.linea.zktracer.types.MemorySpan;
-import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 
 public record ContextFragment(
@@ -64,14 +63,13 @@ public record ContextFragment(
     return readContextDataById(hub, hub.callStack().current().id());
   }
 
-  public static ContextFragment initializeExecutionContext(final Hub hub) {
+  public static ContextFragment initializeNewExecutionContext(final Hub hub) {
     return new ContextFragment(
         hub,
         hub.callStack(),
-        Either.right(hub.stamp() + 1),
+        Either.right(hub.newChildContextNumber()),
         0,
-        MemorySpan.fromStartEnd(
-            0, hub.txStack().current().getBesuTransaction().getData().map(Bytes::size).orElse(0)),
+        MemorySpan.empty(),
         false);
   }
 
@@ -93,7 +91,7 @@ public record ContextFragment(
         hub, callStack, Either.left(parentId), contextNumber, MemorySpan.empty(), true);
   }
 
-  public static ContextFragment nonExecutionEmptyReturnData(final Hub hub) {
+  public static ContextFragment nonExecutionProvidesEmptyReturnData(final Hub hub) {
     CallStack callStack = hub.callStack();
     return new ContextFragment(
         hub,
@@ -104,7 +102,7 @@ public record ContextFragment(
         true);
   }
 
-  public static ContextFragment executionReturnData(final Hub hub) {
+  public static ContextFragment executionProvidesReturnData(final Hub hub) {
     CallStack callStack = hub.callStack();
     return new ContextFragment(
         hub,
@@ -115,13 +113,7 @@ public record ContextFragment(
         true);
   }
 
-  public static ContextFragment enterContext(final Hub hub, final CallFrame calledCallFrame) {
-    CallStack callStack = hub.callStack();
-    return new ContextFragment(
-        hub, callStack, Either.left(calledCallFrame.id()), 0, MemorySpan.empty(), false);
-  }
-
-  public static ContextFragment providesReturnData(
+  public static ContextFragment executionProvidesReturnData(
       final Hub hub, int receiverContextNumber, int providerContextNumber) {
     CallStack callStack = hub.callStack();
     return new ContextFragment(

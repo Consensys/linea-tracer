@@ -271,8 +271,8 @@ public class MmuCall implements TraceSubFragment {
     return MmuCall.revert(hub);
   }
 
-  public static MmuCall create2(final Hub hub) {
-    return new Create2(hub);
+  public static MmuCall create2(final Hub hub, boolean failureCondition) {
+    return new Create2(hub, failureCondition);
   }
 
   public static MmuCall invalidCodePrefix(final Hub hub) {

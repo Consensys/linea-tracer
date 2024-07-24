@@ -80,10 +80,7 @@ public final class StackFragment implements TraceFragment {
         switch (this.opCode) {
           case SHA3 -> Exceptions.none(exceptions) && gp.messageSize() > 0;
           case RETURN -> Exceptions.none(exceptions) && gp.messageSize() > 0 && isDeploying;
-          case CREATE2 -> Exceptions.none(exceptions)
-              && contextExceptions.none()
-              && aborts.none()
-              && gp.messageSize() > 0;
+          case CREATE2 -> Exceptions.none(exceptions) && aborts.none() && gp.messageSize() > 0;
           default -> false;
         };
     if (this.hashInfoFlag) {

@@ -152,7 +152,7 @@ public class PrecompileLinesGenerator {
         r.add(line5);
         r.add(ImcFragment.empty(hub).callOob(new ModexpPricingOobCall(p)));
         if (p.ramFailure()) {
-          r.add(ContextFragment.nonExecutionEmptyReturnData(hub));
+          r.add(ContextFragment.nonExecutionProvidesEmptyReturnData(hub));
         } else {
           r.add(
               ImcFragment.empty(hub)
@@ -174,20 +174,20 @@ public class PrecompileLinesGenerator {
           }
 
           r.add(
-              ContextFragment.providesReturnData(
+              ContextFragment.executionProvidesReturnData(
                   hub, hub.currentFrame().contextNumber(), hub.newChildContextNumber()));
         }
       }
       case EC_ADD -> {
         if (p.hubFailure()) {
           r.add(ImcFragment.empty(hub).callOob(new PrecompileCommonOobCall(p)));
-          r.add(ContextFragment.nonExecutionEmptyReturnData(hub));
+          r.add(ContextFragment.nonExecutionProvidesEmptyReturnData(hub));
         } else if (p.ramFailure()) {
           r.add(
               ImcFragment.empty(hub)
                   .callOob(new PrecompileCommonOobCall(p))
                   .callMmu(MmuCall.forEcAdd(hub, p, 0)));
-          r.add(ContextFragment.nonExecutionEmptyReturnData(hub));
+          r.add(ContextFragment.nonExecutionProvidesEmptyReturnData(hub));
         } else {
           r.add(
               ImcFragment.empty(hub)
@@ -204,20 +204,20 @@ public class PrecompileLinesGenerator {
                           ? MmuCall.nop()
                           : MmuCall.forEcAdd(hub, p, 2)));
           r.add(
-              ContextFragment.providesReturnData(
+              ContextFragment.executionProvidesReturnData(
                   hub, hub.currentFrame().contextNumber(), hub.newChildContextNumber()));
         }
       }
       case EC_MUL -> {
         if (p.hubFailure()) {
           r.add(ImcFragment.empty(hub).callOob(new PrecompileCommonOobCall(p)));
-          r.add(ContextFragment.nonExecutionEmptyReturnData(hub));
+          r.add(ContextFragment.nonExecutionProvidesEmptyReturnData(hub));
         } else if (p.ramFailure()) {
           r.add(
               ImcFragment.empty(hub)
                   .callOob(new PrecompileCommonOobCall(p))
                   .callMmu(MmuCall.forEcMul(hub, p, 0)));
-          r.add(ContextFragment.nonExecutionEmptyReturnData(hub));
+          r.add(ContextFragment.nonExecutionProvidesEmptyReturnData(hub));
         } else {
           r.add(
               ImcFragment.empty(hub)
@@ -234,20 +234,20 @@ public class PrecompileLinesGenerator {
                           ? MmuCall.nop()
                           : MmuCall.forEcMul(hub, p, 2)));
           r.add(
-              ContextFragment.providesReturnData(
+              ContextFragment.executionProvidesReturnData(
                   hub, hub.currentFrame().contextNumber(), hub.newChildContextNumber()));
         }
       }
       case EC_PAIRING -> {
         if (p.hubFailure()) {
           r.add(ImcFragment.empty(hub).callOob(new PrecompileCommonOobCall(p)));
-          r.add(ContextFragment.nonExecutionEmptyReturnData(hub));
+          r.add(ContextFragment.nonExecutionProvidesEmptyReturnData(hub));
         } else if (p.ramFailure()) {
           r.add(
               ImcFragment.empty(hub)
                   .callOob(new PrecompileCommonOobCall(p))
                   .callMmu(MmuCall.forEcPairing(hub, p, 0)));
-          r.add(ContextFragment.nonExecutionEmptyReturnData(hub));
+          r.add(ContextFragment.nonExecutionProvidesEmptyReturnData(hub));
         } else {
           r.add(
               ImcFragment.empty(hub)
@@ -261,7 +261,7 @@ public class PrecompileLinesGenerator {
                           ? MmuCall.nop()
                           : MmuCall.forEcPairing(hub, p, 2)));
           r.add(
-              ContextFragment.providesReturnData(
+              ContextFragment.executionProvidesReturnData(
                   hub, hub.currentFrame().contextNumber(), hub.newChildContextNumber()));
         }
       }
@@ -291,9 +291,9 @@ public class PrecompileLinesGenerator {
 
     r.add(
         p.success()
-            ? ContextFragment.providesReturnData(
+            ? ContextFragment.executionProvidesReturnData(
                 hub, hub.currentFrame().contextNumber(), hub.newChildContextNumber())
-            : ContextFragment.nonExecutionEmptyReturnData(hub));
+            : ContextFragment.nonExecutionProvidesEmptyReturnData(hub));
     return r;
   }
 }

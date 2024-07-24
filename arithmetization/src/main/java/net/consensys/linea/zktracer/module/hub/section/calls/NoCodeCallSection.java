@@ -80,7 +80,7 @@ public class NoCodeCallSection extends TraceSection
 
     hub.defers().schedulePostExecution(this);
     hub.defers().schedulePostTransaction(this);
-    hub.defers().reEntry(this);
+    hub.defers().scheduleForContextReEntry(this);
   }
 
   @Override
@@ -166,7 +166,11 @@ public class NoCodeCallSection extends TraceSection
                 this.preCallCalledAccountSnapshot,
                 DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hub, 3)));
       }
-      this.addFragmentsWithoutStack(ContextFragment.nonExecutionEmptyReturnData(hub));
+      this.addFragmentsWithoutStack(ContextFragment.nonExecutionProvidesEmptyReturnData(hub));
     }
   }
+
+  // TODO
+  @Override
+  public void resolveAtContextReEntry(Hub hub, CallFrame frame) {}
 }

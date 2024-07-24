@@ -21,6 +21,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.RlpAddrSubFragment;
 
 public interface FillCreateSection {
+
   void fillAccountFragment(
       final Hub hub,
       final boolean createSuccess,

@@ -97,12 +97,20 @@ public class OperationAncillaries {
         long length = Words.clampedToLong(frame.getStackItem(3));
         return MemorySpan.fromStartLength(offset, length);
       }
+      default -> throw new IllegalArgumentException(
+          "callDataSegment called outside of a CALL-type instruction");
+    }
+  }
+
+  public static MemorySpan initCodeSegment(final MessageFrame frame) {
+    switch (OpCode.of(frame.getCurrentOperation().getOpcode())) {
       case CREATE, CREATE2 -> {
         long offset = Words.clampedToLong(frame.getStackItem(1));
         long length = Words.clampedToLong(frame.getStackItem(2));
         return MemorySpan.fromStartLength(offset, length);
       }
-      default -> throw new IllegalArgumentException("callDataSegment called outside of a *CALL");
+      default -> throw new IllegalArgumentException(
+          "callDataSegment called outside of a CREATE(2)");
     }
   }
 
@@ -114,6 +122,10 @@ public class OperationAncillaries {
    */
   public MemorySpan callDataSegment() {
     return callDataSegment(hub.messageFrame());
+  }
+
+  public MemorySpan initCodeSegment() {
+    return initCodeSegment(hub.messageFrame());
   }
 
   /**

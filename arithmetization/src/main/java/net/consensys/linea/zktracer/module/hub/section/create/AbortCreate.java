@@ -29,7 +29,7 @@ import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 class AbortCreate extends TraceSection {
   public AbortCreate(
       final Hub hub,
-      final ContextFragment commonContext,
+      final ContextFragment currentContextFragment,
       final ImcFragment imcFragment,
       final AccountSnapshot oldCreatorSnapshot) {
     super(hub, (short) 7);
@@ -45,9 +45,15 @@ class AbortCreate extends TraceSection {
             oldCreatorSnapshot,
             DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
 
-    final ContextFragment contextFragment = ContextFragment.nonExecutionEmptyReturnData(hub);
+    final ContextFragment updatedCurrentContextFragment =
+        ContextFragment.nonExecutionProvidesEmptyReturnData(hub);
 
     this.addFragmentsAndStack(
-        hub, scenarioFragment, commonContext, imcFragment, creatorAccountFragment, contextFragment);
+        hub,
+        scenarioFragment,
+        currentContextFragment,
+        imcFragment,
+        creatorAccountFragment,
+        updatedCurrentContextFragment);
   }
 }

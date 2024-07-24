@@ -110,7 +110,7 @@ public class TxInitializationSection {
                     recipientDomSubStamps)
                 .requiresRomlex(true),
             ImcFragment.forTxInit(hub),
-            ContextFragment.initializeExecutionContext(hub),
+            ContextFragment.initializeNewExecutionContext(hub),
             txFragment));
 
     hub.state.setProcessingPhase(TX_EXEC);

@@ -152,7 +152,7 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
       // no need for the else case (and a nop) as per @François
 
       final ContextFragment updateCallerReturnData =
-          ContextFragment.providesReturnData(
+          ContextFragment.executionProvidesReturnData(
               hub,
               hub.callStack().getById(hub.currentFrame().parentFrameId()).contextNumber(),
               hub.currentFrame().contextNumber());

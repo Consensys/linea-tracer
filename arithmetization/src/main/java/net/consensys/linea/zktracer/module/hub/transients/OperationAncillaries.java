@@ -178,17 +178,30 @@ public class OperationAncillaries {
    * @param frame the execution context
    * @return the return data segment
    */
-  public static MemorySpan returnDataSegment(final MessageFrame frame) {
-    switch (OpCode.of(frame.getCurrentOperation().getOpcode())) {
+  public static MemorySpan outputDataSpan(final MessageFrame frame) {
+
+    if (frame.getExceptionalHaltReason().isPresent()) {
+      return MemorySpan.empty();
+    }
+
+    final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
+
+    if (opCode == OpCode.RETURN && frame.getType() == MessageFrame.Type.CONTRACT_CREATION) {
+      return MemorySpan.empty();
+    }
+
+    switch (opCode) {
       case RETURN, REVERT -> {
-        // TODO: make sure this isn't triggered when RETURNing from a CREATE(2)
-        //  or when RETURNing from the root context of a deployment transaction.
-        //  Recall that this case leads to the deployment of bytecode and produces
-        //  empty return data in the caller context.
         long offset = Words.clampedToLong(frame.getStackItem(0));
         long length = Words.clampedToLong(frame.getStackItem(1));
         return MemorySpan.fromStartLength(offset, length);
       }
+      case STOP, SELFDESTRUCT -> {
+        return MemorySpan.empty();
+      }
+
+        // TODO: what the case below provides isn't output data, but the return data ...
+        //  We cannot use this method for that purpose.
       case CALL, CALLCODE, DELEGATECALL, STATICCALL -> {
         Address target = Words.toAddress(frame.getStackItem(1));
         if (isPrecompile(target)) {
@@ -210,8 +223,8 @@ public class OperationAncillaries {
    *
    * @return the return data target
    */
-  public MemorySpan returnDataSegment() {
-    return returnDataSegment(hub.messageFrame());
+  public MemorySpan outputDataSpan() {
+    return outputDataSpan(hub.messageFrame());
   }
 
   /**
@@ -219,22 +232,22 @@ public class OperationAncillaries {
    *
    * @return the return data content
    */
-  public Bytes returnData() {
-    final MemorySpan returnDataSegment = returnDataSegment();
+  public Bytes outputData() {
+    final MemorySpan outputDataSpan = outputDataSpan();
 
     // Accesses to huge offset with 0-length are valid
-    if (returnDataSegment.isEmpty()) {
+    if (outputDataSpan.isEmpty()) {
       return Bytes.EMPTY;
     }
 
     // Besu is limited to i32 for memory offset/length
-    if (returnDataSegment.besuOverflow()) {
-      log.warn("Overflowing memory access: {}", returnDataSegment);
+    if (outputDataSpan.besuOverflow()) {
+      log.warn("Overflowing memory access: {}", outputDataSpan);
       return Bytes.EMPTY;
     }
 
     // TODO: this WON'T work for precompiles, they don't have memory.
-    return maybeShadowReadMemory(returnDataSegment, hub.messageFrame());
+    return maybeShadowReadMemory(outputDataSpan, hub.messageFrame());
   }
 
   /**
@@ -244,8 +257,8 @@ public class OperationAncillaries {
    * @param frame the execution context
    * @return the returndata content
    */
-  public static Bytes returnData(final MessageFrame frame) {
-    final MemorySpan returnDataSegment = returnDataSegment(frame);
+  public static Bytes outputData(final MessageFrame frame) {
+    final MemorySpan returnDataSegment = outputDataSpan(frame);
     return maybeShadowReadMemory(returnDataSegment, frame);
   }
 

@@ -99,7 +99,7 @@ public class DeferRegistry
    */
   public void resolveWithNextContext(Hub hub, MessageFrame frame) {
     for (Pair<Integer, NextContextDefer> defer : this.contextReentry) {
-      if (hub.currentFrame().parentFrame() == defer.getLeft()) {
+      if (hub.currentFrame().parentFrameId() == defer.getLeft()) {
         defer.getRight().resolveWithNextContext(hub, frame);
       }
     }

@@ -137,7 +137,7 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
       final boolean messageCallReturnTouchesRam =
           !hub.currentFrame().isRoot()
               && nontrivialMmOperation // [size ≠ 0] ∧ ¬MXPX
-              && !hub.currentFrame().requestedReturnDataTarget().isEmpty(); // [r@c ≠ 0]
+              && !hub.currentFrame().parentReturnDataTarget().isEmpty(); // [r@c ≠ 0]
 
       returnScenarioFragment.setScenario(
           messageCallReturnTouchesRam
@@ -154,7 +154,7 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
       final ContextFragment updateCallerReturnData =
           ContextFragment.providesReturnData(
               hub,
-              hub.callStack().getById(hub.currentFrame().parentFrame()).contextNumber(),
+              hub.callStack().getById(hub.currentFrame().parentFrameId()).contextNumber(),
               hub.currentFrame().contextNumber());
       this.addFragment(updateCallerReturnData);
 

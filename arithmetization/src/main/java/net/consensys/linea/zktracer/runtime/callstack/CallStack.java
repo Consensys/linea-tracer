@@ -186,8 +186,8 @@ public final class CallStack {
    * @return the parent {@link CallFrame} of the current frame
    */
   public CallFrame parent() {
-    if (this.current().parentFrame() != -1) {
-      return this.frames.get(this.current().parentFrame());
+    if (this.current().parentFrameId() != -1) {
+      return this.frames.get(this.current().parentFrameId());
     } else {
       return CallFrame.EMPTY;
     }
@@ -260,7 +260,7 @@ public final class CallStack {
     this.frames.add(newFrame);
     this.current = newTop;
     if (caller != -1) {
-      this.frames.get(caller).latestReturnData(Bytes.EMPTY);
+      this.frames.get(caller).returnData(Bytes.EMPTY);
       this.frames.get(caller).childFrames().add(newTop);
     }
   }
@@ -272,7 +272,7 @@ public final class CallStack {
   public void exit() {
     this.depth -= 1;
     Preconditions.checkState(this.depth >= 0);
-    this.current = this.current().parentFrame();
+    this.current = this.current().parentFrameId();
   }
 
   /**
@@ -302,7 +302,7 @@ public final class CallStack {
    * @return the caller of the current frame
    */
   public CallFrame caller() {
-    return this.frames.get(this.current().parentFrame());
+    return this.frames.get(this.current().parentFrameId());
   }
 
   /**
@@ -348,7 +348,7 @@ public final class CallStack {
       return CallFrame.EMPTY;
     }
 
-    return this.getById(this.frames.get(id).parentFrame());
+    return this.getById(this.frames.get(id).parentFrameId());
   }
 
   /**

@@ -55,13 +55,7 @@ public class CallFrame {
   /** the depth of this CallFrame within its call hierarchy. */
   @Getter private int depth;
 
-  /** */
-  @Getter private int accountDeploymentNumber;
-
-  /** */
-  @Getter private int codeDeploymentNumber;
-
-  /** */
+  /** true iff the current context was spawned by a deployment transaction or a CREATE(2) opcode */
   @Getter private boolean isDeployment;
 
   public boolean isMessageCall() {
@@ -71,7 +65,7 @@ public class CallFrame {
   @Getter @Setter private TraceSection sectionToUnlatch = null;
 
   /** the ID of this {@link CallFrame} parent in the {@link CallStack}. */
-  @Getter private int parentFrame;
+  @Getter private int parentFrameId;
 
   /** all the {@link CallFrame} that have been called by this frame. */
   @Getter private final List<Integer> childFrames = new ArrayList<>();
@@ -79,25 +73,29 @@ public class CallFrame {
   /** the {@link Address} of the account executing this {@link CallFrame}. */
   @Getter private final Address accountAddress;
 
+  @Getter private int accountDeploymentNumber;
+
   /** A memoized {@link EWord} conversion of `address` */
   private EWord eAddress = null;
 
   /** the {@link Address} of the code executed in this {@link CallFrame}. */
   @Getter private Address byteCodeAddress = Address.ZERO;
 
-  @Getter private Address callerAddress = Address.ZERO;
-
-  /** A memoized {@link EWord} conversion of `codeAddress` */
-  private EWord eCodeAddress = null;
-
-  /** the {@link CallFrameType} of this frame. */
-  @Getter private final CallFrameType type;
+  @Getter private int codeDeploymentNumber;
 
   /** the {@link Bytecode} executing within this frame. */
   @Getter private Bytecode code = Bytecode.EMPTY;
 
   /** the CFI of this frame bytecode if applicable */
   @Getter private int codeFragmentIndex = -1;
+
+  /** A memoized {@link EWord} conversion of `codeAddress` */
+  private EWord eCodeAddress = null;
+
+  @Getter private Address callerAddress = Address.ZERO;
+
+  /** the {@link CallFrameType} of this frame. */
+  @Getter private final CallFrameType type;
 
   public int getCodeFragmentIndex(Hub hub) {
     return this == CallFrame.EMPTY || this.type() == CallFrameType.MANTLE
@@ -122,32 +120,29 @@ public class CallFrame {
   /** the call data given to this frame. */
   @Getter CallDataInfo callDataInfo;
 
-  /** the data returned by the latest callee. */
-  @Getter @Setter private Bytes latestReturnData = Bytes.EMPTY;
-
-  /** returnData position within the latest callee memory space. */
-  @Getter @Setter private MemorySpan latestReturnDataSource = new MemorySpan(0, 0);
-
-  /** the return data provided by this frame */
-  @Getter @Setter private Bytes returnData = Bytes.EMPTY;
-
-  /** where this frame store its return data in its own RAM */
-  @Getter @Setter private MemorySpan returnDataSource;
-
-  /** where this frame is expected to write its returnData within its parent's memory space. */
-  @Getter private MemorySpan requestedReturnDataTarget = MemorySpan.empty();
-
   /** the latest child context to have been called from this frame */
   @Getter @Setter private int returnDataContextNumber = 0;
+
+  /** the data returned by the latest callee. */
+  @Getter @Setter private Bytes returnData = Bytes.EMPTY;
+
+  /** returnData position within the latest callee memory space. */
+  @Getter @Setter private MemorySpan returnDataSpan = new MemorySpan(0, 0);
+
+  /** the return data provided by this frame */
+  @Getter @Setter private Bytes outputData = Bytes.EMPTY;
+
+  /** where this frame store its return data in its own RAM */
+  @Getter @Setter private MemorySpan outputDataSpan;
+
+  /** where this frame is expected to write its outputData within its parent's memory space. */
+  @Getter private MemorySpan parentReturnDataTarget = MemorySpan.empty();
 
   @Getter @Setter private boolean selfReverts = false;
   @Getter @Setter private boolean getsReverted = false;
 
-  @Getter @Setter
-  private int revertStamp =
-      0; // the hub stamp at which this frame reverts (0 means it does not revert)
-
-  // TODO: create an enum with WILL_REVERT, WONT_REVERT
+  // the hub stamp at which this frame reverts (0 means it does not revert)
+  @Getter @Setter private int revertStamp = 0;
 
   /** this frame {@link Stack}. */
   @Getter private final Stack stack = new Stack();
@@ -160,11 +155,11 @@ public class CallFrame {
   }
 
   public static void updateParentContextReturnData(
-      Hub hub, Bytes returnData, MemorySpan returnDataSource) {
+      Hub hub, Bytes outputData, MemorySpan returnDataSource) {
     CallFrame parent = hub.callStack().parent();
     parent.returnDataContextNumber = hub.currentFrame().contextNumber;
-    parent.latestReturnData = returnData;
-    parent.returnDataSource(returnDataSource);
+    parent.returnData = outputData;
+    parent.outputDataSpan(returnDataSource);
   }
 
   /** Create a MANTLE call frame. */
@@ -186,8 +181,8 @@ public class CallFrame {
         "ReturnDataOffset is 0 for all precompile except Modexp");
     this.type = CallFrameType.PRECOMPILE_RETURN_DATA;
     this.contextNumber = contextNumber;
-    this.returnData = precompileResult;
-    this.returnDataSource = new MemorySpan(returnDataOffset, precompileResult.size());
+    this.outputData = precompileResult;
+    this.outputDataSpan = new MemorySpan(returnDataOffset, precompileResult.size());
     this.accountAddress = precompileAddress;
   }
 
@@ -196,7 +191,7 @@ public class CallFrame {
     this.type = CallFrameType.EMPTY;
     this.contextNumber = 0;
     this.accountAddress = Address.ZERO;
-    this.parentFrame = -1;
+    this.parentFrameId = -1;
     this.callDataInfo = new CallDataInfo(Bytes.EMPTY, 0, 0, 0);
   }
 
@@ -244,15 +239,15 @@ public class CallFrame {
     this.callerAddress = callerAddress;
     this.code = code;
     this.type = type;
-    this.parentFrame = caller;
+    this.parentFrameId = caller;
     this.value = value;
     this.gasEndowment = gas;
     this.callDataInfo =
         new CallDataInfo(callData, callDataOffset, callDataSize, callDataContextNumber);
     this.depth = depth;
-    this.returnDataSource = MemorySpan.empty();
-    this.latestReturnDataSource = MemorySpan.empty();
-    this.requestedReturnDataTarget = MemorySpan.empty(); // TODO: fix me Franklin
+    this.outputDataSpan = MemorySpan.empty();
+    this.returnDataSpan = MemorySpan.empty();
+    this.parentReturnDataTarget = MemorySpan.empty(); // TODO: fix me Franklin
   }
 
   public boolean isRoot() {

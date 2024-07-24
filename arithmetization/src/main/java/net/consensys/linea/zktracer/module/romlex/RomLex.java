@@ -169,7 +169,11 @@ public class RomLex implements Module, PostExecDefer {
         }
       }
       case RETURN -> {
-        final Bytes code = hub.transients().op().returnData();
+        Preconditions.checkArgument(frame.getType() != MessageFrame.Type.CONTRACT_CREATION);
+        Preconditions.checkArgument(
+            hub.transients().conflation().deploymentInfo().isDeploying(frame.getContractAddress()));
+
+        final Bytes code = hub.transients().op().outputData();
 
         if (code.isEmpty()) {
           return;

@@ -39,7 +39,7 @@ public class CallStackReader {
 
     if (callFrame.type() == CallFrameType.PRECOMPILE_RETURN_DATA) {
       if (ramIsSource) {
-        return callFrame.returnData();
+        return callFrame.outputData();
       } else {
         return Bytes.EMPTY;
       }

@@ -54,7 +54,7 @@ public class RevertSection extends TraceSection implements PostTransactionDefer 
         (Exceptions.none(exceptions))
             && !hub.currentFrame().isRoot()
             && mxpCall.isMayTriggerNonTrivialMmuOperation() // i.e. size ≠ 0 ∧ ¬MXPX
-            && !hub.currentFrame().requestedReturnDataTarget().isEmpty();
+            && !hub.currentFrame().parentReturnDataTarget().isEmpty();
 
     if (triggerMmu) {
       mmuCall = MmuCall.revert(hub);

@@ -238,7 +238,7 @@ public class MmuCall implements TraceSubFragment {
   }
 
   public static MmuCall returnDataCopy(final Hub hub) {
-    final MemorySpan returnDataSegment = hub.currentFrame().latestReturnDataSource();
+    final MemorySpan returnDataSegment = hub.currentFrame().returnDataSpan();
     final CallFrame returnerFrame =
         hub.callStack().getByContextNumber(hub.currentFrame().returnDataContextNumber());
     return new MmuCall(MMU_INST_ANY_TO_RAM_WITH_PADDING)
@@ -290,11 +290,11 @@ public class MmuCall implements TraceSubFragment {
   public static MmuCall revert(final Hub hub) {
     return new MmuCall(MMU_INST_RAM_TO_RAM_SANS_PADDING)
         .sourceId(hub.currentFrame().contextNumber())
-        .targetId(hub.callStack().getById(hub.currentFrame().parentFrame()).contextNumber())
+        .targetId(hub.callStack().getById(hub.currentFrame().parentFrameId()).contextNumber())
         .sourceOffset(EWord.of(hub.messageFrame().getStackItem(0)))
         .size(Words.clampedToLong(hub.messageFrame().getStackItem(1)))
-        .referenceOffset(hub.currentFrame().requestedReturnDataTarget().offset())
-        .referenceSize(hub.currentFrame().requestedReturnDataTarget().length());
+        .referenceOffset(hub.currentFrame().parentReturnDataTarget().offset())
+        .referenceSize(hub.currentFrame().parentReturnDataTarget().length());
   }
 
   public static MmuCall txInit(final Hub hub) {

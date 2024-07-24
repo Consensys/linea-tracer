@@ -54,7 +54,7 @@ public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
   private boolean callerReverts = false;
 
   MemorySpan callDataSegment;
-  MemorySpan requestedReturnDataSegment;
+  MemorySpan parentReturnDataTarget;
 
   /**
    * Is set if: - this is a CALL and the callee reverts - this is a CREATE and the creation failed -
@@ -92,7 +92,7 @@ public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
             false,
             false);
     r.callDataSegment = hub.transients().op().callDataSegment();
-    r.requestedReturnDataSegment = hub.transients().op().returnDataRequestedSegment();
+    r.parentReturnDataTarget = hub.transients().op().returnDataRequestedSegment();
     return r;
   }
 
@@ -125,7 +125,7 @@ public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
               false);
     }
     r.callDataSegment = hub.transients().op().callDataSegment();
-    r.requestedReturnDataSegment = hub.transients().op().returnDataRequestedSegment();
+    r.parentReturnDataTarget = hub.transients().op().returnDataRequestedSegment();
 
     r.fillPostCallInformation(hub);
     return r;
@@ -146,7 +146,7 @@ public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
             false);
     // This one is already created from a post-tx hook
     r.callDataSegment = precompile.callDataSource();
-    r.requestedReturnDataSegment = precompile.requestedReturnDataTarget();
+    r.parentReturnDataTarget = precompile.requestedReturnDataTarget();
     r.fillPostCallInformation(hub);
     return r;
   }
@@ -176,7 +176,7 @@ public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
    */
   private void fillPreCallInformation(final Hub hub) {
     this.callDataSegment = hub.callStack().getById(calleeId).callDataInfo().memorySpan();
-    this.requestedReturnDataSegment = hub.callStack().getById(calleeId).requestedReturnDataTarget();
+    this.parentReturnDataTarget = hub.callStack().getById(calleeId).parentReturnDataTarget();
   }
 
   /**
@@ -313,8 +313,8 @@ public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
                 .orElse(0L))
         .pScenarioPrcCdo(type.isPrecompile() ? callDataSegment.offset() : 0)
         .pScenarioPrcCds(type.isPrecompile() ? callDataSegment.length() : 0)
-        .pScenarioPrcRao(type.isPrecompile() ? requestedReturnDataSegment.offset() : 0)
-        .pScenarioPrcRac(type.isPrecompile() ? requestedReturnDataSegment.length() : 0)
+        .pScenarioPrcRao(type.isPrecompile() ? parentReturnDataTarget.offset() : 0)
+        .pScenarioPrcRac(type.isPrecompile() ? parentReturnDataTarget.length() : 0)
     //        .pScenarioCodedeposit(type.isDeposit())
     //        .pScenarioCodedepositInvalidCodePrefix(type.isDeposit() && raisedInvalidCodePrefix)
     //        .pScenarioCodedepositValidCodePrefix(false) // TODO: @Olivier

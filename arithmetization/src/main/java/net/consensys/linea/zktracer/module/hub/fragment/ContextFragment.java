@@ -45,7 +45,7 @@ public record ContextFragment(
         callStack,
         Either.right(contextNumber),
         callStack.getByContextNumber(contextNumber).returnDataContextNumber(),
-        callStack.current().latestReturnDataSource().snapshot(),
+        callStack.current().returnDataSpan().snapshot(),
         false);
   }
 
@@ -56,7 +56,7 @@ public record ContextFragment(
         callStack,
         Either.left(contextId),
         callStack.getById(contextId).returnDataContextNumber(),
-        callStack.current().latestReturnDataSource().snapshot(),
+        callStack.current().returnDataSpan().snapshot(),
         false);
   }
 
@@ -88,7 +88,7 @@ public record ContextFragment(
 
   public static ContextFragment executionProvidesEmptyReturnData(final Hub hub, int contextNumber) {
     CallStack callStack = hub.callStack();
-    int parentId = callStack.getByContextNumber(contextNumber).parentFrame();
+    int parentId = callStack.getByContextNumber(contextNumber).parentFrameId();
     return new ContextFragment(
         hub, callStack, Either.left(parentId), contextNumber, MemorySpan.empty(), true);
   }
@@ -111,7 +111,7 @@ public record ContextFragment(
         callStack,
         Either.left(callStack.parent().id()),
         hub.currentFrame().contextNumber(),
-        callStack.current().returnDataSource(),
+        callStack.current().outputDataSpan(),
         true);
   }
 
@@ -129,7 +129,7 @@ public record ContextFragment(
         callStack,
         Either.right(receiverContextNumber),
         providerContextNumber,
-        callStack.current().latestReturnDataSource().snapshot(),
+        callStack.current().returnDataSpan().snapshot(),
         true);
     // TODO: is this what we want ?
     //  also: will the latestReturnData have been updated ?
@@ -165,8 +165,8 @@ public record ContextFragment(
         .pContextCallDataContextNumber(parent.contextNumber())
         .pContextCallDataOffset(callFrame.callDataInfo().memorySpan().offset())
         .pContextCallDataSize(callFrame.callDataInfo().memorySpan().length())
-        .pContextReturnAtOffset(callFrame.requestedReturnDataTarget().offset())
-        .pContextReturnAtCapacity(callFrame.requestedReturnDataTarget().length())
+        .pContextReturnAtOffset(callFrame.parentReturnDataTarget().offset())
+        .pContextReturnAtCapacity(callFrame.parentReturnDataTarget().length())
         .pContextUpdate(updateReturnData)
         .pContextReturnDataContextNumber(returnDataContextNumber)
         //             callFrame.id() == 0

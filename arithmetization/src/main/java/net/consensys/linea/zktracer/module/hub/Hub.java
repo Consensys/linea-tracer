@@ -15,7 +15,10 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
-import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.*;
+import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC;
+import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_FINAL;
+import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_SKIP;
+import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_WARM;
 import static net.consensys.linea.zktracer.module.hub.Trace.MULTIPLIER___STACK_HEIGHT;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 
@@ -42,21 +45,42 @@ import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.exp.Exp;
 import net.consensys.linea.zktracer.module.ext.Ext;
 import net.consensys.linea.zktracer.module.gas.Gas;
-import net.consensys.linea.zktracer.module.hub.defer.*;
-import net.consensys.linea.zktracer.module.hub.fragment.*;
+import net.consensys.linea.zktracer.module.hub.defer.DeferRegistry;
+import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.StackFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
-import net.consensys.linea.zktracer.module.hub.section.*;
+import net.consensys.linea.zktracer.module.hub.section.AccountSection;
+import net.consensys.linea.zktracer.module.hub.section.CallDataLoadSection;
+import net.consensys.linea.zktracer.module.hub.section.ContextSection;
+import net.consensys.linea.zktracer.module.hub.section.ExpSection;
+import net.consensys.linea.zktracer.module.hub.section.JumpSection;
+import net.consensys.linea.zktracer.module.hub.section.KeccakSection;
+import net.consensys.linea.zktracer.module.hub.section.LogSection;
+import net.consensys.linea.zktracer.module.hub.section.SloadSection;
+import net.consensys.linea.zktracer.module.hub.section.SstoreSection;
+import net.consensys.linea.zktracer.module.hub.section.StackOnlySection;
+import net.consensys.linea.zktracer.module.hub.section.StackRamSection;
+import net.consensys.linea.zktracer.module.hub.section.TraceSection;
+import net.consensys.linea.zktracer.module.hub.section.TransactionSection;
 import net.consensys.linea.zktracer.module.hub.section.TxFinalizationSection;
+import net.consensys.linea.zktracer.module.hub.section.TxInitializationSection;
 import net.consensys.linea.zktracer.module.hub.section.TxPreWarmingMacroSection;
 import net.consensys.linea.zktracer.module.hub.section.TxSkippedSectionDefers;
 import net.consensys.linea.zktracer.module.hub.section.calls.FailedCallSection;
 import net.consensys.linea.zktracer.module.hub.section.calls.NoCodeCallSection;
 import net.consensys.linea.zktracer.module.hub.section.calls.SmartContractCallSection;
-import net.consensys.linea.zktracer.module.hub.section.copy.*;
+import net.consensys.linea.zktracer.module.hub.section.copy.CallDataCopySection;
+import net.consensys.linea.zktracer.module.hub.section.copy.CodeCopySection;
+import net.consensys.linea.zktracer.module.hub.section.copy.ExtCodeCopySection;
+import net.consensys.linea.zktracer.module.hub.section.copy.ReturnDataCopySection;
 import net.consensys.linea.zktracer.module.hub.section.create.CreateSection;
+import net.consensys.linea.zktracer.module.hub.section.halt.ReturnSection;
 import net.consensys.linea.zktracer.module.hub.section.halt.RevertSection;
+import net.consensys.linea.zktracer.module.hub.section.halt.SelfdestructSection;
 import net.consensys.linea.zktracer.module.hub.section.halt.StopSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
@@ -98,14 +122,18 @@ import net.consensys.linea.zktracer.module.tables.shf.ShfRt;
 import net.consensys.linea.zktracer.module.trm.Trm;
 import net.consensys.linea.zktracer.module.txndata.TxnData;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import net.consensys.linea.zktracer.opcode.*;
+import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.gas.projector.GasProjector;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.runtime.stack.StackContext;
 import net.consensys.linea.zktracer.runtime.stack.StackLine;
-import net.consensys.linea.zktracer.types.*;
+import net.consensys.linea.zktracer.types.Bytecode;
+import net.consensys.linea.zktracer.types.MemorySpan;
+import net.consensys.linea.zktracer.types.Precompile;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -647,7 +675,7 @@ public class Hub implements Module {
       this.currentTraceSection().setContextExceptions(contextExceptions);
 
       if (contextExceptions.any()) {
-        this.callStack.revert(this.state.stamps().hub());
+        this.callStack.revert(this.state.stamps().hub()); // TODO: Duplicate s?
         this.defers.resolvePostRollback(this, frame, this.currentFrame());
       }
 
@@ -701,7 +729,6 @@ public class Hub implements Module {
     final boolean unexceptional = Exceptions.none(exceptions);
     final boolean exceptional = Exceptions.any(exceptions);
 
-    /* TODO: Might be dangerous : in some cases, we add fragments at the end of the transaction, we need an other mechanism ... */
     // NOTE: whenever there is an exception, a context row
     // is added at the end of the section; its purpose is
     // to update the caller / creator context with empty
@@ -710,6 +737,8 @@ public class Hub implements Module {
     if (exceptional) {
       this.currentTraceSection()
           .addFragmentsWithoutStack(ContextFragment.executionProvidesEmptyReturnData(this));
+      this.squashCurrentFrameOutputData();
+      this.squashParentFrameReturnData();
     }
 
     // Setting gas cost IN MOST CASES
@@ -755,9 +784,7 @@ public class Hub implements Module {
       case ACCOUNT -> {}
       case COPY -> {}
       case TRANSACTION -> {}
-      case BATCH -> {
-        this.blockhash.tracePostOpcode(frame);
-      }
+      case BATCH -> this.blockhash.tracePostOpcode(frame);
       case STACK_RAM -> {}
       case STORAGE -> {}
       case JUMP -> {}
@@ -766,9 +793,7 @@ public class Hub implements Module {
       case DUP -> {}
       case SWAP -> {}
       case LOG -> {}
-      case CREATE -> {
-        this.romLex.tracePostOpcode(frame);
-      }
+      case CREATE -> this.romLex.tracePostOpcode(frame);
       case CALL -> {}
       case HALT -> {}
       case INVALID -> {}
@@ -954,6 +979,10 @@ public class Hub implements Module {
       }
       this.traceOperation(frame);
     } else {
+
+      this.squashCurrentFrameOutputData();
+      this.squashParentFrameReturnData();
+
       this.addTraceSection(new StackOnlySection(this));
     }
   }
@@ -1004,43 +1033,29 @@ public class Hub implements Module {
       }
       case HALT -> {
         final CallFrame parentFrame = this.callStack.parent();
-        // this.addTraceSection(new StackOnlySection(this));
+        parentFrame.returnDataContextNumber(this.currentFrame().contextNumber());
+        final Bytes outputData = this.transients.op().outputData();
+        this.currentFrame().outputDataSpan(transients.op().outputDataSpan());
+        this.currentFrame().outputData(outputData);
+
+        // The output data always becomes return data of the caller when REVERT'ing
+        // and in all other cases becomes return data of the caller iff the present
+        // context is a message call context
+        final boolean outputDataBecomesParentReturnData =
+            (this.opCode() == OpCode.REVERT || this.currentFrame().isMessageCall());
+
+        if (outputDataBecomesParentReturnData) {
+          parentFrame.returnData(outputData);
+          parentFrame.returnDataSpan(transients.op().outputDataSpan());
+        } else {
+          this.squashParentFrameReturnData();
+        }
 
         switch (this.opCode()) {
-          case RETURN -> {
-            Bytes returnData = Bytes.EMPTY;
-            // Trying to read memory with absurd arguments will throw an exception
-            if (Exceptions.none(pch.exceptions())) {
-              returnData = this.transients.op().returnData();
-            }
-            this.currentFrame().returnDataSource(transients.op().returnDataSegment());
-            this.currentFrame().returnData(returnData);
-            if (!Exceptions.any(this.pch.exceptions()) && !this.currentFrame().isDeployment()) {
-              parentFrame.latestReturnData(returnData);
-            } else {
-              parentFrame.latestReturnData(Bytes.EMPTY);
-            }
-            // TODO add returnSection
-          }
-          case REVERT -> {
-            new RevertSection(this);
-            final Bytes returnData = this.transients.op().returnData();
-            this.currentFrame().returnDataSource(transients.op().returnDataSegment());
-            this.currentFrame().returnData(returnData);
-            if (Exceptions.none(this.pch.exceptions())) {
-              parentFrame.latestReturnData(returnData);
-            } else {
-              parentFrame.latestReturnData(Bytes.EMPTY);
-            }
-          }
-          case STOP -> {
-            new StopSection(this);
-            parentFrame.latestReturnData(Bytes.EMPTY);
-          }
-          case SELFDESTRUCT -> {
-            // TODO
-            parentFrame.latestReturnData(Bytes.EMPTY);
-          }
+          case RETURN -> new ReturnSection(this);
+          case REVERT -> new RevertSection(this);
+          case STOP -> new StopSection(this);
+          case SELFDESTRUCT -> new SelfdestructSection(this);
         }
       }
 
@@ -1210,5 +1225,16 @@ public class Hub implements Module {
 
   public TraceSection getCurrentSection() {
     return this.state.currentTxTrace().currentSection();
+  }
+
+  public void squashCurrentFrameOutputData() {
+    this.currentFrame().outputDataSpan(MemorySpan.empty());
+    this.currentFrame().outputData(Bytes.EMPTY);
+  }
+
+  public void squashParentFrameReturnData() {
+    final CallFrame parentFrame = this.callStack.parent();
+    parentFrame.returnData(Bytes.EMPTY);
+    parentFrame.returnDataSpan(MemorySpan.empty());
   }
 }

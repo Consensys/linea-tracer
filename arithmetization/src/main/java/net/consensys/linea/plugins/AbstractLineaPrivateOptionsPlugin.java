@@ -16,11 +16,10 @@
 package net.consensys.linea.plugins;
 
 import lombok.extern.slf4j.Slf4j;
-import net.consensys.linea.plugins.config.LineaL1L2BridgeCliOptions;
-import net.consensys.linea.plugins.config.LineaL1L2BridgeConfiguration;
-import net.consensys.linea.plugins.config.LineaTracerCliOptions;
-import net.consensys.linea.plugins.config.LineaTracerConfiguration;
+import net.consensys.linea.plugins.config.LineaTracerPrivateCliOptions;
+import net.consensys.linea.plugins.config.LineaTracerPrivateConfiguration;
 import org.hyperledger.besu.plugin.BesuContext;
+import org.hyperledger.besu.plugin.services.PicoCLIOptions;
 
 /**
  * In this class we put CLI options that are private to plugins in this repo.
@@ -32,22 +31,25 @@ public abstract class AbstractLineaPrivateOptionsPlugin extends AbstractLineaSha
   private static final String CLI_OPTIONS_PREFIX = "linea";
   private static boolean cliOptionsRegistered = false;
   private static boolean configured = false;
-  private static LineaTracerCliOptions tracerCliOptions;
-  private static LineaL1L2BridgeCliOptions l1L2BridgeCliOptions;
-  protected static LineaTracerConfiguration tracerConfiguration;
-  protected static LineaL1L2BridgeConfiguration l1L2BridgeConfiguration;
+  private static LineaTracerPrivateCliOptions tracerPrivateCliOptions;
+  protected static LineaTracerPrivateConfiguration tracerPrivateConfiguration;
 
   @Override
   public synchronized void register(final BesuContext context) {
     super.register(context);
     if (!cliOptionsRegistered) {
-      //      final PicoCLIOptions cmdlineOptions =
-      //          context
-      //              .getService(PicoCLIOptions.class)
-      //              .orElseThrow(
-      //                  () ->
-      //                      new IllegalStateException(
-      //                          "Failed to obtain PicoCLI options from the BesuContext"));
+      final PicoCLIOptions cmdlineOptions =
+          context
+              .getService(PicoCLIOptions.class)
+              .orElseThrow(
+                  () ->
+                      new IllegalStateException(
+                          "Failed to obtain PicoCLI options from the BesuContext"));
+
+      tracerPrivateCliOptions = LineaTracerPrivateCliOptions.create();
+
+      cmdlineOptions.addPicoCLIOptions(CLI_OPTIONS_PREFIX, tracerPrivateCliOptions);
+
       cliOptionsRegistered = true;
     }
   }
@@ -56,8 +58,14 @@ public abstract class AbstractLineaPrivateOptionsPlugin extends AbstractLineaSha
   public void beforeExternalServices() {
     super.beforeExternalServices();
     if (!configured) {
+      tracerPrivateConfiguration = tracerPrivateCliOptions.toDomainObject();
       configured = true;
     }
+
+    log.debug(
+        "Configured plugin {} with tracer private configuration: {}",
+        getName(),
+        tracerPrivateConfiguration);
   }
 
   @Override

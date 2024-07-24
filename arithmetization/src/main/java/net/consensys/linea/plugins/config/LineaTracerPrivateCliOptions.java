@@ -17,28 +17,28 @@ package net.consensys.linea.plugins.config;
 import com.google.common.base.MoreObjects;
 import picocli.CommandLine;
 
-public class LineaTracerCliOptions {
+public class LineaTracerPrivateCliOptions {
 
-  public static final String MODULE_LIMIT_FILE_PATH = "--plugin-linea-module-limit-file-path";
-  public static final String DEFAULT_MODULE_LIMIT_FILE_PATH = "moduleLimitFile.toml";
+  public static final String CONFLATED_TRACE_GENERATION_TRACES_OUTPUT_PATH =
+      "--plugin-linea-conflated-trace-generation-traces-output-path";
 
   @CommandLine.Option(
-      names = {MODULE_LIMIT_FILE_PATH},
+      required = true,
+      names = {CONFLATED_TRACE_GENERATION_TRACES_OUTPUT_PATH},
       hidden = true,
-      paramLabel = "<STRING>",
-      description =
-          "Path to the toml file containing the module limits (default: ${DEFAULT-VALUE})")
-  private String moduleLimitFilePath = DEFAULT_MODULE_LIMIT_FILE_PATH;
+      paramLabel = "<PATH>",
+      description = "Path to where traces will be written")
+  private String tracesOutputPath = null;
 
-  private LineaTracerCliOptions() {}
+  private LineaTracerPrivateCliOptions() {}
 
   /**
    * Create Linea cli options.
    *
    * @return the Linea cli options
    */
-  public static LineaTracerCliOptions create() {
-    return new LineaTracerCliOptions();
+  public static LineaTracerPrivateCliOptions create() {
+    return new LineaTracerPrivateCliOptions();
   }
 
   /**
@@ -47,9 +47,10 @@ public class LineaTracerCliOptions {
    * @param config the config
    * @return the Linea cli options
    */
-  public static LineaTracerCliOptions fromConfig(final LineaTracerConfiguration config) {
-    final LineaTracerCliOptions options = create();
-    options.moduleLimitFilePath = config.moduleLimitsFilePath();
+  public static LineaTracerPrivateCliOptions fromConfig(
+      final LineaTracerPrivateConfiguration config) {
+    final LineaTracerPrivateCliOptions options = create();
+    options.tracesOutputPath = config.tracesOutputPath();
     return options;
   }
 
@@ -58,14 +59,14 @@ public class LineaTracerCliOptions {
    *
    * @return the Linea factory configuration
    */
-  public LineaTracerConfiguration toDomainObject() {
-    return LineaTracerConfiguration.builder().moduleLimitsFilePath(moduleLimitFilePath).build();
+  public LineaTracerPrivateConfiguration toDomainObject() {
+    return LineaTracerPrivateConfiguration.builder().tracesOutputPath(tracesOutputPath).build();
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add(MODULE_LIMIT_FILE_PATH, moduleLimitFilePath)
+        .add(CONFLATED_TRACE_GENERATION_TRACES_OUTPUT_PATH, tracesOutputPath)
         .toString();
   }
 }

@@ -24,7 +24,7 @@ import java.util.Optional;
 import com.google.auto.service.AutoService;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.plugins.AbstractLineaPrivateOptionsPlugin;
-import net.consensys.linea.plugins.config.LineaTracerCliOptions;
+import net.consensys.linea.plugins.config.LineaTracerPrivateCliOptions;
 import net.consensys.linea.plugins.exception.TraceOutputException;
 import org.hyperledger.besu.plugin.BesuContext;
 import org.hyperledger.besu.plugin.BesuPlugin;
@@ -68,7 +68,8 @@ public class TracesEndpointServicePlugin extends AbstractLineaPrivateOptionsPlug
     if (tracesOutputPath.isEmpty()) {
       throw new TraceOutputException(
           "Traces output path is null, please specify a valid path with %s CLI option or in a toml config file"
-              .formatted(LineaTracerCliOptions.CONFLATED_TRACE_GENERATION_TRACES_OUTPUT_PATH));
+              .formatted(
+                  LineaTracerPrivateCliOptions.CONFLATED_TRACE_GENERATION_TRACES_OUTPUT_PATH));
     }
 
     GenerateConflatedTracesV2 method =
@@ -79,7 +80,7 @@ public class TracesEndpointServicePlugin extends AbstractLineaPrivateOptionsPlug
 
   private Optional<Path> initTracesOutputPath() {
     final Optional<Path> tracesOutputPath =
-        Optional.of(Paths.get(tracerConfiguration.tracesOutputPath()));
+        Optional.of(Paths.get(tracerPrivateConfiguration.tracesOutputPath()));
 
     try {
       Files.createDirectories(tracesOutputPath.get());

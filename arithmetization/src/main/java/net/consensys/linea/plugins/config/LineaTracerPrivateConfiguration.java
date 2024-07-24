@@ -17,6 +17,6 @@ package net.consensys.linea.plugins.config;
 
 import lombok.Builder;
 
-/** The Linea tracer configuration. */
+/** The Linea tracer configuration private to this repo. */
 @Builder(toBuilder = true)
-public record LineaTracerConfiguration(String moduleLimitsFilePath) {}
+public record LineaTracerPrivateConfiguration(String tracesOutputPath) {}

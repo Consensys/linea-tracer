@@ -19,6 +19,13 @@ import static com.google.common.math.BigIntegerMath.log2;
 import static java.lang.Byte.toUnsignedInt;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_ADD;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_DIV;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_EQ;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_GT;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_ISZERO;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_LT;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_MOD;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_CALL_STIPEND;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_BLAKE_CDS;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.OOB_INST_BLAKE_PARAMS;
@@ -71,6 +78,7 @@ import static net.consensys.linea.zktracer.types.AddressUtils.getDeploymentAddre
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBoolean;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBigInteger;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToInt;
+import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 
 import java.math.BigInteger;
 import java.math.RoundingMode;
@@ -381,8 +389,8 @@ public class OobOperation extends ModuleOperation {
         setJumpi(jumpiOobCall);
       } else if (isRdc) {
         ReturnDataCopyOobCall rdcOobCall = (ReturnDataCopyOobCall) oobCall;
-        rdcOobCall.setOffset(EWord.of(frame.getStackItem(0)));
-        rdcOobCall.setSize(EWord.of(frame.getStackItem(1)));
+        rdcOobCall.setOffset(EWord.of(frame.getStackItem(1)));
+        rdcOobCall.setSize(EWord.of(frame.getStackItem(2)));
         rdcOobCall.setRds(BigInteger.valueOf(frame.getReturnData().size()));
         setRdc(rdcOobCall);
       } else if (isCdl) {
@@ -487,9 +495,7 @@ public class OobOperation extends ModuleOperation {
         final Bytes unpaddedCallData = frame.shadowReadMemory(argsOffset, cds.longValue());
         // pad unpaddedCallData to 96
         final Bytes paddedCallData =
-            cds.intValue() < 96
-                ? Bytes.concatenate(unpaddedCallData, Bytes.repeat((byte) 0, 96 - cds.intValue()))
-                : unpaddedCallData;
+            cds.intValue() < 96 ? rightPadTo(unpaddedCallData, 96) : unpaddedCallData;
 
         // cds and the data below can be int when compared (after size check)
         final BigInteger bbs = paddedCallData.slice(0, 32).toUnsignedBigInteger();
@@ -506,9 +512,7 @@ public class OobOperation extends ModuleOperation {
         // pad paddedCallData to 96 + bbs + ebs
         final Bytes doublePaddedCallData =
             cds.intValue() < 96 + bbs.intValue() + ebs.intValue()
-                ? Bytes.concatenate(
-                    paddedCallData,
-                    Bytes.repeat((byte) 0, 96 + bbs.intValue() + ebs.intValue() - cds.intValue()))
+                ? rightPadTo(paddedCallData, 96 + bbs.intValue() + ebs.intValue())
                 : paddedCallData;
 
         final BigInteger leadingBytesOfExponent =
@@ -621,7 +625,7 @@ public class OobOperation extends ModuleOperation {
     addFlag[k] = true;
     modFlag[k] = false;
     wcpFlag[k] = false;
-    outgoingInst[k] = UnsignedByte.of(OpCode.ADD.byteValue());
+    outgoingInst[k] = UnsignedByte.of(EVM_INST_ADD);
     outgoingData1[k] = arg1Hi;
     outgoingData2[k] = arg1Lo;
     outgoingData3[k] = arg2Hi;
@@ -644,7 +648,7 @@ public class OobOperation extends ModuleOperation {
     addFlag[k] = false;
     modFlag[k] = true;
     wcpFlag[k] = false;
-    outgoingInst[k] = UnsignedByte.of(OpCode.DIV.byteValue());
+    outgoingInst[k] = UnsignedByte.of(EVM_INST_DIV);
     outgoingData1[k] = arg1Hi;
     outgoingData2[k] = arg1Lo;
     outgoingData3[k] = arg2Hi;
@@ -664,7 +668,7 @@ public class OobOperation extends ModuleOperation {
     addFlag[k] = false;
     modFlag[k] = true;
     wcpFlag[k] = false;
-    outgoingInst[k] = UnsignedByte.of(OpCode.MOD.byteValue());
+    outgoingInst[k] = UnsignedByte.of(EVM_INST_MOD);
     outgoingData1[k] = arg1Hi;
     outgoingData2[k] = arg1Lo;
     outgoingData3[k] = arg2Hi;
@@ -684,7 +688,7 @@ public class OobOperation extends ModuleOperation {
     addFlag[k] = false;
     modFlag[k] = false;
     wcpFlag[k] = true;
-    outgoingInst[k] = UnsignedByte.of(OpCode.LT.byteValue());
+    outgoingInst[k] = UnsignedByte.of(EVM_INST_LT);
     outgoingData1[k] = arg1Hi;
     outgoingData2[k] = arg1Lo;
     outgoingData3[k] = arg2Hi;
@@ -705,7 +709,7 @@ public class OobOperation extends ModuleOperation {
     addFlag[k] = false;
     modFlag[k] = false;
     wcpFlag[k] = true;
-    outgoingInst[k] = UnsignedByte.of(OpCode.GT.byteValue());
+    outgoingInst[k] = UnsignedByte.of(EVM_INST_GT);
     outgoingData1[k] = arg1Hi;
     outgoingData2[k] = arg1Lo;
     outgoingData3[k] = arg2Hi;
@@ -722,7 +726,7 @@ public class OobOperation extends ModuleOperation {
     addFlag[k] = false;
     modFlag[k] = false;
     wcpFlag[k] = true;
-    outgoingInst[k] = UnsignedByte.of(OpCode.ISZERO.byteValue());
+    outgoingInst[k] = UnsignedByte.of(EVM_INST_ISZERO);
     outgoingData1[k] = arg1Hi;
     outgoingData2[k] = arg1Lo;
     outgoingData3[k] = BigInteger.ZERO;
@@ -743,7 +747,7 @@ public class OobOperation extends ModuleOperation {
     addFlag[k] = false;
     modFlag[k] = false;
     wcpFlag[k] = true;
-    outgoingInst[k] = UnsignedByte.of(OpCode.EQ.byteValue());
+    outgoingInst[k] = UnsignedByte.of(EVM_INST_EQ);
     outgoingData1[k] = arg1Hi;
     outgoingData2[k] = arg1Lo;
     outgoingData3[k] = arg2Hi;

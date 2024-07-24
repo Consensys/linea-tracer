@@ -240,7 +240,7 @@ public class MmuCall implements TraceSubFragment {
   public static MmuCall returnDataCopy(final Hub hub) {
     final MemorySpan returnDataSegment = hub.currentFrame().latestReturnDataSource();
     final CallFrame returnerFrame =
-        hub.callStack().getById(hub.currentFrame().returnDataContextNumber());
+        hub.callStack().getByContextNumber(hub.currentFrame().returnDataContextNumber());
     return new MmuCall(MMU_INST_ANY_TO_RAM_WITH_PADDING)
         .sourceId(returnerFrame.contextNumber())
         .sourceRamBytes(

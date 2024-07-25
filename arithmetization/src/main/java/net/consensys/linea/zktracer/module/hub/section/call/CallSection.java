@@ -70,8 +70,7 @@ public class CallSection extends TraceSection
   private AccountSnapshot postReEntryCalleeSnapshot;
 
   public CallSection(Hub hub) {
-    // TODO: create a refined line count method ?
-    super(hub);
+    super(hub, maxNumberOfLines(hub));
     hub.addTraceSection(this);
     final short exceptions = hub.pch().exceptions();
 
@@ -161,6 +160,16 @@ public class CallSection extends TraceSection
     }
   }
 
+  private static short maxNumberOfLines(final Hub hub) {
+    if (Exceptions.any(hub.pch().exceptions())) {
+      return 8;
+    }
+    if (hub.pch().abortingConditions().any()) {
+      return 9;
+    }
+    return 12; // 12 = 2 (stack) + 5 (CALL prequel) + 5 (successful PRC, except BLAKE and MODEXP)
+  }
+
   private void oogXCall(Hub hub) {
 
     final Factories factories = hub.factories();
@@ -187,10 +196,6 @@ public class CallSection extends TraceSection
   private void abortingCall(Hub hub) {
     this.scenarioFragment.setScenario(CALL_ABORT_WONT_REVERT);
     this.finalContextFragment = ContextFragment.nonExecutionProvidesEmptyReturnData(hub);
-  }
-
-  private short maxNumberOfLines(final Hub hub) {
-    if (Exceptions.any(hub.pch().exceptions())) {}
   }
 
   @Override

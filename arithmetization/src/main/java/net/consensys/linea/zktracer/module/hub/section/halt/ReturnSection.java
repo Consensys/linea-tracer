@@ -224,7 +224,7 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
                   accountBeforeDeployment.deployByteCode(deploymentCode),
                   DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
       nonemptyDeploymentAccountFragment.requiresRomlex(true);
-      hub.romLex().triggerRomLex(hub.messageFrame());
+      hub.romLex().callRomLex(hub.messageFrame());
 
       this.addFragment(nonemptyDeploymentAccountFragment);
 

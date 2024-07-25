@@ -116,12 +116,12 @@ public class CreateSection
       return;
     }
 
+    // The CREATE(2) is now unexceptional
     Preconditions.checkArgument(Exceptions.none(exceptions));
 
     final CreateOobCall oobCall = new CreateOobCall();
     imcFragment.callOob(oobCall);
 
-    // The CREATE(2) is now unexceptional
     final AbortingConditions aborts = hub.pch().abortingConditions().snapshot();
     Preconditions.checkArgument(oobCall.isAbortingCondition() == aborts.any());
 
@@ -260,8 +260,7 @@ public class CreateSection
   //  of both creator and createe were updated (and potentially created)
   //  otherwise do it later
   @Override
-  public void resolveUponEnteringChildContext(Hub hub, MessageFrame frame) {
-  }
+  public void resolveUponEnteringChildContext(Hub hub, MessageFrame frame) {}
 
   @Override
   public void resolveAtContextReEntry(Hub hub, CallFrame callFrame) {

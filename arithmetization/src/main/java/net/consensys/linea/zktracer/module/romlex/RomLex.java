@@ -152,7 +152,7 @@ public class RomLex implements Module, PostExecDefer {
             });
   }
 
-  public void triggerRomLex(final MessageFrame frame) {
+  public void callRomLex(final MessageFrame frame) {
     switch (OpCode.of(frame.getCurrentOperation().getOpcode())) {
       case CREATE -> {
         hub.defers().schedulePostExecution(this);

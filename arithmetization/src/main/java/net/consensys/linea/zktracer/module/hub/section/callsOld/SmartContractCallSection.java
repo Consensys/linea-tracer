@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.section.calls;
+package net.consensys.linea.zktracer.module.hub.section.callsOld;
 
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -75,7 +75,8 @@ public class SmartContractCallSection extends TraceSection
     hub.defers().scheduleForImmediateContextEntry(this);
     hub.defers().schedulePostTransaction(this);
 
-    // TODO: remove (but: ContextFragment calleeContextInitializationFragment = ContextFragment.initializeNewExecutionContext(hub);
+    // TODO: remove (but: ContextFragment calleeContextInitializationFragment =
+    // ContextFragment.initializeNewExecutionContext(hub);
     //  should be added to the section
   }
 

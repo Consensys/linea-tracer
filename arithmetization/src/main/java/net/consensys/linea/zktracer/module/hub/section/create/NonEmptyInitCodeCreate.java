@@ -42,7 +42,7 @@ public class NonEmptyInitCodeCreate extends TraceSection implements FillCreateSe
     this.scenarioFragment = new CreateScenarioFragment();
 
     this.addFragmentsAndStack(hub, scenarioFragment, commonContext, imcFragment);
-    hub.romLex().triggerRomLex(hub.messageFrame());
+    hub.romLex().callRomLex(hub.messageFrame());
   }
 
   @Override

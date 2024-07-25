@@ -511,7 +511,11 @@ public class Hub implements Module {
       boolean isSuccessful,
       List<Log> logs,
       Set<Address> selfDestructs) {
-    // TODO: this.defers.resolvePostRollback(this, ...
+    // TODO: see issue #875. It is currently unclear which, if any,
+    //  rollbacks already took place at traceEndTransaction.
+
+    // TODO: add the following resolution this.defers.resolvePostRollback(this, ...
+
     this.txStack
         .current()
         .completeLineaTransaction(

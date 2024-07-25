@@ -31,7 +31,6 @@ import org.hyperledger.besu.plugin.services.PicoCLIOptions;
 @Slf4j
 public abstract class AbstractLineaOptionsPlugin implements BesuPlugin {
   private static final String CLI_OPTIONS_PREFIX = "linea";
-  private static boolean cliOptionsRegistered = false;
   private static boolean configured = false;
   private static Map<String, LineaOptionsPluginConfiguration> lineaPluginConfigMap =
       new HashMap<>();
@@ -44,24 +43,23 @@ public abstract class AbstractLineaOptionsPlugin implements BesuPlugin {
 
   @Override
   public synchronized void register(final BesuContext context) {
-    if (!cliOptionsRegistered) {
-      final PicoCLIOptions cmdlineOptions =
-          context
-              .getService(PicoCLIOptions.class)
-              .orElseThrow(
-                  () ->
-                      new IllegalStateException(
-                          "Failed to obtain PicoCLI options from the BesuContext"));
+    final PicoCLIOptions cmdlineOptions =
+        context
+            .getService(PicoCLIOptions.class)
+            .orElseThrow(
+                () ->
+                    new IllegalStateException(
+                        "Failed to obtain PicoCLI options from the BesuContext"));
 
-      lineaPluginConfigMap = getLineaPluginConfigMap();
-
-      lineaPluginConfigMap.forEach(
-          (optsKey, config) -> {
-            cmdlineOptions.addPicoCLIOptions(CLI_OPTIONS_PREFIX, config.cliOptions());
-          });
-
-      cliOptionsRegistered = true;
-    }
+    getLineaPluginConfigMap()
+        .forEach(
+            (key, pluginConfiguration) -> {
+              if (!lineaPluginConfigMap.containsKey(key)) {
+                lineaPluginConfigMap.put(key, pluginConfiguration);
+                cmdlineOptions.addPicoCLIOptions(
+                    CLI_OPTIONS_PREFIX, pluginConfiguration.cliOptions());
+              }
+            });
   }
 
   @Override
@@ -83,7 +81,6 @@ public abstract class AbstractLineaOptionsPlugin implements BesuPlugin {
 
   @Override
   public void stop() {
-    cliOptionsRegistered = false;
     configured = false;
   }
 }

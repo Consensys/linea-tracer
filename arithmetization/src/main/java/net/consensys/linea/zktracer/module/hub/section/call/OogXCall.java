@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.hub.section.call;
 
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CallScenarioFragment.CallScenario.CALL_EXCEPTION;
+
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Factories;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -22,9 +24,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.XCallOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.scenario.CallScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import org.apache.tuweni.bytes.Bytes;
 
@@ -35,14 +35,11 @@ public class OogXCall extends TraceSection {
       final ImcFragment firstImcFragment,
       final AccountSnapshot preOpcodeCallerAccount,
       final AccountSnapshot preOpcodeCalleeAccount,
-      final Bytes eCalleeAddress) {
+      final Bytes rawCalleeAddress) {
     super(hub, (short) 6);
     hub.addTraceSection(this);
 
-    final ScenarioFragment scenarioFragment = new ScenarioFragment(); // TODO
-
-    final OobCall oobCall = new XCallOobCall();
-    firstImcFragment.callOob(oobCall);
+    final CallScenarioFragment scenarioFragment = new CallScenarioFragment(CALL_EXCEPTION);
 
     final Factories factories = hub.factories();
 
@@ -60,7 +57,7 @@ public class OogXCall extends TraceSection {
             .makeWithTrm(
                 preOpcodeCalleeAccount,
                 preOpcodeCalleeAccount,
-                eCalleeAddress,
+                rawCalleeAddress,
                 DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1));
 
     this.addFragmentsAndStack(

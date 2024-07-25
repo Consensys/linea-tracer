@@ -25,12 +25,13 @@ import org.apache.tuweni.bytes.Bytes;
 public class AbortCall extends TraceSection {
 
   public AbortCall(
-    Hub hub,
-    final ContextFragment currentContextFragment,
-    final ImcFragment firstImcFragment,
-    final AccountSnapshot preOpcodeCallerAccount,
-    final AccountSnapshot preOpcodeCalleeAccount,
-    final Bytes eCalleeAddress) {
+      Hub hub,
+      final ContextFragment currentContextFragment,
+      final ImcFragment firstImcFragment,
+      final AccountSnapshot preOpcodeCallerAccount,
+      final AccountSnapshot preOpcodeCalleeAccount,
+      final Bytes eCalleeAddress) {
     super(hub, (short) 9);
     hub.addTraceSection(this);
-}}
+  }
+}

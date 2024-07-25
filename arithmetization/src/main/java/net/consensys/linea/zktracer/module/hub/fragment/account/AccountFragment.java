@@ -89,6 +89,7 @@ public final class AccountFragment
         AccountSnapshot newState,
         Bytes toTrim,
         DomSubStampsSubFragment domSubStampsSubFragment) {
+      hub.trm().callTrimming(toTrim);
       return new AccountFragment(
           hub, oldState, newState, Optional.of(toTrim), domSubStampsSubFragment);
     }

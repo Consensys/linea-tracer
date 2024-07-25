@@ -68,7 +68,7 @@ public class AccountSection extends TraceSection implements PostRollbackDefer {
   }
 
   private static short maxNumberOfRows(Hub hub) {
-    OpCode opCode = hub.opCode();
+    final OpCode opCode = hub.opCode();
 
     if (opCode.isAnyOf(OpCode.BALANCE, OpCode.EXTCODESIZE, OpCode.EXTCODEHASH)) {
       return (short) (opCode.numberOfStackRows() + 3);

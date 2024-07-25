@@ -77,5 +77,7 @@ public abstract class AbstractLineaOptionsPlugin implements BesuPlugin {
   public void start() {}
 
   @Override
-  public void stop() {}
+  public void stop() {
+    LINEA_PLUGIN_CONFIG_MAP.clear();
+  }
 }

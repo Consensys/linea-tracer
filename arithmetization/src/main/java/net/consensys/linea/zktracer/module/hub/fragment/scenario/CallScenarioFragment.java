@@ -15,12 +15,14 @@
 package net.consensys.linea.zktracer.module.hub.fragment.scenario;
 
 import com.google.common.base.Preconditions;
+import lombok.Getter;
+import lombok.Setter;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 
 public class CallScenarioFragment implements TraceFragment {
 
-  CallScenario scenario;
+  @Setter @Getter CallScenario scenario;
 
   public CallScenarioFragment() {
     this.scenario = CallScenario.UNDEFINED;

@@ -29,7 +29,7 @@ import org.hyperledger.besu.datatypes.Wei;
 @Accessors(fluent = true)
 public final class AbortingConditions {
   private boolean callStackOverflow;
-  private boolean balanceTooLow;
+  private boolean insufficientBalance;
 
   /**
    * @param callStackOverflow too many nested contexts
@@ -37,7 +37,7 @@ public final class AbortingConditions {
    */
   public AbortingConditions(boolean callStackOverflow, boolean insufficientBalance) {
     this.callStackOverflow = callStackOverflow;
-    this.balanceTooLow = insufficientBalance;
+    this.insufficientBalance = insufficientBalance;
   }
 
   public static AbortingConditions of(Hub hub) {
@@ -48,7 +48,7 @@ public final class AbortingConditions {
 
   public void reset() {
     this.callStackOverflow = false;
-    this.balanceTooLow = false;
+    this.insufficientBalance = false;
   }
 
   public void prepare(Hub hub) {
@@ -57,7 +57,7 @@ public final class AbortingConditions {
       return;
     }
 
-    this.balanceTooLow =
+    this.insufficientBalance =
         switch (hub.currentFrame().opCode()) {
           case CALL, CALLCODE -> {
             if (Exceptions.none(hub.pch().exceptions())) {
@@ -88,7 +88,7 @@ public final class AbortingConditions {
   }
 
   public AbortingConditions snapshot() {
-    return new AbortingConditions(this.callStackOverflow, this.balanceTooLow);
+    return new AbortingConditions(this.callStackOverflow, this.insufficientBalance);
   }
 
   public boolean none() {
@@ -96,6 +96,6 @@ public final class AbortingConditions {
   }
 
   public boolean any() {
-    return this.callStackOverflow || this.balanceTooLow;
+    return this.callStackOverflow || this.insufficientBalance;
   }
 }

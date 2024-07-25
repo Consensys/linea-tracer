@@ -207,5 +207,5 @@ public class DeferRegistry
   }
 
   @Override
-  public void resolveUponExitingContext(Hub hub, MessageFrame frame) {}
+  public void resolveUponExitingContext(Hub hub, CallFrame frame) {}
 }

@@ -31,14 +31,13 @@ import org.hyperledger.besu.plugin.services.PicoCLIOptions;
 @Slf4j
 public abstract class AbstractLineaOptionsPlugin implements BesuPlugin {
   private static final String CLI_OPTIONS_PREFIX = "linea";
-  private static boolean configured = false;
-  private static Map<String, LineaOptionsPluginConfiguration> lineaPluginConfigMap =
+  private static final Map<String, LineaOptionsPluginConfiguration> LINEA_PLUGIN_CONFIG_MAP =
       new HashMap<>();
 
   protected abstract Map<String, LineaOptionsPluginConfiguration> getLineaPluginConfigMap();
 
   protected LineaOptionsPluginConfiguration getConfigurationByKey(final String key) {
-    return lineaPluginConfigMap.get(key);
+    return LINEA_PLUGIN_CONFIG_MAP.get(key);
   }
 
   @Override
@@ -54,8 +53,8 @@ public abstract class AbstractLineaOptionsPlugin implements BesuPlugin {
     getLineaPluginConfigMap()
         .forEach(
             (key, pluginConfiguration) -> {
-              if (!lineaPluginConfigMap.containsKey(key)) {
-                lineaPluginConfigMap.put(key, pluginConfiguration);
+              if (!LINEA_PLUGIN_CONFIG_MAP.containsKey(key)) {
+                LINEA_PLUGIN_CONFIG_MAP.put(key, pluginConfiguration);
                 cmdlineOptions.addPicoCLIOptions(
                     CLI_OPTIONS_PREFIX, pluginConfiguration.cliOptions());
               }
@@ -64,9 +63,10 @@ public abstract class AbstractLineaOptionsPlugin implements BesuPlugin {
 
   @Override
   public void beforeExternalServices() {
-    lineaPluginConfigMap.forEach((opts, config) -> config.initOptionsConfig());
+    // TODO: find a way to do this only once and check fro that.
+    LINEA_PLUGIN_CONFIG_MAP.forEach((opts, config) -> config.initOptionsConfig());
 
-    lineaPluginConfigMap.forEach(
+    LINEA_PLUGIN_CONFIG_MAP.forEach(
         (opts, config) -> {
           log.debug(
               "Configured plugin {} with configuration: {}", getName(), config.optionsConfig());
@@ -77,7 +77,5 @@ public abstract class AbstractLineaOptionsPlugin implements BesuPlugin {
   public void start() {}
 
   @Override
-  public void stop() {
-    configured = false;
-  }
+  public void stop() {}
 }

@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.hub.section.call;
 
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CallScenarioFragment.CallScenario.*;
+import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 
 import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
@@ -42,26 +43,34 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.operation.Operation;
+import org.hyperledger.besu.evm.worldstate.WorldUpdater;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class CallSection extends TraceSection
     implements PostExecDefer, PostRollbackDefer, PostTransactionDefer {
-  private TraceSection callSection;
+
+  // row i+0
+  private final CallScenarioFragment scenarioFragment = new CallScenarioFragment();
 
   // row i+2
-  private final CallScenarioFragment scenarioFragment = new CallScenarioFragment();
   private final ImcFragment firstImcFragment;
 
   // Just before call
   private AccountSnapshot preOpcodeCallerSnapshot;
   private AccountSnapshot preOpcodeCalleeSnapshot;
-  private AccountSnapshot postOpcodeCallerSnapshot;
-  private AccountSnapshot postOpcodeCalleeSnapshot;
   private ContextFragment finalContextFragment;
   private Bytes rawCalleeAddress;
 
+  // Just After the CALL Opcode
+  private AccountSnapshot postOpcodeCallerSnapshot;
+  private AccountSnapshot postOpcodeCalleeSnapshot;
+
+  // Just at re-entry
+  private AccountSnapshot postReEntryCallerSnapshot;
+  private AccountSnapshot postReEntryCalleeSnapshot;
+
   public CallSection(Hub hub) {
-    // TODO: create a refined line count method
+    // TODO: create a refined line count method ?
     super(hub);
     hub.addTraceSection(this);
     final short exceptions = hub.pch().exceptions();
@@ -130,12 +139,31 @@ public class CallSection extends TraceSection
     }
 
     // The CALL is now unexceptional and unaborted
+    final WorldUpdater world = hub.messageFrame().getWorldUpdater();
+
+    if (isPrecompile(calleeAddress)) {
+      this.scenarioFragment.setScenario(CALL_PRC_UNDEFINED);
+    } else {
+      this.scenarioFragment.setScenario(
+          world.get(calleeAddress).hasCode()
+              ? CALL_SMC_UNDEFINED
+              : CALL_EOA_SUCCESS_WONT_REVERT); // TODO is world == worldUpdater & what happen if get
+      // doesn't
+      // work ?
+    }
+
+    // TODO: lastContextFragment  for PRC
+    if (this.scenarioFragment.getScenario() == CALL_SMC_UNDEFINED) {
+      this.finalContextFragment = ContextFragment.initializeNewExecutionContext(hub);
+    }
+    if (this.scenarioFragment.getScenario() == CALL_EOA_SUCCESS_WONT_REVERT) {
+      this.finalContextFragment = ContextFragment.nonExecutionProvidesEmptyReturnData(hub);
+    }
   }
 
   private void oogXCall(Hub hub) {
 
     final Factories factories = hub.factories();
-
     final AccountFragment callerAccountFragment =
         factories
             .accountFragment()
@@ -159,6 +187,10 @@ public class CallSection extends TraceSection
   private void abortingCall(Hub hub) {
     this.scenarioFragment.setScenario(CALL_ABORT_WONT_REVERT);
     this.finalContextFragment = ContextFragment.nonExecutionProvidesEmptyReturnData(hub);
+  }
+
+  private short maxNumberOfLines(final Hub hub) {
+    if (Exceptions.any(hub.pch().exceptions())) {}
   }
 
   @Override
@@ -192,12 +224,13 @@ public class CallSection extends TraceSection
 
   @Override
   public void resolvePostRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
+    final Factories factories = hub.factories();
+    final AccountSnapshot postRollbackCalleeSnapshot =
+        AccountSnapshot.canonical(hub, this.preOpcodeCalleeSnapshot.address());
+
     switch (this.scenarioFragment.getScenario()) {
       case CALL_ABORT_WONT_REVERT -> {
         this.scenarioFragment.setScenario(CALL_ABORT_WILL_REVERT);
-        final AccountSnapshot postRollbackCalleeSnapshot =
-            AccountSnapshot.canonical(hub, this.preOpcodeCalleeSnapshot.address());
-        final Factories factories = hub.factories();
         final AccountFragment undoingCalleeAccountFragment =
             factories
                 .accountFragment()
@@ -210,6 +243,32 @@ public class CallSection extends TraceSection
                         0));
         this.addFragment(undoingCalleeAccountFragment);
       }
+
+      case CALL_EOA_SUCCESS_WONT_REVERT -> {
+        this.scenarioFragment.setScenario(CALL_EOA_SUCCESS_WILL_REVERT);
+        final AccountSnapshot postRollbackCallerSnapshot =
+            AccountSnapshot.canonical(hub, this.preOpcodeCallerSnapshot.address());
+
+        final AccountFragment undoingCallerAccountFragment =
+            factories
+                .accountFragment()
+                .make(
+                    postOpcodeCallerSnapshot,
+                    postRollbackCallerSnapshot,
+                    DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
+                        this.hubStamp(), this.commonValues.callFrame().revertStamp(), 2));
+
+        final AccountFragment undoingCalleeAccountFragment =
+            factories
+                .accountFragment()
+                .make(
+                    postOpcodeCalleeSnapshot,
+                    postRollbackCalleeSnapshot,
+                    DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
+                        this.hubStamp(), this.commonValues.callFrame().revertStamp(), 3));
+
+        this.addFragmentsWithoutStack(undoingCallerAccountFragment, undoingCalleeAccountFragment);
+      }
       default -> throw new IllegalArgumentException("What were you thinking ?");
     }
   }
@@ -218,6 +277,6 @@ public class CallSection extends TraceSection
   public void resolvePostTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
 
-    this.callSection.addFragment(finalContextFragment);
+    this.addFragment(finalContextFragment);
   }
 }

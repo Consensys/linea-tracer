@@ -14,6 +14,8 @@
  */
 package net.consensys.linea.zktracer.module.hub.fragment.scenario;
 
+import java.util.List;
+
 import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.Setter;
@@ -39,17 +41,24 @@ public class CallScenarioFragment implements TraceFragment {
     CALL_ABORT_WONT_REVERT,
     CALL_EOA_SUCCESS_WILL_REVERT,
     CALL_EOA_SUCCESS_WONT_REVERT,
+    CALL_SMC_UNDEFINED,
     CALL_SMC_FAILURE_WILL_REVERT,
     CALL_SMC_FAILURE_WONT_REVERT,
     CALL_SMC_SUCCESS_WILL_REVERT,
     CALL_SMC_SUCCESS_WONT_REVERT,
+    CALL_PRC_UNDEFINED,
     CALL_PRC_FAILURE,
     CALL_PRC_SUCCESS_WILL_REVERT,
     CALL_PRC_SUCCESS_WONT_REVERT
   }
 
+  private static final List<CallScenario> illegalTracingScenario =
+      List.of(
+          CallScenario.UNDEFINED, CallScenario.CALL_SMC_UNDEFINED, CallScenario.CALL_PRC_UNDEFINED);
+
   public Trace trace(Trace trace) {
-    Preconditions.checkArgument(!this.scenario.equals(CallScenario.UNDEFINED));
+    Preconditions.checkArgument(
+        !illegalTracingScenario.contains(this.scenario), "Final Scenario hasn't been set");
     return trace
         .peekAtScenario(true)
         // // CALL scenarios

@@ -35,13 +35,17 @@ public class DeferRegistry
         PostRollbackDefer,
         PostTransactionDefer,
         PostConflationDefer,
-        ChildContextEntryDefer {
+        ChildContextEntryDefer,
+        ContextExitDefer {
 
   /** A list of actions deferred until the end of the current opcode execution */
   private final List<PostExecDefer> postExecDefers = new ArrayList<>();
 
   /** A list of actions deferred until the end of the current opcode execution */
   private final List<ChildContextEntryDefer> childContextEntryDefers = new ArrayList<>();
+
+  /** A list of actions deferred until the exit of a given context */
+  private final Map<Integer, List<ContextExitDefer>> contextExitDefers = new HashMap<>();
 
   /** A list of actions deferred until the end of the current opcode execution */
   private final Map<CallFrame, List<ReEnterContextDefer>> contextReEntryDefers = new HashMap<>();
@@ -67,6 +71,14 @@ public class DeferRegistry
   /** Schedule an action to be executed after the completion of the current opcode. */
   public void schedulePostExecution(PostExecDefer defer) {
     this.postExecDefers.add(defer);
+  }
+
+  /** Schedule an action to be executed at the exit of a given context. */
+  public void scheduleContextExit(ContextExitDefer defer, Integer callFrameId) {
+    if (!contextExitDefers.containsKey(callFrameId)) {
+      contextExitDefers.put(callFrameId, new ArrayList<>());
+    }
+    contextExitDefers.get(callFrameId).add(defer);
   }
 
   /** Schedule an action to be executed at the end of the current transaction. */
@@ -193,4 +205,7 @@ public class DeferRegistry
     }
     this.childContextEntryDefers.clear();
   }
+
+  @Override
+  public void resolveUponExitingContext(Hub hub, MessageFrame frame) {}
 }

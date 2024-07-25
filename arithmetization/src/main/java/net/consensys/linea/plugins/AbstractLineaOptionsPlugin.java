@@ -33,10 +33,14 @@ public abstract class AbstractLineaOptionsPlugin implements BesuPlugin {
   private static final String CLI_OPTIONS_PREFIX = "linea";
   private static boolean cliOptionsRegistered = false;
   private static boolean configured = false;
+  private static Map<String, LineaOptionsPluginConfiguration> lineaPluginConfigMap =
+      new HashMap<>();
 
-  protected Map<String, LineaOptionsPluginConfiguration> lineaPluginConfigMap = new HashMap<>();
+  protected abstract Map<String, LineaOptionsPluginConfiguration> getLineaPluginConfigMap();
 
-  public abstract Map<String, LineaOptionsPluginConfiguration> getLineaPluginConfigMap();
+  protected LineaOptionsPluginConfiguration getConfigurationByKey(final String key) {
+    return lineaPluginConfigMap.get(key);
+  }
 
   @Override
   public synchronized void register(final BesuContext context) {

@@ -36,7 +36,7 @@ public abstract class AbstractLineaSharedOptionsPlugin extends AbstractLineaOpti
 
   public LineaL1L2BridgeSharedConfiguration l1L2BridgeSharedConfiguration() {
     return (LineaL1L2BridgeSharedConfiguration)
-        lineaPluginConfigMap.get(LineaL1L2BridgeSharedCliOptions.CONFIG_KEY).optionsConfig();
+        getConfigurationByKey(LineaL1L2BridgeSharedCliOptions.CONFIG_KEY).optionsConfig();
   }
 
   @Override

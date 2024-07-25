@@ -64,10 +64,7 @@ public abstract class AbstractLineaOptionsPlugin implements BesuPlugin {
 
   @Override
   public void beforeExternalServices() {
-    if (!configured) {
-      lineaPluginConfigMap.forEach((opts, config) -> config.initOptionsConfig());
-      configured = true;
-    }
+    lineaPluginConfigMap.forEach((opts, config) -> config.initOptionsConfig());
 
     lineaPluginConfigMap.forEach(
         (opts, config) -> {

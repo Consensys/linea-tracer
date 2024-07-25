@@ -260,8 +260,7 @@ public class CreateSection
   //  of both creator and createe were updated (and potentially created)
   //  otherwise do it later
   @Override
-  public void resolveUponEnteringChildContext(Hub hub, MessageFrame frame) {
-  }
+  public void resolveUponEnteringChildContext(Hub hub, MessageFrame frame) {}
 
   @Override
   public void resolveAtContextReEntry(Hub hub, CallFrame callFrame) {

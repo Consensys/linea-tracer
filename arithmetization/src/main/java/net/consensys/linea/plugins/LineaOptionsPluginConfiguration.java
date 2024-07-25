@@ -15,5 +15,20 @@
 
 package net.consensys.linea.plugins;
 
-public record LineaOptionsPluginConfiguration(
-    LineaCliOptions cliOptions, LineaOptionsConfiguration optionsConfig) {}
+import java.util.function.Supplier;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+
+@Accessors(fluent = true)
+@RequiredArgsConstructor
+public class LineaOptionsPluginConfiguration {
+  @Getter private final LineaCliOptions cliOptions;
+  private final Supplier<LineaOptionsConfiguration> optionsConfigSupplier;
+  @Getter private LineaOptionsConfiguration optionsConfig;
+
+  public void initOptionsConfig() {
+    optionsConfig = optionsConfigSupplier.get();
+  }
+}

@@ -19,6 +19,6 @@ public interface LineaCliOptions {
   LineaOptionsConfiguration toDomainObject();
 
   default LineaOptionsPluginConfiguration asPluginConfig() {
-    return new LineaOptionsPluginConfiguration(this, this.toDomainObject());
+    return new LineaOptionsPluginConfiguration(this, this::toDomainObject);
   }
 }

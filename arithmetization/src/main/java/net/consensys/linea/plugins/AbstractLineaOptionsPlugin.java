@@ -15,6 +15,7 @@
 
 package net.consensys.linea.plugins;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
@@ -31,8 +32,9 @@ import org.hyperledger.besu.plugin.services.PicoCLIOptions;
 public abstract class AbstractLineaOptionsPlugin implements BesuPlugin {
   private static final String CLI_OPTIONS_PREFIX = "linea";
   private static boolean cliOptionsRegistered = false;
+  private static boolean configured = false;
 
-  protected Map<String, LineaOptionsPluginConfiguration> lineaPluginConfigMap;
+  protected Map<String, LineaOptionsPluginConfiguration> lineaPluginConfigMap = new HashMap<>();
 
   public abstract Map<String, LineaOptionsPluginConfiguration> getLineaPluginConfigMap();
 
@@ -60,6 +62,11 @@ public abstract class AbstractLineaOptionsPlugin implements BesuPlugin {
 
   @Override
   public void beforeExternalServices() {
+    if (!configured) {
+      lineaPluginConfigMap.forEach((opts, config) -> config.initOptionsConfig());
+      configured = true;
+    }
+
     lineaPluginConfigMap.forEach(
         (opts, config) -> {
           log.debug(
@@ -73,5 +80,6 @@ public abstract class AbstractLineaOptionsPlugin implements BesuPlugin {
   @Override
   public void stop() {
     cliOptionsRegistered = false;
+    configured = false;
   }
 }

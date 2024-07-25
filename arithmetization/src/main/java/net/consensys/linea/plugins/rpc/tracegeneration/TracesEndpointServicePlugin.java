@@ -72,6 +72,8 @@ public class TracesEndpointServicePlugin extends AbstractLineaOptionsPlugin {
   public void beforeExternalServices() {
     super.beforeExternalServices();
 
+    log.info("INIT MAP: {}", lineaPluginConfigMap);
+
     final Optional<Path> tracesOutputPath = initTracesOutputPath();
     if (tracesOutputPath.isEmpty()) {
       throw new TraceOutputException(
@@ -86,6 +88,7 @@ public class TracesEndpointServicePlugin extends AbstractLineaOptionsPlugin {
   }
 
   private Optional<Path> initTracesOutputPath() {
+    log.info("MAPPPP {}", lineaPluginConfigMap);
     final TracesEndpointConfiguration pluginConfig =
         (TracesEndpointConfiguration)
             lineaPluginConfigMap.get(TracesEndpointCliOptions.CONFIG_KEY).optionsConfig();

@@ -74,7 +74,7 @@ public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
             hub.pch().abortingConditions().any(),
             false,
             Exceptions.invalidCodePrefix(hub.pch().exceptions()));
-    hub.defers().schedulePostTransaction(r);
+    hub.defers().scheduleForPostTransaction(r);
     return r;
   }
 

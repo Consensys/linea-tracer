@@ -67,7 +67,7 @@ public class StackRamSection extends TraceSection implements PostTransactionDefe
 
     this.addFragment(imcFragment);
 
-    hub.defers().schedulePostTransaction(this);
+    hub.defers().scheduleForPostTransaction(this);
   }
 
   @Override

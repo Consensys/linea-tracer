@@ -481,7 +481,7 @@ public class Hub implements Module {
     if (!this.txStack.current().requiresEvmExecution()) {
       this.state.setProcessingPhase(TX_SKIP);
       this.state.stamps().incrementHubStamp();
-      this.defers.schedulePostTransaction(
+      this.defers.scheduleForPostTransaction(
           new TxSkippedSectionDefers(world, this.txStack.current(), this.transients));
     } else {
       if (this.txStack.current().requiresPrewarming()) {

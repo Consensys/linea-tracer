@@ -114,11 +114,11 @@ public final class AccountFragment
     this.domSubStampsSubFragment = domSubStampsSubFragment;
 
     // This allows us to properly fill EXISTS_INFTY, DEPLOYMENT_NUMBER_INFTY and CODE_FRAGMENT_INDEX
-    hub.defers().schedulePostConflation(this);
+    hub.defers().scheduleForPostConflation(this);
 
     // This allows us to properly fill MARKED_FOR_SELFDESTRUCT and MARKED_FOR_SELFDESTRUCT_NEW,
     // among other things
-    hub.defers().schedulePostTransaction(this);
+    hub.defers().scheduleForPostTransaction(this);
   }
 
   @Override

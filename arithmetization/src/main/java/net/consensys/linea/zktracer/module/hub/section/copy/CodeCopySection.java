@@ -107,7 +107,7 @@ public class CodeCopySection extends TraceSection implements PostTransactionDefe
     triggerMmu = mxpCall.isMayTriggerNonTrivialMmuOperation();
     if (triggerMmu) {
       mmuCall = MmuCall.codeCopy(hub);
-      hub.defers().schedulePostTransaction(this);
+      hub.defers().scheduleForPostTransaction(this);
     }
   }
 

@@ -82,7 +82,7 @@ public class CallDataCopySection extends TraceSection implements PostTransaction
     }
 
     mmuCall = MmuCall.callDataCopy(hub);
-    hub.defers().schedulePostTransaction(this);
+    hub.defers().scheduleForPostTransaction(this);
   }
 
   @Override

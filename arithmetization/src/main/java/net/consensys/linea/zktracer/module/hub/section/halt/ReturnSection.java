@@ -117,7 +117,7 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
     if (triggerMmuForInvalidCodePrefix) {
       Preconditions.checkArgument(hub.currentFrame().isDeployment());
       firstMmuCall = MmuCall.invalidCodePrefix(hub);
-      hub.defers().schedulePostTransaction(this);
+      hub.defers().scheduleForPostTransaction(this);
       return;
     }
 
@@ -147,7 +147,7 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
       if (messageCallReturnTouchesRam) {
         firstMmuCall = MmuCall.returnFromMessageCall(hub);
         Preconditions.checkArgument(!firstMmuCall.successBit());
-        hub.defers().schedulePostTransaction(this);
+        hub.defers().scheduleForPostTransaction(this);
       }
       // no need for the else case (and a nop) as per @François
 
@@ -200,7 +200,7 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
 
       // Nonempty deployments
       ///////////////////////
-      hub.defers().schedulePostTransaction(this);
+      hub.defers().scheduleForPostTransaction(this);
 
       firstMmuCall = MmuCall.invalidCodePrefix(hub);
       Preconditions.checkArgument(firstMmuCall.successBit());

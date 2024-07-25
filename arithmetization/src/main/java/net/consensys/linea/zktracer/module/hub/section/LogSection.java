@@ -61,7 +61,7 @@ public class LogSection implements PostTransactionDefer {
     miscFragment = ImcFragment.empty(hub).callMxp(mxpCall);
     this.sectionPrequel.addFragment(miscFragment);
 
-    hub.defers().schedulePostTransaction(this);
+    hub.defers().scheduleForPostTransaction(this);
   }
 
   @Override

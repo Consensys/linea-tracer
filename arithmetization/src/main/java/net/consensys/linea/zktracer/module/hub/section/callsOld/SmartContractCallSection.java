@@ -71,9 +71,9 @@ public class SmartContractCallSection extends TraceSection
 
     this.addStack(hub);
 
-    hub.defers().schedulePostExecution(this);
+    hub.defers().scheduleForPostExecution(this);
     hub.defers().scheduleForImmediateContextEntry(this);
-    hub.defers().schedulePostTransaction(this);
+    hub.defers().scheduleForPostTransaction(this);
 
     // TODO: remove (but: ContextFragment calleeContextInitializationFragment =
     // ContextFragment.initializeNewExecutionContext(hub);

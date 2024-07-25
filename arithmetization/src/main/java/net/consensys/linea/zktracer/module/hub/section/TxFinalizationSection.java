@@ -67,7 +67,7 @@ public class TxFinalizationSection implements PostTransactionDefer {
             depInfo.number(minerAddress),
             depInfo.isDeploying(minerAddress));
 
-    hub.defers().schedulePostTransaction(this);
+    hub.defers().scheduleForPostTransaction(this);
   }
 
   @Override

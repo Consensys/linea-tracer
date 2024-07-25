@@ -17,7 +17,6 @@ package net.consensys.linea.zktracer.module.hub.defer;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
-import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public interface ContextExitDefer {
   void resolveUponExitingContext(Hub hub, CallFrame frame);

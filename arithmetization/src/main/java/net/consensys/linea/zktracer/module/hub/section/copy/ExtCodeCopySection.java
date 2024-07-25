@@ -118,7 +118,7 @@ public class ExtCodeCopySection extends TraceSection
     triggerMmu = none(exceptions) && mxpCall.mayTriggerNonTrivialMmuOperation;
     if (triggerMmu) {
       mmuCall = MmuCall.extCodeCopy(hub);
-      hub.defers().schedulePostTransaction(this);
+      hub.defers().scheduleForPostTransaction(this);
     }
 
     // TODO: make sure that hasCode returns false during deployments

@@ -76,7 +76,7 @@ public class ReturnDataCopySection extends TraceSection implements PostTransacti
     triggerMmu = mxpCall.mayTriggerNonTrivialMmuOperation;
     if (triggerMmu) {
       mmuCall = MmuCall.returnDataCopy(hub);
-      hub.defers().schedulePostTransaction(this);
+      hub.defers().scheduleForPostTransaction(this);
     }
   }
 

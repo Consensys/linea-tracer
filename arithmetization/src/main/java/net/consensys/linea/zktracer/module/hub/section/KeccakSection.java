@@ -49,8 +49,8 @@ public class KeccakSection extends TraceSection implements PostExecDefer, PostTr
     triggerMmu = mayTriggerNonTrivialOperation & Exceptions.none(hub.pch().exceptions());
 
     if (triggerMmu) {
-      hub.defers().schedulePostExecution(this);
-      hub.defers().schedulePostTransaction(this);
+      hub.defers().scheduleForPostExecution(this);
+      hub.defers().scheduleForPostTransaction(this);
       mmuCall = MmuCall.sha3(hub);
     }
   }

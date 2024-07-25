@@ -69,12 +69,12 @@ public class DeferRegistry
   }
 
   /** Schedule an action to be executed after the completion of the current opcode. */
-  public void schedulePostExecution(PostExecDefer defer) {
+  public void scheduleForPostExecution(PostExecDefer defer) {
     this.postExecDefers.add(defer);
   }
 
   /** Schedule an action to be executed at the exit of a given context. */
-  public void scheduleContextExit(ContextExitDefer defer, Integer callFrameId) {
+  public void scheduleForContextExit(ContextExitDefer defer, Integer callFrameId) {
     if (!contextExitDefers.containsKey(callFrameId)) {
       contextExitDefers.put(callFrameId, new ArrayList<>());
     }
@@ -82,12 +82,12 @@ public class DeferRegistry
   }
 
   /** Schedule an action to be executed at the end of the current transaction. */
-  public void schedulePostTransaction(PostTransactionDefer defer) {
+  public void scheduleForPostTransaction(PostTransactionDefer defer) {
     this.postTransactionDefers.add(defer);
   }
 
   /** Schedule an action to be executed at the end of the current transaction. */
-  public void schedulePostConflation(PostConflationDefer defer) {
+  public void scheduleForPostConflation(PostConflationDefer defer) {
     this.postConflationDefers.add(defer);
   }
 
@@ -192,7 +192,7 @@ public class DeferRegistry
     hub.defers().rollbackDefers.get(currentCallFrame).clear();
 
     // recursively roll back child call frames
-    CallStack callStack = hub.callStack();
+    final CallStack callStack = hub.callStack();
     currentCallFrame.childFrames().stream()
         .map(callStack::getById)
         .forEach(childCallFrame -> resolvePostRollback(hub, messageFrame, childCallFrame));
@@ -207,5 +207,13 @@ public class DeferRegistry
   }
 
   @Override
-  public void resolveUponExitingContext(Hub hub, CallFrame frame) {}
+  public void resolveUponExitingContext(Hub hub, CallFrame callFrame) {
+    final Integer frameId = callFrame.id();
+    if (contextExitDefers.containsKey(frameId)) {
+      for (ContextExitDefer defers : contextExitDefers.get(frameId)) {
+        defers.resolveUponExitingContext(hub, callFrame);
+      }
+      contextExitDefers.remove(frameId);
+    }
+  }
 }

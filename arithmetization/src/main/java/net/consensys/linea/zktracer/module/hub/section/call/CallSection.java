@@ -148,9 +148,9 @@ public class CallSection extends TraceSection
     final boolean aborts = hub.pch().abortingConditions().any();
     Preconditions.checkArgument(oobCall.isAbortingCondition() == aborts);
 
-    hub.defers().schedulePostExecution(this);
+    hub.defers().scheduleForPostExecution(this);
     hub.defers().scheduleForPostRollback(this, hub.currentFrame());
-    hub.defers().schedulePostTransaction(this);
+    hub.defers().scheduleForPostTransaction(this);
 
     if (aborts) {
       this.abortingCall(hub);
@@ -158,7 +158,7 @@ public class CallSection extends TraceSection
     }
 
     // The CALL is now unexceptional and un-aborted
-    hub.defers().scheduleContextExit(this, hub.currentFrame().id());
+    hub.defers().scheduleForContextExit(this, hub.currentFrame().id());
     hub.defers().scheduleForContextReEntry(this, hub.currentFrame());
     final WorldUpdater world = hub.messageFrame().getWorldUpdater();
 
@@ -388,7 +388,5 @@ public class CallSection extends TraceSection
   }
 
   @Override
-  public void resolveUponExitingContext(Hub hub, CallFrame frame) {
-
-  }
+  public void resolveUponExitingContext(Hub hub, CallFrame frame) {}
 }

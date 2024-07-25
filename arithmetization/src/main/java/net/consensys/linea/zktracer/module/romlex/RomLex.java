@@ -155,14 +155,14 @@ public class RomLex implements Module, PostExecDefer {
   public void callRomLex(final MessageFrame frame) {
     switch (OpCode.of(frame.getCurrentOperation().getOpcode())) {
       case CREATE -> {
-        hub.defers().schedulePostExecution(this);
+        hub.defers().scheduleForPostExecution(this);
         this.byteCode = this.hub.transients().op().callData();
         if (!this.byteCode.isEmpty()) {
           this.address = getCreateAddress(frame);
         }
       }
       case CREATE2 -> {
-        hub.defers().schedulePostExecution(this);
+        hub.defers().scheduleForPostExecution(this);
         this.byteCode = this.hub.transients().op().callData();
         if (!this.byteCode.isEmpty()) {
           this.address = getCreate2Address(frame);

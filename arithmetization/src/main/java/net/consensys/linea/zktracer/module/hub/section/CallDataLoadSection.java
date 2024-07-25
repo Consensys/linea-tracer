@@ -71,7 +71,7 @@ public class CallDataLoadSection extends TraceSection implements PostTransaction
     final ContextFragment context = readCurrentContextData(hub);
     this.addFragment(context);
 
-    hub.defers().schedulePostTransaction(this);
+    hub.defers().scheduleForPostTransaction(this);
   }
 
   @Override

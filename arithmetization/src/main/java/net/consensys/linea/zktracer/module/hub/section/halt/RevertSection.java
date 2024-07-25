@@ -58,7 +58,7 @@ public class RevertSection extends TraceSection implements PostTransactionDefer 
 
     if (triggerMmu) {
       mmuCall = MmuCall.revert(hub);
-      hub.defers().schedulePostTransaction(this);
+      hub.defers().scheduleForPostTransaction(this);
     }
 
     // The XAHOY case

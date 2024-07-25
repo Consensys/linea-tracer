@@ -78,8 +78,8 @@ public class NoCodeCallSection extends TraceSection
             hub, precompileInvocation, this.callerCallFrame.id(), this.calledCallFrameId);
     this.addStack(hub);
 
-    hub.defers().schedulePostExecution(this);
-    hub.defers().schedulePostTransaction(this);
+    hub.defers().scheduleForPostExecution(this);
+    hub.defers().scheduleForPostTransaction(this);
     hub.defers().scheduleForContextReEntry(this, hub.currentFrame());
   }
 

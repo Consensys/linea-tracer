@@ -158,7 +158,7 @@ public class SelfdestructSection extends TraceSection
     }
 
     hub.defers().scheduleForPostRollback(this, hub.currentFrame());
-    hub.defers().schedulePostTransaction(this);
+    hub.defers().scheduleForPostTransaction(this);
 
     // Modify the current account and the recipient account
     // - The current account has its balance reduced to 0 (i+2)

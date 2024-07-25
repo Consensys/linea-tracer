@@ -48,7 +48,7 @@ public class StopSection extends TraceSection implements PostRollbackDefer, Post
     // 5 = 1 + max_NON_STACK_ROWS in deployment case
     super(hub, hub.callStack().current().isMessageCall() ? (short) 3 : (short) 5);
     hub.addTraceSection(this);
-    hub.defers().schedulePostTransaction(this); // always
+    hub.defers().scheduleForPostTransaction(this); // always
 
     hubStamp = hub.stamp();
     address = hub.currentFrame().accountAddress();

@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.google.common.base.Preconditions;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 
@@ -167,5 +168,12 @@ public class Conversions {
     final Bytes inputBytes = bigIntegerToBytes(input);
     final Bytes lowBytes = inputBytes.slice(inputBytes.size() - LLARGE, LLARGE);
     return lowBytes.toUnsignedBigInteger();
+  }
+
+  public static boolean bytesToBoolean(final Bytes input) {
+    final int bitLength = input.bitLength();
+    Preconditions.checkArgument(
+        bitLength == 0 || bitLength == 1, String.format("Can't convert %s to boolean", input));
+    return bitLength == 1;
   }
 }

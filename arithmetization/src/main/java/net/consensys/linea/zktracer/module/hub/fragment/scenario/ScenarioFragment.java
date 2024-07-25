@@ -201,12 +201,16 @@ public class ScenarioFragment implements TraceFragment, PostTransactionDefer {
     this.fillPostCallInformation(hub);
   }
 
+  // TODO: should disappear
   @Override
   public Trace trace(Trace trace) {
     return trace
         .peekAtScenario(true)
         .pScenarioCallException(type.isCall() && raisedException)
-        .pScenarioCallAbort(type.isCall() && hasAborted)
+        .pScenarioCallAbortWontRevert(
+            type.isCall() && hasAborted) // TODO: this is false but will disappear
+        .pScenarioCallAbortWillRevert(
+            type.isCall() && hasAborted) // TODO: this is false but will disappear
         .pScenarioCallPrcFailure(
             type.isCall()
                 && !hasAborted

@@ -697,7 +697,7 @@ public class EcDataOperation extends ModuleOperation {
                   && overallTrivialPairing.get(
                       i)) // && conditions necessary because default value is true
           .g2MembershipTestRequired(g2MembershipTestRequired)
-          .acceptablePairOfPointForPairingCircuit(acceptablePairOfPointsForPairingCircuit)
+          .acceptablePairOfPointsForPairingCircuit(acceptablePairOfPointsForPairingCircuit)
           .circuitSelectorEcrecover(circuitSelectorEcrecover)
           .circuitSelectorEcadd(circuitSelectorEcadd)
           .circuitSelectorEcmul(circuitSelectorEcmul)

@@ -80,10 +80,9 @@ public class NoCodeCallSection extends TraceSection
 
     hub.defers().schedulePostExecution(this);
     hub.defers().schedulePostTransaction(this);
-    hub.defers().scheduleForContextReEntry(this);
+    hub.defers().scheduleForContextReEntry(this, hub.currentFrame());
   }
 
-  @Override
   public void resolveAtContextReEntry(Hub hub, MessageFrame frame) {
     // The precompile lines will read the return data, so they need to be added after re-entry.
     this.maybePrecompileLines =

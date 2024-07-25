@@ -693,6 +693,8 @@ public class Hub implements Module {
         new TxFinalizationSection(this, frame.getWorldUpdater());
       }
     }
+
+    this.defers.resolveUponExitingContext(this, this.currentFrame());
   }
 
   public void tracePreExecution(final MessageFrame frame) {

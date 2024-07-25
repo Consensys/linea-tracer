@@ -77,17 +77,21 @@ public class CallSection extends TraceSection
   private AccountSnapshot postOpcodeCalleeSnapshot;
 
   // Just before re-entry
-  private AccountSnapshot preReEntryCallerSnapshot;
-  private AccountSnapshot preReEntryCalleeSnapshot;
+  private AccountSnapshot childContextExitCallerSnapshot;
+  private AccountSnapshot childContextExitCalleeSnapshot;
 
   // Just after re-entry
-  private AccountSnapshot postReEntryCallerSnapshot;
-  private AccountSnapshot postReEntryCalleeSnapshot;
+  private AccountSnapshot reEntryCallerSnapshot;
+  private AccountSnapshot reEntryCalleeSnapshot;
 
   private boolean isSelfCall;
   private boolean callCanTransferValue;
 
   private Wei value;
+
+  // The successBit will only be set
+  // if the call is acted upon i.e. if the call is un-exceptional and un-aborted
+  private boolean successBit;
 
   public CallSection(Hub hub) {
     super(hub, maxNumberOfLines(hub));
@@ -158,7 +162,7 @@ public class CallSection extends TraceSection
     }
 
     // The CALL is now unexceptional and un-aborted
-    hub.defers().scheduleForContextExit(this, hub.currentFrame().id());
+    hub.defers().scheduleForContextExit(this, hub.callStack().futureId());
     hub.defers().scheduleForContextReEntry(this, hub.currentFrame());
     final WorldUpdater world = hub.messageFrame().getWorldUpdater();
 
@@ -332,34 +336,32 @@ public class CallSection extends TraceSection
 
   @Override
   public void resolveAtContextReEntry(Hub hub, CallFrame frame) {
+    // TODO: what follows assumes that the caller's stack has been updated
+    //  to contain the success bit of the call at traceContextReEntry.
+    //  See issue #872.
+    successBit = bytesToBoolean(hub.messageFrame().getStackItem(0));
     switch (this.scenarioFragment.getScenario()) {
-      case CALL_SMC_UNDEFINED -> {
-        // TODO: what follows assumes that the caller's stack has been updated
-        //  to contain the success bit of the call at traceContextReEntry.
-        //  See issue #872.
-        boolean successBit = bytesToBoolean(hub.messageFrame().getStackItem(0));
+      case CALL_PRC_UNDEFINED -> {
         if (successBit) {
+          scenarioFragment.setScenario(CALL_PRC_SUCCESS_WONT_REVERT);
+        } else {
+          scenarioFragment.setScenario(CALL_PRC_FAILURE);
+        }
+      }
+      case CALL_SMC_UNDEFINED -> {
+        if (successBit) {
+          scenarioFragment.setScenario(CALL_SMC_SUCCESS_WONT_REVERT);
           return;
         }
 
         scenarioFragment.setScenario(CALL_SMC_FAILURE_WONT_REVERT);
 
-        preReEntryCallerSnapshot =
-            AccountSnapshot.canonical(hub, preOpcodeCallerSnapshot.address());
-        preReEntryCalleeSnapshot =
-            AccountSnapshot.canonical(hub, preOpcodeCalleeSnapshot.address());
-
-        postReEntryCallerSnapshot =
-            AccountSnapshot.canonical(hub, preOpcodeCallerSnapshot.address());
-        postReEntryCalleeSnapshot =
-            AccountSnapshot.canonical(hub, preOpcodeCalleeSnapshot.address());
+        reEntryCallerSnapshot = AccountSnapshot.canonical(hub, preOpcodeCallerSnapshot.address());
+        reEntryCalleeSnapshot = AccountSnapshot.canonical(hub, preOpcodeCalleeSnapshot.address());
 
         if (isSelfCall && callCanTransferValue) {
-          postReEntryCallerSnapshot.decrementBalance(value);
-          postReEntryCalleeSnapshot.decrementBalance(value);
-        } else {
-          preReEntryCallerSnapshot.decrementBalance(value);
-          preReEntryCalleeSnapshot.incrementBalance(value);
+          childContextExitCallerSnapshot.decrementBalance(value);
+          reEntryCalleeSnapshot.decrementBalance(value);
         }
 
         AccountFragment postReEntryCallerAccountFragment =
@@ -367,7 +369,7 @@ public class CallSection extends TraceSection
                 .accountFragment()
                 .make(
                     postOpcodeCallerSnapshot,
-                    postReEntryCallerSnapshot,
+                    reEntryCallerSnapshot,
                     DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
                         this.hubStamp(), frame.revertStamp(), 2));
 
@@ -376,7 +378,7 @@ public class CallSection extends TraceSection
                 .accountFragment()
                 .make(
                     postOpcodeCalleeSnapshot,
-                    postReEntryCalleeSnapshot,
+                    reEntryCalleeSnapshot,
                     DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
                         this.hubStamp(), frame.revertStamp(), 3));
 
@@ -388,5 +390,13 @@ public class CallSection extends TraceSection
   }
 
   @Override
-  public void resolveUponExitingContext(Hub hub, CallFrame frame) {}
+  public void resolveUponExitingContext(Hub hub, CallFrame frame) {
+    if (!scenarioFragment.getScenario().equals(CALL_SMC_UNDEFINED)) {
+      return;
+    }
+    childContextExitCallerSnapshot =
+        AccountSnapshot.canonical(hub, preOpcodeCallerSnapshot.address());
+    childContextExitCalleeSnapshot =
+        AccountSnapshot.canonical(hub, preOpcodeCalleeSnapshot.address());
+  }
 }

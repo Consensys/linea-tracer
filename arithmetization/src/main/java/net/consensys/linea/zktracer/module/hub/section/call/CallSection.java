@@ -17,11 +17,13 @@ package net.consensys.linea.zktracer.module.hub.section.call;
 
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CallScenarioFragment.CallScenario.*;
 import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
+import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
 
 import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Factories;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.defer.ContextExitDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostExecDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
@@ -38,7 +40,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.scenario.CallScenarioFra
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
-import net.consensys.linea.zktracer.types.Conversions;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
@@ -50,7 +51,11 @@ import org.hyperledger.besu.evm.worldstate.WorldUpdater;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class CallSection extends TraceSection
-    implements PostExecDefer, PostRollbackDefer, PostTransactionDefer, ReEnterContextDefer {
+    implements PostExecDefer,
+        PostRollbackDefer,
+        PostTransactionDefer,
+        ReEnterContextDefer,
+        ContextExitDefer {
 
   // row i+0
   private final CallScenarioFragment scenarioFragment = new CallScenarioFragment();
@@ -152,7 +157,8 @@ public class CallSection extends TraceSection
       return;
     }
 
-    // The CALL is now unexceptional and unaborted
+    // The CALL is now unexceptional and un-aborted
+    hub.defers().scheduleContextExit(this, hub.currentFrame().id());
     hub.defers().scheduleForContextReEntry(this, hub.currentFrame());
     final WorldUpdater world = hub.messageFrame().getWorldUpdater();
 
@@ -331,7 +337,7 @@ public class CallSection extends TraceSection
         // TODO: what follows assumes that the caller's stack has been updated
         //  to contain the success bit of the call at traceContextReEntry.
         //  See issue #872.
-        boolean successBit = Conversions.bytesToBoolean(hub.messageFrame().getStackItem(0));
+        boolean successBit = bytesToBoolean(hub.messageFrame().getStackItem(0));
         if (successBit) {
           return;
         }
@@ -379,5 +385,10 @@ public class CallSection extends TraceSection
       }
       default -> {}
     }
+  }
+
+  @Override
+  public void resolveUponExitingContext(Hub hub, CallFrame frame) {
+
   }
 }

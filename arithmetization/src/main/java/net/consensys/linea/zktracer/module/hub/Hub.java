@@ -511,6 +511,7 @@ public class Hub implements Module {
       boolean isSuccessful,
       List<Log> logs,
       Set<Address> selfDestructs) {
+    // TODO: this.defers.resolvePostRollback(this, ...
     this.txStack
         .current()
         .completeLineaTransaction(
@@ -644,6 +645,8 @@ public class Hub implements Module {
   }
 
   public void traceContextReEnter(MessageFrame frame) {
+    final int latestChildId = this.currentFrame().childFrames().getLast();
+    this.defers.resolvePostRollback(this, frame, this.callStack.getById(latestChildId));
     this.defers.resolveAtContextReEntry(this, this.currentFrame());
     if (this.currentFrame().sectionToUnlatch() != null) {
       this.unlatchStack(frame, this.currentFrame().sectionToUnlatch());
@@ -665,7 +668,6 @@ public class Hub implements Module {
 
       if (contextExceptions.any()) {
         this.callStack.revert(this.state.stamps().hub()); // TODO: Duplicate s?
-        this.defers.resolvePostRollback(this, frame, this.currentFrame());
       }
 
       this.callStack.exit();

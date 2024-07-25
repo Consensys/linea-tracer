@@ -41,6 +41,7 @@ import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.EWord;
+import net.consensys.linea.zktracer.types.MemorySpan;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -84,10 +85,14 @@ public class CallSection extends TraceSection
   private AccountSnapshot reEntryCallerSnapshot;
   private AccountSnapshot reEntryCalleeSnapshot;
 
+  private boolean initialCalleeWarmth;
   private boolean isSelfCall;
   private boolean callCanTransferValue;
 
   private Wei value;
+
+  private MemorySpan returnDataMemorySpan;
+  private int returnDataContextNumber;
 
   // The successBit will only be set
   // if the call is acted upon i.e. if the call is un-exceptional and un-aborted
@@ -323,7 +328,22 @@ public class CallSection extends TraceSection
 
         this.addFragmentsWithoutStack(undoingCallerAccountFragment, undoingCalleeAccountFragment);
       }
-      default -> throw new IllegalArgumentException("What were you thinking ?");
+      case CALL_SMC_FAILURE_WONT_REVERT -> {
+        scenarioFragment.setScenario(CALL_SMC_FAILURE_WILL_REVERT);
+
+        AccountFragment warmthUndoingAccountFragment;
+
+        if (isSelfCall && callCanTransferValue) {
+          // warmthUndoingAccountFragment =
+        }
+      }
+      case CALL_SMC_SUCCESS_WONT_REVERT -> {
+        scenarioFragment.setScenario(CALL_SMC_SUCCESS_WILL_REVERT);
+      }
+      case CALL_PRC_SUCCESS_WONT_REVERT -> {
+        scenarioFragment.setScenario(CALL_PRC_SUCCESS_WILL_REVERT);
+      }
+      default -> throw new IllegalArgumentException("Illegal CALL scenario");
     }
   }
 
@@ -364,7 +384,7 @@ public class CallSection extends TraceSection
           reEntryCalleeSnapshot.decrementBalance(value);
         }
 
-        AccountFragment postReEntryCallerAccountFragment =
+        final AccountFragment postReEntryCallerAccountFragment =
             hub.factories()
                 .accountFragment()
                 .make(
@@ -373,7 +393,7 @@ public class CallSection extends TraceSection
                     DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
                         this.hubStamp(), frame.revertStamp(), 2));
 
-        AccountFragment postReEntryCalleeAccountFragment =
+        final AccountFragment postReEntryCalleeAccountFragment =
             hub.factories()
                 .accountFragment()
                 .make(
@@ -398,5 +418,12 @@ public class CallSection extends TraceSection
         AccountSnapshot.canonical(hub, preOpcodeCallerSnapshot.address());
     childContextExitCalleeSnapshot =
         AccountSnapshot.canonical(hub, preOpcodeCalleeSnapshot.address());
+
+    // TODO: what follows assumes that the caller's stack has been updated
+    //  to contain the success bit of the call at traceContextReEntry.
+    //  See issue #872.
+    returnDataContextNumber = hub.currentFrame().contextNumber();
+    // TODO: when does the callFrame update its output data?
+    returnDataMemorySpan = hub.currentFrame().outputDataSpan();
   }
 }

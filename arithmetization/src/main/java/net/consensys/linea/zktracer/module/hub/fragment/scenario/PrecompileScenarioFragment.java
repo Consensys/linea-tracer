@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,15 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.section.callsOld;
+package net.consensys.linea.zktracer.module.hub.fragment.scenario;
 
-import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
-import net.consensys.linea.zktracer.module.hub.section.TraceSection;
-
-public class FailedCallSection extends TraceSection {
-  public FailedCallSection(Hub hub, TraceFragment... fragments) {
-    super(hub);
-    this.addFragmentsAndStack(hub, fragments);
-  }
+public class PrecompileScenarioFragment {
 }

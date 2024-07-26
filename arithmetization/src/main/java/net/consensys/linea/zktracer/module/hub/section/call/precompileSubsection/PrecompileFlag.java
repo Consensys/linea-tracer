@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,6 +12,17 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+
 package net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection;
 
-public enum PrecompileScenarios {}
+public enum PrecompileFlags {
+  PRC_ECRECOVER,
+  PRC_SHA2_256,
+  PRC_RIPEMD_160,
+  PRC_IDENTITY,
+  PRC_MODEXP,
+  PRC_ECADD,
+  PRC_ECMUL,
+  PRC_ECPAIRING,
+  PRC_BLAKE2F
+}

@@ -63,11 +63,6 @@ public final class AccountFragment
   final int hubStamp;
   final TransactionProcessingMetadata transactionProcessingMetadata;
 
-  // TODO: will be needed to properly compute MARKED_FOR_SELFDESTRUCT
-  //  and to have the correct value of the hub stamp for the subordinate
-  //  stamp of any reverting scenario. @Olivier @Francois @Lorenzo
-  // final int hubStamp;
-
   /**
    * {@link AccountFragment} creation requires access to a {@link DeferRegistry} for post-conflation
    * data gathering, which is provided by this factory.
@@ -176,9 +171,9 @@ public final class AccountFragment
   @Override
   public void resolvePostTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
-    Map<TransactionProcessingMetadata.EphemeralAccount, Integer> effectiveSelfDestructMap =
-        this.transactionProcessingMetadata.getEffectiveSelfDestructMap();
-    TransactionProcessingMetadata.EphemeralAccount ephemeralAccount =
+    final Map<TransactionProcessingMetadata.EphemeralAccount, Integer> effectiveSelfDestructMap =
+        transactionProcessingMetadata.getEffectiveSelfDestructMap();
+    final TransactionProcessingMetadata.EphemeralAccount ephemeralAccount =
         new TransactionProcessingMetadata.EphemeralAccount(
             this.oldState.address(), this.oldState.deploymentNumber());
     if (effectiveSelfDestructMap.containsKey(ephemeralAccount)) {
